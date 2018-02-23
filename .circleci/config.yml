@@ -1,0 +1,8 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: gcr.io/bvdp-saturn-dev/ui
+    steps:
+      - checkout
+      - run: npm install
