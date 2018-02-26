@@ -1,0 +1,19 @@
+runtime: python27
+api_version: 1
+threadsafe: true
+default_expiration: "2m"
+
+handlers:
+- url: /(.*\.(css|eot|gz|html|ico|jpg|jpeg|js|map|png|svg|ttf|woff|woff2))
+  static_files: build/\1
+  upload: build/(.*)
+  secure: always
+- url: /.*
+  static_files: build/index.html
+  upload: build/index.html
+  secure: always
+
+# If a file (relative path under ui/) matches this regex, do not upload it.
+# Skip everything not starting with "build".
+skip_files:
+- ^(?!build).*$
