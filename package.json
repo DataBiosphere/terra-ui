@@ -6,6 +6,7 @@
     "immutability-helper": "^2.6.5",
     "react": "^16.2.0",
     "react-dom": "^16.2.0",
+    "react-google-login": "^3.0.4",
     "react-hyperscript-helpers": "^1.2.0",
     "react-scripts": "1.1.1",
     "to-css": "^1.2.1",
