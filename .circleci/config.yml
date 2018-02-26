@@ -4,15 +4,15 @@ jobs:
     docker:
       - image: gcr.io/bvdp-saturn-dev/ui
     steps:
-      - run: echo $SA_KEY_JSON > circleci-sa.json
-      - run: gcloud auth activate-service-account --key-file=circleci-sa.json
       - checkout
       - restore_cache:
-        key: deps1-{{ .Branch }}-{{ checksum "package.json" }}
+          key: deps1-{{ .Branch }}-{{ checksum "package.json" }}
       - run: npm install
       - save_cache:
-        key: deps1-{{ .Branch }}-{{ checksum "package.json" }}
-        paths:
-          - node_modules
+          key: deps1-{{ .Branch }}-{{ checksum "package.json" }}
+          paths:
+            - node_modules
       - run: npm run build
-      - run: gcloud app deploy --project=bvdp-saturn-dev --promote
+      - run: echo "$SA_KEY_JSON" > circleci-sa.json
+      - run: gcloud auth activate-service-account --key-file=circleci-sa.json
+      - run: gcloud app deploy --project=bvdp-saturn-dev --promote --quiet
