@@ -3,9 +3,9 @@ import { div, h } from 'react-hyperscript-helpers'
 import * as Nav from '../nav'
 
 
-class HeroSearch extends Component {
-
-}
+// class HeroSearch extends Component {
+// 
+// }
 
 class HeroDashboard extends Component {
   render() {
