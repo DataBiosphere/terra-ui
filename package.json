@@ -1,6 +1,6 @@
 {
-  "name": "ecma-react-heroes",
-  "version": "0.1.0",
+  "name": "Saturn-V",
+  "version": "0.0.1",
   "private": true,
   "dependencies": {
     "immutability-helper": "^2.6.5",

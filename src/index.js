@@ -3,6 +3,6 @@ import App from './components/App'
 import registerServiceWorker from './registerServiceWorker'
 
 
-ReactDOM.render(App({ title: 'ecma-react-heroes' }),
+ReactDOM.render(App({ title: 'Saturn V' }),
   document.getElementById('root'))
 registerServiceWorker()
