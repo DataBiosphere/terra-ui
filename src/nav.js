@@ -1,4 +1,5 @@
 import _ from 'underscore'
+import update from 'immutability-helper'
 
 
 let allPathHandlers = {}
@@ -38,9 +39,10 @@ const findMatches = function(windowHash, checkingRedirects) {
       function(x) {
         const [k, handler] = checkingRedirects ? [null, x] : x
         if (handler.regex.test(cleaned)) {
-          handler.key = k
-          handler.makeProps = () => handler.makeProps.apply(_.rest(cleaned.match(handler.regex)))
-          return handler
+          return update(handler, {
+            key: { $set: k },
+            makeProps: { $set: () => handler.makeProps.apply(_.rest(cleaned.match(handler.regex))) }
+          })
         }
       }
     ),
@@ -51,7 +53,7 @@ const findMatches = function(windowHash, checkingRedirects) {
 const findPathHandler = function(windowHash) {
   const matchingHandlers = findMatches(windowHash, false)
   console.assert(matchingHandlers.length <= 1,
-    `Multiple handlers matched path: ${_.map(matchingHandlers, x => x.key)}`)
+    `Multiple handlers matched path: ${_.map(matchingHandlers, x => x)}`)
   return _.first(matchingHandlers)
 }
 

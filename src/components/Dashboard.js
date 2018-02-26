@@ -1,6 +1,6 @@
 import { Component } from 'react'
-import * as Nav from '../nav'
 import { div, h } from 'react-hyperscript-helpers'
+import * as Nav from '../nav'
 
 
 class HeroSearch extends Component {
@@ -9,19 +9,21 @@ class HeroSearch extends Component {
 
 class HeroDashboard extends Component {
   render() {
-    return div()
+    return div({}, 'foo!')
   }
 }
 
-Nav.addNavRoute({
-  exact: true,
-  path: '#/',
-  render: () => Nav.Redirect({ to: '/#dashboard' })
-})
+const addNavPaths = () => {
+  Nav.defRedirect({ regex: /^.{0}$/, makePath: () => 'dashboard' })
+  Nav.defPath(
+    'dashboard',
+    {
+      component: props => h(HeroDashboard, props),
+      regex: /dashboard/,
+      makeProps: () => {},
+      makePath: () => 'dashboard'
+    }
+  )
+}
 
-Nav.addNavRoute({
-  component: HeroDashboard,
-  path: '/#dashboard'
-})
-
-export default props => h(HeroDashboard, props);
+export { HeroDashboard, addNavPaths }
