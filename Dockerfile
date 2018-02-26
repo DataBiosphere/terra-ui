@@ -7,7 +7,7 @@ FROM alpine
 # Build takes approximately 15 minutes.
 #
 
-ENV NODE_VERSION 9.6.1
+ENV NODE_VERSION 8.9.4
 
 RUN addgroup -g 99 node \
     && adduser -u 99 -G node -s /bin/sh -D node \
