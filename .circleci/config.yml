@@ -20,6 +20,7 @@ jobs:
       - persist_to_workspace:
           root: /root/project
           paths:
+            - app.yaml
             - build
   deploy-dev:
     <<: *defaults
