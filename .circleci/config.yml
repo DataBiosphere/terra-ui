@@ -28,7 +28,7 @@ jobs:
     steps:
       - attach_workspace:
           at: /root/project
-      - run: cp config/dev.json build
+      - run: cp config/dev.json build/config.json
       - run: echo "$SA_KEY_JSON" > circleci-sa.json
       - run: gcloud auth activate-service-account --key-file=circleci-sa.json
       - run: gcloud app deploy --project=bvdp-saturn-dev --promote --quiet
@@ -37,7 +37,7 @@ jobs:
     steps:
       - attach_workspace:
           at: /root/project
-      - run: cp config/prod.json build
+      - run: cp config/prod.json build/config.json
       - run: echo "$PROD_SA_KEY_JSON" > circleci-sa.json
       - run: gcloud auth activate-service-account --key-file=circleci-sa.json
       - run: gcloud app deploy --project=bvdp-saturn-prod --promote --quiet
