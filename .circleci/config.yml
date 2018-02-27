@@ -13,6 +13,35 @@ jobs:
           paths:
             - node_modules
       - run: npm run build
+  deploy-dev:
+    docker:
+      - image: gcr.io/bvdp-saturn-dev/ui
+    steps:
       - run: echo "$SA_KEY_JSON" > circleci-sa.json
       - run: gcloud auth activate-service-account --key-file=circleci-sa.json
       - run: gcloud app deploy --project=bvdp-saturn-dev --promote --quiet
+  deploy-prod:
+    docker:
+      - image: gcr.io/bvdp-saturn-dev/ui
+    steps:
+      - run: echo "$PROD_SA_KEY_JSON" > circleci-sa.json
+      - run: gcloud auth activate-service-account --key-file=circleci-sa.json
+      - run: gcloud app deploy --project=bvdp-saturn-prod --promote --quiet
+
+workflows:
+  version: 2
+  build-deploy:
+    jobs:
+      - build
+      - deploy-dev:
+          requires:
+            - build
+          filters:
+            branches:
+              only: dev
+      - deploy-prod:
+          requires:
+            - build
+          filters:
+            branches:
+              only: prod
