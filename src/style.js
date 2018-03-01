@@ -1,6 +1,6 @@
-import _ from 'underscore'
 import { style } from 'react-hyperscript-helpers'
 import toCss from 'to-css'
+import _ from 'underscore'
 
 
 const colors = {
