@@ -5,7 +5,7 @@ import * as utils from './utils'
 const ajax = function(url, options = { headers: {} }) {
   options.headers = update({
       'Content-Type': 'application/json',
-      'Authorization': 'bearer ' + utils.getUser().getAuthResponse().access_token
+      'Authorization': 'bearer ' + utils.getAuthToken()
     },
     { $merge: options.headers })
 
