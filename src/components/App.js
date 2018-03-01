@@ -4,12 +4,14 @@ import { GoogleLogin, GoogleLogout } from 'react-google-login'
 import { a, div, h, h1, h2, nav } from 'react-hyperscript-helpers'
 import * as Nav from '../nav'
 import * as Style from '../style'
+import * as WorkspaceDetails from './workspaces/Details'
 import * as WorkspaceList from './workspaces/List'
 
 
 const initNavPaths = () => {
   Nav.clearPaths()
   WorkspaceList.addNavPaths()
+  WorkspaceDetails.addNavPaths()
 }
 
 /*

@@ -43,7 +43,7 @@ class WorkspaceList extends Component {
               {
                 title: 'Workspace', dataIndex: 'workspace', key: 'workspace',
                 render: ({ namespace, name }) => {
-                  return a({ href: `workspaces/${namespace}/${name}` },
+                  return a({ href: Nav.getLink('workspace', namespace, name) },
                     `${namespace}/${name}`)
                 }
               }
