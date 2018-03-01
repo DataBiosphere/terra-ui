@@ -17,21 +17,24 @@ class WorkspaceList extends Component {
   }
 
   componentWillMount = () => {
-    ajax('https://rawls.dsde-dev.broadinstitute.org/api/workspaces')
-      .then(json =>
-        this.setState({ workspaces: json })
-      )
+    ajax('https://rawls.dsde-dev.broadinstitute.org/api/workspaces').then(json =>
+      this.setState({ workspaces: json })
+    )
   }
 
   render() {
     if (this.state.workspaces) {
-      const filteredWorkspaces = this.state.workspaces
-        .filter(({workspace: {namespace, name}}) => `${namespace}/${name}`.includes(this.state.filter))
-        const listPage = filteredWorkspaces.slice((this.state.pageIndex - 1) * this.state.itemsPerPage,
-          this.state.pageIndex * this.state.itemsPerPage)
+      const filteredWorkspaces = this.state.workspaces.filter(
+        ({ workspace: { namespace, name } }) => `${namespace}/${name}`.includes(this.state.filter))
+      const listPage = filteredWorkspaces.slice((this.state.pageIndex - 1) *
+        this.state.itemsPerPage,
+        this.state.pageIndex * this.state.itemsPerPage)
 
       return h(Fragment, [
-        input({ onChange: e => this.setState({ filter: e.target.value }) }),
+        input({
+          placeholder: 'Filter',
+          onChange: e => this.setState({ filter: e.target.value })
+        }),
         h(Table,
           {
             data: listPage,
@@ -74,10 +77,10 @@ class WorkspaceList extends Component {
 const addNavPaths = () => {
   Nav.defRedirect({ regex: /^.{0}$/, makePath: () => 'workspaces' })
   Nav.defPath(
-    'dashboard',
+    'workspaces',
     {
       component: props => h(WorkspaceList, props),
-      regex: /workspaces/,
+      regex: /workspaces$/,
       makeProps: () => {},
       makePath: () => 'workspaces'
     }

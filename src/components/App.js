@@ -68,13 +68,12 @@ class App extends Component {
       h1({ style: { fontSize: '1.2em', color: '#999', marginBottom: 0 } },
         'Saturn UI'),
       h(GoogleLogout, {
-        onLogoutSuccess: (returned) => {
-          this.setState({ isLoggedIn: false }
-          )
+        onLogoutSuccess: () => {
+          this.setState({ isLoggedIn: false })
         }
       }),
       nav({ style: { paddingTop: 10 } }, [
-        makeNavLink({ href: '#workspaces' }, 'Workspace List'),
+        makeNavLink({ href: Nav.getLink('workspaces') }, 'Workspace List'),
         makeNavLink({ href: '#list' }, 'Heroes')
       ]),
       div({ style: { paddingTop: 10 } }, [
