@@ -59,7 +59,7 @@ class App extends Component {
         label)
     }
 
-    let activeThing
+    let activeThing = null
     if (!isLoaded) {
       activeThing = h2({}, 'Loading heroes...')
     } else if (component) {
@@ -69,7 +69,7 @@ class App extends Component {
 
     return h(Fragment, [
       h1({ style: { fontSize: '1.2em', color: '#999', marginBottom: 0 } },
-        this.props.title),
+        'Saturn UI'),
       h(GoogleLogout, {
         onLogoutSuccess: (returned) => {
           this.setState(prevState =>
@@ -121,4 +121,4 @@ class App extends Component {
   componentWillUnmount() { window.removeEventListener('hashchange', this.hashChangeListener) }
 }
 
-export default props => h(App, props)
+export default () => h(App)
