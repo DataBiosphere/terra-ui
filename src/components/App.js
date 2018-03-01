@@ -4,12 +4,12 @@ import { GoogleLogin, GoogleLogout } from 'react-google-login'
 import { a, div, h, h1, h2, nav } from 'react-hyperscript-helpers'
 import * as Nav from '../nav'
 import * as Style from '../style'
-import * as Dashboard from './Dashboard'
+import * as WorkspaceList from './workspaces/List'
 
 
 const initNavPaths = () => {
   Nav.clearPaths()
-  Dashboard.addNavPaths()
+  WorkspaceList.addNavPaths()
 }
 
 /*
@@ -74,7 +74,7 @@ class App extends Component {
         }
       }),
       nav({ style: { paddingTop: 10 } }, [
-        makeNavLink({ href: '#dashboard' }, 'Dashboard'),
+        makeNavLink({ href: '#workspaces' }, 'Workspace List'),
         makeNavLink({ href: '#list' }, 'Heroes')
       ]),
       div({ style: { paddingTop: 10 } }, [

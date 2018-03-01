@@ -1,9 +1,9 @@
 import Table from 'rc-table'
 import { Component, Fragment } from 'react'
-import { div, h, option, select } from 'react-hyperscript-helpers'
+import { a, div, h, input, option, select } from 'react-hyperscript-helpers'
 import _ from 'underscore'
-import { ajax } from '../ajax'
-import * as Nav from '../nav'
+import { ajax } from '../../ajax'
+import * as Nav from '../../nav'
 
 
 class WorkspaceList extends Component {
@@ -11,7 +11,8 @@ class WorkspaceList extends Component {
     super(props)
     this.state = {
       pageIndex: 1,
-      itemsPerPage: 25
+      itemsPerPage: 25,
+      filter: ''
     }
   }
 
@@ -24,16 +25,24 @@ class WorkspaceList extends Component {
 
   render() {
     if (this.state.workspaces) {
+      const data = this.state.workspaces
+        .filter(({workspace: {namespace, name}}) => `${namespace}/${name}`.includes(this.state.filter))
+        .slice((this.state.pageIndex - 1) * this.state.itemsPerPage,
+          this.state.pageIndex * this.state.itemsPerPage)
+
       return h(Fragment, [
+        input({ onChange: e => this.setState({ filter: e.target.value }) }),
         h(Table,
           {
-            data: this.state.workspaces.slice((this.state.pageIndex - 1) * this.state.itemsPerPage,
-              this.state.pageIndex * this.state.itemsPerPage),
-            rowKey: 'workspace.workspaceId',
+            data: data,
+            rowKey: ({ workspace }) => workspace.workspaceId,
             columns: [
               {
                 title: 'Workspace', dataIndex: 'workspace', key: 'workspace',
-                render: ({ namespace, name }) => `${namespace}/${name}`
+                render: ({ namespace, name }) => {
+                  return a({ href: `workspaces/${namespace}/${name}` },
+                    `${namespace}/${name}`)
+                }
               }
             ]
           }
@@ -63,14 +72,14 @@ class WorkspaceList extends Component {
 }
 
 const addNavPaths = () => {
-  Nav.defRedirect({ regex: /^.{0}$/, makePath: () => 'dashboard' })
+  Nav.defRedirect({ regex: /^.{0}$/, makePath: () => 'workspaces' })
   Nav.defPath(
     'dashboard',
     {
       component: props => h(WorkspaceList, props),
-      regex: /dashboard/,
+      regex: /workspaces/,
       makeProps: () => {},
-      makePath: () => 'dashboard'
+      makePath: () => 'workspaces'
     }
   )
 }
