@@ -1,11 +1,10 @@
-import _ from 'underscore'
 import update from 'immutability-helper'
 import { Component, Fragment } from 'react'
 import { GoogleLogin, GoogleLogout } from 'react-google-login'
 import { a, div, h, h1, h2, nav } from 'react-hyperscript-helpers'
-import * as Dashboard from './Dashboard'
 import * as Nav from '../nav'
 import * as Style from '../style'
+import * as Dashboard from './Dashboard'
 
 
 const initNavPaths = () => {
@@ -24,12 +23,10 @@ class App extends Component {
 
   handleHashChange = () => {
     if (!Nav.executeRedirects(window.location.hash)) {
-      this.setState(prevState =>
-        update(prevState,
-          {
-            windowHash: { $set: window.location.hash },
-            isLoaded: { $set: true } // FIXME: move when loading for real...
-          })
+      this.setState({
+          windowHash: window.location.hash,
+          isLoaded: true  // FIXME: move when loading for real...
+        }
       )
     }
   }
@@ -45,7 +42,7 @@ class App extends Component {
 
     const makeNavLink = function(props, label) {
       return Style.addHoverStyle(a,
-        _.extend(
+        update(
           {
             style: {
               display: 'inline-block',
@@ -55,7 +52,7 @@ class App extends Component {
             },
             hoverStyle: { color: '#039be5', backgroundColor: Style.colors.lightBluish }
           },
-          props),
+          { $merge: props }),
         label)
     }
 
@@ -72,10 +69,7 @@ class App extends Component {
         'Saturn UI'),
       h(GoogleLogout, {
         onLogoutSuccess: (returned) => {
-          this.setState(prevState =>
-            update(prevState, {
-              isLoggedIn: { $set: false }
-            })
+          this.setState({ isLoggedIn: false }
           )
         }
       }),
@@ -97,10 +91,10 @@ class App extends Component {
       return h(GoogleLogin, {
         clientId: '500025638838-s2v23ar3spugtd5t2v1vgfa2sp7ppg0d.apps.googleusercontent.com',
         onSuccess: (returned) => {
-          this.setState(prevState =>
-            update(prevState, {
-              isLoggedIn: { $set: true }
-            })
+          this.setState({
+              isLoggedIn: true,
+              userProfile: returned
+            }
           )
         },
         onFailure: function(message) {

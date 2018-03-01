@@ -4,6 +4,7 @@
   "private": true,
   "dependencies": {
     "immutability-helper": "^2.6.5",
+    "rc-table": "^6.1.6",
     "react": "^16.2.0",
     "react-app-rewire-hot-loader": "^1.0.0",
     "react-app-rewired": "^1.4.1",
