@@ -21,3 +21,9 @@ yarn-debug.log*
 yarn-error.log*
 
 .idea/
+
+#
+# Additions beyond the default react-create-app .gitignore file.
+#
+
+/public/config.json
