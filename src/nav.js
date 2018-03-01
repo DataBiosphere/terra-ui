@@ -41,7 +41,7 @@ const findMatches = function(windowHash, checkingRedirects) {
         if (handler.regex.test(cleaned)) {
           return update(handler, {
             key: { $set: k },
-            makeProps: { $set: () => handler.makeProps.apply(null, _.rest(cleaned.match(handler.regex))) }
+            makeProps: { $set: () => handler.makeProps.apply(this, _.rest(cleaned.match(handler.regex))) }
           })
         }
       }
