@@ -27,14 +27,14 @@ class WorkspaceList extends Component {
     if (this.state.workspaces) {
       const filteredWorkspaces = this.state.workspaces
         .filter(({workspace: {namespace, name}}) => `${namespace}/${name}`.includes(this.state.filter))
-        const workspacesPage = filteredWorkspaces.slice((this.state.pageIndex - 1) * this.state.itemsPerPage,
+        const listPage = filteredWorkspaces.slice((this.state.pageIndex - 1) * this.state.itemsPerPage,
           this.state.pageIndex * this.state.itemsPerPage)
 
       return h(Fragment, [
         input({ onChange: e => this.setState({ filter: e.target.value }) }),
         h(Table,
           {
-            data: workspacesPage,
+            data: listPage,
             rowKey: ({ workspace }) => workspace.workspaceId,
             columns: [
               {
