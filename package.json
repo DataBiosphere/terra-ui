@@ -17,9 +17,9 @@
     "underscore": "^1.8.3"
   },
   "scripts": {
-    "prestart": "cd public && ln -snf ../config/dev.json config.json",
     "start": "react-app-rewired start",
     "build": "react-app-rewired build",
+    "postbuild": "rm build/config.json",
     "test": "react-app-rewired test --env=jsdom",
     "eject": "react-app-rewired eject"
   }
