@@ -17,7 +17,7 @@ class WorkspaceList extends Component {
   }
 
   componentWillMount = () => {
-    ajax('https://rawls501.dsde-dev.broadinstitute.org/api/workspaces').then(json =>
+    ajax('https://rawls.dsde-dev.broadinstitute.org/api/workspaces').then(json =>
       this.setState({ workspaces: json })
     )
   }
