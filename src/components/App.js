@@ -66,7 +66,7 @@ class App extends Component {
       a({
         style: { float: 'right' },
         href: windowHash,
-        onClick: () => {Utils.getAuthInstance().signOut()}
+        onClick: Utils.getAuthInstance().signOut
       }, 'Sign out'),
       h1({ style: { fontSize: '1.2em', color: '#999', marginBottom: 0 } },
         'Saturn UI'),

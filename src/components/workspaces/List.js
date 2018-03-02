@@ -124,7 +124,7 @@ const addNavPaths = () => {
     {
       component: props => h(WorkspaceList, props),
       regex: /workspaces$/,
-      makeProps: () => {},
+      makeProps: () => ({}),
       makePath: () => 'workspaces'
     }
   )
