@@ -66,6 +66,11 @@ class App extends Component {
 
 
     return h(Fragment, [
+      a({
+        style: { float: 'right' },
+        href: windowHash,
+        onClick: () => {Utils.getAuthInstance().signOut()}
+      }, 'Sign out'),
       h1({ style: { fontSize: '1.2em', color: '#999', marginBottom: 0 } },
         'Saturn UI'),
       nav({ style: { paddingTop: 10 } }, [
