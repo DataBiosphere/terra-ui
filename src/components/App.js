@@ -14,9 +14,6 @@ const initNavPaths = () => {
   WorkspaceDetails.addNavPaths()
 }
 
-/*
-* title - Title of app.
-*/
 class App extends Component {
   constructor(props) {
     super(props)
