@@ -1,9 +1,9 @@
 import update from 'immutability-helper'
 import { Component, Fragment } from 'react'
-import { GoogleLogin, GoogleLogout } from 'react-google-login'
 import { a, div, h, h1, h2, nav } from 'react-hyperscript-helpers'
 import * as Nav from '../nav'
 import * as Style from '../style'
+import * as Utils from '../utils'
 import * as WorkspaceDetails from './workspaces/Details'
 import * as WorkspaceList from './workspaces/List'
 
@@ -26,8 +26,7 @@ class App extends Component {
   handleHashChange = () => {
     if (!Nav.executeRedirects(window.location.hash)) {
       this.setState({
-          windowHash: window.location.hash,
-          isLoaded: true  // FIXME: move when loading for real...
+          windowHash: window.location.hash
         }
       )
     }
@@ -60,7 +59,7 @@ class App extends Component {
 
     let activeThing = null
     if (!isLoaded) {
-      activeThing = h2({}, 'Loading heroes...')
+      activeThing = h2({}, 'Loading stuff...')
     } else if (component) {
       activeThing = component(makeProps())
     }
@@ -69,11 +68,6 @@ class App extends Component {
     return h(Fragment, [
       h1({ style: { fontSize: '1.2em', color: '#999', marginBottom: 0 } },
         'Saturn UI'),
-      h(GoogleLogout, {
-        onLogoutSuccess: () => {
-          this.setState({ isLoggedIn: false })
-        }
-      }),
       nav({ style: { paddingTop: 10 } }, [
         makeNavLink({ href: Nav.getLink('workspaces') }, 'Workspace List'),
         makeNavLink({ href: '#list' }, 'Heroes')
@@ -86,29 +80,33 @@ class App extends Component {
   }
 
   render() {
-    const { isLoggedIn } = this.state
+    const { isSignedIn } = this.state
 
-    if (!isLoggedIn) {
-      return h(GoogleLogin, {
-        clientId: '500025638838-s2v23ar3spugtd5t2v1vgfa2sp7ppg0d.apps.googleusercontent.com',
-        onSuccess: (returned) => {
-          this.setState({
-              isLoggedIn: true,
-              userProfile: returned
-            }
-          )
-        },
-        onFailure: function(message) {
-          console.log(message)
-        }
-      })
-    } else
-      return this.renderSignedIn()
+    return h(Fragment, [
+      div({ id: 'signInButton', style: { display: isSignedIn ? 'none' : 'block' } }),
+      isSignedIn ? this.renderSignedIn() : null])
   }
 
   componentDidMount() {
     this.hashChangeListener = this.handleHashChange
     window.addEventListener('hashchange', this.hashChangeListener)
+    window.gapi.load('auth2', () => {
+      window.gapi.auth2.init(
+        { clientId: '500025638838-s2v23ar3spugtd5t2v1vgfa2sp7ppg0d.apps.googleusercontent.com' })
+        .then(() => {
+          Utils.getAuthInstance().isSignedIn.listen(status => this.setState({ isSignedIn: status }))
+
+          if (Utils.getUser().isSignedIn()) {
+            this.setState({ isSignedIn: true })
+          } else {
+            window.gapi.signin2.render('signInButton', {
+              scope: 'profile email openid https://www.googleapis.com/auth/devstorage.full_control https://www.googleapis.com/auth/compute'
+            })
+          }
+          this.setState({ isLoaded: true })
+        })
+    })
+
   }
 
   componentWillReceiveProps() { initNavPaths() }
