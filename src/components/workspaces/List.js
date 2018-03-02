@@ -57,13 +57,13 @@ class WorkspaceList extends Component {
             button(
               {
                 onClick: () => this.setState(
-                  prev => (update(prev, { cardWidth: { $apply: n => n + 1 } })))
+                  prev => (update(prev, { cardWidth: { $apply: n => _.max([n - 1, 1]) } })))
               },
               '+'),
             button(
               {
                 onClick: () => this.setState(
-                  prev => (update(prev, { cardWidth: { $apply: n => _.max([n - 1, 1]) } })))
+                  prev => (update(prev, { cardWidth: { $apply: n => n + 1 } })))
               },
               '-'),
             div({ style: { display: 'flex', flexWrap: 'wrap' } },
