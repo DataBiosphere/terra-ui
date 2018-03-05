@@ -1,21 +1,19 @@
 import ReactDOM from 'react-dom'
 import { AppContainer } from 'react-hot-loader'
+import { h } from 'react-hyperscript-helpers'
 import App from './components/App'
-import registerServiceWorker from './registerServiceWorker'
 
 
-const render = Component => {
+const renderApp = () => {
   ReactDOM.render(
-    [AppContainer, Component],
+    h(AppContainer, {}, [App()]),
     document.getElementById('root')
   )
 }
 
-render(App())
+renderApp()
 
 // Webpack Hot Module Replacement API
 if (module.hot) {
-  module.hot.accept('./components/App', () => { render(App()) })
+  module.hot.accept('./components/App', renderApp)
 }
-
-registerServiceWorker()
