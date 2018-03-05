@@ -3,7 +3,7 @@ import Table from 'rc-table'
 import { Component, Fragment } from 'react'
 import { a, button, div, h, input, option, select } from 'react-hyperscript-helpers'
 import _ from 'underscore'
-import { ajax } from '../../ajax'
+import * as Ajax from '../../ajax'
 import * as Nav from '../../nav'
 
 
@@ -20,7 +20,7 @@ class WorkspaceList extends Component {
   }
 
   componentWillMount = () => {
-    ajax('https://rawls.dsde-dev.broadinstitute.org/api/workspaces').then(json =>
+    Ajax.rawls('workspaces').then(json =>
       this.setState({ workspaces: json })
     )
   }
