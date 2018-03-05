@@ -12,4 +12,8 @@ const ajax = function(url, options = { headers: {} }) {
   return fetch(url, options).then(response => response.json())
 }
 
-export { ajax }
+const rawls = function(path, options) {
+  return ajax(`https://rawls.dsde-dev.broadinstitute.org/api/${path}`, options)
+}
+
+export { ajax, rawls }

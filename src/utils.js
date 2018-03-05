@@ -1,9 +1,13 @@
+const getAuthInstance = function() {
+  return window.gapi.auth2.getAuthInstance()
+}
+
 const getUser = function() {
-  return window.gapi.auth2.getAuthInstance().currentUser.get()
+  return getAuthInstance().currentUser.get()
 }
 
 const getAuthToken = function() {
-  return getUser().getAuthResponse().access_token
+  return getUser().getAuthResponse(true).access_token
 }
 
-export { getUser, getAuthToken }
+export { getUser, getAuthToken, getAuthInstance }
