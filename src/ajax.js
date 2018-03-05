@@ -1,4 +1,5 @@
 import update from 'immutability-helper'
+import * as Config from './components/config'
 import * as utils from './utils'
 
 
@@ -13,7 +14,7 @@ const ajax = function(url, options = { headers: {} }) {
 }
 
 const rawls = function(path, options) {
-  return ajax(`https://rawls.dsde-dev.broadinstitute.org/api/${path}`, options)
+  return ajax(`${Config.getRawlsUrlRoot()}/api/${path}`, options)
 }
 
 export { ajax, rawls }
