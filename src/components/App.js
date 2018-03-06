@@ -1,6 +1,7 @@
 import update from 'immutability-helper'
 import { Component, Fragment } from 'react'
 import { a, div, h, h1, h2, nav } from 'react-hyperscript-helpers'
+import * as Config from 'src/config'
 import * as Nav from 'src/nav'
 import * as Style from 'src/style'
 import * as Utils from 'src/utils'
@@ -23,14 +24,19 @@ class App extends Component {
   componentWillMount() {
     initNavPaths()
     this.handleHashChange()
+    Config.loadConfig().then(() => this.setState({ configLoaded: true }))
   }
 
   render() {
-    const { isSignedIn } = this.state
+    const { configLoaded, isSignedIn } = this.state
 
     return h(Fragment, [
-      div({ id: 'signInButton', style: { display: isSignedIn ? 'none' : 'block' } }),
-      isSignedIn ? this.renderSignedIn() : null])
+      configLoaded ?
+        div({ id: 'signInButton', style: { display: isSignedIn ? 'none' : 'block' } }) :
+        h2('Loading config...'),
+      isSignedIn ?
+        this.renderSignedIn() :
+        null])
   }
 
   componentDidMount() {
@@ -45,7 +51,7 @@ class App extends Component {
   loadAuth = () => {
     window.gapi.load('auth2', () => {
       window.gapi.auth2.init({
-        clientId: '500025638838-s2v23ar3spugtd5t2v1vgfa2sp7ppg0d.apps.googleusercontent.com'
+        clientId: Config.getGoogleClientId()
       }).then(() => {
         if (Utils.getUser().isSignedIn()) {this.setState({ isSignedIn: true })}
 
