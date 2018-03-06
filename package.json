@@ -20,6 +20,8 @@
     "build": "react-app-rewired build",
     "postbuild": "rm build/config.json",
     "test": "react-app-rewired test --env=jsdom",
-    "eject": "react-app-rewired eject"
+    "eject": "react-app-rewired eject",
+    "circle-build-image": "docker build . -f src-dev/circle/Dockerfile -t gcr.io/bvdp-saturn-dev/ui",
+    "circle-push-image": "gcloud docker -- push gcr.io/bvdp-saturn-dev/ui"
   }
 }
