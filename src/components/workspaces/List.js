@@ -1,8 +1,8 @@
 import { Component } from 'react'
 import { a, h } from 'react-hyperscript-helpers'
 import * as Ajax from 'src/ajax'
-import * as Nav from 'src/nav'
 import DataViewer from 'src/components/DataViewer'
+import * as Nav from 'src/nav'
 
 
 class WorkspaceList extends Component {

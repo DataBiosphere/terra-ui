@@ -1,5 +1,5 @@
-import _ from 'underscore'
 import update from 'immutability-helper'
+import _ from 'underscore'
 
 
 let allPathHandlers = {}

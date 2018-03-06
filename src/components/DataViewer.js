@@ -1,8 +1,8 @@
-import _ from 'underscore'
 import update from 'immutability-helper'
+import { default as RCTable } from 'rc-table'
 import { Component, Fragment } from 'react'
 import { button, div, h, input, option, select } from 'react-hyperscript-helpers'
-import { default as RCTable } from 'rc-table'
+import _ from 'underscore'
 
 /*
 * general props
