@@ -1,5 +1,5 @@
 import { style } from 'react-hyperscript-helpers'
-import toCss from 'to-css'
+import { string as toStyle } from 'to-style'
 import _ from 'underscore'
 
 
@@ -28,11 +28,8 @@ const addHoverStyle = function(element, props, children) {
   cleanedProps['data-hover-style-id'] = hoverId
   const cssString =
     `[data-hover-style-id="${hoverId}"]:hover {
-    ${toCss(props.hoverStyle, {
-      value: function(value) {
-        return value + ' !important'
-      }
-    })}}`
+    ${toStyle(props.hoverStyle).split(';').join(' !important;')} !important
+    }`
 
   return element(cleanedProps, [children, style({}, cssString)])
 }
