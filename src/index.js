@@ -1,7 +1,7 @@
 import ReactDOM from 'react-dom'
 import { AppContainer } from 'react-hot-loader'
 import { h } from 'react-hyperscript-helpers'
-import App from './components/App'
+import App from 'src/components/App'
 
 
 const renderApp = () => {
