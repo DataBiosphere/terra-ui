@@ -1,12 +1,12 @@
 import update from 'immutability-helper'
 import { Component, Fragment } from 'react'
 import { a, div, h, h1, h2, nav } from 'react-hyperscript-helpers'
-import * as Nav from '../nav'
-import * as Style from '../style'
-import * as Utils from '../utils'
-import * as Config from './config'
-import * as WorkspaceDetails from './workspaces/Details'
-import * as WorkspaceList from './workspaces/List'
+import * as WorkspaceDetails from 'src/components/workspaces/Details'
+import * as WorkspaceList from 'src/components/workspaces/List'
+import * as Config from 'src/config'
+import * as Nav from 'src/nav'
+import * as Style from 'src/style'
+import * as Utils from 'src/utils'
 
 
 const initNavPaths = () => {

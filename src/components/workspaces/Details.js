@@ -1,9 +1,9 @@
-import Table from 'rc-table'
+import _ from 'underscore'
 import { Component, Fragment } from 'react'
 import { div, h, h3 } from 'react-hyperscript-helpers'
-import _ from 'underscore'
-import * as Ajax from '../../ajax'
-import * as Nav from '../../nav'
+import * as Ajax from 'src/ajax'
+import * as Nav from 'src/nav'
+import DataViewer from 'src/components/DataViewer'
 
 
 class WorkspaceDetails extends Component {
@@ -46,9 +46,10 @@ class WorkspaceDetails extends Component {
         `${k}s: ${v.count}`)
     )
 
-    const entityTable = h(Table,
-      {
-        data: selectedEntities,
+    const entityTable = DataViewer({
+      allowFilter: false,
+      dataSource: selectedEntities,
+      tableProps: {
         rowKey: 'name',
         columns: !selectedEntities.length ?
           [] :
@@ -59,14 +60,14 @@ class WorkspaceDetails extends Component {
             }
           })
       }
-    )
+    })
 
 
     return h(Fragment, [
       h3({}, `${namespace}/${name}`),
       div({ style: { display: 'flex' } }, [
         div({}, entityTypeList),
-        div({}, selectedEntityType ? [entityTable] : 'Select an entity type.')
+        div({}, [selectedEntityType ? entityTable : 'Select an entity type.'])
       ])
     ])
   }
