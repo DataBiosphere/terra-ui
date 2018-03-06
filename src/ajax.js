@@ -1,5 +1,5 @@
 import update from 'immutability-helper'
-import * as utils from './utils'
+import * as utils from 'src/utils'
 
 
 const ajax = function(url, options = { headers: {} }) {

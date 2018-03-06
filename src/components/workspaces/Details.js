@@ -1,9 +1,9 @@
+import _ from 'underscore'
 import { Component, Fragment } from 'react'
 import { div, h, h3 } from 'react-hyperscript-helpers'
-import _ from 'underscore'
-import * as Ajax from '../../ajax'
-import * as Nav from '../../nav'
-import DataViewer from '../DataViewer'
+import * as Ajax from 'src/ajax'
+import * as Nav from 'src/nav'
+import DataViewer from 'src/components/DataViewer'
 
 
 class WorkspaceDetails extends Component {
