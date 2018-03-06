@@ -24,24 +24,22 @@ class App extends Component {
   componentWillMount() {
     initNavPaths()
     this.handleHashChange()
-    Config.loadConfig().then(() => this.setState({ configLoaded: true }))
+    Config.loadConfig().then(() => this.loadAuth())
   }
 
   render() {
-    const { configLoaded, isSignedIn } = this.state
+    const { isSignedIn } = this.state
 
     return h(Fragment, [
-      configLoaded ?
-        div({ id: 'signInButton', style: { display: isSignedIn ? 'none' : 'block' } }) :
-        h2('Loading config...'),
+      div({ id: 'signInButton', style: { display: isSignedIn ? 'none' : 'block' } }),
       isSignedIn ?
         this.renderSignedIn() :
-        null])
+        null
+    ])
   }
 
   componentDidMount() {
     window.addEventListener('hashchange', this.handleHashChange)
-    this.loadAuth()
   }
 
   componentWillReceiveProps() { initNavPaths() }
@@ -60,7 +58,11 @@ class App extends Component {
           .listen(status => this.setState({ isSignedIn: status }))
 
         window.gapi.signin2.render('signInButton', {
-          scope: 'profile email openid https://www.googleapis.com/auth/devstorage.full_control https://www.googleapis.com/auth/compute'
+          scope: [
+            'profile', 'email', 'openid',
+            'https://www.googleapis.com/auth/devstorage.full_control',
+            'https://www.googleapis.com/auth/compute'
+          ].join(' ')
         })
       })
     })
