@@ -1,12 +1,12 @@
 import update from 'immutability-helper'
 import * as Config from 'src/config'
-import * as utils from 'src/utils'
+import * as Utils from 'src/utils'
 
 
 const ajax = function(url, options = { headers: {} }) {
   options.headers = update({
       'Content-Type': 'application/json',
-      'Authorization': 'bearer ' + utils.getAuthToken()
+      'Authorization': 'bearer ' + Utils.getAuthToken()
     },
     { $merge: options.headers })
 

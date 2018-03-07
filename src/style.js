@@ -11,6 +11,7 @@ const colors = {
   primary: '#5faee0',
   secondary: '#478eba',
   text: '#4a4a4a',
+  textLight: '#bde5ff',
   title: '#224f83'
 }
 
@@ -22,10 +23,10 @@ const elements = {
 }
 
 /**
- * Takes an element, props with a hoverStyle object, and children,
+ * Takes an element, props with a hoverStyle object, and child,
  * and causes those styles to be applied on hover. Returns the new element.
  */
-const addHoverStyle = function(element, props, children) {
+const addHoverStyle = function(element, props, child = null) {
   const hoverId = 'hover-' + Math.random()
   const cleanedProps = _.omit(props, 'hoverStyle')
   cleanedProps['data-hover-style-id'] = hoverId
@@ -37,7 +38,7 @@ const addHoverStyle = function(element, props, children) {
       }
     })}}`
 
-  return element(cleanedProps, [children, style({}, cssString)])
+  return element(cleanedProps, [child, style({}, cssString)])
 }
 
 export { colors, elements, addHoverStyle }
