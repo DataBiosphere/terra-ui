@@ -1,12 +1,20 @@
 import update from 'immutability-helper'
 import { Component, Fragment } from 'react'
-import { a, div, h, h1, h2, nav } from 'react-hyperscript-helpers'
+/* eslint-disable no-unused-vars */
+// noinspection ES6UnusedImports
+import {
+  a, button, code, div, em, h, h1, h2, h3, h4, input, label, li, nav, ol, option, p, select, span,
+  strong, style, textarea, ul
+} from 'react-hyperscript-helpers'
+/* eslint-enable no-unused-vars */
 import * as WorkspaceDetails from 'src/components/workspaces/Details'
 import * as WorkspaceList from 'src/components/workspaces/List'
 import * as Config from 'src/config'
 import * as Nav from 'src/nav'
 import * as Style from 'src/style'
 import * as Utils from 'src/utils'
+import { icon } from 'src/icons'
+import { link, search } from 'src/components/common'
 
 
 const initNavPaths = () => {
@@ -87,20 +95,36 @@ class App extends Component {
               backgroundColor: '#eee', borderRadius: 4,
               textDecoration: 'none'
             },
-            hoverStyle: { color: '#039be5', backgroundColor: Style.colors.lightBluish }
+            hoverStyle: { color: '#039be5' }
           },
           { $merge: props }),
         label)
     }
 
     return h(Fragment, [
-      a({
-        style: { float: 'right' },
-        href: windowHash,
-        onClick: Utils.getAuthInstance().signOut
-      }, 'Sign out'),
-      h1({ style: { fontSize: '1.2em', color: '#999', marginBottom: 0 } },
-        'Saturn UI'),
+      div(
+        {
+          style: {
+            backgroundColor: 'white', height: '4rem', padding: '1rem',
+            display: 'flex', alignItems: 'center'
+          }
+        },
+        [
+          icon('bars',
+            { size: 36, style: { marginRight: '2rem', color: Style.colors.accent } }),
+          span({ style: Style.elements.pageTitle },
+            'Saturn'),
+          div({ style: { marginLeft: '2rem', flexGrow: 1, maxWidth: 500 } }, [
+            search({ placeholder: 'SEARCH BIOSPHERE' })
+          ]),
+          div({ style: { flexGrow: 1 } }),
+          link({
+            href: windowHash,
+            onClick: Utils.getAuthInstance().signOut
+          }, 'Sign out')
+        ]
+      ),
+      div({ style: { backgroundColor: Style.colors.primary, height: '2rem', padding: '1rem' } }),
       nav({ style: { paddingTop: 10 } }, [
         makeNavLink({ href: Nav.getLink('workspaces') }, 'Workspace List'),
         makeNavLink({ href: '#list' }, 'Heroes')

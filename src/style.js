@@ -4,18 +4,21 @@ import _ from 'underscore'
 
 
 const colors = {
-  darkBluish: '#607d8b',
-  lightBluish: '#cfd8dc'
+  accent: '#8b5f95',
+  background: '#e5e5e5',
+  disabled: '#9b9b9b',
+  highlight: '#bfd5e3',
+  primary: '#5faee0',
+  secondary: '#478eba',
+  text: '#4a4a4a',
+  title: '#224f83'
 }
 
 const elements = {
-  h2AndH3: { color: '#444', fontWeight: 'lighter' },
-  button: {
-    color: '#888', backgroundColor: '#eee',
-    border: 'none', borderRadius: 4,
-    padding: '5px 10px',
-    cursor: 'pointer'
-  }
+  button: { color: 'black', fontWeight: 500, textTransform: 'uppercase' },
+  cardTitle: { color: colors.secondary, fontSize: 16, fontWeight: 500 },
+  pageTitle: { color: colors.title, fontSize: 22, fontWeight: 500, textTransform: 'uppercase' },
+  sectionHeader: { color: colors.title, fontSize: 16 }
 }
 
 /**

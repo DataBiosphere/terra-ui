@@ -1,6 +1,7 @@
 import { Component } from 'react'
-import { a, h } from 'react-hyperscript-helpers'
+import { h } from 'react-hyperscript-helpers'
 import * as Ajax from 'src/ajax'
+import { card, link } from 'src/components/common'
 import DataViewer from 'src/components/DataViewer'
 import * as Nav from 'src/nav'
 
@@ -36,23 +37,26 @@ class WorkspaceList extends Component {
             {
               title: 'Workspace', dataIndex: 'workspace', key: 'workspace',
               render: ({ namespace, name }) =>
-                a({ href: Nav.getLink('workspace', namespace, name) },
+                link({ href: Nav.getLink('workspace', namespace, name) },
                   `${namespace}/${name}`)
 
             }
           ]
         },
         renderCard: ({ workspace: { namespace, name } }, cardsPerRow) => {
-          return a({
-            style: {
-              display: 'block',
-              height: 100,
-              width: `${100 / cardsPerRow}%`,
-              border: '1px solid black',
-              boxSizing: 'border-box'
+          return link({
+              href: Nav.getLink('workspace', namespace, name),
+              style: { width: `${100 / cardsPerRow}%` }
             },
-            href: Nav.getLink('workspace', namespace, name)
-          }, `${namespace}/${name}`)
+            [
+              card({
+                style: {
+                  height: 100,
+                  width: '100%',
+                  boxSizing: 'border-box'
+                }
+              }, `${namespace}/${name}`)
+            ])
         }
       })
     } else {

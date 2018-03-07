@@ -19,7 +19,7 @@ import _ from 'underscore'
 *
 * list view
 * =========
-* tableProps:           required when list view is allowed
+* tableProps:           required when list view is allowed, see {@link https://github.com/react-component/table}
 *
 * card view
 * =========
