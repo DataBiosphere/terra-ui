@@ -1,23 +1,20 @@
-import { Component, Fragment } from 'react'
-import { a, div, h } from 'react-hyperscript-helpers'
-import _ from 'underscore'
+import { Component } from 'react'
+import { h } from 'react-hyperscript-helpers'
 import * as Ajax from 'src/ajax'
-import { card, contextBar, link, search, topBar } from 'src/components/common'
-import { breadcrumb, icon } from 'src/icons'
+import { card, link } from 'src/components/common'
+import DataViewer from 'src/components/DataViewer'
 import * as Nav from 'src/nav'
-import * as Style from 'src/style'
-import { DataGrid, DataTable } from 'src/components/table'
 
 
 class WorkspaceList extends Component {
   constructor(props) {
     super(props)
     this.state = {
+      pageIndex: 1,
+      itemsPerPage: 25,
       filter: '',
-      listView: false,
-      itemsPerPage: 12,
-      pageNumber: 1,
-      workspaces: []
+      listView: true,
+      cardWidth: 5
     }
   }
 
@@ -28,96 +25,43 @@ class WorkspaceList extends Component {
   }
 
   render() {
-    const { workspaces, filter, listView, itemsPerPage, pageNumber } = this.state
+    if (this.state.workspaces) {
+      return DataViewer({
+        filterFunction: ({ workspace: { namespace, name } }, filterString) =>
+          `${namespace}/${name}`.includes(filterString),
+        dataSource: this.state.workspaces,
+        allowViewToggle: true,
+        tableProps: {
+          rowKey: ({ workspace }) => workspace.workspaceId,
+          columns: [
+            {
+              title: 'Workspace', dataIndex: 'workspace', key: 'workspace',
+              render: ({ namespace, name }) =>
+                link({ href: Nav.getLink('workspace', namespace, name) },
+                  `${namespace}/${name}`)
 
-    const dataViewerProps = {
-      defaultItemsPerPage: itemsPerPage,
-      itemsPerPageOptions: [12, 24, 36, 48],
-      onItemsPerPageChanged: n => this.setState({ itemsPerPage: n }),
-      initialPage: pageNumber,
-      onPageChanged: n => this.setState({ pageNumber: n }),
-      dataSource: workspaces.filter(({ workspace: { namespace, name } }) =>
-        `${namespace}/${name}`.includes(filter))
+            }
+          ]
+        },
+        renderCard: ({ workspace: { namespace, name } }, cardsPerRow) => {
+          return link({
+              href: Nav.getLink('workspace', namespace, name),
+              style: { width: `${100 / cardsPerRow}%` }
+            },
+            [
+              card({
+                style: {
+                  height: 100,
+                  width: '100%',
+                  boxSizing: 'border-box'
+                }
+              }, `${namespace}/${name}`)
+            ])
+        }
+      })
+    } else {
+      return 'Loading!'
     }
-
-    return h(Fragment, [
-      topBar(
-        search({
-          wrapperProps: { style: { marginLeft: '2rem', flexGrow: 1, maxWidth: 500 } },
-          inputProps: {
-            placeholder: 'SEARCH BIOSPHERE',
-            onChange: e => this.setState({ filter: e.target.value }),
-            value: filter
-          }
-        })
-      ),
-      contextBar({}, [
-        'PROJECTS', breadcrumb(), 'A - Z',
-        div({ style: { flexGrow: 1 } }),
-        icon('grid-view', {
-          style: {
-            cursor: 'pointer', boxShadow: listView ? null : `0 4px 0 ${Style.colors.highlight}`,
-            marginRight: '1rem', width: 26, height: 22
-          },
-          onClick: () => {
-            this.setState({ listView: false })
-          }
-        }),
-        icon('view-list', {
-          style: {
-            cursor: 'pointer', boxShadow: listView ? `0 4px 0 ${Style.colors.highlight}` : null
-          },
-          size: 26,
-          onClick: () => {
-            this.setState({ listView: true })
-          }
-        })
-      ]),
-      div({ style: { margin: '0 auto', maxWidth: 1000 } }, [
-        workspaces.length ?
-          listView ?
-            DataTable(_.extend(dataViewerProps, {
-              tableProps: {
-                rowKey: ({ workspace }) => workspace.workspaceId,
-                columns: [
-                  {
-                    title: 'Workspace', dataIndex: 'workspace', key: 'workspace',
-                    render: ({ namespace, name }) =>
-                      link({ href: Nav.getLink('workspace', namespace, name) },
-                        `${namespace}/${name}`)
-
-                  }
-                ]
-              }
-            })) :
-            DataGrid(_.extend(dataViewerProps, {
-              renderCard: ({ workspace: { namespace, name, createdBy } }, cardsPerRow) => {
-                return a({
-                    href: Nav.getLink('workspace', namespace, name),
-                    style: {
-                      width: `calc(${100 / cardsPerRow}% - 2rem)`, minHeight: 100, margin: '1rem',
-                      textDecoration: 'none'
-                    }
-                  },
-                  [
-                    card({ style: { height: 100 } }, [
-                      div({
-                        style: {
-                          display: 'flex', flexDirection: 'column',
-                          justifyContent: 'space-between',
-                          height: '100%'
-                        }
-                      }, [
-                        div({ style: Style.elements.cardTitle }, `${namespace}/${name}`),
-                        div({ style: { color: Style.colors.text } }, `Created by: ${createdBy}`)
-                      ])
-                    ])
-                  ])
-              }
-            })) :
-          'Loading!'
-      ])
-    ])
   }
 }
 
