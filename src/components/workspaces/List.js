@@ -1,20 +1,20 @@
-import { Component } from 'react'
-import { h } from 'react-hyperscript-helpers'
+import update from 'immutability-helper'
+import { Component, Fragment } from 'react'
+import { a, div, h, span } from 'react-hyperscript-helpers'
 import * as Ajax from 'src/ajax'
-import { card, link } from 'src/components/common'
+import { card, contextBar, link, search, topBar } from 'src/components/common'
 import DataViewer from 'src/components/DataViewer'
+import { icon } from 'src/icons'
 import * as Nav from 'src/nav'
+import * as Style from 'src/style'
 
 
 class WorkspaceList extends Component {
   constructor(props) {
     super(props)
     this.state = {
-      pageIndex: 1,
-      itemsPerPage: 25,
       filter: '',
-      listView: true,
-      cardWidth: 5
+      listView: false
     }
   }
 
@@ -25,43 +25,95 @@ class WorkspaceList extends Component {
   }
 
   render() {
-    if (this.state.workspaces) {
-      return DataViewer({
-        filterFunction: ({ workspace: { namespace, name } }, filterString) =>
-          `${namespace}/${name}`.includes(filterString),
-        dataSource: this.state.workspaces,
-        allowViewToggle: true,
-        tableProps: {
-          rowKey: ({ workspace }) => workspace.workspaceId,
-          columns: [
-            {
-              title: 'Workspace', dataIndex: 'workspace', key: 'workspace',
-              render: ({ namespace, name }) =>
-                link({ href: Nav.getLink('workspace', namespace, name) },
-                  `${namespace}/${name}`)
+    const { workspaces, filter, listView } = this.state
 
-            }
-          ]
-        },
-        renderCard: ({ workspace: { namespace, name } }, cardsPerRow) => {
-          return link({
-              href: Nav.getLink('workspace', namespace, name),
-              style: { width: `${100 / cardsPerRow}%` }
-            },
-            [
-              card({
-                style: {
-                  height: 100,
-                  width: '100%',
-                  boxSizing: 'border-box'
+    return h(Fragment, [
+      topBar(
+        search({
+          wrapperProps: { style: { marginLeft: '2rem', flexGrow: 1, maxWidth: 500 } },
+          inputProps: {
+            placeholder: 'SEARCH BIOSPHERE',
+            onChange: e => this.setState({ filter: e.target.value }),
+            value: filter
+          }
+        })
+      ),
+      contextBar({}, [
+        span({}, 'PROJECTS > A - Z'),
+        div({ style: { flexGrow: 1 } }),
+        icon('grid-view', {
+          style: {
+            cursor: 'pointer', boxShadow: listView ? null : `0 4px 0 ${Style.colors.highlight}`,
+            marginRight: '1rem', width: 26, height: 22
+          },
+          onClick: () => {
+            this.viewer.setViewMode('card')
+            this.setState({ listView: false })
+          }
+        }),
+        icon('view-list', {
+          style: {
+            cursor: 'pointer', boxShadow: listView ? `0 4px 0 ${Style.colors.highlight}` : null
+          },
+          size: 26,
+          onClick: () => {
+            this.viewer.setViewMode('list')
+            this.setState({ listView: true })
+          }
+        })
+      ]),
+      div({ style: { margin: '0 auto', maxWidth: 1000 } }, [
+        workspaces ?
+          DataViewer({
+            ref: r => {this.viewer = r},
+            allowFilter: false,
+            defaultItemsPerPage: 10,
+            dataSource: workspaces.filter(({ workspace: { namespace, name } }) =>
+              `${namespace}/${name}`.includes(filter)),
+            defaultViewMode: 'card',
+            tableProps: {
+              rowKey: ({ workspace }) => workspace.workspaceId,
+              columns: [
+                {
+                  title: 'Workspace', dataIndex: 'workspace', key: 'workspace',
+                  render: ({ namespace, name }) =>
+                    link({ href: Nav.getLink('workspace', namespace, name) },
+                      `${namespace}/${name}`)
+
                 }
-              }, `${namespace}/${name}`)
-            ])
-        }
-      })
-    } else {
-      return 'Loading!'
-    }
+              ]
+            },
+            renderCard: ({ workspace: { namespace, name, createdBy } }, cardsPerRow) => {
+              return a({
+                  href: Nav.getLink('workspace', namespace, name),
+                  style: {
+                    width: `calc(${100 / cardsPerRow}% - 4rem)`, margin: '2rem',
+                    textDecoration: 'none'
+                  }
+                },
+                [
+                  card({ style: { height: 100, width: '100%' } }, [
+                    div({
+                      style: {
+                        display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
+                        height: '100%'
+                      }
+                    }, [
+                      div({
+                        style: update(Style.elements.cardTitle,
+                          { $merge: { wordWrap: 'break-word' } })
+                      }, `${namespace}/${name}`),
+                      div({ style: { color: Style.colors.text } }, `Created by: ${createdBy}`)
+                    ])
+                  ])
+                ]
+              )
+            },
+            defaultCardsPerRow: 3
+          }) :
+          'Loading!'
+      ])
+    ])
   }
 }
 

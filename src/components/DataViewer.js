@@ -4,28 +4,7 @@ import { Component, Fragment } from 'react'
 import { button, div, h, input, option, select } from 'react-hyperscript-helpers'
 import _ from 'underscore'
 
-/*
-* general props
-* =============
-* allowFilter:          true
-* filterFunction:       required when filtering is allowed, takes record and filterString args
-* allowPagination:      true
-* allowItemsPerPage:    true
-* defaultItemsPerPage:  25
-* topBarItems:          null
-* dataSource:           required
-* defaultViewMode:      'list' // or 'card'
-* allowViewToggle:      false
-*
-* list view
-* =========
-* tableProps:           required when list view is allowed, see {@link https://github.com/react-component/table}
-*
-* card view
-* =========
-* renderCard:           required when card view is allowed, takes record and cardsPerRow args
-* defaultCardsPerRow:   5
-* */
+
 class DataViewer extends Component {
   constructor(props) {
     super(props)
@@ -36,6 +15,10 @@ class DataViewer extends Component {
       listView: props.defaultViewMode ? props.defaultViewMode === 'list' : true,
       cardsPerRow: props.defaultCardsPerRow || 5
     }
+  }
+
+  setViewMode(mode) {
+    this.setState({ listView: mode === 'list' })
   }
 
   render() {
@@ -94,20 +77,18 @@ class DataViewer extends Component {
       listView ?
         h(RCTable, update(tableProps, { data: { $set: listPage } })) :
         renderCards(),
-      allowPagination || allowItemsPerPage ?
+      allowPagination ?
         div({ style: { marginTop: 10 } }, [
-          allowPagination ?
-            h(Fragment, [
-              'Page: ',
-              select({
-                  style: { marginRight: '1rem' },
-                  onChange: e => this.setState({ pageIndex: e.target.value }),
-                  value: pageIndex
-                },
-                _.map(_.range(1, filteredData.length / itemsPerPage + 1),
-                  i => option({ value: i }, i)))
-            ]) :
-            null,
+          h(Fragment, [
+            'Page: ',
+            select({
+                style: { marginRight: '1rem' },
+                onChange: e => this.setState({ pageIndex: e.target.value }),
+                value: pageIndex
+              },
+              _.map(_.range(1, filteredData.length / itemsPerPage + 1),
+                i => option({ value: i }, i)))
+          ]),
           allowItemsPerPage ?
             h(Fragment, [
               'Items per page: ',
@@ -123,7 +104,32 @@ class DataViewer extends Component {
         null
     ])
   }
-
 }
 
+/*
+* general props
+* =============
+* allowFilter:          true
+* filterFunction:       required when filtering is allowed, function(record, filterString) => [records]
+* allowPagination:      true
+* allowItemsPerPage:    true
+* defaultItemsPerPage:  25
+* topBarItems:          null
+* dataSource:           required
+* defaultViewMode:      'list' // or 'card'
+* allowViewToggle:      false
+*
+* list view
+* =========
+* tableProps:           required when list view is allowed, see {@link https://github.com/react-component/table}
+*
+* card view
+* =========
+* renderCard:           required when card view is allowed, function(record, cardsPerRow) => renderable
+* defaultCardsPerRow:   5
+*
+* methods
+* =======
+* setViewMode(mode):    'list' or 'card'
+* */
 export default props => h(DataViewer, props)
