@@ -12,4 +12,8 @@ const icon = function(shape, props = {}) {
   return h('clr-icon', mixinDeep({ shape }, props))
 }
 
-export { icon }
+const breadcrumb = function(props = {}) {
+  return icon('angle right', mixinDeep({ size: 10, style: { padding: '0 0.25rem' } }, props))
+}
+
+export { icon, breadcrumb }

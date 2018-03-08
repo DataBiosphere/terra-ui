@@ -2,7 +2,7 @@ import { Component, Fragment } from 'react'
 import { a, div, h } from 'react-hyperscript-helpers'
 import * as Ajax from 'src/ajax'
 import { card, contextBar, link, search, topBar } from 'src/components/common'
-import { icon } from 'src/icons'
+import { breadcrumb, icon } from 'src/icons'
 import * as Nav from 'src/nav'
 import * as Style from 'src/style'
 import { DataGrid, DataTable } from 'src/components/table'
@@ -52,7 +52,7 @@ class WorkspaceList extends Component {
         })
       ),
       contextBar({}, [
-        'PROJECTS > A - Z',
+        'PROJECTS', breadcrumb(), 'A - Z',
         div({ style: { flexGrow: 1 } }),
         icon('grid-view', {
           style: {
