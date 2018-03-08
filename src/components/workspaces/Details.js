@@ -1,6 +1,6 @@
-import _ from 'underscore'
 import { Component, Fragment } from 'react'
 import { div, h, h3 } from 'react-hyperscript-helpers'
+import _ from 'underscore'
 import * as Ajax from 'src/ajax'
 import { DataTable } from 'src/components/table'
 import { topBar } from 'src/components/common'
@@ -70,7 +70,7 @@ class WorkspaceDetails extends Component {
         [
           div({ style: { color: Style.colors.textFaded } },
             ['Projects', breadcrumb()]),
-          div({style:{color: Style.colors.text, fontSize: '1.25rem'}}, `${namespace}/${name}`)
+          div({ style: { color: Style.colors.text, fontSize: '1.25rem' } }, `${namespace}/${name}`)
         ])),
       h3({}, `${namespace}/${name}`),
       div({ style: { display: 'flex' } }, [

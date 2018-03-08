@@ -1,7 +1,7 @@
-import update from 'immutability-helper'
 import mixinDeep from 'mixin-deep'
 import { div, h, input, span } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
+import _ from 'underscore'
 import { icon } from 'src/icons'
 import * as Style from 'src/style'
 import * as Utils from 'src/utils'
@@ -34,14 +34,12 @@ const card = function(props, children) {
 
 const buttonPrimary = function(props, children) {
   return div(mixinDeep({
-      style: update(Style.elements.button,
+      style: _.extend(Style.elements.button,
         {
-          $merge: {
-            padding: '2rem 0.5rem', borderRadius: 5,
-            color: 'white',
-            backgroundColor: props.disabled ? Style.colors.disabled : Style.colors.secondary,
-            cursor: props.disabled ? 'not-allowed' : 'pointer'
-          }
+          padding: '2rem 0.5rem', borderRadius: 5,
+          color: 'white',
+          backgroundColor: props.disabled ? Style.colors.disabled : Style.colors.secondary,
+          cursor: props.disabled ? 'not-allowed' : 'pointer'
         }),
       hoverStyle: Style.colors.disabled ? null : { backgroundColor: Style.colors.primary }
     }, props),
