@@ -1,4 +1,5 @@
 import { Component, Fragment } from 'react'
+import { hot } from 'react-hot-loader'
 /* eslint-disable no-unused-vars */
 // noinspection ES6UnusedImports
 import {
@@ -91,4 +92,4 @@ class App extends Component {
   }
 }
 
-export default () => h(App)
+export default hot(module)(App)
