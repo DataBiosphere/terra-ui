@@ -75,7 +75,7 @@ class DataTableConstructor extends Component {
     const listPage = dataSource.slice((pageNumber - 1) * itemsPerPage, pageNumber * itemsPerPage)
 
     return h(Fragment, [
-      h(RCTable, _.extend(tableProps, { data: listPage })),
+      h(RCTable, _.extend({ data: listPage }, tableProps)),
       allowPagination ?
         div({ style: { marginTop: 10 } }, [
           paginator({

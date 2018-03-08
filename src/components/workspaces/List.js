@@ -76,7 +76,7 @@ class WorkspaceList extends Component {
       div({ style: { margin: '0 auto', maxWidth: 1000 } }, [
         workspaces.length ?
           listView ?
-            DataTable(_.extend(dataViewerProps, {
+            DataTable(_.extend({
               tableProps: {
                 rowKey: ({ workspace }) => workspace.workspaceId,
                 columns: [
@@ -89,8 +89,8 @@ class WorkspaceList extends Component {
                   }
                 ]
               }
-            })) :
-            DataGrid(_.extend(dataViewerProps, {
+            }, dataViewerProps)) :
+            DataGrid(_.extend({
               renderCard: ({ workspace: { namespace, name, createdBy } }, cardsPerRow) => {
                 return a({
                     href: Nav.getLink('workspace', namespace, name),
@@ -114,7 +114,7 @@ class WorkspaceList extends Component {
                     ])
                   ])
               }
-            })) :
+            }, dataViewerProps)) :
           'Loading!'
       ])
     ])

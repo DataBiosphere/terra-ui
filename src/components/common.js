@@ -34,13 +34,12 @@ const card = function(props, children) {
 
 const buttonPrimary = function(props, children) {
   return div(mixinDeep({
-      style: _.extend(Style.elements.button,
-        {
-          padding: '2rem 0.5rem', borderRadius: 5,
-          color: 'white',
-          backgroundColor: props.disabled ? Style.colors.disabled : Style.colors.secondary,
-          cursor: props.disabled ? 'not-allowed' : 'pointer'
-        }),
+      style: _.extend({
+        padding: '2rem 0.5rem', borderRadius: 5,
+        color: 'white',
+        backgroundColor: props.disabled ? Style.colors.disabled : Style.colors.secondary,
+        cursor: props.disabled ? 'not-allowed' : 'pointer'
+      }, Style.elements.button),
       hoverStyle: Style.colors.disabled ? null : { backgroundColor: Style.colors.primary }
     }, props),
     children)
