@@ -84,11 +84,6 @@ class App extends Component {
     const { component, makeProps } = Nav.findPathHandler(windowHash) || {}
 
     return component ? component(makeProps()) : h2('No matching path.')
-
-    // nav({ style: { paddingTop: 10 } }, [
-    //   makeNavLink({ href: Nav.getLink('workspaces') }, 'Workspace List'),
-    //   makeNavLink({ href: '#list' }, 'Heroes')
-    // ]),
   }
 }
 
