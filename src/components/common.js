@@ -1,4 +1,5 @@
 import mixinDeep from 'mixin-deep'
+import { Component } from 'react'
 import { div, h, input, span } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
 import _ from 'underscore'
@@ -61,26 +62,71 @@ const search = function({ wrapperProps = {}, inputProps = {} }) {
     ])
 }
 
-const topBar = function(child) {
-  return div(
-    {
-      style: {
-        backgroundColor: 'white', height: '3rem', padding: '1rem',
-        display: 'flex', alignItems: 'center'
-      }
-    },
-    [
-      icon('bars',
-        { size: 36, style: { marginRight: '2rem', color: Style.colors.accent } }),
-      span({ style: Style.elements.pageTitle },
-        'Saturn'),
-      child,
-      div({ style: { flexGrow: 1 } }),
-      link({
-        onClick: Utils.getAuthInstance().signOut
-      }, 'Sign out')
-    ]
-  )
+const topBar = children => h(TopBarConstructor, children)
+
+class TopBarConstructor extends Component {
+  constructor(props) {
+    super(props)
+    this.state = { navShown: false }
+  }
+
+  render() {
+    const sideNav = div(
+      {
+        style: {
+          display: 'flex', position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, zIndex: 90
+        }
+      },
+      [
+        div({
+          style: {
+            boxShadow: '3px 0 13px 0 rgba(0,0,0,0.3)', width: 200,
+            backgroundColor: Style.colors.primary, color: 'white'
+          }
+        }, [
+          div({
+            style: _.extend({
+                height: '3rem', lineHeight: '3rem', backgroundColor: 'white', padding: '1rem',
+                textAlign: 'center'
+              },
+              Style.elements.pageTitle)
+          }, 'Saturn'),
+          div({
+            style: {
+              padding: '1rem', border: '1px white', borderStyle: 'solid none', color: 'white'
+            }
+          }, [icon('search'),'Find data'])
+        ]),
+        div({
+          style: { flexGrow: 1, cursor: 'pointer' },
+          onClick: () => this.setState({ navShown: false })
+        })
+      ])
+
+    return div(
+      {
+        style: {
+          backgroundColor: 'white', height: '3rem', padding: '1rem',
+          display: 'flex', alignItems: 'center'
+        }
+      },
+      [
+        icon('bars',
+          {
+            size: 36, style: { marginRight: '2rem', color: Style.colors.accent, cursor: 'pointer' },
+            onClick: () => this.setState({ navShown: true })
+          }),
+        span({ style: Style.elements.pageTitle }, 'Saturn'),
+        this.props.children,
+        div({ style: { flexGrow: 1 } }),
+        link({
+          onClick: Utils.getAuthInstance().signOut
+        }, 'Sign out'),
+        this.state.navShown ? sideNav : null
+      ]
+    )
+
+  }
 }
 
 const contextBar = function(props = {}, children = []) {

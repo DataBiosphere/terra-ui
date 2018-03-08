@@ -42,14 +42,16 @@ class WorkspaceList extends Component {
 
     return h(Fragment, [
       topBar(
-        search({
-          wrapperProps: { style: { marginLeft: '2rem', flexGrow: 1, maxWidth: 500 } },
-          inputProps: {
-            placeholder: 'SEARCH BIOSPHERE',
-            onChange: e => this.setState({ filter: e.target.value }),
-            value: filter
-          }
-        })
+        [
+          search({
+            wrapperProps: { style: { marginLeft: '2rem', flexGrow: 1, maxWidth: 500 } },
+            inputProps: {
+              placeholder: 'SEARCH BIOSPHERE',
+              onChange: e => this.setState({ filter: e.target.value }),
+              value: filter
+            }
+          })
+        ]
       ),
       contextBar({}, [
         'PROJECTS', breadcrumb(), 'A - Z',
