@@ -2,11 +2,11 @@ import _ from 'underscore'
 import { Component, Fragment } from 'react'
 import { div, h, h3 } from 'react-hyperscript-helpers'
 import * as Ajax from 'src/ajax'
-import * as Nav from 'src/nav'
 import { DataTable } from 'src/components/table'
 import { topBar } from 'src/components/common'
-import * as Style from 'src/style'
 import { breadcrumb } from 'src/icons'
+import * as Nav from 'src/nav'
+import * as Style from 'src/style'
 
 
 class WorkspaceDetails extends Component {
