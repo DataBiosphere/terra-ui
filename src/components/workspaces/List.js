@@ -1,5 +1,5 @@
 import { Component, Fragment } from 'react'
-import { a, div, h, span } from 'react-hyperscript-helpers'
+import { a, div, h } from 'react-hyperscript-helpers'
 import * as Ajax from 'src/ajax'
 import { card, contextBar, link, search, topBar } from 'src/components/common'
 import { icon } from 'src/icons'
