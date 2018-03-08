@@ -1,5 +1,5 @@
 import { Component, Fragment } from 'react'
-import { div, h, h3 } from 'react-hyperscript-helpers'
+import { a, div, h, h3 } from 'react-hyperscript-helpers'
 import _ from 'underscore'
 import * as Ajax from 'src/ajax'
 import { DataTable } from 'src/components/table'
@@ -68,7 +68,10 @@ class WorkspaceDetails extends Component {
     return h(Fragment, [
       topBar(div({ style: { display: 'flex', flexDirection: 'column', paddingLeft: '4rem' } },
         [
-          div({ style: { color: Style.colors.textFaded } },
+          a({
+              style: { color: Style.colors.textFaded, cursor: 'pointer', textDecoration: 'none' },
+              href: Nav.getLink('workspaces')
+            },
             ['Projects', breadcrumb()]),
           div({ style: { color: Style.colors.text, fontSize: '1.25rem' } }, `${namespace}/${name}`)
         ])),
