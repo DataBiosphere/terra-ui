@@ -3,7 +3,7 @@ import { Component, Fragment } from 'react'
 import { div, h, h3 } from 'react-hyperscript-helpers'
 import * as Ajax from 'src/ajax'
 import * as Nav from 'src/nav'
-import DataViewer from 'src/components/DataViewer'
+import { DataTable } from 'src/components/table'
 
 
 class WorkspaceDetails extends Component {
@@ -46,8 +46,7 @@ class WorkspaceDetails extends Component {
         `${k}s: ${v.count}`)
     )
 
-    const entityTable = DataViewer({
-      allowFilter: false,
+    const entityTable = DataTable({
       dataSource: selectedEntities,
       tableProps: {
         rowKey: 'name',
