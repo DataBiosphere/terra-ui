@@ -14,6 +14,7 @@
     "react-dom": "^16.2.0",
     "react-hot-loader": "^4.0.0",
     "react-hyperscript-helpers": "^1.2.0",
+    "react-interactive": "^0.8.1",
     "react-scripts": "1.1.1",
     "to-css": "^1.2.1",
     "underscore": "^1.8.3"

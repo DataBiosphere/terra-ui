@@ -1,8 +1,8 @@
+import update from 'immutability-helper/index'
+import RCTable from 'rc-table'
 import { Component, Fragment } from 'react'
 import { div, h, option, select } from 'react-hyperscript-helpers'
 import _ from 'underscore'
-import update from 'immutability-helper/index'
-import RCTable from 'rc-table'
 
 /*
 * props

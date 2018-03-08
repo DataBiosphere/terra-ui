@@ -1,8 +1,3 @@
-import { style } from 'react-hyperscript-helpers'
-import toCss from 'to-css'
-import _ from 'underscore'
-
-
 const colors = {
   accent: '#8b5f95',
   background: '#e5e5e5',
@@ -23,23 +18,4 @@ const elements = {
   sectionHeader: { color: colors.title, fontSize: 16 }
 }
 
-/**
- * Takes an element, props with a hoverStyle object, and child,
- * and causes those styles to be applied on hover. Returns the new element.
- */
-const addHoverStyle = function(element, props, child = null) {
-  const hoverId = 'hover-' + Math.random()
-  const cleanedProps = _.omit(props, 'hoverStyle')
-  cleanedProps['data-hover-style-id'] = hoverId
-  const cssString =
-    `[data-hover-style-id="${hoverId}"]:hover {
-    ${toCss(props.hoverStyle, {
-      value: function(value) {
-        return value + ' !important'
-      }
-    })}}`
-
-  return element(cleanedProps, [child, style({}, cssString)])
-}
-
-export { colors, elements, addHoverStyle }
+export { colors, elements }
