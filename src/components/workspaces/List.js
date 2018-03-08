@@ -1,4 +1,3 @@
-import update from 'immutability-helper'
 import { Component, Fragment } from 'react'
 import { a, div, h, span } from 'react-hyperscript-helpers'
 import * as Ajax from 'src/ajax'
@@ -87,22 +86,19 @@ class WorkspaceList extends Component {
               return a({
                   href: Nav.getLink('workspace', namespace, name),
                   style: {
-                    width: `calc(${100 / cardsPerRow}% - 4rem)`, margin: '2rem',
+                    width: `calc(${100 / cardsPerRow}% - 2rem)`, minHeight: 100, margin: '1rem',
                     textDecoration: 'none'
                   }
                 },
                 [
-                  card({ style: { height: 100, width: '100%' } }, [
+                  card({ style: { height: 100 } }, [
                     div({
                       style: {
                         display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
                         height: '100%'
                       }
                     }, [
-                      div({
-                        style: update(Style.elements.cardTitle,
-                          { $merge: { wordWrap: 'break-word' } })
-                      }, `${namespace}/${name}`),
+                      div({ style: Style.elements.cardTitle }, `${namespace}/${name}`),
                       div({ style: { color: Style.colors.text } }, `Created by: ${createdBy}`)
                     ])
                   ])
