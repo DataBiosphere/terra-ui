@@ -1,12 +1,12 @@
 import { Component, Fragment } from 'react'
 import { a, div, h } from 'react-hyperscript-helpers'
+import _ from 'underscore'
 import * as Ajax from 'src/ajax'
 import { card, contextBar, link, search, topBar } from 'src/components/common'
 import { breadcrumb, icon } from 'src/icons'
 import * as Nav from 'src/nav'
 import * as Style from 'src/style'
 import { DataGrid, DataTable } from 'src/components/table'
-import update from 'immutability-helper'
 
 
 class WorkspaceList extends Component {
@@ -76,47 +76,43 @@ class WorkspaceList extends Component {
       div({ style: { margin: '0 auto', maxWidth: 1000 } }, [
         workspaces.length ?
           listView ?
-            DataTable(update(dataViewerProps, {
+            DataTable(_.extend(dataViewerProps, {
               tableProps: {
-                $set: {
-                  rowKey: ({ workspace }) => workspace.workspaceId,
-                  columns: [
-                    {
-                      title: 'Workspace', dataIndex: 'workspace', key: 'workspace',
-                      render: ({ namespace, name }) =>
-                        link({ href: Nav.getLink('workspace', namespace, name) },
-                          `${namespace}/${name}`)
+                rowKey: ({ workspace }) => workspace.workspaceId,
+                columns: [
+                  {
+                    title: 'Workspace', dataIndex: 'workspace', key: 'workspace',
+                    render: ({ namespace, name }) =>
+                      link({ href: Nav.getLink('workspace', namespace, name) },
+                        `${namespace}/${name}`)
 
-                    }
-                  ]
-                }
+                  }
+                ]
               }
             })) :
-            DataGrid(update(dataViewerProps, {
-              renderCard: {
-                $set: ({ workspace: { namespace, name, createdBy } }, cardsPerRow) => {
-                  return a({
-                      href: Nav.getLink('workspace', namespace, name),
-                      style: {
-                        width: `calc(${100 / cardsPerRow}% - 2rem)`, minHeight: 100, margin: '1rem',
-                        textDecoration: 'none'
-                      }
-                    },
-                    [
-                      card({ style: { height: 100 } }, [
-                        div({
-                          style: {
-                            display: 'flex', flexDirection: 'column',
-                            justifyContent: 'space-between',
-                            height: '100%'
-                          }
-                        }, [
-                          div({ style: Style.elements.cardTitle }, `${namespace}/${name}`),
-                          div({ style: { color: Style.colors.text } }, `Created by: ${createdBy}`)
-                        ])
+            DataGrid(_.extend(dataViewerProps, {
+              renderCard: ({ workspace: { namespace, name, createdBy } }, cardsPerRow) => {
+                return a({
+                    href: Nav.getLink('workspace', namespace, name),
+                    style: {
+                      width: `calc(${100 / cardsPerRow}% - 2rem)`, minHeight: 100, margin: '1rem',
+                      textDecoration: 'none'
+                    }
+                  },
+                  [
+                    card({ style: { height: 100 } }, [
+                      div({
+                        style: {
+                          display: 'flex', flexDirection: 'column',
+                          justifyContent: 'space-between',
+                          height: '100%'
+                        }
+                      }, [
+                        div({ style: Style.elements.cardTitle }, `${namespace}/${name}`),
+                        div({ style: { color: Style.colors.text } }, `Created by: ${createdBy}`)
                       ])
                     ])
-                }
+                  ])
               }
             })) :
           'Loading!'

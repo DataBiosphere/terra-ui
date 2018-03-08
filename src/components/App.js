@@ -1,12 +1,6 @@
 import { Component, Fragment } from 'react'
 import { hot } from 'react-hot-loader'
-/* eslint-disable no-unused-vars */
-// noinspection ES6UnusedImports
-import {
-  a, button, code, div, em, h, h1, h2, h3, h4, input, label, li, nav, ol, option, p, select, span,
-  strong, style, textarea, ul
-} from 'react-hyperscript-helpers'
-/* eslint-enable no-unused-vars */
+import { div, h, h2 } from 'react-hyperscript-helpers'
 import * as WorkspaceDetails from 'src/components/workspaces/Details'
 import * as WorkspaceList from 'src/components/workspaces/List'
 import * as Config from 'src/config'
@@ -58,9 +52,7 @@ class App extends Component {
       }).then(() => {
         if (Utils.getUser().isSignedIn()) {this.setState({ isSignedIn: true })}
 
-        Utils.getAuthInstance()
-          .isSignedIn
-          .listen(status => this.setState({ isSignedIn: status }))
+        Utils.getAuthInstance().isSignedIn.listen(status => this.setState({ isSignedIn: status }))
 
         window.gapi.signin2.render('signInButton', {
           scope: [
