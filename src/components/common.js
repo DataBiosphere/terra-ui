@@ -1,21 +1,24 @@
 import update from 'immutability-helper'
-import { a, div, input, span } from 'react-hyperscript-helpers'
 import mixinDeep from 'mixin-deep'
-import * as Style from 'src/style'
+import { div, h, input, span } from 'react-hyperscript-helpers'
+import Interactive from 'react-interactive'
 import { icon } from 'src/icons'
+import * as Style from 'src/style'
 import * as Utils from 'src/utils'
 
 
-const link = function(props, child) {
-  return Style.addHoverStyle(a, mixinDeep({
+const link = function(props, children) {
+  return h(Interactive,
+    mixinDeep({
+      as: 'a',
       style: {
         textDecoration: 'none',
         color: props.disabled ? Style.colors.disabled : Style.colors.secondary,
         cursor: props.disabled ? 'not-allowed' : 'pointer'
       },
-      hoverStyle: props.disabled ? null : { color: Style.colors.primary }
+      hover: props.disabled ? null : { color: Style.colors.primary }
     }, props),
-    child)
+    children)
 }
 
 const card = function(props, children) {
