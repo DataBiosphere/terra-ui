@@ -87,7 +87,7 @@ const contextBar = function(props = {}, children = []) {
   return div(mixinDeep({
       style: {
         display: 'flex', alignItems: 'center', backgroundColor: Style.colors.primary,
-        color: Style.colors.textLight, fontWeight: 500,
+        color: Style.colors.textAlt, fontWeight: 500,
         height: '1.5rem', padding: '1rem'
       }
     }, props),

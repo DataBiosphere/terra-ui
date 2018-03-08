@@ -11,7 +11,8 @@ const colors = {
   primary: '#5faee0',
   secondary: '#478eba',
   text: '#4a4a4a',
-  textLight: '#bde5ff',
+  textFaded: '#a6a6a6',
+  textAlt: '#bde5ff',
   title: '#224f83'
 }
 
