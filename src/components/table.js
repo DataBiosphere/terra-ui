@@ -1,7 +1,8 @@
-import RCTable from 'rc-table'
 import { Component, Fragment } from 'react'
 import { div, h, option, select } from 'react-hyperscript-helpers'
 import _ from 'underscore'
+import update from 'immutability-helper/index'
+import RCTable from 'rc-table'
 
 /*
 * props
@@ -75,7 +76,7 @@ class DataTableConstructor extends Component {
     const listPage = dataSource.slice((pageNumber - 1) * itemsPerPage, pageNumber * itemsPerPage)
 
     return h(Fragment, [
-      h(RCTable, _.extend(tableProps, { data: listPage })),
+      h(RCTable, update(tableProps, { data: { $set: listPage } })),
       allowPagination ?
         div({ style: { marginTop: 10 } }, [
           paginator({
