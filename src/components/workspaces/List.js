@@ -56,7 +56,7 @@ class WorkspaceList extends Component {
       contextBar({}, [
         'PROJECTS', breadcrumb(), 'A - Z',
         div({ style: { flexGrow: 1 } }),
-        icon('grid-view', {
+        icon('view-cards', {
           style: {
             cursor: 'pointer', boxShadow: listView ? null : `0 4px 0 ${Style.colors.highlight}`,
             marginRight: '1rem', width: 26, height: 22

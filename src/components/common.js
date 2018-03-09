@@ -93,9 +93,19 @@ class TopBarConstructor extends Component {
           }, 'Saturn'),
           div({
             style: {
-              padding: '1rem', border: '1px white', borderStyle: 'solid none', color: 'white'
+              padding: '1rem', borderBottom: '1px solid white', color: 'white'
             }
-          }, [icon('search'),'Find data'])
+          }, [icon('search', { style: { margin: '0 1rem 0 1rem' } }), 'Find Data']),
+          div({
+            style: {
+              padding: '1rem', borderBottom: '1px solid white', color: 'white'
+            }
+          }, [icon('search', { style: { margin: '0 1rem 0 1rem' } }), 'Find Code']),
+          div({
+            style: {
+              padding: '1rem', borderBottom: '1px solid white', color: 'white'
+            }
+          }, [icon('search', { style: { margin: '0 1rem 0 1rem' } }), 'Projects'])
         ]),
         div({
           style: { flexGrow: 1, cursor: 'pointer' },
