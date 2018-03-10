@@ -1,5 +1,6 @@
 import mixinDeep from 'mixin-deep'
 import { Component } from 'react'
+import { createPortal } from 'react-dom'
 import { div, h, input, span } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
 import _ from 'underscore'
@@ -72,47 +73,52 @@ class TopBarConstructor extends Component {
   }
 
   render() {
-    const sideNav = div(
-      {
-        style: {
-          display: 'flex', position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, zIndex: 90
-        }
-      },
-      [
-        div({
+    const sideNav = createPortal(
+      div(
+        {
           style: {
-            boxShadow: '3px 0 13px 0 rgba(0,0,0,0.3)', width: 200,
-            backgroundColor: Style.colors.primary, color: 'white'
+            display: 'flex', position: 'absolute', left: 0, right: 0, top: 0, bottom: 0,
+            height: '100%', overflow:'scroll'
           }
-        }, [
-          div({
-            style: _.extend({
-                height: '3rem', lineHeight: '3rem', backgroundColor: 'white', padding: '1rem',
-                textAlign: 'center'
-              },
-              Style.elements.pageTitle)
-          }, 'Saturn'),
+        },
+        [
           div({
             style: {
-              padding: '1rem', borderBottom: '1px solid white', color: 'white'
+              boxShadow: '3px 0 13px 0 rgba(0,0,0,0.3)', width: 200,
+              backgroundColor: Style.colors.primary, color: 'white'
             }
-          }, [icon('search', { style: { margin: '0 1rem 0 1rem' } }), 'Find Data']),
+          }, [
+            div({
+              style: _.extend({
+                  height: '3rem', lineHeight: '3rem', backgroundColor: 'white', padding: '1rem',
+                  textAlign: 'center'
+                },
+                Style.elements.pageTitle)
+            }, 'Saturn'),
+            div({
+              style: {
+                padding: '1rem', borderBottom: '1px solid white', color: 'white'
+              }
+            }, [icon('search', { style: { margin: '0 1rem 0 1rem' } }), 'Find Data']),
+            div({
+              style: {
+                padding: '1rem', borderBottom: '1px solid white', color: 'white'
+              }
+            }, [icon('search', { style: { margin: '0 1rem 0 1rem' } }), 'Find Code']),
+            div({
+              style: {
+                padding: '1rem', borderBottom: '1px solid white', color: 'white'
+              }
+            }, [
+              icon('grid-view', { class: 'is-solid', style: { margin: '0 1rem 0 1rem' } }),
+              'Projects'
+            ])
+          ]),
           div({
-            style: {
-              padding: '1rem', borderBottom: '1px solid white', color: 'white'
-            }
-          }, [icon('search', { style: { margin: '0 1rem 0 1rem' } }), 'Find Code']),
-          div({
-            style: {
-              padding: '1rem', borderBottom: '1px solid white', color: 'white'
-            }
-          }, [icon('search', { style: { margin: '0 1rem 0 1rem' } }), 'Projects'])
-        ]),
-        div({
-          style: { flexGrow: 1, cursor: 'pointer' },
-          onClick: () => this.setState({ navShown: false })
-        })
-      ])
+            style: { flexGrow: 1, cursor: 'pointer' },
+            onClick: () => this.setState({ navShown: false })
+          })
+        ]), document.getElementById('main-menu-container'))
 
     return div(
       {
