@@ -29,7 +29,7 @@ const card = function(props, children) {
       style: {
         borderRadius: 5, padding: '1rem', wordWrap: 'break-word',
         backgroundColor: 'white',
-        boxShadow: '0 0 2px 0 rgba(0,0,0,0.12), 0 3px 2px 0 rgba(0,0,0,0.12)'
+        boxShadow: Style.standardShadow
       }
     }, props),
     children)
