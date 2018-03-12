@@ -19,8 +19,8 @@ const navSeparator = div({
 const tabActiveState = {
   backgroundColor: 'rgba(255,255,255,0.15)',
   color: 'white',
-  lineHeight: 'calc(3.5rem - 8px)',
-  borderBottom: `8px solid ${Style.colors.secondary}`
+  lineHeight: 'calc(3.5rem - 4px)',
+  borderBottom: `4px solid ${Style.colors.secondary}`
 }
 
 const navTab = (name, isActive = false) => {

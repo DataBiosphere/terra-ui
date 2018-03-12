@@ -1,6 +1,6 @@
 import mixinDeep from 'mixin-deep'
 import { Component } from 'react'
-import { div, h } from 'react-hyperscript-helpers'
+import { div, h, table } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
 import _ from 'underscore'
 import { DataTable } from 'src/components/table'
@@ -47,12 +47,14 @@ class WorkspaceData extends Component {
         rowKey: 'name',
         scroll: { x: true },
         components: {
+          table: props => table(mixinDeep({ style: { borderCollapse: 'collapse' } }, props)),
           body: {
-            row: (props) =>{
-              console.log(props)
-              return h(Interactive,
-              mixinDeep({ as: 'tr', hover: { backgroundColor: Style.colors.highlightFaded } },
-                props))}
+            row: props => h(Interactive,
+              mixinDeep({
+                  as: 'tr', style: { cursor: 'unset' },
+                  hover: { backgroundColor: Style.colors.highlightFaded }
+                },
+                props))
           }
         },
         columns: !selectedEntities.length ?
@@ -61,7 +63,7 @@ class WorkspaceData extends Component {
             return {
               title: name,
               key: name,
-              render: entity => div({style:{padding:'0.5rem'}}, entity.attributes[name])
+              render: entity => div({ style: { padding: '0.5rem' } }, entity.attributes[name])
             }
           })
       }
@@ -81,9 +83,9 @@ class WorkspaceData extends Component {
             borderBottom: `1px solid ${Style.colors.background}`
           }
         }, 'Entity Types'),
-        div({}, entityTypeList)
+        div({ style: { marginBottom: '1rem' } }, entityTypeList)
       ]),
-      div({ style: { overflowX: 'auto' } }, [
+      div({ style: { overflowX: 'auto', margin: '1rem' } }, [
         selectedEntityType ?
           _.isEmpty(selectedEntities) ? 'Loading...' : entityTable :
           'Select an entity type.'
