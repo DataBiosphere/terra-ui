@@ -66,15 +66,17 @@ class WorkspaceDetails extends Component {
 
 
     return h(Fragment, [
-      topBar(div({ style: { display: 'flex', flexDirection: 'column', paddingLeft: '4rem' } },
-        [
-          a({
-              style: { color: Style.colors.textFaded, cursor: 'pointer', textDecoration: 'none' },
-              href: Nav.getLink('workspaces')
-            },
-            ['Projects', breadcrumb()]),
-          div({ style: { color: Style.colors.text, fontSize: '1.25rem' } }, `${namespace}/${name}`)
-        ])),
+      topBar([
+        div({ style: { display: 'flex', flexDirection: 'column', paddingLeft: '4rem' } },
+          [
+            a({
+                style: { color: Style.colors.textFaded, cursor: 'pointer', textDecoration: 'none' },
+                href: Nav.getLink('workspaces')
+              },
+              ['Projects', breadcrumb()]),
+            div({ style: { color: Style.colors.text, fontSize: '1.25rem' } },
+              `${namespace}/${name}`)
+          ])]),
       h3({}, `${namespace}/${name}`),
       div({ style: { display: 'flex' } }, [
         div({}, entityTypeList),

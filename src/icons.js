@@ -1,7 +1,7 @@
+import '@webcomponents/custom-elements' // must be before icons
 import '@clr/icons'
 import '@clr/icons/clr-icons.css'
 import '@clr/icons/shapes/essential-shapes'
-import '@webcomponents/custom-elements'
 import mixinDeep from 'mixin-deep'
 import { h } from 'react-hyperscript-helpers'
 
