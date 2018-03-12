@@ -78,16 +78,18 @@ class TopBarConstructor extends Component {
         {
           style: {
             display: 'flex', position: 'absolute', left: 0, right: 0, top: 0, bottom: 0,
-            height: '100%', overflow:'scroll'
+            overflow: 'auto'
           }
         },
         [
           div({
             style: {
               boxShadow: '3px 0 13px 0 rgba(0,0,0,0.3)', width: 200,
-              backgroundColor: Style.colors.primary, color: 'white'
+              backgroundColor: Style.colors.primary,
+              position: 'fixed', height: '100%'
             }
-          }, [
+          }),
+          div({ style: { width: 200, color: 'white', position: 'absolute' } }, [
             div({
               style: _.extend({
                   height: '3rem', lineHeight: '3rem', backgroundColor: 'white', padding: '1rem',
@@ -114,11 +116,16 @@ class TopBarConstructor extends Component {
               'Projects'
             ])
           ]),
-          div({
-            style: { flexGrow: 1, cursor: 'pointer' },
-            onClick: () => this.setState({ navShown: false })
-          })
-        ]), document.getElementById('main-menu-container'))
+            div({
+              style: { flexGrow: 1, cursor: 'pointer' },
+              onClick: () => {
+                this.setState({ navShown: false })
+                document.body.classList.remove('overlayOpen')
+              }
+            })
+        ]),
+      document.getElementById('main-menu-container')
+    )
 
     return div(
       {
@@ -131,7 +138,10 @@ class TopBarConstructor extends Component {
         icon('bars',
           {
             size: 36, style: { marginRight: '2rem', color: Style.colors.accent, cursor: 'pointer' },
-            onClick: () => this.setState({ navShown: true })
+            onClick: () => {
+              this.setState({ navShown: true })
+              document.body.classList.add('overlayOpen')
+            }
           }),
         span({ style: Style.elements.pageTitle }, 'Saturn'),
         this.props.children,
