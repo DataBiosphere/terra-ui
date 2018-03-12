@@ -1,12 +1,13 @@
 import mixinDeep from 'mixin-deep'
 import { Component } from 'react'
 import { createPortal } from 'react-dom'
-import { div, h, input, span } from 'react-hyperscript-helpers'
+import { a, div, h, input, span } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
 import _ from 'underscore'
 import { icon } from 'src/icons'
 import * as Style from 'src/style'
 import * as Utils from 'src/utils'
+import * as Nav from 'src/nav'
 
 
 const link = function(props, children) {
@@ -73,6 +74,11 @@ class TopBarConstructor extends Component {
   }
 
   render() {
+    const hideNav = () => {
+      this.setState({ navShown: false })
+      document.body.classList.remove('overlayOpen')
+    }
+
     const sideNav = createPortal(
       div(
         {
@@ -107,22 +113,22 @@ class TopBarConstructor extends Component {
                 padding: '1rem', borderBottom: '1px solid white', color: 'white'
               }
             }, [icon('search', { style: { margin: '0 1rem 0 1rem' } }), 'Find Code']),
-            div({
+            a({
               style: {
-                padding: '1rem', borderBottom: '1px solid white', color: 'white'
-              }
+                padding: '1rem', borderBottom: '1px solid white', color: 'white',
+                textDecoration: 'none', display: 'block'
+              },
+              href: Nav.getLink('workspaces'),
+              onClick: hideNav
             }, [
               icon('grid-view', { class: 'is-solid', style: { margin: '0 1rem 0 1rem' } }),
               'Projects'
             ])
           ]),
-            div({
-              style: { flexGrow: 1, cursor: 'pointer' },
-              onClick: () => {
-                this.setState({ navShown: false })
-                document.body.classList.remove('overlayOpen')
-              }
-            })
+          div({
+            style: { flexGrow: 1, cursor: 'pointer' },
+            onClick: hideNav
+          })
         ]),
       document.getElementById('main-menu-container')
     )
