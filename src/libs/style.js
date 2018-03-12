@@ -7,8 +7,9 @@ const colors = {
   primary: '#5faee0',
   secondary: '#478eba',
   text: '#4a4a4a',
-  textFaded: '#a6a6a6',
   textAlt: '#bde5ff',
+  textFaded: '#a6a6a6',
+  textFadedLight: '#c5e1f3',
   title: '#224f83'
 }
 

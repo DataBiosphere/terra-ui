@@ -18,7 +18,7 @@ const navSeparator = div({
 
 const tabActiveState = {
   backgroundColor: 'rgba(255,255,255,0.15)',
-  opacity: 1,
+  color: 'white',
   lineHeight: 'calc(3.5rem - 8px)',
   borderBottom: `8px solid ${Style.colors.secondary}`
 }
@@ -26,7 +26,7 @@ const tabActiveState = {
 const navTab = (name, isActive = false) => {
   return h(Fragment, [
     div({
-      style: _.extend({ opacity: 0.65, maxWidth: 140, flexGrow: 1 },
+      style: _.extend({ maxWidth: 140, flexGrow: 1, color: Style.colors.textFadedLight },
         isActive ? tabActiveState : {})
     }, name),
     navSeparator

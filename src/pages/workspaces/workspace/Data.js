@@ -1,5 +1,7 @@
+import mixinDeep from 'mixin-deep'
 import { Component } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
+import Interactive from 'react-interactive'
 import _ from 'underscore'
 import { DataTable } from 'src/components/table'
 import * as Ajax from 'src/libs/ajax'
@@ -33,19 +35,33 @@ class WorkspaceData extends Component {
               this.setState({ selectedEntities: json }))
           }
         },
-        [icon('table',{style:{color:'#757575', marginRight: '0.5rem'}}), `${k} (${v.count})`])
+        [
+          icon('table', { style: { color: '#757575', marginRight: '0.5rem' } }),
+          `${k} (${v.count})`
+        ])
     )
 
     const entityTable = DataTable({
       dataSource: selectedEntities,
       tableProps: {
         rowKey: 'name',
+        scroll: { x: true },
+        components: {
+          body: {
+            row: (props) =>{
+              console.log(props)
+              return h(Interactive,
+              mixinDeep({ as: 'tr', hover: { backgroundColor: Style.colors.highlightFaded } },
+                props))}
+          }
+        },
         columns: !selectedEntities.length ?
           [] :
           _.map(workspaceEntities[selectedEntityType].attributeNames, function(name) {
             return {
               title: name,
-              render: entity => entity.attributes[name]
+              key: name,
+              render: entity => div({style:{padding:'0.5rem'}}, entity.attributes[name])
             }
           })
       }
