@@ -1,8 +1,8 @@
 import { Component, Fragment } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import _ from 'underscore'
-import * as Ajax from 'src/libs/ajax'
 import { DataTable } from 'src/components/table'
+import * as Ajax from 'src/libs/ajax'
 
 
 class WorkspaceData extends Component {

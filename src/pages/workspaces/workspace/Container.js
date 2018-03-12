@@ -1,12 +1,12 @@
 import _ from 'underscore'
 import { Component, Fragment } from 'react'
 import { a, div, h } from 'react-hyperscript-helpers'
-import * as Ajax from 'src/libs/ajax'
 import { topBar } from 'src/components/common'
 import { breadcrumb, icon } from 'src/components/icons'
+import WorkspaceData from 'src/pages/workspaces/workspace/Data'
+import * as Ajax from 'src/libs/ajax'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
-import WorkspaceData from 'src/pages/workspaces/workspace/Data'
 
 
 const navSeparator = div({
