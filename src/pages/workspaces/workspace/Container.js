@@ -1,7 +1,7 @@
 import _ from 'underscore'
 import { Component, Fragment } from 'react'
 import { a, div, h } from 'react-hyperscript-helpers'
-import { topBar } from 'src/components/common'
+import { contextBar, topBar } from 'src/components/common'
 import { breadcrumb, icon } from 'src/components/icons'
 import WorkspaceData from 'src/pages/workspaces/workspace/Data'
 import * as Ajax from 'src/libs/ajax'
@@ -19,7 +19,7 @@ const navSeparator = div({
 const tabActiveState = {
   backgroundColor: 'rgba(255,255,255,0.15)',
   opacity: 1,
-  lineHeight: 'calc(4rem - 8px)',
+  lineHeight: 'calc(3.5rem - 8px)',
   borderBottom: `8px solid ${Style.colors.secondary}`
 }
 
@@ -77,12 +77,10 @@ class WorkspaceContainer extends Component {
               `${namespace}/${name}`)
           ])
       ]),
-      div({
+      contextBar({
         style: {
-          display: 'flex', height: '4rem', paddingLeft: '5rem', textAlign: 'center',
-          backgroundColor: Style.colors.primary, color: 'white', lineHeight: '4rem',
-          textTransform: 'uppercase', alignItems: 'center',
-          borderBottom: `5px solid ${Style.colors.secondary}`
+          paddingLeft: '5rem', borderBottom: `5px solid ${Style.colors.secondary}`,
+          textAlign: 'center', color: 'white', lineHeight: '3.5rem', textTransform: 'uppercase'
         }
       }, [
         navSeparator,

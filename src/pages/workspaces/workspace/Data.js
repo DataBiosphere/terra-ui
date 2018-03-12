@@ -1,4 +1,4 @@
-import { Component, Fragment } from 'react'
+import { Component } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import _ from 'underscore'
 import { DataTable } from 'src/components/table'
@@ -47,11 +47,10 @@ class WorkspaceData extends Component {
     })
 
 
-    return h(Fragment, [
-      div({ style: { display: 'flex' } }, [
-        div({}, entityTypeList),
-        div({}, [selectedEntityType ? entityTable : 'Select an entity type.'])
-      ])
+    return div({ style: { display: 'flex' } }, [
+      div({}, entityTypeList),
+      div({}, [selectedEntityType ? entityTable : 'Select an entity type.'])
+
     ])
   }
 }

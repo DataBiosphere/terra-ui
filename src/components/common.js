@@ -1,7 +1,7 @@
 import mixinDeep from 'mixin-deep'
 import { Component } from 'react'
 import { createPortal } from 'react-dom'
-import { a, div, h, input, span } from 'react-hyperscript-helpers'
+import { a, div, h, input } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
 import _ from 'underscore'
 import { icon } from 'src/components/icons'
@@ -96,12 +96,14 @@ class TopBarConstructor extends Component {
             }
           }),
           div({ style: { width: 200, color: 'white', position: 'absolute' } }, [
-            div({
+            a({
               style: _.extend({
                   height: '3rem', lineHeight: '3rem', backgroundColor: 'white', padding: '1rem',
-                  textAlign: 'center'
+                  textAlign: 'center', display: 'block'
                 },
-                Style.elements.pageTitle)
+                Style.elements.pageTitle),
+              href: Nav.getLink('workspaces'),
+              onClick: hideNav
             }, 'Saturn'),
             div({
               style: {
@@ -149,7 +151,7 @@ class TopBarConstructor extends Component {
               document.body.classList.add('overlayOpen')
             }
           }),
-        span({ style: Style.elements.pageTitle }, 'Saturn'),
+        a({ style: Style.elements.pageTitle, href: Nav.getLink('workspaces') }, 'Saturn'),
         this.props.children,
         div({ style: { flexGrow: 1 } }),
         link({
@@ -167,7 +169,7 @@ const contextBar = function(props = {}, children = []) {
       style: {
         display: 'flex', alignItems: 'center', backgroundColor: Style.colors.primary,
         color: Style.colors.textAlt, fontWeight: 500,
-        height: '1.5rem', padding: '1rem'
+        height: '3.5rem', padding: '0 1rem', lineHeight: '3.5rem'
       }
     }, props),
     children)

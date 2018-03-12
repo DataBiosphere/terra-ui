@@ -14,7 +14,10 @@ const colors = {
 const elements = {
   button: { color: 'black', fontWeight: 500, textTransform: 'uppercase' },
   cardTitle: { color: colors.secondary, fontSize: 16, fontWeight: 500 },
-  pageTitle: { color: colors.title, fontSize: 22, fontWeight: 500, textTransform: 'uppercase' },
+  pageTitle: {
+    color: colors.title, fontSize: 22, fontWeight: 500,
+    textTransform: 'uppercase', textDecoration: 'none'
+  },
   sectionHeader: { color: colors.title, fontSize: 16 }
 }
 
