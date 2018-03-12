@@ -10,13 +10,12 @@ import _ from 'underscore'
 * pageNumber:               required
 * setPageNumber:            required - function(newpageNumber)
 * setItemsPerPage:          hides selector if absent - function(newItemsPerPage)
-* itemsPerPage:             10
-* itemsPerPageOptions:      [10, 25, 50, 100]
+* itemsPerPage:             required
+* itemsPerPageOptions:      required
 */
 const paginator = function({
                              filteredDataLength, pageNumber, setPageNumber, setItemsPerPage,
-                             itemsPerPage = 10,
-                             itemsPerPageOptions = [10, 25, 50, 100]
+                             itemsPerPage, itemsPerPageOptions
                            }) {
   return h(Fragment, [
     'Page: ',
