@@ -1,17 +1,17 @@
 import { Component, Fragment } from 'react'
 import { hot } from 'react-hot-loader'
 import { div, h, h2 } from 'react-hyperscript-helpers'
-import * as WorkspaceDetails from 'src/components/workspaces/Details'
-import * as WorkspaceList from 'src/components/workspaces/List'
-import * as Config from 'src/config'
-import * as Nav from 'src/nav'
-import * as Utils from 'src/utils'
+import * as WorkspaceContainer from 'src/pages/workspaces/workspace/Container'
+import * as WorkspaceList from 'src/pages/workspaces/List'
+import * as Config from 'src/libs/config'
+import * as Nav from 'src/libs/nav'
+import * as Utils from 'src/libs/utils'
 
 
 const initNavPaths = () => {
   Nav.clearPaths()
   WorkspaceList.addNavPaths()
-  WorkspaceDetails.addNavPaths()
+  WorkspaceContainer.addNavPaths()
 }
 
 class App extends Component {

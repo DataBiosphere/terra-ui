@@ -4,10 +4,10 @@ import { createPortal } from 'react-dom'
 import { a, div, h, input, span } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
 import _ from 'underscore'
-import { icon } from 'src/icons'
-import * as Style from 'src/style'
-import * as Utils from 'src/utils'
-import * as Nav from 'src/nav'
+import { icon } from 'src/components/icons'
+import * as Style from 'src/libs/style'
+import * as Utils from 'src/libs/utils'
+import * as Nav from 'src/libs/nav'
 
 
 const link = function(props, children) {
