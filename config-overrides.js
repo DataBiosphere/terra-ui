@@ -4,6 +4,6 @@ const manualOverrides = require('./webpack.config')
 
 /* config-overrides.js */
 module.exports = function override(config, env) {
-  config = rewireReactHotLoader(config, env)
-  return mixinDeep(config, manualOverrides)
+  config = mixinDeep(config, manualOverrides)
+  return rewireReactHotLoader(config, env)
 }
