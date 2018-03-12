@@ -1,6 +1,6 @@
 import ReactDOM from 'react-dom'
 import { h } from 'react-hyperscript-helpers'
-import App from 'src/pages/Main'
+import Main from 'src/pages/Main'
 
 
-ReactDOM.render(h(App), document.getElementById('root'))
+ReactDOM.render(h(Main), document.getElementById('root'))
