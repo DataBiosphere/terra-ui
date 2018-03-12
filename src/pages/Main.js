@@ -4,8 +4,8 @@ import { div, h, h2 } from 'react-hyperscript-helpers'
 import * as Config from 'src/libs/config'
 import * as Nav from 'src/libs/nav'
 import * as Utils from 'src/libs/utils'
-import * as WorkspaceContainer from 'src/pages/workspaces/workspace/Container'
 import * as WorkspaceList from 'src/pages/workspaces/List'
+import * as WorkspaceContainer from 'src/pages/workspaces/workspace/Container'
 
 
 const initNavPaths = () => {

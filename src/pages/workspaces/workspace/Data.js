@@ -3,10 +3,10 @@ import { Component } from 'react'
 import { div, h, table } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
 import _ from 'underscore'
+import { icon } from 'src/components/icons'
 import { DataTable } from 'src/components/table'
 import * as Ajax from 'src/libs/ajax'
 import * as Style from 'src/libs/style'
-import { icon } from 'src/components/icons'
 
 
 class WorkspaceData extends Component {
