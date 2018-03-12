@@ -10,13 +10,12 @@ import _ from 'underscore'
 * pageNumber:               required
 * setPageNumber:            required - function(newpageNumber)
 * setItemsPerPage:          hides selector if absent - function(newItemsPerPage)
-* itemsPerPage:             10
-* itemsPerPageOptions:      [10, 25, 50, 100]
+* itemsPerPage:             required
+* itemsPerPageOptions:      required
 */
 const paginator = function({
                              filteredDataLength, pageNumber, setPageNumber, setItemsPerPage,
-                             itemsPerPage = 10,
-                             itemsPerPageOptions = [10, 25, 50, 100]
+                             itemsPerPage, itemsPerPageOptions
                            }) {
   return h(Fragment, [
     'Page: ',
@@ -75,7 +74,7 @@ class DataTableConstructor extends Component {
     const listPage = dataSource.slice((pageNumber - 1) * itemsPerPage, pageNumber * itemsPerPage)
 
     return h(Fragment, [
-      h(RCTable, _.extend(tableProps, { data: listPage })),
+      h(RCTable, _.extend({ data: listPage }, tableProps)),
       allowPagination ?
         div({ style: { marginTop: 10 } }, [
           paginator({
