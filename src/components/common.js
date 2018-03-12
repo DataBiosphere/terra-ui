@@ -74,9 +74,17 @@ class TopBarConstructor extends Component {
   }
 
   render() {
+    const showNav = () => {
+      this.setState({ navShown: true })
+      document.body.classList.add('overlayOpen')
+      if (document.body.scrollHeight > window.innerHeight) {
+        document.body.classList.add('overHeight')
+      }
+    }
+
     const hideNav = () => {
       this.setState({ navShown: false })
-      document.body.classList.remove('overlayOpen')
+      document.body.classList.remove('overlayOpen', 'overHeight')
     }
 
     const sideNav = createPortal(
@@ -144,10 +152,7 @@ class TopBarConstructor extends Component {
         icon('bars',
           {
             size: 36, style: { marginRight: '2rem', color: Style.colors.accent, cursor: 'pointer' },
-            onClick: () => {
-              this.setState({ navShown: true })
-              document.body.classList.add('overlayOpen')
-            }
+            onClick: showNav
           }),
         span({ style: Style.elements.pageTitle }, 'Saturn'),
         this.props.children,
