@@ -1,13 +1,13 @@
 import mixinDeep from 'mixin-deep'
 import { Component } from 'react'
 import { createPortal } from 'react-dom'
-import { a, div, h, input, span } from 'react-hyperscript-helpers'
+import { a, div, h, input } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
 import _ from 'underscore'
-import { icon } from 'src/icons'
-import * as Style from 'src/style'
-import * as Utils from 'src/utils'
-import * as Nav from 'src/nav'
+import { icon } from 'src/components/icons'
+import * as Nav from 'src/libs/nav'
+import * as Style from 'src/libs/style'
+import * as Utils from 'src/libs/utils'
 
 
 const link = function(props, children) {
@@ -29,7 +29,7 @@ const card = function(props, children) {
       style: {
         borderRadius: 5, padding: '1rem', wordWrap: 'break-word',
         backgroundColor: 'white',
-        boxShadow: '0 0 2px 0 rgba(0,0,0,0.12), 0 3px 2px 0 rgba(0,0,0,0.12)'
+        boxShadow: Style.standardShadow
       }
     }, props),
     children)
@@ -104,12 +104,14 @@ class TopBarConstructor extends Component {
             }
           }),
           div({ style: { width: 200, color: 'white', position: 'absolute' } }, [
-            div({
+            a({
               style: _.extend({
                   height: '3rem', lineHeight: '3rem', backgroundColor: 'white', padding: '1rem',
-                  textAlign: 'center'
+                  textAlign: 'center', display: 'block'
                 },
-                Style.elements.pageTitle)
+                Style.elements.pageTitle),
+              href: Nav.getLink('workspaces'),
+              onClick: hideNav
             }, 'Saturn'),
             div({
               style: {
@@ -154,7 +156,7 @@ class TopBarConstructor extends Component {
             size: 36, style: { marginRight: '2rem', color: Style.colors.accent, cursor: 'pointer' },
             onClick: showNav
           }),
-        span({ style: Style.elements.pageTitle }, 'Saturn'),
+        a({ style: Style.elements.pageTitle, href: Nav.getLink('workspaces') }, 'Saturn'),
         this.props.children,
         div({ style: { flexGrow: 1 } }),
         link({
@@ -172,7 +174,7 @@ const contextBar = function(props = {}, children = []) {
       style: {
         display: 'flex', alignItems: 'center', backgroundColor: Style.colors.primary,
         color: Style.colors.textAlt, fontWeight: 500,
-        height: '1.5rem', padding: '1rem'
+        height: '3.5rem', padding: '0 1rem', lineHeight: '3.5rem'
       }
     }, props),
     children)

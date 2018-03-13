@@ -1,12 +1,12 @@
 import { Component, Fragment } from 'react'
 import { a, div, h } from 'react-hyperscript-helpers'
 import _ from 'underscore'
-import * as Ajax from 'src/ajax'
 import { card, contextBar, link, search, topBar } from 'src/components/common'
-import { breadcrumb, icon } from 'src/icons'
-import * as Nav from 'src/nav'
-import * as Style from 'src/style'
+import { breadcrumb, icon } from 'src/components/icons'
 import { DataGrid, DataTable } from 'src/components/table'
+import * as Ajax from 'src/libs/ajax'
+import * as Nav from 'src/libs/nav'
+import * as Style from 'src/libs/style'
 
 
 class WorkspaceList extends Component {
