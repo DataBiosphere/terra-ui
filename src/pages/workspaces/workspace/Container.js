@@ -1,6 +1,6 @@
+import _ from 'lodash'
 import { Component, Fragment } from 'react'
 import { a, div, h } from 'react-hyperscript-helpers'
-import _ from 'underscore'
 import { contextBar, topBar } from 'src/components/common'
 import { breadcrumb, icon } from 'src/components/icons'
 import * as Ajax from 'src/libs/ajax'
@@ -16,19 +16,18 @@ const navSeparator = div({
   }
 })
 
-const tabActiveState = {
+const tabBaseStyle = { maxWidth: 140, flexGrow: 1, color: Style.colors.textFadedLight }
+
+const tabActiveStyle = _.defaults({
   backgroundColor: 'rgba(255,255,255,0.15)',
-  color: 'white',
+  color: null,
   lineHeight: 'calc(3.5rem - 4px)',
   borderBottom: `4px solid ${Style.colors.secondary}`
-}
+}, tabBaseStyle)
 
 const navTab = (name, isActive = false) => {
   return h(Fragment, [
-    div({
-      style: _.extend({ maxWidth: 140, flexGrow: 1, color: Style.colors.textFadedLight },
-        isActive ? tabActiveState : {})
-    }, name),
+    div({ style: isActive ? tabActiveStyle : tabBaseStyle }, name),
     navSeparator
   ])
 }
@@ -50,14 +49,9 @@ class WorkspaceContainer extends Component {
   componentWillMount() {
     const { namespace, name } = this.props
 
-    Ajax.rawls(`workspaces/${namespace}/${name}`).then(json =>
-      this.setState({ workspace: json })
-    )
-
     Ajax.rawls(`workspaces/${namespace}/${name}/entities`).then(json =>
       this.setState({ workspaceEntities: json })
     )
-
   }
 
   render() {
@@ -73,8 +67,7 @@ class WorkspaceContainer extends Component {
                 href: Nav.getLink('workspaces')
               },
               ['Projects', breadcrumb()]),
-            div({ style: { color: Style.colors.text, fontSize: '1.25rem' } },
-              `${namespace}/${name}`)
+            div({ style: { fontSize: '1.25rem' } }, `${namespace}/${name}`)
           ])
       ]),
       contextBar({
@@ -85,7 +78,8 @@ class WorkspaceContainer extends Component {
       }, [
         navSeparator,
         navTab('Dashboard'), navTab('Notebooks'), navTab('Data', true), navTab('Jobs'),
-        navTab('History'), navTab('Tools'), div({ style: { flexGrow: 1 } }),
+        navTab('History'), navTab('Tools'),
+        div({ style: { flexGrow: 1 } }),
         navIcon('copy'), navIcon('ellipsis-vertical')
       ]),
       WorkspaceData({ namespace, name, workspaceEntities })

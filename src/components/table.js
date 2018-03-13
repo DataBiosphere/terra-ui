@@ -1,7 +1,7 @@
+import _ from 'lodash'
 import RCTable from 'rc-table'
 import { Component, Fragment } from 'react'
 import { div, h, option, select } from 'react-hyperscript-helpers'
-import _ from 'underscore'
 
 /*
 * props

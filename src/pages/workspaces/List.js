@@ -1,6 +1,7 @@
+import linkState from 'linkstate'
+import _ from 'lodash'
 import { Component, Fragment } from 'react'
 import { a, div, h } from 'react-hyperscript-helpers'
-import _ from 'underscore'
 import { card, contextBar, link, search, topBar } from 'src/components/common'
 import { breadcrumb, icon } from 'src/components/icons'
 import { DataGrid, DataTable } from 'src/components/table'
@@ -35,7 +36,7 @@ class WorkspaceList extends Component {
       itemsPerPageOptions: [12, 24, 36, 48],
       onItemsPerPageChanged: n => this.setState({ itemsPerPage: n }),
       initialPage: pageNumber,
-      onPageChanged: n => this.setState({ pageNumber: n }),
+      onPageChanged: linkState(this, 'pageNumber'),
       dataSource: workspaces.filter(({ workspace: { namespace, name } }) =>
         `${namespace}/${name}`.includes(filter))
     }
@@ -47,7 +48,7 @@ class WorkspaceList extends Component {
             wrapperProps: { style: { marginLeft: '2rem', flexGrow: 1, maxWidth: 500 } },
             inputProps: {
               placeholder: 'SEARCH BIOSPHERE',
-              onChange: e => this.setState({ filter: e.target.value }),
+              onChange: linkState(this, 'filter'),
               value: filter
             }
           })
@@ -78,9 +79,9 @@ class WorkspaceList extends Component {
       div({ style: { margin: '0 auto', maxWidth: 1000 } }, [
         workspaces.length ?
           listView ?
-            DataTable(_.extend({
+            DataTable(_.assign({
               tableProps: {
-                rowKey: ({ workspace }) => workspace.workspaceId,
+                rowKey: ({ workspace }) => workspace['workspaceId'],
                 columns: [
                   {
                     title: 'Workspace', dataIndex: 'workspace', key: 'workspace',
@@ -92,7 +93,7 @@ class WorkspaceList extends Component {
                 ]
               }
             }, dataViewerProps)) :
-            DataGrid(_.extend({
+            DataGrid(_.assign({
               renderCard: ({ workspace: { namespace, name, createdBy } }, cardsPerRow) => {
                 return a({
                     href: Nav.getLink('workspace', namespace, name),

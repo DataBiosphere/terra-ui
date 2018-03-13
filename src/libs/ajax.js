@@ -1,14 +1,13 @@
-import _ from 'underscore'
+import _ from 'lodash'
 import * as Config from 'src/libs/config'
 import * as Utils from 'src/libs/utils'
 
 
 const ajax = function(url, options = { headers: {} }) {
-  options.headers = _.extend({
-      'Content-Type': 'application/json',
-      'Authorization': 'bearer ' + Utils.getAuthToken()
-    },
-    options.headers)
+  _.defaults(options.headers, {
+    'Content-Type': 'application/json',
+    'Authorization': 'bearer ' + Utils.getAuthToken()
+  })
 
   return fetch(url, options).then(response => response.json())
 }

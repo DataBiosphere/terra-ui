@@ -1,9 +1,9 @@
+import _ from 'lodash'
 import mixinDeep from 'mixin-deep'
 import { Component } from 'react'
 import { createPortal } from 'react-dom'
 import { a, div, h, input } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
-import _ from 'underscore'
 import { icon } from 'src/components/icons'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
@@ -38,7 +38,7 @@ const card = function(props, children) {
 const buttonPrimary = function(props, children) {
   return h(Interactive,
     mixinDeep({
-      style: _.extend({
+      style: _.assign({
         padding: '2rem 0.5rem', borderRadius: 5,
         color: 'white',
         backgroundColor: props.disabled ? Style.colors.disabled : Style.colors.secondary,
@@ -73,20 +73,20 @@ class TopBarConstructor extends Component {
     this.state = { navShown: false }
   }
 
+  showNav() {
+    this.setState({ navShown: true })
+    document.body.classList.add('overlayOpen')
+    if (document.body.scrollHeight > window.innerHeight) {
+      document.body.classList.add('overHeight')
+    }
+  }
+
+  hideNav() {
+    this.setState({ navShown: false })
+    document.body.classList.remove('overlayOpen', 'overHeight')
+  }
+
   render() {
-    const showNav = () => {
-      this.setState({ navShown: true })
-      document.body.classList.add('overlayOpen')
-      if (document.body.scrollHeight > window.innerHeight) {
-        document.body.classList.add('overHeight')
-      }
-    }
-
-    const hideNav = () => {
-      this.setState({ navShown: false })
-      document.body.classList.remove('overlayOpen', 'overHeight')
-    }
-
     const sideNav = createPortal(
       div(
         {
@@ -105,13 +105,13 @@ class TopBarConstructor extends Component {
           }),
           div({ style: { width: 200, color: 'white', position: 'absolute' } }, [
             a({
-              style: _.extend({
+              style: _.assign({
                   height: '3rem', lineHeight: '3rem', backgroundColor: 'white', padding: '1rem',
                   textAlign: 'center', display: 'block'
                 },
                 Style.elements.pageTitle),
               href: Nav.getLink('workspaces'),
-              onClick: hideNav
+              onClick: this.hideNav
             }, 'Saturn'),
             div({
               style: {
@@ -129,7 +129,7 @@ class TopBarConstructor extends Component {
                 textDecoration: 'none', display: 'block'
               },
               href: Nav.getLink('workspaces'),
-              onClick: hideNav
+              onClick: this.hideNav
             }, [
               icon('grid-view', { class: 'is-solid', style: { margin: '0 1rem 0 1rem' } }),
               'Projects'
@@ -137,7 +137,7 @@ class TopBarConstructor extends Component {
           ]),
           div({
             style: { flexGrow: 1, cursor: 'pointer' },
-            onClick: hideNav
+            onClick: this.hideNav
           })
         ]),
       document.getElementById('main-menu-container')
@@ -154,7 +154,7 @@ class TopBarConstructor extends Component {
         icon('bars',
           {
             size: 36, style: { marginRight: '2rem', color: Style.colors.accent, cursor: 'pointer' },
-            onClick: showNav
+            onClick: this.showNav
           }),
         a({ style: Style.elements.pageTitle, href: Nav.getLink('workspaces') }, 'Saturn'),
         this.props.children,
