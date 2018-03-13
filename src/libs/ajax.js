@@ -1,6 +1,6 @@
 import _ from 'underscore'
-import * as Config from 'src/config'
-import * as Utils from 'src/utils'
+import * as Config from 'src/libs/config'
+import * as Utils from 'src/libs/utils'
 
 
 const ajax = function(url, options = { headers: {} }) {
