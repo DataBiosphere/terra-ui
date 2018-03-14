@@ -67,7 +67,7 @@ class DataTableConstructor extends Component {
   render() {
     const {
       allowPagination = true, allowItemsPerPage = true, itemsPerPageOptions = [10, 25, 50, 100],
-      onItemsPerPageChanged = () => {}, onPageChanged = () => {}, dataSource, tableProps
+      onItemsPerPageChanged, onPageChanged, dataSource, tableProps
     } = this.props
     const { pageNumber, itemsPerPage } = this.state
 
@@ -81,12 +81,12 @@ class DataTableConstructor extends Component {
             filteredDataLength: dataSource.length,
             setPageNumber: (n => {
               this.setState({ pageNumber: n })
-              onPageChanged(n)
+              _.attempt(onPageChanged, n)
             }),
             pageNumber,
             setItemsPerPage: allowItemsPerPage ? (n => {
               this.setState({ itemsPerPage: n })
-              onItemsPerPageChanged(n)
+              _.attempt(onItemsPerPageChanged, n)
             }) : null,
             itemsPerPage, itemsPerPageOptions
           })
@@ -125,7 +125,7 @@ class DataGridConstructor extends Component {
   render() {
     const {
       allowPagination = true, allowItemsPerPage = true, itemsPerPageOptions = [12, 24, 36, 48],
-      onItemsPerPageChanged = () => {}, onPageChanged = () => {}, dataSource, renderCard, cardsPerRow = 3
+      onItemsPerPageChanged, onPageChanged, dataSource, renderCard, cardsPerRow = 3
     } = this.props
     const { pageNumber, itemsPerPage } = this.state
 
@@ -140,12 +140,12 @@ class DataGridConstructor extends Component {
             filteredDataLength: dataSource.length,
             setPageNumber: (n => {
               this.setState({ pageNumber: n })
-              onPageChanged(n)
+              _.attempt(onPageChanged, n)
             }),
             pageNumber,
             setItemsPerPage: allowItemsPerPage ? (n => {
               this.setState({ itemsPerPage: n })
-              onItemsPerPageChanged(n)
+              _.attempt(onItemsPerPageChanged, n)
             }) : null,
             itemsPerPage, itemsPerPageOptions
           })
