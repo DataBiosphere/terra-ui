@@ -1,11 +1,13 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
 import { h } from 'react-hyperscript-helpers'
-import Main from './Main'
+import { WorkspaceList } from './List'
 
 
-it('renders without crashing', () => {
+jest.mock('src/libs/ajax')
+
+test('renders the workspace list', () => {
   const div = document.createElement('div')
-  ReactDOM.render(h(Main), div)
+  ReactDOM.render(h(WorkspaceList), div)
   ReactDOM.unmountComponentAtNode(div)
 })

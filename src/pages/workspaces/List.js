@@ -137,4 +137,4 @@ const addNavPaths = () => {
   )
 }
 
-export { addNavPaths }
+export { addNavPaths, WorkspaceList }
