@@ -10,8 +10,7 @@ module.exports = {
   },
   jest: function(config) {
     return mixinDeep(config, {
-      moduleDirectories: ['node_modules', ''],
-      setupFiles: ['./src-dev/jest/test-env-setup.js']
+      moduleDirectories: ['node_modules', '']
     })
   }
 }
