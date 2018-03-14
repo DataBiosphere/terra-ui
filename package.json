@@ -28,5 +28,9 @@
     "eject": "react-app-rewired eject",
     "circle-build-image": "docker build . -f src-dev/circle/Dockerfile -t gcr.io/bvdp-saturn-dev/ui",
     "circle-push-image": "gcloud docker -- push gcr.io/bvdp-saturn-dev/ui"
+  },
+  "devDependencies": {
+    "js-polyfills": "^0.1.42",
+    "mutationobserver-shim": "^0.3.2"
   }
 }
