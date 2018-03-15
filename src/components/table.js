@@ -57,7 +57,7 @@ const paginator = function(props) {
  * @param {object[]} props.dataSource
  * @param {object} props.tableProps - see {@link https://github.com/react-component/table}, don't provide data
  */
-export function DataTable(props) {
+export const DataTable = function(props) {
   return h(class DataTable extends Component {
     constructor(props) {
       super(props)
@@ -112,7 +112,7 @@ export function DataTable(props) {
  * @param {function} props.renderCard - function(record, cardsPerRow) => renderable
  * @param {number} [props.cardsPerRow=3}
  */
-export function DataGrid(props) {
+export const DataGrid = function(props) {
   return h(class DataGrid extends Component {
     constructor(props) {
       super(props)

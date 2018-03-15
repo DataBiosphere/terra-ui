@@ -16,7 +16,7 @@ export const icon = function(shape, props) {
 }
 
 /**
- * Creates a breadcrumb icon
+ * Creates a breadcrumb icon.
  * @param {object} [props]
  */
 export const breadcrumb = function(props) {

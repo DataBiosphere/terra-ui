@@ -65,7 +65,7 @@ export const search = function({ wrapperProps = {}, inputProps = {} }) {
     ])
 }
 
-export function topBar(title, children) {
+export const topBar = function(title, children) {
   return h(class topBar extends Component {
     constructor(props) {
       super(props)

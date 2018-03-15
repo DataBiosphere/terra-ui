@@ -10,7 +10,7 @@ import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 
 
-export function WorkspaceList(props) {
+export const WorkspaceList = function(props) {
   return h(class WorkspaceList extends Component {
     constructor(props) {
       super(props)

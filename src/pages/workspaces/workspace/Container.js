@@ -36,7 +36,11 @@ const navIcon = shape => {
   return icon(shape, { size: 22, style: { opacity: 0.65, paddingRight: '1rem' } })
 }
 
-function WorkspaceContainer(props) {
+/**
+ * @param {string} props.name
+ * @param {string} props.namespace
+ */
+const WorkspaceContainer = function(props) {
   return h(class WorkspaceContainer extends Component {
     constructor(props) {
       super(props)

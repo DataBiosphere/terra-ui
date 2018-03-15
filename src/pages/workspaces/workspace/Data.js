@@ -9,6 +9,11 @@ import * as Ajax from 'src/libs/ajax'
 import * as Style from 'src/libs/style'
 
 
+/**
+ * @param {string} props.name
+ * @param {string} props.namespace
+ * @param {object} props.workspaceEntities - entity types in the workspace
+ */
 export default function WorkspaceData(props) {
   return h(class WorkspaceData extends Component {
     constructor(props) {
