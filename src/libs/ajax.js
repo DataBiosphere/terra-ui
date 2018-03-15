@@ -3,7 +3,7 @@ import * as Config from 'src/libs/config'
 import * as Utils from 'src/libs/utils'
 
 
-const ajax = function(url, options = { headers: {} }) {
+export const ajax = function(url, options = { headers: {} }) {
   _.defaults(options.headers, {
     'Content-Type': 'application/json',
     'Authorization': 'bearer ' + Utils.getAuthToken()
@@ -12,8 +12,6 @@ const ajax = function(url, options = { headers: {} }) {
   return fetch(url, options).then(response => response.json())
 }
 
-const rawls = function(path, options) {
+export const rawls = function(path, options) {
   return ajax(`${Config.getRawlsUrlRoot()}/api/${path}`, options)
 }
-
-export { ajax, rawls }

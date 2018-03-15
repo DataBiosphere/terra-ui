@@ -36,68 +36,67 @@ const navIcon = shape => {
   return icon(shape, { size: 22, style: { opacity: 0.65, paddingRight: '1rem' } })
 }
 
-class WorkspaceContainer extends Component {
-  constructor(props) {
-    super(props)
-    this.state = {
-      workspaceEntities: {},
-      selectedEntityType: '',
-      selectedEntities: []
+function WorkspaceContainer(props) {
+  return h(class WorkspaceContainer extends Component {
+    constructor(props) {
+      super(props)
+      this.state = {
+        workspaceEntities: {},
+        selectedEntityType: '',
+        selectedEntities: []
+      }
     }
-  }
 
-  componentWillMount() {
-    const { namespace, name } = this.props
+    componentWillMount() {
+      const { namespace, name } = this.props
 
-    Ajax.rawls(`workspaces/${namespace}/${name}/entities`).then(json =>
-      this.setState({ workspaceEntities: json })
-    )
-  }
+      Ajax.rawls(`workspaces/${namespace}/${name}/entities`).then(json =>
+        this.setState({ workspaceEntities: json })
+      )
+    }
 
-  render() {
-    const { namespace, name } = this.props
-    const { workspaceEntities } = this.state
+    render() {
+      const { namespace, name } = this.props
+      const { workspaceEntities } = this.state
 
-    return h(Fragment, [
-      topBar([
-        div({ style: { display: 'flex', flexDirection: 'column', paddingLeft: '4rem' } },
-          [
-            a({
-                style: { color: Style.colors.textFaded, cursor: 'pointer', textDecoration: 'none' },
-                href: Nav.getLink('workspaces')
-              },
-              ['Projects', breadcrumb()]),
-            div({ style: { fontSize: '1.25rem' } }, `${namespace}/${name}`)
-          ])
-      ]),
-      contextBar({
-        style: {
-          paddingLeft: '5rem', borderBottom: `5px solid ${Style.colors.secondary}`,
-          textAlign: 'center', color: 'white', lineHeight: '3.5rem', textTransform: 'uppercase'
-        }
-      }, [
-        navSeparator,
-        navTab('Dashboard'), navTab('Notebooks'), navTab('Data', true), navTab('Jobs'),
-        navTab('History'), navTab('Tools'),
-        div({ style: { flexGrow: 1 } }),
-        navIcon('copy'), navIcon('ellipsis-vertical')
-      ]),
-      WorkspaceData({ namespace, name, workspaceEntities })
-    ])
-  }
+      return h(Fragment, [
+        topBar('Projects', [
+          div({ style: { display: 'flex', flexDirection: 'column', paddingLeft: '4rem' } },
+            [
+              a({
+                  style: { color: Style.colors.textFaded, cursor: 'pointer', textDecoration: 'none' },
+                  href: Nav.getLink('workspaces')
+                },
+                ['Projects', breadcrumb()]),
+              div({ style: { fontSize: '1.25rem' } }, `${namespace}/${name}`)
+            ])
+        ]),
+        contextBar({
+          style: {
+            paddingLeft: '5rem', borderBottom: `5px solid ${Style.colors.secondary}`,
+            textAlign: 'center', color: 'white', lineHeight: '3.5rem', textTransform: 'uppercase'
+          }
+        }, [
+          navSeparator,
+          navTab('Dashboard'), navTab('Notebooks'), navTab('Data', true), navTab('Jobs'),
+          navTab('History'), navTab('Tools'),
+          div({ style: { flexGrow: 1 } }),
+          navIcon('copy'), navIcon('ellipsis-vertical')
+        ]),
+        WorkspaceData({ namespace, name, workspaceEntities })
+      ])
+    }
+  }, props)
 }
 
-
-const addNavPaths = () => {
+export const addNavPaths = () => {
   Nav.defPath(
     'workspace',
     {
-      component: props => h(WorkspaceContainer, props),
+      component: WorkspaceContainer,
       regex: /workspaces\/([^/]+)\/([^/]+)/,
       makeProps: (namespace, name) => ({ namespace, name }),
       makePath: (namespace, name) => `workspaces/${namespace}/${name}`
     }
   )
 }
-
-export { addNavPaths }

@@ -1,4 +1,4 @@
-const colors = {
+export const colors = {
   accent: '#8b5f95',
   background: '#e5e5e5',
   disabled: '#9b9b9b',
@@ -13,7 +13,7 @@ const colors = {
   title: '#224f83'
 }
 
-const elements = {
+export const elements = {
   button: { color: 'black', fontWeight: 500, textTransform: 'uppercase' },
   cardTitle: { color: colors.secondary, fontSize: 16, fontWeight: 500 },
   pageTitle: {
@@ -21,8 +21,7 @@ const elements = {
     textTransform: 'uppercase', textDecoration: 'none'
   },
   sectionHeader: { color: colors.title, fontSize: 16 }
+
 }
 
-const standardShadow = '0 3px 2px 0 rgba(0,0,0,0.12)'
-
-export { colors, elements, standardShadow }
+export const standardShadow = '0 3px 2px 0 rgba(0,0,0,0.12)'

@@ -14,7 +14,7 @@ const initNavPaths = () => {
   WorkspaceContainer.addNavPaths()
 }
 
-class Main extends Component {
+export default hot(module)(class Main extends Component {
   constructor(props) {
     super(props)
     this.state = {}
@@ -77,6 +77,4 @@ class Main extends Component {
 
     return component ? component(makeProps()) : h2('No matching path.')
   }
-}
-
-export default hot(module)(Main)
+})

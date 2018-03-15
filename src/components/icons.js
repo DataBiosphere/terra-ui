@@ -11,7 +11,7 @@ import { h } from 'react-hyperscript-helpers'
  * @param {string} shape - see {@link https://vmware.github.io/clarity/icons/icon-sets}
  * @param {object} [props]
  */
-const icon = function(shape, props) {
+export const icon = function(shape, props) {
   return h('clr-icon', mixinDeep({ shape }, props))
 }
 
@@ -19,7 +19,7 @@ const icon = function(shape, props) {
  * Creates a breadcrumb icon
  * @param {object} [props]
  */
-const breadcrumb = function(props) {
+export const breadcrumb = function(props) {
   return icon('angle right', mixinDeep({ size: 10, style: { padding: '0 0.25rem' } }, props))
 }
 
@@ -36,5 +36,3 @@ const table = `<svg version="1.1" viewBox="0 0 17 17" preserveAspectRatio="xMidY
 </svg>`
 
 ClarityIcons.add({ table })
-
-export { icon, breadcrumb }
