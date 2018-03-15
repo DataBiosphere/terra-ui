@@ -3,20 +3,26 @@ import RCTable from 'rc-table'
 import { Component, Fragment } from 'react'
 import { div, h, option, select } from 'react-hyperscript-helpers'
 
-/*
-* props
-* =====
-* filteredDataLength:       required
-* pageNumber:               required
-* setPageNumber:            required - function(newpageNumber)
-* setItemsPerPage:          hides selector if absent - function(newItemsPerPage)
-* itemsPerPage:             required
-* itemsPerPageOptions:      required
-*/
-const paginator = function({
-                             filteredDataLength, pageNumber, setPageNumber, setItemsPerPage,
-                             itemsPerPage, itemsPerPageOptions
-                           }) {
+
+/**
+ * @callback handleNew
+ * @param newValue
+ */
+
+/**
+ * @param {number} props.filteredDataLength
+ * @param {number} props.pageNumber
+ * @param {function} props.setPageNumber - function(newpageNumber)
+ * @param {function} [props.setItemsPerPage] - hides selector if absent: function(newItemsPerPage)
+ * @param {number} props.itemsPerPage
+ * @param {number[]} props.itemsPerPageOptions
+ */
+const paginator = function(props) {
+  const {
+    filteredDataLength, pageNumber, setPageNumber, setItemsPerPage,
+    itemsPerPage, itemsPerPageOptions
+  } = props
+
   return h(Fragment, [
     'Page: ',
     select({
@@ -40,19 +46,17 @@ const paginator = function({
   ])
 }
 
-/*
-* props
-* =====
-* allowPagination:        true
-* allowItemsPerPage:      true
-* defaultItemsPerPage:    25
-* itemsPerPageOptions:    [10, 25, 50, 100]
-* onItemsPerPageChanged:  function(newItemsPerPage)
-* initialPage:            1
-* onPageChanged:          function(newPageNumber)
-* dataSource:             required
-* tableProps:             required, see {@link https://github.com/react-component/table}
-* */
+/**
+ * @param {bool} [props.allowPagination=true]
+ * @param {bool} [props.allowItemsPerPage=true]
+ * @param {number} [props.defaultItemsPerPage=25]
+ * @param {number[]} [props.itemsPerPageOptions=[10, 25, 50, 100]]
+ * @param {handleNew} [props.onItemsPerPageChanged]
+ * @param {number} [props.initialPage=1]
+ * @param {handleNew} [props.onPageChanged] - function(newPageNumber)
+ * @param {object[]} props.dataSource
+ * @param {object} props.tableProps - see {@link https://github.com/react-component/table}, don't provide data
+ */
 const DataTable = (props) => h(DataTableConstructor, props)
 
 class DataTableConstructor extends Component {
@@ -97,20 +101,18 @@ class DataTableConstructor extends Component {
   }
 }
 
-/*
-* props
-* =====
-* allowPagination:        true
-* allowItemsPerPage:      true
-* defaultItemsPerPage:    12
-* itemsPerPageOptions:    [12, 24, 36, 48]
-* onItemsPerPageChanged:  function(newItemsPerPage)
-* initialPage:            1
-* onPageChanged:          function(newPageNumber)
-* dataSource:             required
-* renderCard:             required - function(record, cardsPerRow) => renderable
-* cardsPerRow:            3
-* */
+/**
+ * @param {bool} [props.allowPagination=true]
+ * @param {bool} [props.allowItemsPerPage=true]
+ * @param {number} [props.defaultItemsPerPage=25]
+ * @param {number[]} [props.itemsPerPageOptions=[10, 25, 50, 100]]
+ * @param {handleNew} [props.onItemsPerPageChanged]
+ * @param {number} [props.initialPage=1]
+ * @param {handleNew} [props.onPageChanged] - function(newPageNumber)
+ * @param {object[]} props.dataSource
+ * @param {function} props.renderCard - function(record, cardsPerRow) => renderable
+ * @param {number} [props.cardsPerRow=3}
+ */
 const DataGrid = (props) => h(DataGridConstructor, props)
 
 class DataGridConstructor extends Component {
