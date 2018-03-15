@@ -53,7 +53,7 @@ const paginator = function(props) {
  * @param {number[]} [props.itemsPerPageOptions=[10, 25, 50, 100]]
  * @param {handleNewVal} [props.onItemsPerPageChanged]
  * @param {number} [props.initialPage=1]
- * @param {handleNewVal} [props.onPageChanged] - function(newPageNumber)
+ * @param {handleNewVal} [props.onPageChanged]
  * @param {object[]} props.dataSource
  * @param {object} props.tableProps - see {@link https://github.com/react-component/table}, don't provide data
  */
@@ -107,7 +107,7 @@ export const DataTable = function(props) {
  * @param {number[]} [props.itemsPerPageOptions=[10, 25, 50, 100]]
  * @param {handleNewVal} [props.onItemsPerPageChanged]
  * @param {number} [props.initialPage=1]
- * @param {handleNewVal} [props.onPageChanged] - function(newPageNumber)
+ * @param {handleNewVal} [props.onPageChanged]
  * @param {object[]} props.dataSource
  * @param {function} props.renderCard - function(record, cardsPerRow) => renderable
  * @param {number} [props.cardsPerRow=3}
