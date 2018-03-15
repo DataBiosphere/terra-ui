@@ -110,7 +110,7 @@ export const DataTable = function(props) {
  * @param {handleNewVal} [props.onPageChanged]
  * @param {object[]} props.dataSource
  * @param {function} props.renderCard - function(record, cardsPerRow) => renderable
- * @param {number} [props.cardsPerRow=3}
+ * @param {number} [props.cardsPerRow=3]
  */
 export const DataGrid = function(props) {
   return h(class DataGrid extends Component {
