@@ -1,22 +1,28 @@
+import _ from 'lodash'
 import RCTable from 'rc-table'
 import { Component, Fragment } from 'react'
-import { div, h, option, select } from 'react-hyperscript-helpers'
-import _ from 'underscore'
+import { div, h, hh, option, select } from 'react-hyperscript-helpers'
 
-/*
-* props
-* =====
-* filteredDataLength:       required
-* pageNumber:               required
-* setPageNumber:            required - function(newpageNumber)
-* setItemsPerPage:          hides selector if absent - function(newItemsPerPage)
-* itemsPerPage:             required
-* itemsPerPageOptions:      required
-*/
-const paginator = function({
-                             filteredDataLength, pageNumber, setPageNumber, setItemsPerPage,
-                             itemsPerPage, itemsPerPageOptions
-                           }) {
+
+/**
+ * @callback handleNewVal
+ * @param newValue
+ */
+
+/**
+ * @param {number} props.filteredDataLength
+ * @param {number} props.pageNumber
+ * @param {handleNewVal} props.setPageNumber
+ * @param {handleNewVal} [props.setItemsPerPage]
+ * @param {number} props.itemsPerPage
+ * @param {number[]} props.itemsPerPageOptions
+ */
+const paginator = function(props) {
+  const {
+    filteredDataLength, pageNumber, setPageNumber, setItemsPerPage,
+    itemsPerPage, itemsPerPageOptions
+  } = props
+
   return h(Fragment, [
     'Page: ',
     select({
@@ -40,22 +46,18 @@ const paginator = function({
   ])
 }
 
-/*
-* props
-* =====
-* allowPagination:        true
-* allowItemsPerPage:      true
-* defaultItemsPerPage:    25
-* itemsPerPageOptions:    [10, 25, 50, 100]
-* onItemsPerPageChanged:  function(newItemsPerPage)
-* initialPage:            1
-* onPageChanged:          function(newPageNumber)
-* dataSource:             required
-* tableProps:             required, see {@link https://github.com/react-component/table}
-* */
-const DataTable = (props) => h(DataTableConstructor, props)
-
-class DataTableConstructor extends Component {
+/**
+ * @param {bool} [allowPagination=true]
+ * @param {bool} [allowItemsPerPage=true]
+ * @param {number} [defaultItemsPerPage=25]
+ * @param {number[]} [itemsPerPageOptions=[10, 25, 50, 100]]
+ * @param {handleNewVal} [onItemsPerPageChanged]
+ * @param {number} [initialPage=1]
+ * @param {handleNewVal} [onPageChanged]
+ * @param {object[]} dataSource
+ * @param {object} tableProps - see {@link https://github.com/react-component/table}, don't provide data
+ */
+export const DataTable = hh(class DataTable extends Component {
   constructor(props) {
     super(props)
     this.state = {
@@ -67,7 +69,7 @@ class DataTableConstructor extends Component {
   render() {
     const {
       allowPagination = true, allowItemsPerPage = true, itemsPerPageOptions = [10, 25, 50, 100],
-      onItemsPerPageChanged = () => {}, onPageChanged = () => {}, dataSource, tableProps
+      onItemsPerPageChanged, onPageChanged, dataSource, tableProps
     } = this.props
     const { pageNumber, itemsPerPage } = this.state
 
@@ -81,79 +83,73 @@ class DataTableConstructor extends Component {
             filteredDataLength: dataSource.length,
             setPageNumber: (n => {
               this.setState({ pageNumber: n })
-              onPageChanged(n)
+              if (onPageChanged) onPageChanged(n)
             }),
             pageNumber,
             setItemsPerPage: allowItemsPerPage ? (n => {
               this.setState({ itemsPerPage: n })
-              onItemsPerPageChanged(n)
+              if (onItemsPerPageChanged) onItemsPerPageChanged(n)
             }) : null,
             itemsPerPage, itemsPerPageOptions
           })
         ]) :
         null
     ])
-
   }
-}
+})
 
-/*
-* props
-* =====
-* allowPagination:        true
-* allowItemsPerPage:      true
-* defaultItemsPerPage:    12
-* itemsPerPageOptions:    [12, 24, 36, 48]
-* onItemsPerPageChanged:  function(newItemsPerPage)
-* initialPage:            1
-* onPageChanged:          function(newPageNumber)
-* dataSource:             required
-* renderCard:             required - function(record, cardsPerRow) => renderable
-* cardsPerRow:            3
-* */
-const DataGrid = (props) => h(DataGridConstructor, props)
+/**
+ * @param {bool} [allowPagination=true]
+ * @param {bool} [allowItemsPerPage=true]
+ * @param {number} [defaultItemsPerPage=25]
+ * @param {number[]} [itemsPerPageOptions=[10, 25, 50, 100]]
+ * @param {handleNewVal} [onItemsPerPageChanged]
+ * @param {number} [initialPage=1]
+ * @param {handleNewVal} [onPageChanged]
+ * @param {object[]} dataSource
+ * @param {function} renderCard - function(record, cardsPerRow) => renderable
+ * @param {number} [cardsPerRow=3]
+ */
+export const DataGrid = hh(class DataGrid extends Component {
+    constructor(props) {
+      super(props)
+      this.state = {
+        pageNumber: props.initialPage || 1,
+        itemsPerPage: props.defaultItemsPerPage || 12
+      }
+    }
 
-class DataGridConstructor extends Component {
-  constructor(props) {
-    super(props)
-    this.state = {
-      pageNumber: props.initialPage || 1,
-      itemsPerPage: props.defaultItemsPerPage || 12
+    render() {
+      const {
+        allowPagination = true, allowItemsPerPage = true, itemsPerPageOptions = [12, 24, 36, 48],
+        onItemsPerPageChanged, onPageChanged, dataSource, renderCard, cardsPerRow = 3
+      } = this.props
+      const { pageNumber, itemsPerPage } = this.state
+
+      const listPage = dataSource.slice((pageNumber - 1) * itemsPerPage, pageNumber * itemsPerPage)
+
+      return h(Fragment, [
+        div({ style: { display: 'flex', flexWrap: 'wrap' } },
+          _.map(listPage, (record) => renderCard(record, cardsPerRow))),
+        allowPagination ?
+          div({ style: { marginTop: 10 } }, [
+            paginator({
+              filteredDataLength: dataSource.length,
+              setPageNumber: (n => {
+                this.setState({ pageNumber: n })
+                if (onPageChanged) onPageChanged(n)
+              }),
+              pageNumber,
+              setItemsPerPage: allowItemsPerPage ? (n => {
+                this.setState({ itemsPerPage: n })
+                if (onItemsPerPageChanged) onItemsPerPageChanged(n)
+              }) : null,
+              itemsPerPage, itemsPerPageOptions
+            })
+          ]) :
+          null
+      ])
     }
   }
+)
 
-  render() {
-    const {
-      allowPagination = true, allowItemsPerPage = true, itemsPerPageOptions = [12, 24, 36, 48],
-      onItemsPerPageChanged = () => {}, onPageChanged = () => {}, dataSource, renderCard, cardsPerRow = 3
-    } = this.props
-    const { pageNumber, itemsPerPage } = this.state
-
-    const listPage = dataSource.slice((pageNumber - 1) * itemsPerPage, pageNumber * itemsPerPage)
-
-    return h(Fragment, [
-      div({ style: { display: 'flex', flexWrap: 'wrap' } },
-        _.map(listPage, (record) => renderCard(record, cardsPerRow))),
-      allowPagination ?
-        div({ style: { marginTop: 10 } }, [
-          paginator({
-            filteredDataLength: dataSource.length,
-            setPageNumber: (n => {
-              this.setState({ pageNumber: n })
-              onPageChanged(n)
-            }),
-            pageNumber,
-            setItemsPerPage: allowItemsPerPage ? (n => {
-              this.setState({ itemsPerPage: n })
-              onItemsPerPageChanged(n)
-            }) : null,
-            itemsPerPage, itemsPerPageOptions
-          })
-        ]) :
-        null
-    ])
-
-  }
-}
-
-export { DataTable, DataGrid }

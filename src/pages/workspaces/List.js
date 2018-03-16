@@ -1,7 +1,7 @@
+import _ from 'lodash'
 import { Component, Fragment } from 'react'
-import { a, div, h } from 'react-hyperscript-helpers'
-import _ from 'underscore'
-import { card, contextBar, link, search, topBar } from 'src/components/common'
+import { a, div, h, hh } from 'react-hyperscript-helpers'
+import { card, contextBar, link, search, TopBar } from 'src/components/common'
 import { breadcrumb, icon } from 'src/components/icons'
 import { DataGrid, DataTable } from 'src/components/table'
 import * as Ajax from 'src/libs/ajax'
@@ -9,7 +9,7 @@ import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 
 
-class WorkspaceList extends Component {
+const WorkspaceList = hh(class WorkspaceList extends Component {
   constructor(props) {
     super(props)
     this.state = {
@@ -41,13 +41,13 @@ class WorkspaceList extends Component {
     }
 
     return h(Fragment, [
-      topBar(
+      TopBar({ title: 'Projects' },
         [
           search({
             wrapperProps: { style: { marginLeft: '2rem', flexGrow: 1, maxWidth: 500 } },
             inputProps: {
               placeholder: 'SEARCH BIOSPHERE',
-              onChange: e => this.setState({ filter: e.target.value }),
+              onChange: v => this.setState({ filter: v }),
               value: filter
             }
           })
@@ -78,9 +78,9 @@ class WorkspaceList extends Component {
       div({ style: { margin: '0 auto', maxWidth: 1000 } }, [
         workspaces.length ?
           listView ?
-            DataTable(_.extend({
+            DataTable(_.assign({
               tableProps: {
-                rowKey: ({ workspace }) => workspace.workspaceId,
+                rowKey: ({ workspace }) => workspace['workspaceId'],
                 columns: [
                   {
                     title: 'Workspace', dataIndex: 'workspace', key: 'workspace',
@@ -92,7 +92,7 @@ class WorkspaceList extends Component {
                 ]
               }
             }, dataViewerProps)) :
-            DataGrid(_.extend({
+            DataGrid(_.assign({
               renderCard: ({ workspace: { namespace, name, createdBy } }, cardsPerRow) => {
                 return a({
                     href: Nav.getLink('workspace', namespace, name),
@@ -121,19 +121,17 @@ class WorkspaceList extends Component {
       ])
     ])
   }
-}
+})
 
-const addNavPaths = () => {
+export const addNavPaths = () => {
   Nav.defRedirect({ regex: /^.{0}$/, makePath: () => 'workspaces' })
   Nav.defPath(
     'workspaces',
     {
-      component: props => h(WorkspaceList, props),
+      component: WorkspaceList,
       regex: /workspaces$/,
       makeProps: () => ({}),
       makePath: () => 'workspaces'
     }
   )
 }
-
-export { addNavPaths }
