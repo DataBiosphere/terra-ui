@@ -10,7 +10,7 @@ module.exports = {
   },
   jest: function(config) {
     return mixinDeep(config, {
-      moduleDirectories: ['node_modules', '']
+      moduleDirectories: ['node_modules', ''] // to allow Jest to resolve absolute module paths
     })
   }
 }
