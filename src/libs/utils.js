@@ -9,3 +9,15 @@ export const getUser = function() {
 export const getAuthToken = function() {
   return getUser().getAuthResponse(true).access_token
 }
+
+export const makePrettyDate = function(dateString) {
+  const date = new Date(dateString)
+
+  return date.toLocaleString(navigator.language, {
+    day: 'numeric',
+    month: 'short',
+    year: date.getFullYear() === new Date().getFullYear() ? undefined : 'numeric',
+    hour: 'numeric',
+    minute: 'numeric'
+  })
+}
