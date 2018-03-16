@@ -1,15 +1,20 @@
+import _ from 'lodash'
 import mixinDeep from 'mixin-deep'
 import { Component } from 'react'
-import { div, h, table } from 'react-hyperscript-helpers'
+import { div, h, hh, table } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
-import _ from 'underscore'
 import { icon } from 'src/components/icons'
 import { DataTable } from 'src/components/table'
 import * as Ajax from 'src/libs/ajax'
 import * as Style from 'src/libs/style'
 
 
-class WorkspaceData extends Component {
+/**
+ * @param {string} name
+ * @param {string} namespace
+ * @param {object} workspaceEntities - entity types in the workspace
+ */
+export default hh(class WorkspaceData extends Component {
   constructor(props) {
     super(props)
     this.state = {
@@ -30,7 +35,6 @@ class WorkspaceData extends Component {
           },
           onClick: () => {
             this.setState({ selectedEntityType: k, selectedEntities: [] })
-
             Ajax.rawls(`workspaces/${namespace}/${name}/entities/${k}`).then(json =>
               this.setState({ selectedEntities: json }))
           }
@@ -51,15 +55,15 @@ class WorkspaceData extends Component {
           body: {
             row: props => h(Interactive,
               mixinDeep({
-                  as: 'tr', style: { cursor: 'unset' },
+                  as: 'tr', style: { cursor: null },
                   hover: { backgroundColor: Style.colors.highlightFaded }
                 },
                 props))
           }
         },
-        columns: !selectedEntities.length ?
+        columns: _.isEmpty(selectedEntities) ?
           [] :
-          _.map(workspaceEntities[selectedEntityType].attributeNames, function(name) {
+          _.map(workspaceEntities[selectedEntityType]['attributeNames'], function(name) {
             return {
               title: name,
               key: name,
@@ -85,13 +89,11 @@ class WorkspaceData extends Component {
         }, 'Entity Types'),
         div({ style: { marginBottom: '1rem' } }, entityTypeList)
       ]),
-      div({ style: { overflowX: 'auto', margin: '1rem' } }, [
+      div({ style: { overflow: 'hidden', margin: '1rem' } }, [
         selectedEntityType ?
           _.isEmpty(selectedEntities) ? 'Loading...' : entityTable :
           'Select an entity type.'
       ])
     ])
   }
-}
-
-export default props => h(WorkspaceData, props)
+})
