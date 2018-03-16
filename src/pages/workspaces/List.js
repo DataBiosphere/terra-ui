@@ -1,4 +1,3 @@
-import linkState from 'linkstate'
 import _ from 'lodash'
 import { Component, Fragment } from 'react'
 import { a, div, h, hh } from 'react-hyperscript-helpers'
@@ -36,7 +35,7 @@ const WorkspaceList = hh(class WorkspaceList extends Component {
       itemsPerPageOptions: [12, 24, 36, 48],
       onItemsPerPageChanged: n => this.setState({ itemsPerPage: n }),
       initialPage: pageNumber,
-      onPageChanged: linkState(this, 'pageNumber'),
+      onPageChanged: n => this.setState({ pageNumber: n }),
       dataSource: workspaces.filter(({ workspace: { namespace, name } }) =>
         `${namespace}/${name}`.includes(filter))
     }
@@ -48,7 +47,7 @@ const WorkspaceList = hh(class WorkspaceList extends Component {
             wrapperProps: { style: { marginLeft: '2rem', flexGrow: 1, maxWidth: 500 } },
             inputProps: {
               placeholder: 'SEARCH BIOSPHERE',
-              onChange: linkState(this, 'filter'),
+              onChange: v => this.setState({ filter: v }),
               value: filter
             }
           })
