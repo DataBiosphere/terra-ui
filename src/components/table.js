@@ -83,12 +83,12 @@ export const DataTable = hh(class DataTable extends Component {
             filteredDataLength: dataSource.length,
             setPageNumber: (n => {
               this.setState({ pageNumber: n })
-              _.attempt(onPageChanged, n)
+              onPageChanged ? onPageChanged(n) : null
             }),
             pageNumber,
             setItemsPerPage: allowItemsPerPage ? (n => {
               this.setState({ itemsPerPage: n })
-              _.attempt(onItemsPerPageChanged, n)
+              onItemsPerPageChanged ? onItemsPerPageChanged(n) : null
             }) : null,
             itemsPerPage, itemsPerPageOptions
           })
@@ -137,12 +137,12 @@ export const DataGrid = hh(class DataGrid extends Component {
               filteredDataLength: dataSource.length,
               setPageNumber: (n => {
                 this.setState({ pageNumber: n })
-                _.attempt(onPageChanged, n)
+                onPageChanged ? onPageChanged(n) : null
               }),
               pageNumber,
               setItemsPerPage: allowItemsPerPage ? (n => {
                 this.setState({ itemsPerPage: n })
-                _.attempt(onItemsPerPageChanged, n)
+                onItemsPerPageChanged ? onItemsPerPageChanged(n) : null
               }) : null,
               itemsPerPage, itemsPerPageOptions
             })
