@@ -65,7 +65,10 @@ export const search = function({ wrapperProps = {}, inputProps = {} }) {
     ])
 }
 
-export const topBar = hh(class topBar extends Component {
+/**
+ * @param {string} title
+ */
+export const TopBar = hh(class TopBar extends Component {
   constructor(props) {
     super(props)
     this.state = { navShown: false }

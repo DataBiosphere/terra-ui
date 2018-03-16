@@ -1,7 +1,7 @@
 import _ from 'lodash'
 import { Component, Fragment } from 'react'
 import { a, div, h, hh } from 'react-hyperscript-helpers'
-import { contextBar, topBar } from 'src/components/common'
+import { contextBar, TopBar } from 'src/components/common'
 import { breadcrumb, icon } from 'src/components/icons'
 import * as Ajax from 'src/libs/ajax'
 import * as Nav from 'src/libs/nav'
@@ -63,7 +63,7 @@ const WorkspaceContainer = hh(class WorkspaceContainer extends Component {
     const { workspaceEntities } = this.state
 
     return h(Fragment, [
-      topBar({ title: 'Projects' }, [
+      TopBar({ title: 'Projects' }, [
         div({ style: { display: 'flex', flexDirection: 'column', paddingLeft: '4rem' } },
           [
             a({

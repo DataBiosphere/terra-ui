@@ -2,7 +2,7 @@ import linkState from 'linkstate'
 import _ from 'lodash'
 import { Component, Fragment } from 'react'
 import { a, div, h, hh } from 'react-hyperscript-helpers'
-import { card, contextBar, link, search, topBar } from 'src/components/common'
+import { card, contextBar, link, search, TopBar } from 'src/components/common'
 import { breadcrumb, icon } from 'src/components/icons'
 import { DataGrid, DataTable } from 'src/components/table'
 import * as Ajax from 'src/libs/ajax'
@@ -42,7 +42,7 @@ const WorkspaceList = hh(class WorkspaceList extends Component {
     }
 
     return h(Fragment, [
-      topBar({ title: 'Projects' },
+      TopBar({ title: 'Projects' },
         [
           search({
             wrapperProps: { style: { marginLeft: '2rem', flexGrow: 1, maxWidth: 500 } },
