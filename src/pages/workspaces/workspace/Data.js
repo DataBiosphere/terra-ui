@@ -86,13 +86,13 @@ export default hh(class WorkspaceData extends Component {
             fontWeight: 500, padding: '0.5rem 1rem',
             borderBottom: `1px solid ${Style.colors.background}`
           }
-        }, 'Entity Types'),
+        }, 'Data Model'),
         div({ style: { marginBottom: '1rem' } }, entityTypeList)
       ]),
       div({ style: { overflow: 'hidden', margin: '1rem' } }, [
         selectedEntityType ?
           _.isEmpty(selectedEntities) ? 'Loading...' : entityTable :
-          'Select an entity type.'
+          'Select a data type.'
       ])
     ])
   }

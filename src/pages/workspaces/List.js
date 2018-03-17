@@ -7,6 +7,7 @@ import { DataGrid, DataTable } from 'src/components/table'
 import * as Ajax from 'src/libs/ajax'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
+import * as Utils from 'src/libs/utils'
 
 
 const WorkspaceList = hh(class WorkspaceList extends Component {
@@ -15,7 +16,7 @@ const WorkspaceList = hh(class WorkspaceList extends Component {
     this.state = {
       filter: '',
       listView: false,
-      itemsPerPage: 12,
+      itemsPerPage: 6,
       pageNumber: 1,
       workspaces: []
     }
@@ -32,7 +33,7 @@ const WorkspaceList = hh(class WorkspaceList extends Component {
 
     const dataViewerProps = {
       defaultItemsPerPage: itemsPerPage,
-      itemsPerPageOptions: [12, 24, 36, 48],
+      itemsPerPageOptions: [6, 12, 24, 36, 48],
       onItemsPerPageChanged: n => this.setState({ itemsPerPage: n }),
       initialPage: pageNumber,
       onPageChanged: n => this.setState({ pageNumber: n }),
@@ -47,7 +48,7 @@ const WorkspaceList = hh(class WorkspaceList extends Component {
             wrapperProps: { style: { marginLeft: '2rem', flexGrow: 1, maxWidth: 500 } },
             inputProps: {
               placeholder: 'SEARCH BIOSPHERE',
-              onChange: v => this.setState({ filter: v }),
+              onChange: v => this.setState({ filter: v.target.value }),
               value: filter
             }
           })
@@ -75,7 +76,7 @@ const WorkspaceList = hh(class WorkspaceList extends Component {
           }
         })
       ]),
-      div({ style: { margin: '0 auto', maxWidth: 1000 } }, [
+      div({ style: { margin: '1rem auto', maxWidth: 1000 } }, [
         workspaces.length ?
           listView ?
             DataTable(_.assign({
@@ -83,35 +84,77 @@ const WorkspaceList = hh(class WorkspaceList extends Component {
                 rowKey: ({ workspace }) => workspace['workspaceId'],
                 columns: [
                   {
-                    title: 'Workspace', dataIndex: 'workspace', key: 'workspace',
+                    title: 'Workspace', dataIndex: 'workspace', key: 'name',
                     render: ({ namespace, name }) =>
-                      link({ href: Nav.getLink('workspace', namespace, name) },
-                        `${namespace}/${name}`)
-
+                      link({
+                        title: name,
+                        href: Nav.getLink('workspace', namespace, name),
+                        style: {
+                          textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block',
+                          overflow: 'hidden', width: 400
+                        }
+                      }, name)
+                  },
+                  {
+                    title: 'Billing project', dataIndex: 'workspace.namespace', key: 'namespace',
+                    width: 150
+                  },
+                  {
+                    title: 'Last changed', dataIndex: 'workspace.lastModified', key: 'lastModified',
+                    width: 175,
+                    render: Utils.makePrettyDate
+                  },
+                  {
+                    title: 'Created by', dataIndex: 'workspace.createdBy', key: 'createdBy',
+                    render: creator => div({
+                      title: creator,
+                      style: {
+                        textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block',
+                        overflow: 'hidden', width: 275
+                      }
+                    }, creator)
                   }
                 ]
               }
             }, dataViewerProps)) :
             DataGrid(_.assign({
-              renderCard: ({ workspace: { namespace, name, createdBy } }, cardsPerRow) => {
+              renderCard: ({ workspace: { namespace, name, createdBy, lastModified } },
+                           cardsPerRow) => {
                 return a({
                     href: Nav.getLink('workspace', namespace, name),
                     style: {
-                      width: `calc(${100 / cardsPerRow}% - 2rem)`, minHeight: 100, margin: '1rem',
+                      width: `calc(${100 / cardsPerRow}% - 2.5rem)`, minHeight: 100,
+                      margin: '1.25rem',
                       textDecoration: 'none'
                     }
                   },
                   [
-                    card({ style: { height: 100 } }, [
+                    card({ style: { height: 200 } }, [
                       div({
                         style: {
                           display: 'flex', flexDirection: 'column',
                           justifyContent: 'space-between',
-                          height: '100%'
+                          height: '100%', color: Style.colors.text
                         }
                       }, [
-                        div({ style: Style.elements.cardTitle }, `${namespace}/${name}`),
-                        div({ style: { color: Style.colors.text } }, `Created by: ${createdBy}`)
+                        div({ style: Style.elements.cardTitle }, `${name}`),
+                        div({}, `Billing project: ${namespace}`),
+                        div({
+                          style: {
+                            display: 'flex', justifyContent: 'space-between',
+                            alignItems: 'flex-end', fontSize: '0.8rem'
+                          }
+                        }, [
+                          div({}, ['Last changed:', div({}, Utils.makePrettyDate(lastModified))]),
+                          div({
+                            title: createdBy,
+                            style: {
+                              height: '1.5rem', width: '1.5rem', borderRadius: '1.5rem',
+                              lineHeight: '1.5rem', textAlign: 'center',
+                              backgroundColor: Style.colors.accent, color: 'white'
+                            }
+                          }, createdBy[0].toUpperCase())
+                        ])
                       ])
                     ])
                   ])
