@@ -28,4 +28,4 @@ export const logo = function(props) {
   return icon('logoIcon', mixinDeep({ size: 48, style: { marginRight: '0.5rem' } }, props))
 }
 
-ClarityIcons.add({ table })
+ClarityIcons.add({ logoIcon, table })
