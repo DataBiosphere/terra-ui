@@ -21,7 +21,7 @@ const tabBaseStyle = {
 
 const tabActiveStyle = _.defaults({
   backgroundColor: 'rgba(255,255,255,0.15)',
-  color: 'white',
+  color: 'unset',
   lineHeight: 'calc(3.5rem - 4px)',
   borderBottom: `4px solid ${Style.colors.secondary}`
 }, tabBaseStyle)
@@ -65,7 +65,10 @@ const WorkspaceContainer = hh(class WorkspaceContainer extends Component {
                 href: Nav.getLink('workspaces')
               },
               ['Projects', breadcrumb()]),
-            div({ style: { fontSize: '1.25rem' } }, `${namespace}/${name}`)
+            a({
+              style: { fontSize: '1.25rem', textDecoration: 'none', color: 'unset' },
+              href: Nav.getLink('workspace', namespace, name)
+            }, `${namespace}/${name}`)
           ])
       ]),
       contextBar({
