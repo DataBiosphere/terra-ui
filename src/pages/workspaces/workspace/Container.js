@@ -3,7 +3,6 @@ import { Component, Fragment } from 'react'
 import { a, div, h, hh } from 'react-hyperscript-helpers'
 import { contextBar, TopBar } from 'src/components/common'
 import { breadcrumb, icon } from 'src/components/icons'
-import * as Ajax from 'src/libs/ajax'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import WorkspaceData from 'src/pages/workspaces/workspace/Data'
@@ -16,21 +15,16 @@ const navSeparator = div({
   }
 })
 
-const tabBaseStyle = { maxWidth: 140, flexGrow: 1, color: Style.colors.textFadedLight }
+const tabBaseStyle = {
+  maxWidth: 140, flexGrow: 1, color: Style.colors.textFadedLight, textDecoration: 'none'
+}
 
 const tabActiveStyle = _.defaults({
   backgroundColor: 'rgba(255,255,255,0.15)',
-  color: null,
+  color: 'white',
   lineHeight: 'calc(3.5rem - 4px)',
   borderBottom: `4px solid ${Style.colors.secondary}`
 }, tabBaseStyle)
-
-const navTab = (name, isActive = false) => {
-  return h(Fragment, [
-    div({ style: isActive ? tabActiveStyle : tabBaseStyle }, name),
-    navSeparator
-  ])
-}
 
 const navIcon = shape => {
   return icon(shape, { size: 22, style: { opacity: 0.65, paddingRight: '1rem' } })
@@ -39,28 +33,28 @@ const navIcon = shape => {
 /**
  * @param {string} name
  * @param {string} namespace
+ * @param {string} [tab]
  */
 const WorkspaceContainer = hh(class WorkspaceContainer extends Component {
-  constructor(props) {
-    super(props)
-    this.state = {
-      workspaceEntities: {},
-      selectedEntityType: '',
-      selectedEntities: []
-    }
-  }
-
-  componentWillMount() {
-    const { namespace, name } = this.props
-
-    Ajax.rawls(`workspaces/${namespace}/${name}/entities`).then(json =>
-      this.setState({ workspaceEntities: json })
-    )
-  }
-
   render() {
-    const { namespace, name } = this.props
-    const { workspaceEntities } = this.state
+    const { namespace, name, activeTab = 'dashboard' } = this.props
+
+    const navTab = tabName => {
+      return h(Fragment, [
+        a({
+          style: tabName === activeTab ? tabActiveStyle : tabBaseStyle,
+          href: Nav.getLink('workspaceTab', namespace, name, tabName)
+        }, tabName),
+        navSeparator
+      ])
+    }
+
+    const getActiveComponent = () => {
+      const tabComponents = {
+        data: WorkspaceData
+      }
+      return tabComponents[activeTab] || WorkspaceData
+    }
 
     return h(Fragment, [
       TopBar({ title: 'Projects' }, [
@@ -81,12 +75,12 @@ const WorkspaceContainer = hh(class WorkspaceContainer extends Component {
         }
       }, [
         navSeparator,
-        navTab('Dashboard'), navTab('Notebooks'), navTab('Data', true), navTab('Jobs'),
-        navTab('History'), navTab('Tools'),
+        navTab('dashboard'), navTab('notebooks'), navTab('data'), navTab('jobs'),
+        navTab('history'), navTab('tools'),
         div({ style: { flexGrow: 1 } }),
         navIcon('copy'), navIcon('ellipsis-vertical')
       ]),
-      WorkspaceData({ namespace, name, workspaceEntities })
+      getActiveComponent()({ namespace, name })
     ])
   }
 })
@@ -96,9 +90,20 @@ export const addNavPaths = () => {
     'workspace',
     {
       component: WorkspaceContainer,
-      regex: /workspaces\/([^/]+)\/([^/]+)/,
+      regex: /workspaces\/([^/]+)\/([^/]+)$/,
       makeProps: (namespace, name) => ({ namespace, name }),
       makePath: (namespace, name) => `workspaces/${namespace}/${name}`
     }
   )
+
+  Nav.defPath(
+    'workspaceTab',
+    {
+      component: WorkspaceContainer,
+      regex: /workspaces\/([^/]+)\/([^/]+)\/([^/]+)/,
+      makeProps: (namespace, name, activeTab) => ({ namespace, name, activeTab: activeTab }),
+      makePath: (namespace, name, activeTab) => `workspaces/${namespace}/${name}/${activeTab}`
+    }
+  )
+
 }
