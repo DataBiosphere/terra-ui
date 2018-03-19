@@ -10,7 +10,8 @@ export const colors = {
   textAlt: '#bde5ff',
   textFaded: '#a6a6a6',
   textFadedLight: '#c5e1f3',
-  title: '#224f83'
+  title: '#224f83',
+  titleAlt: '#8299a5'
 }
 
 export const elements = {
