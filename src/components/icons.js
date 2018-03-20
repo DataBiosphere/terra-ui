@@ -28,8 +28,8 @@ export const logo = function(props) {
 export const spinner = function(props) {
   return icon('loadingSpinner',
     mixinDeep(
-      { size: 48, style: { color: Style.colors.primary, display: 'block', margin: 'auto' } }),
-    props)
+      { size: 48, style: { color: Style.colors.primary, display: 'block', margin: 'auto' } },
+      props))
 }
 
 ClarityIcons.add({ loadingSpinner, logoIcon, table })

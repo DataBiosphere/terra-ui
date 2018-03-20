@@ -27,7 +27,7 @@ export default hh(class WorkspaceDashboard extends Component {
   render() {
     const { workspace } = this.state
 
-    return _.isEmpty(workspace) ? spinner() :
+    return _.isEmpty(workspace) ? spinner({ style: { marginTop: '1rem' } }) :
       div({ style: { margin: '1rem' } }, [
         div({ style: { fontSize: 16, fontWeight: 500, color: Style.colors.title } },
           'ACCESS LEVEL'),
