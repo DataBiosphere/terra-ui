@@ -41,16 +41,31 @@ const tabComponents = {
  * @param {string} [activeTab]
  */
 const WorkspaceContainer = hh(class WorkspaceContainer extends Component {
+  constructor(props) {
+    super(props)
+
+    this.state = {
+      forceUpdateKey: 0
+    }
+  }
+
   render() {
     const { namespace, name } = this.props
     const activeTab = this.props.activeTab || 'dashboard'
+
+    const { forceUpdateKey } = this.state
 
     const navTab = tabName => {
       return h(Fragment, [
         a({
           style: tabName === activeTab ? tabActiveStyle : tabBaseStyle,
           href: Nav.getLink('workspace', namespace, name,
-            tabName === 'dashboard' ? null : tabName)
+            tabName === 'dashboard' ? null : tabName),
+          onClick: () => {
+            if (tabName === activeTab) {
+              this.setState({ forceUpdateKey: forceUpdateKey + 1 })
+            }
+          }
         }, tabName),
         navSeparator
       ])
@@ -83,7 +98,7 @@ const WorkspaceContainer = hh(class WorkspaceContainer extends Component {
         div({ style: { flexGrow: 1 } }),
         navIcon('copy'), navIcon('ellipsis-vertical')
       ]),
-      tabComponents[activeTab]({ namespace, name })
+      tabComponents[activeTab]({ namespace, name, key: forceUpdateKey })
     ])
   }
 })
