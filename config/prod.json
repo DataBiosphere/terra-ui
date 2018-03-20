@@ -1,4 +1,5 @@
 {
-  "rawlsUrlRoot": "https://rawls.dsde-prod.broadinstitute.org",
-  "googleClientId": "424501080111-b3bt4p1vo4gbo4m0573nvi4d49784bp8.apps.googleusercontent.com"
+  "googleClientId": "424501080111-b3bt4p1vo4gbo4m0573nvi4d49784bp8.apps.googleusercontent.com",
+  "leoUrlRoot": "https://leonardo.dsde-prod.broadinstitute.org",
+  "rawlsUrlRoot": "https://rawls.dsde-prod.broadinstitute.org"
 }

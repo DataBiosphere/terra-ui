@@ -25,3 +25,12 @@ export const ajax = function(url, options = { headers: {} }) {
 export const rawls = function(path, options) {
   return ajax(`${Config.getRawlsUrlRoot()}/api/${path}`, options)
 }
+
+/**
+ * @param {string} path
+ * @param {object} [options]
+ * @returns {Promise<json>}
+ */
+export const leo = function(path, options) {
+  return ajax(`${Config.getLeoUrlRoot()}/${path}`, options)
+}

@@ -7,6 +7,7 @@ import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import WorkspaceDashboard from 'src/pages/workspaces/workspace/Dashboard'
 import WorkspaceData from 'src/pages/workspaces/workspace/Data'
+import WorkspaceNotebooks from 'src/pages/workspaces/workspace/Notebooks'
 
 
 const navSeparator = div({
@@ -28,7 +29,7 @@ const navIcon = shape => {
 
 const tabComponents = {
   dashboard: WorkspaceDashboard,
-  notebooks: () => div('I\'m working on notebooks now.'),
+  notebooks: WorkspaceNotebooks,
   data: WorkspaceData,
   jobs: () => div('when we get to it'),
   history: () => div('okay, this is _data_ history, whatever that means'),
