@@ -30,30 +30,34 @@ const navIcon = shape => {
   return icon(shape, { size: 22, style: { opacity: 0.65, paddingRight: '1rem' } })
 }
 
+const tabComponents = {
+  dashboard: () => div('Dashboard will go here!'),
+  notebooks: () => div('I\'m working on notebooks now.'),
+  data: WorkspaceData,
+  jobs: () => div('when we get to it'),
+  history: () => div('what\'s the difference between this and jobs?'),
+  tools: () => div('Is this like method configs?')
+}
+
 /**
- * @param {string} name
  * @param {string} namespace
- * @param {string} [tab]
+ * @param {string} name
+ * @param {string} [activeTab]
  */
 const WorkspaceContainer = hh(class WorkspaceContainer extends Component {
   render() {
-    const { namespace, name, activeTab = 'dashboard' } = this.props
+    const { namespace, name } = this.props
+    const activeTab = this.props.activeTab || 'dashboard'
 
     const navTab = tabName => {
       return h(Fragment, [
         a({
           style: tabName === activeTab ? tabActiveStyle : tabBaseStyle,
-          href: Nav.getLink('workspaceTab', namespace, name, tabName)
+          href: Nav.getLink('workspace', namespace, name,
+            tabName === 'dashboard' ? null : tabName)
         }, tabName),
         navSeparator
       ])
-    }
-
-    const getActiveComponent = () => {
-      const tabComponents = {
-        data: WorkspaceData
-      }
-      return tabComponents[activeTab] || WorkspaceData
     }
 
     return h(Fragment, [
@@ -83,7 +87,7 @@ const WorkspaceContainer = hh(class WorkspaceContainer extends Component {
         div({ style: { flexGrow: 1 } }),
         navIcon('copy'), navIcon('ellipsis-vertical')
       ]),
-      getActiveComponent()({ namespace, name })
+      tabComponents[activeTab]({ namespace, name })
     ])
   }
 })
@@ -93,20 +97,10 @@ export const addNavPaths = () => {
     'workspace',
     {
       component: WorkspaceContainer,
-      regex: /workspaces\/([^/]+)\/([^/]+)$/,
-      makeProps: (namespace, name) => ({ namespace, name }),
-      makePath: (namespace, name) => `workspaces/${namespace}/${name}`
+      regex: /workspaces\/([^/]+)\/([^/]+)\/?([^/]*)/,
+      makeProps: (namespace, name, activeTab) => ({ namespace, name, activeTab }),
+      makePath: (namespace, name, activeTab) =>
+        `workspaces/${namespace}/${name}${activeTab ? `/${activeTab}` : ''}`
     }
   )
-
-  Nav.defPath(
-    'workspaceTab',
-    {
-      component: WorkspaceContainer,
-      regex: /workspaces\/([^/]+)\/([^/]+)\/([^/]+)/,
-      makeProps: (namespace, name, activeTab) => ({ namespace, name, activeTab: activeTab }),
-      makePath: (namespace, name, activeTab) => `workspaces/${namespace}/${name}/${activeTab}`
-    }
-  )
-
 }

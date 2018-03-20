@@ -3,6 +3,14 @@ import _ from 'lodash'
 
 let allPathHandlers = {}
 
+/**
+ * @param k
+ * @param handler
+ * @param handler.regex
+ * @param handler.component
+ * @param handler.makeProps
+ * @param handler.makePath
+ */
 export const defPath = function(k, handler) {
   console.assert(_.has(handler, 'regex'))
   console.assert(_.has(handler, 'component'))
@@ -16,6 +24,10 @@ export const defPath = function(k, handler) {
 
 let allRedirects = []
 
+/**
+ * @param handler.regex
+ * @param handler.makePath
+ */
 export const defRedirect = function(handler) {
   console.assert(_.has(handler, 'regex'))
   console.assert(_.has(handler, 'makePath'))
