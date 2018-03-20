@@ -19,7 +19,7 @@ export const link = function(props, children) {
         color: props.disabled ? Style.colors.disabled : Style.colors.secondary,
         cursor: props.disabled ? 'not-allowed' : 'pointer'
       },
-      hover: props.disabled ? null : { color: Style.colors.primary }
+      hover: props.disabled ? undefined : { color: Style.colors.primary }
     }, props),
     children)
 }
@@ -38,13 +38,13 @@ export const card = function(props, children) {
 export const buttonPrimary = function(props, children) {
   return h(Interactive,
     mixinDeep({
+      as: 'div',
       style: _.assign({
-        padding: '2rem 0.5rem', borderRadius: 5,
-        color: 'white',
+        padding: '0.5rem 2rem', borderRadius: 5,
         backgroundColor: props.disabled ? Style.colors.disabled : Style.colors.secondary,
         cursor: props.disabled ? 'not-allowed' : 'pointer'
       }, Style.elements.button),
-      hover: props.disabled ? null : { backgroundColor: Style.colors.primary }
+      hover: props.disabled ? undefined : { backgroundColor: Style.colors.primary }
     }, props),
     children)
 }

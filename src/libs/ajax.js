@@ -9,12 +9,14 @@ import * as Utils from 'src/libs/utils'
  * @returns {Promise<json>}
  */
 export const ajax = function(url, options = { headers: {} }) {
-  _.defaults(options.headers, {
+  let authedOptions = options
+
+  authedOptions.headers = _.defaults({
     'Content-Type': 'application/json',
     'Authorization': 'bearer ' + Utils.getAuthToken()
-  })
+  }, options.headers)
 
-  return fetch(url, options).then(response => response.json())
+  return fetch(url, authedOptions)
 }
 
 /**
@@ -23,7 +25,7 @@ export const ajax = function(url, options = { headers: {} }) {
  * @returns {Promise<json>}
  */
 export const rawls = function(path, options) {
-  return ajax(`${Config.getRawlsUrlRoot()}/api/${path}`, options)
+  return ajax(`${Config.getRawlsUrlRoot()}/api/${path}`, options).then(response => response.json())
 }
 
 /**

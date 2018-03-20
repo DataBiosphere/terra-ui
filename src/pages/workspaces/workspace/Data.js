@@ -27,7 +27,7 @@ export default hh(class WorkspaceData extends Component {
     const { namespace, name } = this.props
 
     Ajax.rawls(`workspaces/${namespace}/${name}/entities`).then(json =>
-      this.setState({ workspaceEntities: json })
+      this.setState({ workspaceEntities: _.sortBy(json, 'name') })
     )
   }
 

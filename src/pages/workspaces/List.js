@@ -24,7 +24,7 @@ const WorkspaceList = hh(class WorkspaceList extends Component {
 
   componentWillMount() {
     Ajax.rawls('workspaces').then(json =>
-      this.setState({ workspaces: json })
+      this.setState({ workspaces: _.sortBy(json, 'workspace.name') })
     )
   }
 
