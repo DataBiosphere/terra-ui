@@ -49,7 +49,7 @@ export const buttonPrimary = function(props, children) {
     children)
 }
 
-export const search = function({ wrapperProps = {}, inputProps = {} }) {
+export const search = function({ wrapperProps, inputProps }) {
   return div(
     mixinDeep({ style: { borderBottom: '1px solid black', padding: '0.5rem 0', display: 'flex' } },
       wrapperProps),
@@ -67,6 +67,7 @@ export const search = function({ wrapperProps = {}, inputProps = {} }) {
 
 /**
  * @param {string} title
+ * @param {array} [children]
  */
 export const TopBar = hh(class TopBar extends Component {
   constructor(props) {
@@ -157,7 +158,6 @@ export const TopBar = hh(class TopBar extends Component {
         ]),
       document.getElementById('main-menu-container')
     )
-
   }
 
   render() {
@@ -197,7 +197,7 @@ export const TopBar = hh(class TopBar extends Component {
   }
 })
 
-export const contextBar = function(props = {}, children = []) {
+export const contextBar = function(props, children) {
   return div(mixinDeep({
       style: {
         display: 'flex', alignItems: 'center', backgroundColor: Style.colors.primary,

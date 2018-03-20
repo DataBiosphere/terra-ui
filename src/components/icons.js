@@ -5,6 +5,7 @@ import '@clr/icons/shapes/essential-shapes'
 import mixinDeep from 'mixin-deep'
 import { h } from 'react-hyperscript-helpers'
 import { loadingSpinner, logoIcon, table } from 'src/libs/custom-icons'
+import * as Style from 'src/libs/style'
 
 
 /**
@@ -16,16 +17,19 @@ export const icon = function(shape, props) {
   return h('clr-icon', mixinDeep({ shape }, props))
 }
 
-/**
- * Creates a breadcrumb icon.
- * @param {object} [props]
- */
 export const breadcrumb = function(props) {
   return icon('angle right', mixinDeep({ size: 10, style: { padding: '0 0.25rem' } }, props))
 }
 
 export const logo = function(props) {
   return icon('logoIcon', mixinDeep({ size: 48, style: { marginRight: '0.5rem' } }, props))
+}
+
+export const spinner = function(props) {
+  return icon('loadingSpinner',
+    mixinDeep(
+      { size: 48, style: { color: Style.colors.primary, display: 'block', margin: 'auto' } }),
+    props)
 }
 
 ClarityIcons.add({ loadingSpinner, logoIcon, table })

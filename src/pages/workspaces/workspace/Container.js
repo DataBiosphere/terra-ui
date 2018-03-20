@@ -5,14 +5,12 @@ import { contextBar, TopBar } from 'src/components/common'
 import { breadcrumb, icon } from 'src/components/icons'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
+import WorkspaceDashboard from 'src/pages/workspaces/workspace/Dashboard'
 import WorkspaceData from 'src/pages/workspaces/workspace/Data'
 
 
 const navSeparator = div({
-  style: {
-    background: 'rgba(255,255,255,0.15)', width: 1, height: '3rem',
-    flexShrink: 0
-  }
+  style: { background: 'rgba(255,255,255,0.15)', width: 1, height: '3rem', flexShrink: 0 }
 })
 
 const tabBaseStyle = {
@@ -20,9 +18,7 @@ const tabBaseStyle = {
 }
 
 const tabActiveStyle = _.defaults({
-  backgroundColor: 'rgba(255,255,255,0.15)',
-  color: 'unset',
-  lineHeight: 'calc(3.5rem - 4px)',
+  backgroundColor: 'rgba(255,255,255,0.15)', color: 'unset', lineHeight: 'calc(3.5rem - 4px)',
   borderBottom: `4px solid ${Style.colors.secondary}`
 }, tabBaseStyle)
 
@@ -31,12 +27,12 @@ const navIcon = shape => {
 }
 
 const tabComponents = {
-  dashboard: () => div('Dashboard will go here!'),
+  dashboard: WorkspaceDashboard,
   notebooks: () => div('I\'m working on notebooks now.'),
   data: WorkspaceData,
   jobs: () => div('when we get to it'),
-  history: () => div('what\'s the difference between this and jobs?'),
-  tools: () => div('Is this like method configs?')
+  history: () => div('okay, this is _data_ history, whatever that means'),
+  tools: () => div('These are totally Not Method Configs')
 }
 
 /**

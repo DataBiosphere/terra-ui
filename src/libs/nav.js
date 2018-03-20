@@ -4,12 +4,12 @@ import _ from 'lodash'
 let allPathHandlers = {}
 
 /**
- * @param k
- * @param handler
- * @param handler.regex
- * @param handler.component
- * @param handler.makeProps
- * @param handler.makePath
+ * @param {string} k - key for path
+ * @param {object} handler
+ * @param {regex} handler.regex - regex with capture groups for props
+ * @param {class} handler.component
+ * @param {function} handler.makeProps - takes regex matches, returns props object
+ * @param {function} handler.makePath - takes regex matches, returns string path to go after '#'
  */
 export const defPath = function(k, handler) {
   console.assert(_.has(handler, 'regex'))
@@ -25,8 +25,8 @@ export const defPath = function(k, handler) {
 let allRedirects = []
 
 /**
- * @param handler.regex
- * @param handler.makePath
+ * @param {regex} handler.regex - regex with capture groups for props
+ * @param {function} handler.makePath - takes regex matches, returns string path to go after '#'
  */
 export const defRedirect = function(handler) {
   console.assert(_.has(handler, 'regex'))
@@ -40,6 +40,11 @@ export const clearPaths = function() {
   allRedirects = []
 }
 
+/**
+ * @param {string} windowHash
+ * @param {bool} checkingRedirects
+ * @returns {Array} matchingHandlers
+ */
 const findMatches = function(windowHash, checkingRedirects) {
   const workingHash = windowHash || ''
   const cleaned = decodeURI(workingHash.substring(1))
@@ -60,6 +65,10 @@ const findMatches = function(windowHash, checkingRedirects) {
   )
 }
 
+/**
+ * @param {string} windowHash
+ * @returns {object} matchingHandler
+ */
 export const findPathHandler = function(windowHash) {
   const matchingHandlers = findMatches(windowHash, false)
   console.assert(matchingHandlers.length <= 1,
@@ -67,6 +76,11 @@ export const findPathHandler = function(windowHash) {
   return _.head(matchingHandlers)
 }
 
+/**
+ * @param k
+ * @param args
+ * @returns {string}
+ */
 export const getPath = function(k, ...args) {
   const handler = allPathHandlers[k]
   console.assert(handler,
@@ -74,18 +88,36 @@ export const getPath = function(k, ...args) {
   return encodeURI(handler.makePath.apply(this, args))
 }
 
+/**
+ * @param k
+ * @param args
+ * @returns {string}
+ */
 export const getLink = function(k, ...args) {
   return `#${getPath.apply(this, Array.from(arguments))}`
 }
 
+/**
+ * @param k
+ * @param args
+ */
 export const goToPath = function(k, ...args) {
   window.location.hash = getPath.apply(this, Array.from(arguments))
 }
 
+/**
+ * @param k
+ * @param args
+ * @returns {string}
+ */
 export const isCurrentPath = function(k, ...args) {
   return getPath.apply(this, Array.from(arguments))
 }
 
+/**
+ * @param windowHash
+ * @returns {boolean} true
+ */
 export const executeRedirects = function(windowHash) {
   const matchingHandlers = findMatches(windowHash, true)
   console.assert(matchingHandlers.length <= 1,
