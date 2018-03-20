@@ -3,7 +3,7 @@ import mixinDeep from 'mixin-deep'
 import { Component } from 'react'
 import { div, h, hh, table } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
-import { icon, loadingIndicator } from 'src/components/icons'
+import { icon } from 'src/components/icons'
 import { DataTable } from 'src/components/table'
 import * as Ajax from 'src/libs/ajax'
 import * as Style from 'src/libs/style'
@@ -90,7 +90,10 @@ export default hh(class WorkspaceData extends Component {
         boxShadow: Style.standardShadow
       }
     }, _.isEmpty(workspaceEntities) ?
-      [div({ style: { margin: '2rem auto' } }, [loadingIndicator('white')])] :
+      [
+        div({ style: { margin: '2rem auto' } },
+          [icon('loadingSpinner', { size: 48, style: { color: Style.colors.primary } })])
+      ] :
       [
         div({ style: { flexShrink: 0, borderRight: `1px solid ${Style.colors.disabled}` } }, [
           div({
@@ -103,7 +106,9 @@ export default hh(class WorkspaceData extends Component {
         ]),
         div({ style: { overflow: 'hidden', margin: `1rem ${anyEntitiesLoaded ? 'auto' : ''}` } }, [
           selectedEntityType ?
-            anyEntitiesLoaded ? loadingIndicator('white') : entityTable :
+            anyEntitiesLoaded ?
+              icon('loadingSpinner', { size: 48, style: { color: Style.colors.primary } }) :
+              entityTable :
             'Select a data type.'
         ])
       ])

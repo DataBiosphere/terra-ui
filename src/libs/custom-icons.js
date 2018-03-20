@@ -65,3 +65,23 @@ export const table = `<svg version="1.1" viewBox="0 0 17 17" preserveAspectRatio
     <line x1="0" y1="6" x2="17" y2="6"/>
     <line x1="0" y1="11" x2="17" y2="11"/>
 </svg>`
+
+export const loadingSpinner = `<svg version="1.1" viewBox="0 0 38 38" preserveAspectRatio="xMidYMid meet"
+     xmlns="http://www.w3.org/2000/svg" focusable="false" aria-hidden="true" role="img">
+  <linearGradient id="gradient" gradientUnits="userSpaceOnUse" x1="1" y1="28" x2="19" y2="28">
+    <stop offset="0" style="stop-color: currentColor"/>
+    <stop offset="0.2" style="stop-color: currentColor"/>
+    <stop offset="0.84" style="stop-color: currentColor; stop-opacity: 0"/>
+  </linearGradient>
+  <g>
+    <path style="fill: none; stroke: currentColor; stroke-width: 4;" d="M19,3C10.2,3,3,10.2,3,19"/>
+    <path style="fill: url(#gradient)" d="M19,37C9.1,37,1,28.9,1,19h4c0,7.7,6.3,14,14,14V37z"/>
+    <animateTransform
+        attributeName="transform"
+        type="rotate"
+        from="0 19 19"
+        to="360 19 19"
+        dur="1.4s"
+        repeatCount="indefinite"/>
+  </g>
+</svg>`

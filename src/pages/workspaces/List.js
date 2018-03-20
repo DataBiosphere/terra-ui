@@ -2,7 +2,7 @@ import _ from 'lodash'
 import { Component, Fragment } from 'react'
 import { a, div, h, hh } from 'react-hyperscript-helpers'
 import { card, contextBar, link, search, TopBar } from 'src/components/common'
-import { breadcrumb, icon, loadingIndicator } from 'src/components/icons'
+import { breadcrumb, icon } from 'src/components/icons'
 import { DataGrid, DataTable } from 'src/components/table'
 import * as Ajax from 'src/libs/ajax'
 import * as Nav from 'src/libs/nav'
@@ -160,7 +160,8 @@ const WorkspaceList = hh(class WorkspaceList extends Component {
                   ])
               }
             }, dataViewerProps)) :
-          loadingIndicator(Style.colors.background)
+          icon('loadingSpinner',
+            { size: 64, style: { color: Style.colors.primary, display: 'block', margin: 'auto' } })
       ])
     ])
   }
