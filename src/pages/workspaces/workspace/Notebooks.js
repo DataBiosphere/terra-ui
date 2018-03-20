@@ -1,11 +1,11 @@
 import _ from 'lodash'
 import { Component } from 'react'
 import { div, hh } from 'react-hyperscript-helpers/lib/index'
+import { buttonPrimary, link } from 'src/components/common'
 import { icon, spinner } from 'src/components/icons'
 import { DataTable } from 'src/components/table'
 import * as Ajax from 'src/libs/ajax'
 import * as Style from 'src/libs/style'
-import { buttonPrimary, link } from 'src/components/common'
 import * as Utils from 'src/libs/utils'
 
 
@@ -127,7 +127,6 @@ export default hh(class WorkspaceNotebooks extends Component {
               }
             ]
           }
-
         })
       ])
   }

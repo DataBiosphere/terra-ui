@@ -1,8 +1,8 @@
 import _ from 'lodash'
 import { Component } from 'react'
 import { div, hh } from 'react-hyperscript-helpers/lib/index'
-import * as Ajax from 'src/libs/ajax'
 import { spinner } from 'src/components/icons'
+import * as Ajax from 'src/libs/ajax'
 import * as Style from 'src/libs/style'
 
 
