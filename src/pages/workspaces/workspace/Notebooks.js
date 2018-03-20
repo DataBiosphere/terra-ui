@@ -118,8 +118,7 @@ export default hh(class WorkspaceNotebooks extends Component {
                     return link({
                       onClick: () => {
                         Ajax.leo(`/api/cluster/${googleProject}/${clusterName}`,
-                          { method: 'DELETE' }).
-                          then(this.loadClusters())
+                          { method: 'DELETE' }).then(this.loadClusters())
                       },
                       title: `Delete cluster ${clusterName}`
                     }, [icon('trash')])
