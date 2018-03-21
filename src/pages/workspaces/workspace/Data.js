@@ -27,7 +27,7 @@ export default hh(class WorkspaceData extends Component {
     const { namespace, name } = this.props
 
     Ajax.rawls(`workspaces/${namespace}/${name}/entities`).then(json =>
-      this.setState({ workspaceEntities: _.sortBy(json, 'name') })
+      this.setState({ workspaceEntities: json })
     )
   }
 
@@ -56,7 +56,7 @@ export default hh(class WorkspaceData extends Component {
     )
 
     const entityTable = DataTable({
-      dataSource: selectedEntities,
+      dataSource: _.sortBy(selectedEntities, 'name'),
       tableProps: {
         rowKey: 'name',
         scroll: { x: true },
