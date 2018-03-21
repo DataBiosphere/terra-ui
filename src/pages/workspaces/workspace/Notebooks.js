@@ -1,5 +1,4 @@
 import _ from 'lodash'
-import mixinDeep from 'mixin-deep'
 import { Component } from 'react'
 import { div, hh } from 'react-hyperscript-helpers/lib/index'
 import { buttonPrimary, link } from 'src/components/common'
@@ -16,7 +15,7 @@ export default hh(class WorkspaceNotebooks extends Component {
     this.state = {
       clusters: [],
       creatingCluster: false,
-      clusterAccess: {}
+      clusterAccess: false
     }
   }
 
@@ -27,13 +26,14 @@ export default hh(class WorkspaceNotebooks extends Component {
   loadClusters() {
     this.setState({ clusters: [] })
     Ajax.leo('api/clusters').then(response => response.json()).then(json => {
-        json.forEach(({ clusterName, googleProject }) => {
-          Ajax.leo(`notebooks/${googleProject}/${clusterName}/setCookie`).then(() => {
-            this.setState(prev => (mixinDeep({ clusterAccess: { [clusterName]: true } }, prev)))
-          }, () => {
-            this.setState(prev => (mixinDeep({ clusterAccess: { [clusterName]: false } }, prev)))
-          })
-        })
+        const owned = _.find(json,
+          v => (v['creator'] === Utils.getUser().getBasicProfile().getEmail()))
+        if (owned) {
+          Ajax.leo(`notebooks/${owned.googleProject}/${owned.clusterName}/setCookie`,
+            { credentials: 'include' })
+            .then(() => this.setState({ clusterAccess: true }))
+            .catch(() => this.setState({ clusterAccess: false }))
+        }
         this.setState({ clusters: _.sortBy(json, 'clusterName') })
       }
     )
@@ -83,8 +83,9 @@ export default hh(class WorkspaceNotebooks extends Component {
             columns: [
               {
                 title: 'Cluster Name', key: 'clusterName',
-                render: ({ clusterName, clusterUrl, status }) => {
-                  const isAccessible = clusterAccess[clusterName] && status === 'Running'
+                render: ({ clusterName, clusterUrl, status, creator }) => {
+                  const isAccessible = creator === Utils.getUser().getBasicProfile().getEmail() &&
+                    status === 'Running'
                   return link({
                     title: clusterName,
                     disabled: !isAccessible,
@@ -98,13 +99,13 @@ export default hh(class WorkspaceNotebooks extends Component {
                 }
               },
               {
-                title: 'Authorized?', dataIndex: 'clusterName', key: 'access',
-                render: (clusterName) => {
-                  const isAccessible = clusterAccess[clusterName]
-                  return icon(isAccessible ? 'check' : 'times', {
+                title: 'Authorized?', dataIndex: 'creator', key: 'access',
+                render: creator => icon(
+                  creator === Utils.getUser().getBasicProfile().getEmail() && clusterAccess ?
+                    'check' : 'times', {
                     style: { margin: 'auto', display: 'block' }
                   })
-                }
+
               },
               {
                 title: 'Google project', dataIndex: 'googleProject', key: 'googleProject'
