@@ -1,4 +1,5 @@
 import _ from 'lodash'
+import mixinDeep from 'mixin-deep'
 import { Component } from 'react'
 import { div, hh } from 'react-hyperscript-helpers/lib/index'
 import { buttonPrimary, link } from 'src/components/common'
@@ -14,7 +15,8 @@ export default hh(class WorkspaceNotebooks extends Component {
     super(props)
     this.state = {
       clusters: [],
-      creatingCluster: false
+      creatingCluster: false,
+      clusterAccess: {}
     }
   }
 
@@ -26,7 +28,11 @@ export default hh(class WorkspaceNotebooks extends Component {
     this.setState({ clusters: [] })
     Ajax.leo('api/clusters').then(response => response.json()).then(json => {
         json.forEach(({ clusterName, googleProject }) => {
-          Ajax.leo(`notebooks/${googleProject}/${clusterName}/setCookie`).catch(e => {})
+          Ajax.leo(`notebooks/${googleProject}/${clusterName}/setCookie`).then(() => {
+            this.setState(prev => (mixinDeep({ clusterAccess: { [clusterName]: true } }, prev)))
+          }, () => {
+            this.setState(prev => (mixinDeep({ clusterAccess: { [clusterName]: false } }, prev)))
+          })
         })
         this.setState({ clusters: _.sortBy(json, 'clusterName') })
       }
@@ -35,7 +41,7 @@ export default hh(class WorkspaceNotebooks extends Component {
 
   render() {
     const { namespace } = this.props
-    const { clusters, creatingCluster } = this.state
+    const { clusters, creatingCluster, clusterAccess } = this.state
 
     return _.isEmpty(clusters) ? spinner({ style: { marginTop: '1rem' } }) :
       div({ style: { margin: '1rem' } }, [
@@ -77,28 +83,37 @@ export default hh(class WorkspaceNotebooks extends Component {
             columns: [
               {
                 title: 'Cluster Name', key: 'clusterName',
-                render: ({ clusterName, clusterUrl, status }) =>
-                  link({
+                render: ({ clusterName, clusterUrl, status }) => {
+                  const isAccessible = clusterAccess[clusterName] && status === 'Running'
+                  return link({
                     title: clusterName,
-                    disabled: status !== 'Running',
-                    href: clusterUrl,
+                    disabled: !isAccessible,
+                    href: isAccessible ? clusterUrl : undefined,
                     target: '_blank',
                     style: {
                       textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block',
                       overflow: 'hidden', width: 400
                     }
                   }, clusterName)
+                }
               },
               {
-                title: 'Google project', dataIndex: 'googleProject', key: 'googleProject',
-                width: 150
+                title: 'Authorized?', dataIndex: 'clusterName', key: 'access',
+                render: (clusterName) => {
+                  const isAccessible = clusterAccess[clusterName]
+                  return icon(isAccessible ? 'check' : 'times', {
+                    style: { margin: 'auto', display: 'block' }
+                  })
+                }
+              },
+              {
+                title: 'Google project', dataIndex: 'googleProject', key: 'googleProject'
               },
               {
                 title: 'Status', dataIndex: 'status', key: 'status'
               },
               {
                 title: 'Created', dataIndex: 'createdDate', key: 'createdDate',
-                width: 175,
                 render: Utils.makePrettyDate
               },
               {
@@ -107,7 +122,7 @@ export default hh(class WorkspaceNotebooks extends Component {
                   title: creator,
                   style: {
                     textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block',
-                    overflow: 'hidden', width: 275
+                    overflow: 'hidden'
                   }
                 }, creator)
               },
@@ -121,7 +136,7 @@ export default hh(class WorkspaceNotebooks extends Component {
                           { method: 'DELETE' }).then(this.loadClusters())
                       },
                       title: `Delete cluster ${clusterName}`
-                    }, [icon('trash')])
+                    }, [icon('trash', { style: { margin: 'auto', display: 'block' } })])
                   }
                 }
               }
