@@ -116,7 +116,7 @@ export const isCurrentPath = function(k, ...args) {
 
 /**
  * @param windowHash
- * @returns {boolean} true
+ * @returns {boolean} redirect executed?
  */
 export const executeRedirects = function(windowHash) {
   const matchingHandlers = findMatches(windowHash, true)
@@ -125,6 +125,7 @@ export const executeRedirects = function(windowHash) {
 
   if (matchingHandlers[0]) {
     window.location.replace(`#${matchingHandlers[0].makePath()}`)
-    return true
   }
+
+  return (matchingHandlers.length > 0)
 }
