@@ -10,11 +10,12 @@ export const colors = {
   textAlt: '#bde5ff',
   textFaded: '#a6a6a6',
   textFadedLight: '#c5e1f3',
-  title: '#224f83'
+  title: '#224f83',
+  titleAlt: '#8299a5'
 }
 
 export const elements = {
-  button: { color: 'black', fontWeight: 500, textTransform: 'uppercase' },
+  button: { color: 'white', fontWeight: 500, fontSize: 12, textTransform: 'uppercase' },
   cardTitle: { color: colors.secondary, fontSize: 16, fontWeight: 500 },
   pageTitle: {
     color: colors.title, fontSize: 22, fontWeight: 500,
