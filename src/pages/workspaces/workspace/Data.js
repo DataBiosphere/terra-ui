@@ -3,7 +3,7 @@ import mixinDeep from 'mixin-deep'
 import { Component } from 'react'
 import { div, h, hh, table } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
-import { icon } from 'src/components/icons'
+import { icon, spinner } from 'src/components/icons'
 import { DataTable } from 'src/components/table'
 import * as Ajax from 'src/libs/ajax'
 import * as Style from 'src/libs/style'
@@ -12,20 +12,30 @@ import * as Style from 'src/libs/style'
 /**
  * @param {string} name
  * @param {string} namespace
- * @param {object} workspaceEntities - entity types in the workspace
  */
 export default hh(class WorkspaceData extends Component {
   constructor(props) {
     super(props)
     this.state = {
       selectedEntityType: '',
-      selectedEntities: []
+      selectedEntities: [],
+      workspaceEntities: []
     }
   }
 
+  componentWillMount() {
+    const { namespace, name } = this.props
+
+    Ajax.rawls(`workspaces/${namespace}/${name}/entities`).then(json =>
+      this.setState({ workspaceEntities: _.sortBy(json, 'name') })
+    )
+  }
+
   render() {
-    const { namespace, name, workspaceEntities } = this.props
-    const { selectedEntityType, selectedEntities } = this.state
+    const { namespace, name } = this.props
+    const { selectedEntityType, selectedEntities, workspaceEntities } = this.state
+
+    const anyEntitiesLoaded = _.isEmpty(selectedEntities)
 
     const entityTypeList = _.map(workspaceEntities, (v, k) =>
       div({
@@ -61,7 +71,7 @@ export default hh(class WorkspaceData extends Component {
                 props))
           }
         },
-        columns: _.isEmpty(selectedEntities) ?
+        columns: anyEntitiesLoaded ?
           [] :
           _.map(workspaceEntities[selectedEntityType]['attributeNames'], function(name) {
             return {
@@ -79,21 +89,28 @@ export default hh(class WorkspaceData extends Component {
         display: 'flex', margin: '1rem', backgroundColor: 'white', borderRadius: 5,
         boxShadow: Style.standardShadow
       }
-    }, [
-      div({ style: { flexShrink: 0, borderRight: `1px solid ${Style.colors.disabled}` } }, [
-        div({
-          style: {
-            fontWeight: 500, padding: '0.5rem 1rem',
-            borderBottom: `1px solid ${Style.colors.background}`
-          }
-        }, 'Data Model'),
-        div({ style: { marginBottom: '1rem' } }, entityTypeList)
-      ]),
-      div({ style: { overflow: 'hidden', margin: '1rem' } }, [
-        selectedEntityType ?
-          _.isEmpty(selectedEntities) ? 'Loading...' : entityTable :
-          'Select a data type.'
+    }, _.isEmpty(workspaceEntities) ?
+      [
+        div({ style: { margin: '2rem auto' } },
+          [spinner()])
+      ] :
+      [
+        div({ style: { flexShrink: 0, borderRight: `1px solid ${Style.colors.disabled}` } }, [
+          div({
+            style: {
+              fontWeight: 500, padding: '0.5rem 1rem',
+              borderBottom: `1px solid ${Style.colors.background}`
+            }
+          }, 'Data Model'),
+          div({ style: { marginBottom: '1rem' } }, entityTypeList)
+        ]),
+        div({ style: { overflow: 'hidden', margin: `1rem ${anyEntitiesLoaded ? 'auto' : ''}` } }, [
+          selectedEntityType ?
+            anyEntitiesLoaded ?
+              spinner() :
+              entityTable :
+            'Select a data type.'
+        ])
       ])
-    ])
   }
 })

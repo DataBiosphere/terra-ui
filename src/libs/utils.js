@@ -12,12 +12,23 @@ export const getAuthToken = function() {
 
 export const makePrettyDate = function(dateString) {
   const date = new Date(dateString)
+  const now = new Date()
 
-  return date.toLocaleString(navigator.language, {
-    day: 'numeric',
-    month: 'short',
-    year: date.getFullYear() === new Date().getFullYear() ? undefined : 'numeric',
-    hour: 'numeric',
-    minute: 'numeric'
-  })
+  const todayOrYesterday =
+    date.getFullYear() === now.getFullYear() &&
+    date.getMonth() === now.getMonth() &&
+    (date.getDate() === now.getDate() - 1 || date.getDate() === now.getDate())
+
+  if (todayOrYesterday) {
+    return (date.getDate() === now.getDate() ? 'Today' : 'Yesterday') + ' ' +
+      date.toLocaleString(navigator.language, { hour: 'numeric', minute: 'numeric' })
+  } else {
+    return date.toLocaleString(navigator.language, {
+      day: 'numeric',
+      month: 'short',
+      year: date.getFullYear() === now.getFullYear() ? undefined : 'numeric',
+      hour: 'numeric',
+      minute: 'numeric'
+    })
+  }
 }
