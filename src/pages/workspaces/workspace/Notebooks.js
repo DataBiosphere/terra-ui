@@ -25,25 +25,30 @@ export default hh(class WorkspaceNotebooks extends Component {
 
   loadClusters() {
     this.setState({ clusters: [] })
-    Ajax.leo('api/clusters').then(response => response.json()).then(json => {
-        const owned = _.find(json,
+    Ajax.clusterList(
+      list => {
+        const owned = _.find(list,
           v => (v['creator'] === Utils.getUser().getBasicProfile().getEmail()))
         if (owned) {
-          Ajax.leo(`notebooks/${owned.googleProject}/${owned.clusterName}/setCookie`,
-            { credentials: 'include' })
-            .then(() => this.setState({ clusterAccess: true }))
-            .catch(() => this.setState({ clusterAccess: false }))
+          Ajax.setCookie(owned.googleProject, owned.clusterName,
+            () => this.setState({ clusterAccess: true }),
+            () => this.setState({ clusterAccess: false })
+          )
         }
-        this.setState({ clusters: _.sortBy(json, 'clusterName') })
-      }
+        this.setState({ clusters: _.sortBy(list, 'clusterName') })
+      },
+      listFailure => this.setState({ listFailure })
     )
   }
 
   render() {
     const { namespace } = this.props
-    const { clusters, creatingCluster, clusterAccess } = this.state
+    const { clusters, creatingCluster, clusterAccess, listFailure } = this.state
 
-    return _.isEmpty(clusters) ? spinner({ style: { marginTop: '1rem' } }) :
+    return _.isEmpty(clusters) ?
+      listFailure ?
+        `Couldn't load cluster list: ${listFailure || listFailure}` :
+        spinner({ style: { marginTop: '1rem' } }) :
       div({ style: { margin: '1rem' } }, [
         div({ style: { display: 'flex', alignItems: 'center' } }, [
           div({ style: { fontSize: 16, fontWeight: 500, color: Style.colors.title, flexGrow: 1 } },
@@ -52,21 +57,21 @@ export default hh(class WorkspaceNotebooks extends Component {
             style: { display: 'flex' },
             disabled: creatingCluster,
             onClick: () => {
-              Ajax.leo(`api/cluster/${namespace}/${window.prompt('Name for the new cluster')}`,
+              Ajax.makeCluster(namespace, window.prompt('Name for the new cluster'),
                 {
-                  method: 'PUT',
-                  body: JSON.stringify({
-                    'labels': {}, 'machineConfig': {
-                      'numberOfWorkers': 0, 'masterMachineType': 'n1-standard-4',
-                      'masterDiskSize': 500, 'workerMachineType': 'n1-standard-4',
-                      'workerDiskSize': 500, 'numberOfWorkerLocalSSDs': 0,
-                      'numberOfPreemptibleWorkers': 0
-                    }
-                  })
-                }).then(() => {
-                this.setState({ creatingCluster: false })
-                this.loadClusters()
-              })
+                  'labels': {}, 'machineConfig': {
+                    'numberOfWorkers': 0, 'masterMachineType': 'n1-standard-4',
+                    'masterDiskSize': 500, 'workerMachineType': 'n1-standard-4',
+                    'workerDiskSize': 500, 'numberOfWorkerLocalSSDs': 0,
+                    'numberOfPreemptibleWorkers': 0
+                  }
+                },
+                () => {
+                  this.setState({ creatingCluster: false })
+                  this.loadClusters()
+                },
+                creationFail => window.alert(
+                  `Couldn't create cluster: ${creationFail.statusText || creationFail}`))
               this.setState({ creatingCluster: true })
             }
           }, creatingCluster ?
@@ -133,8 +138,10 @@ export default hh(class WorkspaceNotebooks extends Component {
                   if (status !== 'Deleting') {
                     return link({
                       onClick: () => {
-                        Ajax.leo(`/api/cluster/${googleProject}/${clusterName}`,
-                          { method: 'DELETE' }).then(this.loadClusters())
+                        Ajax.deleteCluster(googleProject, clusterName,
+                          () => this.loadClusters(),
+                          deletionFail => window.alert(
+                            `Couldn't delete cluster: ${deletionFail.statusText || deletionFail}`))
                       },
                       title: `Delete cluster ${clusterName}`
                     }, [icon('trash', { style: { margin: 'auto', display: 'block' } })])

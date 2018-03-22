@@ -26,32 +26,35 @@ export default hh(class WorkspaceData extends Component {
   componentWillMount() {
     const { namespace, name } = this.props
 
-    Ajax.rawls(`workspaces/${namespace}/${name}/entities`).then(json =>
-      this.setState({ workspaceEntities: json })
+    Ajax.workspaceEntities(namespace, name,
+      workspaceEntities => this.setState({ workspaceEntities }),
+      entitiesFailure => this.setState({ entitiesFailure })
     )
   }
 
   render() {
     const { namespace, name } = this.props
-    const { selectedEntityType, selectedEntities, workspaceEntities } = this.state
+    const { selectedEntityType, selectedEntities, workspaceEntities, entitiesFailure, entityFailure } = this.state
 
     const anyEntitiesLoaded = _.isEmpty(selectedEntities)
 
-    const entityTypeList = _.map(workspaceEntities, (v, k) =>
+    const entityTypeList = _.map(workspaceEntities, (typeDetails, type) =>
       div({
           style: {
             cursor: 'pointer', padding: '0.75rem 1rem',
-            backgroundColor: selectedEntityType === k ? Style.colors.highlightFaded : null
+            backgroundColor: selectedEntityType === type ? Style.colors.highlightFaded : null
           },
           onClick: () => {
-            this.setState({ selectedEntityType: k, selectedEntities: [] })
-            Ajax.rawls(`workspaces/${namespace}/${name}/entities/${k}`).then(json =>
-              this.setState({ selectedEntities: json }))
+            this.setState({ selectedEntityType: type, selectedEntities: [] })
+            Ajax.workspaceEntity(namespace, name, type,
+              selectedEntities => this.setState({ selectedEntities }),
+              entityFailure => this.setState({ entityFailure })
+            )
           }
         },
         [
           icon('table', { style: { color: '#757575', marginRight: '0.5rem' } }),
-          `${k} (${v.count})`
+          `${type} (${typeDetails.count})`
         ])
     )
 
@@ -90,10 +93,9 @@ export default hh(class WorkspaceData extends Component {
         boxShadow: Style.standardShadow
       }
     }, _.isEmpty(workspaceEntities) ?
-      [
-        div({ style: { margin: '2rem auto' } },
-          [spinner()])
-      ] :
+      entitiesFailure ?
+        `Couldn't load workspace entities: ${entitiesFailure.statusText || entitiesFailure}` :
+        [spinner({ style: { margin: '2rem auto' } })] :
       [
         div({ style: { flexShrink: 0, borderRight: `1px solid ${Style.colors.disabled}` } }, [
           div({
@@ -107,7 +109,10 @@ export default hh(class WorkspaceData extends Component {
         div({ style: { overflow: 'hidden', margin: `1rem ${anyEntitiesLoaded ? 'auto' : ''}` } }, [
           selectedEntityType ?
             anyEntitiesLoaded ?
-              spinner() :
+              entityFailure ?
+                `Couldn't load ${selectedEntityType}s: ${entityFailure.statusText ||
+                entityFailure}` :
+                spinner() :
               entityTable :
             'Select a data type.'
         ])

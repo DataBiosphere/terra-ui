@@ -17,17 +17,19 @@ export default hh(class WorkspaceDashboard extends Component {
 
   componentWillMount() {
     const { namespace, name } = this.props
-
-    Ajax.rawls(`workspaces/${namespace}/${name}`).then(json =>
-      this.setState({ workspace: json })
-    )
+    Ajax.workspaceDetails(namespace, name,
+      workspace => this.setState({ workspace }),
+      failure => this.setState({ failure }))
   }
 
 
   render() {
-    const { workspace } = this.state
+    const { workspace, failure } = this.state
 
-    return _.isEmpty(workspace) ? spinner({ style: { marginTop: '1rem' } }) :
+    return _.isEmpty(workspace) ?
+      failure ?
+        `Couldn't load workspace details: ${failure.statusText || failure}` :
+        spinner({ style: { marginTop: '1rem' } }) :
       div({ style: { margin: '1rem' } }, [
         div({ style: { fontSize: 16, fontWeight: 500, color: Style.colors.title } },
           'ACCESS LEVEL'),
