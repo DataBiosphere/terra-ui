@@ -26,3 +26,4 @@ export const elements = {
 }
 
 export const standardShadow = '0 3px 2px 0 rgba(0,0,0,0.12)'
+export const moreVisibleShadow = '0 2px 5px 0 rgba(0,0,0,0.26), 0 2px 10px 0 rgba(0,0,0,0.16)'

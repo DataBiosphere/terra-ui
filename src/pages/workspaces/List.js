@@ -1,13 +1,16 @@
 import _ from 'lodash'
 import { Component, Fragment } from 'react'
-import { a, div, h, hh } from 'react-hyperscript-helpers'
-import { card, contextBar, link, search, TopBar } from 'src/components/common'
+import { div, h, hh } from 'react-hyperscript-helpers'
+import Interactive from 'react-interactive'
+import { card, contextBar, search } from 'src/components/common'
 import { breadcrumb, icon, spinner } from 'src/components/icons'
-import { DataGrid, DataTable } from 'src/components/table'
+import { DataGrid } from 'src/components/table'
+import { TopBar } from 'src/components/TopBar'
 import * as Ajax from 'src/libs/ajax'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
+import ShowOnClick from 'src/components/ShowOnClick'
 
 
 const WorkspaceList = hh(class WorkspaceList extends Component {
@@ -15,7 +18,7 @@ const WorkspaceList = hh(class WorkspaceList extends Component {
     super(props)
     this.state = {
       filter: '',
-      listView: false,
+      listView: true,
       itemsPerPage: 6,
       pageNumber: 1,
       workspaces: []
@@ -83,48 +86,88 @@ const WorkspaceList = hh(class WorkspaceList extends Component {
             `Couldn't load workspace list: ${failure}` :
             spinner({ size: 64 }) :
           listView ?
-            DataTable(_.assign({
-              tableProps: {
-                rowKey: ({ workspace }) => workspace['workspaceId'],
-                columns: [
-                  {
-                    title: 'Workspace', dataIndex: 'workspace', key: 'name',
-                    render: ({ namespace, name }) =>
-                      link({
-                        title: name,
-                        href: Nav.getLink('workspace', namespace, name),
-                        style: {
-                          textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block',
-                          overflow: 'hidden', width: 400
-                        }
-                      }, name)
-                  },
-                  {
-                    title: 'Billing project', dataIndex: 'workspace.namespace', key: 'namespace',
-                    width: 150
-                  },
-                  {
-                    title: 'Last changed', dataIndex: 'workspace.lastModified', key: 'lastModified',
-                    width: 175,
-                    render: Utils.makePrettyDate
-                  },
-                  {
-                    title: 'Created by', dataIndex: 'workspace.createdBy', key: 'createdBy',
-                    render: creator => div({
-                      title: creator,
+            DataGrid(_.assign({
+                cardsPerRow: 1,
+                renderCard: ({ workspace: { namespace, name, createdBy, lastModified } }) => {
+                  return h(Interactive, {
+                      as: 'a',
+                      interactiveChild: true,
+                      nonContainedChild: true,
+                      href: Nav.getLink('workspace', namespace, name),
+                      hover: { backgroundColor: Style.colors.highlight },
+                      focus: 'hover',
                       style: {
-                        textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block',
-                        overflow: 'hidden', width: 275
+                        width: '100%', margin: '0.5rem', textDecoration: 'none',
+                        backgroundColor: 'white'
                       }
-                    }, creator)
-                  }
-                ]
-              }
-            }, dataViewerProps)) :
+                    },
+                    [
+                      card({ style: { color: Style.colors.text, display: 'flex' } }, [
+                        div({
+                          style: {
+                            flexGrow: 1, display: 'flex', flexDirection: 'column',
+                            justifyContent: 'space-between'
+                          }
+                        }, [
+                          div({ style: Style.elements.cardTitle }, `${name}`),
+                          div({
+                            style: {
+                              display: 'flex', justifyContent: 'space-between', width: '100%',
+                              alignItems: 'flex-end', fontSize: '0.8rem'
+                            }
+                          }, [
+                            div({ style: { flexGrow: 1 } },
+                              `Billing project: ${namespace}`),
+                            div({ style: { width: '35%' } },
+                              [`Last changed: ${Utils.makePrettyDate(lastModified)}`])
+                          ])
+                        ]),
+                        div({ style: { margin: '-0.25rem 0' } }, [
+                          div({
+                            style: { opacity: 0 }, onParentHover: { opacity: 1 },
+                            onParentFocus: 'hover'
+                          }, [
+                            ShowOnClick({
+                                style: { position: 'relative' },
+                                container: div({
+                                  style: {
+                                    height: '1.5rem', width: '1.5rem', borderRadius: '1.5rem',
+                                    lineHeight: '1.5rem', textAlign: 'center',
+                                    boxShadow: Style.moreVisibleShadow, marginBottom: '0.5rem',
+                                    backgroundColor: 'white'
+                                  }
+                                }, [icon('bars')])
+                              }, [
+                                div({
+                                  style: {
+                                    height: 20, width: 40, backgroundColor: 'blue',
+                                    position: 'absolute', left: '2rem', top: '0.75rem'
+                                  }
+                                })
+                              ]
+                            )
+                          ]),
+
+                          div({
+                            title: createdBy,
+                            style: {
+                              height: '1.5rem', width: '1.5rem', borderRadius: '1.5rem',
+                              lineHeight: '1.5rem', textAlign: 'center',
+                              backgroundColor: Style.colors.accent, color: 'white'
+                            }
+                          }, createdBy[0].toUpperCase())
+                        ])
+                      ])
+                    ])
+                }
+              }, dataViewerProps)
+            ) :
             DataGrid(_.assign({
               renderCard: ({ workspace: { namespace, name, createdBy, lastModified } },
                            cardsPerRow) => {
-                return a({
+                return h(Interactive, {
+                    as: 'a',
+                    interactiveChild: true,
                     href: Nav.getLink('workspace', namespace, name),
                     style: {
                       width: `calc(${100 / cardsPerRow}% - 2.5rem)`, minHeight: 100,
