@@ -1,9 +1,5 @@
 version: 2
 
-defaults: &defaults
-  docker:
-    - image: google/cloud-sdk:latest
-
 jobs:
   build:
     docker:
@@ -25,7 +21,8 @@ jobs:
             - build
             - config
   deploy-dev:
-    <<: *defaults
+    docker:
+      - image: node:8
     steps:
       - attach_workspace:
           at: /root/project
@@ -34,7 +31,8 @@ jobs:
       - run: gcloud auth activate-service-account --key-file=circleci-sa.json
       - run: gcloud app deploy --project=bvdp-saturn-dev --promote --quiet
   deploy-prod:
-    <<: *defaults
+    docker:
+      - image: node:8
     steps:
       - attach_workspace:
           at: /root/project
