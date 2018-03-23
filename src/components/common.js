@@ -1,13 +1,9 @@
 import _ from 'lodash'
 import mixinDeep from 'mixin-deep'
-import { Component } from 'react'
-import { createPortal } from 'react-dom'
-import { a, div, h, hh, input } from 'react-hyperscript-helpers'
+import { div, h, input } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
-import { icon, logo } from 'src/components/icons'
-import * as Nav from 'src/libs/nav'
+import { icon } from 'src/components/icons'
 import * as Style from 'src/libs/style'
-import * as Utils from 'src/libs/utils'
 
 
 export const link = function(props, children) {
