@@ -2,12 +2,12 @@ version: 2
 
 defaults: &defaults
   docker:
-    - image: google/cloud-sdk:alpine
+    - image: google/cloud-sdk:latest
 
 jobs:
   build:
     docker:
-      - image: node:8-alpine
+      - image: node:8
     steps:
       - checkout
       - restore_cache:
