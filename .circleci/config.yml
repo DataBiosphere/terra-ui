@@ -1,12 +1,9 @@
 version: 2
 
-defaults: &defaults
-  docker:
-    - image: gcr.io/bvdp-saturn-dev/ui
-
 jobs:
   build:
-    <<: *defaults
+    docker:
+      - image: node:8
     steps:
       - checkout
       - restore_cache:
@@ -24,7 +21,8 @@ jobs:
             - build
             - config
   deploy-dev:
-    <<: *defaults
+    docker:
+      - image: google/cloud-sdk:latest
     steps:
       - attach_workspace:
           at: /root/project
@@ -33,7 +31,8 @@ jobs:
       - run: gcloud auth activate-service-account --key-file=circleci-sa.json
       - run: gcloud app deploy --project=bvdp-saturn-dev --promote --quiet
   deploy-prod:
-    <<: *defaults
+    docker:
+      - image: google/cloud-sdk:latest
     steps:
       - attach_workspace:
           at: /root/project
