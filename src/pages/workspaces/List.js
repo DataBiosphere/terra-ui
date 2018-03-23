@@ -80,7 +80,7 @@ const WorkspaceList = hh(class WorkspaceList extends Component {
       div({ style: { margin: '1rem auto', maxWidth: 1000 } }, [
         _.isEmpty(workspaces) ?
           failure ?
-            `Couldn't load workspace list: ${failure.statusText || failure}` :
+            `Couldn't load workspace list: ${failure}` :
             spinner({ size: 64 }) :
           listView ?
             DataTable(_.assign({

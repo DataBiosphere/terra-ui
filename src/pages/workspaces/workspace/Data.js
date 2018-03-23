@@ -94,7 +94,7 @@ export default hh(class WorkspaceData extends Component {
       }
     }, _.isEmpty(workspaceEntities) ?
       entitiesFailure ?
-        `Couldn't load workspace entities: ${entitiesFailure.statusText || entitiesFailure}` :
+        `Couldn't load workspace entities: ${entitiesFailure}` :
         [spinner({ style: { margin: '2rem auto' } })] :
       [
         div({ style: { flexShrink: 0, borderRight: `1px solid ${Style.colors.disabled}` } }, [
@@ -110,8 +110,7 @@ export default hh(class WorkspaceData extends Component {
           selectedEntityType ?
             anyEntitiesLoaded ?
               entityFailure ?
-                `Couldn't load ${selectedEntityType}s: ${entityFailure.statusText ||
-                entityFailure}` :
+                `Couldn't load ${selectedEntityType}s: ${entityFailure}` :
                 spinner() :
               entityTable :
             'Select a data type.'

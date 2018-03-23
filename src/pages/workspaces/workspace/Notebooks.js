@@ -71,7 +71,7 @@ export default hh(class WorkspaceNotebooks extends Component {
                   this.loadClusters()
                 },
                 creationFail => window.alert(
-                  `Couldn't create cluster: ${creationFail.statusText || creationFail}`))
+                  `Couldn't create cluster: ${creationFail}`))
               this.setState({ creatingCluster: true })
             }
           }, creatingCluster ?
@@ -141,7 +141,7 @@ export default hh(class WorkspaceNotebooks extends Component {
                         Ajax.deleteCluster(googleProject, clusterName,
                           () => this.loadClusters(),
                           deletionFail => window.alert(
-                            `Couldn't delete cluster: ${deletionFail.statusText || deletionFail}`))
+                            `Couldn't delete cluster: ${deletionFail}`))
                       },
                       title: `Delete cluster ${clusterName}`
                     }, [icon('trash', { style: { margin: 'auto', display: 'block' } })])

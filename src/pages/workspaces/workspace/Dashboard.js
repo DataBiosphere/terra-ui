@@ -28,7 +28,7 @@ export default hh(class WorkspaceDashboard extends Component {
 
     return _.isEmpty(workspace) ?
       failure ?
-        `Couldn't load workspace details: ${failure.statusText || failure}` :
+        `Couldn't load workspace details: ${failure}` :
         spinner({ style: { marginTop: '1rem' } }) :
       div({ style: { margin: '1rem' } }, [
         div({ style: { fontSize: 16, fontWeight: 500, color: Style.colors.title } },
