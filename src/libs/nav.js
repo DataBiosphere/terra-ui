@@ -6,10 +6,10 @@ let allPathHandlers = {}
 /**
  * @param {string} k - key for path
  * @param {object} handler
- * @param {regex} handler.regex - regex with capture groups for props
- * @param {class} handler.component
- * @param {function} handler.makeProps - takes regex matches, returns props object
- * @param {function} handler.makePath - takes regex matches, returns string path to go after '#'
+ * @param {RegExp} handler.regex - regex with capture groups for props
+ * @param handler.component - react component to render
+ * @param {Function(): object} handler.makeProps - takes regex matches, returns props object
+ * @param {Function(): string} handler.makePath - takes regex matches, returns string path to go after '#'
  */
 export const defPath = function(k, handler) {
   console.assert(_.has(handler, 'regex'))
@@ -25,8 +25,8 @@ export const defPath = function(k, handler) {
 let allRedirects = []
 
 /**
- * @param {regex} handler.regex - regex with capture groups for props
- * @param {function} handler.makePath - takes regex matches, returns string path to go after '#'
+ * @param {RegExp} handler.regex - regex with capture groups for props
+ * @param {Function(): string} handler.makePath - takes regex matches, returns string path to go after '#'
  */
 export const defRedirect = function(handler) {
   console.assert(_.has(handler, 'regex'))

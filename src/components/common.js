@@ -131,18 +131,20 @@ export const TopBar = hh(class TopBar extends Component {
             ]),
             div({
               style: {
-                padding: '1rem', borderBottom: '1px solid white', color: 'white', lineHeight: '1.5rem'
+                padding: '1rem', borderBottom: '1px solid white', color: 'white',
+                lineHeight: '1.5rem'
               }
             }, [icon('search', { style: { margin: '0 1rem 0 1rem' } }), 'Find Data']),
             div({
               style: {
-                padding: '1rem', borderBottom: '1px solid white', color: 'white', lineHeight: '1.5rem'
+                padding: '1rem', borderBottom: '1px solid white', color: 'white',
+                lineHeight: '1.5rem'
               }
             }, [icon('search', { style: { margin: '0 1rem 0 1rem' } }), 'Find Code']),
             a({
               style: {
-                padding: '1rem', borderBottom: '1px solid white', color: 'white', lineHeight: '1.5rem',
-                textDecoration: 'none', display: 'block'
+                padding: '1rem', borderBottom: '1px solid white', color: 'white',
+                lineHeight: '1.5rem', textDecoration: 'none', display: 'block'
               },
               href: Nav.getLink('workspaces'),
               onClick: () => this.hideNav()
@@ -182,7 +184,9 @@ export const TopBar = hh(class TopBar extends Component {
           [
             logo(),
             div({}, [
-              div({ style: { fontSize: '0.8rem', color: Style.colors.titleAlt } }, 'Saturn'),
+              div({
+                style: { fontSize: '0.8rem', color: Style.colors.titleAlt, marginLeft: '0.1rem' }
+              }, 'Saturn'),
               this.props.title
             ])
           ]),
