@@ -2,11 +2,12 @@ version: 2
 
 defaults: &defaults
   docker:
-    - image: gcr.io/bvdp-saturn-dev/ui
+    - image: google/cloud-sdk:alpine
 
 jobs:
   build:
-    <<: *defaults
+    docker:
+      - image: node:8-alpine
     steps:
       - checkout
       - restore_cache:
