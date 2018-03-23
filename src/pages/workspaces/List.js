@@ -23,13 +23,14 @@ const WorkspaceList = hh(class WorkspaceList extends Component {
   }
 
   componentWillMount() {
-    Ajax.rawls('workspaces').then(json =>
-      this.setState({ workspaces: _.sortBy(json, 'workspace.name') })
+    Ajax.workspaceList(
+      workspaces => this.setState({ workspaces: _.sortBy(workspaces, 'workspace.name') }),
+      failure => this.setState({ failure })
     )
   }
 
   render() {
-    const { workspaces, filter, listView, itemsPerPage, pageNumber } = this.state
+    const { workspaces, filter, listView, itemsPerPage, pageNumber, failure } = this.state
 
     const dataViewerProps = {
       defaultItemsPerPage: itemsPerPage,
@@ -78,7 +79,9 @@ const WorkspaceList = hh(class WorkspaceList extends Component {
       ]),
       div({ style: { margin: '1rem auto', maxWidth: 1000 } }, [
         _.isEmpty(workspaces) ?
-          spinner({ size: 64 }) :
+          failure ?
+            `Couldn't load workspace list: ${failure}` :
+            spinner({ size: 64 }) :
           listView ?
             DataTable(_.assign({
               tableProps: {
