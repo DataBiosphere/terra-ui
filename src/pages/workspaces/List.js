@@ -140,47 +140,42 @@ const WorkspaceList = hh(class WorkspaceList extends Component {
             href: Nav.getLink('workspace', namespace, name),
             hover: { backgroundColor: Style.colors.highlight },
             focus: 'hover',
-            style: {
+            style: _.defaults({
               width: `calc(${100 / cardsPerRow}% - 2.5rem)`,
-              margin: '1.25rem',
-              textDecoration: 'none'
-            }
+              margin: '1.25rem', boxSizing: 'border-box',
+              textDecoration: 'none',
+              display: 'flex', flexDirection: 'column',
+              justifyContent: 'space-between',
+              height: 225, color: Style.colors.text
+            }, Style.elements.card)
           },
           [
-            div({
-              style: _.defaults({
-                display: 'flex', flexDirection: 'column',
-                justifyContent: 'space-between',
-                height: 200, color: Style.colors.text
-              }, Style.elements.card)
-            }, [
-              div({ style: { display: 'flex', justifyContent: 'space-between' } }, [
-                div({
-                  style: _.defaults({ width: 'calc(100% - 2rem)', wordWrap: 'break-word' },
-                    Style.elements.cardTitle)
-                }, `${name}`),
-                div({
-                  style: { opacity: 0 }, onParentHover: { opacity: 1 },
-                  onParentFocus: 'hover'
-                }, [this.menuButton(namespace, name)])
-              ]),
-              div({}, `Billing project: ${namespace}`),
+            div({ style: { display: 'flex', justifyContent: 'space-between' } }, [
               div({
+                style: _.defaults({ width: 'calc(100% - 2rem)', wordWrap: 'break-word' },
+                  Style.elements.cardTitle)
+              }, `${name}`),
+              div({
+                style: { opacity: 0 }, onParentHover: { opacity: 1 },
+                onParentFocus: 'hover'
+              }, [this.menuButton(namespace, name)])
+            ]),
+            div({}, `Billing project: ${namespace}`),
+            div({
+              style: {
+                display: 'flex', justifyContent: 'space-between',
+                alignItems: 'flex-end', fontSize: '0.8rem'
+              }
+            }, [
+              div({}, ['Last changed:', div({}, Utils.makePrettyDate(lastModified))]),
+              div({
+                title: createdBy,
                 style: {
-                  display: 'flex', justifyContent: 'space-between',
-                  alignItems: 'flex-end', fontSize: '0.8rem'
+                  height: '1.5rem', width: '1.5rem', borderRadius: '1.5rem',
+                  lineHeight: '1.5rem', textAlign: 'center',
+                  backgroundColor: Style.colors.accent, color: 'white'
                 }
-              }, [
-                div({}, ['Last changed:', div({}, Utils.makePrettyDate(lastModified))]),
-                div({
-                  title: createdBy,
-                  style: {
-                    height: '1.5rem', width: '1.5rem', borderRadius: '1.5rem',
-                    lineHeight: '1.5rem', textAlign: 'center',
-                    backgroundColor: Style.colors.accent, color: 'white'
-                  }
-                }, createdBy[0].toUpperCase())
-              ])
+              }, createdBy[0].toUpperCase())
             ])
           ])
       }
