@@ -17,7 +17,7 @@ export default hh(class WorkspaceDashboard extends Component {
 
   componentWillMount() {
     const { namespace, name } = this.props
-    Ajax.workspaceDetails(namespace, name,
+    Ajax.workspace.details(namespace, name,
       workspace => this.setState({ workspace }),
       failure => this.setState({ failure }))
   }

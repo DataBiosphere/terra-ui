@@ -26,7 +26,7 @@ export default hh(class WorkspaceData extends Component {
   componentWillMount() {
     const { namespace, name } = this.props
 
-    Ajax.workspaceEntities(namespace, name,
+    Ajax.workspace.entities(namespace, name,
       workspaceEntities => this.setState({ workspaceEntities }),
       entitiesFailure => this.setState({ entitiesFailure })
     )
@@ -46,7 +46,7 @@ export default hh(class WorkspaceData extends Component {
           },
           onClick: () => {
             this.setState({ selectedEntityType: type, selectedEntities: [] })
-            Ajax.workspaceEntity(namespace, name, type,
+            Ajax.workspace.entity(namespace, name, type,
               selectedEntities => this.setState({ selectedEntities }),
               entityFailure => this.setState({ entityFailure })
             )

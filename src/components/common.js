@@ -20,16 +20,6 @@ export const link = function(props, children) {
     children)
 }
 
-export const card = function(props, children) {
-  return div(mixinDeep({
-      style: {
-        borderRadius: 5, padding: '1rem', wordWrap: 'break-word',
-        boxShadow: Style.standardShadow
-      }
-    }, props),
-    children)
-}
-
 export const buttonPrimary = function(props, children) {
   return h(Interactive,
     mixinDeep({
@@ -71,4 +61,18 @@ export const contextBar = function(props, children) {
     children)
 }
 
-export const contextMenu = function() {}
+export const contextMenu = function(items) {
+  return div({
+      style: {
+        backgroundColor: 'white', minWidth: 100, border: '1px solid #ccc',
+        boxShadow: Style.standardShadow
+      }
+    },
+    _.map(items, ([props, contents]) => h(Interactive,
+      mixinDeep({
+        as: 'div',
+        style: { fontSize: 12, padding: '0.5rem 1.5rem' },
+        hover: { backgroundColor: Style.colors.highlight }
+      }, props),
+      contents)))
+}
