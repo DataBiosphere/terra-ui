@@ -23,9 +23,9 @@ export const link = function(props, children) {
 export const buttonPrimary = function(props, children) {
   return h(Interactive,
     mixinDeep({
-      as: 'div',
-      style: _.assign({
-        padding: '0.5rem 2rem', borderRadius: 5,
+      as: 'button',
+      style: _.defaults({
+        border: 'none', padding: '0.5rem 2rem', borderRadius: 5, color: 'white',
         backgroundColor: props.disabled ? Style.colors.disabled : Style.colors.secondary,
         cursor: props.disabled ? 'not-allowed' : 'pointer'
       }, Style.elements.button),

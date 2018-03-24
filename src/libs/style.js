@@ -15,15 +15,20 @@ export const colors = {
 }
 
 export const standardShadow = '0 3px 2px 0 rgba(0,0,0,0.12)'
-export const moreVisibleShadow = '0 2px 5px 0 rgba(0,0,0,0.26), 0 2px 10px 0 rgba(0,0,0,0.16)'
+export const modalShadow = '0 0 8px 0 rgba(0,0,0,0.12), 0 8px 8px 0 rgba(0,0,0,0.24)'
+export const contextMenuShadow = '0 2px 5px 0 rgba(0,0,0,0.26), 0 2px 10px 0 rgba(0,0,0,0.16)'
 
 export const elements = {
-  button: { color: 'white', fontWeight: 500, fontSize: 12, textTransform: 'uppercase' },
+  button: { fontWeight: 500, fontSize: 12, textTransform: 'uppercase', cursor: 'pointer' },
   cardTitle: { color: colors.secondary, fontSize: 16, fontWeight: 500 },
-  card: { borderRadius: 5, padding: '1rem', wordWrap: 'break-word', boxShadow: standardShadow, backgroundColor: 'white' },
+  card: {
+    borderRadius: 5, padding: '1rem', wordWrap: 'break-word', boxShadow: standardShadow,
+    backgroundColor: 'white'
+  },
+  modalTitle: { fontSize: 18 },
   pageTitle: {
-    color: colors.title, fontSize: 22, fontWeight: 500,
-    textTransform: 'uppercase', textDecoration: 'none'
+    color: colors.title, fontSize: 22, fontWeight: 500, textTransform: 'uppercase',
+    textDecoration: 'none'
   },
   sectionHeader: { color: colors.title, fontSize: 16 }
 }

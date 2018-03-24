@@ -101,8 +101,8 @@ export const DataTable = hh(class DataTable extends Component {
 /**
  * @param {bool} [allowPagination=true]
  * @param {bool} [allowItemsPerPage=true]
- * @param {number} [defaultItemsPerPage=25]
- * @param {number[]} [itemsPerPageOptions=[10, 25, 50, 100]]
+ * @param {number} [defaultItemsPerPage=12]
+ * @param {number[]} [itemsPerPageOptions=[12, 24, 36, 48]]
  * @param {handleNewVal} [onItemsPerPageChanged]
  * @param {number} [initialPage=1]
  * @param {handleNewVal} [onPageChanged]

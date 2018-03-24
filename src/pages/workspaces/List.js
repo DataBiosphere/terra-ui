@@ -34,19 +34,17 @@ const WorkspaceList = hh(class WorkspaceList extends Component {
 
   menuButton(namespace, name) {
     return ShowOnClick({
-        style: { position: 'relative' },
-        container: div({
+        containerProps: { style: { position: 'relative' } },
+        button: div({
           style: {
-            height: '1.5rem', width: '1.5rem', borderRadius: '1.5rem',
-            lineHeight: '1.5rem', textAlign: 'center',
-            boxShadow: Style.moreVisibleShadow, marginBottom: '0.5rem',
-            backgroundColor: 'white'
+            height: '1.5rem', width: '1.5rem', borderRadius: '1.5rem', lineHeight: '1.5rem',
+            textAlign: 'center', backgroundColor: 'white',
+            boxShadow: Style.contextMenuShadow, marginBottom: '0.5rem'
           }
         }, [icon('bars')])
-      }, [
-        div({
-          style: { position: 'absolute', left: '2rem', top: '0.75rem' }
-        }, [
+      },
+      [
+        div({ style: { position: 'absolute', left: '2rem', top: '0.75rem' } }, [
           contextMenu([
             [{ onClick: () => Nav.goToPath('workspace', namespace, name) }, 'Open'],
             [{}, 'Clone'],
@@ -83,7 +81,6 @@ const WorkspaceList = hh(class WorkspaceList extends Component {
               nonContainedChild: true,
               href: Nav.getLink('workspace', namespace, name),
               hover: { backgroundColor: Style.colors.highlight },
-              focus: 'hover',
               style: _.defaults({
                 width: '100%', margin: '0.5rem', textDecoration: 'none',
                 backgroundColor: 'white', color: Style.colors.text, display: 'flex'
@@ -111,8 +108,7 @@ const WorkspaceList = hh(class WorkspaceList extends Component {
               ]),
               div({ style: { margin: '-0.25rem 0' } }, [
                 div({
-                  style: { opacity: 0 }, onParentHover: { opacity: 1 },
-                  onParentFocus: 'hover'
+                  style: { opacity: 0 }, onParentHover: { opacity: 1 }
                 }, [this.menuButton(namespace, name)]),
                 div({
                   title: createdBy,
@@ -139,7 +135,6 @@ const WorkspaceList = hh(class WorkspaceList extends Component {
             nonContainedChild: true,
             href: Nav.getLink('workspace', namespace, name),
             hover: { backgroundColor: Style.colors.highlight },
-            focus: 'hover',
             style: _.defaults({
               width: `calc(${100 / cardsPerRow}% - 2.5rem)`,
               margin: '1.25rem', boxSizing: 'border-box',
@@ -156,8 +151,7 @@ const WorkspaceList = hh(class WorkspaceList extends Component {
                   Style.elements.cardTitle)
               }, `${name}`),
               div({
-                style: { opacity: 0 }, onParentHover: { opacity: 1 },
-                onParentFocus: 'hover'
+                style: { opacity: 0 }, onParentHover: { opacity: 1 }
               }, [this.menuButton(namespace, name)])
             ]),
             div({}, `Billing project: ${namespace}`),
