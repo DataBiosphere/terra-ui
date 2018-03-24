@@ -1,5 +1,6 @@
 import { Component } from 'react'
 import { div, hh } from 'react-hyperscript-helpers'
+import { buttonPrimary } from 'src/components/common'
 import ShowOnClick from 'src/components/ShowOnClick'
 import * as Style from 'src/libs/style'
 
@@ -44,7 +45,10 @@ export default hh(class Modal extends Component {
               style: Style.elements.button,
               onClick: () => this.showOnClick.setVisibility(false)
             }, 'Cancel') :
-            null
+            null,
+          buttonPrimary({
+            onClick: () => this.showOnClick.setVisibility(false)
+          }, [confirmButtonLabel])
         ])
     ])
   }
