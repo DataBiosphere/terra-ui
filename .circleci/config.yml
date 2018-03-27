@@ -31,8 +31,6 @@ jobs:
       - run: gcloud auth activate-service-account --key-file=circleci-sa.json
       - run: |
           CIRCLE_PR_NUMBER="${CIRCLE_PR_NUMBER:-${CIRCLE_PULL_REQUEST##*/}}"
-          echo "$CIRCLE_PR_NUMBER"
-          exit 1
           if [[ ! -z "$CIRCLE_PR_NUMBER" ]]; then
             gcloud app deploy --project=bvdp-saturn-dev \
               --version="pr-$(expr "$CIRCLE_PR_NUMBER" % 4)" --quiet
