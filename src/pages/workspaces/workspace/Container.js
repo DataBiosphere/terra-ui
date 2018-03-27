@@ -36,9 +36,9 @@ const tabComponents = {
   dashboard: WorkspaceDashboard,
   notebooks: WorkspaceNotebooks,
   data: WorkspaceData,
-  jobs: () => div('when we get to it'),
-  history: () => div('okay, this is _data_ history, whatever that means'),
-  tools: () => div('These are totally Not Method Configs')
+  jobs: () => div('Job manager goes here'),
+  history: () => div('Data history goes here'),
+  tools: () => div('Pipelines from Dockstore go here')
 }
 
 /**
