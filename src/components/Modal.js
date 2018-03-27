@@ -1,16 +1,14 @@
 import { Component } from 'react'
 import { div, hh } from 'react-hyperscript-helpers'
-import { buttonPrimary } from 'src/components/common'
-import ShowOnClick from 'src/components/ShowOnClick'
 import * as Style from 'src/libs/style'
 
 
 /**
- * @param button
+ * @param onDismiss
  * @param title
  * @param children
  * @param showCancel=true
- * @param confirmButtonLabel='OK'
+ * @param okButton
  */
 export default hh(class Modal extends Component {
   componentDidMount() {
@@ -21,13 +19,13 @@ export default hh(class Modal extends Component {
   }
 
   render() {
-    const { button, title, children, showCancel = true, confirmButtonLabel = 'OK' } = this.props
+    const { onDismiss, title, children, showCancel = true, okButton } = this.props
 
-    return ShowOnClick({
-      ref: c => this.showOnClick = c,
-      button,
-      bgProps: { style: { backgroundColor: 'black', opacity: '0.5', cursor: 'default' } },
-      closeOnClick: false
+    return div({
+      style: {
+        backgroundColor: 'black', opacity: '0.5',
+        position: 'fixed', left: 0, right: 0, top: 0, bottom: 0
+      }
     }, [
       div({
           style: {
@@ -43,12 +41,10 @@ export default hh(class Modal extends Component {
           showCancel ?
             div({
               style: Style.elements.button,
-              onClick: () => this.showOnClick.setVisibility(false)
+              onClick: onDismiss
             }, 'Cancel') :
             null,
-          buttonPrimary({
-            onClick: () => this.showOnClick.setVisibility(false)
-          }, [confirmButtonLabel])
+          okButton
         ])
     ])
   }

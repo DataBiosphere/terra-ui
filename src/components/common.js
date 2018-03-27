@@ -72,7 +72,7 @@ export const contextMenu = function(items) {
       mixinDeep({
         as: 'div',
         style: { fontSize: 12, padding: '0.5rem 1.5rem' },
-        hover: { backgroundColor: Style.colors.highlight }
+        hover: { backgroundColor: Style.colors.highlight, fontWeight: 500 }
       }, props),
       contents)))
 }

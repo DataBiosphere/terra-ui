@@ -1,9 +1,11 @@
+import Interactive from 'react-interactive'
 import _ from 'lodash'
 import { Component, Fragment } from 'react'
 import { a, div, h, hh } from 'react-hyperscript-helpers'
-import { contextBar } from 'src/components/common'
+import { contextBar, contextMenu } from 'src/components/common'
 import { breadcrumb, icon } from 'src/components/icons'
 import { TopBar } from 'src/components/TopBar'
+import ShowOnClick from 'src/components/ShowOnClick'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import WorkspaceDashboard from 'src/pages/workspaces/workspace/Dashboard'
@@ -24,8 +26,10 @@ const tabActiveStyle = _.defaults({
   borderBottom: `4px solid ${Style.colors.secondary}`
 }, tabBaseStyle)
 
-const navIcon = shape => {
-  return icon(shape, { size: 22, style: { opacity: 0.65, paddingRight: '1rem' } })
+const navIconProps = {
+  size: 22,
+  style: { opacity: 0.65, paddingRight: '1rem' },
+  hover: { opacity: 1, cursor: 'pointer' }, focus: 'hover'
 }
 
 const tabComponents = {
@@ -98,7 +102,31 @@ const WorkspaceContainer = hh(class WorkspaceContainer extends Component {
         navTab('dashboard'), navTab('notebooks'), navTab('data'), navTab('jobs'),
         navTab('history'), navTab('tools'),
         div({ style: { flexGrow: 1 } }),
-        navIcon('copy'), navIcon('ellipsis-vertical')
+        h(Interactive,
+          _.merge({ as: icon('copy') }, navIconProps)),
+        ShowOnClick({
+            containerProps: { style: { position: 'relative' } },
+            button: h(Interactive,
+              _.merge({ as: icon('ellipsis-vertical') }, navIconProps))
+          },
+          [
+            div({
+              style: {
+                position: 'absolute', right: 0, lineHeight: 'initial', textAlign: 'initial',
+                color: 'initial', textTransform: 'initial', fontWeight: 300
+              }
+            }, [
+              contextMenu([
+                // [{ onClick: () => Nav.goToPath('workspace', namespace, name) }, 'Open'],
+                // [{}, 'Clone'],
+                // [{}, 'Rename'],
+                [{}, 'Share'],
+                [{}, 'Publish'],
+                [{}, 'Delete']
+              ])
+            ])
+          ]
+        )
       ]),
       tabComponents[activeTab]({ namespace, name, key: forceUpdateKey })
     ])

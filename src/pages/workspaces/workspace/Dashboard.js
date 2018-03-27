@@ -4,8 +4,6 @@ import { div, hh } from 'react-hyperscript-helpers/lib/index'
 import { spinner } from 'src/components/icons'
 import * as Ajax from 'src/libs/ajax'
 import * as Style from 'src/libs/style'
-import Modal from 'src/components/Modal'
-import { buttonPrimary } from 'src/components/common'
 
 
 export default hh(class WorkspaceDashboard extends Component {
@@ -35,8 +33,7 @@ export default hh(class WorkspaceDashboard extends Component {
       div({ style: { margin: '1rem' } }, [
         div({ style: { fontSize: 16, fontWeight: 500, color: Style.colors.title } },
           'ACCESS LEVEL'),
-        workspace['accessLevel'],
-        Modal({button: buttonPrimary({}, 'test'), title: 'hi!'})
+        workspace['accessLevel']
       ])
   }
 })
