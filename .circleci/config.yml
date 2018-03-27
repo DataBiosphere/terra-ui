@@ -29,7 +29,8 @@ jobs:
       - run: cp config/dev.json build/config.json
       - run: echo "$SA_KEY_JSON" > circleci-sa.json
       - run: gcloud auth activate-service-account --key-file=circleci-sa.json
-      - deploy:
+      - run:
+          name: Deploy
           command: |
             CIRCLE_PR_NUMBER="${CIRCLE_PR_NUMBER:-${CIRCLE_PULL_REQUEST##*/}}"
             if [[ ! -z "$CIRCLE_PR_NUMBER" ]]; then
