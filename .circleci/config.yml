@@ -30,6 +30,7 @@ jobs:
       - run: echo "$SA_KEY_JSON" > circleci-sa.json
       - run: gcloud auth activate-service-account --key-file=circleci-sa.json
       - run: |
+          CIRCLE_PR_NUMBER="${CIRCLE_PR_NUMBER:-${CIRCLE_PULL_REQUEST##*/}}"
           echo "$CIRCLE_PR_NUMBER"
           exit 1
           if [[ ! -z "$CIRCLE_PR_NUMBER" ]]; then
