@@ -31,7 +31,7 @@ export default hh(class Modal extends Component {
           style: {
             minHeight: '20%', maxHeight: '90%', minWidth: '30%', maxWidth: '90%', borderRadius: 5,
             padding: '1.5rem 1.25rem',
-            backgroundColor: 'white', boxShadow: Style.modalShadow, cursor: 'default',
+            backgroundColor: 'white', boxShadow: Style.modalShadow,
             position: 'fixed', left: '50%', top: '50%', transform: 'translate(-50%, -50%)'
           }
         },
