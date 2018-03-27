@@ -29,12 +29,13 @@ jobs:
       - run: cp config/dev.json build/config.json
       - run: echo "$SA_KEY_JSON" > circleci-sa.json
       - run: gcloud auth activate-service-account --key-file=circleci-sa.json
-      - run: |
-          CIRCLE_PR_NUMBER="${CIRCLE_PR_NUMBER:-${CIRCLE_PULL_REQUEST##*/}}"
-          if [[ ! -z "$CIRCLE_PR_NUMBER" ]]; then
-            gcloud app deploy --project=bvdp-saturn-dev \
-              --version="pr-$(expr "$CIRCLE_PR_NUMBER" % 10)" --no-promote --quiet
-          fi
+      - deploy:
+          command: |
+            CIRCLE_PR_NUMBER="${CIRCLE_PR_NUMBER:-${CIRCLE_PULL_REQUEST##*/}}"
+            if [[ ! -z "$CIRCLE_PR_NUMBER" ]]; then
+              gcloud app deploy --project=bvdp-saturn-dev \
+                --version="pr-$(expr "$CIRCLE_PR_NUMBER" % 10)" --no-promote --quiet
+            fi
   deploy-dev:
     docker:
       - image: google/cloud-sdk:latest
