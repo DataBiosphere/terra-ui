@@ -33,7 +33,7 @@ jobs:
           CIRCLE_PR_NUMBER="${CIRCLE_PR_NUMBER:-${CIRCLE_PULL_REQUEST##*/}}"
           if [[ ! -z "$CIRCLE_PR_NUMBER" ]]; then
             gcloud app deploy --project=bvdp-saturn-dev \
-              --version="pr-$(expr "$CIRCLE_PR_NUMBER" % 4)" --quiet
+              --version="pr-$(expr "$CIRCLE_PR_NUMBER" % 4)" --no-promote --quiet
           fi
   deploy-dev:
     docker:
