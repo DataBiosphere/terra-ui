@@ -20,6 +20,22 @@ jobs:
             - app.yaml
             - build
             - config
+  deploy-pr:
+    docker:
+      - image: google/cloud-sdk:latest
+    steps:
+      - attach_workspace:
+          at: /root/project
+      - run: cp config/dev.json build/config.json
+      - run: echo "$SA_KEY_JSON" > circleci-sa.json
+      - run: gcloud auth activate-service-account --key-file=circleci-sa.json
+      - run: |
+          echo "$CIRCLE_PR_NUMBER"
+          exit 1
+          if [[ ! -z "$CIRCLE_PR_NUMBER" ]]; then
+            gcloud app deploy --project=bvdp-saturn-dev \
+              --version="pr-$(expr "$CIRCLE_PR_NUMBER" % 4)" --quiet
+          fi
   deploy-dev:
     docker:
       - image: google/cloud-sdk:latest
@@ -46,6 +62,14 @@ workflows:
   build-deploy:
     jobs:
       - build
+      - deploy-pr:
+          requires:
+            - build
+          filters:
+            branches:
+              ignore:
+                - dev
+                - prod
       - deploy-dev:
           requires:
             - build
