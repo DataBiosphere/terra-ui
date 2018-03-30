@@ -1,8 +1,7 @@
 import _ from 'lodash'
 import { Component, Fragment } from 'react'
-import { div, h, hh } from 'react-hyperscript-helpers'
-import Interactive from 'react-interactive'
-import { contextBar, contextMenu, search } from 'src/components/common'
+import { a, div, h, hh } from 'react-hyperscript-helpers'
+import { contextBar, search } from 'src/components/common'
 import { breadcrumb, icon, spinner } from 'src/components/icons'
 import { DataGrid } from 'src/components/table'
 import { TopBar } from 'src/components/TopBar'
@@ -10,7 +9,6 @@ import * as Ajax from 'src/libs/ajax'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import ShowOnClick from 'src/components/ShowOnClick'
 
 
 const WorkspaceList = hh(class WorkspaceList extends Component {
@@ -32,33 +30,6 @@ const WorkspaceList = hh(class WorkspaceList extends Component {
     )
   }
 
-  menuButton(namespace, name) {
-    return ShowOnClick({
-        containerProps: { style: { position: 'relative' } },
-        button: div({
-          style: {
-            height: '1.5rem', width: '1.5rem', borderRadius: '1.5rem', lineHeight: '1.5rem',
-            textAlign: 'center', backgroundColor: 'white',
-            boxShadow: Style.contextMenuShadow, marginBottom: '0.5rem'
-          }
-        }, [icon('bars')])
-      },
-      [
-        div({ style: { position: 'absolute', left: '2rem', top: '0.75rem' } }, [
-          contextMenu([
-            [{ onClick: () => Nav.goToPath('workspace', namespace, name) }, 'Open'],
-            [{}, 'Clone'],
-            [{}, 'Rename'],
-            [{}, 'Share'],
-            [{}, 'Publish'],
-            [{}, 'Delete']
-          ])
-        ])
-      ]
-    )
-
-  }
-
   getDataViewerProps() {
     return {
       defaultItemsPerPage: this.state.itemsPerPage,
@@ -75,50 +46,30 @@ const WorkspaceList = hh(class WorkspaceList extends Component {
     return DataGrid(_.assign({
         cardsPerRow: 1,
         renderCard: ({ workspace: { namespace, name, createdBy, lastModified } }) => {
-          return h(Interactive, {
-              as: 'a',
-              interactiveChild: true,
-              nonContainedChild: true,
+          return a({
               href: Nav.getLink('workspace', namespace, name),
-              hover: { backgroundColor: Style.colors.highlight },
               style: _.defaults({
                 width: '100%', margin: '0.5rem', textDecoration: 'none',
-                backgroundColor: 'white', color: Style.colors.text, display: 'flex'
+                backgroundColor: 'white', color: Style.colors.text
               }, Style.elements.card)
             },
             [
-              div({
-                style: {
-                  flexGrow: 1, display: 'flex', flexDirection: 'column',
-                  justifyContent: 'space-between'
-                }
-              }, [
-                div({ style: Style.elements.cardTitle }, `${name}`),
-                div({
-                  style: {
-                    display: 'flex', justifyContent: 'space-between', width: '100%',
-                    alignItems: 'flex-end', fontSize: '0.8rem'
-                  }
-                }, [
+              div({ style: Style.elements.cardTitle }, `${name}`),
+              div({ style: { display: 'flex', alignItems: 'flex-end', fontSize: '0.8rem' } },
+                [
                   div({ style: { flexGrow: 1 } },
                     `Billing project: ${namespace}`),
                   div({ style: { width: '35%' } },
-                    [`Last changed: ${Utils.makePrettyDate(lastModified)}`])
+                    [`Last changed: ${Utils.makePrettyDate(lastModified)}`]),
+                  div({
+                    title: createdBy,
+                    style: {
+                      height: '1.5rem', width: '1.5rem', borderRadius: '1.5rem',
+                      lineHeight: '1.5rem', textAlign: 'center',
+                      backgroundColor: Style.colors.accent, color: 'white'
+                    }
+                  }, createdBy[0].toUpperCase())
                 ])
-              ]),
-              div({ style: { margin: '-0.25rem 0' } }, [
-                div({
-                  style: { opacity: 0 }, onParentHover: { opacity: 1 }
-                }, [this.menuButton(namespace, name)]),
-                div({
-                  title: createdBy,
-                  style: {
-                    height: '1.5rem', width: '1.5rem', borderRadius: '1.5rem',
-                    lineHeight: '1.5rem', textAlign: 'center',
-                    backgroundColor: Style.colors.accent, color: 'white'
-                  }
-                }, createdBy[0].toUpperCase())
-              ])
             ])
         }
       }, this.getDataViewerProps())
@@ -129,12 +80,8 @@ const WorkspaceList = hh(class WorkspaceList extends Component {
     return DataGrid(_.assign({
       renderCard: ({ workspace: { namespace, name, createdBy, lastModified } },
                    cardsPerRow) => {
-        return h(Interactive, {
-            as: 'a',
-            interactiveChild: true,
-            nonContainedChild: true,
+        return a({
             href: Nav.getLink('workspace', namespace, name),
-            hover: { backgroundColor: Style.colors.highlight },
             style: _.defaults({
               width: `calc(${100 / cardsPerRow}% - 2.5rem)`,
               margin: '1.25rem', boxSizing: 'border-box',
@@ -145,15 +92,7 @@ const WorkspaceList = hh(class WorkspaceList extends Component {
             }, Style.elements.card)
           },
           [
-            div({ style: { display: 'flex', justifyContent: 'space-between' } }, [
-              div({
-                style: _.defaults({ width: 'calc(100% - 2rem)', wordWrap: 'break-word' },
-                  Style.elements.cardTitle)
-              }, `${name}`),
-              div({
-                style: { opacity: 0 }, onParentHover: { opacity: 1 }
-              }, [this.menuButton(namespace, name)])
-            ]),
+            div({ style: Style.elements.cardTitle }, `${name}`),
             div({}, `Billing project: ${namespace}`),
             div({
               style: {
