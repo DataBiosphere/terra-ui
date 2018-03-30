@@ -60,4 +60,8 @@ export default hh(class ShowOnClick extends Component {
       ]
     )
   }
+
+  componentWillUnmount() {
+    window.removeEventListener('keydown', this.listenForEscape)
+  }
 })
