@@ -18,8 +18,8 @@ export default hh(class WorkspaceData extends Component {
     super(props)
     this.state = {
       selectedEntityType: '',
-      selectedEntities: [],
-      workspaceEntities: []
+      selectedEntities: null,
+      workspaceEntities: null
     }
   }
 
@@ -92,29 +92,32 @@ export default hh(class WorkspaceData extends Component {
         display: 'flex', margin: '1rem', backgroundColor: 'white', borderRadius: 5,
         boxShadow: Style.standardShadow
       }
-    }, _.isEmpty(workspaceEntities) ?
+    }, !workspaceEntities ?
       entitiesFailure ?
         `Couldn't load workspace entities: ${entitiesFailure}` :
         [spinner({ style: { margin: '2rem auto' } })] :
-      [
-        div({ style: { flexShrink: 0, borderRight: `1px solid ${Style.colors.disabled}` } }, [
-          div({
-            style: {
-              fontWeight: 500, padding: '0.5rem 1rem',
-              borderBottom: `1px solid ${Style.colors.background}`
-            }
-          }, 'Data Model'),
-          div({ style: { marginBottom: '1rem' } }, entityTypeList)
-        ]),
-        div({ style: { overflow: 'hidden', margin: `1rem ${anyEntitiesLoaded ? 'auto' : ''}` } }, [
-          selectedEntityType ?
-            anyEntitiesLoaded ?
-              entityFailure ?
-                `Couldn't load ${selectedEntityType}s: ${entityFailure}` :
-                spinner() :
-              entityTable :
-            'Select a data type.'
+      _.isEmpty(workspaceEntities) ?
+        [div({ style: { margin: '2rem auto' } }, 'There is no data in this workspace.')] :
+        [
+          div({ style: { flexShrink: 0, borderRight: `1px solid ${Style.colors.disabled}` } }, [
+            div({
+              style: {
+                fontWeight: 500, padding: '0.5rem 1rem',
+                borderBottom: `1px solid ${Style.colors.background}`
+              }
+            }, 'Data Model'),
+            div({ style: { marginBottom: '1rem' } }, entityTypeList)
+          ]),
+          div({ style: { overflow: 'hidden', margin: `1rem ${anyEntitiesLoaded ? 'auto' : ''}` } },
+            [
+              selectedEntityType ?
+                anyEntitiesLoaded ?
+                  entityFailure ?
+                    `Couldn't load ${selectedEntityType}s: ${entityFailure}` :
+                    spinner() :
+                  entityTable :
+                'Select a data type.'
+            ])
         ])
-      ])
   }
 })
