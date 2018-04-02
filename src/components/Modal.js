@@ -1,3 +1,4 @@
+import _ from 'lodash'
 import { Component, Fragment } from 'react'
 import { div, h, hh } from 'react-hyperscript-helpers'
 import * as Style from 'src/libs/style'
@@ -49,10 +50,15 @@ export default hh(class Modal extends Component {
         [
           title ? div({ style: { fontSize: 18, marginBottom: '1rem' } }, [title]) : null,
           children,
-          div({ style: { flexShrink: 0, marginTop: '1rem', alignSelf: 'flex-end' } }, [
+          div({
+            style: {
+              flexShrink: 0, marginTop: '1rem', alignSelf: 'flex-end',
+              display: 'flex', alignItems: 'baseline'
+            }
+          }, [
             showCancel ?
               div({
-                style: Style.elements.button,
+                style: _.merge({ marginRight: '1rem' }, Style.elements.button),
                 onClick: onDismiss
               }, 'Cancel') :
               null,

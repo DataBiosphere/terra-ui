@@ -11,6 +11,7 @@ import * as Style from 'src/libs/style'
 import WorkspaceDashboard from 'src/pages/workspaces/workspace/Dashboard'
 import WorkspaceData from 'src/pages/workspaces/workspace/Data'
 import WorkspaceNotebooks from 'src/pages/workspaces/workspace/Notebooks'
+import WorkspaceTools from 'src/pages/workspaces/workspace/Tools'
 
 
 const navSeparator = div({
@@ -38,7 +39,7 @@ const tabComponents = {
   data: WorkspaceData,
   jobs: () => div('Job manager goes here'),
   history: () => div('Data history goes here'),
-  tools: () => div('Pipelines from Dockstore go here')
+  tools: WorkspaceTools
 }
 
 /**
