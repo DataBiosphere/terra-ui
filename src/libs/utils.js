@@ -43,6 +43,10 @@ export const log = function(arg) {
   return arg
 }
 
+const maybeCall = function(maybeFn) {
+  return _.isFunction(maybeFn) ? maybeFn() : maybeFn
+}
+
 /**
  * Returns the value for the first truthy predicate.
  *
@@ -53,12 +57,8 @@ export const cond = function(...args) {
   const pairs = args.slice(0, -1)
 
   const match = _.find(pairs, ([pred, val]) => {
-    return pred ?
-      _.isFunction(val) ? val() : val :
-      false
+    return pred ? maybeCall(val) : false
   })
 
-  return match ?
-    match[1] :
-    _.isFunction(defaultValue) ? defaultValue() : defaultValue
+  return match ? match[1] : maybeCall(defaultValue)
 }
