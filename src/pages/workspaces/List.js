@@ -19,13 +19,18 @@ const WorkspaceList = hh(class WorkspaceList extends Component {
       listView: false,
       itemsPerPage: 6,
       pageNumber: 1,
-      workspaces: []
+      workspaces: null
     }
   }
 
   componentWillMount() {
     Ajax.workspacesList(
-      workspaces => this.setState({ workspaces: _.sortBy(workspaces, 'workspace.name') }),
+      workspaces => this.setState({
+        workspaces: _.sortBy(_.filter(workspaces,
+          ws => !ws.public || Utils.workspaceAccessLevels.indexOf(ws.accessLevel) >
+            Utils.workspaceAccessLevels.indexOf('READER')),
+          'workspace.name')
+      }),
       failure => this.setState({ failure })
     )
   }
@@ -155,12 +160,14 @@ const WorkspaceList = hh(class WorkspaceList extends Component {
         })
       ]),
       div({ style: { margin: '1rem auto', maxWidth: 1000 } }, [
-        _.isEmpty(workspaces) ?
+        !workspaces ?
           failure ?
             `Couldn't load workspace list: ${failure}` :
             spinner({ size: 64 }) :
-          listView ?
-            this.wsList() : this.wsGrid()
+          _.isEmpty(workspaces) ?
+            'You don\'t seem to have access to any workspaces.' :
+            listView ?
+              this.wsList() : this.wsGrid()
       ])
     ])
   }

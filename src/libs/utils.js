@@ -32,3 +32,5 @@ export const makePrettyDate = function(dateString) {
     })
   }
 }
+
+export const workspaceAccessLevels = ['NO ACCESS', 'READER', 'WRITER', 'OWNER', 'PROJECT_OWNER']
