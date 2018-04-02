@@ -78,20 +78,20 @@ const rawlsJson = function(path, success, failure, options) {
   rawls(path, resp => resp.json().then(success), failure, options)
 }
 
-export const workspaceList = function(success, failure) {
+export const workspacesList = function(success, failure) {
   rawlsJson('workspaces', success, failure)
 }
 
-export const workspaceDetails = function(namespace, name, success, failure) {
-  rawlsJson(`workspaces/${namespace}/${name}`, success, failure)
-}
-
-export const workspaceEntities = function(namespace, name, success, failure) {
-  rawlsJson(`workspaces/${namespace}/${name}/entities`, success, failure)
-}
-
-export const workspaceEntity = function(namespace, name, type, success, failure) {
-  rawlsJson(`workspaces/${namespace}/${name}/entities/${type}`, success, failure)
+export const workspace = {
+  details: function(namespace, name, success, failure) {
+    rawlsJson(`workspaces/${namespace}/${name}`, success, failure)
+  },
+  entities: function(namespace, name, success, failure) {
+    rawlsJson(`workspaces/${namespace}/${name}/entities`, success, failure)
+  },
+  entity: function(namespace, name, type, success, failure) {
+    rawlsJson(`workspaces/${namespace}/${name}/entities/${type}`, success, failure)
+  }
 }
 
 
@@ -103,19 +103,20 @@ const leo = function(path, success, failure, options) {
     .catch(failure)
 }
 
-export const clusterList = function(success, failure) {
+export const clustersList = function(success, failure) {
   leo('api/clusters', resp => resp.json().then(success), failure)
+}
+
+export const cluster = {
+  create: function(project, name, clusterOptions, success, failure) {
+    leo(`api/cluster/${project}/${name}`, success, failure,
+      { method: 'PUT', body: JSON.stringify(clusterOptions) })
+  },
+  delete: function(project, name, success, failure) {
+    leo(`api/cluster/${project}/${name}`, success, failure, { method: 'DELETE' })
+  }
 }
 
 export const setCookie = function(project, name, success, failure) {
   leo(`notebooks/${project}/${name}/setCookie`, success, failure, { credentials: 'include' })
-}
-
-export const makeCluster = function(project, name, clusterOptions, success, failure) {
-  leo(`api/cluster/${project}/${name}`, success, failure,
-    { method: 'PUT', body: JSON.stringify(clusterOptions) })
-}
-
-export const deleteCluster = function(project, name, success, failure) {
-  leo(`api/cluster/${project}/${name}`, success, failure, { method: 'DELETE' })
 }

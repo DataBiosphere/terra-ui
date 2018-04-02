@@ -25,7 +25,7 @@ export default hh(class WorkspaceNotebooks extends Component {
 
   loadClusters() {
     this.setState({ clusters: [] })
-    Ajax.clusterList(
+    Ajax.clustersList(
       list => {
         const owned = _.find(list,
           v => (v['creator'] === Utils.getUser().getBasicProfile().getEmail()))
@@ -57,7 +57,7 @@ export default hh(class WorkspaceNotebooks extends Component {
             style: { display: 'flex' },
             disabled: creatingCluster,
             onClick: () => {
-              Ajax.makeCluster(namespace, window.prompt('Name for the new cluster'),
+              Ajax.cluster.create(namespace, window.prompt('Name for the new cluster'),
                 {
                   'labels': {}, 'machineConfig': {
                     'numberOfWorkers': 0, 'masterMachineType': 'n1-standard-4',
@@ -138,7 +138,7 @@ export default hh(class WorkspaceNotebooks extends Component {
                   if (status !== 'Deleting') {
                     return link({
                       onClick: () => {
-                        Ajax.deleteCluster(googleProject, clusterName,
+                        Ajax.cluster.delete(googleProject, clusterName,
                           () => this.loadClusters(),
                           deletionFail => window.alert(
                             `Couldn't delete cluster: ${deletionFail}`))
