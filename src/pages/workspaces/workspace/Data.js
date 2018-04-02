@@ -1,12 +1,12 @@
 import _ from 'lodash'
 import mixinDeep from 'mixin-deep'
-import { Component } from 'react'
-import { div, h, hh, table } from 'react-hyperscript-helpers'
-import Interactive from 'react-interactive'
+import { div, hh, table } from 'react-hyperscript-helpers'
 import { icon, spinner } from 'src/components/icons'
 import { DataTable } from 'src/components/table'
 import * as Ajax from 'src/libs/ajax'
 import * as Style from 'src/libs/style'
+import * as Utils from 'src/libs/utils'
+import { Interactive, Component } from 'src/libs/wrapped-components'
 
 
 /**
@@ -14,15 +14,6 @@ import * as Style from 'src/libs/style'
  * @param {string} namespace
  */
 export default hh(class WorkspaceData extends Component {
-  constructor(props) {
-    super(props)
-    this.state = {
-      selectedEntityType: '',
-      selectedEntities: null,
-      workspaceEntities: null
-    }
-  }
-
   componentWillMount() {
     const { namespace, name } = this.props
 
@@ -36,16 +27,14 @@ export default hh(class WorkspaceData extends Component {
     const { namespace, name } = this.props
     const { selectedEntityType, selectedEntities, workspaceEntities, entitiesFailure, entityFailure } = this.state
 
-    const anyEntitiesLoaded = _.isEmpty(selectedEntities)
-
-    const entityTypeList = _.map(workspaceEntities, (typeDetails, type) =>
+    const entityTypeList = () => _.map(workspaceEntities, (typeDetails, type) =>
       div({
           style: {
             cursor: 'pointer', padding: '0.75rem 1rem',
             backgroundColor: selectedEntityType === type ? Style.colors.highlightFaded : null
           },
           onClick: () => {
-            this.setState({ selectedEntityType: type, selectedEntities: [] })
+            this.setState({ selectedEntityType: type, selectedEntities: null })
             Ajax.workspace.entity(namespace, name, type,
               selectedEntities => this.setState({ selectedEntities }),
               entityFailure => this.setState({ entityFailure })
@@ -58,7 +47,7 @@ export default hh(class WorkspaceData extends Component {
         ])
     )
 
-    const entityTable = DataTable({
+    const entityTable = () => DataTable({
       dataSource: _.sortBy(selectedEntities, 'name'),
       tableProps: {
         rowKey: 'name',
@@ -66,7 +55,7 @@ export default hh(class WorkspaceData extends Component {
         components: {
           table: props => table(mixinDeep({ style: { borderCollapse: 'collapse' } }, props)),
           body: {
-            row: props => h(Interactive,
+            row: props => Interactive(
               mixinDeep({
                   as: 'tr', style: { cursor: null },
                   hover: { backgroundColor: Style.colors.highlightFaded }
@@ -74,30 +63,30 @@ export default hh(class WorkspaceData extends Component {
                 props))
           }
         },
-        columns: anyEntitiesLoaded ?
-          [] :
-          _.map(workspaceEntities[selectedEntityType]['attributeNames'], function(name) {
-            return {
-              title: name,
-              key: name,
-              render: entity => div({ style: { padding: '0.5rem' } }, entity.attributes[name])
-            }
-          })
+        columns: _.map(workspaceEntities[selectedEntityType]['attributeNames'], function(name) {
+          return {
+            title: name,
+            key: name,
+            render: entity => div({ style: { padding: '0.5rem' } }, entity.attributes[name])
+          }
+        })
       }
     })
 
 
     return div({
-      style: {
-        display: 'flex', margin: '1rem', backgroundColor: 'white', borderRadius: 5,
-        boxShadow: Style.standardShadow
-      }
-    }, !workspaceEntities ?
-      entitiesFailure ?
-        `Couldn't load workspace entities: ${entitiesFailure}` :
-        [spinner({ style: { margin: '2rem auto' } })] :
-      _.isEmpty(workspaceEntities) ?
-        [div({ style: { margin: '2rem auto' } }, 'There is no data in this workspace.')] :
+        style: {
+          display: 'flex', margin: '1rem', backgroundColor: 'white', borderRadius: 5,
+          boxShadow: Style.standardShadow
+        }
+      },
+      Utils.cond(
+        [entitiesFailure, `Couldn't load workspace entities: ${entitiesFailure}`],
+        [!workspaceEntities, [spinner({ style: { margin: '2rem auto' } })]],
+        [
+          _.isEmpty(workspaceEntities),
+          [div({ style: { margin: '2rem auto' } }, 'There is no data in this workspace.')]
+        ],
         [
           div({ style: { flexShrink: 0, borderRight: `1px solid ${Style.colors.disabled}` } }, [
             div({
@@ -106,18 +95,23 @@ export default hh(class WorkspaceData extends Component {
                 borderBottom: `1px solid ${Style.colors.background}`
               }
             }, 'Data Model'),
-            div({ style: { marginBottom: '1rem' } }, entityTypeList)
+            div({ style: { marginBottom: '1rem' } }, entityTypeList())
           ]),
-          div({ style: { overflow: 'hidden', margin: `1rem ${anyEntitiesLoaded ? 'auto' : ''}` } },
+          div(
+            {
+              style: {
+                overflow: 'hidden', margin: `1rem ${!selectedEntities ? 'auto' : ''}`
+              }
+            },
             [
-              selectedEntityType ?
-                anyEntitiesLoaded ?
-                  entityFailure ?
-                    `Couldn't load ${selectedEntityType}s: ${entityFailure}` :
-                    spinner() :
-                  entityTable :
-                'Select a data type.'
+              Utils.cond(
+                [entityFailure, `Couldn't load ${selectedEntityType}s: ${entityFailure}`],
+                [!selectedEntityType, 'Select a data type.'],
+                [!selectedEntities, spinner()],
+                entityTable)
             ])
-        ])
+        ]
+      )
+    )
   }
 })

@@ -1,3 +1,6 @@
+import _ from 'lodash'
+
+
 export const getAuthInstance = function() {
   return window.gapi.auth2.getAuthInstance()
 }
@@ -34,3 +37,28 @@ export const makePrettyDate = function(dateString) {
 }
 
 export const workspaceAccessLevels = ['NO ACCESS', 'READER', 'WRITER', 'OWNER', 'PROJECT_OWNER']
+
+export const log = function(arg) {
+  console.log(arg)
+  return arg
+}
+
+/**
+ * Returns the value for the first truthy predicate.
+ *
+ * Takes predicate/value pairs in arrays, followed by a default value.
+ */
+export const cond = function(...args) {
+  const defaultValue = _.last(args)
+  const pairs = args.slice(0, -1)
+
+  const match = _.find(pairs, ([pred, val]) => {
+    return pred ?
+      _.isFunction(val) ? val() : val :
+      false
+  })
+
+  return match ?
+    match[1] :
+    _.isFunction(defaultValue) ? defaultValue() : defaultValue
+}

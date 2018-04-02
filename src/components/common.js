@@ -1,13 +1,13 @@
 import _ from 'lodash'
 import mixinDeep from 'mixin-deep'
 import { div, h, input } from 'react-hyperscript-helpers'
-import Interactive from 'react-interactive'
 import { icon } from 'src/components/icons'
 import * as Style from 'src/libs/style'
+import { Interactive } from 'src/libs/wrapped-components'
 
 
 export const link = function(props, children) {
-  return h(Interactive,
+  return Interactive(
     mixinDeep({
       as: 'a',
       style: {
@@ -21,7 +21,7 @@ export const link = function(props, children) {
 }
 
 export const buttonPrimary = function(props, children) {
-  return h(Interactive,
+  return Interactive(
     mixinDeep({
       as: 'button',
       style: _.defaults({

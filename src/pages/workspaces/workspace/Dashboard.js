@@ -1,11 +1,11 @@
 import _ from 'lodash'
-import { Component } from 'react'
 import { div, hh } from 'react-hyperscript-helpers/lib/index'
+import { buttonPrimary } from 'src/components/common'
 import { spinner } from 'src/components/icons'
+import Modal from 'src/components/Modal'
 import * as Ajax from 'src/libs/ajax'
 import * as Style from 'src/libs/style'
-import { buttonPrimary } from 'src/components/common'
-import Modal from 'src/components/Modal'
+import { Component } from 'src/libs/wrapped-components'
 
 
 export default hh(class WorkspaceDashboard extends Component {
