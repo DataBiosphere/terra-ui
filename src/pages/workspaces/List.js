@@ -1,9 +1,10 @@
 import _ from 'lodash'
 import { Component, Fragment } from 'react'
 import { a, div, h, hh } from 'react-hyperscript-helpers'
-import { card, contextBar, link, search, TopBar } from 'src/components/common'
+import { contextBar, search } from 'src/components/common'
 import { breadcrumb, icon, spinner } from 'src/components/icons'
-import { DataGrid, DataTable } from 'src/components/table'
+import { DataGrid } from 'src/components/table'
+import { TopBar } from 'src/components/TopBar'
 import * as Ajax from 'src/libs/ajax'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
@@ -23,24 +24,100 @@ const WorkspaceList = hh(class WorkspaceList extends Component {
   }
 
   componentWillMount() {
-    Ajax.workspaceList(
+    Ajax.workspacesList(
       workspaces => this.setState({ workspaces: _.sortBy(workspaces, 'workspace.name') }),
       failure => this.setState({ failure })
     )
   }
 
-  render() {
-    const { workspaces, filter, listView, itemsPerPage, pageNumber, failure } = this.state
-
-    const dataViewerProps = {
-      defaultItemsPerPage: itemsPerPage,
+  getDataViewerProps() {
+    return {
+      defaultItemsPerPage: this.state.itemsPerPage,
       itemsPerPageOptions: [6, 12, 24, 36, 48],
       onItemsPerPageChanged: n => this.setState({ itemsPerPage: n }),
-      initialPage: pageNumber,
+      initialPage: this.state.pageNumber,
       onPageChanged: n => this.setState({ pageNumber: n }),
-      dataSource: workspaces.filter(({ workspace: { namespace, name } }) =>
-        `${namespace}/${name}`.includes(filter))
+      dataSource: this.state.workspaces.filter(({ workspace: { namespace, name } }) =>
+        `${namespace}/${name}`.includes(this.state.filter))
     }
+  }
+
+  wsList() {
+    return DataGrid(_.assign({
+        cardsPerRow: 1,
+        renderCard: ({ workspace: { namespace, name, createdBy, lastModified } }) => {
+          return a({
+              href: Nav.getLink('workspace', namespace, name),
+              style: _.defaults({
+                width: '100%', margin: '0.5rem', textDecoration: 'none',
+                backgroundColor: 'white', color: Style.colors.text
+              }, Style.elements.card)
+            },
+            [
+              div({ style: Style.elements.cardTitle }, `${name}`),
+              div({ style: { display: 'flex', alignItems: 'flex-end', fontSize: '0.8rem' } },
+                [
+                  div({ style: { flexGrow: 1 } },
+                    `Billing project: ${namespace}`),
+                  div({ style: { width: '35%' } },
+                    [`Last changed: ${Utils.makePrettyDate(lastModified)}`]),
+                  div({
+                    title: createdBy,
+                    style: {
+                      height: '1.5rem', width: '1.5rem', borderRadius: '1.5rem',
+                      lineHeight: '1.5rem', textAlign: 'center',
+                      backgroundColor: Style.colors.accent, color: 'white'
+                    }
+                  }, createdBy[0].toUpperCase())
+                ])
+            ])
+        }
+      }, this.getDataViewerProps())
+    )
+  }
+
+  wsGrid() {
+    return DataGrid(_.assign({
+      renderCard: ({ workspace: { namespace, name, createdBy, lastModified } },
+                   cardsPerRow) => {
+        return a({
+            href: Nav.getLink('workspace', namespace, name),
+            style: _.defaults({
+              width: `calc(${100 / cardsPerRow}% - 2.5rem)`,
+              margin: '1.25rem', boxSizing: 'border-box',
+              textDecoration: 'none',
+              display: 'flex', flexDirection: 'column',
+              justifyContent: 'space-between',
+              height: 225, color: Style.colors.text
+            }, Style.elements.card)
+          },
+          [
+            div({ style: Style.elements.cardTitle }, `${name}`),
+            div({}, `Billing project: ${namespace}`),
+            div({
+              style: {
+                display: 'flex', justifyContent: 'space-between',
+                alignItems: 'flex-end', fontSize: '0.8rem'
+              }
+            }, [
+              div({}, ['Last changed:', div({}, Utils.makePrettyDate(lastModified))]),
+              div({
+                title: createdBy,
+                style: {
+                  height: '1.5rem', width: '1.5rem', borderRadius: '1.5rem',
+                  lineHeight: '1.5rem', textAlign: 'center',
+                  backgroundColor: Style.colors.accent, color: 'white'
+                }
+              }, createdBy[0].toUpperCase())
+            ])
+          ])
+      }
+    }, this.getDataViewerProps()))
+  }
+
+
+  render() {
+    const { workspaces, filter, listView, failure } = this.state
 
     return h(Fragment, [
       TopBar({ title: 'Projects' },
@@ -83,87 +160,7 @@ const WorkspaceList = hh(class WorkspaceList extends Component {
             `Couldn't load workspace list: ${failure}` :
             spinner({ size: 64 }) :
           listView ?
-            DataTable(_.assign({
-              tableProps: {
-                rowKey: ({ workspace }) => workspace['workspaceId'],
-                columns: [
-                  {
-                    title: 'Workspace', dataIndex: 'workspace', key: 'name',
-                    render: ({ namespace, name }) =>
-                      link({
-                        title: name,
-                        href: Nav.getLink('workspace', namespace, name),
-                        style: {
-                          textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block',
-                          overflow: 'hidden', width: 400
-                        }
-                      }, name)
-                  },
-                  {
-                    title: 'Billing project', dataIndex: 'workspace.namespace', key: 'namespace',
-                    width: 150
-                  },
-                  {
-                    title: 'Last changed', dataIndex: 'workspace.lastModified', key: 'lastModified',
-                    width: 175,
-                    render: Utils.makePrettyDate
-                  },
-                  {
-                    title: 'Created by', dataIndex: 'workspace.createdBy', key: 'createdBy',
-                    render: creator => div({
-                      title: creator,
-                      style: {
-                        textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block',
-                        overflow: 'hidden', width: 275
-                      }
-                    }, creator)
-                  }
-                ]
-              }
-            }, dataViewerProps)) :
-            DataGrid(_.assign({
-              renderCard: ({ workspace: { namespace, name, createdBy, lastModified } },
-                           cardsPerRow) => {
-                return a({
-                    href: Nav.getLink('workspace', namespace, name),
-                    style: {
-                      width: `calc(${100 / cardsPerRow}% - 2.5rem)`, minHeight: 100,
-                      margin: '1.25rem',
-                      textDecoration: 'none'
-                    }
-                  },
-                  [
-                    card({ style: { height: 200 } }, [
-                      div({
-                        style: {
-                          display: 'flex', flexDirection: 'column',
-                          justifyContent: 'space-between',
-                          height: '100%', color: Style.colors.text
-                        }
-                      }, [
-                        div({ style: Style.elements.cardTitle }, `${name}`),
-                        div({}, `Billing project: ${namespace}`),
-                        div({
-                          style: {
-                            display: 'flex', justifyContent: 'space-between',
-                            alignItems: 'flex-end', fontSize: '0.8rem'
-                          }
-                        }, [
-                          div({}, ['Last changed:', div({}, Utils.makePrettyDate(lastModified))]),
-                          div({
-                            title: createdBy,
-                            style: {
-                              height: '1.5rem', width: '1.5rem', borderRadius: '1.5rem',
-                              lineHeight: '1.5rem', textAlign: 'center',
-                              backgroundColor: Style.colors.accent, color: 'white'
-                            }
-                          }, createdBy[0].toUpperCase())
-                        ])
-                      ])
-                    ])
-                  ])
-              }
-            }, dataViewerProps))
+            this.wsList() : this.wsGrid()
       ])
     ])
   }
