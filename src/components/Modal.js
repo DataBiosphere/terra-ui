@@ -1,7 +1,7 @@
 import _ from 'lodash'
 import { div, h, hh } from 'react-hyperscript-helpers'
 import * as Style from 'src/libs/style'
-import { Fragment, Component } from 'src/libs/wrapped-components'
+import { Component, Fragment } from 'src/libs/wrapped-components'
 
 
 /**

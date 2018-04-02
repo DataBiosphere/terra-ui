@@ -6,7 +6,7 @@ import { DataTable } from 'src/components/table'
 import * as Ajax from 'src/libs/ajax'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import { Interactive, Component } from 'src/libs/wrapped-components'
+import { Component, Interactive } from 'src/libs/wrapped-components'
 
 
 /**
