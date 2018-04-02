@@ -1,4 +1,3 @@
-import _ from 'lodash'
 import { div, hh } from 'react-hyperscript-helpers/lib/index'
 import { buttonPrimary } from 'src/components/common'
 import { spinner } from 'src/components/icons'
@@ -6,17 +5,10 @@ import Modal from 'src/components/Modal'
 import * as Ajax from 'src/libs/ajax'
 import * as Style from 'src/libs/style'
 import { Component } from 'src/libs/wrapped-components'
+import * as Utils from 'src/libs/utils'
 
 
 export default hh(class WorkspaceDashboard extends Component {
-  constructor(props) {
-    super(props)
-    this.state = {
-      workspace: null
-    }
-  }
-
-
   componentWillMount() {
     const { namespace, name } = this.props
     Ajax.workspace.details(namespace, name,
@@ -24,15 +16,13 @@ export default hh(class WorkspaceDashboard extends Component {
       failure => this.setState({ failure }))
   }
 
-
   render() {
     const { workspace, failure, modal } = this.state
 
-    return _.isEmpty(workspace) ?
-      failure ?
-        `Couldn't load workspace details: ${failure}` :
-        spinner({ style: { marginTop: '1rem' } }) :
-      div({ style: { margin: '1rem' } }, [
+    return Utils.cond(
+      [failure, `Couldn't load workspace details: ${failure}`],
+      [!workspace, spinner({ style: { marginTop: '1rem' } })],
+      () => div({ style: { margin: '1rem' } }, [
         modal ? Modal({
           onDismiss: () => this.setState({ modal: false }),
           title: 'Workspace Info',
@@ -50,5 +40,6 @@ export default hh(class WorkspaceDashboard extends Component {
           onClick: () => this.setState({ modal: true })
         }, 'Full Workspace Info')
       ])
+    )
   }
 })
