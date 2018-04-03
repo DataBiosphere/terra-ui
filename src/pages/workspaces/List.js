@@ -161,8 +161,8 @@ const WorkspaceList = hh(class WorkspaceList extends Component {
       ]),
       div({ style: { margin: '1rem auto', maxWidth: 1000 } }, [
         Utils.cond(
-          [failure, `Couldn't load workspace list: ${failure}`],
-          [!workspaces, spinner({ size: 64 })],
+          [failure, () => `Couldn't load workspace list: ${failure}`],
+          [!workspaces, () => spinner({ size: 64 })],
           [_.isEmpty(workspaces), 'You don\'t seem to have access to any workspaces.'],
           [listView, () => this.wsList()],
           () => this.wsGrid()
