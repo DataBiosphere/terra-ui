@@ -1,9 +1,9 @@
-import { Component, Fragment } from 'react'
 import { hot } from 'react-hot-loader'
-import { div, h, h2 } from 'react-hyperscript-helpers'
+import { div, h2 } from 'react-hyperscript-helpers'
 import * as Config from 'src/libs/config'
 import * as Nav from 'src/libs/nav'
 import * as Utils from 'src/libs/utils'
+import { Component, Fragment } from 'src/libs/wrapped-components'
 import * as WorkspaceList from 'src/pages/workspaces/List'
 import * as WorkspaceContainer from 'src/pages/workspaces/workspace/Container'
 
@@ -29,7 +29,7 @@ export default hot(module)(class Main extends Component {
   render() {
     const { isSignedIn } = this.state
 
-    return h(Fragment, [
+    return Fragment([
       div({ id: 'signInButton', style: { display: isSignedIn ? 'none' : 'block' } }),
       isSignedIn ?
         this.renderSignedIn() :

@@ -1,13 +1,12 @@
-import Interactive from 'react-interactive'
 import _ from 'lodash'
-import { Component, Fragment } from 'react'
-import { a, div, h, hh } from 'react-hyperscript-helpers'
+import { a, div, hh } from 'react-hyperscript-helpers'
 import { contextBar, contextMenu } from 'src/components/common'
 import { breadcrumb, icon } from 'src/components/icons'
 import { TopBar } from 'src/components/TopBar'
 import ShowOnClick from 'src/components/ShowOnClick'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
+import { Component, Fragment, Interactive } from 'src/libs/wrapped-components'
 import WorkspaceDashboard from 'src/pages/workspaces/workspace/Dashboard'
 import WorkspaceData from 'src/pages/workspaces/workspace/Data'
 import WorkspaceNotebooks from 'src/pages/workspaces/workspace/Notebooks'
@@ -63,7 +62,7 @@ const WorkspaceContainer = hh(class WorkspaceContainer extends Component {
     const { forceUpdateKey } = this.state
 
     const navTab = tabName => {
-      return h(Fragment, [
+      return Fragment([
         a({
           style: tabName === activeTab ? tabActiveStyle : tabBaseStyle,
           href: Nav.getLink('workspace', namespace, name,
@@ -78,7 +77,7 @@ const WorkspaceContainer = hh(class WorkspaceContainer extends Component {
       ])
     }
 
-    return h(Fragment, [
+    return Fragment([
       TopBar({ title: 'Projects' }, [
         div({ style: { display: 'flex', flexDirection: 'column', paddingLeft: '4rem' } },
           [
@@ -103,11 +102,11 @@ const WorkspaceContainer = hh(class WorkspaceContainer extends Component {
         navTab('dashboard'), navTab('notebooks'), navTab('data'), navTab('jobs'),
         navTab('history'), navTab('tools'),
         div({ style: { flexGrow: 1 } }),
-        h(Interactive,
+        Interactive(
           _.merge({ as: icon('copy') }, navIconProps)),
         ShowOnClick({
             containerProps: { style: { position: 'relative' } },
-            button: h(Interactive,
+            button: Interactive(
               _.merge({ as: icon('ellipsis-vertical') }, navIconProps))
           },
           [

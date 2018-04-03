@@ -1,6 +1,5 @@
 import _ from 'lodash'
-import { Component, Fragment } from 'react'
-import { a, div, h, hh } from 'react-hyperscript-helpers'
+import { a, div, hh } from 'react-hyperscript-helpers'
 import { contextBar, search } from 'src/components/common'
 import { breadcrumb, icon, spinner } from 'src/components/icons'
 import { DataGrid } from 'src/components/table'
@@ -9,6 +8,7 @@ import * as Ajax from 'src/libs/ajax'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
+import { Component, Fragment } from 'src/libs/wrapped-components'
 
 
 const WorkspaceList = hh(class WorkspaceList extends Component {
@@ -124,7 +124,7 @@ const WorkspaceList = hh(class WorkspaceList extends Component {
   render() {
     const { workspaces, filter, listView, failure } = this.state
 
-    return h(Fragment, [
+    return Fragment([
       TopBar({ title: 'Projects' },
         [
           search({
@@ -160,14 +160,13 @@ const WorkspaceList = hh(class WorkspaceList extends Component {
         })
       ]),
       div({ style: { margin: '1rem auto', maxWidth: 1000 } }, [
-        !workspaces ?
-          failure ?
-            `Couldn't load workspace list: ${failure}` :
-            spinner({ size: 64 }) :
-          _.isEmpty(workspaces) ?
-            'You don\'t seem to have access to any workspaces.' :
-            listView ?
-              this.wsList() : this.wsGrid()
+        Utils.cond(
+          [failure, `Couldn't load workspace list: ${failure}`],
+          [!workspaces, spinner({ size: 64 })],
+          [_.isEmpty(workspaces), 'You don\'t seem to have access to any workspaces.'],
+          [listView, () => this.wsList()],
+          () => this.wsGrid()
+        )
       ])
     ])
   }
