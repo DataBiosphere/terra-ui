@@ -51,6 +51,7 @@ const maybeCall = function(maybeFn) {
 
 /**
  * Returns the value for the first truthy predicate.
+ * If the value is a function, it is invoked.
  *
  * Takes predicate/value pairs in arrays, followed by a default value.
  */
@@ -58,9 +59,7 @@ export const cond = function(...args) {
   const defaultValue = _.last(args)
   const pairs = args.slice(0, -1)
 
-  const match = _.find(pairs, ([pred, val]) => {
-    return pred ? maybeCall(val) : false
-  })
+  const match = _.find(pairs, ([pred, _]) => Boolean(pred))
 
-  return match ? match[1] : maybeCall(defaultValue)
+  return maybeCall(match ? match[1] : defaultValue)
 }
