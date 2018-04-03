@@ -46,7 +46,7 @@ export default hh(class WorkspaceNotebooks extends Component {
     const { clusters, creatingCluster, clusterAccess, listFailure } = this.state
 
     return Utils.cond(
-      [listFailure, `Couldn't load cluster list: ${listFailure}`],
+      [listFailure, () => `Couldn't load cluster list: ${listFailure}`],
       [_.isEmpty(clusters), () => spinner({ style: { marginTop: '1rem' } })],
       () => div({ style: { margin: '1rem' } }, [
         div({ style: { display: 'flex', alignItems: 'center' } }, [
