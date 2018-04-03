@@ -1,5 +1,4 @@
 import _ from 'lodash'
-import { Component } from 'react'
 import { div, hh } from 'react-hyperscript-helpers/lib/index'
 import { buttonPrimary, link } from 'src/components/common'
 import { icon, spinner } from 'src/components/icons'
@@ -7,6 +6,7 @@ import { DataTable } from 'src/components/table'
 import * as Ajax from 'src/libs/ajax'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
+import { Component } from 'src/libs/wrapped-components'
 
 
 export default hh(class WorkspaceNotebooks extends Component {
@@ -45,11 +45,10 @@ export default hh(class WorkspaceNotebooks extends Component {
     const { namespace } = this.props
     const { clusters, creatingCluster, clusterAccess, listFailure } = this.state
 
-    return _.isEmpty(clusters) ?
-      listFailure ?
-        `Couldn't load cluster list: ${listFailure || listFailure}` :
-        spinner({ style: { marginTop: '1rem' } }) :
-      div({ style: { margin: '1rem' } }, [
+    return Utils.cond(
+      [listFailure, `Couldn't load cluster list: ${listFailure || listFailure}`],
+      [_.isEmpty(clusters), spinner({ style: { marginTop: '1rem' } })],
+      () => div({ style: { margin: '1rem' } }, [
         div({ style: { display: 'flex', alignItems: 'center' } }, [
           div({ style: { fontSize: 16, fontWeight: 500, color: Style.colors.title, flexGrow: 1 } },
             'CLUSTERS'),
@@ -152,5 +151,6 @@ export default hh(class WorkspaceNotebooks extends Component {
           }
         })
       ])
+    )
   }
 })

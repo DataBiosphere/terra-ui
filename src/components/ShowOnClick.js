@@ -1,6 +1,6 @@
 import mixinDeep from 'mixin-deep'
-import { Component } from 'react'
 import { div, hh } from 'react-hyperscript-helpers/lib/index'
+import { Component } from 'src/libs/wrapped-components'
 
 
 /**
@@ -12,31 +12,24 @@ import { div, hh } from 'react-hyperscript-helpers/lib/index'
  * @param children
  */
 export default hh(class ShowOnClick extends Component {
-  constructor(props) {
-    super(props)
-    this.state = {
-      hidden: true
-    }
-  }
-
   setVisibility = (visible) => {
-    this.setState({ hidden: !visible })
+    this.setState({ visible })
   }
 
   listenForEscape = (e) => {
     if (e.key === 'Escape') {
       window.removeEventListener('keydown', this.listenForEscape)
-      this.setState({ hidden: true })
+      this.setState({ visible: false })
     }
   }
 
   render() {
-    const { hidden } = this.state
+    const { visible } = this.state
     const { containerProps, button, bgProps, closeOnClick = true, closeOnEsc = true, children } = this.props
 
     return div(mixinDeep({
         onClick: (e) => {
-          this.setState({ hidden: false })
+          this.setState({ visible: true })
           e.preventDefault()
           if (closeOnEsc) {
             window.addEventListener('keydown', this.listenForEscape)
@@ -45,18 +38,18 @@ export default hh(class ShowOnClick extends Component {
       }, containerProps),
       [
         button,
-        hidden ? null :
+        !visible ? null :
           div(mixinDeep({
             style: {
               position: 'fixed', left: 0, right: 0, top: 0, bottom: 0, cursor: 'pointer'
             },
             onClick: closeOnClick ? (e) => {
-              this.setState({ hidden: true })
+              this.setState({ visible: false })
               e.preventDefault()
               e.stopPropagation()
             } : undefined
           }, bgProps)),
-        hidden ? null : children
+        visible ? children : null
       ]
     )
   }

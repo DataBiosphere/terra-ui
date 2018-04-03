@@ -1,7 +1,7 @@
 import _ from 'lodash'
 import RCTable from 'rc-table'
-import { Component, Fragment } from 'react'
 import { div, h, hh, option, select } from 'react-hyperscript-helpers'
+import { Component, Fragment } from 'src/libs/wrapped-components'
 
 
 /**
@@ -23,7 +23,7 @@ const paginator = function(props) {
     itemsPerPage, itemsPerPageOptions
   } = props
 
-  return h(Fragment, [
+  return Fragment([
     'Page: ',
     select({
         style: { marginRight: '1rem' },
@@ -33,7 +33,7 @@ const paginator = function(props) {
       _.map(_.range(1, filteredDataLength / itemsPerPage + 1),
         i => option({ value: i }, i))),
     setItemsPerPage ?
-      h(Fragment, [
+      Fragment([
         'Items per page: ',
         select({
             onChange: e => setItemsPerPage(e.target.value),
@@ -75,7 +75,7 @@ export const DataTable = hh(class DataTable extends Component {
 
     const listPage = dataSource.slice((pageNumber - 1) * itemsPerPage, pageNumber * itemsPerPage)
 
-    return h(Fragment, [
+    return Fragment([
       h(RCTable, _.extend({ data: listPage }, tableProps)),
       allowPagination ?
         div({ style: { marginTop: 10 } }, [
@@ -128,7 +128,7 @@ export const DataGrid = hh(class DataGrid extends Component {
 
       const listPage = dataSource.slice((pageNumber - 1) * itemsPerPage, pageNumber * itemsPerPage)
 
-      return h(Fragment, [
+      return Fragment([
         div({ style: { display: 'flex', flexWrap: 'wrap' } },
           _.map(listPage, (record) => renderCard(record, cardsPerRow))),
         allowPagination ?
