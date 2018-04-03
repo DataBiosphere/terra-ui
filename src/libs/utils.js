@@ -38,9 +38,11 @@ export const makePrettyDate = function(dateString) {
 
 export const workspaceAccessLevels = ['NO ACCESS', 'READER', 'WRITER', 'OWNER', 'PROJECT_OWNER']
 
-export const log = function(arg) {
-  console.log(arg)
-  return arg
+export const log = function(...args) {
+  console.groupCollapsed.apply(null, args)
+  console.trace('Stack trace:')
+  console.groupEnd()
+  return _.last(args)
 }
 
 const maybeCall = function(maybeFn) {
