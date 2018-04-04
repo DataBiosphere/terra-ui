@@ -38,9 +38,11 @@ export const makePrettyDate = function(dateString) {
 
 export const workspaceAccessLevels = ['NO ACCESS', 'READER', 'WRITER', 'OWNER', 'PROJECT_OWNER']
 
-export const log = function(arg) {
-  console.log(arg)
-  return arg
+export const log = function(...args) {
+  console.groupCollapsed.apply(null, args)
+  console.trace('Stack trace:')
+  console.groupEnd()
+  return _.last(args)
 }
 
 const maybeCall = function(maybeFn) {
@@ -49,6 +51,7 @@ const maybeCall = function(maybeFn) {
 
 /**
  * Returns the value for the first truthy predicate.
+ * If the value is a function, it is invoked.
  *
  * Takes predicate/value pairs in arrays, followed by a default value.
  */
@@ -56,9 +59,7 @@ export const cond = function(...args) {
   const defaultValue = _.last(args)
   const pairs = args.slice(0, -1)
 
-  const match = _.find(pairs, ([pred, val]) => {
-    return pred ? maybeCall(val) : false
-  })
+  const match = _.find(pairs, ([pred, _]) => Boolean(pred))
 
-  return match ? match[1] : maybeCall(defaultValue)
+  return maybeCall(match ? match[1] : defaultValue)
 }

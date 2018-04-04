@@ -81,13 +81,13 @@ export default hh(class WorkspaceData extends Component {
         }
       },
       Utils.cond(
-        [entitiesFailure, `Couldn't load workspace entities: ${entitiesFailure}`],
-        [!workspaceEntities, [spinner({ style: { margin: '2rem auto' } })]],
+        [entitiesFailure, () => `Couldn't load workspace entities: ${entitiesFailure}`],
+        [!workspaceEntities, () => [spinner({ style: { margin: '2rem auto' } })]],
         [
           _.isEmpty(workspaceEntities),
-          [div({ style: { margin: '2rem auto' } }, 'There is no data in this workspace.')]
+          () => [div({ style: { margin: '2rem auto' } }, 'There is no data in this workspace.')]
         ],
-        [
+        () => [
           div({ style: { flexShrink: 0, borderRight: `1px solid ${Style.colors.disabled}` } }, [
             div({
               style: {
@@ -105,9 +105,9 @@ export default hh(class WorkspaceData extends Component {
             },
             [
               Utils.cond(
-                [entityFailure, `Couldn't load ${selectedEntityType}s: ${entityFailure}`],
+                [entityFailure, () => `Couldn't load ${selectedEntityType}s: ${entityFailure}`],
                 [!selectedEntityType, 'Select a data type.'],
-                [!selectedEntities, spinner()],
+                [!selectedEntities, spinner],
                 entityTable)
             ])
         ]

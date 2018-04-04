@@ -1,4 +1,4 @@
-import { div, hh } from 'react-hyperscript-helpers/lib/index'
+import { div, hh } from 'react-hyperscript-helpers'
 import { buttonPrimary } from 'src/components/common'
 import { spinner } from 'src/components/icons'
 import Modal from 'src/components/Modal'
@@ -20,8 +20,8 @@ export default hh(class WorkspaceDashboard extends Component {
     const { workspace, failure, modal } = this.state
 
     return Utils.cond(
-      [failure, `Couldn't load workspace details: ${failure}`],
-      [!workspace, spinner({ style: { marginTop: '1rem' } })],
+      [failure, () => `Couldn't load workspace details: ${failure}`],
+      [!workspace, () => spinner({ style: { marginTop: '1rem' } })],
       () => div({ style: { margin: '1rem' } }, [
         modal ? Modal({
           onDismiss: () => this.setState({ modal: false }),
