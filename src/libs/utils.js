@@ -59,7 +59,7 @@ export const cond = function(...args) {
   const defaultValue = _.last(args)
   const pairs = args.slice(0, -1)
 
-  const match = _.find(pairs, ([pred, _]) => Boolean(pred))
+  const match = _.find(pairs, _.head)
 
   return maybeCall(match ? match[1] : defaultValue)
 }

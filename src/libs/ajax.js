@@ -41,7 +41,7 @@ window.saturnMock = {
  * @param {object} [options]
  * @returns {Promise<Response>}
  */
-export const ajax = function(url, options = { headers: {} }) {
+const ajax = function(url, options = {}) {
   if (noConnection) {
     console.info('%cSimulating no connection', consoleStyle)
     return new Promise(function(resolve, reject) {
@@ -50,14 +50,14 @@ export const ajax = function(url, options = { headers: {} }) {
   } else if (mockResponse) {
     console.info('%cSimulating response:', consoleStyle)
     console.info(mockResponse())
-    return new Promise(function(resolve, reject) {
+    return new Promise(function(resolve, _) {
       resolve(mockResponse())
     })
   }
 
   let withAuth = options
 
-  withAuth.headers = _.defaults({
+  withAuth.headers = _.merge({
     'Content-Type': 'application/json',
     'Authorization': 'bearer ' + Utils.getAuthToken()
   }, options.headers)
@@ -65,58 +65,56 @@ export const ajax = function(url, options = { headers: {} }) {
   return fetch(url, withAuth)
 }
 
-
-// Rawls
-
-const rawls = function(path, success, failure, options) {
-  ajax(`${Config.getRawlsUrlRoot()}/api/${path}`, options)
-    .then(response => response.ok ? success(response) : response.text().then(failure))
-    .catch(failure)
-}
-
-const rawlsJson = function(path, success, failure, options) {
-  rawls(path, resp => resp.json().then(success), failure, options)
-}
-
-export const workspacesList = function(success, failure) {
-  rawlsJson('workspaces', success, failure)
-}
-
-export const workspace = {
-  details: function(namespace, name, success, failure) {
-    rawlsJson(`workspaces/${namespace}/${name}`, success, failure)
+const ajaxService = {
+  call(path, success, failure, options) {
+    ajax(`${this.getUrlRoot()}/${path}`, options)
+      .then(response => response.ok ? success(response) : response.text().then(failure))
+      .catch(failure)
   },
-  entities: function(namespace, name, success, failure) {
-    rawlsJson(`workspaces/${namespace}/${name}/entities`, success, failure)
-  },
-  entity: function(namespace, name, type, success, failure) {
-    rawlsJson(`workspaces/${namespace}/${name}/entities/${type}`, success, failure)
+
+  json(path, success, failure, options) {
+    this.call(path, resp => resp.json().then(success), failure, options)
   }
 }
 
 
-// Leo
+export const Rawls = _.assign({
+  getUrlRoot: () => `${Config.getRawlsUrlRoot()}/api`,
 
-const leo = function(path, success, failure, options) {
-  ajax(`${Config.getLeoUrlRoot()}/${path}`, options)
-    .then(response => response.ok ? success(response) : response.text().then(failure))
-    .catch(failure)
-}
+  workspacesList(success, failure) {
+    this.json('workspaces', success, failure)
+  },
 
-export const clustersList = function(success, failure) {
-  leo('api/clusters', resp => resp.json().then(success), failure)
-}
+  workspaceDetails(namespace, name, success, failure) {
+    this.json(`workspaces/${namespace}/${name}`, success, failure)
+  },
+  workspaceEntities(namespace, name, success, failure) {
+    this.json(`workspaces/${namespace}/${name}/entities`, success, failure)
+  },
+  workspaceEntity(namespace, name, type, success, failure) {
+    this.json(`workspaces/${namespace}/${name}/entities/${type}`, success, failure)
+  }
 
-export const cluster = {
-  create: function(project, name, clusterOptions, success, failure) {
-    leo(`api/cluster/${project}/${name}`, success, failure,
+}, ajaxService)
+
+
+export const Leo = _.assign({
+  getUrlRoot: Config.getLeoUrlRoot,
+
+  clustersList(success, failure) {
+    this.json('api/clusters', success, failure)
+  },
+
+  clusterCreate: function(project, name, clusterOptions, success, failure) {
+    this.call(`api/cluster/${project}/${name}`, success, failure,
       { method: 'PUT', body: JSON.stringify(clusterOptions) })
   },
-  delete: function(project, name, success, failure) {
-    leo(`api/cluster/${project}/${name}`, success, failure, { method: 'DELETE' })
-  }
-}
+  clusterDelete: function(project, name, success, failure) {
+    this.call(`api/cluster/${project}/${name}`, success, failure, { method: 'DELETE' })
+  },
 
-export const setCookie = function(project, name, success, failure) {
-  leo(`notebooks/${project}/${name}/setCookie`, success, failure, { credentials: 'include' })
-}
+  setCookie(project, name, success, failure) {
+    this.call(`notebooks/${project}/${name}/setCookie`, success, failure,
+      { credentials: 'include' })
+  }
+}, ajaxService)

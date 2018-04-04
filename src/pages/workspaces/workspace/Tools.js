@@ -1,5 +1,5 @@
 import _ from 'lodash'
-import { div, hh, img } from 'react-hyperscript-helpers/lib/index'
+import { div, hh, img } from 'react-hyperscript-helpers'
 import { buttonPrimary } from 'src/components/common'
 import Modal from 'src/components/Modal'
 import * as Style from 'src/libs/style'
@@ -7,11 +7,6 @@ import { Component } from 'src/libs/wrapped-components'
 
 
 export default hh(class WorkspaceTools extends Component {
-  constructor(props) {
-    super(props)
-    this.state = { modal: false }
-  }
-
   render() {
     const { modal } = this.state
 
