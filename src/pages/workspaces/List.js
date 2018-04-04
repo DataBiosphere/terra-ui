@@ -4,7 +4,7 @@ import { contextBar, search } from 'src/components/common'
 import { breadcrumb, icon, spinner } from 'src/components/icons'
 import { DataGrid } from 'src/components/table'
 import { TopBar } from 'src/components/TopBar'
-import * as Ajax from 'src/libs/ajax'
+import { Rawls } from 'src/libs/ajax'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -24,7 +24,7 @@ const WorkspaceList = hh(class WorkspaceList extends Component {
   }
 
   componentWillMount() {
-    Ajax.workspacesList(
+    Rawls.workspacesList(
       workspaces => this.setState({
         workspaces: _.sortBy(_.filter(workspaces,
           ws => !ws.public || Utils.workspaceAccessLevels.indexOf(ws.accessLevel) >

@@ -3,7 +3,7 @@ import mixinDeep from 'mixin-deep'
 import { div, hh, table } from 'react-hyperscript-helpers'
 import { icon, spinner } from 'src/components/icons'
 import { DataTable } from 'src/components/table'
-import * as Ajax from 'src/libs/ajax'
+import { Rawls } from 'src/libs/ajax'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component, Interactive } from 'src/libs/wrapped-components'
@@ -17,7 +17,7 @@ export default hh(class WorkspaceData extends Component {
   componentWillMount() {
     const { namespace, name } = this.props
 
-    Ajax.workspace.entities(namespace, name,
+    Rawls.workspaceEntities(namespace, name,
       workspaceEntities => this.setState({ workspaceEntities }),
       entitiesFailure => this.setState({ entitiesFailure })
     )
@@ -35,7 +35,7 @@ export default hh(class WorkspaceData extends Component {
           },
           onClick: () => {
             this.setState({ selectedEntityType: type, selectedEntities: null })
-            Ajax.workspace.entity(namespace, name, type,
+            Rawls.workspaceEntity(namespace, name, type,
               selectedEntities => this.setState({ selectedEntities }),
               entityFailure => this.setState({ entityFailure })
             )
