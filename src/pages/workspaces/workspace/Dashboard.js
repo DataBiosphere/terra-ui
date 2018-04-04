@@ -2,7 +2,7 @@ import { div, hh } from 'react-hyperscript-helpers'
 import { buttonPrimary } from 'src/components/common'
 import { spinner } from 'src/components/icons'
 import Modal from 'src/components/Modal'
-import * as Ajax from 'src/libs/ajax'
+import { Rawls } from 'src/libs/ajax'
 import * as Style from 'src/libs/style'
 import { Component } from 'src/libs/wrapped-components'
 import * as Utils from 'src/libs/utils'
@@ -11,7 +11,7 @@ import * as Utils from 'src/libs/utils'
 export default hh(class WorkspaceDashboard extends Component {
   componentWillMount() {
     const { namespace, name } = this.props
-    Ajax.workspace.details(namespace, name,
+    Rawls.workspaceDetails(namespace, name,
       workspace => this.setState({ workspace }),
       failure => this.setState({ failure }))
   }
