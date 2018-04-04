@@ -59,7 +59,7 @@ const ajax = function(url, options = {}) {
 
   withAuth.headers = _.merge({
     'Content-Type': 'application/json',
-    'Authorization': 'bearer ' + Utils.getAuthToken()
+    'Authorization': 'Bearer ' + Utils.getAuthToken()
   }, options.headers)
 
   return fetch(url, withAuth)
@@ -76,6 +76,15 @@ const ajaxService = {
     this.call(path, resp => resp.json().then(success), failure, options)
   }
 }
+
+
+export const Buckets = _.assign({
+  getUrlRoot: () => 'https://www.googleapis.com/storage/v1/b',
+
+  listNotebooks(name, success, failure) {
+    this.json(`${name}/o?prefix=notebooks`, res => success(_.tail(res.items)), failure)
+  }
+}, ajaxService)
 
 
 export const Rawls = _.assign({

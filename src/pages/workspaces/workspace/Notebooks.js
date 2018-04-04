@@ -1,9 +1,9 @@
 import _ from 'lodash'
-import { div, hh } from 'react-hyperscript-helpers/lib/index'
+import { a, div, hh } from 'react-hyperscript-helpers'
 import { buttonPrimary, link } from 'src/components/common'
 import { icon, spinner } from 'src/components/icons'
 import { DataTable } from 'src/components/table'
-import { Leo } from 'src/libs/ajax'
+import { Buckets, Leo } from 'src/libs/ajax'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
@@ -12,10 +12,11 @@ import { Component } from 'src/libs/wrapped-components'
 export default hh(class WorkspaceNotebooks extends Component {
   componentWillMount() {
     this.loadClusters()
+    this.getNotebooks()
   }
 
   loadClusters() {
-    this.setState({ clusters: [] })
+    this.setState({ clusters: undefined })
     Leo.clustersList(
       list => {
         const owned = _.find(list,
@@ -51,28 +52,37 @@ export default hh(class WorkspaceNotebooks extends Component {
     this.setState({ creatingCluster: true })
   }
 
-  render() {
-    const { clusters, creatingCluster, clusterAccess, listFailure } = this.state
+  getNotebooks() {
+    this.setState({ notebooks: undefined })
+    Buckets.listNotebooks('fc-bebc25c4-0f95-44b1-94ff-0dfcc63a8e93',
+      notebooks => this.setState({ notebooks }),
+      notebooksFailure => this.setState({ notebooksFailure })
+    )
+  }
 
-    return Utils.cond(
-      [listFailure, () => `Couldn't load cluster list: ${listFailure}`],
-      [!clusters, () => spinner({ style: { marginTop: '1rem' } })],
-      () => div({ style: { margin: '1rem' } }, [
-        div({ style: { display: 'flex', alignItems: 'center' } }, [
-          div({ style: { fontSize: 16, fontWeight: 500, color: Style.colors.title, flexGrow: 1 } },
-            'CLUSTERS'),
-          buttonPrimary({
-            style: { display: 'flex' },
-            disabled: creatingCluster,
-            onClick: this.createCluster
-          }, creatingCluster ?
-            [
-              spinner({ size: '1em', style: { color: 'white', marginRight: '1em' } }),
-              'Creating cluster...'
-            ] :
-            'New cluster')
-        ]),
-        DataTable({
+  render() {
+    const { clusters, creatingCluster, clusterAccess, listFailure, notebooks, notebooksFailure } = this.state
+
+    return div({ style: { margin: '1rem' } }, [
+      div({ style: { display: 'flex', alignItems: 'center' } }, [
+        div(
+          { style: { fontSize: 16, fontWeight: 500, color: Style.colors.title, flexGrow: 1 } },
+          'CLUSTERS'),
+        buttonPrimary({
+          style: { display: 'flex' },
+          disabled: creatingCluster,
+          onClick: this.createCluster
+        }, creatingCluster ?
+          [
+            spinner({ size: '1em', style: { color: 'white', marginRight: '1em' } }),
+            'Creating cluster...'
+          ] :
+          'New cluster')
+      ]),
+      Utils.cond(
+        [listFailure, () => `Couldn't load cluster list: ${listFailure}`],
+        [!clusters, spinner],
+        () => DataTable({
           dataSource: clusters,
           tableProps: {
             rowKey: 'clusterName',
@@ -137,7 +147,37 @@ export default hh(class WorkspaceNotebooks extends Component {
             ]
           }
         })
-      ])
-    )
+      ),
+      div(
+        { style: { fontSize: 16, fontWeight: 500, color: Style.colors.title, marginTop: '2rem' } },
+        'NOTEBOOKS'),
+      Utils.cond(
+        [notebooksFailure, () => `Couldn't load cluster list: ${notebooksFailure}`],
+        [!notebooks, spinner],
+        () => div({ style: { display: 'flex' } },
+          _.map(notebooks, ({ name, updated }) => a({
+              target: '_blank',
+              style: _.defaults({
+                width: 200, height: 250,
+                margin: '1.25rem', boxSizing: 'border-box',
+                textDecoration: 'none',
+                display: 'flex', flexDirection: 'column',
+                justifyContent: 'space-between',
+                color: Style.colors.text
+              }, Style.elements.card)
+            },
+            [
+              div({ style: Style.elements.cardTitle }, name.slice(10, -6)), // ignores 'notebooks/' and the .ipynb suffix
+              icon('jupyterIcon',
+                { style: { height: 125, width: 'auto', color: Style.colors.background } }),
+              div({ style: { fontSize: '0.8rem' } }, [
+                'Last changed:',
+                div({}, Utils.makePrettyDate(updated))
+              ])
+            ])
+          )
+        )
+      )
+    ])
   }
 })
