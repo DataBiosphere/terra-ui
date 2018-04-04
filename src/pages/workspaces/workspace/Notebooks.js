@@ -19,7 +19,7 @@ export default hh(class WorkspaceNotebooks extends Component {
     Leo.clustersList(
       list => {
         const owned = _.find(list,
-          v => (v['creator'] === Utils.getUser().getBasicProfile().getEmail()))
+          v => (v.creator === Utils.getUser().getBasicProfile().getEmail()))
         if (owned) {
           Leo.setCookie(owned.googleProject, owned.clusterName,
             () => this.setState({ clusterAccess: true }),
@@ -32,8 +32,26 @@ export default hh(class WorkspaceNotebooks extends Component {
     )
   }
 
+  createCluster() {
+    Leo.clusterCreate(this.props.namespace, window.prompt('Name for the new cluster'),
+      {
+        'labels': {}, 'machineConfig': {
+          'numberOfWorkers': 0, 'masterMachineType': 'n1-standard-4',
+          'masterDiskSize': 500, 'workerMachineType': 'n1-standard-4',
+          'workerDiskSize': 500, 'numberOfWorkerLocalSSDs': 0,
+          'numberOfPreemptibleWorkers': 0
+        }
+      },
+      () => {
+        this.setState({ creatingCluster: false })
+        this.loadClusters()
+      },
+      creationFail => window.alert(
+        `Couldn't create cluster: ${creationFail}`))
+    this.setState({ creatingCluster: true })
+  }
+
   render() {
-    const { namespace } = this.props
     const { clusters, creatingCluster, clusterAccess, listFailure } = this.state
 
     return Utils.cond(
@@ -46,24 +64,7 @@ export default hh(class WorkspaceNotebooks extends Component {
           buttonPrimary({
             style: { display: 'flex' },
             disabled: creatingCluster,
-            onClick: () => {
-              Leo.clusterCreate(namespace, window.prompt('Name for the new cluster'),
-                {
-                  'labels': {}, 'machineConfig': {
-                    'numberOfWorkers': 0, 'masterMachineType': 'n1-standard-4',
-                    'masterDiskSize': 500, 'workerMachineType': 'n1-standard-4',
-                    'workerDiskSize': 500, 'numberOfWorkerLocalSSDs': 0,
-                    'numberOfPreemptibleWorkers': 0
-                  }
-                },
-                () => {
-                  this.setState({ creatingCluster: false })
-                  this.loadClusters()
-                },
-                creationFail => window.alert(
-                  `Couldn't create cluster: ${creationFail}`))
-              this.setState({ creatingCluster: true })
-            }
+            onClick: this.createCluster
           }, creatingCluster ?
             [
               spinner({ size: '1em', style: { color: 'white', marginRight: '1em' } }),
@@ -100,14 +101,9 @@ export default hh(class WorkspaceNotebooks extends Component {
                     'check' : 'times', {
                     style: { margin: 'auto', display: 'block' }
                   })
-
               },
-              {
-                title: 'Google project', dataIndex: 'googleProject', key: 'googleProject'
-              },
-              {
-                title: 'Status', dataIndex: 'status', key: 'status'
-              },
+              { title: 'Google project', dataIndex: 'googleProject', key: 'googleProject' },
+              { title: 'Status', dataIndex: 'status', key: 'status' },
               {
                 title: 'Created', dataIndex: 'createdDate', key: 'createdDate',
                 render: Utils.makePrettyDate
@@ -130,8 +126,8 @@ export default hh(class WorkspaceNotebooks extends Component {
                       onClick: () => {
                         Leo.clusterDelete(googleProject, clusterName,
                           () => this.loadClusters(),
-                          deletionFail => window.alert(
-                            `Couldn't delete cluster: ${deletionFail}`))
+                          deletionFail => window.alert(`Couldn't delete cluster: ${deletionFail}`)
+                        )
                       },
                       title: `Delete cluster ${clusterName}`
                     }, [icon('trash', { style: { margin: 'auto', display: 'block' } })])

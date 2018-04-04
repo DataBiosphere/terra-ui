@@ -15,11 +15,6 @@ const initNavPaths = () => {
 }
 
 export default hot(module)(class Main extends Component {
-  constructor(props) {
-    super(props)
-    this.state = {}
-  }
-
   componentWillMount() {
     initNavPaths()
     this.handleHashChange()
