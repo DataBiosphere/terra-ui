@@ -193,9 +193,17 @@ export default hh(class WorkspaceNotebooks extends Component {
                   div({ style: Style.elements.cardTitle }, name.slice(10, -6)), // ignores 'notebooks/' and the .ipynb suffix
                   icon('jupyterIcon',
                     { style: { height: 125, width: 'auto', color: Style.colors.background } }),
-                  div({ style: { fontSize: '0.8rem' } }, [
-                    'Last changed:',
-                    div({}, Utils.makePrettyDate(updated))
+                  div({ style: { display: 'flex', alignItems: 'flex-end' } }, [
+                    div({ style: { fontSize: '0.8rem', flexGrow: 1 } }, [
+                      'Last changed:',
+                      div({}, Utils.makePrettyDate(updated))
+                    ]),
+                    Utils.cond(
+                      [notebookAccess[name] === false, () => icon('times', { title: 'Error' })],
+                      [notebookAccess[name], () => icon('check', { title: 'Ready' })],
+                      () => spinner({
+                        size: undefined, style: undefined, title: 'Transferring to cluster'
+                      }))
                   ])
                 ])
               )
