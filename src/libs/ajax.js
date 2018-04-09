@@ -122,6 +122,11 @@ export const Leo = _.assign({
     this.call(`api/cluster/${project}/${name}`, success, failure, { method: 'DELETE' })
   },
 
+  localizeNotebooks(project, name, files, success, failure) {
+    this.call(`notebooks/${project}/${name}/api/localize`, success, failure,
+      { method: 'POST', body: JSON.stringify(files) })
+  },
+
   setCookie(project, name, success, failure) {
     this.call(`notebooks/${project}/${name}/setCookie`, success, failure,
       { credentials: 'include' })

@@ -1,16 +1,18 @@
 import _ from 'lodash'
 import { a, div, hh } from 'react-hyperscript-helpers'
 import { contextBar, contextMenu } from 'src/components/common'
-import { breadcrumb, icon } from 'src/components/icons'
+import { breadcrumb, icon, spinner } from 'src/components/icons'
 import { TopBar } from 'src/components/TopBar'
 import ShowOnClick from 'src/components/ShowOnClick'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
+import * as Utils from 'src/libs/utils'
 import { Component, Fragment, Interactive } from 'src/libs/wrapped-components'
 import WorkspaceDashboard from 'src/pages/workspaces/workspace/Dashboard'
 import WorkspaceData from 'src/pages/workspaces/workspace/Data'
 import WorkspaceNotebooks from 'src/pages/workspaces/workspace/Notebooks'
 import WorkspaceTools from 'src/pages/workspaces/workspace/Tools'
+import { Rawls } from 'src/libs/ajax'
 
 
 const navSeparator = div({
@@ -55,11 +57,18 @@ const WorkspaceContainer = hh(class WorkspaceContainer extends Component {
     }
   }
 
+  componentWillMount() {
+    const { namespace, name } = this.props
+
+    Rawls.workspaceDetails(namespace, name, workspace => this.setState({ workspace }),
+      workspaceFailure => this.setState({ workspaceFailure }))
+  }
+
   render() {
     const { namespace, name } = this.props
     const activeTab = this.props.activeTab || 'dashboard'
 
-    const { forceUpdateKey } = this.state
+    const { forceUpdateKey, workspaceFailure, workspace } = this.state
 
     const navTab = tabName => {
       return Fragment([
@@ -117,9 +126,6 @@ const WorkspaceContainer = hh(class WorkspaceContainer extends Component {
               }
             }, [
               contextMenu([
-                // [{ onClick: () => Nav.goToPath('workspace', namespace, name) }, 'Open'],
-                // [{}, 'Clone'],
-                // [{}, 'Rename'],
                 [{}, 'Share'],
                 [{}, 'Publish'],
                 [{}, 'Delete']
@@ -128,7 +134,11 @@ const WorkspaceContainer = hh(class WorkspaceContainer extends Component {
           ]
         )
       ]),
-      tabComponents[activeTab]({ namespace, name, key: forceUpdateKey })
+      Utils.cond(
+        [workspaceFailure, ''],
+        [!workspace, () => spinner({ style: { marginTop: '2rem' } })],
+        () => tabComponents[activeTab](_.merge({ key: forceUpdateKey }, workspace))
+      )
     ])
   }
 })

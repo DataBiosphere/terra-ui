@@ -12,7 +12,6 @@ import { Component, Fragment } from 'src/libs/wrapped-components'
 export default hh(class WorkspaceNotebooks extends Component {
   componentWillMount() {
     this.loadClusters()
-    this.getNotebooks()
   }
 
   loadClusters() {
@@ -27,14 +26,15 @@ export default hh(class WorkspaceNotebooks extends Component {
             () => this.setState({ clusterAccess: false })
           )
         }
-        this.setState({ clusters: _.sortBy(owned, 'clusterName') })
+        this.setState({ clusters: _.sortBy(owned, 'clusterName') },
+          this.getNotebooks)
       },
       listFailure => this.setState({ listFailure })
     )
   }
 
   createCluster() {
-    Leo.clusterCreate(this.props.namespace, window.prompt('Name for the new cluster'),
+    Leo.clusterCreate(this.props.workspace.namespace, window.prompt('Name for the new cluster'),
       {
         'labels': {}, 'machineConfig': {
           'numberOfWorkers': 0, 'masterMachineType': 'n1-standard-4',
@@ -53,15 +53,28 @@ export default hh(class WorkspaceNotebooks extends Component {
   }
 
   getNotebooks() {
-    this.setState({ notebooks: undefined })
-    Buckets.listNotebooks('fc-bebc25c4-0f95-44b1-94ff-0dfcc63a8e93',
-      notebooks => this.setState({ notebooks: _.reverse(_.sortBy(notebooks, 'updated')) }),
+    this.setState({ notebooks: undefined, notebookAccess: {} })
+    const { workspace } = this.props
+
+    Buckets.listNotebooks(workspace.bucketName,
+      notebooks => {
+        const cluster = _.first(this.state.clusters).clusterName
+
+        this.setState({ notebooks: _.reverse(_.sortBy(notebooks, 'updated')) })
+
+        _.forEach(notebooks, ({ bucket, name }) => {
+          Leo.localizeNotebooks(workspace.namespace, cluster, {
+            [`~/${workspace.name}/${name.slice(10)}`]: `gs://${bucket}/${name}`
+          })
+        })
+      },
       notebooksFailure => this.setState({ notebooksFailure })
     )
   }
 
   render() {
-    const { clusters, creatingCluster, clusterAccess, listFailure, notebooks, notebooksFailure } = this.state
+    const { clusters, creatingCluster, clusterAccess, listFailure, notebooks, notebooksFailure, notebookAccess } = this.state
+    const { workspace } = this.props
 
     return div({ style: { margin: '1rem' } }, [
       div({ style: { display: 'flex', alignItems: 'center' } }, [
@@ -158,7 +171,8 @@ export default hh(class WorkspaceNotebooks extends Component {
             () => div({ style: { display: 'flex' } },
               _.map(notebooks, ({ name, updated }) => a({
                   target: '_blank',
-                  href: `${_.first(clusters).clusterUrl}/${name}`,
+                  href: `${_.first(clusters).clusterUrl}/notebooks/${workspace.name}/${name.slice(
+                    10)}`,
                   style: _.defaults({
                     width: 200, height: 250,
                     margin: '1.25rem', boxSizing: 'border-box',
