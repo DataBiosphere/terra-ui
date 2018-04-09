@@ -3,7 +3,6 @@ import { buttonPrimary } from 'src/components/common'
 import Modal from 'src/components/Modal'
 import * as Style from 'src/libs/style'
 import { Component } from 'src/libs/wrapped-components'
-import * as Utils from 'src/libs/utils'
 
 
 export default hh(class WorkspaceDashboard extends Component {

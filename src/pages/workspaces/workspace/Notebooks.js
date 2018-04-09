@@ -1,4 +1,5 @@
 import _ from 'lodash'
+import mixinDeep from 'mixin-deep'
 import { a, div, hh } from 'react-hyperscript-helpers'
 import { buttonPrimary, link } from 'src/components/common'
 import { icon, spinner } from 'src/components/icons'
@@ -64,8 +65,13 @@ export default hh(class WorkspaceNotebooks extends Component {
 
         _.forEach(notebooks, ({ bucket, name }) => {
           Leo.localizeNotebooks(workspace.namespace, cluster, {
-            [`~/${workspace.name}/${name.slice(10)}`]: `gs://${bucket}/${name}`
-          })
+              [`~/${workspace.name}/${name.slice(10)}`]: `gs://${bucket}/${name}`
+            },
+            () => this.setState(
+              oldState => mixinDeep({ notebookAccess: { [name]: true } }, oldState)),
+            () => this.setState(
+              oldState => mixinDeep({ notebookAccess: { [name]: false } }, oldState))
+          )
         })
       },
       notebooksFailure => this.setState({ notebooksFailure })
@@ -173,6 +179,7 @@ export default hh(class WorkspaceNotebooks extends Component {
                   target: '_blank',
                   href: `${_.first(clusters).clusterUrl}/notebooks/${workspace.name}/${name.slice(
                     10)}`,
+                  disabled: !notebookAccess[name],
                   style: _.defaults({
                     width: 200, height: 250,
                     margin: '1.25rem', boxSizing: 'border-box',
