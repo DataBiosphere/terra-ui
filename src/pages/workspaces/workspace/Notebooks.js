@@ -177,20 +177,24 @@ export default hh(class WorkspaceNotebooks extends Component {
             () => div({ style: { display: 'flex' } },
               _.map(notebooks, ({ name, updated }) => a({
                   target: '_blank',
-                  href: `${_.first(clusters).clusterUrl}/notebooks/${workspace.name}/${name.slice(
-                    10)}`,
-                  disabled: !notebookAccess[name],
+                  href: notebookAccess[name] ?
+                    `${_.first(clusters).clusterUrl}/notebooks/${workspace.name}/${name.slice(10)}` :
+                    undefined,
                   style: _.defaults({
                     width: 200, height: 250,
                     margin: '1.25rem', boxSizing: 'border-box',
                     textDecoration: 'none',
+                    cursor: !notebookAccess[name] ? 'not-allowed' : undefined,
                     display: 'flex', flexDirection: 'column',
                     justifyContent: 'space-between',
                     color: Style.colors.text
                   }, Style.elements.card)
                 },
                 [
-                  div({ style: Style.elements.cardTitle }, name.slice(10, -6)), // ignores 'notebooks/' and the .ipynb suffix
+                  div({
+                    style: _.defaults(notebookAccess[name] ? {} : { color: Style.colors.disabled },
+                      Style.elements.cardTitle)
+                  }, name.slice(10, -6)), // ignores 'notebooks/' and the .ipynb suffix
                   icon('jupyterIcon',
                     { style: { height: 125, width: 'auto', color: Style.colors.background } }),
                   div({ style: { display: 'flex', alignItems: 'flex-end' } }, [
