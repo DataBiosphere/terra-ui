@@ -79,7 +79,7 @@ export default hh(class WorkspaceNotebooks extends Component {
   }
 
   renderNotebooks() {
-    const { clusters, creatingCluster, clusterAccess, listFailure, notebooks, notebooksFailure, notebookAccess, listView } = this.state
+    const { clusters, notebooks, notebookAccess, listView } = this.state
     const { workspace } = this.props
 
     return div({ style: { display: listView ? undefined : 'flex' } },
