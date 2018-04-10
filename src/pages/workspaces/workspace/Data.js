@@ -9,13 +9,9 @@ import * as Utils from 'src/libs/utils'
 import { Component, Interactive } from 'src/libs/wrapped-components'
 
 
-/**
- * @param {string} name
- * @param {string} namespace
- */
 export default hh(class WorkspaceData extends Component {
   componentWillMount() {
-    const { namespace, name } = this.props
+    const { namespace, name } = this.props.workspace
 
     Rawls.workspaceEntities(namespace, name,
       workspaceEntities => this.setState({ workspaceEntities }),
@@ -24,7 +20,7 @@ export default hh(class WorkspaceData extends Component {
   }
 
   render() {
-    const { namespace, name } = this.props
+    const { namespace, name } = this.props.workspace
     const { selectedEntityType, selectedEntities, workspaceEntities, entitiesFailure, entityFailure } = this.state
 
     const entityTypeList = () => _.map(workspaceEntities, (typeDetails, type) =>
