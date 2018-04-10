@@ -84,15 +84,20 @@ export default hh(class WorkspaceNotebooks extends Component {
 
     return div({ style: { display: listView ? undefined : 'flex' } },
       _.map(notebooks, ({ name, updated }) => {
-        const printName = name.slice(10, -6) // ignores 'notebooks/' and the .ipynb suffix
+        const printName = name.slice(10, -6) // removes 'notebooks/' and the .ipynb suffix
 
         const jupyterIcon = icon('jupyterIcon', {
-          style: {
-            height: listView ? '2em' : 125,
-            width: listView ? '2em' : 'auto',
-            margin: listView ? '-0.5em 0.5rem -0.5em 0' : undefined,
-            color: Style.colors.background
-          }
+          style: listView ? {
+              height: '2em',
+              width: '2em',
+              margin: '-0.5em 0.5rem -0.5em 0',
+              color: Style.colors.background
+            } :
+            {
+              height: 125,
+              width: 'auto',
+              color: Style.colors.background
+            }
         })
 
         const title = div({
@@ -109,18 +114,17 @@ export default hh(class WorkspaceNotebooks extends Component {
         return a({
             target: '_blank',
             href: notebookAccess[name] ?
-              `${_.first(clusters).clusterUrl}/notebooks/${workspace.name}/${name.slice(
-                10)}` :
+              `${_.first(clusters).clusterUrl}/notebooks/${workspace.name}/${name.slice(10)}` : // removes 'notebooks/'
               undefined,
             style: _.defaults({
-              width: listView ? undefined : 200, height: listView ? undefined : 250,
+              width: listView ? undefined : 200,
+              height: listView ? undefined : 250,
               margin: '1.25rem', boxSizing: 'border-box',
-              textDecoration: 'none',
+              color: Style.colors.text, textDecoration: 'none',
               cursor: !notebookAccess[name] ? 'not-allowed' : undefined,
               display: 'flex', flexDirection: listView ? 'row' : 'column',
               justifyContent: listView ? undefined : 'space-between',
-              alignItems: listView ? 'center' : undefined,
-              color: Style.colors.text
+              alignItems: listView ? 'center' : undefined
             }, Style.elements.card)
           },
           listView ? [
