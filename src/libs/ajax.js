@@ -82,7 +82,9 @@ export const Buckets = _.assign({
   getUrlRoot: () => 'https://www.googleapis.com/storage/v1/b',
 
   listNotebooks(name, success, failure) {
-    this.json(`${name}/o?prefix=notebooks/`, res => success(_.tail(res.items)), failure) // first result is the 'notebooks' folder itself
+    this.json(`${name}/o?prefix=notebooks/`,
+      res => success(_.filter(res.items, item => item.name.endsWith('.ipynb'))),
+      failure)
   }
 }, ajaxService)
 
