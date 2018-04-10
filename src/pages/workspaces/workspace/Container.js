@@ -135,7 +135,7 @@ const WorkspaceContainer = hh(class WorkspaceContainer extends Component {
         )
       ]),
       Utils.cond(
-        [workspaceFailure, ''],
+        [workspaceFailure, `Couldn't load workspace: ${workspaceFailure}`],
         [!workspace, () => spinner({ style: { marginTop: '2rem' } })],
         () => tabComponents[activeTab](_.merge({ key: forceUpdateKey }, workspace))
       )
