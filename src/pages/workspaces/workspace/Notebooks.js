@@ -78,9 +78,76 @@ export default hh(class WorkspaceNotebooks extends Component {
     )
   }
 
-  render() {
-    const { clusters, creatingCluster, clusterAccess, listFailure, notebooks, notebooksFailure, notebookAccess } = this.state
+  renderNotebooks() {
+    const { clusters, creatingCluster, clusterAccess, listFailure, notebooks, notebooksFailure, notebookAccess, listView } = this.state
     const { workspace } = this.props
+
+    return div({ style: { display: listView ? undefined : 'flex' } },
+      _.map(notebooks, ({ name, updated }) => {
+        const printName = name.slice(10, -6) // ignores 'notebooks/' and the .ipynb suffix
+
+        const jupyterIcon = icon('jupyterIcon', {
+          style: {
+            height: listView ? '2em' : 125,
+            width: listView ? '2em' : 'auto',
+            margin: listView ? '-0.5em 0.5rem -0.5em 0' : undefined,
+            color: Style.colors.background
+          }
+        })
+
+        const title = div({
+          style: _.defaults(notebookAccess[name] ? {} : { color: Style.colors.disabled },
+            Style.elements.cardTitle)
+        }, printName)
+
+        const statusIcon = Utils.cond(
+          [notebookAccess[name] === false, () => icon('times', { title: 'Error' })],
+          [notebookAccess[name], () => icon('check', { title: 'Ready' })],
+          () => spinner({ size: undefined, style: undefined, title: 'Transferring to cluster' })
+        )
+
+        return a({
+            target: '_blank',
+            href: notebookAccess[name] ?
+              `${_.first(clusters).clusterUrl}/notebooks/${workspace.name}/${name.slice(
+                10)}` :
+              undefined,
+            style: _.defaults({
+              width: listView ? undefined : 200, height: listView ? undefined : 250,
+              margin: '1.25rem', boxSizing: 'border-box',
+              textDecoration: 'none',
+              cursor: !notebookAccess[name] ? 'not-allowed' : undefined,
+              display: 'flex', flexDirection: listView ? 'row' : 'column',
+              justifyContent: listView ? undefined : 'space-between',
+              alignItems: listView ? 'center' : undefined,
+              color: Style.colors.text
+            }, Style.elements.card)
+          },
+          listView ? [
+              jupyterIcon,
+              title,
+              div({ style: { flexGrow: 1 } }),
+              div({ style: { fontSize: '0.8rem', marginRight: '0.5rem' } },
+                `Last changed: ${Utils.makePrettyDate(updated)}`),
+              statusIcon
+            ] :
+            [
+              title,
+              jupyterIcon,
+              div({ style: { display: 'flex', alignItems: 'flex-end' } }, [
+                div({ style: { fontSize: '0.8rem', flexGrow: 1, marginRight: '0.5rem' } }, [
+                  'Last changed:',
+                  div({}, Utils.makePrettyDate(updated))
+                ]),
+                statusIcon
+              ])
+            ])
+      })
+    )
+  }
+
+  render() {
+    const { clusters, creatingCluster, clusterAccess, listFailure, notebooks, notebooksFailure, listView } = this.state
 
     return div({ style: { margin: '1rem' } }, [
       div({ style: { display: 'flex', alignItems: 'center' } }, [
@@ -169,49 +236,36 @@ export default hh(class WorkspaceNotebooks extends Component {
             }
           }),
           div({
-            style: { fontSize: 16, fontWeight: 500, color: Style.colors.title, marginTop: '2rem' }
-          }, 'NOTEBOOKS'),
+            style: {
+              fontSize: 16, fontWeight: 500, color: Style.colors.title, marginTop: '2rem',
+              display: 'flex', alignItems: 'center'
+            }
+          }, [
+            'NOTEBOOKS',
+            div({ style: { flexGrow: 1 } }),
+            icon('view-cards', {
+              style: {
+                cursor: 'pointer', boxShadow: listView ? null : `0 4px 0 ${Style.colors.highlight}`,
+                marginRight: '1rem', width: 26, height: 22
+              },
+              onClick: () => {
+                this.setState({ listView: false })
+              }
+            }),
+            icon('view-list', {
+              style: {
+                cursor: 'pointer', boxShadow: listView ? `0 4px 0 ${Style.colors.highlight}` : null
+              },
+              size: 26,
+              onClick: () => {
+                this.setState({ listView: true })
+              }
+            })
+          ]),
           Utils.cond(
             [notebooksFailure, () => `Couldn't load cluster list: ${notebooksFailure}`],
             [!notebooks, spinner],
-            () => div({ style: { display: 'flex' } },
-              _.map(notebooks, ({ name, updated }) => a({
-                  target: '_blank',
-                  href: notebookAccess[name] ?
-                    `${_.first(clusters).clusterUrl}/notebooks/${workspace.name}/${name.slice(10)}` :
-                    undefined,
-                  style: _.defaults({
-                    width: 200, height: 250,
-                    margin: '1.25rem', boxSizing: 'border-box',
-                    textDecoration: 'none',
-                    cursor: !notebookAccess[name] ? 'not-allowed' : undefined,
-                    display: 'flex', flexDirection: 'column',
-                    justifyContent: 'space-between',
-                    color: Style.colors.text
-                  }, Style.elements.card)
-                },
-                [
-                  div({
-                    style: _.defaults(notebookAccess[name] ? {} : { color: Style.colors.disabled },
-                      Style.elements.cardTitle)
-                  }, name.slice(10, -6)), // ignores 'notebooks/' and the .ipynb suffix
-                  icon('jupyterIcon',
-                    { style: { height: 125, width: 'auto', color: Style.colors.background } }),
-                  div({ style: { display: 'flex', alignItems: 'flex-end' } }, [
-                    div({ style: { fontSize: '0.8rem', flexGrow: 1 } }, [
-                      'Last changed:',
-                      div({}, Utils.makePrettyDate(updated))
-                    ]),
-                    Utils.cond(
-                      [notebookAccess[name] === false, () => icon('times', { title: 'Error' })],
-                      [notebookAccess[name], () => icon('check', { title: 'Ready' })],
-                      () => spinner({
-                        size: undefined, style: undefined, title: 'Transferring to cluster'
-                      }))
-                  ])
-                ])
-              )
-            )
+            () => this.renderNotebooks()
           )
         ])
       )
