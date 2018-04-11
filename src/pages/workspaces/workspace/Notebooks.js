@@ -1,6 +1,6 @@
 import _ from 'lodash'
 import mixinDeep from 'mixin-deep'
-import { a, div, hh, span } from 'react-hyperscript-helpers'
+import { a, div, form, hh } from 'react-hyperscript-helpers'
 import { buttonPrimary, link, textInput } from 'src/components/common'
 import { icon, spinner } from 'src/components/icons'
 import Modal from 'src/components/Modal'
@@ -39,64 +39,70 @@ const rNotebook = _.merge({
   }
 }, baseNotebook)
 
-const NotebookCreator = hh(class NotebookCreator extends Component {
+const NotebookCreator = class extends Component {
   render() {
     const { creatingNotebook, notebookName, notebookKernel } = this.state
     const { reloadList } = this.props
 
     return Fragment([
       buttonPrimary({
-          onClick: () => this.setState({ creatingNotebook: true }),
+          onClick: () => this.setState(
+            { creatingNotebook: true, notebookName: undefined, notebookKernel: undefined }),
           style: { marginLeft: '1rem' }
         },
         'New Notebook'),
-
-      creatingNotebook ? Modal({
-        onDismiss: () => this.setState({ creatingNotebook: false }),
-        title: 'Create New Notebook',
-        okButton: buttonPrimary({
-          onClick: () => {
-            this.setState({ creatingNotebook: false })
-            reloadList()
-          }
-        }, 'Create Notebook')
-      }, [
-        div({ style: Style.elements.sectionHeader }, 'Name'),
-        textInput({
-          style: { margin: '0.5rem 0 1rem' },
-          value: notebookName,
-          onChange: e => this.setState({ notebookName: e.target.value })
-        }),
-        div({ style: Style.elements.sectionHeader }, 'Kernel'),
-        Select({
-          autoFocus: true,
-          clearable: false,
-          searchable: false,
-          wrapperStyle: { marginTop: '0.5rem' },
-          value: notebookKernel,
-          onChange: notebookKernel => this.setState({ notebookKernel }),
-          options: [
-            {
-              value: 'python2',
-              label: 'Python 2',
-              data: python2Notebook
-            },
-            {
-              value: 'python3',
-              label: 'Python 3',
-              data: python3Notebook
-            },
-            {
-              value: 'r',
-              label: 'R',
-              data: rNotebook
+      creatingNotebook ? form({}, [
+        Modal({
+          onDismiss: () => this.setState({ creatingNotebook: false }),
+          title: 'Create New Notebook',
+          okButton: buttonPrimary({
+            onClick: () => {
+              this.setState({ creatingNotebook: false })
+              reloadList()
             }
-          ]
-        })
+          }, 'Create Notebook')
+        }, [
+          div({ style: Style.elements.sectionHeader }, 'Name'),
+          textInput({
+            style: { margin: '0.5rem 0 1rem' },
+            autoFocus: true,
+            placeholder: 'Enter a name',
+            value: notebookName,
+            onChange: e => this.setState({ notebookName: e.target.value })
+          }),
+          div({ style: Style.elements.sectionHeader }, 'Kernel'),
+          Select({
+            clearable: false,
+            searchable: false,
+            wrapperStyle: { marginTop: '0.5rem' },
+            placeholder: 'Select a kernel',
+            value: notebookKernel,
+            onChange: notebookKernel => this.setState({ notebookKernel }),
+            options: [
+              {
+                value: 'python2',
+                label: 'Python 2',
+                data: python2Notebook
+              },
+              {
+                value: 'python3',
+                label: 'Python 3',
+                data: python3Notebook
+              },
+              {
+                value: 'r',
+                label: 'R',
+                data: rNotebook
+              }
+            ]
+          })
+        ])
       ]) : null
     ])
   }
-})
+}
+
+const WrappedNotebookCreator = hh(NotebookCreator)
 
 
 export default hh(class WorkspaceNotebooks extends Component {
@@ -335,7 +341,7 @@ export default hh(class WorkspaceNotebooks extends Component {
               color: Style.colors.title, marginTop: '2rem', display: 'flex', alignItems: 'center'
             }
           }, [
-            span({ style: { fontSize: 16, fontWeight: 500 } }, 'NOTEBOOKS'),
+            div({ style: { fontSize: 16, fontWeight: 500 } }, 'NOTEBOOKS'),
             div({ style: { flexGrow: 1 } }),
             icon('view-cards', {
               style: {
@@ -355,7 +361,7 @@ export default hh(class WorkspaceNotebooks extends Component {
                 this.setState({ listView: true })
               }
             }),
-            NotebookCreator({ reloadList: () => this.getNotebooks() })
+            WrappedNotebookCreator({ reloadList: () => this.getNotebooks() })
           ]),
           Utils.cond(
             [notebooksFailure, () => `Couldn't load cluster list: ${notebooksFailure}`],
