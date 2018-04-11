@@ -11,7 +11,7 @@ import * as Utils from 'src/libs/utils'
 import { Component, Fragment } from 'src/libs/wrapped-components'
 
 
-const WorkspaceList = hh(class WorkspaceList extends Component {
+class WorkspaceList extends Component {
   constructor(props) {
     super(props)
     this.state = {
@@ -170,14 +170,14 @@ const WorkspaceList = hh(class WorkspaceList extends Component {
       ])
     ])
   }
-})
+}
 
 export const addNavPaths = () => {
   Nav.defRedirect({ regex: /^.{0}$/, makePath: () => 'workspaces' })
   Nav.defPath(
     'workspaces',
     {
-      component: WorkspaceList,
+      component: hh(WorkspaceList),
       regex: /workspaces$/,
       makeProps: () => ({}),
       makePath: () => 'workspaces'

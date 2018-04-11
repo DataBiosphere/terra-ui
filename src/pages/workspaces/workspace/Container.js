@@ -48,7 +48,7 @@ const tabComponents = {
  * @param {string} name
  * @param {string} [activeTab]
  */
-const WorkspaceContainer = hh(class WorkspaceContainer extends Component {
+class WorkspaceContainer extends Component {
   constructor(props) {
     super(props)
 
@@ -141,13 +141,13 @@ const WorkspaceContainer = hh(class WorkspaceContainer extends Component {
       )
     ])
   }
-})
+}
 
 export const addNavPaths = () => {
   Nav.defPath(
     'workspace',
     {
-      component: WorkspaceContainer,
+      component: hh(WorkspaceContainer),
       regex: /workspaces\/([^/]+)\/([^/]+)\/?([^/]*)/,
       makeProps: (namespace, name, activeTab) => ({ namespace, name, activeTab }),
       makePath: (namespace, name, activeTab) =>

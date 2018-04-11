@@ -14,7 +14,7 @@ const initNavPaths = () => {
   WorkspaceContainer.addNavPaths()
 }
 
-export default hot(module)(class Main extends Component {
+const Main = class Main extends Component {
   componentWillMount() {
     initNavPaths()
     this.handleHashChange()
@@ -72,4 +72,6 @@ export default hot(module)(class Main extends Component {
 
     return component ? component(makeProps()) : h2('No matching path.')
   }
-})
+}
+
+export default hot(module)(Main)
