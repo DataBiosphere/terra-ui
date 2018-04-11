@@ -81,8 +81,20 @@ const ajaxService = {
 export const Buckets = _.assign({
   getUrlRoot: () => 'https://www.googleapis.com/storage/v1/b',
 
-  listNotebooks(name, success, failure) {
-    this.json(`${name}/o?prefix=notebooks/`,
+  createNotebook(bucket, name, contents, success, failure) {
+    this.call(
+      `https://www.googleapis.com/upload/storage/v1/b/${bucket}/o?` +
+      `uploadType=media&name=${encodeURIComponent(name)}`,
+      success,
+      failure,
+      {
+        method: 'POST', headers: { 'Content-Type': 'application/x-ipynb+json' },
+        body: JSON.stringify(contents)
+      })
+  },
+
+  listNotebooks(bucket, success, failure) {
+    this.json(`${bucket}/o?prefix=notebooks/`,
       res => success(_.filter(res.items, item => item.name.endsWith('.ipynb'))),
       failure)
   }

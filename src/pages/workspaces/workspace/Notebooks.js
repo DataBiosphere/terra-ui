@@ -1,13 +1,102 @@
 import _ from 'lodash'
 import mixinDeep from 'mixin-deep'
-import { a, div, hh } from 'react-hyperscript-helpers'
-import { buttonPrimary, link } from 'src/components/common'
+import { a, div, hh, span } from 'react-hyperscript-helpers'
+import { buttonPrimary, link, textInput } from 'src/components/common'
 import { icon, spinner } from 'src/components/icons'
+import Modal from 'src/components/Modal'
 import { DataTable } from 'src/components/table'
 import { Buckets, Leo } from 'src/libs/ajax'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import { Component, Fragment } from 'src/libs/wrapped-components'
+import { Component, Fragment, Select } from 'src/libs/wrapped-components'
+
+
+const baseNotebook = {
+  'cells': [
+    { 'cell_type': 'code', 'execution_count': null, 'metadata': {}, 'outputs': [], 'source': [] }
+  ], 'nbformat': 4, 'nbformat_minor': 2
+}
+
+const python2Notebook = _.merge({
+  'metadata': {
+    'kernelspec': { 'display_name': 'Python 2', 'language': 'python', 'name': 'python2' }
+  }
+}, baseNotebook)
+
+const python3Notebook = _.merge({
+  'metadata': {
+    'kernelspec': { 'display_name': 'Python 3', 'language': 'python', 'name': 'python3' }
+  }
+}, baseNotebook)
+
+const rNotebook = _.merge({
+  'metadata': {
+    'kernelspec': { 'display_name': 'R', 'language': 'R', 'name': 'ir' },
+    'language_info': {
+      'codemirror_mode': 'r', 'file_extension': '.r', 'mimetype': 'text/x-r-source', 'name': 'R',
+      'pygments_lexer': 'r', 'version': '3.3.3'
+    }
+  }
+}, baseNotebook)
+
+const NotebookCreator = hh(class NotebookCreator extends Component {
+  render() {
+    const { creatingNotebook, notebookName, notebookKernel } = this.state
+    const { reloadList } = this.props
+
+    return Fragment([
+      buttonPrimary({
+          onClick: () => this.setState({ creatingNotebook: true }),
+          style: { marginLeft: '1rem' }
+        },
+        'New Notebook'),
+
+      creatingNotebook ? Modal({
+        onDismiss: () => this.setState({ creatingNotebook: false }),
+        title: 'Create New Notebook',
+        okButton: buttonPrimary({
+          onClick: () => {
+            this.setState({ creatingNotebook: false })
+            reloadList()
+          }
+        }, 'Create Notebook')
+      }, [
+        div({ style: Style.elements.sectionHeader }, 'Name'),
+        textInput({
+          style: { margin: '0.5rem 0 1rem' },
+          value: notebookName,
+          onChange: e => this.setState({ notebookName: e.target.value })
+        }),
+        div({ style: Style.elements.sectionHeader }, 'Kernel'),
+        Select({
+          autoFocus: true,
+          clearable: false,
+          searchable: false,
+          wrapperStyle: { marginTop: '0.5rem' },
+          value: notebookKernel,
+          onChange: notebookKernel => this.setState({ notebookKernel }),
+          options: [
+            {
+              value: 'python2',
+              label: 'Python 2',
+              data: python2Notebook
+            },
+            {
+              value: 'python3',
+              label: 'Python 3',
+              data: python3Notebook
+            },
+            {
+              value: 'r',
+              label: 'R',
+              data: rNotebook
+            }
+          ]
+        })
+      ]) : null
+    ])
+  }
+})
 
 
 export default hh(class WorkspaceNotebooks extends Component {
@@ -151,7 +240,9 @@ export default hh(class WorkspaceNotebooks extends Component {
   }
 
   render() {
-    const { clusters, creatingCluster, clusterAccess, listFailure, notebooks, notebooksFailure, listView } = this.state
+    const {
+      clusters, creatingCluster, clusterAccess, listFailure, notebooks, notebooksFailure, listView
+    } = this.state
 
     return div({ style: { margin: '1rem' } }, [
       div({ style: { display: 'flex', alignItems: 'center' } }, [
@@ -241,11 +332,10 @@ export default hh(class WorkspaceNotebooks extends Component {
           }),
           div({
             style: {
-              fontSize: 16, fontWeight: 500, color: Style.colors.title, marginTop: '2rem',
-              display: 'flex', alignItems: 'center'
+              color: Style.colors.title, marginTop: '2rem', display: 'flex', alignItems: 'center'
             }
           }, [
-            'NOTEBOOKS',
+            span({ style: { fontSize: 16, fontWeight: 500 } }, 'NOTEBOOKS'),
             div({ style: { flexGrow: 1 } }),
             icon('view-cards', {
               style: {
@@ -264,7 +354,8 @@ export default hh(class WorkspaceNotebooks extends Component {
               onClick: () => {
                 this.setState({ listView: true })
               }
-            })
+            }),
+            NotebookCreator({ reloadList: () => this.getNotebooks() })
           ]),
           Utils.cond(
             [notebooksFailure, () => `Couldn't load cluster list: ${notebooksFailure}`],

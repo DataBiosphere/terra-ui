@@ -76,3 +76,7 @@ export const contextMenu = function(items) {
       }, props),
       contents)))
 }
+
+export const textInput = function(props) {
+  return input(mixinDeep({}, props))
+}
