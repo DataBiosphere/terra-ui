@@ -27,9 +27,10 @@ export default hh(class Modal extends Component {
   }
 
   componentDidMount() {
-    document.body.classList.add('overlayOpen')
-    if (document.body.scrollHeight > window.innerHeight) {
-      document.body.classList.add('overHeight')
+    const root = document.getElementById('root')
+    root.classList.add('overlayOpen')
+    if (root.scrollHeight > window.innerHeight) {
+      root.classList.add('overHeight')
     }
 
     window.addEventListener('keydown', this.listenForEscape)
@@ -79,7 +80,7 @@ export default hh(class Modal extends Component {
   }
 
   componentWillUnmount() {
-    document.body.classList.remove('overlayOpen', 'overHeight')
+    document.getElementById('root').classList.remove('overlayOpen', 'overHeight')
     window.removeEventListener('keydown', this.listenForEscape)
     modalRoot.removeChild(this.el)
   }
