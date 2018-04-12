@@ -58,6 +58,10 @@ class WorkspaceContainer extends Component {
   }
 
   componentWillMount() {
+    this.loadWorkspace()
+  }
+
+  loadWorkspace() {
     const { namespace, name } = this.props
 
     Rawls.workspaceDetails(namespace, name, workspace => this.setState({ workspace }),
@@ -78,6 +82,7 @@ class WorkspaceContainer extends Component {
             tabName === 'dashboard' ? null : tabName),
           onClick: () => {
             if (tabName === activeTab) {
+              this.loadWorkspace()
               this.setState({ forceUpdateKey: forceUpdateKey + 1 })
             }
           }
