@@ -24,15 +24,26 @@ const WorkspaceList = hh(class WorkspaceList extends Component {
   }
 
   componentWillMount() {
-    Rawls.workspacesList(
-      workspaces => this.setState({
-        workspaces: _.sortBy(_.filter(workspaces,
-          ws => !ws.public || Utils.workspaceAccessLevels.indexOf(ws.accessLevel) >
-            Utils.workspaceAccessLevels.indexOf('READER')),
-          'workspace.name')
-      }),
-      failure => this.setState({ failure })
-    )
+    const storedState = window.history.state
+    if (storedState)
+      this.setState(storedState)
+
+    if (!storedState || !storedState.workspaces) {
+      Rawls.workspacesList(
+        workspaces =>
+          this.setState({
+            workspaces: _.sortBy(_.filter(workspaces,
+              ws => !ws.public || Utils.workspaceAccessLevels.indexOf(ws.accessLevel) >
+                Utils.workspaceAccessLevels.indexOf('READER')),
+              'workspace.name')
+          }),
+        failure => this.setState({ failure })
+      )
+    }
+  }
+
+  componentDidUpdate() {
+    window.history.replaceState(this.state, 'unused')
   }
 
   getDataViewerProps() {
