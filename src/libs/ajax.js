@@ -83,7 +83,7 @@ export const Buckets = _.assign({
 
   createNotebook(bucket, name, contents, success, failure) {
     this.call(
-      `upload/storage/v1/b/${bucket}/o?uploadType=media&name=${encodeURIComponent(name)}`,
+      `upload/storage/v1/b/${bucket}/o?uploadType=media&name=notebooks/${encodeURIComponent(name)}.ipynb`,
       success,
       failure,
       {

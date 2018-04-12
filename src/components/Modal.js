@@ -49,7 +49,7 @@ export default hh(class Modal extends Component {
         },
         [
           title ? div({ style: { fontSize: 18, marginBottom: '1rem' } }, [title]) : null,
-          div({style: {flexGrow: 1}}, [children]),
+          div({ style: { flexGrow: 1, overflow: 'auto' } }, [children]),
           div({
             style: {
               flexShrink: 0, marginTop: '1rem', alignSelf: 'flex-end',
