@@ -79,12 +79,11 @@ const ajaxService = {
 
 
 export const Buckets = _.assign({
-  getUrlRoot: () => 'https://www.googleapis.com/storage/v1/b',
+  getUrlRoot: () => 'https://www.googleapis.com',
 
   createNotebook(bucket, name, contents, success, failure) {
     this.call(
-      `https://www.googleapis.com/upload/storage/v1/b/${bucket}/o?` +
-      `uploadType=media&name=${encodeURIComponent(name)}`,
+      `upload/storage/v1/b/${bucket}/o?uploadType=media&name=${encodeURIComponent(name)}`,
       success,
       failure,
       {
@@ -94,7 +93,7 @@ export const Buckets = _.assign({
   },
 
   listNotebooks(bucket, success, failure) {
-    this.json(`${bucket}/o?prefix=notebooks/`,
+    this.json(`storage/v1/b/${bucket}/o?prefix=notebooks/`,
       res => success(_.filter(res.items, item => item.name.endsWith('.ipynb'))),
       failure)
   }

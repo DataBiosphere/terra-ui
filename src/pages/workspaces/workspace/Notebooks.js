@@ -1,6 +1,6 @@
 import _ from 'lodash'
 import mixinDeep from 'mixin-deep'
-import { a, div, form, hh } from 'react-hyperscript-helpers'
+import { a, div, hh } from 'react-hyperscript-helpers'
 import { buttonPrimary, link, textInput } from 'src/components/common'
 import { icon, spinner } from 'src/components/icons'
 import Modal from 'src/components/Modal'
@@ -41,63 +41,82 @@ const rNotebook = _.merge({
 
 const NotebookCreator = class extends Component {
   render() {
-    const { creatingNotebook, notebookName, notebookKernel } = this.state
-    const { reloadList } = this.props
+    const { modalOpen, notebookName, notebookKernel, notebookFailure } = this.state
+    const { reloadList, bucketName } = this.props
 
     return Fragment([
       buttonPrimary({
           onClick: () => this.setState(
-            { creatingNotebook: true, notebookName: undefined, notebookKernel: undefined }),
+            { modalOpen: true, notebookName: '', notebookKernel: null }),
           style: { marginLeft: '1rem' }
         },
         'New Notebook'),
-      creatingNotebook ? form({}, [
-        Modal({
-          onDismiss: () => this.setState({ creatingNotebook: false }),
-          title: 'Create New Notebook',
-          okButton: buttonPrimary({
-            onClick: () => {
-              this.setState({ creatingNotebook: false })
-              reloadList()
-            }
-          }, 'Create Notebook')
-        }, [
-          div({ style: Style.elements.sectionHeader }, 'Name'),
-          textInput({
-            style: { margin: '0.5rem 0 1rem' },
-            autoFocus: true,
-            placeholder: 'Enter a name',
-            value: notebookName,
-            onChange: e => this.setState({ notebookName: e.target.value })
-          }),
-          div({ style: Style.elements.sectionHeader }, 'Kernel'),
-          Select({
-            clearable: false,
-            searchable: false,
-            wrapperStyle: { marginTop: '0.5rem' },
-            placeholder: 'Select a kernel',
-            value: notebookKernel,
-            onChange: notebookKernel => this.setState({ notebookKernel }),
-            options: [
-              {
-                value: 'python2',
-                label: 'Python 2',
-                data: python2Notebook
-              },
-              {
-                value: 'python3',
-                label: 'Python 3',
-                data: python3Notebook
-              },
-              {
-                value: 'r',
-                label: 'R',
-                data: rNotebook
+      Utils.cond(
+        [
+          notebookFailure,
+          () => Modal({
+            title: 'Notebook Creation Failure',
+            okButton: buttonPrimary({ onClick: () => this.setState({ notebookFailure: null }) },
+              'Done'),
+            showCancel: false
+          }, notebookFailure)
+        ],
+        [
+          modalOpen,
+          () => Modal({
+            onDismiss: () => this.setState({ modalOpen: false }),
+            title: 'Create New Notebook',
+            okButton: buttonPrimary({
+              disabled: !(notebookName && notebookKernel),
+              onClick: () => {
+                this.setState({ creating: true })
+                Buckets.createNotebook(bucketName, notebookName, notebookKernel.data,
+                  () => {
+                    this.setState({ modalOpen: false })
+                    reloadList()
+                  },
+                  notebookFailure => this.setState({ notebookFailure, modalOpen: false }))
               }
-            ]
-          })
-        ])
-      ]) : null
+            }, 'Create Notebook')
+          }, [
+            div({ style: Style.elements.sectionHeader }, 'Name'),
+            textInput({
+              style: { margin: '0.5rem 0 1rem' },
+              autoFocus: true,
+              placeholder: 'Enter a name',
+              value: notebookName,
+              onChange: e => this.setState({ notebookName: e.target.value })
+            }),
+            div({ style: Style.elements.sectionHeader }, 'Kernel'),
+            Select({
+              clearable: false,
+              searchable: false,
+              wrapperStyle: { marginTop: '0.5rem' },
+              placeholder: 'Select a kernel',
+              value: notebookKernel,
+              onChange: notebookKernel => this.setState({ notebookKernel }),
+              options: [
+                {
+                  value: 'python2',
+                  label: 'Python 2',
+                  data: python2Notebook
+                },
+                {
+                  value: 'python3',
+                  label: 'Python 3',
+                  data: python3Notebook
+                },
+                {
+                  value: 'r',
+                  label: 'R',
+                  data: rNotebook
+                }
+              ]
+            })
+          ])
+        ],
+        null
+      )
     ])
   }
 }
@@ -116,12 +135,6 @@ export default hh(class WorkspaceNotebooks extends Component {
       list => {
         const owned = _.filter(list,
           v => (v.creator === Utils.getUser().getBasicProfile().getEmail()))
-        if (owned) {
-          Leo.setCookie(owned[0].googleProject, owned[0].clusterName,
-            () => this.setState({ clusterAccess: true }),
-            () => this.setState({ clusterAccess: false })
-          )
-        }
         this.setState({ clusters: _.sortBy(owned, 'clusterName') },
           this.getNotebooks)
       },
@@ -247,8 +260,10 @@ export default hh(class WorkspaceNotebooks extends Component {
 
   render() {
     const {
-      clusters, creatingCluster, clusterAccess, listFailure, notebooks, notebooksFailure, listView
+      clusters, creatingCluster, listFailure, notebooks, notebooksFailure, listView
     } = this.state
+
+    const { bucketName } = this.props.workspace
 
     return div({ style: { margin: '1rem' } }, [
       div({ style: { display: 'flex', alignItems: 'center' } }, [
@@ -292,14 +307,6 @@ export default hh(class WorkspaceNotebooks extends Component {
                       }
                     }, clusterName)
                   }
-                },
-                {
-                  title: 'Authorized?', dataIndex: 'creator', key: 'access',
-                  render: creator => icon(
-                    creator === Utils.getUser().getBasicProfile().getEmail() && clusterAccess ?
-                      'check' : 'times', {
-                      style: { margin: 'auto', display: 'block' }
-                    })
                 },
                 { title: 'Google project', dataIndex: 'googleProject', key: 'googleProject' },
                 { title: 'Status', dataIndex: 'status', key: 'status' },
@@ -361,7 +368,8 @@ export default hh(class WorkspaceNotebooks extends Component {
                 this.setState({ listView: true })
               }
             }),
-            WrappedNotebookCreator({ reloadList: () => this.getNotebooks() })
+            WrappedNotebookCreator(
+              { reloadList: () => this.getNotebooks(), bucketName })
           ]),
           Utils.cond(
             [notebooksFailure, () => `Couldn't load cluster list: ${notebooksFailure}`],
