@@ -4,7 +4,8 @@ import { WorkspaceList } from './List'
 import Adapter from 'enzyme-adapter-react-16'
 import * as Main from 'src/pages/Main'
 
-configure({ adapter: new Adapter() });
+
+configure({ adapter: new Adapter() })
 
 Main.initNavPaths()
 
