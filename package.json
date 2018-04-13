@@ -25,6 +25,9 @@
     "eject": "react-app-rewired eject"
   },
   "devDependencies": {
+    "enzyme": "^3.3.0",
+    "enzyme-adapter-react-16": "^1.1.1",
+    "jest": "^22.4.3",
     "js-polyfills": "^0.1.42",
     "mutationobserver-shim": "^0.3.2"
   }

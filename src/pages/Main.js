@@ -8,7 +8,7 @@ import * as WorkspaceList from 'src/pages/workspaces/List'
 import * as WorkspaceContainer from 'src/pages/workspaces/workspace/Container'
 
 
-const initNavPaths = () => {
+export const initNavPaths = () => {
   Nav.clearPaths()
   WorkspaceList.addNavPaths()
   WorkspaceContainer.addNavPaths()
