@@ -64,7 +64,7 @@ export const contextBar = function(props, children) {
 export const contextMenu = function(items) {
   return div({
       style: {
-        backgroundColor: 'white', minWidth: 100, border: '1px solid #ccc',
+        backgroundColor: 'white', minWidth: 125, border: '1px solid #ccc',
         boxShadow: Style.standardShadow
       }
     },

@@ -81,15 +81,41 @@ const ajaxService = {
 export const Buckets = _.assign({
   getUrlRoot: () => 'https://www.googleapis.com',
 
+  copyNotebook(bucket, oldName, newName, success, failure) {
+    this.call(`storage/v1/b/${bucket}/o/${
+        encodeURIComponent(`notebooks/${oldName}.ipynb`)}/copyTo/b/${bucket}/o/${
+        encodeURIComponent(`notebooks/${newName}.ipynb`)}`,
+      success,
+      failure,
+      { method: 'POST' })
+  },
+
   createNotebook(bucket, name, contents, success, failure) {
     this.call(
-      `upload/storage/v1/b/${bucket}/o?uploadType=media&name=notebooks/${encodeURIComponent(name)}.ipynb`,
+      `upload/storage/v1/b/${bucket}/o?uploadType=media&name=${
+        encodeURIComponent(`notebooks/${name}.ipynb`)}`,
       success,
       failure,
       {
         method: 'POST', headers: { 'Content-Type': 'application/x-ipynb+json' },
         body: JSON.stringify(contents)
       })
+  },
+
+  deleteNotebook(bucket, name, success, failure) {
+    this.call(`storage/v1/b/${bucket}/o/${encodeURIComponent(`notebooks/${name}.ipynb`)}`,
+      success,
+      failure,
+      { method: 'DELETE' })
+  },
+
+  renameNotebook(bucket, oldName, newName, success, failure) {
+    this.call(`storage/v1/b/${bucket}/o/${
+        encodeURIComponent(`notebooks/${oldName}.ipynb`)}/rewriteTo/b/${bucket}/o/${
+        encodeURIComponent(`notebooks/${newName}.ipynb`)}`,
+      () => this.deleteNotebook(bucket, oldName, success, failure),
+      failure,
+      { method: 'POST' })
   },
 
   listNotebooks(bucket, success, failure) {

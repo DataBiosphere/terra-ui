@@ -31,7 +31,7 @@ const tabActiveStyle = _.defaults({
 const navIconProps = {
   size: 22,
   style: { opacity: 0.65, paddingRight: '1rem' },
-  hover: { opacity: 1, cursor: 'pointer' }, focus: 'hover'
+  hover: { opacity: 1 }, focus: 'hover'
 }
 
 const tabComponents = {
@@ -119,7 +119,6 @@ class WorkspaceContainer extends Component {
         Interactive(
           _.merge({ as: icon('copy') }, navIconProps)),
         ShowOnClick({
-            containerProps: { style: { position: 'relative' } },
             button: Interactive(
               _.merge({ as: icon('ellipsis-vertical') }, navIconProps))
           },
