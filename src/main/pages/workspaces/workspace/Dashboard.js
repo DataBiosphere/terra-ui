@@ -1,8 +1,8 @@
 import { div, hh } from 'react-hyperscript-helpers'
-import { buttonPrimary } from 'src/components/common'
-import Modal from 'src/components/Modal'
-import * as Style from 'src/libs/style'
-import { Component } from 'src/libs/wrapped-components'
+import { buttonPrimary } from 'src/main/components/common'
+import Modal from 'src/main/components/Modal'
+import * as Style from 'src/main/libs/style'
+import { Component } from 'src/main/libs/wrapped-components'
 
 
 export default hh(class WorkspaceDashboard extends Component {

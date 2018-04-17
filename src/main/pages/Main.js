@@ -1,11 +1,11 @@
 import { hot } from 'react-hot-loader'
 import { div, h2 } from 'react-hyperscript-helpers'
-import * as Config from 'src/libs/config'
-import * as Nav from 'src/libs/nav'
-import * as Utils from 'src/libs/utils'
-import { Component, Fragment } from 'src/libs/wrapped-components'
-import * as WorkspaceList from 'src/pages/workspaces/List'
-import * as WorkspaceContainer from 'src/pages/workspaces/workspace/Container'
+import * as Config from 'src/main/libs/config'
+import * as Nav from 'src/main/libs/nav'
+import * as Utils from 'src/main/libs/utils'
+import { Component, Fragment } from 'src/main/libs/wrapped-components'
+import * as WorkspaceList from 'src/main/pages/workspaces/List'
+import * as WorkspaceContainer from 'src/main/pages/workspaces/workspace/Container'
 
 
 export const initNavPaths = () => {

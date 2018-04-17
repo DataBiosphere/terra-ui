@@ -1,12 +1,12 @@
 import _ from 'lodash'
 import { createPortal } from 'react-dom'
 import { a, div, hh } from 'react-hyperscript-helpers'
-import { link } from 'src/components/common'
-import { icon, logo } from 'src/components/icons'
-import * as Nav from 'src/libs/nav'
-import * as Style from 'src/libs/style'
-import * as Utils from 'src/libs/utils'
-import { Component } from 'src/libs/wrapped-components'
+import { link } from 'src/main/components/common'
+import { icon, logo } from 'src/main/components/icons'
+import * as Nav from 'src/main/libs/nav'
+import * as Style from 'src/main/libs/style'
+import * as Utils from 'src/main/libs/utils'
+import { Component } from 'src/main/libs/wrapped-components'
 
 
 /**

@@ -1,7 +1,7 @@
 import _ from 'lodash'
 import RCTable from 'rc-table'
 import { div, h, hh, option, select } from 'react-hyperscript-helpers'
-import { Component, Fragment } from 'src/libs/wrapped-components'
+import { Component, Fragment } from 'src/main/libs/wrapped-components'
 
 
 /**

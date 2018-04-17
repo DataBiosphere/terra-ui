@@ -1,12 +1,12 @@
 import _ from 'lodash'
 import mixinDeep from 'mixin-deep'
 import { div, hh, table } from 'react-hyperscript-helpers'
-import { icon, spinner } from 'src/components/icons'
-import { DataTable } from 'src/components/table'
-import { Rawls } from 'src/libs/ajax'
-import * as Style from 'src/libs/style'
-import * as Utils from 'src/libs/utils'
-import { Component, Interactive } from 'src/libs/wrapped-components'
+import { icon, spinner } from 'src/main/components/icons'
+import { DataTable } from 'src/main/components/table'
+import { Rawls } from 'src/main/libs/ajax'
+import * as Style from 'src/main/libs/style'
+import * as Utils from 'src/main/libs/utils'
+import { Component, Interactive } from 'src/main/libs/wrapped-components'
 
 
 export default hh(class WorkspaceData extends Component {

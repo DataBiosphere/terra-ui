@@ -1,14 +1,14 @@
 import _ from 'lodash'
 import { a, div, hh } from 'react-hyperscript-helpers'
-import { contextBar, search } from 'src/components/common'
-import { breadcrumb, icon, spinner } from 'src/components/icons'
-import { DataGrid } from 'src/components/table'
-import { TopBar } from 'src/components/TopBar'
-import { Rawls } from 'src/libs/ajax'
-import * as Nav from 'src/libs/nav'
-import * as Style from 'src/libs/style'
-import * as Utils from 'src/libs/utils'
-import { Component, Fragment } from 'src/libs/wrapped-components'
+import { contextBar, search } from 'src/main/components/common'
+import { breadcrumb, icon, spinner } from 'src/main/components/icons'
+import { DataGrid } from 'src/main/components/table'
+import { TopBar } from 'src/main/components/TopBar'
+import { Rawls } from 'src/main/libs/ajax'
+import * as Nav from 'src/main/libs/nav'
+import * as Style from 'src/main/libs/style'
+import * as Utils from 'src/main/libs/utils'
+import { Component, Fragment } from 'src/main/libs/wrapped-components'
 
 
 export const WorkspaceList = hh(class WorkspaceList extends Component {
