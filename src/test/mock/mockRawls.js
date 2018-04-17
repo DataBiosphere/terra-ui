@@ -56,8 +56,10 @@ export const mockListWorkspacesResponse = {
   }
 }
 
-export const mockWorkspaceDetailsResponse = {
-  workspaceDetails(namespace, name, success, _) {
-    success(createWorkspace({ namespace, name }))
+export function mockWorkspaceDetailsResponse(overrides) {
+  return {
+    workspaceDetails(namespace, name, success, _) {
+      success(createWorkspace(mixinDeep({ namespace, name }, overrides)))
+    }
   }
 }

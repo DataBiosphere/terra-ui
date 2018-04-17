@@ -48,7 +48,7 @@ const tabComponents = {
  * @param {string} name
  * @param {string} [activeTab]
  */
-const WorkspaceContainer = hh(class WorkspaceContainer extends Component {
+export const WorkspaceContainer = hh(class WorkspaceContainer extends Component {
   constructor(props) {
     super(props)
 
@@ -58,7 +58,7 @@ const WorkspaceContainer = hh(class WorkspaceContainer extends Component {
   }
 
   componentWillMount() {
-    const { namespace, name } = this.props
+    const { namespace, name, Rawls } = this.props
 
     Rawls.workspaceDetails(namespace, name, workspace => this.setState({ workspace }),
       workspaceFailure => this.setState({ workspaceFailure }))
@@ -149,7 +149,7 @@ export const addNavPaths = () => {
     {
       component: WorkspaceContainer,
       regex: /workspaces\/([^/]+)\/([^/]+)\/?([^/]*)/,
-      makeProps: (namespace, name, activeTab) => ({ namespace, name, activeTab }),
+      makeProps: (namespace, name, activeTab) => ({ namespace, name, activeTab, Rawls }),
       makePath: (namespace, name, activeTab) =>
         `workspaces/${namespace}/${name}${activeTab ? `/${activeTab}` : ''}`
     }
