@@ -13,7 +13,7 @@ jobs:
           key: deps1-{{ .Branch }}-{{ checksum "package.json" }}
           paths:
             - node_modules
-      - run_tests: npm test
+      - run: npm test
       - run: npm run build
       - persist_to_workspace:
           root: /root/project
