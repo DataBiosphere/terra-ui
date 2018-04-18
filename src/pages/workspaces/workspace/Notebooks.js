@@ -1,13 +1,13 @@
 import _ from 'lodash'
 import mixinDeep from 'mixin-deep'
 import { a, div, hh } from 'react-hyperscript-helpers'
-import { buttonPrimary, link } from 'src/main/components/common'
-import { icon, spinner } from 'src/main/components/icons'
-import { DataTable } from 'src/main/components/table'
-import { Buckets, Leo } from 'src/main/libs/ajax'
-import * as Style from 'src/main/libs/style'
-import * as Utils from 'src/main/libs/utils'
-import { Component, Fragment } from 'src/main/libs/wrapped-components'
+import { buttonPrimary, link } from 'src/components/common'
+import { icon, spinner } from 'src/components/icons'
+import { DataTable } from 'src/components/table'
+import { Buckets, Leo } from 'src/libs/ajax'
+import * as Style from 'src/libs/style'
+import * as Utils from 'src/libs/utils'
+import { Component, Fragment } from 'src/libs/wrapped-components'
 
 
 export default hh(class WorkspaceNotebooks extends Component {

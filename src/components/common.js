@@ -1,9 +1,9 @@
 import _ from 'lodash'
 import mixinDeep from 'mixin-deep'
 import { div, h, input } from 'react-hyperscript-helpers'
-import { icon } from 'src/main/components/icons'
-import * as Style from 'src/main/libs/style'
-import { Interactive } from 'src/main/libs/wrapped-components'
+import { icon } from 'src/components/icons'
+import * as Style from 'src/libs/style'
+import { Interactive } from 'src/libs/wrapped-components'
 
 
 export const link = function(props, children) {

@@ -1,6 +1,6 @@
 import _ from 'lodash'
-import * as Config from 'src/main/libs/config'
-import * as Utils from 'src/main/libs/utils'
+import * as Config from 'src/libs/config'
+import * as Utils from 'src/libs/utils'
 
 
 let mockResponse

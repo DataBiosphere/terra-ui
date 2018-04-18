@@ -1,6 +1,6 @@
 import mixinDeep from 'mixin-deep'
 import { div, hh } from 'react-hyperscript-helpers/lib/index'
-import { Component } from 'src/main/libs/wrapped-components'
+import { Component } from 'src/libs/wrapped-components'
 
 
 /**

@@ -1,19 +1,9 @@
+import _ from 'lodash'
 import mixinDeep from 'mixin-deep'
 
 
-// https://stackoverflow.com/questions/105034/create-guid-uuid-in-javascript
-function guid() {
-  function s4() {
-    return Math.floor((1 + Math.random()) * 0x10000)
-      .toString(16)
-      .substring(1)
-  }
-
-  return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4()
-}
-
-function createWorkspace(overrides) {
-  let workspaceId = guid()
+export const createWorkspace = (overrides) => {
+  const workspaceId = _.uniqueId('workspace')
 
   return mixinDeep({
     accessLevel: 'NO ACCESS',
@@ -47,19 +37,14 @@ function createWorkspace(overrides) {
   }, overrides)
 }
 
-export const mockListWorkspacesResponse = {
+export const Rawls = {
   workspacesList(success, _) {
     success([
       createWorkspace(),
       createWorkspace()
     ])
-  }
-}
-
-export function mockWorkspaceDetailsResponse(overrides) {
-  return {
-    workspaceDetails(namespace, name, success, _) {
-      success(createWorkspace(mixinDeep({ namespace, name }, overrides)))
-    }
+  },
+  workspaceDetails(namespace, name, success, _) {
+    success(createWorkspace({ namespace, name }))
   }
 }
