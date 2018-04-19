@@ -1,5 +1,4 @@
 import { mount } from 'enzyme'
-import React from 'react'
 import { DataGrid } from 'src/components/table'
 import { TopBar } from 'src/components/TopBar'
 import { WorkspaceList } from 'src/pages/workspaces/List'

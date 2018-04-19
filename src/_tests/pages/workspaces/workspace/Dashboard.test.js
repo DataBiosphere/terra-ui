@@ -1,4 +1,3 @@
-import React from 'react'
 import { mount } from 'enzyme'
 import { Rawls } from 'src/libs/ajax'
 import { WorkspaceContainer } from 'src/pages/workspaces/workspace/Container'
