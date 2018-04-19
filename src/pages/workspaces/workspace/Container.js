@@ -4,6 +4,7 @@ import { contextBar, contextMenu } from 'src/components/common'
 import { breadcrumb, icon, spinner } from 'src/components/icons'
 import { TopBar } from 'src/components/TopBar'
 import ShowOnClick from 'src/components/ShowOnClick'
+import { Rawls } from 'src/libs/ajax'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -12,7 +13,6 @@ import WorkspaceDashboard from 'src/pages/workspaces/workspace/Dashboard'
 import WorkspaceData from 'src/pages/workspaces/workspace/Data'
 import WorkspaceNotebooks from 'src/pages/workspaces/workspace/Notebooks'
 import WorkspaceTools from 'src/pages/workspaces/workspace/Tools'
-import { Rawls } from 'src/libs/ajax'
 
 
 const navSeparator = div({
@@ -48,7 +48,7 @@ const tabComponents = {
  * @param {string} name
  * @param {string} [activeTab]
  */
-const WorkspaceContainer = hh(class WorkspaceContainer extends Component {
+export const WorkspaceContainer = hh(class WorkspaceContainer extends Component {
   constructor(props) {
     super(props)
 
