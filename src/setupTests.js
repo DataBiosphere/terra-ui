@@ -8,3 +8,4 @@ configure({ adapter: new Adapter() })
 jest.mock('src/libs/ajax')
 jest.mock('src/libs/nav')
 
+window.Element.prototype['insertAdjacentElement'] = () => {} // for custom icons
