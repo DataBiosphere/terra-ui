@@ -4,7 +4,7 @@ import '@clr/icons/clr-icons.css'
 import '@clr/icons/shapes/essential-shapes'
 import mixinDeep from 'mixin-deep'
 import { h } from 'react-hyperscript-helpers'
-import { loadingSpinner, logoIcon, table, jupyterIcon } from 'src/libs/custom-icons'
+import { jupyterIcon, loadingSpinner, logoIcon, table } from 'src/libs/custom-icons'
 import * as Style from 'src/libs/style'
 
 

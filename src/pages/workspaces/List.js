@@ -11,7 +11,7 @@ import * as Utils from 'src/libs/utils'
 import { Component, Fragment } from 'src/libs/wrapped-components'
 
 
-const WorkspaceList = hh(class WorkspaceList extends Component {
+export const WorkspaceList = hh(class WorkspaceList extends Component {
   constructor(props) {
     super(props)
     this.state = {

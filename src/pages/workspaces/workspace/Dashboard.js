@@ -1,4 +1,4 @@
-import { div, hh } from 'react-hyperscript-helpers'
+import { div, hh, span } from 'react-hyperscript-helpers'
 import { buttonPrimary } from 'src/components/common'
 import Modal from 'src/components/Modal'
 import * as Style from 'src/libs/style'
@@ -21,7 +21,7 @@ export default hh(class WorkspaceDashboard extends Component {
         ]) : null,
         div({ style: { fontSize: 16, fontWeight: 500, color: Style.colors.title } },
           'ACCESS LEVEL'),
-        this.props.accessLevel,
+        span({ 'data-test-id': 'access-level' }, this.props.accessLevel),
         buttonPrimary({
           style: { marginTop: '1rem', display: 'block' },
           onClick: () => this.setState({ modal: true })
