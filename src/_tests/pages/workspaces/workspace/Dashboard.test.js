@@ -1,20 +1,18 @@
 import React from 'react'
 import { mount } from 'enzyme'
+import { Rawls } from 'src/libs/ajax'
 import { WorkspaceContainer } from 'src/pages/workspaces/workspace/Container'
 
-
-jest.unmock('src/libs/ajax').mock('src/libs/ajax', () => ({
-  Rawls: {
-    workspaceDetails: (namespace, name, success, _) => {
-      const Ajax = require.requireActual('src/libs/__mocks__/ajax')
-      success(Ajax.createWorkspace({ namespace, name, accessLevel: 'OWNER' }))
-    }
-  }
-}))
 
 describe('Dashboard', () => {
   // Pretty much useless, exists to explore mock infrastructure
   it('should render the correct access level', () => {
+    jest.spyOn(Rawls, 'workspaceDetails').mockImplementationOnce((namespace, name, success) => {
+        const { createWorkspace } = require.requireActual('src/libs/__mocks__/ajax')
+        success(createWorkspace({ namespace, name, accessLevel: 'OWNER' }))
+      }
+    )
+
     const wrapper = mount(
       WorkspaceContainer({
         namespace: 'test-namespace',
