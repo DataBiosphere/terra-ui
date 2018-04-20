@@ -33,18 +33,19 @@ export const TopBar = hh(class TopBar extends Component {
         {
           style: {
             display: 'flex', position: 'absolute', left: 0, right: 0, top: 0, bottom: 0,
-            overflow: 'auto'
-          }
+            overflow: 'auto', cursor: 'pointer'
+          },
+          onClick: () => this.hideNav()
         },
         [
           div({
             style: {
-              boxShadow: '3px 0 13px 0 rgba(0,0,0,0.3)', width: 275,
-              backgroundColor: Style.colors.primary,
-              position: 'fixed', height: '100%'
-            }
-          }),
-          div({ style: { width: 275, color: 'white', position: 'absolute' } }, [
+              width: 275, color: 'white', position: 'absolute', cursor: 'default',
+              backgroundColor: Style.colors.primary, height: '100%',
+              boxShadow: '3px 0 13px 0 rgba(0,0,0,0.3)'
+            },
+            onClick: e => e.stopPropagation()
+          }, [
             div({
               style: _.assign({
                   height: '3rem', lineHeight: '3rem', backgroundColor: 'white', padding: '1rem',
@@ -91,11 +92,7 @@ export const TopBar = hh(class TopBar extends Component {
               icon('grid-view', { class: 'is-solid', style: { margin: '0 1rem 0 1rem' } }),
               'Projects'
             ])
-          ]),
-          div({
-            style: { flexGrow: 1, cursor: 'pointer' },
-            onClick: () => this.hideNav()
-          })
+          ])
         ]),
       document.getElementById('main-menu-container')
     )
