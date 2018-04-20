@@ -1,5 +1,4 @@
 import _ from 'lodash'
-import mixinDeep from 'mixin-deep'
 import { div, hh, table } from 'react-hyperscript-helpers'
 import { icon, spinner } from 'src/components/icons'
 import { DataTable } from 'src/components/table'
@@ -49,10 +48,10 @@ export default hh(class WorkspaceData extends Component {
         rowKey: 'name',
         scroll: { x: true },
         components: {
-          table: props => table(mixinDeep({ style: { borderCollapse: 'collapse' } }, props)),
+          table: props => table(_.merge({ style: { borderCollapse: 'collapse' } }, props)),
           body: {
             row: props => Interactive(
-              mixinDeep({
+              _.merge({
                   as: 'tr', style: { cursor: null },
                   hover: { backgroundColor: Style.colors.highlightFaded }
                 },
