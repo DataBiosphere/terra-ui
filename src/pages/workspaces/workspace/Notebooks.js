@@ -1,128 +1,170 @@
 import _ from 'lodash'
 import mixinDeep from 'mixin-deep'
 import { a, div, hh } from 'react-hyperscript-helpers'
-import { buttonPrimary, link, textInput } from 'src/components/common'
+import { buttonPrimary, contextMenu, link, textInput } from 'src/components/common'
 import { icon, spinner } from 'src/components/icons'
 import Modal from 'src/components/Modal'
+import ShowOnClick from 'src/components/ShowOnClick'
 import { DataTable } from 'src/components/table'
 import { Buckets, Leo } from 'src/libs/ajax'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import { Component, Fragment, Select } from 'src/libs/wrapped-components'
+import { Component, Fragment, Interactive } from 'src/libs/wrapped-components'
+import { NotebookCreator, NotebookEditor } from 'src/components/notebook-utils'
 
 
-const baseNotebook = {
-  'cells': [
-    { 'cell_type': 'code', 'execution_count': null, 'metadata': {}, 'outputs': [], 'source': [] }
-  ], 'nbformat': 4, 'nbformat_minor': 2
-}
-
-const python2Notebook = _.merge({
-  'metadata': {
-    'kernelspec': { 'display_name': 'Python 2', 'language': 'python', 'name': 'python2' }
-  }
-}, baseNotebook)
-
-const python3Notebook = _.merge({
-  'metadata': {
-    'kernelspec': { 'display_name': 'Python 3', 'language': 'python', 'name': 'python3' }
-  }
-}, baseNotebook)
-
-const rNotebook = _.merge({
-  'metadata': {
-    'kernelspec': { 'display_name': 'R', 'language': 'R', 'name': 'ir' },
-    'language_info': {
-      'codemirror_mode': 'r', 'file_extension': '.r', 'mimetype': 'text/x-r-source', 'name': 'R',
-      'pygments_lexer': 'r', 'version': '3.3.3'
-    }
-  }
-}, baseNotebook)
-
-const NotebookCreator = class extends Component {
+const NotebookCard = hh(class NotebookCard extends Component {
   render() {
-    const { modalOpen, notebookName, notebookKernel, notebookFailure } = this.state
-    const { reloadList, bucketName } = this.props
+    const { name, updated, listView, notebookAccess, bucketName, clusterUrl, wsName } = this.props
+    const { renamingNotebook, newNotebookName, copyingNotebook, deletingNotebook } = this.state
+    const printName = name.slice(10, -6) // removes 'notebooks/' and the .ipynb suffix
+
+    const notebookMenu = ShowOnClick({
+        ref: instance => this.notebookMenu = instance,
+        button: Interactive({
+          as: icon('ellipsis-vertical'), size: 18,
+          style: { marginLeft: '1rem' }, focus: 'hover'
+        })
+      },
+      [
+        div({
+          style: _.merge({
+            position: 'absolute', top: 0, lineHeight: 'initial', textAlign: 'initial',
+            color: 'initial', textTransform: 'initial', fontWeight: 300
+          }, listView ? { right: '1rem' } : { left: '2rem' })
+        }, [
+          contextMenu([
+            [
+              {
+                onClick: () => {
+                  this.notebookMenu.setVisibility(false)
+                  this.setState({ renamingNotebook: true, activeNotebook: name })
+                }
+              }, 'Rename'
+            ],
+            [
+              {
+                onClick: () => {
+                  this.setState({ copyingNotebook: true })
+                }
+              }, 'Duplicate'
+            ],
+            [
+              {
+                onClick: () => {
+                  this.setState({ deletingNotebook: true })
+                }
+              }, 'Delete'
+            ]
+          ])
+        ])
+      ]
+    )
+
+    const jupyterIcon = icon('jupyterIcon', {
+      style: listView ? {
+          height: '2em',
+          width: '2em',
+          margin: '-0.5em 0.5rem -0.5em 0',
+          color: Style.colors.background
+        } :
+        {
+          height: 125,
+          width: 'auto',
+          color: Style.colors.background
+        }
+    })
+
+    const title = div({
+      title: printName,
+      style: _.defaults(notebookAccess[name] ? {} : { color: Style.colors.disabled },
+        Style.elements.cardTitle,
+        { textOverflow: 'ellipsis', whiteSpace: 'nowrap', overflow: 'hidden' })
+    }, printName)
+
+    const statusIcon = Utils.cond(
+      [notebookAccess[name] === false, () => icon('times', { title: 'Error' })],
+      [notebookAccess[name], () => icon('check', { title: 'Ready' })],
+      () => spinner({ size: undefined, style: undefined, title: 'Transferring to cluster' })
+    )
 
     return Fragment([
-      buttonPrimary({
-          onClick: () => this.setState(
-            { modalOpen: true, notebookName: '', notebookKernel: null }),
-          style: { marginLeft: '1rem' }
-        },
-        'New Notebook'),
-      Utils.cond(
-        [
-          notebookFailure,
-          () => Modal({
-            title: 'Notebook Creation Failure',
-            okButton: buttonPrimary({ onClick: () => this.setState({ notebookFailure: null }) },
-              'Done'),
-            showCancel: false
-          }, notebookFailure)
-        ],
-        [
-          modalOpen,
-          () => Modal({
-            onDismiss: () => this.setState({ modalOpen: false }),
-            title: 'Create New Notebook',
-            okButton: buttonPrimary({
-              disabled: !(notebookName && notebookKernel),
-              onClick: () => {
-                this.setState({ creating: true })
-                Buckets.createNotebook(bucketName, notebookName, notebookKernel.data,
-                  () => {
-                    this.setState({ modalOpen: false })
-                    reloadList()
-                  },
-                  notebookFailure => this.setState({ notebookFailure, modalOpen: false }))
-              }
-            }, 'Create Notebook')
-          }, [
-            div({ style: Style.elements.sectionHeader }, 'Name'),
-            textInput({
-              style: { margin: '0.5rem 0 1rem' },
-              autoFocus: true,
-              placeholder: 'Enter a name',
-              value: notebookName,
-              onChange: e => this.setState({ notebookName: e.target.value })
-            }),
-            div({ style: Style.elements.sectionHeader }, 'Kernel'),
-            Select({
-              clearable: false,
-              searchable: false,
-              wrapperStyle: { marginTop: '0.5rem' },
-              placeholder: 'Select a kernel',
-              value: notebookKernel,
-              onChange: notebookKernel => this.setState({ notebookKernel }),
-              options: [
-                {
-                  value: 'python2',
-                  label: 'Python 2',
-                  data: python2Notebook
-                },
-                {
-                  value: 'python3',
-                  label: 'Python 3',
-                  data: python3Notebook
-                },
-                {
-                  value: 'r',
-                  label: 'R',
-                  data: rNotebook
+        a({
+            target: '_blank',
+            href: notebookAccess[name] ?
+              `${clusterUrl}/notebooks/${wsName}/${name.slice(10)}` : // removes 'notebooks/'
+              undefined,
+            style: _.defaults({
+              flexShrink: 0,
+              width: listView ? undefined : 200,
+              height: listView ? undefined : 250,
+              margin: '1.25rem', boxSizing: 'border-box',
+              color: Style.colors.text, textDecoration: 'none',
+              cursor: !notebookAccess[name] ? 'not-allowed' : undefined,
+              display: 'flex', flexDirection: listView ? 'row' : 'column',
+              justifyContent: listView ? undefined : 'space-between',
+              alignItems: listView ? 'center' : undefined
+            }, Style.elements.card)
+          },
+          listView ? [
+              jupyterIcon,
+              title,
+              div({ style: { flexGrow: 1 } }),
+              div({ style: { fontSize: '0.8rem', marginRight: '0.5rem' } },
+                `Last changed: ${Utils.makePrettyDate(updated)}`),
+              statusIcon,
+              notebookMenu
+            ] :
+            [
+              div({ style: { display: 'flex', justifyContent: 'space-between' } },
+                [title, notebookMenu]),
+              jupyterIcon,
+              div({ style: { display: 'flex', alignItems: 'flex-end' } }, [
+                div({ style: { fontSize: '0.8rem', flexGrow: 1, marginRight: '0.5rem' } }, [
+                  'Last changed:',
+                  div({}, Utils.makePrettyDate(updated))
+                ]),
+                statusIcon
+              ])
+            ]),
+        Utils.cond(
+          [
+            renamingNotebook,
+            () => Modal({
+              onDismiss: () => this.setState({ renamingNotebook: false }),
+              title: `Rename ${printName}`,
+              okButton: buttonPrimary({
+                disabled: !newNotebookName,
+                onClick: () => {
+                  this.setState({ processing: true })
+                  Buckets.renameNotebook(bucketName, name, newNotebookName,
+                    () => {
+                      this.setState({ modalOpen: false })
+                      this.getNotebooks()
+                    },
+                    notebookFailure => this.setState({ notebookFailure, modalOpen: false }))
                 }
-              ]
-            })
-          ])
-        ],
-        null
-      )
-    ])
+              }, 'Rename Notebook')
+            }, [
+              div({ style: Style.elements.sectionHeader }, 'New Name'),
+              textInput({
+                style: { margin: '0.5rem 0 1rem' },
+                autoFocus: true,
+                placeholder: 'Enter a name',
+                value: newNotebookName,
+                onChange: e => this.setState({ newNotebookName: e.target.value })
+              })
+            ])
+          ],
+          [copyingNotebook, () => Modal()],
+          [deletingNotebook, () => Modal()],
+          () => null)
+
+      ]
+    )
+
   }
-}
-
-const WrappedNotebookCreator = hh(NotebookCreator)
-
+})
 
 export default hh(class WorkspaceNotebooks extends Component {
   componentWillMount() {
@@ -188,74 +230,13 @@ export default hh(class WorkspaceNotebooks extends Component {
 
   renderNotebooks() {
     const { clusters, notebooks, notebookAccess, listView } = this.state
-    const { workspace } = this.props
+    const { bucketName, name: wsName } = this.props.workspace
 
-    return div({ style: { display: listView ? undefined : 'flex' } },
-      _.map(notebooks, ({ name, updated }) => {
-        const printName = name.slice(10, -6) // removes 'notebooks/' and the .ipynb suffix
-
-        const jupyterIcon = icon('jupyterIcon', {
-          style: listView ? {
-              height: '2em',
-              width: '2em',
-              margin: '-0.5em 0.5rem -0.5em 0',
-              color: Style.colors.background
-            } :
-            {
-              height: 125,
-              width: 'auto',
-              color: Style.colors.background
-            }
-        })
-
-        const title = div({
-          style: _.defaults(notebookAccess[name] ? {} : { color: Style.colors.disabled },
-            Style.elements.cardTitle)
-        }, printName)
-
-        const statusIcon = Utils.cond(
-          [notebookAccess[name] === false, () => icon('times', { title: 'Error' })],
-          [notebookAccess[name], () => icon('check', { title: 'Ready' })],
-          () => spinner({ size: undefined, style: undefined, title: 'Transferring to cluster' })
-        )
-
-        return a({
-            target: '_blank',
-            href: notebookAccess[name] ?
-              `${_.first(clusters).clusterUrl}/notebooks/${workspace.name}/${name.slice(10)}` : // removes 'notebooks/'
-              undefined,
-            style: _.defaults({
-              width: listView ? undefined : 200,
-              height: listView ? undefined : 250,
-              margin: '1.25rem', boxSizing: 'border-box',
-              color: Style.colors.text, textDecoration: 'none',
-              cursor: !notebookAccess[name] ? 'not-allowed' : undefined,
-              display: 'flex', flexDirection: listView ? 'row' : 'column',
-              justifyContent: listView ? undefined : 'space-between',
-              alignItems: listView ? 'center' : undefined
-            }, Style.elements.card)
-          },
-          listView ? [
-              jupyterIcon,
-              title,
-              div({ style: { flexGrow: 1 } }),
-              div({ style: { fontSize: '0.8rem', marginRight: '0.5rem' } },
-                `Last changed: ${Utils.makePrettyDate(updated)}`),
-              statusIcon
-            ] :
-            [
-              title,
-              jupyterIcon,
-              div({ style: { display: 'flex', alignItems: 'flex-end' } }, [
-                div({ style: { fontSize: '0.8rem', flexGrow: 1, marginRight: '0.5rem' } }, [
-                  'Last changed:',
-                  div({}, Utils.makePrettyDate(updated))
-                ]),
-                statusIcon
-              ])
-            ])
-      })
-    )
+    return div({ style: { display: listView ? undefined : 'flex', flexWrap: 'wrap' } },
+      _.map(notebooks, ({ name, updated }) => NotebookCard({
+        name, updated, listView, notebookAccess: notebookAccess[name], bucketName,
+        clusterUrl: _.first(clusters).clusterUrl, wsName
+      })))
   }
 
   render() {
@@ -368,7 +349,7 @@ export default hh(class WorkspaceNotebooks extends Component {
                 this.setState({ listView: true })
               }
             }),
-            WrappedNotebookCreator(
+            NotebookEditor(
               { reloadList: () => this.getNotebooks(), bucketName })
           ]),
           Utils.cond(

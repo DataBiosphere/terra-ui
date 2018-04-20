@@ -28,6 +28,7 @@ export default hh(class ShowOnClick extends Component {
     const { containerProps, button, bgProps, closeOnClick = true, closeOnEsc = true, children } = this.props
 
     return div(mixinDeep({
+        style: visible ? { zIndex:  99, position: 'relative' } : undefined,
         onClick: (e) => {
           this.setState({ visible: true })
           e.preventDefault()
