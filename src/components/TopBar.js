@@ -40,7 +40,12 @@ export const TopBar = hh(class TopBar extends Component {
         [
           div({
             style: {
-              width: 275, color: 'white', position: 'absolute', cursor: 'default',
+              zIndex: 1,
+              // MP: Rotating the 'angle' icon for breadcrumbs (via shape='angle right' as we're
+              // doing, other rotation options in the icons library, or manually rotating ourselves
+              // via transform: rotate(90deg) on the container) is causing it to appear above this
+              // overlay. It seems to get a tiny z-index value somehow.
+              display: 'table', width: 275, color: 'white', position: 'absolute', cursor: 'default',
               backgroundColor: Style.colors.primary, height: '100%',
               boxShadow: '3px 0 13px 0 rgba(0,0,0,0.3)'
             },
