@@ -1,49 +1,45 @@
 import _ from 'lodash'
 import { a, div, hh } from 'react-hyperscript-helpers'
+import { connect } from 'react-redux'
 import { contextBar, search } from 'src/components/common'
 import { breadcrumb, icon, spinner } from 'src/components/icons'
 import { DataGrid } from 'src/components/table'
 import { TopBar } from 'src/components/TopBar'
-import { Rawls } from 'src/libs/ajax'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component, Fragment } from 'src/libs/wrapped-components'
+import { loadWorkspaces } from 'src/pages/workspaces/actions'
 
 
-export const WorkspaceList = hh(class WorkspaceList extends Component {
-  constructor(props) {
-    super(props)
-    this.state = {
-      filter: '',
-      listView: false,
-      itemsPerPage: 6,
-      pageNumber: 1,
-      workspaces: null
-    }
-  }
-
+export const WorkspaceList = _.flowRight(
+  hh,
+  connect(state => {
+    const { workspaces: { filter, listView, itemsPerPage, pageNumber, workspaces, failure } } = state
+    return { filter, listView, itemsPerPage, pageNumber, workspaces, failure }
+  }, {
+    setFilter: filter => ({ type: 'Workspaces.setFilter', filter }),
+    setListView: listView => ({ type: 'Workspaces.setListView', listView }),
+    setItemsPerPage: itemsPerPage => ({ type: 'Workspaces.setItemsPerPage', itemsPerPage }),
+    setPageNumber: pageNumber => ({ type: 'Workspaces.setPageNumber', pageNumber }),
+    loadWorkspaces
+  }),
+)(class WorkspaceList extends Component {
   componentWillMount() {
-    Rawls.workspacesList(
-      workspaces => this.setState({
-        workspaces: _.sortBy(_.filter(workspaces,
-          ws => !ws.public || Utils.workspaceAccessLevels.indexOf(ws.accessLevel) >
-            Utils.workspaceAccessLevels.indexOf('READER')),
-          'workspace.name')
-      }),
-      failure => this.setState({ failure })
-    )
+    const { loadWorkspaces } = this.props
+    loadWorkspaces()
   }
 
   getDataViewerProps() {
+    const { workspaces, itemsPerPage, pageNumber, filter, setItemsPerPage, setPageNumber } = this.props
     return {
-      defaultItemsPerPage: this.state.itemsPerPage,
+      defaultItemsPerPage: itemsPerPage,
       itemsPerPageOptions: [6, 12, 24, 36, 48],
-      onItemsPerPageChanged: n => this.setState({ itemsPerPage: n }),
-      initialPage: this.state.pageNumber,
-      onPageChanged: n => this.setState({ pageNumber: n }),
-      dataSource: this.state.workspaces.filter(({ workspace: { namespace, name } }) =>
-        `${namespace}/${name}`.includes(this.state.filter))
+      onItemsPerPageChanged: setItemsPerPage,
+      initialPage: pageNumber,
+      onPageChanged: setPageNumber,
+      dataSource: workspaces.filter(({ workspace: { namespace, name } }) =>
+        `${namespace}/${name}`.includes(filter))
     }
   }
 
@@ -122,7 +118,7 @@ export const WorkspaceList = hh(class WorkspaceList extends Component {
 
 
   render() {
-    const { workspaces, filter, listView, failure } = this.state
+    const { workspaces, failure, filter, listView, setFilter, setListView } = this.props
 
     return Fragment([
       TopBar({ title: 'Projects' },
@@ -131,7 +127,7 @@ export const WorkspaceList = hh(class WorkspaceList extends Component {
             wrapperProps: { style: { marginLeft: '2rem', flexGrow: 1, maxWidth: 500 } },
             inputProps: {
               placeholder: 'SEARCH BIOSPHERE',
-              onChange: v => this.setState({ filter: v.target.value }),
+              onChange: v => setFilter(v.target.value),
               value: filter
             }
           })
@@ -145,18 +141,14 @@ export const WorkspaceList = hh(class WorkspaceList extends Component {
             cursor: 'pointer', boxShadow: listView ? null : `0 4px 0 ${Style.colors.highlight}`,
             marginRight: '1rem', width: 26, height: 22
           },
-          onClick: () => {
-            this.setState({ listView: false })
-          }
+          onClick: () => setListView(false)
         }),
         icon('view-list', {
           style: {
             cursor: 'pointer', boxShadow: listView ? `0 4px 0 ${Style.colors.highlight}` : null
           },
           size: 26,
-          onClick: () => {
-            this.setState({ listView: true })
-          }
+          onClick: () => setListView(true)
         })
       ]),
       div({ style: { margin: '1rem auto', maxWidth: 1000 } }, [
