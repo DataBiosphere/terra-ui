@@ -16,7 +16,7 @@ export default hh(class WorkspaceDashboard extends Component {
           showCancel: false,
           okButton: buttonPrimary({ onClick: () => this.setState({ modal: false }) }, 'Done')
         }, [
-          div({ style: { whiteSpace: 'pre', padding: '1rem' } },
+          div({ style: { whiteSpace: 'pre', padding: '1rem', overflow: 'auto' } },
             JSON.stringify(this.props, null, 2))
         ]) : null,
         div({ style: { fontSize: 16, fontWeight: 500, color: Style.colors.title } },

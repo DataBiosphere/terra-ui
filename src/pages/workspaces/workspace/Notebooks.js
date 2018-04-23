@@ -329,8 +329,7 @@ export default hh(class WorkspaceNotebooks extends Component {
                 this.setState({ listView: true })
               }
             }),
-            NotebookCreator(
-              { reloadList: () => this.getNotebooks(), bucketName })
+            NotebookCreator({ reloadList: () => this.getNotebooks(), bucketName })
           ]),
           Utils.cond(
             [notebooksFailure, () => `Couldn't load cluster list: ${notebooksFailure}`],

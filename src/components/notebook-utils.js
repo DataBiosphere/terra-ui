@@ -38,7 +38,7 @@ const rNotebook = _.merge({
 }, baseNotebook)
 
 
-export const NotebookCreator = hh(class NotebookEditor extends Component {
+export const NotebookCreator = hh(class NotebookCreator extends Component {
   render() {
     const { modalOpen, notebookName, notebookKernel, notebookFailure, creating } = this.state
     const { reloadList, bucketName } = this.props
