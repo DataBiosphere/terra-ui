@@ -1,22 +1,22 @@
 import _ from 'lodash'
 import mixinDeep from 'mixin-deep'
 import { a, div, hh } from 'react-hyperscript-helpers'
-import { buttonPrimary, contextMenu, link, textInput } from 'src/components/common'
+import { buttonPrimary, contextMenu, link } from 'src/components/common'
 import { icon, spinner } from 'src/components/icons'
 import Modal from 'src/components/Modal'
+import { NotebookCreator, NotebookRenamer } from 'src/components/notebook-utils'
 import ShowOnClick from 'src/components/ShowOnClick'
 import { DataTable } from 'src/components/table'
 import { Buckets, Leo } from 'src/libs/ajax'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component, Fragment, Interactive } from 'src/libs/wrapped-components'
-import { NotebookCreator } from 'src/components/notebook-utils'
 
 
 const NotebookCard = hh(class NotebookCard extends Component {
   render() {
     const { name, updated, listView, notebookAccess, bucketName, clusterUrl, wsName } = this.props
-    const { renamingNotebook, newNotebookName, copyingNotebook, deletingNotebook } = this.state
+    const { renamingNotebook, copyingNotebook, deletingNotebook } = this.state
     const printName = name.slice(10, -6) // removes 'notebooks/' and the .ipynb suffix
 
     const notebookMenu = ShowOnClick({
@@ -38,13 +38,14 @@ const NotebookCard = hh(class NotebookCard extends Component {
               {
                 onClick: () => {
                   this.notebookMenu.setVisibility(false)
-                  this.setState({ renamingNotebook: true, activeNotebook: name })
+                  this.setState({ renamingNotebook: true })
                 }
               }, 'Rename'
             ],
             [
               {
                 onClick: () => {
+                  this.notebookMenu.setVisibility(false)
                   this.setState({ copyingNotebook: true })
                 }
               }, 'Duplicate'
@@ -52,6 +53,7 @@ const NotebookCard = hh(class NotebookCard extends Component {
             [
               {
                 onClick: () => {
+                  this.notebookMenu.setVisibility(false)
                   this.setState({ deletingNotebook: true })
                 }
               }, 'Delete'
@@ -130,31 +132,10 @@ const NotebookCard = hh(class NotebookCard extends Component {
         Utils.cond(
           [
             renamingNotebook,
-            () => Modal({
-              onDismiss: () => this.setState({ renamingNotebook: false }),
-              title: `Rename ${printName}`,
-              okButton: buttonPrimary({
-                disabled: !newNotebookName,
-                onClick: () => {
-                  this.setState({ processing: true })
-                  Buckets.renameNotebook(bucketName, name, newNotebookName,
-                    () => {
-                      this.setState({ modalOpen: false })
-                      this.getNotebooks()
-                    },
-                    notebookFailure => this.setState({ notebookFailure, modalOpen: false }))
-                }
-              }, 'Rename Notebook')
-            }, [
-              div({ style: Style.elements.sectionHeader }, 'New Name'),
-              textInput({
-                style: { margin: '0.5rem 0 1rem' },
-                autoFocus: true,
-                placeholder: 'Enter a name',
-                value: newNotebookName,
-                onChange: e => this.setState({ newNotebookName: e.target.value })
-              })
-            ])
+            () => NotebookRenamer({
+              name, printName, bucketName,
+              onDismiss: () => this.setState({ renamingNotebook: false })
+            })
           ],
           [copyingNotebook, () => Modal()],
           [deletingNotebook, () => Modal()],

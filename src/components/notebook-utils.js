@@ -128,17 +128,17 @@ export const NotebookCreator = hh(class NotebookEditor extends Component {
 
 export const NotebookRenamer = hh(class NotebookRenamer extends Component {
   render() {
-    const { notebookName, printName, bucketName } = this.props
+    const { name, printName, bucketName, onDismiss } = this.props
     const { newNotebookName } = this.state
 
     return Modal({
-      onDismiss: () => this.setState({ renamingNotebook: false }),
+      onDismiss: onDismiss,
       title: `Rename ${printName}`,
       okButton: buttonPrimary({
         disabled: !newNotebookName,
         onClick: () => {
           this.setState({ processing: true })
-          Buckets.renameNotebook(bucketName, notebookName, newNotebookName,
+          Buckets.renameNotebook(bucketName, name, newNotebookName,
             () => {
               this.setState({ modalOpen: false })
               this.getNotebooks()
