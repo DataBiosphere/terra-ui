@@ -120,7 +120,7 @@ export const NotebookCreator = hh(class NotebookCreator extends Component {
             })
           ])
         ],
-        null
+        () => null
       )
     ])
   }

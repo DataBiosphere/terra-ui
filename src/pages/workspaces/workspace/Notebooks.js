@@ -313,7 +313,7 @@ export default hh(class WorkspaceNotebooks extends Component {
             div({ style: { flexGrow: 1 } }),
             icon('view-cards', {
               style: {
-                cursor: 'pointer', boxShadow: listView ? null : `0 4px 0 ${Style.colors.highlight}`,
+                cursor: 'pointer', boxShadow: listView ? undefined : `0 4px 0 ${Style.colors.highlight}`,
                 marginRight: '1rem', width: 26, height: 22
               },
               onClick: () => {

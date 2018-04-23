@@ -1,5 +1,5 @@
 import _ from 'lodash'
-import { div, h, hh } from 'react-hyperscript-helpers'
+import { div, hh } from 'react-hyperscript-helpers'
 import * as Style from 'src/libs/style'
 import { Component, Fragment } from 'src/libs/wrapped-components'
 
@@ -31,7 +31,7 @@ export default hh(class Modal extends Component {
   render() {
     const { onDismiss, title, children, showCancel = true, okButton } = this.props
 
-    return h(Fragment, [
+    return Fragment([
       div({
         style: {
           backgroundColor: 'black', opacity: '0.5',
