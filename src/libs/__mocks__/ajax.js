@@ -1,11 +1,10 @@
 import _ from 'lodash'
-import mixinDeep from 'mixin-deep'
 
 
 export const createWorkspace = (overrides) => {
   const workspaceId = _.uniqueId('workspace')
 
-  return mixinDeep({
+  return _.merge({
     accessLevel: 'NO ACCESS',
     owners: ['bob@example.com'],
     public: false,
