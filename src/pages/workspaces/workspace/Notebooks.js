@@ -86,7 +86,7 @@ const NotebookCard = hh(class NotebookCard extends Component {
     const statusIcon = Utils.cond(
       [notebookAccess === false, () => icon('times', { title: 'Error' })],
       [notebookAccess, () => icon('check', { title: 'Ready' })],
-      () => spinner({ size: undefined, style: undefined, title: 'Transferring to cluster' })
+      () => spinner({ size: null, style: null, title: 'Transferring to cluster' })
     )
 
     return Fragment([
