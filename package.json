@@ -14,7 +14,8 @@
     "react-hot-loader": "^4.1.1",
     "react-hyperscript-helpers": "^1.2.0",
     "react-interactive": "^0.8.1",
-    "react-scripts": "1.1.4"
+    "react-scripts": "1.1.4",
+    "react-select": "^1.2.1"
   },
   "scripts": {
     "start": "react-app-rewired start",
