@@ -11,7 +11,7 @@ const topBarType = TopBar().type
 
 describe('WorkspaceList', () => {
   it('should render a TopBar and DataGrid', () => {
-    const wrapper = mount(WorkspaceList)
+    const wrapper = mount(h(WorkspaceList))
 
     expect(wrapper.find(topBarType)).toHaveLength(1)
     expect(wrapper.find(gridType)).toHaveLength(1)
