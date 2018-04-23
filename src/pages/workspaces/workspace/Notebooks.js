@@ -1,5 +1,4 @@
 import _ from 'lodash'
-import mixinDeep from 'mixin-deep'
 import { a, div, hh } from 'react-hyperscript-helpers'
 import { buttonPrimary, contextMenu, link } from 'src/components/common'
 import { icon, spinner } from 'src/components/icons'
@@ -199,9 +198,9 @@ export default hh(class WorkspaceNotebooks extends Component {
               [`~/${workspace.name}/${name.slice(10)}`]: `gs://${bucket}/${name}`
             },
             () => this.setState(
-              oldState => mixinDeep({ notebookAccess: { [name]: true } }, oldState)),
+              oldState => _.merge({ notebookAccess: { [name]: true } }, oldState)),
             () => this.setState(
-              oldState => mixinDeep({ notebookAccess: { [name]: false } }, oldState))
+              oldState => _.merge({ notebookAccess: { [name]: false } }, oldState))
           )
         })
       },

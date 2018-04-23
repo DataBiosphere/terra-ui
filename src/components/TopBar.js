@@ -132,7 +132,7 @@ export const TopBar = hh(class TopBar extends Component {
         this.props.children,
         div({ style: { flexGrow: 1 } }),
         link({
-          onClick: Utils.getAuthInstance().signOut
+          onClick: () => Utils.getAuthInstance().signOut()
         }, 'Sign out'),
         this.state.navShown ? this.buildNav() : null
       ]

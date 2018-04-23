@@ -1,4 +1,4 @@
-import mixinDeep from 'mixin-deep'
+import _ from 'lodash'
 import { div, hh } from 'react-hyperscript-helpers/lib/index'
 import { Component } from 'src/libs/wrapped-components'
 
@@ -27,7 +27,7 @@ export default hh(class ShowOnClick extends Component {
     const { visible } = this.state
     const { containerProps, button, bgProps, closeOnClick = true, closeOnEsc = true, children } = this.props
 
-    return div(mixinDeep({
+    return div(_.merge({
         style: visible ? { zIndex:  99, position: 'relative' } : undefined,
         onClick: (e) => {
           this.setState({ visible: true })
@@ -40,7 +40,7 @@ export default hh(class ShowOnClick extends Component {
       [
         button,
         !visible ? null :
-          div(mixinDeep({
+          div(_.merge({
             style: {
               position: 'fixed', left: 0, right: 0, top: 0, bottom: 0, cursor: 'pointer'
             },

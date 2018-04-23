@@ -1,5 +1,4 @@
 import _ from 'lodash'
-import mixinDeep from 'mixin-deep'
 import { div, h, input } from 'react-hyperscript-helpers'
 import { icon } from 'src/components/icons'
 import * as Style from 'src/libs/style'
@@ -8,7 +7,7 @@ import { Interactive } from 'src/libs/wrapped-components'
 
 export const link = function(props, children) {
   return Interactive(
-    mixinDeep({
+    _.merge({
       as: 'a',
       style: {
         textDecoration: 'none',
@@ -22,7 +21,7 @@ export const link = function(props, children) {
 
 export const buttonPrimary = function(props, children) {
   return Interactive(
-    mixinDeep({
+    _.merge({
       as: 'button',
       style: _.defaults({
         border: 'none', padding: '0.5rem 2rem', borderRadius: 5, color: 'white',
@@ -36,11 +35,11 @@ export const buttonPrimary = function(props, children) {
 
 export const search = function({ wrapperProps, inputProps }) {
   return div(
-    mixinDeep({ style: { borderBottom: '1px solid black', padding: '0.5rem 0', display: 'flex' } },
+    _.merge({ style: { borderBottom: '1px solid black', padding: '0.5rem 0', display: 'flex' } },
       wrapperProps),
     [
       icon('search'),
-      input(mixinDeep({
+      input(_.merge({
         style: {
           border: 'none', outline: 'none',
           flexGrow: 1,
@@ -51,7 +50,7 @@ export const search = function({ wrapperProps, inputProps }) {
 }
 
 export const contextBar = function(props, children) {
-  return div(mixinDeep({
+  return div(_.merge({
       style: {
         display: 'flex', alignItems: 'center', backgroundColor: Style.colors.primary,
         color: Style.colors.textAlt, fontWeight: 500,
@@ -69,7 +68,7 @@ export const contextMenu = function(items) {
       }
     },
     _.map(items, ([props, contents]) => h(Interactive,
-      mixinDeep({
+      _.merge({
         as: 'div',
         style: { fontSize: 12, padding: '0.5rem 1.5rem' },
         hover: { backgroundColor: Style.colors.highlight, fontWeight: 500 }
@@ -78,7 +77,7 @@ export const contextMenu = function(items) {
 }
 
 export const textInput = function(props) {
-  return input(mixinDeep({
+  return input(_.merge({
     style: _.merge({
       width: '100%',
       padding: '0.5rem 1rem',
