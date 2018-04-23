@@ -10,7 +10,7 @@ import { Buckets, Leo } from 'src/libs/ajax'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component, Fragment, Interactive } from 'src/libs/wrapped-components'
-import { NotebookCreator, NotebookEditor } from 'src/components/notebook-utils'
+import { NotebookCreator } from 'src/components/notebook-utils'
 
 
 const NotebookCard = hh(class NotebookCard extends Component {
@@ -77,21 +77,21 @@ const NotebookCard = hh(class NotebookCard extends Component {
 
     const title = div({
       title: printName,
-      style: _.defaults(notebookAccess[name] ? {} : { color: Style.colors.disabled },
+      style: _.defaults(notebookAccess ? {} : { color: Style.colors.disabled },
         Style.elements.cardTitle,
         { textOverflow: 'ellipsis', whiteSpace: 'nowrap', overflow: 'hidden' })
     }, printName)
 
     const statusIcon = Utils.cond(
-      [notebookAccess[name] === false, () => icon('times', { title: 'Error' })],
-      [notebookAccess[name], () => icon('check', { title: 'Ready' })],
+      [notebookAccess === false, () => icon('times', { title: 'Error' })],
+      [notebookAccess, () => icon('check', { title: 'Ready' })],
       () => spinner({ size: undefined, style: undefined, title: 'Transferring to cluster' })
     )
 
     return Fragment([
         a({
             target: '_blank',
-            href: notebookAccess[name] ?
+            href: notebookAccess ?
               `${clusterUrl}/notebooks/${wsName}/${name.slice(10)}` : // removes 'notebooks/'
               undefined,
             style: _.defaults({
@@ -100,7 +100,7 @@ const NotebookCard = hh(class NotebookCard extends Component {
               height: listView ? undefined : 250,
               margin: '1.25rem', boxSizing: 'border-box',
               color: Style.colors.text, textDecoration: 'none',
-              cursor: !notebookAccess[name] ? 'not-allowed' : undefined,
+              cursor: !notebookAccess ? 'not-allowed' : undefined,
               display: 'flex', flexDirection: listView ? 'row' : 'column',
               justifyContent: listView ? undefined : 'space-between',
               alignItems: listView ? 'center' : undefined
@@ -349,7 +349,7 @@ export default hh(class WorkspaceNotebooks extends Component {
                 this.setState({ listView: true })
               }
             }),
-            NotebookEditor(
+            NotebookCreator(
               { reloadList: () => this.getNotebooks(), bucketName })
           ]),
           Utils.cond(
