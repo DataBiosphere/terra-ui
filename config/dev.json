@@ -1,5 +1,6 @@
 {
   "googleClientId": "500025638838-s2v23ar3spugtd5t2v1vgfa2sp7ppg0d.apps.googleusercontent.com",
   "leoUrlRoot": "https://leonardo.dsde-dev.broadinstitute.org",
-  "rawlsUrlRoot": "https://rawls.dsde-dev.broadinstitute.org"
+  "rawlsUrlRoot": "https://rawls.dsde-dev.broadinstitute.org",
+  "samUrlRoot": "https://sam.dsde-dev.broadinstitute.org"
 }
