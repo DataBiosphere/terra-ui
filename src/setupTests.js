@@ -11,5 +11,14 @@ jest.mock('src/libs/nav')
 window.Element.prototype['insertAdjacentElement'] = () => {} // for custom icons
 
 ReactWrapper.prototype.testId = function(id) {
-  return this.find(`[data-test-id="${id}"]`).first()
+  const wrapper = this.find(`[data-test-id='${id}']`)
+  const length = wrapper.length
+  switch (length) {
+    case 0:
+      throw `data-test-id '${id}' not found`
+    case 1:
+      return wrapper
+    default:
+      throw `data-test-id '${id}' found ${length} times`
+  }
 }
