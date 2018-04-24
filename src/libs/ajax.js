@@ -77,13 +77,29 @@ const ajaxService = {
   }
 }
 
+const Sam = _.assign({
+  getUrlRoot: Config.getSamUrlRoot,
+
+  token(namespace, success, failure) {
+    const scopes = [
+      'https://www.googleapis.com/auth/devstorage.full_control'
+    ]
+    this.json(`api/google/user/petServiceAccount/${namespace}/token`, success, failure,
+      { method: 'POST', body: JSON.stringify(scopes) })
+  }
+}, ajaxService)
 
 export const Buckets = _.assign({
   getUrlRoot: () => 'https://www.googleapis.com/storage/v1/b',
 
-  listNotebooks(name, success, failure) {
-    this.json(`${name}/o?prefix=notebooks/`,
-      res => success(_.filter(res.items, item => item.name.endsWith('.ipynb'))),
+  listNotebooks(namespace, name, success, failure) {
+    Sam.token(namespace,
+      token => {
+        this.json(`${name}/o?prefix=notebooks/`,
+          res => success(_.filter(res.items, item => item.name.endsWith('.ipynb'))),
+          failure,
+          { headers: { Authorization: 'Bearer ' + token } })
+      },
       failure)
   }
 }, ajaxService)
