@@ -56,7 +56,7 @@ export default hh(class WorkspaceNotebooks extends Component {
     this.setState({ notebooks: undefined, notebookAccess: {} })
     const { workspace } = this.props
 
-    Buckets.listNotebooks(workspace.bucketName,
+    Buckets.listNotebooks(workspace.namespace, workspace.bucketName,
       notebooks => {
         const cluster = _.first(this.state.clusters).clusterName
 

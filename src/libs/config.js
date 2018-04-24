@@ -7,3 +7,4 @@ export const loadConfig = () =>
 export const getGoogleClientId = () => loadedConfig['googleClientId']
 export const getLeoUrlRoot = () => loadedConfig['leoUrlRoot']
 export const getRawlsUrlRoot = () => loadedConfig['rawlsUrlRoot']
+export const getSamUrlRoot = () => loadedConfig['samUrlRoot']

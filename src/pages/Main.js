@@ -52,7 +52,6 @@ export default hot(module)(class Main extends Component {
         window.gapi.signin2.render('signInButton', {
           scope: [
             'profile', 'email', 'openid',
-            'https://www.googleapis.com/auth/devstorage.full_control',
             'https://www.googleapis.com/auth/compute'
           ].join(' ')
         })
