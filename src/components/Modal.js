@@ -1,8 +1,11 @@
 import _ from 'lodash'
+import * as ReactDOM from 'react-dom'
 import { div, h, hh } from 'react-hyperscript-helpers'
 import * as Style from 'src/libs/style'
 import { Component, Fragment } from 'src/libs/wrapped-components'
 
+
+const modalRoot = document.getElementById('modal-root')
 
 /**
  * @param onDismiss
@@ -12,6 +15,10 @@ import { Component, Fragment } from 'src/libs/wrapped-components'
  * @param okButton
  */
 export default hh(class Modal extends Component {
+  constructor(props) {
+    super(props)
+    this.el = document.createElement('div')
+  }
 
   listenForEscape = (e) => {
     if (e.key === 'Escape') {
@@ -20,18 +27,20 @@ export default hh(class Modal extends Component {
   }
 
   componentDidMount() {
-    document.body.classList.add('overlayOpen')
-    if (document.body.scrollHeight > window.innerHeight) {
-      document.body.classList.add('overHeight')
+    const root = document.getElementById('root')
+    root.classList.add('overlayOpen')
+    if (root.scrollHeight > window.innerHeight) {
+      root.classList.add('overHeight')
     }
 
     window.addEventListener('keydown', this.listenForEscape)
+    modalRoot.appendChild(this.el)
   }
 
   render() {
     const { onDismiss, title, children, showCancel = true, okButton } = this.props
 
-    return h(Fragment, [
+    const component = h(Fragment, [
       div({
         style: {
           backgroundColor: 'black', opacity: '0.5',
@@ -66,10 +75,13 @@ export default hh(class Modal extends Component {
           ])
         ])
     ])
+
+    return ReactDOM.createPortal(component, this.el)
   }
 
   componentWillUnmount() {
-    document.body.classList.remove('overlayOpen', 'overHeight')
+    document.getElementById('root').classList.remove('overlayOpen', 'overHeight')
     window.removeEventListener('keydown', this.listenForEscape)
+    modalRoot.removeChild(this.el)
   }
 })
