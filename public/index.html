@@ -11,21 +11,31 @@
         font-family: "Gotham SSm A", "Gotham SSm B", sans-serif;
       }
 
+      html, body {
+        height: 100%;
+      }
+
       body {
         background-color: #e5e5e5;
         margin: 0;
         color: #4a4a4a;
         font-size: 14px;
         font-weight: 300;
+        overflow: hidden;
+        position: absolute;
+        width: 100%;
       }
 
-      body.overlayOpen {
+      #root {
+        overflow: auto;
+        height: 100%;
+      }
+
+      #root.overlayOpen {
         overflow: hidden;
       }
 
-      body.overlayOpen.overHeight {
-        position: fixed;
-        width: 100%;
+      #root.overlayOpen.overHeight {
         overflow-y: scroll;
       }
     </style>
@@ -37,5 +47,6 @@
     </noscript>
     <div id="main-menu-container"></div>
     <div id="root"><h3>Loading!</h3></div>
+    <div id="modal-root"></div>
     </body>
 </html>
