@@ -49,12 +49,7 @@ export default hot(module)(class Main extends Component {
 
         Utils.getAuthInstance().isSignedIn.listen(status => this.setState({ isSignedIn: status }))
 
-        window.gapi.signin2.render('signInButton', {
-          scope: [
-            'profile', 'email', 'openid',
-            'https://www.googleapis.com/auth/compute'
-          ].join(' ')
-        })
+        window.gapi.signin2.render('signInButton', { scope: 'openid profile email' })
       })
     })
   }
