@@ -2,8 +2,7 @@ import _ from 'lodash'
 import { a, div, hh } from 'react-hyperscript-helpers'
 import { buttonPrimary, contextMenu, link } from 'src/components/common'
 import { icon, spinner } from 'src/components/icons'
-import Modal from 'src/components/Modal'
-import { NotebookCreator, NotebookRenamer } from 'src/components/notebook-utils'
+import { NotebookCreator, NotebookDeleter, NotebookDuplicator } from 'src/components/notebook-utils'
 import ShowOnClick from 'src/components/ShowOnClick'
 import { DataTable } from 'src/components/table'
 import { Buckets, Leo } from 'src/libs/ajax'
@@ -14,12 +13,15 @@ import { Component, Fragment, Interactive } from 'src/libs/wrapped-components'
 
 const NotebookCard = hh(class NotebookCard extends Component {
   render() {
-    const { name, updated, listView, notebookAccess, bucketName, clusterUrl, wsName } = this.props
+    const { name, updated, listView, notebookAccess, bucketName, clusterUrl, wsName, reloadList } = this.props
     const { renamingNotebook, copyingNotebook, deletingNotebook } = this.state
     const printName = name.slice(10, -6) // removes 'notebooks/' and the .ipynb suffix
 
+    const hideMenu = () => this.notebookMenu.setVisibility(false)
+
     const notebookMenu = ShowOnClick({
         ref: instance => this.notebookMenu = instance,
+        disabled: !notebookAccess,
         button: Interactive({
           as: icon('ellipsis-vertical'), size: 18,
           style: { marginLeft: '1rem' }, focus: 'hover'
@@ -33,30 +35,9 @@ const NotebookCard = hh(class NotebookCard extends Component {
           }, listView ? { right: '1rem' } : { left: '2rem' })
         }, [
           contextMenu([
-            [
-              {
-                onClick: () => {
-                  this.notebookMenu.setVisibility(false)
-                  this.setState({ renamingNotebook: true })
-                }
-              }, 'Rename'
-            ],
-            [
-              {
-                onClick: () => {
-                  this.notebookMenu.setVisibility(false)
-                  this.setState({ copyingNotebook: true })
-                }
-              }, 'Duplicate'
-            ],
-            [
-              {
-                onClick: () => {
-                  this.notebookMenu.setVisibility(false)
-                  this.setState({ deletingNotebook: true })
-                }
-              }, 'Delete'
-            ]
+            [{ onClick: () => {this.setState({ renamingNotebook: true }, hideMenu) } }, 'Rename'], // hiding menu doesn't work when executed concurrently
+            [{ onClick: () => {this.setState({ copyingNotebook: true }, hideMenu)} }, 'Duplicate'],
+            [{ onClick: () => {this.setState({ deletingNotebook: true }, hideMenu)} }, 'Delete']
           ])
         ])
       ]
@@ -93,7 +74,7 @@ const NotebookCard = hh(class NotebookCard extends Component {
         a({
             target: '_blank',
             href: notebookAccess ?
-              `${clusterUrl}/notebooks/${wsName}/${name.slice(10)}` : // removes 'notebooks/'
+              `${clusterUrl}/notebooks/${wsName}/${printName}.ipynb` : // removes 'notebooks/'
               undefined,
             style: _.defaults({
               flexShrink: 0,
@@ -131,13 +112,26 @@ const NotebookCard = hh(class NotebookCard extends Component {
         Utils.cond(
           [
             renamingNotebook,
-            () => NotebookRenamer({
-              name, printName, bucketName,
-              onDismiss: () => this.setState({ renamingNotebook: false })
+            () => NotebookDuplicator({
+              printName, bucketName, destroyOld: true,
+              onDismiss: () => this.setState({ renamingNotebook: false }),
+              onSuccess: () => reloadList()
             })
           ],
-          [copyingNotebook, () => Modal()],
-          [deletingNotebook, () => Modal()],
+          [
+            copyingNotebook, () => NotebookDuplicator({
+            printName, bucketName, destroyOld: false,
+            onDismiss: () => this.setState({ copyingNotebook: false }),
+            onSuccess: () => reloadList()
+          })
+          ],
+          [
+            deletingNotebook, () => NotebookDeleter({
+            printName, bucketName,
+            onDismiss: () => this.setState({ copyingNotebook: false }),
+            onSuccess: () => reloadList()
+          })
+          ],
           () => null)
 
       ]
@@ -195,7 +189,7 @@ export default hh(class WorkspaceNotebooks extends Component {
 
         _.forEach(notebooks, ({ bucket, name }) => {
           Leo.localizeNotebooks(workspace.namespace, cluster, {
-              [`~/${workspace.name}/${name.slice(10)}`]: `gs://${bucket}/${name}`
+              [`~/${workspace.name}/${name.slice(10)}`]: `gs://${bucket}/${encodeURIComponent(name)}`
             },
             () => this.setState(
               oldState => _.merge({ notebookAccess: { [name]: true } }, oldState)),
@@ -215,7 +209,8 @@ export default hh(class WorkspaceNotebooks extends Component {
     return div({ style: { display: listView ? undefined : 'flex', flexWrap: 'wrap' } },
       _.map(notebooks, ({ name, updated }) => NotebookCard({
         name, updated, listView, notebookAccess: notebookAccess[name], bucketName,
-        clusterUrl: _.first(clusters).clusterUrl, wsName
+        clusterUrl: _.first(clusters).clusterUrl, wsName,
+        reloadList: () => this.getNotebooks()
       })))
   }
 
@@ -313,7 +308,8 @@ export default hh(class WorkspaceNotebooks extends Component {
             div({ style: { flexGrow: 1 } }),
             icon('view-cards', {
               style: {
-                cursor: 'pointer', boxShadow: listView ? undefined : `0 4px 0 ${Style.colors.highlight}`,
+                cursor: 'pointer',
+                boxShadow: listView ? undefined : `0 4px 0 ${Style.colors.highlight}`,
                 marginRight: '1rem', width: 26, height: 22
               },
               onClick: () => {

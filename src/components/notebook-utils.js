@@ -126,35 +126,70 @@ export const NotebookCreator = hh(class NotebookCreator extends Component {
   }
 })
 
-export const NotebookRenamer = hh(class NotebookRenamer extends Component {
+export const NotebookDuplicator = hh(class NotebookRenamer extends Component {
   render() {
-    const { name, printName, bucketName, onDismiss } = this.props
-    const { newNotebookName } = this.state
+    const { destroyOld, printName, bucketName, onDismiss, onSuccess } = this.props
+    const { newName, processing, failure } = this.state
 
     return Modal({
-      onDismiss: onDismiss,
-      title: `Rename ${printName}`,
-      okButton: buttonPrimary({
-        disabled: !newNotebookName,
-        onClick: () => {
-          this.setState({ processing: true })
-          Buckets.renameNotebook(bucketName, name, newNotebookName,
-            () => {
-              this.setState({ modalOpen: false })
-              this.getNotebooks()
-            },
-            notebookFailure => this.setState({ notebookFailure, modalOpen: false }))
-        }
-      }, 'Rename Notebook')
-    }, [
-      div({ style: Style.elements.sectionHeader }, 'New Name'),
-      textInput({
-        style: { margin: '0.5rem 0 1rem' },
-        autoFocus: true,
-        placeholder: 'Enter a name',
-        value: newNotebookName,
-        onChange: e => this.setState({ newNotebookName: e.target.value })
-      })
-    ])
+        onDismiss: onDismiss,
+        title: `${destroyOld ? 'Rename' : 'Duplicate' } "${printName}"`,
+        okButton: buttonPrimary({
+          disabled: !newName || processing,
+          onClick: () => {
+            this.setState({ processing: true })
+            Buckets.renameNotebook(bucketName, printName, newName,
+              onSuccess,
+              failure => this.setState({ failure }))
+          }
+        }, `${destroyOld ? 'Rename' : 'Duplicate' } Notebook`)
+      },
+      Utils.cond(
+        [processing, () => [spinner()]],
+        [failure, () => `Couldn't ${destroyOld ? 'rename' : 'copy' } notebook: ${failure}`],
+        () => [
+          div({ style: Style.elements.sectionHeader }, 'New Name'),
+          textInput({
+            style: { margin: '0.5rem 0 1rem' },
+            autoFocus: true,
+            placeholder: 'Enter a name',
+            value: newName,
+            onChange: e => this.setState({ newName: e.target.value })
+          })
+        ]
+      )
+    )
+  }
+})
+
+export const NotebookDeleter = hh(class NotebookDeleter extends Component {
+  render() {
+    const { printName, bucketName, onDismiss, onSuccess } = this.props
+    const { processing, failure } = this.state
+
+    return Modal({
+        onDismiss: onDismiss,
+        title: `Delete "${printName}"`,
+        okButton: buttonPrimary({
+          disabled: processing,
+          onClick: () => {
+            this.setState({ processing: true })
+            Buckets.deleteNotebook(bucketName, printName,
+              onSuccess,
+              failure => this.setState({ failure }))
+          }
+        }, `Delete Notebook`)
+      },
+      Utils.cond(
+        [processing, () => [spinner()]],
+        [failure, () => `Couldn't delete notebook: ${failure}`],
+        () => [
+          div({ style: {fontSize: '1rem'} },
+            [
+              `Are you sure you want to delete "${printName}"?`,
+              div({ style: { fontWeight: 500, lineHeight: '2rem' } }, 'This cannot be undone.')])
+        ]
+      )
+    )
   }
 })

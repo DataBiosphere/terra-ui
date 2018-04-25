@@ -110,9 +110,7 @@ export const Buckets = _.assign({
   },
 
   renameNotebook(bucket, oldName, newName, success, failure) {
-    this.call(`storage/v1/b/${bucket}/o/${
-        encodeURIComponent(`notebooks/${oldName}.ipynb`)}/rewriteTo/b/${bucket}/o/${
-        encodeURIComponent(`notebooks/${newName}.ipynb`)}`,
+    this.copyNotebook(bucket, oldName, newName,
       () => this.deleteNotebook(bucket, oldName, success, failure),
       failure,
       { method: 'POST' })

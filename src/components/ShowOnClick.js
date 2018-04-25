@@ -1,5 +1,5 @@
 import _ from 'lodash'
-import { div, hh } from 'react-hyperscript-helpers/lib/index'
+import { div, hh } from 'react-hyperscript-helpers'
 import { Component } from 'src/libs/wrapped-components'
 
 
@@ -25,11 +25,11 @@ export default hh(class ShowOnClick extends Component {
 
   render() {
     const { visible } = this.state
-    const { containerProps, button, bgProps, closeOnClick = true, closeOnEsc = true, children } = this.props
+    const { containerProps, button, disabled, bgProps, closeOnClick = true, closeOnEsc = true, children } = this.props
 
     return div(_.merge({
-        style: visible ? { zIndex:  99, position: 'relative' } : undefined,
-        onClick: (e) => {
+        style: visible ? { zIndex: 99, position: 'relative' } : undefined,
+        onClick: disabled ? undefined : (e) => {
           this.setState({ visible: true })
           e.preventDefault()
           if (closeOnEsc) {
