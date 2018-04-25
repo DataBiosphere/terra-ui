@@ -1,18 +1,15 @@
 import { mount } from 'enzyme'
+import renderer from 'react-test-renderer'
 import { DataGrid } from 'src/components/table'
-import { TopBar } from 'src/components/TopBar'
 import { WorkspaceList } from 'src/pages/workspaces/List'
 
 
 describe('WorkspaceList', () => {
-  it('should render a TopBar and DataGrid', () => {
-    const wrapper = mount(WorkspaceList())
-
-    expect(wrapper.findType(TopBar)).toHaveLength(1)
-    expect(wrapper.findType(DataGrid)).toHaveLength(1)
+  it('should render as expected', () => {
+    expect(renderer.create(WorkspaceList()).toJSON()).toMatchSnapshot()
   })
 
-  it('should switch between Grid and list view', () => {
+  it('should switch between Grid and List view', () => {
     const wrapper = mount(WorkspaceList())
     const currentCardsPerRow = () => wrapper.findType(DataGrid).props().cardsPerRow
 
