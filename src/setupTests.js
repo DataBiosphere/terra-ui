@@ -22,3 +22,15 @@ ReactWrapper.prototype.testId = function(id) {
       throw `data-test-id '${id}' found ${length} times`
   }
 }
+
+ReactWrapper.prototype.findType = function(Type) {
+  return this.find(Type().type)
+}
+
+ReactWrapper.prototype.findIcon = function(shape) {
+  return this.find(`[shape="${shape}"]`)
+}
+
+ReactWrapper.prototype.click = function() {
+  return this.simulate('click')
+}
