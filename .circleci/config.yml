@@ -55,8 +55,8 @@ jobs:
       - attach_workspace:
           at: /root/project
       - run: cp config/dev.json build/config.json
-      - run: echo "$SA_KEY_JSON" > circleci-sa.json
-      - run: gcloud auth activate-service-account --key-file=circleci-sa.json
+      - run: echo "$SA_KEY_JSON" > /tmp/sa.json
+      - run: gcloud auth activate-service-account --key-file=/tmp/sa.json
       - run: gcloud app deploy --project=bvdp-saturn-dev --promote --quiet
   deploy-prod:
     docker:
@@ -64,24 +64,10 @@ jobs:
     steps:
       - run: |
           set -o nounset
-          CIRCLE_PROJECTS_URL='https://circleci.com/api/v1.1/projects'
-          REPO_URL='https://github.com/DataBiosphere/saturn-ui'
-          SELECTOR="[0]['branches']['dev']['last_success']['build_num']"
-          LOAD_JSON='json.load(sys.stdin)'
-          LAMBDA="lambda x: x['vcs_url'] == '$REPO_URL'"
-          PYTHON_CMD='import json; import sys'
-          PYTHON_CMD="$PYTHON_CMD; print filter($LAMBDA, $LOAD_JSON)$SELECTOR;"
-          PROJECTS="$(curl -s -f -u "${CIRCLE_TOKEN}:" "$CIRCLE_PROJECTS_URL")"
-          BUILD_NUM="$(echo "$PROJECTS" | python -c "$PYTHON_CMD")"
-          echo "Deploying last successful dev build: $BUILD_NUM"
-          ARTIFACT_URL="https://$BUILD_NUM-122538461-gh.circle-artifacts.com"
-          ARTIFACT_URL="${ARTIFACT_URL}/0/root/project/build.tgz"
-          curl -s -f "$ARTIFACT_URL" | tar -x
-          rm build.tgz
+          curl -s -f "$ARTIFACT_URL" | tar -xz
           cp config/prod.json build/config.json
-          echo "$SA_KEY_JSON" > sa.json
-          gcloud auth activate-service-account --key-file=sa.json
-          rm sa.json
+          echo "$SA_KEY_JSON" > /tmp/sa.json
+          gcloud auth activate-service-account --key-file=/tmp/sa.json
           gcloud app deploy --project=bvdp-saturn-prod --promote --quiet
 workflows:
   version: 2

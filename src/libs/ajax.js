@@ -78,50 +78,83 @@ const ajaxService = {
 }
 
 
-export const Buckets = _.assign({
-  getUrlRoot: () => 'https://www.googleapis.com',
+const Sam = _.assign({
+  getUrlRoot: Config.getSamUrlRoot,
 
-  copyNotebook(bucket, oldName, newName, success, failure) {
-    this.call(`storage/v1/b/${bucket}/o/${
-        encodeURIComponent(`notebooks/${oldName}.ipynb`)}/copyTo/b/${bucket}/o/${
-        encodeURIComponent(`notebooks/${newName}.ipynb`)}`,
-      success,
-      failure,
-      { method: 'POST' })
-  },
-
-  createNotebook(bucket, name, contents, success, failure) {
-    this.call(
-      `upload/storage/v1/b/${bucket}/o?uploadType=media&name=${
-        encodeURIComponent(`notebooks/${name}.ipynb`)}`,
-      success,
-      failure,
-      {
-        method: 'POST', headers: { 'Content-Type': 'application/x-ipynb+json' },
-        body: JSON.stringify(contents)
-      })
-  },
-
-  deleteNotebook(bucket, name, success, failure) {
-    this.call(`storage/v1/b/${bucket}/o/${encodeURIComponent(`notebooks/${name}.ipynb`)}`,
-      success,
-      failure,
-      { method: 'DELETE' })
-  },
-
-  renameNotebook(bucket, oldName, newName, success, failure) {
-    this.copyNotebook(bucket, oldName, newName,
-      () => this.deleteNotebook(bucket, oldName, success, failure),
-      failure,
-      { method: 'POST' })
-  },
-
-  listNotebooks(bucket, success, failure) {
-    this.json(`storage/v1/b/${bucket}/o?prefix=notebooks/`,
-      res => success(_.filter(res.items, item => item.name.endsWith('.ipynb'))),
-      failure)
+  token(namespace, success, failure) {
+    const scopes = [
+      'https://www.googleapis.com/auth/devstorage.full_control'
+    ]
+    this.json(`api/google/user/petServiceAccount/${namespace}/token`, success, failure,
+      { method: 'POST', body: JSON.stringify(scopes) })
   }
 }, ajaxService)
+
+
+export const Buckets = _.assign({
+    getUrlRoot: () => 'https://www.googleapis.com',
+
+    copyNotebook(namespace, bucket, oldName, newName, success, failure) {
+      Sam.token(namespace,
+        token => {
+          this.call(`storage/v1/b/${bucket}/o/${
+              encodeURIComponent(`notebooks/${oldName}.ipynb`)}/copyTo/b/${bucket}/o/${
+              encodeURIComponent(`notebooks/${newName}.ipynb`)}`,
+            success,
+            failure,
+            { method: 'POST', headers: { Authorization: 'Bearer ' + token } })
+        },
+        failure)
+    },
+
+    createNotebook(namespace, bucket, name, contents, success, failure) {
+      Sam.token(namespace,
+        token => {
+          this.call(
+            `upload/storage/v1/b/${bucket}/o?uploadType=media&name=${
+              encodeURIComponent(`notebooks/${name}.ipynb`)}`,
+            success,
+            failure,
+            {
+              method: 'POST', headers: {
+                'Content-Type': 'application/x-ipynb+json', Authorization: 'Bearer ' + token
+              },
+              body: JSON.stringify(contents)
+            })
+        },
+        failure)
+    },
+
+    deleteNotebook(namespace, bucket, name, success, failure) {
+      Sam.token(namespace,
+        token => {
+          this.call(`storage/v1/b/${bucket}/o/${encodeURIComponent(`notebooks/${name}.ipynb`)}`,
+            success,
+            failure,
+            { method: 'DELETE', headers: { Authorization: 'Bearer ' + token } })
+        },
+        failure)
+    },
+
+    renameNotebook(namespace, bucket, oldName, newName, success, failure) {
+      this.copyNotebook(namespace, bucket, oldName, newName,
+        () => this.deleteNotebook(namespace, bucket, oldName, success, failure),
+        failure)
+    },
+
+    listNotebooks(namespace, bucket, success, failure) {
+      Sam.token(namespace,
+        token => {
+          this.json(`storage/v1/b/${bucket}/o?prefix=notebooks/`,
+            res => success(_.filter(res.items, item => item.name.endsWith('.ipynb'))),
+            failure,
+            { headers: { Authorization: 'Bearer ' + token } })
+        },
+        failure)
+    }
+  },
+  ajaxService
+)
 
 
 export const Rawls = _.assign({

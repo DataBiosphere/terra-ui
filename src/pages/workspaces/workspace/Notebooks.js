@@ -13,7 +13,7 @@ import { Component, Fragment, Interactive } from 'src/libs/wrapped-components'
 
 const NotebookCard = hh(class NotebookCard extends Component {
   render() {
-    const { name, updated, listView, notebookAccess, bucketName, clusterUrl, wsName, reloadList } = this.props
+    const { namespace, name, updated, listView, notebookAccess, bucketName, clusterUrl, wsName, reloadList } = this.props
     const { renamingNotebook, copyingNotebook, deletingNotebook } = this.state
     const printName = name.slice(10, -6) // removes 'notebooks/' and the .ipynb suffix
 
@@ -113,27 +113,28 @@ const NotebookCard = hh(class NotebookCard extends Component {
           [
             renamingNotebook,
             () => NotebookDuplicator({
-              printName, bucketName, destroyOld: true,
+              printName, namespace, bucketName, destroyOld: true,
               onDismiss: () => this.setState({ renamingNotebook: false }),
               onSuccess: () => reloadList()
             })
           ],
           [
-            copyingNotebook, () => NotebookDuplicator({
-            printName, bucketName, destroyOld: false,
-            onDismiss: () => this.setState({ copyingNotebook: false }),
-            onSuccess: () => reloadList()
-          })
+            copyingNotebook,
+            () => NotebookDuplicator({
+              printName, namespace, bucketName, destroyOld: false,
+              onDismiss: () => this.setState({ copyingNotebook: false }),
+              onSuccess: () => reloadList()
+            })
           ],
           [
-            deletingNotebook, () => NotebookDeleter({
-            printName, bucketName,
-            onDismiss: () => this.setState({ copyingNotebook: false }),
-            onSuccess: () => reloadList()
-          })
+            deletingNotebook,
+            () => NotebookDeleter({
+              printName, namespace, bucketName,
+              onDismiss: () => this.setState({ copyingNotebook: false }),
+              onSuccess: () => reloadList()
+            })
           ],
           () => null)
-
       ]
     )
 
@@ -179,17 +180,17 @@ export default hh(class WorkspaceNotebooks extends Component {
 
   getNotebooks() {
     this.setState({ notebooks: undefined, notebookAccess: {} })
-    const { workspace } = this.props
+    const { namespace, name: wsName, bucketName } = this.props.workspace
 
-    Buckets.listNotebooks(workspace.bucketName,
+    Buckets.listNotebooks(namespace, bucketName,
       notebooks => {
         const cluster = _.first(this.state.clusters).clusterName
 
         this.setState({ notebooks: _.reverse(_.sortBy(notebooks, 'updated')) })
 
         _.forEach(notebooks, ({ bucket, name }) => {
-          Leo.localizeNotebooks(workspace.namespace, cluster, {
-              [`~/${workspace.name}/${name.slice(10)}`]: `gs://${bucket}/${encodeURIComponent(name)}`
+          Leo.localizeNotebooks(namespace, cluster, {
+              [`~/${wsName}/${name.slice(10)}`]: `gs://${bucket}/${encodeURIComponent(name)}`
             },
             () => this.setState(
               oldState => _.merge({ notebookAccess: { [name]: true } }, oldState)),
@@ -204,12 +205,12 @@ export default hh(class WorkspaceNotebooks extends Component {
 
   renderNotebooks() {
     const { clusters, notebooks, notebookAccess, listView } = this.state
-    const { bucketName, name: wsName } = this.props.workspace
+    const { bucketName, name: wsName, namespace } = this.props.workspace
 
     return div({ style: { display: listView ? undefined : 'flex', flexWrap: 'wrap' } },
       _.map(notebooks, ({ name, updated }) => NotebookCard({
         name, updated, listView, notebookAccess: notebookAccess[name], bucketName,
-        clusterUrl: _.first(clusters).clusterUrl, wsName,
+        clusterUrl: _.first(clusters).clusterUrl, namespace, wsName,
         reloadList: () => this.getNotebooks()
       })))
   }
@@ -219,7 +220,7 @@ export default hh(class WorkspaceNotebooks extends Component {
       clusters, creatingCluster, listFailure, notebooks, notebooksFailure, listView
     } = this.state
 
-    const { bucketName } = this.props.workspace
+    const { bucketName, namespace } = this.props.workspace
 
     return div({ style: { margin: '1rem' } }, [
       div({ style: { display: 'flex', alignItems: 'center' } }, [
@@ -325,7 +326,7 @@ export default hh(class WorkspaceNotebooks extends Component {
                 this.setState({ listView: true })
               }
             }),
-            NotebookCreator({ reloadList: () => this.getNotebooks(), bucketName })
+            NotebookCreator({ reloadList: () => this.getNotebooks(), namespace, bucketName })
           ]),
           Utils.cond(
             [notebooksFailure, () => `Couldn't load cluster list: ${notebooksFailure}`],

@@ -1,0 +1,33 @@
+* {
+  font-family: "Gotham SSm A", "Gotham SSm B", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
+  background-color: #e5e5e5;
+  margin: 0;
+  color: #4a4a4a;
+  font-size: 14px;
+  font-weight: 300;
+  overflow: hidden;
+  position: absolute;
+  width: 100%;
+}
+
+#root {
+  overflow: auto;
+  height: 100%;
+}
+
+#root.overlayOpen {
+  overflow: hidden;
+}
+
+#root.overlayOpen.overHeight {
+  overflow-y: scroll;
+}

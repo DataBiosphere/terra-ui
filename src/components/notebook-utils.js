@@ -41,12 +41,11 @@ const rNotebook = _.merge({
 export const NotebookCreator = hh(class NotebookCreator extends Component {
   render() {
     const { modalOpen, notebookName, notebookKernel, notebookFailure, creating } = this.state
-    const { reloadList, bucketName } = this.props
+    const { reloadList, namespace, bucketName } = this.props
 
     return Fragment([
       buttonPrimary({
-          onClick: () => this.setState(
-            { modalOpen: true, notebookName: '', notebookKernel: null }),
+          onClick: () => this.setState({ modalOpen: true, notebookName: '', notebookKernel: null }),
           style: { marginLeft: '1rem', display: 'flex' },
           disabled: creating
         },
@@ -75,7 +74,7 @@ export const NotebookCreator = hh(class NotebookCreator extends Component {
               disabled: !(notebookName && notebookKernel),
               onClick: () => {
                 this.setState({ modalOpen: false, creating: true })
-                Buckets.createNotebook(bucketName, notebookName, notebookKernel.data,
+                Buckets.createNotebook(namespace, bucketName, notebookName, notebookKernel.data,
                   () => {
                     this.setState({ creating: false })
                     reloadList()
@@ -128,7 +127,7 @@ export const NotebookCreator = hh(class NotebookCreator extends Component {
 
 export const NotebookDuplicator = hh(class NotebookRenamer extends Component {
   render() {
-    const { destroyOld, printName, bucketName, onDismiss, onSuccess } = this.props
+    const { destroyOld, printName, namespace, bucketName, onDismiss, onSuccess } = this.props
     const { newName, processing, failure } = this.state
 
     return Modal({
@@ -138,7 +137,8 @@ export const NotebookDuplicator = hh(class NotebookRenamer extends Component {
           disabled: !newName || processing,
           onClick: () => {
             this.setState({ processing: true })
-            Buckets.renameNotebook(bucketName, printName, newName,
+            Buckets[destroyOld ? 'renameNotebook' : 'copyNotebook'](
+              namespace, bucketName, printName, newName,
               onSuccess,
               failure => this.setState({ failure }))
           }
@@ -164,7 +164,7 @@ export const NotebookDuplicator = hh(class NotebookRenamer extends Component {
 
 export const NotebookDeleter = hh(class NotebookDeleter extends Component {
   render() {
-    const { printName, bucketName, onDismiss, onSuccess } = this.props
+    const { printName, namespace, bucketName, onDismiss, onSuccess } = this.props
     const { processing, failure } = this.state
 
     return Modal({
@@ -174,7 +174,7 @@ export const NotebookDeleter = hh(class NotebookDeleter extends Component {
           disabled: processing,
           onClick: () => {
             this.setState({ processing: true })
-            Buckets.deleteNotebook(bucketName, printName,
+            Buckets.deleteNotebook(namespace, bucketName, printName,
               onSuccess,
               failure => this.setState({ failure }))
           }
@@ -184,10 +184,11 @@ export const NotebookDeleter = hh(class NotebookDeleter extends Component {
         [processing, () => [spinner()]],
         [failure, () => `Couldn't delete notebook: ${failure}`],
         () => [
-          div({ style: {fontSize: '1rem'} },
+          div({ style: { fontSize: '1rem', flexGrow: 1 } },
             [
               `Are you sure you want to delete "${printName}"?`,
-              div({ style: { fontWeight: 500, lineHeight: '2rem' } }, 'This cannot be undone.')])
+              div({ style: { fontWeight: 500, lineHeight: '2rem' } }, 'This cannot be undone.')
+            ])
         ]
       )
     )
