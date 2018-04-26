@@ -1,7 +1,6 @@
 import { Fragment } from 'react'
 import { hot } from 'react-hot-loader'
 import { div, h, h2 } from 'react-hyperscript-helpers'
-import { buttonPrimary } from 'src/components/common'
 import Modal from 'src/components/Modal'
 import { Sam } from 'src/libs/ajax'
 import * as Config from 'src/libs/config'
@@ -88,9 +87,7 @@ class Main extends Component {
     return Modal({
       onDismiss: () => this.setState({ isShowingNotRegisteredModal: false }),
       title: 'Account Not Registered',
-      showCancel: false,
-      okButton: buttonPrimary(
-        { onClick: () => this.setState({ isShowingNotRegisteredModal: false }) }, 'OK')
+      showCancel: false
     }, 'Registering in Saturn is not yet supported. Please register by logging into FireCloud.')
   }
 }
