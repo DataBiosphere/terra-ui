@@ -28,7 +28,7 @@ export default hh(class ShowOnClick extends Component {
     const { containerProps, button, disabled, bgProps, closeOnClick = true, closeOnEsc = true, children } = this.props
 
     return div(_.merge({
-        style: visible ? { zIndex: 99, position: 'relative' } : undefined,
+        style: visible ? { position: 'relative' } : undefined,
         onClick: disabled ? undefined : (e) => {
           this.setState({ visible: true })
           e.preventDefault()
