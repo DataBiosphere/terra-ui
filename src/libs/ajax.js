@@ -64,7 +64,11 @@ const Sam = {
       _.merge(authOpts(), jsonBody(scopes), { method: 'POST' })
     )
       .then(parseJson)
-  }, namespace => namespace, 1000 * 60 * 30)
+  }, namespace => namespace, 1000 * 60 * 30),
+
+  getUserStatus(success, failure) {
+    this.json('register/user', success, failure)
+  }
 }
 
 
