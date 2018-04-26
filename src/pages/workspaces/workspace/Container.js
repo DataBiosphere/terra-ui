@@ -1,14 +1,16 @@
 import _ from 'lodash'
-import { a, div, hh } from 'react-hyperscript-helpers'
+import { Fragment } from 'react'
+import { a, div, h } from 'react-hyperscript-helpers'
+import Interactive from 'react-interactive'
 import { contextBar, contextMenu } from 'src/components/common'
 import { breadcrumb, icon, spinner } from 'src/components/icons'
-import { TopBar } from 'src/components/TopBar'
 import ShowOnClick from 'src/components/ShowOnClick'
+import { TopBar } from 'src/components/TopBar'
 import { Rawls } from 'src/libs/ajax'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import { Component, Fragment, Interactive } from 'src/libs/wrapped-components'
+import { Component } from 'src/libs/wrapped-components'
 import WorkspaceDashboard from 'src/pages/workspaces/workspace/Dashboard'
 import WorkspaceData from 'src/pages/workspaces/workspace/Data'
 import WorkspaceNotebooks from 'src/pages/workspaces/workspace/Notebooks'
@@ -75,7 +77,7 @@ export class WorkspaceContainer extends Component {
     const { forceUpdateKey, workspaceFailure, workspace } = this.state
 
     const navTab = tabName => {
-      return Fragment([
+      return h(Fragment, [
         a({
           style: tabName === activeTab ? tabActiveStyle : tabBaseStyle,
           href: Nav.getLink('workspace', namespace, name,
@@ -91,8 +93,8 @@ export class WorkspaceContainer extends Component {
       ])
     }
 
-    return Fragment([
-      TopBar({ title: 'Projects' }, [
+    return h(Fragment, [
+      h(TopBar, { title: 'Projects' }, [
         div({ style: { display: 'flex', flexDirection: 'column', paddingLeft: '4rem' } },
           [
             a({
@@ -116,10 +118,10 @@ export class WorkspaceContainer extends Component {
         navTab('dashboard'), navTab('notebooks'), navTab('data'), navTab('jobs'),
         navTab('history'), navTab('tools'),
         div({ style: { flexGrow: 1 } }),
-        Interactive(
+        h(Interactive,
           _.merge({ as: icon('copy') }, navIconProps)),
-        ShowOnClick({
-            button: Interactive(
+        h(ShowOnClick, {
+            button: h(Interactive,
               _.merge({ as: icon('ellipsis-vertical') }, navIconProps))
           },
           [
@@ -141,7 +143,7 @@ export class WorkspaceContainer extends Component {
       Utils.cond(
         [workspaceFailure, `Couldn't load workspace: ${workspaceFailure}`],
         [!workspace, () => spinner({ style: { marginTop: '2rem' } })],
-        () => tabComponents[activeTab](_.merge({ key: forceUpdateKey }, workspace))
+        () => h(tabComponents[activeTab], _.merge({ key: forceUpdateKey }, workspace))
       )
     ])
   }
@@ -151,7 +153,7 @@ export const addNavPaths = () => {
   Nav.defPath(
     'workspace',
     {
-      component: hh(WorkspaceContainer),
+      component: WorkspaceContainer,
       regex: /workspaces\/([^/]+)\/([^/]+)\/?([^/]*)/,
       makeProps: (namespace, name, activeTab) => ({ namespace, name, activeTab }),
       makePath: (namespace, name, activeTab) =>

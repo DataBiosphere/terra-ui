@@ -1,9 +1,10 @@
+import { Fragment } from 'react'
 import { hot } from 'react-hot-loader'
-import { div, h2 } from 'react-hyperscript-helpers'
+import { div, h, h2 } from 'react-hyperscript-helpers'
 import * as Config from 'src/libs/config'
 import * as Nav from 'src/libs/nav'
 import * as Utils from 'src/libs/utils'
-import { Component, Fragment } from 'src/libs/wrapped-components'
+import { Component } from 'src/libs/wrapped-components'
 import * as WorkspaceList from 'src/pages/workspaces/List'
 import * as WorkspaceContainer from 'src/pages/workspaces/workspace/Container'
 
@@ -14,7 +15,7 @@ const initNavPaths = () => {
   WorkspaceContainer.addNavPaths()
 }
 
-const Main = class Main extends Component {
+class Main extends Component {
   componentWillMount() {
     initNavPaths()
     this.handleHashChange()
@@ -24,7 +25,7 @@ const Main = class Main extends Component {
   render() {
     const { isSignedIn } = this.state
 
-    return Fragment([
+    return h(Fragment, [
       div({ id: 'signInButton', style: { display: isSignedIn ? 'none' : 'block' } }),
       isSignedIn ?
         this.renderSignedIn() :
@@ -64,7 +65,7 @@ const Main = class Main extends Component {
     const { windowHash } = this.state
     const { component, makeProps } = Nav.findPathHandler(windowHash) || {}
 
-    return component ? component(makeProps()) : h2('No matching path.')
+    return component ? h(component, makeProps()) : h2('No matching path.')
   }
 }
 

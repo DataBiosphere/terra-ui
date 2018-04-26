@@ -1,5 +1,7 @@
 import _ from 'lodash'
-import { a, div, hh } from 'react-hyperscript-helpers'
+import { Fragment } from 'react'
+import { a, div, h } from 'react-hyperscript-helpers'
+import Interactive from 'react-interactive'
 import { buttonPrimary, contextMenu, link } from 'src/components/common'
 import { icon, spinner } from 'src/components/icons'
 import { NotebookCreator, NotebookDeleter, NotebookDuplicator } from 'src/components/notebook-utils'
@@ -8,10 +10,10 @@ import { DataTable } from 'src/components/table'
 import { Buckets, Leo } from 'src/libs/ajax'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import { Component, Fragment, Interactive } from 'src/libs/wrapped-components'
+import { Component } from 'src/libs/wrapped-components'
 
 
-const NotebookCard = hh(class NotebookCard extends Component {
+class NotebookCard extends Component {
   render() {
     const { namespace, name, updated, listView, notebookAccess, bucketName, clusterUrl, wsName, reloadList } = this.props
     const { renamingNotebook, copyingNotebook, deletingNotebook } = this.state
@@ -19,10 +21,10 @@ const NotebookCard = hh(class NotebookCard extends Component {
 
     const hideMenu = () => this.notebookMenu.setVisibility(false)
 
-    const notebookMenu = ShowOnClick({
+    const notebookMenu = h(ShowOnClick, {
         ref: instance => this.notebookMenu = instance,
         disabled: !notebookAccess,
-        button: Interactive({
+        button: h(Interactive, {
           as: icon('ellipsis-vertical'), size: 18,
           style: { marginLeft: '1rem' }, focus: 'hover'
         })
@@ -70,7 +72,7 @@ const NotebookCard = hh(class NotebookCard extends Component {
       () => spinner({ size: null, style: null, title: 'Transferring to cluster' })
     )
 
-    return Fragment([
+    return h(Fragment, [
         a({
             target: '_blank',
             href: notebookAccess ?
@@ -112,7 +114,7 @@ const NotebookCard = hh(class NotebookCard extends Component {
         Utils.cond(
           [
             renamingNotebook,
-            () => NotebookDuplicator({
+            () => h(NotebookDuplicator, {
               printName, namespace, bucketName, destroyOld: true,
               onDismiss: () => this.setState({ renamingNotebook: false }),
               onSuccess: () => reloadList()
@@ -120,7 +122,7 @@ const NotebookCard = hh(class NotebookCard extends Component {
           ],
           [
             copyingNotebook,
-            () => NotebookDuplicator({
+            () => h(NotebookDuplicator, {
               printName, namespace, bucketName, destroyOld: false,
               onDismiss: () => this.setState({ copyingNotebook: false }),
               onSuccess: () => reloadList()
@@ -128,7 +130,7 @@ const NotebookCard = hh(class NotebookCard extends Component {
           ],
           [
             deletingNotebook,
-            () => NotebookDeleter({
+            () => h(NotebookDeleter, {
               printName, namespace, bucketName,
               onDismiss: () => this.setState({ deletingNotebook: false }),
               onSuccess: () => reloadList()
@@ -139,9 +141,9 @@ const NotebookCard = hh(class NotebookCard extends Component {
     )
 
   }
-})
+}
 
-export default hh(class WorkspaceNotebooks extends Component {
+export default class WorkspaceNotebooks extends Component {
   componentWillMount() {
     this.loadClusters()
   }
@@ -208,7 +210,7 @@ export default hh(class WorkspaceNotebooks extends Component {
     const { bucketName, name: wsName, namespace } = this.props.workspace
 
     return div({ style: { display: listView ? undefined : 'flex', flexWrap: 'wrap' } },
-      _.map(notebooks, ({ name, updated }) => NotebookCard({
+      _.map(notebooks, ({ name, updated }) => h(NotebookCard, {
         name, updated, listView, notebookAccess: notebookAccess[name], bucketName,
         clusterUrl: _.first(clusters).clusterUrl, namespace, wsName,
         reloadList: () => this.getNotebooks()
@@ -241,8 +243,8 @@ export default hh(class WorkspaceNotebooks extends Component {
       Utils.cond(
         [listFailure, () => `Couldn't load cluster list: ${listFailure}`],
         [!clusters, spinner],
-        () => Fragment([
-          DataTable({
+        () => h(Fragment, [
+          h(DataTable, {
             allowPagination: false,
             dataSource: clusters,
             tableProps: {
@@ -326,7 +328,7 @@ export default hh(class WorkspaceNotebooks extends Component {
                 this.setState({ listView: true })
               }
             }),
-            NotebookCreator({ reloadList: () => this.getNotebooks(), namespace, bucketName })
+            h(NotebookCreator, { reloadList: () => this.getNotebooks(), namespace, bucketName })
           ]),
           Utils.cond(
             [notebooksFailure, () => `Couldn't load cluster list: ${notebooksFailure}`],
@@ -337,4 +339,4 @@ export default hh(class WorkspaceNotebooks extends Component {
       )
     ])
   }
-})
+}
