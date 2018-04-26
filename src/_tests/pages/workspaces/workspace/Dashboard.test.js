@@ -19,6 +19,6 @@ describe('Dashboard', () => {
         name: 'test-name'
       }))
 
-    expect(wrapper.find('[data-test-id="access-level"]').first().text()).toEqual('OWNER')
+    expect(wrapper.testId('access-level').text()).toEqual('OWNER')
   })
 })

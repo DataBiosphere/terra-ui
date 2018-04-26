@@ -1,32 +1,24 @@
 import { mount } from 'enzyme'
 import { h } from 'react-hyperscript-helpers'
+import renderer from 'react-test-renderer'
 import { DataGrid } from 'src/components/table'
-import { TopBar } from 'src/components/TopBar'
 import { WorkspaceList } from 'src/pages/workspaces/List'
 
-
-const gridType = DataGrid().type
-const topBarType = TopBar().type
-
-
 describe('WorkspaceList', () => {
-  it('should render a TopBar and DataGrid', () => {
-    const wrapper = mount(h(WorkspaceList))
-
-    expect(wrapper.find(topBarType)).toHaveLength(1)
-    expect(wrapper.find(gridType)).toHaveLength(1)
+  it('should render as expected', () => {
+    expect(renderer.create(h(WorkspaceList)).toJSON()).toMatchSnapshot()
   })
 
-  it('should switch between Grid and list view', () => {
+  it('should switch between Grid and List view', () => {
     const wrapper = mount(h(WorkspaceList))
-    const currentCardsPerRow = () => wrapper.find(gridType).props().cardsPerRow
-
+    const currentCardsPerRow = () => wrapper.findType(DataGrid).props().cardsPerRow
+    
     expect(currentCardsPerRow()).not.toEqual(1)
 
-    wrapper.find('[shape="view-list"]').simulate('click')
+    wrapper.findIcon('view-list').click()
     expect(currentCardsPerRow()).toEqual(1)
 
-    wrapper.find('[shape="view-cards"]').simulate('click')
+    wrapper.findIcon('view-cards').click()
     expect(currentCardsPerRow()).not.toEqual(1)
   })
 })
