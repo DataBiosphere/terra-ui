@@ -31,7 +31,7 @@ const tabActiveStyle = _.defaults({
 const navIconProps = {
   size: 22,
   style: { opacity: 0.65, paddingRight: '1rem' },
-  hover: { opacity: 1, cursor: 'pointer' }, focus: 'hover'
+  hover: { opacity: 1 }, focus: 'hover'
 }
 
 const tabComponents = {
@@ -48,7 +48,7 @@ const tabComponents = {
  * @param {string} name
  * @param {string} [activeTab]
  */
-export const WorkspaceContainer = hh(class WorkspaceContainer extends Component {
+export class WorkspaceContainer extends Component {
   constructor(props) {
     super(props)
 
@@ -58,6 +58,10 @@ export const WorkspaceContainer = hh(class WorkspaceContainer extends Component 
   }
 
   componentWillMount() {
+    this.loadWorkspace()
+  }
+
+  loadWorkspace() {
     const { namespace, name } = this.props
 
     Rawls.workspaceDetails(namespace, name, workspace => this.setState({ workspace }),
@@ -78,6 +82,7 @@ export const WorkspaceContainer = hh(class WorkspaceContainer extends Component 
             tabName === 'dashboard' ? null : tabName),
           onClick: () => {
             if (tabName === activeTab) {
+              this.loadWorkspace()
               this.setState({ forceUpdateKey: forceUpdateKey + 1 })
             }
           }
@@ -114,7 +119,6 @@ export const WorkspaceContainer = hh(class WorkspaceContainer extends Component 
         Interactive(
           _.merge({ as: icon('copy') }, navIconProps)),
         ShowOnClick({
-            containerProps: { style: { position: 'relative' } },
             button: Interactive(
               _.merge({ as: icon('ellipsis-vertical') }, navIconProps))
           },
@@ -141,13 +145,13 @@ export const WorkspaceContainer = hh(class WorkspaceContainer extends Component 
       )
     ])
   }
-})
+}
 
 export const addNavPaths = () => {
   Nav.defPath(
     'workspace',
     {
-      component: WorkspaceContainer,
+      component: hh(WorkspaceContainer),
       regex: /workspaces\/([^/]+)\/([^/]+)\/?([^/]*)/,
       makeProps: (namespace, name, activeTab) => ({ namespace, name, activeTab }),
       makePath: (namespace, name, activeTab) =>

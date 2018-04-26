@@ -63,7 +63,7 @@ export const contextBar = function(props, children) {
 export const contextMenu = function(items) {
   return div({
       style: {
-        backgroundColor: 'white', minWidth: 100, border: '1px solid #ccc',
+        backgroundColor: 'white', minWidth: 125, border: '1px solid #ccc',
         boxShadow: Style.standardShadow
       }
     },
@@ -74,4 +74,14 @@ export const contextMenu = function(items) {
         hover: { backgroundColor: Style.colors.highlight, fontWeight: 500 }
       }, props),
       contents)))
+}
+
+export const textInput = function(props) {
+  return input(_.merge({
+    style: _.merge({
+      width: '100%',
+      padding: '0.5rem 1rem',
+      fontWeight: 300, fontSize: '1em'
+    }, Style.elements.input)
+  }, props))
 }

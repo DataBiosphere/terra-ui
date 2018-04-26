@@ -25,6 +25,7 @@ export const elements = {
     borderRadius: 5, padding: '1rem', wordWrap: 'break-word', boxShadow: standardShadow,
     backgroundColor: 'white'
   },
+  input: { border: '1px solid #c3c3c3', borderRadius: 4, boxSizing: 'border-box' },
   pageTitle: {
     color: colors.title, fontSize: 22, fontWeight: 500, textTransform: 'uppercase',
     textDecoration: 'none'
