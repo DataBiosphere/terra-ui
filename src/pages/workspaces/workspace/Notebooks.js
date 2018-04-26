@@ -82,7 +82,7 @@ const NotebookCard = hh(class NotebookCard extends Component {
               height: listView ? undefined : 250,
               margin: '1.25rem', boxSizing: 'border-box',
               color: Style.colors.text, textDecoration: 'none',
-              cursor: !notebookAccess ? 'not-allowed' : undefined,
+              cursor: notebookAccess === false ? 'not-allowed' : notebookAccess ? undefined : 'wait',
               display: 'flex', flexDirection: listView ? 'row' : 'column',
               justifyContent: listView ? undefined : 'space-between',
               alignItems: listView ? 'center' : undefined
@@ -130,7 +130,7 @@ const NotebookCard = hh(class NotebookCard extends Component {
             deletingNotebook,
             () => NotebookDeleter({
               printName, namespace, bucketName,
-              onDismiss: () => this.setState({ copyingNotebook: false }),
+              onDismiss: () => this.setState({ deletingNotebook: false }),
               onSuccess: () => reloadList()
             })
           ],
