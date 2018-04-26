@@ -1,12 +1,12 @@
 import _ from 'lodash'
 import { div, h, input } from 'react-hyperscript-helpers'
+import Interactive from 'react-interactive'
 import { icon } from 'src/components/icons'
 import * as Style from 'src/libs/style'
-import { Interactive } from 'src/libs/wrapped-components'
 
 
 export const link = function(props, children) {
-  return Interactive(
+  return h(Interactive,
     _.merge({
       as: 'a',
       style: {
@@ -20,7 +20,7 @@ export const link = function(props, children) {
 }
 
 export const buttonPrimary = function(props, children) {
-  return Interactive(
+  return h(Interactive,
     _.merge({
       as: 'button',
       style: _.defaults({
@@ -73,7 +73,8 @@ export const contextMenu = function(items) {
         style: { fontSize: 12, padding: '0.5rem 1.5rem' },
         hover: { backgroundColor: Style.colors.highlight, fontWeight: 500 }
       }, props),
-      contents)))
+      contents))
+  )
 }
 
 export const textInput = function(props) {

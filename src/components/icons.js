@@ -1,4 +1,5 @@
 import '@webcomponents/custom-elements' // must be before icons
+
 import { ClarityIcons } from '@clr/icons'
 import '@clr/icons/clr-icons.css'
 import '@clr/icons/shapes/essential-shapes'

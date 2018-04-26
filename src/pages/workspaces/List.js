@@ -1,5 +1,6 @@
 import _ from 'lodash'
-import { a, div, hh } from 'react-hyperscript-helpers'
+import { Fragment } from 'react'
+import { a, div, h } from 'react-hyperscript-helpers'
 import { contextBar, search } from 'src/components/common'
 import { breadcrumb, icon, spinner } from 'src/components/icons'
 import { DataGrid } from 'src/components/table'
@@ -8,7 +9,7 @@ import { Rawls } from 'src/libs/ajax'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import { Component, Fragment } from 'src/libs/wrapped-components'
+import { Component } from 'src/libs/wrapped-components'
 
 
 export class WorkspaceList extends Component {
@@ -48,7 +49,7 @@ export class WorkspaceList extends Component {
   }
 
   wsList() {
-    return DataGrid(_.assign({
+    return h(DataGrid, _.assign({
         cardsPerRow: 1,
         renderCard: ({ workspace: { namespace, name, createdBy, lastModified } }) => {
           return a({
@@ -82,7 +83,7 @@ export class WorkspaceList extends Component {
   }
 
   wsGrid() {
-    return DataGrid(_.assign({
+    return h(DataGrid, _.assign({
       renderCard: ({ workspace: { namespace, name, createdBy, lastModified } },
                    cardsPerRow) => {
         return a({
@@ -124,8 +125,8 @@ export class WorkspaceList extends Component {
   render() {
     const { workspaces, filter, listView, failure } = this.state
 
-    return Fragment([
-      TopBar({ title: 'Projects' },
+    return h(Fragment, [
+      h(TopBar, { title: 'Projects' },
         [
           search({
             wrapperProps: { style: { marginLeft: '2rem', flexGrow: 1, maxWidth: 500 } },
@@ -177,7 +178,7 @@ export const addNavPaths = () => {
   Nav.defPath(
     'workspaces',
     {
-      component: hh(WorkspaceList),
+      component: WorkspaceList,
       regex: /workspaces$/,
       makeProps: () => ({}),
       makePath: () => 'workspaces'

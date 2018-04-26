@@ -4,6 +4,7 @@ import renderer from 'react-test-renderer'
 import { DataGrid } from 'src/components/table'
 import { WorkspaceList } from 'src/pages/workspaces/List'
 
+
 describe('WorkspaceList', () => {
   it('should render as expected', () => {
     expect(renderer.create(h(WorkspaceList)).toJSON()).toMatchSnapshot()
@@ -11,8 +12,8 @@ describe('WorkspaceList', () => {
 
   it('should switch between Grid and List view', () => {
     const wrapper = mount(h(WorkspaceList))
-    const currentCardsPerRow = () => wrapper.findType(DataGrid).props().cardsPerRow
-    
+    const currentCardsPerRow = () => wrapper.find(DataGrid).props().cardsPerRow
+
     expect(currentCardsPerRow()).not.toEqual(1)
 
     wrapper.findIcon('view-list').click()
