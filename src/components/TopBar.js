@@ -1,6 +1,6 @@
 import _ from 'lodash'
 import { createPortal } from 'react-dom'
-import { a, div, hh } from 'react-hyperscript-helpers'
+import { a, div } from 'react-hyperscript-helpers'
 import { link } from 'src/components/common'
 import { icon, logo } from 'src/components/icons'
 import * as Nav from 'src/libs/nav'
@@ -13,7 +13,7 @@ import { Component } from 'src/libs/wrapped-components'
  * @param {string} title
  * @param {array} [children]
  */
-export const TopBar = hh(class TopBar extends Component {
+export class TopBar extends Component {
   showNav() {
     this.setState({ navShown: true })
     document.body.classList.add('overlayOpen')
@@ -138,4 +138,4 @@ export const TopBar = hh(class TopBar extends Component {
       ]
     )
   }
-})
+}

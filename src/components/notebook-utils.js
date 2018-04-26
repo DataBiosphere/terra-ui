@@ -1,6 +1,7 @@
+import { Fragment } from 'react'
 import Modal from 'src/components/Modal'
-import { Component, Fragment, Select } from 'src/libs/wrapped-components'
-import { div, hh } from 'react-hyperscript-helpers/lib/index'
+import { Component, Select } from 'src/libs/wrapped-components'
+import { div, h } from 'react-hyperscript-helpers'
 import { spinner } from 'src/components/icons'
 import { buttonPrimary, textInput } from 'src/components/common'
 import * as Style from 'src/libs/style'
@@ -38,12 +39,12 @@ const rNotebook = _.merge({
 }, baseNotebook)
 
 
-export const NotebookCreator = hh(class NotebookCreator extends Component {
+export class NotebookCreator extends Component {
   render() {
     const { modalOpen, notebookName, notebookKernel, notebookFailure, creating } = this.state
     const { reloadList, namespace, bucketName } = this.props
 
-    return Fragment([
+    return h(Fragment, [
       buttonPrimary({
           onClick: () => this.setState({ modalOpen: true, notebookName: '', notebookKernel: null }),
           style: { marginLeft: '1rem', display: 'flex' },
@@ -58,7 +59,7 @@ export const NotebookCreator = hh(class NotebookCreator extends Component {
       Utils.cond(
         [
           notebookFailure,
-          () => Modal({
+          () => h(Modal, {
             title: 'Notebook Creation Failure',
             okButton: buttonPrimary({ onClick: () => this.setState({ notebookFailure: null }) },
               'Done'),
@@ -67,7 +68,7 @@ export const NotebookCreator = hh(class NotebookCreator extends Component {
         ],
         [
           modalOpen,
-          () => Modal({
+          () => h(Modal, {
             onDismiss: () => this.setState({ modalOpen: false }),
             title: 'Create New Notebook',
             okButton: buttonPrimary({
@@ -92,7 +93,7 @@ export const NotebookCreator = hh(class NotebookCreator extends Component {
               onChange: e => this.setState({ notebookName: e.target.value })
             }),
             div({ style: Style.elements.sectionHeader }, 'Kernel'),
-            Select({
+            h(Select, {
               clearable: false,
               searchable: false,
               wrapperStyle: { marginTop: '0.5rem' },
@@ -123,14 +124,14 @@ export const NotebookCreator = hh(class NotebookCreator extends Component {
       )
     ])
   }
-})
+}
 
-export const NotebookDuplicator = hh(class NotebookRenamer extends Component {
+export class NotebookDuplicator extends Component {
   render() {
     const { destroyOld, printName, namespace, bucketName, onDismiss, onSuccess } = this.props
     const { newName, processing, failure } = this.state
 
-    return Modal({
+    return h(Modal, {
         onDismiss: onDismiss,
         title: `${destroyOld ? 'Rename' : 'Duplicate' } "${printName}"`,
         okButton: buttonPrimary({
@@ -160,14 +161,14 @@ export const NotebookDuplicator = hh(class NotebookRenamer extends Component {
       )
     )
   }
-})
+}
 
-export const NotebookDeleter = hh(class NotebookDeleter extends Component {
+export class NotebookDeleter extends Component {
   render() {
     const { printName, namespace, bucketName, onDismiss, onSuccess } = this.props
     const { processing, failure } = this.state
 
-    return Modal({
+    return h(Modal, {
         onDismiss: onDismiss,
         title: `Delete "${printName}"`,
         okButton: buttonPrimary({
@@ -193,4 +194,4 @@ export const NotebookDeleter = hh(class NotebookDeleter extends Component {
       )
     )
   }
-})
+}

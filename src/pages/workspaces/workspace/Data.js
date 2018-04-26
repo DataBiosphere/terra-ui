@@ -1,14 +1,15 @@
 import _ from 'lodash'
-import { div, hh, table } from 'react-hyperscript-helpers'
+import { div, h, table } from 'react-hyperscript-helpers'
+import Interactive from 'react-interactive'
 import { icon, spinner } from 'src/components/icons'
 import { DataTable } from 'src/components/table'
 import { Rawls } from 'src/libs/ajax'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import { Component, Interactive } from 'src/libs/wrapped-components'
+import { Component } from 'src/libs/wrapped-components'
 
 
-export default hh(class WorkspaceData extends Component {
+export default class WorkspaceData extends Component {
   componentWillMount() {
     const { namespace, name } = this.props.workspace
 
@@ -42,7 +43,7 @@ export default hh(class WorkspaceData extends Component {
         ])
     )
 
-    const entityTable = () => DataTable({
+    const entityTable = () => h(DataTable, {
       dataSource: _.sortBy(selectedEntities, 'name'),
       tableProps: {
         rowKey: 'name',
@@ -50,12 +51,13 @@ export default hh(class WorkspaceData extends Component {
         components: {
           table: props => table(_.merge({ style: { borderCollapse: 'collapse' } }, props)),
           body: {
-            row: props => Interactive(
+            row: props => h(Interactive,
               _.merge({
                   as: 'tr', style: { cursor: null },
                   hover: { backgroundColor: Style.colors.highlightFaded }
                 },
-                props))
+                props)
+            )
           }
         },
         columns: _.map(workspaceEntities[selectedEntityType]['attributeNames'], function(name) {
@@ -109,4 +111,4 @@ export default hh(class WorkspaceData extends Component {
       )
     )
   }
-})
+}

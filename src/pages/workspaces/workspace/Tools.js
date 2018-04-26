@@ -1,17 +1,17 @@
 import _ from 'lodash'
-import { div, hh, img } from 'react-hyperscript-helpers'
+import { div, h, img } from 'react-hyperscript-helpers'
 import { buttonPrimary } from 'src/components/common'
 import Modal from 'src/components/Modal'
 import * as Style from 'src/libs/style'
 import { Component } from 'src/libs/wrapped-components'
 
 
-export default hh(class WorkspaceTools extends Component {
+export default class WorkspaceTools extends Component {
   render() {
     const { modal } = this.state
 
     return div({ style: { margin: '1rem' } }, [
-      modal ? Modal({
+      modal ? h(Modal, {
         onDismiss: () => this.setState({ modal: false }),
         okButton: buttonPrimary({ onClick: () => this.setState({ modal: false }) }, 'Run')
       }, [
@@ -44,4 +44,4 @@ export default hh(class WorkspaceTools extends Component {
         ])
     ])
   }
-})
+}

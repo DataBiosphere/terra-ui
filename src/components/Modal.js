@@ -1,8 +1,9 @@
 import _ from 'lodash'
+import { Fragment } from 'react'
 import * as ReactDOM from 'react-dom'
-import { div, hh } from 'react-hyperscript-helpers'
+import { div, h } from 'react-hyperscript-helpers'
 import * as Style from 'src/libs/style'
-import { Component, Fragment } from 'src/libs/wrapped-components'
+import { Component } from 'src/libs/wrapped-components'
 
 
 const modalRoot = document.getElementById('modal-root')
@@ -14,7 +15,7 @@ const modalRoot = document.getElementById('modal-root')
  * @param showCancel=true
  * @param okButton
  */
-export default hh(class Modal extends Component {
+export default class Modal extends Component {
   constructor(props) {
     super(props)
     this.el = document.createElement('div')
@@ -40,7 +41,7 @@ export default hh(class Modal extends Component {
   render() {
     const { onDismiss, title, children, showCancel = true, okButton } = this.props
 
-    const component = Fragment([
+    const component = h(Fragment, [
       div({
         style: {
           backgroundColor: 'black', opacity: '0.5',
@@ -84,4 +85,4 @@ export default hh(class Modal extends Component {
     window.removeEventListener('keydown', this.listenForEscape)
     modalRoot.removeChild(this.el)
   }
-})
+}

@@ -1,16 +1,16 @@
-import { div, hh, span } from 'react-hyperscript-helpers'
+import { div, h, span } from 'react-hyperscript-helpers'
 import { buttonPrimary } from 'src/components/common'
 import Modal from 'src/components/Modal'
 import * as Style from 'src/libs/style'
 import { Component } from 'src/libs/wrapped-components'
 
 
-export default hh(class WorkspaceDashboard extends Component {
+export default class WorkspaceDashboard extends Component {
   render() {
     const { modal } = this.state
 
     return div({ style: { margin: '1rem' } }, [
-        modal ? Modal({
+        modal ? h(Modal, {
           onDismiss: () => this.setState({ modal: false }),
           title: 'Workspace Info',
           showCancel: false,
@@ -29,4 +29,4 @@ export default hh(class WorkspaceDashboard extends Component {
       ]
     )
   }
-})
+}

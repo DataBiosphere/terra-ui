@@ -1,5 +1,5 @@
 import _ from 'lodash'
-import { div, hh } from 'react-hyperscript-helpers'
+import { div } from 'react-hyperscript-helpers'
 import { Component } from 'src/libs/wrapped-components'
 
 
@@ -11,7 +11,7 @@ import { Component } from 'src/libs/wrapped-components'
  * @param [closeOnEsc=true]
  * @param children
  */
-export default hh(class ShowOnClick extends Component {
+export default class ShowOnClick extends Component {
   setVisibility = (visible) => {
     this.setState({ visible })
   }
@@ -58,4 +58,4 @@ export default hh(class ShowOnClick extends Component {
   componentWillUnmount() {
     window.removeEventListener('keydown', this.listenForEscape)
   }
-})
+}

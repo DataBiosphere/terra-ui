@@ -27,10 +27,6 @@ ReactWrapper.prototype.testId = function(id) {
   }
 }
 
-ReactWrapper.prototype.findType = function(Type) {
-  return this.find(Type().type)
-}
-
 ReactWrapper.prototype.findIcon = function(shape) {
   return this.find(`[shape="${shape}"]`)
 }
