@@ -1,0 +1,399 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`WorkspaceList should render as expected 1`] = `
+Array [
+  <div
+    style={
+        Object {
+            "alignItems": "center",
+            "backgroundColor": "white",
+            "display": "flex",
+            "height": "3rem",
+            "padding": "1rem",
+          }
+    }
+>
+    <clr-icon
+        onClick={[Function]}
+        shape="bars"
+        size={36}
+        style={
+            Object {
+                "color": "#8b5f95",
+                "cursor": "pointer",
+                "marginRight": "2rem",
+              }
+        }
+    />
+    <a
+        href={undefined}
+        style={
+            Object {
+                "alignItems": "center",
+                "color": "#224f83",
+                "display": "flex",
+                "fontSize": 22,
+                "fontWeight": 500,
+                "textDecoration": "none",
+                "textTransform": "uppercase",
+              }
+        }
+    >
+        <clr-icon
+            shape="logoIcon"
+            size={48}
+            style={
+                Object {
+                    "marginRight": "0.5rem",
+                  }
+            }
+        />
+        <div>
+            <div
+                style={
+                    Object {
+                        "color": "#8299a5",
+                        "fontSize": "0.8rem",
+                        "marginLeft": "0.1rem",
+                      }
+                }
+            >
+                Saturn
+            </div>
+            Projects
+        </div>
+    </a>
+    <div
+        style={
+            Object {
+                "borderBottom": "1px solid black",
+                "display": "flex",
+                "flexGrow": 1,
+                "marginLeft": "2rem",
+                "maxWidth": 500,
+                "padding": "0.5rem 0",
+              }
+        }
+    >
+        <clr-icon
+            shape="search"
+        />
+        <input
+            onChange={[Function]}
+            placeholder="SEARCH BIOSPHERE"
+            style={
+                Object {
+                    "border": "none",
+                    "flexGrow": 1,
+                    "marginLeft": "1rem",
+                    "outline": "none",
+                    "verticalAlign": "bottom",
+                  }
+            }
+            value=""
+        />
+    </div>
+    <div
+        style={
+            Object {
+                "flexGrow": 1,
+              }
+        }
+    />
+    <a
+        onBlur={[Function]}
+        onClick={[Function]}
+        onDragEnd={[Function]}
+        onDragStart={[Function]}
+        onFocus={[Function]}
+        onKeyDown={[Function]}
+        onKeyUp={[Function]}
+        onMouseDown={[Function]}
+        onMouseEnter={[Function]}
+        onMouseLeave={[Function]}
+        onMouseMove={[Function]}
+        onMouseUp={[Function]}
+        style={
+            Object {
+                "color": "#478eba",
+                "cursor": "pointer",
+                "outline": 0,
+                "outlineOffset": 0,
+                "textDecoration": "none",
+              }
+        }
+        tabIndex="0"
+    >
+        Sign out
+    </a>
+</div>,
+  <div
+    style={
+        Object {
+            "alignItems": "center",
+            "backgroundColor": "#5faee0",
+            "color": "#bde5ff",
+            "display": "flex",
+            "fontWeight": 500,
+            "height": "3.5rem",
+            "lineHeight": "3.5rem",
+            "padding": "0 1rem",
+          }
+    }
+>
+    PROJECTS
+    <clr-icon
+        shape="angle right"
+        size={10}
+        style={
+            Object {
+                "padding": "0 0.25rem",
+              }
+        }
+    />
+    A - Z
+    <div
+        style={
+            Object {
+                "flexGrow": 1,
+              }
+        }
+    />
+    <clr-icon
+        onClick={[Function]}
+        shape="view-cards"
+        style={
+            Object {
+                "boxShadow": "0 4px 0 #bfd5e3",
+                "cursor": "pointer",
+                "height": 22,
+                "marginRight": "1rem",
+                "width": 26,
+              }
+        }
+    />
+    <clr-icon
+        onClick={[Function]}
+        shape="view-list"
+        size={26}
+        style={
+            Object {
+                "boxShadow": null,
+                "cursor": "pointer",
+              }
+        }
+    />
+</div>,
+  <div
+    style={
+        Object {
+            "margin": "1rem auto",
+            "maxWidth": 1000,
+          }
+    }
+>
+    <div
+        style={
+            Object {
+                "display": "flex",
+                "flexWrap": "wrap",
+              }
+        }
+    >
+        <a
+            href={undefined}
+            style={
+                Object {
+                    "backgroundColor": "white",
+                    "borderRadius": 5,
+                    "boxShadow": "0 3px 2px 0 rgba(0,0,0,0.12)",
+                    "boxSizing": "border-box",
+                    "color": "#4a4a4a",
+                    "display": "flex",
+                    "flexDirection": "column",
+                    "height": 225,
+                    "justifyContent": "space-between",
+                    "margin": "1.25rem",
+                    "padding": "1rem",
+                    "textDecoration": "none",
+                    "width": "calc(33.333333333333336% - 2.5rem)",
+                    "wordWrap": "break-word",
+                  }
+            }
+        >
+            <div
+                style={
+                    Object {
+                        "color": "#478eba",
+                        "fontSize": 16,
+                        "fontWeight": 500,
+                      }
+                }
+            >
+                large_sample_copy
+            </div>
+            <div>
+                Billing project: broad-dsde-dev
+            </div>
+            <div
+                style={
+                    Object {
+                        "alignItems": "flex-end",
+                        "display": "flex",
+                        "fontSize": "0.8rem",
+                        "justifyContent": "space-between",
+                      }
+                }
+            >
+                <div>
+                    Last changed:
+                    <div>
+                        ***MOCKED DATE***
+                    </div>
+                </div>
+                <div
+                    style={
+                        Object {
+                            "backgroundColor": "#8b5f95",
+                            "borderRadius": "1.5rem",
+                            "color": "white",
+                            "height": "1.5rem",
+                            "lineHeight": "1.5rem",
+                            "textAlign": "center",
+                            "width": "1.5rem",
+                          }
+                    }
+                    title="alice@example.com"
+                >
+                    A
+                </div>
+            </div>
+        </a>
+        <a
+            href={undefined}
+            style={
+                Object {
+                    "backgroundColor": "white",
+                    "borderRadius": 5,
+                    "boxShadow": "0 3px 2px 0 rgba(0,0,0,0.12)",
+                    "boxSizing": "border-box",
+                    "color": "#4a4a4a",
+                    "display": "flex",
+                    "flexDirection": "column",
+                    "height": 225,
+                    "justifyContent": "space-between",
+                    "margin": "1.25rem",
+                    "padding": "1rem",
+                    "textDecoration": "none",
+                    "width": "calc(33.333333333333336% - 2.5rem)",
+                    "wordWrap": "break-word",
+                  }
+            }
+        >
+            <div
+                style={
+                    Object {
+                        "color": "#478eba",
+                        "fontSize": 16,
+                        "fontWeight": 500,
+                      }
+                }
+            >
+                large_sample_copy
+            </div>
+            <div>
+                Billing project: broad-dsde-dev
+            </div>
+            <div
+                style={
+                    Object {
+                        "alignItems": "flex-end",
+                        "display": "flex",
+                        "fontSize": "0.8rem",
+                        "justifyContent": "space-between",
+                      }
+                }
+            >
+                <div>
+                    Last changed:
+                    <div>
+                        ***MOCKED DATE***
+                    </div>
+                </div>
+                <div
+                    style={
+                        Object {
+                            "backgroundColor": "#8b5f95",
+                            "borderRadius": "1.5rem",
+                            "color": "white",
+                            "height": "1.5rem",
+                            "lineHeight": "1.5rem",
+                            "textAlign": "center",
+                            "width": "1.5rem",
+                          }
+                    }
+                    title="alice@example.com"
+                >
+                    A
+                </div>
+            </div>
+        </a>
+    </div>
+    <div
+        style={
+            Object {
+                "marginTop": 10,
+              }
+        }
+    >
+        Page: 
+        <select
+            onChange={[Function]}
+            style={
+                Object {
+                    "marginRight": "1rem",
+                  }
+            }
+            value={1}
+        >
+            <option
+                value={1}
+            >
+                1
+            </option>
+        </select>
+        Items per page: 
+        <select
+            onChange={[Function]}
+            value={6}
+        >
+            <option
+                value={6}
+            >
+                6
+            </option>
+            <option
+                value={12}
+            >
+                12
+            </option>
+            <option
+                value={24}
+            >
+                24
+            </option>
+            <option
+                value={36}
+            >
+                36
+            </option>
+            <option
+                value={48}
+            >
+                48
+            </option>
+        </select>
+    </div>
+</div>,
+]
+`;
