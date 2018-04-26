@@ -1,4 +1,5 @@
 import { mount } from 'enzyme'
+import { h } from 'react-hyperscript-helpers'
 import { Rawls } from 'src/libs/ajax'
 import { WorkspaceContainer } from 'src/pages/workspaces/workspace/Container'
 
@@ -13,7 +14,7 @@ describe('Dashboard', () => {
     )
 
     const wrapper = mount(
-      WorkspaceContainer({
+      h(WorkspaceContainer, {
         namespace: 'test-namespace',
         name: 'test-name'
       }))

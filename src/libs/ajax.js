@@ -77,6 +77,7 @@ const ajaxService = {
   }
 }
 
+
 const Sam = _.assign({
   getUrlRoot: Config.getSamUrlRoot,
 
@@ -89,20 +90,71 @@ const Sam = _.assign({
   }
 }, ajaxService)
 
-export const Buckets = _.assign({
-  getUrlRoot: () => 'https://www.googleapis.com/storage/v1/b',
 
-  listNotebooks(namespace, name, success, failure) {
-    Sam.token(namespace,
-      token => {
-        this.json(`${name}/o?prefix=notebooks/`,
-          res => success(_.filter(res.items, item => item.name.endsWith('.ipynb'))),
-          failure,
-          { headers: { Authorization: 'Bearer ' + token } })
-      },
-      failure)
-  }
-}, ajaxService)
+export const Buckets = _.assign({
+    getUrlRoot: () => 'https://www.googleapis.com',
+
+    copyNotebook(namespace, bucket, oldName, newName, success, failure) {
+      Sam.token(namespace,
+        token => {
+          this.call(`storage/v1/b/${bucket}/o/${
+              encodeURIComponent(`notebooks/${oldName}.ipynb`)}/copyTo/b/${bucket}/o/${
+              encodeURIComponent(`notebooks/${newName}.ipynb`)}`,
+            success,
+            failure,
+            { method: 'POST', headers: { Authorization: 'Bearer ' + token } })
+        },
+        failure)
+    },
+
+    createNotebook(namespace, bucket, name, contents, success, failure) {
+      Sam.token(namespace,
+        token => {
+          this.call(
+            `upload/storage/v1/b/${bucket}/o?uploadType=media&name=${
+              encodeURIComponent(`notebooks/${name}.ipynb`)}`,
+            success,
+            failure,
+            {
+              method: 'POST', headers: {
+                'Content-Type': 'application/x-ipynb+json', Authorization: 'Bearer ' + token
+              },
+              body: JSON.stringify(contents)
+            })
+        },
+        failure)
+    },
+
+    deleteNotebook(namespace, bucket, name, success, failure) {
+      Sam.token(namespace,
+        token => {
+          this.call(`storage/v1/b/${bucket}/o/${encodeURIComponent(`notebooks/${name}.ipynb`)}`,
+            success,
+            failure,
+            { method: 'DELETE', headers: { Authorization: 'Bearer ' + token } })
+        },
+        failure)
+    },
+
+    renameNotebook(namespace, bucket, oldName, newName, success, failure) {
+      this.copyNotebook(namespace, bucket, oldName, newName,
+        () => this.deleteNotebook(namespace, bucket, oldName, success, failure),
+        failure)
+    },
+
+    listNotebooks(namespace, bucket, success, failure) {
+      Sam.token(namespace,
+        token => {
+          this.json(`storage/v1/b/${bucket}/o?prefix=notebooks/`,
+            res => success(_.filter(res.items, item => item.name.endsWith('.ipynb'))),
+            failure,
+            { headers: { Authorization: 'Bearer ' + token } })
+        },
+        failure)
+    }
+  },
+  ajaxService
+)
 
 
 export const Rawls = _.assign({
