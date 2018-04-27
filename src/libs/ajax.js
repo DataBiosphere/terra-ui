@@ -36,169 +36,127 @@ window.saturnMock = {
   }
 }
 
-/**
- * @param {string} url
- * @param {object} [options]
- * @returns {Promise<Response>}
- */
-const ajax = function(url, options = {}) {
+const parseJson = res => res.json()
+const authOpts = (token = Utils.getAuthToken()) => ({ headers: { Authorization: `Bearer ${token}` } })
+const jsonBody = body => ({ body: JSON.stringify(body), headers: { 'Content-Type': 'application/json' } })
+
+const instrumentedFetch = (...args) => {
   if (noConnection) {
     console.info('%cSimulating no connection', consoleStyle)
-    return new Promise(function(resolve, reject) {
-      reject(new TypeError('Simulating no connection'))
-    })
+    return Promise.reject(new TypeError('Simulating no connection'))
   } else if (mockResponse) {
-    console.info('%cSimulating response:', consoleStyle)
-    console.info(mockResponse())
-    return new Promise(function(resolve, _) {
-      resolve(mockResponse())
-    })
+    console.info('%cSimulating response:', consoleStyle, mockResponse())
+    return Promise.resolve(mockResponse())
   }
-
-  let withAuth = options
-
-  withAuth.headers = _.merge({
-    'Content-Type': 'application/json',
-    'Authorization': 'Bearer ' + Utils.getAuthToken()
-  }, options.headers)
-
-  return fetch(url, withAuth)
+  return fetch(...args)
 }
 
-const ajaxService = {
-  call(path, success, failure, options) {
-    ajax(`${this.getUrlRoot()}/${path}`, options)
-      .then(response => response.ok ? success(response) : response.text().then(failure))
-      .catch(failure)
-  },
+const fetchOk = (...args) => {
+  return instrumentedFetch(...args)
+    .then(res => res.ok ? res : res.text().then(text => Promise.reject(text)))
+}
 
-  json(path, success, failure, options) {
-    this.call(path, resp => resp.json().then(success), failure, options)
+
+const Sam = {
+  token: (namespace) => {
+    const scopes = ['https://www.googleapis.com/auth/devstorage.full_control']
+    return fetchOk(`${Config.getSamUrlRoot()}/api/google/user/petServiceAccount/${namespace}/token`,
+      _.merge(authOpts(), jsonBody(scopes), { method: 'POST' })
+    )
+      .then(parseJson)
   }
 }
 
 
-const Sam = _.assign({
-  getUrlRoot: Config.getSamUrlRoot,
+const fetchBuckets = (path, ...args) => fetchOk(`https://www.googleapis.com/${path}`, ...args)
+const nbName = name => encodeURIComponent(`notebooks/${name}.ipynb`)
 
-  token(namespace, success, failure) {
-    const scopes = [
-      'https://www.googleapis.com/auth/devstorage.full_control'
-    ]
-    this.json(`api/google/user/petServiceAccount/${namespace}/token`, success, failure,
-      { method: 'POST', body: JSON.stringify(scopes) })
+export const Buckets = {
+  copyNotebook: (namespace, bucket, oldName, newName) => {
+    return Sam.token(namespace)
+      .then(token => fetchBuckets(
+        `storage/v1/b/${bucket}/o/${nbName(oldName)}/copyTo/b/${bucket}/o/${nbName(newName)}`,
+        _.merge(authOpts(token), { method: 'POST' }))
+      )
+  },
+
+  createNotebook: (namespace, bucket, name, contents) => {
+    return Sam.token(namespace)
+      .then(token => fetchBuckets(
+        `upload/storage/v1/b/${bucket}/o?uploadType=media&name=${nbName(name)}`,
+        _.merge(authOpts(token), { method: 'POST', body: JSON.stringify(contents),
+                                   headers: { 'Content-Type': 'application/x-ipynb+json' } }))
+      )
+  },
+
+  deleteNotebook: (namespace, bucket, name) => {
+    return Sam.token(namespace)
+      .then(token => fetchBuckets(
+        `storage/v1/b/${bucket}/o/${nbName(name)}`,
+        _.merge(authOpts(token), { method: 'DELETE' }))
+      )
+  },
+
+  renameNotebook: (namespace, bucket, oldName, newName) => {
+    return Buckets.copyNotebook(namespace, bucket, oldName, newName)
+      .then(() => Buckets.deleteNotebook(namespace, bucket, oldName))
+  },
+
+  listNotebooks: (namespace, name) => {
+    return Sam.token(namespace)
+      .then(token => fetchBuckets(`storage/v1/b/${name}/o?prefix=notebooks/`, authOpts(token)))
+      .then(parseJson)
+      .then(({ items }) => _.filter(items, ({ name }) => name.endsWith('.ipynb')))
   }
-}, ajaxService)
+}
 
 
-export const Buckets = _.assign({
-    getUrlRoot: () => 'https://www.googleapis.com',
+const fetchRawls = (path, ...args) => fetchOk(`${Config.getRawlsUrlRoot()}/api/${path}`, ...args)
 
-    copyNotebook(namespace, bucket, oldName, newName, success, failure) {
-      Sam.token(namespace,
-        token => {
-          this.call(`storage/v1/b/${bucket}/o/${
-              encodeURIComponent(`notebooks/${oldName}.ipynb`)}/copyTo/b/${bucket}/o/${
-              encodeURIComponent(`notebooks/${newName}.ipynb`)}`,
-            success,
-            failure,
-            { method: 'POST', headers: { Authorization: 'Bearer ' + token } })
-        },
-        failure)
-    },
-
-    createNotebook(namespace, bucket, name, contents, success, failure) {
-      Sam.token(namespace,
-        token => {
-          this.call(
-            `upload/storage/v1/b/${bucket}/o?uploadType=media&name=${
-              encodeURIComponent(`notebooks/${name}.ipynb`)}`,
-            success,
-            failure,
-            {
-              method: 'POST', headers: {
-                'Content-Type': 'application/x-ipynb+json', Authorization: 'Bearer ' + token
-              },
-              body: JSON.stringify(contents)
-            })
-        },
-        failure)
-    },
-
-    deleteNotebook(namespace, bucket, name, success, failure) {
-      Sam.token(namespace,
-        token => {
-          this.call(`storage/v1/b/${bucket}/o/${encodeURIComponent(`notebooks/${name}.ipynb`)}`,
-            success,
-            failure,
-            { method: 'DELETE', headers: { Authorization: 'Bearer ' + token } })
-        },
-        failure)
-    },
-
-    renameNotebook(namespace, bucket, oldName, newName, success, failure) {
-      this.copyNotebook(namespace, bucket, oldName, newName,
-        () => this.deleteNotebook(namespace, bucket, oldName, success, failure),
-        failure)
-    },
-
-    listNotebooks(namespace, bucket, success, failure) {
-      Sam.token(namespace,
-        token => {
-          this.json(`storage/v1/b/${bucket}/o?prefix=notebooks/`,
-            res => success(_.filter(res.items, item => item.name.endsWith('.ipynb'))),
-            failure,
-            { headers: { Authorization: 'Bearer ' + token } })
-        },
-        failure)
-    }
-  },
-  ajaxService
-)
-
-
-export const Rawls = _.assign({
-  getUrlRoot: () => `${Config.getRawlsUrlRoot()}/api`,
-
-  workspacesList(success, failure) {
-    this.json('workspaces', success, failure)
+export const Rawls = {
+  workspacesList: () => {
+    return fetchRawls('workspaces', authOpts())
+      .then(parseJson)
   },
 
-  workspaceDetails(namespace, name, success, failure) {
-    this.json(`workspaces/${namespace}/${name}`, success, failure)
+  workspaceDetails: (namespace, name) => {
+    return fetchRawls(`workspaces/${namespace}/${name}`, authOpts())
+      .then(parseJson)
   },
-  workspaceEntities(namespace, name, success, failure) {
-    this.json(`workspaces/${namespace}/${name}/entities`, success, failure)
+
+  workspaceEntities: (namespace, name) => {
+    return fetchRawls(`workspaces/${namespace}/${name}/entities`, authOpts())
+      .then(parseJson)
   },
-  workspaceEntity(namespace, name, type, success, failure) {
-    this.json(`workspaces/${namespace}/${name}/entities/${type}`, success, failure)
+
+  workspaceEntity: (namespace, name, type) => {
+    return fetchRawls(`workspaces/${namespace}/${name}/entities/${type}`, authOpts())
+      .then(parseJson)
   }
+}
 
-}, ajaxService)
 
+const fetchLeo = (path, ...args) => fetchOk(`${Config.getLeoUrlRoot()}/${path}`, ...args)
 
-export const Leo = _.assign({
-  getUrlRoot: Config.getLeoUrlRoot,
-
-  clustersList(success, failure) {
-    this.json('api/clusters', success, failure)
+export const Leo = {
+  clustersList: () => {
+    return fetchLeo('api/clusters', authOpts())
+      .then(parseJson)
   },
 
-  clusterCreate: function(project, name, clusterOptions, success, failure) {
-    this.call(`api/cluster/${project}/${name}`, success, failure,
-      { method: 'PUT', body: JSON.stringify(clusterOptions) })
-  },
-  clusterDelete: function(project, name, success, failure) {
-    this.call(`api/cluster/${project}/${name}`, success, failure, { method: 'DELETE' })
+  clusterCreate: (project, name, clusterOptions) => {
+    return fetchLeo(`api/cluster/${project}/${name}`, _.merge(authOpts(), jsonBody(clusterOptions), { method: 'PUT' }))
   },
 
-  localizeNotebooks(project, name, files, success, failure) {
-    this.call(`notebooks/${project}/${name}/api/localize`, success, failure,
-      { method: 'POST', body: JSON.stringify(files) })
+  clusterDelete: (project, name) => {
+    return fetchLeo(`api/cluster/${project}/${name}`, _.merge(authOpts(), { method: 'DELETE' }))
   },
 
-  setCookie(project, name, success, failure) {
-    this.call(`notebooks/${project}/${name}/setCookie`, success, failure,
-      { credentials: 'include' })
+  localizeNotebooks: (project, name, files) => {
+    return fetchLeo(`notebooks/${project}/${name}/api/localize`, _.merge(authOpts(), jsonBody(files), { method: 'POST' }))
+  },
+
+  setCookie: (project, name) => {
+    return fetchLeo(`notebooks/${project}/${name}/setCookie`, _.merge(authOpts(), { credentials: 'include' }))
   }
-}, ajaxService)
+}

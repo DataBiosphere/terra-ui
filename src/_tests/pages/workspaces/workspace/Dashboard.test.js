@@ -1,15 +1,16 @@
 import { mount } from 'enzyme'
 import { h } from 'react-hyperscript-helpers'
 import { Rawls } from 'src/libs/ajax'
+import { waitOneTickAndUpdate } from 'src/libs/test-utils'
 import { WorkspaceContainer } from 'src/pages/workspaces/workspace/Container'
 
 
 describe('Dashboard', () => {
   // Pretty much useless, exists to explore mock infrastructure
   it('should render the correct access level', () => {
-    jest.spyOn(Rawls, 'workspaceDetails').mockImplementationOnce((namespace, name, success) => {
+    jest.spyOn(Rawls, 'workspaceDetails').mockImplementationOnce((namespace, name) => {
         const { createWorkspace } = require.requireActual('src/libs/__mocks__/ajax')
-        success(createWorkspace({ namespace, name, accessLevel: 'OWNER' }))
+        return Promise.resolve(createWorkspace({ namespace, name, accessLevel: 'OWNER' }))
       }
     )
 
@@ -19,6 +20,8 @@ describe('Dashboard', () => {
         name: 'test-name'
       }))
 
-    expect(wrapper.testId('access-level').text()).toEqual('OWNER')
+    return waitOneTickAndUpdate(wrapper).then(() => {
+      expect(wrapper.testId('access-level').text()).toEqual('OWNER')
+    })
   })
 })

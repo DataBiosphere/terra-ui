@@ -25,7 +25,7 @@ export class WorkspaceList extends Component {
   }
 
   componentWillMount() {
-    Rawls.workspacesList(
+    Rawls.workspacesList().then(
       workspaces => this.setState({
         workspaces: _.sortBy(_.filter(workspaces,
           ws => !ws.public || Utils.workspaceAccessLevels.indexOf(ws.accessLevel) >

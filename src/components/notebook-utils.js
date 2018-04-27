@@ -75,12 +75,13 @@ export class NotebookCreator extends Component {
               disabled: !(notebookName && notebookKernel),
               onClick: () => {
                 this.setState({ modalOpen: false, creating: true })
-                Buckets.createNotebook(namespace, bucketName, notebookName, notebookKernel.data,
+                Buckets.createNotebook(namespace, bucketName, notebookName, notebookKernel.data).then(
                   () => {
                     this.setState({ creating: false })
                     reloadList()
                   },
-                  notebookFailure => this.setState({ notebookFailure, modalOpen: false }))
+                  notebookFailure => this.setState({ notebookFailure, modalOpen: false })
+                )
               }
             }, 'Create Notebook')
           }, [
@@ -139,9 +140,10 @@ export class NotebookDuplicator extends Component {
           onClick: () => {
             this.setState({ processing: true })
             Buckets[destroyOld ? 'renameNotebook' : 'copyNotebook'](
-              namespace, bucketName, printName, newName,
-              onSuccess,
-              failure => this.setState({ failure }))
+              namespace, bucketName, printName, newName).then(
+                onSuccess,
+                failure => this.setState({ failure })
+              )
           }
         }, `${destroyOld ? 'Rename' : 'Duplicate' } Notebook`)
       },
@@ -175,9 +177,10 @@ export class NotebookDeleter extends Component {
           disabled: processing,
           onClick: () => {
             this.setState({ processing: true })
-            Buckets.deleteNotebook(namespace, bucketName, printName,
+            Buckets.deleteNotebook(namespace, bucketName, printName).then(
               onSuccess,
-              failure => this.setState({ failure }))
+              failure => this.setState({ failure })
+            )
           }
         }, `Delete Notebook`)
       },
