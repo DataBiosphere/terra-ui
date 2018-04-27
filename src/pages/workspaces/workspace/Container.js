@@ -66,8 +66,10 @@ export class WorkspaceContainer extends Component {
   loadWorkspace() {
     const { namespace, name } = this.props
 
-    Rawls.workspaceDetails(namespace, name, workspace => this.setState({ workspace }),
-      workspaceFailure => this.setState({ workspaceFailure }))
+    Rawls.workspaceDetails(namespace, name).then(
+      workspace => this.setState({ workspace }),
+      workspaceFailure => this.setState({ workspaceFailure })
+    )
   }
 
   render() {
