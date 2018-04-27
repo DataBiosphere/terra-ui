@@ -60,7 +60,7 @@ class Main extends Component {
   handleSignIn = isSignedIn => {
     this.setState({ isSignedIn })
     if (isSignedIn) {
-      Sam.getUserStatus(
+      Sam.getUserStatus().then(
         ({ enabled: { ldap } }) => {
           if (!ldap) {
             this.setState({ isShowingNotRegisteredModal: true })
