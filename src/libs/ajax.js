@@ -38,7 +38,9 @@ window.saturnMock = {
 
 const parseJson = res => res.json()
 const authOpts = (token = Utils.getAuthToken()) => ({ headers: { Authorization: `Bearer ${token}` } })
-const jsonBody = body => ({ body: JSON.stringify(body), headers: { 'Content-Type': 'application/json' } })
+const jsonBody = body => ({
+  body: JSON.stringify(body), headers: { 'Content-Type': 'application/json' }
+})
 
 const instrumentedFetch = (...args) => {
   if (noConnection) {
@@ -57,7 +59,7 @@ const fetchOk = (...args) => {
 }
 
 
-const Sam = {
+export const Sam = {
   token: Utils.memoizeWithTimeout((namespace) => {
     const scopes = ['https://www.googleapis.com/auth/devstorage.full_control']
     return fetchOk(`${Config.getSamUrlRoot()}/api/google/user/petServiceAccount/${namespace}/token`,
@@ -66,8 +68,9 @@ const Sam = {
       .then(parseJson)
   }, namespace => namespace, 1000 * 60 * 30),
 
-  getUserStatus(success, failure) {
-    this.json('register/user', success, failure)
+  getUserStatus: () => {
+    return fetchOk(`${Config.getSamUrlRoot()}/api/register/user`)
+      .then(parseJson)
   }
 }
 
@@ -166,7 +169,8 @@ export const Leo = {
 
     return {
       create: (clusterOptions) => {
-        return fetchLeo(root, _.merge(authOpts(), jsonBody(clusterOptions), { method: 'PUT' }))
+        return fetchLeo(root,
+          _.merge(authOpts(), jsonBody(clusterOptions), { method: 'PUT' }))
       },
 
       delete: () => {
@@ -180,13 +184,11 @@ export const Leo = {
 
     return {
       localize: (files) => {
-        return fetchLeo(`${root}/api/localize`,
-          _.merge(authOpts(), jsonBody(files), { method: 'POST' }))
+        return fetchLeo(`${root}/api/localize`, _.merge(authOpts(), jsonBody(files), { method: 'POST' }))
       },
 
       setCookie: () => {
-        return fetchLeo(`${root}/setCookie`,
-          _.merge(authOpts(), { credentials: 'include' }))
+        return fetchLeo(`${root}/setCookie`, _.merge(authOpts(), { credentials: 'include' }))
       }
     }
   }
