@@ -37,13 +37,10 @@ export const createWorkspace = (overrides) => {
 }
 
 export const Rawls = {
-  workspacesList(success, _) {
-    success([
-      createWorkspace(),
-      createWorkspace()
-    ])
+  workspacesList() {
+    return Promise.resolve([createWorkspace(), createWorkspace()])
   },
-  workspaceDetails(namespace, name, success, _) {
-    success(createWorkspace({ namespace, name }))
+  workspaceDetails(namespace, name) {
+    return Promise.resolve(createWorkspace({ namespace, name }))
   }
 }

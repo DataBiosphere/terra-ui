@@ -13,7 +13,7 @@ export default class WorkspaceData extends Component {
   componentWillMount() {
     const { namespace, name } = this.props.workspace
 
-    Rawls.workspaceEntities(namespace, name,
+    Rawls.workspaceEntities(namespace, name).then(
       workspaceEntities => this.setState({ workspaceEntities }),
       entitiesFailure => this.setState({ entitiesFailure })
     )
@@ -31,7 +31,7 @@ export default class WorkspaceData extends Component {
           },
           onClick: () => {
             this.setState({ selectedEntityType: type, selectedEntities: null })
-            Rawls.workspaceEntity(namespace, name, type,
+            Rawls.workspaceEntity(namespace, name, type).then(
               selectedEntities => this.setState({ selectedEntities }),
               entityFailure => this.setState({ entityFailure })
             )
