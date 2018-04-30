@@ -38,7 +38,9 @@ window.saturnMock = {
 
 const parseJson = res => res.json()
 const authOpts = (token = Utils.getAuthToken()) => ({ headers: { Authorization: `Bearer ${token}` } })
-const jsonBody = body => ({ body: JSON.stringify(body), headers: { 'Content-Type': 'application/json' } })
+const jsonBody = body => ({
+  body: JSON.stringify(body), headers: { 'Content-Type': 'application/json' }
+})
 
 const instrumentedFetch = (...args) => {
   if (noConnection) {
@@ -100,13 +102,6 @@ export const Buckets = {
   renameNotebook: (namespace, bucket, oldName, newName) => {
     return Buckets.copyNotebook(namespace, bucket, oldName, newName)
       .then(() => Buckets.deleteNotebook(namespace, bucket, oldName))
-  },
-
-  listNotebooks: (namespace, name) => {
-    return Sam.token(namespace)
-      .then(token => fetchBuckets(`storage/v1/b/${name}/o?prefix=notebooks/`, authOpts(token)))
-      .then(parseJson)
-      .then(({ items }) => _.filter(items, ({ name }) => name.endsWith('.ipynb')))
   }
 }
 
@@ -119,19 +114,25 @@ export const Rawls = {
       .then(parseJson)
   },
 
-  workspaceDetails: (namespace, name) => {
-    return fetchRawls(`workspaces/${namespace}/${name}`, authOpts())
-      .then(parseJson)
-  },
+  workspace: (namespace, name) => {
+    const root = `workspaces/${namespace}/${name}`
 
-  workspaceEntities: (namespace, name) => {
-    return fetchRawls(`workspaces/${namespace}/${name}/entities`, authOpts())
-      .then(parseJson)
-  },
+    return {
+      details: () => {
+        return fetchRawls(root, authOpts())
+          .then(parseJson)
+      },
 
-  workspaceEntity: (namespace, name, type) => {
-    return fetchRawls(`workspaces/${namespace}/${name}/entities/${type}`, authOpts())
-      .then(parseJson)
+      entities: () => {
+        return fetchRawls(`${root}/entities`, authOpts())
+          .then(parseJson)
+      },
+
+      entity: (type) => {
+        return fetchRawls(`${root}/entities/${type}`, authOpts())
+          .then(parseJson)
+      }
+    }
   }
 }
 
@@ -144,19 +145,27 @@ export const Leo = {
       .then(parseJson)
   },
 
-  clusterCreate: (project, name, clusterOptions) => {
-    return fetchLeo(`api/cluster/${project}/${name}`, _.merge(authOpts(), jsonBody(clusterOptions), { method: 'PUT' }))
-  },
+  cluster: (project, name) => {
+    const root = `api/cluster/${project}/${name}`
 
-  clusterDelete: (project, name) => {
-    return fetchLeo(`api/cluster/${project}/${name}`, _.merge(authOpts(), { method: 'DELETE' }))
+    return {
+      create: (clusterOptions) => {
+        return fetchLeo(root, _.merge(authOpts(), jsonBody(clusterOptions), { method: 'PUT' }))
+      },
+
+      delete: () => {
+        return fetchLeo(root, _.merge(authOpts(), { method: 'DELETE' }))
+      }
+    }
   },
 
   localizeNotebooks: (project, name, files) => {
-    return fetchLeo(`notebooks/${project}/${name}/api/localize`, _.merge(authOpts(), jsonBody(files), { method: 'POST' }))
+    return fetchLeo(`notebooks/${project}/${name}/api/localize`,
+      _.merge(authOpts(), jsonBody(files), { method: 'POST' }))
   },
 
   setCookie: (project, name) => {
-    return fetchLeo(`notebooks/${project}/${name}/setCookie`, _.merge(authOpts(), { credentials: 'include' }))
+    return fetchLeo(`notebooks/${project}/${name}/setCookie`,
+      _.merge(authOpts(), { credentials: 'include' }))
   }
 }

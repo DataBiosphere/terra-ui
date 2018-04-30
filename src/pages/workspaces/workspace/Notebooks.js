@@ -164,15 +164,14 @@ export default class WorkspaceNotebooks extends Component {
   }
 
   createCluster() {
-    Leo.clusterCreate(this.props.workspace.namespace, window.prompt('Name for the new cluster'),
-      {
-        'labels': {}, 'machineConfig': {
-          'numberOfWorkers': 0, 'masterMachineType': 'n1-standard-4',
-          'masterDiskSize': 500, 'workerMachineType': 'n1-standard-4',
-          'workerDiskSize': 500, 'numberOfWorkerLocalSSDs': 0,
-          'numberOfPreemptibleWorkers': 0
-        }
-      }).then(
+    Leo.cluster(this.props.workspace.namespace, window.prompt('Name for the new cluster')).create({
+      'labels': {}, 'machineConfig': {
+        'numberOfWorkers': 0, 'masterMachineType': 'n1-standard-4',
+        'masterDiskSize': 500, 'workerMachineType': 'n1-standard-4',
+        'workerDiskSize': 500, 'numberOfWorkerLocalSSDs': 0,
+        'numberOfPreemptibleWorkers': 0
+      }
+    }).then(
       () => {
         this.setState({ creatingCluster: false })
         this.loadClusters()
@@ -196,11 +195,13 @@ export default class WorkspaceNotebooks extends Component {
 
           _.forEach(notebooks, ({ bucket, name }) => {
             Leo.localizeNotebooks(namespace, cluster, {
-              [`~/${wsName}/${name.slice(10)}`]: `gs://${bucket}/${name}`
-            }).then(
-              () => this.setState(oldState => _.merge({ notebookAccess: { [name]: true } }, oldState)),
-              () => this.setState(oldState => _.merge({ notebookAccess: { [name]: false } }, oldState))
-            )
+            [`~/${wsName}/${name.slice(10)}`]: `gs://${bucket}/${name}`
+          }).then(
+            () => this.setState(
+              oldState => _.merge({ notebookAccess: { [name]: true } }, oldState)),
+            () => this.setState(
+              oldState => _.merge({ notebookAccess: { [name]: false } }, oldState))
+          )
           })
         },
         notebooksFailure => this.setState({ notebooksFailure })
@@ -294,7 +295,7 @@ export default class WorkspaceNotebooks extends Component {
                     if (status !== 'Deleting') {
                       return link({
                         onClick: () => {
-                          Leo.clusterDelete(googleProject, clusterName).then(
+                          Leo.cluster(googleProject, clusterName).delete().then(
                             () => this.loadClusters(),
                             deletionFail => window.alert(`Couldn't delete cluster: ${deletionFail}`)
                           )
