@@ -173,13 +173,19 @@ export const Leo = {
     }
   },
 
-  localizeNotebooks: (project, name, files) => {
-    return fetchLeo(`notebooks/${project}/${name}/api/localize`,
-      _.merge(authOpts(), jsonBody(files), { method: 'POST' }))
-  },
+  notebooks: (project, name) => {
+    const root = `notebooks/${project}/${name}`
 
-  setCookie: (project, name) => {
-    return fetchLeo(`notebooks/${project}/${name}/setCookie`,
-      _.merge(authOpts(), { credentials: 'include' }))
+    return {
+      localize: (files) => {
+        return fetchLeo(`${root}/api/localize`,
+          _.merge(authOpts(), jsonBody(files), { method: 'POST' }))
+      },
+
+      setCookie: () => {
+        return fetchLeo(`${root}/setCookie`,
+          _.merge(authOpts(), { credentials: 'include' }))
+      }
+    }
   }
 }

@@ -194,7 +194,7 @@ export default class WorkspaceNotebooks extends Component {
           this.setState({ notebooks: _.reverse(_.sortBy(notebooks, 'updated')) })
 
           _.forEach(notebooks, ({ bucket, name }) => {
-            Leo.localizeNotebooks(namespace, cluster, {
+            Leo.notebooks(namespace, cluster).localize({
             [`~/${wsName}/${name.slice(10)}`]: `gs://${bucket}/${name}`
           }).then(
             () => this.setState(
