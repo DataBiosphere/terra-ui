@@ -63,3 +63,22 @@ export const cond = function(...args) {
 
   return maybeCall(match ? match[1] : defaultValue)
 }
+
+/**
+ * Memoizes the given function, but expires after the specified duration (ms).
+ * Uses the first argument of the function as the cache key.
+ */
+export const memoizeWithTimeout = (fn, ms) => {
+  const cache = {}
+  return (...args) => {
+    const now = Date.now()
+    const key = args[0]
+    const cached = cache[key]
+    if (cached && now < cached.timestamp + ms) {
+      return cached.value
+    }
+    const value = fn(...args)
+    cache[key] = { timestamp: now, value }
+    return value
+  }
+}

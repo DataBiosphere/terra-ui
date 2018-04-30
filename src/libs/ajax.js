@@ -58,13 +58,13 @@ const fetchOk = (...args) => {
 
 
 const Sam = {
-  token: (namespace) => {
+  token: Utils.memoizeWithTimeout((namespace) => {
     const scopes = ['https://www.googleapis.com/auth/devstorage.full_control']
     return fetchOk(`${Config.getSamUrlRoot()}/api/google/user/petServiceAccount/${namespace}/token`,
       _.merge(authOpts(), jsonBody(scopes), { method: 'POST' })
     )
       .then(parseJson)
-  }
+  }, 1000 * 60 * 30)
 }
 
 
