@@ -74,34 +74,48 @@ const fetchBuckets = (path, ...args) => fetchOk(`https://www.googleapis.com/${pa
 const nbName = name => encodeURIComponent(`notebooks/${name}.ipynb`)
 
 export const Buckets = {
-  copyNotebook: (namespace, bucket, oldName, newName) => {
+  listNotebooks: (namespace, name) => {
     return Sam.token(namespace)
-      .then(token => fetchBuckets(
-        `storage/v1/b/${bucket}/o/${nbName(oldName)}/copyTo/b/${bucket}/o/${nbName(newName)}`,
-        _.merge(authOpts(token), { method: 'POST' }))
-      )
+      .then(token => fetchBuckets(`storage/v1/b/${name}/o?prefix=notebooks/`, authOpts(token)))
+      .then(parseJson)
+      .then(({ items }) => _.filter(items, ({ name }) => name.endsWith('.ipynb')))
   },
 
-  createNotebook: (namespace, bucket, name, contents) => {
-    return Sam.token(namespace)
-      .then(token => fetchBuckets(
-        `upload/storage/v1/b/${bucket}/o?uploadType=media&name=${nbName(name)}`,
-        _.merge(authOpts(token), { method: 'POST', body: JSON.stringify(contents),
-                                   headers: { 'Content-Type': 'application/x-ipynb+json' } }))
-      )
-  },
+  notebook: (namespace, bucket, name) => {
+    const bucketUrl = `storage/v1/b/${bucket}/o`
 
-  deleteNotebook: (namespace, bucket, name) => {
-    return Sam.token(namespace)
-      .then(token => fetchBuckets(
-        `storage/v1/b/${bucket}/o/${nbName(name)}`,
-        _.merge(authOpts(token), { method: 'DELETE' }))
-      )
-  },
+    return {
+      copy: (newName) => {
+        return Sam.token(namespace)
+          .then(token => fetchBuckets(
+            `${bucketUrl}/${nbName(name)}/copyTo/b/${bucket}/o/${nbName(newName)}`,
+            _.merge(authOpts(token), { method: 'POST' }))
+          )
+      },
 
-  renameNotebook: (namespace, bucket, oldName, newName) => {
-    return Buckets.copyNotebook(namespace, bucket, oldName, newName)
-      .then(() => Buckets.deleteNotebook(namespace, bucket, oldName))
+      create: (contents) => {
+        return Sam.token(namespace)
+          .then(token => fetchBuckets(
+            `upload/${bucketUrl}?uploadType=media&name=${nbName(name)}`,
+            _.merge(authOpts(token), {
+              method: 'POST', body: JSON.stringify(contents),
+              headers: { 'Content-Type': 'application/x-ipynb+json' }
+            }))
+          )
+      },
+
+      delete: () => {
+        return Sam.token(namespace)
+          .then(token => fetchBuckets(
+            `${bucketUrl}/${nbName(name)}`,
+            _.merge(authOpts(token), { method: 'DELETE' }))
+          )
+      },
+
+      rename: (newName) => {
+        return this.copy(newName).then(() => this.delete())
+      }
+    }
   }
 }
 
