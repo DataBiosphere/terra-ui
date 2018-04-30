@@ -69,8 +69,7 @@ export const Sam = {
   }, namespace => namespace, 1000 * 60 * 30),
 
   getUserStatus: () => {
-    return fetchOk(`${Config.getSamUrlRoot()}/register/user`, authOpts())
-      .then(parseJson)
+    return instrumentedFetch(`${Config.getSamUrlRoot()}/register/user`, authOpts())
   }
 }
 

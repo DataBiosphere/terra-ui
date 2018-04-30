@@ -61,12 +61,19 @@ class Main extends Component {
     this.setState({ isSignedIn })
     if (isSignedIn) {
       Sam.getUserStatus().then(
-        ({ enabled: { ldap } }) => {
-          if (!ldap) {
+        response => {
+          if (response.status === 404) {
             this.setState({ isShowingNotRegisteredModal: true })
+          } else if (!response.ok) {
+            console.warn('Error looking up user status')
+          } else {
+            response.json().then(({ enabled: { ldap } }) => {
+              if (!ldap) {
+                this.setState({ isShowingNotRegisteredModal: true })
+              }
+            })
           }
-        },
-        failure => Utils.log('Error looking up user status:', failure))
+        })
     }
   }
 
@@ -84,7 +91,7 @@ class Main extends Component {
   }
 
   renderNotRegisteredModal = () => {
-    return Modal({
+    return h(Modal, {
       onDismiss: () => this.setState({ isShowingNotRegisteredModal: false }),
       title: 'Account Not Registered',
       showCancel: false
