@@ -192,7 +192,7 @@ export default class WorkspaceNotebooks extends Component {
 
         _.forEach(notebooks, ({ bucket, name }) => {
           Leo.localizeNotebooks(namespace, cluster, {
-              [`~/${wsName}/${name.slice(10)}`]: `gs://${bucket}/${encodeURIComponent(name)}`
+              [`~/${wsName}/${name.slice(10)}`]: `gs://${bucket}/${name}`
             }).then(
               () => this.setState(oldState => _.merge({ notebookAccess: { [name]: true } }, oldState)),
               () => this.setState(oldState => _.merge({ notebookAccess: { [name]: false } }, oldState))
