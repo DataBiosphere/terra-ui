@@ -46,9 +46,9 @@ class Main extends Component {
       window.gapi.auth2.init({
         clientId: Config.getGoogleClientId()
       }).then(() => {
-        if (Utils.getUser().isSignedIn()) {this.setState({ isSignedIn: true })}
+        if (Utils.getUser().isSignedIn()) { this.setState({ isSignedIn: true }) }
 
-        Utils.getAuthInstance().isSignedIn.listen(status => this.setState({ isSignedIn: status }))
+        Utils.getAuthInstance().isSignedIn.listen((status) => this.setState({ isSignedIn: status }))
 
         window.gapi.signin2.render('signInButton', { scope: 'openid profile email' })
       })

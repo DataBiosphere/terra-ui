@@ -11,7 +11,7 @@ const consoleStyle = 'font-weight: bold; color: darkBlue'
 window.saturnMock = {
   currently: function() {
     if (noConnection || mockResponse) {
-      if (noConnection) {console.info('%cSimulating no connection', consoleStyle)}
+      if (noConnection) { console.info('%cSimulating no connection', consoleStyle) }
       if (mockResponse) {
         console.info('%cSimulating response:', consoleStyle)
         console.info(mockResponse())
@@ -36,9 +36,9 @@ window.saturnMock = {
   }
 }
 
-const parseJson = res => res.json()
+const parseJson = (res) => res.json()
 const authOpts = (token = Utils.getAuthToken()) => ({ headers: { Authorization: `Bearer ${token}` } })
-const jsonBody = body => ({ body: JSON.stringify(body), headers: { 'Content-Type': 'application/json' } })
+const jsonBody = (body) => ({ body: JSON.stringify(body), headers: { 'Content-Type': 'application/json' } })
 
 const instrumentedFetch = (...args) => {
   if (noConnection) {
@@ -53,7 +53,7 @@ const instrumentedFetch = (...args) => {
 
 const fetchOk = (...args) => {
   return instrumentedFetch(...args)
-    .then(res => res.ok ? res : res.text().then(text => Promise.reject(text)))
+    .then((res) => res.ok ? res : res.text().then((text) => Promise.reject(text)))
 }
 
 
@@ -69,12 +69,12 @@ const Sam = {
 
 
 const fetchBuckets = (path, ...args) => fetchOk(`https://www.googleapis.com/${path}`, ...args)
-const nbName = name => `notebooks/${name}.ipynb`
+const nbName = (name) => `notebooks/${name}.ipynb`
 
 export const Buckets = {
   copyNotebook: (namespace, bucket, oldName, newName) => {
     return Sam.token(namespace)
-      .then(token => fetchBuckets(
+      .then((token) => fetchBuckets(
         `storage/v1/b/${bucket}/o/${nbName(oldName)}/copyTo/b/${bucket}/o/${nbName(newName)}`,
         _.merge(authOpts(token), { method: 'POST' }))
       )
@@ -82,16 +82,18 @@ export const Buckets = {
 
   createNotebook: (namespace, bucket, name, contents) => {
     return Sam.token(namespace)
-      .then(token => fetchBuckets(
+      .then((token) => fetchBuckets(
         `upload/storage/v1/b/${bucket}/o?uploadType=media&name=${nbName(name)}`,
-        _.merge(authOpts(token), { method: 'POST', body: JSON.stringify(contents),
-                                   headers: { 'Content-Type': 'application/x-ipynb+json' } }))
-      )
+        _.merge(authOpts(token), {
+          method: 'POST', body: JSON.stringify(contents),
+          headers: { 'Content-Type': 'application/x-ipynb+json' }
+        })
+      ))
   },
 
   deleteNotebook: (namespace, bucket, name) => {
     return Sam.token(namespace)
-      .then(token => fetchBuckets(
+      .then((token) => fetchBuckets(
         `storage/v1/b/${bucket}/o/${nbName(name)}`,
         _.merge(authOpts(token), { method: 'DELETE' }))
       )
@@ -104,7 +106,7 @@ export const Buckets = {
 
   listNotebooks: (namespace, name) => {
     return Sam.token(namespace)
-      .then(token => fetchBuckets(`storage/v1/b/${name}/o?prefix=notebooks/`, authOpts(token)))
+      .then((token) => fetchBuckets(`storage/v1/b/${name}/o?prefix=notebooks/`, authOpts(token)))
       .then(parseJson)
       .then(({ items }) => _.filter(items, ({ name }) => name.endsWith('.ipynb')))
   }

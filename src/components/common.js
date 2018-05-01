@@ -51,29 +51,29 @@ export const search = function({ wrapperProps, inputProps }) {
 
 export const contextBar = function(props, children) {
   return div(_.merge({
-      style: {
-        display: 'flex', alignItems: 'center', backgroundColor: Style.colors.primary,
-        color: Style.colors.textAlt, fontWeight: 500,
-        height: '3.5rem', padding: '0 1rem', lineHeight: '3.5rem'
-      }
-    }, props),
-    children)
+    style: {
+      display: 'flex', alignItems: 'center', backgroundColor: Style.colors.primary,
+      color: Style.colors.textAlt, fontWeight: 500,
+      height: '3.5rem', padding: '0 1rem', lineHeight: '3.5rem'
+    }
+  }, props),
+  children)
 }
 
 export const contextMenu = function(items) {
   return div({
-      style: {
-        backgroundColor: 'white', minWidth: 125, border: '1px solid #ccc',
-        boxShadow: Style.standardShadow
-      }
-    },
-    _.map(items, ([props, contents]) => h(Interactive,
-      _.merge({
-        as: 'div',
-        style: { fontSize: 12, padding: '0.5rem 1.5rem' },
-        hover: { backgroundColor: Style.colors.highlight, fontWeight: 500 }
-      }, props),
-      contents))
+    style: {
+      backgroundColor: 'white', minWidth: 125, border: '1px solid #ccc',
+      boxShadow: Style.standardShadow
+    }
+  },
+  _.map(items, ([props, contents]) => h(Interactive,
+    _.merge({
+      as: 'div',
+      style: { fontSize: 12, padding: '0.5rem 1.5rem' },
+      hover: { backgroundColor: Style.colors.highlight, fontWeight: 500 }
+    }, props),
+    contents))
   )
 }
 

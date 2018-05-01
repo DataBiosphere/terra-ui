@@ -16,15 +16,15 @@ const modalRoot = document.getElementById('modal-root')
  * @param okButton
  */
 export default class Modal extends Component {
-  constructor(props) {
-    super(props)
-    this.el = document.createElement('div')
-  }
-
   listenForEscape = (e) => {
     if (e.key === 'Escape') {
       this.props.onDismiss()
     }
+  }
+
+  constructor(props) {
+    super(props)
+    this.el = document.createElement('div')
   }
 
   componentDidMount() {
@@ -49,32 +49,32 @@ export default class Modal extends Component {
         }
       }),
       div({
+        style: {
+          minHeight: '20%', maxHeight: '90%', minWidth: '30%', maxWidth: '90%', borderRadius: 5,
+          padding: '1.5rem 1.25rem',
+          backgroundColor: 'white', boxShadow: Style.modalShadow,
+          position: 'fixed', left: '50%', top: '50%', transform: 'translate(-50%, -50%)',
+          display: 'flex', flexDirection: 'column'
+        }
+      },
+      [
+        title ? div({ style: { fontSize: 18, marginBottom: '1rem' } }, [title]) : null,
+        children,
+        div({
           style: {
-            minHeight: '20%', maxHeight: '90%', minWidth: '30%', maxWidth: '90%', borderRadius: 5,
-            padding: '1.5rem 1.25rem',
-            backgroundColor: 'white', boxShadow: Style.modalShadow,
-            position: 'fixed', left: '50%', top: '50%', transform: 'translate(-50%, -50%)',
-            display: 'flex', flexDirection: 'column'
+            flexShrink: 0, marginTop: '1rem', alignSelf: 'flex-end',
+            display: 'flex', alignItems: 'baseline'
           }
-        },
-        [
-          title ? div({ style: { fontSize: 18, marginBottom: '1rem' } }, [title]) : null,
-          children,
-          div({
-            style: {
-              flexShrink: 0, marginTop: '1rem', alignSelf: 'flex-end',
-              display: 'flex', alignItems: 'baseline'
-            }
-          }, [
-            showCancel ?
-              div({
-                style: _.merge({ marginRight: '1rem' }, Style.elements.button),
-                onClick: onDismiss
-              }, 'Cancel') :
-              null,
-            okButton
-          ])
+        }, [
+          showCancel ?
+            div({
+              style: _.merge({ marginRight: '1rem' }, Style.elements.button),
+              onClick: onDismiss
+            }, 'Cancel') :
+            null,
+          okButton
         ])
+      ])
     ])
 
     return ReactDOM.createPortal(component, this.el)

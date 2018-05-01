@@ -14,4 +14,4 @@ export class Component extends rComponent {
   }
 }
 
-export const Select = props => h(rSelect, _.merge({ style: Style.elements.input }, props))
+export const Select = (props) => h(rSelect, _.merge({ style: Style.elements.input }, props))

@@ -41,20 +41,22 @@ export class TopBar extends Component {
           div({
             style: {
               zIndex: 1,
-              // MP: Rotating the 'angle' icon for breadcrumbs creates a new stacking context,
-              // causing it to appear above the overlay.
+              /*
+               * MP: Rotating the 'angle' icon for breadcrumbs creates a new stacking context,
+               * causing it to appear above the overlay.
+               */
               display: 'table', width: 275, color: 'white', position: 'absolute', cursor: 'default',
               backgroundColor: Style.colors.primary, height: '100%',
               boxShadow: '3px 0 13px 0 rgba(0,0,0,0.3)'
             },
-            onClick: e => e.stopPropagation()
+            onClick: (e) => e.stopPropagation()
           }, [
             div({
               style: _.assign({
-                  height: '3rem', lineHeight: '3rem', backgroundColor: 'white', padding: '1rem',
-                  textAlign: 'center', display: 'flex', alignItems: 'center'
-                },
-                Style.elements.pageTitle)
+                height: '3rem', lineHeight: '3rem', backgroundColor: 'white', padding: '1rem',
+                textAlign: 'center', display: 'flex', alignItems: 'center'
+              },
+              Style.elements.pageTitle)
             }, [
               icon('bars',
                 {
@@ -65,9 +67,9 @@ export class TopBar extends Component {
                 }),
               a({
                 style: _.assign({
-                    height: '3rem', textAlign: 'center', display: 'flex', alignItems: 'center'
-                  },
-                  Style.elements.pageTitle),
+                  height: '3rem', textAlign: 'center', display: 'flex', alignItems: 'center'
+                },
+                Style.elements.pageTitle),
                 href: Nav.getLink('workspaces'),
                 onClick: () => this.hideNav()
               }, [logo(), 'Saturn'])
@@ -117,18 +119,18 @@ export class TopBar extends Component {
             onClick: () => this.showNav()
           }),
         a({
-            style: _.defaults({ display: 'flex', alignItems: 'center' }, Style.elements.pageTitle),
-            href: Nav.getLink('workspaces')
-          },
-          [
-            logo(),
-            div({}, [
-              div({
-                style: { fontSize: '0.8rem', color: Style.colors.titleAlt, marginLeft: '0.1rem' }
-              }, 'Saturn'),
-              this.props.title
-            ])
-          ]),
+          style: _.defaults({ display: 'flex', alignItems: 'center' }, Style.elements.pageTitle),
+          href: Nav.getLink('workspaces')
+        },
+        [
+          logo(),
+          div({}, [
+            div({
+              style: { fontSize: '0.8rem', color: Style.colors.titleAlt, marginLeft: '0.1rem' }
+            }, 'Saturn'),
+            this.props.title
+          ])
+        ]),
         this.props.children,
         div({ style: { flexGrow: 1 } }),
         link({

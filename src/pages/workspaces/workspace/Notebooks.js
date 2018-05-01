@@ -22,36 +22,35 @@ class NotebookCard extends Component {
     const hideMenu = () => this.notebookMenu.setVisibility(false)
 
     const notebookMenu = h(ShowOnClick, {
-        ref: instance => this.notebookMenu = instance,
-        disabled: !notebookAccess,
-        button: h(Interactive, {
-          as: icon('ellipsis-vertical'), size: 18,
-          style: { marginLeft: '1rem' }, focus: 'hover'
-        })
-      },
-      [
-        div({
-          style: _.merge({
-            position: 'absolute', top: 0, lineHeight: 'initial', textAlign: 'initial',
-            color: 'initial', textTransform: 'initial', fontWeight: 300
-          }, listView ? { right: '1rem' } : { left: '2rem' })
-        }, [
-          contextMenu([
-            [{ onClick: () => {this.setState({ renamingNotebook: true }, hideMenu) } }, 'Rename'], // hiding menu doesn't work when executed concurrently
-            [{ onClick: () => {this.setState({ copyingNotebook: true }, hideMenu)} }, 'Duplicate'],
-            [{ onClick: () => {this.setState({ deletingNotebook: true }, hideMenu)} }, 'Delete']
-          ])
+      ref: (instance) => this.notebookMenu = instance,
+      disabled: !notebookAccess,
+      button: h(Interactive, {
+        as: icon('ellipsis-vertical'), size: 18,
+        style: { marginLeft: '1rem' }, focus: 'hover'
+      })
+    },
+    [
+      div({
+        style: _.merge({
+          position: 'absolute', top: 0, lineHeight: 'initial', textAlign: 'initial',
+          color: 'initial', textTransform: 'initial', fontWeight: 300
+        }, listView ? { right: '1rem' } : { left: '2rem' })
+      }, [
+        contextMenu([
+          [{ onClick: () => { this.setState({ renamingNotebook: true }, hideMenu) } }, 'Rename'], // hiding menu doesn't work when executed concurrently
+          [{ onClick: () => { this.setState({ copyingNotebook: true }, hideMenu) } }, 'Duplicate'],
+          [{ onClick: () => { this.setState({ deletingNotebook: true }, hideMenu) } }, 'Delete']
         ])
-      ]
-    )
+      ])
+    ])
 
     const jupyterIcon = icon('jupyterIcon', {
       style: listView ? {
-          height: '2em',
-          width: '2em',
-          margin: '-0.5em 0.5rem -0.5em 0',
-          color: Style.colors.background
-        } :
+        height: '2em',
+        width: '2em',
+        margin: '-0.5em 0.5rem -0.5em 0',
+        color: Style.colors.background
+      } :
         {
           height: 125,
           width: 'auto',
@@ -73,73 +72,71 @@ class NotebookCard extends Component {
     )
 
     return h(Fragment, [
-        a({
-            target: '_blank',
-            href: notebookAccess ?
-              `${clusterUrl}/notebooks/${wsName}/${printName}.ipynb` : // removes 'notebooks/'
-              undefined,
-            style: _.defaults({
-              flexShrink: 0,
-              width: listView ? undefined : 200,
-              height: listView ? undefined : 250,
-              margin: '1.25rem', boxSizing: 'border-box',
-              color: Style.colors.text, textDecoration: 'none',
-              cursor: notebookAccess === false ? 'not-allowed' : notebookAccess ? undefined : 'wait',
-              display: 'flex', flexDirection: listView ? 'row' : 'column',
-              justifyContent: listView ? undefined : 'space-between',
-              alignItems: listView ? 'center' : undefined
-            }, Style.elements.card)
-          },
-          listView ? [
-              jupyterIcon,
-              title,
-              div({ style: { flexGrow: 1 } }),
-              div({ style: { fontSize: '0.8rem', marginRight: '0.5rem' } },
-                `Last changed: ${Utils.makePrettyDate(updated)}`),
-              statusIcon,
-              notebookMenu
-            ] :
-            [
-              div({ style: { display: 'flex', justifyContent: 'space-between' } },
-                [title, notebookMenu]),
-              jupyterIcon,
-              div({ style: { display: 'flex', alignItems: 'flex-end' } }, [
-                div({ style: { fontSize: '0.8rem', flexGrow: 1, marginRight: '0.5rem' } }, [
-                  'Last changed:',
-                  div({}, Utils.makePrettyDate(updated))
-                ]),
-                statusIcon
-              ])
+      a({
+        target: '_blank',
+        href: notebookAccess ?
+          `${clusterUrl}/notebooks/${wsName}/${printName}.ipynb` : // removes 'notebooks/'
+          undefined,
+        style: _.defaults({
+          flexShrink: 0,
+          width: listView ? undefined : 200,
+          height: listView ? undefined : 250,
+          margin: '1.25rem', boxSizing: 'border-box',
+          color: Style.colors.text, textDecoration: 'none',
+          cursor: notebookAccess === false ? 'not-allowed' : notebookAccess ? undefined : 'wait',
+          display: 'flex', flexDirection: listView ? 'row' : 'column',
+          justifyContent: listView ? undefined : 'space-between',
+          alignItems: listView ? 'center' : undefined
+        }, Style.elements.card)
+      },
+      listView ? [
+        jupyterIcon,
+        title,
+        div({ style: { flexGrow: 1 } }),
+        div({ style: { fontSize: '0.8rem', marginRight: '0.5rem' } },
+          `Last changed: ${Utils.makePrettyDate(updated)}`),
+        statusIcon,
+        notebookMenu
+      ] :
+        [
+          div({ style: { display: 'flex', justifyContent: 'space-between' } },
+            [title, notebookMenu]),
+          jupyterIcon,
+          div({ style: { display: 'flex', alignItems: 'flex-end' } }, [
+            div({ style: { fontSize: '0.8rem', flexGrow: 1, marginRight: '0.5rem' } }, [
+              'Last changed:',
+              div({}, Utils.makePrettyDate(updated))
             ]),
-        Utils.cond(
-          [
-            renamingNotebook,
-            () => h(NotebookDuplicator, {
-              printName, namespace, bucketName, destroyOld: true,
-              onDismiss: () => this.setState({ renamingNotebook: false }),
-              onSuccess: () => reloadList()
-            })
-          ],
-          [
-            copyingNotebook,
-            () => h(NotebookDuplicator, {
-              printName, namespace, bucketName, destroyOld: false,
-              onDismiss: () => this.setState({ copyingNotebook: false }),
-              onSuccess: () => reloadList()
-            })
-          ],
-          [
-            deletingNotebook,
-            () => h(NotebookDeleter, {
-              printName, namespace, bucketName,
-              onDismiss: () => this.setState({ deletingNotebook: false }),
-              onSuccess: () => reloadList()
-            })
-          ],
-          () => null)
-      ]
-    )
-
+            statusIcon
+          ])
+        ]),
+      Utils.cond(
+        [
+          renamingNotebook,
+          () => h(NotebookDuplicator, {
+            printName, namespace, bucketName, destroyOld: true,
+            onDismiss: () => this.setState({ renamingNotebook: false }),
+            onSuccess: () => reloadList()
+          })
+        ],
+        [
+          copyingNotebook,
+          () => h(NotebookDuplicator, {
+            printName, namespace, bucketName, destroyOld: false,
+            onDismiss: () => this.setState({ copyingNotebook: false }),
+            onSuccess: () => reloadList()
+          })
+        ],
+        [
+          deletingNotebook,
+          () => h(NotebookDeleter, {
+            printName, namespace, bucketName,
+            onDismiss: () => this.setState({ deletingNotebook: false }),
+            onSuccess: () => reloadList()
+          })
+        ],
+        () => null)
+    ])
   }
 }
 
@@ -151,13 +148,13 @@ export default class WorkspaceNotebooks extends Component {
   loadClusters() {
     this.setState({ clusters: undefined })
     Leo.clustersList().then(
-      list => {
+      (list) => {
         const owned = _.filter(list,
-          v => (v.creator === Utils.getUser().getBasicProfile().getEmail()))
+          (v) => (v.creator === Utils.getUser().getBasicProfile().getEmail()))
         this.setState({ clusters: _.sortBy(owned, 'clusterName') },
           this.getNotebooks)
       },
-      listFailure => this.setState({ listFailure })
+      (listFailure) => this.setState({ listFailure })
     )
   }
 
@@ -171,12 +168,12 @@ export default class WorkspaceNotebooks extends Component {
           'numberOfPreemptibleWorkers': 0
         }
       }).then(
-        () => {
-          this.setState({ creatingCluster: false })
-          this.loadClusters()
-        },
-        creationFail => window.alert(`Couldn't create cluster: ${creationFail}`)
-      )
+      () => {
+        this.setState({ creatingCluster: false })
+        this.loadClusters()
+      },
+      (creationFail) => window.alert(`Couldn't create cluster: ${creationFail}`)
+    )
     this.setState({ creatingCluster: true })
   }
 
@@ -185,21 +182,21 @@ export default class WorkspaceNotebooks extends Component {
     const { namespace, name: wsName, bucketName } = this.props.workspace
 
     Buckets.listNotebooks(namespace, bucketName).then(
-      notebooks => {
+      (notebooks) => {
         const cluster = _.first(this.state.clusters).clusterName
 
         this.setState({ notebooks: _.reverse(_.sortBy(notebooks, 'updated')) })
 
         _.forEach(notebooks, ({ bucket, name }) => {
           Leo.localizeNotebooks(namespace, cluster, {
-              [`~/${wsName}/${name.slice(10)}`]: `gs://${bucket}/${name}`
-            }).then(
-              () => this.setState(oldState => _.merge({ notebookAccess: { [name]: true } }, oldState)),
-              () => this.setState(oldState => _.merge({ notebookAccess: { [name]: false } }, oldState))
-            )
+            [`~/${wsName}/${name.slice(10)}`]: `gs://${bucket}/${name}`
+          }).then(
+            () => this.setState((oldState) => _.merge({ notebookAccess: { [name]: true } }, oldState)),
+            () => this.setState((oldState) => _.merge({ notebookAccess: { [name]: false } }, oldState))
+          )
         })
       },
-      notebooksFailure => this.setState({ notebooksFailure })
+      (notebooksFailure) => this.setState({ notebooksFailure })
     )
   }
 
@@ -273,7 +270,7 @@ export default class WorkspaceNotebooks extends Component {
                 },
                 {
                   title: 'Created by', dataIndex: 'creator', key: 'creator',
-                  render: creator => div({
+                  render: (creator) => div({
                     title: creator,
                     style: {
                       textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block',
@@ -289,7 +286,7 @@ export default class WorkspaceNotebooks extends Component {
                         onClick: () => {
                           Leo.clusterDelete(googleProject, clusterName).then(
                             () => this.loadClusters(),
-                            deletionFail => window.alert(`Couldn't delete cluster: ${deletionFail}`)
+                            (deletionFail) => window.alert(`Couldn't delete cluster: ${deletionFail}`)
                           )
                         },
                         title: `Delete cluster ${clusterName}`
