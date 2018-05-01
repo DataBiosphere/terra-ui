@@ -1,5 +1,17 @@
-* {
-  font-family: "Gotham SSm A", "Gotham SSm B", sans-serif;
+@font-face {
+  font-family: "Gotham";
+  font-weight: 300;
+  src: url("./fonts/gotham-book.woff") format("woff");
+}
+
+@font-face {
+  font-family: "Gotham";
+  font-weight: 500;
+  src: url("./fonts/gotham-medium.woff") format("woff");
+}
+
+body, button, input, select, textarea {
+  font-family: "Gotham", sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -12,7 +24,7 @@ body {
   background-color: #e5e5e5;
   margin: 0;
   color: #4a4a4a;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 300;
   overflow: hidden;
   position: absolute;
