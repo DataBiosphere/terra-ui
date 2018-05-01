@@ -140,8 +140,7 @@ export class NotebookDuplicator extends Component {
           disabled: !newName || processing,
           onClick: () => {
             this.setState({ processing: true })
-            Buckets.notebook(namespace, bucketName, printName)[destroyOld ? 'rename' : 'copy'](
-              newName).then(
+            Buckets.notebook(namespace, bucketName, printName)[destroyOld ? 'rename' : 'copy'](newName).then(
               onSuccess,
               failure => this.setState({ failure })
             )

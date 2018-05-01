@@ -38,9 +38,7 @@ window.saturnMock = {
 
 const parseJson = res => res.json()
 const authOpts = (token = Utils.getAuthToken()) => ({ headers: { Authorization: `Bearer ${token}` } })
-const jsonBody = body => ({
-  body: JSON.stringify(body), headers: { 'Content-Type': 'application/json' }
-})
+const jsonBody = body => ({ body: JSON.stringify(body), headers: { 'Content-Type': 'application/json' } })
 
 const instrumentedFetch = (...args) => {
   if (noConnection) {
