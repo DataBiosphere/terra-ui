@@ -66,13 +66,13 @@ export const cond = function(...args) {
 
 /**
  * Memoizes the given function, but expires after the specified duration (ms).
- * Uses the first argument of the function as the cache key.
+ * The resolver function is used to generate a cache key from the arguments.
  */
-export const memoizeWithTimeout = (fn, ms) => {
+export const memoizeWithTimeout = (fn, resolver, ms) => {
   const cache = {}
   return (...args) => {
     const now = Date.now()
-    const key = args[0]
+    const key = resolver(...args)
     const cached = cache[key]
     if (cached && now < cached.timestamp + ms) {
       return cached.value

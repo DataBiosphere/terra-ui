@@ -64,7 +64,7 @@ const Sam = {
       _.merge(authOpts(), jsonBody(scopes), { method: 'POST' })
     )
       .then(parseJson)
-  }, 1000 * 60 * 30)
+  }, namespace => namespace, 1000 * 60 * 30)
 }
 
 
