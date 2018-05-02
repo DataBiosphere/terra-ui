@@ -63,3 +63,8 @@ export const cond = function(...args) {
 
   return maybeCall(match ? match[1] : defaultValue)
 }
+
+export const thunk = fn => {
+  fn.thunk = true
+  return fn
+}

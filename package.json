@@ -5,6 +5,7 @@
   "dependencies": {
     "@clr/icons": "^0.11.14",
     "@webcomponents/custom-elements": "^1.1.0",
+    "immutable": "^3.8.2",
     "lodash": "^4.17.10",
     "rc-table": "^6.1.10",
     "react": "^16.3.2",
@@ -14,8 +15,10 @@
     "react-hot-loader": "^4.1.2",
     "react-hyperscript-helpers": "^1.2.0",
     "react-interactive": "^0.8.1",
+    "react-redux": "^5.0.7",
     "react-scripts": "1.1.4",
-    "react-select": "^1.2.1"
+    "react-select": "^1.2.1",
+    "redux": "^4.0.0"
   },
   "scripts": {
     "start": "react-app-rewired start",
