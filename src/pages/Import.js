@@ -45,7 +45,7 @@ class Importer extends Component {
 
     return h(Fragment, [
       h(TopBar, { title: 'Import' }, [
-        div({ style: { display: 'flex', flexDirection: 'column', paddingLeft: '4rem' } },
+        div({ style: { display: 'flex', flexDirection: 'column', flexShrink: 0, paddingLeft: '4rem' } },
           [
             span(source),
             span(item)
