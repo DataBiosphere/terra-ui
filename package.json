@@ -15,7 +15,8 @@
     "react-hyperscript-helpers": "^1.2.0",
     "react-interactive": "^0.8.1",
     "react-scripts": "1.1.4",
-    "react-select": "^1.2.1"
+    "react-select": "^1.2.1",
+    "validate.js": "^0.12.0"
   },
   "scripts": {
     "start": "react-app-rewired start",

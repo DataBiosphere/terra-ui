@@ -2,10 +2,13 @@ export const colors = {
   accent: '#8b5f95',
   background: '#e5e5e5',
   disabled: '#9b9b9b',
+  error: '#f68d76',
+  errorFaded: '#fcefec',
   highlight: '#bfd5e3',
   highlightFaded: '#e7f1f7',
   primary: '#5faee0',
   secondary: '#478eba',
+  success: '#7ac79b',
   text: '#4a4a4a',
   textAlt: '#bde5ff',
   textFaded: '#a6a6a6',
@@ -25,7 +28,10 @@ export const elements = {
     borderRadius: 5, padding: '1rem', wordWrap: 'break-word', boxShadow: standardShadow,
     backgroundColor: 'white'
   },
-  input: { border: '1px solid #c3c3c3', borderRadius: 4, boxSizing: 'border-box' },
+  input: {
+    style: { border: '1px solid #c3c3c3', borderRadius: 4, boxSizing: 'border-box' },
+    focus: { border: '1px solid #262262' }
+  },
   pageTitle: {
     color: colors.title, fontSize: 22, fontWeight: 500, textTransform: 'uppercase',
     textDecoration: 'none'
