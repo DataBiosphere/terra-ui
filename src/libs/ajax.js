@@ -97,8 +97,7 @@ export const Buckets = {
 
       create: (contents) => {
         return Sam.token(namespace)
-          .then(token => fetchBuckets(
-            `upload/${bucketUrl}?uploadType=media&name=${nbName(name)}`,
+          .then(token => fetchBuckets(`upload/${bucketUrl}?uploadType=media&name=${nbName(name)}`,
             _.merge(authOpts(token), {
               method: 'POST', body: JSON.stringify(contents),
               headers: { 'Content-Type': 'application/x-ipynb+json' }
@@ -190,4 +189,22 @@ export const Leo = {
       }
     }
   }
+}
+
+
+const fetchDockstore = (path, ...args) => fetchOk(`${Config.getDockstoreUrlRoot()}/${path}`, ...args)
+// %23 = '#', %2F = '/'
+const dockstoreMethodPath = path => `api/ga4gh/v1/tools/%23workflow%2F${encodeURIComponent(path)}/versions`
+
+export const Dockstore = {
+  getWdl: (path, version) => {
+    return fetchDockstore(`${dockstoreMethodPath(path)}/${encodeURIComponent(version)}/WDL/descriptor`)
+      .then(parseJson)
+  },
+
+  getVersions: (path) => {
+    return fetchDockstore(dockstoreMethodPath(path))
+      .then(parseJson)
+  }
+
 }
