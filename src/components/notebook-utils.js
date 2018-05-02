@@ -1,13 +1,29 @@
+import _ from 'lodash'
 import { Fragment } from 'react'
-import Modal from 'src/components/Modal'
-import { Component, Select } from 'src/libs/wrapped-components'
 import { div, h } from 'react-hyperscript-helpers'
+import { buttonPrimary } from 'src/components/common'
 import { spinner } from 'src/components/icons'
-import { buttonPrimary, textInput } from 'src/components/common'
+import { ValidatedInput } from 'src/components/input'
+import Modal from 'src/components/Modal'
+import { Buckets } from 'src/libs/ajax'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import _ from 'lodash'
-import { Buckets } from 'src/libs/ajax'
+import { Component, Select } from 'src/libs/wrapped-components'
+
+
+const notebookNameInput = (props) => h(ValidatedInput, _.merge({
+  name: 'notebook name',
+  validators: {
+    presence: { allowEmpty: false },
+    format: {
+      pattern: /^[^#[\]*?]*$/,
+      message: 'can\'t contain any of these characters: "#[]*?"'
+    }
+  },
+  style: { marginTop: '0.5rem' },
+  autoFocus: true,
+  placeholder: 'Enter a name'
+}, props))
 
 
 const baseNotebook = {
@@ -41,7 +57,7 @@ const rNotebook = _.merge({
 
 export class NotebookCreator extends Component {
   render() {
-    const { modalOpen, notebookName, notebookKernel, notebookFailure, creating } = this.state
+    const { modalOpen, notebookName, notebookKernel, notebookFailure, creating, fails } = this.state
     const { reloadList, namespace, bucketName } = this.props
 
     return h(Fragment, [
@@ -72,7 +88,7 @@ export class NotebookCreator extends Component {
             onDismiss: () => this.setState({ modalOpen: false }),
             title: 'Create New Notebook',
             okButton: buttonPrimary({
-              disabled: !(notebookName && notebookKernel),
+              disabled: !(notebookName && notebookKernel) || fails,
               onClick: () => {
                 this.setState({ modalOpen: false, creating: true })
                 Buckets.createNotebook(namespace, bucketName, notebookName, notebookKernel.data).then(
@@ -86,12 +102,10 @@ export class NotebookCreator extends Component {
             }, 'Create Notebook')
           }, [
             div({ style: Style.elements.sectionHeader }, 'Name'),
-            textInput({
-              style: { margin: '0.5rem 0 1rem' },
-              autoFocus: true,
-              placeholder: 'Enter a name',
+            notebookNameInput({
               value: notebookName,
-              onChange: e => this.setState({ notebookName: e.target.value })
+              onChange: e => this.setState({ notebookName: e.target.value }),
+              onFail: fails => this.setState({ fails })
             }),
             div({ style: Style.elements.sectionHeader }, 'Kernel'),
             h(Select, {
@@ -130,20 +144,20 @@ export class NotebookCreator extends Component {
 export class NotebookDuplicator extends Component {
   render() {
     const { destroyOld, printName, namespace, bucketName, onDismiss, onSuccess } = this.props
-    const { newName, processing, failure } = this.state
+    const { newName, processing, failure, fails } = this.state
 
     return h(Modal, {
         onDismiss: onDismiss,
         title: `${destroyOld ? 'Rename' : 'Duplicate' } "${printName}"`,
         okButton: buttonPrimary({
-          disabled: !newName || processing,
+          disabled: !newName || processing || fails,
           onClick: () => {
             this.setState({ processing: true })
             Buckets[destroyOld ? 'renameNotebook' : 'copyNotebook'](
               namespace, bucketName, printName, newName).then(
-                onSuccess,
-                failure => this.setState({ failure })
-              )
+              onSuccess,
+              failure => this.setState({ failure })
+            )
           }
         }, `${destroyOld ? 'Rename' : 'Duplicate' } Notebook`)
       },
@@ -152,12 +166,10 @@ export class NotebookDuplicator extends Component {
         [failure, () => `Couldn't ${destroyOld ? 'rename' : 'copy' } notebook: ${failure}`],
         () => [
           div({ style: Style.elements.sectionHeader }, 'New Name'),
-          textInput({
-            style: { margin: '0.5rem 0 1rem' },
-            autoFocus: true,
-            placeholder: 'Enter a name',
+          notebookNameInput({
             value: newName,
-            onChange: e => this.setState({ newName: e.target.value })
+            onChange: e => this.setState({ newName: e.target.value }),
+            onFail: fails => this.setState({ fails })
           })
         ]
       )
