@@ -69,7 +69,7 @@ const Sam = {
 
 
 const fetchBuckets = (path, ...args) => fetchOk(`https://www.googleapis.com/${path}`, ...args)
-const nbName = name => `notebooks/${name}.ipynb`
+const nbName = name => encodeURIComponent(`notebooks/${name}.ipynb`)
 
 export const Buckets = {
   copyNotebook: (namespace, bucket, oldName, newName) => {
