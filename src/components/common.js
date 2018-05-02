@@ -73,7 +73,8 @@ export const contextMenu = function(items) {
         style: { fontSize: 12, padding: '0.5rem 1.5rem' },
         hover: { backgroundColor: Style.colors.highlight, fontWeight: 500 }
       }, props),
-      contents))
+      contents)
+    )
   )
 }
 
@@ -86,6 +87,7 @@ export const textInput = function(props) {
         fontWeight: 300, fontSize: '1em',
         backgroundColor: props.disabled ? '#f3f3f3' : undefined
       }
-    }
-  , Style.elements.input, props))
+    },
+    Style.elements.input,
+    props))
 }
