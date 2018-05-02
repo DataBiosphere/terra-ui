@@ -23,10 +23,9 @@ class NotebookCard extends Component {
 
     const notebookMenu = h(ShowOnClick, {
         ref: instance => this.notebookMenu = instance,
-        disabled: !notebookAccess,
         button: h(Interactive, {
           as: icon('ellipsis-vertical'), size: 18,
-          style: { marginLeft: '1rem' }, focus: 'hover'
+          style: { marginLeft: '1rem', cursor: 'pointer' }, focus: 'hover'
         })
       },
       [
