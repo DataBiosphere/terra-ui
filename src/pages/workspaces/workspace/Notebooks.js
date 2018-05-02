@@ -149,13 +149,15 @@ export default class WorkspaceNotebooks extends Component {
   }
 
   loadClusters() {
+    const { namespace } = this.props.workspace
+
     this.setState({ clusters: undefined })
     Leo.clustersList().then(
       list => {
         const owned = _.filter(list,
           v => (v.creator === Utils.getUser().getBasicProfile().getEmail()))
-        this.setState({ clusters: _.sortBy(owned, 'clusterName') },
-          this.getNotebooks)
+        if (_.some(owned)) { Leo.setCookie(namespace, _.first(owned).clusterName) }
+        this.setState({ clusters: _.sortBy(owned, 'clusterName') }, this.getNotebooks)
       },
       listFailure => this.setState({ listFailure })
     )
@@ -171,36 +173,41 @@ export default class WorkspaceNotebooks extends Component {
           'numberOfPreemptibleWorkers': 0
         }
       }).then(
-        () => {
-          this.setState({ creatingCluster: false })
-          this.loadClusters()
-        },
-        creationFail => window.alert(`Couldn't create cluster: ${creationFail}`)
-      )
+      () => {
+        this.setState({ creatingCluster: false })
+        this.loadClusters()
+      },
+      creationFail => window.alert(`Couldn't create cluster: ${creationFail}`)
+    )
     this.setState({ creatingCluster: true })
   }
 
   getNotebooks() {
     this.setState({ notebooks: undefined, notebookAccess: {} })
     const { namespace, name: wsName, bucketName } = this.props.workspace
+    const { clusters } = this.state
 
-    Buckets.listNotebooks(namespace, bucketName).then(
-      notebooks => {
-        const cluster = _.first(this.state.clusters).clusterName
+    if (_.some(clusters)) {
+      Buckets.listNotebooks(namespace, bucketName).then(
+        notebooks => {
+          const cluster = _.first(clusters).clusterName
 
-        this.setState({ notebooks: _.reverse(_.sortBy(notebooks, 'updated')) })
+          this.setState({ notebooks: _.reverse(_.sortBy(notebooks, 'updated')) })
 
-        _.forEach(notebooks, ({ bucket, name }) => {
-          Leo.localizeNotebooks(namespace, cluster, {
+          _.forEach(notebooks, ({ bucket, name }) => {
+            Leo.localizeNotebooks(namespace, cluster, {
               [`~/${wsName}/${name.slice(10)}`]: `gs://${bucket}/${name}`
             }).then(
               () => this.setState(oldState => _.merge({ notebookAccess: { [name]: true } }, oldState)),
               () => this.setState(oldState => _.merge({ notebookAccess: { [name]: false } }, oldState))
             )
-        })
-      },
-      notebooksFailure => this.setState({ notebooksFailure })
-    )
+          })
+        },
+        notebooksFailure => this.setState({ notebooksFailure })
+      )
+    } else {
+      this.setState({ notebooks: [] })
+    }
   }
 
   renderNotebooks() {
