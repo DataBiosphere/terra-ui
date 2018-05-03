@@ -21,9 +21,10 @@ const notebookNameInput = (props) => validatedInput(_.merge({
     }
   },
   style: { margin: '0.5rem 0 1rem' },
-  inputProps:{
+  inputProps: {
     autoFocus: true,
-    placeholder: 'Enter a name'}
+    placeholder: 'Enter a name'
+  }
 }, props))
 
 
