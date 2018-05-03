@@ -90,7 +90,7 @@ export class WorkspaceList extends Component {
             href: Nav.getLink('workspace', namespace, name),
             style: _.defaults({
               width: `calc(${100 / cardsPerRow}% - 2.5rem)`,
-              margin: '1.25rem', boxSizing: 'border-box',
+              margin: '1.25rem',
               textDecoration: 'none',
               display: 'flex', flexDirection: 'column',
               justifyContent: 'space-between',
