@@ -22,17 +22,18 @@ const navSeparator = div({
 })
 
 const tabBaseStyle = {
-  maxWidth: 140, flexGrow: 1, color: Style.colors.textFadedLight, textDecoration: 'none'
+  maxWidth: 140, flexGrow: 1, color: Style.colors.textFadedLight, textDecoration: 'none',
+  alignSelf: 'stretch', display: 'flex', justifyContent: 'center', alignItems: 'center'
 }
 
 const tabActiveStyle = _.defaults({
-  backgroundColor: 'rgba(255,255,255,0.15)', color: 'unset', lineHeight: 'calc(3.5rem - 4px)',
+  backgroundColor: 'rgba(255,255,255,0.15)', color: 'unset',
   borderBottom: `4px solid ${Style.colors.secondary}`
 }, tabBaseStyle)
 
 const navIconProps = {
   size: 22,
-  style: { opacity: 0.65, paddingRight: '1rem' },
+  style: { opacity: 0.65, marginRight: '1rem' },
   hover: { opacity: 1 }, focus: 'hover'
 }
 
@@ -113,7 +114,7 @@ export class WorkspaceContainer extends Component {
       contextBar({
         style: {
           paddingLeft: '5rem', borderBottom: `5px solid ${Style.colors.secondary}`,
-          textAlign: 'center', color: 'white', lineHeight: '3.5rem', textTransform: 'uppercase'
+          textAlign: 'center', color: 'white', lineHeight: '3.75rem', textTransform: 'uppercase'
         }
       }, [
         navSeparator,

@@ -82,7 +82,7 @@ class NotebookCard extends Component {
               flexShrink: 0,
               width: listView ? undefined : 200,
               height: listView ? undefined : 250,
-              margin: '1.25rem', boxSizing: 'border-box',
+              margin: '1.25rem',
               color: Style.colors.text, textDecoration: 'none',
               cursor: notebookAccess === false ? 'not-allowed' : notebookAccess ? undefined : 'wait',
               display: 'flex', flexDirection: listView ? 'row' : 'column',
