@@ -2,14 +2,15 @@ import _ from 'lodash'
 import { Fragment } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
+import { buttonPrimary } from 'src/components/common'
 import { icon, spinner } from 'src/components/icons'
 import { TopBar } from 'src/components/TopBar'
 import WDLViewer from 'src/components/WDLViewer'
-import { Dockstore } from 'src/libs/ajax'
+import { Dockstore, Rawls } from 'src/libs/ajax'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import { Component } from 'src/libs/wrapped-components'
+import { Component, Select } from 'src/libs/wrapped-components'
 
 
 const mutabilityWarning = 'Please note: Dockstore cannot guarantee that the WDL and Docker image referenced by this Workflow will not change. We advise you to review the WDL before future runs.'
@@ -31,6 +32,8 @@ class DockstoreImporter extends Component {
       method => this.setState({ wdl: method.descriptor }),
       failure => this.setState({ loadError: failure })
     )
+
+    Rawls.workspacesList().then(workspaces => this.setState({ workspaces }))
   }
 
   renderImport = () => {
@@ -47,7 +50,7 @@ class DockstoreImporter extends Component {
       { style: { display: 'flex', width: '100%', justifyContent: 'space-between' } },
       [
         section('Importing', 5, this.renderWdlArea()),
-        section('Destination Project', 3, 'Placeholder')
+        section('Destination Project', 3, this.renderWorkspaceArea())
       ]
     )
   }
@@ -75,6 +78,27 @@ class DockstoreImporter extends Component {
           ]),
         h(Collapse, { title: 'REVIEW WDL' },
           [h(WDLViewer, { wdl: this.state.wdl })])
+      ]
+    )
+  }
+
+  renderWorkspaceArea = () => {
+    const { selectedWorkspace, workspaces } = this.state
+
+    return div({},
+      [
+        h(Select, {
+          clearable: false,
+          searchable: true,
+          disabled: !workspaces,
+          placeholder: workspaces ? 'Select a workspace' : 'Loading workspaces...',
+          value: selectedWorkspace,
+          onChange: selectedWorkspace => this.setState({ selectedWorkspace }),
+          options: _.map(workspaces, workspace => {
+            return { value: workspace.workspace.name, label: workspace.workspace.name, data: workspace }
+          })
+        }),
+        buttonPrimary({ style: { marginTop: '1rem' } }, 'Import')
       ]
     )
   }
