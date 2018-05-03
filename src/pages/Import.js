@@ -1,8 +1,9 @@
 import _ from 'lodash'
 import { Fragment } from 'react'
-import { div, h, pre } from 'react-hyperscript-helpers'
+import { div, h } from 'react-hyperscript-helpers'
 import { icon, spinner } from 'src/components/icons'
 import { TopBar } from 'src/components/TopBar'
+import WDLViewer from 'src/components/WDLViewer'
 import { Dockstore } from 'src/libs/ajax'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
@@ -32,20 +33,20 @@ class DockstoreImporter extends Component {
   }
 
   renderImport = () => {
-    function section(title, size, contents) {
+    function section(title, flex, contents) {
       return div(
-        { style: { flex: `0 0 ${size}`, margin: '3rem' } },
+        { style: { flex, overflow: 'hidden', margin: '3rem' } },
         [
           div({ style: _.merge({ fontWeight: 500, marginBottom: '1rem' }, Style.elements.sectionHeader) }, title),
           contents
         ])
     }
 
-    return h(div,
-      { style: { display: 'flex', justifyContent: 'space-between' } },
+    return div(
+      { style: { display: 'flex', width: '100%', justifyContent: 'space-between' } },
       [
-        section('Importing', '50%', this.renderWdlArea()),
-        section('Destination Project', '40%', 'Placeholder')
+        section('Importing', 5, this.renderWdlArea()),
+        section('Destination Project', 3, 'Placeholder')
       ]
     )
   }
@@ -60,13 +61,18 @@ class DockstoreImporter extends Component {
       },
       [
         div({ style: { color: Style.colors.secondary, fontSize: 16 } }, `From Dockstore - ${this.props.id}`),
-        div({}, `V.${this.props.version}`),
-        div({ style: { display: 'flex', alignItems: 'center', color: Style.colors.warning } },
+        div({}, `V. ${this.props.version}`),
+        div({
+            style: {
+              display: 'flex', alignItems: 'center',
+              margin: '1rem 0', color: Style.colors.warning
+            }
+          },
           [
             icon('warning-standard', { class: 'is-solid', size: 36, style: { marginRight: '0.5rem' } }),
             mutabilityWarning
           ]),
-        pre({}, this.state.wdl)
+        h(WDLViewer, { wdl: this.state.wdl })
       ]
     )
   }
