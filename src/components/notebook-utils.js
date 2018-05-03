@@ -3,7 +3,7 @@ import { Fragment } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { buttonPrimary } from 'src/components/common'
 import { spinner } from 'src/components/icons'
-import { ValidatedInput } from 'src/components/input'
+import { validatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { Buckets } from 'src/libs/ajax'
 import * as Style from 'src/libs/style'
@@ -11,7 +11,7 @@ import * as Utils from 'src/libs/utils'
 import { Component, Select } from 'src/libs/wrapped-components'
 
 
-const notebookNameInput = (props) => h(ValidatedInput, _.merge({
+const notebookNameInput = (props) => validatedInput(_.merge({
   name: 'notebook name',
   validators: {
     presence: { allowEmpty: false },
@@ -20,9 +20,10 @@ const notebookNameInput = (props) => h(ValidatedInput, _.merge({
       message: 'can\'t contain any of these characters: "#[]*?"'
     }
   },
-  style: { marginTop: '0.5rem' },
-  autoFocus: true,
-  placeholder: 'Enter a name'
+  style: { margin: '0.5rem 0 1rem' },
+  inputProps:{
+    autoFocus: true,
+    placeholder: 'Enter a name'}
 }, props))
 
 
@@ -103,7 +104,8 @@ export class NotebookCreator extends Component {
           }, [
             div({ style: Style.elements.sectionHeader }, 'Name'),
             notebookNameInput({
-              value: notebookName,
+              fails,
+              inputProps: { value: notebookName },
               onChange: e => this.setState({ notebookName: e.target.value }),
               onFail: fails => this.setState({ fails })
             }),
@@ -167,7 +169,8 @@ export class NotebookDuplicator extends Component {
         () => [
           div({ style: Style.elements.sectionHeader }, 'New Name'),
           notebookNameInput({
-            value: newName,
+            fails,
+            inputProps: { value: newName },
             onChange: e => this.setState({ newName: e.target.value }),
             onFail: fails => this.setState({ fails })
           })
