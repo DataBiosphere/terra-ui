@@ -13,12 +13,14 @@ import * as Utils from 'src/libs/utils'
 import { Component, Select } from 'src/libs/wrapped-components'
 
 
-const mutabilityWarning = 'Please note: Dockstore cannot guarantee that the WDL and Docker image referenced by this Workflow will not change. We advise you to review the WDL before future runs.'
+const mutabilityWarning = 'Please note: Dockstore cannot guarantee that the WDL and Docker image referenced by ' +
+  'this Workflow will not change. We advise you to review the WDL before future runs.'
 const wdlLoadError = 'Error loading WDL. Please verify the workflow path and version and ensure this workflow supports WDL.'
 
 class DockstoreImporter extends Component {
   render() {
     const { wdl, loadError } = this.state
+
     return Utils.cond(
       [wdl, this.renderImport],
       [loadError, this.renderError],
@@ -28,8 +30,9 @@ class DockstoreImporter extends Component {
 
   componentDidMount() {
     const { id, version } = this.props
+
     Dockstore.getWdl(id, version).then(
-      method => this.setState({ wdl: method.descriptor }),
+      ({ descriptor }) => this.setState({ wdl: descriptor }),
       failure => this.setState({ loadError: failure })
     )
 
@@ -46,8 +49,7 @@ class DockstoreImporter extends Component {
         ])
     }
 
-    return div(
-      { style: { display: 'flex', width: '100%', justifyContent: 'space-between' } },
+    return div({ style: { display: 'flex' } },
       [
         section('Importing', 5, this.renderWdlArea()),
         section('Destination Project', 3, this.renderWorkspaceArea())
@@ -56,6 +58,9 @@ class DockstoreImporter extends Component {
   }
 
   renderWdlArea = () => {
+    const { id, version } = this.props
+    const { wdl } = this.state
+
     return div(
       {
         style: {
@@ -64,8 +69,8 @@ class DockstoreImporter extends Component {
         }
       },
       [
-        div({ style: { color: Style.colors.secondary, fontSize: 16 } }, `From Dockstore - ${this.props.id}`),
-        div({}, `V. ${this.props.version}`),
+        div({ style: { color: Style.colors.secondary, fontSize: 16 } }, `From Dockstore - ${id}`),
+        div({}, `V. ${version}`),
         div({
             style: {
               display: 'flex', alignItems: 'center',
@@ -77,7 +82,7 @@ class DockstoreImporter extends Component {
             mutabilityWarning
           ]),
         h(Collapse, { title: 'REVIEW WDL' },
-          [h(WDLViewer, { wdl: this.state.wdl })])
+          [h(WDLViewer, { wdl })])
       ]
     )
   }
@@ -95,7 +100,8 @@ class DockstoreImporter extends Component {
           value: selectedWorkspace,
           onChange: selectedWorkspace => this.setState({ selectedWorkspace }),
           options: _.map(workspaces, workspace => {
-            return { value: workspace.workspace.name, label: workspace.workspace.name, data: workspace }
+            const { name } = workspace.workspace
+            return { value: name, label: name, data: workspace }
           })
         }),
         buttonPrimary({ style: { marginTop: '1rem' } }, 'Import')
@@ -104,9 +110,11 @@ class DockstoreImporter extends Component {
   }
 
   renderError = () => {
+    const { loadError } = this.state
+
     return h(Fragment, [
       div(wdlLoadError),
-      div(`Error: ${this.state.loadError}`)
+      div(`Error: ${loadError}`)
     ])
   }
 }
@@ -126,7 +134,8 @@ class Importer extends Component {
   }
 
   renderDockstore = () => {
-    const [id, version] = this.props.item.split(':')
+    const { item } = this.props
+    const [id, version] = item.split(':')
     return h(DockstoreImporter, { id, version })
   }
 }
