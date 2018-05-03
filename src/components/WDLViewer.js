@@ -1,6 +1,6 @@
 import CodeMirror from 'codemirror'
-import _ from 'lodash'
-import { textarea } from 'react-hyperscript-helpers'
+import { div } from 'react-hyperscript-helpers'
+import * as Style from 'src/libs/style'
 import { Component } from 'src/libs/wrapped-components'
 
 
@@ -33,16 +33,11 @@ CodeMirror.defineMode('wdl', function() {
 
 
 export default class WDLViewer extends Component {
-  constructor(props) {
-    super(props)
-    this.id = _.uniqueId()
-  }
-
   render() {
-    return textarea({ id: this.id, defaultValue: this.props.wdl })
+    return div({ ref: elem => this.container = elem, style: { border: Style.standardLine } })
   }
 
   componentDidMount() {
-    CodeMirror.fromTextArea(document.getElementById(this.id), { mode: 'wdl' })
+    CodeMirror(this.container, { mode: 'wdl', value: this.props.wdl, lineNumbers: true })
   }
 }

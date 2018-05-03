@@ -1,6 +1,7 @@
 import _ from 'lodash'
 import { Fragment } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
+import Collapse from 'src/components/Collapse'
 import { icon, spinner } from 'src/components/icons'
 import { TopBar } from 'src/components/TopBar'
 import WDLViewer from 'src/components/WDLViewer'
@@ -72,7 +73,8 @@ class DockstoreImporter extends Component {
             icon('warning-standard', { class: 'is-solid', size: 36, style: { marginRight: '0.5rem' } }),
             mutabilityWarning
           ]),
-        h(WDLViewer, { wdl: this.state.wdl })
+        h(Collapse, { title: 'REVIEW WDL' },
+          [h(WDLViewer, { wdl: this.state.wdl })])
       ]
     )
   }
