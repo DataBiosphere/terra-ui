@@ -5,6 +5,7 @@ import * as Config from 'src/libs/config'
 import * as Nav from 'src/libs/nav'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
+import * as StyleGuide from 'src/pages/StyleGuide'
 import * as WorkspaceList from 'src/pages/workspaces/List'
 import * as WorkspaceContainer from 'src/pages/workspaces/workspace/Container'
 
@@ -13,6 +14,7 @@ const initNavPaths = () => {
   Nav.clearPaths()
   WorkspaceList.addNavPaths()
   WorkspaceContainer.addNavPaths()
+  StyleGuide.addNavPaths()
 }
 
 class Main extends Component {
