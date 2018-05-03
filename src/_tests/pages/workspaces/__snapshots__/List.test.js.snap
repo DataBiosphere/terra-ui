@@ -8,7 +8,6 @@ Array [
             "alignItems": "center",
             "backgroundColor": "white",
             "display": "flex",
-            "height": "3rem",
             "padding": "1rem",
           }
     }
@@ -135,8 +134,7 @@ Array [
             "color": "#bde5ff",
             "display": "flex",
             "fontWeight": 500,
-            "height": "3.5rem",
-            "lineHeight": "3.5rem",
+            "height": "3.75rem",
             "padding": "0 1rem",
           }
     }
@@ -147,7 +145,7 @@ Array [
         size={10}
         style={
             Object {
-                "padding": "0 0.25rem",
+                "margin": "0 0.25rem",
               }
         }
     />
@@ -207,7 +205,6 @@ Array [
                     "backgroundColor": "white",
                     "borderRadius": 5,
                     "boxShadow": "0 3px 2px 0 rgba(0,0,0,0.12)",
-                    "boxSizing": "border-box",
                     "color": "#4a4a4a",
                     "display": "flex",
                     "flexDirection": "column",
@@ -276,7 +273,6 @@ Array [
                     "backgroundColor": "white",
                     "borderRadius": 5,
                     "boxShadow": "0 3px 2px 0 rgba(0,0,0,0.12)",
-                    "boxSizing": "border-box",
                     "color": "#4a4a4a",
                     "display": "flex",
                     "flexDirection": "column",
