@@ -19,7 +19,7 @@ export const icon = function(shape, props) {
 }
 
 export const breadcrumb = function(props) {
-  return icon('angle right', _.merge({ size: 10, style: { padding: '0 0.25rem' } }, props))
+  return icon('angle right', _.merge({ size: 10, style: { margin: '0 0.25rem' } }, props))
 }
 
 export const logo = function(props) {

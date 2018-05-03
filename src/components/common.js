@@ -24,7 +24,8 @@ export const buttonPrimary = function(props, children) {
     _.merge({
       as: 'button',
       style: _.defaults({
-        border: 'none', padding: '0.5rem 2rem', borderRadius: 5, color: 'white',
+        border: 'none', borderRadius: 5, color: 'white',
+        height: '2.25rem', paddingLeft: '1.5rem', paddingRight: '1.5rem',
         backgroundColor: props.disabled ? Style.colors.disabled : Style.colors.secondary,
         cursor: props.disabled ? 'not-allowed' : 'pointer'
       }, Style.elements.button),
@@ -54,7 +55,7 @@ export const contextBar = function(props, children) {
       style: {
         display: 'flex', alignItems: 'center', backgroundColor: Style.colors.primary,
         color: Style.colors.textAlt, fontWeight: 500,
-        height: '3.5rem', padding: '0 1rem', lineHeight: '3.5rem'
+        height: '3.75rem', padding: '0 1rem'
       }
     }, props),
     children)
@@ -83,11 +84,12 @@ export const textInput = function(props) {
       as: 'input',
       style: {
         width: '100%',
-        padding: '0.5rem 1rem',
-        fontWeight: 300, fontSize: '1em',
+        paddingLeft: '1rem', paddingRight: '1rem',
+        fontWeight: 300, fontSize: 14,
         backgroundColor: props.disabled ? '#f3f3f3' : undefined
       }
     },
     Style.elements.input,
-    props))
+    props)
+  )
 }

@@ -22,14 +22,14 @@ export const modalShadow = '0 0 8px 0 rgba(0,0,0,0.12), 0 8px 8px 0 rgba(0,0,0,0
 export const contextMenuShadow = '0 2px 5px 0 rgba(0,0,0,0.26), 0 2px 10px 0 rgba(0,0,0,0.16)'
 
 export const elements = {
-  button: { fontWeight: 500, fontSize: 12, textTransform: 'uppercase', cursor: 'pointer' },
+  button: { fontWeight: 500, fontSize: 14, textTransform: 'uppercase', cursor: 'pointer' },
   cardTitle: { color: colors.secondary, fontSize: 16, fontWeight: 500 },
   card: {
     borderRadius: 5, padding: '1rem', wordWrap: 'break-word', boxShadow: standardShadow,
     backgroundColor: 'white'
   },
   input: {
-    style: { border: '1px solid #c3c3c3', borderRadius: 4, boxSizing: 'border-box' },
+    style: { border: '1px solid #c3c3c3', borderRadius: 4, height: '2.25rem' },
     focus: { border: '1px solid #262262' }
   },
   pageTitle: {
