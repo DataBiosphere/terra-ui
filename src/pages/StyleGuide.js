@@ -1,6 +1,7 @@
-import { div, h1 } from 'react-hyperscript-helpers'
+import { div, h, h1 } from 'react-hyperscript-helpers'
 import * as Nav from 'src/libs/nav'
-import { buttonPrimary, textInput, link, search } from 'src/components/common'
+import { buttonPrimary, textInput, link, search, Checkbox } from 'src/components/common'
+import { icon } from 'src/components/icons'
 
 
 const styles = {
@@ -27,7 +28,15 @@ const StyleGuide = () => {
     ]),
     div({ style: styles.container }, [
       textInput({ placeholder: 'Text box' })
-    ])
+    ]),
+    div({ style: styles.container }, [
+      icon('pencil'),
+    ]),
+    div({ style: styles.container }, [
+      h(Checkbox, { checked: false }),
+      h(Checkbox, { checked: true }),
+      h(Checkbox, { checked: false, disabled: true }),
+    ]),
   ])
 }
 
