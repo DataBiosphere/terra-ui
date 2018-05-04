@@ -78,7 +78,7 @@ class DockstoreImporter extends Component {
             }
           },
           [
-            icon('warning-standard', { class: 'is-solid', size: 36, style: { marginRight: '0.5rem' } }),
+            icon('warning-standard', { class: 'is-solid', size: 32, style: { marginRight: '0.5rem', flex: '0 0 auto' } }),
             mutabilityWarning
           ]),
         h(Collapse, { title: 'REVIEW WDL' },
