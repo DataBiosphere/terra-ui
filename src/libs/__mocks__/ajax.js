@@ -40,7 +40,12 @@ export const Rawls = {
   workspacesList() {
     return Promise.resolve([createWorkspace(), createWorkspace()])
   },
-  workspaceDetails(namespace, name) {
-    return Promise.resolve(createWorkspace({ namespace, name }))
+
+  workspace(namespace, name) {
+    return {
+      details() {
+        return Promise.resolve(createWorkspace({ namespace, name }))
+      }
+    }
   }
 }
