@@ -14,7 +14,7 @@ export default class WorkspaceDashboard extends Component {
           onDismiss: () => this.setState({ modal: false }),
           title: 'Workspace Info',
           showCancel: false,
-          okButton: buttonPrimary({ onClick: () => this.setState({ modal: false }) }, 'Done')
+          okButton: 'Done'
         }, [
           div({ style: { whiteSpace: 'pre', overflow: 'auto', padding: '1rem' } },
             JSON.stringify(this.props, null, 2))
