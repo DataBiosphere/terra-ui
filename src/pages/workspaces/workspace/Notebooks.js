@@ -155,7 +155,7 @@ export default class WorkspaceNotebooks extends Component {
       list => {
         const owned = _.filter(list,
           v => (v.creator === Utils.getUser().getBasicProfile().getEmail()))
-        if (_.some(owned)) { Leo.setCookie(namespace, _.first(owned).clusterName) }
+        if (_.some(owned)) { Leo.notebooks(namespace, _.first(owned).clusterName).setCookie() }
         this.setState({ clusters: _.sortBy(owned, 'clusterName') }, this.getNotebooks)
       },
       listFailure => this.setState({ listFailure })
@@ -194,13 +194,13 @@ export default class WorkspaceNotebooks extends Component {
 
           _.forEach(notebooks, ({ bucket, name }) => {
             Leo.notebooks(namespace, cluster).localize({
-            [`~/${wsName}/${name.slice(10)}`]: `gs://${bucket}/${name}`
-          }).then(
-            () => this.setState(
-              oldState => _.merge({ notebookAccess: { [name]: true } }, oldState)),
-            () => this.setState(
-              oldState => _.merge({ notebookAccess: { [name]: false } }, oldState))
-          )
+              [`~/${wsName}/${name.slice(10)}`]: `gs://${bucket}/${name}`
+            }).then(
+              () => this.setState(
+                oldState => _.merge({ notebookAccess: { [name]: true } }, oldState)),
+              () => this.setState(
+                oldState => _.merge({ notebookAccess: { [name]: false } }, oldState))
+            )
           })
         },
         notebooksFailure => this.setState({ notebooksFailure })
