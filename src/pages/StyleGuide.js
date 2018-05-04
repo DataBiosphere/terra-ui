@@ -43,7 +43,7 @@ class StyleGuide extends Component {
             value: this.state.validatedInputValue,
             onChange: e => this.setState({ validatedInputValue: e.target.value, validatedInputTouched: true })
           },
-          fails: this.state.validatedInputTouched ?
+          errors: this.state.validatedInputTouched ?
             validate.single(this.state.validatedInputValue, { email: true }) :
             null
         })

@@ -25,23 +25,23 @@ export const textInput = function(props) {
 /**
  * @param props.inputProps {object}
  * @param props.name {string} - user-facing name for input
- * @param props.fails {string[]}
+ * @param props.errors {string[]}
  */
 export const validatedInput = props => {
-  const { inputProps, name, fails } = props
+  const { inputProps, name, errors } = props
 
   return h(Fragment, [
     div({
         style: { position: 'relative', display: 'flex', alignItems: 'center' }
       }, [
         textInput(_.merge({
-          style: fails ? {
+          style: errors ? {
             paddingRight: '2.25rem', // leave room for error icon
             backgroundColor: Style.colors.errorFaded,
             border: `1px solid ${Style.colors.error}`
           } : undefined
         }, inputProps)),
-        fails ? icon('exclamation-circle', {
+        errors ? icon('exclamation-circle', {
           size: 24,
           style: {
             position: 'absolute', color: Style.colors.error,
@@ -50,13 +50,13 @@ export const validatedInput = props => {
         }) : null
       ]
     ),
-    fails ? div({
+    errors ? div({
         style: {
           color: Style.colors.error, textTransform: 'uppercase', fontSize: 10, fontWeight: 500,
           marginLeft: '1rem'
         }
       },
-      _.map(fails, (fail) => div({ style: { marginTop: '0.5rem' } }, `${name} ${fail}`))
+      _.map(errors, (fail) => div({ style: { marginTop: '0.5rem' } }, `${name} ${fail}`))
     ) : null
   ])
 }

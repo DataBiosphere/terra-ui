@@ -65,7 +65,7 @@ export class NotebookCreator extends Component {
     const { modalOpen, notebookName, notebookKernel, notebookFailure, creating, nameTouched } = this.state
     const { reloadList, namespace, bucketName } = this.props
 
-    const nameFails = validate.single(notebookName, notebookNameValidator)
+    const nameErrors = validate.single(notebookName, notebookNameValidator)
 
     return h(Fragment, [
       buttonPrimary({
@@ -95,7 +95,7 @@ export class NotebookCreator extends Component {
             onDismiss: () => this.setState({ modalOpen: false }),
             title: 'Create New Notebook',
             okButton: buttonPrimary({
-              disabled: nameFails || !notebookKernel,
+              disabled: nameErrors || !notebookKernel,
               onClick: () => {
                 this.setState({ modalOpen: false, creating: true })
                 Buckets.notebook(namespace, bucketName, notebookName).create(notebookKernel.data).then(
@@ -110,7 +110,7 @@ export class NotebookCreator extends Component {
           }, [
             div({ style: Style.elements.sectionHeader }, 'Name'),
             notebookNameInput({
-              fails: nameTouched ? nameFails : null,
+              errors: nameTouched ? nameErrors : null,
               inputProps: {
                 value: notebookName,
                 onChange: e => this.setState({ notebookName: e.target.value, nameTouched: true })
@@ -155,13 +155,13 @@ export class NotebookDuplicator extends Component {
     const { destroyOld, printName, namespace, bucketName, onDismiss, onSuccess } = this.props
     const { newName, processing, failure, nameTouched } = this.state
 
-    const nameFails = validate.single(newName, notebookNameValidator)
+    const nameErrors = validate.single(newName, notebookNameValidator)
 
     return h(Modal, {
         onDismiss: onDismiss,
         title: `${destroyOld ? 'Rename' : 'Duplicate' } "${printName}"`,
         okButton: buttonPrimary({
-          disabled: nameFails || processing,
+          disabled: nameErrors || processing,
           onClick: () => {
             this.setState({ processing: true })
             Buckets.notebook(namespace, bucketName, printName)[destroyOld ? 'rename' : 'copy'](newName).then(
@@ -177,7 +177,7 @@ export class NotebookDuplicator extends Component {
         () => [
           div({ style: Style.elements.sectionHeader }, 'New Name'),
           notebookNameInput({
-            fails: nameTouched ? nameFails : null,
+            errors: nameTouched ? nameErrors : null,
             inputProps: {
               value: newName,
               onChange: e => this.setState({ newName: e.target.value, nameTouched: true })
