@@ -1,50 +1,62 @@
 import _ from 'lodash'
-import { div } from 'react-hyperscript-helpers'
-import { textInput } from 'src/components/common'
+import { Fragment } from 'react'
+import { div, h } from 'react-hyperscript-helpers'
+import Interactive from 'react-interactive'
 import { icon } from 'src/components/icons'
 import * as Style from 'src/libs/style'
-import validate from 'validate.js'
+
+
+export const textInput = function(props) {
+  return h(Interactive, _.merge({
+      as: 'input',
+      style: {
+        width: '100%',
+        paddingLeft: '1rem', paddingRight: '1rem',
+        fontWeight: 300, fontSize: 14,
+        backgroundColor: props.disabled ? '#f3f3f3' : undefined
+      }
+    },
+    Style.elements.input,
+    props)
+  )
+}
 
 
 /**
- * @param props.style {object}
  * @param props.inputProps {object}
  * @param props.name {string} - user-facing name for input
- * @param props.validators {object} - see {@link https://validatejs.org/#validators}
  * @param props.fails {string[]}
- * @param props.onChange {function}
- * @param props.onFail {function} - called with the failures on input
  */
 export const validatedInput = props => {
-  const { style, inputProps, name, validators, fails, onChange, onFail } = props
+  const { inputProps, name, fails } = props
 
-  return div({ style: _.merge({ position: 'relative' }, style) }, [
-      fails ? icon('exclamation-circle', {
-        size: 24,
-        style: {
-          position: 'absolute', color: Style.colors.error,
-          right: '.5rem', top: `calc((${Style.elements.input.style.height} / 2) - 12px)` // half of icon height
-        }
-      }) : null,
-      textInput(_.merge({
-        style: fails ? {
-          paddingRight: '2.25rem', // leave room for error icon
-          backgroundColor: Style.colors.errorFaded,
-          border: `1px solid ${Style.colors.error}`
-        } : undefined,
-        onChange: (e) => {
-          onFail(validate.single(e.target.value, validators))
-          onChange(e)
-        }
-      }, inputProps)),
-      fails ? div({
+  return h(Fragment, [
+    div({
+        style: { position: 'relative', display: 'flex', alignItems: 'center' }
+      }, [
+        textInput(_.merge({
+          style: fails ? {
+            paddingRight: '2.25rem', // leave room for error icon
+            backgroundColor: Style.colors.errorFaded,
+            border: `1px solid ${Style.colors.error}`
+          } : undefined
+        }, inputProps)),
+        fails ? icon('exclamation-circle', {
+          size: 24,
           style: {
-            color: Style.colors.error, textTransform: 'uppercase', fontSize: 10, fontWeight: 500,
-            marginLeft: '1rem'
+            position: 'absolute', color: Style.colors.error,
+            right: '.5rem'
           }
-        },
-        _.map(fails, (fail) => div({ style: { marginTop: '0.5rem' } }, `${name} ${fail}`))
-      ) : null
-    ]
-  )
+        }) : null
+      ]
+    ),
+    fails ? div({
+        style: {
+          color: Style.colors.error, textTransform: 'uppercase', fontSize: 10, fontWeight: 500,
+          marginLeft: '1rem'
+        }
+      },
+      _.map(fails, (fail) => div({ style: { marginTop: '0.5rem' } }, `${name} ${fail}`))
+    ) : null
+  ])
 }

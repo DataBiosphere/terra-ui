@@ -1,8 +1,9 @@
 import { div, h1 } from 'react-hyperscript-helpers'
-import { buttonPrimary, link, search, textInput } from 'src/components/common'
-import { validatedInput } from 'src/components/input'
+import { buttonPrimary, link, search } from 'src/components/common'
+import { textInput, validatedInput } from 'src/components/input'
 import * as Nav from 'src/libs/nav'
 import { Component } from 'src/libs/wrapped-components'
+import validate from 'validate.js'
 
 
 const styles = {
@@ -36,11 +37,14 @@ class StyleGuide extends Component {
       div({ style: styles.container }, [
         validatedInput({
           name: 'input',
-          validators: { email: true },
-          inputProps: { placeholder: 'ValidatedInput wants an email' },
-          fails: this.state.fails,
-          onChange: () => {},
-          onFail: fails => this.setState({ fails })
+          inputProps: {
+            placeholder: 'ValidatedInput wants an email',
+            value: this.state.validatedInputValue,
+            onChange: e => this.setState({ validatedInputValue: e.target.value, validatedInputTouched: true })
+          },
+          fails: this.state.validatedInputTouched ?
+            validate.single(this.state.validatedInputValue, { email: true }) :
+            null
         })
       ])
     ])

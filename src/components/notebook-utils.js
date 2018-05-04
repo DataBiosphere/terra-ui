@@ -9,23 +9,26 @@ import { Buckets } from 'src/libs/ajax'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component, Select } from 'src/libs/wrapped-components'
+import validate from 'validate.js'
 
 
-const notebookNameInput = (props) => validatedInput(_.merge({
-  name: 'notebook name',
-  validators: {
-    presence: { allowEmpty: false },
-    format: {
-      pattern: /^[^#[\]*?]*$/,
-      message: 'can\'t contain any of these characters: "#[]*?"'
-    }
-  },
-  style: { margin: '0.5rem 0 1rem' },
-  inputProps: {
-    autoFocus: true,
-    placeholder: 'Enter a name'
+const notebookNameValidator = {
+  presence: { allowEmpty: false },
+  format: {
+    pattern: /^[^#[\]*?]*$/,
+    message: 'can\'t contain any of these characters: "#[]*?"'
   }
-}, props))
+}
+
+const notebookNameInput = (props) => div({ style: { margin: '0.5rem 0 1rem' } }, [
+  validatedInput(_.merge({
+    name: 'notebook name',
+    inputProps: {
+      autoFocus: true,
+      placeholder: 'Enter a name'
+    }
+  }, props))
+])
 
 
 const baseNotebook = {
@@ -59,12 +62,14 @@ const rNotebook = _.merge({
 
 export class NotebookCreator extends Component {
   render() {
-    const { modalOpen, notebookName, notebookKernel, notebookFailure, creating, fails } = this.state
+    const { modalOpen, notebookName, notebookKernel, notebookFailure, creating, nameTouched } = this.state
     const { reloadList, namespace, bucketName } = this.props
+
+    const nameFails = validate.single(notebookName, notebookNameValidator)
 
     return h(Fragment, [
       buttonPrimary({
-          onClick: () => this.setState({ modalOpen: true, notebookName: '', notebookKernel: null }),
+          onClick: () => this.setState({ modalOpen: true, notebookName: '', nameTouched: false, notebookKernel: null }),
           style: { marginLeft: '1rem', display: 'flex' },
           disabled: creating
         },
@@ -90,7 +95,7 @@ export class NotebookCreator extends Component {
             onDismiss: () => this.setState({ modalOpen: false }),
             title: 'Create New Notebook',
             okButton: buttonPrimary({
-              disabled: !(notebookName && notebookKernel) || fails,
+              disabled: nameFails || !notebookKernel,
               onClick: () => {
                 this.setState({ modalOpen: false, creating: true })
                 Buckets.createNotebook(namespace, bucketName, notebookName, notebookKernel.data).then(
@@ -105,10 +110,11 @@ export class NotebookCreator extends Component {
           }, [
             div({ style: Style.elements.sectionHeader }, 'Name'),
             notebookNameInput({
-              fails,
-              inputProps: { value: notebookName },
-              onChange: e => this.setState({ notebookName: e.target.value }),
-              onFail: fails => this.setState({ fails })
+              fails: nameTouched ? nameFails : null,
+              inputProps: {
+                value: notebookName,
+                onChange: e => this.setState({ notebookName: e.target.value, nameTouched: true })
+              }
             }),
             div({ style: Style.elements.sectionHeader }, 'Kernel'),
             h(Select, {
@@ -147,13 +153,15 @@ export class NotebookCreator extends Component {
 export class NotebookDuplicator extends Component {
   render() {
     const { destroyOld, printName, namespace, bucketName, onDismiss, onSuccess } = this.props
-    const { newName, processing, failure, fails } = this.state
+    const { newName, processing, failure, nameTouched } = this.state
+
+    const nameFails = validate.single(newName, notebookNameValidator)
 
     return h(Modal, {
         onDismiss: onDismiss,
         title: `${destroyOld ? 'Rename' : 'Duplicate' } "${printName}"`,
         okButton: buttonPrimary({
-          disabled: !newName || processing || fails,
+          disabled: nameFails || processing,
           onClick: () => {
             this.setState({ processing: true })
             Buckets[destroyOld ? 'renameNotebook' : 'copyNotebook'](
@@ -170,10 +178,11 @@ export class NotebookDuplicator extends Component {
         () => [
           div({ style: Style.elements.sectionHeader }, 'New Name'),
           notebookNameInput({
-            fails,
-            inputProps: { value: newName },
-            onChange: e => this.setState({ newName: e.target.value }),
-            onFail: fails => this.setState({ fails })
+            fails: nameTouched ? nameFails : null,
+            inputProps: {
+              value: newName,
+              onChange: e => this.setState({ newName: e.target.value, nameTouched: true })
+            }
           })
         ]
       )

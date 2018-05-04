@@ -79,17 +79,4 @@ export const contextMenu = function(items) {
   )
 }
 
-export const textInput = function(props) {
-  return h(Interactive, _.merge({
-      as: 'input',
-      style: {
-        width: '100%',
-        paddingLeft: '1rem', paddingRight: '1rem',
-        fontWeight: 300, fontSize: 14,
-        backgroundColor: props.disabled ? '#f3f3f3' : undefined
-      }
-    },
-    Style.elements.input,
-    props)
-  )
-}
+
