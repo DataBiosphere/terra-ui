@@ -87,3 +87,23 @@ export const textInput = function(props) {
     }, Style.elements.input)
   }, props))
 }
+
+export const Checkbox = ({ checked, onChange, disabled, ...props }) => {
+  return h(Interactive, {
+    as: 'span',
+    role: 'checkbox',
+    'aria-checked': checked,
+    onClick: () => onChange && !disabled && onChange(!checked),
+    style: {
+      display: 'inline-flex',
+      verticalAlign: 'middle',
+      color: disabled ? Style.colors.disabled : Style.colors.secondary,
+    },
+    hover: disabled ? undefined : { color: Style.colors.primary },
+    active: disabled ? undefined : { backgroundColor: Style.colors.highlightFaded },
+    disabled,
+    ...props
+  }, [
+    icon(checked ? 'checkSquare' : 'square', { size: 16 }),
+  ])
+}
