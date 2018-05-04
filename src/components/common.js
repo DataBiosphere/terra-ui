@@ -74,18 +74,9 @@ export const contextMenu = function(items) {
         style: { fontSize: 12, padding: '0.5rem 1.5rem' },
         hover: { backgroundColor: Style.colors.highlight, fontWeight: 500 }
       }, props),
-      contents))
+      contents)
+    )
   )
-}
-
-export const textInput = function(props) {
-  return input(_.merge({
-    style: _.merge({
-      width: '100%',
-      paddingLeft: '1rem', paddingRight: '1rem',
-      fontWeight: 300, fontSize: 14
-    }, Style.elements.input)
-  }, props))
 }
 
 export const Checkbox = ({ checked, onChange, disabled, ...props }) => {
@@ -97,13 +88,13 @@ export const Checkbox = ({ checked, onChange, disabled, ...props }) => {
     style: {
       display: 'inline-flex',
       verticalAlign: 'middle',
-      color: disabled ? Style.colors.disabled : Style.colors.secondary,
+      color: disabled ? Style.colors.disabled : Style.colors.secondary
     },
     hover: disabled ? undefined : { color: Style.colors.primary },
     active: disabled ? undefined : { backgroundColor: Style.colors.highlightFaded },
     disabled,
     ...props
   }, [
-    icon(checked ? 'checkSquare' : 'square', { size: 16 }),
+    icon(checked ? 'checkSquare' : 'square', { size: 16 })
   ])
 }
