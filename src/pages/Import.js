@@ -29,9 +29,9 @@ class DockstoreImporter extends Component {
   }
 
   componentDidMount() {
-    const { id, version } = this.props
+    const { path, version } = this.props
 
-    Dockstore.getWdl(id, version).then(
+    Dockstore.getWdl(path, version).then(
       ({ descriptor }) => this.setState({ wdl: descriptor }),
       failure => this.setState({ loadError: failure })
     )
@@ -58,7 +58,7 @@ class DockstoreImporter extends Component {
   }
 
   renderWdlArea = () => {
-    const { id, version } = this.props
+    const { path, version } = this.props
     const { wdl } = this.state
 
     return div(
@@ -69,7 +69,7 @@ class DockstoreImporter extends Component {
         }
       },
       [
-        div({ style: { fontSize: 16 } }, `From Dockstore - ${id}`),
+        div({ style: { fontSize: 16 } }, `From Dockstore - ${path}`),
         div({}, `V. ${version}`),
         div({
             style: {
@@ -104,9 +104,31 @@ class DockstoreImporter extends Component {
             return { value: name, label: name, data: workspace }
           })
         }),
-        buttonPrimary({ style: { marginTop: '1rem' } }, 'Import')
+        buttonPrimary(
+          {
+            style: { marginTop: '1rem' },
+            disabled: !selectedWorkspace,
+            onClick: () => this.import()
+          },
+          'Import')
       ]
     )
+  }
+
+  import = () => {
+    const { selectedWorkspace: { data: { workspace: { namespace, name } } } } = this.state
+    const { path, version } = this.props
+
+    Rawls.workspace(namespace, name).methodConfigs.importFromDocker({
+      namespace, name: _.last(path.split('/')), rootEntityType: 'participant',
+      // the line of shame:
+      inputs: {}, outputs: {}, prerequisites: {}, methodConfigVersion: 1, deleted: false,
+      methodRepoMethod: {
+        sourceRepo: 'dockstore',
+        methodPath: path,
+        methodVersion: version
+      }
+    })
   }
 
   renderError = () => {
@@ -135,8 +157,8 @@ class Importer extends Component {
 
   renderDockstore = () => {
     const { item } = this.props
-    const [id, version] = item.split(':')
-    return h(DockstoreImporter, { id, version })
+    const [path, version] = item.split(':')
+    return h(DockstoreImporter, { path, version })
   }
 }
 

@@ -146,6 +146,13 @@ export const Rawls = {
       entity: (type) => {
         return fetchRawls(`${root}/entities/${type}`, authOpts())
           .then(parseJson)
+      },
+
+      methodConfigs: {
+        importFromDocker: (payload) => {
+          return fetchRawls(`${root}/methodconfigs`,
+            _.merge(authOpts(), jsonBody(payload), { method: 'POST' }))
+        }
       }
     }
   }
