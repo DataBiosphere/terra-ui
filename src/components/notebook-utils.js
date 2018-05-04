@@ -1,13 +1,13 @@
+import _ from 'lodash'
 import { Fragment } from 'react'
-import Modal from 'src/components/Modal'
-import { Component, Select } from 'src/libs/wrapped-components'
 import { div, h } from 'react-hyperscript-helpers'
-import { spinner } from 'src/components/icons'
 import { buttonPrimary, textInput } from 'src/components/common'
+import { spinner } from 'src/components/icons'
+import Modal from 'src/components/Modal'
+import { Buckets } from 'src/libs/ajax'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import _ from 'lodash'
-import { Buckets } from 'src/libs/ajax'
+import { Component, Select } from 'src/libs/wrapped-components'
 
 
 const baseNotebook = {
@@ -75,13 +75,14 @@ export class NotebookCreator extends Component {
               disabled: !(notebookName && notebookKernel),
               onClick: () => {
                 this.setState({ modalOpen: false, creating: true })
-                Buckets.createNotebook(namespace, bucketName, notebookName, notebookKernel.data).then(
-                  () => {
-                    this.setState({ creating: false })
-                    reloadList()
-                  },
-                  notebookFailure => this.setState({ notebookFailure, modalOpen: false })
-                )
+                Buckets.notebook(namespace, bucketName, notebookName).create(notebookKernel.data)
+                  .then(
+                    () => {
+                      this.setState({ creating: false })
+                      reloadList()
+                    },
+                    notebookFailure => this.setState({ notebookFailure, modalOpen: false })
+                  )
               }
             }, 'Create Notebook')
           }, [
@@ -139,11 +140,10 @@ export class NotebookDuplicator extends Component {
           disabled: !newName || processing,
           onClick: () => {
             this.setState({ processing: true })
-            Buckets[destroyOld ? 'renameNotebook' : 'copyNotebook'](
-              namespace, bucketName, printName, newName).then(
-                onSuccess,
-                failure => this.setState({ failure })
-              )
+            Buckets.notebook(namespace, bucketName, printName)[destroyOld ? 'rename' : 'copy'](newName).then(
+              onSuccess,
+              failure => this.setState({ failure })
+            )
           }
         }, `${destroyOld ? 'Rename' : 'Duplicate' } Notebook`)
       },
@@ -177,7 +177,7 @@ export class NotebookDeleter extends Component {
           disabled: processing,
           onClick: () => {
             this.setState({ processing: true })
-            Buckets.deleteNotebook(namespace, bucketName, printName).then(
+            Buckets.notebook(namespace, bucketName, printName).delete().then(
               onSuccess,
               failure => this.setState({ failure })
             )

@@ -72,41 +72,48 @@ const fetchBuckets = (path, ...args) => fetchOk(`https://www.googleapis.com/${pa
 const nbName = name => encodeURIComponent(`notebooks/${name}.ipynb`)
 
 export const Buckets = {
-  copyNotebook: (namespace, bucket, oldName, newName) => {
-    return Sam.token(namespace)
-      .then(token => fetchBuckets(
-        `storage/v1/b/${bucket}/o/${nbName(oldName)}/copyTo/b/${bucket}/o/${nbName(newName)}`,
-        _.merge(authOpts(token), { method: 'POST' }))
-      )
-  },
-
-  createNotebook: (namespace, bucket, name, contents) => {
-    return Sam.token(namespace)
-      .then(token => fetchBuckets(
-        `upload/storage/v1/b/${bucket}/o?uploadType=media&name=${nbName(name)}`,
-        _.merge(authOpts(token), { method: 'POST', body: JSON.stringify(contents),
-                                   headers: { 'Content-Type': 'application/x-ipynb+json' } }))
-      )
-  },
-
-  deleteNotebook: (namespace, bucket, name) => {
-    return Sam.token(namespace)
-      .then(token => fetchBuckets(
-        `storage/v1/b/${bucket}/o/${nbName(name)}`,
-        _.merge(authOpts(token), { method: 'DELETE' }))
-      )
-  },
-
-  renameNotebook: (namespace, bucket, oldName, newName) => {
-    return Buckets.copyNotebook(namespace, bucket, oldName, newName)
-      .then(() => Buckets.deleteNotebook(namespace, bucket, oldName))
-  },
-
   listNotebooks: (namespace, name) => {
     return Sam.token(namespace)
       .then(token => fetchBuckets(`storage/v1/b/${name}/o?prefix=notebooks/`, authOpts(token)))
       .then(parseJson)
       .then(({ items }) => _.filter(items, ({ name }) => name.endsWith('.ipynb')))
+  },
+
+  notebook: (namespace, bucket, name) => {
+    const bucketUrl = `storage/v1/b/${bucket}/o`
+
+    return {
+      copy: (newName) => {
+        return Sam.token(namespace)
+          .then(token => fetchBuckets(
+            `${bucketUrl}/${nbName(name)}/copyTo/b/${bucket}/o/${nbName(newName)}`,
+            _.merge(authOpts(token), { method: 'POST' }))
+          )
+      },
+
+      create: (contents) => {
+        return Sam.token(namespace)
+          .then(token => fetchBuckets(
+            `upload/${bucketUrl}?uploadType=media&name=${nbName(name)}`,
+            _.merge(authOpts(token), {
+              method: 'POST', body: JSON.stringify(contents),
+              headers: { 'Content-Type': 'application/x-ipynb+json' }
+            }))
+          )
+      },
+
+      delete: () => {
+        return Sam.token(namespace)
+          .then(token => fetchBuckets(
+            `${bucketUrl}/${nbName(name)}`,
+            _.merge(authOpts(token), { method: 'DELETE' }))
+          )
+      },
+
+      rename: (newName) => {
+        return this.copy(newName).then(() => this.delete())
+      }
+    }
   }
 }
 
@@ -119,19 +126,25 @@ export const Rawls = {
       .then(parseJson)
   },
 
-  workspaceDetails: (namespace, name) => {
-    return fetchRawls(`workspaces/${namespace}/${name}`, authOpts())
-      .then(parseJson)
-  },
+  workspace: (namespace, name) => {
+    const root = `workspaces/${namespace}/${name}`
 
-  workspaceEntities: (namespace, name) => {
-    return fetchRawls(`workspaces/${namespace}/${name}/entities`, authOpts())
-      .then(parseJson)
-  },
+    return {
+      details: () => {
+        return fetchRawls(root, authOpts())
+          .then(parseJson)
+      },
 
-  workspaceEntity: (namespace, name, type) => {
-    return fetchRawls(`workspaces/${namespace}/${name}/entities/${type}`, authOpts())
-      .then(parseJson)
+      entities: () => {
+        return fetchRawls(`${root}/entities`, authOpts())
+          .then(parseJson)
+      },
+
+      entity: (type) => {
+        return fetchRawls(`${root}/entities/${type}`, authOpts())
+          .then(parseJson)
+      }
+    }
   }
 }
 
@@ -144,19 +157,33 @@ export const Leo = {
       .then(parseJson)
   },
 
-  clusterCreate: (project, name, clusterOptions) => {
-    return fetchLeo(`api/cluster/${project}/${name}`, _.merge(authOpts(), jsonBody(clusterOptions), { method: 'PUT' }))
+  cluster: (project, name) => {
+    const root = `api/cluster/${project}/${name}`
+
+    return {
+      create: (clusterOptions) => {
+        return fetchLeo(root, _.merge(authOpts(), jsonBody(clusterOptions), { method: 'PUT' }))
+      },
+
+      delete: () => {
+        return fetchLeo(root, _.merge(authOpts(), { method: 'DELETE' }))
+      }
+    }
   },
 
-  clusterDelete: (project, name) => {
-    return fetchLeo(`api/cluster/${project}/${name}`, _.merge(authOpts(), { method: 'DELETE' }))
-  },
+  notebooks: (project, name) => {
+    const root = `notebooks/${project}/${name}`
 
-  localizeNotebooks: (project, name, files) => {
-    return fetchLeo(`notebooks/${project}/${name}/api/localize`, _.merge(authOpts(), jsonBody(files), { method: 'POST' }))
-  },
+    return {
+      localize: (files) => {
+        return fetchLeo(`${root}/api/localize`,
+          _.merge(authOpts(), jsonBody(files), { method: 'POST' }))
+      },
 
-  setCookie: (project, name) => {
-    return fetchLeo(`notebooks/${project}/${name}/setCookie`, _.merge(authOpts(), { credentials: 'include' }))
+      setCookie: () => {
+        return fetchLeo(`${root}/setCookie`,
+          _.merge(authOpts(), { credentials: 'include' }))
+      }
+    }
   }
 }
