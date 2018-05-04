@@ -57,14 +57,18 @@ const fetchOk = (...args) => {
 }
 
 
-const Sam = {
+export const Sam = {
   token: Utils.memoizeWithTimeout((namespace) => {
     const scopes = ['https://www.googleapis.com/auth/devstorage.full_control']
     return fetchOk(`${Config.getSamUrlRoot()}/api/google/user/petServiceAccount/${namespace}/token`,
       _.merge(authOpts(), jsonBody(scopes), { method: 'POST' })
     )
       .then(parseJson)
-  }, namespace => namespace, 1000 * 60 * 30)
+  }, namespace => namespace, 1000 * 60 * 30),
+
+  getUserStatus: () => {
+    return instrumentedFetch(`${Config.getSamUrlRoot()}/register/user`, authOpts())
+  }
 }
 
 
