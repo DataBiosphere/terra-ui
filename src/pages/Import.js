@@ -69,7 +69,7 @@ class DockstoreImporter extends Component {
         }
       },
       [
-        div({ style: { color: Style.colors.secondary, fontSize: 16 } }, `From Dockstore - ${id}`),
+        div({ style: { fontSize: 16 } }, `From Dockstore - ${id}`),
         div({}, `V. ${version}`),
         div({
             style: {
