@@ -8,9 +8,13 @@ import { WorkspaceContainer } from 'src/pages/workspaces/workspace/Container'
 describe('Dashboard', () => {
   // Pretty much useless, exists to explore mock infrastructure
   it('should render the correct access level', () => {
-    jest.spyOn(Rawls, 'workspaceDetails').mockImplementationOnce((namespace, name) => {
+    jest.spyOn(Rawls, 'workspace').mockImplementationOnce((namespace, name) => {
         const { createWorkspace } = require.requireActual('src/libs/__mocks__/ajax')
-        return Promise.resolve(createWorkspace({ namespace, name, accessLevel: 'OWNER' }))
+        return {
+          details() {
+            return Promise.resolve(createWorkspace({ namespace, name, accessLevel: 'OWNER' }))
+          }
+        }
       }
     )
 

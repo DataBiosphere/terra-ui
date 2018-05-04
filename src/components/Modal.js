@@ -2,7 +2,9 @@ import _ from 'lodash'
 import { Fragment } from 'react'
 import * as ReactDOM from 'react-dom'
 import { div, h } from 'react-hyperscript-helpers'
+import { buttonPrimary } from 'src/components/common'
 import * as Style from 'src/libs/style'
+import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 
 
@@ -72,7 +74,12 @@ export default class Modal extends Component {
                 onClick: onDismiss
               }, 'Cancel') :
               null,
-            okButton
+            Utils.cond(
+              [okButton === undefined, () => buttonPrimary({ onClick: onDismiss }, 'OK')],
+              [_.isString(okButton), () => buttonPrimary({ onClick: onDismiss }, okButton)],
+              [_.isFunction(okButton), () => buttonPrimary({ onClick: okButton }, 'OK')],
+              () => okButton
+            )
           ])
         ])
     ])

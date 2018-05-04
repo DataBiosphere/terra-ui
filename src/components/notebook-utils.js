@@ -98,7 +98,7 @@ export class NotebookCreator extends Component {
               disabled: nameFails || !notebookKernel,
               onClick: () => {
                 this.setState({ modalOpen: false, creating: true })
-                Buckets.createNotebook(namespace, bucketName, notebookName, notebookKernel.data).then(
+                Buckets.notebook(namespace, bucketName, notebookName).create(notebookKernel.data).then(
                   () => {
                     this.setState({ creating: false })
                     reloadList()
@@ -164,8 +164,7 @@ export class NotebookDuplicator extends Component {
           disabled: nameFails || processing,
           onClick: () => {
             this.setState({ processing: true })
-            Buckets[destroyOld ? 'renameNotebook' : 'copyNotebook'](
-              namespace, bucketName, printName, newName).then(
+            Buckets.notebook(namespace, bucketName, printName)[destroyOld ? 'rename' : 'copy'](newName).then(
               onSuccess,
               failure => this.setState({ failure })
             )
@@ -202,7 +201,7 @@ export class NotebookDeleter extends Component {
           disabled: processing,
           onClick: () => {
             this.setState({ processing: true })
-            Buckets.deleteNotebook(namespace, bucketName, printName).then(
+            Buckets.notebook(namespace, bucketName, printName).delete().then(
               onSuccess,
               failure => this.setState({ failure })
             )
