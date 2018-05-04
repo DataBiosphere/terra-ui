@@ -88,7 +88,7 @@ class DockstoreImporter extends Component {
   }
 
   renderWorkspaceArea = () => {
-    const { selectedWorkspace, workspaces } = this.state
+    const { selectedWorkspace, workspaces, importError } = this.state
 
     return div({},
       [
@@ -110,7 +110,14 @@ class DockstoreImporter extends Component {
             disabled: !selectedWorkspace,
             onClick: () => this.import()
           },
-          'Import')
+          'Import'),
+        importError ?
+          div({
+            style: { marginTop: '1rem', color: Style.colors.error }
+          }, [
+            icon('error'),
+            JSON.parse(importError).message
+          ]) : null
       ]
     )
   }
@@ -119,7 +126,7 @@ class DockstoreImporter extends Component {
     const { selectedWorkspace: { data: { workspace: { namespace, name } } } } = this.state
     const { path, version } = this.props
 
-    Rawls.workspace(namespace, name).methodConfigs.importFromDocker({
+    Rawls.workspace(namespace, name).methodConfigs().importFromDocker({
       namespace, name: _.last(path.split('/')), rootEntityType: 'participant',
       // the line of shame:
       inputs: {}, outputs: {}, prerequisites: {}, methodConfigVersion: 1, deleted: false,
@@ -128,7 +135,10 @@ class DockstoreImporter extends Component {
         methodPath: path,
         methodVersion: version
       }
-    })
+    }).then(
+      () => Nav.goToPath('workspace', namespace, name, 'tools'),
+      importError => this.setState({ importError })
+    )
   }
 
   renderError = () => {

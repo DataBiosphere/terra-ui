@@ -148,10 +148,17 @@ export const Rawls = {
           .then(parseJson)
       },
 
-      methodConfigs: {
-        importFromDocker: (payload) => {
-          return fetchRawls(`${root}/methodconfigs`,
-            _.merge(authOpts(), jsonBody(payload), { method: 'POST' }))
+      methodConfigs: () => {
+        const mcPath = `${root}/methodconfigs`
+
+        return {
+          list: (allRepos = true) => {
+            return fetchRawls(`${mcPath}?allRepos=${allRepos}`, authOpts()).then(parseJson)
+          },
+
+          importFromDocker: (payload) => {
+            return fetchRawls(mcPath, _.merge(authOpts(), jsonBody(payload), { method: 'POST' }))
+          }
         }
       }
     }
