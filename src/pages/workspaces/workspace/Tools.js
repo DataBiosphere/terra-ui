@@ -55,7 +55,7 @@ export default class WorkspaceTools extends Component {
   componentDidMount() {
     const { workspace: { namespace, name } } = this.props
 
-    Rawls.workspace(namespace, name).methodConfigs().list()
+    Rawls.workspace(namespace, name).methodConfigs.list()
       .then(configs => this.setState({ configs }))
   }
 }

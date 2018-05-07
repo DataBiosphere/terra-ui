@@ -131,6 +131,7 @@ export const Rawls = {
 
   workspace: (namespace, name) => {
     const root = `workspaces/${namespace}/${name}`
+    const mcPath = `${root}/methodconfigs`
 
     return {
       details: () => {
@@ -148,17 +149,13 @@ export const Rawls = {
           .then(parseJson)
       },
 
-      methodConfigs: () => {
-        const mcPath = `${root}/methodconfigs`
+      methodConfigs: {
+        list: (allRepos = true) => {
+          return fetchRawls(`${mcPath}?allRepos=${allRepos}`, authOpts()).then(parseJson)
+        },
 
-        return {
-          list: (allRepos = true) => {
-            return fetchRawls(`${mcPath}?allRepos=${allRepos}`, authOpts()).then(parseJson)
-          },
-
-          importFromDocker: (payload) => {
-            return fetchRawls(mcPath, _.merge(authOpts(), jsonBody(payload), { method: 'POST' }))
-          }
+        importFromDocker: (payload) => {
+          return fetchRawls(mcPath, _.merge(authOpts(), jsonBody(payload), { method: 'POST' }))
         }
       }
     }
