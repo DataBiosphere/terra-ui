@@ -35,3 +35,8 @@ body {
 #root.overlayOpen.overHeight {
   overflow-y: scroll;
 }
+
+.CodeMirror {
+  font-family: Menlo, monospace;
+  font-size: 12px;
+}

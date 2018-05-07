@@ -5,6 +5,7 @@
   "dependencies": {
     "@clr/icons": "^0.11.14",
     "@webcomponents/custom-elements": "^1.1.0",
+    "codemirror": "^5.37.0",
     "lodash": "^4.17.10",
     "raw-loader": "^0.5.1",
     "rc-table": "^6.1.10",

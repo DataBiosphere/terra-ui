@@ -32,6 +32,7 @@ export class TopBar extends Component {
       div(
         {
           style: {
+            zIndex: 7, // CodeMirror uses zIndexes, this seems to be enough.
             display: 'flex', position: 'absolute', left: 0, right: 0, top: 0, bottom: 0,
             overflow: 'auto', cursor: 'pointer'
           },
@@ -132,6 +133,7 @@ export class TopBar extends Component {
         this.props.children,
         div({ style: { flexGrow: 1 } }),
         link({
+          style: { flexShrink: 0 },
           onClick: () => Utils.getAuthInstance().signOut()
         }, 'Sign out'),
         this.state.navShown ? this.buildNav() : null
