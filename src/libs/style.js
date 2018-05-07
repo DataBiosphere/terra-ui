@@ -16,11 +16,14 @@ export const colors = {
   textFaded: '#a6a6a6',
   textFadedLight: '#c5e1f3',
   title: '#224f83',
-  titleAlt: '#8299a5'
+  titleAlt: '#8299a5',
+  warning: '#e28327'
 }
 
 export const standardShadow = '0 3px 2px 0 rgba(0,0,0,0.12)'
 export const modalShadow = '0 0 8px 0 rgba(0,0,0,0.12), 0 8px 8px 0 rgba(0,0,0,0.24)'
+
+export const standardLine = `1px solid ${colors.textFaded}`
 
 export const elements = {
   button: { fontWeight: 500, fontSize: 14, textTransform: 'uppercase', cursor: 'pointer' },

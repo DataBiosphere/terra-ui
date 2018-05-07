@@ -116,6 +116,7 @@ Array [
             Object {
                 "color": "#478eba",
                 "cursor": "pointer",
+                "flexShrink": 0,
                 "outline": 0,
                 "outlineOffset": 0,
                 "textDecoration": "none",

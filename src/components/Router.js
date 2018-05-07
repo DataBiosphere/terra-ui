@@ -1,6 +1,7 @@
 import { Component } from 'react'
 import { h, h2 } from 'react-hyperscript-helpers'
 import * as Nav from 'src/libs/nav'
+import * as Import from 'src/pages/Import'
 import * as StyleGuide from 'src/pages/StyleGuide'
 import * as WorkspaceList from 'src/pages/workspaces/List'
 import * as WorkspaceContainer from 'src/pages/workspaces/workspace/Container'
@@ -11,6 +12,7 @@ const initNavPaths = () => {
   WorkspaceList.addNavPaths()
   WorkspaceContainer.addNavPaths()
   StyleGuide.addNavPaths()
+  Import.addNavPaths()
 }
 
 export default class Router extends Component {

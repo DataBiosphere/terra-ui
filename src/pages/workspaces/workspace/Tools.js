@@ -1,14 +1,16 @@
 import _ from 'lodash'
 import { div, h, img } from 'react-hyperscript-helpers'
 import { buttonPrimary } from 'src/components/common'
+import { spinner } from 'src/components/icons'
 import Modal from 'src/components/Modal'
+import { Rawls } from 'src/libs/ajax'
 import * as Style from 'src/libs/style'
 import { Component } from 'src/libs/wrapped-components'
 
 
 export default class WorkspaceTools extends Component {
   render() {
-    const { modal } = this.state
+    const { modal, configs } = this.state
 
     return div({ style: { margin: '1rem' } }, [
       modal ? h(Modal, {
@@ -41,7 +43,19 @@ export default class WorkspaceTools extends Component {
                 }
               }, 'T')
             ])
-        ])
+        ]),
+      div({ style: { fontSize: 16, fontWeight: 500, color: Style.colors.title, marginTop: '3rem' } },
+        'Real Configs'),
+      configs ?
+        div({}, _.map(configs, ({ name }) => div(name))) :
+        spinner()
     ])
+  }
+
+  componentDidMount() {
+    const { workspace: { namespace, name } } = this.props
+
+    Rawls.workspace(namespace, name).methodConfigs.list()
+      .then(configs => this.setState({ configs }))
   }
 }
