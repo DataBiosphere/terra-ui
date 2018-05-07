@@ -1,5 +1,5 @@
 import { Component } from 'react'
-import { h, h2 } from 'react-hyperscript-helpers'
+import { h2 } from 'react-hyperscript-helpers'
 import * as Nav from 'src/libs/nav'
 import * as Import from 'src/pages/Import'
 import * as StyleGuide from 'src/pages/StyleGuide'
@@ -43,7 +43,6 @@ export default class Router extends Component {
 
   render() {
     const { windowHash } = this.state
-    const { component, makeProps } = Nav.findPathHandler(windowHash) || {}
-    return component ? h(component, makeProps()) : h2('No matching path.')
+    return Nav.renderPath(windowHash) || h2('No matching path.')
   }
 }
