@@ -99,9 +99,8 @@ class DockstoreImporter extends Component {
           placeholder: workspaces ? 'Select a workspace' : 'Loading workspaces...',
           value: selectedWorkspace,
           onChange: selectedWorkspace => this.setState({ selectedWorkspace }),
-          options: _.map(workspaces, workspace => {
-            const { name } = workspace.workspace
-            return { value: name, label: name, data: workspace }
+          options: _.map(workspaces, ({ workspace }) => {
+            return { value: workspace, label: workspace.name }
           })
         }),
         buttonPrimary(
@@ -123,7 +122,7 @@ class DockstoreImporter extends Component {
   }
 
   import = () => {
-    const { selectedWorkspace: { data: { workspace: { namespace, name } } } } = this.state
+    const { selectedWorkspace: { value: { namespace, name } } } = this.state
     const { path, version } = this.props
 
     Rawls.workspace(namespace, name).methodConfigs.importFromDocker({
