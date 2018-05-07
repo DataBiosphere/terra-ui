@@ -156,9 +156,8 @@ export const addNavPaths = () => {
   Nav.defPath(
     'workspace',
     {
-      component: WorkspaceContainer,
       regex: /workspaces\/([^/]+)\/([^/]+)\/?([^/]*)/,
-      makeProps: (namespace, name, activeTab) => ({ namespace, name, activeTab }),
+      render: (namespace, name, activeTab) => h(WorkspaceContainer, { namespace, name, activeTab }),
       makePath: (namespace, name, activeTab) =>
         `workspaces/${namespace}/${name}${activeTab ? `/${activeTab}` : ''}`
     }

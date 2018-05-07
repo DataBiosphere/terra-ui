@@ -178,9 +178,8 @@ export const addNavPaths = () => {
   Nav.defPath(
     'workspaces',
     {
-      component: WorkspaceList,
       regex: /workspaces$/,
-      makeProps: () => ({}),
+      render: () => h(WorkspaceList),
       makePath: () => 'workspaces'
     }
   )

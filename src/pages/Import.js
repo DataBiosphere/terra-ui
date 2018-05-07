@@ -176,9 +176,8 @@ export const addNavPaths = () => {
   Nav.defPath(
     'import',
     {
-      component: Importer,
       regex: /import\/([^/]+)\/(.+)$/,
-      makeProps: (source, item) => ({ source, item }),
+      render: (source, item) => h(Importer, { source, item }),
       makePath: (source, item) => `/import/${source}/${item}`
     }
   )

@@ -64,9 +64,8 @@ export const addNavPaths = () => {
   Nav.defPath(
     'styles',
     {
-      component: StyleGuide,
       regex: /styles$/,
-      makeProps: () => ({}),
+      render: () => h(StyleGuide),
       makePath: () => 'styles'
     }
   )
