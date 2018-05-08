@@ -41,7 +41,7 @@ class StyleGuide extends Component {
           inputProps: {
             placeholder: 'ValidatedInput wants an email',
             value: this.state.validatedInputValue,
-            onChange: (e) => this.setState({ validatedInputValue: e.target.value, validatedInputTouched: true })
+            onChange: e => this.setState({ validatedInputValue: e.target.value, validatedInputTouched: true })
           },
           errors: this.state.validatedInputTouched ?
             validate.single(this.state.validatedInputValue, { email: true }) :

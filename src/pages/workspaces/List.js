@@ -26,13 +26,13 @@ export class WorkspaceList extends Component {
 
   componentWillMount() {
     Rawls.workspacesList().then(
-      (workspaces) => this.setState({
+      workspaces => this.setState({
         workspaces: _.sortBy(_.filter(workspaces,
-          (ws) => !ws.public || Utils.workspaceAccessLevels.indexOf(ws.accessLevel) >
+          ws => !ws.public || Utils.workspaceAccessLevels.indexOf(ws.accessLevel) >
             Utils.workspaceAccessLevels.indexOf('READER')),
         'workspace.name')
       }),
-      (failure) => this.setState({ failure })
+      failure => this.setState({ failure })
     )
   }
 
@@ -40,9 +40,9 @@ export class WorkspaceList extends Component {
     return {
       defaultItemsPerPage: this.state.itemsPerPage,
       itemsPerPageOptions: [6, 12, 24, 36, 48],
-      onItemsPerPageChanged: (n) => this.setState({ itemsPerPage: n }),
+      onItemsPerPageChanged: n => this.setState({ itemsPerPage: n }),
       initialPage: this.state.pageNumber,
-      onPageChanged: (n) => this.setState({ pageNumber: n }),
+      onPageChanged: n => this.setState({ pageNumber: n }),
       dataSource: this.state.workspaces.filter(({ workspace: { namespace, name } }) =>
         `${namespace}/${name}`.includes(this.state.filter))
     }
@@ -131,7 +131,7 @@ export class WorkspaceList extends Component {
             wrapperProps: { style: { marginLeft: '2rem', flexGrow: 1, maxWidth: 500 } },
             inputProps: {
               placeholder: 'SEARCH BIOSPHERE',
-              onChange: (e) => this.setState({ filter: e.target.value }),
+              onChange: e => this.setState({ filter: e.target.value }),
               value: filter
             }
           })

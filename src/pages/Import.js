@@ -33,10 +33,10 @@ class DockstoreImporter extends Component {
 
     Dockstore.getWdl(path, version).then(
       ({ descriptor }) => this.setState({ wdl: descriptor }),
-      (failure) => this.setState({ loadError: failure })
+      failure => this.setState({ loadError: failure })
     )
 
-    Rawls.workspacesList().then((workspaces) => this.setState({ workspaces }))
+    Rawls.workspacesList().then(workspaces => this.setState({ workspaces }))
   }
 
   renderImport = () => {
@@ -99,7 +99,7 @@ class DockstoreImporter extends Component {
           disabled: !workspaces,
           placeholder: workspaces ? 'Select a workspace' : 'Loading workspaces...',
           value: selectedWorkspace,
-          onChange: (selectedWorkspace) => this.setState({ selectedWorkspace }),
+          onChange: selectedWorkspace => this.setState({ selectedWorkspace }),
           options: _.map(workspaces, ({ workspace }) => {
             return { value: workspace, label: workspace.name }
           })
@@ -137,7 +137,7 @@ class DockstoreImporter extends Component {
       }
     }).then(
       () => Nav.goToPath('workspace', namespace, name, 'tools'),
-      (importError) => this.setState({ importError })
+      importError => this.setState({ importError })
     )
   }
 

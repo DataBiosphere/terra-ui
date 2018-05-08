@@ -27,7 +27,7 @@ export const textInput = function(props) {
  * @param props.name {string} - user-facing name for input
  * @param props.errors {string[]}
  */
-export const validatedInput = (props) => {
+export const validatedInput = props => {
   const { inputProps, name, errors } = props
 
   return h(Fragment, [
@@ -55,7 +55,7 @@ export const validatedInput = (props) => {
         marginLeft: '1rem'
       }
     },
-    _.map(errors, (fail) => div({ style: { marginTop: '0.5rem' } }, `${name} ${fail}`))
+    _.map(errors, fail => div({ style: { marginTop: '0.5rem' } }, `${name} ${fail}`))
     ) : null
   ])
 }

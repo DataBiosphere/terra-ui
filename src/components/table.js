@@ -28,20 +28,20 @@ const paginator = function(props) {
     'Page: ',
     select({
       style: { marginRight: '1rem' },
-      onChange: (e) => setPageNumber(e.target.value),
+      onChange: e => setPageNumber(e.target.value),
       value: pageNumber
     },
     _.map(_.range(1, filteredDataLength / itemsPerPage + 1),
-      (i) => option({ value: i }, i))),
+      i => option({ value: i }, i))),
     setItemsPerPage ?
       h(Fragment, [
         'Items per page: ',
         select({
-          onChange: (e) => setItemsPerPage(e.target.value),
+          onChange: e => setItemsPerPage(e.target.value),
           value: itemsPerPage
         },
         _.map(itemsPerPageOptions,
-          (i) => option({ value: i }, i)))
+          i => option({ value: i }, i)))
       ]) :
       null
   ])
@@ -82,12 +82,12 @@ export class DataTable extends Component {
         div({ style: { marginTop: 10 } }, [
           paginator({
             filteredDataLength: dataSource.length,
-            setPageNumber: ((n) => {
+            setPageNumber: (n => {
               this.setState({ pageNumber: n })
               if (onPageChanged) onPageChanged(n)
             }),
             pageNumber,
-            setItemsPerPage: allowItemsPerPage ? ((n) => {
+            setItemsPerPage: allowItemsPerPage ? (n => {
               this.setState({ itemsPerPage: n })
               if (onItemsPerPageChanged) onItemsPerPageChanged(n)
             }) : null,
@@ -131,17 +131,17 @@ export class DataGrid extends Component {
 
     return h(Fragment, [
       div({ style: { display: 'flex', flexWrap: 'wrap' } },
-        _.map(listPage, (record) => renderCard(record, cardsPerRow))),
+        _.map(listPage, record => renderCard(record, cardsPerRow))),
       allowPagination ?
         div({ style: { marginTop: 10 } }, [
           paginator({
             filteredDataLength: dataSource.length,
-            setPageNumber: ((n) => {
+            setPageNumber: (n => {
               this.setState({ pageNumber: n })
               if (onPageChanged) onPageChanged(n)
             }),
             pageNumber,
-            setItemsPerPage: allowItemsPerPage ? ((n) => {
+            setItemsPerPage: allowItemsPerPage ? (n => {
               this.setState({ itemsPerPage: n })
               if (onItemsPerPageChanged) onItemsPerPageChanged(n)
             }) : null,

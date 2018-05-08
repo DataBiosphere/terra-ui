@@ -12,11 +12,11 @@ import { Component } from 'src/libs/wrapped-components'
  * @param children
  */
 export default class ShowOnClick extends Component {
-  setVisibility = (visible) => {
+  setVisibility = visible => {
     this.setState({ visible })
   }
 
-  listenForEscape = (e) => {
+  listenForEscape = e => {
     if (e.key === 'Escape') {
       window.removeEventListener('keydown', this.listenForEscape)
       this.setState({ visible: false })
@@ -29,7 +29,7 @@ export default class ShowOnClick extends Component {
 
     return div(_.merge({
       style: visible ? { position: 'relative' } : undefined,
-      onClick: disabled ? undefined : (e) => {
+      onClick: disabled ? undefined : e => {
         this.setState({ visible: true })
         e.preventDefault()
         if (closeOnEsc) {
@@ -44,7 +44,7 @@ export default class ShowOnClick extends Component {
           style: {
             position: 'fixed', left: 0, right: 0, top: 0, bottom: 0, cursor: 'pointer'
           },
-          onClick: closeOnClick ? (e) => {
+          onClick: closeOnClick ? e => {
             this.setState({ visible: false })
             e.preventDefault()
             e.stopPropagation()

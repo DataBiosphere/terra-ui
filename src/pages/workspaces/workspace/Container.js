@@ -68,8 +68,8 @@ export class WorkspaceContainer extends Component {
     const { namespace, name } = this.props
 
     Rawls.workspace(namespace, name).details().then(
-      (workspace) => this.setState({ workspace }),
-      (workspaceFailure) => this.setState({ workspaceFailure })
+      workspace => this.setState({ workspace }),
+      workspaceFailure => this.setState({ workspaceFailure })
     )
   }
 
@@ -79,7 +79,7 @@ export class WorkspaceContainer extends Component {
 
     const { forceUpdateKey, workspaceFailure, workspace } = this.state
 
-    const navTab = (tabName) => {
+    const navTab = tabName => {
       return h(Fragment, [
         a({
           style: tabName === activeTab ? tabActiveStyle : tabBaseStyle,

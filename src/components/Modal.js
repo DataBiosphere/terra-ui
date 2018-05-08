@@ -23,7 +23,7 @@ export default class Modal extends Component {
     this.el = document.createElement('div')
   }
 
-  listenForEscape = (e) => {
+  listenForEscape = e => {
     if (e.key === 'Escape') {
       this.props.onDismiss()
     }

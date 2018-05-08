@@ -20,7 +20,7 @@ const notebookNameValidator = {
   }
 }
 
-const notebookNameInput = (props) => div({ style: { margin: '0.5rem 0 1rem' } }, [
+const notebookNameInput = props => div({ style: { margin: '0.5rem 0 1rem' } }, [
   validatedInput(_.merge({
     name: 'notebook name',
     inputProps: {
@@ -103,7 +103,7 @@ export class NotebookCreator extends Component {
                     this.setState({ creating: false })
                     reloadList()
                   },
-                  (notebookFailure) => this.setState({ notebookFailure, modalOpen: false })
+                  notebookFailure => this.setState({ notebookFailure, modalOpen: false })
                 )
               }
             }, 'Create Notebook')
@@ -113,7 +113,7 @@ export class NotebookCreator extends Component {
               errors: nameTouched ? nameErrors : null,
               inputProps: {
                 value: notebookName,
-                onChange: (e) => this.setState({ notebookName: e.target.value, nameTouched: true })
+                onChange: e => this.setState({ notebookName: e.target.value, nameTouched: true })
               }
             }),
             div({ style: Style.elements.sectionHeader }, 'Kernel'),
@@ -123,7 +123,7 @@ export class NotebookCreator extends Component {
               wrapperStyle: { marginTop: '0.5rem' },
               placeholder: 'Select a kernel',
               value: notebookKernel,
-              onChange: (notebookKernel) => this.setState({ notebookKernel }),
+              onChange: notebookKernel => this.setState({ notebookKernel }),
               options: [
                 {
                   value: 'python2',
@@ -166,7 +166,7 @@ export class NotebookDuplicator extends Component {
           this.setState({ processing: true })
           Buckets.notebook(namespace, bucketName, printName)[destroyOld ? 'rename' : 'copy'](newName).then(
             onSuccess,
-            (failure) => this.setState({ failure })
+            failure => this.setState({ failure })
           )
         }
       }, `${destroyOld ? 'Rename' : 'Duplicate' } Notebook`)
@@ -180,7 +180,7 @@ export class NotebookDuplicator extends Component {
           errors: nameTouched ? nameErrors : null,
           inputProps: {
             value: newName,
-            onChange: (e) => this.setState({ newName: e.target.value, nameTouched: true })
+            onChange: e => this.setState({ newName: e.target.value, nameTouched: true })
           }
         })
       ]
@@ -202,7 +202,7 @@ export class NotebookDeleter extends Component {
           this.setState({ processing: true })
           Buckets.notebook(namespace, bucketName, printName).delete().then(
             onSuccess,
-            (failure) => this.setState({ failure })
+            failure => this.setState({ failure })
           )
         }
       }, `Delete Notebook`)

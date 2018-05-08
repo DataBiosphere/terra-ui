@@ -12,11 +12,7 @@ describe('Dashboard', () => {
       const { createWorkspace } = require.requireActual('src/libs/__mocks__/ajax')
       return {
         details() {
-          return Promise.resolve(createWorkspace({
-            namespace,
-            name,
-            accessLevel: 'OWNER'
-          }))
+          return Promise.resolve(createWorkspace({ namespace, name, accessLevel: 'OWNER' }))
         }
       }
     })

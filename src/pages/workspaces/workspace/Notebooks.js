@@ -22,7 +22,7 @@ class NotebookCard extends Component {
     const hideMenu = () => this.notebookMenu.setVisibility(false)
 
     const notebookMenu = h(ShowOnClick, {
-      ref: (instance) => this.notebookMenu = instance,
+      ref: instance => this.notebookMenu = instance,
       button: h(Interactive, {
         as: icon('ellipsis-vertical'), size: 18,
         style: { marginLeft: '1rem', cursor: 'pointer' }, focus: 'hover'
@@ -149,13 +149,13 @@ export default class WorkspaceNotebooks extends Component {
 
     this.setState({ clusters: undefined })
     Leo.clustersList().then(
-      (list) => {
+      list => {
         const owned = _.filter(list,
-          (c) => (c.creator === Utils.getUser().getBasicProfile().getEmail()))
+          c => (c.creator === Utils.getUser().getBasicProfile().getEmail()))
         if (_.some(owned)) { Leo.notebooks(namespace, _.first(owned).clusterName).setCookie() }
         this.setState({ clusters: _.sortBy(owned, 'clusterName') }, this.getNotebooks)
       },
-      (listFailure) => this.setState({ listFailure })
+      listFailure => this.setState({ listFailure })
     )
   }
 
@@ -172,7 +172,7 @@ export default class WorkspaceNotebooks extends Component {
         this.setState({ creatingCluster: false })
         this.loadClusters()
       },
-      (creationFail) => window.alert(`Couldn't create cluster: ${creationFail}`)
+      creationFail => window.alert(`Couldn't create cluster: ${creationFail}`)
     )
     this.setState({ creatingCluster: true })
   }
@@ -184,7 +184,7 @@ export default class WorkspaceNotebooks extends Component {
 
     if (_.some(clusters)) {
       Buckets.listNotebooks(namespace, bucketName).then(
-        (notebooks) => {
+        notebooks => {
           const cluster = _.first(clusters).clusterName
 
           this.setState({ notebooks: _.reverse(_.sortBy(notebooks, 'updated')) })
@@ -194,13 +194,13 @@ export default class WorkspaceNotebooks extends Component {
               [`~/${wsName}/${name.slice(10)}`]: `gs://${bucket}/${name}`
             }).then(
               () => this.setState(
-                (oldState) => _.merge({ notebookAccess: { [name]: true } }, oldState)),
+                oldState => _.merge({ notebookAccess: { [name]: true } }, oldState)),
               () => this.setState(
-                (oldState) => _.merge({ notebookAccess: { [name]: false } }, oldState))
+                oldState => _.merge({ notebookAccess: { [name]: false } }, oldState))
             )
           })
         },
-        (notebooksFailure) => this.setState({ notebooksFailure })
+        notebooksFailure => this.setState({ notebooksFailure })
       )
     } else {
       this.setState({ notebooks: [] })
@@ -277,7 +277,7 @@ export default class WorkspaceNotebooks extends Component {
                 },
                 {
                   title: 'Created by', dataIndex: 'creator', key: 'creator',
-                  render: (creator) => div({
+                  render: creator => div({
                     title: creator,
                     style: {
                       textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block',
@@ -293,7 +293,7 @@ export default class WorkspaceNotebooks extends Component {
                         onClick: () => {
                           Leo.cluster(googleProject, clusterName).delete().then(
                             () => this.loadClusters(),
-                            (deletionFail) => window.alert(`Couldn't delete cluster: ${deletionFail}`)
+                            deletionFail => window.alert(`Couldn't delete cluster: ${deletionFail}`)
                           )
                         },
                         title: `Delete cluster ${clusterName}`

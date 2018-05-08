@@ -37,7 +37,7 @@ window.saturnMock = {
 }
 
 const authOpts = (token = Utils.getAuthToken()) => ({ headers: { Authorization: `Bearer ${token}` } })
-const jsonBody = (body) => ({ body: JSON.stringify(body), headers: { 'Content-Type': 'application/json' } })
+const jsonBody = body => ({ body: JSON.stringify(body), headers: { 'Content-Type': 'application/json' } })
 
 const instrumentedFetch = (...args) => {
   if (noConnection) {
@@ -52,19 +52,19 @@ const instrumentedFetch = (...args) => {
 
 const fetchOk = (...args) => {
   return instrumentedFetch(...args)
-    .then((res) => res.ok ? res : res.text().then((text) => Promise.reject(text)))
+    .then(res => res.ok ? res : res.text().then(text => Promise.reject(text)))
 }
 
 
 export const Sam = {
-  token: Utils.memoizeWithTimeout(async (namespace) => {
+  token: Utils.memoizeWithTimeout(async namespace => {
     const scopes = ['https://www.googleapis.com/auth/devstorage.full_control']
     const res = await fetchOk(
       `${await Config.getSamUrlRoot()}/api/google/user/petServiceAccount/${namespace}/token`,
       _.merge(authOpts(), jsonBody(scopes), { method: 'POST' })
     )
     return res.json()
-  }, (namespace) => namespace, 1000 * 60 * 30),
+  }, namespace => namespace, 1000 * 60 * 30),
 
   getUserStatus: async () => {
     return instrumentedFetch(`${await Config.getSamUrlRoot()}/register/user`, authOpts())
@@ -73,7 +73,7 @@ export const Sam = {
 
 
 const fetchBuckets = (path, ...args) => fetchOk(`https://www.googleapis.com/${path}`, ...args)
-const nbName = (name) => encodeURIComponent(`notebooks/${name}.ipynb`)
+const nbName = name => encodeURIComponent(`notebooks/${name}.ipynb`)
 
 export const Buckets = {
   listNotebooks: async (namespace, name) => {
@@ -89,14 +89,14 @@ export const Buckets = {
     const bucketUrl = `storage/v1/b/${bucket}/o`
 
     return {
-      copy: async (newName) => {
+      copy: async newName => {
         return fetchBuckets(
           `${bucketUrl}/${nbName(name)}/copyTo/b/${bucket}/o/${nbName(newName)}`,
           _.merge(authOpts(await Sam.token(namespace)), { method: 'POST' })
         )
       },
 
-      create: async (contents) => {
+      create: async contents => {
         return fetchBuckets(
           `upload/${bucketUrl}?uploadType=media&name=${nbName(name)}`,
           _.merge(authOpts(await Sam.token(namespace)), {
@@ -113,7 +113,7 @@ export const Buckets = {
         )
       },
 
-      rename: async (newName) => {
+      rename: async newName => {
         await this.copy(newName)
         return this.delete()
       }
@@ -147,7 +147,7 @@ export const Rawls = {
         return res.json()
       },
 
-      entity: async (type) => {
+      entity: async type => {
         const res = await fetchRawls(`${root}/entities/${type}`, authOpts())
         return res.json()
       },
@@ -158,7 +158,7 @@ export const Rawls = {
           return res.json()
         },
 
-        importFromDocker: (payload) => {
+        importFromDocker: payload => {
           return fetchRawls(mcPath, _.merge(authOpts(), jsonBody(payload), { method: 'POST' }))
         }
       }
@@ -181,7 +181,7 @@ export const Leo = {
     const root = `api/cluster/${project}/${name}`
 
     return {
-      create: (clusterOptions) => {
+      create: clusterOptions => {
         return fetchLeo(root, _.merge(authOpts(), jsonBody(clusterOptions), { method: 'PUT' }))
       },
 
@@ -195,7 +195,7 @@ export const Leo = {
     const root = `notebooks/${project}/${name}`
 
     return {
-      localize: (files) => {
+      localize: files => {
         return fetchLeo(`${root}/api/localize`,
           _.merge(authOpts(), jsonBody(files), { method: 'POST' }))
       },
@@ -213,7 +213,7 @@ const fetchDockstore = async (path, ...args) => {
   return fetchOk(`${await Config.getDockstoreUrlRoot()}/${path}`, ...args)
 }
 // %23 = '#', %2F = '/'
-const dockstoreMethodPath = (path) => `api/ga4gh/v1/tools/%23workflow%2F${encodeURIComponent(path)}/versions`
+const dockstoreMethodPath = path => `api/ga4gh/v1/tools/%23workflow%2F${encodeURIComponent(path)}/versions`
 
 export const Dockstore = {
   getWdl: async (path, version) => {
@@ -221,7 +221,7 @@ export const Dockstore = {
     return res.json()
   },
 
-  getVersions: async (path) => {
+  getVersions: async path => {
     const res = await fetchDockstore(dockstoreMethodPath(path))
     return res.json()
   }

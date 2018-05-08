@@ -41,7 +41,7 @@ module.exports = {
     'space-in-parens': 'warn',
 
 
-    'arrow-parens': 'warn',
+    'arrow-parens': ['warn', 'as-needed'],
     'arrow-spacing': 'warn'
   }
 }

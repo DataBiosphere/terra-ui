@@ -50,7 +50,7 @@ export class TopBar extends Component {
               backgroundColor: Style.colors.primary, height: '100%',
               boxShadow: '3px 0 13px 0 rgba(0,0,0,0.3)'
             },
-            onClick: (e) => e.stopPropagation()
+            onClick: e => e.stopPropagation()
           }, [
             div({
               style: _.assign({

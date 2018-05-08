@@ -14,8 +14,8 @@ export default class WorkspaceData extends Component {
     const { namespace, name } = this.props.workspace
 
     Rawls.workspace(namespace, name).entities().then(
-      (workspaceEntities) => this.setState({ workspaceEntities }),
-      (entitiesFailure) => this.setState({ entitiesFailure })
+      workspaceEntities => this.setState({ workspaceEntities }),
+      entitiesFailure => this.setState({ entitiesFailure })
     )
   }
 
@@ -32,8 +32,8 @@ export default class WorkspaceData extends Component {
         onClick: () => {
           this.setState({ selectedEntityType: type, selectedEntities: null })
           Rawls.workspace(namespace, name).entity(type).then(
-            (selectedEntities) => this.setState({ selectedEntities }),
-            (entityFailure) => this.setState({ entityFailure })
+            selectedEntities => this.setState({ selectedEntities }),
+            entityFailure => this.setState({ entityFailure })
           )
         }
       },
@@ -49,9 +49,9 @@ export default class WorkspaceData extends Component {
         rowKey: 'name',
         scroll: { x: true },
         components: {
-          table: (props) => table(_.merge({ style: { borderCollapse: 'collapse' } }, props)),
+          table: props => table(_.merge({ style: { borderCollapse: 'collapse' } }, props)),
           body: {
-            row: (props) => h(Interactive,
+            row: props => h(Interactive,
               _.merge({
                 as: 'tr', style: { cursor: null },
                 hover: { backgroundColor: Style.colors.highlightFaded }
@@ -64,7 +64,7 @@ export default class WorkspaceData extends Component {
           return {
             title: name,
             key: name,
-            render: (entity) => div({ style: { padding: '0.5rem' } }, entity.attributes[name])
+            render: entity => div({ style: { padding: '0.5rem' } }, entity.attributes[name])
           }
         })
       }

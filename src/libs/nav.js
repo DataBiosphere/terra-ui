@@ -38,13 +38,13 @@ export const clearPaths = function() {
   allRedirects = []
 }
 
-const decodeHash = (hash) => decodeURI(hash.substring(1))
+const decodeHash = hash => decodeURI(hash.substring(1))
 
 /**
  * @param {string} windowHash
  * @returns {object} matchingHandler
  */
-export const renderPath = (windowHash) => {
+export const renderPath = windowHash => {
   const hash = decodeHash(windowHash)
   const matchingHandlers = _.filter(allPathHandlers, ({ regex }) => regex.test(hash))
   console.assert(matchingHandlers.length <= 1,
@@ -95,7 +95,7 @@ export const isCurrentPath = function(k, ...args) {
  * @param windowHash
  * @returns {boolean} redirect executed?
  */
-export const executeRedirects = (windowHash) => {
+export const executeRedirects = windowHash => {
   const hash = decodeHash(windowHash)
   const matchingHandlers = _.filter(allRedirects, ({ regex }) => regex.test(hash))
   console.assert(matchingHandlers.length <= 1,

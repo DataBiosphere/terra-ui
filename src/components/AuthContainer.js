@@ -22,10 +22,10 @@ export default class AuthContainer extends Component {
     window.gapi.signin2.render('signInButton', { scope: 'openid profile email' })
   }
 
-  handleSignIn = (isSignedIn) => {
+  handleSignIn = isSignedIn => {
     this.setState({ isSignedIn })
     if (isSignedIn) {
-      Sam.getUserStatus().then((response) => {
+      Sam.getUserStatus().then(response => {
         if (response.status === 404) {
           return true
         } else if (!response.ok) {
@@ -33,7 +33,7 @@ export default class AuthContainer extends Component {
         } else {
           return response.json().then(({ enabled: { ldap } }) => !ldap)
         }
-      }).then((show) => {
+      }).then(show => {
         this.setState({ isShowingNotRegisteredModal: show })
       }, () => {
         console.warn('Error looking up user status')

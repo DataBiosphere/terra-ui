@@ -6,7 +6,7 @@ import { Component } from 'src/libs/wrapped-components'
 
 CodeMirror.defineMode('wdl', function() {
   return {
-    token: (stream) => {
+    token: stream => {
       stream.eatSpace()
       if (stream.match(/#.*/)) {
         return 'comment'
@@ -34,7 +34,7 @@ CodeMirror.defineMode('wdl', function() {
 
 export default class WDLViewer extends Component {
   render() {
-    return div({ ref: (elem) => this.container = elem, style: { border: Style.standardLine } })
+    return div({ ref: elem => this.container = elem, style: { border: Style.standardLine } })
   }
 
   componentDidMount() {
