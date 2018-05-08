@@ -1,7 +1,7 @@
 import _ from 'lodash'
 
 
-export const createWorkspace = (overrides) => {
+export const createWorkspace = overrides => {
   const workspaceId = _.uniqueId('workspace')
 
   return _.merge({

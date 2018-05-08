@@ -30,7 +30,7 @@ export class WorkspaceList extends Component {
         workspaces: _.sortBy(_.filter(workspaces,
           ws => !ws.public || Utils.workspaceAccessLevels.indexOf(ws.accessLevel) >
             Utils.workspaceAccessLevels.indexOf('READER')),
-          'workspace.name')
+        'workspace.name')
       }),
       failure => this.setState({ failure })
     )
@@ -50,63 +50,23 @@ export class WorkspaceList extends Component {
 
   wsList() {
     return h(DataGrid, _.assign({
-        cardsPerRow: 1,
-        renderCard: ({ workspace: { namespace, name, createdBy, lastModified } }) => {
-          return a({
-              href: Nav.getLink('workspace', namespace, name),
-              style: _.defaults({
-                width: '100%', margin: '0.5rem', textDecoration: 'none',
-                backgroundColor: 'white', color: Style.colors.text
-              }, Style.elements.card)
-            },
-            [
-              div({ style: Style.elements.cardTitle }, `${name}`),
-              div({ style: { display: 'flex', alignItems: 'flex-end', fontSize: '0.8rem' } },
-                [
-                  div({ style: { flexGrow: 1 } },
-                    `Billing project: ${namespace}`),
-                  div({ style: { width: '35%' } },
-                    [`Last changed: ${Utils.makePrettyDate(lastModified)}`]),
-                  div({
-                    title: createdBy,
-                    style: {
-                      height: '1.5rem', width: '1.5rem', borderRadius: '1.5rem',
-                      lineHeight: '1.5rem', textAlign: 'center',
-                      backgroundColor: Style.colors.accent, color: 'white'
-                    }
-                  }, createdBy[0].toUpperCase())
-                ])
-            ])
-        }
-      }, this.getDataViewerProps())
-    )
-  }
-
-  wsGrid() {
-    return h(DataGrid, _.assign({
-      renderCard: ({ workspace: { namespace, name, createdBy, lastModified } },
-                   cardsPerRow) => {
+      cardsPerRow: 1,
+      renderCard: ({ workspace: { namespace, name, createdBy, lastModified } }) => {
         return a({
-            href: Nav.getLink('workspace', namespace, name),
-            style: _.defaults({
-              width: `calc(${100 / cardsPerRow}% - 2.5rem)`,
-              margin: '1.25rem',
-              textDecoration: 'none',
-              display: 'flex', flexDirection: 'column',
-              justifyContent: 'space-between',
-              height: 225, color: Style.colors.text
-            }, Style.elements.card)
-          },
-          [
-            div({ style: Style.elements.cardTitle }, `${name}`),
-            div({}, `Billing project: ${namespace}`),
-            div({
-              style: {
-                display: 'flex', justifyContent: 'space-between',
-                alignItems: 'flex-end', fontSize: '0.8rem'
-              }
-            }, [
-              div({}, ['Last changed:', div({}, Utils.makePrettyDate(lastModified))]),
+          href: Nav.getLink('workspace', namespace, name),
+          style: _.defaults({
+            width: '100%', margin: '0.5rem', textDecoration: 'none',
+            backgroundColor: 'white', color: Style.colors.text
+          }, Style.elements.card)
+        },
+        [
+          div({ style: Style.elements.cardTitle }, `${name}`),
+          div({ style: { display: 'flex', alignItems: 'flex-end', fontSize: '0.8rem' } },
+            [
+              div({ style: { flexGrow: 1 } },
+                `Billing project: ${namespace}`),
+              div({ style: { width: '35%' } },
+                [`Last changed: ${Utils.makePrettyDate(lastModified)}`]),
               div({
                 title: createdBy,
                 style: {
@@ -116,7 +76,46 @@ export class WorkspaceList extends Component {
                 }
               }, createdBy[0].toUpperCase())
             ])
+        ])
+      }
+    }, this.getDataViewerProps()))
+  }
+
+  wsGrid() {
+    return h(DataGrid, _.assign({
+      renderCard: ({ workspace: { namespace, name, createdBy, lastModified } },
+        cardsPerRow) => {
+        return a({
+          href: Nav.getLink('workspace', namespace, name),
+          style: _.defaults({
+            width: `calc(${100 / cardsPerRow}% - 2.5rem)`,
+            margin: '1.25rem',
+            textDecoration: 'none',
+            display: 'flex', flexDirection: 'column',
+            justifyContent: 'space-between',
+            height: 225, color: Style.colors.text
+          }, Style.elements.card)
+        },
+        [
+          div({ style: Style.elements.cardTitle }, `${name}`),
+          div({}, `Billing project: ${namespace}`),
+          div({
+            style: {
+              display: 'flex', justifyContent: 'space-between',
+              alignItems: 'flex-end', fontSize: '0.8rem'
+            }
+          }, [
+            div({}, ['Last changed:', div({}, Utils.makePrettyDate(lastModified))]),
+            div({
+              title: createdBy,
+              style: {
+                height: '1.5rem', width: '1.5rem', borderRadius: '1.5rem',
+                lineHeight: '1.5rem', textAlign: 'center',
+                backgroundColor: Style.colors.accent, color: 'white'
+              }
+            }, createdBy[0].toUpperCase())
           ])
+        ])
       }
     }, this.getDataViewerProps()))
   }
@@ -132,7 +131,7 @@ export class WorkspaceList extends Component {
             wrapperProps: { style: { marginLeft: '2rem', flexGrow: 1, maxWidth: 500 } },
             inputProps: {
               placeholder: 'SEARCH BIOSPHERE',
-              onChange: v => this.setState({ filter: v.target.value }),
+              onChange: e => this.setState({ filter: e.target.value }),
               value: filter
             }
           })

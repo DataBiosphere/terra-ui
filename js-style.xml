@@ -1,5 +1,6 @@
 <code_scheme name="Broad-DSP" version="173">
   <option name="RIGHT_MARGIN" value="100" />
+  <option name="SOFT_MARGINS" value="100" />
   <HTMLCodeStyleSettings>
     <option name="HTML_ENFORCE_QUOTES" value="true" />
   </HTMLCodeStyleSettings>
@@ -27,6 +28,7 @@
     </indentOptions>
   </codeStyleSettings>
   <codeStyleSettings language="JavaScript">
+    <option name="RIGHT_MARGIN" value="150" />
     <option name="KEEP_FIRST_COLUMN_COMMENT" value="false" />
     <option name="BLANK_LINES_AFTER_IMPORTS" value="2" />
     <option name="CALL_PARAMETERS_WRAP" value="1" />

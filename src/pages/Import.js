@@ -72,17 +72,18 @@ class DockstoreImporter extends Component {
         div({ style: { fontSize: 16 } }, `From Dockstore - ${path}`),
         div({}, `V. ${version}`),
         div({
-            style: {
-              display: 'flex', alignItems: 'center',
-              margin: '1rem 0', color: Style.colors.warning
-            }
-          },
-          [
-            icon('warning-standard', { class: 'is-solid', size: 32, style: { marginRight: '0.5rem', flex: '0 0 auto' } }),
-            mutabilityWarning
-          ]),
+          style: {
+            display: 'flex', alignItems: 'center',
+            margin: '1rem 0', color: Style.colors.warning
+          }
+        },
+        [
+          icon('warning-standard', { class: 'is-solid', size: 32, style: { marginRight: '0.5rem', flex: '0 0 auto' } }),
+          mutabilityWarning
+        ]),
         h(Collapse, { title: 'REVIEW WDL' },
-          [h(WDLViewer, { wdl })])
+          [h(WDLViewer, { wdl })]
+        )
       ]
     )
   }

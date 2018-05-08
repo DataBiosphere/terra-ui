@@ -11,7 +11,7 @@ const consoleStyle = 'font-weight: bold; color: darkBlue'
 window.saturnMock = {
   currently: function() {
     if (noConnection || mockResponse) {
-      if (noConnection) {console.info('%cSimulating no connection', consoleStyle)}
+      if (noConnection) { console.info('%cSimulating no connection', consoleStyle) }
       if (mockResponse) {
         console.info('%cSimulating response:', consoleStyle)
         console.info(mockResponse())
@@ -57,7 +57,7 @@ const fetchOk = (...args) => {
 
 
 export const Sam = {
-  token: Utils.memoizeWithTimeout(async (namespace) => {
+  token: Utils.memoizeWithTimeout(async namespace => {
     const scopes = ['https://www.googleapis.com/auth/devstorage.full_control']
     const res = await fetchOk(
       `${await Config.getSamUrlRoot()}/api/google/user/petServiceAccount/${namespace}/token`,
@@ -89,14 +89,14 @@ export const Buckets = {
     const bucketUrl = `storage/v1/b/${bucket}/o`
 
     return {
-      copy: async (newName) => {
+      copy: async newName => {
         return fetchBuckets(
           `${bucketUrl}/${nbName(name)}/copyTo/b/${bucket}/o/${nbName(newName)}`,
           _.merge(authOpts(await Sam.token(namespace)), { method: 'POST' })
         )
       },
 
-      create: async (contents) => {
+      create: async contents => {
         return fetchBuckets(
           `upload/${bucketUrl}?uploadType=media&name=${nbName(name)}`,
           _.merge(authOpts(await Sam.token(namespace)), {
@@ -113,7 +113,7 @@ export const Buckets = {
         )
       },
 
-      rename: async (newName) => {
+      rename: async newName => {
         await this.copy(newName)
         return this.delete()
       }
@@ -147,7 +147,7 @@ export const Rawls = {
         return res.json()
       },
 
-      entity: async (type) => {
+      entity: async type => {
         const res = await fetchRawls(`${root}/entities/${type}`, authOpts())
         return res.json()
       },
@@ -158,7 +158,7 @@ export const Rawls = {
           return res.json()
         },
 
-        importFromDocker: (payload) => {
+        importFromDocker: payload => {
           return fetchRawls(mcPath, _.merge(authOpts(), jsonBody(payload), { method: 'POST' }))
         }
       }
@@ -181,7 +181,7 @@ export const Leo = {
     const root = `api/cluster/${project}/${name}`
 
     return {
-      create: (clusterOptions) => {
+      create: clusterOptions => {
         return fetchLeo(root, _.merge(authOpts(), jsonBody(clusterOptions), { method: 'PUT' }))
       },
 
@@ -195,7 +195,7 @@ export const Leo = {
     const root = `notebooks/${project}/${name}`
 
     return {
-      localize: (files) => {
+      localize: files => {
         return fetchLeo(`${root}/api/localize`,
           _.merge(authOpts(), jsonBody(files), { method: 'POST' }))
       },
@@ -221,7 +221,7 @@ export const Dockstore = {
     return res.json()
   },
 
-  getVersions: async (path) => {
+  getVersions: async path => {
     const res = await fetchDockstore(dockstoreMethodPath(path))
     return res.json()
   }
