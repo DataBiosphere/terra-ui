@@ -1,5 +1,10 @@
 import _ from 'lodash'
+import * as Config from 'src/libs/config'
 
+export const initializeAuth = _.memoize(async () => {
+  await new Promise(resolve => window.gapi.load('auth2', resolve))
+  return window.gapi.auth2.init({ clientId: await Config.getGoogleClientId() })
+})
 
 export const getAuthInstance = function() {
   return window.gapi.auth2.getAuthInstance()
