@@ -36,7 +36,6 @@ window.saturnMock = {
   }
 }
 
-const parseJson = (res) => res.json()
 const authOpts = (token = Utils.getAuthToken()) => ({ headers: { Authorization: `Bearer ${token}` } })
 const jsonBody = (body) => ({ body: JSON.stringify(body), headers: { 'Content-Type': 'application/json' } })
 
@@ -58,16 +57,17 @@ const fetchOk = (...args) => {
 
 
 export const Sam = {
-  token: Utils.memoizeWithTimeout((namespace) => {
+  token: Utils.memoizeWithTimeout(async (namespace) => {
     const scopes = ['https://www.googleapis.com/auth/devstorage.full_control']
-    return fetchOk(`${Config.getSamUrlRoot()}/api/google/user/petServiceAccount/${namespace}/token`,
+    const res = await fetchOk(
+      `${await Config.getSamUrlRoot()}/api/google/user/petServiceAccount/${namespace}/token`,
       _.merge(authOpts(), jsonBody(scopes), { method: 'POST' })
     )
-      .then(parseJson)
+    return res.json()
   }, (namespace) => namespace, 1000 * 60 * 30),
 
-  getUserStatus: () => {
-    return instrumentedFetch(`${Config.getSamUrlRoot()}/register/user`, authOpts())
+  getUserStatus: async () => {
+    return instrumentedFetch(`${await Config.getSamUrlRoot()}/register/user`, authOpts())
   }
 }
 
@@ -76,57 +76,60 @@ const fetchBuckets = (path, ...args) => fetchOk(`https://www.googleapis.com/${pa
 const nbName = (name) => encodeURIComponent(`notebooks/${name}.ipynb`)
 
 export const Buckets = {
-  listNotebooks: (namespace, name) => {
-    return Sam.token(namespace)
-      .then((token) => fetchBuckets(`storage/v1/b/${name}/o?prefix=notebooks/`, authOpts(token)))
-      .then(parseJson)
-      .then(({ items }) => _.filter(items, ({ name }) => name.endsWith('.ipynb')))
+  listNotebooks: async (namespace, name) => {
+    const res = await fetchBuckets(
+      `storage/v1/b/${name}/o?prefix=notebooks/`,
+      authOpts(await Sam.token(namespace))
+    )
+    const { items } = await res.json()
+    return _.filter(items, ({ name }) => name.endsWith('.ipynb'))
   },
 
   notebook: (namespace, bucket, name) => {
     const bucketUrl = `storage/v1/b/${bucket}/o`
 
     return {
-      copy: (newName) => {
-        return Sam.token(namespace)
-          .then((token) => fetchBuckets(
-            `${bucketUrl}/${nbName(name)}/copyTo/b/${bucket}/o/${nbName(newName)}`,
-            _.merge(authOpts(token), { method: 'POST' }))
-          )
+      copy: async (newName) => {
+        return fetchBuckets(
+          `${bucketUrl}/${nbName(name)}/copyTo/b/${bucket}/o/${nbName(newName)}`,
+          _.merge(authOpts(await Sam.token(namespace)), { method: 'POST' })
+        )
       },
 
-      create: (contents) => {
-        return Sam.token(namespace)
-          .then((token) => fetchBuckets(`upload/${bucketUrl}?uploadType=media&name=${nbName(name)}`,
-            _.merge(authOpts(token), {
-              method: 'POST', body: JSON.stringify(contents),
-              headers: { 'Content-Type': 'application/x-ipynb+json' }
-            }))
-          )
+      create: async (contents) => {
+        return fetchBuckets(
+          `upload/${bucketUrl}?uploadType=media&name=${nbName(name)}`,
+          _.merge(authOpts(await Sam.token(namespace)), {
+            method: 'POST', body: JSON.stringify(contents),
+            headers: { 'Content-Type': 'application/x-ipynb+json' }
+          })
+        )
       },
 
-      delete: () => {
-        return Sam.token(namespace)
-          .then((token) => fetchBuckets(
-            `${bucketUrl}/${nbName(name)}`,
-            _.merge(authOpts(token), { method: 'DELETE' }))
-          )
+      delete: async () => {
+        return fetchBuckets(
+          `${bucketUrl}/${nbName(name)}`,
+          _.merge(authOpts(await Sam.token(namespace)), { method: 'DELETE' })
+        )
       },
 
-      rename: (newName) => {
-        return this.copy(newName).then(() => this.delete())
+      rename: async (newName) => {
+        await this.copy(newName)
+        return this.delete()
       }
     }
   }
 }
 
 
-const fetchRawls = (path, ...args) => fetchOk(`${Config.getRawlsUrlRoot()}/api/${path}`, ...args)
+const fetchRawls = async (path, ...args) => {
+  return fetchOk(`${await Config.getRawlsUrlRoot()}/api/${path}`, ...args)
+}
 
 export const Rawls = {
-  workspacesList: () => {
-    return fetchRawls('workspaces', authOpts())
-      .then(parseJson)
+  workspacesList: async () => {
+    const res = await fetchRawls('workspaces', authOpts())
+    return res.json()
   },
 
   workspace: (namespace, name) => {
@@ -134,24 +137,25 @@ export const Rawls = {
     const mcPath = `${root}/methodconfigs`
 
     return {
-      details: () => {
-        return fetchRawls(root, authOpts())
-          .then(parseJson)
+      details: async () => {
+        const res = await fetchRawls(root, authOpts())
+        return res.json()
       },
 
-      entities: () => {
-        return fetchRawls(`${root}/entities`, authOpts())
-          .then(parseJson)
+      entities: async () => {
+        const res = await fetchRawls(`${root}/entities`, authOpts())
+        return res.json()
       },
 
-      entity: (type) => {
-        return fetchRawls(`${root}/entities/${type}`, authOpts())
-          .then(parseJson)
+      entity: async (type) => {
+        const res = await fetchRawls(`${root}/entities/${type}`, authOpts())
+        return res.json()
       },
 
       methodConfigs: {
-        list: (allRepos = true) => {
-          return fetchRawls(`${mcPath}?allRepos=${allRepos}`, authOpts()).then(parseJson)
+        list: async (allRepos = true) => {
+          const res = await fetchRawls(`${mcPath}?allRepos=${allRepos}`, authOpts())
+          return res.json()
         },
 
         importFromDocker: (payload) => {
@@ -163,12 +167,14 @@ export const Rawls = {
 }
 
 
-const fetchLeo = (path, ...args) => fetchOk(`${Config.getLeoUrlRoot()}/${path}`, ...args)
+const fetchLeo = async (path, ...args) => {
+  return fetchOk(`${await Config.getLeoUrlRoot()}/${path}`, ...args)
+}
 
 export const Leo = {
-  clustersList: () => {
-    return fetchLeo('api/clusters', authOpts())
-      .then(parseJson)
+  clustersList: async () => {
+    const res = await fetchLeo('api/clusters', authOpts())
+    return res.json()
   },
 
   cluster: (project, name) => {
@@ -203,19 +209,21 @@ export const Leo = {
 }
 
 
-const fetchDockstore = (path, ...args) => fetchOk(`${Config.getDockstoreUrlRoot()}/${path}`, ...args)
+const fetchDockstore = async (path, ...args) => {
+  return fetchOk(`${await Config.getDockstoreUrlRoot()}/${path}`, ...args)
+}
 // %23 = '#', %2F = '/'
 const dockstoreMethodPath = (path) => `api/ga4gh/v1/tools/%23workflow%2F${encodeURIComponent(path)}/versions`
 
 export const Dockstore = {
-  getWdl: (path, version) => {
-    return fetchDockstore(`${dockstoreMethodPath(path)}/${encodeURIComponent(version)}/WDL/descriptor`)
-      .then(parseJson)
+  getWdl: async (path, version) => {
+    const res = await fetchDockstore(`${dockstoreMethodPath(path)}/${encodeURIComponent(version)}/WDL/descriptor`)
+    return res.json()
   },
 
-  getVersions: (path) => {
-    return fetchDockstore(dockstoreMethodPath(path))
-      .then(parseJson)
+  getVersions: async (path) => {
+    const res = await fetchDockstore(dockstoreMethodPath(path))
+    return res.json()
   }
 
 }

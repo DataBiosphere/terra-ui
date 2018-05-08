@@ -2,7 +2,6 @@ import { Component, Fragment } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import Modal from 'src/components/Modal'
 import { Sam } from 'src/libs/ajax'
-import * as Config from 'src/libs/config'
 import * as Utils from 'src/libs/utils'
 
 
@@ -13,17 +12,14 @@ export default class AuthContainer extends Component {
   }
 
   componentDidMount() {
-    Config.loadConfig().then(this.loadAuth)
+    this.loadAuth()
   }
 
-  loadAuth = () => {
-    window.gapi.load('auth2', () => {
-      window.gapi.auth2.init({ clientId: Config.getGoogleClientId() }).then(() => {
-        this.handleSignIn(Utils.getAuthInstance().isSignedIn.get())
-        Utils.getAuthInstance().isSignedIn.listen(this.handleSignIn)
-        window.gapi.signin2.render('signInButton', { scope: 'openid profile email' })
-      })
-    })
+  loadAuth = async () => {
+    await Utils.initializeAuth()
+    this.handleSignIn(Utils.getAuthInstance().isSignedIn.get())
+    Utils.getAuthInstance().isSignedIn.listen(this.handleSignIn)
+    window.gapi.signin2.render('signInButton', { scope: 'openid profile email' })
   }
 
   handleSignIn = (isSignedIn) => {

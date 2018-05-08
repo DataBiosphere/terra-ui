@@ -18,10 +18,7 @@ module.exports = {
     'eol-last': 'warn',
     'func-call-spacing': 'warn',
     // 'implicit-arrow-linebreak': 'warn',
-    'indent': ['warn', 2, {
-      'SwitchCase': 1,
-      'CallExpression': { 'arguments': 1 }
-    }],
+    'indent': ['warn', 2, { 'SwitchCase': 1, 'CallExpression': { 'arguments': 1 } }],
     'key-spacing': 'warn',
     'keyword-spacing': 'warn',
     'lines-between-class-members': 'warn',
@@ -33,17 +30,14 @@ module.exports = {
     'no-unneeded-ternary': 'warn',
     'no-whitespace-before-property': 'warn',
     'nonblock-statement-body-position': 'warn',
-    'object-curly-newline': ['warn', {
-      'multiline': true,
-      'consistent': true
-    }],
+    'object-curly-newline': ['warn', { 'multiline': true, 'consistent': true }],
     'object-curly-spacing': ['warn', 'always'],
     'one-var': ['warn', 'never'],
     'padded-blocks': ['warn', 'never'],
     'quotes': ['warn', 'single', { 'allowTemplateLiterals': true }],
     'semi': ['warn', 'never'],
     'space-before-blocks': 'warn',
-    'space-before-function-paren': ['warn', 'never'],
+    'space-before-function-paren': ['warn', { 'anonymous': 'never', 'named': 'never', 'asyncArrow': 'always' }],
     'space-in-parens': 'warn',
 
 
