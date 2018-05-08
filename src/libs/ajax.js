@@ -127,6 +127,11 @@ const fetchRawls = async (path, ...args) => {
 }
 
 export const Rawls = {
+  listBillingProjects: async () => {
+    const res = await fetchRawls('user/billing', authOpts())
+    return res.json()
+  },
+
   workspacesList: async () => {
     const res = await fetchRawls('workspaces', authOpts())
     return res.json()
