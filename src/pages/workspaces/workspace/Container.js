@@ -101,10 +101,10 @@ export class WorkspaceContainer extends Component {
         div({ style: { display: 'flex', flexDirection: 'column', paddingLeft: '4rem' } },
           [
             a({
-                style: { color: Style.colors.textFaded, cursor: 'pointer', textDecoration: 'none' },
-                href: Nav.getLink('workspaces')
-              },
-              ['Projects', breadcrumb()]),
+              style: { color: Style.colors.textFaded, cursor: 'pointer', textDecoration: 'none' },
+              href: Nav.getLink('workspaces')
+            },
+            ['Projects', breadcrumb()]),
             a({
               style: { fontSize: '1.25rem', textDecoration: 'none', color: 'unset' },
               href: Nav.getLink('workspace', namespace, name)
@@ -124,24 +124,23 @@ export class WorkspaceContainer extends Component {
         h(Interactive,
           _.merge({ as: icon('copy') }, navIconProps)),
         h(ShowOnClick, {
-            button: h(Interactive,
-              _.merge({ as: icon('ellipsis-vertical') }, navIconProps))
-          },
-          [
-            div({
-              style: {
-                position: 'absolute', right: 0, lineHeight: 'initial', textAlign: 'initial',
-                color: 'initial', textTransform: 'initial', fontWeight: 300
-              }
-            }, [
-              contextMenu([
-                [{}, 'Share'],
-                [{}, 'Publish'],
-                [{}, 'Delete']
-              ])
+          button: h(Interactive,
+            _.merge({ as: icon('ellipsis-vertical') }, navIconProps))
+        },
+        [
+          div({
+            style: {
+              position: 'absolute', right: 0, lineHeight: 'initial', textAlign: 'initial',
+              color: 'initial', textTransform: 'initial', fontWeight: 300
+            }
+          }, [
+            contextMenu([
+              [{}, 'Share'],
+              [{}, 'Publish'],
+              [{}, 'Delete']
             ])
-          ]
-        )
+          ])
+        ])
       ]),
       Utils.cond(
         [workspaceFailure, `Couldn't load workspace: ${workspaceFailure}`],

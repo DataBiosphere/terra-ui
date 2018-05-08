@@ -6,7 +6,7 @@ import { Component } from 'src/libs/wrapped-components'
 
 CodeMirror.defineMode('wdl', function() {
   return {
-    token: (stream) => {
+    token: stream => {
       stream.eatSpace()
       if (stream.match(/#.*/)) {
         return 'comment'

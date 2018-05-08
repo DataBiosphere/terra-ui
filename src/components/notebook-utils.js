@@ -20,7 +20,7 @@ const notebookNameValidator = {
   }
 }
 
-const notebookNameInput = (props) => div({ style: { margin: '0.5rem 0 1rem' } }, [
+const notebookNameInput = props => div({ style: { margin: '0.5rem 0 1rem' } }, [
   validatedInput(_.merge({
     name: 'notebook name',
     inputProps: {
@@ -69,16 +69,16 @@ export class NotebookCreator extends Component {
 
     return h(Fragment, [
       buttonPrimary({
-          onClick: () => this.setState({ modalOpen: true, notebookName: '', nameTouched: false, notebookKernel: null }),
-          style: { marginLeft: '1rem', display: 'flex' },
-          disabled: creating
-        },
-        creating ?
-          [
-            spinner({ size: '1em', style: { color: 'white', marginRight: '1em' } }),
-            'Creating Notebook...'
-          ] :
-          'New Notebook'),
+        onClick: () => this.setState({ modalOpen: true, notebookName: '', nameTouched: false, notebookKernel: null }),
+        style: { marginLeft: '1rem', display: 'flex' },
+        disabled: creating
+      },
+      creating ?
+        [
+          spinner({ size: '1em', style: { color: 'white', marginRight: '1em' } }),
+          'Creating Notebook...'
+        ] :
+        'New Notebook'),
       Utils.cond(
         [
           notebookFailure,
@@ -158,34 +158,33 @@ export class NotebookDuplicator extends Component {
     const nameErrors = validate.single(newName, notebookNameValidator)
 
     return h(Modal, {
-        onDismiss: onDismiss,
-        title: `${destroyOld ? 'Rename' : 'Duplicate' } "${printName}"`,
-        okButton: buttonPrimary({
-          disabled: nameErrors || processing,
-          onClick: () => {
-            this.setState({ processing: true })
-            Buckets.notebook(namespace, bucketName, printName)[destroyOld ? 'rename' : 'copy'](newName).then(
-              onSuccess,
-              failure => this.setState({ failure })
-            )
+      onDismiss: onDismiss,
+      title: `${destroyOld ? 'Rename' : 'Duplicate' } "${printName}"`,
+      okButton: buttonPrimary({
+        disabled: nameErrors || processing,
+        onClick: () => {
+          this.setState({ processing: true })
+          Buckets.notebook(namespace, bucketName, printName)[destroyOld ? 'rename' : 'copy'](newName).then(
+            onSuccess,
+            failure => this.setState({ failure })
+          )
+        }
+      }, `${destroyOld ? 'Rename' : 'Duplicate' } Notebook`)
+    },
+    Utils.cond(
+      [processing, () => [spinner()]],
+      [failure, () => `Couldn't ${destroyOld ? 'rename' : 'copy' } notebook: ${failure}`],
+      () => [
+        div({ style: Style.elements.sectionHeader }, 'New Name'),
+        notebookNameInput({
+          errors: nameTouched ? nameErrors : null,
+          inputProps: {
+            value: newName,
+            onChange: e => this.setState({ newName: e.target.value, nameTouched: true })
           }
-        }, `${destroyOld ? 'Rename' : 'Duplicate' } Notebook`)
-      },
-      Utils.cond(
-        [processing, () => [spinner()]],
-        [failure, () => `Couldn't ${destroyOld ? 'rename' : 'copy' } notebook: ${failure}`],
-        () => [
-          div({ style: Style.elements.sectionHeader }, 'New Name'),
-          notebookNameInput({
-            errors: nameTouched ? nameErrors : null,
-            inputProps: {
-              value: newName,
-              onChange: e => this.setState({ newName: e.target.value, nameTouched: true })
-            }
-          })
-        ]
-      )
-    )
+        })
+      ]
+    ))
   }
 }
 
@@ -195,30 +194,30 @@ export class NotebookDeleter extends Component {
     const { processing, failure } = this.state
 
     return h(Modal, {
-        onDismiss: onDismiss,
-        title: `Delete "${printName}"`,
-        okButton: buttonPrimary({
-          disabled: processing,
-          onClick: () => {
-            this.setState({ processing: true })
-            Buckets.notebook(namespace, bucketName, printName).delete().then(
-              onSuccess,
-              failure => this.setState({ failure })
-            )
-          }
-        }, `Delete Notebook`)
-      },
-      Utils.cond(
-        [processing, () => [spinner()]],
-        [failure, () => `Couldn't delete notebook: ${failure}`],
-        () => [
-          div({ style: { fontSize: '1rem', flexGrow: 1 } },
-            [
-              `Are you sure you want to delete "${printName}"?`,
-              div({ style: { fontWeight: 500, lineHeight: '2rem' } }, 'This cannot be undone.')
-            ])
-        ]
-      )
-    )
+      onDismiss: onDismiss,
+      title: `Delete "${printName}"`,
+      okButton: buttonPrimary({
+        disabled: processing,
+        onClick: () => {
+          this.setState({ processing: true })
+          Buckets.notebook(namespace, bucketName, printName).delete().then(
+            onSuccess,
+            failure => this.setState({ failure })
+          )
+        }
+      }, `Delete Notebook`)
+    },
+    Utils.cond(
+      [processing, () => [spinner()]],
+      [failure, () => `Couldn't delete notebook: ${failure}`],
+      () => [
+        div({ style: { fontSize: '1rem', flexGrow: 1 } },
+          [
+            `Are you sure you want to delete "${printName}"?`,
+            div({ style: { fontWeight: 500, lineHeight: '2rem' } }, 'This cannot be undone.')
+          ]
+        )
+      ]
+    ))
   }
 }

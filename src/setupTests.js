@@ -17,14 +17,10 @@ jest.spyOn(Utils, 'makePrettyDate').mockImplementation(() => '***MOCKED DATE***'
 ReactWrapper.prototype.testId = function(id) {
   const wrapper = this.find(`[data-test-id='${id}']`)
   const length = wrapper.length
-  switch (length) {
-    case 0:
-      throw `data-test-id '${id}' not found`
-    case 1:
-      return wrapper
-    default:
-      throw `data-test-id '${id}' found ${length} times`
-  }
+
+  console.assert(length === 1, `data-test-id '${id}' found ${length} times`)
+
+  return wrapper
 }
 
 ReactWrapper.prototype.findIcon = function(shape) {

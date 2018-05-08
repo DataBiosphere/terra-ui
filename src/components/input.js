@@ -8,16 +8,16 @@ import * as Style from 'src/libs/style'
 
 export const textInput = function(props) {
   return h(Interactive, _.merge({
-      as: 'input',
-      style: {
-        width: '100%',
-        paddingLeft: '1rem', paddingRight: '1rem',
-        fontWeight: 300, fontSize: 14,
-        backgroundColor: props.disabled ? '#f3f3f3' : undefined
-      }
-    },
-    Style.elements.input,
-    props)
+    as: 'input',
+    style: {
+      width: '100%',
+      paddingLeft: '1rem', paddingRight: '1rem',
+      fontWeight: 300, fontSize: 14,
+      backgroundColor: props.disabled ? '#f3f3f3' : undefined
+    }
+  },
+  Style.elements.input,
+  props)
   )
 }
 
@@ -32,31 +32,30 @@ export const validatedInput = props => {
 
   return h(Fragment, [
     div({
-        style: { position: 'relative', display: 'flex', alignItems: 'center' }
-      }, [
-        textInput(_.merge({
-          style: errors ? {
-            paddingRight: '2.25rem', // leave room for error icon
-            backgroundColor: Style.colors.errorFaded,
-            border: `1px solid ${Style.colors.error}`
-          } : undefined
-        }, inputProps)),
-        errors ? icon('exclamation-circle', {
-          size: 24,
-          style: {
-            position: 'absolute', color: Style.colors.error,
-            right: '.5rem'
-          }
-        }) : null
-      ]
-    ),
-    errors ? div({
+      style: { position: 'relative', display: 'flex', alignItems: 'center' }
+    }, [
+      textInput(_.merge({
+        style: errors ? {
+          paddingRight: '2.25rem', // leave room for error icon
+          backgroundColor: Style.colors.errorFaded,
+          border: `1px solid ${Style.colors.error}`
+        } : undefined
+      }, inputProps)),
+      errors ? icon('exclamation-circle', {
+        size: 24,
         style: {
-          color: Style.colors.error, textTransform: 'uppercase', fontSize: 10, fontWeight: 500,
-          marginLeft: '1rem'
+          position: 'absolute', color: Style.colors.error,
+          right: '.5rem'
         }
-      },
-      _.map(errors, (fail) => div({ style: { marginTop: '0.5rem' } }, `${name} ${fail}`))
+      }) : null
+    ]),
+    errors ? div({
+      style: {
+        color: Style.colors.error, textTransform: 'uppercase', fontSize: 10, fontWeight: 500,
+        marginLeft: '1rem'
+      }
+    },
+    _.map(errors, fail => div({ style: { marginTop: '0.5rem' } }, `${name} ${fail}`))
     ) : null
   ])
 }
