@@ -42,7 +42,8 @@ export default class WorkspaceTools extends Component {
                 backgroundColor: Style.colors.accent, color: 'white'
               }
             }, 'T')
-          ])
+          ]
+        )
       ]),
       div({ style: { fontSize: 16, fontWeight: 500, color: Style.colors.title, marginTop: '3rem' } },
         'Real Configs'),

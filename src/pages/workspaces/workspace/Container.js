@@ -140,8 +140,7 @@ export class WorkspaceContainer extends Component {
               [{}, 'Delete']
             ])
           ])
-        ]
-        )
+        ])
       ]),
       Utils.cond(
         [workspaceFailure, `Couldn't load workspace: ${workspaceFailure}`],

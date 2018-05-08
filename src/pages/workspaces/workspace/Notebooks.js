@@ -151,7 +151,7 @@ export default class WorkspaceNotebooks extends Component {
     Leo.clustersList().then(
       (list) => {
         const owned = _.filter(list,
-          (v) => (v.creator === Utils.getUser().getBasicProfile().getEmail()))
+          (c) => (c.creator === Utils.getUser().getBasicProfile().getEmail()))
         if (_.some(owned)) { Leo.notebooks(namespace, _.first(owned).clusterName).setCookie() }
         this.setState({ clusters: _.sortBy(owned, 'clusterName') }, this.getNotebooks)
       },

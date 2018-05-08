@@ -78,8 +78,7 @@ export class WorkspaceList extends Component {
             ])
         ])
       }
-    }, this.getDataViewerProps())
-    )
+    }, this.getDataViewerProps()))
   }
 
   wsGrid() {
@@ -132,7 +131,7 @@ export class WorkspaceList extends Component {
             wrapperProps: { style: { marginLeft: '2rem', flexGrow: 1, maxWidth: 500 } },
             inputProps: {
               placeholder: 'SEARCH BIOSPHERE',
-              onChange: (v) => this.setState({ filter: v.target.value }),
+              onChange: (e) => this.setState({ filter: e.target.value }),
               value: filter
             }
           })

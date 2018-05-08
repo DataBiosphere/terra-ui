@@ -184,8 +184,7 @@ export class NotebookDuplicator extends Component {
           }
         })
       ]
-    )
-    )
+    ))
   }
 }
 
@@ -216,7 +215,8 @@ export class NotebookDeleter extends Component {
           [
             `Are you sure you want to delete "${printName}"?`,
             div({ style: { fontWeight: 500, lineHeight: '2rem' } }, 'This cannot be undone.')
-          ])
+          ]
+        )
       ]
     ))
   }

@@ -105,8 +105,10 @@ export default class WorkspaceData extends Component {
               [entityFailure, () => `Couldn't load ${selectedEntityType}s: ${entityFailure}`],
               [!selectedEntityType, 'Select a data type.'],
               [!selectedEntities, spinner],
-              entityTable)
-          ])
+              entityTable
+            )
+          ]
+        )
       ]
     ))
   }

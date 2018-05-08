@@ -82,7 +82,8 @@ class DockstoreImporter extends Component {
           mutabilityWarning
         ]),
         h(Collapse, { title: 'REVIEW WDL' },
-          [h(WDLViewer, { wdl })])
+          [h(WDLViewer, { wdl })]
+        )
       ]
     )
   }
