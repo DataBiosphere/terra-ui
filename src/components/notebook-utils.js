@@ -1,13 +1,34 @@
 import _ from 'lodash'
 import { Fragment } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
-import { buttonPrimary, textInput } from 'src/components/common'
+import { buttonPrimary } from 'src/components/common'
 import { spinner } from 'src/components/icons'
+import { validatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { Buckets } from 'src/libs/ajax'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component, Select } from 'src/libs/wrapped-components'
+import validate from 'validate.js'
+
+
+const notebookNameValidator = {
+  presence: { allowEmpty: false },
+  format: {
+    pattern: /^[^#[\]*?]*$/,
+    message: 'can\'t contain any of these characters: "#[]*?"'
+  }
+}
+
+const notebookNameInput = (props) => div({ style: { margin: '0.5rem 0 1rem' } }, [
+  validatedInput(_.merge({
+    name: 'notebook name',
+    inputProps: {
+      autoFocus: true,
+      placeholder: 'Enter a name'
+    }
+  }, props))
+])
 
 
 const baseNotebook = {
@@ -41,12 +62,14 @@ const rNotebook = _.merge({
 
 export class NotebookCreator extends Component {
   render() {
-    const { modalOpen, notebookName, notebookKernel, notebookFailure, creating } = this.state
+    const { modalOpen, notebookName, notebookKernel, notebookFailure, creating, nameTouched } = this.state
     const { reloadList, namespace, bucketName } = this.props
+
+    const nameErrors = validate.single(notebookName, notebookNameValidator)
 
     return h(Fragment, [
       buttonPrimary({
-        onClick: () => this.setState({ modalOpen: true, notebookName: '', notebookKernel: null }),
+        onClick: () => this.setState({ modalOpen: true, notebookName: '', nameTouched: false, notebookKernel: null }),
         style: { marginLeft: '1rem', display: 'flex' },
         disabled: creating
       },
@@ -72,10 +95,10 @@ export class NotebookCreator extends Component {
             onDismiss: () => this.setState({ modalOpen: false }),
             title: 'Create New Notebook',
             okButton: buttonPrimary({
-              disabled: !(notebookName && notebookKernel),
+              disabled: nameErrors || !notebookKernel,
               onClick: () => {
                 this.setState({ modalOpen: false, creating: true })
-                Buckets.createNotebook(namespace, bucketName, notebookName, notebookKernel.data).then(
+                Buckets.notebook(namespace, bucketName, notebookName).create(notebookKernel.data).then(
                   () => {
                     this.setState({ creating: false })
                     reloadList()
@@ -86,12 +109,12 @@ export class NotebookCreator extends Component {
             }, 'Create Notebook')
           }, [
             div({ style: Style.elements.sectionHeader }, 'Name'),
-            textInput({
-              style: { margin: '0.5rem 0 1rem' },
-              autoFocus: true,
-              placeholder: 'Enter a name',
-              value: notebookName,
-              onChange: (e) => this.setState({ notebookName: e.target.value })
+            notebookNameInput({
+              errors: nameTouched ? nameErrors : null,
+              inputProps: {
+                value: notebookName,
+                onChange: (e) => this.setState({ notebookName: e.target.value, nameTouched: true })
+              }
             }),
             div({ style: Style.elements.sectionHeader }, 'Kernel'),
             h(Select, {
@@ -130,20 +153,21 @@ export class NotebookCreator extends Component {
 export class NotebookDuplicator extends Component {
   render() {
     const { destroyOld, printName, namespace, bucketName, onDismiss, onSuccess } = this.props
-    const { newName, processing, failure } = this.state
+    const { newName, processing, failure, nameTouched } = this.state
+
+    const nameErrors = validate.single(newName, notebookNameValidator)
 
     return h(Modal, {
       onDismiss: onDismiss,
       title: `${destroyOld ? 'Rename' : 'Duplicate' } "${printName}"`,
       okButton: buttonPrimary({
-        disabled: !newName || processing,
+        disabled: nameErrors || processing,
         onClick: () => {
           this.setState({ processing: true })
-          Buckets[destroyOld ? 'renameNotebook' : 'copyNotebook'](namespace, bucketName, printName, newName)
-            .then(
-              onSuccess,
-              (failure) => this.setState({ failure })
-            )
+          Buckets.notebook(namespace, bucketName, printName)[destroyOld ? 'rename' : 'copy'](newName).then(
+            onSuccess,
+            (failure) => this.setState({ failure })
+          )
         }
       }, `${destroyOld ? 'Rename' : 'Duplicate' } Notebook`)
     },
@@ -152,12 +176,12 @@ export class NotebookDuplicator extends Component {
       [failure, () => `Couldn't ${destroyOld ? 'rename' : 'copy' } notebook: ${failure}`],
       () => [
         div({ style: Style.elements.sectionHeader }, 'New Name'),
-        textInput({
-          style: { margin: '0.5rem 0 1rem' },
-          autoFocus: true,
-          placeholder: 'Enter a name',
-          value: newName,
-          onChange: (e) => this.setState({ newName: e.target.value })
+        notebookNameInput({
+          errors: nameTouched ? nameErrors : null,
+          inputProps: {
+            value: newName,
+            onChange: (e) => this.setState({ newName: e.target.value, nameTouched: true })
+          }
         })
       ]
     )
@@ -177,7 +201,7 @@ export class NotebookDeleter extends Component {
         disabled: processing,
         onClick: () => {
           this.setState({ processing: true })
-          Buckets.deleteNotebook(namespace, bucketName, printName).then(
+          Buckets.notebook(namespace, bucketName, printName).delete().then(
             onSuccess,
             (failure) => this.setState({ failure })
           )

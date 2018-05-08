@@ -32,6 +32,7 @@ export class TopBar extends Component {
       div(
         {
           style: {
+            zIndex: 7, // CodeMirror uses zIndexes, this seems to be enough.
             display: 'flex', position: 'absolute', left: 0, right: 0, top: 0, bottom: 0,
             overflow: 'auto', cursor: 'pointer'
           },
@@ -53,7 +54,7 @@ export class TopBar extends Component {
           }, [
             div({
               style: _.assign({
-                height: '3rem', lineHeight: '3rem', backgroundColor: 'white', padding: '1rem',
+                backgroundColor: 'white', padding: '1rem',
                 textAlign: 'center', display: 'flex', alignItems: 'center'
               },
               Style.elements.pageTitle)
@@ -67,7 +68,7 @@ export class TopBar extends Component {
                 }),
               a({
                 style: _.assign({
-                  height: '3rem', textAlign: 'center', display: 'flex', alignItems: 'center'
+                  textAlign: 'center', display: 'flex', alignItems: 'center'
                 },
                 Style.elements.pageTitle),
                 href: Nav.getLink('workspaces'),
@@ -77,19 +78,19 @@ export class TopBar extends Component {
             div({
               style: {
                 padding: '1rem', borderBottom: '1px solid white', color: 'white',
-                lineHeight: '1.5rem'
+                lineHeight: '1.75rem'
               }
             }, [icon('search', { style: { margin: '0 1rem 0 1rem' } }), 'Find Data']),
             div({
               style: {
                 padding: '1rem', borderBottom: '1px solid white', color: 'white',
-                lineHeight: '1.5rem'
+                lineHeight: '1.75rem'
               }
             }, [icon('search', { style: { margin: '0 1rem 0 1rem' } }), 'Find Code']),
             a({
               style: {
                 padding: '1rem', borderBottom: '1px solid white', color: 'white',
-                lineHeight: '1.5rem', textDecoration: 'none', display: 'block'
+                lineHeight: '1.75rem', textDecoration: 'none', display: 'block'
               },
               href: Nav.getLink('workspaces'),
               onClick: () => this.hideNav()
@@ -107,7 +108,7 @@ export class TopBar extends Component {
     return div(
       {
         style: {
-          backgroundColor: 'white', height: '3rem', padding: '1rem',
+          backgroundColor: 'white', padding: '1rem',
           display: 'flex', alignItems: 'center'
         }
       },
@@ -134,6 +135,7 @@ export class TopBar extends Component {
         this.props.children,
         div({ style: { flexGrow: 1 } }),
         link({
+          style: { flexShrink: 0 },
           onClick: () => Utils.getAuthInstance().signOut()
         }, 'Sign out'),
         this.state.navShown ? this.buildNav() : null

@@ -22,17 +22,18 @@ const navSeparator = div({
 })
 
 const tabBaseStyle = {
-  maxWidth: 140, flexGrow: 1, color: Style.colors.textFadedLight, textDecoration: 'none'
+  maxWidth: 140, flexGrow: 1, color: Style.colors.textFadedLight, textDecoration: 'none',
+  alignSelf: 'stretch', display: 'flex', justifyContent: 'center', alignItems: 'center'
 }
 
 const tabActiveStyle = _.defaults({
-  backgroundColor: 'rgba(255,255,255,0.15)', color: 'unset', lineHeight: 'calc(3.5rem - 4px)',
+  backgroundColor: 'rgba(255,255,255,0.15)', color: 'unset',
   borderBottom: `4px solid ${Style.colors.secondary}`
 }, tabBaseStyle)
 
 const navIconProps = {
   size: 22,
-  style: { opacity: 0.65, paddingRight: '1rem' },
+  style: { opacity: 0.65, marginRight: '1rem' },
   hover: { opacity: 1 }, focus: 'hover'
 }
 
@@ -66,7 +67,7 @@ export class WorkspaceContainer extends Component {
   loadWorkspace() {
     const { namespace, name } = this.props
 
-    Rawls.workspaceDetails(namespace, name).then(
+    Rawls.workspace(namespace, name).details().then(
       (workspace) => this.setState({ workspace }),
       (workspaceFailure) => this.setState({ workspaceFailure })
     )
@@ -113,7 +114,7 @@ export class WorkspaceContainer extends Component {
       contextBar({
         style: {
           paddingLeft: '5rem', borderBottom: `5px solid ${Style.colors.secondary}`,
-          textAlign: 'center', color: 'white', lineHeight: '3.5rem', textTransform: 'uppercase'
+          textAlign: 'center', color: 'white', lineHeight: '3.75rem', textTransform: 'uppercase'
         }
       }, [
         navSeparator,
@@ -125,7 +126,8 @@ export class WorkspaceContainer extends Component {
         h(ShowOnClick, {
           button: h(Interactive,
             _.merge({ as: icon('ellipsis-vertical') }, navIconProps))
-        }, [
+        },
+        [
           div({
             style: {
               position: 'absolute', right: 0, lineHeight: 'initial', textAlign: 'initial',
@@ -138,7 +140,8 @@ export class WorkspaceContainer extends Component {
               [{}, 'Delete']
             ])
           ])
-        ])
+        ]
+        )
       ]),
       Utils.cond(
         [workspaceFailure, `Couldn't load workspace: ${workspaceFailure}`],
@@ -153,9 +156,8 @@ export const addNavPaths = () => {
   Nav.defPath(
     'workspace',
     {
-      component: WorkspaceContainer,
       regex: /workspaces\/([^/]+)\/([^/]+)\/?([^/]*)/,
-      makeProps: (namespace, name, activeTab) => ({ namespace, name, activeTab }),
+      render: (namespace, name, activeTab) => h(WorkspaceContainer, { namespace, name, activeTab }),
       makePath: (namespace, name, activeTab) =>
         `workspaces/${namespace}/${name}${activeTab ? `/${activeTab}` : ''}`
     }

@@ -23,10 +23,9 @@ class NotebookCard extends Component {
 
     const notebookMenu = h(ShowOnClick, {
       ref: (instance) => this.notebookMenu = instance,
-      disabled: !notebookAccess,
       button: h(Interactive, {
         as: icon('ellipsis-vertical'), size: 18,
-        style: { marginLeft: '1rem' }, focus: 'hover'
+        style: { marginLeft: '1rem', cursor: 'pointer' }, focus: 'hover'
       })
     },
     [
@@ -81,7 +80,7 @@ class NotebookCard extends Component {
           flexShrink: 0,
           width: listView ? undefined : 200,
           height: listView ? undefined : 250,
-          margin: '1.25rem', boxSizing: 'border-box',
+          margin: '1.25rem',
           color: Style.colors.text, textDecoration: 'none',
           cursor: notebookAccess === false ? 'not-allowed' : notebookAccess ? undefined : 'wait',
           display: 'flex', flexDirection: listView ? 'row' : 'column',
@@ -146,28 +145,29 @@ export default class WorkspaceNotebooks extends Component {
   }
 
   loadClusters() {
+    const { namespace } = this.props.workspace
+
     this.setState({ clusters: undefined })
     Leo.clustersList().then(
       (list) => {
         const owned = _.filter(list,
           (v) => (v.creator === Utils.getUser().getBasicProfile().getEmail()))
-        this.setState({ clusters: _.sortBy(owned, 'clusterName') },
-          this.getNotebooks)
+        if (_.some(owned)) { Leo.notebooks(namespace, _.first(owned).clusterName).setCookie() }
+        this.setState({ clusters: _.sortBy(owned, 'clusterName') }, this.getNotebooks)
       },
       (listFailure) => this.setState({ listFailure })
     )
   }
 
   createCluster() {
-    Leo.clusterCreate(this.props.workspace.namespace, window.prompt('Name for the new cluster'),
-      {
-        'labels': {}, 'machineConfig': {
-          'numberOfWorkers': 0, 'masterMachineType': 'n1-standard-4',
-          'masterDiskSize': 500, 'workerMachineType': 'n1-standard-4',
-          'workerDiskSize': 500, 'numberOfWorkerLocalSSDs': 0,
-          'numberOfPreemptibleWorkers': 0
-        }
-      }).then(
+    Leo.cluster(this.props.workspace.namespace, window.prompt('Name for the new cluster')).create({
+      'labels': {}, 'machineConfig': {
+        'numberOfWorkers': 0, 'masterMachineType': 'n1-standard-4',
+        'masterDiskSize': 500, 'workerMachineType': 'n1-standard-4',
+        'workerDiskSize': 500, 'numberOfWorkerLocalSSDs': 0,
+        'numberOfPreemptibleWorkers': 0
+      }
+    }).then(
       () => {
         this.setState({ creatingCluster: false })
         this.loadClusters()
@@ -180,24 +180,31 @@ export default class WorkspaceNotebooks extends Component {
   getNotebooks() {
     this.setState({ notebooks: undefined, notebookAccess: {} })
     const { namespace, name: wsName, bucketName } = this.props.workspace
+    const { clusters } = this.state
 
-    Buckets.listNotebooks(namespace, bucketName).then(
-      (notebooks) => {
-        const cluster = _.first(this.state.clusters).clusterName
+    if (_.some(clusters)) {
+      Buckets.listNotebooks(namespace, bucketName).then(
+        (notebooks) => {
+          const cluster = _.first(clusters).clusterName
 
-        this.setState({ notebooks: _.reverse(_.sortBy(notebooks, 'updated')) })
+          this.setState({ notebooks: _.reverse(_.sortBy(notebooks, 'updated')) })
 
-        _.forEach(notebooks, ({ bucket, name }) => {
-          Leo.localizeNotebooks(namespace, cluster, {
-            [`~/${wsName}/${name.slice(10)}`]: `gs://${bucket}/${name}`
-          }).then(
-            () => this.setState((oldState) => _.merge({ notebookAccess: { [name]: true } }, oldState)),
-            () => this.setState((oldState) => _.merge({ notebookAccess: { [name]: false } }, oldState))
-          )
-        })
-      },
-      (notebooksFailure) => this.setState({ notebooksFailure })
-    )
+          _.forEach(notebooks, ({ bucket, name }) => {
+            Leo.notebooks(namespace, cluster).localize({
+              [`~/${wsName}/${name.slice(10)}`]: `gs://${bucket}/${name}`
+            }).then(
+              () => this.setState(
+                (oldState) => _.merge({ notebookAccess: { [name]: true } }, oldState)),
+              () => this.setState(
+                (oldState) => _.merge({ notebookAccess: { [name]: false } }, oldState))
+            )
+          })
+        },
+        (notebooksFailure) => this.setState({ notebooksFailure })
+      )
+    } else {
+      this.setState({ notebooks: [] })
+    }
   }
 
   renderNotebooks() {
@@ -284,7 +291,7 @@ export default class WorkspaceNotebooks extends Component {
                     if (status !== 'Deleting') {
                       return link({
                         onClick: () => {
-                          Leo.clusterDelete(googleProject, clusterName).then(
+                          Leo.cluster(googleProject, clusterName).delete().then(
                             () => this.loadClusters(),
                             (deletionFail) => window.alert(`Couldn't delete cluster: ${deletionFail}`)
                           )

@@ -1,4 +1,5 @@
 const _ = require('lodash')
+const path = require('path')
 const rewireReactHotLoader = require('react-app-rewire-hot-loader')
 const rewireEslint = require('react-app-rewire-eslint')
 const manualOverrides = require('./webpack.config')
@@ -7,7 +8,13 @@ const manualOverrides = require('./webpack.config')
 module.exports = {
   webpack: function override(config, env) {
     config = rewireEslint(config, env)
-    config = _.merge(config, manualOverrides)
+    config.resolve.modules = manualOverrides.resolve.modules
+    config.module.rules[1].oneOf.unshift(
+      {
+        include: [path.resolve(__dirname, 'src/icons')],
+        loader: 'raw-loader'
+      }
+    )
     return rewireReactHotLoader(config, env)
   },
   jest: function(config) {

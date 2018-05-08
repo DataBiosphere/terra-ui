@@ -58,7 +58,8 @@ export class WorkspaceList extends Component {
             width: '100%', margin: '0.5rem', textDecoration: 'none',
             backgroundColor: 'white', color: Style.colors.text
           }, Style.elements.card)
-        }, [
+        },
+        [
           div({ style: Style.elements.cardTitle }, `${name}`),
           div({ style: { display: 'flex', alignItems: 'flex-end', fontSize: '0.8rem' } },
             [
@@ -77,7 +78,8 @@ export class WorkspaceList extends Component {
             ])
         ])
       }
-    }, this.getDataViewerProps()))
+    }, this.getDataViewerProps())
+    )
   }
 
   wsGrid() {
@@ -88,13 +90,14 @@ export class WorkspaceList extends Component {
           href: Nav.getLink('workspace', namespace, name),
           style: _.defaults({
             width: `calc(${100 / cardsPerRow}% - 2.5rem)`,
-            margin: '1.25rem', boxSizing: 'border-box',
+            margin: '1.25rem',
             textDecoration: 'none',
             display: 'flex', flexDirection: 'column',
             justifyContent: 'space-between',
             height: 225, color: Style.colors.text
           }, Style.elements.card)
-        }, [
+        },
+        [
           div({ style: Style.elements.cardTitle }, `${name}`),
           div({}, `Billing project: ${namespace}`),
           div({
@@ -175,9 +178,8 @@ export const addNavPaths = () => {
   Nav.defPath(
     'workspaces',
     {
-      component: WorkspaceList,
       regex: /workspaces$/,
-      makeProps: () => ({}),
+      render: () => h(WorkspaceList),
       makePath: () => 'workspaces'
     }
   )
