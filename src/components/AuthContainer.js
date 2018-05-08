@@ -66,8 +66,8 @@ export default class AuthContainer extends Component {
         _.map(clusters, 'googleProject')
       )
 
-      if (projectsWithoutClusters.length > 5) {
-        console.log('More than 5 billing projects without clusters were found, only creating clusters for 5 of them')
+      if (projectsWithoutClusters.length > 20) {
+        console.log('More than 20 billing projects without clusters were found, only creating clusters for 20 of them')
         projectsWithoutClusters = _.take(projectsWithoutClusters, 5)
       }
 
