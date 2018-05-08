@@ -13,6 +13,44 @@ import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 
 
+class StatusLabel extends Component {
+  render() {
+    const { status } = this.props
+
+    return h(Fragment, [
+      status,
+      Utils.cond(
+        [status === 'Stopped', () => this.renderStartIcon()],
+        [status === 'Running', () => this.renderStopIcon()],
+        () => null
+      )
+    ])
+  }
+
+  renderStartIcon() {
+    const { clusterName, googleProject, refresh } = this.props
+
+    return icon('play',
+      {
+        class: 'is-solid', title: 'Start Cluster',
+        style: { color: Style.colors.primary, cursor: 'pointer' },
+        onClick: () => Leo.cluster(googleProject, clusterName).start().then(refresh)
+      })
+  }
+
+  renderStopIcon() {
+    const { clusterName, googleProject, refresh } = this.props
+
+    return icon('pause',
+      {
+        class: 'is-solid', title: 'Stop Cluster',
+        style: { color: Style.colors.primary, cursor: 'pointer' },
+        onClick: () => Leo.cluster(googleProject, clusterName).stop().then(refresh)
+      })
+  }
+}
+
+
 class NotebookCard extends Component {
   render() {
     const { namespace, name, updated, listView, notebookAccess, bucketName, clusterUrl, wsName, reloadList } = this.props
@@ -270,7 +308,11 @@ export default class WorkspaceNotebooks extends Component {
                   }
                 },
                 { title: 'Google project', dataIndex: 'googleProject', key: 'googleProject' },
-                { title: 'Status', dataIndex: 'status', key: 'status' },
+                {
+                  title: 'Status', key: 'status',
+                  render: ({ clusterName, googleProject, status }) =>
+                    h(StatusLabel, { clusterName, googleProject, status, refresh: () => this.loadClusters() })
+                },
                 {
                   title: 'Created', dataIndex: 'createdDate', key: 'createdDate',
                   render: Utils.makePrettyDate

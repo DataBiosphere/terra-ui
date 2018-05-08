@@ -190,6 +190,14 @@ export const Leo = {
         return fetchLeo(root, _.merge(authOpts(), jsonBody(clusterOptions), { method: 'PUT' }))
       },
 
+      start: () => {
+        return fetchLeo(`${root}/start`, _.merge(authOpts(), { method: 'POST' }))
+      },
+
+      stop: () => {
+        return fetchLeo(`${root}/stop`, _.merge(authOpts(), { method: 'POST' }))
+      },
+
       delete: () => {
         return fetchLeo(root, _.merge(authOpts(), { method: 'DELETE' }))
       }
