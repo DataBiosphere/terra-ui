@@ -61,10 +61,15 @@ export default class AuthContainer extends Component {
   checkClusters = () => {
     const { billingProjects, clusters } = this
     if (billingProjects && clusters) {
-      const projectsWithoutClusters = _.difference(
+      let projectsWithoutClusters = _.difference(
         _.map(billingProjects, 'projectName'),
         _.map(clusters, 'googleProject')
       )
+
+      if (projectsWithoutClusters.length > 5) {
+        console.log('More than 5 billing projects without clusters were found, only creating clusters for 5 of them')
+        projectsWithoutClusters = _.take(projectsWithoutClusters, 5)
+      }
 
       projectsWithoutClusters.forEach(project => {
         Leo.cluster(project, `launchpad-${project}`).create({
