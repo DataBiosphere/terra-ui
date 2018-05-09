@@ -1,21 +1,27 @@
 import _ from 'lodash'
 import RCTable from 'rc-table'
 import { Fragment } from 'react'
-import { div, h, option, select } from 'react-hyperscript-helpers'
+import { button, div, h, option, select } from 'react-hyperscript-helpers'
 import Pagination from 'react-paginating'
+import { icon } from 'src/components/icons'
+import * as Style from 'src/libs/style'
 import { Component } from 'src/libs/wrapped-components'
 
 
-/**
- * @callback handleNewVal
- * @param newValue
- */
+const paginatorButton = (props, label) => button(_.merge({
+  style: {
+    margin: '0 2px', padding: '0.25rem 0.5rem',
+    border: '1px solid #ccc', borderRadius: 3,
+    color: props.disabled ? Style.colors.disabled : Style.colors.primary,
+    cursor: props.disabled ? 'not-allowed' : 'pointer'
+  }
+}, props), label)
 
 /**
  * @param {number} props.filteredDataLength
  * @param {number} props.pageNumber
- * @param {handleNewVal} props.setPageNumber
- * @param {handleNewVal} [props.setItemsPerPage]
+ * @param {function(number)} props.setPageNumber
+ * @param {function(number)} [props.setItemsPerPage]
  * @param {number} props.itemsPerPage
  * @param {number[]} props.itemsPerPageOptions
  */
@@ -26,28 +32,55 @@ const paginator = function(props) {
   } = props
 
   return div({}, [
-    `${(pageNumber - 1) * itemsPerPage + 1} - ${_.min([filteredDataLength, pageNumber * itemsPerPage])} of ${filteredDataLength}`,
     h(Pagination, {
       total: filteredDataLength,
       limit: itemsPerPage,
       pageCount: _.ceil(filteredDataLength / itemsPerPage),
       currentPage: pageNumber
     }, [
-      ({ pages, currentPage, hasNextPage, hasPreviousPage, previousPage, nextPage, totalPages, getPageItemProps }) => h(Fragment, [
+      ({ pages, currentPage, hasNextPage, hasPreviousPage, previousPage, nextPage, totalPages, getPageItemProps }) => h(Fragment,
+        [
+          `${(pageNumber - 1) * itemsPerPage + 1} - ${_.min([filteredDataLength, pageNumber * itemsPerPage])} of ${filteredDataLength}`,
+          div({}, [
+            paginatorButton(
+              _.merge({ disabled: !hasPreviousPage },
+                getPageItemProps({ pageValue: previousPage, onPageChange: setPageNumber })),
+              [
+                div({ style: { display: 'inline-flex', alignItems: 'center' } }, [
+                  icon('angle left', { size: 12, style: { marginRight: '0.5rem', marginLeft: '-0.25rem' } }),
+                  'Previous'
+                ])
+              ]),
 
-      ])
-    ]),
-    setItemsPerPage ?
-      h(Fragment, [
-        'Items per page: ',
-        select({
-          onChange: e => setItemsPerPage(parseInt(e.target.value, 10)),
-          value: itemsPerPage
-        },
-        _.map(itemsPerPageOptions,
-          i => option({ value: i }, i)))
-      ]) :
-      null
+            h(Fragment, _.map(pages, num => paginatorButton(
+              _.merge({ disabled: currentPage === num },
+                getPageItemProps({ pageValue: num, onPageChange: setPageNumber })),
+              num))),
+
+            paginatorButton(
+              _.merge({ disabled: !hasNextPage },
+                getPageItemProps({ pageValue: nextPage, onPageChange: setPageNumber })),
+              [
+                div({ style: { display: 'inline-flex', alignItems: 'center' } }, [
+                  'Next',
+                  icon('angle right', { size: 12, style: { marginLeft: '0.5rem', marginRight: '-0.25rem' } })
+                ])
+              ])
+          ]),
+
+
+          setItemsPerPage && h(Fragment, [
+            'Items per page: ',
+            select({
+              onChange: e => setItemsPerPage(parseInt(e.target.value, 10)),
+              value: itemsPerPage
+            },
+            _.map(itemsPerPageOptions,
+              i => option({ value: i }, i)))
+          ])
+        ]
+      )
+    ])
   ])
 
 
@@ -81,9 +114,9 @@ const paginator = function(props) {
  * @param {bool} [allowItemsPerPage=true]
  * @param {number} [defaultItemsPerPage=25]
  * @param {number[]} [itemsPerPageOptions=[10, 25, 50, 100]]
- * @param {handleNewVal} [onItemsPerPageChanged]
+ * @param {function(number)} [onItemsPerPageChanged]
  * @param {number} [initialPage=1]
- * @param {handleNewVal} [onPageChanged]
+ * @param {function(number)} [onPageChanged]
  * @param {object[]} dataSource
  * @param {object} tableProps - see {@link https://github.com/react-component/table}, don't provide data
  */
@@ -133,9 +166,9 @@ export class DataTable extends Component {
  * @param {bool} [allowItemsPerPage=true]
  * @param {number} [defaultItemsPerPage=12]
  * @param {number[]} [itemsPerPageOptions=[12, 24, 36, 48]]
- * @param {handleNewVal} [onItemsPerPageChanged]
+ * @param {function(number)} [onItemsPerPageChanged]
  * @param {number} [initialPage=1]
- * @param {handleNewVal} [onPageChanged]
+ * @param {function(number)} [onPageChanged]
  * @param {object[]} dataSource
  * @param {function} renderCard - function(record, cardsPerRow) => renderable
  * @param {number} [cardsPerRow=3]
