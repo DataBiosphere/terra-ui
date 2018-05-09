@@ -2,6 +2,7 @@ import _ from 'lodash'
 import RCTable from 'rc-table'
 import { Fragment } from 'react'
 import { div, h, option, select } from 'react-hyperscript-helpers'
+import Pagination from 'react-paginating'
 import { Component } from 'src/libs/wrapped-components'
 
 
@@ -24,20 +25,23 @@ const paginator = function(props) {
     itemsPerPage, itemsPerPageOptions
   } = props
 
-  return h(Fragment, [
-    'Page: ',
-    select({
-      style: { marginRight: '1rem' },
-      onChange: e => setPageNumber(e.target.value),
-      value: pageNumber
-    },
-    _.map(_.range(1, filteredDataLength / itemsPerPage + 1),
-      i => option({ value: i }, i))),
+  return div({}, [
+    `${(pageNumber - 1) * itemsPerPage + 1} - ${_.min([filteredDataLength, pageNumber * itemsPerPage])} of ${filteredDataLength}`,
+    h(Pagination, {
+      total: filteredDataLength,
+      limit: itemsPerPage,
+      pageCount: _.ceil(filteredDataLength / itemsPerPage),
+      currentPage: pageNumber
+    }, [
+      ({ pages, currentPage, hasNextPage, hasPreviousPage, previousPage, nextPage, totalPages, getPageItemProps }) => h(Fragment, [
+
+      ])
+    ]),
     setItemsPerPage ?
       h(Fragment, [
         'Items per page: ',
         select({
-          onChange: e => setItemsPerPage(e.target.value),
+          onChange: e => setItemsPerPage(parseInt(e.target.value, 10)),
           value: itemsPerPage
         },
         _.map(itemsPerPageOptions,
@@ -45,6 +49,31 @@ const paginator = function(props) {
       ]) :
       null
   ])
+
+
+  /*
+   * return h(Fragment, [
+   *   'Page: ',
+   *   select({
+   *     style: { marginRight: '1rem' },
+   *     onChange: e => setPageNumber(e.target.value),
+   *     value: pageNumber
+   *   },
+   *   _.map(_.range(1, filteredDataLength / itemsPerPage + 1),
+   *     i => option({ value: i }, i))),
+   *   setItemsPerPage ?
+   *     h(Fragment, [
+   *       'Items per page: ',
+   *       select({
+   *         onChange: e => setItemsPerPage(e.target.value),
+   *         value: itemsPerPage
+   *       },
+   *       _.map(itemsPerPageOptions,
+   *         i => option({ value: i }, i)))
+   *     ]) :
+   *     null
+   * ])
+   */
 }
 
 /**
