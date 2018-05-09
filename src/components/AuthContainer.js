@@ -23,7 +23,7 @@ export default class AuthContainer extends Component {
     window.gapi.signin2.render('signInButton', { scope: 'openid profile email' })
   }
 
-  handleSignIn = isSignedIn => {
+  handleSignIn = async isSignedIn => {
     this.setState({ isSignedIn })
     if (isSignedIn) {
       Sam.getUserStatus().then(response => {
@@ -40,49 +40,26 @@ export default class AuthContainer extends Component {
         console.warn('Error looking up user status')
       })
 
-      Rawls.listBillingProjects().then(
-        billingProjects => {
-          this.billingProjects = billingProjects
-          this.checkClusters()
-        },
-        failure => Utils.log('Error fetching billing projects', failure)
-      )
+      const [billingProjects, clusters] = await Promise.all([Rawls.listBillingProjects(), Leo.clustersList()])
+      if (billingProjects && clusters) {
+        let projectsWithoutClusters = _.difference(
+          _.map(billingProjects, 'projectName'),
+          _.map(clusters, 'googleProject')
+        )
 
-      Leo.clustersList().then(
-        clusters => {
-          this.clusters = clusters
-          this.checkClusters()
-        },
-        failure => Utils.log('Error fetching clusters list', failure)
-      )
-    }
-  }
-
-  checkClusters = () => {
-    const { billingProjects, clusters } = this
-    if (billingProjects && clusters) {
-      let projectsWithoutClusters = _.difference(
-        _.map(billingProjects, 'projectName'),
-        _.map(clusters, 'googleProject')
-      )
-
-      if (projectsWithoutClusters.length > 20) {
-        console.log('More than 20 billing projects without clusters were found, only creating clusters for 20 of them')
-        projectsWithoutClusters = _.take(projectsWithoutClusters, 5)
+        projectsWithoutClusters.forEach(project => {
+          Leo.cluster(project, `launchpad-${project}`).create({
+            'labels': {},
+            'machineConfig': {
+              'numberOfWorkers': 0, 'masterMachineType': 'n1-standard-4',
+              'masterDiskSize': 500, 'workerMachineType': 'n1-standard-4',
+              'workerDiskSize': 500, 'numberOfWorkerLocalSSDs': 0,
+              'numberOfPreemptibleWorkers': 0
+            },
+            'stopAfterCreation': true
+          }).catch(error => Utils.log(`Error auto-creating cluster for project ${project}`, error))
+        })
       }
-
-      projectsWithoutClusters.forEach(project => {
-        Leo.cluster(project, `launchpad-${project}`).create({
-          'labels': {},
-          'machineConfig': {
-            'numberOfWorkers': 0, 'masterMachineType': 'n1-standard-4',
-            'masterDiskSize': 500, 'workerMachineType': 'n1-standard-4',
-            'workerDiskSize': 500, 'numberOfWorkerLocalSSDs': 0,
-            'numberOfPreemptibleWorkers': 0
-          },
-          'stopAfterCreation': true
-        }).catch(error => Utils.log(`Error auto-creating cluster for project ${project}`, error))
-      })
     }
   }
 
