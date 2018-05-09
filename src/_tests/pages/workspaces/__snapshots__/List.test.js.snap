@@ -343,53 +343,163 @@ Array [
               }
         }
     >
-        Page: 
-        <select
-            onChange={[Function]}
-            style={
-                Object {
-                    "marginRight": "1rem",
-                  }
-            }
-            value={1}
-        >
-            <option
-                value={1}
+        <div>
+            <div
+                style={
+                    Object {
+                        "alignItems": "center",
+                        "display": "flex",
+                        "justifyContent": "flex-end",
+                        "marginRight": "1rem",
+                      }
+                }
             >
-                1
-            </option>
-        </select>
-        Items per page: 
-        <select
-            onChange={[Function]}
-            value={6}
-        >
-            <option
-                value={6}
-            >
-                6
-            </option>
-            <option
-                value={12}
-            >
-                12
-            </option>
-            <option
-                value={24}
-            >
-                24
-            </option>
-            <option
-                value={36}
-            >
-                36
-            </option>
-            <option
-                value={48}
-            >
-                48
-            </option>
-        </select>
+                1 - 2 of 2
+                <div
+                    style={
+                        Object {
+                            "display": "inline-flex",
+                            "padding": "0.25rem 1rem",
+                          }
+                    }
+                >
+                    <button
+                        disabled={true}
+                        onClick={[Function]}
+                        style={
+                            Object {
+                                "border": "1px solid #ccc",
+                                "borderRadius": 3,
+                                "color": "#9b9b9b",
+                                "cursor": "not-allowed",
+                                "margin": "0 2px",
+                                "marginRight": "0.5rem",
+                                "padding": "0.25rem 0.5rem",
+                              }
+                        }
+                    >
+                        <clr-icon
+                            shape="angle-double left"
+                            size={12}
+                        />
+                    </button>
+                    <button
+                        disabled={true}
+                        onClick={[Function]}
+                        style={
+                            Object {
+                                "border": "1px solid #ccc",
+                                "borderRadius": 3,
+                                "color": "#9b9b9b",
+                                "cursor": "not-allowed",
+                                "margin": "0 2px",
+                                "marginRight": "1rem",
+                                "padding": "0.25rem 0.5rem",
+                              }
+                        }
+                    >
+                        <clr-icon
+                            shape="angle left"
+                            size={12}
+                        />
+                    </button>
+                    <button
+                        disabled={true}
+                        onClick={[Function]}
+                        style={
+                            Object {
+                                "backgroundColor": "#5faee0",
+                                "border": "#5faee0",
+                                "borderRadius": 3,
+                                "color": "white",
+                                "cursor": "not-allowed",
+                                "margin": "0 2px",
+                                "padding": "0.25rem 0.5rem",
+                                "width": "2rem",
+                              }
+                        }
+                    >
+                        1
+                    </button>
+                    <button
+                        disabled={true}
+                        onClick={[Function]}
+                        style={
+                            Object {
+                                "border": "1px solid #ccc",
+                                "borderRadius": 3,
+                                "color": "#9b9b9b",
+                                "cursor": "not-allowed",
+                                "margin": "0 2px",
+                                "marginLeft": "1rem",
+                                "padding": "0.25rem 0.5rem",
+                              }
+                        }
+                    >
+                        <clr-icon
+                            shape="angle right"
+                            size={12}
+                        />
+                    </button>
+                    <button
+                        disabled={true}
+                        onClick={[Function]}
+                        style={
+                            Object {
+                                "border": "1px solid #ccc",
+                                "borderRadius": 3,
+                                "color": "#9b9b9b",
+                                "cursor": "not-allowed",
+                                "margin": "0 2px",
+                                "marginLeft": "0.5rem",
+                                "padding": "0.25rem 0.5rem",
+                              }
+                        }
+                    >
+                        <clr-icon
+                            shape="angle-double right"
+                            size={12}
+                        />
+                    </button>
+                </div>
+                Items per page:
+                <select
+                    onChange={[Function]}
+                    style={
+                        Object {
+                            "marginLeft": "0.5rem",
+                          }
+                    }
+                    value={6}
+                >
+                    <option
+                        value={6}
+                    >
+                        6
+                    </option>
+                    <option
+                        value={12}
+                    >
+                        12
+                    </option>
+                    <option
+                        value={24}
+                    >
+                        24
+                    </option>
+                    <option
+                        value={36}
+                    >
+                        36
+                    </option>
+                    <option
+                        value={48}
+                    >
+                        48
+                    </option>
+                </select>
+            </div>
+        </div>
     </div>
 </div>,
 ]
