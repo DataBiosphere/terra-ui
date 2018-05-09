@@ -33,7 +33,7 @@ class StatusLabel extends Component {
     return h(Interactive,
       {
         as: icon('play'), class: 'is-solid', title: 'Start Cluster',
-        style: { color: Style.colors.primary, cursor: 'pointer' },
+        style: { color: Style.colors.primary },
         onClick: () => Leo.cluster(googleProject, clusterName).start().then(refresh)
       })
   }
@@ -44,7 +44,7 @@ class StatusLabel extends Component {
     return h(Interactive,
       {
         as: icon('pause'), class: 'is-solid', title: 'Stop Cluster',
-        style: { color: Style.colors.primary, cursor: 'pointer' },
+        style: { color: Style.colors.primary },
         onClick: () => Leo.cluster(googleProject, clusterName).stop().then(refresh)
       })
   }
