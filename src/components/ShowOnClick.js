@@ -50,7 +50,7 @@ export default class ShowOnClick extends Component {
             e.stopPropagation()
           } : undefined
         }, bgProps)),
-      visible ? children : null
+      visible && children
     ])
   }
 

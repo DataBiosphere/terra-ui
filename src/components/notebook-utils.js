@@ -110,7 +110,7 @@ export class NotebookCreator extends Component {
           }, [
             div({ style: Style.elements.sectionHeader }, 'Name'),
             notebookNameInput({
-              errors: nameTouched ? nameErrors : null,
+              errors: nameTouched && nameErrors,
               inputProps: {
                 value: notebookName,
                 onChange: e => this.setState({ notebookName: e.target.value, nameTouched: true })
@@ -177,7 +177,7 @@ export class NotebookDuplicator extends Component {
       () => [
         div({ style: Style.elements.sectionHeader }, 'New Name'),
         notebookNameInput({
-          errors: nameTouched ? nameErrors : null,
+          errors: nameTouched && nameErrors,
           inputProps: {
             value: newName,
             onChange: e => this.setState({ newName: e.target.value, nameTouched: true })

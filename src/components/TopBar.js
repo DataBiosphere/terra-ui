@@ -138,7 +138,7 @@ export class TopBar extends Component {
           style: { flexShrink: 0 },
           onClick: () => Utils.getAuthInstance().signOut()
         }, 'Sign out'),
-        this.state.navShown ? this.buildNav() : null
+        this.state.navShown && this.buildNav()
       ]
     )
   }

@@ -116,10 +116,10 @@ export class DataTable extends Component {
               if (onPageChanged) onPageChanged(n)
             }),
             pageNumber,
-            setItemsPerPage: allowItemsPerPage ? (n => {
+            setItemsPerPage: allowItemsPerPage && (n => {
               this.setState({ itemsPerPage: n })
               if (onItemsPerPageChanged) onItemsPerPageChanged(n)
-            }) : null,
+            }),
             itemsPerPage, itemsPerPageOptions
           })
         ]) :
@@ -170,10 +170,10 @@ export class DataGrid extends Component {
               if (onPageChanged) onPageChanged(n)
             }),
             pageNumber,
-            setItemsPerPage: allowItemsPerPage ? (n => {
+            setItemsPerPage: allowItemsPerPage && (n => {
               this.setState({ itemsPerPage: n })
               if (onItemsPerPageChanged) onItemsPerPageChanged(n)
-            }) : null,
+            }),
             itemsPerPage, itemsPerPageOptions
           })
         ]) :
