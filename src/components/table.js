@@ -31,56 +31,69 @@ const paginator = function(props) {
     itemsPerPage, itemsPerPageOptions
   } = props
 
-  return div({}, [
-    h(Pagination, {
-      total: filteredDataLength,
-      limit: itemsPerPage,
-      pageCount: _.ceil(filteredDataLength / itemsPerPage),
-      currentPage: pageNumber
-    }, [
-      ({ pages, currentPage, hasNextPage, hasPreviousPage, previousPage, nextPage, totalPages, getPageItemProps }) => h(Fragment,
-        [
+  return h(Pagination, {
+    total: filteredDataLength,
+    limit: itemsPerPage,
+    pageCount: 5,
+    currentPage: pageNumber
+  }, [
+    ({ pages, currentPage, hasNextPage, hasPreviousPage, previousPage, nextPage, totalPages, getPageItemProps }) => h(Fragment,
+      [
+        div({ style: { display: 'flex', justifyContent: 'flex-end', alignItems: 'center', marginRight: '1rem' } }, [
           `${(pageNumber - 1) * itemsPerPage + 1} - ${_.min([filteredDataLength, pageNumber * itemsPerPage])} of ${filteredDataLength}`,
-          div({}, [
+          div({ style: { display: 'inline-flex', padding: '0.25rem 1rem' } }, [
+
             paginatorButton(
-              _.merge({ disabled: !hasPreviousPage },
+              _.merge({ disabled: currentPage === 1, style: { marginRight: '0.5rem' } },
+                getPageItemProps({ pageValue: 1, onPageChange: setPageNumber })),
+              [icon('angle-double left', { size: 12 })]
+            ),
+
+            paginatorButton(
+              _.merge({ disabled: !hasPreviousPage, style: { marginRight: '1rem' } },
                 getPageItemProps({ pageValue: previousPage, onPageChange: setPageNumber })),
-              [
-                div({ style: { display: 'inline-flex', alignItems: 'center' } }, [
-                  icon('angle left', { size: 12, style: { marginRight: '0.5rem', marginLeft: '-0.25rem' } }),
-                  'Previous'
-                ])
-              ]),
+              [icon('angle left', { size: 12 })]
+            ),
 
             h(Fragment, _.map(pages, num => paginatorButton(
-              _.merge({ disabled: currentPage === num },
-                getPageItemProps({ pageValue: num, onPageChange: setPageNumber })),
+              _.merge({
+                disabled: currentPage === num, style: {
+                  width: '2rem',
+                  backgroundColor: currentPage === num ? Style.colors.primary : undefined,
+                  color: currentPage === num ? 'white' : Style.colors.primary,
+                  border: currentPage === num ? Style.colors.primary : undefined
+                }
+              },
+              getPageItemProps({ pageValue: num, onPageChange: setPageNumber })),
               num))),
 
             paginatorButton(
-              _.merge({ disabled: !hasNextPage },
+              _.merge({ disabled: !hasNextPage, style: { marginLeft: '1rem' } },
                 getPageItemProps({ pageValue: nextPage, onPageChange: setPageNumber })),
-              [
-                div({ style: { display: 'inline-flex', alignItems: 'center' } }, [
-                  'Next',
-                  icon('angle right', { size: 12, style: { marginLeft: '0.5rem', marginRight: '-0.25rem' } })
-                ])
-              ])
+              [icon('angle right', { size: 12 })]),
+
+            paginatorButton(
+              _.merge({ disabled: currentPage === totalPages, style: { marginLeft: '0.5rem' } },
+                getPageItemProps({ pageValue: totalPages, onPageChange: setPageNumber })),
+              [icon('angle-double right', { size: 12 })]
+            )
+
           ]),
 
 
           setItemsPerPage && h(Fragment, [
-            'Items per page: ',
+            'Items per page:',
             select({
+              style: { marginLeft: '0.5rem' },
               onChange: e => setItemsPerPage(parseInt(e.target.value, 10)),
               value: itemsPerPage
             },
             _.map(itemsPerPageOptions,
               i => option({ value: i }, i)))
           ])
-        ]
-      )
-    ])
+        ])
+      ]
+    )
   ])
 
 
