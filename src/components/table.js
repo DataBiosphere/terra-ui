@@ -57,7 +57,8 @@ const paginator = function(props) {
 
             h(Fragment, _.map(pages, num => paginatorButton(
               _.merge({
-                disabled: currentPage === num, style: {
+                disabled: currentPage === num,
+                style: {
                   width: '2rem',
                   backgroundColor: currentPage === num ? Style.colors.primary : undefined,
                   color: currentPage === num ? 'white' : Style.colors.primary,
@@ -65,21 +66,21 @@ const paginator = function(props) {
                 }
               },
               getPageItemProps({ pageValue: num, onPageChange: setPageNumber })),
-              num))),
+              num))
+            ),
 
             paginatorButton(
               _.merge({ disabled: !hasNextPage, style: { marginLeft: '1rem' } },
                 getPageItemProps({ pageValue: nextPage, onPageChange: setPageNumber })),
-              [icon('angle right', { size: 12 })]),
+              [icon('angle right', { size: 12 })]
+            ),
 
             paginatorButton(
               _.merge({ disabled: currentPage === totalPages, style: { marginLeft: '0.5rem' } },
                 getPageItemProps({ pageValue: totalPages, onPageChange: setPageNumber })),
               [icon('angle-double right', { size: 12 })]
             )
-
           ]),
-
 
           setItemsPerPage && h(Fragment, [
             'Items per page:',
