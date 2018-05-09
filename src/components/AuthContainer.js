@@ -41,25 +41,23 @@ export default class AuthContainer extends Component {
       })
 
       const [billingProjects, clusters] = await Promise.all([Rawls.listBillingProjects(), Leo.clustersList()])
-      if (billingProjects && clusters) {
-        let projectsWithoutClusters = _.difference(
-          _.map(billingProjects, 'projectName'),
-          _.map(clusters, 'googleProject')
-        )
+      let projectsWithoutClusters = _.difference(
+        _.map(billingProjects, 'projectName'),
+        _.map(clusters, 'googleProject')
+      )
 
-        projectsWithoutClusters.forEach(project => {
-          Leo.cluster(project, `launchpad-${project}`).create({
-            'labels': {},
-            'machineConfig': {
-              'numberOfWorkers': 0, 'masterMachineType': 'n1-standard-4',
-              'masterDiskSize': 500, 'workerMachineType': 'n1-standard-4',
-              'workerDiskSize': 500, 'numberOfWorkerLocalSSDs': 0,
-              'numberOfPreemptibleWorkers': 0
-            },
-            'stopAfterCreation': true
-          }).catch(error => Utils.log(`Error auto-creating cluster for project ${project}`, error))
-        })
-      }
+      projectsWithoutClusters.forEach(project => {
+        Leo.cluster(project, `launchpad-${project}`).create({
+          'labels': {},
+          'machineConfig': {
+            'numberOfWorkers': 0, 'masterMachineType': 'n1-standard-4',
+            'masterDiskSize': 500, 'workerMachineType': 'n1-standard-4',
+            'workerDiskSize': 500, 'numberOfWorkerLocalSSDs': 0,
+            'numberOfPreemptibleWorkers': 0
+          },
+          'stopAfterCreation': true
+        }).catch(error => Utils.log(`Error auto-creating cluster for project ${project}`, error))
+      })
     }
   }
 
