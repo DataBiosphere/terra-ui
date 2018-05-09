@@ -127,6 +127,11 @@ const fetchRawls = async (path, ...args) => {
 }
 
 export const Rawls = {
+  listBillingProjects: async () => {
+    const res = await fetchRawls('user/billing', authOpts())
+    return res.json()
+  },
+
   workspacesList: async () => {
     const res = await fetchRawls('workspaces', authOpts())
     return res.json()
@@ -183,6 +188,14 @@ export const Leo = {
     return {
       create: clusterOptions => {
         return fetchLeo(root, _.merge(authOpts(), jsonBody(clusterOptions), { method: 'PUT' }))
+      },
+
+      start: () => {
+        return fetchLeo(`${root}/start`, _.merge(authOpts(), { method: 'POST' }))
+      },
+
+      stop: () => {
+        return fetchLeo(`${root}/stop`, _.merge(authOpts(), { method: 'POST' }))
       },
 
       delete: () => {

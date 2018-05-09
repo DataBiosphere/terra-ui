@@ -3,6 +3,7 @@ import '@webcomponents/custom-elements' // must be before icons
 import { ClarityIcons } from '@clr/icons'
 import '@clr/icons/clr-icons.css'
 import '@clr/icons/shapes/essential-shapes'
+import '@clr/icons/shapes/media-shapes'
 import _ from 'lodash'
 import { h } from 'react-hyperscript-helpers'
 import checkSquare from 'src/icons/check-square.svg'

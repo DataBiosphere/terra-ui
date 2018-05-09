@@ -1,7 +1,8 @@
+import _ from 'lodash'
 import { Component, Fragment } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import Modal from 'src/components/Modal'
-import { Sam } from 'src/libs/ajax'
+import { Leo, Rawls, Sam } from 'src/libs/ajax'
 import * as Utils from 'src/libs/utils'
 
 
@@ -22,7 +23,7 @@ export default class AuthContainer extends Component {
     window.gapi.signin2.render('signInButton', { scope: 'openid profile email' })
   }
 
-  handleSignIn = isSignedIn => {
+  handleSignIn = async isSignedIn => {
     this.setState({ isSignedIn })
     if (isSignedIn) {
       Sam.getUserStatus().then(response => {
@@ -37,6 +38,25 @@ export default class AuthContainer extends Component {
         this.setState({ isShowingNotRegisteredModal: show })
       }, () => {
         console.warn('Error looking up user status')
+      })
+
+      const [billingProjects, clusters] = await Promise.all([Rawls.listBillingProjects(), Leo.clustersList()])
+      let projectsWithoutClusters = _.difference(
+        _.map(billingProjects, 'projectName'),
+        _.map(clusters, 'googleProject')
+      )
+
+      projectsWithoutClusters.forEach(project => {
+        Leo.cluster(project, `launchpad-${project}`).create({
+          'labels': {},
+          'machineConfig': {
+            'numberOfWorkers': 0, 'masterMachineType': 'n1-standard-4',
+            'masterDiskSize': 500, 'workerMachineType': 'n1-standard-4',
+            'workerDiskSize': 500, 'numberOfWorkerLocalSSDs': 0,
+            'numberOfPreemptibleWorkers': 0
+          },
+          'stopAfterCreation': true
+        }).catch(error => Utils.log(`Error auto-creating cluster for project ${project}`, error))
       })
     }
   }
