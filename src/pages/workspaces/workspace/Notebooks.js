@@ -30,9 +30,9 @@ class StatusLabel extends Component {
   renderStartIcon() {
     const { clusterName, googleProject, refresh } = this.props
 
-    return icon('play',
+    return h(Interactive,
       {
-        class: 'is-solid', title: 'Start Cluster',
+        as: icon('play'), class: 'is-solid', title: 'Start Cluster',
         style: { color: Style.colors.primary, cursor: 'pointer' },
         onClick: () => Leo.cluster(googleProject, clusterName).start().then(refresh)
       })
@@ -41,9 +41,9 @@ class StatusLabel extends Component {
   renderStopIcon() {
     const { clusterName, googleProject, refresh } = this.props
 
-    return icon('pause',
+    return h(Interactive,
       {
-        class: 'is-solid', title: 'Stop Cluster',
+        as: icon('pause'), class: 'is-solid', title: 'Stop Cluster',
         style: { color: Style.colors.primary, cursor: 'pointer' },
         onClick: () => Leo.cluster(googleProject, clusterName).stop().then(refresh)
       })
