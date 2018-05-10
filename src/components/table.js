@@ -153,14 +153,14 @@ export class DataTable extends Component {
 /**
  * @param {bool} [allowPagination=true]
  * @param {bool} [allowItemsPerPage=true]
- * @param {number} [defaultItemsPerPage=12]
  * @param {number[]} [itemsPerPageOptions=[12, 24, 36, 48]]
  * @param {function(number)} [onItemsPerPageChanged]
- * @param {number} [initialPage=1]
  * @param {function(number)} [onPageChanged]
  * @param {object[]} dataSource
  * @param {function} renderCard - function(record, cardsPerRow) => renderable
  * @param {number} [cardsPerRow=3]
+ * @param {number} pageNumber
+ * @param {number} itemsPerPage
  */
 export class DataGrid extends Component {
   render() {
