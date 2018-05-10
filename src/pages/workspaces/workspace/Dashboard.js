@@ -10,7 +10,7 @@ export default class WorkspaceDashboard extends Component {
     const { modal } = this.state
 
     return div({ style: { margin: '1rem' } }, [
-      modal ? h(Modal, {
+      modal && h(Modal, {
         onDismiss: () => this.setState({ modal: false }),
         title: 'Workspace Info',
         showCancel: false,
@@ -19,7 +19,7 @@ export default class WorkspaceDashboard extends Component {
       }, [
         div({ style: { whiteSpace: 'pre', overflow: 'auto', padding: '1rem' } },
           JSON.stringify(this.props, null, 2))
-      ]) : null,
+      ]),
       div({ style: { fontSize: 16, fontWeight: 500, color: Style.colors.title } },
         'ACCESS LEVEL'),
       span({ 'data-test-id': 'access-level' }, this.props.accessLevel),

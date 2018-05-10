@@ -41,21 +41,21 @@ export const validatedInput = props => {
           border: `1px solid ${Style.colors.error}`
         } : undefined
       }, inputProps)),
-      errors ? icon('exclamation-circle', {
+      errors && icon('exclamation-circle', {
         size: 24,
         style: {
           position: 'absolute', color: Style.colors.error,
           right: '.5rem'
         }
-      }) : null
+      })
     ]),
-    errors ? div({
+    errors && div({
       style: {
         color: Style.colors.error, textTransform: 'uppercase', fontSize: 10, fontWeight: 500,
         marginLeft: '1rem'
       }
     },
     _.map(errors, fail => div({ style: { marginTop: '0.5rem' } }, `${name} ${fail}`))
-    ) : null
+    )
   ])
 }

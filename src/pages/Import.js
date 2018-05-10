@@ -111,13 +111,12 @@ class DockstoreImporter extends Component {
             onClick: () => this.import()
           },
           'Import'),
-        importError ?
-          div({
-            style: { marginTop: '1rem', color: Style.colors.error }
-          }, [
-            icon('error'),
-            JSON.parse(importError).message
-          ]) : null
+        importError && div({
+          style: { marginTop: '1rem', color: Style.colors.error }
+        }, [
+          icon('error'),
+          JSON.parse(importError).message
+        ])
       ]
     )
   }
