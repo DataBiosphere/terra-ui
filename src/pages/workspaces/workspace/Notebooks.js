@@ -188,13 +188,15 @@ export default class WorkspaceNotebooks extends Component {
     this.setState({ clusters: undefined, cluster: undefined })
     Leo.clustersList().then(
       list => {
-        const cluster = _.find(list, c => c.googleProject === namespace && c.creator === Utils.getUser().getBasicProfile().getEmail())
-        if (cluster) {Leo.notebooks(namespace, cluster.clusterName).setCookie()
-        this.setState({cluster})}
+        const cluster = _.find(list,
+          c => c.googleProject === namespace &&
+            c.creator === Utils.getUser().getBasicProfile().getEmail())
+        if (cluster) {
+          Leo.notebooks(namespace, cluster.clusterName).setCookie().then(this.setState({ cluster }))
+        }
 
         const owned = _.filter(list,
           c => (c.creator === Utils.getUser().getBasicProfile().getEmail()))
-        if (_.some(owned)) { Leo.notebooks(namespace, _.first(owned).clusterName).setCookie() }
         this.setState({ clusters: _.sortBy(owned, 'clusterName') }, this.getNotebooks)
       },
       listFailure => this.setState({ listFailure })
@@ -227,7 +229,7 @@ export default class WorkspaceNotebooks extends Component {
     if (cluster) {
       Buckets.listNotebooks(namespace, bucketName).then(
         notebooks => {
-          const {clusterName} = cluster
+          const { clusterName } = cluster
 
           this.setState({ notebooks: _.reverse(_.sortBy(notebooks, 'updated')) })
 
