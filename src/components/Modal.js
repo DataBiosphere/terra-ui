@@ -1,7 +1,6 @@
 import _ from 'lodash'
-import { Fragment } from 'react'
 import * as ReactDOM from 'react-dom'
-import { div, h } from 'react-hyperscript-helpers'
+import { div } from 'react-hyperscript-helpers'
 import { buttonPrimary } from 'src/components/common'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -41,22 +40,20 @@ export default class Modal extends Component {
   }
 
   render() {
-    const { onDismiss, title, children, showCancel = true, okButton } = this.props
+    const { onDismiss, title, children, width = 450, showCancel = true, okButton } = this.props
 
-    const component = h(Fragment, [
+    const component = div({
+      style: {
+        backgroundColor: 'rgba(0, 0, 0, 0.5)', padding: '2rem 1rem',
+        display: 'flex', justifyContent: 'center', alignItems: 'flex-start',
+        position: 'fixed', left: 0, right: 0, top: 0, bottom: 0, overflowY: 'auto'
+      }
+    }, [
       div({
         style: {
-          backgroundColor: 'black', opacity: '0.5',
-          position: 'fixed', left: 0, right: 0, top: 0, bottom: 0
-        }
-      }),
-      div({
-        style: {
-          minHeight: '20%', maxHeight: '90%', minWidth: '30%', maxWidth: '90%', borderRadius: 5,
+          width, borderRadius: 5,
           padding: '1.5rem 1.25rem',
-          backgroundColor: 'white', boxShadow: Style.modalShadow,
-          position: 'fixed', left: '50%', top: '50%', transform: 'translate(-50%, -50%)',
-          display: 'flex', flexDirection: 'column'
+          backgroundColor: 'white', boxShadow: Style.modalShadow
         }
       },
       [
@@ -64,8 +61,8 @@ export default class Modal extends Component {
         children,
         div({
           style: {
-            flexShrink: 0, marginTop: '1rem', alignSelf: 'flex-end',
-            display: 'flex', alignItems: 'baseline'
+            flexShrink: 0, marginTop: '1rem',
+            display: 'flex', justifyContent: 'flex-end', alignItems: 'baseline'
           }
         }, [
           showCancel ?
