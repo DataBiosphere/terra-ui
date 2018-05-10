@@ -14,7 +14,8 @@ export default class WorkspaceDashboard extends Component {
         onDismiss: () => this.setState({ modal: false }),
         title: 'Workspace Info',
         showCancel: false,
-        okButton: 'Done'
+        okButton: 'Done',
+        width: 600
       }, [
         div({ style: { whiteSpace: 'pre', overflow: 'auto', padding: '1rem' } },
           JSON.stringify(this.props, null, 2))

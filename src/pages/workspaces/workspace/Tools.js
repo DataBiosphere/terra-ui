@@ -15,7 +15,8 @@ export default class WorkspaceTools extends Component {
     return div({ style: { margin: '1rem' } }, [
       modal ? h(Modal, {
         onDismiss: () => this.setState({ modal: false }),
-        okButton: buttonPrimary({ onClick: () => this.setState({ modal: false }) }, 'Run')
+        okButton: buttonPrimary({ onClick: () => this.setState({ modal: false }) }, 'Run'),
+        width: 800
       }, [
         img({ src: '/launchAnalysis.png', width: 759 }) // placeholder
       ]) : null,
