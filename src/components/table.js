@@ -55,8 +55,9 @@ const paginator = function(props) {
               [icon('angle left', { size: 12 })]
             ),
 
-            h(Fragment, _.map(pages, num => paginatorButton(
+            _.map(pages, num => paginatorButton(
               _.merge({
+                key: num,
                 disabled: currentPage === num,
                 style: {
                   width: '2rem',
@@ -66,7 +67,7 @@ const paginator = function(props) {
                 }
               },
               getPageItemProps({ pageValue: num, onPageChange: setPageNumber })),
-              num))
+              num)
             ),
 
             paginatorButton(
