@@ -13,13 +13,13 @@ export default class WorkspaceTools extends Component {
     const { modal, configs } = this.state
 
     return div({ style: { margin: '1rem' } }, [
-      modal ? h(Modal, {
+      modal && h(Modal, {
         onDismiss: () => this.setState({ modal: false }),
         okButton: buttonPrimary({ onClick: () => this.setState({ modal: false }) }, 'Run'),
         width: 800
       }, [
         img({ src: '/launchAnalysis.png', width: 759 }) // placeholder
-      ]) : null,
+      ]),
       div({ style: { fontSize: 16, fontWeight: 500, color: Style.colors.title } },
         'Pipelines'),
       div({

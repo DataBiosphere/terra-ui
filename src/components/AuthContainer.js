@@ -74,8 +74,8 @@ export default class AuthContainer extends Component {
     const { isSignedIn, isShowingNotRegisteredModal } = this.state
     return h(Fragment, [
       div({ id: 'signInButton', style: { display: isSignedIn ? 'none' : 'block' } }),
-      isShowingNotRegisteredModal ? this.renderNotRegisteredModal() : null,
-      isSignedIn ? children : null
+      isShowingNotRegisteredModal && this.renderNotRegisteredModal(),
+      isSignedIn && children
     ])
   }
 }

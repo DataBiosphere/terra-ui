@@ -57,7 +57,7 @@ export default class Modal extends Component {
         }
       },
       [
-        title ? div({ style: { fontSize: 18, marginBottom: '1rem' } }, [title]) : null,
+        title && div({ style: { fontSize: 18, marginBottom: '1rem' } }, [title]),
         children,
         div({
           style: {

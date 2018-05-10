@@ -26,7 +26,7 @@ export default class Collapse extends Component {
             span({ style: { color: Style.colors.secondary } }, title),
             icon(visible ? 'angle down' : 'angle left', { style: { marginLeft: '0.25rem' } })
           ]),
-        visible ? titleExpand : null
+        visible && titleExpand
       ]),
       div({ style: { display: visible ? 'initial' : 'none' } },
         [this.props.children])
