@@ -58,9 +58,8 @@ const paginator = function(props) {
             _.map(pages, num => paginatorButton(
               _.merge({
                 key: num,
-                disabled: currentPage === num,
                 style: {
-                  width: '2rem',
+                  minWidth: '2rem',
                   backgroundColor: currentPage === num ? Style.colors.primary : undefined,
                   color: currentPage === num ? 'white' : Style.colors.primary,
                   border: currentPage === num ? Style.colors.primary : undefined
