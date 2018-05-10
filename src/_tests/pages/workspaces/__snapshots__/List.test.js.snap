@@ -404,7 +404,6 @@ Array [
                         />
                     </button>
                     <button
-                        disabled={true}
                         onClick={[Function]}
                         style={
                             Object {
@@ -412,10 +411,10 @@ Array [
                                 "border": "#5faee0",
                                 "borderRadius": 3,
                                 "color": "white",
-                                "cursor": "not-allowed",
+                                "cursor": "pointer",
                                 "margin": "0 2px",
+                                "minWidth": "2rem",
                                 "padding": "0.25rem 0.5rem",
-                                "width": "2rem",
                               }
                         }
                     >
