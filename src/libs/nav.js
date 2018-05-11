@@ -1,109 +1,86 @@
+import { Component } from 'react'
+import createHistory from 'history/createHashHistory'
 import _ from 'lodash'
+import pathToRegexp from 'path-to-regexp'
 
+
+export const history = createHistory({ hashType: 'noslash' })
 
 let allPathHandlers = {}
 
 /**
  * @param {string} k - key for path
  * @param {object} handler
- * @param {RegExp} handler.regex - regex with capture groups for props
- * @param handler.render - takes regex matches, returns rendered element
- * @param {Function(): string} handler.makePath - takes regex matches, returns string path to go after '#'
+ * @param {string} handler.path - path spec handled by path-to-regexp
+ * @param handler.component - component to render
  */
-export const defPath = function(k, handler) {
-  console.assert(_.has(handler, 'regex'))
-  console.assert(_.has(handler, 'render'))
-  console.assert(_.has(handler, 'makePath'))
-
+export const defPath = (k, { path, component }) => {
   console.assert(!_.has(allPathHandlers, k), `Key ${k} is already defined`)
-
-  allPathHandlers[k] = handler
-}
-
-let allRedirects = []
-
-/**
- * @param {RegExp} handler.regex - regex with capture groups for props
- * @param {Function(): string} handler.makePath - takes regex matches, returns string path to go after '#'
- */
-export const defRedirect = function(handler) {
-  console.assert(_.has(handler, 'regex'))
-  console.assert(_.has(handler, 'makePath'))
-
-  allRedirects.push(handler)
+  const keys = [] // mutated by pathToRegexp
+  const regex = pathToRegexp(path, keys)
+  allPathHandlers[k] = {
+    regex,
+    component,
+    keys: _.map(keys, 'name'),
+    makePath: pathToRegexp.compile(path)
+  }
 }
 
 export const clearPaths = function() {
   allPathHandlers = {}
-  allRedirects = []
 }
 
-const decodeHash = hash => decodeURI(hash.substring(1))
-
 /**
- * @param {string} windowHash
+ * @param {string} pathname
  * @returns {object} matchingHandler
  */
-export const renderPath = windowHash => {
-  const hash = decodeHash(windowHash)
-  const matchingHandlers = _.filter(allPathHandlers, ({ regex }) => regex.test(hash))
-  console.assert(matchingHandlers.length <= 1,
-    `Multiple handlers matched path: ${_.map(matchingHandlers, JSON.stringify)}`)
-  const handler = matchingHandlers[0]
-  return handler && handler.render(..._.tail(hash.match(handler.regex)))
+export const findHandler = pathname => {
+  const matchingHandlers = _.filter(allPathHandlers, ({ regex }) => regex.test(pathname))
+  console.assert(matchingHandlers.length <= 1, 'Multiple handlers matched', matchingHandlers)
+  return matchingHandlers[0]
+}
+
+/**
+ * @param {object} handler
+ * @param {string} pathname
+ * @returns {object} parsed props
+ */
+export const getHandlerProps = ({ keys, regex }, pathname) => {
+  return _.zipObject(keys, _.tail(pathname.match(regex)))
 }
 
 /**
  * @param k
- * @param args
+ * @param params
  * @returns {string}
  */
-export const getPath = function(k, ...args) {
+export const getPath = (k, params) => {
   const handler = allPathHandlers[k]
   console.assert(handler,
     `No handler found for key ${k}. Valid path keys are: ${_.keysIn(allPathHandlers)}`)
-  return encodeURI(handler.makePath.apply(this, args))
+  return handler.makePath(params)
 }
 
 /**
- * @param k
  * @param args
  * @returns {string}
  */
-export const getLink = function(k, ...args) {
-  return `#${getPath.apply(this, Array.from(arguments))}`
-}
+export const getLink = (...args) => `#${getPath(...args).slice(1)}` // slice off leading slash
 
 /**
- * @param k
  * @param args
  */
-export const goToPath = function(k, ...args) {
-  window.location.hash = getPath.apply(this, Array.from(arguments))
+export const goToPath = (...args) => {
+  history.push({ pathname: getPath(...args) })
 }
 
-/**
- * @param k
- * @param args
- * @returns {string}
- */
-export const isCurrentPath = function(k, ...args) {
-  return getPath.apply(this, Array.from(arguments))
-}
-
-/**
- * @param windowHash
- * @returns {boolean} redirect executed?
- */
-export const executeRedirects = windowHash => {
-  const hash = decodeHash(windowHash)
-  const matchingHandlers = _.filter(allRedirects, ({ regex }) => regex.test(hash))
-  console.assert(matchingHandlers.length <= 1,
-    `Multiple redirects for matched path: ${_.map(matchingHandlers, 'regex')}`)
-
-  if (matchingHandlers[0]) {
-    window.location.replace(`#${matchingHandlers[0].makePath()}`)
+export class Redirector extends Component {
+  componentDidMount() {
+    const { pathname } = this.props
+    history.replace({ pathname })
   }
 
-  return (matchingHandlers.length > 0)
+  render() {
+    return null
+  }
 }
