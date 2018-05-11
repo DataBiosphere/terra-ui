@@ -135,7 +135,7 @@ class DockstoreImporter extends Component {
         methodVersion: version
       }
     }).then(
-      () => Nav.goToPath('workspace', namespace, name, 'tools'),
+      () => Nav.goToPath('workspace', { namespace, name, activeTab: 'tools' }),
       importError => this.setState({ importError })
     )
   }
@@ -173,12 +173,8 @@ class Importer extends Component {
 
 
 export const addNavPaths = () => {
-  Nav.defPath(
-    'import',
-    {
-      regex: /import\/([^/]+)\/(.+)$/,
-      render: (source, item) => h(Importer, { source, item }),
-      makePath: (source, item) => `/import/${source}/${item}`
-    }
-  )
+  Nav.defPath('import', {
+    path: '/import/:source/:item*',
+    component: Importer
+  })
 }

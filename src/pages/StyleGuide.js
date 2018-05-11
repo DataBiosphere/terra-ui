@@ -61,12 +61,8 @@ class StyleGuide extends Component {
 }
 
 export const addNavPaths = () => {
-  Nav.defPath(
-    'styles',
-    {
-      regex: /styles$/,
-      render: () => h(StyleGuide),
-      makePath: () => 'styles'
-    }
-  )
+  Nav.defPath('styles', {
+    path: '/styles',
+    component: StyleGuide
+  })
 }

@@ -1,5 +1,5 @@
 import { Component } from 'react'
-import { h2 } from 'react-hyperscript-helpers'
+import { h, h2 } from 'react-hyperscript-helpers'
 import * as Nav from 'src/libs/nav'
 import * as Import from 'src/pages/Import'
 import * as StyleGuide from 'src/pages/StyleGuide'
@@ -18,13 +18,13 @@ const initNavPaths = () => {
 export default class Router extends Component {
   constructor(props) {
     super(props)
-    this.state = { windowHash: '' }
+    this.state = { pathname: undefined }
   }
 
   componentDidMount() {
     initNavPaths()
-    this.handleHashChange()
-    window.addEventListener('hashchange', this.handleHashChange)
+    this.setState({ pathname: Nav.history.location.pathname })
+    this.unlisten = Nav.history.listen(({ pathname }) => this.setState({ pathname }))
   }
 
   componentWillReceiveProps() {
@@ -32,17 +32,18 @@ export default class Router extends Component {
   }
 
   componentWillUnmount() {
-    window.removeEventListener('hashchange', this.handleHashChange)
-  }
-
-  handleHashChange = () => {
-    if (!Nav.executeRedirects(window.location.hash)) {
-      this.setState({ windowHash: window.location.hash })
-    }
+    this.unlisten()
   }
 
   render() {
-    const { windowHash } = this.state
-    return Nav.renderPath(windowHash) || h2('No matching path.')
+    const { pathname } = this.state
+    if (pathname === undefined) {
+      return null
+    }
+    const handler = Nav.findHandler(pathname)
+    if (!handler) {
+      return h2('No matching path.')
+    }
+    return h(handler.component, Nav.getHandlerProps(handler, pathname))
   }
 }

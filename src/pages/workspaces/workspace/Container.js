@@ -83,8 +83,9 @@ export class WorkspaceContainer extends Component {
       return h(Fragment, [
         a({
           style: tabName === activeTab ? tabActiveStyle : tabBaseStyle,
-          href: Nav.getLink('workspace', namespace, name,
-            tabName === 'dashboard' ? null : tabName),
+          href: Nav.getLink('workspace', {
+            namespace, name, activeTab: tabName === 'dashboard' ? null : tabName
+          }),
           onClick: () => {
             if (tabName === activeTab) {
               this.loadWorkspace()
@@ -107,7 +108,7 @@ export class WorkspaceContainer extends Component {
             ['Projects', breadcrumb()]),
             a({
               style: { fontSize: '1.25rem', textDecoration: 'none', color: 'unset' },
-              href: Nav.getLink('workspace', namespace, name)
+              href: Nav.getLink('workspace', { namespace, name })
             }, `${namespace}/${name}`)
           ])
       ]),
@@ -152,13 +153,8 @@ export class WorkspaceContainer extends Component {
 }
 
 export const addNavPaths = () => {
-  Nav.defPath(
-    'workspace',
-    {
-      regex: /workspaces\/([^/]+)\/([^/]+)\/?([^/]*)/,
-      render: (namespace, name, activeTab) => h(WorkspaceContainer, { namespace, name, activeTab }),
-      makePath: (namespace, name, activeTab) =>
-        `workspaces/${namespace}/${name}${activeTab ? `/${activeTab}` : ''}`
-    }
-  )
+  Nav.defPath('workspace', {
+    path: '/workspaces/:namespace/:name/:activeTab?',
+    component: WorkspaceContainer
+  })
 }
