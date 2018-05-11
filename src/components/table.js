@@ -1,7 +1,7 @@
 import _ from 'lodash'
 import RCTable from 'rc-table'
 import { Fragment } from 'react'
-import { button, div, h, option, select, table, td, tr } from 'react-hyperscript-helpers'
+import { button, div, h, option, select, td, tr } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
 import Pagination from 'react-paginating'
 import { icon } from 'src/components/icons'
@@ -100,11 +100,6 @@ const paginator = function(props) {
 }
 
 const defaultComponents = {
-  table: props => table(_.merge({
-    style: {
-      borderCollapse: 'collapse'
-    }
-  }, props)),
   header: {
     row: props => tr(_.merge({
       style: {
