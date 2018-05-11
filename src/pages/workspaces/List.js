@@ -53,7 +53,7 @@ export class WorkspaceList extends Component {
       cardsPerRow: 1,
       renderCard: ({ workspace: { namespace, name, createdBy, lastModified } }) => {
         return a({
-          href: Nav.getLink('workspace', namespace, name),
+          href: Nav.getLink('workspace', { namespace, name }),
           style: _.defaults({
             width: '100%', margin: '0.5rem', textDecoration: 'none',
             backgroundColor: 'white', color: Style.colors.text
@@ -86,7 +86,7 @@ export class WorkspaceList extends Component {
       renderCard: ({ workspace: { namespace, name, createdBy, lastModified } },
         cardsPerRow) => {
         return a({
-          href: Nav.getLink('workspace', namespace, name),
+          href: Nav.getLink('workspace', { namespace, name }),
           style: _.defaults({
             width: `calc(${100 / cardsPerRow}% - 2.5rem)`,
             margin: '1.25rem',
@@ -173,13 +173,12 @@ export class WorkspaceList extends Component {
 }
 
 export const addNavPaths = () => {
-  Nav.defRedirect({ regex: /^.{0}$/, makePath: () => 'workspaces' })
-  Nav.defPath(
-    'workspaces',
-    {
-      regex: /workspaces$/,
-      render: () => h(WorkspaceList),
-      makePath: () => 'workspaces'
-    }
-  )
+  Nav.defPath('root', {
+    path: '/',
+    component: () => h(Nav.Redirector, { pathname: '/workspaces' })
+  })
+  Nav.defPath('workspaces', {
+    path: '/workspaces',
+    component: WorkspaceList
+  })
 }
