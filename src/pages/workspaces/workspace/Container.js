@@ -2,8 +2,9 @@ import _ from 'lodash'
 import { Fragment } from 'react'
 import { a, div, h } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
+import * as Breadcrumbs from 'src/components/breadcrumbs'
 import { contextBar, contextMenu } from 'src/components/common'
-import { breadcrumb, icon, spinner } from 'src/components/icons'
+import { icon, spinner } from 'src/components/icons'
 import ShowOnClick from 'src/components/ShowOnClick'
 import { TopBar } from 'src/components/TopBar'
 import { Rawls } from 'src/libs/ajax'
@@ -101,11 +102,7 @@ export class WorkspaceContainer extends Component {
       h(TopBar, { title: 'Projects' }, [
         div({ style: { display: 'flex', flexDirection: 'column', paddingLeft: '4rem' } },
           [
-            a({
-              style: { color: Style.colors.textFaded, cursor: 'pointer', textDecoration: 'none' },
-              href: Nav.getLink('workspaces')
-            },
-            ['Projects', breadcrumb()]),
+            Breadcrumbs.commonElements.workspaces(),
             a({
               style: { fontSize: '1.25rem', textDecoration: 'none', color: 'unset' },
               href: Nav.getLink('workspace', { namespace, name })
