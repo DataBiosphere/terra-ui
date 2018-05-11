@@ -1,6 +1,5 @@
 import _ from 'lodash'
-import { div, h, table } from 'react-hyperscript-helpers'
-import Interactive from 'react-interactive'
+import { div, h } from 'react-hyperscript-helpers'
 import { icon, spinner } from 'src/components/icons'
 import { DataTable } from 'src/components/table'
 import { Rawls } from 'src/libs/ajax'
@@ -48,23 +47,11 @@ export default class WorkspaceData extends Component {
       tableProps: {
         rowKey: 'name',
         scroll: { x: true },
-        components: {
-          table: props => table(_.merge({ style: { borderCollapse: 'collapse' } }, props)),
-          body: {
-            row: props => h(Interactive,
-              _.merge({
-                as: 'tr', style: { cursor: null },
-                hover: { backgroundColor: Style.colors.highlightFaded }
-              },
-              props)
-            )
-          }
-        },
         columns: _.map(workspaceEntities[selectedEntityType]['attributeNames'], function(name) {
           return {
             title: name,
             key: name,
-            render: entity => div({ style: { padding: '0.5rem' } }, entity.attributes[name])
+            render: entity => entity.attributes[name]
           }
         })
       }
