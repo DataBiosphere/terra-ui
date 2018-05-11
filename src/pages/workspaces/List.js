@@ -38,10 +38,10 @@ export class WorkspaceList extends Component {
 
   getDataViewerProps() {
     return {
-      defaultItemsPerPage: this.state.itemsPerPage,
       itemsPerPageOptions: [6, 12, 24, 36, 48],
+      itemsPerPage: this.state.itemsPerPage,
       onItemsPerPageChanged: n => this.setState({ itemsPerPage: n }),
-      initialPage: this.state.pageNumber,
+      pageNumber: this.state.pageNumber,
       onPageChanged: n => this.setState({ pageNumber: n }),
       dataSource: this.state.workspaces.filter(({ workspace: { namespace, name } }) =>
         `${namespace}/${name}`.includes(this.state.filter))
@@ -131,7 +131,7 @@ export class WorkspaceList extends Component {
             wrapperProps: { style: { marginLeft: '2rem', flexGrow: 1, maxWidth: 500 } },
             inputProps: {
               placeholder: 'SEARCH BIOSPHERE',
-              onChange: e => this.setState({ filter: e.target.value }),
+              onChange: e => this.setState({ filter: e.target.value, pageNumber: 1 }),
               value: filter
             }
           })
