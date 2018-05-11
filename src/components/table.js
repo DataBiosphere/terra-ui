@@ -1,7 +1,8 @@
 import _ from 'lodash'
 import RCTable from 'rc-table'
 import { Fragment } from 'react'
-import { button, div, h, option, select } from 'react-hyperscript-helpers'
+import { button, div, h, option, select, table, td, tr } from 'react-hyperscript-helpers'
+import Interactive from 'react-interactive'
 import Pagination from 'react-paginating'
 import { icon } from 'src/components/icons'
 import * as Style from 'src/libs/style'
@@ -98,6 +99,51 @@ const paginator = function(props) {
   ])
 }
 
+const defaultComponents = {
+  table: props => table(_.merge({
+    style: {
+      borderCollapse: 'collapse'
+    }
+  }, props)),
+  header: {
+    row: props => tr(_.merge({
+      style: {
+        border: '1px solid #CCCCCC',
+        backgroundColor: '#FAFAFA'
+      }
+    }, props)),
+    cell: props => td({
+      style: {
+        alignment: 'left',
+        padding: '14px 0',
+        fontWeight: 500
+      }
+    }, [div(_.merge({
+      style: {
+        padding: '0 18px',
+        marginRight: -1,
+        borderRight: '1px solid #CCCCCC'
+      }
+    }, props))])
+  },
+  body: {
+    row: props => h(Interactive, _.merge({
+      as: 'tr',
+      style: {
+        backgroundColor: 'white',
+        border: '1px solid #CCCCCC',
+        cursor: null
+      },
+      hover: { backgroundColor: Style.colors.highlightFaded }
+    }, props)),
+    cell: props => td(_.merge({
+      style: {
+        padding: '16.25px 19px 12.75px'
+      }
+    }, props))
+  }
+}
+
 /**
  * @param {bool} [allowPagination=true]
  * @param {bool} [allowItemsPerPage=true]
@@ -128,7 +174,10 @@ export class DataTable extends Component {
     const listPage = dataSource.slice((pageNumber - 1) * itemsPerPage, pageNumber * itemsPerPage)
 
     return h(Fragment, [
-      h(RCTable, _.extend({ data: listPage }, tableProps)),
+      h(RCTable, _.extend({
+        data: listPage,
+        components: defaultComponents
+      }, tableProps)),
       allowPagination ?
         div({ style: { marginTop: 10 } }, [
           paginator({
