@@ -185,12 +185,18 @@ export default class WorkspaceNotebooks extends Component {
   loadClusters() {
     const { namespace } = this.props.workspace
 
-    this.setState({ clusters: undefined })
+    this.setState({ clusters: undefined, cluster: undefined })
     Leo.clustersList().then(
       list => {
+        const cluster = _.find(list,
+          c => c.googleProject === namespace &&
+            c.creator === Utils.getUser().getBasicProfile().getEmail())
+        if (cluster) {
+          Leo.notebooks(namespace, cluster.clusterName).setCookie().then(() => this.setState({ cluster }))
+        }
+
         const owned = _.filter(list,
           c => (c.creator === Utils.getUser().getBasicProfile().getEmail()))
-        if (_.some(owned)) { Leo.notebooks(namespace, _.first(owned).clusterName).setCookie() }
         this.setState({ clusters: _.sortBy(owned, 'clusterName') }, this.getNotebooks)
       },
       listFailure => this.setState({ listFailure })
@@ -218,17 +224,21 @@ export default class WorkspaceNotebooks extends Component {
   getNotebooks() {
     this.setState({ notebooks: undefined, notebookAccess: {} })
     const { namespace, name: wsName, bucketName } = this.props.workspace
-    const { clusters } = this.state
+    const { cluster } = this.state
 
-    if (_.some(clusters)) {
+    if (cluster) {
       Buckets.listNotebooks(namespace, bucketName).then(
         notebooks => {
-          const cluster = _.first(clusters).clusterName
+          const { clusterName } = cluster
 
           this.setState({ notebooks: _.reverse(_.sortBy(notebooks, 'updated')) })
 
+          Leo.notebooks(namespace, clusterName).localize({
+            [`~/${wsName}/.delocalize.json`]: `data:application/json,{"destination":"gs://${bucketName}/notebooks","pattern":""}`
+          })
+
           _.forEach(notebooks, ({ bucket, name }) => {
-            Leo.notebooks(namespace, cluster).localize({
+            Leo.notebooks(namespace, clusterName).localize({
               [`~/${wsName}/${name.slice(10)}`]: `gs://${bucket}/${name}`
             }).then(
               () => this.setState(
@@ -246,13 +256,13 @@ export default class WorkspaceNotebooks extends Component {
   }
 
   renderNotebooks() {
-    const { clusters, notebooks, notebookAccess, listView } = this.state
+    const { cluster, notebooks, notebookAccess, listView } = this.state
     const { bucketName, name: wsName, namespace } = this.props.workspace
 
     return div({ style: { display: listView ? undefined : 'flex', flexWrap: 'wrap' } },
       _.map(notebooks, ({ name, updated }) => h(NotebookCard, {
         name, updated, listView, notebookAccess: notebookAccess[name], bucketName,
-        clusterUrl: _.first(clusters).clusterUrl, namespace, wsName,
+        clusterUrl: cluster.clusterUrl, namespace, wsName,
         reloadList: () => this.getNotebooks()
       })))
   }
