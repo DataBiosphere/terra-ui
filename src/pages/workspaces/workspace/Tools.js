@@ -47,7 +47,11 @@ export default class WorkspaceTools extends Component {
               }, Style.elements.card)
             }, [
               link({
-                href: Nav.getLink('workspace', _.pick(this.props.workspace, ['namespace', 'name'])),
+                href: Nav.getLink('workflow', {
+                  workspaceNamespace: this.props.workspace.namespace,
+                  workspaceName: this.props.workspace.name,
+                  workflowName: name
+                }),
                 style: { display: 'block', marginBottom: '0.5rem', fontSize: 16 }
               }, name),
               div(`V. ${methodVersion}`),
