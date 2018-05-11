@@ -153,30 +153,22 @@ export class DataTable extends Component {
 /**
  * @param {bool} [allowPagination=true]
  * @param {bool} [allowItemsPerPage=true]
- * @param {number} [defaultItemsPerPage=12]
  * @param {number[]} [itemsPerPageOptions=[12, 24, 36, 48]]
  * @param {function(number)} [onItemsPerPageChanged]
- * @param {number} [initialPage=1]
  * @param {function(number)} [onPageChanged]
  * @param {object[]} dataSource
  * @param {function} renderCard - function(record, cardsPerRow) => renderable
  * @param {number} [cardsPerRow=3]
+ * @param {number} pageNumber
+ * @param {number} itemsPerPage
  */
 export class DataGrid extends Component {
-  constructor(props) {
-    super(props)
-    this.state = {
-      pageNumber: props.initialPage || 1,
-      itemsPerPage: props.defaultItemsPerPage || 12
-    }
-  }
-
   render() {
     const {
       allowPagination = true, allowItemsPerPage = true, itemsPerPageOptions = [12, 24, 36, 48],
-      onItemsPerPageChanged, onPageChanged, dataSource, renderCard, cardsPerRow = 3
+      onItemsPerPageChanged, onPageChanged, dataSource, renderCard, cardsPerRow = 3,
+      pageNumber, itemsPerPage
     } = this.props
-    const { pageNumber, itemsPerPage } = this.state
 
     const listPage = dataSource.slice((pageNumber - 1) * itemsPerPage, pageNumber * itemsPerPage)
 
@@ -187,15 +179,9 @@ export class DataGrid extends Component {
         div({ style: { marginTop: 10 } }, [
           paginator({
             filteredDataLength: dataSource.length,
-            setPageNumber: (n => {
-              this.setState({ pageNumber: n })
-              if (onPageChanged) onPageChanged(n)
-            }),
+            setPageNumber: onPageChanged,
             pageNumber,
-            setItemsPerPage: allowItemsPerPage && (n => {
-              this.setState({ itemsPerPage: n })
-              if (onItemsPerPageChanged) onItemsPerPageChanged(n)
-            }),
+            setItemsPerPage: allowItemsPerPage && onItemsPerPageChanged,
             itemsPerPage, itemsPerPageOptions
           })
         ]) :
