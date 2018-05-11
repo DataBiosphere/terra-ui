@@ -109,7 +109,6 @@ const defaultComponents = {
     }, props)),
     cell: props => td({
       style: {
-        alignment: 'left',
         padding: '14px 0',
         fontWeight: 500
       }
