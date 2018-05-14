@@ -45,6 +45,16 @@ export default class AuthContainer extends Component {
         console.warn('Error looking up user status')
       })
 
+      /**
+       * Developers can get access to a user's ID, so a determined person could compare user IDs to
+       * hashes to identify a user in our analytics data. We trust our developers to refrain from
+       * doing this.
+       */
+      window.newrelic.setCustomAttribute(
+        'userIdHash',
+        Utils.getAuthInstance().currentUser.get().getBasicProfile().getId()
+      )
+
       const [billingProjects, clusters] = await Promise.all([Rawls.listBillingProjects(), Leo.clustersList()])
       const projectsWithoutClusters = _.difference(
         _.map(billingProjects, 'projectName'),
