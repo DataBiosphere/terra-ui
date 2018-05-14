@@ -34,7 +34,7 @@ class WorkflowView extends Component {
     const { workspaceNamespace, workspaceName, workflowName } = this.props
     const workspaceId = { namespace: workspaceNamespace, name: workspaceName }
 
-    return h(Fragment, [
+    return div({ style: { display: 'flex', flexDirection: 'column', height: '100%' } }, [
       h(TopBar, { title: 'Projects' }, [
         div({ style: { display: 'flex', flexDirection: 'column', paddingLeft: '4rem' } },
           [
@@ -151,10 +151,11 @@ class WorkflowView extends Component {
       return wdl ?
         div({
           style: {
+            flex: '1 1 auto', position: 'relative', overflowY: 'auto',
             margin: '0 3rem', padding: '0.5rem', backgroundColor: 'white',
             borderLeft: Style.standardLine, borderRight: Style.standardLine
           }
-        }, [h(WDLViewer, { wdl })]) :
+        }, [h(WDLViewer, { wdl, readOnly: true })]) :
         spinner()
     } else {
       return selectedTab

@@ -1,3 +1,4 @@
+import _ from 'lodash'
 import CodeMirror from 'codemirror'
 import { div } from 'react-hyperscript-helpers'
 import * as Style from 'src/libs/style'
@@ -38,6 +39,7 @@ export default class WDLViewer extends Component {
   }
 
   componentDidMount() {
-    CodeMirror(this.container, { mode: 'wdl', value: this.props.wdl, lineNumbers: true })
+    const { wdl, ...cmProps } = this.props
+    CodeMirror(this.container, _.merge({ mode: 'wdl', value: wdl, lineNumbers: true }, cmProps))
   }
 }
