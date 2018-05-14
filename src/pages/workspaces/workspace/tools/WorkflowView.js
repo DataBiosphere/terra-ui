@@ -5,7 +5,8 @@ import * as Breadcrumbs from 'src/components/breadcrumbs'
 import { buttonPrimary } from 'src/components/common'
 import { spinner } from 'src/components/icons'
 import { TopBar } from 'src/components/TopBar'
-import { Rawls } from 'src/libs/ajax'
+import WDLViewer from 'src/components/WDLViewer'
+import { Agora, Dockstore, Rawls } from 'src/libs/ajax'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import { Component } from 'src/libs/wrapped-components'
@@ -22,6 +23,12 @@ const tabs = ['Inputs', 'Outputs', 'WDL']
 
 
 class WorkflowView extends Component {
+  constructor(props) {
+    super(props)
+
+    this.state = { selectedTab: 'Inputs' }
+  }
+
   render() {
     const { config } = this.state
     const { workspaceNamespace, workspaceName, workflowName } = this.props
@@ -39,12 +46,15 @@ class WorkflowView extends Component {
             div({ style: { fontSize: '1.25rem' } }, workflowName)
           ])
       ]),
-      config ? [
-        div({ style: { backgroundColor: Style.colors.section, padding: '1.5rem 3rem 0' } }, [
-          this.renderSummary(),
-          this.renderTabs()
-        ])
-      ] : [spinner({ style: { marginTop: '2rem' } })]
+      config ?
+        h(Fragment, [
+          div({ style: { backgroundColor: Style.colors.section, padding: '1.5rem 3rem 0' } }, [
+            this.renderSummary(),
+            this.renderTabs()
+          ]),
+          div({ style: { borderTop: `2px solid ${Style.colors.secondary}` } }),
+          this.renderDetail()
+        ]) : [spinner({ style: { marginTop: '2rem' } })]
     ])
   }
 
@@ -53,6 +63,8 @@ class WorkflowView extends Component {
 
     const config = await Rawls.workspace(workspaceNamespace, workspaceName).methodConfigs.get(workflowName)
     this.setState({ config })
+
+    Rawls.methodConfigInputsOutputs(config).then(inputsOutputs => this.setState({ inputsOutputs }))
   }
 
   renderSummary = () => {
@@ -72,7 +84,7 @@ class WorkflowView extends Component {
   }
 
   renderTabs = () => {
-    const { selectedTab = 'Inputs' } = this.state
+    const { selectedTab } = this.state
 
     return h(Fragment, [
       div(
@@ -94,7 +106,8 @@ class WorkflowView extends Component {
             label,
             selected && div({
               style: {
-                position: 'absolute', left: 0, right: 0, bottom: -1, height: 1,
+                // Fractional L/R to make border corners line up when zooming in. Works for up to 175% in Chrome.
+                position: 'absolute', left: 0.4, right: 0.1, bottom: -3, height: 5,
                 backgroundColor: Style.colors.sectionHighlight
               }
             })
@@ -106,22 +119,56 @@ class WorkflowView extends Component {
             display: 'flex', padding: '0.3rem',
             border: `1px solid ${Style.colors.sectionBorder}`,
             backgroundColor: Style.colors.sectionHighlight,
+            borderBottom: 'unset',
             borderTopRightRadius: 5,
             borderTopLeftRadius: selectedTab !== 'Inputs' && 5
           }
         },
-        tableColumns.map(({ label, width }, idx) => {
-          return div({
-            style: {
-              flexGrow: 0, flexShrink: 0, flexBasis: width || 'auto',
-              fontWeight: 500, fontSize: 12, padding: '0.5rem 0.8rem',
-              borderLeft: idx !== 0 && Style.standardLine
-            }
-          },
-          label)
-        })
+        selectedTab === 'WDL' ?
+          // Placeholder to preserve spacing:
+          [div({ style: { fontSize: 12, padding: '0.5rem 0', color: 'transparent', userSelect: 'none' } }, '.')] :
+          tableColumns.map(({ label, width }, idx) => {
+            return div({
+              style: {
+                flex: width ? `0 0 ${width}px` : '1 1 auto',
+                fontWeight: 500, fontSize: 12, padding: '0.5rem 0.8rem',
+                borderLeft: idx !== 0 && Style.standardLine
+              }
+            },
+            label)
+          })
       )
     ])
+  }
+
+  renderDetail = () => {
+    const { selectedTab, wdl } = this.state
+
+    if (selectedTab === 'WDL') {
+      if (!wdl) {
+        this.fetchWDL()
+      }
+      return wdl ?
+        div({
+          style: {
+            margin: '0 3rem', padding: '0.5rem', backgroundColor: 'white',
+            borderLeft: Style.standardLine, borderRight: Style.standardLine
+          }
+        }, [h(WDLViewer, { wdl })]) :
+        spinner()
+    } else {
+      return selectedTab
+    }
+  }
+
+  fetchWDL = () => {
+    const { methodRepoMethod: { sourceRepo, methodNamespace, methodName, methodVersion, methodPath } } = this.state.config
+
+    if (sourceRepo === 'dockstore') {
+      Dockstore.getWdl(methodPath, methodVersion).then(({ descriptor }) => this.setState({ wdl: descriptor }))
+    } else if (sourceRepo === 'agora') {
+      Agora.method(methodNamespace, methodName, methodVersion).get().then(({ payload }) => this.setState({ wdl: payload }))
+    }
   }
 }
 

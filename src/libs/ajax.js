@@ -173,6 +173,12 @@ export const Rawls = {
         }
       }
     }
+  },
+
+  methodConfigInputsOutputs: async loadedConfig => {
+    const res = await fetchRawls('methodconfigs/inputsOutputs',
+      _.merge(authOpts(), jsonBody(loadedConfig.methodRepoMethod), { method: 'POST' }))
+    return res.json()
   }
 }
 
@@ -244,4 +250,22 @@ export const Dockstore = {
     return res.json()
   }
 
+}
+
+
+const fetchAgora = async (path, ...args) => {
+  return fetchOk(`${await Config.getAgoraUrlRoot()}/api/v1/${path}`, ...args)
+}
+
+export const Agora = {
+  method: (namespace, name, snapshotId) => {
+    const root = `methods/${namespace}/${name}/${snapshotId}`
+
+    return {
+      get: async () => {
+        const res = await fetchAgora(root)
+        return res.json()
+      }
+    }
+  }
 }
