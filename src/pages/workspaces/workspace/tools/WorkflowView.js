@@ -48,11 +48,15 @@ class WorkflowView extends Component {
       ]),
       config ?
         h(Fragment, [
-          div({ style: { backgroundColor: Style.colors.section, padding: '1.5rem 3rem 0' } }, [
+          div({
+            style: {
+              backgroundColor: Style.colors.section, padding: '1.5rem 3rem 0',
+              borderBottom: `2px solid ${Style.colors.secondary}`
+            }
+          }, [
             this.renderSummary(),
             this.renderTabs()
           ]),
-          div({ style: { borderTop: `2px solid ${Style.colors.secondary}` } }),
           this.renderDetail()
         ]) : [spinner({ style: { marginTop: '2rem' } })]
     ])
