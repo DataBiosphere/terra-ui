@@ -47,13 +47,17 @@ export default class WorkspaceData extends Component {
       tableProps: {
         rowKey: 'name',
         scroll: { x: true },
-        columns: _.map(workspaceEntities[selectedEntityType]['attributeNames'], name => {
+        columns: _.concat([{
+          title: selectedEntityType + '_id',
+          key: selectedEntityType + '_id',
+          render: entity => entity.name
+        }], _.map(workspaceEntities[selectedEntityType]['attributeNames'], name => {
           return {
             title: name,
             key: name,
             render: entity => entity.attributes[name]
           }
-        })
+        }))
       }
     })
 
