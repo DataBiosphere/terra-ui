@@ -40,8 +40,10 @@ export default class AuthContainer extends Component {
         console.warn('Error looking up user status')
       })
 
-      window.newrelic.setCustomAttribute('userEmail',
-        Utils.getAuthInstance().currentUser.get().getBasicProfile().getEmail())
+      window.newrelic.setCustomAttribute(
+        'userIdHash',
+        Utils.hashFnv32a(Utils.getAuthInstance().currentUser.get().getBasicProfile().getId(), true)
+      )
 
       const [billingProjects, clusters] = await Promise.all([Rawls.listBillingProjects(), Leo.clustersList()])
       let projectsWithoutClusters = _.difference(
