@@ -42,6 +42,14 @@ module.exports = {
 
 
     'arrow-parens': ['warn', 'as-needed'],
-    'arrow-spacing': 'warn'
+    'arrow-spacing': 'warn',
+    'no-duplicate-imports': 'warn',
+    'no-var': 'warn',
+    'prefer-arrow-callback': 'warn',
+    'prefer-const': 'warn',
+    'prefer-rest-params': 'warn',
+    'prefer-spread': 'warn',
+    'rest-spread-spacing': 'warn',
+    'template-curly-spacing': 'warn'
   }
 }

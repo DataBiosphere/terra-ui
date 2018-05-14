@@ -4,7 +4,7 @@ import * as Style from 'src/libs/style'
 import { Component } from 'src/libs/wrapped-components'
 
 
-CodeMirror.defineMode('wdl', function() {
+CodeMirror.defineMode('wdl', () => {
   return {
     token: stream => {
       stream.eatSpace()

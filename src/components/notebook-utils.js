@@ -159,7 +159,7 @@ export class NotebookDuplicator extends Component {
 
     return h(Modal, {
       onDismiss: onDismiss,
-      title: `${destroyOld ? 'Rename' : 'Duplicate' } "${printName}"`,
+      title: `${destroyOld ? 'Rename' : 'Duplicate'} "${printName}"`,
       okButton: buttonPrimary({
         disabled: nameErrors || processing,
         onClick: () => {
@@ -169,11 +169,11 @@ export class NotebookDuplicator extends Component {
             failure => this.setState({ failure })
           )
         }
-      }, `${destroyOld ? 'Rename' : 'Duplicate' } Notebook`)
+      }, `${destroyOld ? 'Rename' : 'Duplicate'} Notebook`)
     },
     Utils.cond(
       [processing, () => [spinner()]],
-      [failure, () => `Couldn't ${destroyOld ? 'rename' : 'copy' } notebook: ${failure}`],
+      [failure, () => `Couldn't ${destroyOld ? 'rename' : 'copy'} notebook: ${failure}`],
       () => [
         div({ style: Style.elements.sectionHeader }, 'New Name'),
         notebookNameInput({
