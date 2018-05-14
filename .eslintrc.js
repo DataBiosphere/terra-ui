@@ -1,5 +1,8 @@
 module.exports = {
   'extends': 'react-app',
+  'globals': {
+    'SATURN_VERSION': false
+  },
   'parserOptions': {
     'ecmaFeatures': {
       'jsx': false
