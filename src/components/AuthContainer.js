@@ -13,13 +13,16 @@ export default class AuthContainer extends Component {
   }
 
   componentDidMount() {
+    Utils.isSignedIn.subscribe(this.handleSignIn)
     this.loadAuth()
+  }
+
+  componentWillUnmount() {
+    Utils.isSignedIn.unsubscribe(this.handleSignIn)
   }
 
   loadAuth = async () => {
     await Utils.initializeAuth()
-    this.handleSignIn(Utils.getAuthInstance().isSignedIn.get())
-    Utils.getAuthInstance().isSignedIn.listen(this.handleSignIn)
     window.gapi.signin2.render('signInButton', { scope: 'openid profile email' })
   }
 

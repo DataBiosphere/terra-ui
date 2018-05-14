@@ -1,10 +1,32 @@
 import _ from 'lodash'
 import * as Config from 'src/libs/config'
 
+const subscribable = () => {
+  let value = undefined
+  let subscribers = []
+  return {
+    subscribe: fn => {
+      fn(value)
+      subscribers = _.union(subscribers, [fn])
+    },
+    unsubscribe: fn => {
+      console.assert(_.includes(subscribers, fn), 'Function is not subscribed')
+      subscribers = _.difference(subscribers, [fn])
+    },
+    set: v => {
+      value = v
+      subscribers.forEach(fn => fn(v))
+    }
+  }
+}
+
+export const isSignedIn = subscribable()
 
 export const initializeAuth = _.memoize(async () => {
   await new Promise(resolve => window.gapi.load('auth2', resolve))
-  return window.gapi.auth2.init({ clientId: await Config.getGoogleClientId() })
+  await window.gapi.auth2.init({ clientId: await Config.getGoogleClientId() })
+  isSignedIn.set(getAuthInstance().isSignedIn.get())
+  getAuthInstance().isSignedIn.listen(isSignedIn.set)
 })
 
 export const getAuthInstance = function() {

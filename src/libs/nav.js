@@ -14,7 +14,7 @@ let allPathHandlers = {}
  * @param {string} handler.path - path spec handled by path-to-regexp
  * @param handler.component - component to render
  */
-export const defPath = (k, { path, component }) => {
+export const defPath = (k, { path, component, ...data }) => {
   console.assert(!_.has(allPathHandlers, k), `Key ${k} is already defined`)
   const keys = [] // mutated by pathToRegexp
   const regex = pathToRegexp(path, keys)
@@ -22,7 +22,8 @@ export const defPath = (k, { path, component }) => {
     regex,
     component,
     keys: _.map(keys, 'name'),
-    makePath: pathToRegexp.compile(path)
+    makePath: pathToRegexp.compile(path),
+    ...data
   }
 }
 
