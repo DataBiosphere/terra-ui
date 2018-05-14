@@ -1,3 +1,5 @@
+const { execSync } = require('child_process')
+const webpack = require('webpack')
 const _ = require('lodash')
 const path = require('path')
 const rewireReactHotLoader = require('react-app-rewire-hot-loader')
@@ -15,6 +17,9 @@ module.exports = {
         loader: 'raw-loader'
       }
     )
+    config.plugins.push(new webpack.DefinePlugin({
+      SATURN_VERSION: JSON.stringify(execSync('git rev-parse HEAD').toString().trim())
+    }))
     return rewireReactHotLoader(config, env)
   },
   jest: function(config) {
