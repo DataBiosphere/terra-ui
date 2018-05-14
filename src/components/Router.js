@@ -3,6 +3,7 @@ import { h, h2 } from 'react-hyperscript-helpers'
 import AuthContainer from 'src/components/AuthContainer'
 import * as Nav from 'src/libs/nav'
 import * as Import from 'src/pages/Import'
+import * as PrivacyPolicy from 'src/pages/PrivacyPolicy'
 import * as StyleGuide from 'src/pages/StyleGuide'
 import * as WorkspaceList from 'src/pages/workspaces/List'
 import * as WorkspaceContainer from 'src/pages/workspaces/workspace/Container'
@@ -14,6 +15,7 @@ const initNavPaths = () => {
   WorkspaceContainer.addNavPaths()
   StyleGuide.addNavPaths()
   Import.addNavPaths()
+  PrivacyPolicy.addNavPaths()
 }
 
 export default class Router extends Component {
