@@ -165,6 +165,11 @@ export const Rawls = {
 
         importFromDocker: payload => {
           return fetchRawls(mcPath, _.merge(authOpts(), jsonBody(payload), { method: 'POST' }))
+        },
+
+        get: async configName => {
+          const res = await fetchRawls(`${mcPath}/${namespace}/${configName}`, authOpts())
+          return res.json()
         }
       }
     }

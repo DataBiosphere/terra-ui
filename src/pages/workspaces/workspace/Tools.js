@@ -1,8 +1,7 @@
 import _ from 'lodash'
-import { div, h, img } from 'react-hyperscript-helpers'
-import { buttonPrimary, link } from 'src/components/common'
+import { div, h } from 'react-hyperscript-helpers'
+import { link } from 'src/components/common'
 import { icon, spinner } from 'src/components/icons'
-import Modal from 'src/components/Modal'
 import { DataGrid } from 'src/components/table'
 import { Rawls } from 'src/libs/ajax'
 import * as Nav from 'src/libs/nav'
@@ -18,18 +17,9 @@ export default class WorkspaceTools extends Component {
   }
 
   render() {
-    const { modal, configs } = this.state
+    const { configs } = this.state
 
     return div({ style: { margin: '1rem 4rem' } }, [
-
-      modal && h(Modal, {
-        onDismiss: () => this.setState({ modal: false }),
-        okButton: buttonPrimary({ onClick: () => this.setState({ modal: false }) }, 'Run'),
-        width: 800
-      }, [
-        img({ src: '/launchAnalysis.png', width: 759 }) // placeholder
-      ]),
-
       configs ?
         h(DataGrid, {
           dataSource: configs,
