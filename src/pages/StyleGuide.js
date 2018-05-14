@@ -63,6 +63,7 @@ class StyleGuide extends Component {
 export const addNavPaths = () => {
   Nav.defPath('styles', {
     path: '/styles',
-    component: StyleGuide
+    component: StyleGuide,
+    public: true
   })
 }
