@@ -7,22 +7,25 @@ import { DataGrid } from 'src/components/table'
 import { TopBar } from 'src/components/TopBar'
 import { Rawls } from 'src/libs/ajax'
 import * as Nav from 'src/libs/nav'
+import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import { Component } from 'src/libs/wrapped-components'
+import { StateRestoreComponent } from 'src/libs/wrapped-components'
 
 
-export class WorkspaceList extends Component {
+export class WorkspaceList extends StateRestoreComponent {
   constructor(props) {
     super(props)
-    this.state = {
+    this.state = _.defaults(StateHistory.get(), {
       filter: '',
       listView: false,
       itemsPerPage: 6,
       pageNumber: 1,
       workspaces: null
-    }
+    })
   }
+
+  keysToSave = ['filter', 'listView', 'itemsPerPage', 'pageNumber']
 
   componentWillMount() {
     Rawls.workspacesList().then(

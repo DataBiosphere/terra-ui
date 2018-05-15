@@ -3,12 +3,21 @@ import { div, h } from 'react-hyperscript-helpers'
 import { icon, spinner } from 'src/components/icons'
 import { DataTable } from 'src/components/table'
 import { Rawls } from 'src/libs/ajax'
+import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import { Component } from 'src/libs/wrapped-components'
+import { Component, StateRestoreComponent } from 'src/libs/wrapped-components'
 
 
-export default class WorkspaceData extends Component {
+export default class WorkspaceData extends StateRestoreComponent {
+  constructor(props) {
+    super(props)
+
+    this.state = StateHistory.get()
+  }
+
+  keysToSave = ['selectedEntityType']
+
   componentWillMount() {
     const { namespace, name } = this.props.workspace
 
