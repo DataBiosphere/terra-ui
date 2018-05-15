@@ -1,8 +1,10 @@
+import _ from 'lodash'
 import { div, h, h1 } from 'react-hyperscript-helpers'
 import { buttonPrimary, Checkbox, link, search } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { textInput, validatedInput } from 'src/components/input'
 import * as Nav from 'src/libs/nav'
+import * as Style from 'src/libs/style'
 import { Component } from 'src/libs/wrapped-components'
 import validate from 'validate.js'
 
@@ -20,6 +22,21 @@ class StyleGuide extends Component {
   render() {
     return div({ style: { paddingLeft: '1rem', paddingRight: '1rem' } }, [
       h1('Style guide'),
+      div({ style: styles.container }, [
+        div({ style: { display: 'flex', flexWrap: 'wrap' } }, [
+          _.map(Style.colors, (v, k) =>
+            div({
+              style: {
+                backgroundColor: v,
+                width: 150, height: 50,
+                display: 'flex', justifyContent: 'center', alignItems: 'center'
+              }
+            }, [
+              div({ style: { backgroundColor: 'white', padding: 2 } }, k)
+            ])
+          )
+        ])
+      ]),
       div({ style: styles.container }, [
         buttonPrimary({}, 'Primary button')
       ]),
