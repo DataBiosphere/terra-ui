@@ -108,6 +108,7 @@ export class TopBar extends Component {
     return div(
       {
         style: {
+          flex: '0 0 auto',
           backgroundColor: 'white', padding: '1rem',
           display: 'flex', alignItems: 'center'
         }

@@ -167,8 +167,8 @@ export const Rawls = {
           return fetchRawls(mcPath, _.merge(authOpts(), jsonBody(payload), { method: 'POST' }))
         },
 
-        get: async configName => {
-          const res = await fetchRawls(`${mcPath}/${namespace}/${configName}`, authOpts())
+        get: async (configNamespace, configName) => {
+          const res = await fetchRawls(`${mcPath}/${configNamespace}/${configName}`, authOpts())
           return res.json()
         }
       }
@@ -263,7 +263,7 @@ export const Agora = {
 
     return {
       get: async () => {
-        const res = await fetchAgora(root)
+        const res = await fetchAgora(root, authOpts())
         return res.json()
       }
     }

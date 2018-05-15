@@ -63,9 +63,9 @@ class WorkflowView extends Component {
   }
 
   async componentDidMount() {
-    const { workspaceNamespace, workspaceName, workflowName } = this.props
+    const { workspaceNamespace, workspaceName, workflowNamespace, workflowName } = this.props
 
-    const config = await Rawls.workspace(workspaceNamespace, workspaceName).methodConfigs.get(workflowName)
+    const config = await Rawls.workspace(workspaceNamespace, workspaceName).methodConfigs.get(workflowNamespace, workflowName)
     this.setState({ config })
 
     Rawls.methodConfigInputsOutputs(config).then(inputsOutputs => this.setState({ inputsOutputs }))
@@ -78,7 +78,7 @@ class WorkflowView extends Component {
       div({ style: { flex: '1 1 auto', lineHeight: '1.5rem' } }, [
         div({ style: { color: Style.colors.title, fontSize: 24 } }, name),
         div(`V. ${methodConfigVersion}`),
-        div(`Path: ${methodPath}`),
+        methodPath && div(`Path: ${methodPath}`),
         div({ style: { textTransform: 'capitalize' } }, `Data Type: ${rootEntityType}`)
       ]),
       div({ style: { flex: '0 0 auto' } }, [
@@ -180,7 +180,7 @@ class WorkflowView extends Component {
 
 export const addNavPaths = () => {
   Nav.defPath('workflow', {
-    path: '/workspaces/:workspaceNamespace/:workspaceName/tools/:workflowName',
+    path: '/workspaces/:workspaceNamespace/:workspaceName/tools/:workflowNamespace/:workflowName',
     component: WorkflowView
   })
 }

@@ -29,7 +29,7 @@ export default class WorkspaceTools extends Component {
           pageNumber: this.state.pageNumber,
           onPageChanged: n => this.setState({ pageNumber: n }),
           renderCard: config => {
-            const { name, methodRepoMethod: { sourceRepo, methodVersion } } = config
+            const { name, namespace, methodRepoMethod: { sourceRepo, methodVersion } } = config
             return div({
               style: _.defaults({
                 width: '30%', margin: '1rem 1.5rem', textDecoration: 'none',
@@ -40,6 +40,7 @@ export default class WorkspaceTools extends Component {
                 href: Nav.getLink('workflow', {
                   workspaceNamespace: this.props.workspace.namespace,
                   workspaceName: this.props.workspace.name,
+                  workflowNamespace: namespace,
                   workflowName: name
                 }),
                 style: { display: 'block', marginBottom: '0.5rem', fontSize: 16 }
