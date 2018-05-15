@@ -10,6 +10,7 @@ export const colors = {
   highlightFaded: '#e7f1f7',
   primary: '#5faee0',
   secondary: '#478eba',
+  standout: '#c55a68',
   success: '#7ac79b',
   text: '#4a4a4a',
   textAlt: '#bde5ff',
