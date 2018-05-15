@@ -28,7 +28,14 @@ class WorkflowView extends Component {
   constructor(props) {
     super(props)
 
-    this.state = { selectedTab: 'Inputs' }
+    this.state = { selectedTab: 'Inputs', loadedWdl: false }
+  }
+
+  componentDidUpdate() {
+    const { selectedTab, loadedWdl } = this.state
+    if (selectedTab === 'WDL' && !loadedWdl) {
+      this.fetchWDL()
+    }
   }
 
   render() {
@@ -152,9 +159,6 @@ class WorkflowView extends Component {
     const { selectedTab, wdl } = this.state
 
     if (selectedTab === 'WDL') {
-      if (!wdl) {
-        this.fetchWDL()
-      }
       return wdl ?
         div({
           style: {
@@ -169,14 +173,21 @@ class WorkflowView extends Component {
     }
   }
 
-  fetchWDL = () => {
+  fetchWDL = async () => {
     const { methodRepoMethod: { sourceRepo, methodNamespace, methodName, methodVersion, methodPath } } = this.state.config
 
-    if (sourceRepo === 'dockstore') {
-      Dockstore.getWdl(methodPath, methodVersion).then(({ descriptor }) => this.setState({ wdl: descriptor }))
-    } else if (sourceRepo === 'agora') {
-      Agora.method(methodNamespace, methodName, methodVersion).get().then(({ payload }) => this.setState({ wdl: payload }))
-    }
+    this.setState({ loadedWdl: true })
+    const wdl = await (() => {
+      switch (sourceRepo) {
+        case 'dockstore':
+          return Dockstore.getWdl(methodPath, methodVersion).then(({ descriptor }) => descriptor)
+        case 'agora':
+          return Agora.method(methodNamespace, methodName, methodVersion).get().then(({ payload }) => payload)
+        default:
+          throw new Error('unknown sourceRepo')
+      }
+    })()
+    this.setState({ wdl })
   }
 }
 
