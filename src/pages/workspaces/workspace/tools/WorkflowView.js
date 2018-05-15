@@ -162,9 +162,9 @@ class WorkflowView extends Component {
       return wdl ?
         div({
           style: {
-            flex: '1 1 auto', position: 'relative', overflowY: 'auto',
+            flex: '1 1 auto', overflowY: 'auto', maxHeight: 500,
             margin: '0 3rem', padding: '0.5rem', backgroundColor: 'white',
-            borderLeft: Style.standardLine, borderRight: Style.standardLine
+            border: Style.standardLine, borderTop: 'unset'
           }
         }, [h(WDLViewer, { wdl, readOnly: true })]) :
         spinner()

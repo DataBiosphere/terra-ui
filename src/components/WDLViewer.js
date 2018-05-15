@@ -1,45 +1,44 @@
 import _ from 'lodash'
-import CodeMirror from 'codemirror'
-import { div } from 'react-hyperscript-helpers'
+import Prism from 'prismjs'
+import 'prismjs/themes/prism.css'
+import 'prismjs/plugins/line-numbers/prism-line-numbers'
+import 'prismjs/plugins/line-numbers/prism-line-numbers.css'
+import { code, pre } from 'react-hyperscript-helpers'
 import * as Style from 'src/libs/style'
 import { Component } from 'src/libs/wrapped-components'
 
 
-CodeMirror.defineMode('wdl', () => {
-  return {
-    token: stream => {
-      stream.eatSpace()
-      if (stream.match(/#.*/)) {
-        return 'comment'
-      } else if (stream.match(/"(?:[^"\\]|\\.)*"/) || stream.match(/'(?:[^'\\]|\\.)*'/)) {
-        return 'string'
-      } else if (stream.match(/(?:import|as|true|false|input|output|call|command|runtime|task|workflow)\b/)) {
-        return 'keyword'
-      } else if (stream.match(/(?:Array|Boolean|File|Float|Int|Map|Object|String|Uri)\b/)) {
-        return 'builtin'
-      } else if (stream.match(/[A-Za-z_][A-Za-z0-9_]*/)) {
-        return 'variable'
-      } else if (stream.match(/\${.*?}/)) {
-        return 'variable-3'
-      } else if (stream.match(/[{}]/)) {
-        return 'bracket'
-      } else if (stream.match(/[0-9]*\.?[0-9]+/)) {
-        return 'number'
-      } else {
-        stream.next()
-      }
-    }
-  }
-})
+Prism.languages.wdl = {
+  comment: /#.*/,
+  string: {
+    pattern: /(["'])(?:\\(?:\r\n|[\s\S])|(?!\1)[^\\\r\n])*\1/,
+    greedy: true
+  },
+  keyword: /\b(?:import|as|true|false|input|output|call|command|runtime|task|workflow)\b/,
+  builtin: /\b(?:Array|Boolean|File|Float|Int|Map|Object|String|Uri)\b/,
+  boolean: /\b(?:true|false)\b/,
+  number: /\b0x[\da-f]+\b|(?:\b\d+\.?\d*|\B\.\d+)(?:e[+-]?\d+)?/i,
+  operator: /=|\+=|-=|\*=|\/=|\/\/=|%=|&=|\|=|\^=|>>=|<<=|\*\*=|<=|>=|==|<|>|!=|\+|-|\*|\*\*|\/|\/\/|%|<<|>>|&|\||\^|~/,
+  punctuation: /[{}[\];(),.:]/
+}
 
 
 export default class WDLViewer extends Component {
   render() {
-    return div({ ref: elem => this.container = elem, style: { border: Style.standardLine } })
+    const { wdl, ...props } = this.props
+
+    return pre(_.merge(
+      {
+        className: 'line-numbers',
+        style: { border: Style.standardLine, backgroundColor: 'white' }
+      },
+      props),
+    [
+      code({ className: 'language-wdl', ref: r => this.elem = r }, [wdl])
+    ])
   }
 
   componentDidMount() {
-    const { wdl, ...cmProps } = this.props
-    CodeMirror(this.container, _.merge({ mode: 'wdl', value: wdl, lineNumbers: true }, cmProps))
+    Prism.highlightElement(this.elem)
   }
 }
