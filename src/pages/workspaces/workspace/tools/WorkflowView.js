@@ -1,3 +1,4 @@
+import _ from 'lodash'
 import { Fragment } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
@@ -10,6 +11,7 @@ import { Agora, Dockstore, Rawls } from 'src/libs/ajax'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import { Component } from 'src/libs/wrapped-components'
+import { tabBar } from 'src/pages/workspaces/workspace/WorkspaceTabs'
 
 
 const tableColumns = [
@@ -46,6 +48,7 @@ class WorkflowView extends Component {
             div({ style: { fontSize: '1.25rem' } }, workflowName)
           ])
       ]),
+      tabBar(_.merge(workspaceId, { activeTab: 'tools' })),
       config ?
         h(Fragment, [
           div({
