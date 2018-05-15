@@ -10,6 +10,7 @@ import checkSquare from 'src/icons/check-square.svg'
 import jupyterIcon from 'src/icons/jupyter.svg'
 import loadingSpinner from 'src/icons/loading-spinner.svg'
 import logoIcon from 'src/icons/logo.svg'
+import logoGrey from 'src/icons/logo-grey.svg'
 import square from 'src/icons/square.svg'
 import table from 'src/icons/table.svg'
 import * as Style from 'src/libs/style'
@@ -39,4 +40,4 @@ export const spinner = function(props) {
       props))
 }
 
-ClarityIcons.add({ loadingSpinner, logoIcon, table, jupyterIcon, checkSquare, square })
+ClarityIcons.add({ loadingSpinner, logoIcon, logoGrey, table, jupyterIcon, checkSquare, square })

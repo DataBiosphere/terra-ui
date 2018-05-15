@@ -4,7 +4,6 @@ import { div, h, h4, hr, p } from 'react-hyperscript-helpers'
 import Modal from 'src/components/Modal'
 import { link } from 'src/components/common'
 import { Leo, Rawls, Sam } from 'src/libs/ajax'
-import * as Nav from 'src/libs/nav'
 import * as Utils from 'src/libs/utils'
 
 
@@ -114,10 +113,7 @@ export default class AuthContainer extends Component {
       ]),
       hr(),
       p([
-        'Copyright © 2018, Broad Institute, Inc., Verily Life Sciences LLC | ',
-        link({ href: 'http://gatkforums.broadinstitute.org/firecloud/discussion/6819/firecloud-terms-of-service#latest' }, 'Terms of Service'),
-        ' | ',
-        link({ href: Nav.getLink('privacy') }, 'Privacy Policy')
+        'Copyright © 2018, Broad Institute, Inc., Verily Life Sciences LLC'
       ])
     ])
   }

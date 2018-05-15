@@ -1,6 +1,7 @@
 import { Component } from 'react'
 import { h, h2 } from 'react-hyperscript-helpers'
 import AuthContainer from 'src/components/AuthContainer'
+import FooterContainer from 'src/components/FooterContainer'
 import * as Nav from 'src/libs/nav'
 import * as Import from 'src/pages/Import'
 import * as PrivacyPolicy from 'src/pages/PrivacyPolicy'
@@ -48,6 +49,6 @@ export default class Router extends Component {
       return h2('No matching path.')
     }
     const el = h(handler.component, Nav.getHandlerProps(handler, pathname))
-    return handler.public ? el : h(AuthContainer, [el])
+    return h(FooterContainer, [handler.public ? el : h(AuthContainer, [el])])
   }
 }
