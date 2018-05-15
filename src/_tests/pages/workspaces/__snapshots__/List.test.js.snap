@@ -8,6 +8,7 @@ Array [
             "alignItems": "center",
             "backgroundColor": "white",
             "display": "flex",
+            "flex": "0 0 auto",
             "padding": "1rem",
           }
     }
