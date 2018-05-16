@@ -1,5 +1,7 @@
 import _ from 'lodash'
 import Prism from 'prismjs'
+import 'prismjs/components/prism-bash'
+import 'prismjs/components/prism-python'
 import 'prismjs/themes/prism.css'
 import 'prismjs/plugins/line-numbers/prism-line-numbers'
 import 'prismjs/plugins/line-numbers/prism-line-numbers.css'
@@ -9,16 +11,37 @@ import { Component } from 'src/libs/wrapped-components'
 
 
 Prism.languages.wdl = {
+  'embedded-code': [
+    {
+      /*
+       * Note the space before the close '}' -- this is to not match on ${these} within
+       * a command block using braces.
+       * Janky, but we can't do better in regex.                      Here ↓ I mean
+       */
+      pattern: /(command\s*<<<)(?:.|\n)*?(?=>>>)|(command\s*{)(?:.|\n)*?(?=\s})/m,
+      lookbehind: true,
+      inside: {
+        'embedded-python': {
+          pattern: /(python[0-9]?\s*<<CODE)(?:.|\n)*?(?=CODE)/m,
+          lookbehind: true,
+          inside: {
+            rest: Prism.languages.python
+          }
+        },
+        rest: Prism.languages.bash
+      }
+    }
+  ],
   comment: /#.*/,
   string: {
     pattern: /(["'])(?:\\(?:\r\n|[\s\S])|(?!\1)[^\\\r\n])*\1/,
     greedy: true
   },
   declaration: {
-    pattern: /(?:Array[\S]*|Boolean|File|Float|Int|Map|Object|String|Uri)\??\s+[A-Za-z_]+/,
+    pattern: /(?:Array[\S]*|Boolean|File|Float|Int|Map|Object|String|Uri)\??\s+[A-Za-z_0-9]+/,
     inside: {
       builtin: /(?:Array[\S]*|Boolean|File|Float|Int|Map|Object|String|Uri)\??/,
-      variable: / [A-Za-z_]+/
+      variable: / [A-Za-z_0-9]+/
     }
   },
   'class-name': [
@@ -54,6 +77,10 @@ export default class WDLViewer extends Component {
   }
 
   componentDidMount() {
+    Prism.highlightElement(this.elem)
+  }
+
+  componentDidUpdate() {
     Prism.highlightElement(this.elem)
   }
 }
