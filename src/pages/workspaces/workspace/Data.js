@@ -3,23 +3,43 @@ import { div, h } from 'react-hyperscript-helpers'
 import { icon, spinner } from 'src/components/icons'
 import { DataTable } from 'src/components/table'
 import { Rawls } from 'src/libs/ajax'
+import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 
 
 export default class WorkspaceData extends Component {
+  constructor(props) {
+    super(props)
+
+    this.state = StateHistory.get()
+  }
+
+  loadEntities(type) {
+    const { namespace, name } = this.props.workspace
+
+    Rawls.workspace(namespace, name).entity(type).then(
+      selectedEntities => this.setState({ selectedEntities }),
+      entityFailure => this.setState({ entityFailure })
+    )
+  }
+
   componentWillMount() {
     const { namespace, name } = this.props.workspace
+    const { selectedEntityType } = this.state
 
     Rawls.workspace(namespace, name).entities().then(
       workspaceEntities => this.setState({ workspaceEntities }),
       entitiesFailure => this.setState({ entitiesFailure })
     )
+
+    if (selectedEntityType) {
+      this.loadEntities(selectedEntityType)
+    }
   }
 
   render() {
-    const { namespace, name } = this.props.workspace
     const { selectedEntityType, selectedEntities, workspaceEntities, entitiesFailure, entityFailure } = this.state
 
     const entityTypeList = () => _.map(workspaceEntities, (typeDetails, type) =>
@@ -30,10 +50,7 @@ export default class WorkspaceData extends Component {
         },
         onClick: () => {
           this.setState({ selectedEntityType: type, selectedEntities: null })
-          Rawls.workspace(namespace, name).entity(type).then(
-            selectedEntities => this.setState({ selectedEntities }),
-            entityFailure => this.setState({ entityFailure })
-          )
+          this.loadEntities(type)
         }
       },
       [
@@ -43,6 +60,10 @@ export default class WorkspaceData extends Component {
     )
 
     const entityTable = () => h(DataTable, {
+      defaultItemsPerPage: this.state.itemsPerPage,
+      onItemsPerPageChanged: itemsPerPage => this.setState({ itemsPerPage }),
+      initialPage: this.state.pageNumber,
+      onPageChanged: pageNumber => this.setState({ pageNumber }),
       dataSource: _.sortBy(selectedEntities, 'name'),
       tableProps: {
         rowKey: 'name',
@@ -102,5 +123,10 @@ export default class WorkspaceData extends Component {
         )
       ]
     ))
+  }
+
+  componentDidUpdate() {
+    const { workspaceEntities, selectedEntityType, itemsPerPage, pageNumber } = this.state
+    StateHistory.update({ workspaceEntities, selectedEntityType, itemsPerPage, pageNumber })
   }
 }
