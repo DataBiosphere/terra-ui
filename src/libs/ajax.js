@@ -68,6 +68,12 @@ export const Sam = {
 
   getUserStatus: async () => {
     return instrumentedFetch(`${await Config.getSamUrlRoot()}/register/user`, authOpts())
+  },
+
+  createUser: async () => {
+    const url = `${await Config.getSamUrlRoot()}/register/user`
+    const res = await fetchOk(url, _.merge(authOpts(), { method: 'POST' }))
+    return res.json()
   }
 }
 
@@ -265,6 +271,19 @@ export const Agora = {
       get: async () => {
         const res = await fetchAgora(root, authOpts())
         return res.json()
+      }
+    }
+  }
+}
+
+
+export const Orchestration = {
+  profile: () => {
+    return {
+      set: async keysAndValues => {
+        const url = `${await Config.getOrchestrationUrlRoot()}/register/profile`
+        await fetchOk(url, _.merge(authOpts(), jsonBody(keysAndValues), { method: 'POST' })
+        )
       }
     }
   }

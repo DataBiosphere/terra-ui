@@ -1,16 +1,52 @@
 import _ from 'lodash'
 import { Component, Fragment } from 'react'
-import { div, h, h4, hr, p } from 'react-hyperscript-helpers'
-import Modal from 'src/components/Modal'
-import { link } from 'src/components/common'
-import { Leo, Rawls, Sam } from 'src/libs/ajax'
+import { br, div, h, h2, h4, hr, p } from 'react-hyperscript-helpers'
+import { buttonPrimary, link } from 'src/components/common'
+import { logo, spinner } from 'src/components/icons'
+import { textInput } from 'src/components/input'
+import { Leo, Orchestration, Rawls, Sam } from 'src/libs/ajax'
+import { colors } from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 
+
+function getUserIsRegisteredAndEnabled() {
+  return Sam.getUserStatus().then(response => {
+    if (response.status === 404) {
+      return false
+    } else if (!response.ok) {
+      throw response
+    } else {
+      return response.json().then(({ enabled: { ldap } }) => ldap)
+    }
+  })
+}
+
+async function createClusters() {
+  const [billingProjects, clusters] = await Promise.all(
+    [Rawls.listBillingProjects(), Leo.clustersList()])
+  const projectsWithoutClusters = _.difference(
+    _.map(billingProjects, 'projectName'),
+    _.map(clusters, 'googleProject')
+  )
+
+  projectsWithoutClusters.forEach(project => {
+    Leo.cluster(project, `launchpad-${project}`).create({
+      'labels': {},
+      'machineConfig': {
+        'numberOfWorkers': 0, 'masterMachineType': 'n1-standard-4',
+        'masterDiskSize': 500, 'workerMachineType': 'n1-standard-4',
+        'workerDiskSize': 500, 'numberOfWorkerLocalSSDs': 0,
+        'numberOfPreemptibleWorkers': 0
+      },
+      'stopAfterCreation': true
+    }).catch(error => Utils.log(`Error auto-creating cluster for project ${project}`, error))
+  })
+}
 
 export default class AuthContainer extends Component {
   constructor(props) {
     super(props)
-    this.state = { isSignedIn: undefined, isShowingNotRegisteredModal: false }
+    this.state = { isSignedIn: undefined, isRegistered: undefined }
   }
 
   componentDidMount() {
@@ -30,19 +66,13 @@ export default class AuthContainer extends Component {
   handleSignIn = async isSignedIn => {
     this.setState({ isSignedIn })
     if (isSignedIn) {
-      Sam.getUserStatus().then(response => {
-        if (response.status === 404) {
-          return true
-        } else if (!response.ok) {
-          throw response
-        } else {
-          return response.json().then(({ enabled: { ldap } }) => !ldap)
-        }
-      }).then(show => {
-        this.setState({ isShowingNotRegisteredModal: show })
-      }, () => {
-        console.warn('Error looking up user status')
+      const profile = Utils.getAuthInstance().currentUser.get().getBasicProfile()
+      this.setState({
+        givenName: profile.getGivenName(), familyName: profile.getFamilyName(),
+        email: profile.getEmail()
       })
+      const isRegistered = await getUserIsRegisteredAndEnabled()
+      this.setState({ isRegistered })
 
       /**
        * Developers can get access to a user's ID, so a determined person could compare user IDs to
@@ -54,33 +84,70 @@ export default class AuthContainer extends Component {
         Utils.getAuthInstance().currentUser.get().getBasicProfile().getId()
       )
 
-      const [billingProjects, clusters] = await Promise.all([Rawls.listBillingProjects(), Leo.clustersList()])
-      const projectsWithoutClusters = _.difference(
-        _.map(billingProjects, 'projectName'),
-        _.map(clusters, 'googleProject')
-      )
-
-      projectsWithoutClusters.forEach(project => {
-        Leo.cluster(project, `launchpad-${project}`).create({
-          'labels': {},
-          'machineConfig': {
-            'numberOfWorkers': 0, 'masterMachineType': 'n1-standard-4',
-            'masterDiskSize': 500, 'workerMachineType': 'n1-standard-4',
-            'workerDiskSize': 500, 'numberOfWorkerLocalSSDs': 0,
-            'numberOfPreemptibleWorkers': 0
-          },
-          'stopAfterCreation': true
-        }).catch(error => Utils.log(`Error auto-creating cluster for project ${project}`, error))
-      })
+      if (isRegistered) {
+        createClusters()
+      }
     }
   }
 
-  renderNotRegisteredModal = () => {
-    return h(Modal, {
-      onDismiss: () => this.setState({ isShowingNotRegisteredModal: false }),
-      title: 'Account Not Registered',
-      showCancel: false
-    }, 'Registering in Saturn is not yet supported. Please register by logging into FireCloud.')
+  renderRegistration = () => {
+    return div({ style: { padding: '4rem' } }, [
+      div({ style: { fontSize: 60, fontWeight: 400, color: colors.title } }, [
+        logo({ size: 100, style: { marginRight: 20 } }), 'SATURN'
+      ]),
+      h2({ style: { marginTop: '4rem', color: colors.textFaded } }, 'New User Registration'),
+      div({ style: { marginTop: '3rem', display: 'flex' } }, [
+        div({ style: { lineHeight: '170%' } }, ['First Name', br(),
+          textInput({
+            value: this.state.givenName,
+            onChange: e => this.setState({ givenName: e.target.value })
+          })]),
+        div({ style: { width: '1rem' } }),
+        div({ style: { lineHeight: '170%' } }, ['Last Name', br(), textInput({
+          value: this.state.familyName,
+          onChange: e => this.setState({ familyName: e.target.value })
+        })])
+      ]),
+      div({ style: { lineHeight: '170%' } }, [
+        div({ style: { marginTop: '2rem' } }, 'Contact Email for Notifications'),
+        div({}, [textInput({
+          value: this.state.email,
+          onChange: e => this.setState({ email: e.target.value }),
+          style: { width: '50ex' }
+        })])
+      ]),
+      div({ style: { marginTop: '3rem' } }, [
+        buttonPrimary({ disabled: this.state.busy, onClick: () => this.register() },
+          'Register'
+        ),
+        this.state.busy && spinner({
+          size: 34, style: { display: null, margin: null, marginLeft: '1ex' }
+        })
+      ])
+    ])
+  }
+
+  async register() {
+    this.setState({ busy: true })
+    await Sam.createUser()
+    const blankProfile = {
+      firstName: 'N/A',
+      lastName: 'N/A',
+      title: 'N/A',
+      contactEmail: 'N/A',
+      institute: 'N/A',
+      institutionalProgram: 'N/A',
+      programLocationCity: 'N/A',
+      programLocationState: 'N/A',
+      programLocationCountry: 'N/A',
+      pi: 'N/A',
+      nonProfitStatus: 'N/A'
+    }
+    const firstName = this.state.givenName
+    const lastName = this.state.familyName
+    const contactEmail = this.state.email
+    await Orchestration.profile().set(_.merge(blankProfile, { firstName, lastName, contactEmail }))
+    this.setState({ busy: false, isRegistered: true })
   }
 
   renderSignedOut = () => {
@@ -120,14 +187,15 @@ export default class AuthContainer extends Component {
 
   render() {
     const { children } = this.props
-    const { isSignedIn, isShowingNotRegisteredModal } = this.state
+    const { isSignedIn, isRegistered } = this.state
     return h(Fragment, [
       div({ id: 'signInButton', style: { display: isSignedIn ? 'none' : 'block' } }),
-      isShowingNotRegisteredModal && this.renderNotRegisteredModal(),
       Utils.cond(
+        [isSignedIn === undefined, null],
         [isSignedIn === false, this.renderSignedOut],
-        [isSignedIn === true, children],
-        null
+        [isSignedIn === true && isRegistered === undefined, null],
+        [isSignedIn === true && isRegistered === false, this.renderRegistration],
+        children
       )
     ])
   }
