@@ -78,7 +78,8 @@ class WorkflowView extends Component {
     const config = await Rawls.workspace(workspaceNamespace, workspaceName).methodConfigs.get(workflowNamespace, workflowName)
     this.setState({ config })
 
-    Rawls.methodConfigInputsOutputs(config).then(inputsOutputs => this.setState({ inputsOutputs }))
+    const inputsOutputs = await Rawls.methodConfigInputsOutputs(config)
+    this.setState({ inputsOutputs })
   }
 
   renderSummary = () => {
