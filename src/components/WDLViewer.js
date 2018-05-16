@@ -53,7 +53,7 @@ Prism.languages.wdl = {
     // Must be after 'declaration' or this will grab "scatter" in variable names
     /\bscatter\b/
   ],
-  keyword: /\b(?:import|as|true|false|input|output|call|command|runtime|task|workflow)\b/,
+  keyword: /\b(?:import|as|input|output|call|command|runtime|task|workflow)\b/,
   boolean: /\b(?:true|false)\b/,
   number: /\b0x[\da-f]+\b|(?:\b\d+\.?\d*|\B\.\d+)(?:e[+-]?\d+)?/i,
   operator: /=|\+=|-=|\*=|\/=|\/\/=|%=|&=|\|=|\^=|>>=|<<=|\*\*=|<=|>=|==|<|>|!=|\+|-|\*|\*\*|\/|\/\/|%|<<|>>|&|\||\^|~/,
