@@ -14,8 +14,23 @@ Prism.languages.wdl = {
     pattern: /(["'])(?:\\(?:\r\n|[\s\S])|(?!\1)[^\\\r\n])*\1/,
     greedy: true
   },
+  declaration: {
+    pattern: /(?:Array[\S]*|Boolean|File|Float|Int|Map|Object|String|Uri)\??\s+[A-Za-z_]+/,
+    inside: {
+      builtin: /(?:Array[\S]*|Boolean|File|Float|Int|Map|Object|String|Uri)\??/,
+      variable: / [A-Za-z_]+/
+    }
+  },
+  'class-name': [
+    {
+      // For workflow/task declarations and their invocations, must be before 'keyword' for lookbehind to work
+      pattern: /((?:workflow|task|call) )[A-Za-z_]+/,
+      lookbehind: true
+    },
+    // Must be after 'declaration' or this will grab "scatter" in variable names
+    /scatter/
+  ],
   keyword: /\b(?:import|as|true|false|input|output|call|command|runtime|task|workflow)\b/,
-  builtin: /\b(?:Array|Boolean|File|Float|Int|Map|Object|String|Uri)\b/,
   boolean: /\b(?:true|false)\b/,
   number: /\b0x[\da-f]+\b|(?:\b\d+\.?\d*|\B\.\d+)(?:e[+-]?\d+)?/i,
   operator: /=|\+=|-=|\*=|\/=|\/\/=|%=|&=|\|=|\^=|>>=|<<=|\*\*=|<=|>=|==|<|>|!=|\+|-|\*|\*\*|\/|\/\/|%|<<|>>|&|\||\^|~/,
