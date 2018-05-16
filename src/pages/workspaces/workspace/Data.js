@@ -122,7 +122,7 @@ export default class WorkspaceData extends Component {
   }
 
   componentDidUpdate() {
-    const { selectedEntityType, itemsPerPage, pageNumber } = this.state
-    StateHistory.update({ selectedEntityType, itemsPerPage, pageNumber })
+    const { workspaceEntities, selectedEntityType, itemsPerPage, pageNumber } = this.state
+    StateHistory.update({ workspaceEntities, selectedEntityType, itemsPerPage, pageNumber })
   }
 }
