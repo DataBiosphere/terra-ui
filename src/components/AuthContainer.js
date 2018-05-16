@@ -1,8 +1,8 @@
 import _ from 'lodash'
 import { Component, Fragment } from 'react'
 import { div, h, h4, hr, p } from 'react-hyperscript-helpers'
-import Modal from 'src/components/Modal'
 import { link } from 'src/components/common'
+import Modal from 'src/components/Modal'
 import { Leo, Rawls, Sam } from 'src/libs/ajax'
 import * as Utils from 'src/libs/utils'
 
@@ -30,6 +30,8 @@ export default class AuthContainer extends Component {
   handleSignIn = async isSignedIn => {
     this.setState({ isSignedIn })
     if (isSignedIn) {
+      const userId = Utils.getUser().getBasicProfile().getId()
+
       Sam.getUserStatus().then(response => {
         if (response.status === 404) {
           return true
@@ -49,19 +51,18 @@ export default class AuthContainer extends Component {
        * hashes to identify a user in our analytics data. We trust our developers to refrain from
        * doing this.
        */
-      window.newrelic.setCustomAttribute(
-        'userIdHash',
-        Utils.getAuthInstance().currentUser.get().getBasicProfile().getId()
-      )
+      window.newrelic.setCustomAttribute('userIdHash', userId)
 
       const [billingProjects, clusters] = await Promise.all([Rawls.listBillingProjects(), Leo.clustersList()])
       const projectsWithoutClusters = _.difference(
         _.map(billingProjects, 'projectName'),
-        _.map(clusters, 'googleProject')
+        _.map(_.filter(clusters,
+          c => c.creator === Utils.getUser().getBasicProfile().getEmail()),
+        'googleProject')
       )
 
       projectsWithoutClusters.forEach(project => {
-        Leo.cluster(project, `launchpad-${project}`).create({
+        Leo.cluster(project, `s-${userId}-${project}`.substr(0, 49)).create({
           'labels': {},
           'machineConfig': {
             'numberOfWorkers': 0, 'masterMachineType': 'n1-standard-4',
