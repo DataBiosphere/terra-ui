@@ -16,17 +16,30 @@ export default class WorkspaceData extends Component {
     this.state = StateHistory.get() || {}
   }
 
+  loadEntities(type) {
+    const { namespace, name } = this.props.workspace
+
+    Rawls.workspace(namespace, name).entity(type).then(
+      selectedEntities => this.setState({ selectedEntities }),
+      entityFailure => this.setState({ entityFailure })
+    )
+  }
+
   componentWillMount() {
     const { namespace, name } = this.props.workspace
+    const { selectedEntityType } = this.state
 
     Rawls.workspace(namespace, name).entities().then(
       workspaceEntities => this.setState({ workspaceEntities }),
       entitiesFailure => this.setState({ entitiesFailure })
     )
+
+    if (selectedEntityType) {
+      this.loadEntities(selectedEntityType)
+    }
   }
 
   render() {
-    const { namespace, name } = this.props.workspace
     const { selectedEntityType, selectedEntities, workspaceEntities, entitiesFailure, entityFailure } = this.state
 
     const entityTypeList = () => _.map(workspaceEntities, (typeDetails, type) =>
@@ -37,10 +50,7 @@ export default class WorkspaceData extends Component {
         },
         onClick: () => {
           this.setState({ selectedEntityType: type, selectedEntities: null })
-          Rawls.workspace(namespace, name).entity(type).then(
-            selectedEntities => this.setState({ selectedEntities }),
-            entityFailure => this.setState({ entityFailure })
-          )
+          this.loadEntities(type)
         }
       },
       [
@@ -50,6 +60,10 @@ export default class WorkspaceData extends Component {
     )
 
     const entityTable = () => h(DataTable, {
+      defaultItemsPerPage: this.state.itemsPerPage,
+      onItemsPerPageChanged: itemsPerPage => this.setState({ itemsPerPage }),
+      initialPage: this.state.pageNumber,
+      onPageChanged: pageNumber => this.setState({ pageNumber }),
       dataSource: _.sortBy(selectedEntities, 'name'),
       tableProps: {
         rowKey: 'name',
@@ -108,7 +122,7 @@ export default class WorkspaceData extends Component {
   }
 
   componentDidUpdate() {
-    const { selectedEntityType } = this.state
-    StateHistory.update({ selectedEntityType })
+    const { selectedEntityType, itemsPerPage, pageNumber } = this.state
+    StateHistory.update({ selectedEntityType, itemsPerPage, pageNumber })
   }
 }
