@@ -6,9 +6,9 @@ const loadConfig = _.memoize(async () => {
   return res.json()
 })
 
+export const getAgoraUrlRoot = async () => (await loadConfig()).agoraUrlRoot
+export const getDockstoreUrlRoot = async () => (await loadConfig()).dockstoreUrlRoot
 export const getGoogleClientId = async () => (await loadConfig()).googleClientId
 export const getLeoUrlRoot = async () => (await loadConfig()).leoUrlRoot
 export const getRawlsUrlRoot = async () => (await loadConfig()).rawlsUrlRoot
 export const getSamUrlRoot = async () => (await loadConfig()).samUrlRoot
-export const getDockstoreUrlRoot = async () => (await loadConfig()).dockstoreUrlRoot
-export const getAgoraUrlRoot = async () => (await loadConfig()).agoraUrlRoot

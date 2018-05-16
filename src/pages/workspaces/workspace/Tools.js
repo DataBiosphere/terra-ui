@@ -17,15 +17,15 @@ export default class WorkspaceTools extends Component {
   }
 
   render() {
-    const { configs } = this.state
+    const { configs, itemsPerPage } = this.state
 
     return div({ style: { margin: '1rem 4rem' } }, [
       configs ?
         h(DataGrid, {
           dataSource: configs,
           itemsPerPageOptions: [6, 12, 24, 36, 48],
-          itemsPerPage: this.state.itemsPerPage,
-          onItemsPerPageChanged: n => this.setState({ itemsPerPage: n }),
+          itemsPerPage,
+          onItemsPerPageChanged: itemsPerPage => this.setState({ itemsPerPage }),
           pageNumber: this.state.pageNumber,
           onPageChanged: n => this.setState({ pageNumber: n }),
           renderCard: config => {
