@@ -165,9 +165,20 @@ export const Rawls = {
 
         importFromDocker: payload => {
           return fetchRawls(mcPath, _.merge(authOpts(), jsonBody(payload), { method: 'POST' }))
+        },
+
+        get: async (configNamespace, configName) => {
+          const res = await fetchRawls(`${mcPath}/${configNamespace}/${configName}`, authOpts())
+          return res.json()
         }
       }
     }
+  },
+
+  methodConfigInputsOutputs: async loadedConfig => {
+    const res = await fetchRawls('methodconfigs/inputsOutputs',
+      _.merge(authOpts(), jsonBody(loadedConfig.methodRepoMethod), { method: 'POST' }))
+    return res.json()
   }
 }
 
@@ -239,4 +250,22 @@ export const Dockstore = {
     return res.json()
   }
 
+}
+
+
+const fetchAgora = async (path, ...args) => {
+  return fetchOk(`${await Config.getAgoraUrlRoot()}/api/v1/${path}`, ...args)
+}
+
+export const Agora = {
+  method: (namespace, name, snapshotId) => {
+    const root = `methods/${namespace}/${name}/${snapshotId}`
+
+    return {
+      get: async () => {
+        const res = await fetchAgora(root, authOpts())
+        return res.json()
+      }
+    }
+  }
 }

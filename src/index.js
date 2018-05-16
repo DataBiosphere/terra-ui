@@ -1,4 +1,3 @@
-import 'codemirror/lib/codemirror.css'
 import ReactDOM from 'react-dom'
 import { h } from 'react-hyperscript-helpers'
 import Main from 'src/pages/Main'

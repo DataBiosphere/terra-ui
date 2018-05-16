@@ -1,56 +1,64 @@
 import _ from 'lodash'
-import { div, h, img } from 'react-hyperscript-helpers'
-import { buttonPrimary } from 'src/components/common'
-import { spinner } from 'src/components/icons'
-import Modal from 'src/components/Modal'
+import { div, h } from 'react-hyperscript-helpers'
+import { link } from 'src/components/common'
+import { icon, spinner } from 'src/components/icons'
+import { DataGrid } from 'src/components/table'
 import { Rawls } from 'src/libs/ajax'
+import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
+import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 
 
 export default class WorkspaceTools extends Component {
-  render() {
-    const { modal, configs } = this.state
+  constructor(props) {
+    super(props)
+    this.state = { itemsPerPage: 6, pageNumber: 1 }
+  }
 
-    return div({ style: { margin: '1rem' } }, [
-      modal && h(Modal, {
-        onDismiss: () => this.setState({ modal: false }),
-        okButton: buttonPrimary({ onClick: () => this.setState({ modal: false }) }, 'Run'),
-        width: 800
-      }, [
-        img({ src: '/launchAnalysis.png', width: 759 }) // placeholder
-      ]),
-      div({ style: { fontSize: 16, fontWeight: 500, color: Style.colors.title } },
-        'Pipelines'),
-      div({
-        onClick: () => this.setState({ modal: true }),
-        style: _.defaults({
-          margin: '0.5rem', textDecoration: 'none', cursor: 'pointer',
-          backgroundColor: 'white', color: Style.colors.text
-        }, Style.elements.card)
-      },
-      [
-        div({ style: Style.elements.cardTitle }, 'Dummy Pipeline'),
-        div({ style: { display: 'flex', alignItems: 'flex-end', fontSize: '0.8rem' } },
-          [
-            div({ style: { flexGrow: 1 } }, 'Magrathea Labs'),
-            div({ style: { width: '35%' } }, ['Last changed: Yesterday']),
-            div({
-              title: 'Tricia Marie McMillan',
-              style: {
-                height: '1.5rem', width: '1.5rem', borderRadius: '1.5rem',
-                lineHeight: '1.5rem', textAlign: 'center',
-                backgroundColor: Style.colors.accent, color: 'white'
-              }
-            }, 'T')
-          ]
-        )
-      ]),
-      div({ style: { fontSize: 16, fontWeight: 500, color: Style.colors.title, marginTop: '3rem' } },
-        'Real Configs'),
+  render() {
+    const { configs, itemsPerPage } = this.state
+
+    return div({ style: { margin: '1rem 4rem' } }, [
       configs ?
-        div({}, _.map(configs, ({ name }) => div(name))) :
-        spinner()
+        h(DataGrid, {
+          dataSource: configs,
+          itemsPerPageOptions: [6, 12, 24, 36, 48],
+          itemsPerPage,
+          onItemsPerPageChanged: itemsPerPage => this.setState({ itemsPerPage }),
+          pageNumber: this.state.pageNumber,
+          onPageChanged: n => this.setState({ pageNumber: n }),
+          renderCard: config => {
+            const { name, namespace, methodRepoMethod: { sourceRepo, methodVersion } } = config
+            return div({
+              style: _.defaults({
+                width: '30%', margin: '1rem 1.5rem', textDecoration: 'none',
+                color: Style.colors.text
+              }, Style.elements.card)
+            }, [
+              link({
+                href: Nav.getLink('workflow', {
+                  workspaceNamespace: this.props.workspace.namespace,
+                  workspaceName: this.props.workspace.name,
+                  workflowNamespace: namespace,
+                  workflowName: name
+                }),
+                style: { display: 'block', marginBottom: '0.5rem', fontSize: 16 }
+              }, name),
+              div(`V. ${methodVersion}`),
+              div(`Source: ${sourceRepo}`),
+              link({
+                onClick: () => Utils.log('TODO: launch'),
+                style: {
+                  display: 'flex', alignItems: 'center', marginTop: '0.5rem',
+                  fontWeight: 500, fontSize: '80%'
+                }
+              }, [
+                icon('export', { style: { marginRight: '0.25rem' } }), 'LAUNCH ANALYSIS'
+              ])
+            ])
+          }
+        }) : spinner()
     ])
   }
 
