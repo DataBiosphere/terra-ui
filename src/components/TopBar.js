@@ -32,7 +32,6 @@ export class TopBar extends Component {
       div(
         {
           style: {
-            zIndex: 7, // CodeMirror uses zIndexes, this seems to be enough.
             display: 'flex', position: 'absolute', left: 0, right: 0, top: 0, bottom: 0,
             overflow: 'auto', cursor: 'pointer'
           },
@@ -108,6 +107,7 @@ export class TopBar extends Component {
     return div(
       {
         style: {
+          flex: 'none',
           backgroundColor: 'white', padding: '1rem',
           display: 'flex', alignItems: 'center'
         }

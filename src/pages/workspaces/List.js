@@ -56,7 +56,7 @@ export class WorkspaceList extends Component {
           href: Nav.getLink('workspace', { namespace, name }),
           style: _.defaults({
             width: '100%', margin: '0.5rem', textDecoration: 'none',
-            backgroundColor: 'white', color: Style.colors.text
+            color: Style.colors.text
           }, Style.elements.card)
         },
         [
