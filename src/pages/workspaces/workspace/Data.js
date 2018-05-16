@@ -13,7 +13,7 @@ export default class WorkspaceData extends Component {
   constructor(props) {
     super(props)
 
-    this.state = StateHistory.get() || {}
+    this.state = StateHistory.get()
   }
 
   loadEntities(type) {
