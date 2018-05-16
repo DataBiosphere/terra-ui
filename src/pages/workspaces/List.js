@@ -10,10 +10,10 @@ import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import { StateRestoreComponent } from 'src/libs/wrapped-components'
+import { Component } from 'src/libs/wrapped-components'
 
 
-export class WorkspaceList extends StateRestoreComponent {
+export class WorkspaceList extends Component {
   constructor(props) {
     super(props)
     this.state = _.defaults(StateHistory.get(), {
@@ -24,8 +24,6 @@ export class WorkspaceList extends StateRestoreComponent {
       workspaces: null
     })
   }
-
-  keysToSave = ['filter', 'listView', 'itemsPerPage', 'pageNumber']
 
   componentWillMount() {
     Rawls.workspacesList().then(
@@ -172,6 +170,12 @@ export class WorkspaceList extends StateRestoreComponent {
         )
       ])
     ])
+  }
+
+  componentDidUpdate() {
+    const { filter, listView, itemsPerPage, pageNumber } = this.state
+
+    StateHistory.update({ filter, listView, itemsPerPage, pageNumber })
   }
 }
 
