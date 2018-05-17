@@ -38,3 +38,7 @@ Builds/deploying handled by CircleCI.
 6. Code style:
     * Not in IntelliJ: use an eslint plugin.
     * In IntelliJ: when you open the project, go to `Settings -> Editor -> Code Style -> Javascript`, click the gear next to `Scheme`, and import [js-style.xml](js-style.xml); then close Settings and right-click [.eslintrc.js](.eslintrc.js) and click `Apply Eslint Code Style Rules`.
+
+
+### Additional Documentation
+See [the wiki](https://github.com/DataBiosphere/saturn-ui/wiki).
