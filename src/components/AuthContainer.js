@@ -55,7 +55,7 @@ export default class AuthContainer extends Component {
 
       const [billingProjects, clusters] = await Promise.all([Rawls.listBillingProjects(), Leo.clustersList()])
       const projectsWithoutClusters = _.difference(
-        _.map(billingProjects, 'projectName'),
+        _.uniq(_.map(billingProjects, 'projectName')),
         _.map(_.filter(clusters,
           c => c.creator === Utils.getUser().getBasicProfile().getEmail()),
         'googleProject')
