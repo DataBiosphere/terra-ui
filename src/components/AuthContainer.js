@@ -62,7 +62,7 @@ export default class AuthContainer extends Component {
       )
 
       projectsWithoutClusters.forEach(project => {
-        Leo.cluster(project, `s-${userId}-${project}`.substr(0, 49)).create({
+        Leo.cluster(project, `saturn-${userId}-${project}`.substr(0, 49)).create({
           'labels': {},
           'machineConfig': {
             'numberOfWorkers': 0, 'masterMachineType': 'n1-standard-4',
