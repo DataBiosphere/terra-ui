@@ -280,8 +280,23 @@ export const Agora = {
 export const Orchestration = {
   profile: {
     set: async keysAndValues => {
+      const blankProfile = {
+        firstName: 'N/A',
+        lastName: 'N/A',
+        title: 'N/A',
+        contactEmail: 'N/A',
+        institute: 'N/A',
+        institutionalProgram: 'N/A',
+        programLocationCity: 'N/A',
+        programLocationState: 'N/A',
+        programLocationCountry: 'N/A',
+        pi: 'N/A',
+        nonProfitStatus: 'N/A'
+      }
       const url = `${await Config.getOrchestrationUrlRoot()}/register/profile`
-      return fetchOk(url, _.merge(authOpts(), jsonBody(keysAndValues), { method: 'POST' })
+      return fetchOk(
+        url,
+        _.merge(authOpts(), jsonBody(_.merge(blankProfile, keysAndValues)), { method: 'POST' })
       )
     }
   }

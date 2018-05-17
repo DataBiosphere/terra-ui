@@ -130,23 +130,10 @@ export default class AuthContainer extends Component {
   async register() {
     this.setState({ busy: true })
     await Sam.createUser()
-    const blankProfile = {
-      firstName: 'N/A',
-      lastName: 'N/A',
-      title: 'N/A',
-      contactEmail: 'N/A',
-      institute: 'N/A',
-      institutionalProgram: 'N/A',
-      programLocationCity: 'N/A',
-      programLocationState: 'N/A',
-      programLocationCountry: 'N/A',
-      pi: 'N/A',
-      nonProfitStatus: 'N/A'
-    }
     const firstName = this.state.givenName
     const lastName = this.state.familyName
     const contactEmail = this.state.email
-    await Orchestration.profile().set(_.merge(blankProfile, { firstName, lastName, contactEmail }))
+    await Orchestration.profile.set({ firstName, lastName, contactEmail })
     this.setState({ busy: false, isRegistered: true })
   }
 
