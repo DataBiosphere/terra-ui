@@ -51,7 +51,7 @@ export default class AuthContainer extends Component {
        * hashes to identify a user in our analytics data. We trust our developers to refrain from
        * doing this.
        */
-      window.newrelic.setCustomAttribute('userIdHash', userId)
+      window.newrelic.setCustomAttribute('userGoogleId', userId)
 
       const [billingProjects, clusters] = await Promise.all([Rawls.listBillingProjects(), Leo.clustersList()])
       const projectsWithoutClusters = _.difference(
@@ -62,7 +62,9 @@ export default class AuthContainer extends Component {
       )
 
       projectsWithoutClusters.forEach(project => {
-        Leo.cluster(project, `saturn-${userId}-${project}`.substr(0, 49)).create({
+        Leo.cluster(project,
+          `saturn-${userId}-${project}`.match(/(?:[a-z](?:[-a-z0-9]{0,49}[a-z0-9])?)/)[0] // regex used by google for valid names
+        ).create({
           'labels': {},
           'machineConfig': {
             'numberOfWorkers': 0, 'masterMachineType': 'n1-standard-4',
