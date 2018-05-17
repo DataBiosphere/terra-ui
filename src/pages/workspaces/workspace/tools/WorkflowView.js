@@ -1,6 +1,6 @@
 import _ from 'lodash'
 import { Fragment } from 'react'
-import { div, h } from 'react-hyperscript-helpers'
+import { div, h, span } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
 import * as Breadcrumbs from 'src/components/breadcrumbs'
 import { buttonPrimary } from 'src/components/common'
@@ -25,6 +25,23 @@ const tableColumns = [
 ]
 
 const tabs = ['Inputs', 'Outputs', 'WDL']
+
+const styleForOptional = (optional, text) => {
+  return span({
+    style: {
+      fontWeight: !optional && 500,
+      fontStyle: optional && 'italic',
+      overflow: 'hidden', textOverflow: 'ellipsis'
+    }
+  }, [text])
+}
+
+const extractTaskAndVariable = list => {
+  return _.map(list, entry => {
+    const [task, variable] = _.takeRight(_.split(entry.name, '.'), 2)
+    return _.merge(entry, { task, variable })
+  })
+}
 
 
 class WorkflowView extends Component {
@@ -82,6 +99,8 @@ class WorkflowView extends Component {
     this.setState({ config })
 
     const inputsOutputs = await Rawls.methodConfigInputsOutputs(config)
+    _.update(inputsOutputs, 'inputs', extractTaskAndVariable)
+    _.update(inputsOutputs, 'outputs', extractTaskAndVariable)
     this.setState({ inputsOutputs })
   }
 
@@ -176,30 +195,35 @@ class WorkflowView extends Component {
       return div({ style: { margin: `0 ${sideMargin}` } },
         [h(DataTable, {
           dataSource: inputsOutputs[key],
+          allowPagination: false,
           customComponents: components.fullWidthTable,
           tableProps: {
-            showHeader: false, scroll: { y: 400 },
+            showHeader: false, scroll: { y: 450 },
             columns: [
               {
                 key: 'task-name', width: 350,
-                render: ({ name }) =>
+                render: ({ task }) =>
                   div({
                     style: {
+                      fontWeight: 500,
                       overflow: 'hidden', textOverflow: 'ellipsis'
                     }
-                  }, name)
+                  }, task)
               },
               {
                 key: 'variable', width: 360,
-                render: ({ name }) => _.last(_.split(name, '.'))
+                render: ({ variable, optional }) =>
+                  styleForOptional(optional, variable)
               },
               {
                 key: 'type', width: 160,
-                dataIndex: `${key.slice(0, -1)}Type`
+                render: ({ inputType, outputType, optional }) =>
+                  styleForOptional(optional, inputType || outputType)
               },
               {
                 key: 'attribute', width: '100%',
-                render: ({ name }) => config[key][name]
+                render: ({ name, optional }) =>
+                  styleForOptional(optional, config[key][name])
               }
             ]
           }
