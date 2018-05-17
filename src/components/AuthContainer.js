@@ -22,20 +22,20 @@ function getUserIsRegisteredAndEnabled() {
 }
 
 async function createClusters() {
+  const userProfile = Utils.getUser().getBasicProfile()
   const [billingProjects, clusters] = await Promise.all(
     [Rawls.listBillingProjects(), Leo.clustersList()])
   const projectsWithoutClusters = _.difference(
-    _.uniq(_.map(billingProjects, 'projectName')),
-    _.map(_.filter(clusters,
-      c => c.creator === Utils.getUser().getBasicProfile().getEmail()),
-    'googleProject')
+    _.uniq(_.map(billingProjects, 'projectName')), // in case of being both a user and an admin of a project
+    _.map(
+      _.filter(clusters, c => c.creator === userProfile.getEmail()),
+      'googleProject'
+    )
   )
-
-  const userId = Utils.getAuthInstance().currentUser.get().getBasicProfile().getId()
 
   projectsWithoutClusters.forEach(project => {
     Leo.cluster(project,
-      `saturn-${userId}-${project}`.match(/(?:[a-z](?:[-a-z0-9]{0,49}[a-z0-9])?)/)[0] // regex used by google for valid names
+      `saturn-${userProfile.getId()}-${project}`.match(/(?:[a-z](?:[-a-z0-9]{0,49}[a-z0-9])?)/)[0] // regex used by google for valid names
     ).create({
       'labels': {},
       'machineConfig': {
