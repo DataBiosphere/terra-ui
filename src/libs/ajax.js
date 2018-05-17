@@ -282,7 +282,7 @@ export const Orchestration = {
     return {
       set: async keysAndValues => {
         const url = `${await Config.getOrchestrationUrlRoot()}/register/profile`
-        await fetchOk(url, _.merge(authOpts(), jsonBody(keysAndValues), { method: 'POST' })
+        return fetchOk(url, _.merge(authOpts(), jsonBody(keysAndValues), { method: 'POST' })
         )
       }
     }
