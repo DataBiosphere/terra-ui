@@ -5,6 +5,7 @@ import Interactive from 'react-interactive'
 import * as Breadcrumbs from 'src/components/breadcrumbs'
 import { buttonPrimary } from 'src/components/common'
 import { spinner } from 'src/components/icons'
+import { DataTable, components } from 'src/components/table'
 import { TopBar } from 'src/components/TopBar'
 import WDLViewer from 'src/components/WDLViewer'
 import { Agora, Dockstore, Rawls } from 'src/libs/ajax'
@@ -13,6 +14,8 @@ import * as Style from 'src/libs/style'
 import { Component } from 'src/libs/wrapped-components'
 import { tabBar } from 'src/pages/workspaces/workspace/WorkspaceTabs'
 
+
+const sideMargin = '3rem'
 
 const tableColumns = [
   { label: 'Task name', width: 350 },
@@ -60,7 +63,7 @@ class WorkflowView extends Component {
         h(Fragment, [
           div({
             style: {
-              backgroundColor: Style.colors.section, padding: '1.5rem 3rem 0',
+              backgroundColor: Style.colors.section, padding: `1.5rem ${sideMargin} 0`,
               borderBottom: `2px solid ${Style.colors.secondary}`
             }
           }, [
@@ -157,20 +160,52 @@ class WorkflowView extends Component {
   }
 
   renderDetail = () => {
-    const { selectedTab, wdl } = this.state
+    const { selectedTab, wdl, inputsOutputs, config } = this.state
 
-    if (selectedTab === 'WDL') {
-      return wdl ?
-        div({
-          style: {
-            flex: '1 1 auto', overflowY: 'auto', maxHeight: 500,
-            margin: '0 3rem', padding: '0.5rem', backgroundColor: 'white',
-            border: Style.standardLine, borderTop: 'unset'
+    if (selectedTab === 'WDL' && wdl) {
+      return div({
+        style: {
+          flex: '1 1 auto', overflowY: 'auto', maxHeight: 500,
+          margin: `0 ${sideMargin}`, padding: '0.5rem', backgroundColor: 'white',
+          border: Style.standardLine, borderTop: 'unset'
+        }
+      }, [h(WDLViewer, { wdl, readOnly: true })])
+    } else if (selectedTab !== 'WDL' && inputsOutputs) {
+      const key = selectedTab.toLowerCase() // 'inputs' or 'outputs'
+
+      return div({ style: { margin: `0 ${sideMargin}` } },
+        [h(DataTable, {
+          dataSource: inputsOutputs[key],
+          customComponents: components.fullWidthTable,
+          tableProps: {
+            showHeader: false, scroll: { y: 400 },
+            columns: [
+              {
+                key: 'task-name', width: 350,
+                render: ({ name }) =>
+                  div({
+                    style: {
+                      overflow: 'hidden', textOverflow: 'ellipsis'
+                    }
+                  }, name)
+              },
+              {
+                key: 'variable', width: 360,
+                render: ({ name }) => _.last(_.split(name, '.'))
+              },
+              {
+                key: 'type', width: 160,
+                dataIndex: `${key.slice(0, -1)}Type`
+              },
+              {
+                key: 'attribute', width: '100%',
+                render: ({ name }) => config[key][name]
+              }
+            ]
           }
-        }, [h(WDLViewer, { wdl, readOnly: true })]) :
-        spinner()
+        })])
     } else {
-      return selectedTab
+      return spinner({ style: { marginTop: '1rem' } })
     }
   }
 
