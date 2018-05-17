@@ -18,16 +18,23 @@ Builds/deploying handled by CircleCI.
 2. Update npm:
 
     ```sh
-    npm install -g npm
+    npm install -g npm@6
     ```
 3. Install deps:
 
     ```sh
     npm install
     ```
-4. Start development server:
+4. Start development server, which will report any lint violations as well:
 
     ```sh
     npm start
     ```
-5. For now at least, code style is defined for IntelliJ, because it's easiest to be prescriptive, and it's the most proactively helpful IDE. When you open the project, go to `Settings -> Editor -> Code Style -> Javascript`, click the gear next to `Scheme`, and import [js-style.xml](js-style.xml).
+5. Testing:
+    
+    ```sh
+    npm test
+    ```
+6. Code style:
+    * Not in IntelliJ: use an eslint plugin.
+    * In IntelliJ: when you open the project, go to `Settings -> Editor -> Code Style -> Javascript`, click the gear next to `Scheme`, and import [js-style.xml](js-style.xml); then close Settings and right-click [.eslintrc.js](.eslintrc.js) and click `Apply Eslint Code Style Rules`.
