@@ -26,7 +26,9 @@ async function createClusters() {
     [Rawls.listBillingProjects(), Leo.clustersList()])
   const projectsWithoutClusters = _.difference(
     _.uniq(_.map(billingProjects, 'projectName')),
-    _.map(clusters, 'googleProject')
+    _.map(_.filter(clusters,
+      c => c.creator === Utils.getUser().getBasicProfile().getEmail()),
+    'googleProject')
   )
 
   const userId = Utils.getAuthInstance().currentUser.get().getBasicProfile().getId()
