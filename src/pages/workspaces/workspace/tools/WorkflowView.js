@@ -5,6 +5,7 @@ import Interactive from 'react-interactive'
 import * as Breadcrumbs from 'src/components/breadcrumbs'
 import { buttonPrimary } from 'src/components/common'
 import { spinner } from 'src/components/icons'
+import { textInput } from 'src/components/input'
 import { DataTable, components } from 'src/components/table'
 import { TopBar } from 'src/components/TopBar'
 import WDLViewer from 'src/components/WDLViewer'
@@ -26,15 +27,17 @@ const tableColumns = [
 
 const tabs = ['Inputs', 'Outputs', 'WDL']
 
-const styleForOptional = (optional, text) => {
-  return span({
+const styleForOptional = (optional, text) =>
+  span({
     style: {
       fontWeight: !optional && 500,
       fontStyle: optional && 'italic',
       overflow: 'hidden', textOverflow: 'ellipsis'
     }
   }, [text])
-}
+
+const miniMessage = text =>
+  span({ style: { fontWeight: 500, fontSize: '75%', marginRight: '1rem', textTransform: 'uppercase' } }, [text])
 
 const extractTaskAndVariable = list => {
   return _.map(list, entry => {
@@ -48,7 +51,9 @@ class WorkflowView extends Component {
   constructor(props) {
     super(props)
 
-    this.state = { selectedTab: 'Inputs', loadedWdl: false }
+    this.state = { selectedTab: 'Inputs', loadedWdl: false,
+      untouched: true,
+      modifiedAttributes: { inputs: {}, outputs: {} } }
   }
 
   componentDidUpdate() {
@@ -121,35 +126,42 @@ class WorkflowView extends Component {
   }
 
   renderTabs = () => {
-    const { selectedTab } = this.state
+    const { selectedTab, modified, saving, untouched } = this.state
 
     return h(Fragment, [
       div(
-        { style: { marginTop: '2rem' } },
-        tabs.map(label => {
-          const selected = label === selectedTab
-          const border = `1px solid ${selected ? Style.colors.sectionBorder : Style.colors.section}`
-          return h(Interactive, {
-            as: 'div',
-            style: {
-              display: 'inline-block', position: 'relative', padding: '1rem 1.5rem',
-              fontSize: 16, fontWeight: 500, color: Style.colors.secondary,
-              backgroundColor: selected && Style.colors.sectionHighlight,
-              borderTop: border, borderLeft: border, borderRight: border,
-              borderRadius: '5px 5px 0 0'
-            },
-            onClick: () => this.setState({ selectedTab: label })
-          }, [
-            label,
-            selected && div({
+        { style: { marginTop: '2rem', display: 'flex', alignItems: 'baseline' } },
+        _.concat(
+          tabs.map(label => {
+            const selected = label === selectedTab
+            const border = `1px solid ${selected ? Style.colors.sectionBorder : Style.colors.section}`
+            return h(Interactive, {
+              as: 'div',
               style: {
-                // Fractional L/R to make border corners line up when zooming in. Works for up to 175% in Chrome.
-                position: 'absolute', left: 0.4, right: 0.1, bottom: -3, height: 5,
-                backgroundColor: Style.colors.sectionHighlight
-              }
-            })
-          ])
-        })),
+                display: 'inline-block', position: 'relative', padding: '1rem 1.5rem',
+                fontSize: 16, fontWeight: 500, color: Style.colors.secondary,
+                backgroundColor: selected && Style.colors.sectionHighlight,
+                borderTop: border, borderLeft: border, borderRight: border,
+                borderRadius: '5px 5px 0 0'
+              },
+              onClick: () => this.setState({ selectedTab: label })
+            }, [
+              label,
+              selected && div({
+                style: {
+                  // Fractional L/R to make border corners line up when zooming in. Works for up to 175% in Chrome.
+                  position: 'absolute', left: 0.4, right: 0.1, bottom: -3, height: 5,
+                  backgroundColor: Style.colors.sectionHighlight
+                }
+              })
+            ])
+          }),
+          [
+            div({ style: { flexGrow: 1 } }),
+            saving && miniMessage('Saving...'),
+            !untouched && !saving && !modified && miniMessage('Saved!'),
+            modified && buttonPrimary({ disabled: saving, onClick: () => this.save() }, 'Save')
+          ])),
       div(
         {
           style: {
@@ -179,7 +191,7 @@ class WorkflowView extends Component {
   }
 
   renderDetail = () => {
-    const { selectedTab, wdl, inputsOutputs, config } = this.state
+    const { selectedTab, wdl, inputsOutputs, config, modifiedAttributes } = this.state
 
     if (selectedTab === 'WDL' && wdl) {
       return div({
@@ -222,8 +234,22 @@ class WorkflowView extends Component {
               },
               {
                 key: 'attribute', width: '100%',
-                render: ({ name, optional }) =>
-                  styleForOptional(optional, config[key][name])
+                render: ({ name, optional }) => {
+                  let value = modifiedAttributes[key][name]
+                  if (value === undefined) {
+                    value = config[key][name]
+                  }
+                  return textInput({
+                    name, value,
+                    type: 'search',
+                    placeholder: optional ? 'Optional' : 'Required',
+                    onChange: e => {
+                      modifiedAttributes[key][name] = e.target.value
+                      this.setState({ modifiedAttributes, modified: true, untouched: false })
+                    },
+                    style: { margin: '-10px 0 -6px' }
+                  })
+                }
               }
             ]
           }
@@ -248,6 +274,11 @@ class WorkflowView extends Component {
       }
     })()
     this.setState({ wdl })
+  }
+
+  save = () => {
+    this.setState({ saving: true })
+    setTimeout(() => this.setState({ saving: false, modified: false }), 1000)
   }
 }
 
