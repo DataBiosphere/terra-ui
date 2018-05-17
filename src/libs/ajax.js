@@ -278,13 +278,11 @@ export const Agora = {
 
 
 export const Orchestration = {
-  profile: () => {
-    return {
-      set: async keysAndValues => {
-        const url = `${await Config.getOrchestrationUrlRoot()}/register/profile`
-        return fetchOk(url, _.merge(authOpts(), jsonBody(keysAndValues), { method: 'POST' })
-        )
-      }
+  profile: {
+    set: async keysAndValues => {
+      const url = `${await Config.getOrchestrationUrlRoot()}/register/profile`
+      return fetchOk(url, _.merge(authOpts(), jsonBody(keysAndValues), { method: 'POST' })
+      )
     }
   }
 }
