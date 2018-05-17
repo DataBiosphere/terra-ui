@@ -68,6 +68,12 @@ export const Sam = {
 
   getUserStatus: async () => {
     return instrumentedFetch(`${await Config.getSamUrlRoot()}/register/user`, authOpts())
+  },
+
+  createUser: async () => {
+    const url = `${await Config.getSamUrlRoot()}/register/user`
+    const res = await fetchOk(url, _.merge(authOpts(), { method: 'POST' }))
+    return res.json()
   }
 }
 
@@ -266,6 +272,32 @@ export const Agora = {
         const res = await fetchAgora(root, authOpts())
         return res.json()
       }
+    }
+  }
+}
+
+
+export const Orchestration = {
+  profile: {
+    set: async keysAndValues => {
+      const blankProfile = {
+        firstName: 'N/A',
+        lastName: 'N/A',
+        title: 'N/A',
+        contactEmail: 'N/A',
+        institute: 'N/A',
+        institutionalProgram: 'N/A',
+        programLocationCity: 'N/A',
+        programLocationState: 'N/A',
+        programLocationCountry: 'N/A',
+        pi: 'N/A',
+        nonProfitStatus: 'N/A'
+      }
+      const url = `${await Config.getOrchestrationUrlRoot()}/register/profile`
+      return fetchOk(
+        url,
+        _.merge(authOpts(), jsonBody(_.merge(blankProfile, keysAndValues)), { method: 'POST' })
+      )
     }
   }
 }
