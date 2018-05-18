@@ -284,7 +284,7 @@ class WorkflowView extends Component {
 
     this.setState({ saving: true })
     await this.rawlsMethodConfig.save(_.merge(config, modifiedAttributes))
-    this.setState({ saving: false, modified: false })
+    this.setState({ saving: false, modified: false, modifiedAttributes: { inputs: {}, outputs: {} } })
   }
 }
 
