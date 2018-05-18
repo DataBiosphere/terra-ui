@@ -16,13 +16,14 @@ import { Component } from 'src/libs/wrapped-components'
 export class WorkspaceList extends Component {
   constructor(props) {
     super(props)
-    this.state = _.defaults(StateHistory.get(), {
+    this.state = {
       filter: '',
       listView: false,
       itemsPerPage: 6,
       pageNumber: 1,
-      workspaces: null
-    })
+      workspaces: null,
+      ...StateHistory.get()
+    }
   }
 
   componentWillMount() {
@@ -50,15 +51,16 @@ export class WorkspaceList extends Component {
   }
 
   wsList() {
-    return h(DataGrid, _.assign({
+    return h(DataGrid, {
       cardsPerRow: 1,
       renderCard: ({ workspace: { namespace, name, createdBy, lastModified } }) => {
         return a({
           href: Nav.getLink('workspace', { namespace, name }),
-          style: _.defaults({
+          style: {
+            ...Style.elements.card,
             width: '100%', margin: '0.5rem', textDecoration: 'none',
             color: Style.colors.text
-          }, Style.elements.card)
+          }
         },
         [
           div({ style: Style.elements.cardTitle }, `${name}`),
@@ -78,24 +80,25 @@ export class WorkspaceList extends Component {
               }, createdBy[0].toUpperCase())
             ])
         ])
-      }
-    }, this.getDataViewerProps()))
+      },
+      ...this.getDataViewerProps()
+    })
   }
 
   wsGrid() {
-    return h(DataGrid, _.assign({
-      renderCard: ({ workspace: { namespace, name, createdBy, lastModified } },
-        cardsPerRow) => {
+    return h(DataGrid, {
+      renderCard: ({ workspace: { namespace, name, createdBy, lastModified } }, cardsPerRow) => {
         return a({
           href: Nav.getLink('workspace', { namespace, name }),
-          style: _.defaults({
+          style: {
+            ...Style.elements.card,
             width: `calc(${100 / cardsPerRow}% - 2.5rem)`,
             margin: '1.25rem',
             textDecoration: 'none',
             display: 'flex', flexDirection: 'column',
             justifyContent: 'space-between',
             height: 225, color: Style.colors.text
-          }, Style.elements.card)
+          }
         },
         [
           div({ style: Style.elements.cardTitle }, `${name}`),
@@ -117,8 +120,9 @@ export class WorkspaceList extends Component {
             }, createdBy[0].toUpperCase())
           ])
         ])
-      }
-    }, this.getDataViewerProps()))
+      },
+      ...this.getDataViewerProps()
+    })
   }
 
 

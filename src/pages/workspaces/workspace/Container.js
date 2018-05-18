@@ -27,10 +27,11 @@ const tabBaseStyle = {
   alignSelf: 'stretch', display: 'flex', justifyContent: 'center', alignItems: 'center'
 }
 
-const tabActiveStyle = _.defaults({
+const tabActiveStyle = {
+  ...tabBaseStyle,
   backgroundColor: 'rgba(255,255,255,0.15)', color: 'unset',
   borderBottom: `4px solid ${Style.colors.secondary}`
-}, tabBaseStyle)
+}
 
 const navIconProps = {
   size: 22,

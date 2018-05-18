@@ -1,4 +1,3 @@
-import _ from 'lodash'
 import { createPortal } from 'react-dom'
 import { a, div } from 'react-hyperscript-helpers'
 import { link } from 'src/components/common'
@@ -52,11 +51,11 @@ export class TopBar extends Component {
             onClick: e => e.stopPropagation()
           }, [
             div({
-              style: _.assign({
+              style: {
+                ...Style.elements.pageTitle,
                 backgroundColor: 'white', padding: '1rem',
                 textAlign: 'center', display: 'flex', alignItems: 'center'
-              },
-              Style.elements.pageTitle)
+              }
             }, [
               icon('bars',
                 {
@@ -66,10 +65,10 @@ export class TopBar extends Component {
                   onClick: () => this.hideNav()
                 }),
               a({
-                style: _.assign({
+                style: {
+                  ...Style.elements.pageTitle,
                   textAlign: 'center', display: 'flex', alignItems: 'center'
                 },
-                Style.elements.pageTitle),
                 href: Nav.getLink('workspaces'),
                 onClick: () => this.hideNav()
               }, [logo(), 'Saturn'])
@@ -120,7 +119,7 @@ export class TopBar extends Component {
             onClick: () => this.showNav()
           }),
         a({
-          style: _.defaults({ display: 'flex', alignItems: 'center' }, Style.elements.pageTitle),
+          style: { ...Style.elements.pageTitle, display: 'flex', alignItems: 'center' },
           href: Nav.getLink('workspaces')
         },
         [
