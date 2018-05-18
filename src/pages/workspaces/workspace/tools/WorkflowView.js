@@ -55,10 +55,6 @@ class WorkflowView extends Component {
       selectedTab: 'Inputs', loadedWdl: false, untouched: true,
       modifiedAttributes: { inputs: {}, outputs: {} }
     }
-
-    const { workspaceNamespace, workspaceName, workflowNamespace, workflowName } = props
-    this.rawlsMethodConfig = Rawls.workspace(workspaceNamespace, workspaceName).methodConfig(workflowNamespace, workflowName)
-    this.workspaceId = { namespace: workspaceNamespace, name: workspaceName }
   }
 
   componentDidUpdate() {
@@ -69,9 +65,9 @@ class WorkflowView extends Component {
   }
 
   render() {
-    const { workspaceId } = this
     const { config } = this.state
-    const { workflowName } = this.props
+    const { workspaceNamespace, workspaceName, workflowName } = this.props
+    const workspaceId = { namespace: workspaceNamespace, name: workspaceName }
 
     return div({ style: { display: 'flex', flexDirection: 'column', height: '100%' } }, [
       h(TopBar, { title: 'Projects' }, [
@@ -103,7 +99,11 @@ class WorkflowView extends Component {
   }
 
   async componentDidMount() {
-    const config = await this.rawlsMethodConfig.get()
+    const { workspaceNamespace, workspaceName, workflowNamespace, workflowName } = this.props
+
+    const config = await Rawls.workspace(workspaceNamespace, workspaceName)
+      .methodConfig(workflowNamespace, workflowName)
+      .get()
     this.setState({ config })
 
     const inputsOutputs = await Rawls.methodConfigInputsOutputs(config)
@@ -280,10 +280,13 @@ class WorkflowView extends Component {
   }
 
   save = async () => {
+    const { workspaceNamespace, workspaceName, workflowNamespace, workflowName } = this.props
     const { config, modifiedAttributes } = this.state
 
     this.setState({ saving: true })
-    await this.rawlsMethodConfig.save(_.merge(config, modifiedAttributes))
+    await Rawls.workspace(workspaceNamespace, workspaceName)
+      .methodConfig(workflowNamespace, workflowName)
+      .save(_.merge(config, modifiedAttributes))
     this.setState({ saving: false, modified: false, modifiedAttributes: { inputs: {}, outputs: {} } })
   }
 }
