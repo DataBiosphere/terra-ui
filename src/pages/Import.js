@@ -125,7 +125,7 @@ class DockstoreImporter extends Component {
     const { selectedWorkspace: { value: { namespace, name } } } = this.state
     const { path, version } = this.props
 
-    Rawls.workspace(namespace, name).methodConfigs.importFromDocker({
+    Rawls.workspace(namespace, name).importMethodConfigFromDocker({
       namespace, name: _.last(path.split('/')), rootEntityType: 'participant',
       // the line of shame:
       inputs: {}, outputs: {}, prerequisites: {}, methodConfigVersion: 1, deleted: false,
