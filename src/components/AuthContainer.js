@@ -80,7 +80,7 @@ export default class AuthContainer extends Component {
        * doing this.
        */
       window.newrelic.setCustomAttribute(
-        'userIdHash',
+        'userGoogleId',
         Utils.getAuthInstance().currentUser.get().getBasicProfile().getId()
       )
 
