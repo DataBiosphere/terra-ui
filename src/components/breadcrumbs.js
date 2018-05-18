@@ -26,6 +26,9 @@ export const breadcrumbElement = function(child, href) {
 export const commonElements = {
   workspaces: () => breadcrumbElement('Projects', Nav.getLink('workspaces')),
 
-  workspace: ({ namespace, name }, activeTab) =>
-    breadcrumbElement(activeTab || `${namespace}/${name}`, Nav.getLink('workspace', { namespace, name, activeTab }))
+  workspaceDashboard: ({ namespace, name }) =>
+    breadcrumbElement(`${namespace}/${name}`, Nav.getLink('workspace', { namespace, name })),
+
+  workspaceTab: ({ namespace, name }, activeTab) =>
+    breadcrumbElement(activeTab, Nav.getLink(`workspace-${activeTab}`, { namespace, name, activeTab }))
 }

@@ -5,8 +5,10 @@ import Interactive from 'react-interactive'
 import { contextBar, contextMenu } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import ShowOnClick from 'src/components/ShowOnClick'
-import * as Style from 'src/libs/style'
+import { TopBar } from 'src/components/TopBar'
 import * as Nav from 'src/libs/nav'
+import * as Style from 'src/libs/style'
+import * as Utils from 'src/libs/utils'
 
 
 const navSeparator = div({
@@ -28,9 +30,12 @@ const navTab = (tabName, { namespace, name, activeTab }) => {
   return h(Fragment, [
     a({
       style: tabName === activeTab ? tabActiveStyle : tabBaseStyle,
-      href: Nav.getLink('workspace', {
-        namespace, name, activeTab: tabName === 'dashboard' ? null : tabName
-      })
+      href: Utils.cond(
+        [tabName === 'dashboard', () => Nav.getLink('workspace', { namespace, name })],
+        // because not all tabs are implemented:
+        [_.includes(['notebooks', 'data', 'tools'], tabName), () => Nav.getLink(`workspace-${tabName.toLowerCase()}`, { namespace, name })],
+        () => undefined
+      )
     }, tabName),
     navSeparator
   ])
@@ -43,7 +48,7 @@ const navIconProps = {
 }
 
 
-export const tabBar = props => contextBar(
+const tabBar = props => contextBar(
   {
     style: {
       paddingLeft: '5rem', borderBottom: `5px solid ${Style.colors.secondary}`,
@@ -77,3 +82,20 @@ export const tabBar = props => contextBar(
     ])
   ]
 )
+
+
+export const workspaceContainer = (props, children) => {
+  const { namespace, name, breadcrumbs, title } = props
+
+  return div({ style: { display: 'flex', flexDirection: 'column', height: '100%' } }, [
+    h(TopBar, { title: 'Projects' }, [
+      div({ style: { display: 'flex', flexDirection: 'column', paddingLeft: '4rem' } },
+        [
+          div({}, breadcrumbs),
+          div({ style: { fontSize: '1.25rem' } }, [title || `${namespace}/${name}`])
+        ])
+    ]),
+    tabBar(props),
+    children
+  ])
+}

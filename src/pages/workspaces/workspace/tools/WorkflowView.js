@@ -7,13 +7,12 @@ import { buttonPrimary } from 'src/components/common'
 import { spinner } from 'src/components/icons'
 import { textInput } from 'src/components/input'
 import { DataTable, components } from 'src/components/table'
-import { TopBar } from 'src/components/TopBar'
 import WDLViewer from 'src/components/WDLViewer'
 import { Agora, Dockstore, Rawls } from 'src/libs/ajax'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import { Component } from 'src/libs/wrapped-components'
-import { tabBar } from 'src/pages/workspaces/workspace/WorkspaceTabs'
+import { workspaceContainer } from 'src/pages/workspaces/workspace/workspaceContainer'
 
 
 const sideMargin = '3rem'
@@ -69,33 +68,32 @@ class WorkflowView extends Component {
     const { workspaceNamespace, workspaceName, workflowName } = this.props
     const workspaceId = { namespace: workspaceNamespace, name: workspaceName }
 
-    return div({ style: { display: 'flex', flexDirection: 'column', height: '100%' } }, [
-      h(TopBar, { title: 'Projects' }, [
-        div({ style: { display: 'flex', flexDirection: 'column', paddingLeft: '4rem' } },
-          [
-            div([
-              Breadcrumbs.commonElements.workspaces(),
-              Breadcrumbs.commonElements.workspace(workspaceId),
-              Breadcrumbs.commonElements.workspace(workspaceId, 'tools')
+    return workspaceContainer(
+      {
+        ...workspaceId,
+        breadcrumbs: [
+          Breadcrumbs.commonElements.workspaces(),
+          Breadcrumbs.commonElements.workspaceDashboard(workspaceId),
+          Breadcrumbs.commonElements.workspaceTab(workspaceId, 'tools')
+        ],
+        title: workflowName, activeTab: 'tools'
+      },
+      [
+        config ?
+          h(Fragment, [
+            div({
+              style: {
+                backgroundColor: Style.colors.section, padding: `1.5rem ${sideMargin} 0`,
+                borderBottom: `2px solid ${Style.colors.secondary}`
+              }
+            }, [
+              this.renderSummary(),
+              this.renderTabs()
             ]),
-            div({ style: { fontSize: '1.25rem' } }, workflowName)
-          ])
-      ]),
-      tabBar(_.merge(workspaceId, { activeTab: 'tools' })),
-      config ?
-        h(Fragment, [
-          div({
-            style: {
-              backgroundColor: Style.colors.section, padding: `1.5rem ${sideMargin} 0`,
-              borderBottom: `2px solid ${Style.colors.secondary}`
-            }
-          }, [
-            this.renderSummary(),
-            this.renderTabs()
-          ]),
-          this.renderDetail()
-        ]) : [spinner({ style: { marginTop: '2rem' } })]
-    ])
+            this.renderDetail()
+          ]) : [spinner({ style: { marginTop: '2rem' } })]
+      ]
+    )
   }
 
   async componentDidMount() {

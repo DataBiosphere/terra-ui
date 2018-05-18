@@ -2,15 +2,18 @@ import _ from 'lodash'
 import { Fragment } from 'react'
 import { a, div, h } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
+import * as breadcrumbs from 'src/components/breadcrumbs'
 import { buttonPrimary, contextMenu, link } from 'src/components/common'
 import { icon, spinner } from 'src/components/icons'
 import { NotebookCreator, NotebookDeleter, NotebookDuplicator } from 'src/components/notebook-utils'
 import ShowOnClick from 'src/components/ShowOnClick'
 import { DataTable } from 'src/components/table'
-import { Buckets, Leo } from 'src/libs/ajax'
+import { Buckets, Leo, Rawls } from 'src/libs/ajax'
+import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
+import { workspaceContainer } from 'src/pages/workspaces/workspace/workspaceContainer'
 
 
 class StatusLabel extends Component {
@@ -180,13 +183,18 @@ class NotebookCard extends Component {
   }
 }
 
-export default class WorkspaceNotebooks extends Component {
-  componentWillMount() {
+class WorkspaceNotebooks extends Component {
+  async componentWillMount() {
     this.loadClusters()
+
+    const { namespace, name } = this.props
+
+    const { workspace: { bucketName } } = await Rawls.workspace(namespace, name).details()
+    this.setState({ bucketName })
   }
 
   loadClusters() {
-    const { namespace } = this.props.workspace
+    const { namespace } = this.props
 
     this.setState({ clusters: undefined, cluster: undefined })
     Leo.clustersList().then(
@@ -204,7 +212,7 @@ export default class WorkspaceNotebooks extends Component {
   }
 
   createCluster() {
-    Leo.cluster(this.props.workspace.namespace, window.prompt('Name for the new cluster')).create({
+    Leo.cluster(this.props.namespace, window.prompt('Name for the new cluster')).create({
       'labels': {}, 'machineConfig': {
         'numberOfWorkers': 0, 'masterMachineType': 'n1-standard-4',
         'masterDiskSize': 500, 'workerMachineType': 'n1-standard-4',
@@ -223,8 +231,8 @@ export default class WorkspaceNotebooks extends Component {
 
   getNotebooks() {
     this.setState({ notebooks: undefined, notebookAccess: {} })
-    const { namespace, name: wsName, bucketName } = this.props.workspace
-    const { cluster } = this.state
+    const { namespace, name: wsName } = this.props
+    const { bucketName, cluster } = this.state
 
     if (cluster) {
       Buckets.listNotebooks(namespace, bucketName).then(
@@ -256,8 +264,8 @@ export default class WorkspaceNotebooks extends Component {
   }
 
   renderNotebooks() {
-    const { cluster, notebooks, notebookAccess, listView } = this.state
-    const { bucketName, name: wsName, namespace } = this.props.workspace
+    const { bucketName, cluster, notebooks, notebookAccess, listView } = this.state
+    const { name: wsName, namespace } = this.props
 
     return div({ style: { display: listView ? undefined : 'flex', flexWrap: 'wrap' } },
       _.map(notebooks, ({ name, updated }) => h(NotebookCard, {
@@ -270,128 +278,147 @@ export default class WorkspaceNotebooks extends Component {
 
   render() {
     const {
-      clusters, creatingCluster, listFailure, notebooks, notebooksFailure, listView
+      bucketName, clusters, creatingCluster, listFailure, notebooks, notebooksFailure, listView
     } = this.state
 
-    const { bucketName, namespace } = this.props.workspace
+    const { namespace } = this.props
 
-    return div({ style: { margin: '1rem' } }, [
-      div({ style: { display: 'flex', alignItems: 'center' } }, [
-        div(
-          { style: { fontSize: 16, fontWeight: 500, color: Style.colors.title, flexGrow: 1 } },
-          'CLUSTERS'),
-        buttonPrimary({
-          style: { display: 'flex' },
-          disabled: creatingCluster,
-          onClick: () => this.createCluster()
-        }, creatingCluster ?
-          [
-            spinner({ size: '1em', style: { color: 'white', marginRight: '1em' } }),
-            'Creating cluster...'
-          ] :
-          'New cluster')
-      ]),
-      Utils.cond(
-        [listFailure, () => `Couldn't load cluster list: ${listFailure}`],
-        [!clusters, spinner],
-        () => h(Fragment, [
-          h(DataTable, {
-            allowPagination: false,
-            dataSource: clusters,
-            tableProps: {
-              rowKey: 'clusterName',
-              columns: [
-                {
-                  title: 'Cluster Name', key: 'clusterName',
-                  render: ({ clusterName, clusterUrl, status, creator }) => {
-                    const isAccessible = creator === Utils.getUser().getBasicProfile().getEmail() &&
-                      status === 'Running'
-                    return link({
-                      title: clusterName,
-                      disabled: !isAccessible,
-                      href: isAccessible ? clusterUrl : undefined,
-                      target: '_blank',
-                      style: {
-                        textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block',
-                        overflow: 'hidden', width: 400
-                      }
-                    }, clusterName)
-                  }
-                },
-                { title: 'Google project', dataIndex: 'googleProject', key: 'googleProject' },
-                {
-                  title: 'Status', key: 'status',
-                  render: ({ clusterName, googleProject, status }) =>
-                    h(StatusLabel, { clusterName, googleProject, status, refresh: () => this.loadClusters() })
-                },
-                {
-                  title: 'Created', dataIndex: 'createdDate', key: 'createdDate',
-                  render: Utils.makePrettyDate
-                },
-                {
-                  title: 'Created by', dataIndex: 'creator', key: 'creator',
-                  render: creator => div({
-                    title: creator,
-                    style: {
-                      textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block',
-                      overflow: 'hidden'
-                    }
-                  }, creator)
-                },
-                {
-                  title: 'Delete', key: 'delete',
-                  render: ({ clusterName, googleProject, status }) => {
-                    if (status !== 'Deleting') {
-                      return link({
-                        onClick: () => {
-                          Leo.cluster(googleProject, clusterName).delete().then(
-                            () => this.loadClusters(),
-                            deletionFail => window.alert(`Couldn't delete cluster: ${deletionFail}`)
-                          )
-                        },
-                        title: `Delete cluster ${clusterName}`
-                      }, [icon('trash', { style: { margin: 'auto', display: 'block' } })])
-                    }
-                  }
-                }
-              ]
-            }
-          }),
-          div({
-            style: {
-              color: Style.colors.title, marginTop: '2rem', display: 'flex', alignItems: 'center'
-            }
-          }, [
-            div({ style: { fontSize: 16, fontWeight: 500 } }, 'NOTEBOOKS'),
-            div({ style: { flexGrow: 1 } }),
-            icon('view-cards', {
-              style: {
-                cursor: 'pointer',
-                boxShadow: listView ? undefined : `0 4px 0 ${Style.colors.highlight}`,
-                marginRight: '1rem', width: 26, height: 22
-              },
-              onClick: () => {
-                this.setState({ listView: false })
-              }
-            }),
-            icon('view-list', {
-              style: {
-                cursor: 'pointer', boxShadow: listView ? `0 4px 0 ${Style.colors.highlight}` : null
-              },
-              size: 26,
-              onClick: () => {
-                this.setState({ listView: true })
-              }
-            }),
-            h(NotebookCreator, { reloadList: () => this.getNotebooks(), namespace, bucketName })
+    return workspaceContainer(
+      {
+        ...this.props,
+        breadcrumbs: [
+          breadcrumbs.commonElements.workspaces(),
+          breadcrumbs.commonElements.workspaceDashboard(this.props)
+        ],
+        title: 'Notebooks', activeTab: 'notebooks'
+      },
+      [
+        div({ style: { margin: '1rem' } }, [
+          div({ style: { display: 'flex', alignItems: 'center' } }, [
+            div(
+              { style: { fontSize: 16, fontWeight: 500, color: Style.colors.title, flexGrow: 1 } },
+              'CLUSTERS'),
+            buttonPrimary({
+              style: { display: 'flex' },
+              disabled: creatingCluster,
+              onClick: () => this.createCluster()
+            }, creatingCluster ?
+              [
+                spinner({ size: '1em', style: { color: 'white', marginRight: '1em' } }),
+                'Creating cluster...'
+              ] :
+              'New cluster')
           ]),
           Utils.cond(
-            [notebooksFailure, () => `Couldn't load cluster list: ${notebooksFailure}`],
-            [!notebooks, spinner],
-            () => this.renderNotebooks()
+            [listFailure, () => `Couldn't load cluster list: ${listFailure}`],
+            [!clusters, spinner],
+            () => h(Fragment, [
+              h(DataTable, {
+                allowPagination: false,
+                dataSource: clusters,
+                tableProps: {
+                  rowKey: 'clusterName',
+                  columns: [
+                    {
+                      title: 'Cluster Name', key: 'clusterName',
+                      render: ({ clusterName, clusterUrl, status, creator }) => {
+                        const isAccessible = creator === Utils.getUser().getBasicProfile().getEmail() &&
+                          status === 'Running'
+                        return link({
+                          title: clusterName,
+                          disabled: !isAccessible,
+                          href: isAccessible ? clusterUrl : undefined,
+                          target: '_blank',
+                          style: {
+                            textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block',
+                            overflow: 'hidden', width: 400
+                          }
+                        }, clusterName)
+                      }
+                    },
+                    { title: 'Google project', dataIndex: 'googleProject', key: 'googleProject' },
+                    {
+                      title: 'Status', key: 'status',
+                      render: ({ clusterName, googleProject, status }) =>
+                        h(StatusLabel, { clusterName, googleProject, status, refresh: () => this.loadClusters() })
+                    },
+                    {
+                      title: 'Created', dataIndex: 'createdDate', key: 'createdDate',
+                      render: Utils.makePrettyDate
+                    },
+                    {
+                      title: 'Created by', dataIndex: 'creator', key: 'creator',
+                      render: creator => div({
+                        title: creator,
+                        style: {
+                          textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block',
+                          overflow: 'hidden'
+                        }
+                      }, creator)
+                    },
+                    {
+                      title: 'Delete', key: 'delete',
+                      render: ({ clusterName, googleProject, status }) => {
+                        if (status !== 'Deleting') {
+                          return link({
+                            onClick: () => {
+                              Leo.cluster(googleProject, clusterName).delete().then(
+                                () => this.loadClusters(),
+                                deletionFail => window.alert(`Couldn't delete cluster: ${deletionFail}`)
+                              )
+                            },
+                            title: `Delete cluster ${clusterName}`
+                          }, [icon('trash', { style: { margin: 'auto', display: 'block' } })])
+                        }
+                      }
+                    }
+                  ]
+                }
+              }),
+              div({
+                style: {
+                  color: Style.colors.title, marginTop: '2rem', display: 'flex', alignItems: 'center'
+                }
+              }, [
+                div({ style: { fontSize: 16, fontWeight: 500 } }, 'NOTEBOOKS'),
+                div({ style: { flexGrow: 1 } }),
+                icon('view-cards', {
+                  style: {
+                    cursor: 'pointer',
+                    boxShadow: listView ? undefined : `0 4px 0 ${Style.colors.highlight}`,
+                    marginRight: '1rem', width: 26, height: 22
+                  },
+                  onClick: () => {
+                    this.setState({ listView: false })
+                  }
+                }),
+                icon('view-list', {
+                  style: {
+                    cursor: 'pointer', boxShadow: listView ? `0 4px 0 ${Style.colors.highlight}` : null
+                  },
+                  size: 26,
+                  onClick: () => {
+                    this.setState({ listView: true })
+                  }
+                }),
+                h(NotebookCreator, { reloadList: () => this.getNotebooks(), namespace, bucketName })
+              ]),
+              Utils.cond(
+                [notebooksFailure, () => `Couldn't load cluster list: ${notebooksFailure}`],
+                [!notebooks, spinner],
+                () => this.renderNotebooks()
+              )
+            ])
           )
         ])
-      )
-    ])
+      ]
+    )
   }
+}
+
+export const addNavPaths = () => {
+  Nav.defPath('workspace-notebooks', {
+    path: '/workspaces/:namespace/:name/notebooks',
+    component: WorkspaceNotebooks
+  })
 }
