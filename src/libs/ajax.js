@@ -157,19 +157,28 @@ export const Rawls = {
         return res.json()
       },
 
-      methodConfigs: {
-        list: async (allRepos = true) => {
-          const res = await fetchRawls(`${mcPath}?allRepos=${allRepos}`, authOpts())
-          return res.json()
-        },
+      listMethodConfigs: async (allRepos = true) => {
+        const res = await fetchRawls(`${mcPath}?allRepos=${allRepos}`, authOpts())
+        return res.json()
+      },
 
-        importFromDocker: payload => {
-          return fetchRawls(mcPath, _.merge(authOpts(), jsonBody(payload), { method: 'POST' }))
-        },
+      importMethodConfigFromDocker: payload => {
+        return fetchRawls(mcPath, _.merge(authOpts(), jsonBody(payload), { method: 'POST' }))
+      },
 
-        get: async (configNamespace, configName) => {
-          const res = await fetchRawls(`${mcPath}/${configNamespace}/${configName}`, authOpts())
-          return res.json()
+      methodConfig: (configNamespace, configName) => {
+        const path = `${mcPath}/${configNamespace}/${configName}`
+
+        return {
+          get: async () => {
+            const res = await fetchRawls(path, authOpts())
+            return res.json()
+          },
+
+          save: async payload => {
+            const res = await fetchRawls(path, _.merge(authOpts(), jsonBody(payload), { method: 'POST' }))
+            return res.json()
+          }
         }
       }
     }

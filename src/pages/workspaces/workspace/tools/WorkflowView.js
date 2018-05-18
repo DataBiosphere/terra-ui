@@ -51,9 +51,14 @@ class WorkflowView extends Component {
   constructor(props) {
     super(props)
 
-    this.state = { selectedTab: 'Inputs', loadedWdl: false,
-      untouched: true,
-      modifiedAttributes: { inputs: {}, outputs: {} } }
+    this.state = {
+      selectedTab: 'Inputs', loadedWdl: false, untouched: true,
+      modifiedAttributes: { inputs: {}, outputs: {} }
+    }
+
+    const { workspaceNamespace, workspaceName, workflowNamespace, workflowName } = props
+    this.rawlsMethodConfig = Rawls.workspace(workspaceNamespace, workspaceName).methodConfig(workflowNamespace, workflowName)
+    this.workspaceId = { namespace: workspaceNamespace, name: workspaceName }
   }
 
   componentDidUpdate() {
@@ -64,9 +69,9 @@ class WorkflowView extends Component {
   }
 
   render() {
+    const { workspaceId } = this
     const { config } = this.state
-    const { workspaceNamespace, workspaceName, workflowName } = this.props
-    const workspaceId = { namespace: workspaceNamespace, name: workspaceName }
+    const { workflowName } = this.props
 
     return div({ style: { display: 'flex', flexDirection: 'column', height: '100%' } }, [
       h(TopBar, { title: 'Projects' }, [
@@ -98,9 +103,7 @@ class WorkflowView extends Component {
   }
 
   async componentDidMount() {
-    const { workspaceNamespace, workspaceName, workflowNamespace, workflowName } = this.props
-
-    const config = await Rawls.workspace(workspaceNamespace, workspaceName).methodConfigs.get(workflowNamespace, workflowName)
+    const config = await this.rawlsMethodConfig.get()
     this.setState({ config })
 
     const inputsOutputs = await Rawls.methodConfigInputsOutputs(config)
@@ -276,9 +279,12 @@ class WorkflowView extends Component {
     this.setState({ wdl })
   }
 
-  save = () => {
+  save = async () => {
+    const { config, modifiedAttributes } = this.state
+
     this.setState({ saving: true })
-    setTimeout(() => this.setState({ saving: false, modified: false }), 1000)
+    await this.rawlsMethodConfig.save(_.merge(config, modifiedAttributes))
+    this.setState({ saving: false, modified: false })
   }
 }
 
