@@ -1,7 +1,7 @@
 import _ from 'lodash'
 import RCTable from 'rc-table'
 import { Fragment } from 'react'
-import { button, div, h, option, select, td, tr } from 'react-hyperscript-helpers'
+import { button, div, h, option, select, table, td, tr } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
 import Pagination from 'react-paginating'
 import { icon } from 'src/components/icons'
@@ -132,10 +132,22 @@ const defaultComponents = {
     }, props)),
     cell: props => td(_.merge({
       style: {
-        padding: '16.25px 19px 12.75px'
+        padding: '16.25px 19px 12.75px',
+        overflow: 'hidden'
       }
     }, props))
   }
+}
+
+export const components = {
+  fullWidthTable: ({
+    table: props => table(_.merge({
+      style: {
+        tableLayout: 'fixed',
+        width: '100%'
+      }
+    }, props))
+  })
 }
 
 /**
@@ -161,7 +173,7 @@ export class DataTable extends Component {
   render() {
     const {
       allowPagination = true, allowItemsPerPage = true, itemsPerPageOptions = [10, 25, 50, 100],
-      onItemsPerPageChanged, onPageChanged, dataSource, tableProps
+      onItemsPerPageChanged, onPageChanged, dataSource, tableProps, customComponents
     } = this.props
     const { pageNumber, itemsPerPage } = this.state
 
@@ -170,7 +182,7 @@ export class DataTable extends Component {
     return h(Fragment, [
       h(RCTable, _.extend({
         data: listPage,
-        components: defaultComponents
+        components: _.merge({}, defaultComponents, customComponents)
       }, tableProps)),
       allowPagination ?
         div({ style: { marginTop: 10 } }, [
