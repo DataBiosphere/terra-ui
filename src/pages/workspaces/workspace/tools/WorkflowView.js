@@ -3,7 +3,7 @@ import { Fragment } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { buttonPrimary } from 'src/components/common'
+import { buttonPrimary, link } from 'src/components/common'
 import { spinner } from 'src/components/icons'
 import { textInput } from 'src/components/input'
 import { DataTable, components } from 'src/components/table'
@@ -53,7 +53,7 @@ class WorkflowView extends Component {
     super(props)
 
     this.state = {
-      selectedTab: 'Inputs', loadedWdl: false, untouched: true,
+      selectedTab: 'Inputs', loadedWdl: false, saved: false,
       modifiedAttributes: { inputs: {}, outputs: {} }
     }
   }
@@ -129,7 +129,7 @@ class WorkflowView extends Component {
             value: modifiedAttributes.rootEntityType || config.rootEntityType,
             onChange: rootEntityType => {
               modifiedAttributes.rootEntityType = rootEntityType.value
-              this.setState({ modifiedAttributes, modified: true, untouched: false })
+              this.setState({ modifiedAttributes, modified: true })
             },
             options: entityTypes
           })
@@ -142,7 +142,7 @@ class WorkflowView extends Component {
   }
 
   renderTabs = () => {
-    const { selectedTab, modified, saving, untouched } = this.state
+    const { selectedTab, modified, saving, saved } = this.state
 
     return h(Fragment, [
       div(
@@ -175,8 +175,9 @@ class WorkflowView extends Component {
           [
             div({ style: { flexGrow: 1 } }),
             saving && miniMessage('Saving...'),
-            !untouched && !saving && !modified && miniMessage('Saved!'),
-            modified && buttonPrimary({ disabled: saving, onClick: () => this.save() }, 'Save')
+            saved && !saving && !modified && miniMessage('Saved!'),
+            modified && buttonPrimary({ disabled: saving, onClick: () => this.save() }, 'Save'),
+            modified && link({ style: { margin: '1rem' }, disabled: saving, onClick: () => this.cancel() }, 'Cancel')
           ])),
       div(
         {
@@ -261,7 +262,7 @@ class WorkflowView extends Component {
                     placeholder: optional ? 'Optional' : 'Required',
                     onChange: e => {
                       modifiedAttributes[key][name] = e.target.value
-                      this.setState({ modifiedAttributes, modified: true, untouched: false })
+                      this.setState({ modifiedAttributes, modified: true })
                     },
                     style: { margin: '-10px 0 -6px' }
                   })
@@ -300,7 +301,11 @@ class WorkflowView extends Component {
     await Rawls.workspace(workspaceNamespace, workspaceName)
       .methodConfig(workflowNamespace, workflowName)
       .save(_.merge(config, modifiedAttributes))
-    this.setState({ saving: false, modified: false, modifiedAttributes: { inputs: {}, outputs: {} } })
+    this.setState({ saving: false, saved: true, modified: false, modifiedAttributes: { inputs: {}, outputs: {} } })
+  }
+
+  cancel = () => {
+    this.setState({ modified: false, saved: false, modifiedAttributes: { inputs: {}, outputs: {} } })
   }
 }
 
