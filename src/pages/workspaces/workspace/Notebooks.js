@@ -191,15 +191,12 @@ export default class WorkspaceNotebooks extends Component {
     this.setState({ clusters: undefined, cluster: undefined })
     Leo.clustersList().then(
       list => {
-        const cluster = _.find(list,
-          c => c.googleProject === namespace &&
-            c.creator === Utils.getUser().getBasicProfile().getEmail())
+        const cluster = _.find(list, { googleProject: namespace, creator: Utils.getUser().getBasicProfile().getEmail() })
         if (cluster) {
           Leo.notebooks(namespace, cluster.clusterName).setCookie().then(() => this.setState({ cluster }, this.getNotebooks))
         }
 
-        const owned = _.filter(list,
-          c => (c.creator === Utils.getUser().getBasicProfile().getEmail()))
+        const owned = _.filter(list, { creator: Utils.getUser().getBasicProfile().getEmail() })
         this.setState({ clusters: _.sortBy(owned, 'clusterName') })
       },
       listFailure => this.setState({ listFailure })
@@ -265,7 +262,8 @@ export default class WorkspaceNotebooks extends Component {
     return div({ style: { display: listView ? undefined : 'flex', flexWrap: 'wrap' } },
       _.map(notebooks, ({ name, updated }) => h(NotebookCard, {
         name, updated, listView, notebookAccess: notebookAccess[name], bucketName,
-        clusterUrl: cluster.clusterUrl, namespace, wsName,
+        clusterUrl: cluster && cluster.clusterUrl, // on starting a paused cluster it will briefly report as blank
+        namespace, wsName,
         reloadList: () => this.getNotebooks()
       })))
   }
