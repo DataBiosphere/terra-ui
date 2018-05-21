@@ -2,7 +2,7 @@ import _ from 'lodash'
 import { Fragment } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
-import * as Breadcrumbs from 'src/components/breadcrumbs'
+import * as breadcrumbs from 'src/components/breadcrumbs'
 import { buttonPrimary } from 'src/components/common'
 import { spinner } from 'src/components/icons'
 import { textInput } from 'src/components/input'
@@ -71,11 +71,7 @@ class WorkflowView extends Component {
     return workspaceContainer(
       {
         ...workspaceId,
-        breadcrumbs: [
-          Breadcrumbs.commonElements.workspaces(),
-          Breadcrumbs.commonElements.workspaceDashboard(workspaceId),
-          Breadcrumbs.commonElements.workspaceTab(workspaceId, 'tools')
-        ],
+        breadcrumbs: breadcrumbs.commonPaths.workspaceTab(workspaceId, 'tools'),
         title: workflowName, activeTab: 'tools'
       },
       [

@@ -14,11 +14,12 @@ import { workspaceContainer } from 'src/pages/workspaces/workspace/workspaceCont
 export default class WorkspaceDashboard extends Component {
   render() {
     const { modal, workspace, workspaceFailure } = this.state
+    const { namespace, name } = this.props
 
     return workspaceContainer(
       {
-        ...this.props,
-        breadcrumbs: [breadcrumbs.commonElements.workspaces()],
+        namespace, name,
+        breadcrumbs: breadcrumbs.commonPaths.workspaceList(),
         activeTab: 'dashboard'
       },
       [

@@ -19,14 +19,12 @@ class WorkspaceTools extends Component {
 
   render() {
     const { configs, itemsPerPage } = this.state
+    const workspaceId = _.pick(this.props, ['namespace', 'name'])
 
     return workspaceContainer(
       {
-        ...this.props,
-        breadcrumbs: [
-          breadcrumbs.commonElements.workspaces(),
-          breadcrumbs.commonElements.workspaceDashboard(this.props)
-        ],
+        ...workspaceId,
+        breadcrumbs: breadcrumbs.commonPaths.workspaceDashboard(workspaceId),
         title: 'Tools', activeTab: 'tools'
       },
       [
@@ -50,8 +48,8 @@ class WorkspaceTools extends Component {
                 }, [
                   link({
                     href: Nav.getLink('workflow', {
-                      workspaceNamespace: this.props.namespace,
-                      workspaceName: this.props.name,
+                      workspaceNamespace: workspaceId.namespace,
+                      workspaceName: workspaceId.name,
                       workflowNamespace: namespace,
                       workflowName: name
                     }),

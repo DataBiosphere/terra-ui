@@ -281,15 +281,12 @@ class WorkspaceNotebooks extends Component {
       bucketName, clusters, creatingCluster, listFailure, notebooks, notebooksFailure, listView
     } = this.state
 
-    const { namespace } = this.props
+    const { namespace, name } = this.props
 
     return workspaceContainer(
       {
-        ...this.props,
-        breadcrumbs: [
-          breadcrumbs.commonElements.workspaces(),
-          breadcrumbs.commonElements.workspaceDashboard(this.props)
-        ],
+        namespace, name,
+        breadcrumbs: breadcrumbs.commonPaths.workspaceDashboard({ namespace, name }),
         title: 'Notebooks', activeTab: 'notebooks'
       },
       [

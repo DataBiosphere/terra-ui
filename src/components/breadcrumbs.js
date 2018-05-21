@@ -22,13 +22,17 @@ export const breadcrumbElement = function(child, href) {
   }
 }
 
-// These are functions, because this value is executed before nav paths exist
-export const commonElements = {
-  workspaces: () => breadcrumbElement('Projects', Nav.getLink('workspaces')),
 
-  workspaceDashboard: ({ namespace, name }) =>
-    breadcrumbElement(`${namespace}/${name}`, Nav.getLink('workspace', { namespace, name })),
+export const commonPaths = {
+  workspaceList: () => [breadcrumbElement('Projects', Nav.getLink('workspaces'))],
 
-  workspaceTab: ({ namespace, name }, activeTab) =>
-    breadcrumbElement(activeTab, Nav.getLink(`workspace-${activeTab}`, { namespace, name, activeTab }))
+  workspaceDashboard: ({ namespace, name }) => [
+    ...commonPaths.workspaceList(),
+    breadcrumbElement(`${namespace}/${name}`, Nav.getLink('workspace', { namespace, name }))
+  ],
+
+  workspaceTab: ({ namespace, name }, activeTab) => [
+    ...commonPaths.workspaceDashboard({ namespace, name }),
+    breadcrumbElement(activeTab, Nav.getLink(`workspace-${activeTab}`, { namespace, name }))
+  ]
 }

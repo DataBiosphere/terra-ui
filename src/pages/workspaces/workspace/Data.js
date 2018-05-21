@@ -44,6 +44,7 @@ class WorkspaceData extends Component {
 
   render() {
     const { selectedEntityType, selectedEntities, workspaceEntities, entitiesFailure, entityFailure } = this.state
+    const { namespace, name } = this.props
 
     const entityTypeList = () => _.map(workspaceEntities, (typeDetails, type) =>
       div({
@@ -88,11 +89,8 @@ class WorkspaceData extends Component {
 
     return workspaceContainer(
       {
-        ...this.props,
-        breadcrumbs: [
-          breadcrumbs.commonElements.workspaces(),
-          breadcrumbs.commonElements.workspaceDashboard(this.props)
-        ],
+        namespace, name,
+        breadcrumbs: breadcrumbs.commonPaths.workspaceDashboard({ namespace, name }),
         title: 'Data', activeTab: 'data'
       },
       [
