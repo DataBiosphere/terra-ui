@@ -4,7 +4,7 @@ import { div, h, span } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { buttonPrimary, link } from 'src/components/common'
-import { spinner } from 'src/components/icons'
+import { icon, spinner } from 'src/components/icons'
 import { textInput } from 'src/components/input'
 import { DataTable, components } from 'src/components/table'
 import WDLViewer from 'src/components/WDLViewer'
@@ -103,8 +103,9 @@ class WorkflowView extends Component {
         entityTypes: _.map(_.keys(entities), e => ({ value: e, label: e.replace('_', ' ') }))
       }))
 
-    const config = await workspace.methodConfig(workflowNamespace, workflowName).get()
-    this.setState({ config })
+    const { invalidInputs, invalidOutputs, methodConfiguration: config } =
+      await workspace.methodConfig(workflowNamespace, workflowName).validate()
+    this.setState({ invalid: { inputs: invalidInputs, outputs: invalidOutputs }, config })
 
     const inputsOutputs = await Rawls.methodConfigInputsOutputs(config)
     _.update(inputsOutputs, 'inputs', preprocessIOList)
@@ -256,16 +257,26 @@ class WorkflowView extends Component {
                   if (value === undefined) {
                     value = config[key][name]
                   }
-                  return textInput({
-                    name, value,
-                    type: 'search',
-                    placeholder: optional ? 'Optional' : 'Required',
-                    onChange: e => {
-                      modifiedAttributes[key][name] = e.target.value
-                      this.setState({ modifiedAttributes, modified: true })
-                    },
-                    style: { margin: '-10px 0 -6px' }
-                  })
+
+                  const error = !optional && !value ?
+                    'This attribute is required' :
+                    this.state.invalid[key][name]
+
+                  return div({ style: { display: 'flex', alignItems: 'center', margin: '-10px -0.5rem -6px 0' } }, [
+                    textInput({
+                      name, value,
+                      type: 'search',
+                      placeholder: optional ? 'Optional' : 'Required',
+                      onChange: e => {
+                        modifiedAttributes[key][name] = e.target.value
+                        this.setState({ modifiedAttributes, modified: true })
+                      }
+                    }),
+                    error && icon('error', {
+                      title: error,
+                      size: 28, style: { marginLeft: '0.5rem', color: Style.colors.error }
+                    })
+                  ])
                 }
               }
             ]
@@ -298,10 +309,15 @@ class WorkflowView extends Component {
     const { config, modifiedAttributes } = this.state
 
     this.setState({ saving: true })
-    await Rawls.workspace(workspaceNamespace, workspaceName)
-      .methodConfig(workflowNamespace, workflowName)
-      .save(_.merge(config, modifiedAttributes))
-    this.setState({ saving: false, saved: true, modified: false, modifiedAttributes: { inputs: {}, outputs: {} } })
+    const { invalidInputs, invalidOutputs, methodConfiguration } =
+      await Rawls.workspace(workspaceNamespace, workspaceName)
+        .methodConfig(workflowNamespace, workflowName)
+        .save(_.merge(config, modifiedAttributes))
+
+    this.setState({
+      saving: false, saved: true, modified: false, modifiedAttributes: { inputs: {}, outputs: {} },
+      invalid: { inputs: invalidInputs, outputs: invalidOutputs }, config: methodConfiguration
+    })
   }
 
   cancel = () => {
