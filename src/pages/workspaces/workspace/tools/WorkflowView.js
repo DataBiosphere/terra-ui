@@ -38,10 +38,12 @@ const styleForOptional = (optional, text) =>
 const miniMessage = text =>
   span({ style: { fontWeight: 500, fontSize: '75%', marginRight: '1rem', textTransform: 'uppercase' } }, [text])
 
-const extractTaskAndVariable = list => {
+const preprocessIOList = list => {
   return _.map(list, entry => {
-    const [task, variable] = _.takeRight(_.split(entry.name, '.'), 2)
-    return _.merge(entry, { task, variable })
+    const { name, inputType, outputType } = entry
+    const type = (inputType || outputType).match(/(.*?)\??$/)[1] // unify, and strip off trailing '?'
+    const [task, variable] = _.takeRight(_.split(name, '.'), 2)
+    return _.merge(entry, { task, variable, type })
   })
 }
 
@@ -101,8 +103,8 @@ class WorkflowView extends Component {
     this.setState({ config })
 
     const inputsOutputs = await Rawls.methodConfigInputsOutputs(config)
-    _.update(inputsOutputs, 'inputs', extractTaskAndVariable)
-    _.update(inputsOutputs, 'outputs', extractTaskAndVariable)
+    _.update(inputsOutputs, 'inputs', preprocessIOList)
+    _.update(inputsOutputs, 'outputs', preprocessIOList)
     this.setState({ inputsOutputs })
   }
 
@@ -226,8 +228,8 @@ class WorkflowView extends Component {
               },
               {
                 key: 'type', width: 160,
-                render: ({ inputType, outputType, optional }) =>
-                  styleForOptional(optional, inputType || outputType)
+                render: ({ type, optional }) =>
+                  styleForOptional(optional, type)
               },
               {
                 key: 'attribute', width: '100%',
