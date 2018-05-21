@@ -28,7 +28,7 @@ async function createClusters() {
   const projectsWithoutClusters = _.difference(
     _.uniq(_.map(billingProjects, 'projectName')), // in case of being both a user and an admin of a project
     _.map(
-      _.filter(clusters, c => c.creator === userProfile.getEmail()),
+      _.filter(clusters, { creator: userProfile.getEmail() }),
       'googleProject'
     )
   )

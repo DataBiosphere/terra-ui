@@ -188,15 +188,12 @@ export default class WorkspaceNotebooks extends Component {
     this.setState({ clusters: undefined, cluster: undefined })
     Leo.clustersList().then(
       list => {
-        const cluster = _.find(list,
-          c => c.googleProject === namespace &&
-            c.creator === Utils.getUser().getBasicProfile().getEmail())
+        const cluster = _.find(list, {googleProject: namespace, creator: Utils.getUser().getBasicProfile().getEmail()})
         if (cluster) {
           Leo.notebooks(namespace, cluster.clusterName).setCookie().then(() => this.setState({ cluster }, this.getNotebooks))
         }
 
-        const owned = _.filter(list,
-          c => (c.creator === Utils.getUser().getBasicProfile().getEmail()))
+        const owned = _.filter(list, {creator: Utils.getUser().getBasicProfile().getEmail()})
         this.setState({ clusters: _.sortBy(owned, 'clusterName') })
       },
       listFailure => this.setState({ listFailure })
