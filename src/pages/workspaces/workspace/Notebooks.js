@@ -184,13 +184,17 @@ class NotebookCard extends Component {
 }
 
 class WorkspaceNotebooks extends Component {
-  async componentWillMount() {
+  async refresh() {
     this.loadClusters()
 
     const { namespace, name } = this.props
 
     const { workspace: { bucketName } } = await Rawls.workspace(namespace, name).details()
     this.setState({ bucketName })
+  }
+
+  componentWillMount() {
+    this.refresh()
   }
 
   loadClusters() {
@@ -285,7 +289,7 @@ class WorkspaceNotebooks extends Component {
 
     return h(WorkspaceContainer,
       {
-        namespace, name,
+        namespace, name, refresh: () => this.refresh(),
         breadcrumbs: breadcrumbs.commonPaths.workspaceDashboard({ namespace, name }),
         title: 'Notebooks', activeTab: 'notebooks'
       },

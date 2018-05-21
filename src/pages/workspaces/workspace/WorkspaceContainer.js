@@ -27,10 +27,13 @@ const tabActiveStyle = {
   borderBottom: `4px solid ${Style.colors.secondary}`
 }
 
-const navTab = (tabName, { namespace, name, activeTab }) => {
+const navTab = (tabName, { namespace, name, activeTab, refresh }) => {
+  const selected = tabName === activeTab
+
   return h(Fragment, [
     a({
-      style: tabName === activeTab ? tabActiveStyle : tabBaseStyle,
+      style: selected ? tabActiveStyle : tabBaseStyle,
+      onClick: selected && refresh,
       href: Utils.cond(
         [tabName === 'dashboard', () => Nav.getLink('workspace', { namespace, name })],
         // because not all tabs are implemented:
@@ -87,8 +90,8 @@ const tabBar = props => contextBar(
 
 export default class WorkspaceContainer extends Component {
   render() {
-    const { namespace, name, breadcrumbs, title, activeTab } = this.props
-    const tabProps = { namespace, name, activeTab }
+    const { namespace, name, breadcrumbs, title, activeTab, refresh } = this.props
+    const tabProps = { namespace, name, activeTab, refresh }
 
     return div({ style: { display: 'flex', flexDirection: 'column', height: '100%' } }, [
       h(TopBar, { title: 'Projects' }, [

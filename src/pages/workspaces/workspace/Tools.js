@@ -18,13 +18,21 @@ class WorkspaceTools extends Component {
     this.state = { itemsPerPage: 6, pageNumber: 1 }
   }
 
+  refresh() {
+    const { namespace, name } = this.props
+
+    this.setState({ configs: undefined })
+    Rawls.workspace(namespace, name).listMethodConfigs()
+      .then(configs => this.setState({ configs }))
+  }
+
   render() {
     const { configs, itemsPerPage } = this.state
     const workspaceId = _.pick(this.props, ['namespace', 'name'])
 
     return h(WorkspaceContainer,
       {
-        ...workspaceId,
+        ...workspaceId, refresh: () => this.refresh(),
         breadcrumbs: breadcrumbs.commonPaths.workspaceDashboard(workspaceId),
         title: 'Tools', activeTab: 'tools'
       },
@@ -76,10 +84,7 @@ class WorkspaceTools extends Component {
   }
 
   componentDidMount() {
-    const { namespace, name } = this.props
-
-    Rawls.workspace(namespace, name).listMethodConfigs()
-      .then(configs => this.setState({ configs }))
+    this.refresh()
   }
 }
 

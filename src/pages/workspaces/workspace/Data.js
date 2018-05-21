@@ -19,6 +19,21 @@ class WorkspaceData extends Component {
     this.state = StateHistory.get()
   }
 
+  refresh() {
+    const { namespace, name } = this.props
+    const { selectedEntityType } = this.state
+
+    this.setState({ workspaceEntities: undefined, entitiesFailure: undefined })
+    Rawls.workspace(namespace, name).entities().then(
+      workspaceEntities => this.setState({ workspaceEntities }),
+      entitiesFailure => this.setState({ entitiesFailure })
+    )
+
+    if (selectedEntityType) {
+      this.loadEntities(selectedEntityType)
+    }
+  }
+
   loadEntities(type) {
     const { namespace, name } = this.props
 
@@ -29,17 +44,7 @@ class WorkspaceData extends Component {
   }
 
   componentWillMount() {
-    const { namespace, name } = this.props
-    const { selectedEntityType } = this.state
-
-    Rawls.workspace(namespace, name).entities().then(
-      workspaceEntities => this.setState({ workspaceEntities }),
-      entitiesFailure => this.setState({ entitiesFailure })
-    )
-
-    if (selectedEntityType) {
-      this.loadEntities(selectedEntityType)
-    }
+    this.refresh()
   }
 
   render() {
@@ -89,7 +94,7 @@ class WorkspaceData extends Component {
 
     return h(WorkspaceContainer,
       {
-        namespace, name,
+        namespace, name, refresh: () => this.refresh(),
         breadcrumbs: breadcrumbs.commonPaths.workspaceDashboard({ namespace, name }),
         title: 'Data', activeTab: 'data'
       },

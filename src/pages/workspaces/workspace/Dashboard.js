@@ -12,13 +12,23 @@ import WorkspaceContainer from 'src/pages/workspaces/workspace/WorkspaceContaine
 
 
 export default class WorkspaceDashboard extends Component {
+  refresh() {
+    const { namespace, name } = this.props
+
+    this.setState({ workspace: undefined, workspaceFailure: undefined })
+    Rawls.workspace(namespace, name).details().then(
+      workspace => this.setState({ workspace }),
+      workspaceFailure => this.setState({ workspaceFailure })
+    )
+  }
+
   render() {
     const { modal, workspace, workspaceFailure } = this.state
     const { namespace, name } = this.props
 
     return h(WorkspaceContainer,
       {
-        namespace, name,
+        namespace, name, refresh: () => this.refresh(),
         breadcrumbs: breadcrumbs.commonPaths.workspaceList(),
         activeTab: 'dashboard'
       },
@@ -50,12 +60,7 @@ export default class WorkspaceDashboard extends Component {
   }
 
   componentDidMount() {
-    const { namespace, name } = this.props
-
-    Rawls.workspace(namespace, name).details().then(
-      workspace => this.setState({ workspace }),
-      workspaceFailure => this.setState({ workspaceFailure })
-    )
+    this.refresh()
   }
 }
 
