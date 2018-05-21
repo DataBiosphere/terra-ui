@@ -9,7 +9,7 @@ import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
-import { workspaceContainer } from 'src/pages/workspaces/workspace/workspaceContainer'
+import WorkspaceContainer from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
 
 class WorkspaceData extends Component {
@@ -87,7 +87,7 @@ class WorkspaceData extends Component {
     })
 
 
-    return workspaceContainer(
+    return h(WorkspaceContainer,
       {
         namespace, name,
         breadcrumbs: breadcrumbs.commonPaths.workspaceDashboard({ namespace, name }),

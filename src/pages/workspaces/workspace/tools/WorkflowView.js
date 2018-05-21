@@ -12,7 +12,7 @@ import { Agora, Dockstore, Rawls } from 'src/libs/ajax'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import { Component } from 'src/libs/wrapped-components'
-import { workspaceContainer } from 'src/pages/workspaces/workspace/workspaceContainer'
+import WorkspaceContainer from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
 
 const sideMargin = '3rem'
@@ -68,7 +68,7 @@ class WorkflowView extends Component {
     const { workspaceNamespace, workspaceName, workflowName } = this.props
     const workspaceId = { namespace: workspaceNamespace, name: workspaceName }
 
-    return workspaceContainer(
+    return h(WorkspaceContainer,
       {
         ...workspaceId,
         breadcrumbs: breadcrumbs.commonPaths.workspaceTab(workspaceId, 'tools'),

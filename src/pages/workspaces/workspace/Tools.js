@@ -9,7 +9,7 @@ import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
-import { workspaceContainer } from 'src/pages/workspaces/workspace/workspaceContainer'
+import WorkspaceContainer from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
 
 class WorkspaceTools extends Component {
@@ -22,7 +22,7 @@ class WorkspaceTools extends Component {
     const { configs, itemsPerPage } = this.state
     const workspaceId = _.pick(this.props, ['namespace', 'name'])
 
-    return workspaceContainer(
+    return h(WorkspaceContainer,
       {
         ...workspaceId,
         breadcrumbs: breadcrumbs.commonPaths.workspaceDashboard(workspaceId),

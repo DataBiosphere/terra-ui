@@ -8,7 +8,7 @@ import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
-import { workspaceContainer } from 'src/pages/workspaces/workspace/workspaceContainer'
+import WorkspaceContainer from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
 
 export default class WorkspaceDashboard extends Component {
@@ -16,7 +16,7 @@ export default class WorkspaceDashboard extends Component {
     const { modal, workspace, workspaceFailure } = this.state
     const { namespace, name } = this.props
 
-    return workspaceContainer(
+    return h(WorkspaceContainer,
       {
         namespace, name,
         breadcrumbs: breadcrumbs.commonPaths.workspaceList(),

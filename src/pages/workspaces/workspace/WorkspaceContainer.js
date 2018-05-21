@@ -9,6 +9,7 @@ import { TopBar } from 'src/components/TopBar'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
+import { Component } from 'src/libs/wrapped-components'
 
 
 const navSeparator = div({
@@ -84,18 +85,20 @@ const tabBar = props => contextBar(
 )
 
 
-export const workspaceContainer = (props, children) => {
-  const { namespace, name, breadcrumbs, title } = props
+export default class WorkspaceContainer extends Component {
+  render() {
+    const { namespace, name, breadcrumbs, title } = this.props
 
-  return div({ style: { display: 'flex', flexDirection: 'column', height: '100%' } }, [
-    h(TopBar, { title: 'Projects' }, [
-      div({ style: { display: 'flex', flexDirection: 'column', paddingLeft: '4rem' } },
-        [
-          div({}, breadcrumbs),
-          div({ style: { fontSize: '1.25rem' } }, [title || `${namespace}/${name}`])
-        ])
-    ]),
-    tabBar(props),
-    children
-  ])
+    return div({ style: { display: 'flex', flexDirection: 'column', height: '100%' } }, [
+      h(TopBar, { title: 'Projects' }, [
+        div({ style: { display: 'flex', flexDirection: 'column', paddingLeft: '4rem' } },
+          [
+            div({}, breadcrumbs),
+            div({ style: { fontSize: '1.25rem' } }, [title || `${namespace}/${name}`])
+          ])
+      ]),
+      tabBar(this.props),
+      this.props.children
+    ])
+  }
 }
