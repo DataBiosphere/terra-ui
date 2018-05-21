@@ -1,3 +1,4 @@
+import _ from 'lodash'
 import { div, h } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { link } from 'src/components/common'
