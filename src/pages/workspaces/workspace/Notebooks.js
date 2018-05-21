@@ -259,7 +259,7 @@ export default class WorkspaceNotebooks extends Component {
     return div({ style: { display: listView ? undefined : 'flex', flexWrap: 'wrap' } },
       _.map(notebooks, ({ name, updated }) => h(NotebookCard, {
         name, updated, listView, notebookAccess: notebookAccess[name], bucketName,
-        clusterUrl: cluster && cluster.clusterUrl,
+        clusterUrl: cluster && cluster.clusterUrl, // on starting a paused cluster it will briefly report as blank
         namespace, wsName,
         reloadList: () => this.getNotebooks()
       })))
