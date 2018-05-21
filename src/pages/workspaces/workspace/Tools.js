@@ -1,4 +1,3 @@
-import _ from 'lodash'
 import { div, h } from 'react-hyperscript-helpers'
 import { link } from 'src/components/common'
 import { icon, spinner } from 'src/components/icons'
@@ -31,10 +30,11 @@ export default class WorkspaceTools extends Component {
           renderCard: config => {
             const { name, namespace, methodRepoMethod: { sourceRepo, methodVersion } } = config
             return div({
-              style: _.defaults({
+              style: {
+                ...Style.elements.card,
                 width: '30%', margin: '1rem 1.5rem', textDecoration: 'none',
                 color: Style.colors.text
-              }, Style.elements.card)
+              }
             }, [
               link({
                 href: Nav.getLink('workflow', {

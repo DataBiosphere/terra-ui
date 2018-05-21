@@ -67,7 +67,7 @@ export default class Modal extends Component {
         }, [
           showCancel ?
             div({
-              style: _.merge({ marginRight: '1rem' }, Style.elements.button),
+              style: { ...Style.elements.button, marginRight: '1rem' },
               onClick: onDismiss
             }, 'Cancel') :
             null,

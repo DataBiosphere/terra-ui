@@ -97,9 +97,11 @@ class NotebookCard extends Component {
 
     const title = div({
       title: printName,
-      style: _.defaults(notebookAccess ? {} : { color: Style.colors.disabled },
-        Style.elements.cardTitle,
-        { textOverflow: 'ellipsis', whiteSpace: 'nowrap', overflow: 'hidden' })
+      style: {
+        ...Style.elements.cardTitle,
+        textOverflow: 'ellipsis', whiteSpace: 'nowrap', overflow: 'hidden',
+        ...(notebookAccess ? {} : { color: Style.colors.disabled })
+      }
     }, printName)
 
     const statusIcon = Utils.cond(
@@ -114,7 +116,8 @@ class NotebookCard extends Component {
         href: notebookAccess ?
           `${clusterUrl}/notebooks/${wsName}/${printName}.ipynb` : // removes 'notebooks/'
           undefined,
-        style: _.defaults({
+        style: {
+          ...Style.elements.card,
           flexShrink: 0,
           width: listView ? undefined : 200,
           height: listView ? undefined : 250,
@@ -124,7 +127,7 @@ class NotebookCard extends Component {
           display: 'flex', flexDirection: listView ? 'row' : 'column',
           justifyContent: listView ? undefined : 'space-between',
           alignItems: listView ? 'center' : undefined
-        }, Style.elements.card)
+        }
       },
       listView ? [
         jupyterIcon,

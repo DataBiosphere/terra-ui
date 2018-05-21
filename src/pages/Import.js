@@ -44,7 +44,7 @@ class DockstoreImporter extends Component {
       return div(
         { style: { flex, overflow: 'hidden', margin: '3rem' } },
         [
-          div({ style: _.merge({ fontWeight: 500, marginBottom: '1rem' }, Style.elements.sectionHeader) }, title),
+          div({ style: { ...Style.elements.sectionHeader, fontWeight: 500, marginBottom: '1rem' } }, title),
           contents
         ])
     }
