@@ -11,7 +11,7 @@ import WDLViewer from 'src/components/WDLViewer'
 import { Agora, Dockstore, Rawls } from 'src/libs/ajax'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
-import { Component } from 'src/libs/wrapped-components'
+import { Component, Select } from 'src/libs/wrapped-components'
 import WorkspaceContainer from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
 
@@ -96,10 +96,14 @@ class WorkflowView extends Component {
 
   async componentDidMount() {
     const { workspaceNamespace, workspaceName, workflowNamespace, workflowName } = this.props
+    const workspace = Rawls.workspace(workspaceNamespace, workspaceName)
 
-    const config = await Rawls.workspace(workspaceNamespace, workspaceName)
-      .methodConfig(workflowNamespace, workflowName)
-      .get()
+    workspace.entities().then(entities =>
+      this.setState({
+        entityTypes: _.map(_.keys(entities), e => ({ value: e, label: e.replace('_', ' ') }))
+      }))
+
+    const config = await workspace.methodConfig(workflowNamespace, workflowName).get()
     this.setState({ config })
 
     const inputsOutputs = await Rawls.methodConfigInputsOutputs(config)
@@ -109,14 +113,27 @@ class WorkflowView extends Component {
   }
 
   renderSummary = () => {
-    const { name, methodConfigVersion, rootEntityType, methodRepoMethod: { methodPath } } = this.state.config
+    const { modifiedAttributes, config, entityTypes } = this.state
+    const { name, methodConfigVersion, methodRepoMethod: { methodPath } } = config
 
     return div({ style: { display: 'flex' } }, [
       div({ style: { flex: '1 1 auto', lineHeight: '1.5rem' } }, [
         div({ style: { color: Style.colors.title, fontSize: 24 } }, name),
         div(`V. ${methodConfigVersion}`),
         methodPath && div(`Path: ${methodPath}`),
-        div({ style: { textTransform: 'capitalize' } }, `Data Type: ${rootEntityType}`)
+        div({ style: { textTransform: 'capitalize', display: 'flex', alignItems: 'baseline', marginTop: '0.5rem' } }, [
+          'Data Type:',
+          Select({
+            clearable: false, searchable: false,
+            wrapperStyle: { display: 'inline-block', width: 200, marginLeft: '0.5rem' },
+            value: modifiedAttributes.rootEntityType || config.rootEntityType,
+            onChange: rootEntityType => {
+              modifiedAttributes.rootEntityType = rootEntityType.value
+              this.setState({ modifiedAttributes, modified: true, untouched: false })
+            },
+            options: entityTypes
+          })
+        ])
       ]),
       div({ style: { flex: '0 0 auto' } }, [
         buttonPrimary({ disabled: true }, 'Launch analysis')
