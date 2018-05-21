@@ -23,12 +23,13 @@ export const buttonPrimary = function(props, children) {
   return h(Interactive,
     _.merge({
       as: 'button',
-      style: _.defaults({
+      style: {
+        ...Style.elements.button,
         border: 'none', borderRadius: 5, color: 'white',
         height: '2.25rem', paddingLeft: '1.5rem', paddingRight: '1.5rem',
         backgroundColor: props.disabled ? Style.colors.disabled : Style.colors.secondary,
         cursor: props.disabled ? 'not-allowed' : 'pointer'
-      }, Style.elements.button),
+      },
       hover: props.disabled ? undefined : { backgroundColor: Style.colors.primary }
     }, props),
     children)
