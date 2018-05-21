@@ -1,6 +1,7 @@
 import _ from 'lodash'
 import { div, h, input } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
+import { StatefulToolTip } from 'react-portal-tooltip'
 import { icon } from 'src/components/icons'
 import * as Style from 'src/libs/style'
 
@@ -98,3 +99,13 @@ export const Checkbox = ({ checked, onChange, disabled, ...props }) => {
     icon(checked ? 'checkSquare' : 'square', { size: 16 })
   ])
 }
+
+export const tooltip = ({ component, position = 'bottom', arrow = 'right', align = 'right', text, ...props }) =>
+  h(StatefulToolTip, {
+    parent: component,
+    position, arrow, align,
+    group: _.uniqueId(), tooltipTimeout: 0,
+    style: { style: { whiteSpace: 'nowrap', transition: 'none' }, arrowStyle: {} },
+    ...props
+  }, text)
+

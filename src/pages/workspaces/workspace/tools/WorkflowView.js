@@ -3,7 +3,7 @@ import { Fragment } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { buttonPrimary, link } from 'src/components/common'
+import { buttonPrimary, link, tooltip } from 'src/components/common'
 import { icon, spinner } from 'src/components/icons'
 import { textInput } from 'src/components/input'
 import { DataTable, components } from 'src/components/table'
@@ -272,9 +272,11 @@ class WorkflowView extends Component {
                         this.setState({ modifiedAttributes, modified: true })
                       }
                     }),
-                    error && icon('error', {
-                      title: error,
-                      size: 28, style: { marginLeft: '0.5rem', color: Style.colors.error }
+                    error && tooltip({
+                      component: icon('error', {
+                        size: 28, style: { marginLeft: '0.5rem', color: Style.colors.error, cursor: 'help' }
+                      }),
+                      text: error
                     })
                   ])
                 }
