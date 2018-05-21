@@ -87,7 +87,8 @@ const tabBar = props => contextBar(
 
 export default class WorkspaceContainer extends Component {
   render() {
-    const { namespace, name, breadcrumbs, title } = this.props
+    const { namespace, name, breadcrumbs, title, activeTab } = this.props
+    const tabProps = { namespace, name, activeTab }
 
     return div({ style: { display: 'flex', flexDirection: 'column', height: '100%' } }, [
       h(TopBar, { title: 'Projects' }, [
@@ -97,7 +98,7 @@ export default class WorkspaceContainer extends Component {
             div({ style: { fontSize: '1.25rem' } }, [title || `${namespace}/${name}`])
           ])
       ]),
-      tabBar(this.props),
+      tabBar(tabProps),
       this.props.children
     ])
   }
