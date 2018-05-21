@@ -22,15 +22,21 @@ function getUserIsRegisteredAndEnabled() {
 }
 
 async function createClusters() {
+  const userProfile = Utils.getUser().getBasicProfile()
   const [billingProjects, clusters] = await Promise.all(
     [Rawls.listBillingProjects(), Leo.clustersList()])
   const projectsWithoutClusters = _.difference(
-    _.map(billingProjects, 'projectName'),
-    _.map(clusters, 'googleProject')
+    _.uniq(_.map(billingProjects, 'projectName')), // in case of being both a user and an admin of a project
+    _.map(
+      _.filter(clusters, { creator: userProfile.getEmail() }),
+      'googleProject'
+    )
   )
 
   projectsWithoutClusters.forEach(project => {
-    Leo.cluster(project, `launchpad-${project}`).create({
+    Leo.cluster(project,
+      `saturn-${userProfile.getId()}-${project}`.match(/(?:[a-z](?:[-a-z0-9]{0,49}[a-z0-9])?)/)[0] // regex used by google for valid names
+    ).create({
       'labels': {},
       'machineConfig': {
         'numberOfWorkers': 0, 'masterMachineType': 'n1-standard-4',
@@ -97,24 +103,30 @@ export default class AuthContainer extends Component {
       ]),
       h2({ style: { marginTop: '4rem', color: colors.textFaded } }, 'New User Registration'),
       div({ style: { marginTop: '3rem', display: 'flex' } }, [
-        div({ style: { lineHeight: '170%' } }, ['First Name', br(),
+        div({ style: { lineHeight: '170%' } }, [
+          'First Name', br(),
           textInput({
             value: this.state.givenName,
             onChange: e => this.setState({ givenName: e.target.value })
-          })]),
+          })
+        ]),
         div({ style: { width: '1rem' } }),
-        div({ style: { lineHeight: '170%' } }, ['Last Name', br(), textInput({
-          value: this.state.familyName,
-          onChange: e => this.setState({ familyName: e.target.value })
-        })])
+        div({ style: { lineHeight: '170%' } }, [
+          'Last Name', br(), textInput({
+            value: this.state.familyName,
+            onChange: e => this.setState({ familyName: e.target.value })
+          })
+        ])
       ]),
       div({ style: { lineHeight: '170%' } }, [
         div({ style: { marginTop: '2rem' } }, 'Contact Email for Notifications'),
-        div({}, [textInput({
-          value: this.state.email,
-          onChange: e => this.setState({ email: e.target.value }),
-          style: { width: '50ex' }
-        })])
+        div({}, [
+          textInput({
+            value: this.state.email,
+            onChange: e => this.setState({ email: e.target.value }),
+            style: { width: '50ex' }
+          })
+        ])
       ]),
       div({ style: { marginTop: '3rem' } }, [
         buttonPrimary({ disabled: this.state.busy, onClick: () => this.register() },
