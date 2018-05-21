@@ -1,34 +1,29 @@
 import _ from 'lodash'
 import { div, h } from 'react-hyperscript-helpers'
+import * as breadcrumbs from 'src/components/breadcrumbs'
 import { icon, spinner } from 'src/components/icons'
 import { DataTable } from 'src/components/table'
 import { Rawls } from 'src/libs/ajax'
+import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
+import WorkspaceContainer from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
 
-export default class WorkspaceData extends Component {
+class WorkspaceData extends Component {
   constructor(props) {
     super(props)
 
     this.state = StateHistory.get()
   }
 
-  loadEntities(type) {
-    const { namespace, name } = this.props.workspace
-
-    Rawls.workspace(namespace, name).entity(type).then(
-      selectedEntities => this.setState({ selectedEntities }),
-      entityFailure => this.setState({ entityFailure })
-    )
-  }
-
-  componentWillMount() {
-    const { namespace, name } = this.props.workspace
+  refresh() {
+    const { namespace, name } = this.props
     const { selectedEntityType } = this.state
 
+    this.setState({ workspaceEntities: undefined, entitiesFailure: undefined })
     Rawls.workspace(namespace, name).entities().then(
       workspaceEntities => this.setState({ workspaceEntities }),
       entitiesFailure => this.setState({ entitiesFailure })
@@ -39,8 +34,22 @@ export default class WorkspaceData extends Component {
     }
   }
 
+  loadEntities(type) {
+    const { namespace, name } = this.props
+
+    Rawls.workspace(namespace, name).entity(type).then(
+      selectedEntities => this.setState({ selectedEntities }),
+      entityFailure => this.setState({ entityFailure })
+    )
+  }
+
+  componentWillMount() {
+    this.refresh()
+  }
+
   render() {
     const { selectedEntityType, selectedEntities, workspaceEntities, entitiesFailure, entityFailure } = this.state
+    const { namespace, name } = this.props
 
     const entityTypeList = () => _.map(workspaceEntities, (typeDetails, type) =>
       div({
@@ -83,50 +92,66 @@ export default class WorkspaceData extends Component {
     })
 
 
-    return div({
-      style: {
-        display: 'flex', margin: '1rem', backgroundColor: 'white', borderRadius: 5,
-        boxShadow: Style.standardShadow
-      }
-    },
-    Utils.cond(
-      [entitiesFailure, () => `Couldn't load workspace entities: ${entitiesFailure}`],
-      [!workspaceEntities, () => [spinner({ style: { margin: '2rem auto' } })]],
+    return h(WorkspaceContainer,
+      {
+        namespace, name, refresh: () => this.refresh(),
+        breadcrumbs: breadcrumbs.commonPaths.workspaceDashboard({ namespace, name }),
+        title: 'Data', activeTab: 'data'
+      },
       [
-        _.isEmpty(workspaceEntities),
-        () => [div({ style: { margin: '2rem auto' } }, 'There is no data in this workspace.')]
-      ],
-      () => [
-        div({ style: { flexShrink: 0, borderRight: `1px solid ${Style.colors.disabled}` } }, [
-          div({
-            style: {
-              fontWeight: 500, padding: '0.5rem 1rem',
-              borderBottom: `1px solid ${Style.colors.background}`
-            }
-          }, 'Data Model'),
-          div({ style: { marginBottom: '1rem' } }, entityTypeList())
-        ]),
-        div(
-          {
-            style: {
-              overflow: 'hidden', margin: `1rem ${!selectedEntities ? 'auto' : ''}`
-            }
-          },
+        div({
+          style: {
+            display: 'flex', margin: '1rem', backgroundColor: 'white', borderRadius: 5,
+            boxShadow: Style.standardShadow
+          }
+        },
+        Utils.cond(
+          [entitiesFailure, () => `Couldn't load workspace entities: ${entitiesFailure}`],
+          [!workspaceEntities, () => [spinner({ style: { margin: '2rem auto' } })]],
           [
-            Utils.cond(
-              [entityFailure, () => `Couldn't load ${selectedEntityType}s: ${entityFailure}`],
-              [!selectedEntityType, 'Select a data type.'],
-              [!selectedEntities, spinner],
-              entityTable
+            _.isEmpty(workspaceEntities),
+            () => [div({ style: { margin: '2rem auto' } }, 'There is no data in this workspace.')]
+          ],
+          () => [
+            div({ style: { flexShrink: 0, borderRight: `1px solid ${Style.colors.disabled}` } }, [
+              div({
+                style: {
+                  fontWeight: 500, padding: '0.5rem 1rem',
+                  borderBottom: `1px solid ${Style.colors.background}`
+                }
+              }, 'Data Model'),
+              div({ style: { marginBottom: '1rem' } }, entityTypeList())
+            ]),
+            div(
+              {
+                style: {
+                  overflow: 'hidden', margin: `1rem ${!selectedEntities ? 'auto' : ''}`
+                }
+              },
+              [
+                Utils.cond(
+                  [entityFailure, () => `Couldn't load ${selectedEntityType}s: ${entityFailure}`],
+                  [!selectedEntityType, 'Select a data type.'],
+                  [!selectedEntities, spinner],
+                  entityTable
+                )
+              ]
             )
           ]
-        )
+        ))
       ]
-    ))
+    )
   }
 
   componentDidUpdate() {
     const { workspaceEntities, selectedEntityType, itemsPerPage, pageNumber } = this.state
     StateHistory.update({ workspaceEntities, selectedEntityType, itemsPerPage, pageNumber })
   }
+}
+
+export const addNavPaths = () => {
+  Nav.defPath('workspace-data', {
+    path: '/workspaces/:namespace/:name/data',
+    component: WorkspaceData
+  })
 }
