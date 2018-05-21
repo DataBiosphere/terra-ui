@@ -7,18 +7,24 @@ import * as Import from 'src/pages/Import'
 import * as PrivacyPolicy from 'src/pages/PrivacyPolicy'
 import * as StyleGuide from 'src/pages/StyleGuide'
 import * as WorkspaceList from 'src/pages/workspaces/List'
-import * as WorkspaceContainer from 'src/pages/workspaces/workspace/Container'
+import * as Dashboard from 'src/pages/workspaces/workspace/Dashboard'
+import * as Data from 'src/pages/workspaces/workspace/Data'
+import * as Notebooks from 'src/pages/workspaces/workspace/Notebooks'
+import * as Tools from 'src/pages/workspaces/workspace/Tools'
 import * as WorkflowView from 'src/pages/workspaces/workspace/tools/WorkflowView'
 
 
 const initNavPaths = () => {
   Nav.clearPaths()
   WorkspaceList.addNavPaths()
-  WorkspaceContainer.addNavPaths()
   WorkflowView.addNavPaths()
   StyleGuide.addNavPaths()
   Import.addNavPaths()
   PrivacyPolicy.addNavPaths()
+  Dashboard.addNavPaths()
+  Data.addNavPaths()
+  Notebooks.addNavPaths()
+  Tools.addNavPaths()
 }
 
 export default class Router extends Component {
