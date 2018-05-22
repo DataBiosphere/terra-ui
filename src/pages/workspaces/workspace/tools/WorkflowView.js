@@ -89,7 +89,7 @@ class WorkflowView extends Component {
               this.renderTabs()
             ]),
             this.renderDetail()
-          ]) : [spinner({ style: { marginTop: '2rem' } })]
+          ]) : spinner({ style: { marginTop: '2rem' } })
       ]
     )
   }
@@ -231,6 +231,7 @@ class WorkflowView extends Component {
           customComponents: components.fullWidthTable,
           tableProps: {
             showHeader: false, scroll: { y: 450 },
+            rowKey: 'name',
             columns: [
               {
                 key: 'task-name', width: 350,
