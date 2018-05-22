@@ -1,4 +1,4 @@
-import _ from 'lodash'
+import _ from 'lodash/fp'
 import { div, h } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { link } from 'src/components/common'
@@ -28,7 +28,7 @@ class WorkspaceTools extends Component {
 
   render() {
     const { configs, itemsPerPage } = this.state
-    const workspaceId = _.pick(this.props, ['namespace', 'name'])
+    const workspaceId = _.pick(['namespace', 'name'], this.props)
 
     return h(WorkspaceContainer,
       {

@@ -1,4 +1,4 @@
-import _ from 'lodash'
+import _ from 'lodash/fp'
 import { div, span } from 'react-hyperscript-helpers'
 import { icon } from 'src/components/icons'
 import * as Style from 'src/libs/style'
@@ -15,7 +15,7 @@ export default class Collapse extends Component {
     const { title, titleExpand } = this.props
     const { visible } = this.state
 
-    return div(_.omit(this.props, ['defaultHidden', 'title', 'titleExpand']), [
+    return div(_.omit(['defaultHidden', 'title', 'titleExpand'], this.props), [
       div({ style: { marginBottom: '0.5rem' } }, [
         div(
           {

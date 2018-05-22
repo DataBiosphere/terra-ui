@@ -1,4 +1,4 @@
-import _ from 'lodash'
+import _ from 'lodash/fp'
 import { div, h } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { icon, spinner } from 'src/components/icons'
@@ -51,7 +51,7 @@ class WorkspaceData extends Component {
     const { selectedEntityType, selectedEntities, workspaceEntities, entitiesFailure, entityFailure } = this.state
     const { namespace, name } = this.props
 
-    const entityTypeList = () => _.map(workspaceEntities, (typeDetails, type) =>
+    const entityTypeList = () => _.map((typeDetails, type) =>
       div({
         style: {
           cursor: 'pointer', padding: '0.75rem 1rem',
@@ -65,29 +65,31 @@ class WorkspaceData extends Component {
       [
         icon('table', { style: { color: '#757575', marginRight: '0.5rem' } }),
         `${type} (${typeDetails.count})`
-      ])
-    )
+      ]),
+    workspaceEntities)
 
     const entityTable = () => h(DataTable, {
       defaultItemsPerPage: this.state.itemsPerPage,
       onItemsPerPageChanged: itemsPerPage => this.setState({ itemsPerPage }),
       initialPage: this.state.pageNumber,
       onPageChanged: pageNumber => this.setState({ pageNumber }),
-      dataSource: _.sortBy(selectedEntities, 'name'),
+      dataSource: _.sortBy('name', selectedEntities),
       tableProps: {
         rowKey: 'name',
         scroll: { x: true },
-        columns: _.concat([{
-          title: selectedEntityType + '_id',
-          key: selectedEntityType + '_id',
-          render: entity => entity.name
-        }], _.map(workspaceEntities[selectedEntityType]['attributeNames'], name => {
+        columns: _.concat([
+          {
+            title: selectedEntityType + '_id',
+            key: selectedEntityType + '_id',
+            render: entity => entity.name
+          }
+        ], _.map(name => {
           return {
             title: name,
             key: name,
             render: entity => entity.attributes[name]
           }
-        }))
+        }, workspaceEntities[selectedEntityType]['attributeNames']))
       }
     })
 

@@ -1,4 +1,4 @@
-import _ from 'lodash'
+import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
@@ -6,7 +6,7 @@ import * as breadcrumbs from 'src/components/breadcrumbs'
 import { buttonPrimary, link, tooltip } from 'src/components/common'
 import { icon, spinner } from 'src/components/icons'
 import { textInput } from 'src/components/input'
-import { DataTable, components } from 'src/components/table'
+import { components, DataTable } from 'src/components/table'
 import WDLViewer from 'src/components/WDLViewer'
 import { Agora, Dockstore, Rawls } from 'src/libs/ajax'
 import * as Nav from 'src/libs/nav'
@@ -39,12 +39,12 @@ const miniMessage = text =>
   span({ style: { fontWeight: 500, fontSize: '75%', marginRight: '1rem', textTransform: 'uppercase' } }, [text])
 
 const preprocessIOList = list => {
-  return _.map(list, entry => {
+  return _.map(entry => {
     const { name, inputType, outputType } = entry
     const type = (inputType || outputType).match(/(.*?)\??$/)[1] // unify, and strip off trailing '?'
-    const [task, variable] = _.takeRight(_.split(name, '.'), 2)
+    const [task, variable] = _.takeRight(2, _.split('.', name))
     return _.merge(entry, { task, variable, type })
-  })
+  }, list)
 }
 
 
@@ -100,17 +100,19 @@ class WorkflowView extends Component {
 
     workspace.entities().then(entities =>
       this.setState({
-        entityTypes: _.map(_.keys(entities), e => ({ value: e, label: e.replace('_', ' ') }))
+        entityTypes: _.map(e => ({ value: e, label: e.replace('_', ' ') }), _.keys(entities))
       }))
 
     const { invalidInputs, invalidOutputs, methodConfiguration: config } =
       await workspace.methodConfig(workflowNamespace, workflowName).validate()
     this.setState({ invalid: { inputs: invalidInputs, outputs: invalidOutputs }, config })
 
-    const inputsOutputs = await Rawls.methodConfigInputsOutputs(config)
-    _.update(inputsOutputs, 'inputs', preprocessIOList)
-    _.update(inputsOutputs, 'outputs', preprocessIOList)
-    this.setState({ inputsOutputs })
+    const processIO = _.flow(
+      _.update('inputs', preprocessIOList),
+      _.update('outputs', preprocessIOList)
+    )
+
+    this.setState({ inputsOutputs: processIO(await Rawls.methodConfigInputsOutputs(config)) })
   }
 
   renderSummary = () => {
@@ -222,8 +224,8 @@ class WorkflowView extends Component {
     } else if (selectedTab !== 'WDL' && inputsOutputs) {
       const key = selectedTab.toLowerCase() // 'inputs' or 'outputs'
 
-      return div({ style: { margin: `0 ${sideMargin}` } },
-        [h(DataTable, {
+      return div({ style: { margin: `0 ${sideMargin}` } }, [
+        h(DataTable, {
           dataSource: inputsOutputs[key],
           allowPagination: false,
           customComponents: components.fullWidthTable,
@@ -283,7 +285,8 @@ class WorkflowView extends Component {
               }
             ]
           }
-        })])
+        })
+      ])
     } else {
       return spinner({ style: { marginTop: '1rem' } })
     }

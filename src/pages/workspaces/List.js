@@ -1,4 +1,4 @@
-import _ from 'lodash'
+import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { a, div, h } from 'react-hyperscript-helpers'
 import { contextBar, search } from 'src/components/common'
@@ -29,10 +29,9 @@ export class WorkspaceList extends Component {
   componentWillMount() {
     Rawls.workspacesList().then(
       workspaces => this.setState({
-        workspaces: _.sortBy(_.filter(workspaces,
-          ws => !ws.public || Utils.workspaceAccessLevels.indexOf(ws.accessLevel) >
-            Utils.workspaceAccessLevels.indexOf('READER')),
-        'workspace.name')
+        workspaces: _.sortBy('workspace.name', _.filter(ws => !ws.public ||
+          Utils.workspaceAccessLevels.indexOf(ws.accessLevel) > Utils.workspaceAccessLevels.indexOf('READER'),
+        workspaces))
       }),
       failure => this.setState({ failure })
     )

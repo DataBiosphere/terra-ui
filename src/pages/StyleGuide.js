@@ -1,4 +1,4 @@
-import _ from 'lodash'
+import _ from 'lodash/fp'
 import { div, h, h1 } from 'react-hyperscript-helpers'
 import { buttonPrimary, Checkbox, link, search } from 'src/components/common'
 import { icon } from 'src/components/icons'
@@ -24,7 +24,7 @@ class StyleGuide extends Component {
       h1('Style guide'),
       div({ style: styles.container }, [
         div({ style: { display: 'flex', flexWrap: 'wrap' } }, [
-          _.map(Style.colors, (v, k) =>
+          _.map((v, k) =>
             div({
               style: {
                 backgroundColor: v,
@@ -33,8 +33,8 @@ class StyleGuide extends Component {
               }
             }, [
               div({ style: { backgroundColor: 'white', padding: 2 } }, k)
-            ])
-          )
+            ]),
+          Style.colors)
         ])
       ]),
       div({ style: styles.container }, [
