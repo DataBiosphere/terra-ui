@@ -26,11 +26,11 @@ async function createClusters() {
   const [billingProjects, clusters] = await Promise.all(
     [Rawls.listBillingProjects(), Leo.clustersList()])
   const projectsWithoutClusters = _.difference(
+    _.uniq(_.map('projectName', billingProjects)), // in case of being both a user and an admin of a project
     _.map(
       'googleProject',
-      _.filter(clusters, { creator: userProfile.getEmail() })
+      _.filter({ creator: userProfile.getEmail() }, clusters)
     ),
-    _.uniq(_.map('projectName', billingProjects)) // in case of being both a user and an admin of a project
   )
 
   projectsWithoutClusters.forEach(project => {

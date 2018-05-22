@@ -1,6 +1,7 @@
 import _ from 'lodash/fp'
 import * as Config from 'src/libs/config'
 
+
 const subscribable = () => {
   let value = undefined
   let subscribers = []
@@ -11,7 +12,7 @@ const subscribable = () => {
     },
     unsubscribe: fn => {
       console.assert(_.includes(fn, subscribers), 'Function is not subscribed')
-      subscribers = _.difference([fn], subscribers)
+      subscribers = _.difference(subscribers, [fn])
     },
     set: v => {
       value = v
