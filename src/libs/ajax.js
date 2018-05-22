@@ -1,4 +1,4 @@
-import _ from 'lodash'
+import _ from 'lodash/fp'
 import * as Config from 'src/libs/config'
 import * as Utils from 'src/libs/utils'
 
@@ -61,7 +61,7 @@ export const Sam = {
     const scopes = ['https://www.googleapis.com/auth/devstorage.full_control']
     const res = await fetchOk(
       `${await Config.getSamUrlRoot()}/api/google/user/petServiceAccount/${namespace}/token`,
-      _.merge(authOpts(), jsonBody(scopes), { method: 'POST' })
+      _.mergeAll([authOpts(), jsonBody(scopes), { method: 'POST' }])
     )
     return res.json()
   }, namespace => namespace, 1000 * 60 * 30),
@@ -88,7 +88,7 @@ export const Buckets = {
       authOpts(await Sam.token(namespace))
     )
     const { items } = await res.json()
-    return _.filter(items, ({ name }) => name.endsWith('.ipynb'))
+    return _.filter(({ name }) => name.endsWith('.ipynb'), items)
   },
 
   notebook: (namespace, bucket, name) => {
@@ -169,7 +169,7 @@ export const Rawls = {
       },
 
       importMethodConfigFromDocker: payload => {
-        return fetchRawls(mcPath, _.merge(authOpts(), jsonBody(payload), { method: 'POST' }))
+        return fetchRawls(mcPath, _.mergeAll([authOpts(), jsonBody(payload), { method: 'POST' }]))
       },
 
       methodConfig: (configNamespace, configName) => {
@@ -182,7 +182,7 @@ export const Rawls = {
           },
 
           save: async payload => {
-            const res = await fetchRawls(path, _.merge(authOpts(), jsonBody(payload), { method: 'POST' }))
+            const res = await fetchRawls(path, _.mergeAll([authOpts(), jsonBody(payload), { method: 'POST' }]))
             return res.json()
           }
         }
@@ -192,7 +192,7 @@ export const Rawls = {
 
   methodConfigInputsOutputs: async loadedConfig => {
     const res = await fetchRawls('methodconfigs/inputsOutputs',
-      _.merge(authOpts(), jsonBody(loadedConfig.methodRepoMethod), { method: 'POST' }))
+      _.mergeAll([authOpts(), jsonBody(loadedConfig.methodRepoMethod), { method: 'POST' }]))
     return res.json()
   }
 }
@@ -213,7 +213,7 @@ export const Leo = {
 
     return {
       create: clusterOptions => {
-        return fetchLeo(root, _.merge(authOpts(), jsonBody(clusterOptions), { method: 'PUT' }))
+        return fetchLeo(root, _.mergeAll([authOpts(), jsonBody(clusterOptions), { method: 'PUT' }]))
       },
 
       start: () => {
@@ -236,7 +236,7 @@ export const Leo = {
     return {
       localize: files => {
         return fetchLeo(`${root}/api/localize`,
-          _.merge(authOpts(), jsonBody(files), { method: 'POST' }))
+          _.mergeAll([authOpts(), jsonBody(files), { method: 'POST' }]))
       },
 
       setCookie: () => {
@@ -305,7 +305,7 @@ export const Orchestration = {
       const url = `${await Config.getOrchestrationUrlRoot()}/register/profile`
       return fetchOk(
         url,
-        _.merge(authOpts(), jsonBody(_.merge(blankProfile, keysAndValues)), { method: 'POST' })
+        _.mergeAll([authOpts(), jsonBody(_.merge(blankProfile, keysAndValues)), { method: 'POST' }])
       )
     }
   }

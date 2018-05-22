@@ -1,4 +1,4 @@
-import _ from 'lodash'
+import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
@@ -39,10 +39,10 @@ const miniMessage = text =>
   span({ style: { fontWeight: 500, fontSize: '75%', marginRight: '1rem', textTransform: 'uppercase' } }, [text])
 
 const extractTaskAndVariable = list => {
-  return _.map(list, entry => {
-    const [task, variable] = _.takeRight(_.split(entry.name, '.'), 2)
+  return _.map(entry => {
+    const [task, variable] = _.takeRight(2, _.split(entry.name, '.'))
     return _.merge(entry, { task, variable })
-  })
+  }, list)
 }
 
 
@@ -100,9 +100,9 @@ class WorkflowView extends Component {
       .get()
     this.setState({ config })
 
-    const inputsOutputs = await Rawls.methodConfigInputsOutputs(config)
-    _.update(inputsOutputs, 'inputs', extractTaskAndVariable)
-    _.update(inputsOutputs, 'outputs', extractTaskAndVariable)
+    let inputsOutputs = await Rawls.methodConfigInputsOutputs(config)
+    inputsOutputs = _.update('inputs', extractTaskAndVariable, inputsOutputs)
+    inputsOutputs = _.update('outputs', extractTaskAndVariable, inputsOutputs)
     this.setState({ inputsOutputs })
   }
 

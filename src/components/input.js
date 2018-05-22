@@ -1,4 +1,4 @@
-import _ from 'lodash'
+import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
@@ -7,7 +7,7 @@ import * as Style from 'src/libs/style'
 
 
 export const textInput = function(props) {
-  return h(Interactive, _.merge({
+  return h(Interactive, _.mergeAll([{
     as: 'input',
     style: {
       width: '100%',
@@ -15,10 +15,7 @@ export const textInput = function(props) {
       fontWeight: 300, fontSize: 14,
       backgroundColor: props.disabled ? '#f3f3f3' : undefined
     }
-  },
-  Style.elements.input,
-  props)
-  )
+  }, Style.elements.input, props]))
 }
 
 
@@ -55,7 +52,7 @@ export const validatedInput = props => {
         marginLeft: '1rem'
       }
     },
-    _.map(errors, fail => div({ style: { marginTop: '0.5rem' } }, `${name} ${fail}`))
+    _.map(fail => div({ style: { marginTop: '0.5rem' } }, `${name} ${fail}`), errors)
     )
   ])
 }

@@ -1,4 +1,4 @@
-import _ from 'lodash'
+import _ from 'lodash/fp'
 import { div, h, input } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
 import { icon } from 'src/components/icons'
@@ -69,13 +69,13 @@ export const contextMenu = function(items) {
       boxShadow: Style.standardShadow
     }
   },
-  _.map(items, ([props, contents]) => h(Interactive,
+  _.map(([props, contents]) => h(Interactive,
     _.merge({
       as: 'div',
       style: { fontSize: 12, padding: '0.5rem 1.5rem' },
       hover: { backgroundColor: Style.colors.highlight, fontWeight: 500 }
     }, props),
-    contents))
+    contents), items)
   )
 }
 

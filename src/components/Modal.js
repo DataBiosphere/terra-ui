@@ -1,4 +1,4 @@
-import _ from 'lodash'
+import _ from 'lodash/fp'
 import * as ReactDOM from 'react-dom'
 import { div } from 'react-hyperscript-helpers'
 import { buttonPrimary } from 'src/components/common'

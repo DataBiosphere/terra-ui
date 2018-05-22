@@ -1,4 +1,4 @@
-import _ from 'lodash'
+import _ from 'lodash/fp'
 import { Component, Fragment } from 'react'
 import { br, div, h, h2, h4, hr, p } from 'react-hyperscript-helpers'
 import { buttonPrimary, link } from 'src/components/common'
@@ -26,11 +26,11 @@ async function createClusters() {
   const [billingProjects, clusters] = await Promise.all(
     [Rawls.listBillingProjects(), Leo.clustersList()])
   const projectsWithoutClusters = _.difference(
-    _.uniq(_.map(billingProjects, 'projectName')), // in case of being both a user and an admin of a project
     _.map(
-      _.filter(clusters, { creator: userProfile.getEmail() }),
-      'googleProject'
-    )
+      'googleProject',
+      _.filter(clusters, { creator: userProfile.getEmail() })
+    ),
+    _.uniq(_.map('projectName', billingProjects)) // in case of being both a user and an admin of a project
   )
 
   projectsWithoutClusters.forEach(project => {

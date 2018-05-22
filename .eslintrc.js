@@ -1,4 +1,5 @@
 module.exports = {
+  'plugins': ['lodash-fp'],
   'extends': 'react-app',
   'globals': {
     'SATURN_VERSION': false
@@ -53,6 +54,25 @@ module.exports = {
     'prefer-rest-params': 'warn',
     'prefer-spread': 'warn',
     'rest-spread-spacing': 'warn',
-    'template-curly-spacing': 'warn'
+    'template-curly-spacing': 'warn',
+
+
+    'lodash-fp/consistent-compose': 'off',
+    'lodash-fp/consistent-name': ['warn', '_'],
+    'lodash-fp/no-argumentless-calls': 'warn',
+    'lodash-fp/no-chain': 'warn',
+    'lodash-fp/no-extraneous-args': 'warn',
+    'lodash-fp/no-for-each': 'off',
+    'lodash-fp/no-partial-of-curried': 'warn',
+    'lodash-fp/no-single-composition': 'warn',
+    'lodash-fp/no-submodule-destructuring': 'warn',
+    'lodash-fp/no-unused-result': 'warn',
+    'lodash-fp/prefer-compact': 'warn',
+    'lodash-fp/prefer-composition-grouping': 'warn',
+    'lodash-fp/prefer-flat-map': 'warn',
+    'lodash-fp/prefer-get': 'warn',
+    'lodash-fp/prefer-identity': ['warn', { 'arrowFunctions': false }],
+    'lodash-fp/preferred-alias': 'off',
+    'lodash-fp/use-fp': 'warn'
   }
 }

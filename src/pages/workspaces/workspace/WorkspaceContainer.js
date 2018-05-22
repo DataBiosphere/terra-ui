@@ -1,4 +1,4 @@
-import _ from 'lodash'
+import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { a, div, h } from 'react-hyperscript-helpers/lib/index'
 import Interactive from 'react-interactive'
@@ -37,7 +37,7 @@ const navTab = (tabName, { namespace, name, activeTab, refresh }) => {
       href: Utils.cond(
         [tabName === 'dashboard', () => Nav.getLink('workspace', { namespace, name })],
         // because not all tabs are implemented:
-        [_.includes(['notebooks', 'data', 'tools'], tabName), () => Nav.getLink(`workspace-${tabName.toLowerCase()}`, { namespace, name })],
+        [_.includes(tabName, ['notebooks', 'data', 'tools']), () => Nav.getLink(`workspace-${tabName.toLowerCase()}`, { namespace, name })],
         () => undefined
       )
     }, tabName),

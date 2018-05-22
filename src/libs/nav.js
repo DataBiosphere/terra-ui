@@ -1,6 +1,6 @@
 import { Component } from 'react'
 import createHistory from 'history/createHashHistory'
-import _ from 'lodash'
+import _ from 'lodash/fp'
 import pathToRegexp from 'path-to-regexp'
 
 
@@ -15,7 +15,7 @@ let allPathHandlers = {}
  * @param handler.component - component to render
  */
 export const defPath = (k, { path, component, ...data }) => {
-  console.assert(!_.has(allPathHandlers, k), `Key ${k} is already defined`)
+  console.assert(!_.has(k, allPathHandlers), `Key ${k} is already defined`)
   const keys = [] // mutated by pathToRegexp
   const regex = pathToRegexp(path, keys)
   allPathHandlers[k] = {
@@ -36,7 +36,7 @@ export const clearPaths = function() {
  * @returns {object} matchingHandler
  */
 export const findHandler = pathname => {
-  const matchingHandlers = _.filter(allPathHandlers, ({ regex }) => regex.test(pathname))
+  const matchingHandlers = _.filter(({ regex }) => regex.test(pathname), allPathHandlers)
   console.assert(matchingHandlers.length <= 1, 'Multiple handlers matched', matchingHandlers)
   return matchingHandlers[0]
 }
