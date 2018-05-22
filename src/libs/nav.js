@@ -21,7 +21,7 @@ export const defPath = (k, { path, component, ...data }) => {
   allPathHandlers[k] = {
     regex,
     component,
-    keys: _.map(keys, 'name'),
+    keys: _.map('name', keys),
     makePath: pathToRegexp.compile(path),
     ...data
   }
