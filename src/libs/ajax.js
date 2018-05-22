@@ -184,6 +184,11 @@ export const Rawls = {
           save: async payload => {
             const res = await fetchRawls(path, _.mergeAll([authOpts(), jsonBody(payload), { method: 'POST' }]))
             return res.json()
+          },
+
+          validate: async () => {
+            const res = await fetchRawls(`${path}/validate`, authOpts())
+            return res.json()
           }
         }
       }

@@ -3,15 +3,15 @@ import { Fragment } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { buttonPrimary } from 'src/components/common'
-import { spinner } from 'src/components/icons'
+import { buttonPrimary, link, tooltip } from 'src/components/common'
+import { icon, spinner } from 'src/components/icons'
 import { textInput } from 'src/components/input'
 import { components, DataTable } from 'src/components/table'
 import WDLViewer from 'src/components/WDLViewer'
 import { Agora, Dockstore, Rawls } from 'src/libs/ajax'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
-import { Component } from 'src/libs/wrapped-components'
+import { Component, Select } from 'src/libs/wrapped-components'
 import WorkspaceContainer from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
 
@@ -38,10 +38,12 @@ const styleForOptional = (optional, text) =>
 const miniMessage = text =>
   span({ style: { fontWeight: 500, fontSize: '75%', marginRight: '1rem', textTransform: 'uppercase' } }, [text])
 
-const extractTaskAndVariable = list => {
+const preprocessIOList = list => {
   return _.map(entry => {
-    const [task, variable] = _.takeRight(2, _.split(entry.name, '.'))
-    return _.merge(entry, { task, variable })
+    const { name, inputType, outputType } = entry
+    const type = (inputType || outputType).match(/(.*?)\??$/)[1] // unify, and strip off trailing '?'
+    const [task, variable] = _.takeRight(2, _.split('.', name))
+    return _.merge(entry, { task, variable, type })
   }, list)
 }
 
@@ -51,7 +53,7 @@ class WorkflowView extends Component {
     super(props)
 
     this.state = {
-      selectedTab: 'Inputs', loadedWdl: false, untouched: true,
+      selectedTab: 'Inputs', loadedWdl: false, saved: false,
       modifiedAttributes: { inputs: {}, outputs: {} }
     }
   }
@@ -94,29 +96,47 @@ class WorkflowView extends Component {
 
   async componentDidMount() {
     const { workspaceNamespace, workspaceName, workflowNamespace, workflowName } = this.props
+    const workspace = Rawls.workspace(workspaceNamespace, workspaceName)
 
-    const config = await Rawls.workspace(workspaceNamespace, workspaceName)
-      .methodConfig(workflowNamespace, workflowName)
-      .get()
-    this.setState({ config })
+    workspace.entities().then(entities =>
+      this.setState({
+        entityTypes: _.map(e => ({ value: e, label: e.replace('_', ' ') }), _.keys(entities))
+      }))
+
+    const { invalidInputs, invalidOutputs, methodConfiguration: config } =
+      await workspace.methodConfig(workflowNamespace, workflowName).validate()
+    this.setState({ invalid: { inputs: invalidInputs, outputs: invalidOutputs }, config })
 
     const processIO = _.compose(
-      _.update('inputs', extractTaskAndVariable),
-      _.update('outputs', extractTaskAndVariable)
+      _.update('inputs', preprocessIOList),
+      _.update('outputs', preprocessIOList)
     )
 
     this.setState({ inputsOutputs: processIO(await Rawls.methodConfigInputsOutputs(config)) })
   }
 
   renderSummary = () => {
-    const { name, methodConfigVersion, rootEntityType, methodRepoMethod: { methodPath } } = this.state.config
+    const { modifiedAttributes, config, entityTypes } = this.state
+    const { name, methodConfigVersion, methodRepoMethod: { methodPath } } = config
 
     return div({ style: { display: 'flex' } }, [
       div({ style: { flex: '1 1 auto', lineHeight: '1.5rem' } }, [
         div({ style: { color: Style.colors.title, fontSize: 24 } }, name),
         div(`V. ${methodConfigVersion}`),
         methodPath && div(`Path: ${methodPath}`),
-        div({ style: { textTransform: 'capitalize' } }, `Data Type: ${rootEntityType}`)
+        div({ style: { textTransform: 'capitalize', display: 'flex', alignItems: 'baseline', marginTop: '0.5rem' } }, [
+          'Data Type:',
+          Select({
+            clearable: false, searchable: false,
+            wrapperStyle: { display: 'inline-block', width: 200, marginLeft: '0.5rem' },
+            value: modifiedAttributes.rootEntityType || config.rootEntityType,
+            onChange: rootEntityType => {
+              modifiedAttributes.rootEntityType = rootEntityType.value
+              this.setState({ modifiedAttributes, modified: true })
+            },
+            options: entityTypes
+          })
+        ])
       ]),
       div({ style: { flex: '0 0 auto' } }, [
         buttonPrimary({ disabled: true }, 'Launch analysis')
@@ -125,7 +145,7 @@ class WorkflowView extends Component {
   }
 
   renderTabs = () => {
-    const { selectedTab, modified, saving, untouched } = this.state
+    const { selectedTab, modified, saving, saved } = this.state
 
     return h(Fragment, [
       div(
@@ -158,8 +178,9 @@ class WorkflowView extends Component {
           [
             div({ style: { flexGrow: 1 } }),
             saving && miniMessage('Saving...'),
-            !untouched && !saving && !modified && miniMessage('Saved!'),
-            modified && buttonPrimary({ disabled: saving, onClick: () => this.save() }, 'Save')
+            saved && !saving && !modified && miniMessage('Saved!'),
+            modified && buttonPrimary({ disabled: saving, onClick: () => this.save() }, 'Save'),
+            modified && link({ style: { margin: '1rem' }, disabled: saving, onClick: () => this.cancel() }, 'Cancel')
           ])),
       div(
         {
@@ -228,8 +249,8 @@ class WorkflowView extends Component {
               },
               {
                 key: 'type', width: 160,
-                render: ({ inputType, outputType, optional }) =>
-                  styleForOptional(optional, inputType || outputType)
+                render: ({ type, optional }) =>
+                  styleForOptional(optional, type)
               },
               {
                 key: 'attribute', width: '100%',
@@ -238,16 +259,28 @@ class WorkflowView extends Component {
                   if (value === undefined) {
                     value = config[key][name]
                   }
-                  return textInput({
-                    name, value,
-                    type: 'search',
-                    placeholder: optional ? 'Optional' : 'Required',
-                    onChange: e => {
-                      modifiedAttributes[key][name] = e.target.value
-                      this.setState({ modifiedAttributes, modified: true, untouched: false })
-                    },
-                    style: { margin: '-10px 0 -6px' }
-                  })
+
+                  const error = !optional && !value ?
+                    'This attribute is required' :
+                    this.state.invalid[key][name]
+
+                  return div({ style: { display: 'flex', alignItems: 'center', margin: '-10px -0.5rem -6px 0' } }, [
+                    textInput({
+                      name, value,
+                      type: 'search',
+                      placeholder: optional ? 'Optional' : 'Required',
+                      onChange: e => {
+                        modifiedAttributes[key][name] = e.target.value
+                        this.setState({ modifiedAttributes, modified: true })
+                      }
+                    }),
+                    error && tooltip({
+                      component: icon('error', {
+                        size: 28, style: { marginLeft: '0.5rem', color: Style.colors.error, cursor: 'help' }
+                      }),
+                      text: error
+                    })
+                  ])
                 }
               }
             ]
@@ -281,10 +314,19 @@ class WorkflowView extends Component {
     const { config, modifiedAttributes } = this.state
 
     this.setState({ saving: true })
-    await Rawls.workspace(workspaceNamespace, workspaceName)
-      .methodConfig(workflowNamespace, workflowName)
-      .save(_.merge(config, modifiedAttributes))
-    this.setState({ saving: false, modified: false, modifiedAttributes: { inputs: {}, outputs: {} } })
+    const { invalidInputs, invalidOutputs, methodConfiguration } =
+      await Rawls.workspace(workspaceNamespace, workspaceName)
+        .methodConfig(workflowNamespace, workflowName)
+        .save(_.merge(config, modifiedAttributes))
+
+    this.setState({
+      saving: false, saved: true, modified: false, modifiedAttributes: { inputs: {}, outputs: {} },
+      invalid: { inputs: invalidInputs, outputs: invalidOutputs }, config: methodConfiguration
+    })
+  }
+
+  cancel = () => {
+    this.setState({ modified: false, saved: false, modifiedAttributes: { inputs: {}, outputs: {} } })
   }
 }
 
