@@ -6,7 +6,7 @@ import * as breadcrumbs from 'src/components/breadcrumbs'
 import { buttonPrimary } from 'src/components/common'
 import { spinner } from 'src/components/icons'
 import { textInput } from 'src/components/input'
-import { DataTable, components } from 'src/components/table'
+import { components, DataTable } from 'src/components/table'
 import WDLViewer from 'src/components/WDLViewer'
 import { Agora, Dockstore, Rawls } from 'src/libs/ajax'
 import * as Nav from 'src/libs/nav'
@@ -100,10 +100,12 @@ class WorkflowView extends Component {
       .get()
     this.setState({ config })
 
-    let inputsOutputs = await Rawls.methodConfigInputsOutputs(config)
-    inputsOutputs = _.update('inputs', extractTaskAndVariable, inputsOutputs)
-    inputsOutputs = _.update('outputs', extractTaskAndVariable, inputsOutputs)
-    this.setState({ inputsOutputs })
+    const processIO = _.compose(
+      _.update('inputs', extractTaskAndVariable),
+      _.update('outputs', extractTaskAndVariable)
+    )
+
+    this.setState({ inputsOutputs: processIO(await Rawls.methodConfigInputsOutputs(config)) })
   }
 
   renderSummary = () => {
@@ -201,8 +203,8 @@ class WorkflowView extends Component {
     } else if (selectedTab !== 'WDL' && inputsOutputs) {
       const key = selectedTab.toLowerCase() // 'inputs' or 'outputs'
 
-      return div({ style: { margin: `0 ${sideMargin}` } },
-        [h(DataTable, {
+      return div({ style: { margin: `0 ${sideMargin}` } }, [
+        h(DataTable, {
           dataSource: inputsOutputs[key],
           allowPagination: false,
           customComponents: components.fullWidthTable,
@@ -250,7 +252,8 @@ class WorkflowView extends Component {
               }
             ]
           }
-        })])
+        })
+      ])
     } else {
       return spinner({ style: { marginTop: '1rem' } })
     }
