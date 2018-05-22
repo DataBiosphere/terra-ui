@@ -7,15 +7,19 @@ import * as Style from 'src/libs/style'
 
 
 export const textInput = function(props) {
-  return h(Interactive, _.mergeAll([{
-    as: 'input',
-    style: {
-      width: '100%',
-      paddingLeft: '1rem', paddingRight: '1rem',
-      fontWeight: 300, fontSize: 14,
-      backgroundColor: props.disabled ? '#f3f3f3' : undefined
-    }
-  }, Style.elements.input, props]))
+  return h(Interactive, _.mergeAll([
+    {
+      as: 'input',
+      style: {
+        width: '100%',
+        paddingLeft: '1rem', paddingRight: '1rem',
+        fontWeight: 300, fontSize: 14,
+        backgroundColor: props.disabled ? '#f3f3f3' : undefined
+      }
+    },
+    Style.elements.input,
+    props
+  ]))
 }
 
 
