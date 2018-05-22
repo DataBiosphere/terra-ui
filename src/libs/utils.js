@@ -1,5 +1,6 @@
-import _ from 'lodash'
+import _ from 'lodash/fp'
 import * as Config from 'src/libs/config'
+
 
 const subscribable = () => {
   let value = undefined
@@ -10,7 +11,7 @@ const subscribable = () => {
       subscribers = _.union(subscribers, [fn])
     },
     unsubscribe: fn => {
-      console.assert(_.includes(subscribers, fn), 'Function is not subscribed')
+      console.assert(_.includes(fn, subscribers), 'Function is not subscribed')
       subscribers = _.difference(subscribers, [fn])
     },
     set: v => {
@@ -87,7 +88,7 @@ export const cond = function(...args) {
   const defaultValue = _.last(args)
   const pairs = args.slice(0, -1)
 
-  const match = _.find(pairs, _.head)
+  const match = _.find(_.head, pairs)
 
   return maybeCall(match ? match[1] : defaultValue)
 }

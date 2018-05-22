@@ -1,4 +1,4 @@
-import _ from 'lodash'
+import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { a, div, h } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
@@ -203,13 +203,13 @@ class WorkspaceNotebooks extends Component {
     this.setState({ clusters: undefined, cluster: undefined })
     Leo.clustersList().then(
       list => {
-        const cluster = _.find(list, { googleProject: namespace, creator: Utils.getUser().getBasicProfile().getEmail() })
+        const cluster = _.find({ googleProject: namespace, creator: Utils.getUser().getBasicProfile().getEmail() }, list)
         if (cluster) {
           Leo.notebooks(namespace, cluster.clusterName).setCookie().then(() => this.setState({ cluster }, this.getNotebooks))
         }
 
-        const owned = _.filter(list, { creator: Utils.getUser().getBasicProfile().getEmail() })
-        this.setState({ clusters: _.sortBy(owned, 'clusterName') })
+        const owned = _.filter({ creator: Utils.getUser().getBasicProfile().getEmail() }, list)
+        this.setState({ clusters: _.sortBy('clusterName', owned) })
       },
       listFailure => this.setState({ listFailure })
     )
@@ -243,13 +243,13 @@ class WorkspaceNotebooks extends Component {
         notebooks => {
           const { clusterName } = cluster
 
-          this.setState({ notebooks: _.reverse(_.sortBy(notebooks, 'updated')) })
+          this.setState({ notebooks: _.reverse(_.sortBy('updated', notebooks)) })
 
           Leo.notebooks(namespace, clusterName).localize({
             [`~/${wsName}/.delocalize.json`]: `data:application/json,{"destination":"gs://${bucketName}/notebooks","pattern":""}`
           })
 
-          _.forEach(notebooks, ({ bucket, name }) => {
+          _.forEach(({ bucket, name }) => {
             Leo.notebooks(namespace, clusterName).localize({
               [`~/${wsName}/${name.slice(10)}`]: `gs://${bucket}/${name}`
             }).then(
@@ -258,7 +258,7 @@ class WorkspaceNotebooks extends Component {
               () => this.setState(
                 oldState => _.merge({ notebookAccess: { [name]: false } }, oldState))
             )
-          })
+          }, notebooks)
         },
         notebooksFailure => this.setState({ notebooksFailure })
       )
@@ -272,12 +272,13 @@ class WorkspaceNotebooks extends Component {
     const { name: wsName, namespace } = this.props
 
     return div({ style: { display: listView ? undefined : 'flex', flexWrap: 'wrap' } },
-      _.map(notebooks, ({ name, updated }) => h(NotebookCard, {
+      _.map(({ name, updated }) => h(NotebookCard, {
         name, updated, listView, notebookAccess: notebookAccess[name], bucketName,
         clusterUrl: cluster && cluster.clusterUrl, // on starting a paused cluster it will briefly report as blank
         namespace, wsName,
         reloadList: () => this.getNotebooks()
-      })))
+      }), notebooks)
+    )
   }
 
   render() {

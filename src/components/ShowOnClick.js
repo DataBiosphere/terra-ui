@@ -1,4 +1,4 @@
-import _ from 'lodash'
+import _ from 'lodash/fp'
 import { div } from 'react-hyperscript-helpers'
 import { Component } from 'src/libs/wrapped-components'
 

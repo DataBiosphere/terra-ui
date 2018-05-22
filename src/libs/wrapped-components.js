@@ -1,4 +1,4 @@
-import _ from 'lodash'
+import _ from 'lodash/fp'
 import { Component as rComponent } from 'react'
 import { h } from 'react-hyperscript-helpers'
 import rSelect from 'react-select'

@@ -1,4 +1,4 @@
-import _ from 'lodash'
+import _ from 'lodash/fp'
 import RCTable from 'rc-table'
 import { Fragment } from 'react'
 import { button, div, h, option, select, table, td, tr } from 'react-hyperscript-helpers'
@@ -56,7 +56,7 @@ const paginator = function(props) {
               [icon('angle left', { size: 12 })]
             ),
 
-            _.map(pages, num => paginatorButton(
+            _.map(num => paginatorButton(
               _.merge({
                 key: num,
                 style: {
@@ -67,7 +67,7 @@ const paginator = function(props) {
                 }
               },
               getPageItemProps({ pageValue: num, onPageChange: setPageNumber })),
-              num)
+              num), pages
             ),
 
             paginatorButton(
@@ -90,8 +90,8 @@ const paginator = function(props) {
               onChange: e => setItemsPerPage(parseInt(e.target.value, 10)),
               value: itemsPerPage
             },
-            _.map(itemsPerPageOptions,
-              i => option({ value: i }, i)))
+            _.map(i => option({ value: i }, i),
+              itemsPerPageOptions))
           ])
         ])
       ]
@@ -112,13 +112,15 @@ const defaultComponents = {
         padding: '14px 0',
         fontWeight: 500
       }
-    }, [div(_.merge({
-      style: {
-        padding: '0 18px',
-        marginRight: -1,
-        borderRight: '1px solid #CCCCCC'
-      }
-    }, props))])
+    }, [
+      div(_.merge({
+        style: {
+          padding: '0 18px',
+          marginRight: -1,
+          borderRight: '1px solid #CCCCCC'
+        }
+      }, props))
+    ])
   },
   body: {
     row: props => h(Interactive, _.merge({
@@ -180,9 +182,9 @@ export class DataTable extends Component {
     const listPage = dataSource.slice((pageNumber - 1) * itemsPerPage, pageNumber * itemsPerPage)
 
     return h(Fragment, [
-      h(RCTable, _.extend({
+      h(RCTable, _.merge({
         data: listPage,
-        components: _.merge({}, defaultComponents, customComponents)
+        components: _.merge(defaultComponents, customComponents)
       }, tableProps)),
       allowPagination ?
         div({ style: { marginTop: 10 } }, [
@@ -229,7 +231,7 @@ export class DataGrid extends Component {
 
     return h(Fragment, [
       div({ style: { display: 'flex', flexWrap: 'wrap' } },
-        _.map(listPage, record => renderCard(record, cardsPerRow))),
+        _.map(record => renderCard(record, cardsPerRow), listPage)),
       allowPagination ?
         div({ style: { marginTop: 10 } }, [
           paginator({

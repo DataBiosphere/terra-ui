@@ -1,4 +1,4 @@
-import _ from 'lodash'
+import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
@@ -100,9 +100,9 @@ class DockstoreImporter extends Component {
           placeholder: workspaces ? 'Select a workspace' : 'Loading workspaces...',
           value: selectedWorkspace,
           onChange: selectedWorkspace => this.setState({ selectedWorkspace }),
-          options: _.map(workspaces, ({ workspace }) => {
+          options: _.map(({ workspace }) => {
             return { value: workspace, label: workspace.name }
-          })
+          }, workspaces)
         }),
         buttonPrimary(
           {
