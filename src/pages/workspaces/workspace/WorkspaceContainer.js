@@ -33,7 +33,7 @@ const navTab = (tabName, { namespace, name, activeTab, refresh }) => {
   return h(Fragment, [
     a({
       style: selected ? tabActiveStyle : tabBaseStyle,
-      onClick: selected && refresh,
+      onClick: selected ? refresh : undefined, // Warning when passed 'false'
       href: Utils.cond(
         [tabName === 'dashboard', () => Nav.getLink('workspace', { namespace, name })],
         // because not all tabs are implemented:
