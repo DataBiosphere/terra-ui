@@ -107,7 +107,7 @@ class WorkflowView extends Component {
       await workspace.methodConfig(workflowNamespace, workflowName).validate()
     this.setState({ invalid: { inputs: invalidInputs, outputs: invalidOutputs }, config })
 
-    const processIO = _.flowRight(
+    const processIO = _.flow(
       _.update('inputs', preprocessIOList),
       _.update('outputs', preprocessIOList)
     )
