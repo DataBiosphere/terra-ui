@@ -34,9 +34,7 @@ async function createClusters() {
   )
 
   projectsWithoutClusters.forEach(project => {
-    Leo.cluster(project,
-      `saturn-${userProfile.getId()}-${project}`.match(/(?:[a-z](?:[-a-z0-9]{0,49}[a-z0-9])?)/)[0] // regex used by google for valid names
-    ).create({
+    Leo.cluster(project, Utils.generateClusterName()).create({
       'labels': {},
       'machineConfig': {
         'numberOfWorkers': 0, 'masterMachineType': 'n1-standard-4',
