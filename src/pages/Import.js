@@ -131,7 +131,7 @@ class DockstoreImporter extends Component {
     const entities = await rawlsWorkspace.entities()
 
     rawlsWorkspace.importMethodConfigFromDocker({
-      namespace, name: workflowName, rootEntityType: _.first(_.keys(entities)),
+      namespace, name: workflowName, rootEntityType: _.head(_.keys(entities)),
       // the line of shame:
       inputs: {}, outputs: {}, prerequisites: {}, methodConfigVersion: 1, deleted: false,
       methodRepoMethod: {
