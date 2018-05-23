@@ -51,7 +51,7 @@ class WorkspaceData extends Component {
     const { selectedEntityType, selectedEntities, workspaceEntities, entitiesFailure, entityFailure } = this.state
     const { namespace, name } = this.props
 
-    const entityTypeList = () => _.map((typeDetails, type) =>
+    const entityTypeList = () => _.map(([type, typeDetails]) =>
       div({
         style: {
           cursor: 'pointer', padding: '0.75rem 1rem',
@@ -66,7 +66,7 @@ class WorkspaceData extends Component {
         icon('table', { style: { color: '#757575', marginRight: '0.5rem' } }),
         `${type} (${typeDetails.count})`
       ]),
-    workspaceEntities)
+    _.toPairs(workspaceEntities))
 
     const entityTable = () => h(DataTable, {
       defaultItemsPerPage: this.state.itemsPerPage,
