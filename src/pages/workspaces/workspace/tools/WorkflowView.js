@@ -98,21 +98,36 @@ class WorkflowView extends Component {
     const { workspaceNamespace, workspaceName, workflowNamespace, workflowName } = this.props
     const workspace = Rawls.workspace(workspaceNamespace, workspaceName)
 
-    workspace.entities().then(entities =>
-      this.setState({
-        entityTypes: _.map(e => ({ value: e, label: e.replace('_', ' ') }), _.keys(entities))
-      }))
+    const entityTypes = _.map(
+      e => ({ value: e, label: e.replace('_', ' ') }),
+      _.keys(await workspace.entities())
+    )
 
     const { invalidInputs, invalidOutputs, methodConfiguration: config } =
       await workspace.methodConfig(workflowNamespace, workflowName).validate()
-    this.setState({ invalid: { inputs: invalidInputs, outputs: invalidOutputs }, config })
 
     const processIO = _.flow(
       _.update('inputs', preprocessIOList),
       _.update('outputs', preprocessIOList)
     )
 
-    this.setState({ inputsOutputs: processIO(await Rawls.methodConfigInputsOutputs(config)) })
+    const processedIO = processIO(await Rawls.methodConfigInputsOutputs(config))
+
+    const findMissing = ioKey => _.flow(
+      _.reject('optional'),
+      _.filter(({ name }) => !config[ioKey][name]),
+      _.map(({ name }) => ({ [name]: 'This attribute is required' })),
+      _.mergeAll
+    )
+
+    this.setState({
+      inputsOutputs: processedIO,
+      invalid: {
+        inputs: _.merge(invalidInputs, findMissing('inputs')(processedIO.inputs)),
+        outputs: _.merge(invalidOutputs, findMissing('outputs')(processedIO.outputs))
+      },
+      config, entityTypes
+    })
   }
 
   renderSummary = () => {
@@ -261,9 +276,7 @@ class WorkflowView extends Component {
                     value = config[key][name]
                   }
 
-                  const error = !optional && !value ?
-                    'This attribute is required' :
-                    this.state.invalid[key][name]
+                  const error = this.state.invalid[key][name]
 
                   return div({ style: { display: 'flex', alignItems: 'center', margin: '-10px -0.5rem -6px 0' } }, [
                     textInput({
@@ -321,8 +334,13 @@ class WorkflowView extends Component {
         .save(_.merge(config, modifiedAttributes))
 
     this.setState({
-      saving: false, saved: true, modified: false, modifiedAttributes: { inputs: {}, outputs: {} },
-      invalid: { inputs: invalidInputs, outputs: invalidOutputs }, config: methodConfiguration
+      saving: false, saved: true, modified: false,
+      modifiedAttributes: { inputs: {}, outputs: {} },
+      invalid: {
+        inputs: invalidInputs,
+        outputs: invalidOutputs
+      },
+      config: methodConfiguration
     })
   }
 
