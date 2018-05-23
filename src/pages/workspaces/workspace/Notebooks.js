@@ -9,6 +9,7 @@ import { NotebookCreator, NotebookDeleter, NotebookDuplicator } from 'src/compon
 import ShowOnClick from 'src/components/ShowOnClick'
 import { DataTable } from 'src/components/table'
 import { Buckets, Leo, Rawls } from 'src/libs/ajax'
+import { getBasicProfile } from 'src/libs/auth'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -203,12 +204,12 @@ class WorkspaceNotebooks extends Component {
     this.setState({ clusters: undefined, cluster: undefined })
     Leo.clustersList().then(
       list => {
-        const cluster = _.find({ googleProject: namespace, creator: Utils.getUser().getBasicProfile().getEmail() }, list)
+        const cluster = _.find({ googleProject: namespace, creator: getBasicProfile().getEmail() }, list)
         if (cluster) {
           Leo.notebooks(namespace, cluster.clusterName).setCookie().then(() => this.setState({ cluster }, this.getNotebooks))
         }
 
-        const owned = _.filter({ creator: Utils.getUser().getBasicProfile().getEmail() }, list)
+        const owned = _.filter({ creator: getBasicProfile().getEmail() }, list)
         this.setState({ clusters: _.sortBy('clusterName', owned) })
       },
       listFailure => this.setState({ listFailure })
@@ -324,7 +325,7 @@ class WorkspaceNotebooks extends Component {
                     {
                       title: 'Cluster Name', key: 'clusterName',
                       render: ({ clusterName, clusterUrl, status, creator }) => {
-                        const isAccessible = creator === Utils.getUser().getBasicProfile().getEmail() &&
+                        const isAccessible = creator === getBasicProfile().getEmail() &&
                           status === 'Running'
                         return link({
                           title: clusterName,
