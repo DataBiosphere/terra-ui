@@ -121,12 +121,17 @@ class DockstoreImporter extends Component {
     )
   }
 
-  import = () => {
+  import = async () => {
     const { selectedWorkspace: { value: { namespace, name } } } = this.state
     const { path, version } = this.props
+    const workflowName = _.last(path.split('/'))
 
-    Rawls.workspace(namespace, name).importMethodConfigFromDocker({
-      namespace, name: _.last(path.split('/')), rootEntityType: 'participant',
+    const rawlsWorkspace = Rawls.workspace(namespace, name)
+
+    const entities = await rawlsWorkspace.entities()
+
+    rawlsWorkspace.importMethodConfigFromDocker({
+      namespace, name: workflowName, rootEntityType: _.first(_.keys(entities)),
       // the line of shame:
       inputs: {}, outputs: {}, prerequisites: {}, methodConfigVersion: 1, deleted: false,
       methodRepoMethod: {
@@ -135,7 +140,10 @@ class DockstoreImporter extends Component {
         methodVersion: version
       }
     }).then(
-      () => Nav.goToPath('workspace', { namespace, name, activeTab: 'tools' }),
+      () => Nav.goToPath('workflow', {
+        workspaceNamespace: namespace, workspaceName: name,
+        workflowNamespace: namespace, workflowName
+      }),
       importError => this.setState({ importError })
     )
   }
