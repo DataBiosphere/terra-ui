@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import RCTable from 'rc-table'
 import { Fragment } from 'react'
-import { button, div, h, option, select, table, td, tr } from 'react-hyperscript-helpers'
+import { button, div, h, option, select, table, td, th, tr } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
 import Pagination from 'react-paginating'
 import { icon } from 'src/components/icons'
@@ -101,13 +101,13 @@ const paginator = function(props) {
 
 const defaultComponents = {
   header: {
-    row: props => tr(_.merge({
+    row: ({ children, ...props }) => tr(_.merge({
       style: {
         border: '1px solid #CCCCCC',
         backgroundColor: '#FAFAFA'
       }
-    }, props)),
-    cell: props => td({
+    }, props), children),
+    cell: ({ children, ...props }) => th({
       style: {
         padding: '14px 0',
         fontWeight: 500
@@ -119,11 +119,11 @@ const defaultComponents = {
           marginRight: -1,
           borderRight: '1px solid #CCCCCC'
         }
-      }, props))
+      }, props), children)
     ])
   },
   body: {
-    row: props => h(Interactive, _.merge({
+    row: ({ children, ...props }) => h(Interactive, _.merge({
       as: 'tr',
       style: {
         backgroundColor: 'white',
@@ -131,24 +131,24 @@ const defaultComponents = {
         cursor: null
       },
       hover: { backgroundColor: Style.colors.highlightFaded }
-    }, props)),
-    cell: props => td(_.merge({
+    }, props), children),
+    cell: ({ children, ...props }) => td(_.merge({
       style: {
         padding: '16.25px 19px 12.75px',
         overflow: 'hidden'
       }
-    }, props))
+    }, props), children)
   }
 }
 
 export const components = {
   fullWidthTable: ({
-    table: props => table(_.merge({
+    table: ({ children, ...props }) => table(_.merge({
       style: {
         tableLayout: 'fixed',
         width: '100%'
       }
-    }, props))
+    }, props), children)
   })
 }
 
