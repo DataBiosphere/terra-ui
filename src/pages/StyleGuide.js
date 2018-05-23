@@ -24,7 +24,7 @@ class StyleGuide extends Component {
       h1('Style guide'),
       div({ style: styles.container }, [
         div({ style: { display: 'flex', flexWrap: 'wrap' } }, [
-          _.map((v, k) =>
+          _.map(([k, v]) =>
             div({
               style: {
                 backgroundColor: v,
@@ -34,7 +34,7 @@ class StyleGuide extends Component {
             }, [
               div({ style: { backgroundColor: 'white', padding: 2 } }, k)
             ]),
-          Style.colors)
+          _.toPairs(Style.colors))
         ])
       ]),
       div({ style: styles.container }, [
