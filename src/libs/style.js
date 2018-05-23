@@ -21,7 +21,8 @@ export const colors = {
   textFadedLight: '#c5e1f3',
   title: '#224f83',
   titleAlt: '#8299a5',
-  warning: '#e28327'
+  warning: '#e28327',
+  warningBackground: '#fffcec'
 }
 
 export const standardShadow = '0 3px 2px 0 rgba(0,0,0,0.12)'
