@@ -113,6 +113,14 @@ class WorkflowView extends Component {
 
     const processedIO = processIO(await Rawls.methodConfigInputsOutputs(config))
 
+    this.setState({
+      inputsOutputs: processedIO,
+      ...this.createInvalidIOMap(invalidInputs, invalidOutputs, config, processedIO),
+      config, entityTypes
+    })
+  }
+
+  createInvalidIOMap = (invalidInputs, invalidOutputs, config, io = this.state.inputsOutputs) => {
     const findMissing = ioKey => _.flow(
       _.reject('optional'),
       _.filter(({ name }) => !config[ioKey][name]),
@@ -120,14 +128,12 @@ class WorkflowView extends Component {
       _.mergeAll
     )
 
-    this.setState({
-      inputsOutputs: processedIO,
+    return {
       invalid: {
-        inputs: _.merge(invalidInputs, findMissing('inputs')(processedIO.inputs)),
-        outputs: _.merge(invalidOutputs, findMissing('outputs')(processedIO.outputs))
-      },
-      config, entityTypes
-    })
+        inputs: _.merge(invalidInputs, findMissing('inputs')(io.inputs)),
+        outputs: _.merge(invalidOutputs, findMissing('outputs')(io.outputs))
+      }
+    }
   }
 
   renderSummary = () => {
@@ -336,10 +342,7 @@ class WorkflowView extends Component {
     this.setState({
       saving: false, saved: true, modified: false,
       modifiedAttributes: { inputs: {}, outputs: {} },
-      invalid: {
-        inputs: invalidInputs,
-        outputs: invalidOutputs
-      },
+      ...this.createInvalidIOMap(invalidInputs, invalidOutputs, methodConfiguration),
       config: methodConfiguration
     })
   }
