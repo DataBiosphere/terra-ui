@@ -1,5 +1,6 @@
 import _ from 'lodash/fp'
 import * as Config from 'src/libs/config'
+import uuid from 'uuid/v4'
 
 
 const subscribable = () => {
@@ -115,3 +116,5 @@ export const memoizeWithTimeout = (fn, resolver, ms) => {
 export const delay = ms => {
   return new Promise(resolve => setTimeout(resolve, ms))
 }
+
+export const generateClusterName = () => `saturn-${uuid()}`
