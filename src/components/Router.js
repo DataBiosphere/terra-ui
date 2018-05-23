@@ -3,7 +3,8 @@ import { h, h2 } from 'react-hyperscript-helpers'
 import AuthContainer from 'src/components/AuthContainer'
 import PageWrapper from 'src/components/PageWrapper'
 import * as Nav from 'src/libs/nav'
-import * as Import from 'src/pages/Import'
+import * as ImportData from 'src/pages/ImportData'
+import * as ImportTool from 'src/pages/ImportTool'
 import * as PrivacyPolicy from 'src/pages/PrivacyPolicy'
 import * as StyleGuide from 'src/pages/StyleGuide'
 import * as WorkspaceList from 'src/pages/workspaces/List'
@@ -19,7 +20,8 @@ const initNavPaths = () => {
   WorkspaceList.addNavPaths()
   WorkflowView.addNavPaths()
   StyleGuide.addNavPaths()
-  Import.addNavPaths()
+  ImportData.addNavPaths()
+  ImportTool.addNavPaths()
   PrivacyPolicy.addNavPaths()
   Dashboard.addNavPaths()
   Data.addNavPaths()

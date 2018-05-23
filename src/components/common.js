@@ -124,3 +124,14 @@ export const tooltip = ({ component, position = 'bottom', arrow = 'right', align
     style: { style: { whiteSpace: 'nowrap', transition: 'none' }, arrowStyle: {} },
     ...props
   }, text)
+
+export const pageColumn = function(title, flex, contents) {
+  return div(
+    { style: { flex, overflow: 'hidden', margin: '3rem' } },
+    [
+      div({ style: { ...Style.elements.sectionHeader, fontWeight: 500, marginBottom: '1rem' } },
+        title
+      ),
+      contents
+    ])
+}

@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
-import { buttonPrimary } from 'src/components/common'
+import { buttonPrimary, pageColumn } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { TopBar } from 'src/components/TopBar'
 import WDLViewer from 'src/components/WDLViewer'
@@ -13,47 +13,100 @@ import * as Utils from 'src/libs/utils'
 import { Component, Select } from 'src/libs/wrapped-components'
 
 
-const mutabilityWarning = 'Please note: Dockstore cannot guarantee that the WDL and Docker image referenced by ' +
-  'this Workflow will not change. We advise you to review the WDL before future runs.'
-const wdlLoadError = 'Error loading WDL. Please verify the workflow path and version and ensure this workflow supports WDL.'
+export class DestinationProject extends Component {
+  render() {
+    const { import_, onWorkspaceSelected, selectedWorkspace } = this.props
+    // this.state.importError = '{"message": "Badness happened..."}'
+    const { workspaces, importError } = this.state
+
+    return div({},
+      [
+        h(Select, {
+          clearable: false,
+          searchable: true,
+          disabled: !workspaces,
+          placeholder: workspaces ? 'Select a workspace' : 'Loading workspaces...',
+          value: selectedWorkspace,
+          onChange: selectedWorkspace => onWorkspaceSelected(selectedWorkspace),
+          options: _.map(workspaces, ({ workspace }) => {
+            return { value: workspace, label: workspace.name }
+          })
+        }),
+        buttonPrimary(
+          {
+            style: { marginTop: '1rem' },
+            disabled: !selectedWorkspace,
+            onClick: () => import_().catch(importError => this.setState({ importError })
+            )
+          },
+          'Import'),
+        importError && div({
+          style: { marginTop: '1rem', color: Style.colors.error }
+        }, [
+          icon('error'),
+          JSON.parse(importError).message
+        ])
+      ]
+    )
+  }
+
+  componentDidMount() {
+    Rawls.workspacesList().then(workspaces => this.setState({ workspaces }))
+  }
+}
+
+const mutabilityWarning = 'Please note: Dockstore cannot guarantee that the WDL and Docker image' +
+  ' referenced by this Workflow will not change. We advise you to review the WDL before future' +
+  ' runs.'
+const wdlLoadError = 'Error loading WDL. Please verify the workflow path and version and ensure' +
+  ' this workflow supports WDL.'
 
 class DockstoreImporter extends Component {
   render() {
     const { wdl, loadError } = this.state
 
     return Utils.cond(
-      [wdl, this.renderImport],
-      [loadError, this.renderError],
+      [wdl, () => this.renderImport()],
+      [loadError, () => this.renderError()],
       centeredSpinner
     )
   }
 
   componentDidMount() {
-    const { path, version } = this.props
+    this.loadWdl()
+    Rawls.workspacesList().then(workspaces => this.setState({ workspaces }))
+  }
 
+  componentWillReceiveProps(nextProps) {
+    if (nextProps.path !== this.props.path || nextProps.version !== this.props.version) {
+      this.setState({ wdl: undefined, loadError: undefined }, () => this.loadWdl())
+    }
+  }
+
+  loadWdl() {
+    const { path, version } = this.props
     Dockstore.getWdl(path, version).then(
       ({ descriptor }) => this.setState({ wdl: descriptor }),
       failure => this.setState({ loadError: failure })
     )
-
-    Rawls.workspacesList().then(workspaces => this.setState({ workspaces }))
   }
 
-  renderImport = () => {
-    function section(title, flex, contents) {
-      return div({ style: { flex, overflow: 'hidden', margin: '3rem' } }, [
-        div({ style: { ...Style.elements.sectionHeader, fontWeight: 500, marginBottom: '1rem' } }, title),
-        contents
-      ])
-    }
-
-    return div({ style: { display: 'flex' } }, [
-      section('Importing', 5, this.renderWdlArea()),
-      section('Destination Project', 3, this.renderWorkspaceArea())
-    ])
+  renderImport() {
+    const { selectedWorkspace } = this.state
+    return div({ style: { display: 'flex' } },
+      [
+        pageColumn('Importing', 5, this.renderWdlArea()),
+        pageColumn('Destination Project', 3,
+          h(DestinationProject, {
+            selectedWorkspace,
+            onWorkspaceSelected: selectedWorkspace => this.setState({ selectedWorkspace }),
+            import_: () => this.import_()
+          }))
+      ]
+    )
   }
 
-  renderWdlArea = () => {
+  renderWdlArea() {
     const { path, version } = this.props
     const { wdl } = this.state
 
@@ -77,14 +130,14 @@ class DockstoreImporter extends Component {
           icon('warning-standard', { class: 'is-solid', size: 32, style: { marginRight: '0.5rem', flex: '0 0 auto' } }),
           mutabilityWarning
         ]),
-        h(Collapse, { title: 'REVIEW WDL' }, [
-          h(WDLViewer, { wdl, style: { maxHeight: 300 } })
-        ])
+        h(Collapse, { title: 'REVIEW WDL' },
+          [h(WDLViewer, { wdl, style: { maxHeight: 'calc(100vh - 400px)' } })]
+        )
       ]
     )
   }
 
-  renderWorkspaceArea = () => {
+  renderWorkspaceArea() {
     const { selectedWorkspace, workspaces, importError } = this.state
 
     return div({}, [
@@ -113,7 +166,7 @@ class DockstoreImporter extends Component {
     ])
   }
 
-  import = async () => {
+  async import_() {
     const { selectedWorkspace: { value: { namespace, name } } } = this.state
     const { path, version } = this.props
     const workflowName = _.last(path.split('/'))
@@ -140,7 +193,7 @@ class DockstoreImporter extends Component {
     )
   }
 
-  renderError = () => {
+  renderError() {
     const { loadError } = this.state
 
     return h(Fragment, [
@@ -156,15 +209,15 @@ class Importer extends Component {
     const { source } = this.props
 
     return h(Fragment, [
-      h(TopBar, { title: 'Import' }),
+      h(TopBar, { title: 'Import Tool' }),
       Utils.cond(
-        [source === 'dockstore', this.renderDockstore],
+        [source === 'dockstore', () => this.renderDockstore()],
         () => `Unknown source '${source}'`
       )
     ])
   }
 
-  renderDockstore = () => {
+  renderDockstore() {
     const { item } = this.props
     const [path, version] = item.split(':')
     return h(DockstoreImporter, { path, version })
@@ -173,8 +226,8 @@ class Importer extends Component {
 
 
 export const addNavPaths = () => {
-  Nav.defPath('import', {
-    path: '/import/:source/:item*',
+  Nav.defPath('import-tool', {
+    path: '/import-tool/:source/:item*',
     component: Importer
   })
 }
