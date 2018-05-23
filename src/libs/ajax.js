@@ -1,4 +1,5 @@
 import _ from 'lodash/fp'
+import { getAuthToken } from 'src/libs/auth'
 import * as Config from 'src/libs/config'
 import * as Utils from 'src/libs/utils'
 
@@ -36,7 +37,7 @@ window.saturnMock = {
   }
 }
 
-const authOpts = (token = Utils.getAuthToken()) => ({ headers: { Authorization: `Bearer ${token}` } })
+const authOpts = (token = getAuthToken()) => ({ headers: { Authorization: `Bearer ${token}` } })
 const jsonBody = body => ({ body: JSON.stringify(body), headers: { 'Content-Type': 'application/json' } })
 
 const instrumentedFetch = (...args) => {

@@ -2,9 +2,9 @@ import { createPortal } from 'react-dom'
 import { a, div } from 'react-hyperscript-helpers'
 import { link } from 'src/components/common'
 import { icon, logo } from 'src/components/icons'
+import { signOut } from 'src/libs/auth'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
-import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 
 
@@ -135,7 +135,7 @@ export class TopBar extends Component {
         div({ style: { flexGrow: 1 } }),
         link({
           style: { flexShrink: 0 },
-          onClick: () => Utils.getAuthInstance().signOut()
+          onClick: signOut
         }, 'Sign out'),
         this.state.navShown && this.buildNav()
       ]

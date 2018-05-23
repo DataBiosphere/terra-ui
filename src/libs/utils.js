@@ -1,46 +1,63 @@
 import _ from 'lodash/fp'
-import * as Config from 'src/libs/config'
+import { Component } from 'react'
+import { h } from 'react-hyperscript-helpers'
 import uuid from 'uuid/v4'
 
 
-const subscribable = () => {
-  let value = undefined
+/**
+ * A simple state container inspired by clojure atoms. Method names were chosen based on similarity
+ * to lodash and Immutable. (deref => get, reset! => set, swap! => update)
+ */
+export const atom = initialValue => {
+  let value = initialValue
   let subscribers = []
+  const set = newValue => {
+    const oldValue = value
+    value = newValue
+    subscribers.forEach(fn => fn(newValue, oldValue))
+  }
   return {
     subscribe: fn => {
-      fn(value)
       subscribers = _.union(subscribers, [fn])
     },
     unsubscribe: fn => {
       console.assert(_.includes(fn, subscribers), 'Function is not subscribed')
       subscribers = _.difference(subscribers, [fn])
     },
-    set: v => {
-      value = v
-      subscribers.forEach(fn => fn(v))
-    }
+    get: () => value,
+    set,
+    update: fn => set(fn(value))
   }
 }
 
-export const isSignedIn = subscribable()
+/**
+ * HOC that injects the value of the given atom as a prop. When the atom changes, the wrapped
+ * component will re-render
+ */
+export const connectAtom = (theAtom, name) => WrappedComponent => {
+  return class extends Component {
+    constructor(props) {
+      super(props)
+      this.state = { value: theAtom.get() }
+    }
 
-export const initializeAuth = _.memoize(async () => {
-  await new Promise(resolve => window.gapi.load('auth2', resolve))
-  await window.gapi.auth2.init({ clientId: await Config.getGoogleClientId() })
-  isSignedIn.set(getAuthInstance().isSignedIn.get())
-  getAuthInstance().isSignedIn.listen(isSignedIn.set)
-})
+    componentDidMount() {
+      theAtom.subscribe(this.handleChange)
+    }
 
-export const getAuthInstance = function() {
-  return window.gapi.auth2.getAuthInstance()
-}
+    componentWillUnmount() {
+      theAtom.unsubscribe(this.handleChange)
+    }
 
-export const getUser = function() {
-  return getAuthInstance().currentUser.get()
-}
+    handleChange = value => {
+      this.setState({ value })
+    }
 
-export const getAuthToken = function() {
-  return getUser().getAuthResponse(true).access_token
+    render() {
+      const { value } = this.state
+      return h(WrappedComponent, { ...this.props, [name]: value })
+    }
+  }
 }
 
 export const makePrettyDate = function(dateString) {
