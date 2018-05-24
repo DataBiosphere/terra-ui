@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import * as ReactDOM from 'react-dom'
 import { div } from 'react-hyperscript-helpers'
-import { buttonPrimary } from 'src/components/common'
+import { buttonPrimary, buttonSecondary } from 'src/components/common'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
@@ -66,8 +66,8 @@ export default class Modal extends Component {
           }
         }, [
           showCancel ?
-            div({
-              style: { ...Style.elements.button, marginRight: '1rem' },
+            buttonSecondary({
+              style: { marginRight: '1rem' },
               onClick: onDismiss
             }, 'Cancel') :
             null,
