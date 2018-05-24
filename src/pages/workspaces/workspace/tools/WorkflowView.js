@@ -52,6 +52,7 @@ class WorkflowView extends Component {
     super(props)
 
     this.state = {
+      selectedTabIndex: 0,
       saved: false,
       modifiedAttributes: { inputs: {}, outputs: {} }
     }
@@ -102,8 +103,13 @@ class WorkflowView extends Component {
       invalid: this.createInvalidIOMap(invalidInputs, invalidOutputs, config, processedIO),
       config, entityTypes
     })
+  }
 
-    this.fetchWDL()
+  componentDidUpdate() {
+    const { selectedTabIndex, loadedWdl } = this.state
+    if (selectedTabIndex === 2 && !loadedWdl) {
+      this.fetchWDL()
+    }
   }
 
   createInvalidIOMap = (invalidInputs, invalidOutputs, config, io = this.state.inputsOutputs) => {
@@ -163,7 +169,7 @@ class WorkflowView extends Component {
   }
 
   renderDetails = () => {
-    const { invalid, wdl, saving, saved, modified } = this.state
+    const { invalid, wdl, saving, saved, modified, selectedTabIndex } = this.state
 
     const tableHeader = div({ style: { display: 'flex' } }, [
       tableColumns.map(({ label, width }, idx) => {
@@ -181,6 +187,8 @@ class WorkflowView extends Component {
 
     return div({ style: { padding: `2rem ${sideMargin} 0`, backgroundColor: Style.colors.section } }, [
       h(TabbedScrollWithHeader, {
+        selectedTabIndex,
+        setSelectedTabIndex: selectedTabIndex => this.setState({ selectedTabIndex }),
         negativeMargin: sideMargin,
         contentBackground: Style.colors.background,
         tabs: [
@@ -297,6 +305,7 @@ class WorkflowView extends Component {
   fetchWDL = async () => {
     const { methodRepoMethod: { sourceRepo, methodNamespace, methodName, methodVersion, methodPath } } = this.state.config
 
+    this.setState({ loadedWdl: true })
     const wdl = await (() => {
       switch (sourceRepo) {
         case 'dockstore':

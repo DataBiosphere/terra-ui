@@ -47,12 +47,15 @@ export class TabbedScrollWithHeader extends Component {
   constructor(props) {
     super(props)
 
-    this.state = { selectedTabIndex: 0 }
+    this.controlled = props.selectedTabIndex !== undefined
+    if (!this.controlled) {
+      this.state = { selectedTabIndex: 0 }
+    }
   }
 
   render() {
-    const { tabs, tabBarExtras, ...childProps } = this.props
-    const { selectedTabIndex } = this.state
+    const { tabs, tabBarExtras, setSelectedTabIndex, ...childProps } = this.props
+    const selectedTabIndex = (this.controlled ? this.props : this.state).selectedTabIndex
 
     return h(Fragment, [
       div(
@@ -71,7 +74,13 @@ export class TabbedScrollWithHeader extends Component {
                 borderTop: border, borderLeft: border, borderRight: border,
                 borderRadius: '5px 5px 0 0'
               },
-              onClick: () => this.setState({ selectedTabIndex: index })
+              onClick: () => {
+                if (this.controlled) {
+                  setSelectedTabIndex(index)
+                } else {
+                  this.setState({ selectedTabIndex: index })
+                }
+              }
             }, [
               title,
               selected && div({
