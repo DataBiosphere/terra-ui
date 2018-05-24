@@ -1,11 +1,11 @@
 import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
-import Interactive from 'react-interactive'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { buttonPrimary, link, tooltip } from 'src/components/common'
 import { icon, spinner } from 'src/components/icons'
 import { textInput } from 'src/components/input'
+import { TabbedScrollWithHeader, emptyHeader } from 'src/components/ScrollWithHeader'
 import { components, DataTable } from 'src/components/table'
 import WDLViewer from 'src/components/WDLViewer'
 import { Agora, Dockstore, Rawls } from 'src/libs/ajax'
@@ -24,8 +24,6 @@ const tableColumns = [
   { label: 'Type', width: 160 },
   { label: 'Attribute' }
 ]
-
-const tabs = ['Inputs', 'Outputs', 'WDL']
 
 const styleForOptional = (optional, text) =>
   span({
@@ -59,13 +57,6 @@ class WorkflowView extends Component {
     }
   }
 
-  componentDidUpdate() {
-    const { selectedTab, loadedWdl } = this.state
-    if (selectedTab === 'WDL' && !loadedWdl) {
-      this.fetchWDL()
-    }
-  }
-
   render() {
     const { config } = this.state
     const { workspaceNamespace, workspaceName, workflowName } = this.props
@@ -80,16 +71,8 @@ class WorkflowView extends Component {
       [
         config ?
           h(Fragment, [
-            div({
-              style: {
-                backgroundColor: Style.colors.section, padding: `1.5rem ${sideMargin} 0`,
-                borderBottom: `2px solid ${Style.colors.secondary}`
-              }
-            }, [
-              this.renderSummary(),
-              this.renderTabs()
-            ]),
-            this.renderDetail()
+            this.renderSummary(),
+            this.renderDetails()
           ]) : spinner({ style: { marginTop: '2rem' } })
       ]
     )
@@ -119,6 +102,8 @@ class WorkflowView extends Component {
       invalid: this.createInvalidIOMap(invalidInputs, invalidOutputs, config, processedIO),
       config, entityTypes
     })
+
+    this.fetchWDL()
   }
 
   createInvalidIOMap = (invalidInputs, invalidOutputs, config, io = this.state.inputsOutputs) => {
@@ -145,7 +130,7 @@ class WorkflowView extends Component {
       () => undefined
     )
 
-    return div({ style: { display: 'flex' } }, [
+    return div({ style: { display: 'flex', backgroundColor: Style.colors.section, padding: `1.5rem ${sideMargin} 0` } }, [
       div({ style: { flex: '1', lineHeight: '1.5rem' } }, [
         div({ style: { color: Style.colors.title, fontSize: 24 } }, name),
         div(`V. ${methodConfigVersion}`),
@@ -177,155 +162,136 @@ class WorkflowView extends Component {
     ])
   }
 
-  renderTabs = () => {
-    const { selectedTab, modified, saving, saved, invalid } = this.state
+  renderDetails = () => {
+    const { invalid, wdl, saving, saved, modified } = this.state
 
-    return h(Fragment, [
-      div(
-        { style: { marginTop: '2rem', display: 'flex', alignItems: 'baseline' } },
-        _.concat(
-          tabs.map(label => {
-            const selected = label === selectedTab
-            const border = `1px solid ${selected ? Style.colors.sectionBorder : Style.colors.section}`
-            return h(Interactive, {
-              as: 'div',
-              style: {
-                display: 'inline-flex', alignItems: 'center', lineHeight: 2,
-                position: 'relative', padding: '0.7rem 1.5rem',
-                fontSize: 16, fontWeight: 500, color: Style.colors.secondary,
-                backgroundColor: selected && Style.colors.sectionHighlight,
-                borderTop: border, borderLeft: border, borderRight: border,
-                borderRadius: '5px 5px 0 0'
-              },
-              onClick: () => this.setState({ selectedTab: label })
-            }, [
-              label,
-              label !== 'WDL' && !_.isEmpty(invalid[label.toLowerCase()]) && icon('error', {
-                size: 28, style: { marginLeft: '0.5rem', color: Style.colors.error }
-              }),
-              selected && div({
-                style: {
-                  // Fractional L/R to make border corners line up when zooming in. Works for up to 175% in Chrome.
-                  position: 'absolute', left: 0.4, right: 0.1, bottom: -3, height: 5,
-                  backgroundColor: Style.colors.sectionHighlight
-                }
-              })
-            ])
-          }),
-          [
-            div({ style: { flexGrow: 1 } }),
-            saving && miniMessage('Saving...'),
-            saved && !saving && !modified && miniMessage('Saved!'),
-            modified && buttonPrimary({ disabled: saving, onClick: () => this.save() }, 'Save'),
-            modified && link({ style: { margin: '1rem' }, disabled: saving, onClick: () => this.cancel() }, 'Cancel')
-          ])),
-      div(
-        {
+    const tableHeader = div({ style: { display: 'flex' } }, [
+      tableColumns.map(({ label, width }, idx) => {
+        return div({
+          key: label,
           style: {
-            display: 'flex', padding: '0.3rem',
-            border: `1px solid ${Style.colors.sectionBorder}`,
-            backgroundColor: Style.colors.sectionHighlight,
-            borderBottom: 'unset',
-            borderTopRightRadius: 5,
-            borderTopLeftRadius: selectedTab !== 'Inputs' && 5
+            flex: width ? `0 0 ${width}px` : '1 1 auto',
+            fontWeight: 500, fontSize: 12, padding: '0.5rem 0.8rem',
+            borderLeft: idx !== 0 && Style.standardLine
           }
         },
-        selectedTab === 'WDL' ?
-          // Placeholder to preserve spacing:
-          [div({ style: { fontSize: 12, padding: '0.5rem 0', color: 'transparent', userSelect: 'none' } }, '.')] :
-          tableColumns.map(({ label, width }, idx) => {
-            return div({
+        label)
+      })
+    ])
+
+    return div({ style: { padding: `2rem ${sideMargin} 0`, backgroundColor: Style.colors.section } }, [
+      h(TabbedScrollWithHeader, {
+        negativeMargin: sideMargin,
+        contentBackground: Style.colors.background,
+        tabs: [
+          {
+            title: h(Fragment, [
+              'Inputs',
+              !_.isEmpty(invalid.inputs) && icon('error', {
+                size: 28, style: { marginLeft: '0.5rem', color: Style.colors.error }
+              })
+            ]),
+            header: tableHeader,
+            children: [this.renderIOTable('inputs')]
+          },
+          {
+            title: h(Fragment, [
+              'Outputs',
+              !_.isEmpty(invalid.outputs) && icon('error', {
+                size: 28, style: { marginLeft: '0.5rem', color: Style.colors.error }
+              })
+            ]),
+            header: tableHeader,
+            children: [this.renderIOTable('outputs')]
+          },
+          {
+            title: 'WDL',
+            header: emptyHeader({ padding: '0.5rem' }),
+            children: [wdl ? div({
               style: {
-                flex: width ? `0 0 ${width}px` : '1 1 auto',
-                fontWeight: 500, fontSize: 12, padding: '0.5rem 0.8rem',
-                borderLeft: idx !== 0 && Style.standardLine
+                flex: '1 1 auto', overflowY: 'auto', maxHeight: 500,
+                padding: '0.5rem', backgroundColor: 'white',
+                border: Style.standardLine, borderTop: 'unset'
               }
-            },
-            label)
-          })
-      )
+            }, [
+              h(WDLViewer, { wdl, readOnly: true })
+            ]) : spinner({ style: { marginTop: '1rem' } })]
+          }
+        ],
+        tabBarExtras: [
+          div({ style: { flexGrow: 1 } }),
+          saving && miniMessage('Saving...'),
+          saved && !saving && !modified && miniMessage('Saved!'),
+          modified && buttonPrimary({ disabled: saving, onClick: () => this.save() }, 'Save'),
+          modified && link({ style: { margin: '1rem' }, disabled: saving, onClick: () => this.cancel() }, 'Cancel')
+        ]
+      })
     ])
   }
 
-  renderDetail = () => {
-    const { selectedTab, wdl, inputsOutputs, config, modifiedAttributes } = this.state
+  renderIOTable = key => {
+    const { inputsOutputs, modifiedAttributes, config } = this.state
 
-    if (selectedTab === 'WDL' && wdl) {
-      return div({
-        style: {
-          flex: '1 1 auto', overflowY: 'auto', maxHeight: 500,
-          margin: `0 ${sideMargin}`, padding: '0.5rem', backgroundColor: 'white',
-          border: Style.standardLine, borderTop: 'unset'
-        }
-      }, [h(WDLViewer, { wdl, readOnly: true })])
-    } else if (selectedTab !== 'WDL' && inputsOutputs) {
-      const key = selectedTab.toLowerCase() // 'inputs' or 'outputs'
-
-      return div({ style: { margin: `0 ${sideMargin}` } }, [
-        h(DataTable, {
-          dataSource: inputsOutputs[key],
-          allowPagination: false,
-          customComponents: components.fullWidthTable,
-          tableProps: {
-            showHeader: false, scroll: { y: 450 },
-            rowKey: 'name',
-            columns: [
-              {
-                key: 'task-name', width: 350,
-                render: ({ task }) =>
-                  div({
-                    style: {
-                      fontWeight: 500,
-                      overflow: 'hidden', textOverflow: 'ellipsis'
-                    }
-                  }, task)
-              },
-              {
-                key: 'variable', width: 360,
-                render: ({ variable, optional }) =>
-                  styleForOptional(optional, variable)
-              },
-              {
-                key: 'type', width: 160,
-                render: ({ type, optional }) =>
-                  styleForOptional(optional, type)
-              },
-              {
-                key: 'attribute', width: '100%',
-                render: ({ name, optional }) => {
-                  let value = modifiedAttributes[key][name]
-                  if (value === undefined) {
-                    value = config[key][name]
-                  }
-
-                  const error = this.state.invalid[key][name]
-
-                  return div({ style: { display: 'flex', alignItems: 'center', margin: '-10px -0.5rem -6px 0' } }, [
-                    textInput({
-                      name, value,
-                      type: 'search',
-                      placeholder: optional ? 'Optional' : 'Required',
-                      onChange: e => {
-                        modifiedAttributes[key][name] = e.target.value
-                        this.setState({ modifiedAttributes, modified: true })
-                      }
-                    }),
-                    error && tooltip({
-                      component: icon('error', {
-                        size: 28, style: { marginLeft: '0.5rem', color: Style.colors.error, cursor: 'help' }
-                      }),
-                      text: error
-                    })
-                  ])
+    return h(DataTable, {
+      dataSource: inputsOutputs[key],
+      allowPagination: false,
+      customComponents: components.fullWidthTable,
+      tableProps: {
+        showHeader: false, scroll: { y: 450 },
+        rowKey: 'name',
+        columns: [
+          {
+            key: 'task-name', width: 350,
+            render: ({ task }) =>
+              div({
+                style: {
+                  fontWeight: 500,
+                  overflow: 'hidden', textOverflow: 'ellipsis'
                 }
+              }, task)
+          },
+          {
+            key: 'variable', width: 360,
+            render: ({ variable, optional }) =>
+              styleForOptional(optional, variable)
+          },
+          {
+            key: 'type', width: 160,
+            render: ({ type, optional }) =>
+              styleForOptional(optional, type)
+          },
+          {
+            key: 'attribute', width: '100%',
+            render: ({ name, optional }) => {
+              let value = modifiedAttributes[key][name]
+              if (value === undefined) {
+                value = config[key][name]
               }
-            ]
+
+              const error = this.state.invalid[key][name]
+
+              return div({ style: { display: 'flex', alignItems: 'center', margin: '-10px -0.5rem -6px 0' } }, [
+                textInput({
+                  name, value,
+                  type: 'search',
+                  placeholder: optional ? 'Optional' : 'Required',
+                  onChange: e => {
+                    modifiedAttributes[key][name] = e.target.value
+                    this.setState({ modifiedAttributes, modified: true })
+                  }
+                }),
+                error && tooltip({
+                  component: icon('error', {
+                    size: 28, style: { marginLeft: '0.5rem', color: Style.colors.error, cursor: 'help' }
+                  }),
+                  text: error
+                })
+              ])
+            }
           }
-        })
-      ])
-    } else {
-      return spinner({ style: { marginTop: '1rem' } })
-    }
+        ]
+      }
+    })
   }
 
   fetchWDL = async () => {
