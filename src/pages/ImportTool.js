@@ -142,35 +142,6 @@ class DockstoreImporter extends Component {
     )
   }
 
-  renderWorkspaceArea() {
-    const { selectedWorkspace, workspaces, importError } = this.state
-
-    return div({}, [
-      h(Select, {
-        clearable: false,
-        searchable: true,
-        disabled: !workspaces,
-        placeholder: workspaces ? 'Select a workspace' : 'Loading workspaces...',
-        value: selectedWorkspace,
-        onChange: selectedWorkspace => this.setState({ selectedWorkspace }),
-        options: _.map(({ workspace }) => {
-          return { value: workspace, label: workspace.name }
-        }, workspaces)
-      }),
-      buttonPrimary(
-        {
-          style: { marginTop: '1rem' },
-          disabled: !selectedWorkspace,
-          onClick: () => this.import()
-        },
-        'Import'),
-      importError && div({ style: { marginTop: '1rem', color: Style.colors.error } }, [
-        icon('error'),
-        JSON.parse(importError).message
-      ])
-    ])
-  }
-
   async import_() {
     const { selectedWorkspace: { value: { namespace, name } } } = this.state
     const { path, version } = this.props
