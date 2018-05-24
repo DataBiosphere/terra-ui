@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import { div, h } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { icon, spinner } from 'src/components/icons'
+import { centeredSpinner, icon } from 'src/components/icons'
 import { DataTable } from 'src/components/table'
 import { Rawls } from 'src/libs/ajax'
 import * as Nav from 'src/libs/nav'
@@ -109,7 +109,7 @@ class WorkspaceData extends Component {
         },
         Utils.cond(
           [entitiesFailure, () => `Couldn't load workspace entities: ${entitiesFailure}`],
-          [!workspaceEntities, () => [spinner({ style: { margin: '2rem auto' } })]],
+          [!workspaceEntities, () => [centeredSpinner({ style: { margin: '2rem auto' } })]],
           [
             _.isEmpty(workspaceEntities),
             () => [div({ style: { margin: '2rem auto' } }, 'There is no data in this workspace.')]
@@ -134,7 +134,7 @@ class WorkspaceData extends Component {
                 Utils.cond(
                   [entityFailure, () => `Couldn't load ${selectedEntityType}s: ${entityFailure}`],
                   [!selectedEntityType, 'Select a data type.'],
-                  [!selectedEntities, spinner],
+                  [!selectedEntities, centeredSpinner],
                   entityTable
                 )
               ]

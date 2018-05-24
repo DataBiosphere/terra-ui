@@ -1,7 +1,7 @@
 import { Component } from 'react'
 import { div } from 'react-hyperscript-helpers'
 import { buttonPrimary } from 'src/components/common'
-import { logo, spinner } from 'src/components/icons'
+import { centeredSpinner, logo } from 'src/components/icons'
 import { textInput } from 'src/components/input'
 import planet from 'src/images/register-planet.svg'
 import { Orchestration, Sam } from 'src/libs/ajax'
@@ -87,7 +87,7 @@ export default class Register extends Component {
         buttonPrimary({ disabled: busy, onClick: () => this.register() },
           'Register'
         ),
-        busy && spinner({
+        busy && centeredSpinner({
           size: 34, style: { display: null, margin: null, marginLeft: '1ex' }
         })
       ])

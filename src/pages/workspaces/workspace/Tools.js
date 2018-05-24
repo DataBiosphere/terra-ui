@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import { div, h } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { link } from 'src/components/common'
-import { icon, spinner } from 'src/components/icons'
+import { centeredSpinner, icon } from 'src/components/icons'
 import { DataGrid } from 'src/components/table'
 import { Rawls } from 'src/libs/ajax'
 import * as Nav from 'src/libs/nav'
@@ -77,7 +77,7 @@ class WorkspaceTools extends Component {
                   ])
                 ])
               }
-            }) : spinner()
+            }) : centeredSpinner()
         ])
       ]
     )

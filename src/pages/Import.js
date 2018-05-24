@@ -3,7 +3,7 @@ import { Fragment } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
 import { buttonPrimary } from 'src/components/common'
-import { icon, spinner } from 'src/components/icons'
+import { centeredSpinner, icon } from 'src/components/icons'
 import { TopBar } from 'src/components/TopBar'
 import WDLViewer from 'src/components/WDLViewer'
 import { Dockstore, Rawls } from 'src/libs/ajax'
@@ -24,7 +24,7 @@ class DockstoreImporter extends Component {
     return Utils.cond(
       [wdl, this.renderImport],
       [loadError, this.renderError],
-      spinner
+      centeredSpinner
     )
   }
 
