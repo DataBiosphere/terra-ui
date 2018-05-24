@@ -37,6 +37,7 @@ export class DestinationProject extends Component {
             disabled: !selectedWorkspace || isImporting,
             onClick: async () => {
               try {
+                this.setState({ importError: null })
                 await import_()
               } catch (importError) {
                 this.setState({ importError })
