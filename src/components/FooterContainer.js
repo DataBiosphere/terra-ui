@@ -12,7 +12,7 @@ const tosUrl = 'http://gatkforums.broadinstitute.org/firecloud/discussion/6819/f
 
 const FooterContainer = ({ children }) => {
   return div({ style: { display: 'flex', flexDirection: 'column', minHeight: '100vh' } }, [
-    div({ style: { flexGrow: 1, display: 'flex' } }, [children]),
+    div({ style: { flexGrow: 1, display: 'flex', flexDirection: 'column' } }, [children]),
     div({
       style: {
         flex: 'none',
