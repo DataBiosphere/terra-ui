@@ -35,8 +35,8 @@ export const clearPaths = function() {
  * @param {string} pathname
  * @returns {object} matchingHandler
  */
-export const findHandler = pathname => {
-  const matchingHandlers = _.filter(({ regex }) => regex.test(pathname), allPathHandlers)
+export const findHandler = url => {
+  const matchingHandlers = _.filter(({ regex }) => regex.test(url), allPathHandlers)
   console.assert(matchingHandlers.length <= 1, 'Multiple handlers matched', matchingHandlers)
   return matchingHandlers[0]
 }
@@ -46,8 +46,8 @@ export const findHandler = pathname => {
  * @param {string} pathname
  * @returns {object} parsed props
  */
-export const getHandlerProps = ({ keys, regex }, pathname) => {
-  return _.zipObject(keys, _.tail(pathname.match(regex)))
+export const getHandlerProps = ({ keys, regex }, url) => {
+  return _.zipObject(keys, _.tail(url.match(regex)))
 }
 
 /**
@@ -72,13 +72,14 @@ export const getLink = (...args) => `#${getPath(...args).slice(1)}` // slice off
  * @param args
  */
 export const goToPath = (...args) => {
-  history.push({ pathname: getPath(...args) })
+  const [pathname, search] = getPath(...args).split('?')
+  history.push({ pathname, search })
 }
 
 export class Redirector extends Component {
   componentDidMount() {
-    const { pathname } = this.props
-    history.replace({ pathname })
+    const { pathname, search } = this.props
+    history.replace({ pathname, search })
   }
 
   render() {

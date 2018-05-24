@@ -37,8 +37,10 @@ export default class Router extends Component {
 
   componentDidMount() {
     initNavPaths()
-    this.setState({ pathname: Nav.history.location.pathname })
-    this.unlisten = Nav.history.listen(({ pathname }) => this.setState({ pathname }))
+    this.setState({ pathname: Nav.history.location.pathname, search: Nav.history.location.search })
+    this.unlisten = Nav.history.listen(
+      ({ pathname, search }) => this.setState({ pathname, search })
+    )
   }
 
   componentWillReceiveProps() {
@@ -50,15 +52,15 @@ export default class Router extends Component {
   }
 
   render() {
-    const { pathname } = this.state
+    const { pathname, search } = this.state
     if (pathname === undefined) {
       return null
     }
-    const handler = Nav.findHandler(pathname)
+    const handler = Nav.findHandler(pathname + search)
     if (!handler) {
       return h2('No matching path.')
     }
-    const el = h(handler.component, Nav.getHandlerProps(handler, pathname))
+    const el = h(handler.component, Nav.getHandlerProps(handler, pathname + search))
     return h(PageWrapper, [handler.public ? el : h(AuthContainer, [el])])
   }
 }

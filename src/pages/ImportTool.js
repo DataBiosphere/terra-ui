@@ -3,7 +3,7 @@ import { Fragment } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
 import { buttonPrimary, pageColumn } from 'src/components/common'
-import { centeredSpinner, icon } from 'src/components/icons'
+import { centeredSpinner, icon, spinnerv2 } from 'src/components/icons'
 import { TopBar } from 'src/components/TopBar'
 import WDLViewer from 'src/components/WDLViewer'
 import { Dockstore, Rawls } from 'src/libs/ajax'
@@ -15,8 +15,7 @@ import { Component, Select } from 'src/libs/wrapped-components'
 
 export class DestinationProject extends Component {
   render() {
-    const { import_, onWorkspaceSelected, selectedWorkspace } = this.props
-    // this.state.importError = '{"message": "Badness happened..."}'
+    const { import_, isImporting, onWorkspaceSelected, selectedWorkspace } = this.props
     const { workspaces, importError } = this.state
 
     return div({},
@@ -28,18 +27,24 @@ export class DestinationProject extends Component {
           placeholder: workspaces ? 'Select a workspace' : 'Loading workspaces...',
           value: selectedWorkspace,
           onChange: selectedWorkspace => onWorkspaceSelected(selectedWorkspace),
-          options: _.map(workspaces, ({ workspace }) => {
+          options: _.map(({ workspace }) => {
             return { value: workspace, label: workspace.name }
-          })
+          }, workspaces)
         }),
         buttonPrimary(
           {
             style: { marginTop: '1rem' },
-            disabled: !selectedWorkspace,
-            onClick: () => import_().catch(importError => this.setState({ importError })
-            )
+            disabled: !selectedWorkspace || isImporting,
+            onClick: async () => {
+              try {
+                await import_()
+              } catch (importError) {
+                this.setState({ importError })
+              }
+            }
           },
           'Import'),
+        isImporting && spinnerv2({ style: { marginLeft: '0.5rem' } }),
         importError && div({
           style: { marginTop: '1rem', color: Style.colors.error }
         }, [
@@ -131,7 +136,7 @@ class DockstoreImporter extends Component {
           mutabilityWarning
         ]),
         h(Collapse, { title: 'REVIEW WDL' },
-          [h(WDLViewer, { wdl, style: { maxHeight: 'calc(100vh - 400px)' } })]
+          [h(WDLViewer, { wdl, style: { height: 'calc(100vh - 400px)', minHeight: 300 } })]
         )
       ]
     )
@@ -169,14 +174,14 @@ class DockstoreImporter extends Component {
   async import_() {
     const { selectedWorkspace: { value: { namespace, name } } } = this.state
     const { path, version } = this.props
-    const workflowName = _.last(path.split('/'))
+    const toolName = _.last(path.split('/'))
 
     const rawlsWorkspace = Rawls.workspace(namespace, name)
 
     const entities = await rawlsWorkspace.entities()
 
     rawlsWorkspace.importMethodConfigFromDocker({
-      namespace, name: workflowName, rootEntityType: _.head(_.keys(entities)),
+      namespace, name: toolName, rootEntityType: _.head(_.keys(entities)),
       // the line of shame:
       inputs: {}, outputs: {}, prerequisites: {}, methodConfigVersion: 1, deleted: false,
       methodRepoMethod: {
@@ -184,13 +189,10 @@ class DockstoreImporter extends Component {
         methodPath: path,
         methodVersion: version
       }
-    }).then(
-      () => Nav.goToPath('workflow', {
-        workspaceNamespace: namespace, workspaceName: name,
-        workflowNamespace: namespace, workflowName
-      }),
-      importError => this.setState({ importError })
-    )
+    }).then(() => Nav.goToPath('workflow', {
+      workspaceNamespace: namespace, workspaceName: name,
+      workflowNamespace: namespace, workflowName: toolName
+    }))
   }
 
   renderError() {
