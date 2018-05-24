@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { div, h, h1 } from 'react-hyperscript-helpers'
-import { buttonPrimary, Checkbox, link, search } from 'src/components/common'
+import { buttonPrimary, buttonSecondary, Checkbox, link, search } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { textInput, validatedInput } from 'src/components/input'
 import * as Nav from 'src/libs/nav'
@@ -42,6 +42,12 @@ class StyleGuide extends Component {
       ]),
       div({ style: styles.container }, [
         buttonPrimary({ disabled: true }, 'Disabled button')
+      ]),
+      div({ style: styles.container }, [
+        buttonSecondary({}, 'Secondary button')
+      ]),
+      div({ style: styles.container }, [
+        buttonSecondary({ disabled: true }, 'Disabled secondary')
       ]),
       div({ style: styles.container }, [
         link({}, 'Link')

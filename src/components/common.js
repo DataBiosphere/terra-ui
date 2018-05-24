@@ -27,13 +27,29 @@ export const buttonPrimary = function(props, children) {
       style: {
         ...Style.elements.button,
         border: 'none', borderRadius: 5, color: 'white',
-        height: '2.25rem', paddingLeft: '1.5rem', paddingRight: '1.5rem',
+        height: '2.25rem', padding: '0 1.5rem',
         backgroundColor: props.disabled ? Style.colors.disabled : Style.colors.secondary,
         cursor: props.disabled ? 'not-allowed' : 'pointer'
       },
       hover: props.disabled ? undefined : { backgroundColor: Style.colors.primary }
     }, props),
     children)
+}
+
+export const buttonSecondary = (props, children) => {
+  const { disabled } = props
+  return h(Interactive,
+    _.merge({
+      as: 'button',
+      style: {
+        ...Style.elements.button,
+        border: 'none', height: '2.25rem', padding: 0, backgroundColor: 'transparent',
+        color: disabled ? Style.colors.disabled : Style.colors.text,
+        cursor: disabled ? 'not-allowed' : 'pointer'
+      }
+    }, props),
+    children
+  )
 }
 
 export const search = function({ wrapperProps, inputProps }) {
@@ -108,4 +124,3 @@ export const tooltip = ({ component, position = 'bottom', arrow = 'right', align
     style: { style: { whiteSpace: 'nowrap', transition: 'none' }, arrowStyle: {} },
     ...props
   }, text)
-
