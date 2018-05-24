@@ -116,7 +116,7 @@ class WorkflowView extends Component {
 
     this.setState({
       inputsOutputs: processedIO,
-      ...this.createInvalidIOMap(invalidInputs, invalidOutputs, config, processedIO),
+      invalid: this.createInvalidIOMap(invalidInputs, invalidOutputs, config, processedIO),
       config, entityTypes
     })
   }
@@ -130,10 +130,8 @@ class WorkflowView extends Component {
     )
 
     return {
-      invalid: {
-        inputs: _.merge(invalidInputs, findMissing('inputs')(io.inputs)),
-        outputs: _.merge(invalidOutputs, findMissing('outputs')(io.outputs))
-      }
+      inputs: _.merge(invalidInputs, findMissing('inputs')(io.inputs)),
+      outputs: _.merge(invalidOutputs, findMissing('outputs')(io.outputs))
     }
   }
 
@@ -360,7 +358,7 @@ class WorkflowView extends Component {
     this.setState({
       saving: false, saved: true, modified: false,
       modifiedAttributes: { inputs: {}, outputs: {} },
-      ...this.createInvalidIOMap(invalidInputs, invalidOutputs, methodConfiguration),
+      invalid: this.createInvalidIOMap(invalidInputs, invalidOutputs, methodConfiguration),
       config: methodConfiguration
     })
   }
