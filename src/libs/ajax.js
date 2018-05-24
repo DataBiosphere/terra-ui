@@ -299,7 +299,7 @@ async function fetchOrchestration(path, ...args) {
 
 export const Orchestration = {
   profile: {
-    set: async keysAndValues => {
+    set: keysAndValues => {
       const blankProfile = {
         firstName: 'N/A',
         lastName: 'N/A',
@@ -321,7 +321,7 @@ export const Orchestration = {
   },
   workspaces: (namespace, name) => {
     return {
-      importBagit: async bagitUrl => {
+      importBagit: bagitUrl => {
         return fetchOrchestration(
           `/api/workspaces/${namespace}/${name}/importBagit`,
           _.mergeAll([authOpts(), jsonBody({ bagitUrl, format: 'TSV' }), { method: 'POST' }])
