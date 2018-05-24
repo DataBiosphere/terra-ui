@@ -35,7 +35,7 @@ export const atom = initialValue => {
  * component will re-render
  */
 export const connectAtom = (theAtom, name) => WrappedComponent => {
-  return class extends Component {
+  return class AtomWrapper extends Component {
     constructor(props) {
       super(props)
       this.state = { value: theAtom.get() }

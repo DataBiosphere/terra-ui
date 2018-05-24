@@ -3,6 +3,7 @@ import { icon } from 'src/components/icons'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 
+
 const styles = {
   link: { marginLeft: '2rem', color: 'inherit', textDecoration: 'none' }
 }
@@ -11,7 +12,7 @@ const tosUrl = 'http://gatkforums.broadinstitute.org/firecloud/discussion/6819/f
 
 const FooterContainer = ({ children }) => {
   return div({ style: { display: 'flex', flexDirection: 'column', minHeight: '100vh' } }, [
-    div({ style: { flex: 1 } }, [children]),
+    div({ style: { flexGrow: 1, display: 'flex', flexDirection: 'column' } }, [children]),
     div({
       style: {
         flex: 'none',
