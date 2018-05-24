@@ -9,6 +9,9 @@ configure({ adapter: new Adapter() })
 jest.mock('src/libs/ajax')
 jest.mock('src/libs/nav')
 
+window.gapi = {
+  load: () => {}
+}
 window.Element.prototype['insertAdjacentElement'] = () => {} // for custom icons
 
 // Mock dates due to time zone issues
