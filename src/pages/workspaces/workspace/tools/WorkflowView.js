@@ -52,7 +52,7 @@ class WorkflowView extends Component {
     super(props)
 
     this.state = {
-      selectedTab: 'Inputs', loadedWdl: false, saved: false,
+      saved: false,
       modifiedAttributes: { inputs: {}, outputs: {} }
     }
   }
@@ -297,7 +297,6 @@ class WorkflowView extends Component {
   fetchWDL = async () => {
     const { methodRepoMethod: { sourceRepo, methodNamespace, methodName, methodVersion, methodPath } } = this.state.config
 
-    this.setState({ loadedWdl: true })
     const wdl = await (() => {
       switch (sourceRepo) {
         case 'dockstore':
