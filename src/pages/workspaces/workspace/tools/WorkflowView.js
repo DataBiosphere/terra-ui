@@ -11,6 +11,7 @@ import WDLViewer from 'src/components/WDLViewer'
 import { Agora, Dockstore, Rawls } from 'src/libs/ajax'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
+import * as Utils from 'src/libs/utils'
 import { Component, Select } from 'src/libs/wrapped-components'
 import WorkspaceContainer from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
@@ -98,29 +99,54 @@ class WorkflowView extends Component {
     const { workspaceNamespace, workspaceName, workflowNamespace, workflowName } = this.props
     const workspace = Rawls.workspace(workspaceNamespace, workspaceName)
 
-    workspace.entities().then(entities =>
-      this.setState({
-        entityTypes: _.map(e => ({ value: e, label: e.replace('_', ' ') }), _.keys(entities))
-      }))
+    const entityTypes = _.map(
+      e => ({ value: e, label: e.replace('_', ' ') }),
+      _.keys(await workspace.entities())
+    )
 
     const { invalidInputs, invalidOutputs, methodConfiguration: config } =
       await workspace.methodConfig(workflowNamespace, workflowName).validate()
-    this.setState({ invalid: { inputs: invalidInputs, outputs: invalidOutputs }, config })
 
     const processIO = _.flow(
       _.update('inputs', preprocessIOList),
       _.update('outputs', preprocessIOList)
     )
 
-    this.setState({ inputsOutputs: processIO(await Rawls.methodConfigInputsOutputs(config)) })
+    const processedIO = processIO(await Rawls.methodConfigInputsOutputs(config))
+
+    this.setState({
+      inputsOutputs: processedIO,
+      invalid: this.createInvalidIOMap(invalidInputs, invalidOutputs, config, processedIO),
+      config, entityTypes
+    })
+  }
+
+  createInvalidIOMap = (invalidInputs, invalidOutputs, config, io = this.state.inputsOutputs) => {
+    const findMissing = ioKey => _.flow(
+      _.reject('optional'),
+      _.filter(({ name }) => !config[ioKey][name]),
+      _.map(({ name }) => ({ [name]: 'This attribute is required' })),
+      _.mergeAll
+    )
+
+    return {
+      inputs: _.merge(invalidInputs, findMissing('inputs')(io.inputs)),
+      outputs: _.merge(invalidOutputs, findMissing('outputs')(io.outputs))
+    }
   }
 
   renderSummary = () => {
-    const { modifiedAttributes, config, entityTypes } = this.state
+    const { modifiedAttributes, config, entityTypes, invalid, saving, modified } = this.state
     const { name, methodConfigVersion, methodRepoMethod: { methodPath } } = config
 
+    const noLaunchReason = Utils.cond(
+      [!_.isEmpty(invalid.inputs) || !_.isEmpty(invalid.outputs), () => 'Add your inputs and outputs to Launch Analysis'],
+      [saving || modified, () => 'Save or cancel to Launch Analysis'],
+      () => undefined
+    )
+
     return div({ style: { display: 'flex' } }, [
-      div({ style: { flex: '1 1 auto', lineHeight: '1.5rem' } }, [
+      div({ style: { flex: '1', lineHeight: '1.5rem' } }, [
         div({ style: { color: Style.colors.title, fontSize: 24 } }, name),
         div(`V. ${methodConfigVersion}`),
         methodPath && div(`Path: ${methodPath}`),
@@ -138,14 +164,21 @@ class WorkflowView extends Component {
           })
         ])
       ]),
-      div({ style: { flex: '0 0 auto' } }, [
-        buttonPrimary({ disabled: true }, 'Launch analysis')
+      div({ style: { flex: 'none', display: 'flex', flexDirection: 'column', alignItems: 'flex-end' } }, [
+        buttonPrimary({ disabled: noLaunchReason }, 'Launch analysis'),
+        noLaunchReason && div({
+          style: {
+            marginTop: '0.5rem', padding: '1rem',
+            backgroundColor: Style.colors.warningBackground,
+            color: Style.colors.warning
+          }
+        }, noLaunchReason)
       ])
     ])
   }
 
   renderTabs = () => {
-    const { selectedTab, modified, saving, saved } = this.state
+    const { selectedTab, modified, saving, saved, invalid } = this.state
 
     return h(Fragment, [
       div(
@@ -157,7 +190,8 @@ class WorkflowView extends Component {
             return h(Interactive, {
               as: 'div',
               style: {
-                display: 'inline-block', position: 'relative', padding: '1rem 1.5rem',
+                display: 'inline-flex', alignItems: 'center', lineHeight: 2,
+                position: 'relative', padding: '0.7rem 1.5rem',
                 fontSize: 16, fontWeight: 500, color: Style.colors.secondary,
                 backgroundColor: selected && Style.colors.sectionHighlight,
                 borderTop: border, borderLeft: border, borderRight: border,
@@ -166,6 +200,9 @@ class WorkflowView extends Component {
               onClick: () => this.setState({ selectedTab: label })
             }, [
               label,
+              label !== 'WDL' && !_.isEmpty(invalid[label.toLowerCase()]) && icon('error', {
+                size: 28, style: { marginLeft: '0.5rem', color: Style.colors.error }
+              }),
               selected && div({
                 style: {
                   // Fractional L/R to make border corners line up when zooming in. Works for up to 175% in Chrome.
@@ -261,9 +298,7 @@ class WorkflowView extends Component {
                     value = config[key][name]
                   }
 
-                  const error = !optional && !value ?
-                    'This attribute is required' :
-                    this.state.invalid[key][name]
+                  const error = this.state.invalid[key][name]
 
                   return div({ style: { display: 'flex', alignItems: 'center', margin: '-10px -0.5rem -6px 0' } }, [
                     textInput({
@@ -321,8 +356,10 @@ class WorkflowView extends Component {
         .save(_.merge(config, modifiedAttributes))
 
     this.setState({
-      saving: false, saved: true, modified: false, modifiedAttributes: { inputs: {}, outputs: {} },
-      invalid: { inputs: invalidInputs, outputs: invalidOutputs }, config: methodConfiguration
+      saving: false, saved: true, modified: false,
+      modifiedAttributes: { inputs: {}, outputs: {} },
+      invalid: this.createInvalidIOMap(invalidInputs, invalidOutputs, methodConfiguration),
+      config: methodConfiguration
     })
   }
 

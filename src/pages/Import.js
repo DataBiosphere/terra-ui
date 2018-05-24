@@ -41,20 +41,16 @@ class DockstoreImporter extends Component {
 
   renderImport = () => {
     function section(title, flex, contents) {
-      return div(
-        { style: { flex, overflow: 'hidden', margin: '3rem' } },
-        [
-          div({ style: { ...Style.elements.sectionHeader, fontWeight: 500, marginBottom: '1rem' } }, title),
-          contents
-        ])
+      return div({ style: { flex, overflow: 'hidden', margin: '3rem' } }, [
+        div({ style: { ...Style.elements.sectionHeader, fontWeight: 500, marginBottom: '1rem' } }, title),
+        contents
+      ])
     }
 
-    return div({ style: { display: 'flex' } },
-      [
-        section('Importing', 5, this.renderWdlArea()),
-        section('Destination Project', 3, this.renderWorkspaceArea())
-      ]
-    )
+    return div({ style: { display: 'flex' } }, [
+      section('Importing', 5, this.renderWdlArea()),
+      section('Destination Project', 3, this.renderWorkspaceArea())
+    ])
   }
 
   renderWdlArea = () => {
@@ -81,9 +77,9 @@ class DockstoreImporter extends Component {
           icon('warning-standard', { class: 'is-solid', size: 32, style: { marginRight: '0.5rem', flex: '0 0 auto' } }),
           mutabilityWarning
         ]),
-        h(Collapse, { title: 'REVIEW WDL' },
-          [h(WDLViewer, { wdl, style: { maxHeight: 300 } })]
-        )
+        h(Collapse, { title: 'REVIEW WDL' }, [
+          h(WDLViewer, { wdl, style: { maxHeight: 300 } })
+        ])
       ]
     )
   }
@@ -91,42 +87,43 @@ class DockstoreImporter extends Component {
   renderWorkspaceArea = () => {
     const { selectedWorkspace, workspaces, importError } = this.state
 
-    return div({},
-      [
-        h(Select, {
-          clearable: false,
-          searchable: true,
-          disabled: !workspaces,
-          placeholder: workspaces ? 'Select a workspace' : 'Loading workspaces...',
-          value: selectedWorkspace,
-          onChange: selectedWorkspace => this.setState({ selectedWorkspace }),
-          options: _.map(({ workspace }) => {
-            return { value: workspace, label: workspace.name }
-          }, workspaces)
-        }),
-        buttonPrimary(
-          {
-            style: { marginTop: '1rem' },
-            disabled: !selectedWorkspace,
-            onClick: () => this.import()
-          },
-          'Import'),
-        importError && div({
-          style: { marginTop: '1rem', color: Style.colors.error }
-        }, [
-          icon('error'),
-          JSON.parse(importError).message
-        ])
-      ]
-    )
+    return div({}, [
+      h(Select, {
+        clearable: false,
+        searchable: true,
+        disabled: !workspaces,
+        placeholder: workspaces ? 'Select a workspace' : 'Loading workspaces...',
+        value: selectedWorkspace,
+        onChange: selectedWorkspace => this.setState({ selectedWorkspace }),
+        options: _.map(({ workspace }) => {
+          return { value: workspace, label: workspace.name }
+        }, workspaces)
+      }),
+      buttonPrimary(
+        {
+          style: { marginTop: '1rem' },
+          disabled: !selectedWorkspace,
+          onClick: () => this.import()
+        },
+        'Import'),
+      importError && div({ style: { marginTop: '1rem', color: Style.colors.error } }, [
+        icon('error'),
+        JSON.parse(importError).message
+      ])
+    ])
   }
 
-  import = () => {
+  import = async () => {
     const { selectedWorkspace: { value: { namespace, name } } } = this.state
     const { path, version } = this.props
+    const workflowName = _.last(path.split('/'))
 
-    Rawls.workspace(namespace, name).importMethodConfigFromDocker({
-      namespace, name: _.last(path.split('/')), rootEntityType: 'participant',
+    const rawlsWorkspace = Rawls.workspace(namespace, name)
+
+    const entities = await rawlsWorkspace.entities()
+
+    rawlsWorkspace.importMethodConfigFromDocker({
+      namespace, name: workflowName, rootEntityType: _.head(_.keys(entities)),
       // the line of shame:
       inputs: {}, outputs: {}, prerequisites: {}, methodConfigVersion: 1, deleted: false,
       methodRepoMethod: {
@@ -135,7 +132,10 @@ class DockstoreImporter extends Component {
         methodVersion: version
       }
     }).then(
-      () => Nav.goToPath('workspace', { namespace, name, activeTab: 'tools' }),
+      () => Nav.goToPath('workflow', {
+        workspaceNamespace: namespace, workspaceName: name,
+        workflowNamespace: namespace, workflowName
+      }),
       importError => this.setState({ importError })
     )
   }
