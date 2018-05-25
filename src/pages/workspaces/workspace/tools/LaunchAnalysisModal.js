@@ -1,6 +1,6 @@
 import { Fragment } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
-import { buttonPrimary, search } from 'src/components/common'
+import { buttonPrimary, link, search } from 'src/components/common'
 import { spinner } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import { ScrollWithHeader } from 'src/components/ScrollWithHeader'
@@ -141,20 +141,21 @@ export default class LaunchAnalysisModal extends Component {
   }
 
   renderTableBody = () => {
-    const { attributeNames, entities, pageNumber, itemsPerPage } = this.state
+    const { attributeNames, entities, pageNumber, itemsPerPage, selectedEntity } = this.state
 
     return h(DataTable, {
       dataSource: slice(entities, { pageNumber, itemsPerPage }),
-      customComponents: components.scrollWithHeaderTable,
+      customComponents: [components.scrollWithHeaderTable, components.nonInteractiveRow],
       allowPagination: false,
       tableProps: {
         showHeader: false,
         scroll: { y: 500 },
         rowKey: 'name',
+        onRow: entity => ({ style: { backgroundColor: selectedEntity === entity.name && Style.colors.highlightFaded } }),
         columns: [
           {
             key: 'id', width: 150,
-            render: entity => entity.name
+            render: entity => link({ onClick: () => this.setState({ selectedEntity: entity.name }) }, [entity.name])
           },
           ...attributeNames.map(attributeName => ({
             title: attributeName,

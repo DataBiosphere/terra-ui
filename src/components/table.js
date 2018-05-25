@@ -161,6 +161,16 @@ export const components = {
         }
       }, props), children)
     }
+  }),
+  nonInteractiveRow: ({
+    body: {
+      row: ({ children, ...props }) => tr(_.merge({
+        style: {
+          backgroundColor: 'white',
+          border: '1px solid #CCCCCC'
+        }
+      }, props), children)
+    }
   })
 }
 
@@ -194,7 +204,9 @@ export class DataTable extends Component {
     return h(Fragment, [
       h(RCTable, _.merge({
         data: allowPagination ? dataSource : slice(dataSource, { pageNumber, itemsPerPage }),
-        components: _.merge(defaultComponents, customComponents)
+        components: _.isArray(customComponents) ?
+          _.mergeAll([defaultComponents, ...customComponents]) :
+          _.merge(defaultComponents, customComponents)
       }, tableProps)),
       allowPagination ?
         div({ style: { marginTop: 10 } }, [
