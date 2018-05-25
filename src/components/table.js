@@ -26,10 +26,10 @@ const paginatorButton = (props, label) => button(_.merge({
  * @param {number} props.itemsPerPage
  * @param {number[]} props.itemsPerPageOptions
  */
-const paginator = function(props) {
+export const paginator = function(props) {
   const {
     filteredDataLength, pageNumber, setPageNumber, setItemsPerPage,
-    itemsPerPage, itemsPerPageOptions
+    itemsPerPage, itemsPerPageOptions = [10, 25, 50, 100]
   } = props
 
   return h(Pagination, {
@@ -97,6 +97,10 @@ const paginator = function(props) {
       ]
     )
   ])
+}
+
+export const slice = (dataSource, { pageNumber, itemsPerPage }) => {
+  return dataSource.slice((pageNumber - 1) * itemsPerPage, pageNumber * itemsPerPage)
 }
 
 const defaultComponents = {
@@ -187,11 +191,9 @@ export class DataTable extends Component {
     } = this.props
     const { pageNumber, itemsPerPage } = this.state
 
-    const listPage = dataSource.slice((pageNumber - 1) * itemsPerPage, pageNumber * itemsPerPage)
-
     return h(Fragment, [
       h(RCTable, _.merge({
-        data: listPage,
+        data: allowPagination ? dataSource : slice(dataSource, { pageNumber, itemsPerPage }),
         components: _.merge(defaultComponents, customComponents)
       }, tableProps)),
       allowPagination ?

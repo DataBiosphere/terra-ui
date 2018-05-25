@@ -1,9 +1,10 @@
+import { Fragment } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { buttonPrimary, search } from 'src/components/common'
 import { spinner } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import { ScrollWithHeader } from 'src/components/ScrollWithHeader'
-import { components, DataTable } from 'src/components/table'
+import { components, DataTable, paginator, slice } from 'src/components/table'
 import { Rawls } from 'src/libs/ajax'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -14,7 +15,7 @@ export default class LaunchAnalysisModal extends Component {
   constructor(props) {
     super(props)
 
-    this.state = { filterText: '', pageNumber: 1 }
+    this.state = { filterText: '', pageNumber: 1, itemsPerPage: 25 }
   }
 
   render() {
@@ -70,12 +71,25 @@ export default class LaunchAnalysisModal extends Component {
   }
 
   renderMain = () => {
-    return div({ style: { overflowX: 'auto', margin: '0 -1.25rem', padding: '0 1.25rem' } }, [
-      div({ style: { display: 'table', marginBottom: '0.5rem' } }, [
-        h(ScrollWithHeader, {
-          header: this.renderTableHeader(),
-          negativeMargin: '1.25rem',
-          children: [this.renderTableBody()]
+    const { itemsPerPage, pageNumber, entities } = this.state
+
+    return h(Fragment, [
+      div({ style: { overflowX: 'auto', margin: '0 -1.25rem', padding: '0 1.25rem' } }, [
+        div({ style: { display: 'table', marginBottom: '0.5rem' } }, [
+          h(ScrollWithHeader, {
+            header: this.renderTableHeader(),
+            negativeMargin: '1.25rem',
+            children: [this.renderTableBody()]
+          })
+        ])
+      ]),
+      div({ style: { marginTop: 10 } }, [
+        paginator({
+          filteredDataLength: entities.length,
+          setPageNumber: pageNumber => this.setState({ pageNumber }),
+          pageNumber,
+          setItemsPerPage: itemsPerPage => this.setState({ itemsPerPage }),
+          itemsPerPage
         })
       ])
     ])
@@ -127,11 +141,12 @@ export default class LaunchAnalysisModal extends Component {
   }
 
   renderTableBody = () => {
-    const { attributeNames, entities } = this.state
+    const { attributeNames, entities, pageNumber, itemsPerPage } = this.state
 
     return h(DataTable, {
-      dataSource: entities,
+      dataSource: slice(entities, { pageNumber, itemsPerPage }),
       customComponents: components.scrollWithHeaderTable,
+      allowPagination: false,
       tableProps: {
         showHeader: false,
         scroll: { y: 500 },
