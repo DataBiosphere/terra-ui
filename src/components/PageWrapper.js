@@ -10,7 +10,7 @@ const styles = {
 
 const tosUrl = 'http://gatkforums.broadinstitute.org/firecloud/discussion/6819/firecloud-terms-of-service#latest'
 
-const FooterContainer = ({ children }) => {
+const PageWrapper = ({ children }) => {
   return div({ style: { display: 'flex', flexDirection: 'column', minHeight: '100vh' } }, [
     div({ style: { flexGrow: 1, display: 'flex', flexDirection: 'column' } }, [children]),
     div({
@@ -37,4 +37,4 @@ const FooterContainer = ({ children }) => {
   ])
 }
 
-export default FooterContainer
+export default PageWrapper
