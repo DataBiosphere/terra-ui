@@ -179,7 +179,12 @@ class WorkflowView extends Component {
   renderDetails = () => {
     const { invalid, wdl, saving, saved, modified, selectedTabIndex } = this.state
 
-    const tableHeader = div({ style: { display: 'flex' } }, [
+    /*
+     * FIXME: width: 0 solves an issue where this header sometimes takes more room than
+     * it needs and messes up the layout of the entire table. Related to the display: table
+     * that's used to make style apply beyond the viewport of a scrolling component
+     */
+    const tableHeader = div({ style: { display: 'flex', width: 0 } }, [
       tableColumns.map(({ label, width }, idx) => {
         return div({
           key: label,

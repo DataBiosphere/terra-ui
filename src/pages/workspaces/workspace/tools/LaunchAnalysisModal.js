@@ -99,7 +99,12 @@ export default class LaunchAnalysisModal extends Component {
       fontWeight: 500, fontSize: 12, padding: '0.5rem 19px'
     }
 
-    return div({ style: { display: 'flex' } }, [
+    /*
+     * FIXME: width: 0 solves an issue where this header sometimes takes more room than
+     * it needs and messes up the layout of the entire table. Related to the display: table
+     * that's used to make style apply beyond the viewport of a scrolling component
+     */
+    return div({ style: { display: 'flex', width: 0 } }, [
       div({
         style: {
           ...cellStyle,
