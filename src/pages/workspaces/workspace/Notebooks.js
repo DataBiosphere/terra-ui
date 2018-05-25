@@ -4,7 +4,7 @@ import { a, div, h } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { buttonPrimary, contextMenu, link } from 'src/components/common'
-import { icon, spinner } from 'src/components/icons'
+import { centeredSpinner, icon } from 'src/components/icons'
 import { NotebookCreator, NotebookDeleter, NotebookDuplicator } from 'src/components/notebook-utils'
 import ShowOnClick from 'src/components/ShowOnClick'
 import { DataTable } from 'src/components/table'
@@ -111,7 +111,7 @@ class NotebookCard extends Component {
     const statusIcon = Utils.cond(
       [notebookAccess === false, () => icon('times', { title: 'Error' })],
       [notebookAccess, () => icon('check', { title: 'Ready' })],
-      () => spinner({ size: null, style: null, title: 'Transferring to cluster' })
+      () => centeredSpinner({ size: null, style: null, title: 'Transferring to cluster' })
     )
 
     return h(Fragment, [
@@ -307,14 +307,14 @@ class WorkspaceNotebooks extends Component {
               onClick: () => this.createCluster()
             }, creatingCluster ?
               [
-                spinner({ size: '1em', style: { color: 'white', marginRight: '1em' } }),
+                centeredSpinner({ size: '1em', style: { color: 'white', marginRight: '1em' } }),
                 'Creating cluster...'
               ] :
               'New cluster')
           ]),
           Utils.cond(
             [listFailure, () => `Couldn't load cluster list: ${listFailure}`],
-            [!clusters, spinner],
+            [!clusters, centeredSpinner],
             () => h(Fragment, [
               h(DataTable, {
                 allowPagination: false,
@@ -408,7 +408,7 @@ class WorkspaceNotebooks extends Component {
               ]),
               Utils.cond(
                 [notebooksFailure, () => `Couldn't load cluster list: ${notebooksFailure}`],
-                [!notebooks, spinner],
+                [!notebooks, centeredSpinner],
                 () => this.renderNotebooks()
               )
             ])

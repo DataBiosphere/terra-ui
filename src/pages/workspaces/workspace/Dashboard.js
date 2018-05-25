@@ -1,7 +1,7 @@
 import { div, h, span } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { buttonPrimary } from 'src/components/common'
-import { spinner } from 'src/components/icons'
+import { centeredSpinner } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import { Rawls } from 'src/libs/ajax'
 import * as Nav from 'src/libs/nav'
@@ -35,7 +35,7 @@ export default class WorkspaceDashboard extends Component {
       [
         Utils.cond(
           [workspaceFailure, `Couldn't load workspace: ${workspaceFailure}`],
-          [!workspace, () => spinner({ style: { marginTop: '2rem' } })],
+          [!workspace, () => centeredSpinner({ style: { marginTop: '2rem' } })],
           () => div({ style: { margin: '1rem' } }, [
             modal && h(Modal, {
               onDismiss: () => this.setState({ modal: false }),
