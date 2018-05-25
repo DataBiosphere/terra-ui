@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { buttonPrimary } from 'src/components/common'
-import { spinner } from 'src/components/icons'
+import { centeredSpinner } from 'src/components/icons'
 import { validatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { Buckets } from 'src/libs/ajax'
@@ -75,7 +75,7 @@ export class NotebookCreator extends Component {
       },
       creating ?
         [
-          spinner({ size: '1em', style: { color: 'white', marginRight: '1em' } }),
+          centeredSpinner({ size: '1em', style: { color: 'white', marginRight: '1em' } }),
           'Creating Notebook...'
         ] :
         'New Notebook'),
@@ -172,7 +172,7 @@ export class NotebookDuplicator extends Component {
       }, `${destroyOld ? 'Rename' : 'Duplicate'} Notebook`)
     },
     Utils.cond(
-      [processing, () => [spinner()]],
+      [processing, () => [centeredSpinner()]],
       [failure, () => `Couldn't ${destroyOld ? 'rename' : 'copy'} notebook: ${failure}`],
       () => [
         div({ style: Style.elements.sectionHeader }, 'New Name'),
@@ -208,7 +208,7 @@ export class NotebookDeleter extends Component {
       }, `Delete Notebook`)
     },
     Utils.cond(
-      [processing, () => [spinner()]],
+      [processing, () => [centeredSpinner()]],
       [failure, () => `Couldn't delete notebook: ${failure}`],
       () => [
         div({ style: { fontSize: '1rem', flexGrow: 1 } },

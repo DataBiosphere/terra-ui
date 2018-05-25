@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { a, div, h } from 'react-hyperscript-helpers'
 import { contextBar, search } from 'src/components/common'
-import { breadcrumb, icon, spinner } from 'src/components/icons'
+import { breadcrumb, centeredSpinner, icon } from 'src/components/icons'
 import { DataGrid } from 'src/components/table'
 import { TopBar } from 'src/components/TopBar'
 import { Rawls } from 'src/libs/ajax'
@@ -166,7 +166,7 @@ export class WorkspaceList extends Component {
       div({ style: { margin: '1rem auto', maxWidth: 1000, width: '100%' } }, [
         Utils.cond(
           [failure, () => `Couldn't load workspace list: ${failure}`],
-          [!workspaces, () => spinner({ size: 64 })],
+          [!workspaces, () => centeredSpinner({ size: 64 })],
           [_.isEmpty(workspaces), 'You don\'t seem to have access to any workspaces.'],
           [listView, () => this.wsList()],
           () => this.wsGrid()

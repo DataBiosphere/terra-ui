@@ -36,9 +36,11 @@ export const logo = function(props) {
 
 export const spinner = function(props) {
   return icon('loadingSpinner',
-    _.merge(
-      { size: 48, style: { color: Style.colors.primary, display: 'block', margin: 'auto' } },
-      props))
+    _.merge({ size: 24, style: { color: Style.colors.primary } }, props))
+}
+
+export const centeredSpinner = function(props) {
+  return spinner(_.merge({ size: 48, style: { display: 'block', margin: 'auto' } }, props))
 }
 
 ClarityIcons.add({ loadingSpinner, logoIcon, logoGrey, table, jupyterIcon, checkSquare, square })

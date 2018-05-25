@@ -3,7 +3,7 @@ import { Fragment } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { buttonPrimary, link, tooltip } from 'src/components/common'
-import { icon, spinner } from 'src/components/icons'
+import { centeredSpinner, icon } from 'src/components/icons'
 import { textInput } from 'src/components/input'
 import { TabbedScrollWithHeader, emptyHeader } from 'src/components/ScrollWithHeader'
 import { components, DataTable } from 'src/components/table'
@@ -74,7 +74,7 @@ class WorkflowView extends Component {
           h(Fragment, [
             this.renderSummary(),
             this.renderDetails()
-          ]) : spinner({ style: { marginTop: '2rem' } })
+          ]) : centeredSpinner({ style: { marginTop: '2rem' } })
       ]
     )
   }
@@ -223,7 +223,7 @@ class WorkflowView extends Component {
               }
             }, [
               h(WDLViewer, { wdl, readOnly: true })
-            ]) : spinner({ style: { marginTop: '1rem' } })]
+            ]) : centeredSpinner({ style: { marginTop: '1rem' } })]
           }
         ],
         tabBarExtras: [
