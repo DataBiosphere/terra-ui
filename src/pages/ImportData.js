@@ -10,8 +10,7 @@ import { Component } from 'src/libs/wrapped-components'
 
 class Importer extends Component {
   render() {
-    // TODO(dmohs): This should be handled by the router.
-    const url = decodeURIComponent(this.props.url)
+    const { queryParams: { url } } = this.props
     const { isImporting, selectedWorkspace } = this.state
 
     return h(Fragment, [
@@ -37,7 +36,7 @@ class Importer extends Component {
   async import_() {
     this.setState({ isImporting: true })
     const { selectedWorkspace: { value: { namespace, name } } } = this.state
-    const url = decodeURIComponent(this.props.url)
+    const { queryParams: { url } } = this.props
 
     try {
       await Orchestration.workspaces(namespace, name).importBagit(url)
@@ -51,7 +50,7 @@ class Importer extends Component {
 
 export const addNavPaths = () => {
   Nav.defPath('import-data', {
-    path: '/import-data?url=:url',
+    path: '/import-data',
     component: Importer
   })
 }

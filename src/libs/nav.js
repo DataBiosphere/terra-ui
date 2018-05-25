@@ -2,6 +2,7 @@ import { Component } from 'react'
 import createHistory from 'history/createHashHistory'
 import _ from 'lodash/fp'
 import pathToRegexp from 'path-to-regexp'
+import * as queryString from 'query-string'
 
 
 export const history = createHistory({ hashType: 'noslash' })
@@ -35,8 +36,8 @@ export const clearPaths = function() {
  * @param {string} pathname
  * @returns {object} matchingHandler
  */
-export const findHandler = url => {
-  const matchingHandlers = _.filter(({ regex }) => regex.test(url), allPathHandlers)
+export const findHandler = pathname => {
+  const matchingHandlers = _.filter(({ regex }) => regex.test(pathname), allPathHandlers)
   console.assert(matchingHandlers.length <= 1, 'Multiple handlers matched', matchingHandlers)
   return matchingHandlers[0]
 }
@@ -46,8 +47,10 @@ export const findHandler = url => {
  * @param {string} pathname
  * @returns {object} parsed props
  */
-export const getHandlerProps = ({ keys, regex }, url) => {
-  return _.zipObject(keys, _.tail(url.match(regex)))
+export const getHandlerProps = ({ keys, regex }, pathname, search) => {
+  const pathProps = _.zipObject(keys, _.tail(pathname.match(regex)))
+  pathProps.queryParams = queryString.parse(search)
+  return pathProps
 }
 
 /**
