@@ -163,7 +163,7 @@ export class WorkspaceList extends Component {
           }
         })
       ]),
-      div({ style: { margin: '1rem auto', maxWidth: 1000 } }, [
+      div({ style: { margin: '1rem auto', maxWidth: 1000, width: '100%' } }, [
         Utils.cond(
           [failure, () => `Couldn't load workspace list: ${failure}`],
           [!workspaces, () => spinner({ size: 64 })],
