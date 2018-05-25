@@ -1,7 +1,9 @@
 import _ from 'lodash/fp'
 import * as ReactDOM from 'react-dom'
-import { div } from 'react-hyperscript-helpers'
+import { div, h } from 'react-hyperscript-helpers'
+import Interactive from 'react-interactive'
 import { buttonPrimary, buttonSecondary } from 'src/components/common'
+import { icon } from 'src/components/icons'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
@@ -40,7 +42,7 @@ export default class Modal extends Component {
   }
 
   render() {
-    const { onDismiss, title, children, width = 450, showCancel = true, okButton } = this.props
+    const { onDismiss, title, titleExtras, children, width = 450, showCancel = true, showX = false, okButton } = this.props
 
     const component = div({
       style: {
@@ -57,7 +59,16 @@ export default class Modal extends Component {
         }
       },
       [
-        title && div({ style: { fontSize: 18, marginBottom: '1rem' } }, [title]),
+        title && div({ style: { display: 'flex', alignItems: 'baseline', fontSize: 18, marginBottom: '1rem' } }, [
+          title,
+          titleExtras,
+          showX && div({ style: { flex: 1 } }),
+          showX && h(Interactive, {
+            as: icon('times-circle'),
+            style: { alignSelf: 'flex-start' },
+            onClick: onDismiss
+          })
+        ]),
         children,
         div({
           style: {

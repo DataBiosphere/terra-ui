@@ -142,13 +142,21 @@ const defaultComponents = {
 }
 
 export const components = {
-  fullWidthTable: ({
+  scrollWithHeaderTable: ({
     table: ({ children, ...props }) => table(_.merge({
       style: {
         tableLayout: 'fixed',
         width: '100%'
       }
-    }, props), children)
+    }, props), children),
+    body: {
+      cell: ({ children, ...props }) => td(_.merge({
+        style: {
+          padding: '16.25px 19px 12.75px',
+          whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'
+        }
+      }, props), children)
+    }
   })
 }
 

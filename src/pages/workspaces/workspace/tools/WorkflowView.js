@@ -14,6 +14,7 @@ import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component, Select } from 'src/libs/wrapped-components'
 import WorkspaceContainer from 'src/pages/workspaces/workspace/WorkspaceContainer'
+import LaunchAnalysisModal from './LaunchAnalysisModal'
 
 
 const sideMargin = '3rem'
@@ -59,7 +60,7 @@ class WorkflowView extends Component {
   }
 
   render() {
-    const { config } = this.state
+    const { config, launching } = this.state
     const { workspaceNamespace, workspaceName, workflowName } = this.props
     const workspaceId = { namespace: workspaceNamespace, name: workspaceName }
 
@@ -73,7 +74,13 @@ class WorkflowView extends Component {
         config ?
           h(Fragment, [
             this.renderSummary(),
-            this.renderDetails()
+            this.renderDetails(),
+            launching && h(LaunchAnalysisModal, {
+              namespace: workspaceNamespace,
+              name: workspaceName,
+              rootEntityType: config.rootEntityType,
+              onDismiss: () => this.setState({ launching: false })
+            })
           ]) : centeredSpinner({ style: { marginTop: '2rem' } })
       ]
     )
@@ -156,7 +163,8 @@ class WorkflowView extends Component {
         ])
       ]),
       div({ style: { flex: 'none', display: 'flex', flexDirection: 'column', alignItems: 'flex-end' } }, [
-        buttonPrimary({ disabled: noLaunchReason }, 'Launch analysis'),
+        buttonPrimary({ disabled: noLaunchReason, onClick: () => this.setState({ launching: true }) },
+          'Launch analysis'),
         noLaunchReason && div({
           style: {
             marginTop: '0.5rem', padding: '1rem',
@@ -177,7 +185,7 @@ class WorkflowView extends Component {
           key: label,
           style: {
             flex: width ? `0 0 ${width}px` : '1 1 auto',
-            fontWeight: 500, fontSize: 12, padding: '0.5rem 0.8rem',
+            fontWeight: 500, fontSize: 12, padding: '0.5rem 19px',
             borderLeft: idx !== 0 && Style.standardLine
           }
         },
@@ -243,7 +251,7 @@ class WorkflowView extends Component {
     return h(DataTable, {
       dataSource: inputsOutputs[key],
       allowPagination: false,
-      customComponents: components.fullWidthTable,
+      customComponents: components.scrollWithHeaderTable,
       tableProps: {
         showHeader: false, scroll: { y: 450 },
         rowKey: 'name',
