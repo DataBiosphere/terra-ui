@@ -2,6 +2,7 @@ import { Component } from 'react'
 import { div, p } from 'react-hyperscript-helpers'
 import { link } from 'src/components/common'
 import { logo } from 'src/components/icons'
+import signInBg from 'src/images/sign-in-background.jpg'
 import * as Style from 'src/libs/style'
 
 
@@ -21,7 +22,7 @@ export default class SignIn extends Component {
       style: {
         flexGrow: 1, maxWidth: 1400,
         padding: 82, marginBottom: '-2rem',
-        backgroundImage: 'url("/sign-in-background.jpg")',
+        backgroundImage: `url(${signInBg})`,
         backgroundRepeat: 'no-repeat', backgroundSize: 'cover', backgroundPosition: 'left bottom'
       }
     }, [
