@@ -189,6 +189,7 @@ Array [
         Object {
             "margin": "1rem auto",
             "maxWidth": 1000,
+            "width": "100%",
           }
     }
 >
