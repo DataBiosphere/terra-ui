@@ -1,7 +1,7 @@
 import { Component } from 'react'
 import { div, p } from 'react-hyperscript-helpers'
 import { link } from 'src/components/common'
-import { icon } from 'src/components/icons'
+import { logo } from 'src/components/icons'
 import * as Style from 'src/libs/style'
 
 
@@ -31,7 +31,7 @@ export default class SignIn extends Component {
             div({ style: { fontSize: 40, color: Style.colors.titleAlt } }, ['Welcome to']),
             div({ style: { fontSize: 80, color: Style.colors.title } }, ['SATURN'])
           ]),
-          icon('logoIcon', { size: 265 })
+          logo({ size: 265 })
         ]),
         div({ style: { fontSize: 40, fontWeight: 500, color: Style.colors.titleAlt } }, ['New User?']),
         div({ style: { fontSize: 20, marginBottom: '2rem' } }, ['Saturn requires a Google Account.']),
