@@ -1,5 +1,5 @@
 import { Component } from 'react'
-import { br, div } from 'react-hyperscript-helpers'
+import { div } from 'react-hyperscript-helpers'
 import { buttonPrimary } from 'src/components/common'
 import { logo, spinner } from 'src/components/icons'
 import { textInput } from 'src/components/input'
@@ -56,15 +56,18 @@ export default class Register extends Component {
       }, 'New User Registration'),
       div({ style: { marginTop: '3rem', display: 'flex' } }, [
         div({ style: { lineHeight: '170%' } }, [
-          'First Name', br(),
+          'First Name',
           textInput({
+            style: { display: 'block' },
             value: givenName,
             onChange: e => this.setState({ givenName: e.target.value })
           })
         ]),
         div({ style: { width: '1rem' } }),
         div({ style: { lineHeight: '170%' } }, [
-          'Last Name', br(), textInput({
+          'Last Name',
+          textInput({
+            style: { display: 'block' },
             value: familyName,
             onChange: e => this.setState({ familyName: e.target.value })
           })
