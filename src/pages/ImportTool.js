@@ -3,7 +3,7 @@ import { Fragment } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
 import { buttonPrimary, pageColumn } from 'src/components/common'
-import { centeredSpinner, icon, spinnerv2 } from 'src/components/icons'
+import { centeredSpinner, icon, spinner } from 'src/components/icons'
 import { TopBar } from 'src/components/TopBar'
 import WDLViewer from 'src/components/WDLViewer'
 import { Dockstore, Rawls } from 'src/libs/ajax'
@@ -45,7 +45,7 @@ export class DestinationProject extends Component {
             }
           },
           'Import'),
-        isImporting && spinnerv2({ style: { marginLeft: '0.5rem' } }),
+        isImporting && spinner({ style: { marginLeft: '0.5rem' } }),
         importError && div({
           style: { marginTop: '1rem', color: Style.colors.error }
         }, [
