@@ -3,7 +3,7 @@ import { br, div } from 'react-hyperscript-helpers'
 import { buttonPrimary } from 'src/components/common'
 import { logo, spinner } from 'src/components/icons'
 import { textInput } from 'src/components/input'
-import planet from 'src/icons/register-planet.svg'
+import planet from 'src/images/register-planet.svg'
 import { Orchestration, Sam } from 'src/libs/ajax'
 import { authStore, getBasicProfile } from 'src/libs/auth'
 import * as Style from 'src/libs/style'
@@ -40,7 +40,7 @@ export default class Register extends Component {
       style: {
         flexGrow: 1,
         padding: '5rem', marginBottom: '-2rem',
-        backgroundImage: `url(data:image/svg+xml,${encodeURIComponent(planet)})`,
+        backgroundImage: `url(${planet})`,
         backgroundRepeat: 'no-repeat', backgroundSize: '750px', backgroundPosition: 'right 0px bottom -600px'
       }
     }, [
