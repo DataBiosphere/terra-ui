@@ -1,8 +1,9 @@
 import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { a, div, h } from 'react-hyperscript-helpers'
+import CornerBanner from 'src/components/CornerBanner'
 import { contextBar, search } from 'src/components/common'
-import { breadcrumb, centeredSpinner, icon } from 'src/components/icons'
+import { breadcrumb, centeredSpinner, icon, spinner } from 'src/components/icons'
 import { DataGrid } from 'src/components/table'
 import { TopBar } from 'src/components/TopBar'
 import { Rawls } from 'src/libs/ajax'
@@ -26,9 +27,10 @@ export class WorkspaceList extends Component {
     }
   }
 
-  componentWillMount() {
+  componentDidMount() {
     Rawls.workspacesList().then(
       workspaces => this.setState({
+        freshData: true,
         workspaces: _.sortBy('workspace.name', _.filter(ws => !ws.public ||
           Utils.workspaceAccessLevels.indexOf(ws.accessLevel) > Utils.workspaceAccessLevels.indexOf('READER'),
         workspaces))
@@ -126,7 +128,7 @@ export class WorkspaceList extends Component {
 
 
   render() {
-    const { workspaces, filter, listView, failure } = this.state
+    const { workspaces, freshData, filter, listView, failure } = this.state
 
     return h(Fragment, [
       h(TopBar, { title: 'Projects' },
@@ -164,6 +166,9 @@ export class WorkspaceList extends Component {
         })
       ]),
       div({ style: { margin: '1rem auto', maxWidth: 1000, width: '100%' } }, [
+        h(CornerBanner, { isVisible: !freshData && workspaces }, [
+          spinner({ style: { color: 'white', marginRight: '1rem' } }), 'Loading new workspaces'
+        ]),
         Utils.cond(
           [failure, () => `Couldn't load workspace list: ${failure}`],
           [!workspaces, () => centeredSpinner({ size: 64 })],
@@ -176,9 +181,9 @@ export class WorkspaceList extends Component {
   }
 
   componentDidUpdate() {
-    const { filter, listView, itemsPerPage, pageNumber } = this.state
+    const { workspaces, filter, listView, itemsPerPage, pageNumber } = this.state
 
-    StateHistory.update({ filter, listView, itemsPerPage, pageNumber })
+    StateHistory.update({ workspaces, filter, listView, itemsPerPage, pageNumber })
   }
 }
 

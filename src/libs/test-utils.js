@@ -1,5 +1,6 @@
-export const waitOneTick = () => new Promise(setImmediate)
+import * as Utils from 'src/libs/utils'
+
 
 export const waitOneTickAndUpdate = wrapper => {
-  return waitOneTick().then(() => wrapper.update())
+  return Utils.waitOneTick().then(() => wrapper.update())
 }
