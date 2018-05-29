@@ -19,6 +19,7 @@ const PageWrapper = ({ children }) => {
         display: 'flex', alignItems: 'center',
         height: 92,
         paddingLeft: '6rem',
+        paddingRight: '6rem',
         backgroundColor: Style.colors.text,
         color: Style.colors.disabled,
         borderTop: `4px solid ${Style.colors.standout}`,
@@ -32,7 +33,8 @@ const PageWrapper = ({ children }) => {
         }, 'Saturn')
       ]),
       a({ href: Nav.getLink('privacy'), style: styles.link }, 'Privacy Policy'),
-      a({ target: '_blank', href: tosUrl, style: styles.link }, 'Terms of Service')
+      a({ target: '_blank', href: tosUrl, style: styles.link }, 'Terms of Service'),
+      div({ style: { marginLeft: 'auto' } }, new Date(SATURN_BUILD_TIMESTAMP).toLocaleString())
     ])
   ])
 }
