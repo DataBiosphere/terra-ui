@@ -49,8 +49,7 @@ export const findHandler = pathname => {
  */
 export const getHandlerProps = ({ keys, regex }, pathname, search) => {
   const pathProps = _.zipObject(keys, _.tail(pathname.match(regex)))
-  pathProps.queryParams = queryString.parse(search)
-  return pathProps
+  return { ...pathProps, queryParams: queryString.parse(search) }
 }
 
 /**
@@ -75,8 +74,7 @@ export const getLink = (...args) => `#${getPath(...args).slice(1)}` // slice off
  * @param args
  */
 export const goToPath = (...args) => {
-  const [pathname, search] = getPath(...args).split('?')
-  history.push({ pathname, search })
+  history.push({ pathname: getPath(...args) })
 }
 
 export class Redirector extends Component {
