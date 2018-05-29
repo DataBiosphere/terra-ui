@@ -2,6 +2,7 @@ import { Component } from 'react'
 import createHistory from 'history/createHashHistory'
 import _ from 'lodash/fp'
 import pathToRegexp from 'path-to-regexp'
+import * as qs from 'qs'
 
 
 export const history = createHistory({ hashType: 'noslash' })
@@ -46,8 +47,12 @@ export const findHandler = pathname => {
  * @param {string} pathname
  * @returns {object} parsed props
  */
-export const getHandlerProps = ({ keys, regex }, pathname) => {
-  return _.zipObject(keys, _.tail(pathname.match(regex)))
+export const getHandlerProps = ({ keys, regex }, pathname, search) => {
+  const pathProps = _.zipObject(keys, _.tail(pathname.match(regex)))
+  return {
+    ...pathProps,
+    queryParams: qs.parse(search, { ignoreQueryPrefix: true, plainObjects: true })
+  }
 }
 
 /**
@@ -77,8 +82,8 @@ export const goToPath = (...args) => {
 
 export class Redirector extends Component {
   componentDidMount() {
-    const { pathname } = this.props
-    history.replace({ pathname })
+    const { pathname, search } = this.props
+    history.replace({ pathname, search })
   }
 
   render() {

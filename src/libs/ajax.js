@@ -292,9 +292,14 @@ export const Agora = {
 }
 
 
+async function fetchOrchestration(path, ...args) {
+  const urlRoot = await Config.getOrchestrationUrlRoot()
+  return fetchOk(urlRoot + path, ...args)
+}
+
 export const Orchestration = {
   profile: {
-    set: async keysAndValues => {
+    set: keysAndValues => {
       const blankProfile = {
         firstName: 'N/A',
         lastName: 'N/A',
@@ -308,11 +313,20 @@ export const Orchestration = {
         pi: 'N/A',
         nonProfitStatus: 'N/A'
       }
-      const url = `${await Config.getOrchestrationUrlRoot()}/register/profile`
-      return fetchOk(
-        url,
+      return fetchOrchestration(
+        '/register/profile',
         _.mergeAll([authOpts(), jsonBody(_.merge(blankProfile, keysAndValues)), { method: 'POST' }])
       )
+    }
+  },
+  workspaces: (namespace, name) => {
+    return {
+      importBagit: bagitUrl => {
+        return fetchOrchestration(
+          `/api/workspaces/${namespace}/${name}/importBagit`,
+          _.mergeAll([authOpts(), jsonBody({ bagitUrl, format: 'TSV' }), { method: 'POST' }])
+        )
+      }
     }
   }
 }
