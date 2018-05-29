@@ -53,7 +53,8 @@ export default class LaunchAnalysisModal extends Component {
       showX: true,
       width: 'calc(100% - 2rem)',
       okButton: buttonPrimary({
-        onClick: () => this.launch(), disabled: launching
+        onClick: () => this.launch(),
+        disabled: launching
       }, [launching ? 'Launching...' : 'Launch'])
     }, [
       Utils.cond(
@@ -180,26 +181,24 @@ export default class LaunchAnalysisModal extends Component {
     })
   }
 
-  launch = async () => {
+  launch = () => {
     const {
       workspaceId: { namespace, name },
       config: { namespace: configNamespace, name: configName, rootEntityType },
-      onDismiss, onSuccess
+      onSuccess
     } = this.props
 
     const { selectedEntity } = this.state
 
     this.setState({ launching: true })
 
-    const submission = await Rawls.workspace(namespace, name).methodConfig(configNamespace, configName).launch({
+    Rawls.workspace(namespace, name).methodConfig(configNamespace, configName).launch({
       entityType: selectedEntity && rootEntityType,
       entityName: selectedEntity,
       useCallCache: true
-    }).catch(
+    }).then(
+      submission => onSuccess(submission),
       error => this.setState({ launchError: JSON.parse(error).message, launching: false })
     )
-
-    onDismiss()
-    onSuccess(submission)
   }
 }

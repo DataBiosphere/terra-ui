@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { Fragment } from 'react'
-import { div, h, span } from 'react-hyperscript-helpers'
+import { div, h, p, span } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { buttonPrimary, link, tooltip } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
@@ -10,6 +10,7 @@ import { TabbedScrollWithHeader, emptyHeader } from 'src/components/ScrollWithHe
 import { components, DataTable } from 'src/components/table'
 import WDLViewer from 'src/components/WDLViewer'
 import { Agora, Dockstore, Rawls } from 'src/libs/ajax'
+import * as Config from 'src/libs/config'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -52,7 +53,7 @@ class WorkflowView extends Component {
   }
 
   render() {
-    const { config, launching, submissionId } = this.state
+    const { config, launching, submissionId, firecloudRoot } = this.state
     const { workspaceNamespace, workspaceName, workflowName } = this.props
     const workspaceId = { namespace: workspaceNamespace, name: workspaceName }
 
@@ -70,15 +71,24 @@ class WorkflowView extends Component {
             launching && h(LaunchAnalysisModal, {
               workspaceId, config,
               onDismiss: () => this.setState({ launching: false }),
-              onSuccess: ({ submissionId }) => this.setState({ submissionId })
+              onSuccess: submission => this.setState({ launching: false, submissionId: submission.submissionId })
             })
           ]) : centeredSpinner({ style: { marginTop: '2rem' } }),
-        submissionId && h(Modal, {
+        submissionId && firecloudRoot && h(Modal, {
           onDismiss: () => this.setState({ submissionId: undefined }),
           title: 'Analysis submitted',
           showCancel: false
         }, [
-          `Your analysis was successfully submitted with ID ${submissionId}`
+          p([`Your analysis was successfully submitted with ID ${submissionId}`]),
+          p([
+            'Job monitoring is not yet implemented in Saturn. ',
+            link({
+              style: { whiteSpace: 'nowrap' },
+              href: `${firecloudRoot}/#workspaces/${workspaceNamespace}/${workspaceName}/monitor/${submissionId}`,
+              target: '_blank'
+            }, ['Click here']),
+            ' to view in FireCloud.'
+          ])
         ])
       ]
     )
@@ -134,9 +144,13 @@ class WorkflowView extends Component {
   }
 
   componentDidUpdate() {
-    const { selectedTabIndex, loadedWdl } = this.state
+    const { selectedTabIndex, loadedWdl, submissionId, loadedFirecloudRoot } = this.state
     if (selectedTabIndex === 2 && !loadedWdl) {
       this.fetchWDL()
+    }
+
+    if (submissionId && !loadedFirecloudRoot) {
+      this.fetchFirecloudRoot()
     }
   }
 
@@ -335,6 +349,11 @@ class WorkflowView extends Component {
       }
     })()
     this.setState({ wdl })
+  }
+
+  fetchFirecloudRoot = async () => {
+    const firecloudRoot = await Config.getFirecloudUrlRoot()
+    this.setState({ firecloudRoot, loadedFirecloudRoot: true })
   }
 
   save = async () => {
