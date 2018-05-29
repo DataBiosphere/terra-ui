@@ -5,6 +5,7 @@ import * as breadcrumbs from 'src/components/breadcrumbs'
 import { buttonPrimary, link, tooltip } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { textInput } from 'src/components/input'
+import Modal from 'src/components/Modal'
 import { TabbedScrollWithHeader, emptyHeader } from 'src/components/ScrollWithHeader'
 import { components, DataTable } from 'src/components/table'
 import WDLViewer from 'src/components/WDLViewer'
@@ -13,8 +14,8 @@ import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component, Select } from 'src/libs/wrapped-components'
+import LaunchAnalysisModal from 'src/pages/workspaces/workspace/tools/LaunchAnalysisModal'
 import WorkspaceContainer from 'src/pages/workspaces/workspace/WorkspaceContainer'
-import LaunchAnalysisModal from './LaunchAnalysisModal'
 
 
 const sideMargin = '3rem'
@@ -51,7 +52,7 @@ class WorkflowView extends Component {
   }
 
   render() {
-    const { config, launching } = this.state
+    const { config, launching, submissionId } = this.state
     const { workspaceNamespace, workspaceName, workflowName } = this.props
     const workspaceId = { namespace: workspaceNamespace, name: workspaceName }
 
@@ -67,12 +68,18 @@ class WorkflowView extends Component {
             this.renderSummary(),
             this.renderDetails(),
             launching && h(LaunchAnalysisModal, {
-              namespace: workspaceNamespace,
-              name: workspaceName,
-              rootEntityType: config.rootEntityType,
-              onDismiss: () => this.setState({ launching: false })
+              workspaceId, config,
+              onDismiss: () => this.setState({ launching: false }),
+              onSuccess: ({ submissionId }) => this.setState({ submissionId })
             })
-          ]) : centeredSpinner({ style: { marginTop: '2rem' } })
+          ]) : centeredSpinner({ style: { marginTop: '2rem' } }),
+        submissionId && h(Modal, {
+          onDismiss: () => this.setState({ submissionId: undefined }),
+          title: 'Analysis submitted',
+          showCancel: false
+        }, [
+          `Your analysis was successfully submitted with ID ${submissionId}`
+        ])
       ]
     )
   }

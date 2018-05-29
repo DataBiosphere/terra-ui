@@ -21,7 +21,7 @@ export default class LaunchAnalysisModal extends Component {
 
   render() {
     const { onDismiss } = this.props
-    const { attributeNames, entities, attributeFailure, entityFailure, filterText } = this.state
+    const { attributeNames, entities, attributeFailure, entityFailure, filterText, launching } = this.state
 
     return h(Modal, {
       onDismiss,
@@ -52,7 +52,9 @@ export default class LaunchAnalysisModal extends Component {
       ],
       showX: true,
       width: 'calc(100% - 2rem)',
-      okButton: buttonPrimary({}, 'Launch')
+      okButton: buttonPrimary({
+        onClick: () => this.launch(), disabled: launching
+      }, [launching ? 'Launching...' : 'Launch'])
     }, [
       Utils.cond(
         [attributeNames && entities, () => this.renderMain()],
@@ -63,7 +65,7 @@ export default class LaunchAnalysisModal extends Component {
   }
 
   componentDidMount() {
-    const { namespace, name, rootEntityType } = this.props
+    const { workspaceId: { namespace, name }, config: { rootEntityType } } = this.props
 
     Rawls.workspace(namespace, name).entities().then(
       entities => {
@@ -80,7 +82,7 @@ export default class LaunchAnalysisModal extends Component {
   }
 
   renderMain = () => {
-    const { itemsPerPage, pageNumber, filteredEntities } = this.state
+    const { itemsPerPage, pageNumber, filteredEntities, launchError } = this.state
 
     return h(Fragment, [
       div({ style: { overflowX: 'auto', margin: '0 -1.25rem', padding: '0 1.25rem' } }, [
@@ -100,7 +102,8 @@ export default class LaunchAnalysisModal extends Component {
           setItemsPerPage: itemsPerPage => this.setState({ itemsPerPage }),
           itemsPerPage
         })
-      ])
+      ]),
+      div({ style: { marginTop: 10, textAlign: 'right', color: Style.colors.error } }, [launchError])
     ])
   }
 
@@ -175,5 +178,28 @@ export default class LaunchAnalysisModal extends Component {
         ]
       }
     })
+  }
+
+  launch = async () => {
+    const {
+      workspaceId: { namespace, name },
+      config: { namespace: configNamespace, name: configName, rootEntityType },
+      onDismiss, onSuccess
+    } = this.props
+
+    const { selectedEntity } = this.state
+
+    this.setState({ launching: true })
+
+    const submission = await Rawls.workspace(namespace, name).methodConfig(configNamespace, configName).launch({
+      entityType: selectedEntity && rootEntityType,
+      entityName: selectedEntity,
+      useCallCache: true
+    }).catch(
+      error => this.setState({ launchError: JSON.parse(error).message, launching: false })
+    )
+
+    onDismiss()
+    onSuccess(submission)
   }
 }

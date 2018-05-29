@@ -190,6 +190,19 @@ export const Rawls = {
           validate: async () => {
             const res = await fetchRawls(`${path}/validate`, authOpts())
             return res.json()
+          },
+
+          launch: async payload => {
+            const res = await fetchRawls(`${root}/submissions`, _.mergeAll([
+              authOpts(),
+              jsonBody({
+                ...payload,
+                methodConfigurationNamespace: configNamespace,
+                methodConfigurationName: configName
+              }),
+              { method: 'POST' }
+            ]))
+            return res.json()
           }
         }
       }
