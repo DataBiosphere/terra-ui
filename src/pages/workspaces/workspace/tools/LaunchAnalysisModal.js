@@ -1,3 +1,4 @@
+import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { buttonPrimary, link, search } from 'src/components/common'
@@ -35,9 +36,17 @@ export default class LaunchAnalysisModal extends Component {
             }
           },
           inputProps: {
-            placeholder: 'filter',
+            placeholder: 'FILTER',
             value: filterText,
-            onChange: e => this.setState({ filterText: e.target.value, pageNumber: 1 })
+            onChange: e => {
+              const filterText = e.target.value
+
+              this.setState({
+                filterText,
+                pageNumber: 1,
+                filteredEntities: _.filter(entity => entity.name.includes(filterText), entities)
+              })
+            }
           }
         })
       ],
@@ -65,13 +74,13 @@ export default class LaunchAnalysisModal extends Component {
     )
 
     Rawls.workspace(namespace, name).entity(rootEntityType).then(
-      entities => this.setState({ entities }),
+      entities => this.setState({ entities, filteredEntities: entities }),
       entityFailure => this.setState({ entityFailure })
     )
   }
 
   renderMain = () => {
-    const { itemsPerPage, pageNumber, entities } = this.state
+    const { itemsPerPage, pageNumber, filteredEntities } = this.state
 
     return h(Fragment, [
       div({ style: { overflowX: 'auto', margin: '0 -1.25rem', padding: '0 1.25rem' } }, [
@@ -85,7 +94,7 @@ export default class LaunchAnalysisModal extends Component {
       ]),
       div({ style: { marginTop: 10 } }, [
         paginator({
-          filteredDataLength: entities.length,
+          filteredDataLength: filteredEntities.length,
           setPageNumber: pageNumber => this.setState({ pageNumber }),
           pageNumber,
           setItemsPerPage: itemsPerPage => this.setState({ itemsPerPage }),
@@ -141,10 +150,10 @@ export default class LaunchAnalysisModal extends Component {
   }
 
   renderTableBody = () => {
-    const { attributeNames, entities, pageNumber, itemsPerPage, selectedEntity } = this.state
+    const { attributeNames, filteredEntities, pageNumber, itemsPerPage, selectedEntity } = this.state
 
     return h(DataTable, {
-      dataSource: slice(entities, { pageNumber, itemsPerPage }),
+      dataSource: slice(filteredEntities, { pageNumber, itemsPerPage }),
       customComponents: [components.scrollWithHeaderTable, components.nonInteractiveRow],
       allowPagination: false,
       tableProps: {
