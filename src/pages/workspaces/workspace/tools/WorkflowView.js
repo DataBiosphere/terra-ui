@@ -38,15 +38,6 @@ const styleForOptional = (optional, text) =>
 const miniMessage = text =>
   span({ style: { fontWeight: 500, fontSize: '75%', marginRight: '1rem', textTransform: 'uppercase' } }, [text])
 
-const preprocessIOList = list => {
-  return _.map(entry => {
-    const { name, inputType, outputType } = entry
-    const type = (inputType || outputType).match(/(.*?)\??$/)[1] // unify, and strip off trailing '?'
-    const [task, variable] = _.takeRight(2, _.split('.', name))
-    return _.merge(entry, { task, variable, type })
-  }, list)
-}
-
 
 class WorkflowView extends Component {
   constructor(props) {
@@ -95,21 +86,44 @@ class WorkflowView extends Component {
       _.keys(await workspace.entities())
     )
 
-    const { invalidInputs, invalidOutputs, methodConfiguration: config } =
-      await workspace.methodConfig(workflowNamespace, workflowName).validate()
+    const validationResponse = await workspace.methodConfig(workflowNamespace, workflowName).validate()
+    const { methodConfiguration: config } = validationResponse
+    const ioDefinitions = await Rawls.methodConfigInputsOutputs(config)
 
-    const processIO = _.flow(
-      _.update('inputs', preprocessIOList),
-      _.update('outputs', preprocessIOList)
-    )
-
-    const processedIO = processIO(await Rawls.methodConfigInputsOutputs(config))
+    const inputsOutputs = this.createIOLists(validationResponse, ioDefinitions)
 
     this.setState({
-      inputsOutputs: processedIO,
-      invalid: this.createInvalidIOMap(invalidInputs, invalidOutputs, config, processedIO),
-      config, entityTypes
+      config, entityTypes, inputsOutputs, ioDefinitions,
+      anyInvalidInput: _.some('error', inputsOutputs.inputs),
+      anyInvalidOutput: _.some('error', inputsOutputs.outputs)
     })
+  }
+
+  createIOLists(validationResponse, ioDefinitions = this.state.ioDefinitions) {
+    const { invalidInputs, invalidOutputs, methodConfiguration: config } = validationResponse
+
+    const invalid = {
+      inputs: invalidInputs,
+      outputs: invalidOutputs
+    }
+
+    const process = ioKey => _.map(({ name, inputType, outputType, optional }) => {
+      const value = config[ioKey][name]
+      const [task, variable] = _.takeRight(2, _.split('.', name))
+      const type = (inputType || outputType).match(/(.*?)\??$/)[1] // unify, and strip off trailing '?'
+      const error = Utils.cond(
+        [optional, () => undefined],
+        [!value, () => 'This attribute is required'],
+        () => invalid[ioKey][name]
+      )
+
+      return { name, task, variable, optional, value, type, error }
+    })
+
+    return {
+      inputs: process('inputs')(ioDefinitions.inputs),
+      outputs: process('outputs')(ioDefinitions.outputs)
+    }
   }
 
   componentDidUpdate() {
@@ -119,26 +133,12 @@ class WorkflowView extends Component {
     }
   }
 
-  createInvalidIOMap = (invalidInputs, invalidOutputs, config, io = this.state.inputsOutputs) => {
-    const findMissing = ioKey => _.flow(
-      _.reject('optional'),
-      _.filter(({ name }) => !config[ioKey][name]),
-      _.map(({ name }) => ({ [name]: 'This attribute is required' })),
-      _.mergeAll
-    )
-
-    return {
-      inputs: _.merge(invalidInputs, findMissing('inputs')(io.inputs)),
-      outputs: _.merge(invalidOutputs, findMissing('outputs')(io.outputs))
-    }
-  }
-
   renderSummary = () => {
-    const { modifiedAttributes, config, entityTypes, invalid, saving, modified } = this.state
+    const { modifiedAttributes, config, entityTypes, saving, modified, anyInvalidInput, anyInvalidOutput } = this.state
     const { name, methodConfigVersion, methodRepoMethod: { methodPath } } = config
 
     const noLaunchReason = Utils.cond(
-      [!_.isEmpty(invalid.inputs) || !_.isEmpty(invalid.outputs), () => 'Add your inputs and outputs to Launch Analysis'],
+      [anyInvalidInput || anyInvalidOutput, () => 'Add your inputs and outputs to Launch Analysis'],
       [saving || modified, () => 'Save or cancel to Launch Analysis'],
       () => undefined
     )
@@ -177,7 +177,7 @@ class WorkflowView extends Component {
   }
 
   renderDetails = () => {
-    const { invalid, wdl, saving, saved, modified, selectedTabIndex } = this.state
+    const { wdl, saving, saved, modified, selectedTabIndex, anyInvalidInput, anyInvalidOutput } = this.state
 
     /*
      * FIXME: width: 0 solves an issue where this header sometimes takes more room than
@@ -208,7 +208,7 @@ class WorkflowView extends Component {
           {
             title: h(Fragment, [
               'Inputs',
-              !_.isEmpty(invalid.inputs) && icon('error', {
+              anyInvalidInput && icon('error', {
                 size: 28, style: { marginLeft: '0.5rem', color: Style.colors.error }
               })
             ]),
@@ -218,7 +218,7 @@ class WorkflowView extends Component {
           {
             title: h(Fragment, [
               'Outputs',
-              !_.isEmpty(invalid.outputs) && icon('error', {
+              anyInvalidOutput && icon('error', {
                 size: 28, style: { marginLeft: '0.5rem', color: Style.colors.error }
               })
             ]),
@@ -283,13 +283,11 @@ class WorkflowView extends Component {
           },
           {
             key: 'attribute', width: '100%',
-            render: ({ name, optional }) => {
+            render: ({ name, optional, error }) => {
               let value = modifiedAttributes[key][name]
               if (value === undefined) {
                 value = config[key][name]
               }
-
-              const error = this.state.invalid[key][name]
 
               return div({ style: { display: 'flex', alignItems: 'center', margin: '-10px -0.5rem -6px 0' } }, [
                 textInput({
@@ -337,16 +335,19 @@ class WorkflowView extends Component {
     const { config, modifiedAttributes } = this.state
 
     this.setState({ saving: true })
-    const { invalidInputs, invalidOutputs, methodConfiguration } =
-      await Rawls.workspace(workspaceNamespace, workspaceName)
-        .methodConfig(workflowNamespace, workflowName)
-        .save(_.merge(config, modifiedAttributes))
+
+    const validationResponse = await Rawls.workspace(workspaceNamespace, workspaceName)
+      .methodConfig(workflowNamespace, workflowName)
+      .save(_.merge(config, modifiedAttributes))
+    const inputsOutputs = this.createIOLists(validationResponse)
 
     this.setState({
       saving: false, saved: true, modified: false,
       modifiedAttributes: { inputs: {}, outputs: {} },
-      invalid: this.createInvalidIOMap(invalidInputs, invalidOutputs, methodConfiguration),
-      config: methodConfiguration
+      inputsOutputs,
+      config: validationResponse.methodConfiguration,
+      anyInvalidInput: _.some('error', inputsOutputs.inputs),
+      anyInvalidOutput: _.some('error', inputsOutputs.outputs)
     })
   }
 
