@@ -1,4 +1,5 @@
 import _ from 'lodash/fp'
+import { Fragment } from 'react'
 import { div, h, input } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
 import { StatefulToolTip } from 'react-portal-tooltip'
@@ -113,6 +114,17 @@ export const Checkbox = ({ checked, onChange, disabled, ...props }) => {
     ...props
   }, [
     icon(checked ? 'checkSquare' : 'square', { size: 16 })
+  ])
+}
+
+export const LabeledCheckbox = ({ checked, onChange, disabled, children, ...props }) => {
+  return h(Fragment, [
+    h(Checkbox, { checked, onChange, disabled, ...props }),
+    h(Interactive, {
+      as: 'span',
+      style: { verticalAlign: 'middle' },
+      onClick: () => onChange && !disabled && onChange(!checked)
+    }, [children])
   ])
 }
 

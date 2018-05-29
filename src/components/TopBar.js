@@ -132,9 +132,8 @@ export class TopBar extends Component {
           ])
         ]),
         this.props.children,
-        div({ style: { flexGrow: 1 } }),
         link({
-          style: { flexShrink: 0 },
+          style: { flexShrink: 0, marginLeft: 'auto' },
           onClick: signOut
         }, 'Sign out'),
         this.state.navShown && this.buildNav()
