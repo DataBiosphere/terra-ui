@@ -196,6 +196,36 @@ Array [
     <div
         style={
             Object {
+                "backgroundColor": "#8b5f95",
+                "borderRadius": "1rem 0 0",
+                "color": "white",
+                "fontSize": "1rem",
+                "maxWidth": "100%",
+                "minWidth": 450,
+                "padding": "1rem",
+                "position": "absolute",
+                "right": 0,
+                "top": "100%",
+                "transform": "translate(0px, 0px)",
+                "transition": "all 0.25s linear",
+              }
+        }
+    >
+        <clr-icon
+            shape="loadingSpinner"
+            size={24}
+            style={
+                Object {
+                    "color": "white",
+                    "marginRight": "1rem",
+                  }
+            }
+        />
+        Loading new workspaces
+    </div>
+    <div
+        style={
+            Object {
                 "display": "flex",
                 "flexWrap": "wrap",
               }
