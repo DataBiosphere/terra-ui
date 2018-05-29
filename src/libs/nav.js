@@ -2,7 +2,7 @@ import { Component } from 'react'
 import createHistory from 'history/createHashHistory'
 import _ from 'lodash/fp'
 import pathToRegexp from 'path-to-regexp'
-import * as queryString from 'query-string'
+import * as qs from 'qs'
 
 
 export const history = createHistory({ hashType: 'noslash' })
@@ -49,7 +49,10 @@ export const findHandler = pathname => {
  */
 export const getHandlerProps = ({ keys, regex }, pathname, search) => {
   const pathProps = _.zipObject(keys, _.tail(pathname.match(regex)))
-  return { ...pathProps, queryParams: queryString.parse(search) }
+  return {
+    ...pathProps,
+    queryParams: qs.parse(search, { ignoreQueryPrefix: true, plainObjects: true })
+  }
 }
 
 /**
