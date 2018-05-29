@@ -278,7 +278,7 @@ export default class ClusterManager extends Component {
       Leo.cluster(namespace, Utils.generateClusterName()).create({
         labels: {},
         machineConfig: this.getMachineConfig(),
-        jupyterUserScriptUri
+        ...(jupyterUserScriptUri ? { jupyterUserScriptUri } : {})
       }).then(() => {
         this.setState({ open: false })
       })
