@@ -203,7 +203,7 @@ export class DataTable extends Component {
 
     return h(Fragment, [
       h(RCTable, _.merge({
-        data: allowPagination ? dataSource : slice(dataSource, { pageNumber, itemsPerPage }),
+        data: allowPagination ? slice(dataSource, { pageNumber, itemsPerPage }) : dataSource,
         components: _.isArray(customComponents) ?
           _.mergeAll([defaultComponents, ...customComponents]) :
           _.merge(defaultComponents, customComponents)
