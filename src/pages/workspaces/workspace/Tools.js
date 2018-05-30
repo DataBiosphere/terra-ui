@@ -1,6 +1,5 @@
 import _ from 'lodash/fp'
-import Interactive from 'react-interactive'
-import { div, h } from 'react-hyperscript-helpers'
+import { a, div, h } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { centeredSpinner } from 'src/components/icons'
 import { DataGrid } from 'src/components/table'
@@ -47,8 +46,7 @@ class WorkspaceTools extends Component {
               onPageChanged: n => this.setState({ pageNumber: n }),
               renderCard: config => {
                 const { name, namespace, methodRepoMethod: { sourceRepo, methodVersion } } = config
-                return h(Interactive, {
-                  as: 'a',
+                return a({
                   style: {
                     ...Style.elements.card,
                     width: '30%', margin: '1rem 1.5rem', textDecoration: 'none',
