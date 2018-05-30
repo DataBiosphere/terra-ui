@@ -49,7 +49,7 @@ class WorkspaceTools extends Component {
                 return a({
                   style: {
                     ...Style.elements.card,
-                    width: '30%', margin: '1rem 1.5rem', textDecoration: 'none',
+                    width: '30%', margin: '1rem auto', textDecoration: 'none',
                     color: Style.colors.text
                   },
                   href: Nav.getLink('workflow', {
