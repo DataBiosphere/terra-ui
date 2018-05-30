@@ -1,18 +1,21 @@
 import _ from 'lodash/fp'
 import { Fragment } from 'react'
-import { div, h, span } from 'react-hyperscript-helpers'
+import { div, h, p, span } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { buttonPrimary, link, tooltip } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { textInput } from 'src/components/input'
+import Modal from 'src/components/Modal'
 import { TabbedScrollWithHeader, emptyHeader } from 'src/components/ScrollWithHeader'
 import { components, DataTable } from 'src/components/table'
 import WDLViewer from 'src/components/WDLViewer'
 import { Agora, Dockstore, Rawls } from 'src/libs/ajax'
+import * as Config from 'src/libs/config'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component, Select } from 'src/libs/wrapped-components'
+import LaunchAnalysisModal from 'src/pages/workspaces/workspace/tools/LaunchAnalysisModal'
 import WorkspaceContainer from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
 
@@ -37,15 +40,6 @@ const styleForOptional = (optional, text) =>
 const miniMessage = text =>
   span({ style: { fontWeight: 500, fontSize: '75%', marginRight: '1rem', textTransform: 'uppercase' } }, [text])
 
-const preprocessIOList = list => {
-  return _.map(entry => {
-    const { name, inputType, outputType } = entry
-    const type = (inputType || outputType).match(/(.*?)\??$/)[1] // unify, and strip off trailing '?'
-    const [task, variable] = _.takeRight(2, _.split('.', name))
-    return _.merge(entry, { task, variable, type })
-  }, list)
-}
-
 
 class WorkflowView extends Component {
   constructor(props) {
@@ -59,9 +53,14 @@ class WorkflowView extends Component {
   }
 
   render() {
-    const { config } = this.state
+    const { config, launching, submissionId, firecloudRoot, inputsOutputs } = this.state
     const { workspaceNamespace, workspaceName, workflowName } = this.props
+
     const workspaceId = { namespace: workspaceNamespace, name: workspaceName }
+    const invalidIO = config && {
+      inputs: _.some('error', inputsOutputs.inputs),
+      outputs: _.some('error', inputsOutputs.outputs)
+    }
 
     return h(WorkspaceContainer,
       {
@@ -72,9 +71,30 @@ class WorkflowView extends Component {
       [
         config ?
           h(Fragment, [
-            this.renderSummary(),
-            this.renderDetails()
-          ]) : centeredSpinner({ style: { marginTop: '2rem' } })
+            this.renderSummary(invalidIO),
+            this.renderDetails(invalidIO),
+            launching && h(LaunchAnalysisModal, {
+              workspaceId, config,
+              onDismiss: () => this.setState({ launching: false }),
+              onSuccess: submission => this.setState({ launching: false, submissionId: submission.submissionId })
+            })
+          ]) : centeredSpinner({ style: { marginTop: '2rem' } }),
+        submissionId && firecloudRoot && h(Modal, {
+          onDismiss: () => this.setState({ submissionId: undefined }),
+          title: 'Analysis submitted',
+          showCancel: false
+        }, [
+          p([`Your analysis was successfully submitted with ID ${submissionId}`]),
+          p([
+            'Job monitoring is not yet implemented in Saturn. ',
+            link({
+              style: { whiteSpace: 'nowrap' },
+              href: `${firecloudRoot}/#workspaces/${workspaceNamespace}/${workspaceName}/monitor/${submissionId}`,
+              target: '_blank'
+            }, ['Click here']),
+            ' to view in FireCloud.'
+          ])
+        ])
       ]
     )
   }
@@ -88,21 +108,42 @@ class WorkflowView extends Component {
       _.keys(await workspace.entities())
     )
 
-    const { invalidInputs, invalidOutputs, methodConfiguration: config } =
-      await workspace.methodConfig(workflowNamespace, workflowName).validate()
+    const validationResponse = await workspace.methodConfig(workflowNamespace, workflowName).validate()
+    const { methodConfiguration: config } = validationResponse
+    const ioDefinitions = await Rawls.methodConfigInputsOutputs(config)
 
-    const processIO = _.flow(
-      _.update('inputs', preprocessIOList),
-      _.update('outputs', preprocessIOList)
-    )
+    const inputsOutputs = this.createIOLists(validationResponse, ioDefinitions)
 
-    const processedIO = processIO(await Rawls.methodConfigInputsOutputs(config))
+    const firecloudRoot = await Config.getFirecloudUrlRoot()
 
-    this.setState({
-      inputsOutputs: processedIO,
-      invalid: this.createInvalidIOMap(invalidInputs, invalidOutputs, config, processedIO),
-      config, entityTypes
+    this.setState({ config, entityTypes, inputsOutputs, ioDefinitions, firecloudRoot })
+  }
+
+  createIOLists(validationResponse, ioDefinitions = this.state.ioDefinitions) {
+    const { invalidInputs, invalidOutputs, methodConfiguration: config } = validationResponse
+
+    const invalid = {
+      inputs: invalidInputs,
+      outputs: invalidOutputs
+    }
+
+    const process = ioKey => _.map(({ name, inputType, outputType, optional }) => {
+      const value = config[ioKey][name]
+      const [task, variable] = _.takeRight(2, _.split('.', name))
+      const type = (inputType || outputType).match(/(.*?)\??$/)[1] // unify, and strip off trailing '?'
+      const error = Utils.cond(
+        [optional && !value, () => undefined],
+        [!value, () => 'This attribute is required'],
+        () => invalid[ioKey][name]
+      )
+
+      return { name, task, variable, optional, value, type, error }
     })
+
+    return {
+      inputs: process('inputs')(ioDefinitions.inputs),
+      outputs: process('outputs')(ioDefinitions.outputs)
+    }
   }
 
   componentDidUpdate() {
@@ -112,26 +153,12 @@ class WorkflowView extends Component {
     }
   }
 
-  createInvalidIOMap = (invalidInputs, invalidOutputs, config, io = this.state.inputsOutputs) => {
-    const findMissing = ioKey => _.flow(
-      _.reject('optional'),
-      _.filter(({ name }) => !config[ioKey][name]),
-      _.map(({ name }) => ({ [name]: 'This attribute is required' })),
-      _.mergeAll
-    )
-
-    return {
-      inputs: _.merge(invalidInputs, findMissing('inputs')(io.inputs)),
-      outputs: _.merge(invalidOutputs, findMissing('outputs')(io.outputs))
-    }
-  }
-
-  renderSummary = () => {
-    const { modifiedAttributes, config, entityTypes, invalid, saving, modified } = this.state
+  renderSummary = invalidIO => {
+    const { modifiedAttributes, config, entityTypes, saving, modified } = this.state
     const { name, methodConfigVersion, methodRepoMethod: { methodPath } } = config
 
     const noLaunchReason = Utils.cond(
-      [!_.isEmpty(invalid.inputs) || !_.isEmpty(invalid.outputs), () => 'Add your inputs and outputs to Launch Analysis'],
+      [invalidIO.inputs || invalidIO.outputs, () => 'Add your inputs and outputs to Launch Analysis'],
       [saving || modified, () => 'Save or cancel to Launch Analysis'],
       () => undefined
     )
@@ -156,7 +183,8 @@ class WorkflowView extends Component {
         ])
       ]),
       div({ style: { flex: 'none', display: 'flex', flexDirection: 'column', alignItems: 'flex-end' } }, [
-        buttonPrimary({ disabled: noLaunchReason }, 'Launch analysis'),
+        buttonPrimary({ disabled: noLaunchReason, onClick: () => this.setState({ launching: true }) },
+          'Launch analysis'),
         noLaunchReason && div({
           style: {
             marginTop: '0.5rem', padding: '1rem',
@@ -168,16 +196,21 @@ class WorkflowView extends Component {
     ])
   }
 
-  renderDetails = () => {
-    const { invalid, wdl, saving, saved, modified, selectedTabIndex } = this.state
+  renderDetails = invalidIO => {
+    const { wdl, saving, saved, modified, selectedTabIndex } = this.state
 
-    const tableHeader = div({ style: { display: 'flex' } }, [
+    /*
+     * FIXME: width: 0 solves an issue where this header sometimes takes more room than
+     * it needs and messes up the layout of the entire table. Related to the display: table
+     * that's used to make style apply beyond the viewport of a scrolling component
+     */
+    const tableHeader = div({ style: { display: 'flex', width: 0 } }, [
       tableColumns.map(({ label, width }, idx) => {
         return div({
           key: label,
           style: {
             flex: width ? `0 0 ${width}px` : '1 1 auto',
-            fontWeight: 500, fontSize: 12, padding: '0.5rem 0.8rem',
+            fontWeight: 500, fontSize: 12, padding: '0.5rem 19px',
             borderLeft: idx !== 0 && Style.standardLine
           }
         },
@@ -195,7 +228,7 @@ class WorkflowView extends Component {
           {
             title: h(Fragment, [
               'Inputs',
-              !_.isEmpty(invalid.inputs) && icon('error', {
+              invalidIO.inputs && icon('error', {
                 size: 28, style: { marginLeft: '0.5rem', color: Style.colors.error }
               })
             ]),
@@ -205,7 +238,7 @@ class WorkflowView extends Component {
           {
             title: h(Fragment, [
               'Outputs',
-              !_.isEmpty(invalid.outputs) && icon('error', {
+              invalidIO.outputs && icon('error', {
                 size: 28, style: { marginLeft: '0.5rem', color: Style.colors.error }
               })
             ]),
@@ -243,7 +276,7 @@ class WorkflowView extends Component {
     return h(DataTable, {
       dataSource: inputsOutputs[key],
       allowPagination: false,
-      customComponents: components.fullWidthTable,
+      customComponents: components.scrollWithHeaderTable,
       tableProps: {
         showHeader: false, scroll: { y: 450 },
         rowKey: 'name',
@@ -270,13 +303,11 @@ class WorkflowView extends Component {
           },
           {
             key: 'attribute', width: '100%',
-            render: ({ name, optional }) => {
+            render: ({ name, optional, error }) => {
               let value = modifiedAttributes[key][name]
               if (value === undefined) {
                 value = config[key][name]
               }
-
-              const error = this.state.invalid[key][name]
 
               return div({ style: { display: 'flex', alignItems: 'center', margin: '-10px -0.5rem -6px 0' } }, [
                 textInput({
@@ -324,16 +355,17 @@ class WorkflowView extends Component {
     const { config, modifiedAttributes } = this.state
 
     this.setState({ saving: true })
-    const { invalidInputs, invalidOutputs, methodConfiguration } =
-      await Rawls.workspace(workspaceNamespace, workspaceName)
-        .methodConfig(workflowNamespace, workflowName)
-        .save(_.merge(config, modifiedAttributes))
+
+    const validationResponse = await Rawls.workspace(workspaceNamespace, workspaceName)
+      .methodConfig(workflowNamespace, workflowName)
+      .save(_.merge(config, modifiedAttributes))
+    const inputsOutputs = this.createIOLists(validationResponse)
 
     this.setState({
       saving: false, saved: true, modified: false,
       modifiedAttributes: { inputs: {}, outputs: {} },
-      invalid: this.createInvalidIOMap(invalidInputs, invalidOutputs, methodConfiguration),
-      config: methodConfiguration
+      inputsOutputs,
+      config: validationResponse.methodConfiguration
     })
   }
 
