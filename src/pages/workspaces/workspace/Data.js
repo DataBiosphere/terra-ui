@@ -1,6 +1,8 @@
 import _ from 'lodash/fp'
+import { Fragment } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
+import { spinnerOverlay } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { DataTable } from 'src/components/table'
 import { Rawls } from 'src/libs/ajax'
@@ -23,7 +25,6 @@ class WorkspaceData extends Component {
     const { namespace, name } = this.props
     const { selectedEntityType } = this.state
 
-    this.setState({ workspaceEntities: undefined, entitiesFailure: undefined })
     Rawls.workspace(namespace, name).entities().then(
       workspaceEntities => this.setState({ workspaceEntities }),
       entitiesFailure => this.setState({ entitiesFailure })
@@ -38,7 +39,7 @@ class WorkspaceData extends Component {
     const { namespace, name } = this.props
 
     Rawls.workspace(namespace, name).entity(type).then(
-      selectedEntities => this.setState({ selectedEntities }),
+      selectedEntities => this.setState({ freshEntities: true, selectedEntities }),
       entityFailure => this.setState({ entityFailure })
     )
   }
@@ -48,7 +49,7 @@ class WorkspaceData extends Component {
   }
 
   render() {
-    const { selectedEntityType, selectedEntities, workspaceEntities, entitiesFailure, entityFailure } = this.state
+    const { selectedEntityType, selectedEntities, workspaceEntities, entitiesFailure, entityFailure, freshEntities } = this.state
     const { namespace, name } = this.props
 
     const entityTypeList = () => _.map(([type, typeDetails]) =>
@@ -68,41 +69,48 @@ class WorkspaceData extends Component {
       ]),
     _.toPairs(workspaceEntities))
 
-    const entityTable = () => h(DataTable, {
-      defaultItemsPerPage: this.state.itemsPerPage,
-      onItemsPerPageChanged: itemsPerPage => this.setState({ itemsPerPage }),
-      initialPage: this.state.pageNumber,
-      onPageChanged: pageNumber => this.setState({ pageNumber }),
-      dataSource: _.sortBy('name', selectedEntities),
-      tableProps: {
-        rowKey: 'name',
-        scroll: { x: true },
-        columns: _.concat([
-          {
-            title: selectedEntityType + '_id',
-            key: selectedEntityType + '_id',
-            render: entity => entity.name
-          }
-        ], _.map(name => {
-          return {
-            title: name,
-            key: name,
-            render: entity => entity.attributes[name]
-          }
-        }, workspaceEntities[selectedEntityType]['attributeNames']))
-      }
-    })
+    const entityTable = () => h(Fragment, [
+      !freshEntities && spinnerOverlay,
+      h(DataTable, {
+        defaultItemsPerPage: this.state.itemsPerPage,
+        onItemsPerPageChanged: itemsPerPage => this.setState({ itemsPerPage }),
+        initialPage: this.state.pageNumber,
+        onPageChanged: pageNumber => this.setState({ pageNumber }),
+        dataSource: _.sortBy('name', selectedEntities),
+        tableProps: {
+          rowKey: 'name',
+          scroll: { x: true },
+          columns: _.concat([
+            {
+              title: selectedEntityType + '_id',
+              key: selectedEntityType + '_id',
+              render: entity => entity.name
+            }
+          ], _.map(name => {
+            return {
+              title: name,
+              key: name,
+              render: entity => entity.attributes[name]
+            }
+          }, workspaceEntities[selectedEntityType]['attributeNames']))
+        }
+      })
+    ])
 
 
     return h(WorkspaceContainer,
       {
-        namespace, name, refresh: () => this.refresh(),
+        namespace, name, refresh: () => {
+          this.setState({ freshEntities: false })
+          this.refresh()
+        },
         breadcrumbs: breadcrumbs.commonPaths.workspaceDashboard({ namespace, name }),
         title: 'Data', activeTab: 'data'
       },
       [
         div({
           style: {
+            position: 'relative',
             display: 'flex', margin: '1rem', backgroundColor: 'white', borderRadius: 5,
             boxShadow: Style.standardShadow
           }
@@ -146,8 +154,9 @@ class WorkspaceData extends Component {
   }
 
   componentDidUpdate() {
-    const { workspaceEntities, selectedEntityType, itemsPerPage, pageNumber } = this.state
-    StateHistory.update({ workspaceEntities, selectedEntityType, itemsPerPage, pageNumber })
+    const { workspaceEntities, selectedEntityType, selectedEntities, itemsPerPage, pageNumber } = this.state
+
+    StateHistory.update({ workspaceEntities, selectedEntityType, selectedEntities, itemsPerPage, pageNumber })
   }
 }
 

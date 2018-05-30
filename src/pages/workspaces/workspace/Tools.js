@@ -1,11 +1,12 @@
 import _ from 'lodash/fp'
 import { div, h } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { link } from 'src/components/common'
+import { link, spinnerOverlay } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { DataGrid } from 'src/components/table'
 import { Rawls } from 'src/libs/ajax'
 import * as Nav from 'src/libs/nav'
+import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
@@ -15,36 +16,39 @@ import WorkspaceContainer from 'src/pages/workspaces/workspace/WorkspaceContaine
 class WorkspaceTools extends Component {
   constructor(props) {
     super(props)
-    this.state = { itemsPerPage: 6, pageNumber: 1 }
+    this.state = _.merge({ itemsPerPage: 6, pageNumber: 1 }, StateHistory.get())
   }
 
   refresh() {
     const { namespace, name } = this.props
 
-    this.setState({ configs: undefined })
     Rawls.workspace(namespace, name).listMethodConfigs()
-      .then(configs => this.setState({ configs }))
+      .then(configs => this.setState({ freshConfigs: true, configs }))
   }
 
   render() {
-    const { configs, itemsPerPage } = this.state
+    const { freshConfigs, configs, itemsPerPage, pageNumber } = this.state
     const workspaceId = _.pick(['namespace', 'name'], this.props)
 
     return h(WorkspaceContainer,
       {
-        ...workspaceId, refresh: () => this.refresh(),
+        ...workspaceId, refresh: () => {
+          this.setState({ freshConfigs: false })
+          this.refresh()
+        },
         breadcrumbs: breadcrumbs.commonPaths.workspaceDashboard(workspaceId),
         title: 'Tools', activeTab: 'tools'
       },
       [
-        div({ style: { margin: '1rem 4rem' } }, [
+        div({ style: { padding: '1rem 4rem', flexGrow: 1, position: 'relative' } }, [
+          !freshConfigs && configs && spinnerOverlay,
           configs ?
             h(DataGrid, {
               dataSource: configs,
               itemsPerPageOptions: [6, 12, 24, 36, 48],
               itemsPerPage,
               onItemsPerPageChanged: itemsPerPage => this.setState({ itemsPerPage }),
-              pageNumber: this.state.pageNumber,
+              pageNumber,
               onPageChanged: n => this.setState({ pageNumber: n }),
               renderCard: config => {
                 const { name, namespace, methodRepoMethod: { sourceRepo, methodVersion } } = config
@@ -85,6 +89,12 @@ class WorkspaceTools extends Component {
 
   componentDidMount() {
     this.refresh()
+  }
+
+  componentDidUpdate() {
+    const { configs, itemsPerPage, pageNumber } = this.state
+
+    StateHistory.update({ configs, itemsPerPage, pageNumber })
   }
 }
 

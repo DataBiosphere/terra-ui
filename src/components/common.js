@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import { div, h, input } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
 import { StatefulToolTip } from 'react-portal-tooltip'
-import { icon } from 'src/components/icons'
+import { centeredSpinner, icon } from 'src/components/icons'
 import * as Style from 'src/libs/style'
 
 
@@ -135,3 +135,19 @@ export const pageColumn = function(title, flex, contents) {
       contents
     ])
 }
+
+export const spinnerOverlay = div(
+  {
+    style: {
+      position: 'absolute',
+      display: 'flex', alignItems: 'center',
+      top: 0, right: 0, bottom: 0, left: 0,
+      backgroundColor: 'rgba(0, 0, 0, 0.1)'
+    }
+  }, [
+    centeredSpinner({
+      size: 64,
+      style: { backgroundColor: 'rgba(255, 255, 255, 0.85)', padding: '1rem', borderRadius: '0.5rem' }
+    })
+  ]
+)

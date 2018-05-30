@@ -26,7 +26,7 @@ export default class CornerBanner extends Component {
       style: {
         transition: 'all 0.25s linear',
         transform: `translate(0px, ${show ? '-100%' : '0px'})`,
-        position: 'absolute', top: '100%', right: 0,
+        position: 'fixed', top: '100%', right: 0,
         minWidth: 450, maxWidth: '100%',
         padding: '1rem', backgroundColor: Style.colors.accent,
         borderRadius: '1rem 0 0',
