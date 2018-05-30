@@ -18,7 +18,8 @@ module.exports = {
       }
     )
     config.plugins.push(new webpack.DefinePlugin({
-      SATURN_VERSION: JSON.stringify(execSync('git rev-parse HEAD').toString().trim())
+      SATURN_VERSION: JSON.stringify(execSync('git rev-parse HEAD').toString().trim()),
+      SATURN_BUILD_TIMESTAMP: JSON.stringify(Date.now())
     }))
     return rewireReactHotLoader(config, env)
   },

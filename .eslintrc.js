@@ -2,7 +2,8 @@ module.exports = {
   'plugins': ['lodash-fp'],
   'extends': 'react-app',
   'globals': {
-    'SATURN_VERSION': false
+    'SATURN_VERSION': false,
+    'SATURN_BUILD_TIMESTAMP': false
   },
   'parserOptions': {
     'ecmaFeatures': {
