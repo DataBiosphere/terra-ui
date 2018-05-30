@@ -53,9 +53,14 @@ class WorkflowView extends Component {
   }
 
   render() {
-    const { config, launching, submissionId, firecloudRoot } = this.state
+    const { config, launching, submissionId, firecloudRoot, inputsOutputs } = this.state
     const { workspaceNamespace, workspaceName, workflowName } = this.props
+
     const workspaceId = { namespace: workspaceNamespace, name: workspaceName }
+    const invalidIO = config && {
+      inputs: _.some('error', inputsOutputs.inputs),
+      outputs: _.some('error', inputsOutputs.outputs)
+    }
 
     return h(WorkspaceContainer,
       {
@@ -66,8 +71,8 @@ class WorkflowView extends Component {
       [
         config ?
           h(Fragment, [
-            this.renderSummary(),
-            this.renderDetails(),
+            this.renderSummary(invalidIO),
+            this.renderDetails(invalidIO),
             launching && h(LaunchAnalysisModal, {
               workspaceId, config,
               onDismiss: () => this.setState({ launching: false }),
@@ -109,11 +114,7 @@ class WorkflowView extends Component {
 
     const inputsOutputs = this.createIOLists(validationResponse, ioDefinitions)
 
-    this.setState({
-      config, entityTypes, inputsOutputs, ioDefinitions,
-      anyInvalidInput: _.some('error', inputsOutputs.inputs),
-      anyInvalidOutput: _.some('error', inputsOutputs.outputs)
-    })
+    this.setState({ config, entityTypes, inputsOutputs, ioDefinitions })
   }
 
   createIOLists(validationResponse, ioDefinitions = this.state.ioDefinitions) {
@@ -154,12 +155,12 @@ class WorkflowView extends Component {
     }
   }
 
-  renderSummary = () => {
-    const { modifiedAttributes, config, entityTypes, saving, modified, anyInvalidInput, anyInvalidOutput } = this.state
+  renderSummary = invalidIO => {
+    const { modifiedAttributes, config, entityTypes, saving, modified } = this.state
     const { name, methodConfigVersion, methodRepoMethod: { methodPath } } = config
 
     const noLaunchReason = Utils.cond(
-      [anyInvalidInput || anyInvalidOutput, () => 'Add your inputs and outputs to Launch Analysis'],
+      [invalidIO.inputs || invalidIO.outputs, () => 'Add your inputs and outputs to Launch Analysis'],
       [saving || modified, () => 'Save or cancel to Launch Analysis'],
       () => undefined
     )
@@ -197,8 +198,8 @@ class WorkflowView extends Component {
     ])
   }
 
-  renderDetails = () => {
-    const { wdl, saving, saved, modified, selectedTabIndex, anyInvalidInput, anyInvalidOutput } = this.state
+  renderDetails = invalidIO => {
+    const { wdl, saving, saved, modified, selectedTabIndex } = this.state
 
     /*
      * FIXME: width: 0 solves an issue where this header sometimes takes more room than
@@ -229,7 +230,7 @@ class WorkflowView extends Component {
           {
             title: h(Fragment, [
               'Inputs',
-              anyInvalidInput && icon('error', {
+              invalidIO.inputs && icon('error', {
                 size: 28, style: { marginLeft: '0.5rem', color: Style.colors.error }
               })
             ]),
@@ -239,7 +240,7 @@ class WorkflowView extends Component {
           {
             title: h(Fragment, [
               'Outputs',
-              anyInvalidOutput && icon('error', {
+              invalidIO.outputs && icon('error', {
                 size: 28, style: { marginLeft: '0.5rem', color: Style.colors.error }
               })
             ]),
@@ -371,9 +372,7 @@ class WorkflowView extends Component {
       saving: false, saved: true, modified: false,
       modifiedAttributes: { inputs: {}, outputs: {} },
       inputsOutputs,
-      config: validationResponse.methodConfiguration,
-      anyInvalidInput: _.some('error', inputsOutputs.inputs),
-      anyInvalidOutput: _.some('error', inputsOutputs.outputs)
+      config: validationResponse.methodConfiguration
     })
   }
 
