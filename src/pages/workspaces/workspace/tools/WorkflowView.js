@@ -114,7 +114,9 @@ class WorkflowView extends Component {
 
     const inputsOutputs = this.createIOLists(validationResponse, ioDefinitions)
 
-    this.setState({ config, entityTypes, inputsOutputs, ioDefinitions })
+    const firecloudRoot = await Config.getFirecloudUrlRoot()
+
+    this.setState({ config, entityTypes, inputsOutputs, ioDefinitions, firecloudRoot })
   }
 
   createIOLists(validationResponse, ioDefinitions = this.state.ioDefinitions) {
@@ -145,13 +147,9 @@ class WorkflowView extends Component {
   }
 
   componentDidUpdate() {
-    const { selectedTabIndex, loadedWdl, submissionId, loadedFirecloudRoot } = this.state
+    const { selectedTabIndex, loadedWdl } = this.state
     if (selectedTabIndex === 2 && !loadedWdl) {
       this.fetchWDL()
-    }
-
-    if (submissionId && !loadedFirecloudRoot) {
-      this.fetchFirecloudRoot()
     }
   }
 
@@ -350,11 +348,6 @@ class WorkflowView extends Component {
       }
     })()
     this.setState({ wdl })
-  }
-
-  fetchFirecloudRoot = async () => {
-    const firecloudRoot = await Config.getFirecloudUrlRoot()
-    this.setState({ firecloudRoot, loadedFirecloudRoot: true })
   }
 
   save = async () => {
