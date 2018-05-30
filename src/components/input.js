@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { Fragment } from 'react'
+import { Component, Fragment } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
 import { icon } from 'src/components/icons'
@@ -20,6 +20,50 @@ export const textInput = function(props) {
     Style.elements.input,
     props
   ]))
+}
+
+
+export const numberInput = props => {
+  return h(Interactive, _.mergeAll([{
+    as: 'input',
+    type: 'number',
+    style: {
+      width: '100%',
+      paddingLeft: '1rem',
+      paddingRight: '0.25rem',
+      fontWeight: 300,
+      fontSize: 14
+    }
+  }, Style.elements.input, props]))
+}
+
+
+export class IntegerInput extends Component {
+  constructor(props) {
+    super(props)
+    this.state = { textValue: undefined, lastValue: undefined }
+  }
+
+  static getDerivedStateFromProps({ value }, { lastValue }) {
+    if (value !== lastValue) {
+      return { textValue: value.toString(), lastValue: value }
+    }
+    return null
+  }
+
+  render() {
+    const { textValue } = this.state
+    const { onChange, min = -Infinity, max = Infinity, ...props } = this.props
+    return numberInput({
+      ...props, min, max, value: textValue,
+      onChange: e => this.setState({ textValue: e.target.value }),
+      onBlur: () => {
+        const newValue = _.clamp(min, max, _.floor(textValue * 1))
+        this.setState({ lastValue: undefined })
+        onChange(newValue)
+      }
+    })
+  }
 }
 
 

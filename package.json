@@ -20,6 +20,7 @@
     "react-hot-loader": "^4.2.0",
     "react-hyperscript-helpers": "^1.2.0",
     "react-interactive": "^0.8.1",
+    "react-onclickoutside": "^6.7.1",
     "react-paginating": "^1.0.1",
     "react-portal-tooltip": "^2.4.0",
     "react-scripts": "1.1.4",

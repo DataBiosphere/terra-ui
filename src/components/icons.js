@@ -7,6 +7,7 @@ import '@clr/icons/shapes/media-shapes'
 import '@clr/icons/shapes/technology-shapes'
 import _ from 'lodash/fp'
 import { h } from 'react-hyperscript-helpers'
+import caretDown from 'src/icons/caret-down.svg'
 import checkSquare from 'src/icons/check-square.svg'
 import jupyterIcon from 'src/icons/jupyter.svg'
 import loadingSpinner from 'src/icons/loading-spinner.svg'
@@ -43,4 +44,4 @@ export const centeredSpinner = function(props) {
   return spinner(_.merge({ size: 48, style: { display: 'block', margin: 'auto' } }, props))
 }
 
-ClarityIcons.add({ loadingSpinner, logoIcon, logoGrey, table, jupyterIcon, checkSquare, square })
+ClarityIcons.add({ loadingSpinner, logoIcon, logoGrey, table, jupyterIcon, checkSquare, caretDown, square })
