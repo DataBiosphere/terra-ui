@@ -34,7 +34,10 @@ const PageWrapper = ({ children }) => {
       ]),
       a({ href: Nav.getLink('privacy'), style: styles.link }, 'Privacy Policy'),
       a({ target: '_blank', href: tosUrl, style: styles.link }, 'Terms of Service'),
-      div({ style: { marginLeft: 'auto' } }, new Date(SATURN_BUILD_TIMESTAMP).toLocaleString())
+      div({ style: { marginLeft: 'auto' } }, [
+        'Built on: ',
+        new Date(SATURN_BUILD_TIMESTAMP).toLocaleString()
+      ])
     ])
   ])
 }
