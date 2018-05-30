@@ -65,34 +65,34 @@ class NotebookCard extends Component {
     const hideMenu = () => this.notebookMenu.setVisibility(false)
 
     const notebookMenu = h(ShowOnClick, {
-        ref: instance => this.notebookMenu = instance,
-        button: h(Interactive, {
-          as: icon('ellipsis-vertical'), size: 18,
-          style: { marginLeft: '1rem', cursor: 'pointer' }, focus: 'hover'
-        })
-      },
-      [
-        div({
-          style: _.merge({
-            position: 'absolute', top: 0, lineHeight: 'initial', textAlign: 'initial',
-            color: 'initial', textTransform: 'initial', fontWeight: 300
-          }, listView ? { right: '1rem' } : { left: '2rem' })
-        }, [
-          contextMenu([
-            [{ onClick: () => { this.setState({ renamingNotebook: true }, hideMenu) } }, 'Rename'], // hiding menu doesn't work when executed concurrently
-            [{ onClick: () => { this.setState({ copyingNotebook: true }, hideMenu) } }, 'Duplicate'],
-            [{ onClick: () => { this.setState({ deletingNotebook: true }, hideMenu) } }, 'Delete']
-          ])
+      ref: instance => this.notebookMenu = instance,
+      button: h(Interactive, {
+        as: icon('ellipsis-vertical'), size: 18,
+        style: { marginLeft: '1rem', cursor: 'pointer' }, focus: 'hover'
+      })
+    },
+    [
+      div({
+        style: _.merge({
+          position: 'absolute', top: 0, lineHeight: 'initial', textAlign: 'initial',
+          color: 'initial', textTransform: 'initial', fontWeight: 300
+        }, listView ? { right: '1rem' } : { left: '2rem' })
+      }, [
+        contextMenu([
+          [{ onClick: () => { this.setState({ renamingNotebook: true }, hideMenu) } }, 'Rename'], // hiding menu doesn't work when executed concurrently
+          [{ onClick: () => { this.setState({ copyingNotebook: true }, hideMenu) } }, 'Duplicate'],
+          [{ onClick: () => { this.setState({ deletingNotebook: true }, hideMenu) } }, 'Delete']
         ])
       ])
+    ])
 
     const jupyterIcon = icon('jupyterIcon', {
       style: listView ? {
-          height: '2em',
-          width: '2em',
-          margin: '-0.5em 0.5rem -0.5em 0',
-          color: Style.colors.background
-        } :
+        height: '2em',
+        width: '2em',
+        margin: '-0.5em 0.5rem -0.5em 0',
+        color: Style.colors.background
+      } :
         {
           height: 125,
           width: 'auto',
@@ -117,44 +117,44 @@ class NotebookCard extends Component {
 
     return h(Fragment, [
       a({
-          target: '_blank',
-          href: notebookAccess ?
-            `${clusterUrl}/notebooks/${wsName}/${printName}.ipynb` : // removes 'notebooks/'
-            undefined,
-          style: {
-            ...Style.elements.card,
-            flexShrink: 0,
-            width: listView ? undefined : 200,
-            height: listView ? undefined : 250,
-            margin: '1.25rem',
-            color: Style.colors.text, textDecoration: 'none',
-            cursor: notebookAccess === false ? 'not-allowed' : notebookAccess ? undefined : 'wait',
-            display: 'flex', flexDirection: listView ? 'row' : 'column',
-            justifyContent: listView ? undefined : 'space-between',
-            alignItems: listView ? 'center' : undefined
-          }
-        },
-        listView ? [
-            jupyterIcon,
-            title,
-            div({ style: { flexGrow: 1 } }),
-            div({ style: { fontSize: '0.8rem', marginRight: '0.5rem' } },
-              `Last changed: ${Utils.makePrettyDate(updated)}`),
-            statusIcon,
-            notebookMenu
-          ] :
-          [
-            div({ style: { display: 'flex', justifyContent: 'space-between' } },
-              [title, notebookMenu]),
-            jupyterIcon,
-            div({ style: { display: 'flex', alignItems: 'flex-end' } }, [
-              div({ style: { fontSize: '0.8rem', flexGrow: 1, marginRight: '0.5rem' } }, [
-                'Last changed:',
-                div({}, Utils.makePrettyDate(updated))
-              ]),
-              statusIcon
-            ])
-          ]),
+        target: '_blank',
+        href: notebookAccess ?
+          `${clusterUrl}/notebooks/${wsName}/${printName}.ipynb` : // removes 'notebooks/'
+          undefined,
+        style: {
+          ...Style.elements.card,
+          flexShrink: 0,
+          width: listView ? undefined : 200,
+          height: listView ? undefined : 250,
+          margin: '1.25rem',
+          color: Style.colors.text, textDecoration: 'none',
+          cursor: notebookAccess === false ? 'not-allowed' : notebookAccess ? undefined : 'wait',
+          display: 'flex', flexDirection: listView ? 'row' : 'column',
+          justifyContent: listView ? undefined : 'space-between',
+          alignItems: listView ? 'center' : undefined
+        }
+      },
+      listView ? [
+        jupyterIcon,
+        title,
+        div({ style: { flexGrow: 1 } }),
+        div({ style: { fontSize: '0.8rem', marginRight: '0.5rem' } },
+          `Last changed: ${Utils.makePrettyDate(updated)}`),
+        statusIcon,
+        notebookMenu
+      ] :
+        [
+          div({ style: { display: 'flex', justifyContent: 'space-between' } },
+            [title, notebookMenu]),
+          jupyterIcon,
+          div({ style: { display: 'flex', alignItems: 'flex-end' } }, [
+            div({ style: { fontSize: '0.8rem', flexGrow: 1, marginRight: '0.5rem' } }, [
+              'Last changed:',
+              div({}, Utils.makePrettyDate(updated))
+            ]),
+            statusIcon
+          ])
+        ]),
       Utils.cond(
         [
           renamingNotebook,
