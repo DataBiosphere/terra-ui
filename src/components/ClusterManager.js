@@ -242,7 +242,7 @@ export default class ClusterManager extends Component {
 
   getActiveClusters() {
     const { clusters } = this.state
-    return _.filter(({ status }) => status !== 'Deleting', clusters)
+    return _.remove({ status: 'Deleting' }, clusters)
   }
 
   getCurrentCluster() {
@@ -430,8 +430,11 @@ export default class ClusterManager extends Component {
         div({ style: styles.label }, [
           `Cost: ${Utils.formatUSD(machineConfigCost(this.getMachineConfig()))} per hour`
         ]),
+        div({ style: { marginLeft: 'auto' } }, [
+          busy && icon('loadingSpinner')
+        ]),
         buttonSecondary({
-          style: { marginLeft: 'auto', marginRight: '1rem' },
+          style: { marginLeft: '1rem', marginRight: '1rem' },
           onClick: () => this.toggleDropdown(false)
         }, 'Cancel'),
         buttonPrimary({ disabled: busy || !changed, onClick: () => this.createCluster() }, 'Update')
@@ -446,8 +449,11 @@ export default class ClusterManager extends Component {
         'Your new runtime environment is ready to use.'
       ]),
       div({ style: styles.row }, [
+        div({ style: { marginLeft: 'auto' } }, [
+          busy && icon('loadingSpinner')
+        ]),
         buttonSecondary({
-          style: { marginLeft: 'auto', marginRight: '1rem' },
+          style: { marginLeft: '1rem', marginRight: '1rem' },
           disabled: busy,
           onClick: () => this.destroyClusters(-2)
         }, 'Discard'),
@@ -458,7 +464,7 @@ export default class ClusterManager extends Component {
 
   renderCreatingMessage() {
     return div({ style: { padding: '1rem' } }, [
-      'Your environment is being created'
+      'Your environment is being created.'
     ])
   }
 
@@ -470,7 +476,8 @@ export default class ClusterManager extends Component {
     return h(DropdownBox, {
       open: open || multiple,
       onToggle: v => this.toggleDropdown(v),
-      width: creating || multiple ? 300 : 450
+      width: creating || multiple ? 300 : 450,
+      outsideClickIgnoreClass: 'cluster-manager-opener'
     }, [
       Utils.cond(
         [creating, () => this.renderCreatingMessage()],
@@ -481,7 +488,7 @@ export default class ClusterManager extends Component {
   }
 
   render() {
-    const { clusters, busy } = this.state
+    const { clusters, busy, open } = this.state
     if (!clusters) {
       return null
     }
@@ -507,7 +514,12 @@ export default class ClusterManager extends Component {
     ))
     return div({ style: styles.container }, [
       renderIcon(),
-      div({ style: { marginLeft: '0.5rem', marginRight: '0.25rem' } }, [
+      h(Interactive, {
+        as: 'div',
+        onClick: () => this.toggleDropdown(!open),
+        style: { marginLeft: '0.5rem', paddingRight: '0.25rem' },
+        className: 'cluster-manager-opener'
+      }, [
         div({ style: { fontSize: 12, fontWeight: 500 } }, 'Notebook Runtime'),
         div({ style: { fontSize: 10 } }, [
           span({ style: { textTransform: 'uppercase', fontWeight: 500 } }, currentStatus || 'None'),

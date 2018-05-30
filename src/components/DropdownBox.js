@@ -1,5 +1,6 @@
 import Interactive from 'react-interactive'
 import { h, div } from 'react-hyperscript-helpers'
+import onClickOutside from 'react-onclickoutside'
 import { icon } from 'src/components/icons'
 import * as Style from 'src/libs/style'
 
@@ -34,15 +35,29 @@ const styles = {
   }
 }
 
-const DropdownBox = ({ open, onToggle, children, width = 500 }) => {
+const DropdownBody = onClickOutside(({ width, children }) => {
+  return div({ style: { ...styles.box, width, children } }, [
+    children,
+    div({ style: styles.bridge })
+  ])
+})
+
+const DropdownBox = ({ open, onToggle, children, outsideClickIgnoreClass = 'dropdown-box-opener', width = 500 }) => {
   return div({ style: { position: 'relative' } }, [
-    h(Interactive, { as: 'div', style: styles.button(open), onClick: () => onToggle(!open) }, [
+    h(Interactive, {
+      as: 'div',
+      className: outsideClickIgnoreClass,
+      style: styles.button(open),
+      onClick: () => onToggle(!open)
+    }, [
       icon('caretDown', { size: 18 })
     ]),
-    open && div({ style: { ...styles.box, width } }, [
+    open && h(DropdownBody, {
+      width,
       children,
-      div({ style: styles.bridge })
-    ])
+      handleClickOutside: () => onToggle(!open),
+      outsideClickIgnoreClass
+    })
   ])
 }
 
