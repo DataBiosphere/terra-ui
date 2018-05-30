@@ -38,15 +38,7 @@ export default class LaunchAnalysisModal extends Component {
           inputProps: {
             placeholder: 'FILTER',
             value: filterText,
-            onChange: e => {
-              const filterText = e.target.value
-
-              this.setState({
-                filterText,
-                pageNumber: 1,
-                filteredEntities: _.filter(entity => entity.name.includes(filterText), entities)
-              })
-            }
+            onChange: e => this.setState({ filterText: e.target.value, pageNumber: 1 })
           }
         })
       ],
@@ -77,13 +69,14 @@ export default class LaunchAnalysisModal extends Component {
     )
 
     Rawls.workspace(namespace, name).entity(rootEntityType).then(
-      entities => this.setState({ entities, filteredEntities: entities }),
+      entities => this.setState({ entities }),
       entityFailure => this.setState({ entityFailure })
     )
   }
 
   renderMain = () => {
-    const { itemsPerPage, pageNumber, filteredEntities, launchError } = this.state
+    const { itemsPerPage, pageNumber, entities, filterText, launchError } = this.state
+    const filteredEntities = _.filter(entity => entity.name.includes(filterText), entities)
 
     return h(Fragment, [
       div({ style: { overflowX: 'auto', margin: '0 -1.25rem', padding: '0 1.25rem' } }, [
@@ -91,7 +84,7 @@ export default class LaunchAnalysisModal extends Component {
           h(ScrollWithHeader, {
             header: this.renderTableHeader(),
             negativeMargin: '1.25rem',
-            children: [this.renderTableBody()]
+            children: [this.renderTableBody(filteredEntities)]
           })
         ])
       ]),
@@ -153,8 +146,8 @@ export default class LaunchAnalysisModal extends Component {
     ])
   }
 
-  renderTableBody = () => {
-    const { attributeNames, filteredEntities, pageNumber, itemsPerPage, selectedEntity } = this.state
+  renderTableBody = filteredEntities => {
+    const { attributeNames, pageNumber, itemsPerPage, selectedEntity } = this.state
 
     return h(DataTable, {
       dataSource: slice(filteredEntities, { pageNumber, itemsPerPage }),
