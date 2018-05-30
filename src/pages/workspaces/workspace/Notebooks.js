@@ -304,7 +304,6 @@ class WorkspaceNotebooks extends Component {
       },
       [
         div({ style: { padding: '1rem', flexGrow: 1, position: 'relative' } }, [
-          !freshNotebooks && notebooks && spinnerOverlay,
           div({ style: { display: 'flex', alignItems: 'center' } }, [
             div(
               { style: { fontSize: 16, fontWeight: 500, color: Style.colors.title, flexGrow: 1 } },
@@ -420,7 +419,8 @@ class WorkspaceNotebooks extends Component {
                 () => this.renderNotebooks()
               )
             ])
-          )
+          ),
+          !freshNotebooks && notebooks && spinnerOverlay
         ])
       ]
     )

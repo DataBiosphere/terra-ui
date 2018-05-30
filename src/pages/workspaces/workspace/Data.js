@@ -70,7 +70,6 @@ class WorkspaceData extends Component {
     _.toPairs(workspaceEntities))
 
     const entityTable = () => h(Fragment, [
-      !freshEntities && spinnerOverlay,
       h(DataTable, {
         defaultItemsPerPage: this.state.itemsPerPage,
         onItemsPerPageChanged: itemsPerPage => this.setState({ itemsPerPage }),
@@ -94,7 +93,8 @@ class WorkspaceData extends Component {
             }
           }, workspaceEntities[selectedEntityType]['attributeNames']))
         }
-      })
+      }),
+      !freshEntities && spinnerOverlay
     ])
 
 

@@ -1,7 +1,8 @@
 import { Component } from 'react'
-import { h, h2 } from 'react-hyperscript-helpers'
+import { h, h2, div } from 'react-hyperscript-helpers'
 import AuthContainer from 'src/components/AuthContainer'
 import PageWrapper from 'src/components/PageWrapper'
+import { link } from 'src/components/common'
 import * as Nav from 'src/libs/nav'
 import * as ImportData from 'src/pages/ImportData'
 import * as ImportTool from 'src/pages/ImportTool'
@@ -58,7 +59,12 @@ export default class Router extends Component {
     }
     const handler = Nav.findHandler(pathname)
     if (!handler) {
-      return h2('No matching path.')
+      return h(PageWrapper, [
+        div({ style: { marginLeft: '1rem' } }, [
+          h2('Page not found'),
+          link({ href: Nav.getLink('root') }, 'Homepage')
+        ])
+      ])
     }
     const el = h(handler.component, Nav.getHandlerProps(handler, pathname, search))
     return h(PageWrapper, [handler.public ? el : h(AuthContainer, [el])])

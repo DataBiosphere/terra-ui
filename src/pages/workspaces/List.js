@@ -153,7 +153,6 @@ export class WorkspaceList extends Component {
         })
       ]),
       div({ style: { width: '100%', position: 'relative', padding: '1rem' } }, [
-        !freshData && workspaces && spinnerOverlay,
         div({ style: { margin: 'auto', maxWidth: 1000 } }, [
           Utils.cond(
             [failure, () => `Couldn't load workspace list: ${failure}`],
@@ -162,7 +161,8 @@ export class WorkspaceList extends Component {
             [listView, () => this.wsList()],
             () => this.wsGrid()
           )
-        ])
+        ]),
+        !freshData && workspaces && spinnerOverlay
       ])
     ])
   }

@@ -49,3 +49,9 @@ export const Rawls = {
     }
   }
 }
+
+export const Leo = {
+  clustersList() {
+    return Promise.resolve([])
+  }
+}

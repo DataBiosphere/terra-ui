@@ -6,7 +6,7 @@ import * as Utils from 'src/libs/utils'
 
 export const authStore = Utils.atom({
   isSignedIn: undefined,
-  isRegistered: undefined
+  registrationStatus: undefined
 })
 
 export const initializeAuth = _.memoize(async () => {
@@ -15,7 +15,7 @@ export const initializeAuth = _.memoize(async () => {
   authStore.update(state => ({ ...state, isSignedIn: getAuthInstance().isSignedIn.get() }))
   getAuthInstance().isSignedIn.listen(isSignedIn => {
     return authStore.update(state => {
-      return { ...state, isSignedIn, isRegistered: isSignedIn ? state.isRegistered : undefined }
+      return { ...state, isSignedIn, registrationStatus: isSignedIn ? state.registrationStatus : undefined }
     })
   })
 })
@@ -24,14 +24,14 @@ authStore.subscribe((state, oldState) => {
   if (!oldState.isSignedIn && state.isSignedIn) {
     Sam.getUserStatus().then(response => {
       if (response.status === 404) {
-        return false
+        return 'unregistered'
       } else if (!response.ok) {
         throw response
       } else {
-        return response.json().then(({ enabled: { ldap } }) => !!ldap)
+        return response.json().then(({ enabled: { ldap } }) => ldap ? 'registered' : 'disabled')
       }
-    }).then(isRegistered => {
-      authStore.update(state => ({ ...state, isRegistered }))
+    }).then(registrationStatus => {
+      authStore.update(state => ({ ...state, registrationStatus }))
     }) // Need to report failure
   }
 })
@@ -48,7 +48,7 @@ authStore.subscribe((state, oldState) => {
 })
 
 authStore.subscribe(async (state, oldState) => {
-  if (!oldState.isRegistered && state.isRegistered) {
+  if (!oldState.registrationStatus !== 'registered' && state.registrationStatus === 'registered') {
     const userProfile = getBasicProfile()
     const [billingProjects, clusters] = await Promise.all(
       [Rawls.listBillingProjects(), Leo.clustersList()])

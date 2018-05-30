@@ -55,14 +55,14 @@ export default class WorkspaceDashboard extends Component {
               div({ style: { whiteSpace: 'pre', overflow: 'auto', padding: '1rem' } },
                 JSON.stringify(workspace, null, 2))
             ]),
-            !freshData && workspace && spinnerOverlay,
             div({ style: { fontSize: 16, fontWeight: 500, color: Style.colors.title } },
               'ACCESS LEVEL'),
             span({ 'data-test-id': 'access-level' }, workspace.accessLevel),
             buttonPrimary({
               style: { marginTop: '1rem', display: 'block' },
               onClick: () => this.setState({ modal: true })
-            }, 'Full Workspace Info')
+            }, 'Full Workspace Info'),
+            !freshData && workspace && spinnerOverlay
           ])
         )
       ])

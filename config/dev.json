@@ -1,6 +1,7 @@
 {
   "agoraUrlRoot": "https://agora.dsde-dev.broadinstitute.org",
   "dockstoreUrlRoot": "https://staging.dockstore.org:8443",
+  "firecloudUrlRoot": "https://firecloud.dsde-dev.broadinstitute.org",
   "googleClientId": "500025638838-s2v23ar3spugtd5t2v1vgfa2sp7ppg0d.apps.googleusercontent.com",
   "leoUrlRoot": "https://leonardo.dsde-dev.broadinstitute.org",
   "orchestrationUrlRoot": "https://firecloud-orchestration.dsde-dev.broadinstitute.org",

@@ -2,6 +2,7 @@ import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { a, div, h } from 'react-hyperscript-helpers/lib/index'
 import Interactive from 'react-interactive'
+import ClusterManager from 'src/components/ClusterManager'
 import { contextBar, contextMenu } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import ShowOnClick from 'src/components/ShowOnClick'
@@ -99,7 +100,8 @@ export default class WorkspaceContainer extends Component {
           [
             div({}, breadcrumbs),
             div({ style: { fontSize: '1.25rem' } }, [title || `${namespace}/${name}`])
-          ])
+          ]),
+        h(ClusterManager, { namespace })
       ]),
       tabBar(tabProps),
       this.props.children

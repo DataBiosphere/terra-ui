@@ -93,16 +93,8 @@ Array [
             value=""
         />
     </div>
-    <div
-        style={
-            Object {
-                "flexGrow": 1,
-              }
-        }
-    />
     <a
         onBlur={[Function]}
-        onClick={[Function]}
         onDragEnd={[Function]}
         onDragStart={[Function]}
         onFocus={[Function]}
@@ -118,12 +110,12 @@ Array [
                 "color": "#478eba",
                 "cursor": "pointer",
                 "flexShrink": 0,
+                "marginLeft": "auto",
                 "outline": 0,
                 "outlineOffset": 0,
                 "textDecoration": "none",
               }
         }
-        tabIndex="0"
     >
         Sign out
     </a>

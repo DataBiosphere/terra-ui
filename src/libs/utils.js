@@ -83,6 +83,8 @@ export const makePrettyDate = function(dateString) {
   }
 }
 
+export const formatUSD = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format
+
 export const workspaceAccessLevels = ['NO ACCESS', 'READER', 'WRITER', 'OWNER', 'PROJECT_OWNER']
 
 export const log = function(...args) {
