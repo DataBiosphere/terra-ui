@@ -26,7 +26,7 @@ export class ScrollWithHeader extends Component {
           borderTopLeftRadius: selectedTabIndex !== 0 && 5
         }
       }, [
-        div({ style: { padding: '0.5rem' } }, [
+        div({ style: { padding: '0.5rem 0' } }, [
           header
         ])
       ]),
