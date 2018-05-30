@@ -42,7 +42,7 @@ export default class Modal extends Component {
   }
 
   render() {
-    const { onDismiss, title, titleExtras, children, width = 450, showCancel = true, showX = false, okButton } = this.props
+    const { onDismiss, title, titleExtras = [], children, width = 450, showCancel = true, showX = false, okButton } = this.props
 
     const component = div({
       style: {
@@ -61,7 +61,7 @@ export default class Modal extends Component {
       [
         title && div({ style: { display: 'flex', alignItems: 'baseline', fontSize: 18, marginBottom: '1rem' } }, [
           title,
-          titleExtras,
+          ...titleExtras,
           showX && div({ style: { flex: 1 } }),
           showX && h(Interactive, {
             as: icon('times-circle'),
