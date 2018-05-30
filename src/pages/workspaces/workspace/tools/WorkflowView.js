@@ -2,14 +2,15 @@ import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { buttonPrimary, link, tooltip } from 'src/components/common'
+import { buttonPrimary, link, spinnerOverlay, tooltip } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { textInput } from 'src/components/input'
-import { TabbedScrollWithHeader, emptyHeader } from 'src/components/ScrollWithHeader'
+import { emptyHeader, TabbedScrollWithHeader } from 'src/components/ScrollWithHeader'
 import { components, DataTable } from 'src/components/table'
 import WDLViewer from 'src/components/WDLViewer'
 import { Agora, Dockstore, Rawls } from 'src/libs/ajax'
 import * as Nav from 'src/libs/nav'
+import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component, Select } from 'src/libs/wrapped-components'
@@ -51,15 +52,15 @@ class WorkflowView extends Component {
   constructor(props) {
     super(props)
 
-    this.state = {
+    this.state = _.merge({
       selectedTabIndex: 0,
       saved: false,
       modifiedAttributes: { inputs: {}, outputs: {} }
-    }
+    }, StateHistory.get())
   }
 
   render() {
-    const { config } = this.state
+    const { freshConfig, config } = this.state
     const { workspaceNamespace, workspaceName, workflowName } = this.props
     const workspaceId = { namespace: workspaceNamespace, name: workspaceName }
 
@@ -71,7 +72,8 @@ class WorkflowView extends Component {
       },
       [
         config ?
-          h(Fragment, [
+          div({ style: { position: 'relative' } }, [
+            !freshConfig && config && spinnerOverlay,
             this.renderSummary(),
             this.renderDetails()
           ]) : centeredSpinner({ style: { marginTop: '2rem' } })
@@ -101,15 +103,17 @@ class WorkflowView extends Component {
     this.setState({
       inputsOutputs: processedIO,
       invalid: this.createInvalidIOMap(invalidInputs, invalidOutputs, config, processedIO),
-      config, entityTypes
+      freshConfig: true, config, entityTypes
     })
   }
 
   componentDidUpdate() {
-    const { selectedTabIndex, loadedWdl } = this.state
+    const { config, entityTypes, inputsOutputs, invalid, modifiedAttributes, selectedTabIndex, loadedWdl } = this.state
     if (selectedTabIndex === 2 && !loadedWdl) {
       this.fetchWDL()
     }
+
+    StateHistory.update({ config, entityTypes, inputsOutputs, invalid, modifiedAttributes, selectedTabIndex })
   }
 
   createInvalidIOMap = (invalidInputs, invalidOutputs, config, io = this.state.inputsOutputs) => {
@@ -215,15 +219,17 @@ class WorkflowView extends Component {
           {
             title: 'WDL',
             header: emptyHeader({ padding: '0.5rem' }),
-            children: [wdl ? div({
-              style: {
-                flex: '1 1 auto', overflowY: 'auto', maxHeight: 500,
-                padding: '0.5rem', backgroundColor: 'white',
-                border: Style.standardLine, borderTop: 'unset'
-              }
-            }, [
-              h(WDLViewer, { wdl, readOnly: true })
-            ]) : centeredSpinner({ style: { marginTop: '1rem' } })]
+            children: [
+              wdl ? div({
+                style: {
+                  flex: '1 1 auto', overflowY: 'auto', maxHeight: 500,
+                  padding: '0.5rem', backgroundColor: 'white',
+                  border: Style.standardLine, borderTop: 'unset'
+                }
+              }, [
+                h(WDLViewer, { wdl, readOnly: true })
+              ]) : centeredSpinner({ style: { marginTop: '1rem' } })
+            ]
           }
         ],
         tabBarExtras: [
@@ -316,7 +322,7 @@ class WorkflowView extends Component {
           throw new Error('unknown sourceRepo')
       }
     })()
-    this.setState({ wdl })
+    this.setState({ freshWdl: true, wdl })
   }
 
   save = async () => {
