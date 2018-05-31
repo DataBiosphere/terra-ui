@@ -6,6 +6,7 @@ import { breadcrumb, centeredSpinner, icon } from 'src/components/icons'
 import { DataGrid } from 'src/components/table'
 import { TopBar } from 'src/components/TopBar'
 import { Rawls } from 'src/libs/ajax'
+import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
@@ -33,7 +34,7 @@ export class WorkspaceList extends Component {
           Utils.workspaceAccessLevels.indexOf(ws.accessLevel) > Utils.workspaceAccessLevels.indexOf('READER'),
         workspaces))
       }),
-      failure => this.setState({ failure })
+      error => reportError(`Error loading workspace list: ${error}`)
     )
   }
 
@@ -126,7 +127,7 @@ export class WorkspaceList extends Component {
 
 
   render() {
-    const { workspaces, filter, listView, failure } = this.state
+    const { workspaces, filter, listView } = this.state
 
     return h(Fragment, [
       h(TopBar, { title: 'Projects' },
@@ -165,7 +166,6 @@ export class WorkspaceList extends Component {
       ]),
       div({ style: { margin: '1rem auto', maxWidth: 1000, width: '100%' } }, [
         Utils.cond(
-          [failure, () => `Couldn't load workspace list: ${failure}`],
           [!workspaces, () => centeredSpinner({ size: 64 })],
           [_.isEmpty(workspaces), 'You don\'t seem to have access to any workspaces.'],
           [listView, () => this.wsList()],

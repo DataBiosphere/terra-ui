@@ -1,6 +1,7 @@
 import _ from 'lodash/fp'
 import { Sam, Rawls, Leo } from 'src/libs/ajax'
 import * as Config from 'src/libs/config'
+import { reportError } from 'src/libs/error'
 import * as Utils from 'src/libs/utils'
 
 
@@ -32,7 +33,9 @@ authStore.subscribe((state, oldState) => {
       }
     }).then(registrationStatus => {
       authStore.update(state => ({ ...state, registrationStatus }))
-    }) // Need to report failure
+    }, error => {
+      reportError(`Error checking registration: ${error}`)
+    })
   }
 })
 
@@ -49,28 +52,32 @@ authStore.subscribe((state, oldState) => {
 
 authStore.subscribe(async (state, oldState) => {
   if (!oldState.registrationStatus !== 'registered' && state.registrationStatus === 'registered') {
-    const userProfile = getBasicProfile()
-    const [billingProjects, clusters] = await Promise.all(
-      [Rawls.listBillingProjects(), Leo.clustersList()])
-    const projectsWithoutClusters = _.difference(
-      _.uniq(_.map('projectName', billingProjects)), // in case of being both a user and an admin of a project
-      _.map(
-        'googleProject',
-        _.filter({ creator: userProfile.getEmail() }, clusters)
-      ),
-    )
-    projectsWithoutClusters.forEach(project => {
-      Leo.cluster(project, Utils.generateClusterName()).create({
-        'labels': {},
-        'machineConfig': {
-          'numberOfWorkers': 0, 'masterMachineType': 'n1-standard-4',
-          'masterDiskSize': 500, 'workerMachineType': 'n1-standard-4',
-          'workerDiskSize': 500, 'numberOfWorkerLocalSSDs': 0,
-          'numberOfPreemptibleWorkers': 0
-        },
-        'stopAfterCreation': true
-      }).catch(error => Utils.log(`Error auto-creating cluster for project ${project}`, error))
-    })
+    try {
+      const userProfile = getBasicProfile()
+      const [billingProjects, clusters] = await Promise.all(
+        [Rawls.listBillingProjects(), Leo.clustersList()])
+      const projectsWithoutClusters = _.difference(
+        _.uniq(_.map('projectName', billingProjects)), // in case of being both a user and an admin of a project
+        _.map(
+          'googleProject',
+          _.filter({ creator: userProfile.getEmail() }, clusters)
+        ),
+      )
+      await Promise.all(projectsWithoutClusters.map(project => {
+        return Leo.cluster(project, Utils.generateClusterName()).create({
+          'labels': {},
+          'machineConfig': {
+            'numberOfWorkers': 0, 'masterMachineType': 'n1-standard-4',
+            'masterDiskSize': 500, 'workerMachineType': 'n1-standard-4',
+            'workerDiskSize': 500, 'numberOfWorkerLocalSSDs': 0,
+            'numberOfPreemptibleWorkers': 0
+          },
+          'stopAfterCreation': true
+        })
+      }))
+    } catch (error) {
+      reportError(`Error auto-creating clusters: ${error}`)
+    }
   }
 })
 

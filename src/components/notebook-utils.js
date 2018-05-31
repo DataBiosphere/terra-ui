@@ -6,6 +6,7 @@ import { centeredSpinner } from 'src/components/icons'
 import { validatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { Buckets } from 'src/libs/ajax'
+import { reportError } from 'src/libs/error'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component, Select } from 'src/libs/wrapped-components'
@@ -62,7 +63,7 @@ const rNotebook = _.merge({
 
 export class NotebookCreator extends Component {
   render() {
-    const { modalOpen, notebookName, notebookKernel, notebookFailure, creating, nameTouched } = this.state
+    const { modalOpen, notebookName, notebookKernel, creating, nameTouched } = this.state
     const { reloadList, namespace, bucketName } = this.props
 
     const nameErrors = validate.single(notebookName, notebookNameValidator)
@@ -81,15 +82,6 @@ export class NotebookCreator extends Component {
         'New Notebook'),
       Utils.cond(
         [
-          notebookFailure,
-          () => h(Modal, {
-            title: 'Notebook Creation Failure',
-            okButton: buttonPrimary({ onClick: () => this.setState({ notebookFailure: null }) },
-              'Done'),
-            showCancel: false
-          }, notebookFailure)
-        ],
-        [
           modalOpen,
           () => h(Modal, {
             onDismiss: () => this.setState({ modalOpen: false }),
@@ -103,7 +95,10 @@ export class NotebookCreator extends Component {
                     this.setState({ creating: false })
                     reloadList()
                   },
-                  notebookFailure => this.setState({ notebookFailure, modalOpen: false })
+                  error => {
+                    this.setState({ creating: false })
+                    reportError(`Error creating notebook: ${error}`)
+                  }
                 )
               }
             }, 'Create Notebook')
@@ -153,7 +148,7 @@ export class NotebookCreator extends Component {
 export class NotebookDuplicator extends Component {
   render() {
     const { destroyOld, printName, namespace, bucketName, onDismiss, onSuccess } = this.props
-    const { newName, processing, failure, nameTouched } = this.state
+    const { newName, processing, nameTouched } = this.state
 
     const nameErrors = validate.single(newName, notebookNameValidator)
 
@@ -166,14 +161,13 @@ export class NotebookDuplicator extends Component {
           this.setState({ processing: true })
           Buckets.notebook(namespace, bucketName, printName)[destroyOld ? 'rename' : 'copy'](newName).then(
             onSuccess,
-            failure => this.setState({ failure })
+            error => reportError(`Error ${destroyOld ? 'renaming' : 'copying'} notebook: ${error}`)
           )
         }
       }, `${destroyOld ? 'Rename' : 'Duplicate'} Notebook`)
     },
     Utils.cond(
       [processing, () => [centeredSpinner()]],
-      [failure, () => `Couldn't ${destroyOld ? 'rename' : 'copy'} notebook: ${failure}`],
       () => [
         div({ style: Style.elements.sectionHeader }, 'New Name'),
         notebookNameInput({
@@ -191,7 +185,7 @@ export class NotebookDuplicator extends Component {
 export class NotebookDeleter extends Component {
   render() {
     const { printName, namespace, bucketName, onDismiss, onSuccess } = this.props
-    const { processing, failure } = this.state
+    const { processing } = this.state
 
     return h(Modal, {
       onDismiss: onDismiss,
@@ -202,14 +196,13 @@ export class NotebookDeleter extends Component {
           this.setState({ processing: true })
           Buckets.notebook(namespace, bucketName, printName).delete().then(
             onSuccess,
-            failure => this.setState({ failure })
+            error => reportError(`Error deleting notebook: ${error}`)
           )
         }
       }, `Delete Notebook`)
     },
     Utils.cond(
       [processing, () => [centeredSpinner()]],
-      [failure, () => `Couldn't delete notebook: ${failure}`],
       () => [
         div({ style: { fontSize: '1rem', flexGrow: 1 } },
           [
