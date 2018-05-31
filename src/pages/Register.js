@@ -6,6 +6,7 @@ import { textInput } from 'src/components/input'
 import planet from 'src/images/register-planet.svg'
 import { Orchestration, Sam } from 'src/libs/ajax'
 import { authStore, getBasicProfile } from 'src/libs/auth'
+import { reportError } from 'src/libs/error'
 import * as Style from 'src/libs/style'
 
 
@@ -23,15 +24,20 @@ export default class Register extends Component {
 
   async register() {
     const { givenName, familyName, email } = this.state
-    this.setState({ busy: true })
-    await Sam.createUser()
-    await Orchestration.profile.set({
-      firstName: givenName,
-      lastName: familyName,
-      contactEmail: email
-    })
-    this.setState({ busy: false })
-    authStore.update(state => ({ ...state, isRegistered: true }))
+    try {
+      this.setState({ busy: true })
+      await Sam.createUser()
+      await Orchestration.profile.set({
+        firstName: givenName,
+        lastName: familyName,
+        contactEmail: email
+      })
+      authStore.update(state => ({ ...state, isRegistered: true }))
+    } catch (error) {
+      reportError(`Error registering: ${error}`)
+    } finally {
+      this.setState({ busy: false })
+    }
   }
 
   render() {
