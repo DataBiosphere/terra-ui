@@ -23,19 +23,19 @@ class WorkspaceTools extends Component {
     const { namespace, name } = this.props
 
     Rawls.workspace(namespace, name).listMethodConfigs().then(
-      configs => this.setState({ freshConfigs: true, configs }),
+      configs => this.setState({ isFreshData: true, configs }),
       error => reportError(`Error loading configs: ${error}`)
     )
   }
 
   render() {
-    const { freshConfigs, configs, itemsPerPage, pageNumber } = this.state
+    const { isFreshData, configs, itemsPerPage, pageNumber } = this.state
     const workspaceId = _.pick(['namespace', 'name'], this.props)
 
     return h(WorkspaceContainer,
       {
         ...workspaceId, refresh: () => {
-          this.setState({ freshConfigs: false })
+          this.setState({ isFreshData: false })
           this.refresh()
         },
         breadcrumbs: breadcrumbs.commonPaths.workspaceDashboard(workspaceId),
@@ -72,7 +72,7 @@ class WorkspaceTools extends Component {
                 ])
               }
             }) : centeredSpinner(),
-          !freshConfigs && configs && spinnerOverlay
+          !isFreshData && configs && spinnerOverlay
         ])
       ]
     )

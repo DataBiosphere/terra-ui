@@ -55,7 +55,7 @@ class WorkflowView extends Component {
   }
 
   render() {
-    const { freshConfig, config, launching, submissionId, firecloudRoot, inputsOutputs } = this.state
+    const { isFreshData, config, launching, submissionId, firecloudRoot, inputsOutputs } = this.state
     const { workspaceNamespace, workspaceName, workflowName } = this.props
 
     const workspaceId = { namespace: workspaceNamespace, name: workspaceName }
@@ -80,7 +80,7 @@ class WorkflowView extends Component {
               onDismiss: () => this.setState({ launching: false }),
               onSuccess: submission => this.setState({ launching: false, submissionId: submission.submissionId })
             }),
-            !freshConfig && config && spinnerOverlay
+            !isFreshData && config && spinnerOverlay
           ]) : centeredSpinner({ style: { marginTop: '2rem' } }),
         submissionId && firecloudRoot && h(Modal, {
           onDismiss: () => this.setState({ submissionId: undefined }),
@@ -120,7 +120,7 @@ class WorkflowView extends Component {
 
       const firecloudRoot = await Config.getFirecloudUrlRoot()
 
-      this.setState({ freshConfig: true, config, entityTypes, inputsOutputs, ioDefinitions, firecloudRoot })
+      this.setState({ isFreshData: true, config, entityTypes, inputsOutputs, ioDefinitions, firecloudRoot })
     } catch (error) {
       reportError(`Error loading data: ${error}`)
     }
@@ -359,7 +359,7 @@ class WorkflowView extends Component {
             throw new Error('unknown sourceRepo')
         }
       })()
-      this.setState({ freshWdl: true, wdl })
+      this.setState({ wdl })
     } catch (error) {
       reportError(`Error loading WDL: ${error}`)
     }

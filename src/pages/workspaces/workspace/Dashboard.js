@@ -23,19 +23,19 @@ export default class WorkspaceDashboard extends Component {
     const { namespace, name } = this.props
 
     Rawls.workspace(namespace, name).details().then(
-      workspace => this.setState({ freshData: true, workspace }),
+      workspace => this.setState({ isFreshData: true, workspace }),
       error => reportError(`Error loading workspace: ${error}`)
     )
   }
 
   render() {
-    const { freshData, modal, workspace } = this.state
+    const { isFreshData, modal, workspace } = this.state
     const { namespace, name } = this.props
 
     return h(WorkspaceContainer,
       {
         namespace, name, refresh: () => {
-          this.setState({ freshData: false })
+          this.setState({ isFreshData: false })
           this.refresh()
         },
         breadcrumbs: breadcrumbs.commonPaths.workspaceList(),
@@ -62,7 +62,7 @@ export default class WorkspaceDashboard extends Component {
               style: { marginTop: '1rem', display: 'block' },
               onClick: () => this.setState({ modal: true })
             }, 'Full Workspace Info'),
-            !freshData && workspace && spinnerOverlay
+            !isFreshData && workspace && spinnerOverlay
           ])
         )
       ])

@@ -40,7 +40,7 @@ class WorkspaceData extends Component {
     const { namespace, name } = this.props
 
     Rawls.workspace(namespace, name).entity(type).then(
-      selectedEntities => this.setState({ freshEntities: true, selectedEntities }),
+      selectedEntities => this.setState({ isFreshData: true, selectedEntities }),
       error => reportError(`Error loading workspace entity: ${error}`)
     )
   }
@@ -50,7 +50,7 @@ class WorkspaceData extends Component {
   }
 
   render() {
-    const { selectedEntityType, selectedEntities, workspaceEntities, freshEntities } = this.state
+    const { selectedEntityType, selectedEntities, workspaceEntities, isFreshData } = this.state
     const { namespace, name } = this.props
 
     const entityTypeList = () => _.map(([type, typeDetails]) =>
@@ -95,14 +95,14 @@ class WorkspaceData extends Component {
           }, workspaceEntities[selectedEntityType]['attributeNames']))
         }
       }),
-      !freshEntities && spinnerOverlay
+      !isFreshData && spinnerOverlay
     ])
 
 
     return h(WorkspaceContainer,
       {
         namespace, name, refresh: () => {
-          this.setState({ freshEntities: false })
+          this.setState({ isFreshData: false })
           this.refresh()
         },
         breadcrumbs: breadcrumbs.commonPaths.workspaceDashboard({ namespace, name }),

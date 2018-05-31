@@ -27,6 +27,17 @@ export class WorkspaceList extends Component {
     }
   }
 
+  componentWillMount() {
+    Rawls.workspacesList().then(
+      workspaces => this.setState({
+        workspaces: _.sortBy('workspace.name', _.filter(ws => !ws.public ||
+          Utils.workspaceAccessLevels.indexOf(ws.accessLevel) > Utils.workspaceAccessLevels.indexOf('READER'),
+        workspaces))
+      }),
+      failure => this.setState({ failure })
+    )
+  }
+
   getDataViewerProps() {
     return {
       itemsPerPageOptions: [6, 12, 24, 36, 48],
@@ -116,7 +127,7 @@ export class WorkspaceList extends Component {
 
 
   render() {
-    const { workspaces, freshData, filter, listView } = this.state
+    const { workspaces, isFreshData, filter, listView } = this.state
 
     return h(Fragment, [
       h(TopBar, { title: 'Projects' },
@@ -153,14 +164,16 @@ export class WorkspaceList extends Component {
           }
         })
       ]),
-      div({ style: { width: '100%', position: 'relative', padding: '1rem' } }, [div({ style: { margin: ' auto', maxWidth: 1000 } }, [
-        Utils.cond(
-          [!workspaces, () => centeredSpinner({ size: 64 })],
-          [_.isEmpty(workspaces), 'You don\'t seem to have access to any workspaces.'],
-          [listView, () => this.wsList()],
-          () => this.wsGrid()
-        )]),
-        !freshData && workspaces && spinnerOverlay
+      div({ style: { width: '100%', position: 'relative', padding: '1rem' } }, [
+        div({ style: { margin: ' auto', maxWidth: 1000 } }, [
+          Utils.cond(
+            [!workspaces, () => centeredSpinner({ size: 64 })],
+            [_.isEmpty(workspaces), 'You don\'t seem to have access to any workspaces.'],
+            [listView, () => this.wsList()],
+            () => this.wsGrid()
+          )
+        ]),
+        !isFreshData && workspaces && spinnerOverlay
       ])
     ])
   }
@@ -168,10 +181,10 @@ export class WorkspaceList extends Component {
   componentDidMount() {
     Rawls.workspacesList().then(
       workspaces => this.setState({
-        freshData: true,
+        isFreshData: true,
         workspaces: _.sortBy('workspace.name', _.filter(ws => !ws.public ||
           Utils.workspaceAccessLevels.indexOf(ws.accessLevel) > Utils.workspaceAccessLevels.indexOf('READER'),
-          workspaces))
+        workspaces))
       }),
       error => reportError(`Error loading workspace list: ${error}`)
     )

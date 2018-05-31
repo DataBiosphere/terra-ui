@@ -161,7 +161,7 @@ class WorkspaceNotebooks extends Component {
         Leo.clustersList()
       ])
       const notebooks = await Buckets.listNotebooks(namespace, bucketName)
-      this.setState({ bucketName, notebooks: _.reverse(_.sortBy('updated', notebooks)), freshNotebooks: true })
+      this.setState({ bucketName, notebooks: _.reverse(_.sortBy('updated', notebooks)), isFreshData: true })
       const currentCluster = _.flow(
         _.filter({ googleProject: namespace, creator: getBasicProfile().getEmail() }),
         _.remove({ status: 'Deleting' }),
@@ -215,14 +215,14 @@ class WorkspaceNotebooks extends Component {
 
   render() {
     const {
-     freshNotebooks, bucketName,  notebooks,  listView
+      isFreshData, bucketName, notebooks, listView
     } = this.state
     const { namespace, name } = this.props
 
     return h(WorkspaceContainer,
       {
         namespace, name, refresh: () => {
-          this.setState({ freshNotebooks: false, notebookAccess: {} })
+          this.setState({ isFreshData: false, notebookAccess: {} })
           this.refresh()
         },
         breadcrumbs: breadcrumbs.commonPaths.workspaceDashboard({ namespace, name }),
@@ -264,7 +264,7 @@ class WorkspaceNotebooks extends Component {
               this.renderNotebooks()
             ])
           ),
-          !freshNotebooks && notebooks && spinnerOverlay
+          !isFreshData && notebooks && spinnerOverlay
         ])
       ]
     )
