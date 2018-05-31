@@ -5,6 +5,7 @@ import { spinnerOverlay } from 'src/components/common'
 import { centeredSpinner } from 'src/components/icons'
 import { DataGrid } from 'src/components/table'
 import { Rawls } from 'src/libs/ajax'
+import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
@@ -21,8 +22,10 @@ class WorkspaceTools extends Component {
   refresh() {
     const { namespace, name } = this.props
 
-    Rawls.workspace(namespace, name).listMethodConfigs()
-      .then(configs => this.setState({ freshConfigs: true, configs }))
+    Rawls.workspace(namespace, name).listMethodConfigs().then(
+      configs => this.setState({ freshConfigs: true, configs }),
+      error => reportError(`Error loading configs: ${error}`)
+    )
   }
 
   render() {

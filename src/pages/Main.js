@@ -1,8 +1,10 @@
+import { Fragment } from 'react'
 import { hot } from 'react-hot-loader'
 import { h } from 'react-hyperscript-helpers'
+import ErrorBanner from 'src/components/ErrorBanner'
 import Router from 'src/components/Router'
 
 
-const Main = () => h(Router)
+const Main = () => h(Fragment, [h(Router), h(ErrorBanner)])
 
 export default hot(module)(Main)

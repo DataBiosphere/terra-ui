@@ -4,6 +4,7 @@ import { buttonPrimary, spinnerOverlay } from 'src/components/common'
 import { centeredSpinner } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import { Rawls } from 'src/libs/ajax'
+import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
@@ -23,12 +24,12 @@ export default class WorkspaceDashboard extends Component {
 
     Rawls.workspace(namespace, name).details().then(
       workspace => this.setState({ freshData: true, workspace }),
-      workspaceFailure => this.setState({ workspaceFailure })
+      error => reportError(`Error loading workspace: ${error}`)
     )
   }
 
   render() {
-    const { freshData, modal, workspace, workspaceFailure } = this.state
+    const { freshData, modal, workspace } = this.state
     const { namespace, name } = this.props
 
     return h(WorkspaceContainer,
@@ -42,7 +43,6 @@ export default class WorkspaceDashboard extends Component {
       },
       [
         Utils.cond(
-          [workspaceFailure, `Couldn't load workspace: ${workspaceFailure}`],
           [!workspace, () => centeredSpinner({ style: { marginTop: '2rem' } })],
           () => div({ style: { padding: '1rem', flexGrow: 1, position: 'relative' } }, [
             modal && h(Modal, {

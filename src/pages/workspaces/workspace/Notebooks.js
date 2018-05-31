@@ -3,57 +3,19 @@ import { Fragment } from 'react'
 import { a, div, h } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { buttonPrimary, contextMenu, link, spinnerOverlay } from 'src/components/common'
+import { contextMenu, spinnerOverlay } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { NotebookCreator, NotebookDeleter, NotebookDuplicator } from 'src/components/notebook-utils'
 import ShowOnClick from 'src/components/ShowOnClick'
-import { DataTable } from 'src/components/table'
 import { Buckets, Leo, Rawls } from 'src/libs/ajax'
 import { getBasicProfile } from 'src/libs/auth'
+import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 import WorkspaceContainer from 'src/pages/workspaces/workspace/WorkspaceContainer'
-
-
-class StatusLabel extends Component {
-  render() {
-    const { status } = this.props
-
-    return h(Fragment, [
-      status,
-      Utils.cond(
-        [status === 'Stopped', () => this.renderStartIcon()],
-        [status === 'Running', () => this.renderStopIcon()],
-        () => null
-      )
-    ])
-  }
-
-  renderStartIcon() {
-    const { clusterName, googleProject, refresh } = this.props
-
-    return h(Interactive,
-      {
-        as: icon('play'), class: 'is-solid', title: 'Start Cluster',
-        style: { color: Style.colors.primary },
-        onClick: () => Leo.cluster(googleProject, clusterName).start().then(refresh)
-      })
-  }
-
-  renderStopIcon() {
-    const { clusterName, googleProject, refresh } = this.props
-
-    return h(Interactive,
-      {
-        as: icon('pause'), class: 'is-solid', title: 'Stop Cluster',
-        style: { color: Style.colors.primary },
-        onClick: () => Leo.cluster(googleProject, clusterName).stop().then(refresh)
-      })
-  }
-}
 
 
 class NotebookCard extends Component {
@@ -192,111 +154,75 @@ class WorkspaceNotebooks extends Component {
   }
 
   async refresh() {
-    this.loadClusters()
-
     const { namespace, name } = this.props
-
-    const { workspace: { bucketName } } = await Rawls.workspace(namespace, name).details()
-    this.setState({ bucketName })
+    try {
+      const [{ workspace: { bucketName } }, clusters] = await Promise.all([
+        Rawls.workspace(namespace, name).details(),
+        Leo.clustersList()
+      ])
+      const notebooks = await Buckets.listNotebooks(namespace, bucketName)
+      this.setState({ bucketName, notebooks: _.reverse(_.sortBy('updated', notebooks)), freshNotebooks: true })
+      const currentCluster = _.flow(
+        _.filter({ googleProject: namespace, creator: getBasicProfile().getEmail() }),
+        _.remove({ status: 'Deleting' }),
+        _.sortBy('createdDate'),
+        _.last
+      )(clusters)
+      if (currentCluster && currentCluster.status === 'Running') {
+        this.setState({ clusterUrl: currentCluster.clusterUrl })
+        await Promise.all([
+          Leo.notebooks(namespace, currentCluster.clusterName).setCookie(),
+          Leo.notebooks(namespace, currentCluster.clusterName).localize({
+            [`~/${name}/.delocalize.json`]: `data:application/json,{"destination":"gs://${bucketName}/notebooks","pattern":""}`
+          })
+        ])
+        _.forEach(({ bucket, name: nbName }) => {
+          Leo.notebooks(namespace, currentCluster.clusterName).localize({
+            [`~/${name}/${nbName.slice(10)}`]: `gs://${bucket}/${nbName}`
+          }).then(() => true, () => false).then(status => {
+            this.setState(({ notebookAccess }) => ({
+              notebookAccess: { ...notebookAccess, [nbName]: status }
+            }))
+          })
+        }, notebooks)
+      } else {
+        this.setState({
+          notebookAccess: _.fromPairs(_.map(({ name: nbName }) => [nbName, false], notebooks))
+        })
+      }
+    } catch (error) {
+      reportError(`Error loading notebooks: ${error}`)
+    }
   }
 
   componentWillMount() {
     this.refresh()
   }
 
-  loadClusters() {
-    const { namespace } = this.props
-
-    Leo.clustersList().then(
-      list => {
-        const cluster = _.find({ googleProject: namespace, creator: getBasicProfile().getEmail() }, list)
-        if (cluster) {
-          Leo.notebooks(namespace, cluster.clusterName).setCookie().then(() => this.setState({ cluster }, this.getNotebooks))
-        }
-
-        const owned = _.filter({ creator: getBasicProfile().getEmail() }, list)
-        this.setState({ clusters: _.sortBy('clusterName', owned) })
-      },
-      listFailure => this.setState({ listFailure })
-    )
-  }
-
-  createCluster() {
-    Leo.cluster(this.props.namespace, window.prompt('Name for the new cluster')).create({
-      'labels': {}, 'machineConfig': {
-        'numberOfWorkers': 0, 'masterMachineType': 'n1-standard-4',
-        'masterDiskSize': 500, 'workerMachineType': 'n1-standard-4',
-        'workerDiskSize': 500, 'numberOfWorkerLocalSSDs': 0,
-        'numberOfPreemptibleWorkers': 0
-      }
-    }).then(
-      () => {
-        this.setState({ creatingCluster: false })
-        this.loadClusters()
-      },
-      creationFail => window.alert(`Couldn't create cluster: ${creationFail}`)
-    )
-    this.setState({ creatingCluster: true })
-  }
-
-  getNotebooks() {
-    const { namespace, name: wsName } = this.props
-    const { bucketName, cluster } = this.state
-
-    if (cluster) {
-      Buckets.listNotebooks(namespace, bucketName).then(
-        notebooks => {
-          const { clusterName } = cluster
-
-          this.setState({ freshNotebooks: true, notebooks: _.reverse(_.sortBy('updated', notebooks)) })
-
-          Leo.notebooks(namespace, clusterName).localize({
-            [`~/${wsName}/.delocalize.json`]: `data:application/json,{"destination":"gs://${bucketName}/notebooks","pattern":""}`
-          })
-
-          _.forEach(({ bucket, name }) => {
-            Leo.notebooks(namespace, clusterName).localize({
-              [`~/${wsName}/${name.slice(10)}`]: `gs://${bucket}/${name}`
-            }).then(
-              () => this.setState(
-                oldState => _.merge({ notebookAccess: { [name]: true } }, oldState)),
-              () => this.setState(
-                oldState => _.merge({ notebookAccess: { [name]: false } }, oldState))
-            )
-          }, notebooks)
-        },
-        notebooksFailure => this.setState({ notebooksFailure })
-      )
-    } else {
-      this.setState({ notebooks: [] })
-    }
-  }
-
   renderNotebooks() {
-    const { bucketName, cluster, notebooks, notebookAccess, listView } = this.state
+    const { bucketName, clusterUrl, notebooks, notebookAccess, listView } = this.state
     const { name: wsName, namespace } = this.props
 
     return div({ style: { display: listView ? undefined : 'flex', flexWrap: 'wrap' } },
       _.map(({ name, updated }) => h(NotebookCard, {
         name, updated, listView, notebookAccess: notebookAccess[name], bucketName,
-        clusterUrl: cluster && cluster.clusterUrl, // on starting a paused cluster it will briefly report as blank
+        clusterUrl,
         namespace, wsName,
-        reloadList: () => this.getNotebooks()
+        reloadList: () => this.refresh()
       }), notebooks)
     )
   }
 
   render() {
     const {
-      freshNotebooks, bucketName, clusters, creatingCluster, listFailure, notebooks, notebooksFailure, listView
+     freshNotebooks, bucketName,  notebooks,  listView
     } = this.state
-
     const { namespace, name } = this.props
 
     return h(WorkspaceContainer,
       {
         namespace, name, refresh: () => {
-          this.setState({ freshNotebooks: false })
+          this.setState({ freshNotebooks: false, notebookAccess: {} })
           this.refresh()
         },
         breadcrumbs: breadcrumbs.commonPaths.workspaceDashboard({ namespace, name }),
@@ -304,90 +230,12 @@ class WorkspaceNotebooks extends Component {
       },
       [
         div({ style: { padding: '1rem', flexGrow: 1, position: 'relative' } }, [
-          div({ style: { display: 'flex', alignItems: 'center' } }, [
-            div(
-              { style: { fontSize: 16, fontWeight: 500, color: Style.colors.title, flexGrow: 1 } },
-              'CLUSTERS'),
-            buttonPrimary({
-              style: { display: 'flex' },
-              disabled: creatingCluster,
-              onClick: () => this.createCluster()
-            }, creatingCluster ?
-              [
-                centeredSpinner({ size: '1em', style: { color: 'white', marginRight: '1em' } }),
-                'Creating cluster...'
-              ] :
-              'New cluster')
-          ]),
           Utils.cond(
-            [listFailure, () => `Couldn't load cluster list: ${listFailure}`],
-            [!clusters, centeredSpinner],
+            [!notebooks, centeredSpinner],
             () => h(Fragment, [
-              h(DataTable, {
-                allowPagination: false,
-                dataSource: clusters,
-                tableProps: {
-                  rowKey: 'clusterName',
-                  columns: [
-                    {
-                      title: 'Cluster Name', key: 'clusterName',
-                      render: ({ clusterName, clusterUrl, status, creator }) => {
-                        const isAccessible = creator === getBasicProfile().getEmail() &&
-                          status === 'Running'
-                        return link({
-                          title: clusterName,
-                          disabled: !isAccessible,
-                          href: isAccessible ? clusterUrl : undefined,
-                          target: '_blank',
-                          style: {
-                            textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block',
-                            overflow: 'hidden', width: 400
-                          }
-                        }, clusterName)
-                      }
-                    },
-                    { title: 'Google project', dataIndex: 'googleProject', key: 'googleProject' },
-                    {
-                      title: 'Status', key: 'status',
-                      render: ({ clusterName, googleProject, status }) =>
-                        h(StatusLabel, { clusterName, googleProject, status, refresh: () => this.loadClusters() })
-                    },
-                    {
-                      title: 'Created', dataIndex: 'createdDate', key: 'createdDate',
-                      render: Utils.makePrettyDate
-                    },
-                    {
-                      title: 'Created by', dataIndex: 'creator', key: 'creator',
-                      render: creator => div({
-                        title: creator,
-                        style: {
-                          textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block',
-                          overflow: 'hidden'
-                        }
-                      }, creator)
-                    },
-                    {
-                      title: 'Delete', key: 'delete',
-                      render: ({ clusterName, googleProject, status }) => {
-                        if (status !== 'Deleting') {
-                          return link({
-                            onClick: () => {
-                              Leo.cluster(googleProject, clusterName).delete().then(
-                                () => this.loadClusters(),
-                                deletionFail => window.alert(`Couldn't delete cluster: ${deletionFail}`)
-                              )
-                            },
-                            title: `Delete cluster ${clusterName}`
-                          }, [icon('trash', { style: { margin: 'auto', display: 'block' } })])
-                        }
-                      }
-                    }
-                  ]
-                }
-              }),
               div({
                 style: {
-                  color: Style.colors.title, marginTop: '2rem', display: 'flex', alignItems: 'center'
+                  color: Style.colors.title, display: 'flex', alignItems: 'center'
                 }
               }, [
                 div({ style: { fontSize: 16, fontWeight: 500 } }, 'NOTEBOOKS'),
@@ -411,13 +259,9 @@ class WorkspaceNotebooks extends Component {
                     this.setState({ listView: true })
                   }
                 }),
-                h(NotebookCreator, { reloadList: () => this.getNotebooks(), namespace, bucketName })
+                h(NotebookCreator, { reloadList: () => this.refresh(), namespace, bucketName })
               ]),
-              Utils.cond(
-                [notebooksFailure, () => `Couldn't load cluster list: ${notebooksFailure}`],
-                [!notebooks, centeredSpinner],
-                () => this.renderNotebooks()
-              )
+              this.renderNotebooks()
             ])
           ),
           !freshNotebooks && notebooks && spinnerOverlay

@@ -6,6 +6,7 @@ import { breadcrumb, centeredSpinner, icon } from 'src/components/icons'
 import { DataGrid } from 'src/components/table'
 import { TopBar } from 'src/components/TopBar'
 import { Rawls } from 'src/libs/ajax'
+import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
@@ -115,7 +116,7 @@ export class WorkspaceList extends Component {
 
 
   render() {
-    const { workspaces, freshData, filter, listView, failure } = this.state
+    const { workspaces, freshData, filter, listView } = this.state
 
     return h(Fragment, [
       h(TopBar, { title: 'Projects' },
@@ -152,16 +153,13 @@ export class WorkspaceList extends Component {
           }
         })
       ]),
-      div({ style: { width: '100%', position: 'relative', padding: '1rem' } }, [
-        div({ style: { margin: 'auto', maxWidth: 1000 } }, [
-          Utils.cond(
-            [failure, () => `Couldn't load workspace list: ${failure}`],
-            [!workspaces, () => centeredSpinner({ size: 64 })],
-            [_.isEmpty(workspaces), 'You don\'t seem to have access to any workspaces.'],
-            [listView, () => this.wsList()],
-            () => this.wsGrid()
-          )
-        ]),
+      div({ style: { width: '100%', position: 'relative', padding: '1rem' } }, [div({ style: { margin: ' auto', maxWidth: 1000 } }, [
+        Utils.cond(
+          [!workspaces, () => centeredSpinner({ size: 64 })],
+          [_.isEmpty(workspaces), 'You don\'t seem to have access to any workspaces.'],
+          [listView, () => this.wsList()],
+          () => this.wsGrid()
+        )]),
         !freshData && workspaces && spinnerOverlay
       ])
     ])
@@ -173,9 +171,9 @@ export class WorkspaceList extends Component {
         freshData: true,
         workspaces: _.sortBy('workspace.name', _.filter(ws => !ws.public ||
           Utils.workspaceAccessLevels.indexOf(ws.accessLevel) > Utils.workspaceAccessLevels.indexOf('READER'),
-        workspaces))
+          workspaces))
       }),
-      failure => this.setState({ failure })
+      error => reportError(`Error loading workspace list: ${error}`)
     )
   }
 

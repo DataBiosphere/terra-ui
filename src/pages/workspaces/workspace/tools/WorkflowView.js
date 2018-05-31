@@ -11,6 +11,7 @@ import { components, DataTable } from 'src/components/table'
 import WDLViewer from 'src/components/WDLViewer'
 import { Agora, Dockstore, Rawls } from 'src/libs/ajax'
 import * as Config from 'src/libs/config'
+import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
@@ -103,22 +104,26 @@ class WorkflowView extends Component {
 
   async componentDidMount() {
     const { workspaceNamespace, workspaceName, workflowNamespace, workflowName } = this.props
-    const workspace = Rawls.workspace(workspaceNamespace, workspaceName)
+    try {
+      const workspace = Rawls.workspace(workspaceNamespace, workspaceName)
 
-    const entityTypes = _.map(
-      e => ({ value: e, label: e.replace('_', ' ') }),
-      _.keys(await workspace.entities())
-    )
+      const entityTypes = _.map(
+        e => ({ value: e, label: e.replace('_', ' ') }),
+        _.keys(await workspace.entities())
+      )
 
-    const validationResponse = await workspace.methodConfig(workflowNamespace, workflowName).validate()
-    const { methodConfiguration: config } = validationResponse
-    const ioDefinitions = await Rawls.methodConfigInputsOutputs(config)
+      const validationResponse = await workspace.methodConfig(workflowNamespace, workflowName).validate()
+      const { methodConfiguration: config } = validationResponse
+      const ioDefinitions = await Rawls.methodConfigInputsOutputs(config)
 
-    const inputsOutputs = this.createIOLists(validationResponse, ioDefinitions)
+      const inputsOutputs = this.createIOLists(validationResponse, ioDefinitions)
 
-    const firecloudRoot = await Config.getFirecloudUrlRoot()
+      const firecloudRoot = await Config.getFirecloudUrlRoot()
 
-    this.setState({ freshConfig: true, config, entityTypes, inputsOutputs, ioDefinitions, firecloudRoot })
+      this.setState({ freshConfig: true, config, entityTypes, inputsOutputs, ioDefinitions, firecloudRoot })
+    } catch (error) {
+      reportError(`Error loading data: ${error}`)
+    }
   }
 
   createIOLists(validationResponse, ioDefinitions = this.state.ioDefinitions) {
@@ -343,17 +348,21 @@ class WorkflowView extends Component {
     const { methodRepoMethod: { sourceRepo, methodNamespace, methodName, methodVersion, methodPath } } = this.state.config
 
     this.setState({ loadedWdl: true })
-    const wdl = await (() => {
-      switch (sourceRepo) {
-        case 'dockstore':
-          return Dockstore.getWdl(methodPath, methodVersion).then(({ descriptor }) => descriptor)
-        case 'agora':
-          return Agora.method(methodNamespace, methodName, methodVersion).get().then(({ payload }) => payload)
-        default:
-          throw new Error('unknown sourceRepo')
-      }
-    })()
-    this.setState({ freshWdl: true, wdl })
+    try {
+      const wdl = await (() => {
+        switch (sourceRepo) {
+          case 'dockstore':
+            return Dockstore.getWdl(methodPath, methodVersion).then(({ descriptor }) => descriptor)
+          case 'agora':
+            return Agora.method(methodNamespace, methodName, methodVersion).get().then(({ payload }) => payload)
+          default:
+            throw new Error('unknown sourceRepo')
+        }
+      })()
+      this.setState({ freshWdl: true, wdl })
+    } catch (error) {
+      reportError(`Error loading WDL: ${error}`)
+    }
   }
 
   save = async () => {
@@ -362,17 +371,23 @@ class WorkflowView extends Component {
 
     this.setState({ saving: true })
 
-    const validationResponse = await Rawls.workspace(workspaceNamespace, workspaceName)
-      .methodConfig(workflowNamespace, workflowName)
-      .save(_.merge(config, modifiedAttributes))
-    const inputsOutputs = this.createIOLists(validationResponse)
+    try {
+      const validationResponse = await Rawls.workspace(workspaceNamespace, workspaceName)
+        .methodConfig(workflowNamespace, workflowName)
+        .save(_.merge(config, modifiedAttributes))
+      const inputsOutputs = this.createIOLists(validationResponse)
 
-    this.setState({
-      saving: false, saved: true, modified: false,
-      modifiedAttributes: { inputs: {}, outputs: {} },
-      inputsOutputs,
-      config: validationResponse.methodConfiguration
-    })
+      this.setState({
+        saved: true, modified: false,
+        modifiedAttributes: { inputs: {}, outputs: {} },
+        inputsOutputs,
+        config: validationResponse.methodConfiguration
+      })
+    } catch (error) {
+      reportError(`Error saving: ${error}`)
+    } finally {
+      this.setState({ saving: false })
+    }
   }
 
   cancel = () => {
