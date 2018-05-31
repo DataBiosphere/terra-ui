@@ -83,9 +83,10 @@ class WorkspaceTools extends Component {
   }
 
   componentDidUpdate() {
-    const { configs, itemsPerPage, pageNumber } = this.state
-
-    StateHistory.update({ configs, itemsPerPage, pageNumber })
+    StateHistory.update(_.pick(
+      ['configs', 'itemsPerPage', 'pageNumber'],
+      this.state)
+    )
   }
 }
 

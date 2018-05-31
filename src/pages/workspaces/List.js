@@ -191,9 +191,10 @@ export class WorkspaceList extends Component {
   }
 
   componentDidUpdate() {
-    const { workspaces, filter, listView, itemsPerPage, pageNumber } = this.state
-
-    StateHistory.update({ workspaces, filter, listView, itemsPerPage, pageNumber })
+    StateHistory.update(_.pick(
+      ['workspaces', 'filter', 'listView', 'itemsPerPage', 'pageNumber'],
+      this.state)
+    )
   }
 }
 

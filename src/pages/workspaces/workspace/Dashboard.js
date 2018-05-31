@@ -1,3 +1,4 @@
+import _ from 'lodash/fp'
 import { div, h, span } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { buttonPrimary, spinnerOverlay } from 'src/components/common'
@@ -73,9 +74,7 @@ export default class WorkspaceDashboard extends Component {
   }
 
   componentDidUpdate() {
-    const { workspace } = this.state
-
-    StateHistory.update({ workspace })
+    StateHistory.update(_.pick(['workspace'], this.state))
   }
 }
 

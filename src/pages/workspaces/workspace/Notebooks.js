@@ -271,9 +271,10 @@ class WorkspaceNotebooks extends Component {
   }
 
   componentDidUpdate() {
-    const { bucketName, clusters, cluster, notebooks, listView } = this.state
-
-    StateHistory.update({ bucketName, clusters, cluster, notebooks, listView })
+    StateHistory.update(_.pick(
+      ['bucketName', 'clusters', 'cluster', 'notebooks', 'listView'],
+      this.state)
+    )
   }
 }
 

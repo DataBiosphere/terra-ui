@@ -154,12 +154,15 @@ class WorkflowView extends Component {
   }
 
   componentDidUpdate() {
-    const { config, entityTypes, inputsOutputs, invalid, modifiedAttributes, selectedTabIndex, loadedWdl, wdl } = this.state
+    const { selectedTabIndex, loadedWdl } = this.state
     if (selectedTabIndex === 2 && !loadedWdl) {
       this.fetchWDL()
     }
 
-    StateHistory.update({ config, entityTypes, inputsOutputs, invalid, modifiedAttributes, selectedTabIndex, wdl })
+    StateHistory.update(_.pick(
+      ['config', 'entityTypes', 'inputsOutputs', 'invalid', 'modifiedAttributes', 'selectedTabIndex', 'wdl'],
+      this.state)
+    )
   }
 
   renderSummary = invalidIO => {

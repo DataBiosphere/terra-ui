@@ -153,9 +153,10 @@ class WorkspaceData extends Component {
   }
 
   componentDidUpdate() {
-    const { workspaceEntities, selectedEntityType, selectedEntities, itemsPerPage, pageNumber } = this.state
-
-    StateHistory.update({ workspaceEntities, selectedEntityType, selectedEntities, itemsPerPage, pageNumber })
+    StateHistory.update(_.pick(
+      ['workspaceEntities', 'selectedEntityType', 'selectedEntities', 'itemsPerPage', 'pageNumber'],
+      this.state)
+    )
   }
 }
 
