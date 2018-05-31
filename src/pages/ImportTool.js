@@ -3,6 +3,7 @@ import { Fragment } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
 import { buttonPrimary, pageColumn } from 'src/components/common'
+import ErrorView from 'src/components/ErrorView'
 import { centeredSpinner, icon, spinner } from 'src/components/icons'
 import { TopBar } from 'src/components/TopBar'
 import WDLViewer from 'src/components/WDLViewer'
@@ -177,9 +178,9 @@ class DockstoreImporter extends Component {
   renderError() {
     const { loadError } = this.state
 
-    return h(Fragment, [
+    return div({ style: { padding: '2rem' } }, [
       div(wdlLoadError),
-      div(`Error: ${loadError}`)
+      h(ErrorView, { error: loadError })
     ])
   }
 }
