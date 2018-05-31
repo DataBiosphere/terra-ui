@@ -2,7 +2,6 @@ import _ from 'lodash/fp'
 import { a, div, h } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { spinnerOverlay } from 'src/components/common'
-import { centeredSpinner } from 'src/components/icons'
 import { DataGrid } from 'src/components/table'
 import { Rawls } from 'src/libs/ajax'
 import { reportError } from 'src/libs/error'
@@ -43,36 +42,35 @@ class WorkspaceTools extends Component {
       },
       [
         div({ style: { padding: '1rem 4rem', flexGrow: 1, position: 'relative' } }, [
-          configs ?
-            h(DataGrid, {
-              dataSource: configs,
-              itemsPerPageOptions: [6, 12, 24, 36, 48],
-              itemsPerPage,
-              onItemsPerPageChanged: itemsPerPage => this.setState({ itemsPerPage }),
-              pageNumber,
-              onPageChanged: n => this.setState({ pageNumber: n }),
-              renderCard: config => {
-                const { name, namespace, methodRepoMethod: { sourceRepo, methodVersion } } = config
-                return a({
-                  style: {
-                    ...Style.elements.card,
-                    width: '30%', margin: '1rem auto', textDecoration: 'none',
-                    color: Style.colors.text
-                  },
-                  href: Nav.getLink('workflow', {
-                    workspaceNamespace: workspaceId.namespace,
-                    workspaceName: workspaceId.name,
-                    workflowNamespace: namespace,
-                    workflowName: name
-                  })
-                }, [
-                  div({ style: { ...Style.elements.cardTitle, marginBottom: '0.5rem' } }, name),
-                  div(`V. ${methodVersion}`),
-                  div(`Source: ${sourceRepo}`)
-                ])
-              }
-            }) : centeredSpinner(),
-          !isFreshData && configs && spinnerOverlay
+          configs && h(DataGrid, {
+            dataSource: configs,
+            itemsPerPageOptions: [6, 12, 24, 36, 48],
+            itemsPerPage,
+            onItemsPerPageChanged: itemsPerPage => this.setState({ itemsPerPage }),
+            pageNumber,
+            onPageChanged: n => this.setState({ pageNumber: n }),
+            renderCard: config => {
+              const { name, namespace, methodRepoMethod: { sourceRepo, methodVersion } } = config
+              return a({
+                style: {
+                  ...Style.elements.card,
+                  width: '30%', margin: '1rem auto', textDecoration: 'none',
+                  color: Style.colors.text
+                },
+                href: Nav.getLink('workflow', {
+                  workspaceNamespace: workspaceId.namespace,
+                  workspaceName: workspaceId.name,
+                  workflowNamespace: namespace,
+                  workflowName: name
+                })
+              }, [
+                div({ style: { ...Style.elements.cardTitle, marginBottom: '0.5rem' } }, name),
+                div(`V. ${methodVersion}`),
+                div(`Source: ${sourceRepo}`)
+              ])
+            }
+          }),
+          !isFreshData && spinnerOverlay
         ])
       ]
     )

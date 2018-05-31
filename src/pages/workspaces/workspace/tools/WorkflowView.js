@@ -6,7 +6,7 @@ import { buttonPrimary, link, spinnerOverlay, tooltip } from 'src/components/com
 import { centeredSpinner, icon } from 'src/components/icons'
 import { textInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
-import { TabbedScrollWithHeader, emptyHeader } from 'src/components/ScrollWithHeader'
+import { emptyHeader, TabbedScrollWithHeader } from 'src/components/ScrollWithHeader'
 import { components, DataTable } from 'src/components/table'
 import WDLViewer from 'src/components/WDLViewer'
 import { Agora, Dockstore, Rawls } from 'src/libs/ajax'
@@ -72,17 +72,16 @@ class WorkflowView extends Component {
         title: workflowName, activeTab: 'tools'
       },
       [
-        config ?
-          div({ style: { position: 'relative' } }, [
-            this.renderSummary(invalidIO),
-            this.renderDetails(invalidIO),
-            launching && h(LaunchAnalysisModal, {
-              workspaceId, config,
-              onDismiss: () => this.setState({ launching: false }),
-              onSuccess: submission => this.setState({ launching: false, submissionId: submission.submissionId })
-            }),
-            !isFreshData && config && spinnerOverlay
-          ]) : centeredSpinner({ style: { marginTop: '2rem' } }),
+        config && h(Fragment, [
+          this.renderSummary(invalidIO),
+          this.renderDetails(invalidIO),
+          launching && h(LaunchAnalysisModal, {
+            workspaceId, config,
+            onDismiss: () => this.setState({ launching: false }),
+            onSuccess: submission => this.setState({ launching: false, submissionId: submission.submissionId })
+          })
+        ]),
+        !isFreshData && spinnerOverlay,
         submissionId && firecloudRoot && h(Modal, {
           onDismiss: () => this.setState({ submissionId: undefined }),
           title: 'Analysis submitted',

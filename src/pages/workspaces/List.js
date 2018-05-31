@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { a, div, h } from 'react-hyperscript-helpers'
 import { contextBar, search, spinnerOverlay } from 'src/components/common'
-import { breadcrumb, centeredSpinner, icon } from 'src/components/icons'
+import { breadcrumb, icon } from 'src/components/icons'
 import { DataGrid } from 'src/components/table'
 import { TopBar } from 'src/components/TopBar'
 import { Rawls } from 'src/libs/ajax'
@@ -116,7 +116,7 @@ export class WorkspaceList extends Component {
 
 
   render() {
-    const { workspaces, isFreshData, filter, listView } = this.state
+    const { workspaces, isDataLoaded, filter, listView } = this.state
 
     return h(Fragment, [
       h(TopBar, { title: 'Projects' },
@@ -153,16 +153,15 @@ export class WorkspaceList extends Component {
           }
         })
       ]),
-      div({ style: { width: '100%', position: 'relative', padding: '1rem' } }, [
-        div({ style: { margin: 'auto', maxWidth: 1000 } }, [
+      div({ style: { width: '100%', position: 'relative', padding: '1rem', flexGrow: 1 } }, [
+        workspaces && div({ style: { margin: 'auto', maxWidth: 1000 } }, [
           Utils.cond(
-            [!workspaces, () => centeredSpinner({ size: 64 })],
             [_.isEmpty(workspaces), 'You don\'t seem to have access to any workspaces.'],
             [listView, () => this.wsList()],
             () => this.wsGrid()
           )
         ]),
-        !isFreshData && workspaces && spinnerOverlay
+        !isDataLoaded && spinnerOverlay
       ])
     ])
   }
@@ -170,7 +169,7 @@ export class WorkspaceList extends Component {
   componentDidMount() {
     Rawls.workspacesList().then(
       workspaces => this.setState({
-        isFreshData: true,
+        isDataLoaded: true,
         workspaces: _.sortBy('workspace.name', _.filter(ws => !ws.public ||
           Utils.workspaceAccessLevels.indexOf(ws.accessLevel) > Utils.workspaceAccessLevels.indexOf('READER'),
         workspaces))

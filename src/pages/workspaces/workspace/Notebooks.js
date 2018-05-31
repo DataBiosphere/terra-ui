@@ -227,42 +227,39 @@ class WorkspaceNotebooks extends Component {
         title: 'Notebooks', activeTab: 'notebooks'
       },
       [
-        div({ style: { padding: '1rem', flexGrow: 1, position: 'relative' } }, [
-          Utils.cond(
-            [!notebooks, centeredSpinner],
-            () => h(Fragment, [
-              div({
+        div({ style: { padding: '1rem' } }, [
+          notebooks && h(Fragment, [
+            div({
+              style: {
+                color: Style.colors.title, display: 'flex', alignItems: 'center'
+              }
+            }, [
+              div({ style: { fontSize: 16, fontWeight: 500 } }, 'NOTEBOOKS'),
+              div({ style: { flexGrow: 1 } }),
+              icon('view-cards', {
                 style: {
-                  color: Style.colors.title, display: 'flex', alignItems: 'center'
+                  cursor: 'pointer',
+                  boxShadow: listView ? undefined : `0 4px 0 ${Style.colors.highlight}`,
+                  marginRight: '1rem', width: 26, height: 22
+                },
+                onClick: () => {
+                  this.setState({ listView: false })
                 }
-              }, [
-                div({ style: { fontSize: 16, fontWeight: 500 } }, 'NOTEBOOKS'),
-                div({ style: { flexGrow: 1 } }),
-                icon('view-cards', {
-                  style: {
-                    cursor: 'pointer',
-                    boxShadow: listView ? undefined : `0 4px 0 ${Style.colors.highlight}`,
-                    marginRight: '1rem', width: 26, height: 22
-                  },
-                  onClick: () => {
-                    this.setState({ listView: false })
-                  }
-                }),
-                icon('view-list', {
-                  style: {
-                    cursor: 'pointer', boxShadow: listView ? `0 4px 0 ${Style.colors.highlight}` : null
-                  },
-                  size: 26,
-                  onClick: () => {
-                    this.setState({ listView: true })
-                  }
-                }),
-                h(NotebookCreator, { reloadList: () => this.refresh(), namespace, bucketName })
-              ]),
-              this.renderNotebooks()
-            ])
-          ),
-          !isFreshData && notebooks && spinnerOverlay
+              }),
+              icon('view-list', {
+                style: {
+                  cursor: 'pointer', boxShadow: listView ? `0 4px 0 ${Style.colors.highlight}` : null
+                },
+                size: 26,
+                onClick: () => {
+                  this.setState({ listView: true })
+                }
+              }),
+              h(NotebookCreator, { reloadList: () => this.refresh(), namespace, bucketName })
+            ]),
+            this.renderNotebooks()
+          ]),
+          !isFreshData && spinnerOverlay
         ])
       ]
     )

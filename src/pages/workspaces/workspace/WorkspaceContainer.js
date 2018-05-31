@@ -104,7 +104,9 @@ export default class WorkspaceContainer extends Component {
         h(ClusterManager, { namespace })
       ]),
       tabBar(tabProps),
-      this.props.children
+      div({ style: { position: 'relative', flexGrow: 1 } }, [
+        this.props.children
+      ])
     ])
   }
 }
