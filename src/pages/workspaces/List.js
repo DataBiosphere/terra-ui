@@ -165,7 +165,7 @@ export class WorkspaceList extends Component {
         })
       ]),
       div({ style: { width: '100%', position: 'relative', padding: '1rem' } }, [
-        div({ style: { margin: ' auto', maxWidth: 1000 } }, [
+        div({ style: { margin: 'auto', maxWidth: 1000 } }, [
           Utils.cond(
             [!workspaces, () => centeredSpinner({ size: 64 })],
             [_.isEmpty(workspaces), 'You don\'t seem to have access to any workspaces.'],
