@@ -6,7 +6,7 @@ import { buttonPrimary, link, spinnerOverlay, tooltip } from 'src/components/com
 import { centeredSpinner, icon } from 'src/components/icons'
 import { textInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
-import { emptyHeader, TabbedScrollWithHeader } from 'src/components/ScrollWithHeader'
+import { TabbedScrollWithHeader, emptyHeader } from 'src/components/ScrollWithHeader'
 import { components, DataTable } from 'src/components/table'
 import WDLViewer from 'src/components/WDLViewer'
 import { Agora, Dockstore, Rawls } from 'src/libs/ajax'

@@ -27,17 +27,6 @@ export class WorkspaceList extends Component {
     }
   }
 
-  componentWillMount() {
-    Rawls.workspacesList().then(
-      workspaces => this.setState({
-        workspaces: _.sortBy('workspace.name', _.filter(ws => !ws.public ||
-          Utils.workspaceAccessLevels.indexOf(ws.accessLevel) > Utils.workspaceAccessLevels.indexOf('READER'),
-        workspaces))
-      }),
-      failure => this.setState({ failure })
-    )
-  }
-
   getDataViewerProps() {
     return {
       itemsPerPageOptions: [6, 12, 24, 36, 48],

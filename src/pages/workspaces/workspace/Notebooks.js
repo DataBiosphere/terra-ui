@@ -214,9 +214,7 @@ class WorkspaceNotebooks extends Component {
   }
 
   render() {
-    const {
-      isFreshData, bucketName, notebooks, listView
-    } = this.state
+    const { isFreshData, bucketName, notebooks, listView } = this.state
     const { namespace, name } = this.props
 
     return h(WorkspaceContainer,
