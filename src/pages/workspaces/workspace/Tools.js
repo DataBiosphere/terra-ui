@@ -4,6 +4,7 @@ import * as breadcrumbs from 'src/components/breadcrumbs'
 import { centeredSpinner } from 'src/components/icons'
 import { DataGrid } from 'src/components/table'
 import { Rawls } from 'src/libs/ajax'
+import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import { Component } from 'src/libs/wrapped-components'
@@ -20,8 +21,10 @@ class WorkspaceTools extends Component {
     const { namespace, name } = this.props
 
     this.setState({ configs: undefined })
-    Rawls.workspace(namespace, name).listMethodConfigs()
-      .then(configs => this.setState({ configs }))
+    Rawls.workspace(namespace, name).listMethodConfigs().then(
+      configs => this.setState({ configs }),
+      error => reportError(`Error loading configs: ${error}`)
+    )
   }
 
   render() {

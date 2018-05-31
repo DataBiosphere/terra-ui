@@ -4,6 +4,7 @@ import * as breadcrumbs from 'src/components/breadcrumbs'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { DataTable } from 'src/components/table'
 import { Rawls } from 'src/libs/ajax'
+import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
@@ -23,10 +24,10 @@ class WorkspaceData extends Component {
     const { namespace, name } = this.props
     const { selectedEntityType } = this.state
 
-    this.setState({ workspaceEntities: undefined, entitiesFailure: undefined })
+    this.setState({ workspaceEntities: undefined })
     Rawls.workspace(namespace, name).entities().then(
       workspaceEntities => this.setState({ workspaceEntities }),
-      entitiesFailure => this.setState({ entitiesFailure })
+      error => reportError(`Error loading workspace entities: ${error}`)
     )
 
     if (selectedEntityType) {
@@ -39,7 +40,7 @@ class WorkspaceData extends Component {
 
     Rawls.workspace(namespace, name).entity(type).then(
       selectedEntities => this.setState({ selectedEntities }),
-      entityFailure => this.setState({ entityFailure })
+      error => reportError(`Error loading workspace entity: ${error}`)
     )
   }
 
@@ -48,7 +49,7 @@ class WorkspaceData extends Component {
   }
 
   render() {
-    const { selectedEntityType, selectedEntities, workspaceEntities, entitiesFailure, entityFailure } = this.state
+    const { selectedEntityType, selectedEntities, workspaceEntities } = this.state
     const { namespace, name } = this.props
 
     const entityTypeList = () => _.map(([type, typeDetails]) =>
@@ -108,7 +109,6 @@ class WorkspaceData extends Component {
           }
         },
         Utils.cond(
-          [entitiesFailure, () => `Couldn't load workspace entities: ${entitiesFailure}`],
           [!workspaceEntities, () => [centeredSpinner({ style: { margin: '2rem auto' } })]],
           [
             _.isEmpty(workspaceEntities),
@@ -132,7 +132,6 @@ class WorkspaceData extends Component {
               },
               [
                 Utils.cond(
-                  [entityFailure, () => `Couldn't load ${selectedEntityType}s: ${entityFailure}`],
                   [!selectedEntityType, 'Select a data type.'],
                   [!selectedEntities, centeredSpinner],
                   entityTable

@@ -8,6 +8,7 @@ import DropdownBox from 'src/components/DropdownBox'
 import { IntegerInput, textInput } from 'src/components/input'
 import { Leo } from 'src/libs/ajax'
 import { getBasicProfile } from 'src/libs/auth'
+import { reportError } from 'src/libs/error'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Select } from 'src/libs/wrapped-components'
@@ -223,12 +224,16 @@ export default class ClusterManager extends Component {
 
   refreshClusters = async () => {
     const { namespace } = this.props
-    const allClusters = await Leo.clustersList()
-    const clusters = _.filter({
-      googleProject: namespace,
-      creator: getBasicProfile().getEmail()
-    }, allClusters)
-    this.setState({ clusters })
+    try {
+      const allClusters = await Leo.clustersList()
+      const clusters = _.filter({
+        googleProject: namespace,
+        creator: getBasicProfile().getEmail()
+      }, allClusters)
+      this.setState({ clusters })
+    } catch (error) {
+      reportError(`Error loading clusters: ${error}`)
+    }
   }
 
   componentDidMount() {
@@ -265,7 +270,7 @@ export default class ClusterManager extends Component {
       await promise
       await this.refreshClusters()
     } catch (error) {
-      Utils.log(`Cluster error`, error)
+      reportError(`Cluster error ${error}`)
     } finally {
       this.setState({ busy: false })
     }

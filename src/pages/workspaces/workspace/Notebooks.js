@@ -9,6 +9,7 @@ import { NotebookCreator, NotebookDeleter, NotebookDuplicator } from 'src/compon
 import ShowOnClick from 'src/components/ShowOnClick'
 import { Buckets, Leo, Rawls } from 'src/libs/ajax'
 import { getBasicProfile } from 'src/libs/auth'
+import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -185,7 +186,7 @@ class WorkspaceNotebooks extends Component {
         })
       }
     } catch (error) {
-      this.setState({ notebooksFailure: error })
+      reportError(`Error loading notebooks: ${error}`)
     }
   }
 
@@ -208,7 +209,7 @@ class WorkspaceNotebooks extends Component {
   }
 
   render() {
-    const { bucketName, notebooks, notebooksFailure, listView } = this.state
+    const { bucketName, notebooks, listView } = this.state
     const { namespace, name } = this.props
 
     return h(WorkspaceContainer,
@@ -220,7 +221,6 @@ class WorkspaceNotebooks extends Component {
       [
         div({ style: { margin: '1rem' } }, [
           Utils.cond(
-            [notebooksFailure, () => `Couldn't load notebooks: ${notebooksFailure}`],
             [!notebooks, centeredSpinner],
             () => h(Fragment, [
               div({
