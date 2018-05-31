@@ -16,7 +16,7 @@ import WorkspaceContainer from 'src/pages/workspaces/workspace/WorkspaceContaine
 class WorkspaceTools extends Component {
   constructor(props) {
     super(props)
-    this.state = _.merge({ itemsPerPage: 6, pageNumber: 1 }, StateHistory.get())
+    this.state = { itemsPerPage: 6, pageNumber: 1, ...StateHistory.get() }
   }
 
   refresh() {

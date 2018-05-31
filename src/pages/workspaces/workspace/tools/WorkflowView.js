@@ -47,11 +47,12 @@ class WorkflowView extends Component {
   constructor(props) {
     super(props)
 
-    this.state = _.merge({
+    this.state = {
       selectedTabIndex: 0,
       saved: false,
-      modifiedAttributes: { inputs: {}, outputs: {} }
-    }, StateHistory.get())
+      modifiedAttributes: { inputs: {}, outputs: {} },
+      ...StateHistory.get()
+    }
   }
 
   render() {
