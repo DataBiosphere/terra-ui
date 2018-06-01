@@ -21,6 +21,15 @@ const notebookNameValidator = {
   }
 }
 
+const creatorConstraints = {
+  notebookName: notebookNameValidator,
+  notebookKernel: { presence: { allowEmpty: false } }
+}
+
+const duplicatorConstraints = {
+  newName: notebookNameValidator
+}
+
 const notebookNameInput = props => div({ style: { margin: '0.5rem 0 1rem' } }, [
   validatedInput(_.merge({
     name: 'notebook name',
@@ -66,7 +75,7 @@ export class NotebookCreator extends Component {
     const { modalOpen, notebookName, notebookKernel, creating, nameTouched } = this.state
     const { reloadList, namespace, bucketName } = this.props
 
-    const nameErrors = validate.single(notebookName, notebookNameValidator)
+    const errors = validate({ notebookName, notebookKernel }, creatorConstraints, { fullMessages: false })
 
     return h(Fragment, [
       buttonPrimary({
@@ -87,7 +96,7 @@ export class NotebookCreator extends Component {
             onDismiss: () => this.setState({ modalOpen: false }),
             title: 'Create New Notebook',
             okButton: buttonPrimary({
-              disabled: nameErrors || !notebookKernel,
+              disabled: errors,
               onClick: () => {
                 this.setState({ modalOpen: false, creating: true })
                 Buckets.notebook(namespace, bucketName, notebookName).create(notebookKernel.data).then(
@@ -105,7 +114,7 @@ export class NotebookCreator extends Component {
           }, [
             div({ style: Style.elements.sectionHeader }, 'Name'),
             notebookNameInput({
-              errors: nameTouched && nameErrors,
+              errors: nameTouched && errors && errors.notebookName,
               inputProps: {
                 value: notebookName,
                 onChange: e => this.setState({ notebookName: e.target.value, nameTouched: true })
@@ -150,13 +159,13 @@ export class NotebookDuplicator extends Component {
     const { destroyOld, printName, namespace, bucketName, onDismiss, onSuccess } = this.props
     const { newName, processing, nameTouched } = this.state
 
-    const nameErrors = validate.single(newName, notebookNameValidator)
+    const errors = validate({ newName }, duplicatorConstraints, { fullMessages: false })
 
     return h(Modal, {
       onDismiss: onDismiss,
       title: `${destroyOld ? 'Rename' : 'Duplicate'} "${printName}"`,
       okButton: buttonPrimary({
-        disabled: nameErrors || processing,
+        disabled: errors || processing,
         onClick: () => {
           this.setState({ processing: true })
           Buckets.notebook(namespace, bucketName, printName)[destroyOld ? 'rename' : 'copy'](newName).then(
@@ -171,7 +180,7 @@ export class NotebookDuplicator extends Component {
       () => [
         div({ style: Style.elements.sectionHeader }, 'New Name'),
         notebookNameInput({
-          errors: nameTouched && nameErrors,
+          errors: nameTouched && errors && errors.newName,
           inputProps: {
             value: newName,
             onChange: e => this.setState({ newName: e.target.value, nameTouched: true })
