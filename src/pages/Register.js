@@ -34,7 +34,7 @@ export default class Register extends Component {
       })
       authStore.update(state => ({ ...state, isRegistered: true }))
     } catch (error) {
-      reportError({ error, title: 'Error registering' })
+      reportError('Error registering', error)
     } finally {
       this.setState({ busy: false })
     }

@@ -232,7 +232,7 @@ export default class ClusterManager extends Component {
       }, allClusters)
       this.setState({ clusters })
     } catch (error) {
-      reportError({ title: 'Error loading clusters', error })
+      reportError('Error loading clusters', error)
     }
   }
 
@@ -270,7 +270,7 @@ export default class ClusterManager extends Component {
       await promise
       await this.refreshClusters()
     } catch (error) {
-      reportError({ title: 'Cluster Error', error })
+      reportError('Cluster Error', error)
     } finally {
       this.setState({ busy: false })
     }

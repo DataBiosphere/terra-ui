@@ -28,7 +28,7 @@ class WorkspaceData extends Component {
 
     Rawls.workspace(namespace, name).entities().then(
       workspaceEntities => this.setState({ workspaceEntities }),
-      error => reportError({ error, title: 'Error loading workspace entities' })
+      error => reportError('Error loading workspace entities', error)
     )
 
     if (selectedEntityType) {
@@ -41,7 +41,7 @@ class WorkspaceData extends Component {
 
     Rawls.workspace(namespace, name).entity(type).then(
       selectedEntities => this.setState({ isDataLoaded: true, selectedEntities }),
-      error => reportError({ error, title: 'Error loading workspace entity' })
+      error => reportError('Error loading workspace entity', error)
     )
   }
 

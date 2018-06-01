@@ -61,7 +61,7 @@ export class DestinationProject extends Component {
   componentDidMount() {
     Rawls.workspacesList().then(
       workspaces => this.setState({ workspaces }),
-      error => reportError({ error, title: 'Error loading workspaces' })
+      error => reportError('Error loading workspaces', error)
     )
   }
 }
@@ -87,7 +87,7 @@ class DockstoreImporter extends Component {
     this.loadWdl()
     Rawls.workspacesList().then(
       workspaces => this.setState({ workspaces }),
-      error => reportError({ error, title: 'Error loading workspaces' })
+      error => reportError('Error loading workspaces', error)
     )
   }
 
