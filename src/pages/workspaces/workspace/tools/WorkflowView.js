@@ -2,17 +2,18 @@ import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { div, h, p, span } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { buttonPrimary, link, tooltip } from 'src/components/common'
+import { buttonPrimary, link, spinnerOverlay, tooltip } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { textInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
-import { TabbedScrollWithHeader, emptyHeader } from 'src/components/ScrollWithHeader'
+import { emptyHeader, TabbedScrollWithHeader } from 'src/components/ScrollWithHeader'
 import { components, DataTable } from 'src/components/table'
 import WDLViewer from 'src/components/WDLViewer'
 import { Agora, Dockstore, Rawls } from 'src/libs/ajax'
 import * as Config from 'src/libs/config'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
+import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component, Select } from 'src/libs/wrapped-components'
@@ -49,12 +50,13 @@ class WorkflowView extends Component {
     this.state = {
       selectedTabIndex: 0,
       saved: false,
-      modifiedAttributes: { inputs: {}, outputs: {} }
+      modifiedAttributes: { inputs: {}, outputs: {} },
+      ...StateHistory.get()
     }
   }
 
   render() {
-    const { config, launching, submissionId, firecloudRoot, inputsOutputs } = this.state
+    const { isFreshData, config, launching, submissionId, firecloudRoot, inputsOutputs } = this.state
     const { workspaceNamespace, workspaceName, workflowName } = this.props
 
     const workspaceId = { namespace: workspaceNamespace, name: workspaceName }
@@ -70,16 +72,16 @@ class WorkflowView extends Component {
         title: workflowName, activeTab: 'tools'
       },
       [
-        config ?
-          h(Fragment, [
-            this.renderSummary(invalidIO),
-            this.renderDetails(invalidIO),
-            launching && h(LaunchAnalysisModal, {
-              workspaceId, config,
-              onDismiss: () => this.setState({ launching: false }),
-              onSuccess: submission => this.setState({ launching: false, submissionId: submission.submissionId })
-            })
-          ]) : centeredSpinner({ style: { marginTop: '2rem' } }),
+        config && h(Fragment, [
+          this.renderSummary(invalidIO),
+          this.renderDetails(invalidIO),
+          launching && h(LaunchAnalysisModal, {
+            workspaceId, config,
+            onDismiss: () => this.setState({ launching: false }),
+            onSuccess: submission => this.setState({ launching: false, submissionId: submission.submissionId })
+          })
+        ]),
+        !isFreshData && spinnerOverlay,
         submissionId && firecloudRoot && h(Modal, {
           onDismiss: () => this.setState({ submissionId: undefined }),
           title: 'Analysis submitted',
@@ -118,7 +120,7 @@ class WorkflowView extends Component {
 
       const firecloudRoot = await Config.getFirecloudUrlRoot()
 
-      this.setState({ config, entityTypes, inputsOutputs, ioDefinitions, firecloudRoot })
+      this.setState({ isFreshData: true, config, entityTypes, inputsOutputs, ioDefinitions, firecloudRoot })
     } catch (error) {
       reportError(`Error loading data: ${error}`)
     }
@@ -156,6 +158,11 @@ class WorkflowView extends Component {
     if (selectedTabIndex === 2 && !loadedWdl) {
       this.fetchWDL()
     }
+
+    StateHistory.update(_.pick(
+      ['config', 'entityTypes', 'inputsOutputs', 'invalid', 'modifiedAttributes', 'selectedTabIndex', 'wdl'],
+      this.state)
+    )
   }
 
   renderSummary = invalidIO => {
@@ -253,15 +260,17 @@ class WorkflowView extends Component {
           {
             title: 'WDL',
             header: emptyHeader({ padding: '0.5rem' }),
-            children: [wdl ? div({
-              style: {
-                flex: '1 1 auto', overflowY: 'auto', maxHeight: 500,
-                padding: '0.5rem', backgroundColor: 'white',
-                border: Style.standardLine, borderTop: 'unset'
-              }
-            }, [
-              h(WDLViewer, { wdl, readOnly: true })
-            ]) : centeredSpinner({ style: { marginTop: '1rem' } })]
+            children: [
+              wdl ? div({
+                style: {
+                  flex: '1 1 auto', overflowY: 'auto', maxHeight: 500,
+                  padding: '0.5rem', backgroundColor: 'white',
+                  border: Style.standardLine, borderTop: 'unset'
+                }
+              }, [
+                h(WDLViewer, { wdl, readOnly: true })
+              ]) : centeredSpinner({ style: { marginTop: '1rem' } })
+            ]
           }
         ],
         tabBarExtras: [

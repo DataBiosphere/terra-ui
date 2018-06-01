@@ -28,7 +28,7 @@ export default class ShowOnClick extends Component {
     const { containerProps, button, disabled, bgProps, closeOnClick = true, closeOnEsc = true, children } = this.props
 
     return div(_.merge({
-      style: visible ? { position: 'relative' } : undefined,
+      style: visible ? { position: 'relative', zIndex: 1 } : undefined,
       onClick: disabled ? undefined : e => {
         this.setState({ visible: true })
         e.preventDefault()
