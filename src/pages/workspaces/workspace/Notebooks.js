@@ -191,7 +191,7 @@ class WorkspaceNotebooks extends Component {
         })
       }
     } catch (error) {
-      reportError(`Error loading notebooks: ${error}`)
+      reportError({ error, title: 'Error loading notebooks' })
     }
   }
 

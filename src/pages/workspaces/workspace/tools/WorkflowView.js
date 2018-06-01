@@ -122,7 +122,7 @@ class WorkflowView extends Component {
 
       this.setState({ isFreshData: true, config, entityTypes, inputsOutputs, ioDefinitions, firecloudRoot })
     } catch (error) {
-      reportError(`Error loading data: ${error}`)
+      reportError({ error, title: 'Error loading data' })
     }
   }
 
@@ -364,7 +364,7 @@ class WorkflowView extends Component {
       })()
       this.setState({ wdl })
     } catch (error) {
-      reportError(`Error loading WDL: ${error}`)
+      reportError({ error, title: 'Error loading WDL' })
     }
   }
 
@@ -387,7 +387,7 @@ class WorkflowView extends Component {
         config: validationResponse.methodConfiguration
       })
     } catch (error) {
-      reportError(`Error saving: ${error}`)
+      reportError({ error, title: 'Error saving' })
     } finally {
       this.setState({ saving: false })
     }

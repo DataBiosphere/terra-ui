@@ -174,7 +174,7 @@ export class WorkspaceList extends Component {
           Utils.workspaceAccessLevels.indexOf(ws.accessLevel) > Utils.workspaceAccessLevels.indexOf('READER'),
         workspaces))
       }),
-      error => reportError(`Error loading workspace list: ${error}`)
+      error => reportError('Error loading workspace list', error)
     )
   }
 

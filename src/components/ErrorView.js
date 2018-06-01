@@ -70,29 +70,14 @@ export default class ErrorView extends Component {
   renderHTMLError() {
     const { error } = this.props
 
-    const htmlDoc = new DOMParser().parseFromString(error, 'text/xml')
-    const textContent = htmlDoc.getElementsByTagName('body')[0].textContent
-
-    return h(Fragment, [
-      'The server returned an HTML document, its content is:',
-      div({ style: { padding: '0.5rem', fontWeight: 400 } }, [
-        decodeURIComponent(textContent)
-      ]),
-      h(Collapse, {
-        style: { padding: '0.5rem' },
-        title: 'Full response',
-        defaultHidden: true
-      }, [
-        iframe({
-          style: {
-            width: '100%',
-            border: Style.standardLine, borderRadius: 3,
-            padding: '1rem', backgroundColor: 'white'
-          },
-          srcDoc: error, sandbox: ''
-        })
-      ])
-    ])
+    return iframe({
+      style: {
+        width: '100%',
+        border: Style.standardLine, borderRadius: 3,
+        padding: '1rem', backgroundColor: 'white'
+      },
+      srcDoc: error, sandbox: ''
+    })
   }
 
   errorIsJSON() {
