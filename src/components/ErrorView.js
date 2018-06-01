@@ -45,7 +45,8 @@ export default class ErrorView extends Component {
     const content = Utils.cond(
       [this.errorIsHTML(), () => this.renderHTMLError()],
       [this.errorIsJSON(), () => this.renderJSONError()],
-      () => error
+      // 502s due to a service being down result in TypeError in a bunch of places.
+      () => error.message || error.toString()
     )
 
     return collapses ? h(Collapse, {
