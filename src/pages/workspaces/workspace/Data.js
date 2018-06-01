@@ -137,7 +137,8 @@ class WorkspaceData extends Component {
                   style: {
                     position: 'relative',
                     overflow: 'hidden',
-                    margin: `1rem ${!selectedEntityType ? 'auto' : ''}`, width: '100%'
+                    margin: '1rem', width: '100%',
+                    textAlign: selectedEntityType ? undefined : 'center'
                   }
                 },
                 [selectedEntityType ? entityTable() : 'Select a data type.']
