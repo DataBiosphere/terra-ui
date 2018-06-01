@@ -1,7 +1,7 @@
 import { h } from 'react-hyperscript-helpers'
 import ErrorView from 'src/components/ErrorView'
 import Modal from 'src/components/Modal'
-import { errorStore, reportError } from 'src/libs/error'
+import { errorStore, clearError } from 'src/libs/error'
 import * as Utils from 'src/libs/utils'
 
 export default Utils.connectAtom(errorStore, 'errorState')(
@@ -13,7 +13,7 @@ export default Utils.connectAtom(errorStore, 'errorState')(
         width: 800,
         title,
         showCancel: false,
-        onDismiss: () => reportError(undefined)
+        onDismiss: () => clearError()
       }, [
         h(ErrorView, { error, collapses: false })
       ])
