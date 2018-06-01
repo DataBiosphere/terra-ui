@@ -1,3 +1,4 @@
+import { Fragment } from 'react'
 import { div, h, iframe, pre } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
 import * as Style from 'src/libs/style'
@@ -26,13 +27,17 @@ class StackTraceView extends Component {
 
 class JSONErrorView extends Component {
   render() {
-    const { statusCode, source, causes, stackTrace, message } = this.props
+    const { statusCode, source, causes, stackTrace, message, exceptionClass } = this.props
 
-    return div({
-
-    }, [
-      div({ style: Style.elements.cardTitle }, `Error ${statusCode}: ${message}`),
-      div({}, `Source: ${source}`),
+    return h(Fragment, [
+      div({ style: Style.elements.cardTitle }, [
+        statusCode && `Error ${statusCode}: `,
+        message
+      ]),
+      source && div({}, [
+        `Source: ${source}`,
+        exceptionClass && ` (${exceptionClass})`
+      ]),
       stackTrace && stackTrace[0] && h(StackTraceView, { lines: stackTrace }),
       causes && causes.map((cause, idx) => h(Collapse, {
         key: idx,
