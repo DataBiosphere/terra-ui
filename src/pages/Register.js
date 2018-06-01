@@ -1,14 +1,21 @@
 import { Component } from 'react'
 import { div } from 'react-hyperscript-helpers'
-import { buttonPrimary } from 'src/components/common'
+import { buttonPrimary, buttonSecondary } from 'src/components/common'
 import { centeredSpinner, logo } from 'src/components/icons'
 import { textInput } from 'src/components/input'
 import planet from 'src/images/register-planet.svg'
 import { Orchestration, Sam } from 'src/libs/ajax'
-import { authStore, getBasicProfile } from 'src/libs/auth'
+import { authStore, getBasicProfile, signOut } from 'src/libs/auth'
 import { reportError } from 'src/libs/error'
 import * as Style from 'src/libs/style'
+import validate from 'validate.js'
 
+
+const constraints = {
+  givenName: { presence: { allowEmpty: false } },
+  familyName: { presence: { allowEmpty: false } },
+  email: { presence: { allowEmpty: false } }
+}
 
 export default class Register extends Component {
   constructor(props) {
@@ -42,6 +49,7 @@ export default class Register extends Component {
 
   render() {
     const { busy, givenName, familyName, email } = this.state
+    const errors = validate({ givenName, familyName, email }, constraints)
     return div({
       style: {
         flexGrow: 1,
@@ -62,7 +70,7 @@ export default class Register extends Component {
       }, 'New User Registration'),
       div({ style: { marginTop: '3rem', display: 'flex' } }, [
         div({ style: { lineHeight: '170%' } }, [
-          'First Name',
+          'First Name *',
           textInput({
             style: { display: 'block' },
             value: givenName,
@@ -71,7 +79,7 @@ export default class Register extends Component {
         ]),
         div({ style: { width: '1rem' } }),
         div({ style: { lineHeight: '170%' } }, [
-          'Last Name',
+          'Last Name *',
           textInput({
             style: { display: 'block' },
             value: familyName,
@@ -80,7 +88,7 @@ export default class Register extends Component {
         ])
       ]),
       div({ style: { lineHeight: '170%' } }, [
-        div({ style: { marginTop: '2rem' } }, 'Contact Email for Notifications'),
+        div({ style: { marginTop: '2rem' } }, 'Contact Email for Notifications *'),
         div([
           textInput({
             value: email,
@@ -90,9 +98,10 @@ export default class Register extends Component {
         ])
       ]),
       div({ style: { marginTop: '3rem' } }, [
-        buttonPrimary({ disabled: busy, onClick: () => this.register() },
+        buttonPrimary({ disabled: errors || busy, onClick: () => this.register() },
           'Register'
         ),
+        buttonSecondary({ style: { marginLeft: '1rem' }, onClick: signOut }, 'Cancel'),
         busy && centeredSpinner({
           size: 34, style: { display: null, margin: null, marginLeft: '1ex' }
         })
