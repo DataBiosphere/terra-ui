@@ -1,5 +1,4 @@
-import { Fragment } from 'react'
-import { div, h, iframe } from 'react-hyperscript-helpers'
+import { div, h, iframe, pre } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -15,9 +14,11 @@ class StackTraceView extends Component {
       title: 'Stack Trace',
       defaultHidden: true
     }, [
-      lines.map(({ className, methodName, fileName, lineNumber }, idx) => div({ key: idx }, [
-        `${fileName} ${className}.${methodName} (line ${lineNumber})`
-      ]))
+      pre({ style: { overflowX: 'auto' } }, [
+        lines.map(({ className, methodName, fileName, lineNumber }, idx) => div({ key: idx }, [
+          `${className}.${methodName} (${fileName}:${lineNumber})`
+        ]))
+      ])
     ])
   }
 }
