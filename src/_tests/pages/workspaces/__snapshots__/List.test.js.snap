@@ -179,6 +179,7 @@ Array [
   <div
     style={
         Object {
+            "flexGrow": 1,
             "padding": "1rem",
             "position": "relative",
             "width": "100%",
