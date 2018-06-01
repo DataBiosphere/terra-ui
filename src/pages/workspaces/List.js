@@ -1,8 +1,8 @@
 import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { a, div, h } from 'react-hyperscript-helpers'
-import { contextBar, search } from 'src/components/common'
-import { breadcrumb, centeredSpinner, icon } from 'src/components/icons'
+import { contextBar, search, spinnerOverlay } from 'src/components/common'
+import { breadcrumb, icon } from 'src/components/icons'
 import { DataGrid } from 'src/components/table'
 import { TopBar } from 'src/components/TopBar'
 import { Rawls } from 'src/libs/ajax'
@@ -25,17 +25,6 @@ export class WorkspaceList extends Component {
       workspaces: null,
       ...StateHistory.get()
     }
-  }
-
-  componentWillMount() {
-    Rawls.workspacesList().then(
-      workspaces => this.setState({
-        workspaces: _.sortBy('workspace.name', _.filter(ws => !ws.public ||
-          Utils.workspaceAccessLevels.indexOf(ws.accessLevel) > Utils.workspaceAccessLevels.indexOf('READER'),
-        workspaces))
-      }),
-      error => reportError(`Error loading workspace list: ${error}`)
-    )
   }
 
   getDataViewerProps() {
@@ -127,7 +116,7 @@ export class WorkspaceList extends Component {
 
 
   render() {
-    const { workspaces, filter, listView } = this.state
+    const { workspaces, isDataLoaded, filter, listView } = this.state
 
     return h(Fragment, [
       h(TopBar, { title: 'Projects' },
@@ -164,21 +153,36 @@ export class WorkspaceList extends Component {
           }
         })
       ]),
-      div({ style: { margin: '1rem auto', maxWidth: 1000, width: '100%' } }, [
-        Utils.cond(
-          [!workspaces, () => centeredSpinner({ size: 64 })],
-          [_.isEmpty(workspaces), 'You don\'t seem to have access to any workspaces.'],
-          [listView, () => this.wsList()],
-          () => this.wsGrid()
-        )
+      div({ style: { width: '100%', position: 'relative', padding: '1rem', flexGrow: 1 } }, [
+        workspaces && div({ style: { margin: 'auto', maxWidth: 1000 } }, [
+          Utils.cond(
+            [_.isEmpty(workspaces), 'You don\'t seem to have access to any workspaces.'],
+            [listView, () => this.wsList()],
+            () => this.wsGrid()
+          )
+        ]),
+        !isDataLoaded && spinnerOverlay
       ])
     ])
   }
 
-  componentDidUpdate() {
-    const { filter, listView, itemsPerPage, pageNumber } = this.state
+  componentDidMount() {
+    Rawls.workspacesList().then(
+      workspaces => this.setState({
+        isDataLoaded: true,
+        workspaces: _.sortBy('workspace.name', _.filter(ws => !ws.public ||
+          Utils.workspaceAccessLevels.indexOf(ws.accessLevel) > Utils.workspaceAccessLevels.indexOf('READER'),
+        workspaces))
+      }),
+      error => reportError(`Error loading workspace list: ${error}`)
+    )
+  }
 
-    StateHistory.update({ filter, listView, itemsPerPage, pageNumber })
+  componentDidUpdate() {
+    StateHistory.update(_.pick(
+      ['workspaces', 'filter', 'listView', 'itemsPerPage', 'pageNumber'],
+      this.state)
+    )
   }
 }
 

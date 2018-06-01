@@ -94,7 +94,7 @@ export default class WorkspaceContainer extends Component {
     const { namespace, name, breadcrumbs, title, activeTab, refresh } = this.props
     const tabProps = { namespace, name, activeTab, refresh }
 
-    return div({ style: { display: 'flex', flexDirection: 'column', height: '100%' } }, [
+    return div({ style: { display: 'flex', flexDirection: 'column', height: '100%', flexGrow: 1 } }, [
       h(TopBar, { title: 'Projects' }, [
         div({ style: { display: 'flex', flexDirection: 'column', paddingLeft: '4rem' } },
           [
@@ -104,7 +104,9 @@ export default class WorkspaceContainer extends Component {
         h(ClusterManager, { namespace })
       ]),
       tabBar(tabProps),
-      this.props.children
+      div({ style: { position: 'relative', flexGrow: 1 } }, [
+        this.props.children
+      ])
     ])
   }
 }

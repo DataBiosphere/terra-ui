@@ -23,7 +23,8 @@ const styles = {
     right: 0,
     border: `1px solid ${Style.colors.border}`,
     backgroundColor: '#ffffff',
-    borderRadius: '5px 0 5px 5px'
+    borderRadius: '5px 0 5px 5px',
+    zIndex: 1
   },
   bridge: {
     position: 'absolute',

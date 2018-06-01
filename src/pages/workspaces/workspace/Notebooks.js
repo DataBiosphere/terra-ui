@@ -3,7 +3,7 @@ import { Fragment } from 'react'
 import { a, div, h } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { contextMenu } from 'src/components/common'
+import { contextMenu, spinnerOverlay } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { NotebookCreator, NotebookDeleter, NotebookDuplicator } from 'src/components/notebook-utils'
 import ShowOnClick from 'src/components/ShowOnClick'
@@ -11,6 +11,7 @@ import { Buckets, Leo, Rawls } from 'src/libs/ajax'
 import { getBasicProfile } from 'src/libs/auth'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
+import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
@@ -147,16 +148,20 @@ class NotebookCard extends Component {
 }
 
 class WorkspaceNotebooks extends Component {
+  constructor(props) {
+    super(props)
+    this.state = { notebookAccess: {}, ...StateHistory.get() }
+  }
+
   async refresh() {
     const { namespace, name } = this.props
-    this.setState({ clusterUrl: undefined, bucketName: undefined, notebooks: undefined, notebookAccess: {} })
     try {
       const [{ workspace: { bucketName } }, clusters] = await Promise.all([
         Rawls.workspace(namespace, name).details(),
         Leo.clustersList()
       ])
       const notebooks = await Buckets.listNotebooks(namespace, bucketName)
-      this.setState({ bucketName, notebooks: _.reverse(_.sortBy('updated', notebooks)) })
+      this.setState({ bucketName, notebooks: _.reverse(_.sortBy('updated', notebooks)), isFreshData: true })
       const currentCluster = _.flow(
         _.filter({ googleProject: namespace, creator: getBasicProfile().getEmail() }),
         _.remove({ status: 'Deleting' }),
@@ -209,53 +214,61 @@ class WorkspaceNotebooks extends Component {
   }
 
   render() {
-    const { bucketName, notebooks, listView } = this.state
+    const { isFreshData, bucketName, notebooks, listView } = this.state
     const { namespace, name } = this.props
 
     return h(WorkspaceContainer,
       {
-        namespace, name, refresh: () => this.refresh(),
+        namespace, name, refresh: () => {
+          this.setState({ isFreshData: false, notebookAccess: {} })
+          this.refresh()
+        },
         breadcrumbs: breadcrumbs.commonPaths.workspaceDashboard({ namespace, name }),
         title: 'Notebooks', activeTab: 'notebooks'
       },
       [
-        div({ style: { margin: '1rem' } }, [
-          Utils.cond(
-            [!notebooks, centeredSpinner],
-            () => h(Fragment, [
-              div({
+        div({ style: { padding: '1rem' } }, [
+          notebooks && h(Fragment, [
+            div({
+              style: {
+                color: Style.colors.title, display: 'flex', alignItems: 'center'
+              }
+            }, [
+              div({ style: { fontSize: 16, fontWeight: 500 } }, 'NOTEBOOKS'),
+              div({ style: { flexGrow: 1 } }),
+              icon('view-cards', {
                 style: {
-                  color: Style.colors.title, display: 'flex', alignItems: 'center'
+                  cursor: 'pointer',
+                  boxShadow: listView ? undefined : `0 4px 0 ${Style.colors.highlight}`,
+                  marginRight: '1rem', width: 26, height: 22
+                },
+                onClick: () => {
+                  this.setState({ listView: false })
                 }
-              }, [
-                div({ style: { fontSize: 16, fontWeight: 500 } }, 'NOTEBOOKS'),
-                div({ style: { flexGrow: 1 } }),
-                icon('view-cards', {
-                  style: {
-                    cursor: 'pointer',
-                    boxShadow: listView ? undefined : `0 4px 0 ${Style.colors.highlight}`,
-                    marginRight: '1rem', width: 26, height: 22
-                  },
-                  onClick: () => {
-                    this.setState({ listView: false })
-                  }
-                }),
-                icon('view-list', {
-                  style: {
-                    cursor: 'pointer', boxShadow: listView ? `0 4px 0 ${Style.colors.highlight}` : null
-                  },
-                  size: 26,
-                  onClick: () => {
-                    this.setState({ listView: true })
-                  }
-                }),
-                h(NotebookCreator, { reloadList: () => this.refresh(), namespace, bucketName })
-              ]),
-              this.renderNotebooks()
-            ])
-          )
+              }),
+              icon('view-list', {
+                style: {
+                  cursor: 'pointer', boxShadow: listView ? `0 4px 0 ${Style.colors.highlight}` : null
+                },
+                size: 26,
+                onClick: () => {
+                  this.setState({ listView: true })
+                }
+              }),
+              h(NotebookCreator, { reloadList: () => this.refresh(), namespace, bucketName })
+            ]),
+            this.renderNotebooks()
+          ]),
+          !isFreshData && spinnerOverlay
         ])
       ]
+    )
+  }
+
+  componentDidUpdate() {
+    StateHistory.update(_.pick(
+      ['bucketName', 'clusters', 'cluster', 'notebooks', 'listView'],
+      this.state)
     )
   }
 }

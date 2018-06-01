@@ -179,8 +179,9 @@ Array [
   <div
     style={
         Object {
-            "margin": "1rem auto",
-            "maxWidth": 1000,
+            "flexGrow": 1,
+            "padding": "1rem",
+            "position": "relative",
             "width": "100%",
           }
     }
@@ -188,309 +189,318 @@ Array [
     <div
         style={
             Object {
-                "display": "flex",
-                "flexWrap": "wrap",
+                "margin": "auto",
+                "maxWidth": 1000,
               }
         }
     >
-        <a
-            href={undefined}
+        <div
             style={
                 Object {
-                    "backgroundColor": "white",
-                    "borderRadius": 5,
-                    "boxShadow": "0 3px 2px 0 rgba(0,0,0,0.12)",
-                    "color": "#4a4a4a",
                     "display": "flex",
-                    "flexDirection": "column",
-                    "height": 225,
-                    "justifyContent": "space-between",
-                    "margin": "1.25rem",
-                    "padding": "1rem",
-                    "textDecoration": "none",
-                    "width": "calc(33.333333333333336% - 2.5rem)",
-                    "wordWrap": "break-word",
+                    "flexWrap": "wrap",
                   }
             }
         >
-            <div
+            <a
+                href={undefined}
                 style={
                     Object {
-                        "color": "#478eba",
-                        "fontSize": 16,
-                        "fontWeight": 500,
-                      }
-                }
-            >
-                large_sample_copy
-            </div>
-            <div>
-                Billing project: broad-dsde-dev
-            </div>
-            <div
-                style={
-                    Object {
-                        "alignItems": "flex-end",
+                        "backgroundColor": "white",
+                        "borderRadius": 5,
+                        "boxShadow": "0 3px 2px 0 rgba(0,0,0,0.12)",
+                        "color": "#4a4a4a",
                         "display": "flex",
-                        "fontSize": "0.8rem",
+                        "flexDirection": "column",
+                        "height": 225,
                         "justifyContent": "space-between",
+                        "margin": "1.25rem",
+                        "padding": "1rem",
+                        "textDecoration": "none",
+                        "width": "calc(33.333333333333336% - 2.5rem)",
+                        "wordWrap": "break-word",
                       }
                 }
             >
+                <div
+                    style={
+                        Object {
+                            "color": "#478eba",
+                            "fontSize": 16,
+                            "fontWeight": 500,
+                          }
+                    }
+                >
+                    large_sample_copy
+                </div>
                 <div>
-                    Last changed:
+                    Billing project: broad-dsde-dev
+                </div>
+                <div
+                    style={
+                        Object {
+                            "alignItems": "flex-end",
+                            "display": "flex",
+                            "fontSize": "0.8rem",
+                            "justifyContent": "space-between",
+                          }
+                    }
+                >
                     <div>
-                        ***MOCKED DATE***
+                        Last changed:
+                        <div>
+                            ***MOCKED DATE***
+                        </div>
                     </div>
-                </div>
-                <div
-                    style={
-                        Object {
-                            "backgroundColor": "#8b5f95",
-                            "borderRadius": "1.5rem",
-                            "color": "white",
-                            "height": "1.5rem",
-                            "lineHeight": "1.5rem",
-                            "textAlign": "center",
-                            "width": "1.5rem",
-                          }
-                    }
-                    title="alice@example.com"
-                >
-                    A
-                </div>
-            </div>
-        </a>
-        <a
-            href={undefined}
-            style={
-                Object {
-                    "backgroundColor": "white",
-                    "borderRadius": 5,
-                    "boxShadow": "0 3px 2px 0 rgba(0,0,0,0.12)",
-                    "color": "#4a4a4a",
-                    "display": "flex",
-                    "flexDirection": "column",
-                    "height": 225,
-                    "justifyContent": "space-between",
-                    "margin": "1.25rem",
-                    "padding": "1rem",
-                    "textDecoration": "none",
-                    "width": "calc(33.333333333333336% - 2.5rem)",
-                    "wordWrap": "break-word",
-                  }
-            }
-        >
-            <div
-                style={
-                    Object {
-                        "color": "#478eba",
-                        "fontSize": 16,
-                        "fontWeight": 500,
-                      }
-                }
-            >
-                large_sample_copy
-            </div>
-            <div>
-                Billing project: broad-dsde-dev
-            </div>
-            <div
-                style={
-                    Object {
-                        "alignItems": "flex-end",
-                        "display": "flex",
-                        "fontSize": "0.8rem",
-                        "justifyContent": "space-between",
-                      }
-                }
-            >
-                <div>
-                    Last changed:
-                    <div>
-                        ***MOCKED DATE***
-                    </div>
-                </div>
-                <div
-                    style={
-                        Object {
-                            "backgroundColor": "#8b5f95",
-                            "borderRadius": "1.5rem",
-                            "color": "white",
-                            "height": "1.5rem",
-                            "lineHeight": "1.5rem",
-                            "textAlign": "center",
-                            "width": "1.5rem",
-                          }
-                    }
-                    title="alice@example.com"
-                >
-                    A
-                </div>
-            </div>
-        </a>
-    </div>
-    <div
-        style={
-            Object {
-                "marginTop": 10,
-              }
-        }
-    >
-        <div>
-            <div
-                style={
-                    Object {
-                        "alignItems": "center",
-                        "display": "flex",
-                        "justifyContent": "flex-end",
-                        "marginRight": "1rem",
-                      }
-                }
-            >
-                1 - 2 of 2
-                <div
-                    style={
-                        Object {
-                            "display": "inline-flex",
-                            "padding": "0.25rem 1rem",
-                          }
-                    }
-                >
-                    <button
-                        disabled={true}
-                        onClick={[Function]}
+                    <div
                         style={
                             Object {
-                                "border": "1px solid #ccc",
-                                "borderRadius": 3,
-                                "color": "#9b9b9b",
-                                "cursor": "not-allowed",
-                                "margin": "0 2px",
-                                "marginRight": "0.5rem",
-                                "padding": "0.25rem 0.5rem",
-                              }
-                        }
-                    >
-                        <clr-icon
-                            shape="angle-double left"
-                            size={12}
-                        />
-                    </button>
-                    <button
-                        disabled={true}
-                        onClick={[Function]}
-                        style={
-                            Object {
-                                "border": "1px solid #ccc",
-                                "borderRadius": 3,
-                                "color": "#9b9b9b",
-                                "cursor": "not-allowed",
-                                "margin": "0 2px",
-                                "marginRight": "1rem",
-                                "padding": "0.25rem 0.5rem",
-                              }
-                        }
-                    >
-                        <clr-icon
-                            shape="angle left"
-                            size={12}
-                        />
-                    </button>
-                    <button
-                        onClick={[Function]}
-                        style={
-                            Object {
-                                "backgroundColor": "#5faee0",
-                                "border": "#5faee0",
-                                "borderRadius": 3,
+                                "backgroundColor": "#8b5f95",
+                                "borderRadius": "1.5rem",
                                 "color": "white",
-                                "cursor": "pointer",
-                                "margin": "0 2px",
-                                "minWidth": "2rem",
-                                "padding": "0.25rem 0.5rem",
+                                "height": "1.5rem",
+                                "lineHeight": "1.5rem",
+                                "textAlign": "center",
+                                "width": "1.5rem",
                               }
                         }
+                        title="alice@example.com"
                     >
-                        1
-                    </button>
-                    <button
-                        disabled={true}
-                        onClick={[Function]}
-                        style={
-                            Object {
-                                "border": "1px solid #ccc",
-                                "borderRadius": 3,
-                                "color": "#9b9b9b",
-                                "cursor": "not-allowed",
-                                "margin": "0 2px",
-                                "marginLeft": "1rem",
-                                "padding": "0.25rem 0.5rem",
-                              }
-                        }
-                    >
-                        <clr-icon
-                            shape="angle right"
-                            size={12}
-                        />
-                    </button>
-                    <button
-                        disabled={true}
-                        onClick={[Function]}
-                        style={
-                            Object {
-                                "border": "1px solid #ccc",
-                                "borderRadius": 3,
-                                "color": "#9b9b9b",
-                                "cursor": "not-allowed",
-                                "margin": "0 2px",
-                                "marginLeft": "0.5rem",
-                                "padding": "0.25rem 0.5rem",
-                              }
-                        }
-                    >
-                        <clr-icon
-                            shape="angle-double right"
-                            size={12}
-                        />
-                    </button>
+                        A
+                    </div>
                 </div>
-                Items per page:
-                <select
-                    onChange={[Function]}
+            </a>
+            <a
+                href={undefined}
+                style={
+                    Object {
+                        "backgroundColor": "white",
+                        "borderRadius": 5,
+                        "boxShadow": "0 3px 2px 0 rgba(0,0,0,0.12)",
+                        "color": "#4a4a4a",
+                        "display": "flex",
+                        "flexDirection": "column",
+                        "height": 225,
+                        "justifyContent": "space-between",
+                        "margin": "1.25rem",
+                        "padding": "1rem",
+                        "textDecoration": "none",
+                        "width": "calc(33.333333333333336% - 2.5rem)",
+                        "wordWrap": "break-word",
+                      }
+                }
+            >
+                <div
                     style={
                         Object {
-                            "marginLeft": "0.5rem",
+                            "color": "#478eba",
+                            "fontSize": 16,
+                            "fontWeight": 500,
                           }
                     }
-                    value={6}
                 >
-                    <option
+                    large_sample_copy
+                </div>
+                <div>
+                    Billing project: broad-dsde-dev
+                </div>
+                <div
+                    style={
+                        Object {
+                            "alignItems": "flex-end",
+                            "display": "flex",
+                            "fontSize": "0.8rem",
+                            "justifyContent": "space-between",
+                          }
+                    }
+                >
+                    <div>
+                        Last changed:
+                        <div>
+                            ***MOCKED DATE***
+                        </div>
+                    </div>
+                    <div
+                        style={
+                            Object {
+                                "backgroundColor": "#8b5f95",
+                                "borderRadius": "1.5rem",
+                                "color": "white",
+                                "height": "1.5rem",
+                                "lineHeight": "1.5rem",
+                                "textAlign": "center",
+                                "width": "1.5rem",
+                              }
+                        }
+                        title="alice@example.com"
+                    >
+                        A
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div
+            style={
+                Object {
+                    "marginTop": 10,
+                  }
+            }
+        >
+            <div>
+                <div
+                    style={
+                        Object {
+                            "alignItems": "center",
+                            "display": "flex",
+                            "justifyContent": "flex-end",
+                            "marginRight": "1rem",
+                          }
+                    }
+                >
+                    1 - 2 of 2
+                    <div
+                        style={
+                            Object {
+                                "display": "inline-flex",
+                                "padding": "0.25rem 1rem",
+                              }
+                        }
+                    >
+                        <button
+                            disabled={true}
+                            onClick={[Function]}
+                            style={
+                                Object {
+                                    "border": "1px solid #ccc",
+                                    "borderRadius": 3,
+                                    "color": "#9b9b9b",
+                                    "cursor": "not-allowed",
+                                    "margin": "0 2px",
+                                    "marginRight": "0.5rem",
+                                    "padding": "0.25rem 0.5rem",
+                                  }
+                            }
+                        >
+                            <clr-icon
+                                shape="angle-double left"
+                                size={12}
+                            />
+                        </button>
+                        <button
+                            disabled={true}
+                            onClick={[Function]}
+                            style={
+                                Object {
+                                    "border": "1px solid #ccc",
+                                    "borderRadius": 3,
+                                    "color": "#9b9b9b",
+                                    "cursor": "not-allowed",
+                                    "margin": "0 2px",
+                                    "marginRight": "1rem",
+                                    "padding": "0.25rem 0.5rem",
+                                  }
+                            }
+                        >
+                            <clr-icon
+                                shape="angle left"
+                                size={12}
+                            />
+                        </button>
+                        <button
+                            onClick={[Function]}
+                            style={
+                                Object {
+                                    "backgroundColor": "#5faee0",
+                                    "border": "#5faee0",
+                                    "borderRadius": 3,
+                                    "color": "white",
+                                    "cursor": "pointer",
+                                    "margin": "0 2px",
+                                    "minWidth": "2rem",
+                                    "padding": "0.25rem 0.5rem",
+                                  }
+                            }
+                        >
+                            1
+                        </button>
+                        <button
+                            disabled={true}
+                            onClick={[Function]}
+                            style={
+                                Object {
+                                    "border": "1px solid #ccc",
+                                    "borderRadius": 3,
+                                    "color": "#9b9b9b",
+                                    "cursor": "not-allowed",
+                                    "margin": "0 2px",
+                                    "marginLeft": "1rem",
+                                    "padding": "0.25rem 0.5rem",
+                                  }
+                            }
+                        >
+                            <clr-icon
+                                shape="angle right"
+                                size={12}
+                            />
+                        </button>
+                        <button
+                            disabled={true}
+                            onClick={[Function]}
+                            style={
+                                Object {
+                                    "border": "1px solid #ccc",
+                                    "borderRadius": 3,
+                                    "color": "#9b9b9b",
+                                    "cursor": "not-allowed",
+                                    "margin": "0 2px",
+                                    "marginLeft": "0.5rem",
+                                    "padding": "0.25rem 0.5rem",
+                                  }
+                            }
+                        >
+                            <clr-icon
+                                shape="angle-double right"
+                                size={12}
+                            />
+                        </button>
+                    </div>
+                    Items per page:
+                    <select
+                        onChange={[Function]}
+                        style={
+                            Object {
+                                "marginLeft": "0.5rem",
+                              }
+                        }
                         value={6}
                     >
-                        6
-                    </option>
-                    <option
-                        value={12}
-                    >
-                        12
-                    </option>
-                    <option
-                        value={24}
-                    >
-                        24
-                    </option>
-                    <option
-                        value={36}
-                    >
-                        36
-                    </option>
-                    <option
-                        value={48}
-                    >
-                        48
-                    </option>
-                </select>
+                        <option
+                            value={6}
+                        >
+                            6
+                        </option>
+                        <option
+                            value={12}
+                        >
+                            12
+                        </option>
+                        <option
+                            value={24}
+                        >
+                            24
+                        </option>
+                        <option
+                            value={36}
+                        >
+                            36
+                        </option>
+                        <option
+                            value={48}
+                        >
+                            48
+                        </option>
+                    </select>
+                </div>
             </div>
         </div>
     </div>

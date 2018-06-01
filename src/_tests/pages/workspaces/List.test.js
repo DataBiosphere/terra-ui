@@ -2,14 +2,15 @@ import { mount } from 'enzyme'
 import { h } from 'react-hyperscript-helpers'
 import TestRenderer from 'react-test-renderer'
 import { DataGrid } from 'src/components/table'
-import { waitOneTick, waitOneTickAndUpdate } from 'src/libs/test-utils'
+import { waitOneTickAndUpdate } from 'src/libs/test-utils'
+import * as Utils from 'src/libs/utils'
 import { WorkspaceList } from 'src/pages/workspaces/List'
 
 
 describe('WorkspaceList', () => {
   it('should render as expected', () => {
     const renderer = TestRenderer.create(h(WorkspaceList))
-    return waitOneTick().then(() => {
+    return Utils.waitOneTick().then(() => {
       expect(renderer.toJSON()).toMatchSnapshot()
     })
   })

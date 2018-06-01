@@ -137,3 +137,5 @@ export const delay = ms => {
 }
 
 export const generateClusterName = () => `saturn-${uuid()}`
+
+export const waitOneTick = () => new Promise(setImmediate)
