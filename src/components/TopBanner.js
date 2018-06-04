@@ -37,10 +37,10 @@ export default class TopBanner extends Component {
       }
     },
     props), [
-      children,
-      showX && div({ style: { flex: 1 } }),
+      div({ style: { flex: 1, display: 'flex', alignItems: 'center' } },
+        children),
       showX && h(Interactive, {
-        as: icon('times-circle', { size: 20 }),
+        as: icon('times-circle', { size: 20, style: { marginLeft: '1rem' } }),
         title: 'Hide banner',
         onClick: () => {
           this.setState({ show: false })
