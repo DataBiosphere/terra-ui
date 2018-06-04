@@ -64,8 +64,6 @@ authStore.subscribe(async (state, oldState) => {
         )
       )
 
-      console.log(projectsWithoutClusters)
-
       await Promise.all(projectsWithoutClusters.map(project => {
         return Leo.cluster(project, Utils.generateClusterName()).create({
           'labels': { 'saturnAutoCreated': 'true' },
