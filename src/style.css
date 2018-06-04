@@ -21,7 +21,7 @@ body {
   overflow: hidden;
   position: absolute;
   width: 100%;
-  min-width: 1440px;
+  min-width: 1200px;
   overflow-x: auto;
 }
 
