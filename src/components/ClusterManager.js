@@ -1,10 +1,10 @@
 import _ from 'lodash/fp'
 import { Component, Fragment } from 'react'
-import Interactive from 'react-interactive'
 import { div, h, span } from 'react-hyperscript-helpers'
-import { icon } from 'src/components/icons'
+import Interactive from 'react-interactive'
 import { buttonPrimary, buttonSecondary, LabeledCheckbox } from 'src/components/common'
 import DropdownBox from 'src/components/DropdownBox'
+import { icon } from 'src/components/icons'
 import { IntegerInput, textInput } from 'src/components/input'
 import { Leo } from 'src/libs/ajax'
 import { getBasicProfile } from 'src/libs/auth'
@@ -204,6 +204,18 @@ const ClusterIcon = ({ shape, onClick, disabled }) => {
   }, [icon(shape, { size: 20, class: 'is-solid' })])
 }
 
+const getUpdateInterval = status => {
+  switch (status) {
+    case 'Starting':
+      return 5000
+    case 'Creating':
+    case 'Stopping':
+      return 15000
+    default:
+      return 120000
+  }
+}
+
 export default class ClusterManager extends Component {
   constructor(props) {
     super(props)
@@ -231,14 +243,21 @@ export default class ClusterManager extends Component {
         creator: getBasicProfile().getEmail()
       }, allClusters)
       this.setState({ clusters })
+      this.resetUpdateInterval()
     } catch (error) {
       reportError('Error loading clusters', error)
     }
   }
 
+  resetUpdateInterval() {
+    const currentCluster = this.getCurrentCluster()
+
+    clearInterval(this.interval)
+    this.interval = setInterval(this.refreshClusters, getUpdateInterval(currentCluster && currentCluster.status))
+  }
+
   componentDidMount() {
     this.refreshClusters()
-    this.interval = setInterval(this.refreshClusters, 3000)
   }
 
   componentWillUnmount() {
