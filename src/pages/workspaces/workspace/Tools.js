@@ -23,7 +23,7 @@ class WorkspaceTools extends Component {
 
     Rawls.workspace(namespace, name).listMethodConfigs().then(
       configs => this.setState({ isFreshData: true, configs }),
-      error => reportError(`Error loading configs: ${error}`)
+      error => reportError('Error loading configs', error)
     )
   }
 

@@ -106,7 +106,7 @@ export class NotebookCreator extends Component {
                   },
                   error => {
                     this.setState({ creating: false })
-                    reportError(`Error creating notebook: ${error}`)
+                    reportError('Error creating notebook', error)
                   }
                 )
               }
@@ -170,7 +170,7 @@ export class NotebookDuplicator extends Component {
           this.setState({ processing: true })
           Buckets.notebook(namespace, bucketName, printName)[destroyOld ? 'rename' : 'copy'](newName).then(
             onSuccess,
-            error => reportError(`Error ${destroyOld ? 'renaming' : 'copying'} notebook: ${error}`)
+            error => reportError(`Error ${destroyOld ? 'renaming' : 'copying'} notebook`, error)
           )
         }
       }, `${destroyOld ? 'Rename' : 'Duplicate'} Notebook`)
@@ -205,10 +205,10 @@ export class NotebookDeleter extends Component {
           this.setState({ processing: true })
           Buckets.notebook(namespace, bucketName, printName).delete().then(
             onSuccess,
-            error => reportError(`Error deleting notebook: ${error}`)
+            error => reportError('Error deleting notebook', error)
           )
         }
-      }, `Delete Notebook`)
+      }, 'Delete Notebook')
     },
     Utils.cond(
       [processing, () => [centeredSpinner()]],
