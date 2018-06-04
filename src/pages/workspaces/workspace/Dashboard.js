@@ -24,7 +24,7 @@ export default class WorkspaceDashboard extends Component {
 
     Rawls.workspace(namespace, name).details().then(
       workspace => this.setState({ isDataLoaded: true, workspace }),
-      error => reportError(`Error loading workspace: ${error}`)
+      error => reportError('Error loading workspace', error)
     )
   }
 

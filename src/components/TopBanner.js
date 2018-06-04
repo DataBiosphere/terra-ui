@@ -27,8 +27,8 @@ export default class TopBanner extends Component {
 
     return div(_.merge({
       style: {
-        display: 'flex',
-        transition: 'transform 0.25s linear',
+        display: 'flex', alignItems: 'center',
+        transition: 'all 0.25s linear',
         transform: `translate(0px, ${show ? '0px' : '-100%'})`,
         position: 'fixed', top: 0,
         width: '100%',
@@ -40,8 +40,7 @@ export default class TopBanner extends Component {
       children,
       showX && div({ style: { flex: 1 } }),
       showX && h(Interactive, {
-        as: icon('times-circle'),
-        style: { alignSelf: 'flex-start' },
+        as: icon('times-circle', { size: 20 }),
         title: 'Hide banner',
         onClick: () => {
           this.setState({ show: false })

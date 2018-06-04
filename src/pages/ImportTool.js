@@ -3,6 +3,7 @@ import { Fragment } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
 import { buttonPrimary, pageColumn } from 'src/components/common'
+import ErrorView from 'src/components/ErrorView'
 import { centeredSpinner, icon, spinner } from 'src/components/icons'
 import { TopBar } from 'src/components/TopBar'
 import WDLViewer from 'src/components/WDLViewer'
@@ -16,8 +17,8 @@ import { Component, Select } from 'src/libs/wrapped-components'
 
 export class DestinationProject extends Component {
   render() {
-    const { import_, isImporting, onWorkspaceSelected, selectedWorkspace } = this.props
-    const { workspaces, importError } = this.state
+    const { import_, isImporting, importError, onWorkspaceSelected, selectedWorkspace } = this.props
+    const { workspaces } = this.state
 
     return div({},
       [
@@ -60,7 +61,7 @@ export class DestinationProject extends Component {
   componentDidMount() {
     Rawls.workspacesList().then(
       workspaces => this.setState({ workspaces }),
-      error => reportError(`Error loading workspaces: ${error}`)
+      error => reportError('Error loading workspaces', error)
     )
   }
 }
@@ -86,7 +87,7 @@ class DockstoreImporter extends Component {
     this.loadWdl()
     Rawls.workspacesList().then(
       workspaces => this.setState({ workspaces }),
-      error => reportError(`Error loading workspaces: ${error}`)
+      error => reportError('Error loading workspaces', error)
     )
   }
 
@@ -105,13 +106,13 @@ class DockstoreImporter extends Component {
   }
 
   renderImport() {
-    const { selectedWorkspace } = this.state
+    const { selectedWorkspace, importError, isImporting } = this.state
     return div({ style: { display: 'flex' } },
       [
         pageColumn('Importing', 5, this.renderWdlArea()),
         pageColumn('Destination Project', 3,
           h(DestinationProject, {
-            selectedWorkspace,
+            selectedWorkspace, importError, isImporting,
             onWorkspaceSelected: selectedWorkspace => this.setState({ selectedWorkspace }),
             import_: () => this.import_()
           }))
@@ -151,6 +152,8 @@ class DockstoreImporter extends Component {
   }
 
   async import_() {
+    this.setState({ isImporting: true })
+
     const { selectedWorkspace: { value: { namespace, name } } } = this.state
     const { path, version } = this.props
     const toolName = _.last(path.split('/'))
@@ -171,15 +174,15 @@ class DockstoreImporter extends Component {
     }).then(() => Nav.goToPath('workflow', {
       workspaceNamespace: namespace, workspaceName: name,
       workflowNamespace: namespace, workflowName: toolName
-    }))
+    }), importError => this.setState({ importError, isImporting: false }))
   }
 
   renderError() {
     const { loadError } = this.state
 
-    return h(Fragment, [
+    return div({ style: { padding: '2rem' } }, [
       div(wdlLoadError),
-      div(`Error: ${loadError}`)
+      h(ErrorView, { error: loadError })
     ])
   }
 }
