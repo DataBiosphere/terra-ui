@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { Sam, Rawls, Leo } from 'src/libs/ajax'
+import { Leo, Rawls, Sam } from 'src/libs/ajax'
 import * as Config from 'src/libs/config'
 import { reportError } from 'src/libs/error'
 import * as Utils from 'src/libs/utils'
@@ -60,12 +60,15 @@ authStore.subscribe(async (state, oldState) => {
         _.uniq(_.map('projectName', billingProjects)), // in case of being both a user and an admin of a project
         _.map(
           'googleProject',
-          _.filter({ creator: userProfile.getEmail() }, clusters)
-        ),
+          _.filter({ creator: userProfile.getEmail(), labels: { saturnAutoCreated: 'true' } }, clusters)
+        )
       )
+
+      console.log(projectsWithoutClusters)
+
       await Promise.all(projectsWithoutClusters.map(project => {
         return Leo.cluster(project, Utils.generateClusterName()).create({
-          'labels': {},
+          'labels': { 'saturnAutoCreated': 'true' },
           'machineConfig': {
             'numberOfWorkers': 0, 'masterMachineType': 'n1-standard-4',
             'masterDiskSize': 500, 'workerMachineType': 'n1-standard-4',
