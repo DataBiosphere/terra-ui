@@ -1,13 +1,16 @@
+import _ from 'lodash/fp'
 import { h } from 'react-hyperscript-helpers'
-import Modal from 'src/components/Modal'
-import { errorStore, reportError } from 'src/libs/error'
+import TopBanner from 'src/components/TopBanner'
+import { errorStore } from 'src/libs/error'
 import * as Utils from 'src/libs/utils'
+
 
 export default Utils.connectAtom(errorStore, 'errorState')(
   ({ errorState }) => {
-    return errorState ? h(Modal, {
-      showCancel: false,
-      onDismiss: () => reportError(undefined)
-    }, [errorState]) : null
+    return h(TopBanner, {
+      isVisible: !_.isEmpty(errorState),
+      onDismiss: () => errorStore.set([])
+    },
+    _.map(_.identity, errorState))
   }
 )
