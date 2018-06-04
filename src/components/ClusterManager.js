@@ -204,7 +204,7 @@ const ClusterIcon = ({ shape, onClick, disabled }) => {
   }, [icon(shape, { size: 20, class: 'is-solid' })])
 }
 
-const getUpdateInterval = status => {
+const getUpdateIntervalMs = status => {
   switch (status) {
     case 'Starting':
       return 5000
@@ -252,7 +252,7 @@ export default class ClusterManager extends Component {
     const currentCluster = this.getCurrentCluster()
 
     clearInterval(this.interval)
-    this.interval = setInterval(this.refreshClusters, getUpdateInterval(currentCluster && currentCluster.status))
+    this.interval = setInterval(this.refreshClusters, getUpdateIntervalMs(currentCluster && currentCluster.status))
   }
 
   componentDidMount() {
