@@ -154,12 +154,12 @@ export const Rawls = {
         return res.json()
       },
 
-      entities: async () => {
+      entityMetadata: async () => {
         const res = await fetchRawls(`${root}/entities`, authOpts())
         return res.json()
       },
 
-      entity: async type => {
+      entitiesOfType: async type => {
         const res = await fetchRawls(`${root}/entities/${type}`, authOpts())
         return res.json()
       },

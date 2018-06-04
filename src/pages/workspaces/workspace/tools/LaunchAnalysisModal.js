@@ -60,15 +60,15 @@ export default class LaunchAnalysisModal extends Component {
   componentDidMount() {
     const { workspaceId: { namespace, name }, config: { rootEntityType } } = this.props
 
-    Rawls.workspace(namespace, name).entities().then(
-      entities => {
-        const { attributeNames, idName } = entities[rootEntityType]
+    Rawls.workspace(namespace, name).entityMetadata().then(
+      entityMetadata => {
+        const { attributeNames, idName } = entityMetadata[rootEntityType]
         this.setState({ attributeNames, idName })
       },
       attributeFailure => this.setState({ attributeFailure })
     )
 
-    Rawls.workspace(namespace, name).entity(rootEntityType).then(
+    Rawls.workspace(namespace, name).entitiesOfType(rootEntityType).then(
       entities => this.setState({ entities }),
       entityFailure => this.setState({ entityFailure })
     )

@@ -26,8 +26,8 @@ class WorkspaceData extends Component {
     const { namespace, name } = this.props
     const { selectedEntityType } = this.state
 
-    Rawls.workspace(namespace, name).entities().then(
-      workspaceEntities => this.setState({ workspaceEntities }),
+    Rawls.workspace(namespace, name).entityMetadata().then(
+      entityMetadata => this.setState({ entityMetadata }),
       error => reportError('Error loading workspace entities', error)
     )
 
@@ -39,7 +39,7 @@ class WorkspaceData extends Component {
   loadEntities(type) {
     const { namespace, name } = this.props
 
-    Rawls.workspace(namespace, name).entity(type).then(
+    Rawls.workspace(namespace, name).entitiesOfType(type).then(
       selectedEntities => this.setState({ isDataLoaded: true, selectedEntities }),
       error => reportError('Error loading workspace entity', error)
     )
@@ -50,7 +50,7 @@ class WorkspaceData extends Component {
   }
 
   render() {
-    const { selectedEntityType, selectedEntities, workspaceEntities, isDataLoaded } = this.state
+    const { selectedEntityType, selectedEntities, entityMetadata, isDataLoaded } = this.state
     const { namespace, name } = this.props
 
     const entityTypeList = () => _.map(([type, typeDetails]) =>
@@ -68,7 +68,7 @@ class WorkspaceData extends Component {
         icon('table', { style: { color: '#757575', marginRight: '0.5rem' } }),
         `${type} (${typeDetails.count})`
       ]),
-    _.toPairs(workspaceEntities))
+    _.toPairs(entityMetadata))
 
     const entityTable = () => h(Fragment, [
       selectedEntities && h(DataTable, {
@@ -92,7 +92,7 @@ class WorkspaceData extends Component {
               key: name,
               render: entity => entity.attributes[name]
             }
-          }, workspaceEntities[selectedEntityType]['attributeNames']))
+          }, entityMetadata[selectedEntityType]['attributeNames']))
         }
       }),
       !isDataLoaded && spinnerOverlay
@@ -117,9 +117,9 @@ class WorkspaceData extends Component {
         },
         [
           Utils.cond(
-            [!workspaceEntities, () => spinnerOverlay],
+            [!entityMetadata, () => spinnerOverlay],
             [
-              _.isEmpty(workspaceEntities),
+              _.isEmpty(entityMetadata),
               () => div({ style: { margin: '2rem auto' } }, 'There is no data in this workspace.')
             ],
             () => h(Fragment, [
@@ -152,7 +152,7 @@ class WorkspaceData extends Component {
 
   componentDidUpdate() {
     StateHistory.update(_.pick(
-      ['workspaceEntities', 'selectedEntityType', 'selectedEntities', 'itemsPerPage', 'pageNumber'],
+      ['entityMetadata', 'selectedEntityType', 'selectedEntities', 'itemsPerPage', 'pageNumber'],
       this.state)
     )
   }
