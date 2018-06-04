@@ -242,8 +242,7 @@ export default class ClusterManager extends Component {
         googleProject: namespace,
         creator: getBasicProfile().getEmail()
       }, allClusters)
-      this.setState({ clusters })
-      this.resetUpdateInterval()
+      this.setState({ clusters }, () => this.resetUpdateInterval())
     } catch (error) {
       reportError('Error loading clusters', error)
     }
