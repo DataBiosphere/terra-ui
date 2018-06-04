@@ -78,7 +78,7 @@ class WorkspaceData extends Component {
     _.toPairs(entityMetadata))
 
     const entityTable = () => h(Fragment, [
-      selectedEntities && h(DataTable, {
+      isDataLoaded ? h(DataTable, {
         defaultItemsPerPage: this.state.itemsPerPage,
         onItemsPerPageChanged: itemsPerPage => this.setState({ itemsPerPage }),
         initialPage: this.state.pageNumber,
@@ -102,8 +102,7 @@ class WorkspaceData extends Component {
             }
           }, entityMetadata[selectedEntityType]['attributeNames']))
         }
-      }),
-      !isDataLoaded && spinnerOverlay
+      }) : spinnerOverlay
     ])
 
 
@@ -165,6 +164,7 @@ class WorkspaceData extends Component {
     )
 
     if (this.state.itemsPerPage !== prevState.itemsPerPage || this.state.pageNumber !== prevState.pageNumber) {
+      this.setState({ isDataLoaded: false })
       this.loadEntities()
     }
   }
