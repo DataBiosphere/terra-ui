@@ -34,7 +34,7 @@ authStore.subscribe((state, oldState) => {
     }).then(registrationStatus => {
       authStore.update(state => ({ ...state, registrationStatus }))
     }, error => {
-      reportError(`Error checking registration: ${error}`)
+      reportError('Error checking registration', error)
     })
   }
 })
@@ -76,7 +76,7 @@ authStore.subscribe(async (state, oldState) => {
         })
       }))
     } catch (error) {
-      reportError(`Error auto-creating clusters: ${error}`)
+      reportError('Error auto-creating clusters', error)
     }
   }
 })
