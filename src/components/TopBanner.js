@@ -14,7 +14,7 @@ import { Component } from 'src/libs/wrapped-components'
  */
 export default class TopBanner extends Component {
   componentDidMount() {
-    Utils.waitOneTick().then(() => this.setState({ show: this.props.isVisible }), 0)
+    Utils.waitOneTick().then(() => this.setState({ show: this.props.isVisible }))
   }
 
   static getDerivedStateFromProps(props, state) {
