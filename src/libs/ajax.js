@@ -40,6 +40,14 @@ window.saturnMock = {
 const authOpts = (token = getAuthToken()) => ({ headers: { Authorization: `Bearer ${token}` } })
 const jsonBody = body => ({ body: JSON.stringify(body), headers: { 'Content-Type': 'application/json' } })
 
+const queryString = parameters => {
+  return '?' + _.flow(
+    _.toPairs,
+    _.map(([k, v]) => `${k}=${v}`),
+    _.join('&')
+  )(parameters)
+}
+
 const instrumentedFetch = (...args) => {
   if (noConnection) {
     console.info('%cSimulating no connection', consoleStyle)
@@ -161,6 +169,11 @@ export const Rawls = {
 
       entitiesOfType: async type => {
         const res = await fetchRawls(`${root}/entities/${type}`, authOpts())
+        return res.json()
+      },
+
+      paginatedEntitiesOfType: async (type, parameters) => {
+        const res = await fetchRawls(`${root}/entityQuery/${type}${queryString(parameters)}`, authOpts())
         return res.json()
       },
 

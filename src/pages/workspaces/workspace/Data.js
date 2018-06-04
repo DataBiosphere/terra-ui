@@ -19,7 +19,9 @@ class WorkspaceData extends Component {
   constructor(props) {
     super(props)
 
-    this.state = StateHistory.get()
+    this.state = _.merge({
+      itemsPerPage: 25, pageNumber: 1
+    }, StateHistory.get())
   }
 
   refresh() {
@@ -36,11 +38,16 @@ class WorkspaceData extends Component {
     }
   }
 
-  loadEntities(type) {
+  loadEntities(type = this.state.selectedEntityType) {
     const { namespace, name } = this.props
+    const { itemsPerPage, pageNumber } = this.state
 
-    Rawls.workspace(namespace, name).entitiesOfType(type).then(
-      selectedEntities => this.setState({ isDataLoaded: true, selectedEntities }),
+    Rawls.workspace(namespace, name).paginatedEntitiesOfType(type, { page: pageNumber, pageSize: itemsPerPage }).then(
+      ({ results, resultMetadata: { unfilteredCount } }) => this.setState({
+        isDataLoaded: true,
+        selectedEntities: results,
+        totalRowCount: unfilteredCount
+      }),
       error => reportError('Error loading workspace entity', error)
     )
   }
@@ -50,7 +57,7 @@ class WorkspaceData extends Component {
   }
 
   render() {
-    const { selectedEntityType, selectedEntities, entityMetadata, isDataLoaded } = this.state
+    const { selectedEntityType, selectedEntities, entityMetadata, isDataLoaded, totalRowCount } = this.state
     const { namespace, name } = this.props
 
     const entityTypeList = () => _.map(([type, typeDetails]) =>
@@ -76,7 +83,8 @@ class WorkspaceData extends Component {
         onItemsPerPageChanged: itemsPerPage => this.setState({ itemsPerPage }),
         initialPage: this.state.pageNumber,
         onPageChanged: pageNumber => this.setState({ pageNumber }),
-        dataSource: _.sortBy('name', selectedEntities),
+        totalRowCount,
+        dataSource: selectedEntities,
         tableProps: {
           rowKey: 'name',
           scroll: { x: true },
@@ -150,11 +158,15 @@ class WorkspaceData extends Component {
     )
   }
 
-  componentDidUpdate() {
+  componentDidUpdate(prevProps, prevState) {
     StateHistory.update(_.pick(
       ['entityMetadata', 'selectedEntityType', 'selectedEntities', 'itemsPerPage', 'pageNumber'],
       this.state)
     )
+
+    if (this.state.itemsPerPage !== prevState.itemsPerPage || this.state.pageNumber !== prevState.pageNumber) {
+      this.loadEntities()
+    }
   }
 }
 

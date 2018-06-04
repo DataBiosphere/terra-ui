@@ -197,13 +197,14 @@ export class DataTable extends Component {
   render() {
     const {
       allowPagination = true, allowItemsPerPage = true, itemsPerPageOptions = [10, 25, 50, 100],
-      onItemsPerPageChanged, onPageChanged, dataSource, tableProps, customComponents
+      onItemsPerPageChanged, onPageChanged, dataSource, tableProps, customComponents,
+      totalRowCount
     } = this.props
     const { pageNumber, itemsPerPage } = this.state
 
     return h(Fragment, [
       h(RCTable, _.merge({
-        data: allowPagination ? slice(dataSource, { pageNumber, itemsPerPage }) : dataSource,
+        data: allowPagination && !totalRowCount ? slice(dataSource, { pageNumber, itemsPerPage }) : dataSource,
         components: _.isArray(customComponents) ?
           _.mergeAll([defaultComponents, ...customComponents]) :
           _.merge(defaultComponents, customComponents)
@@ -211,7 +212,7 @@ export class DataTable extends Component {
       allowPagination ?
         div({ style: { marginTop: 10 } }, [
           paginator({
-            filteredDataLength: dataSource.length,
+            filteredDataLength: totalRowCount || dataSource.length,
             setPageNumber: (n => {
               this.setState({ pageNumber: n })
               if (onPageChanged) onPageChanged(n)
