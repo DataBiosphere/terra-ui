@@ -1,4 +1,5 @@
 import _ from 'lodash/fp'
+import * as qs from 'qs'
 import { getAuthToken } from 'src/libs/auth'
 import * as Config from 'src/libs/config'
 import * as Utils from 'src/libs/utils'
@@ -39,14 +40,6 @@ window.saturnMock = {
 
 const authOpts = (token = getAuthToken()) => ({ headers: { Authorization: `Bearer ${token}` } })
 const jsonBody = body => ({ body: JSON.stringify(body), headers: { 'Content-Type': 'application/json' } })
-
-const queryString = parameters => {
-  return '?' + _.flow(
-    _.toPairs,
-    _.map(([k, v]) => `${k}=${v}`),
-    _.join('&')
-  )(parameters)
-}
 
 const instrumentedFetch = (...args) => {
   if (noConnection) {
@@ -173,7 +166,7 @@ export const Rawls = {
       },
 
       paginatedEntitiesOfType: async (type, parameters) => {
-        const res = await fetchRawls(`${root}/entityQuery/${type}${queryString(parameters)}`, authOpts())
+        const res = await fetchRawls(`${root}/entityQuery/${type}?${qs.stringify(parameters)}`, authOpts())
         return res.json()
       },
 

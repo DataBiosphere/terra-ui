@@ -42,9 +42,9 @@ class WorkspaceData extends Component {
     const { namespace, name } = this.props
     const { itemsPerPage, pageNumber } = this.state
 
+    this.setState({ selectedEntities: undefined })
     Rawls.workspace(namespace, name).paginatedEntitiesOfType(type, { page: pageNumber, pageSize: itemsPerPage }).then(
       ({ results, resultMetadata: { unfilteredCount } }) => this.setState({
-        isDataLoaded: true,
         selectedEntities: results,
         totalRowCount: unfilteredCount
       }),
@@ -57,7 +57,7 @@ class WorkspaceData extends Component {
   }
 
   render() {
-    const { selectedEntityType, selectedEntities, entityMetadata, isDataLoaded, totalRowCount } = this.state
+    const { selectedEntityType, selectedEntities, entityMetadata, totalRowCount } = this.state
     const { namespace, name } = this.props
 
     const entityTypeList = () => _.map(([type, typeDetails]) =>
@@ -67,7 +67,7 @@ class WorkspaceData extends Component {
           backgroundColor: selectedEntityType === type ? Style.colors.highlightFaded : null
         },
         onClick: () => {
-          this.setState({ selectedEntityType: type, selectedEntities: null, isDataLoaded: false })
+          this.setState({ selectedEntityType: type })
           this.loadEntities(type)
         }
       },
@@ -78,7 +78,7 @@ class WorkspaceData extends Component {
     _.toPairs(entityMetadata))
 
     const entityTable = () => h(Fragment, [
-      isDataLoaded ? h(DataTable, {
+      selectedEntities ? h(DataTable, {
         defaultItemsPerPage: this.state.itemsPerPage,
         onItemsPerPageChanged: itemsPerPage => this.setState({ itemsPerPage }),
         initialPage: this.state.pageNumber,
@@ -108,10 +108,8 @@ class WorkspaceData extends Component {
 
     return h(WorkspaceContainer,
       {
-        namespace, name, refresh: () => {
-          this.setState({ isDataLoaded: false })
-          this.refresh()
-        },
+        namespace, name,
+        refresh: () => this.refresh(),
         breadcrumbs: breadcrumbs.commonPaths.workspaceDashboard({ namespace, name }),
         title: 'Data', activeTab: 'data'
       },
@@ -164,7 +162,6 @@ class WorkspaceData extends Component {
     )
 
     if (this.state.itemsPerPage !== prevState.itemsPerPage || this.state.pageNumber !== prevState.pageNumber) {
-      this.setState({ isDataLoaded: false })
       this.loadEntities()
     }
   }
