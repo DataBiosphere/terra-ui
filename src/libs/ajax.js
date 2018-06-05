@@ -1,4 +1,5 @@
 import _ from 'lodash/fp'
+import * as qs from 'qs'
 import { getAuthToken } from 'src/libs/auth'
 import * as Config from 'src/libs/config'
 import * as Utils from 'src/libs/utils'
@@ -154,13 +155,18 @@ export const Rawls = {
         return res.json()
       },
 
-      entities: async () => {
+      entityMetadata: async () => {
         const res = await fetchRawls(`${root}/entities`, authOpts())
         return res.json()
       },
 
-      entity: async type => {
+      entitiesOfType: async type => {
         const res = await fetchRawls(`${root}/entities/${type}`, authOpts())
+        return res.json()
+      },
+
+      paginatedEntitiesOfType: async (type, parameters) => {
+        const res = await fetchRawls(`${root}/entityQuery/${type}?${qs.stringify(parameters)}`, authOpts())
         return res.json()
       },
 

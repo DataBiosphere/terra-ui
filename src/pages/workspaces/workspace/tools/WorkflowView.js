@@ -109,7 +109,7 @@ class WorkflowView extends Component {
 
       const entityTypes = _.map(
         e => ({ value: e, label: e.replace('_', ' ') }),
-        _.keys(await workspace.entities())
+        _.keys(await workspace.entityMetadata())
       )
 
       const validationResponse = await workspace.methodConfig(workflowNamespace, workflowName).validate()
