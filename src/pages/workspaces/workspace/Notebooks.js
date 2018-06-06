@@ -4,11 +4,10 @@ import { a, div, h } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { contextMenu, spinnerOverlay } from 'src/components/common'
-import { centeredSpinner, icon } from 'src/components/icons'
+import { icon } from 'src/components/icons'
 import { NotebookCreator, NotebookDeleter, NotebookDuplicator } from 'src/components/notebook-utils'
 import ShowOnClick from 'src/components/ShowOnClick'
-import { Buckets, Leo, Rawls } from 'src/libs/ajax'
-import { getBasicProfile } from 'src/libs/auth'
+import { Buckets, Rawls } from 'src/libs/ajax'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
@@ -20,7 +19,7 @@ import WorkspaceContainer from 'src/pages/workspaces/workspace/WorkspaceContaine
 
 class NotebookCard extends Component {
   render() {
-    const { namespace, name, updated, listView, notebookAccess, bucketName, clusterUrl, wsName, reloadList } = this.props
+    const { namespace, name, updated, listView, bucketName, wsName, reloadList } = this.props
     const { renamingNotebook, copyingNotebook, deletingNotebook } = this.state
     const printName = name.slice(10, -6) // removes 'notebooks/' and the .ipynb suffix
 
@@ -67,23 +66,13 @@ class NotebookCard extends Component {
       style: {
         ...Style.elements.cardTitle,
         textOverflow: 'ellipsis', whiteSpace: 'nowrap', overflow: 'hidden'
-        //...(notebookAccess ? {} : { color: Style.colors.disabled })
       }
     }, printName)
-
-    // const statusIcon = Utils.cond(
-    //   [notebookAccess === false, () => icon('times', { title: 'Error' })],
-    //   [notebookAccess, () => icon('check', { title: 'Ready' })],
-    //   () => centeredSpinner({ size: null, style: null, title: 'Transferring to cluster' })
-    // )
 
     return h(Fragment, [
       a({
         target: '_blank',
         href: Nav.getLink('workspace-notebook-launch', { namespace, name: wsName, notebookName: name.slice(10) }),
-        // href: notebookAccess ?
-        //   `${clusterUrl}/notebooks/${wsName}/${printName}.ipynb` : // removes 'notebooks/'
-        //   undefined,
         style: {
           ...Style.elements.card,
           flexShrink: 0,
@@ -91,7 +80,6 @@ class NotebookCard extends Component {
           height: listView ? undefined : 250,
           margin: '1.25rem',
           color: Style.colors.text, textDecoration: 'none',
-          // cursor: notebookAccess === false ? 'not-allowed' : notebookAccess ? undefined : 'wait',
           display: 'flex', flexDirection: listView ? 'row' : 'column',
           justifyContent: listView ? undefined : 'space-between',
           alignItems: listView ? 'center' : undefined
@@ -103,7 +91,6 @@ class NotebookCard extends Component {
         div({ style: { flexGrow: 1 } }),
         div({ style: { fontSize: '0.8rem', marginRight: '0.5rem' } },
           `Last changed: ${Utils.makePrettyDate(updated)}`),
-        //statusIcon,
         notebookMenu
       ] :
         [
@@ -114,8 +101,7 @@ class NotebookCard extends Component {
             div({ style: { fontSize: '0.8rem', flexGrow: 1, marginRight: '0.5rem' } }, [
               'Last changed:',
               div({}, Utils.makePrettyDate(updated))
-            ])//,
-            //statusIcon
+            ])
           ])
         ]),
       Utils.cond(
@@ -151,46 +137,15 @@ class NotebookCard extends Component {
 class WorkspaceNotebooks extends Component {
   constructor(props) {
     super(props)
-    this.state = { notebookAccess: {}, ...StateHistory.get() }
+    this.state = StateHistory.get()
   }
 
   async refresh() {
     const { namespace, name } = this.props
     try {
-      const [{ workspace: { bucketName } }, clusters] = await Promise.all([
-        Rawls.workspace(namespace, name).details(),
-        Leo.clustersList()
-      ])
+      const { workspace: { bucketName } } = await Rawls.workspace(namespace, name).details()
       const notebooks = await Buckets.listNotebooks(namespace, bucketName)
       this.setState({ bucketName, notebooks: _.reverse(_.sortBy('updated', notebooks)), isFreshData: true })
-      const currentCluster = _.flow(
-        _.filter({ googleProject: namespace, creator: getBasicProfile().getEmail() }),
-        _.remove({ status: 'Deleting' }),
-        _.sortBy('createdDate'),
-        _.last
-      )(clusters)
-      if (currentCluster && currentCluster.status === 'Running') {
-        this.setState({ clusterUrl: currentCluster.clusterUrl })
-        await Promise.all([
-          Leo.notebooks(namespace, currentCluster.clusterName).setCookie(),
-          Leo.notebooks(namespace, currentCluster.clusterName).localize({
-            [`~/${name}/.delocalize.json`]: `data:application/json,{"destination":"gs://${bucketName}/notebooks","pattern":""}`
-          })
-        ])
-        _.forEach(({ bucket, name: nbName }) => {
-          Leo.notebooks(namespace, currentCluster.clusterName).localize({
-            [`~/${name}/${nbName.slice(10)}`]: `gs://${bucket}/${nbName}`
-          }).then(() => true, () => false).then(status => {
-            this.setState(({ notebookAccess }) => ({
-              notebookAccess: { ...notebookAccess, [nbName]: status }
-            }))
-          })
-        }, notebooks)
-      } else {
-        this.setState({
-          notebookAccess: _.fromPairs(_.map(({ name: nbName }) => [nbName, false], notebooks))
-        })
-      }
     } catch (error) {
       reportError('Error loading notebooks', error)
     }
@@ -201,14 +156,12 @@ class WorkspaceNotebooks extends Component {
   }
 
   renderNotebooks() {
-    const { bucketName, clusterUrl, notebooks, notebookAccess, listView } = this.state
+    const { bucketName, notebooks, listView } = this.state
     const { name: wsName, namespace } = this.props
 
     return div({ style: { display: listView ? undefined : 'flex', flexWrap: 'wrap' } },
       _.map(({ name, updated }) => h(NotebookCard, {
-        name, updated, listView, notebookAccess: notebookAccess[name], bucketName,
-        clusterUrl,
-        namespace, wsName,
+        name, updated, listView, bucketName, namespace, wsName,
         reloadList: () => this.refresh()
       }), notebooks)
     )
@@ -221,7 +174,7 @@ class WorkspaceNotebooks extends Component {
     return h(WorkspaceContainer,
       {
         namespace, name, refresh: () => {
-          this.setState({ isFreshData: false, notebookAccess: {} })
+          this.setState({ isFreshData: false })
           this.refresh()
         },
         breadcrumbs: breadcrumbs.commonPaths.workspaceDashboard({ namespace, name }),
