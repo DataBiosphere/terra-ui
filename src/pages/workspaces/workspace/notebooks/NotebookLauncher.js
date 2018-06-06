@@ -41,10 +41,6 @@ class NotebookLauncher extends Component {
     super(props)
 
     this.creator = getBasicProfile().getEmail()
-    this.state = {
-      bucketName: undefined,
-      clusterStatus: 'Not yet loaded'
-    }
   }
 
   async componentDidMount() {
