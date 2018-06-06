@@ -66,23 +66,24 @@ class NotebookCard extends Component {
       title: printName,
       style: {
         ...Style.elements.cardTitle,
-        textOverflow: 'ellipsis', whiteSpace: 'nowrap', overflow: 'hidden',
-        ...(notebookAccess ? {} : { color: Style.colors.disabled })
+        textOverflow: 'ellipsis', whiteSpace: 'nowrap', overflow: 'hidden'
+        //...(notebookAccess ? {} : { color: Style.colors.disabled })
       }
     }, printName)
 
-    const statusIcon = Utils.cond(
-      [notebookAccess === false, () => icon('times', { title: 'Error' })],
-      [notebookAccess, () => icon('check', { title: 'Ready' })],
-      () => centeredSpinner({ size: null, style: null, title: 'Transferring to cluster' })
-    )
+    // const statusIcon = Utils.cond(
+    //   [notebookAccess === false, () => icon('times', { title: 'Error' })],
+    //   [notebookAccess, () => icon('check', { title: 'Ready' })],
+    //   () => centeredSpinner({ size: null, style: null, title: 'Transferring to cluster' })
+    // )
 
     return h(Fragment, [
       a({
         target: '_blank',
-        href: notebookAccess ?
-          `${clusterUrl}/notebooks/${wsName}/${printName}.ipynb` : // removes 'notebooks/'
-          undefined,
+        href: Nav.getLink('workspace-notebook-launch', { namespace, name: wsName, notebookName: name.slice(10) }),
+        // href: notebookAccess ?
+        //   `${clusterUrl}/notebooks/${wsName}/${printName}.ipynb` : // removes 'notebooks/'
+        //   undefined,
         style: {
           ...Style.elements.card,
           flexShrink: 0,
@@ -90,7 +91,7 @@ class NotebookCard extends Component {
           height: listView ? undefined : 250,
           margin: '1.25rem',
           color: Style.colors.text, textDecoration: 'none',
-          cursor: notebookAccess === false ? 'not-allowed' : notebookAccess ? undefined : 'wait',
+          // cursor: notebookAccess === false ? 'not-allowed' : notebookAccess ? undefined : 'wait',
           display: 'flex', flexDirection: listView ? 'row' : 'column',
           justifyContent: listView ? undefined : 'space-between',
           alignItems: listView ? 'center' : undefined
@@ -102,7 +103,7 @@ class NotebookCard extends Component {
         div({ style: { flexGrow: 1 } }),
         div({ style: { fontSize: '0.8rem', marginRight: '0.5rem' } },
           `Last changed: ${Utils.makePrettyDate(updated)}`),
-        statusIcon,
+        //statusIcon,
         notebookMenu
       ] :
         [
@@ -113,8 +114,8 @@ class NotebookCard extends Component {
             div({ style: { fontSize: '0.8rem', flexGrow: 1, marginRight: '0.5rem' } }, [
               'Last changed:',
               div({}, Utils.makePrettyDate(updated))
-            ]),
-            statusIcon
+            ])//,
+            //statusIcon
           ])
         ]),
       Utils.cond(

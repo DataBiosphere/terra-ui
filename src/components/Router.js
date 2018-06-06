@@ -12,6 +12,7 @@ import * as WorkspaceList from 'src/pages/workspaces/List'
 import * as Dashboard from 'src/pages/workspaces/workspace/Dashboard'
 import * as Data from 'src/pages/workspaces/workspace/Data'
 import * as Notebooks from 'src/pages/workspaces/workspace/Notebooks'
+import * as NotebookLauncher from 'src/pages/workspaces/workspace/notebooks/NotebookLauncher'
 import * as Tools from 'src/pages/workspaces/workspace/Tools'
 import * as WorkflowView from 'src/pages/workspaces/workspace/tools/WorkflowView'
 
@@ -28,6 +29,7 @@ const initNavPaths = () => {
   Data.addNavPaths()
   Notebooks.addNavPaths()
   Tools.addNavPaths()
+  NotebookLauncher.addNavPaths()
 }
 
 export default class Router extends Component {
