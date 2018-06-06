@@ -7,6 +7,9 @@ import * as Nav from 'src/libs/nav'
 import { Component } from 'src/libs/wrapped-components'
 
 
+const wait = ms => new Promise(resolve => setTimeout(resolve, ms))
+
+
 class NotebookLauncher extends Component {
   constructor(props) {
     super(props)
@@ -14,22 +17,25 @@ class NotebookLauncher extends Component {
     this.creator = getBasicProfile().getEmail()
     this.state = {
       bucketName: undefined,
-      clusterStatus: 'Not yet loaded',
-      localized: false
+      clusterStatus: 'Not yet loaded'
     }
   }
 
   async componentDidMount() {
     const bucketName = await this.resolveBucketName()
     this.setState({ bucketName })
-    this.startCluster(cluster => this.localizeNotebook(cluster))
+    const cluster = await this.startCluster()
+    await this.localizeNotebook(cluster)
+
+    const { name: workspaceName, notebookName } = this.props
+    window.location.href = `${cluster.clusterUrl}/notebooks/${workspaceName}/${notebookName}`
   }
 
   async resolveBucketName() {
-    const { namespace, name } = this.props
+    const { namespace, name: workspaceName } = this.props
 
     try {
-      const { workspace: { bucketName } } = await Rawls.workspace(namespace, name).details()
+      const { workspace: { bucketName } } = await Rawls.workspace(namespace, workspaceName).details()
       return bucketName
     } catch (error) {
       reportError('Error during Google bucket lookup', error)
@@ -47,23 +53,25 @@ class NotebookLauncher extends Component {
     )(await Leo.clustersList())
   }
 
-  async startCluster(onDone) {
-    const cluster = await this.getCluster()
-    const { status, googleProject, clusterName } = cluster
-    this.setState({ clusterStatus: status })
+  async startCluster() {
+    while (true) {
+      const cluster = await this.getCluster()
+      const { status, googleProject, clusterName } = cluster
+      this.setState({ clusterStatus: status })
 
-    if (status === 'Running') {
-      onDone(cluster)
-    } else if (status === 'Stopped') {
-      Leo.cluster(googleProject, clusterName).start()
-      setTimeout(() => this.startCluster(onDone), 10000)
-    } else {
-      setTimeout(() => this.startCluster(onDone), 3000)
+      if (status === 'Running') {
+        return cluster
+      } else if (status === 'Stopped') {
+        await Leo.cluster(googleProject, clusterName).start()
+        await wait(10000)
+      } else {
+        await wait(3000)
+      }
     }
   }
 
   async localizeNotebook(cluster) {
-    const { namespace, name, notebookName } = this.props
+    const { namespace, name: workspaceName, notebookName } = this.props
     const { bucketName } = this.state
     const { clusterName } = cluster
 
@@ -71,17 +79,15 @@ class NotebookLauncher extends Component {
       await Promise.all([
         Leo.notebooks(namespace, clusterName).setCookie(),
         Leo.notebooks(namespace, clusterName).localize({
-          [`~/${name}/.delocalize.json`]: `data:application/json,{"destination":"gs://${bucketName}/notebooks","pattern":""}`
+          [`~/${workspaceName}/.delocalize.json`]: `data:application/json,{"destination":"gs://${bucketName}/notebooks","pattern":""}`
         })
       ])
       await Leo.notebooks(namespace, clusterName).localize({
-        [`~/${name}/${notebookName}`]: `gs://${bucketName}/notebooks/${notebookName}`
+        [`~/${workspaceName}/${notebookName}`]: `gs://${bucketName}/notebooks/${notebookName}`
       })
     } catch (error) {
       reportError('Error during notebook localization', error)
     }
-
-    this.setState({ localized: true })
   }
 
   render() {
