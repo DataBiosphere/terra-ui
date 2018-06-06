@@ -1,13 +1,39 @@
 import _ from 'lodash/fp'
-import { div } from 'react-hyperscript-helpers'
+import { Fragment } from 'react'
+import { div, h } from 'react-hyperscript-helpers'
+import { icon, spinner } from 'src/components/icons'
+import { TopBar } from 'src/components/TopBar'
 import { Rawls, Leo } from 'src/libs/ajax'
 import { getBasicProfile } from 'src/libs/auth'
 import { reportError } from 'src/libs/error'
+import * as Style from 'src/libs/style'
 import * as Nav from 'src/libs/nav'
+import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 
 
 const wait = ms => new Promise(resolve => setTimeout(resolve, ms))
+
+
+const styles = {
+  pageContainer: {
+    padding: '2rem'
+  },
+  step: {
+    container: {
+      display: 'flex',
+      alignItems: 'center',
+      lineHeight: '2rem',
+      margin: '0.5rem 0'
+    },
+    col1: {
+      flex: '0 0 30px'
+    },
+    col2: {
+      flex: 1
+    }
+  }
+}
 
 
 class NotebookLauncher extends Component {
@@ -91,11 +117,30 @@ class NotebookLauncher extends Component {
   }
 
   render() {
-    return div({}, [
-      div({}, 'Props:'),
-      div({}, JSON.stringify(this.props)),
-      div({}, 'State:'),
-      div({}, JSON.stringify(this.state))
+    const { bucketName, clusterStatus } = this.state
+
+    const currentStep = Utils.cond(
+      [!bucketName, () => 0],
+      [clusterStatus !== 'Running', () => 1],
+      () => 2
+    )
+
+    const step = (index, text) => div({ style: styles.step.container }, [
+      div({ style: styles.step.col1 }, [
+        index < currentStep && icon('check', { size: 24, style: { color: Style.colors.success } }),
+        index === currentStep && spinner()
+      ]),
+      div({ style: styles.step.col2 }, [text])
+    ])
+
+    return h(Fragment, [
+      h(TopBar, { title: 'Launching Notebook' }),
+      div({ style: styles.pageContainer }, [
+        div({ style: Style.elements.sectionHeader }, 'Saturn is preparing your notebook'),
+        step(0, 'Resolving Google bucket'),
+        step(1, 'Waiting for cluster to start'),
+        step(2, 'Localizing notebook')
+      ])
     ])
   }
 }
