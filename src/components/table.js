@@ -4,6 +4,7 @@ import { Fragment } from 'react'
 import { button, div, h, option, select, table, td, th, tr } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
 import Pagination from 'react-paginating'
+import { Grid as RVGrid, ScrollSync as RVScrollSync } from 'react-virtualized'
 import { icon } from 'src/components/icons'
 import * as Style from 'src/libs/style'
 import { Component } from 'src/libs/wrapped-components'
@@ -268,4 +269,171 @@ export class DataGrid extends Component {
         null
     ])
   }
+}
+
+const cellStyles = {
+  display: 'flex',
+  alignItems: 'center',
+  paddingLeft: '1rem',
+  paddingRight: '1rem'
+}
+
+const styles = {
+  cell: (col, total) => ({
+    ...cellStyles,
+    borderBottom: `1px solid ${Style.colors.border}`,
+    borderLeft: col === 0 ? `1px solid ${Style.colors.border}` : undefined,
+    borderRight: col === total - 1 ? `1px solid ${Style.colors.border}` : undefined
+  }),
+  header: (col, total) => ({
+    ...cellStyles,
+    backgroundColor: Style.colors.sectionHighlight,
+    borderTop: `1px solid ${Style.colors.sectionBorder}`,
+    borderBottom: `2px solid ${Style.colors.sectionBorder}`,
+    borderLeft: col === 0 ? `1px solid ${Style.colors.sectionBorder}` : undefined,
+    borderRight: col === total - 1 ? `1px solid ${Style.colors.sectionBorder}` : undefined,
+    borderTopLeftRadius: col === 0 ? '5px' : undefined,
+    borderTopRightRadius: col === total - 1 ? '5px' : undefined
+  }),
+  flexCell: ({ basis = 0, grow = 1, shrink = 1, min = 0, max } = {}) => ({
+    flexGrow: grow,
+    flexShrink: shrink,
+    flexBasis: basis,
+    minWidth: min,
+    maxWidth: max
+  })
+}
+
+/**
+ * A virtual table with a fixed header and flexible column widths. Intended to take up the full
+ * available container width, without horizontal scrolling.
+ */
+
+export class FlexTable extends Component {
+  constructor(props) {
+    super(props)
+    this.state = { scrollbarSize: 0 }
+  }
+
+  render() {
+    const { width, height, rowCount, columns, hoverHighlight } = this.props
+    const { scrollbarSize } = this.state
+    return div([
+      div({
+        style: {
+          width: width - scrollbarSize,
+          height: 48,
+          display: 'flex'
+        }
+      }, [
+        ..._.map(([i, { size, headerRenderer }]) => {
+          return div({
+            key: i,
+            style: { ...styles.flexCell(size), ...styles.header(i * 1, columns.length) }
+          }, [headerRenderer()])
+        }, _.toPairs(columns))
+      ]),
+      h(RVGrid, {
+        width,
+        height: height - 48,
+        columnWidth: width - scrollbarSize,
+        rowHeight: 48,
+        rowCount,
+        columnCount: 1,
+        onScrollbarPresenceChange: ({ vertical, size }) => {
+          this.setState({ scrollbarSize: vertical ? size : 0 })
+        },
+        cellRenderer: data => {
+          return h(Interactive, {
+            key: data.key,
+            as: 'div',
+            style: { ...data.style, backgroundColor: '#ffffff', display: 'flex' },
+            hover: hoverHighlight ? { backgroundColor: Style.colors.highlightFaded } : undefined
+          }, [
+            ..._.map(([i, { size, cellRenderer }]) => {
+              return div({
+                key: i,
+                style: { ...styles.flexCell(size), ...styles.cell(i * 1, columns.length) }
+              }, [cellRenderer(data)])
+            }, _.toPairs(columns))
+          ])
+        },
+        style: { outline: 'none' }
+      })
+    ])
+  }
+}
+
+/**
+ * A virtual table with a fixed header and explicit column widths. Intended for displaying large
+ * datasets which may require horizontal scrolling.
+ */
+
+export class GridTable extends Component {
+  constructor(props) {
+    super(props)
+    this.state = { scrollbarSize: 0 }
+  }
+
+  render() {
+    const { width, height, rowCount, columns } = this.props
+    const { scrollbarSize } = this.state
+    return h(RVScrollSync, [
+      ({ onScroll, scrollLeft }) => {
+        return div([
+          h(RVGrid, {
+            width: width - scrollbarSize,
+            height: 48,
+            columnWidth: ({ index }) => columns[index].width,
+            rowHeight: 48,
+            rowCount: 1,
+            columnCount: columns.length,
+            cellRenderer: data => {
+              return div({
+                key: data.key,
+                style: { ...data.style, ...styles.header(data.columnIndex, columns.length) }
+              }, [
+                columns[data.columnIndex].headerRenderer(data)
+              ])
+            },
+            style: { outline: 'none', overflow: 'hidden' },
+            scrollLeft,
+            onScroll
+          }),
+          h(RVGrid, {
+            width,
+            height: height - 48,
+            columnWidth: ({ index }) => columns[index].width,
+            rowHeight: 48,
+            rowCount,
+            columnCount: columns.length,
+            onScrollbarPresenceChange: ({ vertical, size }) => {
+              this.setState({ scrollbarSize: vertical ? size : 0 })
+            },
+            cellRenderer: data => {
+              return div({
+                key: data.key,
+                style: {
+                  ...data.style,
+                  ...styles.cell(data.columnIndex, columns.length),
+                  backgroundColor: '#ffffff'
+                }
+              }, [
+                columns[data.columnIndex].cellRenderer(data)
+              ])
+            },
+            style: { outline: 'none' },
+            scrollLeft,
+            onScroll
+          })
+        ])
+      }
+    ])
+  }
+}
+
+export const TextCell = props => {
+  return div(_.merge({
+    style: { overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }
+  }, props))
 }
