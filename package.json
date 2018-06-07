@@ -25,6 +25,7 @@
     "react-portal-tooltip": "^2.4.0",
     "react-scripts": "1.1.4",
     "react-select": "^1.2.1",
+    "react-virtualized": "^9.19.1",
     "uuid": "^3.2.1",
     "validate.js": "^0.12.0"
   },
