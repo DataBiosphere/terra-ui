@@ -376,7 +376,7 @@ export class GridTable extends Component {
   }
 
   render() {
-    const { width, height, rowCount, columns } = this.props
+    const { width, height, rowCount, columns, cellStyle } = this.props
     const { scrollbarSize } = this.state
     return h(RVScrollSync, [
       ({ onScroll, scrollLeft }) => {
@@ -416,7 +416,8 @@ export class GridTable extends Component {
                 style: {
                   ...data.style,
                   ...styles.cell(data.columnIndex, columns.length),
-                  backgroundColor: '#ffffff'
+                  backgroundColor: '#ffffff',
+                  ...(cellStyle ? cellStyle(data) : {})
                 }
               }, [
                 columns[data.columnIndex].cellRenderer(data)

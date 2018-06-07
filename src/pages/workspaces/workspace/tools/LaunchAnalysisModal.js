@@ -1,11 +1,11 @@
 import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
+import { AutoSizer } from 'react-virtualized'
 import { buttonPrimary, link, search } from 'src/components/common'
 import { spinner } from 'src/components/icons'
 import Modal from 'src/components/Modal'
-import { ScrollWithHeader } from 'src/components/ScrollWithHeader'
-import { components, DataTable, paginator, slice } from 'src/components/table'
+import { GridTable, TextCell } from 'src/components/table'
 import { Rawls } from 'src/libs/ajax'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -16,7 +16,7 @@ export default class LaunchAnalysisModal extends Component {
   constructor(props) {
     super(props)
 
-    this.state = { filterText: '', pageNumber: 1, itemsPerPage: 25 }
+    this.state = { filterText: '' }
   }
 
   render() {
@@ -38,7 +38,7 @@ export default class LaunchAnalysisModal extends Component {
           inputProps: {
             placeholder: 'FILTER',
             value: filterText,
-            onChange: e => this.setState({ filterText: e.target.value, pageNumber: 1 })
+            onChange: e => this.setState({ filterText: e.target.value })
           }
         })
       ],
@@ -74,28 +74,41 @@ export default class LaunchAnalysisModal extends Component {
     )
   }
 
-  renderMain = () => {
-    const { itemsPerPage, pageNumber, entities, filterText, launchError } = this.state
+  renderMain() {
+    const { entities, filterText, launchError, idName, attributeNames, selectedEntity } = this.state
     const filteredEntities = _.filter(entity => entity.name.includes(filterText), entities)
 
     return h(Fragment, [
-      div({ style: { overflowX: 'auto', margin: '0 -1.25rem', padding: '0 1.25rem' } }, [
-        div({ style: { display: 'table', marginBottom: '0.5rem' } }, [
-          h(ScrollWithHeader, {
-            header: this.renderTableHeader(),
-            negativeMargin: '1.25rem',
-            children: [this.renderTableBody(filteredEntities)]
+      h(AutoSizer, { disableHeight: true }, [
+        ({ width }) => {
+          return h(GridTable, {
+            width, height: 300,
+            rowCount: filteredEntities.length,
+            columns: [
+              {
+                width: 150,
+                headerRenderer: () => h(TextCell, idName),
+                cellRenderer: ({ rowIndex }) => {
+                  const { name } = filteredEntities[rowIndex]
+                  return h(TextCell, [
+                    link({ onClick: () => this.setState({ selectedEntity: name }) }, [name])
+                  ])
+                }
+              },
+              ..._.map(name => ({
+                width: 300,
+                headerRenderer: () => h(TextCell, name),
+                cellRenderer: ({ rowIndex }) => {
+                  return h(TextCell, filteredEntities[rowIndex].attributes[name])
+                }
+              }), attributeNames)
+            ],
+            cellStyle: ({ rowIndex }) => {
+              return selectedEntity === filteredEntities[rowIndex].name ?
+                { backgroundColor: Style.colors.highlightFaded } : {}
+            }
           })
-        ])
-      ]),
-      div({ style: { marginTop: 10 } }, [
-        paginator({
-          filteredDataLength: filteredEntities.length,
-          setPageNumber: pageNumber => this.setState({ pageNumber }),
-          pageNumber,
-          setItemsPerPage: itemsPerPage => this.setState({ itemsPerPage }),
-          itemsPerPage
-        })
+        }
       ]),
       div({ style: { marginTop: 10, textAlign: 'right', color: Style.colors.error } }, [launchError])
     ])
@@ -109,69 +122,6 @@ export default class LaunchAnalysisModal extends Component {
       attributeFailure && div({}, attributeFailure),
       entityFailure && div({}, entityFailure)
     ])
-  }
-
-  renderTableHeader = () => {
-    const { attributeNames, idName } = this.state
-
-    const cellStyle = {
-      overflow: 'hidden', textOverflow: 'ellipsis',
-      fontWeight: 500, fontSize: 12, padding: '0.5rem 19px'
-    }
-
-    /*
-     * FIXME: width: 0 solves an issue where this header sometimes takes more room than
-     * it needs and messes up the layout of the entire table. Related to the display: table
-     * that's used to make style apply beyond the viewport of a scrolling component
-     */
-    return div({ style: { display: 'flex', width: 0 } }, [
-      div({
-        style: {
-          ...cellStyle,
-          flex: '0 0 150px'
-        }
-      }, idName),
-      attributeNames.map(name => {
-        return div({
-          key: name,
-          title: name,
-          style: {
-            ...cellStyle,
-            flex: '0 0 100px',
-            borderLeft: Style.standardLine
-          }
-        },
-        name)
-      })
-    ])
-  }
-
-  renderTableBody = filteredEntities => {
-    const { attributeNames, pageNumber, itemsPerPage, selectedEntity } = this.state
-
-    return h(DataTable, {
-      dataSource: slice(filteredEntities, { pageNumber, itemsPerPage }),
-      customComponents: [components.scrollWithHeaderTable, components.nonInteractiveRow],
-      allowPagination: false,
-      tableProps: {
-        showHeader: false,
-        scroll: { y: 500 },
-        rowKey: 'name',
-        onRow: entity => ({ style: { backgroundColor: selectedEntity === entity.name && Style.colors.highlightFaded } }),
-        columns: [
-          {
-            key: 'id', width: 150,
-            render: entity => link({ onClick: () => this.setState({ selectedEntity: entity.name }) }, [entity.name])
-          },
-          ...attributeNames.map(attributeName => ({
-            title: attributeName,
-            key: attributeName,
-            width: 100,
-            render: entity => entity.attributes[attributeName]
-          }))
-        ]
-      }
-    })
   }
 
   launch = () => {
