@@ -74,7 +74,11 @@ class WorkspaceData extends Component {
               ..._.map(name => ({
                 width: 300,
                 headerRenderer: () => h(TextCell, name),
-                cellRenderer: ({ rowIndex }) => h(TextCell, selectedEntities[rowIndex].attributes[name])
+                cellRenderer: ({ rowIndex }) => {
+                  return h(TextCell, [
+                    Utils.entityAttributeText(selectedEntities[rowIndex].attributes[name])
+                  ])
+                }
               }), entityMetadata[selectedEntityType].attributeNames)
             ]
           })

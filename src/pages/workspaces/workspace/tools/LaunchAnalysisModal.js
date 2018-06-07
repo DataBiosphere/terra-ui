@@ -99,7 +99,9 @@ export default class LaunchAnalysisModal extends Component {
                 width: 300,
                 headerRenderer: () => h(TextCell, name),
                 cellRenderer: ({ rowIndex }) => {
-                  return h(TextCell, filteredEntities[rowIndex].attributes[name])
+                  return h(TextCell, [
+                    Utils.entityAttributeText(filteredEntities[rowIndex].attributes[name])
+                  ])
                 }
               }), attributeNames)
             ],
