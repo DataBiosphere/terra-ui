@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { Fragment } from 'react'
-import { a, div, h } from 'react-hyperscript-helpers/lib/index'
+import { a, div, h } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
 import ClusterManager from 'src/components/ClusterManager'
 import { contextBar, contextMenu } from 'src/components/common'
