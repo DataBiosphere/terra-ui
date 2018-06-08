@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import RCTable from 'rc-table'
-import { Fragment } from 'react'
+import { Fragment, createRef } from 'react'
 import { button, div, h, option, select, table, td, th, tr } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
 import Pagination from 'react-paginating'
@@ -373,10 +373,15 @@ export class GridTable extends Component {
   constructor(props) {
     super(props)
     this.state = { scrollbarSize: 0 }
+    this.grid = createRef()
+  }
+
+  componentDidMount() {
+    this.grid.current.measureAllCells()
   }
 
   render() {
-    const { width, height, rowCount, columns } = this.props
+    const { width, height, rowCount, columns, cellStyle } = this.props
     const { scrollbarSize } = this.state
     return h(RVScrollSync, [
       ({ onScroll, scrollLeft }) => {
@@ -401,6 +406,7 @@ export class GridTable extends Component {
             onScroll
           }),
           h(RVGrid, {
+            ref: this.grid,
             width,
             height: height - 48,
             columnWidth: ({ index }) => columns[index].width,
@@ -416,7 +422,8 @@ export class GridTable extends Component {
                 style: {
                   ...data.style,
                   ...styles.cell(data.columnIndex, columns.length),
-                  backgroundColor: '#ffffff'
+                  backgroundColor: '#ffffff',
+                  ...(cellStyle ? cellStyle(data) : {})
                 }
               }, [
                 columns[data.columnIndex].cellRenderer(data)

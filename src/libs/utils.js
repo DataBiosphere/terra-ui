@@ -139,3 +139,11 @@ export const delay = ms => {
 export const generateClusterName = () => `saturn-${uuid()}`
 
 export const waitOneTick = () => new Promise(setImmediate)
+
+export const entityAttributeText = value => {
+  return cond(
+    [_.has('entityName', value), () => value.entityName],
+    [_.has('items', value), () => `[${value.items.length}]`],
+    () => value
+  )
+}
