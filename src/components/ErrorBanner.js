@@ -59,7 +59,7 @@ class ErrorBanner extends Component {
         showCancel: false,
         showX: true,
         onDismiss: () => this.setState({ modal: false }),
-        okButton: buttonPrimary({ onClick: () => clearError(true) }, 'Refresh')
+        okButton: buttonPrimary({ onClick: () => clearError(true) }, 'Refresh Page')
       }, [
         h(ErrorView, { error, collapses: false })
       ])
