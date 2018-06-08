@@ -16,13 +16,13 @@ import { Component } from 'src/libs/wrapped-components'
 import WorkspaceContainer from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
 
+const filterState = _.pick(['pageNumber', 'itemsPerPage', 'selectedEntityType'])
+
 class WorkspaceData extends Component {
   constructor(props) {
     super(props)
 
-    this.state = _.merge({
-      itemsPerPage: 25, pageNumber: 1
-    }, StateHistory.get())
+    this.state = { itemsPerPage: 25, pageNumber: 1, loading: false, ...StateHistory.get() }
   }
 
   refresh() {
@@ -35,31 +35,33 @@ class WorkspaceData extends Component {
     )
 
     if (selectedEntityType) {
-      this.loadEntities(selectedEntityType)
+      this.loadEntities()
     }
   }
 
-  loadEntities(type = this.state.selectedEntityType) {
-    const { namespace, name } = this.props
-    const { itemsPerPage, pageNumber } = this.state
 
-    this.setState({ selectedEntities: undefined })
-    Rawls.workspace(namespace, name).paginatedEntitiesOfType(type, { page: pageNumber, pageSize: itemsPerPage }).then(
-      ({ results, resultMetadata: { unfilteredCount } }) => this.setState({
-        selectedEntities: results,
-        totalRowCount: unfilteredCount
-      }),
-      error => reportError('Error loading workspace entity', error)
-    )
+  async loadEntities() {
+    const { namespace, name } = this.props
+    const { itemsPerPage, pageNumber, selectedEntityType } = this.state
+    try {
+      this.setState({ loading: true })
+      const { results, resultMetadata: { unfilteredCount } } =
+        await Rawls.workspace(namespace, name).paginatedEntitiesOfType(selectedEntityType, { page: pageNumber, pageSize: itemsPerPage })
+      this.setState({ selectedEntities: results, totalRowCount: unfilteredCount })
+    } catch (error) {
+      reportError('Error loading workspace entity', error)
+    } finally {
+      this.setState({ loading: false })
+    }
   }
 
-  componentWillMount() {
+  componentDidMount() {
     this.refresh()
   }
 
   renderEntityTable() {
     const { selectedEntityType, selectedEntities, entityMetadata, totalRowCount, pageNumber, itemsPerPage } = this.state
-    return selectedEntities ? h(Fragment, [
+    return selectedEntities && h(Fragment, [
       h(AutoSizer, { disableHeight: true }, [
         ({ width }) => {
           return h(GridTable, {
@@ -90,14 +92,14 @@ class WorkspaceData extends Component {
           pageNumber,
           setPageNumber: v => this.setState({ pageNumber: v }),
           itemsPerPage,
-          setItemsPerPage: v => this.setState({ itemsPerPage: v })
+          setItemsPerPage: v => this.setState({ itemsPerPage: v, pageNumber: 1 })
         })
       ])
-    ]) : spinnerOverlay
+    ])
   }
 
   render() {
-    const { selectedEntityType, entityMetadata } = this.state
+    const { selectedEntityType, entityMetadata, loading } = this.state
     const { namespace, name } = this.props
 
     const entityTypeList = () => _.map(([type, typeDetails]) =>
@@ -107,8 +109,7 @@ class WorkspaceData extends Component {
           backgroundColor: selectedEntityType === type ? Style.colors.highlightFaded : null
         },
         onClick: () => {
-          this.setState({ selectedEntityType: type })
-          this.loadEntities(type)
+          this.setState({ selectedEntityType: type, selectedEntities: undefined, pageNumber: 1 })
         }
       },
       [
@@ -148,17 +149,17 @@ class WorkspaceData extends Component {
                 }, 'Data Model'),
                 div({ style: { marginBottom: '1rem' } }, entityTypeList())
               ]),
-              div(
-                {
-                  style: {
-                    position: 'relative',
-                    overflow: 'hidden',
-                    margin: '1rem', width: '100%',
-                    textAlign: selectedEntityType ? undefined : 'center'
-                  }
-                },
-                [selectedEntityType ? this.renderEntityTable() : 'Select a data type.']
-              )
+              div({
+                style: {
+                  position: 'relative',
+                  overflow: 'hidden',
+                  margin: '1rem', width: '100%',
+                  textAlign: selectedEntityType ? undefined : 'center'
+                }
+              }, [
+                selectedEntityType ? this.renderEntityTable() : 'Select a data type.',
+                loading && spinnerOverlay
+              ])
             ])
           )
         ])
@@ -168,11 +169,11 @@ class WorkspaceData extends Component {
 
   componentDidUpdate(prevProps, prevState) {
     StateHistory.update(_.pick(
-      ['entityMetadata', 'selectedEntityType', 'selectedEntities', 'itemsPerPage', 'pageNumber'],
+      ['entityMetadata', 'selectedEntityType', 'selectedEntities', 'totalRowCount', 'itemsPerPage', 'pageNumber'],
       this.state)
     )
 
-    if (this.state.itemsPerPage !== prevState.itemsPerPage || this.state.pageNumber !== prevState.pageNumber) {
+    if (!_.isEqual(filterState(prevState), filterState(this.state))) {
       this.loadEntities()
     }
   }
