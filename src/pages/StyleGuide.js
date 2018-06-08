@@ -1,8 +1,10 @@
 import _ from 'lodash/fp'
 import { div, h, h1 } from 'react-hyperscript-helpers'
+import { AutoSizer } from 'react-virtualized'
 import { buttonPrimary, buttonSecondary, Checkbox, link, search } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { textInput, validatedInput } from 'src/components/input'
+import { FlexTable, GridTable, TextCell } from 'src/components/table'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import { Component } from 'src/libs/wrapped-components'
@@ -78,6 +80,55 @@ class StyleGuide extends Component {
         h(Checkbox, { checked: false }),
         h(Checkbox, { checked: true }),
         h(Checkbox, { checked: false, disabled: true })
+      ]),
+      div({ style: { ...styles.container, height: 300 } }, [
+        h(AutoSizer, [
+          ({ width, height }) => {
+            return h(FlexTable, {
+              width, height,
+              rowCount: 100,
+              hoverHighlight: true,
+              columns: [
+                {
+                  size: { basis: 100, grow: 0 },
+                  headerRenderer: () => 'ID',
+                  cellRenderer: ({ rowIndex }) => `id-${rowIndex}`
+                },
+                {
+                  size: { basis: 150, grow: 0 },
+                  headerRenderer: () => 'Name',
+                  cellRenderer: ({ rowIndex }) => {
+                    return h(TextCell, `name-${rowIndex} with long text`)
+                  }
+                },
+                {
+                  size: { basis: 150 },
+                  headerRenderer: () => 'Details',
+                  cellRenderer: ({ rowIndex }) => {
+                    return textInput({ readOnly: true, value: `details-${rowIndex}` })
+                  }
+                }
+              ]
+            })
+          }
+        ])
+      ]),
+      div({ style: { ...styles.container, height: 300 } }, [
+        h(AutoSizer, [
+          ({ width, height }) => {
+            return h(GridTable, {
+              width, height,
+              rowCount: 100,
+              columns: [
+                ..._.map(n => ({
+                  width: 150,
+                  headerRenderer: () => `header-${n}`,
+                  cellRenderer: ({ rowIndex }) => `data-${rowIndex}-${n}`
+                }), _.range(0, 20))
+              ]
+            })
+          }
+        ])
       ])
     ])
   }
