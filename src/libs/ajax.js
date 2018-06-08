@@ -229,7 +229,7 @@ const fetchLeo = async (path, ...args) => {
 
 export const Leo = {
   clustersList: async () => {
-    const res = await fetchLeo('api/clusters', authOpts())
+    const res = await fetchLeo('api/clusters?saturnAutoCreated=true', authOpts())
     return res.json()
   },
 

@@ -60,7 +60,7 @@ authStore.subscribe(async (state, oldState) => {
         _.uniq(_.map('projectName', billingProjects)), // in case of being both a user and an admin of a project
         _.map(
           'googleProject',
-          _.filter({ creator: userProfile.getEmail(), labels: { saturnAutoCreated: 'true' } }, clusters)
+          _.filter({ creator: userProfile.getEmail() }, clusters)
         )
       )
 
