@@ -412,7 +412,7 @@ export class GridTable extends Component {
                 columns[data.columnIndex].headerRenderer(data)
               ])
             },
-            style: { outline: 'none', overflow: 'hidden' },
+            style: { outline: 'none', overflowX: 'hidden', overflowY: 'hidden' },
             scrollLeft,
             onScroll
           }),
