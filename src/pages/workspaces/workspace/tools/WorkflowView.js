@@ -1,13 +1,14 @@
 import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { div, h, p, span } from 'react-hyperscript-helpers'
+import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { buttonPrimary, link, spinnerOverlay, tooltip } from 'src/components/common'
+import { buttonPrimary, buttonSecondary, link, spinnerOverlay, tooltip } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { textInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
-import { emptyHeader, TabbedScrollWithHeader } from 'src/components/ScrollWithHeader'
-import { components, DataTable } from 'src/components/table'
+import TabBar from 'src/components/TabBar'
+import { FlexTable, TextCell } from 'src/components/table'
 import WDLViewer from 'src/components/WDLViewer'
 import { Agora, Dockstore, Rawls } from 'src/libs/ajax'
 import * as Config from 'src/libs/config'
@@ -23,32 +24,39 @@ import WorkspaceContainer from 'src/pages/workspaces/workspace/WorkspaceContaine
 
 const sideMargin = '3rem'
 
-const tableColumns = [
-  { label: 'Task name', width: 350 },
-  { label: 'Variable', width: 360 },
-  { label: 'Type', width: 160 },
-  { label: 'Attribute' }
-]
-
-const styleForOptional = (optional, text) =>
-  span({
-    style: {
-      fontWeight: !optional && 500,
-      fontStyle: optional && 'italic',
-      overflow: 'hidden', textOverflow: 'ellipsis'
-    }
-  }, [text])
+const styleForOptional = optional => ({
+  fontWeight: !optional && 500,
+  fontStyle: optional && 'italic'
+})
 
 const miniMessage = text =>
   span({ style: { fontWeight: 500, fontSize: '75%', marginRight: '1rem', textTransform: 'uppercase' } }, [text])
 
+const errorIcon = b => {
+  return b && icon('error', {
+    size: 28, style: { marginLeft: '0.5rem', color: Style.colors.error }
+  })
+}
+
+const headerCell = text => h(TextCell, { style: { fontWeight: 500 } }, [text])
+
+const styles = {
+  messageContainer: {
+    height: '2.25rem',
+    display: 'flex',
+    alignItems: 'center',
+    position: 'absolute',
+    bottom: '0.5rem',
+    right: sideMargin
+  }
+}
 
 class WorkflowView extends Component {
   constructor(props) {
     super(props)
 
     this.state = {
-      selectedTabIndex: 0,
+      activeTab: 'inputs',
       saved: false,
       modifiedAttributes: { inputs: {}, outputs: {} },
       ...StateHistory.get()
@@ -56,7 +64,7 @@ class WorkflowView extends Component {
   }
 
   render() {
-    const { isFreshData, config, launching, submissionId, firecloudRoot, inputsOutputs } = this.state
+    const { isFreshData, config, launching, submissionId, firecloudRoot, inputsOutputs, activeTab } = this.state
     const { workspaceNamespace, workspaceName, workflowName } = this.props
 
     const workspaceId = { namespace: workspaceNamespace, name: workspaceName }
@@ -74,7 +82,12 @@ class WorkflowView extends Component {
       [
         config && h(Fragment, [
           this.renderSummary(invalidIO),
-          this.renderDetails(invalidIO),
+          Utils.cond(
+            [activeTab === 'inputs', () => this.renderIOTable('inputs')],
+            [activeTab === 'outputs', () => this.renderIOTable('outputs')],
+            [activeTab === 'wdl', () => this.renderWDL()],
+            null,
+          ),
           launching && h(LaunchAnalysisModal, {
             workspaceId, config,
             onDismiss: () => this.setState({ launching: false }),
@@ -154,19 +167,19 @@ class WorkflowView extends Component {
   }
 
   componentDidUpdate() {
-    const { selectedTabIndex, loadedWdl } = this.state
-    if (selectedTabIndex === 2 && !loadedWdl) {
+    const { activeTab, loadedWdl } = this.state
+    if (activeTab === 'wdl' && !loadedWdl) {
       this.fetchWDL()
     }
 
     StateHistory.update(_.pick(
-      ['config', 'entityTypes', 'inputsOutputs', 'invalid', 'modifiedAttributes', 'selectedTabIndex', 'wdl'],
+      ['config', 'entityTypes', 'inputsOutputs', 'invalid', 'modifiedAttributes', 'activeTab', 'wdl'],
       this.state)
     )
   }
 
   renderSummary = invalidIO => {
-    const { modifiedAttributes, config, entityTypes, saving, modified } = this.state
+    const { modifiedAttributes, config, entityTypes, saving, saved, modified, activeTab } = this.state
     const { name, methodConfigVersion, methodRepoMethod: { methodPath } } = config
 
     const noLaunchReason = Utils.cond(
@@ -174,177 +187,131 @@ class WorkflowView extends Component {
       [saving || modified, () => 'Save or cancel to Launch Analysis'],
       () => undefined
     )
-
-    return div({ style: { display: 'flex', backgroundColor: Style.colors.section, padding: `1.5rem ${sideMargin} 0` } }, [
-      div({ style: { flex: '1', lineHeight: '1.5rem' } }, [
-        div({ style: { color: Style.colors.title, fontSize: 24 } }, name),
-        div(`V. ${methodConfigVersion}`),
-        methodPath && div(`Path: ${methodPath}`),
-        div({ style: { textTransform: 'capitalize', display: 'flex', alignItems: 'baseline', marginTop: '0.5rem' } }, [
-          'Data Type:',
-          Select({
-            clearable: false, searchable: false,
-            wrapperStyle: { display: 'inline-block', width: 200, marginLeft: '0.5rem' },
-            value: modifiedAttributes.rootEntityType || config.rootEntityType,
-            onChange: rootEntityType => {
-              modifiedAttributes.rootEntityType = rootEntityType.value
-              this.setState({ modifiedAttributes, modified: true })
-            },
-            options: entityTypes
-          })
+    return div({ style: { backgroundColor: Style.colors.section, position: 'relative' } }, [
+      div({ style: { display: 'flex', padding: `1.5rem ${sideMargin} 0` } }, [
+        div({ style: { flex: '1', lineHeight: '1.5rem' } }, [
+          div({ style: { color: Style.colors.title, fontSize: 24 } }, name),
+          div(`V. ${methodConfigVersion}`),
+          methodPath && div(`Path: ${methodPath}`),
+          div({ style: { textTransform: 'capitalize', display: 'flex', alignItems: 'baseline', marginTop: '0.5rem' } }, [
+            'Data Type:',
+            Select({
+              clearable: false, searchable: false,
+              wrapperStyle: { display: 'inline-block', width: 200, marginLeft: '0.5rem' },
+              value: modifiedAttributes.rootEntityType || config.rootEntityType,
+              onChange: rootEntityType => {
+                modifiedAttributes.rootEntityType = rootEntityType.value
+                this.setState({ modifiedAttributes, modified: true })
+              },
+              options: entityTypes
+            })
+          ])
+        ]),
+        div({ style: { flex: 'none', display: 'flex', flexDirection: 'column', alignItems: 'flex-end' } }, [
+          buttonPrimary({ disabled: noLaunchReason, onClick: () => this.setState({ launching: true }) },
+            'Launch analysis'),
+          noLaunchReason && div({
+            style: {
+              marginTop: '0.5rem', padding: '1rem',
+              backgroundColor: Style.colors.warningBackground,
+              color: Style.colors.warning
+            }
+          }, noLaunchReason)
         ])
       ]),
-      div({ style: { flex: 'none', display: 'flex', flexDirection: 'column', alignItems: 'flex-end' } }, [
-        buttonPrimary({ disabled: noLaunchReason, onClick: () => this.setState({ launching: true }) },
-          'Launch analysis'),
-        noLaunchReason && div({
-          style: {
-            marginTop: '0.5rem', padding: '1rem',
-            backgroundColor: Style.colors.warningBackground,
-            color: Style.colors.warning
-          }
-        }, noLaunchReason)
+      h(TabBar, {
+        style: { paddingLeft: sideMargin, marginTop: '1rem' },
+        tabs: [
+          { key: 'inputs', title: h(Fragment, ['Inputs', errorIcon(invalidIO.inputs)]) },
+          { key: 'outputs', title: h(Fragment, ['Outputs', errorIcon(invalidIO.outputs)]) },
+          { key: 'wdl', title: 'WDL' }
+        ],
+        activeTab,
+        onChangeTab: v => this.setState({ activeTab: v })
+      }),
+      div({ style: styles.messageContainer }, [
+        saving && miniMessage('Saving...'),
+        saved && !saving && !modified && miniMessage('Saved!'),
+        modified && buttonPrimary({ disabled: saving, onClick: () => this.save() }, 'Save'),
+        modified && buttonSecondary({ style: { marginLeft: '1rem' }, disabled: saving, onClick: () => this.cancel() }, 'Cancel')
       ])
     ])
   }
 
-  renderDetails = invalidIO => {
-    const { wdl, saving, saved, modified, selectedTabIndex } = this.state
+  renderIOTable = key => {
+    const { inputsOutputs: { [key]: data }, modifiedAttributes, config } = this.state
 
-    /*
-     * FIXME: width: 0 solves an issue where this header sometimes takes more room than
-     * it needs and messes up the layout of the entire table. Related to the display: table
-     * that's used to make style apply beyond the viewport of a scrolling component
-     */
-    const tableHeader = div({ style: { display: 'flex', width: 0 } }, [
-      tableColumns.map(({ label, width }, idx) => {
-        return div({
-          key: label,
-          style: {
-            flex: width ? `0 0 ${width}px` : '1 1 auto',
-            fontWeight: 500, fontSize: 12, padding: '0.5rem 19px',
-            borderLeft: idx !== 0 && Style.standardLine
-          }
-        },
-        label)
-      })
-    ])
-
-    return div({ style: { padding: `2rem ${sideMargin} 0`, backgroundColor: Style.colors.section } }, [
-      h(TabbedScrollWithHeader, {
-        selectedTabIndex,
-        setSelectedTabIndex: selectedTabIndex => this.setState({ selectedTabIndex }),
-        negativeMargin: sideMargin,
-        contentBackground: Style.colors.background,
-        tabs: [
-          {
-            title: h(Fragment, [
-              'Inputs',
-              invalidIO.inputs && icon('error', {
-                size: 28, style: { marginLeft: '0.5rem', color: Style.colors.error }
-              })
-            ]),
-            header: tableHeader,
-            children: [this.renderIOTable('inputs')]
-          },
-          {
-            title: h(Fragment, [
-              'Outputs',
-              invalidIO.outputs && icon('error', {
-                size: 28, style: { marginLeft: '0.5rem', color: Style.colors.error }
-              })
-            ]),
-            header: tableHeader,
-            children: [this.renderIOTable('outputs')]
-          },
-          {
-            title: 'WDL',
-            header: emptyHeader({ padding: '0.5rem' }),
-            children: [
-              wdl ? div({
-                style: {
-                  flex: '1 1 auto', overflowY: 'auto', maxHeight: 500,
-                  padding: '0.5rem', backgroundColor: 'white',
-                  border: Style.standardLine, borderTop: 'unset'
+    return div({ style: { margin: `1rem ${sideMargin}` } }, [
+      h(AutoSizer, { disableHeight: true }, [
+        ({ width }) => {
+          return h(FlexTable, {
+            width, height: 500,
+            rowCount: data.length,
+            columns: [
+              {
+                size: { basis: 350, grow: 0 },
+                headerRenderer: () => headerCell('Task name'),
+                cellRenderer: ({ rowIndex }) => {
+                  return h(TextCell, { style: { fontWeight: 500 } }, [data[rowIndex].task])
                 }
-              }, [
-                h(WDLViewer, { wdl, readOnly: true })
-              ]) : centeredSpinner({ style: { marginTop: '1rem' } })
+              },
+              {
+                size: { basis: 360, grow: 0 },
+                headerRenderer: () => headerCell('Variable'),
+                cellRenderer: ({ rowIndex }) => {
+                  const { variable, optional } = data[rowIndex]
+                  return h(TextCell, { style: styleForOptional(optional) }, [variable])
+                }
+              },
+              {
+                size: { basis: 160, grow: 0 },
+                headerRenderer: () => headerCell('Type'),
+                cellRenderer: ({ rowIndex }) => {
+                  const { type, optional } = data[rowIndex]
+                  return h(TextCell, { style: styleForOptional(optional) }, [type])
+                }
+              },
+              {
+                headerRenderer: () => headerCell('Attribute'),
+                cellRenderer: ({ rowIndex }) => {
+                  const { name, optional, error } = data[rowIndex]
+                  let value = modifiedAttributes[key][name]
+                  if (value === undefined) {
+                    value = config[key][name]
+                  }
+
+                  return div({ style: { display: 'flex', alignItems: 'center', width: '100%' } }, [
+                    textInput({
+                      name, value,
+                      type: 'search',
+                      placeholder: optional ? 'Optional' : 'Required',
+                      onChange: e => {
+                        modifiedAttributes[key][name] = e.target.value
+                        this.setState({ modifiedAttributes, modified: true })
+                      }
+                    }),
+                    error && tooltip({
+                      component: icon('error', {
+                        size: 28, style: { marginLeft: '0.5rem', color: Style.colors.error, cursor: 'help' }
+                      }),
+                      text: error
+                    })
+                  ])
+                }
+              }
             ]
-          }
-        ],
-        tabBarExtras: [
-          div({ style: { flexGrow: 1 } }),
-          saving && miniMessage('Saving...'),
-          saved && !saving && !modified && miniMessage('Saved!'),
-          modified && buttonPrimary({ disabled: saving, onClick: () => this.save() }, 'Save'),
-          modified && link({ style: { margin: '1rem' }, disabled: saving, onClick: () => this.cancel() }, 'Cancel')
-        ]
-      })
+          })
+        }
+      ])
     ])
   }
 
-  renderIOTable = key => {
-    const { inputsOutputs, modifiedAttributes, config } = this.state
-
-    return h(DataTable, {
-      dataSource: inputsOutputs[key],
-      allowPagination: false,
-      customComponents: components.scrollWithHeaderTable,
-      tableProps: {
-        showHeader: false, scroll: { y: 450 },
-        rowKey: 'name',
-        columns: [
-          {
-            key: 'task-name', width: 350,
-            render: ({ task }) =>
-              div({
-                style: {
-                  fontWeight: 500,
-                  overflow: 'hidden', textOverflow: 'ellipsis'
-                }
-              }, task)
-          },
-          {
-            key: 'variable', width: 360,
-            render: ({ variable, optional }) =>
-              styleForOptional(optional, variable)
-          },
-          {
-            key: 'type', width: 160,
-            render: ({ type, optional }) =>
-              styleForOptional(optional, type)
-          },
-          {
-            key: 'attribute', width: '100%',
-            render: ({ name, optional, error }) => {
-              let value = modifiedAttributes[key][name]
-              if (value === undefined) {
-                value = config[key][name]
-              }
-
-              return div({ style: { display: 'flex', alignItems: 'center', margin: '-10px -0.5rem -6px 0' } }, [
-                textInput({
-                  name, value,
-                  type: 'search',
-                  placeholder: optional ? 'Optional' : 'Required',
-                  onChange: e => {
-                    modifiedAttributes[key][name] = e.target.value
-                    this.setState({ modifiedAttributes, modified: true })
-                  }
-                }),
-                error && tooltip({
-                  component: icon('error', {
-                    size: 28, style: { marginLeft: '0.5rem', color: Style.colors.error, cursor: 'help' }
-                  }),
-                  text: error
-                })
-              ])
-            }
-          }
-        ]
-      }
-    })
+  renderWDL() {
+    const { wdl } = this.state
+    return wdl ? h(WDLViewer, {
+      wdl, readOnly: true,
+      style: { maxHeight: 500, margin: `1rem ${sideMargin}` }
+    }) : centeredSpinner({ style: { marginTop: '1rem' } })
   }
 
   fetchWDL = async () => {
