@@ -15,7 +15,15 @@ const getKey = () => {
 
 export const get = () => JSON.parse(sessionStorage.getItem(getKey())) || {}
 
-export const set = newState => sessionStorage.setItem(getKey(), JSON.stringify(newState))
+export const set = newState => {
+  try {
+    sessionStorage.setItem(getKey(), JSON.stringify(newState))
+  } catch (error) {
+    console.error('An error occurred trying to save state history. This is probably because storage filled up.')
+    console.error(error)
+    sessionStorage.clear()
+  }
+}
 
 export const update = newState => { set({ ...get(), ...newState }) }
 
