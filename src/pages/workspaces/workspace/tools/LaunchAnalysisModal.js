@@ -5,6 +5,7 @@ import { AutoSizer } from 'react-virtualized'
 import { buttonPrimary, link, search } from 'src/components/common'
 import { spinner } from 'src/components/icons'
 import Modal from 'src/components/Modal'
+import TabBar from 'src/components/TabBar'
 import { GridTable, TextCell } from 'src/components/table'
 import { Rawls } from 'src/libs/ajax'
 import * as Style from 'src/libs/style'
@@ -16,12 +17,13 @@ export default class LaunchAnalysisModal extends Component {
   constructor(props) {
     super(props)
 
-    this.state = { filterText: '' }
+    this.state = { filterText: '', activeTab: 'single', entityType: props.config.rootEntityType }
   }
 
   render() {
     const { onDismiss } = this.props
-    const { attributeNames, entities, attributeFailure, entityFailure, filterText, launching } = this.state
+    const { entityType, entityMetadata, entities, attributeFailure, entityFailure, filterText, launching } = this.state
+    const { attributeNames } = entityMetadata ? entityMetadata[entityType] : {}
 
     return h(Modal, {
       onDismiss,
@@ -58,27 +60,44 @@ export default class LaunchAnalysisModal extends Component {
   }
 
   componentDidMount() {
-    const { workspaceId: { namespace, name }, config: { rootEntityType } } = this.props
+    const { workspaceId: { namespace, name } } = this.props
+    const { entityType } = this.state
 
     Rawls.workspace(namespace, name).entityMetadata().then(
-      entityMetadata => {
-        const { attributeNames, idName } = entityMetadata[rootEntityType]
-        this.setState({ attributeNames, idName })
-      },
+      entityMetadata => this.setState({ entityMetadata, entitySetExists: !!entityMetadata[`${entityType}_set`] }),
       attributeFailure => this.setState({ attributeFailure })
     )
 
-    Rawls.workspace(namespace, name).entitiesOfType(rootEntityType).then(
+    this.loadEntitiesOfType(entityType)
+  }
+
+  loadEntitiesOfType(type) {
+    const { workspaceId: { namespace, name } } = this.props
+
+    Rawls.workspace(namespace, name).entitiesOfType(type).then(
       entities => this.setState({ entities }),
       entityFailure => this.setState({ entityFailure })
     )
   }
 
   renderMain() {
-    const { entities, filterText, launchError, idName, attributeNames, selectedEntity } = this.state
+    const { rootEntityType } = this.props.config
+    const { entityType, entities, entitySetExists, filterText, launchError, entityMetadata, selectedEntity, activeTab } = this.state
+    const { attributeNames, idName } = entityMetadata ? entityMetadata[entityType] : {}
     const filteredEntities = _.filter(entity => entity.name.includes(filterText), entities)
 
     return h(Fragment, [
+      entitySetExists && TabBar({
+        tabs: [{ title: _.capitalize(rootEntityType), key: 'single' }, { title: _.capitalize(rootEntityType + ' Set'), key: 'multiple' }],
+        activeTab,
+        onChangeTab: key => {
+          const newEntityType = `${rootEntityType}${key === 'multiple' ? '_set' : ''}`
+
+          this.setState({ activeTab: key, entities: undefined, entityType: newEntityType })
+          this.loadEntitiesOfType(newEntityType)
+        },
+        style: {}
+      }),
       h(AutoSizer, { disableHeight: true }, [
         ({ width }) => {
           return h(GridTable, {
@@ -133,12 +152,13 @@ export default class LaunchAnalysisModal extends Component {
       onSuccess
     } = this.props
 
-    const { selectedEntity } = this.state
+    const { selectedEntity, entityType, activeTab } = this.state
 
     this.setState({ launching: true })
 
     Rawls.workspace(namespace, name).methodConfig(configNamespace, configName).launch({
-      entityType: selectedEntity && rootEntityType,
+      entityType,
+      expression: activeTab === 'multiple' ? `this.${rootEntityType}s` : '',
       entityName: selectedEntity,
       useCallCache: true
     }).then(
