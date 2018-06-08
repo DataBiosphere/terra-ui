@@ -102,5 +102,5 @@ export const getAuthToken = () => {
 
 export const signOut = () => {
   getAuthInstance().signOut()
-  StateHistory.clear()
+  StateHistory.clearAll()
 }

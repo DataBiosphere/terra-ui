@@ -4,7 +4,9 @@ export const get = () => window.history.state || {}
 
 export const update = newState => { set({ ...get(), ...newState }) }
 
-export const clear = () => {
+export const clearCurrent = () => set({})
+
+export const clearAll = () => {
   window.history.go(-window.history.length)
   window.history.pushState({}, '')
 }

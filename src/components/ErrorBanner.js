@@ -1,5 +1,6 @@
 import { div, h } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
+import { buttonPrimary } from 'src/components/common'
 import ErrorView from 'src/components/ErrorView'
 import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
@@ -56,7 +57,9 @@ class ErrorBanner extends Component {
         width: 800,
         title,
         showCancel: false,
-        onDismiss: () => this.setState({ modal: false })
+        showX: true,
+        onDismiss: () => this.setState({ modal: false }),
+        okButton: buttonPrimary({ onClick: () => clearError(true) }, 'Refresh')
       }, [
         h(ErrorView, { error, collapses: false })
       ])
