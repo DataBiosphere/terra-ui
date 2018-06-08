@@ -2,7 +2,6 @@ import _ from 'lodash/fp'
 import { Sam, Rawls, Leo } from 'src/libs/ajax'
 import * as Config from 'src/libs/config'
 import { reportError } from 'src/libs/error'
-import * as StateHistory from 'src/libs/state-history'
 import * as Utils from 'src/libs/utils'
 
 
@@ -102,5 +101,4 @@ export const getAuthToken = () => {
 
 export const signOut = () => {
   getAuthInstance().signOut()
-  StateHistory.clearAll()
 }
