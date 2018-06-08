@@ -1,10 +1,11 @@
 import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
+import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
-import { DataTable } from 'src/components/table'
+import { GridTable, TextCell, paginator } from 'src/components/table'
 import { Rawls } from 'src/libs/ajax'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
@@ -56,8 +57,47 @@ class WorkspaceData extends Component {
     this.refresh()
   }
 
+  renderEntityTable() {
+    const { selectedEntityType, selectedEntities, entityMetadata, totalRowCount, pageNumber, itemsPerPage } = this.state
+    return selectedEntities ? h(Fragment, [
+      h(AutoSizer, { disableHeight: true }, [
+        ({ width }) => {
+          return h(GridTable, {
+            width, height: 500,
+            rowCount: selectedEntities.length,
+            columns: [
+              {
+                width: 150,
+                headerRenderer: () => h(TextCell, `${selectedEntityType}_id`),
+                cellRenderer: ({ rowIndex }) => h(TextCell, selectedEntities[rowIndex].name)
+              },
+              ..._.map(name => ({
+                width: 300,
+                headerRenderer: () => h(TextCell, name),
+                cellRenderer: ({ rowIndex }) => {
+                  return h(TextCell, [
+                    Utils.entityAttributeText(selectedEntities[rowIndex].attributes[name])
+                  ])
+                }
+              }), entityMetadata[selectedEntityType].attributeNames)
+            ]
+          })
+        }
+      ]),
+      div({ style: { marginTop: '1rem' } }, [
+        paginator({
+          filteredDataLength: totalRowCount,
+          pageNumber,
+          setPageNumber: v => this.setState({ pageNumber: v }),
+          itemsPerPage,
+          setItemsPerPage: v => this.setState({ itemsPerPage: v })
+        })
+      ])
+    ]) : spinnerOverlay
+  }
+
   render() {
-    const { selectedEntityType, selectedEntities, entityMetadata, totalRowCount } = this.state
+    const { selectedEntityType, entityMetadata } = this.state
     const { namespace, name } = this.props
 
     const entityTypeList = () => _.map(([type, typeDetails]) =>
@@ -76,35 +116,6 @@ class WorkspaceData extends Component {
         `${type} (${typeDetails.count})`
       ]),
     _.toPairs(entityMetadata))
-
-    const entityTable = () => h(Fragment, [
-      selectedEntities ? h(DataTable, {
-        defaultItemsPerPage: this.state.itemsPerPage,
-        onItemsPerPageChanged: itemsPerPage => this.setState({ itemsPerPage }),
-        initialPage: this.state.pageNumber,
-        onPageChanged: pageNumber => this.setState({ pageNumber }),
-        totalRowCount,
-        dataSource: selectedEntities,
-        tableProps: {
-          rowKey: 'name',
-          scroll: { x: true },
-          columns: _.concat([
-            {
-              title: selectedEntityType + '_id',
-              key: selectedEntityType + '_id',
-              render: entity => entity.name
-            }
-          ], _.map(name => {
-            return {
-              title: name,
-              key: name,
-              render: entity => entity.attributes[name]
-            }
-          }, entityMetadata[selectedEntityType]['attributeNames']))
-        }
-      }) : spinnerOverlay
-    ])
-
 
     return h(WorkspaceContainer,
       {
@@ -146,7 +157,7 @@ class WorkspaceData extends Component {
                     textAlign: selectedEntityType ? undefined : 'center'
                   }
                 },
-                [selectedEntityType ? entityTable() : 'Select a data type.']
+                [selectedEntityType ? this.renderEntityTable() : 'Select a data type.']
               )
             ])
           )
