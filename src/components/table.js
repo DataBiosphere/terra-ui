@@ -307,8 +307,16 @@ const styles = {
 /**
  * A virtual table with a fixed header and flexible column widths. Intended to take up the full
  * available container width, without horizontal scrolling.
+ * @param {Object[]} columns
+ * @param {Object} [columns[].size]
+ * @param {number} [columns[].size.basis=0] - flex-basis in pixels
+ * @param {number} [columns[].size.grow=1] - flex-grow
+ * @param {number} [columns[].size.shrink=1] - flex-shrink
+ * @param {number} [columns[].size.min=0] - min-width in pixels
+ * @param {number} [columns[].size.max] - max-width in pixels
+ * @param {function()} columns[].headerRenderer
+ * @param {function(Object)} columns[].cellRenderer
  */
-
 export class FlexTable extends Component {
   constructor(props) {
     super(props)
@@ -367,8 +375,11 @@ export class FlexTable extends Component {
 /**
  * A virtual table with a fixed header and explicit column widths. Intended for displaying large
  * datasets which may require horizontal scrolling.
+ * @param {Object[]} columns
+ * @param {number} columns[].width - width in pixels
+ * @param {function(Object)} columns[].headerRenderer
+ * @param {function(Object)} columns[].cellRenderer
  */
-
 export class GridTable extends Component {
   constructor(props) {
     super(props)
@@ -401,7 +412,7 @@ export class GridTable extends Component {
                 columns[data.columnIndex].headerRenderer(data)
               ])
             },
-            style: { outline: 'none', overflow: 'hidden' },
+            style: { outline: 'none', overflowX: 'hidden', overflowY: 'hidden' },
             scrollLeft,
             onScroll
           }),
