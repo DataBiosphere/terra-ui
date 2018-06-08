@@ -173,7 +173,10 @@ class WorkflowView extends Component {
     }
 
     StateHistory.update(_.pick(
-      ['config', 'entityTypes', 'inputsOutputs', 'invalid', 'modifiedAttributes', 'activeTab', 'wdl'],
+      [
+        'config', 'entityTypes', 'inputsOutputs', 'invalid', 'modified', 'modifiedAttributes',
+        'activeTab', 'wdl'
+      ],
       this.state)
     )
   }
