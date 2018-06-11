@@ -3,8 +3,9 @@ import { Fragment } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import { buttonPrimary, link, search } from 'src/components/common'
-import { spinner } from 'src/components/icons'
+import { centeredSpinner } from 'src/components/icons'
 import Modal from 'src/components/Modal'
+import TabBar from 'src/components/TabBar'
 import { GridTable, TextCell } from 'src/components/table'
 import { Rawls } from 'src/libs/ajax'
 import * as Style from 'src/libs/style'
@@ -16,12 +17,13 @@ export default class LaunchAnalysisModal extends Component {
   constructor(props) {
     super(props)
 
-    this.state = { filterText: '' }
+    this.state = { filterText: '', entityType: props.config.rootEntityType }
   }
 
   render() {
     const { onDismiss } = this.props
-    const { attributeNames, entities, attributeFailure, entityFailure, filterText, launching } = this.state
+    const { entityType, entityMetadata, entities, attributeFailure, entityFailure, filterText, launching } = this.state
+    const { attributeNames } = entityMetadata ? entityMetadata[entityType] : {}
 
     return h(Modal, {
       onDismiss,
@@ -52,34 +54,52 @@ export default class LaunchAnalysisModal extends Component {
       Utils.cond(
         [attributeNames && entities, () => this.renderMain()],
         [attributeFailure || entityFailure, () => this.renderError()],
-        () => spinner()
+        () => centeredSpinner()
       )
     ])
   }
 
   componentDidMount() {
-    const { workspaceId: { namespace, name }, config: { rootEntityType } } = this.props
+    const { workspaceId: { namespace, name } } = this.props
+    const { entityType } = this.state
 
     Rawls.workspace(namespace, name).entityMetadata().then(
-      entityMetadata => {
-        const { attributeNames, idName } = entityMetadata[rootEntityType]
-        this.setState({ attributeNames, idName })
-      },
+      entityMetadata => this.setState({ entityMetadata }),
       attributeFailure => this.setState({ attributeFailure })
     )
 
-    Rawls.workspace(namespace, name).entitiesOfType(rootEntityType).then(
-      entities => this.setState({ entities }),
+    this.loadEntitiesOfType(entityType)
+  }
+
+  loadEntitiesOfType(type) {
+    const { workspaceId: { namespace, name } } = this.props
+
+    Rawls.workspace(namespace, name).entitiesOfType(type).then(
+      entities => this.setState({ entities, loadingNew: false }),
       entityFailure => this.setState({ entityFailure })
     )
   }
 
   renderMain() {
-    const { entities, filterText, launchError, idName, attributeNames, selectedEntity } = this.state
+    const { rootEntityType } = this.props.config
+    const { entityType, loadingNew, entities, filterText, launchError, entityMetadata, selectedEntity } = this.state
+    const { attributeNames, idName } = entityMetadata ? entityMetadata[entityType] : {}
     const filteredEntities = _.filter(entity => entity.name.includes(filterText), entities)
 
     return h(Fragment, [
-      h(AutoSizer, { disableHeight: true }, [
+      !!entityMetadata[`${rootEntityType}_set`] && TabBar({
+        tabs: [
+          { title: _.capitalize(rootEntityType), key: rootEntityType },
+          { title: _.capitalize(rootEntityType) + ' Set', key: `${rootEntityType}_set` }
+        ],
+        activeTab: entityType,
+        onChangeTab: key => {
+          this.setState({ entityType: key, loadingNew: true })
+          this.loadEntitiesOfType(key)
+        },
+        style: { margin: '0 -1rem 1rem', padding: '0 1rem' }
+      }),
+      loadingNew ? centeredSpinner() : h(AutoSizer, { disableHeight: true }, [
         ({ width }) => {
           return h(GridTable, {
             width, height: 300,
@@ -133,12 +153,13 @@ export default class LaunchAnalysisModal extends Component {
       onSuccess
     } = this.props
 
-    const { selectedEntity } = this.state
+    const { selectedEntity, entityType } = this.state
 
     this.setState({ launching: true })
 
     Rawls.workspace(namespace, name).methodConfig(configNamespace, configName).launch({
-      entityType: selectedEntity && rootEntityType,
+      entityType,
+      expression: entityType !== rootEntityType ? `this.${rootEntityType}s` : '',
       entityName: selectedEntity,
       useCallCache: true
     }).then(
