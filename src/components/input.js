@@ -1,9 +1,11 @@
 import _ from 'lodash/fp'
 import { Component, Fragment } from 'react'
+import Autosuggest from 'react-autosuggest'
 import { div, h } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
 import { icon } from 'src/components/icons'
 import * as Style from 'src/libs/style'
+import * as Utils from 'src/libs/utils'
 
 
 export const textInput = function(props) {
@@ -103,4 +105,51 @@ export const validatedInput = props => {
     _.map(fail => div({ style: { marginTop: '0.5rem' } }, `${name} ${fail}`), errors)
     )
   ])
+}
+
+export class AutocompleteTextInput extends Component {
+  constructor(props) {
+    super(props)
+    this.state = { show: false }
+  }
+
+  render() {
+    const { value, onChange, suggestions, ...props } = this.props
+    const { show } = this.state
+    return h(Autosuggest, {
+      inputProps: { value, onChange: e => onChange(e.target.value) },
+      suggestions: show ? _.take(10, _.filter(Utils.textMatch(value), suggestions)) : [],
+      onSuggestionsFetchRequested: ({ reason }) => {
+        this.setState({ show: reason !== 'input-focused' })
+      },
+      onSuggestionsClearRequested: () => this.setState({ show: false }),
+      onSuggestionSelected: (e, { suggestionValue }) => onChange(suggestionValue),
+      getSuggestionValue: _.identity,
+      renderSuggestion: v => v,
+      renderInputComponent: inputProps => {
+        return textInput({ value, onChange, ...props, ...inputProps })
+      },
+      theme: {
+        container: {
+          position: 'relative',
+          width: '100%'
+        },
+        suggestionsContainer: {
+          position: 'absolute', left: 0, right: 0, zIndex: 1,
+          backgroundColor: 'white'
+        },
+        suggestionsList: {
+          margin: 0, padding: 0,
+          border: `1px solid ${Style.colors.border}`
+        },
+        suggestion: {
+          display: 'block', lineHeight: '2.25rem',
+          paddingLeft: '1rem', paddingRight: '1rem'
+        },
+        suggestionHighlighted: {
+          backgroundColor: Style.colors.highlightFaded
+        }
+      }
+    })
+  }
 }
