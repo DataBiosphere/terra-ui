@@ -13,7 +13,7 @@ const paginatorButton = (props, label) => button(_.merge({
   style: {
     margin: '0 2px', padding: '0.25rem 0.5rem',
     border: '1px solid #ccc', borderRadius: 3,
-    color: props.disabled ? Style.colors.disabled : Style.colors.primary,
+    color: props.disabled ? Style.colors.disabled : Style.colors.primary, backgroundColor: 'white',
     cursor: props.disabled ? 'not-allowed' : 'pointer'
   }
 }, props), label)
