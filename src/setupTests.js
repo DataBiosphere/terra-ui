@@ -9,6 +9,7 @@ configure({ adapter: new Adapter() })
 jest.mock('src/libs/ajax')
 jest.mock('src/libs/nav')
 jest.mock('src/libs/auth')
+jest.mock('src/libs/state-history')
 
 window.gapi = {
   load: () => {}
