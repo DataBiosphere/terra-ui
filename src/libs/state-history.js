@@ -37,13 +37,13 @@ export const set = newState => {
         console.error(error)
         return
       } else {
-        const oldest = _.flow(
+        const oldestKV = _.flow(
           _.mapValues(JSON.parse),
           _.toPairs,
           _.sortBy(p => p[1].timestamp),
           _.first
         )(sessionStorage)
-        sessionStorage.removeItem(oldest[0])
+        sessionStorage.removeItem(oldestKV[0])
       }
     }
   }
