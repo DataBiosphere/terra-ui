@@ -17,7 +17,7 @@ export default class LaunchAnalysisModal extends Component {
   constructor(props) {
     super(props)
 
-    this.state = { filterText: '', activeTab: 'single', entityType: props.config.rootEntityType }
+    this.state = { filterText: '', entityType: props.config.rootEntityType }
   }
 
   render() {
@@ -64,7 +64,7 @@ export default class LaunchAnalysisModal extends Component {
     const { entityType } = this.state
 
     Rawls.workspace(namespace, name).entityMetadata().then(
-      entityMetadata => this.setState({ entityMetadata, entitySetExists: !!entityMetadata[`${entityType}_set`] }),
+      entityMetadata => this.setState({ entityMetadata }),
       attributeFailure => this.setState({ attributeFailure })
     )
 
@@ -82,19 +82,20 @@ export default class LaunchAnalysisModal extends Component {
 
   renderMain() {
     const { rootEntityType } = this.props.config
-    const { entityType, entities, entitySetExists, filterText, launchError, entityMetadata, selectedEntity, activeTab } = this.state
+    const { entityType, entities, filterText, launchError, entityMetadata, selectedEntity } = this.state
     const { attributeNames, idName } = entityMetadata ? entityMetadata[entityType] : {}
     const filteredEntities = _.filter(entity => entity.name.includes(filterText), entities)
 
     return h(Fragment, [
-      entitySetExists && TabBar({
-        tabs: [{ title: _.capitalize(rootEntityType), key: 'single' }, { title: _.capitalize(rootEntityType + ' Set'), key: 'multiple' }],
-        activeTab,
+      !!entityMetadata[`${rootEntityType}_set`] && TabBar({
+        tabs: [
+          { title: _.capitalize(rootEntityType), key: rootEntityType },
+          { title: _.capitalize(rootEntityType) + ' Set', key: `${rootEntityType}_set` }
+        ],
+        activeTab: entityType,
         onChangeTab: key => {
-          const newEntityType = `${rootEntityType}${key === 'multiple' ? '_set' : ''}`
-
-          this.setState({ activeTab: key, entities: undefined, entityType: newEntityType })
-          this.loadEntitiesOfType(newEntityType)
+          this.setState({ entities: undefined, entityType: key })
+          this.loadEntitiesOfType(key)
         },
         style: {}
       }),
@@ -152,13 +153,13 @@ export default class LaunchAnalysisModal extends Component {
       onSuccess
     } = this.props
 
-    const { selectedEntity, entityType, activeTab } = this.state
+    const { selectedEntity, entityType } = this.state
 
     this.setState({ launching: true })
 
     Rawls.workspace(namespace, name).methodConfig(configNamespace, configName).launch({
       entityType,
-      expression: activeTab === 'multiple' ? `this.${rootEntityType}s` : '',
+      expression: entityType !== rootEntityType ? `this.${rootEntityType}s` : '',
       entityName: selectedEntity,
       useCallCache: true
     }).then(
