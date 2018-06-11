@@ -3,7 +3,7 @@ import { Fragment } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import { buttonPrimary, link, search } from 'src/components/common'
-import { spinner } from 'src/components/icons'
+import { centeredSpinner } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import TabBar from 'src/components/TabBar'
 import { GridTable, TextCell } from 'src/components/table'
@@ -54,7 +54,7 @@ export default class LaunchAnalysisModal extends Component {
       Utils.cond(
         [attributeNames && entities, () => this.renderMain()],
         [attributeFailure || entityFailure, () => this.renderError()],
-        () => spinner()
+        () => centeredSpinner()
       )
     ])
   }
@@ -75,14 +75,14 @@ export default class LaunchAnalysisModal extends Component {
     const { workspaceId: { namespace, name } } = this.props
 
     Rawls.workspace(namespace, name).entitiesOfType(type).then(
-      entities => this.setState({ entities }),
+      entities => this.setState({ entities, loadingNew: false }),
       entityFailure => this.setState({ entityFailure })
     )
   }
 
   renderMain() {
     const { rootEntityType } = this.props.config
-    const { entityType, entities, filterText, launchError, entityMetadata, selectedEntity } = this.state
+    const { entityType, loadingNew, entities, filterText, launchError, entityMetadata, selectedEntity } = this.state
     const { attributeNames, idName } = entityMetadata ? entityMetadata[entityType] : {}
     const filteredEntities = _.filter(entity => entity.name.includes(filterText), entities)
 
@@ -94,12 +94,12 @@ export default class LaunchAnalysisModal extends Component {
         ],
         activeTab: entityType,
         onChangeTab: key => {
-          this.setState({ entities: undefined, entityType: key })
+          this.setState({ entityType: key, loadingNew: true })
           this.loadEntitiesOfType(key)
         },
-        style: {}
+        style: { margin: '0 -1rem 1rem', padding: '0 1rem' }
       }),
-      h(AutoSizer, { disableHeight: true }, [
+      loadingNew ? centeredSpinner() : h(AutoSizer, { disableHeight: true }, [
         ({ width }) => {
           return h(GridTable, {
             width, height: 300,
