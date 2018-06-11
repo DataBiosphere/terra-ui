@@ -16,7 +16,7 @@ import { Component } from 'src/libs/wrapped-components'
 import WorkspaceContainer from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
 
-const filterState = _.pick(['pageNumber', 'itemsPerPage', 'selectedEntityType'])
+const filterState = _.pick(['pageNumber', 'itemsPerPage', 'selectedEntityType', 'selectedEntities'])
 
 class WorkspaceData extends Component {
   constructor(props) {
