@@ -196,7 +196,7 @@ class WorkspaceData extends Component {
         columns: [
           {
             size: { basis: 400, grow: 0 },
-            headerRenderer: () => 'Key',
+            headerRenderer: () => 'Name',
             cellRenderer: ({ rowIndex }) => h(TextCell, workspaceAttributes[rowIndex][0])
           },
           {
