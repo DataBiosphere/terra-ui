@@ -110,9 +110,9 @@ class WorkspaceData extends Component {
             ..._.map(([type, typeDetails]) =>
               div({
                 style: styles.dataTypeOption(selectedDataType === type),
-                onClick: () => {
+                onClick: selectedDataType !== type && (() => {
                   this.setState({ selectedDataType: type, entities: undefined, pageNumber: 1 })
-                }
+                })
               }, [
                 icon('table', { style: styles.dataTypeIcon }),
                 `${type} (${typeDetails.count})`
@@ -120,9 +120,9 @@ class WorkspaceData extends Component {
             _.toPairs(entityMetadata)),
             div({
               style: styles.dataTypeOption(selectedDataType === globalVariables),
-              onClick: () => {
-                this.setState({ selectedDataType: globalVariables, entities: undefined })
-              }
+              onClick: selectedDataType !== globalVariables && (() => {
+                this.setState({ selectedDataType: globalVariables, workspaceAttributes: undefined })
+              })
             }, [
               icon('world', { style: styles.dataTypeIcon }),
               'Global Variables'
@@ -190,23 +190,27 @@ class WorkspaceData extends Component {
   renderGlobalVariables() {
     const { workspaceAttributes } = this.state
 
-    return workspaceAttributes && h(AutoSizer, [
-      ({ width, height }) => h(FlexTable, {
-        width, height, rowCount: workspaceAttributes.length,
-        columns: [
-          {
-            size: { basis: 400, grow: 0 },
-            headerRenderer: () => 'Name',
-            cellRenderer: ({ rowIndex }) => h(TextCell, workspaceAttributes[rowIndex][0])
-          },
-          {
-            size: { grow: 1 },
-            headerRenderer: () => 'Value',
-            cellRenderer: ({ rowIndex }) => h(TextCell, workspaceAttributes[rowIndex][1])
-          }
-        ]
-      })
-    ])
+    return Utils.cond(
+      [!workspaceAttributes, () => undefined],
+      [_.isEmpty(workspaceAttributes), () => 'No Global Variables defined'],
+      () => h(AutoSizer, { disableHeight: true }, [
+        ({ width }) => h(FlexTable, {
+          width, height: 500, rowCount: workspaceAttributes.length,
+          columns: [
+            {
+              size: { basis: 400, grow: 0 },
+              headerRenderer: () => 'Name',
+              cellRenderer: ({ rowIndex }) => h(TextCell, workspaceAttributes[rowIndex][0])
+            },
+            {
+              size: { grow: 1 },
+              headerRenderer: () => 'Value',
+              cellRenderer: ({ rowIndex }) => h(TextCell, workspaceAttributes[rowIndex][1])
+            }
+          ]
+        })
+      ])
+    )
   }
 
   componentDidUpdate(prevProps, prevState) {
