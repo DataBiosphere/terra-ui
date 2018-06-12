@@ -299,7 +299,7 @@ export default class ClusterManager extends Component {
     const { jupyterUserScriptUri } = this.state
     this.executeAndRefresh(
       Leo.cluster(namespace, Utils.generateClusterName()).create({
-        labels: {},
+        labels: { 'saturnAutoCreated': 'true' },
         machineConfig: this.getMachineConfig(),
         ...(jupyterUserScriptUri ? { jupyterUserScriptUri } : {})
       }).then(() => {
