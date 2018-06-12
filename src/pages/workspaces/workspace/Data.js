@@ -56,6 +56,10 @@ class WorkspaceData extends Component {
     try {
       const entityMetadata = await Rawls.workspace(namespace, name).entityMetadata()
       this.setState({ entityMetadata })
+
+      if (this.state.selectedDataType) {
+        this.loadData()
+      }
     } catch (error) {
       reportError('Error loading workspace entity data', error)
     }
@@ -112,7 +116,7 @@ class WorkspaceData extends Component {
                 div({
                   style: styles.dataTypeOption(selectedDataType === type),
                   onClick: () => {
-                    this.setState({ selectedDataType: type, pageNumber: 1, refreshRequested: true })
+                    this.setState({ selectedDataType: type, pageNumber: 1, entities: undefined, refreshRequested: true })
                   }
                 }, [
                   icon('table', { style: styles.dataTypeIcon }),
@@ -124,7 +128,7 @@ class WorkspaceData extends Component {
                 marginBottom: '1rem', ...styles.dataTypeOption(selectedDataType === globalVariables)
               },
               onClick: () => {
-                this.setState({ selectedDataType: globalVariables, refreshRequested: true })
+                this.setState({ selectedDataType: globalVariables, workspaceAttributes: undefined, refreshRequested: true })
               }
             }, [
               icon('world', { style: styles.dataTypeIcon }),
