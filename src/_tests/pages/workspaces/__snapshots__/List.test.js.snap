@@ -371,6 +371,7 @@ Array [
                             onClick={[Function]}
                             style={
                                 Object {
+                                    "backgroundColor": "white",
                                     "border": "1px solid #ccc",
                                     "borderRadius": 3,
                                     "color": "#9b9b9b",
@@ -391,6 +392,7 @@ Array [
                             onClick={[Function]}
                             style={
                                 Object {
+                                    "backgroundColor": "white",
                                     "border": "1px solid #ccc",
                                     "borderRadius": 3,
                                     "color": "#9b9b9b",
@@ -428,6 +430,7 @@ Array [
                             onClick={[Function]}
                             style={
                                 Object {
+                                    "backgroundColor": "white",
                                     "border": "1px solid #ccc",
                                     "borderRadius": 3,
                                     "color": "#9b9b9b",
@@ -448,6 +451,7 @@ Array [
                             onClick={[Function]}
                             style={
                                 Object {
+                                    "backgroundColor": "white",
                                     "border": "1px solid #ccc",
                                     "borderRadius": 3,
                                     "color": "#9b9b9b",

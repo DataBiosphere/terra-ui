@@ -101,5 +101,6 @@ export const getAuthToken = () => {
 }
 
 export const signOut = () => {
+  sessionStorage.clear()
   getAuthInstance().signOut()
 }

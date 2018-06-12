@@ -263,13 +263,13 @@ export default class ClusterManager extends Component {
     clearInterval(this.interval)
   }
 
-  getActiveClusters() {
+  getActiveClustersOldestFirst() {
     const { clusters } = this.state
-    return _.remove({ status: 'Deleting' }, clusters)
+    return _.sortBy('createdDate', _.remove({ status: 'Deleting' }, clusters))
   }
 
   getCurrentCluster() {
-    return _.last(_.sortBy('createdDate', this.getActiveClusters()))
+    return _.last(this.getActiveClustersOldestFirst())
   }
 
   getMachineConfig() {
@@ -309,7 +309,7 @@ export default class ClusterManager extends Component {
   }
 
   destroyClusters(keepIndex) {
-    const activeClusters = this.getActiveClusters()
+    const activeClusters = this.getActiveClustersOldestFirst()
     this.executeAndRefresh(
       Promise.all(_.map(
         ({ googleProject, clusterName }) => Leo.cluster(googleProject, clusterName).delete(),
@@ -493,7 +493,7 @@ export default class ClusterManager extends Component {
 
   renderDropdown() {
     const { open } = this.state
-    const activeClusters = this.getActiveClusters()
+    const activeClusters = this.getActiveClustersOldestFirst()
     const creating = _.some({ status: 'Creating' }, activeClusters)
     const multiple = !creating && activeClusters.length > 1
     return h(DropdownBox, {

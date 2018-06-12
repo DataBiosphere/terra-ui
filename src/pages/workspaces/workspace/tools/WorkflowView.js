@@ -5,7 +5,7 @@ import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { buttonPrimary, buttonSecondary, link, spinnerOverlay, tooltip } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
-import { textInput } from 'src/components/input'
+import { AutocompleteTextInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import TabBar from 'src/components/TabBar'
 import { FlexTable, TextCell } from 'src/components/table'
@@ -58,9 +58,15 @@ class WorkflowView extends Component {
     this.state = {
       activeTab: 'inputs',
       saved: false,
-      modifiedAttributes: { inputs: {}, outputs: {} },
+      modifiedAttributes: {},
+      workspaceAttributes: undefined,
       ...StateHistory.get()
     }
+  }
+
+  getModifiedConfig() {
+    const { config, modifiedAttributes } = this.state
+    return _.merge(config, modifiedAttributes)
   }
 
   render() {
@@ -120,20 +126,25 @@ class WorkflowView extends Component {
     try {
       const workspace = Rawls.workspace(workspaceNamespace, workspaceName)
 
-      const entityTypes = _.map(
-        e => ({ value: e, label: e.replace('_', ' ') }),
-        _.keys(await workspace.entityMetadata())
-      )
+      const [entityMetadata, workspaceDetails, validationResponse, firecloudRoot] = await Promise.all([
+        workspace.entityMetadata(),
+        workspace.details(),
+        workspace.methodConfig(workflowNamespace, workflowName).validate(),
+        Config.getFirecloudUrlRoot()
+      ])
 
-      const validationResponse = await workspace.methodConfig(workflowNamespace, workflowName).validate()
       const { methodConfiguration: config } = validationResponse
       const ioDefinitions = await Rawls.methodConfigInputsOutputs(config)
 
       const inputsOutputs = this.createIOLists(validationResponse, ioDefinitions)
 
-      const firecloudRoot = await Config.getFirecloudUrlRoot()
-
-      this.setState({ isFreshData: true, config, entityTypes, inputsOutputs, ioDefinitions, firecloudRoot })
+      this.setState({
+        isFreshData: true, config, entityMetadata, inputsOutputs, ioDefinitions, firecloudRoot,
+        workspaceAttributes: _.flow(
+          _.without(['description']),
+          _.remove(s => s.includes(':'))
+        )(_.keys(workspaceDetails.workspace.attributes))
+      })
     } catch (error) {
       reportError('Error loading data', error)
     }
@@ -173,14 +184,15 @@ class WorkflowView extends Component {
     }
 
     StateHistory.update(_.pick(
-      ['config', 'entityTypes', 'inputsOutputs', 'invalid', 'modifiedAttributes', 'activeTab', 'wdl'],
+      ['config', 'entityMetadata', 'inputsOutputs', 'invalid', 'modifiedAttributes', 'activeTab', 'wdl'],
       this.state)
     )
   }
 
   renderSummary = invalidIO => {
-    const { modifiedAttributes, config, entityTypes, saving, saved, modified, activeTab } = this.state
-    const { name, methodConfigVersion, methodRepoMethod: { methodPath } } = config
+    const { entityMetadata, saving, saved, activeTab, modifiedAttributes } = this.state
+    const { name, methodConfigVersion, methodRepoMethod: { methodPath }, rootEntityType } = this.getModifiedConfig()
+    const modified = !_.isEmpty(modifiedAttributes)
 
     const noLaunchReason = Utils.cond(
       [invalidIO.inputs || invalidIO.outputs, () => 'Add your inputs and outputs to Launch Analysis'],
@@ -198,12 +210,11 @@ class WorkflowView extends Component {
             Select({
               clearable: false, searchable: false,
               wrapperStyle: { display: 'inline-block', width: 200, marginLeft: '0.5rem' },
-              value: modifiedAttributes.rootEntityType || config.rootEntityType,
-              onChange: rootEntityType => {
-                modifiedAttributes.rootEntityType = rootEntityType.value
-                this.setState({ modifiedAttributes, modified: true })
+              value: rootEntityType,
+              onChange: ({ value }) => {
+                this.setState(_.set(['modifiedAttributes', 'rootEntityType'], value))
               },
-              options: entityTypes
+              options: _.map(k => ({ value: k, label: _.startCase(k) }), _.keys(entityMetadata))
             })
           ])
         ]),
@@ -239,7 +250,12 @@ class WorkflowView extends Component {
   }
 
   renderIOTable = key => {
-    const { inputsOutputs: { [key]: data }, modifiedAttributes, config } = this.state
+    const { inputsOutputs: { [key]: data }, entityMetadata, workspaceAttributes } = this.state
+    const modifiedConfig = this.getModifiedConfig()
+    const suggestions = [
+      ..._.map(name => `this.${name}`, entityMetadata[modifiedConfig.rootEntityType].attributeNames),
+      ..._.map(name => `workspace.${name}`, workspaceAttributes)
+    ]
 
     return div({ style: { margin: `1rem ${sideMargin}` } }, [
       h(AutoSizer, { disableHeight: true }, [
@@ -275,20 +291,12 @@ class WorkflowView extends Component {
                 headerRenderer: () => headerCell('Attribute'),
                 cellRenderer: ({ rowIndex }) => {
                   const { name, optional, error } = data[rowIndex]
-                  let value = modifiedAttributes[key][name]
-                  if (value === undefined) {
-                    value = config[key][name]
-                  }
-
                   return div({ style: { display: 'flex', alignItems: 'center', width: '100%' } }, [
-                    textInput({
-                      name, value,
-                      type: 'search',
+                    h(AutocompleteTextInput, {
                       placeholder: optional ? 'Optional' : 'Required',
-                      onChange: e => {
-                        modifiedAttributes[key][name] = e.target.value
-                        this.setState({ modifiedAttributes, modified: true })
-                      }
+                      value: modifiedConfig[key][name] || '',
+                      onChange: v => this.setState(_.set(['modifiedAttributes', key, name], v)),
+                      suggestions
                     }),
                     error && tooltip({
                       component: icon('error', {
@@ -337,19 +345,18 @@ class WorkflowView extends Component {
 
   save = async () => {
     const { workspaceNamespace, workspaceName, workflowNamespace, workflowName } = this.props
-    const { config, modifiedAttributes } = this.state
 
     this.setState({ saving: true })
 
     try {
       const validationResponse = await Rawls.workspace(workspaceNamespace, workspaceName)
         .methodConfig(workflowNamespace, workflowName)
-        .save(_.merge(config, modifiedAttributes))
+        .save(this.getModifiedConfig())
       const inputsOutputs = this.createIOLists(validationResponse)
 
       this.setState({
-        saved: true, modified: false,
-        modifiedAttributes: { inputs: {}, outputs: {} },
+        saved: true,
+        modifiedAttributes: {},
         inputsOutputs,
         config: validationResponse.methodConfiguration
       })
@@ -361,7 +368,7 @@ class WorkflowView extends Component {
   }
 
   cancel = () => {
-    this.setState({ modified: false, saved: false, modifiedAttributes: { inputs: {}, outputs: {} } })
+    this.setState({ saved: false, modifiedAttributes: {} })
   }
 }
 
