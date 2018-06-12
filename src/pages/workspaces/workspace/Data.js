@@ -16,7 +16,7 @@ import { Component } from 'src/libs/wrapped-components'
 import WorkspaceContainer from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
 
-const filterState = _.pick(['pageNumber', 'itemsPerPage', 'selectedDataType', 'entities'])
+const filterState = _.pick(['pageNumber', 'itemsPerPage', 'selectedDataType'])
 
 const globalVariables = 'globalVariables'
 
@@ -50,17 +50,14 @@ class WorkspaceData extends Component {
     this.state = { itemsPerPage: 25, pageNumber: 1, loading: false, ...StateHistory.get() }
   }
 
-  refresh() {
+  async refresh() {
     const { namespace, name } = this.props
-    const { selectedDataType } = this.state
 
-    Rawls.workspace(namespace, name).entityMetadata().then(
-      entityMetadata => this.setState({ entityMetadata }),
-      error => reportError('Error loading workspace entity data', error)
-    )
-
-    if (selectedDataType) {
-      this.loadData()
+    try {
+      const entityMetadata = await Rawls.workspace(namespace, name).entityMetadata()
+      this.setState({ entityMetadata })
+    } catch (error) {
+      reportError('Error loading workspace entity data', error)
     }
   }
 
