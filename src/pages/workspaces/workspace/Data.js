@@ -18,7 +18,7 @@ import WorkspaceContainer from 'src/pages/workspaces/workspace/WorkspaceContaine
 
 const filterState = _.pick(['pageNumber', 'itemsPerPage', 'selectedDataType'])
 
-const globalVariables = 'globalVariables'
+const globalVariables = Symbol('globalVariables')
 
 const styles = {
   tableContainer: {
