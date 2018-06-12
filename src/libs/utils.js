@@ -147,3 +147,5 @@ export const entityAttributeText = value => {
     () => value
   )
 }
+
+export const textMatch = _.curry((needle, haystack) => haystack.indexOf(needle) !== -1)
