@@ -56,7 +56,7 @@ class WorkspaceData extends Component {
 
     Rawls.workspace(namespace, name).entityMetadata().then(
       entityMetadata => this.setState({ entityMetadata }),
-      error => reportError('Error loading workspace entities', error)
+      error => reportError('Error loading workspace entity data', error)
     )
 
     if (selectedDataType) {
@@ -69,18 +69,25 @@ class WorkspaceData extends Component {
     const { namespace, name } = this.props
     const { itemsPerPage, pageNumber, selectedDataType } = this.state
 
-    if (selectedDataType === globalVariables) {
-      console.log('TODO: load global variables')
-      return
-    }
-
     try {
       this.setState({ loading: true })
-      const { results, resultMetadata: { unfilteredCount } } =
-        await Rawls.workspace(namespace, name).paginatedEntitiesOfType(selectedDataType, { page: pageNumber, pageSize: itemsPerPage })
-      this.setState({ entities: results, totalRowCount: unfilteredCount })
+
+      if (selectedDataType === globalVariables) {
+        const { workspace: { attributes } } = await Rawls.workspace(namespace, name).details()
+        this.setState({
+          workspaceAttributes: _.flow(
+            _.toPairs,
+            _.remove(([key]) => key === 'description' || key.includes(':')),
+            _.fromPairs
+          )(attributes)
+        })
+      } else {
+        const { results, resultMetadata: { unfilteredCount } } =
+          await Rawls.workspace(namespace, name).paginatedEntitiesOfType(selectedDataType, { page: pageNumber, pageSize: itemsPerPage })
+        this.setState({ entities: results, totalRowCount: unfilteredCount })
+      }
     } catch (error) {
-      reportError('Error loading workspace entities', error)
+      reportError('Error loading workspace data', error)
     } finally {
       this.setState({ loading: false })
     }
@@ -88,50 +95,6 @@ class WorkspaceData extends Component {
 
   componentDidMount() {
     this.refresh()
-  }
-
-  renderDataTable() {
-    const { selectedDataType, entities, entityMetadata, totalRowCount, pageNumber, itemsPerPage } = this.state
-
-    if (selectedDataType === globalVariables) {
-      return 'TODO: show global variables here'
-    } else {
-      return entities && h(Fragment, [
-        h(AutoSizer, { disableHeight: true }, [
-          ({ width }) => {
-            return h(GridTable, {
-              width, height: 500,
-              rowCount: entities.length,
-              columns: [
-                {
-                  width: 150,
-                  headerRenderer: () => h(TextCell, `${selectedDataType}_id`),
-                  cellRenderer: ({ rowIndex }) => h(TextCell, entities[rowIndex].name)
-                },
-                ..._.map(name => ({
-                  width: 300,
-                  headerRenderer: () => h(TextCell, name),
-                  cellRenderer: ({ rowIndex }) => {
-                    return h(TextCell, [
-                      Utils.entityAttributeText(entities[rowIndex].attributes[name])
-                    ])
-                  }
-                }), entityMetadata[selectedDataType].attributeNames)
-              ]
-            })
-          }
-        ]),
-        div({ style: { marginTop: '1rem' } }, [
-          paginator({
-            filteredDataLength: totalRowCount,
-            pageNumber,
-            setPageNumber: v => this.setState({ pageNumber: v }),
-            itemsPerPage,
-            setItemsPerPage: v => this.setState({ itemsPerPage: v, pageNumber: 1 })
-          })
-        ])
-      ])
-    }
   }
 
   render() {
@@ -170,12 +133,68 @@ class WorkspaceData extends Component {
             ])
           ]),
           div({ style: styles.tableViewPanel(selectedDataType) }, [
-            selectedDataType ? this.renderDataTable() : 'Select a data type.',
+            selectedDataType ? this.renderData() : 'Select a data type.',
             loading && spinnerOverlay
           ])
         ])
       ])
     ])
+  }
+
+  renderData() {
+    const { selectedDataType } = this.state
+
+    if (selectedDataType === globalVariables) {
+      return this.renderGlobalVariables()
+    } else {
+      return this.renderEntityTable()
+    }
+  }
+
+  renderEntityTable() {
+    const { entities, selectedDataType, entityMetadata, totalRowCount, pageNumber, itemsPerPage } = this.state
+
+    return entities && h(Fragment, [
+      h(AutoSizer, { disableHeight: true }, [
+        ({ width }) => {
+          return h(GridTable, {
+            width, height: 500,
+            rowCount: entities.length,
+            columns: [
+              {
+                width: 150,
+                headerRenderer: () => h(TextCell, `${selectedDataType}_id`),
+                cellRenderer: ({ rowIndex }) => h(TextCell, entities[rowIndex].name)
+              },
+              ..._.map(name => ({
+                width: 300,
+                headerRenderer: () => h(TextCell, name),
+                cellRenderer: ({ rowIndex }) => {
+                  return h(TextCell, [
+                    Utils.entityAttributeText(entities[rowIndex].attributes[name])
+                  ])
+                }
+              }), entityMetadata[selectedDataType].attributeNames)
+            ]
+          })
+        }
+      ]),
+      div({ style: { marginTop: '1rem' } }, [
+        paginator({
+          filteredDataLength: totalRowCount,
+          pageNumber,
+          setPageNumber: v => this.setState({ pageNumber: v }),
+          itemsPerPage,
+          setItemsPerPage: v => this.setState({ itemsPerPage: v, pageNumber: 1 })
+        })
+      ])
+    ])
+  }
+
+  renderGlobalVariables() {
+    const { workspaceAttributes } = this.state
+
+    return JSON.stringify(workspaceAttributes)
   }
 
   componentDidUpdate(prevProps, prevState) {
