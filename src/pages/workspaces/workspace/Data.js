@@ -5,7 +5,7 @@ import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
-import { GridTable, TextCell, paginator } from 'src/components/table'
+import { FlexTable, GridTable, TextCell, paginator } from 'src/components/table'
 import { Rawls } from 'src/libs/ajax'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
@@ -77,8 +77,7 @@ class WorkspaceData extends Component {
         this.setState({
           workspaceAttributes: _.flow(
             _.toPairs,
-            _.remove(([key]) => key === 'description' || key.includes(':')),
-            _.fromPairs
+            _.remove(([key]) => key === 'description' || key.includes(':'))
           )(attributes)
         })
       } else {
@@ -194,7 +193,23 @@ class WorkspaceData extends Component {
   renderGlobalVariables() {
     const { workspaceAttributes } = this.state
 
-    return JSON.stringify(workspaceAttributes)
+    return workspaceAttributes && h(AutoSizer, [
+      ({ width, height }) => h(FlexTable, {
+        width, height, rowCount: workspaceAttributes.length,
+        columns: [
+          {
+            size: { basis: 400, grow: 0 },
+            headerRenderer: () => 'Key',
+            cellRenderer: ({ rowIndex }) => h(TextCell, workspaceAttributes[rowIndex][0])
+          },
+          {
+            size: { grow: 1 },
+            headerRenderer: () => 'Value',
+            cellRenderer: ({ rowIndex }) => h(TextCell, workspaceAttributes[rowIndex][1])
+          }
+        ]
+      })
+    ])
   }
 
   componentDidUpdate(prevProps, prevState) {
