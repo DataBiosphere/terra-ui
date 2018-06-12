@@ -118,8 +118,9 @@ class WorkspaceData extends Component {
                 `${type} (${typeDetails.count})`
               ]),
             _.toPairs(entityMetadata)),
+            div({ style: { borderBottom: `1px solid ${Style.colors.background}` } }),
             div({
-              style: styles.dataTypeOption(selectedDataType === globalVariables),
+              style: _.merge(styles.dataTypeOption(selectedDataType === globalVariables), { marginBottom: '1rem' }),
               onClick: selectedDataType !== globalVariables && (() => {
                 this.setState({ selectedDataType: globalVariables, workspaceAttributes: undefined })
               })
