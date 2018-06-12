@@ -294,7 +294,7 @@ class WorkflowView extends Component {
                   return div({ style: { display: 'flex', alignItems: 'center', width: '100%' } }, [
                     h(AutocompleteTextInput, {
                       placeholder: optional ? 'Optional' : 'Required',
-                      value: modifiedConfig[key][name],
+                      value: modifiedConfig[key][name] || '',
                       onChange: v => this.setState(_.set(['modifiedAttributes', key, name], v)),
                       suggestions
                     }),

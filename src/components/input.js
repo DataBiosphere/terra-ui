@@ -8,6 +8,20 @@ import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 
 
+const styles = {
+  suggestionsContainer: {
+    position: 'absolute', left: 0, right: 0, zIndex: 1,
+    maxHeight: 36 * 8 + 2, overflowY: 'auto',
+    backgroundColor: 'white',
+    border: `1px solid ${Style.colors.border}`
+  },
+  suggestion: {
+    display: 'block', lineHeight: '2.25rem',
+    paddingLeft: '1rem', paddingRight: '1rem',
+    cursor: 'pointer'
+  }
+}
+
 export const textInput = function(props) {
   return h(Interactive, _.mergeAll([
     {
@@ -118,37 +132,28 @@ export class AutocompleteTextInput extends Component {
     const { show } = this.state
     return h(Autosuggest, {
       inputProps: { value, onChange: e => onChange(e.target.value) },
-      suggestions: show ? _.take(10, _.filter(Utils.textMatch(value), suggestions)) : [],
-      onSuggestionsFetchRequested: ({ reason }) => {
-        this.setState({ show: reason !== 'input-focused' })
-      },
+      suggestions: show ? (value ? _.filter(Utils.textMatch(value), suggestions) : suggestions) : [],
+      onSuggestionsFetchRequested: () => this.setState({ show: true }),
       onSuggestionsClearRequested: () => this.setState({ show: false }),
       onSuggestionSelected: (e, { suggestionValue }) => onChange(suggestionValue),
       getSuggestionValue: _.identity,
+      shouldRenderSuggestions: () => true,
+      focusInputOnSuggestionClick: false,
+      renderSuggestionsContainer: ({ containerProps, children }) => {
+        return children && div({
+          ...containerProps,
+          style: styles.suggestionsContainer
+        }, [children])
+      },
       renderSuggestion: v => v,
       renderInputComponent: inputProps => {
-        return textInput({ value, onChange, ...props, ...inputProps })
+        return textInput({ value, onChange, ...props, ...inputProps, type: 'search' })
       },
       theme: {
-        container: {
-          position: 'relative',
-          width: '100%'
-        },
-        suggestionsContainer: {
-          position: 'absolute', left: 0, right: 0, zIndex: 1,
-          backgroundColor: 'white'
-        },
-        suggestionsList: {
-          margin: 0, padding: 0,
-          border: `1px solid ${Style.colors.border}`
-        },
-        suggestion: {
-          display: 'block', lineHeight: '2.25rem',
-          paddingLeft: '1rem', paddingRight: '1rem'
-        },
-        suggestionHighlighted: {
-          backgroundColor: Style.colors.highlightFaded
-        }
+        container: { position: 'relative', width: '100%' },
+        suggestionsList: { margin: 0, padding: 0 },
+        suggestion: styles.suggestion,
+        suggestionHighlighted: { backgroundColor: Style.colors.highlightFaded }
       }
     })
   }
