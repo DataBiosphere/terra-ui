@@ -67,7 +67,7 @@ class WorkspaceData extends Component {
     const { itemsPerPage, pageNumber, selectedDataType } = this.state
 
     try {
-      this.setState({ loading: true })
+      this.setState({ loading: true, refreshRequested: false })
 
       if (selectedDataType === globalVariables) {
         const { workspace: { attributes } } = await Rawls.workspace(namespace, name).details()
@@ -107,23 +107,25 @@ class WorkspaceData extends Component {
         !entityMetadata ? spinnerOverlay : h(Fragment, [
           div({ style: styles.dataTypeSelectionPanel }, [
             div({ style: styles.dataModelHeading }, 'Data Model'),
-            ..._.map(([type, typeDetails]) =>
-              div({
-                style: styles.dataTypeOption(selectedDataType === type),
-                onClick: selectedDataType !== type && (() => {
-                  this.setState({ selectedDataType: type, entities: undefined, pageNumber: 1 })
-                })
-              }, [
-                icon('table', { style: styles.dataTypeIcon }),
-                `${type} (${typeDetails.count})`
-              ]),
-            _.toPairs(entityMetadata)),
-            div({ style: { borderBottom: `1px solid ${Style.colors.background}` } }),
+            !_.isEmpty(entityMetadata) && div({ style: { borderBottom: `1px solid ${Style.colors.background}` } },
+              _.map(([type, typeDetails]) =>
+                div({
+                  style: styles.dataTypeOption(selectedDataType === type),
+                  onClick: () => {
+                    this.setState({ selectedDataType: type, pageNumber: 1, refreshRequested: true })
+                  }
+                }, [
+                  icon('table', { style: styles.dataTypeIcon }),
+                  `${type} (${typeDetails.count})`
+                ]),
+              _.toPairs(entityMetadata))),
             div({
-              style: _.merge(styles.dataTypeOption(selectedDataType === globalVariables), { marginBottom: '1rem' }),
-              onClick: selectedDataType !== globalVariables && (() => {
-                this.setState({ selectedDataType: globalVariables, workspaceAttributes: undefined })
-              })
+              style: {
+                marginBottom: '1rem', ...styles.dataTypeOption(selectedDataType === globalVariables)
+              },
+              onClick: () => {
+                this.setState({ selectedDataType: globalVariables, refreshRequested: true })
+              }
             }, [
               icon('world', { style: styles.dataTypeIcon }),
               'Global Variables'
@@ -216,11 +218,11 @@ class WorkspaceData extends Component {
 
   componentDidUpdate(prevProps, prevState) {
     StateHistory.update(_.pick(
-      ['entityMetadata', 'selectedDataType', 'entities', 'totalRowCount', 'itemsPerPage', 'pageNumber'],
+      ['entityMetadata', 'selectedDataType', 'entities', 'workspaceAttributes', 'totalRowCount', 'itemsPerPage', 'pageNumber'],
       this.state)
     )
 
-    if (!_.isEqual(filterState(prevState), filterState(this.state))) {
+    if (this.state.refreshRequested || !_.isEqual(filterState(prevState), filterState(this.state))) {
       this.loadData()
     }
   }
