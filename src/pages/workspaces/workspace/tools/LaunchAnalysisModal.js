@@ -159,7 +159,7 @@ export default class LaunchAnalysisModal extends Component {
 
     Rawls.workspace(namespace, name).methodConfig(configNamespace, configName).launch({
       entityType,
-      expression: entityType !== rootEntityType ? `this.${rootEntityType}s` : '',
+      expression: entityType !== rootEntityType ? `this.${rootEntityType}s` : undefined,
       entityName: selectedEntity,
       useCallCache: true
     }).then(
