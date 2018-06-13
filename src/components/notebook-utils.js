@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
-import { buttonPrimary } from 'src/components/common'
+import { buttonPrimary, Select } from 'src/components/common'
 import { centeredSpinner } from 'src/components/icons'
 import { validatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
@@ -9,7 +9,7 @@ import { Buckets } from 'src/libs/ajax'
 import { reportError } from 'src/libs/error'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import { Component, Select } from 'src/libs/wrapped-components'
+import { Component } from 'src/libs/wrapped-components'
 import validate from 'validate.js'
 
 

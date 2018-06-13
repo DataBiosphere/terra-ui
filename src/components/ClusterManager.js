@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import { PureComponent, Fragment } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
-import { buttonPrimary, buttonSecondary, LabeledCheckbox } from 'src/components/common'
+import { buttonPrimary, buttonSecondary, LabeledCheckbox, Select } from 'src/components/common'
 import DropdownBox from 'src/components/DropdownBox'
 import { icon } from 'src/components/icons'
 import { IntegerInput, textInput } from 'src/components/input'
@@ -11,7 +11,6 @@ import { getBasicProfile } from 'src/libs/auth'
 import { reportError } from 'src/libs/error'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import { Select } from 'src/libs/wrapped-components'
 
 
 const styles = {

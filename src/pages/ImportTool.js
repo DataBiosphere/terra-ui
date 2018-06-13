@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
-import { buttonPrimary, pageColumn } from 'src/components/common'
+import { buttonPrimary, pageColumn, Select } from 'src/components/common'
 import ErrorView from 'src/components/ErrorView'
 import { centeredSpinner, icon, spinner } from 'src/components/icons'
 import { TopBar } from 'src/components/TopBar'
@@ -12,7 +12,7 @@ import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import { Component, Select } from 'src/libs/wrapped-components'
+import { Component } from 'src/libs/wrapped-components'
 
 
 export class DestinationProject extends Component {
