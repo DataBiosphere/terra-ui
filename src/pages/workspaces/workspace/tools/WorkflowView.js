@@ -257,7 +257,7 @@ class WorkflowView extends Component {
       ..._.map(name => `workspace.${name}`, workspaceAttributes)
     ]
 
-    return div({ style: { margin: `1rem ${sideMargin}` } }, [
+    return div({ style: { margin: `1rem ${sideMargin} 10rem` } }, [
       h(AutoSizer, { disableHeight: true }, [
         ({ width }) => {
           return h(FlexTable, {
