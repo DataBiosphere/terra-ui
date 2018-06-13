@@ -1,5 +1,6 @@
 import _ from 'lodash/fp'
-import { Component, Fragment } from 'react'
+import { Component, Fragment, createRef } from 'react'
+import { createPortal } from 'react-dom'
 import Autosuggest from 'react-autosuggest'
 import { div, h } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
@@ -10,7 +11,7 @@ import * as Utils from 'src/libs/utils'
 
 const styles = {
   suggestionsContainer: {
-    position: 'absolute', left: 0, right: 0, zIndex: 1,
+    position: 'fixed',
     maxHeight: 36 * 8 + 2, overflowY: 'auto',
     backgroundColor: 'white',
     border: `1px solid ${Style.colors.border}`
@@ -121,16 +122,58 @@ export const validatedInput = props => {
   ])
 }
 
+class AutocompleteSuggestions extends Component {
+  constructor(props) {
+    super(props)
+    this.el = document.createElement('div')
+    this.state = { top: undefined, left: undefined, width: undefined }
+  }
+
+  componentDidMount() {
+    document.getElementById('modal-root').appendChild(this.el)
+    this.reposition()
+    this.interval = setInterval(() => this.reposition(), 200)
+  }
+
+  componentWillUnmount() {
+    document.getElementById('modal-root').removeChild(this.el)
+    clearInterval(this.interval)
+  }
+
+  reposition() {
+    const { containerRef } = this.props
+    const { top, left, width } = containerRef.current.getBoundingClientRect()
+    if (!_.isEqual({ top, left, width }, _.pick(['top', 'left', 'width'], this.state))) {
+      this.setState({ top, left, width })
+    }
+  }
+
+  render() {
+    const { containerProps, children } = this.props
+    const { top, left, width } = this.state
+    return createPortal(
+      div({
+        ...containerProps,
+        style: { ...styles.suggestionsContainer, top, left, width }
+      }, [children]),
+      this.el
+    )
+  }
+}
+
 export class AutocompleteTextInput extends Component {
   constructor(props) {
     super(props)
     this.state = { show: false }
+    this.containerRef = createRef()
+    this.id = _.uniqueId()
   }
 
   render() {
     const { value, onChange, suggestions, ...props } = this.props
     const { show } = this.state
     return h(Autosuggest, {
+      id: this.id,
       inputProps: { value, onChange: e => onChange(e.target.value) },
       suggestions: show ? (value ? _.filter(Utils.textMatch(value), suggestions) : suggestions) : [],
       onSuggestionsFetchRequested: () => this.setState({ show: true }),
@@ -140,17 +183,16 @@ export class AutocompleteTextInput extends Component {
       shouldRenderSuggestions: () => true,
       focusInputOnSuggestionClick: false,
       renderSuggestionsContainer: ({ containerProps, children }) => {
-        return children && div({
-          ...containerProps,
-          style: styles.suggestionsContainer
-        }, [children])
+        return div({ ref: this.containerRef }, [
+          children && h(AutocompleteSuggestions, { containerProps, children, containerRef: this.containerRef })
+        ])
       },
       renderSuggestion: v => v,
       renderInputComponent: inputProps => {
-        return textInput({ value, onChange, ...props, ...inputProps, type: 'search' })
+        return textInput({ ...props, ...inputProps, type: 'search' })
       },
       theme: {
-        container: { position: 'relative', width: '100%' },
+        container: { width: '100%' },
         suggestionsList: { margin: 0, padding: 0 },
         suggestion: styles.suggestion,
         suggestionHighlighted: { backgroundColor: Style.colors.highlightFaded }
