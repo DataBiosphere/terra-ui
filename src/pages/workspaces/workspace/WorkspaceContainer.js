@@ -1,7 +1,7 @@
-import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { a, div, h } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
+import { pure } from 'recompose'
 import ClusterManager from 'src/components/ClusterManager'
 import { contextBar, contextMenu } from 'src/components/common'
 import { icon } from 'src/components/icons'
@@ -9,42 +9,31 @@ import ShowOnClick from 'src/components/ShowOnClick'
 import { TopBar } from 'src/components/TopBar'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
-import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 
+
+const styles = {
+  tabContainer: {
+    paddingLeft: '5rem', borderBottom: `5px solid ${Style.colors.secondary}`,
+    textAlign: 'center', color: 'white', lineHeight: '3.75rem', textTransform: 'uppercase'
+  },
+  menuContainer: {
+    position: 'absolute', right: 0, lineHeight: 'initial', textAlign: 'initial',
+    color: 'initial', textTransform: 'initial', fontWeight: 300
+  },
+  tab: {
+    maxWidth: 140, flexGrow: 1, color: Style.colors.textFadedLight, textDecoration: 'none',
+    alignSelf: 'stretch', display: 'flex', justifyContent: 'center', alignItems: 'center'
+  },
+  activeTab: {
+    backgroundColor: 'rgba(255,255,255,0.15)', color: 'unset',
+    borderBottom: `4px solid ${Style.colors.secondary}`
+  }
+}
 
 const navSeparator = div({
   style: { background: 'rgba(255,255,255,0.15)', width: 1, height: '3rem', flexShrink: 0 }
 })
-
-const tabBaseStyle = {
-  maxWidth: 140, flexGrow: 1, color: Style.colors.textFadedLight, textDecoration: 'none',
-  alignSelf: 'stretch', display: 'flex', justifyContent: 'center', alignItems: 'center'
-}
-
-const tabActiveStyle = {
-  ...tabBaseStyle,
-  backgroundColor: 'rgba(255,255,255,0.15)', color: 'unset',
-  borderBottom: `4px solid ${Style.colors.secondary}`
-}
-
-const navTab = (tabName, { namespace, name, activeTab, refresh }) => {
-  const selected = tabName === activeTab
-
-  return h(Fragment, [
-    a({
-      style: selected ? tabActiveStyle : tabBaseStyle,
-      onClick: selected ? refresh : undefined, // Warning when passed 'false'
-      href: Utils.cond(
-        [tabName === 'dashboard', () => Nav.getLink('workspace', { namespace, name })],
-        // because not all tabs are implemented:
-        [_.includes(tabName, ['notebooks', 'data', 'tools']), () => Nav.getLink(`workspace-${tabName.toLowerCase()}`, { namespace, name })],
-        () => undefined
-      )
-    }, tabName),
-    navSeparator
-  ])
-}
 
 const navIconProps = {
   size: 22,
@@ -53,31 +42,32 @@ const navIconProps = {
 }
 
 
-const tabBar = props => contextBar(
-  {
-    style: {
-      paddingLeft: '5rem', borderBottom: `5px solid ${Style.colors.secondary}`,
-      textAlign: 'center', color: 'white', lineHeight: '3.75rem', textTransform: 'uppercase'
-    }
-  },
-  [
+const WorkspaceTabs = pure(({ namespace, name, activeTab, refresh }) => {
+  const navTab = ({ tabName, href }) => {
+    const selected = tabName === activeTab
+    return h(Fragment, [
+      a({
+        style: { ...styles.tab, ...(selected ? styles.activeTab : {}) },
+        onClick: selected ? refresh : undefined,
+        href
+      }, tabName),
+      navSeparator
+    ])
+  }
+  return contextBar({ style: styles.tabContainer }, [
     navSeparator,
-    navTab('dashboard', props), navTab('notebooks', props), navTab('data', props), navTab('jobs', props),
-    navTab('history', props), navTab('tools', props),
+    navTab({ tabName: 'dashboard', href: Nav.getLink('workspace', { namespace, name }) }),
+    navTab({ tabName: 'notebooks', href: Nav.getLink('workspace-notebooks', { namespace, name }) }),
+    navTab({ tabName: 'data', href: Nav.getLink('workspace-data', { namespace, name }) }),
+    navTab({ tabName: 'jobs' }),
+    navTab({ tabName: 'history' }),
+    navTab({ tabName: 'tools', href: Nav.getLink('workspace-tools', { namespace, name }) }),
     div({ style: { flexGrow: 1 } }),
-    h(Interactive,
-      _.merge({ as: icon('copy') }, navIconProps)),
+    h(Interactive, { ...navIconProps, as: icon('copy') }),
     h(ShowOnClick, {
-      button: h(Interactive,
-        _.merge({ as: icon('ellipsis-vertical') }, navIconProps))
-    },
-    [
-      div({
-        style: {
-          position: 'absolute', right: 0, lineHeight: 'initial', textAlign: 'initial',
-          color: 'initial', textTransform: 'initial', fontWeight: 300
-        }
-      }, [
+      button: h(Interactive, { ...navIconProps, as: icon('ellipsis-vertical') })
+    }, [
+      div({ style: styles.menuContainer }, [
         contextMenu([
           [{}, 'Share'],
           [{}, 'Publish'],
@@ -85,14 +75,13 @@ const tabBar = props => contextBar(
         ])
       ])
     ])
-  ]
-)
+  ])
+})
 
 
 export default class WorkspaceContainer extends Component {
   render() {
     const { namespace, name, breadcrumbs, title, activeTab, refresh } = this.props
-    const tabProps = { namespace, name, activeTab, refresh }
 
     return div({ style: { display: 'flex', flexDirection: 'column', height: '100%', flexGrow: 1 } }, [
       h(TopBar, { title: 'Projects' }, [
@@ -103,7 +92,7 @@ export default class WorkspaceContainer extends Component {
           ]),
         h(ClusterManager, { namespace })
       ]),
-      tabBar(tabProps),
+      h(WorkspaceTabs, { namespace, name, activeTab, refresh }),
       div({ style: { position: 'relative', flexGrow: 1 } }, [
         this.props.children
       ])
