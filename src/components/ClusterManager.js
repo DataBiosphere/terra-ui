@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { Component, Fragment } from 'react'
+import { PureComponent, Fragment } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
 import { buttonPrimary, buttonSecondary, LabeledCheckbox } from 'src/components/common'
@@ -216,7 +216,7 @@ const getUpdateIntervalMs = status => {
   }
 }
 
-export default class ClusterManager extends Component {
+export default class ClusterManager extends PureComponent {
   constructor(props) {
     super(props)
     this.state = {
