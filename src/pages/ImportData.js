@@ -4,6 +4,7 @@ import { pageColumn } from 'src/components/common'
 import { TopBar } from 'src/components/TopBar'
 import { DestinationProject } from 'src/pages/ImportTool'
 import { Orchestration } from 'src/libs/ajax'
+import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import { Component } from 'src/libs/wrapped-components'
 
@@ -40,7 +41,9 @@ class Importer extends Component {
 
     try {
       await Orchestration.workspaces(namespace, name).importBagit(url)
-      Nav.goToPath('workspace', { namespace, name, activeTab: 'data' })
+      Nav.goToPath('workspace-data', { namespace, name })
+    } catch (e) {
+      reportError('Import Error', e)
     } finally {
       this.setState({ isImporting: false })
     }

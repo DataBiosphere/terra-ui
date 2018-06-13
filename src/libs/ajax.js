@@ -340,10 +340,10 @@ export const Orchestration = {
   },
   workspaces: (namespace, name) => {
     return {
-      importBagit: bagitUrl => {
+      importBagit: bagitURL => {
         return fetchOrchestration(
           `/api/workspaces/${namespace}/${name}/importBagit`,
-          _.mergeAll([authOpts(), jsonBody({ bagitUrl, format: 'TSV' }), { method: 'POST' }])
+          _.mergeAll([authOpts(), jsonBody({ bagitURL, format: 'TSV' }), { method: 'POST' }])
         )
       }
     }
