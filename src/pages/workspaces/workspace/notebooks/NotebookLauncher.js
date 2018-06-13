@@ -3,11 +3,11 @@ import { Fragment } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { icon, spinner } from 'src/components/icons'
 import { TopBar } from 'src/components/TopBar'
-import { Rawls, Leo } from 'src/libs/ajax'
+import { Leo, Rawls } from 'src/libs/ajax'
 import { getBasicProfile } from 'src/libs/auth'
 import { reportError } from 'src/libs/error'
-import * as Style from 'src/libs/style'
 import * as Nav from 'src/libs/nav'
+import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 
@@ -37,6 +37,11 @@ const styles = {
 
 
 class NotebookLauncher extends Component {
+  constructor(props) {
+    super(props)
+    this.state = { localizeFailures: 0 }
+  }
+
   async componentDidMount() {
     try {
       const bucketName = await this.resolveBucketName()
@@ -48,6 +53,7 @@ class NotebookLauncher extends Component {
       window.location.href = `${cluster.clusterUrl}/notebooks/${workspaceName}/${notebookName}`
     } catch (error) {
       reportError('Error launching notebook', error)
+      this.setState({ failed: true })
     }
   }
 
@@ -94,19 +100,34 @@ class NotebookLauncher extends Component {
     const { bucketName } = this.state
     const { clusterName } = cluster
 
-    await Promise.all([
-      Leo.notebooks(namespace, clusterName).setCookie(),
-      Leo.notebooks(namespace, clusterName).localize({
-        [`~/${workspaceName}/.delocalize.json`]: `data:application/json,{"destination":"gs://${bucketName}/notebooks","pattern":""}`
-      })
-    ])
-    await Leo.notebooks(namespace, clusterName).localize({
-      [`~/${workspaceName}/${notebookName}`]: `gs://${bucketName}/notebooks/${notebookName}`
-    })
+    await Leo.notebooks(namespace, clusterName).setCookie()
+
+    while (true) {
+      try {
+        await Promise.all([
+          Leo.notebooks(namespace, clusterName).localize({
+            [`~/${workspaceName}/.delocalize.json`]: `data:application/json,{"destination":"gs://${bucketName}/notebooks","pattern":""}`
+          }),
+          Leo.notebooks(namespace, clusterName).localize({
+            [`~/${workspaceName}/${notebookName}`]: `gs://${bucketName}/notebooks/${notebookName}`
+          })
+        ])
+        return
+      } catch (e) {
+        const { localizeFailures } = this.state
+
+        if (localizeFailures < 5) {
+          this.setState({ localizeFailures: localizeFailures + 1 })
+          await wait(5000)
+        } else {
+          throw new Error('Unable to copy notebook to cluster')
+        }
+      }
+    }
   }
 
   render() {
-    const { bucketName, clusterStatus } = this.state
+    const { bucketName, clusterStatus, localizeFailures, failed } = this.state
 
     const currentStep = Utils.cond(
       [!bucketName, () => 0],
@@ -117,7 +138,7 @@ class NotebookLauncher extends Component {
     const step = (index, text) => div({ style: styles.step.container }, [
       div({ style: styles.step.col1 }, [
         index < currentStep && icon('check', { size: 24, style: { color: Style.colors.success } }),
-        index === currentStep && spinner()
+        index === currentStep && (failed ? icon('times', { size: 24, style: { color: Style.colors.error } }) : spinner())
       ]),
       div({ style: styles.step.col2 }, [text])
     ])
@@ -128,7 +149,9 @@ class NotebookLauncher extends Component {
         div({ style: Style.elements.sectionHeader }, 'Saturn is preparing your notebook'),
         step(0, 'Resolving Google bucket'),
         step(1, 'Waiting for cluster to start'),
-        step(2, 'Localizing notebook')
+        step(2, localizeFailures ?
+          `Error copying notebook to cluster, retry number ${localizeFailures}...` :
+          'Copying notebook to cluster')
       ])
     ])
   }
