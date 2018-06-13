@@ -84,7 +84,7 @@ export default class LaunchAnalysisModal extends Component {
     const { rootEntityType } = this.props.config
     const { entityType, loadingNew, entities, filterText, launchError, entityMetadata, selectedEntity } = this.state
     const { attributeNames, idName } = entityMetadata ? entityMetadata[entityType] : {}
-    const filteredEntities = _.filter(entity => entity.name.includes(filterText), entities)
+    const filteredEntities = _.filter(_.conformsTo({ name: Utils.textMatch(filterText) }), entities)
 
     return h(Fragment, [
       !!entityMetadata[`${rootEntityType}_set`] && TabBar({
