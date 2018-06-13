@@ -148,4 +148,6 @@ export const entityAttributeText = value => {
   )
 }
 
-export const textMatch = _.curry((needle, haystack) => haystack.indexOf(needle) !== -1)
+export const textMatch = _.curry((needle, haystack) => {
+  return haystack.toLowerCase().includes(needle.toLowerCase())
+})
