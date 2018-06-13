@@ -3,8 +3,10 @@ import { Fragment } from 'react'
 import { div, h, input } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
 import { StatefulToolTip } from 'react-portal-tooltip'
+import RSelect from 'react-select'
 import { centeredSpinner, icon } from 'src/components/icons'
 import * as Style from 'src/libs/style'
+import 'react-select/dist/react-select.css'
 
 
 export const link = function(props, children) {
@@ -163,3 +165,5 @@ export const spinnerOverlay = div(
     })
   ]
 )
+
+export const Select = RSelect
