@@ -17,7 +17,7 @@
     "react-app-rewired": "^1.5.2",
     "react-autosuggest": "^9.3.4",
     "react-dom": "^16.3.2",
-    "react-hot-loader": "^4.2.0",
+    "react-hot-loader": "^4.3.2",
     "react-hyperscript-helpers": "^1.2.0",
     "react-interactive": "^0.8.1",
     "react-onclickoutside": "^6.7.1",
