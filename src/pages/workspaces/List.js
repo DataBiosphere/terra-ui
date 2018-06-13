@@ -28,14 +28,16 @@ export class WorkspaceList extends Component {
   }
 
   getDataViewerProps() {
+    const { filter, workspaces } = this.state
     return {
       itemsPerPageOptions: [6, 12, 24, 36, 48],
       itemsPerPage: this.state.itemsPerPage,
       onItemsPerPageChanged: n => this.setState({ itemsPerPage: n }),
       pageNumber: this.state.pageNumber,
       onPageChanged: n => this.setState({ pageNumber: n }),
-      dataSource: this.state.workspaces.filter(({ workspace: { namespace, name } }) =>
-        `${namespace}/${name}`.includes(this.state.filter))
+      dataSource: _.filter(({ workspace: { namespace, name } }) => {
+        return Utils.textMatch(filter, `${namespace}/${name}`)
+      }, workspaces)
     }
   }
 
