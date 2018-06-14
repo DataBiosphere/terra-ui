@@ -15,6 +15,7 @@ import * as Notebooks from 'src/pages/workspaces/workspace/Notebooks'
 import * as NotebookLauncher from 'src/pages/workspaces/workspace/notebooks/NotebookLauncher'
 import * as Tools from 'src/pages/workspaces/workspace/Tools'
 import * as WorkflowView from 'src/pages/workspaces/workspace/tools/WorkflowView'
+import * as Workflows from 'src/pages/workspaces/workspace/Workflows'
 
 
 const initNavPaths = () => {
@@ -28,6 +29,7 @@ const initNavPaths = () => {
   Dashboard.addNavPaths()
   Data.addNavPaths()
   Notebooks.addNavPaths()
+  Workflows.addNavPaths()
   Tools.addNavPaths()
   NotebookLauncher.addNavPaths()
 }

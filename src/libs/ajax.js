@@ -211,6 +211,11 @@ export const Rawls = {
             return res.json()
           }
         }
+      },
+
+      listSubmissions: async () => {
+        const res = await fetchRawls(`${root}/submissions`, authOpts())
+        return res.json()
       }
     }
   },
