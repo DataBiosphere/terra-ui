@@ -207,7 +207,7 @@ class WorkflowView extends Component {
           methodPath && div(`Path: ${methodPath}`),
           div({ style: { textTransform: 'capitalize', display: 'flex', alignItems: 'baseline', marginTop: '0.5rem' } }, [
             'Data Type:',
-            Select({
+            h(Select, {
               clearable: false, searchable: false,
               wrapperStyle: { display: 'inline-block', width: 200, marginLeft: '0.5rem' },
               value: rootEntityType,
