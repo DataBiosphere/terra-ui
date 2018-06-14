@@ -110,7 +110,10 @@ class NotebookCard extends Component {
           () => h(NotebookDuplicator, {
             printName, namespace, bucketName, destroyOld: true,
             onDismiss: () => this.setState({ renamingNotebook: false }),
-            onSuccess: () => reloadList()
+            onSuccess: () => {
+              this.setState({ renamingNotebook: false })
+              reloadList()
+            }
           })
         ],
         [
@@ -118,7 +121,10 @@ class NotebookCard extends Component {
           () => h(NotebookDuplicator, {
             printName, namespace, bucketName, destroyOld: false,
             onDismiss: () => this.setState({ copyingNotebook: false }),
-            onSuccess: () => reloadList()
+            onSuccess: () => {
+              this.setState({ copyingNotebook: false })
+              reloadList()
+            }
           })
         ],
         [
@@ -126,7 +132,10 @@ class NotebookCard extends Component {
           () => h(NotebookDeleter, {
             printName, namespace, bucketName,
             onDismiss: () => this.setState({ deletingNotebook: false }),
-            onSuccess: () => reloadList()
+            onSuccess: () => {
+              this.setState({ deletingNotebook: false })
+              reloadList()
+            }
           })
         ],
         () => null)
@@ -143,11 +152,14 @@ class WorkspaceNotebooks extends Component {
   async refresh() {
     const { namespace, name } = this.props
     try {
+      this.setState({ loading: true })
       const { workspace: { bucketName } } = await Rawls.workspace(namespace, name).details()
       const notebooks = await Buckets.listNotebooks(namespace, bucketName)
-      this.setState({ bucketName, notebooks: _.reverse(_.sortBy('updated', notebooks)), isFreshData: true })
+      this.setState({ bucketName, notebooks: _.reverse(_.sortBy('updated', notebooks)) })
     } catch (error) {
       reportError('Error loading notebooks', error)
+    } finally {
+      this.setState({ loading: false })
     }
   }
 
@@ -168,15 +180,12 @@ class WorkspaceNotebooks extends Component {
   }
 
   render() {
-    const { isFreshData, bucketName, notebooks, listView } = this.state
+    const { loading, bucketName, notebooks, listView } = this.state
     const { namespace, name } = this.props
 
     return h(WorkspaceContainer,
       {
-        namespace, name, refresh: () => {
-          this.setState({ isFreshData: false })
-          this.refresh()
-        },
+        namespace, name, refresh: () => this.refresh(),
         breadcrumbs: breadcrumbs.commonPaths.workspaceDashboard({ namespace, name }),
         title: 'Notebooks', activeTab: 'notebooks'
       },
@@ -213,7 +222,7 @@ class WorkspaceNotebooks extends Component {
             ]),
             this.renderNotebooks()
           ]),
-          !isFreshData && spinnerOverlay
+          loading && spinnerOverlay
         ])
       ]
     )
