@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { div, h } from 'react-hyperscript-helpers'
+import { div, h, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { centeredSpinner, icon } from 'src/components/icons'
@@ -19,6 +19,11 @@ const styles = {
   },
   submissionsTable: {
     flex: '1 1 auto'
+  },
+  table: {
+    deemphasized: {
+      color: Style.colors.textFaded
+    }
   },
   sidebar: {
     flex: '0 0 auto', margin: '0 6rem 0 4rem'
@@ -73,6 +78,7 @@ class Workflows extends Component {
   }
 
   renderSubmissions() {
+    const { namespace } = this.props
     const { submissions } = this.state
 
     return div({ style: styles.submissionsTable }, [
@@ -84,8 +90,19 @@ class Workflows extends Component {
               size: { grow: 1 },
               headerRenderer: () => 'Workflow',
               cellRenderer: ({ rowIndex }) => {
-                const { methodConfigurationNamespace, methodConfigurationName } = submissions[rowIndex]
-                return h(TextCell, `${methodConfigurationNamespace}/${methodConfigurationName}`)
+                const { methodConfigurationNamespace, methodConfigurationName, submitter } = submissions[rowIndex]
+                return div({}, [
+                  div({}, [
+                    methodConfigurationNamespace !== namespace && span({ style: styles.table.deemphasized }, [
+                      `${methodConfigurationNamespace}/`
+                    ]),
+                    methodConfigurationName
+                  ]),
+                  div({}, [
+                    span({ style: styles.table.deemphasized }, 'Submitted by '),
+                    submitter
+                  ])
+                ])
               }
             },
             {
@@ -120,8 +137,9 @@ class Workflows extends Component {
       _.toPairs
     )(submissions)
 
-    return !_.isEmpty(statuses) && div({ style: styles.sidebar }, [
+    return div({ style: styles.sidebar }, [
       div({ style: styles.workflowLabelsHeader }, ['Active Workflows']),
+      _.isEmpty(statuses) && 'None',
       ..._.map(
         ([status, count]) => div({ style: styles.workflowLabel }, [
           iconForStatus(status),
