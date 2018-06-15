@@ -96,13 +96,20 @@ export const Buckets = {
   notebook: (namespace, bucket, name) => {
     const bucketUrl = `storage/v1/b/${bucket}/o`
 
+    const copy = async newName => {
+      return fetchBuckets(
+        `${bucketUrl}/${nbName(name)}/copyTo/b/${bucket}/o/${nbName(newName)}`,
+        _.merge(authOpts(await Sam.token(namespace)), { method: 'POST' })
+      )
+    }
+    const doDelete = async () => {
+      return fetchBuckets(
+        `${bucketUrl}/${nbName(name)}`,
+        _.merge(authOpts(await Sam.token(namespace)), { method: 'DELETE' })
+      )
+    }
     return {
-      copy: async newName => {
-        return fetchBuckets(
-          `${bucketUrl}/${nbName(name)}/copyTo/b/${bucket}/o/${nbName(newName)}`,
-          _.merge(authOpts(await Sam.token(namespace)), { method: 'POST' })
-        )
-      },
+      copy,
 
       create: async contents => {
         return fetchBuckets(
@@ -114,16 +121,11 @@ export const Buckets = {
         )
       },
 
-      delete: async () => {
-        return fetchBuckets(
-          `${bucketUrl}/${nbName(name)}`,
-          _.merge(authOpts(await Sam.token(namespace)), { method: 'DELETE' })
-        )
-      },
+      delete: doDelete,
 
       rename: async newName => {
-        await this.copy(newName)
-        return this.delete()
+        await copy(newName)
+        return doDelete()
       }
     }
   }
