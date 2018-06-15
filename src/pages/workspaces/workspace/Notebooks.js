@@ -29,6 +29,7 @@ class NotebookCard extends Component {
       ref: instance => this.notebookMenu = instance,
       button: h(Interactive, {
         as: icon('ellipsis-vertical'), size: 18,
+        onClick: e => e.preventDefault(),
         style: { marginLeft: '1rem', cursor: 'pointer' }, focus: 'hover'
       })
     },

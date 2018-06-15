@@ -145,6 +145,16 @@ export const Rawls = {
     return res.json()
   },
 
+  createWorkspace: async body => {
+    const res = await fetchRawls('workspaces', _.mergeAll([authOpts(), jsonBody(body), { method: 'POST' }]))
+    return res.json()
+  },
+
+  listGroups: async () => {
+    const res = await fetchRawls('groups', authOpts())
+    return res.json()
+  },
+
   workspace: (namespace, name) => {
     const root = `workspaces/${namespace}/${name}`
     const mcPath = `${root}/methodconfigs`
@@ -211,6 +221,10 @@ export const Rawls = {
             return res.json()
           }
         }
+      },
+
+      delete: () => {
+        return fetchRawls(root, _.merge(authOpts(), { method: 'DELETE' }))
       }
     }
   },
