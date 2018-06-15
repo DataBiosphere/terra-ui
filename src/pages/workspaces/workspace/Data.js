@@ -163,7 +163,8 @@ class WorkspaceData extends Component {
 
     return entities && h(Fragment, [
       div({ style: { marginBottom: '1rem' } }, [
-        this.renderDownloadButton()
+        this.renderDownloadButton(),
+        this.renderCopyButton()
       ]),
       h(AutoSizer, { disableHeight: true }, [
         ({ width }) => {
@@ -219,6 +220,33 @@ class WorkspaceData extends Component {
         icon('download', { style: { marginRight: '0.5rem' } }),
         'Download'
       ])
+    ])
+  }
+
+  renderCopyButton() {
+    const { entities, selectedDataType, entityMetadata } = this.state
+
+    return buttonPrimary({
+      style: { marginLeft: '1rem' },
+      onClick: () => {
+        const attributeNames = entityMetadata[selectedDataType].attributeNames
+
+        const entityToRow = entity =>
+          _.join('\t', [
+            entity.name, ..._.map(
+              attribute => Utils.entityAttributeText(entity.attributes[attribute]),
+              attributeNames)
+          ])
+
+        const header = _.join('\t', [`${selectedDataType}_id`, ...attributeNames])
+
+        const str = _.join('\n', [header, ..._.map(entityToRow, entities)]) + '\n'
+
+        navigator.clipboard.writeText(str)
+      }
+    }, [
+      icon('copy-to-clipboard', { style: { marginRight: '0.5rem' } }),
+      'Copy to Clipboard'
     ])
   }
 
