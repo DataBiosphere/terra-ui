@@ -2,7 +2,8 @@ import _ from 'lodash/fp'
 import { div, h, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { centeredSpinner, icon } from 'src/components/icons'
+import { spinnerOverlay } from 'src/components/common'
+import { icon } from 'src/components/icons'
 import { FlexTable, TextCell } from 'src/components/table'
 import { Rawls } from 'src/libs/ajax'
 import { reportError } from 'src/libs/error'
@@ -18,7 +19,7 @@ const styles = {
     margin: '1rem', height: 500, display: 'flex'
   },
   submissionsTable: {
-    flex: '1 1 auto'
+    flex: 1
   },
   table: {
     deemphasized: {
@@ -53,11 +54,14 @@ class Workflows extends Component {
     const { namespace, name } = this.props
 
     try {
-      const submissions = _.reverse(_.sortBy('submissionDate', await Rawls.workspace(namespace, name).listSubmissions()))
+      this.setState({ loading: true })
+      const submissions = _.orderBy('submissionDate', 'desc', await Rawls.workspace(namespace, name).listSubmissions())
       this.setState({ submissions })
     } catch (error) {
       reportError('Error loading submissions list', error)
       this.setState({ submissions: [] })
+    } finally {
+      this.setState({ loading: false })
     }
   }
 
@@ -79,15 +83,15 @@ class Workflows extends Component {
 
   renderSubmissions() {
     const { namespace } = this.props
-    const { submissions } = this.state
+    const { submissions, loading } = this.state
 
     return div({ style: styles.submissionsTable }, [
-      !submissions ? centeredSpinner() : h(AutoSizer, [
+      loading && spinnerOverlay,
+      submissions && h(AutoSizer, [
         ({ width, height }) => h(FlexTable, {
           width, height, rowCount: submissions.length,
           columns: [
             {
-              size: { grow: 1 },
               headerRenderer: () => 'Workflow',
               cellRenderer: ({ rowIndex }) => {
                 const { methodConfigurationNamespace, methodConfigurationName, submitter } = submissions[rowIndex]
