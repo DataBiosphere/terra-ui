@@ -1,12 +1,14 @@
 import _ from 'lodash/fp'
 import { Fragment } from 'react'
-import { div, h } from 'react-hyperscript-helpers'
+import { div, form, h, input } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { spinnerOverlay } from 'src/components/common'
+import { buttonPrimary, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { FlexTable, GridTable, TextCell, paginator } from 'src/components/table'
 import { Rawls } from 'src/libs/ajax'
+import * as auth from 'src/libs/auth'
+import * as Config from 'src/libs/config'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
@@ -93,8 +95,10 @@ class WorkspaceData extends Component {
     }
   }
 
-  componentDidMount() {
+  async componentDidMount() {
     this.refresh()
+
+    this.setState({ orchestrationRoot: await Config.getOrchestrationUrlRoot() })
   }
 
   render() {
@@ -158,6 +162,9 @@ class WorkspaceData extends Component {
     const { entities, selectedDataType, entityMetadata, totalRowCount, pageNumber, itemsPerPage } = this.state
 
     return entities && h(Fragment, [
+      div({ style: { marginBottom: '1rem' } }, [
+        this.renderDownloadButton()
+      ]),
       h(AutoSizer, { disableHeight: true }, [
         ({ width }) => {
           return h(GridTable, {
@@ -190,6 +197,27 @@ class WorkspaceData extends Component {
           itemsPerPage,
           setItemsPerPage: v => this.setState({ itemsPerPage: v, pageNumber: 1 })
         })
+      ])
+    ])
+  }
+
+  renderDownloadButton() {
+    const { namespace, name } = this.props
+    const { selectedDataType, orchestrationRoot } = this.state
+
+    return form({
+      style: { display: 'inline' },
+      target: '_blank', method: 'POST',
+      action: `${orchestrationRoot}/cookie-authed/workspaces/${namespace}/${name}/entities/${selectedDataType}/tsv`
+    }, [
+      input({ type: 'hidden', name: 'FCtoken', value: auth.getAuthToken() }),
+      /*
+       * TODO: once column selection is implemented, add another hidden input with name: 'attributeNames' and
+       * value: comma-separated list of attribute names to support downloading only the selected columns
+       */
+      buttonPrimary({ type: 'submit' }, [
+        icon('download', { style: { marginRight: '0.5rem' } }),
+        'Download'
       ])
     ])
   }
