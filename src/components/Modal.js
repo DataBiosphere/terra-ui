@@ -53,7 +53,7 @@ export default class Modal extends Component {
     }, [
       div({
         style: {
-          width, borderRadius: 5,
+          width, borderRadius: 5, position: 'relative',
           padding: '1.5rem 1.25rem',
           backgroundColor: 'white', boxShadow: Style.modalShadow
         }

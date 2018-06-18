@@ -189,6 +189,48 @@ Array [
     <div
         style={
             Object {
+                "display": "flex",
+              }
+        }
+    >
+        <button
+            onBlur={[Function]}
+            onClick={[Function]}
+            onDragEnd={[Function]}
+            onDragStart={[Function]}
+            onFocus={[Function]}
+            onKeyDown={[Function]}
+            onKeyUp={[Function]}
+            onMouseDown={[Function]}
+            onMouseEnter={[Function]}
+            onMouseLeave={[Function]}
+            onMouseMove={[Function]}
+            onMouseUp={[Function]}
+            style={
+                Object {
+                    "backgroundColor": "#478eba",
+                    "border": "none",
+                    "borderRadius": 5,
+                    "color": "white",
+                    "cursor": "pointer",
+                    "fontSize": 14,
+                    "fontWeight": 500,
+                    "height": "2.25rem",
+                    "marginLeft": "auto",
+                    "outline": 0,
+                    "outlineOffset": 0,
+                    "padding": "0 1.5rem",
+                    "textTransform": "uppercase",
+                  }
+            }
+            tabIndex="0"
+        >
+            New project
+        </button>
+    </div>
+    <div
+        style={
+            Object {
                 "margin": "auto",
                 "maxWidth": 1000,
               }

@@ -31,7 +31,6 @@ export default class ShowOnClick extends Component {
       style: visible ? { position: 'relative', zIndex: 1 } : undefined,
       onClick: disabled ? undefined : e => {
         this.setState({ visible: true })
-        e.preventDefault()
         if (closeOnEsc) {
           window.addEventListener('keydown', this.listenForEscape)
         }
