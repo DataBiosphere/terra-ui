@@ -7,7 +7,7 @@ const getKey = () => {
   if (state && state.key) {
     return state.key
   } else {
-    const key = uuid()
+    const key = `state-history-${uuid()}`
     window.history.replaceState({ key }, '')
     return key
   }
@@ -38,9 +38,9 @@ export const set = newState => {
         return
       } else {
         const oldestKV = _.flow(
-          _.mapValues(JSON.parse),
           _.toPairs,
-          _.sortBy(p => p[1].timestamp),
+          _.filter(([k]) => _.startsWith('state-history-', k)),
+          _.sortBy(([k, v]) => JSON.parse(v).timestamp),
           _.first
         )(sessionStorage)
         sessionStorage.removeItem(oldestKV[0])
