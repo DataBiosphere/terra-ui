@@ -192,9 +192,9 @@ export class WorkspaceList extends Component {
         !isDataLoaded && spinnerOverlay
       ]),
       creatingNewWorkspace && h(NewWorkspaceModal, {
-        onCreate: () => {
+        onCreate: ({ namespace, name }) => {
           this.setState({ creatingNewWorkspace: false })
-          this.refresh()
+          Nav.goToPath('workspace', { namespace, name })
         },
         onDismiss: () => this.setState({ creatingNewWorkspace: false })
       })

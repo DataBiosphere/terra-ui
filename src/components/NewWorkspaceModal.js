@@ -84,7 +84,7 @@ export default class NewWorkspaceModal extends Component {
         authorizationDomain: group ? [{ membersGroupName: group }] : [],
         attributes: { description }
       })
-      onCreate()
+      onCreate({ namespace, name })
     } catch (error) {
       this.setState({ createError: JSON.parse(error).message, creating: false })
     }
