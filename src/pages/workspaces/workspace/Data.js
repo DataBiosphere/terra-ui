@@ -61,7 +61,7 @@ class WorkspaceData extends Component {
       this.setState({ entityMetadata })
 
       if (this.state.selectedDataType) {
-        this.loadData(true)
+        this.loadData()
       }
     } catch (error) {
       reportError('Error loading workspace entity data', error)
@@ -69,9 +69,9 @@ class WorkspaceData extends Component {
   }
 
 
-  async loadData(resetPageNumber) {
+  async loadData() {
     const { namespace, name } = this.props
-    const { itemsPerPage, selectedDataType } = this.state
+    const { itemsPerPage, pageNumber, selectedDataType } = this.state
 
     try {
       this.setState({ loading: true, refreshRequested: false })
@@ -85,10 +85,9 @@ class WorkspaceData extends Component {
           )(attributes)
         })
       } else {
-        const pageNumber = resetPageNumber ? 1 : this.state.pageNumber
         const { results, resultMetadata: { unfilteredCount } } =
           await Rawls.workspace(namespace, name).paginatedEntitiesOfType(selectedDataType, { page: pageNumber, pageSize: itemsPerPage })
-        this.setState({ entities: results, totalRowCount: unfilteredCount, pageNumber })
+        this.setState({ entities: results, totalRowCount: unfilteredCount })
       }
     } catch (error) {
       reportError('Error loading workspace data', error)
@@ -307,7 +306,7 @@ class WorkspaceData extends Component {
     }
 
     if (this.state.refreshRequested || !_.isEqual(filterState(prevState), filterState(this.state))) {
-      this.loadData(false)
+      this.loadData()
     }
   }
 }
