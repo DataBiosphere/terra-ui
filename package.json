@@ -8,6 +8,7 @@
     "history": "^4.7.2",
     "lodash": "^4.17.10",
     "path-to-regexp": "^2.2.1",
+    "pretty-bytes": "^5.1.0",
     "prismjs": "^1.14.0",
     "qs": "^6.5.2",
     "raw-loader": "^0.5.1",

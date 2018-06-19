@@ -5,6 +5,11 @@ import * as Style from 'src/libs/style'
 import { Component } from 'src/libs/wrapped-components'
 
 
+/**
+ * @param [boolean] defaultHidden
+ * @param title
+ * @param children
+ */
 export default class Collapse extends Component {
   constructor(props) {
     super(props)
@@ -12,7 +17,7 @@ export default class Collapse extends Component {
   }
 
   render() {
-    const { title, titleExpand } = this.props
+    const { title } = this.props
     const { visible } = this.state
 
     return div(_.omit(['defaultHidden', 'title', 'titleExpand'], this.props), [
@@ -25,8 +30,7 @@ export default class Collapse extends Component {
           [
             span({ style: { color: Style.colors.secondary } }, title),
             icon(visible ? 'angle down' : 'angle left', { style: { marginLeft: '0.25rem' } })
-          ]),
-        visible && titleExpand
+          ])
       ]),
       div({ style: { display: visible ? 'initial' : 'none' } },
         [this.props.children])

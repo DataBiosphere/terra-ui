@@ -60,7 +60,12 @@ const fetchOk = (...args) => {
 
 export const Sam = {
   token: Utils.memoizeWithTimeout(async namespace => {
-    const scopes = ['https://www.googleapis.com/auth/devstorage.full_control']
+    const scopes = [
+      // need profile and email to use with Orch
+      'https://www.googleapis.com/auth/userinfo.profile',
+      'https://www.googleapis.com/auth/userinfo.email',
+      'https://www.googleapis.com/auth/devstorage.full_control'
+    ]
     const res = await fetchOk(
       `${await Config.getSamUrlRoot()}/api/google/user/petServiceAccount/${namespace}/token`,
       _.mergeAll([authOpts(), jsonBody(scopes), { method: 'POST' }])
@@ -84,6 +89,20 @@ const fetchBuckets = (path, ...args) => fetchOk(`https://www.googleapis.com/${pa
 const nbName = name => encodeURIComponent(`notebooks/${name}.ipynb`)
 
 export const Buckets = {
+  getObject: async (bucket, object, namespace) => {
+    return await fetchOrchestration(`/api/storage/${bucket}/${object}`,
+      authOpts(await Sam.token(namespace))).then(
+      res => res.json()
+    )
+  },
+
+  getObjectPreview: async (bucket, object, namespace) => {
+    return await fetchBuckets(`storage/v1/b/${bucket}/o/${encodeURIComponent(object)}?alt=media`,
+      _.merge(authOpts(await Sam.token(namespace)), { headers: { range: 'bytes=20000' } })).then(
+      res => res.text()
+    )
+  },
+
   listNotebooks: async (namespace, name) => {
     const res = await fetchBuckets(
       `storage/v1/b/${name}/o?prefix=notebooks/`,
@@ -363,5 +382,14 @@ export const Orchestration = {
         )
       }
     }
+  }
+}
+
+
+export const Martha = {
+  call: async url => {
+    return fetchOk(await Config.getMarthaUrlRoot(),
+      _.merge(jsonBody({ url, pattern: 'gs://' }), { method: 'POST' })
+    ).then(res => res.text())
   }
 }

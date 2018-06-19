@@ -5,8 +5,9 @@ import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
-import { FlexTable, GridTable, TextCell, paginator } from 'src/components/table'
+import { FlexTable, GridTable, paginator, TextCell } from 'src/components/table'
 import { Rawls } from 'src/libs/ajax'
+import { renderDataCell } from 'src/libs/data-utils'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
@@ -18,7 +19,7 @@ import WorkspaceContainer from 'src/pages/workspaces/workspace/WorkspaceContaine
 
 const filterState = _.pick(['pageNumber', 'itemsPerPage', 'selectedDataType'])
 
-const globalVariables = Symbol('globalVariables')
+const globalVariables = 'globalVariables'
 
 const styles = {
   tableContainer: {
@@ -155,6 +156,7 @@ class WorkspaceData extends Component {
   }
 
   renderEntityTable() {
+    const { namespace } = this.props
     const { entities, selectedDataType, entityMetadata, totalRowCount, pageNumber, itemsPerPage } = this.state
 
     return entities && h(Fragment, [
@@ -167,17 +169,17 @@ class WorkspaceData extends Component {
               {
                 width: 150,
                 headerRenderer: () => h(TextCell, `${selectedDataType}_id`),
-                cellRenderer: ({ rowIndex }) => h(TextCell, entities[rowIndex].name)
+                cellRenderer: ({ rowIndex }) => renderDataCell(entities[rowIndex].name, namespace)
               },
               ..._.map(name => ({
                 width: 300,
                 headerRenderer: () => h(TextCell, name),
                 cellRenderer: ({ rowIndex }) => {
-                  return h(TextCell, [
-                    Utils.entityAttributeText(entities[rowIndex].attributes[name])
-                  ])
+                  return renderDataCell(
+                    Utils.entityAttributeText(entities[rowIndex].attributes[name]), namespace
+                  )
                 }
-              }), entityMetadata[selectedDataType].attributeNames)
+              }), entityMetadata[selectedDataType] ? entityMetadata[selectedDataType].attributeNames : [])
             ]
           })
         }
@@ -195,6 +197,7 @@ class WorkspaceData extends Component {
   }
 
   renderGlobalVariables() {
+    const { namespace } = this.props
     const { workspaceAttributes } = this.state
 
     return Utils.cond(
@@ -207,12 +210,12 @@ class WorkspaceData extends Component {
             {
               size: { basis: 400, grow: 0 },
               headerRenderer: () => 'Name',
-              cellRenderer: ({ rowIndex }) => h(TextCell, workspaceAttributes[rowIndex][0])
+              cellRenderer: ({ rowIndex }) => renderDataCell(workspaceAttributes[rowIndex][0], namespace)
             },
             {
               size: { grow: 1 },
               headerRenderer: () => 'Value',
-              cellRenderer: ({ rowIndex }) => h(TextCell, workspaceAttributes[rowIndex][1])
+              cellRenderer: ({ rowIndex }) => renderDataCell(workspaceAttributes[rowIndex][1], namespace)
             }
           ]
         })
