@@ -131,10 +131,10 @@ export const LabeledCheckbox = ({ checked, onChange, disabled, children, ...prop
 }
 
 export const tooltip =
-  ({ component, position = 'bottom', arrow = 'right', align = 'right', text, group = _.uniqueId(), ...props }) =>
+  ({ component, position = 'bottom', arrow = 'right', align = 'right', text, ...props }) =>
     h(StatefulToolTip, {
       parent: component,
-      position, arrow, align, group,
+      position, arrow, align,
       tooltipTimeout: 0,
       style: { style: { whiteSpace: 'nowrap', transition: 'none' }, arrowStyle: {} },
       ...props
