@@ -1,11 +1,11 @@
 import _ from 'lodash/fp'
 import { Component, Fragment } from 'react'
-import { div, h } from 'react-hyperscript-helpers'
+import { div, h, span } from 'react-hyperscript-helpers'
 import { buttonPrimary, link, Select, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { TextArea, validatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
-import ShowOnClick from 'src/components/ShowOnClick'
+import PopupTrigger from 'src/components/PopupTrigger'
 import { Rawls } from 'src/libs/ajax'
 import { reportError } from 'src/libs/error'
 import * as Style from 'src/libs/style'
@@ -33,15 +33,6 @@ const styles = {
   label: {
     marginTop: '1rem', marginBottom: '0.25rem',
     fontWeight: 500
-  },
-  popup: {
-    position: 'absolute',
-    width: 300,
-    fontWeight: 300,
-    backgroundColor: 'white',
-    border: `1px solid ${Style.colors.border}`,
-    padding: '1rem',
-    boxShadow: Style.standardShadow
   }
 }
 
@@ -144,17 +135,15 @@ export default class NewWorkspaceModal extends Component {
       }),
       div({ style: styles.label }, [
         'Authorization domain ',
-        h(ShowOnClick, {
-          button: icon('info-circle', {
-            style: { cursor: 'pointer', color: Style.colors.secondary },
-            class: 'is-solid'
-          }),
-          containerProps: { style: { display: 'inline-block' } }
-        }, [
-          div({ style: styles.popup }, [
+        h(PopupTrigger, {
+          content: div({ style: { padding: '0.5rem', width: 300 } }, [
             'Note: An authorization domain can only be set when creating a project. ',
             'Once set, it cannot be changed. ',
             link({ href: authDoc, target: '_blank' }, ['Read more about authorization domains'])
+          ])
+        }, [
+          span({ style: { cursor: 'pointer', color: Style.colors.secondary } }, [
+            icon('info-circle', { class: 'is-solid' })
           ])
         ])
       ]),

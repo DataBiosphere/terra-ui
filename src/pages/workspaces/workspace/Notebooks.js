@@ -6,7 +6,7 @@ import * as breadcrumbs from 'src/components/breadcrumbs'
 import { contextMenu, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { NotebookCreator, NotebookDeleter, NotebookDuplicator } from 'src/components/notebook-utils'
-import ShowOnClick from 'src/components/ShowOnClick'
+import PopupTrigger from 'src/components/PopupTrigger'
 import { Buckets, Rawls } from 'src/libs/ajax'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
@@ -23,29 +23,39 @@ class NotebookCard extends Component {
     const { renamingNotebook, copyingNotebook, deletingNotebook } = this.state
     const printName = name.slice(10, -6) // removes 'notebooks/' and the .ipynb suffix
 
-    const hideMenu = () => this.notebookMenu.setVisibility(false)
+    const hideMenu = () => this.notebookMenu.close()
 
-    const notebookMenu = h(ShowOnClick, {
+    const notebookMenu = h(PopupTrigger, {
       ref: instance => this.notebookMenu = instance,
-      button: h(Interactive, {
-        as: icon('ellipsis-vertical'), size: 18,
+      content: contextMenu([
+        {
+          children: 'Rename',
+          onClick: () => {
+            this.setState({ renamingNotebook: true })
+            hideMenu()
+          }
+        },
+        {
+          children: 'Duplicate',
+          onClick: () => {
+            this.setState({ copyingNotebook: true })
+            hideMenu()
+          }
+        },
+        {
+          children: 'Delete',
+          onClick: () => {
+            this.setState({ deletingNotebook: true })
+            hideMenu()
+          }
+        }
+      ])
+    }, [
+      h(Interactive, {
+        as: 'div',
         onClick: e => e.preventDefault(),
         style: { marginLeft: '1rem', cursor: 'pointer' }, focus: 'hover'
-      })
-    },
-    [
-      div({
-        style: _.merge({
-          position: 'absolute', top: 0, lineHeight: 'initial', textAlign: 'initial',
-          color: 'initial', textTransform: 'initial', fontWeight: 300
-        }, listView ? { right: '1rem' } : { left: '2rem' })
-      }, [
-        contextMenu([
-          [{ onClick: () => { this.setState({ renamingNotebook: true }, hideMenu) } }, 'Rename'], // hiding menu doesn't work when executed concurrently
-          [{ onClick: () => { this.setState({ copyingNotebook: true }, hideMenu) } }, 'Duplicate'],
-          [{ onClick: () => { this.setState({ deletingNotebook: true }, hideMenu) } }, 'Delete']
-        ])
-      ])
+      }, [icon('ellipsis-vertical', { size: 18 })])
     ])
 
     const jupyterIcon = icon('jupyterIcon', {
