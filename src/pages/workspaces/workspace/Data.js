@@ -1,4 +1,5 @@
 import _ from 'lodash/fp'
+import clipboard from 'clipboard-polyfill'
 import { Fragment } from 'react'
 import { div, form, h, input } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
@@ -251,7 +252,7 @@ class WorkspaceData extends Component {
 
             try {
               this.setState({ copying: true })
-              await navigator.clipboard.writeText(str)
+              await clipboard.writeText(str)
               this.setState({ copying: false, copied: true })
             } catch (error) {
               reportError('Error copying to clipboard', error)
