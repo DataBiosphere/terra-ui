@@ -5,7 +5,7 @@ import { pure } from 'recompose'
 import ClusterManager from 'src/components/ClusterManager'
 import { contextBar, contextMenu } from 'src/components/common'
 import { icon } from 'src/components/icons'
-import ShowOnClick from 'src/components/ShowOnClick'
+import PopupTrigger from 'src/components/PopupTrigger'
 import { TopBar } from 'src/components/TopBar'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
@@ -15,11 +15,7 @@ import { Component } from 'src/libs/wrapped-components'
 const styles = {
   tabContainer: {
     paddingLeft: '5rem', borderBottom: `5px solid ${Style.colors.secondary}`,
-    textAlign: 'center', color: 'white', lineHeight: '3.75rem', textTransform: 'uppercase'
-  },
-  menuContainer: {
-    position: 'absolute', right: 0, lineHeight: 'initial', textAlign: 'initial',
-    color: 'initial', textTransform: 'initial', fontWeight: 300
+    color: 'white', textTransform: 'uppercase'
   },
   tab: {
     maxWidth: 140, flexGrow: 1, color: Style.colors.textFadedLight, textDecoration: 'none',
@@ -36,7 +32,6 @@ const navSeparator = div({
 })
 
 const navIconProps = {
-  size: 22,
   style: { opacity: 0.65, marginRight: '1rem' },
   hover: { opacity: 1 }, focus: 'hover'
 }
@@ -63,17 +58,16 @@ const WorkspaceTabs = pure(({ namespace, name, activeTab, refresh }) => {
     navTab({ tabName: 'history' }),
     navTab({ tabName: 'tools', href: Nav.getLink('workspace-tools', { namespace, name }) }),
     div({ style: { flexGrow: 1 } }),
-    h(Interactive, { ...navIconProps, as: icon('copy') }),
-    h(ShowOnClick, {
-      button: h(Interactive, { ...navIconProps, as: icon('ellipsis-vertical') })
+    h(Interactive, { as: 'div', ...navIconProps }, [icon('copy', { size: 22 })]),
+    h(PopupTrigger, {
+      content: contextMenu([
+        { children: 'Share' },
+        { children: 'Publish' },
+        { children: 'Delete' }
+      ]),
+      position: 'bottom'
     }, [
-      div({ style: styles.menuContainer }, [
-        contextMenu([
-          [{}, 'Share'],
-          [{}, 'Publish'],
-          [{}, 'Delete']
-        ])
-      ])
+      h(Interactive, { as: 'div', ...navIconProps }, [icon('ellipsis-vertical', { size: 22 })])
     ])
   ])
 })

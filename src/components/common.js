@@ -82,21 +82,14 @@ export const contextBar = function(props, children) {
   children)
 }
 
-export const contextMenu = function(items) {
-  return div({
-    style: {
-      backgroundColor: 'white', minWidth: 125, border: '1px solid #ccc',
-      boxShadow: Style.standardShadow
-    }
-  },
-  _.map(([props, contents]) => h(Interactive,
-    _.merge({
+export const contextMenu = items => {
+  return div({ style: { minWidth: 125 } }, _.map(props => {
+    return h(Interactive, _.merge({
       as: 'div',
       style: { fontSize: 12, padding: '0.5rem 1.5rem' },
       hover: { backgroundColor: Style.colors.highlight, fontWeight: 500 }
-    }, props),
-    contents), items)
-  )
+    }, props))
+  }, items))
 }
 
 export const Checkbox = ({ checked, onChange, disabled, ...props }) => {
