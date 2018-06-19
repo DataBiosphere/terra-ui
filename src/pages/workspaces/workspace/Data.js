@@ -3,8 +3,8 @@ import { Fragment } from 'react'
 import { div, form, h, input } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { buttonPrimary, spinnerOverlay } from 'src/components/common'
-import { icon } from 'src/components/icons'
+import { buttonPrimary, spinnerOverlay, tooltip } from 'src/components/common'
+import { icon, spinner } from 'src/components/icons'
 import { FlexTable, GridTable, TextCell, paginator } from 'src/components/table'
 import { Rawls } from 'src/libs/ajax'
 import * as auth from 'src/libs/auth'
@@ -208,7 +208,7 @@ class WorkspaceData extends Component {
 
     return form({
       style: { display: 'inline' },
-      target: '_blank', method: 'POST',
+      method: 'POST',
       action: `${orchestrationRoot}/cookie-authed/workspaces/${namespace}/${name}/entities/${selectedDataType}/tsv`
     }, [
       input({ type: 'hidden', name: 'FCtoken', value: auth.getAuthToken() }),
@@ -216,37 +216,55 @@ class WorkspaceData extends Component {
        * TODO: once column selection is implemented, add another hidden input with name: 'attributeNames' and
        * value: comma-separated list of attribute names to support downloading only the selected columns
        */
-      buttonPrimary({ type: 'submit' }, [
-        icon('download', { style: { marginRight: '0.5rem' } }),
-        'Download'
-      ])
+      tooltip({
+        component: buttonPrimary({ type: 'submit' }, [
+          icon('download', { style: { marginRight: '0.5rem' } }),
+          'Download'
+        ]),
+        text: 'Download all data as a file',
+        arrow: 'center', align: 'center'
+      })
     ])
   }
 
   renderCopyButton() {
-    const { entities, selectedDataType, entityMetadata } = this.state
+    const { entities, selectedDataType, entityMetadata, copying, copied } = this.state
 
-    return buttonPrimary({
-      style: { marginLeft: '1rem' },
-      onClick: () => {
-        const attributeNames = entityMetadata[selectedDataType].attributeNames
+    return h(Fragment, [
+      tooltip({
+        component: buttonPrimary({
+          style: { margin: '0 1rem' },
+          onClick: async () => {
+            const attributeNames = entityMetadata[selectedDataType].attributeNames
 
-        const entityToRow = entity =>
-          _.join('\t', [
-            entity.name, ..._.map(
-              attribute => Utils.entityAttributeText(entity.attributes[attribute]),
-              attributeNames)
-          ])
+            const entityToRow = entity =>
+              _.join('\t', [
+                entity.name, ..._.map(
+                  attribute => Utils.entityAttributeText(entity.attributes[attribute]),
+                  attributeNames)
+              ])
 
-        const header = _.join('\t', [`${selectedDataType}_id`, ...attributeNames])
+            const header = _.join('\t', [`${selectedDataType}_id`, ...attributeNames])
 
-        const str = _.join('\n', [header, ..._.map(entityToRow, entities)]) + '\n'
+            const str = _.join('\n', [header, ..._.map(entityToRow, entities)]) + '\n'
 
-        navigator.clipboard.writeText(str)
-      }
-    }, [
-      icon('copy-to-clipboard', { style: { marginRight: '0.5rem' } }),
-      'Copy to Clipboard'
+            try {
+              this.setState({ copying: true })
+              await navigator.clipboard.writeText(str)
+              this.setState({ copying: false, copied: true })
+            } catch (error) {
+              reportError('Error copying to clipboard', error)
+            }
+          }
+        }, [
+          icon('copy-to-clipboard', { style: { marginRight: '0.5rem' } }),
+          'Copy to Clipboard'
+        ]),
+        text: 'Copy only the current page to the clipboard',
+        arrow: 'center', align: 'center', group: 'foo'
+      }),
+      copying && spinner(),
+      copied && 'Done!'
     ])
   }
 
@@ -281,6 +299,10 @@ class WorkspaceData extends Component {
       ['entityMetadata', 'selectedDataType', 'entities', 'workspaceAttributes', 'totalRowCount', 'itemsPerPage', 'pageNumber'],
       this.state)
     )
+
+    if (this.state.selectedDataType !== prevState.selectedDataType) {
+      this.setState({ copying: false, copied: false })
+    }
 
     if (this.state.refreshRequested || !_.isEqual(filterState(prevState), filterState(this.state))) {
       this.loadData()
