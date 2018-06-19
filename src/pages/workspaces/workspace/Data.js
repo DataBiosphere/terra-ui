@@ -217,7 +217,7 @@ class WorkspaceData extends Component {
        * value: comma-separated list of attribute names to support downloading only the selected columns
        */
       tooltip({
-        component: buttonPrimary({ type: 'submit' }, [
+        component: buttonPrimary({ type: 'submit', disabled: !orchestrationRoot }, [
           icon('download', { style: { marginRight: '0.5rem' } }),
           'Download'
         ]),
