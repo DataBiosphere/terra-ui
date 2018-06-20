@@ -41,11 +41,11 @@ export default class NewWorkspaceModal extends Component {
     super(props)
     this.state = {
       billingProjects: undefined,
-      groups: undefined,
+      allGroups: undefined,
       name: '',
       namespace: undefined,
       description: '',
-      group: undefined,
+      groups: [],
       nameModified: false,
       creating: false,
       createError: undefined
@@ -54,11 +54,11 @@ export default class NewWorkspaceModal extends Component {
 
   async componentDidMount() {
     try {
-      const [billingProjects, groups] = await Promise.all([
+      const [billingProjects, allGroups] = await Promise.all([
         Rawls.listBillingProjects(),
         Rawls.listGroups()
       ])
-      this.setState({ billingProjects, groups })
+      this.setState({ billingProjects, allGroups })
     } catch (error) {
       reportError('Error loading data', error)
     }
@@ -66,13 +66,13 @@ export default class NewWorkspaceModal extends Component {
 
   async create() {
     const { onCreate } = this.props
-    const { namespace, name, description, group } = this.state
+    const { namespace, name, description, groups } = this.state
     try {
       this.setState({ createError: undefined, creating: true })
       await Rawls.createWorkspace({
         namespace,
         name,
-        authorizationDomain: group ? [{ membersGroupName: group }] : [],
+        authorizationDomain: _.map(v => ({ membersGroupName: v }), groups),
         attributes: { description }
       })
       onCreate({ namespace, name })
@@ -83,7 +83,7 @@ export default class NewWorkspaceModal extends Component {
 
   render() {
     const { onDismiss } = this.props
-    const { namespace, name, billingProjects, groups, group, description, nameModified, creating, createError } = this.state
+    const { namespace, name, billingProjects, allGroups, groups, description, nameModified, creating, createError } = this.state
     const errors = validate({ namespace, name }, constraints, { fullMessages: false })
     return h(Modal, {
       title: 'Create a New Project',
@@ -149,12 +149,13 @@ export default class NewWorkspaceModal extends Component {
       ]),
       h(Select, {
         searchable: false,
-        placeholder: 'Select a group',
-        value: group,
-        onChange: data => this.setState({ group: data ? data.value : undefined }),
+        multi: true,
+        placeholder: 'Select groups',
+        value: groups,
+        onChange: data => this.setState({ groups: _.map('value', data) }),
         options: _.map(name => {
           return { label: name, value: name }
-        }, _.map('groupName', groups).sort())
+        }, _.map('groupName', allGroups).sort())
       }),
       createError && div({
         style: { marginTop: '1rem', color: Style.colors.error }
