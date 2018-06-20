@@ -141,21 +141,21 @@ export class UriViewer extends Component {
         }
       }, _.startsWith('gs://', originalUri) ? _.last(originalUri.split('/')) : originalUri),
       modalOpen && h(Modal, {
-          onDismiss: () => this.setState({ modalOpen: false }),
-          title: 'File Details',
-          showCancel: false,
-          okButton: 'Done'
-        },
-        Utils.cond([
-          uri, () => {
-            const fileName = _.last(uri.split('/'))
+        onDismiss: () => this.setState({ modalOpen: false }),
+        title: 'File Details',
+        showCancel: false,
+        okButton: 'Done'
+      },
+      Utils.cond([
+        uri, () => {
+          const fileName = _.last(uri.split('/'))
 
-            return [
-              els.cell([els.label('Filename'), els.data(fileName)]),
-              this.renderMetadata()
-            ]
-          }
-        ], () => ['Resolving DOS uri...', spinner()])
+          return [
+            els.cell([els.label('Filename'), els.data(fileName)]),
+            this.renderMetadata()
+          ]
+        }
+      ], () => ['Resolving DOS uri...', spinner()])
       )
     ])
   }
