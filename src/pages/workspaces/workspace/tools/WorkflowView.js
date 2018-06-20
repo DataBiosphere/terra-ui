@@ -252,8 +252,9 @@ class WorkflowView extends Component {
   renderIOTable = key => {
     const { inputsOutputs: { [key]: data }, entityMetadata, workspaceAttributes } = this.state
     const modifiedConfig = this.getModifiedConfig()
+    const { attributeNames } = entityMetadata[modifiedConfig.rootEntityType] || {}
     const suggestions = [
-      ..._.map(name => `this.${name}`, entityMetadata[modifiedConfig.rootEntityType].attributeNames),
+      ..._.map(name => `this.${name}`, attributeNames),
       ..._.map(name => `workspace.${name}`, workspaceAttributes)
     ]
 
