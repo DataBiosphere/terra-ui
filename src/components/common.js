@@ -137,7 +137,7 @@ export const pageColumn = function(title, flex, contents) {
   return div(
     { style: { flex, overflow: 'hidden', margin: '3rem' } },
     [
-      div({ style: { ...Style.elements.sectionHeader, fontWeight: 500, marginBottom: '1rem' } },
+      div({ style: { ...Style.elements.sectionHeader, marginBottom: '1rem' } },
         title
       ),
       contents
