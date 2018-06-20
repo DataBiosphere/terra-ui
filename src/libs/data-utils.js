@@ -1,21 +1,26 @@
-import _ from 'lodash/fp'
+import clipboard from 'clipboard-polyfill/build/clipboard-polyfill'
 import filesize from 'filesize'
+import _ from 'lodash/fp'
 import { Fragment } from 'react'
-import { code, div, h, pre } from 'react-hyperscript-helpers/lib/index'
+import { div, h, input, pre } from 'react-hyperscript-helpers/lib/index'
+import Interactive from 'react-interactive'
 import Collapse from 'src/components/Collapse'
-import { buttonPrimary, link } from 'src/components/common'
-import { spinner } from 'src/components/icons'
+import { buttonPrimary, link, tooltip } from 'src/components/common'
+import { icon, spinner } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import { TextCell } from 'src/components/table'
 import { Buckets, Martha } from 'src/libs/ajax'
+import * as Config from 'src/libs/config'
+import { reportError } from 'src/libs/error'
+import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 
 
-const styles = {
+const els = {
   cell: children => div({ style: { marginBottom: '0.5rem' } }, children),
-  label: text => div({}, text),
-  data: children => div({}, children)
+  label: text => div({ style: { fontWeight: 500 } }, text),
+  data: children => div({ style: { marginLeft: '2rem', marginTop: '0.5rem' } }, children)
 }
 
 const isFilePreviewable = name => /\.txt$/.test(name) || /\.[ct]sv$/.test(name) || /\.log/.test(name)
@@ -40,10 +45,13 @@ export class UriViewer extends Component {
     const { uri } = this.state
     const [bucket, object] = parseUri(uri)
 
-    this.setState({
-      metadata: await Buckets.getObject(bucket, object, googleProject),
-      preview: isFilePreviewable(uri) ? await Buckets.getObjectPreview(bucket, object, googleProject) : undefined
-    })
+    const [metadata, preview, firecloudApiUrl] = await Promise.all([
+      Buckets.getObject(bucket, object, googleProject),
+      isFilePreviewable(uri) ? Buckets.getObjectPreview(bucket, object, googleProject) : Promise.resolve(undefined),
+      Config.getOrchestrationUrlRoot()
+    ])
+
+    this.setState({ metadata, preview, firecloudApiUrl })
   }
 
   async resolveUri() {
@@ -56,9 +64,73 @@ export class UriViewer extends Component {
     this.getMetadata()
   }
 
+  renderMetadata() {
+    const { uri, metadata, preview, firecloudApiUrl, copying, copied } = this.state
+    const fileName = _.last(uri.split('/'))
+    const [bucket, object] = parseUri(uri)
+    const gsutilCommand = `gsutil cp ${uri} .`
+
+    return h(Fragment,
+      !metadata ? ['Loading metadata...', spinner()] :
+        [
+          els.cell(isFilePreviewable(fileName) ? [
+            els.label('Preview'),
+            preview ? pre({}, [preview]) :
+              div({}, ['Loading preview...', spinner()])
+          ] : [els.label(`File can't be previewed.`)]),
+          els.cell([els.label('File size'), els.data(filesize(metadata.size))]),
+          els.cell([
+            link({
+              target: 'blank',
+              href: `https://accounts.google.com/AccountChooser?continue=https://console.cloud.google.com/storage/browser/${bucket}`
+            }, ['View this file in the Google Cloud Storage Browser'])
+          ]),
+          els.cell([
+            buttonPrimary({
+              onClick: () => window.open(`${firecloudApiUrl}/cookie-authed/download/b/${bucket}/o/${object}`)
+            }, [`Download for ${formatPriceInDollars(metadata.estimatedCostUSD)}`])
+          ]),
+          els.cell([
+            els.label('Terminal download command'),
+            els.data([
+              div({ style: { display: 'flex' } }, [
+                input({
+                  readonly: '',
+                  value: gsutilCommand,
+                  style: { width: 'calc(100% - 3rem)', fontWeight: 300 }
+                }),
+                tooltip({
+                  component: h(Interactive, {
+                    as: icon(copied ? 'check' : 'copy-to-clipboard'),
+                    style: { margin: '0 1rem', color: copied ? Style.colors.success : Style.colors.primary },
+                    onClick: async () => {
+                      try {
+                        await clipboard.writeText(gsutilCommand)
+                        this.setState({ copied: true },
+                          () => setTimeout(() => this.setState({ copied: undefined }), 1500))
+                      } catch (error) {
+                        reportError('Error copying to clipboard', error)
+                      }
+                    }
+                  }),
+                  text: 'Copy to clipboard',
+                  arrow: 'center', align: 'center', group: 'bar'
+                })
+              ])
+            ])
+          ]),
+          h(Collapse, { title: 'More Information', defaultHidden: true }, [
+            els.cell([els.label('Created'), els.data(Utils.makePrettyDate(metadata.timeCreated))]),
+            els.cell([els.label('Updated'), els.data(Utils.makePrettyDate(metadata.updated))]),
+            els.cell([els.label('md5'), els.data(metadata.md5Hash)])
+          ])
+        ]
+    )
+  }
+
   render() {
     const { uri: originalUri } = this.props
-    const { uri, modalOpen, metadata, preview } = this.state
+    const { uri, modalOpen } = this.state
 
     return h(Fragment, [
       link({
@@ -73,43 +145,17 @@ export class UriViewer extends Component {
         showCancel: false,
         okButton: 'Done'
       },
-      [
-        div({ style: { width: 700 } },
-          Utils.cond([
-            uri, () => {
-              const fileName = _.last(uri.split('/'))
+      Utils.cond([
+        uri, () => {
+          const fileName = _.last(uri.split('/'))
 
-              return [
-                styles.cell([`Filename: ${fileName}`]),
-                h(Fragment, !metadata ? ['Loading metadata...', spinner()] :
-                  [
-                    styles.cell(isFilePreviewable(fileName) ? [
-                      'Preview',
-                      preview ? pre({}, [preview]) :
-                        div({}, ['Loading preview...', spinner()])
-                    ] : ['File can\'t be previewed.']),
-                    styles.cell([`File size: ${filesize(metadata.size)}`]),
-                    styles.cell([
-                      link({
-                        target: 'blank',
-                        href: `https://accounts.google.com/AccountChooser?continue=https://console.cloud.google.com/storage/browser/${parseUri(
-                          uri)[0]}`
-                      }, ['View this file in the Google Cloud Storage Browser'])
-                    ]),
-                    styles.cell([buttonPrimary({}, [`Download for ${formatPriceInDollars(metadata.estimatedCostUSD)}`])]),
-                    styles.cell(['gsutil download command: ', code({}, [`gsutil cp ${uri} .`])]),
-                    h(Collapse, { title: 'More Information', defaultHidden: true }, [
-                      styles.cell([`Created: ${Utils.makePrettyDate(metadata.timeCreated)}`]),
-                      styles.cell([`Updated: ${Utils.makePrettyDate(metadata.updated)}`]),
-                      styles.cell([`md5: ${metadata.md5Hash}`])
-                    ])
-                  ]
-                )
-              ]
-            }
-          ], () => ['Resolving DOS uri...', spinner()])
-        )
-      ])
+          return [
+            els.cell([els.label('Filename'), els.data(fileName)]),
+            this.renderMetadata()
+          ]
+        }
+      ], () => ['Resolving DOS uri...', spinner()])
+      )
     ])
   }
 }
