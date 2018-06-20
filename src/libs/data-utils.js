@@ -40,9 +40,8 @@ export class UriViewer extends Component {
     this.state = { uri: _.startsWith('gs://', uri) ? uri : undefined }
   }
 
-  async getMetadata() {
+  async getMetadata(uri) {
     const { googleProject } = this.props
-    const { uri } = this.state
     const [bucket, object] = parseUri(uri)
 
     const [metadata, preview, firecloudApiUrl] = await Promise.all([
@@ -58,14 +57,16 @@ export class UriViewer extends Component {
     const { uri } = this.props
 
     if (!_.startsWith('gs://', uri)) {
-      this.setState({ uri: await Martha.call(uri) })
+      const gsUri = await Martha.call(uri)
+      this.setState({ uri: gsUri })
+      this.getMetadata(gsUri)
+    } else {
+      this.getMetadata(uri)
     }
-
-    this.getMetadata()
   }
 
   renderMetadata() {
-    const { uri, metadata, preview, firecloudApiUrl, copying, copied } = this.state
+    const { uri, metadata, preview, firecloudApiUrl, copied } = this.state
     const fileName = _.last(uri.split('/'))
     const [bucket, object] = parseUri(uri)
     const gsutilCommand = `gsutil cp ${uri} .`
@@ -140,21 +141,21 @@ export class UriViewer extends Component {
         }
       }, _.startsWith('gs://', originalUri) ? _.last(originalUri.split('/')) : originalUri),
       modalOpen && h(Modal, {
-        onDismiss: () => this.setState({ modalOpen: false }),
-        title: 'File Details',
-        showCancel: false,
-        okButton: 'Done'
-      },
-      Utils.cond([
-        uri, () => {
-          const fileName = _.last(uri.split('/'))
+          onDismiss: () => this.setState({ modalOpen: false }),
+          title: 'File Details',
+          showCancel: false,
+          okButton: 'Done'
+        },
+        Utils.cond([
+          uri, () => {
+            const fileName = _.last(uri.split('/'))
 
-          return [
-            els.cell([els.label('Filename'), els.data(fileName)]),
-            this.renderMetadata()
-          ]
-        }
-      ], () => ['Resolving DOS uri...', spinner()])
+            return [
+              els.cell([els.label('Filename'), els.data(fileName)]),
+              this.renderMetadata()
+            ]
+          }
+        ], () => ['Resolving DOS uri...', spinner()])
       )
     ])
   }

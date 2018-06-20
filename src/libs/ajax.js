@@ -90,14 +90,14 @@ const nbName = name => encodeURIComponent(`notebooks/${name}.ipynb`)
 
 export const Buckets = {
   getObject: async (bucket, object, namespace) => {
-    return await fetchOrchestration(`/api/storage/${bucket}/${object}`,
+    return fetchOrchestration(`/api/storage/${bucket}/${object}`,
       authOpts(await Sam.token(namespace))).then(
       res => res.json()
     )
   },
 
   getObjectPreview: async (bucket, object, namespace) => {
-    return await fetchBuckets(`storage/v1/b/${bucket}/o/${encodeURIComponent(object)}?alt=media`,
+    return fetchBuckets(`storage/v1/b/${bucket}/o/${encodeURIComponent(object)}?alt=media`,
       _.merge(authOpts(await Sam.token(namespace)), { headers: { range: 'bytes=20000' } })).then(
       res => res.text()
     )
