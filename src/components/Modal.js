@@ -59,8 +59,8 @@ export default class Modal extends Component {
         }
       },
       [
-        title && div({ style: { display: 'flex', alignItems: 'baseline', fontSize: 18, marginBottom: '1rem' } }, [
-          title,
+        title && div({ style: { display: 'flex', alignItems: 'baseline', marginBottom: '1rem' } }, [
+          div({ style: { fontSize: 18, fontWeight: 500, color: Style.colors.title } }, [title]),
           ...titleExtras,
           showX && div({ style: { flex: 1 } }),
           showX && h(Interactive, {
