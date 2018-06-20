@@ -2,7 +2,7 @@ import clipboard from 'clipboard-polyfill/build/clipboard-polyfill'
 import filesize from 'filesize'
 import _ from 'lodash/fp'
 import { Fragment } from 'react'
-import { div, h, input, pre } from 'react-hyperscript-helpers/lib/index'
+import { div, h, input } from 'react-hyperscript-helpers/lib/index'
 import Interactive from 'react-interactive'
 import Collapse from 'src/components/Collapse'
 import { buttonPrimary, link, tooltip } from 'src/components/common'
@@ -76,7 +76,15 @@ export class UriViewer extends Component {
         [
           els.cell(isFilePreviewable(fileName) ? [
             els.label('Preview'),
-            preview ? pre({}, [preview]) :
+            preview ?
+              div({
+                style: {
+                  whiteSpace: 'pre-wrap', fontFamily: 'Menlo, monospace', fontSize: 12,
+                  overflowY: 'auto', maxHeight: 206,
+                  marginTop: '0.5rem', padding: '0.5rem',
+                  background: Style.colors.background, borderRadius: '0.2rem'
+                }
+              }, [preview]) :
               div({}, ['Loading preview...', spinner()])
           ] : [els.label(`File can't be previewed.`)]),
           els.cell([els.label('File size'), els.data(filesize(metadata.size))]),
@@ -98,12 +106,12 @@ export class UriViewer extends Component {
                 input({
                   readonly: '',
                   value: gsutilCommand,
-                  style: { width: 'calc(100% - 3rem)', fontWeight: 300 }
+                  style: { flexGrow: 1, fontWeight: 300, fontFamily: 'Menlo, monospace' }
                 }),
                 tooltip({
                   component: h(Interactive, {
                     as: icon(copied ? 'check' : 'copy-to-clipboard'),
-                    style: { margin: '0 1rem', color: copied ? Style.colors.success : Style.colors.primary },
+                    style: { margin: '0 1rem', color: copied ? Style.colors.success : Style.colors.secondary },
                     onClick: async () => {
                       try {
                         await clipboard.writeText(gsutilCommand)
@@ -120,8 +128,8 @@ export class UriViewer extends Component {
               ])
             ])
           ]),
-          h(Collapse, { title: 'More Information', defaultHidden: true }, [
-            els.cell([els.label('Created'), els.data(Utils.makePrettyDate(metadata.timeCreated))]),
+          h(Collapse, { title: 'More Information', defaultHidden: true, style: { marginTop: '2rem' } }, [
+            metadata.timeCreated && els.cell([els.label('Created'), els.data(Utils.makePrettyDate(metadata.timeCreated))]),
             els.cell([els.label('Updated'), els.data(Utils.makePrettyDate(metadata.updated))]),
             els.cell([els.label('md5'), els.data(metadata.md5Hash)])
           ])
