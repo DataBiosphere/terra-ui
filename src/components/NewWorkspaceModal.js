@@ -31,8 +31,8 @@ const constraints = {
 
 const styles = {
   label: {
-    marginTop: '1rem', marginBottom: '0.25rem',
-    fontWeight: 500
+    ...Style.elements.sectionHeader,
+    marginTop: '1rem', marginBottom: '0.25rem'
   }
 }
 
@@ -86,7 +86,7 @@ export default class NewWorkspaceModal extends Component {
     const { namespace, name, billingProjects, groups, group, description, nameModified, creating, createError } = this.state
     const errors = validate({ namespace, name }, constraints, { fullMessages: false })
     return h(Modal, {
-      title: 'Create new project',
+      title: 'Create a New Project',
       onDismiss,
       okButton: buttonPrimary({
         disabled: errors,
