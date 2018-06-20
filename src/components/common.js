@@ -123,14 +123,15 @@ export const LabeledCheckbox = ({ checked, onChange, disabled, children, ...prop
   ])
 }
 
-export const tooltip = ({ component, position = 'bottom', arrow = 'right', align = 'right', text, ...props }) =>
-  h(StatefulToolTip, {
-    parent: component,
-    position, arrow, align,
-    group: _.uniqueId(), tooltipTimeout: 0,
-    style: { style: { whiteSpace: 'nowrap', transition: 'none' }, arrowStyle: {} },
-    ...props
-  }, text)
+export const tooltip =
+  ({ component, position = 'bottom', arrow = 'right', align = 'right', text, ...props }) =>
+    h(StatefulToolTip, {
+      parent: component,
+      position, arrow, align,
+      tooltipTimeout: 0,
+      style: { style: { whiteSpace: 'nowrap', transition: 'none' }, arrowStyle: {} },
+      ...props
+    }, text)
 
 export const pageColumn = function(title, flex, contents) {
   return div(
