@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import prettyBytes from 'pretty-bytes'
+import filesize from 'filesize'
 import { Fragment } from 'react'
 import { code, div, h, pre } from 'react-hyperscript-helpers/lib/index'
 import Collapse from 'src/components/Collapse'
@@ -88,7 +88,7 @@ export class UriViewer extends Component {
                       preview ? pre({}, [preview]) :
                         div({}, ['Loading preview...', spinner()])
                     ] : ['File can\'t be previewed.']),
-                    styles.cell([`File size: ${prettyBytes(parseInt(metadata.size, 10))}`]),
+                    styles.cell([`File size: ${filesize(metadata.size)}`]),
                     styles.cell([
                       link({
                         target: 'blank',
