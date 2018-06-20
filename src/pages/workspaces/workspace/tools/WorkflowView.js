@@ -252,6 +252,7 @@ class WorkflowView extends Component {
   renderIOTable = key => {
     const { inputsOutputs: { [key]: data }, entityMetadata, workspaceAttributes } = this.state
     const modifiedConfig = this.getModifiedConfig()
+    // Sometimes we're getting totally empty metadata. Not sure if that's valid; if not, revert this
     const { attributeNames } = entityMetadata[modifiedConfig.rootEntityType] || {}
     const suggestions = [
       ..._.map(name => `this.${name}`, attributeNames),
