@@ -83,11 +83,17 @@ export const contextBar = function(props, children) {
 }
 
 export const contextMenu = items => {
-  return div({ style: { minWidth: 125 } }, _.map(props => {
+  return div({ style: { minWidth: 125 } }, _.map(({ onClick, disabled, ...props }) => {
     return h(Interactive, _.merge({
-      as: 'div',
-      style: { fontSize: 12, padding: '0.5rem 1.5rem' },
-      hover: { backgroundColor: Style.colors.highlight, fontWeight: 500 }
+      as: 'div', disabled,
+      onClick: (...args) => !disabled && onClick && onClick(...args),
+      style: {
+        fontSize: 12,
+        color: disabled ? Style.colors.disabled : Style.colors.text,
+        padding: '0.5rem 1.5rem',
+        cursor: disabled ? 'not-allowed' : 'pointer'
+      },
+      hover: !disabled ? { backgroundColor: Style.colors.highlight, fontWeight: 500 } : undefined
     }, props))
   }, items))
 }
@@ -123,20 +129,21 @@ export const LabeledCheckbox = ({ checked, onChange, disabled, children, ...prop
   ])
 }
 
-export const tooltip = ({ component, position = 'bottom', arrow = 'right', align = 'right', text, ...props }) =>
-  h(StatefulToolTip, {
-    parent: component,
-    position, arrow, align,
-    group: _.uniqueId(), tooltipTimeout: 0,
-    style: { style: { whiteSpace: 'nowrap', transition: 'none' }, arrowStyle: {} },
-    ...props
-  }, text)
+export const tooltip =
+  ({ component, position = 'bottom', arrow = 'right', align = 'right', text, ...props }) =>
+    h(StatefulToolTip, {
+      parent: component,
+      position, arrow, align,
+      tooltipTimeout: 0,
+      style: { style: { whiteSpace: 'nowrap', transition: 'none' }, arrowStyle: {} },
+      ...props
+    }, text)
 
 export const pageColumn = function(title, flex, contents) {
   return div(
     { style: { flex, overflow: 'hidden', margin: '3rem' } },
     [
-      div({ style: { ...Style.elements.sectionHeader, fontWeight: 500, marginBottom: '1rem' } },
+      div({ style: { ...Style.elements.sectionHeader, marginBottom: '1rem' } },
         title
       ),
       contents
