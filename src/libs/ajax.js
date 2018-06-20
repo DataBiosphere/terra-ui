@@ -227,6 +227,11 @@ export const Rawls = {
 
       delete: () => {
         return fetchRawls(root, _.merge(authOpts(), { method: 'DELETE' }))
+      },
+
+      clone: async body => {
+        const res = await fetchRawls(`${root}/clone`, _.mergeAll([authOpts(), jsonBody(body), { method: 'POST' }]))
+        return res.json()
       }
     }
   },

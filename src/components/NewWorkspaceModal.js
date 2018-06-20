@@ -33,21 +33,27 @@ const styles = {
   label: {
     ...Style.elements.sectionHeader,
     marginTop: '1rem', marginBottom: '0.25rem'
+  },
+  groupNotice: {
+    marginBottom: '0.25rem',
+    fontSize: 12,
+    color: Style.colors.textFaded
   }
 }
 
 export default class NewWorkspaceModal extends Component {
   constructor(props) {
     super(props)
+    const { cloneWorkspace } = props
     this.state = {
       billingProjects: undefined,
       allGroups: undefined,
-      name: '',
-      namespace: undefined,
-      description: '',
-      groups: [],
+      name: cloneWorkspace ? `Copy of ${cloneWorkspace.workspace.name}` : '',
+      namespace: cloneWorkspace ? cloneWorkspace.workspace.namespace : undefined,
+      description: (cloneWorkspace && cloneWorkspace.workspace.attributes.description) || '',
+      groups: cloneWorkspace ? _.map('membersGroupName', cloneWorkspace.workspace.authorizationDomain) : [],
       nameModified: false,
-      creating: false,
+      busy: false,
       createError: undefined
     }
   }
@@ -65,33 +71,40 @@ export default class NewWorkspaceModal extends Component {
   }
 
   async create() {
-    const { onCreate } = this.props
+    const { onCreate, cloneWorkspace } = this.props
     const { namespace, name, description, groups } = this.state
     try {
-      this.setState({ createError: undefined, creating: true })
-      await Rawls.createWorkspace({
+      this.setState({ createError: undefined, busy: true })
+      const body = {
         namespace,
         name,
         authorizationDomain: _.map(v => ({ membersGroupName: v }), groups),
         attributes: { description }
-      })
+      }
+      await (cloneWorkspace ?
+        Rawls.workspace(cloneWorkspace.workspace.namespace, cloneWorkspace.workspace.name).clone(body) :
+        Rawls.createWorkspace(body))
       onCreate({ namespace, name })
     } catch (error) {
-      this.setState({ createError: JSON.parse(error).message, creating: false })
+      this.setState({ createError: JSON.parse(error).message, busy: false })
     }
   }
 
   render() {
-    const { onDismiss } = this.props
-    const { namespace, name, billingProjects, allGroups, groups, description, nameModified, creating, createError } = this.state
+    const { onDismiss, cloneWorkspace } = this.props
+    const { namespace, name, billingProjects, allGroups, groups, description, nameModified, busy, createError } = this.state
+    const existingGroups = _.map(
+      'membersGroupName',
+      cloneWorkspace && cloneWorkspace.workspace.authorizationDomain
+    )
     const errors = validate({ namespace, name }, constraints, { fullMessages: false })
     return h(Modal, {
-      title: 'Create a New Project',
+      title: cloneWorkspace ? 'Clone a Project' : 'Create a New Project',
       onDismiss,
       okButton: buttonPrimary({
         disabled: errors,
         onClick: () => this.create()
-      }, 'Create project')
+      }, cloneWorkspace ? 'Clone project' : 'Create project')
     }, [
       div({ style: styles.label }, ['Project name *']),
       validatedInput({
@@ -147,6 +160,10 @@ export default class NewWorkspaceModal extends Component {
           ])
         ])
       ]),
+      !!existingGroups.length && div({ style: styles.groupNotice }, [
+        'The cloned project will automatically inherit the authorization domain from this project. ',
+        'You may add groups to the authorization domain, but you may not remove existing ones.'
+      ]),
       h(Select, {
         searchable: false,
         multi: true,
@@ -154,13 +171,13 @@ export default class NewWorkspaceModal extends Component {
         value: groups,
         onChange: data => this.setState({ groups: _.map('value', data) }),
         options: _.map(name => {
-          return { label: name, value: name }
+          return { label: name, value: name, clearableValue: !_.includes(name, existingGroups) }
         }, _.map('groupName', allGroups).sort())
       }),
       createError && div({
         style: { marginTop: '1rem', color: Style.colors.error }
       }, [createError]),
-      creating && spinnerOverlay
+      busy && spinnerOverlay
     ])
   }
 }

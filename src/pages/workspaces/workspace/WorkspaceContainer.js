@@ -6,6 +6,7 @@ import ClusterManager from 'src/components/ClusterManager'
 import { buttonPrimary, contextBar, contextMenu, link, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
+import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
 import PopupTrigger from 'src/components/PopupTrigger'
 import { TopBar } from 'src/components/TopBar'
 import { Rawls } from 'src/libs/ajax'
@@ -44,7 +45,7 @@ class WorkspaceTabs extends PureComponent {
   menu = createRef()
 
   render() {
-    const { namespace, name, workspace, activeTab, refresh, onDelete } = this.props
+    const { namespace, name, workspace, activeTab, refresh, onDelete, onClone } = this.props
     const navTab = ({ tabName, href }) => {
       const selected = tabName === activeTab
       return h(Fragment, [
@@ -65,7 +66,10 @@ class WorkspaceTabs extends PureComponent {
       navTab({ tabName: 'history' }),
       navTab({ tabName: 'tools', href: Nav.getLink('workspace-tools', { namespace, name }) }),
       div({ style: { flexGrow: 1 } }),
-      h(Interactive, { as: 'div', ...navIconProps }, [icon('copy', { size: 22 })]),
+      h(Interactive, {
+        as: 'div', ...navIconProps,
+        onClick: onClone
+      }, [icon('copy', { size: 22 })]),
       h(PopupTrigger, {
         ref: this.menu,
         content: contextMenu([
@@ -144,11 +148,16 @@ class DeleteWorkspaceModal extends Component {
 export default class WorkspaceContainer extends Component {
   state = {
     deletingWorkspace: false,
+    cloningWorkspace: false,
     workspace: undefined
   }
 
   onDelete = () => {
     this.setState({ deletingWorkspace: true })
+  }
+
+  onClone = () => {
+    this.setState({ cloningWorkspace: true })
   }
 
   async componentDidMount() {
@@ -163,7 +172,7 @@ export default class WorkspaceContainer extends Component {
 
   render() {
     const { namespace, name, breadcrumbs, title, activeTab, refresh } = this.props
-    const { deletingWorkspace, workspace } = this.state
+    const { deletingWorkspace, cloningWorkspace, workspace } = this.state
 
     return div({ style: { display: 'flex', flexDirection: 'column', height: '100%', flexGrow: 1 } }, [
       h(TopBar, { title: 'Projects' }, [
@@ -174,13 +183,21 @@ export default class WorkspaceContainer extends Component {
           ]),
         h(ClusterManager, { namespace })
       ]),
-      h(WorkspaceTabs, { namespace, name, activeTab, refresh, workspace, onDelete: this.onDelete }),
+      h(WorkspaceTabs, {
+        namespace, name, activeTab, refresh, workspace,
+        onDelete: this.onDelete, onClone: this.onClone
+      }),
       div({ style: { position: 'relative', flexGrow: 1 } }, [
         this.props.children
       ]),
       deletingWorkspace && h(DeleteWorkspaceModal, {
         namespace, name,
         onDismiss: () => this.setState({ deletingWorkspace: false })
+      }),
+      cloningWorkspace && h(NewWorkspaceModal, {
+        cloneWorkspace: workspace,
+        onCreate: ({ namespace, name }) => Nav.goToPath('workspace', { namespace, name }),
+        onDismiss: () => this.setState({ cloningWorkspace: false })
       })
     ])
   }
