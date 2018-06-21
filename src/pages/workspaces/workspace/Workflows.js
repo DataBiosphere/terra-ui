@@ -16,7 +16,7 @@ import WorkspaceContainer from 'src/pages/workspaces/workspace/WorkspaceContaine
 
 const styles = {
   pageContainer: {
-    margin: '1rem', height: 500, display: 'flex'
+    margin: '1rem', minHeight: 500, height: '100%', display: 'flex', flexGrow: 1
   },
   submissionsTable: {
     flex: 1
@@ -29,22 +29,43 @@ const styles = {
   sidebar: {
     flex: '0 0 auto', margin: '0 6rem 0 4rem'
   },
+  statusIcon: {
+    class: 'is-solid', style: { marginRight: '0.5rem' }
+  },
   workflowLabelsHeader: {
     ...Style.elements.sectionHeader, marginBottom: '1rem'
   },
-  workflowLabel: {
-    lineHeight: '2rem'
-  }
+  workflowLabel: status => ({
+    lineHeight: '2rem',
+    padding: '0.5rem 1rem',
+    backgroundColor: colorForStatus(status), color: 'white'
+  })
 }
 
 
 const iconForStatus = status => {
   switch (status) {
-    case 'Succeeded': return icon('check', { style: { marginRight: '0.5rem' } })
+    case 'Succeeded':
+      return icon('check-circle', styles.statusIcon)
     case 'Aborting':
     case 'Aborted':
-    case 'Failed': return icon('warning-standard', { style: { marginRight: '0.5rem' } })
-    default: return icon('sync', { style: { marginRight: '0.5rem' } })
+    case 'Failed':
+      return icon('warning-standard', styles.statusIcon)
+    default:
+      return icon('sync', styles.statusIcon)
+  }
+}
+
+const colorForStatus = status => {
+  switch (status) {
+    case 'Succeeded':
+      return Style.colors.success
+    case 'Aborting':
+    case 'Aborted':
+    case 'Failed':
+      return Style.colors.standout
+    default:
+      return Style.colors.primary
   }
 }
 
@@ -145,7 +166,7 @@ class Workflows extends Component {
       div({ style: styles.workflowLabelsHeader }, ['Active Workflows']),
       _.isEmpty(statuses) && 'None',
       ..._.map(
-        ([status, count]) => div({ style: styles.workflowLabel }, [
+        ([status, count]) => div({ style: styles.workflowLabel(status) }, [
           iconForStatus(status),
           `${count} ${status}`
         ]),

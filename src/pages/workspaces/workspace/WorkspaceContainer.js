@@ -92,7 +92,7 @@ export default class WorkspaceContainer extends Component {
         h(ClusterManager, { namespace })
       ]),
       h(WorkspaceTabs, { namespace, name, activeTab, refresh }),
-      div({ style: { position: 'relative', flexGrow: 1 } }, [
+      div({ style: { position: 'relative', flexGrow: 1, display: 'flex', flexDirection: 'column' } }, [
         this.props.children
       ])
     ])
