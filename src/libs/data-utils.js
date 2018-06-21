@@ -24,8 +24,13 @@ const els = {
 }
 
 const isFilePreviewable = name => /\.txt$/.test(name) || /\.[ct]sv$/.test(name) || /\.log/.test(name)
-const formatPriceInDollars = price => price < 0.01 ? '< $0.01' : `$${parseFloat(price).toFixed(2)}`
 const parseUri = uri => _.drop(1, /gs:[/][/]([^/]+)[/](.+)/.exec(uri))
+const getMaxDownloadCostNA = async bytes => {
+  const nanos = (await Buckets.getDownloadCostsToNA()).pricingExpression.tieredRates[1].unitPrice.nanos
+  const downloadPrice = bytes * nanos / 1073741824 / 10e8
+
+  return downloadPrice < 0.01 ? '< $0.01' : `$${downloadPrice.toPrecision(2)}`
+}
 
 /**
  * @param uri
@@ -50,7 +55,9 @@ export class UriViewer extends Component {
       Config.getOrchestrationUrlRoot()
     ])
 
-    this.setState({ metadata, preview, firecloudApiUrl })
+    const price = await getMaxDownloadCostNA(metadata.size)
+
+    this.setState({ metadata, preview, firecloudApiUrl, price })
   }
 
   async resolveUri() {
@@ -66,7 +73,7 @@ export class UriViewer extends Component {
   }
 
   renderMetadata() {
-    const { uri, metadata, preview, firecloudApiUrl, copied } = this.state
+    const { uri, metadata, preview, firecloudApiUrl, price, copied } = this.state
     const fileName = _.last(uri.split('/'))
     const [bucket, object] = parseUri(uri)
     const gsutilCommand = `gsutil cp ${uri} .`
@@ -87,7 +94,7 @@ export class UriViewer extends Component {
               }, [preview]) :
               div({}, ['Loading preview...', spinner()])
           ] : [els.label(`File can't be previewed.`)]),
-          els.cell([els.label('File size'), els.data(filesize(metadata.size))]),
+          els.cell([els.label('File size'), els.data(filesize(parseInt(metadata.size, 10)))]),
           els.cell([
             link({
               target: 'blank',
@@ -97,14 +104,14 @@ export class UriViewer extends Component {
           els.cell([
             buttonPrimary({
               onClick: () => window.open(`${firecloudApiUrl}/cookie-authed/download/b/${bucket}/o/${object}`)
-            }, [`Download for ${formatPriceInDollars(metadata.estimatedCostUSD)}`])
+            }, [`Download for ${price}*`])
           ]),
           els.cell([
             els.label('Terminal download command'),
             els.data([
               div({ style: { display: 'flex' } }, [
                 input({
-                  readonly: '',
+                  readOnly: true,
                   value: gsutilCommand,
                   style: { flexGrow: 1, fontWeight: 300, fontFamily: 'Menlo, monospace' }
                 }),
@@ -132,7 +139,8 @@ export class UriViewer extends Component {
             metadata.timeCreated && els.cell([els.label('Created'), els.data(Utils.makePrettyDate(metadata.timeCreated))]),
             els.cell([els.label('Updated'), els.data(Utils.makePrettyDate(metadata.updated))]),
             els.cell([els.label('md5'), els.data(metadata.md5Hash)])
-          ])
+          ]),
+          div({ style: { fontSize: 10 } }, ['* Estimated. Download cost may be higher in China or Australia.'])
         ]
     )
   }

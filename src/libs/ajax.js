@@ -90,7 +90,7 @@ const nbName = name => encodeURIComponent(`notebooks/${name}.ipynb`)
 
 export const Buckets = {
   getObject: async (bucket, object, namespace) => {
-    return fetchOrchestration(`/api/storage/${bucket}/${object}`,
+    return fetchBuckets(`storage/v1/b/${bucket}/o/${encodeURIComponent(object)}`,
       authOpts(await Sam.token(namespace))).then(
       res => res.json()
     )
@@ -102,6 +102,13 @@ export const Buckets = {
       res => res.text()
     )
   },
+
+  getDownloadCostsToNA: _.memoize(async () => {
+    return fetchOk(
+      `https://cloudbilling.googleapis.com/v1/services/95FF-2EF5-5EA1/skus?fields=skus(pricingInfo,skuId)&key=${await Config.getGoogleCloudBillingKey()}`)
+      .then(res => res.json())
+      .then(parsed => _.find({ skuId: '22EB-AAE8-FBCD' }, parsed.skus).pricingInfo[0])
+  }),
 
   listNotebooks: async (namespace, name) => {
     const res = await fetchBuckets(
