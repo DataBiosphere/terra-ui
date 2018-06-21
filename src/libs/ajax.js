@@ -107,7 +107,7 @@ export const Buckets = {
     return fetchOk(
       `https://cloudbilling.googleapis.com/v1/services/95FF-2EF5-5EA1/skus?fields=skus(pricingInfo,skuId)&key=${await Config.getGoogleCloudBillingKey()}`)
       .then(res => res.json())
-      .then(parsed => _.find({ skuId: '22EB-AAE8-FBCD' }, parsed.skus).pricingInfo[0])
+      .then(parsed => _.find({ skuId: '22EB-AAE8-FBCD' }, parsed.skus).pricingInfo[0]) // sku described as "Download Worldwide Destinations (excluding Asia & Australia)"
   }),
 
   listNotebooks: async (namespace, name) => {
