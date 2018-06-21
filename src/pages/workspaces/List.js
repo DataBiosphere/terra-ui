@@ -1,8 +1,9 @@
 import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { a, div, h } from 'react-hyperscript-helpers'
-import { contextBar, search, spinnerOverlay } from 'src/components/common'
+import { buttonPrimary, contextBar, search, spinnerOverlay } from 'src/components/common'
 import { breadcrumb, icon } from 'src/components/icons'
+import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
 import { DataGrid } from 'src/components/table'
 import { TopBar } from 'src/components/TopBar'
 import { Rawls } from 'src/libs/ajax'
@@ -23,6 +24,7 @@ export class WorkspaceList extends Component {
       itemsPerPage: 6,
       pageNumber: 1,
       workspaces: null,
+      creatingNewWorkspace: false,
       ...StateHistory.get()
     }
   }
@@ -47,11 +49,7 @@ export class WorkspaceList extends Component {
       renderCard: ({ workspace: { namespace, name, createdBy, lastModified } }) => {
         return a({
           href: Nav.getLink('workspace', { namespace, name }),
-          style: {
-            ...Style.elements.card,
-            width: '100%', margin: '0.5rem', textDecoration: 'none',
-            color: Style.colors.text
-          }
+          style: { ...Style.elements.card, width: '100%', margin: '0.5rem' }
         },
         [
           div({ style: Style.elements.cardTitle }, `${name}`),
@@ -85,10 +83,9 @@ export class WorkspaceList extends Component {
             ...Style.elements.card,
             width: `calc(${100 / cardsPerRow}% - 2.5rem)`,
             margin: '1.25rem',
-            textDecoration: 'none',
             display: 'flex', flexDirection: 'column',
             justifyContent: 'space-between',
-            height: 225, color: Style.colors.text
+            height: 225
           }
         },
         [
@@ -116,9 +113,27 @@ export class WorkspaceList extends Component {
     })
   }
 
+  async refresh() {
+    try {
+      this.setState({ isDataLoaded: false })
+      const workspaces = await Rawls.workspacesList()
+      this.setState({
+        isDataLoaded: true,
+        workspaces: _.sortBy('workspace.name', _.filter(ws => !ws.public ||
+          Utils.workspaceAccessLevels.indexOf(ws.accessLevel) > Utils.workspaceAccessLevels.indexOf('READER'),
+        workspaces))
+      })
+    } catch (error) {
+      reportError('Error loading workspace list', error)
+    }
+  }
+
+  componentDidMount() {
+    this.refresh()
+  }
 
   render() {
-    const { workspaces, isDataLoaded, filter, listView } = this.state
+    const { workspaces, isDataLoaded, filter, listView, creatingNewWorkspace } = this.state
 
     return h(Fragment, [
       h(TopBar, { title: 'Projects' },
@@ -156,6 +171,12 @@ export class WorkspaceList extends Component {
         })
       ]),
       div({ style: { width: '100%', position: 'relative', padding: '1rem', flexGrow: 1 } }, [
+        div({ style: { display: 'flex' } }, [
+          buttonPrimary({
+            style: { marginLeft: 'auto' },
+            onClick: () => this.setState({ creatingNewWorkspace: true })
+          }, 'New project')
+        ]),
         workspaces && div({ style: { margin: 'auto', maxWidth: 1000 } }, [
           Utils.cond(
             [_.isEmpty(workspaces), 'You don\'t seem to have access to any workspaces.'],
@@ -164,20 +185,11 @@ export class WorkspaceList extends Component {
           )
         ]),
         !isDataLoaded && spinnerOverlay
-      ])
+      ]),
+      creatingNewWorkspace && h(NewWorkspaceModal, {
+        onDismiss: () => this.setState({ creatingNewWorkspace: false })
+      })
     ])
-  }
-
-  componentDidMount() {
-    Rawls.workspacesList().then(
-      workspaces => this.setState({
-        isDataLoaded: true,
-        workspaces: _.sortBy('workspace.name', _.filter(ws => !ws.public ||
-          Utils.workspaceAccessLevels.indexOf(ws.accessLevel) > Utils.workspaceAccessLevels.indexOf('READER'),
-        workspaces))
-      }),
-      error => reportError('Error loading workspace list', error)
-    )
   }
 
   componentDidUpdate() {

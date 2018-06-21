@@ -42,8 +42,7 @@ export const elements = {
     focus: { border: `1px solid ${colors.focus}` }
   },
   pageTitle: {
-    color: colors.title, fontSize: 22, fontWeight: 500, textTransform: 'uppercase',
-    textDecoration: 'none'
+    color: colors.title, fontSize: 22, fontWeight: 500, textTransform: 'uppercase'
   },
-  sectionHeader: { color: colors.title, fontSize: 16 }
+  sectionHeader: { color: colors.title, fontSize: 16, fontWeight: 500 }
 }

@@ -6,7 +6,7 @@ import * as breadcrumbs from 'src/components/breadcrumbs'
 import { contextMenu, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { NotebookCreator, NotebookDeleter, NotebookDuplicator } from 'src/components/notebook-utils'
-import ShowOnClick from 'src/components/ShowOnClick'
+import PopupTrigger from 'src/components/PopupTrigger'
 import { Buckets, Rawls } from 'src/libs/ajax'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
@@ -23,28 +23,39 @@ class NotebookCard extends Component {
     const { renamingNotebook, copyingNotebook, deletingNotebook } = this.state
     const printName = name.slice(10, -6) // removes 'notebooks/' and the .ipynb suffix
 
-    const hideMenu = () => this.notebookMenu.setVisibility(false)
+    const hideMenu = () => this.notebookMenu.close()
 
-    const notebookMenu = h(ShowOnClick, {
+    const notebookMenu = h(PopupTrigger, {
       ref: instance => this.notebookMenu = instance,
-      button: h(Interactive, {
-        as: icon('ellipsis-vertical'), size: 18,
-        style: { marginLeft: '1rem', cursor: 'pointer' }, focus: 'hover'
-      })
-    },
-    [
-      div({
-        style: _.merge({
-          position: 'absolute', top: 0, lineHeight: 'initial', textAlign: 'initial',
-          color: 'initial', textTransform: 'initial', fontWeight: 300
-        }, listView ? { right: '1rem' } : { left: '2rem' })
-      }, [
-        contextMenu([
-          [{ onClick: () => { this.setState({ renamingNotebook: true }, hideMenu) } }, 'Rename'], // hiding menu doesn't work when executed concurrently
-          [{ onClick: () => { this.setState({ copyingNotebook: true }, hideMenu) } }, 'Duplicate'],
-          [{ onClick: () => { this.setState({ deletingNotebook: true }, hideMenu) } }, 'Delete']
-        ])
+      content: contextMenu([
+        {
+          children: 'Rename',
+          onClick: () => {
+            this.setState({ renamingNotebook: true })
+            hideMenu()
+          }
+        },
+        {
+          children: 'Duplicate',
+          onClick: () => {
+            this.setState({ copyingNotebook: true })
+            hideMenu()
+          }
+        },
+        {
+          children: 'Delete',
+          onClick: () => {
+            this.setState({ deletingNotebook: true })
+            hideMenu()
+          }
+        }
       ])
+    }, [
+      h(Interactive, {
+        as: 'div',
+        onClick: e => e.preventDefault(),
+        style: { marginLeft: '1rem', cursor: 'pointer' }, focus: 'hover'
+      }, [icon('ellipsis-vertical', { size: 18 })])
     ])
 
     const jupyterIcon = icon('jupyterIcon', {
@@ -79,7 +90,6 @@ class NotebookCard extends Component {
           width: listView ? undefined : 200,
           height: listView ? undefined : 250,
           margin: '1.25rem',
-          color: Style.colors.text, textDecoration: 'none',
           display: 'flex', flexDirection: listView ? 'row' : 'column',
           justifyContent: listView ? undefined : 'space-between',
           alignItems: listView ? 'center' : undefined
@@ -110,7 +120,10 @@ class NotebookCard extends Component {
           () => h(NotebookDuplicator, {
             printName, namespace, bucketName, destroyOld: true,
             onDismiss: () => this.setState({ renamingNotebook: false }),
-            onSuccess: () => reloadList()
+            onSuccess: () => {
+              this.setState({ renamingNotebook: false })
+              reloadList()
+            }
           })
         ],
         [
@@ -118,7 +131,10 @@ class NotebookCard extends Component {
           () => h(NotebookDuplicator, {
             printName, namespace, bucketName, destroyOld: false,
             onDismiss: () => this.setState({ copyingNotebook: false }),
-            onSuccess: () => reloadList()
+            onSuccess: () => {
+              this.setState({ copyingNotebook: false })
+              reloadList()
+            }
           })
         ],
         [
@@ -126,7 +142,10 @@ class NotebookCard extends Component {
           () => h(NotebookDeleter, {
             printName, namespace, bucketName,
             onDismiss: () => this.setState({ deletingNotebook: false }),
-            onSuccess: () => reloadList()
+            onSuccess: () => {
+              this.setState({ deletingNotebook: false })
+              reloadList()
+            }
           })
         ],
         () => null)
@@ -143,11 +162,14 @@ class WorkspaceNotebooks extends Component {
   async refresh() {
     const { namespace, name } = this.props
     try {
+      this.setState({ loading: true })
       const { workspace: { bucketName } } = await Rawls.workspace(namespace, name).details()
       const notebooks = await Buckets.listNotebooks(namespace, bucketName)
-      this.setState({ bucketName, notebooks: _.reverse(_.sortBy('updated', notebooks)), isFreshData: true })
+      this.setState({ bucketName, notebooks: _.reverse(_.sortBy('updated', notebooks)) })
     } catch (error) {
       reportError('Error loading notebooks', error)
+    } finally {
+      this.setState({ loading: false })
     }
   }
 
@@ -168,15 +190,12 @@ class WorkspaceNotebooks extends Component {
   }
 
   render() {
-    const { isFreshData, bucketName, notebooks, listView } = this.state
+    const { loading, bucketName, notebooks, listView } = this.state
     const { namespace, name } = this.props
 
     return h(WorkspaceContainer,
       {
-        namespace, name, refresh: () => {
-          this.setState({ isFreshData: false })
-          this.refresh()
-        },
+        namespace, name, refresh: () => this.refresh(),
         breadcrumbs: breadcrumbs.commonPaths.workspaceDashboard({ namespace, name }),
         title: 'Notebooks', activeTab: 'notebooks'
       },
@@ -213,7 +232,7 @@ class WorkspaceNotebooks extends Component {
             ]),
             this.renderNotebooks()
           ]),
-          !isFreshData && spinnerOverlay
+          loading && spinnerOverlay
         ])
       ]
     )

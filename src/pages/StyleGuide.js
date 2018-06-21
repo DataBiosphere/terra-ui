@@ -4,6 +4,7 @@ import { AutoSizer } from 'react-virtualized'
 import { buttonPrimary, buttonSecondary, Checkbox, link, search } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { textInput, validatedInput } from 'src/components/input'
+import PopupTrigger from 'src/components/PopupTrigger'
 import { FlexTable, GridTable, TextCell } from 'src/components/table'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
@@ -128,6 +129,15 @@ class StyleGuide extends Component {
               ]
             })
           }
+        ])
+      ]),
+      div({ style: styles.container }, [
+        h(PopupTrigger, {
+          content: div({ style: { padding: '0.5rem' } }, ['Hello there']),
+          position: 'right',
+          align: 'center'
+        }, [
+          buttonPrimary({}, 'Popup trigger')
         ])
       ])
     ])

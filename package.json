@@ -5,6 +5,8 @@
   "dependencies": {
     "@clr/icons": "^0.11.19",
     "@webcomponents/custom-elements": "^1.1.1",
+    "clipboard-polyfill": "^2.4.7",
+    "filesize": "^3.6.1",
     "history": "^4.7.2",
     "lodash": "^4.17.10",
     "path-to-regexp": "^2.2.1",

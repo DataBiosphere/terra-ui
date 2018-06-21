@@ -34,7 +34,6 @@ Array [
                 "display": "flex",
                 "fontSize": 22,
                 "fontWeight": 500,
-                "textDecoration": "none",
                 "textTransform": "uppercase",
               }
         }
@@ -113,7 +112,6 @@ Array [
                 "marginLeft": "auto",
                 "outline": 0,
                 "outlineOffset": 0,
-                "textDecoration": "none",
               }
         }
     >
@@ -189,6 +187,48 @@ Array [
     <div
         style={
             Object {
+                "display": "flex",
+              }
+        }
+    >
+        <button
+            onBlur={[Function]}
+            onClick={[Function]}
+            onDragEnd={[Function]}
+            onDragStart={[Function]}
+            onFocus={[Function]}
+            onKeyDown={[Function]}
+            onKeyUp={[Function]}
+            onMouseDown={[Function]}
+            onMouseEnter={[Function]}
+            onMouseLeave={[Function]}
+            onMouseMove={[Function]}
+            onMouseUp={[Function]}
+            style={
+                Object {
+                    "backgroundColor": "#478eba",
+                    "border": "none",
+                    "borderRadius": 5,
+                    "color": "white",
+                    "cursor": "pointer",
+                    "fontSize": 14,
+                    "fontWeight": 500,
+                    "height": "2.25rem",
+                    "marginLeft": "auto",
+                    "outline": 0,
+                    "outlineOffset": 0,
+                    "padding": "0 1.5rem",
+                    "textTransform": "uppercase",
+                  }
+            }
+            tabIndex="0"
+        >
+            New project
+        </button>
+    </div>
+    <div
+        style={
+            Object {
                 "margin": "auto",
                 "maxWidth": 1000,
               }
@@ -209,14 +249,12 @@ Array [
                         "backgroundColor": "white",
                         "borderRadius": 5,
                         "boxShadow": "0 3px 2px 0 rgba(0,0,0,0.12)",
-                        "color": "#4a4a4a",
                         "display": "flex",
                         "flexDirection": "column",
                         "height": 225,
                         "justifyContent": "space-between",
                         "margin": "1.25rem",
                         "padding": "1rem",
-                        "textDecoration": "none",
                         "width": "calc(33.333333333333336% - 2.5rem)",
                         "wordWrap": "break-word",
                       }
@@ -277,14 +315,12 @@ Array [
                         "backgroundColor": "white",
                         "borderRadius": 5,
                         "boxShadow": "0 3px 2px 0 rgba(0,0,0,0.12)",
-                        "color": "#4a4a4a",
                         "display": "flex",
                         "flexDirection": "column",
                         "height": 225,
                         "justifyContent": "space-between",
                         "margin": "1.25rem",
                         "padding": "1rem",
-                        "textDecoration": "none",
                         "width": "calc(33.333333333333336% - 2.5rem)",
                         "wordWrap": "break-word",
                       }

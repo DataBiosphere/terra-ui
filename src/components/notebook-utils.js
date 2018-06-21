@@ -71,6 +71,11 @@ const rNotebook = _.merge({
 
 
 export class NotebookCreator extends Component {
+  constructor(props) {
+    super(props)
+    this.state = { notebookName: '' }
+  }
+
   render() {
     const { modalOpen, notebookName, notebookKernel, creating, nameTouched } = this.state
     const { reloadList, namespace, bucketName } = this.props
@@ -155,6 +160,11 @@ export class NotebookCreator extends Component {
 }
 
 export class NotebookDuplicator extends Component {
+  constructor(props) {
+    super(props)
+    this.state = { newName: '' }
+  }
+
   render() {
     const { destroyOld, printName, namespace, bucketName, onDismiss, onSuccess } = this.props
     const { newName, processing, nameTouched } = this.state

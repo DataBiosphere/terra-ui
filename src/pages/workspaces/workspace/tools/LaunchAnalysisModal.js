@@ -8,6 +8,7 @@ import Modal from 'src/components/Modal'
 import TabBar from 'src/components/TabBar'
 import { GridTable, TextCell } from 'src/components/table'
 import { Rawls } from 'src/libs/ajax'
+import { renderDataCell } from 'src/libs/data-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
@@ -81,7 +82,7 @@ export default class LaunchAnalysisModal extends Component {
   }
 
   renderMain() {
-    const { rootEntityType } = this.props.config
+    const { config: { rootEntityType }, workspaceId: { namespace } } = this.props
     const { entityType, loadingNew, entities, filterText, launchError, entityMetadata, selectedEntity } = this.state
     const { attributeNames, idName } = entityMetadata ? entityMetadata[entityType] : {}
     const filteredEntities = _.filter(_.conformsTo({ name: Utils.textMatch(filterText) }), entities)
@@ -111,7 +112,7 @@ export default class LaunchAnalysisModal extends Component {
                 cellRenderer: ({ rowIndex }) => {
                   const { name } = filteredEntities[rowIndex]
                   return h(TextCell, [
-                    link({ onClick: () => this.setState({ selectedEntity: name }) }, [name])
+                    link({ onClick: () => this.setState({ selectedEntity: name }), title: name }, [name])
                   ])
                 }
               },
@@ -119,9 +120,9 @@ export default class LaunchAnalysisModal extends Component {
                 width: 300,
                 headerRenderer: () => h(TextCell, name),
                 cellRenderer: ({ rowIndex }) => {
-                  return h(TextCell, [
-                    Utils.entityAttributeText(filteredEntities[rowIndex].attributes[name])
-                  ])
+                  return renderDataCell(
+                    Utils.entityAttributeText(filteredEntities[rowIndex].attributes[name]), namespace
+                  )
                 }
               }), attributeNames)
             ],

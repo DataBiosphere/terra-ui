@@ -60,7 +60,12 @@ const fetchOk = (...args) => {
 
 export const Sam = {
   token: Utils.memoizeWithTimeout(async namespace => {
-    const scopes = ['https://www.googleapis.com/auth/devstorage.full_control']
+    const scopes = [
+      // need profile and email to use with Orch
+      'https://www.googleapis.com/auth/userinfo.profile',
+      'https://www.googleapis.com/auth/userinfo.email',
+      'https://www.googleapis.com/auth/devstorage.full_control'
+    ]
     const res = await fetchOk(
       `${await Config.getSamUrlRoot()}/api/google/user/petServiceAccount/${namespace}/token`,
       _.mergeAll([authOpts(), jsonBody(scopes), { method: 'POST' }])
@@ -84,6 +89,20 @@ const fetchBuckets = (path, ...args) => fetchOk(`https://www.googleapis.com/${pa
 const nbName = name => encodeURIComponent(`notebooks/${name}.ipynb`)
 
 export const Buckets = {
+  getObject: async (bucket, object, namespace) => {
+    return fetchOrchestration(`/api/storage/${bucket}/${object}`,
+      authOpts(await Sam.token(namespace))).then(
+      res => res.json()
+    )
+  },
+
+  getObjectPreview: async (bucket, object, namespace) => {
+    return fetchBuckets(`storage/v1/b/${bucket}/o/${encodeURIComponent(object)}?alt=media`,
+      _.merge(authOpts(await Sam.token(namespace)), { headers: { range: 'bytes=20000' } })).then(
+      res => res.text()
+    )
+  },
+
   listNotebooks: async (namespace, name) => {
     const res = await fetchBuckets(
       `storage/v1/b/${name}/o?prefix=notebooks/`,
@@ -96,13 +115,20 @@ export const Buckets = {
   notebook: (namespace, bucket, name) => {
     const bucketUrl = `storage/v1/b/${bucket}/o`
 
+    const copy = async newName => {
+      return fetchBuckets(
+        `${bucketUrl}/${nbName(name)}/copyTo/b/${bucket}/o/${nbName(newName)}`,
+        _.merge(authOpts(await Sam.token(namespace)), { method: 'POST' })
+      )
+    }
+    const doDelete = async () => {
+      return fetchBuckets(
+        `${bucketUrl}/${nbName(name)}`,
+        _.merge(authOpts(await Sam.token(namespace)), { method: 'DELETE' })
+      )
+    }
     return {
-      copy: async newName => {
-        return fetchBuckets(
-          `${bucketUrl}/${nbName(name)}/copyTo/b/${bucket}/o/${nbName(newName)}`,
-          _.merge(authOpts(await Sam.token(namespace)), { method: 'POST' })
-        )
-      },
+      copy,
 
       create: async contents => {
         return fetchBuckets(
@@ -114,16 +140,11 @@ export const Buckets = {
         )
       },
 
-      delete: async () => {
-        return fetchBuckets(
-          `${bucketUrl}/${nbName(name)}`,
-          _.merge(authOpts(await Sam.token(namespace)), { method: 'DELETE' })
-        )
-      },
+      delete: doDelete,
 
       rename: async newName => {
-        await this.copy(newName)
-        return this.delete()
+        await copy(newName)
+        return doDelete()
       }
     }
   }
@@ -142,6 +163,16 @@ export const Rawls = {
 
   workspacesList: async () => {
     const res = await fetchRawls('workspaces', authOpts())
+    return res.json()
+  },
+
+  createWorkspace: async body => {
+    const res = await fetchRawls('workspaces', _.mergeAll([authOpts(), jsonBody(body), { method: 'POST' }]))
+    return res.json()
+  },
+
+  listGroups: async () => {
+    const res = await fetchRawls('groups', authOpts())
     return res.json()
   },
 
@@ -215,6 +246,15 @@ export const Rawls = {
 
       listSubmissions: async () => {
         const res = await fetchRawls(`${root}/submissions`, authOpts())
+        return res.json()
+      },
+
+      delete: () => {
+        return fetchRawls(root, _.merge(authOpts(), { method: 'DELETE' }))
+      },
+
+      clone: async body => {
+        const res = await fetchRawls(`${root}/clone`, _.mergeAll([authOpts(), jsonBody(body), { method: 'POST' }]))
         return res.json()
       }
     }
@@ -352,5 +392,14 @@ export const Orchestration = {
         )
       }
     }
+  }
+}
+
+
+export const Martha = {
+  call: async url => {
+    return fetchOk(await Config.getMarthaUrlRoot(),
+      _.merge(jsonBody({ url, pattern: 'gs://' }), { method: 'POST' })
+    ).then(res => res.text())
   }
 }
