@@ -14,7 +14,6 @@ export const link = function(props, children) {
     _.merge({
       as: 'a',
       style: {
-        textDecoration: 'none',
         color: props.disabled ? Style.colors.disabled : Style.colors.secondary,
         cursor: props.disabled ? 'not-allowed' : 'pointer'
       },

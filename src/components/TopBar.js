@@ -88,7 +88,7 @@ export class TopBar extends Component {
             a({
               style: {
                 padding: '1rem', borderBottom: '1px solid white', color: 'white',
-                lineHeight: '1.75rem', textDecoration: 'none', display: 'block'
+                lineHeight: '1.75rem', display: 'block'
               },
               href: Nav.getLink('workspaces'),
               onClick: () => this.hideNav()

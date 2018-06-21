@@ -52,11 +52,7 @@ class WorkspaceTools extends Component {
             renderCard: config => {
               const { name, namespace, methodRepoMethod: { sourceRepo, methodVersion } } = config
               return a({
-                style: {
-                  ...Style.elements.card,
-                  width: '30%', margin: '1rem auto', textDecoration: 'none',
-                  color: Style.colors.text
-                },
+                style: { ...Style.elements.card, width: '30%', margin: '1rem auto' },
                 href: Nav.getLink('workflow', {
                   workspaceNamespace: workspaceId.namespace,
                   workspaceName: workspaceId.name,

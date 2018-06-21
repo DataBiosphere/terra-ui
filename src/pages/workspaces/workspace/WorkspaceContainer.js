@@ -21,7 +21,7 @@ const styles = {
     color: 'white', textTransform: 'uppercase'
   },
   tab: {
-    maxWidth: 140, flexGrow: 1, color: Style.colors.textFadedLight, textDecoration: 'none',
+    maxWidth: 140, flexGrow: 1, color: Style.colors.textFadedLight,
     alignSelf: 'stretch', display: 'flex', justifyContent: 'center', alignItems: 'center'
   },
   activeTab: {

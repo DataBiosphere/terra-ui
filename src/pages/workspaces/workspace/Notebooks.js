@@ -90,7 +90,6 @@ class NotebookCard extends Component {
           width: listView ? undefined : 200,
           height: listView ? undefined : 250,
           margin: '1.25rem',
-          color: Style.colors.text, textDecoration: 'none',
           display: 'flex', flexDirection: listView ? 'row' : 'column',
           justifyContent: listView ? undefined : 'space-between',
           alignItems: listView ? 'center' : undefined
