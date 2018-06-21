@@ -1,3 +1,4 @@
+import _ from 'lodash/fp'
 import { Component } from 'react'
 import { h, h2, div } from 'react-hyperscript-helpers'
 import AuthContainer from 'src/components/AuthContainer'
@@ -70,9 +71,22 @@ export default class Router extends Component {
         ])
       ])
     }
+
+    const props = Nav.getHandlerProps(handler, pathname, search)
+
+    if (handler && handler.title) {
+      if (_.isFunction(handler.title)) {
+        document.title = handler.title(props)
+      } else {
+        document.title = handler.title
+      }
+    } else {
+      document.title = 'Saturn'
+    }
+
     const el = h(handler.component, {
       key: pathname, // forces a remount even if component is the same
-      ...Nav.getHandlerProps(handler, pathname, search)
+      ...props
     })
     return h(PageWrapper, [handler.public ? el : h(AuthContainer, [el])])
   }

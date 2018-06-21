@@ -207,6 +207,7 @@ export const addNavPaths = () => {
   })
   Nav.defPath('workspaces', {
     path: '/workspaces',
-    component: WorkspaceList
+    component: WorkspaceList,
+    title: 'Projects'
   })
 }

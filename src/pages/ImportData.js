@@ -54,6 +54,7 @@ class Importer extends Component {
 export const addNavPaths = () => {
   Nav.defPath('import-data', {
     path: '/import-data',
-    component: Importer
+    component: Importer,
+    title: 'Import Data'
   })
 }
