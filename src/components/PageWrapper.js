@@ -5,7 +5,7 @@ import * as Style from 'src/libs/style'
 
 
 const styles = {
-  link: { marginLeft: '2rem', color: 'inherit', textDecoration: 'none' }
+  link: { marginLeft: '2rem' }
 }
 
 const tosUrl = 'http://gatkforums.broadinstitute.org/firecloud/discussion/6819/firecloud-terms-of-service#latest'
