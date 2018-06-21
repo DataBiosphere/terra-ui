@@ -6,19 +6,9 @@ import * as Style from 'src/libs/style'
 
 export const breadcrumbElement = function(child, href) {
   if (href) {
-    return a(
-      {
-        style: { color: Style.colors.textFaded, textDecoration: 'none' },
-        href
-      },
-      [child, breadcrumb()])
+    return a({ style: { color: Style.colors.textFaded }, href }, [child, breadcrumb()])
   } else {
-    return span(
-      {
-        style: { color: Style.colors.textFaded }
-      },
-      [child, breadcrumb()]
-    )
+    return span({ style: { color: Style.colors.textFaded } }, [child, breadcrumb()])
   }
 }
 

@@ -49,11 +49,7 @@ export class WorkspaceList extends Component {
       renderCard: ({ workspace: { namespace, name, createdBy, lastModified } }) => {
         return a({
           href: Nav.getLink('workspace', { namespace, name }),
-          style: {
-            ...Style.elements.card,
-            width: '100%', margin: '0.5rem', textDecoration: 'none',
-            color: Style.colors.text
-          }
+          style: { ...Style.elements.card, width: '100%', margin: '0.5rem' }
         },
         [
           div({ style: Style.elements.cardTitle }, `${name}`),
@@ -87,10 +83,9 @@ export class WorkspaceList extends Component {
             ...Style.elements.card,
             width: `calc(${100 / cardsPerRow}% - 2.5rem)`,
             margin: '1.25rem',
-            textDecoration: 'none',
             display: 'flex', flexDirection: 'column',
             justifyContent: 'space-between',
-            height: 225, color: Style.colors.text
+            height: 225
           }
         },
         [
