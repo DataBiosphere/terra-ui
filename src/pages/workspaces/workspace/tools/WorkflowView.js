@@ -1,17 +1,15 @@
 import _ from 'lodash/fp'
 import { Fragment } from 'react'
-import { div, h, p, span } from 'react-hyperscript-helpers'
+import { div, h, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { buttonPrimary, buttonSecondary, link, Select, spinnerOverlay, tooltip } from 'src/components/common'
+import { buttonPrimary, buttonSecondary, Select, spinnerOverlay, tooltip } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { AutocompleteTextInput } from 'src/components/input'
-import Modal from 'src/components/Modal'
 import TabBar from 'src/components/TabBar'
 import { FlexTable, TextCell } from 'src/components/table'
 import WDLViewer from 'src/components/WDLViewer'
 import { Agora, Dockstore, Rawls } from 'src/libs/ajax'
-import * as Config from 'src/libs/config'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
@@ -70,7 +68,7 @@ class WorkflowView extends Component {
   }
 
   render() {
-    const { isFreshData, config, launching, submissionId, firecloudRoot, inputsOutputs, activeTab } = this.state
+    const { isFreshData, config, launching, inputsOutputs, activeTab } = this.state
     const { workspaceNamespace, workspaceName, workflowName } = this.props
 
     const workspaceId = { namespace: workspaceNamespace, name: workspaceName }
@@ -97,26 +95,10 @@ class WorkflowView extends Component {
           launching && h(LaunchAnalysisModal, {
             workspaceId, config,
             onDismiss: () => this.setState({ launching: false }),
-            onSuccess: submission => this.setState({ launching: false, submissionId: submission.submissionId })
+            onSuccess: () => Nav.goToPath('workspace-workflows', workspaceId)
           })
         ]),
-        !isFreshData && spinnerOverlay,
-        submissionId && firecloudRoot && h(Modal, {
-          onDismiss: () => this.setState({ submissionId: undefined }),
-          title: 'Analysis submitted',
-          showCancel: false
-        }, [
-          p([`Your analysis was successfully submitted with ID ${submissionId}`]),
-          p([
-            'Job monitoring is not yet implemented in Saturn. ',
-            link({
-              style: { whiteSpace: 'nowrap' },
-              href: `${firecloudRoot}/#workspaces/${workspaceNamespace}/${workspaceName}/monitor/${submissionId}`,
-              target: '_blank'
-            }, ['Click here']),
-            ' to view in FireCloud.'
-          ])
-        ])
+        !isFreshData && spinnerOverlay
       ]
     )
   }
@@ -126,11 +108,10 @@ class WorkflowView extends Component {
     try {
       const workspace = Rawls.workspace(workspaceNamespace, workspaceName)
 
-      const [entityMetadata, workspaceDetails, validationResponse, firecloudRoot] = await Promise.all([
+      const [entityMetadata, workspaceDetails, validationResponse] = await Promise.all([
         workspace.entityMetadata(),
         workspace.details(),
-        workspace.methodConfig(workflowNamespace, workflowName).validate(),
-        Config.getFirecloudUrlRoot()
+        workspace.methodConfig(workflowNamespace, workflowName).validate()
       ])
 
       const { methodConfiguration: config } = validationResponse
@@ -139,7 +120,7 @@ class WorkflowView extends Component {
       const inputsOutputs = this.createIOLists(validationResponse, ioDefinitions)
 
       this.setState({
-        isFreshData: true, config, entityMetadata, inputsOutputs, ioDefinitions, firecloudRoot,
+        isFreshData: true, config, entityMetadata, inputsOutputs, ioDefinitions,
         workspaceAttributes: _.flow(
           _.without(['description']),
           _.remove(s => s.includes(':'))
@@ -259,11 +240,11 @@ class WorkflowView extends Component {
       ..._.map(name => `workspace.${name}`, workspaceAttributes)
     ]
 
-    return div({ style: { margin: `1rem ${sideMargin} 10rem` } }, [
-      h(AutoSizer, { disableHeight: true }, [
-        ({ width }) => {
+    return div({ style: { margin: `1rem ${sideMargin} 0`, flexGrow: 1, minHeight: 500 } }, [
+      h(AutoSizer, {}, [
+        ({ width, height }) => {
           return h(FlexTable, {
-            width, height: 500,
+            width, height,
             rowCount: data.length,
             columns: [
               {
