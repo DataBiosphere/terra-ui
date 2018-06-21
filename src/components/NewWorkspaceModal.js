@@ -8,6 +8,7 @@ import Modal from 'src/components/Modal'
 import PopupTrigger from 'src/components/PopupTrigger'
 import { Rawls } from 'src/libs/ajax'
 import { reportError } from 'src/libs/error'
+import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import validate from 'validate.js'
 
@@ -48,7 +49,7 @@ export default class NewWorkspaceModal extends Component {
     this.state = {
       billingProjects: undefined,
       allGroups: undefined,
-      name: cloneWorkspace ? `Copy of ${cloneWorkspace.workspace.name}` : '',
+      name: cloneWorkspace ? `${cloneWorkspace.workspace.name} copy` : '',
       namespace: cloneWorkspace ? cloneWorkspace.workspace.namespace : undefined,
       description: (cloneWorkspace && cloneWorkspace.workspace.attributes.description) || '',
       groups: cloneWorkspace ? _.map('membersGroupName', cloneWorkspace.workspace.authorizationDomain) : [],
@@ -71,7 +72,7 @@ export default class NewWorkspaceModal extends Component {
   }
 
   async create() {
-    const { onCreate, cloneWorkspace } = this.props
+    const { cloneWorkspace } = this.props
     const { namespace, name, description, groups } = this.state
     try {
       this.setState({ createError: undefined, busy: true })
@@ -84,7 +85,7 @@ export default class NewWorkspaceModal extends Component {
       await (cloneWorkspace ?
         Rawls.workspace(cloneWorkspace.workspace.namespace, cloneWorkspace.workspace.name).clone(body) :
         Rawls.createWorkspace(body))
-      onCreate({ namespace, name })
+      Nav.goToPath('workspace', { namespace, name })
     } catch (error) {
       this.setState({ createError: JSON.parse(error).message, busy: false })
     }

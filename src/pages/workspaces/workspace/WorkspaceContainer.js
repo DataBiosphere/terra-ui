@@ -196,7 +196,6 @@ export default class WorkspaceContainer extends Component {
       }),
       cloningWorkspace && h(NewWorkspaceModal, {
         cloneWorkspace: workspace,
-        onCreate: ({ namespace, name }) => Nav.goToPath('workspace', { namespace, name }),
         onDismiss: () => this.setState({ cloningWorkspace: false })
       })
     ])
