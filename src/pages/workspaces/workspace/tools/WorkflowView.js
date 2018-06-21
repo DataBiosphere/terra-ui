@@ -360,6 +360,6 @@ export const addNavPaths = () => {
   Nav.defPath('workflow', {
     path: '/workspaces/:workspaceNamespace/:workspaceName/tools/:workflowNamespace/:workflowName',
     component: WorkflowView,
-    title: ({ workspaceName, workflowName }) => `${workspaceName} - ${workflowName}`
+    title: ({ workspaceName, workflowName }) => `${workspaceName} - Tools - ${workflowName}`
   })
 }

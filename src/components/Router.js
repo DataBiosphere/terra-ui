@@ -53,6 +53,25 @@ export default class Router extends Component {
     initNavPaths()
   }
 
+  componentDidUpdate(prevProps, prevState) {
+    const { pathname, search } = this.state
+    const handler = Nav.findHandler(pathname)
+
+    if (handler && prevState.pathname !== pathname) {
+      const props = Nav.getHandlerProps(handler, pathname, search)
+
+      if (handler && handler.title) {
+        if (_.isFunction(handler.title)) {
+          document.title = handler.title(props)
+        } else {
+          document.title = handler.title
+        }
+      } else {
+        document.title = 'Saturn'
+      }
+    }
+  }
+
   componentWillUnmount() {
     this.unlisten()
   }
@@ -72,21 +91,9 @@ export default class Router extends Component {
       ])
     }
 
-    const props = Nav.getHandlerProps(handler, pathname, search)
-
-    if (handler && handler.title) {
-      if (_.isFunction(handler.title)) {
-        document.title = handler.title(props)
-      } else {
-        document.title = handler.title
-      }
-    } else {
-      document.title = 'Saturn'
-    }
-
     const el = h(handler.component, {
       key: pathname, // forces a remount even if component is the same
-      ...props
+      ...Nav.getHandlerProps(handler, pathname, search)
     })
     return h(PageWrapper, [handler.public ? el : h(AuthContainer, [el])])
   }
