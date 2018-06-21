@@ -244,6 +244,11 @@ export const Rawls = {
         }
       },
 
+      listSubmissions: async () => {
+        const res = await fetchRawls(`${root}/submissions`, authOpts())
+        return res.json()
+      },
+
       delete: () => {
         return fetchRawls(root, _.merge(authOpts(), { method: 'DELETE' }))
       },

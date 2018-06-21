@@ -164,7 +164,7 @@ export default class LaunchAnalysisModal extends Component {
       entityName: selectedEntity,
       useCallCache: true
     }).then(
-      submission => onSuccess(submission),
+      onSuccess,
       error => this.setState({ launchError: JSON.parse(error).message, launching: false })
     )
   }

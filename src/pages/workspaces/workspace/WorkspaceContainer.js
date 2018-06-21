@@ -62,8 +62,7 @@ class WorkspaceTabs extends PureComponent {
       navTab({ tabName: 'dashboard', href: Nav.getLink('workspace', { namespace, name }) }),
       navTab({ tabName: 'notebooks', href: Nav.getLink('workspace-notebooks', { namespace, name }) }),
       navTab({ tabName: 'data', href: Nav.getLink('workspace-data', { namespace, name }) }),
-      navTab({ tabName: 'jobs' }),
-      navTab({ tabName: 'history' }),
+      navTab({ tabName: 'workflows', href: Nav.getLink('workspace-workflows',  { namespace, name }) }),
       navTab({ tabName: 'tools', href: Nav.getLink('workspace-tools', { namespace, name }) }),
       div({ style: { flexGrow: 1 } }),
       h(Interactive, {
@@ -187,7 +186,7 @@ export default class WorkspaceContainer extends Component {
         namespace, name, activeTab, refresh, workspace,
         onDelete: this.onDelete, onClone: this.onClone
       }),
-      div({ style: { position: 'relative', flexGrow: 1 } }, [
+      div({ style: { position: 'relative', flexGrow: 1, display: 'flex', flexDirection: 'column' } }, [
         this.props.children
       ]),
       deletingWorkspace && h(DeleteWorkspaceModal, {
