@@ -60,12 +60,7 @@ const fetchOk = (...args) => {
 
 export const Sam = {
   token: Utils.memoizeWithTimeout(async namespace => {
-    const scopes = [
-      // need profile and email to use with Orch
-      'https://www.googleapis.com/auth/userinfo.profile',
-      'https://www.googleapis.com/auth/userinfo.email',
-      'https://www.googleapis.com/auth/devstorage.full_control'
-    ]
+    const scopes = ['https://www.googleapis.com/auth/devstorage.full_control']
     const res = await fetchOk(
       `${await Config.getSamUrlRoot()}/api/google/user/petServiceAccount/${namespace}/token`,
       _.mergeAll([authOpts(), jsonBody(scopes), { method: 'POST' }])
