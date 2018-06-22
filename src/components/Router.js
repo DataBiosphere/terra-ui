@@ -58,9 +58,8 @@ export default class Router extends Component {
     if (prevState.pathname === pathname) return
 
     const handler = Nav.findHandler(pathname)
-    if (!handler) return
 
-    if (handler.title) {
+    if (handler && handler.title) {
       if (_.isFunction(handler.title)) {
         document.title = handler.title(Nav.getHandlerProps(handler, pathname, search))
       } else {
