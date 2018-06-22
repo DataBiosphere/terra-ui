@@ -63,24 +63,17 @@ export const connectAtom = (theAtom, name) => WrappedComponent => {
 export const makePrettyDate = function(dateString) {
   const date = new Date(dateString)
   const now = new Date()
+  const oneDayAgo = _.tap(d => d.setDate(d.getDate() - 1), new Date(now))
+  const twoDaysAgo = _.tap(d => d.setDate(d.getDate() - 2), new Date(now))
+  const oneYearAgo = _.tap(d => d.setFullYear(d.getFullYear() - 1), new Date(now))
+  const format = opts => date.toLocaleString(navigator.language, opts)
 
-  const todayOrYesterday =
-    date.getFullYear() === now.getFullYear() &&
-    date.getMonth() === now.getMonth() &&
-    (date.getDate() === now.getDate() - 1 || date.getDate() === now.getDate())
-
-  if (todayOrYesterday) {
-    return (date.getDate() === now.getDate() ? 'Today' : 'Yesterday') + ' ' +
-      date.toLocaleString(navigator.language, { hour: 'numeric', minute: 'numeric' })
-  } else {
-    return date.toLocaleString(navigator.language, {
-      day: 'numeric',
-      month: 'short',
-      year: date.getFullYear() === now.getFullYear() ? undefined : 'numeric',
-      hour: 'numeric',
-      minute: 'numeric'
-    })
-  }
+  return cond(
+    [date > oneDayAgo, () => format({ hour: 'numeric', minute: 'numeric' })],
+    [date > twoDaysAgo, () => 'Yesterday'],
+    [date > oneYearAgo, () => format({ month: 'short', day: 'numeric' })],
+    () => format({ year: 'numeric' })
+  )
 }
 
 export const formatUSD = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format
