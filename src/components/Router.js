@@ -89,7 +89,6 @@ export default class Router extends Component {
         ])
       ])
     }
-
     const el = h(handler.component, {
       key: pathname, // forces a remount even if component is the same
       ...Nav.getHandlerProps(handler, pathname, search)
