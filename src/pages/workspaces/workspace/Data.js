@@ -54,26 +54,23 @@ class WorkspaceData extends Component {
     this.state = { itemsPerPage: 25, pageNumber: 1, loading: false, ...StateHistory.get() }
   }
 
-  async refresh() {
+  async loadMetadata() {
     const { namespace, name } = this.props
-
     try {
       const entityMetadata = await Rawls.workspace(namespace, name).entityMetadata()
       this.setState({ entityMetadata })
-
-      if (this.state.selectedDataType) {
-        this.loadData()
-      }
     } catch (error) {
       reportError('Error loading workspace entity data', error)
     }
   }
 
-
   async loadData() {
     const { namespace, name } = this.props
     const { itemsPerPage, pageNumber, selectedDataType } = this.state
 
+    if (!selectedDataType) {
+      return
+    }
     try {
       this.setState({ loading: true, refreshRequested: false })
 
@@ -98,7 +95,8 @@ class WorkspaceData extends Component {
   }
 
   async componentDidMount() {
-    this.refresh()
+    this.loadMetadata()
+    this.loadData()
 
     this.setState({ orchestrationRoot: await Config.getOrchestrationUrlRoot() })
   }
@@ -109,7 +107,10 @@ class WorkspaceData extends Component {
 
     return h(WorkspaceContainer, {
       namespace, name,
-      refresh: () => this.refresh(),
+      refresh: () => {
+        this.loadMetadata()
+        this.setState({ refreshRequested: true })
+      },
       breadcrumbs: breadcrumbs.commonPaths.workspaceDashboard({ namespace, name }),
       title: 'Data', activeTab: 'data'
     }, [
@@ -122,7 +123,10 @@ class WorkspaceData extends Component {
                 div({
                   style: styles.dataTypeOption(selectedDataType === type),
                   onClick: () => {
-                    this.setState({ selectedDataType: type, pageNumber: 1, entities: undefined, refreshRequested: true })
+                    this.setState(selectedDataType === type ?
+                      { refreshRequested: true } :
+                      { selectedDataType: type, pageNumber: 1, entities: undefined }
+                    )
                   }
                 }, [
                   icon('table', { style: styles.dataTypeIcon }),
@@ -134,7 +138,10 @@ class WorkspaceData extends Component {
                 marginBottom: '1rem', ...styles.dataTypeOption(selectedDataType === globalVariables)
               },
               onClick: () => {
-                this.setState({ selectedDataType: globalVariables, workspaceAttributes: undefined, refreshRequested: true })
+                this.setState(selectedDataType === globalVariables ?
+                  { refreshRequested: true } :
+                  { selectedDataType: globalVariables, workspaceAttributes: undefined }
+                )
               }
             }, [
               icon('world', { style: styles.dataTypeIcon }),
