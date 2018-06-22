@@ -55,20 +55,19 @@ export default class Router extends Component {
 
   componentDidUpdate(prevProps, prevState) {
     const { pathname, search } = this.state
+    if (prevState.pathname === pathname) return
+
     const handler = Nav.findHandler(pathname)
+    if (!handler) return
 
-    if (handler && prevState.pathname !== pathname) {
-      const props = Nav.getHandlerProps(handler, pathname, search)
-
-      if (handler && handler.title) {
-        if (_.isFunction(handler.title)) {
-          document.title = handler.title(props)
-        } else {
-          document.title = handler.title
-        }
+    if (handler.title) {
+      if (_.isFunction(handler.title)) {
+        document.title = handler.title(Nav.getHandlerProps(handler, pathname, search))
       } else {
-        document.title = 'Saturn'
+        document.title = handler.title
       }
+    } else {
+      document.title = 'Saturn'
     }
   }
 
