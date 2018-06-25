@@ -1,10 +1,11 @@
 import _ from 'lodash/fp'
 import { Fragment } from 'react'
-import { a, div, h } from 'react-hyperscript-helpers'
-import { buttonPrimary, contextBar, search, spinnerOverlay } from 'src/components/common'
-import { breadcrumb, icon } from 'src/components/icons'
+import { a, div, h, span } from 'react-hyperscript-helpers'
+import Interactive from 'react-interactive'
+import { pure } from 'recompose'
+import { search, spinnerOverlay } from 'src/components/common'
+import { icon } from 'src/components/icons'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
-import { DataGrid } from 'src/components/table'
 import { TopBar } from 'src/components/TopBar'
 import { Rawls } from 'src/libs/ajax'
 import { reportError } from 'src/libs/error'
@@ -15,102 +16,135 @@ import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 
 
+const styles = {
+  cardContainer: {
+    position: 'relative',
+    padding: '0 4rem',
+    display: 'flex', flexWrap: 'wrap'
+  },
+  shortCard: {
+    ...Style.elements.card,
+    width: 300, height: 225,
+    margin: '1rem 0.5rem'
+  },
+  shortWorkspaceCard: {
+    display: 'flex', flexDirection: 'column', justifyContent: 'space-between'
+  },
+  shortTitle: {
+    flex: 'none',
+    color: Style.colors.secondary, fontSize: 16,
+    lineHeight: '20px', height: '40px',
+    overflow: 'hidden', wordWrap: 'break-word'
+  },
+  shortDescription: {
+    flex: 'none',
+    lineHeight: '18px', height: '90px'
+  },
+  shortCreateCard: {
+    display: 'flex', flexDirection: 'column', justifyContent: 'center',
+    color: Style.colors.secondary, fontSize: 20, lineHeight: '28px'
+  },
+  longCard: {
+    ...Style.elements.card,
+    width: '100%', height: 80,
+    margin: '0.25rem 0.5rem'
+  },
+  longWorkspaceCard: {
+    display: 'flex', flexDirection: 'column', justifyContent: 'space-between'
+  },
+  longTitle: {
+    color: Style.colors.secondary, fontSize: 16,
+    whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'
+  },
+  longDescription: {
+    flex: 1,
+    paddingRight: '1rem',
+    whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'
+  },
+  badge: {
+    height: '1.5rem', width: '1.5rem', borderRadius: '1.5rem',
+    lineHeight: '1.5rem', textAlign: 'center',
+    backgroundColor: Style.colors.accent, color: 'white'
+  },
+  longCreateCard: {
+    display: 'flex', flexDirection: 'column', justifyContent: 'center',
+    color: Style.colors.secondary, fontSize: 16
+  },
+  toolbarContainer: {
+    flex: 'none', display: 'flex', alignItems: 'flex-end',
+    margin: '1rem 4.5rem'
+  },
+  toolbarButtons: {
+    marginLeft: 'auto', display: 'flex',
+    backgroundColor: 'white', borderRadius: 3
+  },
+  toolbarButton: active => ({
+    display: 'flex', justifyContent: 'center', alignItems: 'center',
+    height: '2.25rem', width: '3rem',
+    color: active ? Style.colors.primary : Style.colors.secondary
+  })
+}
+
+const WorkspaceCard = pure(({ listView, workspace: { workspace: { namespace, name, createdBy, lastModified, attributes: { description } } } }) => {
+  const lastChanged = `Last changed: ${Utils.makePrettyDate(lastModified)}`
+  const badge = div({ title: createdBy, style: styles.badge }, [createdBy[0].toUpperCase()])
+  const descText = description || span({ style: { color: Style.colors.textFaded } }, [
+    'No description added'
+  ])
+  return listView ? a({
+    href: Nav.getLink('workspace', { namespace, name }),
+    style: { ...styles.longCard, ...styles.longWorkspaceCard }
+  }, [
+    div({ style: styles.longTitle }, [name]),
+    div({ style: { display: 'flex', alignItems: 'center' } }, [
+      div({ style: styles.longDescription }, [descText]),
+      div({ style: { flex: 'none', width: 400 } }, [lastChanged]),
+      div({ style: { flex: 'none' } }, [badge])
+    ])
+  ]) : a({
+    href: Nav.getLink('workspace', { namespace, name }),
+    style: { ...styles.shortCard, ...styles.shortWorkspaceCard }
+  }, [
+    div({ style: styles.shortTitle }, [name]),
+    div({ style: styles.shortDescription }, [descText]),
+    div({ style: { display: 'flex', alignItems: 'center' } }, [
+      div({ style: { flex: 1 } }, [lastChanged]),
+      div({ style: { flex: 'none' } }, [badge])
+    ])
+  ])
+})
+
+const NewWorkspaceCard = pure(({ listView, onClick }) => {
+  return listView ? h(Interactive, {
+    as: 'div',
+    style: { ...styles.longCard, ...styles.longCreateCard },
+    onClick
+  }, [
+    div([
+      'Create a New Project',
+      icon('plus-circle', { style: { marginLeft: '1rem' }, size: 24 })
+    ])
+  ]) : h(Interactive, {
+    as: 'div',
+    style: { ...styles.shortCard, ...styles.shortCreateCard },
+    onClick
+  }, [
+    div(['Create a']),
+    div(['New Project']),
+    icon('plus-circle', { style: { marginTop: '0.5rem' }, size: 32 })
+  ])
+})
+
 export class WorkspaceList extends Component {
   constructor(props) {
     super(props)
     this.state = {
       filter: '',
       listView: false,
-      itemsPerPage: 6,
-      pageNumber: 1,
       workspaces: null,
       creatingNewWorkspace: false,
       ...StateHistory.get()
     }
-  }
-
-  getDataViewerProps() {
-    const { filter, workspaces } = this.state
-    return {
-      itemsPerPageOptions: [6, 12, 24, 36, 48],
-      itemsPerPage: this.state.itemsPerPage,
-      onItemsPerPageChanged: n => this.setState({ itemsPerPage: n }),
-      pageNumber: this.state.pageNumber,
-      onPageChanged: n => this.setState({ pageNumber: n }),
-      dataSource: _.filter(({ workspace: { namespace, name } }) => {
-        return Utils.textMatch(filter, `${namespace}/${name}`)
-      }, workspaces)
-    }
-  }
-
-  wsList() {
-    return h(DataGrid, {
-      cardsPerRow: 1,
-      renderCard: ({ workspace: { namespace, name, createdBy, lastModified } }) => {
-        return a({
-          href: Nav.getLink('workspace', { namespace, name }),
-          style: { ...Style.elements.card, width: '100%', margin: '0.5rem' }
-        },
-        [
-          div({ style: Style.elements.cardTitle }, `${name}`),
-          div({ style: { display: 'flex', alignItems: 'flex-end', fontSize: '0.8rem' } },
-            [
-              div({ style: { flexGrow: 1 } },
-                `Billing project: ${namespace}`),
-              div({ style: { width: '35%' } },
-                [`Last changed: ${Utils.makePrettyDate(lastModified)}`]),
-              div({
-                title: createdBy,
-                style: {
-                  height: '1.5rem', width: '1.5rem', borderRadius: '1.5rem',
-                  lineHeight: '1.5rem', textAlign: 'center',
-                  backgroundColor: Style.colors.accent, color: 'white'
-                }
-              }, createdBy[0].toUpperCase())
-            ])
-        ])
-      },
-      ...this.getDataViewerProps()
-    })
-  }
-
-  wsGrid() {
-    return h(DataGrid, {
-      renderCard: ({ workspace: { namespace, name, createdBy, lastModified } }, cardsPerRow) => {
-        return a({
-          href: Nav.getLink('workspace', { namespace, name }),
-          style: {
-            ...Style.elements.card,
-            width: `calc(${100 / cardsPerRow}% - 2.5rem)`,
-            margin: '1.25rem',
-            display: 'flex', flexDirection: 'column',
-            justifyContent: 'space-between',
-            height: 225
-          }
-        },
-        [
-          div({ style: Style.elements.cardTitle }, `${name}`),
-          div({}, `Billing project: ${namespace}`),
-          div({
-            style: {
-              display: 'flex', justifyContent: 'space-between',
-              alignItems: 'flex-end', fontSize: '0.8rem'
-            }
-          }, [
-            div({}, ['Last changed:', div({}, Utils.makePrettyDate(lastModified))]),
-            div({
-              title: createdBy,
-              style: {
-                height: '1.5rem', width: '1.5rem', borderRadius: '1.5rem',
-                lineHeight: '1.5rem', textAlign: 'center',
-                backgroundColor: Style.colors.accent, color: 'white'
-              }
-            }, createdBy[0].toUpperCase())
-          ])
-        ])
-      },
-      ...this.getDataViewerProps()
-    })
   }
 
   async refresh() {
@@ -134,7 +168,9 @@ export class WorkspaceList extends Component {
 
   render() {
     const { workspaces, isDataLoaded, filter, listView, creatingNewWorkspace } = this.state
-
+    const data = _.filter(({ workspace: { namespace, name } }) => {
+      return Utils.textMatch(filter, `${namespace}/${name}`)
+    }, workspaces)
     return h(Fragment, [
       h(TopBar, { title: 'Projects' },
         [
@@ -142,48 +178,37 @@ export class WorkspaceList extends Component {
             wrapperProps: { style: { marginLeft: '2rem', flexGrow: 1, maxWidth: 500 } },
             inputProps: {
               placeholder: 'SEARCH BIOSPHERE',
-              onChange: e => this.setState({ filter: e.target.value, pageNumber: 1 }),
+              onChange: e => this.setState({ filter: e.target.value }),
               value: filter
             }
           })
         ]
       ),
-      contextBar({}, [
-        'PROJECTS', breadcrumb(), 'A - Z',
-        div({ style: { flexGrow: 1 } }),
-        icon('view-cards', {
-          style: {
-            cursor: 'pointer', boxShadow: listView ? null : `0 4px 0 ${Style.colors.highlight}`,
-            marginRight: '1rem', width: 26, height: 22
-          },
-          onClick: () => {
-            this.setState({ listView: false })
-          }
-        }),
-        icon('view-list', {
-          style: {
-            cursor: 'pointer', boxShadow: listView ? `0 4px 0 ${Style.colors.highlight}` : null
-          },
-          size: 26,
-          onClick: () => {
-            this.setState({ listView: true })
-          }
-        })
+      div({ style: styles.toolbarContainer }, [
+        div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, [
+          'Projects'
+        ]),
+        div({ style: styles.toolbarButtons }, [
+          h(Interactive, {
+            as: 'div',
+            style: styles.toolbarButton(!listView),
+            onClick: () => this.setState({ listView: false })
+          }, [icon('view-cards', { size: 24 })]),
+          h(Interactive, {
+            as: 'div',
+            style: styles.toolbarButton(listView),
+            onClick: () => this.setState({ listView: true })
+          }, [icon('view-list', { size: 24 })])
+        ])
       ]),
-      div({ style: { width: '100%', position: 'relative', padding: '1rem', flexGrow: 1 } }, [
-        div({ style: { display: 'flex' } }, [
-          buttonPrimary({
-            style: { marginLeft: 'auto' },
-            onClick: () => this.setState({ creatingNewWorkspace: true })
-          }, 'New project')
-        ]),
-        workspaces && div({ style: { margin: 'auto', maxWidth: 1000 } }, [
-          Utils.cond(
-            [_.isEmpty(workspaces), 'You don\'t seem to have access to any workspaces.'],
-            [listView, () => this.wsList()],
-            () => this.wsGrid()
-          )
-        ]),
+      div({ style: styles.cardContainer }, [
+        h(NewWorkspaceCard, {
+          listView,
+          onClick: () => this.setState({ creatingNewWorkspace: true })
+        }),
+        _.map(workspace => {
+          return h(WorkspaceCard, { listView, workspace, key: workspace.workspace.workspaceId })
+        }, data),
         !isDataLoaded && spinnerOverlay
       ]),
       creatingNewWorkspace && h(NewWorkspaceModal, {
@@ -194,7 +219,7 @@ export class WorkspaceList extends Component {
 
   componentDidUpdate() {
     StateHistory.update(_.pick(
-      ['workspaces', 'filter', 'listView', 'itemsPerPage', 'pageNumber'],
+      ['workspaces', 'filter', 'listView'],
       this.state)
     )
   }

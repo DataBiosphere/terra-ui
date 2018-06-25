@@ -8,6 +8,15 @@ import * as Style from 'src/libs/style'
 import { Component } from 'src/libs/wrapped-components'
 
 
+const styles = {
+  topBar: {
+    flex: 'none', height: 80,
+    backgroundColor: 'white', paddingLeft: '1rem', paddingRight: '1rem',
+    display: 'flex', alignItems: 'center',
+    borderBottom: `2px solid ${Style.colors.secondary}`
+  }
+}
+
 /**
  * @param {string} title
  * @param {array} [children]
@@ -50,13 +59,7 @@ export class TopBar extends Component {
             },
             onClick: e => e.stopPropagation()
           }, [
-            div({
-              style: {
-                ...Style.elements.pageTitle,
-                backgroundColor: 'white', padding: '1rem',
-                textAlign: 'center', display: 'flex', alignItems: 'center'
-              }
-            }, [
+            div({ style: styles.topBar }, [
               icon('bars',
                 {
                   dir: 'right',
@@ -103,14 +106,7 @@ export class TopBar extends Component {
   }
 
   render() {
-    return div(
-      {
-        style: {
-          flex: 'none',
-          backgroundColor: 'white', padding: '1rem',
-          display: 'flex', alignItems: 'center'
-        }
-      },
+    return div({ style: styles.topBar },
       [
         icon('bars',
           {

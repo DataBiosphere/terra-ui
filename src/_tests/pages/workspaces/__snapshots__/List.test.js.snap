@@ -7,9 +7,12 @@ Array [
         Object {
             "alignItems": "center",
             "backgroundColor": "white",
+            "borderBottom": "2px solid #478eba",
             "display": "flex",
             "flex": "none",
-            "padding": "1rem",
+            "height": 80,
+            "paddingLeft": "1rem",
+            "paddingRight": "1rem",
           }
     }
 >
@@ -121,77 +124,36 @@ Array [
   <div
     style={
         Object {
-            "alignItems": "center",
-            "backgroundColor": "#5faee0",
-            "color": "#bde5ff",
+            "alignItems": "flex-end",
             "display": "flex",
-            "fontWeight": 500,
-            "height": "3.75rem",
-            "padding": "0 1rem",
-          }
-    }
->
-    PROJECTS
-    <clr-icon
-        shape="angle right"
-        size={10}
-        style={
-            Object {
-                "margin": "0 0.25rem",
-              }
-        }
-    />
-    A - Z
-    <div
-        style={
-            Object {
-                "flexGrow": 1,
-              }
-        }
-    />
-    <clr-icon
-        onClick={[Function]}
-        shape="view-cards"
-        style={
-            Object {
-                "boxShadow": "0 4px 0 #bfd5e3",
-                "cursor": "pointer",
-                "height": 22,
-                "marginRight": "1rem",
-                "width": 26,
-              }
-        }
-    />
-    <clr-icon
-        onClick={[Function]}
-        shape="view-list"
-        size={26}
-        style={
-            Object {
-                "boxShadow": null,
-                "cursor": "pointer",
-              }
-        }
-    />
-</div>,
-  <div
-    style={
-        Object {
-            "flexGrow": 1,
-            "padding": "1rem",
-            "position": "relative",
-            "width": "100%",
+            "flex": "none",
+            "margin": "1rem 4.5rem",
           }
     }
 >
     <div
         style={
             Object {
-                "display": "flex",
+                "color": "#224f83",
+                "fontSize": 16,
+                "fontWeight": 500,
+                "textTransform": "uppercase",
               }
         }
     >
-        <button
+        Projects
+    </div>
+    <div
+        style={
+            Object {
+                "backgroundColor": "white",
+                "borderRadius": 3,
+                "display": "flex",
+                "marginLeft": "auto",
+              }
+        }
+    >
+        <div
             onBlur={[Function]}
             onClick={[Function]}
             onDragEnd={[Function]}
@@ -204,346 +166,316 @@ Array [
             onMouseLeave={[Function]}
             onMouseMove={[Function]}
             onMouseUp={[Function]}
+            role="button"
             style={
                 Object {
-                    "backgroundColor": "#478eba",
-                    "border": "none",
-                    "borderRadius": 5,
-                    "color": "white",
+                    "alignItems": "center",
+                    "color": "#5faee0",
                     "cursor": "pointer",
-                    "fontSize": 14,
-                    "fontWeight": 500,
+                    "display": "flex",
                     "height": "2.25rem",
-                    "marginLeft": "auto",
+                    "justifyContent": "center",
                     "outline": 0,
                     "outlineOffset": 0,
-                    "padding": "0 1.5rem",
-                    "textTransform": "uppercase",
+                    "width": "3rem",
                   }
             }
             tabIndex="0"
         >
-            New project
-        </button>
+            <clr-icon
+                shape="view-cards"
+                size={24}
+            />
+        </div>
+        <div
+            onBlur={[Function]}
+            onClick={[Function]}
+            onDragEnd={[Function]}
+            onDragStart={[Function]}
+            onFocus={[Function]}
+            onKeyDown={[Function]}
+            onKeyUp={[Function]}
+            onMouseDown={[Function]}
+            onMouseEnter={[Function]}
+            onMouseLeave={[Function]}
+            onMouseMove={[Function]}
+            onMouseUp={[Function]}
+            role="button"
+            style={
+                Object {
+                    "alignItems": "center",
+                    "color": "#478eba",
+                    "cursor": "pointer",
+                    "display": "flex",
+                    "height": "2.25rem",
+                    "justifyContent": "center",
+                    "outline": 0,
+                    "outlineOffset": 0,
+                    "width": "3rem",
+                  }
+            }
+            tabIndex="0"
+        >
+            <clr-icon
+                shape="view-list"
+                size={24}
+            />
+        </div>
     </div>
+</div>,
+  <div
+    style={
+        Object {
+            "display": "flex",
+            "flexWrap": "wrap",
+            "padding": "0 4rem",
+            "position": "relative",
+          }
+    }
+>
     <div
+        onBlur={[Function]}
+        onClick={[Function]}
+        onDragEnd={[Function]}
+        onDragStart={[Function]}
+        onFocus={[Function]}
+        onKeyDown={[Function]}
+        onKeyUp={[Function]}
+        onMouseDown={[Function]}
+        onMouseEnter={[Function]}
+        onMouseLeave={[Function]}
+        onMouseMove={[Function]}
+        onMouseUp={[Function]}
+        role="button"
         style={
             Object {
-                "margin": "auto",
-                "maxWidth": 1000,
+                "backgroundColor": "white",
+                "borderRadius": 5,
+                "boxShadow": "0 3px 2px 0 rgba(0,0,0,0.12)",
+                "color": "#478eba",
+                "cursor": "pointer",
+                "display": "flex",
+                "flexDirection": "column",
+                "fontSize": 20,
+                "height": 225,
+                "justifyContent": "center",
+                "lineHeight": "28px",
+                "margin": "1rem 0.5rem",
+                "outline": 0,
+                "outlineOffset": 0,
+                "padding": "1rem",
+                "width": 300,
+                "wordWrap": "break-word",
+              }
+        }
+        tabIndex="0"
+    >
+        <div>
+            Create a
+        </div>
+        <div>
+            New Project
+        </div>
+        <clr-icon
+            shape="plus-circle"
+            size={32}
+            style={
+                Object {
+                    "marginTop": "0.5rem",
+                  }
+            }
+        />
+    </div>
+    <a
+        href={undefined}
+        style={
+            Object {
+                "backgroundColor": "white",
+                "borderRadius": 5,
+                "boxShadow": "0 3px 2px 0 rgba(0,0,0,0.12)",
+                "display": "flex",
+                "flexDirection": "column",
+                "height": 225,
+                "justifyContent": "space-between",
+                "margin": "1rem 0.5rem",
+                "padding": "1rem",
+                "width": 300,
+                "wordWrap": "break-word",
               }
         }
     >
         <div
             style={
                 Object {
-                    "display": "flex",
-                    "flexWrap": "wrap",
+                    "color": "#478eba",
+                    "flex": "none",
+                    "fontSize": 16,
+                    "height": "40px",
+                    "lineHeight": "20px",
+                    "overflow": "hidden",
+                    "wordWrap": "break-word",
                   }
             }
         >
-            <a
-                href={undefined}
-                style={
-                    Object {
-                        "backgroundColor": "white",
-                        "borderRadius": 5,
-                        "boxShadow": "0 3px 2px 0 rgba(0,0,0,0.12)",
-                        "display": "flex",
-                        "flexDirection": "column",
-                        "height": 225,
-                        "justifyContent": "space-between",
-                        "margin": "1.25rem",
-                        "padding": "1rem",
-                        "width": "calc(33.333333333333336% - 2.5rem)",
-                        "wordWrap": "break-word",
-                      }
-                }
-            >
-                <div
-                    style={
-                        Object {
-                            "color": "#478eba",
-                            "fontSize": 16,
-                            "fontWeight": 500,
-                          }
-                    }
-                >
-                    large_sample_copy
-                </div>
-                <div>
-                    Billing project: broad-dsde-dev
-                </div>
-                <div
-                    style={
-                        Object {
-                            "alignItems": "flex-end",
-                            "display": "flex",
-                            "fontSize": "0.8rem",
-                            "justifyContent": "space-between",
-                          }
-                    }
-                >
-                    <div>
-                        Last changed:
-                        <div>
-                            ***MOCKED DATE***
-                        </div>
-                    </div>
-                    <div
-                        style={
-                            Object {
-                                "backgroundColor": "#8b5f95",
-                                "borderRadius": "1.5rem",
-                                "color": "white",
-                                "height": "1.5rem",
-                                "lineHeight": "1.5rem",
-                                "textAlign": "center",
-                                "width": "1.5rem",
-                              }
-                        }
-                        title="alice@example.com"
-                    >
-                        A
-                    </div>
-                </div>
-            </a>
-            <a
-                href={undefined}
-                style={
-                    Object {
-                        "backgroundColor": "white",
-                        "borderRadius": 5,
-                        "boxShadow": "0 3px 2px 0 rgba(0,0,0,0.12)",
-                        "display": "flex",
-                        "flexDirection": "column",
-                        "height": 225,
-                        "justifyContent": "space-between",
-                        "margin": "1.25rem",
-                        "padding": "1rem",
-                        "width": "calc(33.333333333333336% - 2.5rem)",
-                        "wordWrap": "break-word",
-                      }
-                }
-            >
-                <div
-                    style={
-                        Object {
-                            "color": "#478eba",
-                            "fontSize": 16,
-                            "fontWeight": 500,
-                          }
-                    }
-                >
-                    large_sample_copy
-                </div>
-                <div>
-                    Billing project: broad-dsde-dev
-                </div>
-                <div
-                    style={
-                        Object {
-                            "alignItems": "flex-end",
-                            "display": "flex",
-                            "fontSize": "0.8rem",
-                            "justifyContent": "space-between",
-                          }
-                    }
-                >
-                    <div>
-                        Last changed:
-                        <div>
-                            ***MOCKED DATE***
-                        </div>
-                    </div>
-                    <div
-                        style={
-                            Object {
-                                "backgroundColor": "#8b5f95",
-                                "borderRadius": "1.5rem",
-                                "color": "white",
-                                "height": "1.5rem",
-                                "lineHeight": "1.5rem",
-                                "textAlign": "center",
-                                "width": "1.5rem",
-                              }
-                        }
-                        title="alice@example.com"
-                    >
-                        A
-                    </div>
-                </div>
-            </a>
+            large_sample_copy
         </div>
         <div
             style={
                 Object {
-                    "marginTop": 10,
+                    "flex": "none",
+                    "height": "90px",
+                    "lineHeight": "18px",
                   }
             }
         >
-            <div>
+            <span
+                style={
+                    Object {
+                        "color": "#a6a6a6",
+                      }
+                }
+            >
+                No description added
+            </span>
+        </div>
+        <div
+            style={
+                Object {
+                    "alignItems": "center",
+                    "display": "flex",
+                  }
+            }
+        >
+            <div
+                style={
+                    Object {
+                        "flex": 1,
+                      }
+                }
+            >
+                Last changed: ***MOCKED DATE***
+            </div>
+            <div
+                style={
+                    Object {
+                        "flex": "none",
+                      }
+                }
+            >
                 <div
                     style={
                         Object {
-                            "alignItems": "center",
-                            "display": "flex",
-                            "justifyContent": "flex-end",
-                            "marginRight": "1rem",
+                            "backgroundColor": "#8b5f95",
+                            "borderRadius": "1.5rem",
+                            "color": "white",
+                            "height": "1.5rem",
+                            "lineHeight": "1.5rem",
+                            "textAlign": "center",
+                            "width": "1.5rem",
                           }
                     }
+                    title="alice@example.com"
                 >
-                    1 - 2 of 2
-                    <div
-                        style={
-                            Object {
-                                "display": "inline-flex",
-                                "padding": "0.25rem 1rem",
-                              }
-                        }
-                    >
-                        <button
-                            disabled={true}
-                            onClick={[Function]}
-                            style={
-                                Object {
-                                    "backgroundColor": "white",
-                                    "border": "1px solid #ccc",
-                                    "borderRadius": 3,
-                                    "color": "#9b9b9b",
-                                    "cursor": "not-allowed",
-                                    "margin": "0 2px",
-                                    "marginRight": "0.5rem",
-                                    "padding": "0.25rem 0.5rem",
-                                  }
-                            }
-                        >
-                            <clr-icon
-                                shape="angle-double left"
-                                size={12}
-                            />
-                        </button>
-                        <button
-                            disabled={true}
-                            onClick={[Function]}
-                            style={
-                                Object {
-                                    "backgroundColor": "white",
-                                    "border": "1px solid #ccc",
-                                    "borderRadius": 3,
-                                    "color": "#9b9b9b",
-                                    "cursor": "not-allowed",
-                                    "margin": "0 2px",
-                                    "marginRight": "1rem",
-                                    "padding": "0.25rem 0.5rem",
-                                  }
-                            }
-                        >
-                            <clr-icon
-                                shape="angle left"
-                                size={12}
-                            />
-                        </button>
-                        <button
-                            onClick={[Function]}
-                            style={
-                                Object {
-                                    "backgroundColor": "#5faee0",
-                                    "border": "#5faee0",
-                                    "borderRadius": 3,
-                                    "color": "white",
-                                    "cursor": "pointer",
-                                    "margin": "0 2px",
-                                    "minWidth": "2rem",
-                                    "padding": "0.25rem 0.5rem",
-                                  }
-                            }
-                        >
-                            1
-                        </button>
-                        <button
-                            disabled={true}
-                            onClick={[Function]}
-                            style={
-                                Object {
-                                    "backgroundColor": "white",
-                                    "border": "1px solid #ccc",
-                                    "borderRadius": 3,
-                                    "color": "#9b9b9b",
-                                    "cursor": "not-allowed",
-                                    "margin": "0 2px",
-                                    "marginLeft": "1rem",
-                                    "padding": "0.25rem 0.5rem",
-                                  }
-                            }
-                        >
-                            <clr-icon
-                                shape="angle right"
-                                size={12}
-                            />
-                        </button>
-                        <button
-                            disabled={true}
-                            onClick={[Function]}
-                            style={
-                                Object {
-                                    "backgroundColor": "white",
-                                    "border": "1px solid #ccc",
-                                    "borderRadius": 3,
-                                    "color": "#9b9b9b",
-                                    "cursor": "not-allowed",
-                                    "margin": "0 2px",
-                                    "marginLeft": "0.5rem",
-                                    "padding": "0.25rem 0.5rem",
-                                  }
-                            }
-                        >
-                            <clr-icon
-                                shape="angle-double right"
-                                size={12}
-                            />
-                        </button>
-                    </div>
-                    Items per page:
-                    <select
-                        onChange={[Function]}
-                        style={
-                            Object {
-                                "marginLeft": "0.5rem",
-                              }
-                        }
-                        value={6}
-                    >
-                        <option
-                            value={6}
-                        >
-                            6
-                        </option>
-                        <option
-                            value={12}
-                        >
-                            12
-                        </option>
-                        <option
-                            value={24}
-                        >
-                            24
-                        </option>
-                        <option
-                            value={36}
-                        >
-                            36
-                        </option>
-                        <option
-                            value={48}
-                        >
-                            48
-                        </option>
-                    </select>
+                    A
                 </div>
             </div>
         </div>
-    </div>
+    </a>
+    <a
+        href={undefined}
+        style={
+            Object {
+                "backgroundColor": "white",
+                "borderRadius": 5,
+                "boxShadow": "0 3px 2px 0 rgba(0,0,0,0.12)",
+                "display": "flex",
+                "flexDirection": "column",
+                "height": 225,
+                "justifyContent": "space-between",
+                "margin": "1rem 0.5rem",
+                "padding": "1rem",
+                "width": 300,
+                "wordWrap": "break-word",
+              }
+        }
+    >
+        <div
+            style={
+                Object {
+                    "color": "#478eba",
+                    "flex": "none",
+                    "fontSize": 16,
+                    "height": "40px",
+                    "lineHeight": "20px",
+                    "overflow": "hidden",
+                    "wordWrap": "break-word",
+                  }
+            }
+        >
+            large_sample_copy
+        </div>
+        <div
+            style={
+                Object {
+                    "flex": "none",
+                    "height": "90px",
+                    "lineHeight": "18px",
+                  }
+            }
+        >
+            <span
+                style={
+                    Object {
+                        "color": "#a6a6a6",
+                      }
+                }
+            >
+                No description added
+            </span>
+        </div>
+        <div
+            style={
+                Object {
+                    "alignItems": "center",
+                    "display": "flex",
+                  }
+            }
+        >
+            <div
+                style={
+                    Object {
+                        "flex": 1,
+                      }
+                }
+            >
+                Last changed: ***MOCKED DATE***
+            </div>
+            <div
+                style={
+                    Object {
+                        "flex": "none",
+                      }
+                }
+            >
+                <div
+                    style={
+                        Object {
+                            "backgroundColor": "#8b5f95",
+                            "borderRadius": "1.5rem",
+                            "color": "white",
+                            "height": "1.5rem",
+                            "lineHeight": "1.5rem",
+                            "textAlign": "center",
+                            "width": "1.5rem",
+                          }
+                    }
+                    title="alice@example.com"
+                >
+                    A
+                </div>
+            </div>
+        </div>
+    </a>
 </div>,
 ]
 `;

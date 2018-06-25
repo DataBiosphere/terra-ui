@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import { Component, Fragment, createRef } from 'react'
 import { createPortal } from 'react-dom'
 import Autosuggest from 'react-autosuggest'
-import { div, h, textarea } from 'react-hyperscript-helpers'
+import { div, h } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
 import { icon } from 'src/components/icons'
 import * as Style from 'src/libs/style'
@@ -23,9 +23,10 @@ const styles = {
   },
   textarea: {
     width: '100%', resize: 'none',
-    border: `1px solid ${Style.colors.border}`, borderRadius: 5,
+    border: `1px solid ${Style.colors.border}`, borderRadius: 4,
     fontSize: 14, fontWeight: 300,
-    padding: '0.5rem 1rem'
+    padding: '0.5rem 1rem',
+    cursor: 'text'
   }
 }
 
@@ -208,5 +209,9 @@ export class AutocompleteTextInput extends Component {
 }
 
 export const TextArea = props => {
-  return textarea(_.merge({ style: styles.textarea }, props))
+  return h(Interactive, _.merge({
+    as: 'textarea',
+    style: styles.textarea,
+    focus: { border: `1px solid ${Style.colors.focus}` }
+  }, props))
 }

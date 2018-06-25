@@ -1,7 +1,6 @@
 import { mount } from 'enzyme'
 import { h } from 'react-hyperscript-helpers'
 import TestRenderer from 'react-test-renderer'
-import { DataGrid } from 'src/components/table'
 import { waitOneTickAndUpdate } from 'src/libs/test-utils'
 import * as Utils from 'src/libs/utils'
 import { WorkspaceList } from 'src/pages/workspaces/List'
@@ -18,15 +17,15 @@ describe('WorkspaceList', () => {
   it('should switch between Grid and List view', () => {
     const wrapper = mount(h(WorkspaceList))
     return waitOneTickAndUpdate(wrapper).then(() => {
-      const currentCardsPerRow = () => wrapper.find(DataGrid).props().cardsPerRow
+      const currentCardsPerRow = () => wrapper.state().listView
 
-      expect(currentCardsPerRow()).not.toEqual(1)
+      expect(currentCardsPerRow()).not.toEqual(true)
 
       wrapper.findIcon('view-list').click()
-      expect(currentCardsPerRow()).toEqual(1)
+      expect(currentCardsPerRow()).toEqual(true)
 
       wrapper.findIcon('view-cards').click()
-      expect(currentCardsPerRow()).not.toEqual(1)
+      expect(currentCardsPerRow()).not.toEqual(true)
     })
   })
 })
