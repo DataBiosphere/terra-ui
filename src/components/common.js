@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { Fragment } from 'react'
-import { div, h, input } from 'react-hyperscript-helpers'
+import { div, h, input, span } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
 import { StatefulToolTip } from 'react-portal-tooltip'
 import RSelect from 'react-select'
@@ -165,5 +165,14 @@ export const spinnerOverlay = div(
     })
   ]
 )
+
+export const comingSoon = span({
+  style: {
+    margin: '0.5rem', padding: 3, borderRadius: 2,
+    backgroundColor: Style.colors.accent, color: 'white',
+    fontSize: '75%', textTransform: 'uppercase', fontWeight: 500,
+    whiteSpace: 'nowrap'
+  }
+}, ['coming soon'])
 
 export const Select = RSelect

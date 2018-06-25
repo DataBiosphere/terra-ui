@@ -1,6 +1,6 @@
 import { createPortal } from 'react-dom'
 import { a, div } from 'react-hyperscript-helpers'
-import { link } from 'src/components/common'
+import { comingSoon, link } from 'src/components/common'
 import { icon, logo } from 'src/components/icons'
 import { signOut } from 'src/libs/auth'
 import * as Nav from 'src/libs/nav'
@@ -81,13 +81,13 @@ export class TopBar extends Component {
                 padding: '1rem', borderBottom: '1px solid white', color: 'white',
                 lineHeight: '1.75rem'
               }
-            }, [icon('search', { style: { margin: '0 1rem 0 1rem' } }), 'Find Data']),
+            }, [icon('search', { style: { margin: '0 1rem 0 1rem' } }), 'Find Data', comingSoon]),
             div({
               style: {
                 padding: '1rem', borderBottom: '1px solid white', color: 'white',
                 lineHeight: '1.75rem'
               }
-            }, [icon('search', { style: { margin: '0 1rem 0 1rem' } }), 'Find Code']),
+            }, [icon('search', { style: { margin: '0 1rem 0 1rem' } }), 'Find Code', comingSoon]),
             a({
               style: {
                 padding: '1rem', borderBottom: '1px solid white', color: 'white',
