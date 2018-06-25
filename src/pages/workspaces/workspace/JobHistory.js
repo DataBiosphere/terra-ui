@@ -73,6 +73,11 @@ const colorForStatus = status => {
 }
 
 
+export const flagNewSubmission = submissionId => {
+  sessionStorage.setItem('new-submission', submissionId)
+}
+
+
 class JobHistory extends Component {
   constructor(props) {
     super(props)
@@ -84,6 +89,7 @@ class JobHistory extends Component {
       setTimeout(() => this.setState({ newSubmissionId: undefined }), 1000)
     }
   }
+
   async refresh() {
     const { namespace, name } = this.props
 
