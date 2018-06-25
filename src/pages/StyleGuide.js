@@ -148,6 +148,7 @@ export const addNavPaths = () => {
   Nav.defPath('styles', {
     path: '/styles',
     component: StyleGuide,
-    public: true
+    public: true,
+    title: 'Style Guide'
   })
 }

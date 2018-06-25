@@ -212,6 +212,7 @@ class Importer extends Component {
 export const addNavPaths = () => {
   Nav.defPath('import-tool', {
     path: '/import-tool/:source/:item*',
-    component: Importer
+    component: Importer,
+    title: 'Import Tool'
   })
 }

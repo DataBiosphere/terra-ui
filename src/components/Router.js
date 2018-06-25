@@ -1,3 +1,4 @@
+import _ from 'lodash/fp'
 import { Component } from 'react'
 import { h, h2, div } from 'react-hyperscript-helpers'
 import AuthContainer from 'src/components/AuthContainer'
@@ -50,6 +51,23 @@ export default class Router extends Component {
 
   componentWillReceiveProps() {
     initNavPaths()
+  }
+
+  componentDidUpdate(prevProps, prevState) {
+    const { pathname, search } = this.state
+    if (prevState.pathname === pathname) return
+
+    const handler = Nav.findHandler(pathname)
+
+    if (handler && handler.title) {
+      if (_.isFunction(handler.title)) {
+        document.title = handler.title(Nav.getHandlerProps(handler, pathname, search))
+      } else {
+        document.title = handler.title
+      }
+    } else {
+      document.title = 'Saturn'
+    }
   }
 
   componentWillUnmount() {
