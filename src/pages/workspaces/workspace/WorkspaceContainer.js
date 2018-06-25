@@ -62,7 +62,7 @@ class WorkspaceTabs extends PureComponent {
       navTab({ tabName: 'dashboard', href: Nav.getLink('workspace', { namespace, name }) }),
       navTab({ tabName: 'notebooks', href: Nav.getLink('workspace-notebooks', { namespace, name }) }),
       navTab({ tabName: 'data', href: Nav.getLink('workspace-data', { namespace, name }) }),
-      navTab({ tabName: 'workflows', href: Nav.getLink('workspace-workflows',  { namespace, name }) }),
+      navTab({ tabName: 'job history', href: Nav.getLink('workspace-job-history',  { namespace, name }) }),
       navTab({ tabName: 'tools', href: Nav.getLink('workspace-tools', { namespace, name }) }),
       div({ style: { flexGrow: 1 } }),
       h(Interactive, {
