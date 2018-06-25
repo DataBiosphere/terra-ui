@@ -14,7 +14,7 @@ export const breadcrumbElement = function(child, href) {
 
 
 export const commonPaths = {
-  workspaceList: () => [breadcrumbElement('Projects', Nav.getLink('workspaces'))],
+  workspaceList: () => [breadcrumbElement('Workspaces', Nav.getLink('workspaces'))],
 
   workspaceDashboard: ({ namespace, name }) => [
     ...commonPaths.workspaceList(),

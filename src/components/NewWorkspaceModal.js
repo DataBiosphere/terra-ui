@@ -100,14 +100,14 @@ export default class NewWorkspaceModal extends Component {
     )
     const errors = validate({ namespace, name }, constraints, { fullMessages: false })
     return h(Modal, {
-      title: cloneWorkspace ? 'Clone a Project' : 'Create a New Project',
+      title: cloneWorkspace ? 'Clone a Workspace' : 'Create a New Workspace',
       onDismiss,
       okButton: buttonPrimary({
         disabled: errors,
         onClick: () => this.create()
-      }, cloneWorkspace ? 'Clone project' : 'Create project')
+      }, cloneWorkspace ? 'Clone Workspace' : 'Create Workspace')
     }, [
-      div({ style: styles.label }, ['Project name *']),
+      div({ style: styles.label }, ['Workspace name *']),
       validatedInput({
         inputProps: {
           placeholder: 'Enter a name',
@@ -121,12 +121,12 @@ export default class NewWorkspaceModal extends Component {
       billingProjects && !billingProjects.length ? h(Fragment, [
         div({ style: { color: Style.colors.error } }, [
           icon('error', { size: 16 }),
-          ' You must have a billing-project associated with your account to create a new project.'
+          ' You must have a billing project associated with your account to create a new workspace.'
         ]),
         div({ style: { marginTop: '1rem' } }, [
-          'Billing-projects are currently managed through FireCloud. ',
+          'Billing projects are currently managed through FireCloud. ',
           link({ target: '_blank', href: billingDoc }, [
-            'Learn how to create a billing-project using FireCloud. '
+            'Learn how to create a billing project using FireCloud. '
           ]),
           'Or, email ', link({ href: `mailto:${billingMail}` }, [billingMail]), ' with questions.'
         ])
@@ -151,7 +151,7 @@ export default class NewWorkspaceModal extends Component {
         'Authorization domain ',
         h(PopupTrigger, {
           content: div({ style: { padding: '0.5rem', width: 300 } }, [
-            'Note: An authorization domain can only be set when creating a project. ',
+            'Note: An authorization domain can only be set when creating a workspace. ',
             'Once set, it cannot be changed. ',
             link({ href: authDoc, target: '_blank' }, ['Read more about authorization domains'])
           ])
@@ -162,7 +162,7 @@ export default class NewWorkspaceModal extends Component {
         ])
       ]),
       !!existingGroups.length && div({ style: styles.groupNotice }, [
-        'The cloned project will automatically inherit the authorization domain from this project. ',
+        'The cloned workspace will automatically inherit the authorization domain from this workspace. ',
         'You may add groups to the authorization domain, but you may not remove existing ones.'
       ]),
       h(Select, {

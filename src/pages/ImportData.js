@@ -2,7 +2,7 @@ import { Fragment } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { pageColumn } from 'src/components/common'
 import { TopBar } from 'src/components/TopBar'
-import { DestinationProject } from 'src/pages/ImportTool'
+import { DestinationWorkspace } from 'src/pages/ImportTool'
 import { Orchestration } from 'src/libs/ajax'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
@@ -22,8 +22,8 @@ class Importer extends Component {
           pageColumn('Importing', 5, div({}, [
             div({ style: { overflowX: 'auto', whiteSpace: 'nowrap' } }, url)
           ])),
-          pageColumn('Destination Project', 3,
-            h(DestinationProject, {
+          pageColumn('Destination Workspace', 3,
+            h(DestinationWorkspace, {
               isImporting,
               selectedWorkspace,
               onWorkspaceSelected: selectedWorkspace => this.setState({ selectedWorkspace }),
