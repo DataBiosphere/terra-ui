@@ -62,7 +62,7 @@ Array [
             >
                 Saturn
             </div>
-            Projects
+            Workspaces
         </div>
     </a>
     <div
@@ -141,7 +141,7 @@ Array [
               }
         }
     >
-        Projects
+        Workspaces
     </div>
     <div
         style={
@@ -274,7 +274,7 @@ Array [
             Create a
         </div>
         <div>
-            New Project
+            New Workspace
         </div>
         <clr-icon
             shape="plus-circle"

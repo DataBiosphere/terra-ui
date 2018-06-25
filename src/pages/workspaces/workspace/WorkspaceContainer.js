@@ -105,7 +105,7 @@ class DeleteWorkspaceModal extends Component {
       await Rawls.workspace(namespace, name).delete()
       Nav.goToPath('workspaces')
     } catch (error) {
-      reportError('Error deleting project', error)
+      reportError('Error deleting workspace', error)
       this.setState({ deleting: false })
     }
   }
@@ -130,7 +130,7 @@ class DeleteWorkspaceModal extends Component {
         onClick: () => this.deleteWorkspace()
       }, 'Delete')
     }, [
-      div(['Are you sure you want to permanently delete this project?']),
+      div(['Are you sure you want to permanently delete this workspace?']),
       div({ style: { marginTop: '1rem' } }, [
         'Deleting it will delete the associated ',
         link({ target: '_blank', href: bucketUrl(workspace && workspace.workspace.bucketName) }, [
@@ -174,7 +174,7 @@ export default class WorkspaceContainer extends Component {
     const { deletingWorkspace, cloningWorkspace, workspace } = this.state
 
     return div({ style: { display: 'flex', flexDirection: 'column', height: '100%', flexGrow: 1 } }, [
-      h(TopBar, { title: 'Projects' }, [
+      h(TopBar, { title: 'Workspaces' }, [
         div({ style: { display: 'flex', flexDirection: 'column', paddingLeft: '4rem' } },
           [
             div({}, breadcrumbs),

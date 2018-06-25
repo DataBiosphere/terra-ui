@@ -121,7 +121,7 @@ const NewWorkspaceCard = pure(({ listView, onClick }) => {
     onClick
   }, [
     div([
-      'Create a New Project',
+      'Create a New Workspace',
       icon('plus-circle', { style: { marginLeft: '1rem' }, size: 24 })
     ])
   ]) : h(Interactive, {
@@ -130,7 +130,7 @@ const NewWorkspaceCard = pure(({ listView, onClick }) => {
     onClick
   }, [
     div(['Create a']),
-    div(['New Project']),
+    div(['New Workspace']),
     icon('plus-circle', { style: { marginTop: '0.5rem' }, size: 32 })
   ])
 })
@@ -172,7 +172,7 @@ export class WorkspaceList extends Component {
       return Utils.textMatch(filter, `${namespace}/${name}`)
     }, workspaces)
     return h(Fragment, [
-      h(TopBar, { title: 'Projects' },
+      h(TopBar, { title: 'Workspaces' },
         [
           search({
             wrapperProps: { style: { marginLeft: '2rem', flexGrow: 1, maxWidth: 500 } },
@@ -186,7 +186,7 @@ export class WorkspaceList extends Component {
       ),
       div({ style: styles.toolbarContainer }, [
         div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, [
-          'Projects'
+          'Workspaces'
         ]),
         div({ style: styles.toolbarButtons }, [
           h(Interactive, {
