@@ -87,6 +87,7 @@ class WorkspaceTools extends Component {
 export const addNavPaths = () => {
   Nav.defPath('workspace-tools', {
     path: '/workspaces/:namespace/:name/tools',
-    component: WorkspaceTools
+    component: WorkspaceTools,
+    title: ({ name }) => `${name} - Tools`
   })
 }

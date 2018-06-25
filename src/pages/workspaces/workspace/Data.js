@@ -324,6 +324,7 @@ class WorkspaceData extends Component {
 export const addNavPaths = () => {
   Nav.defPath('workspace-data', {
     path: '/workspaces/:namespace/:name/data',
-    component: WorkspaceData
+    component: WorkspaceData,
+    title: ({ name }) => `${name} - Data`
   })
 }

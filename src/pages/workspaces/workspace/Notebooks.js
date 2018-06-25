@@ -249,6 +249,7 @@ class WorkspaceNotebooks extends Component {
 export const addNavPaths = () => {
   Nav.defPath('workspace-notebooks', {
     path: '/workspaces/:namespace/:name/notebooks',
-    component: WorkspaceNotebooks
+    component: WorkspaceNotebooks,
+    title: ({ name }) => `${name} - Notebooks`
   })
 }

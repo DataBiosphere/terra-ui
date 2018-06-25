@@ -94,6 +94,7 @@ export const addNavPaths = () => {
   Nav.defPath('privacy', {
     path: '/privacy',
     component: PrivacyPolicy,
-    public: true
+    public: true,
+    title: 'Privacy Policy'
   })
 }

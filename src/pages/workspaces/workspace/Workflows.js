@@ -183,6 +183,7 @@ class Workflows extends Component {
 export const addNavPaths = () => {
   Nav.defPath('workspace-workflows', {
     path: '/workspaces/:namespace/:name/workflows',
-    component: Workflows
+    component: Workflows,
+    title: ({ name }) => `${name} - Workflows`
   })
 }
