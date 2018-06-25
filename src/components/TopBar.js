@@ -97,7 +97,7 @@ export class TopBar extends Component {
               onClick: () => this.hideNav()
             }, [
               icon('grid-view', { class: 'is-solid', style: { margin: '0 1rem 0 1rem' } }),
-              'Projects'
+              'Workspaces'
             ])
           ])
         ]),

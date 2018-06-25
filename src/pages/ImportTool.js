@@ -15,7 +15,7 @@ import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 
 
-export class DestinationProject extends Component {
+export class DestinationWorkspace extends Component {
   render() {
     const { import_, isImporting, importError, onWorkspaceSelected, selectedWorkspace } = this.props
     const { workspaces } = this.state
@@ -110,8 +110,8 @@ class DockstoreImporter extends Component {
     return div({ style: { display: 'flex' } },
       [
         pageColumn('Importing', 5, this.renderWdlArea()),
-        pageColumn('Destination Project', 3,
-          h(DestinationProject, {
+        pageColumn('Destination Workspace', 3,
+          h(DestinationWorkspace, {
             selectedWorkspace, importError, isImporting,
             onWorkspaceSelected: selectedWorkspace => this.setState({ selectedWorkspace }),
             import_: () => this.import_()
