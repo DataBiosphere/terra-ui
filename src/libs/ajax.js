@@ -60,12 +60,7 @@ const fetchOk = (...args) => {
 
 export const Sam = {
   token: Utils.memoizeWithTimeout(async namespace => {
-    const scopes = [
-      // need profile and email to use with Orch
-      'https://www.googleapis.com/auth/userinfo.profile',
-      'https://www.googleapis.com/auth/userinfo.email',
-      'https://www.googleapis.com/auth/devstorage.full_control'
-    ]
+    const scopes = ['https://www.googleapis.com/auth/devstorage.full_control']
     const res = await fetchOk(
       `${await Config.getSamUrlRoot()}/api/google/user/petServiceAccount/${namespace}/token`,
       _.mergeAll([authOpts(), jsonBody(scopes), { method: 'POST' }])
@@ -90,7 +85,7 @@ const nbName = name => encodeURIComponent(`notebooks/${name}.ipynb`)
 
 export const Buckets = {
   getObject: async (bucket, object, namespace) => {
-    return fetchOrchestration(`/api/storage/${bucket}/${object}`,
+    return fetchBuckets(`storage/v1/b/${bucket}/o/${encodeURIComponent(object)}`,
       authOpts(await Sam.token(namespace))).then(
       res => res.json()
     )
@@ -102,6 +97,13 @@ export const Buckets = {
       res => res.text()
     )
   },
+
+  getDownloadCostsToNA: _.memoize(async () => {
+    return fetchOk(
+      `https://cloudbilling.googleapis.com/v1/services/95FF-2EF5-5EA1/skus?fields=skus(pricingInfo,skuId)&key=${await Config.getGoogleCloudBillingKey()}`)
+      .then(res => res.json())
+      .then(parsed => _.find({ skuId: '22EB-AAE8-FBCD' }, parsed.skus).pricingInfo[0]) // sku described as "Download Worldwide Destinations (excluding Asia & Australia)"
+  }),
 
   listNotebooks: async (namespace, name) => {
     const res = await fetchBuckets(
