@@ -39,7 +39,10 @@ const styles = {
     lineHeight: '2rem',
     padding: '0.5rem 1rem',
     backgroundColor: colorForStatus(status), color: 'white'
-  })
+  }),
+  newSubmission: {
+    backgroundColor: Style.colors.highlight
+  }
 }
 
 
@@ -71,6 +74,16 @@ const colorForStatus = status => {
 
 
 class JobHistory extends Component {
+  constructor(props) {
+    super(props)
+
+    const submissionId = sessionStorage.getItem('new-submission')
+    if (submissionId) {
+      sessionStorage.removeItem('new-submission')
+      this.state = { newSubmissionId: submissionId }
+      setTimeout(() => this.setState({ newSubmissionId: undefined }), 1000)
+    }
+  }
   async refresh() {
     const { namespace, name } = this.props
 
@@ -104,13 +117,20 @@ class JobHistory extends Component {
 
   renderSubmissions() {
     const { namespace } = this.props
-    const { submissions, loading } = this.state
+    const { submissions, loading, newSubmissionId } = this.state
 
     return div({ style: styles.submissionsTable }, [
       loading && spinnerOverlay,
       submissions && h(AutoSizer, [
         ({ width, height }) => h(FlexTable, {
           width, height, rowCount: submissions.length,
+          rowStyle: rowIndex => {
+            const { submissionId } = submissions[rowIndex]
+            return {
+              transition: 'all 3s linear',
+              ...(submissionId === newSubmissionId ? styles.newSubmission : {})
+            }
+          },
           columns: [
             {
               headerRenderer: () => 'Workflow',

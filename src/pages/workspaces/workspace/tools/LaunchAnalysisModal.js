@@ -137,7 +137,7 @@ export default class LaunchAnalysisModal extends Component {
     ])
   }
 
-  renderError = () => {
+  renderError() {
     const { attributeFailure, entityFailure } = this.state
 
     return div({}, [
@@ -147,7 +147,7 @@ export default class LaunchAnalysisModal extends Component {
     ])
   }
 
-  launch = () => {
+  async launch() {
     const {
       workspaceId: { namespace, name },
       config: { namespace: configNamespace, name: configName, rootEntityType },
@@ -158,14 +158,16 @@ export default class LaunchAnalysisModal extends Component {
 
     this.setState({ launching: true })
 
-    Rawls.workspace(namespace, name).methodConfig(configNamespace, configName).launch({
-      entityType,
-      expression: entityType !== rootEntityType ? `this.${rootEntityType}s` : undefined,
-      entityName: selectedEntity,
-      useCallCache: true
-    }).then(
-      onSuccess,
-      error => this.setState({ launchError: JSON.parse(error).message, launching: false })
-    )
+    try {
+      const { submissionId } = await Rawls.workspace(namespace, name).methodConfig(configNamespace, configName).launch({
+        entityType,
+        expression: entityType !== rootEntityType ? `this.${rootEntityType}s` : undefined,
+        entityName: selectedEntity,
+        useCallCache: true
+      })
+      onSuccess(submissionId)
+    } catch (error) {
+      this.setState({ launchError: JSON.parse(error).message, launching: false })
+    }
   }
 }

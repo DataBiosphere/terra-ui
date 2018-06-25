@@ -95,7 +95,10 @@ class WorkflowView extends Component {
           launching && h(LaunchAnalysisModal, {
             workspaceId, config,
             onDismiss: () => this.setState({ launching: false }),
-            onSuccess: () => Nav.goToPath('workspace-job-history', workspaceId)
+            onSuccess: submissionId => {
+              sessionStorage.setItem('new-submission', submissionId)
+              Nav.goToPath('workspace-job-history', workspaceId)
+            }
           })
         ]),
         !isFreshData && spinnerOverlay
