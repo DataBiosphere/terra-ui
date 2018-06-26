@@ -99,10 +99,7 @@ export const Buckets = {
   },
 
   getDownloadCostsToNA: _.memoize(async () => {
-    return fetchOk(
-      `https://cloudbilling.googleapis.com/v1/services/95FF-2EF5-5EA1/skus?fields=skus(pricingInfo,skuId)&key=${await Config.getGoogleCloudBillingKey()}`)
-      .then(res => res.json())
-      .then(parsed => _.find({ skuId: '22EB-AAE8-FBCD' }, parsed.skus).pricingInfo[0]) // sku described as "Download Worldwide Destinations (excluding Asia & Australia)"
+    return fetchOk('https://storage.googleapis.com/bvdp-saturn-prod-cloud-pricing/na-download-prices.json')
   }),
 
   listNotebooks: async (namespace, name) => {
