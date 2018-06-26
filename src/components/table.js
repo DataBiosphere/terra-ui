@@ -192,8 +192,9 @@ export class FlexTable extends Component {
   }
 
   render() {
-    const { width, height, rowCount, columns, hoverHighlight } = this.props
+    const { width, height, rowCount, rowStyle, columns, hoverHighlight } = this.props
     const { scrollbarSize } = this.state
+
     return div([
       div({
         style: {
@@ -223,7 +224,7 @@ export class FlexTable extends Component {
           return h(Interactive, {
             key: data.key,
             as: 'div',
-            style: { ...data.style, backgroundColor: '#ffffff', display: 'flex' },
+            style: { ...data.style, backgroundColor: '#ffffff', display: 'flex', ...(rowStyle ? rowStyle(data.rowIndex) : {}) },
             hover: hoverHighlight ? { backgroundColor: Style.colors.highlightFaded } : undefined
           }, [
             ..._.map(([i, { size, cellRenderer }]) => {

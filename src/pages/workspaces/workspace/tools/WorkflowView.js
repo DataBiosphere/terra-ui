@@ -17,6 +17,7 @@ import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 import LaunchAnalysisModal from 'src/pages/workspaces/workspace/tools/LaunchAnalysisModal'
+import * as JobHistory from 'src/pages/workspaces/workspace/JobHistory'
 import WorkspaceContainer from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
 
@@ -95,7 +96,10 @@ class WorkflowView extends Component {
           launching && h(LaunchAnalysisModal, {
             workspaceId, config,
             onDismiss: () => this.setState({ launching: false }),
-            onSuccess: () => Nav.goToPath('workspace-job-history', workspaceId)
+            onSuccess: submissionId => {
+              JobHistory.flagNewSubmission(submissionId)
+              Nav.goToPath('workspace-job-history', workspaceId)
+            }
           })
         ]),
         !isFreshData && spinnerOverlay
