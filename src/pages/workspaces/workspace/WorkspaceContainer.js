@@ -3,7 +3,7 @@ import { Component, createRef, Fragment, PureComponent } from 'react'
 import { a, div, h } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
 import ClusterManager from 'src/components/ClusterManager'
-import { buttonPrimary, contextBar, contextMenu, link, spinnerOverlay } from 'src/components/common'
+import { buttonPrimary, comingSoon, contextBar, contextMenu, link, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
@@ -62,7 +62,7 @@ class WorkspaceTabs extends PureComponent {
       navTab({ tabName: 'dashboard', href: Nav.getLink('workspace', { namespace, name }) }),
       navTab({ tabName: 'notebooks', href: Nav.getLink('workspace-notebooks', { namespace, name }) }),
       navTab({ tabName: 'data', href: Nav.getLink('workspace-data', { namespace, name }) }),
-      navTab({ tabName: 'workflows', href: Nav.getLink('workspace-workflows',  { namespace, name }) }),
+      navTab({ tabName: 'job history', href: Nav.getLink('workspace-job-history',  { namespace, name }) }),
       navTab({ tabName: 'tools', href: Nav.getLink('workspace-tools', { namespace, name }) }),
       div({ style: { flexGrow: 1 } }),
       h(Interactive, {
@@ -72,8 +72,14 @@ class WorkspaceTabs extends PureComponent {
       h(PopupTrigger, {
         ref: this.menu,
         content: contextMenu([
-          { children: 'Share' },
-          { children: 'Publish' },
+          {
+            children: ['Share', comingSoon],
+            disabled: true
+          },
+          {
+            children: ['Publish', comingSoon],
+            disabled: true
+          },
           {
             children: 'Delete',
             disabled: !workspace || !_.includes(workspace.accessLevel, ['OWNER', 'PROJECT_OWNER']),
