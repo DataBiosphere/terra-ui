@@ -161,7 +161,7 @@ class JobHistory extends Component {
               headerRenderer: () => 'Workflows',
               cellRenderer: ({ rowIndex }) => {
                 const { workflowStatuses } = submissions[rowIndex]
-                return h(TextCell, _.sum(_.values(workflowStatuses)))
+                return h(TextCell, Utils.formatNumber(_.sum(_.values(workflowStatuses))))
               }
             },
             {
