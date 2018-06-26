@@ -99,7 +99,9 @@ export const Buckets = {
   },
 
   getDownloadCostsToNA: _.memoize(async () => {
-    return fetchOk('https://storage.googleapis.com/bvdp-saturn-prod-cloud-pricing/na-download-prices.json')
+    return fetchOk('https://storage.googleapis.com/bvdp-saturn-prod-cloud-pricing/na-download-prices.json').then(
+      res => res.json()
+    )
   }),
 
   listNotebooks: async (namespace, name) => {
