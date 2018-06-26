@@ -70,7 +70,7 @@ const colorForStatus = status => {
 }
 
 
-class Workflows extends Component {
+class JobHistory extends Component {
   async refresh() {
     const { namespace, name } = this.props
 
@@ -92,7 +92,7 @@ class Workflows extends Component {
     return h(WorkspaceContainer, {
       namespace, name,
       breadcrumbs: breadcrumbs.commonPaths.workspaceDashboard({ namespace, name }),
-      title: 'Workflows', activeTab: 'workflows',
+      title: 'Job History', activeTab: 'job history',
       refresh: () => this.refresh()
     }, [
       div({ style: styles.pageContainer }, [
@@ -181,9 +181,9 @@ class Workflows extends Component {
 
 
 export const addNavPaths = () => {
-  Nav.defPath('workspace-workflows', {
-    path: '/workspaces/:namespace/:name/workflows',
-    component: Workflows,
-    title: ({ name }) => `${name} - Workflows`
+  Nav.defPath('workspace-job-history', {
+    path: '/workspaces/:namespace/:name/job_history',
+    component: JobHistory,
+    title: ({ name }) => `${name} - Job History`
   })
 }
