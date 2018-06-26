@@ -41,7 +41,7 @@ const styles = {
     backgroundColor: colorForStatus(status), color: 'white'
   }),
   newSubmission: {
-    backgroundColor: Style.colors.highlight
+    backgroundColor: Style.colors.highlightFaded
   }
 }
 
@@ -86,7 +86,7 @@ class JobHistory extends Component {
     if (submissionId) {
       sessionStorage.removeItem('new-submission')
       this.state = { newSubmissionId: submissionId }
-      setTimeout(() => this.setState({ newSubmissionId: undefined }), 1000)
+      setTimeout(() => this.setState({ newSubmissionId: undefined }), 0)
     }
   }
 
@@ -133,7 +133,7 @@ class JobHistory extends Component {
           rowStyle: rowIndex => {
             const { submissionId } = submissions[rowIndex]
             return {
-              transition: 'all 3s linear',
+              transition: 'all 1s cubic-bezier(0.33, -2, 0.74, 0.05)',
               ...(submissionId === newSubmissionId ? styles.newSubmission : {})
             }
           },
