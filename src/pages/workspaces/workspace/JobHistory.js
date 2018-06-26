@@ -17,33 +17,15 @@ import WorkspaceContainer from 'src/pages/workspaces/workspace/WorkspaceContaine
 
 
 const styles = {
-  pageContainer: {
-    margin: '1rem', minHeight: 500, height: '100%', display: 'flex', flexGrow: 1
-  },
   submissionsTable: {
-    flex: 1
+    margin: '1rem', minHeight: 500, height: '100%'
   },
-  table: {
-    deemphasized: {
-      color: Style.colors.textFaded
-    }
+  deemphasized: {
+    color: Style.colors.textFaded
   },
-  sidebar: {
-    flex: '0 0 auto', margin: '0 6rem 0 4rem'
-  },
-  statusIcon: {
-    class: 'is-solid', style: { marginRight: '0.5rem' }
-  },
-  workflowLabelsHeader: {
-    ...Style.elements.sectionHeader, marginBottom: '1rem'
-  },
-  workflowLabel: status => ({
-    lineHeight: '2rem',
-    padding: '0.5rem 1rem',
-    backgroundColor: colorForStatus(status), color: 'white'
-  }),
-  newSubmission: {
-    backgroundColor: Style.colors.highlightFaded
+  statusDetailCell: {
+    align: 'center',
+    style: { padding: '0.5rem' }
   }
 }
 
@@ -61,27 +43,9 @@ const collapseStatus = status => {
   }
 }
 
-const iconForStatus = status => {
-  switch (collapseStatus(status)) {
-    case 'Succeeded':
-      return icon('check-circle', styles.statusIcon)
-    case 'Failed':
-      return icon('warning-standard', styles.statusIcon)
-    default:
-      return icon('sync', styles.statusIcon)
-  }
-}
-
-const colorForStatus = status => {
-  switch (collapseStatus(status)) {
-    case 'Succeeded':
-      return Style.colors.success
-    case 'Failed':
-      return Style.colors.standout
-    default:
-      return Style.colors.primary
-  }
-}
+const successIcon = style => icon('check', { size: 24, style: { color: Style.colors.success, ...style } })
+const failedIcon = style => icon('warning-standard', { class: 'is-solid', size: 24, style: { color: Style.colors.error, ...style } })
+const runningIcon = style => icon('sync', { size: 24, style: { color: Style.colors.success, ...style } })
 
 
 export const flagNewSubmission = submissionId => {
@@ -103,25 +67,25 @@ class StatusCell extends Component {
     const collapsedKeys = _.keys(collapsed)
 
     return h(Fragment, [
-      _.includes('Succeeded', collapsedKeys) && icon('check', { size: 24, style: { marginRight: '0.5rem', color: Style.colors.success } }),
-      _.includes('Failed', collapsedKeys) && icon('warning-standard', { class: 'is-solid', size: 24, style: { marginRight: '0.5rem', color: Style.colors.error } }),
-      _.includes('Running', collapsedKeys) && icon('sync', { size: 24, style: { marginRight: '0.5rem', color: Style.colors.success } }),
+      _.includes('Succeeded', collapsedKeys) && successIcon({ marginRight: '0.5rem' }),
+      _.includes('Failed', collapsedKeys) && failedIcon({ marginRight: '0.5rem' }),
+      _.includes('Running', collapsedKeys) && runningIcon({ marginRight: '0.5rem' }),
       h(DropdownBox, {
         open,
         width: 'auto',
         onToggle: open => this.setState({ open })
       }, [
-        table({}, [
+        table({ style: { margin: '0.5rem' } }, [
           tbody({}, [
             tr({}, [
-              td({ align: 'center', style: { padding: '0.5rem' } }, [icon('check', { size: 24, style: { color: Style.colors.success } })]),
-              td({ align: 'center', style: { padding: '0.5rem' } }, [icon('warning-standard', { class: 'is-solid', size: 24, style: { color: Style.colors.error } })]),
-              td({ align: 'center', style: { padding: '0.5rem' } }, [icon('sync', { size: 24, style: { color: Style.colors.success } })])
+              td(styles.statusDetailCell, [successIcon()]),
+              td(styles.statusDetailCell, [failedIcon()]),
+              td(styles.statusDetailCell, [runningIcon()])
             ]),
             tr({}, [
-              td({ align: 'center', style: { padding: '0.5rem' } }, [collapsed['Succeeded'] || 0]),
-              td({ align: 'center', style: { padding: '0.5rem' } }, [collapsed['Failed'] || 0]),
-              td({ align: 'center', style: { padding: '0.5rem' } }, [collapsed['Running'] || 0])
+              td(styles.statusDetailCell, [collapsed['Succeeded'] || 0]),
+              td(styles.statusDetailCell, [collapsed['Failed'] || 0]),
+              td(styles.statusDetailCell, [collapsed['Running'] || 0])
             ])
           ])
         ])
@@ -167,10 +131,7 @@ class JobHistory extends Component {
       title: 'Job History', activeTab: 'job history',
       refresh: () => this.refresh()
     }, [
-      div({ style: styles.pageContainer }, [
-        this.renderSubmissions(),
-        this.renderSidebar()
-      ])
+      this.renderSubmissions()
     ])
   }
 
@@ -186,8 +147,8 @@ class JobHistory extends Component {
           rowStyle: rowIndex => {
             const { submissionId } = submissions[rowIndex]
             return {
-              transition: 'all 1s cubic-bezier(0.33, -2, 0.74, 0.05)',
-              ...(submissionId === newSubmissionId ? styles.newSubmission : {})
+              transition: 'background-color 1s cubic-bezier(0.33, -2, 0.74, 0.05)',
+              ...(submissionId === newSubmissionId ? { backgroundColor: Style.colors.highlightFaded } : {})
             }
           },
           columns: [
@@ -197,13 +158,13 @@ class JobHistory extends Component {
                 const { methodConfigurationNamespace, methodConfigurationName, submitter } = submissions[rowIndex]
                 return div({}, [
                   div({}, [
-                    methodConfigurationNamespace !== namespace && span({ style: styles.table.deemphasized }, [
+                    methodConfigurationNamespace !== namespace && span({ style: styles.deemphasized }, [
                       `${methodConfigurationNamespace}/`
                     ]),
                     methodConfigurationName
                   ]),
                   div({}, [
-                    span({ style: styles.table.deemphasized }, 'Submitted by '),
+                    span({ style: styles.deemphasized }, 'Submitted by '),
                     submitter
                   ])
                 ])
@@ -236,28 +197,6 @@ class JobHistory extends Component {
           ]
         })
       ])
-    ])
-  }
-
-  renderSidebar() {
-    const { submissions } = this.state
-
-    const statuses = _.flow(
-      _.remove({ status: 'Done' }),
-      _.map('workflowStatuses'),
-      _.reduce(_.mergeWith(_.add), {}),
-      _.toPairs
-    )(submissions)
-
-    return div({ style: styles.sidebar }, [
-      div({ style: styles.workflowLabelsHeader }, ['Active Workflows']),
-      _.isEmpty(statuses) && 'None',
-      ..._.map(
-        ([status, count]) => div({ style: styles.workflowLabel(status) }, [
-          iconForStatus(status),
-          `${count} ${status}`
-        ]),
-        statuses)
     ])
   }
 
