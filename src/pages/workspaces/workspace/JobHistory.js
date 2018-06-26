@@ -158,6 +158,14 @@ class JobHistory extends Component {
             },
             {
               size: { basis: 150, grow: 0 },
+              headerRenderer: () => 'Workflows',
+              cellRenderer: ({ rowIndex }) => {
+                const { workflowStatuses } = submissions[rowIndex]
+                return h(TextCell, _.sum(_.values(workflowStatuses)))
+              }
+            },
+            {
+              size: { basis: 150, grow: 0 },
               headerRenderer: () => h(HeaderCell, ['Status']),
               cellRenderer: ({ rowIndex }) => {
                 const { status } = submissions[rowIndex]
@@ -166,7 +174,7 @@ class JobHistory extends Component {
             },
             {
               size: { basis: 250, grow: 0 },
-              headerRenderer: () => h(HeaderCell, ['Run']),
+              headerRenderer: () => h(HeaderCell, ['Submitted']),
               cellRenderer: ({ rowIndex }) => {
                 const { submissionDate } = submissions[rowIndex]
                 return h(TextCell, Utils.makePrettyDate(submissionDate))
