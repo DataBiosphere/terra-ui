@@ -87,7 +87,7 @@ const statusCell = workflowStatuses => {
       h(Interactive, {
         as: 'span'
       }, [
-        icon('caretDown', { size: 18, style: { color: Style.colors.primary } })
+        icon('caretDown', { class: 'hover-only', size: 18, style: { color: Style.colors.primary } })
       ])
     ])
   ])
