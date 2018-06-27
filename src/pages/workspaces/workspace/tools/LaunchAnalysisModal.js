@@ -26,7 +26,9 @@ export default class LaunchAnalysisModal extends Component {
     const { entityType, entityMetadata, entities, attributeFailure, entityFailure, filterText, launching } = this.state
     const { attributeNames } = entityMetadata ? entityMetadata[entityType] : {}
 
-    return h(Modal, {
+    return h(Modal, _.isUndefined(entityType) ? {
+      title: 'Launching Analysis', showCancel: false, okButton: false
+    } : {
       onDismiss,
       title: 'Launch Analysis',
       titleExtras: [
@@ -64,12 +66,14 @@ export default class LaunchAnalysisModal extends Component {
     const { workspaceId: { namespace, name } } = this.props
     const { entityType } = this.state
 
-    Rawls.workspace(namespace, name).entityMetadata().then(
+    !!entityType && Rawls.workspace(namespace, name).entityMetadata().then(
       entityMetadata => this.setState({ entityMetadata }),
       attributeFailure => this.setState({ attributeFailure })
     )
 
-    this.loadEntitiesOfType(entityType)
+    !!entityType && this.loadEntitiesOfType(entityType)
+
+    _.isUndefined(entityType) && this.launch()
   }
 
   loadEntitiesOfType(type) {

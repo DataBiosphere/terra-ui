@@ -16,8 +16,8 @@ import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
-import LaunchAnalysisModal from 'src/pages/workspaces/workspace/tools/LaunchAnalysisModal'
 import * as JobHistory from 'src/pages/workspaces/workspace/JobHistory'
+import LaunchAnalysisModal from 'src/pages/workspaces/workspace/tools/LaunchAnalysisModal'
 import WorkspaceContainer from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
 
@@ -65,7 +65,7 @@ class WorkflowView extends Component {
 
   getModifiedConfig() {
     const { config, modifiedAttributes } = this.state
-    return _.merge(config, modifiedAttributes)
+    return _.assign(config, modifiedAttributes)
   }
 
   render() {
@@ -91,7 +91,7 @@ class WorkflowView extends Component {
             [activeTab === 'inputs', () => this.renderIOTable('inputs')],
             [activeTab === 'outputs', () => this.renderIOTable('outputs')],
             [activeTab === 'wdl', () => this.renderWDL()],
-            null,
+            null
           ),
           launching && h(LaunchAnalysisModal, {
             workspaceId, config,
@@ -175,7 +175,7 @@ class WorkflowView extends Component {
   }
 
   renderSummary = invalidIO => {
-    const { entityMetadata, saving, saved, activeTab, modifiedAttributes } = this.state
+    const { config, entityMetadata, saving, saved, activeTab, modifiedAttributes } = this.state
     const { name, methodConfigVersion, methodRepoMethod: { methodPath }, rootEntityType } = this.getModifiedConfig()
     const modified = !_.isEmpty(modifiedAttributes)
 
@@ -193,11 +193,17 @@ class WorkflowView extends Component {
           div({ style: { textTransform: 'capitalize', display: 'flex', alignItems: 'baseline', marginTop: '0.5rem' } }, [
             'Data Type:',
             h(Select, {
-              clearable: false, searchable: false,
+              clearable: true, searchable: false,
               wrapperStyle: { display: 'inline-block', width: 200, marginLeft: '0.5rem' },
               value: rootEntityType,
-              onChange: ({ value }) => {
-                this.setState(_.set(['modifiedAttributes', 'rootEntityType'], value))
+              onChange: selected => {
+                const value = !!selected ? selected.value : undefined
+
+                if (value === config.rootEntityType) {
+                  this.setState(_.unset(['modifiedAttributes', 'rootEntityType']))
+                } else {
+                  this.setState(_.set(['modifiedAttributes', 'rootEntityType'], value))
+                }
               },
               options: _.map(k => ({ value: k, label: _.startCase(k) }), _.keys(entityMetadata))
             })
