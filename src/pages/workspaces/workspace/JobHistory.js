@@ -1,11 +1,12 @@
 import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { div, h, span, table, tbody, td, tr } from 'react-hyperscript-helpers'
+import Interactive from 'react-interactive'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { spinnerOverlay } from 'src/components/common'
-import DropdownBox from 'src/components/DropdownBox'
 import { icon } from 'src/components/icons'
+import PopupTrigger from 'src/components/PopupTrigger'
 import { FlexTable, HeaderCell, TextCell } from 'src/components/table'
 import { Rawls } from 'src/libs/ajax'
 import { reportError } from 'src/libs/error'
@@ -53,45 +54,43 @@ export const flagNewSubmission = submissionId => {
 }
 
 
-class StatusCell extends Component {
-  render() {
-    const { workflowStatuses } = this.props
-    const { open } = this.state
+const statusCell = workflowStatuses => {
+  const collapsed = _.flow(
+    _.toPairs,
+    _.map(([status, count]) => ({ [collapseStatus(status)]: count })),
+    _.reduce(_.mergeWith(_.add), {})
+  )(workflowStatuses)
 
-    const collapsed = _.flow(
-      _.toPairs,
-      _.map(([status, count]) => ({ [collapseStatus(status)]: count })),
-      _.reduce(_.mergeWith(_.add), {})
-    )(workflowStatuses)
+  const collapsedKeys = _.keys(collapsed)
 
-    const collapsedKeys = _.keys(collapsed)
-
-    return h(Fragment, [
-      _.includes('Succeeded', collapsedKeys) && successIcon({ marginRight: '0.5rem' }),
-      _.includes('Failed', collapsedKeys) && failedIcon({ marginRight: '0.5rem' }),
-      _.includes('Running', collapsedKeys) && runningIcon({ marginRight: '0.5rem' }),
-      h(DropdownBox, {
-        open,
-        width: 'auto',
-        onToggle: open => this.setState({ open })
-      }, [
-        table({ style: { margin: '0.5rem' } }, [
-          tbody({}, [
-            tr({}, [
-              td(styles.statusDetailCell, [successIcon()]),
-              td(styles.statusDetailCell, [failedIcon()]),
-              td(styles.statusDetailCell, [runningIcon()])
-            ]),
-            tr({}, [
-              td(styles.statusDetailCell, [collapsed['Succeeded'] || 0]),
-              td(styles.statusDetailCell, [collapsed['Failed'] || 0]),
-              td(styles.statusDetailCell, [collapsed['Running'] || 0])
-            ])
+  return h(Fragment, [
+    _.includes('Succeeded', collapsedKeys) && successIcon({ marginRight: '0.5rem' }),
+    _.includes('Failed', collapsedKeys) && failedIcon({ marginRight: '0.5rem' }),
+    _.includes('Running', collapsedKeys) && runningIcon({ marginRight: '0.5rem' }),
+    h(PopupTrigger, {
+      position: 'bottom',
+      content: table({ style: { margin: '0.5rem' } }, [
+        tbody({}, [
+          tr({}, [
+            td(styles.statusDetailCell, [successIcon()]),
+            td(styles.statusDetailCell, [failedIcon()]),
+            td(styles.statusDetailCell, [runningIcon()])
+          ]),
+          tr({}, [
+            td(styles.statusDetailCell, [collapsed['Succeeded'] || 0]),
+            td(styles.statusDetailCell, [collapsed['Failed'] || 0]),
+            td(styles.statusDetailCell, [collapsed['Running'] || 0])
           ])
         ])
       ])
+    }, [
+      h(Interactive, {
+        as: 'span'
+      }, [
+        icon('caretDown', { size: 18, style: { color: Style.colors.primary } })
+      ])
     ])
-  }
+  ])
 }
 
 
@@ -183,7 +182,7 @@ class JobHistory extends Component {
               headerRenderer: () => h(HeaderCell, ['Status']),
               cellRenderer: ({ rowIndex }) => {
                 const { workflowStatuses } = submissions[rowIndex]
-                return h(StatusCell, { workflowStatuses })
+                return statusCell(workflowStatuses)
               }
             },
             {
