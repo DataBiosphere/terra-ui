@@ -93,16 +93,19 @@ const statusCell = workflowStatuses => {
   ])
 }
 
+const animationLengthMillis = 1000
+
 
 class JobHistory extends Component {
   constructor(props) {
     super(props)
 
-    const submissionId = sessionStorage.getItem('new-submission')
-    if (submissionId) {
+    const newSubmissionId = sessionStorage.getItem('new-submission')
+    if (newSubmissionId) {
       sessionStorage.removeItem('new-submission')
-      this.state = { newSubmissionId: submissionId }
-      setTimeout(() => this.setState({ newSubmissionId: undefined }), 0)
+      this.state = { newSubmissionId }
+    } else {
+      this.state = { readyHover: true }
     }
   }
 
@@ -112,12 +115,16 @@ class JobHistory extends Component {
     try {
       this.setState({ loading: true })
       const submissions = _.orderBy('submissionDate', 'desc', await Rawls.workspace(namespace, name).listSubmissions())
-      this.setState({ submissions })
+      this.setState({ submissions, loading: false })
+      if (this.state.newSubmissionId) {
+        await Utils.delay(10)
+        this.setState({ newSubmissionId: undefined })
+        await Utils.delay(animationLengthMillis)
+        this.setState({ readyHover: true })
+      }
     } catch (error) {
       reportError('Error loading submissions list', error)
-      this.setState({ submissions: [] })
-    } finally {
-      this.setState({ loading: false })
+      this.setState({ submissions: [], loading: false })
     }
   }
 
@@ -136,20 +143,21 @@ class JobHistory extends Component {
 
   renderSubmissions() {
     const { namespace } = this.props
-    const { submissions, loading, newSubmissionId } = this.state
+    const { submissions, loading, newSubmissionId, readyHover } = this.state
 
     return div({ style: styles.submissionsTable }, [
       loading && spinnerOverlay,
       submissions && h(AutoSizer, [
         ({ width, height }) => h(FlexTable, {
           width, height, rowCount: submissions.length,
-          rowStyle: rowIndex => {
+          hoverHighlight: readyHover,
+          rowStyle: !readyHover && (rowIndex => {
             const { submissionId } = submissions[rowIndex]
             return {
-              transition: 'background-color 1s cubic-bezier(0.33, -2, 0.74, 0.05)',
+              transition: `background-color ${animationLengthMillis}ms cubic-bezier(0.33, -2, 0.74, 0.05)`,
               ...(submissionId === newSubmissionId ? { backgroundColor: Style.colors.highlightFaded } : {})
             }
-          },
+          }),
           columns: [
             {
               headerRenderer: () => h(HeaderCell, ['Workflow']),
