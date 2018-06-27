@@ -139,6 +139,9 @@ export default class TooltipTrigger extends Component {
   render() {
     const { children, content, ...props } = this.props
     const { open } = this.state
+    if (!content) {
+      return children
+    }
     const child = Children.only(children)
     return h(Fragment, [
       cloneElement(child, {
