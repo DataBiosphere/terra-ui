@@ -106,6 +106,11 @@ export const cond = function(...args) {
   return maybeCall(match ? match[1] : defaultValue)
 }
 
+export const switchCase = (value, ...pairs) => {
+  const match = _.find(([v]) => v === value, pairs)
+  return match && match[1]()
+}
+
 /**
  * Memoizes the given function, but expires after the specified duration (ms).
  * The resolver function is used to generate a cache key from the arguments.

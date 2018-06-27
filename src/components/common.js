@@ -2,7 +2,6 @@ import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { div, h, input, span } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
-import { StatefulToolTip } from 'react-portal-tooltip'
 import RSelect from 'react-select'
 import { centeredSpinner, icon } from 'src/components/icons'
 import * as Style from 'src/libs/style'
@@ -127,16 +126,6 @@ export const LabeledCheckbox = ({ checked, onChange, disabled, children, ...prop
     }, [children])
   ])
 }
-
-export const tooltip =
-  ({ component, position = 'bottom', arrow = 'right', align = 'right', text, ...props }) =>
-    h(StatefulToolTip, {
-      parent: component,
-      position, arrow, align,
-      tooltipTimeout: 0,
-      style: { style: { whiteSpace: 'nowrap', transition: 'none' }, arrowStyle: {} },
-      ...props
-    }, text)
 
 export const pageColumn = function(title, flex, contents) {
   return div(
