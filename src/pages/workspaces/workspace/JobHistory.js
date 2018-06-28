@@ -103,9 +103,7 @@ class JobHistory extends Component {
     const newSubmissionId = sessionStorage.getItem('new-submission')
     if (newSubmissionId) {
       sessionStorage.removeItem('new-submission')
-      this.state = { newSubmissionId }
-    } else {
-      this.state = { readyHover: true }
+      this.state = { newSubmissionId, highlightNewSubmission: true }
     }
   }
 
@@ -128,10 +126,10 @@ class JobHistory extends Component {
     }
 
     if (this.state.newSubmissionId) {
-      await Utils.delay(10)
-      this.setState({ newSubmissionId: undefined })
+      await Utils.waitOneTick()
+      this.setState({ highlightNewSubmission: false })
       await Utils.delay(animationLengthMillis)
-      this.setState({ readyHover: true })
+      this.setState({ newSubmissionId: undefined })
     }
   }
 
@@ -150,21 +148,23 @@ class JobHistory extends Component {
 
   renderSubmissions() {
     const { namespace } = this.props
-    const { submissions, loading, newSubmissionId, readyHover } = this.state
+    const { submissions, loading, newSubmissionId, highlightNewSubmission } = this.state
 
     return div({ style: styles.submissionsTable }, [
       loading && spinnerOverlay,
       submissions && h(AutoSizer, [
         ({ width, height }) => h(FlexTable, {
           width, height, rowCount: submissions.length,
-          hoverHighlight: readyHover,
-          rowStyle: !readyHover && (rowIndex => {
+          hoverHighlight: true,
+          rowStyle: rowIndex => {
             const { submissionId } = submissions[rowIndex]
-            return {
-              transition: `background-color ${animationLengthMillis}ms cubic-bezier(0.33, -2, 0.74, 0.05)`,
-              ...(submissionId === newSubmissionId ? { backgroundColor: Style.colors.highlightFaded } : {})
+            if (newSubmissionId === submissionId) {
+              return {
+                transition: `background-color ${animationLengthMillis}ms cubic-bezier(0.33, -2, 0.74, 0.05)`,
+                backgroundColor: highlightNewSubmission ? Style.colors.highlightFaded : 'white'
+              }
             }
-          }),
+          },
           columns: [
             {
               headerRenderer: () => h(HeaderCell, ['Workflow']),
