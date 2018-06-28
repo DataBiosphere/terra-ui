@@ -8,42 +8,42 @@ import * as Utils from 'src/libs/utils'
 const includesAll = (arr, col) => _.overEvery(_.map(_.includes, arr))(col)
 
 const styles = {
-  tooltip: (s, d) => ({
+  tooltip: (side, dir) => ({
     position: 'fixed', pointerEvents: 'none',
     background: 'black', color: 'white',
     padding: '0.5rem', maxWidth: 400,
     borderRadius: Utils.cond(
-      [includesAll(['bottom', 'right'], [s, d]), () => '0 4px 4px 4px'],
-      [includesAll(['bottom', 'left'], [s, d]), () => '4px 0 4px 4px'],
-      [includesAll(['top', 'right'], [s, d]), () => '4px 4px 4px 0'],
-      [includesAll(['top', 'left'], [s, d]), () => '4px 4px 0 4px'],
+      [includesAll(['bottom', 'right'], [side, dir]), () => '0 4px 4px 4px'],
+      [includesAll(['bottom', 'left'], [side, dir]), () => '4px 0 4px 4px'],
+      [includesAll(['top', 'right'], [side, dir]), () => '4px 4px 4px 0'],
+      [includesAll(['top', 'left'], [side, dir]), () => '4px 4px 0 4px'],
       undefined
     )
   }),
-  notch: (s, d) => ({
+  notch: (side, dir) => ({
     width: 8, height: 8,
     fill: 'black',
     position: 'absolute',
-    ...Utils.switchCase(s,
+    ...Utils.switchCase(side,
       ['top', () => ({ top: '100%' })],
       ['bottom', () => ({ bottom: '100%' })],
       ['left', () => ({ left: '100%' })],
       ['right', () => ({ right: '100%' })]
     ),
-    ...Utils.switchCase(d,
+    ...Utils.switchCase(dir,
       ['top', () => ({ bottom: 0 })],
       ['bottom', () => ({ top: 0 })],
       ['left', () => ({ right: 0 })],
       ['right', () => ({ left: 0 })]
     ),
     transform: `
-      scaleY(${s === 'top' || d === 'bottom' ? -1 : 1})
-      scaleX(${s === 'right' || d === 'left' ? -1 : 1})
+      scaleY(${side === 'top' || dir === 'bottom' ? -1 : 1})
+      scaleX(${side === 'right' || dir === 'left' ? -1 : 1})
     `
   })
 }
 
-export class Tooltip extends Component {
+class Tooltip extends Component {
   state = {
     tooltip: { width: 0, height: 0 },
     target: { top: 0, bottom: 0, left: 0, right: 0 },
@@ -127,6 +127,10 @@ export class Tooltip extends Component {
   }
 }
 
+/**
+ * @param {object} [props.content] - content of tooltip
+ * @param {string} [props.side='bottom'] - preferred side
+ */
 export default class TooltipTrigger extends Component {
   state = { open: false }
 
