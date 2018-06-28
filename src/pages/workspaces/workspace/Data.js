@@ -4,9 +4,10 @@ import { Fragment } from 'react'
 import { div, form, h, input } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { buttonPrimary, spinnerOverlay, tooltip } from 'src/components/common'
+import { buttonPrimary, spinnerOverlay } from 'src/components/common'
 import { icon, spinner } from 'src/components/icons'
 import { FlexTable, GridTable, paginator, TextCell } from 'src/components/table'
+import TooltipTrigger from 'src/components/TooltipTrigger'
 import { Rawls } from 'src/libs/ajax'
 import * as auth from 'src/libs/auth'
 import * as Config from 'src/libs/config'
@@ -226,14 +227,12 @@ class WorkspaceData extends Component {
        * TODO: once column selection is implemented, add another hidden input with name: 'attributeNames' and
        * value: comma-separated list of attribute names to support downloading only the selected columns
        */
-      tooltip({
-        component: buttonPrimary({ type: 'submit', disabled: !orchestrationRoot }, [
+      h(TooltipTrigger, { content: 'Download all data as a file' }, [
+        buttonPrimary({ type: 'submit', disabled: !orchestrationRoot }, [
           icon('download', { style: { marginRight: '0.5rem' } }),
           'Download'
-        ]),
-        text: 'Download all data as a file',
-        arrow: 'center', align: 'center'
-      })
+        ])
+      ])
     ])
   }
 
@@ -241,8 +240,8 @@ class WorkspaceData extends Component {
     const { entities, selectedDataType, entityMetadata, copying, copied } = this.state
 
     return h(Fragment, [
-      tooltip({
-        component: buttonPrimary({
+      h(TooltipTrigger, { content: 'Copy only the current page to the clipboard' }, [
+        buttonPrimary({
           style: { margin: '0 1rem' },
           onClick: async () => {
             const attributeNames = entityMetadata[selectedDataType].attributeNames
@@ -269,10 +268,8 @@ class WorkspaceData extends Component {
         }, [
           icon('copy-to-clipboard', { style: { marginRight: '0.5rem' } }),
           'Copy to Clipboard'
-        ]),
-        text: 'Copy only the current page to the clipboard',
-        arrow: 'center', align: 'center', group: 'foo'
-      }),
+        ])
+      ]),
       copying && spinner(),
       copied && 'Done!'
     ])

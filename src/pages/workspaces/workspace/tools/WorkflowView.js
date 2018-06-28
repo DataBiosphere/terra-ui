@@ -3,11 +3,12 @@ import { Fragment } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { buttonPrimary, buttonSecondary, Select, spinnerOverlay, tooltip } from 'src/components/common'
+import { buttonPrimary, buttonSecondary, Select, spinnerOverlay } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { AutocompleteTextInput } from 'src/components/input'
 import TabBar from 'src/components/TabBar'
 import { FlexTable, TextCell } from 'src/components/table'
+import TooltipTrigger from 'src/components/TooltipTrigger'
 import WDLViewer from 'src/components/WDLViewer'
 import { Agora, Dockstore, Rawls } from 'src/libs/ajax'
 import { reportError } from 'src/libs/error'
@@ -285,12 +286,11 @@ class WorkflowView extends Component {
                       onChange: v => this.setState(_.set(['modifiedAttributes', key, name], v)),
                       suggestions
                     }),
-                    error && tooltip({
-                      component: icon('error', {
+                    error && h(TooltipTrigger, { content: error }, [
+                      icon('error', {
                         size: 28, style: { marginLeft: '0.5rem', color: Style.colors.error, cursor: 'help' }
-                      }),
-                      text: error
-                    })
+                      })
+                    ])
                   ])
                 }
               }

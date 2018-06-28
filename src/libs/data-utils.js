@@ -5,10 +5,11 @@ import { Fragment } from 'react'
 import { div, h, input } from 'react-hyperscript-helpers/lib/index'
 import Interactive from 'react-interactive'
 import Collapse from 'src/components/Collapse'
-import { buttonPrimary, link, tooltip } from 'src/components/common'
+import { buttonPrimary, link } from 'src/components/common'
 import { icon, spinner } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import { TextCell } from 'src/components/table'
+import TooltipTrigger from 'src/components/TooltipTrigger'
 import { Buckets, Martha } from 'src/libs/ajax'
 import * as Config from 'src/libs/config'
 import { reportError } from 'src/libs/error'
@@ -115,8 +116,8 @@ export class UriViewer extends Component {
                   value: gsutilCommand,
                   style: { flexGrow: 1, fontWeight: 300, fontFamily: 'Menlo, monospace' }
                 }),
-                tooltip({
-                  component: h(Interactive, {
+                h(TooltipTrigger, { content: 'Copy to clipboard' }, [
+                  h(Interactive, {
                     as: icon(copied ? 'check' : 'copy-to-clipboard'),
                     style: { margin: '0 1rem', color: copied ? Style.colors.success : Style.colors.secondary },
                     onClick: async () => {
@@ -128,10 +129,8 @@ export class UriViewer extends Component {
                         reportError('Error copying to clipboard', error)
                       }
                     }
-                  }),
-                  text: 'Copy to clipboard',
-                  arrow: 'center', align: 'center', group: 'bar'
-                })
+                  })
+                ])
               ])
             ])
           ]),
