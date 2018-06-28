@@ -38,7 +38,8 @@ const styles = {
   },
   shortDescription: {
     flex: 'none',
-    lineHeight: '18px', height: '90px'
+    lineHeight: '18px', height: '90px',
+    overflow: 'hidden'
   },
   shortCreateCard: {
     display: 'flex', flexDirection: 'column', justifyContent: 'center',
@@ -46,7 +47,7 @@ const styles = {
   },
   longCard: {
     ...Style.elements.card,
-    width: '100%', height: 80,
+    width: '100%', minWidth: 0, height: 80,
     margin: '0.25rem 0.5rem'
   },
   longWorkspaceCard: {

@@ -325,6 +325,7 @@ Array [
                     "flex": "none",
                     "height": "90px",
                     "lineHeight": "18px",
+                    "overflow": "hidden",
                   }
             }
         >
@@ -420,6 +421,7 @@ Array [
                     "flex": "none",
                     "height": "90px",
                     "lineHeight": "18px",
+                    "overflow": "hidden",
                   }
             }
         >
