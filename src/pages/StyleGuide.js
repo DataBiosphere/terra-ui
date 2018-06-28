@@ -30,6 +30,7 @@ class StyleGuide extends Component {
         div({ style: { display: 'flex', flexWrap: 'wrap' } }, [
           _.map(([k, v]) =>
             div({
+              key: k,
               style: {
                 backgroundColor: v,
                 width: 150, height: 50,

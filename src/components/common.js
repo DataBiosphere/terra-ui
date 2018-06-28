@@ -80,20 +80,19 @@ export const contextBar = function(props, children) {
   children)
 }
 
-export const contextMenu = items => {
-  return div({ style: { minWidth: 125 } }, _.map(({ onClick, disabled, ...props }) => {
-    return h(Interactive, _.merge({
-      as: 'div', disabled,
-      onClick: (...args) => !disabled && onClick && onClick(...args),
-      style: {
-        fontSize: 12,
-        color: disabled ? Style.colors.disabled : Style.colors.text,
-        padding: '0.5rem 1.5rem',
-        cursor: disabled ? 'not-allowed' : 'pointer'
-      },
-      hover: !disabled ? { backgroundColor: Style.colors.highlight, fontWeight: 500 } : undefined
-    }, props))
-  }, items))
+export const MenuButton = ({ onClick, disabled, children, ...props }) => {
+  return h(Interactive, _.merge({
+    as: 'div', disabled,
+    onClick: (...args) => !disabled && onClick && onClick(...args),
+    style: {
+      fontSize: 12,
+      minWidth: 125,
+      color: disabled ? Style.colors.disabled : Style.colors.text,
+      padding: '0.5rem 1.5rem',
+      cursor: disabled ? 'not-allowed' : 'pointer'
+    },
+    hover: !disabled ? { backgroundColor: Style.colors.highlight, fontWeight: 500 } : undefined
+  }, props), [children])
 }
 
 export const Checkbox = ({ checked, onChange, disabled, ...props }) => {

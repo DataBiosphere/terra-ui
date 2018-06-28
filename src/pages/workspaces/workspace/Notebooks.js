@@ -3,7 +3,7 @@ import { Fragment } from 'react'
 import { a, div, h } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { contextMenu, spinnerOverlay } from 'src/components/common'
+import { MenuButton, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { NotebookCreator, NotebookDeleter, NotebookDuplicator } from 'src/components/notebook-utils'
 import PopupTrigger from 'src/components/PopupTrigger'
@@ -27,28 +27,25 @@ class NotebookCard extends Component {
 
     const notebookMenu = h(PopupTrigger, {
       ref: instance => this.notebookMenu = instance,
-      content: contextMenu([
-        {
-          children: 'Rename',
+      content: h(Fragment, [
+        h(MenuButton, {
           onClick: () => {
             this.setState({ renamingNotebook: true })
             hideMenu()
           }
-        },
-        {
-          children: 'Duplicate',
+        }, ['Rename']),
+        h(MenuButton, {
           onClick: () => {
             this.setState({ copyingNotebook: true })
             hideMenu()
           }
-        },
-        {
-          children: 'Delete',
+        }, ['Duplicate']),
+        h(MenuButton, {
           onClick: () => {
             this.setState({ deletingNotebook: true })
             hideMenu()
           }
-        }
+        }, ['Delete'])
       ])
     }, [
       h(Interactive, {
