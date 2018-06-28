@@ -115,16 +115,23 @@ class JobHistory extends Component {
     try {
       this.setState({ loading: true })
       const submissions = _.orderBy('submissionDate', 'desc', await Rawls.workspace(namespace, name).listSubmissions())
-      this.setState({ submissions, loading: false })
-      if (this.state.newSubmissionId) {
-        await Utils.delay(10)
-        this.setState({ newSubmissionId: undefined })
-        await Utils.delay(animationLengthMillis)
-        this.setState({ readyHover: true })
+      this.setState({ submissions })
+
+      if (_.some(sub => sub.status !== 'Done', submissions)) {
+        this.scheduledRefresh = setTimeout(() => this.refresh(), 1000 * 60)
       }
     } catch (error) {
       reportError('Error loading submissions list', error)
-      this.setState({ submissions: [], loading: false })
+      this.setState({ submissions: [] })
+    } finally {
+      this.setState({ loading: false })
+    }
+
+    if (this.state.newSubmissionId) {
+      await Utils.delay(10)
+      this.setState({ newSubmissionId: undefined })
+      await Utils.delay(animationLengthMillis)
+      this.setState({ readyHover: true })
     }
   }
 
@@ -209,6 +216,12 @@ class JobHistory extends Component {
 
   componentDidMount() {
     this.refresh()
+  }
+
+  componentWillUnmount() {
+    if (this.scheduledRefresh) {
+      clearTimeout(this.scheduledRefresh)
+    }
   }
 }
 
