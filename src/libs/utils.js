@@ -149,3 +149,9 @@ export const entityAttributeText = value => {
 export const textMatch = _.curry((needle, haystack) => {
   return haystack.toLowerCase().includes(needle.toLowerCase())
 })
+
+export const nextSort = ({ field, direction }, newField) => {
+  return newField === field ?
+    { field, direction: direction === 'asc' ? 'desc' : 'asc' } :
+    { field: newField, direction: 'asc' }
+}

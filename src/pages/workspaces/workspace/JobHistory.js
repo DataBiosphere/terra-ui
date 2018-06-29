@@ -4,7 +4,7 @@ import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
-import { FlexTable, TextCell } from 'src/components/table'
+import { FlexTable, HeaderCell, TextCell } from 'src/components/table'
 import { Rawls } from 'src/libs/ajax'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
@@ -139,7 +139,7 @@ class JobHistory extends Component {
           },
           columns: [
             {
-              headerRenderer: () => 'Workflow',
+              headerRenderer: () => h(HeaderCell, ['Workflow']),
               cellRenderer: ({ rowIndex }) => {
                 const { methodConfigurationNamespace, methodConfigurationName, submitter } = submissions[rowIndex]
                 return div({}, [
@@ -158,7 +158,7 @@ class JobHistory extends Component {
             },
             {
               size: { basis: 150, grow: 0 },
-              headerRenderer: () => 'Status',
+              headerRenderer: () => h(HeaderCell, ['Status']),
               cellRenderer: ({ rowIndex }) => {
                 const { status } = submissions[rowIndex]
                 return h(TextCell, status)
@@ -166,7 +166,7 @@ class JobHistory extends Component {
             },
             {
               size: { basis: 250, grow: 0 },
-              headerRenderer: () => 'Run',
+              headerRenderer: () => h(HeaderCell, ['Run']),
               cellRenderer: ({ rowIndex }) => {
                 const { submissionDate } = submissions[rowIndex]
                 return h(TextCell, Utils.makePrettyDate(submissionDate))
