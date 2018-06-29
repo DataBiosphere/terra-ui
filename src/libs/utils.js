@@ -78,6 +78,8 @@ export const makePrettyDate = function(dateString) {
 
 export const formatUSD = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format
 
+export const formatNumber = new Intl.NumberFormat('en-US').format
+
 export const workspaceAccessLevels = ['NO ACCESS', 'READER', 'WRITER', 'OWNER', 'PROJECT_OWNER']
 
 export const log = function(...args) {
@@ -104,6 +106,11 @@ export const cond = function(...args) {
   const match = _.find(_.head, pairs)
 
   return maybeCall(match ? match[1] : defaultValue)
+}
+
+export const switchCase = (value, ...pairs) => {
+  const match = _.find(([v]) => v === value, pairs)
+  return match && match[1]()
 }
 
 /**
@@ -144,3 +151,9 @@ export const entityAttributeText = value => {
 export const textMatch = _.curry((needle, haystack) => {
   return haystack.toLowerCase().includes(needle.toLowerCase())
 })
+
+export const nextSort = ({ field, direction }, newField) => {
+  return newField === field ?
+    { field, direction: direction === 'asc' ? 'desc' : 'asc' } :
+    { field: newField, direction: 'asc' }
+}

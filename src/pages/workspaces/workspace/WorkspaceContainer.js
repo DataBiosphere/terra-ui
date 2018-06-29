@@ -3,11 +3,12 @@ import { Component, createRef, Fragment, PureComponent } from 'react'
 import { a, div, h } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
 import ClusterManager from 'src/components/ClusterManager'
-import { buttonPrimary, comingSoon, contextBar, contextMenu, link, spinnerOverlay } from 'src/components/common'
+import { buttonPrimary, comingSoon, contextBar, link, MenuButton, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
 import PopupTrigger from 'src/components/PopupTrigger'
+import TooltipTrigger from 'src/components/TooltipTrigger'
 import { TopBar } from 'src/components/TopBar'
 import { Rawls } from 'src/libs/ajax'
 import { reportError } from 'src/libs/error'
@@ -57,13 +58,14 @@ class WorkspaceTabs extends PureComponent {
         navSeparator
       ])
     }
+    const isOwner = workspace && _.includes(workspace.accessLevel, ['OWNER', 'PROJECT_OWNER'])
     return contextBar({ style: styles.tabContainer }, [
       navSeparator,
       navTab({ tabName: 'dashboard', href: Nav.getLink('workspace', { namespace, name }) }),
       navTab({ tabName: 'notebooks', href: Nav.getLink('workspace-notebooks', { namespace, name }) }),
       navTab({ tabName: 'data', href: Nav.getLink('workspace-data', { namespace, name }) }),
-      navTab({ tabName: 'job history', href: Nav.getLink('workspace-job-history',  { namespace, name }) }),
       navTab({ tabName: 'tools', href: Nav.getLink('workspace-tools', { namespace, name }) }),
+      navTab({ tabName: 'job history', href: Nav.getLink('workspace-job-history',  { namespace, name }) }),
       div({ style: { flexGrow: 1 } }),
       h(Interactive, {
         as: 'div', ...navIconProps,
@@ -71,23 +73,21 @@ class WorkspaceTabs extends PureComponent {
       }, [icon('copy', { size: 22 })]),
       h(PopupTrigger, {
         ref: this.menu,
-        content: contextMenu([
-          {
-            children: ['Share', comingSoon],
-            disabled: true
-          },
-          {
-            children: ['Publish', comingSoon],
-            disabled: true
-          },
-          {
-            children: 'Delete',
-            disabled: !workspace || !_.includes(workspace.accessLevel, ['OWNER', 'PROJECT_OWNER']),
-            onClick: () => {
-              onDelete()
-              this.menu.current.close()
-            }
-          }
+        content: h(Fragment, [
+          h(MenuButton, { disabled: true }, ['Share', comingSoon]),
+          h(MenuButton, { disabled: true }, ['Publish', comingSoon]),
+          h(TooltipTrigger, {
+            side: 'left',
+            content: !isOwner && 'You must be an owner of this workspace or the underlying billing project'
+          }, [
+            h(MenuButton, {
+              disabled: !isOwner,
+              onClick: () => {
+                onDelete()
+                this.menu.current.close()
+              }
+            }, ['Delete'])
+          ])
         ]),
         position: 'bottom'
       }, [

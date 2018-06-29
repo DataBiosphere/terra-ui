@@ -5,7 +5,8 @@ import { buttonPrimary, buttonSecondary, Checkbox, link, search } from 'src/comp
 import { icon } from 'src/components/icons'
 import { textInput, validatedInput } from 'src/components/input'
 import PopupTrigger from 'src/components/PopupTrigger'
-import { FlexTable, GridTable, TextCell } from 'src/components/table'
+import { FlexTable, GridTable, HeaderCell, TextCell } from 'src/components/table'
+import TooltipTrigger from 'src/components/TooltipTrigger'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import { Component } from 'src/libs/wrapped-components'
@@ -29,6 +30,7 @@ class StyleGuide extends Component {
         div({ style: { display: 'flex', flexWrap: 'wrap' } }, [
           _.map(([k, v]) =>
             div({
+              key: k,
               style: {
                 backgroundColor: v,
                 width: 150, height: 50,
@@ -92,19 +94,19 @@ class StyleGuide extends Component {
               columns: [
                 {
                   size: { basis: 100, grow: 0 },
-                  headerRenderer: () => 'ID',
+                  headerRenderer: () => h(HeaderCell, ['ID']),
                   cellRenderer: ({ rowIndex }) => `id-${rowIndex}`
                 },
                 {
                   size: { basis: 150, grow: 0 },
-                  headerRenderer: () => 'Name',
+                  headerRenderer: () => h(HeaderCell, ['Name']),
                   cellRenderer: ({ rowIndex }) => {
                     return h(TextCell, `name-${rowIndex} with long text`)
                   }
                 },
                 {
                   size: { basis: 150 },
-                  headerRenderer: () => 'Details',
+                  headerRenderer: () => h(HeaderCell, ['Details']),
                   cellRenderer: ({ rowIndex }) => {
                     return textInput({ readOnly: true, value: `details-${rowIndex}` })
                   }
@@ -123,7 +125,7 @@ class StyleGuide extends Component {
               columns: [
                 ..._.map(n => ({
                   width: 150,
-                  headerRenderer: () => `header-${n}`,
+                  headerRenderer: () => h(HeaderCell, [`header-${n}`]),
                   cellRenderer: ({ rowIndex }) => `data-${rowIndex}-${n}`
                 }), _.range(0, 20))
               ]
@@ -138,6 +140,11 @@ class StyleGuide extends Component {
           align: 'center'
         }, [
           buttonPrimary({}, 'Popup trigger')
+        ])
+      ]),
+      div({ style: styles.container }, [
+        h(TooltipTrigger, { content: 'Hello there' }, [
+          buttonPrimary({}, 'Tooltip trigger')
         ])
       ])
     ])

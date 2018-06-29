@@ -224,6 +224,7 @@ export class FlexTable extends Component {
           return h(Interactive, {
             key: data.key,
             as: 'div',
+            className: 'table-row',
             style: { ...data.style, backgroundColor: '#ffffff', display: 'flex', ...(rowStyle ? rowStyle(data.rowIndex) : {}) },
             hover: hoverHighlight ? { backgroundColor: Style.colors.highlightFaded } : undefined
           }, [
@@ -323,4 +324,8 @@ export const TextCell = props => {
   return div(_.merge({
     style: { overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }
   }, props))
+}
+
+export const HeaderCell = props => {
+  return h(TextCell, _.merge({ style: { fontWeight: 500 } }, props))
 }

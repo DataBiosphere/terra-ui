@@ -6,7 +6,7 @@ import { buttonPrimary, link, search } from 'src/components/common'
 import { centeredSpinner } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import TabBar from 'src/components/TabBar'
-import { GridTable, TextCell } from 'src/components/table'
+import { GridTable, HeaderCell, TextCell } from 'src/components/table'
 import { Rawls } from 'src/libs/ajax'
 import { renderDataCell } from 'src/libs/data-utils'
 import * as Style from 'src/libs/style'
@@ -113,7 +113,7 @@ export default class LaunchAnalysisModal extends Component {
             columns: [
               {
                 width: 150,
-                headerRenderer: () => h(TextCell, idName),
+                headerRenderer: () => h(HeaderCell, [idName]),
                 cellRenderer: ({ rowIndex }) => {
                   const { name } = filteredEntities[rowIndex]
                   return h(TextCell, [
@@ -123,7 +123,7 @@ export default class LaunchAnalysisModal extends Component {
               },
               ..._.map(name => ({
                 width: 300,
-                headerRenderer: () => h(TextCell, name),
+                headerRenderer: () => h(HeaderCell, [name]),
                 cellRenderer: ({ rowIndex }) => {
                   return renderDataCell(
                     Utils.entityAttributeText(filteredEntities[rowIndex].attributes[name]), namespace
