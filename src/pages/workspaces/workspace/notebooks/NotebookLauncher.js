@@ -12,9 +12,6 @@ import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 
 
-const wait = ms => new Promise(resolve => setTimeout(resolve, ms))
-
-
 const styles = {
   pageContainer: {
     padding: '2rem'
@@ -88,9 +85,9 @@ class NotebookLauncher extends Component {
         return cluster
       } else if (status === 'Stopped') {
         await Leo.cluster(googleProject, clusterName).start()
-        await wait(10000)
+        await Utils.delay(10000)
       } else {
-        await wait(3000)
+        await Utils.delay(3000)
       }
     }
   }
@@ -118,7 +115,7 @@ class NotebookLauncher extends Component {
 
         if (localizeFailures < 5) {
           this.setState({ localizeFailures: localizeFailures + 1 })
-          await wait(5000)
+          await Utils.delay(5000)
         } else {
           throw new Error('Unable to copy notebook to cluster')
         }
