@@ -46,3 +46,7 @@ a {
 #root.overlayOpen.overHeight {
   overflow-y: scroll;
 }
+
+.table-row:not(:hover) .hover-only {
+  visibility: hidden;
+}
