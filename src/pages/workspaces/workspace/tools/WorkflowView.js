@@ -7,7 +7,7 @@ import { buttonPrimary, buttonSecondary, Select, spinnerOverlay } from 'src/comp
 import { centeredSpinner, icon } from 'src/components/icons'
 import { AutocompleteTextInput } from 'src/components/input'
 import TabBar from 'src/components/TabBar'
-import { FlexTable, TextCell } from 'src/components/table'
+import { FlexTable, HeaderCell, TextCell } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import WDLViewer from 'src/components/WDLViewer'
 import { Agora, Dockstore, Rawls } from 'src/libs/ajax'
@@ -37,8 +37,6 @@ const errorIcon = b => {
     size: 28, style: { marginLeft: '0.5rem', color: Style.colors.error }
   })
 }
-
-const headerCell = text => h(TextCell, { style: { fontWeight: 500 } }, [text])
 
 const styles = {
   messageContainer: {
@@ -254,14 +252,14 @@ class WorkflowView extends Component {
             columns: [
               {
                 size: { basis: 350, grow: 0 },
-                headerRenderer: () => headerCell('Task name'),
+                headerRenderer: () => h(HeaderCell, ['Task name']),
                 cellRenderer: ({ rowIndex }) => {
                   return h(TextCell, { style: { fontWeight: 500 } }, [data[rowIndex].task])
                 }
               },
               {
                 size: { basis: 360, grow: 0 },
-                headerRenderer: () => headerCell('Variable'),
+                headerRenderer: () => h(HeaderCell, ['Variable']),
                 cellRenderer: ({ rowIndex }) => {
                   const { variable, optional } = data[rowIndex]
                   return h(TextCell, { style: styleForOptional(optional) }, [variable])
@@ -269,14 +267,14 @@ class WorkflowView extends Component {
               },
               {
                 size: { basis: 160, grow: 0 },
-                headerRenderer: () => headerCell('Type'),
+                headerRenderer: () => h(HeaderCell, ['Type']),
                 cellRenderer: ({ rowIndex }) => {
                   const { type, optional } = data[rowIndex]
                   return h(TextCell, { style: styleForOptional(optional) }, [type])
                 }
               },
               {
-                headerRenderer: () => headerCell('Attribute'),
+                headerRenderer: () => h(HeaderCell, ['Attribute']),
                 cellRenderer: ({ rowIndex }) => {
                   const { name, optional, error } = data[rowIndex]
                   return div({ style: { display: 'flex', alignItems: 'center', width: '100%' } }, [

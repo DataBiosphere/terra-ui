@@ -6,7 +6,7 @@ import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { buttonPrimary, spinnerOverlay } from 'src/components/common'
 import { icon, spinner } from 'src/components/icons'
-import { FlexTable, GridTable, paginator, TextCell } from 'src/components/table'
+import { FlexTable, GridTable, HeaderCell, paginator } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { Rawls } from 'src/libs/ajax'
 import * as auth from 'src/libs/auth'
@@ -21,9 +21,11 @@ import { Component } from 'src/libs/wrapped-components'
 import WorkspaceContainer from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
 
-const filterState = _.pick(['pageNumber', 'itemsPerPage', 'selectedDataType'])
+const filterState = _.pick(['pageNumber', 'itemsPerPage', 'selectedDataType', 'sort'])
 
 const globalVariables = 'globalVariables'
+
+const initialSort = { field: 'name', direction: 'asc' }
 
 const styles = {
   tableContainer: {
@@ -48,11 +50,35 @@ const styles = {
   dataTypeIcon: { color: '#757575', marginRight: '0.5rem' }
 }
 
+const SortableHeaderCell = ({ sort, field, onSort, children }) => {
+  return div({
+    style: { flex: 1, display: 'flex', alignItems: 'center', cursor: 'pointer', height: '100%' },
+    onClick: () => onSort(Utils.nextSort(sort, field))
+  }, [
+    div({
+      style: {
+        flex: 1,
+        overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis',
+        fontWeight: 500
+      }
+    }, [children]),
+    sort.field === field && div({ style: { flex: 'none', color: Style.colors.secondary } }, [
+      icon(sort.direction === 'asc' ? 'arrow down' : 'arrow')
+    ])
+  ])
+}
+
 class WorkspaceData extends Component {
   constructor(props) {
     super(props)
 
-    this.state = { itemsPerPage: 25, pageNumber: 1, loading: false, ...StateHistory.get() }
+    this.state = {
+      itemsPerPage: 25,
+      pageNumber: 1,
+      sort: initialSort,
+      loading: false,
+      ...StateHistory.get()
+    }
   }
 
   async loadMetadata() {
@@ -67,7 +93,7 @@ class WorkspaceData extends Component {
 
   async loadData() {
     const { namespace, name } = this.props
-    const { itemsPerPage, pageNumber, selectedDataType } = this.state
+    const { itemsPerPage, pageNumber, sort, selectedDataType } = this.state
 
     if (!selectedDataType) {
       return
@@ -80,12 +106,15 @@ class WorkspaceData extends Component {
         this.setState({
           workspaceAttributes: _.flow(
             _.toPairs,
-            _.remove(([key]) => key === 'description' || key.includes(':'))
+            _.remove(([key]) => key === 'description' || key.includes(':')),
+            _.sortBy(_.first)
           )(attributes)
         })
       } else {
         const { results, resultMetadata: { unfilteredCount } } =
-          await Rawls.workspace(namespace, name).paginatedEntitiesOfType(selectedDataType, { page: pageNumber, pageSize: itemsPerPage })
+          await Rawls.workspace(namespace, name).paginatedEntitiesOfType(selectedDataType, {
+            page: pageNumber, pageSize: itemsPerPage, sortField: sort.field, sortDirection: sort.direction
+          })
         this.setState({ entities: results, totalRowCount: unfilteredCount })
       }
     } catch (error) {
@@ -126,7 +155,7 @@ class WorkspaceData extends Component {
                   onClick: () => {
                     this.setState(selectedDataType === type ?
                       { refreshRequested: true } :
-                      { selectedDataType: type, pageNumber: 1, entities: undefined }
+                      { selectedDataType: type, pageNumber: 1, sort: initialSort, entities: undefined }
                     )
                   }
                 }, [
@@ -170,7 +199,7 @@ class WorkspaceData extends Component {
 
   renderEntityTable() {
     const { namespace } = this.props
-    const { entities, selectedDataType, entityMetadata, totalRowCount, pageNumber, itemsPerPage } = this.state
+    const { entities, selectedDataType, entityMetadata, totalRowCount, pageNumber, itemsPerPage, sort } = this.state
 
     return entities && h(Fragment, [
       div({ style: { marginBottom: '1rem' } }, [
@@ -185,12 +214,16 @@ class WorkspaceData extends Component {
             columns: [
               {
                 width: 150,
-                headerRenderer: () => h(TextCell, `${selectedDataType}_id`),
+                headerRenderer: () => h(SortableHeaderCell, {
+                  sort, field: 'name', onSort: v => this.setState({ sort: v })
+                }, [`${selectedDataType}_id`]),
                 cellRenderer: ({ rowIndex }) => renderDataCell(entities[rowIndex].name, namespace)
               },
               ..._.map(name => ({
                 width: 300,
-                headerRenderer: () => h(TextCell, name),
+                headerRenderer: () => h(SortableHeaderCell, {
+                  sort, field: name, onSort: v => this.setState({ sort: v })
+                }, [name]),
                 cellRenderer: ({ rowIndex }) => {
                   return renderDataCell(
                     Utils.entityAttributeText(entities[rowIndex].attributes[name]), namespace
@@ -288,12 +321,12 @@ class WorkspaceData extends Component {
           columns: [
             {
               size: { basis: 400, grow: 0 },
-              headerRenderer: () => 'Name',
+              headerRenderer: () => h(HeaderCell, ['Name']),
               cellRenderer: ({ rowIndex }) => renderDataCell(workspaceAttributes[rowIndex][0], namespace)
             },
             {
               size: { grow: 1 },
-              headerRenderer: () => 'Value',
+              headerRenderer: () => h(HeaderCell, ['Value']),
               cellRenderer: ({ rowIndex }) => renderDataCell(workspaceAttributes[rowIndex][1], namespace)
             }
           ]
@@ -304,7 +337,7 @@ class WorkspaceData extends Component {
 
   componentDidUpdate(prevProps, prevState) {
     StateHistory.update(_.pick(
-      ['entityMetadata', 'selectedDataType', 'entities', 'workspaceAttributes', 'totalRowCount', 'itemsPerPage', 'pageNumber'],
+      ['entityMetadata', 'selectedDataType', 'entities', 'workspaceAttributes', 'totalRowCount', 'itemsPerPage', 'pageNumber', 'sort'],
       this.state)
     )
 

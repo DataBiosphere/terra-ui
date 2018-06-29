@@ -324,3 +324,7 @@ export const TextCell = props => {
     style: { overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }
   }, props))
 }
+
+export const HeaderCell = props => {
+  return h(TextCell, _.merge({ style: { fontWeight: 500 } }, props))
+}
