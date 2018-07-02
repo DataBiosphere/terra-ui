@@ -34,13 +34,13 @@ const styles = {
 const collapseStatus = status => {
   switch (status) {
     case 'Succeeded':
-      return 'Succeeded'
+      return 'succeeded'
     case 'Aborting':
     case 'Aborted':
     case 'Failed':
-      return 'Failed'
+      return 'failed'
     default:
-      return 'Running'
+      return 'running'
   }
 }
 
@@ -55,18 +55,16 @@ export const flagNewSubmission = submissionId => {
 
 
 const statusCell = workflowStatuses => {
-  const collapsed = _.flow(
+  const { succeeded, failed, running } = _.flow(
     _.toPairs,
     _.map(([status, count]) => ({ [collapseStatus(status)]: count })),
     _.reduce(_.mergeWith(_.add), {})
   )(workflowStatuses)
 
-  const collapsedKeys = _.keys(collapsed)
-
   return h(Fragment, [
-    _.includes('Succeeded', collapsedKeys) && successIcon({ marginRight: '0.5rem' }),
-    _.includes('Failed', collapsedKeys) && failedIcon({ marginRight: '0.5rem' }),
-    _.includes('Running', collapsedKeys) && runningIcon({ marginRight: '0.5rem' }),
+    succeeded && successIcon({ marginRight: '0.5rem' }),
+    failed && failedIcon({ marginRight: '0.5rem' }),
+    running && runningIcon({ marginRight: '0.5rem' }),
     h(PopupTrigger, {
       position: 'bottom',
       content: table({ style: { margin: '0.5rem' } }, [
@@ -77,9 +75,9 @@ const statusCell = workflowStatuses => {
             td(styles.statusDetailCell, [runningIcon()])
           ]),
           tr({}, [
-            td(styles.statusDetailCell, [collapsed['Succeeded'] || 0]),
-            td(styles.statusDetailCell, [collapsed['Failed'] || 0]),
-            td(styles.statusDetailCell, [collapsed['Running'] || 0])
+            td(styles.statusDetailCell, [succeeded || 0]),
+            td(styles.statusDetailCell, [failed || 0]),
+            td(styles.statusDetailCell, [running || 0])
           ])
         ])
       ])
@@ -186,7 +184,7 @@ class JobHistory extends Component {
             },
             {
               size: { basis: 150, grow: 0 },
-              headerRenderer: () => 'Workflows',
+              headerRenderer: () => h(HeaderCell, ['Workflows']),
               cellRenderer: ({ rowIndex }) => {
                 const { workflowStatuses } = submissions[rowIndex]
                 return h(TextCell, Utils.formatNumber(_.sum(_.values(workflowStatuses))))
