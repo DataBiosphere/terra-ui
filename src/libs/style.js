@@ -31,7 +31,6 @@ export const modalShadow = '0 0 8px 0 rgba(0,0,0,0.12), 0 8px 8px 0 rgba(0,0,0,0
 export const standardLine = `1px solid ${colors.textFaded}`
 
 export const elements = {
-  button: { fontWeight: 500, fontSize: 14, textTransform: 'uppercase', cursor: 'pointer' },
   cardTitle: { color: colors.secondary, fontSize: 16, fontWeight: 500 },
   card: {
     borderRadius: 5, padding: '1rem', wordWrap: 'break-word', boxShadow: standardShadow,

@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { Fragment } from 'react'
-import { div, h, h2, span } from 'react-hyperscript-helpers'
+import { div, h, h2 } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { buttonPrimary, spinnerOverlay } from 'src/components/common'
 import Modal from 'src/components/Modal'
@@ -57,9 +57,9 @@ export default class WorkspaceDashboard extends Component {
             h2({}, ['Workspace Dashboard View Coming Soon']),
             div({ style: { fontSize: 16, fontWeight: 500, color: Style.colors.title } },
               'ACCESS LEVEL'),
-            span({ 'data-test-id': 'access-level' }, workspace.accessLevel),
+            div({ 'data-test-id': 'access-level' }, workspace.accessLevel),
             buttonPrimary({
-              style: { marginTop: '1rem', display: 'block' },
+              style: { marginTop: '1rem' },
               onClick: () => this.setState({ modal: true })
             }, 'Full Workspace Info')
           ]),
