@@ -43,7 +43,10 @@ const navIconProps = {
 
 
 class WorkspaceTabs extends PureComponent {
-  menu = createRef()
+  constructor(props) {
+    super(props)
+    this.menu = createRef()
+  }
 
   render() {
     const { namespace, name, workspace, activeTab, refresh, onDelete, onClone } = this.props
@@ -99,9 +102,12 @@ class WorkspaceTabs extends PureComponent {
 
 
 class DeleteWorkspaceModal extends Component {
-  state = {
-    deleting: false,
-    workspace: undefined
+  constructor(props) {
+    super(props)
+    this.state = {
+      deleting: false,
+      workspace: undefined
+    }
   }
 
   async deleteWorkspace() {
@@ -151,10 +157,13 @@ class DeleteWorkspaceModal extends Component {
 
 
 export default class WorkspaceContainer extends Component {
-  state = {
-    deletingWorkspace: false,
-    cloningWorkspace: false,
-    workspace: undefined
+  constructor(props) {
+    super(props)
+    this.state = {
+      deletingWorkspace: false,
+      cloningWorkspace: false,
+      workspace: undefined
+    }
   }
 
   onDelete = () => {
