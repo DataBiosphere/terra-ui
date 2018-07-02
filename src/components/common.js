@@ -8,6 +8,14 @@ import * as Style from 'src/libs/style'
 import 'react-select/dist/react-select.css'
 
 
+const styles = {
+  button: {
+    display: 'inline-flex', alignItems: 'center', height: '2.25rem',
+    fontWeight: 500, fontSize: 14, textTransform: 'uppercase',
+    userSelect: 'none'
+  }
+}
+
 export const link = function(props, children) {
   return h(Interactive,
     _.merge({
@@ -21,36 +29,32 @@ export const link = function(props, children) {
     children)
 }
 
-export const buttonPrimary = function(props, children) {
-  return h(Interactive,
-    _.merge({
-      as: 'button',
-      style: {
-        ...Style.elements.button,
-        border: 'none', borderRadius: 5, color: 'white',
-        height: '2.25rem', padding: '0 1.5rem',
-        backgroundColor: props.disabled ? Style.colors.disabled : Style.colors.secondary,
-        cursor: props.disabled ? 'not-allowed' : 'pointer'
-      },
-      hover: props.disabled ? undefined : { backgroundColor: Style.colors.primary }
-    }, props),
-    children)
+export const buttonPrimary = ({ onClick, disabled, ...props }, children) => {
+  return h(Interactive, _.merge({
+    as: 'div',
+    disabled,
+    onClick: (...args) => onClick && !disabled && onClick(...args),
+    style: {
+      ...styles.button,
+      borderRadius: 5, color: 'white', padding: '0 1.5rem',
+      backgroundColor: disabled ? Style.colors.disabled : Style.colors.secondary,
+      cursor: disabled ? 'not-allowed' : 'pointer'
+    },
+    hover: disabled ? undefined : { backgroundColor: Style.colors.primary }
+  }, props), children)
 }
 
-export const buttonSecondary = (props, children) => {
-  const { disabled } = props
-  return h(Interactive,
-    _.merge({
-      as: 'button',
-      style: {
-        ...Style.elements.button,
-        border: 'none', height: '2.25rem', padding: 0, backgroundColor: 'transparent',
-        color: disabled ? Style.colors.disabled : Style.colors.text,
-        cursor: disabled ? 'not-allowed' : 'pointer'
-      }
-    }, props),
-    children
-  )
+export const buttonSecondary = ({ onClick, disabled, ...props }, children) => {
+  return h(Interactive, _.merge({
+    as: 'div',
+    disabled,
+    onClick: (...args) => onClick && !disabled && onClick(...args),
+    style: {
+      ...styles.button,
+      color: disabled ? Style.colors.disabled : Style.colors.text,
+      cursor: disabled ? 'not-allowed' : 'pointer'
+    }
+  }, props), children)
 }
 
 export const search = function({ wrapperProps, inputProps }) {

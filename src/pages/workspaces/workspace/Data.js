@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import clipboard from 'clipboard-polyfill'
-import { Fragment } from 'react'
+import { createRef, Fragment } from 'react'
 import { div, form, h, input } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
@@ -79,6 +79,7 @@ class WorkspaceData extends Component {
       loading: false,
       ...StateHistory.get()
     }
+    this.downloadForm = createRef()
   }
 
   async loadMetadata() {
@@ -249,19 +250,23 @@ class WorkspaceData extends Component {
   renderDownloadButton() {
     const { namespace, name } = this.props
     const { selectedDataType, orchestrationRoot } = this.state
-
-    return form({
-      style: { display: 'inline' },
-      method: 'POST',
-      action: `${orchestrationRoot}/cookie-authed/workspaces/${namespace}/${name}/entities/${selectedDataType}/tsv`
-    }, [
-      input({ type: 'hidden', name: 'FCtoken', value: auth.getAuthToken() }),
-      /*
-       * TODO: once column selection is implemented, add another hidden input with name: 'attributeNames' and
-       * value: comma-separated list of attribute names to support downloading only the selected columns
-       */
+    return h(Fragment, [
+      form({
+        ref: this.downloadForm,
+        action: `${orchestrationRoot}/cookie-authed/workspaces/${namespace}/${name}/entities/${selectedDataType}/tsv`,
+        method: 'POST'
+      }, [
+        input({ type: 'hidden', name: 'FCtoken', value: auth.getAuthToken() })
+        /*
+         * TODO: once column selection is implemented, add another hidden input with name: 'attributeNames' and
+         * value: comma-separated list of attribute names to support downloading only the selected columns
+         */
+      ]),
       h(TooltipTrigger, { content: 'Download all data as a file' }, [
-        buttonPrimary({ type: 'submit', disabled: !orchestrationRoot }, [
+        buttonPrimary({
+          disabled: !orchestrationRoot,
+          onClick: () => this.downloadForm.current.submit()
+        }, [
           icon('download', { style: { marginRight: '0.5rem' } }),
           'Download'
         ])

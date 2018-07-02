@@ -85,7 +85,7 @@ export class NotebookCreator extends Component {
     return h(Fragment, [
       buttonPrimary({
         onClick: () => this.setState({ modalOpen: true, notebookName: '', nameTouched: false, notebookKernel: null }),
-        style: { marginLeft: '1rem', display: 'flex' },
+        style: { marginLeft: '1rem' },
         disabled: creating
       },
       creating ?
