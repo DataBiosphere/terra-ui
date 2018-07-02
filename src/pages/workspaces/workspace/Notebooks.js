@@ -223,7 +223,6 @@ class WorkspaceNotebooks extends Component {
                   }
                 )
               }
-              reader.onabort = e => reportError('Aborted reading file', e)
               reader.onerror = e => reportError('Error reading file', e)
 
               reader.readAsText(file)
