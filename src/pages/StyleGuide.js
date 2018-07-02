@@ -10,7 +10,6 @@ import TooltipTrigger from 'src/components/TooltipTrigger'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import { Component } from 'src/libs/wrapped-components'
-import validate from 'validate.js'
 
 
 const styles = {
@@ -65,15 +64,8 @@ class StyleGuide extends Component {
       ]),
       div({ style: styles.container }, [
         validatedInput({
-          name: 'input',
-          inputProps: {
-            placeholder: 'ValidatedInput wants an email',
-            value: this.state.validatedInputValue,
-            onChange: e => this.setState({ validatedInputValue: e.target.value, validatedInputTouched: true })
-          },
-          errors: this.state.validatedInputTouched ?
-            validate.single(this.state.validatedInputValue, { email: true }) :
-            null
+          inputProps: { value: 'Hello there!', readOnly: true },
+          error: 'Cannot contain special characters'
         })
       ]),
       div({ style: styles.container }, [
