@@ -20,11 +20,11 @@ const PopupBody = onClickOutside(({ children }) => {
 })
 
 export default class PopupTrigger extends Component {
-  state = {
-    open: false
+  constructor(props) {
+    super(props)
+    this.state = { open: false }
+    this.id = `popup-trigger-${_.uniqueId()}`
   }
-
-  id = `popup-trigger-${_.uniqueId()}`
 
   close() {
     this.setState({ open: false })

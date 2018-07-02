@@ -44,15 +44,16 @@ const styles = {
 }
 
 class Tooltip extends Component {
-  state = {
-    tooltip: { width: 0, height: 0 },
-    target: { top: 0, bottom: 0, left: 0, right: 0 },
-    viewport: { width: 0, height: 0 }
+  constructor(props) {
+    super(props)
+    this.state = {
+      tooltip: { width: 0, height: 0 },
+      target: { top: 0, bottom: 0, left: 0, right: 0 },
+      viewport: { width: 0, height: 0 }
+    }
+    this.element = createRef()
+    this.container = document.createElement('div')
   }
-
-  element = createRef()
-
-  container = document.createElement('div')
 
   static defaultProps = {
     side: 'bottom'
@@ -132,9 +133,11 @@ class Tooltip extends Component {
  * @param {string} [props.side='bottom'] - preferred side
  */
 export default class TooltipTrigger extends Component {
-  state = { open: false }
-
-  id = `tooltip-trigger-${_.uniqueId()}`
+  constructor(props) {
+    super(props)
+    this.state = { open: false }
+    this.id = `tooltip-trigger-${_.uniqueId()}`
+  }
 
   render() {
     const { children, content, ...props } = this.props
