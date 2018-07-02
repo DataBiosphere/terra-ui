@@ -17,8 +17,8 @@ import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
-import LaunchAnalysisModal from 'src/pages/workspaces/workspace/tools/LaunchAnalysisModal'
 import * as JobHistory from 'src/pages/workspaces/workspace/JobHistory'
+import LaunchAnalysisModal from 'src/pages/workspaces/workspace/tools/LaunchAnalysisModal'
 import WorkspaceContainer from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
 
@@ -55,24 +55,16 @@ class WorkflowView extends Component {
 
     this.state = {
       activeTab: 'inputs',
-      saved: false,
-      modifiedAttributes: {},
-      workspaceAttributes: undefined,
       ...StateHistory.get()
     }
   }
 
-  getModifiedConfig() {
-    const { config, modifiedAttributes } = this.state
-    return _.merge(config, modifiedAttributes)
-  }
-
   render() {
-    const { isFreshData, config, launching, inputsOutputs, activeTab } = this.state
+    const { isFreshData, savedConfig, launching, inputsOutputs, activeTab } = this.state
     const { workspaceNamespace, workspaceName, workflowName } = this.props
 
     const workspaceId = { namespace: workspaceNamespace, name: workspaceName }
-    const invalidIO = config && {
+    const invalidIO = savedConfig && {
       inputs: _.some('error', inputsOutputs.inputs),
       outputs: _.some('error', inputsOutputs.outputs)
     }
@@ -84,16 +76,16 @@ class WorkflowView extends Component {
         title: workflowName, activeTab: 'tools'
       },
       [
-        config && h(Fragment, [
+        savedConfig && h(Fragment, [
           this.renderSummary(invalidIO),
           Utils.cond(
             [activeTab === 'inputs', () => this.renderIOTable('inputs')],
             [activeTab === 'outputs', () => this.renderIOTable('outputs')],
             [activeTab === 'wdl', () => this.renderWDL()],
-            null,
+            null
           ),
           launching && h(LaunchAnalysisModal, {
-            workspaceId, config,
+            workspaceId, config: savedConfig,
             onDismiss: () => this.setState({ launching: false }),
             onSuccess: submissionId => {
               JobHistory.flagNewSubmission(submissionId)
@@ -123,7 +115,8 @@ class WorkflowView extends Component {
       const inputsOutputs = this.createIOLists(validationResponse, ioDefinitions)
 
       this.setState({
-        isFreshData: true, config, entityMetadata, inputsOutputs, ioDefinitions,
+        isFreshData: true, savedConfig: config, modifiedConfig: config,
+        entityMetadata, inputsOutputs, ioDefinitions,
         workspaceAttributes: _.flow(
           _.without(['description']),
           _.remove(s => s.includes(':'))
@@ -168,15 +161,15 @@ class WorkflowView extends Component {
     }
 
     StateHistory.update(_.pick(
-      ['config', 'entityMetadata', 'inputsOutputs', 'invalid', 'modifiedAttributes', 'activeTab', 'wdl'],
+      ['savedConfig', 'modifiedConfig', 'entityMetadata', 'inputsOutputs', 'invalid', 'activeTab', 'wdl'],
       this.state)
     )
   }
 
-  renderSummary = invalidIO => {
-    const { entityMetadata, saving, saved, activeTab, modifiedAttributes } = this.state
-    const { name, methodConfigVersion, methodRepoMethod: { methodPath }, rootEntityType } = this.getModifiedConfig()
-    const modified = !_.isEmpty(modifiedAttributes)
+  renderSummary(invalidIO) {
+    const { modifiedConfig, savedConfig, entityMetadata, saving, saved, activeTab } = this.state
+    const { name, methodConfigVersion, methodRepoMethod: { methodPath }, rootEntityType } = modifiedConfig
+    const modified = !_.isEqual(modifiedConfig, savedConfig)
 
     const noLaunchReason = Utils.cond(
       [invalidIO.inputs || invalidIO.outputs, () => 'Add your inputs and outputs to Launch Analysis'],
@@ -192,11 +185,13 @@ class WorkflowView extends Component {
           div({ style: { textTransform: 'capitalize', display: 'flex', alignItems: 'baseline', marginTop: '0.5rem' } }, [
             'Data Type:',
             h(Select, {
-              clearable: false, searchable: false,
+              clearable: true, searchable: false,
               wrapperStyle: { display: 'inline-block', width: 200, marginLeft: '0.5rem' },
               value: rootEntityType,
-              onChange: ({ value }) => {
-                this.setState(_.set(['modifiedAttributes', 'rootEntityType'], value))
+              onChange: selected => {
+                const value = !!selected ? selected.value : undefined
+
+                this.setState(_.set(['modifiedConfig', 'rootEntityType'], value))
               },
               options: _.map(k => ({ value: k, label: _.startCase(k) }), _.keys(entityMetadata))
             })
@@ -233,9 +228,8 @@ class WorkflowView extends Component {
     ])
   }
 
-  renderIOTable = key => {
-    const { inputsOutputs: { [key]: data }, entityMetadata, workspaceAttributes } = this.state
-    const modifiedConfig = this.getModifiedConfig()
+  renderIOTable(key) {
+    const { modifiedConfig, inputsOutputs: { [key]: data }, entityMetadata, workspaceAttributes } = this.state
     // Sometimes we're getting totally empty metadata. Not sure if that's valid; if not, revert this
     const { attributeNames } = entityMetadata[modifiedConfig.rootEntityType] || {}
     const suggestions = [
@@ -281,7 +275,7 @@ class WorkflowView extends Component {
                     h(AutocompleteTextInput, {
                       placeholder: optional ? 'Optional' : 'Required',
                       value: modifiedConfig[key][name] || '',
-                      onChange: v => this.setState(_.set(['modifiedAttributes', key, name], v)),
+                      onChange: v => this.setState(_.set(['modifiedConfig', key, name], v)),
                       suggestions
                     }),
                     error && h(TooltipTrigger, { content: error }, [
@@ -307,8 +301,8 @@ class WorkflowView extends Component {
     }) : centeredSpinner({ style: { marginTop: '1rem' } })
   }
 
-  fetchWDL = async () => {
-    const { methodRepoMethod: { sourceRepo, methodNamespace, methodName, methodVersion, methodPath } } = this.state.config
+  async fetchWDL() {
+    const { methodRepoMethod: { sourceRepo, methodNamespace, methodName, methodVersion, methodPath } } = this.state.savedConfig
 
     this.setState({ loadedWdl: true })
     try {
@@ -328,23 +322,24 @@ class WorkflowView extends Component {
     }
   }
 
-  save = async () => {
+  async save() {
     const { workspaceNamespace, workspaceName, workflowNamespace, workflowName } = this.props
+    const { modifiedConfig } = this.state
 
     this.setState({ saving: true })
 
     try {
       const validationResponse = await Rawls.workspace(workspaceNamespace, workspaceName)
         .methodConfig(workflowNamespace, workflowName)
-        .save(this.getModifiedConfig())
+        .save(modifiedConfig)
       const inputsOutputs = this.createIOLists(validationResponse)
 
       this.setState({
         saved: true,
-        modifiedAttributes: {},
         inputsOutputs,
-        config: validationResponse.methodConfiguration
-      })
+        savedConfig: validationResponse.methodConfiguration,
+        modifiedConfig: validationResponse.methodConfiguration
+      }, () => setTimeout(() => this.setState({ saved: false }), 3000))
     } catch (error) {
       reportError('Error saving', error)
     } finally {
@@ -352,8 +347,10 @@ class WorkflowView extends Component {
     }
   }
 
-  cancel = () => {
-    this.setState({ saved: false, modifiedAttributes: {} })
+  cancel() {
+    const { savedConfig } = this.state
+
+    this.setState({ saved: false, modifiedConfig: savedConfig })
   }
 }
 
