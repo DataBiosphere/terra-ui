@@ -6,10 +6,12 @@ import { icon } from 'src/components/icons'
 import { TextArea, validatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import PopupTrigger from 'src/components/PopupTrigger'
+import TooltipTrigger from 'src/components/TooltipTrigger'
 import { Rawls } from 'src/libs/ajax'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
+import * as Utils from 'src/libs/utils'
 import validate from 'validate.js'
 
 
@@ -98,14 +100,18 @@ export default class NewWorkspaceModal extends Component {
       'membersGroupName',
       cloneWorkspace && cloneWorkspace.workspace.authorizationDomain
     )
-    const errors = validate({ namespace, name }, constraints, { fullMessages: false })
+    const errors = validate({ namespace, name }, constraints, {
+      prettify: v => ({ namespace: 'Billing project', name: 'Name' }[v] || validate.prettify(v))
+    })
     return h(Modal, {
       title: cloneWorkspace ? 'Clone a Workspace' : 'Create a New Workspace',
       onDismiss,
-      okButton: buttonPrimary({
-        disabled: errors,
-        onClick: () => this.create()
-      }, cloneWorkspace ? 'Clone Workspace' : 'Create Workspace')
+      okButton: h(TooltipTrigger, { content: Utils.summarizeErrors(errors) }, [
+        buttonPrimary({
+          disabled: errors,
+          onClick: () => this.create()
+        }, cloneWorkspace ? 'Clone Workspace' : 'Create Workspace')
+      ])
     }, [
       div({ style: styles.label }, ['Workspace name *']),
       validatedInput({
@@ -114,8 +120,7 @@ export default class NewWorkspaceModal extends Component {
           value: name,
           onChange: e => this.setState({ name: e.target.value, nameModified: true })
         },
-        name: 'Name',
-        errors: nameModified && errors && errors.name
+        error: Utils.summarizeErrors(nameModified && errors && errors.name)
       }),
       div({ style: styles.label }, ['Billing project *']),
       billingProjects && !billingProjects.length ? h(Fragment, [

@@ -129,7 +129,7 @@ class Tooltip extends Component {
 }
 
 /**
- * @param {object} [props.content] - content of tooltip
+ * @param {object} [props.content] - content of tooltip (no tooltip shown if falsy)
  * @param {string} [props.side='bottom'] - preferred side
  */
 export default class TooltipTrigger extends Component {

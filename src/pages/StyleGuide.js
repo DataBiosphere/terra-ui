@@ -9,6 +9,7 @@ import { FlexTable, GridTable, HeaderCell, TextCell } from 'src/components/table
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
+import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 import validate from 'validate.js'
 
@@ -24,6 +25,8 @@ const styles = {
 
 class StyleGuide extends Component {
   render() {
+    const { validatedInputValue, validatedInputTouched } = this.state
+    const errors = validate({ validatedInputValue }, { validatedInputValue: { email: true } })
     return div({ style: { paddingLeft: '1rem', paddingRight: '1rem' } }, [
       h1('Style guide'),
       div({ style: styles.container }, [
@@ -65,15 +68,12 @@ class StyleGuide extends Component {
       ]),
       div({ style: styles.container }, [
         validatedInput({
-          name: 'input',
           inputProps: {
             placeholder: 'ValidatedInput wants an email',
-            value: this.state.validatedInputValue,
+            value: validatedInputValue,
             onChange: e => this.setState({ validatedInputValue: e.target.value, validatedInputTouched: true })
           },
-          errors: this.state.validatedInputTouched ?
-            validate.single(this.state.validatedInputValue, { email: true }) :
-            null
+          error: validatedInputTouched && Utils.summarizeErrors(errors && errors.validatedInputValue)
         })
       ]),
       div({ style: styles.container }, [
