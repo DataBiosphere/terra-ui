@@ -1,8 +1,9 @@
+import '@webcomponents/custom-elements' // must be before icons
+
 import { ClarityIcons } from '@clr/icons'
 import '@clr/icons/clr-icons.css'
 import { ClrShapeBan, ClrShapeSync, ClrShapeTimesCircle, ClrShapeViewCards, ClrShapeViewList } from '@clr/icons/shapes/essential-shapes'
 import { ClrShapePause, ClrShapePlay } from '@clr/icons/shapes/media-shapes'
-import '@webcomponents/custom-elements'
 import _ from 'lodash/fp'
 import { h } from 'react-hyperscript-helpers'
 import caretDown from 'src/icons/caret-down.svg'
