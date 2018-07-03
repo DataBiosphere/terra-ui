@@ -1,9 +1,10 @@
 import _ from 'lodash/fp'
-import { Fragment } from 'react'
+import { createRef, Fragment } from 'react'
+import Dropzone from 'react-dropzone'
 import { a, div, h } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { MenuButton, spinnerOverlay } from 'src/components/common'
+import { link, MenuButton, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { NotebookCreator, NotebookDeleter, NotebookDuplicator } from 'src/components/notebook-utils'
 import PopupTrigger from 'src/components/PopupTrigger'
@@ -154,6 +155,7 @@ class WorkspaceNotebooks extends Component {
   constructor(props) {
     super(props)
     this.state = StateHistory.get()
+    this.uploader = createRef()
   }
 
   async refresh() {
@@ -197,7 +199,36 @@ class WorkspaceNotebooks extends Component {
         title: 'Notebooks', activeTab: 'notebooks'
       },
       [
-        div({ style: { padding: '1rem' } }, [
+        h(Dropzone, {
+          accept: '.ipynb',
+          disableClick: true,
+          disablePreview: true,
+          style: { flexGrow: 1, padding: '1rem' },
+          activeStyle: { backgroundColor: Style.colors.highlight, cursor: 'copy' }, // accept and reject don't work in all browsers
+          acceptStyle: { cursor: 'copy' },
+          rejectStyle: { cursor: 'no-drop' },
+          ref: this.uploader,
+          onDropAccepted: acceptedFiles => {
+            this.setState({ loading: true })
+
+            acceptedFiles.forEach(file => {
+              const reader = new FileReader()
+
+              reader.onload = () => {
+                Buckets.notebook(namespace, bucketName, file.name.slice(0, -6)).create(JSON.parse(reader.result)).then(
+                  () => this.refresh(),
+                  error => {
+                    reportError('Error creating notebook', error)
+                    this.setState({ loading: false })
+                  }
+                )
+              }
+              reader.onerror = e => reportError('Error reading file', e)
+
+              reader.readAsText(file)
+            })
+          }
+        }, [
           notebooks && h(Fragment, [
             div({
               style: {
@@ -205,6 +236,12 @@ class WorkspaceNotebooks extends Component {
               }
             }, [
               div({ style: { fontSize: 16, fontWeight: 500 } }, 'NOTEBOOKS'),
+              div({ style: { flexGrow: 1 } }),
+              div({ style: { color: Style.colors.text } }, [
+                'Drag or ',
+                link({ style: { fontWeight: 500 }, onClick: () => this.uploader.current.open() }, ['click']),
+                ' to upload an ipynb'
+              ]),
               div({ style: { flexGrow: 1 } }),
               icon('view-cards', {
                 style: {
