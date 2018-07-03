@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { Component } from 'react'
-import { h } from 'react-hyperscript-helpers'
+import { div, h } from 'react-hyperscript-helpers'
 import uuid from 'uuid/v4'
 
 
@@ -156,4 +156,17 @@ export const nextSort = ({ field, direction }, newField) => {
   return newField === field ?
     { field, direction: direction === 'asc' ? 'desc' : 'asc' } :
     { field: newField, direction: 'asc' }
+}
+
+export const summarizeErrors = errors => {
+  const errorList = cond(
+    [_.isPlainObject(errors), () => _.flatMap(_.values, errors)],
+    [_.isArray(errors), () => errors],
+    () => []
+  )
+  if (errorList.length) {
+    return _.map(([k, v]) => {
+      return div({ key: k, style: { marginTop: k !== '0' ? '0.5rem' : undefined } }, [v])
+    }, _.toPairs(errorList))
+  }
 }
