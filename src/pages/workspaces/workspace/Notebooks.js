@@ -28,6 +28,7 @@ class NotebookCard extends Component {
 
     const notebookMenu = h(PopupTrigger, {
       ref: instance => this.notebookMenu = instance,
+      position: 'bottom',
       content: h(Fragment, [
         h(MenuButton, {
           onClick: () => {
