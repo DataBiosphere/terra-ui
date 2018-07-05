@@ -2,9 +2,8 @@ import _ from 'lodash/fp'
 import { createRef, Fragment } from 'react'
 import Dropzone from 'react-dropzone'
 import { a, div, h } from 'react-hyperscript-helpers'
-import Interactive from 'react-interactive'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { link, MenuButton, spinnerOverlay } from 'src/components/common'
+import { Clickable, link, MenuButton, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { NotebookCreator, NotebookDeleter, NotebookDuplicator } from 'src/components/notebook-utils'
 import PopupTrigger from 'src/components/PopupTrigger'
@@ -50,8 +49,7 @@ class NotebookCard extends Component {
         }, ['Delete'])
       ])
     }, [
-      h(Interactive, {
-        as: 'div',
+      h(Clickable, {
         onClick: e => e.preventDefault(),
         style: { marginLeft: '1rem', cursor: 'pointer' }, focus: 'hover'
       }, [icon('ellipsis-vertical', { size: 18 })])

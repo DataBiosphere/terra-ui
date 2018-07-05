@@ -1,10 +1,9 @@
 import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { div, h, span, table, tbody, td, tr } from 'react-hyperscript-helpers'
-import Interactive from 'react-interactive'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { spinnerOverlay } from 'src/components/common'
+import { Clickable, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import PopupTrigger from 'src/components/PopupTrigger'
 import { FlexTable, HeaderCell, TextCell } from 'src/components/table'
@@ -82,11 +81,10 @@ const statusCell = workflowStatuses => {
         ])
       ])
     }, [
-      h(Interactive, {
-        as: 'span'
-      }, [
-        icon('caretDown', { class: 'hover-only', size: 18, style: { color: Style.colors.primary } })
-      ])
+      h(Clickable, {
+        className: 'hover-only',
+        style: { color: Style.colors.primary }
+      }, [icon('caretDown', { size: 18 })])
     ])
   ])
 }
