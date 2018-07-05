@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { div, h } from 'react-hyperscript-helpers'
-import Interactive from 'react-interactive'
+import { Clickable } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -39,14 +39,14 @@ export default class TopBanner extends Component {
     props), [
       div({ style: { flex: 1, display: 'flex', alignItems: 'center' } },
         children),
-      showX && h(Interactive, {
-        as: icon('times-circle', { size: 20, style: { marginLeft: '1rem' } }),
+      showX && h(Clickable, {
+        style: { marginLeft: '1rem' },
         title: 'Hide banner',
         onClick: () => {
           this.setState({ show: false })
           onDismiss && onDismiss()
         }
-      })
+      }, [icon('times-circle', { size: 20 })])
     ])
   }
 }

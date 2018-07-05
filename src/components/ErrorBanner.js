@@ -1,6 +1,5 @@
 import { div, h } from 'react-hyperscript-helpers'
-import Interactive from 'react-interactive'
-import { buttonPrimary } from 'src/components/common'
+import { buttonPrimary, Clickable } from 'src/components/common'
 import ErrorView from 'src/components/ErrorView'
 import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
@@ -28,12 +27,11 @@ class ErrorBanner extends Component {
       }
     },
     [
-      h(Interactive, {
-        as: icon('angle left'),
+      h(Clickable, {
         disabled: onFirst,
-        style: onFirst ? { color: Style.colors.disabled } : {},
+        style: { display: 'flex', color: onFirst ? Style.colors.disabled : null },
         onClick: () => this.setState({ errorNumber: errorNumber - 1 })
-      }),
+      }, [icon('angle left')]),
       div({
         style: {
           fontWeight: 500,
@@ -41,15 +39,13 @@ class ErrorBanner extends Component {
           padding: '0.5rem 1rem', margin: '-0.25rem 0'
         }
       }, [errorNumber + 1, '/', errorState.length]),
-      h(Interactive, {
-        as: icon('angle right'),
+      h(Clickable, {
         disabled: onLast,
-        style: { marginRight: '1rem', color: onLast ? Style.colors.disabled : null },
+        style: { marginRight: '1rem', display: 'flex', color: onLast ? Style.colors.disabled : null },
         onClick: () => this.setState({ errorNumber: errorNumber + 1 })
-      }),
+      }, [icon('angle right')]),
       title,
-      h(Interactive, {
-        as: 'span',
+      h(Clickable, {
         style: { textDecoration: 'underline', marginLeft: '1rem' },
         onClick: () => this.setState({ modal: true })
       }, ['Details...']),

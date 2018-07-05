@@ -1,9 +1,8 @@
 import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { a, div, h, span } from 'react-hyperscript-helpers'
-import Interactive from 'react-interactive'
 import { pure } from 'recompose'
-import { search, spinnerOverlay } from 'src/components/common'
+import { Clickable, search, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
 import { TopBar } from 'src/components/TopBar'
@@ -116,8 +115,7 @@ const WorkspaceCard = pure(({ listView, workspace: { workspace: { namespace, nam
 })
 
 const NewWorkspaceCard = pure(({ listView, onClick }) => {
-  return listView ? h(Interactive, {
-    as: 'div',
+  return listView ? h(Clickable, {
     style: { ...styles.longCard, ...styles.longCreateCard },
     onClick
   }, [
@@ -125,8 +123,7 @@ const NewWorkspaceCard = pure(({ listView, onClick }) => {
       'Create a New Workspace',
       icon('plus-circle', { style: { marginLeft: '1rem' }, size: 24 })
     ])
-  ]) : h(Interactive, {
-    as: 'div',
+  ]) : h(Clickable, {
     style: { ...styles.shortCard, ...styles.shortCreateCard },
     onClick
   }, [
@@ -190,13 +187,11 @@ export class WorkspaceList extends Component {
           'Workspaces'
         ]),
         div({ style: styles.toolbarButtons }, [
-          h(Interactive, {
-            as: 'div',
+          h(Clickable, {
             style: styles.toolbarButton(!listView),
             onClick: () => this.setState({ listView: false })
           }, [icon('view-cards', { size: 24 })]),
-          h(Interactive, {
-            as: 'div',
+          h(Clickable, {
             style: styles.toolbarButton(listView),
             onClick: () => this.setState({ listView: true })
           }, [icon('view-list', { size: 24 })])
