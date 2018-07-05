@@ -52,9 +52,9 @@ const instrumentedFetch = (...args) => {
   return fetch(...args)
 }
 
-const fetchOk = (...args) => {
-  return instrumentedFetch(...args)
-    .then(res => res.ok ? res : res.text().then(text => Promise.reject(text)))
+const fetchOk = async (...args) => {
+  const res = await instrumentedFetch(...args)
+  return res.ok ? res : Promise.reject(res)
 }
 
 
