@@ -188,7 +188,7 @@ class WorkspaceNotebooks extends Component {
             margin: '1.25rem',
             display: 'flex', flexDirection: listView ? 'row' : 'column',
             width: listView ? undefined : 200, height: listView ? undefined : 250,
-            fontSize: listView ? 16 : undefined
+            fontSize: listView ? 16 : undefined, lineHeight: listView ? '22px' : undefined
           }
         }, [
           h(Interactive, {
@@ -199,11 +199,11 @@ class WorkspaceNotebooks extends Component {
             listView ?
               div([
                 'Create a New Notebook',
-                icon('plus-circle', { style: { marginLeft: '1rem' }, size: 24 })
+                icon('plus-circle', { style: { marginLeft: '1rem' }, size: 22 })
               ]) : div({ style: { fontSize: 18, lineHeight: '22px' } }, [
                 div(['Create a']),
                 div(['New Notebook']),
-                icon('plus-circle', { style: { marginTop: '0.5rem' }, size: 32 })
+                icon('plus-circle', { style: { marginTop: '0.5rem' }, size: 21 })
               ])
           ]),
           div({ style: { width: 20, height: 15 } }),
@@ -213,14 +213,15 @@ class WorkspaceNotebooks extends Component {
               { flexGrow: 1, backgroundColor: '#dcdcdc', border: '1px dashed #9B9B9B', boxShadow: 'none' }),
             onClick: () => this.uploader.current.open()
           }, [
-            listView ?
-              div({}, [
-                'Drag or ', link({}, ['Click']), ' to Add an ipynb File',
-                icon('upload-cloud', { style: { marginLeft: '1rem', opacity: 0.4 }, size: 24 })
-              ]) : div({ style: { fontSize: 16, lineHeight: '20px' } }, [
-                'Drag or ', link({}, ['Click']), ' to Add an ipynb File',
-                icon('upload-cloud', { style: { marginTop: '0.5rem', opacity: 0.4 }, size: 32 })
-              ])
+            div({ style: listView ? {} : { fontSize: 16, lineHeight: '20px' } }, [
+              'Drag or ', link({}, ['Click']), ' to Add an ipynb File',
+              icon('upload-cloud', {
+                style: {
+                  marginLeft: listView ? '1rem' : undefined, marginTop: listView ? undefined : '0.5rem',
+                  opacity: 0.4
+                }, size: 25
+              })
+            ])
           ])
 
         ]),
@@ -274,40 +275,29 @@ class WorkspaceNotebooks extends Component {
           }
         }, [
           notebooks && h(Fragment, [
-            div({
-              style: {
-                color: Style.colors.title, display: 'flex', alignItems: 'center'
-              }
-            }, [
-              div({ style: { fontSize: 16, fontWeight: 500 } }, 'NOTEBOOKS'),
+            div({ style: { display: 'flex', alignItems: 'center', margin: '0 1.25rem' } }, [
+              div({ style: { color: Style.colors.title, fontSize: 16, fontWeight: 500 } }, 'NOTEBOOKS'),
               div({ style: { flexGrow: 1 } }),
-              icon('view-cards', {
-                style: {
-                  cursor: 'pointer',
-                  boxShadow: listView ? undefined : `0 4px 0 ${Style.colors.highlight}`,
-                  marginRight: '1rem', width: 26, height: 22
-                },
-                onClick: () => {
-                  this.setState({ listView: false })
-                }
-              }),
-              icon('view-list', {
-                style: {
-                  cursor: 'pointer', boxShadow: listView ? `0 4px 0 ${Style.colors.highlight}` : null
-                },
-                size: 26,
-                onClick: () => {
-                  this.setState({ listView: true })
-                }
-              }),
-              creating &&
-              h(NotebookCreator, {
+              div({ style: { color: Style.colors.secondary, padding: '0.5rem 1rem', backgroundColor: 'white', borderRadius: 3 } }, [
+                h(Interactive, {
+                  as: icon('view-cards'),
+                  style: {
+                    boxShadow: listView ? undefined : `0 4px 0 ${Style.colors.highlight}`,
+                    marginRight: '1rem', width: 26, height: 22
+                  },
+                  onClick: () => this.setState({ listView: false })
+                }),
+                h(Interactive, {
+                  as: icon('view-list'),
+                  style: { boxShadow: listView ? `0 4px 0 ${Style.colors.highlight}` : null },
+                  size: 26,
+                  onClick: () => this.setState({ listView: true })
+                })
+              ]),
+              creating && h(NotebookCreator, {
                 namespace, bucketName,
                 reloadList: () => this.refresh(),
-                onDismiss: () => {
-                  this.setState({ creating: false })
-                  this.refresh()
-                }
+                onDismiss: () => this.setState({ creating: false })
               })
             ]),
             this.renderNotebooks()
