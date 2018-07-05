@@ -147,7 +147,6 @@ export const spinnerOverlay = div(
       position: 'absolute',
       display: 'flex', alignItems: 'center',
       top: 0, right: 0, bottom: 0, left: 0,
-      zIndex: 1, // Needed to make overlay appear over tables
       backgroundColor: 'rgba(0, 0, 0, 0.1)'
     }
   }, [

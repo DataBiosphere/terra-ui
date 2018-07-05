@@ -48,11 +48,6 @@ export class TopBar extends Component {
         [
           div({
             style: {
-              zIndex: 1,
-              /*
-               * MP: Rotating the 'angle' icon for breadcrumbs creates a new stacking context,
-               * causing it to appear above the overlay.
-               */
               display: 'table', width: 275, color: 'white', position: 'absolute', cursor: 'default',
               backgroundColor: Style.colors.primary, height: '100%',
               boxShadow: '3px 0 13px 0 rgba(0,0,0,0.3)'
