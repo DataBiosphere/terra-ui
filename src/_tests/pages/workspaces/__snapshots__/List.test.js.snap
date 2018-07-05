@@ -7,7 +7,7 @@ Array [
         Object {
             "alignItems": "center",
             "backgroundColor": "white",
-            "borderBottom": "2px solid #478eba",
+            "borderBottom": "2px solid #2691d0",
             "display": "flex",
             "flex": "none",
             "height": 80,
@@ -109,7 +109,7 @@ Array [
         onMouseUp={[Function]}
         style={
             Object {
-                "color": "#478eba",
+                "color": "#2691d0",
                 "cursor": "pointer",
                 "flexShrink": 0,
                 "marginLeft": "auto",
@@ -204,7 +204,7 @@ Array [
             style={
                 Object {
                     "alignItems": "center",
-                    "color": "#478eba",
+                    "color": "#2691d0",
                     "cursor": "pointer",
                     "display": "flex",
                     "height": "2.25rem",
@@ -252,7 +252,7 @@ Array [
                 "backgroundColor": "white",
                 "borderRadius": 5,
                 "boxShadow": "0 3px 2px 0 rgba(0,0,0,0.12)",
-                "color": "#478eba",
+                "color": "#2691d0",
                 "cursor": "pointer",
                 "display": "flex",
                 "flexDirection": "column",
@@ -307,7 +307,7 @@ Array [
         <div
             style={
                 Object {
-                    "color": "#478eba",
+                    "color": "#2691d0",
                     "flex": "none",
                     "fontSize": 16,
                     "height": "40px",
@@ -403,7 +403,7 @@ Array [
         <div
             style={
                 Object {
-                    "color": "#478eba",
+                    "color": "#2691d0",
                     "flex": "none",
                     "fontSize": 16,
                     "height": "40px",
