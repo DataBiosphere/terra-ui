@@ -1,6 +1,6 @@
-import Interactive from 'react-interactive'
 import { h, div } from 'react-hyperscript-helpers'
 import onClickOutside from 'react-onclickoutside'
+import { Clickable } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import * as Style from 'src/libs/style'
 
@@ -45,8 +45,7 @@ const DropdownBody = onClickOutside(({ width, children }) => {
 
 const DropdownBox = ({ open, onToggle, children, outsideClickIgnoreClass = 'dropdown-box-opener', width = 500 }) => {
   return div({ style: { position: 'relative' } }, [
-    h(Interactive, {
-      as: 'div',
+    h(Clickable, {
       className: outsideClickIgnoreClass,
       style: styles.button(open),
       onClick: () => onToggle(!open)

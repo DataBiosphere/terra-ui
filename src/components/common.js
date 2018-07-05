@@ -16,6 +16,13 @@ const styles = {
   }
 }
 
+export const Clickable = ({ as = 'div', disabled, onClick, children, ...props }) => {
+  return h(Interactive, _.merge({
+    as, disabled,
+    onClick: (...args) => onClick && !disabled && onClick(...args)
+  }, props), [children])
+}
+
 export const link = function(props, children) {
   return h(Interactive,
     _.merge({
@@ -29,11 +36,9 @@ export const link = function(props, children) {
     children)
 }
 
-export const buttonPrimary = ({ onClick, disabled, ...props }, children) => {
-  return h(Interactive, _.merge({
-    as: 'div',
+export const buttonPrimary = ({ disabled, ...props }, children) => {
+  return h(Clickable, _.merge({
     disabled,
-    onClick: (...args) => onClick && !disabled && onClick(...args),
     style: {
       ...styles.button,
       borderRadius: 5, color: 'white', padding: '0 1.5rem',
@@ -44,11 +49,9 @@ export const buttonPrimary = ({ onClick, disabled, ...props }, children) => {
   }, props), children)
 }
 
-export const buttonSecondary = ({ onClick, disabled, ...props }, children) => {
-  return h(Interactive, _.merge({
-    as: 'div',
+export const buttonSecondary = ({ disabled, ...props }, children) => {
+  return h(Clickable, _.merge({
     disabled,
-    onClick: (...args) => onClick && !disabled && onClick(...args),
     style: {
       ...styles.button,
       color: disabled ? Style.colors.disabled : Style.colors.text,
@@ -84,10 +87,9 @@ export const contextBar = function(props, children) {
   children)
 }
 
-export const MenuButton = ({ onClick, disabled, children, ...props }) => {
-  return h(Interactive, _.merge({
-    as: 'div', disabled,
-    onClick: (...args) => !disabled && onClick && onClick(...args),
+export const MenuButton = ({ disabled, children, ...props }) => {
+  return h(Clickable, _.merge({
+    disabled,
     style: {
       fontSize: 12,
       minWidth: 125,

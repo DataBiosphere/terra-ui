@@ -1,9 +1,8 @@
 import _ from 'lodash/fp'
 import { Component, createRef, Fragment, PureComponent } from 'react'
 import { a, div, h } from 'react-hyperscript-helpers'
-import Interactive from 'react-interactive'
 import ClusterManager from 'src/components/ClusterManager'
-import { buttonPrimary, comingSoon, contextBar, link, MenuButton, spinnerOverlay } from 'src/components/common'
+import { buttonPrimary, Clickable, comingSoon, contextBar, link, MenuButton, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
@@ -70,8 +69,8 @@ class WorkspaceTabs extends PureComponent {
       navTab({ tabName: 'tools', href: Nav.getLink('workspace-tools', { namespace, name }) }),
       navTab({ tabName: 'job history', href: Nav.getLink('workspace-job-history',  { namespace, name }) }),
       div({ style: { flexGrow: 1 } }),
-      h(Interactive, {
-        as: 'div', ...navIconProps,
+      h(Clickable, {
+        ...navIconProps,
         onClick: onClone
       }, [icon('copy', { size: 22 })]),
       h(PopupTrigger, {
@@ -94,7 +93,7 @@ class WorkspaceTabs extends PureComponent {
         ]),
         position: 'bottom'
       }, [
-        h(Interactive, { as: 'div', ...navIconProps }, [icon('ellipsis-vertical', { size: 22 })])
+        h(Clickable, { ...navIconProps }, [icon('ellipsis-vertical', { size: 22 })])
       ])
     ])
   }

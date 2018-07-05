@@ -37,7 +37,7 @@ export default class PopupTrigger extends Component {
     return h(Fragment, [
       cloneElement(child, {
         id: this.id,
-        className: this.id,
+        className: `${child.props.className || ''} ${this.id}`,
         onClick: (...args) => {
           child.props.onClick && child.props.onClick(...args)
           this.setState({ open: !open })

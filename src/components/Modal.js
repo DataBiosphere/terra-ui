@@ -1,8 +1,7 @@
 import _ from 'lodash/fp'
 import * as ReactDOM from 'react-dom'
 import { div, h } from 'react-hyperscript-helpers'
-import Interactive from 'react-interactive'
-import { buttonPrimary, buttonSecondary } from 'src/components/common'
+import { buttonPrimary, buttonSecondary, Clickable } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -63,11 +62,10 @@ export default class Modal extends Component {
           div({ style: { fontSize: 18, fontWeight: 500, color: Style.colors.title } }, [title]),
           ...titleExtras,
           showX && div({ style: { flex: 1 } }),
-          showX && h(Interactive, {
-            as: icon('times-circle'),
+          showX && h(Clickable, {
             style: { alignSelf: 'flex-start' },
             onClick: onDismiss
-          })
+          }, [icon('times-circle')])
         ]),
         children,
         div({

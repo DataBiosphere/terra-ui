@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { h, div } from 'react-hyperscript-helpers'
-import Interactive from 'react-interactive'
+import { Clickable } from 'src/components/common'
 import * as Style from 'src/libs/style'
 
 const TabBar = ({ tabs, activeTab, onChangeTab, style }) => {
@@ -12,9 +12,8 @@ const TabBar = ({ tabs, activeTab, onChangeTab, style }) => {
     }
   }, [
     ..._.map(([i, { title, key }]) => {
-      return h(Interactive, {
+      return h(Clickable, {
         key,
-        as: 'div',
         style: {
           height: '2.25rem', display: 'flex', alignItems: 'center',
           fontSize: 16, fontWeight: 500, color: Style.colors.secondary,
