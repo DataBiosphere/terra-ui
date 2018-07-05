@@ -186,14 +186,14 @@ class WorkspaceNotebooks extends Component {
         div({
           style: {
             margin: '1.25rem',
-            display: 'flex', flexDirection: listView ? 'row' : 'column', justifyContent: 'space-between',
+            display: 'flex', flexDirection: listView ? 'row' : 'column',
             width: listView ? undefined : 200, height: listView ? undefined : 250,
             fontSize: listView ? 16 : undefined
           }
         }, [
           h(Interactive, {
             as: 'div',
-            style: { flexGrow: listView ? 1 : 0, color: Style.colors.secondary, ...Style.elements.card },
+            style: _.merge(Style.elements.card, { flexGrow: 1, color: Style.colors.secondary }),
             onClick: () => this.setState({ creating: true })
           }, [
             listView ?
@@ -206,11 +206,11 @@ class WorkspaceNotebooks extends Component {
                 icon('plus-circle', { style: { marginTop: '0.5rem' }, size: 32 })
               ])
           ]),
-          listView && div({ style: { width: 20 } }),
+          div({ style: { width: 20, height: 15 } }),
           h(Interactive, {
             as: 'div',
             style: _.merge(Style.elements.card,
-              { flexGrow: listView ? 1 : 0, backgroundColor: '#dcdcdc', border: '1px dashed #9B9B9B', boxShadow: 'none' }),
+              { flexGrow: 1, backgroundColor: '#dcdcdc', border: '1px dashed #9B9B9B', boxShadow: 'none' }),
             onClick: () => this.uploader.current.open()
           }, [
             listView ?
