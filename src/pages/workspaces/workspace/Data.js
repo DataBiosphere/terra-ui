@@ -88,7 +88,9 @@ class WorkspaceData extends Component {
       const entityMetadata = await Rawls.workspace(namespace, name).entityMetadata()
       this.setState({ entityMetadata })
     } catch (error) {
-      reportError('Error loading workspace entity data', error)
+      if (error.status !== 404) {
+        reportError('Error loading workspace entity data', error)
+      } // Ignore 404s; container handles this error
     }
   }
 
@@ -119,7 +121,9 @@ class WorkspaceData extends Component {
         this.setState({ entities: results, totalRowCount: unfilteredCount })
       }
     } catch (error) {
-      reportError('Error loading workspace data', error)
+      if (error.status !== 404) {
+        reportError('Error loading workspace data', error)
+      } // Ignore 404s; container handles this error
     } finally {
       this.setState({ loading: false })
     }

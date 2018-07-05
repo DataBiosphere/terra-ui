@@ -5,7 +5,6 @@ import * as breadcrumbs from 'src/components/breadcrumbs'
 import { buttonPrimary, spinnerOverlay } from 'src/components/common'
 import Modal from 'src/components/Modal'
 import { Rawls } from 'src/libs/ajax'
-import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
@@ -19,13 +18,15 @@ export default class WorkspaceDashboard extends Component {
     this.state = StateHistory.get()
   }
 
-  refresh() {
+  async refresh() {
     const { namespace, name } = this.props
 
-    Rawls.workspace(namespace, name).details().then(
-      workspace => this.setState({ isDataLoaded: true, workspace }),
-      error => reportError('Error loading workspace', error)
-    )
+    try {
+      const workspace = await Rawls.workspace(namespace, name).details()
+      this.setState({ isDataLoaded: true, workspace })
+    } catch (error) {
+      // Intentionally ignore; container handles this error
+    }
   }
 
   render() {

@@ -123,7 +123,9 @@ class WorkflowView extends Component {
         )(_.keys(workspaceDetails.workspace.attributes))
       })
     } catch (error) {
-      reportError('Error loading data', error)
+      if (error.status !== 404) {
+        reportError('Error loading data', error)
+      } // Ignore 404s; container handles this error
     }
   }
 

@@ -18,13 +18,17 @@ class WorkspaceTools extends Component {
     this.state = { itemsPerPage: 6, pageNumber: 1, ...StateHistory.get() }
   }
 
-  refresh() {
+  async refresh() {
     const { namespace, name } = this.props
 
-    Rawls.workspace(namespace, name).listMethodConfigs().then(
-      configs => this.setState({ isFreshData: true, configs }),
-      error => reportError('Error loading configs', error)
-    )
+    try {
+      const configs = await Rawls.workspace(namespace, name).listMethodConfigs()
+      this.setState({ isFreshData: true, configs })
+    } catch (error) {
+      if (error.status !== 404) {
+        reportError('Error loading configs', error)
+      } // Ignore 404s; container handles this error
+    }
   }
 
   render() {

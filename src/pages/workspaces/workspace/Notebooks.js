@@ -161,7 +161,14 @@ class WorkspaceNotebooks extends Component {
     const { namespace, name } = this.props
     try {
       this.setState({ loading: true })
-      const { workspace: { bucketName } } = await Rawls.workspace(namespace, name).details()
+      let bucketName
+      try {
+        const { workspace } = await Rawls.workspace(namespace, name).details()
+        bucketName = workspace.bucketName
+      } catch (error) {
+        // Intentionally ignore; container handles this error
+        return
+      }
       const notebooks = await Buckets.listNotebooks(namespace, bucketName)
       this.setState({ bucketName, notebooks: _.reverse(_.sortBy('updated', notebooks)) })
     } catch (error) {
