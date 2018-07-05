@@ -149,7 +149,6 @@ class JobHistory extends Component {
     const { submissions, loading, newSubmissionId, highlightNewSubmission } = this.state
 
     return div({ style: styles.submissionsTable }, [
-      loading && spinnerOverlay,
       submissions && h(AutoSizer, [
         ({ width, height }) => h(FlexTable, {
           width, height, rowCount: submissions.length,
@@ -208,7 +207,8 @@ class JobHistory extends Component {
             }
           ]
         })
-      ])
+      ]),
+      loading && spinnerOverlay
     ])
   }
 
