@@ -4,6 +4,7 @@ import { ClarityIcons } from '@clr/icons'
 import '@clr/icons/clr-icons.css'
 import { ClrShapeBan, ClrShapeSync, ClrShapeTimesCircle, ClrShapeViewCards, ClrShapeViewList } from '@clr/icons/shapes/essential-shapes'
 import { ClrShapePause, ClrShapePlay } from '@clr/icons/shapes/media-shapes'
+import { ClrShapeUploadCloud } from '@clr/icons/shapes/technology-shapes'
 import _ from 'lodash/fp'
 import { h } from 'react-hyperscript-helpers'
 import caretDown from 'src/icons/caret-down.svg'
@@ -20,6 +21,7 @@ import * as Style from 'src/libs/style'
 ClarityIcons.add({
   'ban': ClrShapeBan, 'sync': ClrShapeSync, 'times-circle': ClrShapeTimesCircle, 'view-cards': ClrShapeViewCards, 'view-list': ClrShapeViewList,
   'play': ClrShapePlay, 'pause': ClrShapePause,
+  'upload-cloud': ClrShapeUploadCloud,
   loadingSpinner, logoIcon, logoGrey, table, jupyterIcon, checkSquare, caretDown, square
 })
 

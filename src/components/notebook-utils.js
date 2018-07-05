@@ -1,7 +1,6 @@
 import _ from 'lodash/fp'
-import { Fragment } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
-import { buttonPrimary, Select } from 'src/components/common'
+import { buttonPrimary, Select, spinnerOverlay } from 'src/components/common'
 import { centeredSpinner } from 'src/components/icons'
 import { validatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
@@ -77,88 +76,70 @@ export class NotebookCreator extends Component {
   }
 
   render() {
-    const { modalOpen, notebookName, notebookKernel, creating, nameTouched } = this.state
-    const { reloadList, namespace, bucketName } = this.props
+    const { notebookName, notebookKernel, creating, nameTouched } = this.state
+    const { reloadList, onDismiss, namespace, bucketName } = this.props
 
     const errors = validate({ notebookName, notebookKernel }, creatorConstraints, {
       prettify: v => ({ notebookName: 'Name', notebookKernel: 'Kernel' }[v] || validate.prettify(v))
     })
 
-    return h(Fragment, [
-      buttonPrimary({
-        onClick: () => this.setState({ modalOpen: true, notebookName: '', nameTouched: false, notebookKernel: null }),
-        style: { marginLeft: '1rem' },
-        disabled: creating
-      },
-      creating ?
-        [
-          centeredSpinner({ size: '1em', style: { color: 'white', marginRight: '1em' } }),
-          'Creating Notebook...'
-        ] :
-        'New Notebook'),
-      Utils.cond(
-        [
-          modalOpen,
-          () => h(Modal, {
-            onDismiss: () => this.setState({ modalOpen: false }),
-            title: 'Create New Notebook',
-            okButton: h(TooltipTrigger, { content: Utils.summarizeErrors(errors) }, [
-              buttonPrimary({
-                disabled: errors,
-                onClick: () => {
-                  this.setState({ modalOpen: false, creating: true })
-                  Buckets.notebook(namespace, bucketName, notebookName).create(notebookKernel.data).then(
-                    () => {
-                      this.setState({ creating: false })
-                      reloadList()
-                    },
-                    error => {
-                      this.setState({ creating: false })
-                      reportError('Error creating notebook', error)
-                    }
-                  )
-                }
-              }, 'Create Notebook')
-            ])
-          }, [
-            div({ style: Style.elements.sectionHeader }, 'Name *'),
-            notebookNameInput({
-              error: Utils.summarizeErrors(nameTouched && errors && errors.notebookName),
-              inputProps: {
-                value: notebookName,
-                onChange: e => this.setState({ notebookName: e.target.value, nameTouched: true })
+    return h(Modal, {
+      onDismiss,
+      title: 'Create New Notebook',
+      okButton: h(TooltipTrigger, { content: Utils.summarizeErrors(errors) }, [
+        buttonPrimary({
+          disabled: creating || errors,
+          onClick: () => {
+            this.setState({ creating: true })
+            Buckets.notebook(namespace, bucketName, notebookName).create(notebookKernel.data).then(
+              () => {
+                reloadList()
+                onDismiss()
+              },
+              error => {
+                reportError('Error creating notebook', error)
+                onDismiss()
               }
-            }),
-            div({ style: Style.elements.sectionHeader }, 'Kernel *'),
-            h(Select, {
-              clearable: false,
-              searchable: false,
-              wrapperStyle: { marginTop: '0.5rem' },
-              placeholder: 'Select a kernel',
-              value: notebookKernel,
-              onChange: notebookKernel => this.setState({ notebookKernel }),
-              options: [
-                {
-                  value: 'python2',
-                  label: 'Python 2',
-                  data: python2Notebook
-                },
-                {
-                  value: 'python3',
-                  label: 'Python 3',
-                  data: python3Notebook
-                },
-                {
-                  value: 'r',
-                  label: 'R',
-                  data: rNotebook
-                }
-              ]
-            })
-          ])
-        ],
-        () => null
-      )
+            )
+          }
+        }, 'Create Notebook')
+      ])
+    }, [
+      div({ style: Style.elements.sectionHeader }, 'Name *'),
+      notebookNameInput({
+        error: Utils.summarizeErrors(nameTouched && errors && errors.notebookName),
+        inputProps: {
+          value: notebookName,
+          onChange: e => this.setState({ notebookName: e.target.value, nameTouched: true })
+        }
+      }),
+      div({ style: Style.elements.sectionHeader }, 'Kernel *'),
+      h(Select, {
+        clearable: false,
+        searchable: false,
+        wrapperStyle: { marginTop: '0.5rem' },
+        placeholder: 'Select a kernel',
+        value: notebookKernel,
+        onChange: notebookKernel => this.setState({ notebookKernel }),
+        options: [
+          {
+            value: 'python2',
+            label: 'Python 2',
+            data: python2Notebook
+          },
+          {
+            value: 'python3',
+            label: 'Python 3',
+            data: python3Notebook
+          },
+          {
+            value: 'r',
+            label: 'R',
+            data: rNotebook
+          }
+        ]
+      }),
+      creating && spinnerOverlay
     ])
   }
 }
@@ -178,7 +159,7 @@ export class NotebookDuplicator extends Component {
     })
 
     return h(Modal, {
-      onDismiss: onDismiss,
+      onDismiss,
       title: `${destroyOld ? 'Rename' : 'Duplicate'} "${printName}"`,
       okButton: h(TooltipTrigger, { content: Utils.summarizeErrors(errors) }, [
         buttonPrimary({
@@ -215,7 +196,7 @@ export class NotebookDeleter extends Component {
     const { processing } = this.state
 
     return h(Modal, {
-      onDismiss: onDismiss,
+      onDismiss,
       title: `Delete "${printName}"`,
       okButton: buttonPrimary({
         disabled: processing,

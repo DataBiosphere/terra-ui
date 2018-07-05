@@ -99,7 +99,7 @@ class NotebookCard extends Component {
         title,
         div({ style: { flexGrow: 1 } }),
         div({ style: { fontSize: '0.8rem', marginRight: '0.5rem' } },
-          `Last changed: ${Utils.makePrettyDate(updated)}`),
+          `Last edited: ${Utils.makePrettyDate(updated)}`),
         notebookMenu
       ] :
         [
@@ -108,7 +108,7 @@ class NotebookCard extends Component {
           jupyterIcon,
           div({ style: { display: 'flex', alignItems: 'flex-end' } }, [
             div({ style: { fontSize: '0.8rem', flexGrow: 1, marginRight: '0.5rem' } }, [
-              'Last changed:',
+              'Last edited:',
               div({}, Utils.makePrettyDate(updated))
             ])
           ])
@@ -182,15 +182,58 @@ class WorkspaceNotebooks extends Component {
     const { name: wsName, namespace } = this.props
 
     return div({ style: { display: listView ? undefined : 'flex', flexWrap: 'wrap' } },
-      _.map(({ name, updated }) => h(NotebookCard, {
-        name, updated, listView, bucketName, namespace, wsName,
-        reloadList: () => this.refresh()
-      }), notebooks)
+      [
+        div({
+          style: {
+            margin: '1.25rem',
+            display: 'flex', flexDirection: listView ? 'row' : 'column', justifyContent: 'space-between',
+            width: listView ? undefined : 200, height: listView ? undefined : 250,
+            fontSize: listView ? 16 : undefined
+          }
+        }, [
+          h(Interactive, {
+            as: 'div',
+            style: { flexGrow: listView ? 1 : 0, color: Style.colors.secondary, ...Style.elements.card },
+            onClick: () => this.setState({ creating: true })
+          }, [
+            listView ?
+              div([
+                'Create a New Notebook',
+                icon('plus-circle', { style: { marginLeft: '1rem' }, size: 24 })
+              ]) : div({ style: { fontSize: 18, lineHeight: '22px' } }, [
+                div(['Create a']),
+                div(['New Notebook']),
+                icon('plus-circle', { style: { marginTop: '0.5rem' }, size: 32 })
+              ])
+          ]),
+          listView && div({ style: { width: 20 } }),
+          h(Interactive, {
+            as: 'div',
+            style: _.merge(Style.elements.card,
+              { flexGrow: listView ? 1 : 0, backgroundColor: '#dcdcdc', border: '1px dashed #9B9B9B', boxShadow: 'none' }),
+            onClick: () => this.uploader.current.open()
+          }, [
+            listView ?
+              div({}, [
+                'Drag or ', link({}, ['Click']), ' to Add an ipynb File',
+                icon('upload-cloud', { style: { marginLeft: '1rem', opacity: 0.4 }, size: 24 })
+              ]) : div({ style: { fontSize: 16, lineHeight: '20px' } }, [
+                'Drag or ', link({}, ['Click']), ' to Add an ipynb File',
+                icon('upload-cloud', { style: { marginTop: '0.5rem', opacity: 0.4 }, size: 32 })
+              ])
+          ])
+
+        ]),
+        ..._.map(({ name, updated }) => h(NotebookCard, {
+          name, updated, listView, bucketName, namespace, wsName,
+          reloadList: () => this.refresh()
+        }), notebooks)
+      ]
     )
   }
 
   render() {
-    const { loading, bucketName, notebooks, listView } = this.state
+    const { loading, bucketName, notebooks, listView, creating } = this.state
     const { namespace, name } = this.props
 
     return h(WorkspaceContainer,
@@ -238,12 +281,6 @@ class WorkspaceNotebooks extends Component {
             }, [
               div({ style: { fontSize: 16, fontWeight: 500 } }, 'NOTEBOOKS'),
               div({ style: { flexGrow: 1 } }),
-              div({ style: { color: Style.colors.text } }, [
-                'Drag or ',
-                link({ style: { fontWeight: 500 }, onClick: () => this.uploader.current.open() }, ['click']),
-                ' to upload an ipynb'
-              ]),
-              div({ style: { flexGrow: 1 } }),
               icon('view-cards', {
                 style: {
                   cursor: 'pointer',
@@ -263,7 +300,15 @@ class WorkspaceNotebooks extends Component {
                   this.setState({ listView: true })
                 }
               }),
-              h(NotebookCreator, { reloadList: () => this.refresh(), namespace, bucketName })
+              creating &&
+              h(NotebookCreator, {
+                namespace, bucketName,
+                reloadList: () => this.refresh(),
+                onDismiss: () => {
+                  this.setState({ creating: false })
+                  this.refresh()
+                }
+              })
             ]),
             this.renderNotebooks()
           ]),
