@@ -9,7 +9,7 @@ export const colors = {
   highlight: '#bfd5e3',
   highlightFaded: '#e7f1f7',
   primary: '#5faee0',
-  secondary: '#478eba',
+  secondary: '#2691d0',
   section: '#f2f7f9',
   sectionBorder: '#5e9cc1',
   sectionHighlight: '#deeaf2',
@@ -31,7 +31,7 @@ export const modalShadow = '0 0 8px 0 rgba(0,0,0,0.12), 0 8px 8px 0 rgba(0,0,0,0
 export const standardLine = `1px solid ${colors.textFaded}`
 
 export const elements = {
-  cardTitle: { color: colors.secondary, fontSize: 16, fontWeight: 500 },
+  cardTitle: { color: colors.secondary, fontSize: 16 },
   card: {
     borderRadius: 5, padding: '1rem', wordWrap: 'break-word', boxShadow: standardShadow,
     backgroundColor: 'white'
