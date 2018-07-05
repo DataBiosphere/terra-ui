@@ -2,21 +2,26 @@ import '@webcomponents/custom-elements' // must be before icons
 
 import { ClarityIcons } from '@clr/icons'
 import '@clr/icons/clr-icons.css'
-import '@clr/icons/shapes/essential-shapes'
-import '@clr/icons/shapes/media-shapes'
-import '@clr/icons/shapes/technology-shapes'
+import { ClrShapeBan, ClrShapeSync, ClrShapeTimesCircle, ClrShapeViewCards, ClrShapeViewList } from '@clr/icons/shapes/essential-shapes'
+import { ClrShapePause, ClrShapePlay } from '@clr/icons/shapes/media-shapes'
 import _ from 'lodash/fp'
 import { h } from 'react-hyperscript-helpers'
 import caretDown from 'src/icons/caret-down.svg'
 import checkSquare from 'src/icons/check-square.svg'
 import jupyterIcon from 'src/icons/jupyter.svg'
 import loadingSpinner from 'src/icons/loading-spinner.svg'
-import logoIcon from 'src/icons/logo.svg'
 import logoGrey from 'src/icons/logo-grey.svg'
+import logoIcon from 'src/icons/logo.svg'
 import square from 'src/icons/square.svg'
 import table from 'src/icons/table.svg'
 import * as Style from 'src/libs/style'
 
+
+ClarityIcons.add({
+  'ban': ClrShapeBan, 'sync': ClrShapeSync, 'times-circle': ClrShapeTimesCircle, 'view-cards': ClrShapeViewCards, 'view-list': ClrShapeViewList,
+  'play': ClrShapePlay, 'pause': ClrShapePause,
+  loadingSpinner, logoIcon, logoGrey, table, jupyterIcon, checkSquare, caretDown, square
+})
 
 /**
  * Creates a Clarity icon.
@@ -43,5 +48,3 @@ export const spinner = function(props) {
 export const centeredSpinner = function(props) {
   return spinner(_.merge({ size: 48, style: { display: 'block', margin: 'auto' } }, props))
 }
-
-ClarityIcons.add({ loadingSpinner, logoIcon, logoGrey, table, jupyterIcon, checkSquare, caretDown, square })
