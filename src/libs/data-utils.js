@@ -98,7 +98,7 @@ export class UriViewer extends Component {
           els.cell([
             link({
               target: 'blank',
-              href: `https://accounts.google.com/AccountChooser?continue=https://console.cloud.google.com/storage/browser/${bucket}`
+              href: Utils.bucketBrowserUrl(bucket)
             }, ['View this file in the Google Cloud Storage Browser'])
           ]),
           els.cell([

@@ -13,8 +13,8 @@ import { Rawls } from 'src/libs/ajax'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
+import * as Utils from 'src/libs/utils'
 
-const bucketUrl = id => `https://console.cloud.google.com/storage/browser/${id}`
 
 const styles = {
   tabContainer: {
@@ -144,9 +144,10 @@ class DeleteWorkspaceModal extends Component {
       div(['Are you sure you want to permanently delete this workspace?']),
       div({ style: { marginTop: '1rem' } }, [
         'Deleting it will delete the associated ',
-        link({ target: '_blank', href: bucketUrl(workspace && workspace.workspace.bucketName) }, [
-          'Google Cloud Bucket'
-        ]),
+        link({
+          target: '_blank',
+          href: Utils.bucketBrowserUrl(workspace && workspace.workspace.bucketName)
+        }, ['Google Cloud Bucket']),
         ' and all its data.'
       ]),
       deleting && spinnerOverlay
