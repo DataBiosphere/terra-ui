@@ -119,9 +119,7 @@ class extends Component {
         )(_.keys(attributes))
       })
     } catch (error) {
-      if (error.status !== 404) {
-        reportError('Error loading data', error)
-      } // Ignore 404s; container handles this error
+      reportError('Error loading data', error)
     }
   }
 

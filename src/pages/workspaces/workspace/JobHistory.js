@@ -119,9 +119,7 @@ class extends Component {
         this.scheduledRefresh = setTimeout(() => this.refresh(), 1000 * 60)
       }
     } catch (error) {
-      if (error.status !== 404) {
-        reportError('Error loading submissions list', error)
-      } // Ignore 404s; container handles this error
+      reportError('Error loading submissions list', error)
       this.setState({ submissions: [] })
     } finally {
       this.setState({ loading: false })

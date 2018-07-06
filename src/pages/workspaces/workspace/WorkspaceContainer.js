@@ -214,7 +214,6 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title }, content) => {
   return class extends Component {
     constructor(props) {
       super(props)
-      this.state = StateHistory.get()
       this.child = createRef()
     }
 
@@ -265,10 +264,6 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title }, content) => {
 
     componentDidMount() {
       this.refresh()
-    }
-
-    componentDidUpdate() {
-      StateHistory.set(this.state)
     }
 
     async refresh() {
