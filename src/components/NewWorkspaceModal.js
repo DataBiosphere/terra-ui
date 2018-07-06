@@ -172,6 +172,7 @@ export default class NewWorkspaceModal extends Component {
       ]),
       h(Select, {
         searchable: false,
+        clearable: false,
         multi: true,
         placeholder: 'Select groups',
         value: groups,
