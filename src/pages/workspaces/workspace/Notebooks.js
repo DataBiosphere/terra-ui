@@ -18,6 +18,14 @@ import { Component } from 'src/libs/wrapped-components'
 import WorkspaceContainer from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
 
+const notebookCardCommonStyles = listView =>
+  _.merge({ margin: '1.25rem', display: 'flex' },
+    listView ?
+      { flexDirection: 'row' } :
+      { height: 250, width: 200, flexDirection: 'column' }
+  )
+
+
 class NotebookCard extends Component {
   render() {
     const { namespace, name, updated, listView, bucketName, wsName, reloadList } = this.props
@@ -85,11 +93,8 @@ class NotebookCard extends Component {
         href: Nav.getLink('workspace-notebook-launch', { namespace, name: wsName, notebookName: name.slice(10) }),
         style: {
           ...Style.elements.card,
+          ...notebookCardCommonStyles(listView),
           flexShrink: 0,
-          width: listView ? undefined : 200,
-          height: listView ? undefined : 250,
-          margin: '1.25rem',
-          display: 'flex', flexDirection: listView ? 'row' : 'column',
           justifyContent: listView ? undefined : 'space-between',
           alignItems: listView ? 'center' : undefined
         }
@@ -185,9 +190,7 @@ class WorkspaceNotebooks extends Component {
       [
         div({
           style: {
-            margin: '1.25rem',
-            display: 'flex', flexDirection: listView ? 'row' : 'column',
-            width: listView ? undefined : 200, height: listView ? undefined : 250,
+            ...notebookCardCommonStyles(listView),
             fontSize: listView ? 16 : undefined, lineHeight: listView ? '22px' : undefined
           }
         }, [
