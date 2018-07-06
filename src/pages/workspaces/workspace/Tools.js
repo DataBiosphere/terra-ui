@@ -9,10 +9,14 @@ import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import { Component } from 'src/libs/wrapped-components'
-import WorkspaceContainer from 'src/pages/workspaces/workspace/WorkspaceContainer'
+import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
 
-class WorkspaceTools extends Component {
+const WorkspaceTools = wrapWorkspace({
+  breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
+  title: 'Tools', activeTab: 'tools'
+},
+class extends Component {
   constructor(props) {
     super(props)
     this.state = { itemsPerPage: 6, pageNumber: 1, ...StateHistory.get() }
@@ -35,45 +39,33 @@ class WorkspaceTools extends Component {
     const { isFreshData, configs, itemsPerPage, pageNumber } = this.state
     const workspaceId = _.pick(['namespace', 'name'], this.props)
 
-    return h(WorkspaceContainer,
-      {
-        ...workspaceId, refresh: () => {
-          this.setState({ isFreshData: false })
-          this.refresh()
-        },
-        breadcrumbs: breadcrumbs.commonPaths.workspaceDashboard(workspaceId),
-        title: 'Tools', activeTab: 'tools'
-      },
-      [
-        div({ style: { padding: '1rem 4rem', flexGrow: 1, position: 'relative' } }, [
-          configs && h(DataGrid, {
-            dataSource: configs,
-            itemsPerPageOptions: [6, 12, 24, 36, 48],
-            itemsPerPage,
-            onItemsPerPageChanged: itemsPerPage => this.setState({ itemsPerPage, pageNumber: 1 }),
-            pageNumber,
-            onPageChanged: n => this.setState({ pageNumber: n }),
-            renderCard: config => {
-              const { name, namespace, methodRepoMethod: { sourceRepo, methodVersion } } = config
-              return a({
-                style: { ...Style.elements.card, width: '30%', margin: '1rem auto' },
-                href: Nav.getLink('workflow', {
-                  workspaceNamespace: workspaceId.namespace,
-                  workspaceName: workspaceId.name,
-                  workflowNamespace: namespace,
-                  workflowName: name
-                })
-              }, [
-                div({ style: { ...Style.elements.cardTitle, marginBottom: '0.5rem' } }, name),
-                div(`V. ${methodVersion}`),
-                div(`Source: ${sourceRepo}`)
-              ])
-            }
-          }),
-          !isFreshData && spinnerOverlay
-        ])
-      ]
-    )
+    return div({ style: { padding: '1rem 4rem', flexGrow: 1, position: 'relative' } }, [
+      configs && h(DataGrid, {
+        dataSource: configs,
+        itemsPerPageOptions: [6, 12, 24, 36, 48],
+        itemsPerPage,
+        onItemsPerPageChanged: itemsPerPage => this.setState({ itemsPerPage, pageNumber: 1 }),
+        pageNumber,
+        onPageChanged: n => this.setState({ pageNumber: n }),
+        renderCard: config => {
+          const { name, namespace, methodRepoMethod: { sourceRepo, methodVersion } } = config
+          return a({
+            style: { ...Style.elements.card, width: '30%', margin: '1rem auto' },
+            href: Nav.getLink('workflow', {
+              namespace: workspaceId.namespace,
+              name: workspaceId.name,
+              workflowNamespace: namespace,
+              workflowName: name
+            })
+          }, [
+            div({ style: { ...Style.elements.cardTitle, marginBottom: '0.5rem' } }, name),
+            div(`V. ${methodVersion}`),
+            div(`Source: ${sourceRepo}`)
+          ])
+        }
+      }),
+      !isFreshData && spinnerOverlay
+    ])
   }
 
   componentDidMount() {
@@ -86,7 +78,7 @@ class WorkspaceTools extends Component {
       this.state)
     )
   }
-}
+})
 
 export const addNavPaths = () => {
   Nav.defPath('workspace-tools', {

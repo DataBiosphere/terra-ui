@@ -18,7 +18,7 @@ import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
-import WorkspaceContainer from 'src/pages/workspaces/workspace/WorkspaceContainer'
+import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
 
 const filterState = _.pick(['pageNumber', 'itemsPerPage', 'selectedDataType', 'sort'])
@@ -68,7 +68,11 @@ const SortableHeaderCell = ({ sort, field, onSort, children }) => {
   ])
 }
 
-class WorkspaceData extends Component {
+const WorkspaceData = wrapWorkspace({
+  breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
+  title: 'Data', activeTab: 'data'
+},
+class extends Component {
   constructor(props) {
     super(props)
 
@@ -136,57 +140,51 @@ class WorkspaceData extends Component {
     this.setState({ orchestrationRoot: await Config.getOrchestrationUrlRoot() })
   }
 
+  refresh() {
+    this.loadMetadata()
+    this.setState({ refreshRequested: true })
+  }
+
   render() {
     const { selectedDataType, entityMetadata, loading } = this.state
-    const { namespace, name } = this.props
 
-    return h(WorkspaceContainer, {
-      namespace, name,
-      refresh: () => {
-        this.loadMetadata()
-        this.setState({ refreshRequested: true })
-      },
-      breadcrumbs: breadcrumbs.commonPaths.workspaceDashboard({ namespace, name }),
-      title: 'Data', activeTab: 'data'
-    }, [
-      div({ style: styles.tableContainer }, [
-        !entityMetadata ? spinnerOverlay : h(Fragment, [
-          div({ style: styles.dataTypeSelectionPanel }, [
-            div({ style: styles.dataModelHeading }, 'Data Model'),
-            !_.isEmpty(entityMetadata) && div({ style: { borderBottom: `1px solid ${Style.colors.background}` } },
-              _.map(([type, typeDetails]) =>
-                div({
-                  style: styles.dataTypeOption(selectedDataType === type),
-                  onClick: () => {
-                    this.setState(selectedDataType === type ?
-                      { refreshRequested: true } :
-                      { selectedDataType: type, pageNumber: 1, sort: initialSort, entities: undefined }
-                    )
-                  }
-                }, [
-                  icon('table', { style: styles.dataTypeIcon }),
-                  `${type} (${typeDetails.count})`
-                ]),
-              _.toPairs(entityMetadata))),
-            div({
-              style: {
-                marginBottom: '1rem', ...styles.dataTypeOption(selectedDataType === globalVariables)
-              },
-              onClick: () => {
-                this.setState(selectedDataType === globalVariables ?
-                  { refreshRequested: true } :
-                  { selectedDataType: globalVariables, workspaceAttributes: undefined }
-                )
-              }
-            }, [
-              icon('world', { style: styles.dataTypeIcon }),
-              'Global Variables'
-            ])
-          ]),
-          div({ style: styles.tableViewPanel(selectedDataType) }, [
-            selectedDataType ? this.renderData() : 'Select a data type.',
-            loading && spinnerOverlay
+    return div({ style: styles.tableContainer }, [
+      !entityMetadata ? spinnerOverlay : h(Fragment, [
+        div({ style: styles.dataTypeSelectionPanel }, [
+          div({ style: styles.dataModelHeading }, 'Data Model'),
+          !_.isEmpty(entityMetadata) && div({ style: { borderBottom: `1px solid ${Style.colors.background}` } },
+            _.map(([type, typeDetails]) =>
+              div({
+                style: styles.dataTypeOption(selectedDataType === type),
+                onClick: () => {
+                  this.setState(selectedDataType === type ?
+                    { refreshRequested: true } :
+                    { selectedDataType: type, pageNumber: 1, sort: initialSort, entities: undefined }
+                  )
+                }
+              }, [
+                icon('table', { style: styles.dataTypeIcon }),
+                `${type} (${typeDetails.count})`
+              ]),
+            _.toPairs(entityMetadata))),
+          div({
+            style: {
+              marginBottom: '1rem', ...styles.dataTypeOption(selectedDataType === globalVariables)
+            },
+            onClick: () => {
+              this.setState(selectedDataType === globalVariables ?
+                { refreshRequested: true } :
+                { selectedDataType: globalVariables, workspaceAttributes: undefined }
+              )
+            }
+          }, [
+            icon('world', { style: styles.dataTypeIcon }),
+            'Global Variables'
           ])
+        ]),
+        div({ style: styles.tableViewPanel(selectedDataType) }, [
+          selectedDataType ? this.renderData() : 'Select a data type.',
+          loading && spinnerOverlay
         ])
       ])
     ])
@@ -358,7 +356,7 @@ class WorkspaceData extends Component {
       this.loadData()
     }
   }
-}
+})
 
 export const addNavPaths = () => {
   Nav.defPath('workspace-data', {

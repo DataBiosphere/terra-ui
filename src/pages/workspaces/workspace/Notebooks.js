@@ -7,14 +7,14 @@ import { Clickable, link, MenuButton, spinnerOverlay } from 'src/components/comm
 import { icon } from 'src/components/icons'
 import { NotebookCreator, NotebookDeleter, NotebookDuplicator } from 'src/components/notebook-utils'
 import PopupTrigger from 'src/components/PopupTrigger'
-import { Buckets, Rawls } from 'src/libs/ajax'
+import { Buckets } from 'src/libs/ajax'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
-import WorkspaceContainer from 'src/pages/workspaces/workspace/WorkspaceContainer'
+import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
 
 class NotebookCard extends Component {
@@ -150,7 +150,11 @@ class NotebookCard extends Component {
   }
 }
 
-class WorkspaceNotebooks extends Component {
+const WorkspaceNotebooks = wrapWorkspace({
+  breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
+  title: 'Notebooks', activeTab: 'notebooks'
+},
+class extends Component {
   constructor(props) {
     super(props)
     this.state = StateHistory.get()
@@ -158,17 +162,10 @@ class WorkspaceNotebooks extends Component {
   }
 
   async refresh() {
-    const { namespace, name } = this.props
+    const { namespace, workspace: { workspace: { bucketName } } } = this.props
+
     try {
       this.setState({ loading: true })
-      let bucketName
-      try {
-        const { workspace } = await Rawls.workspace(namespace, name).details()
-        bucketName = workspace.bucketName
-      } catch (error) {
-        // Intentionally ignore; container handles this error
-        return
-      }
       const notebooks = await Buckets.listNotebooks(namespace, bucketName)
       this.setState({ bucketName, notebooks: _.reverse(_.sortBy('updated', notebooks)) })
     } catch (error) {
@@ -196,86 +193,77 @@ class WorkspaceNotebooks extends Component {
 
   render() {
     const { loading, bucketName, notebooks, listView } = this.state
-    const { namespace, name } = this.props
+    const { namespace } = this.props
 
-    return h(WorkspaceContainer,
-      {
-        namespace, name, refresh: () => this.refresh(),
-        breadcrumbs: breadcrumbs.commonPaths.workspaceDashboard({ namespace, name }),
-        title: 'Notebooks', activeTab: 'notebooks'
-      },
-      [
-        h(Dropzone, {
-          accept: '.ipynb',
-          disableClick: true,
-          disablePreview: true,
-          style: { flexGrow: 1, padding: '1rem' },
-          activeStyle: { backgroundColor: Style.colors.highlight, cursor: 'copy' }, // accept and reject don't work in all browsers
-          acceptStyle: { cursor: 'copy' },
-          rejectStyle: { cursor: 'no-drop' },
-          ref: this.uploader,
-          onDropAccepted: acceptedFiles => {
-            this.setState({ loading: true })
+    return h(Dropzone, {
+      accept: '.ipynb',
+      disableClick: true,
+      disablePreview: true,
+      style: { flexGrow: 1, padding: '1rem' },
+      activeStyle: { backgroundColor: Style.colors.highlight, cursor: 'copy' }, // accept and reject don't work in all browsers
+      acceptStyle: { cursor: 'copy' },
+      rejectStyle: { cursor: 'no-drop' },
+      ref: this.uploader,
+      onDropAccepted: acceptedFiles => {
+        this.setState({ loading: true })
 
-            acceptedFiles.forEach(file => {
-              const reader = new FileReader()
+        acceptedFiles.forEach(file => {
+          const reader = new FileReader()
 
-              reader.onload = () => {
-                Buckets.notebook(namespace, bucketName, file.name.slice(0, -6)).create(JSON.parse(reader.result)).then(
-                  () => this.refresh(),
-                  error => {
-                    reportError('Error creating notebook', error)
-                    this.setState({ loading: false })
-                  }
-                )
+          reader.onload = () => {
+            Buckets.notebook(namespace, bucketName, file.name.slice(0, -6)).create(JSON.parse(reader.result)).then(
+              () => this.refresh(),
+              error => {
+                reportError('Error creating notebook', error)
+                this.setState({ loading: false })
               }
-              reader.onerror = e => reportError('Error reading file', e)
+            )
+          }
+          reader.onerror = e => reportError('Error reading file', e)
 
-              reader.readAsText(file)
-            })
+          reader.readAsText(file)
+        })
+      }
+    }, [
+      notebooks && h(Fragment, [
+        div({
+          style: {
+            color: Style.colors.title, display: 'flex', alignItems: 'center'
           }
         }, [
-          notebooks && h(Fragment, [
-            div({
-              style: {
-                color: Style.colors.title, display: 'flex', alignItems: 'center'
-              }
-            }, [
-              div({ style: { fontSize: 16, fontWeight: 500 } }, 'NOTEBOOKS'),
-              div({ style: { flexGrow: 1 } }),
-              div({ style: { color: Style.colors.text } }, [
-                'Drag or ',
-                link({ style: { fontWeight: 500 }, onClick: () => this.uploader.current.open() }, ['click']),
-                ' to upload an ipynb'
-              ]),
-              div({ style: { flexGrow: 1 } }),
-              icon('view-cards', {
-                style: {
-                  cursor: 'pointer',
-                  boxShadow: listView ? undefined : `0 4px 0 ${Style.colors.highlight}`,
-                  marginRight: '1rem', width: 26, height: 22
-                },
-                onClick: () => {
-                  this.setState({ listView: false })
-                }
-              }),
-              icon('view-list', {
-                style: {
-                  cursor: 'pointer', boxShadow: listView ? `0 4px 0 ${Style.colors.highlight}` : null
-                },
-                size: 26,
-                onClick: () => {
-                  this.setState({ listView: true })
-                }
-              }),
-              h(NotebookCreator, { reloadList: () => this.refresh(), namespace, bucketName })
-            ]),
-            this.renderNotebooks()
+          div({ style: { fontSize: 16, fontWeight: 500 } }, 'NOTEBOOKS'),
+          div({ style: { flexGrow: 1 } }),
+          div({ style: { color: Style.colors.text } }, [
+            'Drag or ',
+            link({ style: { fontWeight: 500 }, onClick: () => this.uploader.current.open() }, ['click']),
+            ' to upload an ipynb'
           ]),
-          loading && spinnerOverlay
-        ])
-      ]
-    )
+          div({ style: { flexGrow: 1 } }),
+          icon('view-cards', {
+            style: {
+              cursor: 'pointer',
+              boxShadow: listView ? undefined : `0 4px 0 ${Style.colors.highlight}`,
+              marginRight: '1rem', width: 26, height: 22
+            },
+            onClick: () => {
+              this.setState({ listView: false })
+            }
+          }),
+          icon('view-list', {
+            style: {
+              cursor: 'pointer', boxShadow: listView ? `0 4px 0 ${Style.colors.highlight}` : null
+            },
+            size: 26,
+            onClick: () => {
+              this.setState({ listView: true })
+            }
+          }),
+          h(NotebookCreator, { reloadList: () => this.refresh(), namespace, bucketName })
+        ]),
+        this.renderNotebooks()
+      ]),
+      loading && spinnerOverlay
+    ])
   }
 
   componentDidUpdate() {
@@ -284,7 +272,7 @@ class WorkspaceNotebooks extends Component {
       this.state)
     )
   }
-}
+})
 
 export const addNavPaths = () => {
   Nav.defPath('workspace-notebooks', {
