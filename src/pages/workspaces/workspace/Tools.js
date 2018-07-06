@@ -46,7 +46,7 @@ class WorkspaceTools extends Component {
             dataSource: configs,
             itemsPerPageOptions: [6, 12, 24, 36, 48],
             itemsPerPage,
-            onItemsPerPageChanged: itemsPerPage => this.setState({ itemsPerPage }),
+            onItemsPerPageChanged: itemsPerPage => this.setState({ itemsPerPage, pageNumber: 1 }),
             pageNumber,
             onPageChanged: n => this.setState({ pageNumber: n }),
             renderCard: config => {

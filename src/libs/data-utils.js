@@ -3,9 +3,8 @@ import filesize from 'filesize'
 import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { div, h, input } from 'react-hyperscript-helpers/lib/index'
-import Interactive from 'react-interactive'
 import Collapse from 'src/components/Collapse'
-import { buttonPrimary, link } from 'src/components/common'
+import { buttonPrimary, Clickable, link } from 'src/components/common'
 import { icon, spinner } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import { TextCell } from 'src/components/table'
@@ -99,7 +98,7 @@ export class UriViewer extends Component {
           els.cell([
             link({
               target: 'blank',
-              href: `https://accounts.google.com/AccountChooser?continue=https://console.cloud.google.com/storage/browser/${bucket}`
+              href: Utils.bucketBrowserUrl(bucket)
             }, ['View this file in the Google Cloud Storage Browser'])
           ]),
           els.cell([
@@ -117,8 +116,7 @@ export class UriViewer extends Component {
                   style: { flexGrow: 1, fontWeight: 300, fontFamily: 'Menlo, monospace' }
                 }),
                 h(TooltipTrigger, { content: 'Copy to clipboard' }, [
-                  h(Interactive, {
-                    as: icon(copied ? 'check' : 'copy-to-clipboard'),
+                  h(Clickable, {
                     style: { margin: '0 1rem', color: copied ? Style.colors.success : Style.colors.secondary },
                     onClick: async () => {
                       try {
@@ -129,7 +127,7 @@ export class UriViewer extends Component {
                         reportError('Error copying to clipboard', error)
                       }
                     }
-                  })
+                  }, [icon(copied ? 'check' : 'copy-to-clipboard')])
                 ])
               ])
             ])

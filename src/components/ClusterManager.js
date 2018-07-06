@@ -1,8 +1,7 @@
 import _ from 'lodash/fp'
 import { PureComponent, Fragment } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
-import Interactive from 'react-interactive'
-import { buttonPrimary, buttonSecondary, LabeledCheckbox, Select } from 'src/components/common'
+import { buttonPrimary, buttonSecondary, Clickable, LabeledCheckbox, Select } from 'src/components/common'
 import DropdownBox from 'src/components/DropdownBox'
 import { icon } from 'src/components/icons'
 import { IntegerInput, textInput } from 'src/components/input'
@@ -196,10 +195,9 @@ const MachineSelector = ({ machineType, onChangeMachineType, diskSize, onChangeD
 }
 
 const ClusterIcon = ({ shape, onClick, disabled }) => {
-  return h(Interactive, {
+  return h(Clickable, {
     style: { color: onClick && !disabled && Style.colors.secondary },
-    as: 'div',
-    onClick: disabled ? undefined : onClick
+    onClick
   }, [icon(shape, { size: 20, class: 'is-solid' })])
 }
 
@@ -536,8 +534,7 @@ export default class ClusterManager extends PureComponent {
     ))
     return div({ style: styles.container }, [
       renderIcon(),
-      h(Interactive, {
-        as: 'div',
+      h(Clickable, {
         onClick: () => this.toggleDropdown(!open),
         style: { marginLeft: '0.5rem', paddingRight: '0.25rem' },
         className: 'cluster-manager-opener'

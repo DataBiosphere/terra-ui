@@ -1,9 +1,8 @@
 import _ from 'lodash/fp'
 import { Component, createRef, Fragment, PureComponent } from 'react'
 import { a, div, h } from 'react-hyperscript-helpers'
-import Interactive from 'react-interactive'
 import ClusterManager from 'src/components/ClusterManager'
-import { buttonPrimary, comingSoon, contextBar, link, MenuButton, spinnerOverlay } from 'src/components/common'
+import { buttonPrimary, Clickable, comingSoon, contextBar, link, MenuButton, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
@@ -14,8 +13,8 @@ import { Rawls } from 'src/libs/ajax'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
+import * as Utils from 'src/libs/utils'
 
-const bucketUrl = id => `https://console.cloud.google.com/storage/browser/${id}`
 
 const styles = {
   tabContainer: {
@@ -70,8 +69,8 @@ class WorkspaceTabs extends PureComponent {
       navTab({ tabName: 'tools', href: Nav.getLink('workspace-tools', { namespace, name }) }),
       navTab({ tabName: 'job history', href: Nav.getLink('workspace-job-history',  { namespace, name }) }),
       div({ style: { flexGrow: 1 } }),
-      h(Interactive, {
-        as: 'div', ...navIconProps,
+      h(Clickable, {
+        ...navIconProps,
         onClick: onClone
       }, [icon('copy', { size: 22 })]),
       h(PopupTrigger, {
@@ -94,7 +93,7 @@ class WorkspaceTabs extends PureComponent {
         ]),
         position: 'bottom'
       }, [
-        h(Interactive, { as: 'div', ...navIconProps }, [icon('ellipsis-vertical', { size: 22 })])
+        h(Clickable, { ...navIconProps }, [icon('ellipsis-vertical', { size: 22 })])
       ])
     ])
   }
@@ -145,9 +144,10 @@ class DeleteWorkspaceModal extends Component {
       div(['Are you sure you want to permanently delete this workspace?']),
       div({ style: { marginTop: '1rem' } }, [
         'Deleting it will delete the associated ',
-        link({ target: '_blank', href: bucketUrl(workspace && workspace.workspace.bucketName) }, [
-          'Google Cloud Bucket'
-        ]),
+        link({
+          target: '_blank',
+          href: Utils.bucketBrowserUrl(workspace && workspace.workspace.bucketName)
+        }, ['Google Cloud Bucket']),
         ' and all its data.'
       ]),
       deleting && spinnerOverlay
