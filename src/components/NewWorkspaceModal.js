@@ -22,6 +22,7 @@ const billingMail = 'saturn-dev@broadinstitute.org'
 const constraints = {
   name: {
     presence: { allowEmpty: false },
+    length: { maximum: 254 },
     format: {
       pattern: /[\w- ]*/,
       message: 'can only contain letters, numbers, dashes, underscores, and spaces'
