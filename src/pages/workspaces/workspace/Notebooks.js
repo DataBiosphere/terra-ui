@@ -192,8 +192,7 @@ class WorkspaceNotebooks extends Component {
             fontSize: listView ? 16 : undefined, lineHeight: listView ? '22px' : undefined
           }
         }, [
-          h(Interactive, {
-            as: 'div',
+          h(Clickable, {
             style: _.merge(Style.elements.card, { flexGrow: 1, color: Style.colors.secondary }),
             onClick: () => this.setState({ creating: true })
           }, [
@@ -208,8 +207,7 @@ class WorkspaceNotebooks extends Component {
               ])
           ]),
           div({ style: { width: 20, height: 15 } }),
-          h(Interactive, {
-            as: 'div',
+          h(Clickable, {
             style: _.merge(Style.elements.card,
               { flexGrow: 1, backgroundColor: '#dcdcdc', border: '1px dashed #9B9B9B', boxShadow: 'none' }),
             onClick: () => this.uploader.current.open()
@@ -280,7 +278,7 @@ class WorkspaceNotebooks extends Component {
               div({ style: { color: Style.colors.title, fontSize: 16, fontWeight: 500 } }, 'NOTEBOOKS'),
               div({ style: { flexGrow: 1 } }),
               div({ style: { color: Style.colors.secondary, padding: '0.5rem 1rem', backgroundColor: 'white', borderRadius: 3 } }, [
-                h(Interactive, {
+                h(Clickable, {
                   as: icon('view-cards'),
                   style: {
                     boxShadow: listView ? undefined : `0 4px 0 ${Style.colors.highlight}`,
@@ -288,7 +286,7 @@ class WorkspaceNotebooks extends Component {
                   },
                   onClick: () => this.setState({ listView: false })
                 }),
-                h(Interactive, {
+                h(Clickable, {
                   as: icon('view-list'),
                   style: { boxShadow: listView ? `0 4px 0 ${Style.colors.highlight}` : null },
                   size: 26,
