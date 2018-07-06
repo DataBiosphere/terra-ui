@@ -13,6 +13,7 @@ import { TopBar } from 'src/components/TopBar'
 import { Rawls } from 'src/libs/ajax'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
+import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
@@ -213,6 +214,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title }, content) => {
   return class extends Component {
     constructor(props) {
       super(props)
+      this.state = StateHistory.get()
       this.child = createRef()
     }
 
@@ -267,6 +269,10 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title }, content) => {
 
     componentDidMount() {
       this.refresh()
+    }
+
+    componentDidUpdate() {
+      StateHistory.set(this.state)
     }
 
     async refresh() {
