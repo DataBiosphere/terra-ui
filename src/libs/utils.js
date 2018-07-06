@@ -170,3 +170,7 @@ export const summarizeErrors = errors => {
     }, _.toPairs(errorList))
   }
 }
+
+export const bucketBrowserUrl = id => {
+  return `https://accounts.google.com/AccountChooser?continue=https://console.cloud.google.com/storage/browser/${id}`
+}
