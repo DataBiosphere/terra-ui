@@ -9,7 +9,7 @@ import { Component } from 'src/libs/wrapped-components'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
 
-const WorkspaceDashboard = wrapWorkspace({
+export const WorkspaceDashboard = wrapWorkspace({
   breadcrumbs: () => breadcrumbs.commonPaths.workspaceList(),
   activeTab: 'dashboard'
 },

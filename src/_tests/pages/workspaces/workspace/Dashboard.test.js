@@ -2,7 +2,7 @@ import { mount } from 'enzyme'
 import { h } from 'react-hyperscript-helpers'
 import { Rawls } from 'src/libs/ajax'
 import { waitOneTickAndUpdate } from 'src/libs/test-utils'
-import WorkspaceDashboard from 'src/pages/workspaces/workspace/Dashboard'
+import { WorkspaceDashboard } from 'src/pages/workspaces/workspace/Dashboard'
 
 let workspaceMock;
 
