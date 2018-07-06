@@ -193,7 +193,7 @@ class WorkspaceNotebooks extends Component {
           }
         }, [
           h(Clickable, {
-            style: _.merge(Style.elements.card, { flexGrow: 1, color: Style.colors.secondary }),
+            style: { ...Style.elements.card, flexGrow: 1, color: Style.colors.secondary },
             onClick: () => this.setState({ creating: true })
           }, [
             listView ?
@@ -208,8 +208,10 @@ class WorkspaceNotebooks extends Component {
           ]),
           div({ style: { width: 20, height: 15 } }),
           h(Clickable, {
-            style: _.merge(Style.elements.card,
-              { flexGrow: 1, backgroundColor: '#dcdcdc', border: '1px dashed #9B9B9B', boxShadow: 'none' }),
+            style: {
+              ...Style.elements.card, flexGrow: 1,
+              backgroundColor: '#dcdcdc', border: '1px dashed #9B9B9B', boxShadow: 'none'
+            },
             onClick: () => this.uploader.current.open()
           }, [
             div({ style: listView ? {} : { fontSize: 16, lineHeight: '20px' } }, [
