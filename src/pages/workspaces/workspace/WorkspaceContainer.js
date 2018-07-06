@@ -234,8 +234,9 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title }, content) => {
         refresh: async () => {
           await this.refresh()
           const child = this.child.current
-          const childRefresh = Object.getPrototypeOf(child).refresh
-          childRefresh && childRefresh.call(child)
+          if (child.refresh) {
+            child.refresh()
+          }
         }
       }, [
         workspace && h(content, {
