@@ -219,13 +219,9 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title }, content) => {
     }
 
     render() {
-      const { workspace, workspaceError } = this.state
+      const { workspaceError } = this.state
 
-      return Utils.cond(
-        [workspace, () => this.renderSuccess()],
-        [workspaceError, () => this.renderError()],
-        () => centeredSpinner()
-      )
+      return workspaceError ? this.renderError() : this.renderSuccess()
     }
 
     renderSuccess() {
@@ -243,7 +239,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title }, content) => {
           childRefresh && childRefresh.call(child)
         }
       }, [
-        h(content, {
+        workspace && h(content, {
           ref: this.child,
           workspace,
           ...this.props
