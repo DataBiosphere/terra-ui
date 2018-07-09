@@ -8,6 +8,7 @@ import * as Nav from 'src/libs/nav'
 import * as ImportData from 'src/pages/ImportData'
 import * as ImportTool from 'src/pages/ImportTool'
 import * as PrivacyPolicy from 'src/pages/PrivacyPolicy'
+import * as Profile from 'src/pages/Profile'
 import * as StyleGuide from 'src/pages/StyleGuide'
 import * as WorkspaceList from 'src/pages/workspaces/List'
 import * as Dashboard from 'src/pages/workspaces/workspace/Dashboard'
@@ -33,6 +34,7 @@ const initNavPaths = () => {
   JobHistory.addNavPaths()
   Tools.addNavPaths()
   NotebookLauncher.addNavPaths()
+  Profile.addNavPaths()
 }
 
 export default class Router extends Component {
