@@ -1,7 +1,9 @@
 import _ from 'lodash/fp'
 import { Fragment } from 'react'
-import { div, h, img, path, svg } from 'react-hyperscript-helpers'
+import { div, h, img, input, label, path, span, svg } from 'react-hyperscript-helpers'
+import { buttonPrimary, LabeledCheckbox } from 'src/components/common'
 import { centeredSpinner } from 'src/components/icons'
+import { textInput } from 'src/components/input'
 import { TopBar } from 'src/components/TopBar'
 import { Orchestration } from 'src/libs/ajax'
 import * as auth from 'src/libs/auth'
@@ -12,10 +14,14 @@ import { Component } from 'src/libs/wrapped-components'
 
 const styles = {
   page: {
-    margin: '2rem 5rem',
+    margin: '0 5rem',
     width: 700
   },
-  profile: {
+  sectionTitle: {
+    margin: '2rem 0 1rem',
+    color: Style.colors.title, fontSize: 16, fontWeight: 500, textTransform: 'uppercase'
+  },
+  header: {
     line: {
       margin: '1rem 0',
       display: 'flex', alignItems: 'center'
@@ -34,6 +40,25 @@ const styles = {
       percentageLine: {
         fontSize: '125%'
       }
+    }
+  },
+  form: {
+    line: {
+      display: 'flex', justifyContent: 'space-between',
+      margin: '2rem 0'
+    },
+    container: {
+      width: 320
+    },
+    title: {
+      whiteSpace: 'nowrap', fontSize: 16,
+      marginBottom: '0.3rem'
+    },
+    checkboxLine: {
+      margin: '0.75rem 0'
+    },
+    checkboxLabel: {
+      marginLeft: '0.5rem'
     }
   }
 }
@@ -70,6 +95,9 @@ const percentageCircle = ({ radius, fraction, color = Style.colors.success, stro
 }
 
 
+const sectionTitle = text => div({ style: styles.sectionTitle }, [text])
+
+
 const profileKeys = [
   'firstName', 'lastName', 'title', 'contactEmail', 'institute', 'institutionalProgram',
   'nonProfitStatus', 'pi', 'programLocationCity', 'programLocationState', 'programLocationCountry'
@@ -88,11 +116,15 @@ class Profile extends Component {
       _.size
     )(profileInfo)
 
-    this.setState({ profileInfo, fractionCompleted: countCompleted / profileKeys.length })
+    this.setState({
+      profileInfo,
+      displayName: profileInfo.firstName,
+      fractionCompleted: countCompleted / profileKeys.length
+    })
   }
 
   render() {
-    const { profileInfo, fractionCompleted } = this.state
+    const { displayName, fractionCompleted } = this.state
     const isComplete = fractionCompleted === 1.0
 
     const profilePicRadius = 48
@@ -100,26 +132,114 @@ class Profile extends Component {
 
     return h(Fragment, [
       h(TopBar),
-      !profileInfo ? centeredSpinner() :
+      !displayName ? centeredSpinner() :
         div({ style: styles.page }, [
-          div({ style: Style.elements.pageTitle }, ['Profile']),
-          div({ style: styles.profile.line }, [
+          sectionTitle('Profile'),
+          div({ style: styles.header.line }, [
             div({ style: { position: 'relative', padding: strokeRadius } }, [
-              img({ style: styles.profile.pic, src: auth.getBasicProfile().getImageUrl() }),
+              img({ style: styles.header.pic, src: auth.getBasicProfile().getImageUrl() }),
               percentageCircle({
                 radius: profilePicRadius+strokeRadius, fraction: fractionCompleted, strokeWidth: 2*strokeRadius,
                 style: { position: 'absolute', top: strokeRadius, left: strokeRadius, margin: -strokeRadius }
               })
             ]),
-            div({ style: styles.profile.text.container }, [
-              div({ style: styles.profile.text.nameLine }, [`Hello again, ${profileInfo.firstName}`]),
-              !isComplete && div({ style: styles.profile.text.percentageLine }, [
+            div({ style: styles.header.text.container }, [
+              div({ style: styles.header.text.nameLine }, [`Hello again, ${displayName}`]),
+              !isComplete && div({ style: styles.header.text.percentageLine }, [
                 `Complete your profile. It's at ${(100*fractionCompleted)|0}%`
               ])
             ])
-          ])
+          ]),
+          this.renderForm()
         ])
     ])
+  }
+
+  renderForm() {
+    const { profileInfo } = this.state
+
+    const line = (...children) => div({ style: styles.form.line }, children)
+
+    const textField = (key, title, { placeholder } = {}) =>
+      div({ style: styles.form.container }, [
+        div({ style: styles.form.title }, [title]),
+        textInput({
+          value: profileInfo[key],
+          onChange: e => this.assignValue(key, e.target.value),
+          placeholder
+        })
+      ])
+
+    const radioButton = (key, value) => h(Fragment, [
+      input({
+        type: 'radio', id: value,
+        checked: profileInfo[key] === value,
+        onChange: () => this.assignValue(key, value)
+      }),
+      label({ htmlFor: value, style: { margin: '0 2rem 0 0.25rem' } }, value)
+    ])
+
+    const checkbox = (key, title) => div({ style: styles.form.checkboxLine }, [
+      h(LabeledCheckbox, {
+        checked: profileInfo[key] === 'true',
+        onChange: v => this.assignValue(key, v.toString())
+      }, [span({ style: styles.form.checkboxLabel }, [title])])
+    ])
+
+    return h(Fragment, [
+      line(
+        textField('firstName', 'First Name'),
+        textField('lastName', 'Last Name')
+      ),
+      line(
+        textField('title', 'Title')
+      ),
+      line(
+        textField('contactEmail', 'Contact Email for Notifications (if different)', { placeholder: profileInfo.email })
+      ),
+      line(
+        textField('institute', 'Institution'),
+        textField('institutionalProgram', 'InstitutionalProgram')
+      ),
+
+      sectionTitle('Program Info'),
+
+      div({ style: styles.form.title }, ['Non-Profit Status']),
+      div({}, [
+        radioButton('nonProfitStatus', 'Profit'),
+        radioButton('nonProfitStatus', 'Non-Profit')
+      ]),
+      line(
+        textField('pi', 'Principal Investigator/Program Lead')
+      ),
+      line(
+        textField('programLocationCity', 'City'),
+        textField('programLocationState', 'State')
+      ),
+      line(
+        textField('programLocationCountry', 'Country')
+      ),
+
+      sectionTitle('Account Notifications'),
+
+      checkbox('notifications/GroupAccessRequestNotification', 'Group Access Requested'),
+      checkbox('notifications/WorkspaceAddedNotification', 'Workspace Access Added'),
+      checkbox('notifications/WorkspaceRemovedNotification', 'Workspace Access Removed'),
+
+      buttonPrimary({
+        style: { marginTop: '3rem' },
+        onClick: () => this.save()
+      }, ['Save Profile'])
+    ])
+  }
+
+  assignValue(key, value) {
+    this.setState({ profileInfo: _.assign(this.state.profileInfo, { [key]: value }) })
+  }
+
+  async save() {
+    await Orchestration.profile.set(this.state.profileInfo)
+    this.refresh()
   }
 
   componentDidMount() {
