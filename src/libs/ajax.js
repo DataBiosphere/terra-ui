@@ -364,6 +364,10 @@ async function fetchOrchestration(path, ...args) {
 
 export const Orchestration = {
   profile: {
+    get: async () => {
+      const res = await fetchOrchestration('/register/profile', authOpts())
+      return res.json()
+    },
     set: keysAndValues => {
       const blankProfile = {
         firstName: 'N/A',

@@ -1,6 +1,9 @@
+import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { div, h, img, path, svg } from 'react-hyperscript-helpers'
+import { centeredSpinner } from 'src/components/icons'
 import { TopBar } from 'src/components/TopBar'
+import { Orchestration } from 'src/libs/ajax'
 import * as auth from 'src/libs/auth'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
@@ -67,32 +70,60 @@ const percentageCircle = ({ radius, fraction, color = Style.colors.success, stro
 }
 
 
+const profileKeys = [
+  'firstName', 'lastName', 'title', 'contactEmail', 'institute', 'institutionalProgram',
+  'nonProfitStatus', 'pi', 'programLocationCity', 'programLocationState', 'programLocationCountry'
+]
+
+
 class Profile extends Component {
+  async refresh() {
+    const { keyValuePairs } = await Orchestration.profile.get()
+    const profileInfo = _.reduce((accum, { key, value }) => _.assign(accum, { [key]: value }), {}, keyValuePairs)
+
+    const countCompleted = _.flow(
+      _.pick(profileKeys),
+      _.values,
+      _.compact,
+      _.size
+    )(profileInfo)
+
+    this.setState({ profileInfo, fractionCompleted: countCompleted / profileKeys.length })
+  }
+
   render() {
-    const fraction = 0.5555555
+    const { profileInfo, fractionCompleted } = this.state
+    const isComplete = fractionCompleted === 1.0
+
     const profilePicRadius = 48
     const strokeRadius = 3
-    const name = 'Person'
 
     return h(Fragment, [
       h(TopBar),
-      div({ style: styles.page }, [
-        div({ style: Style.elements.pageTitle }, ['Profile']),
-        div({ style: styles.profile.line }, [
-          div({ style: { position: 'relative', padding: strokeRadius } }, [
-            img({ style: styles.profile.pic, src: auth.getBasicProfile().getImageUrl() }),
-            percentageCircle({
-              radius: profilePicRadius+strokeRadius, fraction, strokeWidth: 2*strokeRadius,
-              style: { position: 'absolute', top: strokeRadius, left: strokeRadius, margin: -strokeRadius }
-            })
-          ]),
-          div({ style: styles.profile.text.container }, [
-            div({ style: styles.profile.text.nameLine }, [`Hello again, ${name}`]),
-            div({ style: styles.profile.text.percentageLine }, [`Complete your profile. It's at ${(100*fraction)|0}%`])
+      !profileInfo ? centeredSpinner() :
+        div({ style: styles.page }, [
+          div({ style: Style.elements.pageTitle }, ['Profile']),
+          div({ style: styles.profile.line }, [
+            div({ style: { position: 'relative', padding: strokeRadius } }, [
+              img({ style: styles.profile.pic, src: auth.getBasicProfile().getImageUrl() }),
+              percentageCircle({
+                radius: profilePicRadius+strokeRadius, fraction: fractionCompleted, strokeWidth: 2*strokeRadius,
+                style: { position: 'absolute', top: strokeRadius, left: strokeRadius, margin: -strokeRadius }
+              })
+            ]),
+            div({ style: styles.profile.text.container }, [
+              div({ style: styles.profile.text.nameLine }, [`Hello again, ${profileInfo.firstName}`]),
+              !isComplete && div({ style: styles.profile.text.percentageLine }, [
+                `Complete your profile. It's at ${(100*fractionCompleted)|0}%`
+              ])
+            ])
           ])
         ])
-      ])
     ])
+  }
+
+  componentDidMount() {
+    this.refresh()
   }
 }
 
