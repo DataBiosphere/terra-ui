@@ -1,8 +1,9 @@
 import _ from 'lodash/fp'
-import { Component, createRef, Fragment, PureComponent } from 'react'
-import { a, div, h } from 'react-hyperscript-helpers'
+import { createRef, Fragment, PureComponent } from 'react'
+import { a, div, h, h2, p } from 'react-hyperscript-helpers'
 import ClusterManager from 'src/components/ClusterManager'
 import { buttonPrimary, Clickable, comingSoon, contextBar, link, MenuButton, spinnerOverlay } from 'src/components/common'
+import ErrorView from 'src/components/ErrorView'
 import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
@@ -14,6 +15,7 @@ import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
+import { Component } from 'src/libs/wrapped-components'
 
 
 const styles = {
@@ -156,13 +158,12 @@ class DeleteWorkspaceModal extends Component {
 }
 
 
-export default class WorkspaceContainer extends Component {
+class WorkspaceContainer extends Component {
   constructor(props) {
     super(props)
     this.state = {
       deletingWorkspace: false,
-      cloningWorkspace: false,
-      workspace: undefined
+      cloningWorkspace: false
     }
   }
 
@@ -174,27 +175,18 @@ export default class WorkspaceContainer extends Component {
     this.setState({ cloningWorkspace: true })
   }
 
-  async componentDidMount() {
-    const { namespace, name } = this.props
-    try {
-      const workspace = await Rawls.workspace(namespace, name).details()
-      this.setState({ workspace })
-    } catch (error) {
-      reportError('Error loading workspace', error)
-    }
-  }
-
   render() {
-    const { namespace, name, breadcrumbs, title, activeTab, refresh } = this.props
-    const { deletingWorkspace, cloningWorkspace, workspace } = this.state
+    const { namespace, name, breadcrumbs, title, activeTab, refresh, workspace } = this.props
+    const { deletingWorkspace, cloningWorkspace } = this.state
 
     return div({ style: { display: 'flex', flexDirection: 'column', height: '100%', flexGrow: 1 } }, [
       h(TopBar, { title: 'Workspaces' }, [
-        div({ style: { display: 'flex', flexDirection: 'column', paddingLeft: '4rem' } },
-          [
-            div({}, breadcrumbs),
-            div({ style: { fontSize: '1.25rem' } }, [title || `${namespace}/${name}`])
-          ]),
+        div({ style: { display: 'flex', flexDirection: 'column', paddingLeft: '4rem' } }, [
+          div({}, breadcrumbs),
+          div({ style: { fontSize: '1.25rem' } }, [
+            title || `${namespace}/${name}`
+          ])
+        ]),
         h(ClusterManager, { namespace })
       ]),
       h(WorkspaceTabs, {
@@ -213,5 +205,75 @@ export default class WorkspaceContainer extends Component {
         onDismiss: () => this.setState({ cloningWorkspace: false })
       })
     ])
+  }
+}
+
+
+export const wrapWorkspace = ({ breadcrumbs, activeTab, title }, content) => {
+  return class extends Component {
+    constructor(props) {
+      super(props)
+      this.child = createRef()
+    }
+
+    render() {
+      const { workspaceError } = this.state
+
+      return workspaceError ? this.renderError() : this.renderSuccess()
+    }
+
+    renderSuccess() {
+      const { namespace, name } = this.props
+      const { workspace } = this.state
+
+      return h(WorkspaceContainer, {
+        namespace, name, activeTab, workspace,
+        title: _.isFunction(title) ? title(this.props) : title,
+        breadcrumbs: breadcrumbs(this.props),
+        refresh: async () => {
+          await this.refresh()
+          const child = this.child.current
+          if (child.refresh) {
+            child.refresh()
+          }
+        }
+      }, [
+        workspace && h(content, {
+          ref: this.child,
+          workspace,
+          ...this.props
+        })
+      ])
+    }
+
+    renderError() {
+      const { workspaceError, errorText } = this.state
+
+      return div({ style: { padding: '2rem' } }, [
+        workspaceError.status === 404 ?
+          h(Fragment, [
+            h2({}, ['Could not display workspace.']),
+            p({}, ['Either the requested workspace does not exist, or you do not have access. If you suspect you do not have access, please contact the workspace owner.'])
+          ]) :
+          h(Fragment, [
+            h2({}, ['Failed to load workspace']),
+            h(ErrorView, { error: errorText })
+          ])
+      ])
+    }
+
+    componentDidMount() {
+      this.refresh()
+    }
+
+    async refresh() {
+      const { namespace, name } = this.props
+      try {
+        const workspace = await Rawls.workspace(namespace, name).details()
+        this.setState({ workspace })
+      } catch (error) {
+        this.setState({ workspaceError: error, errorText: await error.text() })
+      }
+    }
   }
 }

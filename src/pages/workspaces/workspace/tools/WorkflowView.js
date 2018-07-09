@@ -19,7 +19,7 @@ import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 import * as JobHistory from 'src/pages/workspaces/workspace/JobHistory'
 import LaunchAnalysisModal from 'src/pages/workspaces/workspace/tools/LaunchAnalysisModal'
-import WorkspaceContainer from 'src/pages/workspaces/workspace/WorkspaceContainer'
+import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
 
 const sideMargin = '3rem'
@@ -49,7 +49,11 @@ const styles = {
   }
 }
 
-class WorkflowView extends Component {
+const WorkflowView = wrapWorkspace({
+  breadcrumbs: props => breadcrumbs.commonPaths.workspaceTab(props, 'tools'),
+  title: ({ workflowName }) => workflowName, activeTab: 'tools'
+},
+class extends Component {
   constructor(props) {
     super(props)
 
@@ -61,52 +65,44 @@ class WorkflowView extends Component {
 
   render() {
     const { isFreshData, savedConfig, launching, inputsOutputs, activeTab } = this.state
-    const { workspaceNamespace, workspaceName, workflowName } = this.props
+    const { namespace, name } = this.props
 
-    const workspaceId = { namespace: workspaceNamespace, name: workspaceName }
+    const workspaceId = { namespace, name }
     const invalidIO = savedConfig && {
       inputs: _.some('error', inputsOutputs.inputs),
       outputs: _.some('error', inputsOutputs.outputs)
     }
 
-    return h(WorkspaceContainer,
-      {
-        ...workspaceId,
-        breadcrumbs: breadcrumbs.commonPaths.workspaceTab(workspaceId, 'tools'),
-        title: workflowName, activeTab: 'tools'
-      },
-      [
-        savedConfig && h(Fragment, [
-          this.renderSummary(invalidIO),
-          Utils.cond(
-            [activeTab === 'inputs', () => this.renderIOTable('inputs')],
-            [activeTab === 'outputs', () => this.renderIOTable('outputs')],
-            [activeTab === 'wdl', () => this.renderWDL()],
-            null
-          ),
-          launching && h(LaunchAnalysisModal, {
-            workspaceId, config: savedConfig,
-            onDismiss: () => this.setState({ launching: false }),
-            onSuccess: submissionId => {
-              JobHistory.flagNewSubmission(submissionId)
-              Nav.goToPath('workspace-job-history', workspaceId)
-            }
-          })
-        ]),
-        !isFreshData && spinnerOverlay
-      ]
-    )
+    return h(Fragment, [
+      savedConfig && h(Fragment, [
+        this.renderSummary(invalidIO),
+        Utils.cond(
+          [activeTab === 'inputs', () => this.renderIOTable('inputs')],
+          [activeTab === 'outputs', () => this.renderIOTable('outputs')],
+          [activeTab === 'wdl', () => this.renderWDL()],
+          null
+        ),
+        launching && h(LaunchAnalysisModal, {
+          workspaceId, config: savedConfig,
+          onDismiss: () => this.setState({ launching: false }),
+          onSuccess: submissionId => {
+            JobHistory.flagNewSubmission(submissionId)
+            Nav.goToPath('workspace-job-history', workspaceId)
+          }
+        })
+      ]),
+      !isFreshData && spinnerOverlay
+    ])
   }
 
   async componentDidMount() {
-    const { workspaceNamespace, workspaceName, workflowNamespace, workflowName } = this.props
+    const { namespace, name, workspace: { workspace: { attributes } }, workflowNamespace, workflowName } = this.props
     try {
-      const workspace = Rawls.workspace(workspaceNamespace, workspaceName)
+      const ws = Rawls.workspace(namespace, name)
 
-      const [entityMetadata, workspaceDetails, validationResponse] = await Promise.all([
-        workspace.entityMetadata(),
-        workspace.details(),
-        workspace.methodConfig(workflowNamespace, workflowName).validate()
+      const [entityMetadata, validationResponse] = await Promise.all([
+        ws.entityMetadata(),
+        ws.methodConfig(workflowNamespace, workflowName).validate()
       ])
 
       const { methodConfiguration: config } = validationResponse
@@ -120,7 +116,7 @@ class WorkflowView extends Component {
         workspaceAttributes: _.flow(
           _.without(['description']),
           _.remove(s => s.includes(':'))
-        )(_.keys(workspaceDetails.workspace.attributes))
+        )(_.keys(attributes))
       })
     } catch (error) {
       reportError('Error loading data', error)
@@ -323,13 +319,13 @@ class WorkflowView extends Component {
   }
 
   async save() {
-    const { workspaceNamespace, workspaceName, workflowNamespace, workflowName } = this.props
+    const { namespace, name, workflowNamespace, workflowName } = this.props
     const { modifiedConfig } = this.state
 
     this.setState({ saving: true })
 
     try {
-      const validationResponse = await Rawls.workspace(workspaceNamespace, workspaceName)
+      const validationResponse = await Rawls.workspace(namespace, name)
         .methodConfig(workflowNamespace, workflowName)
         .save(modifiedConfig)
       const inputsOutputs = this.createIOLists(validationResponse)
@@ -352,13 +348,13 @@ class WorkflowView extends Component {
 
     this.setState({ saved: false, modifiedConfig: savedConfig })
   }
-}
+})
 
 
 export const addNavPaths = () => {
   Nav.defPath('workflow', {
-    path: '/workspaces/:workspaceNamespace/:workspaceName/tools/:workflowNamespace/:workflowName',
+    path: '/workspaces/:namespace/:name/tools/:workflowNamespace/:workflowName',
     component: WorkflowView,
-    title: ({ workspaceName, workflowName }) => `${workspaceName} - Tools - ${workflowName}`
+    title: ({ name, workflowName }) => `${name} - Tools - ${workflowName}`
   })
 }
