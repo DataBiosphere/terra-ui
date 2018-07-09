@@ -373,7 +373,6 @@ export const Orchestration = {
         firstName: 'N/A',
         lastName: 'N/A',
         title: 'N/A',
-        contactEmail: 'N/A',
         institute: 'N/A',
         institutionalProgram: 'N/A',
         programLocationCity: 'N/A',

@@ -99,7 +99,7 @@ const sectionTitle = text => div({ style: styles.sectionTitle }, [text])
 
 
 const profileKeys = [
-  'firstName', 'lastName', 'title', 'contactEmail', 'institute', 'institutionalProgram',
+  'firstName', 'lastName', 'title', 'institute', 'institutionalProgram',
   'nonProfitStatus', 'pi', 'programLocationCity', 'programLocationState', 'programLocationCountry'
 ]
 
@@ -109,7 +109,11 @@ class Profile extends Component {
     this.setState({ profileInfo: undefined, displayName: undefined, fractionCompleted: undefined, saving: false })
 
     const { keyValuePairs } = await Orchestration.profile.get()
-    const profileInfo = _.reduce((accum, { key, value }) => _.assign(accum, { [key]: value }), {}, keyValuePairs)
+    const profileInfo = _.reduce(
+      (accum, { key, value }) => _.assign(accum, { [key]: value === 'N/A' ? '' : value }),
+      {},
+      keyValuePairs
+    )
 
     const countCompleted = _.flow(
       _.pick(profileKeys),
@@ -126,7 +130,7 @@ class Profile extends Component {
   }
 
   render() {
-    const { displayName, fractionCompleted, saving } = this.state
+    const { profileInfo, displayName, fractionCompleted, saving } = this.state
     const isComplete = fractionCompleted === 1.0
 
     const profilePicRadius = 48
@@ -136,7 +140,7 @@ class Profile extends Component {
     return h(Fragment, [
       saving && spinnerOverlay,
       h(TopBar),
-      !displayName ? centeredSpinner() :
+      !profileInfo ? centeredSpinner() :
         div({ style: styles.page }, [
           sectionTitle('Profile'),
           div({ style: styles.header.line }, [
@@ -203,7 +207,7 @@ class Profile extends Component {
       ),
       line(
         textField('institute', 'Institution'),
-        textField('institutionalProgram', 'InstitutionalProgram')
+        textField('institutionalProgram', 'Institutional Program')
       ),
 
       sectionTitle('Program Info'),
@@ -243,7 +247,7 @@ class Profile extends Component {
 
   async save() {
     this.setState({ saving: true })
-    await Orchestration.profile.set(this.state.profileInfo)
+    await Orchestration.profile.set(_.pickBy(_.identity, this.state.profileInfo))
     this.refresh()
   }
 
