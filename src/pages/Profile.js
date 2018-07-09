@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { div, h, img, input, label, path, span, svg } from 'react-hyperscript-helpers'
-import { buttonPrimary, LabeledCheckbox } from 'src/components/common'
+import { buttonPrimary, LabeledCheckbox, spinnerOverlay } from 'src/components/common'
 import { centeredSpinner } from 'src/components/icons'
 import { textInput } from 'src/components/input'
 import { TopBar } from 'src/components/TopBar'
@@ -106,6 +106,8 @@ const profileKeys = [
 
 class Profile extends Component {
   async refresh() {
+    this.setState({ profileInfo: undefined, displayName: undefined, fractionCompleted: undefined, saving: false })
+
     const { keyValuePairs } = await Orchestration.profile.get()
     const profileInfo = _.reduce((accum, { key, value }) => _.assign(accum, { [key]: value }), {}, keyValuePairs)
 
@@ -124,13 +126,15 @@ class Profile extends Component {
   }
 
   render() {
-    const { displayName, fractionCompleted } = this.state
+    const { displayName, fractionCompleted, saving } = this.state
     const isComplete = fractionCompleted === 1.0
 
     const profilePicRadius = 48
     const strokeRadius = 3
+    // Rendering the circle to cover up the edge of the image to avoid aliasing issues
 
     return h(Fragment, [
+      saving && spinnerOverlay,
       h(TopBar),
       !displayName ? centeredSpinner() :
         div({ style: styles.page }, [
@@ -238,6 +242,7 @@ class Profile extends Component {
   }
 
   async save() {
+    this.setState({ saving: true })
     await Orchestration.profile.set(this.state.profileInfo)
     this.refresh()
   }
