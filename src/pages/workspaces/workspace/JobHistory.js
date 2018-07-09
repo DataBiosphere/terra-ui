@@ -13,7 +13,7 @@ import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
-import WorkspaceContainer from 'src/pages/workspaces/workspace/WorkspaceContainer'
+import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
 
 const styles = {
@@ -92,7 +92,11 @@ const statusCell = workflowStatuses => {
 const animationLengthMillis = 1000
 
 
-class JobHistory extends Component {
+const JobHistory = wrapWorkspace({
+  breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
+  title: 'Job History', activeTab: 'job history'
+},
+class extends Component {
   constructor(props) {
     super(props)
 
@@ -130,19 +134,6 @@ class JobHistory extends Component {
   }
 
   render() {
-    const { namespace, name } = this.props
-
-    return h(WorkspaceContainer, {
-      namespace, name,
-      breadcrumbs: breadcrumbs.commonPaths.workspaceDashboard({ namespace, name }),
-      title: 'Job History', activeTab: 'job history',
-      refresh: () => this.refresh()
-    }, [
-      this.renderSubmissions()
-    ])
-  }
-
-  renderSubmissions() {
     const { namespace } = this.props
     const { submissions, loading, newSubmissionId, highlightNewSubmission } = this.state
 
@@ -219,7 +210,7 @@ class JobHistory extends Component {
       clearTimeout(this.scheduledRefresh)
     }
   }
-}
+})
 
 
 export const addNavPaths = () => {
