@@ -387,6 +387,10 @@ export const Orchestration = {
       )
     }
   },
+  getProxyGroup: async email => {
+    const res = await fetchOrchestration(`/api/proxyGroup/${email}`, authOpts())
+    return res.json()
+  },
   workspaces: (namespace, name) => {
     return {
       importBagit: bagitURL => {

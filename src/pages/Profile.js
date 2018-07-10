@@ -123,8 +123,10 @@ class Profile extends Component {
       _.size
     )(profileInfo)
 
+    const proxyGroup = await Orchestration.getProxyGroup(profileInfo.email)
+
     this.setState({
-      profileInfo,
+      profileInfo, proxyGroup,
       displayName: profileInfo.firstName,
       fractionCompleted: countCompleted / profileKeys.length
     })
@@ -165,7 +167,7 @@ class Profile extends Component {
   }
 
   renderForm() {
-    const { profileInfo } = this.state
+    const { profileInfo, proxyGroup } = this.state
 
     const { firstName, lastName } = profileInfo
     const required = { presence: { allowEmpty: false } }
@@ -224,6 +226,9 @@ class Profile extends Component {
         textField('institute', 'Institution'),
         textField('institutionalProgram', 'Institutional Program')
       ),
+
+      div({ style: styles.form.title }, ['Proxy Group']),
+      div({ style: { margin: '1rem' } }, [proxyGroup]),
 
       sectionTitle('Program Info'),
 
