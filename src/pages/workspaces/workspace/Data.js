@@ -11,7 +11,7 @@ import TooltipTrigger from 'src/components/TooltipTrigger'
 import { Rawls } from 'src/libs/ajax'
 import * as auth from 'src/libs/auth'
 import * as Config from 'src/libs/config'
-import { renderDataCell } from 'src/libs/data-utils'
+import { ReferenceDataImporter, renderDataCell } from 'src/libs/data-utils'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
@@ -81,6 +81,7 @@ class WorkspaceDataContent extends Component {
       pageNumber: 1,
       sort: initialSort,
       loading: false,
+      workspaceAttributes: props.workspace.workspace.attributes,
       ...StateHistory.get()
     }
     this.downloadForm = createRef()
@@ -100,19 +101,28 @@ class WorkspaceDataContent extends Component {
     const { namespace, name } = this.props
     const { itemsPerPage, pageNumber, sort, selectedDataType } = this.state
 
+    const getWorkspaceAttributes = () => Rawls.workspace(namespace, name).details()
+
     if (!selectedDataType) {
-      return
+      const { workspace: { attributes } } = await getWorkspaceAttributes()
+
+      this.setState({ workspaceAttributes: attributes })
     }
     try {
       this.setState({ loading: true, refreshRequested: false })
 
-      const { results, resultMetadata: { unfilteredCount } } = await Rawls.workspace(namespace, name)
-        .paginatedEntitiesOfType(selectedDataType, {
-          page: pageNumber, pageSize: itemsPerPage, sortField: sort.field, sortDirection: sort.direction
-        })
+      const [{ workspace: { attributes } }, { results, resultMetadata: { unfilteredCount } }] = await Promise.all([
+        getWorkspaceAttributes(),
+        Rawls.workspace(namespace, name)
+          .paginatedEntitiesOfType(selectedDataType, {
+            page: pageNumber, pageSize: itemsPerPage, sortField: sort.field, sortDirection: sort.direction
+          })
+      ])
 
 
-      this.setState({ entities: results, totalRowCount: unfilteredCount })
+      this.setState({
+        entities: results, totalRowCount: unfilteredCount, workspaceAttributes: attributes
+      })
     } catch (error) {
       reportError('Error loading workspace data', error)
     } finally {
@@ -121,7 +131,7 @@ class WorkspaceDataContent extends Component {
   }
 
   getReferenceData() {
-    const { workspace: { workspace: { attributes } } } = this.props
+    const { workspaceAttributes } = this.state
 
     return _.flow(
       _.toPairs,
@@ -131,7 +141,7 @@ class WorkspaceDataContent extends Component {
 
         return _.set(genome, _.concat(current[genome], [[key, v]]), current)
       }, {})
-    )(attributes)
+    )(workspaceAttributes)
   }
 
   async componentDidMount() {
@@ -147,7 +157,8 @@ class WorkspaceDataContent extends Component {
   }
 
   render() {
-    const { selectedDataType, entityMetadata, loading } = this.state
+    const { namespace, name } = this.props
+    const { selectedDataType, entityMetadata, loading, importingReference } = this.state
     const referenceData = this.getReferenceData()
 
     return div({ style: styles.tableContainer }, [
@@ -169,7 +180,12 @@ class WorkspaceDataContent extends Component {
                 `${type} (${typeDetails.count})`
               ]),
             _.toPairs(entityMetadata))),
-          div({ style: styles.dataTypeHeading }, ['Reference Data', link({}, [icon('plus-circle')])]),
+          div({ style: styles.dataTypeHeading }, [
+            'Reference Data',
+            link({ onClick: () => this.setState({ importingReference: true }) }, [icon('plus-circle')])
+          ]),
+          importingReference &&
+            h(ReferenceDataImporter, { onDismiss: () => this.setState({ importingReference: false }, () => this.loadData()), namespace, name }),
           div({ style: { borderBottom: `1px solid ${Style.colors.disabled}` } }, _.map(genome => genome, _.keys(referenceData))),
           div({
             style: {
@@ -320,29 +336,30 @@ class WorkspaceDataContent extends Component {
   }
 
   renderGlobalVariables() {
-    const { namespace, workspace: { workspace: { attributes } } } = this.props
-    const workspaceAttributes = _.flow(
+    const { namespace } = this.props
+    const { workspaceAttributes } = this.state
+    const filteredAttributes = _.flow(
       _.toPairs,
       _.remove(([key]) => key === 'description' || key.includes(':') || key.startsWith('referenceData-')),
       _.sortBy(_.first)
-    )(attributes)
+    )(workspaceAttributes)
 
     return Utils.cond(
-      [!workspaceAttributes, () => undefined],
-      [_.isEmpty(workspaceAttributes), () => 'No Global Variables defined'],
+      [!filteredAttributes, () => undefined],
+      [_.isEmpty(filteredAttributes), () => 'No Global Variables defined'],
       () => h(AutoSizer, { disableHeight: true }, [
         ({ width }) => h(FlexTable, {
-          width, height: 500, rowCount: workspaceAttributes.length,
+          width, height: 500, rowCount: filteredAttributes.length,
           columns: [
             {
               size: { basis: 400, grow: 0 },
               headerRenderer: () => h(HeaderCell, ['Name']),
-              cellRenderer: ({ rowIndex }) => renderDataCell(workspaceAttributes[rowIndex][0], namespace)
+              cellRenderer: ({ rowIndex }) => renderDataCell(filteredAttributes[rowIndex][0], namespace)
             },
             {
               size: { grow: 1 },
               headerRenderer: () => h(HeaderCell, ['Value']),
-              cellRenderer: ({ rowIndex }) => renderDataCell(workspaceAttributes[rowIndex][1], namespace)
+              cellRenderer: ({ rowIndex }) => renderDataCell(filteredAttributes[rowIndex][1], namespace)
             }
           ]
         })
