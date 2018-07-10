@@ -53,7 +53,7 @@ const WorkflowView = wrapWorkspace({
   breadcrumbs: props => breadcrumbs.commonPaths.workspaceTab(props, 'tools'),
   title: ({ workflowName }) => workflowName, activeTab: 'tools'
 },
-class extends Component {
+class WorkflowViewContent extends Component {
   constructor(props) {
     super(props)
 

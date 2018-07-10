@@ -72,7 +72,7 @@ const WorkspaceData = wrapWorkspace({
   breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
   title: 'Data', activeTab: 'data'
 },
-class extends Component {
+class WorkspaceDataContent extends Component {
   constructor(props) {
     super(props)
 
