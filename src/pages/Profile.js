@@ -1,9 +1,10 @@
 import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { div, h, input, label, path, span, svg } from 'react-hyperscript-helpers'
-import { buttonPrimary, LabeledCheckbox, spinnerOverlay } from 'src/components/common'
+import { buttonPrimary, LabeledCheckbox, link, spinnerOverlay } from 'src/components/common'
 import { centeredSpinner, profilePic } from 'src/components/icons'
 import { textInput, validatedInput } from 'src/components/input'
+import { InfoBox } from 'src/components/PopupTrigger'
 import { TopBar } from 'src/components/TopBar'
 import { Orchestration } from 'src/libs/ajax'
 import * as Nav from 'src/libs/nav'
@@ -227,7 +228,18 @@ class Profile extends Component {
         textField('institutionalProgram', 'Institutional Program')
       ),
 
-      div({ style: styles.form.title }, ['Proxy Group']),
+      div({ style: styles.form.title }, [
+        'Proxy Group',
+        h(InfoBox, { style: { marginLeft: '0.5rem' } }, [
+          'For more information about proxy groups, see the ',
+          link({
+            href: 'https://software.broadinstitute.org/firecloud/documentation/article?id=11185',
+            target: '_blank'
+          }, [
+            'user guide.'
+          ])
+        ])
+      ]),
       div({ style: { margin: '1rem' } }, [proxyGroup]),
 
       sectionTitle('Program Info'),
