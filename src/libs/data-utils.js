@@ -4,12 +4,13 @@ import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { div, h, input } from 'react-hyperscript-helpers/lib/index'
 import Collapse from 'src/components/Collapse'
-import { buttonPrimary, Clickable, link } from 'src/components/common'
+import { buttonPrimary, Clickable, link, spinnerOverlay } from 'src/components/common'
 import { icon, spinner } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import { TextCell } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
-import { Buckets, Martha } from 'src/libs/ajax'
+import ReferenceData from 'src/data/reference-data'
+import { Buckets, Martha, Rawls } from 'src/libs/ajax'
 import * as Config from 'src/libs/config'
 import { reportError } from 'src/libs/error'
 import * as Style from 'src/libs/style'
@@ -174,8 +175,33 @@ export class UriViewer extends Component {
   }
 }
 
-export const renderDataCell = function(data, namespace) {
+export const renderDataCell = (data, namespace) => {
   const isUri = _.startsWith('gs://', data) || _.startsWith('dos://', data)
 
   return h(TextCell, { title: data }, [isUri ? h(UriViewer, { uri: data, googleProject: namespace }) : data])
+}
+
+export class ReferenceDataImporter extends Component {
+  render() {
+    const { onDismiss, namespace, name } = this.props
+    const { loading, selectedReference } = this.state
+
+    return h(Modal, {
+      onDismiss,
+      title: 'Add Reference Data',
+      okButton: () => {
+        this.setState({ loading: true })
+        Rawls.workspace(namespace, name).shallowMergeNewAttributes(
+          _.mapKeys(k => `referenceData-${selectedReference}-${k}`, ReferenceData[selectedReference])
+        ).then(onDismiss,
+          error => {
+            reportError('Error importing reference data', error)
+            this.setState({ loading: false })
+          }
+        )
+      }
+    }, [
+      loading && spinnerOverlay
+    ])
+  }
 }

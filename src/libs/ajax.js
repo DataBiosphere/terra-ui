@@ -257,6 +257,16 @@ export const Rawls = {
       clone: async body => {
         const res = await fetchRawls(`${root}/clone`, _.mergeAll([authOpts(), jsonBody(body), { method: 'POST' }]))
         return res.json()
+      },
+
+      shallowMergeNewAttributes: attributesObject => {
+        const payload = _.flatMap(([k, v]) => {
+          return _.isArray(v) ?
+            [{ op: 'RemoveAttribute', attributeName: k }, ..._.map(x => ({ op: 'AddListMember', attributeListName: k, newMember: x }), v)] :
+            { op: 'AddUpdateAttribute', attributeName: k, addUpdateAttribute: v }
+        }, _.toPairs(attributesObject))
+
+        return fetchRawls(root, _.mergeAll([authOpts(), jsonBody(payload), { method: 'PATCH' }]))
       }
     }
   },

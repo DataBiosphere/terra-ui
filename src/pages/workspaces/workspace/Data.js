@@ -1,10 +1,10 @@
-import _ from 'lodash/fp'
 import clipboard from 'clipboard-polyfill'
+import _ from 'lodash/fp'
 import { createRef, Fragment } from 'react'
 import { div, form, h, input } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { buttonPrimary, spinnerOverlay } from 'src/components/common'
+import { buttonPrimary, link, spinnerOverlay } from 'src/components/common'
 import { icon, spinner } from 'src/components/icons'
 import { FlexTable, GridTable, HeaderCell, paginator } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
@@ -39,7 +39,7 @@ const styles = {
     margin: '1rem', width: '100%',
     textAlign: hasSelection ? undefined : 'center'
   }),
-  dataModelHeading: {
+  dataTypeHeading: {
     fontWeight: 500, padding: '0.5rem 1rem',
     borderBottom: `1px solid ${Style.colors.background}`
   },
@@ -106,27 +106,32 @@ class WorkspaceDataContent extends Component {
     try {
       this.setState({ loading: true, refreshRequested: false })
 
-      if (selectedDataType === globalVariables) {
-        const { workspace: { attributes } } = await Rawls.workspace(namespace, name).details()
-        this.setState({
-          workspaceAttributes: _.flow(
-            _.toPairs,
-            _.remove(([key]) => key === 'description' || key.includes(':')),
-            _.sortBy(_.first)
-          )(attributes)
+      const { results, resultMetadata: { unfilteredCount } } = await Rawls.workspace(namespace, name)
+        .paginatedEntitiesOfType(selectedDataType, {
+          page: pageNumber, pageSize: itemsPerPage, sortField: sort.field, sortDirection: sort.direction
         })
-      } else {
-        const { results, resultMetadata: { unfilteredCount } } =
-          await Rawls.workspace(namespace, name).paginatedEntitiesOfType(selectedDataType, {
-            page: pageNumber, pageSize: itemsPerPage, sortField: sort.field, sortDirection: sort.direction
-          })
-        this.setState({ entities: results, totalRowCount: unfilteredCount })
-      }
+
+
+      this.setState({ entities: results, totalRowCount: unfilteredCount })
     } catch (error) {
       reportError('Error loading workspace data', error)
     } finally {
       this.setState({ loading: false })
     }
+  }
+
+  getReferenceData() {
+    const { workspace: { workspace: { attributes } } } = this.props
+
+    return _.flow(
+      _.toPairs,
+      _.pickBy(([key]) => key.startsWith('referenceData-')),
+      _.reduce((current, [k, v]) => {
+        const [, genome, key] = /referenceData-([^-]+)-(.+)/.exec(k)
+
+        return _.set(genome, _.concat(current[genome], [[key, v]]), current)
+      }, {})
+    )(attributes)
   }
 
   async componentDidMount() {
@@ -143,12 +148,13 @@ class WorkspaceDataContent extends Component {
 
   render() {
     const { selectedDataType, entityMetadata, loading } = this.state
+    const referenceData = this.getReferenceData()
 
     return div({ style: styles.tableContainer }, [
       !entityMetadata ? spinnerOverlay : h(Fragment, [
         div({ style: styles.dataTypeSelectionPanel }, [
-          div({ style: styles.dataModelHeading }, 'Data Model'),
-          !_.isEmpty(entityMetadata) && div({ style: { borderBottom: `1px solid ${Style.colors.background}` } },
+          div({ style: styles.dataTypeHeading }, 'Data Model'),
+          !_.isEmpty(entityMetadata) && div({ style: { borderBottom: `1px solid ${Style.colors.disabled}` } },
             _.map(([type, typeDetails]) =>
               div({
                 style: styles.dataTypeOption(selectedDataType === type),
@@ -163,6 +169,8 @@ class WorkspaceDataContent extends Component {
                 `${type} (${typeDetails.count})`
               ]),
             _.toPairs(entityMetadata))),
+          div({ style: styles.dataTypeHeading }, ['Reference Data', link({}, [icon('plus-circle')])]),
+          div({ style: { borderBottom: `1px solid ${Style.colors.disabled}` } }, _.map(genome => genome, _.keys(referenceData))),
           div({
             style: {
               marginBottom: '1rem', ...styles.dataTypeOption(selectedDataType === globalVariables)
@@ -312,8 +320,12 @@ class WorkspaceDataContent extends Component {
   }
 
   renderGlobalVariables() {
-    const { namespace } = this.props
-    const { workspaceAttributes } = this.state
+    const { namespace, workspace: { workspace: { attributes } } } = this.props
+    const workspaceAttributes = _.flow(
+      _.toPairs,
+      _.remove(([key]) => key === 'description' || key.includes(':') || key.startsWith('referenceData-')),
+      _.sortBy(_.first)
+    )(attributes)
 
     return Utils.cond(
       [!workspaceAttributes, () => undefined],
