@@ -1,7 +1,7 @@
 import { createPortal } from 'react-dom'
-import { a, div, h, img, span } from 'react-hyperscript-helpers'
+import { a, div, h, span } from 'react-hyperscript-helpers'
 import { Clickable, comingSoon } from 'src/components/common'
-import { icon, logo } from 'src/components/icons'
+import { icon, logo, profilePic } from 'src/components/icons'
 import PopupTrigger from 'src/components/PopupTrigger'
 import { getBasicProfile, signOut } from 'src/libs/auth'
 import * as Nav from 'src/libs/nav'
@@ -99,7 +99,7 @@ export class TopBar extends Component {
             }, [logo(), 'Saturn'])
           ]),
           div({ style: { ...styles.nav.item, ...styles.nav.profile } }, [
-            img({ src: getBasicProfile().getImageUrl(), height: 32, width: 32, style: { ...styles.nav.icon, borderRadius: '100%' } }),
+            profilePic({ size: 32, style: styles.nav.icon }),
             span({ style: { marginLeft: -8, marginRight: 'auto' } }, [
               getBasicProfile().getName()
             ]),

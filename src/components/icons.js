@@ -5,7 +5,7 @@ import '@clr/icons/clr-icons.css'
 import { ClrShapeBan, ClrShapeSync, ClrShapeTimesCircle, ClrShapeViewCards, ClrShapeViewList } from '@clr/icons/shapes/essential-shapes'
 import { ClrShapePause, ClrShapePlay } from '@clr/icons/shapes/media-shapes'
 import _ from 'lodash/fp'
-import { h } from 'react-hyperscript-helpers'
+import { h, img } from 'react-hyperscript-helpers'
 import caretDown from 'src/icons/caret-down.svg'
 import checkSquare from 'src/icons/check-square.svg'
 import jupyterIcon from 'src/icons/jupyter.svg'
@@ -14,6 +14,7 @@ import logoGrey from 'src/icons/logo-grey.svg'
 import logoIcon from 'src/icons/logo.svg'
 import square from 'src/icons/square.svg'
 import table from 'src/icons/table.svg'
+import { getBasicProfile } from 'src/libs/auth'
 import * as Style from 'src/libs/style'
 
 
@@ -48,3 +49,10 @@ export const spinner = function(props) {
 export const centeredSpinner = function(props) {
   return spinner(_.merge({ size: 48, style: { display: 'block', margin: 'auto' } }, props))
 }
+
+export const profilePic = ({ size, style, ...props } = {}) => img({
+  src: getBasicProfile().getImageUrl(),
+  height: size, width: size,
+  style: { borderRadius: '100%', ...style },
+  ...props
+})

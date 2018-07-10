@@ -1,12 +1,11 @@
 import _ from 'lodash/fp'
 import { Fragment } from 'react'
-import { div, h, img, input, label, path, span, svg } from 'react-hyperscript-helpers'
+import { div, h, input, label, path, span, svg } from 'react-hyperscript-helpers'
 import { buttonPrimary, LabeledCheckbox, spinnerOverlay } from 'src/components/common'
-import { centeredSpinner } from 'src/components/icons'
+import { centeredSpinner, profilePic } from 'src/components/icons'
 import { textInput, validatedInput } from 'src/components/input'
 import { TopBar } from 'src/components/TopBar'
 import { Orchestration } from 'src/libs/ajax'
-import * as auth from 'src/libs/auth'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -147,7 +146,7 @@ class Profile extends Component {
           sectionTitle('Profile'),
           div({ style: styles.header.line }, [
             div({ style: { position: 'relative', padding: strokeRadius } }, [
-              img({ style: styles.header.pic, src: auth.getBasicProfile().getImageUrl() }),
+              profilePic({ size: 2*profilePicRadius }),
               percentageCircle({
                 radius: profilePicRadius+strokeRadius, fraction: fractionCompleted, strokeWidth: 2*strokeRadius,
                 style: { position: 'absolute', top: strokeRadius, left: strokeRadius, margin: -strokeRadius }
