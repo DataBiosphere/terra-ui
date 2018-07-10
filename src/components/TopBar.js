@@ -27,7 +27,7 @@ const styles = {
       boxShadow: '3px 0 13px 0 rgba(0,0,0,0.3)'
     },
     profile: {
-      backgroundColor: Style.colors.navProfile,
+      backgroundColor: Style.colors.background,
       color: Style.colors.title, borderBottom: 'none'
     },
     item: {

@@ -9,7 +9,6 @@ export const colors = {
   highlight: '#bfd5e3',
   highlightFaded: '#e7f1f7',
   navMenu: '#2b6496',
-  navProfile: '#e1e1e1',
   navSeparator: '#6b94b5',
   primary: '#5faee0',
   secondary: '#478eba',
