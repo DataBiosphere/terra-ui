@@ -196,6 +196,7 @@ class Profile extends Component {
     const radioButton = (key, value) => h(Fragment, [
       input({
         type: 'radio', id: value,
+        name: value, // not semantically correct, but fixes a focus cycle issue
         checked: profileInfo[key] === value,
         onChange: () => this.assignValue(key, value)
       }),
@@ -228,7 +229,7 @@ class Profile extends Component {
       sectionTitle('Program Info'),
 
       div({ style: styles.form.title }, ['Non-Profit Status']),
-      div({}, [
+      div({ style: { margin: '1rem' } }, [
         radioButton('nonProfitStatus', 'Profit'),
         radioButton('nonProfitStatus', 'Non-Profit')
       ]),
