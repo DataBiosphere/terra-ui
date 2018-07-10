@@ -4,7 +4,7 @@ import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { div, h, input } from 'react-hyperscript-helpers/lib/index'
 import Collapse from 'src/components/Collapse'
-import { buttonPrimary, Clickable, link, spinnerOverlay } from 'src/components/common'
+import { buttonPrimary, Clickable, link, Select, spinnerOverlay } from 'src/components/common'
 import { icon, spinner } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import { TextCell } from 'src/components/table'
@@ -193,14 +193,25 @@ export class ReferenceDataImporter extends Component {
         this.setState({ loading: true })
         Rawls.workspace(namespace, name).shallowMergeNewAttributes(
           _.mapKeys(k => `referenceData-${selectedReference}-${k}`, ReferenceData[selectedReference])
-        ).then(onDismiss,
+        ).then(
+          onDismiss,
           error => {
             reportError('Error importing reference data', error)
-            this.setState({ loading: false })
+            onDismiss()
           }
         )
       }
     }, [
+      h(Select, {
+        searchable: false,
+        clearable: false,
+        placeholder: 'Select data',
+        value: selectedReference,
+        onChange: ({ value }) => this.setState({ selectedReference: value }),
+        options: _.map(name => {
+          return { label: name, value: name }
+        }, _.keys(ReferenceData))
+      }),
       loading && spinnerOverlay
     ])
   }
