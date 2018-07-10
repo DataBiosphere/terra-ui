@@ -3,13 +3,15 @@ import { Fragment } from 'react'
 import { div, h, img, input, label, path, span, svg } from 'react-hyperscript-helpers'
 import { buttonPrimary, LabeledCheckbox, spinnerOverlay } from 'src/components/common'
 import { centeredSpinner } from 'src/components/icons'
-import { textInput } from 'src/components/input'
+import { textInput, validatedInput } from 'src/components/input'
 import { TopBar } from 'src/components/TopBar'
 import { Orchestration } from 'src/libs/ajax'
 import * as auth from 'src/libs/auth'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
+import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
+import validate from 'validate.js'
 
 
 const styles = {
@@ -64,7 +66,7 @@ const styles = {
 }
 
 
-const percentageCircle = ({ radius, fraction, color = Style.colors.success, strokeWidth = 6, style }) => {
+const percentageCircle = ({ radius, fraction, color = '#7bb156', strokeWidth = 6, style }) => {
   const halfStroke = strokeWidth/2
   const adjRadius = radius - halfStroke
   const diameter = 2 * radius
@@ -166,16 +168,29 @@ class Profile extends Component {
   renderForm() {
     const { profileInfo } = this.state
 
+    const { firstName, lastName } = profileInfo
+    const required = { presence: { allowEmpty: false } }
+    const errors = validate({ firstName, lastName }, { firstName: required, lastName: required })
+
     const line = (...children) => div({ style: styles.form.line }, children)
 
-    const textField = (key, title, { placeholder } = {}) =>
+    const textField = (key, title, { placeholder, required } = {}) =>
       div({ style: styles.form.container }, [
         div({ style: styles.form.title }, [title]),
-        textInput({
-          value: profileInfo[key],
-          onChange: e => this.assignValue(key, e.target.value),
-          placeholder
-        })
+        required ?
+          validatedInput({
+            inputProps: {
+              value: profileInfo[key],
+              onChange: e => this.assignValue(key, e.target.value),
+              placeholder: placeholder || 'Required'
+            },
+            error: Utils.summarizeErrors(errors && errors[key])
+          }) :
+          textInput({
+            value: profileInfo[key],
+            onChange: e => this.assignValue(key, e.target.value),
+            placeholder
+          })
       ])
 
     const radioButton = (key, value) => h(Fragment, [
@@ -196,8 +211,8 @@ class Profile extends Component {
 
     return h(Fragment, [
       line(
-        textField('firstName', 'First Name'),
-        textField('lastName', 'Last Name')
+        textField('firstName', 'First Name', { required: true }),
+        textField('lastName', 'Last Name', { required: true })
       ),
       line(
         textField('title', 'Title')
@@ -236,7 +251,8 @@ class Profile extends Component {
 
       buttonPrimary({
         style: { marginTop: '3rem' },
-        onClick: () => this.save()
+        onClick: () => this.save(),
+        disabled: !!errors
       }, ['Save Profile'])
     ])
   }
@@ -246,8 +262,10 @@ class Profile extends Component {
   }
 
   async save() {
+    const { profileInfo } = this.state
+
     this.setState({ saving: true })
-    await Orchestration.profile.set(_.pickBy(_.identity, this.state.profileInfo))
+    await Orchestration.profile.set(_.pickBy(_.identity, profileInfo))
     this.refresh()
   }
 
