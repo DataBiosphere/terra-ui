@@ -150,6 +150,13 @@ class Profile extends Component {
           div({ style: styles.header.line }, [
             div({ style: { position: 'relative', padding: strokeRadius } }, [
               profilePic({ size: 2*profilePicRadius }),
+              h(InfoBox, { style: { alignSelf: 'flex-end' } }, [
+                'To change your profile image, visit your ',
+                link({
+                  href: 'https://myaccount.google.com/',
+                  target: '_blank'
+                }, ['Google account page.'])
+              ]),
               percentageCircle({
                 radius: profilePicRadius+strokeRadius, fraction: fractionCompleted, strokeWidth: 2*strokeRadius,
                 style: { position: 'absolute', top: strokeRadius, left: strokeRadius, margin: -strokeRadius }
@@ -235,9 +242,7 @@ class Profile extends Component {
           link({
             href: 'https://software.broadinstitute.org/firecloud/documentation/article?id=11185',
             target: '_blank'
-          }, [
-            'user guide.'
-          ])
+          }, ['user guide.'])
         ])
       ]),
       div({ style: { margin: '1rem' } }, [proxyGroup]),
