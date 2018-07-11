@@ -203,10 +203,7 @@ export class ReferenceDataImporter extends Component {
           Rawls.workspace(namespace, name).shallowMergeNewAttributes(
             _.mapKeys(k => `referenceData-${selectedReference}-${k}`, ReferenceData[selectedReference])
           ).then(
-            () => {
-              onSuccess()
-              onDismiss()
-            },
+            onSuccess,
             error => {
               reportError('Error importing reference data', error)
               onDismiss()

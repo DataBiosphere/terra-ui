@@ -185,7 +185,11 @@ class WorkspaceDataContent extends Component {
             link({ onClick: () => this.setState({ importingReference: true }) }, [icon('plus-circle')])
           ]),
           importingReference &&
-            h(ReferenceDataImporter, { onDismiss: () => this.setState({ importingReference: false }), onSuccess: () => this.loadData(), namespace, name }),
+            h(ReferenceDataImporter, {
+              onDismiss: () => this.setState({ importingReference: false }),
+              onSuccess: () => this.setState({ importingReference: false }, () => this.loadData()),
+              namespace, name
+            }),
           div({ style: { borderBottom: `1px solid ${Style.colors.disabled}` } },
             _.map(type => div({
               style: styles.dataTypeOption(selectedDataType === type),
