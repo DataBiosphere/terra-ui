@@ -131,7 +131,7 @@ export class TopBar extends Component {
             href: Nav.getLink('workspaces'),
             onClick: () => this.hideNav()
           }, [
-            icon('grid-view', { class: 'is-solid', size: 24, style: styles.nav.icon }),
+            icon('grid-view', { className: 'is-solid', size: 24, style: styles.nav.icon }),
             'Workspaces'
           ])
         ])

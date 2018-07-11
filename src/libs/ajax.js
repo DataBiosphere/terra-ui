@@ -162,7 +162,7 @@ export const Rawls = {
     return res.json()
   },
 
-  workspacesList: async () => {
+  listWorkspaces: async () => {
     const res = await fetchRawls('workspaces', authOpts())
     return res.json()
   },

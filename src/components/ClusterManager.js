@@ -198,7 +198,7 @@ const ClusterIcon = ({ shape, onClick, disabled }) => {
   return h(Clickable, {
     style: { color: onClick && !disabled && Style.colors.secondary },
     onClick
-  }, [icon(shape, { size: 20, class: 'is-solid' })])
+  }, [icon(shape, { size: 20, className: 'is-solid' })])
 }
 
 const getUpdateIntervalMs = status => {
