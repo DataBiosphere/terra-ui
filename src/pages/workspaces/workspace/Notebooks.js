@@ -7,14 +7,14 @@ import { Clickable, link, MenuButton, spinnerOverlay } from 'src/components/comm
 import { icon } from 'src/components/icons'
 import { NotebookCreator, NotebookDeleter, NotebookDuplicator } from 'src/components/notebook-utils'
 import PopupTrigger from 'src/components/PopupTrigger'
-import { Buckets, Rawls } from 'src/libs/ajax'
+import { Buckets } from 'src/libs/ajax'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
-import WorkspaceContainer from 'src/pages/workspaces/workspace/WorkspaceContainer'
+import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
 
 const notebookCardCommonStyles = listView =>
@@ -155,7 +155,11 @@ class NotebookCard extends Component {
   }
 }
 
-class WorkspaceNotebooks extends Component {
+const WorkspaceNotebooks = wrapWorkspace({
+  breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
+  title: 'Notebooks', activeTab: 'notebooks'
+},
+class extends Component {
   constructor(props) {
     super(props)
     this.state = StateHistory.get()
@@ -163,10 +167,10 @@ class WorkspaceNotebooks extends Component {
   }
 
   async refresh() {
-    const { namespace, name } = this.props
+    const { namespace, workspace: { workspace: { bucketName } } } = this.props
+
     try {
       this.setState({ loading: true })
-      const { workspace: { bucketName } } = await Rawls.workspace(namespace, name).details()
       const notebooks = await Buckets.listNotebooks(namespace, bucketName)
       this.setState({ bucketName, notebooks: _.reverse(_.sortBy('updated', notebooks)) })
     } catch (error) {
@@ -236,77 +240,74 @@ class WorkspaceNotebooks extends Component {
 
   render() {
     const { loading, bucketName, notebooks, listView, creating } = this.state
-    const { namespace, name } = this.props
+    const { namespace } = this.props
 
-    return h(WorkspaceContainer,
-      {
-        namespace, name, refresh: () => this.refresh(),
-        breadcrumbs: breadcrumbs.commonPaths.workspaceDashboard({ namespace, name }),
-        title: 'Notebooks', activeTab: 'notebooks'
-      },
-      [
-        h(Dropzone, {
-          accept: '.ipynb',
-          disableClick: true,
-          disablePreview: true,
-          style: { flexGrow: 1, padding: '1rem' },
-          activeStyle: { backgroundColor: Style.colors.highlight, cursor: 'copy' }, // accept and reject don't work in all browsers
-          acceptStyle: { cursor: 'copy' },
-          rejectStyle: { cursor: 'no-drop' },
-          ref: this.uploader,
-          onDropAccepted: acceptedFiles => {
-            this.setState({ loading: true })
+    return h(Dropzone, {
+      accept: '.ipynb',
+      disableClick: true,
+      disablePreview: true,
+      style: { flexGrow: 1, padding: '1rem' },
+      activeStyle: { backgroundColor: Style.colors.highlight, cursor: 'copy' }, // accept and reject don't work in all browsers
+      acceptStyle: { cursor: 'copy' },
+      rejectStyle: { cursor: 'no-drop' },
+      ref: this.uploader,
+      onDropAccepted: acceptedFiles => {
+        this.setState({ loading: true })
 
-            acceptedFiles.forEach(file => {
-              const reader = new FileReader()
+        acceptedFiles.forEach(file => {
+          const reader = new FileReader()
 
-              reader.onload = () => {
-                Buckets.notebook(namespace, bucketName, file.name.slice(0, -6)).create(JSON.parse(reader.result)).then(
-                  () => this.refresh(),
-                  error => {
-                    reportError('Error creating notebook', error)
-                    this.setState({ loading: false })
-                  }
-                )
+          reader.onload = () => {
+            Buckets.notebook(namespace, bucketName, file.name.slice(0, -6)).create(JSON.parse(reader.result)).then(
+              () => this.refresh(),
+              error => {
+                reportError('Error creating notebook', error)
+                this.setState({ loading: false })
               }
-              reader.onerror = e => reportError('Error reading file', e)
+            )
+          }
+          reader.onerror = e => reportError('Error reading file', e)
 
-              reader.readAsText(file)
-            })
+          reader.readAsText(file)
+        })
+      }
+    }, [
+      notebooks && h(Fragment, [
+        div({
+          style: {
+            display: 'flex', alignItems: 'center',
+            margin: '0 1.25rem'
           }
         }, [
-          notebooks && h(Fragment, [
-            div({ style: { display: 'flex', alignItems: 'center', margin: '0 1.25rem' } }, [
-              div({ style: { color: Style.colors.title, fontSize: 16, fontWeight: 500 } }, 'NOTEBOOKS'),
-              div({ style: { flexGrow: 1 } }),
-              div({ style: { color: Style.colors.secondary, padding: '0.5rem 1rem', backgroundColor: 'white', borderRadius: 3 } }, [
-                h(Clickable, {
-                  as: icon('view-cards'),
-                  style: {
-                    color: listView ? null : Style.colors.primary,
-                    marginRight: '1rem', width: 26, height: 22
-                  },
-                  onClick: () => this.setState({ listView: false })
-                }),
-                h(Clickable, {
-                  as: icon('view-list'),
-                  color: listView ? Style.colors.primary : null,
-                  size: 26,
-                  onClick: () => this.setState({ listView: true })
-                })
-              ]),
-              creating && h(NotebookCreator, {
-                namespace, bucketName,
-                reloadList: () => this.refresh(),
-                onDismiss: () => this.setState({ creating: false })
-              })
-            ]),
-            this.renderNotebooks()
+          div({ style: { color: Style.colors.title, fontSize: 16, fontWeight: 500 } }, 'NOTEBOOKS'),
+          div({ style: { flexGrow: 1 } }),
+          div({ style: { color: Style.colors.secondary, padding: '0.5rem 1rem', backgroundColor: 'white', borderRadius: 3 } }, [
+            h(Clickable, {
+              as:
+                  icon('view-cards'),
+              style: {
+                color: listView ? null : Style.colors.primary,
+                marginRight: '1rem', width: 26, height: 22
+              },
+              onClick: () =>
+                this.setState({ listView: false })
+            }),
+            h(Clickable, {
+              as: icon('view-list'),
+              color: listView ? Style.colors.primary : null,
+
+              size: 26,
+              onClick: () =>
+                this.setState({ listView: true })
+            })
           ]),
-          loading && spinnerOverlay
-        ])
-      ]
-    )
+          creating &&
+            h(NotebookCreator, { namespace, bucketName, reloadList: () => this.refresh(), onDismiss: () => this.setState({ creating: false }) })
+        ]),
+        this.renderNotebooks()
+      ]),
+      loading && spinnerOverlay
+    ])
   }
 
   componentDidUpdate() {
@@ -315,7 +316,7 @@ class WorkspaceNotebooks extends Component {
       this.state)
     )
   }
-}
+})
 
 export const addNavPaths = () => {
   Nav.defPath('workspace-notebooks', {

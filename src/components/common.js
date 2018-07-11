@@ -164,7 +164,7 @@ export const comingSoon = span({
     margin: '0.5rem', padding: 3, borderRadius: 2,
     backgroundColor: Style.colors.accent, color: 'white',
     fontSize: '75%', textTransform: 'uppercase', fontWeight: 500,
-    whiteSpace: 'nowrap'
+    whiteSpace: 'nowrap', lineHeight: 1
   }
 }, ['coming soon'])
 

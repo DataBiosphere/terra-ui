@@ -95,31 +95,6 @@ Array [
             value=""
         />
     </div>
-    <a
-        onBlur={[Function]}
-        onDragEnd={[Function]}
-        onDragStart={[Function]}
-        onFocus={[Function]}
-        onKeyDown={[Function]}
-        onKeyUp={[Function]}
-        onMouseDown={[Function]}
-        onMouseEnter={[Function]}
-        onMouseLeave={[Function]}
-        onMouseMove={[Function]}
-        onMouseUp={[Function]}
-        style={
-            Object {
-                "color": "#2691d0",
-                "cursor": "pointer",
-                "flexShrink": 0,
-                "marginLeft": "auto",
-                "outline": 0,
-                "outlineOffset": 0,
-              }
-        }
-    >
-        Sign out
-    </a>
 </div>,
   <div
     style={
