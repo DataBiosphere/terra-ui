@@ -283,14 +283,14 @@ class WorkspaceNotebooks extends Component {
                 h(Clickable, {
                   as: icon('view-cards'),
                   style: {
-                    boxShadow: listView ? undefined : `0 4px 0 ${Style.colors.highlight}`,
+                    color: listView ? null : Style.colors.primary,
                     marginRight: '1rem', width: 26, height: 22
                   },
                   onClick: () => this.setState({ listView: false })
                 }),
                 h(Clickable, {
                   as: icon('view-list'),
-                  style: { boxShadow: listView ? `0 4px 0 ${Style.colors.highlight}` : null },
+                  color: listView ? Style.colors.primary : null,
                   size: 26,
                   onClick: () => this.setState({ listView: true })
                 })
