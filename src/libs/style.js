@@ -8,6 +8,8 @@ export const colors = {
   focus: '#007cbb',
   highlight: '#bfd5e3',
   highlightFaded: '#e7f1f7',
+  navMenu: '#2b6496',
+  navSeparator: '#6b94b5',
   primary: '#5faee0',
   secondary: '#478eba',
   section: '#f2f7f9',
