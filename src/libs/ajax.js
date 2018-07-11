@@ -364,12 +364,15 @@ async function fetchOrchestration(path, ...args) {
 
 export const Orchestration = {
   profile: {
+    get: async () => {
+      const res = await fetchOrchestration('/register/profile', authOpts())
+      return res.json()
+    },
     set: keysAndValues => {
       const blankProfile = {
         firstName: 'N/A',
         lastName: 'N/A',
         title: 'N/A',
-        contactEmail: 'N/A',
         institute: 'N/A',
         institutionalProgram: 'N/A',
         programLocationCity: 'N/A',
@@ -383,6 +386,10 @@ export const Orchestration = {
         _.mergeAll([authOpts(), jsonBody(_.merge(blankProfile, keysAndValues)), { method: 'POST' }])
       )
     }
+  },
+  getProxyGroup: async email => {
+    const res = await fetchOrchestration(`/api/proxyGroup/${email}`, authOpts())
+    return res.json()
   },
   workspaces: (namespace, name) => {
     return {

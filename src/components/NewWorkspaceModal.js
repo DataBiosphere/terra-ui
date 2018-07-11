@@ -1,11 +1,11 @@
 import _ from 'lodash/fp'
 import { Component, Fragment } from 'react'
-import { div, h, span } from 'react-hyperscript-helpers'
+import { div, h } from 'react-hyperscript-helpers'
 import { buttonPrimary, link, Select, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { TextArea, validatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
-import PopupTrigger from 'src/components/PopupTrigger'
+import { InfoBox } from 'src/components/PopupTrigger'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { Rawls } from 'src/libs/ajax'
 import { reportError } from 'src/libs/error'
@@ -155,16 +155,10 @@ export default class NewWorkspaceModal extends Component {
       }),
       div({ style: styles.label }, [
         'Authorization domain ',
-        h(PopupTrigger, {
-          content: div({ style: { padding: '0.5rem', width: 300 } }, [
-            'Note: An authorization domain can only be set when creating a workspace. ',
-            'Once set, it cannot be changed. ',
-            link({ href: authDoc, target: '_blank' }, ['Read more about authorization domains'])
-          ])
-        }, [
-          span({ style: { cursor: 'pointer', color: Style.colors.secondary } }, [
-            icon('info-circle', { class: 'is-solid' })
-          ])
+        h(InfoBox, [
+          'Note: An authorization domain can only be set when creating a workspace. ',
+          'Once set, it cannot be changed. ',
+          link({ href: authDoc, target: '_blank' }, ['Read more about authorization domains'])
         ])
       ]),
       !!existingGroups.length && div({ style: styles.groupNotice }, [

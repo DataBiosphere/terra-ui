@@ -1,8 +1,9 @@
 import _ from 'lodash/fp'
 import { Children, cloneElement, Component, Fragment } from 'react'
-import { div, h } from 'react-hyperscript-helpers'
+import { div, h, span } from 'react-hyperscript-helpers'
 import onClickOutside from 'react-onclickoutside'
 import ToolTip from 'react-portal-tooltip'
+import { icon } from 'src/components/icons'
 import * as Style from 'src/libs/style'
 
 
@@ -57,3 +58,11 @@ export default class PopupTrigger extends Component {
     ])
   }
 }
+
+export const InfoBox = ({ size, children, style }) => h(PopupTrigger, {
+  content: div({ style: { padding: '0.5rem', width: 300 } }, children)
+}, [
+  span({ style: { cursor: 'pointer', color: Style.colors.secondary, ...style } }, [
+    icon('info-circle', { class: 'is-solid', size })
+  ])
+])
