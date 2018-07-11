@@ -197,7 +197,7 @@ export class ReferenceDataImporter extends Component {
       onDismiss,
       title: 'Add Reference Data',
       okButton: buttonPrimary({
-        disabled: !selectedReference,
+        disabled: !selectedReference || loading,
         onClick: () => {
           this.setState({ loading: true })
           Rawls.workspace(namespace, name).shallowMergeNewAttributes(
