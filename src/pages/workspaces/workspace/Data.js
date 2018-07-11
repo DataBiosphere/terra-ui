@@ -101,17 +101,15 @@ class WorkspaceDataContent extends Component {
     const { namespace, name } = this.props
     const { itemsPerPage, pageNumber, sort, selectedDataType } = this.state
 
-    const getWorkspaceAttributes = () => Rawls.workspace(namespace, name).details()
+    const getWorkspaceAttributes = async () => (await Rawls.workspace(namespace, name).details()).workspace.attributes
 
     if (!selectedDataType) {
-      const { workspace: { attributes } } = await getWorkspaceAttributes()
-
-      this.setState({ workspaceAttributes: attributes })
+      this.setState({ workspaceAttributes: await getWorkspaceAttributes() })
     }
     try {
       this.setState({ loading: true, refreshRequested: false })
 
-      const [{ workspace: { attributes } }, { results, resultMetadata: { unfilteredCount } }] = await Promise.all([
+      const [workspaceAttributes, { results, resultMetadata: { unfilteredCount } }] = await Promise.all([
         getWorkspaceAttributes(),
         Rawls.workspace(namespace, name)
           .paginatedEntitiesOfType(selectedDataType, {
@@ -121,7 +119,7 @@ class WorkspaceDataContent extends Component {
 
 
       this.setState({
-        entities: results, totalRowCount: unfilteredCount, workspaceAttributes: attributes
+        entities: results, totalRowCount: unfilteredCount, workspaceAttributes
       })
     } catch (error) {
       reportError('Error loading workspace data', error)
@@ -137,9 +135,11 @@ class WorkspaceDataContent extends Component {
       _.toPairs,
       _.pickBy(([key]) => key.startsWith('referenceData-')),
       _.reduce((current, [k, v]) => {
-        const [, genome, key] = /referenceData-([^-]+)-(.+)/.exec(k)
+        const [, datum, key] = /referenceData-([^-]+)-(.+)/.exec(k)
 
-        return _.set(genome, _.concat(current[genome], [[key, v]]), current)
+        const existing = current[datum] ? current[datum] : []
+
+        return _.set(datum, _.concat(existing, [[key, v]]), current)
       }, {})
     )(workspaceAttributes)
   }
@@ -180,13 +180,19 @@ class WorkspaceDataContent extends Component {
                 `${type} (${typeDetails.count})`
               ]),
             _.toPairs(entityMetadata))),
-          div({ style: styles.dataTypeHeading }, [
+          div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', ...styles.dataTypeHeading } }, [
             'Reference Data',
             link({ onClick: () => this.setState({ importingReference: true }) }, [icon('plus-circle')])
           ]),
           importingReference &&
-            h(ReferenceDataImporter, { onDismiss: () => this.setState({ importingReference: false }, () => this.loadData()), namespace, name }),
-          div({ style: { borderBottom: `1px solid ${Style.colors.disabled}` } }, _.map(genome => genome, _.keys(referenceData))),
+            h(ReferenceDataImporter, { onDismiss: () => this.setState({ importingReference: false }), onSuccess: () => this.loadData(), namespace, name }),
+          div({ style: { borderBottom: `1px solid ${Style.colors.disabled}` } },
+            _.map(type => div({
+              style: styles.dataTypeOption(selectedDataType === type),
+              onClick: () => this.setState({ selectedDataType: type })
+            }, [icon('table', { style: styles.dataTypeIcon }), type]),
+            _.keys(referenceData))
+          ),
           div({
             style: {
               marginBottom: '1rem', ...styles.dataTypeOption(selectedDataType === globalVariables)
@@ -194,7 +200,7 @@ class WorkspaceDataContent extends Component {
             onClick: () => {
               this.setState(selectedDataType === globalVariables ?
                 { refreshRequested: true } :
-                { selectedDataType: globalVariables, workspaceAttributes: undefined }
+                { selectedDataType: globalVariables }
               )
             }
           }, [
@@ -212,9 +218,12 @@ class WorkspaceDataContent extends Component {
 
   renderData() {
     const { selectedDataType } = this.state
+    const referenceData = this.getReferenceData()
 
     if (selectedDataType === globalVariables) {
       return this.renderGlobalVariables()
+    } else if (_.keys(referenceData).includes(selectedDataType)) {
+      return this.renderReferenceData()
     } else {
       return this.renderEntityTable()
     }
@@ -365,6 +374,30 @@ class WorkspaceDataContent extends Component {
         })
       ])
     )
+  }
+
+  renderReferenceData() {
+    const { namespace } = this.props
+    const { selectedDataType } = this.state
+    const selectedData = _.sortBy('0', this.getReferenceData()[selectedDataType])
+
+    return h(AutoSizer, { disableHeight: true, key: selectedDataType }, [
+      ({ width }) => h(FlexTable, {
+        width, height: 500, rowCount: selectedData.length,
+        columns: [
+          {
+            size: { basis: 400, grow: 0 },
+            headerRenderer: () => h(HeaderCell, ['Name']),
+            cellRenderer: ({ rowIndex }) => renderDataCell(selectedData[rowIndex][0], namespace)
+          },
+          {
+            size: { grow: 1 },
+            headerRenderer: () => h(HeaderCell, ['Value']),
+            cellRenderer: ({ rowIndex }) => renderDataCell(selectedData[rowIndex][1], namespace)
+          }
+        ]
+      })
+    ])
   }
 
   componentDidUpdate(prevProps, prevState) {

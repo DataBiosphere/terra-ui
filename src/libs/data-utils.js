@@ -176,31 +176,44 @@ export class UriViewer extends Component {
 }
 
 export const renderDataCell = (data, namespace) => {
-  const isUri = _.startsWith('gs://', data) || _.startsWith('dos://', data)
+  const isUri = datum => _.startsWith('gs://', datum) || _.startsWith('dos://', datum)
 
-  return h(TextCell, { title: data }, [isUri ? h(UriViewer, { uri: data, googleProject: namespace }) : data])
+  const renderCell = datum => h(TextCell, { title: datum },
+    [isUri(datum) ? h(UriViewer, { uri: datum, googleProject: namespace }) : datum])
+
+  return _.isObject(data) ?
+    data.items.map((v, i) => h(Fragment, { key: v }, [
+      renderCell(v), i < (data.items.length - 1) && div({ style: { marginRight: '0.5rem' } }, ',')
+    ])) :
+    renderCell(data)
 }
 
 export class ReferenceDataImporter extends Component {
   render() {
-    const { onDismiss, namespace, name } = this.props
+    const { onDismiss, onSuccess, namespace, name } = this.props
     const { loading, selectedReference } = this.state
 
     return h(Modal, {
       onDismiss,
       title: 'Add Reference Data',
-      okButton: () => {
-        this.setState({ loading: true })
-        Rawls.workspace(namespace, name).shallowMergeNewAttributes(
-          _.mapKeys(k => `referenceData-${selectedReference}-${k}`, ReferenceData[selectedReference])
-        ).then(
-          onDismiss,
-          error => {
-            reportError('Error importing reference data', error)
-            onDismiss()
-          }
-        )
-      }
+      okButton: buttonPrimary({
+        disabled: !selectedReference,
+        onClick: () => {
+          this.setState({ loading: true })
+          Rawls.workspace(namespace, name).shallowMergeNewAttributes(
+            _.mapKeys(k => `referenceData-${selectedReference}-${k}`, ReferenceData[selectedReference])
+          ).then(
+            () => {
+              onSuccess()
+              onDismiss()
+            },
+            error => {
+              reportError('Error importing reference data', error)
+              onDismiss()
+            }
+          )
+        }
+      }, 'OK')
     }, [
       h(Select, {
         searchable: false,
