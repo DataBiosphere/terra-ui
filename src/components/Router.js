@@ -5,6 +5,8 @@ import AuthContainer from 'src/components/AuthContainer'
 import PageWrapper from 'src/components/PageWrapper'
 import { link } from 'src/components/common'
 import * as Nav from 'src/libs/nav'
+import * as Group from 'src/pages/groups/Group'
+import * as Groups from 'src/pages/groups/List'
 import * as ImportData from 'src/pages/ImportData'
 import * as ImportTool from 'src/pages/ImportTool'
 import * as PrivacyPolicy from 'src/pages/PrivacyPolicy'
@@ -35,6 +37,8 @@ const initNavPaths = () => {
   Tools.addNavPaths()
   NotebookLauncher.addNavPaths()
   Profile.addNavPaths()
+  Groups.addNavPaths()
+  Group.addNavPaths()
 }
 
 export default class Router extends Component {

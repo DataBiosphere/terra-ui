@@ -109,6 +109,14 @@ export class TopBar extends Component {
                   icon('user', { style: styles.nav.popup.icon }), 'Profile'
                 ]),
                 h(MenuButton, {
+                  as: 'a',
+                  style: { display: 'block' },
+                  href: Nav.getLink('groups'),
+                  onClick: () => this.hideNav() // In case we're already there
+                }, [
+                  icon('users', { style: styles.nav.popup.icon }), 'Groups'
+                ]),
+                h(MenuButton, {
                   onClick: signOut
                 }, [
                   icon('logout', { style: styles.nav.popup.icon }), 'Sign Out'
