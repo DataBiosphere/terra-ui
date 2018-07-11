@@ -1,6 +1,7 @@
+import { Fragment } from 'react'
 import { createPortal } from 'react-dom'
 import { a, div, h, span } from 'react-hyperscript-helpers'
-import { Clickable, comingSoon } from 'src/components/common'
+import { Clickable, comingSoon, MenuButton } from 'src/components/common'
 import { icon, logo, profilePic } from 'src/components/icons'
 import PopupTrigger from 'src/components/PopupTrigger'
 import { getBasicProfile, signOut } from 'src/libs/auth'
@@ -40,13 +41,6 @@ const styles = {
       margin: '0 1rem'
     },
     popup: {
-      container: {
-        padding: '0 0.5rem'
-      },
-      link: {
-        display: 'block',
-        margin: '0.75rem 0'
-      },
       icon: {
         marginRight: '0.5rem'
       }
@@ -105,16 +99,16 @@ export class TopBar extends Component {
             ]),
             h(PopupTrigger, {
               position: 'bottom',
-              content: div({ style: styles.nav.popup.container }, [
-                a({
-                  style: styles.nav.popup.link,
+              content: h(Fragment, [
+                h(MenuButton, {
+                  as: 'a',
+                  style: { display: 'block' },
                   href: Nav.getLink('profile'),
                   onClick: () => this.hideNav() // In case we're already there
                 }, [
                   icon('user', { style: styles.nav.popup.icon }), 'Profile'
                 ]),
-                h(Clickable, {
-                  style: styles.nav.popup.link,
+                h(MenuButton, {
                   onClick: signOut
                 }, [
                   icon('logout', { style: styles.nav.popup.icon }), 'Sign Out'
