@@ -269,6 +269,7 @@ class WorkflowViewContent extends Component {
                   const { name, optional, error } = data[rowIndex]
                   return div({ style: { display: 'flex', alignItems: 'center', width: '100%' } }, [
                     h(AutocompleteTextInput, {
+                      spellCheck: false,
                       placeholder: optional ? 'Optional' : 'Required',
                       value: modifiedConfig[key][name] || '',
                       onChange: v => this.setState(_.set(['modifiedConfig', key, name], v)),
