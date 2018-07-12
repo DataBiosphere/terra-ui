@@ -96,7 +96,7 @@ const JobHistory = wrapWorkspace({
   breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
   title: 'Job History', activeTab: 'job history'
 },
-class extends Component {
+class JobHistoryContent extends Component {
   constructor(props) {
     super(props)
 

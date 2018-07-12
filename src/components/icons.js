@@ -2,8 +2,9 @@ import '@webcomponents/custom-elements' // must be before icons
 
 import { ClarityIcons } from '@clr/icons'
 import '@clr/icons/clr-icons.css'
-import { ClrShapeBan, ClrShapeSync, ClrShapeTimesCircle, ClrShapeViewCards, ClrShapeViewList } from '@clr/icons/shapes/essential-shapes'
-import { ClrShapePause, ClrShapePlay } from '@clr/icons/shapes/media-shapes'
+import '@clr/icons/shapes/essential-shapes'
+import '@clr/icons/shapes/media-shapes'
+import '@clr/icons/shapes/technology-shapes'
 import _ from 'lodash/fp'
 import { h, img } from 'react-hyperscript-helpers'
 import caretDown from 'src/icons/caret-down.svg'
@@ -19,8 +20,6 @@ import * as Style from 'src/libs/style'
 
 
 ClarityIcons.add({
-  'ban': ClrShapeBan, 'sync': ClrShapeSync, 'times-circle': ClrShapeTimesCircle, 'view-cards': ClrShapeViewCards, 'view-list': ClrShapeViewList,
-  'play': ClrShapePlay, 'pause': ClrShapePause,
   loadingSpinner, logoIcon, logoGrey, table, jupyterIcon, checkSquare, caretDown, square
 })
 

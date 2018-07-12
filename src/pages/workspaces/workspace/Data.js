@@ -1,17 +1,17 @@
-import _ from 'lodash/fp'
 import clipboard from 'clipboard-polyfill'
+import _ from 'lodash/fp'
 import { createRef, Fragment } from 'react'
 import { div, form, h, input } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { buttonPrimary, spinnerOverlay } from 'src/components/common'
+import { buttonPrimary, link, spinnerOverlay } from 'src/components/common'
 import { icon, spinner } from 'src/components/icons'
 import { FlexTable, GridTable, HeaderCell, paginator } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { Rawls } from 'src/libs/ajax'
 import * as auth from 'src/libs/auth'
 import * as Config from 'src/libs/config'
-import { renderDataCell } from 'src/libs/data-utils'
+import { ReferenceDataImporter, renderDataCell } from 'src/libs/data-utils'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
@@ -39,7 +39,7 @@ const styles = {
     margin: '1rem', width: '100%',
     textAlign: hasSelection ? undefined : 'center'
   }),
-  dataModelHeading: {
+  dataTypeHeading: {
     fontWeight: 500, padding: '0.5rem 1rem',
     borderBottom: `1px solid ${Style.colors.background}`
   },
@@ -72,7 +72,7 @@ const WorkspaceData = wrapWorkspace({
   breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
   title: 'Data', activeTab: 'data'
 },
-class extends Component {
+class WorkspaceDataContent extends Component {
   constructor(props) {
     super(props)
 
@@ -81,6 +81,7 @@ class extends Component {
       pageNumber: 1,
       sort: initialSort,
       loading: false,
+      workspaceAttributes: props.workspace.workspace.attributes,
       ...StateHistory.get()
     }
     this.downloadForm = createRef()
@@ -100,33 +101,43 @@ class extends Component {
     const { namespace, name } = this.props
     const { itemsPerPage, pageNumber, sort, selectedDataType } = this.state
 
-    if (!selectedDataType) {
-      return
-    }
-    try {
-      this.setState({ loading: true, refreshRequested: false })
+    const getWorkspaceAttributes = async () => (await Rawls.workspace(namespace, name).details()).workspace.attributes
 
-      if (selectedDataType === globalVariables) {
-        const { workspace: { attributes } } = await Rawls.workspace(namespace, name).details()
-        this.setState({
-          workspaceAttributes: _.flow(
-            _.toPairs,
-            _.remove(([key]) => key === 'description' || key.includes(':')),
-            _.sortBy(_.first)
-          )(attributes)
-        })
-      } else {
-        const { results, resultMetadata: { unfilteredCount } } =
-          await Rawls.workspace(namespace, name).paginatedEntitiesOfType(selectedDataType, {
-            page: pageNumber, pageSize: itemsPerPage, sortField: sort.field, sortDirection: sort.direction
-          })
-        this.setState({ entities: results, totalRowCount: unfilteredCount })
+    if (!selectedDataType) {
+      this.setState({ workspaceAttributes: await getWorkspaceAttributes() })
+    } else {
+      try {
+        this.setState({ loading: true, refreshRequested: false })
+
+        const [workspaceAttributes, { results, resultMetadata: { unfilteredCount } }] = await Promise.all([
+          getWorkspaceAttributes(),
+          Rawls.workspace(namespace, name)
+            .paginatedEntitiesOfType(selectedDataType, {
+              page: pageNumber, pageSize: itemsPerPage, sortField: sort.field, sortDirection: sort.direction
+            })
+        ])
+
+        this.setState({ entities: results, totalRowCount: unfilteredCount, workspaceAttributes })
+      } catch (error) {
+        reportError('Error loading workspace data', error)
+      } finally {
+        this.setState({ loading: false })
       }
-    } catch (error) {
-      reportError('Error loading workspace data', error)
-    } finally {
-      this.setState({ loading: false })
     }
+  }
+
+  getReferenceData() {
+    const { workspaceAttributes } = this.state
+
+    return _.flow(
+      _.toPairs,
+      _.filter(([key]) => key.startsWith('referenceData-')),
+      _.map(([k, value]) => {
+        const [, datum, key] = /referenceData-([^-]+)-(.+)/.exec(k)
+        return { datum, key, value }
+      }),
+      _.groupBy('datum')
+    )(workspaceAttributes)
   }
 
   async componentDidMount() {
@@ -142,13 +153,15 @@ class extends Component {
   }
 
   render() {
-    const { selectedDataType, entityMetadata, loading } = this.state
+    const { namespace, name } = this.props
+    const { selectedDataType, entityMetadata, loading, importingReference } = this.state
+    const referenceData = this.getReferenceData()
 
     return div({ style: styles.tableContainer }, [
       !entityMetadata ? spinnerOverlay : h(Fragment, [
         div({ style: styles.dataTypeSelectionPanel }, [
-          div({ style: styles.dataModelHeading }, 'Data Model'),
-          !_.isEmpty(entityMetadata) && div({ style: { borderBottom: `1px solid ${Style.colors.background}` } },
+          div({ style: styles.dataTypeHeading }, 'Data Model'),
+          !_.isEmpty(entityMetadata) && div({ style: { borderBottom: `1px solid ${Style.colors.disabled}` } },
             _.map(([type, typeDetails]) =>
               div({
                 style: styles.dataTypeOption(selectedDataType === type),
@@ -163,6 +176,23 @@ class extends Component {
                 `${type} (${typeDetails.count})`
               ]),
             _.toPairs(entityMetadata))),
+          div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', ...styles.dataTypeHeading } }, [
+            'Reference Data',
+            link({ onClick: () => this.setState({ importingReference: true }) }, [icon('plus-circle')])
+          ]),
+          importingReference &&
+            h(ReferenceDataImporter, {
+              onDismiss: () => this.setState({ importingReference: false }),
+              onSuccess: () => this.setState({ importingReference: false }, () => this.loadData()),
+              namespace, name
+            }),
+          div({ style: { borderBottom: `1px solid ${Style.colors.disabled}` } },
+            _.map(type => div({
+              style: styles.dataTypeOption(selectedDataType === type),
+              onClick: () => this.setState({ selectedDataType: type })
+            }, [icon('table', { style: styles.dataTypeIcon }), type]),
+            _.keys(referenceData))
+          ),
           div({
             style: {
               marginBottom: '1rem', ...styles.dataTypeOption(selectedDataType === globalVariables)
@@ -170,7 +200,7 @@ class extends Component {
             onClick: () => {
               this.setState(selectedDataType === globalVariables ?
                 { refreshRequested: true } :
-                { selectedDataType: globalVariables, workspaceAttributes: undefined }
+                { selectedDataType: globalVariables }
               )
             }
           }, [
@@ -188,9 +218,12 @@ class extends Component {
 
   renderData() {
     const { selectedDataType } = this.state
+    const referenceData = this.getReferenceData()
 
     if (selectedDataType === globalVariables) {
       return this.renderGlobalVariables()
+    } else if (_.keys(referenceData).includes(selectedDataType)) {
+      return this.renderReferenceData()
     } else {
       return this.renderEntityTable()
     }
@@ -314,28 +347,57 @@ class extends Component {
   renderGlobalVariables() {
     const { namespace } = this.props
     const { workspaceAttributes } = this.state
+    const filteredAttributes = _.flow(
+      _.toPairs,
+      _.remove(([key]) => key === 'description' || key.includes(':') || key.startsWith('referenceData-')),
+      _.sortBy(_.first)
+    )(workspaceAttributes)
 
     return Utils.cond(
-      [!workspaceAttributes, () => undefined],
-      [_.isEmpty(workspaceAttributes), () => 'No Global Variables defined'],
+      [!filteredAttributes, () => undefined],
+      [_.isEmpty(filteredAttributes), () => 'No Global Variables defined'],
       () => h(AutoSizer, { disableHeight: true }, [
         ({ width }) => h(FlexTable, {
-          width, height: 500, rowCount: workspaceAttributes.length,
+          width, height: 500, rowCount: filteredAttributes.length,
           columns: [
             {
               size: { basis: 400, grow: 0 },
               headerRenderer: () => h(HeaderCell, ['Name']),
-              cellRenderer: ({ rowIndex }) => renderDataCell(workspaceAttributes[rowIndex][0], namespace)
+              cellRenderer: ({ rowIndex }) => renderDataCell(filteredAttributes[rowIndex][0], namespace)
             },
             {
               size: { grow: 1 },
               headerRenderer: () => h(HeaderCell, ['Value']),
-              cellRenderer: ({ rowIndex }) => renderDataCell(workspaceAttributes[rowIndex][1], namespace)
+              cellRenderer: ({ rowIndex }) => renderDataCell(filteredAttributes[rowIndex][1], namespace)
             }
           ]
         })
       ])
     )
+  }
+
+  renderReferenceData() {
+    const { namespace } = this.props
+    const { selectedDataType } = this.state
+    const selectedData = _.sortBy('key', this.getReferenceData()[selectedDataType])
+
+    return h(AutoSizer, { disableHeight: true, key: selectedDataType }, [
+      ({ width }) => h(FlexTable, {
+        width, height: 500, rowCount: selectedData.length,
+        columns: [
+          {
+            size: { basis: 400, grow: 0 },
+            headerRenderer: () => h(HeaderCell, ['Name']),
+            cellRenderer: ({ rowIndex }) => renderDataCell(selectedData[rowIndex].key, namespace)
+          },
+          {
+            size: { grow: 1 },
+            headerRenderer: () => h(HeaderCell, ['Value']),
+            cellRenderer: ({ rowIndex }) => renderDataCell(selectedData[rowIndex].value, namespace)
+          }
+        ]
+      })
+    ])
   }
 
   componentDidUpdate(prevProps, prevState) {
