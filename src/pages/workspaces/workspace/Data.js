@@ -105,26 +105,24 @@ class WorkspaceDataContent extends Component {
 
     if (!selectedDataType) {
       this.setState({ workspaceAttributes: await getWorkspaceAttributes() })
-    }
-    try {
-      this.setState({ loading: true, refreshRequested: false })
+    } else {
+      try {
+        this.setState({ loading: true, refreshRequested: false })
 
-      const [workspaceAttributes, { results, resultMetadata: { unfilteredCount } }] = await Promise.all([
-        getWorkspaceAttributes(),
-        Rawls.workspace(namespace, name)
-          .paginatedEntitiesOfType(selectedDataType, {
-            page: pageNumber, pageSize: itemsPerPage, sortField: sort.field, sortDirection: sort.direction
-          })
-      ])
+        const [workspaceAttributes, { results, resultMetadata: { unfilteredCount } }] = await Promise.all([
+          getWorkspaceAttributes(),
+          Rawls.workspace(namespace, name)
+            .paginatedEntitiesOfType(selectedDataType, {
+              page: pageNumber, pageSize: itemsPerPage, sortField: sort.field, sortDirection: sort.direction
+            })
+        ])
 
-
-      this.setState({
-        entities: results, totalRowCount: unfilteredCount, workspaceAttributes
-      })
-    } catch (error) {
-      reportError('Error loading workspace data', error)
-    } finally {
-      this.setState({ loading: false })
+        this.setState({ entities: results, totalRowCount: unfilteredCount, workspaceAttributes })
+      } catch (error) {
+        reportError('Error loading workspace data', error)
+      } finally {
+        this.setState({ loading: false })
+      }
     }
   }
 
@@ -133,14 +131,12 @@ class WorkspaceDataContent extends Component {
 
     return _.flow(
       _.toPairs,
-      _.pickBy(([key]) => key.startsWith('referenceData-')),
-      _.reduce((current, [k, v]) => {
+      _.filter(([key]) => key.startsWith('referenceData-')),
+      _.map(([k, value]) => {
         const [, datum, key] = /referenceData-([^-]+)-(.+)/.exec(k)
-
-        const existing = current[datum] ? current[datum] : []
-
-        return _.set(datum, _.concat(existing, [[key, v]]), current)
-      }, {})
+        return { datum, key, value }
+      }),
+      _.groupBy('datum')
     )(workspaceAttributes)
   }
 
@@ -383,7 +379,7 @@ class WorkspaceDataContent extends Component {
   renderReferenceData() {
     const { namespace } = this.props
     const { selectedDataType } = this.state
-    const selectedData = _.sortBy('0', this.getReferenceData()[selectedDataType])
+    const selectedData = _.sortBy('key', this.getReferenceData()[selectedDataType])
 
     return h(AutoSizer, { disableHeight: true, key: selectedDataType }, [
       ({ width }) => h(FlexTable, {
@@ -392,12 +388,12 @@ class WorkspaceDataContent extends Component {
           {
             size: { basis: 400, grow: 0 },
             headerRenderer: () => h(HeaderCell, ['Name']),
-            cellRenderer: ({ rowIndex }) => renderDataCell(selectedData[rowIndex][0], namespace)
+            cellRenderer: ({ rowIndex }) => renderDataCell(selectedData[rowIndex].key, namespace)
           },
           {
             size: { grow: 1 },
             headerRenderer: () => h(HeaderCell, ['Value']),
-            cellRenderer: ({ rowIndex }) => renderDataCell(selectedData[rowIndex][1], namespace)
+            cellRenderer: ({ rowIndex }) => renderDataCell(selectedData[rowIndex].value, namespace)
           }
         ]
       })
