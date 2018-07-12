@@ -102,7 +102,6 @@ export class TopBar extends Component {
               content: h(Fragment, [
                 h(MenuButton, {
                   as: 'a',
-                  style: { display: 'block' },
                   href: Nav.getLink('profile'),
                   onClick: () => this.hideNav() // In case we're already there
                 }, [
