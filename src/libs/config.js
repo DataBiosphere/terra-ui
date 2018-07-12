@@ -26,6 +26,7 @@ const getConfig = async () => {
 
 export const getAgoraUrlRoot = async () => (await getConfig()).agoraUrlRoot
 export const getDockstoreUrlRoot = async () => (await getConfig()).dockstoreUrlRoot
+export const getFirecloudUrlRoot = async () => (await getConfig()).firecloudUrlRoot
 export const getGoogleClientId = async () => (await getConfig()).googleClientId
 export const getLeoUrlRoot = async () => (await getConfig()).leoUrlRoot
 export const getMarthaUrlRoot = async () => (await getConfig()).marthaUrlRoot

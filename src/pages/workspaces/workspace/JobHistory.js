@@ -3,11 +3,12 @@ import { Fragment } from 'react'
 import { div, h, span, table, tbody, td, tr } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { Clickable, spinnerOverlay } from 'src/components/common'
+import { Clickable, MenuButton, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import PopupTrigger from 'src/components/PopupTrigger'
 import { FlexTable, HeaderCell, TextCell } from 'src/components/table'
 import { Rawls } from 'src/libs/ajax'
+import * as Config from 'src/libs/config'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
@@ -134,8 +135,8 @@ class JobHistoryContent extends Component {
   }
 
   render() {
-    const { namespace } = this.props
-    const { submissions, loading, newSubmissionId, highlightNewSubmission } = this.state
+    const { namespace, name } = this.props
+    const { submissions, loading, newSubmissionId, highlightNewSubmission, firecloudRoot } = this.state
 
     return div({ style: styles.submissionsTable }, [
       submissions && h(AutoSizer, [
@@ -153,19 +154,36 @@ class JobHistoryContent extends Component {
           },
           columns: [
             {
-              headerRenderer: () => h(HeaderCell, ['Workflow']),
+              headerRenderer: () => h(HeaderCell, ['Job']),
               cellRenderer: ({ rowIndex }) => {
-                const { methodConfigurationNamespace, methodConfigurationName, submitter } = submissions[rowIndex]
-                return div({}, [
-                  div({}, [
-                    methodConfigurationNamespace !== namespace && span({ style: styles.deemphasized }, [
-                      `${methodConfigurationNamespace}/`
+                const { methodConfigurationNamespace, methodConfigurationName, submitter, submissionId } = submissions[rowIndex]
+                return h(Fragment, [
+                  div([
+                    div([
+                      methodConfigurationNamespace !== namespace && span({ style: styles.deemphasized }, [
+                        `${methodConfigurationNamespace}/`
+                      ]),
+                      methodConfigurationName
                     ]),
-                    methodConfigurationName
+                    div([
+                      span({ style: styles.deemphasized }, 'Submitted by '),
+                      submitter
+                    ])
                   ]),
-                  div({}, [
-                    span({ style: styles.deemphasized }, 'Submitted by '),
-                    submitter
+                  h(PopupTrigger, {
+                    position: 'bottom',
+                    content: h(MenuButton, {
+                      as: 'a',
+                      href: `${firecloudRoot}/#workspaces/${namespace}/${name}/monitor/${submissionId}`
+                    }, [
+                      icon('circle-arrow right'),
+                      div({ style: { marginLeft: '0.5rem' } }, ['View job details'])
+                    ])
+                  }, [
+                    h(Clickable, {
+                      className: 'hover-only',
+                      style: { marginLeft: 'auto', color: Style.colors.primary }
+                    }, [icon('caretDown', { size: 18 })])
                   ])
                 ])
               }
@@ -201,8 +219,9 @@ class JobHistoryContent extends Component {
     ])
   }
 
-  componentDidMount() {
+  async componentDidMount() {
     this.refresh()
+    this.setState({ firecloudRoot: await Config.getFirecloudUrlRoot() })
   }
 
   componentWillUnmount() {
