@@ -154,7 +154,7 @@ const WorkspaceNotebooks = wrapWorkspace({
   breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
   title: 'Notebooks', activeTab: 'notebooks'
 },
-class extends Component {
+class NotebooksContent extends Component {
   constructor(props) {
     super(props)
     this.state = StateHistory.get()
