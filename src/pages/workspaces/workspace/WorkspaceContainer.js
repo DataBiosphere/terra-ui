@@ -210,7 +210,7 @@ class WorkspaceContainer extends Component {
 
 
 export const wrapWorkspace = ({ breadcrumbs, activeTab, title }, content) => {
-  return class extends Component {
+  return class WorkspaceContainerWrapper extends Component {
     constructor(props) {
       super(props)
       this.child = createRef()

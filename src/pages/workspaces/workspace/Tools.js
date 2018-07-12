@@ -16,7 +16,7 @@ const WorkspaceTools = wrapWorkspace({
   breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
   title: 'Tools', activeTab: 'tools'
 },
-class extends Component {
+class ToolsContent extends Component {
   constructor(props) {
     super(props)
     this.state = { itemsPerPage: 6, pageNumber: 1, ...StateHistory.get() }
