@@ -53,7 +53,7 @@ const WorkflowView = wrapWorkspace({
   breadcrumbs: props => breadcrumbs.commonPaths.workspaceTab(props, 'tools'),
   title: ({ workflowName }) => workflowName, activeTab: 'tools'
 },
-class extends Component {
+class WorkflowViewContent extends Component {
   constructor(props) {
     super(props)
 
@@ -269,6 +269,7 @@ class extends Component {
                   const { name, optional, error } = data[rowIndex]
                   return div({ style: { display: 'flex', alignItems: 'center', width: '100%' } }, [
                     h(AutocompleteTextInput, {
+                      spellCheck: false,
                       placeholder: optional ? 'Optional' : 'Required',
                       value: modifiedConfig[key][name] || '',
                       onChange: v => this.setState(_.set(['modifiedConfig', key, name], v)),

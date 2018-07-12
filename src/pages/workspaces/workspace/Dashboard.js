@@ -13,7 +13,7 @@ export const WorkspaceDashboard = wrapWorkspace({
   breadcrumbs: () => breadcrumbs.commonPaths.workspaceList(),
   activeTab: 'dashboard'
 },
-class extends Component {
+class WorkspaceDashboardContent extends Component {
   render() {
     const { modal } = this.state
     const { workspace } = this.props
