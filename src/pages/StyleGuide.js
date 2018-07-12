@@ -6,7 +6,6 @@ import { icon } from 'src/components/icons'
 import { textInput, validatedInput } from 'src/components/input'
 import PopupTrigger from 'src/components/PopupTrigger'
 import { FlexTable, GridTable, HeaderCell, TextCell } from 'src/components/table'
-import TooltipTrigger from 'src/components/TooltipTrigger'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -143,9 +142,9 @@ class StyleGuide extends Component {
         ])
       ]),
       div({ style: styles.container }, [
-        h(TooltipTrigger, { content: 'Hello there' }, [
-          buttonPrimary({}, 'Tooltip trigger')
-        ])
+        buttonPrimary({
+          tooltip: 'Hello there'
+        }, 'Tooltip trigger')
       ])
     ])
   }
