@@ -17,6 +17,7 @@ Array [
     }
 >
     <clr-icon
+        class={undefined}
         onClick={[Function]}
         shape="bars"
         size={36}
@@ -42,6 +43,7 @@ Array [
         }
     >
         <clr-icon
+            class={undefined}
             shape="logoIcon"
             size={48}
             style={
@@ -78,6 +80,7 @@ Array [
         }
     >
         <clr-icon
+            class={undefined}
             shape="search"
         />
         <input
@@ -159,6 +162,7 @@ Array [
             tabIndex="0"
         >
             <clr-icon
+                class={undefined}
                 shape="view-cards"
                 size={24}
             />
@@ -194,6 +198,7 @@ Array [
             tabIndex="0"
         >
             <clr-icon
+                class={undefined}
                 shape="view-list"
                 size={24}
             />
@@ -255,6 +260,7 @@ Array [
             New Workspace
         </div>
         <clr-icon
+            class={undefined}
             shape="plus-circle"
             size={32}
             style={
