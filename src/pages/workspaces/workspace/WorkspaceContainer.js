@@ -56,7 +56,7 @@ class WorkspaceTabs extends PureComponent {
       return h(Fragment, [
         a({
           style: { ...styles.tab, ...(selected ? styles.activeTab : {}) },
-          onClick: selected ? refresh : undefined,
+          onClick: href === window.location.hash ? refresh : undefined,
           href
         }, tabName),
         navSeparator
