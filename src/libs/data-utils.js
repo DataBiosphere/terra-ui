@@ -9,6 +9,7 @@ import { icon, spinner } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import { TextCell } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
+import DownloadPrices from 'src/data/download-prices'
 import ReferenceData from 'src/data/reference-data'
 import { Buckets, Martha, Rawls } from 'src/libs/ajax'
 import * as Config from 'src/libs/config'
@@ -27,8 +28,8 @@ const els = {
 const isFilePreviewable = name => /\.txt$/.test(name) || /\.[ct]sv$/.test(name) || /\.log/.test(name)
 const parseUri = uri => _.drop(1, /gs:[/][/]([^/]+)[/](.+)/.exec(uri))
 const getMaxDownloadCostNA = async bytes => {
-  const nanos = (await Buckets.getDownloadCostsToNA()).pricingExpression.tieredRates[1].unitPrice.nanos
-  const downloadPrice = bytes * nanos / 1073741824 / 10e8
+  const nanos = DownloadPrices.pricingInfo[0].pricingExpression.tieredRates[1].unitPrice.nanos
+  const downloadPrice = bytes * nanos / DownloadPrices.pricingInfo[0].pricingExpression.baseUnitConversionFactor / 10e8
 
   return downloadPrice < 0.01 ? '< $0.01' : `$${downloadPrice.toPrecision(2)}`
 }
