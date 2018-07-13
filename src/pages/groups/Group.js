@@ -4,12 +4,14 @@ import { a, div, h } from 'react-hyperscript-helpers'
 import { pure } from 'recompose'
 import { Clickable, link, search, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
+import Modal from 'src/components/Modal'
 import { TopBar } from 'src/components/TopBar'
 import { Rawls } from 'src/libs/ajax'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
+import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 
 
@@ -66,7 +68,7 @@ const GroupCard = pure(({ group: { groupName, groupEmail, role }, onDelete }) =>
     div({ style: { flexGrow: 1 } }, [groupEmail]),
     div({ style: { width: 100, display: 'flex', alignItems: 'center' } }, [
       div({ style: { flexGrow: 1 } }, [role]),
-      role === 'Admin' && link({ onClick: onDelete }, [
+      role === 'Admin' && link({ onClick: onDelete, as: 'div' }, [
         icon('trash', { className: 'is-solid', size: 17 })
       ])
     ])
@@ -136,7 +138,7 @@ export class GroupDetails extends Component {
           h(Clickable, {
             style: styles.toolbarButton,
             onClick: () => {}
-          }, [icon('filter', { size: 24 })])
+          }, [icon('filter', { className: 'is-solid', size: 24 })])
         ])
       ]),
       div({ style: styles.cardContainer }, [
@@ -146,15 +148,17 @@ export class GroupDetails extends Component {
         div({ style: { flexGrow: 1 } },
           _.map(group => {
             return h(GroupCard, { group, key: group.groupName })
-          }, groups)
+          }, _.filter(({ groupName }) => Utils.textMatch(filter, groupName), groups))
         ),
         !isDataLoaded && spinnerOverlay
-      ])
-      /*
-       * creatingNewGroup && h(NewGroupModal, {
-       *   onDismiss: () => this.setState({ creatingNewGroup: false })
-       * })
-       */
+      ]),
+      // creatingNewGroup && h(NewGroupModal, {
+      //   onDismiss: () => this.setState({ creatingNewGroup: false }),
+      //   onSuccess: () => {
+      //     this.setState({ creatingNewGroup: false })
+      //     this.refresh()
+      //   }
+      // })
     ])
   }
 
@@ -168,7 +172,7 @@ export class GroupDetails extends Component {
 
 
 export const addNavPaths = () => {
-  Nav.defPath('groups', {
+  Nav.defPath('group', {
     path: '/groups/:groupName',
     component: GroupDetails,
     title: 'Group Management'

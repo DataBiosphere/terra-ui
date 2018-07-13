@@ -162,6 +162,38 @@ export const Rawls = {
     return res.json()
   },
 
+  listGroups: async () => {
+    const res = await fetchRawls('groups', authOpts())
+    return res.json()
+  },
+
+  group: groupName => {
+    const root = `groups/${groupName}`
+
+    return {
+      create: () => {
+        return fetchRawls(root, _.merge(authOpts(), { method: 'POST' }))
+      },
+
+      delete: () => {
+        return fetchRawls(root, _.merge(authOpts(), { method: 'DELETE' }))
+      },
+
+      listMembers: async () => {
+        const res = await fetchRawls(root, authOpts())
+        return res.json()
+      },
+
+      addMember: (role, email) => {
+        return fetchRawls(`${root}/${role}/${email}`, _.merge(authOpts(), { method: 'PUT' }))
+      },
+
+      removeMember: (role, email) => {
+        return fetchRawls(`${root}/${role}/${email}`, _.merge(authOpts(), { method: 'DELETE' }))
+      }
+    }
+  },
+
   listWorkspaces: async () => {
     const res = await fetchRawls('workspaces', authOpts())
     return res.json()
@@ -169,11 +201,6 @@ export const Rawls = {
 
   createWorkspace: async body => {
     const res = await fetchRawls('workspaces', _.mergeAll([authOpts(), jsonBody(body), { method: 'POST' }]))
-    return res.json()
-  },
-
-  listGroups: async () => {
-    const res = await fetchRawls('groups', authOpts())
     return res.json()
   },
 
