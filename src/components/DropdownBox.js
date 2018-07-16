@@ -14,7 +14,7 @@ const styles = {
     alignItems: 'center',
     border: open ? `1px solid ${Style.colors.border}` : undefined,
     color: open ? Style.colors.primary : Style.colors.secondary,
-    backgroundColor: '#ffffff',
+    backgroundColor: open ? 'white' : undefined,
     borderRadius: '5px 5px 0 0',
     cursor: 'pointer'
   }),

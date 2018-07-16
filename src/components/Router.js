@@ -16,6 +16,7 @@ import * as Data from 'src/pages/workspaces/workspace/Data'
 import * as JobHistory from 'src/pages/workspaces/workspace/JobHistory'
 import * as Notebooks from 'src/pages/workspaces/workspace/Notebooks'
 import * as NotebookLauncher from 'src/pages/workspaces/workspace/notebooks/NotebookLauncher'
+import * as TerminalLauncher from 'src/pages/workspaces/workspace/TerminalLauncher'
 import * as Tools from 'src/pages/workspaces/workspace/Tools'
 import * as WorkflowView from 'src/pages/workspaces/workspace/tools/WorkflowView'
 
@@ -35,6 +36,7 @@ const initNavPaths = () => {
   Tools.addNavPaths()
   NotebookLauncher.addNavPaths()
   Profile.addNavPaths()
+  TerminalLauncher.addNavPaths()
 }
 
 export default class Router extends Component {
