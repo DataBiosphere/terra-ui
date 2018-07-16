@@ -78,15 +78,55 @@ class NewUserModal extends Component {
   }
 }
 
-const EditUserModal = pure(({ onDismiss, onSubmit }) => {
-  return h(Modal, {
-    onDismiss,
-    title: 'Edit Roles',
-    okButton: buttonPrimary({
-      onClick: onSubmit
-    }, ['Change Role'])
-  })
-})
+class EditUserModal extends Component {
+  constructor(props) {
+    super(props)
+    this.state = {
+      role: props.user.role
+    }
+  }
+
+  render() {
+    const { onDismiss, user: { email } } = this.props
+    const { role, submitting } = this.state
+
+    return h(Modal, {
+      onDismiss,
+      title: 'Edit Roles',
+      okButton: buttonPrimary({
+        onClick: () => this.submit()
+      }, ['Change Role'])
+    }, [
+      div({ style: { marginBottom: '0.25rem' } }, [
+        'Edit role for ',
+        b([email])
+      ]),
+      h(RadioButton, {
+        text: 'Admin', checked: role === 'admin',
+        onChange: () => this.setState({ role: 'admin' })
+      }),
+      h(RadioButton, {
+        text: 'Member', checked: role === 'member',
+        onChange: () => this.setState({ role: 'member' })
+      }),
+      submitting && spinnerOverlay
+    ])
+  }
+
+  async submit() {
+    const { groupName, user: { email }, onSuccess } = this.props
+    const { role } = this.state
+
+    try {
+      this.setState({ submitting: true })
+      await Rawls.group(groupName).changeMemberRole(email, this.props.user.role, role)
+      onSuccess()
+    } catch (error) {
+      this.setState({ submitting: false })
+      reportError('Error updating user', error)
+    }
+  }
+}
 
 const DeleteUserModal = pure(({ onDismiss, onSubmit, userEmail }) => {
   return h(Modal, {
@@ -146,10 +186,10 @@ export class GroupDetails extends Component {
       const { membersEmails, adminsEmails } = await Rawls.group(groupName).listMembers()
       this.setState({
         isDataLoaded: true,
-        members: _.concat(
+        members: _.sortBy('email', _.concat(
           _.map(adm => ({ email: adm, role: 'admin' }), adminsEmails),
           _.map(mem => ({ email: mem, role: 'member' }), membersEmails)
-        )
+        ))
       })
     } catch (error) {
       reportError('Error loading group list', error)
@@ -210,8 +250,9 @@ export class GroupDetails extends Component {
         }
       }),
       editingUser && h(EditUserModal, {
+        user: editingUser, groupName,
         onDismiss: () => this.setState({ editingUser: false }),
-        onSubmit: () => {
+        onSuccess: () => {
           this.setState({ editingUser: false })
           this.refresh()
         }
