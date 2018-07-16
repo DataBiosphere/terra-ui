@@ -174,6 +174,7 @@ export class GroupDetails extends Component {
       creatingNewUser: false,
       editingUser: false,
       deletingUser: false,
+      updating: false,
       ...StateHistory.get()
     }
   }
@@ -182,7 +183,7 @@ export class GroupDetails extends Component {
     const { groupName } = this.props
 
     try {
-      this.setState({ isDataLoaded: false })
+      this.setState({ isDataLoaded: false, creatingNewUser: false, editingUser: false, deletingUser: false, updating: false })
       const { membersEmails, adminsEmails } = await Rawls.group(groupName).listMembers()
       this.setState({
         isDataLoaded: true,
@@ -218,12 +219,6 @@ export class GroupDetails extends Component {
       div({ style: styles.toolbarContainer }, [
         div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, [
           `Group Management: ${groupName}`
-        ]),
-        div({ style: styles.toolbarButtons }, [
-          h(Clickable, {
-            style: styles.toolbarButton,
-            onClick: () => {}
-          }, [icon('filter', { className: 'is-solid', size: 24 })])
         ])
       ]),
       div({ style: styles.cardContainer }, [
@@ -244,18 +239,12 @@ export class GroupDetails extends Component {
       creatingNewUser && h(NewUserModal, {
         groupName,
         onDismiss: () => this.setState({ creatingNewUser: false }),
-        onSuccess: () => {
-          this.setState({ creatingNewUser: false })
-          this.refresh()
-        }
+        onSuccess: () => this.refresh()
       }),
       editingUser && h(EditUserModal, {
         user: editingUser, groupName,
         onDismiss: () => this.setState({ editingUser: false }),
-        onSuccess: () => {
-          this.setState({ editingUser: false })
-          this.refresh()
-        }
+        onSuccess: () => this.refresh()
       }),
       deletingUser && h(DeleteUserModal, {
         userEmail: deletingUser.email,
@@ -264,9 +253,9 @@ export class GroupDetails extends Component {
           try {
             this.setState({ updating: true, deletingUser: false })
             await Rawls.group(groupName).removeMember(deletingUser.role, deletingUser.email)
-            this.setState({ updating: false })
             this.refresh()
           } catch (error) {
+            this.setState({ updating: false })
             reportError('Error removing member from group', error)
           }
         }

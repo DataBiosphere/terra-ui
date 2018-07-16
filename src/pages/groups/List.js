@@ -134,13 +134,14 @@ export class GroupList extends Component {
       groups: null,
       creatingNewGroup: false,
       deletingGroup: false,
+      updating: false,
       ...StateHistory.get()
     }
   }
 
   async refresh() {
     try {
-      this.setState({ isDataLoaded: false })
+      this.setState({ isDataLoaded: false, creatingNewGroup: false, deletingGroup: false, updating: false })
       const groups = await Rawls.listGroups()
       this.setState({
         isDataLoaded: true,
@@ -156,7 +157,7 @@ export class GroupList extends Component {
   }
 
   render() {
-    const { groups, isDataLoaded, filter, creatingNewGroup, deletingGroup, deleting } = this.state
+    const { groups, isDataLoaded, filter, creatingNewGroup, deletingGroup, updating } = this.state
 
     return h(Fragment, [
       h(TopBar, { title: 'Groups', href: Nav.getLink('groups') }, [
@@ -172,12 +173,6 @@ export class GroupList extends Component {
       div({ style: styles.toolbarContainer }, [
         div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, [
           'Group Management'
-        ]),
-        div({ style: styles.toolbarButtons }, [
-          h(Clickable, {
-            style: styles.toolbarButton,
-            onClick: () => {}
-          }, [icon('filter', { className: 'is-solid', size: 24 })])
         ])
       ]),
       div({ style: styles.cardContainer }, [
@@ -196,26 +191,23 @@ export class GroupList extends Component {
       ]),
       creatingNewGroup && h(NewGroupModal, {
         onDismiss: () => this.setState({ creatingNewGroup: false }),
-        onSuccess: () => {
-          this.setState({ creatingNewGroup: false })
-          this.refresh()
-        }
+        onSuccess: () => this.refresh()
       }),
       deletingGroup && h(DeleteGroupModal, {
         groupName: deletingGroup.groupName,
         onDismiss: () => this.setState({ deletingGroup: false }),
         onSubmit: async () => {
           try {
-            this.setState({ deletingGroup: false, deleting: true })
+            this.setState({ deletingGroup: false, updating: true })
             await Rawls.group(deletingGroup.groupName).delete()
-            this.setState({ deleting: false })
             this.refresh()
           } catch (error) {
+            this.setState({ updating: false })
             reportError('Error deleting group', error)
           }
         }
       }),
-      deleting && spinnerOverlay
+      updating && spinnerOverlay
     ])
   }
 

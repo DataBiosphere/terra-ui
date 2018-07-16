@@ -27,16 +27,7 @@ export const styles = {
   },
   toolbarContainer: {
     flex: 'none', display: 'flex', alignItems: 'flex-end',
-    margin: '1rem 4rem 2rem 5rem'
-  },
-  toolbarButtons: {
-    marginLeft: 'auto', display: 'flex',
-    backgroundColor: 'white', borderRadius: 3
-  },
-  toolbarButton: {
-    display: 'flex', justifyContent: 'center', alignItems: 'center',
-    height: '2.25rem', width: '3rem',
-    color: Style.colors.secondary
+    margin: '2rem 4rem 2rem 5rem'
   },
   formLabel: {
     ...Style.elements.sectionHeader,
