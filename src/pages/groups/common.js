@@ -4,21 +4,21 @@ import * as Style from 'src/libs/style'
 export const styles = {
   cardContainer: {
     position: 'relative',
-    padding: '0 4rem',
+    padding: '0 4rem 0 5rem',
     display: 'flex', flexWrap: 'wrap'
   },
   shortCreateCard: {
     ...Style.elements.card,
     display: 'flex', flexDirection: 'column', justifyContent: 'center',
     width: 180, height: 100,
-    margin: '0.25rem 0.5rem',
+    margin: '0.25rem 1rem 0 0',
     color: Style.colors.secondary, fontSize: 18, lineHeight: '22px'
   },
   longCard: {
     ...Style.elements.card,
     display: 'flex', alignItems: 'center',
     width: '100%', minWidth: 0,
-    margin: '0.25rem 0.5rem',
+    margin: '0.25rem 0.5rem 0.5rem 0',
     fontSize: 13
   },
   longTitle: {
@@ -27,7 +27,7 @@ export const styles = {
   },
   toolbarContainer: {
     flex: 'none', display: 'flex', alignItems: 'flex-end',
-    margin: '1rem 4.5rem 2rem'
+    margin: '1rem 4rem 2rem 5rem'
   },
   toolbarButtons: {
     marginLeft: 'auto', display: 'flex',
