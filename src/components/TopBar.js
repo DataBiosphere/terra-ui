@@ -149,6 +149,9 @@ export class TopBar extends Component {
   }
 
   render() {
+    const { title, href, children } = this.props
+    const { navShown } = this.state
+
     return div({ style: styles.topBar }, [
       icon('bars', {
         size: 36,
@@ -157,18 +160,18 @@ export class TopBar extends Component {
       }),
       a({
         style: { ...Style.elements.pageTitle, display: 'flex', alignItems: 'center' },
-        href: Nav.getLink('workspaces')
+        href: href || Nav.getLink('workspaces')
       }, [
         logo(),
         div({}, [
           div({
             style: { fontSize: '0.8rem', color: Style.colors.titleAlt, marginLeft: '0.1rem' }
           }, ['Saturn']),
-          this.props.title
+          title
         ])
       ]),
-      this.props.children,
-      this.state.navShown && this.buildNav()
+      children,
+      navShown && this.buildNav()
     ])
   }
 }

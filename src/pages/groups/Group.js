@@ -205,7 +205,7 @@ export class GroupDetails extends Component {
     const { groupName } = this.props
 
     return h(Fragment, [
-      h(TopBar, { title: 'Groups' }, [
+      h(TopBar, { title: 'Groups', href: Nav.getLink('groups') }, [
         search({
           wrapperProps: { style: { marginLeft: '2rem', flexGrow: 1, maxWidth: 500 } },
           inputProps: {
