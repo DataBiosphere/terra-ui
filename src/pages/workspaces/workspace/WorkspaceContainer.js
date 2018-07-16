@@ -56,6 +56,7 @@ class WorkspaceTabs extends PureComponent {
       return h(Fragment, [
         a({
           style: { ...styles.tab, ...(selected ? styles.activeTab : {}) },
+          // some pages highlight a tab even when they're not on that url
           onClick: href === window.location.hash ? refresh : undefined,
           href
         }, tabName),
