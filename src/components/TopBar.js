@@ -13,7 +13,7 @@ import { Component } from 'src/libs/wrapped-components'
 const styles = {
   topBar: {
     flex: 'none', height: 80,
-    backgroundColor: 'white', paddingLeft: '1rem', paddingRight: '1rem',
+    backgroundColor: 'white', paddingLeft: '1rem',
     display: 'flex', alignItems: 'center',
     borderBottom: `2px solid ${Style.colors.secondary}`
   },
