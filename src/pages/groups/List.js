@@ -1,9 +1,10 @@
 import _ from 'lodash/fp'
 import { Fragment } from 'react'
-import { a, div, h } from 'react-hyperscript-helpers'
+import { a, b, div, h } from 'react-hyperscript-helpers'
 import { pure } from 'recompose'
 import { buttonPrimary, Clickable, link, search, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
+import { validatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { TopBar } from 'src/components/TopBar'
 import { Rawls } from 'src/libs/ajax'
@@ -14,23 +15,82 @@ import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 import { styles } from 'src/pages/groups/common'
+import { validate } from 'validate.js'
 
 
-class NewGroupModal extends Component {
-  render() {
-    const { onDismiss, onSuccess } = this.props
-
-    return [
-      h(Modal, {
-        onDismiss,
-        title: 'Create New Group',
-        okButton: buttonPrimary({
-          onClick: onSuccess
-        })
-      })
-    ]
+const groupNameValidator = {
+  presence: { allowEmpty: false },
+  format: {
+    pattern: /[A-Za-z0-9_-]*$/,
+    message: 'can only contain letters, numbers, underscores, and dashes'
   }
 }
+
+class NewGroupModal extends Component {
+  constructor(props) {
+    super(props)
+    this.state = {
+      groupName: '',
+      groupNameTouched: false
+    }
+  }
+
+  render() {
+    const { onDismiss } = this.props
+    const { groupName, groupNameTouched, submitting } = this.state
+
+    const errors = validate({ groupName }, { groupName: groupNameValidator })
+
+    return h(Modal, {
+      onDismiss,
+      title: 'Create New Group',
+      okButton: buttonPrimary({
+        disabled: !groupName || errors,
+        onClick: () => this.submit()
+      }, ['Create Group'])
+    }, [
+      div({ style: styles.formLabel }, ['Enter a unique name']),
+      validatedInput({
+        inputProps: {
+          value: groupName,
+          onChange: e => this.setState({ groupName: e.target.value, groupNameTouched: true })
+        },
+        error: groupNameTouched && Utils.summarizeErrors(errors && errors.groupName)
+      }),
+      !(groupNameTouched && errors) && div({ style: { fontSize: 'smaller', marginTop: '0.25rem' } }, [
+        'Only letters, numbers, underscores, and dashes allowed'
+      ]),
+      submitting && spinnerOverlay
+    ])
+  }
+
+  async submit() {
+    const { onSuccess } = this.props
+    const { groupName } = this.state
+
+    try {
+      this.setState({ submitting: true })
+      await Rawls.group(groupName).create()
+      onSuccess()
+    } catch (error) {
+      this.setState({ submitting: false })
+      reportError('Error creating group', error)
+    }
+  }
+}
+
+const DeleteGroupModal = pure(({ groupName, onDismiss, onSubmit }) => {
+  return h(Modal, {
+    onDismiss,
+    title: 'Confirm',
+    okButton: buttonPrimary({
+      onClick: onSubmit
+    }, ['Delete Group'])
+  }, [
+    'Are you sure you want to delete the group ',
+    b([`${groupName}?`])
+  ])
+})
 
 const GroupCard = pure(({ group: { groupName, groupEmail, role }, onDelete }) => {
   const isAdmin = role === 'Admin'
@@ -48,7 +108,7 @@ const GroupCard = pure(({ group: { groupName, groupEmail, role }, onDelete }) =>
     div({ style: { flexGrow: 1 } }, [groupEmail]),
     div({ style: { width: 100, display: 'flex', alignItems: 'center' } }, [
       div({ style: { flexGrow: 1 } }, [role]),
-      isAdmin && link({ onClick: onDelete, as: 'div' }, [
+      isAdmin && link({ onClick: e => { e.preventDefault(); onDelete() }, as: 'div' }, [
         icon('trash', { className: 'is-solid', size: 17 })
       ])
     ])
@@ -73,6 +133,7 @@ export class GroupList extends Component {
       filter: '',
       groups: null,
       creatingNewGroup: false,
+      deletingGroup: false,
       ...StateHistory.get()
     }
   }
@@ -95,7 +156,7 @@ export class GroupList extends Component {
   }
 
   render() {
-    const { groups, isDataLoaded, filter, creatingNewGroup } = this.state
+    const { groups, isDataLoaded, filter, creatingNewGroup, deletingGroup, deleting } = this.state
 
     return h(Fragment, [
       h(TopBar, { title: 'Groups', href: Nav.getLink('groups') }, [
@@ -125,7 +186,10 @@ export class GroupList extends Component {
         }),
         div({ style: { flexGrow: 1 } },
           _.map(group => {
-            return h(GroupCard, { group, key: group.groupName })
+            return h(GroupCard, {
+              group, key: group.groupName,
+              onDelete: () => this.setState({ deletingGroup: group })
+            })
           }, _.filter(({ groupName }) => Utils.textMatch(filter, groupName), groups))
         ),
         !isDataLoaded && spinnerOverlay
@@ -136,7 +200,22 @@ export class GroupList extends Component {
           this.setState({ creatingNewGroup: false })
           this.refresh()
         }
-      })
+      }),
+      deletingGroup && h(DeleteGroupModal, {
+        groupName: deletingGroup.groupName,
+        onDismiss: () => this.setState({ deletingGroup: false }),
+        onSubmit: async () => {
+          try {
+            this.setState({ deletingGroup: false, deleting: true })
+            await Rawls.group(deletingGroup.groupName).delete()
+            this.setState({ deleting: false })
+            this.refresh()
+          } catch (error) {
+            reportError('Error deleting group', error)
+          }
+        }
+      }),
+      deleting && spinnerOverlay
     ])
   }
 
