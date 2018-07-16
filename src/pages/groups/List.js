@@ -71,20 +71,22 @@ class NewGroupModal extends Component {
 }
 
 const GroupCard = pure(({ group: { groupName, groupEmail, role }, onDelete }) => {
+  const isAdmin = role === 'Admin'
+
   return a({
-    href: role === 'Admin' ? Nav.getLink('group', { groupName }) : undefined,
+    href: isAdmin ? Nav.getLink('group', { groupName }) : undefined,
     style: styles.longCard
   }, [
     div({
       style: {
-        width: '30%', color: role === 'Admin' ? Style.colors.secondary : undefined,
+        width: '30%', color: isAdmin ? Style.colors.secondary : undefined,
         ...styles.longTitle
       }
     }, [groupName]),
     div({ style: { flexGrow: 1 } }, [groupEmail]),
     div({ style: { width: 100, display: 'flex', alignItems: 'center' } }, [
       div({ style: { flexGrow: 1 } }, [role]),
-      role === 'Admin' && link({ onClick: onDelete, as: 'div' }, [
+      isAdmin && link({ onClick: onDelete, as: 'div' }, [
         icon('trash', { className: 'is-solid', size: 17 })
       ])
     ])

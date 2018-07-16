@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { a, div, h } from 'react-hyperscript-helpers'
 import { pure } from 'recompose'
-import { Clickable, link, search, spinnerOverlay } from 'src/components/common'
+import { buttonPrimary, Clickable, link, search, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import { TopBar } from 'src/components/TopBar'
@@ -54,34 +54,49 @@ const styles = {
   }
 }
 
-const GroupCard = pure(({ group: { groupName, groupEmail, role }, onDelete }) => {
-  return a({
-    // href: role === 'Admin' ? Nav.getLink('group', { groupName }) : undefined,
+class NewUserModal extends Component {
+  render() {
+    const { onDismiss, onSuccess } = this.props
+
+    return [
+      h(Modal, {
+        onDismiss,
+        title: 'Add user to Saturn Group',
+        okButton: buttonPrimary({
+          onClick: onDismiss
+        })
+      })
+    ]
+  }
+}
+
+const MemberCard = pure(({ member: { email, isAdmin }, onDelete }) => {
+  return div({
     style: styles.longCard
   }, [
-    div({
-      style: {
-        width: '30%', color: role === 'Admin' ? Style.colors.secondary : undefined,
-        ...styles.longTitle
-      }
-    }, [groupName]),
-    div({ style: { flexGrow: 1 } }, [groupEmail]),
-    div({ style: { width: 100, display: 'flex', alignItems: 'center' } }, [
-      div({ style: { flexGrow: 1 } }, [role]),
-      role === 'Admin' && link({ onClick: onDelete, as: 'div' }, [
-        icon('trash', { className: 'is-solid', size: 17 })
-      ])
-    ])
+    div({}, email)
+    // div({
+    //   style: {
+    //     width: '30%', color: role === 'Admin' ? Style.colors.secondary : undefined,
+    //     ...styles.longTitle
+    //   }
+    // }, [groupName]),
+    // div({ style: { flexGrow: 1 } }, [groupEmail]),
+    // div({ style: { width: 100, display: 'flex', alignItems: 'center' } }, [
+    //   div({ style: { flexGrow: 1 } }, [role]),
+    //   role === 'Admin' && link({ onClick: onDelete, as: 'div' }, [
+    //     icon('trash', { className: 'is-solid', size: 17 })
+    //   ])
+    // ])
   ])
 })
 
-const NewGroupCard = pure(({ onClick }) => {
+const NewUserCard = pure(({ onClick }) => {
   return h(Clickable, {
     style: styles.shortCreateCard,
     onClick
   }, [
-    div(['Create a']),
-    div(['New Group']),
+    div(['Add a User']),
     icon('plus-circle', { style: { marginTop: '0.5rem' }, size: 21 })
   ])
 })
@@ -91,19 +106,24 @@ export class GroupDetails extends Component {
     super(props)
     this.state = {
       filter: '',
-      groups: null,
-      creatingNewGroup: false,
+      members: null,
+      creatingNewUser: false,
       ...StateHistory.get()
     }
   }
 
   async refresh() {
+    const { groupName } = this.props
+
     try {
       this.setState({ isDataLoaded: false })
-      const groups = await Rawls.listGroups()
+      const { membersEmails, adminsEmails } = await Rawls.group(groupName).listMembers()
       this.setState({
         isDataLoaded: true,
-        groups: _.sortBy('group.groupName', groups)
+        members: _.concat(
+          _.map(adm => ({ email: adm, isAdmin: true }), adminsEmails),
+          _.map(mem => ({ email: mem, isAdmin: false }), membersEmails)
+        )
       })
     } catch (error) {
       reportError('Error loading group list', error)
@@ -115,24 +135,23 @@ export class GroupDetails extends Component {
   }
 
   render() {
-    const { groups, isDataLoaded, filter, creatingNewGroup } = this.state
+    const { members, isDataLoaded, filter, creatingNewUser } = this.state
+    const { groupName } = this.props
 
     return h(Fragment, [
-      h(TopBar, { title: 'Groups' },
-        [
-          search({
-            wrapperProps: { style: { marginLeft: '2rem', flexGrow: 1, maxWidth: 500 } },
-            inputProps: {
-              placeholder: 'SEARCH GROUPS',
-              onChange: e => this.setState({ filter: e.target.value }),
-              value: filter
-            }
-          })
-        ]
-      ),
+      h(TopBar, { title: 'Groups' }, [
+        search({
+          wrapperProps: { style: { marginLeft: '2rem', flexGrow: 1, maxWidth: 500 } },
+          inputProps: {
+            placeholder: 'SEARCH GROUP',
+            onChange: e => this.setState({ filter: e.target.value }),
+            value: filter
+          }
+        })
+      ]),
       div({ style: styles.toolbarContainer }, [
         div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, [
-          'Group Management'
+          `Group Management: ${groupName}`
         ]),
         div({ style: styles.toolbarButtons }, [
           h(Clickable, {
@@ -142,29 +161,29 @@ export class GroupDetails extends Component {
         ])
       ]),
       div({ style: styles.cardContainer }, [
-        h(NewGroupCard, {
-          onClick: () => this.setState({ creatingNewGroup: true })
+        h(NewUserCard, {
+          onClick: () => this.setState({ creatingNewUser: true })
         }),
         div({ style: { flexGrow: 1 } },
-          _.map(group => {
-            return h(GroupCard, { group, key: group.groupName })
-          }, _.filter(({ groupName }) => Utils.textMatch(filter, groupName), groups))
+          _.map(member => {
+            return h(MemberCard, { member })
+          }, _.filter(({ email }) => Utils.textMatch(filter, email), members))
         ),
         !isDataLoaded && spinnerOverlay
       ]),
-      // creatingNewGroup && h(NewGroupModal, {
-      //   onDismiss: () => this.setState({ creatingNewGroup: false }),
-      //   onSuccess: () => {
-      //     this.setState({ creatingNewGroup: false })
-      //     this.refresh()
-      //   }
-      // })
+      creatingNewUser && h(NewUserModal, {
+        onDismiss: () => this.setState({ creatingNewUser: false }),
+        onSuccess: () => {
+          this.setState({ creatingNewUser: false })
+          this.refresh()
+        }
+      })
     ])
   }
 
   componentDidUpdate() {
     StateHistory.update(_.pick(
-      ['groups', 'filter'],
+      ['members', 'filter'],
       this.state)
     )
   }
@@ -175,6 +194,6 @@ export const addNavPaths = () => {
   Nav.defPath('group', {
     path: '/groups/:groupName',
     component: GroupDetails,
-    title: 'Group Management'
+    title: ({ groupName }) => `Group Management - ${groupName}`
   })
 }
