@@ -91,10 +91,10 @@ export const MenuButton = ({ disabled, children, ...props }) => {
   return h(Clickable, _.merge({
     disabled,
     style: {
-      fontSize: 12,
-      minWidth: 125,
+      display: 'flex', alignItems: 'center',
+      fontSize: 12, minWidth: 125, height: '2rem',
       color: disabled ? Style.colors.disabled : Style.colors.text,
-      padding: '0.5rem 1.5rem',
+      padding: '0 1.5rem',
       cursor: disabled ? 'not-allowed' : 'pointer'
     },
     hover: !disabled ? { backgroundColor: Style.colors.highlight, fontWeight: 500 } : undefined

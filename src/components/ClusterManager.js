@@ -1,25 +1,28 @@
 import _ from 'lodash/fp'
 import { PureComponent, Fragment } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
+import Interactive from 'react-interactive'
 import { buttonPrimary, buttonSecondary, Clickable, LabeledCheckbox, Select } from 'src/components/common'
 import DropdownBox from 'src/components/DropdownBox'
 import { icon } from 'src/components/icons'
 import { IntegerInput, textInput } from 'src/components/input'
+import TooltipTrigger from 'src/components/TooltipTrigger'
 import { machineTypes, profiles } from 'src/data/clusters'
 import { Leo } from 'src/libs/ajax'
 import { getBasicProfile } from 'src/libs/auth'
 import { reportError } from 'src/libs/error'
+import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 
 
 const styles = {
   container: {
-    flex: 1,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'flex-end',
-    marginRight: '1rem'
+    height: '3rem',
+    display: 'flex', alignItems: 'center',
+    marginLeft: 'auto', paddingLeft: '1rem', paddingRight: '1rem',
+    borderTopLeftRadius: 5, borderBottomLeftRadius: 5,
+    backgroundColor: Style.colors.background
   },
   row: {
     display: 'flex',
@@ -149,7 +152,7 @@ const MachineSelector = ({ machineType, onChangeMachineType, diskSize, onChangeD
 const ClusterIcon = ({ shape, onClick, disabled }) => {
   return h(Clickable, {
     style: { color: onClick && !disabled && Style.colors.secondary },
-    onClick
+    onClick, disabled
   }, [icon(shape, { size: 20, className: 'is-solid' })])
 }
 
@@ -460,12 +463,14 @@ export default class ClusterManager extends PureComponent {
   }
 
   render() {
+    const { namespace } = this.props
     const { clusters, busy, open } = this.state
     if (!clusters) {
       return null
     }
     const currentCluster = this.getCurrentCluster()
     const currentStatus = currentCluster && currentCluster.status
+    const running = currentStatus === 'Running'
     const renderIcon = () => {
       switch (currentStatus) {
         case 'Stopped':
@@ -485,6 +490,20 @@ export default class ClusterManager extends PureComponent {
       _.filter(({ status }) => status !== 'Stopped', clusters)
     ))
     return div({ style: styles.container }, [
+      h(TooltipTrigger, {
+        content: running ? 'Open terminal' : 'Start runtime to open terminal'
+      }, [
+        h(Interactive, {
+          ...(running ?
+            { as: 'a', target: '_blank', href: Nav.getLink('workspace-terminal-launch', { namespace }) } :
+            { as: 'span' }
+          ),
+          style: {
+            color: 'white', backgroundColor: running ? Style.colors.secondary : Style.colors.disabled,
+            borderRadius: 4, marginRight: '2rem'
+          }
+        }, [icon('code', { size: 18 })])
+      ]),
       renderIcon(),
       h(Clickable, {
         onClick: () => this.toggleDropdown(!open),

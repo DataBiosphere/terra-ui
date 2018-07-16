@@ -135,11 +135,7 @@ class WorkflowViewContent extends Component {
       const value = config[ioKey][name]
       const [task, variable] = _.takeRight(2, _.split('.', name))
       const type = (inputType || outputType).match(/(.*?)\??$/)[1] // unify, and strip off trailing '?'
-      const error = Utils.cond(
-        [optional && !value, () => undefined],
-        [!value, () => 'This attribute is required'],
-        () => invalid[ioKey][name]
-      )
+      const error = !optional && !value ? 'This attribute is required' : invalid[ioKey][name]
 
       return { name, task, variable, optional, value, type, error }
     })

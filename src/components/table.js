@@ -99,46 +99,6 @@ export const paginator = function(props) {
   ])
 }
 
-/**
- * @param {bool} [allowPagination=true]
- * @param {bool} [allowItemsPerPage=true]
- * @param {number[]} [itemsPerPageOptions=[12, 24, 36, 48]]
- * @param {function(number)} [onItemsPerPageChanged]
- * @param {function(number)} [onPageChanged]
- * @param {object[]} dataSource
- * @param {function} renderCard - function(record, cardsPerRow) => renderable
- * @param {number} [cardsPerRow=3]
- * @param {number} pageNumber
- * @param {number} itemsPerPage
- */
-export class DataGrid extends Component {
-  render() {
-    const {
-      allowPagination = true, allowItemsPerPage = true, itemsPerPageOptions = [12, 24, 36, 48],
-      onItemsPerPageChanged, onPageChanged, dataSource, renderCard, cardsPerRow = 3,
-      pageNumber, itemsPerPage
-    } = this.props
-
-    const listPage = dataSource.slice((pageNumber - 1) * itemsPerPage, pageNumber * itemsPerPage)
-
-    return h(Fragment, [
-      div({ style: { display: 'flex', flexWrap: 'wrap' } },
-        _.map(record => renderCard(record, cardsPerRow), listPage)),
-      allowPagination ?
-        div({ style: { marginTop: 10 } }, [
-          paginator({
-            filteredDataLength: dataSource.length,
-            setPageNumber: onPageChanged,
-            pageNumber,
-            setItemsPerPage: allowItemsPerPage && onItemsPerPageChanged,
-            itemsPerPage, itemsPerPageOptions
-          })
-        ]) :
-        null
-    ])
-  }
-}
-
 const cellStyles = {
   display: 'flex',
   alignItems: 'center',
