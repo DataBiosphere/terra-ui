@@ -99,7 +99,6 @@ export const paginator = function(props) {
   ])
 }
 
-
 const cellStyles = {
   display: 'flex',
   alignItems: 'center',
