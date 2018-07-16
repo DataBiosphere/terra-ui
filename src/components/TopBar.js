@@ -109,7 +109,6 @@ export class TopBar extends Component {
                 ]),
                 h(MenuButton, {
                   as: 'a',
-                  style: { display: 'block' },
                   href: Nav.getLink('groups'),
                   onClick: () => this.hideNav() // In case we're already there
                 }, [
