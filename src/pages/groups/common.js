@@ -37,5 +37,9 @@ export const styles = {
     display: 'flex', justifyContent: 'center', alignItems: 'center',
     height: '2.25rem', width: '3rem',
     color: Style.colors.secondary
+  },
+  formLabel: {
+    ...Style.elements.sectionHeader,
+    margin: '1rem 0 0.25rem'
   }
 }

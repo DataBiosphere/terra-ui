@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import { Fragment } from 'react'
-import { div, h, input, label, path, span, svg } from 'react-hyperscript-helpers'
-import { buttonPrimary, LabeledCheckbox, link, spinnerOverlay } from 'src/components/common'
+import { div, h, path, span, svg } from 'react-hyperscript-helpers'
+import { buttonPrimary, LabeledCheckbox, link, RadioButton, spinnerOverlay } from 'src/components/common'
 import { centeredSpinner, profilePic } from 'src/components/icons'
 import { textInput, validatedInput } from 'src/components/input'
 import { InfoBox } from 'src/components/PopupTrigger'
@@ -203,15 +203,10 @@ class Profile extends Component {
           })
       ])
 
-    const radioButton = (key, value) => h(Fragment, [
-      input({
-        type: 'radio', id: value,
-        name: value, // not semantically correct, but fixes a focus cycle issue
-        checked: profileInfo[key] === value,
-        onChange: () => this.assignValue(key, value)
-      }),
-      label({ htmlFor: value, style: { margin: '0 2rem 0 0.25rem' } }, value)
-    ])
+    const radioButton = (key, value) => h(RadioButton, {
+      text: value, checked: profileInfo[key] === value,
+      onChange: () => this.assignValue(key, value)
+    })
 
     const checkbox = (key, title) => div({ style: styles.form.checkboxLine }, [
       h(LabeledCheckbox, {

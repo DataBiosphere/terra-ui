@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { Fragment } from 'react'
-import { div, h, input, span } from 'react-hyperscript-helpers'
+import { div, h, input, label, span } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
 import RSelect from 'react-select'
 import { centeredSpinner, icon } from 'src/components/icons'
@@ -129,6 +129,18 @@ export const LabeledCheckbox = ({ checked, onChange, disabled, children, ...prop
       style: { verticalAlign: 'middle' },
       onClick: () => onChange && !disabled && onChange(!checked)
     }, [children])
+  ])
+}
+
+export const RadioButton = ({ text, checked, onChange }) => {
+  const id = `${text}-radio-button`
+
+  return h(Fragment, [
+    input({
+      type: 'radio', id, checked, onChange,
+      name: id // not semantically correct, but fixes a focus cycle issue
+    }),
+    label({ htmlFor: id, style: { margin: '0 2rem 0 0.25rem' } }, text)
   ])
 }
 

@@ -2,8 +2,9 @@ import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { b, div, h } from 'react-hyperscript-helpers'
 import { pure } from 'recompose'
-import { buttonPrimary, Clickable, link, search, spinnerOverlay } from 'src/components/common'
+import { buttonPrimary, Clickable, link, RadioButton, search, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
+import { validatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { TopBar } from 'src/components/TopBar'
 import { Rawls } from 'src/libs/ajax'
@@ -14,17 +15,52 @@ import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 import { styles } from 'src/pages/groups/common'
+import validate from 'validate.js'
 
 
-const NewUserModal = pure(({ onDismiss, onSubmit }) => {
-  return h(Modal, {
-    onDismiss,
-    title: 'Add user to Saturn Group',
-    okButton: buttonPrimary({
-      onClick: onSubmit
-    }, ['Add User'])
-  })
-})
+class NewUserModal extends Component {
+  constructor(props) {
+    super(props)
+    this.state = {
+      userEmail: '',
+      emailTouched: false,
+      adminSelected: false
+    }
+  }
+
+  render() {
+    const { onDismiss, onSubmit } = this.props
+    const { userEmail, emailTouched, adminSelected } = this.state
+
+    const errors = validate({ userEmail }, { userEmail: { email: true } })
+
+    return h(Modal, {
+      onDismiss,
+      title: 'Add user to Saturn Group',
+      okButton: buttonPrimary({
+        onClick: onSubmit
+      }, ['Add User'])
+    }, [
+      div({ style: styles.formLabel }, ['User email']),
+      validatedInput({
+        inputProps: {
+          value: userEmail,
+          onChange: e => this.setState({ userEmail: e.target.value, emailTouched: true })
+        },
+        error: emailTouched && Utils.summarizeErrors(errors && errors.userEmail)
+      }),
+      div({ style: styles.formLabel }, ['Role']),
+      h(RadioButton, {
+        text: 'Admin', checked: adminSelected,
+        onChange: () => this.setState({ adminSelected: true })
+      }),
+      h(RadioButton, {
+        text: 'Member', checked: !adminSelected,
+        onChange: () => this.setState({ adminSelected: false })
+      })
+    ])
+  }
+}
 
 const EditUserModal = pure(({ onDismiss, onSubmit }) => {
   return h(Modal, {
