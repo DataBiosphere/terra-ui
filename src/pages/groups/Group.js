@@ -29,8 +29,8 @@ class NewUserModal extends Component {
   }
 
   render() {
-    const { onDismiss, onSubmit } = this.props
-    const { userEmail, emailTouched, adminSelected } = this.state
+    const { onDismiss } = this.props
+    const { userEmail, emailTouched, adminSelected, submitting } = this.state
 
     const errors = validate({ userEmail }, { userEmail: { email: true } })
 
@@ -38,7 +38,8 @@ class NewUserModal extends Component {
       onDismiss,
       title: 'Add user to Saturn Group',
       okButton: buttonPrimary({
-        onClick: onSubmit
+        onClick: () => this.submit(),
+        disabled: !userEmail || errors
       }, ['Add User'])
     }, [
       div({ style: styles.formLabel }, ['User email']),
@@ -57,8 +58,23 @@ class NewUserModal extends Component {
       h(RadioButton, {
         text: 'Member', checked: !adminSelected,
         onChange: () => this.setState({ adminSelected: false })
-      })
+      }),
+      submitting && spinnerOverlay
     ])
+  }
+
+  async submit() {
+    const { groupName, onSuccess } = this.props
+    const { userEmail, adminSelected } = this.state
+
+    try {
+      this.setState({ submitting: true })
+      await Rawls.group(groupName).addMember(adminSelected ? 'admin' : 'member', userEmail)
+      onSuccess()
+    } catch (error) {
+      this.setState({ submitting: false })
+      reportError('Error adding user', error)
+    }
   }
 }
 
@@ -85,12 +101,12 @@ const DeleteUserModal = pure(({ onDismiss, onSubmit, userEmail }) => {
   ])
 })
 
-const MemberCard = pure(({ member: { email, isAdmin }, onEdit, onDelete }) => {
+const MemberCard = pure(({ member: { email, role }, onEdit, onDelete }) => {
   return div({
     style: styles.longCard
   }, [
     div({ style: { flex: '1' } }, [email]),
-    div({ style: { flex: '0 0 150px' } }, [isAdmin ? 'Admin' : 'Member']),
+    div({ style: { flex: '0 0 150px', textTransform: 'capitalize' } }, [role]),
     div({ style: { flex: '0 0 auto', textAlign: 'right' } }, [
       link({ onClick: onEdit }, ['Edit Role']),
       ' | ',
@@ -131,8 +147,8 @@ export class GroupDetails extends Component {
       this.setState({
         isDataLoaded: true,
         members: _.concat(
-          _.map(adm => ({ email: adm, isAdmin: true }), adminsEmails),
-          _.map(mem => ({ email: mem, isAdmin: false }), membersEmails)
+          _.map(adm => ({ email: adm, role: 'admin' }), adminsEmails),
+          _.map(mem => ({ email: mem, role: 'member' }), membersEmails)
         )
       })
     } catch (error) {
@@ -145,7 +161,7 @@ export class GroupDetails extends Component {
   }
 
   render() {
-    const { members, isDataLoaded, filter, creatingNewUser, editingUser, deletingUser } = this.state
+    const { members, isDataLoaded, filter, creatingNewUser, editingUser, deletingUser, updating } = this.state
     const { groupName } = this.props
 
     return h(Fragment, [
@@ -186,8 +202,9 @@ export class GroupDetails extends Component {
         !isDataLoaded && spinnerOverlay
       ]),
       creatingNewUser && h(NewUserModal, {
+        groupName,
         onDismiss: () => this.setState({ creatingNewUser: false }),
-        onSubmit: () => {
+        onSuccess: () => {
           this.setState({ creatingNewUser: false })
           this.refresh()
         }
@@ -202,11 +219,18 @@ export class GroupDetails extends Component {
       deletingUser && h(DeleteUserModal, {
         userEmail: deletingUser.email,
         onDismiss: () => this.setState({ deletingUser: false }),
-        onSubmit: () => {
-          this.setState({ deletingUser: false })
-          this.refresh()
+        onSubmit: async () => {
+          try {
+            this.setState({ updating: true, deletingUser: false })
+            await Rawls.group(groupName).removeMember(deletingUser.role, deletingUser.email)
+            this.setState({ updating: false })
+            this.refresh()
+          } catch (error) {
+            reportError('Error removing member from group', error)
+          }
         }
-      })
+      }),
+      updating && spinnerOverlay
     ])
   }
 
