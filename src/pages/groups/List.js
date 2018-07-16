@@ -25,7 +25,7 @@ class NewGroupModal extends Component {
         onDismiss,
         title: 'Create New Group',
         okButton: buttonPrimary({
-          onClick: onDismiss
+          onClick: onSuccess
         })
       })
     ]
@@ -98,18 +98,16 @@ export class GroupList extends Component {
     const { groups, isDataLoaded, filter, creatingNewGroup } = this.state
 
     return h(Fragment, [
-      h(TopBar, { title: 'Groups' },
-        [
-          search({
-            wrapperProps: { style: { marginLeft: '2rem', flexGrow: 1, maxWidth: 500 } },
-            inputProps: {
-              placeholder: 'SEARCH GROUPS',
-              onChange: e => this.setState({ filter: e.target.value }),
-              value: filter
-            }
-          })
-        ]
-      ),
+      h(TopBar, { title: 'Groups' }, [
+        search({
+          wrapperProps: { style: { marginLeft: '2rem', flexGrow: 1, maxWidth: 500 } },
+          inputProps: {
+            placeholder: 'SEARCH GROUPS',
+            onChange: e => this.setState({ filter: e.target.value }),
+            value: filter
+          }
+        })
+      ]),
       div({ style: styles.toolbarContainer }, [
         div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, [
           'Group Management'

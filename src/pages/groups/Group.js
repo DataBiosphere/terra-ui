@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { Fragment } from 'react'
-import { a, div, h } from 'react-hyperscript-helpers'
+import { b, div, h } from 'react-hyperscript-helpers'
 import { pure } from 'recompose'
 import { buttonPrimary, Clickable, link, search, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
@@ -16,40 +16,50 @@ import { Component } from 'src/libs/wrapped-components'
 import { styles } from 'src/pages/groups/common'
 
 
-class NewUserModal extends Component {
-  render() {
-    const { onDismiss, onSuccess } = this.props
+const NewUserModal = pure(({ onDismiss, onSubmit }) => {
+  return h(Modal, {
+    onDismiss,
+    title: 'Add user to Saturn Group',
+    okButton: buttonPrimary({
+      onClick: onSubmit
+    }, ['Add User'])
+  })
+})
 
-    return [
-      h(Modal, {
-        onDismiss,
-        title: 'Add user to Saturn Group',
-        okButton: buttonPrimary({
-          onClick: onDismiss
-        })
-      })
-    ]
-  }
-}
+const EditUserModal = pure(({ onDismiss, onSubmit }) => {
+  return h(Modal, {
+    onDismiss,
+    title: 'Edit Roles',
+    okButton: buttonPrimary({
+      onClick: onSubmit
+    }, ['Change Role'])
+  })
+})
 
-const MemberCard = pure(({ member: { email, isAdmin }, onDelete }) => {
+const DeleteUserModal = pure(({ onDismiss, onSubmit, userEmail }) => {
+  return h(Modal, {
+    onDismiss,
+    title: 'Confirm',
+    okButton: buttonPrimary({
+      onClick: onSubmit
+    }, ['Delete User'])
+  }, [
+    'Are you sure you want to delete the user ',
+    b(`${userEmail}?`)
+  ])
+})
+
+const MemberCard = pure(({ member: { email, isAdmin }, onEdit, onDelete }) => {
   return div({
     style: styles.longCard
   }, [
-    div({}, email)
-    // div({
-    //   style: {
-    //     width: '30%', color: role === 'Admin' ? Style.colors.secondary : undefined,
-    //     ...styles.longTitle
-    //   }
-    // }, [groupName]),
-    // div({ style: { flexGrow: 1 } }, [groupEmail]),
-    // div({ style: { width: 100, display: 'flex', alignItems: 'center' } }, [
-    //   div({ style: { flexGrow: 1 } }, [role]),
-    //   role === 'Admin' && link({ onClick: onDelete, as: 'div' }, [
-    //     icon('trash', { className: 'is-solid', size: 17 })
-    //   ])
-    // ])
+    div({ style: { flex: '1' } }, [email]),
+    div({ style: { flex: '0 0 150px' } }, [isAdmin ? 'Admin' : 'Member']),
+    div({ style: { flex: '0 0 auto', textAlign: 'right' } }, [
+      link({ onClick: onEdit }, ['Edit Role']),
+      ' | ',
+      link({ onClick: onDelete }, ['Remove'])
+    ])
   ])
 })
 
@@ -70,6 +80,8 @@ export class GroupDetails extends Component {
       filter: '',
       members: null,
       creatingNewUser: false,
+      editingUser: false,
+      deletingUser: false,
       ...StateHistory.get()
     }
   }
@@ -97,7 +109,7 @@ export class GroupDetails extends Component {
   }
 
   render() {
-    const { members, isDataLoaded, filter, creatingNewUser } = this.state
+    const { members, isDataLoaded, filter, creatingNewUser, editingUser, deletingUser } = this.state
     const { groupName } = this.props
 
     return h(Fragment, [
@@ -128,15 +140,34 @@ export class GroupDetails extends Component {
         }),
         div({ style: { flexGrow: 1 } },
           _.map(member => {
-            return h(MemberCard, { member })
+            return h(MemberCard, {
+              member,
+              onEdit: () => this.setState({ editingUser: member }),
+              onDelete: () => this.setState({ deletingUser: member })
+            })
           }, _.filter(({ email }) => Utils.textMatch(filter, email), members))
         ),
         !isDataLoaded && spinnerOverlay
       ]),
       creatingNewUser && h(NewUserModal, {
         onDismiss: () => this.setState({ creatingNewUser: false }),
-        onSuccess: () => {
+        onSubmit: () => {
           this.setState({ creatingNewUser: false })
+          this.refresh()
+        }
+      }),
+      editingUser && h(EditUserModal, {
+        onDismiss: () => this.setState({ editingUser: false }),
+        onSubmit: () => {
+          this.setState({ editingUser: false })
+          this.refresh()
+        }
+      }),
+      deletingUser && h(DeleteUserModal, {
+        userEmail: deletingUser.email,
+        onDismiss: () => this.setState({ deletingUser: false }),
+        onSubmit: () => {
+          this.setState({ deletingUser: false })
           this.refresh()
         }
       })
