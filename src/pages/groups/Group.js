@@ -18,19 +18,33 @@ import { styles } from 'src/pages/groups/common'
 import validate from 'validate.js'
 
 
+const roleSelector = ({ role, updateState }) => h(Fragment, [
+  h(RadioButton, {
+    text: 'Admin', checked: role === 'admin',
+    labelStyle: { margin: '0 2rem 0 0.25rem' },
+    onChange: () => updateState('admin')
+  }),
+  h(RadioButton, {
+    text: 'Member', checked: role === 'member',
+    labelStyle: { margin: '0 2rem 0 0.25rem' },
+    onChange: () => updateState('member')
+  })
+])
+
+
 class NewUserModal extends Component {
   constructor(props) {
     super(props)
     this.state = {
       userEmail: '',
       emailTouched: false,
-      adminSelected: false
+      role: 'member'
     }
   }
 
   render() {
     const { onDismiss } = this.props
-    const { userEmail, emailTouched, adminSelected, submitting } = this.state
+    const { userEmail, emailTouched, role, submitting } = this.state
 
     const errors = validate({ userEmail }, { userEmail: { email: true } })
 
@@ -51,25 +65,18 @@ class NewUserModal extends Component {
         error: emailTouched && Utils.summarizeErrors(errors && errors.userEmail)
       }),
       div({ style: styles.formLabel }, ['Role']),
-      h(RadioButton, {
-        text: 'Admin', checked: adminSelected,
-        onChange: () => this.setState({ adminSelected: true })
-      }),
-      h(RadioButton, {
-        text: 'Member', checked: !adminSelected,
-        onChange: () => this.setState({ adminSelected: false })
-      }),
+      roleSelector({ role, updateState: role => this.setState({ role }) }),
       submitting && spinnerOverlay
     ])
   }
 
   async submit() {
     const { groupName, onSuccess } = this.props
-    const { userEmail, adminSelected } = this.state
+    const { userEmail, role } = this.state
 
     try {
       this.setState({ submitting: true })
-      await Rawls.group(groupName).addMember(adminSelected ? 'admin' : 'member', userEmail)
+      await Rawls.group(groupName).addMember(role, userEmail)
       onSuccess()
     } catch (error) {
       this.setState({ submitting: false })
@@ -101,14 +108,7 @@ class EditUserModal extends Component {
         'Edit role for ',
         b([email])
       ]),
-      h(RadioButton, {
-        text: 'Admin', checked: role === 'admin',
-        onChange: () => this.setState({ role: 'admin' })
-      }),
-      h(RadioButton, {
-        text: 'Member', checked: role === 'member',
-        onChange: () => this.setState({ role: 'member' })
-      }),
+      roleSelector({ role, updateState: role => this.setState({ role }) }),
       submitting && spinnerOverlay
     ])
   }

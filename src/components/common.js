@@ -132,7 +132,7 @@ export const LabeledCheckbox = ({ checked, onChange, disabled, children, ...prop
   ])
 }
 
-export const RadioButton = ({ text, checked, onChange }) => {
+export const RadioButton = ({ text, checked, onChange, labelStyle }) => {
   const id = `${text}-radio-button`
 
   return h(Fragment, [
@@ -140,7 +140,7 @@ export const RadioButton = ({ text, checked, onChange }) => {
       type: 'radio', id, checked, onChange,
       name: id // not semantically correct, but fixes a focus cycle issue
     }),
-    label({ htmlFor: id, style: { margin: '0 2rem 0 0.25rem' } }, text)
+    label({ htmlFor: id, style: labelStyle }, text)
   ])
 }
 
