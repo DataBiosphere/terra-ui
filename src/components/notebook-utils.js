@@ -4,7 +4,6 @@ import { buttonPrimary, Select, spinnerOverlay } from 'src/components/common'
 import { centeredSpinner } from 'src/components/icons'
 import { validatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
-import TooltipTrigger from 'src/components/TooltipTrigger'
 import { Buckets } from 'src/libs/ajax'
 import { reportError } from 'src/libs/error'
 import * as Style from 'src/libs/style'
@@ -86,24 +85,23 @@ export class NotebookCreator extends Component {
     return h(Modal, {
       onDismiss,
       title: 'Create New Notebook',
-      okButton: h(TooltipTrigger, { content: Utils.summarizeErrors(errors) }, [
-        buttonPrimary({
-          disabled: creating || errors,
-          onClick: () => {
-            this.setState({ creating: true })
-            Buckets.notebook(namespace, bucketName, notebookName).create(notebookKernel.data).then(
-              () => {
-                reloadList()
-                onDismiss()
-              },
-              error => {
-                reportError('Error creating notebook', error)
-                onDismiss()
-              }
-            )
-          }
-        }, 'Create Notebook')
-      ])
+      okButton: buttonPrimary({
+        disabled: creating || errors,
+        tooltip: Utils.summarizeErrors(errors),
+        onClick: () => {
+          this.setState({ creating: true })
+          Buckets.notebook(namespace, bucketName, notebookName).create(notebookKernel.data).then(
+            () => {
+              reloadList()
+              onDismiss()
+            },
+            error => {
+              reportError('Error creating notebook', error)
+              onDismiss()
+            }
+          )
+        }
+      }, 'Create Notebook')
     }, [
       div({ style: Style.elements.sectionHeader }, 'Name *'),
       notebookNameInput({
@@ -161,18 +159,17 @@ export class NotebookDuplicator extends Component {
     return h(Modal, {
       onDismiss,
       title: `${destroyOld ? 'Rename' : 'Duplicate'} "${printName}"`,
-      okButton: h(TooltipTrigger, { content: Utils.summarizeErrors(errors) }, [
-        buttonPrimary({
-          disabled: errors || processing,
-          onClick: () => {
-            this.setState({ processing: true })
-            Buckets.notebook(namespace, bucketName, printName)[destroyOld ? 'rename' : 'copy'](newName).then(
-              onSuccess,
-              error => reportError(`Error ${destroyOld ? 'renaming' : 'copying'} notebook`, error)
-            )
-          }
-        }, `${destroyOld ? 'Rename' : 'Duplicate'} Notebook`)
-      ])
+      okButton: buttonPrimary({
+        disabled: errors || processing,
+        tooltip: Utils.summarizeErrors(errors),
+        onClick: () => {
+          this.setState({ processing: true })
+          Buckets.notebook(namespace, bucketName, printName)[destroyOld ? 'rename' : 'copy'](newName).then(
+            onSuccess,
+            error => reportError(`Error ${destroyOld ? 'renaming' : 'copying'} notebook`, error)
+          )
+        }
+      }, `${destroyOld ? 'Rename' : 'Duplicate'} Notebook`)
     },
     Utils.cond(
       [processing, () => [centeredSpinner()]],
