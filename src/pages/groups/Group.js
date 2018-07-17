@@ -6,7 +6,6 @@ import { buttonPrimary, Clickable, link, RadioButton, search, spinnerOverlay } f
 import { icon } from 'src/components/icons'
 import { textInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
-import TooltipTrigger from 'src/components/TooltipTrigger'
 import { TopBar } from 'src/components/TopBar'
 import { Rawls } from 'src/libs/ajax'
 import { reportError } from 'src/libs/error'
@@ -51,14 +50,11 @@ class NewUserModal extends Component {
     return h(Modal, {
       onDismiss,
       title: 'Add user to Saturn Group',
-      okButton: h(TooltipTrigger, {
-        content: Utils.summarizeErrors(errors && errors.userEmail)
-      }, [
-        buttonPrimary({
-          onClick: () => this.submit(),
-          disabled: errors
-        }, ['Add User'])
-      ])
+      okButton: buttonPrimary({
+        tooltip: Utils.summarizeErrors(errors && errors.userEmail),
+        onClick: () => this.submit(),
+        disabled: errors
+      }, ['Add User'])
     }, [
       div({ style: styles.formLabel }, ['User email']),
       textInput({
