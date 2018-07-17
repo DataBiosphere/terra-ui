@@ -4,8 +4,9 @@ import { b, div, h } from 'react-hyperscript-helpers'
 import { pure } from 'recompose'
 import { buttonPrimary, Clickable, link, RadioButton, search, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
-import { validatedInput } from 'src/components/input'
+import { textInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
+import TooltipTrigger from 'src/components/TooltipTrigger'
 import { TopBar } from 'src/components/TopBar'
 import { Rawls } from 'src/libs/ajax'
 import { reportError } from 'src/libs/error'
@@ -37,32 +38,32 @@ class NewUserModal extends Component {
     super(props)
     this.state = {
       userEmail: '',
-      emailTouched: false,
       role: 'member'
     }
   }
 
   render() {
     const { onDismiss } = this.props
-    const { userEmail, emailTouched, role, submitting } = this.state
+    const { userEmail, role, submitting } = this.state
 
     const errors = validate({ userEmail }, { userEmail: { email: true } })
 
     return h(Modal, {
       onDismiss,
       title: 'Add user to Saturn Group',
-      okButton: buttonPrimary({
-        onClick: () => this.submit(),
-        disabled: !userEmail || errors
-      }, ['Add User'])
+      okButton: h(TooltipTrigger, {
+        content: Utils.summarizeErrors(errors && errors.userEmail)
+      }, [
+        buttonPrimary({
+          onClick: () => this.submit(),
+          disabled: errors
+        }, ['Add User'])
+      ])
     }, [
       div({ style: styles.formLabel }, ['User email']),
-      validatedInput({
-        inputProps: {
-          value: userEmail,
-          onChange: e => this.setState({ userEmail: e.target.value, emailTouched: true })
-        },
-        error: emailTouched && Utils.summarizeErrors(errors && errors.userEmail)
+      textInput({
+        value: userEmail,
+        onChange: e => this.setState({ userEmail: e.target.value, emailTouched: true })
       }),
       div({ style: styles.formLabel }, ['Role']),
       roleSelector({ role, updateState: role => this.setState({ role }) }),
