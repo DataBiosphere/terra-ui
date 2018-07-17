@@ -177,6 +177,7 @@ export class UriViewer extends Component {
         onDismiss: () => this.setState({ modalOpen: false }),
         title: 'File Details',
         showCancel: false,
+        showX: true,
         okButton: 'Done'
       },
       Utils.cond([
