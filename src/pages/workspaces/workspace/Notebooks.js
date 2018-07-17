@@ -86,7 +86,6 @@ class NotebookCard extends Component {
 
     return h(Fragment, [
       a({
-        target: '_blank',
         href: Nav.getLink('workspace-notebook-launch', { namespace, name: wsName, notebookName: name.slice(10) }),
         style: {
           ...Style.elements.card,
@@ -156,9 +155,9 @@ class NotebooksContent extends Component {
     const { namespace, workspace: { workspace: { bucketName } } } = this.props
 
     try {
-      this.setState({ loading: true })
+      this.setState({ launching: false, loading: true })
       const notebooks = await Buckets.listNotebooks(namespace, bucketName)
-      this.setState({ bucketName, notebooks: _.reverse(_.sortBy('updated', notebooks)) })
+      this.setState({ notebooks: _.reverse(_.sortBy('updated', notebooks)) })
     } catch (error) {
       reportError('Error loading notebooks', error)
     } finally {
@@ -171,8 +170,8 @@ class NotebooksContent extends Component {
   }
 
   renderNotebooks() {
-    const { bucketName, notebooks, listView } = this.state
-    const { name: wsName, namespace } = this.props
+    const { notebooks, listView } = this.state
+    const { name: wsName, namespace, workspace: { workspace: { bucketName } } } = this.props
 
     return div({ style: { display: listView ? undefined : 'flex', flexWrap: 'wrap' } }, [
       div({
@@ -222,8 +221,8 @@ class NotebooksContent extends Component {
   }
 
   render() {
-    const { loading, bucketName, notebooks, listView, creating } = this.state
-    const { namespace } = this.props
+    const { loading, notebooks, listView, creating } = this.state
+    const { namespace, workspace: { workspace: { bucketName } } } = this.props
 
     return h(Dropzone, {
       accept: '.ipynb',
@@ -295,7 +294,7 @@ class NotebooksContent extends Component {
 
   componentDidUpdate() {
     StateHistory.update(_.pick(
-      ['bucketName', 'clusters', 'cluster', 'notebooks', 'listView'],
+      ['clusters', 'cluster', 'notebooks', 'listView'],
       this.state)
     )
   }

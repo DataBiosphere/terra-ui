@@ -1,15 +1,16 @@
 import _ from 'lodash/fp'
 import { Fragment } from 'react'
-import { div, h } from 'react-hyperscript-helpers'
+import { div, h, iframe } from 'react-hyperscript-helpers'
+import * as breadcrumbs from 'src/components/breadcrumbs'
 import { icon, spinner } from 'src/components/icons'
-import { TopBar } from 'src/components/TopBar'
-import { Leo, Rawls } from 'src/libs/ajax'
+import { Leo } from 'src/libs/ajax'
 import { getBasicProfile } from 'src/libs/auth'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
+import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
 
 const styles = {
@@ -33,7 +34,12 @@ const styles = {
 }
 
 
-class NotebookLauncher extends Component {
+const NotebookLauncher = wrapWorkspace({
+  breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
+  title: ({ notebookName }) => `Notebooks - ${notebookName}`,
+  activeTab: 'notebooks'
+},
+class NotebookLauncherContent extends Component {
   constructor(props) {
     super(props)
     this.state = { localizeFailures: 0 }
@@ -41,23 +47,15 @@ class NotebookLauncher extends Component {
 
   async componentDidMount() {
     try {
-      const bucketName = await this.resolveBucketName()
-      this.setState({ bucketName })
       const cluster = await this.startCluster()
       await this.localizeNotebook(cluster)
 
       const { name: workspaceName, notebookName } = this.props
-      window.location.href = `${cluster.clusterUrl}/notebooks/${workspaceName}/${notebookName}`
+      this.setState({ url: `${cluster.clusterUrl}/notebooks/${workspaceName}/${notebookName}` })
     } catch (error) {
       reportError('Error launching notebook', error)
       this.setState({ failed: true })
     }
-  }
-
-  async resolveBucketName() {
-    const { namespace, name: workspaceName } = this.props
-    const { workspace: { bucketName } } = await Rawls.workspace(namespace, workspaceName).details()
-    return bucketName
   }
 
   async getCluster() {
@@ -93,8 +91,7 @@ class NotebookLauncher extends Component {
   }
 
   async localizeNotebook(cluster) {
-    const { namespace, name: workspaceName, notebookName } = this.props
-    const { bucketName } = this.state
+    const { namespace, name: workspaceName, notebookName, workspace: { workspace: { bucketName } } } = this.props
     const { clusterName } = cluster
 
     await Leo.notebooks(namespace, clusterName).setCookie()
@@ -124,13 +121,16 @@ class NotebookLauncher extends Component {
   }
 
   render() {
-    const { bucketName, clusterStatus, localizeFailures, failed } = this.state
+    const { clusterStatus, localizeFailures, failed, url } = this.state
 
-    const currentStep = Utils.cond(
-      [!bucketName, () => 0],
-      [clusterStatus !== 'Running', () => 1],
-      () => 2
-    )
+    if (url) {
+      return iframe({
+        src: url, height: 500,
+        style: { border: 'none' }
+      })
+    }
+
+    const currentStep = clusterStatus !== 'Running' ? 1 : 2
 
     const step = (index, text) => div({ style: styles.step.container }, [
       div({ style: styles.step.col1 }, [
@@ -141,10 +141,8 @@ class NotebookLauncher extends Component {
     ])
 
     return h(Fragment, [
-      h(TopBar, { title: 'Launching Notebook' }),
       div({ style: styles.pageContainer }, [
         div({ style: Style.elements.sectionHeader }, 'Saturn is preparing your notebook'),
-        step(0, 'Resolving Google bucket'),
         step(1, 'Waiting for cluster to start'),
         step(2, localizeFailures ?
           `Error copying notebook to cluster, retry number ${localizeFailures}...` :
@@ -152,12 +150,13 @@ class NotebookLauncher extends Component {
       ])
     ])
   }
-}
+})
 
 
 export const addNavPaths = () => {
   Nav.defPath('workspace-notebook-launch', {
     path: '/workspaces/:namespace/:name/notebooks/launch/:notebookName',
-    component: NotebookLauncher
+    component: NotebookLauncher,
+    title: ({ name, notebookName }) => `${name} - Notebooks - ${notebookName}`
   })
 }
