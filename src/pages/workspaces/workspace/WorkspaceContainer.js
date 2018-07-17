@@ -82,7 +82,7 @@ class WorkspaceTabs extends PureComponent {
           h(MenuButton, { disabled: true }, ['Publish', comingSoon]),
           h(MenuButton, {
             disabled: !isOwner,
-            tooltip: 'You must be an owner of this workspace or the underlying billing project',
+            tooltip: !isOwner && 'You must be an owner of this workspace or the underlying billing project',
             tooltipSide: 'left',
             onClick: () => {
               onDelete()
