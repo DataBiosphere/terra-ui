@@ -43,7 +43,7 @@ class NewUserModal extends Component {
 
   render() {
     const { onDismiss } = this.props
-    const { userEmail, role, submitting } = this.state
+    const { userEmail, role, submitting, submitError } = this.state
 
     const errors = validate({ userEmail }, { userEmail: { email: true } })
 
@@ -63,6 +63,7 @@ class NewUserModal extends Component {
       }),
       div({ style: styles.formLabel }, ['Role']),
       roleSelector({ role, updateState: role => this.setState({ role }) }),
+      submitError && div({ style: { marginTop: '0.5rem', textAlign: 'right', color: Style.colors.error } }, [submitError]),
       submitting && spinnerOverlay
     ])
   }
@@ -77,7 +78,11 @@ class NewUserModal extends Component {
       onSuccess()
     } catch (error) {
       this.setState({ submitting: false })
-      reportError('Error adding user', error)
+      if (400 <= error.status <= 499) {
+        this.setState({ submitError: (await error.json()).message })
+      } else {
+        reportError('Error adding user', error)
+      }
     }
   }
 }
