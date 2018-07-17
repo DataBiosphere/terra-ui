@@ -149,7 +149,7 @@ const MemberCard = pure(({ member: { email, role }, onEdit, onDelete }) => {
   }, [
     div({ style: { flex: '1' } }, [email]),
     div({ style: { flex: '0 0 150px', textTransform: 'capitalize' } }, [role]),
-    div({ style: { flex: '0 0 auto', textAlign: 'right' } }, [
+    div({ style: { flex: 'none' } }, [
       link({ onClick: onEdit }, ['Edit Role']),
       ' | ',
       link({ onClick: onDelete }, ['Remove'])
@@ -185,10 +185,9 @@ export class GroupDetails extends Component {
     const { groupName } = this.props
 
     try {
-      this.setState({ isDataLoaded: false, creatingNewUser: false, editingUser: false, deletingUser: false, updating: false })
+      this.setState({ loading: true, creatingNewUser: false, editingUser: false, deletingUser: false, updating: false })
       const { membersEmails, adminsEmails } = await Rawls.group(groupName).listMembers()
       this.setState({
-        isDataLoaded: true,
         members: _.sortBy('email', _.concat(
           _.map(adm => ({ email: adm, role: 'admin' }), adminsEmails),
           _.map(mem => ({ email: mem, role: 'member' }), membersEmails)
@@ -196,6 +195,8 @@ export class GroupDetails extends Component {
       })
     } catch (error) {
       reportError('Error loading group list', error)
+    } finally {
+      this.setState({ loading: false })
     }
   }
 
@@ -204,7 +205,7 @@ export class GroupDetails extends Component {
   }
 
   render() {
-    const { members, isDataLoaded, filter, creatingNewUser, editingUser, deletingUser, updating } = this.state
+    const { members, loading, filter, creatingNewUser, editingUser, deletingUser, updating } = this.state
     const { groupName } = this.props
 
     return h(Fragment, [
@@ -236,7 +237,7 @@ export class GroupDetails extends Component {
             })
           }, _.filter(({ email }) => Utils.textMatch(filter, email), members))
         ),
-        !isDataLoaded && spinnerOverlay
+        loading && spinnerOverlay
       ]),
       creatingNewUser && h(NewUserModal, {
         groupName,

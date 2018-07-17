@@ -45,7 +45,7 @@ class NewGroupModal extends Component {
       onDismiss,
       title: 'Create New Group',
       okButton: buttonPrimary({
-        disabled: !groupName || errors,
+        disabled: errors,
         onClick: () => this.submit()
       }, ['Create Group'])
     }, [
