@@ -26,7 +26,7 @@ const els = {
 
 const isImage = ({ contentType, name }) => {
   return /^image/.test(contentType) ||
-    /\.jpe*g$/.test(name) || /\.png$/.test(name) || /\.svg$/.test(name) || /\.bmp$/.test(name)
+    /\.jpe?g$/.test(name) || /\.png$/.test(name) || /\.svg$/.test(name) || /\.bmp$/.test(name)
 }
 
 const isText = ({ contentType, name }) => {
@@ -70,15 +70,12 @@ export class UriViewer extends Component {
 
     const price = await getMaxDownloadCostNA(metadata.size)
 
-    this.setState({ metadata, firecloudApiUrl, price }, async () => {
-      this.setState({
-        preview: isFilePreviewable(metadata) ?
-          await Buckets.getObjectPreview(bucket, object, googleProject, isImage(metadata)).then(
-            res => isImage(metadata) ? res.blob().then(URL.createObjectURL) : res.text()
-          ) :
-          false
-      })
-    })
+    const preview = isFilePreviewable(metadata) &&
+      await Buckets.getObjectPreview(bucket, object, googleProject, isImage(metadata)).then(
+        res => isImage(metadata) ? res.blob().then(URL.createObjectURL) : res.text()
+      )
+
+    this.setState({ metadata, firecloudApiUrl, price, preview })
   }
 
   async resolveUri() {
@@ -115,7 +112,7 @@ export class UriViewer extends Component {
                     background: Style.colors.background, borderRadius: '0.2rem'
                   }
                 }, [preview])
-              ], () => div({}, ['Loading preview...', spinner()])
+              ]
             )
           ] : [els.label(isImage(metadata) ? 'Image is to large to preview.' : `File can't be previewed.`)]),
           els.cell([els.label('File size'), els.data(filesize(parseInt(metadata.size, 10)))]),
