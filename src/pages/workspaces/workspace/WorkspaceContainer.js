@@ -8,7 +8,6 @@ import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
 import PopupTrigger from 'src/components/PopupTrigger'
-import TooltipTrigger from 'src/components/TooltipTrigger'
 import { TopBar } from 'src/components/TopBar'
 import { Rawls } from 'src/libs/ajax'
 import { reportError } from 'src/libs/error'
@@ -81,18 +80,15 @@ class WorkspaceTabs extends PureComponent {
         content: h(Fragment, [
           h(MenuButton, { disabled: true }, ['Share', comingSoon]),
           h(MenuButton, { disabled: true }, ['Publish', comingSoon]),
-          h(TooltipTrigger, {
-            side: 'left',
-            content: !isOwner && 'You must be an owner of this workspace or the underlying billing project'
-          }, [
-            h(MenuButton, {
-              disabled: !isOwner,
-              onClick: () => {
-                onDelete()
-                this.menu.current.close()
-              }
-            }, ['Delete'])
-          ])
+          h(MenuButton, {
+            disabled: !isOwner,
+            tooltip: 'You must be an owner of this workspace or the underlying billing project',
+            tooltipSide: 'left',
+            onClick: () => {
+              onDelete()
+              this.menu.current.close()
+            }
+          }, ['Delete'])
         ]),
         position: 'bottom'
       }, [

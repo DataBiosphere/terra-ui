@@ -4,6 +4,7 @@ import { div, h, input, span } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
 import RSelect from 'react-select'
 import { centeredSpinner, icon } from 'src/components/icons'
+import TooltipTrigger from 'src/components/TooltipTrigger'
 import * as Style from 'src/libs/style'
 import 'react-select/dist/react-select.css'
 
@@ -16,11 +17,17 @@ const styles = {
   }
 }
 
-export const Clickable = ({ as = 'div', disabled, onClick, children, ...props }) => {
-  return h(Interactive, _.merge({
+export const Clickable = ({ as = 'div', disabled, tooltip, tooltipSide, onClick, children, ...props }) => {
+  const child = h(Interactive, _.merge({
     as, disabled,
     onClick: (...args) => onClick && !disabled && onClick(...args)
   }, props), [children])
+
+  if (tooltip) {
+    return h(TooltipTrigger, { content: tooltip, side: tooltipSide }, [child])
+  } else {
+    return child
+  }
 }
 
 export const link = function(props, children) {

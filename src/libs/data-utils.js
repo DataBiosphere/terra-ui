@@ -8,7 +8,6 @@ import { buttonPrimary, Clickable, link, Select, spinnerOverlay } from 'src/comp
 import { icon, spinner } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import { TextCell } from 'src/components/table'
-import TooltipTrigger from 'src/components/TooltipTrigger'
 import DownloadPrices from 'src/data/download-prices'
 import ReferenceData from 'src/data/reference-data'
 import { Buckets, Martha, Rawls } from 'src/libs/ajax'
@@ -117,20 +116,19 @@ export class UriViewer extends Component {
                   value: gsutilCommand,
                   style: { flexGrow: 1, fontWeight: 300, fontFamily: 'Menlo, monospace' }
                 }),
-                h(TooltipTrigger, { content: 'Copy to clipboard' }, [
-                  h(Clickable, {
-                    style: { margin: '0 1rem', color: copied ? Style.colors.success : Style.colors.secondary },
-                    onClick: async () => {
-                      try {
-                        await clipboard.writeText(gsutilCommand)
-                        this.setState({ copied: true },
-                          () => setTimeout(() => this.setState({ copied: undefined }), 1500))
-                      } catch (error) {
-                        reportError('Error copying to clipboard', error)
-                      }
+                h(Clickable, {
+                  style: { margin: '0 1rem', color: copied ? Style.colors.success : Style.colors.secondary },
+                  tooltip: 'Copy to clipboard',
+                  onClick: async () => {
+                    try {
+                      await clipboard.writeText(gsutilCommand)
+                      this.setState({ copied: true },
+                        () => setTimeout(() => this.setState({ copied: undefined }), 1500))
+                    } catch (error) {
+                      reportError('Error copying to clipboard', error)
                     }
-                  }, [icon(copied ? 'check' : 'copy-to-clipboard')])
-                ])
+                  }
+                }, [icon(copied ? 'check' : 'copy-to-clipboard')])
               ])
             ])
           ]),

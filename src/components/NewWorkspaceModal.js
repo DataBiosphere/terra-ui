@@ -6,7 +6,6 @@ import { icon } from 'src/components/icons'
 import { TextArea, validatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { InfoBox } from 'src/components/PopupTrigger'
-import TooltipTrigger from 'src/components/TooltipTrigger'
 import { Rawls } from 'src/libs/ajax'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
@@ -107,12 +106,11 @@ export default class NewWorkspaceModal extends Component {
     return h(Modal, {
       title: cloneWorkspace ? 'Clone a Workspace' : 'Create a New Workspace',
       onDismiss,
-      okButton: h(TooltipTrigger, { content: Utils.summarizeErrors(errors) }, [
-        buttonPrimary({
-          disabled: errors,
-          onClick: () => this.create()
-        }, cloneWorkspace ? 'Clone Workspace' : 'Create Workspace')
-      ])
+      okButton: buttonPrimary({
+        disabled: errors,
+        tooltip: Utils.summarizeErrors(errors),
+        onClick: () => this.create()
+      }, cloneWorkspace ? 'Clone Workspace' : 'Create Workspace')
     }, [
       div({ style: styles.label }, ['Workspace name *']),
       validatedInput({
