@@ -7,7 +7,6 @@ import * as breadcrumbs from 'src/components/breadcrumbs'
 import { buttonPrimary, link, spinnerOverlay } from 'src/components/common'
 import { icon, spinner } from 'src/components/icons'
 import { FlexTable, GridTable, HeaderCell, paginator } from 'src/components/table'
-import TooltipTrigger from 'src/components/TooltipTrigger'
 import { Rawls } from 'src/libs/ajax'
 import * as auth from 'src/libs/auth'
 import * as Config from 'src/libs/config'
@@ -293,14 +292,13 @@ class WorkspaceDataContent extends Component {
          * value: comma-separated list of attribute names to support downloading only the selected columns
          */
       ]),
-      h(TooltipTrigger, { content: 'Download all data as a file' }, [
-        buttonPrimary({
-          disabled: !orchestrationRoot,
-          onClick: () => this.downloadForm.current.submit()
-        }, [
-          icon('download', { style: { marginRight: '0.5rem' } }),
-          'Download'
-        ])
+      buttonPrimary({
+        disabled: !orchestrationRoot,
+        tooltip: 'Download all data as a file',
+        onClick: () => this.downloadForm.current.submit()
+      }, [
+        icon('download', { style: { marginRight: '0.5rem' } }),
+        'Download'
       ])
     ])
   }
@@ -309,35 +307,34 @@ class WorkspaceDataContent extends Component {
     const { entities, selectedDataType, entityMetadata, copying, copied } = this.state
 
     return h(Fragment, [
-      h(TooltipTrigger, { content: 'Copy only the current page to the clipboard' }, [
-        buttonPrimary({
-          style: { margin: '0 1rem' },
-          onClick: async () => {
-            const attributeNames = entityMetadata[selectedDataType].attributeNames
+      buttonPrimary({
+        style: { margin: '0 1rem' },
+        tooltip: 'Copy only the current page to the clipboard',
+        onClick: async () => {
+          const attributeNames = entityMetadata[selectedDataType].attributeNames
 
-            const entityToRow = entity =>
-              _.join('\t', [
-                entity.name, ..._.map(
-                  attribute => Utils.entityAttributeText(entity.attributes[attribute]),
-                  attributeNames)
-              ])
+          const entityToRow = entity =>
+            _.join('\t', [
+              entity.name, ..._.map(
+                attribute => Utils.entityAttributeText(entity.attributes[attribute]),
+                attributeNames)
+            ])
 
-            const header = _.join('\t', [`${selectedDataType}_id`, ...attributeNames])
+          const header = _.join('\t', [`${selectedDataType}_id`, ...attributeNames])
 
-            const str = _.join('\n', [header, ..._.map(entityToRow, entities)]) + '\n'
+          const str = _.join('\n', [header, ..._.map(entityToRow, entities)]) + '\n'
 
-            try {
-              this.setState({ copying: true })
-              await clipboard.writeText(str)
-              this.setState({ copying: false, copied: true })
-            } catch (error) {
-              reportError('Error copying to clipboard', error)
-            }
+          try {
+            this.setState({ copying: true })
+            await clipboard.writeText(str)
+            this.setState({ copying: false, copied: true })
+          } catch (error) {
+            reportError('Error copying to clipboard', error)
           }
-        }, [
-          icon('copy-to-clipboard', { style: { marginRight: '0.5rem' } }),
-          'Copy to Clipboard'
-        ])
+        }
+      }, [
+        icon('copy-to-clipboard', { style: { marginRight: '0.5rem' } }),
+        'Copy to Clipboard'
       ]),
       copying && spinner(),
       copied && 'Done!'

@@ -5,7 +5,6 @@ import { buttonPrimary, LabeledCheckbox, link, spinnerOverlay } from 'src/compon
 import { centeredSpinner, profilePic } from 'src/components/icons'
 import { textInput, validatedInput } from 'src/components/input'
 import { InfoBox } from 'src/components/PopupTrigger'
-import TooltipTrigger from 'src/components/TooltipTrigger'
 import { TopBar } from 'src/components/TopBar'
 import { Orchestration } from 'src/libs/ajax'
 import * as Nav from 'src/libs/nav'
@@ -272,13 +271,12 @@ class Profile extends Component {
       checkbox('notifications/WorkspaceAddedNotification', 'Workspace Access Added'),
       checkbox('notifications/WorkspaceRemovedNotification', 'Workspace Access Removed'),
 
-      h(TooltipTrigger, { content: !!errors && 'Please fill out all required fields' }, [
-        buttonPrimary({
-          style: { marginTop: '3rem' },
-          onClick: () => this.save(),
-          disabled: !!errors
-        }, ['Save Profile'])
-      ])
+      buttonPrimary({
+        style: { marginTop: '3rem' },
+        onClick: () => this.save(),
+        disabled: !!errors,
+        tooltip: !!errors && 'Please fill out all required fields'
+      }, ['Save Profile'])
     ])
   }
 
