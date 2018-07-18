@@ -59,7 +59,7 @@ export class DestinationWorkspace extends Component {
   }
 
   componentDidMount() {
-    Rawls.workspacesList().then(
+    Rawls.listWorkspaces().then(
       workspaces => this.setState({ workspaces }),
       error => reportError('Error loading workspaces', error)
     )
@@ -85,7 +85,7 @@ class DockstoreImporter extends Component {
 
   componentDidMount() {
     this.loadWdl()
-    Rawls.workspacesList().then(
+    Rawls.listWorkspaces().then(
       workspaces => this.setState({ workspaces }),
       error => reportError('Error loading workspaces', error)
     )
@@ -141,7 +141,7 @@ class DockstoreImporter extends Component {
           }
         },
         [
-          icon('warning-standard', { class: 'is-solid', size: 32, style: { marginRight: '0.5rem', flex: '0 0 auto' } }),
+          icon('warning-standard', { className: 'is-solid', size: 32, style: { marginRight: '0.5rem', flex: '0 0 auto' } }),
           mutabilityWarning
         ]),
         h(Collapse, { title: 'REVIEW WDL' },
