@@ -6,7 +6,7 @@ import { icon } from 'src/components/icons'
 import { TextArea, validatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { InfoBox } from 'src/components/PopupTrigger'
-import { Rawls } from 'src/libs/ajax'
+import { Rawls, Sam } from 'src/libs/ajax'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
@@ -65,7 +65,7 @@ export default class NewWorkspaceModal extends Component {
     try {
       const [billingProjects, allGroups] = await Promise.all([
         Rawls.listBillingProjects(),
-        Rawls.listGroups()
+        Sam.listGroups()
       ])
       this.setState({ billingProjects, allGroups })
     } catch (error) {
