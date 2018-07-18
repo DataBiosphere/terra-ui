@@ -51,7 +51,7 @@ class NewUserModal extends Component {
       onDismiss,
       title: 'Add user to Saturn Group',
       okButton: buttonPrimary({
-        tooltip: Utils.summarizeErrors(errors && errors.userEmail),
+        tooltip: Utils.summarizeErrors(errors),
         onClick: () => this.submit(),
         disabled: errors
       }, ['Add User'])
