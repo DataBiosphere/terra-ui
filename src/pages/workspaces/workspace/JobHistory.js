@@ -45,7 +45,7 @@ const collapseStatus = status => {
 }
 
 const successIcon = style => icon('check', { size: 24, style: { color: Style.colors.success, ...style } })
-const failedIcon = style => icon('warning-standard', { class: 'is-solid', size: 24, style: { color: Style.colors.error, ...style } })
+const failedIcon = style => icon('warning-standard', { className: 'is-solid', size: 24, style: { color: Style.colors.error, ...style } })
 const runningIcon = style => icon('sync', { size: 24, style: { color: Style.colors.success, ...style } })
 
 

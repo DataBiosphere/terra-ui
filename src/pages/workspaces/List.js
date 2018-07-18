@@ -148,7 +148,7 @@ export class WorkspaceList extends Component {
   async refresh() {
     try {
       this.setState({ isDataLoaded: false })
-      const workspaces = await Rawls.workspacesList()
+      const workspaces = await Rawls.listWorkspaces()
       this.setState({
         isDataLoaded: true,
         workspaces: _.sortBy('workspace.name', _.filter(ws => !ws.public ||
