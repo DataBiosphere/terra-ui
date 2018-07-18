@@ -31,7 +31,7 @@ const isImage = ({ contentType, name }) => {
 
 const isText = ({ contentType, name }) => {
   return /^text/.test(contentType) ||
-    /\.txt$/.test(name) || /\.[ct]sv$/.test(name) || /\.log/.test(name)
+    /\.txt$/.test(name) || /\.[ct]sv$/.test(name) || /\.log$/.test(name)
 }
 
 const isFilePreviewable = ({ size, ...metadata }) => {
