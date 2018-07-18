@@ -2,7 +2,7 @@ import clipboard from 'clipboard-polyfill/build/clipboard-polyfill'
 import filesize from 'filesize'
 import _ from 'lodash/fp'
 import { Fragment } from 'react'
-import { div, h, input } from 'react-hyperscript-helpers/lib/index'
+import { div, h, img, input } from 'react-hyperscript-helpers/lib/index'
 import Collapse from 'src/components/Collapse'
 import { buttonPrimary, Clickable, link, Select, spinnerOverlay } from 'src/components/common'
 import { icon, spinner } from 'src/components/icons'
@@ -24,7 +24,20 @@ const els = {
   data: children => div({ style: { marginLeft: '2rem', marginTop: '0.5rem' } }, children)
 }
 
-const isFilePreviewable = name => /\.txt$/.test(name) || /\.[ct]sv$/.test(name) || /\.log/.test(name)
+const isImage = ({ contentType, name }) => {
+  return /^image/.test(contentType) ||
+    /\.jpe?g$/.test(name) || /\.png$/.test(name) || /\.svg$/.test(name) || /\.bmp$/.test(name)
+}
+
+const isText = ({ contentType, name }) => {
+  return /^text/.test(contentType) ||
+    /\.txt$/.test(name) || /\.[ct]sv$/.test(name) || /\.log$/.test(name)
+}
+
+const isFilePreviewable = ({ size, ...metadata }) => {
+  return isText(metadata) || (isImage(metadata) && size <= 1e9)
+}
+
 const parseUri = uri => _.drop(1, /gs:[/][/]([^/]+)[/](.+)/.exec(uri))
 const getMaxDownloadCostNA = async bytes => {
   const nanos = DownloadPrices.pricingInfo[0].pricingExpression.tieredRates[1].unitPrice.nanos
@@ -50,15 +63,19 @@ export class UriViewer extends Component {
     const { googleProject } = this.props
     const [bucket, object] = parseUri(uri)
 
-    const [metadata, preview, firecloudApiUrl] = await Promise.all([
+    const [metadata, firecloudApiUrl] = await Promise.all([
       Buckets.getObject(bucket, object, googleProject),
-      isFilePreviewable(uri) ? Buckets.getObjectPreview(bucket, object, googleProject) : Promise.resolve(undefined),
       Config.getOrchestrationUrlRoot()
     ])
 
     const price = await getMaxDownloadCostNA(metadata.size)
 
-    this.setState({ metadata, preview, firecloudApiUrl, price })
+    const preview = isFilePreviewable(metadata) &&
+      await Buckets.getObjectPreview(bucket, object, googleProject, isImage(metadata)).then(
+        res => isImage(metadata) ? res.blob().then(URL.createObjectURL) : res.text()
+      )
+
+    this.setState({ metadata, firecloudApiUrl, price, preview })
   }
 
   async resolveUri() {
@@ -75,26 +92,29 @@ export class UriViewer extends Component {
 
   renderMetadata() {
     const { uri, metadata, preview, firecloudApiUrl, price, copied } = this.state
-    const fileName = _.last(uri.split('/'))
     const [bucket, object] = parseUri(uri)
     const gsutilCommand = `gsutil cp ${uri} .`
 
     return h(Fragment,
       !metadata ? ['Loading metadata...', spinner()] :
         [
-          els.cell(isFilePreviewable(fileName) ? [
+          els.cell(isFilePreviewable(metadata) ? [
             els.label('Preview'),
-            preview ?
-              div({
-                style: {
-                  whiteSpace: 'pre-wrap', fontFamily: 'Menlo, monospace', fontSize: 12,
-                  overflowY: 'auto', maxHeight: 206,
-                  marginTop: '0.5rem', padding: '0.5rem',
-                  background: Style.colors.background, borderRadius: '0.2rem'
-                }
-              }, [preview]) :
-              div({}, ['Loading preview...', spinner()])
-          ] : [els.label(`File can't be previewed.`)]),
+            Utils.cond(
+              [
+                isImage(metadata), () => img({ src: preview, width: 400 })
+              ], [
+                preview, () => div({
+                  style: {
+                    whiteSpace: 'pre-wrap', fontFamily: 'Menlo, monospace', fontSize: 12,
+                    overflowY: 'auto', maxHeight: 206,
+                    marginTop: '0.5rem', padding: '0.5rem',
+                    background: Style.colors.background, borderRadius: '0.2rem'
+                  }
+                }, [preview])
+              ]
+            )
+          ] : [els.label(isImage(metadata) ? 'Image is to large to preview.' : `File can't be previewed.`)]),
           els.cell([els.label('File size'), els.data(filesize(parseInt(metadata.size, 10)))]),
           els.cell([
             link({
@@ -157,6 +177,7 @@ export class UriViewer extends Component {
         onDismiss: () => this.setState({ modalOpen: false }),
         title: 'File Details',
         showCancel: false,
+        showX: true,
         okButton: 'Done'
       },
       Utils.cond([

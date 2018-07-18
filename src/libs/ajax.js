@@ -91,11 +91,9 @@ export const Buckets = {
     )
   },
 
-  getObjectPreview: async (bucket, object, namespace) => {
+  getObjectPreview: async (bucket, object, namespace, previewFull = false) => {
     return fetchBuckets(`storage/v1/b/${bucket}/o/${encodeURIComponent(object)}?alt=media`,
-      _.merge(authOpts(await Sam.token(namespace)), { headers: { range: 'bytes=20000' } })).then(
-      res => res.text()
-    )
+      _.merge(authOpts(await Sam.token(namespace)), previewFull ? {} : { headers: { range: 'bytes=20000' } }))
   },
 
   listNotebooks: async (namespace, name) => {
