@@ -164,11 +164,11 @@ export const Rawls = {
   group: groupName => {
     const root = `groups/${groupName}`
 
-    const doAddMember = async (role, email) => {
+    const addMember = async (role, email) => {
       return fetchRawls(`${root}/${role}/${email}`, _.merge(authOpts(), { method: 'PUT' }))
     }
 
-    const doRemoveMember = async (role, email) => {
+    const removeMember = async (role, email) => {
       return fetchRawls(`${root}/${role}/${email}`, _.merge(authOpts(), { method: 'DELETE' }))
     }
 
@@ -186,14 +186,14 @@ export const Rawls = {
         return res.json()
       },
 
-      addMember: doAddMember,
+      addMember,
 
-      removeMember: doRemoveMember,
+      removeMember,
 
       changeMemberRole: async (email, oldRole, newRole) => {
         if (oldRole !== newRole) {
-          await doAddMember(newRole, email)
-          await doRemoveMember(oldRole, email)
+          await addMember(newRole, email)
+          return removeMember(oldRole, email)
         }
       }
     }
