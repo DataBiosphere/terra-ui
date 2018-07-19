@@ -3,7 +3,7 @@ import { a, div, h } from 'react-hyperscript-helpers'
 import { pure } from 'recompose'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { spinnerOverlay } from 'src/components/common'
-import { Rawls } from 'src/libs/ajax'
+import { Workspaces } from 'src/libs/ajax'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
@@ -56,7 +56,7 @@ class ToolsContent extends Component {
 
     try {
       this.setState({ loading: true })
-      const configs = await Rawls.workspace(namespace, name).listMethodConfigs()
+      const configs = await Workspaces.workspace(namespace, name).listMethodConfigs()
       this.setState({ configs })
     } catch (error) {
       reportError('Error loading configs', error)

@@ -3,7 +3,7 @@ import { Fragment } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { icon, spinner } from 'src/components/icons'
 import { TopBar } from 'src/components/TopBar'
-import { Leo, Rawls } from 'src/libs/ajax'
+import { Jupyter, Workspaces } from 'src/libs/ajax'
 import { getBasicProfile } from 'src/libs/auth'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
@@ -56,7 +56,7 @@ class NotebookLauncher extends Component {
 
   async resolveBucketName() {
     const { namespace, name: workspaceName } = this.props
-    const { workspace: { bucketName } } = await Rawls.workspace(namespace, workspaceName).details()
+    const { workspace: { bucketName } } = await Workspaces.workspace(namespace, workspaceName).details()
     return bucketName
   }
 
@@ -68,7 +68,7 @@ class NotebookLauncher extends Component {
       _.remove({ status: 'Deleting' }),
       _.sortBy('createdDate'),
       _.last
-    )(await Leo.clustersList())
+    )(await Jupyter.clustersList())
   }
 
   async startCluster() {
@@ -84,7 +84,7 @@ class NotebookLauncher extends Component {
       if (status === 'Running') {
         return cluster
       } else if (status === 'Stopped') {
-        await Leo.cluster(googleProject, clusterName).start()
+        await Jupyter.cluster(googleProject, clusterName).start()
         await Utils.delay(10000)
       } else {
         await Utils.delay(3000)
@@ -97,15 +97,15 @@ class NotebookLauncher extends Component {
     const { bucketName } = this.state
     const { clusterName } = cluster
 
-    await Leo.notebooks(namespace, clusterName).setCookie()
+    await Jupyter.notebooks(namespace, clusterName).setCookie()
 
     while (true) {
       try {
         await Promise.all([
-          Leo.notebooks(namespace, clusterName).localize({
+          Jupyter.notebooks(namespace, clusterName).localize({
             [`~/${workspaceName}/.delocalize.json`]: `data:application/json,{"destination":"gs://${bucketName}/notebooks","pattern":""}`
           }),
-          Leo.notebooks(namespace, clusterName).localize({
+          Jupyter.notebooks(namespace, clusterName).localize({
             [`~/${workspaceName}/${notebookName}`]: `gs://${bucketName}/notebooks/${notebookName}`
           })
         ])

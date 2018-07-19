@@ -9,7 +9,7 @@ import Modal from 'src/components/Modal'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
 import PopupTrigger from 'src/components/PopupTrigger'
 import { TopBar } from 'src/components/TopBar'
-import { Rawls } from 'src/libs/ajax'
+import { Workspaces } from 'src/libs/ajax'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
@@ -69,7 +69,7 @@ class WorkspaceTabs extends PureComponent {
       navTab({ tabName: 'notebooks', href: Nav.getLink('workspace-notebooks', { namespace, name }) }),
       navTab({ tabName: 'data', href: Nav.getLink('workspace-data', { namespace, name }) }),
       navTab({ tabName: 'tools', href: Nav.getLink('workspace-tools', { namespace, name }) }),
-      navTab({ tabName: 'job history', href: Nav.getLink('workspace-job-history',  { namespace, name }) }),
+      navTab({ tabName: 'job history', href: Nav.getLink('workspace-job-history', { namespace, name }) }),
       div({ style: { flexGrow: 1 } }),
       h(Clickable, {
         ...navIconProps,
@@ -112,7 +112,7 @@ class DeleteWorkspaceModal extends Component {
     const { namespace, name } = this.props
     try {
       this.setState({ deleting: true })
-      await Rawls.workspace(namespace, name).delete()
+      await Workspaces.workspace(namespace, name).delete()
       Nav.goToPath('workspaces')
     } catch (error) {
       reportError('Error deleting workspace', error)
@@ -123,7 +123,7 @@ class DeleteWorkspaceModal extends Component {
   async componentDidMount() {
     const { namespace, name } = this.props
     try {
-      const workspace = await Rawls.workspace(namespace, name).details()
+      const workspace = await Workspaces.workspace(namespace, name).details()
       this.setState({ workspace })
     } catch (error) {
       reportError('Error loading workspace', error)
@@ -250,7 +250,8 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title }, content) => {
         workspaceError.status === 404 ?
           h(Fragment, [
             h2({}, ['Could not display workspace.']),
-            p({}, ['Either the requested workspace does not exist, or you do not have access. If you suspect you do not have access, please contact the workspace owner.'])
+            p({},
+              ['Either the requested workspace does not exist, or you do not have access. If you suspect you do not have access, please contact the workspace owner.'])
           ]) :
           h(Fragment, [
             h2({}, ['Failed to load workspace']),
@@ -266,7 +267,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title }, content) => {
     async refresh() {
       const { namespace, name } = this.props
       try {
-        const workspace = await Rawls.workspace(namespace, name).details()
+        const workspace = await Workspaces.workspace(namespace, name).details()
         this.setState({ workspace })
       } catch (error) {
         this.setState({ workspaceError: error, errorText: await error.text() })

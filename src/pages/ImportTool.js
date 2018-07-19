@@ -7,7 +7,7 @@ import ErrorView from 'src/components/ErrorView'
 import { centeredSpinner, icon, spinner } from 'src/components/icons'
 import { TopBar } from 'src/components/TopBar'
 import WDLViewer from 'src/components/WDLViewer'
-import { Dockstore, Rawls } from 'src/libs/ajax'
+import { Dockstore, Workspaces } from 'src/libs/ajax'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
@@ -59,7 +59,7 @@ export class DestinationWorkspace extends Component {
   }
 
   componentDidMount() {
-    Rawls.listWorkspaces().then(
+    Workspaces.list().then(
       workspaces => this.setState({ workspaces }),
       error => reportError('Error loading workspaces', error)
     )
@@ -85,7 +85,7 @@ class DockstoreImporter extends Component {
 
   componentDidMount() {
     this.loadWdl()
-    Rawls.listWorkspaces().then(
+    Workspaces.list().then(
       workspaces => this.setState({ workspaces }),
       error => reportError('Error loading workspaces', error)
     )
@@ -158,7 +158,7 @@ class DockstoreImporter extends Component {
     const { path, version } = this.props
     const toolName = _.last(path.split('/'))
 
-    const rawlsWorkspace = Rawls.workspace(namespace, name)
+    const rawlsWorkspace = Workspaces.workspace(namespace, name)
 
     const entityMetadata = await rawlsWorkspace.entityMetadata()
 

@@ -8,7 +8,7 @@ import { icon } from 'src/components/icons'
 import { IntegerInput, textInput } from 'src/components/input'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { machineTypes, profiles } from 'src/data/clusters'
-import { Leo } from 'src/libs/ajax'
+import { Jupyter } from 'src/libs/ajax'
 import { getBasicProfile } from 'src/libs/auth'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
@@ -189,7 +189,7 @@ export default class ClusterManager extends PureComponent {
   refreshClusters = async () => {
     const { namespace } = this.props
     try {
-      const allClusters = await Leo.clustersList()
+      const allClusters = await Jupyter.clustersList()
       const clusters = _.filter({
         googleProject: namespace,
         creator: getBasicProfile().getEmail()
@@ -250,7 +250,7 @@ export default class ClusterManager extends PureComponent {
     const { namespace } = this.props
     const { jupyterUserScriptUri } = this.state
     this.executeAndRefresh(
-      Leo.cluster(namespace, Utils.generateClusterName()).create({
+      Jupyter.cluster(namespace, Utils.generateClusterName()).create({
         labels: { 'saturnAutoCreated': 'true' },
         machineConfig: this.getMachineConfig(),
         ...(jupyterUserScriptUri ? { jupyterUserScriptUri } : {})
@@ -264,7 +264,7 @@ export default class ClusterManager extends PureComponent {
     const activeClusters = this.getActiveClustersOldestFirst()
     this.executeAndRefresh(
       Promise.all(_.map(
-        ({ googleProject, clusterName }) => Leo.cluster(googleProject, clusterName).delete(),
+        ({ googleProject, clusterName }) => Jupyter.cluster(googleProject, clusterName).delete(),
         _.without([_.nth(keepIndex, activeClusters)], activeClusters)
       ))
     )
@@ -273,14 +273,14 @@ export default class ClusterManager extends PureComponent {
   startCluster() {
     const { googleProject, clusterName } = this.getCurrentCluster()
     this.executeAndRefresh(
-      Leo.cluster(googleProject, clusterName).start()
+      Jupyter.cluster(googleProject, clusterName).start()
     )
   }
 
   stopCluster() {
     const { googleProject, clusterName } = this.getCurrentCluster()
     this.executeAndRefresh(
-      Leo.cluster(googleProject, clusterName).stop()
+      Jupyter.cluster(googleProject, clusterName).stop()
     )
   }
 
