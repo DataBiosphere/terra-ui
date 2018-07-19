@@ -46,6 +46,8 @@ class NotebookLauncherContent extends Component {
   }
 
   async componentDidMount() {
+    this.mounted = true
+
     try {
       const cluster = await this.startCluster()
       await this.localizeNotebook(cluster)
@@ -53,9 +55,15 @@ class NotebookLauncherContent extends Component {
       const { name: workspaceName, notebookName } = this.props
       this.setState({ url: `${cluster.clusterUrl}/notebooks/${workspaceName}/${notebookName}` })
     } catch (error) {
-      reportError('Error launching notebook', error)
-      this.setState({ failed: true })
+      if (this.mounted) {
+        reportError('Error launching notebook', error)
+        this.setState({ failed: true })
+      }
     }
+  }
+
+  componentWillUnmount() {
+    this.mounted = false
   }
 
   async getCluster() {
@@ -70,7 +78,7 @@ class NotebookLauncherContent extends Component {
   }
 
   async startCluster() {
-    while (true) {
+    while (this.mounted) {
       const cluster = await this.getCluster()
       if (!cluster) {
         throw new Error('No clusters available')
@@ -96,7 +104,7 @@ class NotebookLauncherContent extends Component {
 
     await Leo.notebooks(namespace, clusterName).setCookie()
 
-    while (true) {
+    while (this.mounted) {
       try {
         await Promise.all([
           Leo.notebooks(namespace, clusterName).localize({
