@@ -65,10 +65,7 @@ authStore.subscribe(async (state, oldState) => {
         )
       )
 
-      const needsUpgrade = _.flow(
-        _.filter('labels.saturnAutoCreated'),
-        _.remove(c => c.labels.saturnVersion === version)
-      )(clusters)
+      const needsUpgrade = _.remove(c => c.labels.saturnVersion === version, clusters)
       await Promise.all(_.map(({ googleProject, clusterName, machineConfig, jupyterUserScriptUri }) => {
         const cluster = Leo.cluster(googleProject, clusterName)
         const clusterOptions = {
