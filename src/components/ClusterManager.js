@@ -7,7 +7,7 @@ import DropdownBox from 'src/components/DropdownBox'
 import { icon } from 'src/components/icons'
 import { IntegerInput, textInput } from 'src/components/input'
 import TooltipTrigger from 'src/components/TooltipTrigger'
-import { machineTypes, profiles } from 'src/data/clusters'
+import { machineTypes, profiles, version } from 'src/data/clusters'
 import { Leo } from 'src/libs/ajax'
 import { getBasicProfile } from 'src/libs/auth'
 import { reportError } from 'src/libs/error'
@@ -251,7 +251,7 @@ export default class ClusterManager extends PureComponent {
     const { jupyterUserScriptUri } = this.state
     this.executeAndRefresh(
       Leo.cluster(namespace, Utils.generateClusterName()).create({
-        labels: { 'saturnAutoCreated': 'true' },
+        labels: { 'saturnAutoCreated': 'true', 'saturnVersion': version },
         machineConfig: this.getMachineConfig(),
         ...(jupyterUserScriptUri ? { jupyterUserScriptUri } : {})
       }).then(() => {

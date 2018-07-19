@@ -46,3 +46,5 @@ export const profiles = [
     }
   }
 ]
+
+export const version = '1'
