@@ -58,11 +58,15 @@ const fetchOk = async (...args) => {
 }
 
 
+const fetchSam = async (path, ...args) => {
+  return fetchOk(`${await Config.getSamUrlRoot()}/api/${path}`, ...args)
+}
+
 export const Sam = {
   token: Utils.memoizeWithTimeout(async namespace => {
     const scopes = ['https://www.googleapis.com/auth/devstorage.full_control']
-    const res = await fetchOk(
-      `${await Config.getSamUrlRoot()}/api/google/user/petServiceAccount/${namespace}/token`,
+    const res = await fetchSam(
+      `google/user/petServiceAccount/${namespace}/token`,
       _.mergeAll([authOpts(), jsonBody(scopes), { method: 'POST' }])
     )
     return res.json()
@@ -76,6 +80,54 @@ export const Sam = {
     const url = `${await Config.getSamUrlRoot()}/register/user`
     const res = await fetchOk(url, _.merge(authOpts(), { method: 'POST' }))
     return res.json()
+  },
+
+  listGroups: async () => {
+    const res = await fetchSam('groups/v1', authOpts())
+    return res.json()
+  },
+
+  group: groupName => {
+    const root = `groups/v1/${groupName}`
+
+    const addMember = async (role, email) => {
+      return fetchSam(`${root}/${role}/${email}`, _.merge(authOpts(), { method: 'PUT' }))
+    }
+
+    const removeMember = async (role, email) => {
+      return fetchSam(`${root}/${role}/${email}`, _.merge(authOpts(), { method: 'DELETE' }))
+    }
+
+    return {
+      create: () => {
+        return fetchSam(root, _.merge(authOpts(), { method: 'POST' }))
+      },
+
+      delete: () => {
+        return fetchSam(root, _.merge(authOpts(), { method: 'DELETE' }))
+      },
+
+      listMembers: async () => {
+        const res = await fetchSam(`${root}/member`, authOpts())
+        return res.json()
+      },
+
+      listAdmins: async () => {
+        const res = await fetchSam(`${root}/admin`, authOpts())
+        return res.json()
+      },
+
+      addMember,
+
+      removeMember,
+
+      changeMemberRole: async (email, oldRole, newRole) => {
+        if (oldRole !== newRole) {
+          await addMember(newRole, email)
+          return removeMember(oldRole, email)
+        }
+      }
+    }
   }
 }
 
@@ -152,49 +204,6 @@ export const Rawls = {
   listBillingProjects: async () => {
     const res = await fetchRawls('user/billing', authOpts())
     return res.json()
-  },
-
-  listGroups: async () => {
-    const res = await fetchRawls('groups', authOpts())
-    return res.json()
-  },
-
-  group: groupName => {
-    const root = `groups/${groupName}`
-
-    const addMember = async (role, email) => {
-      return fetchRawls(`${root}/${role}/${email}`, _.merge(authOpts(), { method: 'PUT' }))
-    }
-
-    const removeMember = async (role, email) => {
-      return fetchRawls(`${root}/${role}/${email}`, _.merge(authOpts(), { method: 'DELETE' }))
-    }
-
-    return {
-      create: () => {
-        return fetchRawls(root, _.merge(authOpts(), { method: 'POST' }))
-      },
-
-      delete: () => {
-        return fetchRawls(root, _.merge(authOpts(), { method: 'DELETE' }))
-      },
-
-      listMembers: async () => {
-        const res = await fetchRawls(root, authOpts())
-        return res.json()
-      },
-
-      addMember,
-
-      removeMember,
-
-      changeMemberRole: async (email, oldRole, newRole) => {
-        if (oldRole !== newRole) {
-          await addMember(newRole, email)
-          return removeMember(oldRole, email)
-        }
-      }
-    }
   },
 
   listWorkspaces: async () => {
