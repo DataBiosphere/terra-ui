@@ -7,7 +7,7 @@ import { icon } from 'src/components/icons'
 import { validatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { TopBar } from 'src/components/TopBar'
-import { Rawls } from 'src/libs/ajax'
+import { Sam } from 'src/libs/ajax'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
@@ -70,7 +70,7 @@ class NewGroupModal extends Component {
 
     try {
       this.setState({ submitting: true })
-      await Rawls.group(groupName).create()
+      await Sam.group(groupName).create()
       onSuccess()
     } catch (error) {
       this.setState({ submitting: false })
@@ -93,7 +93,7 @@ const DeleteGroupModal = pure(({ groupName, onDismiss, onSubmit }) => {
 })
 
 const GroupCard = pure(({ group: { groupName, groupEmail, role }, onDelete }) => {
-  const isAdmin = role === 'Admin'
+  const isAdmin = role === 'admin'
 
   return a({
     href: isAdmin ? Nav.getLink('group', { groupName }) : undefined,
@@ -107,7 +107,7 @@ const GroupCard = pure(({ group: { groupName, groupEmail, role }, onDelete }) =>
     }, [groupName]),
     div({ style: { flexGrow: 1 } }, [groupEmail]),
     div({ style: { width: 100, display: 'flex', alignItems: 'center' } }, [
-      div({ style: { flexGrow: 1 } }, [role]),
+      div({ style: { flexGrow: 1, textTransform: 'capitalize' } }, [role]),
       isAdmin && link({ onClick: e => { e.preventDefault(); onDelete() }, as: 'div' }, [
         icon('trash', { className: 'is-solid', size: 17 })
       ])
@@ -142,7 +142,7 @@ export class GroupList extends Component {
   async refresh() {
     try {
       this.setState({ isDataLoaded: false, creatingNewGroup: false, deletingGroup: false, updating: false })
-      const groups = await Rawls.listGroups()
+      const groups = await Sam.listGroups()
       this.setState({
         isDataLoaded: true,
         groups: _.sortBy('group.groupName', groups)
@@ -199,7 +199,7 @@ export class GroupList extends Component {
         onSubmit: async () => {
           try {
             this.setState({ deletingGroup: false, updating: true })
-            await Rawls.group(deletingGroup.groupName).delete()
+            await Sam.group(deletingGroup.groupName).delete()
             this.refresh()
           } catch (error) {
             this.setState({ updating: false })
