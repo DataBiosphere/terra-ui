@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { PureComponent, Fragment } from 'react'
+import { Fragment, PureComponent } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
 import { buttonPrimary, buttonSecondary, Clickable, LabeledCheckbox, Select } from 'src/components/common'
@@ -7,7 +7,7 @@ import DropdownBox from 'src/components/DropdownBox'
 import { icon } from 'src/components/icons'
 import { IntegerInput, textInput } from 'src/components/input'
 import TooltipTrigger from 'src/components/TooltipTrigger'
-import { machineTypes, profiles } from 'src/data/clusters'
+import { machineTypes, profiles, version } from 'src/data/clusters'
 import { Jupyter } from 'src/libs/ajax'
 import { getBasicProfile } from 'src/libs/auth'
 import { reportError } from 'src/libs/error'
@@ -251,7 +251,7 @@ export default class ClusterManager extends PureComponent {
     const { jupyterUserScriptUri } = this.state
     this.executeAndRefresh(
       Jupyter.cluster(namespace, Utils.generateClusterName()).create({
-        labels: { 'saturnAutoCreated': 'true' },
+        labels: { 'saturnAutoCreated': 'true', 'saturnVersion': version },
         machineConfig: this.getMachineConfig(),
         ...(jupyterUserScriptUri ? { jupyterUserScriptUri } : {})
       }).then(() => {

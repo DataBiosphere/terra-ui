@@ -69,12 +69,11 @@ class NotebookCard extends Component {
         width: '2em',
         margin: '-0.5em 0.5rem -0.5em 0',
         color: Style.colors.background
-      } :
-        {
-          height: 125,
-          width: 'auto',
-          color: Style.colors.background
-        }
+      } : {
+        height: 125,
+        width: 'auto',
+        color: Style.colors.background
+      }
     })
 
     const title = div({
@@ -87,7 +86,6 @@ class NotebookCard extends Component {
 
     return h(Fragment, [
       a({
-        target: '_blank',
         href: Nav.getLink('workspace-notebook-launch', { namespace, name: wsName, notebookName: name.slice(10) }),
         style: {
           ...Style.elements.card,
@@ -96,61 +94,48 @@ class NotebookCard extends Component {
           justifyContent: listView ? undefined : 'space-between',
           alignItems: listView ? 'center' : undefined
         }
-      },
-      listView ? [
+      }, listView ? [
         jupyterIcon,
         title,
         div({ style: { flexGrow: 1 } }),
         div({ style: { fontSize: '0.8rem', marginRight: '0.5rem' } },
           `Last edited: ${Utils.makePrettyDate(updated)}`),
         notebookMenu
-      ] :
-        [
-          div({ style: { display: 'flex', justifyContent: 'space-between' } },
-            [title, notebookMenu]),
-          jupyterIcon,
-          div({ style: { display: 'flex', alignItems: 'flex-end' } }, [
-            div({ style: { fontSize: '0.8rem', flexGrow: 1, marginRight: '0.5rem' } }, [
-              'Last edited:',
-              div({}, Utils.makePrettyDate(updated))
-            ])
+      ] : [
+        div({ style: { display: 'flex', justifyContent: 'space-between' } },
+          [title, notebookMenu]),
+        jupyterIcon,
+        div({ style: { display: 'flex', alignItems: 'flex-end' } }, [
+          div({ style: { fontSize: '0.8rem', flexGrow: 1, marginRight: '0.5rem' } }, [
+            'Last edited:',
+            div({}, Utils.makePrettyDate(updated))
           ])
-        ]),
-      Utils.cond(
-        [
-          renamingNotebook,
-          () => h(NotebookDuplicator, {
-            printName, namespace, bucketName, destroyOld: true,
-            onDismiss: () => this.setState({ renamingNotebook: false }),
-            onSuccess: () => {
-              this.setState({ renamingNotebook: false })
-              reloadList()
-            }
-          })
-        ],
-        [
-          copyingNotebook,
-          () => h(NotebookDuplicator, {
-            printName, namespace, bucketName, destroyOld: false,
-            onDismiss: () => this.setState({ copyingNotebook: false }),
-            onSuccess: () => {
-              this.setState({ copyingNotebook: false })
-              reloadList()
-            }
-          })
-        ],
-        [
-          deletingNotebook,
-          () => h(NotebookDeleter, {
-            printName, namespace, bucketName,
-            onDismiss: () => this.setState({ deletingNotebook: false }),
-            onSuccess: () => {
-              this.setState({ deletingNotebook: false })
-              reloadList()
-            }
-          })
-        ],
-        () => null)
+        ])
+      ]),
+      renamingNotebook && h(NotebookDuplicator, {
+        printName, namespace, bucketName, destroyOld: true,
+        onDismiss: () => this.setState({ renamingNotebook: false }),
+        onSuccess: () => {
+          this.setState({ renamingNotebook: false })
+          reloadList()
+        }
+      }),
+      copyingNotebook && h(NotebookDuplicator, {
+        printName, namespace, bucketName, destroyOld: false,
+        onDismiss: () => this.setState({ copyingNotebook: false }),
+        onSuccess: () => {
+          this.setState({ copyingNotebook: false })
+          reloadList()
+        }
+      }),
+      deletingNotebook && h(NotebookDeleter, {
+        printName, namespace, bucketName,
+        onDismiss: () => this.setState({ deletingNotebook: false }),
+        onSuccess: () => {
+          this.setState({ deletingNotebook: false })
+          reloadList()
+        }
+      })
     ])
   }
 }
@@ -170,9 +155,9 @@ class NotebooksContent extends Component {
     const { namespace, workspace: { workspace: { bucketName } } } = this.props
 
     try {
-      this.setState({ loading: true })
+      this.setState({ launching: false, loading: true })
       const notebooks = await Buckets.listNotebooks(namespace, bucketName)
-      this.setState({ bucketName, notebooks: _.reverse(_.sortBy('updated', notebooks)) })
+      this.setState({ notebooks: _.reverse(_.sortBy('updated', notebooks)) })
     } catch (error) {
       reportError('Error loading notebooks', error)
     } finally {
@@ -185,62 +170,59 @@ class NotebooksContent extends Component {
   }
 
   renderNotebooks() {
-    const { bucketName, notebooks, listView } = this.state
-    const { name: wsName, namespace } = this.props
+    const { notebooks, listView } = this.state
+    const { name: wsName, namespace, workspace: { workspace: { bucketName } } } = this.props
 
-    return div({ style: { display: listView ? undefined : 'flex', flexWrap: 'wrap' } },
-      [
-        div({
-          style: {
-            ...notebookCardCommonStyles(listView),
-            fontSize: listView ? 16 : undefined, lineHeight: listView ? '22px' : undefined
-          }
+    return div({ style: { display: listView ? undefined : 'flex', flexWrap: 'wrap' } }, [
+      div({
+        style: {
+          ...notebookCardCommonStyles(listView),
+          fontSize: listView ? 16 : undefined, lineHeight: listView ? '22px' : undefined
+        }
+      }, [
+        h(Clickable, {
+          style: { ...Style.elements.card, flexGrow: 1, color: Style.colors.secondary },
+          onClick: () => this.setState({ creating: true })
         }, [
-          h(Clickable, {
-            style: { ...Style.elements.card, flexGrow: 1, color: Style.colors.secondary },
-            onClick: () => this.setState({ creating: true })
-          }, [
-            listView ?
-              div([
-                'Create a New Notebook',
-                icon('plus-circle', { style: { marginLeft: '1rem' }, size: 22 })
-              ]) : div({ style: { fontSize: 18, lineHeight: '22px' } }, [
-                div(['Create a']),
-                div(['New Notebook']),
-                icon('plus-circle', { style: { marginTop: '0.5rem' }, size: 21 })
-              ])
-          ]),
-          div({ style: { width: 20, height: 15 } }),
-          h(Clickable, {
-            style: {
-              ...Style.elements.card, flexGrow: 1,
-              backgroundColor: '#dcdcdc', border: '1px dashed #9B9B9B', boxShadow: 'none'
-            },
-            onClick: () => this.uploader.current.open()
-          }, [
-            div({ style: listView ? {} : { fontSize: 16, lineHeight: '20px' } }, [
-              'Drag or ', link({}, ['Click']), ' to Add an ipynb File',
-              icon('upload-cloud', {
-                style: {
-                  marginLeft: listView ? '1rem' : undefined, marginTop: listView ? undefined : '0.5rem',
-                  opacity: 0.4
-                }, size: 25
-              })
+          listView ?
+            div([
+              'Create a New Notebook',
+              icon('plus-circle', { style: { marginLeft: '1rem' }, size: 22 })
+            ]) : div({ style: { fontSize: 18, lineHeight: '22px' } }, [
+              div(['Create a']),
+              div(['New Notebook']),
+              icon('plus-circle', { style: { marginTop: '0.5rem' }, size: 21 })
             ])
-          ])
-
         ]),
-        ..._.map(({ name, updated }) => h(NotebookCard, {
-          name, updated, listView, bucketName, namespace, wsName,
-          reloadList: () => this.refresh()
-        }), notebooks)
-      ]
-    )
+        div({ style: { width: 20, height: 15 } }),
+        h(Clickable, {
+          style: {
+            ...Style.elements.card, flexGrow: 1,
+            backgroundColor: '#dcdcdc', border: '1px dashed #9B9B9B', boxShadow: 'none'
+          },
+          onClick: () => this.uploader.current.open()
+        }, [
+          div({ style: listView ? {} : { fontSize: 16, lineHeight: '20px' } }, [
+            'Drag or ', link({}, ['Click']), ' to Add an ipynb File',
+            icon('upload-cloud', {
+              style: {
+                marginLeft: listView ? '1rem' : undefined, marginTop: listView ? undefined : '0.5rem',
+                opacity: 0.4
+              }, size: 25
+            })
+          ])
+        ])
+      ]),
+      ..._.map(({ name, updated }) => h(NotebookCard, {
+        name, updated, listView, bucketName, namespace, wsName,
+        reloadList: () => this.refresh()
+      }), notebooks)
+    ])
   }
 
   render() {
-    const { loading, bucketName, notebooks, listView, creating } = this.state
-    const { namespace } = this.props
+    const { loading, notebooks, listView, creating } = this.state
+    const { namespace, workspace: { workspace: { bucketName } } } = this.props
 
     return h(Dropzone, {
       accept: '.ipynb',
@@ -283,26 +265,26 @@ class NotebooksContent extends Component {
           div({ style: { flexGrow: 1 } }),
           div({ style: { color: Style.colors.secondary, padding: '0.5rem 1rem', backgroundColor: 'white', borderRadius: 3 } }, [
             h(Clickable, {
-              as:
-                  icon('view-cards'),
+              as: icon('view-cards'),
               style: {
                 color: listView ? null : Style.colors.primary,
                 marginRight: '1rem', width: 26, height: 22
               },
-              onClick: () =>
-                this.setState({ listView: false })
+              size: 26,
+              onClick: () => this.setState({ listView: false })
             }),
             h(Clickable, {
               as: icon('view-list'),
-              color: listView ? Style.colors.primary : null,
-
+              style: { color: listView ? Style.colors.primary : null },
               size: 26,
-              onClick: () =>
-                this.setState({ listView: true })
+              onClick: () => this.setState({ listView: true })
             })
           ]),
-          creating &&
-            h(NotebookCreator, { namespace, bucketName, reloadList: () => this.refresh(), onDismiss: () => this.setState({ creating: false }) })
+          creating && h(NotebookCreator, {
+            namespace, bucketName,
+            reloadList: () => this.refresh(),
+            onDismiss: () => this.setState({ creating: false })
+          })
         ]),
         this.renderNotebooks()
       ]),
@@ -312,7 +294,7 @@ class NotebooksContent extends Component {
 
   componentDidUpdate() {
     StateHistory.update(_.pick(
-      ['bucketName', 'clusters', 'cluster', 'notebooks', 'listView'],
+      ['clusters', 'cluster', 'notebooks', 'listView'],
       this.state)
     )
   }

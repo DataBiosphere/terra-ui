@@ -1,4 +1,5 @@
 import _ from 'lodash/fp'
+import { version } from 'src/data/clusters'
 import { Billing, Jupyter, User } from 'src/libs/ajax'
 import * as Config from 'src/libs/config'
 import { reportError } from 'src/libs/error'
@@ -64,9 +65,18 @@ authStore.subscribe(async (state, oldState) => {
         )
       )
 
+      const needsUpgrade = _.remove(c => c.labels.saturnVersion === version, clusters)
+      _.forEach(({ googleProject, clusterName }) => Leo.cluster(googleProject, clusterName).delete(), needsUpgrade)
+      _.forEach(({ googleProject, machineConfig, jupyterUserScriptUri }) =>
+        Jupyter.cluster(googleProject, Utils.generateClusterName()).create({
+          labels: { 'saturnAutoCreated': 'true', 'saturnVersion': version },
+          machineConfig,
+          jupyterUserScriptUri
+        }), needsUpgrade)
+
       await Promise.all(projectsWithoutClusters.map(project => {
         return Jupyter.cluster(project, Utils.generateClusterName()).create({
-          'labels': { 'saturnAutoCreated': 'true' },
+          'labels': { 'saturnAutoCreated': 'true', 'saturnVersion': version },
           'machineConfig': {
             'numberOfWorkers': 0, 'masterMachineType': 'n1-standard-4',
             'masterDiskSize': 500, 'workerMachineType': 'n1-standard-4',
