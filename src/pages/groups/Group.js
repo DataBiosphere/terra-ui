@@ -186,11 +186,11 @@ export class GroupDetails extends Component {
 
     try {
       this.setState({ loading: true, creatingNewUser: false, editingUser: false, deletingUser: false, updating: false })
-
+      const [membersEmails, adminsEmails] = await Promise.all([Sam.group(groupName).listMembers(), Sam.group(groupName).listAdmins()])
       this.setState({
         members: _.sortBy('email', _.concat(
-          _.map(adm => ({ email: adm, role: 'admin' }), await Sam.group(groupName).listAdmins()),
-          _.map(mem => ({ email: mem, role: 'member' }), await Sam.group(groupName).listMembers())
+          _.map(adm => ({ email: adm, role: 'admin' }), adminsEmails),
+          _.map(mem => ({ email: mem, role: 'member' }), membersEmails)
         ))
       })
     } catch (error) {
