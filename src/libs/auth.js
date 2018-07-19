@@ -66,15 +66,13 @@ authStore.subscribe(async (state, oldState) => {
       )
 
       const needsUpgrade = _.remove(c => c.labels.saturnVersion === version, clusters)
-      await Promise.all(_.map(({ googleProject, clusterName, machineConfig, jupyterUserScriptUri }) => {
-        const cluster = Leo.cluster(googleProject, clusterName)
-        const clusterOptions = {
+      _.forEach(({ googleProject, clusterName }) => Leo.cluster(googleProject, clusterName).delete(), needsUpgrade)
+      _.forEach(({ googleProject, machineConfig, jupyterUserScriptUri }) =>
+        Leo.cluster(googleProject, Utils.generateClusterName()).create({
           labels: { 'saturnAutoCreated': 'true', 'saturnVersion': version },
           machineConfig,
           jupyterUserScriptUri
-        }
-        return cluster.delete().then(() => cluster.create(clusterOptions))
-      }, needsUpgrade))
+        }), needsUpgrade)
 
       await Promise.all(projectsWithoutClusters.map(project => {
         return Leo.cluster(project, Utils.generateClusterName()).create({
