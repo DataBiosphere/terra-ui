@@ -9,7 +9,6 @@ import { IntegerInput, textInput } from 'src/components/input'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { machineTypes, profiles, version } from 'src/data/clusters'
 import { Jupyter } from 'src/libs/ajax'
-import { getBasicProfile } from 'src/libs/auth'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
@@ -187,17 +186,7 @@ export default class ClusterManager extends PureComponent {
   }
 
   refreshClusters = async () => {
-    const { namespace } = this.props
-    try {
-      const allClusters = await Jupyter.clustersList()
-      const clusters = _.filter({
-        googleProject: namespace,
-        creator: getBasicProfile().getEmail()
-      }, allClusters)
-      this.setState({ clusters }, () => this.resetUpdateInterval())
-    } catch (error) {
-      reportError('Error loading clusters', error)
-    }
+    this.props.refreshClusters().then(() => this.resetUpdateInterval())
   }
 
   resetUpdateInterval() {
@@ -208,7 +197,7 @@ export default class ClusterManager extends PureComponent {
   }
 
   componentDidMount() {
-    this.refreshClusters()
+    this.resetUpdateInterval()
   }
 
   componentWillUnmount() {
@@ -216,7 +205,7 @@ export default class ClusterManager extends PureComponent {
   }
 
   getActiveClustersOldestFirst() {
-    const { clusters } = this.state
+    const { clusters } = this.props
     return _.sortBy('createdDate', _.remove({ status: 'Deleting' }, clusters))
   }
 
@@ -463,8 +452,8 @@ export default class ClusterManager extends PureComponent {
   }
 
   render() {
-    const { namespace } = this.props
-    const { clusters, busy, open } = this.state
+    const { namespace, clusters } = this.props
+    const { busy, open } = this.state
     if (!clusters) {
       return null
     }
