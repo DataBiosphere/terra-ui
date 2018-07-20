@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { createRef, Fragment } from 'react'
+import { Component, createRef, Fragment } from 'react'
 import Dropzone from 'react-dropzone'
 import { a, div, h } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
@@ -13,7 +13,6 @@ import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import { Component } from 'src/libs/wrapped-components'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
 
@@ -24,34 +23,38 @@ const notebookCardCommonStyles = listView =>
       { height: 250, width: 200, flexDirection: 'column' }
   )
 
+const printName = name => name.slice(10, -6) // removes 'notebooks/' and the .ipynb suffix
 
 class NotebookCard extends Component {
-  render() {
-    const { namespace, name, updated, listView, bucketName, wsName, reloadList } = this.props
-    const { renamingNotebook, copyingNotebook, deletingNotebook } = this.state
-    const printName = name.slice(10, -6) // removes 'notebooks/' and the .ipynb suffix
+  constructor(props) {
+    super(props)
+    this.menu = createRef()
+  }
 
-    const hideMenu = () => this.notebookMenu.close()
+  render() {
+    const { namespace, name, updated, listView, wsName, onRename, onCopy, onDelete } = this.props
+
+    const hideMenu = () => this.menu.current.close()
 
     const notebookMenu = h(PopupTrigger, {
-      ref: instance => this.notebookMenu = instance,
+      ref: this.menu,
       position: 'bottom',
       content: h(Fragment, [
         h(MenuButton, {
           onClick: () => {
-            this.setState({ renamingNotebook: true })
+            onRename()
             hideMenu()
           }
         }, ['Rename']),
         h(MenuButton, {
           onClick: () => {
-            this.setState({ copyingNotebook: true })
+            onCopy()
             hideMenu()
           }
         }, ['Duplicate']),
         h(MenuButton, {
           onClick: () => {
-            this.setState({ deletingNotebook: true })
+            onDelete()
             hideMenu()
           }
         }, ['Delete'])
@@ -77,12 +80,12 @@ class NotebookCard extends Component {
     })
 
     const title = div({
-      title: printName,
+      title: printName(name),
       style: {
         ...Style.elements.cardTitle,
         textOverflow: 'ellipsis', whiteSpace: 'nowrap', overflow: 'hidden'
       }
-    }, printName)
+    }, printName(name))
 
     return h(Fragment, [
       a({
@@ -111,31 +114,7 @@ class NotebookCard extends Component {
             div({}, Utils.makePrettyDate(updated))
           ])
         ])
-      ]),
-      renamingNotebook && h(NotebookDuplicator, {
-        printName, namespace, bucketName, destroyOld: true,
-        onDismiss: () => this.setState({ renamingNotebook: false }),
-        onSuccess: () => {
-          this.setState({ renamingNotebook: false })
-          reloadList()
-        }
-      }),
-      copyingNotebook && h(NotebookDuplicator, {
-        printName, namespace, bucketName, destroyOld: false,
-        onDismiss: () => this.setState({ copyingNotebook: false }),
-        onSuccess: () => {
-          this.setState({ copyingNotebook: false })
-          reloadList()
-        }
-      }),
-      deletingNotebook && h(NotebookDeleter, {
-        printName, namespace, bucketName,
-        onDismiss: () => this.setState({ deletingNotebook: false }),
-        onSuccess: () => {
-          this.setState({ deletingNotebook: false })
-          reloadList()
-        }
-      })
+      ])
     ])
   }
 }
@@ -147,7 +126,12 @@ const WorkspaceNotebooks = wrapWorkspace({
 class NotebooksContent extends Component {
   constructor(props) {
     super(props)
-    this.state = StateHistory.get()
+    this.state = {
+      renamingNotebookName: undefined,
+      copyingNotebookName: undefined,
+      deletingNotebookName: undefined,
+      ...StateHistory.get()
+    }
     this.uploader = createRef()
   }
 
@@ -213,16 +197,20 @@ class NotebooksContent extends Component {
           ])
         ])
       ]),
-      ..._.map(({ name, updated }) => h(NotebookCard, {
+      _.map(({ name, updated }) => h(NotebookCard, {
+        key: name,
         name, updated, listView, bucketName, namespace, wsName,
-        reloadList: () => this.refresh()
+        onRename: () => this.setState({ renamingNotebookName: name }),
+        onCopy: () => this.setState({ copyingNotebookName: name }),
+        onDelete: () => this.setState({ deletingNotebookName: name })
       }), notebooks)
     ])
   }
 
   render() {
-    const { loading, notebooks, listView, creating } = this.state
+    const { loading, notebooks, listView, creating, renamingNotebookName, copyingNotebookName, deletingNotebookName } = this.state
     const { namespace, workspace: { workspace: { bucketName } } } = this.props
+    const existingNames = _.map(({ name }) => printName(name), notebooks)
 
     return h(Dropzone, {
       accept: '.ipynb',
@@ -284,6 +272,32 @@ class NotebooksContent extends Component {
             namespace, bucketName,
             reloadList: () => this.refresh(),
             onDismiss: () => this.setState({ creating: false })
+          }),
+          renamingNotebookName && h(NotebookDuplicator, {
+            printName: printName(renamingNotebookName),
+            existingNames, namespace, bucketName, destroyOld: true,
+            onDismiss: () => this.setState({ renamingNotebookName: undefined }),
+            onSuccess: () => {
+              this.setState({ renamingNotebookName: undefined })
+              this.refresh()
+            }
+          }),
+          copyingNotebookName && h(NotebookDuplicator, {
+            printName: printName(copyingNotebookName),
+            existingNames, namespace, bucketName, destroyOld: false,
+            onDismiss: () => this.setState({ copyingNotebookName: undefined }),
+            onSuccess: () => {
+              this.setState({ copyingNotebookName: undefined })
+              this.refresh()
+            }
+          }),
+          deletingNotebookName && h(NotebookDeleter, {
+            printName: printName(deletingNotebookName), namespace, bucketName,
+            onDismiss: () => this.setState({ deletingNotebookName: undefined }),
+            onSuccess: () => {
+              this.setState({ deletingNotebookName: undefined })
+              this.refresh()
+            }
           })
         ]),
         this.renderNotebooks()
