@@ -1,32 +1,34 @@
 version: 2
-
 jobs:
-  test:
-    docker:
-      - image: node:8
-    steps:
-      - checkout
-      - restore_cache:
-          key: deps1-{{ .Branch }}-{{ checksum "package.json" }}
-      - run: npm install
-      - save_cache:
-          key: deps1-{{ .Branch }}-{{ checksum "package.json" }}
-          paths:
-            - node_modules
-      - run: npm test
   build:
     docker:
       - image: node:8
     steps:
       - checkout
       - restore_cache:
-          key: deps1-{{ .Branch }}-{{ checksum "package.json" }}
-      - run: npm run build
-      - run: tar -czf build.tgz app.yaml build config
+          keys:
+            - node-v1-{{ .Branch }}-{{ checksum "package-lock.json" }}
+            - node-v1-{{ .Branch }}-
+            - node-v1-
+      - run:
+          name: Install dependencies
+          command: npm install
+      - save_cache:
+          key: node-v1-{{ .Branch }}-{{ checksum "package-lock.json" }}
+          paths:
+            - node_modules
+      - run:
+          name: Test
+          command: npm test
+      - run:
+          name: Build
+          command: |
+            npm run build
+            tar czf build.tgz app.yaml build config
       - store_artifacts:
           path: build.tgz
       - persist_to_workspace:
-          root: /root/project
+          root: .
           paths:
             - app.yaml
             - build
@@ -36,47 +38,35 @@ jobs:
       - image: google/cloud-sdk:latest
     steps:
       - attach_workspace:
-          at: /root/project
-      - run: cp config/dev.json build/config.json
-      - run: echo "$SA_KEY_JSON" > circleci-sa.json
-      - run: gcloud auth activate-service-account --key-file=circleci-sa.json
+          at: .
       - run:
           name: Deploy
           command: |
+            cp config/dev.json build/config.json
+            echo "$SA_KEY_JSON" > circleci-sa.json
+            gcloud auth activate-service-account --key-file=circleci-sa.json
             CIRCLE_PR_NUMBER="${CIRCLE_PR_NUMBER:-${CIRCLE_PULL_REQUEST##*/}}"
             if [[ ! -z "$CIRCLE_PR_NUMBER" ]]; then
-              gcloud app deploy --project=bvdp-saturn-dev \
-                --version="pr-$(expr "$CIRCLE_PR_NUMBER" % 10)" --no-promote --quiet
+              gcloud app deploy --project=bvdp-saturn-dev --version="pr-$(expr "$CIRCLE_PR_NUMBER" % 10)" --no-promote --quiet
             fi
   deploy-dev:
     docker:
       - image: google/cloud-sdk:latest
     steps:
       - attach_workspace:
-          at: /root/project
-      - run: cp config/dev.json build/config.json
-      - run: echo "$SA_KEY_JSON" > /tmp/sa.json
-      - run: gcloud auth activate-service-account --key-file=/tmp/sa.json
-      - run: gcloud app deploy --project=bvdp-saturn-dev --promote --quiet
-  deploy-prod:
-    docker:
-      - image: google/cloud-sdk:latest
-    steps:
-      - run: |
-          set -o nounset
-          curl -s -f "$ARTIFACT_URL" | tar -xz
-          cp config/prod.json build/config.json
+          at: .
+      - run:
+        name: Deploy
+        command: |
+          cp config/dev.json build/config.json
           echo "$SA_KEY_JSON" > /tmp/sa.json
           gcloud auth activate-service-account --key-file=/tmp/sa.json
-          gcloud app deploy --project=bvdp-saturn-prod --promote --quiet
+          gcloud app deploy --project=bvdp-saturn-dev --promote --quiet
 workflows:
   version: 2
   build-deploy:
     jobs:
-      - test
-      - build:
-          requires:
-            - test
+      - build
       - deploy-pr:
           requires:
             - build
@@ -84,7 +74,6 @@ workflows:
             branches:
               ignore:
                 - dev
-                - prod
       - deploy-dev:
           requires:
             - build
