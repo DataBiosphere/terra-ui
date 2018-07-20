@@ -135,7 +135,6 @@ export default class NewWorkspaceModal extends Component {
           'Or, email ', link({ href: `mailto:${billingMail}` }, [billingMail]), ' with questions.'
         ])
       ]) : h(Select, {
-        searchable: false,
         clearable: false,
         placeholder: 'Select a billing project',
         value: namespace,
@@ -164,7 +163,6 @@ export default class NewWorkspaceModal extends Component {
         'You may add groups to the authorization domain, but you may not remove existing ones.'
       ]),
       h(Select, {
-        searchable: false,
         clearable: false,
         multi: true,
         placeholder: 'Select groups',

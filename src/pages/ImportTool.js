@@ -24,7 +24,6 @@ export class DestinationWorkspace extends Component {
       [
         h(Select, {
           clearable: false,
-          searchable: true,
           disabled: !workspaces,
           placeholder: workspaces ? 'Select a workspace' : 'Loading workspaces...',
           value: selectedWorkspace,
