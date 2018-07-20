@@ -6,6 +6,7 @@ import { buttonPrimary, Clickable, link, RadioButton, search, spinnerOverlay } f
 import { icon } from 'src/components/icons'
 import { textInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
+import TooltipTrigger from 'src/components/TooltipTrigger'
 import { TopBar } from 'src/components/TopBar'
 import { Sam } from 'src/libs/ajax'
 import { reportError } from 'src/libs/error'
@@ -143,16 +144,29 @@ const DeleteUserModal = pure(({ onDismiss, onSubmit, userEmail }) => {
   ])
 })
 
-const MemberCard = pure(({ member: { email, role }, onEdit, onDelete }) => {
+const MemberCard = pure(({ member: { email, role }, adminCanEdit, onEdit, onDelete }) => {
+  const canEdit = adminCanEdit || role === 'member'
+  const tooltip = !canEdit && 'This user is the only admin of this group'
+
   return div({
     style: styles.longCard
   }, [
     div({ style: { flex: '1' } }, [email]),
     div({ style: { flex: '0 0 150px', textTransform: 'capitalize' } }, [role]),
     div({ style: { flex: 'none' } }, [
-      link({ onClick: onEdit }, ['Edit Role']),
+      h(TooltipTrigger, { content: tooltip }, [
+        link({
+          disabled: !canEdit,
+          onClick: canEdit && onEdit
+        }, ['Edit Role'])
+      ]),
       ' | ',
-      link({ onClick: onDelete }, ['Remove'])
+      h(TooltipTrigger, { content: tooltip }, [
+        link({
+          disabled: !canEdit,
+          onClick: canEdit && onDelete
+        }, ['Remove'])
+      ])
     ])
   ])
 })
@@ -191,7 +205,8 @@ export class GroupDetails extends Component {
         members: _.sortBy('email', _.concat(
           _.map(adm => ({ email: adm, role: 'admin' }), adminsEmails),
           _.map(mem => ({ email: mem, role: 'member' }), membersEmails)
-        ))
+        )),
+        adminCanEdit: adminsEmails.length > 1
       })
     } catch (error) {
       reportError('Error loading group list', error)
@@ -205,7 +220,7 @@ export class GroupDetails extends Component {
   }
 
   render() {
-    const { members, loading, filter, creatingNewUser, editingUser, deletingUser, updating } = this.state
+    const { members, adminCanEdit, loading, filter, creatingNewUser, editingUser, deletingUser, updating } = this.state
     const { groupName } = this.props
 
     return h(Fragment, [
@@ -231,7 +246,7 @@ export class GroupDetails extends Component {
         div({ style: { flexGrow: 1 } },
           _.map(member => {
             return h(MemberCard, {
-              member,
+              member, adminCanEdit,
               onEdit: () => this.setState({ editingUser: member }),
               onDelete: () => this.setState({ deletingUser: member })
             })
