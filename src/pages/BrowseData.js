@@ -113,7 +113,7 @@ const logoBox = ({ src, alt }) => div({
   style: {
     display: 'inline-flex', justifyContent: 'center', alignItems: 'center',
     flex: 'none',
-    height: 206, width: 448,
+    height: 200, width: 450,
     border: `1px solid ${Style.colors.border}`, borderRadius: 5,
     backgroundColor: 'white'
   }
@@ -133,8 +133,8 @@ const Participant = ({ logoBox, children }) => h(FadeBox, [
 
 
 const participantControls = (text, ...others) => {
-  return div({ style: { display: 'flex', flexWrap: 'wrap', alignItems: 'baseline', marginTop: '1rem' } }, [
-    span({ style: { width: 200 } }, [text]),
+  return div({ style: { display: 'flex', alignItems: 'center', marginTop: '1rem' } }, [
+    span({ style: { width: 200, flex: 'none' } }, [text]),
     ...others,
     h(InfoBox, { style: { marginLeft: '1rem' }, position: 'bottom' }, [
       div(['Look for the Export to Saturn icon to export data from this provider. ']),
@@ -196,8 +196,10 @@ const BrowseData = pure(() => {
         div({}, [loremIpsum]),
         participantControls(
           'Participants: 739,958',
-          buttonPrimary({}, ['Browse Data via Windmill']),
-          buttonPrimary({ style: { marginLeft: '1rem' } }, ['Browse Data via Boardwalk'])
+          div({ style: { display: 'inline-flex', flexWrap: 'wrap' } }, [
+            buttonPrimary({ style: { margin: '0.25rem 1rem 0.25rem 0', width: 303 } }, ['Browse Data via Windmill']),
+            buttonPrimary({ style: { margin: '0.25rem 0', width: 303 } }, ['Browse Data via Boardwalk'])
+          ]),
         )
       ]),
       h(Participant, { logoBox: logoBox({ src: gtexLogo, alt: 'GTEx logo' }) }, [
@@ -205,8 +207,10 @@ const BrowseData = pure(() => {
         div({}, [loremIpsum]),
         participantControls(
           'Participants: 739,958',
-          buttonPrimary({}, ['Browse Data via Windmill']),
-          buttonPrimary({ style: { marginLeft: '1rem' } }, ['Browse Data via Boardwalk'])
+          div({ style: { display: 'inline-flex', flexWrap: 'wrap' } }, [
+            buttonPrimary({ style: { margin: '0.25rem 1rem 0.25rem 0', width: 303 } }, ['Browse Data via Windmill']),
+            buttonPrimary({ style: { margin: '0.25rem 0', width: 303 } }, ['Browse Data via Boardwalk'])
+          ]),
         )
       ])
     ])

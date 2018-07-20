@@ -11,7 +11,7 @@ import 'react-select/dist/react-select.css'
 
 const styles = {
   button: {
-    display: 'inline-flex', alignItems: 'center', height: '2.25rem',
+    display: 'inline-flex', justifyContent: 'space-around', alignItems: 'center', height: '2.25rem',
     fontWeight: 500, fontSize: 14, textTransform: 'uppercase', whiteSpace: 'nowrap',
     userSelect: 'none'
   }
