@@ -8,7 +8,7 @@ import { textInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { TopBar } from 'src/components/TopBar'
-import { Sam } from 'src/libs/ajax'
+import { Groups } from 'src/libs/ajax'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
@@ -75,7 +75,7 @@ class NewUserModal extends Component {
 
     try {
       this.setState({ submitting: true })
-      await Sam.group(groupName).addMember(role, userEmail)
+      await Groups.group(groupName).addMember(role, userEmail)
       onSuccess()
     } catch (error) {
       this.setState({ submitting: false })
@@ -122,7 +122,7 @@ class EditUserModal extends Component {
 
     try {
       this.setState({ submitting: true })
-      await Sam.group(groupName).changeMemberRole(email, this.props.user.role, role)
+      await Groups.group(groupName).changeMemberRole(email, this.props.user.role, role)
       onSuccess()
     } catch (error) {
       this.setState({ submitting: false })
@@ -200,7 +200,7 @@ export class GroupDetails extends Component {
 
     try {
       this.setState({ loading: true, creatingNewUser: false, editingUser: false, deletingUser: false, updating: false })
-      const [membersEmails, adminsEmails] = await Promise.all([Sam.group(groupName).listMembers(), Sam.group(groupName).listAdmins()])
+      const [membersEmails, adminsEmails] = await Promise.all([Groups.group(groupName).listMembers(), Groups.group(groupName).listAdmins()])
       this.setState({
         members: _.sortBy('email', _.concat(
           _.map(adm => ({ email: adm, role: 'admin' }), adminsEmails),
@@ -270,7 +270,7 @@ export class GroupDetails extends Component {
         onSubmit: async () => {
           try {
             this.setState({ updating: true, deletingUser: false })
-            await Sam.group(groupName).removeMember(deletingUser.role, deletingUser.email)
+            await Groups.group(groupName).removeMember(deletingUser.role, deletingUser.email)
             this.refresh()
           } catch (error) {
             this.setState({ updating: false })

@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { version } from 'src/data/clusters'
-import { Leo, Rawls, Sam } from 'src/libs/ajax'
+import { Billing, Jupyter, User } from 'src/libs/ajax'
 import * as Config from 'src/libs/config'
 import { reportError } from 'src/libs/error'
 import * as Utils from 'src/libs/utils'
@@ -24,7 +24,7 @@ export const initializeAuth = _.memoize(async () => {
 
 authStore.subscribe((state, oldState) => {
   if (!oldState.isSignedIn && state.isSignedIn) {
-    Sam.getUserStatus().then(response => {
+    User.getStatus().then(response => {
       if (response.status === 404) {
         return 'unregistered'
       } else if (!response.ok) {
@@ -56,7 +56,7 @@ authStore.subscribe(async (state, oldState) => {
     try {
       const userProfile = getBasicProfile()
       const [billingProjects, clusters] = await Promise.all(
-        [Rawls.listBillingProjects(), Leo.clustersList()])
+        [Billing.listProjects(), Jupyter.clustersList()])
       const projectsWithoutClusters = _.difference(
         _.uniq(_.map('projectName', billingProjects)), // in case of being both a user and an admin of a project
         _.map(
@@ -66,16 +66,16 @@ authStore.subscribe(async (state, oldState) => {
       )
 
       const needsUpgrade = _.remove(c => c.labels.saturnVersion === version, clusters)
-      _.forEach(({ googleProject, clusterName }) => Leo.cluster(googleProject, clusterName).delete(), needsUpgrade)
+      _.forEach(({ googleProject, clusterName }) => Jupyter.cluster(googleProject, clusterName).delete(), needsUpgrade)
       _.forEach(({ googleProject, machineConfig, jupyterUserScriptUri }) =>
-        Leo.cluster(googleProject, Utils.generateClusterName()).create({
+        Jupyter.cluster(googleProject, Utils.generateClusterName()).create({
           labels: { 'saturnAutoCreated': 'true', 'saturnVersion': version },
           machineConfig,
           jupyterUserScriptUri
         }), needsUpgrade)
 
       await Promise.all(projectsWithoutClusters.map(project => {
-        return Leo.cluster(project, Utils.generateClusterName()).create({
+        return Jupyter.cluster(project, Utils.generateClusterName()).create({
           'labels': { 'saturnAutoCreated': 'true', 'saturnVersion': version },
           'machineConfig': {
             'numberOfWorkers': 0, 'masterMachineType': 'n1-standard-4',

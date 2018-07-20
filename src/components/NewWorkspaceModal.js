@@ -6,7 +6,7 @@ import { icon } from 'src/components/icons'
 import { TextArea, validatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { InfoBox } from 'src/components/PopupTrigger'
-import { Rawls, Sam } from 'src/libs/ajax'
+import { Billing, Groups, Workspaces } from 'src/libs/ajax'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
@@ -64,8 +64,8 @@ export default class NewWorkspaceModal extends Component {
   async componentDidMount() {
     try {
       const [billingProjects, allGroups] = await Promise.all([
-        Rawls.listBillingProjects(),
-        Sam.listGroups()
+        Billing.listProjects(),
+        Groups.list()
       ])
       this.setState({ billingProjects, allGroups })
     } catch (error) {
@@ -85,8 +85,8 @@ export default class NewWorkspaceModal extends Component {
         attributes: { description }
       }
       await (cloneWorkspace ?
-        Rawls.workspace(cloneWorkspace.workspace.namespace, cloneWorkspace.workspace.name).clone(body) :
-        Rawls.createWorkspace(body))
+        Workspaces.workspace(cloneWorkspace.workspace.namespace, cloneWorkspace.workspace.name).clone(body) :
+        Workspaces.create(body))
       Nav.goToPath('workspace', { namespace, name })
     } catch (error) {
       this.setState({ createError: JSON.parse(error).message, busy: false })

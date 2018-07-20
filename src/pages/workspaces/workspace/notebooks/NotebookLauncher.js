@@ -3,7 +3,7 @@ import { Fragment } from 'react'
 import { div, h, iframe } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { icon, spinner } from 'src/components/icons'
-import { Leo } from 'src/libs/ajax'
+import { Jupyter } from 'src/libs/ajax'
 import { getBasicProfile } from 'src/libs/auth'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
@@ -74,7 +74,7 @@ class NotebookLauncherContent extends Component {
       _.remove({ status: 'Deleting' }),
       _.sortBy('createdDate'),
       _.last
-    )(await Leo.clustersList())
+    )(await Jupyter.clustersList())
   }
 
   async startCluster() {
@@ -90,7 +90,7 @@ class NotebookLauncherContent extends Component {
       if (status === 'Running') {
         return cluster
       } else if (status === 'Stopped') {
-        await Leo.cluster(googleProject, clusterName).start()
+        await Jupyter.cluster(googleProject, clusterName).start()
         await Utils.delay(10000)
       } else {
         await Utils.delay(3000)
@@ -102,15 +102,15 @@ class NotebookLauncherContent extends Component {
     const { namespace, name: workspaceName, notebookName, workspace: { workspace: { bucketName } } } = this.props
     const { clusterName } = cluster
 
-    await Leo.notebooks(namespace, clusterName).setCookie()
+    await Jupyter.notebooks(namespace, clusterName).setCookie()
 
     while (this.mounted) {
       try {
         await Promise.all([
-          Leo.notebooks(namespace, clusterName).localize({
+          Jupyter.notebooks(namespace, clusterName).localize({
             [`~/${workspaceName}/.delocalize.json`]: `data:application/json,{"destination":"gs://${bucketName}/notebooks","pattern":""}`
           }),
-          Leo.notebooks(namespace, clusterName).localize({
+          Jupyter.notebooks(namespace, clusterName).localize({
             [`~/${workspaceName}/${notebookName}`]: `gs://${bucketName}/notebooks/${notebookName}`
           })
         ])

@@ -62,7 +62,34 @@ const fetchSam = async (path, ...args) => {
   return fetchOk(`${await Config.getSamUrlRoot()}/api/${path}`, ...args)
 }
 
-export const Sam = {
+const fetchBuckets = (path, ...args) => fetchOk(`https://www.googleapis.com/${path}`, ...args)
+const nbName = name => encodeURIComponent(`notebooks/${name}.ipynb`)
+
+const fetchRawls = async (path, ...args) => {
+  return fetchOk(`${await Config.getRawlsUrlRoot()}/api/${path}`, ...args)
+}
+
+const fetchLeo = async (path, ...args) => {
+  return fetchOk(`${await Config.getLeoUrlRoot()}/${path}`, ...args)
+}
+
+const fetchDockstore = async (path, ...args) => {
+  return fetchOk(`${await Config.getDockstoreUrlRoot()}/${path}`, ...args)
+}
+// %23 = '#', %2F = '/'
+const dockstoreMethodPath = path => `api/ga4gh/v1/tools/%23workflow%2F${encodeURIComponent(path)}/versions`
+
+const fetchAgora = async (path, ...args) => {
+  return fetchOk(`${await Config.getAgoraUrlRoot()}/api/v1/${path}`, ...args)
+}
+
+const fetchOrchestration = async (path, ...args) => {
+  const urlRoot = await Config.getOrchestrationUrlRoot()
+  return fetchOk(urlRoot + path, ...args)
+}
+
+
+export const User = {
   token: Utils.memoizeWithTimeout(async namespace => {
     const scopes = ['https://www.googleapis.com/auth/devstorage.full_control']
     const res = await fetchSam(
@@ -72,17 +99,50 @@ export const Sam = {
     return res.json()
   }, namespace => namespace, 1000 * 60 * 30),
 
-  getUserStatus: async () => {
+  getStatus: async () => {
     return instrumentedFetch(`${await Config.getSamUrlRoot()}/register/user`, authOpts())
   },
 
-  createUser: async () => {
+  create: async () => {
     const url = `${await Config.getSamUrlRoot()}/register/user`
     const res = await fetchOk(url, _.merge(authOpts(), { method: 'POST' }))
     return res.json()
   },
 
-  listGroups: async () => {
+  profile: {
+    get: async () => {
+      const res = await fetchOrchestration('/register/profile', authOpts())
+      return res.json()
+    },
+    set: keysAndValues => {
+      const blankProfile = {
+        firstName: 'N/A',
+        lastName: 'N/A',
+        title: 'N/A',
+        institute: 'N/A',
+        institutionalProgram: 'N/A',
+        programLocationCity: 'N/A',
+        programLocationState: 'N/A',
+        programLocationCountry: 'N/A',
+        pi: 'N/A',
+        nonProfitStatus: 'N/A'
+      }
+      return fetchOrchestration(
+        '/register/profile',
+        _.mergeAll([authOpts(), jsonBody(_.merge(blankProfile, keysAndValues)), { method: 'POST' }])
+      )
+    }
+  },
+
+  getProxyGroup: async email => {
+    const res = await fetchOrchestration(`/api/proxyGroup/${email}`, authOpts())
+    return res.json()
+  }
+}
+
+
+export const Groups = {
+  list: async () => {
     const res = await fetchSam('groups/v1', authOpts())
     return res.json()
   },
@@ -132,86 +192,21 @@ export const Sam = {
 }
 
 
-const fetchBuckets = (path, ...args) => fetchOk(`https://www.googleapis.com/${path}`, ...args)
-const nbName = name => encodeURIComponent(`notebooks/${name}.ipynb`)
-
-export const Buckets = {
-  getObject: async (bucket, object, namespace) => {
-    return fetchBuckets(`storage/v1/b/${bucket}/o/${encodeURIComponent(object)}`,
-      authOpts(await Sam.token(namespace))).then(
-      res => res.json()
-    )
-  },
-
-  getObjectPreview: async (bucket, object, namespace, previewFull = false) => {
-    return fetchBuckets(`storage/v1/b/${bucket}/o/${encodeURIComponent(object)}?alt=media`,
-      _.merge(authOpts(await Sam.token(namespace)), previewFull ? {} : { headers: { range: 'bytes=20000' } }))
-  },
-
-  listNotebooks: async (namespace, name) => {
-    const res = await fetchBuckets(
-      `storage/v1/b/${name}/o?prefix=notebooks/`,
-      authOpts(await Sam.token(namespace))
-    )
-    const { items } = await res.json()
-    return _.filter(({ name }) => name.endsWith('.ipynb'), items)
-  },
-
-  notebook: (namespace, bucket, name) => {
-    const bucketUrl = `storage/v1/b/${bucket}/o`
-
-    const copy = async newName => {
-      return fetchBuckets(
-        `${bucketUrl}/${nbName(name)}/copyTo/b/${bucket}/o/${nbName(newName)}`,
-        _.merge(authOpts(await Sam.token(namespace)), { method: 'POST' })
-      )
-    }
-    const doDelete = async () => {
-      return fetchBuckets(
-        `${bucketUrl}/${nbName(name)}`,
-        _.merge(authOpts(await Sam.token(namespace)), { method: 'DELETE' })
-      )
-    }
-    return {
-      copy,
-
-      create: async contents => {
-        return fetchBuckets(
-          `upload/${bucketUrl}?uploadType=media&name=${nbName(name)}`,
-          _.merge(authOpts(await Sam.token(namespace)), {
-            method: 'POST', body: JSON.stringify(contents),
-            headers: { 'Content-Type': 'application/x-ipynb+json' }
-          })
-        )
-      },
-
-      delete: doDelete,
-
-      rename: async newName => {
-        await copy(newName)
-        return doDelete()
-      }
-    }
+export const Billing = {
+  listProjects: async () => {
+    const res = await fetchRawls('user/billing', authOpts())
+    return res.json()
   }
 }
 
 
-const fetchRawls = async (path, ...args) => {
-  return fetchOk(`${await Config.getRawlsUrlRoot()}/api/${path}`, ...args)
-}
-
-export const Rawls = {
-  listBillingProjects: async () => {
-    const res = await fetchRawls('user/billing', authOpts())
-    return res.json()
-  },
-
-  listWorkspaces: async () => {
+export const Workspaces = {
+  list: async () => {
     const res = await fetchRawls('workspaces', authOpts())
     return res.json()
   },
 
-  createWorkspace: async body => {
+  create: async body => {
     const res = await fetchRawls('workspaces', _.mergeAll([authOpts(), jsonBody(body), { method: 'POST' }]))
     return res.json()
   },
@@ -306,23 +301,101 @@ export const Rawls = {
         }, _.toPairs(attributesObject))
 
         return fetchRawls(root, _.mergeAll([authOpts(), jsonBody(payload), { method: 'PATCH' }]))
+      },
+
+      importBagit: bagitURL => {
+        return fetchOrchestration(
+          `/api/workspaces/${namespace}/${name}/importBagit`,
+          _.mergeAll([authOpts(), jsonBody({ bagitURL, format: 'TSV' }), { method: 'POST' }])
+        )
       }
     }
-  },
-
-  methodConfigInputsOutputs: async loadedConfig => {
-    const res = await fetchRawls('methodconfigs/inputsOutputs',
-      _.mergeAll([authOpts(), jsonBody(loadedConfig.methodRepoMethod), { method: 'POST' }]))
-    return res.json()
   }
 }
 
 
-const fetchLeo = async (path, ...args) => {
-  return fetchOk(`${await Config.getLeoUrlRoot()}/${path}`, ...args)
+export const Buckets = {
+  getObject: async (bucket, object, namespace) => {
+    return fetchBuckets(`storage/v1/b/${bucket}/o/${encodeURIComponent(object)}`,
+      authOpts(await User.token(namespace))).then(
+      res => res.json()
+    )
+  },
+
+  getObjectPreview: async (bucket, object, namespace, previewFull = false) => {
+    return fetchBuckets(`storage/v1/b/${bucket}/o/${encodeURIComponent(object)}?alt=media`,
+      _.merge(authOpts(await User.token(namespace)), previewFull ? {} : { headers: { range: 'bytes=20000' } }))
+  },
+
+  listNotebooks: async (namespace, name) => {
+    const res = await fetchBuckets(
+      `storage/v1/b/${name}/o?prefix=notebooks/`,
+      authOpts(await User.token(namespace))
+    )
+    const { items } = await res.json()
+    return _.filter(({ name }) => name.endsWith('.ipynb'), items)
+  },
+
+  notebook: (namespace, bucket, name) => {
+    const bucketUrl = `storage/v1/b/${bucket}/o`
+
+    const copy = async newName => {
+      return fetchBuckets(
+        `${bucketUrl}/${nbName(name)}/copyTo/b/${bucket}/o/${nbName(newName)}`,
+        _.merge(authOpts(await User.token(namespace)), { method: 'POST' })
+      )
+    }
+    const doDelete = async () => {
+      return fetchBuckets(
+        `${bucketUrl}/${nbName(name)}`,
+        _.merge(authOpts(await User.token(namespace)), { method: 'DELETE' })
+      )
+    }
+    return {
+      copy,
+
+      create: async contents => {
+        return fetchBuckets(
+          `upload/${bucketUrl}?uploadType=media&name=${nbName(name)}`,
+          _.merge(authOpts(await User.token(namespace)), {
+            method: 'POST', body: JSON.stringify(contents),
+            headers: { 'Content-Type': 'application/x-ipynb+json' }
+          })
+        )
+      },
+
+      delete: doDelete,
+
+      rename: async newName => {
+        await copy(newName)
+        return doDelete()
+      }
+    }
+  }
 }
 
-export const Leo = {
+
+export const Methods = {
+  configInputsOutputs: async loadedConfig => {
+    const res = await fetchRawls('methodconfigs/inputsOutputs',
+      _.mergeAll([authOpts(), jsonBody(loadedConfig.methodRepoMethod), { method: 'POST' }]))
+    return res.json()
+  },
+
+  method: (namespace, name, snapshotId) => {
+    const root = `methods/${namespace}/${name}/${snapshotId}`
+
+    return {
+      get: async () => {
+        const res = await fetchAgora(root, authOpts())
+        return res.json()
+      }
+    }
+  }
+}
+
+
+export const Jupyter = {
   clustersList: async () => {
     const res = await fetchLeo('api/clusters?saturnAutoCreated=true', authOpts())
     return res.json()
@@ -368,12 +441,6 @@ export const Leo = {
 }
 
 
-const fetchDockstore = async (path, ...args) => {
-  return fetchOk(`${await Config.getDockstoreUrlRoot()}/${path}`, ...args)
-}
-// %23 = '#', %2F = '/'
-const dockstoreMethodPath = path => `api/ga4gh/v1/tools/%23workflow%2F${encodeURIComponent(path)}/versions`
-
 export const Dockstore = {
   getWdl: async (path, version) => {
     const res = await fetchDockstore(`${dockstoreMethodPath(path)}/${encodeURIComponent(version)}/WDL/descriptor`)
@@ -385,71 +452,6 @@ export const Dockstore = {
     return res.json()
   }
 
-}
-
-
-const fetchAgora = async (path, ...args) => {
-  return fetchOk(`${await Config.getAgoraUrlRoot()}/api/v1/${path}`, ...args)
-}
-
-export const Agora = {
-  method: (namespace, name, snapshotId) => {
-    const root = `methods/${namespace}/${name}/${snapshotId}`
-
-    return {
-      get: async () => {
-        const res = await fetchAgora(root, authOpts())
-        return res.json()
-      }
-    }
-  }
-}
-
-
-async function fetchOrchestration(path, ...args) {
-  const urlRoot = await Config.getOrchestrationUrlRoot()
-  return fetchOk(urlRoot + path, ...args)
-}
-
-export const Orchestration = {
-  profile: {
-    get: async () => {
-      const res = await fetchOrchestration('/register/profile', authOpts())
-      return res.json()
-    },
-    set: keysAndValues => {
-      const blankProfile = {
-        firstName: 'N/A',
-        lastName: 'N/A',
-        title: 'N/A',
-        institute: 'N/A',
-        institutionalProgram: 'N/A',
-        programLocationCity: 'N/A',
-        programLocationState: 'N/A',
-        programLocationCountry: 'N/A',
-        pi: 'N/A',
-        nonProfitStatus: 'N/A'
-      }
-      return fetchOrchestration(
-        '/register/profile',
-        _.mergeAll([authOpts(), jsonBody(_.merge(blankProfile, keysAndValues)), { method: 'POST' }])
-      )
-    }
-  },
-  getProxyGroup: async email => {
-    const res = await fetchOrchestration(`/api/proxyGroup/${email}`, authOpts())
-    return res.json()
-  },
-  workspaces: (namespace, name) => {
-    return {
-      importBagit: bagitURL => {
-        return fetchOrchestration(
-          `/api/workspaces/${namespace}/${name}/importBagit`,
-          _.mergeAll([authOpts(), jsonBody({ bagitURL, format: 'TSV' }), { method: 'POST' }])
-        )
-      }
-    }
-  }
 }
 
 

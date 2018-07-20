@@ -7,7 +7,7 @@ import { centeredSpinner } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import TabBar from 'src/components/TabBar'
 import { GridTable, HeaderCell, TextCell } from 'src/components/table'
-import { Rawls } from 'src/libs/ajax'
+import { Workspaces } from 'src/libs/ajax'
 import { renderDataCell } from 'src/libs/data-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -69,7 +69,7 @@ export default class LaunchAnalysisModal extends Component {
     if (_.isUndefined(entityType)) {
       this.launch()
     } else {
-      Rawls.workspace(namespace, name).entityMetadata().then(
+      Workspaces.workspace(namespace, name).entityMetadata().then(
         entityMetadata => this.setState({ entityMetadata }),
         attributeFailure => this.setState({ attributeFailure })
       )
@@ -80,7 +80,7 @@ export default class LaunchAnalysisModal extends Component {
   loadEntitiesOfType(type) {
     const { workspaceId: { namespace, name } } = this.props
 
-    Rawls.workspace(namespace, name).entitiesOfType(type).then(
+    Workspaces.workspace(namespace, name).entitiesOfType(type).then(
       entities => this.setState({ entities, loadingNew: false }),
       entityFailure => this.setState({ entityFailure })
     )
@@ -164,7 +164,7 @@ export default class LaunchAnalysisModal extends Component {
     this.setState({ launching: true })
 
     try {
-      const { submissionId } = await Rawls.workspace(namespace, name).methodConfig(configNamespace, configName).launch({
+      const { submissionId } = await Workspaces.workspace(namespace, name).methodConfig(configNamespace, configName).launch({
         entityType,
         expression: entityType !== rootEntityType ? `this.${rootEntityType}s` : undefined,
         entityName: selectedEntity,
