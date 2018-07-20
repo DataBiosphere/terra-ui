@@ -12,22 +12,17 @@ import { Component } from 'src/libs/wrapped-components'
 import validate from 'validate.js'
 
 
-const notebookNameValidator = {
+const notebookNameValidator = existing => ({
   presence: { allowEmpty: false },
   format: {
     pattern: /^[^#[\]*?]*$/,
     message: 'can\'t contain any of these characters: "#[]*?"'
+  },
+  exclusion: {
+    within: existing,
+    message: 'already exists'
   }
-}
-
-const creatorConstraints = {
-  notebookName: notebookNameValidator,
-  notebookKernel: { presence: { allowEmpty: false } }
-}
-
-const duplicatorConstraints = {
-  newName: notebookNameValidator
-}
+})
 
 const notebookNameInput = props => div({ style: { margin: '0.5rem 0 1rem' } }, [
   validatedInput(_.merge({
@@ -76,11 +71,16 @@ export class NotebookCreator extends Component {
 
   render() {
     const { notebookName, notebookKernel, creating, nameTouched } = this.state
-    const { reloadList, onDismiss, namespace, bucketName } = this.props
+    const { reloadList, onDismiss, namespace, bucketName, existingNames } = this.props
 
-    const errors = validate({ notebookName, notebookKernel }, creatorConstraints, {
-      prettify: v => ({ notebookName: 'Name', notebookKernel: 'Kernel' }[v] || validate.prettify(v))
-    })
+    const errors = validate(
+      { notebookName, notebookKernel },
+      {
+        notebookName: notebookNameValidator(existingNames),
+        notebookKernel: { presence: { allowEmpty: false } }
+      },
+      { prettify: v => ({ notebookName: 'Name', notebookKernel: 'Kernel' }[v] || validate.prettify(v)) }
+    )
 
     return h(Modal, {
       onDismiss,
@@ -149,12 +149,14 @@ export class NotebookDuplicator extends Component {
   }
 
   render() {
-    const { destroyOld, printName, namespace, bucketName, onDismiss, onSuccess } = this.props
+    const { destroyOld, printName, namespace, bucketName, onDismiss, onSuccess, existingNames } = this.props
     const { newName, processing, nameTouched } = this.state
 
-    const errors = validate({ newName }, duplicatorConstraints, {
-      prettify: v => ({ newName: 'Name' }[v] || validate.prettify(v))
-    })
+    const errors = validate(
+      { newName },
+      { newName: notebookNameValidator(existingNames) },
+      { prettify: v => ({ newName: 'Name' }[v] || validate.prettify(v)) }
+    )
 
     return h(Modal, {
       onDismiss,
