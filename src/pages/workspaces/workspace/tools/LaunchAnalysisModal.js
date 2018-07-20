@@ -31,22 +31,20 @@ export default class LaunchAnalysisModal extends Component {
     } : {
       onDismiss,
       title: 'Launch Analysis',
-      titleExtras: [
-        search({
-          wrapperProps: {
-            style: {
-              display: 'inline-flex',
-              width: 500,
-              marginLeft: '4rem'
-            }
-          },
-          inputProps: {
-            placeholder: 'FILTER',
-            value: filterText,
-            onChange: e => this.setState({ filterText: e.target.value })
+      titleExtras: search({
+        wrapperProps: {
+          style: {
+            display: 'inline-flex',
+            width: 500,
+            marginLeft: '4rem'
           }
-        })
-      ],
+        },
+        inputProps: {
+          placeholder: 'FILTER',
+          value: filterText,
+          onChange: e => this.setState({ filterText: e.target.value })
+        }
+      }),
       showX: true,
       width: 'calc(100% - 2rem)',
       okButton: buttonPrimary({

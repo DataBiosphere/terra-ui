@@ -52,6 +52,7 @@ class NewGroupModal extends Component {
       div({ style: styles.formLabel }, ['Enter a unique name']),
       validatedInput({
         inputProps: {
+          autoFocus: true,
           value: groupName,
           onChange: e => this.setState({ groupName: e.target.value, groupNameTouched: true })
         },

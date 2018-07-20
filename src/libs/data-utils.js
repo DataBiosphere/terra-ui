@@ -233,6 +233,7 @@ export class ReferenceDataImporter extends Component {
       }, 'OK')
     }, [
       h(Select, {
+        autoFocus: true,
         searchable: false,
         clearable: false,
         placeholder: 'Select data',
