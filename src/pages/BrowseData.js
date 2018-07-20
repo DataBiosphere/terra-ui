@@ -136,7 +136,7 @@ const participantControls = (text, ...others) => {
   return div({ style: { display: 'flex', flexWrap: 'wrap', alignItems: 'baseline', marginTop: '1rem' } }, [
     span({ style: { width: 200 } }, [text]),
     ...others,
-    h(InfoBox, { style: { marginLeft: '1rem' } }, [
+    h(InfoBox, { style: { marginLeft: '1rem' }, position: 'bottom' }, [
       div(['Look for the Export to Saturn icon to export data from this provider. ']),
       link({}, ['Learn more.'])
     ])

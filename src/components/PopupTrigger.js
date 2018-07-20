@@ -59,7 +59,8 @@ export default class PopupTrigger extends Component {
   }
 }
 
-export const InfoBox = ({ size, children, style }) => h(PopupTrigger, {
+export const InfoBox = ({ size, children, style, position, align }) => h(PopupTrigger, {
+  position, align,
   content: div({ style: { padding: '0.5rem', width: 300 } }, children)
 }, [
   span({ style: { cursor: 'pointer', color: Style.colors.secondary, ...style } }, [
