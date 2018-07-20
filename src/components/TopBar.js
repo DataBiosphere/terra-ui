@@ -126,8 +126,13 @@ export class TopBar extends Component {
               }, [icon('caretDown', { size: 18 })])
             ])
           ]),
-          div({ style: styles.nav.item }, [
-            icon('search', { size: 24, style: styles.nav.icon }), 'Find Data', comingSoon
+          a({
+            style: styles.nav.item,
+            href: Nav.getLink('browse-data'),
+            onClick: () => this.hideNav()
+          }, [
+            icon('browse', { size: 24, style: styles.nav.icon }),
+            'Browse Data'
           ]),
           div({ style: styles.nav.item }, [
             icon('search', { size: 24, style: styles.nav.icon }), 'Find Code', comingSoon
@@ -137,7 +142,7 @@ export class TopBar extends Component {
             href: Nav.getLink('workspaces'),
             onClick: () => this.hideNav()
           }, [
-            icon('grid-view', { className: 'is-solid', size: 24, style: styles.nav.icon }),
+            icon('workspace', { className: 'is-solid', size: 24, style: styles.nav.icon }),
             'Workspaces'
           ])
         ])
