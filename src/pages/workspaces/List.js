@@ -6,7 +6,7 @@ import { Clickable, search, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
 import { TopBar } from 'src/components/TopBar'
-import { Rawls } from 'src/libs/ajax'
+import { Workspaces } from 'src/libs/ajax'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
@@ -148,7 +148,7 @@ export class WorkspaceList extends Component {
   async refresh() {
     try {
       this.setState({ isDataLoaded: false })
-      const workspaces = await Rawls.listWorkspaces()
+      const workspaces = await Workspaces.list()
       this.setState({
         isDataLoaded: true,
         workspaces: _.sortBy('workspace.name', _.filter(ws => !ws.public ||

@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { Component } from 'react'
-import { Leo } from 'src/libs/ajax'
+import { Jupyter } from 'src/libs/ajax'
 import { getBasicProfile } from 'src/libs/auth'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
@@ -15,8 +15,8 @@ class TerminalLauncher extends Component {
         _.remove({ status: 'Deleting' }),
         _.sortBy('createdDate'),
         _.last
-      )(await Leo.clustersList())
-      await Leo.notebooks(namespace, cluster.clusterName).setCookie()
+      )(await Jupyter.clustersList())
+      await Jupyter.notebooks(namespace, cluster.clusterName).setCookie()
       window.location.href = `${cluster.clusterUrl}/terminals/1`
     } catch (error) {
       reportError('Error launching terminal', error)

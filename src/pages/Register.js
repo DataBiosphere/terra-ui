@@ -4,7 +4,7 @@ import { buttonPrimary, buttonSecondary } from 'src/components/common'
 import { centeredSpinner, logo } from 'src/components/icons'
 import { textInput } from 'src/components/input'
 import planet from 'src/images/register-planet.svg'
-import { Orchestration, Sam } from 'src/libs/ajax'
+import { User } from 'src/libs/ajax'
 import { authStore, getBasicProfile, signOut } from 'src/libs/auth'
 import { reportError } from 'src/libs/error'
 import * as Style from 'src/libs/style'
@@ -33,8 +33,8 @@ export default class Register extends Component {
     const { givenName, familyName, email } = this.state
     try {
       this.setState({ busy: true })
-      await Sam.createUser()
-      await Orchestration.profile.set({
+      await User.create()
+      await User.profile.set({
         firstName: givenName,
         lastName: familyName,
         contactEmail: email

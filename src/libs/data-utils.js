@@ -10,7 +10,7 @@ import Modal from 'src/components/Modal'
 import { TextCell } from 'src/components/table'
 import DownloadPrices from 'src/data/download-prices'
 import ReferenceData from 'src/data/reference-data'
-import { Buckets, Martha, Rawls } from 'src/libs/ajax'
+import { Buckets, Martha, Workspaces } from 'src/libs/ajax'
 import * as Config from 'src/libs/config'
 import { reportError } from 'src/libs/error'
 import * as Style from 'src/libs/style'
@@ -220,7 +220,7 @@ export class ReferenceDataImporter extends Component {
         disabled: !selectedReference || loading,
         onClick: () => {
           this.setState({ loading: true })
-          Rawls.workspace(namespace, name).shallowMergeNewAttributes(
+          Workspaces.workspace(namespace, name).shallowMergeNewAttributes(
             _.mapKeys(k => `referenceData-${selectedReference}-${k}`, ReferenceData[selectedReference])
           ).then(
             onSuccess,

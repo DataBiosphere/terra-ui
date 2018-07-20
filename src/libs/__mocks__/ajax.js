@@ -36,8 +36,8 @@ export const createWorkspace = overrides => {
   }, overrides)
 }
 
-export const Rawls = {
-  listWorkspaces() {
+export const Workspaces = {
+  list() {
     return Promise.resolve([createWorkspace(), createWorkspace()])
   },
 
@@ -50,7 +50,7 @@ export const Rawls = {
   }
 }
 
-export const Leo = {
+export const Jupyter = {
   clustersList() {
     return Promise.resolve([])
   }

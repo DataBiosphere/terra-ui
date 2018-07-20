@@ -1,6 +1,6 @@
 import { mount } from 'enzyme'
 import { h } from 'react-hyperscript-helpers'
-import { Rawls } from 'src/libs/ajax'
+import { Workspaces } from 'src/libs/ajax'
 import { waitOneTickAndUpdate } from 'src/libs/test-utils'
 import { WorkspaceDashboard } from 'src/pages/workspaces/workspace/Dashboard'
 
@@ -9,7 +9,7 @@ let workspaceMock;
 describe('Dashboard', () => {
   // Pretty much useless, exists to explore mock infrastructure
   beforeAll(() => {
-    workspaceMock = jest.spyOn(Rawls, 'workspace')
+    workspaceMock = jest.spyOn(Workspaces, 'workspace')
     workspaceMock.mockImplementation((namespace, name) => {
       const { createWorkspace } = require.requireActual('src/libs/__mocks__/ajax')
       return {

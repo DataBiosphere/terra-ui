@@ -7,7 +7,7 @@ import * as breadcrumbs from 'src/components/breadcrumbs'
 import { buttonPrimary, link, spinnerOverlay } from 'src/components/common'
 import { icon, spinner } from 'src/components/icons'
 import { FlexTable, GridTable, HeaderCell, paginator } from 'src/components/table'
-import { Rawls } from 'src/libs/ajax'
+import { Workspaces } from 'src/libs/ajax'
 import * as auth from 'src/libs/auth'
 import * as Config from 'src/libs/config'
 import { ReferenceDataImporter, renderDataCell } from 'src/libs/data-utils'
@@ -89,7 +89,7 @@ class WorkspaceDataContent extends Component {
   async loadMetadata() {
     const { namespace, name } = this.props
     try {
-      const entityMetadata = await Rawls.workspace(namespace, name).entityMetadata()
+      const entityMetadata = await Workspaces.workspace(namespace, name).entityMetadata()
       this.setState({ entityMetadata })
     } catch (error) {
       reportError('Error loading workspace entity data', error)
@@ -100,7 +100,7 @@ class WorkspaceDataContent extends Component {
     const { namespace, name } = this.props
     const { itemsPerPage, pageNumber, sort, selectedDataType } = this.state
 
-    const getWorkspaceAttributes = async () => (await Rawls.workspace(namespace, name).details()).workspace.attributes
+    const getWorkspaceAttributes = async () => (await Workspaces.workspace(namespace, name).details()).workspace.attributes
 
     if (!selectedDataType) {
       this.setState({ workspaceAttributes: await getWorkspaceAttributes() })
@@ -110,7 +110,7 @@ class WorkspaceDataContent extends Component {
 
         const [workspaceAttributes, { results, resultMetadata: { unfilteredCount } }] = await Promise.all([
           getWorkspaceAttributes(),
-          Rawls.workspace(namespace, name)
+          Workspaces.workspace(namespace, name)
             .paginatedEntitiesOfType(selectedDataType, {
               page: pageNumber, pageSize: itemsPerPage, sortField: sort.field, sortDirection: sort.direction
             })

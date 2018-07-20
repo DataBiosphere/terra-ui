@@ -6,7 +6,7 @@ import { centeredSpinner, profilePic } from 'src/components/icons'
 import { textInput, validatedInput } from 'src/components/input'
 import { InfoBox } from 'src/components/PopupTrigger'
 import { TopBar } from 'src/components/TopBar'
-import { Orchestration } from 'src/libs/ajax'
+import { User } from 'src/libs/ajax'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -110,7 +110,7 @@ class Profile extends Component {
   async refresh() {
     this.setState({ profileInfo: undefined, displayName: undefined, fractionCompleted: undefined, saving: false })
 
-    const { keyValuePairs } = await Orchestration.profile.get()
+    const { keyValuePairs } = await User.profile.get()
     const profileInfo = _.reduce(
       (accum, { key, value }) => _.assign(accum, { [key]: value === 'N/A' ? '' : value }),
       {},
@@ -124,7 +124,7 @@ class Profile extends Component {
       _.size
     )(profileInfo)
 
-    const proxyGroup = await Orchestration.getProxyGroup(profileInfo.email)
+    const proxyGroup = await User.getProxyGroup(profileInfo.email)
 
     this.setState({
       profileInfo, proxyGroup,
@@ -284,7 +284,7 @@ class Profile extends Component {
     const { profileInfo } = this.state
 
     this.setState({ saving: true })
-    await Orchestration.profile.set(_.pickBy(_.identity, profileInfo))
+    await User.profile.set(_.pickBy(_.identity, profileInfo))
     this.refresh()
   }
 

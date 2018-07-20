@@ -10,7 +10,7 @@ import TabBar from 'src/components/TabBar'
 import { FlexTable, HeaderCell, TextCell } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import WDLViewer from 'src/components/WDLViewer'
-import { Agora, Dockstore, Rawls } from 'src/libs/ajax'
+import { Dockstore, Methods, Workspaces } from 'src/libs/ajax'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
@@ -98,7 +98,7 @@ class WorkflowViewContent extends Component {
   async componentDidMount() {
     const { namespace, name, workspace: { workspace: { attributes } }, workflowNamespace, workflowName } = this.props
     try {
-      const ws = Rawls.workspace(namespace, name)
+      const ws = Workspaces.workspace(namespace, name)
 
       const [entityMetadata, validationResponse] = await Promise.all([
         ws.entityMetadata(),
@@ -106,7 +106,7 @@ class WorkflowViewContent extends Component {
       ])
 
       const { methodConfiguration: config } = validationResponse
-      const ioDefinitions = await Rawls.methodConfigInputsOutputs(config)
+      const ioDefinitions = await Methods.configInputsOutputs(config)
 
       const inputsOutputs = this.createIOLists(validationResponse, ioDefinitions)
 
@@ -304,7 +304,7 @@ class WorkflowViewContent extends Component {
           case 'dockstore':
             return Dockstore.getWdl(methodPath, methodVersion).then(({ descriptor }) => descriptor)
           case 'agora':
-            return Agora.method(methodNamespace, methodName, methodVersion).get().then(({ payload }) => payload)
+            return Methods.method(methodNamespace, methodName, methodVersion).get().then(({ payload }) => payload)
           default:
             throw new Error('unknown sourceRepo')
         }
@@ -322,7 +322,7 @@ class WorkflowViewContent extends Component {
     this.setState({ saving: true })
 
     try {
-      const validationResponse = await Rawls.workspace(namespace, name)
+      const validationResponse = await Workspaces.workspace(namespace, name)
         .methodConfig(workflowNamespace, workflowName)
         .save(modifiedConfig)
       const inputsOutputs = this.createIOLists(validationResponse)
