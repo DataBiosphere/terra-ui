@@ -159,6 +159,7 @@ class WorkflowViewContent extends Component {
   }
 
   renderSummary(invalidIO) {
+    const { workspace: { canCompute } } = this.props
     const { modifiedConfig, savedConfig, entityMetadata, saving, saved, activeTab } = this.state
     const { name, methodConfigVersion, methodRepoMethod: { methodPath }, rootEntityType } = modifiedConfig
     const modified = !_.isEqual(modifiedConfig, savedConfig)
@@ -190,9 +191,12 @@ class WorkflowViewContent extends Component {
           ])
         ]),
         div({ style: { flex: 'none', display: 'flex', flexDirection: 'column', alignItems: 'flex-end' } }, [
-          buttonPrimary({ disabled: noLaunchReason, onClick: () => this.setState({ launching: true }) },
-            'Launch analysis'),
-          noLaunchReason && div({
+          buttonPrimary({
+            disabled: !canCompute || !!noLaunchReason,
+            tooltip: !canCompute ? 'You do not have access to run analyses on this workspace.' : undefined,
+            onClick: () => this.setState({ launching: true })
+          }, ['Launch analysis']),
+          canCompute && noLaunchReason && div({
             style: {
               marginTop: '0.5rem', padding: '1rem',
               backgroundColor: Style.colors.warningBackground,
