@@ -221,6 +221,7 @@ class WorkflowViewContent extends Component {
   }
 
   renderIOTable(key) {
+    const { workspace: { canCompute } } = this.props
     const { modifiedConfig, inputsOutputs: { [key]: data }, entityMetadata, workspaceAttributes } = this.state
     // Sometimes we're getting totally empty metadata. Not sure if that's valid; if not, revert this
     const { attributeNames } = entityMetadata[modifiedConfig.rootEntityType] || {}
@@ -263,14 +264,15 @@ class WorkflowViewContent extends Component {
                 headerRenderer: () => h(HeaderCell, ['Attribute']),
                 cellRenderer: ({ rowIndex }) => {
                   const { name, optional, error } = data[rowIndex]
+                  const value = modifiedConfig[key][name] || ''
                   return div({ style: { display: 'flex', alignItems: 'center', width: '100%' } }, [
-                    h(AutocompleteTextInput, {
+                    canCompute ? h(AutocompleteTextInput, {
                       spellCheck: false,
                       placeholder: optional ? 'Optional' : 'Required',
-                      value: modifiedConfig[key][name] || '',
+                      value,
                       onChange: v => this.setState(_.set(['modifiedConfig', key, name], v)),
                       suggestions
-                    }),
+                    }) : div({ style: { flex: 1 } }, [value]),
                     error && h(TooltipTrigger, { content: error }, [
                       icon('error', {
                         size: 28, style: { marginLeft: '0.5rem', color: Style.colors.error, cursor: 'help' }
