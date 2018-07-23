@@ -1,7 +1,7 @@
 import { Fragment } from 'react'
-import { div, h, img, span } from 'react-hyperscript-helpers'
+import { div, h, img, p, span } from 'react-hyperscript-helpers'
 import { pure } from 'recompose'
-import { buttonPrimary, Clickable, comingSoon, link } from 'src/components/common'
+import { buttonPrimary, Clickable, link } from 'src/components/common'
 import { InfoBox } from 'src/components/PopupTrigger'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { TopBar } from 'src/components/TopBar'
@@ -65,8 +65,7 @@ const styles = {
       ...Style.elements.sectionHeader, textTransform: 'uppercase'
     },
     title: {
-      fontSize: 20, marginBottom: '0.25rem',
-      color: Style.colors.secondary
+      fontSize: 20, color: Style.colors.secondary
     }
   }
 }
@@ -131,13 +130,17 @@ const Participant = ({ logoBox, children }) => h(FadeBox, [
 ])
 
 
-const ParticipantControls = ({ size, children }) => {
-  return div({ style: { display: 'flex', alignItems: 'center', marginTop: '1rem' } }, [
+const ParticipantControls = ({ size, helpLink, children }) => {
+  return div({ style: { display: 'flex', alignItems: 'center' } }, [
     div({ style: { width: 200, flex: 'none' } }, [size || '']),
     children,
-    h(InfoBox, { style: { marginLeft: '1rem' }, position: 'bottom' }, [
+    h(InfoBox, { style: { marginLeft: '1rem' }, position: 'bottom', size: 20 }, [
       div(['Look for the Export to Saturn icon to export data from this provider. ']),
-      link({}, ['Learn more.'])
+      // not used yet:
+      helpLink && link({
+        href: helpLink,
+        target: '_blank'
+      }, ['Learn more.'])
     ])
   ])
 }
@@ -147,14 +150,15 @@ const NIHCommonsButtons = div({ style: { width: 303 } }, [
   buttonPrimary({
     style: { margin: '0.25rem 0', width: 303 },
     as: 'a',
-    href: 'https://commons.ucsc-cgp-dev.org/boardwalk',
+    href: 'https://dcp.bionimbus.org/',
     target: '_blank'
-  }, ['Browse Data via Boardwalk']),
+  }, ['Browse Data via Windmill']),
   buttonPrimary({
     style: { margin: '0.25rem 0', width: 303 },
-    disabled: true,
-    tooltip: 'Coming Soon'
-  }, ['Browse Data via Windmill'])
+    as: 'a',
+    href: 'https://commons.ucsc-cgp-dev.org/boardwalk',
+    target: '_blank'
+  }, ['Browse Data via Boardwalk'])
 ])
 
 
@@ -163,9 +167,12 @@ const BrowseData = pure(() => {
     h(TopBar, {}, []),
     div({ style: styles.top.container }, [
       div({ style: styles.top.title }, ['Saturn']),
-      div({ style: styles.top.summary }, ['Browse Data from the largest biomedical research agencies in the world.']),
-      div({ style: styles.top.details }, ['Over 2,300,000 participants']),
-      div({ style: styles.top.details }, ['Over 257,000 cells'])
+      div({ style: styles.top.summary }, ['Browse Data from the largest biomedical research agencies in the world.'])
+      /*
+       * Need real numbers
+       * div({ style: styles.top.details }, ['Over 2,300,000 participants']),
+       * div({ style: styles.top.details }, ['Over 257,000 cells'])
+       */
     ]),
     div({ style: styles.banner.container }, [
       div({ style: styles.banner.textContainer }, [
@@ -173,6 +180,8 @@ const BrowseData = pure(() => {
         div({ style: styles.banner.details }, ['Aggregate data from our participating partners into Saturn'])
       ]),
       h(Clickable, {
+        disabled: true,
+        tooltip: 'Documentation coming soon',
         style: {
           textTransform: 'uppercase', fontWeight: 500,
           padding: '1rem 1.5rem',
@@ -189,8 +198,8 @@ const BrowseData = pure(() => {
       div({ style: styles.content.header }, ['Participating Research Databases']),
       h(Participant, { logoBox: logoBox({ src: nhsLogo, alt: 'Nurses\' Health Study logo' }) }, [
         div({ style: styles.content.title }, ['Nurses\' Health Study']),
-        div(['The Nurses\' Health Study and Nurses\' Health Study II are among the largest investigations into the ' +
-             'risk factors for major chronic diseases in women.']),
+        p(['The Nurses\' Health Study and Nurses\' Health Study II are among the largest investigations into the ' +
+           'risk factors for major chronic diseases in women.']),
         h(ParticipantControls, { size: 'Participants: > 280,000' }, [
           buttonPrimary({
             disabled: true,
@@ -200,9 +209,9 @@ const BrowseData = pure(() => {
       ]),
       h(Participant, { logoBox: logoBox({ src: hcaLogo, alt: 'Human Cell Atlas logo' }) }, [
         div({ style: styles.content.title }, ['Human Cell Atlas']),
-        div(['The Human Cell Atlas (HCA) is made up of comprehensive reference maps of all human cells — the ' +
-             'fundamental units of life — as a basis for understanding fundamental human biological processes ' +
-             'and diagnosing, monitoring, and treating disease.']),
+        p(['The Human Cell Atlas (HCA) is made up of comprehensive reference maps of all human cells — the ' +
+           'fundamental units of life — as a basis for understanding fundamental human biological processes ' +
+           'and diagnosing, monitoring, and treating disease.']),
         h(ParticipantControls, [
           buttonPrimary({
             disabled: true,
@@ -211,12 +220,13 @@ const BrowseData = pure(() => {
         ])
       ]),
       h(Participant, { logoBox: logoBox({ src: amppdLogo, alt: 'AMP-PD logo' }) }, [
-        div({ style: styles.content.title }, ['AMP-PD']),
-        div(['The Accelerating Medicines Partnership (AMP) is a public-private partnership between the National ' +
-             'Institutes of Health (NIH), multiple biopharmaceutical and life sciences companies, and non-profit ' +
-             'organizations to identify and validate the most promising biological targets for therapeutics. This ' +
-             'AMP effort aims to identify and validate the most promising biological targets for therapeutics ' +
-             'relevant to Parkinson\'s disease.']),
+        div({ style: styles.content.title }, ['AMP Parkinson\'s Disease']),
+        p(['The Accelerating Medicines Partnership (AMP) is a public-private partnership between the National ' +
+           'Institutes of Health (NIH), multiple biopharmaceutical and life sciences companies, and non-profit ' +
+           'organizations to identify and validate the most promising biological targets for therapeutics. This ' +
+           'AMP effort aims to identify and validate the most promising biological targets for therapeutics ' +
+           'relevant to Parkinson\'s disease.']),
+        p(['Includes data from the following studies:']),
         div({ style: { margin: '0.4rem 0', fontWeight: 500, lineHeight: '150%' } }, [
           div({ style: { display: 'flex', flexWrap: 'wrap' } }, [
             div({ style: { width: 410 } }, ['• Parkinson\'s Disease Biomarkers Program (PDBP)']),
@@ -237,18 +247,18 @@ const BrowseData = pure(() => {
       ]),
       h(Participant, { logoBox: logoBox({ src: topMedLogo, alt: 'TopMed logo' }) }, [
         div({ style: styles.content.title }, ['TopMed presented by NIH Commons']),
-        div(['Trans-Omics for Precision Medicine (TOPMed), sponsored by the National Institutes of Health\'s ' +
-             'National Heart, Lung, and Blood Institute (NHLBI), is a program to generate scientific resources to ' +
-             'enhance our understanding of fundamental biological processes that underlie heart, lung, blood, and ' +
-             'sleep disorders (HLBS)']),
+        p(['Trans-Omics for Precision Medicine (TOPMed), sponsored by the National Institutes of Health\'s ' +
+           'National Heart, Lung, and Blood Institute (NHLBI), is a program to generate scientific resources to ' +
+           'enhance our understanding of fundamental biological processes that underlie heart, lung, blood, and ' +
+           'sleep disorders (HLBS)']),
         h(ParticipantControls, { size: h(TooltipTrigger, { content: 'As of November 2016' }, [span('Participants: > 54,000')]) }, [
           NIHCommonsButtons
         ])
       ]),
       h(Participant, { logoBox: logoBox({ src: gtexLogo, alt: 'GTEx logo' }) }, [
         div({ style: styles.content.title }, ['GTEx presented by NIH Commons']),
-        div(['The Genotype-Tissue Expression (GTEx) Program established a data resource and tissue bank to study the ' +
-             'relationship between genetic variation and gene expression in multiple human tissues.']),
+        p(['The Genotype-Tissue Expression (GTEx) Program established a data resource and tissue bank to study the ' +
+           'relationship between genetic variation and gene expression in multiple human tissues.']),
         h(ParticipantControls, { size: h(TooltipTrigger, { content: 'As of release V7' }, [span('Samples: > 11,688')]) }, [
           NIHCommonsButtons
         ])
