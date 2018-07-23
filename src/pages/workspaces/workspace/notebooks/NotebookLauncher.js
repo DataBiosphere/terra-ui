@@ -66,9 +66,7 @@ class NotebookLauncherContent extends Component {
   }
 
   async getCluster() {
-    const { clusters, refreshClusters } = this.props
-
-    await refreshClusters()
+    const { clusters } = this.props
 
     return _.flow(
       _.remove({ status: 'Deleting' }),
@@ -81,6 +79,8 @@ class NotebookLauncherContent extends Component {
     const { refreshClusters } = this.props
 
     while (this.mounted) {
+      await refreshClusters()
+
       const cluster = await this.getCluster()
       if (!cluster) {
         throw new Error('No clusters available')
