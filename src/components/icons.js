@@ -7,20 +7,25 @@ import '@clr/icons/shapes/media-shapes'
 import '@clr/icons/shapes/technology-shapes'
 import _ from 'lodash/fp'
 import { h, img } from 'react-hyperscript-helpers'
+import browse from 'src/icons/browse.svg'
 import caretDown from 'src/icons/caret-down.svg'
 import checkSquare from 'src/icons/check-square.svg'
+import explore from 'src/icons/explore.svg'
+import home from 'src/icons/home.svg'
 import jupyterIcon from 'src/icons/jupyter.svg'
 import loadingSpinner from 'src/icons/loading-spinner.svg'
 import logoGrey from 'src/icons/logo-grey.svg'
 import logoIcon from 'src/icons/logo.svg'
+import notebooks from 'src/icons/notebooks.svg'
 import square from 'src/icons/square.svg'
 import table from 'src/icons/table.svg'
+import workspace from 'src/icons/workspace.svg'
 import { getBasicProfile } from 'src/libs/auth'
 import * as Style from 'src/libs/style'
 
 
 ClarityIcons.add({
-  loadingSpinner, logoIcon, logoGrey, table, jupyterIcon, checkSquare, caretDown, square
+  browse, caretDown, checkSquare, explore, home, jupyterIcon, loadingSpinner, logoGrey, logoIcon, notebooks, square, table, workspace
 })
 
 /**

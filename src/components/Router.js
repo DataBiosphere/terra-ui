@@ -5,6 +5,7 @@ import AuthContainer from 'src/components/AuthContainer'
 import PageWrapper from 'src/components/PageWrapper'
 import { link } from 'src/components/common'
 import * as Nav from 'src/libs/nav'
+import * as BrowseData from 'src/pages/BrowseData'
 import * as Group from 'src/pages/groups/Group'
 import * as Groups from 'src/pages/groups/List'
 import * as ImportData from 'src/pages/ImportData'
@@ -41,6 +42,7 @@ const initNavPaths = () => {
   Groups.addNavPaths()
   Group.addNavPaths()
   TerminalLauncher.addNavPaths()
+  BrowseData.addNavPaths()
 }
 
 export default class Router extends Component {
