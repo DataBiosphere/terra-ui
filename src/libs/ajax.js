@@ -308,6 +308,11 @@ export const Workspaces = {
           `/api/workspaces/${namespace}/${name}/importBagit`,
           _.mergeAll([authOpts(), jsonBody({ bagitURL, format: 'TSV' }), { method: 'POST' }])
         )
+      },
+
+      storageCostEstimate: async () => {
+        const res = await fetchOrchestration(`/api/workspaces/${namespace}/${name}/storageCostEstimate`, authOpts())
+        return res.json()
       }
     }
   }
