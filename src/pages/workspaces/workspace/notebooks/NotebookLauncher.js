@@ -4,7 +4,6 @@ import { div, h, iframe } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { icon, spinner } from 'src/components/icons'
 import { Jupyter } from 'src/libs/ajax'
-import { getBasicProfile } from 'src/libs/auth'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
@@ -67,18 +66,21 @@ class NotebookLauncherContent extends Component {
   }
 
   async getCluster() {
-    const { namespace } = this.props
+    const { clusters } = this.props
 
     return _.flow(
-      _.filter({ googleProject: namespace, creator: getBasicProfile().getEmail() }),
       _.remove({ status: 'Deleting' }),
       _.sortBy('createdDate'),
       _.last
-    )(await Jupyter.clustersList())
+    )(clusters)
   }
 
   async startCluster() {
+    const { refreshClusters } = this.props
+
     while (this.mounted) {
+      await refreshClusters()
+
       const cluster = await this.getCluster()
       if (!cluster) {
         throw new Error('No clusters available')
@@ -91,6 +93,7 @@ class NotebookLauncherContent extends Component {
         return cluster
       } else if (status === 'Stopped') {
         await Jupyter.cluster(googleProject, clusterName).start()
+        refreshClusters()
         await Utils.delay(10000)
       } else {
         await Utils.delay(3000)

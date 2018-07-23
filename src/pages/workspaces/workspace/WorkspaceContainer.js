@@ -9,7 +9,8 @@ import Modal from 'src/components/Modal'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
 import PopupTrigger from 'src/components/PopupTrigger'
 import { TopBar } from 'src/components/TopBar'
-import { Workspaces } from 'src/libs/ajax'
+import { Jupyter, Workspaces } from 'src/libs/ajax'
+import { getBasicProfile } from 'src/libs/auth'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
@@ -173,7 +174,7 @@ class WorkspaceContainer extends Component {
   }
 
   render() {
-    const { namespace, name, breadcrumbs, title, activeTab, refresh, workspace } = this.props
+    const { namespace, name, breadcrumbs, title, activeTab, refresh, refreshClusters, workspace, clusters } = this.props
     const { deletingWorkspace, cloningWorkspace } = this.state
 
     return div({ style: { display: 'flex', flexDirection: 'column', height: '100%', flexGrow: 1 } }, [
@@ -184,7 +185,7 @@ class WorkspaceContainer extends Component {
             title || `${namespace}/${name}`
           ])
         ]),
-        h(ClusterManager, { namespace })
+        h(ClusterManager, { namespace, clusters, refreshClusters })
       ]),
       h(WorkspaceTabs, {
         namespace, name, activeTab, refresh, workspace,
@@ -221,10 +222,10 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title }, content) => {
 
     renderSuccess() {
       const { namespace, name } = this.props
-      const { workspace } = this.state
+      const { workspace, clusters } = this.state
 
       return h(WorkspaceContainer, {
-        namespace, name, activeTab, workspace,
+        namespace, name, activeTab, workspace, clusters,
         title: _.isFunction(title) ? title(this.props) : title,
         breadcrumbs: breadcrumbs(this.props),
         refresh: async () => {
@@ -233,11 +234,12 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title }, content) => {
           if (child.refresh) {
             child.refresh()
           }
-        }
+        },
+        refreshClusters: () => this.refreshClusters()
       }, [
         workspace && h(content, {
           ref: this.child,
-          workspace,
+          workspace, clusters, refreshClusters: () => this.refreshClusters(),
           ...this.props
         })
       ])
@@ -262,6 +264,17 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title }, content) => {
 
     componentDidMount() {
       this.refresh()
+      this.refreshClusters()
+    }
+
+    async refreshClusters() {
+      const { namespace } = this.props
+      try {
+        const clusters = _.filter({ googleProject: namespace, creator: getBasicProfile().getEmail() }, await Jupyter.clustersList())
+        this.setState({ clusters })
+      } catch (error) {
+        reportError('Error loading clusters', error)
+      }
     }
 
     async refresh() {
