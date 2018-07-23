@@ -4,6 +4,7 @@ import { AutoSizer } from 'react-virtualized'
 import { buttonPrimary, buttonSecondary, Checkbox, link, search } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { textInput, validatedInput } from 'src/components/input'
+import Modal from 'src/components/Modal'
 import PopupTrigger from 'src/components/PopupTrigger'
 import { FlexTable, GridTable, HeaderCell, TextCell } from 'src/components/table'
 import * as Nav from 'src/libs/nav'
@@ -145,6 +146,17 @@ class StyleGuide extends Component {
         buttonPrimary({
           tooltip: 'Hello there'
         }, 'Tooltip trigger')
+      ]),
+      div({ style: styles.container }, [
+        buttonPrimary({
+          onClick: () => this.setState({ modalOpen: true })
+        }, 'Open modal'),
+        this.state.modalOpen && h(Modal, {
+          title: 'Hello there',
+          onDismiss: () => this.setState({ modalOpen: false })
+        }, [
+          'This is a modal'
+        ])
       ])
     ])
   }

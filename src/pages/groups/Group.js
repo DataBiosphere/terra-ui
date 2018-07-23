@@ -59,6 +59,7 @@ class NewUserModal extends Component {
     }, [
       div({ style: styles.formLabel }, ['User email']),
       textInput({
+        autoFocus: true,
         value: userEmail,
         onChange: e => this.setState({ userEmail: e.target.value, emailTouched: true })
       }),
