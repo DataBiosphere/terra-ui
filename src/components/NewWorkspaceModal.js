@@ -115,6 +115,7 @@ export default class NewWorkspaceModal extends Component {
       div({ style: styles.label }, ['Workspace name *']),
       validatedInput({
         inputProps: {
+          autoFocus: true,
           placeholder: 'Enter a name',
           value: name,
           onChange: e => this.setState({ name: e.target.value, nameModified: true })
