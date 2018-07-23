@@ -40,6 +40,7 @@ export default class Modal extends Component {
     return h(RModal, {
       parentSelector: () => document.getElementById('modal-root'),
       isOpen: true,
+      shouldCloseOnOverlayClick: false,
       onRequestClose: onDismiss,
       style: { overlay: styles.overlay, content: { ...styles.modal, width } },
       ariaHideApp: false
