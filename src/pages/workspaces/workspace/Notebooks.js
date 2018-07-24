@@ -7,6 +7,7 @@ import { Clickable, link, MenuButton, spinnerOverlay } from 'src/components/comm
 import { icon } from 'src/components/icons'
 import { NotebookCreator, NotebookDeleter, NotebookDuplicator } from 'src/components/notebook-utils'
 import PopupTrigger from 'src/components/PopupTrigger'
+import TooltipTrigger from 'src/components/TooltipTrigger'
 import { Buckets } from 'src/libs/ajax'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
@@ -25,6 +26,9 @@ const notebookCardCommonStyles = listView =>
 
 const printName = name => name.slice(10, -6) // removes 'notebooks/' and the .ipynb suffix
 
+const noCompute = 'You do not have access to run analyses on this workspace.'
+const noWrite = 'You do not have access to modify this workspace.'
+
 class NotebookCard extends Component {
   constructor(props) {
     super(props)
@@ -32,11 +36,11 @@ class NotebookCard extends Component {
   }
 
   render() {
-    const { namespace, name, updated, listView, wsName, onRename, onCopy, onDelete } = this.props
+    const { namespace, name, updated, listView, wsName, onRename, onCopy, onDelete, canCompute, canWrite } = this.props
 
     const hideMenu = () => this.menu.current.close()
 
-    const notebookMenu = h(PopupTrigger, {
+    const notebookMenu = canWrite && h(PopupTrigger, {
       ref: this.menu,
       position: 'bottom',
       content: h(Fragment, [
@@ -88,30 +92,32 @@ class NotebookCard extends Component {
     }, printName(name))
 
     return h(Fragment, [
-      a({
-        href: Nav.getLink('workspace-notebook-launch', { namespace, name: wsName, notebookName: name.slice(10) }),
-        style: {
-          ...Style.elements.card,
-          ...notebookCardCommonStyles(listView),
-          flexShrink: 0,
-          justifyContent: listView ? undefined : 'space-between',
-          alignItems: listView ? 'center' : undefined
-        }
-      }, listView ? [
-        jupyterIcon,
-        title,
-        div({ style: { flexGrow: 1 } }),
-        div({ style: { fontSize: '0.8rem', marginRight: '0.5rem' } },
-          `Last edited: ${Utils.makePrettyDate(updated)}`),
-        notebookMenu
-      ] : [
-        div({ style: { display: 'flex', justifyContent: 'space-between' } },
-          [title, notebookMenu]),
-        jupyterIcon,
-        div({ style: { display: 'flex', alignItems: 'flex-end' } }, [
-          div({ style: { fontSize: '0.8rem', flexGrow: 1, marginRight: '0.5rem' } }, [
-            'Last edited:',
-            div({}, Utils.makePrettyDate(updated))
+      h(TooltipTrigger, { content: !canCompute ? noCompute : undefined }, [
+        a({
+          href: canCompute ? Nav.getLink('workspace-notebook-launch', { namespace, name: wsName, notebookName: name.slice(10) }) : undefined,
+          style: {
+            ...Style.elements.card,
+            ...notebookCardCommonStyles(listView),
+            flexShrink: 0,
+            justifyContent: listView ? undefined : 'space-between',
+            alignItems: listView ? 'center' : undefined
+          }
+        }, listView ? [
+          jupyterIcon,
+          title,
+          div({ style: { flexGrow: 1 } }),
+          div({ style: { fontSize: '0.8rem', marginRight: '0.5rem' } },
+            `Last edited: ${Utils.makePrettyDate(updated)}`),
+          notebookMenu
+        ] : [
+          div({ style: { display: 'flex', justifyContent: 'space-between' } },
+            [title, notebookMenu]),
+          jupyterIcon,
+          div({ style: { display: 'flex', alignItems: 'flex-end' } }, [
+            div({ style: { fontSize: '0.8rem', flexGrow: 1, marginRight: '0.5rem' } }, [
+              'Last edited:',
+              div({}, Utils.makePrettyDate(updated))
+            ])
           ])
         ])
       ])
@@ -155,7 +161,8 @@ class NotebooksContent extends Component {
 
   renderNotebooks() {
     const { notebooks, listView } = this.state
-    const { name: wsName, namespace, workspace: { workspace: { bucketName } } } = this.props
+    const { name: wsName, namespace, workspace: { accessLevel, canCompute, workspace: { bucketName } } } = this.props
+    const canWrite = Utils.canWrite(accessLevel)
 
     return div({ style: { display: listView ? undefined : 'flex', flexWrap: 'wrap' } }, [
       div({
@@ -166,7 +173,9 @@ class NotebooksContent extends Component {
       }, [
         h(Clickable, {
           style: { ...Style.elements.card, flexGrow: 1, color: Style.colors.secondary },
-          onClick: () => this.setState({ creating: true })
+          onClick: () => this.setState({ creating: true }),
+          disabled: !canWrite,
+          tooltip: !canWrite ? noWrite : undefined
         }, [
           listView ?
             div([
@@ -184,7 +193,9 @@ class NotebooksContent extends Component {
             ...Style.elements.card, flexGrow: 1,
             backgroundColor: '#dcdcdc', border: '1px dashed #9B9B9B', boxShadow: 'none'
           },
-          onClick: () => this.uploader.current.open()
+          onClick: () => this.uploader.current.open(),
+          disabled: !canWrite,
+          tooltip: !canWrite ? noWrite : undefined
         }, [
           div({ style: listView ? {} : { fontSize: 16, lineHeight: '20px' } }, [
             'Drag or ', link({}, ['Click']), ' to Add an ipynb File',
@@ -199,7 +210,7 @@ class NotebooksContent extends Component {
       ]),
       _.map(({ name, updated }) => h(NotebookCard, {
         key: name,
-        name, updated, listView, bucketName, namespace, wsName,
+        name, updated, listView, bucketName, namespace, wsName, canCompute, canWrite,
         onRename: () => this.setState({ renamingNotebookName: name }),
         onCopy: () => this.setState({ copyingNotebookName: name }),
         onDelete: () => this.setState({ deletingNotebookName: name })
@@ -209,11 +220,12 @@ class NotebooksContent extends Component {
 
   render() {
     const { loading, notebooks, listView, creating, renamingNotebookName, copyingNotebookName, deletingNotebookName } = this.state
-    const { namespace, workspace: { workspace: { bucketName } } } = this.props
+    const { namespace, workspace: { accessLevel, workspace: { bucketName } } } = this.props
     const existingNames = _.map(({ name }) => printName(name), notebooks)
 
     return h(Dropzone, {
       accept: '.ipynb',
+      disabled: !Utils.canWrite(accessLevel),
       disableClick: true,
       disablePreview: true,
       style: { flexGrow: 1, padding: '1rem' },
