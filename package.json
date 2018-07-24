@@ -23,6 +23,7 @@
     "react-hot-loader": "^4.3.3",
     "react-hyperscript-helpers": "^1.2.0",
     "react-interactive": "^0.8.1",
+    "react-markdown": "^3.3.4",
     "react-modal": "^3.5.1",
     "react-onclickoutside": "^6.7.1",
     "react-paginating": "^1.0.1",
