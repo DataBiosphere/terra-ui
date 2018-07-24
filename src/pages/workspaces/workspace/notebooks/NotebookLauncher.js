@@ -136,8 +136,8 @@ class NotebookLauncherContent extends Component {
 
     if (url) {
       return iframe({
-        src: url, height: 500,
-        style: { border: 'none' }
+        src: url,
+        style: { border: 'none', flex: 1, marginBottom: '-2rem' }
       })
     }
 
