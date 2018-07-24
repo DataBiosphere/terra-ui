@@ -1,5 +1,6 @@
 import { Component } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
+import ReactMarkdown from 'react-markdown'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { link } from 'src/components/common'
 import { Workspaces } from 'src/libs/ajax'
@@ -78,7 +79,7 @@ class WorkspaceDashboardContent extends Component {
       div({ style: styles.leftBox }, [
         div({ style: styles.header }, ['About the project']),
         description ?
-          div({ style: { whiteSpace: 'pre-wrap' } }, [description]) :
+          h(ReactMarkdown, [description]) :
           div({ style: { fontStyle: 'italic' } }, ['No description added'])
       ]),
       div({ style: styles.rightBox }, [
