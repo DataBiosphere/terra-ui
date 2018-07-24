@@ -4,7 +4,7 @@ import { createRef, Fragment } from 'react'
 import { div, form, h, input } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { buttonPrimary, link, spinnerOverlay } from 'src/components/common'
+import { buttonPrimary, linkButton, spinnerOverlay } from 'src/components/common'
 import { icon, spinner } from 'src/components/icons'
 import { FlexTable, GridTable, HeaderCell, paginator } from 'src/components/table'
 import { Workspaces } from 'src/libs/ajax'
@@ -178,7 +178,7 @@ class WorkspaceDataContent extends Component {
             _.toPairs(entityMetadata))),
           div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', ...styles.dataTypeHeading } }, [
             'Reference Data',
-            link({
+            linkButton({
               disabled: !canEdit,
               tooltip: !canEdit && 'You do not have access add data to this workspace.',
               onClick: () => this.setState({ importingReference: true })

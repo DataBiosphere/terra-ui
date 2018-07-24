@@ -30,16 +30,24 @@ export const Clickable = ({ as = 'div', disabled, tooltip, tooltipSide, onClick,
   }
 }
 
+const linkProps = disabled => ({
+  as: 'a',
+  style: {
+    color: disabled ? Style.colors.disabled : Style.colors.secondary,
+    cursor: disabled ? 'not-allowed' : 'pointer'
+  },
+  hover: disabled ? undefined : { color: Style.colors.primary }
+})
+
 export const link = function(props, children) {
+  return h(Interactive,
+    _.merge(linkProps(props.disabled), props),
+    children)
+}
+
+export const linkButton = (props, children) => {
   return h(Clickable,
-    _.merge({
-      as: 'a',
-      style: {
-        color: props.disabled ? Style.colors.disabled : Style.colors.secondary,
-        cursor: props.disabled ? 'not-allowed' : 'pointer'
-      },
-      hover: props.disabled ? undefined : { color: Style.colors.primary }
-    }, props),
+    _.merge(linkProps(props.disabled), props),
     children)
 }
 
