@@ -31,7 +31,7 @@ export const Clickable = ({ as = 'div', disabled, tooltip, tooltipSide, onClick,
 }
 
 export const link = function(props, children) {
-  return h(Interactive,
+  return h(Clickable,
     _.merge({
       as: 'a',
       style: {

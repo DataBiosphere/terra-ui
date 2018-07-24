@@ -152,9 +152,10 @@ class WorkspaceDataContent extends Component {
   }
 
   render() {
-    const { namespace, name } = this.props
+    const { namespace, name, workspace: { accessLevel } } = this.props
     const { selectedDataType, entityMetadata, loading, importingReference } = this.state
     const referenceData = this.getReferenceData()
+    const canEdit = Utils.canWrite(accessLevel)
 
     return div({ style: styles.tableContainer }, [
       !entityMetadata ? spinnerOverlay : h(Fragment, [
@@ -177,7 +178,11 @@ class WorkspaceDataContent extends Component {
             _.toPairs(entityMetadata))),
           div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', ...styles.dataTypeHeading } }, [
             'Reference Data',
-            link({ onClick: () => this.setState({ importingReference: true }) }, [icon('plus-circle')])
+            link({
+              disabled: !canEdit,
+              tooltip: !canEdit && 'You do not have access add data to this workspace.',
+              onClick: () => this.setState({ importingReference: true })
+            }, [icon('plus-circle')])
           ]),
           importingReference &&
             h(ReferenceDataImporter, {
