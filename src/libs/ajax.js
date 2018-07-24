@@ -1,5 +1,6 @@
 import _ from 'lodash/fp'
 import * as qs from 'qs'
+import { version } from 'src/data/clusters'
 import { getAuthToken } from 'src/libs/auth'
 import * as Config from 'src/libs/config'
 import * as Utils from 'src/libs/utils'
@@ -411,7 +412,10 @@ export const Jupyter = {
 
     return {
       create: clusterOptions => {
-        return fetchLeo(root, _.mergeAll([authOpts(), jsonBody(clusterOptions), { method: 'PUT' }]))
+        const body = _.merge(clusterOptions, {
+          labels: { saturnAutoCreated: 'true', saturnVersion: version }
+        })
+        return fetchLeo(root, _.mergeAll([authOpts(), jsonBody(body), { method: 'PUT' }]))
       },
 
       start: () => {
