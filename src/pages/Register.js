@@ -39,7 +39,7 @@ export default class Register extends Component {
         lastName: familyName,
         contactEmail: email
       })
-      authStore.update(state => ({ ...state, isRegistered: true }))
+      authStore.update(state => ({ ...state, registrationStatus: 'registered' }))
     } catch (error) {
       reportError('Error registering', error)
     } finally {
