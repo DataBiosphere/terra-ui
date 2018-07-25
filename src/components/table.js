@@ -316,7 +316,7 @@ export const SortableHeaderCell = ({ sort, field, onSort, children }) => {
 export class ResizableHeaderCell extends Component {
   render() {
     const { onWidthChange, width, minWidth = 100, children } = this.props
-    const { dragging, dragX, lastX } = this.state
+    const { dragAmount, lastX } = this.state
 
     return div({
       style: { flex: 1, display: 'flex', alignItems: 'center', height: '100%', position: 'relative' }
@@ -324,16 +324,16 @@ export class ResizableHeaderCell extends Component {
       h(HeaderCell, { style: { flex: 1 } }, [children]),
       h(DraggableCore, {
         axis: 'x',
-        onStart: e => this.setState({ dragging: true, dragX: 0, lastX: e.clientX }),
+        onStart: e => this.setState({ dragAmount: 0, lastX: e.clientX }),
         onDrag: e => {
           const deltaX = e.clientX - lastX
-          if (deltaX !== 0 && width + dragX + deltaX > minWidth) {
-            this.setState({ dragX: dragX + deltaX, lastX: e.clientX })
+          if (deltaX !== 0 && width + dragAmount + deltaX > minWidth) {
+            this.setState({ dragAmount: dragAmount + deltaX, lastX: e.clientX })
           }
         },
         onStop: () => {
-          this.setState({ dragging: false })
-          onWidthChange(dragX)
+          this.setState({ dragAmount: undefined })
+          onWidthChange(dragAmount)
         },
         position: { x: 0 }
       }, [
@@ -342,9 +342,9 @@ export class ResizableHeaderCell extends Component {
           style: { position: 'absolute', right: -20, cursor: 'ew-resize' }
         })
       ]),
-      dragging && icon('columnGrabber', {
+      !!dragAmount && icon('columnGrabber', {
         size: 24,
-        style: { position: 'absolute', right: -20 - dragX, zIndex: 1, opacity: '0.5' }
+        style: { position: 'absolute', right: -20 - dragAmount, zIndex: 1, opacity: '0.5', cursor: 'ew-resize' }
       })
     ])
   }
