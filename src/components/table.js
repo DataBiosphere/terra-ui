@@ -303,7 +303,7 @@ export const HeaderCell = props => {
 
 export const Sortable = ({ sort, field, onSort, children }) => {
   return div({
-    style: { flex: 1, display: 'flex', alignItems: 'center', cursor: 'pointer', position: 'relative' },
+    style: { flex: 1, display: 'flex', alignItems: 'center', cursor: 'pointer', position: 'relative', width: '100%' },
     onClick: () => onSort(Utils.nextSort(sort, field))
   }, [
     children,
@@ -321,7 +321,7 @@ export class Resizable extends Component {
     const { dragAmount, lastX } = this.state
 
     return div({
-      style: { flex: 1, display: 'flex', alignItems: 'center', position: 'relative' }
+      style: { flex: 1, display: 'flex', alignItems: 'center', position: 'relative', width: '100%' }
     }, [
       children,
       h(DraggableCore, {
