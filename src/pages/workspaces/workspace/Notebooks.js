@@ -29,6 +29,15 @@ const printName = name => name.slice(10, -6) // removes 'notebooks/' and the .ip
 const noCompute = 'You do not have access to run analyses on this workspace.'
 const noWrite = 'You do not have access to modify this workspace.'
 
+const readFileAsText = file => {
+  const reader = new FileReader()
+  return new Promise((resolve, reject) => {
+    reader.onload = () => resolve(reader.result)
+    reader.onerror = reject
+    reader.readAsText(file)
+  })
+}
+
 class NotebookCard extends Component {
   constructor(props) {
     super(props)
@@ -141,6 +150,11 @@ class NotebooksContent extends Component {
     this.uploader = createRef()
   }
 
+  getExistingNames() {
+    const { notebooks } = this.state
+    return _.map(({ name }) => printName(name), notebooks)
+  }
+
   async refresh() {
     const { namespace, workspace: { workspace: { bucketName } } } = this.props
 
@@ -152,6 +166,27 @@ class NotebooksContent extends Component {
       reportError('Error loading notebooks', error)
     } finally {
       this.setState({ loading: false })
+    }
+  }
+
+  async uploadFiles(files) {
+    const { namespace, workspace: { workspace: { bucketName } } } = this.props
+    const existingNames = this.getExistingNames()
+    try {
+      this.setState({ saving: true })
+      await Promise.all(_.map(async file => {
+        const name = file.name.slice(0, -6)
+        if (_.includes(name, existingNames)) {
+          throw new Error(`${name} already exists`)
+        }
+        const contents = await readFileAsText(file)
+        return Buckets.notebook(namespace, bucketName, name).create(JSON.parse(contents))
+      }, files))
+      this.refresh()
+    } catch (error) {
+      reportError('Error creating notebook', error)
+    } finally {
+      this.setState({ saving: false })
     }
   }
 
@@ -219,9 +254,9 @@ class NotebooksContent extends Component {
   }
 
   render() {
-    const { loading, notebooks, listView, creating, renamingNotebookName, copyingNotebookName, deletingNotebookName } = this.state
+    const { loading, saving, notebooks, listView, creating, renamingNotebookName, copyingNotebookName, deletingNotebookName } = this.state
     const { namespace, workspace: { accessLevel, workspace: { bucketName } } } = this.props
-    const existingNames = _.map(({ name }) => printName(name), notebooks)
+    const existingNames = this.getExistingNames()
 
     return h(Dropzone, {
       accept: '.ipynb',
@@ -233,26 +268,7 @@ class NotebooksContent extends Component {
       acceptStyle: { cursor: 'copy' },
       rejectStyle: { cursor: 'no-drop' },
       ref: this.uploader,
-      onDropAccepted: acceptedFiles => {
-        this.setState({ loading: true })
-
-        acceptedFiles.forEach(file => {
-          const reader = new FileReader()
-
-          reader.onload = () => {
-            Buckets.notebook(namespace, bucketName, file.name.slice(0, -6)).create(JSON.parse(reader.result)).then(
-              () => this.refresh(),
-              error => {
-                reportError('Error creating notebook', error)
-                this.setState({ loading: false })
-              }
-            )
-          }
-          reader.onerror = e => reportError('Error reading file', e)
-
-          reader.readAsText(file)
-        })
-      }
+      onDropAccepted: files => this.uploadFiles(files)
     }, [
       notebooks && h(Fragment, [
         div({
@@ -281,7 +297,7 @@ class NotebooksContent extends Component {
             })
           ]),
           creating && h(NotebookCreator, {
-            namespace, bucketName,
+            namespace, bucketName, existingNames,
             reloadList: () => this.refresh(),
             onDismiss: () => this.setState({ creating: false })
           }),
@@ -314,7 +330,7 @@ class NotebooksContent extends Component {
         ]),
         this.renderNotebooks()
       ]),
-      loading && spinnerOverlay
+      (saving || loading) && spinnerOverlay
     ])
   }
 
