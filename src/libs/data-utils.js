@@ -134,7 +134,7 @@ export class UriViewer extends Component {
                 input({
                   readOnly: true,
                   value: gsutilCommand,
-                  style: { flexGrow: 1, fontWeight: 300, fontFamily: 'Menlo, monospace' }
+                  style: { flexGrow: 1, fontWeight: 400, fontFamily: 'Menlo, monospace' }
                 }),
                 h(Clickable, {
                   style: { margin: '0 1rem', color: copied ? Style.colors.success : Style.colors.secondary },
