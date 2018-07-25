@@ -5,7 +5,7 @@ To use this font as a webfont, ```Montserrat.css``` is included.
 ### 1. @import
 You can import the file into your stylesheet as follows:
 ```css
-@import url("static/fonts/Montserrat/fonts/otf/Montserrat.css");
+@import url("static/fonts/Montserrat/fonts/webfonts/Montserrat.css");
 ```
 
 **NOTE:** The directory where the stylesheet is placed.
@@ -21,7 +21,7 @@ body {
 ### 2. \<link>ing a stylesheet
 Similarly, you could link to the same asset as you would any other CSS filter, in the \<head> of the HTML document rather than in the CSS:
 ```html
-<link rel="stylesheet" type="text/css" href="static/fonts/Montserrat/fonts/otf/Montserrat.css">
+<link rel="stylesheet" type="text/css" href="static/fonts/Montserrat/fonts/webfonts/Montserrat.css">
 ```
 
 **NOTE:** The directory where the stylesheet is placed.
