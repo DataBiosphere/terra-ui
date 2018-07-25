@@ -260,6 +260,7 @@ class WorkspaceDataContent extends Component {
                 return {
                   width,
                   headerRenderer: () => h(ResizableHeaderCell, {
+                    width,
                     onWidthChange: delta => {
                       columnWidths[name] = width + delta
                       this.setState({ columnWidths })
