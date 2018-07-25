@@ -301,27 +301,29 @@ export const HeaderCell = props => {
   return h(TextCell, _.merge({ style: { fontWeight: 500 } }, props))
 }
 
-export const SortableHeaderCell = ({ sort, field, onSort, children }) => {
+export const Sortable = ({ sort, field, onSort, children }) => {
   return div({
-    style: { flex: 1, display: 'flex', alignItems: 'center', cursor: 'pointer', height: '100%' },
+    style: { flex: 1, display: 'flex', alignItems: 'center', cursor: 'pointer', position: 'relative' },
     onClick: () => onSort(Utils.nextSort(sort, field))
   }, [
-    h(HeaderCell, { style: { flex: 1 } }, [children]),
-    sort.field === field && div({ style: { flex: 'none', color: Style.colors.secondary } }, [
+    children,
+    sort.field === field && div({
+      style: { color: Style.colors.secondary, position: 'absolute', right: 0 }
+    }, [
       icon(sort.direction === 'asc' ? 'arrow down' : 'arrow')
     ])
   ])
 }
 
-export class ResizableHeaderCell extends Component {
+export class Resizable extends Component {
   render() {
     const { onWidthChange, width, minWidth = 100, children } = this.props
     const { dragAmount, lastX } = this.state
 
     return div({
-      style: { flex: 1, display: 'flex', alignItems: 'center', height: '100%', position: 'relative' }
+      style: { flex: 1, display: 'flex', alignItems: 'center', position: 'relative' }
     }, [
-      h(HeaderCell, { style: { flex: 1 } }, [children]),
+      children,
       h(DraggableCore, {
         axis: 'x',
         onStart: e => this.setState({ dragAmount: 0, lastX: e.clientX }),
