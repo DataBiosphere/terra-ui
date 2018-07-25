@@ -13,6 +13,7 @@ import checkSquare from 'src/icons/check-square.svg'
 import explore from 'src/icons/explore.svg'
 import home from 'src/icons/home.svg'
 import jupyterIcon from 'src/icons/jupyter.svg'
+import listAlt from 'src/icons/list-alt.svg'
 import loadingSpinner from 'src/icons/loading-spinner.svg'
 import logoGrey from 'src/icons/logo-grey.svg'
 import logoIcon from 'src/icons/logo.svg'
@@ -25,7 +26,7 @@ import * as Style from 'src/libs/style'
 
 
 ClarityIcons.add({
-  browse, caretDown, checkSquare, explore, home, jupyterIcon, loadingSpinner, logoGrey, logoIcon, notebooks, square, table, workspace
+  browse, caretDown, checkSquare, explore, home, jupyterIcon, listAlt, loadingSpinner, logoGrey, logoIcon, notebooks, square, table, workspace
 })
 
 /**
