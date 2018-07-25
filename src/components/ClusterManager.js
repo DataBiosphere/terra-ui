@@ -7,7 +7,7 @@ import DropdownBox from 'src/components/DropdownBox'
 import { icon } from 'src/components/icons'
 import { IntegerInput, textInput } from 'src/components/input'
 import TooltipTrigger from 'src/components/TooltipTrigger'
-import { machineTypes, profiles, version } from 'src/data/clusters'
+import { machineTypes, profiles } from 'src/data/clusters'
 import { Jupyter } from 'src/libs/ajax'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
@@ -240,7 +240,6 @@ export default class ClusterManager extends PureComponent {
     const { jupyterUserScriptUri } = this.state
     this.executeAndRefresh(
       Jupyter.cluster(namespace, Utils.generateClusterName()).create({
-        labels: { 'saturnAutoCreated': 'true', 'saturnVersion': version },
         machineConfig: this.getMachineConfig(),
         ...(jupyterUserScriptUri ? { jupyterUserScriptUri } : {})
       }).then(() => {
