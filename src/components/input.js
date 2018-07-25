@@ -24,7 +24,7 @@ const styles = {
   textarea: {
     width: '100%', resize: 'none',
     border: `1px solid ${Style.colors.border}`, borderRadius: 4,
-    fontSize: 14, fontWeight: 300,
+    fontSize: 14, fontWeight: 400,
     padding: '0.5rem 1rem',
     cursor: 'text'
   },
@@ -42,7 +42,7 @@ export const textInput = function(props) {
       style: {
         width: '100%',
         paddingLeft: '1rem', paddingRight: '1rem',
-        fontWeight: 300, fontSize: 14,
+        fontWeight: 400, fontSize: 14,
         backgroundColor: props.disabled ? '#f3f3f3' : undefined
       }
     },
@@ -60,7 +60,7 @@ export const numberInput = props => {
       width: '100%',
       paddingLeft: '1rem',
       paddingRight: '0.25rem',
-      fontWeight: 300,
+      fontWeight: 400,
       fontSize: 14
     }
   }, Style.elements.input, props]))
