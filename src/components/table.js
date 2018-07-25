@@ -7,8 +7,8 @@ import Pagination from 'react-paginating'
 import { Grid as RVGrid, ScrollSync as RVScrollSync } from 'react-virtualized'
 import { icon } from 'src/components/icons'
 import * as Style from 'src/libs/style'
+import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
-import * as Utils from '../libs/utils'
 
 
 const paginatorButton = (props, label) => button(_.merge({
