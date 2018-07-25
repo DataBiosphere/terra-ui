@@ -40,7 +40,7 @@ class Importer extends Component {
     const { queryParams: { url } } = this.props
 
     try {
-      await Workspaces.workspaces(namespace, name).importBagit(url)
+      await Workspaces.workspace(namespace, name).importBagit(url)
       Nav.goToPath('workspace-data', { namespace, name })
     } catch (e) {
       reportError('Import Error', e)
