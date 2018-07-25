@@ -1,4 +1,18 @@
-@import url("fonts/Montserrat.css");
+/** Montserrat Regular **/
+@font-face {
+  font-family: "Montserrat";
+  font-weight: 400;
+  font-style: normal;
+  src: url("fonts/Montserrat-Regular.otf") format('opentype');
+}
+
+/** Montserrat Medium **/
+@font-face {
+  font-family: "Montserrat";
+  font-weight: 500;
+  font-style: normal;
+  src: url("fonts/Montserrat-Medium.otf") format('opentype');
+}
 
 body, input, textarea, select, button {
   font-family: "Montserrat", sans-serif;
