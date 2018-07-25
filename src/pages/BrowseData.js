@@ -156,7 +156,7 @@ const NIHCommonsButtons = div({ style: { display: 'flex', flexDirection: 'column
   buttonPrimary({
     style: { margin: '0.25rem 0' },
     as: 'a',
-    href: 'https://commons.ucsc-cgp-dev.org/boardwalk',
+    href: 'https://commons.ucsc-cgp.org/boardwalk',
     target: '_blank'
   }, ['Browse Data via Boardwalk'])
 ])
@@ -198,7 +198,7 @@ const BrowseData = pure(() => {
       div({ style: styles.content.header }, ['Participating Research Databases']),
       h(Participant, { logoBox: logoBox({ src: nhsLogo, alt: 'Nurses\' Health Study logo' }) }, [
         div({ style: styles.content.title }, ['Nurses\' Health Study']),
-        p([`The Nurses' Health Study and Nurses' Health Study II are among the largest investigations into the risk 
+        p([`The Nurses' Health Study and Nurses' Health Study II are among the largest investigations into the risk
             factors for major chronic diseases in women.`]),
         h(ParticipantControls, { size: 'Participants: > 280,000' }, [
           buttonPrimary({
@@ -209,8 +209,8 @@ const BrowseData = pure(() => {
       ]),
       h(Participant, { logoBox: logoBox({ src: hcaLogo, alt: 'Human Cell Atlas logo' }) }, [
         div({ style: styles.content.title }, ['Human Cell Atlas']),
-        p([`The Human Cell Atlas (HCA) is made up of comprehensive reference maps of all human cells — the fundamental 
-            units of life — as a basis for understanding fundamental human biological processes and diagnosing, 
+        p([`The Human Cell Atlas (HCA) is made up of comprehensive reference maps of all human cells — the fundamental
+            units of life — as a basis for understanding fundamental human biological processes and diagnosing,
             monitoring, and treating disease.`]),
         h(ParticipantControls, [
           buttonPrimary({
@@ -221,10 +221,10 @@ const BrowseData = pure(() => {
       ]),
       h(Participant, { logoBox: logoBox({ src: amppdLogo, alt: 'AMP-PD logo' }) }, [
         div({ style: styles.content.title }, ['AMP Parkinson\'s Disease']),
-        p([`The Accelerating Medicines Partnership (AMP) is a public-private partnership between the National 
-            Institutes of Health (NIH), multiple biopharmaceutical and life sciences companies, and non-profit 
-            organizations to identify and validate the most promising biological targets for therapeutics. This AMP 
-            effort aims to identify and validate the most promising biological targets for therapeutics relevant to 
+        p([`The Accelerating Medicines Partnership (AMP) is a public-private partnership between the National
+            Institutes of Health (NIH), multiple biopharmaceutical and life sciences companies, and non-profit
+            organizations to identify and validate the most promising biological targets for therapeutics. This AMP
+            effort aims to identify and validate the most promising biological targets for therapeutics relevant to
             Parkinson's disease.`]),
         p(['Includes data from the following studies:']),
         div({ style: { margin: '0.4rem 0', fontWeight: 500, lineHeight: '150%' } }, [
@@ -247,9 +247,9 @@ const BrowseData = pure(() => {
       ]),
       h(Participant, { logoBox: logoBox({ src: topMedLogo, alt: 'TopMed logo' }) }, [
         div({ style: styles.content.title }, ['TopMed presented by NIH Commons']),
-        p([`Trans-Omics for Precision Medicine (TOPMed), sponsored by the National Institutes of Health's National 
-            Heart, Lung, and Blood Institute (NHLBI), is a program to generate scientific resources to enhance our 
-            understanding of fundamental biological processes that underlie heart, lung, blood, and sleep disorders 
+        p([`Trans-Omics for Precision Medicine (TOPMed), sponsored by the National Institutes of Health's National
+            Heart, Lung, and Blood Institute (NHLBI), is a program to generate scientific resources to enhance our
+            understanding of fundamental biological processes that underlie heart, lung, blood, and sleep disorders
             (HLBS)`]),
         h(ParticipantControls, { size: h(TooltipTrigger, { content: 'As of November 2016' }, [span('Participants: > 54,000')]) }, [
           NIHCommonsButtons
@@ -257,7 +257,7 @@ const BrowseData = pure(() => {
       ]),
       h(Participant, { logoBox: logoBox({ src: gtexLogo, alt: 'GTEx logo' }) }, [
         div({ style: styles.content.title }, ['GTEx presented by NIH Commons']),
-        p([`The Genotype-Tissue Expression (GTEx) Program established a data resource and tissue bank to study the 
+        p([`The Genotype-Tissue Expression (GTEx) Program established a data resource and tissue bank to study the
             relationship between genetic variation and gene expression in multiple human tissues.`]),
         h(ParticipantControls, { size: h(TooltipTrigger, { content: 'As of release V7' }, [span('Samples: > 11,688')]) }, [
           NIHCommonsButtons
