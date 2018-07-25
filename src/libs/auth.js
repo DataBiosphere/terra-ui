@@ -64,28 +64,26 @@ authStore.subscribe(async (state, oldState) => {
           _.filter({ creator: userProfile.getEmail() }, clusters)
         )
       )
-
       const needsUpgrade = _.remove(c => c.labels.saturnVersion === version, clusters)
-      _.forEach(({ googleProject, clusterName }) => Jupyter.cluster(googleProject, clusterName).delete(), needsUpgrade)
-      _.forEach(({ googleProject, machineConfig, jupyterUserScriptUri }) =>
-        Jupyter.cluster(googleProject, Utils.generateClusterName()).create({
-          labels: { 'saturnAutoCreated': 'true', 'saturnVersion': version },
-          machineConfig,
-          jupyterUserScriptUri
-        }), needsUpgrade)
-
-      await Promise.all(projectsWithoutClusters.map(project => {
-        return Jupyter.cluster(project, Utils.generateClusterName()).create({
-          'labels': { 'saturnAutoCreated': 'true', 'saturnVersion': version },
-          'machineConfig': {
-            'numberOfWorkers': 0, 'masterMachineType': 'n1-standard-4',
-            'masterDiskSize': 500, 'workerMachineType': 'n1-standard-4',
-            'workerDiskSize': 500, 'numberOfWorkerLocalSSDs': 0,
-            'numberOfPreemptibleWorkers': 0
-          },
-          'stopAfterCreation': true
-        })
-      }))
+      await Promise.all([
+        ..._.map(project => {
+          return Jupyter.cluster(project, Utils.generateClusterName()).create({
+            'machineConfig': {
+              'numberOfWorkers': 0, 'masterMachineType': 'n1-standard-4',
+              'masterDiskSize': 500, 'workerMachineType': 'n1-standard-4',
+              'workerDiskSize': 500, 'numberOfWorkerLocalSSDs': 0,
+              'numberOfPreemptibleWorkers': 0
+            },
+            'stopAfterCreation': true
+          }).catch(r => r.status === 403 ? r : Promise.reject(r))
+        }, projectsWithoutClusters),
+        ..._.flatMap(({ googleProject, clusterName, machineConfig, jupyterUserScriptUri }) => {
+          return [
+            Jupyter.cluster(googleProject, clusterName).delete(),
+            Jupyter.cluster(googleProject, Utils.generateClusterName()).create({ machineConfig, jupyterUserScriptUri })
+          ]
+        }, needsUpgrade)
+      ])
     } catch (error) {
       reportError('Error auto-creating clusters', error)
     }
