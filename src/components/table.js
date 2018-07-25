@@ -1,5 +1,6 @@
 import _ from 'lodash/fp'
 import { Fragment, createRef } from 'react'
+import DraggableCore from 'react-draggable'
 import { button, div, h, option, select } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
 import Pagination from 'react-paginating'
@@ -7,6 +8,7 @@ import { Grid as RVGrid, ScrollSync as RVScrollSync } from 'react-virtualized'
 import { icon } from 'src/components/icons'
 import * as Style from 'src/libs/style'
 import { Component } from 'src/libs/wrapped-components'
+import * as Utils from '../libs/utils'
 
 
 const paginatorButton = (props, label) => button(_.merge({
@@ -214,11 +216,19 @@ export class GridTable extends Component {
   constructor(props) {
     super(props)
     this.state = { scrollbarSize: 0 }
-    this.grid = createRef()
+    this.header = createRef()
+    this.body = createRef()
   }
 
   componentDidMount() {
-    this.grid.current.measureAllCells()
+    this.body.current.measureAllCells()
+  }
+
+  componentDidUpdate(prevProps) {
+    if (_.map('width', prevProps.columns) !== _.map('width', this.props.columns)) {
+      this.header.current.recomputeGridSize()
+      this.body.current.recomputeGridSize()
+    }
   }
 
   render() {
@@ -228,6 +238,7 @@ export class GridTable extends Component {
       ({ onScroll, scrollLeft }) => {
         return div([
           h(RVGrid, {
+            ref: this.header,
             width: width - scrollbarSize,
             height: 48,
             columnWidth: ({ index }) => columns[index].width,
@@ -247,7 +258,7 @@ export class GridTable extends Component {
             onScroll
           }),
           h(RVGrid, {
-            ref: this.grid,
+            ref: this.body,
             width,
             height: height - 48,
             columnWidth: ({ index }) => columns[index].width,
@@ -288,4 +299,54 @@ export const TextCell = props => {
 
 export const HeaderCell = props => {
   return h(TextCell, _.merge({ style: { fontWeight: 500 } }, props))
+}
+
+export const SortableHeaderCell = ({ sort, field, onSort, children }) => {
+  return div({
+    style: { flex: 1, display: 'flex', alignItems: 'center', cursor: 'pointer', height: '100%' },
+    onClick: () => onSort(Utils.nextSort(sort, field))
+  }, [
+    h(HeaderCell, { style: { flex: 1 } }, [children]),
+    sort.field === field && div({ style: { flex: 'none', color: Style.colors.secondary } }, [
+      icon(sort.direction === 'asc' ? 'arrow down' : 'arrow')
+    ])
+  ])
+}
+
+export class ResizableHeaderCell extends Component {
+  render() {
+    const { onWidthChange, children } = this.props
+    const { dragging, dragX } = this.state
+
+    return div({
+      style: { flex: 1, display: 'flex', alignItems: 'center', height: '100%', position: 'relative' }
+    }, [
+      h(HeaderCell, { style: { flex: 1 } }, [children]),
+      h(DraggableCore, {
+        axis: 'x',
+        onStart: () => this.setState({ dragging: true, dragX: 0 }),
+        onDrag: e => {
+          const deltaX = e.movementX
+          if (deltaX !== 0) {
+            this.setState({ dragX: dragX + deltaX })
+          }
+        },
+        onStop: () => {
+          this.setState({ dragging: false })
+          onWidthChange(dragX)
+        },
+        position: { x: 0 },
+        bounds: { left: 10 }
+      }, [
+        icon('columnGrabber', {
+          size: 24,
+          style: { position: 'absolute', right: -20, cursor: 'ew-resize' },
+        })
+      ]),
+      dragging && icon('columnGrabber', {
+        size: 24,
+        style: { position: 'absolute', right: -20 - dragX, zIndex: 1, opacity: '0.5' }
+      })
+    ])
+  }
 }

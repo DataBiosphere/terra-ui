@@ -6,7 +6,7 @@ import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { buttonPrimary, linkButton, spinnerOverlay } from 'src/components/common'
 import { icon, spinner } from 'src/components/icons'
-import { FlexTable, GridTable, HeaderCell, paginator } from 'src/components/table'
+import { FlexTable, GridTable, HeaderCell, paginator, ResizableHeaderCell } from 'src/components/table'
 import { Workspaces } from 'src/libs/ajax'
 import * as auth from 'src/libs/auth'
 import * as Config from 'src/libs/config'
@@ -49,13 +49,7 @@ const SortableHeaderCell = ({ sort, field, onSort, children }) => {
     style: { flex: 1, display: 'flex', alignItems: 'center', cursor: 'pointer', height: '100%' },
     onClick: () => onSort(Utils.nextSort(sort, field))
   }, [
-    div({
-      style: {
-        flex: 1,
-        overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis',
-        fontWeight: 500
-      }
-    }, [children]),
+    h(HeaderCell, { style: { flex: 1 } }, [children]),
     sort.field === field && div({ style: { flex: 'none', color: Style.colors.secondary } }, [
       icon(sort.direction === 'asc' ? 'arrow down' : 'arrow')
     ])
@@ -93,6 +87,7 @@ class WorkspaceDataContent extends Component {
       sort: initialSort,
       loading: false,
       workspaceAttributes: props.workspace.workspace.attributes,
+      columnWidths: {},
       ...StateHistory.get()
     }
     this.downloadForm = createRef()
@@ -240,7 +235,7 @@ class WorkspaceDataContent extends Component {
 
   renderEntityTable() {
     const { namespace } = this.props
-    const { entities, selectedDataType, entityMetadata, totalRowCount, pageNumber, itemsPerPage, sort } = this.state
+    const { entities, selectedDataType, entityMetadata, totalRowCount, pageNumber, itemsPerPage, sort, columnWidths } = this.state
 
     return entities && h(Fragment, [
       div({ style: { marginBottom: '1rem' } }, [
@@ -260,17 +255,24 @@ class WorkspaceDataContent extends Component {
                 }, [`${selectedDataType}_id`]),
                 cellRenderer: ({ rowIndex }) => renderDataCell(entities[rowIndex].name, namespace)
               },
-              ..._.map(name => ({
-                width: 300,
-                headerRenderer: () => h(SortableHeaderCell, {
-                  sort, field: name, onSort: v => this.setState({ sort: v })
-                }, [name]),
-                cellRenderer: ({ rowIndex }) => {
-                  return renderDataCell(
-                    Utils.entityAttributeText(entities[rowIndex].attributes[name]), namespace
-                  )
+              ..._.map(name => {
+                const width = columnWidths[name] || 300
+                return {
+                  width,
+                  headerRenderer: () => h(ResizableHeaderCell, {
+                    onWidthChange: delta => {
+                      columnWidths[name] = width + delta
+                      this.setState({ columnWidths })
+                    }
+                    //sort, field: name, onSort: v => this.setState({ sort: v })
+                  }, [name]),
+                  cellRenderer: ({ rowIndex }) => {
+                    return renderDataCell(
+                      Utils.entityAttributeText(entities[rowIndex].attributes[name]), namespace
+                    )
+                  }
                 }
-              }), entityMetadata[selectedDataType] ? entityMetadata[selectedDataType].attributeNames : [])
+              }, entityMetadata[selectedDataType] ? entityMetadata[selectedDataType].attributeNames : [])
             ]
           })
         }

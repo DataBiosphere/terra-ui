@@ -10,6 +10,7 @@ import { h, img } from 'react-hyperscript-helpers'
 import browse from 'src/icons/browse.svg'
 import caretDown from 'src/icons/caret-down.svg'
 import checkSquare from 'src/icons/check-square.svg'
+import columnGrabber from 'src/icons/column_grabber.svg'
 import explore from 'src/icons/explore.svg'
 import home from 'src/icons/home.svg'
 import jupyterIcon from 'src/icons/jupyter.svg'
@@ -26,7 +27,7 @@ import * as Style from 'src/libs/style'
 
 
 ClarityIcons.add({
-  browse, caretDown, checkSquare, explore, home, jupyterIcon, listAlt, loadingSpinner, logoGrey, logoIcon, notebooks, square, table, workspace
+  browse, caretDown, checkSquare, columnGrabber, explore, home, jupyterIcon, listAlt, loadingSpinner, logoGrey, logoIcon, notebooks, square, table, workspace
 })
 
 /**
