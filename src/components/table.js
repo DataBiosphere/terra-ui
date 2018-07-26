@@ -224,11 +224,9 @@ export class GridTable extends Component {
     this.body.current.measureAllCells()
   }
 
-  componentDidUpdate(prevProps) {
-    if (_.map('width', prevProps.columns) !== _.map('width', this.props.columns)) {
-      this.header.current.recomputeGridSize()
-      this.body.current.recomputeGridSize()
-    }
+  recomputeColumnSizes() {
+    this.header.current.recomputeGridSize()
+    this.body.current.recomputeGridSize()
   }
 
   render() {

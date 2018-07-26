@@ -79,6 +79,7 @@ class WorkspaceDataContent extends Component {
       ...StateHistory.get()
     }
     this.downloadForm = createRef()
+    this.table = createRef()
   }
 
   async loadMetadata() {
@@ -234,6 +235,7 @@ class WorkspaceDataContent extends Component {
       h(AutoSizer, { disableHeight: true }, [
         ({ width }) => {
           return h(GridTable, {
+            ref: this.table,
             width, height: 500,
             rowCount: entities.length,
             columns: [
@@ -245,7 +247,7 @@ class WorkspaceDataContent extends Component {
                     width: thisWidth, onWidthChange: delta => {
                       theseColumnWidths['name'] = thisWidth + delta
                       columnWidths[selectedDataType] = theseColumnWidths
-                      this.setState({ columnWidths })
+                      this.setState({ columnWidths }, () => this.table.current.recomputeColumnSizes())
                     }
                   }, [
                     h(Sortable, { sort, field: 'name', onSort: v => this.setState({ sort: v }) }, [
@@ -264,7 +266,7 @@ class WorkspaceDataContent extends Component {
                       width: thisWidth, onWidthChange: delta => {
                         theseColumnWidths[name] = thisWidth + delta
                         columnWidths[selectedDataType] = theseColumnWidths
-                        this.setState({ columnWidths })
+                        this.setState({ columnWidths }, () => this.table.current.recomputeColumnSizes())
                       }
                     }, [
                       h(Sortable, { sort, field: name, onSort: v => this.setState({ sort: v }) }, [
