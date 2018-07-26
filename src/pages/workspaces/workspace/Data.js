@@ -28,25 +28,20 @@ const initialSort = { field: 'name', direction: 'asc' }
 
 const styles = {
   tableContainer: {
-    display: 'flex', margin: '1rem', backgroundColor: 'white', borderRadius: 5,
-    boxShadow: Style.standardShadow
+    display: 'flex', flex: 1, marginBottom: '-2rem'
   },
-  dataTypeSelectionPanel: { flexShrink: 0, borderRight: `1px solid ${Style.colors.disabled}` },
+  dataTypeSelectionPanel: {
+    flex: 'none', width: 200, backgroundColor: 'white', padding: '1rem'
+  },
   tableViewPanel: hasSelection => ({
     position: 'relative',
     overflow: 'hidden',
-    margin: '1rem', width: '100%',
+    padding: '1rem', width: '100%',
     textAlign: hasSelection ? undefined : 'center'
   }),
   dataTypeHeading: {
-    fontWeight: 500, padding: '0.5rem 1rem',
-    borderBottom: `1px solid ${Style.colors.background}`
-  },
-  dataTypeOption: selected => ({
-    cursor: 'pointer', padding: '0.75rem 1rem',
-    backgroundColor: selected ? Style.colors.highlightFaded : null
-  }),
-  dataTypeIcon: { color: '#757575', marginRight: '0.5rem' }
+    fontWeight: 500, color: Style.colors.title
+  }
 }
 
 const SortableHeaderCell = ({ sort, field, onSort, children }) => {
@@ -63,6 +58,23 @@ const SortableHeaderCell = ({ sort, field, onSort, children }) => {
     }, [children]),
     sort.field === field && div({ style: { flex: 'none', color: Style.colors.secondary } }, [
       icon(sort.direction === 'asc' ? 'arrow down' : 'arrow')
+    ])
+  ])
+}
+
+const DataTypeButton = ({ selected, children, ...props }) => {
+  return linkButton({
+    style: { display: 'flex', alignItems: 'center', fontWeight: selected ? 500 : undefined, padding: '0.5rem 0' },
+    ...props
+  }, [
+    div({ style: { flex: 'none', width: '1.5rem' } }, [
+      selected && icon('circle', { size: 14, className: 'is-solid' })
+    ]),
+    div({ style: { flex: 'none', width: '1.5rem' } }, [
+      icon('listAlt', { size: 14 })
+    ]),
+    div({ style: { whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' } }, [
+      children
     ])
   ])
 }
@@ -161,23 +173,20 @@ class WorkspaceDataContent extends Component {
       !entityMetadata ? spinnerOverlay : h(Fragment, [
         div({ style: styles.dataTypeSelectionPanel }, [
           div({ style: styles.dataTypeHeading }, 'Data Model'),
-          !_.isEmpty(entityMetadata) && div({ style: { borderBottom: `1px solid ${Style.colors.disabled}` } },
-            _.map(([type, typeDetails]) =>
-              div({
-                style: styles.dataTypeOption(selectedDataType === type),
-                onClick: () => {
-                  this.setState(selectedDataType === type ?
-                    { refreshRequested: true } :
-                    { selectedDataType: type, pageNumber: 1, sort: initialSort, entities: undefined }
-                  )
-                }
-              }, [
-                icon('table', { style: styles.dataTypeIcon }),
-                `${type} (${typeDetails.count})`
-              ]),
-            _.toPairs(entityMetadata))),
-          div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', ...styles.dataTypeHeading } }, [
-            'Reference Data',
+          _.map(([type, typeDetails]) => {
+            return h(DataTypeButton, {
+              key: type,
+              selected: selectedDataType === type,
+              onClick: () => {
+                this.setState(selectedDataType === type ?
+                  { refreshRequested: true } :
+                  { selectedDataType: type, pageNumber: 1, sort: initialSort, entities: undefined }
+                )
+              }
+            }, [`${type} (${typeDetails.count})`])
+          }, _.toPairs(entityMetadata)),
+          div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '1rem' } }, [
+            div({ style: styles.dataTypeHeading }, 'Reference Data'),
             linkButton({
               disabled: !canEdit,
               tooltip: !canEdit && 'You do not have access add data to this workspace.',
@@ -190,27 +199,23 @@ class WorkspaceDataContent extends Component {
               onSuccess: () => this.setState({ importingReference: false }, () => this.loadData()),
               namespace, name
             }),
-          div({ style: { borderBottom: `1px solid ${Style.colors.disabled}` } },
-            _.map(type => div({
-              style: styles.dataTypeOption(selectedDataType === type),
+          _.map(type => {
+            return h(DataTypeButton, {
+              key: type,
+              selected: selectedDataType === type,
               onClick: () => this.setState({ selectedDataType: type })
-            }, [icon('table', { style: styles.dataTypeIcon }), type]),
-            _.keys(referenceData))
-          ),
-          div({
-            style: {
-              marginBottom: '1rem', ...styles.dataTypeOption(selectedDataType === globalVariables)
-            },
+            }, [type])
+          }, _.keys(referenceData)),
+          div({ style: { ...styles.dataTypeHeading, marginTop: '1rem' } }, 'Other Data'),
+          h(DataTypeButton, {
+            selected: selectedDataType === globalVariables,
             onClick: () => {
               this.setState(selectedDataType === globalVariables ?
                 { refreshRequested: true } :
                 { selectedDataType: globalVariables }
               )
             }
-          }, [
-            icon('world', { style: styles.dataTypeIcon }),
-            'Global Variables'
-          ])
+          }, ['Global Variables'])
         ]),
         div({ style: styles.tableViewPanel(selectedDataType) }, [
           selectedDataType ? this.renderData() : 'Select a data type.',
