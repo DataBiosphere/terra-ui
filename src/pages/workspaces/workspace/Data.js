@@ -245,9 +245,8 @@ class WorkspaceDataContent extends Component {
                   width: thisWidth,
                   headerRenderer: () => h(Resizable, {
                     width: thisWidth, onWidthChange: delta => {
-                      theseColumnWidths['name'] = thisWidth + delta
-                      columnWidths[selectedDataType] = theseColumnWidths
-                      this.setState({ columnWidths }, () => this.table.current.recomputeColumnSizes())
+                      this.setState({ columnWidths: _.update(`${selectedDataType}.name`, _.add(delta), columnWidths) },
+                        () => this.table.current.recomputeColumnSizes())
                     }
                   }, [
                     h(Sortable, { sort, field: 'name', onSort: v => this.setState({ sort: v }) }, [
@@ -264,9 +263,8 @@ class WorkspaceDataContent extends Component {
                   headerRenderer: () =>
                     h(Resizable, {
                       width: thisWidth, onWidthChange: delta => {
-                        theseColumnWidths[name] = thisWidth + delta
-                        columnWidths[selectedDataType] = theseColumnWidths
-                        this.setState({ columnWidths }, () => this.table.current.recomputeColumnSizes())
+                        this.setState({ columnWidths: _.update(`${selectedDataType}.${name}`, _.add(delta), columnWidths) },
+                          () => this.table.current.recomputeColumnSizes())
                       }
                     }, [
                       h(Sortable, { sort, field: name, onSort: v => this.setState({ sort: v }) }, [
