@@ -303,12 +303,12 @@ export const HeaderCell = props => {
 
 export const Sortable = ({ sort, field, onSort, children }) => {
   return div({
-    style: { flex: 1, display: 'flex', alignItems: 'center', cursor: 'pointer', position: 'relative', width: '100%' },
+    style: { flex: 1, display: 'flex', alignItems: 'center', cursor: 'pointer', width: '100%' },
     onClick: () => onSort(Utils.nextSort(sort, field))
   }, [
     children,
     sort.field === field && div({
-      style: { color: Style.colors.secondary, position: 'absolute', right: 0 }
+      style: { color: Style.colors.secondary, marginLeft: 'auto' }
     }, [
       icon(sort.direction === 'asc' ? 'arrow down' : 'arrow')
     ])
