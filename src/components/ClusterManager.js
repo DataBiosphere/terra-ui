@@ -451,7 +451,7 @@ export default class ClusterManager extends PureComponent {
   }
 
   render() {
-    const { namespace, clusters } = this.props
+    const { namespace, name, clusters } = this.props
     const { busy, open } = this.state
     if (!clusters) {
       return null
@@ -483,7 +483,7 @@ export default class ClusterManager extends PureComponent {
       }, [
         h(Interactive, {
           ...(running ?
-            { as: 'a', target: '_blank', href: Nav.getLink('workspace-terminal-launch', { namespace }) } :
+            { as: 'a', href: Nav.getLink('workspace-terminal-launch', { namespace, name }) } :
             { as: 'span' }
           ),
           style: {
