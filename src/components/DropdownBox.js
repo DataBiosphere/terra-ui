@@ -6,17 +6,17 @@ import * as Style from 'src/libs/style'
 
 
 const styles = {
-  button: open => ({
+  button: (open, disabled) => ({
     width: '2rem',
     height: '2rem',
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
     border: open ? `1px solid ${Style.colors.border}` : undefined,
-    color: open ? Style.colors.primary : Style.colors.secondary,
+    color: disabled ? Style.colors.disabled : (open ? Style.colors.primary : Style.colors.secondary),
     backgroundColor: open ? 'white' : undefined,
     borderRadius: '5px 5px 0 0',
-    cursor: 'pointer'
+    cursor: disabled ? 'not-allowed' : 'pointer'
   }),
   box: {
     position: 'absolute',
@@ -43,12 +43,14 @@ const DropdownBody = onClickOutside(({ width, children }) => {
   ])
 })
 
-const DropdownBox = ({ open, onToggle, children, outsideClickIgnoreClass = 'dropdown-box-opener', width = 500 }) => {
+const DropdownBox = ({ open, onToggle, children, outsideClickIgnoreClass = 'dropdown-box-opener', width = 500, disabled, ...props }) => {
   return div({ style: { position: 'relative' } }, [
     h(Clickable, {
       className: outsideClickIgnoreClass,
-      style: styles.button(open),
-      onClick: () => onToggle(!open)
+      style: styles.button(open, disabled),
+      onClick: () => onToggle(!open),
+      disabled,
+      ...props
     }, [
       icon('caretDown', { size: 18 })
     ]),
