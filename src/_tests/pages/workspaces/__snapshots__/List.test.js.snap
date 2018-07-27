@@ -84,7 +84,7 @@ Array [
         />
         <input
             onChange={[Function]}
-            placeholder="SEARCH BIOSPHERE"
+            placeholder="SEARCH WORKSPACES"
             style={
                 Object {
                     "border": "none",

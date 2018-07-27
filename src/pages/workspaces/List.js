@@ -175,7 +175,7 @@ export class WorkspaceList extends Component {
           search({
             wrapperProps: { style: { marginLeft: '2rem', flexGrow: 1, maxWidth: 500 } },
             inputProps: {
-              placeholder: 'SEARCH BIOSPHERE',
+              placeholder: 'SEARCH WORKSPACES',
               onChange: e => this.setState({ filter: e.target.value }),
               value: filter
             }
