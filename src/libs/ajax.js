@@ -304,6 +304,11 @@ export const Workspaces = {
         return fetchRawls(root, _.mergeAll([authOpts(), jsonBody(payload), { method: 'PATCH' }]))
       },
 
+      deleteAttributes: attributeNames => {
+        const payload = _.map(attributeName => ({ op: 'RemoveAttribute', attributeName }), attributeNames)
+        return fetchRawls(root, _.mergeAll([authOpts(), jsonBody(payload), { method: 'PATCH' }]))
+      },
+
       importBagit: bagitURL => {
         return fetchOrchestration(
           `/api/workspaces/${namespace}/${name}/importBagit`,

@@ -247,3 +247,30 @@ export class ReferenceDataImporter extends Component {
     ])
   }
 }
+
+export class ReferenceDataDeleter extends Component {
+  render() {
+    const { onDismiss, onSuccess, namespace, name, referenceDataType } = this.props
+    const { deleting } = this.state
+
+    return h(Modal, {
+      onDismiss,
+      title: 'Confirm Delete',
+      okButton: buttonPrimary({
+        disabled: deleting,
+        onClick: async () => {
+          this.setState({ deleting: true })
+          try {
+            await Workspaces.workspace(namespace, name).deleteAttributes(
+              _.map(key => `referenceData-${referenceDataType}-${key}`, _.keys(ReferenceData[referenceDataType]))
+            )
+            onSuccess()
+          } catch (error) {
+            reportError('Error deleting reference data', error)
+            onDismiss()
+          }
+        }
+      }, ['Delete'])
+    }, [`Are you sure you want to delete ${referenceDataType}?`])
+  }
+}
