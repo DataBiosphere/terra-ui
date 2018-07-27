@@ -4,7 +4,6 @@ import { iframe } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { centeredSpinner } from 'src/components/icons'
 import { Jupyter } from 'src/libs/ajax'
-import { getBasicProfile } from 'src/libs/auth'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import { Component } from 'src/libs/wrapped-components'
@@ -17,21 +16,23 @@ const TerminalLauncher = wrapWorkspace({
   activeTab: 'notebooks'
 },
 class TerminalLauncherContent extends Component {
-  async componentDidMount() {
-    const { namespace } = this.props
-    try {
-      const { clusterName, clusterUrl } = _.flow(
-        _.filter({ googleProject: namespace, creator: getBasicProfile().getEmail() }),
-        _.remove({ status: 'Deleting' }),
-        _.sortBy('createdDate'),
-        _.last
-      )(await Jupyter.clustersList())
-      await this.refreshCookie(clusterName)
-      this.setState({ url: `${clusterUrl}/terminals/1` },
-        () => { findDOMNode(this).onload = function() { this.contentWindow.focus() } })
-    } catch (error) {
-      reportError('Error launching terminal', error)
-      this.setState({ failed: true })
+  async loadIframe() {
+    const { clusters } = this.props
+    const { url } = this.state
+
+    if (clusters && !url) {
+      try {
+        const { clusterName, clusterUrl } = _.flow(
+          _.remove({ status: 'Deleting' }),
+          _.sortBy('createdDate'),
+          _.last
+        )(clusters)
+        await this.refreshCookie(clusterName)
+        this.setState({ url: `${clusterUrl}/terminals/1` },
+          () => { findDOMNode(this).onload = function() { this.contentWindow.focus() } })
+      } catch (error) {
+        reportError('Error launching terminal', error)
+      }
     }
   }
 
@@ -43,6 +44,14 @@ class TerminalLauncherContent extends Component {
     return Jupyter.notebooks(namespace, clusterName).setCookie()
   }
 
+  componentDidMount() {
+    this.loadIframe()
+  }
+
+  componentDidUpdate() {
+    this.loadIframe()
+  }
+
   componentWillUnmount() {
     if (this.scheduledRefresh) {
       clearTimeout(this.scheduledRefresh)
@@ -50,9 +59,10 @@ class TerminalLauncherContent extends Component {
   }
 
   render() {
+    const { clusters } = this.props
     const { url } = this.state
 
-    return url ?
+    return clusters && url ?
       iframe({
         src: url,
         style: {
