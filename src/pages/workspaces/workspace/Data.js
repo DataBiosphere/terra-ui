@@ -6,7 +6,7 @@ import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { buttonPrimary, linkButton, spinnerOverlay } from 'src/components/common'
 import { icon, spinner } from 'src/components/icons'
-import { FlexTable, GridTable, HeaderCell, paginator } from 'src/components/table'
+import { FlexTable, GridTable, HeaderCell, paginator, Resizable, Sortable } from 'src/components/table'
 import { Workspaces } from 'src/libs/ajax'
 import * as auth from 'src/libs/auth'
 import * as Config from 'src/libs/config'
@@ -44,24 +44,6 @@ const styles = {
   }
 }
 
-const SortableHeaderCell = ({ sort, field, onSort, children }) => {
-  return div({
-    style: { flex: 1, display: 'flex', alignItems: 'center', cursor: 'pointer', height: '100%' },
-    onClick: () => onSort(Utils.nextSort(sort, field))
-  }, [
-    div({
-      style: {
-        flex: 1,
-        overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis',
-        fontWeight: 500
-      }
-    }, [children]),
-    sort.field === field && div({ style: { flex: 'none', color: Style.colors.secondary } }, [
-      icon(sort.direction === 'asc' ? 'arrow down' : 'arrow')
-    ])
-  ])
-}
-
 const DataTypeButton = ({ selected, children, ...props }) => {
   return linkButton({
     style: { display: 'flex', alignItems: 'center', fontWeight: selected ? 500 : undefined, padding: '0.5rem 0' },
@@ -93,9 +75,11 @@ class WorkspaceDataContent extends Component {
       sort: initialSort,
       loading: false,
       workspaceAttributes: props.workspace.workspace.attributes,
+      columnWidths: {},
       ...StateHistory.get()
     }
     this.downloadForm = createRef()
+    this.table = createRef()
   }
 
   async loadMetadata() {
@@ -240,7 +224,8 @@ class WorkspaceDataContent extends Component {
 
   renderEntityTable() {
     const { namespace } = this.props
-    const { entities, selectedDataType, entityMetadata, totalRowCount, pageNumber, itemsPerPage, sort } = this.state
+    const { entities, selectedDataType, entityMetadata, totalRowCount, pageNumber, itemsPerPage, sort, columnWidths } = this.state
+    const theseColumnWidths = columnWidths[selectedDataType] || {}
 
     return entities && h(Fragment, [
       div({ style: { marginBottom: '1rem' } }, [
@@ -250,27 +235,49 @@ class WorkspaceDataContent extends Component {
       h(AutoSizer, { disableHeight: true }, [
         ({ width }) => {
           return h(GridTable, {
+            ref: this.table,
             width, height: 500,
             rowCount: entities.length,
             columns: [
-              {
-                width: 150,
-                headerRenderer: () => h(SortableHeaderCell, {
-                  sort, field: 'name', onSort: v => this.setState({ sort: v })
-                }, [`${selectedDataType}_id`]),
-                cellRenderer: ({ rowIndex }) => renderDataCell(entities[rowIndex].name, namespace)
-              },
-              ..._.map(name => ({
-                width: 300,
-                headerRenderer: () => h(SortableHeaderCell, {
-                  sort, field: name, onSort: v => this.setState({ sort: v })
-                }, [name]),
-                cellRenderer: ({ rowIndex }) => {
-                  return renderDataCell(
-                    Utils.entityAttributeText(entities[rowIndex].attributes[name]), namespace
-                  )
+              (() => {
+                const thisWidth = theseColumnWidths['name'] || 150
+                return {
+                  width: thisWidth,
+                  headerRenderer: () => h(Resizable, {
+                    width: thisWidth, onWidthChange: delta => {
+                      this.setState({ columnWidths: _.set(`${selectedDataType}.name`, thisWidth + delta, columnWidths) },
+                        () => this.table.current.recomputeColumnSizes())
+                    }
+                  }, [
+                    h(Sortable, { sort, field: 'name', onSort: v => this.setState({ sort: v }) }, [
+                      h(HeaderCell, [`${selectedDataType}_id`])
+                    ])
+                  ]),
+                  cellRenderer: ({ rowIndex }) => renderDataCell(entities[rowIndex].name, namespace)
                 }
-              }), entityMetadata[selectedDataType] ? entityMetadata[selectedDataType].attributeNames : [])
+              })(),
+              ..._.map(name => {
+                const thisWidth = theseColumnWidths[name] || 300
+                return {
+                  width: thisWidth,
+                  headerRenderer: () =>
+                    h(Resizable, {
+                      width: thisWidth, onWidthChange: delta => {
+                        this.setState({ columnWidths: _.set(`${selectedDataType}.${name}`, thisWidth + delta, columnWidths) },
+                          () => this.table.current.recomputeColumnSizes())
+                      }
+                    }, [
+                      h(Sortable, { sort, field: name, onSort: v => this.setState({ sort: v }) }, [
+                        h(HeaderCell, [name])
+                      ])
+                    ]),
+                  cellRenderer: ({ rowIndex }) => {
+                    return renderDataCell(
+                      Utils.entityAttributeText(entities[rowIndex].attributes[name]), namespace
+                    )
+                  }
+                }
+              }, entityMetadata[selectedDataType] ? entityMetadata[selectedDataType].attributeNames : [])
             ]
           })
         }
@@ -409,7 +416,7 @@ class WorkspaceDataContent extends Component {
 
   componentDidUpdate(prevProps, prevState) {
     StateHistory.update(_.pick(
-      ['entityMetadata', 'selectedDataType', 'entities', 'workspaceAttributes', 'totalRowCount', 'itemsPerPage', 'pageNumber', 'sort'],
+      ['entityMetadata', 'selectedDataType', 'entities', 'workspaceAttributes', 'totalRowCount', 'itemsPerPage', 'pageNumber', 'sort', 'columnWidths'],
       this.state)
     )
 
