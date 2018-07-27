@@ -1,11 +1,13 @@
 import _ from 'lodash/fp'
 import { Fragment, createRef } from 'react'
+import DraggableCore from 'react-draggable'
 import { button, div, h, option, select } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
 import Pagination from 'react-paginating'
 import { Grid as RVGrid, ScrollSync as RVScrollSync } from 'react-virtualized'
 import { icon } from 'src/components/icons'
 import * as Style from 'src/libs/style'
+import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 
 
@@ -214,11 +216,17 @@ export class GridTable extends Component {
   constructor(props) {
     super(props)
     this.state = { scrollbarSize: 0 }
-    this.grid = createRef()
+    this.header = createRef()
+    this.body = createRef()
   }
 
   componentDidMount() {
-    this.grid.current.measureAllCells()
+    this.body.current.measureAllCells()
+  }
+
+  recomputeColumnSizes() {
+    this.header.current.recomputeGridSize()
+    this.body.current.recomputeGridSize()
   }
 
   render() {
@@ -228,6 +236,7 @@ export class GridTable extends Component {
       ({ onScroll, scrollLeft }) => {
         return div([
           h(RVGrid, {
+            ref: this.header,
             width: width - scrollbarSize,
             height: 48,
             columnWidth: ({ index }) => columns[index].width,
@@ -247,7 +256,7 @@ export class GridTable extends Component {
             onScroll
           }),
           h(RVGrid, {
-            ref: this.grid,
+            ref: this.body,
             width,
             height: height - 48,
             columnWidth: ({ index }) => columns[index].width,
@@ -288,4 +297,55 @@ export const TextCell = props => {
 
 export const HeaderCell = props => {
   return h(TextCell, _.merge({ style: { fontWeight: 500 } }, props))
+}
+
+export const Sortable = ({ sort, field, onSort, children }) => {
+  return div({
+    style: { flex: 1, display: 'flex', alignItems: 'center', cursor: 'pointer', width: '100%' },
+    onClick: () => onSort(Utils.nextSort(sort, field))
+  }, [
+    children,
+    sort.field === field && div({
+      style: { color: Style.colors.secondary, marginLeft: 'auto' }
+    }, [
+      icon(sort.direction === 'asc' ? 'arrow down' : 'arrow')
+    ])
+  ])
+}
+
+export class Resizable extends Component {
+  render() {
+    const { onWidthChange, width, minWidth = 100, children } = this.props
+    const { dragAmount, lastX } = this.state
+
+    return div({
+      style: { flex: 1, display: 'flex', alignItems: 'center', position: 'relative', width: '100%' }
+    }, [
+      children,
+      h(DraggableCore, {
+        axis: 'x',
+        onStart: e => this.setState({ dragAmount: 0, lastX: e.clientX }),
+        onDrag: e => {
+          const deltaX = e.clientX - lastX
+          if (deltaX !== 0 && width + dragAmount + deltaX > minWidth) {
+            this.setState({ dragAmount: dragAmount + deltaX, lastX: e.clientX })
+          }
+        },
+        onStop: () => {
+          this.setState({ dragAmount: undefined })
+          onWidthChange(dragAmount)
+        },
+        position: { x: 0 }
+      }, [
+        icon('columnGrabber', {
+          size: 24,
+          style: { position: 'absolute', right: -20, cursor: 'ew-resize' }
+        })
+      ]),
+      !!dragAmount && icon('columnGrabber', {
+        size: 24,
+        style: { position: 'absolute', right: -20 - dragAmount, zIndex: 1, opacity: '0.5', cursor: 'ew-resize' }
+      })
+    ])
+  }
 }
