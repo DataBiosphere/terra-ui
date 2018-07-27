@@ -48,11 +48,14 @@ class NotebookLauncherContent extends Component {
     this.mounted = true
 
     try {
-      const cluster = await this.startCluster()
-      await this.localizeNotebook(cluster)
+      const { clusterName, clusterUrl } = await this.startCluster()
+      await Promise.all([
+        this.localizeNotebook(clusterName),
+        this.refreshCookie(clusterName)
+      ])
 
       const { name: workspaceName, notebookName } = this.props
-      this.setState({ url: `${cluster.clusterUrl}/notebooks/${workspaceName}/${notebookName}` })
+      this.setState({ url: `${clusterUrl}/notebooks/${workspaceName}/${notebookName}` })
     } catch (error) {
       if (this.mounted) {
         reportError('Error launching notebook', error)
@@ -61,8 +64,19 @@ class NotebookLauncherContent extends Component {
     }
   }
 
+  async refreshCookie(clusterName) {
+    const { namespace } = this.props
+
+    this.scheduledRefresh = setTimeout(() => this.refreshCookie(clusterName), 1000 * 60 * 20)
+
+    return Jupyter.notebooks(namespace, clusterName).setCookie()
+  }
+
   componentWillUnmount() {
     this.mounted = false
+    if (this.scheduledRefresh) {
+      clearTimeout(this.scheduledRefresh)
+    }
   }
 
   async getCluster() {
@@ -101,11 +115,8 @@ class NotebookLauncherContent extends Component {
     }
   }
 
-  async localizeNotebook(cluster) {
+  async localizeNotebook(clusterName) {
     const { namespace, name: workspaceName, notebookName, workspace: { workspace: { bucketName } } } = this.props
-    const { clusterName } = cluster
-
-    await Jupyter.notebooks(namespace, clusterName).setCookie()
 
     while (this.mounted) {
       try {
