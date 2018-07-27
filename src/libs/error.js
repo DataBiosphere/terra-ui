@@ -10,7 +10,7 @@ const addError = item => errorStore.update(state => _.concat(state, [item]))
 
 export const reportError = async (title, obj) => {
   if (obj instanceof Response && obj.status === 401) {
-    addError({ title: 'Session timed out', error: 'You have been signed out due to inactivity' })
+    addError({ title: 'Session timed out', error: 'You have been signed out due to inactivity', code: 'sessionTimeout' })
     return signOut()
   }
   addError({ title, error: await (obj instanceof Response ? obj.text() : obj) })
@@ -22,4 +22,8 @@ export const clearError = (hard = false) => {
     StateHistory.clearCurrent()
     document.location.reload()
   }
+}
+
+export const clearErrorCode = key => {
+  errorStore.update(_.remove({ code: key }))
 }
