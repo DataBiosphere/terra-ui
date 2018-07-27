@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import { version } from 'src/data/clusters'
 import { Billing, Jupyter, User } from 'src/libs/ajax'
 import * as Config from 'src/libs/config'
-import { reportError } from 'src/libs/error'
+import { clearErrorCode, reportError } from 'src/libs/error'
 import * as Utils from 'src/libs/utils'
 
 
@@ -24,6 +24,7 @@ export const initializeAuth = _.memoize(async () => {
 
 authStore.subscribe((state, oldState) => {
   if (!oldState.isSignedIn && state.isSignedIn) {
+    clearErrorCode('sessionTimeout')
     User.getStatus().then(response => {
       if (response.status === 404) {
         return 'unregistered'
