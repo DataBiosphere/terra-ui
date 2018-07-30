@@ -4,13 +4,13 @@ import { createRef, Fragment } from 'react'
 import { div, form, h, input } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { buttonPrimary, linkButton, spinnerOverlay } from 'src/components/common'
+import { buttonPrimary, Clickable, linkButton, spinnerOverlay } from 'src/components/common'
 import { icon, spinner } from 'src/components/icons'
 import { FlexTable, GridTable, HeaderCell, paginator, Resizable, Sortable } from 'src/components/table'
 import { Workspaces } from 'src/libs/ajax'
 import * as auth from 'src/libs/auth'
 import * as Config from 'src/libs/config'
-import { ReferenceDataImporter, renderDataCell } from 'src/libs/data-utils'
+import { ReferenceDataDeleter, ReferenceDataImporter, renderDataCell } from 'src/libs/data-utils'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
@@ -55,7 +55,7 @@ const DataTypeButton = ({ selected, children, ...props }) => {
     div({ style: { flex: 'none', width: '1.5rem' } }, [
       icon('listAlt', { size: 14 })
     ]),
-    div({ style: { whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' } }, [
+    div({ style: { flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' } }, [
       children
     ])
   ])
@@ -149,7 +149,7 @@ class WorkspaceDataContent extends Component {
 
   render() {
     const { namespace, name, workspace: { accessLevel } } = this.props
-    const { selectedDataType, entityMetadata, loading, importingReference } = this.state
+    const { selectedDataType, entityMetadata, loading, importingReference, deletingReference } = this.state
     const referenceData = this.getReferenceData()
     const canEdit = Utils.canWrite(accessLevel)
 
@@ -183,12 +183,32 @@ class WorkspaceDataContent extends Component {
               onSuccess: () => this.setState({ importingReference: false }, () => this.loadData()),
               namespace, name
             }),
+          deletingReference &&
+            h(ReferenceDataDeleter, {
+              onDismiss: () => this.setState({ deletingReference: false }),
+              onSuccess: () => this.setState({
+                deletingReference: false,
+                selectedDataType: selectedDataType === deletingReference ? undefined : selectedDataType
+              }, () => this.loadData()),
+              namespace, name, referenceDataType: deletingReference
+            }),
           _.map(type => {
             return h(DataTypeButton, {
               key: type,
               selected: selectedDataType === type,
               onClick: () => this.setState({ selectedDataType: type })
-            }, [type])
+            }, [
+              div({ style: { display: 'flex', justifyContent: 'space-between' } }, [
+                type,
+                h(Clickable, {
+                  tooltip: `Delete ${type}`,
+                  onClick: e => {
+                    e.stopPropagation()
+                    this.setState({ deletingReference: type })
+                  }
+                }, [icon('minus-circle', { size: 16 })])
+              ])
+            ])
           }, _.keys(referenceData)),
           div({ style: { ...styles.dataTypeHeading, marginTop: '1rem' } }, 'Other Data'),
           h(DataTypeButton, {
