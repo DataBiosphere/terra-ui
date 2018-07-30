@@ -201,6 +201,7 @@ class WorkspaceDataContent extends Component {
               div({ style: { display: 'flex', justifyContent: 'space-between' } }, [
                 type,
                 h(Clickable, {
+                  tooltip: `Delete ${type}`,
                   onClick: e => {
                     e.stopPropagation()
                     this.setState({ deletingReference: type })
