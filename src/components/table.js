@@ -44,7 +44,7 @@ export const paginator = function(props) {
       [
         div({ style: { display: 'flex', justifyContent: 'flex-end', alignItems: 'center', marginRight: '1rem' } }, [
           `${(pageNumber - 1) * itemsPerPage + 1} - ${_.min([filteredDataLength, pageNumber * itemsPerPage])} of ${filteredDataLength}`,
-          div({ style: { display: 'inline-flex', padding: '0.25rem 1rem' } }, [
+          div({ style: { display: 'inline-flex', padding: '0 1rem' } }, [
 
             paginatorButton(
               _.merge({ disabled: currentPage === 1, style: { marginRight: '0.5rem' } },
