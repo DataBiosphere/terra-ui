@@ -173,7 +173,7 @@ class WorkspaceDataContent extends Component {
             div({ style: styles.dataTypeHeading }, 'Reference Data'),
             linkButton({
               disabled: !canEdit,
-              tooltip: !canEdit && 'You do not have access add data to this workspace.',
+              tooltip: canEdit ? 'Add reference data' : 'You do not have access add data to this workspace.',
               onClick: () => this.setState({ importingReference: true })
             }, [icon('plus-circle')])
           ]),
