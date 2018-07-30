@@ -103,15 +103,18 @@ const maybeCall = function(maybeFn) {
  * Returns the value for the first truthy predicate.
  * If the value is a function, it is invoked.
  *
- * Takes predicate/value pairs in arrays, followed by a default value.
+ * Takes predicate/value pairs in arrays, followed by an optional default value.
+ * Returns undefined if no predicate matches and there is no default value.
  */
 export const cond = function(...args) {
-  const defaultValue = _.last(args)
-  const pairs = args.slice(0, -1)
-
-  const match = _.find(_.head, pairs)
-
-  return maybeCall(match ? match[1] : defaultValue)
+  for (const arg of args) {
+    if (_.isArray(arg)) {
+      const [predicate, value] = arg
+      if (predicate) return maybeCall(value)
+    } else {
+      return maybeCall(arg)
+    }
+  }
 }
 
 export const switchCase = (value, ...pairs) => {

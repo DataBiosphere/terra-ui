@@ -16,8 +16,7 @@ const styles = {
       [includesAll(['bottom', 'right'], [side, dir]), () => '0 4px 4px 4px'],
       [includesAll(['bottom', 'left'], [side, dir]), () => '4px 0 4px 4px'],
       [includesAll(['top', 'right'], [side, dir]), () => '4px 4px 4px 0'],
-      [includesAll(['top', 'left'], [side, dir]), () => '4px 4px 0 4px'],
-      undefined
+      [includesAll(['top', 'left'], [side, dir]), () => '4px 4px 0 4px']
     )
   }),
   notch: (side, dir) => ({
