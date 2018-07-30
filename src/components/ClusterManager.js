@@ -15,6 +15,8 @@ import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 
 
+const noCompute = 'You do not have access to run analyses on this workspace.'
+
 const styles = {
   container: {
     height: '3rem',
@@ -148,11 +150,25 @@ const MachineSelector = ({ machineType, onChangeMachineType, diskSize, onChangeD
   ])
 }
 
-const ClusterIcon = ({ shape, onClick, disabled }) => {
+const ClusterIcon = ({ shape, onClick, disabled, ...props }) => {
   return h(Clickable, {
-    style: { color: onClick && !disabled && Style.colors.secondary },
-    onClick, disabled
+    style: { color: onClick && !disabled ? Style.colors.secondary : Style.colors.disabled },
+    onClick, disabled, ...props
   }, [icon(shape, { size: 20, className: 'is-solid' })])
+}
+
+const MiniLink = ({ href, disabled, tooltip, children, ...props }) => {
+  return h(TooltipTrigger, { content: tooltip }, [
+    h(Interactive, _.merge({
+      as: 'a',
+      href: !disabled ? href : undefined,
+      style: {
+        color: 'white', backgroundColor: !disabled ? Style.colors.secondary : Style.colors.disabled,
+        cursor: disabled ? 'not-allowed' : 'pointer',
+        borderRadius: 4
+      }
+    }, props), [children])
+  ])
 }
 
 const getUpdateIntervalMs = status => {
@@ -432,11 +448,14 @@ export default class ClusterManager extends PureComponent {
   }
 
   renderDropdown() {
+    const { canCompute } = this.props
     const { open } = this.state
     const activeClusters = this.getActiveClustersOldestFirst()
     const creating = _.some({ status: 'Creating' }, activeClusters)
     const multiple = !creating && activeClusters.length > 1
     return h(DropdownBox, {
+      disabled: !canCompute,
+      tooltip: !canCompute && noCompute,
       open: open || multiple,
       onToggle: v => this.toggleDropdown(v),
       width: creating || multiple ? 300 : 450,
@@ -451,7 +470,7 @@ export default class ClusterManager extends PureComponent {
   }
 
   render() {
-    const { namespace, name, clusters } = this.props
+    const { namespace, name, clusters, canCompute } = this.props
     const { busy, open } = this.state
     if (!clusters) {
       return null
@@ -462,9 +481,19 @@ export default class ClusterManager extends PureComponent {
     const renderIcon = () => {
       switch (currentStatus) {
         case 'Stopped':
-          return h(ClusterIcon, { shape: 'play', onClick: () => this.startCluster(), disabled: busy })
+          return h(ClusterIcon, {
+            shape: 'play',
+            onClick: () => this.startCluster(),
+            disabled: busy || !canCompute,
+            tooltip: canCompute ? 'Start cluster' : noCompute
+          })
         case 'Running':
-          return h(ClusterIcon, { shape: 'pause', onClick: () => this.stopCluster(), disabled: busy })
+          return h(ClusterIcon, {
+            shape: 'pause',
+            onClick: () => this.stopCluster(),
+            disabled: busy || !canCompute,
+            tooltip: canCompute ? 'Stop cluster' : noCompute
+          })
         case 'Starting':
         case 'Stopping':
         case 'Creating':
@@ -478,22 +507,20 @@ export default class ClusterManager extends PureComponent {
       _.filter(({ status }) => status !== 'Stopped', clusters)
     ))
     return div({ style: styles.container }, [
-      h(TooltipTrigger, {
-        content: running ? 'Open terminal' : 'Start runtime to open terminal'
-      }, [
-        h(Interactive, {
-          ...(running ?
-            { as: 'a', href: Nav.getLink('workspace-terminal-launch', { namespace, name }) } :
-            { as: 'span' }
-          ),
-          style: {
-            color: 'white', backgroundColor: running ? Style.colors.secondary : Style.colors.disabled,
-            borderRadius: 4, marginRight: '2rem'
-          }
-        }, [icon('code', { size: 18 })])
-      ]),
+      h(MiniLink, {
+        href: Nav.getLink('workspace-terminal-launch', { namespace, name }),
+        disabled: !running || !canCompute,
+        tooltip: Utils.cond(
+          [!canCompute, () => noCompute],
+          [!running, () => 'Start runtime to open terminal'],
+          () => 'Open terminal'
+        ),
+        style: { marginRight: '2rem' }
+      }, [icon('code', { size: 18 })]),
       renderIcon(),
       h(Clickable, {
+        disabled: !canCompute,
+        tooltip: !canCompute && noCompute,
         onClick: () => this.toggleDropdown(!open),
         style: { marginLeft: '0.5rem', paddingRight: '0.25rem' },
         className: 'cluster-manager-opener'
