@@ -19,7 +19,7 @@ import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer
 
 const styles = {
   submissionsTable: {
-    margin: '1rem', minHeight: 500, height: '100%'
+    padding: '1rem', flex: 1, marginBottom: '-2rem'
   },
   deemphasized: {
     color: Style.colors.textFaded
