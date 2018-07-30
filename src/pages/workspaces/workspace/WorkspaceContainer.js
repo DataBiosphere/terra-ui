@@ -74,6 +74,7 @@ class WorkspaceTabs extends PureComponent {
       div({ style: { flexGrow: 1 } }),
       h(Clickable, {
         ...navIconProps,
+        tooltip: 'Clone workspace',
         onClick: onClone
       }, [icon('copy', { size: 22 })]),
       h(PopupTrigger, {
