@@ -79,8 +79,7 @@ class WorkflowViewContent extends Component {
         Utils.cond(
           [activeTab === 'inputs', () => this.renderIOTable('inputs')],
           [activeTab === 'outputs', () => this.renderIOTable('outputs')],
-          [activeTab === 'wdl', () => this.renderWDL()],
-          null
+          [activeTab === 'wdl', () => this.renderWDL()]
         ),
         launching && h(LaunchAnalysisModal, {
           workspaceId, config: savedConfig,
@@ -166,8 +165,7 @@ class WorkflowViewContent extends Component {
 
     const noLaunchReason = Utils.cond(
       [invalidIO.inputs || invalidIO.outputs, () => 'Add your inputs and outputs to Launch Analysis'],
-      [saving || modified, () => 'Save or cancel to Launch Analysis'],
-      () => undefined
+      [saving || modified, () => 'Save or cancel to Launch Analysis']
     )
     return div({ style: { backgroundColor: Style.colors.section, position: 'relative' } }, [
       div({ style: { display: 'flex', padding: `1.5rem ${sideMargin} 0` } }, [
