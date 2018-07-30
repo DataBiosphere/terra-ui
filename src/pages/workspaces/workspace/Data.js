@@ -37,7 +37,8 @@ const styles = {
     position: 'relative',
     overflow: 'hidden',
     padding: '1rem', width: '100%',
-    textAlign: hasSelection ? undefined : 'center'
+    textAlign: hasSelection ? undefined : 'center',
+    flex: 1, display: 'flex', flexDirection: 'column'
   }),
   dataTypeHeading: {
     fontWeight: 500, color: Style.colors.title
@@ -228,61 +229,63 @@ class WorkspaceDataContent extends Component {
     const theseColumnWidths = columnWidths[selectedDataType] || {}
 
     return entities && h(Fragment, [
-      div({ style: { marginBottom: '1rem' } }, [
+      div({ style: { flex: 'none', marginBottom: '1rem' } }, [
         this.renderDownloadButton(),
         this.renderCopyButton()
       ]),
-      h(AutoSizer, { disableHeight: true }, [
-        ({ width }) => {
-          return h(GridTable, {
-            ref: this.table,
-            width, height: 500,
-            rowCount: entities.length,
-            columns: [
-              (() => {
-                const thisWidth = theseColumnWidths['name'] || 150
-                return {
-                  width: thisWidth,
-                  headerRenderer: () => h(Resizable, {
-                    width: thisWidth, onWidthChange: delta => {
-                      this.setState({ columnWidths: _.set(`${selectedDataType}.name`, thisWidth + delta, columnWidths) },
-                        () => this.table.current.recomputeColumnSizes())
-                    }
-                  }, [
-                    h(Sortable, { sort, field: 'name', onSort: v => this.setState({ sort: v }) }, [
-                      h(HeaderCell, [`${selectedDataType}_id`])
-                    ])
-                  ]),
-                  cellRenderer: ({ rowIndex }) => renderDataCell(entities[rowIndex].name, namespace)
-                }
-              })(),
-              ..._.map(name => {
-                const thisWidth = theseColumnWidths[name] || 300
-                return {
-                  width: thisWidth,
-                  headerRenderer: () =>
-                    h(Resizable, {
+      div({ style: { flex: 1 } }, [
+        h(AutoSizer, [
+          ({ width, height }) => {
+            return h(GridTable, {
+              ref: this.table,
+              width, height,
+              rowCount: entities.length,
+              columns: [
+                (() => {
+                  const thisWidth = theseColumnWidths['name'] || 150
+                  return {
+                    width: thisWidth,
+                    headerRenderer: () => h(Resizable, {
                       width: thisWidth, onWidthChange: delta => {
-                        this.setState({ columnWidths: _.set(`${selectedDataType}.${name}`, thisWidth + delta, columnWidths) },
+                        this.setState({ columnWidths: _.set(`${selectedDataType}.name`, thisWidth + delta, columnWidths) },
                           () => this.table.current.recomputeColumnSizes())
                       }
                     }, [
-                      h(Sortable, { sort, field: name, onSort: v => this.setState({ sort: v }) }, [
-                        h(HeaderCell, [name])
+                      h(Sortable, { sort, field: 'name', onSort: v => this.setState({ sort: v }) }, [
+                        h(HeaderCell, [`${selectedDataType}_id`])
                       ])
                     ]),
-                  cellRenderer: ({ rowIndex }) => {
-                    return renderDataCell(
-                      Utils.entityAttributeText(entities[rowIndex].attributes[name]), namespace
-                    )
+                    cellRenderer: ({ rowIndex }) => renderDataCell(entities[rowIndex].name, namespace)
                   }
-                }
-              }, entityMetadata[selectedDataType] ? entityMetadata[selectedDataType].attributeNames : [])
-            ]
-          })
-        }
+                })(),
+                ..._.map(name => {
+                  const thisWidth = theseColumnWidths[name] || 300
+                  return {
+                    width: thisWidth,
+                    headerRenderer: () =>
+                      h(Resizable, {
+                        width: thisWidth, onWidthChange: delta => {
+                          this.setState({ columnWidths: _.set(`${selectedDataType}.${name}`, thisWidth + delta, columnWidths) },
+                            () => this.table.current.recomputeColumnSizes())
+                        }
+                      }, [
+                        h(Sortable, { sort, field: name, onSort: v => this.setState({ sort: v }) }, [
+                          h(HeaderCell, [name])
+                        ])
+                      ]),
+                    cellRenderer: ({ rowIndex }) => {
+                      return renderDataCell(
+                        Utils.entityAttributeText(entities[rowIndex].attributes[name]), namespace
+                      )
+                    }
+                  }
+                }, entityMetadata[selectedDataType] ? entityMetadata[selectedDataType].attributeNames : [])
+              ]
+            })
+          }
+        ])
       ]),
-      div({ style: { marginTop: '1rem' } }, [
+      div({ style: { flex: 'none', marginTop: '1rem' } }, [
         paginator({
           filteredDataLength: totalRowCount,
           pageNumber,
@@ -370,22 +373,24 @@ class WorkspaceDataContent extends Component {
     return Utils.cond(
       [!filteredAttributes, () => undefined],
       [_.isEmpty(filteredAttributes), () => 'No Global Variables defined'],
-      () => h(AutoSizer, { disableHeight: true }, [
-        ({ width }) => h(FlexTable, {
-          width, height: 500, rowCount: filteredAttributes.length,
-          columns: [
-            {
-              size: { basis: 400, grow: 0 },
-              headerRenderer: () => h(HeaderCell, ['Name']),
-              cellRenderer: ({ rowIndex }) => renderDataCell(filteredAttributes[rowIndex][0], namespace)
-            },
-            {
-              size: { grow: 1 },
-              headerRenderer: () => h(HeaderCell, ['Value']),
-              cellRenderer: ({ rowIndex }) => renderDataCell(filteredAttributes[rowIndex][1], namespace)
-            }
-          ]
-        })
+      () => div({ style: { flex: 1 } }, [
+        h(AutoSizer, [
+          ({ width, height }) => h(FlexTable, {
+            width, height, rowCount: filteredAttributes.length,
+            columns: [
+              {
+                size: { basis: 400, grow: 0 },
+                headerRenderer: () => h(HeaderCell, ['Name']),
+                cellRenderer: ({ rowIndex }) => renderDataCell(filteredAttributes[rowIndex][0], namespace)
+              },
+              {
+                size: { grow: 1 },
+                headerRenderer: () => h(HeaderCell, ['Value']),
+                cellRenderer: ({ rowIndex }) => renderDataCell(filteredAttributes[rowIndex][1], namespace)
+              }
+            ]
+          })
+        ])
       ])
     )
   }
@@ -395,22 +400,24 @@ class WorkspaceDataContent extends Component {
     const { selectedDataType } = this.state
     const selectedData = _.sortBy('key', this.getReferenceData()[selectedDataType])
 
-    return h(AutoSizer, { disableHeight: true, key: selectedDataType }, [
-      ({ width }) => h(FlexTable, {
-        width, height: 500, rowCount: selectedData.length,
-        columns: [
-          {
-            size: { basis: 400, grow: 0 },
-            headerRenderer: () => h(HeaderCell, ['Name']),
-            cellRenderer: ({ rowIndex }) => renderDataCell(selectedData[rowIndex].key, namespace)
-          },
-          {
-            size: { grow: 1 },
-            headerRenderer: () => h(HeaderCell, ['Value']),
-            cellRenderer: ({ rowIndex }) => renderDataCell(selectedData[rowIndex].value, namespace)
-          }
-        ]
-      })
+    return div({ style: { flex: 1 } }, [
+      h(AutoSizer, { key: selectedDataType }, [
+        ({ width, height }) => h(FlexTable, {
+          width, height, rowCount: selectedData.length,
+          columns: [
+            {
+              size: { basis: 400, grow: 0 },
+              headerRenderer: () => h(HeaderCell, ['Name']),
+              cellRenderer: ({ rowIndex }) => renderDataCell(selectedData[rowIndex].key, namespace)
+            },
+            {
+              size: { grow: 1 },
+              headerRenderer: () => h(HeaderCell, ['Value']),
+              cellRenderer: ({ rowIndex }) => renderDataCell(selectedData[rowIndex].value, namespace)
+            }
+          ]
+        })
+      ])
     ])
   }
 

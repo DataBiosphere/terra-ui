@@ -207,7 +207,7 @@ class NotebooksContent extends Component {
         }
       }, [
         h(Clickable, {
-          style: { ...Style.elements.card, flexGrow: 1, color: Style.colors.secondary },
+          style: { ...Style.elements.card, flex: 1, color: Style.colors.secondary },
           onClick: () => this.setState({ creating: true }),
           disabled: !canWrite,
           tooltip: !canWrite ? noWrite : undefined
@@ -225,21 +225,20 @@ class NotebooksContent extends Component {
         div({ style: { width: 20, height: 15 } }),
         h(Clickable, {
           style: {
-            ...Style.elements.card, flexGrow: 1,
+            ...Style.elements.card, flex: 1,
             backgroundColor: '#dcdcdc', border: '1px dashed #9B9B9B', boxShadow: 'none'
           },
           onClick: () => this.uploader.current.open(),
           disabled: !canWrite,
           tooltip: !canWrite ? noWrite : undefined
         }, [
-          div({ style: listView ? {} : { fontSize: 16, lineHeight: '20px' } }, [
+          listView ? div([
             'Drag or ', link({}, ['Click']), ' to Add an ipynb File',
-            icon('upload-cloud', {
-              style: {
-                marginLeft: listView ? '1rem' : undefined, marginTop: listView ? undefined : '0.5rem',
-                opacity: 0.4
-              }, size: 25
-            })
+            icon('upload-cloud', { size: 25, style: { opacity: 0.4, marginLeft: '1rem' } })
+          ]) : div({ style: { fontSize: 16, lineHeight: '20px' } }, [
+            div(['Drag or ', link({}, ['Click']), ' to ']),
+            div(['Add an ipynb File']),
+            icon('upload-cloud', { size: 25, style: { opacity: 0.4, marginTop: '0.5rem' } })
           ])
         ])
       ]),
