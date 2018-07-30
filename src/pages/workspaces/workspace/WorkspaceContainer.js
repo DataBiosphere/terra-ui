@@ -185,7 +185,10 @@ class WorkspaceContainer extends Component {
             title || `${namespace}/${name}`
           ])
         ]),
-        h(ClusterManager, { namespace, name, clusters, refreshClusters })
+        h(ClusterManager, {
+          namespace, name, clusters, refreshClusters,
+          canCompute: (workspace && workspace.canCompute) || (clusters && clusters.length)
+        })
       ]),
       h(WorkspaceTabs, {
         namespace, name, activeTab, refresh, workspace,
