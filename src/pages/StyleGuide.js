@@ -7,6 +7,7 @@ import { textInput, validatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import PopupTrigger from 'src/components/PopupTrigger'
 import { FlexTable, GridTable, HeaderCell, TextCell } from 'src/components/table'
+import colors from 'src/libs/colors'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -30,6 +31,25 @@ class StyleGuide extends Component {
     return div({ style: { paddingLeft: '1rem', paddingRight: '1rem' } }, [
       h1('Style guide'),
       div({ style: styles.container }, [
+        _.map(([group, entries]) => {
+          return div({ key: group, style: { display: 'flex', marginBottom: '1rem' } }, [
+            _.map(([k, v]) => {
+              return div({ key: k, style: { width: 150, display: 'flex', flexDirection: 'column' } }, [
+                div({ style: { padding: '0.5rem 1rem', color: v } }, [k]),
+                div({ style: { padding: '0.5rem 1rem', backgroundColor: v } }, [
+                  div([k]),
+                  div({ style: { marginTop: '0.5rem', color: 'white' } }, [k])
+                ])
+              ])
+            }, entries)
+          ])
+        }, _.toPairs(_.groupBy(([k]) => {
+          const m = k.match(/([a-z]+)\d/)
+          return m ? m[1] : 'single'
+        }, _.toPairs(colors))))
+      ]),
+      div({ style: styles.container }, [
+        div(['Deprecated colors:']),
         div({ style: { display: 'flex', flexWrap: 'wrap' } }, [
           _.map(([k, v]) =>
             div({
