@@ -1,31 +1,67 @@
 export default {
-  blue1: '#eaf4fb',
-  blue2: '#d7eaf6',
-  blue3: '#afd3ed',
-  blue4: '#85bde4',
-  blue5: '#5aa6da',
-  blue6: '#2691d0',
+  primary: [
+    '#2691d0',
+    '#5aa6da',
+    '#85bde4',
+    '#afd3ed',
+    '#d7eaf6',
+    '#eaf4fb'
+  ],
 
-  darkblue1: '#eaedf3',
-  darkblue2: '#d4dce6',
-  darkblue3: '#a8b8ce',
-  darkblue4: '#7d95b5',
-  darkblue5: '#51719c',
-  darkblue6: '#224f83',
+  title: [
+    '#224f83',
+    '#51719c',
+    '#7d95b5',
+    '#a8b8ce',
+    '#d4dce6',
+    '#eaedf3'
+  ],
 
-  gray1: '#ededed',
-  gray2: '#dbdbdb',
-  gray3: '#b7b7b7',
-  gray4: '#929292',
-  gray5: '#6e6e6e',
-  gray6: '#4a4a4a',
+  text: [
+    '#4a4a4a',
+    '#6e6e6e',
+    '#929292',
+    '#b7b7b7',
+    '#dbdbdb',
+    '#ededed'
+  ],
 
-  red1: '#fbeae8',
-  red6: '#c92100',
+  accent: [
+    '#8a6194',
+    '#a180a9',
+    '#b8a0be',
+    '#d1bfd4',
+    '#e8dfea',
+    '#f3eff4'
+  ],
 
-  purple: '#8B5F96',
-  brick: '#c55a68',
-  green: '#7ac79b',
-  orange: '#e28327',
-  slate: '#8299a5'
+  success: [
+    '#7dc69c',
+    '#97d1b0',
+    '#b0dcc4',
+    '#cbe9d7',
+    '#e4f4eb',
+    '#f1f9f5'
+  ],
+
+  error: [
+    '#c72314',
+    '#d24e39',
+    '#dd7a69',
+    '#e8a69b',
+    '#f3d3cd',
+    '#f9e8e5'
+  ],
+
+  warning: [
+    '#e08334',
+    '#e69b59',
+    '#edb481',
+    '#f2cdab',
+    '#f8e6d5',
+    '#fcf2e9'
+  ],
+
+  titleAlt: '#8399a4',
+  standout: '#c35b69'
 }

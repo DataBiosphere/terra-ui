@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { div, h, h1 } from 'react-hyperscript-helpers'
+import { div, h, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import { buttonPrimary, buttonSecondary, Checkbox, link, search } from 'src/components/common'
 import { icon } from 'src/components/icons'
@@ -24,45 +24,92 @@ const styles = {
   }
 }
 
+const els = {
+  section: (title, children) => div({
+    style: {
+      padding: '1.5rem', backgroundColor: 'white', margin: '1.5rem 0',
+      overflowX: 'auto'
+    }
+  }, [
+    div({ style: { fontSize: 25, marginBottom: '1rem', textTransform: 'uppercase' } }, [title]),
+    ...children
+  ]),
+  colorSwatch: (color, title, textColor = 'white') => div({
+    style: {
+      width: 91, height: 91, backgroundColor: color, color: textColor,
+      padding: '0.25rem', display: 'inline-flex', flexDirection: 'column'
+    }
+  }, [
+    div({ style: { flex: 1 } }),
+    div({ style: { textTransform: 'uppercase' } }, [title]),
+    div({ style: { fontSize: '75%' } }, [color])
+  ]),
+  colorWaterfall: (colorBase, title) => div({
+    style: {
+      display: 'flex', marginBottom: '0.5rem'
+    }
+  }, colorBase.map((color, index) => els.colorSwatch(
+    color,
+    index === 0 ? title : undefined,
+    index >= 4 ? colorBase[0] : 'white'))
+  )
+}
+
 class StyleGuide extends Component {
   render() {
     const { validatedInputValue, validatedInputTouched } = this.state
     const errors = validate({ validatedInputValue }, { validatedInputValue: { email: true } })
-    return div({ style: { paddingLeft: '1rem', paddingRight: '1rem' } }, [
-      h1('Style guide'),
-      div({ style: styles.container }, [
-        _.map(([group, entries]) => {
-          return div({ key: group, style: { display: 'flex', marginBottom: '1rem' } }, [
-            _.map(([k, v]) => {
-              return div({ key: k, style: { width: 150, display: 'flex', flexDirection: 'column' } }, [
-                div({ style: { padding: '0.5rem 1rem', color: v } }, [k]),
-                div({ style: { padding: '0.5rem 1rem', backgroundColor: v } }, [
-                  div([k]),
-                  div({ style: { marginTop: '0.5rem', color: 'white' } }, [k])
-                ])
-              ])
-            }, entries)
-          ])
-        }, _.toPairs(_.groupBy(([k]) => {
-          const m = k.match(/([a-z]+)\d/)
-          return m ? m[1] : 'single'
-        }, _.toPairs(colors))))
+
+    return div({ style: { width: 1164, margin: '4rem auto' } }, [
+      div({ style: { display: 'flex', alignItems: 'center', marginBottom: '4rem' } }, [
+        icon('logoIcon', { size: 210 }),
+        span({
+          style: {
+            fontSize: 55, fontWeight: 700, color: colors.titleAlt, letterSpacing: 1.78,
+            marginLeft: '2rem'
+          }
+        }, [
+          'SATURN STYLE GUIDE'
+        ])
       ]),
-      div({ style: styles.container }, [
-        div(['Deprecated colors:']),
-        div({ style: { display: 'flex', flexWrap: 'wrap' } }, [
-          _.map(([k, v]) =>
-            div({
-              key: k,
-              style: {
-                backgroundColor: v,
-                width: 150, height: 50,
-                display: 'flex', justifyContent: 'center', alignItems: 'center'
-              }
-            }, [
-              div({ style: { backgroundColor: 'white', padding: 2 } }, k)
-            ]),
-          _.toPairs(Style.colors))
+      els.section('Color Styles', [
+        div({ style: { display: 'flex', justifyContent: 'space-between' } }, [
+          div([
+            els.colorWaterfall(colors.primary, 'primary'),
+            els.colorWaterfall(colors.title, 'title'),
+            els.colorWaterfall(colors.text, 'text'),
+            els.colorWaterfall(colors.accent, 'accent')
+          ]),
+          div([
+            els.colorWaterfall(colors.success, 'success'),
+            els.colorWaterfall(colors.error, 'error'),
+            els.colorWaterfall(colors.warning, 'warning'),
+            els.colorSwatch(colors.titleAlt, 'title alt'),
+            els.colorSwatch(colors.standout, 'standout')
+          ])
+        ])
+      ]),
+      els.section('Typeface', [
+        div({ style: { display: 'flex', alignItems: 'center' } }, [
+          div({ style: { paddingRight: '2rem', borderRight: Style.standardLine, marginRight: '2rem' } }, [
+            div({ style: { fontSize: 78 } }, ['Montserrat']),
+            div({ style: { display: 'flex', justifyContent: 'space-between', fontSize: 24, lineHeight: '42px' } }, [
+              div([
+                div({ style: { fontWeight: 400 } }, ['Montserrat 400']),
+                div({ style: { fontWeight: 600 } }, ['Montserrat 600'])
+              ]),
+              div([
+                div({ style: { fontWeight: 700 } }, ['Montserrat 700']),
+                div({ style: { fontWeight: 800 } }, ['Montserrat 800'])
+              ])
+            ])
+          ]),
+          div({ style: { fontSize: 28, lineHeight: '42px' } }, [
+            div(['ABCČĆDĐEFGHIJKLMNOPQRSŠTUVWXYZŽ']),
+            div(['abcčćdđefghijklmnopqrsštuvwxyzž']),
+            div(['ĂÂÊÔƠƯăâêôơư1234567890‘?’“!']),
+            div(['(%)[#]{@}/&\\<-+÷×=>®©$€£¥¢:;,.*'])
+          ])
         ])
       ]),
       div({ style: styles.container }, [
