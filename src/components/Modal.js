@@ -30,8 +30,11 @@ const styles = {
 /**
  * @param onDismiss
  * @param title
+ * @param titleExtras
  * @param children
+ * @param width=450
  * @param showCancel=true
+ * @param showX=false
  * @param okButton
  */
 export default class Modal extends Component {

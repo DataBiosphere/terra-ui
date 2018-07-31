@@ -5,6 +5,7 @@ import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { Clickable, MenuButton, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
+import Modal from 'src/components/Modal'
 import PopupTrigger from 'src/components/PopupTrigger'
 import { FlexTable, HeaderCell, TextCell } from 'src/components/table'
 import { Workspaces } from 'src/libs/ajax'
@@ -53,13 +54,14 @@ export const flagNewSubmission = submissionId => {
   sessionStorage.setItem('new-submission', submissionId)
 }
 
+const collapsedStatuses = workflowStatuses => _.flow(
+  _.toPairs,
+  _.map(([status, count]) => ({ [collapseStatus(status)]: count })),
+  _.reduce(_.mergeWith(_.add), {})
+)(workflowStatuses)
 
 const statusCell = workflowStatuses => {
-  const { succeeded, failed, running } = _.flow(
-    _.toPairs,
-    _.map(([status, count]) => ({ [collapseStatus(status)]: count })),
-    _.reduce(_.mergeWith(_.add), {})
-  )(workflowStatuses)
+  const { succeeded, failed, running } = collapsedStatuses(workflowStatuses)
 
   return h(Fragment, [
     succeeded && successIcon({ marginRight: '0.5rem' }),
@@ -136,7 +138,7 @@ class JobHistoryContent extends Component {
 
   render() {
     const { namespace, name } = this.props
-    const { submissions, loading, newSubmissionId, highlightNewSubmission, firecloudRoot } = this.state
+    const { submissions, loading, aborting, newSubmissionId, highlightNewSubmission, firecloudRoot } = this.state
 
     return div({ style: styles.submissionsTable }, [
       submissions && h(AutoSizer, [
@@ -172,12 +174,21 @@ class JobHistoryContent extends Component {
                   ]),
                   h(PopupTrigger, {
                     position: 'bottom',
-                    content: h(MenuButton, {
-                      as: 'a',
-                      href: `${firecloudRoot}/#workspaces/${namespace}/${name}/monitor/${submissionId}`
-                    }, [
-                      icon('circle-arrow right'),
-                      div({ style: { marginLeft: '0.5rem' } }, ['View job details'])
+                    content: h(Fragment, [
+                      h(MenuButton, {
+                        as: 'a',
+                        target: '_blank',
+                        href: `${firecloudRoot}/#workspaces/${namespace}/${name}/monitor/${submissionId}`
+                      }, [
+                        icon('circle-arrow right'),
+                        div({ style: { marginLeft: '0.5rem' } }, ['View job details'])
+                      ]),
+                      collapsedStatuses(submissions[rowIndex].workflowStatuses).running && h(MenuButton, {
+                        onClick: () => this.setState({ aborting: rowIndex })
+                      }, [
+                        icon('warning-standard', { style: { color: Style.colors.warning } }),
+                        div({ style: { marginLeft: '0.5rem' } }, ['Abort all workflows'])
+                      ])
                     ])
                   }, [
                     h(Clickable, {
@@ -189,8 +200,8 @@ class JobHistoryContent extends Component {
               }
             },
             {
-              size: { basis: 150, grow: 0 },
-              headerRenderer: () => h(HeaderCell, ['Workflows']),
+              size: { basis: 175, grow: 0 },
+              headerRenderer: () => h(HeaderCell, ['No. of Workflows']),
               cellRenderer: ({ rowIndex }) => {
                 const { workflowStatuses } = submissions[rowIndex]
                 return h(TextCell, Utils.formatNumber(_.sum(_.values(workflowStatuses))))
@@ -200,8 +211,8 @@ class JobHistoryContent extends Component {
               size: { basis: 150, grow: 0 },
               headerRenderer: () => h(HeaderCell, ['Status']),
               cellRenderer: ({ rowIndex }) => {
-                const { workflowStatuses } = submissions[rowIndex]
-                return statusCell(workflowStatuses)
+                const { workflowStatuses, status } = submissions[rowIndex]
+                return h(Fragment, [statusCell(workflowStatuses), status === 'Aborting' && '(Aborting)'])
               }
             },
             {
@@ -214,6 +225,20 @@ class JobHistoryContent extends Component {
             }
           ]
         })
+      ]),
+      _.isNumber(aborting) && h(Modal, {
+        onDismiss: () => this.setState({ aborting: false }),
+        title: 'Abort All Workflows',
+        showX: true,
+        okButton: () => {
+          Workspaces.workspace(namespace, name).abortSubmission(submissions[aborting].submissionId)
+            .then(() => this.refresh())
+          this.setState({ aborting: false, loading: true })
+        }
+      }, [
+        `Are you sure you want to abort ${
+          Utils.formatNumber(collapsedStatuses(submissions[aborting].workflowStatuses).running)
+        } running workflow(s)?`
       ]),
       loading && spinnerOverlay
     ])
