@@ -212,7 +212,7 @@ class JobHistoryContent extends Component {
               headerRenderer: () => h(HeaderCell, ['Status']),
               cellRenderer: ({ rowIndex }) => {
                 const { workflowStatuses, status } = submissions[rowIndex]
-                return h(Fragment, [statusCell(workflowStatuses), status === 'Aborting' && '(Aborting)'])
+                return h(Fragment, [statusCell(workflowStatuses), status === 'Aborting' && 'Aborting'])
               }
             },
             {
