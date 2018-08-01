@@ -54,11 +54,11 @@ export const flagNewSubmission = submissionId => {
   sessionStorage.setItem('new-submission', submissionId)
 }
 
-const collapsedStatuses = workflowStatuses => _.flow(
+const collapsedStatuses = _.flow(
   _.toPairs,
   _.map(([status, count]) => ({ [collapseStatus(status)]: count })),
   _.reduce(_.mergeWith(_.add), {})
-)(workflowStatuses)
+)
 
 const statusCell = workflowStatuses => {
   const { succeeded, failed, running } = collapsedStatuses(workflowStatuses)
@@ -158,7 +158,7 @@ class JobHistoryContent extends Component {
             {
               headerRenderer: () => h(HeaderCell, ['Job']),
               cellRenderer: ({ rowIndex }) => {
-                const { methodConfigurationNamespace, methodConfigurationName, submitter, submissionId } = submissions[rowIndex]
+                const { methodConfigurationNamespace, methodConfigurationName, submitter, submissionId, workflowStatuses } = submissions[rowIndex]
                 return h(Fragment, [
                   div([
                     div([
@@ -183,8 +183,8 @@ class JobHistoryContent extends Component {
                         icon('circle-arrow right'),
                         div({ style: { marginLeft: '0.5rem' } }, ['View job details'])
                       ]),
-                      collapsedStatuses(submissions[rowIndex].workflowStatuses).running && h(MenuButton, {
-                        onClick: () => this.setState({ aborting: rowIndex })
+                      collapsedStatuses(workflowStatuses).running && h(MenuButton, {
+                        onClick: () => this.setState({ aborting: submissionId })
                       }, [
                         icon('warning-standard', { style: { color: Style.colors.warning } }),
                         div({ style: { marginLeft: '0.5rem' } }, ['Abort all workflows'])
@@ -226,18 +226,19 @@ class JobHistoryContent extends Component {
           ]
         })
       ]),
-      _.isNumber(aborting) && h(Modal, {
-        onDismiss: () => this.setState({ aborting: false }),
+      aborting && h(Modal, {
+        onDismiss: () => this.setState({ aborting: undefined }),
         title: 'Abort All Workflows',
         showX: true,
         okButton: () => {
-          Workspaces.workspace(namespace, name).abortSubmission(submissions[aborting].submissionId)
+          Workspaces.workspace(namespace, name).abortSubmission(aborting)
             .then(() => this.refresh())
-          this.setState({ aborting: false, loading: true })
+            .catch(e => this.setState({ loading: false }, () => reportError('Error aborting submission', e)))
+          this.setState({ aborting: undefined, loading: true })
         }
       }, [
         `Are you sure you want to abort ${
-          Utils.formatNumber(collapsedStatuses(submissions[aborting].workflowStatuses).running)
+          Utils.formatNumber(collapsedStatuses(_.find({ submissionId: aborting }, submissions).workflowStatuses).running)
         } running workflow(s)?`
       ]),
       loading && spinnerOverlay
