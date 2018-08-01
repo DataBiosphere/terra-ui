@@ -136,7 +136,7 @@ class NotebookLauncherContent extends Component {
           this.setState({ localizeFailures: localizeFailures + 1 })
           await Utils.delay(5000)
         } else {
-          throw new Error('Unable to copy notebook to cluster')
+          throw new Error('Unable to copy notebook to cluster, was it renamed or deleted in the Workspace Bucket?')
         }
       }
     }
