@@ -3,7 +3,7 @@ import { div, p } from 'react-hyperscript-helpers'
 import { link } from 'src/components/common'
 import { logo } from 'src/components/icons'
 import signInBg from 'src/images/sign-in-background.jpg'
-import * as Style from 'src/libs/style'
+import colors from 'src/libs/colors'
 
 
 export default class SignIn extends Component {
@@ -29,19 +29,19 @@ export default class SignIn extends Component {
       div({ style: { maxWidth: 900 } }, [
         div({ style: { display: 'flex', marginBottom: '1rem', alignItems: 'center' } }, [
           div({ style: { fontWeight: 500, marginRight: '2rem' } }, [
-            div({ style: { fontSize: 40, color: Style.colors.titleAlt } }, ['Welcome to']),
-            div({ style: { fontSize: 80, color: Style.colors.title } }, ['SATURN'])
+            div({ style: { fontSize: 40, color: colors.slate } }, ['Welcome to']),
+            div({ style: { fontSize: 80, color: colors.darkBlue[0] } }, ['SATURN'])
           ]),
           logo({ size: 265 })
         ]),
-        div({ style: { fontSize: 40, fontWeight: 500, color: Style.colors.titleAlt } }, ['New User?']),
+        div({ style: { fontSize: 40, fontWeight: 500, color: colors.slate } }, ['New User?']),
         div({ style: { fontSize: 20, marginBottom: '2rem' } }, ['Saturn requires a Google Account.']),
         div({ style: { display: 'flex', alignItems: 'center' } }, [
           div({
             style: {
               fontSize: 16, lineHeight: 1.5,
               paddingRight: '1rem', marginRight: '2rem', borderRight:
-                `1px solid ${Style.colors.text}`
+                `1px solid ${colors.gray[0]}`
             }
           }, [
             div(['Need to create a SATURN account? Saturn uses your Google account.']),

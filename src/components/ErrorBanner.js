@@ -4,8 +4,8 @@ import ErrorView from 'src/components/ErrorView'
 import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import TopBanner from 'src/components/TopBanner'
+import colors from 'src/libs/colors'
 import { clearError, errorStore } from 'src/libs/error'
-import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 
@@ -29,7 +29,7 @@ class ErrorBanner extends Component {
     [
       h(Clickable, {
         disabled: onFirst,
-        style: { display: 'flex', color: onFirst ? Style.colors.disabled : null },
+        style: { display: 'flex', color: onFirst ? colors.gray[2] : null },
         onClick: () => this.setState({ errorNumber: errorNumber - 1 })
       }, [icon('angle left')]),
       div({
@@ -41,7 +41,7 @@ class ErrorBanner extends Component {
       }, [errorNumber + 1, '/', errorState.length]),
       h(Clickable, {
         disabled: onLast,
-        style: { marginRight: '1rem', display: 'flex', color: onLast ? Style.colors.disabled : null },
+        style: { marginRight: '1rem', display: 'flex', color: onLast ? colors.gray[2] : null },
         onClick: () => this.setState({ errorNumber: errorNumber + 1 })
       }, [icon('angle right')]),
       title,

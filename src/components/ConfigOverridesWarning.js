@@ -1,6 +1,6 @@
 import { div, pre } from 'react-hyperscript-helpers'
 import { configOverridesStore } from 'src/libs/config'
-import * as Style from 'src/libs/style'
+import colors from 'src/libs/colors'
 import * as Utils from 'src/libs/utils'
 
 const ConfigOverridesWarning = Utils.connectAtom(configOverridesStore, 'configOverrides')(
@@ -8,7 +8,7 @@ const ConfigOverridesWarning = Utils.connectAtom(configOverridesStore, 'configOv
     return !!configOverrides && div({
       style: {
         position: 'fixed', bottom: 0, right: 0,
-        color: 'white', backgroundColor: Style.colors.accent,
+        color: 'white', backgroundColor: colors.purple[0],
         padding: '1rem'
       }
     }, [

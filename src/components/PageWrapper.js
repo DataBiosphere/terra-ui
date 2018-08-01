@@ -1,7 +1,7 @@
 import { a, div } from 'react-hyperscript-helpers'
 import { icon } from 'src/components/icons'
+import colors from 'src/libs/colors'
 import * as Nav from 'src/libs/nav'
-import * as Style from 'src/libs/style'
 
 
 const styles = {
@@ -20,9 +20,9 @@ const PageWrapper = ({ children }) => {
         height: 92,
         paddingLeft: '6rem',
         paddingRight: '6rem',
-        backgroundColor: Style.colors.text,
-        color: Style.colors.disabled,
-        borderTop: `4px solid ${Style.colors.standout}`,
+        backgroundColor: colors.gray[0],
+        color: colors.gray[2],
+        borderTop: `4px solid ${colors.brick}`,
         marginTop: '2rem'
       }
     }, [

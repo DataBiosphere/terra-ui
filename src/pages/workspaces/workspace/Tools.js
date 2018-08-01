@@ -4,6 +4,7 @@ import { pure } from 'recompose'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { spinnerOverlay } from 'src/components/common'
 import { Workspaces } from 'src/libs/ajax'
+import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
@@ -23,7 +24,7 @@ const styles = {
   },
   shortTitle: {
     flex: 'none',
-    color: Style.colors.secondary, fontSize: 16,
+    color: colors.blue[0], fontSize: 16,
     lineHeight: '20px', height: '40px',
     overflow: 'hidden', overflowWrap: 'break-word'
   }

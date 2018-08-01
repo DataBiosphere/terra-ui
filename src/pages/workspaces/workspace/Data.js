@@ -9,12 +9,12 @@ import { icon, spinner } from 'src/components/icons'
 import { FlexTable, GridTable, HeaderCell, paginator, Resizable, Sortable } from 'src/components/table'
 import { Workspaces } from 'src/libs/ajax'
 import * as auth from 'src/libs/auth'
+import colors from 'src/libs/colors'
 import * as Config from 'src/libs/config'
 import { ReferenceDataDeleter, ReferenceDataImporter, renderDataCell } from 'src/libs/data-utils'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
-import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
@@ -41,7 +41,7 @@ const styles = {
     flex: 1, display: 'flex', flexDirection: 'column'
   }),
   dataTypeHeading: {
-    fontWeight: 500, color: Style.colors.title
+    fontWeight: 500, color: colors.darkBlue[0]
   }
 }
 

@@ -11,10 +11,10 @@ import { FlexTable, HeaderCell, TextCell } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import WDLViewer from 'src/components/WDLViewer'
 import { Dockstore, Methods, Workspaces } from 'src/libs/ajax'
+import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
-import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 import * as JobHistory from 'src/pages/workspaces/workspace/JobHistory'
@@ -34,7 +34,7 @@ const miniMessage = text =>
 
 const errorIcon = b => {
   return b && icon('error', {
-    size: 28, style: { marginLeft: '0.5rem', color: Style.colors.error }
+    size: 28, style: { marginLeft: '0.5rem', color: colors.red[0] }
   })
 }
 
@@ -167,10 +167,10 @@ class WorkflowViewContent extends Component {
       [invalidIO.inputs || invalidIO.outputs, () => 'Add your inputs and outputs to Launch Analysis'],
       [saving || modified, () => 'Save or cancel to Launch Analysis']
     )
-    return div({ style: { backgroundColor: Style.colors.section, position: 'relative' } }, [
+    return div({ style: { backgroundColor: colors.blue[5], position: 'relative' } }, [
       div({ style: { display: 'flex', padding: `1.5rem ${sideMargin} 0` } }, [
         div({ style: { flex: '1', lineHeight: '1.5rem' } }, [
-          div({ style: { color: Style.colors.title, fontSize: 24 } }, name),
+          div({ style: { color: colors.darkBlue[0], fontSize: 24 } }, name),
           div(`V. ${methodConfigVersion}`),
           methodPath && div(`Path: ${methodPath}`),
           div({ style: { textTransform: 'capitalize', display: 'flex', alignItems: 'baseline', marginTop: '0.5rem' } }, [
@@ -197,8 +197,8 @@ class WorkflowViewContent extends Component {
           canCompute && noLaunchReason && div({
             style: {
               marginTop: '0.5rem', padding: '1rem',
-              backgroundColor: Style.colors.warningBackground,
-              color: Style.colors.warning
+              backgroundColor: colors.orange[5],
+              color: colors.orange[0]
             }
           }, noLaunchReason)
         ])
@@ -277,7 +277,7 @@ class WorkflowViewContent extends Component {
                     }) : div({ style: { flex: 1 } }, [value]),
                     error && h(TooltipTrigger, { content: error }, [
                       icon('error', {
-                        size: 28, style: { marginLeft: '0.5rem', color: Style.colors.error, cursor: 'help' }
+                        size: 28, style: { marginLeft: '0.5rem', color: colors.red[0], cursor: 'help' }
                       })
                     ])
                   ])

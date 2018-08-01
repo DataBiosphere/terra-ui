@@ -47,7 +47,7 @@ export default class Modal extends Component {
       ariaHideApp: false
     }, [
       title && div({ style: { display: 'flex', alignItems: 'baseline', marginBottom: '1rem' } }, [
-        div({ style: { fontSize: 18, fontWeight: 500, color: colors.darkblue6 } }, [title]),
+        div({ style: { fontSize: 18, fontWeight: 500, color: colors.darkBlue[0] } }, [title]),
         titleExtras,
         showX && h(Clickable, {
           style: { alignSelf: 'flex-start', marginLeft: 'auto' },
