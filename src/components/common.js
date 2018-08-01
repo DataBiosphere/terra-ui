@@ -5,6 +5,7 @@ import Interactive from 'react-interactive'
 import RSelect from 'react-select'
 import { centeredSpinner, icon } from 'src/components/icons'
 import TooltipTrigger from 'src/components/TooltipTrigger'
+import colors from 'src/libs/colors'
 import * as Style from 'src/libs/style'
 import 'react-select/dist/react-select.css'
 
@@ -33,10 +34,10 @@ export const Clickable = ({ as = 'div', disabled, tooltip, tooltipSide, onClick,
 const linkProps = disabled => ({
   as: 'a',
   style: {
-    color: disabled ? Style.colors.disabled : Style.colors.secondary,
+    color: disabled ? colors.text[2] : colors.primary[0],
     cursor: disabled ? 'not-allowed' : 'pointer'
   },
-  hover: disabled ? undefined : { color: Style.colors.primary }
+  hover: disabled ? undefined : { color: colors.primary[1] }
 })
 
 export const link = function(props, children) {
@@ -57,10 +58,10 @@ export const buttonPrimary = ({ disabled, ...props }, children) => {
     style: {
       ...styles.button,
       borderRadius: 5, color: 'white', padding: '0 1.5rem',
-      backgroundColor: disabled ? Style.colors.disabled : Style.colors.secondary,
+      backgroundColor: disabled ? colors.text[2] : colors.primary[0],
       cursor: disabled ? 'not-allowed' : 'pointer'
     },
-    hover: disabled ? undefined : { backgroundColor: Style.colors.primary }
+    hover: disabled ? undefined : { backgroundColor: colors.primary[1] }
   }, props), children)
 }
 
@@ -69,7 +70,7 @@ export const buttonSecondary = ({ disabled, ...props }, children) => {
     disabled,
     style: {
       ...styles.button,
-      color: disabled ? Style.colors.disabled : Style.colors.text,
+      color: disabled ? colors.text[2] : colors.text[0],
       cursor: disabled ? 'not-allowed' : 'pointer'
     }
   }, props), children)
@@ -94,8 +95,8 @@ export const search = function({ wrapperProps, inputProps }) {
 export const contextBar = function(props, children) {
   return div(_.merge({
     style: {
-      display: 'flex', alignItems: 'center', backgroundColor: Style.colors.primary,
-      color: Style.colors.textAlt, fontWeight: 500,
+      display: 'flex', alignItems: 'center', backgroundColor: colors.primary[1],
+      color: colors.text[3], fontWeight: 500,
       height: '3.75rem', padding: '0 1rem'
     }
   }, props),
@@ -108,11 +109,11 @@ export const MenuButton = ({ disabled, children, ...props }) => {
     style: {
       display: 'flex', alignItems: 'center',
       fontSize: 12, minWidth: 125, height: '2rem',
-      color: disabled ? Style.colors.disabled : Style.colors.text,
+      color: disabled ? colors.text[2] : colors.text[0],
       padding: '0 1.5rem',
       cursor: disabled ? 'not-allowed' : 'pointer'
     },
-    hover: !disabled ? { backgroundColor: Style.colors.highlight, fontWeight: 500 } : undefined
+    hover: !disabled ? { backgroundColor: colors.primary[3], fontWeight: 500 } : undefined
   }, props), [children])
 }
 
@@ -125,10 +126,10 @@ export const Checkbox = ({ checked, onChange, disabled, ...props }) => {
     style: {
       display: 'inline-flex',
       verticalAlign: 'middle',
-      color: disabled ? Style.colors.disabled : Style.colors.secondary
+      color: disabled ? colors.text[2] : colors.primary[0]
     },
-    hover: disabled ? undefined : { color: Style.colors.primary },
-    active: disabled ? undefined : { backgroundColor: Style.colors.highlightFaded },
+    hover: disabled ? undefined : { color: colors.primary[1] },
+    active: disabled ? undefined : { backgroundColor: colors.primary[5] },
     disabled,
     ...props
   }, [
@@ -189,7 +190,7 @@ export const spinnerOverlay = div(
 export const comingSoon = span({
   style: {
     margin: '0.5rem', padding: 3, borderRadius: 2,
-    backgroundColor: Style.colors.accent, color: 'white',
+    backgroundColor: colors.accent[0], color: 'white',
     fontSize: '75%', textTransform: 'uppercase', fontWeight: 500,
     whiteSpace: 'nowrap', lineHeight: 1
   }

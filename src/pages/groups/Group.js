@@ -9,6 +9,7 @@ import Modal from 'src/components/Modal'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { TopBar } from 'src/components/TopBar'
 import { Groups } from 'src/libs/ajax'
+import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
@@ -65,7 +66,7 @@ class NewUserModal extends Component {
       }),
       div({ style: styles.formLabel }, ['Role']),
       roleSelector({ role, updateState: role => this.setState({ role }) }),
-      submitError && div({ style: { marginTop: '0.5rem', textAlign: 'right', color: Style.colors.error } }, [submitError]),
+      submitError && div({ style: { marginTop: '0.5rem', textAlign: 'right', color: colors.error[0] } }, [submitError]),
       submitting && spinnerOverlay
     ])
   }

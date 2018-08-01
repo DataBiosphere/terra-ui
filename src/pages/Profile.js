@@ -7,8 +7,8 @@ import { textInput, validatedInput } from 'src/components/input'
 import { InfoBox } from 'src/components/PopupTrigger'
 import { TopBar } from 'src/components/TopBar'
 import { User } from 'src/libs/ajax'
+import colors from 'src/libs/colors'
 import * as Nav from 'src/libs/nav'
-import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 import validate from 'validate.js'
@@ -21,7 +21,7 @@ const styles = {
   },
   sectionTitle: {
     margin: '2rem 0 1rem',
-    color: Style.colors.title, fontSize: 16, fontWeight: 500, textTransform: 'uppercase'
+    color: colors.title[0], fontSize: 16, fontWeight: 500, textTransform: 'uppercase'
   },
   header: {
     line: {
@@ -34,7 +34,7 @@ const styles = {
     text: {
       container: {
         marginLeft: '2rem',
-        color: Style.colors.title
+        color: colors.title[0]
       },
       nameLine: {
         fontSize: '150%'
@@ -82,7 +82,7 @@ const percentageCircle = ({ radius, fraction, color = '#7bb156', strokeWidth = 6
     path({
       d: pathDesc,
       fill: 'none',
-      stroke: '#d0d0d0',
+      stroke: colors.text[4],
       strokeWidth
     }),
     path({

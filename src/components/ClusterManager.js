@@ -9,9 +9,9 @@ import { IntegerInput, textInput } from 'src/components/input'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { machineTypes, profiles } from 'src/data/clusters'
 import { Jupyter } from 'src/libs/ajax'
+import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
-import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 
 
@@ -23,7 +23,7 @@ const styles = {
     display: 'flex', alignItems: 'center',
     marginLeft: 'auto', paddingLeft: '1rem', paddingRight: '1rem',
     borderTopLeftRadius: 5, borderBottomLeftRadius: 5,
-    backgroundColor: Style.colors.background
+    backgroundColor: colors.text[5]
   },
   row: {
     display: 'flex',
@@ -53,10 +53,10 @@ const styles = {
   },
   warningBox: {
     fontSize: 12,
-    backgroundColor: '#fffceb',
-    color: Style.colors.warning,
-    borderTop: `1px solid ${Style.colors.warning}`,
-    borderBottom: `1px solid ${Style.colors.warning}`,
+    backgroundColor: colors.warning[5],
+    color: colors.warning[0],
+    borderTop: `1px solid ${colors.warning[0]}`,
+    borderBottom: `1px solid ${colors.warning[0]}`,
     padding: '1rem',
     marginTop: '1rem',
     marginLeft: '-1rem',
@@ -66,7 +66,7 @@ const styles = {
     marginTop: '1rem',
     marginLeft: '-1rem',
     marginRight: '-1rem',
-    borderBottom: `1px solid ${Style.colors.border}`
+    borderBottom: `1px solid ${colors.text[3]}`
   }
 }
 
@@ -152,7 +152,7 @@ const MachineSelector = ({ machineType, onChangeMachineType, diskSize, onChangeD
 
 const ClusterIcon = ({ shape, onClick, disabled, ...props }) => {
   return h(Clickable, {
-    style: { color: onClick && !disabled ? Style.colors.secondary : Style.colors.disabled },
+    style: { color: onClick && !disabled ? colors.primary[0] : colors.text[2] },
     onClick, disabled, ...props
   }, [icon(shape, { size: 20, className: 'is-solid' })])
 }
@@ -163,7 +163,7 @@ const MiniLink = ({ href, disabled, tooltip, children, ...props }) => {
       as: 'a',
       href: !disabled ? href : undefined,
       style: {
-        color: 'white', backgroundColor: !disabled ? Style.colors.secondary : Style.colors.disabled,
+        color: 'white', backgroundColor: !disabled ? colors.primary[0] : colors.text[2],
         cursor: disabled ? 'not-allowed' : 'pointer',
         borderRadius: 4
       }

@@ -7,6 +7,7 @@ import { TextArea, validatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { InfoBox } from 'src/components/PopupTrigger'
 import { Billing, Groups, Workspaces } from 'src/libs/ajax'
+import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
@@ -40,7 +41,7 @@ const styles = {
   groupNotice: {
     marginBottom: '0.25rem',
     fontSize: 12,
-    color: Style.colors.textFaded
+    color: colors.text[2]
   }
 }
 
@@ -124,7 +125,7 @@ export default class NewWorkspaceModal extends Component {
       }),
       div({ style: styles.label }, ['Billing project *']),
       billingProjects && !billingProjects.length ? h(Fragment, [
-        div({ style: { color: Style.colors.error } }, [
+        div({ style: { color: colors.error[0] } }, [
           icon('error', { size: 16 }),
           ' You must have a billing project associated with your account to create a new workspace.'
         ]),
@@ -174,7 +175,7 @@ export default class NewWorkspaceModal extends Component {
         }, _.map('groupName', allGroups).sort())
       }),
       createError && div({
-        style: { marginTop: '1rem', color: Style.colors.error }
+        style: { marginTop: '1rem', color: colors.error[0] }
       }, [createError]),
       busy && spinnerOverlay
     ])

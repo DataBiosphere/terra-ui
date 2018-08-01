@@ -8,6 +8,7 @@ import { validatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { TopBar } from 'src/components/TopBar'
 import { Groups } from 'src/libs/ajax'
+import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
@@ -102,7 +103,7 @@ const GroupCard = pure(({ group: { groupName, groupEmail, role }, onDelete }) =>
   }, [
     div({
       style: {
-        width: '30%', color: isAdmin ? Style.colors.secondary : undefined,
+        width: '30%', color: isAdmin ? colors.primary[0] : undefined,
         ...styles.longTitle
       }
     }, [groupName]),

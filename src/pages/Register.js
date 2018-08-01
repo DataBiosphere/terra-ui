@@ -6,8 +6,8 @@ import { textInput } from 'src/components/input'
 import planet from 'src/images/register-planet.svg'
 import { User } from 'src/libs/ajax'
 import { authStore, getBasicProfile, signOut } from 'src/libs/auth'
+import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
-import * as Style from 'src/libs/style'
 import validate from 'validate.js'
 
 
@@ -60,11 +60,11 @@ export default class Register extends Component {
     }, [
       div({ style: { display: 'flex', alignItems: 'center' } }, [
         logo({ size: 100, style: { marginRight: 20 } }),
-        div({ style: { fontWeight: 500, fontSize: 70, color: Style.colors.title } }, ['SATURN'])
+        div({ style: { fontWeight: 500, fontSize: 70, color: colors.title[0] } }, ['SATURN'])
       ]),
       div({
         style: {
-          marginTop: '4rem', color: Style.colors.titleAlt,
+          marginTop: '4rem', color: colors.titleAlt,
           fontSize: '1.5rem', fontWeight: 500
         }
       }, 'New User Registration'),

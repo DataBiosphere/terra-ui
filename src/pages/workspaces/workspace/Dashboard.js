@@ -4,6 +4,7 @@ import ReactMarkdown from 'react-markdown'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { link } from 'src/components/common'
 import { Workspaces } from 'src/libs/ajax'
+import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
@@ -24,7 +25,7 @@ const styles = {
     marginBottom: '1rem'
   },
   infoTile: {
-    backgroundColor: Style.colors.background, color: 'black',
+    backgroundColor: colors.text[5], color: 'black',
     borderRadius: 5, width: 90, padding: 7, margin: 4
   },
   tinyCaps: {
@@ -90,7 +91,7 @@ class WorkspaceDashboardContent extends Component {
           h(InfoTile, { title: 'Access level' }, [roleString[accessLevel]]),
           h(InfoTile, { title: 'Est. $/month' }, [storageCostEstimate])
         ]),
-        div({ style: { margin: '0.5rem 0', borderBottom: `1px solid ${Style.colors.border}` } }),
+        div({ style: { margin: '0.5rem 0', borderBottom: `1px solid ${colors.text[3]}` } }),
         link({
           target: '_blank',
           href: Utils.bucketBrowserUrl(bucketName),

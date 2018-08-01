@@ -7,6 +7,7 @@ import { icon } from 'src/components/icons'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
 import { TopBar } from 'src/components/TopBar'
 import { Workspaces } from 'src/libs/ajax'
+import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
@@ -31,7 +32,7 @@ const styles = {
   },
   shortTitle: {
     flex: 'none',
-    color: Style.colors.secondary, fontSize: 16,
+    color: colors.primary[0], fontSize: 16,
     lineHeight: '20px', height: '40px',
     overflow: 'hidden', wordWrap: 'break-word'
   },
@@ -42,7 +43,7 @@ const styles = {
   },
   shortCreateCard: {
     display: 'flex', flexDirection: 'column', justifyContent: 'center',
-    color: Style.colors.secondary, fontSize: 20, lineHeight: '28px'
+    color: colors.primary[0], fontSize: 20, lineHeight: '28px'
   },
   longCard: {
     ...Style.elements.card,
@@ -53,7 +54,7 @@ const styles = {
     display: 'flex', flexDirection: 'column', justifyContent: 'space-between'
   },
   longTitle: {
-    color: Style.colors.secondary, fontSize: 16,
+    color: colors.primary[0], fontSize: 16,
     whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'
   },
   longDescription: {
@@ -64,11 +65,11 @@ const styles = {
   badge: {
     height: '1.5rem', width: '1.5rem', borderRadius: '1.5rem',
     lineHeight: '1.5rem', textAlign: 'center',
-    backgroundColor: Style.colors.accent, color: 'white'
+    backgroundColor: colors.accent[0], color: 'white'
   },
   longCreateCard: {
     display: 'flex', flexDirection: 'column', justifyContent: 'center',
-    color: Style.colors.secondary, fontSize: 16
+    color: colors.primary[0], fontSize: 16
   },
   toolbarContainer: {
     flex: 'none', display: 'flex', alignItems: 'flex-end',
@@ -81,14 +82,14 @@ const styles = {
   toolbarButton: active => ({
     display: 'flex', justifyContent: 'center', alignItems: 'center',
     height: '2.25rem', width: '3rem',
-    color: active ? Style.colors.primary : Style.colors.secondary
+    color: active ? colors.primary[1] : colors.primary[0]
   })
 }
 
 const WorkspaceCard = pure(({ listView, workspace: { workspace: { namespace, name, createdBy, lastModified, attributes: { description } } } }) => {
   const lastChanged = `Last changed: ${Utils.makePrettyDate(lastModified)}`
   const badge = div({ title: createdBy, style: styles.badge }, [createdBy[0].toUpperCase()])
-  const descText = description || span({ style: { color: Style.colors.textFaded } }, [
+  const descText = description || span({ style: { color: colors.text[2] } }, [
     'No description added'
   ])
   return listView ? a({

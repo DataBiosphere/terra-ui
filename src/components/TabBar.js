@@ -1,13 +1,13 @@
 import _ from 'lodash/fp'
 import { h, div } from 'react-hyperscript-helpers'
 import { Clickable } from 'src/components/common'
-import * as Style from 'src/libs/style'
+import colors from 'src/libs/colors'
 
 const TabBar = ({ tabs, activeTab, onChangeTab, style }) => {
   return div({
     style: {
       display: 'flex', alignItems: 'flex-end',
-      borderBottom: `2px solid ${Style.colors.secondary}`,
+      borderBottom: `2px solid ${colors.primary[0]}`,
       ...style
     }
   }, [
@@ -16,8 +16,8 @@ const TabBar = ({ tabs, activeTab, onChangeTab, style }) => {
         key,
         style: {
           height: '2.25rem', display: 'flex', alignItems: 'center',
-          fontSize: 16, fontWeight: 500, color: Style.colors.secondary,
-          borderBottom: `4px solid ${activeTab === key ? Style.colors.secondary : 'transparent'}`,
+          fontSize: 16, fontWeight: 500, color: colors.primary[0],
+          borderBottom: `4px solid ${activeTab === key ? colors.primary[0] : 'transparent'}`,
           marginLeft: i * 1 > 0 ? '1rem' : undefined
         },
         onClick: () => onChangeTab(key)

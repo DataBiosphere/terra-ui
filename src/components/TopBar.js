@@ -5,6 +5,7 @@ import { Clickable, comingSoon, MenuButton } from 'src/components/common'
 import { icon, logo, profilePic } from 'src/components/icons'
 import PopupTrigger from 'src/components/PopupTrigger'
 import { getBasicProfile, signOut } from 'src/libs/auth'
+import colors from 'src/libs/colors'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import { Component } from 'src/libs/wrapped-components'
@@ -15,7 +16,7 @@ const styles = {
     flex: 'none', height: 80,
     backgroundColor: 'white', paddingLeft: '1rem',
     display: 'flex', alignItems: 'center',
-    borderBottom: `2px solid ${Style.colors.secondary}`
+    borderBottom: `2px solid ${colors.primary[0]}`
   },
   nav: {
     background: {
@@ -24,16 +25,16 @@ const styles = {
     },
     container: {
       display: 'table', width: 350, color: 'white', position: 'absolute', cursor: 'default',
-      backgroundColor: Style.colors.navMenu, height: '100%',
+      backgroundColor: colors.title[1], height: '100%',
       boxShadow: '3px 0 13px 0 rgba(0,0,0,0.3)'
     },
     profile: {
-      backgroundColor: Style.colors.background,
-      color: Style.colors.title, borderBottom: 'none'
+      backgroundColor: colors.text[5],
+      color: colors.title[0], borderBottom: 'none'
     },
     item: {
       display: 'flex', alignItems: 'center',
-      padding: '1rem', borderBottom: `1px solid ${Style.colors.navSeparator}`, color: 'white',
+      padding: '1rem', borderBottom: `1px solid ${colors.title[2]}`, color: 'white',
       lineHeight: '1.75rem',
       fontWeight: 400
     },
@@ -80,7 +81,7 @@ export class TopBar extends Component {
             icon('bars', {
               dir: 'right',
               size: 36,
-              style: { marginRight: '2rem', color: Style.colors.accent, cursor: 'pointer' },
+              style: { marginRight: '2rem', color: colors.accent[0], cursor: 'pointer' },
               onClick: () => this.hideNav()
             }),
             a({
@@ -122,7 +123,7 @@ export class TopBar extends Component {
               ])
             }, [
               h(Clickable, {
-                style: { color: Style.colors.primary }
+                style: { color: colors.primary[1] }
               }, [icon('caretDown', { size: 18 })])
             ])
           ]),
@@ -158,7 +159,7 @@ export class TopBar extends Component {
     return div({ style: styles.topBar }, [
       icon('bars', {
         size: 36,
-        style: { marginRight: '2rem', color: Style.colors.accent, cursor: 'pointer' },
+        style: { marginRight: '2rem', color: colors.accent[0], cursor: 'pointer' },
         onClick: () => this.showNav()
       }),
       a({
@@ -168,7 +169,7 @@ export class TopBar extends Component {
         logo(),
         div({}, [
           div({
-            style: { fontSize: '0.8rem', color: Style.colors.titleAlt, marginLeft: '0.1rem' }
+            style: { fontSize: '0.8rem', color: colors.titleAlt, marginLeft: '0.1rem' }
           }, ['Saturn']),
           title
         ])

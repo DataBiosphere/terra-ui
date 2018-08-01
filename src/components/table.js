@@ -6,7 +6,7 @@ import Interactive from 'react-interactive'
 import Pagination from 'react-paginating'
 import { Grid as RVGrid, ScrollSync as RVScrollSync } from 'react-virtualized'
 import { icon } from 'src/components/icons'
-import * as Style from 'src/libs/style'
+import colors from 'src/libs/colors'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 
@@ -15,7 +15,7 @@ const paginatorButton = (props, label) => button(_.merge({
   style: {
     margin: '0 2px', padding: '0.25rem 0.5rem',
     border: '1px solid #ccc', borderRadius: 3,
-    color: props.disabled ? Style.colors.disabled : Style.colors.primary, backgroundColor: 'white',
+    color: props.disabled ? colors.text[2] : colors.primary[1], backgroundColor: 'white',
     cursor: props.disabled ? 'not-allowed' : 'pointer'
   }
 }, props), label)
@@ -63,9 +63,9 @@ export const paginator = function(props) {
                 key: num,
                 style: {
                   minWidth: '2rem',
-                  backgroundColor: currentPage === num ? Style.colors.primary : undefined,
-                  color: currentPage === num ? 'white' : Style.colors.primary,
-                  border: currentPage === num ? Style.colors.primary : undefined
+                  backgroundColor: currentPage === num ? colors.primary[1] : undefined,
+                  color: currentPage === num ? 'white' : colors.primary[1],
+                  border: currentPage === num ? colors.primary[1] : undefined
                 }
               },
               getPageItemProps({ pageValue: num, onPageChange: setPageNumber })),
@@ -111,17 +111,17 @@ const cellStyles = {
 const styles = {
   cell: (col, total) => ({
     ...cellStyles,
-    borderBottom: `1px solid ${Style.colors.border}`,
-    borderLeft: col === 0 ? `1px solid ${Style.colors.border}` : undefined,
-    borderRight: col === total - 1 ? `1px solid ${Style.colors.border}` : undefined
+    borderBottom: `1px solid ${colors.text[3]}`,
+    borderLeft: col === 0 ? `1px solid ${colors.text[3]}` : undefined,
+    borderRight: col === total - 1 ? `1px solid ${colors.text[3]}` : undefined
   }),
   header: (col, total) => ({
     ...cellStyles,
-    backgroundColor: Style.colors.sectionHighlight,
-    borderTop: `1px solid ${Style.colors.sectionBorder}`,
-    borderBottom: `2px solid ${Style.colors.sectionBorder}`,
-    borderLeft: col === 0 ? `1px solid ${Style.colors.sectionBorder}` : undefined,
-    borderRight: col === total - 1 ? `1px solid ${Style.colors.sectionBorder}` : undefined,
+    backgroundColor: colors.primary[4],
+    borderTop: `1px solid ${colors.primary[1]}`,
+    borderBottom: `2px solid ${colors.primary[1]}`,
+    borderLeft: col === 0 ? `1px solid ${colors.primary[1]}` : undefined,
+    borderRight: col === total - 1 ? `1px solid ${colors.primary[1]}` : undefined,
     borderTopLeftRadius: col === 0 ? '5px' : undefined,
     borderTopRightRadius: col === total - 1 ? '5px' : undefined
   }),
@@ -187,8 +187,8 @@ export class FlexTable extends Component {
             key: data.key,
             as: 'div',
             className: 'table-row',
-            style: { ...data.style, backgroundColor: '#ffffff', display: 'flex', ...(rowStyle ? rowStyle(data.rowIndex) : {}) },
-            hover: hoverHighlight ? { backgroundColor: Style.colors.highlightFaded } : undefined
+            style: { ...data.style, backgroundColor: 'white', display: 'flex', ...(rowStyle ? rowStyle(data.rowIndex) : {}) },
+            hover: hoverHighlight ? { backgroundColor: colors.primary[5] } : undefined
           }, [
             ..._.map(([i, { size, cellRenderer }]) => {
               return div({
@@ -272,7 +272,7 @@ export class GridTable extends Component {
                 style: {
                   ...data.style,
                   ...styles.cell(data.columnIndex, columns.length),
-                  backgroundColor: '#ffffff',
+                  backgroundColor: 'white',
                   ...(cellStyle ? cellStyle(data) : {})
                 }
               }, [
@@ -306,7 +306,7 @@ export const Sortable = ({ sort, field, onSort, children }) => {
   }, [
     children,
     sort.field === field && div({
-      style: { color: Style.colors.secondary, marginLeft: 'auto' }
+      style: { color: colors.primary[0], marginLeft: 'auto' }
     }, [
       icon(sort.direction === 'asc' ? 'arrow down' : 'arrow')
     ])

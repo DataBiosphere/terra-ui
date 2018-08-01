@@ -11,6 +11,7 @@ import gtexLogo from 'src/images/browse-data/GTeX@2x.png'
 import hcaLogo from 'src/images/browse-data/HCA@2x.png'
 import nhsLogo from 'src/images/browse-data/NHS@2x.png'
 import topMedLogo from 'src/images/browse-data/TopMed@2x.png'
+import colors from 'src/libs/colors'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 
@@ -65,7 +66,7 @@ const styles = {
       ...Style.elements.sectionHeader, textTransform: 'uppercase'
     },
     title: {
-      fontSize: 20, color: Style.colors.secondary
+      fontSize: 20, color: colors.primary[0]
     }
   }
 }
@@ -73,8 +74,8 @@ const styles = {
 
 const FadeBox = ({
   padding = '1.5rem',
-  backgroundColor = Style.colors.background,
-  borderColor = Style.colors.textFaded,
+  backgroundColor = colors.text[5],
+  borderColor = colors.text[2],
   fadePoint = '60%',
   children
 }) => {
@@ -112,7 +113,7 @@ const logoBox = ({ src, alt }) => div({
     display: 'inline-flex', justifyContent: 'center', alignItems: 'center',
     flex: 'none',
     height: 200, width: 450,
-    border: `1px solid ${Style.colors.border}`, borderRadius: 5,
+    border: `1px solid ${colors.text[3]}`, borderRadius: 5,
     backgroundColor: 'white'
   }
 }, [
@@ -189,8 +190,8 @@ const BrowseData = pure(() => {
           borderRadius: 5
         },
         hover: {
-          backgroundColor: Style.colors.primary,
-          borderColor: Style.colors.primary
+          backgroundColor: colors.primary[1],
+          borderColor: colors.primary[1]
         }
       }, ['Learn How'])
     ]),

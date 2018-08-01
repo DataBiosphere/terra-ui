@@ -1,14 +1,14 @@
 import { a, span } from 'react-hyperscript-helpers/lib/index'
 import { breadcrumb } from 'src/components/icons'
+import colors from 'src/libs/colors'
 import * as Nav from 'src/libs/nav'
-import * as Style from 'src/libs/style'
 
 
 export const breadcrumbElement = function(child, href) {
   if (href) {
-    return a({ style: { color: Style.colors.textFaded }, href }, [child, breadcrumb()])
+    return a({ style: { color: colors.text[2] }, href }, [child, breadcrumb()])
   } else {
-    return span({ style: { color: Style.colors.textFaded } }, [child, breadcrumb()])
+    return span({ style: { color: colors.text[2] } }, [child, breadcrumb()])
   }
 }
 

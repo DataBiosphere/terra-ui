@@ -4,6 +4,7 @@ import { div, h, iframe } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { icon, spinner } from 'src/components/icons'
 import { Jupyter } from 'src/libs/ajax'
+import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
@@ -156,8 +157,8 @@ class NotebookLauncherContent extends Component {
 
     const step = (index, text) => div({ style: styles.step.container }, [
       div({ style: styles.step.col1 }, [
-        index < currentStep && icon('check', { size: 24, style: { color: Style.colors.success } }),
-        index === currentStep && (failed ? icon('times', { size: 24, style: { color: Style.colors.error } }) : spinner())
+        index < currentStep && icon('check', { size: 24, style: { color: colors.success[0] } }),
+        index === currentStep && (failed ? icon('times', { size: 24, style: { color: colors.error[0] } }) : spinner())
       ]),
       div({ style: styles.step.col2 }, [text])
     ])

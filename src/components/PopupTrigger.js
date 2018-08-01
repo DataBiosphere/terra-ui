@@ -4,13 +4,14 @@ import { div, h, span } from 'react-hyperscript-helpers'
 import onClickOutside from 'react-onclickoutside'
 import ToolTip from 'react-portal-tooltip'
 import { icon } from 'src/components/icons'
+import colors from 'src/libs/colors'
 import * as Style from 'src/libs/style'
 
 
 const styles = {
   popup: {
     transition: 'none',
-    border: `1px solid ${Style.colors.border}`,
+    border: `1px solid ${colors.text[3]}`,
     boxShadow: Style.standardShadow,
     padding: 0
   }
@@ -63,7 +64,7 @@ export const InfoBox = ({ size, children, style, position, align }) => h(PopupTr
   position, align,
   content: div({ style: { padding: '0.5rem', width: 300 } }, children)
 }, [
-  span({ style: { cursor: 'pointer', color: Style.colors.secondary, ...style } }, [
+  span({ style: { cursor: 'pointer', color: colors.primary[0], ...style } }, [
     icon('info-circle', { className: 'is-solid', size })
   ])
 ])

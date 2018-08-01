@@ -9,6 +9,7 @@ import { NotebookCreator, NotebookDeleter, NotebookDuplicator } from 'src/compon
 import PopupTrigger from 'src/components/PopupTrigger'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { Buckets } from 'src/libs/ajax'
+import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
@@ -84,11 +85,11 @@ class NotebookCard extends Component {
         height: '2em',
         width: '2em',
         margin: '-0.5em 0.5rem -0.5em 0',
-        color: Style.colors.background
+        color: colors.text[5]
       } : {
         height: 125,
         width: 'auto',
-        color: Style.colors.background
+        color: colors.text[5]
       }
     })
 
@@ -207,7 +208,7 @@ class NotebooksContent extends Component {
         }
       }, [
         h(Clickable, {
-          style: { ...Style.elements.card, flex: 1, color: Style.colors.secondary },
+          style: { ...Style.elements.card, flex: 1, color: colors.primary[0] },
           onClick: () => this.setState({ creating: true }),
           disabled: !canWrite,
           tooltip: !canWrite ? noWrite : undefined
@@ -226,7 +227,7 @@ class NotebooksContent extends Component {
         h(Clickable, {
           style: {
             ...Style.elements.card, flex: 1,
-            backgroundColor: '#dcdcdc', border: '1px dashed #9B9B9B', boxShadow: 'none'
+            backgroundColor: colors.text[4], border: `1px dashed ${colors.text[2]}`, boxShadow: 'none'
           },
           onClick: () => this.uploader.current.open(),
           disabled: !canWrite,
@@ -263,7 +264,7 @@ class NotebooksContent extends Component {
       disableClick: true,
       disablePreview: true,
       style: { flexGrow: 1, padding: '1rem' },
-      activeStyle: { backgroundColor: Style.colors.highlight, cursor: 'copy' }, // accept and reject don't work in all browsers
+      activeStyle: { backgroundColor: colors.primary[3], cursor: 'copy' }, // accept and reject don't work in all browsers
       acceptStyle: { cursor: 'copy' },
       rejectStyle: { cursor: 'no-drop' },
       ref: this.uploader,
@@ -276,13 +277,13 @@ class NotebooksContent extends Component {
             margin: '0 1.25rem'
           }
         }, [
-          div({ style: { color: Style.colors.title, fontSize: 16, fontWeight: 500 } }, 'NOTEBOOKS'),
+          div({ style: { color: colors.title[0], fontSize: 16, fontWeight: 500 } }, 'NOTEBOOKS'),
           div({ style: { flexGrow: 1 } }),
-          div({ style: { color: Style.colors.secondary, padding: '0.5rem 1rem', backgroundColor: 'white', borderRadius: 3 } }, [
+          div({ style: { color: colors.primary[0], padding: '0.5rem 1rem', backgroundColor: 'white', borderRadius: 3 } }, [
             h(Clickable, {
               as: icon('view-cards'),
               style: {
-                color: listView ? null : Style.colors.primary,
+                color: listView ? null : colors.primary[1],
                 marginRight: '1rem', width: 26, height: 22
               },
               size: 26,
@@ -290,7 +291,7 @@ class NotebooksContent extends Component {
             }),
             h(Clickable, {
               as: icon('view-list'),
-              style: { color: listView ? Style.colors.primary : null },
+              style: { color: listView ? colors.primary[1] : null },
               size: 26,
               onClick: () => this.setState({ listView: true })
             })

@@ -8,8 +8,8 @@ import Modal from 'src/components/Modal'
 import TabBar from 'src/components/TabBar'
 import { GridTable, HeaderCell, TextCell } from 'src/components/table'
 import { Workspaces } from 'src/libs/ajax'
+import colors from 'src/libs/colors'
 import { renderDataCell } from 'src/libs/data-utils'
-import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 
@@ -131,12 +131,12 @@ export default class LaunchAnalysisModal extends Component {
             ],
             cellStyle: ({ rowIndex }) => {
               return selectedEntity === filteredEntities[rowIndex].name ?
-                { backgroundColor: Style.colors.highlightFaded } : {}
+                { backgroundColor: colors.primary[5] } : {}
             }
           })
         }
       ]),
-      div({ style: { marginTop: 10, textAlign: 'right', color: Style.colors.error } }, [launchError])
+      div({ style: { marginTop: 10, textAlign: 'right', color: colors.error[0] } }, [launchError])
     ])
   }
 

@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import { div, h } from 'react-hyperscript-helpers'
 import { Clickable } from 'src/components/common'
 import { icon } from 'src/components/icons'
-import * as Style from 'src/libs/style'
+import colors from 'src/libs/colors'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 
@@ -32,7 +32,7 @@ export default class TopBanner extends Component {
         transform: `translate(0px, ${show ? '0px' : '-100%'})`,
         position: 'fixed', top: 0,
         width: '100%',
-        padding: '1rem', backgroundColor: Style.colors.accent,
+        padding: '1rem', backgroundColor: colors.accent[0],
         color: 'white', fontSize: '1rem'
       }
     },

@@ -11,25 +11,25 @@ import PopupTrigger from 'src/components/PopupTrigger'
 import { TopBar } from 'src/components/TopBar'
 import { Jupyter, Workspaces } from 'src/libs/ajax'
 import { getBasicProfile } from 'src/libs/auth'
+import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
-import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 
 
 const styles = {
   tabContainer: {
-    paddingLeft: '5rem', borderBottom: `5px solid ${Style.colors.secondary}`,
+    paddingLeft: '5rem', borderBottom: `5px solid ${colors.primary[0]}`,
     color: 'white', textTransform: 'uppercase'
   },
   tab: {
-    maxWidth: 140, flexGrow: 1, color: Style.colors.textFadedLight,
+    maxWidth: 140, flexGrow: 1, color: colors.text[4],
     alignSelf: 'stretch', display: 'flex', justifyContent: 'center', alignItems: 'center'
   },
   activeTab: {
     backgroundColor: 'rgba(255,255,255,0.15)', color: 'unset',
-    borderBottom: `4px solid ${Style.colors.secondary}`
+    borderBottom: `4px solid ${colors.primary[0]}`
   }
 }
 
