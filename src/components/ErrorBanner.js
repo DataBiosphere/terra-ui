@@ -29,7 +29,7 @@ class ErrorBanner extends Component {
     [
       h(Clickable, {
         disabled: onFirst,
-        style: { display: 'flex', color: onFirst ? colors.text[2] : null },
+        style: { display: 'flex', color: onFirst ? colors.gray[2] : null },
         onClick: () => this.setState({ errorNumber: errorNumber - 1 })
       }, [icon('angle left')]),
       div({
@@ -41,7 +41,7 @@ class ErrorBanner extends Component {
       }, [errorNumber + 1, '/', errorState.length]),
       h(Clickable, {
         disabled: onLast,
-        style: { marginRight: '1rem', display: 'flex', color: onLast ? colors.text[2] : null },
+        style: { marginRight: '1rem', display: 'flex', color: onLast ? colors.gray[2] : null },
         onClick: () => this.setState({ errorNumber: errorNumber + 1 })
       }, [icon('angle right')]),
       title,

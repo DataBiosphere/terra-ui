@@ -25,7 +25,7 @@ const styles = {
     marginBottom: '1rem'
   },
   infoTile: {
-    backgroundColor: colors.text[5], color: 'black',
+    backgroundColor: colors.gray[5], color: 'black',
     borderRadius: 5, width: 90, padding: 7, margin: 4
   },
   tinyCaps: {
@@ -91,7 +91,7 @@ class WorkspaceDashboardContent extends Component {
           h(InfoTile, { title: 'Access level' }, [roleString[accessLevel]]),
           h(InfoTile, { title: 'Est. $/month' }, [storageCostEstimate])
         ]),
-        div({ style: { margin: '0.5rem 0', borderBottom: `1px solid ${colors.text[3]}` } }),
+        div({ style: { margin: '0.5rem 0', borderBottom: `1px solid ${colors.gray[3]}` } }),
         link({
           target: '_blank',
           href: Utils.bucketBrowserUrl(bucketName),

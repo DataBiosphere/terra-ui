@@ -24,7 +24,7 @@ const styles = {
   },
   shortTitle: {
     flex: 'none',
-    color: colors.primary[0], fontSize: 16,
+    color: colors.blue[0], fontSize: 16,
     lineHeight: '20px', height: '40px',
     overflow: 'hidden', overflowWrap: 'break-word'
   }

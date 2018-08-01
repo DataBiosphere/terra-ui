@@ -66,7 +66,7 @@ class StyleGuide extends Component {
         icon('logoIcon', { size: 210 }),
         span({
           style: {
-            fontSize: 55, fontWeight: 700, color: colors.titleAlt, letterSpacing: 1.78,
+            fontSize: 55, fontWeight: 700, color: colors.slate, letterSpacing: 1.78,
             marginLeft: '2rem'
           }
         }, [
@@ -76,17 +76,17 @@ class StyleGuide extends Component {
       els.section('Color Styles', [
         els.columns([
           div([
-            els.colorWaterfall(colors.primary, 'primary'),
-            els.colorWaterfall(colors.title, 'title'),
-            els.colorWaterfall(colors.text, 'text'),
-            els.colorWaterfall(colors.accent, 'accent')
+            els.colorWaterfall(colors.blue, 'blue'),
+            els.colorWaterfall(colors.darkBlue, 'dark blue'),
+            els.colorWaterfall(colors.gray, 'gray'),
+            els.colorWaterfall(colors.purple, 'purple')
           ]),
           div([
-            els.colorWaterfall(colors.success, 'success'),
-            els.colorWaterfall(colors.error, 'error'),
-            els.colorWaterfall(colors.warning, 'warning'),
-            els.colorSwatch(colors.titleAlt, 'title alt'),
-            els.colorSwatch(colors.standout, 'standout')
+            els.colorWaterfall(colors.green, 'green'),
+            els.colorWaterfall(colors.red, 'red'),
+            els.colorWaterfall(colors.orange, 'orange'),
+            els.colorSwatch(colors.slate, 'slate'),
+            els.colorSwatch(colors.brick, 'brick')
           ])
         ])
       ]),
@@ -227,7 +227,7 @@ class StyleGuide extends Component {
             }
           ])
         ]),
-        div({ style: { height: 300 } }, [
+        div({ style: { height: 300, marginTop: '1.5rem' } }, [
           h(AutoSizer, [
             ({ width, height }) => {
               return h(GridTable, {

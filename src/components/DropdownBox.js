@@ -12,8 +12,8 @@ const styles = {
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
-    border: open ? `1px solid ${colors.text[3]}` : undefined,
-    color: disabled ? colors.text[2] : (open ? colors.primary[1] : colors.primary[0]),
+    border: open ? `1px solid ${colors.gray[3]}` : undefined,
+    color: disabled ? colors.gray[2] : (open ? colors.blue[1] : colors.blue[0]),
     backgroundColor: open ? 'white' : undefined,
     borderRadius: '5px 5px 0 0',
     cursor: disabled ? 'not-allowed' : 'pointer'
@@ -21,7 +21,7 @@ const styles = {
   box: {
     position: 'absolute',
     right: 0,
-    border: `1px solid ${colors.text[3]}`,
+    border: `1px solid ${colors.gray[3]}`,
     backgroundColor: 'white',
     borderRadius: '5px 0 5px 5px',
     zIndex: 1

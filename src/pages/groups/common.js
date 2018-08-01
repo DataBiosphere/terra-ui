@@ -13,7 +13,7 @@ export const styles = {
     display: 'flex', flexDirection: 'column', justifyContent: 'center',
     width: 180, height: 100,
     margin: '0.25rem 1rem 0 0',
-    color: colors.primary[0], fontSize: 18, lineHeight: '22px'
+    color: colors.blue[0], fontSize: 18, lineHeight: '22px'
   },
   longCard: {
     ...Style.elements.card,

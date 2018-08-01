@@ -20,16 +20,16 @@ import { Component } from 'src/libs/wrapped-components'
 
 const styles = {
   tabContainer: {
-    paddingLeft: '5rem', borderBottom: `5px solid ${colors.primary[0]}`,
+    paddingLeft: '5rem', borderBottom: `5px solid ${colors.blue[0]}`,
     color: 'white', textTransform: 'uppercase'
   },
   tab: {
-    maxWidth: 140, flexGrow: 1, color: colors.text[4],
+    maxWidth: 140, flexGrow: 1, color: colors.gray[4],
     alignSelf: 'stretch', display: 'flex', justifyContent: 'center', alignItems: 'center'
   },
   activeTab: {
     backgroundColor: 'rgba(255,255,255,0.15)', color: 'unset',
-    borderBottom: `4px solid ${colors.primary[0]}`
+    borderBottom: `4px solid ${colors.blue[0]}`
   }
 }
 

@@ -8,7 +8,7 @@ const ConfigOverridesWarning = Utils.connectAtom(configOverridesStore, 'configOv
     return !!configOverrides && div({
       style: {
         position: 'fixed', bottom: 0, right: 0,
-        color: 'white', backgroundColor: colors.accent[0],
+        color: 'white', backgroundColor: colors.purple[0],
         padding: '1rem'
       }
     }, [

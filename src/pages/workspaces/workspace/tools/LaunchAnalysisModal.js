@@ -131,12 +131,12 @@ export default class LaunchAnalysisModal extends Component {
             ],
             cellStyle: ({ rowIndex }) => {
               return selectedEntity === filteredEntities[rowIndex].name ?
-                { backgroundColor: colors.primary[5] } : {}
+                { backgroundColor: colors.blue[5] } : {}
             }
           })
         }
       ]),
-      div({ style: { marginTop: 10, textAlign: 'right', color: colors.error[0] } }, [launchError])
+      div({ style: { marginTop: 10, textAlign: 'right', color: colors.red[0] } }, [launchError])
     ])
   }
 

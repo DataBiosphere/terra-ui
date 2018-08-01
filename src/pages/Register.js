@@ -60,11 +60,11 @@ export default class Register extends Component {
     }, [
       div({ style: { display: 'flex', alignItems: 'center' } }, [
         logo({ size: 100, style: { marginRight: 20 } }),
-        div({ style: { fontWeight: 500, fontSize: 70, color: colors.title[0] } }, ['SATURN'])
+        div({ style: { fontWeight: 500, fontSize: 70, color: colors.darkBlue[0] } }, ['SATURN'])
       ]),
       div({
         style: {
-          marginTop: '4rem', color: colors.titleAlt,
+          marginTop: '4rem', color: colors.slate,
           fontSize: '1.5rem', fontWeight: 500
         }
       }, 'New User Registration'),

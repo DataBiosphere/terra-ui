@@ -49,7 +49,7 @@ export class DestinationWorkspace extends Component {
           'Import'),
         isImporting && spinner({ style: { marginLeft: '0.5rem' } }),
         importError && div({
-          style: { marginTop: '1rem', color: colors.error[0] }
+          style: { marginTop: '1rem', color: colors.red[0] }
         }, [
           icon('error'),
           JSON.parse(importError).message
@@ -137,7 +137,7 @@ class DockstoreImporter extends Component {
         div({
           style: {
             display: 'flex', alignItems: 'center',
-            margin: '1rem 0', color: colors.warning[0]
+            margin: '1rem 0', color: colors.orange[0]
           }
         },
         [

@@ -49,7 +49,7 @@ export const logo = function(props) {
 
 export const spinner = function(props) {
   return icon('loadingSpinner',
-    _.merge({ size: 24, style: { color: colors.primary[1] } }, props))
+    _.merge({ size: 24, style: { color: colors.blue[1] } }, props))
 }
 
 export const centeredSpinner = function(props) {

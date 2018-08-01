@@ -34,10 +34,10 @@ export const Clickable = ({ as = 'div', disabled, tooltip, tooltipSide, onClick,
 const linkProps = disabled => ({
   as: 'a',
   style: {
-    color: disabled ? colors.text[2] : colors.primary[0],
+    color: disabled ? colors.gray[2] : colors.blue[0],
     cursor: disabled ? 'not-allowed' : 'pointer'
   },
-  hover: disabled ? undefined : { color: colors.primary[1] }
+  hover: disabled ? undefined : { color: colors.blue[1] }
 })
 
 export const link = function(props, children) {
@@ -58,10 +58,10 @@ export const buttonPrimary = ({ disabled, ...props }, children) => {
     style: {
       ...styles.button,
       borderRadius: 5, color: 'white', padding: '0 1.5rem',
-      backgroundColor: disabled ? colors.text[2] : colors.primary[0],
+      backgroundColor: disabled ? colors.gray[2] : colors.blue[0],
       cursor: disabled ? 'not-allowed' : 'pointer'
     },
-    hover: disabled ? undefined : { backgroundColor: colors.primary[1] }
+    hover: disabled ? undefined : { backgroundColor: colors.blue[1] }
   }, props), children)
 }
 
@@ -70,10 +70,10 @@ export const buttonSecondary = ({ disabled, ...props }, children) => {
     disabled,
     style: {
       ...styles.button,
-      color: disabled ? colors.text[2] : colors.text[0],
+      color: disabled ? colors.gray[2] : colors.gray[0],
       cursor: disabled ? 'not-allowed' : 'pointer'
     },
-    hover: disabled ? undefined : { color: colors.text[1] }
+    hover: disabled ? undefined : { color: colors.gray[1] }
   }, props), children)
 }
 
@@ -96,8 +96,8 @@ export const search = function({ wrapperProps, inputProps }) {
 export const contextBar = function(props, children) {
   return div(_.merge({
     style: {
-      display: 'flex', alignItems: 'center', backgroundColor: colors.primary[1],
-      color: colors.text[3], fontWeight: 500,
+      display: 'flex', alignItems: 'center', backgroundColor: colors.blue[1],
+      color: colors.gray[3], fontWeight: 500,
       height: '3.75rem', padding: '0 1rem'
     }
   }, props),
@@ -110,11 +110,11 @@ export const MenuButton = ({ disabled, children, ...props }) => {
     style: {
       display: 'flex', alignItems: 'center',
       fontSize: 12, minWidth: 125, height: '2rem',
-      color: disabled ? colors.text[2] : colors.text[0],
+      color: disabled ? colors.gray[2] : colors.gray[0],
       padding: '0 1.5rem',
       cursor: disabled ? 'not-allowed' : 'pointer'
     },
-    hover: !disabled ? { backgroundColor: colors.primary[3], fontWeight: 500 } : undefined
+    hover: !disabled ? { backgroundColor: colors.blue[3], fontWeight: 500 } : undefined
   }, props), [children])
 }
 
@@ -127,10 +127,10 @@ export const Checkbox = ({ checked, onChange, disabled, ...props }) => {
     style: {
       display: 'inline-flex',
       verticalAlign: 'middle',
-      color: disabled ? colors.text[2] : colors.primary[0]
+      color: disabled ? colors.gray[2] : colors.blue[0]
     },
-    hover: disabled ? undefined : { color: colors.primary[1] },
-    active: disabled ? undefined : { backgroundColor: colors.primary[5] },
+    hover: disabled ? undefined : { color: colors.blue[1] },
+    active: disabled ? undefined : { backgroundColor: colors.blue[5] },
     disabled,
     ...props
   }, [
@@ -192,7 +192,7 @@ export const spinnerOverlay = div(
 export const comingSoon = span({
   style: {
     margin: '0.5rem', padding: 3, borderRadius: 2,
-    backgroundColor: colors.accent[0], color: 'white',
+    backgroundColor: colors.purple[0], color: 'white',
     fontSize: '75%', textTransform: 'uppercase', fontWeight: 500,
     whiteSpace: 'nowrap', lineHeight: 1
   }

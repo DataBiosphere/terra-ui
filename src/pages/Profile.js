@@ -21,7 +21,7 @@ const styles = {
   },
   sectionTitle: {
     margin: '2rem 0 1rem',
-    color: colors.title[0], fontSize: 16, fontWeight: 500, textTransform: 'uppercase'
+    color: colors.darkBlue[0], fontSize: 16, fontWeight: 500, textTransform: 'uppercase'
   },
   header: {
     line: {
@@ -34,7 +34,7 @@ const styles = {
     text: {
       container: {
         marginLeft: '2rem',
-        color: colors.title[0]
+        color: colors.darkBlue[0]
       },
       nameLine: {
         fontSize: '150%'
@@ -82,7 +82,7 @@ const percentageCircle = ({ radius, fraction, color = '#7bb156', strokeWidth = 6
     path({
       d: pathDesc,
       fill: 'none',
-      stroke: colors.text[4],
+      stroke: colors.gray[4],
       strokeWidth
     }),
     path({

@@ -66,7 +66,7 @@ class NewUserModal extends Component {
       }),
       div({ style: styles.formLabel }, ['Role']),
       roleSelector({ role, updateState: role => this.setState({ role }) }),
-      submitError && div({ style: { marginTop: '0.5rem', textAlign: 'right', color: colors.error[0] } }, [submitError]),
+      submitError && div({ style: { marginTop: '0.5rem', textAlign: 'right', color: colors.red[0] } }, [submitError]),
       submitting && spinnerOverlay
     ])
   }

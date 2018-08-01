@@ -1,5 +1,5 @@
 export default {
-  primary: [
+  blue: [
     '#2691d0',
     '#5aa6da',
     '#85bde4',
@@ -8,7 +8,7 @@ export default {
     '#eaf4fb'
   ],
 
-  title: [
+  darkBlue: [
     '#224f83',
     '#51719c',
     '#7d95b5',
@@ -17,7 +17,7 @@ export default {
     '#eaedf3'
   ],
 
-  text: [
+  gray: [
     '#4a4a4a',
     '#6e6e6e',
     '#929292',
@@ -26,7 +26,7 @@ export default {
     '#ededed'
   ],
 
-  accent: [
+  purple: [
     '#8a6194',
     '#a180a9',
     '#b8a0be',
@@ -35,7 +35,7 @@ export default {
     '#f3eff4'
   ],
 
-  success: [
+  green: [
     '#7dc69c',
     '#97d1b0',
     '#b0dcc4',
@@ -44,7 +44,7 @@ export default {
     '#f1f9f5'
   ],
 
-  error: [
+  red: [
     '#c72314',
     '#d24e39',
     '#dd7a69',
@@ -53,7 +53,7 @@ export default {
     '#f9e8e5'
   ],
 
-  warning: [
+  orange: [
     '#e08334',
     '#e69b59',
     '#edb481',
@@ -62,6 +62,6 @@ export default {
     '#fcf2e9'
   ],
 
-  titleAlt: '#8399a4',
-  standout: '#c35b69'
+  slate: '#8399a4',
+  brick: '#c35b69'
 }

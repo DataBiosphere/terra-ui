@@ -29,19 +29,19 @@ export default class SignIn extends Component {
       div({ style: { maxWidth: 900 } }, [
         div({ style: { display: 'flex', marginBottom: '1rem', alignItems: 'center' } }, [
           div({ style: { fontWeight: 500, marginRight: '2rem' } }, [
-            div({ style: { fontSize: 40, color: colors.titleAlt } }, ['Welcome to']),
-            div({ style: { fontSize: 80, color: colors.title[0] } }, ['SATURN'])
+            div({ style: { fontSize: 40, color: colors.slate } }, ['Welcome to']),
+            div({ style: { fontSize: 80, color: colors.darkBlue[0] } }, ['SATURN'])
           ]),
           logo({ size: 265 })
         ]),
-        div({ style: { fontSize: 40, fontWeight: 500, color: colors.titleAlt } }, ['New User?']),
+        div({ style: { fontSize: 40, fontWeight: 500, color: colors.slate } }, ['New User?']),
         div({ style: { fontSize: 20, marginBottom: '2rem' } }, ['Saturn requires a Google Account.']),
         div({ style: { display: 'flex', alignItems: 'center' } }, [
           div({
             style: {
               fontSize: 16, lineHeight: 1.5,
               paddingRight: '1rem', marginRight: '2rem', borderRight:
-                `1px solid ${colors.text[0]}`
+                `1px solid ${colors.gray[0]}`
             }
           }, [
             div(['Need to create a SATURN account? Saturn uses your Google account.']),

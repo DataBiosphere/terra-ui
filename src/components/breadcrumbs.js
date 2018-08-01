@@ -6,9 +6,9 @@ import * as Nav from 'src/libs/nav'
 
 export const breadcrumbElement = function(child, href) {
   if (href) {
-    return a({ style: { color: colors.text[2] }, href }, [child, breadcrumb()])
+    return a({ style: { color: colors.gray[2] }, href }, [child, breadcrumb()])
   } else {
-    return span({ style: { color: colors.text[2] } }, [child, breadcrumb()])
+    return span({ style: { color: colors.gray[2] } }, [child, breadcrumb()])
   }
 }
 

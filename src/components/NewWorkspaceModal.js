@@ -41,7 +41,7 @@ const styles = {
   groupNotice: {
     marginBottom: '0.25rem',
     fontSize: 12,
-    color: colors.text[2]
+    color: colors.gray[2]
   }
 }
 
@@ -125,7 +125,7 @@ export default class NewWorkspaceModal extends Component {
       }),
       div({ style: styles.label }, ['Billing project *']),
       billingProjects && !billingProjects.length ? h(Fragment, [
-        div({ style: { color: colors.error[0] } }, [
+        div({ style: { color: colors.red[0] } }, [
           icon('error', { size: 16 }),
           ' You must have a billing project associated with your account to create a new workspace.'
         ]),
@@ -175,7 +175,7 @@ export default class NewWorkspaceModal extends Component {
         }, _.map('groupName', allGroups).sort())
       }),
       createError && div({
-        style: { marginTop: '1rem', color: colors.error[0] }
+        style: { marginTop: '1rem', color: colors.red[0] }
       }, [createError]),
       busy && spinnerOverlay
     ])

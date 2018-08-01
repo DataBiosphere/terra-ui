@@ -109,7 +109,7 @@ export class UriViewer extends Component {
                     whiteSpace: 'pre-wrap', fontFamily: 'Menlo, monospace', fontSize: 12,
                     overflowY: 'auto', maxHeight: 206,
                     marginTop: '0.5rem', padding: '0.5rem',
-                    background: colors.text[5], borderRadius: '0.2rem'
+                    background: colors.gray[5], borderRadius: '0.2rem'
                   }
                 }, [preview])
               ]
@@ -137,7 +137,7 @@ export class UriViewer extends Component {
                   style: { flexGrow: 1, fontWeight: 400, fontFamily: 'Menlo, monospace' }
                 }),
                 h(Clickable, {
-                  style: { margin: '0 1rem', color: copied ? colors.success[0] : colors.primary[0] },
+                  style: { margin: '0 1rem', color: copied ? colors.green[0] : colors.blue[0] },
                   tooltip: 'Copy to clipboard',
                   onClick: async () => {
                     try {

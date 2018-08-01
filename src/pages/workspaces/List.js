@@ -32,7 +32,7 @@ const styles = {
   },
   shortTitle: {
     flex: 'none',
-    color: colors.primary[0], fontSize: 16,
+    color: colors.blue[0], fontSize: 16,
     lineHeight: '20px', height: '40px',
     overflow: 'hidden', wordWrap: 'break-word'
   },
@@ -43,7 +43,7 @@ const styles = {
   },
   shortCreateCard: {
     display: 'flex', flexDirection: 'column', justifyContent: 'center',
-    color: colors.primary[0], fontSize: 20, lineHeight: '28px'
+    color: colors.blue[0], fontSize: 20, lineHeight: '28px'
   },
   longCard: {
     ...Style.elements.card,
@@ -54,7 +54,7 @@ const styles = {
     display: 'flex', flexDirection: 'column', justifyContent: 'space-between'
   },
   longTitle: {
-    color: colors.primary[0], fontSize: 16,
+    color: colors.blue[0], fontSize: 16,
     whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'
   },
   longDescription: {
@@ -65,11 +65,11 @@ const styles = {
   badge: {
     height: '1.5rem', width: '1.5rem', borderRadius: '1.5rem',
     lineHeight: '1.5rem', textAlign: 'center',
-    backgroundColor: colors.accent[0], color: 'white'
+    backgroundColor: colors.purple[0], color: 'white'
   },
   longCreateCard: {
     display: 'flex', flexDirection: 'column', justifyContent: 'center',
-    color: colors.primary[0], fontSize: 16
+    color: colors.blue[0], fontSize: 16
   },
   toolbarContainer: {
     flex: 'none', display: 'flex', alignItems: 'flex-end',
@@ -82,14 +82,14 @@ const styles = {
   toolbarButton: active => ({
     display: 'flex', justifyContent: 'center', alignItems: 'center',
     height: '2.25rem', width: '3rem',
-    color: active ? colors.primary[1] : colors.primary[0]
+    color: active ? colors.blue[1] : colors.blue[0]
   })
 }
 
 const WorkspaceCard = pure(({ listView, workspace: { workspace: { namespace, name, createdBy, lastModified, attributes: { description } } } }) => {
   const lastChanged = `Last changed: ${Utils.makePrettyDate(lastModified)}`
   const badge = div({ title: createdBy, style: styles.badge }, [createdBy[0].toUpperCase()])
-  const descText = description || span({ style: { color: colors.text[2] } }, [
+  const descText = description || span({ style: { color: colors.gray[2] } }, [
     'No description added'
   ])
   return listView ? a({

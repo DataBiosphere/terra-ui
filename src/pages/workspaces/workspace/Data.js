@@ -41,7 +41,7 @@ const styles = {
     flex: 1, display: 'flex', flexDirection: 'column'
   }),
   dataTypeHeading: {
-    fontWeight: 500, color: colors.title[0]
+    fontWeight: 500, color: colors.darkBlue[0]
   }
 }
 

@@ -28,7 +28,7 @@ export default class Collapse extends Component {
             onClick: () => this.setState({ visible: !visible })
           },
           [
-            span({ style: { color: colors.primary[0] } }, title),
+            span({ style: { color: colors.blue[0] } }, title),
             icon(visible ? 'angle down' : 'angle left', { style: { marginLeft: '0.25rem' } })
           ])
       ]),

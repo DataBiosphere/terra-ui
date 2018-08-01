@@ -22,7 +22,7 @@ const styles = {
     padding: '1rem', flex: 1, marginBottom: '-2rem'
   },
   deemphasized: {
-    color: colors.text[2]
+    color: colors.gray[2]
   },
   statusDetailCell: {
     align: 'center',
@@ -44,9 +44,9 @@ const collapseStatus = status => {
   }
 }
 
-const successIcon = style => icon('check', { size: 24, style: { color: colors.success[0], ...style } })
-const failedIcon = style => icon('warning-standard', { className: 'is-solid', size: 24, style: { color: colors.error[0], ...style } })
-const runningIcon = style => icon('sync', { size: 24, style: { color: colors.success[0], ...style } })
+const successIcon = style => icon('check', { size: 24, style: { color: colors.green[0], ...style } })
+const failedIcon = style => icon('warning-standard', { className: 'is-solid', size: 24, style: { color: colors.red[0], ...style } })
+const runningIcon = style => icon('sync', { size: 24, style: { color: colors.green[0], ...style } })
 
 
 export const flagNewSubmission = submissionId => {
@@ -84,7 +84,7 @@ const statusCell = workflowStatuses => {
     }, [
       h(Clickable, {
         className: 'hover-only',
-        style: { color: colors.primary[1] }
+        style: { color: colors.blue[1] }
       }, [icon('caretDown', { size: 18 })])
     ])
   ])
@@ -148,7 +148,7 @@ class JobHistoryContent extends Component {
             if (newSubmissionId === submissionId) {
               return {
                 transition: `background-color ${animationLengthMillis}ms cubic-bezier(0.33, -2, 0.74, 0.05)`,
-                backgroundColor: highlightNewSubmission ? colors.primary[5] : 'white'
+                backgroundColor: highlightNewSubmission ? colors.blue[5] : 'white'
               }
             }
           },
@@ -182,7 +182,7 @@ class JobHistoryContent extends Component {
                   }, [
                     h(Clickable, {
                       className: 'hover-only',
-                      style: { marginLeft: 'auto', color: colors.primary[1] }
+                      style: { marginLeft: 'auto', color: colors.blue[1] }
                     }, [icon('caretDown', { size: 18 })])
                   ])
                 ])

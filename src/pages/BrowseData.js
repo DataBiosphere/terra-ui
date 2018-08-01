@@ -66,7 +66,7 @@ const styles = {
       ...Style.elements.sectionHeader, textTransform: 'uppercase'
     },
     title: {
-      fontSize: 20, color: colors.primary[0]
+      fontSize: 20, color: colors.blue[0]
     }
   }
 }
@@ -74,8 +74,8 @@ const styles = {
 
 const FadeBox = ({
   padding = '1.5rem',
-  backgroundColor = colors.text[5],
-  borderColor = colors.text[2],
+  backgroundColor = colors.gray[5],
+  borderColor = colors.gray[2],
   fadePoint = '60%',
   children
 }) => {
@@ -113,7 +113,7 @@ const logoBox = ({ src, alt }) => div({
     display: 'inline-flex', justifyContent: 'center', alignItems: 'center',
     flex: 'none',
     height: 200, width: 450,
-    border: `1px solid ${colors.text[3]}`, borderRadius: 5,
+    border: `1px solid ${colors.gray[3]}`, borderRadius: 5,
     backgroundColor: 'white'
   }
 }, [
@@ -190,8 +190,8 @@ const BrowseData = pure(() => {
           borderRadius: 5
         },
         hover: {
-          backgroundColor: colors.primary[1],
-          borderColor: colors.primary[1]
+          backgroundColor: colors.blue[1],
+          borderColor: colors.blue[1]
         }
       }, ['Learn How'])
     ]),

@@ -34,7 +34,7 @@ const miniMessage = text =>
 
 const errorIcon = b => {
   return b && icon('error', {
-    size: 28, style: { marginLeft: '0.5rem', color: colors.error[0] }
+    size: 28, style: { marginLeft: '0.5rem', color: colors.red[0] }
   })
 }
 
@@ -167,10 +167,10 @@ class WorkflowViewContent extends Component {
       [invalidIO.inputs || invalidIO.outputs, () => 'Add your inputs and outputs to Launch Analysis'],
       [saving || modified, () => 'Save or cancel to Launch Analysis']
     )
-    return div({ style: { backgroundColor: colors.primary[5], position: 'relative' } }, [
+    return div({ style: { backgroundColor: colors.blue[5], position: 'relative' } }, [
       div({ style: { display: 'flex', padding: `1.5rem ${sideMargin} 0` } }, [
         div({ style: { flex: '1', lineHeight: '1.5rem' } }, [
-          div({ style: { color: colors.title[0], fontSize: 24 } }, name),
+          div({ style: { color: colors.darkBlue[0], fontSize: 24 } }, name),
           div(`V. ${methodConfigVersion}`),
           methodPath && div(`Path: ${methodPath}`),
           div({ style: { textTransform: 'capitalize', display: 'flex', alignItems: 'baseline', marginTop: '0.5rem' } }, [
@@ -197,8 +197,8 @@ class WorkflowViewContent extends Component {
           canCompute && noLaunchReason && div({
             style: {
               marginTop: '0.5rem', padding: '1rem',
-              backgroundColor: colors.warning[5],
-              color: colors.warning[0]
+              backgroundColor: colors.orange[5],
+              color: colors.orange[0]
             }
           }, noLaunchReason)
         ])
@@ -277,7 +277,7 @@ class WorkflowViewContent extends Component {
                     }) : div({ style: { flex: 1 } }, [value]),
                     error && h(TooltipTrigger, { content: error }, [
                       icon('error', {
-                        size: 28, style: { marginLeft: '0.5rem', color: colors.error[0], cursor: 'help' }
+                        size: 28, style: { marginLeft: '0.5rem', color: colors.red[0], cursor: 'help' }
                       })
                     ])
                   ])

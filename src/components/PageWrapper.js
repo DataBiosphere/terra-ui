@@ -20,9 +20,9 @@ const PageWrapper = ({ children }) => {
         height: 92,
         paddingLeft: '6rem',
         paddingRight: '6rem',
-        backgroundColor: colors.text[0],
-        color: colors.text[2],
-        borderTop: `4px solid ${colors.standout}`,
+        backgroundColor: colors.gray[0],
+        color: colors.gray[2],
+        borderTop: `4px solid ${colors.brick}`,
         marginTop: '2rem'
       }
     }, [

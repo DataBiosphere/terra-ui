@@ -157,8 +157,8 @@ class NotebookLauncherContent extends Component {
 
     const step = (index, text) => div({ style: styles.step.container }, [
       div({ style: styles.step.col1 }, [
-        index < currentStep && icon('check', { size: 24, style: { color: colors.success[0] } }),
-        index === currentStep && (failed ? icon('times', { size: 24, style: { color: colors.error[0] } }) : spinner())
+        index < currentStep && icon('check', { size: 24, style: { color: colors.green[0] } }),
+        index === currentStep && (failed ? icon('times', { size: 24, style: { color: colors.red[0] } }) : spinner())
       ]),
       div({ style: styles.step.col2 }, [text])
     ])

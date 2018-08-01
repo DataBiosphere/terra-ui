@@ -32,7 +32,7 @@ export default class TopBanner extends Component {
         transform: `translate(0px, ${show ? '0px' : '-100%'})`,
         position: 'fixed', top: 0,
         width: '100%',
-        padding: '1rem', backgroundColor: colors.accent[0],
+        padding: '1rem', backgroundColor: colors.purple[0],
         color: 'white', fontSize: '1rem'
       }
     },

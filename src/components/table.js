@@ -15,7 +15,7 @@ const paginatorButton = (props, label) => button(_.merge({
   style: {
     margin: '0 2px', padding: '0.25rem 0.5rem',
     border: '1px solid #ccc', borderRadius: 3,
-    color: props.disabled ? colors.text[2] : colors.primary[1], backgroundColor: 'white',
+    color: props.disabled ? colors.gray[2] : colors.blue[1], backgroundColor: 'white',
     cursor: props.disabled ? 'not-allowed' : 'pointer'
   }
 }, props), label)
@@ -63,9 +63,9 @@ export const paginator = function(props) {
                 key: num,
                 style: {
                   minWidth: '2rem',
-                  backgroundColor: currentPage === num ? colors.primary[1] : undefined,
-                  color: currentPage === num ? 'white' : colors.primary[1],
-                  border: currentPage === num ? colors.primary[1] : undefined
+                  backgroundColor: currentPage === num ? colors.blue[1] : undefined,
+                  color: currentPage === num ? 'white' : colors.blue[1],
+                  border: currentPage === num ? colors.blue[1] : undefined
                 }
               },
               getPageItemProps({ pageValue: num, onPageChange: setPageNumber })),
@@ -111,17 +111,17 @@ const cellStyles = {
 const styles = {
   cell: (col, total) => ({
     ...cellStyles,
-    borderBottom: `1px solid ${colors.text[3]}`,
-    borderLeft: col === 0 ? `1px solid ${colors.text[3]}` : undefined,
-    borderRight: col === total - 1 ? `1px solid ${colors.text[3]}` : undefined
+    borderBottom: `1px solid ${colors.gray[3]}`,
+    borderLeft: col === 0 ? `1px solid ${colors.gray[3]}` : undefined,
+    borderRight: col === total - 1 ? `1px solid ${colors.gray[3]}` : undefined
   }),
   header: (col, total) => ({
     ...cellStyles,
-    backgroundColor: colors.primary[4],
-    borderTop: `1px solid ${colors.primary[1]}`,
-    borderBottom: `2px solid ${colors.primary[1]}`,
-    borderLeft: col === 0 ? `1px solid ${colors.primary[1]}` : undefined,
-    borderRight: col === total - 1 ? `1px solid ${colors.primary[1]}` : undefined,
+    backgroundColor: colors.blue[4],
+    borderTop: `1px solid ${colors.blue[1]}`,
+    borderBottom: `2px solid ${colors.blue[1]}`,
+    borderLeft: col === 0 ? `1px solid ${colors.blue[1]}` : undefined,
+    borderRight: col === total - 1 ? `1px solid ${colors.blue[1]}` : undefined,
     borderTopLeftRadius: col === 0 ? '5px' : undefined,
     borderTopRightRadius: col === total - 1 ? '5px' : undefined
   }),
@@ -188,7 +188,7 @@ export class FlexTable extends Component {
             as: 'div',
             className: 'table-row',
             style: { ...data.style, backgroundColor: 'white', display: 'flex', ...(rowStyle ? rowStyle(data.rowIndex) : {}) },
-            hover: hoverHighlight ? { backgroundColor: colors.primary[5] } : undefined
+            hover: hoverHighlight ? { backgroundColor: colors.blue[5] } : undefined
           }, [
             ..._.map(([i, { size, cellRenderer }]) => {
               return div({
@@ -306,7 +306,7 @@ export const Sortable = ({ sort, field, onSort, children }) => {
   }, [
     children,
     sort.field === field && div({
-      style: { color: colors.primary[0], marginLeft: 'auto' }
+      style: { color: colors.blue[0], marginLeft: 'auto' }
     }, [
       icon(sort.direction === 'asc' ? 'arrow down' : 'arrow')
     ])
