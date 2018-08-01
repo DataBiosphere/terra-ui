@@ -72,7 +72,8 @@ export const buttonSecondary = ({ disabled, ...props }, children) => {
       ...styles.button,
       color: disabled ? colors.text[2] : colors.text[0],
       cursor: disabled ? 'not-allowed' : 'pointer'
-    }
+    },
+    hover: disabled ? undefined : { color: colors.text[1] }
   }, props), children)
 }
 
@@ -148,13 +149,14 @@ export const LabeledCheckbox = ({ checked, onChange, disabled, children, ...prop
   ])
 }
 
-export const RadioButton = ({ text, checked, onChange, labelStyle }) => {
+export const RadioButton = ({ text, labelStyle, ...props }) => {
   const id = `${text}-radio-button`
 
   return h(Fragment, [
     input({
-      type: 'radio', id, checked, onChange,
-      name: id // not semantically correct, but fixes a focus cycle issue
+      type: 'radio', id,
+      name: id, // not semantically correct, but fixes a focus cycle issue
+      ...props
     }),
     label({ htmlFor: id, style: labelStyle }, text)
   ])
