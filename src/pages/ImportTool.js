@@ -8,6 +8,7 @@ import { centeredSpinner, icon, spinner } from 'src/components/icons'
 import { TopBar } from 'src/components/TopBar'
 import WDLViewer from 'src/components/WDLViewer'
 import { Dockstore, Workspaces } from 'src/libs/ajax'
+import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
@@ -48,7 +49,7 @@ export class DestinationWorkspace extends Component {
           'Import'),
         isImporting && spinner({ style: { marginLeft: '0.5rem' } }),
         importError && div({
-          style: { marginTop: '1rem', color: Style.colors.error }
+          style: { marginTop: '1rem', color: colors.red[0] }
         }, [
           icon('error'),
           JSON.parse(importError).message
@@ -136,7 +137,7 @@ class DockstoreImporter extends Component {
         div({
           style: {
             display: 'flex', alignItems: 'center',
-            margin: '1rem 0', color: Style.colors.warning
+            margin: '1rem 0', color: colors.orange[0]
           }
         },
         [
