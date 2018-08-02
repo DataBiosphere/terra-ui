@@ -200,6 +200,14 @@ export const Billing = {
   }
 }
 
+const attributesUpdateOps = _.flow(
+  _.toPairs,
+  _.flatMap(([k, v]) => {
+    return _.isArray(v) ?
+      [{ op: 'RemoveAttribute', attributeName: k }, ..._.map(x => ({ op: 'AddListMember', attributeListName: k, newMember: x }), v)] :
+      [{ op: 'AddUpdateAttribute', attributeName: k, addUpdateAttribute: v }]
+  })
+)
 
 export const Workspaces = {
   list: async () => {
@@ -295,12 +303,7 @@ export const Workspaces = {
       },
 
       shallowMergeNewAttributes: attributesObject => {
-        const payload = _.flatMap(([k, v]) => {
-          return _.isArray(v) ?
-            [{ op: 'RemoveAttribute', attributeName: k }, ..._.map(x => ({ op: 'AddListMember', attributeListName: k, newMember: x }), v)] :
-            { op: 'AddUpdateAttribute', attributeName: k, addUpdateAttribute: v }
-        }, _.toPairs(attributesObject))
-
+        const payload = attributesUpdateOps(attributesObject)
         return fetchRawls(root, _.mergeAll([authOpts(), jsonBody(payload), { method: 'PATCH' }]))
       },
 
@@ -314,6 +317,15 @@ export const Workspaces = {
           `/api/workspaces/${namespace}/${name}/importBagit`,
           _.mergeAll([authOpts(), jsonBody({ bagitURL, format: 'TSV' }), { method: 'POST' }])
         )
+      },
+
+      importEntities: async url => {
+        const res = await fetch(url)
+        const payload = await res.json()
+        const body = _.map(({ name, entityType, attributes }) => {
+          return { name, entityType, operations: attributesUpdateOps(attributes) }
+        }, payload)
+        return fetchRawls(`${root}/entities/batchUpsert`, _.mergeAll([authOpts(), jsonBody(body), { method: 'POST' }]))
       },
 
       storageCostEstimate: async () => {

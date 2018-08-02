@@ -6,6 +6,7 @@ import { DestinationWorkspace } from 'src/pages/ImportTool'
 import { Workspaces } from 'src/libs/ajax'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
+import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 
 
@@ -37,10 +38,13 @@ class Importer extends Component {
   async import_() {
     this.setState({ isImporting: true })
     const { selectedWorkspace: { value: { namespace, name } } } = this.state
-    const { queryParams: { url } } = this.props
+    const { queryParams: { url, format } } = this.props
 
     try {
-      await Workspaces.workspace(namespace, name).importBagit(url)
+      await Utils.switchCase(format,
+        ['entitiesJson', () => Workspaces.workspace(namespace, name).importEntities(url)],
+        [Utils.DEFAULT, () => Workspaces.workspace(namespace, name).importBagit(url)]
+      )
       Nav.goToPath('workspace-data', { namespace, name })
     } catch (e) {
       reportError('Import Error', e)
