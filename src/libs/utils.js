@@ -122,6 +122,8 @@ export const switchCase = (value, ...pairs) => {
   return match && match[1]()
 }
 
+export const toIndexPairs = _.flow(_.toPairs, _.map(([k, v]) => [k * 1, v]))
+
 /**
  * Memoizes the given function, but expires after the specified duration (ms).
  * The resolver function is used to generate a cache key from the arguments.
