@@ -6,7 +6,7 @@ import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { buttonPrimary, Clickable, linkButton, spinnerOverlay } from 'src/components/common'
 import { icon, spinner } from 'src/components/icons'
-import { FlexTable, GridTable, HeaderCell, paginator, Resizable, Sortable } from 'src/components/table'
+import { ColumnSelector, FlexTable, GridTable, HeaderCell, paginator, Resizable, Sortable } from 'src/components/table'
 import { Workspaces } from 'src/libs/ajax'
 import * as auth from 'src/libs/auth'
 import colors from 'src/libs/colors'
@@ -62,6 +62,19 @@ const DataTypeButton = ({ selected, children, ...props }) => {
   ])
 }
 
+const applyColumnSettings = (columnSettings, columns) => {
+  const lookup = _.flow(
+    Utils.toIndexPairs,
+    _.map(([i, v]) => ({ ...v, index: i })),
+    _.keyBy('name')
+  )(columnSettings)
+  return _.flow(
+    _.map(name => lookup[name] || { name, visible: true, index: -1 }),
+    _.sortBy('index'),
+    _.map(_.omit('index'))
+  )(columns)
+}
+
 const WorkspaceData = wrapWorkspace({
   breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
   title: 'Data', activeTab: 'data'
@@ -77,6 +90,7 @@ class WorkspaceDataContent extends Component {
       loading: false,
       workspaceAttributes: props.workspace.workspace.attributes,
       columnWidths: {},
+      columnState: {},
       ...StateHistory.get()
     }
     this.downloadForm = createRef()
@@ -245,8 +259,9 @@ class WorkspaceDataContent extends Component {
 
   renderEntityTable() {
     const { namespace } = this.props
-    const { entities, selectedDataType, entityMetadata, totalRowCount, pageNumber, itemsPerPage, sort, columnWidths } = this.state
+    const { entities, selectedDataType, entityMetadata, totalRowCount, pageNumber, itemsPerPage, sort, columnWidths, columnState } = this.state
     const theseColumnWidths = columnWidths[selectedDataType] || {}
+    const columnSettings = applyColumnSettings(columnState[selectedDataType] || [], entityMetadata[selectedDataType].attributeNames)
 
     return entities && h(Fragment, [
       div({ style: { flex: 'none', marginBottom: '1rem' } }, [
@@ -278,7 +293,7 @@ class WorkspaceDataContent extends Component {
                     cellRenderer: ({ rowIndex }) => renderDataCell(entities[rowIndex].name, namespace)
                   }
                 })(),
-                ..._.map(name => {
+                ..._.map(({ name }) => {
                   const thisWidth = theseColumnWidths[name] || 300
                   return {
                     width: thisWidth,
@@ -299,11 +314,17 @@ class WorkspaceDataContent extends Component {
                       )
                     }
                   }
-                }, entityMetadata[selectedDataType] ? entityMetadata[selectedDataType].attributeNames : [])
+                }, _.filter('visible', columnSettings))
               ]
             })
           }
-        ])
+        ]),
+        h(ColumnSelector, {
+          columnSettings,
+          onSave: v => this.setState(_.set(['columnState', selectedDataType], v), () => {
+            this.table.current.recomputeColumnSizes()
+          })
+        })
       ]),
       div({ style: { flex: 'none', marginTop: '1rem' } }, [
         paginator({
@@ -443,7 +464,7 @@ class WorkspaceDataContent extends Component {
 
   componentDidUpdate(prevProps, prevState) {
     StateHistory.update(_.pick(
-      ['entityMetadata', 'selectedDataType', 'entities', 'workspaceAttributes', 'totalRowCount', 'itemsPerPage', 'pageNumber', 'sort', 'columnWidths'],
+      ['entityMetadata', 'selectedDataType', 'entities', 'workspaceAttributes', 'totalRowCount', 'itemsPerPage', 'pageNumber', 'sort', 'columnWidths', 'columnState'],
       this.state)
     )
 

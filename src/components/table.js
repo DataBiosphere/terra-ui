@@ -4,8 +4,11 @@ import DraggableCore from 'react-draggable'
 import { button, div, h, option, select } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
 import Pagination from 'react-paginating'
-import { Grid as RVGrid, ScrollSync as RVScrollSync } from 'react-virtualized'
+import { arrayMove, SortableContainer, SortableElement, SortableHandle } from 'react-sortable-hoc'
+import { AutoSizer, Grid as RVGrid, ScrollSync as RVScrollSync, List } from 'react-virtualized'
+import { buttonPrimary, Checkbox, Clickable, linkButton } from 'src/components/common'
 import { icon } from 'src/components/icons'
+import Modal from 'src/components/Modal'
 import colors from 'src/libs/colors'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
@@ -131,7 +134,23 @@ const styles = {
     flexBasis: basis,
     minWidth: min,
     maxWidth: max
-  })
+  }),
+  columnSelector: {
+    position: 'absolute', top: 0, right: 0, width: 48, height: 48,
+    display: 'flex', justifyContent: 'center', alignItems: 'center',
+    color: colors.blue[0], backgroundColor: colors.blue[3],
+    border: `1px solid ${colors.blue[1]}`,
+    borderRadius: 5
+  },
+  columnName: {
+    paddingLeft: '0.25rem',
+    flex: 1, display: 'flex', alignItems: 'center',
+    whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'
+  },
+  columnHandle: {
+    paddingRight: '0.25rem', cursor: 'move',
+    display: 'flex', alignItems: 'center'
+  }
 }
 
 /**
@@ -227,6 +246,7 @@ export class GridTable extends Component {
   recomputeColumnSizes() {
     this.header.current.recomputeGridSize()
     this.body.current.recomputeGridSize()
+    this.body.current.measureAllCells()
   }
 
   render() {
@@ -346,6 +366,101 @@ export class Resizable extends Component {
         size: 24,
         style: { position: 'absolute', right: -20 - dragAmount, zIndex: 1, opacity: '0.5', cursor: 'ew-resize' }
       })
+    ])
+  }
+}
+
+const SortableDiv = SortableElement(props => div(props))
+const SortableList = SortableContainer(props => h(List, props))
+const SortableHandleDiv = SortableHandle(props => div(props))
+
+/**
+ * @param {Object[]} columnSettings - current column list, in order
+ * @param {string} columnSettings[].name
+ * @param {bool} columnSettings[].visible
+ * @param {function(Object[])} onSave - called with modified settings when user saves
+ */
+export class ColumnSelector extends Component {
+  constructor(props) {
+    super(props)
+    this.state = { open: false, modifiedColumnSettings: undefined }
+  }
+
+  toggleVisibility(index) {
+    this.setState(_.update(['modifiedColumnSettings', index, 'visible'], b => !b))
+  }
+
+  setAll(value) {
+    this.setState(_.update(['modifiedColumnSettings'], _.map(_.set('visible', value))))
+  }
+
+  sort() {
+    this.setState(_.update(['modifiedColumnSettings'], _.sortBy('name')))
+  }
+
+  reorder({ oldIndex, newIndex }) {
+    const { modifiedColumnSettings } = this.state
+    this.setState({ modifiedColumnSettings: arrayMove(modifiedColumnSettings, oldIndex, newIndex) })
+  }
+
+  render() {
+    const { onSave, columnSettings } = this.props
+    const { open, modifiedColumnSettings } = this.state
+    return h(Fragment, [
+      h(Clickable, {
+        style: styles.columnSelector,
+        onClick: () => this.setState({ open: true, modifiedColumnSettings: columnSettings })
+      }, [icon('cog', { size: 20, className: 'is-solid' })]),
+      open && h(Modal, {
+        title: 'Select columns',
+        onDismiss: () => this.setState({ open: false }),
+        okButton: buttonPrimary({
+          onClick: () => {
+            onSave(modifiedColumnSettings)
+            this.setState({ open: false })
+          }
+        }, ['Done'])
+      }, [
+        div({ style: { marginBottom: '1rem', display: 'flex' } }, [
+          div({ style: { fontWeight: 500 } }, ['Show:']),
+          linkButton({ style: { padding: '0 0.5rem' }, onClick: () => this.setAll(true) }, ['all']),
+          '|',
+          linkButton({ style: { padding: '0 0.5rem' }, onClick: () => this.setAll(false) }, ['none']),
+          div({ style: { marginLeft: 'auto', fontWeight: 500 } }, ['Sort:']),
+          linkButton({ style: { padding: '0 0.5rem' }, onClick: () => this.sort() }, ['reset'])
+        ]),
+        h(AutoSizer, { disableHeight: true },  [
+          ({ width }) => {
+            return h(SortableList, {
+              style: { outline: 'none' },
+              lockAxis: 'y',
+              useDragHandle: true,
+              width, height: 400,
+              rowCount: modifiedColumnSettings.length,
+              rowHeight: 30,
+              rowRenderer: ({ index, style, key }) => {
+                const { name, visible } = modifiedColumnSettings[index]
+                return h(SortableDiv, { key, index, style: { ...style, display: 'flex' } }, [
+                  h(SortableHandleDiv, { style: styles.columnHandle }, [
+                    icon('bars')
+                  ]),
+                  div({ style: { display: 'flex', alignItems: 'center' } }, [
+                    h(Checkbox, {
+                      checked: visible,
+                      onChange: () => this.toggleVisibility(index)
+                    })
+                  ]),
+                  h(Clickable, {
+                    style: styles.columnName,
+                    onClick: () => this.toggleVisibility(index)
+                  }, [name])
+                ])
+              },
+              onSortEnd: v => this.reorder(v)
+            })
+          }
+        ])
+      ])
     ])
   }
 }
