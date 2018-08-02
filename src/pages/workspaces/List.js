@@ -152,9 +152,10 @@ export class WorkspaceList extends Component {
       const workspaces = await Workspaces.list()
       this.setState({
         isDataLoaded: true,
-        workspaces: _.sortBy('workspace.name', _.filter(ws => !ws.public ||
-          Utils.workspaceAccessLevels.indexOf(ws.accessLevel) > Utils.workspaceAccessLevels.indexOf('READER'),
-        workspaces))
+        workspaces: _.flow(
+          _.filter(ws => !ws.public || Utils.canRead(ws.accessLevel)),
+          _.sortBy('workspace.name')
+        )(workspaces)
       })
     } catch (error) {
       reportError('Error loading workspace list', error)

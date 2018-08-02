@@ -58,15 +58,17 @@ class WorkspaceDashboardContent extends Component {
   }
 
   async componentDidMount() {
-    const { namespace, name } = this.props
+    const { namespace, name, workspace: { accessLevel } } = this.props
     try {
       const [submissions, estimate] = await Promise.all([
         Workspaces.workspace(namespace, name).listSubmissions(),
-        Workspaces.workspace(namespace, name).storageCostEstimate()
+        Utils.canWrite(accessLevel) ?
+          Workspaces.workspace(namespace, name).storageCostEstimate() :
+          undefined
       ])
       this.setState({
         submissionsCount: submissions.length,
-        storageCostEstimate: estimate.estimate
+        storageCostEstimate: estimate && estimate.estimate
       })
     } catch (error) {
       reportError('Error loading data', error)
@@ -89,7 +91,9 @@ class WorkspaceDashboardContent extends Component {
           h(InfoTile, { title: 'Creation date' }, [new Date(createdDate).toLocaleDateString()]),
           h(InfoTile, { title: 'Submissions' }, [submissionsCount]),
           h(InfoTile, { title: 'Access level' }, [roleString[accessLevel]]),
-          h(InfoTile, { title: 'Est. $/month' }, [storageCostEstimate])
+          Utils.canWrite(accessLevel) && h(InfoTile, { title: 'Est. $/month' }, [
+            storageCostEstimate
+          ])
         ]),
         div({ style: { margin: '0.5rem 0', borderBottom: `1px solid ${colors.gray[3]}` } }),
         link({
