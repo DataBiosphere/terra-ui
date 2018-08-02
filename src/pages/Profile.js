@@ -66,7 +66,7 @@ const styles = {
 }
 
 
-const percentageCircle = ({ radius, fraction, color = '#7bb156', strokeWidth = 6, style }) => {
+const percentageCircle = ({ radius, fraction, color = colors.green[0], strokeWidth = 6, style }) => {
   const halfStroke = strokeWidth/2
   const adjRadius = radius - halfStroke
   const diameter = 2 * radius
