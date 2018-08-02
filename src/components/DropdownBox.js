@@ -2,7 +2,7 @@ import { h, div } from 'react-hyperscript-helpers'
 import onClickOutside from 'react-onclickoutside'
 import { Clickable } from 'src/components/common'
 import { icon } from 'src/components/icons'
-import * as Style from 'src/libs/style'
+import colors from 'src/libs/colors'
 
 
 const styles = {
@@ -12,8 +12,8 @@ const styles = {
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
-    border: open ? `1px solid ${Style.colors.border}` : undefined,
-    color: disabled ? Style.colors.disabled : (open ? Style.colors.primary : Style.colors.secondary),
+    border: open ? `1px solid ${colors.gray[3]}` : undefined,
+    color: disabled ? colors.gray[2] : (open ? colors.blue[1] : colors.blue[0]),
     backgroundColor: open ? 'white' : undefined,
     borderRadius: '5px 5px 0 0',
     cursor: disabled ? 'not-allowed' : 'pointer'
@@ -21,8 +21,8 @@ const styles = {
   box: {
     position: 'absolute',
     right: 0,
-    border: `1px solid ${Style.colors.border}`,
-    backgroundColor: '#ffffff',
+    border: `1px solid ${colors.gray[3]}`,
+    backgroundColor: 'white',
     borderRadius: '5px 0 5px 5px',
     zIndex: 1
   },

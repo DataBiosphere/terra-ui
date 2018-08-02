@@ -117,10 +117,14 @@ export const cond = function(...args) {
   }
 }
 
+export const DEFAULT = Symbol()
+
 export const switchCase = (value, ...pairs) => {
-  const match = _.find(([v]) => v === value, pairs)
+  const match = _.find(([v]) => v === value || v === DEFAULT, pairs)
   return match && match[1]()
 }
+
+export const toIndexPairs = _.flow(_.toPairs, _.map(([k, v]) => [k * 1, v]))
 
 /**
  * Memoizes the given function, but expires after the specified duration (ms).

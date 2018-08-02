@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import { div, span } from 'react-hyperscript-helpers'
 import { icon } from 'src/components/icons'
-import * as Style from 'src/libs/style'
+import colors from 'src/libs/colors'
 import { Component } from 'src/libs/wrapped-components'
 
 
@@ -28,7 +28,7 @@ export default class Collapse extends Component {
             onClick: () => this.setState({ visible: !visible })
           },
           [
-            span({ style: { color: Style.colors.secondary } }, title),
+            span({ style: { color: colors.blue[0] } }, title),
             icon(visible ? 'angle down' : 'angle left', { style: { marginLeft: '0.25rem' } })
           ])
       ]),

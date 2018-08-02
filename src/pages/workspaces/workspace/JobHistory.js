@@ -9,10 +9,10 @@ import Modal from 'src/components/Modal'
 import PopupTrigger from 'src/components/PopupTrigger'
 import { FlexTable, HeaderCell, TextCell } from 'src/components/table'
 import { Workspaces } from 'src/libs/ajax'
+import colors from 'src/libs/colors'
 import * as Config from 'src/libs/config'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
-import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
@@ -23,7 +23,7 @@ const styles = {
     padding: '1rem', flex: 1, marginBottom: '-2rem'
   },
   deemphasized: {
-    color: Style.colors.textFaded
+    color: colors.gray[2]
   },
   statusDetailCell: {
     align: 'center',
@@ -45,9 +45,9 @@ const collapseStatus = status => {
   }
 }
 
-const successIcon = style => icon('check', { size: 24, style: { color: Style.colors.success, ...style } })
-const failedIcon = style => icon('warning-standard', { className: 'is-solid', size: 24, style: { color: Style.colors.error, ...style } })
-const runningIcon = style => icon('sync', { size: 24, style: { color: Style.colors.success, ...style } })
+const successIcon = style => icon('check', { size: 24, style: { color: colors.green[0], ...style } })
+const failedIcon = style => icon('warning-standard', { className: 'is-solid', size: 24, style: { color: colors.red[0], ...style } })
+const runningIcon = style => icon('sync', { size: 24, style: { color: colors.green[0], ...style } })
 
 
 export const flagNewSubmission = submissionId => {
@@ -86,7 +86,7 @@ const statusCell = workflowStatuses => {
     }, [
       h(Clickable, {
         className: 'hover-only',
-        style: { color: Style.colors.primary }
+        style: { color: colors.blue[1] }
       }, [icon('caretDown', { size: 18 })])
     ])
   ])
@@ -150,7 +150,7 @@ class JobHistoryContent extends Component {
             if (newSubmissionId === submissionId) {
               return {
                 transition: `background-color ${animationLengthMillis}ms cubic-bezier(0.33, -2, 0.74, 0.05)`,
-                backgroundColor: highlightNewSubmission ? Style.colors.highlightFaded : 'white'
+                backgroundColor: highlightNewSubmission ? colors.blue[5] : 'white'
               }
             }
           },
@@ -194,7 +194,7 @@ class JobHistoryContent extends Component {
                   }, [
                     h(Clickable, {
                       className: 'hover-only',
-                      style: { marginLeft: 'auto', color: Style.colors.primary }
+                      style: { marginLeft: 'auto', color: colors.blue[1] }
                     }, [icon('caretDown', { size: 18 })])
                   ])
                 ])

@@ -23,7 +23,7 @@ import square from 'src/icons/square.svg'
 import table from 'src/icons/table.svg'
 import workspace from 'src/icons/workspace.svg'
 import { getBasicProfile } from 'src/libs/auth'
-import * as Style from 'src/libs/style'
+import colors from 'src/libs/colors'
 
 
 ClarityIcons.add({
@@ -49,7 +49,7 @@ export const logo = function(props) {
 
 export const spinner = function(props) {
   return icon('loadingSpinner',
-    _.merge({ size: 24, style: { color: Style.colors.primary } }, props))
+    _.merge({ size: 24, style: { color: colors.blue[1] } }, props))
 }
 
 export const centeredSpinner = function(props) {

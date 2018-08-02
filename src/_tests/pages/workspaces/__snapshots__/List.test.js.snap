@@ -22,7 +22,7 @@ Array [
         size={36}
         style={
             Object {
-                "color": "#8b5f95",
+                "color": "#8a6194",
                 "cursor": "pointer",
                 "marginRight": "2rem",
               }
@@ -55,7 +55,7 @@ Array [
             <div
                 style={
                     Object {
-                        "color": "#8299a5",
+                        "color": "#8399a4",
                         "fontSize": "0.8rem",
                         "marginLeft": "0.1rem",
                       }
@@ -148,7 +148,7 @@ Array [
             style={
                 Object {
                     "alignItems": "center",
-                    "color": "#5faee0",
+                    "color": "#5aa6da",
                     "cursor": "pointer",
                     "display": "flex",
                     "height": "2.25rem",
@@ -315,7 +315,7 @@ Array [
             <span
                 style={
                     Object {
-                        "color": "#a6a6a6",
+                        "color": "#929292",
                       }
                 }
             >
@@ -349,7 +349,7 @@ Array [
                 <div
                     style={
                         Object {
-                            "backgroundColor": "#8b5f95",
+                            "backgroundColor": "#8a6194",
                             "borderRadius": "1.5rem",
                             "color": "white",
                             "height": "1.5rem",
@@ -411,7 +411,7 @@ Array [
             <span
                 style={
                     Object {
-                        "color": "#a6a6a6",
+                        "color": "#929292",
                       }
                 }
             >
@@ -445,7 +445,7 @@ Array [
                 <div
                     style={
                         Object {
-                            "backgroundColor": "#8b5f95",
+                            "backgroundColor": "#8a6194",
                             "borderRadius": "1.5rem",
                             "color": "white",
                             "height": "1.5rem",
