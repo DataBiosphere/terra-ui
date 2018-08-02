@@ -7,7 +7,7 @@ import DropdownBox from 'src/components/DropdownBox'
 import { icon } from 'src/components/icons'
 import { IntegerInput, textInput } from 'src/components/input'
 import TooltipTrigger from 'src/components/TooltipTrigger'
-import { machineTypes, profiles } from 'src/data/clusters'
+import { machineTypes, profiles, storagePrice } from 'src/data/clusters'
 import { Jupyter } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
@@ -20,7 +20,7 @@ const noCompute = 'You do not have access to run analyses on this workspace.'
 const styles = {
   container: {
     height: '3rem',
-    display: 'flex', alignItems: 'center',
+    display: 'flex', alignItems: 'center', flex: 'none',
     marginLeft: 'auto', paddingLeft: '1rem', paddingRight: '1rem',
     borderTopLeftRadius: 5, borderBottomLeftRadius: 5,
     backgroundColor: colors.gray[5]
@@ -85,11 +85,19 @@ const normalizeMachineConfig = ({ masterMachineType, masterDiskSize, numberOfWor
   }
 }
 
+const machineStorageCost = config => {
+  const { masterDiskSize, numberOfWorkers, workerDiskSize } = normalizeMachineConfig(config)
+  return (masterDiskSize + numberOfWorkers * workerDiskSize) * storagePrice
+}
+
 const machineConfigCost = config => {
   const { masterMachineType, numberOfWorkers, numberOfPreemptibleWorkers, workerMachineType } = normalizeMachineConfig(config)
-  return machineTypesByName[masterMachineType].price +
-    (numberOfWorkers - numberOfPreemptibleWorkers) * machineTypesByName[workerMachineType].price +
-    numberOfPreemptibleWorkers * machineTypesByName[workerMachineType].preemptiblePrice
+  return _.sum([
+    machineTypesByName[masterMachineType].price,
+    (numberOfWorkers - numberOfPreemptibleWorkers) * machineTypesByName[workerMachineType].price,
+    numberOfPreemptibleWorkers * machineTypesByName[workerMachineType].preemptiblePrice,
+    machineStorageCost(config)
+  ])
 }
 
 const machineConfigsEqual = (a, b) => {
@@ -502,10 +510,9 @@ export default class ClusterManager extends PureComponent {
           return h(ClusterIcon, { shape: 'ban' })
       }
     }
-    const totalCost = _.sum(_.map(
-      ({ machineConfig }) => machineConfigCost(machineConfig),
-      _.filter(({ status }) => status !== 'Stopped', clusters)
-    ))
+    const totalCost = _.sum(_.map(({ machineConfig, status }) => {
+      return (status === 'Stopped' ? machineStorageCost : machineConfigCost)(machineConfig)
+    }, clusters))
     return div({ style: styles.container }, [
       h(MiniLink, {
         href: Nav.getLink('workspace-terminal-launch', { namespace, name }),
