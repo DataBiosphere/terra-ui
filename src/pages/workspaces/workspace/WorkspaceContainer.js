@@ -19,6 +19,19 @@ import { Component } from 'src/libs/wrapped-components'
 
 
 const styles = {
+  page: {
+    display: 'flex', flexDirection: 'column', height: '100%', flexGrow: 1
+  },
+  workspaceNameContainer: {
+    display: 'flex', flexDirection: 'column',
+    paddingLeft: '4rem', overflowX: 'hidden', marginRight: '0.5rem'
+  },
+  workspaceName: {
+    fontSize: '1.25rem', overflowX: 'hidden', textOverflow: 'ellipsis'
+  },
+  childrenContainer: {
+    position: 'relative', flexGrow: 1, display: 'flex', flexDirection: 'column'
+  },
   tabContainer: {
     paddingLeft: '5rem', borderBottom: `5px solid ${colors.blue[0]}`,
     color: 'white', textTransform: 'uppercase'
@@ -170,11 +183,11 @@ class WorkspaceContainer extends Component {
     const { namespace, name, breadcrumbs, title, activeTab, refresh, refreshClusters, workspace, clusters } = this.props
     const { deletingWorkspace, cloningWorkspace } = this.state
 
-    return div({ style: { display: 'flex', flexDirection: 'column', height: '100%', flexGrow: 1 } }, [
+    return div({ style: styles.page }, [
       h(TopBar, { title: 'Workspaces' }, [
-        div({ style: { display: 'flex', flexDirection: 'column', paddingLeft: '4rem' } }, [
+        div({ style: styles.workspaceNameContainer }, [
           div({}, breadcrumbs),
-          div({ style: { fontSize: '1.25rem' } }, [
+          div({ style: styles.workspaceName }, [
             title || `${namespace}/${name}`
           ])
         ]),
@@ -187,7 +200,7 @@ class WorkspaceContainer extends Component {
         namespace, name, activeTab, refresh, workspace,
         onDelete: this.onDelete, onClone: this.onClone
       }),
-      div({ style: { position: 'relative', flexGrow: 1, display: 'flex', flexDirection: 'column' } }, [
+      div({ style: styles.childrenContainer }, [
         this.props.children
       ]),
       deletingWorkspace && h(DeleteWorkspaceModal, {
