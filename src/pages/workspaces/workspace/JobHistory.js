@@ -187,7 +187,7 @@ class JobHistoryContent extends Component {
                       collapsedStatuses(workflowStatuses).running && h(MenuButton, {
                         onClick: () => this.setState({ aborting: submissionId })
                       }, [
-                        icon('warning-standard', { style: { color: Style.colors.warning } }),
+                        icon('warning-standard', { style: { color: colors.orange[0] } }),
                         div({ style: { marginLeft: '0.5rem' } }, ['Abort all workflows'])
                       ])
                     ])
