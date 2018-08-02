@@ -24,10 +24,10 @@ const styles = {
   },
   workspaceNameContainer: {
     display: 'flex', flexDirection: 'column',
-    paddingLeft: '4rem', overflowX: 'hidden', marginRight: '0.5rem'
+    paddingLeft: '4rem', minWidth: 0, marginRight: '0.5rem'
   },
   workspaceName: {
-    fontSize: '1.25rem', overflowX: 'hidden', textOverflow: 'ellipsis'
+    fontSize: '1.25rem', overflowX: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'
   },
   childrenContainer: {
     position: 'relative', flexGrow: 1, display: 'flex', flexDirection: 'column'
