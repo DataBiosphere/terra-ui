@@ -117,8 +117,10 @@ export const cond = function(...args) {
   }
 }
 
+export const DEFAULT = Symbol()
+
 export const switchCase = (value, ...pairs) => {
-  const match = _.find(([v]) => v === value, pairs)
+  const match = _.find(([v]) => v === value || v === DEFAULT, pairs)
   return match && match[1]()
 }
 
