@@ -18,7 +18,7 @@ const styles = {
 }
 
 const PopupBody = onClickOutside(({ children }) => {
-  return div([children])
+  return children
 })
 
 export default class PopupTrigger extends Component {
@@ -33,7 +33,7 @@ export default class PopupTrigger extends Component {
   }
 
   render() {
-    const { children, content, position, align } = this.props
+    const { children, content, position, align, closeOnClick } = this.props
     const { open } = this.state
     const child = Children.only(children)
     return h(Fragment, [
@@ -54,7 +54,7 @@ export default class PopupTrigger extends Component {
         h(PopupBody, {
           handleClickOutside: () => this.setState({ open: false }),
           outsideClickIgnoreClass: this.id
-        }, [content])
+        }, [div({ onClick: closeOnClick ? () => this.close() : undefined }, [content])])
       ])
     ])
   }
