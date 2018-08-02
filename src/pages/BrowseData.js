@@ -42,7 +42,7 @@ const styles = {
   banner: {
     container: {
       display: 'flex', alignItems: 'center',
-      backgroundColor: '#170e43', color: 'white',
+      backgroundColor: colors.darkBlue[0], color: 'white',
       padding: `1.5rem ${sideMargin}`
     },
     textContainer: {
@@ -66,7 +66,7 @@ const styles = {
       ...Style.elements.sectionHeader, textTransform: 'uppercase'
     },
     title: {
-      fontSize: 20, color: colors.blue[0]
+      fontSize: 20, color: colors.darkBlue[0]
     }
   }
 }
@@ -75,7 +75,7 @@ const styles = {
 const FadeBox = ({
   padding = '1.5rem',
   backgroundColor = colors.gray[5],
-  borderColor = colors.gray[2],
+  borderColor = colors.gray[3],
   fadePoint = '60%',
   children
 }) => {
