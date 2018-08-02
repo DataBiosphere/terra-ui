@@ -24,11 +24,6 @@ import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer
 
 const sideMargin = '3rem'
 
-const styleForOptional = optional => ({
-  fontWeight: !optional && 500,
-  fontStyle: optional && 'italic'
-})
-
 const miniMessage = text =>
   span({ style: { fontWeight: 500, fontSize: '75%', marginRight: '1rem', textTransform: 'uppercase' } }, [text])
 
@@ -36,6 +31,21 @@ const errorIcon = b => {
   return b && icon('error', {
     size: 28, style: { marginLeft: '0.5rem', color: colors.red[0] }
   })
+}
+
+const augmentErrors = (inputsOutputs, validationResponse) => {
+  const process = ioKey => _.update(ioKey, _.flow(
+    _.map(({ name, optional }) => {
+      const value = validationResponse.methodConfiguration[ioKey][name]
+      const error = !optional && !value ?
+        'This attribute is required' :
+        validationResponse[ioKey === 'inputs' ? 'invalidInputs' : 'invalidOutputs'][name]
+      return [name, error]
+    }),
+    _.filter(_.last),
+    _.fromPairs
+  ))
+  return _.flow(process('inputs'), process('outputs'))(inputsOutputs)
 }
 
 const styles = {
@@ -46,7 +56,76 @@ const styles = {
     position: 'absolute',
     bottom: '0.5rem',
     right: sideMargin
-  }
+  },
+  cell: optional => ({
+    fontWeight: !optional && 500,
+    fontStyle: optional && 'italic'
+  })
+}
+
+const ioTask = ({ name }) => _.nth(-2, name.split('.'))
+const ioVariable = ({ name }) => _.nth(-1, name.split('.'))
+const ioType = ({ inputType, outputType }) => (inputType || outputType).match(/(.*?)\??$/)[1] // unify, and strip off trailing '?'
+
+const WorkflowIOTable = ({ which, inputsOutputs, config, errors, onChange, suggestions }) => {
+  const data = inputsOutputs[which]
+  return h(AutoSizer, [
+    ({ width, height }) => {
+      return h(FlexTable, {
+        width, height,
+        rowCount: data.length,
+        columns: [
+          {
+            size: { basis: 350, grow: 0 },
+            headerRenderer: () => h(HeaderCell, ['Task name']),
+            cellRenderer: ({ rowIndex }) => {
+              const io = data[rowIndex]
+              return h(TextCell, { style: { fontWeight: 500 } }, [
+                ioTask(io)
+              ])
+            }
+          },
+          {
+            size: { basis: 360, grow: 0 },
+            headerRenderer: () => h(HeaderCell, ['Variable']),
+            cellRenderer: ({ rowIndex }) => {
+              const io = data[rowIndex]
+              return h(TextCell, { style: styles.cell(io.optional) }, [ioVariable(io)])
+            }
+          },
+          {
+            size: { basis: 160, grow: 0 },
+            headerRenderer: () => h(HeaderCell, ['Type']),
+            cellRenderer: ({ rowIndex }) => {
+              const io = data[rowIndex]
+              return h(TextCell, { style: styles.cell(io.optional) }, [ioType(io)])
+            }
+          },
+          {
+            headerRenderer: () => h(HeaderCell, ['Attribute']),
+            cellRenderer: ({ rowIndex }) => {
+              const { name, optional } = data[rowIndex]
+              const value = config[which][name] || ''
+              const error = errors[which][name]
+              return div({ style: { display: 'flex', alignItems: 'center', width: '100%' } }, [
+                onChange ? h(AutocompleteTextInput, {
+                  placeholder: optional ? 'Optional' : 'Required',
+                  value,
+                  onChange: v => onChange(name, v),
+                  suggestions
+                }) : h(TextCell, { style: { flex: 1 } }, value),
+                error && h(TooltipTrigger, { content: error }, [
+                  icon('error', {
+                    size: 28, style: { marginLeft: '0.5rem', color: colors.red[0], cursor: 'help' }
+                  })
+                ])
+              ])
+            }
+          }
+        ]
+      })
+    }
+  ])
 }
 
 const WorkflowView = wrapWorkspace({
@@ -59,6 +138,7 @@ class WorkflowViewContent extends Component {
 
     this.state = {
       activeTab: 'inputs',
+      errors: { inputs: {}, outputs: {} },
       ...StateHistory.get()
     }
   }
@@ -105,13 +185,12 @@ class WorkflowViewContent extends Component {
       ])
 
       const { methodConfiguration: config } = validationResponse
-      const ioDefinitions = await Methods.configInputsOutputs(config)
-
-      const inputsOutputs = this.createIOLists(validationResponse, ioDefinitions)
+      const inputsOutputs = await Methods.configInputsOutputs(config)
 
       this.setState({
         isFreshData: true, savedConfig: config, modifiedConfig: config,
-        entityMetadata, inputsOutputs, ioDefinitions,
+        entityMetadata, inputsOutputs,
+        errors: augmentErrors(inputsOutputs, validationResponse),
         workspaceAttributes: _.flow(
           _.without(['description']),
           _.remove(s => s.includes(':'))
@@ -119,29 +198,6 @@ class WorkflowViewContent extends Component {
       })
     } catch (error) {
       reportError('Error loading data', error)
-    }
-  }
-
-  createIOLists(validationResponse, ioDefinitions = this.state.ioDefinitions) {
-    const { invalidInputs, invalidOutputs, methodConfiguration: config } = validationResponse
-
-    const invalid = {
-      inputs: invalidInputs,
-      outputs: invalidOutputs
-    }
-
-    const process = ioKey => _.map(({ name, inputType, outputType, optional }) => {
-      const value = config[ioKey][name]
-      const [task, variable] = _.takeRight(2, _.split('.', name))
-      const type = (inputType || outputType).match(/(.*?)\??$/)[1] // unify, and strip off trailing '?'
-      const error = !optional && !value ? 'This attribute is required' : invalid[ioKey][name]
-
-      return { name, task, variable, optional, value, type, error }
-    })
-
-    return {
-      inputs: process('inputs')(ioDefinitions.inputs),
-      outputs: process('outputs')(ioDefinitions.outputs)
     }
   }
 
@@ -224,7 +280,7 @@ class WorkflowViewContent extends Component {
 
   renderIOTable(key) {
     const { workspace: { canCompute } } = this.props
-    const { modifiedConfig, inputsOutputs: { [key]: data }, entityMetadata, workspaceAttributes } = this.state
+    const { modifiedConfig, inputsOutputs, errors, entityMetadata, workspaceAttributes } = this.state
     // Sometimes we're getting totally empty metadata. Not sure if that's valid; if not, revert this
     const { attributeNames } = entityMetadata[modifiedConfig.rootEntityType] || {}
     const suggestions = [
@@ -233,60 +289,14 @@ class WorkflowViewContent extends Component {
     ]
 
     return div({ style: { margin: `1rem ${sideMargin} 0`, flexGrow: 1, minHeight: 500 } }, [
-      h(AutoSizer, {}, [
-        ({ width, height }) => {
-          return h(FlexTable, {
-            width, height,
-            rowCount: data.length,
-            columns: [
-              {
-                size: { basis: 350, grow: 0 },
-                headerRenderer: () => h(HeaderCell, ['Task name']),
-                cellRenderer: ({ rowIndex }) => {
-                  return h(TextCell, { style: { fontWeight: 500 } }, [data[rowIndex].task])
-                }
-              },
-              {
-                size: { basis: 360, grow: 0 },
-                headerRenderer: () => h(HeaderCell, ['Variable']),
-                cellRenderer: ({ rowIndex }) => {
-                  const { variable, optional } = data[rowIndex]
-                  return h(TextCell, { style: styleForOptional(optional) }, [variable])
-                }
-              },
-              {
-                size: { basis: 160, grow: 0 },
-                headerRenderer: () => h(HeaderCell, ['Type']),
-                cellRenderer: ({ rowIndex }) => {
-                  const { type, optional } = data[rowIndex]
-                  return h(TextCell, { style: styleForOptional(optional) }, [type])
-                }
-              },
-              {
-                headerRenderer: () => h(HeaderCell, ['Attribute']),
-                cellRenderer: ({ rowIndex }) => {
-                  const { name, optional, error } = data[rowIndex]
-                  const value = modifiedConfig[key][name] || ''
-                  return div({ style: { display: 'flex', alignItems: 'center', width: '100%' } }, [
-                    canCompute ? h(AutocompleteTextInput, {
-                      spellCheck: false,
-                      placeholder: optional ? 'Optional' : 'Required',
-                      value,
-                      onChange: v => this.setState(_.set(['modifiedConfig', key, name], v)),
-                      suggestions
-                    }) : div({ style: { flex: 1 } }, [value]),
-                    error && h(TooltipTrigger, { content: error }, [
-                      icon('error', {
-                        size: 28, style: { marginLeft: '0.5rem', color: colors.red[0], cursor: 'help' }
-                      })
-                    ])
-                  ])
-                }
-              }
-            ]
-          })
-        }
-      ])
+      h(WorkflowIOTable, {
+        which: key,
+        inputsOutputs,
+        config: modifiedConfig,
+        errors,
+        onChange: canCompute ? ((name, v) => this.setState(_.set(['modifiedConfig', key, name], v))) : undefined,
+        suggestions
+      })
     ])
   }
 
@@ -321,7 +331,7 @@ class WorkflowViewContent extends Component {
 
   async save() {
     const { namespace, name, workflowNamespace, workflowName } = this.props
-    const { modifiedConfig } = this.state
+    const { modifiedConfig, inputsOutputs } = this.state
 
     this.setState({ saving: true })
 
@@ -329,13 +339,12 @@ class WorkflowViewContent extends Component {
       const validationResponse = await Workspaces.workspace(namespace, name)
         .methodConfig(workflowNamespace, workflowName)
         .save(modifiedConfig)
-      const inputsOutputs = this.createIOLists(validationResponse)
 
       this.setState({
         saved: true,
-        inputsOutputs,
         savedConfig: validationResponse.methodConfiguration,
-        modifiedConfig: validationResponse.methodConfiguration
+        modifiedConfig: validationResponse.methodConfiguration,
+        errors: augmentErrors(inputsOutputs, validationResponse)
       }, () => setTimeout(() => this.setState({ saved: false }), 3000))
     } catch (error) {
       reportError('Error saving', error)
