@@ -293,6 +293,10 @@ export const Workspaces = {
         return res.json()
       },
 
+      abortSubmission: async submissionId => {
+        return fetchRawls(`${root}/submissions/${submissionId}`, _.merge(authOpts(), { method: 'DELETE' }))
+      },
+
       delete: () => {
         return fetchRawls(root, _.merge(authOpts(), { method: 'DELETE' }))
       },
