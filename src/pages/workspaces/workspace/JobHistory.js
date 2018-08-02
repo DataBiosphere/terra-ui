@@ -174,6 +174,7 @@ class JobHistoryContent extends Component {
                   ]),
                   h(PopupTrigger, {
                     position: 'bottom',
+                    closeOnClick: true,
                     content: h(Fragment, [
                       h(MenuButton, {
                         as: 'a',

@@ -39,37 +39,21 @@ const readFileAsText = file => {
 }
 
 class NotebookCard extends Component {
-  constructor(props) {
-    super(props)
-    this.menu = createRef()
-  }
-
   render() {
     const { namespace, name, updated, listView, wsName, onRename, onCopy, onDelete, canCompute, canWrite } = this.props
 
-    const hideMenu = () => this.menu.current.close()
-
     const notebookMenu = canWrite && h(PopupTrigger, {
-      ref: this.menu,
       position: 'bottom',
+      closeOnClick: true,
       content: h(Fragment, [
         h(MenuButton, {
-          onClick: () => {
-            onRename()
-            hideMenu()
-          }
+          onClick: () => onRename()
         }, ['Rename']),
         h(MenuButton, {
-          onClick: () => {
-            onCopy()
-            hideMenu()
-          }
+          onClick: () => onCopy()
         }, ['Duplicate']),
         h(MenuButton, {
-          onClick: () => {
-            onDelete()
-            hideMenu()
-          }
+          onClick: () => onDelete()
         }, ['Delete'])
       ])
     }, [

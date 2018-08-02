@@ -44,11 +44,6 @@ const navIconProps = {
 
 
 class WorkspaceTabs extends PureComponent {
-  constructor(props) {
-    super(props)
-    this.menu = createRef()
-  }
-
   render() {
     const { namespace, name, workspace, activeTab, refresh, onDelete, onClone } = this.props
     const navTab = ({ tabName, href }) => {
@@ -78,7 +73,7 @@ class WorkspaceTabs extends PureComponent {
         onClick: onClone
       }, [icon('copy', { size: 22 })]),
       h(PopupTrigger, {
-        ref: this.menu,
+        closeOnClick: true,
         content: h(Fragment, [
           h(MenuButton, { disabled: true }, ['Share', comingSoon]),
           h(MenuButton, { disabled: true }, ['Publish', comingSoon]),
@@ -86,10 +81,7 @@ class WorkspaceTabs extends PureComponent {
             disabled: !isOwner,
             tooltip: !isOwner && 'You must be an owner of this workspace or the underlying billing project',
             tooltipSide: 'left',
-            onClick: () => {
-              onDelete()
-              this.menu.current.close()
-            }
+            onClick: () => onDelete()
           }, ['Delete'])
         ]),
         position: 'bottom'
