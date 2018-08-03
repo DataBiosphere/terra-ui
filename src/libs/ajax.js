@@ -328,7 +328,7 @@ export const Workspaces = {
         const payload = await res.json()
         const body = _.map(({ name, entityType, attributes }) => {
           return { name, entityType, operations: attributesUpdateOps(attributes) }
-        }, payload)
+        }, [payload])
         return fetchRawls(`${root}/entities/batchUpsert`, _.mergeAll([authOpts(), jsonBody(body), { method: 'POST' }]))
       },
 
