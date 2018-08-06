@@ -3,13 +3,14 @@ import { Component } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { buttonPrimary, linkButton, search, Select } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
+import { AutocompleteTextInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { Groups, Workspaces } from 'src/libs/ajax'
+import { getBasicProfile } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import { AutocompleteTextInput } from 'src/components/input'
 
 
 const styles = {
@@ -94,6 +95,7 @@ export default class ShareWorkspaceModal extends Component {
 
   renderCollaborator = ({ email, accessLevel, pending }, index) => {
     const isPO = accessLevel === 'PROJECT_OWNER'
+    const isMe = email === getBasicProfile().getEmail()
     const { acl } = this.state
 
     return div({
@@ -114,12 +116,13 @@ export default class ShareWorkspaceModal extends Component {
           h(Select, {
             wrapperStyle: styles.roleSelect,
             searchable: false, clearable: false,
+            disabled: isMe,
             value: accessLevel,
             onChange: ({ value }) => this.setState({ acl: _.set([index, 'accessLevel'], value, acl) }),
             options: _.map(level => ({ label: level, value: level }), ['READER', 'WRITER', 'OWNER'])
           })
       ]),
-      !isPO && linkButton({
+      !isPO && !isMe && linkButton({
         onClick: () => this.setState({ acl: _.remove({ email }, acl) })
       }, [icon('minus-circle', { size: 24 })])
     ])
