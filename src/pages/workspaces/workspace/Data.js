@@ -262,7 +262,7 @@ class WorkspaceDataContent extends Component {
     const { entities, selectedDataType, entityMetadata, totalRowCount, pageNumber, itemsPerPage, sort, columnWidths, columnState } = this.state
     const theseColumnWidths = columnWidths[selectedDataType] || {}
     const columnSettings = applyColumnSettings(columnState[selectedDataType] || [], entityMetadata[selectedDataType].attributeNames)
-
+    const resetScroll = () => this.table.current.scrollToTop()
     return entities && h(Fragment, [
       div({ style: { flex: 'none', marginBottom: '1rem' } }, [
         this.renderDownloadButton(),
@@ -330,9 +330,9 @@ class WorkspaceDataContent extends Component {
         paginator({
           filteredDataLength: totalRowCount,
           pageNumber,
-          setPageNumber: v => this.setState({ pageNumber: v }),
+          setPageNumber: v => this.setState({ pageNumber: v }, resetScroll),
           itemsPerPage,
-          setItemsPerPage: v => this.setState({ itemsPerPage: v, pageNumber: 1 })
+          setItemsPerPage: v => this.setState({ itemsPerPage: v, pageNumber: 1 }, resetScroll)
         })
       ])
     ])

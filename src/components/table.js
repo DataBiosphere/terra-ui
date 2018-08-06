@@ -249,6 +249,10 @@ export class GridTable extends Component {
     this.body.current.measureAllCells()
   }
 
+  scrollToTop() {
+    this.body.current.scrollToPosition({ scrollTop: 0 })
+  }
+
   render() {
     const { width, height, rowCount, columns, cellStyle } = this.props
     const { scrollbarSize } = this.state
