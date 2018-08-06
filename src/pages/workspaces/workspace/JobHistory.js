@@ -156,6 +156,7 @@ class JobHistoryContent extends Component {
           },
           columns: [
             {
+              size: { basis: 600, grow: 0 },
               headerRenderer: () => h(HeaderCell, ['Job']),
               cellRenderer: ({ rowIndex }) => {
                 const { methodConfigurationNamespace, methodConfigurationName, submitter, submissionId, workflowStatuses } = submissions[rowIndex]
@@ -217,7 +218,7 @@ class JobHistoryContent extends Component {
               }
             },
             {
-              size: { basis: 250, grow: 0 },
+              size: { basis: 200 },
               headerRenderer: () => h(HeaderCell, ['Submitted']),
               cellRenderer: ({ rowIndex }) => {
                 const { submissionDate } = submissions[rowIndex]
