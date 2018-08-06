@@ -34,6 +34,14 @@ const styles = {
     width: 200,
     display: 'inline-flex',
     marginTop: '0.25rem'
+  },
+  suggestionContainer: {
+    display: 'flex', alignItems: 'center',
+    padding: '0.5rem 1rem',
+    borderBottom: `1px solid ${colors.gray[4]}`
+  },
+  suggestion: {
+    flex: 1
   }
 }
 
@@ -62,6 +70,7 @@ export default class ShareWorkspaceModal extends Component {
 
     return h(Modal, {
       title: 'Share Workspace',
+      width: 550,
       okButton: buttonPrimary({ onClick: () => this.save() }, ['Save']),
       onDismiss
     }, [
@@ -71,6 +80,10 @@ export default class ShareWorkspaceModal extends Component {
           inputProps: {
             placeholder: 'Add people or groups',
             value: searchValue,
+            renderSuggestion: suggestion => div({ style: styles.suggestionContainer }, [
+              div({ style: styles.suggestion }, suggestion),
+              linkButton({}, [icon('plus-circle', { size: 24 })])
+            ]),
             onChange: (v, fromSuggestionClick) => {
               if (fromSuggestionClick) {
                 acl.push({ email: v, accessLevel: 'READER', pending: false })
@@ -81,7 +94,8 @@ export default class ShareWorkspaceModal extends Component {
             },
             suggestions: _.difference(suggestions, _.map('email', acl)),
             style: { fontSize: 16, padding: '0 1rem 0 0', height: 'unset', border: 'none' },
-            focus: { border: 'none' }
+            focus: { border: 'none' },
+            theme: { suggestion: { padding: 0 } }
           }
         })
       ]),

@@ -175,7 +175,7 @@ export class AutocompleteTextInput extends Component {
   }
 
   render() {
-    const { value, onChange, suggestions, ...props } = this.props
+    const { value, onChange, suggestions, renderSuggestion = _.identity, theme, ...props } = this.props
     const { show } = this.state
     return h(Autosuggest, {
       id: this.id,
@@ -192,16 +192,16 @@ export class AutocompleteTextInput extends Component {
           children && h(AutocompleteSuggestions, { containerProps, children, containerRef: this.containerRef })
         ])
       },
-      renderSuggestion: v => v,
+      renderSuggestion,
       renderInputComponent: inputProps => {
         return textInput({ ...inputProps, ...props, type: 'search' })
       },
-      theme: {
+      theme: _.merge({
         container: { width: '100%' },
         suggestionsList: { margin: 0, padding: 0 },
         suggestion: styles.suggestion,
         suggestionHighlighted: { backgroundColor: colors.blue[5] }
-      }
+      }, theme)
     })
   }
 }
