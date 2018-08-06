@@ -183,7 +183,7 @@ export class AutocompleteTextInput extends Component {
       suggestions: show ? (value ? _.filter(Utils.textMatch(value), suggestions) : suggestions) : [],
       onSuggestionsFetchRequested: () => this.setState({ show: true }),
       onSuggestionsClearRequested: () => this.setState({ show: false }),
-      onSuggestionSelected: (e, { suggestionValue }) => onChange(suggestionValue),
+      onSuggestionSelected: (e, { suggestionValue }) => onChange(suggestionValue, true),
       getSuggestionValue: _.identity,
       shouldRenderSuggestions: () => true,
       focusInputOnSuggestionClick: false,

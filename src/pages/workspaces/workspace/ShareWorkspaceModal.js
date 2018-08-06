@@ -4,7 +4,7 @@ import { div, h } from 'react-hyperscript-helpers'
 import { buttonPrimary, linkButton, search, Select } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
-import { Workspaces } from 'src/libs/ajax'
+import { Groups, Workspaces } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import * as Style from 'src/libs/style'
@@ -51,7 +51,13 @@ export default class ShareWorkspaceModal extends Component {
 
   render() {
     const { onDismiss } = this.props
-    const { acl, shareSuggestions, loaded, searchValue } = this.state
+    const { acl, shareSuggestions, groups, loaded, searchValue } = this.state
+
+    const suggestions = _.flow(
+      _.map('groupEmail'),
+      _.concat(shareSuggestions),
+      _.uniq
+    )(groups)
 
     return h(Modal, {
       title: 'Share Workspace',
@@ -64,8 +70,15 @@ export default class ShareWorkspaceModal extends Component {
           inputProps: {
             placeholder: 'Add people or groups',
             value: searchValue,
-            onChange: v => this.setState({ searchValue: v }),
-            suggestions: shareSuggestions,
+            onChange: (v, fromSuggestionClick) => {
+              if (fromSuggestionClick) {
+                acl.push({ email: v, accessLevel: 'READER', pending: false })
+                this.setState({ acl, searchValue: '' })
+              } else {
+                this.setState({ searchValue: v })
+              }
+            },
+            suggestions: _.difference(suggestions, _.map('email', acl)),
             style: { fontSize: 16, padding: '0 1rem 0 0', height: 'unset', border: 'none' },
             focus: { border: 'none' }
           }
@@ -116,7 +129,12 @@ export default class ShareWorkspaceModal extends Component {
     const { namespace, name, onDismiss } = this.props
 
     try {
-      const [{ acl }, shareSuggestions] = await Promise.all([Workspaces.workspace(namespace, name).acl(), Workspaces.getShareLog()])
+      const [{ acl }, shareSuggestions, groups] = await Promise.all([
+        Workspaces.workspace(namespace, name).acl(),
+        Workspaces.getShareLog(),
+        Groups.list()
+      ])
+
       const fixedAcl = _.flow(
         _.toPairs,
         _.map(([email, { pending, accessLevel }]) => ({ email, pending, accessLevel })),
@@ -126,6 +144,7 @@ export default class ShareWorkspaceModal extends Component {
       this.setState({
         acl: fixedAcl,
         originalAcl: fixedAcl,
+        groups,
         shareSuggestions,
         loaded: true
       })
