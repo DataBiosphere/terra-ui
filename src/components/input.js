@@ -194,7 +194,7 @@ export class AutocompleteTextInput extends Component {
       },
       renderSuggestion: v => v,
       renderInputComponent: inputProps => {
-        return textInput({ ...props, ...inputProps, type: 'search' })
+        return textInput({ ...inputProps, ...props, type: 'search' })
       },
       theme: {
         container: { width: '100%' },

@@ -77,13 +77,13 @@ export const buttonSecondary = ({ disabled, ...props }, children) => {
   }, props), children)
 }
 
-export const search = function({ wrapperProps, inputProps }) {
+export const search = function({ wrapperProps, inputProps, inputElement }) {
   return div(
     _.merge({ style: { borderBottom: '1px solid black', padding: '0.5rem 0', display: 'flex' } },
       wrapperProps),
     [
       icon('search'),
-      input(_.merge({
+      h(inputElement || input, _.merge({
         style: {
           border: 'none', outline: 'none',
           flexGrow: 1,

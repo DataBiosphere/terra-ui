@@ -16,6 +16,7 @@ import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
+import ShareWorkspaceModal from 'src/pages/workspaces/workspace/ShareWorkspaceModal'
 
 
 const styles = {
@@ -58,7 +59,7 @@ const navIconProps = {
 
 class WorkspaceTabs extends PureComponent {
   render() {
-    const { namespace, name, workspace, activeTab, refresh, onDelete, onClone } = this.props
+    const { namespace, name, workspace, activeTab, refresh, onShare, onDelete, onClone } = this.props
     const navTab = ({ tabName, href }) => {
       const selected = tabName === activeTab
       return h(Fragment, [
@@ -88,7 +89,12 @@ class WorkspaceTabs extends PureComponent {
       h(PopupTrigger, {
         closeOnClick: true,
         content: h(Fragment, [
-          h(MenuButton, { disabled: true }, ['Share', comingSoon]),
+          h(MenuButton, {
+            disabled: !isOwner,
+            tooltip: !isOwner && 'You must be an owner of this workspace or the underlying billing project',
+            tooltipSide: 'left',
+            onClick: () => onShare()
+          }, ['Share']),
           h(MenuButton, { disabled: true }, ['Publish', comingSoon]),
           h(MenuButton, {
             disabled: !isOwner,
@@ -179,9 +185,13 @@ class WorkspaceContainer extends Component {
     this.setState({ cloningWorkspace: true })
   }
 
+  onShare = () => {
+    this.setState({ sharingWorkspace: true })
+  }
+
   render() {
     const { namespace, name, breadcrumbs, title, activeTab, refresh, refreshClusters, workspace, clusters } = this.props
-    const { deletingWorkspace, cloningWorkspace } = this.state
+    const { deletingWorkspace, cloningWorkspace, sharingWorkspace } = this.state
 
     return div({ style: styles.page }, [
       h(TopBar, { title: 'Workspaces' }, [
@@ -198,7 +208,7 @@ class WorkspaceContainer extends Component {
       ]),
       h(WorkspaceTabs, {
         namespace, name, activeTab, refresh, workspace,
-        onDelete: this.onDelete, onClone: this.onClone
+        onDelete: this.onDelete, onClone: this.onClone, onShare: this.onShare
       }),
       div({ style: styles.childrenContainer }, [
         this.props.children
@@ -210,6 +220,10 @@ class WorkspaceContainer extends Component {
       cloningWorkspace && h(NewWorkspaceModal, {
         cloneWorkspace: workspace,
         onDismiss: () => this.setState({ cloningWorkspace: false })
+      }),
+      sharingWorkspace && h(ShareWorkspaceModal, {
+        namespace, name,
+        onDismiss: () => this.setState({ sharingWorkspace: false })
       })
     ])
   }
