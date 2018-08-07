@@ -39,7 +39,7 @@ const isFilePreviewable = ({ size, ...metadata }) => {
 }
 
 const parseUri = uri => _.drop(1, /gs:[/][/]([^/]+)[/](.+)/.exec(uri))
-const getMaxDownloadCostNA = async bytes => {
+const getMaxDownloadCostNA = bytes => {
   const nanos = DownloadPrices.pricingInfo[0].pricingExpression.tieredRates[1].unitPrice.nanos
   const downloadPrice = bytes * nanos / DownloadPrices.pricingInfo[0].pricingExpression.baseUnitConversionFactor / 10e8
 
@@ -68,7 +68,7 @@ export class UriViewer extends Component {
       Config.getOrchestrationUrlRoot()
     ])
 
-    const price = await getMaxDownloadCostNA(metadata.size)
+    const price = getMaxDownloadCostNA(metadata.size)
 
     const preview = isFilePreviewable(metadata) &&
       await Buckets.getObjectPreview(bucket, object, googleProject, isImage(metadata)).then(
