@@ -1,9 +1,11 @@
+import FileSaver from 'file-saver'
 import _ from 'lodash/fp'
-import { Fragment } from 'react'
+import { createRef, Fragment } from 'react'
+import Dropzone from 'react-dropzone'
 import { div, h, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { buttonPrimary, buttonSecondary, Select, spinnerOverlay } from 'src/components/common'
+import { buttonPrimary, buttonSecondary, linkButton, Select, spinnerOverlay } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { AutocompleteTextInput } from 'src/components/input'
 import TabBar from 'src/components/TabBar'
@@ -141,6 +143,7 @@ class WorkflowViewContent extends Component {
       errors: { inputs: {}, outputs: {} },
       ...StateHistory.get()
     }
+    this.uploader = createRef()
   }
 
   render() {
@@ -278,6 +281,27 @@ class WorkflowViewContent extends Component {
     ])
   }
 
+  downloadJson(key) {
+    const { modifiedConfig } = this.state
+    const blob = new Blob([JSON.stringify(modifiedConfig[key])], { type: 'application/json' })
+    FileSaver.saveAs(blob, `${key}.json`)
+  }
+
+  async uploadJson(key, files) {
+    try {
+      const text = await Utils.readFileAsText(files[0])
+      const updates = JSON.parse(text)
+      this.setState(({ modifiedConfig }) => {
+        const existing = _.keys(modifiedConfig[key])
+        return {
+          modifiedConfig: _.update(key, _.assign(_, _.pick(existing, updates)), modifiedConfig)
+        }
+      })
+    } catch (error) {
+      reportError('Error processing file', error)
+    }
+  }
+
   renderIOTable(key) {
     const { workspace: { canCompute } } = this.props
     const { modifiedConfig, inputsOutputs, errors, entityMetadata, workspaceAttributes } = this.state
@@ -288,7 +312,22 @@ class WorkflowViewContent extends Component {
       ..._.map(name => `workspace.${name}`, workspaceAttributes)
     ]
 
-    return div({ style: { margin: `1rem ${sideMargin} 0`, flexGrow: 1, minHeight: 500 } }, [
+    return h(Dropzone, {
+      accept: '.json',
+      multiple: false,
+      disabled: !canCompute,
+      disableClick: true,
+      disablePreview: true,
+      style: { padding: `1rem ${sideMargin} 0`, flex: 1, minHeight: 500 },
+      activeStyle: { backgroundColor: colors.blue[3], cursor: 'copy' },
+      ref: this.uploader,
+      onDropAccepted: files => this.uploadJson(key, files)
+    }, [
+      div({ style: { display: 'flex', justifyContent: 'flex-end', marginBottom: '0.25rem' } }, [
+        linkButton({ onClick: () => this.downloadJson(key) }, ['Download json']),
+        div({ style: { padding: '0 0.5rem' } }, ['|']),
+        linkButton({ onClick: () => this.uploader.current.open() }, ['Upload json'])
+      ]),
       h(WorkflowIOTable, {
         which: key,
         inputsOutputs,
