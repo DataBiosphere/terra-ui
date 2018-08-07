@@ -30,15 +30,6 @@ const printName = name => name.slice(10, -6) // removes 'notebooks/' and the .ip
 const noCompute = 'You do not have access to run analyses on this workspace.'
 const noWrite = 'You do not have access to modify this workspace.'
 
-const readFileAsText = file => {
-  const reader = new FileReader()
-  return new Promise((resolve, reject) => {
-    reader.onload = () => resolve(reader.result)
-    reader.onerror = reject
-    reader.readAsText(file)
-  })
-}
-
 class NotebookCard extends Component {
   render() {
     const { namespace, name, updated, listView, wsName, onRename, onCopy, onDelete, canCompute, canWrite } = this.props
@@ -164,7 +155,7 @@ class NotebooksContent extends Component {
         if (_.includes(name, existingNames)) {
           throw new Error(`${name} already exists`)
         }
-        const contents = await readFileAsText(file)
+        const contents = await Utils.readFileAsText(file)
         return Buckets.notebook(namespace, bucketName, name).create(JSON.parse(contents))
       }, files))
       this.refresh()
