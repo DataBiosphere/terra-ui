@@ -287,9 +287,9 @@ class WorkflowViewContent extends Component {
     FileSaver.saveAs(blob, `${key}.json`)
   }
 
-  async uploadJson(key, files) {
+  async uploadJson(key, file) {
     try {
-      const text = await Utils.readFileAsText(files[0])
+      const text = await Utils.readFileAsText(file)
       const updates = JSON.parse(text)
       this.setState(({ modifiedConfig }) => {
         const existing = _.keys(modifiedConfig[key])
@@ -321,7 +321,7 @@ class WorkflowViewContent extends Component {
       style: { padding: `1rem ${sideMargin} 0`, flex: 1, minHeight: 500 },
       activeStyle: { backgroundColor: colors.blue[3], cursor: 'copy' },
       ref: this.uploader,
-      onDropAccepted: files => this.uploadJson(key, files)
+      onDropAccepted: files => this.uploadJson(key, files[0])
     }, [
       div({ style: { display: 'flex', justifyContent: 'flex-end', marginBottom: '0.25rem' } }, [
         linkButton({ onClick: () => this.downloadJson(key) }, ['Download json']),
