@@ -23,6 +23,8 @@ export const machineTypes = [
   { name: 'n1-highcpu-96', cpu: 96, memory: 86.4, price: 3.402, preemptiblePrice: 0.7200 }
 ]
 
+export const storagePrice = 0.04 / 730 // per GB hour, from https://cloud.google.com/compute/pricing
+
 export const profiles = [
   {
     name: 'moderate',
