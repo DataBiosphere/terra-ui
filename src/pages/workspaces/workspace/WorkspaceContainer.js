@@ -110,13 +110,12 @@ class DeleteWorkspaceModal extends Component {
   constructor(props) {
     super(props)
     this.state = {
-      deleting: false,
-      workspace: undefined
+      deleting: false
     }
   }
 
   async deleteWorkspace() {
-    const { namespace, name } = this.props
+    const { workspace: { workspace: { namespace, name } } } = this.props
     try {
       this.setState({ deleting: true })
       await Workspaces.workspace(namespace, name).delete()
@@ -127,19 +126,9 @@ class DeleteWorkspaceModal extends Component {
     }
   }
 
-  async componentDidMount() {
-    const { namespace, name } = this.props
-    try {
-      const workspace = await Workspaces.workspace(namespace, name).details()
-      this.setState({ workspace })
-    } catch (error) {
-      reportError('Error loading workspace', error)
-    }
-  }
-
   render() {
-    const { onDismiss } = this.props
-    const { workspace, deleting } = this.state
+    const { workspace: { workspace: { bucketName } }, onDismiss } = this.props
+    const { deleting } = this.state
     return h(Modal, {
       title: 'Confirm delete',
       onDismiss,
@@ -152,7 +141,7 @@ class DeleteWorkspaceModal extends Component {
         'Deleting it will delete the associated ',
         link({
           target: '_blank',
-          href: Utils.bucketBrowserUrl(workspace && workspace.workspace.bucketName)
+          href: Utils.bucketBrowserUrl(bucketName)
         }, ['Google Cloud Bucket']),
         ' and all its data.'
       ]),
@@ -204,7 +193,7 @@ class WorkspaceContainer extends Component {
         this.props.children
       ]),
       deletingWorkspace && h(DeleteWorkspaceModal, {
-        namespace, name,
+        workspace,
         onDismiss: () => this.setState({ deletingWorkspace: false })
       }),
       cloningWorkspace && h(NewWorkspaceModal, {
@@ -248,7 +237,9 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title }, content) => {
       }, [
         workspace && h(content, {
           ref: this.child,
-          workspace, clusters, refreshClusters: () => this.refreshClusters(),
+          workspace, clusters,
+          refreshWorkspace: () => this.refresh(),
+          refreshClusters: () => this.refreshClusters(),
           ...this.props
         })
       ])
