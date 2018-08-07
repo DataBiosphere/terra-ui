@@ -1,10 +1,11 @@
 import _ from 'lodash/fp'
 import { Component } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
-import { buttonPrimary, linkButton, search, Select } from 'src/components/common'
+import { buttonPrimary, linkButton, search, Select, spinnerOverlay } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { AutocompleteTextInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
+import TooltipTrigger from 'src/components/TooltipTrigger'
 import { Groups, Workspaces } from 'src/libs/ajax'
 import { getBasicProfile } from 'src/libs/auth'
 import colors from 'src/libs/colors'
@@ -12,7 +13,6 @@ import { reportError } from 'src/libs/error'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import validate from 'validate.js'
-import TooltipTrigger from 'src/components/TooltipTrigger'
 
 
 const styles = {
@@ -62,7 +62,7 @@ export default class ShareWorkspaceModal extends Component {
 
   render() {
     const { onDismiss } = this.props
-    const { acl, shareSuggestions, groups, loaded, searchValue } = this.state
+    const { acl, shareSuggestions, groups, loaded, searchValue, working, updateError } = this.state
     const searchValueInvalid = !!validate({ searchValue }, { searchValue: { email: true } })
 
     const suggestions = _.flow(
@@ -98,17 +98,18 @@ export default class ShareWorkspaceModal extends Component {
             onChange: (v, fromSuggestionClick) => {
               if (fromSuggestionClick) {
                 if (v !== searchValue || !searchValueInvalid) {
-                  acl.push({ email: v, accessLevel: 'READER', pending: false })
-                  this.setState({ acl, searchValue: '' })
+                  this.addAcl(v)
                 }
               } else {
                 this.setState({ searchValue: v })
               }
             },
             onKeyDown: e => {
-              if (e.which === 13 && !searchValueInvalid) {
-                acl.push({ email: searchValue, accessLevel: 'READER', pending: false })
-                this.setState({ acl, searchValue: '' })
+              // 13 = Enter, 27 = Escape
+              if (e.which === 27) {
+                e.stopPropagation()
+              } else if (e.which === 13 && !searchValueInvalid) {
+                this.addAcl(searchValue)
               }
             },
             suggestions: _.difference(suggestions, _.map('email', acl)),
@@ -122,8 +123,18 @@ export default class ShareWorkspaceModal extends Component {
         div({ style: Style.elements.sectionHeader }, ['Current Collaborators']),
         ...acl.map(this.renderCollaborator),
         !loaded && centeredSpinner()
-      ])
+      ]),
+      updateError && div({ style: { marginTop: '1rem' } }, [
+        div({}, ['An error occurred:']),
+        updateError
+      ]),
+      working && spinnerOverlay
     ])
+  }
+
+  addAcl(email) {
+    const { acl } = this.state
+    this.setState({ acl: _.concat(acl, [{ email, accessLevel: 'READER', pending: false }]), searchValue: '' })
   }
 
   renderCollaborator = ({ email, accessLevel, pending }, index) => {
@@ -166,7 +177,7 @@ export default class ShareWorkspaceModal extends Component {
 
     try {
       const [{ acl }, shareSuggestions, groups] = await Promise.all([
-        Workspaces.workspace(namespace, name).acl(),
+        Workspaces.workspace(namespace, name).getAcl(),
         Workspaces.getShareLog(),
         Groups.list()
       ])
@@ -190,10 +201,31 @@ export default class ShareWorkspaceModal extends Component {
     }
   }
 
-  save() {
-    const { onDismiss } = this.props
+  async save() {
+    const { namespace, name, onDismiss } = this.props
+    const { acl, originalAcl } = this.state
 
-    console.log('save')
-    onDismiss()
+    const aclEmails = _.map('email', acl)
+    const needsDelete = _.remove(entry => aclEmails.includes(entry.email), originalAcl)
+
+    const aclUpdates = _.concat(
+      _.flow(
+        _.remove({ accessLevel: 'PROJECT_OWNER' }),
+        _.map(({ email, accessLevel }) => ({
+          email, accessLevel,
+          canShare: Utils.isOwner(accessLevel),
+          canCompute: Utils.canWrite(accessLevel)
+        }))
+      )(acl),
+      _.map(({ email }) => ({ email, accessLevel: 'NO ACCESS' }), needsDelete)
+    )
+
+    try {
+      this.setState({ working: true })
+      await Workspaces.workspace(namespace, name).updateAcl(aclUpdates)
+      onDismiss()
+    } catch (error) {
+      this.setState({ updateError: await error.text(), working: false })
+    }
   }
 }
