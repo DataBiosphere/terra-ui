@@ -2,7 +2,10 @@ import { Component } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import ReactMarkdown from 'react-markdown'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { link } from 'src/components/common'
+import { buttonPrimary, buttonSecondary, link, spinnerOverlay } from 'src/components/common'
+import { icon } from 'src/components/icons'
+import { TextArea } from 'src/components/input'
+import Modal from 'src/components/Modal'
 import { Workspaces } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
@@ -30,6 +33,10 @@ const styles = {
   },
   tinyCaps: {
     fontSize: 8, fontWeight: 500, textTransform: 'uppercase'
+  },
+  label: {
+    ...Style.elements.sectionHeader,
+    marginTop: '1rem', marginBottom: '0.25rem'
   }
 }
 
@@ -47,6 +54,52 @@ const InfoTile = ({ title, children }) => {
   ])
 }
 
+class EditWorkspaceModal extends Component {
+  constructor(props) {
+    super(props)
+    this.state = {
+      description: props.workspace.workspace.attributes.description || '',
+      saving: false
+    }
+  }
+
+  async save() {
+    const { onSave, workspace: { workspace: { namespace, name } } } = this.props
+    const { description } = this.state
+    try {
+      this.setState({ saving: true })
+      await Workspaces.workspace(namespace, name).shallowMergeNewAttributes({ description })
+      onSave()
+    } catch (error) {
+      reportError('Error saving workspace', error)
+    } finally {
+      this.setState({ saving: false })
+    }
+  }
+
+  render() {
+    const { onDismiss } = this.props
+    const { description, saving } = this.state
+    return h(Modal, {
+      title: 'Edit workspace',
+      onDismiss,
+      okButton: buttonPrimary({
+        onClick: () => this.save()
+      }, ['Save'])
+    }, [
+      div({ style: styles.label }, ['Description']),
+      h(TextArea, {
+        autoFocus: true,
+        style: { height: 100 },
+        placeholder: 'Enter a description',
+        value: description,
+        onChange: e => this.setState({ description: e.target.value })
+      }),
+      saving && spinnerOverlay
+    ])
+  }
+}
+
 export const WorkspaceDashboard = wrapWorkspace({
   breadcrumbs: () => breadcrumbs.commonPaths.workspaceList(),
   activeTab: 'dashboard'
@@ -54,7 +107,11 @@ export const WorkspaceDashboard = wrapWorkspace({
 class WorkspaceDashboardContent extends Component {
   constructor(props) {
     super(props)
-    this.state = { submissionsCount: undefined, storageCostEstimate: undefined }
+    this.state = {
+      submissionsCount: undefined,
+      storageCostEstimate: undefined,
+      editingWorkspace: false
+    }
   }
 
   async componentDidMount() {
@@ -76,11 +133,20 @@ class WorkspaceDashboardContent extends Component {
   }
 
   render() {
-    const { workspace: { accessLevel, workspace: { createdDate, bucketName, attributes: { description } } } } = this.props
-    const { submissionsCount, storageCostEstimate } = this.state
+    const { workspace, refreshWorkspace, workspace: { accessLevel, workspace: { createdDate, bucketName, attributes: { description } } } } = this.props
+    const { submissionsCount, storageCostEstimate, editingWorkspace } = this.state
+    const canWrite = Utils.canWrite(accessLevel)
     return div({ style: { flex: 1, display: 'flex', marginBottom: '-2rem' } }, [
       div({ style: styles.leftBox }, [
-        div({ style: styles.header }, ['About the project']),
+        div({ style: styles.header }, [
+          'About the project',
+          buttonSecondary({
+            style: { width: '2rem' },
+            disabled: !canWrite,
+            tooltip: !canWrite && 'You do not have permission to edit this workspace',
+            onClick: () => this.setState({ editingWorkspace: true })
+          }, [icon('edit')])
+        ]),
         description ?
           h(ReactMarkdown, [description]) :
           div({ style: { fontStyle: 'italic' } }, ['No description added'])
@@ -101,7 +167,15 @@ class WorkspaceDashboardContent extends Component {
           href: Utils.bucketBrowserUrl(bucketName),
           style: styles.tinyCaps
         }, ['Google bucket'])
-      ])
+      ]),
+      editingWorkspace && h(EditWorkspaceModal, {
+        workspace,
+        onDismiss: () => this.setState({ editingWorkspace: false }),
+        onSave: () => {
+          this.setState({ editingWorkspace: false })
+          refreshWorkspace()
+        }
+      })
     ])
   }
 })
