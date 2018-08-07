@@ -70,9 +70,10 @@ class ToolsContent extends Component {
     const { namespace, name } = this.props
     const { loading, configs } = this.state
     return div({ style: styles.cardContainer }, [
-      ..._.map(config => {
+      _.map(config => {
         return h(ToolCard, { key: `${config.namespace}/${config.name}`, namespace, name, config })
       }, configs),
+      configs && !configs.length && div(['No tools added']),
       loading && spinnerOverlay
     ])
   }

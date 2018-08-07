@@ -141,7 +141,7 @@ class JobHistoryContent extends Component {
     const { submissions, loading, aborting, newSubmissionId, highlightNewSubmission, firecloudRoot } = this.state
 
     return div({ style: styles.submissionsTable }, [
-      submissions && h(AutoSizer, [
+      submissions && !!submissions.length && h(AutoSizer, [
         ({ width, height }) => h(FlexTable, {
           width, height, rowCount: submissions.length,
           hoverHighlight: true,
@@ -227,6 +227,7 @@ class JobHistoryContent extends Component {
           ]
         })
       ]),
+      submissions && !submissions.length && div(['No jobs run']),
       aborting && h(Modal, {
         onDismiss: () => this.setState({ aborting: undefined }),
         title: 'Abort All Workflows',
