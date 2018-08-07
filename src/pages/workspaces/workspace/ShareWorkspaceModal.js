@@ -11,6 +11,8 @@ import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
+import validate from 'validate.js'
+import TooltipTrigger from 'src/components/TooltipTrigger'
 
 
 const styles = {
@@ -61,10 +63,12 @@ export default class ShareWorkspaceModal extends Component {
   render() {
     const { onDismiss } = this.props
     const { acl, shareSuggestions, groups, loaded, searchValue } = this.state
+    const searchValueInvalid = !!validate({ searchValue }, { searchValue: { email: true } })
 
     const suggestions = _.flow(
       _.map('groupEmail'),
       _.concat(shareSuggestions),
+      _.concat(searchValue.trim() ? [searchValue.trim()] : []),
       _.uniq
     )(groups)
 
@@ -81,15 +85,30 @@ export default class ShareWorkspaceModal extends Component {
             placeholder: 'Add people or groups',
             value: searchValue,
             renderSuggestion: suggestion => div({ style: styles.suggestionContainer }, [
-              div({ style: styles.suggestion }, suggestion),
+              div({ style: styles.suggestion }, [
+                suggestion === searchValue && searchValueInvalid && h(TooltipTrigger, {
+                  content: 'Not a valid email address'
+                }, [
+                  icon('warning-standard', { style: { color: colors.red[0], marginRight: '0.5rem' } })
+                ]),
+                suggestion
+              ]),
               linkButton({}, [icon('plus-circle', { size: 24 })])
             ]),
             onChange: (v, fromSuggestionClick) => {
               if (fromSuggestionClick) {
-                acl.push({ email: v, accessLevel: 'READER', pending: false })
-                this.setState({ acl, searchValue: '' })
+                if (v !== searchValue || !searchValueInvalid) {
+                  acl.push({ email: v, accessLevel: 'READER', pending: false })
+                  this.setState({ acl, searchValue: '' })
+                }
               } else {
                 this.setState({ searchValue: v })
+              }
+            },
+            onKeyDown: e => {
+              if (e.which === 13 && !searchValueInvalid) {
+                acl.push({ email: searchValue, accessLevel: 'READER', pending: false })
+                this.setState({ acl, searchValue: '' })
               }
             },
             suggestions: _.difference(suggestions, _.map('email', acl)),
@@ -133,7 +152,7 @@ export default class ShareWorkspaceModal extends Component {
             disabled: isMe,
             value: accessLevel,
             onChange: ({ value }) => this.setState({ acl: _.set([index, 'accessLevel'], value, acl) }),
-            options: _.map(level => ({ label: level, value: level }), ['READER', 'WRITER', 'OWNER'])
+            options: _.map(level => ({ label: level, value: level.toUpperCase() }), ['Reader', 'Writer', 'Owner'])
           })
       ]),
       !isPO && !isMe && linkButton({
