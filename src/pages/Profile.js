@@ -74,8 +74,8 @@ const percentageCircle = ({ radius, fraction, color = colors.green[0], strokeWid
   const circumference = adjDiameter * Math.PI
 
   const pathDesc =
-    `M${radius} ${halfStroke} 
-     a ${adjRadius} ${adjRadius} 0 0 1 0 ${adjDiameter} 
+    `M${radius} ${halfStroke}
+     a ${adjRadius} ${adjRadius} 0 0 1 0 ${adjDiameter}
      a ${adjRadius} ${adjRadius} 0 0 1 0 -${adjDiameter}`
 
   return svg({ style: { width: diameter, height: diameter, ...style } }, [
@@ -150,10 +150,10 @@ class Profile extends Component {
           div({ style: styles.header.line }, [
             div({ style: { position: 'relative', padding: strokeRadius } }, [
               profilePic({ size: 2*profilePicRadius }),
-              h(InfoBox, { style: { alignSelf: 'flex-end' } }, [
+              h(InfoBox, { style: { alignSelf: 'flex-end', padding: '0.25rem' } }, [
                 'To change your profile image, visit your ',
                 link({
-                  href: 'https://myaccount.google.com/',
+                  href: 'https://accounts.google.com/AccountChooser?continue=https://myaccount.google.com/',
                   target: '_blank'
                 }, ['Google account page.'])
               ]),

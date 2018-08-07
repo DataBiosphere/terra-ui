@@ -1,6 +1,6 @@
 import { Fragment } from 'react'
 import { createPortal } from 'react-dom'
-import { a, div, h, span } from 'react-hyperscript-helpers'
+import { a, div, h } from 'react-hyperscript-helpers'
 import { Clickable, comingSoon, MenuButton } from 'src/components/common'
 import { icon, logo, profilePic } from 'src/components/icons'
 import PopupTrigger from 'src/components/PopupTrigger'
@@ -24,7 +24,7 @@ const styles = {
       overflow: 'auto', cursor: 'pointer'
     },
     container: {
-      display: 'table', width: 350, color: 'white', position: 'absolute', cursor: 'default',
+      width: 350, color: 'white', position: 'absolute', cursor: 'default',
       backgroundColor: colors.darkBlue[1], height: '100%',
       boxShadow: '3px 0 13px 0 rgba(0,0,0,0.3)'
     },
@@ -34,18 +34,21 @@ const styles = {
     },
     item: {
       display: 'flex', alignItems: 'center',
-      padding: '1rem', borderBottom: `1px solid ${colors.darkBlue[2]}`, color: 'white',
-      lineHeight: '1.75rem',
-      fontWeight: 400
+      height: '4rem', paddingLeft: '2rem',
+      borderBottom: `1px solid ${colors.darkBlue[2]}`, color: 'white'
     },
     icon: {
-      margin: '0 1rem'
+      width: '2.5rem', flex: 'none'
     },
     popup: {
       icon: {
         marginRight: '0.5rem'
       }
     }
+  },
+  userButton: {
+    flex: 'none', alignSelf: 'stretch', display: 'flex', alignItems: 'center',
+    marginLeft: 'auto', padding: '0 1rem', color: colors.blue[1]
   }
 }
 
@@ -94,8 +97,10 @@ export class TopBar extends Component {
             }, [logo(), 'Saturn'])
           ]),
           div({ style: { ...styles.nav.item, ...styles.nav.profile } }, [
-            profilePic({ size: 32, style: styles.nav.icon }),
-            span({ style: { marginLeft: -8, marginRight: 'auto' } }, [
+            div({ style: styles.nav.icon }, [
+              profilePic({ size: 32 })
+            ]),
+            div({ style: { whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' } }, [
               getBasicProfile().getName()
             ]),
             h(PopupTrigger, {
@@ -123,7 +128,7 @@ export class TopBar extends Component {
               ])
             }, [
               h(Clickable, {
-                style: { color: colors.blue[1] }
+                style: styles.userButton
               }, [icon('caretDown', { size: 18 })])
             ])
           ]),
@@ -132,18 +137,25 @@ export class TopBar extends Component {
             href: Nav.getLink('browse-data'),
             onClick: () => this.hideNav()
           }, [
-            icon('browse', { size: 24, style: styles.nav.icon }),
+            div({ style: styles.nav.icon }, [
+              icon('browse', { size: 24 })
+            ]),
             'Browse Data'
           ]),
           div({ style: styles.nav.item }, [
-            icon('search', { size: 24, style: styles.nav.icon }), 'Find Code', comingSoon
+            div({ style: styles.nav.icon }, [
+              icon('search', { size: 24 })
+            ]),
+            'Find Code', comingSoon
           ]),
           a({
             style: styles.nav.item,
             href: Nav.getLink('workspaces'),
             onClick: () => this.hideNav()
           }, [
-            icon('workspace', { className: 'is-solid', size: 24, style: styles.nav.icon }),
+            div({ style: styles.nav.icon }, [
+              icon('workspace', { className: 'is-solid', size: 24 })
+            ]),
             'Workspaces'
           ])
         ])
