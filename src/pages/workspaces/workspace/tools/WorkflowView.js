@@ -227,7 +227,7 @@ class WorkflowViewContent extends Component {
       [saving || modified, () => 'Save or cancel to Launch Analysis']
     )
     return div({ style: { backgroundColor: colors.blue[5], position: 'relative' } }, [
-      div({ style: { display: 'flex', padding: `1.5rem ${sideMargin} 0` } }, [
+      div({ style: { display: 'flex', padding: `1.5rem ${sideMargin} 0`, minHeight: 120 } }, [
         div({ style: { flex: '1', lineHeight: '1.5rem' } }, [
           div({ style: { color: colors.darkBlue[0], fontSize: 24 } }, name),
           div(`V. ${methodConfigVersion}`),
