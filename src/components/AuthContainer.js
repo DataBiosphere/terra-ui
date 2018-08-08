@@ -2,9 +2,9 @@ import { h } from 'react-hyperscript-helpers'
 import { centeredSpinner } from 'src/components/icons'
 import { authStore } from 'src/libs/auth'
 import * as Utils from 'src/libs/utils'
+import { Disabled, Unlisted } from 'src/pages/Disabled'
 import Register from 'src/pages/Register'
 import SignIn from 'src/pages/SignIn'
-import Disabled from 'src/pages/Disabled'
 
 
 export default Utils.connectAtom(authStore, 'authState')(
@@ -15,6 +15,7 @@ export default Utils.connectAtom(authStore, 'authState')(
       [registrationStatus === undefined, centeredSpinner],
       [registrationStatus === 'unregistered', h(Register)],
       [registrationStatus === 'disabled', () => h(Disabled)],
+      [registrationStatus === 'unlisted', () => h(Unlisted)],
       children
     )
   }

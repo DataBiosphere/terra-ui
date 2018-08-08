@@ -7,5 +7,6 @@
   "marthaUrlRoot": "https://us-central1-broad-dsde-prod.cloudfunctions.net/martha_v1",
   "orchestrationUrlRoot": "https://api.firecloud.org",
   "rawlsUrlRoot": "https://rawls.dsde-prod.broadinstitute.org",
-  "samUrlRoot": "https://sam.dsde-prod.broadinstitute.org"
+  "samUrlRoot": "https://sam.dsde-prod.broadinstitute.org",
+  "whitelistUrlRoot": "https://us-central1-bvdp-saturn-prod.cloudfunctions.net/saturn-user-whitelist"
 }
