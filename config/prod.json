@@ -8,5 +8,5 @@
   "orchestrationUrlRoot": "https://api.firecloud.org",
   "rawlsUrlRoot": "https://rawls.dsde-prod.broadinstitute.org",
   "samUrlRoot": "https://sam.dsde-prod.broadinstitute.org",
-  "whitelistUrlRoot": "https://us-central1-bvdp-saturn-prod.cloudfunctions.net/saturn-user-whitelist"
+  "isProd": true
 }

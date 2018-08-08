@@ -1,6 +1,8 @@
 import _ from 'lodash/fp'
+import * as md5 from 'md5'
 import { version } from 'src/data/clusters'
-import { Billing, Jupyter, User, Whitelist } from 'src/libs/ajax'
+import ProdWhitelist from 'src/data/prod-whitelist'
+import { Billing, Jupyter, User } from 'src/libs/ajax'
 import * as Config from 'src/libs/config'
 import { clearErrorCode, reportError } from 'src/libs/error'
 import * as Utils from 'src/libs/utils'
@@ -25,7 +27,7 @@ export const initializeAuth = _.memoize(async () => {
 authStore.subscribe(async (state, oldState) => {
   if (!oldState.isSignedIn && state.isSignedIn) {
     clearErrorCode('sessionTimeout')
-    if (await Config.getWhitelistUrlRoot() && !(await Whitelist.call(getBasicProfile().getEmail()))) {
+    if (await Config.getIsProd() && !ProdWhitelist.includes(md5(getBasicProfile().getEmail()))) {
       authStore.update(state => ({ ...state, registrationStatus: 'unlisted' }))
       return
     }
@@ -58,7 +60,7 @@ authStore.subscribe((state, oldState) => {
 })
 
 authStore.subscribe(async (state, oldState) => {
-  if (!oldState.registrationStatus !== 'registered' && state.registrationStatus === 'registered') {
+  if (oldState.registrationStatus !== 'registered' && state.registrationStatus === 'registered') {
     try {
       const userProfile = getBasicProfile()
       const [billingProjects, clusters] = await Promise.all(
