@@ -220,7 +220,7 @@ export class AutocompleteSearch extends Component {
     const { show } = this.state
     return h(Autosuggest, {
       id: this.id,
-      inputProps: { value, onChange: e => onChange(e.target.value) },
+      inputProps: { value, onChange: e => onChange(e.target.value), ...props },
       suggestions: show ? (value ? [value, ..._.filter(Utils.textMatch(value), suggestions)] : suggestions) : [],
       onSuggestionsFetchRequested: () => this.setState({ show: true }),
       onSuggestionsClearRequested: () => this.setState({ show: false }),
@@ -234,7 +234,7 @@ export class AutocompleteSearch extends Component {
       },
       renderSuggestion,
       renderInputComponent: inputProps => {
-        return search({ inputProps: { ...inputProps, ...props } })
+        return search({ inputProps })
       },
       theme: _.merge({
         container: { width: '100%' },
