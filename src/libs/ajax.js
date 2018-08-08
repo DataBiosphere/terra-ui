@@ -486,9 +486,9 @@ export const Dockstore = {
 
 
 export const Martha = {
-  call: async url => {
+  call: async uri => {
     return fetchOk(await Config.getMarthaUrlRoot(),
-      _.merge(jsonBody({ url, pattern: 'gs://' }), { method: 'POST' })
-    ).then(res => res.text())
+      _.merge(jsonBody({ uri }), { method: 'POST' })
+    ).then(res => res.json())
   }
 }
