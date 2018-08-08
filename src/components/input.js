@@ -221,7 +221,7 @@ export class AutocompleteSearch extends Component {
     return h(Autosuggest, {
       id: this.id,
       inputProps: { value, onChange: e => onChange(e.target.value) },
-      suggestions: show ? _.concat(value ? [value] : [], value ? _.filter(Utils.textMatch(value), suggestions) : suggestions) : [],
+      suggestions: show ? (value ? [value, ..._.filter(Utils.textMatch(value), suggestions)] : suggestions) : [],
       onSuggestionsFetchRequested: () => this.setState({ show: true }),
       onSuggestionsClearRequested: () => this.setState({ show: false }),
       onSuggestionSelected: (e, { suggestionValue }) => onSuggestionSelected(suggestionValue),
