@@ -496,6 +496,7 @@ export const Martha = {
 
 export const Whitelist = {
   call: async email => {
-    return fetch(`${await Config.getWhitelistUrlRoot()}?email=${encodeURIComponent(email)}`, { mode: 'no-cors' }).then(res => res.ok)
+    return fetch(`${await Config.getWhitelistUrlRoot()}?email=${encodeURIComponent(email)}`, { mode: 'no-cors' })
+      .then(res => res.ok, () => false)
   }
 }

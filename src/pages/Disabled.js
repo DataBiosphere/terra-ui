@@ -2,6 +2,7 @@ import { div } from 'react-hyperscript-helpers'
 import { link } from 'src/components/common'
 import { signOut } from 'src/libs/auth'
 
+
 export const Disabled = () => {
   return div({ style: { padding: '1rem' } }, [
     div([
@@ -17,7 +18,9 @@ export const Disabled = () => {
 export const Unlisted = () => {
   return div({ style: { padding: '1rem' } }, [
     div([
-      'Saturn is currently in closed early access. Please try again later.'
+      'Saturn is under development. If you are interested in contributing feedback as part of our user panel, please email ',
+      link({ href: 'mailto:saturn-dev@broadinstitute.org' }, 'saturn-dev@broadinstitute.org'),
+      '.'
     ]),
     div({ style: { marginTop: '1rem' } }, [
       link({ onClick: signOut }, 'Sign out')
