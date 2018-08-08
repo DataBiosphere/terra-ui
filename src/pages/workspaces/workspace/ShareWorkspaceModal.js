@@ -1,9 +1,9 @@
 import _ from 'lodash/fp'
 import { Component } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
-import { buttonPrimary, linkButton, search, Select, spinnerOverlay } from 'src/components/common'
+import { buttonPrimary, linkButton, Select, spinnerOverlay } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
-import { AutocompleteTextInput } from 'src/components/input'
+import { AutocompleteSearch } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { Groups, Workspaces } from 'src/libs/ajax'
@@ -68,9 +68,10 @@ export default class ShareWorkspaceModal extends Component {
     const suggestions = _.flow(
       _.map('groupEmail'),
       _.concat(shareSuggestions),
-      _.concat(searchValue.trim() ? [searchValue.trim()] : []),
       _.uniq
     )(groups)
+
+    const canAdd = value => value !== searchValue || !searchValueInvalid
 
     return h(Modal, {
       title: 'Share Workspace',
@@ -79,44 +80,38 @@ export default class ShareWorkspaceModal extends Component {
       onDismiss
     }, [
       div({ style: styles.searchArea }, [
-        search({
-          inputElement: AutocompleteTextInput,
-          inputProps: {
-            placeholder: 'Add people or groups',
-            value: searchValue,
-            renderSuggestion: suggestion => div({ style: styles.suggestionContainer }, [
-              div({ style: styles.suggestion }, [
-                suggestion === searchValue && searchValueInvalid && h(TooltipTrigger, {
-                  content: 'Not a valid email address'
-                }, [
-                  icon('warning-standard', { style: { color: colors.red[0], marginRight: '0.5rem' } })
-                ]),
-                suggestion
+        h(AutocompleteSearch, {
+          autoFocus: true,
+          placeholder: 'Add people or groups',
+          value: searchValue,
+          onChange: v => this.setState({ searchValue: v }),
+          renderSuggestion: suggestion => div({ style: styles.suggestionContainer }, [
+            div({ style: styles.suggestion }, [
+              !canAdd(suggestion) && h(TooltipTrigger, {
+                content: 'Not a valid email address'
+              }, [
+                icon('warning-standard', { style: { color: colors.red[0], marginRight: '0.5rem' } })
               ]),
-              linkButton({}, [icon('plus-circle', { size: 24 })])
+              suggestion
             ]),
-            onChange: (v, fromSuggestionClick) => {
-              if (fromSuggestionClick) {
-                if (v !== searchValue || !searchValueInvalid) {
-                  this.addAcl(v)
-                }
-              } else {
-                this.setState({ searchValue: v })
-              }
-            },
-            onKeyDown: e => {
-              // 13 = Enter, 27 = Escape
-              if (e.which === 27) {
-                e.stopPropagation()
-              } else if (e.which === 13 && !searchValueInvalid) {
-                this.addAcl(searchValue)
-              }
-            },
-            suggestions: _.difference(suggestions, _.map('email', acl)),
-            style: { fontSize: 16, padding: '0 1rem 0 0', height: 'unset', border: 'none' },
-            focus: { border: 'none' },
-            theme: { suggestion: { padding: 0 } }
-          }
+            canAdd(suggestion) && linkButton({}, [icon('plus-circle', { size: 24 })])
+          ]),
+          onSuggestionSelected: selection => {
+            if (canAdd(selection)) {
+              this.addAcl(selection)
+            }
+          },
+          onKeyDown: e => {
+            // 13 = Enter, 27 = Escape
+            if (e.which === 27) {
+              e.stopPropagation()
+            } else if (e.which === 13 && !searchValueInvalid) {
+              this.addAcl(searchValue)
+            }
+          },
+          suggestions: _.difference(suggestions, _.map('email', acl)),
+          style: { fontSize: 16 },
+          theme: { suggestion: { padding: 0 } }
         })
       ]),
       div({ style: styles.currentCollaboratorsArea }, [

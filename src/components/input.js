@@ -4,6 +4,7 @@ import { createPortal } from 'react-dom'
 import Autosuggest from 'react-autosuggest'
 import { div, h } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
+import { search } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import colors from 'src/libs/colors'
 import * as Style from 'src/libs/style'
@@ -171,11 +172,11 @@ export class AutocompleteTextInput extends Component {
     super(props)
     this.state = { show: false }
     this.containerRef = createRef()
-    this.id = _.uniqueId()
+    this.id = _.uniqueId('AutocompleteTextInput_')
   }
 
   render() {
-    const { value, onChange, suggestions, renderSuggestion = _.identity, theme, ...props } = this.props
+    const { value, onChange, suggestions, ...props } = this.props
     const { show } = this.state
     return h(Autosuggest, {
       id: this.id,
@@ -183,7 +184,7 @@ export class AutocompleteTextInput extends Component {
       suggestions: show ? (value ? _.filter(Utils.textMatch(value), suggestions) : suggestions) : [],
       onSuggestionsFetchRequested: () => this.setState({ show: true }),
       onSuggestionsClearRequested: () => this.setState({ show: false }),
-      onSuggestionSelected: (e, { suggestionValue }) => onChange(suggestionValue, true),
+      onSuggestionSelected: (e, { suggestionValue }) => onChange(suggestionValue),
       getSuggestionValue: _.identity,
       shouldRenderSuggestions: () => true,
       focusInputOnSuggestionClick: false,
@@ -192,9 +193,48 @@ export class AutocompleteTextInput extends Component {
           children && h(AutocompleteSuggestions, { containerProps, children, containerRef: this.containerRef })
         ])
       },
-      renderSuggestion,
+      renderSuggestion: v => v,
       renderInputComponent: inputProps => {
         return textInput({ ...inputProps, ...props, type: 'search' })
+      },
+      theme: {
+        container: { width: '100%' },
+        suggestionsList: { margin: 0, padding: 0 },
+        suggestion: styles.suggestion,
+        suggestionHighlighted: { backgroundColor: colors.blue[5] }
+      }
+    })
+  }
+}
+
+export class AutocompleteSearch extends Component {
+  constructor(props) {
+    super(props)
+    this.state = { show: false }
+    this.containerRef = createRef()
+    this.id = _.uniqueId('AutocompleteSearch_')
+  }
+
+  render() {
+    const { value, onChange, onSuggestionSelected, suggestions, renderSuggestion = _.identity, theme, ...props } = this.props
+    const { show } = this.state
+    return h(Autosuggest, {
+      id: this.id,
+      inputProps: { value, onChange: e => onChange(e.target.value) },
+      suggestions: show ? _.concat(value ? [value] : [], value ? _.filter(Utils.textMatch(value), suggestions) : suggestions) : [],
+      onSuggestionsFetchRequested: () => this.setState({ show: true }),
+      onSuggestionsClearRequested: () => this.setState({ show: false }),
+      onSuggestionSelected: (e, { suggestionValue }) => onSuggestionSelected(suggestionValue),
+      getSuggestionValue: _.identity,
+      shouldRenderSuggestions: value => value.trim().length > 0,
+      renderSuggestionsContainer: ({ containerProps, children }) => {
+        return div({ ref: this.containerRef }, [
+          children && h(AutocompleteSuggestions, { containerProps, children, containerRef: this.containerRef })
+        ])
+      },
+      renderSuggestion,
+      renderInputComponent: inputProps => {
+        return search({ inputProps: { ...inputProps, ...props } })
       },
       theme: _.merge({
         container: { width: '100%' },
