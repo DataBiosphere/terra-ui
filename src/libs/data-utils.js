@@ -12,7 +12,6 @@ import DownloadPrices from 'src/data/download-prices'
 import ReferenceData from 'src/data/reference-data'
 import { Buckets, Martha, Workspaces } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
-import * as Config from 'src/libs/config'
 import { reportError } from 'src/libs/error'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
@@ -26,16 +25,21 @@ const els = {
 
 const isImage = ({ contentType, name }) => {
   return /^image/.test(contentType) ||
-    /\.jpe?g$/.test(name) || /\.png$/.test(name) || /\.svg$/.test(name) || /\.bmp$/.test(name)
+    /\.(?:(jpe?g|png|svg|bmp))$/.test(name)
 }
 
 const isText = ({ contentType, name }) => {
-  return /^text/.test(contentType) ||
-    /\.txt$/.test(name) || /\.[ct]sv$/.test(name) || /\.log$/.test(name)
+  return /(?:(^text|application\/json))/.test(contentType) ||
+    /\.(?:(txt|[ct]sv|log|json))$/.test(name)
+}
+
+const isBinary = ({ contentType, name }) => {
+  return /application(?!\/json)/.test(contentType) ||
+    /(?:(\.(?:(ba[mi]|cra[mi]|pac|sa|bwt|gz))$|\.gz\.))/.test(name)
 }
 
 const isFilePreviewable = ({ size, ...metadata }) => {
-  return isText(metadata) || (isImage(metadata) && size <= 1e9)
+  return !isBinary(metadata) && (isText(metadata) || (isImage(metadata) && size <= 1e9))
 }
 
 const parseUri = uri => _.drop(1, /gs:[/][/]([^/]+)[/](.+)/.exec(uri))
@@ -50,54 +54,36 @@ const getMaxDownloadCostNA = bytes => {
  * @param uri
  * @param googleProject
  */
-export class UriViewer extends Component {
-  constructor(props) {
-    super(props)
+class UriViewer extends Component {
+  async getMetadata() {
+    const { googleProject, uri } = this.props
+    const isGs = _.startsWith('gs://', uri)
+    const [bucket, name] = isGs ? parseUri(uri) : []
 
-    const { uri } = props
-
-    this.state = { uri: _.startsWith('gs://', uri) ? uri : undefined }
-  }
-
-  async getMetadata(uri) {
-    const { googleProject } = this.props
-    const [bucket, object] = parseUri(uri)
-
-    const [metadata, firecloudApiUrl] = await Promise.all([
-      Buckets.getObject(bucket, object, googleProject),
-      Config.getOrchestrationUrlRoot()
-    ])
+    const metadata = isGs ? await Buckets.getObject(bucket, name, googleProject) : await Martha.call(uri)
 
     const price = getMaxDownloadCostNA(metadata.size)
 
-    const preview = isFilePreviewable(metadata) &&
-      await Buckets.getObjectPreview(bucket, object, googleProject, isImage(metadata)).then(
-        res => isImage(metadata) ? res.blob().then(URL.createObjectURL) : res.text()
-      )
+    this.setState({ metadata, price },
+      async () => this.setState({ signedUrl: (isGs ? await Martha.call(uri) : metadata).signedUrl }))
 
-    this.setState({ metadata, firecloudApiUrl, price, preview })
-  }
-
-  async resolveUri() {
-    const { uri } = this.props
-
-    if (!_.startsWith('gs://', uri)) {
-      const gsUri = await Martha.call(uri)
-      this.setState({ uri: gsUri })
-      this.getMetadata(gsUri)
-    } else {
-      this.getMetadata(uri)
+    if (isFilePreviewable(metadata)) {
+      Buckets.getObjectPreview(bucket, name, googleProject, isImage(metadata))
+        .then(res => isImage(metadata) ? res.blob().then(URL.createObjectURL) : res.text())
+        .then(preview => this.setState({ preview }))
     }
   }
 
   renderMetadata() {
-    const { uri, metadata, preview, firecloudApiUrl, price, copied } = this.state
-    const [bucket, object] = parseUri(uri)
-    const gsutilCommand = `gsutil cp ${uri} .`
+    const { uri } = this.props
+    const { metadata, preview, signedUrl, price, copied } = this.state
+    const { size, updated, md5Hash, bucket, name, gsUri } = metadata || {}
+    const gsutilCommand = `gsutil cp ${gsUri || uri} .`
 
     return h(Fragment,
       !metadata ? ['Loading metadata...', spinner()] :
         [
+          els.cell([els.label('Filename'), els.data(_.last(name.split('/')).split('.').join('.\u200B'))]), // allow line break on periods
           els.cell(isFilePreviewable(metadata) ? [
             els.label('Preview'),
             Utils.cond(
@@ -106,27 +92,44 @@ export class UriViewer extends Component {
               ], [
                 preview, () => div({
                   style: {
-                    whiteSpace: 'pre-wrap', fontFamily: 'Menlo, monospace', fontSize: 12,
+                    whiteSpace: 'pre', fontFamily: 'Menlo, monospace', fontSize: 12,
                     overflowY: 'auto', maxHeight: 206,
                     marginTop: '0.5rem', padding: '0.5rem',
                     background: colors.gray[5], borderRadius: '0.2rem'
                   }
                 }, [preview])
-              ]
+              ],
+              () => 'Loading preview...'
             )
           ] : [els.label(isImage(metadata) ? 'Image is to large to preview.' : `File can't be previewed.`)]),
-          els.cell([els.label('File size'), els.data(filesize(parseInt(metadata.size, 10)))]),
+          els.cell([els.label('File size'), els.data(filesize(parseInt(size, 10)))]),
           els.cell([
             link({
               target: 'blank',
               href: Utils.bucketBrowserUrl(bucket)
             }, ['View this file in the Google Cloud Storage Browser'])
           ]),
-          els.cell([
-            buttonPrimary({
-              onClick: () => window.open(`${firecloudApiUrl}/cookie-authed/download/b/${bucket}/o/${object}`)
-            }, [`Download for ${price}*`])
-          ]),
+          els.cell(
+            Utils.cond(
+              [
+                signedUrl === false, () => 'Unable to generate signed url.'
+              ],
+              [
+                signedUrl, () => [
+                div(
+                  {
+                    style: { display: 'flex', justifyContent: 'center' }
+                  }, [
+                    buttonPrimary({
+                      as: 'a',
+                      href: signedUrl,
+                      target: '_blank'
+                    }, [`Download for ${price}*`])
+                  ])
+              ]
+              ],
+              () => ['Generating signed URL...', spinner()])
+          ),
           els.cell([
             els.label('Terminal download command'),
             els.data([
@@ -152,10 +155,9 @@ export class UriViewer extends Component {
               ])
             ])
           ]),
-          h(Collapse, { title: 'More Information', defaultHidden: true, style: { marginTop: '2rem' } }, [
-            metadata.timeCreated && els.cell([els.label('Created'), els.data(Utils.makePrettyDate(metadata.timeCreated))]),
-            els.cell([els.label('Updated'), els.data(Utils.makePrettyDate(metadata.updated))]),
-            els.cell([els.label('md5'), els.data(metadata.md5Hash)])
+          (updated || md5Hash) && h(Collapse, { title: 'More Information', defaultHidden: true, style: { marginTop: '2rem' } }, [
+            updated && els.cell([els.label('Updated'), els.data(Utils.makePrettyDate(updated))]),
+            md5Hash && els.cell([els.label('md5'), els.data(md5Hash)])
           ]),
           div({ style: { fontSize: 10 } }, ['* Estimated. Download cost may be higher in China or Australia.'])
         ]
@@ -163,34 +165,25 @@ export class UriViewer extends Component {
   }
 
   render() {
-    const { uri: originalUri } = this.props
-    const { uri, modalOpen } = this.state
+    const { uri } = this.props
+    const { modalOpen } = this.state
 
     return h(Fragment, [
       link({
         onClick: () => {
-          this.resolveUri()
+          this.getMetadata()
           this.setState({ modalOpen: true })
         }
-      }, _.startsWith('gs://', originalUri) ? _.last(originalUri.split('/')) : originalUri),
+      }, _.startsWith('gs://', uri) ? _.last(uri.split('/')) : uri),
       modalOpen && h(Modal, {
         onDismiss: () => this.setState({ modalOpen: false }),
         title: 'File Details',
         showCancel: false,
         showX: true,
         okButton: 'Done'
-      },
-      Utils.cond([
-        uri, () => {
-          const fileName = _.last(uri.split('/'))
-
-          return [
-            els.cell([els.label('Filename'), els.data(fileName)]),
-            this.renderMetadata()
-          ]
-        }
-      ], () => ['Resolving DOS uri...', spinner()])
-      )
+      }, [
+        this.renderMetadata()
+      ])
     ])
   }
 }

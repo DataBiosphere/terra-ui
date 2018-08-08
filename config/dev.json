@@ -4,7 +4,7 @@
   "firecloudUrlRoot": "https://firecloud.dsde-dev.broadinstitute.org",
   "googleClientId": "500025638838-s2v23ar3spugtd5t2v1vgfa2sp7ppg0d.apps.googleusercontent.com",
   "leoUrlRoot": "https://leonardo.dsde-dev.broadinstitute.org",
-  "marthaUrlRoot": "https://us-central1-broad-dsde-prod.cloudfunctions.net/fileSummaryV1",
+  "marthaUrlRoot": "https://us-central1-broad-dsde-dev.cloudfunctions.net/fileSummaryV1",
   "orchestrationUrlRoot": "https://firecloud-orchestration.dsde-dev.broadinstitute.org",
   "rawlsUrlRoot": "https://rawls.dsde-dev.broadinstitute.org",
   "samUrlRoot": "https://sam.dsde-dev.broadinstitute.org"

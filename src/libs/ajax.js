@@ -351,7 +351,7 @@ export const Buckets = {
 
   getObjectPreview: async (bucket, object, namespace, previewFull = false) => {
     return fetchBuckets(`storage/v1/b/${bucket}/o/${encodeURIComponent(object)}?alt=media`,
-      _.merge(authOpts(await User.token(namespace)), previewFull ? {} : { headers: { range: 'bytes=20000' } }))
+      _.merge(authOpts(await User.token(namespace)), previewFull ? {} : { headers: { Range: 'bytes=0-20000' } }))
   },
 
   listNotebooks: async (namespace, name) => {
@@ -488,7 +488,7 @@ export const Dockstore = {
 export const Martha = {
   call: async uri => {
     return fetchOk(await Config.getMarthaUrlRoot(),
-      _.merge(jsonBody({ uri }), { method: 'POST' })
+      _.mergeAll([jsonBody({ uri }), authOpts(), { method: 'POST' }])
     ).then(res => res.json())
   }
 }
