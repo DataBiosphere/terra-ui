@@ -2,16 +2,14 @@ import { div, h4, p } from 'react-hyperscript-helpers'
 import { link } from 'src/components/common'
 import * as Nav from 'src/libs/nav'
 
-const url = 'https://bvdp-saturn-prod.appspot.com/'
 
 const PrivacyPolicy = () => {
   return div({ style: { paddingLeft: '1rem', paddingRight: '1rem' } }, [
     h4('Saturn Privacy Policy'),
     p([
       'The following Privacy Policy discloses our information gathering and dissemination ',
-      'practices for the Broad Institute Saturn application accessed via the website ',
-      link({ href: url }, url),
-      '. By using Saturn, you agree to the collection and use of information in accordance with ',
+      'practices for the Broad Institute Saturn application accessed via this website. ',
+      'By using Saturn, you agree to the collection and use of information in accordance with ',
       'this policy. This Privacy Policy is effective as of 1-19-2017.'
     ]),
     h4('Information Gathering'),
