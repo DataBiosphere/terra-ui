@@ -103,7 +103,8 @@ export default class ShareWorkspaceModal extends Component {
           },
           onKeyDown: e => {
             // 13 = Enter, 27 = Escape
-            if (e.which === 27) {
+            if (e.which === 27 && !!searchValue) {
+              this.setState({ searchValue: '' })
               e.stopPropagation()
             } else if (e.which === 13 && !searchValueInvalid) {
               this.addAcl(searchValue)
