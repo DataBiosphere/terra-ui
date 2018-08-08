@@ -60,17 +60,20 @@ class UriViewer extends Component {
     const isGs = _.startsWith('gs://', uri)
     const [bucket, name] = isGs ? parseUri(uri) : []
 
-    const metadata = isGs ? await Buckets.getObject(bucket, name, googleProject) : await Martha.call(uri)
+    const { signedUrl = false, ...metadata } = isGs ? await Buckets.getObject(bucket, name, googleProject) : await Martha.call(uri)
 
     const price = getMaxDownloadCostNA(metadata.size)
 
-    this.setState({ metadata, price },
-      async () => this.setState({ signedUrl: (isGs ? await Martha.call(uri) : metadata).signedUrl }))
+    this.setState(_.merge({ metadata, price }, !isGs && { signedUrl }))
 
     if (isFilePreviewable(metadata)) {
       Buckets.getObjectPreview(bucket, name, googleProject, isImage(metadata))
         .then(res => isImage(metadata) ? res.blob().then(URL.createObjectURL) : res.text())
         .then(preview => this.setState({ preview }))
+    }
+
+    if (isGs) {
+      this.setState({ signedUrl: (await Martha.call(uri)).signedUrl || false })
     }
   }
 
@@ -116,17 +119,17 @@ class UriViewer extends Component {
               ],
               [
                 signedUrl, () => [
-                div(
-                  {
-                    style: { display: 'flex', justifyContent: 'center' }
-                  }, [
-                    buttonPrimary({
-                      as: 'a',
-                      href: signedUrl,
-                      target: '_blank'
-                    }, [`Download for ${price}*`])
-                  ])
-              ]
+                  div(
+                    {
+                      style: { display: 'flex', justifyContent: 'center' }
+                    }, [
+                      buttonPrimary({
+                        as: 'a',
+                        href: signedUrl,
+                        target: '_blank'
+                      }, [`Download for ${price}*`])
+                    ])
+                ]
               ],
               () => ['Generating signed URL...', spinner()])
           ),
