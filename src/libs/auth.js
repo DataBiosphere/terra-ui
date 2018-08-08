@@ -8,6 +8,27 @@ import { clearErrorCode, reportError } from 'src/libs/error'
 import * as Utils from 'src/libs/utils'
 
 
+export const getAuthInstance = () => {
+  return window.gapi.auth2.getAuthInstance()
+}
+
+export const getUser = () => {
+  return getAuthInstance().currentUser.get()
+}
+
+export const getBasicProfile = () => {
+  return getUser().getBasicProfile()
+}
+
+export const getAuthToken = () => {
+  return getUser().getAuthResponse(true).access_token
+}
+
+export const signOut = () => {
+  sessionStorage.clear()
+  getAuthInstance().signOut()
+}
+
 export const authStore = Utils.atom({
   isSignedIn: undefined,
   registrationStatus: undefined
@@ -99,24 +120,3 @@ authStore.subscribe(async (state, oldState) => {
 })
 
 initializeAuth()
-
-export const getAuthInstance = () => {
-  return window.gapi.auth2.getAuthInstance()
-}
-
-export const getUser = () => {
-  return getAuthInstance().currentUser.get()
-}
-
-export const getBasicProfile = () => {
-  return getUser().getBasicProfile()
-}
-
-export const getAuthToken = () => {
-  return getUser().getAuthResponse(true).access_token
-}
-
-export const signOut = () => {
-  sessionStorage.clear()
-  getAuthInstance().signOut()
-}
