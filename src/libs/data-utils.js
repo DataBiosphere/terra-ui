@@ -42,7 +42,7 @@ const isFilePreviewable = ({ size, ...metadata }) => {
   return !isBinary(metadata) && (isText(metadata) || (isImage(metadata) && size <= 1e9))
 }
 
-const isGs = (uri) => _.startsWith('gs://', uri)
+const isGs = uri => _.startsWith('gs://', uri)
 
 const parseUri = uri => _.drop(1, /gs:[/][/]([^/]+)[/](.+)/.exec(uri))
 const getMaxDownloadCostNA = bytes => {
