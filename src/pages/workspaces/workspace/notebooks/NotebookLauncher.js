@@ -166,10 +166,10 @@ class NotebookLauncherContent extends Component {
     return h(Fragment, [
       div({ style: styles.pageContainer }, [
         div({ style: Style.elements.sectionHeader }, 'Saturn is preparing your notebook'),
-        step(1, 'Waiting for cluster to start'),
+        step(1, 'Waiting for notebooks runtime to be ready'),
         step(2, localizeFailures ?
-          `Error copying notebook to cluster, retry number ${localizeFailures}...` :
-          'Copying notebook to cluster')
+          `Error loading notebook, retry number ${localizeFailures}...` :
+          'Loading notebook')
       ])
     ])
   }
