@@ -80,7 +80,7 @@ class UriViewer extends Component {
   renderMetadata() {
     const { uri } = this.props
     const { metadata, preview, signedUrl, price, copied } = this.state
-    const { size, timeCreated, updated, md5Hash, bucket, name, gsUri } = metadata || {}
+    const { size, timeCreated, updated, bucket, name, gsUri } = metadata || {}
     const gsutilCommand = `gsutil cp ${gsUri || uri} .`
 
     return h(Fragment,
@@ -119,17 +119,17 @@ class UriViewer extends Component {
               ],
               [
                 signedUrl, () => [
-                  div(
-                    {
-                      style: { display: 'flex', justifyContent: 'center' }
-                    }, [
-                      buttonPrimary({
-                        as: 'a',
-                        href: signedUrl,
-                        target: '_blank'
-                      }, [`Download for ${price}*`])
-                    ])
-                ]
+                div(
+                  {
+                    style: { display: 'flex', justifyContent: 'center' }
+                  }, [
+                    buttonPrimary({
+                      as: 'a',
+                      href: signedUrl,
+                      target: '_blank'
+                    }, [`Download for ${price}*`])
+                  ])
+              ]
               ],
               () => ['Generating download link...', spinner()])
           ),
@@ -158,10 +158,9 @@ class UriViewer extends Component {
               ])
             ])
           ]),
-          (timeCreated || updated || md5Hash) && h(Collapse, { title: 'More Information', defaultHidden: true, style: { marginTop: '2rem' } }, [
-            timeCreated && els.cell([els.label('Created'), els.data(Utils.makePrettyDate(timeCreated))]),
-            updated && els.cell([els.label('Updated'), els.data(Utils.makePrettyDate(updated))]),
-            md5Hash && els.cell([els.label('md5'), els.data(md5Hash)])
+          (timeCreated || updated) && h(Collapse, { title: 'More Information', defaultHidden: true, style: { marginTop: '2rem' } }, [
+            timeCreated && els.cell([els.label('Created'), els.data(new Date(timeCreated).toLocaleString())]),
+            updated && els.cell([els.label('Updated'), els.data(new Date(updated).toLocaleString())])
           ]),
           div({ style: { fontSize: 10 } }, ['* Estimated. Download cost may be higher in China or Australia.'])
         ]
