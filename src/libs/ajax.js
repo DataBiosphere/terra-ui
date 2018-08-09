@@ -240,8 +240,9 @@ export const Workspaces = {
         return res.json()
       },
 
-      updateAcl: async aclUpdates => {
-        const res = await fetchRawls(`${root}/acl`, _.mergeAll([authOpts(), jsonBody(aclUpdates), { method: 'PATCH' }]))
+      updateAcl: async (aclUpdates, inviteNew=true) => {
+        const res = await fetchRawls(`${root}/acl?inviteUsersNotFound=${inviteNew}`,
+          _.mergeAll([authOpts(), jsonBody(aclUpdates), { method: 'PATCH' }]))
         return res.json()
       },
 
