@@ -16,6 +16,8 @@ import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 
 
+const writableWorkspacesOnly = workspaces => _.filter(ws => Utils.canWrite(ws.accessLevel), workspaces)
+
 export class DestinationWorkspace extends Component {
   render() {
     const { import_, isImporting, importError, onWorkspaceSelected, selectedWorkspace } = this.props
@@ -60,7 +62,7 @@ export class DestinationWorkspace extends Component {
 
   componentDidMount() {
     Workspaces.list().then(
-      workspaces => this.setState({ workspaces }),
+      workspaces => this.setState({ workspaces: writableWorkspacesOnly(workspaces) }),
       error => reportError('Error loading workspaces', error)
     )
   }
@@ -86,7 +88,7 @@ class DockstoreImporter extends Component {
   componentDidMount() {
     this.loadWdl()
     Workspaces.list().then(
-      workspaces => this.setState({ workspaces }),
+      workspaces => this.setState({ workspaces: writableWorkspacesOnly(workspaces) }),
       error => reportError('Error loading workspaces', error)
     )
   }
