@@ -81,10 +81,11 @@ class UriViewer extends Component {
     const { uri } = this.props
     const { metadata, preview, signedUrl, price, copied } = this.state
     const { size, timeCreated, updated, bucket, name, gsUri } = metadata || {}
+    const isGs = _.startsWith('gs://', uri)
     const gsutilCommand = `gsutil cp ${gsUri || uri} .`
 
     return h(Fragment,
-      !metadata ? ['Loading metadata...', spinner()] :
+      !metadata ? [isGs ? 'Loading metadata...' : 'Resolving DOS object...', spinner({ style: { marginLeft: 4 } })] :
         [
           els.cell([els.label('Filename'), els.data(_.last(name.split('/')).split('.').join('.\u200B'))]), // allow line break on periods
           els.cell(isFilePreviewable(metadata) ? [
@@ -114,24 +115,21 @@ class UriViewer extends Component {
           ]),
           els.cell(
             Utils.cond(
-              [
-                signedUrl === false, () => 'Unable to generate download link.'
-              ],
-              [
-                signedUrl, () => [
-                  div(
-                    {
-                      style: { display: 'flex', justifyContent: 'center' }
-                    }, [
-                      buttonPrimary({
-                        as: 'a',
-                        href: signedUrl,
-                        target: '_blank'
-                      }, [`Download for ${price}*`])
-                    ])
-                ]
-              ],
-              () => ['Generating download link...', spinner()])
+              [signedUrl === false, () => 'Unable to generate download link.'],
+              () => [
+                div({ style: { display: 'flex', justifyContent: 'center' } }, [
+                  buttonPrimary({
+                    as: 'a',
+                    disabled: !signedUrl,
+                    href: signedUrl,
+                    target: '_blank'
+                  }, signedUrl ?
+                    [`Download for ${price}*`] :
+                    ['Generating download link...', spinner({ style: { color: 'white', marginLeft: 4 } })]
+                  )
+                ])
+              ]
+            )
           ),
           els.cell([
             els.label('Terminal download command'),
