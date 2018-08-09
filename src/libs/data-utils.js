@@ -42,6 +42,8 @@ const isFilePreviewable = ({ size, ...metadata }) => {
   return !isBinary(metadata) && (isText(metadata) || (isImage(metadata) && size <= 1e9))
 }
 
+const isGs = (uri) => _.startsWith('gs://', uri)
+
 const parseUri = uri => _.drop(1, /gs:[/][/]([^/]+)[/](.+)/.exec(uri))
 const getMaxDownloadCostNA = bytes => {
   const nanos = DownloadPrices.pricingInfo[0].pricingExpression.tieredRates[1].unitPrice.nanos
@@ -57,7 +59,6 @@ const getMaxDownloadCostNA = bytes => {
 class UriViewer extends Component {
   async getMetadata() {
     const { googleProject, uri } = this.props
-    const isGs = _.startsWith('gs://', uri)
     const [bucket, name] = isGs ? parseUri(uri) : []
 
     const { signedUrl = false, ...metadata } = isGs ? await Buckets.getObject(bucket, name, googleProject) : await Martha.call(uri)
@@ -81,7 +82,6 @@ class UriViewer extends Component {
     const { uri } = this.props
     const { metadata, preview, signedUrl, price, copied } = this.state
     const { size, timeCreated, updated, bucket, name, gsUri } = metadata || {}
-    const isGs = _.startsWith('gs://', uri)
     const gsutilCommand = `gsutil cp ${gsUri || uri} .`
 
     return h(Fragment,
@@ -175,7 +175,7 @@ class UriViewer extends Component {
           this.getMetadata()
           this.setState({ modalOpen: true })
         }
-      }, _.startsWith('gs://', uri) ? _.last(uri.split('/')) : uri),
+      }, isGs(uri) ? _.last(uri.split('/')) : uri),
       modalOpen && h(Modal, {
         onDismiss: () => this.setState({ modalOpen: false }),
         title: 'File Details',
@@ -190,7 +190,7 @@ class UriViewer extends Component {
 }
 
 export const renderDataCell = (data, namespace) => {
-  const isUri = datum => _.startsWith('gs://', datum) || _.startsWith('dos://', datum)
+  const isUri = datum => isGs(datum) || _.startsWith('dos://', datum)
 
   const renderCell = datum => h(TextCell, { title: datum },
     [isUri(datum) ? h(UriViewer, { uri: datum, googleProject: namespace }) : datum])
