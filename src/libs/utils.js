@@ -88,6 +88,7 @@ const hasAccessLevel = _.curry((required, current) => {
 
 export const canWrite = hasAccessLevel('WRITER')
 export const canRead = hasAccessLevel('READER')
+export const isOwner = hasAccessLevel('OWNER')
 
 export const log = function(...args) {
   console.groupCollapsed.apply(null, args)

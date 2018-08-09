@@ -4,6 +4,7 @@ import { createPortal } from 'react-dom'
 import Autosuggest from 'react-autosuggest'
 import { div, h } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
+import { search } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import colors from 'src/libs/colors'
 import * as Style from 'src/libs/style'
@@ -171,7 +172,7 @@ export class AutocompleteTextInput extends Component {
     super(props)
     this.state = { show: false }
     this.containerRef = createRef()
-    this.id = _.uniqueId()
+    this.id = _.uniqueId('AutocompleteTextInput_')
   }
 
   render() {
@@ -202,6 +203,45 @@ export class AutocompleteTextInput extends Component {
         suggestion: styles.suggestion,
         suggestionHighlighted: { backgroundColor: colors.blue[5] }
       }
+    })
+  }
+}
+
+export class AutocompleteSearch extends Component {
+  constructor(props) {
+    super(props)
+    this.state = { show: false }
+    this.containerRef = createRef()
+    this.id = _.uniqueId('AutocompleteSearch_')
+  }
+
+  render() {
+    const { value, onChange, onSuggestionSelected, suggestions, renderSuggestion = _.identity, theme, ...props } = this.props
+    const { show } = this.state
+    return h(Autosuggest, {
+      id: this.id,
+      inputProps: { value, onChange: e => onChange(e.target.value), ...props },
+      suggestions: show ? (value ? [value, ..._.filter(Utils.textMatch(value), suggestions)] : suggestions) : [],
+      onSuggestionsFetchRequested: () => this.setState({ show: true }),
+      onSuggestionsClearRequested: () => this.setState({ show: false }),
+      onSuggestionSelected: (e, { suggestionValue }) => onSuggestionSelected(suggestionValue),
+      getSuggestionValue: _.identity,
+      shouldRenderSuggestions: value => value.trim().length > 0,
+      renderSuggestionsContainer: ({ containerProps, children }) => {
+        return div({ ref: this.containerRef }, [
+          children && h(AutocompleteSuggestions, { containerProps, children, containerRef: this.containerRef })
+        ])
+      },
+      renderSuggestion,
+      renderInputComponent: inputProps => {
+        return search({ inputProps })
+      },
+      theme: _.merge({
+        container: { width: '100%' },
+        suggestionsList: { margin: 0, padding: 0 },
+        suggestion: styles.suggestion,
+        suggestionHighlighted: { backgroundColor: colors.blue[5] }
+      }, theme)
     })
   }
 }

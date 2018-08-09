@@ -220,6 +220,11 @@ export const Workspaces = {
     return res.json()
   },
 
+  getShareLog: async () => {
+    const res = await fetchOrchestration('/api/sharelog/sharees?shareType=workspace', authOpts())
+    return res.json()
+  },
+
   workspace: (namespace, name) => {
     const root = `workspaces/${namespace}/${name}`
     const mcPath = `${root}/methodconfigs`
@@ -227,6 +232,16 @@ export const Workspaces = {
     return {
       details: async () => {
         const res = await fetchRawls(root, authOpts())
+        return res.json()
+      },
+
+      getAcl: async () => {
+        const res = await fetchRawls(`${root}/acl`, authOpts())
+        return res.json()
+      },
+
+      updateAcl: async aclUpdates => {
+        const res = await fetchRawls(`${root}/acl`, _.mergeAll([authOpts(), jsonBody(aclUpdates), { method: 'PATCH' }]))
         return res.json()
       },
 
