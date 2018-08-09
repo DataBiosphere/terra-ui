@@ -80,7 +80,7 @@ class UriViewer extends Component {
   renderMetadata() {
     const { uri } = this.props
     const { metadata, preview, signedUrl, price, copied } = this.state
-    const { size, updated, md5Hash, bucket, name, gsUri } = metadata || {}
+    const { size, timeCreated, updated, md5Hash, bucket, name, gsUri } = metadata || {}
     const gsutilCommand = `gsutil cp ${gsUri || uri} .`
 
     return h(Fragment,
@@ -115,7 +115,7 @@ class UriViewer extends Component {
           els.cell(
             Utils.cond(
               [
-                signedUrl === false, () => 'Unable to generate signed url.'
+                signedUrl === false, () => 'Unable to generate download link.'
               ],
               [
                 signedUrl, () => [
@@ -131,7 +131,7 @@ class UriViewer extends Component {
                     ])
                 ]
               ],
-              () => ['Generating signed URL...', spinner()])
+              () => ['Generating download link...', spinner()])
           ),
           els.cell([
             els.label('Terminal download command'),
@@ -158,7 +158,8 @@ class UriViewer extends Component {
               ])
             ])
           ]),
-          (updated || md5Hash) && h(Collapse, { title: 'More Information', defaultHidden: true, style: { marginTop: '2rem' } }, [
+          (timeCreated || updated || md5Hash) && h(Collapse, { title: 'More Information', defaultHidden: true, style: { marginTop: '2rem' } }, [
+            timeCreated && els.cell([els.label('Created'), els.data(Utils.makePrettyDate(timeCreated))]),
             updated && els.cell([els.label('Updated'), els.data(Utils.makePrettyDate(updated))]),
             md5Hash && els.cell([els.label('md5'), els.data(md5Hash)])
           ]),
