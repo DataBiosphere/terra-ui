@@ -119,17 +119,17 @@ class UriViewer extends Component {
               ],
               [
                 signedUrl, () => [
-                div(
-                  {
-                    style: { display: 'flex', justifyContent: 'center' }
-                  }, [
-                    buttonPrimary({
-                      as: 'a',
-                      href: signedUrl,
-                      target: '_blank'
-                    }, [`Download for ${price}*`])
-                  ])
-              ]
+                  div(
+                    {
+                      style: { display: 'flex', justifyContent: 'center' }
+                    }, [
+                      buttonPrimary({
+                        as: 'a',
+                        href: signedUrl,
+                        target: '_blank'
+                      }, [`Download for ${price}*`])
+                    ])
+                ]
               ],
               () => ['Generating download link...', spinner()])
           ),
