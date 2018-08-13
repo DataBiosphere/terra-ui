@@ -1,37 +1,42 @@
 import { Fragment } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
-import { pageColumn } from 'src/components/common'
+import { buttonPrimary, pageColumn } from 'src/components/common'
 import { TopBar } from 'src/components/TopBar'
-import { DestinationWorkspace } from 'src/pages/ImportTool'
+import WorkspaceSelector from 'src/components/WorkspaceSelector'
 import { Workspaces } from 'src/libs/ajax'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
+import { spinner } from 'src/components/icons'
 
 
 class Importer extends Component {
   render() {
-    const { queryParams: { url } } = this.props
+    const { queryParams: { url, ad } } = this.props
     const { isImporting, selectedWorkspace } = this.state
 
     return h(Fragment, [
       h(TopBar, { title: 'Import Data' }),
       // 23rem allows enough space for the opened selection box.
-      div({ style: { display: 'flex', minHeight: '23rem' } },
-        [
-          pageColumn('Importing', 5, div({}, [
-            div({ style: { overflowX: 'auto', whiteSpace: 'nowrap' } }, url)
-          ])),
-          pageColumn('Destination Workspace', 3,
-            h(DestinationWorkspace, {
-              isImporting,
-              selectedWorkspace,
-              onWorkspaceSelected: selectedWorkspace => this.setState({ selectedWorkspace }),
-              import_: () => this.import_()
-            }))
-        ]
-      )
+      div({ style: { display: 'flex', minHeight: '23rem' } }, [
+        pageColumn('Importing', 5, div({}, [
+          div({ style: { overflowX: 'auto', whiteSpace: 'nowrap' } }, url)
+        ])),
+        pageColumn('Destination Workspace', 3, div({}, [
+          h(WorkspaceSelector, {
+            authorizationDomain: ad,
+            selectedWorkspace,
+            onWorkspaceSelected: selectedWorkspace => this.setState({ selectedWorkspace })
+          }),
+          buttonPrimary({
+            style: { marginTop: '1rem' },
+            disabled: !selectedWorkspace || isImporting,
+            onClick: () => this.import_()
+          }, ['Import']),
+          isImporting && spinner({ style: { marginLeft: '0.5rem' } })
+        ]))
+      ])
     ])
   }
 

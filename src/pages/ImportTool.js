@@ -23,41 +23,39 @@ export class DestinationWorkspace extends Component {
     const { import_, isImporting, importError, onWorkspaceSelected, selectedWorkspace } = this.props
     const { workspaces } = this.state
 
-    return div({},
-      [
-        h(Select, {
-          clearable: false,
-          disabled: !workspaces,
-          placeholder: workspaces ? 'Select a workspace' : 'Loading workspaces...',
-          value: selectedWorkspace,
-          onChange: selectedWorkspace => onWorkspaceSelected(selectedWorkspace),
-          options: _.map(({ workspace }) => {
-            return { value: workspace, label: workspace.name }
-          }, workspaces)
-        }),
-        buttonPrimary(
-          {
-            style: { marginTop: '1rem' },
-            disabled: !selectedWorkspace || isImporting,
-            onClick: async () => {
-              try {
-                this.setState({ importError: null })
-                await import_()
-              } catch (importError) {
-                this.setState({ importError })
-              }
+    return div({}, [
+      h(Select, {
+        clearable: false,
+        disabled: !workspaces,
+        placeholder: workspaces ? 'Select a workspace' : 'Loading workspaces...',
+        value: selectedWorkspace,
+        onChange: selectedWorkspace => onWorkspaceSelected(selectedWorkspace),
+        options: _.map(({ workspace }) => {
+          return { value: workspace, label: workspace.name }
+        }, workspaces)
+      }),
+      buttonPrimary(
+        {
+          style: { marginTop: '1rem' },
+          disabled: !selectedWorkspace || isImporting,
+          onClick: async () => {
+            try {
+              this.setState({ importError: null })
+              await import_()
+            } catch (importError) {
+              this.setState({ importError })
             }
-          },
-          'Import'),
-        isImporting && spinner({ style: { marginLeft: '0.5rem' } }),
-        importError && div({
-          style: { marginTop: '1rem', color: colors.red[0] }
-        }, [
-          icon('error'),
-          JSON.parse(importError).message
-        ])
-      ]
-    )
+          }
+        },
+        'Import'),
+      isImporting && spinner({ style: { marginLeft: '0.5rem' } }),
+      importError && div({
+        style: { marginTop: '1rem', color: colors.red[0] }
+      }, [
+        icon('error'),
+        JSON.parse(importError).message
+      ])
+    ])
   }
 
   componentDidMount() {
