@@ -23,19 +23,21 @@ class Importer extends Component {
         pageColumn('Importing', 5, div({}, [
           div({ style: { overflowX: 'auto', whiteSpace: 'nowrap' } }, url)
         ])),
-        pageColumn('Destination Workspace', 3, div({}, [
-          h(WorkspaceSelector, {
-            authorizationDomain: ad,
-            selectedWorkspace,
-            onWorkspaceSelected: selectedWorkspace => this.setState({ selectedWorkspace })
-          }),
-          buttonPrimary({
-            style: { marginTop: '1rem' },
-            disabled: !selectedWorkspace || isImporting,
-            onClick: () => this.import_()
-          }, ['Import']),
-          isImporting && spinner({ style: { marginLeft: '0.5rem' } })
-        ]))
+        pageColumn('Destination Workspace', 3,
+          div({}, [
+            h(WorkspaceSelector, {
+              authorizationDomain: ad,
+              selectedWorkspace,
+              onWorkspaceSelected: selectedWorkspace => this.setState({ selectedWorkspace })
+            }),
+            buttonPrimary({
+              style: { marginTop: '1rem' },
+              disabled: !selectedWorkspace || isImporting,
+              onClick: () => this.import_()
+            }, ['Import']),
+            isImporting && spinner({ style: { marginLeft: '0.5rem' } })
+          ])
+        )
       ])
     ])
   }

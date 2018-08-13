@@ -2,11 +2,12 @@ import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
-import { buttonPrimary, pageColumn, Select } from 'src/components/common'
+import { buttonPrimary, pageColumn } from 'src/components/common'
 import ErrorView from 'src/components/ErrorView'
 import { centeredSpinner, icon, spinner } from 'src/components/icons'
 import { TopBar } from 'src/components/TopBar'
 import WDLViewer from 'src/components/WDLViewer'
+import WorkspaceSelector from 'src/components/WorkspaceSelector'
 import { Dockstore, Workspaces } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
@@ -17,54 +18,6 @@ import { Component } from 'src/libs/wrapped-components'
 
 
 const writableWorkspacesOnly = workspaces => _.filter(ws => Utils.canWrite(ws.accessLevel), workspaces)
-
-export class DestinationWorkspace extends Component {
-  render() {
-    const { import_, isImporting, importError, onWorkspaceSelected, selectedWorkspace } = this.props
-    const { workspaces } = this.state
-
-    return div({}, [
-      h(Select, {
-        clearable: false,
-        disabled: !workspaces,
-        placeholder: workspaces ? 'Select a workspace' : 'Loading workspaces...',
-        value: selectedWorkspace,
-        onChange: selectedWorkspace => onWorkspaceSelected(selectedWorkspace),
-        options: _.map(({ workspace }) => {
-          return { value: workspace, label: workspace.name }
-        }, workspaces)
-      }),
-      buttonPrimary(
-        {
-          style: { marginTop: '1rem' },
-          disabled: !selectedWorkspace || isImporting,
-          onClick: async () => {
-            try {
-              this.setState({ importError: null })
-              await import_()
-            } catch (importError) {
-              this.setState({ importError })
-            }
-          }
-        },
-        'Import'),
-      isImporting && spinner({ style: { marginLeft: '0.5rem' } }),
-      importError && div({
-        style: { marginTop: '1rem', color: colors.red[0] }
-      }, [
-        icon('error'),
-        JSON.parse(importError).message
-      ])
-    ])
-  }
-
-  componentDidMount() {
-    Workspaces.list().then(
-      workspaces => this.setState({ workspaces: writableWorkspacesOnly(workspaces) }),
-      error => reportError('Error loading workspaces', error)
-    )
-  }
-}
 
 const mutabilityWarning = 'Please note: Dockstore cannot guarantee that the WDL and Docker image' +
   ' referenced by this Workflow will not change. We advise you to review the WDL before future' +
@@ -107,17 +60,29 @@ class DockstoreImporter extends Component {
 
   renderImport() {
     const { selectedWorkspace, importError, isImporting } = this.state
-    return div({ style: { display: 'flex' } },
-      [
-        pageColumn('Importing', 5, this.renderWdlArea()),
-        pageColumn('Destination Workspace', 3,
-          h(DestinationWorkspace, {
-            selectedWorkspace, importError, isImporting,
-            onWorkspaceSelected: selectedWorkspace => this.setState({ selectedWorkspace }),
-            import_: () => this.import_()
-          }))
-      ]
-    )
+    return div({ style: { display: 'flex' } }, [
+      pageColumn('Importing', 5, this.renderWdlArea()),
+      pageColumn('Destination Workspace', 3,
+        div({}, [
+          h(WorkspaceSelector, {
+            selectedWorkspace,
+            onWorkspaceSelected: selectedWorkspace => this.setState({ selectedWorkspace })
+          }),
+          buttonPrimary({
+            style: { marginTop: '1rem' },
+            disabled: !selectedWorkspace || isImporting,
+            onClick: () => this.import_()
+          }, ['Import']),
+          isImporting && spinner({ style: { marginLeft: '0.5rem' } }),
+          importError && div({
+            style: { marginTop: '1rem', color: colors.red[0] }
+          }, [
+            icon('error'),
+            JSON.parse(importError).message
+          ])
+        ])
+      )
+    ])
   }
 
   renderWdlArea() {
