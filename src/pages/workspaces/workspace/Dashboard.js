@@ -6,7 +6,7 @@ import * as breadcrumbs from 'src/components/breadcrumbs'
 import { buttonPrimary, buttonSecondary, link, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
-import { Ajax, Workspaces } from 'src/libs/ajax'
+import { ajaxCaller, Workspaces } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
@@ -104,7 +104,7 @@ class EditWorkspaceModal extends Component {
   }
 }
 
-export const WorkspaceDashboard = wrapWorkspace({
+export const WorkspaceDashboard = ajaxCaller(wrapWorkspace({
   breadcrumbs: () => breadcrumbs.commonPaths.workspaceList(),
   activeTab: 'dashboard'
 },
@@ -116,13 +116,11 @@ class WorkspaceDashboardContent extends Component {
       storageCostEstimate: undefined,
       editingWorkspace: false
     }
-    this.controller = new window.AbortController()
   }
 
   async componentDidMount() {
-    const { namespace, name, workspace: { accessLevel } } = this.props
+    const { ajax, namespace, name, workspace: { accessLevel } } = this.props
     try {
-      const ajax = Ajax(this.controller)
       const [submissions, estimate] = await Promise.all([
         ajax.workspaces.workspace(namespace, name).listSubmissions(),
         Utils.canWrite(accessLevel) ?
@@ -136,10 +134,6 @@ class WorkspaceDashboardContent extends Component {
     } catch (error) {
       reportError('Error loading data', error)
     }
-  }
-
-  componentWillUnmount() {
-    this.controller.abort()
   }
 
   render() {
@@ -188,7 +182,7 @@ class WorkspaceDashboardContent extends Component {
       })
     ])
   }
-})
+}))
 
 export const addNavPaths = () => {
   Nav.defPath('workspace', {

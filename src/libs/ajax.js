@@ -4,6 +4,8 @@ import { version } from 'src/data/clusters'
 import { getAuthToken } from 'src/libs/auth'
 import * as Config from 'src/libs/config'
 import * as Utils from 'src/libs/utils'
+import { Component } from 'src/libs/wrapped-components'
+import { h } from 'react-hyperscript-helpers'
 
 
 let mockResponse
@@ -511,7 +513,7 @@ export const Martha = {
 }
 
 
-export const Ajax = controller => {
+const Ajax = controller => {
   const signal = controller ? controller.signal : undefined
 
   return {
@@ -536,6 +538,25 @@ export const Ajax = controller => {
           }
         }
       }
+    }
+  }
+}
+
+
+export const ajaxCaller = WrappedComponent => {
+  return class AjaxWrapper extends Component {
+    constructor(props) {
+      super(props)
+      this.controller = new window.AbortController()
+      this.ajax = Ajax(this.controller)
+    }
+
+    render() {
+      return h(WrappedComponent, { ...this.props, ajax: this.ajax })
+    }
+
+    componentWillUnmount() {
+      this.controller.abort()
     }
   }
 }
