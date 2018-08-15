@@ -59,13 +59,14 @@ const getMaxDownloadCostNA = bytes => {
 class UriViewer extends Component {
   async getMetadata() {
     const { googleProject, uri } = this.props
-    const [bucket, name] = isGs ? parseUri(uri) : []
+    const isGsUri = isGs(uri)
+    const [bucket, name] = isGsUri ? parseUri(uri) : []
 
-    const { signedUrl = false, ...metadata } = isGs ? await Buckets.getObject(bucket, name, googleProject) : await Martha.call(uri)
+    const { signedUrl = false, ...metadata } = isGsUri ? await Buckets.getObject(bucket, name, googleProject) : await Martha.call(uri)
 
     const price = getMaxDownloadCostNA(metadata.size)
 
-    this.setState(_.merge({ metadata, price }, !isGs && { signedUrl }))
+    this.setState(_.merge({ metadata, price }, !isGsUri && { signedUrl }))
 
     if (isFilePreviewable(metadata)) {
       Buckets.getObjectPreview(bucket, name, googleProject, isImage(metadata))
@@ -73,7 +74,7 @@ class UriViewer extends Component {
         .then(preview => this.setState({ preview }))
     }
 
-    if (isGs) {
+    if (isGsUri) {
       this.setState({ signedUrl: (await Martha.call(uri)).signedUrl || false })
     }
   }
@@ -85,7 +86,7 @@ class UriViewer extends Component {
     const gsutilCommand = `gsutil cp ${gsUri || uri} .`
 
     return h(Fragment,
-      !metadata ? [isGs ? 'Loading metadata...' : 'Resolving DOS object...', spinner({ style: { marginLeft: 4 } })] :
+      !metadata ? [isGs(uri) ? 'Loading metadata...' : 'Resolving DOS object...', spinner({ style: { marginLeft: 4 } })] :
         [
           els.cell([els.label('Filename'), els.data(_.last(name.split('/')).split('.').join('.\u200B'))]), // allow line break on periods
           els.cell(isFilePreviewable(metadata) ? [
