@@ -1,4 +1,3 @@
-import { Component } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import ReactMarkdown from 'react-markdown'
 import SimpleMDE from 'react-simplemde-editor'
@@ -7,12 +6,13 @@ import * as breadcrumbs from 'src/components/breadcrumbs'
 import { buttonPrimary, buttonSecondary, link, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
-import { Workspaces } from 'src/libs/ajax'
+import { Ajax, Workspaces } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
+import { Component } from 'src/libs/wrapped-components'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
 
@@ -116,15 +116,17 @@ class WorkspaceDashboardContent extends Component {
       storageCostEstimate: undefined,
       editingWorkspace: false
     }
+    this.controller = new window.AbortController()
   }
 
   async componentDidMount() {
     const { namespace, name, workspace: { accessLevel } } = this.props
     try {
+      const ajax = Ajax(this.controller)
       const [submissions, estimate] = await Promise.all([
-        Workspaces.workspace(namespace, name).listSubmissions(),
+        ajax.workspaces.workspace(namespace, name).listSubmissions(),
         Utils.canWrite(accessLevel) ?
-          Workspaces.workspace(namespace, name).storageCostEstimate() :
+          ajax.workspaces.workspace(namespace, name).storageCostEstimate() :
           undefined
       ])
       this.setState({
@@ -134,6 +136,10 @@ class WorkspaceDashboardContent extends Component {
     } catch (error) {
       reportError('Error loading data', error)
     }
+  }
+
+  componentWillUnmount() {
+    this.controller.abort()
   }
 
   render() {

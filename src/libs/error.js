@@ -9,6 +9,8 @@ export const errorStore = Utils.atom([])
 const addError = item => errorStore.update(state => _.concat(state, [item]))
 
 export const reportError = async (title, obj) => {
+  if (obj instanceof DOMException && obj.name === 'AbortError') return
+
   if (obj instanceof Response && obj.status === 401 && await getUser().reloadAuthResponse().then(() => false).catch(() => true)) {
     addError({ title: 'Session timed out', error: 'You have been signed out due to inactivity', code: 'sessionTimeout' })
     signOut()

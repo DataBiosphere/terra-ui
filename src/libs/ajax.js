@@ -509,3 +509,33 @@ export const Martha = {
     ).then(res => res.json())
   }
 }
+
+
+export const Ajax = controller => {
+  const signal = controller ? controller.signal : undefined
+
+  return {
+    workspaces: {
+      list: async () => {
+        const res = await fetchRawls('workspaces', _.merge({ signal }, authOpts()))
+        return res.json()
+      },
+
+      workspace: (namespace, name) => {
+        const root = `workspaces/${namespace}/${name}`
+
+        return {
+          listSubmissions: async () => {
+            const res = await fetchRawls(`${root}/submissions`, _.merge({ signal }, authOpts()))
+            return res.json()
+          },
+
+          storageCostEstimate: async () => {
+            const res = await fetchOrchestration(`/api/workspaces/${namespace}/${name}/storageCostEstimate`, _.merge({ signal }, authOpts()))
+            return res.json()
+          }
+        }
+      }
+    }
+  }
+}
