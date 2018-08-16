@@ -92,7 +92,12 @@ class EditWorkspaceModal extends Component {
       div({ style: styles.label }, ['Description']),
       h(SimpleMDE, {
         value: description,
-        onChange: description => this.setState({ description })
+        onChange: description => this.setState({ description }),
+        options: {
+          autofocus: true,
+          placeholder: 'Enter a description',
+          status: false
+        }
       }),
       saving && spinnerOverlay
     ])
