@@ -24,14 +24,15 @@ export default class WorkspaceSelector extends Component {
   }
 
   async componentDidMount() {
-    const { authorizationDomain: ad } = this.props
+    const { authorizationDomain: ad, filter } = this.props
 
     try {
-      const workspaces = await Workspaces.list()
-      const filtered = ad ?
-        _.filter(({ workspace: { authorizationDomain } }) => _.flatMap(_.values, authorizationDomain).includes(ad), workspaces) :
-        workspaces
-      this.setState({ workspaces: filtered })
+      const workspaces = _.flow(
+        ad ? _.filter(({ workspace: { authorizationDomain } }) => _.flatMap(_.values, authorizationDomain).includes(ad)) : _.identity,
+        filter ? _.filter(filter) : _.identity
+      )(await Workspaces.list())
+
+      this.setState({ workspaces })
     } catch (error) {
       reportError('Error loading workspaces', error)
     }
