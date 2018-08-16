@@ -27,6 +27,7 @@ class Importer extends Component {
           div({}, [
             h(WorkspaceSelector, {
               authorizationDomain: ad,
+              filter: ({ accessLevel }) => Utils.canWrite(accessLevel),
               selectedWorkspace,
               onWorkspaceSelected: selectedWorkspace => this.setState({ selectedWorkspace })
             }),
