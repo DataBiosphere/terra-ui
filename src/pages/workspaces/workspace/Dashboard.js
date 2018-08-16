@@ -6,7 +6,7 @@ import * as breadcrumbs from 'src/components/breadcrumbs'
 import { buttonPrimary, buttonSecondary, link, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
-import { ajaxCaller, Workspaces } from 'src/libs/ajax'
+import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
@@ -55,7 +55,7 @@ const InfoTile = ({ title, children }) => {
   ])
 }
 
-class EditWorkspaceModal extends Component {
+const EditWorkspaceModal = ajaxCaller(class extends Component {
   constructor(props) {
     super(props)
     this.state = {
@@ -65,7 +65,7 @@ class EditWorkspaceModal extends Component {
   }
 
   async save() {
-    const { onSave, workspace: { workspace: { namespace, name } } } = this.props
+    const { onSave, workspace: { workspace: { namespace, name } }, ajax: { Workspaces } } = this.props
     const { description } = this.state
     try {
       this.setState({ saving: true })
@@ -102,7 +102,7 @@ class EditWorkspaceModal extends Component {
       saving && spinnerOverlay
     ])
   }
-}
+})
 
 export const WorkspaceDashboard = ajaxCaller(wrapWorkspace({
   breadcrumbs: () => breadcrumbs.commonPaths.workspaceList(),
@@ -119,12 +119,12 @@ class WorkspaceDashboardContent extends Component {
   }
 
   async componentDidMount() {
-    const { ajax, namespace, name, workspace: { accessLevel } } = this.props
+    const { ajax: { Workspaces }, namespace, name, workspace: { accessLevel } } = this.props
     try {
       const [submissions, estimate] = await Promise.all([
-        ajax.workspaces.workspace(namespace, name).listSubmissions(),
+        Workspaces.workspace(namespace, name).listSubmissions(),
         Utils.canWrite(accessLevel) ?
-          ajax.workspaces.workspace(namespace, name).storageCostEstimate() :
+          Workspaces.workspace(namespace, name).storageCostEstimate() :
           undefined
       ])
       this.setState({

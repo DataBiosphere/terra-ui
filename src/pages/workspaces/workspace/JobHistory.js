@@ -8,7 +8,7 @@ import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import PopupTrigger from 'src/components/PopupTrigger'
 import { FlexTable, HeaderCell, TextCell } from 'src/components/table'
-import { Workspaces } from 'src/libs/ajax'
+import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import * as Config from 'src/libs/config'
 import { reportError } from 'src/libs/error'
@@ -95,7 +95,7 @@ const statusCell = workflowStatuses => {
 const animationLengthMillis = 1000
 
 
-const JobHistory = wrapWorkspace({
+const JobHistory = ajaxCaller(wrapWorkspace({
   breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
   title: 'Job History', activeTab: 'job history'
 },
@@ -111,7 +111,7 @@ class JobHistoryContent extends Component {
   }
 
   async refresh() {
-    const { namespace, name } = this.props
+    const { namespace, name, ajax: { Workspaces } } = this.props
 
     try {
       this.setState({ loading: true })
@@ -137,7 +137,7 @@ class JobHistoryContent extends Component {
   }
 
   render() {
-    const { namespace, name } = this.props
+    const { namespace, name, ajax: { Workspaces } } = this.props
     const { submissions, loading, aborting, newSubmissionId, highlightNewSubmission, firecloudRoot } = this.state
 
     return div({ style: styles.submissionsTable }, [
@@ -258,7 +258,7 @@ class JobHistoryContent extends Component {
       clearTimeout(this.scheduledRefresh)
     }
   }
-})
+}))
 
 
 export const addNavPaths = () => {

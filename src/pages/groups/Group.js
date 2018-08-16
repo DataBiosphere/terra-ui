@@ -8,7 +8,7 @@ import { textInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { TopBar } from 'src/components/TopBar'
-import { Groups } from 'src/libs/ajax'
+import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
@@ -34,7 +34,7 @@ const roleSelector = ({ role, updateState }) => h(Fragment, [
 ])
 
 
-class NewUserModal extends Component {
+const NewUserModal = ajaxCaller(class extends Component {
   constructor(props) {
     super(props)
     this.state = {
@@ -72,7 +72,7 @@ class NewUserModal extends Component {
   }
 
   async submit() {
-    const { groupName, onSuccess } = this.props
+    const { groupName, onSuccess, ajax: { Groups } } = this.props
     const { userEmail, role } = this.state
 
     try {
@@ -88,9 +88,9 @@ class NewUserModal extends Component {
       }
     }
   }
-}
+})
 
-class EditUserModal extends Component {
+const EditUserModal = ajaxCaller(class extends Component {
   constructor(props) {
     super(props)
     this.state = {
@@ -119,7 +119,7 @@ class EditUserModal extends Component {
   }
 
   async submit() {
-    const { groupName, user: { email }, onSuccess } = this.props
+    const { groupName, user: { email }, onSuccess, ajax: { Groups } } = this.props
     const { role } = this.state
 
     try {
@@ -131,7 +131,7 @@ class EditUserModal extends Component {
       reportError('Error updating user', error)
     }
   }
-}
+})
 
 const DeleteUserModal = pure(({ onDismiss, onSubmit, userEmail }) => {
   return h(Modal, {
@@ -183,7 +183,7 @@ const NewUserCard = pure(({ onClick }) => {
   ])
 })
 
-export class GroupDetails extends Component {
+export const GroupDetails = ajaxCaller(class extends Component {
   constructor(props) {
     super(props)
     this.state = {
@@ -198,11 +198,16 @@ export class GroupDetails extends Component {
   }
 
   async refresh() {
-    const { groupName } = this.props
+    const { groupName, ajax: { Groups } } = this.props
 
     try {
       this.setState({ loading: true, creatingNewUser: false, editingUser: false, deletingUser: false, updating: false })
-      const [membersEmails, adminsEmails] = await Promise.all([Groups.group(groupName).listMembers(), Groups.group(groupName).listAdmins()])
+
+      const [membersEmails, adminsEmails] = await Promise.all([
+        Groups.group(groupName).listMembers(),
+        Groups.group(groupName).listAdmins()
+      ])
+
       this.setState({
         members: _.sortBy(member => member.email.toUpperCase(), _.concat(
           _.map(adm => ({ email: adm, role: 'admin' }), adminsEmails),
@@ -223,7 +228,7 @@ export class GroupDetails extends Component {
 
   render() {
     const { members, adminCanEdit, loading, filter, creatingNewUser, editingUser, deletingUser, updating } = this.state
-    const { groupName } = this.props
+    const { groupName, ajax: { Groups } } = this.props
 
     return h(Fragment, [
       h(TopBar, { title: 'Groups', href: Nav.getLink('groups') }, [
@@ -290,7 +295,7 @@ export class GroupDetails extends Component {
       this.state)
     )
   }
-}
+})
 
 
 export const addNavPaths = () => {

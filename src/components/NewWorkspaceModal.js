@@ -6,7 +6,7 @@ import { icon } from 'src/components/icons'
 import { TextArea, validatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { InfoBox } from 'src/components/PopupTrigger'
-import { Billing, Groups, Workspaces } from 'src/libs/ajax'
+import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
@@ -45,7 +45,7 @@ const styles = {
   }
 }
 
-export default class NewWorkspaceModal extends Component {
+export default ajaxCaller(class NewWorkspaceModal extends Component {
   constructor(props) {
     super(props)
     const { cloneWorkspace } = props
@@ -63,6 +63,7 @@ export default class NewWorkspaceModal extends Component {
   }
 
   async componentDidMount() {
+    const { ajax: { Billing, Groups } } = this.props
     try {
       const [billingProjects, allGroups] = await Promise.all([
         Billing.listProjects(),
@@ -75,7 +76,7 @@ export default class NewWorkspaceModal extends Component {
   }
 
   async create() {
-    const { cloneWorkspace } = this.props
+    const { cloneWorkspace, ajax: { Workspaces } } = this.props
     const { namespace, name, description, groups } = this.state
     try {
       this.setState({ createError: undefined, busy: true })
@@ -180,4 +181,4 @@ export default class NewWorkspaceModal extends Component {
       busy && spinnerOverlay
     ])
   }
-}
+})

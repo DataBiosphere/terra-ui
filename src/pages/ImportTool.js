@@ -8,7 +8,7 @@ import { centeredSpinner, icon, spinner } from 'src/components/icons'
 import { TopBar } from 'src/components/TopBar'
 import WDLViewer from 'src/components/WDLViewer'
 import WorkspaceSelector from 'src/components/WorkspaceSelector'
-import { Dockstore, Workspaces } from 'src/libs/ajax'
+import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
@@ -25,7 +25,7 @@ const mutabilityWarning = 'Please note: Dockstore cannot guarantee that the WDL 
 const wdlLoadError = 'Error loading WDL. Please verify the workflow path and version and ensure' +
   ' this workflow supports WDL.'
 
-class DockstoreImporter extends Component {
+const DockstoreImporter = ajaxCaller(class extends Component {
   render() {
     const { wdl, loadError } = this.state
 
@@ -37,6 +37,8 @@ class DockstoreImporter extends Component {
   }
 
   componentDidMount() {
+    const { ajax: { Workspaces } } = this.props
+
     this.loadWdl()
     Workspaces.list().then(
       workspaces => this.setState({ workspaces: writableWorkspacesOnly(workspaces) }),
@@ -51,7 +53,7 @@ class DockstoreImporter extends Component {
   }
 
   loadWdl() {
-    const { path, version } = this.props
+    const { path, version, ajax: { Dockstore } } = this.props
     Dockstore.getWdl(path, version).then(
       ({ descriptor }) => this.setState({ wdl: descriptor }),
       failure => this.setState({ loadError: failure })
@@ -120,7 +122,7 @@ class DockstoreImporter extends Component {
     this.setState({ isImporting: true })
 
     const { selectedWorkspace: { value: { namespace, name } } } = this.state
-    const { path, version } = this.props
+    const { path, version, ajax: { Workspaces } } = this.props
     const toolName = _.last(path.split('/'))
 
     const rawlsWorkspace = Workspaces.workspace(namespace, name)
@@ -150,7 +152,7 @@ class DockstoreImporter extends Component {
       h(ErrorView, { error: loadError })
     ])
   }
-}
+})
 
 
 class Importer extends Component {

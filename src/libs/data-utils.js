@@ -10,7 +10,7 @@ import Modal from 'src/components/Modal'
 import { TextCell } from 'src/components/table'
 import DownloadPrices from 'src/data/download-prices'
 import ReferenceData from 'src/data/reference-data'
-import { Buckets, Martha, Workspaces } from 'src/libs/ajax'
+import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import * as Utils from 'src/libs/utils'
@@ -56,9 +56,9 @@ const getMaxDownloadCostNA = bytes => {
  * @param uri
  * @param googleProject
  */
-class UriViewer extends Component {
+const UriViewer = ajaxCaller(class extends Component {
   async getMetadata() {
-    const { googleProject, uri } = this.props
+    const { googleProject, uri, ajax: { Buckets, Martha } } = this.props
     const isGsUri = isGs(uri)
     const [bucket, name] = isGsUri ? parseUri(uri) : []
 
@@ -204,7 +204,7 @@ class UriViewer extends Component {
       ])
     ])
   }
-}
+})
 
 export const renderDataCell = (data, namespace) => {
   const isUri = datum => isGs(datum) || _.startsWith('dos://', datum)
@@ -219,9 +219,9 @@ export const renderDataCell = (data, namespace) => {
     renderCell(data)
 }
 
-export class ReferenceDataImporter extends Component {
+export const ReferenceDataImporter = ajaxCaller(class extends Component {
   render() {
-    const { onDismiss, onSuccess, namespace, name } = this.props
+    const { onDismiss, onSuccess, namespace, name, ajax: { Workspaces } } = this.props
     const { loading, selectedReference } = this.state
 
     return h(Modal, {
@@ -257,11 +257,11 @@ export class ReferenceDataImporter extends Component {
       loading && spinnerOverlay
     ])
   }
-}
+})
 
-export class ReferenceDataDeleter extends Component {
+export const ReferenceDataDeleter = ajaxCaller(class extends Component {
   render() {
-    const { onDismiss, onSuccess, namespace, name, referenceDataType } = this.props
+    const { onDismiss, onSuccess, namespace, name, referenceDataType, ajax: { Workspaces } } = this.props
     const { deleting } = this.state
 
     return h(Modal, {
@@ -284,4 +284,4 @@ export class ReferenceDataDeleter extends Component {
       }, ['Delete'])
     }, [`Are you sure you want to delete ${referenceDataType}?`])
   }
-}
+})
