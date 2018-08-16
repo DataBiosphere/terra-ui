@@ -1,10 +1,11 @@
 import { Component } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import ReactMarkdown from 'react-markdown'
+import SimpleMDE from 'react-simplemde-editor'
+import 'simplemde/dist/simplemde.min.css'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { buttonPrimary, buttonSecondary, link, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
-import { TextArea } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { Workspaces } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
@@ -83,17 +84,20 @@ class EditWorkspaceModal extends Component {
     return h(Modal, {
       title: 'Edit workspace',
       onDismiss,
+      width: 500,
       okButton: buttonPrimary({
         onClick: () => this.save()
       }, ['Save'])
     }, [
       div({ style: styles.label }, ['Description']),
-      h(TextArea, {
-        autoFocus: true,
-        style: { height: 100 },
-        placeholder: 'Enter a description',
+      h(SimpleMDE, {
+        options: {
+          autofocus: true,
+          placeholder: 'Enter a description',
+          status: false
+        },
         value: description,
-        onChange: e => this.setState({ description: e.target.value })
+        onChange: description => this.setState({ description })
       }),
       saving && spinnerOverlay
     ])
