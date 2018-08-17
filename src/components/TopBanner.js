@@ -29,11 +29,14 @@ export default class TopBanner extends Component {
       style: {
         display: 'flex', alignItems: 'center',
         transition: 'all 0.25s linear',
-        transform: `translate(0px, ${show ? '0px' : '-100%'})`,
-        position: 'fixed', top: 0,
+        transform: `translate(-50%, ${show ? '0px' : '-100%'})`,
+        position: 'fixed', top: 0, left: '50%',
         width: '100%',
-        padding: '1rem', backgroundColor: colors.purple[0],
-        color: 'white', fontSize: '1rem'
+        maxWidth: 750,
+        backgroundColor: colors.orange[0],
+        color: 'white', fontSize: '1rem',
+        borderRadius: '0 0 4px 4px',
+        boxShadow: '0 0 12px 3px rgba(0,0,0,0.3)'
       }
     },
     props), [
@@ -46,7 +49,7 @@ export default class TopBanner extends Component {
           this.setState({ show: false })
           onDismiss && onDismiss()
         }
-      }, [icon('times-circle', { size: 20 })])
+      }, [icon('times', { size: 30, style: { marginRight: '1rem' } })])
     ])
   }
 }

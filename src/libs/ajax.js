@@ -305,7 +305,7 @@ export const Workspaces = {
       },
 
       listSubmissions: async () => {
-        const res = await fetchRawls(`${root}/submissions`, authOpts())
+        const res = await fetchRawls(`${root}/submissionsx`, authOpts())
         return res.json()
       },
 
