@@ -219,7 +219,7 @@ class WorkflowViewContent extends Component {
   renderSummary(invalidIO) {
     const { workspace: { canCompute } } = this.props
     const { modifiedConfig, savedConfig, entityMetadata, saving, saved, activeTab } = this.state
-    const { name, methodConfigVersion, methodRepoMethod: { methodPath }, rootEntityType } = modifiedConfig
+    const { name, methodRepoMethod: { methodPath, methodVersion }, rootEntityType } = modifiedConfig
     const modified = !_.isEqual(modifiedConfig, savedConfig)
 
     const noLaunchReason = Utils.cond(
@@ -230,7 +230,7 @@ class WorkflowViewContent extends Component {
       div({ style: { display: 'flex', padding: `1.5rem ${sideMargin} 0`, minHeight: 120 } }, [
         div({ style: { flex: '1', lineHeight: '1.5rem' } }, [
           div({ style: { color: colors.darkBlue[0], fontSize: 24 } }, name),
-          div(`V. ${methodConfigVersion}`),
+          div(`V. ${methodVersion}`),
           methodPath && div(`Path: ${methodPath}`),
           div({ style: { textTransform: 'capitalize', display: 'flex', alignItems: 'baseline', marginTop: '0.5rem' } }, [
             'Data Type:',
