@@ -1,6 +1,6 @@
-import { Collapse } from 'react-collapse'
 import { createPortal } from 'react-dom'
 import { a, div, h } from 'react-hyperscript-helpers'
+import Collapse from 'src/components/Collapse'
 import { Clickable, comingSoon, MenuButton } from 'src/components/common'
 import { icon, logo, profilePic } from 'src/components/icons'
 import { getBasicProfile, signOut } from 'src/libs/auth'
@@ -28,22 +28,24 @@ const styles = {
       boxShadow: '3px 0 13px 0 rgba(0,0,0,0.3)'
     },
     profile: active => ({
-      backgroundColor: active ? colors.gray[1] : colors.gray[5],
-      color: active ? colors.darkBlue[5] : colors.darkBlue[0],
+      backgroundColor: active ? colors.gray[5] : colors.gray[4],
+      color: colors.darkBlue[0],
       borderBottom: active ? undefined : 'none'
+    }),
+    profileItem: active => ({
+      ...styles.nav.profile(active),
+      borderTop: `1px solid ${colors.darkBlue[0]}`,
+      padding: '0 2rem', height: 40,
+      fontSize: 'unset'
     }),
     item: {
       display: 'flex', alignItems: 'center',
-      height: '4rem', paddingLeft: '2rem',
+      height: 70, padding: '0 2rem',
+      fontWeight: 500,
       borderBottom: `1px solid ${colors.darkBlue[2]}`, color: 'white'
     },
     icon: {
-      width: '2.5rem', flex: 'none'
-    },
-    popup: {
-      icon: {
-        marginRight: '0.5rem'
-      }
+      width: 32, marginRight: '0.5rem', flex: 'none'
     }
   }
 }
@@ -94,40 +96,55 @@ export class TopBar extends Component {
               onClick: () => this.hideNav()
             }, [logo(), 'Saturn'])
           ]),
-          h(Clickable, {
-            style: { ...styles.nav.item, ...styles.nav.profile(userMenuOpen) },
-            hover: styles.nav.profile(true),
-            onClick: () => this.setState({ userMenuOpen: !userMenuOpen })
+          h(Collapse, {
+            defaultHidden: true,
+            showIcon: false,
+            animate: true,
+            expandTitle: true,
+            style: styles.nav.profile(false),
+            buttonStyle: { marginBottom: 0 },
+            title: [
+              h(Clickable, {
+                style: { ...styles.nav.item, ...styles.nav.profile(userMenuOpen), boxShadow: `inset ${Style.standardShadow}` },
+                hover: styles.nav.profile(true),
+                onClick: () => this.setState({ userMenuOpen: !userMenuOpen })
+              }, [
+                div({ style: styles.nav.icon }, [
+                  profilePic({ size: 32 })
+                ]),
+                div({ style: { whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' } }, [
+                  getBasicProfile().getName()
+                ]),
+                div({ style: { flexGrow: 1 } }),
+                icon(`angle ${userMenuOpen ? 'up' : 'down'}`,
+                  { size: 18, style: { flex: 'none' } })
+              ])
+            ]
           }, [
-            div({ style: styles.nav.icon }, [
-              profilePic({ size: 32 })
-            ]),
-            div({ style: { whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' } }, [
-              getBasicProfile().getName()
-            ]),
-            div({ style: { flexGrow: 1 } }),
-            icon(`angle ${userMenuOpen ? 'down' : 'left'}`,
-              { size: 18, style: { marginRight: '1rem', flexShrink: 0 } })
-          ]),
-          h(Collapse, { isOpened: userMenuOpen, style: styles.nav.profile(false) }, [
             h(MenuButton, {
               as: 'a',
               href: Nav.getLink('profile'),
+              style: styles.nav.profileItem(false),
+              hover: styles.nav.profileItem(true),
               onClick: () => this.hideNav() // In case we're already there
             }, [
-              icon('user', { style: styles.nav.popup.icon }), 'Profile'
+              icon('user', { style: styles.nav.icon }), 'Profile'
             ]),
             h(MenuButton, {
               as: 'a',
               href: Nav.getLink('groups'),
+              style: styles.nav.profileItem(false),
+              hover: styles.nav.profileItem(true),
               onClick: () => this.hideNav() // In case we're already there
             }, [
-              icon('users', { style: styles.nav.popup.icon }), 'Groups'
+              icon('users', { style: styles.nav.icon }), 'Groups'
             ]),
             h(MenuButton, {
-              onClick: signOut
+              onClick: signOut,
+              style: styles.nav.profileItem(false),
+              hover: styles.nav.profileItem(true)
             }, [
-              icon('logout', { style: styles.nav.popup.icon }), 'Sign Out'
+              icon('logout', { style: styles.nav.icon }), 'Sign Out'
             ])
           ]),
           h(Clickable, {
