@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "private": true,
   "dependencies": {
-    "@clr/icons": "^0.12.8",
+    "@clr/icons": "^0.12.9",
     "@webcomponents/custom-elements": "^1.2.0",
     "clipboard-polyfill": "^2.5.2",
     "file-saver": "^1.3.8",
@@ -14,17 +14,12 @@
     "path-to-regexp": "^2.2.1",
     "prismjs": "^1.15.0",
     "qs": "^6.5.2",
-    "raw-loader": "^0.5.1",
     "react": "~16.4.2",
-    "react-app-rewire-eslint": "^0.2.3",
-    "react-app-rewire-hot-loader": "^1.0.1",
-    "react-app-rewired": "^1.5.2",
-    "react-autosuggest": "^9.3.4",
+    "react-autosuggest": "^9.4.0",
     "react-collapse": "^4.0.3",
     "react-dom": "~16.4.2",
     "react-draggable": "^3.0.5",
-    "react-dropzone": "^4.3.0",
-    "react-hot-loader": "^4.3.4",
+    "react-dropzone": "^5.0.1",
     "react-hyperscript-helpers": "^1.2.0",
     "react-interactive": "^0.8.1",
     "react-markdown": "^3.4.1",
@@ -43,6 +38,7 @@
     "validate.js": "^0.12.0"
   },
   "scripts": {
+    "analyze": "npm run build; source-map-explorer build/static/js/main.*",
     "start": "react-app-rewired start",
     "build": "react-app-rewired build",
     "postbuild": "rm build/config.json",
@@ -50,10 +46,16 @@
     "eject": "react-app-rewired eject"
   },
   "devDependencies": {
-    "enzyme": "^3.4.1",
+    "enzyme": "^3.4.4",
     "enzyme-adapter-react-16": "^1.2.0",
     "eslint-plugin-lodash-fp": "^2.1.3",
     "mutationobserver-shim": "^0.3.2",
-    "react-test-renderer": "^16.4.2"
+    "raw-loader": "^0.5.1",
+    "react-app-rewire-eslint": "^0.2.3",
+    "react-app-rewire-hot-loader": "^1.0.1",
+    "react-app-rewired": "^1.5.2",
+    "react-hot-loader": "^4.3.4",
+    "react-test-renderer": "^16.4.2",
+    "source-map-explorer": "^1.6.0"
   }
 }
