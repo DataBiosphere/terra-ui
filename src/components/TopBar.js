@@ -1,9 +1,8 @@
-import { Fragment } from 'react'
 import { createPortal } from 'react-dom'
 import { a, div, h } from 'react-hyperscript-helpers'
+import Collapse from 'src/components/Collapse'
 import { Clickable, comingSoon, MenuButton } from 'src/components/common'
 import { icon, logo, profilePic } from 'src/components/icons'
-import PopupTrigger from 'src/components/PopupTrigger'
 import { getBasicProfile, signOut } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import * as Nav from 'src/libs/nav'
@@ -25,30 +24,29 @@ const styles = {
     },
     container: {
       width: 350, color: 'white', position: 'absolute', cursor: 'default',
-      backgroundColor: colors.darkBlue[1], height: '100%',
+      backgroundColor: colors.darkBlue[0], height: '100%',
       boxShadow: '3px 0 13px 0 rgba(0,0,0,0.3)'
     },
-    profile: {
-      backgroundColor: colors.gray[5],
-      color: colors.darkBlue[0], borderBottom: 'none'
-    },
+    profile: active => ({
+      backgroundColor: active ? colors.gray[5] : colors.gray[4],
+      color: colors.darkBlue[0],
+      borderBottom: active ? undefined : 'none'
+    }),
+    profileItem: active => ({
+      ...styles.nav.profile(active),
+      borderTop: `1px solid ${colors.darkBlue[0]}`,
+      padding: '0 2rem', height: 40,
+      fontSize: 'unset'
+    }),
     item: {
       display: 'flex', alignItems: 'center',
-      height: '4rem', paddingLeft: '2rem',
+      height: 70, padding: '0 2rem',
+      fontWeight: 500,
       borderBottom: `1px solid ${colors.darkBlue[2]}`, color: 'white'
     },
     icon: {
-      width: '2.5rem', flex: 'none'
-    },
-    popup: {
-      icon: {
-        marginRight: '0.5rem'
-      }
+      width: 32, marginRight: '0.5rem', flex: 'none'
     }
-  },
-  userButton: {
-    flex: 'none', alignSelf: 'stretch', display: 'flex', alignItems: 'center',
-    marginLeft: 'auto', padding: '0 1rem', color: colors.blue[1]
   }
 }
 
@@ -66,11 +64,13 @@ export class TopBar extends Component {
   }
 
   hideNav() {
-    this.setState({ navShown: false })
+    this.setState({ navShown: false, userMenuOpen: false })
     document.body.classList.remove('overlayOpen', 'overHeight')
   }
 
   buildNav() {
+    const { userMenuOpen } = this.state
+
     return createPortal(
       div({
         style: styles.nav.background,
@@ -96,44 +96,61 @@ export class TopBar extends Component {
               onClick: () => this.hideNav()
             }, [logo(), 'Saturn'])
           ]),
-          div({ style: { ...styles.nav.item, ...styles.nav.profile } }, [
-            div({ style: styles.nav.icon }, [
-              profilePic({ size: 32 })
-            ]),
-            div({ style: { whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' } }, [
-              getBasicProfile().getName()
-            ]),
-            h(PopupTrigger, {
-              position: 'bottom',
-              content: h(Fragment, [
-                h(MenuButton, {
-                  as: 'a',
-                  href: Nav.getLink('profile'),
-                  onClick: () => this.hideNav() // In case we're already there
-                }, [
-                  icon('user', { style: styles.nav.popup.icon }), 'Profile'
-                ]),
-                h(MenuButton, {
-                  as: 'a',
-                  href: Nav.getLink('groups'),
-                  onClick: () => this.hideNav() // In case we're already there
-                }, [
-                  icon('users', { style: styles.nav.popup.icon }), 'Groups'
-                ]),
-                h(MenuButton, {
-                  onClick: signOut
-                }, [
-                  icon('logout', { style: styles.nav.popup.icon }), 'Sign Out'
-                ])
-              ])
-            }, [
+          h(Collapse, {
+            defaultHidden: true,
+            showIcon: false,
+            animate: true,
+            expandTitle: true,
+            style: styles.nav.profile(false),
+            buttonStyle: { marginBottom: 0 },
+            title: [
               h(Clickable, {
-                style: styles.userButton
-              }, [icon('caretDown', { size: 18 })])
+                style: { ...styles.nav.item, ...styles.nav.profile(userMenuOpen), boxShadow: `inset ${Style.standardShadow}` },
+                hover: styles.nav.profile(true),
+                onClick: () => this.setState({ userMenuOpen: !userMenuOpen })
+              }, [
+                div({ style: styles.nav.icon }, [
+                  profilePic({ size: 32 })
+                ]),
+                div({ style: { whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' } }, [
+                  getBasicProfile().getName()
+                ]),
+                div({ style: { flexGrow: 1 } }),
+                icon(`angle ${userMenuOpen ? 'up' : 'down'}`,
+                  { size: 18, style: { flex: 'none' } })
+              ])
+            ]
+          }, [
+            h(MenuButton, {
+              as: 'a',
+              href: Nav.getLink('profile'),
+              style: styles.nav.profileItem(false),
+              hover: styles.nav.profileItem(true),
+              onClick: () => this.hideNav() // In case we're already there
+            }, [
+              icon('user', { style: styles.nav.icon }), 'Profile'
+            ]),
+            h(MenuButton, {
+              as: 'a',
+              href: Nav.getLink('groups'),
+              style: styles.nav.profileItem(false),
+              hover: styles.nav.profileItem(true),
+              onClick: () => this.hideNav() // In case we're already there
+            }, [
+              icon('users', { style: styles.nav.icon }), 'Groups'
+            ]),
+            h(MenuButton, {
+              onClick: signOut,
+              style: styles.nav.profileItem(false),
+              hover: styles.nav.profileItem(true)
+            }, [
+              icon('logout', { style: styles.nav.icon }), 'Sign Out'
             ])
           ]),
-          a({
+          h(Clickable, {
+            as: 'a',
             style: styles.nav.item,
+            hover: { backgroundColor: colors.darkBlue[1] },
             href: Nav.getLink('browse-data'),
             onClick: () => this.hideNav()
           }, [
@@ -148,8 +165,10 @@ export class TopBar extends Component {
             ]),
             'Find Code', comingSoon
           ]),
-          a({
+          h(Clickable, {
+            as: 'a',
             style: styles.nav.item,
+            hover: { backgroundColor: colors.darkBlue[1] },
             href: Nav.getLink('workspaces'),
             onClick: () => this.hideNav()
           }, [
