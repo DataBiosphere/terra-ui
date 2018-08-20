@@ -148,22 +148,29 @@ class NotebooksContent extends Component {
   async uploadFiles(files) {
     const { namespace, workspace: { workspace: { bucketName } } } = this.props
     const existingNames = this.getExistingNames()
-    try {
-      this.setState({ saving: true })
-      await Promise.all(_.map(async file => {
-        const name = file.name.slice(0, -6)
-        if (_.includes(name, existingNames)) {
-          throw new Error(`${name} already exists`)
+    this.setState({ saving: true })
+    await Promise.all(_.map(async file => {
+      const name = file.name.slice(0, -6)
+      if (_.includes(name, existingNames)) {
+        let c = 1
+        let doubleName = true
+        let NewName = `${name}(${c})`
+        while (doubleName) {
+          if (_.includes(NewName, existingNames)) {
+            c += 1
+            NewName = `${name}(${c})`
+          } else {
+            doubleName = false
+          }
         }
         const contents = await Utils.readFileAsText(file)
-        return Buckets.notebook(namespace, bucketName, name).create(JSON.parse(contents))
-      }, files))
-      this.refresh()
-    } catch (error) {
-      reportError('Error creating notebook', error)
-    } finally {
-      this.setState({ saving: false })
-    }
+        return Buckets.notebook(namespace, bucketName, NewName).create(JSON.parse(contents))
+      }
+      const contents = await Utils.readFileAsText(file)
+      return Buckets.notebook(namespace, bucketName, name).create(JSON.parse(contents))
+    }, files))
+    this.refresh()
+    this.setState({ saving: false })
   }
 
   componentWillMount() {
