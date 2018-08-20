@@ -20,6 +20,7 @@ class ErrorBanner extends Component {
     const onLast = errorNumber + 1 === errorState.length
 
     return h(TopBanner, {
+      style: { padding: 0 },
       isVisible: !!errorState.length,
       onDismiss: () => {
         this.setState({ errorNumber: 0 })

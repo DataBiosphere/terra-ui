@@ -29,13 +29,14 @@ export default class TopBanner extends Component {
       style: {
         display: 'flex', alignItems: 'center',
         transition: 'all 0.25s linear',
-        transform: `translate(-50%, ${show ? '0px' : '-100%'})`,
+        transform: `translate(-50%, ${show ? '0px' : '-110%'})`,
         position: 'fixed', top: 0, left: '50%',
         width: '100%',
         maxWidth: 750,
         backgroundColor: colors.orange[0],
         color: 'white', fontSize: '1rem',
         borderRadius: '0 0 4px 4px',
+        padding: '1rem',
         boxShadow: '0 0 12px 3px rgba(0,0,0,0.3)'
       }
     },
