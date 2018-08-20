@@ -20,6 +20,7 @@ class ErrorBanner extends Component {
     const onLast = errorNumber + 1 === errorState.length
 
     return h(TopBanner, {
+      style: { padding: 0 },
       isVisible: !!errorState.length,
       onDismiss: () => {
         this.setState({ errorNumber: 0 })
@@ -27,23 +28,30 @@ class ErrorBanner extends Component {
       }
     },
     [
-      h(Clickable, {
-        disabled: onFirst,
-        style: { display: 'flex', color: onFirst ? colors.gray[2] : null },
-        onClick: () => this.setState({ errorNumber: errorNumber - 1 })
-      }, [icon('angle left')]),
       div({
         style: {
-          fontWeight: 500,
-          backgroundColor: 'rgba(255, 255, 255, 0.2', borderRadius: '1rem',
-          padding: '0.5rem 1rem', margin: '-0.25rem 0'
+          display: 'flex', alignItems: 'center', padding: '1rem', marginRight: '1rem',
+          borderRight: `1px solid ${colors.orange[2]}`
         }
-      }, [errorNumber + 1, '/', errorState.length]),
-      h(Clickable, {
-        disabled: onLast,
-        style: { marginRight: '1rem', display: 'flex', color: onLast ? colors.gray[2] : null },
-        onClick: () => this.setState({ errorNumber: errorNumber + 1 })
-      }, [icon('angle right')]),
+      }, [
+        h(Clickable, {
+          disabled: onFirst,
+          style: { color: onFirst ? colors.orange[2] : null },
+          onClick: () => this.setState({ errorNumber: errorNumber - 1 })
+        }, [icon('angle left')]),
+        div({
+          style: {
+            fontWeight: 500,
+            backgroundColor: 'rgba(255, 255, 255, 0.2', borderRadius: '1rem',
+            padding: '0.5rem 1rem', margin: '-0.25rem 0'
+          }
+        }, [errorNumber + 1, '/', errorState.length]),
+        h(Clickable, {
+          disabled: onLast,
+          style: { color: onLast ? colors.orange[2] : null },
+          onClick: () => this.setState({ errorNumber: errorNumber + 1 })
+        }, [icon('angle right')])
+      ]),
       title,
       h(Clickable, {
         style: { textDecoration: 'underline', marginLeft: '1rem' },
