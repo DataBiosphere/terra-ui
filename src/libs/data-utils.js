@@ -67,10 +67,7 @@ class UriViewer extends Component {
 
       const price = getMaxDownloadCostNA(metadata.size)
 
-      this.setState(_.merge({
-        metadata,
-        price
-      }, !isGsUri && { signedUrl }))
+      this.setState(_.merge({ metadata, price }, !isGsUri && { signedUrl }))
 
       if (isFilePreviewable(metadata)) {
         Buckets.getObjectPreview(bucket, name, googleProject, isImage(metadata))
