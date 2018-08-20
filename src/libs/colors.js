@@ -63,6 +63,5 @@ export default {
   ],
 
   slate: '#8399a4',
-  brick: '#c35b69',
-  lighten: 'rgba(255, 255, 255, 0.2)'
+  brick: '#c35b69'
 }

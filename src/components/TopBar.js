@@ -150,7 +150,7 @@ export class TopBar extends Component {
           h(Clickable, {
             as: 'a',
             style: styles.nav.item,
-            hover: { backgroundColor: colors.lighten },
+            hover: { backgroundColor: colors.darkBlue[1] },
             href: Nav.getLink('browse-data'),
             onClick: () => this.hideNav()
           }, [
@@ -168,7 +168,7 @@ export class TopBar extends Component {
           h(Clickable, {
             as: 'a',
             style: styles.nav.item,
-            hover: { backgroundColor: colors.lighten },
+            hover: { backgroundColor: colors.darkBlue[1] },
             href: Nav.getLink('workspaces'),
             onClick: () => this.hideNav()
           }, [
