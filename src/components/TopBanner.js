@@ -29,7 +29,7 @@ export default class TopBanner extends Component {
       style: {
         display: 'flex', alignItems: 'center',
         transition: 'all 0.25s linear',
-        transform: `translate(-50%, ${show ? '0px' : '-110%'})`,
+        transform: `translate(-50%, ${show ? '0px' : '-115%'})`,
         position: 'fixed', top: 0, left: '50%',
         width: '100%',
         maxWidth: 750,
