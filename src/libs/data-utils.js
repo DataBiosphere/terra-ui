@@ -62,107 +62,123 @@ class UriViewer extends Component {
     const isGsUri = isGs(uri)
     const [bucket, name] = isGsUri ? parseUri(uri) : []
 
-    const { signedUrl = false, ...metadata } = isGsUri ? await Buckets.getObject(bucket, name, googleProject) : await Martha.call(uri)
+    try {
+      const { signedUrl = false, ...metadata } = isGsUri ? await Buckets.getObject(bucket, name, googleProject) : await Martha.call(uri)
 
-    const price = getMaxDownloadCostNA(metadata.size)
+      const price = getMaxDownloadCostNA(metadata.size)
 
-    this.setState(_.merge({ metadata, price }, !isGsUri && { signedUrl }))
+      this.setState(_.merge({ metadata, price }, !isGsUri && { signedUrl }))
 
-    if (isFilePreviewable(metadata)) {
-      Buckets.getObjectPreview(bucket, name, googleProject, isImage(metadata))
-        .then(res => isImage(metadata) ? res.blob().then(URL.createObjectURL) : res.text())
-        .then(preview => this.setState({ preview }))
-    }
+      if (isFilePreviewable(metadata)) {
+        Buckets.getObjectPreview(bucket, name, googleProject, isImage(metadata))
+          .then(res => isImage(metadata) ? res.blob().then(URL.createObjectURL) : res.text())
+          .then(preview => this.setState({ preview }))
+      }
 
-    if (isGsUri) {
-      this.setState({ signedUrl: (await Martha.call(uri)).signedUrl || false })
+      if (isGsUri) {
+        this.setState({ signedUrl: (await Martha.call(uri)).signedUrl || false })
+      }
+    } catch (e) {
+      this.setState({ loadingError: await e.json() })
     }
   }
 
   renderMetadata() {
     const { uri } = this.props
-    const { metadata, preview, signedUrl, price, copied } = this.state
+    const { metadata, preview, signedUrl, price, copied, loadingError } = this.state
     const { size, timeCreated, updated, bucket, name, gsUri } = metadata || {}
     const gsutilCommand = `gsutil cp ${gsUri || uri} .`
 
     return h(Fragment,
-      !metadata ? [isGs(uri) ? 'Loading metadata...' : 'Resolving DOS object...', spinner({ style: { marginLeft: 4 } })] :
+      Utils.cond(
         [
-          els.cell([els.label('Filename'), els.data(_.last(name.split('/')).split('.').join('.\u200B'))]), // allow line break on periods
-          els.cell(isFilePreviewable(metadata) ? [
-            els.label('Preview'),
-            Utils.cond(
-              [
-                isImage(metadata), () => img({ src: preview, width: 400 })
-              ], [
-                preview, () => div({
-                  style: {
-                    whiteSpace: 'pre', fontFamily: 'Menlo, monospace', fontSize: 12,
-                    overflowY: 'auto', maxHeight: 206,
-                    marginTop: '0.5rem', padding: '0.5rem',
-                    background: colors.gray[5], borderRadius: '0.2rem'
-                  }
-                }, [preview])
-              ],
-              () => 'Loading preview...'
-            )
-          ] : [els.label(isImage(metadata) ? 'Image is to large to preview.' : `File can't be previewed.`)]),
-          els.cell([els.label('File size'), els.data(filesize(parseInt(size, 10)))]),
-          els.cell([
-            link({
-              target: 'blank',
-              href: Utils.bucketBrowserUrl(bucket)
-            }, ['View this file in the Google Cloud Storage Browser'])
-          ]),
-          els.cell(
-            Utils.cond(
-              [signedUrl === false, () => 'Unable to generate download link.'],
-              () => [
-                div({ style: { display: 'flex', justifyContent: 'center' } }, [
-                  buttonPrimary({
-                    as: 'a',
-                    disabled: !signedUrl,
-                    href: signedUrl,
-                    target: '_blank'
-                  }, signedUrl ?
-                    [`Download for ${price}*`] :
-                    ['Generating download link...', spinner({ style: { color: 'white', marginLeft: 4 } })]
-                  )
-                ])
-              ]
-            )
-          ),
-          els.cell([
-            els.label('Terminal download command'),
-            els.data([
-              div({ style: { display: 'flex' } }, [
-                input({
-                  readOnly: true,
-                  value: gsutilCommand,
-                  style: { flexGrow: 1, fontWeight: 400, fontFamily: 'Menlo, monospace' }
-                }),
-                h(Clickable, {
-                  style: { margin: '0 1rem', color: copied ? colors.green[0] : colors.blue[0] },
-                  tooltip: 'Copy to clipboard',
-                  onClick: async () => {
-                    try {
-                      await clipboard.writeText(gsutilCommand)
-                      this.setState({ copied: true },
-                        () => setTimeout(() => this.setState({ copied: undefined }), 1500))
-                    } catch (error) {
-                      reportError('Error copying to clipboard', error)
-                    }
-                  }
-                }, [icon(copied ? 'check' : 'copy-to-clipboard')])
-              ])
+          loadingError, () => [
+            div({ style: { paddingBottom: '1rem' } }, ['Error loading data. You may not have permission to view this file.']),
+            h(Collapse, { defaultHidden: true, title: 'Details' }, [
+              div({ style: { whiteSpace: 'pre-wrap', fontFamily: 'monospace' } }, [JSON.stringify(loadingError, null, 2)])
             ])
-          ]),
-          (timeCreated || updated) && h(Collapse, { title: 'More Information', defaultHidden: true, style: { marginTop: '2rem' } }, [
-            timeCreated && els.cell([els.label('Created'), els.data(new Date(timeCreated).toLocaleString())]),
-            updated && els.cell([els.label('Updated'), els.data(new Date(updated).toLocaleString())])
-          ]),
-          div({ style: { fontSize: 10 } }, ['* Estimated. Download cost may be higher in China or Australia.'])
-        ]
+          ]
+        ],
+        [
+          metadata, () => [
+            els.cell([els.label('Filename'), els.data(_.last(name.split('/')).split('.').join('.\u200B'))]), // allow line break on periods
+            els.cell(isFilePreviewable(metadata) ? [
+              els.label('Preview'),
+              Utils.cond(
+                [
+                  isImage(metadata), () => img({ src: preview, width: 400 })
+                ], [
+                  preview, () => div({
+                    style: {
+                      whiteSpace: 'pre', fontFamily: 'Menlo, monospace', fontSize: 12,
+                      overflowY: 'auto', maxHeight: 206,
+                      marginTop: '0.5rem', padding: '0.5rem',
+                      background: colors.gray[5], borderRadius: '0.2rem'
+                    }
+                  }, [preview])
+                ],
+                () => 'Loading preview...'
+              )
+            ] : [els.label(isImage(metadata) ? 'Image is too large to preview.' : `File can't be previewed.`)]),
+            els.cell([els.label('File size'), els.data(filesize(parseInt(size, 10)))]),
+            els.cell([
+              link({
+                target: 'blank',
+                href: Utils.bucketBrowserUrl(bucket)
+              }, ['View this file in the Google Cloud Storage Browser'])
+            ]),
+            els.cell(
+              Utils.cond(
+                [signedUrl === false, () => 'Unable to generate download link.'],
+                () => [
+                  div({ style: { display: 'flex', justifyContent: 'center' } }, [
+                    buttonPrimary({
+                      as: 'a',
+                      disabled: !signedUrl,
+                      href: signedUrl,
+                      target: '_blank'
+                    }, signedUrl ?
+                      [`Download for ${price}*`] :
+                      ['Generating download link...', spinner({ style: { color: 'white', marginLeft: 4 } })]
+                    )
+                  ])
+                ]
+              )
+            ),
+            els.cell([
+              els.label('Terminal download command'),
+              els.data([
+                div({ style: { display: 'flex' } }, [
+                  input({
+                    readOnly: true,
+                    value: gsutilCommand,
+                    style: { flexGrow: 1, fontWeight: 400, fontFamily: 'Menlo, monospace' }
+                  }),
+                  h(Clickable, {
+                    style: { margin: '0 1rem', color: copied ? colors.green[0] : colors.blue[0] },
+                    tooltip: 'Copy to clipboard',
+                    onClick: async () => {
+                      try {
+                        await clipboard.writeText(gsutilCommand)
+                        this.setState({ copied: true },
+                          () => setTimeout(() => this.setState({ copied: undefined }), 1500))
+                      } catch (error) {
+                        reportError('Error copying to clipboard', error)
+                      }
+                    }
+                  }, [icon(copied ? 'check' : 'copy-to-clipboard')])
+                ])
+              ])
+            ]),
+            (timeCreated || updated) && h(Collapse, { title: 'More Information', defaultHidden: true, style: { marginTop: '2rem' } }, [
+              timeCreated && els.cell([els.label('Created'), els.data(new Date(timeCreated).toLocaleString())]),
+              updated && els.cell([els.label('Updated'), els.data(new Date(updated).toLocaleString())])
+            ]),
+            div({ style: { fontSize: 10 } }, ['* Estimated. Download cost may be higher in China or Australia.'])
+          ]
+        ],
+        () => [isGs(uri) ? 'Loading metadata...' : 'Resolving DOS object...', spinner({ style: { marginLeft: 4 } })]
+      )
     )
   }
 
