@@ -253,6 +253,10 @@ export class GridTable extends Component {
     this.body.current.scrollToPosition({ scrollTop: 0 })
   }
 
+  static scrollRestore() {
+    return window.history.scrollRestoration
+  }
+
   render() {
     const { width, height, rowCount, columns, cellStyle } = this.props
     const { scrollbarSize } = this.state
