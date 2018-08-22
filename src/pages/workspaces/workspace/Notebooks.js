@@ -162,7 +162,11 @@ class NotebooksContent extends Component {
       }, files))
       this.refresh()
     } catch (error) {
-      reportError('Error creating notebook', error)
+      if (error instanceof SyntaxError) {
+        reportError('Error uploading notebook', 'This ipynb file is not formatted correctly.')
+      } else {
+        reportError('Error creating notebook', error)
+      }
     } finally {
       this.setState({ saving: false })
     }
