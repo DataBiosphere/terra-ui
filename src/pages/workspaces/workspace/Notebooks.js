@@ -155,7 +155,7 @@ class NotebooksContent extends Component {
         let resolvedName = name
         let c = 0
         while (_.includes(resolvedName, existingNames)) {
-          resolvedName = `${name}(${++c})`
+          resolvedName = `${name} ${++c}`
         }
         const contents = await Utils.readFileAsText(file)
         return Buckets.notebook(namespace, bucketName, resolvedName).create(JSON.parse(contents))
