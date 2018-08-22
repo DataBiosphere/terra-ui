@@ -203,8 +203,9 @@ const BrowseData = pure(() => {
             factors for major chronic diseases in women.`]),
         h(ParticipantControls, { size: 'Participants: > 280,000' }, [
           buttonPrimary({
-            disabled: true,
-            tooltip: 'NHS not yet in production'
+            as: 'a',
+            href: 'http://nhs-explorer.appspot.com/',
+            target: '_blank'
           }, ['Browse Data'])
         ])
       ]),
