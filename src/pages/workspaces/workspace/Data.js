@@ -75,6 +75,10 @@ const applyColumnSettings = (columnSettings, columns) => {
   )(columns)
 }
 
+const saveScroll = (initialX, initialY) => {
+  StateHistory.update({ initialX, initialY })
+}
+
 const WorkspaceData = wrapWorkspace({
   breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
   title: 'Data', activeTab: 'data'
@@ -275,6 +279,9 @@ class WorkspaceDataContent extends Component {
               ref: this.table,
               width, height,
               rowCount: entities.length,
+              onScroll: saveScroll,
+              initialX: StateHistory.get().initialX,
+              initialY: StateHistory.get().initialY,
               columns: [
                 (() => {
                   const thisWidth = theseColumnWidths['name'] || 150
@@ -469,6 +476,7 @@ class WorkspaceDataContent extends Component {
     )
 
     if (this.state.selectedDataType !== prevState.selectedDataType) {
+      saveScroll(0, 0)
       this.setState({ copying: false, copied: false })
     }
 

@@ -241,6 +241,10 @@ export class GridTable extends Component {
 
   componentDidMount() {
     this.body.current.measureAllCells()
+
+    const { initialX: scrollLeft = 0, initialY: scrollTop = 0 } = this.props
+
+    Utils.waitOneTick().then(() => this.body.current.scrollToPosition({ scrollLeft, scrollTop })) // waiting to let ScrollSync initialize
   }
 
   recomputeColumnSizes() {
@@ -250,15 +254,11 @@ export class GridTable extends Component {
   }
 
   scrollToTop() {
-    this.body.current.scrollToPosition({ scrollTop: 0 })
-  }
-
-  static scrollRestore() {
-    return window.history.scrollRestoration
+    this.body.current.scrollToPosition({ scrollTop: 0, scrollLeft: 0 })
   }
 
   render() {
-    const { width, height, rowCount, columns, cellStyle } = this.props
+    const { width, height, rowCount, columns, cellStyle, onScroll: customOnScroll = _.identity } = this.props
     const { scrollbarSize } = this.state
     return h(RVScrollSync, [
       ({ onScroll, scrollLeft }) => {
@@ -309,7 +309,11 @@ export class GridTable extends Component {
             },
             style: { outline: 'none' },
             scrollLeft,
-            onScroll
+            onScroll: details => {
+              onScroll(details)
+              const { scrollLeft, scrollTop } = details
+              customOnScroll(scrollLeft, scrollTop)
+            }
           })
         ])
       }
@@ -437,7 +441,7 @@ export class ColumnSelector extends Component {
           div({ style: { marginLeft: 'auto', fontWeight: 500 } }, ['Sort:']),
           linkButton({ style: { padding: '0 0.5rem' }, onClick: () => this.sort() }, ['reset'])
         ]),
-        h(AutoSizer, { disableHeight: true },  [
+        h(AutoSizer, { disableHeight: true }, [
           ({ width }) => {
             return h(SortableList, {
               style: { outline: 'none' },
