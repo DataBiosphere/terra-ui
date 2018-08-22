@@ -152,11 +152,13 @@ class NotebooksContent extends Component {
       this.setState({ saving: true })
       await Promise.all(_.map(async file => {
         const name = file.name.slice(0, -6)
-        if (_.includes(name, existingNames)) {
-          throw new Error(`${name} already exists`)
+        let resolvedName = name
+        let c = 0
+        while (_.includes(resolvedName, existingNames)) {
+          resolvedName = `${name} ${++c}`
         }
         const contents = await Utils.readFileAsText(file)
-        return Buckets.notebook(namespace, bucketName, name).create(JSON.parse(contents))
+        return Buckets.notebook(namespace, bucketName, resolvedName).create(JSON.parse(contents))
       }, files))
       this.refresh()
     } catch (error) {
