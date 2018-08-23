@@ -218,7 +218,8 @@ class WorkspaceDataContent extends Component {
               selected: selectedDataType === type,
               onClick: () => {
                 saveScroll(0, 0)
-                this.setState({ selectedDataType: type })}
+                this.setState({ selectedDataType: type })
+              }
             }, [
               div({ style: { display: 'flex', justifyContent: 'space-between' } }, [
                 type,
