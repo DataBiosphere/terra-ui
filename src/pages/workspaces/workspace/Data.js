@@ -181,6 +181,7 @@ class WorkspaceDataContent extends Component {
               key: type,
               selected: selectedDataType === type,
               onClick: () => {
+                saveScroll(0, 0)
                 this.setState(selectedDataType === type ?
                   { refreshRequested: true } :
                   { selectedDataType: type, pageNumber: 1, sort: initialSort, entities: undefined }
@@ -215,7 +216,9 @@ class WorkspaceDataContent extends Component {
             return h(DataTypeButton, {
               key: type,
               selected: selectedDataType === type,
-              onClick: () => this.setState({ selectedDataType: type })
+              onClick: () => {
+                saveScroll(0, 0)
+                this.setState({ selectedDataType: type })}
             }, [
               div({ style: { display: 'flex', justifyContent: 'space-between' } }, [
                 type,
@@ -233,6 +236,7 @@ class WorkspaceDataContent extends Component {
           h(DataTypeButton, {
             selected: selectedDataType === globalVariables,
             onClick: () => {
+              saveScroll(0, 0)
               this.setState(selectedDataType === globalVariables ?
                 { refreshRequested: true } :
                 { selectedDataType: globalVariables }
@@ -480,7 +484,6 @@ class WorkspaceDataContent extends Component {
     )
 
     if (this.state.selectedDataType !== prevState.selectedDataType) {
-      saveScroll(0, 0)
       this.setState({ copying: false, copied: false })
     }
 
