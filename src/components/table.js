@@ -170,10 +170,16 @@ export class FlexTable extends Component {
   constructor(props) {
     super(props)
     this.state = { scrollbarSize: 0 }
+    this.body = createRef()
+  }
+
+  componentDidMount() {
+    const { initialY: scrollTop = 0 } = this.props
+    this.body.current.scrollToPosition({ scrollTop })
   }
 
   render() {
-    const { width, height, rowCount, rowStyle, columns, hoverHighlight } = this.props
+    const { width, height, rowCount, rowStyle, columns, hoverHighlight, onScroll = _.identity } = this.props
     const { scrollbarSize } = this.state
 
     return div([
@@ -192,6 +198,7 @@ export class FlexTable extends Component {
         }, _.toPairs(columns))
       ]),
       h(RVGrid, {
+        ref: this.body,
         width,
         height: height - 48,
         columnWidth: width - scrollbarSize,
@@ -217,7 +224,8 @@ export class FlexTable extends Component {
             }, _.toPairs(columns))
           ])
         },
-        style: { outline: 'none' }
+        style: { outline: 'none' },
+        onScroll: ({ scrollTop }) => onScroll(scrollTop)
       })
     ])
   }

@@ -425,6 +425,8 @@ class WorkspaceDataContent extends Component {
         h(AutoSizer, [
           ({ width, height }) => h(FlexTable, {
             width, height, rowCount: filteredAttributes.length,
+            onScroll: y => saveScroll(0, y),
+            initialY: StateHistory.get().initialY,
             columns: [
               {
                 size: { basis: 400, grow: 0 },
@@ -452,6 +454,8 @@ class WorkspaceDataContent extends Component {
       h(AutoSizer, { key: selectedDataType }, [
         ({ width, height }) => h(FlexTable, {
           width, height, rowCount: selectedData.length,
+          onScroll: y => saveScroll(0, y),
+          initialY: StateHistory.get().initialY,
           columns: [
             {
               size: { basis: 400, grow: 0 },
