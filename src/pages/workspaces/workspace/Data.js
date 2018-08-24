@@ -126,7 +126,7 @@ class WorkspaceDataContent extends Component {
               .paginatedEntitiesOfType(selectedDataType, {
                 page: pageNumber, pageSize: itemsPerPage, sortField: sort.field, sortDirection: sort.direction
               }) :
-            Promise.resolve()
+            undefined
         ])
 
         this.setState(_.merge(
