@@ -544,7 +544,11 @@ export const ajaxCaller = WrappedComponent => {
     }
 
     render() {
-      return h(WrappedComponent, { ajax: this.ajax, ...this.props })
+      return h(WrappedComponent, {
+        ref: component => this.child = component,
+        ajax: this.ajax,
+        ...this.props
+      })
     }
 
     componentWillUnmount() {
