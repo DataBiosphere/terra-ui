@@ -298,7 +298,11 @@ class WorkflowViewContent extends Component {
         }
       })
     } catch (error) {
-      reportError('Error processing file', error)
+      if (error instanceof SyntaxError) {
+        reportError('Error processing file', 'This json file is not formatted correctly.')
+      } else {
+        reportError('Error processing file', error)
+      }
     }
   }
 
