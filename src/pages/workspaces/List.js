@@ -134,7 +134,7 @@ const NewWorkspaceCard = pure(({ listView, onClick }) => {
   ])
 })
 
-export const WorkspaceList = ajaxCaller(class extends Component {
+export const WorkspaceList = ajaxCaller(class WorkspaceList extends Component {
   constructor(props) {
     super(props)
     this.state = {

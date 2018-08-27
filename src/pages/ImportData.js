@@ -11,7 +11,7 @@ import { Component } from 'src/libs/wrapped-components'
 import { spinner } from 'src/components/icons'
 
 
-const Importer = ajaxCaller(class extends Component {
+const Importer = ajaxCaller(class Importer extends Component {
   render() {
     const { queryParams: { url, ad } } = this.props
     const { isImporting, selectedWorkspace } = this.state

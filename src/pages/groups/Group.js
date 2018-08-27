@@ -34,7 +34,7 @@ const roleSelector = ({ role, updateState }) => h(Fragment, [
 ])
 
 
-const NewUserModal = ajaxCaller(class extends Component {
+const NewUserModal = ajaxCaller(class NewUserModal extends Component {
   constructor(props) {
     super(props)
     this.state = {
@@ -90,7 +90,7 @@ const NewUserModal = ajaxCaller(class extends Component {
   }
 })
 
-const EditUserModal = ajaxCaller(class extends Component {
+const EditUserModal = ajaxCaller(class EditUserModal extends Component {
   constructor(props) {
     super(props)
     this.state = {
@@ -183,7 +183,7 @@ const NewUserCard = pure(({ onClick }) => {
   ])
 })
 
-export const GroupDetails = ajaxCaller(class extends Component {
+export const GroupDetails = ajaxCaller(class GroupDetails extends Component {
   constructor(props) {
     super(props)
     this.state = {

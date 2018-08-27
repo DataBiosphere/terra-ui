@@ -106,7 +106,7 @@ const profileKeys = [
 ]
 
 
-const Profile = ajaxCaller(class extends Component {
+const Profile = ajaxCaller(class Profile extends Component {
   async refresh() {
     this.setState({ profileInfo: undefined, displayName: undefined, fractionCompleted: undefined, saving: false })
 

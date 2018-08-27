@@ -25,7 +25,7 @@ const mutabilityWarning = 'Please note: Dockstore cannot guarantee that the WDL 
 const wdlLoadError = 'Error loading WDL. Please verify the workflow path and version and ensure' +
   ' this workflow supports WDL.'
 
-const DockstoreImporter = ajaxCaller(class extends Component {
+const DockstoreImporter = ajaxCaller(class DockstoreImporter extends Component {
   render() {
     const { wdl, loadError } = this.state
 

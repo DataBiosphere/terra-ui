@@ -112,7 +112,7 @@ class WorkspaceTabs extends PureComponent {
 }
 
 
-const DeleteWorkspaceModal = ajaxCaller(class extends Component {
+const DeleteWorkspaceModal = ajaxCaller(class DeleteWorkspaceModal extends Component {
   constructor(props) {
     super(props)
     this.state = {

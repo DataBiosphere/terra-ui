@@ -55,7 +55,7 @@ const InfoTile = ({ title, children }) => {
   ])
 }
 
-const EditWorkspaceModal = ajaxCaller(class extends Component {
+const EditWorkspaceModal = ajaxCaller(class EditWorkspaceModal extends Component {
   constructor(props) {
     super(props)
     this.state = {

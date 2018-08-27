@@ -63,7 +63,7 @@ const rNotebook = _.merge({
 }, baseNotebook)
 
 
-export const NotebookCreator = ajaxCaller(class extends Component {
+export const NotebookCreator = ajaxCaller(class NotebookCreator extends Component {
   constructor(props) {
     super(props)
     this.state = { notebookName: '' }
@@ -142,7 +142,7 @@ export const NotebookCreator = ajaxCaller(class extends Component {
   }
 })
 
-export const NotebookDuplicator = ajaxCaller(class extends Component {
+export const NotebookDuplicator = ajaxCaller(class NotebookDuplicator extends Component {
   constructor(props) {
     super(props)
     this.state = { newName: '' }
@@ -189,7 +189,7 @@ export const NotebookDuplicator = ajaxCaller(class extends Component {
   }
 })
 
-export const NotebookDeleter = ajaxCaller(class extends Component {
+export const NotebookDeleter = ajaxCaller(class NotebookDeleter extends Component {
   render() {
     const { printName, namespace, bucketName, onDismiss, onSuccess, ajax: { Buckets } } = this.props
     const { processing } = this.state

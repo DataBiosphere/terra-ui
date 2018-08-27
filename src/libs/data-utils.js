@@ -56,7 +56,7 @@ const getMaxDownloadCostNA = bytes => {
  * @param uri
  * @param googleProject
  */
-const UriViewer = ajaxCaller(class extends Component {
+const UriViewer = ajaxCaller(class UriViewer extends Component {
   async getMetadata() {
     const { googleProject, uri, ajax: { Buckets, Martha } } = this.props
     const isGsUri = isGs(uri)
@@ -219,7 +219,7 @@ export const renderDataCell = (data, namespace) => {
     renderCell(data)
 }
 
-export const ReferenceDataImporter = ajaxCaller(class extends Component {
+export const ReferenceDataImporter = ajaxCaller(class ReferenceDataImporter extends Component {
   render() {
     const { onDismiss, onSuccess, namespace, name, ajax: { Workspaces } } = this.props
     const { loading, selectedReference } = this.state
@@ -259,7 +259,7 @@ export const ReferenceDataImporter = ajaxCaller(class extends Component {
   }
 })
 
-export const ReferenceDataDeleter = ajaxCaller(class extends Component {
+export const ReferenceDataDeleter = ajaxCaller(class ReferenceDataDeleter extends Component {
   render() {
     const { onDismiss, onSuccess, namespace, name, referenceDataType, ajax: { Workspaces } } = this.props
     const { deleting } = this.state

@@ -27,7 +27,7 @@ const groupNameValidator = {
   }
 }
 
-const NewGroupModal = ajaxCaller(class extends Component {
+const NewGroupModal = ajaxCaller(class NewGroupModal extends Component {
   constructor(props) {
     super(props)
     this.state = {
@@ -130,7 +130,7 @@ const NewGroupCard = pure(({ onClick }) => {
   ])
 })
 
-export const GroupList = ajaxCaller(class extends Component {
+export const GroupList = ajaxCaller(class GroupList extends Component {
   constructor(props) {
     super(props)
     this.state = {
