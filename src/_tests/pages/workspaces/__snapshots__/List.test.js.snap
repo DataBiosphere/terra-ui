@@ -81,6 +81,7 @@ Array [
         <clr-icon
             class={undefined}
             shape="search"
+            size={21}
         />
         <input
             onChange={[Function]}
