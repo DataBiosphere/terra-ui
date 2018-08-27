@@ -297,14 +297,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title }, content) => {
         const workspace = await Workspaces.workspace(namespace, name).details()
         this.setState({ workspace })
       } catch (error) {
-        let errorText = 'Unknown'
-        try {
-          errorText = await error.text()
-        } catch (error2) {
-          // ignore, we're too deep in error territory
-        } finally {
-          this.setState({ workspaceError: error, errorText })
-        }
+        this.setState({ workspaceError: error, errorText: await error.text().catch(() => 'Unknown') })
       }
     }
   })
