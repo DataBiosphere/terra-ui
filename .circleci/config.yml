@@ -14,19 +14,23 @@ jobs:
           paths:
             - node_modules
       - run: npm test
+      - persist_to_workspace:
+          root: .
+          paths:
+            - node_modules
   build:
     docker:
       - image: node:8
     steps:
       - checkout
-      - restore_cache:
-          key: deps1-{{ .Branch }}-{{ checksum "package.json" }}
+      - attach_workspace:
+          at: /root/project
       - run: npm run build
       - run: tar -czf build.tgz app.yaml build config
       - store_artifacts:
           path: build.tgz
       - persist_to_workspace:
-          root: /root/project
+          root: .
           paths:
             - app.yaml
             - build
