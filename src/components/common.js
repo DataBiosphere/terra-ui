@@ -82,7 +82,7 @@ export const search = function({ wrapperProps, inputProps }) {
     _.merge({ style: { borderBottom: '1px solid black', padding: '0.5rem 0', display: 'flex' } },
       wrapperProps),
     [
-      icon('search'),
+      icon('search', { size: 21 }),
       input(_.merge({
         style: {
           border: 'none', outline: 'none',
