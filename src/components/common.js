@@ -87,7 +87,8 @@ export const search = function({ wrapperProps, inputProps }) {
         style: {
           border: 'none', outline: 'none',
           flexGrow: 1,
-          verticalAlign: 'bottom', marginLeft: '1rem'
+          verticalAlign: 'bottom', marginLeft: '1rem',
+          fontSize: '1rem'
         }
       }, inputProps))
     ])
