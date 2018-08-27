@@ -159,14 +159,14 @@ const MemberCard = pure(({ member: { email, role }, adminCanEdit, onEdit, onDele
       h(TooltipTrigger, { content: tooltip }, [
         link({
           disabled: !canEdit,
-          onClick: canEdit && onEdit
+          onClick: canEdit ? onEdit : undefined
         }, ['Edit Role'])
       ]),
       ' | ',
       h(TooltipTrigger, { content: tooltip }, [
         link({
           disabled: !canEdit,
-          onClick: canEdit && onDelete
+          onClick: canEdit ? onDelete : undefined
         }, ['Remove'])
       ])
     ])
