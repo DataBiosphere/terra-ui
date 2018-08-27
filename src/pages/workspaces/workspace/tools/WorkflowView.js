@@ -298,7 +298,11 @@ class WorkflowViewContent extends Component {
         }
       })
     } catch (error) {
-      reportError('Error processing file', error)
+      if (error instanceof SyntaxError) {
+        reportError('Error processing file', 'This json file is not formatted correctly.')
+      } else {
+        reportError('Error processing file', error)
+      }
     }
   }
 
@@ -321,6 +325,7 @@ class WorkflowViewContent extends Component {
       style: { padding: `1rem ${sideMargin} 0`, flex: 1, minHeight: 500 },
       activeStyle: { backgroundColor: colors.blue[3], cursor: 'copy' },
       ref: this.uploader,
+      onDropRejected: () => reportError('Not a valid inputs file', 'The selected file is not a json file. To import inputs for this tool, upload a file with a .json extension.'),
       onDropAccepted: files => this.uploadJson(key, files[0])
     }, [
       div({ style: { display: 'flex', justifyContent: 'flex-end', marginBottom: '0.25rem' } }, [
