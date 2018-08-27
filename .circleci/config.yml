@@ -24,7 +24,7 @@ jobs:
     steps:
       - checkout
       - attach_workspace:
-          at: /root/project
+          at: .
       - run: npm run build
       - run: tar -czf build.tgz app.yaml build config
       - store_artifacts:
@@ -40,7 +40,7 @@ jobs:
       - image: google/cloud-sdk:latest
     steps:
       - attach_workspace:
-          at: /root/project
+          at: .
       - run: cp config/dev.json build/config.json
       - run: echo "$SA_KEY_JSON" > circleci-sa.json
       - run: gcloud auth activate-service-account --key-file=circleci-sa.json
