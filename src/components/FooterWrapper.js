@@ -10,9 +10,9 @@ const styles = {
 
 const tosUrl = 'http://gatkforums.broadinstitute.org/firecloud/discussion/6819/firecloud-terms-of-service#latest'
 
-const PageWrapper = ({ children }) => {
+const FooterWrapper = ({ children }) => {
   return div({ style: { display: 'flex', flexDirection: 'column', minHeight: '100%' } }, [
-    div({ style: { flexGrow: 1, display: 'flex', flexDirection: 'column' } }, [children]),
+    children,
     div({
       style: {
         flex: 'none',
@@ -22,8 +22,7 @@ const PageWrapper = ({ children }) => {
         paddingRight: '6rem',
         backgroundColor: colors.gray[0],
         color: colors.gray[2],
-        borderTop: `4px solid ${colors.brick}`,
-        marginTop: '2rem'
+        borderTop: `4px solid ${colors.brick}`
       }
     }, [
       div({ style: { display: 'flex', alignItems: 'center' } }, [
@@ -42,4 +41,4 @@ const PageWrapper = ({ children }) => {
   ])
 }
 
-export default PageWrapper
+export default FooterWrapper
