@@ -134,14 +134,16 @@ class EditUserModal extends Component {
 }
 
 const DeleteUserModal = pure(({ onDismiss, onSubmit, userEmail }) => {
+  const userType = _.startsWith('GROUP_', userEmail) ? 'group' : 'user'
+
   return h(Modal, {
     onDismiss,
     title: 'Confirm',
     okButton: buttonPrimary({
       onClick: onSubmit
-    }, ['Delete User'])
+    }, [`Delete ${userType}`])
   }, [
-    'Are you sure you want to delete the user ',
+    div([`Are you sure you want to delete the ${userType}`]),
     b(`${userEmail}?`)
   ])
 })
@@ -204,7 +206,7 @@ export class GroupDetails extends Component {
       this.setState({ loading: true, creatingNewUser: false, editingUser: false, deletingUser: false, updating: false })
       const [membersEmails, adminsEmails] = await Promise.all([Groups.group(groupName).listMembers(), Groups.group(groupName).listAdmins()])
       this.setState({
-        members: _.sortBy('email', _.concat(
+        members: _.sortBy(member => member.email.toUpperCase(), _.concat(
           _.map(adm => ({ email: adm, role: 'admin' }), adminsEmails),
           _.map(mem => ({ email: mem, role: 'member' }), membersEmails)
         )),
