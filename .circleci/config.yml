@@ -21,6 +21,7 @@ jobs:
       - checkout
       - restore_cache:
           key: deps1-{{ .Branch }}-{{ checksum "package.json" }}
+      - run: npm install # cache won't restore for forks
       - run: npm run build
       - run: tar -czf build.tgz app.yaml build config
       - store_artifacts:
