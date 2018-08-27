@@ -89,6 +89,7 @@ Array [
                 Object {
                     "border": "none",
                     "flexGrow": 1,
+                    "fontSize": "1rem",
                     "marginLeft": "1rem",
                     "outline": "none",
                     "verticalAlign": "bottom",
