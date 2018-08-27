@@ -249,7 +249,7 @@ class NotebooksContent extends Component {
       acceptStyle: { cursor: 'copy' },
       rejectStyle: { cursor: 'no-drop' },
       ref: this.uploader,
-      onDropRejected: () => reportError('Error uploading notebook', 'The selected file is not a ipynb notebook file. To import a notebook, upload a file with a .ipynb extension.'),
+      onDropRejected: () => reportError('Not a valid notebook', 'The selected file is not a ipynb notebook file. To import a notebook, upload a file with a .ipynb extension.'),
       onDropAccepted: files => this.uploadFiles(files)
     }, [
       notebooks && h(Fragment, [

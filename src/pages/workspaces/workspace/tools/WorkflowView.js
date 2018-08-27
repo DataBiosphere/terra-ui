@@ -325,7 +325,7 @@ class WorkflowViewContent extends Component {
       style: { padding: `1rem ${sideMargin} 0`, flex: 1, minHeight: 500 },
       activeStyle: { backgroundColor: colors.blue[3], cursor: 'copy' },
       ref: this.uploader,
-      onDropRejected: () => reportError('Error uploading inputs', 'The selected file is not a json file. To import inputs for this tool, upload a file with a .json extension.'),
+      onDropRejected: () => reportError('Not a valid inputs file', 'The selected file is not a json file. To import inputs for this tool, upload a file with a .json extension.'),
       onDropAccepted: files => this.uploadJson(key, files[0])
     }, [
       div({ style: { display: 'flex', justifyContent: 'flex-end', marginBottom: '0.25rem' } }, [
