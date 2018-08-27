@@ -44,7 +44,7 @@ const jsonBody = body => ({ body: JSON.stringify(body), headers: { 'Content-Type
 const appIdentifier = { headers: { 'X-App-ID': 'Saturn' } }
 const addAppIdentifier = _.merge(appIdentifier)
 
-const instrumentedFetch = (...args) => {
+const instrumentedFetch = (url, options) => {
   if (noConnection) {
     console.info('%cSimulating no connection', consoleStyle)
     return Promise.reject(new TypeError('Simulating no connection'))
@@ -52,43 +52,43 @@ const instrumentedFetch = (...args) => {
     console.info('%cSimulating response:', consoleStyle, mockResponse())
     return Promise.resolve(mockResponse())
   }
-  return fetch(...args)
+  return fetch(url, options)
 }
 
-const fetchOk = async (...args) => {
-  const res = await instrumentedFetch(...args)
+const fetchOk = async (url, options) => {
+  const res = await instrumentedFetch(url, options)
   return res.ok ? res : Promise.reject(res)
 }
 
 
-const fetchSam = async (path, ...args) => {
-  return fetchOk(`${await Config.getSamUrlRoot()}/${path}`, addAppIdentifier(...args))
+const fetchSam = async (path, options) => {
+  return fetchOk(`${await Config.getSamUrlRoot()}/${path}`, addAppIdentifier(options))
 }
 
-const fetchBuckets = (path, ...args) => fetchOk(`https://www.googleapis.com/${path}`, ...args)
+const fetchBuckets = (path, options) => fetchOk(`https://www.googleapis.com/${path}`, options)
 const nbName = name => encodeURIComponent(`notebooks/${name}.ipynb`)
 
-const fetchRawls = async (path, ...args) => {
-  return fetchOk(`${await Config.getRawlsUrlRoot()}/api/${path}`, addAppIdentifier(...args))
+const fetchRawls = async (path, options) => {
+  return fetchOk(`${await Config.getRawlsUrlRoot()}/api/${path}`, addAppIdentifier(options))
 }
 
-const fetchLeo = async (path, ...args) => {
-  return fetchOk(`${await Config.getLeoUrlRoot()}/${path}`, addAppIdentifier(...args))
+const fetchLeo = async (path, options) => {
+  return fetchOk(`${await Config.getLeoUrlRoot()}/${path}`, addAppIdentifier(options))
 }
 
-const fetchDockstore = async (path, ...args) => {
-  return fetchOk(`${await Config.getDockstoreUrlRoot()}/${path}`, ...args)
+const fetchDockstore = async (path, options) => {
+  return fetchOk(`${await Config.getDockstoreUrlRoot()}/${path}`, options)
 }
 // %23 = '#', %2F = '/'
 const dockstoreMethodPath = path => `api/ga4gh/v1/tools/%23workflow%2F${encodeURIComponent(path)}/versions`
 
-const fetchAgora = async (path, ...args) => {
-  return fetchOk(`${await Config.getAgoraUrlRoot()}/api/v1/${path}`, addAppIdentifier(...args))
+const fetchAgora = async (path, options) => {
+  return fetchOk(`${await Config.getAgoraUrlRoot()}/api/v1/${path}`, addAppIdentifier(options))
 }
 
-const fetchOrchestration = async (path, ...args) => {
+const fetchOrchestration = async (path, options) => {
   const urlRoot = await Config.getOrchestrationUrlRoot()
-  return fetchOk(urlRoot + path, addAppIdentifier(...args))
+  return fetchOk(urlRoot + path, addAppIdentifier(options))
 }
 
 
