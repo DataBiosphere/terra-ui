@@ -179,8 +179,7 @@ export class TopBar extends Component {
             ]),
             'Workspaces'
           ]),
-          div({ style: { flex: 1 } }),
-          div({ style: _.omit('borderBottom', styles.nav.item) }, [
+          div({ style: { ..._.omit('borderBottom', styles.nav.item), marginTop: 'auto' } }, [
             'Built on: ',
             new Date(SATURN_BUILD_TIMESTAMP).toLocaleString()
           ])
