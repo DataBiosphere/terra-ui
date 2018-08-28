@@ -184,7 +184,7 @@ export class GroupList extends Component {
         div({ style: { flexGrow: 1 } },
           _.map(group => {
             return h(GroupCard, {
-              group, key: group.groupName,
+              group, key: `${group.groupName}-${group.role}`, // can be an admin and a user at same time
               onDelete: () => this.setState({ deletingGroup: group })
             })
           }, _.filter(({ groupName }) => Utils.textMatch(filter, groupName), groups))
