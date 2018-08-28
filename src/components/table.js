@@ -245,6 +245,7 @@ export class GridTable extends Component {
     this.state = { scrollbarSize: 0 }
     this.header = createRef()
     this.body = createRef()
+    this.scrollSync = createRef()
   }
 
   componentDidMount() {
@@ -252,7 +253,10 @@ export class GridTable extends Component {
 
     const { initialX: scrollLeft = 0, initialY: scrollTop = 0 } = this.props
 
-    Utils.waitOneTick().then(() => this.body.current.scrollToPosition({ scrollLeft, scrollTop })) // waiting to let ScrollSync initialize
+    this.scrollSync.current._onScroll({scrollLeft}) //BEWARE: utilizing private method from scrollSync that is not intended to be used
+
+    this.body.current.scrollToPosition({scrollLeft, scrollTop }) // waiting to let ScrollSync initialize
+
   }
 
   recomputeColumnSizes() {
@@ -268,7 +272,9 @@ export class GridTable extends Component {
   render() {
     const { width, height, rowCount, columns, cellStyle, onScroll: customOnScroll = _.identity } = this.props
     const { scrollbarSize } = this.state
-    return h(RVScrollSync, [
+    return h(RVScrollSync, {
+      ref: this.scrollSync
+    }, [
       ({ onScroll, scrollLeft }) => {
         return div([
           h(RVGrid, {

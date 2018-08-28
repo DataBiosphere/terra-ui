@@ -75,9 +75,9 @@ const applyColumnSettings = (columnSettings, columns) => {
   )(columns)
 }
 
-const saveScroll = (initialX, initialY) => {
+const saveScroll = _.throttle(100, (initialX, initialY) => {
   StateHistory.update({ initialX, initialY })
-}
+})
 
 const WorkspaceData = wrapWorkspace({
   breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
