@@ -73,7 +73,7 @@ const fetchRawls = async (path, options) => {
 }
 
 const fetchLeo = async (path, options) => {
-  return fetchOk(`${await Config.getLeoUrlRoot()}/${path}`, addAppIdentifier(options))
+  return fetchOk(`${await Config.getLeoUrlRoot()}/${path}`, options)
 }
 
 const fetchDockstore = async (path, options) => {
@@ -441,7 +441,7 @@ export const Methods = {
 
 export const Jupyter = {
   clustersList: async () => {
-    const res = await fetchLeo('api/clusters?saturnAutoCreated=true', authOpts())
+    const res = await fetchLeo('api/clusters?saturnAutoCreated=true', addAppIdentifier(authOpts()))
     return res.json()
   },
 
@@ -453,19 +453,19 @@ export const Jupyter = {
         const body = _.merge(clusterOptions, {
           labels: { saturnAutoCreated: 'true', saturnVersion: version }
         })
-        return fetchLeo(root, _.mergeAll([authOpts(), jsonBody(body), { method: 'PUT' }]))
+        return fetchLeo(root, _.mergeAll([authOpts(), jsonBody(body), { method: 'PUT' }, appIdentifier]))
       },
 
       start: () => {
-        return fetchLeo(`${root}/start`, _.merge(authOpts(), { method: 'POST' }))
+        return fetchLeo(`${root}/start`, _.mergeAll([authOpts(), { method: 'POST' }, appIdentifier]))
       },
 
       stop: () => {
-        return fetchLeo(`${root}/stop`, _.merge(authOpts(), { method: 'POST' }))
+        return fetchLeo(`${root}/stop`, _.mergeAll([authOpts(), { method: 'POST' }, appIdentifier]))
       },
 
       delete: () => {
-        return fetchLeo(root, _.merge(authOpts(), { method: 'DELETE' }))
+        return fetchLeo(root, _.mergeAll([authOpts(), { method: 'DELETE' }, appIdentifier]))
       }
     }
   },
