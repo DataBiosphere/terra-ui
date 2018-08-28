@@ -134,16 +134,14 @@ class EditUserModal extends Component {
 }
 
 const DeleteUserModal = pure(({ onDismiss, onSubmit, userEmail }) => {
-  const userType = _.startsWith('GROUP_', userEmail) ? 'group' : 'user'
-
   return h(Modal, {
     onDismiss,
     title: 'Confirm',
     okButton: buttonPrimary({
       onClick: onSubmit
-    }, [`Delete ${userType}`])
+    }, ['Remove'])
   }, [
-    div([`Are you sure you want to delete the ${userType}`]),
+    div(['Are you sure you want to remove']),
     b(`${userEmail}?`)
   ])
 })
