@@ -170,10 +170,16 @@ export class FlexTable extends Component {
   constructor(props) {
     super(props)
     this.state = { scrollbarSize: 0 }
+    this.body = createRef()
+  }
+
+  componentDidMount() {
+    const { initialY: scrollTop = 0 } = this.props
+    this.body.current.scrollToPosition({ scrollTop })
   }
 
   render() {
-    const { width, height, rowCount, rowStyle, columns, hoverHighlight } = this.props
+    const { width, height, rowCount, rowStyle, columns, hoverHighlight, onScroll = _.noop } = this.props
     const { scrollbarSize } = this.state
 
     return div([
@@ -192,6 +198,7 @@ export class FlexTable extends Component {
         }, _.toPairs(columns))
       ]),
       h(RVGrid, {
+        ref: this.body,
         width,
         height: height - 48,
         columnWidth: width - scrollbarSize,
@@ -217,7 +224,8 @@ export class FlexTable extends Component {
             }, _.toPairs(columns))
           ])
         },
-        style: { outline: 'none' }
+        style: { outline: 'none' },
+        onScroll: ({ scrollTop }) => onScroll(scrollTop)
       })
     ])
   }
@@ -237,10 +245,17 @@ export class GridTable extends Component {
     this.state = { scrollbarSize: 0 }
     this.header = createRef()
     this.body = createRef()
+    this.scrollSync = createRef()
   }
 
   componentDidMount() {
     this.body.current.measureAllCells()
+
+    const { initialX: scrollLeft = 0, initialY: scrollTop = 0 } = this.props
+
+    this.scrollSync.current._onScroll({ scrollLeft }) //BEWARE: utilizing private method from scrollSync that is not intended to be used
+
+    this.body.current.scrollToPosition({ scrollLeft, scrollTop }) // waiting to let ScrollSync initialize
   }
 
   recomputeColumnSizes() {
@@ -250,13 +265,15 @@ export class GridTable extends Component {
   }
 
   scrollToTop() {
-    this.body.current.scrollToPosition({ scrollTop: 0 })
+    this.body.current.scrollToPosition({ scrollTop: 0, scrollLeft: 0 })
   }
 
   render() {
-    const { width, height, rowCount, columns, cellStyle } = this.props
+    const { width, height, rowCount, columns, cellStyle, onScroll: customOnScroll = _.noop } = this.props
     const { scrollbarSize } = this.state
-    return h(RVScrollSync, [
+    return h(RVScrollSync, {
+      ref: this.scrollSync
+    }, [
       ({ onScroll, scrollLeft }) => {
         return div([
           h(RVGrid, {
@@ -305,7 +322,11 @@ export class GridTable extends Component {
             },
             style: { outline: 'none' },
             scrollLeft,
-            onScroll
+            onScroll: details => {
+              onScroll(details)
+              const { scrollLeft, scrollTop } = details
+              customOnScroll(scrollLeft, scrollTop)
+            }
           })
         ])
       }
@@ -433,7 +454,7 @@ export class ColumnSelector extends Component {
           div({ style: { marginLeft: 'auto', fontWeight: 500 } }, ['Sort:']),
           linkButton({ style: { padding: '0 0.5rem' }, onClick: () => this.sort() }, ['reset'])
         ]),
-        h(AutoSizer, { disableHeight: true },  [
+        h(AutoSizer, { disableHeight: true }, [
           ({ width }) => {
             return h(SortableList, {
               style: { outline: 'none' },
