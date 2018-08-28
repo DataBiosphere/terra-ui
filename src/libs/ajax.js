@@ -87,8 +87,7 @@ const fetchAgora = async (path, options) => {
 }
 
 const fetchOrchestration = async (path, options) => {
-  const urlRoot = await Config.getOrchestrationUrlRoot()
-  return fetchOk(urlRoot + path, addAppIdentifier(options))
+  return fetchOk(`${await Config.getOrchestrationUrlRoot()}/${path}`, addAppIdentifier(options))
 }
 
 
@@ -113,7 +112,7 @@ export const User = {
 
   profile: {
     get: async () => {
-      const res = await fetchOrchestration('/register/profile', authOpts())
+      const res = await fetchOrchestration('register/profile', authOpts())
       return res.json()
     },
     set: keysAndValues => {
@@ -130,14 +129,14 @@ export const User = {
         nonProfitStatus: 'N/A'
       }
       return fetchOrchestration(
-        '/register/profile',
+        'register/profile',
         _.mergeAll([authOpts(), jsonBody(_.merge(blankProfile, keysAndValues)), { method: 'POST' }])
       )
     }
   },
 
   getProxyGroup: async email => {
-    const res = await fetchOrchestration(`/api/proxyGroup/${email}`, authOpts())
+    const res = await fetchOrchestration(`api/proxyGroup/${email}`, authOpts())
     return res.json()
   }
 }
@@ -222,7 +221,7 @@ export const Workspaces = {
   },
 
   getShareLog: async () => {
-    const res = await fetchOrchestration('/api/sharelog/sharees?shareType=workspace', authOpts())
+    const res = await fetchOrchestration('api/sharelog/sharees?shareType=workspace', authOpts())
     return res.json()
   },
 
@@ -335,7 +334,7 @@ export const Workspaces = {
 
       importBagit: bagitURL => {
         return fetchOrchestration(
-          `/api/workspaces/${namespace}/${name}/importBagit`,
+          `api/workspaces/${namespace}/${name}/importBagit`,
           _.mergeAll([authOpts(), jsonBody({ bagitURL, format: 'TSV' }), { method: 'POST' }])
         )
       },
@@ -350,7 +349,7 @@ export const Workspaces = {
       },
 
       storageCostEstimate: async () => {
-        const res = await fetchOrchestration(`/api/workspaces/${namespace}/${name}/storageCostEstimate`, authOpts())
+        const res = await fetchOrchestration(`api/workspaces/${namespace}/${name}/storageCostEstimate`, authOpts())
         return res.json()
       }
     }
