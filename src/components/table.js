@@ -179,7 +179,7 @@ export class FlexTable extends Component {
   }
 
   render() {
-    const { width, height, rowCount, rowStyle, columns, hoverHighlight, onScroll = _.identity } = this.props
+    const { width, height, rowCount, rowStyle, columns, hoverHighlight, onScroll = _.noop } = this.props
     const { scrollbarSize } = this.state
 
     return div([
@@ -269,7 +269,7 @@ export class GridTable extends Component {
   }
 
   render() {
-    const { width, height, rowCount, columns, cellStyle, onScroll: customOnScroll = _.identity } = this.props
+    const { width, height, rowCount, columns, cellStyle, onScroll: customOnScroll = _.noop } = this.props
     const { scrollbarSize } = this.state
     return h(RVScrollSync, {
       ref: this.scrollSync
