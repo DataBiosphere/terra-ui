@@ -1,9 +1,9 @@
 import _ from 'lodash/fp'
 import { Component } from 'react'
-import { h, h2, div } from 'react-hyperscript-helpers'
+import { div, h, h2 } from 'react-hyperscript-helpers'
 import AuthContainer from 'src/components/AuthContainer'
-import PageWrapper from 'src/components/PageWrapper'
 import { link } from 'src/components/common'
+import FooterWrapper from 'src/components/FooterWrapper'
 import * as Nav from 'src/libs/nav'
 import * as BrowseData from 'src/pages/BrowseData'
 import * as Group from 'src/pages/groups/Group'
@@ -23,6 +23,8 @@ import * as TerminalLauncher from 'src/pages/workspaces/workspace/notebooks/Term
 import * as Tools from 'src/pages/workspaces/workspace/Tools'
 import * as WorkflowView from 'src/pages/workspaces/workspace/tools/WorkflowView'
 
+
+const pageWrapStyle = { minHeight: 'calc(100% - 2rem)', flexGrow: 1, display: 'flex', flexDirection: 'column', marginBottom: '2rem' }
 
 const initNavPaths = () => {
   Nav.clearPaths()
@@ -91,17 +93,19 @@ export default class Router extends Component {
     }
     const handler = Nav.findHandler(pathname)
     if (!handler) {
-      return h(PageWrapper, [
-        div({ style: { marginLeft: '1rem' } }, [
+      return h(FooterWrapper, [
+        div({ style: { marginLeft: '1rem', ...pageWrapStyle } }, [
           h2('Page not found'),
           link({ href: Nav.getLink('root') }, 'Homepage')
         ])
       ])
     }
-    const el = h(handler.component, {
-      key: pathname, // forces a remount even if component is the same
-      ...Nav.getHandlerProps(handler, pathname, search)
-    })
-    return h(PageWrapper, [handler.public ? el : h(AuthContainer, [el])])
+    const el = div({ style: pageWrapStyle }, [
+      h(handler.component, {
+        key: pathname, // forces a remount even if component is the same
+        ...Nav.getHandlerProps(handler, pathname, search)
+      })
+    ])
+    return handler.public ? el : h(AuthContainer, [el])
   }
 }
