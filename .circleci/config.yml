@@ -14,20 +14,23 @@ jobs:
           paths:
             - node_modules
       - run: npm test
+      - persist_to_workspace:
+          root: .
+          paths:
+            - node_modules
   build:
     docker:
       - image: node:8
     steps:
       - checkout
-      - restore_cache:
-          key: deps1-{{ .Branch }}-{{ checksum "package.json" }}
-      - run: npm install # cache won't restore for forks
+      - attach_workspace:
+          at: .
       - run: npm run build
       - run: tar -czf build.tgz app.yaml build config
       - store_artifacts:
           path: build.tgz
       - persist_to_workspace:
-          root: /root/project
+          root: .
           paths:
             - app.yaml
             - build
@@ -37,7 +40,7 @@ jobs:
       - image: google/cloud-sdk:latest
     steps:
       - attach_workspace:
-          at: /root/project
+          at: .
       - run: cp config/dev.json build/config.json
       - run: echo "$SA_KEY_JSON" > circleci-sa.json
       - run: gcloud auth activate-service-account --key-file=circleci-sa.json
