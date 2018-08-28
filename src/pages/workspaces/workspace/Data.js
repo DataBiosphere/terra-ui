@@ -113,7 +113,7 @@ class WorkspaceDataContent extends Component {
 
   async loadData() {
     const { namespace, name } = this.props
-    const { itemsPerPage, pageNumber, sort, selectedDataType } = this.state
+    const { itemsPerPage, pageNumber, sort, selectedDataType, isDataModel } = this.state
 
     const getWorkspaceAttributes = async () => (await Workspaces.workspace(namespace, name).details()).workspace.attributes
 
@@ -123,15 +123,20 @@ class WorkspaceDataContent extends Component {
       try {
         this.setState({ loading: true, refreshRequested: false })
 
-        const [workspaceAttributes, { results, resultMetadata: { unfilteredCount } }] = await Promise.all([
+        const [workspaceAttributes, entities] = await Promise.all([
           getWorkspaceAttributes(),
-          Workspaces.workspace(namespace, name)
-            .paginatedEntitiesOfType(selectedDataType, {
-              page: pageNumber, pageSize: itemsPerPage, sortField: sort.field, sortDirection: sort.direction
-            })
+          isDataModel ?
+            Workspaces.workspace(namespace, name)
+              .paginatedEntitiesOfType(selectedDataType, {
+                page: pageNumber, pageSize: itemsPerPage, sortField: sort.field, sortDirection: sort.direction
+              }) :
+            undefined
         ])
 
-        this.setState({ entities: results, totalRowCount: unfilteredCount, workspaceAttributes })
+        this.setState(_.merge(
+          isDataModel && { entities: entities.results, totalRowCount: entities.resultMetadata.unfilteredCount },
+          { workspaceAttributes }
+        ))
       } catch (error) {
         reportError('Error loading workspace data', error)
       } finally {
@@ -184,7 +189,7 @@ class WorkspaceDataContent extends Component {
                 saveScroll(0, 0)
                 this.setState(selectedDataType === type ?
                   { refreshRequested: true } :
-                  { selectedDataType: type, pageNumber: 1, sort: initialSort, entities: undefined }
+                  { selectedDataType: type, pageNumber: 1, sort: initialSort, entities: undefined, isDataModel: true }
                 )
               }
             }, [`${type} (${typeDetails.count})`])
@@ -218,7 +223,7 @@ class WorkspaceDataContent extends Component {
               selected: selectedDataType === type,
               onClick: () => {
                 saveScroll(0, 0)
-                this.setState({ selectedDataType: type })
+                this.setState({ selectedDataType: type, isDataModel: false })
               }
             }, [
               div({ style: { display: 'flex', justifyContent: 'space-between' } }, [
@@ -240,7 +245,7 @@ class WorkspaceDataContent extends Component {
               saveScroll(0, 0)
               this.setState(selectedDataType === globalVariables ?
                 { refreshRequested: true } :
-                { selectedDataType: globalVariables }
+                { selectedDataType: globalVariables, isDataModel: false }
               )
             }
           }, ['Global Variables'])

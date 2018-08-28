@@ -152,15 +152,21 @@ class NotebooksContent extends Component {
       this.setState({ saving: true })
       await Promise.all(_.map(async file => {
         const name = file.name.slice(0, -6)
-        if (_.includes(name, existingNames)) {
-          throw new Error(`${name} already exists`)
+        let resolvedName = name
+        let c = 0
+        while (_.includes(resolvedName, existingNames)) {
+          resolvedName = `${name} ${++c}`
         }
         const contents = await Utils.readFileAsText(file)
-        return Buckets.notebook(namespace, bucketName, name).create(JSON.parse(contents))
+        return Buckets.notebook(namespace, bucketName, resolvedName).create(JSON.parse(contents))
       }, files))
       this.refresh()
     } catch (error) {
-      reportError('Error creating notebook', error)
+      if (error instanceof SyntaxError) {
+        reportError('Error uploading notebook', 'This ipynb file is not formatted correctly.')
+      } else {
+        reportError('Error creating notebook', error)
+      }
     } finally {
       this.setState({ saving: false })
     }
@@ -243,6 +249,7 @@ class NotebooksContent extends Component {
       acceptStyle: { cursor: 'copy' },
       rejectStyle: { cursor: 'no-drop' },
       ref: this.uploader,
+      onDropRejected: () => reportError('Not a valid notebook', 'The selected file is not a ipynb notebook file. To import a notebook, upload a file with a .ipynb extension.'),
       onDropAccepted: files => this.uploadFiles(files)
     }, [
       notebooks && h(Fragment, [
