@@ -1,3 +1,4 @@
+import _ from 'lodash/fp'
 import { createPortal } from 'react-dom'
 import { a, div, h } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
@@ -19,13 +20,14 @@ const styles = {
   },
   nav: {
     background: {
-      display: 'flex', position: 'absolute', left: 0, right: 0, top: 0, bottom: 0,
+      position: 'absolute', left: 0, right: 0, top: 0, bottom: 0,
       overflow: 'auto', cursor: 'pointer'
     },
     container: {
       width: 350, color: 'white', position: 'absolute', cursor: 'default',
       backgroundColor: colors.darkBlue[0], height: '100%',
-      boxShadow: '3px 0 13px 0 rgba(0,0,0,0.3)'
+      boxShadow: '3px 0 13px 0 rgba(0,0,0,0.3)',
+      display: 'flex', flexDirection: 'column'
     },
     profile: active => ({
       backgroundColor: active ? colors.gray[5] : colors.gray[4],
@@ -39,7 +41,7 @@ const styles = {
       fontSize: 'unset'
     }),
     item: {
-      display: 'flex', alignItems: 'center',
+      display: 'flex', alignItems: 'center', flex: 'none',
       height: 70, padding: '0 2rem',
       fontWeight: 500,
       borderBottom: `1px solid ${colors.darkBlue[2]}`, color: 'white'
@@ -176,6 +178,10 @@ export class TopBar extends Component {
               icon('workspace', { className: 'is-solid', size: 24 })
             ]),
             'Workspaces'
+          ]),
+          div({ style: { ..._.omit('borderBottom', styles.nav.item), marginTop: 'auto' } }, [
+            'Built on: ',
+            new Date(SATURN_BUILD_TIMESTAMP).toLocaleString()
           ])
         ])
       ]),
