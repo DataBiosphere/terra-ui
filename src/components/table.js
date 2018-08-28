@@ -253,10 +253,9 @@ export class GridTable extends Component {
 
     const { initialX: scrollLeft = 0, initialY: scrollTop = 0 } = this.props
 
-    this.scrollSync.current._onScroll({scrollLeft}) //BEWARE: utilizing private method from scrollSync that is not intended to be used
+    this.scrollSync.current._onScroll({ scrollLeft }) //BEWARE: utilizing private method from scrollSync that is not intended to be used
 
-    this.body.current.scrollToPosition({scrollLeft, scrollTop }) // waiting to let ScrollSync initialize
-
+    this.body.current.scrollToPosition({ scrollLeft, scrollTop }) // waiting to let ScrollSync initialize
   }
 
   recomputeColumnSizes() {
