@@ -59,7 +59,7 @@ class NotebookLauncherContent extends Component {
       this.setState({ url: `${clusterUrl}/notebooks/${workspaceName}/${notebookName}` })
     } catch (error) {
       if (this.mounted) {
-        reportError('Error launching notebook', error)
+        reportError('Notebook cannot be launched', error)
         this.setState({ failed: true })
       }
     }
@@ -98,7 +98,7 @@ class NotebookLauncherContent extends Component {
 
       const cluster = await this.getCluster()
       if (!cluster) {
-        throw new Error('No clusters available')
+        throw new Error('You do not have access to run analyses on this workspace.')
       }
 
       const { status, googleProject, clusterName } = cluster
