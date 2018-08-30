@@ -41,8 +41,10 @@ window.saturnMock = {
 
 const authOpts = (token = getAuthToken()) => ({ headers: { Authorization: `Bearer ${token}` } })
 const jsonBody = body => ({ body: JSON.stringify(body), headers: { 'Content-Type': 'application/json' } })
+const appIdentifier = { headers: { 'X-App-ID': 'Saturn' } }
+const addAppIdentifier = _.merge(appIdentifier)
 
-const instrumentedFetch = (...args) => {
+const instrumentedFetch = (url, options) => {
   if (noConnection) {
     console.info('%cSimulating no connection', consoleStyle)
     return Promise.reject(new TypeError('Simulating no connection'))
@@ -50,43 +52,42 @@ const instrumentedFetch = (...args) => {
     console.info('%cSimulating response:', consoleStyle, mockResponse())
     return Promise.resolve(mockResponse())
   }
-  return fetch(...args)
+  return fetch(url, options)
 }
 
-const fetchOk = async (...args) => {
-  const res = await instrumentedFetch(...args)
+const fetchOk = async (url, options) => {
+  const res = await instrumentedFetch(url, options)
   return res.ok ? res : Promise.reject(res)
 }
 
 
-const fetchSam = async (path, ...args) => {
-  return fetchOk(`${await Config.getSamUrlRoot()}/api/${path}`, ...args)
+const fetchSam = async (path, options) => {
+  return fetchOk(`${await Config.getSamUrlRoot()}/${path}`, addAppIdentifier(options))
 }
 
-const fetchBuckets = (path, ...args) => fetchOk(`https://www.googleapis.com/${path}`, ...args)
+const fetchBuckets = (path, options) => fetchOk(`https://www.googleapis.com/${path}`, options)
 const nbName = name => encodeURIComponent(`notebooks/${name}.ipynb`)
 
-const fetchRawls = async (path, ...args) => {
-  return fetchOk(`${await Config.getRawlsUrlRoot()}/api/${path}`, ...args)
+const fetchRawls = async (path, options) => {
+  return fetchOk(`${await Config.getRawlsUrlRoot()}/api/${path}`, addAppIdentifier(options))
 }
 
-const fetchLeo = async (path, ...args) => {
-  return fetchOk(`${await Config.getLeoUrlRoot()}/${path}`, ...args)
+const fetchLeo = async (path, options) => {
+  return fetchOk(`${await Config.getLeoUrlRoot()}/${path}`, options)
 }
 
-const fetchDockstore = async (path, ...args) => {
-  return fetchOk(`${await Config.getDockstoreUrlRoot()}/${path}`, ...args)
+const fetchDockstore = async (path, options) => {
+  return fetchOk(`${await Config.getDockstoreUrlRoot()}/${path}`, options)
 }
 // %23 = '#', %2F = '/'
 const dockstoreMethodPath = path => `api/ga4gh/v1/tools/%23workflow%2F${encodeURIComponent(path)}/versions`
 
-const fetchAgora = async (path, ...args) => {
-  return fetchOk(`${await Config.getAgoraUrlRoot()}/api/v1/${path}`, ...args)
+const fetchAgora = async (path, options) => {
+  return fetchOk(`${await Config.getAgoraUrlRoot()}/api/v1/${path}`, addAppIdentifier(options))
 }
 
-const fetchOrchestration = async (path, ...args) => {
-  const urlRoot = await Config.getOrchestrationUrlRoot()
-  return fetchOk(urlRoot + path, ...args)
+const fetchOrchestration = async (path, options) => {
+  return fetchOk(`${await Config.getOrchestrationUrlRoot()}/${path}`, addAppIdentifier(options))
 }
 
 
@@ -94,25 +95,24 @@ export const User = {
   token: Utils.memoizeWithTimeout(async namespace => {
     const scopes = ['https://www.googleapis.com/auth/devstorage.full_control']
     const res = await fetchSam(
-      `google/user/petServiceAccount/${namespace}/token`,
+      `api/google/user/petServiceAccount/${namespace}/token`,
       _.mergeAll([authOpts(), jsonBody(scopes), { method: 'POST' }])
     )
     return res.json()
   }, namespace => namespace, 1000 * 60 * 30),
 
   getStatus: async () => {
-    return instrumentedFetch(`${await Config.getSamUrlRoot()}/register/user`, authOpts())
+    return fetchSam('register/user', authOpts())
   },
 
   create: async () => {
-    const url = `${await Config.getSamUrlRoot()}/register/user`
-    const res = await fetchOk(url, _.merge(authOpts(), { method: 'POST' }))
+    const res = await fetchSam('register/user', _.merge(authOpts(), { method: 'POST' }))
     return res.json()
   },
 
   profile: {
     get: async () => {
-      const res = await fetchOrchestration('/register/profile', authOpts())
+      const res = await fetchOrchestration('register/profile', authOpts())
       return res.json()
     },
     set: keysAndValues => {
@@ -129,14 +129,14 @@ export const User = {
         nonProfitStatus: 'N/A'
       }
       return fetchOrchestration(
-        '/register/profile',
+        'register/profile',
         _.mergeAll([authOpts(), jsonBody(_.merge(blankProfile, keysAndValues)), { method: 'POST' }])
       )
     }
   },
 
   getProxyGroup: async email => {
-    const res = await fetchOrchestration(`/api/proxyGroup/${email}`, authOpts())
+    const res = await fetchOrchestration(`api/proxyGroup/${email}`, authOpts())
     return res.json()
   }
 }
@@ -144,12 +144,12 @@ export const User = {
 
 export const Groups = {
   list: async () => {
-    const res = await fetchSam('groups/v1', authOpts())
+    const res = await fetchSam('api/groups/v1', authOpts())
     return res.json()
   },
 
   group: groupName => {
-    const root = `groups/v1/${groupName}`
+    const root = `api/groups/v1/${groupName}`
 
     const addMember = async (role, email) => {
       return fetchSam(`${root}/${role}/${email}`, _.merge(authOpts(), { method: 'PUT' }))
@@ -221,7 +221,7 @@ export const Workspaces = {
   },
 
   getShareLog: async () => {
-    const res = await fetchOrchestration('/api/sharelog/sharees?shareType=workspace', authOpts())
+    const res = await fetchOrchestration('api/sharelog/sharees?shareType=workspace', authOpts())
     return res.json()
   },
 
@@ -334,7 +334,7 @@ export const Workspaces = {
 
       importBagit: bagitURL => {
         return fetchOrchestration(
-          `/api/workspaces/${namespace}/${name}/importBagit`,
+          `api/workspaces/${namespace}/${name}/importBagit`,
           _.mergeAll([authOpts(), jsonBody({ bagitURL, format: 'TSV' }), { method: 'POST' }])
         )
       },
@@ -349,7 +349,7 @@ export const Workspaces = {
       },
 
       storageCostEstimate: async () => {
-        const res = await fetchOrchestration(`/api/workspaces/${namespace}/${name}/storageCostEstimate`, authOpts())
+        const res = await fetchOrchestration(`api/workspaces/${namespace}/${name}/storageCostEstimate`, authOpts())
         return res.json()
       }
     }
@@ -440,7 +440,7 @@ export const Methods = {
 
 export const Jupyter = {
   clustersList: async () => {
-    const res = await fetchLeo('api/clusters?saturnAutoCreated=true', authOpts())
+    const res = await fetchLeo('api/clusters?saturnAutoCreated=true', addAppIdentifier(authOpts()))
     return res.json()
   },
 
@@ -452,19 +452,19 @@ export const Jupyter = {
         const body = _.merge(clusterOptions, {
           labels: { saturnAutoCreated: 'true', saturnVersion: version }
         })
-        return fetchLeo(root, _.mergeAll([authOpts(), jsonBody(body), { method: 'PUT' }]))
+        return fetchLeo(root, _.mergeAll([authOpts(), jsonBody(body), { method: 'PUT' }, appIdentifier]))
       },
 
       start: () => {
-        return fetchLeo(`${root}/start`, _.merge(authOpts(), { method: 'POST' }))
+        return fetchLeo(`${root}/start`, _.mergeAll([authOpts(), { method: 'POST' }, appIdentifier]))
       },
 
       stop: () => {
-        return fetchLeo(`${root}/stop`, _.merge(authOpts(), { method: 'POST' }))
+        return fetchLeo(`${root}/stop`, _.mergeAll([authOpts(), { method: 'POST' }, appIdentifier]))
       },
 
       delete: () => {
-        return fetchLeo(root, _.merge(authOpts(), { method: 'DELETE' }))
+        return fetchLeo(root, _.mergeAll([authOpts(), { method: 'DELETE' }, appIdentifier]))
       }
     }
   },
@@ -504,7 +504,7 @@ export const Dockstore = {
 export const Martha = {
   call: async uri => {
     return fetchOk(await Config.getMarthaUrlRoot(),
-      _.mergeAll([jsonBody({ uri }), authOpts(), { method: 'POST' }])
+      _.mergeAll([jsonBody({ uri }), authOpts(), appIdentifier, { method: 'POST' }])
     ).then(res => res.json())
   }
 }
