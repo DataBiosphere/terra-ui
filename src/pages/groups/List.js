@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { a, b, div, h } from 'react-hyperscript-helpers'
 import { pure } from 'recompose'
-import { buttonPrimary, Clickable, link, search, spinnerOverlay } from 'src/components/common'
+import { buttonPrimary, Clickable, linkButton, search, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { validatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
@@ -97,12 +97,11 @@ const DeleteGroupModal = pure(({ groupName, onDismiss, onSubmit }) => {
 const GroupCard = pure(({ group: { groupName, groupEmail, role }, onDelete }) => {
   const isAdmin = role === 'admin'
 
-  return a({
-    href: isAdmin ? Nav.getLink('group', { groupName }) : undefined,
-    style: styles.longCard
-  }, [
-    div({
+  return div({ style: styles.longCard }, [
+    a({
+      href: isAdmin ? Nav.getLink('group', { groupName }) : undefined,
       style: {
+        marginRight: '1rem',
         width: '30%', color: isAdmin ? colors.blue[0] : undefined,
         ...styles.longTitle
       }
@@ -110,7 +109,10 @@ const GroupCard = pure(({ group: { groupName, groupEmail, role }, onDelete }) =>
     div({ style: { flexGrow: 1 } }, [groupEmail]),
     div({ style: { width: 100, display: 'flex', alignItems: 'center' } }, [
       div({ style: { flexGrow: 1, textTransform: 'capitalize' } }, [role]),
-      isAdmin && link({ onClick: e => { e.preventDefault(); onDelete() }, as: 'div' }, [
+      isAdmin && linkButton({
+        onClick: onDelete,
+        style: { margin: '-1rem', padding: '1rem' }
+      }, [
         icon('trash', { className: 'is-solid', size: 17 })
       ])
     ])
