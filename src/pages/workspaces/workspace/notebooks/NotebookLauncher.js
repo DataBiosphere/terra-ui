@@ -52,7 +52,6 @@ class NotebookLauncherContent extends Component {
       const { clusterName, clusterUrl } = await this.startCluster()
       await Promise.all([
         this.localizeNotebook(clusterName),
-        this.refreshCookie(clusterName)
       ])
 
       const { name: workspaceName, notebookName } = this.props
@@ -63,14 +62,6 @@ class NotebookLauncherContent extends Component {
         this.setState({ failed: true })
       }
     }
-  }
-
-  async refreshCookie(clusterName) {
-    const { namespace } = this.props
-
-    this.scheduledRefresh = setTimeout(() => this.refreshCookie(clusterName), 1000 * 60 * 20)
-
-    return Jupyter.notebooks(namespace, clusterName).setCookie()
   }
 
   componentWillUnmount() {
