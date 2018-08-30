@@ -139,9 +139,9 @@ const DeleteUserModal = pure(({ onDismiss, onSubmit, userEmail }) => {
     title: 'Confirm',
     okButton: buttonPrimary({
       onClick: onSubmit
-    }, ['Delete User'])
+    }, ['Remove'])
   }, [
-    'Are you sure you want to delete the user ',
+    div(['Are you sure you want to remove']),
     b(`${userEmail}?`)
   ])
 })
@@ -159,14 +159,14 @@ const MemberCard = pure(({ member: { email, role }, adminCanEdit, onEdit, onDele
       h(TooltipTrigger, { content: tooltip }, [
         link({
           disabled: !canEdit,
-          onClick: canEdit && onEdit
+          onClick: canEdit ? onEdit : undefined
         }, ['Edit Role'])
       ]),
       ' | ',
       h(TooltipTrigger, { content: tooltip }, [
         link({
           disabled: !canEdit,
-          onClick: canEdit && onDelete
+          onClick: canEdit ? onDelete : undefined
         }, ['Remove'])
       ])
     ])
@@ -204,7 +204,7 @@ export class GroupDetails extends Component {
       this.setState({ loading: true, creatingNewUser: false, editingUser: false, deletingUser: false, updating: false })
       const [membersEmails, adminsEmails] = await Promise.all([Groups.group(groupName).listMembers(), Groups.group(groupName).listAdmins()])
       this.setState({
-        members: _.sortBy('email', _.concat(
+        members: _.sortBy(member => member.email.toUpperCase(), _.concat(
           _.map(adm => ({ email: adm, role: 'admin' }), adminsEmails),
           _.map(mem => ({ email: mem, role: 'member' }), membersEmails)
         )),
