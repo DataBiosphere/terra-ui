@@ -445,7 +445,7 @@ export const Jupyter = {
   },
 
   cluster: (project, name) => {
-    const root = `api/cluster/${project}/${name}`
+    const root = `api/cluster/v2/${project}/${name}`
 
     return {
       create: clusterOptions => {
