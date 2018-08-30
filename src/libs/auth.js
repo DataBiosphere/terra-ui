@@ -59,7 +59,7 @@ authStore.subscribe(async (state, oldState) => {
       } else if (!response.ok) {
         throw response
       } else {
-        return response.json().then(({ enabled: { ldap } }) => ldap ? 'registered' : 'disabled')
+        return response.json().then(({ enabled }) => enabled ? 'registered' : 'disabled')
       }
     }).then(registrationStatus => {
       authStore.update(state => ({ ...state, registrationStatus }))

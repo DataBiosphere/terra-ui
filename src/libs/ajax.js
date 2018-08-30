@@ -102,11 +102,11 @@ export const User = {
   }, namespace => namespace, 1000 * 60 * 30),
 
   getStatus: async () => {
-    return fetchSam('register/user', authOpts())
+    return fetchSam('register/user/v2/self/info', authOpts())
   },
 
   create: async () => {
-    const res = await fetchSam('register/user', _.merge(authOpts(), { method: 'POST' }))
+    const res = await fetchSam('register/user/v2/self', _.merge(authOpts(), { method: 'POST' }))
     return res.json()
   },
 
