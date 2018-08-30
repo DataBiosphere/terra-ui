@@ -51,7 +51,7 @@ class NotebookLauncherContent extends Component {
     try {
       const { clusterName, clusterUrl } = await this.startCluster()
       await Promise.all([
-        this.localizeNotebook(clusterName),
+        this.localizeNotebook(clusterName)
       ])
 
       const { name: workspaceName, notebookName } = this.props
