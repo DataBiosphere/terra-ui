@@ -19,13 +19,17 @@ import { styles } from 'src/pages/groups/common'
 import { validate } from 'validate.js'
 
 
-const groupNameValidator = {
+const groupNameValidator = existing => ({
   presence: { allowEmpty: false },
   format: {
     pattern: /[A-Za-z0-9_-]*$/,
     message: 'can only contain letters, numbers, underscores, and dashes'
+  },
+  exclusion: {
+    within: existing,
+    message: 'already exists'
   }
-}
+})
 
 class NewGroupModal extends Component {
   constructor(props) {
@@ -37,10 +41,10 @@ class NewGroupModal extends Component {
   }
 
   render() {
-    const { onDismiss } = this.props
+    const { onDismiss, existingGroups } = this.props
     const { groupName, groupNameTouched, submitting } = this.state
 
-    const errors = validate({ groupName }, { groupName: groupNameValidator })
+    const errors = validate({ groupName }, { groupName: groupNameValidator(existingGroups) })
 
     return h(Modal, {
       onDismiss,
@@ -162,7 +166,6 @@ export class GroupList extends Component {
 
   render() {
     const { groups, isDataLoaded, filter, creatingNewGroup, deletingGroup, updating } = this.state
-
     return h(Fragment, [
       h(TopBar, { title: 'Groups', href: Nav.getLink('groups') }, [
         search({
@@ -194,6 +197,7 @@ export class GroupList extends Component {
         !isDataLoaded && spinnerOverlay
       ]),
       creatingNewGroup && h(NewGroupModal, {
+        existingGroups: _.map('groupName', groups),
         onDismiss: () => this.setState({ creatingNewGroup: false }),
         onSuccess: () => this.refresh()
       }),
