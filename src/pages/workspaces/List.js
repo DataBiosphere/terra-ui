@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { a, div, h, span } from 'react-hyperscript-helpers'
 import { pure } from 'recompose'
-import { Clickable, search, spinnerOverlay } from 'src/components/common'
+import { Clickable, link, search, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
 import TooltipTrigger from 'src/components/TooltipTrigger'
@@ -111,8 +111,16 @@ const WorkspaceCard = pure(({ listView, workspace: { workspace: { namespace, nam
     div({ style: styles.shortTitle }, [name]),
     div({ style: styles.shortDescription }, [descText]),
     div({ style: { display: 'flex', alignItems: 'center' } }, [
-      div({ style: { flex: 1 } }, [lastChanged], [
-        h(TooltipTrigger, { content: lastChanged }, )]),
+/*        div({ style: { flex: "none" } }, [lastChanged]),*/
+        h(TooltipTrigger, { content: lastChanged }, [
+          link({
+            disabled: true,
+            onClick: undefined
+          }, ['Edit Role'])
+          ]),
+           ['Remove'],
+        )
+      ])
       div({ style: { flex: 'none' } }, [badge])
     ])
   ])
