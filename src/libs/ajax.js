@@ -54,7 +54,16 @@ const instrumentedFetch = (url, options) => {
     console.info('%cSimulating response:', consoleStyle, mockResponse())
     return Promise.resolve(mockResponse())
   }
-  return fetch(url, options)
+
+  return new Promise((resolve, reject) => {
+    fetch(url, options).then(resolve, error => {
+      if (error instanceof DOMException && error.name === 'AbortError') {
+        // no-op, this is from an aborted call
+      } else {
+        reject(error)
+      }
+    })
+  })
 }
 
 const fetchOk = async (url, options) => {
