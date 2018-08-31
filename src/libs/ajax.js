@@ -1,11 +1,11 @@
 import _ from 'lodash/fp'
+import { h } from 'react-hyperscript-helpers'
 import * as qs from 'qs'
 import { version } from 'src/data/clusters'
 import { getAuthToken } from 'src/libs/auth'
 import * as Config from 'src/libs/config'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
-import { h } from 'react-hyperscript-helpers'
 
 
 let mockResponse
