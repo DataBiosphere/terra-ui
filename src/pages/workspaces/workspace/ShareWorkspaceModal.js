@@ -6,7 +6,7 @@ import { centeredSpinner, icon } from 'src/components/icons'
 import { AutocompleteSearch } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import TooltipTrigger from 'src/components/TooltipTrigger'
-import { Groups, Workspaces } from 'src/libs/ajax'
+import { ajaxCaller } from 'src/libs/ajax'
 import { getBasicProfile } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
@@ -48,7 +48,7 @@ const styles = {
 }
 
 
-export default class ShareWorkspaceModal extends Component {
+export default ajaxCaller(class ShareWorkspaceModal extends Component {
   constructor(props) {
     super(props)
     this.state = {
@@ -169,7 +169,7 @@ export default class ShareWorkspaceModal extends Component {
   }
 
   async componentDidMount() {
-    const { namespace, name, onDismiss } = this.props
+    const { namespace, name, onDismiss, ajax: { Workspaces, Groups } } = this.props
 
     try {
       const [{ acl }, shareSuggestions, groups] = await Promise.all([
@@ -198,7 +198,7 @@ export default class ShareWorkspaceModal extends Component {
   }
 
   async save() {
-    const { namespace, name, onDismiss } = this.props
+    const { namespace, name, onDismiss, ajax: { Workspaces } } = this.props
     const { acl, originalAcl } = this.state
 
     const aclEmails = _.map('email', acl)
@@ -224,4 +224,4 @@ export default class ShareWorkspaceModal extends Component {
       this.setState({ updateError: await error.text(), working: false })
     }
   }
-}
+})

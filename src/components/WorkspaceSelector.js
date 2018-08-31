@@ -1,12 +1,12 @@
 import _ from 'lodash/fp'
 import { h } from 'react-hyperscript-helpers'
 import { Select } from 'src/components/common'
-import { Workspaces } from 'src/libs/ajax'
+import { ajaxCaller } from 'src/libs/ajax'
 import { reportError } from 'src/libs/error'
 import { Component } from 'src/libs/wrapped-components'
 
 
-export default class WorkspaceSelector extends Component {
+export default ajaxCaller(class WorkspaceSelector extends Component {
   render() {
     const { onWorkspaceSelected, selectedWorkspace } = this.props
     const { workspaces } = this.state
@@ -24,7 +24,7 @@ export default class WorkspaceSelector extends Component {
   }
 
   async componentDidMount() {
-    const { authorizationDomain: ad, filter } = this.props
+    const { authorizationDomain: ad, filter, ajax: { Workspaces } } = this.props
 
     try {
       const workspaces = _.flow(
@@ -37,4 +37,4 @@ export default class WorkspaceSelector extends Component {
       reportError('Error loading workspaces', error)
     }
   }
-}
+})

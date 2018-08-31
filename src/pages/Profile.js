@@ -6,7 +6,7 @@ import { centeredSpinner, profilePic } from 'src/components/icons'
 import { textInput, validatedInput } from 'src/components/input'
 import { InfoBox } from 'src/components/PopupTrigger'
 import { TopBar } from 'src/components/TopBar'
-import { User } from 'src/libs/ajax'
+import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import * as Nav from 'src/libs/nav'
 import * as Utils from 'src/libs/utils'
@@ -106,10 +106,11 @@ const profileKeys = [
 ]
 
 
-class Profile extends Component {
+const Profile = ajaxCaller(class Profile extends Component {
   async refresh() {
     this.setState({ profileInfo: undefined, displayName: undefined, fractionCompleted: undefined, saving: false })
 
+    const { ajax: { User } } = this.props
     const { keyValuePairs } = await User.profile.get()
     const profileInfo = _.reduce(
       (accum, { key, value }) => _.assign(accum, { [key]: value === 'N/A' ? '' : value }),
@@ -282,6 +283,7 @@ class Profile extends Component {
 
   async save() {
     const { profileInfo } = this.state
+    const { ajax: { User } } = this.props
 
     this.setState({ saving: true })
     await User.profile.set(_.pickBy(_.identity, profileInfo))
@@ -291,7 +293,7 @@ class Profile extends Component {
   componentDidMount() {
     this.refresh()
   }
-}
+})
 
 
 export const addNavPaths = () => {

@@ -8,7 +8,7 @@ import { icon } from 'src/components/icons'
 import { IntegerInput, textInput } from 'src/components/input'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { machineTypes, profiles, storagePrice } from 'src/data/clusters'
-import { Jupyter } from 'src/libs/ajax'
+import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
@@ -191,7 +191,7 @@ const getUpdateIntervalMs = status => {
   }
 }
 
-export default class ClusterManager extends PureComponent {
+export default ajaxCaller(class ClusterManager extends PureComponent {
   constructor(props) {
     super(props)
     this.state = {
@@ -260,7 +260,7 @@ export default class ClusterManager extends PureComponent {
   }
 
   createCluster() {
-    const { namespace } = this.props
+    const { ajax: { Jupyter }, namespace } = this.props
     const { jupyterUserScriptUri } = this.state
     this.executeAndRefresh(
       Jupyter.cluster(namespace, Utils.generateClusterName()).create({
@@ -273,6 +273,7 @@ export default class ClusterManager extends PureComponent {
   }
 
   destroyClusters(keepIndex) {
+    const { ajax: { Jupyter } } = this.props
     const activeClusters = this.getActiveClustersOldestFirst()
     this.executeAndRefresh(
       Promise.all(_.map(
@@ -283,6 +284,7 @@ export default class ClusterManager extends PureComponent {
   }
 
   startCluster() {
+    const { ajax: { Jupyter } } = this.props
     const { googleProject, clusterName } = this.getCurrentCluster()
     this.executeAndRefresh(
       Jupyter.cluster(googleProject, clusterName).start()
@@ -290,6 +292,7 @@ export default class ClusterManager extends PureComponent {
   }
 
   stopCluster() {
+    const { ajax: { Jupyter } } = this.props
     const { googleProject, clusterName } = this.getCurrentCluster()
     this.executeAndRefresh(
       Jupyter.cluster(googleProject, clusterName).stop()
@@ -541,4 +544,4 @@ export default class ClusterManager extends PureComponent {
       this.renderDropdown()
     ])
   }
-}
+})

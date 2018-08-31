@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import * as md5 from 'md5'
 import { version } from 'src/data/clusters'
 import ProdWhitelist from 'src/data/prod-whitelist'
-import { Billing, Jupyter, User } from 'src/libs/ajax'
+import { Ajax } from 'src/libs/ajax'
 import * as Config from 'src/libs/config'
 import { clearErrorCode, reportError } from 'src/libs/error'
 import * as Utils from 'src/libs/utils'
@@ -53,7 +53,7 @@ authStore.subscribe(async (state, oldState) => {
       return
     }
 
-    User.getStatus().then(response => {
+    Ajax().User.getStatus().then(response => {
       if (response.status === 404) {
         return 'unregistered'
       } else if (!response.ok) {
@@ -85,7 +85,7 @@ authStore.subscribe(async (state, oldState) => {
     try {
       const userProfile = getBasicProfile()
       const [billingProjects, clusters] = await Promise.all(
-        [Billing.listProjects(), Jupyter.clustersList()])
+        [Ajax().Billing.listProjects(), Ajax().Jupyter.clustersList()])
       const projectsWithoutClusters = _.difference(
         _.uniq(_.map('projectName', billingProjects)), // in case of being both a user and an admin of a project
         _.map(
@@ -96,7 +96,7 @@ authStore.subscribe(async (state, oldState) => {
       const needsUpgrade = _.remove(c => c.labels.saturnVersion === version, clusters)
       await Promise.all([
         ..._.map(project => {
-          return Jupyter.cluster(project, Utils.generateClusterName()).create({
+          return Ajax().Jupyter.cluster(project, Utils.generateClusterName()).create({
             'machineConfig': {
               'numberOfWorkers': 0, 'masterMachineType': 'n1-standard-4',
               'masterDiskSize': 500, 'workerMachineType': 'n1-standard-4',
@@ -108,8 +108,8 @@ authStore.subscribe(async (state, oldState) => {
         }, projectsWithoutClusters),
         ..._.flatMap(({ googleProject, clusterName, machineConfig, jupyterUserScriptUri }) => {
           return [
-            Jupyter.cluster(googleProject, clusterName).delete(),
-            Jupyter.cluster(googleProject, Utils.generateClusterName()).create({ machineConfig, jupyterUserScriptUri })
+            Ajax().Jupyter.cluster(googleProject, clusterName).delete(),
+            Ajax().Jupyter.cluster(googleProject, Utils.generateClusterName()).create({ machineConfig, jupyterUserScriptUri })
           ]
         }, needsUpgrade)
       ])

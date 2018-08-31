@@ -4,7 +4,7 @@ import { buttonPrimary, Select, spinnerOverlay } from 'src/components/common'
 import { centeredSpinner } from 'src/components/icons'
 import { validatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
-import { Buckets } from 'src/libs/ajax'
+import { ajaxCaller } from 'src/libs/ajax'
 import { reportError } from 'src/libs/error'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -63,7 +63,7 @@ const rNotebook = _.merge({
 }, baseNotebook)
 
 
-export class NotebookCreator extends Component {
+export const NotebookCreator = ajaxCaller(class NotebookCreator extends Component {
   constructor(props) {
     super(props)
     this.state = { notebookName: '' }
@@ -71,7 +71,7 @@ export class NotebookCreator extends Component {
 
   render() {
     const { notebookName, notebookKernel, creating, nameTouched } = this.state
-    const { reloadList, onDismiss, namespace, bucketName, existingNames } = this.props
+    const { reloadList, onDismiss, namespace, bucketName, existingNames, ajax: { Buckets } } = this.props
 
     const errors = validate(
       { notebookName, notebookKernel },
@@ -140,16 +140,16 @@ export class NotebookCreator extends Component {
       creating && spinnerOverlay
     ])
   }
-}
+})
 
-export class NotebookDuplicator extends Component {
+export const NotebookDuplicator = ajaxCaller(class NotebookDuplicator extends Component {
   constructor(props) {
     super(props)
     this.state = { newName: '' }
   }
 
   render() {
-    const { destroyOld, printName, namespace, bucketName, onDismiss, onSuccess, existingNames } = this.props
+    const { destroyOld, printName, namespace, bucketName, onDismiss, onSuccess, existingNames, ajax: { Buckets } } = this.props
     const { newName, processing, nameTouched } = this.state
 
     const errors = validate(
@@ -187,11 +187,11 @@ export class NotebookDuplicator extends Component {
       ]
     ))
   }
-}
+})
 
-export class NotebookDeleter extends Component {
+export const NotebookDeleter = ajaxCaller(class NotebookDeleter extends Component {
   render() {
-    const { printName, namespace, bucketName, onDismiss, onSuccess } = this.props
+    const { printName, namespace, bucketName, onDismiss, onSuccess, ajax: { Buckets } } = this.props
     const { processing } = this.state
 
     return h(Modal, {
@@ -220,4 +220,4 @@ export class NotebookDeleter extends Component {
       ]
     ))
   }
-}
+})
