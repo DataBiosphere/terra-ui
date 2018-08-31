@@ -50,10 +50,7 @@ class NotebookLauncherContent extends Component {
 
     try {
       const { clusterName, clusterUrl } = await this.startCluster()
-      await Promise.all([
-        this.localizeNotebook(clusterName),
-        this.refreshCookie(clusterName)
-      ])
+      await this.localizeNotebook(clusterName)
 
       const { name: workspaceName, notebookName } = this.props
       this.setState({ url: `${clusterUrl}/notebooks/${workspaceName}/${notebookName}` })
@@ -63,14 +60,6 @@ class NotebookLauncherContent extends Component {
         this.setState({ failed: true })
       }
     }
-  }
-
-  async refreshCookie(clusterName) {
-    const { namespace } = this.props
-
-    this.scheduledRefresh = setTimeout(() => this.refreshCookie(clusterName), 1000 * 60 * 20)
-
-    return Jupyter.notebooks(namespace, clusterName).setCookie()
   }
 
   componentWillUnmount() {

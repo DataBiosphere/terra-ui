@@ -448,9 +448,10 @@ export const Jupyter = {
     const root = `api/cluster/v2/${project}/${name}`
 
     return {
-      create: clusterOptions => {
+      create: async clusterOptions => {
         const body = _.merge(clusterOptions, {
-          labels: { saturnAutoCreated: 'true', saturnVersion: version }
+          labels: { saturnAutoCreated: 'true', saturnVersion: version },
+          defaultClientId: await Config.getGoogleClientId()
         })
         return fetchLeo(root, _.mergeAll([authOpts(), jsonBody(body), { method: 'PUT' }, appIdentifier]))
       },
