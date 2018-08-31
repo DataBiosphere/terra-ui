@@ -3,7 +3,7 @@ import { a, div, h } from 'react-hyperscript-helpers'
 import { pure } from 'recompose'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { spinnerOverlay } from 'src/components/common'
-import { Workspaces } from 'src/libs/ajax'
+import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
@@ -42,7 +42,7 @@ const ToolCard = pure(({ name, namespace, config }) => {
   ])
 })
 
-const WorkspaceTools = wrapWorkspace({
+const WorkspaceTools = ajaxCaller(wrapWorkspace({
   breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
   title: 'Tools', activeTab: 'tools'
 },
@@ -53,7 +53,7 @@ class ToolsContent extends Component {
   }
 
   async refresh() {
-    const { namespace, name } = this.props
+    const { namespace, name, ajax: { Workspaces } } = this.props
 
     try {
       this.setState({ loading: true })
@@ -85,7 +85,7 @@ class ToolsContent extends Component {
   componentDidUpdate() {
     StateHistory.update(_.pick(['configs'], this.state))
   }
-})
+}))
 
 export const addNavPaths = () => {
   Nav.defPath('workspace-tools', {

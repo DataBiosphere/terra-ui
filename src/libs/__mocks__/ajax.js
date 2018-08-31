@@ -1,4 +1,6 @@
 import _ from 'lodash/fp'
+import { h } from 'react-hyperscript-helpers'
+import { Component } from 'src/libs/wrapped-components'
 
 
 export const createWorkspace = overrides => {
@@ -36,7 +38,7 @@ export const createWorkspace = overrides => {
   }, overrides)
 }
 
-export const Workspaces = {
+const Workspaces = {
   list() {
     return Promise.resolve([createWorkspace(), createWorkspace()])
   },
@@ -50,8 +52,29 @@ export const Workspaces = {
   }
 }
 
-export const Jupyter = {
+const Jupyter = {
   clustersList() {
     return Promise.resolve([])
+  }
+}
+
+export const Ajax = () => ({
+  Workspaces, Jupyter
+})
+
+export const ajaxCaller = WrappedComponent => {
+  return class AjaxWrapper extends Component {
+    constructor(props) {
+      super(props)
+      this.ajax = Ajax()
+    }
+
+    render() {
+      return h(WrappedComponent, {
+        ref: component => this.child = component,
+        ajax: this.ajax,
+        ...this.props
+      })
+    }
   }
 }
