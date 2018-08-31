@@ -7,7 +7,7 @@ import * as breadcrumbs from 'src/components/breadcrumbs'
 import { buttonPrimary, Clickable, linkButton, spinnerOverlay } from 'src/components/common'
 import { icon, spinner } from 'src/components/icons'
 import { ColumnSelector, FlexTable, GridTable, HeaderCell, paginator, Resizable, Sortable } from 'src/components/table'
-import { Workspaces } from 'src/libs/ajax'
+import { ajaxCaller } from 'src/libs/ajax'
 import * as auth from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import * as Config from 'src/libs/config'
@@ -79,7 +79,7 @@ const saveScroll = _.throttle(100, (initialX, initialY) => {
   StateHistory.update({ initialX, initialY })
 })
 
-const WorkspaceData = wrapWorkspace({
+const WorkspaceData = ajaxCaller(wrapWorkspace({
   breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
   title: 'Data', activeTab: 'data'
 },
@@ -102,7 +102,7 @@ class WorkspaceDataContent extends Component {
   }
 
   async loadMetadata() {
-    const { namespace, name } = this.props
+    const { namespace, name, ajax: { Workspaces } } = this.props
     try {
       const entityMetadata = await Workspaces.workspace(namespace, name).entityMetadata()
       this.setState({ entityMetadata })
@@ -112,7 +112,7 @@ class WorkspaceDataContent extends Component {
   }
 
   async loadData() {
-    const { namespace, name } = this.props
+    const { namespace, name, ajax: { Workspaces } } = this.props
     const { itemsPerPage, pageNumber, sort, selectedDataType, isDataModel } = this.state
 
     const getWorkspaceAttributes = async () => (await Workspaces.workspace(namespace, name).details()).workspace.attributes
@@ -497,7 +497,7 @@ class WorkspaceDataContent extends Component {
       this.loadData()
     }
   }
-})
+}))
 
 export const addNavPaths = () => {
   Nav.defPath('workspace-data', {

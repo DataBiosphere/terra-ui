@@ -17,15 +17,16 @@ describe('WorkspaceList', () => {
   it('should switch between Grid and List view', () => {
     const wrapper = mount(h(WorkspaceList))
     return waitOneTickAndUpdate(wrapper).then(() => {
-      const currentCardsPerRow = () => wrapper.state().listView
+      const actual = wrapper.instance().child
+      const isListView = () => actual.state.listView
 
-      expect(currentCardsPerRow()).not.toEqual(true)
+      expect(isListView()).toEqual(false)
 
       wrapper.findIcon('view-list').click()
-      expect(currentCardsPerRow()).toEqual(true)
+      expect(isListView()).toEqual(true)
 
       wrapper.findIcon('view-cards').click()
-      expect(currentCardsPerRow()).not.toEqual(true)
+      expect(isListView()).toEqual(false)
     })
   })
 })

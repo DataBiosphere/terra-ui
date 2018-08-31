@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { Component, createRef, Fragment } from 'react'
+import { createRef, Fragment } from 'react'
 import Dropzone from 'react-dropzone'
 import { a, div, h } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
@@ -8,12 +8,13 @@ import { icon } from 'src/components/icons'
 import { NotebookCreator, NotebookDeleter, NotebookDuplicator } from 'src/components/notebook-utils'
 import PopupTrigger from 'src/components/PopupTrigger'
 import TooltipTrigger from 'src/components/TooltipTrigger'
-import { Buckets } from 'src/libs/ajax'
+import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
+import { Component } from 'src/libs/wrapped-components'
 import * as Utils from 'src/libs/utils'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
@@ -110,7 +111,7 @@ class NotebookCard extends Component {
   }
 }
 
-const WorkspaceNotebooks = wrapWorkspace({
+const WorkspaceNotebooks = ajaxCaller(wrapWorkspace({
   breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
   title: 'Notebooks', activeTab: 'notebooks'
 },
@@ -132,7 +133,7 @@ class NotebooksContent extends Component {
   }
 
   async refresh() {
-    const { namespace, workspace: { workspace: { bucketName } } } = this.props
+    const { namespace, workspace: { workspace: { bucketName } }, ajax: { Buckets } } = this.props
 
     try {
       this.setState({ launching: false, loading: true })
@@ -146,7 +147,7 @@ class NotebooksContent extends Component {
   }
 
   async uploadFiles(files) {
-    const { namespace, workspace: { workspace: { bucketName } } } = this.props
+    const { namespace, workspace: { workspace: { bucketName } }, ajax: { Buckets } } = this.props
     const existingNames = this.getExistingNames()
     try {
       this.setState({ saving: true })
@@ -322,7 +323,7 @@ class NotebooksContent extends Component {
       this.state)
     )
   }
-})
+}))
 
 export const addNavPaths = () => {
   Nav.defPath('workspace-notebooks', {

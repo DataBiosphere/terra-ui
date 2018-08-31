@@ -3,14 +3,14 @@ import { findDOMNode } from 'react-dom'
 import { iframe } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { centeredSpinner } from 'src/components/icons'
-import { Jupyter } from 'src/libs/ajax'
+import { ajaxCaller } from 'src/libs/ajax'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import { Component } from 'src/libs/wrapped-components'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
 
-const TerminalLauncher = wrapWorkspace({
+const TerminalLauncher = ajaxCaller(wrapWorkspace({
   breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
   title: () => `Terminal`,
   activeTab: 'notebooks'
@@ -37,7 +37,7 @@ class TerminalLauncherContent extends Component {
   }
 
   async refreshCookie(clusterName) {
-    const { namespace } = this.props
+    const { namespace, ajax: { Jupyter } } = this.props
 
     this.scheduledRefresh = setTimeout(() => this.refreshCookie(clusterName), 1000 * 60 * 20)
 
@@ -72,7 +72,7 @@ class TerminalLauncherContent extends Component {
       }) :
       centeredSpinner()
   }
-})
+}))
 
 
 export const addNavPaths = () => {
