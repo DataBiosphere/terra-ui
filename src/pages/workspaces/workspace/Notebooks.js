@@ -92,6 +92,7 @@ class NotebookCard extends Component {
           title,
           div({ style: { flexGrow: 1 } }),
           div({ style: { fontSize: '0.8rem', marginRight: '0.5rem' } },
+            /*add hover with updated*/
             `Last edited: ${Utils.makePrettyDate(updated)}`),
           notebookMenu
         ] : [
@@ -101,6 +102,7 @@ class NotebookCard extends Component {
           div({ style: { display: 'flex', alignItems: 'flex-end' } }, [
             div({ style: { fontSize: '0.8rem', flexGrow: 1, marginRight: '0.5rem' } }, [
               'Last edited:',
+              /*add hover with updated*/
               div({}, Utils.makePrettyDate(updated))
             ])
           ])

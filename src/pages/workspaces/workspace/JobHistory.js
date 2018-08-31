@@ -222,6 +222,7 @@ class JobHistoryContent extends Component {
               headerRenderer: () => h(HeaderCell, ['Submitted']),
               cellRenderer: ({ rowIndex }) => {
                 const { submissionDate } = submissions[rowIndex]
+                /*add hover with submissionDate*/
                 return h(TextCell, Utils.makePrettyDate(submissionDate))
               }
             }

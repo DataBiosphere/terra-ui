@@ -87,6 +87,8 @@ const styles = {
 }
 
 const WorkspaceCard = pure(({ listView, workspace: { workspace: { namespace, name, createdBy, lastModified, attributes: { description } } } }) => {
+  /*add hover with lastModified*/
+  console.log(lastModified)
   const lastChanged = `Last changed: ${Utils.makePrettyDate(lastModified)}`
   const badge = div({ title: createdBy, style: styles.badge }, [createdBy[0].toUpperCase()])
   const descText = description || span({ style: { color: colors.gray[2] } }, [
