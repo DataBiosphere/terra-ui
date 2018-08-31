@@ -314,7 +314,7 @@ export default class ClusterManager extends PureComponent {
   renderCreateForm() {
     const { busy, profile, masterMachineType, masterDiskSize, workerMachineType, numberOfWorkers, numberOfPreemptibleWorkers, workerDiskSize, jupyterUserScriptUri } = this.state
     const currentCluster = this.getCurrentCluster()
-    const changed = !currentCluster || !machineConfigsEqual(this.getMachineConfig(), currentCluster.machineConfig)
+    const changed = !currentCluster || !machineConfigsEqual(this.getMachineConfig(), currentCluster.machineConfig) || jupyterUserScriptUri
     return div({ style: { padding: '1rem' } }, [
       div({ style: { fontSize: 16, fontWeight: 500 } }, 'Runtime environment'),
       div({ style: styles.row }, [
