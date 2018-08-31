@@ -5,6 +5,7 @@ import { pure } from 'recompose'
 import { Clickable, search, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
+import TooltipTrigger from 'src/components/TooltipTrigger'
 import { TopBar } from 'src/components/TopBar'
 import { Workspaces } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
@@ -88,7 +89,6 @@ const styles = {
 
 const WorkspaceCard = pure(({ listView, workspace: { workspace: { namespace, name, createdBy, lastModified, attributes: { description } } } }) => {
   /*add hover with lastModified*/
-  console.log(lastModified)
   const lastChanged = `Last changed: ${Utils.makePrettyDate(lastModified)}`
   const badge = div({ title: createdBy, style: styles.badge }, [createdBy[0].toUpperCase()])
   const descText = description || span({ style: { color: colors.gray[2] } }, [
@@ -111,7 +111,8 @@ const WorkspaceCard = pure(({ listView, workspace: { workspace: { namespace, nam
     div({ style: styles.shortTitle }, [name]),
     div({ style: styles.shortDescription }, [descText]),
     div({ style: { display: 'flex', alignItems: 'center' } }, [
-      div({ style: { flex: 1 } }, [lastChanged]),
+      div({ style: { flex: 1 } }, [lastChanged], [
+        h(TooltipTrigger, { content: lastChanged }, )]),
       div({ style: { flex: 'none' } }, [badge])
     ])
   ])
