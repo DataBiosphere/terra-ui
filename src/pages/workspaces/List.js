@@ -2,12 +2,12 @@ import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { a, div, h, span } from 'react-hyperscript-helpers'
 import { pure } from 'recompose'
-import { Clickable, link, search, spinnerOverlay } from 'src/components/common'
+import { Clickable, search, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { TopBar } from 'src/components/TopBar'
-import { Workspaces } from 'src/libs/ajax'
+import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
@@ -88,7 +88,6 @@ const styles = {
 }
 
 const WorkspaceCard = pure(({ listView, workspace: { workspace: { namespace, name, createdBy, lastModified, attributes: { description } } } }) => {
-  /*add hover with lastModified*/
   const lastChanged = `Last changed: ${Utils.makePrettyDate(lastModified)}`
   const badge = div({ title: createdBy, style: styles.badge }, [createdBy[0].toUpperCase()])
   const descText = description || span({ style: { color: colors.gray[2] } }, [
@@ -111,16 +110,11 @@ const WorkspaceCard = pure(({ listView, workspace: { workspace: { namespace, nam
     div({ style: styles.shortTitle }, [name]),
     div({ style: styles.shortDescription }, [descText]),
     div({ style: { display: 'flex', alignItems: 'center' } }, [
-      /*div({ style: { flex: "none" } }, [lastChanged]),*/
-      h(TooltipTrigger, { content: lastChanged }, [
-        link({
-          disabled: true,
-          onClick: undefined
-        }, ['Edit Role'])
+      h(TooltipTrigger, { content: Utils.makeCompleteDate(lastModified) }, [
+        div({ style: { flex: 1 } }, [lastChanged])
       ]),
-      ['Remove']
-    ]),
-    div({ style: { flex: 'none' } }, [badge])
+      div({ style: { flex: 'none' } }, [badge])
+    ])
   ])
 })
 
@@ -143,7 +137,7 @@ const NewWorkspaceCard = pure(({ listView, onClick }) => {
   ])
 })
 
-export class WorkspaceList extends Component {
+export const WorkspaceList = ajaxCaller(class WorkspaceList extends Component {
   constructor(props) {
     super(props)
     this.state = {
@@ -156,6 +150,7 @@ export class WorkspaceList extends Component {
   }
 
   async refresh() {
+    const { ajax: { Workspaces } } = this.props
     try {
       this.setState({ isDataLoaded: false })
       const workspaces = await Workspaces.list()
@@ -230,7 +225,7 @@ export class WorkspaceList extends Component {
       this.state)
     )
   }
-}
+})
 
 export const addNavPaths = () => {
   Nav.defPath('root', {

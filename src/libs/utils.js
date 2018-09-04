@@ -76,6 +76,11 @@ export const makePrettyDate = function(dateString) {
   )
 }
 
+export const makeCompleteDate = dateString => new Date(dateString)
+  .toLocaleString(navigator.language,
+    { day: 'numeric', month: 'numeric', year: 'numeric', hour: 'numeric', minute: 'numeric' }
+  )
+
 export const formatUSD = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format
 
 export const formatNumber = new Intl.NumberFormat('en-US').format
