@@ -50,7 +50,7 @@ class NotebookLauncherContent extends Component {
 
     try {
       const { clusterName, clusterUrl } = await this.startCluster()
-      const { namespace, ajax: {Jupyter} } = this.props
+      const { namespace, ajax: { Jupyter } } = this.props
       await Promise.all([
         this.localizeNotebook(clusterName),
         Jupyter.notebooks(namespace, clusterName).setCookie()
