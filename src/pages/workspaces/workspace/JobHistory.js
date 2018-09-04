@@ -8,6 +8,7 @@ import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import PopupTrigger from 'src/components/PopupTrigger'
 import { FlexTable, HeaderCell, TextCell } from 'src/components/table'
+import TooltipTrigger from 'src/components/TooltipTrigger'
 import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import * as Config from 'src/libs/config'
@@ -222,8 +223,9 @@ class JobHistoryContent extends Component {
               headerRenderer: () => h(HeaderCell, ['Submitted']),
               cellRenderer: ({ rowIndex }) => {
                 const { submissionDate } = submissions[rowIndex]
-                /*add hover with submissionDate*/
-                return h(TextCell, Utils.makePrettyDate(submissionDate))
+                return h(TooltipTrigger, { content: Utils.makeCompleteDate(submissionDate) }, [
+                  h(TextCell, Utils.makePrettyDate(submissionDate))
+                ])
               }
             }
           ]
