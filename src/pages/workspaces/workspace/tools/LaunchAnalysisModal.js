@@ -23,7 +23,7 @@ export default ajaxCaller(class LaunchAnalysisModal extends Component {
 
   render() {
     const { onDismiss } = this.props
-    const { entityType, entityMetadata, entities, attributeFailure, entityFailure, filterText, launching } = this.state
+    const { entityType, entityMetadata, entities, attributeFailure, entityFailure, filterText, launching, selectedEntity } = this.state
     const { attributeNames } = entityMetadata ? entityMetadata[entityType] : {}
 
     return h(Modal, _.isUndefined(entityType) ? {
@@ -49,7 +49,8 @@ export default ajaxCaller(class LaunchAnalysisModal extends Component {
       width: 'calc(100% - 2rem)',
       okButton: buttonPrimary({
         onClick: () => this.launch(),
-        disabled: launching
+        disabled: launching || !selectedEntity,
+        tooltip: !selectedEntity && 'Please select an entity'
       }, [launching ? 'Launching...' : 'Launch'])
     }, [
       Utils.cond(
