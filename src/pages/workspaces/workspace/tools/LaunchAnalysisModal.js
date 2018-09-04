@@ -7,14 +7,14 @@ import { centeredSpinner } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import TabBar from 'src/components/TabBar'
 import { GridTable, HeaderCell, TextCell } from 'src/components/table'
-import { Workspaces } from 'src/libs/ajax'
+import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { renderDataCell } from 'src/libs/data-utils'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 
 
-export default class LaunchAnalysisModal extends Component {
+export default ajaxCaller(class LaunchAnalysisModal extends Component {
   constructor(props) {
     super(props)
 
@@ -61,7 +61,7 @@ export default class LaunchAnalysisModal extends Component {
   }
 
   componentDidMount() {
-    const { workspaceId: { namespace, name } } = this.props
+    const { workspaceId: { namespace, name }, ajax: { Workspaces } } = this.props
     const { entityType } = this.state
 
     if (_.isUndefined(entityType)) {
@@ -76,7 +76,7 @@ export default class LaunchAnalysisModal extends Component {
   }
 
   loadEntitiesOfType(type) {
-    const { workspaceId: { namespace, name } } = this.props
+    const { workspaceId: { namespace, name }, ajax: { Workspaces } } = this.props
 
     Workspaces.workspace(namespace, name).entitiesOfType(type).then(
       entities => this.setState({ entities, loadingNew: false }),
@@ -154,7 +154,8 @@ export default class LaunchAnalysisModal extends Component {
     const {
       workspaceId: { namespace, name },
       config: { namespace: configNamespace, name: configName, rootEntityType },
-      onSuccess
+      onSuccess,
+      ajax: { Workspaces }
     } = this.props
 
     const { selectedEntity, entityType } = this.state
@@ -173,4 +174,4 @@ export default class LaunchAnalysisModal extends Component {
       this.setState({ launchError: JSON.parse(error).message, launching: false })
     }
   }
-}
+})

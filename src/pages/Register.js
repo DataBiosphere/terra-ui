@@ -4,7 +4,7 @@ import { buttonPrimary, buttonSecondary } from 'src/components/common'
 import { centeredSpinner, logo } from 'src/components/icons'
 import { textInput } from 'src/components/input'
 import planet from 'src/images/register-planet.svg'
-import { User } from 'src/libs/ajax'
+import { ajaxCaller } from 'src/libs/ajax'
 import { authStore, getBasicProfile, signOut } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
@@ -17,7 +17,7 @@ const constraints = {
   email: { presence: { allowEmpty: false } }
 }
 
-export default class Register extends Component {
+export default ajaxCaller(class Register extends Component {
   constructor(props) {
     super(props)
     const profile = getBasicProfile()
@@ -30,6 +30,7 @@ export default class Register extends Component {
   }
 
   async register() {
+    const { ajax: { User } } = this.props
     const { givenName, familyName, email } = this.state
     try {
       this.setState({ busy: true })
@@ -108,4 +109,4 @@ export default class Register extends Component {
       ])
     ])
   }
-}
+})

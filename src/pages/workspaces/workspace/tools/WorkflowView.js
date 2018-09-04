@@ -12,7 +12,7 @@ import TabBar from 'src/components/TabBar'
 import { FlexTable, HeaderCell, TextCell } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import WDLViewer from 'src/components/WDLViewer'
-import { Dockstore, Methods, Workspaces } from 'src/libs/ajax'
+import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
@@ -130,7 +130,7 @@ const WorkflowIOTable = ({ which, inputsOutputs, config, errors, onChange, sugge
   ])
 }
 
-const WorkflowView = wrapWorkspace({
+const WorkflowView = ajaxCaller(wrapWorkspace({
   breadcrumbs: props => breadcrumbs.commonPaths.workspaceTab(props, 'tools'),
   title: ({ workflowName }) => workflowName, activeTab: 'tools'
 },
@@ -178,7 +178,12 @@ class WorkflowViewContent extends Component {
   }
 
   async componentDidMount() {
-    const { namespace, name, workspace: { workspace: { attributes } }, workflowNamespace, workflowName } = this.props
+    const {
+      namespace, name, workflowNamespace, workflowName,
+      workspace: { workspace: { attributes } },
+      ajax: { Workspaces, Methods }
+    } = this.props
+
     try {
       const ws = Workspaces.workspace(namespace, name)
 
@@ -291,8 +296,8 @@ class WorkflowViewContent extends Component {
     try {
       const text = await Utils.readFileAsText(file)
       const updates = JSON.parse(text)
-      this.setState(({ modifiedConfig }) => {
-        const existing = _.keys(modifiedConfig[key])
+      this.setState(({ modifiedConfig, inputsOutputs }) => {
+        const existing = _.map('name', inputsOutputs[key])
         return {
           modifiedConfig: _.update(key, _.assign(_, _.pick(existing, updates)), modifiedConfig)
         }
@@ -354,6 +359,7 @@ class WorkflowViewContent extends Component {
 
   async fetchWDL() {
     const { methodRepoMethod: { sourceRepo, methodNamespace, methodName, methodVersion, methodPath } } = this.state.savedConfig
+    const { ajax: { Dockstore, Methods } } = this.props
 
     this.setState({ loadedWdl: true })
     try {
@@ -374,7 +380,7 @@ class WorkflowViewContent extends Component {
   }
 
   async save() {
-    const { namespace, name, workflowNamespace, workflowName } = this.props
+    const { namespace, name, workflowNamespace, workflowName, ajax: { Workspaces } } = this.props
     const { modifiedConfig, inputsOutputs } = this.state
 
     this.setState({ saving: true })
@@ -402,7 +408,7 @@ class WorkflowViewContent extends Component {
 
     this.setState({ saved: false, modifiedConfig: savedConfig })
   }
-})
+}))
 
 
 export const addNavPaths = () => {

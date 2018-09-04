@@ -3,7 +3,7 @@ import { Fragment } from 'react'
 import { div, h, iframe } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { icon, spinner } from 'src/components/icons'
-import { Jupyter } from 'src/libs/ajax'
+import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
@@ -34,7 +34,7 @@ const styles = {
 }
 
 
-const NotebookLauncher = wrapWorkspace({
+const NotebookLauncher = ajaxCaller(wrapWorkspace({
   breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
   title: ({ notebookName }) => `Notebooks - ${notebookName}`,
   activeTab: 'notebooks'
@@ -50,9 +50,10 @@ class NotebookLauncherContent extends Component {
 
     try {
       const { clusterName, clusterUrl } = await this.startCluster()
+      const { namespace, ajax: { Jupyter } } = this.props
       await Promise.all([
         this.localizeNotebook(clusterName),
-        this.refreshCookie(clusterName)
+        Jupyter.notebooks(namespace, clusterName).setCookie()
       ])
 
       const { name: workspaceName, notebookName } = this.props
@@ -63,14 +64,6 @@ class NotebookLauncherContent extends Component {
         this.setState({ failed: true })
       }
     }
-  }
-
-  async refreshCookie(clusterName) {
-    const { namespace } = this.props
-
-    this.scheduledRefresh = setTimeout(() => this.refreshCookie(clusterName), 1000 * 60 * 20)
-
-    return Jupyter.notebooks(namespace, clusterName).setCookie()
   }
 
   componentWillUnmount() {
@@ -91,7 +84,7 @@ class NotebookLauncherContent extends Component {
   }
 
   async startCluster() {
-    const { refreshClusters } = this.props
+    const { refreshClusters, ajax: { Jupyter } } = this.props
 
     while (this.mounted) {
       await refreshClusters()
@@ -117,7 +110,7 @@ class NotebookLauncherContent extends Component {
   }
 
   async localizeNotebook(clusterName) {
-    const { namespace, name: workspaceName, notebookName, workspace: { workspace: { bucketName } } } = this.props
+    const { namespace, name: workspaceName, notebookName, workspace: { workspace: { bucketName } }, ajax: { Jupyter } } = this.props
 
     while (this.mounted) {
       try {
@@ -173,7 +166,7 @@ class NotebookLauncherContent extends Component {
       ])
     ])
   }
-})
+}))
 
 
 export const addNavPaths = () => {

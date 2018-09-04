@@ -7,7 +7,7 @@ import { icon } from 'src/components/icons'
 import { validatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { TopBar } from 'src/components/TopBar'
-import { Groups } from 'src/libs/ajax'
+import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
@@ -19,15 +19,19 @@ import { styles } from 'src/pages/groups/common'
 import { validate } from 'validate.js'
 
 
-const groupNameValidator = {
+const groupNameValidator = existing => ({
   presence: { allowEmpty: false },
   format: {
     pattern: /[A-Za-z0-9_-]*$/,
     message: 'can only contain letters, numbers, underscores, and dashes'
+  },
+  exclusion: {
+    within: existing,
+    message: 'already exists'
   }
-}
+})
 
-class NewGroupModal extends Component {
+const NewGroupModal = ajaxCaller(class NewGroupModal extends Component {
   constructor(props) {
     super(props)
     this.state = {
@@ -37,10 +41,10 @@ class NewGroupModal extends Component {
   }
 
   render() {
-    const { onDismiss } = this.props
+    const { onDismiss, existingGroups } = this.props
     const { groupName, groupNameTouched, submitting } = this.state
 
-    const errors = validate({ groupName }, { groupName: groupNameValidator })
+    const errors = validate({ groupName }, { groupName: groupNameValidator(existingGroups) })
 
     return h(Modal, {
       onDismiss,
@@ -67,7 +71,7 @@ class NewGroupModal extends Component {
   }
 
   async submit() {
-    const { onSuccess } = this.props
+    const { onSuccess, ajax: { Groups } } = this.props
     const { groupName } = this.state
 
     try {
@@ -79,7 +83,7 @@ class NewGroupModal extends Component {
       reportError('Error creating group', error)
     }
   }
-}
+})
 
 const DeleteGroupModal = pure(({ groupName, onDismiss, onSubmit }) => {
   return h(Modal, {
@@ -130,7 +134,7 @@ const NewGroupCard = pure(({ onClick }) => {
   ])
 })
 
-export class GroupList extends Component {
+export const GroupList = ajaxCaller(class GroupList extends Component {
   constructor(props) {
     super(props)
     this.state = {
@@ -144,6 +148,8 @@ export class GroupList extends Component {
   }
 
   async refresh() {
+    const { ajax: { Groups } } = this.props
+
     try {
       this.setState({ isDataLoaded: false, creatingNewGroup: false, deletingGroup: false, updating: false })
       const groups = await Groups.list()
@@ -162,7 +168,7 @@ export class GroupList extends Component {
 
   render() {
     const { groups, isDataLoaded, filter, creatingNewGroup, deletingGroup, updating } = this.state
-
+    const { ajax: { Groups } } = this.props
     return h(Fragment, [
       h(TopBar, { title: 'Groups', href: Nav.getLink('groups') }, [
         search({
@@ -194,6 +200,7 @@ export class GroupList extends Component {
         !isDataLoaded && spinnerOverlay
       ]),
       creatingNewGroup && h(NewGroupModal, {
+        existingGroups: _.map('groupName', groups),
         onDismiss: () => this.setState({ creatingNewGroup: false }),
         onSuccess: () => this.refresh()
       }),
@@ -221,7 +228,7 @@ export class GroupList extends Component {
       this.state)
     )
   }
-}
+})
 
 
 export const addNavPaths = () => {

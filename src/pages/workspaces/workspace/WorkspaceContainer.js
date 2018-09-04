@@ -9,7 +9,7 @@ import Modal from 'src/components/Modal'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
 import PopupTrigger from 'src/components/PopupTrigger'
 import { TopBar } from 'src/components/TopBar'
-import { Jupyter, Workspaces } from 'src/libs/ajax'
+import { ajaxCaller } from 'src/libs/ajax'
 import { getBasicProfile } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
@@ -112,7 +112,7 @@ class WorkspaceTabs extends PureComponent {
 }
 
 
-class DeleteWorkspaceModal extends Component {
+const DeleteWorkspaceModal = ajaxCaller(class DeleteWorkspaceModal extends Component {
   constructor(props) {
     super(props)
     this.state = {
@@ -121,7 +121,7 @@ class DeleteWorkspaceModal extends Component {
   }
 
   async deleteWorkspace() {
-    const { workspace: { workspace: { namespace, name } } } = this.props
+    const { workspace: { workspace: { namespace, name } }, ajax: { Workspaces } } = this.props
     try {
       this.setState({ deleting: true })
       await Workspaces.workspace(namespace, name).delete()
@@ -154,7 +154,7 @@ class DeleteWorkspaceModal extends Component {
       deleting && spinnerOverlay
     ])
   }
-}
+})
 
 
 class WorkspaceContainer extends Component {
@@ -220,7 +220,7 @@ class WorkspaceContainer extends Component {
 
 
 export const wrapWorkspace = ({ breadcrumbs, activeTab, title }, content) => {
-  return class WorkspaceContainerWrapper extends Component {
+  return ajaxCaller(class WorkspaceContainerWrapper extends Component {
     constructor(props) {
       super(props)
       this.child = createRef()
@@ -282,7 +282,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title }, content) => {
     }
 
     async refreshClusters() {
-      const { namespace } = this.props
+      const { namespace, ajax: { Jupyter } } = this.props
       try {
         const clusters = _.filter({ googleProject: namespace, creator: getBasicProfile().getEmail() }, await Jupyter.clustersList())
         this.setState({ clusters })
@@ -292,13 +292,13 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title }, content) => {
     }
 
     async refresh() {
-      const { namespace, name } = this.props
+      const { namespace, name, ajax: { Workspaces } } = this.props
       try {
         const workspace = await Workspaces.workspace(namespace, name).details()
         this.setState({ workspace })
       } catch (error) {
-        this.setState({ workspaceError: error, errorText: await error.text() })
+        this.setState({ workspaceError: error, errorText: await error.text().catch(() => 'Unknown') })
       }
     }
-  }
+  })
 }
