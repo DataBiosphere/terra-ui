@@ -111,18 +111,16 @@ const WorkspaceCard = pure(({ listView, workspace: { workspace: { namespace, nam
     div({ style: styles.shortTitle }, [name]),
     div({ style: styles.shortDescription }, [descText]),
     div({ style: { display: 'flex', alignItems: 'center' } }, [
-/*        div({ style: { flex: "none" } }, [lastChanged]),*/
-        h(TooltipTrigger, { content: lastChanged }, [
-          link({
-            disabled: true,
-            onClick: undefined
-          }, ['Edit Role'])
-          ]),
-           ['Remove'],
-        )
-      ])
-      div({ style: { flex: 'none' } }, [badge])
-    ])
+      /*div({ style: { flex: "none" } }, [lastChanged]),*/
+      h(TooltipTrigger, { content: lastChanged }, [
+        link({
+          disabled: true,
+          onClick: undefined
+        }, ['Edit Role'])
+      ]),
+      ['Remove']
+    ]),
+    div({ style: { flex: 'none' } }, [badge])
   ])
 })
 
