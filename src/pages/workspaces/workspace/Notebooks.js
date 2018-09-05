@@ -92,17 +92,21 @@ class NotebookCard extends Component {
           jupyterIcon,
           title,
           div({ style: { flexGrow: 1 } }),
-          div({ style: { fontSize: '0.8rem', marginRight: '0.5rem' } },
-            `Last edited: ${Utils.makePrettyDate(updated)}`),
-          notebookMenu
+          h(TooltipTrigger, { content: Utils.makeCompleteDate(updated) }, [
+            div({ style: { fontSize: '0.8rem', marginRight: '0.5rem' } },
+              `Last edited: ${Utils.makePrettyDate(updated)}`),
+            notebookMenu
+          ])
         ] : [
           div({ style: { display: 'flex', justifyContent: 'space-between' } },
             [title, notebookMenu]),
           jupyterIcon,
           div({ style: { display: 'flex', alignItems: 'flex-end' } }, [
-            div({ style: { fontSize: '0.8rem', flexGrow: 1, marginRight: '0.5rem' } }, [
-              'Last edited:',
-              div({}, Utils.makePrettyDate(updated))
+            h(TooltipTrigger, { content: Utils.makeCompleteDate(updated) }, [
+              div({ style: { fontSize: '0.8rem', flexGrow: 1, marginRight: '0.5rem' } }, [
+                'Last edited:',
+                div({}, Utils.makePrettyDate(updated))
+              ])
             ])
           ])
         ])

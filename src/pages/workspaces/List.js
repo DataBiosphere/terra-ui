@@ -5,6 +5,7 @@ import { pure } from 'recompose'
 import { Clickable, search, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
+import TooltipTrigger from 'src/components/TooltipTrigger'
 import { TopBar } from 'src/components/TopBar'
 import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
@@ -109,7 +110,9 @@ const WorkspaceCard = pure(({ listView, workspace: { workspace: { namespace, nam
     div({ style: styles.shortTitle }, [name]),
     div({ style: styles.shortDescription }, [descText]),
     div({ style: { display: 'flex', alignItems: 'center' } }, [
-      div({ style: { flex: 1 } }, [lastChanged]),
+      h(TooltipTrigger, { content: Utils.makeCompleteDate(lastModified) }, [
+        div({ style: { flex: 1 } }, [lastChanged])
+      ]),
       div({ style: { flex: 'none' } }, [badge])
     ])
   ])
