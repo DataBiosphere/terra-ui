@@ -225,7 +225,7 @@ class WorkflowViewContent extends Component {
 
     const noLaunchReason = Utils.cond(
       [saving || modified, () => 'Save or cancel to Launch Analysis'],
-      [!_.isEmpty(errors.inputs) || !_.isEmpty(errors.outputs), () => 'Add your inputs and outputs to Launch Analysis']
+      [!_.isEmpty(errors.inputs) || !_.isEmpty(errors.outputs), () => 'At least one required attribute is missing or invalid']
     )
     return div({ style: { backgroundColor: colors.blue[5], position: 'relative' } }, [
       div({ style: { display: 'flex', padding: `1.5rem ${sideMargin} 0`, minHeight: 120 } }, [
