@@ -137,7 +137,7 @@ class WorkspaceDashboardContent extends Component {
   }
 
   render() {
-    const { workspace, refreshWorkspace, workspace: { accessLevel, workspace: { createdDate, bucketName, attributes: { description } } } } = this.props
+    const { workspace, refreshWorkspace, workspace: { accessLevel, workspace: { createdDate, lastModified, bucketName, attributes: { description } } } } = this.props
     const { submissionsCount, storageCostEstimate, editingWorkspace } = this.state
     const canWrite = Utils.canWrite(accessLevel)
     return div({ style: { flex: 1, display: 'flex', marginBottom: '-2rem' } }, [
@@ -159,6 +159,7 @@ class WorkspaceDashboardContent extends Component {
         div({ style: styles.header }, ['Workspace information']),
         div({ style: { display: 'flex', flexWrap: 'wrap', margin: -4 } }, [
           h(InfoTile, { title: 'Creation date' }, [new Date(createdDate).toLocaleDateString()]),
+          h(InfoTile, { title: 'Last updated' }, [new Date(lastModified).toLocaleDateString()]),
           h(InfoTile, { title: 'Submissions' }, [submissionsCount]),
           h(InfoTile, { title: 'Access level' }, [roleString[accessLevel]]),
           Utils.canWrite(accessLevel) && h(InfoTile, { title: 'Est. $/month' }, [

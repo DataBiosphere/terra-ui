@@ -333,6 +333,9 @@ Array [
             }
         >
             <div
+                id="tooltip-trigger-3"
+                onMouseEnter={[Function]}
+                onMouseLeave={[Function]}
                 style={
                     Object {
                         "flex": 1,
@@ -429,6 +432,9 @@ Array [
             }
         >
             <div
+                id="tooltip-trigger-4"
+                onMouseEnter={[Function]}
+                onMouseLeave={[Function]}
                 style={
                     Object {
                         "flex": 1,
