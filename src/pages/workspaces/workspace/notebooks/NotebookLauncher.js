@@ -50,14 +50,21 @@ class NotebookLauncherContent extends Component {
 
     try {
       const { clusterName, clusterUrl } = await this.startCluster()
-      const { namespace, ajax: { Jupyter } } = this.props
+      const { namespace, name, ajax: { Jupyter } } = this.props
       await Promise.all([
         this.localizeNotebook(clusterName),
         Jupyter.notebooks(namespace, clusterName).setCookie()
       ])
 
       const { name: workspaceName, notebookName } = this.props
-      this.setState({ url: `${clusterUrl}/notebooks/${workspaceName}/${notebookName}` })
+      this.setState({ url: `${clusterUrl}/notebooks/${workspaceName}/${notebookName}` },
+        () => {
+          window.frames[0].addEventListener('message', e => {
+            if (e.data === 'close') {
+              Nav.goToPath('workspace-notebooks', { namespace, name })
+            }
+          })
+        })
     } catch (error) {
       if (this.mounted) {
         reportError('Notebook cannot be launched', error)

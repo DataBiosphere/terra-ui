@@ -468,7 +468,8 @@ const Jupyter = signal => ({
       create: async clusterOptions => {
         const body = _.merge(clusterOptions, {
           labels: { saturnAutoCreated: 'true', saturnVersion: version },
-          defaultClientId: await Config.getGoogleClientId()
+          defaultClientId: await Config.getGoogleClientId(),
+          jupyterExtensionUri: `${window.location.origin}/jupyter-iframe-extension.js`
         })
         return fetchLeo(root, _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'PUT' }, appIdentifier]))
       },
