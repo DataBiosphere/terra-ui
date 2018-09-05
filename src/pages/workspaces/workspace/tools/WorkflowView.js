@@ -223,7 +223,7 @@ class WorkflowViewContent extends Component {
 
   renderSummary(invalidIO) {
     const { workspace: { canCompute } } = this.props
-    const { modifiedConfig, savedConfig, entityMetadata, saving, saved, activeTab } = this.state
+    const { modifiedConfig, savedConfig, entityMetadata, saving, saved, activeTab, errors } = this.state
     const { name, methodRepoMethod: { methodPath, methodVersion }, rootEntityType } = modifiedConfig
     const modified = !_.isEqual(modifiedConfig, savedConfig)
 
@@ -231,6 +231,10 @@ class WorkflowViewContent extends Component {
       [invalidIO.inputs || invalidIO.outputs, () => 'Add your inputs and outputs to Launch Analysis'],
       [saving || modified, () => 'Save or cancel to Launch Analysis']
     )
+
+    const inputErrors = Object.keys(errors.inputs).length !== 0
+    const outputErrors = Object.keys(errors.outputs).length !== 0
+
     return div({ style: { backgroundColor: colors.blue[5], position: 'relative' } }, [
       div({ style: { display: 'flex', padding: `1.5rem ${sideMargin} 0`, minHeight: 120 } }, [
         div({ style: { flex: '1', lineHeight: '1.5rem' } }, [
@@ -254,8 +258,9 @@ class WorkflowViewContent extends Component {
         ]),
         div({ style: { flex: 'none', display: 'flex', flexDirection: 'column', alignItems: 'flex-end' } }, [
           buttonPrimary({
-            disabled: !canCompute || !!noLaunchReason,
-            tooltip: !canCompute ? 'You do not have access to run analyses on this workspace.' : undefined,
+            disabled: !canCompute || !!noLaunchReason || inputErrors || outputErrors,
+            tooltip: !canCompute ? 'You do not have access to run analyses on this workspace.' : undefined ||
+            inputErrors || outputErrors ? 'One or more of your inputs/outputs are invalid' : undefined,
             onClick: () => this.setState({ launching: true })
           }, ['Launch analysis']),
           canCompute && noLaunchReason && div({
