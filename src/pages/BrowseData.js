@@ -2,7 +2,6 @@ import { Fragment } from 'react'
 import { div, h, img, p, span } from 'react-hyperscript-helpers'
 import { pure } from 'recompose'
 import { buttonPrimary, Clickable, link } from 'src/components/common'
-import { InfoBox } from 'src/components/PopupTrigger'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { TopBar } from 'src/components/TopBar'
 import amppdLogo from 'src/images/browse-data/Amp@2x.png'
@@ -135,14 +134,11 @@ const ParticipantControls = ({ size, helpLink, children }) => {
   return div({ style: { display: 'flex', alignItems: 'center' } }, [
     div({ style: { width: 200, flex: 'none' } }, [size || '']),
     children,
-    h(InfoBox, { style: { marginLeft: '1rem' }, position: 'bottom', size: 20 }, [
-      div(['Look for the Export to Saturn icon to export data from this provider. ']),
-      // not used yet:
-      helpLink && link({
-        href: helpLink,
-        target: '_blank'
-      }, ['Learn more.'])
-    ])
+    // not used yet:
+    helpLink && link({
+      href: helpLink,
+      target: '_blank'
+    }, ['Learn more.'])
   ])
 }
 
@@ -152,13 +148,15 @@ const NIHCommonsButtons = div({ style: { display: 'flex', flexDirection: 'column
     style: { margin: '0.25rem 0' },
     as: 'a',
     href: 'https://dcp.bionimbus.org/',
-    target: '_blank'
+    target: '_blank',
+    tooltip: 'Look for the Export to Saturn icon to export data from this provider.'
   }, ['Browse Data via Windmill']),
   buttonPrimary({
     style: { margin: '0.25rem 0' },
     as: 'a',
     href: 'https://commons.ucsc-cgp.org/boardwalk',
-    target: '_blank'
+    target: '_blank',
+    tooltip: 'Look for the Export to Saturn icon to export data from this provider.'
   }, ['Browse Data via Boardwalk'])
 ])
 
@@ -205,7 +203,8 @@ const BrowseData = pure(() => {
           buttonPrimary({
             as: 'a',
             href: 'http://nhs-explorer.appspot.com/',
-            target: '_blank'
+            target: '_blank',
+            tooltip: 'Look for the Export to Saturn icon to export data from this provider.'
           }, ['Browse Data'])
         ])
       ]),
@@ -218,6 +217,7 @@ const BrowseData = pure(() => {
           buttonPrimary({
             disabled: true,
             tooltip: 'HCA not yet in production'
+            //when in production, add this tooltip: 'Look for the Export to Saturn icon to export data from this provider.'
           }, ['Browse Data'])
         ])
       ]),
@@ -243,7 +243,8 @@ const BrowseData = pure(() => {
           buttonPrimary({
             as: 'a',
             href: 'http://amp-pd-data-explorer.appspot.com/',
-            target: '_blank'
+            target: '_blank',
+            tooltip: 'Look for the Export to Saturn icon to export data from this provider.'
           }, ['Browse Data'])
         ])
       ]),
