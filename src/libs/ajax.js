@@ -462,7 +462,7 @@ const Jupyter = signal => ({
   },
 
   cluster: (project, name) => {
-    const root = `api/cluster/v2/${project}/${name}`
+    const root = `api/cluster/${project}/${name}`
 
     return {
       create: async clusterOptions => {
@@ -470,7 +470,7 @@ const Jupyter = signal => ({
           labels: { saturnAutoCreated: 'true', saturnVersion: version },
           defaultClientId: await Config.getGoogleClientId()
         })
-        return fetchLeo(root, _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'PUT' }, appIdentifier]))
+        return fetchLeo(`api/cluster/v2/${project}/${name}`, _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'PUT' }, appIdentifier]))
       },
 
       start: () => {
