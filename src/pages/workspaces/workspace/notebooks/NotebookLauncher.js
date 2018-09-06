@@ -37,7 +37,7 @@ const styles = {
 const NotebookLauncher = ajaxCaller(wrapWorkspace({
   breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
   title: ({ notebookName }) => `Notebooks - ${notebookName}`,
-  activeTab: 'notebooks'
+  showTabBar: false
 },
 class NotebookLauncherContent extends Component {
   constructor(props) {
