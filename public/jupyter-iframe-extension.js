@@ -5,7 +5,7 @@ define([
 ) {
   function close_notebook() {
     Jupyter.notebook.shutdown_kernel({ confirm: false })
-      .then(Window.parent.postMessage('close'), Window.parent.postMessage('close')) // whether it succeeds or not; this mirrors Jupyter's behavior
+    window.parent.postMessage('close', '*')
   }
 
   function load_ipython_extension() {

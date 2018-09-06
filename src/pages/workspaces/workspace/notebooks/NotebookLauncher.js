@@ -59,7 +59,7 @@ class NotebookLauncherContent extends Component {
       const { name: workspaceName, notebookName } = this.props
       this.setState({ url: `${clusterUrl}/notebooks/${workspaceName}/${notebookName}` },
         () => {
-          window.frames[0].addEventListener('message', e => {
+          window.addEventListener('message', e => {
             if (e.data === 'close') {
               Nav.goToPath('workspace-notebooks', { namespace, name })
             }
