@@ -73,6 +73,26 @@ class NotebookLauncherContent extends Component {
     }
   }
 
+  async componentDidUpdate(prevProps, prevState) {
+    const oldClusters = prevProps.clusters
+    const { clusters } = this.props
+    const prevCluster = _.flow(
+      _.sortBy('createdDate'),
+      _.first
+    )(oldClusters)
+
+    const currCluster = await this.getCluster()
+
+    console.log(clusters.length)
+
+    if (prevCluster && prevCluster.status === 'Deleting') {
+      console.log({ prevCluster, currCluster })
+      console.log(prevCluster.id)
+      console.log(currCluster.id)
+      document.location.reload()
+    }
+  }
+
   async getCluster() {
     const { clusters } = this.props
 
@@ -103,9 +123,6 @@ class NotebookLauncherContent extends Component {
         await Jupyter.cluster(googleProject, clusterName).start()
         refreshClusters()
         await Utils.delay(10000)
-      } else if (status === 'Deleting'){
-        console.log('am i in the right spot?')
-        //document.location.reload()
       } else {
         await Utils.delay(3000)
       }
