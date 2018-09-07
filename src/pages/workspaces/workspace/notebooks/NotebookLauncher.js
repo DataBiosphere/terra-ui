@@ -75,20 +75,22 @@ class NotebookLauncherContent extends Component {
 
   async componentDidUpdate(prevProps, prevState) {
     const oldClusters = prevProps.clusters
-    const { clusters } = this.props
     const prevCluster = _.flow(
       _.sortBy('createdDate'),
       _.first
     )(oldClusters)
 
     const currCluster = await this.getCluster()
-
-    console.log(clusters.length)
-
-    if (prevCluster && prevCluster.status === 'Deleting') {
+    //console.log(document.location + '#loaded')
+    console.log('componentDidUpdate')
+    if (prevCluster && prevCluster.status === 'Deleting' && !document.URL.includes('#loaded')) {
+      console.log('inside if statemen')
       console.log({ prevCluster, currCluster })
       console.log(prevCluster.id)
       console.log(currCluster.id)
+      //console.log(document.location)
+      document.location = document.location + '#loaded'
+      //console.log(document.location)
       document.location.reload()
     }
   }
