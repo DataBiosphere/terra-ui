@@ -79,7 +79,7 @@ class NotebookLauncherContent extends Component {
     return _.flow(
       _.remove({ status: 'Deleting' }),
       _.sortBy('createdDate'),
-      _.last
+      _.first
     )(clusters)
   }
 
@@ -103,6 +103,9 @@ class NotebookLauncherContent extends Component {
         await Jupyter.cluster(googleProject, clusterName).start()
         refreshClusters()
         await Utils.delay(10000)
+      } else if (status === 'Deleting'){
+        console.log('am i in the right spot?')
+        //document.location.reload()
       } else {
         await Utils.delay(3000)
       }
