@@ -30,7 +30,7 @@ const miniMessage = text =>
   span({ style: { fontWeight: 500, fontSize: '75%', marginRight: '1rem', textTransform: 'uppercase' } }, [text])
 
 const errorIcon = b => {
-  return b && icon('error', {
+  return !_.isEmpty(b) && icon('error', {
     size: 28, style: { marginLeft: '0.5rem', color: colors.red[0] }
   })
 }
@@ -147,18 +147,14 @@ class WorkflowViewContent extends Component {
   }
 
   render() {
-    const { isFreshData, savedConfig, launching, inputsOutputs, activeTab } = this.state
+    const { isFreshData, savedConfig, launching, activeTab } = this.state
     const { namespace, name } = this.props
 
     const workspaceId = { namespace, name }
-    const invalidIO = savedConfig && {
-      inputs: _.some('error', inputsOutputs.inputs),
-      outputs: _.some('error', inputsOutputs.outputs)
-    }
 
     return h(Fragment, [
       savedConfig && h(Fragment, [
-        this.renderSummary(invalidIO),
+        this.renderSummary(),
         Utils.cond(
           [activeTab === 'inputs', () => this.renderIOTable('inputs')],
           [activeTab === 'outputs', () => this.renderIOTable('outputs')],
@@ -221,15 +217,15 @@ class WorkflowViewContent extends Component {
     )
   }
 
-  renderSummary(invalidIO) {
+  renderSummary() {
     const { workspace: { canCompute } } = this.props
-    const { modifiedConfig, savedConfig, entityMetadata, saving, saved, activeTab } = this.state
+    const { modifiedConfig, savedConfig, entityMetadata, saving, saved, activeTab, errors } = this.state
     const { name, methodRepoMethod: { methodPath, methodVersion }, rootEntityType } = modifiedConfig
     const modified = !_.isEqual(modifiedConfig, savedConfig)
 
     const noLaunchReason = Utils.cond(
-      [invalidIO.inputs || invalidIO.outputs, () => 'Add your inputs and outputs to Launch Analysis'],
-      [saving || modified, () => 'Save or cancel to Launch Analysis']
+      [saving || modified, () => 'Save or cancel to Launch Analysis'],
+      [!_.isEmpty(errors.inputs) || !_.isEmpty(errors.outputs), () => 'At least one required attribute is missing or invalid']
     )
     return div({ style: { backgroundColor: colors.blue[5], position: 'relative' } }, [
       div({ style: { display: 'flex', padding: `1.5rem ${sideMargin} 0`, minHeight: 120 } }, [
@@ -270,8 +266,8 @@ class WorkflowViewContent extends Component {
       h(TabBar, {
         style: { paddingLeft: sideMargin, marginTop: '1rem' },
         tabs: [
-          { key: 'inputs', title: h(Fragment, ['Inputs', errorIcon(invalidIO.inputs)]) },
-          { key: 'outputs', title: h(Fragment, ['Outputs', errorIcon(invalidIO.outputs)]) },
+          { key: 'inputs', title: h(Fragment, ['Inputs', errorIcon(errors.inputs)]) },
+          { key: 'outputs', title: h(Fragment, ['Outputs', errorIcon(errors.outputs)]) },
           { key: 'wdl', title: 'WDL' }
         ],
         activeTab,
