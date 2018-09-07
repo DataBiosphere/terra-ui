@@ -188,6 +188,7 @@ const UriViewer = ajaxCaller(class UriViewer extends Component {
 
     return h(Fragment, [
       link({
+        href: uri,
         onClick: () => {
           this.getMetadata()
           this.setState({ modalOpen: true })
