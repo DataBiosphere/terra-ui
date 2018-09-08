@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
-import { h } from 'react-hyperscript-helpers'
 import * as qs from 'qs'
+import { h } from 'react-hyperscript-helpers'
 import { version } from 'src/data/clusters'
 import { getAuthToken } from 'src/libs/auth'
 import * as Config from 'src/libs/config'
@@ -251,7 +251,7 @@ const Workspaces = signal => ({
         return res.json()
       },
 
-      updateAcl: async (aclUpdates, inviteNew=true) => {
+      updateAcl: async (aclUpdates, inviteNew = true) => {
         const res = await fetchRawls(`${root}/acl?inviteUsersNotFound=${inviteNew}`,
           _.mergeAll([authOpts(), jsonBody(aclUpdates), { signal, method: 'PATCH' }]))
         return res.json()
@@ -468,7 +468,15 @@ const Jupyter = signal => ({
       create: async clusterOptions => {
         const body = _.merge(clusterOptions, {
           labels: { saturnAutoCreated: 'true', saturnVersion: version },
-          defaultClientId: await Config.getGoogleClientId()
+          defaultClientId: await Config.getGoogleClientId(),
+          userJupyterExtensionConfig: {
+            nbExtensions: {
+              'saturn-iframe-extension':
+                `${window.location.hostname === 'localhost' ? await Config.getDevUrlRoot() : window.location.origin}/jupyter-iframe-extension.js`
+            },
+            serverExtensions: {},
+            combinedExtensions: {}
+          }
         })
         return fetchLeo(`api/cluster/v2/${project}/${name}`, _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'PUT' }, appIdentifier]))
       },

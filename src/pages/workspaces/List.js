@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { a, div, h, span } from 'react-hyperscript-helpers'
 import { pure } from 'recompose'
-import { Clickable, search, spinnerOverlay } from 'src/components/common'
+import { Clickable, search, spinnerOverlay, LargeFadeBox } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
 import TooltipTrigger from 'src/components/TooltipTrigger'
@@ -56,7 +56,7 @@ const styles = {
   },
   longTitle: {
     color: colors.blue[0], fontSize: 16,
-    whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'
+    whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', flex: 1
   },
   longDescription: {
     flex: 1,
@@ -76,14 +76,13 @@ const styles = {
     flex: 'none', display: 'flex', alignItems: 'flex-end',
     margin: '1rem 4.5rem'
   },
-  toolbarButtons: {
-    marginLeft: 'auto', display: 'flex',
-    backgroundColor: 'white', borderRadius: 3
-  },
   toolbarButton: active => ({
     display: 'flex', justifyContent: 'center', alignItems: 'center',
-    height: '2.25rem', width: '3rem',
-    color: active ? colors.blue[1] : colors.blue[0]
+    borderRadius: 3, border: `1px solid ${colors.blue[0]}`,
+    height: '2.25rem', padding: '0 .75rem',
+    color: colors.blue[0],
+    backgroundColor: active ? colors.blue[4] : 'white',
+    fontWeight: active? 'bold' : 'normal'
   })
 }
 
@@ -97,10 +96,14 @@ const WorkspaceCard = pure(({ listView, workspace: { workspace: { namespace, nam
     href: Nav.getLink('workspace', { namespace, name }),
     style: { ...styles.longCard, ...styles.longWorkspaceCard }
   }, [
-    div({ style: styles.longTitle }, [name]),
+    div({ style: { display: 'flex', alignItems: 'center' } }, [
+      div({ style: styles.longTitle }, [name]),
+      h(TooltipTrigger, { content: Utils.makeCompleteDate(lastModified) }, [
+        div({ style: { flex: 'none' } }, [lastChanged])
+      ])
+    ]),
     div({ style: { display: 'flex', alignItems: 'center' } }, [
       div({ style: styles.longDescription }, [descText]),
-      div({ style: { flex: 'none', width: 400 } }, [lastChanged]),
       div({ style: { flex: 'none' } }, [badge])
     ])
   ]) : a({
@@ -136,6 +139,7 @@ const NewWorkspaceCard = pure(({ listView, onClick }) => {
     icon('plus-circle', { style: { marginTop: '0.5rem' }, size: 32 })
   ])
 })
+
 
 export const WorkspaceList = ajaxCaller(class WorkspaceList extends Component {
   constructor(props) {
@@ -188,34 +192,35 @@ export const WorkspaceList = ajaxCaller(class WorkspaceList extends Component {
           })
         ]
       ),
-      div({ style: styles.toolbarContainer }, [
-        div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, [
-          'Workspaces'
-        ]),
-        div({ style: styles.toolbarButtons }, [
-          h(Clickable, {
-            style: styles.toolbarButton(!listView),
-            onClick: () => this.setState({ listView: false })
-          }, [icon('view-cards', { size: 24 })]),
-          h(Clickable, {
-            style: styles.toolbarButton(listView),
-            onClick: () => this.setState({ listView: true })
-          }, [icon('view-list', { size: 24 })])
+      h(LargeFadeBox,
+        [
+          div({ style: { ...styles.toolbarContainer } }, [
+            div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, [
+              'Workspaces'
+            ]),
+            h(Clickable, {
+              style: { ...styles.toolbarButton(!listView), marginLeft: 'auto' },
+              onClick: () => this.setState({ listView: false })
+            }, [icon('view-cards', { size: 24, style: { margin: '.3rem' } }), 'Cards']),
+            h(Clickable, {
+              style: { ...styles.toolbarButton(listView), marginLeft: '1rem' },
+              onClick: () => this.setState({ listView: true })
+            }, [icon('view-list', { size: 24, style: { margin: '.3rem' } }), 'List'])
+          ]),
+          div({ style: styles.cardContainer }, [
+            h(NewWorkspaceCard, {
+              listView,
+              onClick: () => this.setState({ creatingNewWorkspace: true })
+            }),
+            _.map(workspace => {
+              return h(WorkspaceCard, { listView, workspace, key: workspace.workspace.workspaceId })
+            }, data),
+            !isDataLoaded && spinnerOverlay
+          ]),
+          creatingNewWorkspace && h(NewWorkspaceModal, {
+            onDismiss: () => this.setState({ creatingNewWorkspace: false })
+          })
         ])
-      ]),
-      div({ style: styles.cardContainer }, [
-        h(NewWorkspaceCard, {
-          listView,
-          onClick: () => this.setState({ creatingNewWorkspace: true })
-        }),
-        _.map(workspace => {
-          return h(WorkspaceCard, { listView, workspace, key: workspace.workspace.workspaceId })
-        }, data),
-        !isDataLoaded && spinnerOverlay
-      ]),
-      creatingNewWorkspace && h(NewWorkspaceModal, {
-        onDismiss: () => this.setState({ creatingNewWorkspace: false })
-      })
     ])
   }
 
@@ -235,6 +240,6 @@ export const addNavPaths = () => {
   Nav.defPath('workspaces', {
     path: '/workspaces',
     component: WorkspaceList,
-    title: 'Projects'
+    title: 'Workspaces'
   })
 }

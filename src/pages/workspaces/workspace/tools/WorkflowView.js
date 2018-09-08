@@ -291,7 +291,7 @@ class WorkflowViewContent extends Component {
   async uploadJson(key, file) {
     try {
       const text = await Utils.readFileAsText(file)
-      const updates = JSON.parse(text)
+      const updates = _.mapValues(_.toString, JSON.parse(text))
       this.setState(({ modifiedConfig, inputsOutputs }) => {
         const existing = _.map('name', inputsOutputs[key])
         return {

@@ -33,20 +33,36 @@ const styles = {
   }
 }
 
+const getCluster = clusters => {
+  return _.flow(
+    _.remove({ status: 'Deleting' }),
+    _.sortBy('createdDate'),
+    _.first
+  )(clusters)
+}
 
 const NotebookLauncher = ajaxCaller(wrapWorkspace({
   breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
   title: ({ notebookName }) => `Notebooks - ${notebookName}`,
-  activeTab: 'notebooks'
+  showTabBar: false
 },
 class NotebookLauncherContent extends Component {
   constructor(props) {
     super(props)
     this.state = { localizeFailures: 0 }
+    this.handleCloseMessage = e => {
+      const { namespace, name } = this.props
+
+      if (e.data === 'close') {
+        Nav.goToPath('workspace-notebooks', { namespace, name })
+      }
+    }
   }
 
   async componentDidMount() {
     this.mounted = true
+
+    window.addEventListener('message', this.handleCloseMessage)
 
     try {
       const { clusterName, clusterUrl } = await this.startCluster()
@@ -71,25 +87,28 @@ class NotebookLauncherContent extends Component {
     if (this.scheduledRefresh) {
       clearTimeout(this.scheduledRefresh)
     }
+
+    window.removeEventListener('message', this.handleCloseMessage)
   }
 
-  async getCluster() {
+  componentDidUpdate(prevProps, prevState) {
+    const oldClusters = prevProps.clusters
     const { clusters } = this.props
-
-    return _.flow(
-      _.remove({ status: 'Deleting' }),
-      _.sortBy('createdDate'),
-      _.last
-    )(clusters)
+    const prevCluster = getCluster(oldClusters)
+    const currCluster = getCluster(clusters)
+    if (prevCluster && prevCluster.id !== currCluster.id) {
+      document.location.reload()
+    }
   }
+
 
   async startCluster() {
     const { refreshClusters, ajax: { Jupyter } } = this.props
 
     while (this.mounted) {
       await refreshClusters()
-
-      const cluster = await this.getCluster()
+      const { clusters } = this.props //Note: placed here to read updated value after refresh
+      const cluster = getCluster(clusters)
       if (!cluster) {
         throw new Error('You do not have access to run analyses on this workspace.')
       }

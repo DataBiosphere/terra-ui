@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { a, b, div, h } from 'react-hyperscript-helpers'
 import { pure } from 'recompose'
-import { buttonPrimary, Clickable, linkButton, search, spinnerOverlay } from 'src/components/common'
+import { buttonPrimary, Clickable, linkButton, search, spinnerOverlay, LargeFadeBox } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { validatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
@@ -10,6 +10,7 @@ import { TopBar } from 'src/components/TopBar'
 import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
+import * as Forms from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
@@ -54,7 +55,7 @@ const NewGroupModal = ajaxCaller(class NewGroupModal extends Component {
         onClick: () => this.submit()
       }, ['Create Group'])
     }, [
-      div({ style: styles.formLabel }, ['Enter a unique name']),
+      Forms.requiredFormLabel('Enter a unique name'),
       validatedInput({
         inputProps: {
           autoFocus: true,
@@ -63,9 +64,7 @@ const NewGroupModal = ajaxCaller(class NewGroupModal extends Component {
         },
         error: groupNameTouched && Utils.summarizeErrors(errors && errors.groupName)
       }),
-      !(groupNameTouched && errors) && div({ style: { fontSize: 'smaller', marginTop: '0.25rem' } }, [
-        'Only letters, numbers, underscores, and dashes allowed'
-      ]),
+      !(groupNameTouched && errors) && Forms.formHint('Only letters, numbers, underscores, and dashes allowed'),
       submitting && spinnerOverlay
     ])
   }
@@ -180,45 +179,47 @@ export const GroupList = ajaxCaller(class GroupList extends Component {
           }
         })
       ]),
-      div({ style: styles.toolbarContainer }, [
-        div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, [
-          'Group Management'
-        ])
-      ]),
-      div({ style: styles.cardContainer }, [
-        h(NewGroupCard, {
-          onClick: () => this.setState({ creatingNewGroup: true })
+      h(LargeFadeBox, [
+        div({ style: styles.toolbarContainer }, [
+          div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, [
+            'Group Management'
+          ])
+        ]),
+        div({ style: styles.cardContainer }, [
+          h(NewGroupCard, {
+            onClick: () => this.setState({ creatingNewGroup: true })
+          }),
+          div({ style: { flexGrow: 1 } },
+            _.map(group => {
+              return h(GroupCard, {
+                group, key: `${group.groupName}-${group.role}`, // can be an admin and a user at same time
+                onDelete: () => this.setState({ deletingGroup: group })
+              })
+            }, _.filter(({ groupName }) => Utils.textMatch(filter, groupName), groups))
+          ),
+          !isDataLoaded && spinnerOverlay
+        ]),
+        creatingNewGroup && h(NewGroupModal, {
+          existingGroups: _.map('groupName', groups),
+          onDismiss: () => this.setState({ creatingNewGroup: false }),
+          onSuccess: () => this.refresh()
         }),
-        div({ style: { flexGrow: 1 } },
-          _.map(group => {
-            return h(GroupCard, {
-              group, key: `${group.groupName}-${group.role}`, // can be an admin and a user at same time
-              onDelete: () => this.setState({ deletingGroup: group })
-            })
-          }, _.filter(({ groupName }) => Utils.textMatch(filter, groupName), groups))
-        ),
-        !isDataLoaded && spinnerOverlay
-      ]),
-      creatingNewGroup && h(NewGroupModal, {
-        existingGroups: _.map('groupName', groups),
-        onDismiss: () => this.setState({ creatingNewGroup: false }),
-        onSuccess: () => this.refresh()
-      }),
-      deletingGroup && h(DeleteGroupModal, {
-        groupName: deletingGroup.groupName,
-        onDismiss: () => this.setState({ deletingGroup: false }),
-        onSubmit: async () => {
-          try {
-            this.setState({ deletingGroup: false, updating: true })
-            await Groups.group(deletingGroup.groupName).delete()
-            this.refresh()
-          } catch (error) {
-            this.setState({ updating: false })
-            reportError('Error deleting group', error)
+        deletingGroup && h(DeleteGroupModal, {
+          groupName: deletingGroup.groupName,
+          onDismiss: () => this.setState({ deletingGroup: false }),
+          onSubmit: async () => {
+            try {
+              this.setState({ deletingGroup: false, updating: true })
+              await Groups.group(deletingGroup.groupName).delete()
+              this.refresh()
+            } catch (error) {
+              this.setState({ updating: false })
+              reportError('Error deleting group', error)
+            }
           }
-        }
-      }),
-      updating && spinnerOverlay
+        }),
+        updating && spinnerOverlay
+      ])
     ])
   }
 

@@ -203,3 +203,16 @@ export const readFileAsText = file => {
     reader.readAsText(file)
   })
 }
+
+export const convertValue = _.curry((type, value) => {
+  switch (type) {
+    case 'string':
+      return value.toString()
+    case 'number':
+      return _.toNumber(value)
+    case 'boolean':
+      return !(_.lowerCase(value) === 'false' || _.lowerCase(value) === 'no' || value === '0')
+    default:
+      throw new Error('unknown type for convertValue')
+  }
+})
