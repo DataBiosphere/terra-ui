@@ -99,8 +99,11 @@ const WorkspaceCard = pure(({ listView, workspace: { workspace: { namespace, nam
   }, [
     div({ style: styles.longTitle }, [name]),
     div({ style: { display: 'flex', alignItems: 'center' } }, [
-      div({ style: styles.longDescription }, [descText]),
-      div({ style: { flex: 'none', width: 400 } }, [lastChanged]),
+      div({ style: styles.longDescription }, [descText]), [
+        h(TooltipTrigger, { content: Utils.makeCompleteDate(lastModified) }, [
+          div({ style: { flex: 'none', width: 270 } }, [lastChanged])
+        ])
+      ],
       div({ style: { flex: 'none' } }, [badge])
     ])
   ]) : a({
