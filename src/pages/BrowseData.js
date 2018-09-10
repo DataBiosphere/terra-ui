@@ -71,7 +71,7 @@ const styles = {
 }
 
 
-const FadeBox = ({
+export const FadeBox = ({
   padding = '1.5rem',
   backgroundColor = colors.gray[5],
   borderColor = colors.gray[3],

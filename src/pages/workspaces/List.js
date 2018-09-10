@@ -15,6 +15,7 @@ import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
+import { FadeBox } from 'src/pages/BrowseData'
 
 
 const styles = {
@@ -188,34 +189,51 @@ export const WorkspaceList = ajaxCaller(class WorkspaceList extends Component {
           })
         ]
       ),
-      div({ style: styles.toolbarContainer }, [
-        div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, [
-          'Workspaces'
+      div({
+        style: {
+          background: `linear-gradient(to bottom, white 0%, ${colors.gray[5]} 100%)`,
+          borderRadius: '8px 8px 0 0',
+          margin: '1.5rem 1.5rem 1.5rem',
+          height: '209px',
+          borderWidth: 1,
+          borderStyle: 'solid',
+          borderImage: `linear-gradient(to bottom, ${colors.gray[3]}, ${colors.gray[5]} ${'60%'}) 1 1`,
+          borderTop: 'solid',
+          borderTopColor: colors.gray[5],
+          borderTopWidth: '1px',
+          borderBottom: 'none'
+        }
+      },
+      [
+        div({ style: { ...styles.toolbarContainer } }, [
+          div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, [
+            'Workspaces'
+          ]),
+          div({ style: styles.toolbarButtons }, [
+            h(Clickable, {
+              style: styles.toolbarButton(!listView),
+              onClick: () => this.setState({ listView: false })
+            }, [icon('view-cards', { size: 24 })]),
+            h(Clickable, {
+              style: styles.toolbarButton(listView),
+              onClick: () => this.setState({ listView: true })
+            }, [icon('view-list', { size: 24 })])
+          ])
         ]),
-        div({ style: styles.toolbarButtons }, [
-          h(Clickable, {
-            style: styles.toolbarButton(!listView),
-            onClick: () => this.setState({ listView: false })
-          }, [icon('view-cards', { size: 24 })]),
-          h(Clickable, {
-            style: styles.toolbarButton(listView),
-            onClick: () => this.setState({ listView: true })
-          }, [icon('view-list', { size: 24 })])
-        ])
-      ]),
-      div({ style: styles.cardContainer }, [
-        h(NewWorkspaceCard, {
-          listView,
-          onClick: () => this.setState({ creatingNewWorkspace: true })
-        }),
-        _.map(workspace => {
-          return h(WorkspaceCard, { listView, workspace, key: workspace.workspace.workspaceId })
-        }, data),
-        !isDataLoaded && spinnerOverlay
-      ]),
-      creatingNewWorkspace && h(NewWorkspaceModal, {
-        onDismiss: () => this.setState({ creatingNewWorkspace: false })
-      })
+        div({ style: styles.cardContainer }, [
+          h(NewWorkspaceCard, {
+            listView,
+            onClick: () => this.setState({ creatingNewWorkspace: true })
+          }),
+          _.map(workspace => {
+            return h(WorkspaceCard, { listView, workspace, key: workspace.workspace.workspaceId })
+          }, data),
+          !isDataLoaded && spinnerOverlay
+        ]),
+        creatingNewWorkspace && h(NewWorkspaceModal, {
+          onDismiss: () => this.setState({ creatingNewWorkspace: false })
+        })
+      ])
     ])
   }
 
