@@ -15,7 +15,6 @@ import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
-import { FadeBox } from 'src/pages/BrowseData'
 
 
 const styles = {
@@ -138,6 +137,40 @@ const NewWorkspaceCard = pure(({ listView, onClick }) => {
   ])
 })
 
+export const LargeFadeBox = ({
+  padding = '1.5rem',
+  backgroundColor = colors.gray[5],
+  borderColor = colors.gray[3],
+  fadePoint = '60%',
+  children
+}) => {
+  return div({
+    style: {
+      background: `linear-gradient(to bottom, white 0%, ${colors.gray[5]} 4%`,
+      borderRadius: '8px 8px 0 0',
+      margin: '1.5rem'
+    }
+  }, [
+    div({
+      style: {
+        height: '.25rem',
+        border: `1px solid ${colors.gray[3]}`,
+        borderBottom: 'none',
+        borderRadius: '8px 8px 0 0'
+      }
+    }),
+    div({
+      style: {
+        borderWidth: 1,
+        borderStyle: 'solid',
+        borderImage: `linear-gradient(to bottom, ${colors.gray[3]}, ${colors.gray[5]} 4%) 1 100%`,
+        borderTop: 'solid',
+        borderBottom: 'none'
+      }
+    }, [children])
+  ])
+}
+
 export const WorkspaceList = ajaxCaller(class WorkspaceList extends Component {
   constructor(props) {
     super(props)
@@ -189,31 +222,7 @@ export const WorkspaceList = ajaxCaller(class WorkspaceList extends Component {
           })
         ]
       ),
-      div({
-        style: {
-          background: `linear-gradient(to bottom, white 0%, ${colors.gray[5]} 4%`,
-          borderRadius: '8px 8px 0 0',
-          margin: `1.5rem 1.5rem 1.5rem 1.5rem`
-        }
-      }, [
-        div({
-          style: {
-            height: '1.5rem',
-            border: `1px solid ${colors.gray[3]}`,
-            borderBottom: 'none',
-            borderRadius: '8px 8px 0 0'
-          }
-        }),
-        div({
-          style: {
-            padding: `0 ${'1.5rem'} ${'1.5rem'}`,
-            borderWidth: 1,
-            borderStyle: 'solid',
-            borderImage: `linear-gradient(to bottom, ${colors.gray[3]}, ${colors.gray[5]} 4%) 1 100%`,
-            borderTop: 'solid',
-            borderBottom: 'none'
-          }
-        },
+      h(LargeFadeBox,
         [
           div({ style: { ...styles.toolbarContainer } }, [
             div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, [
@@ -244,7 +253,6 @@ export const WorkspaceList = ajaxCaller(class WorkspaceList extends Component {
             onDismiss: () => this.setState({ creatingNewWorkspace: false })
           })
         ])
-      ])
     ])
   }
 
