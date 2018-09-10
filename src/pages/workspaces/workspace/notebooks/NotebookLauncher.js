@@ -33,6 +33,13 @@ const styles = {
   }
 }
 
+const getCluster = (clusters) => {
+  return _.flow(
+    _.remove({ status: 'Deleting' }),
+    _.sortBy('createdDate'),
+    _.first
+  )(clusters)
+}
 
 const NotebookLauncher = ajaxCaller(wrapWorkspace({
   breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
@@ -73,45 +80,24 @@ class NotebookLauncherContent extends Component {
     }
   }
 
-  async componentDidUpdate(prevProps, prevState) {
+  componentDidUpdate(prevProps, prevState) {
     const oldClusters = prevProps.clusters
-    const prevCluster = _.flow(
-      _.sortBy('createdDate'),
-      _.first
-    )(oldClusters)
-
-    const currCluster = await this.getCluster()
-    //console.log(document.location + '#loaded')
-    console.log('componentDidUpdate')
-    if (prevCluster && prevCluster.status === 'Deleting' && !document.URL.includes('#loaded')) {
-      console.log('inside if statemen')
-      console.log({ prevCluster, currCluster })
-      console.log(prevCluster.id)
-      console.log(currCluster.id)
-      //console.log(document.location)
-      document.location = document.location + '#loaded'
-      //console.log(document.location)
+    const {clusters} = this.props
+    const prevCluster = getCluster(oldClusters)
+    const currCluster = getCluster(clusters)
+    if (prevCluster && prevCluster.id !== currCluster.id) {
       document.location.reload()
     }
   }
 
-  async getCluster() {
-    const { clusters } = this.props
-
-    return _.flow(
-      _.remove({ status: 'Deleting' }),
-      _.sortBy('createdDate'),
-      _.first
-    )(clusters)
-  }
 
   async startCluster() {
-    const { refreshClusters, ajax: { Jupyter } } = this.props
+    const { refreshClusters, ajax: { Jupyter }, clusters } = this.props
 
     while (this.mounted) {
       await refreshClusters()
 
-      const cluster = await this.getCluster()
+      const cluster = getCluster(clusters)
       if (!cluster) {
         throw new Error('You do not have access to run analyses on this workspace.')
       }
