@@ -33,7 +33,7 @@ const styles = {
   }
 }
 
-const getCluster = (clusters) => {
+const getCluster = clusters => {
   return _.flow(
     _.remove({ status: 'Deleting' }),
     _.sortBy('createdDate'),
@@ -82,7 +82,7 @@ class NotebookLauncherContent extends Component {
 
   componentDidUpdate(prevProps, prevState) {
     const oldClusters = prevProps.clusters
-    const {clusters} = this.props
+    const { clusters } = this.props
     const prevCluster = getCluster(oldClusters)
     const currCluster = getCluster(clusters)
     if (prevCluster && prevCluster.id !== currCluster.id) {
