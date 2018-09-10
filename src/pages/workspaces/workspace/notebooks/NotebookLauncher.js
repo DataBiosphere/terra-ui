@@ -33,6 +33,13 @@ const styles = {
   }
 }
 
+const getCluster = clusters => {
+  return _.flow(
+    _.remove({ status: 'Deleting' }),
+    _.sortBy('createdDate'),
+    _.first
+  )(clusters)
+}
 
 const NotebookLauncher = ajaxCaller(wrapWorkspace({
   breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
@@ -73,23 +80,24 @@ class NotebookLauncherContent extends Component {
     }
   }
 
-  async getCluster() {
+  componentDidUpdate(prevProps, prevState) {
+    const oldClusters = prevProps.clusters
     const { clusters } = this.props
-
-    return _.flow(
-      _.remove({ status: 'Deleting' }),
-      _.sortBy('createdDate'),
-      _.last
-    )(clusters)
+    const prevCluster = getCluster(oldClusters)
+    const currCluster = getCluster(clusters)
+    if (prevCluster && prevCluster.id !== currCluster.id) {
+      document.location.reload()
+    }
   }
+
 
   async startCluster() {
     const { refreshClusters, ajax: { Jupyter } } = this.props
 
     while (this.mounted) {
       await refreshClusters()
-
-      const cluster = await this.getCluster()
+      const { clusters } = this.props //Note: placed here to read updated value after refresh
+      const cluster = getCluster(clusters)
       if (!cluster) {
         throw new Error('You do not have access to run analyses on this workspace.')
       }
