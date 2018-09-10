@@ -1,8 +1,10 @@
 import _ from 'lodash/fp'
+import { Fragment } from 'react'
 import { a, div, h } from 'react-hyperscript-helpers'
 import { pure } from 'recompose'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { spinnerOverlay } from 'src/components/common'
+import { Clickable, spinnerOverlay } from 'src/components/common'
+import { icon } from 'src/components/icons'
 import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
@@ -22,7 +24,7 @@ const styles = {
     ...Style.elements.card, width: 300, height: 125, margin: '1rem 0.5rem',
     display: 'flex', flexDirection: 'column', justifyContent: 'space-between'
   },
-/*  shortToolCard: {
+/*  shortToolCard: { // copied from workspaces/List.js
     display: 'flex', flexDirection: 'column', justifyContent: 'space-between'
   },*/ // possibly not necessary
   shortTitle: {
@@ -31,22 +33,49 @@ const styles = {
     lineHeight: '20px', height: '40px',
     overflow: 'hidden', overflowWrap: 'break-word'
   },
-  /*shortCreateCard: {
+  shortDescription: { // copied from workspaces/List.js
+    flex: 'none',
+    lineHeight: '18px', height: '90px',
+    overflow: 'hidden'
+  },
+  /*shortCreateCard: { // copied from workspaces/List.js
     display: 'flex', flexDirection: 'column', justifyContent: 'center',
     color: colors.blue[0], fontSize: 20, lineHeight: '28px'
   },*/  // To be added later
-  longCard: {
+  longCard: { // copied from workspaces/List.js
     ...Style.elements.card,
     width: '100%', minWidth: 0, height: 80,
     margin: '0.25rem 0.5rem'
   },
-/*  longToolCard: {
+/*  longToolCard: { // copied from workspaces/List.js
     display: 'flex', flexDirection: 'column', justifyContent: 'space-between'
   },*/ // possibly not necessary
-  longTitle: {
+  longTitle: { // copied from workspaces/List.js
     color: colors.blue[0], fontSize: 16,
     whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'
-  }
+  },
+  longDescription: { // copied from workspaces/List.js
+    flex: 1,
+    paddingRight: '1rem',
+    whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'
+  },
+  /*longCreateCard: { // copied from workspaces/List.js
+    display: 'flex', flexDirection: 'column', justifyContent: 'center',
+    color: colors.blue[0], fontSize: 16
+  }*/ // To be added later
+  toolbarContainer: {
+    flex: 'none', display: 'flex', alignItems: 'flex-end',
+    margin: '1rem 4.5rem'
+  },
+  toolbarButtons: { // copied from workspaces/List.js
+    marginLeft: 'auto', display: 'flex',
+    backgroundColor: 'white', borderRadius: 3
+  },
+  toolbarButton: active => ({ // copied from workspaces/List.js
+    display: 'flex', justifyContent: 'center', alignItems: 'center',
+    height: '2.25rem', width: '3rem',
+    color: active ? colors.blue[1] : colors.blue[0]
+  })
 }
 
 const ToolCard = pure(({ listView, name, namespace, config }) => {
@@ -63,19 +92,22 @@ const ToolCard = pure(({ listView, name, namespace, config }) => {
     href: Nav.getLink('workflow', { namespace, name, workflowNamespace, workflowName })
   }, [
     div({ style: styles.longTitle }, [workflowName]),
-    div([`V. ${methodVersion}`]),
-    div({ style: { flex: 'none', width: 400 } }, [`Source: ${sourceRepo}`])
+    div([`V. ${methodVersion}`]), //To do: how to add tool description
+    div({ style: { flex: 'none', width: '80% ' } }, [`Source: ${sourceRepo}`]) //To do: figure out how to get this right-aligned
   ])
 })
 
-const WorkspaceTools = ajaxCaller(wrapWorkspace({
+export const WorkspaceTools = ajaxCaller(wrapWorkspace({
   breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
   title: 'Tools', activeTab: 'tools'
 },
 class ToolsContent extends Component {
   constructor(props) {
     super(props)
-    this.state = { ...StateHistory.get() }
+    this.state = {
+      listView: false,
+      ...StateHistory.get()
+    }
   }
 
   async refresh() {
@@ -94,13 +126,30 @@ class ToolsContent extends Component {
 
   render() {
     const { namespace, name } = this.props
-    const { loading, configs } = this.state
-    return div({ style: styles.cardContainer }, [
-      _.map(config => {
-        return h(ToolCard, { key: `${config.namespace}/${config.name}`, namespace, name, config })
-      }, configs),
-      configs && !configs.length && div(['No tools added']),
-      loading && spinnerOverlay
+    const { loading, configs, listView } = this.state
+    return h(Fragment, [
+      div({ style: styles.toolbarContainer }, [
+        div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, [
+          'Tools'
+        ]),
+        div({ style: styles.toolbarButtons }, [
+          h(Clickable, {
+            style: styles.toolbarButton(!listView),
+            onClick: () => this.setState({ listView: false })
+          }, [icon('view-cards', { size: 24 })]),
+          h(Clickable, {
+            style: styles.toolbarButton(listView),
+            onClick: () => this.setState({ listView: true })
+          }, [icon('view-list', { size: 24 })])
+        ])
+      ]),
+      div({ style: styles.cardContainer }, [
+        _.map(config => {
+          return h(ToolCard, { key: `${config.namespace}/${config.name}`, namespace, name, config })
+        }, configs),
+        configs && !configs.length && div(['No tools added']),
+        loading && spinnerOverlay
+      ])
     ])
   }
 
