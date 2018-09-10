@@ -92,11 +92,11 @@ class NotebookLauncherContent extends Component {
 
 
   async startCluster() {
-    const { refreshClusters, ajax: { Jupyter }, clusters } = this.props
+    const { refreshClusters, ajax: { Jupyter } } = this.props
 
     while (this.mounted) {
       await refreshClusters()
-
+      const { clusters } = this.props //Note: placed here to read updated value after refresh
       const cluster = getCluster(clusters)
       if (!cluster) {
         throw new Error('You do not have access to run analyses on this workspace.')
