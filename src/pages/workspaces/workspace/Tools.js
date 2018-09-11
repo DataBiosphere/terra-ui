@@ -81,13 +81,6 @@ const styles = {
 const ToolCard = pure(({ listView, name, namespace, config }) => {
   const { namespace: workflowNamespace, name: workflowName, methodRepoMethod: { sourceRepo, methodVersion } } = config
   return listView ? a({
-    style: styles.shortCard,
-    href: Nav.getLink('workflow', { namespace, name, workflowNamespace, workflowName })
-  }, [
-    div({ style: styles.shortTitle }, [workflowName]),
-    div([`V. ${methodVersion}`]),
-    div([`Source: ${sourceRepo}`])
-  ]) : a({
     style: styles.longCard,
     href: Nav.getLink('workflow', { namespace, name, workflowNamespace, workflowName })
   }, [
@@ -95,11 +88,18 @@ const ToolCard = pure(({ listView, name, namespace, config }) => {
       div({ style: styles.longTitle }, [workflowName]),
       div([`V. ${methodVersion}`])
     ]),
-    //To do: how to add tool description
+    //To do: add tool description
     div({ style: { display: 'flex', alignItems: 'center' } }, [
       div({ style: { flex: 1 } }),
       div({ style: { flex: 'none' } }, [`Source: ${sourceRepo}`])
     ])
+  ]) : a({
+    style: styles.shortCard,
+    href: Nav.getLink('workflow', { namespace, name, workflowNamespace, workflowName })
+  }, [
+    div({ style: styles.shortTitle }, [workflowName]),
+    div([`V. ${methodVersion}`]),
+    div([`Source: ${sourceRepo}`])
   ])
 })
 
@@ -151,7 +151,7 @@ class ToolsContent extends Component {
       ]),
       div({ style: styles.cardContainer }, [
         _.map(config => {
-          return h(ToolCard, { key: `${config.namespace}/${config.name}`, namespace, name, config })
+          return h(ToolCard, { key: `${config.namespace}/${config.name}`, namespace, name, config, listView })
         }, configs),
         configs && !configs.length && div(['No tools added']),
         loading && spinnerOverlay
@@ -164,7 +164,7 @@ class ToolsContent extends Component {
   }
 
   componentDidUpdate() {
-    StateHistory.update(_.pick(['configs'], this.state))
+    StateHistory.update(_.pick(['configs', 'listView'], this.state))
   }
 }))
 
