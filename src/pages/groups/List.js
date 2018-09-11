@@ -17,7 +17,7 @@ import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 import { styles } from 'src/pages/groups/common'
 import { validate } from 'validate.js'
-import { LargeFadeBox} from 'src/pages/workspaces/List'
+import { LargeFadeBox } from 'src/pages/workspaces/List'
 
 
 const groupNameValidator = existing => ({
