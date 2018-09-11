@@ -137,23 +137,17 @@ const NewWorkspaceCard = pure(({ listView, onClick }) => {
   ])
 })
 
-export const LargeFadeBox = ({
-  padding = '1.5rem',
-  backgroundColor = colors.gray[5],
-  borderColor = colors.gray[3],
-  fadePoint = '60%',
-  children
-}) => {
+export const LargeFadeBox = ({ children }) => {
   return div({
     style: {
-      background: `linear-gradient(to bottom, white 0%, ${colors.gray[5]} 4%`,
+      background: `linear-gradient(to bottom, white 0%, ${colors.gray[5]} 125px`,
       borderRadius: '8px 8px 0 0',
-      margin: '1.5rem'
+      margin: '1.25rem'
     }
   }, [
     div({
       style: {
-        height: '.25rem',
+        height: '.5rem',
         border: `1px solid ${colors.gray[3]}`,
         borderBottom: 'none',
         borderRadius: '8px 8px 0 0'
@@ -163,7 +157,7 @@ export const LargeFadeBox = ({
       style: {
         borderWidth: 1,
         borderStyle: 'solid',
-        borderImage: `linear-gradient(to bottom, ${colors.gray[3]}, ${colors.gray[5]} 4%) 1 100%`,
+        borderImage: `linear-gradient(to bottom, ${colors.gray[3]}, ${colors.gray[5]} 175px) 1 100%`,
         borderTop: 'solid',
         borderBottom: 'none'
       }
