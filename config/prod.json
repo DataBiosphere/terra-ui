@@ -3,10 +3,10 @@
   "dockstoreUrlRoot": "https://dockstore.org:8443",
   "firecloudUrlRoot": "https://portal.firecloud.org",
   "googleClientId": "424501080111-b3bt4p1vo4gbo4m0573nvi4d49784bp8.apps.googleusercontent.com",
+  "isProd": true
   "leoUrlRoot": "https://notebooks.firecloud.org",
   "marthaUrlRoot": "https://us-central1-broad-dsde-prod.cloudfunctions.net/fileSummaryV1",
   "orchestrationUrlRoot": "https://api.firecloud.org",
   "rawlsUrlRoot": "https://rawls.dsde-prod.broadinstitute.org",
   "samUrlRoot": "https://sam.dsde-prod.broadinstitute.org",
-  "isProd": true
 }
