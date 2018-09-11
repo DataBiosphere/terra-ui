@@ -141,6 +141,34 @@ const NewWorkspaceCard = pure(({ listView, onClick }) => {
   ])
 })
 
+export const LargeFadeBox = ({ children }) => {
+  return div({
+    style: {
+      background: `linear-gradient(to bottom, white 0%, ${colors.gray[5]} 125px`,
+      borderRadius: '8px 8px 0 0',
+      margin: '1.5rem'
+    }
+  }, [
+    div({
+      style: {
+        height: '.5rem',
+        border: `1px solid ${colors.gray[3]}`,
+        borderBottom: 'none',
+        borderRadius: '8px 8px 0 0'
+      }
+    }),
+    div({
+      style: {
+        borderWidth: 1,
+        borderStyle: 'solid',
+        borderImage: `linear-gradient(to bottom, ${colors.gray[3]}, ${colors.gray[5]} 175px) 1 100%`,
+        borderTop: 'solid',
+        borderBottom: 'none'
+      }
+    }, [children])
+  ])
+}
+
 export const WorkspaceList = ajaxCaller(class WorkspaceList extends Component {
   constructor(props) {
     super(props)
@@ -192,34 +220,37 @@ export const WorkspaceList = ajaxCaller(class WorkspaceList extends Component {
           })
         ]
       ),
-      div({ style: styles.toolbarContainer }, [
-        div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, [
-          'Workspaces'
-        ]),
-        div({ style: styles.toolbarButtons }, [
-          h(Clickable, {
-            style: styles.toolbarButton(!listView),
-            onClick: () => this.setState({ listView: false })
-          }, [icon('view-cards', { size: 24 })]),
-          h(Clickable, {
-            style: styles.toolbarButton(listView),
-            onClick: () => this.setState({ listView: true })
-          }, [icon('view-list', { size: 24 })])
+      h(LargeFadeBox,
+        [
+          div({ style: { ...styles.toolbarContainer } }, [
+            div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, [
+              'Workspaces'
+            ]),
+            div({ style: styles.toolbarButtons }, [
+              h(Clickable, {
+                style: styles.toolbarButton(!listView),
+                onClick: () => this.setState({ listView: false })
+              }, [icon('view-cards', { size: 24 })]),
+              h(Clickable, {
+                style: styles.toolbarButton(listView),
+                onClick: () => this.setState({ listView: true })
+              }, [icon('view-list', { size: 24 })])
+            ])
+          ]),
+          div({ style: styles.cardContainer }, [
+            h(NewWorkspaceCard, {
+              listView,
+              onClick: () => this.setState({ creatingNewWorkspace: true })
+            }),
+            _.map(workspace => {
+              return h(WorkspaceCard, { listView, workspace, key: workspace.workspace.workspaceId })
+            }, data),
+            !isDataLoaded && spinnerOverlay
+          ]),
+          creatingNewWorkspace && h(NewWorkspaceModal, {
+            onDismiss: () => this.setState({ creatingNewWorkspace: false })
+          })
         ])
-      ]),
-      div({ style: styles.cardContainer }, [
-        h(NewWorkspaceCard, {
-          listView,
-          onClick: () => this.setState({ creatingNewWorkspace: true })
-        }),
-        _.map(workspace => {
-          return h(WorkspaceCard, { listView, workspace, key: workspace.workspace.workspaceId })
-        }, data),
-        !isDataLoaded && spinnerOverlay
-      ]),
-      creatingNewWorkspace && h(NewWorkspaceModal, {
-        onDismiss: () => this.setState({ creatingNewWorkspace: false })
-      })
     ])
   }
 
