@@ -146,7 +146,7 @@ export const LargeFadeBox = ({ children }) => {
     style: {
       background: `linear-gradient(to bottom, white 0%, ${colors.gray[5]} 125px`,
       borderRadius: '8px 8px 0 0',
-      margin: '1.25rem'
+      margin: '1.5rem'
     }
   }, [
     div({
