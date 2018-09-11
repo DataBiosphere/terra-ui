@@ -56,7 +56,7 @@ const styles = {
   },
   longTitle: {
     color: colors.blue[0], fontSize: 16,
-    whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'
+    whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', flex: 1
   },
   longDescription: {
     flex: 1,
@@ -97,12 +97,14 @@ const WorkspaceCard = pure(({ listView, workspace: { workspace: { namespace, nam
     href: Nav.getLink('workspace', { namespace, name }),
     style: { ...styles.longCard, ...styles.longWorkspaceCard }
   }, [
-    div({ style: styles.longTitle }, [name]),
+    div({ style: { display: 'flex', alignItems: 'center' } }, [
+      div({ style: styles.longTitle }, [name]),
+      h(TooltipTrigger, { content: Utils.makeCompleteDate(lastModified) }, [
+        div({ style: { flex: 'none' } }, [lastChanged])
+      ])
+    ]),
     div({ style: { display: 'flex', alignItems: 'center' } }, [
       div({ style: styles.longDescription }, [descText]),
-      h(TooltipTrigger, { content: Utils.makeCompleteDate(lastModified) }, [
-        div({ style: { flex: 'none', width: 170 } }, [lastChanged])
-      ]),
       div({ style: { flex: 'none' } }, [badge])
     ])
   ]) : a({
