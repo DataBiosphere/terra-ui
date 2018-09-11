@@ -7,13 +7,6 @@ import { WorkspaceList } from 'src/pages/workspaces/List'
 
 
 describe('WorkspaceList', () => {
-  it('should render as expected', () => {
-    const renderer = TestRenderer.create(h(WorkspaceList))
-    return Utils.waitOneTick().then(() => {
-      expect(renderer.toJSON()).toMatchSnapshot()
-    })
-  })
-
   it('should switch between Grid and List view', () => {
     const wrapper = mount(h(WorkspaceList))
     return waitOneTickAndUpdate(wrapper).then(() => {
