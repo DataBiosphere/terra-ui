@@ -77,13 +77,15 @@ const styles = {
     margin: '1rem 4.5rem'
   },
   toolbarButtons: {
-    marginLeft: 'auto', display: 'flex',
-    backgroundColor: 'white', borderRadius: 3
+    borderRadius: 3, border: `1.45px solid ${colors.blue[0]}`,
+    boxShadow: '0 2px 9px 0 rgba(0,0,0,0.03)', display: 'flex'
   },
   toolbarButton: active => ({
     display: 'flex', justifyContent: 'center', alignItems: 'center',
-    height: '2.25rem', width: '3rem',
-    color: active ? colors.blue[1] : colors.blue[0]
+    height: '34.5px', width: '86.5px',
+    color: colors.blue[0],
+    backgroundColor: active ? colors.blue[4] : 'white',
+    fontWeight: active? 'bold' : 'normal'
   })
 }
 
@@ -226,15 +228,17 @@ export const WorkspaceList = ajaxCaller(class WorkspaceList extends Component {
             div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, [
               'Workspaces'
             ]),
-            div({ style: styles.toolbarButtons }, [
+            div({ style: { ...styles.toolbarButtons, marginLeft: 'auto', display: 'flex' } }, [
               h(Clickable, {
                 style: styles.toolbarButton(!listView),
                 onClick: () => this.setState({ listView: false })
-              }, [icon('view-cards', { size: 24 })]),
+              }, [icon('view-cards', { size: 24, style: { margin: '.3rem' } }), 'Cards'])
+            ]),
+            div({ style: { ...styles.toolbarButtons, marginLeft: '1rem' } }, [
               h(Clickable, {
                 style: styles.toolbarButton(listView),
                 onClick: () => this.setState({ listView: true })
-              }, [icon('view-list', { size: 24 })])
+              }, [icon('view-list', { size: 24, style: { margin: '.3rem' } }), 'List'])
             ])
           ]),
           div({ style: styles.cardContainer }, [
