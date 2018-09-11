@@ -17,6 +17,7 @@ import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 import { styles } from 'src/pages/groups/common'
 import { validate } from 'validate.js'
+import { LargeFadeBox} from 'src/pages/workspaces/List'
 
 
 const groupNameValidator = existing => ({
@@ -180,45 +181,47 @@ export const GroupList = ajaxCaller(class GroupList extends Component {
           }
         })
       ]),
-      div({ style: styles.toolbarContainer }, [
-        div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, [
-          'Group Management'
-        ])
-      ]),
-      div({ style: styles.cardContainer }, [
-        h(NewGroupCard, {
-          onClick: () => this.setState({ creatingNewGroup: true })
+      h(LargeFadeBox, [
+        div({ style: styles.toolbarContainer }, [
+          div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, [
+            'Group Management'
+          ])
+        ]),
+        div({ style: styles.cardContainer }, [
+          h(NewGroupCard, {
+            onClick: () => this.setState({ creatingNewGroup: true })
+          }),
+          div({ style: { flexGrow: 1 } },
+            _.map(group => {
+              return h(GroupCard, {
+                group, key: `${group.groupName}-${group.role}`, // can be an admin and a user at same time
+                onDelete: () => this.setState({ deletingGroup: group })
+              })
+            }, _.filter(({ groupName }) => Utils.textMatch(filter, groupName), groups))
+          ),
+          !isDataLoaded && spinnerOverlay
+        ]),
+        creatingNewGroup && h(NewGroupModal, {
+          existingGroups: _.map('groupName', groups),
+          onDismiss: () => this.setState({ creatingNewGroup: false }),
+          onSuccess: () => this.refresh()
         }),
-        div({ style: { flexGrow: 1 } },
-          _.map(group => {
-            return h(GroupCard, {
-              group, key: `${group.groupName}-${group.role}`, // can be an admin and a user at same time
-              onDelete: () => this.setState({ deletingGroup: group })
-            })
-          }, _.filter(({ groupName }) => Utils.textMatch(filter, groupName), groups))
-        ),
-        !isDataLoaded && spinnerOverlay
-      ]),
-      creatingNewGroup && h(NewGroupModal, {
-        existingGroups: _.map('groupName', groups),
-        onDismiss: () => this.setState({ creatingNewGroup: false }),
-        onSuccess: () => this.refresh()
-      }),
-      deletingGroup && h(DeleteGroupModal, {
-        groupName: deletingGroup.groupName,
-        onDismiss: () => this.setState({ deletingGroup: false }),
-        onSubmit: async () => {
-          try {
-            this.setState({ deletingGroup: false, updating: true })
-            await Groups.group(deletingGroup.groupName).delete()
-            this.refresh()
-          } catch (error) {
-            this.setState({ updating: false })
-            reportError('Error deleting group', error)
+        deletingGroup && h(DeleteGroupModal, {
+          groupName: deletingGroup.groupName,
+          onDismiss: () => this.setState({ deletingGroup: false }),
+          onSubmit: async () => {
+            try {
+              this.setState({ deletingGroup: false, updating: true })
+              await Groups.group(deletingGroup.groupName).delete()
+              this.refresh()
+            } catch (error) {
+              this.setState({ updating: false })
+              reportError('Error deleting group', error)
+            }
           }
-        }
-      }),
-      updating && spinnerOverlay
+        }),
+        updating && spinnerOverlay
+      ])
     ])
   }
 
