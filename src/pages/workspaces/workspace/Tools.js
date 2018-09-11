@@ -84,7 +84,7 @@ const ToolCard = pure(({ listView, name, namespace, config }) => {
   }, [
     div({ style: { display: 'flex', alignItems: 'center' } }, [
       div({ style: styles.longTitle }, [workflowName]),
-      div({style: { marginRight: '1rem' } }, [`V. ${methodVersion}`]),
+      div({ style: { marginRight: '1rem' } }, [`V. ${methodVersion}`]),
       div({ style: { flex: 'none' } }, [`Source: ${sourceRepo}`])
     ])
     // TODO: add tool description
