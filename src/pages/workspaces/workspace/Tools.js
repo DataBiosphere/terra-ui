@@ -28,7 +28,7 @@ const styles = {
     display: 'flex', flexDirection: 'column', justifyContent: 'space-between'
   },*/ // possibly not necessary
   shortTitle: {
-    flex: 'none',
+    flex: 1,
     color: colors.blue[0], fontSize: 16,
     lineHeight: '20px', height: '40px',
     overflow: 'hidden', overflowWrap: 'break-word'
@@ -52,7 +52,7 @@ const styles = {
   },*/ // possibly not necessary
   longTitle: { // copied from workspaces/List.js
     color: colors.blue[0], fontSize: 16,
-    whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'
+    whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', flex: 1
   },
   longDescription: { // copied from workspaces/List.js
     flex: 1,
@@ -91,9 +91,15 @@ const ToolCard = pure(({ listView, name, namespace, config }) => {
     style: styles.longCard,
     href: Nav.getLink('workflow', { namespace, name, workflowNamespace, workflowName })
   }, [
-    div({ style: styles.longTitle }, [workflowName]),
-    div([`V. ${methodVersion}`]), //To do: how to add tool description
-    div({ style: { flex: 'none', width: '80% ' } }, [`Source: ${sourceRepo}`]) //To do: figure out how to get this right-aligned
+    div({ style: { display: 'flex', alignItems: 'center' } }, [
+      div({ style: styles.longTitle }, [workflowName]),
+      div([`V. ${methodVersion}`])
+    ]),
+    //To do: how to add tool description
+    div({ style: { display: 'flex', alignItems: 'center' } }, [
+      div({ style: { flex: 1 } }),
+      div({ style: { flex: 'none' } }, [`Source: ${sourceRepo}`])
+    ])
   ])
 })
 
