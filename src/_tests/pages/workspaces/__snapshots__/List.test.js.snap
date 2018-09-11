@@ -103,9 +103,9 @@ Array [
   <div
     style={
         Object {
-            "background": "linear-gradient(to bottom, white 0%, #ededed 4%",
+            "background": "linear-gradient(to bottom, white 0%, #ededed 125px",
             "borderRadius": "8px 8px 0 0",
-            "margin": "1.5rem",
+            "margin": "1.25rem",
           }
     }
 >
@@ -115,7 +115,7 @@ Array [
                 "border": "1px solid #b7b7b7",
                 "borderBottom": "none",
                 "borderRadius": "8px 8px 0 0",
-                "height": ".25rem",
+                "height": ".5rem",
               }
         }
     />
@@ -123,7 +123,7 @@ Array [
         style={
             Object {
                 "borderBottom": "none",
-                "borderImage": "linear-gradient(to bottom, #b7b7b7, #ededed 4%) 1 100%",
+                "borderImage": "linear-gradient(to bottom, #b7b7b7, #ededed 175px) 1 100%",
                 "borderStyle": "solid",
                 "borderTop": "solid",
                 "borderWidth": 1,
