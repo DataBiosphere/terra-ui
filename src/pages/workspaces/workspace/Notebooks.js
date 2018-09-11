@@ -94,9 +94,9 @@ class NotebookCard extends Component {
           div({ style: { flexGrow: 1 } }),
           h(TooltipTrigger, { content: Utils.makeCompleteDate(updated) }, [
             div({ style: { fontSize: '0.8rem', marginRight: '0.5rem' } },
-              `Last edited: ${Utils.makePrettyDate(updated)}`),
-            notebookMenu
-          ])
+              `Last edited: ${Utils.makePrettyDate(updated)}`)
+          ]),
+          notebookMenu
         ] : [
           div({ style: { display: 'flex', justifyContent: 'space-between' } },
             [title, notebookMenu]),
