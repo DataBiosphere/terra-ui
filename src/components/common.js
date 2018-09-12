@@ -200,3 +200,31 @@ export const comingSoon = span({
 }, ['coming soon'])
 
 export const Select = RSelect
+
+export const LargeFadeBox = ({ children }) => {
+  return div({
+    style: {
+      background: `linear-gradient(to bottom, white 0%, ${colors.gray[5]} 125px`,
+      borderRadius: '8px 8px 0 0',
+      margin: '1.5rem'
+    }
+  }, [
+    div({
+      style: {
+        height: '.5rem',
+        border: `1px solid ${colors.gray[3]}`,
+        borderBottom: 'none',
+        borderRadius: '8px 8px 0 0'
+      }
+    }),
+    div({
+      style: {
+        borderWidth: 1,
+        borderStyle: 'solid',
+        borderImage: `linear-gradient(to bottom, ${colors.gray[3]}, ${colors.gray[5]} 175px) 1 100%`,
+        borderTop: 'solid',
+        borderBottom: 'none'
+      }
+    }, [children])
+  ])
+}

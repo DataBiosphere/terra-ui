@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { b, div, h } from 'react-hyperscript-helpers'
 import { pure } from 'recompose'
-import { buttonPrimary, Clickable, link, RadioButton, search, spinnerOverlay } from 'src/components/common'
+import { buttonPrimary, Clickable, link, RadioButton, search, spinnerOverlay, LargeFadeBox } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { textInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
@@ -241,51 +241,53 @@ export const GroupDetails = ajaxCaller(class GroupDetails extends Component {
           }
         })
       ]),
-      div({ style: styles.toolbarContainer }, [
-        div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, [
-          `Group Management: ${groupName}`
-        ])
-      ]),
-      div({ style: styles.cardContainer }, [
-        h(NewUserCard, {
-          onClick: () => this.setState({ creatingNewUser: true })
+      h(LargeFadeBox, [
+        div({ style: styles.toolbarContainer }, [
+          div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, [
+            `Group Management: ${groupName}`
+          ])
+        ]),
+        div({ style: styles.cardContainer }, [
+          h(NewUserCard, {
+            onClick: () => this.setState({ creatingNewUser: true })
+          }),
+          div({ style: { flexGrow: 1 } },
+            _.map(member => {
+              return h(MemberCard, {
+                member, adminCanEdit,
+                onEdit: () => this.setState({ editingUser: member }),
+                onDelete: () => this.setState({ deletingUser: member })
+              })
+            }, _.filter(({ email }) => Utils.textMatch(filter, email), members))
+          ),
+          loading && spinnerOverlay
+        ]),
+        creatingNewUser && h(NewUserModal, {
+          groupName,
+          onDismiss: () => this.setState({ creatingNewUser: false }),
+          onSuccess: () => this.refresh()
         }),
-        div({ style: { flexGrow: 1 } },
-          _.map(member => {
-            return h(MemberCard, {
-              member, adminCanEdit,
-              onEdit: () => this.setState({ editingUser: member }),
-              onDelete: () => this.setState({ deletingUser: member })
-            })
-          }, _.filter(({ email }) => Utils.textMatch(filter, email), members))
-        ),
-        loading && spinnerOverlay
-      ]),
-      creatingNewUser && h(NewUserModal, {
-        groupName,
-        onDismiss: () => this.setState({ creatingNewUser: false }),
-        onSuccess: () => this.refresh()
-      }),
-      editingUser && h(EditUserModal, {
-        user: editingUser, groupName,
-        onDismiss: () => this.setState({ editingUser: false }),
-        onSuccess: () => this.refresh()
-      }),
-      deletingUser && h(DeleteUserModal, {
-        userEmail: deletingUser.email,
-        onDismiss: () => this.setState({ deletingUser: false }),
-        onSubmit: async () => {
-          try {
-            this.setState({ updating: true, deletingUser: false })
-            await Groups.group(groupName).removeMember(deletingUser.role, deletingUser.email)
-            this.refresh()
-          } catch (error) {
-            this.setState({ updating: false })
-            reportError('Error removing member from group', error)
+        editingUser && h(EditUserModal, {
+          user: editingUser, groupName,
+          onDismiss: () => this.setState({ editingUser: false }),
+          onSuccess: () => this.refresh()
+        }),
+        deletingUser && h(DeleteUserModal, {
+          userEmail: deletingUser.email,
+          onDismiss: () => this.setState({ deletingUser: false }),
+          onSubmit: async () => {
+            try {
+              this.setState({ updating: true, deletingUser: false })
+              await Groups.group(groupName).removeMember(deletingUser.role, deletingUser.email)
+              this.refresh()
+            } catch (error) {
+              this.setState({ updating: false })
+              reportError('Error removing member from group', error)
+            }
           }
-        }
-      }),
-      updating && spinnerOverlay
+        }),
+        updating && spinnerOverlay
+      ])
     ])
   }
 
