@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { a, div, h, span } from 'react-hyperscript-helpers'
 import { pure } from 'recompose'
-import { Clickable, search, spinnerOverlay } from 'src/components/common'
+import { Clickable, search, spinnerOverlay, LargeFadeBox } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
 import TooltipTrigger from 'src/components/TooltipTrigger'
@@ -76,13 +76,10 @@ const styles = {
     flex: 'none', display: 'flex', alignItems: 'flex-end',
     margin: '1rem 4.5rem'
   },
-  toolbarButtons: {
-    borderRadius: 3, border: `1.45px solid ${colors.blue[0]}`,
-    boxShadow: '0 2px 9px 0 rgba(0,0,0,0.03)', display: 'flex'
-  },
   toolbarButton: active => ({
     display: 'flex', justifyContent: 'center', alignItems: 'center',
-    height: '34.5px', width: '86.5px',
+    borderRadius: 3, border: `1px solid ${colors.blue[0]}`,
+    height: '2.25rem', width: '5.5rem',
     color: colors.blue[0],
     backgroundColor: active ? colors.blue[4] : 'white',
     fontWeight: active? 'bold' : 'normal'
@@ -143,33 +140,6 @@ const NewWorkspaceCard = pure(({ listView, onClick }) => {
   ])
 })
 
-export const LargeFadeBox = ({ children }) => {
-  return div({
-    style: {
-      background: `linear-gradient(to bottom, white 0%, ${colors.gray[5]} 125px`,
-      borderRadius: '8px 8px 0 0',
-      margin: '1.5rem'
-    }
-  }, [
-    div({
-      style: {
-        height: '.5rem',
-        border: `1px solid ${colors.gray[3]}`,
-        borderBottom: 'none',
-        borderRadius: '8px 8px 0 0'
-      }
-    }),
-    div({
-      style: {
-        borderWidth: 1,
-        borderStyle: 'solid',
-        borderImage: `linear-gradient(to bottom, ${colors.gray[3]}, ${colors.gray[5]} 175px) 1 100%`,
-        borderTop: 'solid',
-        borderBottom: 'none'
-      }
-    }, [children])
-  ])
-}
 
 export const WorkspaceList = ajaxCaller(class WorkspaceList extends Component {
   constructor(props) {
@@ -228,18 +198,14 @@ export const WorkspaceList = ajaxCaller(class WorkspaceList extends Component {
             div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, [
               'Workspaces'
             ]),
-            div({ style: { ...styles.toolbarButtons, marginLeft: 'auto', display: 'flex' } }, [
-              h(Clickable, {
-                style: styles.toolbarButton(!listView),
-                onClick: () => this.setState({ listView: false })
-              }, [icon('view-cards', { size: 24, style: { margin: '.3rem' } }), 'Cards'])
-            ]),
-            div({ style: { ...styles.toolbarButtons, marginLeft: '1rem' } }, [
-              h(Clickable, {
-                style: styles.toolbarButton(listView),
-                onClick: () => this.setState({ listView: true })
-              }, [icon('view-list', { size: 24, style: { margin: '.3rem' } }), 'List'])
-            ])
+            h(Clickable, {
+              style: { ...styles.toolbarButton(!listView), marginLeft: 'auto' },
+              onClick: () => this.setState({ listView: false })
+            }, [icon('view-cards', { size: 24, style: { margin: '.3rem' } }), 'Cards']),
+            h(Clickable, {
+              style: { ...styles.toolbarButton(listView), marginLeft: '1rem' },
+              onClick: () => this.setState({ listView: true })
+            }, [icon('view-list', { size: 24, style: { margin: '.3rem' } }), 'List'])
           ]),
           div({ style: styles.cardContainer }, [
             h(NewWorkspaceCard, {
