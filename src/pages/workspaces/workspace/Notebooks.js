@@ -201,7 +201,7 @@ class NotebooksContent extends Component {
     const { name: wsName, namespace, workspace: { accessLevel, canCompute, workspace: { bucketName } } } = this.props
     const canWrite = Utils.canWrite(accessLevel)
 
-    return div({ style: { display: listView ? undefined : 'flex', flexWrap: 'wrap' } }, [
+    return div({ style: { display: listView ? undefined : 'flex', flexWrap: 'wrap', padding: '0 2.25rem' } }, [
       div({
         style: {
           ...notebookCardCommonStyles(listView),
@@ -279,7 +279,7 @@ class NotebooksContent extends Component {
             margin: '0 1.25rem'
           }
         }, [
-          div({ style: { color: colors.darkBlue[0], fontSize: 16, fontWeight: 500 } }, 'NOTEBOOKS'),
+          div({ style: { color: colors.darkBlue[0], fontSize: 16, fontWeight: 500, padding: '0 2.25rem' } }, 'NOTEBOOKS'),
           div({ style: { flexGrow: 1 } }),
           div({ style: styles.toolbarContainer }, [
             h(Clickable, {
