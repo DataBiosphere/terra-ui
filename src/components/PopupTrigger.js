@@ -33,7 +33,7 @@ export default class PopupTrigger extends Component {
   }
 
   render() {
-    const { children, content, position, align, closeOnClick } = this.props
+    const { children, content, position, align, closeOnClick, ...props } = this.props
     const { open } = this.state
     const child = Children.only(children)
     return h(Fragment, [
@@ -45,12 +45,12 @@ export default class PopupTrigger extends Component {
           this.setState({ open: !open })
         }
       }),
-      open && h(ToolTip, {
+      open && h(ToolTip, _.merge({
         active: open, position, align,
         parent: `#${this.id}`, group: 'popup-trigger',
         style: { style: styles.popup, arrowStyle: {} },
         tooltipTimeout: 0
-      }, [
+      }, props), [
         h(PopupBody, {
           handleClickOutside: () => this.setState({ open: false }),
           outsideClickIgnoreClass: this.id

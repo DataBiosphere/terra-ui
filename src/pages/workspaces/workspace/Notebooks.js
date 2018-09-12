@@ -36,24 +36,37 @@ class NotebookCard extends Component {
     const { namespace, name, updated, listView, wsName, onRename, onCopy, onDelete, canCompute, canWrite } = this.props
 
     const notebookMenu = canWrite && h(PopupTrigger, {
-      position: 'bottom',
+      position: 'right',
       closeOnClick: true,
       content: h(Fragment, [
         h(MenuButton, {
           onClick: () => onRename()
-        }, ['Rename']),
+        }, [icon('renameIcon', { size: 15, style: { margin: '0 .25rem 0 0' } }), 'Rename']),
         h(MenuButton, {
           onClick: () => onCopy()
-        }, ['Duplicate']),
+        }, [icon('copy', { size: 15, style: { margin: '0 .25rem 0 0' } }), 'Clone']),
         h(MenuButton, {
           onClick: () => onDelete()
-        }, ['Delete'])
+        }, [icon('trash', { size: 15, style: { margin: '0 .25rem 0 0' } }), 'Delete'])
       ])
     }, [
       h(Clickable, {
         onClick: e => e.preventDefault(),
-        style: { marginLeft: '1rem', cursor: 'pointer' }, focus: 'hover'
-      }, [icon('ellipsis-vertical', { size: 18 })])
+        style: {
+          cursor: 'pointer', color: colors.blue[0]
+        },
+        focus: 'hover',
+        hover: { opacity: 0.5 }
+      }, [
+        icon('cardMenuIcon', {
+          size: 18,
+          style: listView ? {
+            margin: '0 1rem 0 0'
+          } : {
+            margin: '0'
+          }
+        })
+      ])
     ])
 
     const jupyterIcon = icon('jupyterIcon', {
@@ -89,25 +102,24 @@ class NotebookCard extends Component {
             alignItems: listView ? 'center' : undefined
           }
         }, listView ? [
-          jupyterIcon,
+          notebookMenu,
           title,
           div({ style: { flexGrow: 1 } }),
           h(TooltipTrigger, { content: Utils.makeCompleteDate(updated) }, [
             div({ style: { fontSize: '0.8rem', marginRight: '0.5rem' } },
               `Last edited: ${Utils.makePrettyDate(updated)}`)
-          ]),
-          notebookMenu
+          ])
         ] : [
-          div({ style: { display: 'flex', justifyContent: 'space-between' } },
-            [title, notebookMenu]),
+          title,
           jupyterIcon,
-          div({ style: { display: 'flex', alignItems: 'flex-end' } }, [
+          div({ style: { display: 'flex', justifyContent: 'space-between' } }, [
             h(TooltipTrigger, { content: Utils.makeCompleteDate(updated) }, [
               div({ style: { fontSize: '0.8rem', flexGrow: 1, marginRight: '0.5rem' } }, [
                 'Last edited:',
                 div({}, Utils.makePrettyDate(updated))
               ])
-            ])
+            ]),
+            notebookMenu
           ])
         ])
       ])
