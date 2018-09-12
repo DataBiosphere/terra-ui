@@ -19,6 +19,21 @@ import * as Utils from 'src/libs/utils'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
 
+const styles = {
+  toolbarContainer: {
+    flex: 'none', display: 'flex', alignItems: 'flex-end',
+    color: colors.blue[0], padding: '0 2.25rem'
+  },
+  toolbarButton: active => ({
+    display: 'flex', justifyContent: 'center', alignItems: 'center',
+    borderRadius: 3, border: `1px solid ${colors.blue[0]}`,
+    height: '2.25rem', padding: '0 .75rem',
+    color: colors.blue[0],
+    backgroundColor: active ? colors.blue[4] : 'white',
+    fontWeight: active? 'bold' : 'normal'
+  })
+}
+
 const notebookCardCommonStyles = listView =>
   _.merge({ margin: '1.25rem', display: 'flex' },
     listView ?
@@ -266,22 +281,15 @@ class NotebooksContent extends Component {
         }, [
           div({ style: { color: colors.darkBlue[0], fontSize: 16, fontWeight: 500 } }, 'NOTEBOOKS'),
           div({ style: { flexGrow: 1 } }),
-          div({ style: { color: colors.blue[0], padding: '0.5rem 1rem', backgroundColor: 'white', borderRadius: 3 } }, [
+          div({ style: styles.toolbarContainer }, [
             h(Clickable, {
-              as: icon('view-cards'),
-              style: {
-                color: listView ? null : colors.blue[1],
-                marginRight: '1rem', width: 26, height: 22
-              },
-              size: 26,
+              style: { ...styles.toolbarButton(!listView), marginLeft: 'auto' },
               onClick: () => this.setState({ listView: false })
-            }),
+            }, [icon('view-cards', { size: 24, style: { margin: '.3rem' } }), 'Cards']),
             h(Clickable, {
-              as: icon('view-list'),
-              style: { color: listView ? colors.blue[1] : null },
-              size: 26,
+              style: { ...styles.toolbarButton(listView), marginLeft: '1rem' },
               onClick: () => this.setState({ listView: true })
-            })
+            }, [icon('view-list', { size: 24, style: { margin: '.3rem' } }), 'List'])
           ]),
           creating && h(NotebookCreator, {
             namespace, bucketName, existingNames,
