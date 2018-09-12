@@ -35,6 +35,10 @@ const styles = {
     lineHeight: '18px', height: '90px',
     overflow: 'hidden'
   },
+  longMethodVersion: {
+    marginRight: '1rem', width: 90,
+    whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'
+  },
   longCard: {
     ...Style.elements.card,
     width: '100%', minWidth: 0,
@@ -72,8 +76,8 @@ const ToolCard = pure(({ listView, name, namespace, config }) => {
   }, [
     div({ style: { display: 'flex', alignItems: 'center' } }, [
       div({ style: styles.longTitle }, [workflowName]),
-      div({ style: { marginRight: '1rem' } }, [`V. ${methodVersion}`]),
-      div({ style: { flex: 'none' } }, [`Source: ${sourceRepo}`])
+      div({ style: styles.longMethodVersion }, [`V. ${methodVersion}`]),
+      div({ style: { flex: 'none', width: 130 } }, [`Source: ${sourceRepo}`])
     ])
   ]) : a({
     style: styles.shortCard,
