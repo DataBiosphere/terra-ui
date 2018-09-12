@@ -134,20 +134,23 @@ class Participant extends Component {
 }
 
 
+const browseTooltip = 'Look for the Export to Saturn icon to export data from this provider.'
+
+
 const NIHCommonsButtons = h(Fragment, [
   buttonPrimary({
     style: { margin: '0.25rem 0' },
     as: 'a',
     href: 'https://dcp.bionimbus.org/',
     target: '_blank',
-    tooltip: 'Look for the Export to Saturn icon to export data from this provider.'
+    tooltip: browseTooltip
   }, ['Browse Data via Windmill']),
   buttonPrimary({
     style: { margin: '0.25rem 0' },
     as: 'a',
     href: 'https://commons.ucsc-cgp.org/boardwalk',
     target: '_blank',
-    tooltip: 'Look for the Export to Saturn icon to export data from this provider.'
+    tooltip: browseTooltip
   }, ['Browse Data via Boardwalk'])
 ])
 
@@ -163,7 +166,7 @@ const nhs = h(Participant, {
     as: 'a',
     href: 'http://nhs-explorer.appspot.com/',
     target: '_blank',
-    tooltip: 'Look for the Export to Saturn icon to export data from this provider.'
+    tooltip: browseTooltip
   }, ['Browse Data'])
 ])
 
@@ -177,7 +180,7 @@ const hca = h(Participant, {
   buttonPrimary({
     disabled: true,
     tooltip: 'HCA not yet in production'
-    //when in production, add this tooltip: 'Look for the Export to Saturn icon to export data from this provider.'
+    //when in production, add this tooltip: browseTooltip
   }, ['Browse Data'])
 ])
 
@@ -210,7 +213,7 @@ const amppd = h(Participant, {
     as: 'a',
     href: 'http://amp-pd-data-explorer.appspot.com/',
     target: '_blank',
-    tooltip: 'Look for the Export to Saturn icon to export data from this provider.'
+    tooltip: browseTooltip
   }, ['Browse Data'])
 ])
 
