@@ -57,14 +57,13 @@ const styles = {
     flex: 'none', display: 'flex', alignItems: 'flex-end',
     margin: '1rem 4.5rem'
   },
-  toolbarButtons: {
-    marginLeft: 'auto', display: 'flex',
-    backgroundColor: 'white', borderRadius: 3
-  },
   toolbarButton: active => ({
     display: 'flex', justifyContent: 'center', alignItems: 'center',
-    height: '2.25rem', width: '3rem',
-    color: active ? colors.blue[1] : colors.blue[0]
+    borderRadius: 3, border: `1px solid ${colors.blue[0]}`,
+    height: '2.25rem', padding: '0 .75rem',
+    color: colors.blue[0],
+    backgroundColor: active ? colors.blue[4] : 'white',
+    fontWeight: active? 'bold' : 'normal'
   })
 }
 
@@ -124,16 +123,14 @@ class ToolsContent extends Component {
         div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, [
           'Tools'
         ]),
-        div({ style: styles.toolbarButtons }, [
-          h(Clickable, {
-            style: styles.toolbarButton(!listView),
-            onClick: () => this.setState({ listView: false })
-          }, [icon('view-cards', { size: 24 })]),
-          h(Clickable, {
-            style: styles.toolbarButton(listView),
-            onClick: () => this.setState({ listView: true })
-          }, [icon('view-list', { size: 24 })])
-        ])
+        h(Clickable, {
+          style: { ...styles.toolbarButton(!listView), marginLeft: 'auto' },
+          onClick: () => this.setState({ listView: false })
+        }, [icon('view-cards', { size: 24, style: { margin: '.3rem' } }), 'Cards']),
+        h(Clickable, {
+          style: { ...styles.toolbarButton(listView), marginLeft: '1rem' },
+          onClick: () => this.setState({ listView: true })
+        }, [icon('view-list', { size: 24, style: { margin: '.3rem' } }), 'List'])
       ]),
       div({ style: styles.cardContainer }, [
         _.map(config => {
