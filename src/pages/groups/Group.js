@@ -11,6 +11,7 @@ import { TopBar } from 'src/components/TopBar'
 import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
+import * as Forms from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
@@ -58,13 +59,13 @@ const NewUserModal = ajaxCaller(class NewUserModal extends Component {
         disabled: errors
       }, ['Add User'])
     }, [
-      div({ style: styles.formLabel }, ['User email']),
+      Forms.createRequiredFormLabel('User email'),
       textInput({
         autoFocus: true,
         value: userEmail,
         onChange: e => this.setState({ userEmail: e.target.value, emailTouched: true })
       }),
-      div({ style: styles.formLabel }, ['Role']),
+      Forms.createRequiredFormLabel('Role'),
       roleSelector({ role, updateState: role => this.setState({ role }) }),
       submitError && div({ style: { marginTop: '0.5rem', textAlign: 'right', color: colors.red[0] } }, [submitError]),
       submitting && spinnerOverlay

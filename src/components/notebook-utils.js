@@ -6,7 +6,7 @@ import { validatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { ajaxCaller } from 'src/libs/ajax'
 import { reportError } from 'src/libs/error'
-import * as Style from 'src/libs/style'
+import * as Forms from 'src/libs/forms'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 import validate from 'validate.js'
@@ -24,14 +24,12 @@ const notebookNameValidator = existing => ({
   }
 })
 
-const notebookNameInput = props => div({ style: { margin: '0.5rem 0 1rem' } }, [
-  validatedInput(_.merge({
-    inputProps: {
-      autoFocus: true,
-      placeholder: 'Enter a name'
-    }
-  }, props))
-])
+const notebookNameInput = props => validatedInput(_.merge({
+  inputProps: {
+    autoFocus: true,
+    placeholder: 'Enter a name'
+  }
+}, props))
 
 
 const baseNotebook = {
@@ -103,7 +101,7 @@ export const NotebookCreator = ajaxCaller(class NotebookCreator extends Componen
         }
       }, 'Create Notebook')
     }, [
-      div({ style: Style.elements.sectionHeader }, 'Name *'),
+      Forms.createRequiredFormLabel('Name'),
       notebookNameInput({
         error: Utils.summarizeErrors(nameTouched && errors && errors.notebookName),
         inputProps: {
@@ -111,11 +109,10 @@ export const NotebookCreator = ajaxCaller(class NotebookCreator extends Componen
           onChange: e => this.setState({ notebookName: e.target.value, nameTouched: true })
         }
       }),
-      div({ style: Style.elements.sectionHeader }, 'Kernel *'),
+      Forms.createRequiredFormLabel('Kernel'),
       h(Select, {
         clearable: false,
         searchable: false,
-        wrapperStyle: { marginTop: '0.5rem' },
         placeholder: 'Select a kernel',
         value: notebookKernel,
         onChange: notebookKernel => this.setState({ notebookKernel }),
@@ -176,7 +173,7 @@ export const NotebookDuplicator = ajaxCaller(class NotebookDuplicator extends Co
     Utils.cond(
       [processing, () => [centeredSpinner()]],
       () => [
-        div({ style: Style.elements.sectionHeader }, 'New Name *'),
+        Forms.createRequiredFormLabel('New Name'),
         notebookNameInput({
           error: Utils.summarizeErrors(nameTouched && errors && errors.newName),
           inputProps: {
