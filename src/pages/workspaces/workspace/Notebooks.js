@@ -199,15 +199,11 @@ class NotebooksContent extends Component {
           disabled: !canWrite,
           tooltip: !canWrite ? noWrite : undefined
         }, [
-          listView ?
-            div([
-              'Create a New Notebook',
-              icon('plus-circle', { style: { marginLeft: '1rem' }, size: 22 })
-            ]) : div({ style: { fontSize: 18, lineHeight: '22px' } }, [
-              div(['Create a']),
-              div(['New Notebook']),
-              icon('plus-circle', { style: { marginTop: '0.5rem' }, size: 21 })
-            ])
+          div({ style: { fontSize: 18, lineHeight: '22px', width: 150 } }, [
+            div(['Create a']),
+            div(['New Notebook']),
+            icon('plus-circle', { style: { marginTop: '0.5rem' }, size: 21 })
+          ])
         ]),
         div({ style: { width: 20, height: 15 } }),
         h(Clickable, {
@@ -219,10 +215,7 @@ class NotebooksContent extends Component {
           disabled: !canWrite,
           tooltip: !canWrite ? noWrite : undefined
         }, [
-          listView ? div([
-            'Drag or ', link({}, ['Click']), ' to Add an ipynb File',
-            icon('upload-cloud', { size: 25, style: { opacity: 0.4, marginLeft: '1rem' } })
-          ]) : div({ style: { fontSize: 16, lineHeight: '20px' } }, [
+          div({ style: { fontSize: 16, lineHeight: '20px' } }, [
             div(['Drag or ', link({}, ['Click']), ' to ']),
             div(['Add an ipynb File']),
             icon('upload-cloud', { size: 25, style: { opacity: 0.4, marginTop: '0.5rem' } })
