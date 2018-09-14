@@ -50,14 +50,13 @@ class NotebookLauncherContent extends Component {
   constructor(props) {
     super(props)
     this.state = { localizeFailures: 0 }
-  }
+    this.handleCloseMessage = _.bind(e => {
+      const { namespace, name } = this.props
 
-  handleCloseMessage(e) {
-    const { namespace, name } = this.props
-
-    if (e.data === 'close') {
-      Nav.goToPath('workspace-notebooks', { namespace, name })
-    }
+      if (e.data === 'close') {
+        Nav.goToPath('workspace-notebooks', { namespace, name })
+      }
+    }, this)
   }
 
   async componentDidMount() {
