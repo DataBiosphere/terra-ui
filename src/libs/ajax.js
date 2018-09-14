@@ -470,8 +470,12 @@ const Jupyter = signal => ({
           labels: { saturnAutoCreated: 'true', saturnVersion: version },
           defaultClientId: await Config.getGoogleClientId(),
           userJupyterExtensionConfig: {
-            'saturn-iframe-extension':
-              `${window.location.hostname === 'localhost' ? Config.getDevUrlRoot() : window.location.origin}/jupyter-iframe-extension.js`
+            nbExtensions: {
+              'saturn-iframe-extension':
+                `${window.location.hostname === 'localhost' ? Config.getDevUrlRoot() : window.location.origin}/jupyter-iframe-extension.js`
+            },
+            serverExtensions: {},
+            combinedExtensions: {}
           }
         })
         return fetchLeo(`api/cluster/v2/${project}/${name}`, _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'PUT' }, appIdentifier]))
