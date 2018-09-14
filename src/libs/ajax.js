@@ -472,7 +472,7 @@ const Jupyter = signal => ({
           userJupyterExtensionConfig: {
             nbExtensions: {
               'saturn-iframe-extension':
-                `${window.location.hostname === 'localhost' ? Config.getDevUrlRoot() : window.location.origin}/jupyter-iframe-extension.js`
+                `${window.location.hostname === 'localhost' ? await Config.getDevUrlRoot() : window.location.origin}/jupyter-iframe-extension.js`
             },
             serverExtensions: {},
             combinedExtensions: {}
