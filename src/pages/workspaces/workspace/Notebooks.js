@@ -59,23 +59,13 @@ class NotebookCard extends Component {
         hover: { opacity: 0.5 }
       }, [
         icon('cardMenuIcon', {
-          size: 18,
-          style: listView ? {
-            margin: '0 1rem 0 0'
-          } : {
-            margin: '0'
-          }
+          size: 18
         })
       ])
     ])
 
     const jupyterIcon = icon('jupyterIcon', {
-      style: listView ? {
-        height: '2em',
-        width: '2em',
-        margin: '-0.5em 0.5rem -0.5em 0',
-        color: colors.gray[5]
-      } : {
+      style: {
         height: 125,
         width: 'auto',
         color: colors.gray[5]
@@ -84,7 +74,11 @@ class NotebookCard extends Component {
 
     const title = div({
       title: printName(name),
-      style: {
+      style: listView ? {
+        ...Style.elements.cardTitle,
+        textOverflow: 'ellipsis', whiteSpace: 'nowrap', overflow: 'hidden',
+        margin: '0 0 0 1rem'
+      } : {
         ...Style.elements.cardTitle,
         textOverflow: 'ellipsis', whiteSpace: 'nowrap', overflow: 'hidden'
       }
