@@ -44,7 +44,7 @@ const getCluster = clusters => {
 const NotebookLauncher = ajaxCaller(wrapWorkspace({
   breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
   title: ({ notebookName }) => `Notebooks - ${notebookName}`,
-  activeTab: 'notebooks'
+  showTabBar: false
 },
 class NotebookLauncherContent extends Component {
   constructor(props) {
@@ -52,8 +52,18 @@ class NotebookLauncherContent extends Component {
     this.state = { localizeFailures: 0 }
   }
 
+  handleCloseMessage(e) {
+    const { namespace, name } = this.props
+
+    if (e.data === 'close') {
+      Nav.goToPath('workspace-notebooks', { namespace, name })
+    }
+  }
+
   async componentDidMount() {
     this.mounted = true
+
+    window.addEventListener('message', this.handleCloseMessage)
 
     try {
       const { clusterName, clusterUrl } = await this.startCluster()
@@ -78,6 +88,8 @@ class NotebookLauncherContent extends Component {
     if (this.scheduledRefresh) {
       clearTimeout(this.scheduledRefresh)
     }
+
+    window.removeEventListener('message', this.handleCloseMessage)
   }
 
   componentDidUpdate(prevProps, prevState) {

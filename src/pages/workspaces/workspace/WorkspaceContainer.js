@@ -179,7 +179,7 @@ class WorkspaceContainer extends Component {
   }
 
   render() {
-    const { namespace, name, breadcrumbs, title, activeTab, refresh, refreshClusters, workspace, clusters } = this.props
+    const { namespace, name, breadcrumbs, title, activeTab, showTabBar = true, refresh, refreshClusters, workspace, clusters } = this.props
     const { deletingWorkspace, cloningWorkspace, sharingWorkspace } = this.state
 
     return div({ style: styles.page }, [
@@ -195,7 +195,7 @@ class WorkspaceContainer extends Component {
           canCompute: (workspace && workspace.canCompute) || (clusters && clusters.length)
         })
       ]),
-      h(WorkspaceTabs, {
+      showTabBar && h(WorkspaceTabs, {
         namespace, name, activeTab, refresh, workspace,
         onDelete: this.onDelete, onClone: this.onClone, onShare: this.onShare
       }),
@@ -219,7 +219,7 @@ class WorkspaceContainer extends Component {
 }
 
 
-export const wrapWorkspace = ({ breadcrumbs, activeTab, title }, content) => {
+export const wrapWorkspace = ({ breadcrumbs, activeTab, title, showTabBar = true }, content) => {
   return ajaxCaller(class WorkspaceContainerWrapper extends Component {
     constructor(props) {
       super(props)
@@ -237,7 +237,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title }, content) => {
       const { workspace, clusters } = this.state
 
       return h(WorkspaceContainer, {
-        namespace, name, activeTab, workspace, clusters,
+        namespace, name, activeTab, showTabBar, workspace, clusters,
         title: _.isFunction(title) ? title(this.props) : title,
         breadcrumbs: breadcrumbs(this.props),
         refresh: async () => {

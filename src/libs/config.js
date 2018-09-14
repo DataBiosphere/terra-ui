@@ -25,12 +25,13 @@ const getConfig = async () => {
 }
 
 export const getAgoraUrlRoot = async () => (await getConfig()).agoraUrlRoot
+export const getDevUrlRoot = async () => (await getConfig()).devUrlRoot
 export const getDockstoreUrlRoot = async () => (await getConfig()).dockstoreUrlRoot
 export const getFirecloudUrlRoot = async () => (await getConfig()).firecloudUrlRoot
 export const getGoogleClientId = async () => (await getConfig()).googleClientId
+export const getIsProd = async () => (await getConfig()).isProd
 export const getLeoUrlRoot = async () => (await getConfig()).leoUrlRoot
 export const getMarthaUrlRoot = async () => (await getConfig()).marthaUrlRoot
 export const getOrchestrationUrlRoot = async () => (await getConfig()).orchestrationUrlRoot
 export const getRawlsUrlRoot = async () => (await getConfig()).rawlsUrlRoot
 export const getSamUrlRoot = async () => (await getConfig()).samUrlRoot
-export const getIsProd = async () => (await getConfig()).isProd
