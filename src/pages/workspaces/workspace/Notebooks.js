@@ -59,7 +59,7 @@ class NotebookCard extends Component {
         hover: { opacity: 0.5 }
       }, [
         icon('cardMenuIcon', {
-          size: 18
+          size: listView ? 18 : 27
         })
       ])
     ])
