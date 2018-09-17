@@ -36,7 +36,7 @@ class NotebookCard extends Component {
     const { namespace, name, updated, listView, wsName, onRename, onCopy, onDelete, canCompute, canWrite } = this.props
 
     const iconHelp = (iconName, iconLabel) => {
-      return [icon(iconName, { size: 15, style: { marginRight: '.25rem' } }), iconLabel]
+      return h(Fragment, [icon(iconName, { size: 15, style: { marginRight: '.25rem' } }), iconLabel])
     }
 
     const notebookMenu = canWrite && h(PopupTrigger, {
@@ -45,13 +45,13 @@ class NotebookCard extends Component {
       content: h(Fragment, [
         h(MenuButton, {
           onClick: () => onRename()
-        }, iconHelp('renameIcon', 'Rename')),
+        }, [iconHelp('renameIcon', 'Rename')]),
         h(MenuButton, {
           onClick: () => onCopy()
-        }, iconHelp('copy', 'Clone')),
+        }, [iconHelp('copy', 'Clone')]),
         h(MenuButton, {
           onClick: () => onDelete()
-        }, iconHelp('trash', 'Delete'))
+        }, [iconHelp('trash', 'Delete')])
       ])
     }, [
       h(Clickable, {
