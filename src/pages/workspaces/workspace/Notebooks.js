@@ -201,7 +201,7 @@ class NotebooksContent extends Component {
     const { name: wsName, namespace, workspace: { accessLevel, canCompute, workspace: { bucketName } } } = this.props
     const canWrite = Utils.canWrite(accessLevel)
 
-    return div({ style: { display: listView ? undefined : 'flex', flexWrap: 'wrap', padding: '0 2.25rem' } }, [
+    return div({ style: { display: listView ? undefined : 'flex', flexWrap: 'wrap' } }, [
       div({
         style: {
           ...notebookCardCommonStyles(listView),
@@ -279,17 +279,24 @@ class NotebooksContent extends Component {
             margin: '0 1.25rem'
           }
         }, [
-          div({ style: { color: colors.darkBlue[0], fontSize: 16, fontWeight: 500, padding: '0 2.25rem' } }, 'NOTEBOOKS'),
+          div({ style: { color: colors.darkBlue[0], fontSize: 16, fontWeight: 500 } }, 'NOTEBOOKS'),
           div({ style: { flexGrow: 1 } }),
-          div({ style: styles.toolbarContainer }, [
+          div({ style: { color: colors.blue[0], padding: '0.5rem 1rem', backgroundColor: 'white', borderRadius: 3 } }, [
             h(Clickable, {
-              style: { ...styles.toolbarButton(!listView), marginLeft: 'auto' },
+              as: icon('view-cards'),
+              style: {
+                color: listView ? null : colors.blue[1],
+                marginRight: '1rem', width: 26, height: 22
+              },
+              size: 26,
               onClick: () => this.setState({ listView: false })
-            }, [icon('view-cards', { size: 24, style: { margin: '.3rem' } }), 'Cards']),
+            }),
             h(Clickable, {
-              style: { ...styles.toolbarButton(listView), marginLeft: '1rem' },
+              as: icon('view-list'),
+              style: { color: listView ? colors.blue[1] : null },
+              size: 26,
               onClick: () => this.setState({ listView: true })
-            }, [icon('view-list', { size: 24, style: { margin: '.3rem' } }), 'List'])
+            })
           ]),
           creating && h(NotebookCreator, {
             namespace, bucketName, existingNames,
