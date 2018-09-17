@@ -136,7 +136,7 @@ const WorkspaceCard = pure(({ listView, onClone, onDelete, onShare, workspace: {
   }, [
     div({ style: { display: 'flex', alignItems: 'center' } }, [
       workspaceMenu,
-      div({ style: {...styles.longTitle, marginLeft: '1rem'} }, [name]),
+      div({ style: { ...styles.longTitle, marginLeft: '1rem' } }, [name]),
       h(TooltipTrigger, { content: Utils.makeCompleteDate(lastModified) }, [
         div({ style: { flex: 'none' } }, [lastChanged])
       ])
