@@ -35,19 +35,23 @@ class NotebookCard extends Component {
   render() {
     const { namespace, name, updated, listView, wsName, onRename, onCopy, onDelete, canCompute, canWrite } = this.props
 
+    const iconHelp = (iconName, iconLabel) => {
+      return [icon(iconName, { size: 15, style: { marginRight: '.25rem' } }), iconLabel]
+    }
+
     const notebookMenu = canWrite && h(PopupTrigger, {
       position: 'right',
       closeOnClick: true,
       content: h(Fragment, [
         h(MenuButton, {
           onClick: () => onRename()
-        }, [icon('renameIcon', { size: 15, style: { margin: '0 .25rem 0 0' } }), 'Rename']),
+        }, iconHelp('renameIcon', 'Rename')),
         h(MenuButton, {
           onClick: () => onCopy()
-        }, [icon('copy', { size: 15, style: { margin: '0 .25rem 0 0' } }), 'Clone']),
+        }, iconHelp('copy', 'Clone')),
         h(MenuButton, {
           onClick: () => onDelete()
-        }, [icon('trash', { size: 15, style: { margin: '0 .25rem 0 0' } }), 'Delete'])
+        }, iconHelp('trash', 'Delete'))
       ])
     }, [
       h(Clickable, {
@@ -56,7 +60,7 @@ class NotebookCard extends Component {
           cursor: 'pointer', color: colors.blue[0]
         },
         focus: 'hover',
-        hover: { opacity: 0.5 }
+        hover: { color: colors.blue[2] }
       }, [
         icon('cardMenuIcon', {
           size: listView ? 18 : 27
@@ -77,7 +81,7 @@ class NotebookCard extends Component {
       style: listView ? {
         ...Style.elements.cardTitle,
         textOverflow: 'ellipsis', whiteSpace: 'nowrap', overflow: 'hidden',
-        margin: '0 0 0 1rem'
+        marginLeft: '1rem'
       } : {
         ...Style.elements.cardTitle,
         textOverflow: 'ellipsis', whiteSpace: 'nowrap', overflow: 'hidden'
