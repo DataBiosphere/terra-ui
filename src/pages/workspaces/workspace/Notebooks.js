@@ -3,7 +3,7 @@ import { createRef, Fragment } from 'react'
 import Dropzone from 'react-dropzone'
 import { a, div, h } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { Clickable, link, MenuButton, spinnerOverlay } from 'src/components/common'
+import { Clickable, link, MenuButton, spinnerOverlay, viewToggleButtons } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { NotebookCreator, NotebookDeleter, NotebookDuplicator } from 'src/components/notebook-utils'
 import PopupTrigger from 'src/components/PopupTrigger'
@@ -18,21 +18,6 @@ import { Component } from 'src/libs/wrapped-components'
 import * as Utils from 'src/libs/utils'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
-
-const styles = {
-  toolbarContainer: {
-    flex: 'none', display: 'flex', alignItems: 'flex-end',
-    color: colors.blue[0], padding: '0 2.25rem'
-  },
-  toolbarButton: active => ({
-    display: 'flex', justifyContent: 'center', alignItems: 'center',
-    borderRadius: 3, border: `1px solid ${colors.blue[0]}`,
-    height: '2.25rem', padding: '0 .75rem',
-    color: colors.blue[0],
-    backgroundColor: active ? colors.blue[4] : 'white',
-    fontWeight: active? 'bold' : 'normal'
-  })
-}
 
 const notebookCardCommonStyles = listView =>
   _.merge({ margin: '1.25rem', display: 'flex' },
@@ -281,16 +266,7 @@ class NotebooksContent extends Component {
         }, [
           div({ style: { color: colors.darkBlue[0], fontSize: 16, fontWeight: 500, padding: '0 2.25rem' } }, 'NOTEBOOKS'),
           div({ style: { flexGrow: 1 } }),
-          div({ style: styles.toolbarContainer }, [
-            h(Clickable, {
-              style: { ...styles.toolbarButton(!listView), marginLeft: 'auto' },
-              onClick: () => this.setState({ listView: false })
-            }, [icon('view-cards', { size: 24, style: { margin: '.3rem' } }), 'Cards']),
-            h(Clickable, {
-              style: { ...styles.toolbarButton(listView), marginLeft: '1rem' },
-              onClick: () => this.setState({ listView: true })
-            }, [icon('view-list', { size: 24, style: { margin: '.3rem' } }), 'List'])
-          ]),
+          viewToggleButtons(listView, listView => this.setState({ listView })),
           creating && h(NotebookCreator, {
             namespace, bucketName, existingNames,
             reloadList: () => this.refresh(),
