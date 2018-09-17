@@ -89,12 +89,13 @@ const styles = {
   })
 }
 
-const WorkspaceCard = pure(({ listView, onClone, onDelete, onShare, workspace: { workspace: { namespace, name, createdBy, lastModified, attributes: { description } } } }) => {
+const WorkspaceCard = pure(({ listView, onClone, onDelete, onShare, workspace: { accessLevel, workspace: { namespace, name, createdBy, lastModified, attributes: { description } } } }) => {
   const lastChanged = `Last changed: ${Utils.makePrettyDate(lastModified)}`
   const badge = div({ title: createdBy, style: styles.badge }, [createdBy[0].toUpperCase()])
   const descText = description || span({ style: { color: colors.gray[2] } }, [
     'No description added'
   ])
+  const isOwner = _.includes(accessLevel, ['OWNER', 'PROJECT_OWNER'])
   const workspaceMenu = h(PopupTrigger, {
     position: 'right',
     closeOnClick: true,
@@ -103,9 +104,15 @@ const WorkspaceCard = pure(({ listView, onClone, onDelete, onShare, workspace: {
         onClick: () => onClone()
       }, [icon('copy', { size: 15, style: { margin: '0 .25rem 0 0' } }), 'Clone']),
       h(MenuButton, {
+        disabled: !isOwner,
+        tooltip: !isOwner && 'You must be an owner of this workspace or the underlying billing project',
+        tooltipSide: 'left',
         onClick: () => onShare()
       }, [icon('share', { size: 15, style: { margin: '0 .25rem 0 0' } }), 'Share']),
       h(MenuButton, {
+        disabled: !isOwner,
+        tooltip: !isOwner && 'You must be an owner of this workspace or the underlying billing project',
+        tooltipSide: 'left',
         onClick: () => onDelete()
       }, [icon('trash', { size: 15, style: { margin: '0 .25rem 0 0' } }), 'Delete'])
     ])
@@ -119,7 +126,7 @@ const WorkspaceCard = pure(({ listView, onClone, onDelete, onShare, workspace: {
       hover: { opacity: 0.5 }
     }, [
       icon('cardMenuIcon', {
-        size: 18
+        size: listView ? 18 : 27
       })
     ])
   ])
