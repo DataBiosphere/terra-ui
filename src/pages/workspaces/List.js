@@ -96,25 +96,28 @@ const WorkspaceCard = pure(({ listView, onClone, onDelete, onShare, workspace: {
     'No description added'
   ])
   const isOwner = _.includes(accessLevel, ['OWNER', 'PROJECT_OWNER'])
+  const iconHelp = (iconName, iconLabel) => {
+    return h(Fragment, [icon(iconName, { size: 15, style: { marginRight: '.25rem' } }), iconLabel])
+  }
   const workspaceMenu = h(PopupTrigger, {
     position: 'right',
     closeOnClick: true,
     content: h(Fragment, [
       h(MenuButton, {
         onClick: () => onClone()
-      }, [icon('copy', { size: 15, style: { margin: '0 .25rem 0 0' } }), 'Clone']),
+      }, [iconHelp('copy', 'Clone')]),
       h(MenuButton, {
         disabled: !isOwner,
         tooltip: !isOwner && 'You must be an owner of this workspace or the underlying billing project',
         tooltipSide: 'left',
         onClick: () => onShare()
-      }, [icon('share', { size: 15, style: { margin: '0 .25rem 0 0' } }), 'Share']),
+      }, [iconHelp('share', 'Share')]),
       h(MenuButton, {
         disabled: !isOwner,
         tooltip: !isOwner && 'You must be an owner of this workspace or the underlying billing project',
         tooltipSide: 'left',
         onClick: () => onDelete()
-      }, [icon('trash', { size: 15, style: { margin: '0 .25rem 0 0' } }), 'Delete'])
+      }, [iconHelp('trash', 'Delete')])
     ])
   }, [
     h(Clickable, {
@@ -123,7 +126,7 @@ const WorkspaceCard = pure(({ listView, onClone, onDelete, onShare, workspace: {
         cursor: 'pointer', color: colors.blue[0]
       },
       focus: 'hover',
-      hover: { opacity: 0.5 }
+      hover: { color: colors.blue[2] }
     }, [
       icon('cardMenuIcon', {
         size: listView ? 18 : 27
