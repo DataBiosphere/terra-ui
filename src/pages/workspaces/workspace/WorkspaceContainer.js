@@ -112,7 +112,7 @@ class WorkspaceTabs extends PureComponent {
 }
 
 
-const DeleteWorkspaceModal = ajaxCaller(class DeleteWorkspaceModal extends Component {
+export const DeleteWorkspaceModal = ajaxCaller(class DeleteWorkspaceModal extends Component {
   constructor(props) {
     super(props)
     this.state = {
@@ -125,7 +125,12 @@ const DeleteWorkspaceModal = ajaxCaller(class DeleteWorkspaceModal extends Compo
     try {
       this.setState({ deleting: true })
       await Workspaces.workspace(namespace, name).delete()
-      Nav.goToPath('workspaces')
+      console.log(Nav.history.location.pathname)
+      if (Nav.history.location.pathname !== '/workspaces') {
+        Nav.goToPath('workspaces')
+      } else {
+        document.location.reload()
+      }
     } catch (error) {
       reportError('Error deleting workspace', error)
       this.setState({ deleting: false })

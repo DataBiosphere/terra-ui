@@ -2,9 +2,10 @@ import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { a, div, h, span } from 'react-hyperscript-helpers'
 import { pure } from 'recompose'
-import { Clickable, search, spinnerOverlay, LargeFadeBox } from 'src/components/common'
+import { Clickable, search, spinnerOverlay, LargeFadeBox, MenuButton } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
+import PopupTrigger from 'src/components/PopupTrigger'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { TopBar } from 'src/components/TopBar'
 import { ajaxCaller } from 'src/libs/ajax'
@@ -15,6 +16,7 @@ import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
+import { DeleteWorkspaceModal } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
 
 const styles = {
@@ -86,11 +88,39 @@ const styles = {
   })
 }
 
-const WorkspaceCard = pure(({ listView, workspace: { workspace: { namespace, name, createdBy, lastModified, attributes: { description } } } }) => {
+const WorkspaceCard = pure(({ listView, onClone, onDelete, onShare, workspace: { workspace: { namespace, name, createdBy, lastModified, attributes: { description } } } }) => {
   const lastChanged = `Last changed: ${Utils.makePrettyDate(lastModified)}`
   const badge = div({ title: createdBy, style: styles.badge }, [createdBy[0].toUpperCase()])
   const descText = description || span({ style: { color: colors.gray[2] } }, [
     'No description added'
+  ])
+  const workspaceMenu = h(PopupTrigger, {
+    position: 'right',
+    closeOnClick: true,
+    content: h(Fragment, [
+      h(MenuButton, { //COMPLETE
+        onClick: () => onClone()
+      }, [icon('copy', { size: 15, style: { margin: '0 .25rem 0 0' } }), 'Clone']),
+      h(MenuButton, { //don't worry about for now
+        //onClick: () => onShare()
+      }, [icon('share', { size: 15, style: { margin: '0 .25rem 0 0' } }), 'Share']),
+      h(MenuButton, { //COMPLETE
+        onClick: () => onDelete()
+      }, [icon('trash', { size: 15, style: { margin: '0 .25rem 0 0' } }), 'Delete'])
+    ])
+  }, [
+    h(Clickable, {
+      onClick: e => e.preventDefault(),
+      style: {
+        cursor: 'pointer', color: colors.blue[0]
+      },
+      focus: 'hover',
+      hover: { opacity: 0.5 }
+    }, [
+      icon('cardMenuIcon', {
+        size: 18
+      })
+    ])
   ])
   return listView ? a({
     href: Nav.getLink('workspace', { namespace, name }),
@@ -112,11 +142,12 @@ const WorkspaceCard = pure(({ listView, workspace: { workspace: { namespace, nam
   }, [
     div({ style: styles.shortTitle }, [name]),
     div({ style: styles.shortDescription }, [descText]),
+    div({ style: { display: 'flex', marginLeft: 'auto' } }, [badge]),
     div({ style: { display: 'flex', alignItems: 'center' } }, [
       h(TooltipTrigger, { content: Utils.makeCompleteDate(lastModified) }, [
         div({ style: { flex: 1 } }, [lastChanged])
       ]),
-      div({ style: { flex: 'none' } }, [badge])
+      workspaceMenu
     ])
   ])
 })
@@ -149,6 +180,8 @@ export const WorkspaceList = ajaxCaller(class WorkspaceList extends Component {
       listView: false,
       workspaces: null,
       creatingNewWorkspace: false,
+      cloningWorkspaceName: undefined,
+      deletingWorkspaceName: undefined,
       ...StateHistory.get()
     }
   }
@@ -175,7 +208,8 @@ export const WorkspaceList = ajaxCaller(class WorkspaceList extends Component {
   }
 
   render() {
-    const { workspaces, isDataLoaded, filter, listView, creatingNewWorkspace } = this.state
+    const { workspaces, isDataLoaded, filter, listView, creatingNewWorkspace, cloningWorkspaceName, deletingWorkspaceName } = this.state
+
     const data = _.filter(({ workspace: { namespace, name } }) => {
       return Utils.textMatch(filter, `${namespace}/${name}`)
     }, workspaces)
@@ -213,12 +247,26 @@ export const WorkspaceList = ajaxCaller(class WorkspaceList extends Component {
               onClick: () => this.setState({ creatingNewWorkspace: true })
             }),
             _.map(workspace => {
-              return h(WorkspaceCard, { listView, workspace, key: workspace.workspace.workspaceId })
+              return h(WorkspaceCard, {
+                listView,
+                onClone: () => this.setState({ cloningWorkspaceName: workspace }),
+                onDelete: () => this.setState({ deletingWorkspaceName: workspace }),
+                workspace, key: workspace.workspace.workspaceId
+              })
             }, data),
             !isDataLoaded && spinnerOverlay
           ]),
           creatingNewWorkspace && h(NewWorkspaceModal, {
             onDismiss: () => this.setState({ creatingNewWorkspace: false })
+          }),
+          cloningWorkspaceName && h(NewWorkspaceModal, {
+            cloneWorkspace: cloningWorkspaceName,
+            onDismiss: () => this.setState({ cloningWorkspaceName: undefined })
+          }),
+          deletingWorkspaceName &&
+          h(DeleteWorkspaceModal, {
+            workspace: deletingWorkspaceName,
+            onDismiss: () => { this.setState({ deletingWorkspaceName: undefined }) }
           })
         ])
     ])
