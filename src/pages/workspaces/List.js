@@ -17,6 +17,7 @@ import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 import { DeleteWorkspaceModal } from 'src/pages/workspaces/workspace/WorkspaceContainer'
+import ShareWorkspaceModal from 'src/pages/workspaces/workspace/ShareWorkspaceModal'
 
 
 const styles = {
@@ -98,13 +99,13 @@ const WorkspaceCard = pure(({ listView, onClone, onDelete, onShare, workspace: {
     position: 'right',
     closeOnClick: true,
     content: h(Fragment, [
-      h(MenuButton, { //COMPLETE
+      h(MenuButton, {
         onClick: () => onClone()
       }, [icon('copy', { size: 15, style: { margin: '0 .25rem 0 0' } }), 'Clone']),
-      h(MenuButton, { //don't worry about for now
-        //onClick: () => onShare()
+      h(MenuButton, {
+        onClick: () => onShare()
       }, [icon('share', { size: 15, style: { margin: '0 .25rem 0 0' } }), 'Share']),
-      h(MenuButton, { //COMPLETE
+      h(MenuButton, {
         onClick: () => onDelete()
       }, [icon('trash', { size: 15, style: { margin: '0 .25rem 0 0' } }), 'Delete'])
     ])
@@ -182,6 +183,7 @@ export const WorkspaceList = ajaxCaller(class WorkspaceList extends Component {
       creatingNewWorkspace: false,
       cloningWorkspaceName: undefined,
       deletingWorkspaceName: undefined,
+      sharingWorkspaceName: undefined,
       ...StateHistory.get()
     }
   }
@@ -208,7 +210,10 @@ export const WorkspaceList = ajaxCaller(class WorkspaceList extends Component {
   }
 
   render() {
-    const { workspaces, isDataLoaded, filter, listView, creatingNewWorkspace, cloningWorkspaceName, deletingWorkspaceName } = this.state
+    const {
+      workspaces, isDataLoaded, filter, listView,
+      creatingNewWorkspace, cloningWorkspaceName, deletingWorkspaceName, sharingWorkspaceName
+    } = this.state
 
     const data = _.filter(({ workspace: { namespace, name } }) => {
       return Utils.textMatch(filter, `${namespace}/${name}`)
@@ -251,6 +256,7 @@ export const WorkspaceList = ajaxCaller(class WorkspaceList extends Component {
                 listView,
                 onClone: () => this.setState({ cloningWorkspaceName: workspace }),
                 onDelete: () => this.setState({ deletingWorkspaceName: workspace }),
+                onShare: () => this.setState({ sharingWorkspaceName: workspace }),
                 workspace, key: workspace.workspace.workspaceId
               })
             }, data),
@@ -263,10 +269,14 @@ export const WorkspaceList = ajaxCaller(class WorkspaceList extends Component {
             cloneWorkspace: cloningWorkspaceName,
             onDismiss: () => this.setState({ cloningWorkspaceName: undefined })
           }),
-          deletingWorkspaceName &&
-          h(DeleteWorkspaceModal, {
+          deletingWorkspaceName && h(DeleteWorkspaceModal, {
             workspace: deletingWorkspaceName,
             onDismiss: () => { this.setState({ deletingWorkspaceName: undefined }) }
+          }),
+          sharingWorkspaceName && h(ShareWorkspaceModal, {
+            namespace: sharingWorkspaceName.workspace.namespace,
+            name: sharingWorkspaceName.workspace.name,
+            onDismiss: () => { this.setState({ sharingWorkspaceName: undefined }) }
           })
         ])
     ])
