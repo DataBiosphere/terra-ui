@@ -14,7 +14,7 @@ const styles = {
 }
 
 
-export const createFormLabel = (text, ...extras) => {
+export const formLabel = (text, ...extras) => {
   return div({ style: styles.formLabel }, [
     text,
     ...extras
@@ -22,7 +22,7 @@ export const createFormLabel = (text, ...extras) => {
 }
 
 
-export const createRequiredFormLabel = (text, ...extras) => {
+export const requiredFormLabel = (text, ...extras) => {
   return div({ style: styles.formLabel }, [
     `${text} *`,
     ...extras
@@ -30,6 +30,6 @@ export const createRequiredFormLabel = (text, ...extras) => {
 }
 
 
-export const createFormHint = text => {
+export const formHint = text => {
   return div({ style: styles.formHint }, [text])
 }

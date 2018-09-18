@@ -101,7 +101,7 @@ export const NotebookCreator = ajaxCaller(class NotebookCreator extends Componen
         }
       }, 'Create Notebook')
     }, [
-      Forms.createRequiredFormLabel('Name'),
+      Forms.requiredFormLabel('Name'),
       notebookNameInput({
         error: Utils.summarizeErrors(nameTouched && errors && errors.notebookName),
         inputProps: {
@@ -109,7 +109,7 @@ export const NotebookCreator = ajaxCaller(class NotebookCreator extends Componen
           onChange: e => this.setState({ notebookName: e.target.value, nameTouched: true })
         }
       }),
-      Forms.createRequiredFormLabel('Kernel'),
+      Forms.requiredFormLabel('Kernel'),
       h(Select, {
         clearable: false,
         searchable: false,
@@ -173,7 +173,7 @@ export const NotebookDuplicator = ajaxCaller(class NotebookDuplicator extends Co
     Utils.cond(
       [processing, () => [centeredSpinner()]],
       () => [
-        Forms.createRequiredFormLabel('New Name'),
+        Forms.requiredFormLabel('New Name'),
         notebookNameInput({
           error: Utils.summarizeErrors(nameTouched && errors && errors.newName),
           inputProps: {

@@ -55,7 +55,7 @@ const NewGroupModal = ajaxCaller(class NewGroupModal extends Component {
         onClick: () => this.submit()
       }, ['Create Group'])
     }, [
-      Forms.createRequiredFormLabel('Enter a unique name'),
+      Forms.requiredFormLabel('Enter a unique name'),
       validatedInput({
         inputProps: {
           autoFocus: true,
@@ -64,7 +64,7 @@ const NewGroupModal = ajaxCaller(class NewGroupModal extends Component {
         },
         error: groupNameTouched && Utils.summarizeErrors(errors && errors.groupName)
       }),
-      !(groupNameTouched && errors) && Forms.createFormHint('Only letters, numbers, underscores, and dashes allowed'),
+      !(groupNameTouched && errors) && Forms.formHint('Only letters, numbers, underscores, and dashes allowed'),
       submitting && spinnerOverlay
     ])
   }

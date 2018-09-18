@@ -110,7 +110,7 @@ export default ajaxCaller(class NewWorkspaceModal extends Component {
         onClick: () => this.create()
       }, cloneWorkspace ? 'Clone Workspace' : 'Create Workspace')
     }, [
-      Forms.createRequiredFormLabel('Workspace name'),
+      Forms.requiredFormLabel('Workspace name'),
       validatedInput({
         inputProps: {
           autoFocus: true,
@@ -120,7 +120,7 @@ export default ajaxCaller(class NewWorkspaceModal extends Component {
         },
         error: Utils.summarizeErrors(nameModified && errors && errors.name)
       }),
-      Forms.createRequiredFormLabel('Billing project'),
+      Forms.requiredFormLabel('Billing project'),
       billingProjects && !billingProjects.length ? h(Fragment, [
         div({ style: { color: colors.red[0] } }, [
           icon('error', { size: 16 }),
@@ -142,14 +142,14 @@ export default ajaxCaller(class NewWorkspaceModal extends Component {
           return { label: name, value: name }
         }, _.uniq(_.map('projectName', billingProjects)).sort())
       }),
-      Forms.createFormLabel('Description'),
+      Forms.formLabel('Description'),
       h(TextArea, {
         style: { height: 100 },
         placeholder: 'Enter a description',
         value: description,
         onChange: e => this.setState({ description: e.target.value })
       }),
-      Forms.createFormLabel('Authorization domain', h(InfoBox, [
+      Forms.formLabel('Authorization domain', h(InfoBox, [
         'Note: An authorization domain can only be set when creating a workspace. ',
         'Once set, it cannot be changed. ',
         link({ href: authDoc, target: '_blank' }, ['Read more about authorization domains'])

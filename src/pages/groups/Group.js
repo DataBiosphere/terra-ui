@@ -59,13 +59,13 @@ const NewUserModal = ajaxCaller(class NewUserModal extends Component {
         disabled: errors
       }, ['Add User'])
     }, [
-      Forms.createRequiredFormLabel('User email'),
+      Forms.requiredFormLabel('User email'),
       textInput({
         autoFocus: true,
         value: userEmail,
         onChange: e => this.setState({ userEmail: e.target.value, emailTouched: true })
       }),
-      Forms.createRequiredFormLabel('Role'),
+      Forms.requiredFormLabel('Role'),
       roleSelector({ role, updateState: role => this.setState({ role }) }),
       submitError && div({ style: { marginTop: '0.5rem', textAlign: 'right', color: colors.red[0] } }, [submitError]),
       submitting && spinnerOverlay
