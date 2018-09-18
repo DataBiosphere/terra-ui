@@ -240,6 +240,6 @@ export const addNavPaths = () => {
   Nav.defPath('workspaces', {
     path: '/workspaces',
     component: WorkspaceList,
-    title: 'Projects'
+    title: 'Workspaces'
   })
 }
