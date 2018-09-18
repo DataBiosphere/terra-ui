@@ -29,9 +29,5 @@ export const styles = {
   toolbarContainer: {
     flex: 'none', display: 'flex', alignItems: 'flex-end',
     margin: '2rem 4rem 2rem 5rem'
-  },
-  formLabel: {
-    ...Style.elements.sectionHeader,
-    margin: '1rem 0 0.25rem'
   }
 }
