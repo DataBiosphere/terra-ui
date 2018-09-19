@@ -458,12 +458,11 @@ class WorkspaceDataContent extends Component {
         if (editKey !== originalKey) {
           await Workspaces.workspace(namespace, name).deleteAttributes([originalKey])
         }
+
+        await this.loadData()
+        stopEditing()
       } catch (e) {
         reportError('Error saving change to workspace variables', e)
-      } finally {
-        await this.loadData()
-
-        stopEditing()
       }
     }
 
