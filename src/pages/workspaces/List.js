@@ -179,7 +179,10 @@ export const WorkspaceList = ajaxCaller(class WorkspaceList extends Component {
         })
       ]),
       h(PageFadeBox, [
-        div({ style: { display: 'flex', alignItems: 'flex-end', margin: '1rem 4.5rem', marginRight: '2.25rem', justifyContent: 'space-between'
+        div({
+          style: {
+            display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between',
+            margin: '1rem 4.5rem', marginRight: '2.25rem'
           }
         }, [
           div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, [
