@@ -232,7 +232,7 @@ export const WorkspaceList = ajaxCaller(Utils.connectAtom(listViewAtom, 'listVie
       h(PageFadeBox, [
         div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' } }, [
           div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, ['Workspaces']),
-          viewToggleButtons(listView, listView => listViewAtom.set(listView))
+          viewToggleButtons(listView, listViewAtom.set)
         ]),
         div({ style: styles.cardContainer(listView) }, [
           h(NewWorkspaceCard, {

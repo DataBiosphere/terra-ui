@@ -1,8 +1,6 @@
 import { mount } from 'enzyme'
 import { h } from 'react-hyperscript-helpers'
-import TestRenderer from 'react-test-renderer'
 import { waitOneTickAndUpdate } from 'src/libs/test-utils'
-import * as Utils from 'src/libs/utils'
 import { WorkspaceList } from 'src/pages/workspaces/List'
 
 
@@ -11,7 +9,7 @@ describe('WorkspaceList', () => {
     const wrapper = mount(h(WorkspaceList))
     return waitOneTickAndUpdate(wrapper).then(() => {
       const actual = wrapper.instance().child
-      const isListView = () => actual.state.listView
+      const isListView = () => actual.props.listView
 
       expect(isListView()).toEqual(false)
 

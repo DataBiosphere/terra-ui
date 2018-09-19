@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { Component } from 'react'
+import { Component, forwardRef } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import uuid from 'uuid/v4'
 
@@ -35,7 +35,7 @@ export const atom = initialValue => {
  * component will re-render
  */
 export const connectAtom = (theAtom, name) => WrappedComponent => {
-  return class AtomWrapper extends Component {
+  class AtomWrapper extends Component {
     constructor(props) {
       super(props)
       this.state = { value: theAtom.get() }
@@ -54,10 +54,18 @@ export const connectAtom = (theAtom, name) => WrappedComponent => {
     }
 
     render() {
+      const { forwardedRef, ...rest } = this.props
       const { value } = this.state
-      return h(WrappedComponent, { ...this.props, [name]: value })
+
+      return h(WrappedComponent, {
+        ref: forwardedRef,
+        [name]: value,
+        ...rest
+      })
     }
   }
+
+  return forwardRef((props, ref) => h(AtomWrapper, { forwardedRef: ref, ...props }))
 }
 
 export const makePrettyDate = function(dateString) {
