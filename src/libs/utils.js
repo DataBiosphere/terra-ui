@@ -204,6 +204,8 @@ export const readFileAsText = file => {
   })
 }
 
+export const cantBeNumber = _.flow(_.toNumber, _.isNaN)
+
 export const convertValue = _.curry((type, value) => {
   switch (type) {
     case 'string':

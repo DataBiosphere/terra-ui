@@ -435,8 +435,8 @@ class WorkspaceDataContent extends Component {
       ...(_.keys(_.unset(filteredAttributes[editIndex][0], workspaceAttributes)).includes(editKey) ? ['Key must be unique'] : []),
       ...(!editKey ? ['Key is required'] : []),
       ...(!editValue ? ['Value is required'] : []),
-      ...(editValue && editType === 'number' && !/^\d+$/.test(editValue) ? ['Value is not a number'] : []),
-      ...(editValue && editType === 'number list' && !/^(\d+(,\s*)?)+$/.test(editValue) ? ['Value is not a comma-separated list of numbers'] : [])
+      ...(editValue && editType === 'number' && Utils.cantBeNumber(editValue) ? ['Value is not a number'] : []),
+      ...(editValue && editType === 'number list' && _.some(Utils.cantBeNumber, editValue.split(',')) ? ['Value is not a comma-separated list of numbers'] : [])
     ]
 
     return Utils.cond(
