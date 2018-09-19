@@ -231,8 +231,7 @@ export const LargeFadeBox = ({ children }) => {
 
 const viewToggleStyles = {
   toolbarContainer: {
-    flex: 'none', display: 'flex', alignItems: 'flex-end',
-    color: colors.blue[0], padding: '0 2.25rem'
+    flex: 'none', display: 'flex', padding: '0 2.25rem'
   },
   toolbarButton: active => ({
     display: 'flex', justifyContent: 'center', alignItems: 'center',
