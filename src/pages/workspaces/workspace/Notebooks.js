@@ -3,7 +3,7 @@ import { createRef, Fragment } from 'react'
 import Dropzone from 'react-dropzone'
 import { a, div, h } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { Clickable, link, MenuButton, spinnerOverlay } from 'src/components/common'
+import { Clickable, link, MenuButton, spinnerOverlay, viewToggleButtons } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { NotebookCreator, NotebookDeleter, NotebookDuplicator } from 'src/components/notebook-utils'
 import PopupTrigger from 'src/components/PopupTrigger'
@@ -196,7 +196,7 @@ class NotebooksContent extends Component {
     const { name: wsName, namespace, workspace: { accessLevel, canCompute, workspace: { bucketName } } } = this.props
     const canWrite = Utils.canWrite(accessLevel)
 
-    return div({ style: { display: listView ? undefined : 'flex', flexWrap: 'wrap' } }, [
+    return div({ style: { display: listView ? undefined : 'flex', flexWrap: 'wrap', padding: '0 2.25rem' } }, [
       div({
         style: {
           ...notebookCardCommonStyles(listView),
@@ -274,25 +274,9 @@ class NotebooksContent extends Component {
             margin: '0 1.25rem'
           }
         }, [
-          div({ style: { color: colors.darkBlue[0], fontSize: 16, fontWeight: 500 } }, 'NOTEBOOKS'),
+          div({ style: { color: colors.darkBlue[0], fontSize: 16, fontWeight: 500, padding: '0 2.25rem' } }, 'NOTEBOOKS'),
           div({ style: { flexGrow: 1 } }),
-          div({ style: { color: colors.blue[0], padding: '0.5rem 1rem', backgroundColor: 'white', borderRadius: 3 } }, [
-            h(Clickable, {
-              as: icon('view-cards'),
-              style: {
-                color: listView ? null : colors.blue[1],
-                marginRight: '1rem', width: 26, height: 22
-              },
-              size: 26,
-              onClick: () => this.setState({ listView: false })
-            }),
-            h(Clickable, {
-              as: icon('view-list'),
-              style: { color: listView ? colors.blue[1] : null },
-              size: 26,
-              onClick: () => this.setState({ listView: true })
-            })
-          ]),
+          viewToggleButtons(listView, listView => this.setState({ listView })),
           creating && h(NotebookCreator, {
             namespace, bucketName, existingNames,
             reloadList: () => this.refresh(),
