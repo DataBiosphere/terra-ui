@@ -567,7 +567,7 @@ class WorkspaceDataContent extends Component {
             onMouseLeave: () => this.setState({ addVariableHover: false }),
             onClick: () => this.setState({
               addVariableHover: false,
-              editIndex: amendedAttributes.length,
+              editIndex: filteredAttributes.length,
               editValue: '',
               editKey: '',
               editType: 'string'
