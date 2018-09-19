@@ -46,11 +46,12 @@ const styles = {
   smallInput: {
     width: 80
   },
-  smallSelect: {
+  smallSelect: oldStyle => ({
+    ...oldStyle,
     width: 80,
     display: 'inline-block',
     verticalAlign: 'middle'
-  },
+  }),
   warningBox: {
     fontSize: 12,
     backgroundColor: colors.orange[5],
@@ -113,12 +114,12 @@ const MachineSelector = ({ machineType, onChangeMachineType, diskSize, onChangeD
         readOnly ?
           currentCpu :
           h(Select, {
-            wrapperStyle: styles.smallSelect,
-            searchable: false,
-            clearable: false,
+            styles: { container: styles.smallSelect },
+            isSearchable: false,
+            isClearable: false,
             value: currentCpu,
             onChange: ({ value }) => onChangeMachineType(_.find({ cpu: value }, machineTypes).name),
-            options: _.map(cpu => ({ label: cpu, value: cpu }), _.uniq(_.map('cpu', machineTypes)))
+            options: _.uniq(_.map('cpu', machineTypes))
           })
       ]),
       div({ style: { ...styles.col3, ...styles.label } }, 'Disk size'),
@@ -141,14 +142,14 @@ const MachineSelector = ({ machineType, onChangeMachineType, diskSize, onChangeD
         readOnly ?
           currentMemory :
           h(Select, {
-            wrapperStyle: styles.smallSelect,
-            searchable: false,
-            clearable: false,
+            styles: { container: styles.smallSelect },
+            isSearchable: false,
+            isClearable: false,
             value: currentMemory,
             onChange: ({ value }) =>
               onChangeMachineType(_.find({ cpu: currentCpu, memory: value }, machineTypes).name),
             options: _.map(
-              ({ memory }) => ({ label: memory, value: memory }),
+              'memory',
               _.sortBy('memory', _.filter({ cpu: currentCpu }, machineTypes))
             )
           }),
@@ -325,20 +326,26 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
         div({ style: { flex: 1 } }, [
           h(Select, {
             value: profile,
+            getOptionLabel: ({ value }) => {
+              if (value === 'custom') {
+                return 'Custom'
+              } else {
+                const { label, machineConfig } = profilesByName[value]
+
+                return `${label} computer power (${Utils.formatUSD(machineConfigCost(machineConfig))} hr)`
+              }
+            },
             onChange: ({ value }) => {
               this.setState({
                 profile: value,
                 ...(value === 'custom' ? {} : normalizeMachineConfig(profilesByName[value].machineConfig))
               })
             },
-            searchable: false,
-            clearable: false,
+            isSearchable: false,
+            isClearable: false,
             options: [
-              ..._.map(({ name, label, machineConfig }) => ({
-                value: name,
-                label: `${label} computer power (${Utils.formatUSD(machineConfigCost(machineConfig))} hr)`
-              }), profiles),
-              { value: 'custom', label: 'Custom' }
+              ..._.map('name', profiles),
+              'custom'
             ]
           })
         ])

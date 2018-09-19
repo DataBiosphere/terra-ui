@@ -7,7 +7,7 @@ import { centeredSpinner, icon } from 'src/components/icons'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import colors from 'src/libs/colors'
 import * as Style from 'src/libs/style'
-import 'react-select/dist/react-select.css'
+import * as Utils from 'src/libs/utils'
 
 
 const styles = {
@@ -199,8 +199,22 @@ export const comingSoon = span({
   }
 }, ['coming soon'])
 
-export const Select = RSelect
+export const Select = ({ value, options, ...props }) => {
+  const newOptions = options && !_.isObject(options[0]) ? _.map(value => ({ value }), options) : options
+  const findValue = target => _.find({ value: target }, newOptions)
+  const newValue = Utils.cond(
+    [_.isUndefined(value), undefined],
+    [_.has('value', value), value],
+    [props.isMulti, () => _.map(findValue, value)],
+    () => findValue(value))
 
+  return h(RSelect, {
+    getOptionLabel: ({ value, label }) => label || value,
+    value: newValue,
+    options: newOptions,
+    ...props
+  })
+}
 export const LargeFadeBox = ({ children }) => {
   return div({
     style: {
