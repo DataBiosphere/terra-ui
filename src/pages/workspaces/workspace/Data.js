@@ -422,9 +422,7 @@ class WorkspaceDataContent extends Component {
     const { namespace, name, workspace: { accessLevel }, ajax: { Workspaces } } = this.props
     const { workspaceAttributes, editIndex, deleteIndex, editKey, editValue, editType, addVariableHover } = this.state
     const canEdit = Utils.canWrite(accessLevel)
-    const stopEditing = () => this.setState({
-      editIndex: undefined, editKey: undefined, editValue: undefined, editType: undefined, creatingNewVariable: false
-    })
+    const stopEditing = () => this.setState({ editIndex: undefined, editKey: undefined, editValue: undefined, editType: undefined })
     const filteredAttributes = _.flow(
       _.toPairs,
       _.remove(([key]) => key === 'description' || key.includes(':') || key.startsWith('referenceData-')),
