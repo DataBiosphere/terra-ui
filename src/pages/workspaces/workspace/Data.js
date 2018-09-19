@@ -420,7 +420,7 @@ class WorkspaceDataContent extends Component {
 
   renderLocalVariables() {
     const { namespace, name, workspace: { accessLevel }, ajax: { Workspaces } } = this.props
-    const { workspaceAttributes, editIndex, deleteIndex, editKey, editValue, editType, addVariableHover, creatingNewVariable } = this.state
+    const { workspaceAttributes, editIndex, deleteIndex, editKey, editValue, editType, addVariableHover } = this.state
     const canEdit = Utils.canWrite(accessLevel)
     const stopEditing = () => this.setState(
       { editIndex: undefined, editKey: undefined, editValue: undefined, editType: undefined, creatingNewVariable: false })
@@ -431,13 +431,40 @@ class WorkspaceDataContent extends Component {
         _.sortBy(_.first)
       )(workspaceAttributes), ...(creatingNewVariable ? [['', '']] : [])
     ]
+
+    const creatingNewVariable = editIndex === filteredAttributes.length
     const inputErrors = editIndex && [
       ...(_.keys(_.unset(filteredAttributes[editIndex][0], workspaceAttributes)).includes(editKey) ? ['Key must be unique'] : []),
       ...(!editKey ? ['Key is required'] : []),
       ...(!editValue ? ['Value is required'] : []),
       ...(editValue && editType === 'number' && Utils.cantBeNumber(editValue) ? ['Value is not a number'] : []),
-      ...(editValue && editType === 'number list' && _.some(Utils.cantBeNumber, editValue.split(',')) ? ['Value is not a comma-separated list of numbers'] : [])
+      ...(editValue && editType === 'number list' && _.some(Utils.cantBeNumber, editValue.split(',')) ?
+        ['Value is not a comma-separated list of numbers'] : [])
     ]
+
+    const saveAttribute = async originalKey => {
+      try {
+        const isList = editType.includes('list')
+        const newBaseType = isList ? editType.slice(0, -5) : editType
+
+        const parsedValue = isList ? _.map(Utils.convertValue(newBaseType), editValue.split(/,s*/)) :
+          Utils.convertValue(newBaseType, editValue)
+
+        this.setState({ loading: true })
+
+        await Workspaces.workspace(namespace, name).shallowMergeNewAttributes({ [editKey]: parsedValue })
+
+        if (editKey !== originalKey) {
+          await Workspaces.workspace(namespace, name).deleteAttributes([originalKey])
+        }
+      } catch (e) {
+        reportError('Error saving change to workspace variables', e)
+      } finally {
+        await this.loadData()
+
+        stopEditing()
+      }
+    }
 
     return Utils.cond(
       [!filteredAttributes, () => undefined],
@@ -494,25 +521,7 @@ class WorkspaceDataContent extends Component {
                           tooltip: Utils.summarizeErrors(inputErrors) || 'Save changes',
                           disabled: !!inputErrors.length,
                           style: { marginLeft: '1rem' },
-                          onClick: async () => {
-                            const isList = editType.includes('list')
-                            const newBaseType = isList ? editType.slice(0, -5) : editType
-
-                            const parsedValue = isList ? _.map(Utils.convertValue(newBaseType), editValue.split(/,s*/)) :
-                              Utils.convertValue(newBaseType, editValue)
-
-                            this.setState({ loading: true })
-
-                            await Workspaces.workspace(namespace, name).shallowMergeNewAttributes({ [editKey]: parsedValue })
-
-                            if (editKey !== originalKey) {
-                              await Workspaces.workspace(namespace, name).deleteAttributes([originalKey])
-                            }
-
-                            await this.loadData()
-
-                            stopEditing()
-                          }
+                          onClick: () => saveAttribute(originalKey)
                         }, [icon('success-standard', { size: 23 })]),
                         linkButton({
                           tooltip: 'Cancel editing',
@@ -557,7 +566,7 @@ class WorkspaceDataContent extends Component {
             onMouseEnter: () => this.setState({ addVariableHover: true }),
             onMouseLeave: () => this.setState({ addVariableHover: false }),
             onClick: () => this.setState({
-              creatingNewVariable: true, addVariableHover: false,
+              addVariableHover: false,
               editIndex: filteredAttributes.length,
               editValue: '',
               editKey: '',
@@ -580,9 +589,14 @@ class WorkspaceDataContent extends Component {
           title: 'Are you sure you wish to delete this variable?',
           okButton: buttonPrimary({
             onClick: async () => {
-              await Workspaces.workspace(namespace, name).deleteAttributes([filteredAttributes[deleteIndex][0]])
-              this.setState({ deleteIndex: undefined, loading: true })
-              this.loadData()
+              try {
+                this.setState({ deleteIndex: undefined, loading: true })
+                await Workspaces.workspace(namespace, name).deleteAttributes([filteredAttributes[deleteIndex][0]])
+              } catch (e) {
+                reportError('Error deleting workspace variable', e)
+              } finally {
+                this.loadData()
+              }
             }
           },
           'Delete Variable')
