@@ -422,19 +422,22 @@ class WorkspaceDataContent extends Component {
     const { namespace, name, workspace: { accessLevel }, ajax: { Workspaces } } = this.props
     const { workspaceAttributes, editIndex, deleteIndex, editKey, editValue, editType, addVariableHover } = this.state
     const canEdit = Utils.canWrite(accessLevel)
-    const stopEditing = () => this.setState(
-      { editIndex: undefined, editKey: undefined, editValue: undefined, editType: undefined, creatingNewVariable: false })
-    const filteredAttributes = [
-      ..._.flow(
-        _.toPairs,
-        _.remove(([key]) => key === 'description' || key.includes(':') || key.startsWith('referenceData-')),
-        _.sortBy(_.first)
-      )(workspaceAttributes), ...(creatingNewVariable ? [['', '']] : [])
-    ]
+    const stopEditing = () => this.setState({
+      editIndex: undefined, editKey: undefined, editValue: undefined, editType: undefined, creatingNewVariable: false
+    })
+    const filteredAttributes = _.flow(
+      _.toPairs,
+      _.remove(([key]) => key === 'description' || key.includes(':') || key.startsWith('referenceData-')),
+      _.sortBy(_.first)
+    )(workspaceAttributes)
 
     const creatingNewVariable = editIndex === filteredAttributes.length
+    const amendedAttributes = [
+      ...filteredAttributes, ...(creatingNewVariable ? [['', '']] : [])
+    ]
+
     const inputErrors = editIndex && [
-      ...(_.keys(_.unset(filteredAttributes[editIndex][0], workspaceAttributes)).includes(editKey) ? ['Key must be unique'] : []),
+      ...(_.keys(_.unset(amendedAttributes[editIndex][0], workspaceAttributes)).includes(editKey) ? ['Key must be unique'] : []),
       ...(!editKey ? ['Key is required'] : []),
       ...(!editValue ? ['Value is required'] : []),
       ...(editValue && editType === 'number' && Utils.cantBeNumber(editValue) ? ['Value is not a number'] : []),
@@ -467,12 +470,12 @@ class WorkspaceDataContent extends Component {
     }
 
     return Utils.cond(
-      [!filteredAttributes, () => undefined],
-      [_.isEmpty(filteredAttributes), () => 'No Local Variables defined'],
+      [!amendedAttributes, () => undefined],
+      [_.isEmpty(amendedAttributes), () => 'No Local Variables defined'],
       () => div({ style: { flex: 1 } }, [
         h(AutoSizer, [
           ({ width, height }) => h(FlexTable, {
-            width, height, rowCount: filteredAttributes.length,
+            width, height, rowCount: amendedAttributes.length,
             onScroll: y => saveScroll(0, y),
             initialY: StateHistory.get().initialY,
             hoverHighlight: true,
@@ -486,14 +489,14 @@ class WorkspaceDataContent extends Component {
                     value: editKey,
                     onChange: e => this.setState({ editKey: e.target.value })
                   }) :
-                  renderDataCell(filteredAttributes[rowIndex][0], namespace)
+                  renderDataCell(amendedAttributes[rowIndex][0], namespace)
               },
               {
                 size: { grow: 1 },
                 headerRenderer: () => h(HeaderCell, ['Value']),
                 cellRenderer: ({ rowIndex }) => {
-                  const originalKey = filteredAttributes[rowIndex][0]
-                  const originalValue = filteredAttributes[rowIndex][1]
+                  const originalKey = amendedAttributes[rowIndex][0]
+                  const originalValue = amendedAttributes[rowIndex][1]
 
                   return h(Fragment, [
                     div({ style: { flex: 1, minWidth: 0, display: 'flex' } }, [
@@ -567,7 +570,7 @@ class WorkspaceDataContent extends Component {
             onMouseLeave: () => this.setState({ addVariableHover: false }),
             onClick: () => this.setState({
               addVariableHover: false,
-              editIndex: filteredAttributes.length,
+              editIndex: amendedAttributes.length,
               editValue: '',
               editKey: '',
               editType: 'string'
@@ -591,7 +594,7 @@ class WorkspaceDataContent extends Component {
             onClick: async () => {
               try {
                 this.setState({ deleteIndex: undefined, loading: true })
-                await Workspaces.workspace(namespace, name).deleteAttributes([filteredAttributes[deleteIndex][0]])
+                await Workspaces.workspace(namespace, name).deleteAttributes([amendedAttributes[deleteIndex][0]])
               } catch (e) {
                 reportError('Error deleting workspace variable', e)
               } finally {
