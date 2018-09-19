@@ -209,7 +209,7 @@ export const Select = ({ value, options, ...props }) => {
     () => findValue(value))
 
   return h(RSelect, {
-    getOptionLabel: ({ value, label }) => label || value,
+    getOptionLabel: ({ value, label }) => label || _.flow(_.camelCase, _.startCase)(value), // start case doesn't handle all caps
     value: newValue,
     options: newOptions,
     ...props

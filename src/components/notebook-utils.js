@@ -115,7 +115,6 @@ export const NotebookCreator = ajaxCaller(class NotebookCreator extends Componen
         isSearchable: false,
         placeholder: 'Select a kernel',
         value: notebookKernel,
-        getOptionLabel: ({ value }) => _.startCase(value),
         onChange: notebookKernel => this.setState({ notebookKernel }),
         options: ['python2', 'python3', 'r']
       }),

@@ -23,7 +23,7 @@ const styles = {
   },
   currentCollaboratorsArea: {
     margin: '0 -1.25rem',
-    padding: '0.75rem 1.25rem 6rem',
+    padding: '0.75rem 1.25rem',
     maxHeight: 550,
     overflowY: 'auto',
     borderBottom: Style.standardLine
@@ -32,11 +32,11 @@ const styles = {
     textTransform: 'uppercase', fontWeight: 500,
     color: colors.orange[0]
   },
-  roleSelect: {
+  roleSelect: oldStyle => ({
+    ...oldStyle,
     width: 200,
-    display: 'inline-flex',
     marginTop: '0.25rem'
-  },
+  }),
   suggestionContainer: {
     display: 'flex', alignItems: 'center',
     padding: '0.5rem 1rem',
@@ -134,7 +134,8 @@ export default ajaxCaller(class ShareWorkspaceModal extends Component {
   }
 
   renderCollaborator = ({ email, accessLevel, pending }, index) => {
-    const isPO = accessLevel === 'PROJECT_OWNER'
+    const POAccessLevel = 'PROJECT_OWNER'
+    const isPO = accessLevel === POAccessLevel
     const isMe = email === getBasicProfile().getEmail()
     const { acl } = this.state
 
@@ -148,18 +149,18 @@ export default ajaxCaller(class ShareWorkspaceModal extends Component {
         pending && div({ style: styles.pending }, ['Pending']),
         isPO ?
           h(Select, {
-            wrapperStyle: styles.roleSelect,
-            disabled: true,
-            value: 'Project Owner',
-            options: [{ label: 'Project Owner', value: 'Project Owner' }]
+            styles: { container: styles.roleSelect },
+            isDisabled: true,
+            value: POAccessLevel,
+            options: [POAccessLevel]
           }) :
           h(Select, {
-            wrapperStyle: styles.roleSelect,
-            searchable: false, clearable: false,
-            disabled: isMe,
+            styles: { container: styles.roleSelect },
+            isSearchable: false, isClearable: false,
+            isDisabled: isMe,
             value: accessLevel,
-            onChange: ({ value }) => this.setState({ acl: _.set([index, 'accessLevel'], value, acl) }),
-            options: _.map(level => ({ label: level, value: level.toUpperCase() }), ['Reader', 'Writer', 'Owner'])
+            onChange: ({ value }) => this.setState({ acl: _.set([index, 'accessLevel'], value.toUpperCase, acl) }),
+            options: ['READER', 'WRITER', 'OWNER']
           })
       ]),
       !isPO && !isMe && linkButton({
