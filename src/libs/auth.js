@@ -80,38 +80,40 @@ authStore.subscribe((state, oldState) => {
   }
 })
 
+const basicMachineConfig = {
+  'numberOfWorkers': 0, 'masterMachineType': 'n1-standard-4',
+  'masterDiskSize': 500, 'workerMachineType': 'n1-standard-4',
+  'workerDiskSize': 500, 'numberOfWorkerLocalSSDs': 0,
+  'numberOfPreemptibleWorkers': 0
+}
+
 authStore.subscribe(async (state, oldState) => {
   if (oldState.registrationStatus !== 'registered' && state.registrationStatus === 'registered') {
     try {
       const userProfile = getBasicProfile()
-      const [billingProjects, clusters] = await Promise.all(
-        [Ajax().Billing.listProjects(), Ajax().Jupyter.clustersList()])
-      const projectsWithoutClusters = _.difference(
-        _.uniq(_.map('projectName', billingProjects)), // in case of being both a user and an admin of a project
-        _.map(
-          'googleProject',
-          _.filter({ creator: userProfile.getEmail() }, clusters)
-        )
-      )
-      const needsUpgrade = _.remove(c => c.labels.saturnVersion === version, clusters)
+      const [billingProjects, clusters] = await Promise.all([
+        Ajax().Billing.listProjects(),
+        Ajax().Jupyter.clustersList()
+      ])
+      const ownClusters = _.filter({ creator: userProfile.getEmail() }, clusters)
+      const googleProjects = _.uniq(_.map('projectName', billingProjects)) // can have duplicates for multiple roles
+      const groupedClusters = _.groupBy('googleProject', ownClusters)
+      const projectsNeedingCluster = _.filter(p => {
+        return !_.some(c => c.labels.saturnVersion * 1 >= version * 1, groupedClusters[p])
+      }, googleProjects)
+      const oldClusters = _.filter(({ labels: { saturnVersion } }) => {
+        return saturnVersion * 1 < version * 1
+      }, ownClusters)
       await Promise.all([
-        ..._.map(project => {
-          return Ajax().Jupyter.cluster(project, Utils.generateClusterName()).create({
-            'machineConfig': {
-              'numberOfWorkers': 0, 'masterMachineType': 'n1-standard-4',
-              'masterDiskSize': 500, 'workerMachineType': 'n1-standard-4',
-              'workerDiskSize': 500, 'numberOfWorkerLocalSSDs': 0,
-              'numberOfPreemptibleWorkers': 0
-            },
-            'stopAfterCreation': true
+        ..._.map(p => {
+          return Ajax().Jypyter.cluster(p, Utils.generateClusterName()).create({
+            machineConfig: _.last(_.sortBy('createdDate', groupedClusters[p])) || basicMachineConfig,
+            stopAfterCreation: true
           }).catch(r => r.status === 403 ? r : Promise.reject(r))
-        }, projectsWithoutClusters),
-        ..._.flatMap(({ googleProject, clusterName, machineConfig, jupyterUserScriptUri }) => {
-          return [
-            Ajax().Jupyter.cluster(googleProject, clusterName).delete(),
-            Ajax().Jupyter.cluster(googleProject, Utils.generateClusterName()).create({ machineConfig, jupyterUserScriptUri })
-          ]
-        }, needsUpgrade)
+        }, projectsNeedingCluster),
+        ..._.map(({ googleProject, clusterName }) => {
+          return Ajax().Jupyter.cluster(googleProject, clusterName).delete()
+        }, oldClusters)
       ])
     } catch (error) {
       reportError('Error auto-creating clusters', error)
