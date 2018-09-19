@@ -99,10 +99,10 @@ authStore.subscribe(async (state, oldState) => {
       const googleProjects = _.uniq(_.map('projectName', billingProjects)) // can have duplicates for multiple roles
       const groupedClusters = _.groupBy('googleProject', ownClusters)
       const projectsNeedingCluster = _.filter(p => {
-        return !_.some(c => c.labels.saturnVersion * 1 >= version * 1, groupedClusters[p])
+        return !_.some(c => _.toNumber(c.labels.saturnVersion) >= _.toNumber(version), groupedClusters[p])
       }, googleProjects)
       const oldClusters = _.filter(({ labels: { saturnVersion } }) => {
-        return saturnVersion * 1 < version * 1
+        return _.toNumber(saturnVersion) < _.toNumber(version)
       }, ownClusters)
       await Promise.all([
         ..._.map(p => {
