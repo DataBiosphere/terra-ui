@@ -192,9 +192,9 @@ export const WorkspaceList = ajaxCaller(class WorkspaceList extends Component {
       listView: false,
       workspaces: null,
       creatingNewWorkspace: false,
-      cloningWorkspaceName: undefined,
-      deletingWorkspaceName: undefined,
-      sharingWorkspaceName: undefined,
+      cloningWorkspaceId: undefined,
+      deletingWorkspaceId: undefined,
+      sharingWorkspaceId: undefined,
       ...StateHistory.get()
     }
   }
@@ -220,10 +220,15 @@ export const WorkspaceList = ajaxCaller(class WorkspaceList extends Component {
     this.refresh()
   }
 
+  getWorkspace(id) {
+    const { workspaces } = this.state
+    return _.find({ workspace: { workspaceId: id } }, workspaces)
+  }
+
   render() {
     const {
       workspaces, isDataLoaded, filter, listView,
-      creatingNewWorkspace, cloningWorkspaceName, deletingWorkspaceName, sharingWorkspaceName
+      creatingNewWorkspace, cloningWorkspaceId, deletingWorkspaceId, sharingWorkspaceId
     } = this.state
 
     const data = _.filter(({ workspace: { namespace, name } }) => {
@@ -265,9 +270,9 @@ export const WorkspaceList = ajaxCaller(class WorkspaceList extends Component {
             _.map(workspace => {
               return h(WorkspaceCard, {
                 listView,
-                onClone: () => this.setState({ cloningWorkspaceName: workspace }),
-                onDelete: () => this.setState({ deletingWorkspaceName: workspace }),
-                onShare: () => this.setState({ sharingWorkspaceName: workspace }),
+                onClone: () => this.setState({ cloningWorkspaceId: workspace.workspace.workspaceId }),
+                onDelete: () => this.setState({ deletingWorkspaceId: workspace.workspace.workspaceId }),
+                onShare: () => this.setState({ sharingWorkspaceId: workspace.workspace.workspaceId }),
                 workspace, key: workspace.workspace.workspaceId
               })
             }, data),
@@ -276,18 +281,18 @@ export const WorkspaceList = ajaxCaller(class WorkspaceList extends Component {
           creatingNewWorkspace && h(NewWorkspaceModal, {
             onDismiss: () => this.setState({ creatingNewWorkspace: false })
           }),
-          cloningWorkspaceName && h(NewWorkspaceModal, {
-            cloneWorkspace: cloningWorkspaceName,
-            onDismiss: () => this.setState({ cloningWorkspaceName: undefined })
+          cloningWorkspaceId && h(NewWorkspaceModal, {
+            cloneWorkspace: this.getWorkspace(cloningWorkspaceId),
+            onDismiss: () => this.setState({ cloningWorkspaceId: undefined })
           }),
-          deletingWorkspaceName && h(DeleteWorkspaceModal, {
-            workspace: deletingWorkspaceName,
-            onDismiss: () => { this.setState({ deletingWorkspaceName: undefined }) }
+          deletingWorkspaceId && h(DeleteWorkspaceModal, {
+            workspace: this.getWorkspace(deletingWorkspaceId),
+            onDismiss: () => { this.setState({ deletingWorkspaceId: undefined }) }
           }),
-          sharingWorkspaceName && h(ShareWorkspaceModal, {
-            namespace: sharingWorkspaceName.workspace.namespace,
-            name: sharingWorkspaceName.workspace.name,
-            onDismiss: () => { this.setState({ sharingWorkspaceName: undefined }) }
+          sharingWorkspaceId && h(ShareWorkspaceModal, {
+            namespace: this.getWorkspace(sharingWorkspaceId).workspace.namespace,
+            name: this.getWorkspace(sharingWorkspaceId).workspace.name,
+            onDismiss: () => { this.setState({ sharingWorkspaceId: undefined }) }
           })
         ])
     ])
