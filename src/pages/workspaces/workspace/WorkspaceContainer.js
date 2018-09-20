@@ -159,7 +159,8 @@ class WorkspaceContainer extends Component {
       ]),
       deletingWorkspace && h(DeleteWorkspaceModal, {
         workspace,
-        onDismiss: () => this.setState({ deletingWorkspace: false })
+        onDismiss: () => this.setState({ deletingWorkspace: false }),
+        onSuccess: () => Nav.goToPath('workspaces')
       }),
       cloningWorkspace && h(NewWorkspaceModal, {
         cloneWorkspace: workspace,

@@ -16,15 +16,12 @@ export default ajaxCaller(class DeleteWorkspaceModal extends Component {
   }
 
   async deleteWorkspace() {
-    const { workspace: { workspace: { namespace, name } }, ajax: { Workspaces } } = this.props
+    const { workspace: { workspace: { namespace, name } }, ajax: { Workspaces }, onDismiss, onSuccess } = this.props
     try {
       this.setState({ deleting: true })
       await Workspaces.workspace(namespace, name).delete()
-      if (Nav.history.location.pathname !== '/workspaces') {
-        Nav.goToPath('workspaces')
-      } else {
-        document.location.reload()
-      }
+      onDismiss()
+      onSuccess()
     } catch (error) {
       reportError('Error deleting workspace', error)
       this.setState({ deleting: false })

@@ -271,7 +271,8 @@ export const WorkspaceList = ajaxCaller(class WorkspaceList extends Component {
         }),
         deletingWorkspaceId && h(DeleteWorkspaceModal, {
           workspace: this.getWorkspace(deletingWorkspaceId),
-          onDismiss: () => { this.setState({ deletingWorkspaceId: undefined }) }
+          onDismiss: () => { this.setState({ deletingWorkspaceId: undefined }) },
+          onSuccess: () => this.refresh()
         }),
         sharingWorkspaceId && h(ShareWorkspaceModal, {
           namespace: this.getWorkspace(sharingWorkspaceId).workspace.namespace,
