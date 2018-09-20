@@ -208,12 +208,25 @@ export const Select = ({ value, options, ...props }) => {
     [props.isMulti, () => _.map(findValue, value)],
     () => findValue(value))
 
-  return h(RSelect, {
+  return h(RSelect, _.merge({
+    styles: {
+      control: (base, { isDisabled, isFocused }) => _.merge(base, {
+        minHeight: 36,
+        backgroundColor: isDisabled ? colors.gray[5] : 'white',
+        borderColor: isFocused ? colors.blue[0] : undefined,
+        '&:hover': { borderColor: isFocused ? colors.blue[0] : undefined }
+      }),
+      singleValue: base => ({ ...base, color: colors.gray[0] }),
+      option: (base, { isSelected, isFocused, isDisabled }) => _.merge(base, {
+        backgroundColor: isSelected ? colors.blue[4] : isFocused ? colors.blue[5] : undefined,
+        color: isDisabled ? undefined : colors.gray[0],
+        ':active': { backgroundColor: isSelected ? colors.blue[4] : colors.blue[5], }
+      })
+    },
     getOptionLabel: ({ value, label }) => label || _.flow(_.camelCase, _.startCase)(value), // start case doesn't handle all caps
     value: newValue,
-    options: newOptions,
-    ...props
-  })
+    options: newOptions
+  }, props))
 }
 export const LargeFadeBox = ({ children }) => {
   return div({
