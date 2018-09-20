@@ -46,8 +46,8 @@ const styles = {
   smallInput: {
     width: 80
   },
-  smallSelect: oldStyle => ({
-    ...oldStyle,
+  smallSelect: base => ({
+    ...base,
     width: 80,
     display: 'inline-block',
     verticalAlign: 'middle'

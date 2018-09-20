@@ -32,8 +32,8 @@ const styles = {
     textTransform: 'uppercase', fontWeight: 500,
     color: colors.orange[0]
   },
-  roleSelect: oldStyle => ({
-    ...oldStyle,
+  roleSelect: base => ({
+    ...base,
     width: 200,
     marginTop: '0.25rem'
   }),
