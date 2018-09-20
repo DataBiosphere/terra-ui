@@ -106,7 +106,7 @@ authStore.subscribe(async (state, oldState) => {
       }, ownClusters)
       await Promise.all([
         ..._.map(p => {
-          return Ajax().Jypyter.cluster(p, Utils.generateClusterName()).create({
+          return Ajax().Jupyter.cluster(p, Utils.generateClusterName()).create({
             machineConfig: _.last(_.sortBy('createdDate', groupedClusters[p])) || basicMachineConfig,
             stopAfterCreation: true
           }).catch(r => r.status === 403 ? r : Promise.reject(r))
