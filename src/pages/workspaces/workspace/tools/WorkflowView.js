@@ -236,15 +236,15 @@ class WorkflowViewContent extends Component {
           div({ style: { textTransform: 'capitalize', display: 'flex', alignItems: 'baseline', marginTop: '0.5rem' } }, [
             'Data Type:',
             h(Select, {
-              clearable: true, searchable: false,
-              wrapperStyle: { display: 'inline-block', width: 200, marginLeft: '0.5rem' },
+              isClearable: true, isSearchable: false,
+              styles: { container: old => ({ ...old, display: 'inline-block', width: 200, marginLeft: '0.5rem' }) },
               value: rootEntityType,
               onChange: selected => {
                 const value = !!selected ? selected.value : undefined
 
                 this.setState(_.set(['modifiedConfig', 'rootEntityType'], value))
               },
-              options: _.map(k => ({ value: k, label: _.startCase(k) }), _.keys(entityMetadata))
+              options: _.keys(entityMetadata)
             })
           ])
         ]),
