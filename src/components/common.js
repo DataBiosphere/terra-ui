@@ -96,13 +96,13 @@ export const search = function({ wrapperProps, inputProps }) {
 
 export const contextBar = function(props, children) {
   return div(_.merge({
-      style: {
-        display: 'flex', alignItems: 'center', backgroundColor: colors.blue[1],
-        color: colors.gray[3], fontWeight: 500,
-        height: '3.75rem', padding: '0 1rem'
-      }
-    }, props),
-    children)
+    style: {
+      display: 'flex', alignItems: 'center', backgroundColor: colors.blue[1],
+      color: colors.gray[3], fontWeight: 500,
+      height: '3.75rem', padding: '0 1rem'
+    }
+  }, props),
+  children)
 }
 
 export const MenuButton = ({ disabled, children, ...props }) => {
