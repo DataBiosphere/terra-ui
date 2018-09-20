@@ -3,8 +3,7 @@ import { Fragment } from 'react'
 import { a, div, h } from 'react-hyperscript-helpers'
 import { pure } from 'recompose'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { Clickable, spinnerOverlay } from 'src/components/common'
-import { icon } from 'src/components/icons'
+import { spinnerOverlay, viewToggleButtons } from 'src/components/common'
 import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
@@ -52,20 +51,7 @@ const styles = {
     flex: 1,
     paddingRight: '1rem',
     whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'
-  },
-  toolbarContainer: {
-    flex: 'none', display: 'flex', alignItems: 'flex-end',
-    margin: '1rem 4.5rem'
-  },
-  toolbarButtons: {
-    marginLeft: 'auto', display: 'flex',
-    backgroundColor: 'white', borderRadius: 3
-  },
-  toolbarButton: active => ({
-    display: 'flex', justifyContent: 'center', alignItems: 'center',
-    height: '2.25rem', width: '3rem',
-    color: active ? colors.blue[1] : colors.blue[0]
-  })
+  }
 }
 
 const ToolCard = pure(({ listView, name, namespace, config }) => {
@@ -120,20 +106,15 @@ class ToolsContent extends Component {
     const { namespace, name } = this.props
     const { loading, configs, listView } = this.state
     return h(Fragment, [
-      div({ style: styles.toolbarContainer }, [
+      div({
+        style: {
+          display: 'flex', alignItems: 'flex-end', margin: '1rem 4.5rem', marginRight: '2.25rem', justifyContent: 'space-between'
+        }
+      }, [
         div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, [
           'Tools'
         ]),
-        div({ style: styles.toolbarButtons }, [
-          h(Clickable, {
-            style: styles.toolbarButton(!listView),
-            onClick: () => this.setState({ listView: false })
-          }, [icon('view-cards', { size: 24 })]),
-          h(Clickable, {
-            style: styles.toolbarButton(listView),
-            onClick: () => this.setState({ listView: true })
-          }, [icon('view-list', { size: 24 })])
-        ])
+        viewToggleButtons(listView, listView => this.setState({ listView }))
       ]),
       div({ style: styles.cardContainer }, [
         _.map(config => {

@@ -9,8 +9,8 @@ import { InfoBox } from 'src/components/PopupTrigger'
 import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
+import * as Forms from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
-import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import validate from 'validate.js'
 
@@ -34,10 +34,6 @@ const constraints = {
 }
 
 const styles = {
-  label: {
-    ...Style.elements.sectionHeader,
-    marginTop: '1rem', marginBottom: '0.25rem'
-  },
   groupNotice: {
     marginBottom: '0.25rem',
     fontSize: 12,
@@ -114,7 +110,7 @@ export default ajaxCaller(class NewWorkspaceModal extends Component {
         onClick: () => this.create()
       }, cloneWorkspace ? 'Clone Workspace' : 'Create Workspace')
     }, [
-      div({ style: styles.label }, ['Workspace name *']),
+      Forms.requiredFormLabel('Workspace name'),
       validatedInput({
         inputProps: {
           autoFocus: true,
@@ -124,7 +120,7 @@ export default ajaxCaller(class NewWorkspaceModal extends Component {
         },
         error: Utils.summarizeErrors(nameModified && errors && errors.name)
       }),
-      div({ style: styles.label }, ['Billing project *']),
+      Forms.requiredFormLabel('Billing project'),
       billingProjects && !billingProjects.length ? h(Fragment, [
         div({ style: { color: colors.red[0] } }, [
           icon('error', { size: 16 }),
@@ -146,21 +142,18 @@ export default ajaxCaller(class NewWorkspaceModal extends Component {
           return { label: name, value: name }
         }, _.uniq(_.map('projectName', billingProjects)).sort())
       }),
-      div({ style: styles.label }, ['Description']),
+      Forms.formLabel('Description'),
       h(TextArea, {
         style: { height: 100 },
         placeholder: 'Enter a description',
         value: description,
         onChange: e => this.setState({ description: e.target.value })
       }),
-      div({ style: styles.label }, [
-        'Authorization domain ',
-        h(InfoBox, [
-          'Note: An authorization domain can only be set when creating a workspace. ',
-          'Once set, it cannot be changed. ',
-          link({ href: authDoc, target: '_blank' }, ['Read more about authorization domains'])
-        ])
-      ]),
+      Forms.formLabel('Authorization domain', h(InfoBox, [
+        'Note: An authorization domain can only be set when creating a workspace. ',
+        'Once set, it cannot be changed. ',
+        link({ href: authDoc, target: '_blank' }, ['Read more about authorization domains'])
+      ])),
       !!existingGroups.length && div({ style: styles.groupNotice }, [
         'The cloned workspace will automatically inherit the authorization domain from this workspace. ',
         'You may add groups to the authorization domain, but you may not remove existing ones.'

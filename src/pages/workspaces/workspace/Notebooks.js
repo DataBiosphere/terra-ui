@@ -3,7 +3,7 @@ import { createRef, Fragment } from 'react'
 import Dropzone from 'react-dropzone'
 import { a, div, h } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { Clickable, link, MenuButton, spinnerOverlay } from 'src/components/common'
+import { Clickable, link, MenuButton, spinnerOverlay, viewToggleButtons } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { NotebookCreator, NotebookDeleter, NotebookDuplicator } from 'src/components/notebook-utils'
 import PopupTrigger from 'src/components/PopupTrigger'
@@ -35,34 +35,41 @@ class NotebookCard extends Component {
   render() {
     const { namespace, name, updated, listView, wsName, onRename, onCopy, onDelete, canCompute, canWrite } = this.props
 
+    const iconHelp = (iconName, iconLabel) => {
+      return h(Fragment, [icon(iconName, { size: 15, style: { marginRight: '.25rem' } }), iconLabel])
+    }
+
     const notebookMenu = canWrite && h(PopupTrigger, {
-      position: 'bottom',
+      position: 'right',
       closeOnClick: true,
       content: h(Fragment, [
         h(MenuButton, {
           onClick: () => onRename()
-        }, ['Rename']),
+        }, [iconHelp('renameIcon', 'Rename')]),
         h(MenuButton, {
           onClick: () => onCopy()
-        }, ['Duplicate']),
+        }, [iconHelp('copy', 'Clone')]),
         h(MenuButton, {
           onClick: () => onDelete()
-        }, ['Delete'])
+        }, [iconHelp('trash', 'Delete')])
       ])
     }, [
       h(Clickable, {
         onClick: e => e.preventDefault(),
-        style: { marginLeft: '1rem', cursor: 'pointer' }, focus: 'hover'
-      }, [icon('ellipsis-vertical', { size: 18 })])
+        style: {
+          cursor: 'pointer', color: colors.blue[0]
+        },
+        focus: 'hover',
+        hover: { color: colors.blue[2] }
+      }, [
+        icon('cardMenuIcon', {
+          size: listView ? 18 : 27
+        })
+      ])
     ])
 
     const jupyterIcon = icon('jupyterIcon', {
-      style: listView ? {
-        height: '2em',
-        width: '2em',
-        margin: '-0.5em 0.5rem -0.5em 0',
-        color: colors.gray[5]
-      } : {
+      style: {
         height: 125,
         width: 'auto',
         color: colors.gray[5]
@@ -71,7 +78,11 @@ class NotebookCard extends Component {
 
     const title = div({
       title: printName(name),
-      style: {
+      style: listView ? {
+        ...Style.elements.cardTitle,
+        textOverflow: 'ellipsis', whiteSpace: 'nowrap', overflow: 'hidden',
+        marginLeft: '1rem'
+      } : {
         ...Style.elements.cardTitle,
         textOverflow: 'ellipsis', whiteSpace: 'nowrap', overflow: 'hidden'
       }
@@ -89,25 +100,24 @@ class NotebookCard extends Component {
             alignItems: listView ? 'center' : undefined
           }
         }, listView ? [
-          jupyterIcon,
+          notebookMenu,
           title,
           div({ style: { flexGrow: 1 } }),
           h(TooltipTrigger, { content: Utils.makeCompleteDate(updated) }, [
             div({ style: { fontSize: '0.8rem', marginRight: '0.5rem' } },
               `Last edited: ${Utils.makePrettyDate(updated)}`)
-          ]),
-          notebookMenu
+          ])
         ] : [
-          div({ style: { display: 'flex', justifyContent: 'space-between' } },
-            [title, notebookMenu]),
+          title,
           jupyterIcon,
-          div({ style: { display: 'flex', alignItems: 'flex-end' } }, [
+          div({ style: { display: 'flex', justifyContent: 'space-between' } }, [
             h(TooltipTrigger, { content: Utils.makeCompleteDate(updated) }, [
               div({ style: { fontSize: '0.8rem', flexGrow: 1, marginRight: '0.5rem' } }, [
                 'Last edited:',
                 div({}, Utils.makePrettyDate(updated))
               ])
-            ])
+            ]),
+            notebookMenu
           ])
         ])
       ])
@@ -186,7 +196,7 @@ class NotebooksContent extends Component {
     const { name: wsName, namespace, workspace: { accessLevel, canCompute, workspace: { bucketName } } } = this.props
     const canWrite = Utils.canWrite(accessLevel)
 
-    return div({ style: { display: listView ? undefined : 'flex', flexWrap: 'wrap' } }, [
+    return div({ style: { display: listView ? undefined : 'flex', flexWrap: 'wrap', padding: '0 2.25rem' } }, [
       div({
         style: {
           ...notebookCardCommonStyles(listView),
@@ -257,25 +267,9 @@ class NotebooksContent extends Component {
             margin: '0 1.25rem'
           }
         }, [
-          div({ style: { color: colors.darkBlue[0], fontSize: 16, fontWeight: 500 } }, 'NOTEBOOKS'),
+          div({ style: { color: colors.darkBlue[0], fontSize: 16, fontWeight: 500, padding: '0 2.25rem' } }, 'NOTEBOOKS'),
           div({ style: { flexGrow: 1 } }),
-          div({ style: { color: colors.blue[0], padding: '0.5rem 1rem', backgroundColor: 'white', borderRadius: 3 } }, [
-            h(Clickable, {
-              as: icon('view-cards'),
-              style: {
-                color: listView ? null : colors.blue[1],
-                marginRight: '1rem', width: 26, height: 22
-              },
-              size: 26,
-              onClick: () => this.setState({ listView: false })
-            }),
-            h(Clickable, {
-              as: icon('view-list'),
-              style: { color: listView ? colors.blue[1] : null },
-              size: 26,
-              onClick: () => this.setState({ listView: true })
-            })
-          ]),
+          viewToggleButtons(listView, listView => this.setState({ listView })),
           creating && h(NotebookCreator, {
             namespace, bucketName, existingNames,
             reloadList: () => this.refresh(),
