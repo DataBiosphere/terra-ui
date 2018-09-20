@@ -96,13 +96,13 @@ export const search = function({ wrapperProps, inputProps }) {
 
 export const contextBar = function(props, children) {
   return div(_.merge({
-    style: {
-      display: 'flex', alignItems: 'center', backgroundColor: colors.blue[1],
-      color: colors.gray[3], fontWeight: 500,
-      height: '3.75rem', padding: '0 1rem'
-    }
-  }, props),
-  children)
+      style: {
+        display: 'flex', alignItems: 'center', backgroundColor: colors.blue[1],
+        color: colors.gray[3], fontWeight: 500,
+        height: '3.75rem', padding: '0 1rem'
+      }
+    }, props),
+    children)
 }
 
 export const MenuButton = ({ disabled, children, ...props }) => {
@@ -220,7 +220,7 @@ export const Select = ({ value, options, ...props }) => {
       option: (base, { isSelected, isFocused, isDisabled }) => _.merge(base, {
         backgroundColor: isSelected ? colors.blue[4] : isFocused ? colors.blue[5] : undefined,
         color: isDisabled ? undefined : colors.gray[0],
-        ':active': { backgroundColor: isSelected ? colors.blue[4] : colors.blue[5], }
+        ':active': { backgroundColor: isSelected ? colors.blue[4] : colors.blue[5] }
       })
     },
     getOptionLabel: ({ value, label }) => label || _.flow(_.camelCase, _.startCase)(value), // start case doesn't handle all caps
