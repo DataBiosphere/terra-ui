@@ -253,11 +253,12 @@ export const WorkspaceList = ajaxCaller(class WorkspaceList extends Component {
           }),
           _.map(workspace => {
             return h(WorkspaceCard, {
-              listView, 
+              listView,
               onClone: () => this.setState({ cloningWorkspaceId: workspace.workspace.workspaceId }),
               onDelete: () => this.setState({ deletingWorkspaceId: workspace.workspace.workspaceId }),
               onShare: () => this.setState({ sharingWorkspaceId: workspace.workspace.workspaceId }),
-              workspace, key: workspace.workspace.workspaceId })
+              workspace, key: workspace.workspace.workspaceId
+            })
           }, data),
           !isDataLoaded && spinnerOverlay
         ]),
