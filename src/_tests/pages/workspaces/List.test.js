@@ -8,8 +8,7 @@ describe('WorkspaceList', () => {
   it('should switch between Grid and List view', () => {
     const wrapper = mount(h(WorkspaceList))
     return waitOneTickAndUpdate(wrapper).then(() => {
-      const actual = wrapper.instance().child
-      const isListView = () => actual.props.listView
+      const isListView = () => wrapper.find('WorkspaceList').props().listView
 
       expect(isListView()).toEqual(false)
 
