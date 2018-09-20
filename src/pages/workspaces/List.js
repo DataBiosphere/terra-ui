@@ -182,7 +182,7 @@ export const WorkspaceList = ajaxCaller(class WorkspaceList extends Component {
         div({
           style: {
             display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between',
-            margin: '1rem 4.5rem', marginRight: '2.25rem'
+            marginBottom: '1rem'
           }
         }, [
           div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, [

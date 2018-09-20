@@ -201,7 +201,7 @@ export const comingSoon = span({
 
 export const Select = RSelect
 
-export const FadeBox = ({ fadePoint = '60%', style, children }) => {
+export const FadeBox = ({ fadePoint = '60%', style = {}, children }) => {
   const {
     paddingTop = '1.5rem',
     paddingLR = '1.5rem',
@@ -209,7 +209,7 @@ export const FadeBox = ({ fadePoint = '60%', style, children }) => {
     backgroundColor = colors.gray[5],
     borderColor = colors.gray[3],
     ...containerStyle
-  } = style || {}
+  } = style
 
   return div({
     style: {
@@ -250,7 +250,7 @@ export const PageFadeBox = ({ children }) => {
 
 const viewToggleStyles = {
   toolbarContainer: {
-    flex: 'none', display: 'flex', padding: '0 2.25rem'
+    flex: 'none', display: 'flex'
   },
   toolbarButton: active => ({
     display: 'flex', justifyContent: 'center', alignItems: 'center',
