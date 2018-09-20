@@ -4,7 +4,6 @@ import { buttonPrimary, link, spinnerOverlay } from 'src/components/common'
 import Modal from 'src/components/Modal'
 import { ajaxCaller } from 'src/libs/ajax'
 import { reportError } from 'src/libs/error'
-import * as Nav from 'src/libs/nav'
 import * as Utils from 'src/libs/utils'
 
 export default ajaxCaller(class DeleteWorkspaceModal extends Component {
