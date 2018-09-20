@@ -195,12 +195,20 @@ class NotebooksContent extends Component {
     const { notebooks, listView } = this.state
     const { name: wsName, namespace, workspace: { accessLevel, canCompute, workspace: { bucketName } } } = this.props
     const canWrite = Utils.canWrite(accessLevel)
+    const renderedNotebooks = _.map(({ name, updated }) => h(NotebookCard, {
+      key: name,
+      name, updated, listView, bucketName, namespace, wsName, canCompute, canWrite,
+      onRename: () => this.setState({ renamingNotebookName: name }),
+      onCopy: () => this.setState({ copyingNotebookName: name }),
+      onDelete: () => this.setState({ deletingNotebookName: name })
+    }), notebooks)
 
-    return div({ style: { display: listView ? undefined : 'flex', flexWrap: 'wrap', padding: '0 2.25rem' } }, [
+    return div({ style: { display: 'flex', flexWrap: listView ? undefined : 'wrap', padding: '0 2.25rem' } }, [
       div({
         style: {
-          ...notebookCardCommonStyles(listView),
-          fontSize: listView ? 16 : undefined, lineHeight: listView ? '22px' : undefined
+          margin: '1.25rem', display: 'flex',
+          height: 250, width: 200, flexDirection: 'column',
+          fontSize: 16, lineHeight: '22px'
         }
       }, [
         h(Clickable, {
@@ -232,13 +240,10 @@ class NotebooksContent extends Component {
           ])
         ])
       ]),
-      _.map(({ name, updated }) => h(NotebookCard, {
-        key: name,
-        name, updated, listView, bucketName, namespace, wsName, canCompute, canWrite,
-        onRename: () => this.setState({ renamingNotebookName: name }),
-        onCopy: () => this.setState({ copyingNotebookName: name }),
-        onDelete: () => this.setState({ deletingNotebookName: name })
-      }), notebooks)
+      listView ?
+        div({ style: { flex: 1 } },
+          [renderedNotebooks]
+        ) : renderedNotebooks
     ])
   }
 
@@ -257,7 +262,8 @@ class NotebooksContent extends Component {
       acceptStyle: { cursor: 'copy' },
       rejectStyle: { cursor: 'no-drop' },
       ref: this.uploader,
-      onDropRejected: () => reportError('Not a valid notebook', 'The selected file is not a ipynb notebook file. To import a notebook, upload a file with a .ipynb extension.'),
+      onDropRejected: () => reportError('Not a valid notebook',
+        'The selected file is not a ipynb notebook file. To import a notebook, upload a file with a .ipynb extension.'),
       onDropAccepted: files => this.uploadFiles(files)
     }, [
       notebooks && h(Fragment, [
