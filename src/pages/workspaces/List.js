@@ -16,7 +16,7 @@ import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
-import { DeleteWorkspaceModal } from 'src/pages/workspaces/workspace/WorkspaceContainer'
+import DeleteWorkspaceModal from 'src/pages/workspaces/workspace/DeleteWorkspaceModal'
 import ShareWorkspaceModal from 'src/pages/workspaces/workspace/ShareWorkspaceModal'
 
 
@@ -95,7 +95,7 @@ const WorkspaceCard = pure(({ listView, onClone, onDelete, onShare, workspace: {
   const descText = description || span({ style: { color: colors.gray[2] } }, [
     'No description added'
   ])
-  const isOwner = _.includes(accessLevel, ['OWNER', 'PROJECT_OWNER'])
+  const isOwner = Utils.isOwner(accessLevel)
   const iconHelp = (iconName, iconLabel) => {
     return h(Fragment, [icon(iconName, { size: 15, style: { marginRight: '.25rem' } }), iconLabel])
   }
