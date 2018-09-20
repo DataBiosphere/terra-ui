@@ -10,6 +10,7 @@ import { TopBar } from 'src/components/TopBar'
 import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
+import * as Forms from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
@@ -54,7 +55,7 @@ const NewGroupModal = ajaxCaller(class NewGroupModal extends Component {
         onClick: () => this.submit()
       }, ['Create Group'])
     }, [
-      div({ style: styles.formLabel }, ['Enter a unique name']),
+      Forms.requiredFormLabel('Enter a unique name'),
       validatedInput({
         inputProps: {
           autoFocus: true,
@@ -63,9 +64,7 @@ const NewGroupModal = ajaxCaller(class NewGroupModal extends Component {
         },
         error: groupNameTouched && Utils.summarizeErrors(errors && errors.groupName)
       }),
-      !(groupNameTouched && errors) && div({ style: { fontSize: 'smaller', marginTop: '0.25rem' } }, [
-        'Only letters, numbers, underscores, and dashes allowed'
-      ]),
+      !(groupNameTouched && errors) && Forms.formHint('Only letters, numbers, underscores, and dashes allowed'),
       submitting && spinnerOverlay
     ])
   }

@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { a, div, h, span } from 'react-hyperscript-helpers'
 import { pure } from 'recompose'
-import { Clickable, search, spinnerOverlay, LargeFadeBox, MenuButton } from 'src/components/common'
+import { Clickable, search, spinnerOverlay, LargeFadeBox, viewToggleButtons, MenuButton } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
 import PopupTrigger from 'src/components/PopupTrigger'
@@ -74,19 +74,7 @@ const styles = {
   longCreateCard: {
     display: 'flex', flexDirection: 'column', justifyContent: 'center',
     color: colors.blue[0], fontSize: 16
-  },
-  toolbarContainer: {
-    flex: 'none', display: 'flex', alignItems: 'flex-end',
-    margin: '1rem 4.5rem'
-  },
-  toolbarButton: active => ({
-    display: 'flex', justifyContent: 'center', alignItems: 'center',
-    borderRadius: 3, border: `1px solid ${colors.blue[0]}`,
-    height: '2.25rem', padding: '0 .75rem',
-    color: colors.blue[0],
-    backgroundColor: active ? colors.blue[4] : 'white',
-    fontWeight: active? 'bold' : 'normal'
-  })
+  }
 }
 
 const WorkspaceCard = pure(({ listView, onClone, onDelete, onShare, workspace: { accessLevel, workspace: { namespace, name, createdBy, lastModified, attributes: { description } } } }) => {
@@ -247,54 +235,49 @@ export const WorkspaceList = ajaxCaller(class WorkspaceList extends Component {
           })
         ]
       ),
-      h(LargeFadeBox,
-        [
-          div({ style: { ...styles.toolbarContainer } }, [
-            div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, [
-              'Workspaces'
-            ]),
-            h(Clickable, {
-              style: { ...styles.toolbarButton(!listView), marginLeft: 'auto' },
-              onClick: () => this.setState({ listView: false })
-            }, [icon('view-cards', { size: 24, style: { margin: '.3rem' } }), 'Cards']),
-            h(Clickable, {
-              style: { ...styles.toolbarButton(listView), marginLeft: '1rem' },
-              onClick: () => this.setState({ listView: true })
-            }, [icon('view-list', { size: 24, style: { margin: '.3rem' } }), 'List'])
+      h(LargeFadeBox, [
+        div({
+          style: {
+            display: 'flex', alignItems: 'flex-end', margin: '1rem 4.5rem', marginRight: '2.25rem', justifyContent: 'space-between'
+          }
+        }, [
+          div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, [
+            'Workspaces'
           ]),
-          div({ style: styles.cardContainer }, [
-            h(NewWorkspaceCard, {
-              listView,
-              onClick: () => this.setState({ creatingNewWorkspace: true })
-            }),
-            _.map(workspace => {
-              return h(WorkspaceCard, {
-                listView,
-                onClone: () => this.setState({ cloningWorkspaceId: workspace.workspace.workspaceId }),
-                onDelete: () => this.setState({ deletingWorkspaceId: workspace.workspace.workspaceId }),
-                onShare: () => this.setState({ sharingWorkspaceId: workspace.workspace.workspaceId }),
-                workspace, key: workspace.workspace.workspaceId
-              })
-            }, data),
-            !isDataLoaded && spinnerOverlay
-          ]),
-          creatingNewWorkspace && h(NewWorkspaceModal, {
-            onDismiss: () => this.setState({ creatingNewWorkspace: false })
+          viewToggleButtons(listView, listView => this.setState({ listView }))
+        ]),
+        div({ style: styles.cardContainer }, [
+          h(NewWorkspaceCard, {
+            listView,
+            onClick: () => this.setState({ creatingNewWorkspace: true })
           }),
-          cloningWorkspaceId && h(NewWorkspaceModal, {
-            cloneWorkspace: this.getWorkspace(cloningWorkspaceId),
-            onDismiss: () => this.setState({ cloningWorkspaceId: undefined })
-          }),
-          deletingWorkspaceId && h(DeleteWorkspaceModal, {
-            workspace: this.getWorkspace(deletingWorkspaceId),
-            onDismiss: () => { this.setState({ deletingWorkspaceId: undefined }) }
-          }),
-          sharingWorkspaceId && h(ShareWorkspaceModal, {
-            namespace: this.getWorkspace(sharingWorkspaceId).workspace.namespace,
-            name: this.getWorkspace(sharingWorkspaceId).workspace.name,
-            onDismiss: () => { this.setState({ sharingWorkspaceId: undefined }) }
-          })
-        ])
+          _.map(workspace => {
+            return h(WorkspaceCard, {
+              listView, 
+              onClone: () => this.setState({ cloningWorkspaceId: workspace.workspace.workspaceId }),
+              onDelete: () => this.setState({ deletingWorkspaceId: workspace.workspace.workspaceId }),
+              onShare: () => this.setState({ sharingWorkspaceId: workspace.workspace.workspaceId }),
+              workspace, key: workspace.workspace.workspaceId })
+          }, data),
+          !isDataLoaded && spinnerOverlay
+        ]),
+        creatingNewWorkspace && h(NewWorkspaceModal, {
+          onDismiss: () => this.setState({ creatingNewWorkspace: false })
+        }),
+        cloningWorkspaceId && h(NewWorkspaceModal, {
+          cloneWorkspace: this.getWorkspace(cloningWorkspaceId),
+          onDismiss: () => this.setState({ cloningWorkspaceId: undefined })
+        }),
+        deletingWorkspaceId && h(DeleteWorkspaceModal, {
+          workspace: this.getWorkspace(deletingWorkspaceId),
+          onDismiss: () => { this.setState({ deletingWorkspaceId: undefined }) }
+        }),
+        sharingWorkspaceId && h(ShareWorkspaceModal, {
+          namespace: this.getWorkspace(sharingWorkspaceId).workspace.namespace,
+          name: this.getWorkspace(sharingWorkspaceId).workspace.name,
+          onDismiss: () => { this.setState({ sharingWorkspaceId: undefined }) }
+        })
+      ])
     ])
   }
 
@@ -314,6 +297,6 @@ export const addNavPaths = () => {
   Nav.defPath('workspaces', {
     path: '/workspaces',
     component: WorkspaceList,
-    title: 'Projects'
+    title: 'Workspaces'
   })
 }
