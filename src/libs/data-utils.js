@@ -246,7 +246,6 @@ export const ReferenceDataImporter = ajaxCaller(class ReferenceDataImporter exte
       h(Select, {
         autoFocus: true,
         isSearchable: false,
-        isClearable: false,
         placeholder: 'Select data',
         value: selectedReference,
         onChange: ({ value }) => this.setState({ selectedReference: value }),

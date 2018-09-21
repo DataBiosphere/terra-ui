@@ -111,7 +111,6 @@ export const NotebookCreator = ajaxCaller(class NotebookCreator extends Componen
       }),
       Forms.requiredFormLabel('Kernel'),
       h(Select, {
-        isClearable: false,
         isSearchable: false,
         placeholder: 'Select a kernel',
         getOptionLabel: ({ value }) => _.startCase(value),

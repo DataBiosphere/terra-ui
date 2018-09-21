@@ -12,7 +12,6 @@ export default ajaxCaller(class WorkspaceSelector extends Component {
     const { workspaces } = this.state
 
     return h(Select, {
-      isClearable: false,
       isDisabled: !workspaces,
       placeholder: workspaces ? 'Select a workspace' : 'Loading workspaces...',
       value: selectedWorkspace,

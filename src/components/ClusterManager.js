@@ -116,7 +116,6 @@ const MachineSelector = ({ machineType, onChangeMachineType, diskSize, onChangeD
           h(Select, {
             styles: { container: styles.smallSelect },
             isSearchable: false,
-            isClearable: false,
             value: currentCpu,
             onChange: ({ value }) => onChangeMachineType(_.find({ cpu: value }, machineTypes).name),
             options: _.uniq(_.map('cpu', machineTypes))
@@ -144,7 +143,6 @@ const MachineSelector = ({ machineType, onChangeMachineType, diskSize, onChangeD
           h(Select, {
             styles: { container: styles.smallSelect },
             isSearchable: false,
-            isClearable: false,
             value: currentMemory,
             onChange: ({ value }) =>
               onChangeMachineType(_.find({ cpu: currentCpu, memory: value }, machineTypes).name),

@@ -156,7 +156,7 @@ export default ajaxCaller(class ShareWorkspaceModal extends Component {
           }) :
           h(Select, {
             styles: { container: styles.roleSelect },
-            isSearchable: false, isClearable: false,
+            isSearchable: false,
             isDisabled: isMe,
             getOptionLabel: ({ value }) => Utils.normalizeLabel(value),
             value: accessLevel,
