@@ -63,9 +63,8 @@ class Tooltip extends Component {
   }
 
   render() {
-    const { children, side, type, notch } = this.props
+    const { children, side, type, notch, gap } = this.props
     const { target, tooltip, viewport } = this.state
-    const gap = 10
     const getPosition = s => {
       const left = _.flow(
         _.clamp(0, viewport.width - tooltip.width),
@@ -135,11 +134,12 @@ export default class TooltipTrigger extends Component {
 
   static defaultProps = {
     type: styles.tooltip,
-    notch: styles.notch
+    notch: styles.notch,
+    gap: 10
   }
 
   render() {
-    const { children, type, notch, content, ...props } = this.props
+    const { children, type, notch, gap, content, ...props } = this.props
     const { open } = this.state
     if (!content) {
       return children
@@ -157,7 +157,7 @@ export default class TooltipTrigger extends Component {
           this.setState({ open: false })
         }
       }),
-      open && h(Tooltip, { target: this.id, type, notch, ...props }, [content])
+      open && h(Tooltip, { target: this.id, type, notch, gap, ...props }, [content])
     ])
   }
 }

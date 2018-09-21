@@ -82,6 +82,7 @@ const statusCell = workflowStatuses => {
     position: 'bottom',
     type: styles.jobStatus,
     notch: styles.noNotch,
+    gap: 5,
     content: table({ style: { margin: '0.5rem' } }, [
       tbody({}, [
         tr({}, [
