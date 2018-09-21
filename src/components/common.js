@@ -217,7 +217,11 @@ export const Select = ({ value, options, ...props }) => {
         backgroundColor: isSelected ? colors.blue[4] : isFocused ? colors.blue[5] : undefined,
         color: isDisabled ? undefined : colors.gray[0],
         ':active': { backgroundColor: isSelected ? colors.blue[4] : colors.blue[5] }
-      })
+      }),
+      clearIndicator: base => ({ ...base, paddingRight: 0 }),
+      indicatorSeparator: () => ({ display: 'none' }),
+      dropdownIndicator: base => _.merge(base, { paddingLeft: props.isClearable ? 0 : undefined }),
+      multiValueRemove: base => _.merge(base, { ':hover': { backgroundColor: 'unset' } })
     },
     getOptionLabel: ({ value, label }) => label || value.toString(),
     value: newValue,
