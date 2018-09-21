@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { a, b, div, h } from 'react-hyperscript-helpers'
 import { pure } from 'recompose'
-import { buttonPrimary, Clickable, linkButton, search, spinnerOverlay, LargeFadeBox } from 'src/components/common'
+import { buttonPrimary, Clickable, linkButton, PageFadeBox, search, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { validatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
@@ -179,7 +179,7 @@ export const GroupList = ajaxCaller(class GroupList extends Component {
           }
         })
       ]),
-      h(LargeFadeBox, [
+      h(PageFadeBox, [
         div({ style: styles.toolbarContainer }, [
           div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, [
             'Group Management'
