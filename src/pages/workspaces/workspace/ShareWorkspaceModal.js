@@ -7,7 +7,7 @@ import { AutocompleteSearch } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { ajaxCaller } from 'src/libs/ajax'
-import { getBasicProfile } from 'src/libs/auth'
+import { getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import * as Style from 'src/libs/style'
@@ -136,7 +136,7 @@ export default ajaxCaller(class ShareWorkspaceModal extends Component {
   renderCollaborator = ({ email, accessLevel, pending }, index) => {
     const POAccessLevel = 'PROJECT_OWNER'
     const isPO = accessLevel === POAccessLevel
-    const isMe = email === getBasicProfile().getEmail()
+    const isMe = email === getUser().email
     const { acl } = this.state
 
     return div({

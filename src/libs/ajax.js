@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { h } from 'react-hyperscript-helpers'
 import { version } from 'src/data/clusters'
-import { getAuthToken } from 'src/libs/auth'
+import { getUser } from 'src/libs/auth'
 import * as Config from 'src/libs/config'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
@@ -41,7 +41,7 @@ window.saturnMock = {
   }
 }
 
-const authOpts = (token = getAuthToken()) => ({ headers: { Authorization: `Bearer ${token}` } })
+const authOpts = (token = getUser().token) => ({ headers: { Authorization: `Bearer ${token}` } })
 const jsonBody = body => ({ body: JSON.stringify(body), headers: { 'Content-Type': 'application/json' } })
 const appIdentifier = { headers: { 'X-App-ID': 'Saturn' } }
 const addAppIdentifier = _.merge(appIdentifier)

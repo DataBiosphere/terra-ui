@@ -8,20 +8,12 @@ import { clearErrorCode, reportError } from 'src/libs/error'
 import * as Utils from 'src/libs/utils'
 
 
-export const getAuthInstance = () => {
+const getAuthInstance = () => {
   return window.gapi.auth2.getAuthInstance()
 }
 
 export const getUser = () => {
-  return getAuthInstance().currentUser.get()
-}
-
-export const getBasicProfile = () => {
-  return getUser().getBasicProfile()
-}
-
-export const getAuthToken = () => {
-  return getUser().getAuthResponse(true).access_token
+  return authStore.get().user
 }
 
 export const signOut = () => {
@@ -29,26 +21,73 @@ export const signOut = () => {
   getAuthInstance().signOut()
 }
 
+export const reloadAuthToken = () => {
+  return getAuthInstance().currentUser.get().reloadAuthResponse().then(() => true, () => false)
+}
+
 export const authStore = Utils.atom({
   isSignedIn: undefined,
-  registrationStatus: undefined
+  registrationStatus: undefined,
+  user: {}
 })
 
-export const initializeAuth = _.memoize(async () => {
+const initializeAuth = _.memoize(async () => {
   await new Promise(resolve => window.gapi.load('auth2', resolve))
   await window.gapi.auth2.init({ clientId: await Config.getGoogleClientId() })
-  authStore.update(state => ({ ...state, isSignedIn: getAuthInstance().isSignedIn.get() }))
-  getAuthInstance().isSignedIn.listen(isSignedIn => {
+  const processUser = user => {
     return authStore.update(state => {
-      return { ...state, isSignedIn, registrationStatus: isSignedIn ? state.registrationStatus : undefined }
+      const authResponse = user.getAuthResponse(true)
+      const profile = user.getBasicProfile()
+      const isSignedIn = user.isSignedIn()
+      return {
+        ...state,
+        isSignedIn,
+        registrationStatus: isSignedIn ? state.registrationStatus : undefined,
+        user: {
+          token: authResponse && authResponse.access_token,
+          id: user.getId(),
+          email: profile && profile.getEmail(),
+          name: profile && profile.getName(),
+          givenName: profile && profile.getGivenName(),
+          familyName: profile && profile.getFamilyName(),
+          imageUrl: profile && profile.getImageUrl()
+        }
+      }
     })
-  })
+  }
+  processUser(getAuthInstance().currentUser.get())
+  getAuthInstance().currentUser.listen(processUser)
 })
+
+// This is intended for tests to short circuit the login flow
+window.forceSignIn = async token => {
+  const res = await fetch(
+    'https://www.googleapis.com/oauth2/v3/userinfo',
+    { headers: { Authorization: `Bearer ${token}` } }
+  )
+  const data = await res.json()
+  authStore.update(state => {
+    return {
+      ...state,
+      isSignedIn: true,
+      registrationStatus: undefined,
+      user: {
+        token,
+        id: data.sub,
+        email: data.email,
+        name: data.name,
+        givenName: data.given_name,
+        familyName: data.family_name,
+        imageUrl: data.picture
+      }
+    }
+  })
+}
 
 authStore.subscribe(async (state, oldState) => {
   if (!oldState.isSignedIn && state.isSignedIn) {
     clearErrorCode('sessionTimeout')
-    if (await Config.getIsProd() && !ProdWhitelist.includes(md5(getBasicProfile().getEmail()))) {
+    if (await Config.getIsProd() && !ProdWhitelist.includes(md5(state.user.email))) {
       authStore.update(state => ({ ...state, registrationStatus: 'unlisted' }))
       return
     }
@@ -76,7 +115,7 @@ authStore.subscribe(async (state, oldState) => {
  */
 authStore.subscribe((state, oldState) => {
   if (!oldState.isSignedIn && state.isSignedIn) {
-    window.newrelic.setCustomAttribute('userGoogleId', getBasicProfile().getId())
+    window.newrelic.setCustomAttribute('userGoogleId', state.user.id)
   }
 })
 
@@ -90,12 +129,11 @@ const basicMachineConfig = {
 authStore.subscribe(async (state, oldState) => {
   if (oldState.registrationStatus !== 'registered' && state.registrationStatus === 'registered') {
     try {
-      const userProfile = getBasicProfile()
       const [billingProjects, clusters] = await Promise.all([
         Ajax().Billing.listProjects(),
         Ajax().Jupyter.clustersList()
       ])
-      const ownClusters = _.filter({ creator: userProfile.getEmail() }, clusters)
+      const ownClusters = _.filter({ creator: state.user.email }, clusters)
       const googleProjects = _.uniq(_.map('projectName', billingProjects)) // can have duplicates for multiple roles
       const groupedClusters = _.groupBy('googleProject', ownClusters)
       const projectsNeedingCluster = _.filter(p => {
