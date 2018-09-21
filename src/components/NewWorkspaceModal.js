@@ -36,8 +36,7 @@ const constraints = {
 const styles = {
   groupNotice: {
     marginBottom: '0.5rem',
-    fontSize: 12,
-    color: colors.gray[2]
+    fontSize: 12
   }
 }
 
@@ -153,12 +152,12 @@ export default ajaxCaller(class NewWorkspaceModal extends Component {
         link({ href: authDoc, target: '_blank' }, ['Read more about authorization domains'])
       ])),
       !!existingGroups.length && div({ style: styles.groupNotice }, [
-        div({ style: { marginBottom: '0.2rem' } }, [
+        div({ style: { marginBottom: '0.2rem', color: colors.gray[2] } }, [
           'The cloned workspace will automatically inherit the authorization domain from this workspace. ',
           'You may add groups to the authorization domain, but you may not remove existing ones.'
         ]),
-        div({ style: { color: colors.gray[0], marginBottom: '0.2rem' } }, ['Inherited groups:']),
-        div({ style: { color: colors.gray[0] } }, existingGroups.join(', '))
+        div({ style: { marginBottom: '0.2rem' } }, ['Inherited groups:']),
+        ...existingGroups.join(', ')
       ]),
       h(Select, {
         isClearable: false,
