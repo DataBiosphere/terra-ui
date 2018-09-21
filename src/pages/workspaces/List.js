@@ -2,7 +2,8 @@ import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { a, div, h, span } from 'react-hyperscript-helpers'
 import { pure } from 'recompose'
-import { Clickable, search, spinnerOverlay, LargeFadeBox, viewToggleButtons } from 'src/components/common'
+import removeMd from 'remove-markdown'
+import { Clickable, PageFadeBox, search, spinnerOverlay, viewToggleButtons } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
 import TooltipTrigger from 'src/components/TooltipTrigger'
@@ -20,13 +21,13 @@ import { Component } from 'src/libs/wrapped-components'
 const styles = {
   cardContainer: {
     position: 'relative',
-    padding: '0 4rem',
-    display: 'flex', flexWrap: 'wrap'
+    display: 'flex', flexWrap: 'wrap',
+    marginRight: '-1rem'
   },
   shortCard: {
     ...Style.elements.card,
     width: 300, height: 225,
-    margin: '1rem 0.5rem'
+    margin: '0 1rem 2rem 0'
   },
   shortWorkspaceCard: {
     display: 'flex', flexDirection: 'column', justifyContent: 'space-between'
@@ -39,6 +40,7 @@ const styles = {
   },
   shortDescription: {
     flex: 'none',
+    whiteSpace: 'pre-wrap',
     lineHeight: '18px', height: '90px',
     overflow: 'hidden'
   },
@@ -49,7 +51,7 @@ const styles = {
   longCard: {
     ...Style.elements.card,
     width: '100%', minWidth: 0, height: 80,
-    margin: '0.25rem 0.5rem'
+    margin: '0.5rem 1rem 0 0'
   },
   longWorkspaceCard: {
     display: 'flex', flexDirection: 'column', justifyContent: 'space-between'
@@ -77,9 +79,10 @@ const styles = {
 const WorkspaceCard = pure(({ listView, workspace: { workspace: { namespace, name, createdBy, lastModified, attributes: { description } } } }) => {
   const lastChanged = `Last changed: ${Utils.makePrettyDate(lastModified)}`
   const badge = div({ title: createdBy, style: styles.badge }, [createdBy[0].toUpperCase()])
-  const descText = description || span({ style: { color: colors.gray[2] } }, [
-    'No description added'
-  ])
+  const descText = description ?
+    removeMd(listView ? description.split('\n')[0] : description) :
+    span({ style: { color: colors.gray[2] } }, ['No description added'])
+
   return listView ? a({
     href: Nav.getLink('workspace', { namespace, name }),
     style: { ...styles.longCard, ...styles.longWorkspaceCard }
@@ -168,22 +171,21 @@ export const WorkspaceList = ajaxCaller(class WorkspaceList extends Component {
       return Utils.textMatch(filter, `${namespace}/${name}`)
     }, workspaces)
     return h(Fragment, [
-      h(TopBar, { title: 'Workspaces' },
-        [
-          search({
-            wrapperProps: { style: { marginLeft: '2rem', flexGrow: 1, maxWidth: 500 } },
-            inputProps: {
-              placeholder: 'SEARCH WORKSPACES',
-              onChange: e => this.setState({ filter: e.target.value }),
-              value: filter
-            }
-          })
-        ]
-      ),
-      h(LargeFadeBox, [
+      h(TopBar, { title: 'Workspaces' }, [
+        search({
+          wrapperProps: { style: { marginLeft: '2rem', flexGrow: 1, maxWidth: 500 } },
+          inputProps: {
+            placeholder: 'SEARCH WORKSPACES',
+            onChange: e => this.setState({ filter: e.target.value }),
+            value: filter
+          }
+        })
+      ]),
+      h(PageFadeBox, [
         div({
           style: {
-            display: 'flex', alignItems: 'flex-end', margin: '1rem 4.5rem', marginRight: '2.25rem', justifyContent: 'space-between'
+            display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between',
+            marginBottom: '1rem'
           }
         }, [
           div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, [
