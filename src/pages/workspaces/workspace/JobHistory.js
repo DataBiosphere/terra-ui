@@ -14,6 +14,7 @@ import colors from 'src/libs/colors'
 import * as Config from 'src/libs/config'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
+import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
@@ -63,7 +64,6 @@ const collapsedStatuses = _.flow(
 
 const statusCell = workflowStatuses => {
   const { succeeded, failed, running } = collapsedStatuses(workflowStatuses)
-
 
   return h(TooltipTrigger, {
     position: 'bottom',
