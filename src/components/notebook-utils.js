@@ -77,7 +77,7 @@ export const NotebookCreator = ajaxCaller(class NotebookCreator extends Componen
         notebookName: notebookNameValidator(existingNames),
         notebookKernel: { presence: { allowEmpty: false } }
       },
-      { prettify: v => ({ notebookName: 'Name', notebookKernel: 'Kernel' }[v] || validate.prettify(v)) }
+      { prettify: v => ({ notebookName: 'Name', notebookKernel: 'Language' }[v] || validate.prettify(v)) }
     )
 
     return h(Modal, {
@@ -109,7 +109,7 @@ export const NotebookCreator = ajaxCaller(class NotebookCreator extends Componen
           onChange: e => this.setState({ notebookName: e.target.value, nameTouched: true })
         }
       }),
-      Forms.requiredFormLabel('Kernel'),
+      Forms.requiredFormLabel('Language'),
       h(Select, {
         isSearchable: false,
         placeholder: 'Select a kernel',
