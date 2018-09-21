@@ -5,7 +5,7 @@ import * as Style from 'src/libs/style'
 export const styles = {
   cardContainer: {
     position: 'relative',
-    padding: '0 4rem 0 5rem',
+    marginTop: '1rem',
     display: 'flex', flexWrap: 'wrap'
   },
   shortCreateCard: {
@@ -27,7 +27,6 @@ export const styles = {
     whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'
   },
   toolbarContainer: {
-    flex: 'none', display: 'flex', alignItems: 'flex-end',
-    margin: '2rem 4rem 2rem 5rem'
+    flex: 'none', display: 'flex', alignItems: 'flex-end'
   }
 }

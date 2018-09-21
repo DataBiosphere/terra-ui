@@ -228,37 +228,55 @@ export const Select = ({ value, options, ...props }) => {
     options: newOptions
   }, props))
 }
-export const LargeFadeBox = ({ children }) => {
+export const FadeBox = ({ fadePoint = '60%', style = {}, children }) => {
+  const {
+    paddingTop = '1.5rem',
+    paddingLR = '1.5rem',
+    borderRadius = '8px',
+    backgroundColor = colors.gray[5],
+    borderColor = colors.gray[3],
+    ...containerStyle
+  } = style
   return div({
     style: {
-      background: `linear-gradient(to bottom, white 0%, ${colors.gray[5]} 125px`,
-      borderRadius: '8px 8px 0 0',
-      margin: '1.5rem'
+      background: `linear-gradient(to bottom, white 0%, ${backgroundColor} ${fadePoint}`,
+      borderRadius: `${borderRadius} ${borderRadius} 0 0`,
+      ...containerStyle
     }
   }, [
     div({
       style: {
-        height: '.5rem',
-        border: `1px solid ${colors.gray[3]}`,
+        height: paddingTop,
+        border: `1px solid ${borderColor}`,
         borderBottom: 'none',
-        borderRadius: '8px 8px 0 0'
+        borderRadius: `${borderRadius} ${borderRadius} 0 0`
       }
     }),
     div({
       style: {
+        padding: `0 ${paddingLR}`,
         borderWidth: 1,
         borderStyle: 'solid',
-        borderImage: `linear-gradient(to bottom, ${colors.gray[3]}, ${colors.gray[5]} 175px) 1 100%`,
-        borderTop: 'solid',
+        borderImage: `linear-gradient(to bottom, ${borderColor}, ${backgroundColor} ${fadePoint}) 1 100%`,
+        borderTop: 'none',
         borderBottom: 'none'
       }
     }, [children])
   ])
 }
 
+export const PageFadeBox = ({ children }) => {
+  return h(FadeBox, {
+    fadePoint: '125px',
+    style: {
+      margin: '1.5rem', paddingTop: '1rem'
+    }
+  }, [children])
+}
+
 const viewToggleStyles = {
   toolbarContainer: {
-    flex: 'none', display: 'flex', padding: '0 2.25rem'
+    flex: 'none', display: 'flex'
   },
   toolbarButton: active => ({
     display: 'flex', justifyContent: 'center', alignItems: 'center',
