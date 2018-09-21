@@ -29,10 +29,7 @@ const styles = {
   },
   noNotch: {
     fill: 'none',
-    position: 'absolute',
-    width: 16, height: 8,
-    marginLeft: -8, marginRight: -8, marginTop: -8,
-    transformOrigin: 'bottom'
+    position: 'absolute'
   }
 }
 
