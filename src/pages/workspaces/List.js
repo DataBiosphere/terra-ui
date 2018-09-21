@@ -189,9 +189,10 @@ export const WorkspaceList = ajaxCaller(class WorkspaceList extends Component {
           }),
           listView ?
             div({ style: { flex: 1, minWidth: 0, margin: '-0.5rem 1rem 0rem 0.75rem' } },
-              renderedWorkspaces
+              [renderedWorkspaces]
             ) : renderedWorkspaces
-        ]), !isDataLoaded && spinnerOverlay,
+        ]),
+        !isDataLoaded && spinnerOverlay,
         creatingNewWorkspace && h(NewWorkspaceModal, {
           onDismiss: () => this.setState({ creatingNewWorkspace: false })
         })
