@@ -2,8 +2,6 @@ import _ from 'lodash/fp'
 import { Children, cloneElement, Component, createRef, Fragment } from 'react'
 import { createPortal } from 'react-dom'
 import { div, h, path, svg } from 'react-hyperscript-helpers'
-import colors from 'src/libs/colors'
-import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 
 
