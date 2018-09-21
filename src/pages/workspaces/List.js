@@ -51,7 +51,7 @@ const styles = {
   longCard: {
     ...Style.elements.card,
     width: '100%', minWidth: 0, height: 80,
-    margin: '0.25rem 0.5rem'
+    margin: '0.5rem 1rem 0 0'
   },
   longWorkspaceCard: {
     display: 'flex', flexDirection: 'column', justifyContent: 'space-between'
