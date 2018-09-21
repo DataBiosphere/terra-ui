@@ -238,6 +238,7 @@ export const FadeBox = ({ fadePoint = '60%', style = {}, children }) => {
     borderColor = colors.gray[3],
     ...containerStyle
   } = style
+
   return div({
     style: {
       background: `linear-gradient(to bottom, white 0%, ${backgroundColor} ${fadePoint}`,
