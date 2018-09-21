@@ -33,7 +33,7 @@ const styles = {
   },
   jobStatus: {
     position: 'fixed', top: 0, left: 0, pointerEvents: 'none',
-    background: 'white', color: 'black', maxWidth: 400,
+    background: 'white', color: colors.gray[0], maxWidth: 400,
     borderRadius: 4, border: `1px solid ${colors.gray[3]}`,
     boxShadow: Style.standardShadow
   },
