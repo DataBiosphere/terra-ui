@@ -1,7 +1,7 @@
 import { Fragment } from 'react'
 import { div, h, img, p, span } from 'react-hyperscript-helpers'
 import { pure } from 'recompose'
-import { buttonPrimary, link } from 'src/components/common'
+import { buttonPrimary, link, FadeBox, PageFadeBox } from 'src/components/common'
 import Modal from 'src/components/Modal'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { TopBar } from 'src/components/TopBar'
@@ -40,43 +40,6 @@ const styles = {
       height: '1rem'
     }
   }
-}
-
-
-const FadeBox = ({
-  padding = '1.5rem',
-  backgroundColor = colors.gray[5],
-  borderColor = colors.gray[3],
-  fadePoint = '60%',
-  style,
-  children
-}) => {
-  return div({
-    style: {
-      background: `linear-gradient(to bottom, white 0%, ${backgroundColor} ${fadePoint}`,
-      borderRadius: '8px 8px 0 0',
-      ...style
-    }
-  }, [
-    div({
-      style: {
-        height: padding,
-        border: `1px solid ${borderColor}`,
-        borderBottom: 'none',
-        borderRadius: '8px 8px 0 0'
-      }
-    }),
-    div({
-      style: {
-        padding: `0 ${padding} ${padding}`,
-        borderWidth: 1,
-        borderStyle: 'solid',
-        borderImage: `linear-gradient(to bottom, ${borderColor}, ${backgroundColor} ${fadePoint}) 1 100%`,
-        borderTop: 'none',
-        borderBottom: 'none'
-      }
-    }, [children])
-  ])
 }
 
 
@@ -242,7 +205,7 @@ const gtex = h(Participant, {
 const BrowseData = pure(() => {
   return h(Fragment, [
     h(TopBar, { title: 'Library' }), // TODO Add breadcrumbs from design once home page exists
-    h(FadeBox, { fadePoint: '200px', style: { margin: '1.5rem' } }, [
+    h(PageFadeBox, [
       div([
         div({ style: styles.header }, ['Data Library']),
         div({ style: styles.content }, [
