@@ -30,6 +30,19 @@ const styles = {
   statusDetailCell: {
     align: 'center',
     style: { padding: '0.5rem' }
+  },
+  jobStatus: {
+    position: 'fixed', top: 0, left: 0, pointerEvents: 'none',
+    background: 'white', color: 'black', maxWidth: 400,
+    borderRadius: 4, border: `1px solid ${colors.gray[3]}`,
+    boxShadow: Style.standardShadow,
+  },
+  noNotch: {
+    fill: 'none',
+    position: 'absolute',
+    width: 16, height: 8,
+    marginLeft: -8, marginRight: -8, marginTop: -8,
+    transformOrigin: 'bottom'
   }
 }
 
@@ -67,6 +80,8 @@ const statusCell = workflowStatuses => {
 
   return h(TooltipTrigger, {
     position: 'bottom',
+    type: styles.jobStatus,
+    notch: styles.noNotch,
     content: table({ style: { margin: '0.5rem' } }, [
       tbody({}, [
         tr({}, [

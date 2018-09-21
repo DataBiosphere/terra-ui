@@ -2,6 +2,8 @@ import _ from 'lodash/fp'
 import { Children, cloneElement, Component, createRef, Fragment } from 'react'
 import { createPortal } from 'react-dom'
 import { div, h, path, svg } from 'react-hyperscript-helpers'
+import colors from 'src/libs/colors'
+import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 
 
@@ -61,7 +63,7 @@ class Tooltip extends Component {
   }
 
   render() {
-    const { children, side } = this.props
+    const { children, side, type, notch } = this.props
     const { target, tooltip, viewport } = this.state
     const gap = 10
     const getPosition = s => {
@@ -108,10 +110,10 @@ class Tooltip extends Component {
     return createPortal(
       div({
         ref: this.element,
-        style: { ...styles.tooltip, transform: `translate(${finalPos.left}px, ${finalPos.top}px)` }
+        style: { ...type, transform: `translate(${finalPos.left}px, ${finalPos.top}px)` }
       }, [
         children,
-        svg({ viewBox: '0 0 2 1', style: { ...getNotchPosition(), ...styles.notch } }, [
+        svg({ viewBox: '0 0 2 1', style: { ...getNotchPosition(), ...notch } }, [
           path({ d: 'M0,1l1,-1l1,1Z' })
         ])
       ]),
@@ -131,8 +133,13 @@ export default class TooltipTrigger extends Component {
     this.id = `tooltip-trigger-${_.uniqueId()}`
   }
 
+  static defaultProps = {
+    type: styles.tooltip,
+    notch: styles.notch
+  }
+
   render() {
-    const { children, content, ...props } = this.props
+    const { children, type, notch, content, ...props } = this.props
     const { open } = this.state
     if (!content) {
       return children
@@ -150,7 +157,7 @@ export default class TooltipTrigger extends Component {
           this.setState({ open: false })
         }
       }),
-      open && h(Tooltip, { target: this.id, ...props }, [content])
+      open && h(Tooltip, { target: this.id, type, notch, ...props }, [content])
     ])
   }
 }
