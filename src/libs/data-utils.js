@@ -69,7 +69,7 @@ const UriViewer = ajaxCaller(class UriViewer extends Component {
 
       this.setState(_.merge({ metadata, price }, !isGsUri && { signedUrl }))
 
-      if (isFilePreviewable(metadata)) {
+      if (isGsUri && isFilePreviewable(metadata)) {
         Buckets.getObjectPreview(bucket, name, googleProject, isImage(metadata))
           .then(res => isImage(metadata) ? res.blob().then(URL.createObjectURL) : res.text())
           .then(preview => this.setState({ preview }))
@@ -102,24 +102,30 @@ const UriViewer = ajaxCaller(class UriViewer extends Component {
         [
           metadata, () => [
             els.cell([els.label('Filename'), els.data(_.last(name.split('/')).split('.').join('.\u200B'))]), // allow line break on periods
-            els.cell(isFilePreviewable(metadata) ? [
-              els.label('Preview'),
-              Utils.cond(
-                [
-                  isImage(metadata), () => img({ src: preview, width: 400 })
-                ], [
-                  preview, () => div({
-                    style: {
-                      whiteSpace: 'pre', fontFamily: 'Menlo, monospace', fontSize: 12,
-                      overflowY: 'auto', maxHeight: 206,
-                      marginTop: '0.5rem', padding: '0.5rem',
-                      background: colors.gray[5], borderRadius: '0.2rem'
-                    }
-                  }, [preview])
-                ],
-                () => 'Loading preview...'
-              )
-            ] : [els.label(isImage(metadata) ? 'Image is too large to preview.' : `File can't be previewed.`)]),
+            els.cell(Utils.cond(
+              [!isGs(uri), () => [els.label(`DOS uri's can't be previewed`)]],
+              [
+                isFilePreviewable(metadata), () => [
+                  els.label('Preview'),
+                  Utils.cond(
+                    [isImage(metadata), () => img({ src: preview, width: 400 })],
+                    [
+                      preview, () => div({
+                        style: {
+                          whiteSpace: 'pre', fontFamily: 'Menlo, monospace', fontSize: 12,
+                          overflowY: 'auto', maxHeight: 206,
+                          marginTop: '0.5rem', padding: '0.5rem',
+                          background: colors.gray[5], borderRadius: '0.2rem'
+                        }
+                      }, [preview])
+                    ],
+                    () => 'Loading preview...'
+                  )
+                ]
+              ],
+              [isImage(metadata), () => els.label('Image is too large to preview')],
+              () => [els.label(`File can't be previewed.`)]
+            )),
             els.cell([els.label('File size'), els.data(filesize(parseInt(size, 10)))]),
             els.cell([
               link({
