@@ -64,31 +64,28 @@ const collapsedStatuses = _.flow(
 const statusCell = workflowStatuses => {
   const { succeeded, failed, running } = collapsedStatuses(workflowStatuses)
 
-  return h(Fragment, [
-    succeeded && successIcon({ marginRight: '0.5rem' }),
-    failed && failedIcon({ marginRight: '0.5rem' }),
-    running && runningIcon({ marginRight: '0.5rem' }),
-    h(PopupTrigger, {
-      position: 'bottom',
-      content: table({ style: { margin: '0.5rem' } }, [
-        tbody({}, [
-          tr({}, [
-            td(styles.statusDetailCell, [successIcon()]),
-            td(styles.statusDetailCell, [failedIcon()]),
-            td(styles.statusDetailCell, [runningIcon()])
-          ]),
-          tr({}, [
-            td(styles.statusDetailCell, [succeeded || 0]),
-            td(styles.statusDetailCell, [failed || 0]),
-            td(styles.statusDetailCell, [running || 0])
-          ])
+
+  return h(TooltipTrigger, {
+    position: 'bottom',
+    content: table({ style: { margin: '0.5rem' } }, [
+      tbody({}, [
+        tr({}, [
+          td(styles.statusDetailCell, [successIcon()]),
+          td(styles.statusDetailCell, [failedIcon()]),
+          td(styles.statusDetailCell, [runningIcon()])
+        ]),
+        tr({}, [
+          td(styles.statusDetailCell, [succeeded || 0]),
+          td(styles.statusDetailCell, [failed || 0]),
+          td(styles.statusDetailCell, [running || 0])
         ])
       ])
-    }, [
-      h(Clickable, {
-        className: 'hover-only',
-        style: { color: colors.blue[1] }
-      }, [icon('caretDown', { size: 18 })])
+    ])
+  }, [
+    div([
+      succeeded && successIcon({ marginRight: '0.5rem' }),
+      failed && failedIcon({ marginRight: '0.5rem' }),
+      running && runningIcon({ marginRight: '0.5rem' })
     ])
   ])
 }
