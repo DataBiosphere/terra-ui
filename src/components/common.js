@@ -228,6 +228,7 @@ export const Select = ({ value, options, ...props }) => {
     options: newOptions
   }, props))
 }
+
 export const FadeBox = ({ fadePoint = '60%', style = {}, children }) => {
   const {
     paddingTop = '1.5rem',
