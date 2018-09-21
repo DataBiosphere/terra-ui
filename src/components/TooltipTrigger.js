@@ -5,41 +5,20 @@ import { div, h, path, svg } from 'react-hyperscript-helpers'
 import * as Utils from 'src/libs/utils'
 
 
-const includesAll = (arr, col) => _.overEvery(_.map(_.includes, arr))(col)
-
 const styles = {
-  tooltip: (side, dir) => ({
-    position: 'fixed', pointerEvents: 'none',
+  tooltip: {
+    position: 'fixed', top: 0, left: 0, pointerEvents: 'none',
     background: 'black', color: 'white',
     padding: '0.5rem', maxWidth: 400,
-    borderRadius: Utils.cond(
-      [includesAll(['bottom', 'right'], [side, dir]), () => '0 4px 4px 4px'],
-      [includesAll(['bottom', 'left'], [side, dir]), () => '4px 0 4px 4px'],
-      [includesAll(['top', 'right'], [side, dir]), () => '4px 4px 4px 0'],
-      [includesAll(['top', 'left'], [side, dir]), () => '4px 4px 0 4px']
-    )
-  }),
-  notch: (side, dir) => ({
-    width: 8, height: 8,
+    borderRadius: 4
+  },
+  notch: {
     fill: 'black',
     position: 'absolute',
-    ...Utils.switchCase(side,
-      ['top', () => ({ top: '100%' })],
-      ['bottom', () => ({ bottom: '100%' })],
-      ['left', () => ({ left: '100%' })],
-      ['right', () => ({ right: '100%' })]
-    ),
-    ...Utils.switchCase(dir,
-      ['top', () => ({ bottom: 0 })],
-      ['bottom', () => ({ top: 0 })],
-      ['left', () => ({ right: 0 })],
-      ['right', () => ({ left: 0 })]
-    ),
-    transform: `
-      scaleY(${side === 'top' || dir === 'bottom' ? -1 : 1})
-      scaleX(${side === 'right' || dir === 'left' ? -1 : 1})
-    `
-  })
+    width: 16, height: 8,
+    marginLeft: -8, marginRight: -8, marginTop: -8,
+    transformOrigin: 'bottom'
+  }
 }
 
 class Tooltip extends Component {
@@ -84,24 +63,24 @@ class Tooltip extends Component {
   render() {
     const { children, side } = this.props
     const { target, tooltip, viewport } = this.state
-    const dir = _.includes(side, ['top', 'bottom']) ? 'right' : 'bottom'
-    const getPosition = (s, d) => {
-      return {
-        ...Utils.switchCase(s,
-          ['top', () => ({ top: target.top - tooltip.height - 10 })],
-          ['bottom', () => ({ top: target.bottom + 10 })],
-          ['left', () => ({ left: target.left - tooltip.width - 10 })],
-          ['right', () => ({ left: target.right + 10 })]
-        ),
-        ...Utils.switchCase(d,
-          ['top', () => ({ top: (target.bottom + target.top) / 2 - tooltip.height })],
-          ['bottom', () => ({ top: (target.bottom + target.top) / 2 })],
-          ['left', () => ({ left: (target.right + target.left) / 2 - tooltip.width })],
-          ['right', () => ({ left: (target.right + target.left) / 2 })]
-        )
-      }
+    const gap = 10
+    const getPosition = s => {
+      const left = _.flow(
+        _.clamp(0, viewport.width - tooltip.width),
+        _.clamp(target.left - tooltip.width + 16, target.right - 16)
+      )(((target.left + target.right) / 2) - (tooltip.width / 2))
+      const top = _.flow(
+        _.clamp(0, viewport.height - tooltip.height),
+        _.clamp(target.top - tooltip.height + 16, target.bottom - 16)
+      )(((target.top + target.bottom) / 2) - (tooltip.height / 2))
+      return Utils.switchCase(s,
+        ['top', () => ({ top: target.top - tooltip.height - gap, left })],
+        ['bottom', () => ({ top: target.bottom + gap, left })],
+        ['left', () => ({ left: target.left - tooltip.width - gap, top })],
+        ['right', () => ({ left: target.right + gap, top })]
+      )
     }
-    const initial = getPosition(side, dir)
+    const initial = getPosition(side)
     const maybeFlip = d => {
       return Utils.switchCase(d,
         ['top', () => initial.top < 0 ? 'bottom' : 'top'],
@@ -111,15 +90,29 @@ class Tooltip extends Component {
       )
     }
     const finalSide = maybeFlip(side)
-    const finalDir = maybeFlip(dir)
+    const finalPos = getPosition(finalSide)
+    const getNotchPosition = () => {
+      const left = _.clamp(12, tooltip.width - 12,
+        (target.left + target.right) / 2 - finalPos.left
+      )
+      const top = _.clamp(12, tooltip.height - 12,
+        (target.top + target.bottom) / 2 - finalPos.top
+      )
+      return Utils.switchCase(finalSide,
+        ['top', () => ({ bottom: 0, left, transform: 'rotate(180deg)' })],
+        ['bottom', () => ({ top: 0, left })],
+        ['left', () => ({ right: 0, top, transform: 'rotate(90deg)' })],
+        ['right', () => ({ left: 0, top, transform: 'rotate(270deg)' })]
+      )
+    }
     return createPortal(
       div({
         ref: this.element,
-        style: { ...styles.tooltip(finalSide, finalDir), ...getPosition(finalSide, finalDir) }
+        style: { ...styles.tooltip, transform: `translate(${finalPos.left}px, ${finalPos.top}px)` }
       }, [
         children,
-        svg({ viewBox: '0 0 1 1', style: styles.notch(finalSide, finalDir) }, [
-          path({ d: 'M0,0V1H1Z' })
+        svg({ viewBox: '0 0 2 1', style: { ...getNotchPosition(), ...styles.notch } }, [
+          path({ d: 'M0,1l1,-1l1,1Z' })
         ])
       ]),
       this.container
