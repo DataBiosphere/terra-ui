@@ -2,6 +2,8 @@ import _ from 'lodash/fp'
 import { Children, cloneElement, Component, createRef, Fragment } from 'react'
 import { createPortal } from 'react-dom'
 import { div, h, path, svg } from 'react-hyperscript-helpers'
+import colors from 'src/libs/colors'
+import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 
 
@@ -14,6 +16,19 @@ const styles = {
   },
   notch: {
     fill: 'black',
+    position: 'absolute',
+    width: 16, height: 8,
+    marginLeft: -8, marginRight: -8, marginTop: -8,
+    transformOrigin: 'bottom'
+  },
+  jobStatus: {
+    position: 'fixed', top: 0, left: 0, pointerEvents: 'none',
+    background: 'white', color: colors.gray[0], maxWidth: 400,
+    borderRadius: 4, border: `1px solid ${colors.gray[3]}`,
+    boxShadow: Style.standardShadow
+  },
+  noNotch: {
+    fill: 'none',
     position: 'absolute',
     width: 16, height: 8,
     marginLeft: -8, marginRight: -8, marginTop: -8,
@@ -61,8 +76,10 @@ class Tooltip extends Component {
   }
 
   render() {
-    const { children, side, type, notch, gap } = this.props
+    const { children, side, type } = this.props
     const { target, tooltip, viewport } = this.state
+    let gap = 10
+    if (type === 'light') { gap = 5 }
     const getPosition = s => {
       const left = _.flow(
         _.clamp(0, viewport.width - tooltip.width),
@@ -107,10 +124,10 @@ class Tooltip extends Component {
     return createPortal(
       div({
         ref: this.element,
-        style: { ...type, transform: `translate(${finalPos.left}px, ${finalPos.top}px)` }
+        style: { ...styles.jobStatus, transform: `translate(${finalPos.left}px, ${finalPos.top}px)` }
       }, [
         children,
-        svg({ viewBox: '0 0 2 1', style: { ...getNotchPosition(), ...notch } }, [
+        svg({ viewBox: '0 0 2 1', style: { ...getNotchPosition(), ...styles.noNotch } }, [
           path({ d: 'M0,1l1,-1l1,1Z' })
         ])
       ]),
@@ -131,13 +148,11 @@ export default class TooltipTrigger extends Component {
   }
 
   static defaultProps = {
-    type: styles.tooltip,
-    notch: styles.notch,
-    gap: 10
+    type: 'default'
   }
 
   render() {
-    const { children, type, notch, gap, content, ...props } = this.props
+    const { children, type, content, ...props } = this.props
     const { open } = this.state
     if (!content) {
       return children
@@ -155,7 +170,7 @@ export default class TooltipTrigger extends Component {
           this.setState({ open: false })
         }
       }),
-      open && h(Tooltip, { target: this.id, type, notch, gap, ...props }, [content])
+      open && h(Tooltip, { target: this.id, type, ...props }, [content])
     ])
   }
 }
