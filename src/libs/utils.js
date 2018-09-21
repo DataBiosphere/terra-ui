@@ -57,11 +57,10 @@ export const connectAtom = (theAtom, name) => WrappedComponent => {
       const { forwardedRef, ...rest } = this.props
       const { value } = this.state
 
-      return h(WrappedComponent, {
+      return h(WrappedComponent, _.merge({
         ref: forwardedRef,
-        [name]: value,
         ...rest
-      })
+      }, name && { [name]: value }))
     }
   }
 
