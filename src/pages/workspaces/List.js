@@ -22,11 +22,10 @@ import ShareWorkspaceModal from 'src/pages/workspaces/workspace/ShareWorkspaceMo
 
 
 const styles = {
-  cardContainer: {
+  cardContainer: listView => ({
     position: 'relative',
-    display: 'flex', flexWrap: 'wrap',
-    marginRight: '-1rem'
-  },
+    display: 'flex', flexWrap: listView ? undefined : 'wrap', marginRight: listView ? undefined : '-1rem'
+  }),
   shortCard: {
     ...Style.elements.card,
     width: 300, height: 225,
@@ -57,7 +56,7 @@ const styles = {
     margin: '0.5rem 1rem 0 0'
   },
   longWorkspaceCard: {
-    display: 'flex', flexDirection: 'column', justifyContent: 'space-between'
+    display: 'flex', flexDirection: 'column', justifyContent: 'space-between', marginBottom: '0.5rem'
   },
   longTitle: {
     color: colors.blue[0], fontSize: 16,
@@ -72,10 +71,6 @@ const styles = {
     height: '1.5rem', width: '1.5rem', borderRadius: '1.5rem',
     lineHeight: '1.5rem', textAlign: 'center',
     backgroundColor: colors.purple[0], color: 'white'
-  },
-  longCreateCard: {
-    display: 'flex', flexDirection: 'column', justifyContent: 'center',
-    color: colors.blue[0], fontSize: 16
   }
 }
 
@@ -155,16 +150,8 @@ const WorkspaceCard = pure(({ listView, onClone, onDelete, onShare, workspace: {
   ])
 })
 
-const NewWorkspaceCard = pure(({ listView, onClick }) => {
-  return listView ? h(Clickable, {
-    style: { ...styles.longCard, ...styles.longCreateCard },
-    onClick
-  }, [
-    div([
-      'Create a New Workspace',
-      icon('plus-circle', { style: { marginLeft: '1rem' }, size: 24 })
-    ])
-  ]) : h(Clickable, {
+const NewWorkspaceCard = pure(({ onClick }) => {
+  return h(Clickable, {
     style: { ...styles.shortCard, ...styles.shortCreateCard },
     onClick
   }, [
@@ -225,6 +212,13 @@ export const WorkspaceList = ajaxCaller(class WorkspaceList extends Component {
     const data = _.filter(({ workspace: { namespace, name } }) => {
       return Utils.textMatch(filter, `${namespace}/${name}`)
     }, workspaces)
+    const renderedWorkspaces = _.map(workspace => {
+      return h(WorkspaceCard, { listView,
+        onClone: () => this.setState({ cloningWorkspaceId: workspace.workspace.workspaceId }),
+        onDelete: () => this.setState({ deletingWorkspaceId: workspace.workspace.workspaceId }),
+        onShare: () => this.setState({ sharingWorkspaceId: workspace.workspace.workspaceId }),
+        workspace, key: workspace.workspace.workspaceId })
+    }, data)
     return h(Fragment, [
       h(TopBar, { title: 'Workspaces' }, [
         search({
@@ -248,22 +242,17 @@ export const WorkspaceList = ajaxCaller(class WorkspaceList extends Component {
           ]),
           viewToggleButtons(listView, listView => this.setState({ listView }))
         ]),
-        div({ style: styles.cardContainer }, [
+        div({ style: styles.cardContainer(listView) }, [
           h(NewWorkspaceCard, {
-            listView,
             onClick: () => this.setState({ creatingNewWorkspace: true })
           }),
-          _.map(workspace => {
-            return h(WorkspaceCard, {
-              listView,
-              onClone: () => this.setState({ cloningWorkspaceId: workspace.workspace.workspaceId }),
-              onDelete: () => this.setState({ deletingWorkspaceId: workspace.workspace.workspaceId }),
-              onShare: () => this.setState({ sharingWorkspaceId: workspace.workspace.workspaceId }),
-              workspace, key: workspace.workspace.workspaceId
-            })
-          }, data),
-          !isDataLoaded && spinnerOverlay
+          !isDataLoaded && spinnerOverlay,
+          listView ?
+            div({ style: { flex: 1, minWidth: 0, margin: '-0.5rem 0rem 0rem 0.75rem' } }, [
+              renderedWorkspaces
+            ]) : renderedWorkspaces
         ]),
+        !isDataLoaded && spinnerOverlay,
         creatingNewWorkspace && h(NewWorkspaceModal, {
           onDismiss: () => this.setState({ creatingNewWorkspace: false })
         }),
