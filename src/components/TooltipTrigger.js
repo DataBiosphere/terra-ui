@@ -124,10 +124,14 @@ class Tooltip extends Component {
     return createPortal(
       div({
         ref: this.element,
-        style: { ...styles.jobStatus, transform: `translate(${finalPos.left}px, ${finalPos.top}px)` }
+        style: (type === 'light') ?
+          { ...styles.jobStatus, transform: `translate(${finalPos.left}px, ${finalPos.top}px)` } :
+          { ...styles.tooltip, transform: `translate(${finalPos.left}px, ${finalPos.top}px)` }
       }, [
         children,
-        svg({ viewBox: '0 0 2 1', style: { ...getNotchPosition(), ...styles.noNotch } }, [
+        svg({
+          viewBox: '0 0 2 1', style: (type === 'light') ? { ...getNotchPosition(), ...styles.noNotch } : { ...getNotchPosition(), ...styles.notch }
+        }, [
           path({ d: 'M0,1l1,-1l1,1Z' })
         ])
       ]),
