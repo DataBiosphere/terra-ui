@@ -238,6 +238,7 @@ class WorkflowViewContent extends Component {
             h(Select, {
               isClearable: true, isSearchable: false,
               styles: { container: old => ({ ...old, display: 'inline-block', width: 200, marginLeft: '0.5rem' }) },
+              getOptionLabel: ({ value }) => Utils.normalizeLabel(value),
               value: rootEntityType,
               onChange: selected => {
                 const value = !!selected ? selected.value : undefined

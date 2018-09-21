@@ -48,7 +48,7 @@ const styles = {
   },
   smallSelect: base => ({
     ...base,
-    width: 80,
+    width: 85,
     display: 'inline-block',
     verticalAlign: 'middle'
   }),
@@ -326,15 +326,6 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
         div({ style: { flex: 1 } }, [
           h(Select, {
             value: profile,
-            getOptionLabel: ({ value }) => {
-              if (value === 'custom') {
-                return 'Custom'
-              } else {
-                const { label, machineConfig } = profilesByName[value]
-
-                return `${label} computer power (${Utils.formatUSD(machineConfigCost(machineConfig))} hr)`
-              }
-            },
             onChange: ({ value }) => {
               this.setState({
                 profile: value,
@@ -344,8 +335,11 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
             isSearchable: false,
             isClearable: false,
             options: [
-              ..._.map('name', profiles),
-              'custom'
+              ..._.map(({ name, label, machineConfig }) => ({
+                value: name,
+                label: `${label} computer power (${Utils.formatUSD(machineConfigCost(machineConfig))} hr)`
+              }), profiles),
+              { value: 'custom', label: 'Custom' }
             ]
           })
         ])

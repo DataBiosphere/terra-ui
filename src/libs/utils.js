@@ -203,3 +203,5 @@ export const readFileAsText = file => {
     reader.readAsText(file)
   })
 }
+
+export const normalizeLabel = _.flow(_.camelCase, _.startCase)

@@ -7,7 +7,6 @@ import { centeredSpinner, icon } from 'src/components/icons'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import colors from 'src/libs/colors'
 import * as Style from 'src/libs/style'
-import * as Utils from 'src/libs/utils'
 
 
 const styles = {
@@ -202,11 +201,7 @@ export const comingSoon = span({
 export const Select = ({ value, options, ...props }) => {
   const newOptions = options && !_.isObject(options[0]) ? _.map(value => ({ value }), options) : options
   const findValue = target => _.find({ value: target }, newOptions)
-  const newValue = Utils.cond(
-    [_.isUndefined(value), undefined],
-    [_.has('value', value), value],
-    [props.isMulti, () => _.map(findValue, value)],
-    () => findValue(value))
+  const newValue = props.isMulti ? _.map(findValue, value) : findValue(value)
 
   return h(RSelect, _.merge({
     styles: {
@@ -214,6 +209,7 @@ export const Select = ({ value, options, ...props }) => {
         minHeight: 36,
         backgroundColor: isDisabled ? colors.gray[5] : 'white',
         borderColor: isFocused ? colors.blue[0] : undefined,
+        boxShadow: 'none',
         '&:hover': { borderColor: isFocused ? colors.blue[0] : undefined }
       }),
       singleValue: base => ({ ...base, color: colors.gray[0] }),
@@ -223,7 +219,7 @@ export const Select = ({ value, options, ...props }) => {
         ':active': { backgroundColor: isSelected ? colors.blue[4] : colors.blue[5] }
       })
     },
-    getOptionLabel: ({ value, label }) => label || _.flow(_.camelCase, _.startCase)(value), // start case doesn't handle all caps
+    getOptionLabel: ({ value, label }) => label || value.toString(),
     value: newValue,
     options: newOptions
   }, props))

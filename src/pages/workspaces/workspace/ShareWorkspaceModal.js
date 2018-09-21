@@ -152,14 +152,15 @@ export default ajaxCaller(class ShareWorkspaceModal extends Component {
             styles: { container: styles.roleSelect },
             isDisabled: true,
             value: POAccessLevel,
-            options: [POAccessLevel]
+            options: [{ value: POAccessLevel, label: Utils.normalizeLabel(POAccessLevel) }]
           }) :
           h(Select, {
             styles: { container: styles.roleSelect },
             isSearchable: false, isClearable: false,
             isDisabled: isMe,
+            getOptionLabel: ({ value }) => Utils.normalizeLabel(value),
             value: accessLevel,
-            onChange: ({ value }) => this.setState({ acl: _.set([index, 'accessLevel'], value.toUpperCase, acl) }),
+            onChange: ({ value }) => this.setState({ acl: _.set([index, 'accessLevel'], value, acl) }),
             options: ['READER', 'WRITER', 'OWNER']
           })
       ]),

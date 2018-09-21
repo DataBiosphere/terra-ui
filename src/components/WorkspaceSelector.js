@@ -17,9 +17,10 @@ export default ajaxCaller(class WorkspaceSelector extends Component {
       placeholder: workspaces ? 'Select a workspace' : 'Loading workspaces...',
       value: selectedWorkspace,
       onChange: selectedWorkspace => onWorkspaceSelected(selectedWorkspace),
-      options: _.map(({ workspace }) => {
-        return { value: workspace, label: workspace.name }
-      }, workspaces)
+      options: _.flow(
+        _.map(({ workspace }) => ({ value: workspace, label: workspace.name })),
+        _.sortBy('label')
+      )(workspaces)
     })
   }
 
