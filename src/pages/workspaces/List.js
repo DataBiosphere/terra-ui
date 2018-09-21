@@ -213,11 +213,13 @@ export const WorkspaceList = ajaxCaller(class WorkspaceList extends Component {
       return Utils.textMatch(filter, `${namespace}/${name}`)
     }, workspaces)
     const renderedWorkspaces = _.map(workspace => {
-      return h(WorkspaceCard, { listView,
+      return h(WorkspaceCard, {
+        listView,
         onClone: () => this.setState({ cloningWorkspaceId: workspace.workspace.workspaceId }),
         onDelete: () => this.setState({ deletingWorkspaceId: workspace.workspace.workspaceId }),
         onShare: () => this.setState({ sharingWorkspaceId: workspace.workspace.workspaceId }),
-        workspace, key: workspace.workspace.workspaceId })
+        workspace, key: workspace.workspace.workspaceId
+      })
     }, data)
     return h(Fragment, [
       h(TopBar, { title: 'Workspaces' }, [
