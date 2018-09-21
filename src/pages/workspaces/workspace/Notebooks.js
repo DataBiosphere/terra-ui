@@ -241,9 +241,9 @@ class NotebooksContent extends Component {
         ])
       ]),
       listView ?
-        div({ style: { flex: 1 } },
-          [renderedNotebooks]
-        ) : renderedNotebooks
+        div({ style: { flex: 1 } }, [
+          renderedNotebooks
+        ]) : renderedNotebooks
     ])
   }
 

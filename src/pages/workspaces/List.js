@@ -21,7 +21,7 @@ import { Component } from 'src/libs/wrapped-components'
 const styles = {
   cardContainer: listView => ({
     position: 'relative',
-    display: 'flex', flexWrap: listView ? undefined : 'wrap', marginRight: '-1rem'
+    display: 'flex', flexWrap: listView ? undefined : 'wrap', marginRight: listView ? undefined : '-1rem'
   }),
   shortCard: {
     ...Style.elements.card,
@@ -188,9 +188,9 @@ export const WorkspaceList = ajaxCaller(class WorkspaceList extends Component {
             onClick: () => this.setState({ creatingNewWorkspace: true })
           }),
           listView ?
-            div({ style: { flex: 1, minWidth: 0, margin: '-0.5rem 1rem 0rem 0.75rem' } },
-              [renderedWorkspaces]
-            ) : renderedWorkspaces
+            div({ style: { flex: 1, minWidth: 0, margin: '-0.5rem 0rem 0rem 0.75rem' } }, [
+              renderedWorkspaces
+            ]) : renderedWorkspaces
         ]),
         !isDataLoaded && spinnerOverlay,
         creatingNewWorkspace && h(NewWorkspaceModal, {
