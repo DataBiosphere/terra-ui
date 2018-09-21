@@ -2,6 +2,7 @@ import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { a, div, h, span } from 'react-hyperscript-helpers'
 import { pure } from 'recompose'
+import removeMd from 'remove-markdown'
 import { Clickable, PageFadeBox, search, spinnerOverlay, viewToggleButtons } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
@@ -39,6 +40,7 @@ const styles = {
   },
   shortDescription: {
     flex: 'none',
+    whiteSpace: 'pre-wrap',
     lineHeight: '18px', height: '90px',
     overflow: 'hidden'
   },
@@ -77,9 +79,10 @@ const styles = {
 const WorkspaceCard = pure(({ listView, workspace: { workspace: { namespace, name, createdBy, lastModified, attributes: { description } } } }) => {
   const lastChanged = `Last changed: ${Utils.makePrettyDate(lastModified)}`
   const badge = div({ title: createdBy, style: styles.badge }, [createdBy[0].toUpperCase()])
-  const descText = description || span({ style: { color: colors.gray[2] } }, [
-    'No description added'
-  ])
+  const descText = description ?
+    removeMd(listView ? description.split('\n')[0] : description) :
+    span({ style: { color: colors.gray[2] } }, ['No description added'])
+
   return listView ? a({
     href: Nav.getLink('workspace', { namespace, name }),
     style: { ...styles.longCard, ...styles.longWorkspaceCard }
