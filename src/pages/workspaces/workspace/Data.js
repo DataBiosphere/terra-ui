@@ -10,7 +10,7 @@ import { textInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { ColumnSelector, FlexTable, GridTable, HeaderCell, paginator, Resizable, Sortable } from 'src/components/table'
 import { ajaxCaller } from 'src/libs/ajax'
-import * as auth from 'src/libs/auth'
+import { getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import * as Config from 'src/libs/config'
 import { ReferenceDataDeleter, ReferenceDataImporter, renderDataCell } from 'src/libs/data-utils'
@@ -363,7 +363,7 @@ class WorkspaceDataContent extends Component {
         action: `${orchestrationRoot}/cookie-authed/workspaces/${namespace}/${name}/entities/${selectedDataType}/tsv`,
         method: 'POST'
       }, [
-        input({ type: 'hidden', name: 'FCtoken', value: auth.getAuthToken() })
+        input({ type: 'hidden', name: 'FCtoken', value: getUser().token })
         /*
          * TODO: once column selection is implemented, add another hidden input with name: 'attributeNames' and
          * value: comma-separated list of attribute names to support downloading only the selected columns

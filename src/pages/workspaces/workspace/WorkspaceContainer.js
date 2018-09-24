@@ -9,7 +9,7 @@ import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
 import PopupTrigger from 'src/components/PopupTrigger'
 import { TopBar } from 'src/components/TopBar'
 import { ajaxCaller } from 'src/libs/ajax'
-import { getBasicProfile } from 'src/libs/auth'
+import { getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
@@ -240,7 +240,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, showTabBar = true
     async refreshClusters() {
       const { namespace, ajax: { Jupyter } } = this.props
       try {
-        const clusters = _.filter({ googleProject: namespace, creator: getBasicProfile().getEmail() }, await Jupyter.clustersList())
+        const clusters = _.filter({ googleProject: namespace, creator: getUser().email }, await Jupyter.clustersList())
         this.setState({ clusters })
       } catch (error) {
         reportError('Error loading clusters', error)
