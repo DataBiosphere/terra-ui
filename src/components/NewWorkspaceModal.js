@@ -35,9 +35,8 @@ const constraints = {
 
 const styles = {
   groupNotice: {
-    marginBottom: '0.25rem',
-    fontSize: 12,
-    color: colors.gray[2]
+    marginBottom: '0.5rem',
+    fontSize: 12
   }
 }
 
@@ -51,7 +50,7 @@ export default ajaxCaller(class NewWorkspaceModal extends Component {
       name: cloneWorkspace ? `${cloneWorkspace.workspace.name} copy` : '',
       namespace: cloneWorkspace ? cloneWorkspace.workspace.namespace : undefined,
       description: (cloneWorkspace && cloneWorkspace.workspace.attributes.description) || '',
-      groups: cloneWorkspace ? _.map('membersGroupName', cloneWorkspace.workspace.authorizationDomain) : [],
+      groups: [],
       nameModified: false,
       busy: false,
       createError: undefined
@@ -79,7 +78,7 @@ export default ajaxCaller(class NewWorkspaceModal extends Component {
       const body = {
         namespace,
         name,
-        authorizationDomain: _.map(v => ({ membersGroupName: v }), groups),
+        authorizationDomain: [..._.map(v => ({ membersGroupName: v }), groups), ...(cloneWorkspace ? cloneWorkspace.workspace.authorizationDomain : [])],
         attributes: { description }
       }
       await (cloneWorkspace ?
@@ -134,13 +133,11 @@ export default ajaxCaller(class NewWorkspaceModal extends Component {
           'Or, email ', link({ href: `mailto:${billingMail}` }, [billingMail]), ' with questions.'
         ])
       ]) : h(Select, {
-        clearable: false,
+        isClearable: false,
         placeholder: 'Select a billing project',
         value: namespace,
         onChange: ({ value }) => this.setState({ namespace: value }),
-        options: _.map(name => {
-          return { label: name, value: name }
-        }, _.uniq(_.map('projectName', billingProjects)).sort())
+        options: _.uniq(_.map('projectName', billingProjects)).sort()
       }),
       Forms.formLabel('Description'),
       h(TextArea, {
@@ -155,18 +152,20 @@ export default ajaxCaller(class NewWorkspaceModal extends Component {
         link({ href: authDoc, target: '_blank' }, ['Read more about authorization domains'])
       ])),
       !!existingGroups.length && div({ style: styles.groupNotice }, [
-        'The cloned workspace will automatically inherit the authorization domain from this workspace. ',
-        'You may add groups to the authorization domain, but you may not remove existing ones.'
+        div({ style: { marginBottom: '0.2rem', color: colors.gray[2] } }, [
+          'The cloned workspace will automatically inherit the authorization domain from this workspace. ',
+          'You may add groups to the authorization domain, but you may not remove existing ones.'
+        ]),
+        div({ style: { marginBottom: '0.2rem' } }, ['Inherited groups:']),
+        ...existingGroups.join(', ')
       ]),
       h(Select, {
-        clearable: false,
-        multi: true,
+        isClearable: false,
+        isMulti: true,
         placeholder: 'Select groups',
         value: groups,
         onChange: data => this.setState({ groups: _.map('value', data) }),
-        options: _.map(name => {
-          return { label: name, value: name, clearableValue: !_.includes(name, existingGroups) }
-        }, _.map('groupName', allGroups).sort())
+        options: _.difference(_.map('groupName', allGroups), existingGroups).sort()
       }),
       createError && div({
         style: { marginTop: '1rem', color: colors.red[0] }

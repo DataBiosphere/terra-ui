@@ -38,27 +38,27 @@ const baseNotebook = {
   ], 'nbformat': 4, 'nbformat_minor': 2
 }
 
-const python2Notebook = _.merge({
-  'metadata': {
-    'kernelspec': { 'display_name': 'Python 2', 'language': 'python', 'name': 'python2' }
-  }
-}, baseNotebook)
-
-const python3Notebook = _.merge({
-  'metadata': {
-    'kernelspec': { 'display_name': 'Python 3', 'language': 'python', 'name': 'python3' }
-  }
-}, baseNotebook)
-
-const rNotebook = _.merge({
-  'metadata': {
-    'kernelspec': { 'display_name': 'R', 'language': 'R', 'name': 'ir' },
-    'language_info': {
-      'codemirror_mode': 'r', 'file_extension': '.r', 'mimetype': 'text/x-r-source', 'name': 'R',
-      'pygments_lexer': 'r', 'version': '3.3.3'
+const notebookData = {
+  python2: _.merge({
+    'metadata': {
+      'kernelspec': { 'display_name': 'Python 2', 'language': 'python', 'name': 'python2' }
     }
-  }
-}, baseNotebook)
+  }, baseNotebook),
+  python3: _.merge({
+    'metadata': {
+      'kernelspec': { 'display_name': 'Python 3', 'language': 'python', 'name': 'python3' }
+    }
+  }, baseNotebook),
+  r: _.merge({
+    'metadata': {
+      'kernelspec': { 'display_name': 'R', 'language': 'R', 'name': 'ir' },
+      'language_info': {
+        'codemirror_mode': 'r', 'file_extension': '.r', 'mimetype': 'text/x-r-source', 'name': 'R',
+        'pygments_lexer': 'r', 'version': '3.3.3'
+      }
+    }
+  }, baseNotebook)
+}
 
 
 export const NotebookCreator = ajaxCaller(class NotebookCreator extends Component {
@@ -77,7 +77,7 @@ export const NotebookCreator = ajaxCaller(class NotebookCreator extends Componen
         notebookName: notebookNameValidator(existingNames),
         notebookKernel: { presence: { allowEmpty: false } }
       },
-      { prettify: v => ({ notebookName: 'Name', notebookKernel: 'Kernel' }[v] || validate.prettify(v)) }
+      { prettify: v => ({ notebookName: 'Name', notebookKernel: 'Language' }[v] || validate.prettify(v)) }
     )
 
     return h(Modal, {
@@ -88,7 +88,7 @@ export const NotebookCreator = ajaxCaller(class NotebookCreator extends Componen
         tooltip: Utils.summarizeErrors(errors),
         onClick: () => {
           this.setState({ creating: true })
-          Buckets.notebook(namespace, bucketName, notebookName).create(notebookKernel.data).then(
+          Buckets.notebook(namespace, bucketName, notebookName).create(notebookData[notebookKernel]).then(
             () => {
               reloadList()
               onDismiss()
@@ -109,30 +109,14 @@ export const NotebookCreator = ajaxCaller(class NotebookCreator extends Componen
           onChange: e => this.setState({ notebookName: e.target.value, nameTouched: true })
         }
       }),
-      Forms.requiredFormLabel('Kernel'),
+      Forms.requiredFormLabel('Language'),
       h(Select, {
-        clearable: false,
-        searchable: false,
-        placeholder: 'Select a kernel',
+        isSearchable: false,
+        placeholder: 'Select a language',
+        getOptionLabel: ({ value }) => _.startCase(value),
         value: notebookKernel,
         onChange: notebookKernel => this.setState({ notebookKernel }),
-        options: [
-          {
-            value: 'python2',
-            label: 'Python 2',
-            data: python2Notebook
-          },
-          {
-            value: 'python3',
-            label: 'Python 3',
-            data: python3Notebook
-          },
-          {
-            value: 'r',
-            label: 'R',
-            data: rNotebook
-          }
-        ]
+        options: ['python2', 'python3', 'r']
       }),
       creating && spinnerOverlay
     ])
