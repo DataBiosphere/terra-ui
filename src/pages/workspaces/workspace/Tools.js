@@ -6,6 +6,7 @@ import { PageFadeBox, spinnerOverlay, viewToggleButtons } from 'src/components/c
 import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
+import * as Globals from 'src/libs/globals'
 import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
@@ -74,17 +75,14 @@ const ToolCard = pure(({ listView, name, namespace, config }) => {
   ])
 })
 
-export const WorkspaceTools = ajaxCaller(wrapWorkspace({
+export const WorkspaceTools = ajaxCaller(Globals.usesGlobals(wrapWorkspace({
   breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
   title: 'Tools', activeTab: 'tools'
 },
 class ToolsContent extends Component {
   constructor(props) {
     super(props)
-    this.state = {
-      listView: false,
-      ...StateHistory.get()
-    }
+    this.state = StateHistory.get()
   }
 
   async refresh() {
@@ -103,11 +101,12 @@ class ToolsContent extends Component {
 
   render() {
     const { namespace, name } = this.props
-    const { loading, configs, listView } = this.state
+    const { loading, configs } = this.state
+    const listView = Globals.get('toolsListView')
     return h(PageFadeBox, [
       div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' } }, [
         div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, ['Tools']),
-        viewToggleButtons(listView, listView => this.setState({ listView }))
+        viewToggleButtons(listView, Globals.set('toolsListView'))
       ]),
       div({ style: styles.cardContainer(listView) }, [
         _.map(config => {
@@ -124,9 +123,9 @@ class ToolsContent extends Component {
   }
 
   componentDidUpdate() {
-    StateHistory.update(_.pick(['configs', 'listView'], this.state))
+    StateHistory.update(_.pick(['configs'], this.state))
   }
-}))
+})))
 
 export const addNavPaths = () => {
   Nav.defPath('workspace-tools', {
