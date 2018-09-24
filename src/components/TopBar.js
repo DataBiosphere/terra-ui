@@ -4,7 +4,7 @@ import { a, div, h } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
 import { Clickable, comingSoon, MenuButton } from 'src/components/common'
 import { icon, logo, profilePic } from 'src/components/icons'
-import { getBasicProfile, signOut } from 'src/libs/auth'
+import { getUser, signOut } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
@@ -115,7 +115,7 @@ export class TopBar extends Component {
                   profilePic({ size: 32 })
                 ]),
                 div({ style: { whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' } }, [
-                  getBasicProfile().getName()
+                  getUser().name
                 ]),
                 div({ style: { flexGrow: 1 } }),
                 icon(`angle ${userMenuOpen ? 'up' : 'down'}`,

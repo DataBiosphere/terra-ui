@@ -25,7 +25,7 @@ import workspace from 'src/icons/workspace.svg'
 import cardMenuIcon from 'src/icons/card-menu-icon.svg'
 import renameIcon from 'src/icons/rename-icon.svg'
 import share from 'src/icons/share-line.svg'
-import { getBasicProfile } from 'src/libs/auth'
+import { getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 
 
@@ -60,7 +60,7 @@ export const centeredSpinner = function(props) {
 }
 
 export const profilePic = ({ size, style, ...props } = {}) => img({
-  src: getBasicProfile().getImageUrl(),
+  src: getUser().imageUrl,
   height: size, width: size,
   style: { borderRadius: '100%', ...style },
   ...props

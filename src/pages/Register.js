@@ -5,7 +5,7 @@ import { centeredSpinner, logo } from 'src/components/icons'
 import { textInput } from 'src/components/input'
 import planet from 'src/images/register-planet.svg'
 import { ajaxCaller } from 'src/libs/ajax'
-import { authStore, getBasicProfile, signOut } from 'src/libs/auth'
+import { authStore, getUser, signOut } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import validate from 'validate.js'
@@ -20,12 +20,12 @@ const constraints = {
 export default ajaxCaller(class Register extends Component {
   constructor(props) {
     super(props)
-    const profile = getBasicProfile()
+    const { givenName, familyName, email } = getUser()
     this.state = {
       busy: false,
-      givenName: profile.getGivenName(),
-      familyName: profile.getFamilyName(),
-      email: profile.getEmail()
+      givenName,
+      familyName,
+      email
     }
   }
 
