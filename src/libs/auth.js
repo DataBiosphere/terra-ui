@@ -12,10 +12,6 @@ const getAuthInstance = () => {
   return window.gapi.auth2.getAuthInstance()
 }
 
-export const getUser = () => {
-  return authStore.get().user
-}
-
 export const signOut = () => {
   sessionStorage.clear()
   getAuthInstance().signOut()
@@ -30,6 +26,10 @@ export const authStore = Utils.atom({
   registrationStatus: undefined,
   user: {}
 })
+
+export const getUser = () => {
+  return authStore.get().user
+}
 
 const initializeAuth = _.memoize(async () => {
   await new Promise(resolve => window.gapi.load('auth2', resolve))
@@ -46,11 +46,13 @@ const initializeAuth = _.memoize(async () => {
         user: {
           token: authResponse && authResponse.access_token,
           id: user.getId(),
-          email: profile && profile.getEmail(),
-          name: profile && profile.getName(),
-          givenName: profile && profile.getGivenName(),
-          familyName: profile && profile.getFamilyName(),
-          imageUrl: profile && profile.getImageUrl()
+          ...(profile ? {
+            email: profile.getEmail(),
+            name: profile.getName(),
+            givenName: profile.getGivenName(),
+            familyName: profile.getFamilyName(),
+            imageUrl: profile.getImageUrl()
+          } : {})
         }
       }
     })
