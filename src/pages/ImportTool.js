@@ -139,7 +139,7 @@ const DockstoreImporter = ajaxCaller(class DockstoreImporter extends Component {
         methodVersion: version
       }
     }).then(() => Nav.goToPath('workflow', {
-      workspaceNamespace: namespace, workspaceName: name,
+      namespace, name,
       workflowNamespace: namespace, workflowName: toolName
     }), importError => this.setState({ importError, isImporting: false }))
   }
