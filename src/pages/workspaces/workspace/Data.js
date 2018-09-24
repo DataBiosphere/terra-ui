@@ -507,15 +507,14 @@ class WorkspaceDataContent extends Component {
                     editIndex === rowIndex ?
                       h(Fragment, [
                         h(Select, {
-                          wrapperStyle: { marginLeft: '1rem', width: 150 },
-                          autoFocus: false,
-                          searchable: false,
-                          clearable: false,
+                          styles: { container: base => ({ ...base, marginLeft: '1rem', width: 150 }) },
+                          isSearchable: false,
+                          isClearable: false,
+                          menuPortalTarget: document.getElementById('root'),
+                          getOptionLabel: ({ value }) => _.startCase(value),
                           value: editType,
                           onChange: ({ value }) => this.setState({ editType: value }),
-                          options: _.map(name => {
-                            return { label: _.startCase(name), value: name }
-                          }, ['string', 'number', 'boolean', 'string list', 'number list', 'boolean list'])
+                          options: ['string', 'number', 'boolean', 'string list', 'number list', 'boolean list']
                         }),
                         linkButton({
                           tooltip: Utils.summarizeErrors(inputErrors) || 'Save changes',
