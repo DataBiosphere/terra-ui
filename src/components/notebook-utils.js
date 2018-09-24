@@ -112,7 +112,7 @@ export const NotebookCreator = ajaxCaller(class NotebookCreator extends Componen
       Forms.requiredFormLabel('Language'),
       h(Select, {
         isSearchable: false,
-        placeholder: 'Select a kernel',
+        placeholder: 'Select a language',
         getOptionLabel: ({ value }) => _.startCase(value),
         value: notebookKernel,
         onChange: notebookKernel => this.setState({ notebookKernel }),

@@ -78,7 +78,7 @@ export default ajaxCaller(class NewWorkspaceModal extends Component {
       const body = {
         namespace,
         name,
-        authorizationDomain: [..._.map(v => ({ membersGroupName: v }), groups), ...cloneWorkspace.workspace.authorizationDomain],
+        authorizationDomain: [..._.map(v => ({ membersGroupName: v }), groups), ...(cloneWorkspace ? cloneWorkspace.workspace.authorizationDomain : [])],
         attributes: { description }
       }
       await (cloneWorkspace ?
