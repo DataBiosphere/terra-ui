@@ -35,19 +35,14 @@ const errorIcon = b => {
   })
 }
 
-const augmentErrors = (inputsOutputs, validationResponse) => {
-  const process = ioKey => _.update(ioKey, _.flow(
-    _.map(({ name, optional }) => {
-      const value = validationResponse.methodConfiguration[ioKey][name]
-      const error = !optional && !value ?
-        'This attribute is required' :
-        validationResponse[ioKey === 'inputs' ? 'invalidInputs' : 'invalidOutputs'][name]
-      return [name, error]
-    }),
-    _.filter(_.last),
-    _.fromPairs
-  ))
-  return _.flow(process('inputs'), process('outputs'))(inputsOutputs)
+const augmentErrors = ({ invalidInputs, invalidOutputs, missingInputs }) => {
+  return {
+    inputs: {
+      ...invalidInputs,
+      ..._.fromPairs(_.map(name => [name, 'This attribute is required'], missingInputs))
+    },
+    outputs: invalidOutputs
+  }
 }
 
 const styles = {
@@ -194,7 +189,7 @@ class WorkflowViewContent extends Component {
       this.setState({
         isFreshData: true, savedConfig: config, modifiedConfig: config,
         entityMetadata, inputsOutputs,
-        errors: augmentErrors(inputsOutputs, validationResponse),
+        errors: augmentErrors(validationResponse),
         workspaceAttributes: _.flow(
           _.without(['description']),
           _.remove(s => s.includes(':'))
@@ -378,7 +373,7 @@ class WorkflowViewContent extends Component {
 
   async save() {
     const { namespace, name, workflowNamespace, workflowName, ajax: { Workspaces } } = this.props
-    const { modifiedConfig, inputsOutputs } = this.state
+    const { modifiedConfig } = this.state
 
     this.setState({ saving: true })
 
@@ -391,7 +386,7 @@ class WorkflowViewContent extends Component {
         saved: true,
         savedConfig: validationResponse.methodConfiguration,
         modifiedConfig: validationResponse.methodConfiguration,
-        errors: augmentErrors(inputsOutputs, validationResponse)
+        errors: augmentErrors(validationResponse)
       }, () => setTimeout(() => this.setState({ saved: false }), 3000))
     } catch (error) {
       reportError('Error saving', error)
