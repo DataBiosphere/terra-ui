@@ -75,7 +75,7 @@ const ToolCard = pure(({ listView, name, namespace, config }) => {
   ])
 })
 
-export const WorkspaceTools = ajaxCaller(Globals.usesGlobals(wrapWorkspace({
+export const WorkspaceTools = ajaxCaller(Globals.globalObserver('toolsListView')(wrapWorkspace({
   breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
   title: 'Tools', activeTab: 'tools'
 },
@@ -100,13 +100,12 @@ class ToolsContent extends Component {
   }
 
   render() {
-    const { namespace, name } = this.props
+    const { namespace, name, toolsListView: listView, updateGlobal } = this.props
     const { loading, configs } = this.state
-    const listView = Globals.get('toolsListView')
     return h(PageFadeBox, [
       div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' } }, [
         div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, ['Tools']),
-        viewToggleButtons(listView, Globals.set('toolsListView'))
+        viewToggleButtons(listView, updateGlobal)
       ]),
       div({ style: styles.cardContainer(listView) }, [
         _.map(config => {

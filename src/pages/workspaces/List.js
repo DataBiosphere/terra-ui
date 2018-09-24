@@ -160,7 +160,7 @@ const NewWorkspaceCard = pure(({ onClick }) => {
 })
 
 
-export const WorkspaceList = ajaxCaller(Globals.usesGlobals(class WorkspaceList extends Component {
+export const WorkspaceList = ajaxCaller(Globals.globalObserver('workspaceListView')(class WorkspaceList extends Component {
   constructor(props) {
     super(props)
     this.state = {
@@ -201,8 +201,8 @@ export const WorkspaceList = ajaxCaller(Globals.usesGlobals(class WorkspaceList 
   }
 
   render() {
+    const { workspaceListView: listView, updateGlobal } = this.props
     const { workspaces, isDataLoaded, filter, creatingNewWorkspace, cloningWorkspaceId, deletingWorkspaceId, sharingWorkspaceId } = this.state
-    const listView = Globals.get('workspaceListView')
     const data = _.filter(({ workspace: { namespace, name } }) => {
       return Utils.textMatch(filter, `${namespace}/${name}`)
     }, workspaces)
@@ -229,7 +229,7 @@ export const WorkspaceList = ajaxCaller(Globals.usesGlobals(class WorkspaceList 
       h(PageFadeBox, [
         div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' } }, [
           div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, ['Workspaces']),
-          viewToggleButtons(listView, Globals.set('workspaceListView'))
+          viewToggleButtons(listView, updateGlobal)
         ]),
         div({ style: styles.cardContainer(listView) }, [
           h(NewWorkspaceCard, {

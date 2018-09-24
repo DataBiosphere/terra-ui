@@ -126,7 +126,7 @@ class NotebookCard extends Component {
   }
 }
 
-const WorkspaceNotebooks = ajaxCaller(Globals.usesGlobals(wrapWorkspace({
+const WorkspaceNotebooks = ajaxCaller(Globals.globalObserver('notebooksListView')(wrapWorkspace({
   breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
   title: 'Notebooks', activeTab: 'notebooks'
 },
@@ -194,8 +194,11 @@ class NotebooksContent extends Component {
 
   renderNotebooks() {
     const { notebooks } = this.state
-    const listView = Globals.get('notebooksListView')
-    const { name: wsName, namespace, workspace: { accessLevel, canCompute, workspace: { bucketName } } } = this.props
+    const {
+      name: wsName, namespace,
+      workspace: { accessLevel, canCompute, workspace: { bucketName } },
+      notebooksListView: listView
+    } = this.props
     const canWrite = Utils.canWrite(accessLevel)
     const renderedNotebooks = _.map(({ name, updated }) => h(NotebookCard, {
       key: name,
@@ -256,8 +259,11 @@ class NotebooksContent extends Component {
 
   render() {
     const { loading, saving, notebooks, creating, renamingNotebookName, copyingNotebookName, deletingNotebookName } = this.state
-    const listView = Globals.get('notebooksListView')
-    const { namespace, workspace: { accessLevel, workspace: { bucketName } } } = this.props
+    const {
+      namespace, updateGlobal,
+      workspace: { accessLevel, workspace: { bucketName } },
+      notebooksListView: listView
+    } = this.props
     const existingNames = this.getExistingNames()
 
     return h(Dropzone, {
@@ -277,7 +283,7 @@ class NotebooksContent extends Component {
       notebooks && h(PageFadeBox, {}, [
         div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' } }, [
           div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, ['Notebooks']),
-          viewToggleButtons(listView, Globals.set('notebooksListView')),
+          viewToggleButtons(listView, updateGlobal),
           creating && h(NotebookCreator, {
             namespace, bucketName, existingNames,
             reloadList: () => this.refresh(),
