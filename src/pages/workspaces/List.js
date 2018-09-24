@@ -254,7 +254,6 @@ export const WorkspaceList = ajaxCaller(class WorkspaceList extends Component {
               renderedWorkspaces
             ]) : renderedWorkspaces
         ]),
-        !isDataLoaded && spinnerOverlay,
         creatingNewWorkspace && h(NewWorkspaceModal, {
           onDismiss: () => this.setState({ creatingNewWorkspace: false })
         }),
