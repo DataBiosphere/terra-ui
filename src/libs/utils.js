@@ -204,4 +204,19 @@ export const readFileAsText = file => {
   })
 }
 
+export const cantBeNumber = _.flow(_.toNumber, _.isNaN)
+
+export const convertValue = _.curry((type, value) => {
+  switch (type) {
+    case 'string':
+      return value.toString()
+    case 'number':
+      return _.toNumber(value)
+    case 'boolean':
+      return !(_.lowerCase(value) === 'false' || _.lowerCase(value) === 'no' || value === '0')
+    default:
+      throw new Error('unknown type for convertValue')
+  }
+})
+
 export const normalizeLabel = _.flow(_.camelCase, _.startCase)
