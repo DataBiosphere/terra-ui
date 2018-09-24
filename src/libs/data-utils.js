@@ -188,6 +188,7 @@ const UriViewer = ajaxCaller(class UriViewer extends Component {
 
     return h(Fragment, [
       link({
+        href: uri,
         onClick: () => {
           this.getMetadata()
           this.setState({ modalOpen: true })
@@ -213,10 +214,10 @@ export const renderDataCell = (data, namespace) => {
     [isUri(datum) ? h(UriViewer, { uri: datum, googleProject: namespace }) : datum])
 
   return _.isObject(data) ?
-    data.items.map((v, i) => h(Fragment, { key: v }, [
-      renderCell(v), i < (data.items.length - 1) && div({ style: { marginRight: '0.5rem' } }, ',')
+    data.items.map((v, i) => h(Fragment, { key: i }, [
+      renderCell(v.toString()), i < (data.items.length - 1) && div({ style: { marginRight: '0.5rem', color: colors.gray[1] } }, ',')
     ])) :
-    renderCell(data)
+    renderCell(data && data.toString())
 }
 
 export const ReferenceDataImporter = ajaxCaller(class ReferenceDataImporter extends Component {

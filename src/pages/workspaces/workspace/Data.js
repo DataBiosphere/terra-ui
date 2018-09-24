@@ -4,8 +4,10 @@ import { createRef, Fragment } from 'react'
 import { div, form, h, input } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { buttonPrimary, Clickable, linkButton, spinnerOverlay } from 'src/components/common'
+import { buttonPrimary, Clickable, linkButton, Select, spinnerOverlay } from 'src/components/common'
 import { icon, spinner } from 'src/components/icons'
+import { textInput } from 'src/components/input'
+import Modal from 'src/components/Modal'
 import { ColumnSelector, FlexTable, GridTable, HeaderCell, paginator, Resizable, Sortable } from 'src/components/table'
 import { ajaxCaller } from 'src/libs/ajax'
 import * as auth from 'src/libs/auth'
@@ -15,6 +17,7 @@ import { ReferenceDataDeleter, ReferenceDataImporter, renderDataCell } from 'src
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
+import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
@@ -22,7 +25,7 @@ import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer
 
 const filterState = _.pick(['pageNumber', 'itemsPerPage', 'selectedDataType', 'sort'])
 
-const globalVariables = 'globalVariables'
+const localVariables = 'localVariables'
 
 const initialSort = { field: 'name', direction: 'asc' }
 
@@ -121,7 +124,7 @@ class WorkspaceDataContent extends Component {
       this.setState({ workspaceAttributes: await getWorkspaceAttributes() })
     } else {
       try {
-        this.setState({ loading: true, refreshRequested: false })
+        this.setState({ loading: true })
 
         const [workspaceAttributes, entities] = await Promise.all([
           getWorkspaceAttributes(),
@@ -168,7 +171,7 @@ class WorkspaceDataContent extends Component {
 
   refresh() {
     this.loadMetadata()
-    this.setState({ refreshRequested: true })
+    this.loadData()
   }
 
   render() {
@@ -187,10 +190,8 @@ class WorkspaceDataContent extends Component {
               selected: selectedDataType === type,
               onClick: () => {
                 saveScroll(0, 0)
-                this.setState(selectedDataType === type ?
-                  { refreshRequested: true } :
-                  { selectedDataType: type, pageNumber: 1, sort: initialSort, entities: undefined, isDataModel: true }
-                )
+                selectedDataType === type ? this.loadData() :
+                  this.setState({ selectedDataType: type, pageNumber: 1, sort: initialSort, entities: undefined, isDataModel: true })
               }
             }, [`${type} (${typeDetails.count})`])
           }, _.toPairs(entityMetadata)),
@@ -240,15 +241,13 @@ class WorkspaceDataContent extends Component {
           }, _.keys(referenceData)),
           div({ style: { ...styles.dataTypeHeading, marginTop: '1rem' } }, 'Other Data'),
           h(DataTypeButton, {
-            selected: selectedDataType === globalVariables,
+            selected: selectedDataType === localVariables,
             onClick: () => {
               saveScroll(0, 0)
-              this.setState(selectedDataType === globalVariables ?
-                { refreshRequested: true } :
-                { selectedDataType: globalVariables, isDataModel: false }
-              )
+              selectedDataType === localVariables ? this.loadData() :
+                this.setState({ selectedDataType: localVariables, isDataModel: false })
             }
-          }, ['Global Variables'])
+          }, ['Local Variables'])
         ]),
         div({ style: styles.tableViewPanel(selectedDataType) }, [
           selectedDataType ? this.renderData() : 'Select a data type.',
@@ -262,8 +261,8 @@ class WorkspaceDataContent extends Component {
     const { selectedDataType } = this.state
     const referenceData = this.getReferenceData()
 
-    if (selectedDataType === globalVariables) {
-      return this.renderGlobalVariables()
+    if (selectedDataType === localVariables) {
+      return this.renderLocalVariables()
     } else if (_.keys(referenceData).includes(selectedDataType)) {
       return this.renderReferenceData()
     } else {
@@ -419,38 +418,188 @@ class WorkspaceDataContent extends Component {
     ])
   }
 
-  renderGlobalVariables() {
-    const { namespace } = this.props
-    const { workspaceAttributes } = this.state
+  renderLocalVariables() {
+    const { namespace, name, workspace: { accessLevel }, ajax: { Workspaces } } = this.props
+    const { workspaceAttributes, editIndex, deleteIndex, editKey, editValue, editType, addVariableHover } = this.state
+    const canEdit = Utils.canWrite(accessLevel)
+    const stopEditing = () => this.setState({ editIndex: undefined, editKey: undefined, editValue: undefined, editType: undefined })
     const filteredAttributes = _.flow(
       _.toPairs,
       _.remove(([key]) => key === 'description' || key.includes(':') || key.startsWith('referenceData-')),
       _.sortBy(_.first)
     )(workspaceAttributes)
 
+    const creatingNewVariable = editIndex === filteredAttributes.length
+    const amendedAttributes = [
+      ...filteredAttributes, ...(creatingNewVariable ? [['', '']] : [])
+    ]
+
+    const inputErrors = editIndex && [
+      ...(_.keys(_.unset(amendedAttributes[editIndex][0], workspaceAttributes)).includes(editKey) ? ['Key must be unique'] : []),
+      ...(!editKey ? ['Key is required'] : []),
+      ...(!editValue ? ['Value is required'] : []),
+      ...(editValue && editType === 'number' && Utils.cantBeNumber(editValue) ? ['Value is not a number'] : []),
+      ...(editValue && editType === 'number list' && _.some(Utils.cantBeNumber, editValue.split(',')) ?
+        ['Value is not a comma-separated list of numbers'] : [])
+    ]
+
+    const saveAttribute = async originalKey => {
+      try {
+        const isList = editType.includes('list')
+        const newBaseType = isList ? editType.slice(0, -5) : editType
+
+        const parsedValue = isList ? _.map(Utils.convertValue(newBaseType), editValue.split(/,s*/)) :
+          Utils.convertValue(newBaseType, editValue)
+
+        this.setState({ loading: true })
+
+        await Workspaces.workspace(namespace, name).shallowMergeNewAttributes({ [editKey]: parsedValue })
+
+        if (editKey !== originalKey) {
+          await Workspaces.workspace(namespace, name).deleteAttributes([originalKey])
+        }
+
+        await this.loadData()
+        stopEditing()
+      } catch (e) {
+        reportError('Error saving change to workspace variables', e)
+      }
+    }
+
     return Utils.cond(
-      [!filteredAttributes, () => undefined],
-      [_.isEmpty(filteredAttributes), () => 'No Global Variables defined'],
+      [!amendedAttributes, () => undefined],
+      [_.isEmpty(amendedAttributes), () => 'No Local Variables defined'],
       () => div({ style: { flex: 1 } }, [
         h(AutoSizer, [
           ({ width, height }) => h(FlexTable, {
-            width, height, rowCount: filteredAttributes.length,
+            width, height, rowCount: amendedAttributes.length,
             onScroll: y => saveScroll(0, y),
             initialY: StateHistory.get().initialY,
+            hoverHighlight: true,
             columns: [
               {
                 size: { basis: 400, grow: 0 },
-                headerRenderer: () => h(HeaderCell, ['Name']),
-                cellRenderer: ({ rowIndex }) => renderDataCell(filteredAttributes[rowIndex][0], namespace)
+                headerRenderer: () => h(HeaderCell, ['Key']),
+                cellRenderer: ({ rowIndex }) => editIndex === rowIndex ?
+                  textInput({
+                    autoFocus: true,
+                    value: editKey,
+                    onChange: e => this.setState({ editKey: e.target.value })
+                  }) :
+                  renderDataCell(amendedAttributes[rowIndex][0], namespace)
               },
               {
                 size: { grow: 1 },
                 headerRenderer: () => h(HeaderCell, ['Value']),
-                cellRenderer: ({ rowIndex }) => renderDataCell(filteredAttributes[rowIndex][1], namespace)
+                cellRenderer: ({ rowIndex }) => {
+                  const originalKey = amendedAttributes[rowIndex][0]
+                  const originalValue = amendedAttributes[rowIndex][1]
+
+                  return h(Fragment, [
+                    div({ style: { flex: 1, minWidth: 0, display: 'flex' } }, [
+                      editIndex === rowIndex ?
+                        textInput({
+                          value: editValue,
+                          onChange: e => this.setState({ editValue: e.target.value })
+                        }) :
+                        renderDataCell(originalValue, namespace)
+                    ]),
+                    editIndex === rowIndex ?
+                      h(Fragment, [
+                        h(Select, {
+                          styles: { container: base => ({ ...base, marginLeft: '1rem', width: 150 }) },
+                          isSearchable: false,
+                          isClearable: false,
+                          menuPortalTarget: document.getElementById('root'),
+                          getOptionLabel: ({ value }) => _.startCase(value),
+                          value: editType,
+                          onChange: ({ value }) => this.setState({ editType: value }),
+                          options: ['string', 'number', 'boolean', 'string list', 'number list', 'boolean list']
+                        }),
+                        linkButton({
+                          tooltip: Utils.summarizeErrors(inputErrors) || 'Save changes',
+                          disabled: !!inputErrors.length,
+                          style: { marginLeft: '1rem' },
+                          onClick: () => saveAttribute(originalKey)
+                        }, [icon('success-standard', { size: 23 })]),
+                        linkButton({
+                          tooltip: 'Cancel editing',
+                          style: { marginLeft: '1rem' },
+                          onClick: () => stopEditing()
+                        }, [icon('times-circle', { size: 23 })])
+                      ]) :
+                      div({ className: 'hover-only' }, [
+                        linkButton({
+                          disabled: !canEdit,
+                          tooltip: canEdit ? 'Edit variable' : 'You do not have access to modify data in this workspace.',
+                          style: { marginLeft: '1rem' },
+                          onClick: () => this.setState({
+                            editIndex: rowIndex,
+                            editValue: typeof originalValue === 'object' ? originalValue.items.join(', ') : originalValue,
+                            editKey: originalKey,
+                            editType: typeof originalValue === 'object' ? `${typeof originalValue.items[0]} list` : typeof originalValue
+                          })
+                        }, [icon('pencil', { size: 19 })]),
+                        linkButton({
+                          disabled: !canEdit,
+                          tooltip: canEdit ? 'Delete variable' : 'You do not have access to modify data in this workspace.',
+                          style: { marginLeft: '1rem' },
+                          onClick: () => this.setState({ deleteIndex: rowIndex })
+                        }, [icon('trash', { size: 19 })])
+                      ])
+                  ])
+                }
               }
             ]
           })
-        ])
+        ]),
+        !creatingNewVariable && canEdit && h(Clickable,
+          {
+            style: {
+              position: 'absolute', bottom: 25, right: 25,
+              backgroundColor: colors.blue[0], color: 'white',
+              padding: '0.5rem', borderRadius: 40,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              boxShadow: Style.standardShadow
+            },
+            onMouseEnter: () => this.setState({ addVariableHover: true }),
+            onMouseLeave: () => this.setState({ addVariableHover: false }),
+            onClick: () => this.setState({
+              addVariableHover: false,
+              editIndex: filteredAttributes.length,
+              editValue: '',
+              editKey: '',
+              editType: 'string'
+            })
+          },
+          [
+            div({
+              style: {
+                padding: `0 ${addVariableHover ? '0.5rem' : '0'}`, fontWeight: 500,
+                maxWidth: addVariableHover ? 200 : 0,
+                overflow: 'hidden', whiteSpace: 'pre',
+                transition: 'max-width 0.5s ease-out, padding 0.1s linear 0.2s'
+              }
+            }, ['ADD VARIABLE']),
+            icon('plus', { size: 25, style: { stroke: 'white', strokeWidth: 2 } })
+          ]),
+        deleteIndex && h(Modal, {
+          onDismiss: () => this.setState({ deleteIndex: undefined }),
+          title: 'Are you sure you wish to delete this variable?',
+          okButton: buttonPrimary({
+            onClick: async () => {
+              try {
+                this.setState({ deleteIndex: undefined, loading: true })
+                await Workspaces.workspace(namespace, name).deleteAttributes([amendedAttributes[deleteIndex][0]])
+              } catch (e) {
+                reportError('Error deleting workspace variable', e)
+              } finally {
+                this.loadData()
+              }
+            }
+          },
+          'Delete Variable')
+        }, ['This will permanently delete the data from Local Variables.'])
       ])
     )
   }
@@ -469,7 +618,7 @@ class WorkspaceDataContent extends Component {
           columns: [
             {
               size: { basis: 400, grow: 0 },
-              headerRenderer: () => h(HeaderCell, ['Name']),
+              headerRenderer: () => h(HeaderCell, ['Key']),
               cellRenderer: ({ rowIndex }) => renderDataCell(selectedData[rowIndex].key, namespace)
             },
             {
@@ -485,7 +634,10 @@ class WorkspaceDataContent extends Component {
 
   componentDidUpdate(prevProps, prevState) {
     StateHistory.update(_.pick(
-      ['entityMetadata', 'selectedDataType', 'entities', 'workspaceAttributes', 'totalRowCount', 'itemsPerPage', 'pageNumber', 'sort', 'columnWidths', 'columnState'],
+      [
+        'entityMetadata', 'selectedDataType', 'entities', 'workspaceAttributes', 'totalRowCount',
+        'itemsPerPage', 'pageNumber', 'sort', 'columnWidths', 'columnState'
+      ],
       this.state)
     )
 
@@ -493,7 +645,7 @@ class WorkspaceDataContent extends Component {
       this.setState({ copying: false, copied: false })
     }
 
-    if (this.state.refreshRequested || !_.isEqual(filterState(prevState), filterState(this.state))) {
+    if (!_.isEqual(filterState(prevState), filterState(this.state))) {
       this.loadData()
     }
   }
