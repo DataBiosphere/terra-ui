@@ -7,7 +7,6 @@ import { centeredSpinner, icon } from 'src/components/icons'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import colors from 'src/libs/colors'
 import * as Style from 'src/libs/style'
-import 'react-select/dist/react-select.css'
 
 
 const styles = {
@@ -199,39 +198,87 @@ export const comingSoon = span({
   }
 }, ['coming soon'])
 
-export const Select = RSelect
+export const Select = ({ value, options, ...props }) => {
+  const newOptions = options && !_.isObject(options[0]) ? _.map(value => ({ value }), options) : options
+  const findValue = target => _.find({ value: target }, newOptions)
+  const newValue = props.isMulti ? _.map(findValue, value) : findValue(value)
 
-export const LargeFadeBox = ({ children }) => {
+  return h(RSelect, _.merge({
+    styles: {
+      control: (base, { isDisabled, isFocused }) => _.merge(base, {
+        minHeight: 36,
+        backgroundColor: isDisabled ? colors.gray[5] : 'white',
+        borderColor: isFocused ? colors.blue[0] : undefined,
+        boxShadow: 'none',
+        '&:hover': { borderColor: isFocused ? colors.blue[0] : undefined }
+      }),
+      singleValue: base => ({ ...base, color: colors.gray[0] }),
+      option: (base, { isSelected, isFocused, isDisabled }) => _.merge(base, {
+        backgroundColor: isSelected ? colors.blue[4] : isFocused ? colors.blue[5] : undefined,
+        color: isDisabled ? undefined : colors.gray[0],
+        ':active': { backgroundColor: isSelected ? colors.blue[4] : colors.blue[5] }
+      }),
+      clearIndicator: base => ({ ...base, paddingRight: 0 }),
+      indicatorSeparator: () => ({ display: 'none' }),
+      dropdownIndicator: base => _.merge(base, { paddingLeft: props.isClearable ? 0 : undefined }),
+      multiValueRemove: base => _.merge(base, { ':hover': { backgroundColor: 'unset' } })
+    },
+    getOptionLabel: ({ value, label }) => label || value.toString(),
+    value: newValue,
+    options: newOptions
+  }, props))
+}
+
+export const FadeBox = ({ fadePoint = '60%', style = {}, children }) => {
+  const {
+    paddingTop = '1.5rem',
+    paddingLR = '1.5rem',
+    borderRadius = '8px',
+    backgroundColor = colors.gray[5],
+    borderColor = colors.gray[3],
+    ...containerStyle
+  } = style
+
   return div({
     style: {
-      background: `linear-gradient(to bottom, white 0%, ${colors.gray[5]} 125px`,
-      borderRadius: '8px 8px 0 0',
-      margin: '1.5rem'
+      background: `linear-gradient(to bottom, white 0%, ${backgroundColor} ${fadePoint}`,
+      borderRadius: `${borderRadius} ${borderRadius} 0 0`,
+      ...containerStyle
     }
   }, [
     div({
       style: {
-        height: '.5rem',
-        border: `1px solid ${colors.gray[3]}`,
+        height: paddingTop,
+        border: `1px solid ${borderColor}`,
         borderBottom: 'none',
-        borderRadius: '8px 8px 0 0'
+        borderRadius: `${borderRadius} ${borderRadius} 0 0`
       }
     }),
     div({
       style: {
+        padding: `0 ${paddingLR}`,
         borderWidth: 1,
         borderStyle: 'solid',
-        borderImage: `linear-gradient(to bottom, ${colors.gray[3]}, ${colors.gray[5]} 175px) 1 100%`,
-        borderTop: 'solid',
+        borderImage: `linear-gradient(to bottom, ${borderColor}, ${backgroundColor} ${fadePoint}) 1 100%`,
+        borderTop: 'none',
         borderBottom: 'none'
       }
     }, [children])
   ])
 }
 
+export const PageFadeBox = ({ children }) => {
+  return h(FadeBox, {
+    fadePoint: '125px',
+    style: {
+      margin: '1.5rem', paddingTop: '1rem'
+    }
+  }, [children])
+}
+
 const viewToggleStyles = {
   toolbarContainer: {
-    flex: 'none', display: 'flex', padding: '0 2.25rem'
+    flex: 'none', display: 'flex'
   },
   toolbarButton: active => ({
     display: 'flex', justifyContent: 'center', alignItems: 'center',

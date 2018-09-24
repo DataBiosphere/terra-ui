@@ -218,3 +218,5 @@ export const convertValue = _.curry((type, value) => {
       throw new Error('unknown type for convertValue')
   }
 })
+
+export const normalizeLabel = _.flow(_.camelCase, _.startCase)

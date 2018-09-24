@@ -2,10 +2,9 @@ import _ from 'lodash/fp'
 import { createRef, Fragment, PureComponent } from 'react'
 import { a, div, h, h2, p } from 'react-hyperscript-helpers'
 import ClusterManager from 'src/components/ClusterManager'
-import { buttonPrimary, Clickable, comingSoon, contextBar, link, MenuButton, spinnerOverlay } from 'src/components/common'
+import { Clickable, comingSoon, contextBar, MenuButton } from 'src/components/common'
 import ErrorView from 'src/components/ErrorView'
 import { icon } from 'src/components/icons'
-import Modal from 'src/components/Modal'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
 import PopupTrigger from 'src/components/PopupTrigger'
 import { TopBar } from 'src/components/TopBar'
@@ -14,9 +13,10 @@ import { getBasicProfile } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
-import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 import ShareWorkspaceModal from 'src/pages/workspaces/workspace/ShareWorkspaceModal'
+import DeleteWorkspaceModal from 'src/pages/workspaces/workspace/DeleteWorkspaceModal'
+import * as Utils from 'src/libs/utils'
 
 
 const styles = {
@@ -72,7 +72,7 @@ class WorkspaceTabs extends PureComponent {
         navSeparator
       ])
     }
-    const isOwner = workspace && _.includes(workspace.accessLevel, ['OWNER', 'PROJECT_OWNER'])
+    const isOwner = workspace && Utils.isOwner(workspace.accessLevel)
     return contextBar({ style: styles.tabContainer }, [
       navSeparator,
       navTab({ tabName: 'dashboard', href: Nav.getLink('workspace', { namespace, name }) }),
@@ -110,51 +110,6 @@ class WorkspaceTabs extends PureComponent {
     ])
   }
 }
-
-
-const DeleteWorkspaceModal = ajaxCaller(class DeleteWorkspaceModal extends Component {
-  constructor(props) {
-    super(props)
-    this.state = {
-      deleting: false
-    }
-  }
-
-  async deleteWorkspace() {
-    const { workspace: { workspace: { namespace, name } }, ajax: { Workspaces } } = this.props
-    try {
-      this.setState({ deleting: true })
-      await Workspaces.workspace(namespace, name).delete()
-      Nav.goToPath('workspaces')
-    } catch (error) {
-      reportError('Error deleting workspace', error)
-      this.setState({ deleting: false })
-    }
-  }
-
-  render() {
-    const { workspace: { workspace: { bucketName } }, onDismiss } = this.props
-    const { deleting } = this.state
-    return h(Modal, {
-      title: 'Confirm delete',
-      onDismiss,
-      okButton: buttonPrimary({
-        onClick: () => this.deleteWorkspace()
-      }, 'Delete')
-    }, [
-      div(['Are you sure you want to permanently delete this workspace?']),
-      div({ style: { marginTop: '1rem' } }, [
-        'Deleting it will delete the associated ',
-        link({
-          target: '_blank',
-          href: Utils.bucketBrowserUrl(bucketName)
-        }, ['Google Cloud Bucket']),
-        ' and all its data.'
-      ]),
-      deleting && spinnerOverlay
-    ])
-  }
-})
 
 
 class WorkspaceContainer extends Component {
@@ -204,7 +159,8 @@ class WorkspaceContainer extends Component {
       ]),
       deletingWorkspace && h(DeleteWorkspaceModal, {
         workspace,
-        onDismiss: () => this.setState({ deletingWorkspace: false })
+        onDismiss: () => this.setState({ deletingWorkspace: false }),
+        onSuccess: () => Nav.goToPath('workspaces')
       }),
       cloningWorkspace && h(NewWorkspaceModal, {
         cloneWorkspace: workspace,

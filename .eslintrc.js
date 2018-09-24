@@ -27,7 +27,6 @@ module.exports = {
     'key-spacing': 'warn',
     'keyword-spacing': 'warn',
     'lines-between-class-members': 'warn',
-    'multiline-comment-style': 'warn',
     'no-lonely-if': 'warn',
     'no-multi-assign': 'warn',
     'no-multiple-empty-lines': 'warn',

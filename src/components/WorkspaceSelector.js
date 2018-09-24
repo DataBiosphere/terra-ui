@@ -12,14 +12,14 @@ export default ajaxCaller(class WorkspaceSelector extends Component {
     const { workspaces } = this.state
 
     return h(Select, {
-      clearable: false,
-      disabled: !workspaces,
+      isDisabled: !workspaces,
       placeholder: workspaces ? 'Select a workspace' : 'Loading workspaces...',
       value: selectedWorkspace,
       onChange: selectedWorkspace => onWorkspaceSelected(selectedWorkspace),
-      options: _.map(({ workspace }) => {
-        return { value: workspace, label: workspace.name }
-      }, workspaces)
+      options: _.flow(
+        _.map(({ workspace }) => ({ value: workspace, label: workspace.name })),
+        _.sortBy('label')
+      )(workspaces)
     })
   }
 

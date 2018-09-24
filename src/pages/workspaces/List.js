@@ -2,9 +2,11 @@ import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { a, div, h, span } from 'react-hyperscript-helpers'
 import { pure } from 'recompose'
-import { Clickable, search, spinnerOverlay, LargeFadeBox, viewToggleButtons } from 'src/components/common'
+import removeMd from 'remove-markdown'
+import { Clickable, PageFadeBox, search, spinnerOverlay, viewToggleButtons, MenuButton } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
+import PopupTrigger from 'src/components/PopupTrigger'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { TopBar } from 'src/components/TopBar'
 import { ajaxCaller } from 'src/libs/ajax'
@@ -15,18 +17,19 @@ import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
+import DeleteWorkspaceModal from 'src/pages/workspaces/workspace/DeleteWorkspaceModal'
+import ShareWorkspaceModal from 'src/pages/workspaces/workspace/ShareWorkspaceModal'
 
 
 const styles = {
-  cardContainer: {
+  cardContainer: listView => ({
     position: 'relative',
-    padding: '0 4rem',
-    display: 'flex', flexWrap: 'wrap'
-  },
+    display: 'flex', flexWrap: listView ? undefined : 'wrap', marginRight: listView ? undefined : '-1rem'
+  }),
   shortCard: {
     ...Style.elements.card,
     width: 300, height: 225,
-    margin: '1rem 0.5rem'
+    margin: '0 1rem 2rem 0'
   },
   shortWorkspaceCard: {
     display: 'flex', flexDirection: 'column', justifyContent: 'space-between'
@@ -39,6 +42,7 @@ const styles = {
   },
   shortDescription: {
     flex: 'none',
+    whiteSpace: 'pre-wrap',
     lineHeight: '18px', height: '90px',
     overflow: 'hidden'
   },
@@ -49,10 +53,10 @@ const styles = {
   longCard: {
     ...Style.elements.card,
     width: '100%', minWidth: 0, height: 80,
-    margin: '0.25rem 0.5rem'
+    margin: '0.5rem 1rem 0 0'
   },
   longWorkspaceCard: {
-    display: 'flex', flexDirection: 'column', justifyContent: 'space-between'
+    display: 'flex', flexDirection: 'column', justifyContent: 'space-between', marginBottom: '0.5rem'
   },
   longTitle: {
     color: colors.blue[0], fontSize: 16,
@@ -67,25 +71,61 @@ const styles = {
     height: '1.5rem', width: '1.5rem', borderRadius: '1.5rem',
     lineHeight: '1.5rem', textAlign: 'center',
     backgroundColor: colors.purple[0], color: 'white'
-  },
-  longCreateCard: {
-    display: 'flex', flexDirection: 'column', justifyContent: 'center',
-    color: colors.blue[0], fontSize: 16
   }
 }
 
-const WorkspaceCard = pure(({ listView, workspace: { workspace: { namespace, name, createdBy, lastModified, attributes: { description } } } }) => {
+const WorkspaceCard = pure(({ listView, onClone, onDelete, onShare, workspace: { accessLevel, workspace: { namespace, name, createdBy, lastModified, attributes: { description } } } }) => {
   const lastChanged = `Last changed: ${Utils.makePrettyDate(lastModified)}`
   const badge = div({ title: createdBy, style: styles.badge }, [createdBy[0].toUpperCase()])
-  const descText = description || span({ style: { color: colors.gray[2] } }, [
-    'No description added'
+  const isOwner = Utils.isOwner(accessLevel)
+  const iconHelp = (iconName, iconLabel) => {
+    return h(Fragment, [icon(iconName, { size: 15, style: { marginRight: '.25rem' } }), iconLabel])
+  }
+  const workspaceMenu = h(PopupTrigger, {
+    position: 'right',
+    closeOnClick: true,
+    content: h(Fragment, [
+      h(MenuButton, {
+        onClick: () => onClone()
+      }, [iconHelp('copy', 'Clone')]),
+      h(MenuButton, {
+        disabled: !isOwner,
+        tooltip: !isOwner && 'You must be an owner of this workspace or the underlying billing project',
+        tooltipSide: 'left',
+        onClick: () => onShare()
+      }, [iconHelp('share', 'Share')]),
+      h(MenuButton, {
+        disabled: !isOwner,
+        tooltip: !isOwner && 'You must be an owner of this workspace or the underlying billing project',
+        tooltipSide: 'left',
+        onClick: () => onDelete()
+      }, [iconHelp('trash', 'Delete')])
+    ])
+  }, [
+    h(Clickable, {
+      onClick: e => e.preventDefault(),
+      style: {
+        cursor: 'pointer', color: colors.blue[0]
+      },
+      focus: 'hover',
+      hover: { color: colors.blue[2] }
+    }, [
+      icon('cardMenuIcon', {
+        size: listView ? 18 : 27
+      })
+    ])
   ])
+  const descText = description ?
+    removeMd(listView ? description.split('\n')[0] : description) :
+    span({ style: { color: colors.gray[2] } }, ['No description added'])
+
   return listView ? a({
     href: Nav.getLink('workspace', { namespace, name }),
     style: { ...styles.longCard, ...styles.longWorkspaceCard }
   }, [
     div({ style: { display: 'flex', alignItems: 'center' } }, [
-      div({ style: styles.longTitle }, [name]),
+      workspaceMenu,
+      div({ style: { ...styles.longTitle, marginLeft: '1rem' } }, [name]),
       h(TooltipTrigger, { content: Utils.makeCompleteDate(lastModified) }, [
         div({ style: { flex: 'none' } }, [lastChanged])
       ])
@@ -100,25 +140,18 @@ const WorkspaceCard = pure(({ listView, workspace: { workspace: { namespace, nam
   }, [
     div({ style: styles.shortTitle }, [name]),
     div({ style: styles.shortDescription }, [descText]),
+    div({ style: { display: 'flex', marginLeft: 'auto' } }, [badge]),
     div({ style: { display: 'flex', alignItems: 'center' } }, [
       h(TooltipTrigger, { content: Utils.makeCompleteDate(lastModified) }, [
         div({ style: { flex: 1 } }, [lastChanged])
       ]),
-      div({ style: { flex: 'none' } }, [badge])
+      workspaceMenu
     ])
   ])
 })
 
-const NewWorkspaceCard = pure(({ listView, onClick }) => {
-  return listView ? h(Clickable, {
-    style: { ...styles.longCard, ...styles.longCreateCard },
-    onClick
-  }, [
-    div([
-      'Create a New Workspace',
-      icon('plus-circle', { style: { marginLeft: '1rem' }, size: 24 })
-    ])
-  ]) : h(Clickable, {
+const NewWorkspaceCard = pure(({ onClick }) => {
+  return h(Clickable, {
     style: { ...styles.shortCard, ...styles.shortCreateCard },
     onClick
   }, [
@@ -137,6 +170,9 @@ export const WorkspaceList = ajaxCaller(class WorkspaceList extends Component {
       listView: false,
       workspaces: null,
       creatingNewWorkspace: false,
+      cloningWorkspaceId: undefined,
+      deletingWorkspaceId: undefined,
+      sharingWorkspaceId: undefined,
       ...StateHistory.get()
     }
   }
@@ -162,28 +198,45 @@ export const WorkspaceList = ajaxCaller(class WorkspaceList extends Component {
     this.refresh()
   }
 
+  getWorkspace(id) {
+    const { workspaces } = this.state
+    return _.find({ workspace: { workspaceId: id } }, workspaces)
+  }
+
   render() {
-    const { workspaces, isDataLoaded, filter, listView, creatingNewWorkspace } = this.state
+    const {
+      workspaces, isDataLoaded, filter, listView,
+      creatingNewWorkspace, cloningWorkspaceId, deletingWorkspaceId, sharingWorkspaceId
+    } = this.state
+
     const data = _.filter(({ workspace: { namespace, name } }) => {
       return Utils.textMatch(filter, `${namespace}/${name}`)
     }, workspaces)
+    const renderedWorkspaces = _.map(workspace => {
+      return h(WorkspaceCard, {
+        listView,
+        onClone: () => this.setState({ cloningWorkspaceId: workspace.workspace.workspaceId }),
+        onDelete: () => this.setState({ deletingWorkspaceId: workspace.workspace.workspaceId }),
+        onShare: () => this.setState({ sharingWorkspaceId: workspace.workspace.workspaceId }),
+        workspace, key: workspace.workspace.workspaceId
+      })
+    }, data)
     return h(Fragment, [
-      h(TopBar, { title: 'Workspaces' },
-        [
-          search({
-            wrapperProps: { style: { marginLeft: '2rem', flexGrow: 1, maxWidth: 500 } },
-            inputProps: {
-              placeholder: 'SEARCH WORKSPACES',
-              onChange: e => this.setState({ filter: e.target.value }),
-              value: filter
-            }
-          })
-        ]
-      ),
-      h(LargeFadeBox, [
+      h(TopBar, { title: 'Workspaces' }, [
+        search({
+          wrapperProps: { style: { marginLeft: '2rem', flexGrow: 1, maxWidth: 500 } },
+          inputProps: {
+            placeholder: 'SEARCH WORKSPACES',
+            onChange: e => this.setState({ filter: e.target.value }),
+            value: filter
+          }
+        })
+      ]),
+      h(PageFadeBox, [
         div({
           style: {
-            display: 'flex', alignItems: 'flex-end', margin: '1rem 4.5rem', marginRight: '2.25rem', justifyContent: 'space-between'
+            display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between',
+            marginBottom: '1rem'
           }
         }, [
           div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, [
@@ -191,18 +244,32 @@ export const WorkspaceList = ajaxCaller(class WorkspaceList extends Component {
           ]),
           viewToggleButtons(listView, listView => this.setState({ listView }))
         ]),
-        div({ style: styles.cardContainer }, [
+        div({ style: styles.cardContainer(listView) }, [
           h(NewWorkspaceCard, {
-            listView,
             onClick: () => this.setState({ creatingNewWorkspace: true })
           }),
-          _.map(workspace => {
-            return h(WorkspaceCard, { listView, workspace, key: workspace.workspace.workspaceId })
-          }, data),
-          !isDataLoaded && spinnerOverlay
+          !isDataLoaded && spinnerOverlay,
+          listView ?
+            div({ style: { flex: 1, minWidth: 0, margin: '-0.5rem 0rem 0rem 0.75rem' } }, [
+              renderedWorkspaces
+            ]) : renderedWorkspaces
         ]),
         creatingNewWorkspace && h(NewWorkspaceModal, {
           onDismiss: () => this.setState({ creatingNewWorkspace: false })
+        }),
+        cloningWorkspaceId && h(NewWorkspaceModal, {
+          cloneWorkspace: this.getWorkspace(cloningWorkspaceId),
+          onDismiss: () => this.setState({ cloningWorkspaceId: undefined })
+        }),
+        deletingWorkspaceId && h(DeleteWorkspaceModal, {
+          workspace: this.getWorkspace(deletingWorkspaceId),
+          onDismiss: () => { this.setState({ deletingWorkspaceId: undefined }) },
+          onSuccess: () => this.refresh()
+        }),
+        sharingWorkspaceId && h(ShareWorkspaceModal, {
+          namespace: this.getWorkspace(sharingWorkspaceId).workspace.namespace,
+          name: this.getWorkspace(sharingWorkspaceId).workspace.name,
+          onDismiss: () => { this.setState({ sharingWorkspaceId: undefined }) }
         })
       ])
     ])

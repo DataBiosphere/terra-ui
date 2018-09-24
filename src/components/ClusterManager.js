@@ -46,11 +46,12 @@ const styles = {
   smallInput: {
     width: 80
   },
-  smallSelect: {
-    width: 80,
+  smallSelect: base => ({
+    ...base,
+    width: 85,
     display: 'inline-block',
     verticalAlign: 'middle'
-  },
+  }),
   warningBox: {
     fontSize: 12,
     backgroundColor: colors.orange[5],
@@ -113,12 +114,11 @@ const MachineSelector = ({ machineType, onChangeMachineType, diskSize, onChangeD
         readOnly ?
           currentCpu :
           h(Select, {
-            wrapperStyle: styles.smallSelect,
-            searchable: false,
-            clearable: false,
+            styles: { container: styles.smallSelect },
+            isSearchable: false,
             value: currentCpu,
             onChange: ({ value }) => onChangeMachineType(_.find({ cpu: value }, machineTypes).name),
-            options: _.map(cpu => ({ label: cpu, value: cpu }), _.uniq(_.map('cpu', machineTypes)))
+            options: _.uniq(_.map('cpu', machineTypes))
           })
       ]),
       div({ style: { ...styles.col3, ...styles.label } }, 'Disk size'),
@@ -141,14 +141,13 @@ const MachineSelector = ({ machineType, onChangeMachineType, diskSize, onChangeD
         readOnly ?
           currentMemory :
           h(Select, {
-            wrapperStyle: styles.smallSelect,
-            searchable: false,
-            clearable: false,
+            styles: { container: styles.smallSelect },
+            isSearchable: false,
             value: currentMemory,
             onChange: ({ value }) =>
               onChangeMachineType(_.find({ cpu: currentCpu, memory: value }, machineTypes).name),
             options: _.map(
-              ({ memory }) => ({ label: memory, value: memory }),
+              'memory',
               _.sortBy('memory', _.filter({ cpu: currentCpu }, machineTypes))
             )
           }),
@@ -331,8 +330,8 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
                 ...(value === 'custom' ? {} : normalizeMachineConfig(profilesByName[value].machineConfig))
               })
             },
-            searchable: false,
-            clearable: false,
+            isSearchable: false,
+            isClearable: false,
             options: [
               ..._.map(({ name, label, machineConfig }) => ({
                 value: name,

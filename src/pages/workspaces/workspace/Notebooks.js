@@ -195,12 +195,20 @@ class NotebooksContent extends Component {
     const { notebooks, listView } = this.state
     const { name: wsName, namespace, workspace: { accessLevel, canCompute, workspace: { bucketName } } } = this.props
     const canWrite = Utils.canWrite(accessLevel)
+    const renderedNotebooks = _.map(({ name, updated }) => h(NotebookCard, {
+      key: name,
+      name, updated, listView, bucketName, namespace, wsName, canCompute, canWrite,
+      onRename: () => this.setState({ renamingNotebookName: name }),
+      onCopy: () => this.setState({ copyingNotebookName: name }),
+      onDelete: () => this.setState({ deletingNotebookName: name })
+    }), notebooks)
 
-    return div({ style: { display: listView ? undefined : 'flex', flexWrap: 'wrap', padding: '0 2.25rem' } }, [
+    return div({ style: { display: 'flex', flexWrap: listView ? undefined : 'wrap', padding: '0 2.25rem' } }, [
       div({
         style: {
-          ...notebookCardCommonStyles(listView),
-          fontSize: listView ? 16 : undefined, lineHeight: listView ? '22px' : undefined
+          margin: '1.25rem', display: 'flex',
+          height: 250, width: 200, flexDirection: 'column',
+          fontSize: 16, lineHeight: '22px'
         }
       }, [
         h(Clickable, {
@@ -209,15 +217,11 @@ class NotebooksContent extends Component {
           disabled: !canWrite,
           tooltip: !canWrite ? noWrite : undefined
         }, [
-          listView ?
-            div([
-              'Create a New Notebook',
-              icon('plus-circle', { style: { marginLeft: '1rem' }, size: 22 })
-            ]) : div({ style: { fontSize: 18, lineHeight: '22px' } }, [
-              div(['Create a']),
-              div(['New Notebook']),
-              icon('plus-circle', { style: { marginTop: '0.5rem' }, size: 21 })
-            ])
+          div({ style: { fontSize: 18, lineHeight: '22px', width: 150 } }, [
+            div(['Create a']),
+            div(['New Notebook']),
+            icon('plus-circle', { style: { marginTop: '0.5rem' }, size: 21 })
+          ])
         ]),
         div({ style: { width: 20, height: 15 } }),
         h(Clickable, {
@@ -229,23 +233,17 @@ class NotebooksContent extends Component {
           disabled: !canWrite,
           tooltip: !canWrite ? noWrite : undefined
         }, [
-          listView ? div([
-            'Drag or ', link({}, ['Click']), ' to Add an ipynb File',
-            icon('upload-cloud', { size: 25, style: { opacity: 0.4, marginLeft: '1rem' } })
-          ]) : div({ style: { fontSize: 16, lineHeight: '20px' } }, [
+          div({ style: { fontSize: 16, lineHeight: '20px' } }, [
             div(['Drag or ', link({}, ['Click']), ' to ']),
             div(['Add an ipynb File']),
             icon('upload-cloud', { size: 25, style: { opacity: 0.4, marginTop: '0.5rem' } })
           ])
         ])
       ]),
-      _.map(({ name, updated }) => h(NotebookCard, {
-        key: name,
-        name, updated, listView, bucketName, namespace, wsName, canCompute, canWrite,
-        onRename: () => this.setState({ renamingNotebookName: name }),
-        onCopy: () => this.setState({ copyingNotebookName: name }),
-        onDelete: () => this.setState({ deletingNotebookName: name })
-      }), notebooks)
+      listView ?
+        div({ style: { flex: 1 } }, [
+          renderedNotebooks
+        ]) : renderedNotebooks
     ])
   }
 
@@ -264,7 +262,8 @@ class NotebooksContent extends Component {
       acceptStyle: { cursor: 'copy' },
       rejectStyle: { cursor: 'no-drop' },
       ref: this.uploader,
-      onDropRejected: () => reportError('Not a valid notebook', 'The selected file is not a ipynb notebook file. To import a notebook, upload a file with a .ipynb extension.'),
+      onDropRejected: () => reportError('Not a valid notebook',
+        'The selected file is not a ipynb notebook file. To import a notebook, upload a file with a .ipynb extension.'),
       onDropAccepted: files => this.uploadFiles(files)
     }, [
       notebooks && h(Fragment, [

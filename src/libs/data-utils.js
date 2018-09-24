@@ -246,14 +246,11 @@ export const ReferenceDataImporter = ajaxCaller(class ReferenceDataImporter exte
     }, [
       h(Select, {
         autoFocus: true,
-        searchable: false,
-        clearable: false,
+        isSearchable: false,
         placeholder: 'Select data',
         value: selectedReference,
         onChange: ({ value }) => this.setState({ selectedReference: value }),
-        options: _.map(name => {
-          return { label: name, value: name }
-        }, _.keys(ReferenceData))
+        options: _.keys(ReferenceData)
       }),
       loading && spinnerOverlay
     ])
