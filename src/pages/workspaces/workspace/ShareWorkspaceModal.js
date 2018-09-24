@@ -158,6 +158,7 @@ export default ajaxCaller(class ShareWorkspaceModal extends Component {
             styles: { container: styles.roleSelect },
             isSearchable: false,
             isDisabled: isMe,
+            menuPlacement: index < (acl.length - 2) ? 'bottom' : 'top',
             getOptionLabel: ({ value }) => Utils.normalizeLabel(value),
             value: accessLevel,
             onChange: ({ value }) => this.setState({ acl: _.set([index, 'accessLevel'], value, acl) }),
