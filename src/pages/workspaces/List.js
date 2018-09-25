@@ -24,15 +24,14 @@ import ShareWorkspaceModal from 'src/pages/workspaces/workspace/ShareWorkspaceMo
 const styles = {
   cardContainer: listView => ({
     position: 'relative',
-    display: 'flex', flexWrap: listView ? undefined : 'wrap', marginRight: listView ? undefined : '-1rem'
+    display: 'flex', flexWrap: listView ? undefined : 'wrap',
+    marginRight: listView ? undefined : '-1rem'
   }),
   shortCard: {
     ...Style.elements.card,
+    display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
     width: 300, height: 225,
     margin: '0 1rem 2rem 0'
-  },
-  shortWorkspaceCard: {
-    display: 'flex', flexDirection: 'column', justifyContent: 'space-between'
   },
   shortTitle: {
     flex: 'none',
@@ -52,11 +51,9 @@ const styles = {
   },
   longCard: {
     ...Style.elements.card,
+    display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
     width: '100%', minWidth: 0, height: 80,
-    margin: '0.5rem 1rem 0 0'
-  },
-  longWorkspaceCard: {
-    display: 'flex', flexDirection: 'column', justifyContent: 'space-between', marginBottom: '0.5rem'
+    marginBottom: '0.5rem'
   },
   longTitle: {
     color: colors.blue[0], fontSize: 16,
@@ -121,7 +118,7 @@ const WorkspaceCard = pure(({ listView, onClone, onDelete, onShare, workspace: {
 
   return listView ? a({
     href: Nav.getLink('workspace', { namespace, name }),
-    style: { ...styles.longCard, ...styles.longWorkspaceCard }
+    style: styles.longCard
   }, [
     div({ style: { display: 'flex', alignItems: 'center' } }, [
       workspaceMenu,
@@ -136,7 +133,7 @@ const WorkspaceCard = pure(({ listView, onClone, onDelete, onShare, workspace: {
     ])
   ]) : a({
     href: Nav.getLink('workspace', { namespace, name }),
-    style: { ...styles.shortCard, ...styles.shortWorkspaceCard }
+    style: styles.shortCard
   }, [
     div({ style: styles.shortTitle }, [name]),
     div({ style: styles.shortDescription }, [descText]),
@@ -250,7 +247,7 @@ export const WorkspaceList = ajaxCaller(class WorkspaceList extends Component {
           }),
           !isDataLoaded && spinnerOverlay,
           listView ?
-            div({ style: { flex: 1, minWidth: 0, margin: '-0.5rem 0rem 0rem 0.75rem' } }, [
+            div({ style: { flex: 1, minWidth: 0 } }, [
               renderedWorkspaces
             ]) : renderedWorkspaces
         ]),
