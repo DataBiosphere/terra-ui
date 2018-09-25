@@ -185,7 +185,7 @@ export const WorkspaceList = ajaxCaller(class WorkspaceList extends Component {
       this.setState({
         isDataLoaded: true,
         workspaces: _.flow(
-          _.filter(ws => !ws.public || Utils.canRead(ws.accessLevel)),
+          _.filter(ws => !ws.public || Utils.canWrite(ws.accessLevel)),
           _.sortBy('workspace.name')
         )(workspaces)
       })
