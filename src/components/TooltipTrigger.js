@@ -9,7 +9,6 @@ import * as Utils from 'src/libs/utils'
 const baseToolTip = {
   position: 'fixed', top: 0, left: 0, pointerEvents: 'none',
   maxWidth: 400, borderRadius: 4
-
 }
 
 const styles = {
@@ -30,10 +29,6 @@ const styles = {
     border: `1px solid ${colors.gray[3]}`,
     boxShadow: Style.standardShadow,
     ...baseToolTip
-  },
-  noNotch: {
-    fill: 'none',
-    position: 'absolute'
   }
 }
 
