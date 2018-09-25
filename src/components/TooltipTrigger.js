@@ -6,13 +6,17 @@ import colors from 'src/libs/colors'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 
+const baseToolTip = {
+  position: 'fixed', top: 0, left: 0, pointerEvents: 'none',
+  maxWidth: 400, borderRadius: 4
+
+}
 
 const styles = {
   tooltip: {
-    position: 'fixed', top: 0, left: 0, pointerEvents: 'none',
     background: 'black', color: 'white',
-    padding: '0.5rem', maxWidth: 400,
-    borderRadius: 4
+    padding: '0.5rem',
+    ...baseToolTip
   },
   notch: {
     fill: 'black',
@@ -21,11 +25,11 @@ const styles = {
     marginLeft: -8, marginRight: -8, marginTop: -8,
     transformOrigin: 'bottom'
   },
-  jobStatus: {
-    position: 'fixed', top: 0, left: 0, pointerEvents: 'none',
-    background: 'white', color: colors.gray[0], maxWidth: 400,
-    borderRadius: 4, border: `1px solid ${colors.gray[3]}`,
-    boxShadow: Style.standardShadow
+  lightBox: {
+    background: 'white', color: colors.gray[0],
+    border: `1px solid ${colors.gray[3]}`,
+    boxShadow: Style.standardShadow,
+    ...baseToolTip
   },
   noNotch: {
     fill: 'none',
@@ -75,8 +79,7 @@ class Tooltip extends Component {
   render() {
     const { children, side, type } = this.props
     const { target, tooltip, viewport } = this.state
-    let gap = 10
-    if (type === 'light') { gap = 5 }
+    const gap = type === 'light' ? 5 : 10
     const getPosition = s => {
       const left = _.flow(
         _.clamp(0, viewport.width - tooltip.width),
@@ -122,15 +125,16 @@ class Tooltip extends Component {
       div({
         ref: this.element,
         style: (type === 'light') ?
-          { ...styles.jobStatus, transform: `translate(${finalPos.left}px, ${finalPos.top}px)` } :
+          { ...styles.lightBox, transform: `translate(${finalPos.left}px, ${finalPos.top}px)` } :
           { ...styles.tooltip, transform: `translate(${finalPos.left}px, ${finalPos.top}px)` }
       }, [
         children,
-        svg({
-          viewBox: '0 0 2 1', style: (type === 'light') ? { ...getNotchPosition(), ...styles.noNotch } : { ...getNotchPosition(), ...styles.notch }
-        }, [
-          path({ d: 'M0,1l1,-1l1,1Z' })
-        ])
+        (type === 'light') ? undefined :
+          svg({
+            viewBox: '0 0 2 1', style: { ...getNotchPosition(), ...styles.notch }
+          }, [
+            path({ d: 'M0,1l1,-1l1,1Z' })
+          ])
       ]),
       this.container
     )
