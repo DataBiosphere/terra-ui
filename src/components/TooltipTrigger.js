@@ -124,9 +124,10 @@ class Tooltip extends Component {
     return createPortal(
       div({
         ref: this.element,
-        style: (type === 'light') ?
-          { ...styles.lightBox, transform: `translate(${finalPos.left}px, ${finalPos.top}px)` } :
-          { ...styles.tooltip, transform: `translate(${finalPos.left}px, ${finalPos.top}px)` }
+        style: {
+          transform: `translate(${finalPos.left}px, ${finalPos.top}px)`,
+          ...(type === 'light') ? styles.lightBox : styles.tooltip
+        }
       }, [
         children,
         (type === 'light') ? undefined :
