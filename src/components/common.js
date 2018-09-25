@@ -241,6 +241,7 @@ export const FadeBox = ({ fadePoint = '60%', style = {}, children }) => {
 
   return div({
     style: {
+      display: 'flex', flexDirection: 'column',
       background: `linear-gradient(to bottom, white 0%, ${backgroundColor} ${fadePoint}`,
       borderRadius: `${borderRadius} ${borderRadius} 0 0`,
       ...containerStyle
@@ -256,6 +257,7 @@ export const FadeBox = ({ fadePoint = '60%', style = {}, children }) => {
     }),
     div({
       style: {
+        flex: 1,
         padding: `0 ${paddingLR}`,
         borderWidth: 1,
         borderStyle: 'solid',
@@ -271,7 +273,7 @@ export const PageFadeBox = ({ children }) => {
   return h(FadeBox, {
     fadePoint: '125px',
     style: {
-      margin: '1.5rem', paddingTop: '1rem'
+      margin: '1.5rem', paddingTop: '1rem', minHeight: 125
     }
   }, [children])
 }
