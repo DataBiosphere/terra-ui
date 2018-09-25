@@ -272,9 +272,8 @@ class NotebooksContent extends Component {
       onDropAccepted: files => this.uploadFiles(files)
     }, [
       notebooks && h(PageFadeBox, {}, [
-        div({ style: { display: 'flex', alignItems: 'center', marginBottom: '1rem' } }, [
-          div({ style: { color: colors.darkBlue[0], fontSize: 16, fontWeight: 500 } }, 'NOTEBOOKS'),
-          div({ style: { flexGrow: 1 } }),
+        div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' } }, [
+          div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, ['Notebooks']),
           viewToggleButtons(listView, listView => this.setState({ listView })),
           creating && h(NotebookCreator, {
             namespace, bucketName, existingNames,
