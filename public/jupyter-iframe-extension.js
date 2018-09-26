@@ -10,7 +10,7 @@ define([
 
   function load_ipython_extension() {
     // hide header
-    $('#header-container').hide()
+    // $('#header-container').hide() // NOTE: disabled until we have better solutions for displaying save-status
 
     // remove menu items
     $('#new_notebook').remove()
