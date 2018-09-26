@@ -1,9 +1,8 @@
 import _ from 'lodash/fp'
-import { Fragment } from 'react'
 import { a, div, h } from 'react-hyperscript-helpers'
 import { pure } from 'recompose'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { spinnerOverlay, viewToggleButtons } from 'src/components/common'
+import { PageFadeBox, spinnerOverlay, viewToggleButtons } from 'src/components/common'
 import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
@@ -15,12 +14,12 @@ import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer
 
 
 const styles = {
-  cardContainer: {
-    padding: '1rem 4rem',
-    display: 'flex', flexWrap: 'wrap'
-  },
+  cardContainer: listView => ({
+    display: 'flex', flexWrap: 'wrap',
+    marginRight: listView ? undefined : '-1rem'
+  }),
   shortCard: {
-    ...Style.elements.card, width: 300, height: 125, margin: '1rem 0.5rem',
+    ...Style.elements.card, width: 300, height: 125, margin: '0 1rem 2rem 0',
     display: 'flex', flexDirection: 'column', justifyContent: 'space-between'
   },
   shortTitle: {
@@ -41,7 +40,7 @@ const styles = {
   longCard: {
     ...Style.elements.card,
     width: '100%', minWidth: 0,
-    margin: '0.25rem 0.5rem'
+    marginBottom: '0.5rem'
   },
   longTitle: {
     color: colors.blue[0], fontSize: 16,
@@ -105,18 +104,12 @@ class ToolsContent extends Component {
   render() {
     const { namespace, name } = this.props
     const { loading, configs, listView } = this.state
-    return h(Fragment, [
-      div({
-        style: {
-          display: 'flex', alignItems: 'flex-end', margin: '1rem 4.5rem', marginRight: '2.25rem', justifyContent: 'space-between'
-        }
-      }, [
-        div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, [
-          'Tools'
-        ]),
+    return h(PageFadeBox, [
+      div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' } }, [
+        div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, ['Tools']),
         viewToggleButtons(listView, listView => this.setState({ listView }))
       ]),
-      div({ style: styles.cardContainer }, [
+      div({ style: styles.cardContainer(listView) }, [
         _.map(config => {
           return h(ToolCard, { key: `${config.namespace}/${config.name}`, namespace, name, config, listView })
         }, configs),

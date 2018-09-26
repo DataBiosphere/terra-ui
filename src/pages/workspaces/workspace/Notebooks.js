@@ -3,7 +3,7 @@ import { createRef, Fragment } from 'react'
 import Dropzone from 'react-dropzone'
 import { a, div, h } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { Clickable, link, MenuButton, spinnerOverlay, viewToggleButtons } from 'src/components/common'
+import { Clickable, link, MenuButton, PageFadeBox, spinnerOverlay, viewToggleButtons } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { NotebookCreator, NotebookDeleter, NotebookDuplicator } from 'src/components/notebook-utils'
 import PopupTrigger from 'src/components/PopupTrigger'
@@ -20,10 +20,10 @@ import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer
 
 
 const notebookCardCommonStyles = listView =>
-  _.merge({ margin: '1.25rem', display: 'flex' },
+  _.merge({ display: 'flex' },
     listView ?
-      { flexDirection: 'row' } :
-      { height: 250, width: 200, flexDirection: 'column' }
+      { marginBottom: '0.5rem', flexDirection: 'row' } :
+      { margin: '0 2.5rem 2.5rem 0', height: 250, width: 200, flexDirection: 'column' }
   )
 
 const printName = name => name.slice(10, -6) // removes 'notebooks/' and the .ipynb suffix
@@ -203,10 +203,15 @@ class NotebooksContent extends Component {
       onDelete: () => this.setState({ deletingNotebookName: name })
     }), notebooks)
 
-    return div({ style: { display: 'flex', flexWrap: listView ? undefined : 'wrap', padding: '0 2.25rem' } }, [
+    return div({
+      style: {
+        display: 'flex', flexWrap: listView ? undefined : 'wrap',
+        marginRight: listView ? undefined : '-2.5rem'
+      }
+    }, [
       div({
         style: {
-          margin: '1.25rem', display: 'flex',
+          margin: '0 2.5rem 2.5rem 0', display: 'flex',
           height: 250, width: 200, flexDirection: 'column',
           fontSize: 16, lineHeight: '22px'
         }
@@ -257,7 +262,7 @@ class NotebooksContent extends Component {
       disabled: !Utils.canWrite(accessLevel),
       disableClick: true,
       disablePreview: true,
-      style: { flexGrow: 1, padding: '1rem' },
+      style: { flexGrow: 1 },
       activeStyle: { backgroundColor: colors.blue[3], cursor: 'copy' }, // accept and reject don't work in all browsers
       acceptStyle: { cursor: 'copy' },
       rejectStyle: { cursor: 'no-drop' },
@@ -266,15 +271,9 @@ class NotebooksContent extends Component {
         'The selected file is not a ipynb notebook file. To import a notebook, upload a file with a .ipynb extension.'),
       onDropAccepted: files => this.uploadFiles(files)
     }, [
-      notebooks && h(Fragment, [
-        div({
-          style: {
-            display: 'flex', alignItems: 'center',
-            margin: '0 1.25rem'
-          }
-        }, [
-          div({ style: { color: colors.darkBlue[0], fontSize: 16, fontWeight: 500, padding: '0 2.25rem' } }, 'NOTEBOOKS'),
-          div({ style: { flexGrow: 1 } }),
+      notebooks && h(PageFadeBox, {}, [
+        div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' } }, [
+          div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, ['Notebooks']),
           viewToggleButtons(listView, listView => this.setState({ listView })),
           creating && h(NotebookCreator, {
             namespace, bucketName, existingNames,
