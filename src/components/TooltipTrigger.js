@@ -2,15 +2,20 @@ import _ from 'lodash/fp'
 import { Children, cloneElement, Component, createRef, Fragment } from 'react'
 import { createPortal } from 'react-dom'
 import { div, h, path, svg } from 'react-hyperscript-helpers'
+import colors from 'src/libs/colors'
+import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 
+const baseToolTip = {
+  position: 'fixed', top: 0, left: 0, pointerEvents: 'none',
+  maxWidth: 400, borderRadius: 4
+}
 
 const styles = {
   tooltip: {
-    position: 'fixed', top: 0, left: 0, pointerEvents: 'none',
     background: 'black', color: 'white',
-    padding: '0.5rem', maxWidth: 400,
-    borderRadius: 4
+    padding: '0.5rem',
+    ...baseToolTip
   },
   notch: {
     fill: 'black',
@@ -18,6 +23,12 @@ const styles = {
     width: 16, height: 8,
     marginLeft: -8, marginRight: -8, marginTop: -8,
     transformOrigin: 'bottom'
+  },
+  lightBox: {
+    background: 'white', color: colors.gray[0],
+    border: `1px solid ${colors.gray[3]}`,
+    boxShadow: Style.standardShadow,
+    ...baseToolTip
   }
 }
 
@@ -61,9 +72,9 @@ class Tooltip extends Component {
   }
 
   render() {
-    const { children, side } = this.props
+    const { children, side, type } = this.props
     const { target, tooltip, viewport } = this.state
-    const gap = 10
+    const gap = type === 'light' ? 5 : 10
     const getPosition = s => {
       const left = _.flow(
         _.clamp(0, viewport.width - tooltip.width),
@@ -108,12 +119,18 @@ class Tooltip extends Component {
     return createPortal(
       div({
         ref: this.element,
-        style: { ...styles.tooltip, transform: `translate(${finalPos.left}px, ${finalPos.top}px)` }
+        style: {
+          transform: `translate(${finalPos.left}px, ${finalPos.top}px)`,
+          ...(type === 'light') ? styles.lightBox : styles.tooltip
+        }
       }, [
         children,
-        svg({ viewBox: '0 0 2 1', style: { ...getNotchPosition(), ...styles.notch } }, [
-          path({ d: 'M0,1l1,-1l1,1Z' })
-        ])
+        (type === 'light') ? undefined :
+          svg({
+            viewBox: '0 0 2 1', style: { ...getNotchPosition(), ...styles.notch }
+          }, [
+            path({ d: 'M0,1l1,-1l1,1Z' })
+          ])
       ]),
       this.container
     )
@@ -131,8 +148,12 @@ export default class TooltipTrigger extends Component {
     this.id = `tooltip-trigger-${_.uniqueId()}`
   }
 
+  static defaultProps = {
+    type: 'default'
+  }
+
   render() {
-    const { children, content, ...props } = this.props
+    const { children, type, content, ...props } = this.props
     const { open } = this.state
     if (!content) {
       return children
@@ -150,7 +171,7 @@ export default class TooltipTrigger extends Component {
           this.setState({ open: false })
         }
       }),
-      open && h(Tooltip, { target: this.id, ...props }, [content])
+      open && h(Tooltip, { target: this.id, type, ...props }, [content])
     ])
   }
 }
