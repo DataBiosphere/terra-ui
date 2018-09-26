@@ -38,7 +38,7 @@ export default class Collapse extends Component {
           onClick: () => this.setState({ isOpened: !isOpened })
         },
         [
-          div({ style: { color: colors.blue[0], flex: expandTitle ? 1 : undefined } }, [title]),
+          div({ style: { color: colors.blue[0], flex: expandTitle ? 1 : undefined } }, title),
           showIcon && icon(isOpened ? 'angle down' : 'angle left', { style: { marginLeft: '0.25rem', flexShrink: 0 } })
         ]),
       animate ?

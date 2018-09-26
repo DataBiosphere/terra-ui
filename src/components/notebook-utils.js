@@ -1,4 +1,5 @@
 import _ from 'lodash/fp'
+import PropTypes from 'prop-types'
 import { div, h } from 'react-hyperscript-helpers'
 import { buttonPrimary, Select, spinnerOverlay } from 'src/components/common'
 import { centeredSpinner } from 'src/components/icons'
@@ -62,6 +63,14 @@ const notebookData = {
 
 
 export const NotebookCreator = ajaxCaller(class NotebookCreator extends Component {
+  static propTypes = {
+    bucketName: PropTypes.string.isRequired,
+    existingNames: PropTypes.arrayOf(PropTypes.string).isRequired,
+    namespace: PropTypes.string.isRequired,
+    onDismiss: PropTypes.func.isRequired,
+    reloadList: PropTypes.func.isRequired
+  }
+
   constructor(props) {
     super(props)
     this.state = { notebookName: '' }
@@ -124,6 +133,16 @@ export const NotebookCreator = ajaxCaller(class NotebookCreator extends Componen
 })
 
 export const NotebookDuplicator = ajaxCaller(class NotebookDuplicator extends Component {
+  static propTypes = {
+    bucketName: PropTypes.string.isRequired,
+    destroyOld: PropTypes.bool,
+    existingNames: PropTypes.arrayOf(PropTypes.string).isRequired,
+    namespace: PropTypes.string.isRequired,
+    onDismiss: PropTypes.func.isRequired,
+    onSuccess: PropTypes.func.isRequired,
+    printName: PropTypes.string.isRequired
+  }
+
   constructor(props) {
     super(props)
     this.state = { newName: '' }
@@ -171,6 +190,14 @@ export const NotebookDuplicator = ajaxCaller(class NotebookDuplicator extends Co
 })
 
 export const NotebookDeleter = ajaxCaller(class NotebookDeleter extends Component {
+  static propTypes = {
+    bucketName: PropTypes.string.isRequired,
+    namespace: PropTypes.string.isRequired,
+    onDismiss: PropTypes.func.isRequired,
+    onSuccess: PropTypes.func.isRequired,
+    printName: PropTypes.string.isRequired
+  }
+
   render() {
     const { printName, namespace, bucketName, onDismiss, onSuccess, ajax: { Buckets } } = this.props
     const { processing } = this.state

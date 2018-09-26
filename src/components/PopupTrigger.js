@@ -1,5 +1,5 @@
-import PropTypes from 'prop-types'
 import _ from 'lodash/fp'
+import PropTypes from 'prop-types'
 import { Children, cloneElement, Component, Fragment } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import onClickOutside from 'react-onclickoutside'

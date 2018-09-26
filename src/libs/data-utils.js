@@ -1,7 +1,7 @@
-import PropTypes from 'prop-types'
 import clipboard from 'clipboard-polyfill/build/clipboard-polyfill'
 import filesize from 'filesize'
 import _ from 'lodash/fp'
+import PropTypes from 'prop-types'
 import { Fragment } from 'react'
 import { div, h, img, input } from 'react-hyperscript-helpers/lib/index'
 import Collapse from 'src/components/Collapse'

@@ -1,5 +1,5 @@
-import PropTypes from 'prop-types'
 import _ from 'lodash/fp'
+import PropTypes from 'prop-types'
 import { div, h } from 'react-hyperscript-helpers'
 import RModal from 'react-modal'
 import { buttonPrimary, buttonSecondary, Clickable } from 'src/components/common'
@@ -8,6 +8,7 @@ import colors from 'src/libs/colors'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
+
 
 RModal.defaultStyles = { overlay: {}, content: {} }
 
@@ -37,7 +38,7 @@ export default class Modal extends Component {
 
   static propTypes = {
     children: PropTypes.node,
-    okButton: PropTypes.oneOfType(PropTypes.string, PropTypes.func, PropTypes.any),
+    okButton: PropTypes.oneOfType([PropTypes.string, PropTypes.func, PropTypes.any]),
     onDismiss: PropTypes.func.isRequired,
     showCancel: PropTypes.bool,
     showX: PropTypes.bool,

@@ -1,5 +1,5 @@
-import PropTypes from 'prop-types'
 import _ from 'lodash/fp'
+import PropTypes from 'prop-types'
 import { Component, Fragment } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { buttonPrimary, link, Select, spinnerOverlay } from 'src/components/common'

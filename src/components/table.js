@@ -161,19 +161,23 @@ const styles = {
 export class FlexTable extends Component {
   static propTypes = {
     columns: PropTypes.arrayOf(PropTypes.shape({
+      cellRenderer: PropTypes.func.isRequired,
+      headerRenderer: PropTypes.func.isRequired,
+      rowStyle: PropTypes.object,
       size: PropTypes.shape({
         basis: PropTypes.number, // flex-basis in px
         grow: PropTypes.number, // flex-grow
-        shrink: PropTypes.number, // flex-shrink
+        max: PropTypes.number, // max-width in px
         min: PropTypes.number, // min-width in px
-        max: PropTypes.number // max-width in px
-      }),
-      headerRenderer: PropTypes.func.isRequired,
-      cellRenderer: PropTypes.func.isRequired,
-      rowStyle: PropTypes.object
+        shrink: PropTypes.number // flex-shrink
+      })
     })),
+    height: PropTypes.number.isRequired,
     hoverHighlight: PropTypes.bool,
-    onScroll: PropTypes.func
+    initialY: PropTypes.number,
+    onScroll: PropTypes.func,
+    rowCount: PropTypes.number.isRequired,
+    width: PropTypes.number.isRequired
   }
 
   constructor(props) {
@@ -243,12 +247,19 @@ export class FlexTable extends Component {
 /**
  * A virtual table with a fixed header and explicit column widths. Intended for displaying large
  * datasets which may require horizontal scrolling.
- * @param {Object[]} columns
- * @param {number} columns[].width - width in pixels
- * @param {function(Object)} columns[].headerRenderer
- * @param {function(Object)} columns[].cellRenderer
  */
 export class GridTable extends Component {
+  static propTypes = {
+    cellStyle: PropTypes.object,
+    columns: PropTypes.arrayOf(PropTypes.shape({ width: PropTypes.number.isRequired })),
+    height: PropTypes.number.isRequired,
+    initialX: PropTypes.number,
+    initialY: PropTypes.number,
+    onScroll: PropTypes.func,
+    rowCount: PropTypes.number.isRequired,
+    width: PropTypes.number.isRequired
+  }
+
   constructor(props) {
     super(props)
     this.state = { scrollbarSize: 0 }

@@ -1,4 +1,3 @@
-import PropTypes from 'prop-types'
 import { div, h } from 'react-hyperscript-helpers'
 import { buttonPrimary, Clickable } from 'src/components/common'
 import ErrorView from 'src/components/ErrorView'
@@ -12,10 +11,6 @@ import { Component } from 'src/libs/wrapped-components'
 
 
 class ErrorBanner extends Component {
-  static propTypes = {
-    errorState: PropTypes.array
-  }
-
   render() {
     const { errorState } = this.props
     const { modal, errorNumber = 0 } = this.state

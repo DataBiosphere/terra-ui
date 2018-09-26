@@ -204,8 +204,16 @@ export const readFileAsText = file => {
   })
 }
 
+/**
+ * Returns true if a value can't be coerced into a number.
+ */
 export const cantBeNumber = _.flow(_.toNumber, _.isNaN)
 
+/**
+ * Converts a value to a type. Auto-curries.
+ * @param {string} type - 'string', 'number', or 'boolean'
+ * @param value
+ */
 export const convertValue = _.curry((type, value) => {
   switch (type) {
     case 'string':
@@ -219,4 +227,7 @@ export const convertValue = _.curry((type, value) => {
   }
 })
 
+/**
+ * Converts a string to start case, for a label, but handles all caps correctly.
+ */
 export const normalizeLabel = _.flow(_.camelCase, _.startCase)

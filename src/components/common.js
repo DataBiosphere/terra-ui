@@ -198,6 +198,12 @@ export const comingSoon = span({
   }
 }, ['coming soon'])
 
+/**
+ * @param {Object} props - see {@link https://react-select.com/props#select-props}
+ * @param {Array} props.options - can be of any type; if objects, they should each contain a value and label, unless defining getOptionLabel
+ * @param props.value - a member of options
+ * @constructor
+ */
 export const Select = ({ value, options, ...props }) => {
   const newOptions = options && !_.isObject(options[0]) ? _.map(value => ({ value }), options) : options
   const findValue = target => _.find({ value: target }, newOptions)
