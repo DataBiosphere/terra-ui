@@ -284,10 +284,21 @@ class WorkflowViewContent extends Component {
     FileSaver.saveAs(blob, `${key}.json`)
   }
 
+  getTyped = updates => {
+    for (const key in updates) {
+      if (updates.hasOwnProperty(key)) {
+        if (!updates[key].startsWith('this.') && !updates[key].startsWith('workspace.')) {
+          updates[key] = `"` + updates[key] + `"`
+        }
+      }
+    }
+  }
+
   async uploadJson(key, file) {
     try {
       const text = await Utils.readFileAsText(file)
       const updates = _.mapValues(_.toString, JSON.parse(text))
+      this.getTyped(updates)
       this.setState(({ modifiedConfig, inputsOutputs }) => {
         const existing = _.map('name', inputsOutputs[key])
         return {
