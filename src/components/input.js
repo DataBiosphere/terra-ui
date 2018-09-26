@@ -180,6 +180,9 @@ class AutocompleteSuggestions extends Component {
   }
 }
 
+/**
+ * See {@link https://github.com/moroshko/react-autosuggest#props}
+ */
 export class AutocompleteTextInput extends Component {
   static propTypes = {
     onChange: PropTypes.func.isRequired,

@@ -28,7 +28,7 @@ export default class TopBanner extends Component {
   }
 
   render() {
-    const { showX = true, children, onDismiss, ...props } = _.omit('isVisible', this.props)
+    const { showX, children, onDismiss, ...props } = _.omit('isVisible', this.props)
     const { show } = this.state
 
     return div(_.merge({

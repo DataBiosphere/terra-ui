@@ -128,10 +128,6 @@ class Tooltip extends Component {
 }
 
 export default class TooltipTrigger extends Component {
-  static defaultProps = {
-    side: 'bottom'
-  }
-
   static propTypes = {
     children: PropTypes.node,
     content: PropTypes.node, // No tooltip if falsy

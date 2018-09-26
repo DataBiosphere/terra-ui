@@ -165,11 +165,11 @@ export class FlexTable extends Component {
       headerRenderer: PropTypes.func.isRequired,
       rowStyle: PropTypes.object,
       size: PropTypes.shape({
-        basis: PropTypes.number, // flex-basis in px
-        grow: PropTypes.number, // flex-grow
+        basis: PropTypes.number, // flex-basis in px, default 0
+        grow: PropTypes.number, // flex-grow, default 1
         max: PropTypes.number, // max-width in px
-        min: PropTypes.number, // min-width in px
-        shrink: PropTypes.number // flex-shrink
+        min: PropTypes.number, // min-width in px, default 0
+        shrink: PropTypes.number // flex-shrink, default 1
       })
     })),
     height: PropTypes.number.isRequired,
