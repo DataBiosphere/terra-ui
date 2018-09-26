@@ -3,7 +3,8 @@ import { createRef, Fragment } from 'react'
 import Dropzone from 'react-dropzone'
 import { a, div, h } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { Clickable, link, MenuButton, PageFadeBox, spinnerOverlay, viewToggleButtons } from 'src/components/common'
+import togglesListView from 'src/components/CardsListToggle'
+import { Clickable, link, MenuButton, PageFadeBox, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { NotebookCreator, NotebookDeleter, NotebookDuplicator } from 'src/components/notebook-utils'
 import PopupTrigger from 'src/components/PopupTrigger'
@@ -11,7 +12,6 @@ import TooltipTrigger from 'src/components/TooltipTrigger'
 import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
-import * as Globals from 'src/libs/globals'
 import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
@@ -126,7 +126,7 @@ class NotebookCard extends Component {
   }
 }
 
-const WorkspaceNotebooks = ajaxCaller(Globals.globalObserver('notebooksListView')(wrapWorkspace({
+const WorkspaceNotebooks = ajaxCaller(togglesListView('notebooksTab')(wrapWorkspace({
   breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
   title: 'Notebooks', activeTab: 'notebooks'
 },
@@ -195,9 +195,8 @@ class NotebooksContent extends Component {
   renderNotebooks() {
     const { notebooks } = this.state
     const {
-      name: wsName, namespace,
-      workspace: { accessLevel, canCompute, workspace: { bucketName } },
-      notebooksListView: listView
+      name: wsName, namespace, listView,
+      workspace: { accessLevel, canCompute, workspace: { bucketName } }
     } = this.props
     const canWrite = Utils.canWrite(accessLevel)
     const renderedNotebooks = _.map(({ name, updated }) => h(NotebookCard, {
@@ -260,9 +259,8 @@ class NotebooksContent extends Component {
   render() {
     const { loading, saving, notebooks, creating, renamingNotebookName, copyingNotebookName, deletingNotebookName } = this.state
     const {
-      namespace, updateGlobal,
-      workspace: { accessLevel, workspace: { bucketName } },
-      notebooksListView: listView
+      namespace, viewToggleButtons,
+      workspace: { accessLevel, workspace: { bucketName } }
     } = this.props
     const existingNames = this.getExistingNames()
 
@@ -283,7 +281,7 @@ class NotebooksContent extends Component {
       notebooks && h(PageFadeBox, {}, [
         div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' } }, [
           div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, ['Notebooks']),
-          viewToggleButtons(listView, updateGlobal),
+          viewToggleButtons,
           creating && h(NotebookCreator, {
             namespace, bucketName, existingNames,
             reloadList: () => this.refresh(),

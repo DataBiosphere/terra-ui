@@ -8,7 +8,6 @@ configure({ adapter: new Adapter() })
 
 jest.mock('src/libs/ajax')
 jest.mock('src/libs/auth')
-jest.mock('src/libs/globals')
 jest.mock('src/libs/nav')
 jest.mock('src/libs/state-history')
 
@@ -16,6 +15,8 @@ window.gapi = {
   load: () => {}
 }
 window.Element.prototype['insertAdjacentElement'] = () => {} // for custom icons
+
+window.sessionStorage = {}
 
 // Mock dates due to time zone issues
 jest.spyOn(Utils, 'makePrettyDate').mockImplementation(() => '***MOCKED DATE***')

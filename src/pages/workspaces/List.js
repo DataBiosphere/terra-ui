@@ -3,7 +3,8 @@ import { Fragment } from 'react'
 import { a, div, h, span } from 'react-hyperscript-helpers'
 import { pure } from 'recompose'
 import removeMd from 'remove-markdown'
-import { Clickable, MenuButton, PageFadeBox, search, spinnerOverlay, viewToggleButtons } from 'src/components/common'
+import togglesListView from 'src/components/CardsListToggle'
+import { Clickable, MenuButton, PageFadeBox, search, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
 import PopupTrigger from 'src/components/PopupTrigger'
@@ -12,7 +13,6 @@ import { TopBar } from 'src/components/TopBar'
 import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
-import * as Globals from 'src/libs/globals'
 import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
@@ -160,7 +160,7 @@ const NewWorkspaceCard = pure(({ onClick }) => {
 })
 
 
-export const WorkspaceList = ajaxCaller(Globals.globalObserver('workspaceListView')(class WorkspaceList extends Component {
+export const WorkspaceList = ajaxCaller(togglesListView('workspaceList')(class WorkspaceList extends Component {
   constructor(props) {
     super(props)
     this.state = {
@@ -201,7 +201,7 @@ export const WorkspaceList = ajaxCaller(Globals.globalObserver('workspaceListVie
   }
 
   render() {
-    const { workspaceListView: listView, updateGlobal } = this.props
+    const { listView, viewToggleButtons } = this.props
     const { workspaces, isDataLoaded, filter, creatingNewWorkspace, cloningWorkspaceId, deletingWorkspaceId, sharingWorkspaceId } = this.state
     const data = _.filter(({ workspace: { namespace, name } }) => {
       return Utils.textMatch(filter, `${namespace}/${name}`)
@@ -229,7 +229,7 @@ export const WorkspaceList = ajaxCaller(Globals.globalObserver('workspaceListVie
       h(PageFadeBox, [
         div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' } }, [
           div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, ['Workspaces']),
-          viewToggleButtons(listView, updateGlobal)
+          viewToggleButtons
         ]),
         div({ style: styles.cardContainer(listView) }, [
           h(NewWorkspaceCard, {

@@ -1,6 +1,5 @@
 import { mount } from 'enzyme'
 import { h } from 'react-hyperscript-helpers'
-import * as Globals from 'src/libs/globals'
 import { waitOneTickAndUpdate } from 'src/libs/test-utils'
 import { WorkspaceList } from 'src/pages/workspaces/List'
 
@@ -9,7 +8,7 @@ describe('WorkspaceList', () => {
   it('should switch between Grid and List view', () => {
     const wrapper = mount(h(WorkspaceList))
     return waitOneTickAndUpdate(wrapper).then(() => {
-      const isListView = () => Globals.get('workspaceListView')
+      const isListView = () => wrapper.find('WorkspaceList').props().listView
 
       expect(isListView()).toEqual(undefined)
 

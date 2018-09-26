@@ -2,11 +2,11 @@ import _ from 'lodash/fp'
 import { a, div, h } from 'react-hyperscript-helpers'
 import { pure } from 'recompose'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { PageFadeBox, spinnerOverlay, viewToggleButtons } from 'src/components/common'
+import togglesListView from 'src/components/CardsListToggle'
+import { PageFadeBox, spinnerOverlay } from 'src/components/common'
 import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
-import * as Globals from 'src/libs/globals'
 import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
@@ -75,7 +75,7 @@ const ToolCard = pure(({ listView, name, namespace, config }) => {
   ])
 })
 
-export const WorkspaceTools = ajaxCaller(Globals.globalObserver('toolsListView')(wrapWorkspace({
+export const WorkspaceTools = ajaxCaller(togglesListView('toolsTab')(wrapWorkspace({
   breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
   title: 'Tools', activeTab: 'tools'
 },
@@ -100,12 +100,12 @@ class ToolsContent extends Component {
   }
 
   render() {
-    const { namespace, name, toolsListView: listView, updateGlobal } = this.props
+    const { namespace, name, listView, viewToggleButtons } = this.props
     const { loading, configs } = this.state
     return h(PageFadeBox, [
       div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' } }, [
         div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, ['Tools']),
-        viewToggleButtons(listView, updateGlobal)
+        viewToggleButtons
       ]),
       div({ style: styles.cardContainer(listView) }, [
         _.map(config => {
