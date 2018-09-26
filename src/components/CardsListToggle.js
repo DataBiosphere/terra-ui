@@ -1,5 +1,4 @@
-import _ from 'lodash/fp'
-import { mapProps } from 'recompose'
+import { compose, mapProps } from 'recompose'
 import { div, h } from 'react-hyperscript-helpers'
 import { Clickable } from 'src/components/common'
 import { icon } from 'src/components/icons'
@@ -46,7 +45,8 @@ toggleStateAtom.subscribe(v => {
 
 
 const togglesListView = key => {
-  return _.flow(
+  return compose(
+    Utils.connectAtom(toggleStateAtom, 'toggleState'),
     mapProps(({ toggleState, ...props }) => {
       const listView = toggleState && toggleState[key]
 
@@ -55,8 +55,7 @@ const togglesListView = key => {
         viewToggleButtons: viewToggleButtons(listView, v => toggleStateAtom.update(m => ({ ...m, [key]: v }))),
         ...props
       }
-    }),
-    Utils.connectAtom(toggleStateAtom, 'toggleState')
+    })
   )
 }
 
