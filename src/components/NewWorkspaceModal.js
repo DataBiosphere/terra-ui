@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types'
 import _ from 'lodash/fp'
 import { Component, Fragment } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
@@ -41,6 +42,11 @@ const styles = {
 }
 
 export default ajaxCaller(class NewWorkspaceModal extends Component {
+  static propTypes = {
+    cloneWorkspace: PropTypes.object,
+    onDismiss: PropTypes.func.isRequired
+  }
+
   constructor(props) {
     super(props)
     const { cloneWorkspace } = props

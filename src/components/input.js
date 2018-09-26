@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types'
 import _ from 'lodash/fp'
 import { Component, Fragment, createRef } from 'react'
 import { createPortal } from 'react-dom'
@@ -70,6 +71,12 @@ export const numberInput = props => {
 
 
 export class IntegerInput extends Component {
+  static propTypes = {
+    max: PropTypes.number,
+    min: PropTypes.number,
+    onChange: PropTypes.func.isRequired
+  }
+
   constructor(props) {
     super(props)
     this.state = { textValue: undefined, lastValue: undefined }
@@ -129,6 +136,12 @@ export const validatedInput = props => {
 }
 
 class AutocompleteSuggestions extends Component {
+  static propTypes = {
+    children: PropTypes.node,
+    containerProps: PropTypes.object,
+    containerRef: PropTypes.object.isRequired
+  }
+
   constructor(props) {
     super(props)
     this.el = document.createElement('div')
@@ -168,6 +181,12 @@ class AutocompleteSuggestions extends Component {
 }
 
 export class AutocompleteTextInput extends Component {
+  static propTypes = {
+    onChange: PropTypes.func.isRequired,
+    suggestions: PropTypes.arrayOf(PropTypes.string),
+    value: PropTypes.string
+  }
+
   constructor(props) {
     super(props)
     this.state = { show: false }
@@ -208,6 +227,15 @@ export class AutocompleteTextInput extends Component {
 }
 
 export class AutocompleteSearch extends Component {
+  static propTypes = {
+    onChange: PropTypes.func.isRequired,
+    onSuggestionSelected: PropTypes.func.isRequired,
+    renderSuggestion: PropTypes.func.isRequired,
+    suggestions: PropTypes.array,
+    theme: PropTypes.object,
+    value: PropTypes.string.isRequired
+  }
+
   constructor(props) {
     super(props)
     this.state = { show: false }

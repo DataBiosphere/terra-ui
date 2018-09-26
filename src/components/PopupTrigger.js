@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types'
 import _ from 'lodash/fp'
 import { Children, cloneElement, Component, Fragment } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
@@ -22,6 +23,14 @@ const PopupBody = onClickOutside(({ children }) => {
 })
 
 export default class PopupTrigger extends Component {
+  static propTypes = {
+    align: PropTypes.string,
+    children: PropTypes.node,
+    closeOnClick: PropTypes.bool,
+    content: PropTypes.node,
+    position: PropTypes.string
+  }
+
   constructor(props) {
     super(props)
     this.state = { open: false }

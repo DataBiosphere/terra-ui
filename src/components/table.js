@@ -1,11 +1,12 @@
 import _ from 'lodash/fp'
-import { Fragment, createRef } from 'react'
+import PropTypes from 'prop-types'
+import { createRef, Fragment } from 'react'
 import DraggableCore from 'react-draggable'
 import { button, div, h, option, select } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
 import Pagination from 'react-paginating'
 import { arrayMove, SortableContainer, SortableElement, SortableHandle } from 'react-sortable-hoc'
-import { AutoSizer, Grid as RVGrid, ScrollSync as RVScrollSync, List } from 'react-virtualized'
+import { AutoSizer, Grid as RVGrid, List, ScrollSync as RVScrollSync } from 'react-virtualized'
 import { buttonPrimary, Checkbox, Clickable, linkButton } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
@@ -156,17 +157,25 @@ const styles = {
 /**
  * A virtual table with a fixed header and flexible column widths. Intended to take up the full
  * available container width, without horizontal scrolling.
- * @param {Object[]} columns
- * @param {Object} [columns[].size]
- * @param {number} [columns[].size.basis=0] - flex-basis in pixels
- * @param {number} [columns[].size.grow=1] - flex-grow
- * @param {number} [columns[].size.shrink=1] - flex-shrink
- * @param {number} [columns[].size.min=0] - min-width in pixels
- * @param {number} [columns[].size.max] - max-width in pixels
- * @param {function()} columns[].headerRenderer
- * @param {function(Object)} columns[].cellRenderer
  */
 export class FlexTable extends Component {
+  static propTypes = {
+    columns: PropTypes.arrayOf(PropTypes.shape({
+      size: PropTypes.shape({
+        basis: PropTypes.number, // flex-basis in px
+        grow: PropTypes.number, // flex-grow
+        shrink: PropTypes.number, // flex-shrink
+        min: PropTypes.number, // min-width in px
+        max: PropTypes.number // max-width in px
+      }),
+      headerRenderer: PropTypes.func.isRequired,
+      cellRenderer: PropTypes.func.isRequired,
+      rowStyle: PropTypes.object
+    })),
+    hoverHighlight: PropTypes.bool,
+    onScroll: PropTypes.func
+  }
+
   constructor(props) {
     super(props)
     this.state = { scrollbarSize: 0 }

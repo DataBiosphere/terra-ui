@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types'
 import clipboard from 'clipboard-polyfill/build/clipboard-polyfill'
 import filesize from 'filesize'
 import _ from 'lodash/fp'
@@ -52,11 +53,12 @@ const getMaxDownloadCostNA = bytes => {
   return downloadPrice < 0.01 ? '< $0.01' : `$${downloadPrice.toPrecision(2)}`
 }
 
-/**
- * @param uri
- * @param googleProject
- */
 const UriViewer = ajaxCaller(class UriViewer extends Component {
+  static propTypes = {
+    googleProject: PropTypes.string.isRequired,
+    uri: PropTypes.string.isRequired
+  }
+
   async getMetadata() {
     const { googleProject, uri, ajax: { Buckets, Martha } } = this.props
     const isGsUri = isGs(uri)
@@ -227,6 +229,13 @@ export const renderDataCell = (data, namespace) => {
 }
 
 export const ReferenceDataImporter = ajaxCaller(class ReferenceDataImporter extends Component {
+  static propTypes = {
+    name: PropTypes.string.isRequired,
+    namespace: PropTypes.string.isRequired,
+    onDismiss: PropTypes.func.isRequired,
+    onSuccess: PropTypes.func.isRequired
+  }
+
   render() {
     const { onDismiss, onSuccess, namespace, name, ajax: { Workspaces } } = this.props
     const { loading, selectedReference } = this.state
@@ -264,6 +273,14 @@ export const ReferenceDataImporter = ajaxCaller(class ReferenceDataImporter exte
 })
 
 export const ReferenceDataDeleter = ajaxCaller(class ReferenceDataDeleter extends Component {
+  static propTypes = {
+    name: PropTypes.string.isRequired,
+    namespace: PropTypes.string.isRequired,
+    onDismiss: PropTypes.func.isRequired,
+    onSuccess: PropTypes.func.isRequired,
+    referenceDataType: PropTypes.string.isRequired
+  }
+
   render() {
     const { onDismiss, onSuccess, namespace, name, referenceDataType, ajax: { Workspaces } } = this.props
     const { deleting } = this.state

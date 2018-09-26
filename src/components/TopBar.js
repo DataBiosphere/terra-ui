@@ -1,4 +1,5 @@
 import _ from 'lodash/fp'
+import PropTypes from 'prop-types'
 import { createPortal } from 'react-dom'
 import { a, div, h } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
@@ -52,11 +53,13 @@ const styles = {
   }
 }
 
-/**
- * @param {string} title
- * @param {array} [children]
- */
-export class TopBar extends Component {
+export default class TopBar extends Component {
+  static propTypes = {
+    children: PropTypes.node,
+    href: PropTypes.string,
+    title: PropTypes.node
+  }
+
   showNav() {
     this.setState({ navShown: true })
     document.body.classList.add('overlayOpen')

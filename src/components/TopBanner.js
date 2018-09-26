@@ -1,4 +1,5 @@
 import _ from 'lodash/fp'
+import PropTypes from 'prop-types'
 import { div, h } from 'react-hyperscript-helpers'
 import { Clickable } from 'src/components/common'
 import { icon } from 'src/components/icons'
@@ -7,12 +8,17 @@ import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 
 
-/**
- * @param {bool} isVisible
- * @param {bool} [showX=true]
- * @param {function} [onDismiss]
- */
 export default class TopBanner extends Component {
+  static propTypes = {
+    isVisible: PropTypes.bool,
+    onDismiss: PropTypes.func,
+    showX: PropTypes.bool
+  }
+
+  static defaultProps = {
+    showX: true
+  }
+
   componentDidMount() {
     Utils.waitOneTick().then(() => this.setState({ show: this.props.isVisible }))
   }

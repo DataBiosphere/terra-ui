@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types'
 import _ from 'lodash/fp'
 import { div, h } from 'react-hyperscript-helpers'
 import RModal from 'react-modal'
@@ -27,19 +28,26 @@ const styles = {
   }
 }
 
-/**
- * @param onDismiss
- * @param title
- * @param titleExtras
- * @param children
- * @param width=450
- * @param showCancel=true
- * @param showX=false
- * @param okButton
- */
 export default class Modal extends Component {
+  static defaultProps = {
+    showCancel: true,
+    showX: false,
+    width: 450
+  }
+
+  static propTypes = {
+    children: PropTypes.node,
+    okButton: PropTypes.oneOfType(PropTypes.string, PropTypes.func, PropTypes.any),
+    onDismiss: PropTypes.func.isRequired,
+    showCancel: PropTypes.bool,
+    showX: PropTypes.bool,
+    title: PropTypes.node,
+    titleExtras: PropTypes.node,
+    width: PropTypes.number
+  }
+
   render() {
-    const { onDismiss, title, titleExtras, children, width = 450, showCancel = true, showX = false, okButton } = this.props
+    const { onDismiss, title, titleExtras, children, width, showCancel, showX, okButton } = this.props
 
     return h(RModal, {
       parentSelector: () => document.getElementById('modal-root'),
