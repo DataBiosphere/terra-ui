@@ -1,5 +1,6 @@
 import _ from 'lodash/fp'
 import * as qs from 'qs'
+import { forwardRef } from 'react'
 import { h } from 'react-hyperscript-helpers'
 import { version } from 'src/data/clusters'
 import { getUser } from 'src/libs/auth'
@@ -553,7 +554,7 @@ export const Ajax = controller => {
 
 
 export const ajaxCaller = WrappedComponent => {
-  return class AjaxWrapper extends Component {
+  class AjaxWrapper extends Component {
     constructor(props) {
       super(props)
       this.controller = new window.AbortController()
@@ -561,10 +562,12 @@ export const ajaxCaller = WrappedComponent => {
     }
 
     render() {
+      const { forwardedRef, ...rest } = this.props
+
       return h(WrappedComponent, {
-        ref: component => this.child = component,
+        ref: forwardedRef,
         ajax: this.ajax,
-        ...this.props
+        ...rest
       })
     }
 
@@ -572,4 +575,6 @@ export const ajaxCaller = WrappedComponent => {
       this.controller.abort()
     }
   }
+
+  return forwardRef((props, ref) => h(AjaxWrapper, { forwardedRef: ref, ...props }))
 }

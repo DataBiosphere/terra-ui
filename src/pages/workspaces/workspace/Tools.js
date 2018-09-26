@@ -2,7 +2,8 @@ import _ from 'lodash/fp'
 import { a, div, h } from 'react-hyperscript-helpers'
 import { pure } from 'recompose'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { PageFadeBox, spinnerOverlay, viewToggleButtons } from 'src/components/common'
+import togglesListView from 'src/components/CardsListToggle'
+import { PageFadeBox, spinnerOverlay } from 'src/components/common'
 import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
@@ -74,17 +75,14 @@ const ToolCard = pure(({ listView, name, namespace, config }) => {
   ])
 })
 
-export const WorkspaceTools = ajaxCaller(wrapWorkspace({
+export const WorkspaceTools = ajaxCaller(togglesListView('toolsTab')(wrapWorkspace({
   breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
   title: 'Tools', activeTab: 'tools'
 },
 class ToolsContent extends Component {
   constructor(props) {
     super(props)
-    this.state = {
-      listView: false,
-      ...StateHistory.get()
-    }
+    this.state = StateHistory.get()
   }
 
   async refresh() {
@@ -102,12 +100,12 @@ class ToolsContent extends Component {
   }
 
   render() {
-    const { namespace, name } = this.props
-    const { loading, configs, listView } = this.state
+    const { namespace, name, listView, viewToggleButtons } = this.props
+    const { loading, configs } = this.state
     return h(PageFadeBox, [
       div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' } }, [
         div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, ['Tools']),
-        viewToggleButtons(listView, listView => this.setState({ listView }))
+        viewToggleButtons
       ]),
       div({ style: styles.cardContainer(listView) }, [
         _.map(config => {
@@ -124,9 +122,9 @@ class ToolsContent extends Component {
   }
 
   componentDidUpdate() {
-    StateHistory.update(_.pick(['configs', 'listView'], this.state))
+    StateHistory.update(_.pick(['configs'], this.state))
   }
-}))
+})))
 
 export const addNavPaths = () => {
   Nav.defPath('workspace-tools', {

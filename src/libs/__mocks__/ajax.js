@@ -1,6 +1,7 @@
 import _ from 'lodash/fp'
 import { h } from 'react-hyperscript-helpers'
 import { Component } from 'src/libs/wrapped-components'
+import { forwardRef } from 'react'
 
 
 export const createWorkspace = overrides => {
@@ -63,18 +64,22 @@ export const Ajax = () => ({
 })
 
 export const ajaxCaller = WrappedComponent => {
-  return class AjaxWrapper extends Component {
+  class AjaxWrapper extends Component {
     constructor(props) {
       super(props)
       this.ajax = Ajax()
     }
 
     render() {
+      const { forwardedRef, ...rest } = this.props
+
       return h(WrappedComponent, {
-        ref: component => this.child = component,
+        ref: forwardedRef,
         ajax: this.ajax,
-        ...this.props
+        ...rest
       })
     }
   }
+
+  return forwardRef((props, ref) => h(AjaxWrapper, { forwardedRef: ref, ...props }))
 }
