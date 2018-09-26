@@ -3,7 +3,8 @@ import { createRef, Fragment } from 'react'
 import Dropzone from 'react-dropzone'
 import { a, div, h } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { Clickable, link, MenuButton, PageFadeBox, spinnerOverlay, viewToggleButtons } from 'src/components/common'
+import togglesListView from 'src/components/CardsListToggle'
+import { Clickable, link, MenuButton, PageFadeBox, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { NotebookCreator, NotebookDeleter, NotebookDuplicator } from 'src/components/notebook-utils'
 import PopupTrigger from 'src/components/PopupTrigger'
@@ -125,7 +126,7 @@ class NotebookCard extends Component {
   }
 }
 
-const WorkspaceNotebooks = ajaxCaller(wrapWorkspace({
+const WorkspaceNotebooks = ajaxCaller(togglesListView('notebooksTab')(wrapWorkspace({
   breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
   title: 'Notebooks', activeTab: 'notebooks'
 },
@@ -192,8 +193,11 @@ class NotebooksContent extends Component {
   }
 
   renderNotebooks() {
-    const { notebooks, listView } = this.state
-    const { name: wsName, namespace, workspace: { accessLevel, canCompute, workspace: { bucketName } } } = this.props
+    const { notebooks } = this.state
+    const {
+      name: wsName, namespace, listView,
+      workspace: { accessLevel, canCompute, workspace: { bucketName } }
+    } = this.props
     const canWrite = Utils.canWrite(accessLevel)
     const renderedNotebooks = _.map(({ name, updated }) => h(NotebookCard, {
       key: name,
@@ -253,8 +257,11 @@ class NotebooksContent extends Component {
   }
 
   render() {
-    const { loading, saving, notebooks, listView, creating, renamingNotebookName, copyingNotebookName, deletingNotebookName } = this.state
-    const { namespace, workspace: { accessLevel, workspace: { bucketName } } } = this.props
+    const { loading, saving, notebooks, creating, renamingNotebookName, copyingNotebookName, deletingNotebookName } = this.state
+    const {
+      namespace, viewToggleButtons,
+      workspace: { accessLevel, workspace: { bucketName } }
+    } = this.props
     const existingNames = this.getExistingNames()
 
     return h(Dropzone, {
@@ -274,7 +281,7 @@ class NotebooksContent extends Component {
       notebooks && h(PageFadeBox, {}, [
         div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' } }, [
           div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, ['Notebooks']),
-          viewToggleButtons(listView, listView => this.setState({ listView })),
+          viewToggleButtons,
           creating && h(NotebookCreator, {
             namespace, bucketName, existingNames,
             reloadList: () => this.refresh(),
@@ -315,11 +322,11 @@ class NotebooksContent extends Component {
 
   componentDidUpdate() {
     StateHistory.update(_.pick(
-      ['clusters', 'cluster', 'notebooks', 'listView'],
+      ['clusters', 'cluster', 'notebooks'],
       this.state)
     )
   }
-}))
+})))
 
 export const addNavPaths = () => {
   Nav.defPath('workspace-notebooks', {

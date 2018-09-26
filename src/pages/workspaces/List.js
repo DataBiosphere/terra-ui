@@ -3,7 +3,8 @@ import { Fragment } from 'react'
 import { a, div, h, span } from 'react-hyperscript-helpers'
 import { pure } from 'recompose'
 import removeMd from 'remove-markdown'
-import { Clickable, PageFadeBox, search, spinnerOverlay, viewToggleButtons, MenuButton } from 'src/components/common'
+import togglesListView from 'src/components/CardsListToggle'
+import { Clickable, MenuButton, PageFadeBox, search, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
 import PopupTrigger from 'src/components/PopupTrigger'
@@ -159,12 +160,11 @@ const NewWorkspaceCard = pure(({ onClick }) => {
 })
 
 
-export const WorkspaceList = ajaxCaller(class WorkspaceList extends Component {
+export const WorkspaceList = ajaxCaller(togglesListView('workspaceList')(class WorkspaceList extends Component {
   constructor(props) {
     super(props)
     this.state = {
       filter: '',
-      listView: false,
       workspaces: null,
       creatingNewWorkspace: false,
       cloningWorkspaceId: undefined,
@@ -201,11 +201,8 @@ export const WorkspaceList = ajaxCaller(class WorkspaceList extends Component {
   }
 
   render() {
-    const {
-      workspaces, isDataLoaded, filter, listView,
-      creatingNewWorkspace, cloningWorkspaceId, deletingWorkspaceId, sharingWorkspaceId
-    } = this.state
-
+    const { listView, viewToggleButtons } = this.props
+    const { workspaces, isDataLoaded, filter, creatingNewWorkspace, cloningWorkspaceId, deletingWorkspaceId, sharingWorkspaceId } = this.state
     const data = _.filter(({ workspace: { namespace, name } }) => {
       return Utils.textMatch(filter, `${namespace}/${name}`)
     }, workspaces)
@@ -232,7 +229,7 @@ export const WorkspaceList = ajaxCaller(class WorkspaceList extends Component {
       h(PageFadeBox, [
         div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' } }, [
           div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, ['Workspaces']),
-          viewToggleButtons(listView, listView => this.setState({ listView }))
+          viewToggleButtons
         ]),
         div({ style: styles.cardContainer(listView) }, [
           h(NewWorkspaceCard, {
@@ -267,11 +264,11 @@ export const WorkspaceList = ajaxCaller(class WorkspaceList extends Component {
 
   componentDidUpdate() {
     StateHistory.update(_.pick(
-      ['workspaces', 'filter', 'listView'],
+      ['workspaces', 'filter'],
       this.state)
     )
   }
-})
+}))
 
 export const addNavPaths = () => {
   Nav.defPath('root', {
