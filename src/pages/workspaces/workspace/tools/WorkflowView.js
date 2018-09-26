@@ -291,7 +291,8 @@ class WorkflowViewContent extends Component {
       const rawUpdates = JSON.parse(await Utils.readFileAsText(file))
       const updates = _.mapValues(v => _.isString(v) && v.match(/\${(.*)}/) ?
         v.replace(/\${(.*)}/, (_, match) => match) :
-        JSON.stringify(v))(rawUpdates)
+        JSON.stringify(v)
+      )(rawUpdates)
       this.setState(({ modifiedConfig, inputsOutputs }) => {
         const existing = _.map('name', inputsOutputs[key])
         return {
