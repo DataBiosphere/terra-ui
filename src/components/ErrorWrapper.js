@@ -1,7 +1,12 @@
+import PropTypes from 'prop-types'
 import { Component } from 'react'
 import { reportError } from 'src/libs/error'
 
 export default class ErrorWrapper extends Component {
+  static propTypes = {
+    children: PropTypes.node
+  }
+
   constructor(props) {
     super(props)
     this.state = { hasError: false }

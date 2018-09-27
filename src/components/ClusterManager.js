@@ -1,4 +1,5 @@
 import _ from 'lodash/fp'
+import PropTypes from 'prop-types'
 import { Fragment, PureComponent } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
@@ -191,6 +192,14 @@ const getUpdateIntervalMs = status => {
 }
 
 export default ajaxCaller(class ClusterManager extends PureComponent {
+  static propTypes = {
+    namespace: PropTypes.string.isRequired,
+    name: PropTypes.string.isRequired,
+    clusters: PropTypes.array,
+    canCompute: PropTypes.bool,
+    refreshClusters: PropTypes.func.isRequired
+  }
+
   constructor(props) {
     super(props)
     this.state = {

@@ -1,14 +1,14 @@
 import { Fragment } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { buttonPrimary, pageColumn } from 'src/components/common'
-import { TopBar } from 'src/components/TopBar'
+import { spinner } from 'src/components/icons'
+import TopBar from 'src/components/TopBar'
 import WorkspaceSelector from 'src/components/WorkspaceSelector'
 import { ajaxCaller } from 'src/libs/ajax'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
-import { spinner } from 'src/components/icons'
 
 
 const Importer = ajaxCaller(class Importer extends Component {
@@ -45,7 +45,7 @@ const Importer = ajaxCaller(class Importer extends Component {
 
   async import_() {
     this.setState({ isImporting: true })
-    const { selectedWorkspace: { value: { namespace, name } } } = this.state
+    const { selectedWorkspace: { namespace, name } } = this.state
     const { queryParams: { url, format }, ajax: { Workspaces } } = this.props
 
     try {

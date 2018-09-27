@@ -1,4 +1,5 @@
 import _ from 'lodash/fp'
+import PropTypes from 'prop-types'
 import { Component, Fragment } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { buttonPrimary, link, Select, spinnerOverlay } from 'src/components/common'
@@ -41,6 +42,11 @@ const styles = {
 }
 
 export default ajaxCaller(class NewWorkspaceModal extends Component {
+  static propTypes = {
+    cloneWorkspace: PropTypes.object,
+    onDismiss: PropTypes.func.isRequired
+  }
+
   constructor(props) {
     super(props)
     const { cloneWorkspace } = props
