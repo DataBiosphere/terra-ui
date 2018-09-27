@@ -109,7 +109,7 @@ const WorkspaceCard = pure(({ listView, onClone, onDelete, onShare, workspace: {
       hover: { color: colors.blue[2] }
     }, [
       icon('cardMenuIcon', {
-        size: listView ? 18 : 27
+        size: listView ? 18 : 23
       })
     ])
   ])
