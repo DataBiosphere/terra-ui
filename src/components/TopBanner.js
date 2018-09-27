@@ -11,8 +11,9 @@ import { Component } from 'src/libs/wrapped-components'
 export default class TopBanner extends Component {
   static propTypes = {
     isVisible: PropTypes.bool,
+    showX: PropTypes.bool,
     onDismiss: PropTypes.func,
-    showX: PropTypes.bool
+    children: PropTypes.node
   }
 
   static defaultProps = {

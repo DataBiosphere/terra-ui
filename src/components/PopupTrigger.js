@@ -24,11 +24,11 @@ const PopupBody = onClickOutside(({ children }) => {
 
 export default class PopupTrigger extends Component {
   static propTypes = {
-    align: PropTypes.string,
-    children: PropTypes.node,
-    closeOnClick: PropTypes.bool,
     content: PropTypes.node,
-    position: PropTypes.string
+    position: PropTypes.string,
+    align: PropTypes.string,
+    closeOnClick: PropTypes.bool,
+    children: PropTypes.node
   }
 
   constructor(props) {

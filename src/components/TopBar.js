@@ -55,9 +55,9 @@ const styles = {
 
 export default class TopBar extends Component {
   static propTypes = {
-    children: PropTypes.node,
-    href: PropTypes.string,
-    title: PropTypes.node
+    title: PropTypes.node,
+    href: PropTypes.string, // link destination
+    children: PropTypes.node
   }
 
   showNav() {

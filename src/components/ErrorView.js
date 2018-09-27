@@ -46,8 +46,12 @@ export default class ErrorView extends Component {
     error: PropTypes.any.isRequired
   }
 
+  static defaultProps = {
+    collapses: true
+  }
+
   render() {
-    const { collapses=true, containerStyle, error } = this.props
+    const { collapses, containerStyle, error } = this.props
 
     const content = Utils.cond(
       [this.errorIsHTML(), () => this.renderHTMLError()],

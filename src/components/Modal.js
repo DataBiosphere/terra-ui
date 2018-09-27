@@ -30,21 +30,21 @@ const styles = {
 }
 
 export default class Modal extends Component {
+  static propTypes = {
+    onDismiss: PropTypes.func.isRequired,
+    title: PropTypes.node,
+    titleExtras: PropTypes.node,
+    width: PropTypes.number,
+    showCancel: PropTypes.bool,
+    showX: PropTypes.bool,
+    okButton: PropTypes.oneOfType([PropTypes.string, PropTypes.func, PropTypes.node]),
+    children: PropTypes.node
+  }
+
   static defaultProps = {
     showCancel: true,
     showX: false,
     width: 450
-  }
-
-  static propTypes = {
-    children: PropTypes.node,
-    okButton: PropTypes.oneOfType([PropTypes.string, PropTypes.func, PropTypes.any]),
-    onDismiss: PropTypes.func.isRequired,
-    showCancel: PropTypes.bool,
-    showX: PropTypes.bool,
-    title: PropTypes.node,
-    titleExtras: PropTypes.node,
-    width: PropTypes.number
   }
 
   render() {

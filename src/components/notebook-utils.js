@@ -64,11 +64,11 @@ const notebookData = {
 
 export const NotebookCreator = ajaxCaller(class NotebookCreator extends Component {
   static propTypes = {
-    bucketName: PropTypes.string.isRequired,
-    existingNames: PropTypes.arrayOf(PropTypes.string).isRequired,
-    namespace: PropTypes.string.isRequired,
+    reloadList: PropTypes.func.isRequired,
     onDismiss: PropTypes.func.isRequired,
-    reloadList: PropTypes.func.isRequired
+    namespace: PropTypes.string.isRequired,
+    bucketName: PropTypes.string.isRequired,
+    existingNames: PropTypes.arrayOf(PropTypes.string).isRequired
   }
 
   constructor(props) {
@@ -134,13 +134,13 @@ export const NotebookCreator = ajaxCaller(class NotebookCreator extends Componen
 
 export const NotebookDuplicator = ajaxCaller(class NotebookDuplicator extends Component {
   static propTypes = {
-    bucketName: PropTypes.string.isRequired,
     destroyOld: PropTypes.bool,
-    existingNames: PropTypes.arrayOf(PropTypes.string).isRequired,
+    printName: PropTypes.string.isRequired,
     namespace: PropTypes.string.isRequired,
+    bucketName: PropTypes.string.isRequired,
     onDismiss: PropTypes.func.isRequired,
     onSuccess: PropTypes.func.isRequired,
-    printName: PropTypes.string.isRequired
+    existingNames: PropTypes.arrayOf(PropTypes.string).isRequired
   }
 
   constructor(props) {
@@ -191,11 +191,11 @@ export const NotebookDuplicator = ajaxCaller(class NotebookDuplicator extends Co
 
 export const NotebookDeleter = ajaxCaller(class NotebookDeleter extends Component {
   static propTypes = {
-    bucketName: PropTypes.string.isRequired,
+    printName: PropTypes.string.isRequired,
     namespace: PropTypes.string.isRequired,
+    bucketName: PropTypes.string.isRequired,
     onDismiss: PropTypes.func.isRequired,
-    onSuccess: PropTypes.func.isRequired,
-    printName: PropTypes.string.isRequired
+    onSuccess: PropTypes.func.isRequired
   }
 
   render() {

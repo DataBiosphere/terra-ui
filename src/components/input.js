@@ -72,8 +72,8 @@ export const numberInput = props => {
 
 export class IntegerInput extends Component {
   static propTypes = {
-    max: PropTypes.number,
     min: PropTypes.number,
+    max: PropTypes.number,
     onChange: PropTypes.func.isRequired
   }
 
@@ -137,9 +137,9 @@ export const validatedInput = props => {
 
 class AutocompleteSuggestions extends Component {
   static propTypes = {
-    children: PropTypes.node,
+    containerRef: PropTypes.object.isRequired,
     containerProps: PropTypes.object,
-    containerRef: PropTypes.object.isRequired
+    children: PropTypes.node
   }
 
   constructor(props) {
@@ -185,9 +185,9 @@ class AutocompleteSuggestions extends Component {
  */
 export class AutocompleteTextInput extends Component {
   static propTypes = {
+    value: PropTypes.string,
     onChange: PropTypes.func.isRequired,
-    suggestions: PropTypes.arrayOf(PropTypes.string),
-    value: PropTypes.string
+    suggestions: PropTypes.arrayOf(PropTypes.string)
   }
 
   constructor(props) {
@@ -231,12 +231,16 @@ export class AutocompleteTextInput extends Component {
 
 export class AutocompleteSearch extends Component {
   static propTypes = {
+    value: PropTypes.string.isRequired,
     onChange: PropTypes.func.isRequired,
     onSuggestionSelected: PropTypes.func.isRequired,
-    renderSuggestion: PropTypes.func.isRequired,
     suggestions: PropTypes.array,
-    theme: PropTypes.object,
-    value: PropTypes.string.isRequired
+    renderSuggestion: PropTypes.func,
+    theme: PropTypes.object
+  }
+
+  static defaultProps = {
+    renderSuggestion: _.identity
   }
 
   constructor(props) {
@@ -247,7 +251,7 @@ export class AutocompleteSearch extends Component {
   }
 
   render() {
-    const { value, onChange, onSuggestionSelected, suggestions, renderSuggestion = _.identity, theme, ...props } = this.props
+    const { value, onChange, onSuggestionSelected, suggestions, renderSuggestion, theme, ...props } = this.props
     const { show } = this.state
     return h(Autosuggest, {
       id: this.id,

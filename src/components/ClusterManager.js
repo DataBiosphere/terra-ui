@@ -193,10 +193,10 @@ const getUpdateIntervalMs = status => {
 
 export default ajaxCaller(class ClusterManager extends PureComponent {
   static propTypes = {
-    canCompute: PropTypes.bool,
-    clusters: PropTypes.array,
-    name: PropTypes.string.isRequired,
     namespace: PropTypes.string.isRequired,
+    name: PropTypes.string.isRequired,
+    clusters: PropTypes.array,
+    canCompute: PropTypes.bool,
     refreshClusters: PropTypes.func.isRequired
   }
 

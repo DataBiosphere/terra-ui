@@ -9,13 +9,13 @@ import { Component } from 'src/libs/wrapped-components'
 
 export default class Collapse extends Component {
   static propTypes = {
-    animate: PropTypes.bool,
-    buttonStyle: PropTypes.object,
-    children: PropTypes.node.isRequired,
+    title: PropTypes.node.isRequired,
     defaultHidden: PropTypes.bool,
-    expandTitle: PropTypes.bool,
     showIcon: PropTypes.bool,
-    title: PropTypes.node.isRequired
+    animate: PropTypes.bool,
+    expandTitle: PropTypes.bool,
+    buttonStyle: PropTypes.object,
+    children: PropTypes.node
   }
 
   static defaultProps = {

@@ -24,9 +24,9 @@ const styles = {
 
 class Tooltip extends Component {
   static propTypes = {
-    children: PropTypes.node,
     side: PropTypes.string,
-    target: PropTypes.string
+    target: PropTypes.string,
+    children: PropTypes.node
   }
 
   static defaultProps = {
@@ -129,9 +129,9 @@ class Tooltip extends Component {
 
 export default class TooltipTrigger extends Component {
   static propTypes = {
-    children: PropTypes.node,
     content: PropTypes.node, // No tooltip if falsy
-    side: PropTypes.string
+    side: PropTypes.string,
+    children: PropTypes.node
   }
 
   constructor(props) {

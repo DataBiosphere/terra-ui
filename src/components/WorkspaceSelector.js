@@ -9,10 +9,10 @@ import { Component } from 'src/libs/wrapped-components'
 
 export default ajaxCaller(class WorkspaceSelector extends Component {
   static propTypes = {
-    authorizationDomain: PropTypes.object,
-    filter: PropTypes.string,
+    selectedWorkspace: PropTypes.object,
     onWorkspaceSelected: PropTypes.func.isRequired,
-    selectedWorkspace: PropTypes.object
+    authorizationDomain: PropTypes.object,
+    filter: PropTypes.string
   }
 
   render() {

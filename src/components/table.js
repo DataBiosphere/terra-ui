@@ -30,7 +30,7 @@ const paginatorButton = (props, label) => button(_.merge({
  * @param {function(number)} props.setPageNumber
  * @param {function(number)} [props.setItemsPerPage]
  * @param {number} props.itemsPerPage
- * @param {number[]} props.itemsPerPageOptions
+ * @param {number[]} [props.itemsPerPageOptions=[10,25,50,100]]
  */
 export const paginator = function(props) {
   const {
@@ -160,10 +160,14 @@ const styles = {
  */
 export class FlexTable extends Component {
   static propTypes = {
+    width: PropTypes.number.isRequired,
+    height: PropTypes.number.isRequired,
+    initialY: PropTypes.number,
+    rowCount: PropTypes.number.isRequired,
+    rowStyle: PropTypes.object,
     columns: PropTypes.arrayOf(PropTypes.shape({
-      cellRenderer: PropTypes.func.isRequired,
       headerRenderer: PropTypes.func.isRequired,
-      rowStyle: PropTypes.object,
+      cellRenderer: PropTypes.func.isRequired,
       size: PropTypes.shape({
         basis: PropTypes.number, // flex-basis in px, default 0
         grow: PropTypes.number, // flex-grow, default 1
@@ -172,12 +176,12 @@ export class FlexTable extends Component {
         shrink: PropTypes.number // flex-shrink, default 1
       })
     })),
-    height: PropTypes.number.isRequired,
     hoverHighlight: PropTypes.bool,
-    initialY: PropTypes.number,
-    onScroll: PropTypes.func,
-    rowCount: PropTypes.number.isRequired,
-    width: PropTypes.number.isRequired
+    onScroll: PropTypes.func
+  }
+
+  static defaultProps = {
+    initialY: 0
   }
 
   constructor(props) {
@@ -187,7 +191,7 @@ export class FlexTable extends Component {
   }
 
   componentDidMount() {
-    const { initialY: scrollTop = 0 } = this.props
+    const { initialY: scrollTop } = this.props
     this.body.current.scrollToPosition({ scrollTop })
   }
 
@@ -250,14 +254,19 @@ export class FlexTable extends Component {
  */
 export class GridTable extends Component {
   static propTypes = {
-    cellStyle: PropTypes.object,
-    columns: PropTypes.arrayOf(PropTypes.shape({ width: PropTypes.number.isRequired })),
+    width: PropTypes.number.isRequired,
     height: PropTypes.number.isRequired,
     initialX: PropTypes.number,
     initialY: PropTypes.number,
-    onScroll: PropTypes.func,
     rowCount: PropTypes.number.isRequired,
-    width: PropTypes.number.isRequired
+    cellStyle: PropTypes.object,
+    columns: PropTypes.arrayOf(PropTypes.shape({ width: PropTypes.number.isRequired })),
+    onScroll: PropTypes.func
+  }
+
+  static defaultProps = {
+    initialX: 0,
+    initialY: 0
   }
 
   constructor(props) {
@@ -271,7 +280,7 @@ export class GridTable extends Component {
   componentDidMount() {
     this.body.current.measureAllCells()
 
-    const { initialX: scrollLeft = 0, initialY: scrollTop = 0 } = this.props
+    const { initialX: scrollLeft, initialY: scrollTop } = this.props
 
     this.scrollSync.current._onScroll({ scrollLeft }) //BEWARE: utilizing private method from scrollSync that is not intended to be used
 

@@ -230,10 +230,10 @@ export const renderDataCell = (data, namespace) => {
 
 export const ReferenceDataImporter = ajaxCaller(class ReferenceDataImporter extends Component {
   static propTypes = {
-    name: PropTypes.string.isRequired,
-    namespace: PropTypes.string.isRequired,
     onDismiss: PropTypes.func.isRequired,
-    onSuccess: PropTypes.func.isRequired
+    onSuccess: PropTypes.func.isRequired,
+    namespace: PropTypes.string.isRequired,
+    name: PropTypes.string.isRequired
   }
 
   render() {
@@ -274,10 +274,10 @@ export const ReferenceDataImporter = ajaxCaller(class ReferenceDataImporter exte
 
 export const ReferenceDataDeleter = ajaxCaller(class ReferenceDataDeleter extends Component {
   static propTypes = {
-    name: PropTypes.string.isRequired,
-    namespace: PropTypes.string.isRequired,
     onDismiss: PropTypes.func.isRequired,
     onSuccess: PropTypes.func.isRequired,
+    namespace: PropTypes.string.isRequired,
+    name: PropTypes.string.isRequired,
     referenceDataType: PropTypes.string.isRequired
   }
 
