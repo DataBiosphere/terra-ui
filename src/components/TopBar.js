@@ -38,13 +38,14 @@ const styles = {
     profileItem: active => ({
       ...styles.nav.profile(active),
       borderTop: `1px solid ${colors.darkBlue[0]}`,
-      padding: '0 2rem', height: 40,
-      fontSize: 'unset'
+      padding: '0 3rem', height: 40,
+      fontSize: 'unset',
+      fontWeight: 500
     }),
     item: {
       display: 'flex', alignItems: 'center', flex: 'none',
-      height: 70, padding: '0 2rem',
-      fontWeight: 500,
+      height: 70, padding: '0 3rem',
+      fontWeight: 600,
       borderBottom: `1px solid ${colors.darkBlue[2]}`, color: 'white'
     },
     icon: {
@@ -180,9 +181,15 @@ export default class TopBar extends Component {
             div({ style: styles.nav.icon }, [
               icon('workspace', { className: 'is-solid', size: 24 })
             ]),
-            'Workspaces'
+            'See All Workspaces'
           ]),
-          div({ style: { ..._.omit('borderBottom', styles.nav.item), marginTop: 'auto' } }, [
+          div({
+            style: {
+              ..._.omit('borderBottom', styles.nav.item), marginTop: 'auto',
+              color: colors.darkBlue[2],
+              fontSize: 10, marginBottom: '5rem'
+            }
+          }, [
             'Built on: ',
             new Date(SATURN_BUILD_TIMESTAMP).toLocaleString()
           ])
