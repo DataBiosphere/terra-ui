@@ -7,7 +7,7 @@ import ErrorView from 'src/components/ErrorView'
 import { icon } from 'src/components/icons'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
 import PopupTrigger from 'src/components/PopupTrigger'
-import { TopBar } from 'src/components/TopBar'
+import TopBar from 'src/components/TopBar'
 import { ajaxCaller } from 'src/libs/ajax'
 import { getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
@@ -147,7 +147,7 @@ class WorkspaceContainer extends Component {
         ]),
         h(ClusterManager, {
           namespace, name, clusters, refreshClusters,
-          canCompute: (workspace && workspace.canCompute) || (clusters && clusters.length)
+          canCompute: (workspace && workspace.canCompute) || (clusters && !!clusters.length)
         })
       ]),
       showTabBar && h(WorkspaceTabs, {

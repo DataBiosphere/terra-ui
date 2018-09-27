@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types'
 import { Fragment } from 'react'
 import { div, h, iframe, pre } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
@@ -39,8 +40,18 @@ const jsonErrorView = ({ statusCode, source, causes, stackTrace, message, except
 
 
 export default class ErrorView extends Component {
+  static propTypes = {
+    collapses: PropTypes.bool,
+    containerStyle: PropTypes.object,
+    error: PropTypes.any.isRequired
+  }
+
+  static defaultProps = {
+    collapses: true
+  }
+
   render() {
-    const { collapses=true, containerStyle, error } = this.props
+    const { collapses, containerStyle, error } = this.props
 
     const content = Utils.cond(
       [this.errorIsHTML(), () => this.renderHTMLError()],

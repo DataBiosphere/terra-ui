@@ -6,7 +6,7 @@ import { buttonPrimary, Clickable, linkButton, PageFadeBox, search, spinnerOverl
 import { icon } from 'src/components/icons'
 import { validatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
-import { TopBar } from 'src/components/TopBar'
+import TopBar from 'src/components/TopBar'
 import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'

@@ -45,6 +45,7 @@ export const findHandler = pathname => {
 /**
  * @param {object} handler
  * @param {string} pathname
+ * @param {string} search
  * @returns {object} parsed props
  */
 export const getHandlerProps = ({ keys, regex }, pathname, search) => {

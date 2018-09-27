@@ -1,4 +1,5 @@
 import _ from 'lodash/fp'
+import PropTypes from 'prop-types'
 import { Children, cloneElement, Component, createRef, Fragment } from 'react'
 import { createPortal } from 'react-dom'
 import { div, h, path, svg } from 'react-hyperscript-helpers'
@@ -33,6 +34,16 @@ const styles = {
 }
 
 class Tooltip extends Component {
+  static propTypes = {
+    side: PropTypes.string,
+    target: PropTypes.string,
+    children: PropTypes.node
+  }
+
+  static defaultProps = {
+    side: 'bottom'
+  }
+
   constructor(props) {
     super(props)
     this.state = {
@@ -42,10 +53,6 @@ class Tooltip extends Component {
     }
     this.element = createRef()
     this.container = document.createElement('div')
-  }
-
-  static defaultProps = {
-    side: 'bottom'
   }
 
   componentDidMount() {
@@ -137,11 +144,13 @@ class Tooltip extends Component {
   }
 }
 
-/**
- * @param {object} [props.content] - content of tooltip (no tooltip shown if falsy)
- * @param {string} [props.side='bottom'] - preferred side
- */
 export default class TooltipTrigger extends Component {
+  static propTypes = {
+    content: PropTypes.node, // No tooltip if falsy
+    side: PropTypes.string,
+    children: PropTypes.node
+  }
+
   constructor(props) {
     super(props)
     this.state = { open: false }
