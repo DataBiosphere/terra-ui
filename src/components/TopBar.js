@@ -16,7 +16,8 @@ const styles = {
     flex: 'none', height: 80,
     backgroundColor: 'white', paddingLeft: '1rem',
     display: 'flex', alignItems: 'center',
-    borderBottom: `2px solid ${colors.blue[0]}`
+    borderBottom: `2px solid ${colors.blue[0]}`,
+    boxShadow: Style.standardShadow
   },
   nav: {
     background: {
