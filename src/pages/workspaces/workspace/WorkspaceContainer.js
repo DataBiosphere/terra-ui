@@ -68,18 +68,17 @@ class WorkspaceTabs extends PureComponent {
           // some pages highlight a tab even when they're not on that url
           onClick: href === window.location.hash ? refresh : undefined,
           href
-        }, tabName),
-        navSeparator
+        }, tabName)
       ])
     }
     const isOwner = workspace && Utils.isOwner(workspace.accessLevel)
     return contextBar({ style: styles.tabContainer }, [
-      navSeparator,
-      navTab({ tabName: 'dashboard', href: Nav.getLink('workspace', { namespace, name }) }),
-      navTab({ tabName: 'data', href: Nav.getLink('workspace-data', { namespace, name }) }),
-      navTab({ tabName: 'notebooks', href: Nav.getLink('workspace-notebooks', { namespace, name }) }),
-      navTab({ tabName: 'tools', href: Nav.getLink('workspace-tools', { namespace, name }) }),
-      navTab({ tabName: 'job history', href: Nav.getLink('workspace-job-history', { namespace, name }) }),
+      activeTab === 'dashboard' ? undefined : navSeparator,
+      navTab({ tabName: 'dashboard', href: Nav.getLink('workspace', { namespace, name }) }), activeTab === 'dashboard' || activeTab === 'data' ? undefined : navSeparator,
+      navTab({ tabName: 'data', href: Nav.getLink('workspace-data', { namespace, name }) }), activeTab === 'data' || activeTab === 'notebooks' ? undefined : navSeparator,
+      navTab({ tabName: 'notebooks', href: Nav.getLink('workspace-notebooks', { namespace, name }) }), activeTab === 'notebooks' || activeTab === 'tools' ? undefined : navSeparator,
+      navTab({ tabName: 'tools', href: Nav.getLink('workspace-tools', { namespace, name }) }), activeTab === 'tools' || activeTab === 'job history' ? undefined : navSeparator,
+      navTab({ tabName: 'job history', href: Nav.getLink('workspace-job-history', { namespace, name }) }), activeTab === 'job history' ? undefined : navSeparator,
       div({ style: { flexGrow: 1 } }),
       h(Clickable, {
         ...navIconProps,
