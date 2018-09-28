@@ -119,7 +119,7 @@ const WorkspaceCard = pure(({ listView, onClone, onDelete, onShare, workspace: {
     href: Nav.getLink('workspace', { namespace, name }),
     style: styles.longCard
   }, [
-    div({ style: { display: 'flex', alignItems: 'center', marginTop: '.75rem'} }, [
+    div({ style: { display: 'flex', alignItems: 'center', marginTop: '.75rem' } }, [
       div({ style: { ...styles.longTitle, marginLeft: '2rem' } }, [name]),
       h(TooltipTrigger, { content: Utils.makeCompleteDate(lastModified) }, [
         div({ style: { flex: 'none' } }, [lastChanged])
@@ -127,7 +127,7 @@ const WorkspaceCard = pure(({ listView, onClone, onDelete, onShare, workspace: {
     ]),
     workspaceMenu,
     div({ style: { display: 'flex', alignItems: 'center', marginBottom: '.75rem' } }, [
-      div({ style: {...styles.longDescription, marginLeft: '2rem'} }, [descText]),
+      div({ style: { ...styles.longDescription, marginLeft: '2rem' } }, [descText]),
       div({ style: { flex: 'none' } }, [badge])
     ])
   ]) : a({
