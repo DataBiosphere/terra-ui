@@ -18,10 +18,10 @@ import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer
 
 const styles = {
   leftBox: {
-    flex: 1, padding: '2rem'
+    flex: 1, padding: '2rem', backgroundColor: colors.gray[4]
   },
   rightBox: {
-    flex: 'none', width: 350, backgroundColor: 'white',
+    flex: 'none', width: 350, backgroundColor: colors.gray[5],
     padding: '2rem 1rem 1rem'
   },
   header: {
@@ -29,7 +29,7 @@ const styles = {
     marginBottom: '1rem'
   },
   infoTile: {
-    backgroundColor: colors.gray[5], color: 'black',
+    backgroundColor: colors.gray[4], color: 'black',
     borderRadius: 5, width: 90, padding: 7, margin: 4
   },
   tinyCaps: {
