@@ -155,13 +155,10 @@ export default ajaxCaller(class NewWorkspaceModal extends Component {
       Forms.formLabel('Authorization domain', h(InfoBox, [
         'Note: An authorization domain can only be set when creating a workspace. ',
         'Once set, it cannot be changed. ',
+        'Any cloned workspace will automatically inherit the authorization domain(s) from the original workspace and cannot be removed. ',
         link({ href: authDoc, target: '_blank' }, ['Read more about authorization domains'])
       ])),
       !!existingGroups.length && div({ style: styles.groupNotice }, [
-        div({ style: { marginBottom: '0.2rem', color: colors.gray[2] } }, [
-          'The cloned workspace will automatically inherit the authorization domain from this workspace. ',
-          'You may add groups to the authorization domain, but you may not remove existing ones.'
-        ]),
         div({ style: { marginBottom: '0.2rem' } }, ['Inherited groups:']),
         ...existingGroups.join(', ')
       ]),
