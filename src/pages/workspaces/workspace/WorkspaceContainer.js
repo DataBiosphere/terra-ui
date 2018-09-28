@@ -73,6 +73,9 @@ class WorkspaceTabs extends PureComponent {
       ])
     }
     const isOwner = workspace && Utils.isOwner(workspace.accessLevel)
+    const iconHelp = (iconName, iconLabel) => {
+      return h(Fragment, [icon(iconName, { size: 15, style: { marginRight: '.5rem' } }), iconLabel])
+    }
     return contextBar({ style: styles.tabContainer }, [
       navSeparator,
       navTab({ tabName: 'dashboard', href: Nav.getLink('workspace', { namespace, name }) }),
@@ -81,31 +84,27 @@ class WorkspaceTabs extends PureComponent {
       navTab({ tabName: 'tools', href: Nav.getLink('workspace-tools', { namespace, name }) }),
       navTab({ tabName: 'job history', href: Nav.getLink('workspace-job-history', { namespace, name }) }),
       div({ style: { flexGrow: 1 } }),
-      h(Clickable, {
-        ...navIconProps,
-        tooltip: 'Clone workspace',
-        onClick: onClone
-      }, [icon('copy', { size: 22 })]),
       h(PopupTrigger, {
         closeOnClick: true,
         content: h(Fragment, [
+          h(MenuButton, { onClick: onClone }, [iconHelp('copy', 'Clone')]),
           h(MenuButton, {
             disabled: !isOwner,
             tooltip: !isOwner && 'You must be an owner of this workspace or the underlying billing project',
             tooltipSide: 'left',
             onClick: () => onShare()
-          }, ['Share']),
-          h(MenuButton, { disabled: true }, ['Publish', comingSoon]),
+          }, [iconHelp('share', 'Share')]),
+          h(MenuButton, { disabled: true }, [iconHelp('export', 'Publish'), comingSoon]),
           h(MenuButton, {
             disabled: !isOwner,
             tooltip: !isOwner && 'You must be an owner of this workspace or the underlying billing project',
             tooltipSide: 'left',
             onClick: () => onDelete()
-          }, ['Delete'])
+          }, [iconHelp('trash', 'Delete')])
         ]),
         position: 'bottom'
       }, [
-        h(Clickable, { ...navIconProps }, [icon('ellipsis-vertical', { size: 22 })])
+        h(Clickable, { ...navIconProps }, [icon('cardMenuIcon', { size: 27 })])
       ])
     ])
   }
