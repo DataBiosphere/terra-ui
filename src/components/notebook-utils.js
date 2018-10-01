@@ -124,7 +124,7 @@ export const NotebookCreator = ajaxCaller(class NotebookCreator extends Componen
         placeholder: 'Select a language',
         getOptionLabel: ({ value }) => _.startCase(value),
         value: notebookKernel,
-        onChange: notebookKernel => this.setState({ notebookKernel }),
+        onChange: ({ value: notebookKernel }) => this.setState({ notebookKernel }),
         options: ['python2', 'python3', 'r']
       }),
       creating && spinnerOverlay
