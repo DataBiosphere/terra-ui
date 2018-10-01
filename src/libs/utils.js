@@ -103,9 +103,7 @@ export const canRead = hasAccessLevel('READER')
 export const isOwner = hasAccessLevel('OWNER')
 
 export const log = function(...args) {
-  console.groupCollapsed.apply(null, args)
-  console.trace('Stack trace:')
-  console.groupEnd()
+  console.log.apply(null, args)
   return _.last(args)
 }
 
