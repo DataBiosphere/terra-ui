@@ -17,7 +17,7 @@ const styles = {
     backgroundColor: 'white', paddingLeft: '1rem',
     display: 'flex', alignItems: 'center',
     borderBottom: `2px solid ${colors.blue[0]}`,
-    boxShadow: Style.standardShadow
+    boxShadow: Style.standardShadow, zIndex: 0
   },
   nav: {
     background: {
