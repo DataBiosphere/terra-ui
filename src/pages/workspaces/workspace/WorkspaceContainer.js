@@ -164,7 +164,8 @@ class WorkspaceContainer extends Component {
       }),
       cloningWorkspace && h(NewWorkspaceModal, {
         cloneWorkspace: workspace,
-        onDismiss: () => this.setState({ cloningWorkspace: false })
+        onDismiss: () => this.setState({ cloningWorkspace: false }),
+        onSuccess: ({ namespace, name }) => Nav.goToPath('workspace', { namespace, name })
       }),
       sharingWorkspace && h(ShareWorkspaceModal, {
         namespace, name,

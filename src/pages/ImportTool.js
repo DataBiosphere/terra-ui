@@ -1,10 +1,8 @@
 import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
-import Collapse from 'src/components/Collapse'
-import { buttonPrimary, pageColumn } from 'src/components/common'
-import ErrorView from 'src/components/ErrorView'
-import { centeredSpinner, icon, spinner } from 'src/components/icons'
+import { backgroundLogo, spinnerOverlay } from 'src/components/common'
+import { icon } from 'src/components/icons'
 import TopBar from 'src/components/TopBar'
 import WDLViewer from 'src/components/WDLViewer'
 import WorkspaceSelector from 'src/components/WorkspaceSelector'
@@ -17,140 +15,87 @@ import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 
 
-const writableWorkspacesOnly = workspaces => _.filter(ws => Utils.canWrite(ws.accessLevel), workspaces)
-
-const mutabilityWarning = 'Please note: Dockstore cannot guarantee that the WDL and Docker image' +
-  ' referenced by this Workflow will not change. We advise you to review the WDL before future' +
-  ' runs.'
-const wdlLoadError = 'Error loading WDL. Please verify the workflow path and version and ensure' +
-  ' this workflow supports WDL.'
+const styles = {
+  container: {
+    display: 'flex', alignItems: 'flex-start', flex: 'auto',
+    position: 'relative', padding: '2rem', marginBottom: '-2rem'
+  },
+  title: {
+    fontSize: 24, fontWeight: 600, color: colors.darkBlue[0], marginBottom: '2rem'
+  },
+  card: {
+    borderRadius: 5, backgroundColor: 'rgba(255,255,255,0.85)', padding: '2rem',
+    flex: 1, minWidth: 0, boxShadow: Style.standardShadow
+  }
+}
 
 const DockstoreImporter = ajaxCaller(class DockstoreImporter extends Component {
-  render() {
-    const { wdl, loadError } = this.state
-
-    return Utils.cond(
-      [wdl, () => this.renderImport()],
-      [loadError, () => this.renderError()],
-      centeredSpinner
-    )
-  }
-
   componentDidMount() {
-    const { ajax: { Workspaces } } = this.props
-
     this.loadWdl()
-    Workspaces.list().then(
-      workspaces => this.setState({ workspaces: writableWorkspacesOnly(workspaces) }),
-      error => reportError('Error loading workspaces', error)
-    )
   }
 
-  componentWillReceiveProps(nextProps) {
-    if (nextProps.path !== this.props.path || nextProps.version !== this.props.version) {
-      this.setState({ wdl: undefined, loadError: undefined }, () => this.loadWdl())
+  async loadWdl() {
+    try {
+      const { path, version, ajax: { Dockstore } } = this.props
+      const { descriptor } = await Dockstore.getWdl(path, version)
+      this.setState({ wdl: descriptor })
+    } catch (error) {
+      reportError('Error loading WDL', error)
     }
   }
 
-  loadWdl() {
-    const { path, version, ajax: { Dockstore } } = this.props
-    Dockstore.getWdl(path, version).then(
-      ({ descriptor }) => this.setState({ wdl: descriptor }),
-      failure => this.setState({ loadError: failure })
-    )
-  }
-
-  renderImport() {
-    const { selectedWorkspace, importError, isImporting } = this.state
-    return div({ style: { display: 'flex' } }, [
-      pageColumn('Importing', 5, this.renderWdlArea()),
-      pageColumn('Destination Workspace', 3,
-        div({}, [
-          h(WorkspaceSelector, {
-            selectedWorkspace,
-            onWorkspaceSelected: selectedWorkspace => this.setState({ selectedWorkspace })
-          }),
-          buttonPrimary({
-            style: { marginTop: '1rem' },
-            disabled: !selectedWorkspace || isImporting,
-            onClick: () => this.import_()
-          }, ['Import']),
-          isImporting && spinner({ style: { marginLeft: '0.5rem' } }),
-          importError && div({
-            style: { marginTop: '1rem', color: colors.red[0] }
-          }, [
-            icon('error'),
-            JSON.parse(importError).message
-          ])
-        ])
-      )
-    ])
-  }
-
-  renderWdlArea() {
+  render() {
     const { path, version } = this.props
-    const { wdl } = this.state
-
-    return div(
-      {
-        style: {
-          borderRadius: 5, backgroundColor: 'white', padding: '1rem',
-          boxShadow: `0 0 2px 0 rgba(0,0,0,0.12), ${Style.standardShadow}`
-        }
-      },
-      [
-        div({ style: { fontSize: 16 } }, `From Dockstore - ${path}`),
-        div({}, `V. ${version}`),
+    const { isImporting, wdl } = this.state
+    return div({ style: styles.container }, [
+      div({ style: styles.card }, [
+        div({ style: styles.title }, ['Importing from Dockstore']),
+        div({ style: { fontSize: 16 } }, [path]),
+        div([`V. ${version}`]),
         div({
           style: {
             display: 'flex', alignItems: 'center',
             margin: '1rem 0', color: colors.orange[0]
           }
-        },
-        [
-          icon('warning-standard', { className: 'is-solid', size: 32, style: { marginRight: '0.5rem', flex: '0 0 auto' } }),
-          mutabilityWarning
+        }, [
+          icon('warning-standard', { className: 'is-solid', size: 32, style: { marginRight: '0.5rem', flex: 'none' } }),
+          'Please note: Dockstore cannot guarantee that the WDL and Docker image referenced ',
+          'by this Workflow will not change. We advise you to review the WDL before future runs.'
         ]),
-        h(Collapse, { title: 'REVIEW WDL' },
-          [h(WDLViewer, { wdl, style: { height: 'calc(100vh - 400px)', minHeight: 300 } })]
-        )
-      ]
-    )
-  }
-
-  async import_() {
-    this.setState({ isImporting: true })
-
-    const { selectedWorkspace: { namespace, name } } = this.state
-    const { path, version, ajax: { Workspaces } } = this.props
-    const toolName = _.last(path.split('/'))
-
-    const rawlsWorkspace = Workspaces.workspace(namespace, name)
-
-    const entityMetadata = await rawlsWorkspace.entityMetadata()
-
-    rawlsWorkspace.importMethodConfigFromDocker({
-      namespace, name: toolName, rootEntityType: _.head(_.keys(entityMetadata)),
-      // the line of shame:
-      inputs: {}, outputs: {}, prerequisites: {}, methodConfigVersion: 1, deleted: false,
-      methodRepoMethod: {
-        sourceRepo: 'dockstore',
-        methodPath: path,
-        methodVersion: version
-      }
-    }).then(() => Nav.goToPath('workflow', {
-      namespace, name,
-      workflowNamespace: namespace, workflowName: toolName
-    }), importError => this.setState({ importError, isImporting: false }))
-  }
-
-  renderError() {
-    const { loadError } = this.state
-
-    return div({ style: { padding: '2rem' } }, [
-      div(wdlLoadError),
-      h(ErrorView, { error: loadError })
+        wdl && h(WDLViewer, { wdl, style: { height: 500 } })
+      ]),
+      div({ style: { ...styles.card, marginLeft: '2rem' } }, [
+        div({ style: styles.title }, ['Destination Workspace']),
+        h(WorkspaceSelector, { onImport: ws => this.import_(ws) }),
+        isImporting && spinnerOverlay
+      ])
     ])
+  }
+
+  async import_({ namespace, name }) {
+    try {
+      this.setState({ isImporting: true })
+
+      const { path, version, ajax: { Workspaces } } = this.props
+      const workflowName = _.last(path.split('/'))
+      const rawlsWorkspace = Workspaces.workspace(namespace, name)
+      const entityMetadata = await rawlsWorkspace.entityMetadata()
+      await rawlsWorkspace.importMethodConfigFromDocker({
+        namespace, name: workflowName, rootEntityType: _.head(_.keys(entityMetadata)),
+        // the line of shame:
+        inputs: {}, outputs: {}, prerequisites: {}, methodConfigVersion: 1, deleted: false,
+        methodRepoMethod: {
+          sourceRepo: 'dockstore',
+          methodPath: path,
+          methodVersion: version
+        }
+      })
+      Nav.goToPath('workflow', { namespace, name, workflowNamespace: namespace, workflowName })
+    } catch (error) {
+      reportError('Error importing tool', error)
+    } finally {
+      this.setState({ isImporting: false })
+    }
   }
 })
 
@@ -160,6 +105,7 @@ class Importer extends Component {
     const { source } = this.props
 
     return h(Fragment, [
+      backgroundLogo,
       h(TopBar, { title: 'Import Tool' }),
       Utils.cond(
         [source === 'dockstore', () => this.renderDockstore()],

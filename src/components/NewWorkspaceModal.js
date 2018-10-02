@@ -11,7 +11,6 @@ import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import * as Forms from 'src/libs/forms'
-import * as Nav from 'src/libs/nav'
 import * as Utils from 'src/libs/utils'
 import validate from 'validate.js'
 
@@ -77,32 +76,37 @@ export default ajaxCaller(class NewWorkspaceModal extends Component {
   }
 
   async create() {
-    const { cloneWorkspace, ajax: { Workspaces } } = this.props
+    const { onSuccess, cloneWorkspace, ajax: { Workspaces } } = this.props
     const { namespace, name, description, groups } = this.state
     try {
       this.setState({ createError: undefined, busy: true })
       const body = {
         namespace,
         name,
-        authorizationDomain: [..._.map(v => ({ membersGroupName: v }), groups), ...(cloneWorkspace ? cloneWorkspace.workspace.authorizationDomain : [])],
+        authorizationDomain: _.map(v => ({ membersGroupName: v }), [...this.getRequiredGroups(), ...groups]),
         attributes: { description }
       }
-      await (cloneWorkspace ?
+      const workspace = await (cloneWorkspace ?
         Workspaces.workspace(cloneWorkspace.workspace.namespace, cloneWorkspace.workspace.name).clone(body) :
         Workspaces.create(body))
-      Nav.goToPath('workspace', { namespace, name })
+      onSuccess(workspace)
     } catch (error) {
       this.setState({ createError: JSON.parse(error).message, busy: false })
     }
   }
 
+  getRequiredGroups() {
+    const { cloneWorkspace, requiredAuthDomain } = this.props
+    return _.uniq([
+      ...(cloneWorkspace ? _.map('membersGroupName', cloneWorkspace.workspace.authorizationDomain) : []),
+      ...(requiredAuthDomain ? [requiredAuthDomain] : [])
+    ])
+  }
+
   render() {
     const { onDismiss, cloneWorkspace } = this.props
     const { namespace, name, billingProjects, allGroups, groups, description, nameModified, busy, createError } = this.state
-    const existingGroups = _.map(
-      'membersGroupName',
-      cloneWorkspace && cloneWorkspace.workspace.authorizationDomain
-    )
+    const existingGroups = this.getRequiredGroups()
     const errors = validate({ namespace, name }, constraints, {
       prettify: v => ({ namespace: 'Billing project', name: 'Name' }[v] || validate.prettify(v))
     })
@@ -159,7 +163,7 @@ export default ajaxCaller(class NewWorkspaceModal extends Component {
       ])),
       !!existingGroups.length && div({ style: styles.groupNotice }, [
         div({ style: { marginBottom: '0.2rem', color: colors.gray[2] } }, [
-          'The cloned workspace will automatically inherit the authorization domain from this workspace. ',
+          'The new workspace will automatically inherit the following authorization domain. ',
           'You may add groups to the authorization domain, but you may not remove existing ones.'
         ]),
         div({ style: { marginBottom: '0.2rem' } }, ['Inherited groups:']),
