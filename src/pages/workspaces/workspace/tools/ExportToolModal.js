@@ -43,7 +43,7 @@ const ExportToolModal = ajaxCaller(class ExportToolModal extends Component {
       requiredFormLabel('Name'),
       textInput({
         value: selectedName,
-        onChange: newName => this.setState({ selectedName: newName })
+        onChange: e => this.setState({ selectedName: e.target.value })
       }),
       error && div({ style: { marginTop: '0.5rem', color: colors.red[0] } }, [error])
     ])

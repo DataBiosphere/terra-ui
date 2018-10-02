@@ -321,6 +321,10 @@ const Workspaces = signal => ({
               { signal, method: 'POST' }
             ]))
             return res.json()
+          },
+
+          delete: () => {
+            return fetchRawls(path, _.merge(authOpts(), { signal, method: 'DELETE' }))
           }
         }
       },

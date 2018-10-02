@@ -21,6 +21,7 @@ import * as StateHistory from 'src/libs/state-history'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 import * as JobHistory from 'src/pages/workspaces/workspace/JobHistory'
+import DeleteToolModal from 'src/pages/workspaces/workspace/tools/DeleteToolModal'
 import ExportToolModal from 'src/pages/workspaces/workspace/tools/ExportToolModal'
 import LaunchAnalysisModal from 'src/pages/workspaces/workspace/tools/LaunchAnalysisModal'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
@@ -217,7 +218,7 @@ class WorkflowViewContent extends Component {
 
   renderSummary() {
     const { workspace: { canCompute, workspace } } = this.props
-    const { modifiedConfig, savedConfig, entityMetadata, saving, saved, copying, activeTab, errors } = this.state
+    const { modifiedConfig, savedConfig, entityMetadata, saving, saved, copying, deleting, activeTab, errors } = this.state
     const { name, methodRepoMethod: { methodPath, methodVersion }, rootEntityType } = modifiedConfig
     const modified = !_.isEqual(modifiedConfig, savedConfig)
 
@@ -235,7 +236,10 @@ class WorkflowViewContent extends Component {
                 content: h(Fragment, [
                   h(MenuButton, {
                     onClick: () => this.setState({ copying: true })
-                  }, ['Copy to Another Workspace'])
+                  }, ['Copy to Another Workspace']),
+                  h(MenuButton, {
+                    onClick: () => this.setState({ deleting: true })
+                  }, ['Delete'])
                 ])
               }, [
                 linkButton({}, [icon('ellipsis-vertical', { size: 22 })])
@@ -295,6 +299,11 @@ class WorkflowViewContent extends Component {
       copying && h(ExportToolModal, {
         thisWorkspace: workspace, methodConfig: savedConfig,
         onDismiss: () => this.setState({ copying: false })
+      }),
+      deleting && h(DeleteToolModal, {
+        workspace, methodConfig: savedConfig,
+        onDismiss: () => this.setState({ deleting: false }),
+        onSuccess: () => Nav.goToPath('workspace-tools', _.pick(['namespace', 'name'], workspace))
       })
     ])
   }
