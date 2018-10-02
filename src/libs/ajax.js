@@ -296,6 +296,15 @@ const Workspaces = signal => ({
             return res.json()
           },
 
+          copyTo: async ({ destConfigNamespace, destConfigName, workspaceName }) => {
+            const payload = {
+              source: { namespace: configNamespace, name: configName, workspaceName: { namespace, name } },
+              destination: { namespace: destConfigNamespace, name: destConfigName, workspaceName }
+            }
+            const res = await fetchRawls('methodconfigs/copy', _.mergeAll([authOpts(), jsonBody(payload), { signal, method: 'POST' }]))
+            return res.json()
+          },
+
           validate: async () => {
             const res = await fetchRawls(`${path}/validate`, _.merge(authOpts(), { signal }))
             return res.json()

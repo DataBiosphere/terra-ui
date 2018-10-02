@@ -5,9 +5,10 @@ import Dropzone from 'react-dropzone'
 import { div, h, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { buttonPrimary, buttonSecondary, linkButton, Select, spinnerOverlay } from 'src/components/common'
+import { buttonPrimary, buttonSecondary, linkButton, MenuButton, Select, spinnerOverlay } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { AutocompleteTextInput } from 'src/components/input'
+import PopupTrigger from 'src/components/PopupTrigger'
 import TabBar from 'src/components/TabBar'
 import { FlexTable, HeaderCell, TextCell } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
@@ -20,6 +21,7 @@ import * as StateHistory from 'src/libs/state-history'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 import * as JobHistory from 'src/pages/workspaces/workspace/JobHistory'
+import ExportToolModal from 'src/pages/workspaces/workspace/tools/ExportToolModal'
 import LaunchAnalysisModal from 'src/pages/workspaces/workspace/tools/LaunchAnalysisModal'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
@@ -125,6 +127,7 @@ const WorkflowIOTable = ({ which, inputsOutputs, config, errors, onChange, sugge
   ])
 }
 
+
 const WorkflowView = ajaxCaller(wrapWorkspace({
   breadcrumbs: props => breadcrumbs.commonPaths.workspaceTab(props, 'tools'),
   title: ({ workflowName }) => workflowName, activeTab: 'tools'
@@ -213,8 +216,8 @@ class WorkflowViewContent extends Component {
   }
 
   renderSummary() {
-    const { workspace: { canCompute } } = this.props
-    const { modifiedConfig, savedConfig, entityMetadata, saving, saved, activeTab, errors } = this.state
+    const { workspace: { canCompute, workspace } } = this.props
+    const { modifiedConfig, savedConfig, entityMetadata, saving, saved, copying, activeTab, errors } = this.state
     const { name, methodRepoMethod: { methodPath, methodVersion }, rootEntityType } = modifiedConfig
     const modified = !_.isEqual(modifiedConfig, savedConfig)
 
@@ -225,7 +228,21 @@ class WorkflowViewContent extends Component {
     return div({ style: { backgroundColor: colors.blue[5], position: 'relative' } }, [
       div({ style: { display: 'flex', padding: `1.5rem ${sideMargin} 0`, minHeight: 120 } }, [
         div({ style: { flex: '1', lineHeight: '1.5rem' } }, [
-          div({ style: { color: colors.darkBlue[0], fontSize: 24 } }, name),
+          div({ style: { display: 'flex' } }, [
+            span({ style: { marginLeft: '-2rem', width: '2rem' } }, [
+              h(PopupTrigger, {
+                closeOnClick: true,
+                content: h(Fragment, [
+                  h(MenuButton, {
+                    onClick: () => this.setState({ copying: true })
+                  }, ['Copy to Another Workspace'])
+                ])
+              }, [
+                linkButton({}, [icon('ellipsis-vertical', { size: 22 })])
+              ])
+            ]),
+            span({ style: { color: colors.darkBlue[0], fontSize: 24 } }, name)
+          ]),
           div(`V. ${methodVersion}`),
           methodPath && div(`Path: ${methodPath}`),
           div({ style: { textTransform: 'capitalize', display: 'flex', alignItems: 'baseline', marginTop: '0.5rem' } }, [
@@ -274,7 +291,11 @@ class WorkflowViewContent extends Component {
         saved && !saving && !modified && miniMessage('Saved!'),
         modified && buttonPrimary({ disabled: saving, onClick: () => this.save() }, 'Save'),
         modified && buttonSecondary({ style: { marginLeft: '1rem' }, disabled: saving, onClick: () => this.cancel() }, 'Cancel')
-      ])
+      ]),
+      copying && h(ExportToolModal, {
+        thisWorkspace: workspace, methodConfig: savedConfig,
+        onDismiss: () => this.setState({ copying: false })
+      })
     ])
   }
 
