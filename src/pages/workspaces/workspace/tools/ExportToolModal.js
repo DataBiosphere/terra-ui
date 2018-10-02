@@ -6,6 +6,7 @@ import WorkspaceSelector from 'src/components/WorkspaceSelector'
 import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { requiredFormLabel } from 'src/libs/forms'
+import * as Nav from 'src/libs/nav'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 
@@ -17,11 +18,18 @@ const ExportToolModal = ajaxCaller(class ExportToolModal extends Component {
     this.state = {
       selectedWorkspace: undefined,
       selectedName: props.methodConfig.name,
-      error: undefined
+      error: undefined,
+      exported: false
     }
   }
 
   render() {
+    const { exported } = this.state
+
+    return exported ? this.renderPostExport() : this.renderExportForm()
+  }
+
+  renderExportForm() {
     const { thisWorkspace, onDismiss } = this.props
     const { selectedWorkspace, selectedName, error } = this.state
 
@@ -49,6 +57,26 @@ const ExportToolModal = ajaxCaller(class ExportToolModal extends Component {
     ])
   }
 
+  renderPostExport() {
+    const { onDismiss } = this.props
+    const { selectedWorkspace, selectedName } = this.state
+
+    return h(Modal, {
+      title: 'Copy to Workspace',
+      onDismiss,
+      okButton: buttonPrimary({
+        onClick: () => Nav.goToPath('workflow', {
+          namespace: selectedWorkspace.namespace,
+          name: selectedWorkspace.name,
+          workflowNamespace: selectedWorkspace.namespace,
+          workflowName: selectedName
+        })
+      }, ['Go to exported tool'])
+    }, [
+      `Successfully exported ${selectedName} to ${selectedWorkspace.name}. Do you want to view the exported tool?`
+    ])
+  }
+
   async export() {
     const { thisWorkspace, methodConfig, ajax: { Workspaces } } = this.props
     const { selectedWorkspace, selectedName } = this.state
@@ -65,6 +93,7 @@ const ExportToolModal = ajaxCaller(class ExportToolModal extends Component {
             name: selectedWorkspace.name
           }
         })
+      this.setState({ exported: true })
     } catch (error) {
       this.setState({ error: (await error.json()).message })
     }
