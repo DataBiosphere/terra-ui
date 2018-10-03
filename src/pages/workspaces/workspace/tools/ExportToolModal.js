@@ -1,6 +1,6 @@
 import { div, h } from 'react-hyperscript-helpers'
 import { buttonPrimary } from 'src/components/common'
-import { textInput } from 'src/components/input'
+import { validatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import WorkspaceSelector from 'src/components/WorkspaceSelector'
 import { ajaxCaller } from 'src/libs/ajax'
@@ -9,6 +9,7 @@ import { requiredFormLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
+import validate from 'validate.js'
 
 
 const ExportToolModal = ajaxCaller(class ExportToolModal extends Component {
@@ -17,7 +18,7 @@ const ExportToolModal = ajaxCaller(class ExportToolModal extends Component {
 
     this.state = {
       selectedWorkspace: undefined,
-      selectedName: props.methodConfig.name,
+      toolName: props.methodConfig.name,
       error: undefined,
       exported: false
     }
@@ -31,13 +32,23 @@ const ExportToolModal = ajaxCaller(class ExportToolModal extends Component {
 
   renderExportForm() {
     const { thisWorkspace, onDismiss } = this.props
-    const { selectedWorkspace, selectedName, error } = this.state
+    const { selectedWorkspace, toolName, error } = this.state
+
+    const errors = validate({ toolName }, {
+      toolName: {
+        presence: { allowEmpty: false },
+        format: {
+          pattern: /^[A-Za-z0-9_\-.]*$/,
+          message: 'can only contain letters, numbers, underscores, dashes, and periods'
+        }
+      }
+    })
 
     return h(Modal, {
       title: 'Copy to Workspace',
       onDismiss,
       okButton: buttonPrimary({
-        disabled: !selectedWorkspace || !selectedName,
+        disabled: !selectedWorkspace || errors,
         onClick: () => this.export()
       }, ['Export'])
     }, [
@@ -50,9 +61,12 @@ const ExportToolModal = ajaxCaller(class ExportToolModal extends Component {
         onWorkspaceSelected: ws => this.setState({ selectedWorkspace: ws })
       }),
       requiredFormLabel('Name'),
-      textInput({
-        value: selectedName,
-        onChange: e => this.setState({ selectedName: e.target.value })
+      validatedInput({
+        error: Utils.summarizeErrors(errors),
+        inputProps: {
+          value: toolName,
+          onChange: e => this.setState({ toolName: e.target.value })
+        }
       }),
       error && div({ style: { marginTop: '0.5rem', color: colors.red[0] } }, [error])
     ])
@@ -60,7 +74,7 @@ const ExportToolModal = ajaxCaller(class ExportToolModal extends Component {
 
   renderPostExport() {
     const { onDismiss } = this.props
-    const { selectedWorkspace, selectedName } = this.state
+    const { selectedWorkspace, toolName } = this.state
 
     return h(Modal, {
       title: 'Copy to Workspace',
@@ -70,17 +84,17 @@ const ExportToolModal = ajaxCaller(class ExportToolModal extends Component {
           namespace: selectedWorkspace.namespace,
           name: selectedWorkspace.name,
           workflowNamespace: selectedWorkspace.namespace,
-          workflowName: selectedName
+          workflowName: toolName
         })
       }, ['Go to exported tool'])
     }, [
-      `Successfully exported ${selectedName} to ${selectedWorkspace.name}. Do you want to view the exported tool?`
+      `Successfully exported ${toolName} to ${selectedWorkspace.name}. Do you want to view the exported tool?`
     ])
   }
 
   async export() {
     const { thisWorkspace, methodConfig, ajax: { Workspaces } } = this.props
-    const { selectedWorkspace, selectedName } = this.state
+    const { selectedWorkspace, toolName } = this.state
 
     try {
       await Workspaces
@@ -88,7 +102,7 @@ const ExportToolModal = ajaxCaller(class ExportToolModal extends Component {
         .methodConfig(methodConfig.namespace, methodConfig.name)
         .copyTo({
           destConfigNamespace: selectedWorkspace.namespace,
-          destConfigName: selectedName,
+          destConfigName: toolName,
           workspaceName: {
             namespace: selectedWorkspace.namespace,
             name: selectedWorkspace.name
