@@ -87,20 +87,20 @@ class WorkspaceTabs extends PureComponent {
       h(PopupTrigger, {
         closeOnClick: true,
         content: h(Fragment, [
-          h(MenuButton, { onClick: onClone }, [h(Fragment, [menuIcon('copy'), 'Clone'])]),
+          h(MenuButton, { onClick: onClone }, [menuIcon('copy'), 'Clone']),
           h(MenuButton, {
             disabled: !isOwner,
             tooltip: !isOwner && 'You must be an owner of this workspace or the underlying billing project',
             tooltipSide: 'left',
             onClick: () => onShare()
-          }, [h(Fragment, [menuIcon('share'), 'Share'])]),
-          h(MenuButton, { disabled: true }, [h(Fragment, [menuIcon('export'), 'Publish']), comingSoon]),
+          }, [menuIcon('share'), 'Share']),
+          h(MenuButton, { disabled: true }, [menuIcon('export'), 'Publish', comingSoon]),
           h(MenuButton, {
             disabled: !isOwner,
             tooltip: !isOwner && 'You must be an owner of this workspace or the underlying billing project',
             tooltipSide: 'left',
             onClick: () => onDelete()
-          }, [h(Fragment, [menuIcon('trash'), 'Delete'])])
+          }, [menuIcon('trash'), 'Delete'])
         ]),
         position: 'bottom'
       }, [
