@@ -37,10 +37,11 @@ const ExportToolModal = ajaxCaller(class ExportToolModal extends Component {
       title: 'Copy to Workspace',
       onDismiss,
       okButton: buttonPrimary({
-        disabled: !selectedWorkspace,
+        disabled: !selectedWorkspace || !selectedName,
         onClick: () => this.export()
       }, ['Export'])
     }, [
+      requiredFormLabel('Destination'),
       h(WorkspaceSelector, {
         filter: ({ workspace: { workspaceId }, accessLevel }) => {
           return thisWorkspace.workspaceId !== workspaceId && Utils.canWrite(accessLevel)
