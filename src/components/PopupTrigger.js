@@ -32,27 +32,34 @@ export default class PopupTrigger extends Component {
     this.setState({ open: false })
   }
 
+  setOpen(v) {
+    const { onToggle } = this.props
+    this.setState({ open: v })
+    onToggle && onToggle(v)
+  }
+
   render() {
-    const { children, content, position, align, closeOnClick } = this.props
+    const { children, content, position, align, closeOnClick, open: forceOpen } = this.props
     const { open } = this.state
     const child = Children.only(children)
+    const shouldShow = forceOpen === undefined ? open : forceOpen
     return h(Fragment, [
       cloneElement(child, {
         id: this.id,
         className: `${child.props.className || ''} ${this.id}`,
         onClick: (...args) => {
           child.props.onClick && child.props.onClick(...args)
-          this.setState({ open: !open })
+          this.setOpen(!shouldShow)
         }
       }),
-      open && h(ToolTip, {
-        active: open, position, align,
+      shouldShow && h(ToolTip, {
+        active: true, position, align,
         parent: `#${this.id}`, group: 'popup-trigger',
         style: { style: styles.popup, arrowStyle: {} },
         tooltipTimeout: 0
       }, [
         h(PopupBody, {
-          handleClickOutside: () => this.setState({ open: false }),
+          handleClickOutside: () => this.setOpen(false),
           outsideClickIgnoreClass: this.id
         }, [div({ onClick: closeOnClick ? () => this.close() : undefined }, [content])])
       ])

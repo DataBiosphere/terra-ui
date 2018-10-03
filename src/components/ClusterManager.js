@@ -3,9 +3,9 @@ import { Fragment, PureComponent } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
 import { buttonPrimary, buttonSecondary, Clickable, LabeledCheckbox, Select } from 'src/components/common'
-import DropdownBox from 'src/components/DropdownBox'
 import { icon } from 'src/components/icons'
 import { IntegerInput, textInput } from 'src/components/input'
+import PopupTrigger from 'src/components/PopupTrigger'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { machineTypes, profiles, storagePrice } from 'src/data/clusters'
 import { ajaxCaller } from 'src/libs/ajax'
@@ -68,7 +68,17 @@ const styles = {
     marginLeft: '-1rem',
     marginRight: '-1rem',
     borderBottom: `1px solid ${colors.gray[3]}`
-  }
+  },
+  button: (open, disabled) => ({
+    width: '2rem',
+    height: '2rem',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    color: disabled ? colors.gray[2] : (open ? colors.blue[1] : colors.blue[0]),
+    borderRadius: '5px 5px 0 0',
+    cursor: disabled ? 'not-allowed' : 'pointer'
+  })
 }
 
 const machineTypesByName = _.keyBy('name', machineTypes)
@@ -320,7 +330,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
       currentCluster.status === 'Error' ||
       !machineConfigsEqual(this.getMachineConfig(), currentCluster.machineConfig) ||
       jupyterUserScriptUri
-    return div({ style: { padding: '1rem' } }, [
+    return div({ style: { padding: '1rem', width: 450 } }, [
       div({ style: { fontSize: 16, fontWeight: 500 } }, 'Runtime environment'),
       div({ style: styles.row }, [
         div({ style: { ...styles.col1, ...styles.label } }, 'Profile'),
@@ -436,7 +446,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
 
   renderDestroyForm() {
     const { busy } = this.state
-    return div({ style: { padding: '1rem' } }, [
+    return div({ style: { padding: '1rem', width: 300 } }, [
       div([
         'Your new runtime environment is ready to use.'
       ]),
@@ -455,7 +465,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
   }
 
   renderCreatingMessage() {
-    return div({ style: { padding: '1rem' } }, [
+    return div({ style: { padding: '1rem', width: 300 } }, [
       'Your environment is being created.'
     ])
   }
@@ -463,22 +473,28 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
   renderDropdown() {
     const { canCompute } = this.props
     const { open } = this.state
+    const disabled = !canCompute
     const activeClusters = this.getActiveClustersOldestFirst()
     const creating = _.some({ status: 'Creating' }, activeClusters)
     const multiple = !creating && activeClusters.length > 1
-    return h(DropdownBox, {
-      disabled: !canCompute,
-      tooltip: !canCompute && noCompute,
+    return h(PopupTrigger, {
+      position: 'bottom',
       open: open || multiple,
-      onToggle: v => this.toggleDropdown(v),
       width: creating || multiple ? 300 : 450,
-      outsideClickIgnoreClass: 'cluster-manager-opener'
-    }, [
-      Utils.cond(
+      onToggle: v => this.toggleDropdown(v),
+      content: Utils.cond(
         [creating, () => this.renderCreatingMessage()],
         [multiple, () => this.renderDestroyForm()],
         () => this.renderCreateForm()
       )
+    }, [
+      h(Clickable, {
+        style: styles.button(open, disabled),
+        tooltip: !canCompute && noCompute,
+        disabled
+      }, [
+        icon('caretDown', { size: 18 })
+      ])
     ])
   }
 
@@ -530,12 +546,8 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
         style: { marginRight: '2rem' }
       }, [icon('code', { size: 18 })]),
       renderIcon(),
-      h(Clickable, {
-        disabled: !canCompute,
-        tooltip: !canCompute && noCompute,
-        onClick: () => this.toggleDropdown(!open),
-        style: { marginLeft: '0.5rem', paddingRight: '0.25rem' },
-        className: 'cluster-manager-opener'
+      div({
+        style: { marginLeft: '0.5rem', paddingRight: '0.25rem' }
       }, [
         div({ style: { fontSize: 12, fontWeight: 500 } }, 'Notebook Runtime'),
         div({ style: { fontSize: 10 } }, [
