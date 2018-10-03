@@ -42,6 +42,7 @@ export const textInput = function(props) {
   return h(Interactive, _.mergeAll([
     {
       as: 'input',
+      className: 'focus-style',
       style: {
         width: '100%',
         paddingLeft: '1rem', paddingRight: '1rem',
@@ -59,6 +60,7 @@ export const numberInput = props => {
   return h(Interactive, _.mergeAll([{
     as: 'input',
     type: 'number',
+    className: 'focus-style',
     style: {
       width: '100%',
       paddingLeft: '1rem',
