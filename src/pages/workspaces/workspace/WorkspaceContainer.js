@@ -73,7 +73,7 @@ class WorkspaceTabs extends PureComponent {
       ])
     }
     const isOwner = workspace && Utils.isOwner(workspace.accessLevel)
-    const menuIcon = (iconName) => {
+    const menuIcon = iconName => {
       return icon(iconName, { size: 15, style: { marginRight: '.5rem' } })
     }
     return contextBar({ style: styles.tabContainer }, [
