@@ -70,8 +70,6 @@ const styles = {
     borderBottom: `1px solid ${colors.gray[3]}`
   },
   button: (open, disabled) => ({
-    width: '2rem',
-    height: '2rem',
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
@@ -470,34 +468,6 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
     ])
   }
 
-  renderDropdown() {
-    const { canCompute } = this.props
-    const { open } = this.state
-    const disabled = !canCompute
-    const activeClusters = this.getActiveClustersOldestFirst()
-    const creating = _.some({ status: 'Creating' }, activeClusters)
-    const multiple = !creating && activeClusters.length > 1
-    return h(PopupTrigger, {
-      position: 'bottom',
-      open: open || multiple,
-      width: creating || multiple ? 300 : 450,
-      onToggle: v => this.toggleDropdown(v),
-      content: Utils.cond(
-        [creating, () => this.renderCreatingMessage()],
-        [multiple, () => this.renderDestroyForm()],
-        () => this.renderCreateForm()
-      )
-    }, [
-      h(Clickable, {
-        style: styles.button(open, disabled),
-        tooltip: !canCompute && noCompute,
-        disabled
-      }, [
-        icon('caretDown', { size: 18 })
-      ])
-    ])
-  }
-
   render() {
     const { namespace, name, clusters, canCompute } = this.props
     const { busy, open } = this.state
@@ -534,6 +504,10 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
     const totalCost = _.sum(_.map(({ machineConfig, status }) => {
       return (status === 'Stopped' ? machineStorageCost : machineConfigCost)(machineConfig)
     }, clusters))
+    const disabled = !canCompute
+    const activeClusters = this.getActiveClustersOldestFirst()
+    const creating = _.some({ status: 'Creating' }, activeClusters)
+    const multiple = !creating && activeClusters.length > 1
     return div({ style: styles.container }, [
       h(MiniLink, {
         href: Nav.getLink('workspace-terminal-launch', { namespace, name }),
@@ -546,16 +520,34 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
         style: { marginRight: '2rem' }
       }, [icon('code', { size: 18 })]),
       renderIcon(),
-      div({
-        style: { marginLeft: '0.5rem', paddingRight: '0.25rem' }
+      h(PopupTrigger, {
+        position: 'bottom',
+        open: open || multiple,
+        width: creating || multiple ? 300 : 450,
+        onToggle: v => this.toggleDropdown(v),
+        content: Utils.cond(
+          [creating, () => this.renderCreatingMessage()],
+          [multiple, () => this.renderDestroyForm()],
+          () => this.renderCreateForm()
+        )
       }, [
-        div({ style: { fontSize: 12, fontWeight: 500 } }, 'Notebook Runtime'),
-        div({ style: { fontSize: 10 } }, [
-          span({ style: { textTransform: 'uppercase', fontWeight: 500 } }, currentStatus || 'None'),
-          ` (${Utils.formatUSD(totalCost)} hr)`
+        h(Clickable, {
+          style: styles.button(open, disabled),
+          tooltip: !canCompute && noCompute,
+          disabled
+        }, [
+          div({
+            style: { marginLeft: '0.5rem', paddingRight: '0.5rem', color: colors.gray[0] }
+          }, [
+            div({ style: { fontSize: 12, fontWeight: 500 } }, 'Notebook Runtime'),
+            div({ style: { fontSize: 10 } }, [
+              span({ style: { textTransform: 'uppercase', fontWeight: 500 } }, currentStatus || 'None'),
+              ` (${Utils.formatUSD(totalCost)} hr)`
+            ])
+          ]),
+          icon('caretDown', { size: 18 })
         ])
-      ]),
-      this.renderDropdown()
+      ])
     ])
   }
 })
