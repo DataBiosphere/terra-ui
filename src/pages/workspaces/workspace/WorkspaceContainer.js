@@ -73,8 +73,8 @@ class WorkspaceTabs extends PureComponent {
       ])
     }
     const isOwner = workspace && Utils.isOwner(workspace.accessLevel)
-    const iconHelp = (iconName, iconLabel) => {
-      return h(Fragment, [icon(iconName, { size: 15, style: { marginRight: '.5rem' } }), iconLabel])
+    const menuIcon = (iconName) => {
+      return icon(iconName, { size: 15, style: { marginRight: '.5rem' } })
     }
     return contextBar({ style: styles.tabContainer }, [
       navSeparator,
@@ -87,20 +87,20 @@ class WorkspaceTabs extends PureComponent {
       h(PopupTrigger, {
         closeOnClick: true,
         content: h(Fragment, [
-          h(MenuButton, { onClick: onClone }, [iconHelp('copy', 'Clone')]),
+          h(MenuButton, { onClick: onClone }, [h(Fragment, [menuIcon('copy'), 'Clone'])]),
           h(MenuButton, {
             disabled: !isOwner,
             tooltip: !isOwner && 'You must be an owner of this workspace or the underlying billing project',
             tooltipSide: 'left',
             onClick: () => onShare()
-          }, [iconHelp('share', 'Share')]),
-          h(MenuButton, { disabled: true }, [iconHelp('export', 'Publish'), comingSoon]),
+          }, [h(Fragment, [menuIcon('share'), 'Share'])]),
+          h(MenuButton, { disabled: true }, [h(Fragment, [menuIcon('export'), 'Publish']), comingSoon]),
           h(MenuButton, {
             disabled: !isOwner,
             tooltip: !isOwner && 'You must be an owner of this workspace or the underlying billing project',
             tooltipSide: 'left',
             onClick: () => onDelete()
-          }, [iconHelp('trash', 'Delete')])
+          }, [h(Fragment, [menuIcon('trash'), 'Delete'])])
         ]),
         position: 'bottom'
       }, [
