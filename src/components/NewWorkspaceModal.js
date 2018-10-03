@@ -153,7 +153,7 @@ export default ajaxCaller(class NewWorkspaceModal extends Component {
         onChange: e => this.setState({ description: e.target.value })
       }),
       Forms.formLabel('Authorization domain', h(InfoBox, [
-        'Note: An authorization domain can only be set when creating a workspace. ',
+        'An authorization domain can only be set when creating a workspace. ',
         'Once set, it cannot be changed. ',
         'Any cloned workspace will automatically inherit the authorization domain(s) from the original workspace and cannot be removed. ',
         link({ href: authDoc, target: '_blank' }, ['Read more about authorization domains'])
