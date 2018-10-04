@@ -536,8 +536,8 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
           [!running, () => 'Start runtime to open terminal'],
           () => 'Open terminal'
         ),
-        style: { marginRight: '2rem', marginTop: '.4rem' }
-      }, [icon('terminalIcon', { size: 25 })]),
+        style: { marginRight: '2rem' }
+      }, [icon('terminalIcon', { size: 21 })]),
       renderIcon(),
       h(Clickable, {
         disabled: !canCompute,
