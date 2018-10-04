@@ -1,5 +1,5 @@
 import { b, div, h } from 'react-hyperscript-helpers'
-import { buttonPrimary } from 'src/components/common'
+import { buttonPrimary, spinnerOverlay } from 'src/components/common'
 import { validatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import WorkspaceSelector from 'src/components/WorkspaceSelector'
@@ -32,7 +32,7 @@ const ExportToolModal = ajaxCaller(class ExportToolModal extends Component {
 
   renderExportForm() {
     const { thisWorkspace, onDismiss } = this.props
-    const { selectedWorkspace, toolName, error } = this.state
+    const { selectedWorkspace, toolName, exporting, error } = this.state
 
     const errors = validate({ toolName }, {
       toolName: {
@@ -68,6 +68,7 @@ const ExportToolModal = ajaxCaller(class ExportToolModal extends Component {
           onChange: e => this.setState({ toolName: e.target.value })
         }
       }),
+      exporting && spinnerOverlay,
       error && div({ style: { marginTop: '0.5rem', color: colors.red[0] } }, [error])
     ])
   }
@@ -102,6 +103,7 @@ const ExportToolModal = ajaxCaller(class ExportToolModal extends Component {
     const { selectedWorkspace, toolName } = this.state
 
     try {
+      this.setState({ exporting: true })
       await Workspaces
         .workspace(thisWorkspace.namespace, thisWorkspace.name)
         .methodConfig(methodConfig.namespace, methodConfig.name)
@@ -115,7 +117,7 @@ const ExportToolModal = ajaxCaller(class ExportToolModal extends Component {
         })
       this.setState({ exported: true })
     } catch (error) {
-      this.setState({ error: (await error.json()).message })
+      this.setState({ error: (await error.json()).message, exporting: false })
     }
   }
 })
