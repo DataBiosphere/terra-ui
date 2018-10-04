@@ -171,7 +171,7 @@ const MiniLink = ({ href, disabled, tooltip, children, ...props }) => {
       as: 'a',
       href: !disabled ? href : undefined,
       style: {
-        color: 'white', backgroundColor: !disabled ? colors.blue[0] : colors.gray[2],
+        color: !disabled ? colors.blue[0] : colors.gray[2], backgroundColor: colors.gray[5],
         cursor: disabled ? 'not-allowed' : 'pointer',
         borderRadius: 4
       }
@@ -537,7 +537,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
           () => 'Open terminal'
         ),
         style: { marginRight: '2rem' }
-      }, [icon('code', { size: 18 })]),
+      }, [icon('terminalIcon', { size: 21 })]),
       renderIcon(),
       h(Clickable, {
         disabled: !canCompute,

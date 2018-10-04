@@ -52,3 +52,9 @@ a {
 .table-row:not(:hover) .hover-only {
   visibility: hidden;
 }
+
+.focus-style:focus {
+  /* Note: using CSS and !important here because react-interactive focus style wasn't applying on autofocus */
+  border: 1px solid #2691d0 !important;
+  outline: none !important;
+}

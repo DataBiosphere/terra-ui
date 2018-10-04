@@ -21,6 +21,7 @@ import logoIcon from 'src/icons/logo.svg'
 import notebooks from 'src/icons/notebooks.svg'
 import square from 'src/icons/square.svg'
 import table from 'src/icons/table.svg'
+import terminalIcon from 'src/icons/terminal_icon.svg'
 import workspace from 'src/icons/workspace.svg'
 import cardMenuIcon from 'src/icons/card-menu-icon.svg'
 import renameIcon from 'src/icons/rename-icon.svg'
@@ -30,7 +31,7 @@ import colors from 'src/libs/colors'
 
 
 ClarityIcons.add({
-  browse, caretDown, checkSquare, columnGrabber, explore, home, jupyterIcon, listAlt, loadingSpinner, logoGrey, logoIcon, notebooks, square, table, workspace, cardMenuIcon, renameIcon, share
+  browse, caretDown, checkSquare, columnGrabber, explore, home, jupyterIcon, listAlt, loadingSpinner, logoGrey, logoIcon, notebooks, square, table, workspace, cardMenuIcon, renameIcon, share, terminalIcon
 })
 
 /**
