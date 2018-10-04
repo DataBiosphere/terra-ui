@@ -5,7 +5,7 @@ import { pure } from 'recompose'
 import removeMd from 'remove-markdown'
 import togglesListView from 'src/components/CardsListToggle'
 import { Clickable, MenuButton, PageFadeBox, search, spinnerOverlay } from 'src/components/common'
-import { icon } from 'src/components/icons'
+import { centeredSpinner, icon } from 'src/components/icons'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
 import PopupTrigger from 'src/components/PopupTrigger'
 import TooltipTrigger from 'src/components/TooltipTrigger'
@@ -71,6 +71,22 @@ const styles = {
     backgroundColor: colors.purple[0], color: 'white'
   }
 }
+
+const spinnerNoOverlay = div(
+  {
+    style: {
+      position: 'absolute',
+      display: 'flex', alignItems: 'center',
+      top: 0, right: 0, bottom: 0, left: 0,
+      backgroundColor: 'rgba(0, 0, 0, 0)'
+    }
+  }, [
+    centeredSpinner({
+      size: 64,
+      style: { backgroundColor: 'rgba(255, 255, 255, 0.0)', padding: '1rem', borderRadius: '0.5rem' }
+    })
+  ]
+)
 
 const WorkspaceCard = pure(({ listView, onClone, onDelete, onShare, workspace: { accessLevel, workspace: { namespace, name, createdBy, lastModified, attributes: { description } } } }) => {
   const lastChanged = `Last changed: ${Utils.makePrettyDate(lastModified)}`
@@ -235,7 +251,7 @@ export const WorkspaceList = ajaxCaller(togglesListView('workspaceList')(class W
           h(NewWorkspaceCard, {
             onClick: () => this.setState({ creatingNewWorkspace: true })
           }),
-          !isDataLoaded && spinnerOverlay,
+          !isDataLoaded && (workspaces === null ? spinnerNoOverlay : spinnerOverlay),
           listView ?
             div({ style: { flex: 1, minWidth: 0 } }, [
               renderedWorkspaces
