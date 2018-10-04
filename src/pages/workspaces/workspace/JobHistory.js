@@ -24,7 +24,7 @@ const styles = {
     padding: '1rem', flex: 1, marginBottom: '-2rem'
   },
   deemphasized: {
-    color: colors.gray[2]
+    color: colors.gray[1]
   },
   statusDetailCell: {
     align: 'center',
