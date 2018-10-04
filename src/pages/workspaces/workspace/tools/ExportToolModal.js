@@ -1,4 +1,4 @@
-import { div, h } from 'react-hyperscript-helpers'
+import { b, div, h } from 'react-hyperscript-helpers'
 import { buttonPrimary } from 'src/components/common'
 import { validatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
@@ -79,6 +79,7 @@ const ExportToolModal = ajaxCaller(class ExportToolModal extends Component {
     return h(Modal, {
       title: 'Copy to Workspace',
       onDismiss,
+      cancelText: 'Stay',
       okButton: buttonPrimary({
         onClick: () => Nav.goToPath('workflow', {
           namespace: selectedWorkspace.namespace,
@@ -88,7 +89,11 @@ const ExportToolModal = ajaxCaller(class ExportToolModal extends Component {
         })
       }, ['Go to exported tool'])
     }, [
-      `Successfully exported ${toolName} to ${selectedWorkspace.name}. Do you want to view the exported tool?`
+      'Successfully exported ',
+      b([toolName]),
+      ' to ',
+      b([selectedWorkspace.name]),
+      '. Do you want to view the exported tool?'
     ])
   }
 

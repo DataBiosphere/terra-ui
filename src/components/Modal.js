@@ -36,6 +36,7 @@ export default class Modal extends Component {
     titleExtras: PropTypes.node,
     width: PropTypes.number,
     showCancel: PropTypes.bool,
+    cancelText: PropTypes.string,
     showX: PropTypes.bool,
     okButton: PropTypes.oneOfType([PropTypes.string, PropTypes.func, PropTypes.node]),
     children: PropTypes.node
@@ -43,12 +44,13 @@ export default class Modal extends Component {
 
   static defaultProps = {
     showCancel: true,
+    cancelText: 'Cancel',
     showX: false,
     width: 450
   }
 
   render() {
-    const { onDismiss, title, titleExtras, children, width, showCancel, showX, okButton } = this.props
+    const { onDismiss, title, titleExtras, children, width, showCancel, cancelText, showX, okButton } = this.props
 
     return h(RModal, {
       parentSelector: () => document.getElementById('modal-root'),
@@ -72,7 +74,7 @@ export default class Modal extends Component {
           buttonSecondary({
             style: { marginRight: '1rem' },
             onClick: onDismiss
-          }, 'Cancel') :
+          }, [cancelText]) :
           null,
         Utils.cond(
           [okButton === undefined, () => buttonPrimary({ onClick: onDismiss }, 'OK')],
