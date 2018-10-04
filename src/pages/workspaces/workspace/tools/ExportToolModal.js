@@ -80,7 +80,7 @@ const ExportToolModal = ajaxCaller(class ExportToolModal extends Component {
     return h(Modal, {
       title: 'Copy to Workspace',
       onDismiss,
-      cancelText: 'Stay',
+      cancelText: 'Stay Here',
       okButton: buttonPrimary({
         onClick: () => Nav.goToPath('workflow', {
           namespace: selectedWorkspace.namespace,
