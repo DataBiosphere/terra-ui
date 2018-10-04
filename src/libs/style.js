@@ -12,8 +12,7 @@ export const elements = {
     backgroundColor: 'white'
   },
   input: {
-    style: { border: `1px solid ${colors.gray[3]}`, borderRadius: 4, height: '2.25rem' },
-    focus: { border: `1px solid ${colors.blue[0]}` }
+    style: { border: `1px solid ${colors.gray[3]}`, borderRadius: 4, height: '2.25rem' }
   },
   pageTitle: {
     color: colors.darkBlue[0], fontSize: 22, fontWeight: 500, textTransform: 'uppercase'
