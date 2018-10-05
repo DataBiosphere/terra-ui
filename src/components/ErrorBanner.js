@@ -1,5 +1,6 @@
 import { div, h } from 'react-hyperscript-helpers'
 import { buttonPrimary, Clickable } from 'src/components/common'
+import { createPortal } from 'react-dom'
 import ErrorView from 'src/components/ErrorView'
 import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
@@ -19,7 +20,8 @@ class ErrorBanner extends Component {
     const onFirst = errorNumber === 0
     const onLast = errorNumber + 1 === errorState.length
 
-    return h(TopBanner, {
+    return createPortal(
+      h(TopBanner, {
       style: { padding: 0 },
       isVisible: !!errorState.length,
       onDismiss: () => {
@@ -67,7 +69,9 @@ class ErrorBanner extends Component {
       }, [
         h(ErrorView, { error, collapses: false })
       ])
-    ])
+      ]),
+      document.getElementById('modal-root')
+    )
   }
 }
 
