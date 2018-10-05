@@ -1,3 +1,4 @@
+import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import ReactMarkdown from 'react-markdown'
@@ -65,7 +66,7 @@ class WorkspaceDashboardContent extends Component {
     this.state = {
       submissionsCount: undefined,
       storageCostEstimate: undefined,
-      editingWorkspace: false,
+      editDescription: undefined,
       saving: false
     }
   }
@@ -94,36 +95,36 @@ class WorkspaceDashboardContent extends Component {
     try {
       this.setState({ saving: true })
       await Workspaces.workspace(namespace, name).shallowMergeNewAttributes({ description })
-      refreshWorkspace()
+      await refreshWorkspace()
     } catch (error) {
       reportError('Error saving workspace', error)
     } finally {
-      this.setState({ saving: false, editingWorkspace: false })
+      this.setState({ editDescription: undefined, saving: false })
     }
   }
 
   render() {
-    const { workspace: { accessLevel, workspace: { createdDate, lastModified, bucketName, attributes: { description } } } } = this.props
-    const { submissionsCount, storageCostEstimate, editingWorkspace, editDescription = '', saving } = this.state
+    const { workspace: { accessLevel, workspace: { createdDate, lastModified, bucketName, attributes: { description = '' } } } } = this.props
+    const { submissionsCount, storageCostEstimate, editDescription, saving } = this.state
     const canWrite = Utils.canWrite(accessLevel)
+    const isEditing = _.isString(editDescription)
     return div({ style: { flex: 1, display: 'flex', marginBottom: '-2rem' } }, [
       div({ style: styles.leftBox }, [
         div({ style: styles.header }, [
           div({ style: { display: 'inline-block', lineHeight: '2.25rem' } }, 'About the project'),
-          !editingWorkspace && buttonSecondary({
+          !isEditing && buttonSecondary({
             style: { width: '2rem' },
             disabled: !canWrite,
             tooltip: !canWrite && 'You do not have permission to edit this workspace',
-            onClick: () => this.setState({ editingWorkspace: true })
+            onClick: () => this.setState({ editDescription: description })
           }, [icon('edit')])
         ]),
         Utils.cond(
           [
-            editingWorkspace, () => h(Fragment, [
+            isEditing, () => h(Fragment, [
               h(SimpleMDE, {
                 options: {
                   autofocus: true,
-                  initialValue: description,
                   placeholder: 'Enter a description',
                   status: false
                 },
@@ -131,13 +132,13 @@ class WorkspaceDashboardContent extends Component {
                 onChange: editDescription => this.setState({ editDescription })
               }),
               div({ style: { display: 'flex', justifyContent: 'flex-end', margin: '1rem' } }, [
-                buttonSecondary({ onClick: () => this.setState({ editingWorkspace: false }) }, 'Cancel'),
+                buttonSecondary({ onClick: () => this.setState({ editDescription: undefined }) }, 'Cancel'),
                 buttonPrimary({ style: { marginLeft: '1rem' }, onClick: () => this.save() }, 'Save')
               ]),
               saving && spinnerOverlay
             ])
           ],
-          [description, h(ReactMarkdown, [description])],
+          [!!description, h(ReactMarkdown, [description])],
           () => div({ style: { fontStyle: 'italic' } }, ['No description added']))
       ]),
       div({ style: styles.rightBox }, [
