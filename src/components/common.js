@@ -179,7 +179,8 @@ export const spinnerOverlay = div(
       position: 'absolute',
       display: 'flex', alignItems: 'center',
       top: 0, right: 0, bottom: 0, left: 0,
-      backgroundColor: 'rgba(0, 0, 0, 0.1)'
+      backgroundColor: 'rgba(0, 0, 0, 0.1)',
+      zIndex: 9999 // make sure it's on top of any third party components with z-indicies
     }
   }, [
     centeredSpinner({
