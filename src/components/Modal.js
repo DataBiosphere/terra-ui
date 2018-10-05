@@ -1,4 +1,5 @@
 import _ from 'lodash/fp'
+import PropTypes from 'prop-types'
 import { div, h } from 'react-hyperscript-helpers'
 import RModal from 'react-modal'
 import { buttonPrimary, buttonSecondary, Clickable } from 'src/components/common'
@@ -7,6 +8,7 @@ import colors from 'src/libs/colors'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
+
 
 RModal.defaultStyles = { overlay: {}, content: {} }
 
@@ -27,19 +29,26 @@ const styles = {
   }
 }
 
-/**
- * @param onDismiss
- * @param title
- * @param titleExtras
- * @param children
- * @param width=450
- * @param showCancel=true
- * @param showX=false
- * @param okButton
- */
 export default class Modal extends Component {
+  static propTypes = {
+    onDismiss: PropTypes.func.isRequired,
+    title: PropTypes.node,
+    titleExtras: PropTypes.node,
+    width: PropTypes.number,
+    showCancel: PropTypes.bool,
+    showX: PropTypes.bool,
+    okButton: PropTypes.oneOfType([PropTypes.string, PropTypes.func, PropTypes.node]),
+    children: PropTypes.node
+  }
+
+  static defaultProps = {
+    showCancel: true,
+    showX: false,
+    width: 450
+  }
+
   render() {
-    const { onDismiss, title, titleExtras, children, width = 450, showCancel = true, showX = false, okButton } = this.props
+    const { onDismiss, title, titleExtras, children, width, showCancel, showX, okButton } = this.props
 
     return h(RModal, {
       parentSelector: () => document.getElementById('modal-root'),

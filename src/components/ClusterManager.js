@@ -1,4 +1,5 @@
 import _ from 'lodash/fp'
+import PropTypes from 'prop-types'
 import { Fragment, PureComponent } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
@@ -178,7 +179,7 @@ const MiniLink = ({ href, disabled, tooltip, children, ...props }) => {
       as: 'a',
       href: !disabled ? href : undefined,
       style: {
-        color: 'white', backgroundColor: !disabled ? colors.blue[0] : colors.gray[2],
+        color: !disabled ? colors.blue[0] : colors.gray[2], backgroundColor: colors.gray[5],
         cursor: disabled ? 'not-allowed' : 'pointer',
         borderRadius: 4
       }
@@ -199,6 +200,14 @@ const getUpdateIntervalMs = status => {
 }
 
 export default ajaxCaller(class ClusterManager extends PureComponent {
+  static propTypes = {
+    namespace: PropTypes.string.isRequired,
+    name: PropTypes.string.isRequired,
+    clusters: PropTypes.array,
+    canCompute: PropTypes.bool,
+    refreshClusters: PropTypes.func.isRequired
+  }
+
   constructor(props) {
     super(props)
     this.state = {
@@ -518,7 +527,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
           () => 'Open terminal'
         ),
         style: { marginRight: '2rem' }
-      }, [icon('code', { size: 18 })]),
+      }, [icon('terminalIcon', { size: 21 })]),
       renderIcon(),
       h(PopupTrigger, {
         position: 'bottom',

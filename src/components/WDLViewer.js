@@ -2,9 +2,10 @@ import _ from 'lodash/fp'
 import Prism from 'prismjs'
 import 'prismjs/components/prism-bash'
 import 'prismjs/components/prism-python'
-import 'prismjs/themes/prism.css'
 import 'prismjs/plugins/line-numbers/prism-line-numbers'
 import 'prismjs/plugins/line-numbers/prism-line-numbers.css'
+import 'prismjs/themes/prism.css'
+import PropTypes from 'prop-types'
 import { code, pre } from 'react-hyperscript-helpers'
 import * as Style from 'src/libs/style'
 import { Component } from 'src/libs/wrapped-components'
@@ -62,6 +63,10 @@ Prism.languages.wdl = {
 
 
 export default class WDLViewer extends Component {
+  static propTypes = {
+    wdl: PropTypes.string
+  }
+
   render() {
     const { wdl, ...props } = this.props
 

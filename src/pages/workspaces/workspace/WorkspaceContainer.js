@@ -7,7 +7,7 @@ import ErrorView from 'src/components/ErrorView'
 import { icon } from 'src/components/icons'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
 import PopupTrigger from 'src/components/PopupTrigger'
-import { TopBar } from 'src/components/TopBar'
+import TopBar from 'src/components/TopBar'
 import { ajaxCaller } from 'src/libs/ajax'
 import { getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
@@ -72,6 +72,9 @@ class WorkspaceTabs extends PureComponent {
       ])
     }
     const isOwner = workspace && Utils.isOwner(workspace.accessLevel)
+    const menuIcon = iconName => {
+      return icon(iconName, { size: 15, style: { marginRight: '.5rem' } })
+    }
     return contextBar({ style: styles.tabContainer }, [
       activeTab === 'dashboard' ? undefined : navSeparator,
       navTab({ tabName: 'dashboard', href: Nav.getLink('workspace', { namespace, name }) }), activeTab === 'dashboard' || activeTab === 'data' ? undefined : navSeparator,
@@ -80,31 +83,27 @@ class WorkspaceTabs extends PureComponent {
       navTab({ tabName: 'tools', href: Nav.getLink('workspace-tools', { namespace, name }) }), activeTab === 'tools' || activeTab === 'job history' ? undefined : navSeparator,
       navTab({ tabName: 'job history', href: Nav.getLink('workspace-job-history', { namespace, name }) }), activeTab === 'job history' ? undefined : navSeparator,
       div({ style: { flexGrow: 1 } }),
-      h(Clickable, {
-        ...navIconProps,
-        tooltip: 'Clone workspace',
-        onClick: onClone
-      }, [icon('copy', { size: 22 })]),
       h(PopupTrigger, {
         closeOnClick: true,
         content: h(Fragment, [
+          h(MenuButton, { onClick: onClone }, [menuIcon('copy'), 'Clone']),
           h(MenuButton, {
             disabled: !isOwner,
             tooltip: !isOwner && 'You must be an owner of this workspace or the underlying billing project',
             tooltipSide: 'left',
             onClick: () => onShare()
-          }, ['Share']),
-          h(MenuButton, { disabled: true }, ['Publish', comingSoon]),
+          }, [menuIcon('share'), 'Share']),
+          h(MenuButton, { disabled: true }, [menuIcon('export'), 'Publish', comingSoon]),
           h(MenuButton, {
             disabled: !isOwner,
             tooltip: !isOwner && 'You must be an owner of this workspace or the underlying billing project',
             tooltipSide: 'left',
             onClick: () => onDelete()
-          }, ['Delete'])
+          }, [menuIcon('trash'), 'Delete'])
         ]),
         position: 'bottom'
       }, [
-        h(Clickable, { ...navIconProps }, [icon('ellipsis-vertical', { size: 22 })])
+        h(Clickable, { ...navIconProps }, [icon('cardMenuIcon', { size: 27 })])
       ])
     ])
   }
@@ -146,7 +145,7 @@ class WorkspaceContainer extends Component {
         ]),
         h(ClusterManager, {
           namespace, name, clusters, refreshClusters,
-          canCompute: (workspace && workspace.canCompute) || (clusters && clusters.length)
+          canCompute: (workspace && workspace.canCompute) || (clusters && !!clusters.length)
         })
       ]),
       showTabBar && h(WorkspaceTabs, {

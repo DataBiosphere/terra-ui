@@ -280,14 +280,19 @@ class WorkflowViewContent extends Component {
 
   downloadJson(key) {
     const { modifiedConfig } = this.state
-    const blob = new Blob([JSON.stringify(modifiedConfig[key])], { type: 'application/json' })
+    const prepIO = _.mapValues(v => /^".*"/.test(v) ? v.slice(1, -1) : `\${${v}}`)
+
+    const blob = new Blob([JSON.stringify(prepIO(modifiedConfig[key]))], { type: 'application/json' })
     FileSaver.saveAs(blob, `${key}.json`)
   }
 
   async uploadJson(key, file) {
     try {
-      const text = await Utils.readFileAsText(file)
-      const updates = _.mapValues(_.toString, JSON.parse(text))
+      const rawUpdates = JSON.parse(await Utils.readFileAsText(file))
+      const updates = _.mapValues(v => _.isString(v) && v.match(/\${(.*)}/) ?
+        v.replace(/\${(.*)}/, (_, match) => match) :
+        JSON.stringify(v)
+      )(rawUpdates)
       this.setState(({ modifiedConfig, inputsOutputs }) => {
         const existing = _.map('name', inputsOutputs[key])
         return {

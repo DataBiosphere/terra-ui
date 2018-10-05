@@ -1,7 +1,8 @@
 import _ from 'lodash/fp'
-import { Component, Fragment, createRef } from 'react'
-import { createPortal } from 'react-dom'
+import PropTypes from 'prop-types'
+import { Component, createRef, Fragment } from 'react'
 import Autosuggest from 'react-autosuggest'
+import { createPortal } from 'react-dom'
 import { div, h } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
 import { search } from 'src/components/common'
@@ -41,6 +42,7 @@ export const textInput = function(props) {
   return h(Interactive, _.mergeAll([
     {
       as: 'input',
+      className: 'focus-style',
       style: {
         width: '100%',
         paddingLeft: '1rem', paddingRight: '1rem',
@@ -58,6 +60,7 @@ export const numberInput = props => {
   return h(Interactive, _.mergeAll([{
     as: 'input',
     type: 'number',
+    className: 'focus-style',
     style: {
       width: '100%',
       paddingLeft: '1rem',
@@ -70,6 +73,12 @@ export const numberInput = props => {
 
 
 export class IntegerInput extends Component {
+  static propTypes = {
+    min: PropTypes.number,
+    max: PropTypes.number,
+    onChange: PropTypes.func.isRequired
+  }
+
   constructor(props) {
     super(props)
     this.state = { textValue: undefined, lastValue: undefined }
@@ -129,6 +138,12 @@ export const validatedInput = props => {
 }
 
 class AutocompleteSuggestions extends Component {
+  static propTypes = {
+    containerRef: PropTypes.object.isRequired,
+    containerProps: PropTypes.object,
+    children: PropTypes.node
+  }
+
   constructor(props) {
     super(props)
     this.el = document.createElement('div')
@@ -167,7 +182,16 @@ class AutocompleteSuggestions extends Component {
   }
 }
 
+/**
+ * See {@link https://github.com/moroshko/react-autosuggest#props}
+ */
 export class AutocompleteTextInput extends Component {
+  static propTypes = {
+    value: PropTypes.string,
+    onChange: PropTypes.func.isRequired,
+    suggestions: PropTypes.arrayOf(PropTypes.string)
+  }
+
   constructor(props) {
     super(props)
     this.state = { show: false }
@@ -208,6 +232,19 @@ export class AutocompleteTextInput extends Component {
 }
 
 export class AutocompleteSearch extends Component {
+  static propTypes = {
+    value: PropTypes.string.isRequired,
+    onChange: PropTypes.func.isRequired,
+    onSuggestionSelected: PropTypes.func.isRequired,
+    suggestions: PropTypes.array,
+    renderSuggestion: PropTypes.func,
+    theme: PropTypes.object
+  }
+
+  static defaultProps = {
+    renderSuggestion: _.identity
+  }
+
   constructor(props) {
     super(props)
     this.state = { show: false }
@@ -216,7 +253,7 @@ export class AutocompleteSearch extends Component {
   }
 
   render() {
-    const { value, onChange, onSuggestionSelected, suggestions, renderSuggestion = _.identity, theme, ...props } = this.props
+    const { value, onChange, onSuggestionSelected, suggestions, renderSuggestion, theme, ...props } = this.props
     const { show } = this.state
     return h(Autosuggest, {
       id: this.id,

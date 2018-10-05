@@ -9,7 +9,7 @@ import { icon } from 'src/components/icons'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
 import PopupTrigger from 'src/components/PopupTrigger'
 import TooltipTrigger from 'src/components/TooltipTrigger'
-import { TopBar } from 'src/components/TopBar'
+import TopBar from 'src/components/TopBar'
 import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
@@ -106,14 +106,12 @@ const WorkspaceCard = pure(({
     h(Clickable, {
       onClick: e => e.preventDefault(),
       style: {
-        cursor: 'pointer', color: colors.blue[0]
+        cursor: 'pointer', color: colors.blue[0], marginRight: 'auto'
       },
       focus: 'hover',
       hover: { color: colors.blue[2] }
     }, [
-      icon('cardMenuIcon', {
-        size: listView ? 18 : 27
-      })
+      icon('cardMenuIcon', { size: 23 })
     ])
   ])
   const descText = description ?
@@ -124,15 +122,15 @@ const WorkspaceCard = pure(({
     href: Nav.getLink('workspace', { namespace, name }),
     style: styles.longCard
   }, [
-    div({ style: { display: 'flex', alignItems: 'center' } }, [
-      workspaceMenu,
-      div({ style: { ...styles.longTitle, marginLeft: '1rem' } }, [name]),
+    div({ style: { display: 'flex', alignItems: 'center', marginTop: '.75rem' } }, [
+      div({ style: { ...styles.longTitle, marginLeft: '2rem' } }, [name]),
       h(TooltipTrigger, { content: Utils.makeCompleteDate(lastModified) }, [
         div({ style: { flex: 'none' } }, [lastChanged])
       ])
     ]),
-    div({ style: { display: 'flex', alignItems: 'center' } }, [
-      div({ style: styles.longDescription }, [descText]),
+    workspaceMenu,
+    div({ style: { display: 'flex', alignItems: 'center', marginBottom: '.75rem' } }, [
+      div({ style: { ...styles.longDescription, marginLeft: '2rem' } }, [descText]),
       div({ style: { flex: 'none' } }, [badge])
     ])
   ]) : a({

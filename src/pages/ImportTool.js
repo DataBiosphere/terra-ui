@@ -5,7 +5,7 @@ import Collapse from 'src/components/Collapse'
 import { buttonPrimary, pageColumn } from 'src/components/common'
 import ErrorView from 'src/components/ErrorView'
 import { centeredSpinner, icon, spinner } from 'src/components/icons'
-import { TopBar } from 'src/components/TopBar'
+import TopBar from 'src/components/TopBar'
 import WDLViewer from 'src/components/WDLViewer'
 import WorkspaceSelector from 'src/components/WorkspaceSelector'
 import { ajaxCaller } from 'src/libs/ajax'
@@ -121,7 +121,7 @@ const DockstoreImporter = ajaxCaller(class DockstoreImporter extends Component {
   async import_() {
     this.setState({ isImporting: true })
 
-    const { selectedWorkspace: { value: { namespace, name } } } = this.state
+    const { selectedWorkspace: { namespace, name } } = this.state
     const { path, version, ajax: { Workspaces } } = this.props
     const toolName = _.last(path.split('/'))
 

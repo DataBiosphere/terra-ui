@@ -1,11 +1,12 @@
 import _ from 'lodash/fp'
-import { Fragment, createRef } from 'react'
+import PropTypes from 'prop-types'
+import { createRef, Fragment } from 'react'
 import DraggableCore from 'react-draggable'
 import { button, div, h, option, select } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
 import Pagination from 'react-paginating'
 import { arrayMove, SortableContainer, SortableElement, SortableHandle } from 'react-sortable-hoc'
-import { AutoSizer, Grid as RVGrid, ScrollSync as RVScrollSync, List } from 'react-virtualized'
+import { AutoSizer, Grid as RVGrid, List, ScrollSync as RVScrollSync } from 'react-virtualized'
 import { buttonPrimary, Checkbox, Clickable, linkButton } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
@@ -29,7 +30,7 @@ const paginatorButton = (props, label) => button(_.merge({
  * @param {function(number)} props.setPageNumber
  * @param {function(number)} [props.setItemsPerPage]
  * @param {number} props.itemsPerPage
- * @param {number[]} props.itemsPerPageOptions
+ * @param {number[]} [props.itemsPerPageOptions=[10,25,50,100]]
  */
 export const paginator = function(props) {
   const {
@@ -156,17 +157,33 @@ const styles = {
 /**
  * A virtual table with a fixed header and flexible column widths. Intended to take up the full
  * available container width, without horizontal scrolling.
- * @param {Object[]} columns
- * @param {Object} [columns[].size]
- * @param {number} [columns[].size.basis=0] - flex-basis in pixels
- * @param {number} [columns[].size.grow=1] - flex-grow
- * @param {number} [columns[].size.shrink=1] - flex-shrink
- * @param {number} [columns[].size.min=0] - min-width in pixels
- * @param {number} [columns[].size.max] - max-width in pixels
- * @param {function()} columns[].headerRenderer
- * @param {function(Object)} columns[].cellRenderer
  */
 export class FlexTable extends Component {
+  static propTypes = {
+    width: PropTypes.number.isRequired,
+    height: PropTypes.number.isRequired,
+    initialY: PropTypes.number,
+    rowCount: PropTypes.number.isRequired,
+    rowStyle: PropTypes.object,
+    columns: PropTypes.arrayOf(PropTypes.shape({
+      headerRenderer: PropTypes.func.isRequired,
+      cellRenderer: PropTypes.func.isRequired,
+      size: PropTypes.shape({
+        basis: PropTypes.number, // flex-basis in px, default 0
+        grow: PropTypes.number, // flex-grow, default 1
+        max: PropTypes.number, // max-width in px
+        min: PropTypes.number, // min-width in px, default 0
+        shrink: PropTypes.number // flex-shrink, default 1
+      })
+    })),
+    hoverHighlight: PropTypes.bool,
+    onScroll: PropTypes.func
+  }
+
+  static defaultProps = {
+    initialY: 0
+  }
+
   constructor(props) {
     super(props)
     this.state = { scrollbarSize: 0 }
@@ -174,7 +191,7 @@ export class FlexTable extends Component {
   }
 
   componentDidMount() {
-    const { initialY: scrollTop = 0 } = this.props
+    const { initialY: scrollTop } = this.props
     this.body.current.scrollToPosition({ scrollTop })
   }
 
@@ -234,12 +251,24 @@ export class FlexTable extends Component {
 /**
  * A virtual table with a fixed header and explicit column widths. Intended for displaying large
  * datasets which may require horizontal scrolling.
- * @param {Object[]} columns
- * @param {number} columns[].width - width in pixels
- * @param {function(Object)} columns[].headerRenderer
- * @param {function(Object)} columns[].cellRenderer
  */
 export class GridTable extends Component {
+  static propTypes = {
+    width: PropTypes.number.isRequired,
+    height: PropTypes.number.isRequired,
+    initialX: PropTypes.number,
+    initialY: PropTypes.number,
+    rowCount: PropTypes.number.isRequired,
+    cellStyle: PropTypes.object,
+    columns: PropTypes.arrayOf(PropTypes.shape({ width: PropTypes.number.isRequired })),
+    onScroll: PropTypes.func
+  }
+
+  static defaultProps = {
+    initialX: 0,
+    initialY: 0
+  }
+
   constructor(props) {
     super(props)
     this.state = { scrollbarSize: 0 }
@@ -251,7 +280,7 @@ export class GridTable extends Component {
   componentDidMount() {
     this.body.current.measureAllCells()
 
-    const { initialX: scrollLeft = 0, initialY: scrollTop = 0 } = this.props
+    const { initialX: scrollLeft, initialY: scrollTop } = this.props
 
     this.scrollSync.current._onScroll({ scrollLeft }) //BEWARE: utilizing private method from scrollSync that is not intended to be used
 

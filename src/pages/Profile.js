@@ -5,7 +5,7 @@ import { buttonPrimary, LabeledCheckbox, link, RadioButton, spinnerOverlay } fro
 import { centeredSpinner, profilePic } from 'src/components/icons'
 import { textInput, validatedInput } from 'src/components/input'
 import { InfoBox } from 'src/components/PopupTrigger'
-import { TopBar } from 'src/components/TopBar'
+import TopBar from 'src/components/TopBar'
 import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import * as Nav from 'src/libs/nav'

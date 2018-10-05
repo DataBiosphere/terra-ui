@@ -1,4 +1,5 @@
 import _ from 'lodash/fp'
+import PropTypes from 'prop-types'
 import { Collapse as rCollapse } from 'react-collapse'
 import { div, h } from 'react-hyperscript-helpers'
 import { icon } from 'src/components/icons'
@@ -6,23 +7,28 @@ import colors from 'src/libs/colors'
 import { Component } from 'src/libs/wrapped-components'
 
 
-/**
- * @param {boolean} [defaultHidden=false]
- * @param {boolean} [showIcon=true]
- * @param {boolean} [animate=false]
- * @param {boolean} [expandTitle=false]
- * @param title
- * @param [buttonStyle]
- * @param children
- */
 export default class Collapse extends Component {
+  static propTypes = {
+    title: PropTypes.node.isRequired,
+    defaultHidden: PropTypes.bool,
+    showIcon: PropTypes.bool,
+    animate: PropTypes.bool,
+    expandTitle: PropTypes.bool,
+    buttonStyle: PropTypes.object,
+    children: PropTypes.node
+  }
+
+  static defaultProps = {
+    showIcon: true
+  }
+
   constructor(props) {
     super(props)
     this.state = { isOpened: !props.defaultHidden }
   }
 
   render() {
-    const { title, showIcon = true, animate, expandTitle, buttonStyle, children, ...props } = _.omit('defaultHidden', this.props)
+    const { title, showIcon, animate, expandTitle, buttonStyle, children, ...props } = _.omit('defaultHidden', this.props)
     const { isOpened } = this.state
 
     return div(props, [

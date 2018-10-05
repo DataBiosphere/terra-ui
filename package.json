@@ -13,6 +13,7 @@
     "md5": "^2.2.1",
     "path-to-regexp": "^2.4.0",
     "prismjs": "^1.15.0",
+    "prop-types": "^15.6.2",
     "qs": "^6.5.2",
     "react": "~16.5.2",
     "react-autosuggest": "^9.4.2",
