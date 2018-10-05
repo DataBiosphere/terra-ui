@@ -7,7 +7,7 @@ import { buttonPrimary } from 'src/components/common'
 import { reportError } from 'src/libs/error'
 
 
-const DeleteToolModal = ajaxCaller(class DeleteToolModal extends Component {
+export default ajaxCaller(class DeleteToolModal extends Component {
   render() {
     const { onDismiss, methodConfig: { name } } = this.props
     const { error } = this.state
@@ -39,6 +39,3 @@ const DeleteToolModal = ajaxCaller(class DeleteToolModal extends Component {
     }
   }
 })
-
-
-export default DeleteToolModal

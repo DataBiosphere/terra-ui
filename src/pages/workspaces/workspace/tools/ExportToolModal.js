@@ -12,7 +12,7 @@ import { Component } from 'src/libs/wrapped-components'
 import validate from 'validate.js'
 
 
-const ExportToolModal = ajaxCaller(class ExportToolModal extends Component {
+export default ajaxCaller(class ExportToolModal extends Component {
   constructor(props) {
     super(props)
 
@@ -121,6 +121,3 @@ const ExportToolModal = ajaxCaller(class ExportToolModal extends Component {
     }
   }
 })
-
-
-export default ExportToolModal
