@@ -1,15 +1,15 @@
-import { b, div, h } from 'react-hyperscript-helpers'
+import { b, h } from 'react-hyperscript-helpers'
 import { buttonPrimary, spinnerOverlay } from 'src/components/common'
 import { validatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import WorkspaceSelector from 'src/components/WorkspaceSelector'
 import { ajaxCaller } from 'src/libs/ajax'
-import colors from 'src/libs/colors'
 import { requiredFormLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 import validate from 'validate.js'
+import ErrorView from 'src/components/ErrorView'
 
 
 export default ajaxCaller(class ExportToolModal extends Component {
@@ -69,7 +69,7 @@ export default ajaxCaller(class ExportToolModal extends Component {
         }
       }),
       exporting && spinnerOverlay,
-      error && div({ style: { marginTop: '0.5rem', color: colors.red[0] } }, [error])
+      error && h(ErrorView, { error, collapses: false })
     ])
   }
 
@@ -117,7 +117,7 @@ export default ajaxCaller(class ExportToolModal extends Component {
         })
       this.setState({ exported: true })
     } catch (error) {
-      this.setState({ error: (await error.json()).message, exporting: false })
+      this.setState({ error: await error.text(), exporting: false })
     }
   }
 })
