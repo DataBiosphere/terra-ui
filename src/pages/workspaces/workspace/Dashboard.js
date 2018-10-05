@@ -109,7 +109,7 @@ class WorkspaceDashboardContent extends Component {
 
   render() {
     const { workspace: { accessLevel, workspace: { createdDate, lastModified, bucketName, attributes: { description = '' } } } } = this.props
-    const { submissionsCount, storageCostEstimate, mdeInstance, editDescription, saving } = this.state
+    const { submissionsCount, storageCostEstimate, editDescription, saving } = this.state
     const canWrite = Utils.canWrite(accessLevel)
     const isEditing = _.isString(editDescription)
 
@@ -126,7 +126,6 @@ class WorkspaceDashboardContent extends Component {
         ]),
         div({ style: { display: isEditing ? undefined : 'none' } }, [
           h(SimpleMDE, {
-            getMdeInstance: mdeInstance => this.setState({ mdeInstance }),
             options: {
               autofocus: true,
               placeholder: 'Enter a description',
@@ -146,7 +145,7 @@ class WorkspaceDashboardContent extends Component {
               saving && spinnerOverlay
             ])
           ],
-          [!!description, () => div({ dangerouslySetInnerHTML: { __html: mdeInstance && mdeInstance.options.previewRender(description) } })],
+          [!!description, () => div({ dangerouslySetInnerHTML: { __html: marked(description) } })],
           () => div({ style: { fontStyle: 'italic' } }, ['No description added']))
       ]),
       div({ style: styles.rightBox }, [
