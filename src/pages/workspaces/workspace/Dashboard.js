@@ -124,20 +124,18 @@ class WorkspaceDashboardContent extends Component {
             onClick: () => this.setState({ editDescription: description })
           }, [icon('edit')])
         ]),
-        div({ style: { display: isEditing ? undefined : 'none' } }, [
-          h(SimpleMDE, {
-            options: {
-              autofocus: true,
-              placeholder: 'Enter a description',
-              status: false
-            },
-            value: editDescription,
-            onChange: editDescription => this.setState({ editDescription })
-          })
-        ]),
         Utils.cond(
           [
             isEditing, () => h(Fragment, [
+              h(SimpleMDE, {
+                options: {
+                  autofocus: true,
+                  placeholder: 'Enter a description',
+                  status: false
+                },
+                value: editDescription,
+                onChange: editDescription => this.setState({ editDescription })
+              }),
               div({ style: { display: 'flex', justifyContent: 'flex-end', margin: '1rem' } }, [
                 buttonSecondary({ onClick: () => this.setState({ editDescription: undefined }) }, 'Cancel'),
                 buttonPrimary({ style: { marginLeft: '1rem' }, onClick: () => this.save() }, 'Save')
