@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
+import marked from 'marked'
 import { Fragment } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
-import ReactMarkdown from 'react-markdown'
 import SimpleMDE from 'react-simplemde-editor'
 import 'simplemde/dist/simplemde.min.css'
 import * as breadcrumbs from 'src/components/breadcrumbs'
@@ -15,6 +15,9 @@ import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
+
+
+marked.setOptions({ sanitize: true })
 
 
 const styles = {
@@ -105,9 +108,10 @@ class WorkspaceDashboardContent extends Component {
 
   render() {
     const { workspace: { accessLevel, workspace: { createdDate, lastModified, bucketName, attributes: { description = '' } } } } = this.props
-    const { submissionsCount, storageCostEstimate, editDescription, saving } = this.state
+    const { submissionsCount, storageCostEstimate, mdeInstance, editDescription, saving } = this.state
     const canWrite = Utils.canWrite(accessLevel)
     const isEditing = _.isString(editDescription)
+
     return div({ style: { flex: 1, display: 'flex', marginBottom: '-2rem' } }, [
       div({ style: styles.leftBox }, [
         div({ style: styles.header }, [
@@ -119,18 +123,21 @@ class WorkspaceDashboardContent extends Component {
             onClick: () => this.setState({ editDescription: description })
           }, [icon('edit')])
         ]),
+        div({ style: { display: isEditing ? undefined : 'none' } }, [
+          h(SimpleMDE, {
+            getMdeInstance: mdeInstance => this.setState({ mdeInstance }),
+            options: {
+              autofocus: true,
+              placeholder: 'Enter a description',
+              status: false
+            },
+            value: editDescription,
+            onChange: editDescription => this.setState({ editDescription })
+          })
+        ]),
         Utils.cond(
           [
             isEditing, () => h(Fragment, [
-              h(SimpleMDE, {
-                options: {
-                  autofocus: true,
-                  placeholder: 'Enter a description',
-                  status: false
-                },
-                value: editDescription,
-                onChange: editDescription => this.setState({ editDescription })
-              }),
               div({ style: { display: 'flex', justifyContent: 'flex-end', margin: '1rem' } }, [
                 buttonSecondary({ onClick: () => this.setState({ editDescription: undefined }) }, 'Cancel'),
                 buttonPrimary({ style: { marginLeft: '1rem' }, onClick: () => this.save() }, 'Save')
@@ -138,7 +145,7 @@ class WorkspaceDashboardContent extends Component {
               saving && spinnerOverlay
             ])
           ],
-          [!!description, h(ReactMarkdown, [description])],
+          [!!description, () => div({ dangerouslySetInnerHTML: { __html: mdeInstance && mdeInstance.options.previewRender(description) } })],
           () => div({ style: { fontStyle: 'italic' } }, ['No description added']))
       ]),
       div({ style: styles.rightBox }, [
