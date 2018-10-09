@@ -70,12 +70,10 @@ const styles = {
     marginRight: '-1rem',
     borderBottom: `1px solid ${colors.gray[3]}`
   },
-  button: (open, disabled) => ({
+  button: disabled => ({
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
-    color: disabled ? colors.gray[2] : (open ? colors.blue[1] : colors.blue[0]),
-    borderRadius: '5px 5px 0 0',
     cursor: disabled ? 'not-allowed' : 'pointer'
   })
 }
@@ -541,7 +539,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
         )
       }, [
         h(Clickable, {
-          style: styles.button(open, disabled),
+          style: { ...styles.button(disabled), color: disabled ? colors.gray[2] : (open ? colors.blue[1] : colors.blue[0]) },
           tooltip: !canCompute && noCompute,
           disabled
         }, [
