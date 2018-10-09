@@ -26,7 +26,7 @@ const styles = {
     transformOrigin: 'bottom'
   },
   lightBox: {
-    background: 'white', color: 'black',
+    background: 'white',
     border: `1px solid ${colors.gray[3]}`,
     boxShadow: Style.standardShadow,
     ...baseToolTip

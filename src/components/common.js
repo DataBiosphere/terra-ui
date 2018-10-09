@@ -112,7 +112,7 @@ export const MenuButton = ({ disabled, children, ...props }) => {
     style: {
       display: 'flex', alignItems: 'center',
       fontSize: 12, minWidth: 125, height: '2rem',
-      color: disabled ? colors.gray[2] : 'black',
+      color: disabled ? colors.gray[2] : undefined,
       padding: '0 1.5rem',
       cursor: disabled ? 'not-allowed' : 'pointer'
     },
