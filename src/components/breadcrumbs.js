@@ -6,9 +6,9 @@ import * as Nav from 'src/libs/nav'
 
 export const breadcrumbElement = function(child, href) {
   if (href) {
-    return a({ style: { color: colors.gray[2] }, href }, [child, breadcrumb()])
+    return a({ style: { color: colors.blue[0] }, href }, [child, breadcrumb()])
   } else {
-    return span({ style: { color: colors.gray[2] } }, [child, breadcrumb()])
+    return span({ style: { color: colors.blue[0] } }, [child, breadcrumb()])
   }
 }
 
@@ -18,7 +18,7 @@ export const commonPaths = {
 
   workspaceDashboard: ({ namespace, name }) => [
     ...commonPaths.workspaceList(),
-    breadcrumbElement(`${namespace}/${name}`, Nav.getLink('workspace', { namespace, name }))
+    breadcrumbElement(`${namespace}/${name}`, Nav.getLink('workspace-dashboard', { namespace, name }))
   ],
 
   workspaceTab: ({ namespace, name }, activeTab) => [

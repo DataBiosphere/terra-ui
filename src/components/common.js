@@ -173,22 +173,28 @@ export const pageColumn = function(title, flex, contents) {
     ])
 }
 
-export const spinnerOverlay = div(
+export const spinnerDefault = ({ outerStyles = {}, innerStyles = {} }) => div(
   {
     style: {
       position: 'absolute',
       display: 'flex', alignItems: 'center',
       top: 0, right: 0, bottom: 0, left: 0,
-      backgroundColor: 'rgba(0, 0, 0, 0.1)',
-      zIndex: 9999 // make sure it's on top of any third party components with z-indicies
+      zIndex: 9999, // make sure it's on top of any third party components with z-indicies
+      ...outerStyles
     }
   }, [
     centeredSpinner({
       size: 64,
-      style: { backgroundColor: 'rgba(255, 255, 255, 0.85)', padding: '1rem', borderRadius: '0.5rem' }
+      style: { backgroundColor: 'rgba(255, 255, 255, 0.85)', padding: '1rem', borderRadius: '0.5rem', ...innerStyles }
     })
   ]
 )
+
+export const spinnerOverlay = spinnerDefault({ outerStyles: { backgroundColor: 'rgba(0, 0, 0, 0.1)' } })
+
+export const transparentSpinnerOverlay = spinnerDefault({ innerStyles: { backgroundColor: 'rgba(255, 255, 255, 0.0)' } })
+
+export const topSpinnerOverlay = spinnerDefault({ outerStyles: { backgroundColor: 'rgba(0, 0, 0, 0.1)' }, innerStyles: { marginTop: 150  } })
 
 export const comingSoon = span({
   style: {
@@ -280,11 +286,11 @@ export const FadeBox = ({ fadePoint = '60%', style = {}, children }) => {
   ])
 }
 
-export const PageFadeBox = ({ children }) => {
+export const PageFadeBox = ({ children, style = {} }) => {
   return h(FadeBox, {
     fadePoint: '125px',
     style: {
-      margin: '1.5rem', paddingTop: '1rem', minHeight: 125
+      margin: '1.5rem', paddingTop: '1rem', minHeight: 125, ...style
     }
   }, [children])
 }
