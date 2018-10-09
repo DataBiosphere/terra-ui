@@ -28,7 +28,9 @@ export default class PopupTrigger extends Component {
     position: PropTypes.string,
     align: PropTypes.string,
     closeOnClick: PropTypes.bool,
-    children: PropTypes.node
+    children: PropTypes.node,
+    onToggle: PropTypes.bool,
+    forceOpen: PropTypes.bool
   }
 
   constructor(props) {
