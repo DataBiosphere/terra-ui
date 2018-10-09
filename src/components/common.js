@@ -179,6 +179,7 @@ export const spinnerDefault = ({ outerStyles = {}, innerStyles = {} }) => div(
       position: 'absolute',
       display: 'flex', alignItems: 'center',
       top: 0, right: 0, bottom: 0, left: 0,
+      zIndex: 9999, // make sure it's on top of any third party components with z-indicies
       ...outerStyles
     }
   }, [
@@ -215,13 +216,18 @@ export const Select = ({ value, options, ...props }) => {
   const newValue = props.isMulti ? _.map(findValue, value) : findValue(value)
 
   return h(RSelect, _.merge({
+    theme: base => _.merge(base, {
+      colors: {
+        primary: colors.blue[0],
+        neutral20: colors.gray[3],
+        neutral30: colors.gray[3]
+      },
+      spacing: { controlHeight: 36 }
+    }),
     styles: {
-      control: (base, { isDisabled, isFocused }) => _.merge(base, {
-        minHeight: 36,
+      control: (base, { isDisabled }) => _.merge(base, {
         backgroundColor: isDisabled ? colors.gray[5] : 'white',
-        borderColor: isFocused ? colors.blue[0] : undefined,
-        boxShadow: 'none',
-        '&:hover': { borderColor: isFocused ? colors.blue[0] : undefined }
+        boxShadow: 'none'
       }),
       singleValue: base => ({ ...base, color: colors.gray[0] }),
       option: (base, { isSelected, isFocused, isDisabled }) => _.merge(base, {

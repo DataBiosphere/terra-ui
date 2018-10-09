@@ -21,7 +21,7 @@ const stackTraceView = lines => h(Collapse, {
 
 
 const jsonErrorView = ({ statusCode, source, causes, stackTrace, message, exceptionClass }) => h(Fragment, [
-  div({ style: Style.elements.cardTitle }, [
+  div({ style: { ...Style.elements.cardTitle, overflowWrap: 'break-word' } }, [
     statusCode && `Error ${statusCode}: `,
     message
   ]),
@@ -60,12 +60,15 @@ export default class ErrorView extends Component {
       () => error.message || error.toString()
     )
 
-    return collapses ? h(Collapse, {
-      style: { marginTop: '1rem', ...containerStyle },
-      title: 'Error details',
-      defaultHidden: true
-    }, [content]) :
-      content
+    return div({ style: { marginTop: '1rem' } }, [
+      collapses ?
+        h(Collapse, {
+          style: containerStyle,
+          title: 'Error details',
+          defaultHidden: true
+        }, [content]) :
+        content
+    ])
   }
 
   errorIsHTML() {
