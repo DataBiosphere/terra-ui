@@ -29,7 +29,7 @@ export default class PopupTrigger extends Component {
     align: PropTypes.string,
     closeOnClick: PropTypes.bool,
     children: PropTypes.node,
-    onToggle: PropTypes.bool,
+    onToggle: PropTypes.func,
     forceOpen: PropTypes.bool
   }
 
@@ -43,24 +43,23 @@ export default class PopupTrigger extends Component {
     this.setState({ open: false })
   }
 
-  setOpen(v) {
-    const { onToggle } = this.props
-    this.setState({ open: v })
-    onToggle && onToggle(v)
-  }
-
   render() {
     const { children, content, position, align, closeOnClick, open: forceOpen } = this.props
     const { open } = this.state
     const child = Children.only(children)
     const shouldShow = forceOpen === undefined ? open : forceOpen
+    const setOpen = v => {
+      const { onToggle } = this.props
+      this.setState({ open: v })
+      onToggle && onToggle(v)
+    }
     return h(Fragment, [
       cloneElement(child, {
         id: this.id,
         className: `${child.props.className || ''} ${this.id}`,
         onClick: (...args) => {
           child.props.onClick && child.props.onClick(...args)
-          this.setOpen(!shouldShow)
+          setOpen(!shouldShow)
         }
       }),
       shouldShow && h(ToolTip, {
@@ -70,7 +69,7 @@ export default class PopupTrigger extends Component {
         tooltipTimeout: 0
       }, [
         h(PopupBody, {
-          handleClickOutside: () => this.setOpen(false),
+          handleClickOutside: () => setOpen(false),
           outsideClickIgnoreClass: this.id
         }, [div({ onClick: closeOnClick ? () => this.close() : undefined }, [content])])
       ])
