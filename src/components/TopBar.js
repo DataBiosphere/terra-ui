@@ -14,7 +14,7 @@ import { Component } from 'src/libs/wrapped-components'
 
 const styles = {
   topBar: {
-    flex: 'none', height: 100,
+    flex: 'none', height: 90,
     backgroundColor: 'white', paddingLeft: '1rem',
     display: 'flex', alignItems: 'center',
     borderBottom: `2px solid ${colors.blue[0]}`,
