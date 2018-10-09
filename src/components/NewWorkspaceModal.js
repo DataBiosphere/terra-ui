@@ -90,7 +90,7 @@ export default ajaxCaller(class NewWorkspaceModal extends Component {
       await (cloneWorkspace ?
         Workspaces.workspace(cloneWorkspace.workspace.namespace, cloneWorkspace.workspace.name).clone(body) :
         Workspaces.create(body))
-      Nav.goToPath('workspace', { namespace, name })
+      Nav.goToPath('workspace-dashboard', { namespace, name })
     } catch (error) {
       this.setState({ createError: JSON.parse(error).message, busy: false })
     }
