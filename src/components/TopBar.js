@@ -207,7 +207,7 @@ export default class TopBar extends Component {
     return div({ style: styles.topBar }, [
       icon('bars', {
         size: 36,
-        style: { marginRight: '2rem', color: colors.purple[0], minWidth: 36, cursor: 'pointer' },
+        style: { marginRight: '2rem', color: colors.purple[0], flex: 'none', cursor: 'pointer' },
         onClick: () => this.showNav()
       }),
       a({

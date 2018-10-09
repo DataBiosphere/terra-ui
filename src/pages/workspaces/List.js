@@ -258,7 +258,7 @@ export const WorkspaceList = ajaxCaller(togglesListView('workspaceList')(class W
           name: this.getWorkspace(sharingWorkspaceId).workspace.name,
           onDismiss: () => { this.setState({ sharingWorkspaceId: undefined }) }
         }),
-        !isDataLoaded && (workspaces === null ? transparentSpinnerOverlay : topSpinnerOverlay)
+        !isDataLoaded && (!workspaces ? transparentSpinnerOverlay : topSpinnerOverlay)
       ])
     ])
   }
