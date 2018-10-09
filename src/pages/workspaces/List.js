@@ -119,7 +119,7 @@ const WorkspaceCard = pure(({
     span({ style: { color: colors.gray[2] } }, ['No description added'])
 
   return listView ? a({
-    href: Nav.getLink('workspace', { namespace, name }),
+    href: Nav.getLink('workspace-dashboard', { namespace, name }),
     style: styles.longCard
   }, [
     div({ style: { display: 'flex', alignItems: 'center', marginTop: '.75rem' } }, [
@@ -134,7 +134,7 @@ const WorkspaceCard = pure(({
       div({ style: { flex: 'none' } }, [badge])
     ])
   ]) : a({
-    href: Nav.getLink('workspace', { namespace, name }),
+    href: Nav.getLink('workspace-dashboard', { namespace, name }),
     style: styles.shortCard
   }, [
     div({ style: styles.shortTitle }, [name]),

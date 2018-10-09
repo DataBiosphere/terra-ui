@@ -186,7 +186,7 @@ class WorkspaceDashboardContent extends Component {
 }))
 
 export const addNavPaths = () => {
-  Nav.defPath('workspace', {
+  Nav.defPath('workspace-dashboard', {
     path: '/workspaces/:namespace/:name',
     component: WorkspaceDashboard,
     title: ({ name }) => `${name} - Dashboard`
