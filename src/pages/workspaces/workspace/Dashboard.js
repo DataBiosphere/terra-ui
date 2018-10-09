@@ -1,4 +1,3 @@
-import DOMPurify from 'dompurify'
 import _ from 'lodash/fp'
 import marked from 'marked'
 import { Fragment } from 'react'
@@ -16,9 +15,6 @@ import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
-
-
-marked.setOptions({ sanitize: true, sanitizer: DOMPurify.sanitize })
 
 
 const styles = {
