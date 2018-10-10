@@ -370,7 +370,7 @@ export const TextCell = props => {
 }
 
 export const HeaderCell = props => {
-  return h(TextCell, _.merge({ style: { fontWeight: 500 } }, props))
+  return h(TextCell, _.merge({ style: { fontWeight: 'bold' } }, props))
 }
 
 export const Sortable = ({ sort, field, onSort, children }) => {
