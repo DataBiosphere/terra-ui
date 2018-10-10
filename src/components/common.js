@@ -116,7 +116,7 @@ export const MenuButton = ({ disabled, children, ...props }) => {
       padding: '0 1.5rem',
       cursor: disabled ? 'not-allowed' : 'pointer'
     },
-    hover: !disabled ? { backgroundColor: colors.blue[3], fontWeight: 500 } : undefined
+    hover: !disabled ? { backgroundColor: colors.blue[3], fontWeight: 'bold' } : undefined
   }, props), [children])
 }
 
@@ -234,6 +234,7 @@ export const Select = ({ value, options, ...props }) => {
       singleValue: base => ({ ...base, color: colors.gray[0] }),
       option: (base, { isSelected, isFocused, isDisabled }) => _.merge(base, {
         backgroundColor: isSelected ? colors.blue[4] : isFocused ? colors.blue[5] : undefined,
+        fontWeight: isFocused ? 'bold' : undefined,
         color: isDisabled ? undefined : colors.gray[0],
         ':active': { backgroundColor: isSelected ? colors.blue[4] : colors.blue[5] }
       }),

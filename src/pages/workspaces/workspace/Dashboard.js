@@ -34,7 +34,7 @@ const styles = {
     borderRadius: 5, width: 90, padding: 7, margin: 4
   },
   tinyCaps: {
-    fontSize: 8, fontWeight: 500, textTransform: 'uppercase'
+    fontSize: 8, fontWeight: 'bold', textTransform: 'uppercase', color: colors.darkBlue[0]
   },
   label: {
     ...Style.elements.sectionHeader,

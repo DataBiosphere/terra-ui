@@ -575,7 +575,7 @@ class WorkspaceDataContent extends Component {
           [
             div({
               style: {
-                padding: `0 ${addVariableHover ? '0.5rem' : '0'}`, fontWeight: 500,
+                padding: `0 ${addVariableHover ? '0.5rem' : '0'}`, fontWeight: 'bold',
                 maxWidth: addVariableHover ? 200 : 0,
                 overflow: 'hidden', whiteSpace: 'pre',
                 transition: 'max-width 0.5s ease-out, padding 0.1s linear 0.2s'

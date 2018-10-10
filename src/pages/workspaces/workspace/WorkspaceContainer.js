@@ -43,7 +43,7 @@ const styles = {
   },
   activeTab: {
     backgroundColor: 'rgba(255,255,255,0.15)', color: 'unset',
-    borderBottom: `4px solid ${colors.blue[0]}`
+    borderBottom: `4px solid ${colors.blue[0]}`, fontWeight: 'bold'
   }
 }
 
