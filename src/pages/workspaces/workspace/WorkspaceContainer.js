@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import { createRef, Fragment, PureComponent } from 'react'
 import { a, div, h, h2, p } from 'react-hyperscript-helpers'
 import ClusterManager from 'src/components/ClusterManager'
-import { Clickable, comingSoon, contextBar, MenuButton } from 'src/components/common'
+import { Clickable, comingSoon, contextBar, MenuButton, link } from 'src/components/common'
 import ErrorView from 'src/components/ErrorView'
 import { icon } from 'src/components/icons'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
@@ -217,13 +217,24 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, showTabBar = true
 
     renderError() {
       const { workspaceError, errorText } = this.state
+      const groupURL = 'https://software.broadinstitute.org/firecloud/documentation/article?id=9553'
+      const authorizationURL = 'https://software.broadinstitute.org/firecloud/documentation/article?id=9524'
 
       return div({ style: { padding: '2rem' } }, [
         workspaceError.status === 404 ?
           h(Fragment, [
-            h2({}, ['Could not display workspace.']),
+            h2({}, ['Could not display workspace']),
             p({},
-              ['Either the requested workspace does not exist, or you do not have access. If you suspect you do not have access, please contact the workspace owner.'])
+              ['You are trying to access a workspace that either does not exist, or you do not have access to it.']),
+            p({}, [
+              'To view an existing workspace, the owner of the workspace must share it with you or with a ',
+              link({ target: '_blank', href: groupURL }, 'Group'), ' of which you are a member. ',
+              'If the workspace is protected under an ', link({ target: '_blank', href: authorizationURL }, 'Authorization Domain'),
+              ', you must be a member of every group within the Authorization Domain.'
+            ]),
+            p({}, [
+              'If you think the workspace exists but you do not have access, please contact the workspace owner.'
+            ])
           ]) :
           h(Fragment, [
             h2({}, ['Failed to load workspace']),
