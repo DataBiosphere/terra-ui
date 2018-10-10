@@ -17,17 +17,12 @@ import { Component } from 'src/libs/wrapped-components'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
 
-const mainBackgroundColor = '#e5e5e5'
-const detailBackgroundColor = '#dde0e2'
-
-
 const styles = {
   leftBox: {
-    flex: 1, padding: '0 2rem',
-    backgroundColor: mainBackgroundColor
+    flex: 1, padding: '0 2rem'
   },
   rightBox: {
-    flex: 'none', width: 350, backgroundColor: colors.gray[6],
+    flex: 'none', width: 350, backgroundColor: colors.gray[5],
     padding: '0 1rem'
   },
   header: {
@@ -35,7 +30,7 @@ const styles = {
     margin: '2.5rem 0 1rem 0', display: 'flex'
   },
   infoTile: {
-    backgroundColor: detailBackgroundColor, color: 'black',
+    backgroundColor: colors.gray[4], color: 'black',
     width: 125, padding: 7, margin: 4
   },
   tinyCaps: {
@@ -43,7 +38,7 @@ const styles = {
   },
   authDomain: {
     padding: '0.5rem 0.25rem', marginBottom: '0.25rem',
-    backgroundColor: detailBackgroundColor,
+    backgroundColor: colors.gray[4],
     whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'
   },
   label: {
@@ -119,7 +114,7 @@ class WorkspaceDashboardContent extends Component {
         accessLevel,
         workspace: {
           authorizationDomain, createdDate, lastModified, bucketName,
-          attributes: { description = ''}
+          attributes: { description = '' }
         }
       }
     } = this.props
