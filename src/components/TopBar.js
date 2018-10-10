@@ -14,10 +14,11 @@ import { Component } from 'src/libs/wrapped-components'
 
 const styles = {
   topBar: {
-    flex: 'none', height: 80,
+    flex: 'none', height: 90,
     backgroundColor: 'white', paddingLeft: '1rem',
     display: 'flex', alignItems: 'center',
-    borderBottom: `2px solid ${colors.blue[0]}`
+    borderBottom: `2px solid ${colors.blue[0]}`,
+    boxShadow: Style.standardShadow, zIndex: 1
   },
   nav: {
     background: {
@@ -206,7 +207,7 @@ export default class TopBar extends Component {
     return div({ style: styles.topBar }, [
       icon('bars', {
         size: 36,
-        style: { marginRight: '2rem', color: colors.purple[0], cursor: 'pointer' },
+        style: { marginRight: '2rem', color: colors.purple[0], flex: 'none', cursor: 'pointer' },
         onClick: () => this.showNav()
       }),
       a({

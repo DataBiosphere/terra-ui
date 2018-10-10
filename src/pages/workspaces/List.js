@@ -4,7 +4,7 @@ import { a, div, h, span } from 'react-hyperscript-helpers'
 import { pure } from 'recompose'
 import removeMd from 'remove-markdown'
 import togglesListView from 'src/components/CardsListToggle'
-import { Clickable, MenuButton, PageFadeBox, search, spinnerOverlay } from 'src/components/common'
+import { Clickable, MenuButton, PageFadeBox, search, topSpinnerOverlay, transparentSpinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
 import PopupTrigger from 'src/components/PopupTrigger'
@@ -72,7 +72,10 @@ const styles = {
   }
 }
 
-const WorkspaceCard = pure(({ listView, onClone, onDelete, onShare, workspace: { accessLevel, workspace: { namespace, name, createdBy, lastModified, attributes: { description } } } }) => {
+const WorkspaceCard = pure(({
+  listView, onClone, onDelete, onShare,
+  workspace: { accessLevel, workspace: { namespace, name, createdBy, lastModified, attributes: { description } } }
+}) => {
   const lastChanged = `Last changed: ${Utils.makePrettyDate(lastModified)}`
   const badge = div({ title: createdBy, style: styles.badge }, [createdBy[0].toUpperCase()])
   const isOwner = Utils.isOwner(accessLevel)
@@ -116,7 +119,7 @@ const WorkspaceCard = pure(({ listView, onClone, onDelete, onShare, workspace: {
     span({ style: { color: colors.gray[1] } }, ['No description added'])
 
   return listView ? a({
-    href: Nav.getLink('workspace', { namespace, name }),
+    href: Nav.getLink('workspace-dashboard', { namespace, name }),
     style: styles.longCard
   }, [
     div({ style: { display: 'flex', alignItems: 'center', marginTop: '.75rem' } }, [
@@ -131,7 +134,7 @@ const WorkspaceCard = pure(({ listView, onClone, onDelete, onShare, workspace: {
       div({ style: { flex: 'none' } }, [badge])
     ])
   ]) : a({
-    href: Nav.getLink('workspace', { namespace, name }),
+    href: Nav.getLink('workspace-dashboard', { namespace, name }),
     style: styles.shortCard
   }, [
     div({ style: styles.shortTitle }, [name]),
@@ -224,7 +227,7 @@ export const WorkspaceList = ajaxCaller(togglesListView('workspaceList')(class W
           }
         })
       ]),
-      h(PageFadeBox, [
+      h(PageFadeBox, { style: { position: 'relative' } }, [
         div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' } }, [
           div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, ['Workspaces']),
           viewToggleButtons
@@ -233,7 +236,6 @@ export const WorkspaceList = ajaxCaller(togglesListView('workspaceList')(class W
           h(NewWorkspaceCard, {
             onClick: () => this.setState({ creatingNewWorkspace: true })
           }),
-          !isDataLoaded && spinnerOverlay,
           listView ?
             div({ style: { flex: 1, minWidth: 0 } }, [
               renderedWorkspaces
@@ -255,7 +257,8 @@ export const WorkspaceList = ajaxCaller(togglesListView('workspaceList')(class W
           namespace: this.getWorkspace(sharingWorkspaceId).workspace.namespace,
           name: this.getWorkspace(sharingWorkspaceId).workspace.name,
           onDismiss: () => { this.setState({ sharingWorkspaceId: undefined }) }
-        })
+        }),
+        !isDataLoaded && (!workspaces ? transparentSpinnerOverlay : topSpinnerOverlay)
       ])
     ])
   }

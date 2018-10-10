@@ -56,33 +56,34 @@ const navIconProps = {
   hover: { opacity: 1 }, focus: 'hover'
 }
 
+const TAB_NAMES = ['dashboard', 'data', 'notebooks', 'tools', 'job history']
 
 class WorkspaceTabs extends PureComponent {
   render() {
     const { namespace, name, workspace, activeTab, refresh, onShare, onDelete, onClone } = this.props
-    const navTab = ({ tabName, href }) => {
-      const selected = tabName === activeTab
+    const navTab = currentTab => {
+      const selected = currentTab === activeTab
+      const href = Nav.getLink(_.kebabCase(`workspace ${currentTab}`), { namespace, name })
+      const hideSeparator = selected || TAB_NAMES.indexOf(activeTab) === TAB_NAMES.indexOf(currentTab) + 1
+
       return h(Fragment, [
         a({
           style: { ...styles.tab, ...(selected ? styles.activeTab : {}) },
           // some pages highlight a tab even when they're not on that url
           onClick: href === window.location.hash ? refresh : undefined,
           href
-        }, tabName),
-        navSeparator
+        }, currentTab),
+        !hideSeparator && navSeparator
       ])
     }
     const isOwner = workspace && Utils.isOwner(workspace.accessLevel)
     const menuIcon = iconName => {
       return icon(iconName, { size: 15, style: { marginRight: '.5rem' } })
     }
+
     return contextBar({ style: styles.tabContainer }, [
-      navSeparator,
-      navTab({ tabName: 'dashboard', href: Nav.getLink('workspace', { namespace, name }) }),
-      navTab({ tabName: 'notebooks', href: Nav.getLink('workspace-notebooks', { namespace, name }) }),
-      navTab({ tabName: 'data', href: Nav.getLink('workspace-data', { namespace, name }) }),
-      navTab({ tabName: 'tools', href: Nav.getLink('workspace-tools', { namespace, name }) }),
-      navTab({ tabName: 'job history', href: Nav.getLink('workspace-job-history', { namespace, name }) }),
+      activeTab !== TAB_NAMES[0] && navSeparator,
+      ..._.map(name => navTab(name), TAB_NAMES),
       div({ style: { flexGrow: 1 } }),
       h(PopupTrigger, {
         closeOnClick: true,

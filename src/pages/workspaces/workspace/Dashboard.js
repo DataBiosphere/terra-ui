@@ -1,11 +1,12 @@
+import _ from 'lodash/fp'
+import marked from 'marked'
+import { Fragment } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
-import ReactMarkdown from 'react-markdown'
 import SimpleMDE from 'react-simplemde-editor'
 import 'simplemde/dist/simplemde.min.css'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { buttonPrimary, buttonSecondary, link, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
-import Modal from 'src/components/Modal'
 import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
@@ -18,18 +19,18 @@ import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer
 
 const styles = {
   leftBox: {
-    flex: 1, padding: '2rem'
+    flex: 1, padding: '2rem', backgroundColor: colors.gray[4]
   },
   rightBox: {
-    flex: 'none', width: 350, backgroundColor: 'white',
+    flex: 'none', width: 350, backgroundColor: colors.gray[5],
     padding: '2rem 1rem 1rem'
   },
   header: {
     ...Style.elements.sectionHeader, textTransform: 'uppercase',
-    marginBottom: '1rem'
+    marginBottom: '1rem', display: 'flex'
   },
   infoTile: {
-    backgroundColor: colors.gray[5], color: 'black',
+    backgroundColor: colors.gray[4], color: 'black',
     borderRadius: 5, width: 90, padding: 7, margin: 4
   },
   tinyCaps: {
@@ -55,55 +56,6 @@ const InfoTile = ({ title, children }) => {
   ])
 }
 
-const EditWorkspaceModal = ajaxCaller(class EditWorkspaceModal extends Component {
-  constructor(props) {
-    super(props)
-    this.state = {
-      description: props.workspace.workspace.attributes.description || '',
-      saving: false
-    }
-  }
-
-  async save() {
-    const { onSave, workspace: { workspace: { namespace, name } }, ajax: { Workspaces } } = this.props
-    const { description } = this.state
-    try {
-      this.setState({ saving: true })
-      await Workspaces.workspace(namespace, name).shallowMergeNewAttributes({ description })
-      onSave()
-    } catch (error) {
-      reportError('Error saving workspace', error)
-    } finally {
-      this.setState({ saving: false })
-    }
-  }
-
-  render() {
-    const { onDismiss } = this.props
-    const { description, saving } = this.state
-    return h(Modal, {
-      title: 'Edit workspace',
-      onDismiss,
-      width: 500,
-      okButton: buttonPrimary({
-        onClick: () => this.save()
-      }, ['Save'])
-    }, [
-      div({ style: styles.label }, ['Description']),
-      h(SimpleMDE, {
-        options: {
-          autofocus: true,
-          placeholder: 'Enter a description',
-          status: false
-        },
-        value: description,
-        onChange: description => this.setState({ description })
-      }),
-      saving && spinnerOverlay
-    ])
-  }
-})
-
 export const WorkspaceDashboard = ajaxCaller(wrapWorkspace({
   breadcrumbs: () => breadcrumbs.commonPaths.workspaceList(),
   activeTab: 'dashboard'
@@ -114,7 +66,8 @@ class WorkspaceDashboardContent extends Component {
     this.state = {
       submissionsCount: undefined,
       storageCostEstimate: undefined,
-      editingWorkspace: false
+      editDescription: undefined,
+      saving: false
     }
   }
 
@@ -136,24 +89,58 @@ class WorkspaceDashboardContent extends Component {
     }
   }
 
+  async save() {
+    const { refreshWorkspace, workspace: { workspace: { namespace, name } }, ajax: { Workspaces } } = this.props
+    const { editDescription: description } = this.state
+    try {
+      this.setState({ saving: true })
+      await Workspaces.workspace(namespace, name).shallowMergeNewAttributes({ description })
+      await refreshWorkspace()
+    } catch (error) {
+      reportError('Error saving workspace', error)
+    } finally {
+      this.setState({ editDescription: undefined, saving: false })
+    }
+  }
+
   render() {
-    const { workspace, refreshWorkspace, workspace: { accessLevel, workspace: { createdDate, lastModified, bucketName, attributes: { description } } } } = this.props
-    const { submissionsCount, storageCostEstimate, editingWorkspace } = this.state
+    const { workspace: { accessLevel, workspace: { createdDate, lastModified, bucketName, attributes: { description = '' } } } } = this.props
+    const { submissionsCount, storageCostEstimate, editDescription, saving } = this.state
     const canWrite = Utils.canWrite(accessLevel)
+    const isEditing = _.isString(editDescription)
+
     return div({ style: { flex: 1, display: 'flex', marginBottom: '-2rem' } }, [
       div({ style: styles.leftBox }, [
         div({ style: styles.header }, [
-          'About the project',
-          buttonSecondary({
+          div({ style: { display: 'inline-block', lineHeight: '2.25rem' } }, 'About the project'),
+          !isEditing && buttonSecondary({
             style: { width: '2rem' },
             disabled: !canWrite,
             tooltip: !canWrite && 'You do not have permission to edit this workspace',
-            onClick: () => this.setState({ editingWorkspace: true })
+            onClick: () => this.setState({ editDescription: description })
           }, [icon('edit')])
         ]),
-        description ?
-          h(ReactMarkdown, [description]) :
-          div({ style: { fontStyle: 'italic' } }, ['No description added'])
+        Utils.cond(
+          [
+            isEditing, () => h(Fragment, [
+              h(SimpleMDE, {
+                options: {
+                  autofocus: true,
+                  placeholder: 'Enter a description',
+                  status: false
+                },
+                value: editDescription,
+                onChange: editDescription => this.setState({ editDescription })
+              }),
+              div({ style: { display: 'flex', justifyContent: 'flex-end', margin: '1rem' } }, [
+                buttonSecondary({ onClick: () => this.setState({ editDescription: undefined }) }, 'Cancel'),
+                buttonPrimary({ style: { marginLeft: '1rem' }, onClick: () => this.save() }, 'Save')
+              ]),
+              saving && spinnerOverlay
+            ])
+          ],
+          [!!description, () => div({ dangerouslySetInnerHTML: { __html: marked(description) } })],
+          () => div({ style: { fontStyle: 'italic' } }, ['No description added']))
       ]),
       div({ style: styles.rightBox }, [
         div({ style: styles.header }, ['Workspace information']),
@@ -172,21 +159,13 @@ class WorkspaceDashboardContent extends Component {
           href: Utils.bucketBrowserUrl(bucketName),
           style: styles.tinyCaps
         }, ['Google bucket'])
-      ]),
-      editingWorkspace && h(EditWorkspaceModal, {
-        workspace,
-        onDismiss: () => this.setState({ editingWorkspace: false }),
-        onSave: () => {
-          this.setState({ editingWorkspace: false })
-          refreshWorkspace()
-        }
-      })
+      ])
     ])
   }
 }))
 
 export const addNavPaths = () => {
-  Nav.defPath('workspace', {
+  Nav.defPath('workspace-dashboard', {
     path: '/workspaces/:namespace/:name',
     component: WorkspaceDashboard,
     title: ({ name }) => `${name} - Dashboard`

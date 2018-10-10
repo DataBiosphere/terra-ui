@@ -12,7 +12,7 @@ export default ajaxCaller(class WorkspaceSelector extends Component {
     selectedWorkspace: PropTypes.object,
     onWorkspaceSelected: PropTypes.func.isRequired,
     authorizationDomain: PropTypes.object,
-    filter: PropTypes.string
+    filter: PropTypes.func
   }
 
   render() {
