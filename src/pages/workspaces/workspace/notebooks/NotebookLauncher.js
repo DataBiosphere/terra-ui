@@ -2,6 +2,7 @@ import _ from 'lodash/fp'
 import { createRef, Fragment } from 'react'
 import { div, h, iframe } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
+import { spinnerDefault } from 'src/components/common'
 import { icon, spinner } from 'src/components/icons'
 import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
@@ -100,6 +101,7 @@ class NotebookLauncherContent extends Component {
           resolve()
         } else {
           this.saveNotebook()
+          this.setState({ saving: true })
           this.isSaved.subscribe(resolve)
         }
       }))
@@ -190,14 +192,17 @@ class NotebookLauncherContent extends Component {
   }
 
   render() {
-    const { clusterStatus, localizeFailures, failed, url } = this.state
+    const { clusterStatus, localizeFailures, failed, url, saving } = this.state
 
     if (url) {
-      return iframe({
-        src: url,
-        style: { border: 'none', flex: 1, marginBottom: '-2rem' },
-        ref: this.notebookFrame
-      })
+      return h(Fragment, [
+        iframe({
+          src: url,
+          style: { border: 'none', flex: 1, marginBottom: '-2rem' },
+          ref: this.notebookFrame
+        }),
+        saving && spinnerDefault()
+      ])
     }
 
     const currentStep = clusterStatus !== 'Running' ? 1 : 2
