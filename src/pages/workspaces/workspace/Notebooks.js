@@ -49,7 +49,7 @@ class NotebookCard extends Component {
         }, [iconHelp('renameIcon', 'Rename')]),
         h(MenuButton, {
           onClick: () => onCopy()
-        }, [iconHelp('copy', 'Clone')]),
+        }, [iconHelp('copy', 'Duplicate')]),
         h(MenuButton, {
           onClick: () => onDelete()
         }, [iconHelp('trash', 'Delete')])
