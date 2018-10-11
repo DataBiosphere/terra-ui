@@ -108,7 +108,7 @@ const WorkspaceCard = pure(({
       focus: 'hover',
       hover: { color: colors.blue[2] }
     }, [
-      icon('cardMenuIcon', { size: 23 })
+      icon('cardMenuIcon', { size: 24 })
     ])
   ])
   const descText = description ?

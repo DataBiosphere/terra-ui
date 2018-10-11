@@ -60,7 +60,7 @@ class NotebookCard extends Component {
         hover: { color: colors.blue[2] }
       }, [
         icon('cardMenuIcon', {
-          size: listView ? 18 : 27
+          size: listView ? 18 : 24
         })
       ])
     ])

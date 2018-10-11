@@ -81,7 +81,7 @@ const ToolCard = pure(({ listView, name, namespace, config, onCopy, onDelete }) 
       hover: { color: colors.blue[2] }
     }, [
       icon('cardMenuIcon', {
-        size: listView ? 18 : 27
+        size: listView ? 18 : 24
       })
     ])
   ])
@@ -142,7 +142,7 @@ class ToolsContent extends Component {
         }),
         deletingTool && h(DeleteToolModal, {
           workspace, methodConfig: deletingTool,
-          onDismiss: () => this.setState({ deleting: false }),
+          onDismiss: () => this.setState({ deletingTool: undefined }),
           onSuccess: () => Nav.goToPath('workspace-tools', _.pick(['namespace', 'name'], workspace))
         })
       ]),
