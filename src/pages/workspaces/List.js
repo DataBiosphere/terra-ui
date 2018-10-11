@@ -10,9 +10,9 @@ import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
 import PopupTrigger from 'src/components/PopupTrigger'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import TopBar from 'src/components/TopBar'
+import { withWorkspaces } from 'src/components/workspace-utils'
 import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
-import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
@@ -161,12 +161,15 @@ const NewWorkspaceCard = pure(({ onClick }) => {
 })
 
 
-export const WorkspaceList = ajaxCaller(togglesListView('workspaceList')(class WorkspaceList extends Component {
+export const WorkspaceList = _.flow(
+  ajaxCaller,
+  togglesListView('workspaceList'),
+  withWorkspaces({ persist: true })
+)(class WorkspaceList extends Component {
   constructor(props) {
     super(props)
     this.state = {
       filter: '',
-      workspaces: null,
       creatingNewWorkspace: false,
       cloningWorkspaceId: undefined,
       deletingWorkspaceId: undefined,
@@ -175,38 +178,22 @@ export const WorkspaceList = ajaxCaller(togglesListView('workspaceList')(class W
     }
   }
 
-  async refresh() {
-    const { ajax: { Workspaces } } = this.props
-    try {
-      this.setState({ isDataLoaded: false })
-      const workspaces = await Workspaces.list()
-      this.setState({
-        isDataLoaded: true,
-        workspaces: _.flow(
-          _.filter(ws => !ws.public || Utils.canWrite(ws.accessLevel)),
-          _.sortBy('workspace.name')
-        )(workspaces)
-      })
-    } catch (error) {
-      reportError('Error loading workspace list', error)
-    }
-  }
-
-  componentDidMount() {
-    this.refresh()
-  }
-
   getWorkspace(id) {
-    const { workspaces } = this.state
+    const { workspaces } = this.props
     return _.find({ workspace: { workspaceId: id } }, workspaces)
   }
 
   render() {
-    const { listView, viewToggleButtons } = this.props
-    const { workspaces, isDataLoaded, filter, creatingNewWorkspace, cloningWorkspaceId, deletingWorkspaceId, sharingWorkspaceId } = this.state
-    const data = _.filter(({ workspace: { namespace, name } }) => {
-      return Utils.textMatch(filter, `${namespace}/${name}`)
-    }, workspaces)
+    const { workspaces, loadingWorkspaces, refreshWorkspaces, listView, viewToggleButtons } = this.props
+    const { filter, creatingNewWorkspace, cloningWorkspaceId, deletingWorkspaceId, sharingWorkspaceId } = this.state
+    const data = _.flow(
+      _.filter(ws => {
+        const { workspace: { namespace, name } } = ws
+        return Utils.textMatch(filter, `${namespace}/${name}`) &&
+          (!ws.public || Utils.canWrite(ws.accessLevel))
+      }),
+      _.sortBy('workspace.name')
+    )(workspaces)
     const renderedWorkspaces = _.map(workspace => {
       return h(WorkspaceCard, {
         listView,
@@ -251,25 +238,25 @@ export const WorkspaceList = ajaxCaller(togglesListView('workspaceList')(class W
         deletingWorkspaceId && h(DeleteWorkspaceModal, {
           workspace: this.getWorkspace(deletingWorkspaceId),
           onDismiss: () => { this.setState({ deletingWorkspaceId: undefined }) },
-          onSuccess: () => this.refresh()
+          onSuccess: () => refreshWorkspaces()
         }),
         sharingWorkspaceId && h(ShareWorkspaceModal, {
           namespace: this.getWorkspace(sharingWorkspaceId).workspace.namespace,
           name: this.getWorkspace(sharingWorkspaceId).workspace.name,
           onDismiss: () => { this.setState({ sharingWorkspaceId: undefined }) }
         }),
-        !isDataLoaded && (!workspaces ? transparentSpinnerOverlay : topSpinnerOverlay)
+        loadingWorkspaces && (!workspaces ? transparentSpinnerOverlay : topSpinnerOverlay)
       ])
     ])
   }
 
   componentDidUpdate() {
     StateHistory.update(_.pick(
-      ['workspaces', 'filter'],
+      ['filter'],
       this.state)
     )
   }
-}))
+})
 
 export const addNavPaths = () => {
   Nav.defPath('root', {
