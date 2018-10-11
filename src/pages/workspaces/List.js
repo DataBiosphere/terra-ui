@@ -229,11 +229,13 @@ export const WorkspaceList = _.flow(
             ]) : renderedWorkspaces
         ]),
         creatingNewWorkspace && h(NewWorkspaceModal, {
-          onDismiss: () => this.setState({ creatingNewWorkspace: false })
+          onDismiss: () => this.setState({ creatingNewWorkspace: false }),
+          onSuccess: ({ namespace, name }) => Nav.goToPath('workspace-dashboard', { namespace, name })
         }),
         cloningWorkspaceId && h(NewWorkspaceModal, {
           cloneWorkspace: this.getWorkspace(cloningWorkspaceId),
-          onDismiss: () => this.setState({ cloningWorkspaceId: undefined })
+          onDismiss: () => this.setState({ cloningWorkspaceId: undefined }),
+          onSuccess: ({ namespace, name }) => Nav.goToPath('workspace-dashboard', { namespace, name })
         }),
         deletingWorkspaceId && h(DeleteWorkspaceModal, {
           workspace: this.getWorkspace(deletingWorkspaceId),
