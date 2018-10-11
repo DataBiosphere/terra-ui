@@ -129,11 +129,13 @@ const WorkflowIOTable = ({ which, inputsOutputs, config, errors, onChange, sugge
 }
 
 
-const WorkflowView = ajaxCaller(wrapWorkspace({
-  breadcrumbs: props => breadcrumbs.commonPaths.workspaceTab(props, 'tools'),
-  title: ({ workflowName }) => workflowName, activeTab: 'tools'
-},
-class WorkflowViewContent extends Component {
+const WorkflowView = _.flow(
+  wrapWorkspace({
+    breadcrumbs: props => breadcrumbs.commonPaths.workspaceTab(props, 'tools'),
+    title: ({ workflowName }) => workflowName, activeTab: 'tools'
+  }),
+  ajaxCaller
+)(class WorkflowView extends Component {
   constructor(props) {
     super(props)
 
@@ -435,7 +437,7 @@ class WorkflowViewContent extends Component {
 
     this.setState({ saved: false, modifiedConfig: savedConfig })
   }
-}))
+})
 
 
 export const addNavPaths = () => {
