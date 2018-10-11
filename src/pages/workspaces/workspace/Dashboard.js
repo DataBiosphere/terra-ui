@@ -34,7 +34,7 @@ const styles = {
     width: 125, padding: 7, margin: 4
   },
   tinyCaps: {
-    fontSize: 12, fontWeight: 'bold', textTransform: 'uppercase', color: colors.darkBlue[0]
+    fontSize: 8, fontWeight: 'bold', textTransform: 'uppercase', color: colors.darkBlue[0]
   },
   authDomain: {
     padding: '0.5rem 0.25rem', marginBottom: '0.25rem',

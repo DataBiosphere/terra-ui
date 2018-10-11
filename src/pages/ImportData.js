@@ -1,9 +1,9 @@
 import { Fragment } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
-import { buttonPrimary, pageColumn } from 'src/components/common'
+import { pageColumn } from 'src/components/common'
 import { spinner } from 'src/components/icons'
 import TopBar from 'src/components/TopBar'
-import WorkspaceSelector from 'src/components/WorkspaceSelector'
+import { WorkspaceImporter } from 'src/components/workspace-utils'
 import { ajaxCaller } from 'src/libs/ajax'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
@@ -14,7 +14,7 @@ import { Component } from 'src/libs/wrapped-components'
 const Importer = ajaxCaller(class Importer extends Component {
   render() {
     const { queryParams: { url, ad } } = this.props
-    const { isImporting, selectedWorkspace } = this.state
+    const { isImporting } = this.state
 
     return h(Fragment, [
       h(TopBar, { title: 'Import Data' }),
@@ -25,17 +25,10 @@ const Importer = ajaxCaller(class Importer extends Component {
         ])),
         pageColumn('Destination Workspace', 3,
           div({}, [
-            h(WorkspaceSelector, {
+            h(WorkspaceImporter, {
               authorizationDomain: ad,
-              filter: ({ accessLevel }) => Utils.canWrite(accessLevel),
-              selectedWorkspace,
-              onWorkspaceSelected: selectedWorkspace => this.setState({ selectedWorkspace })
+              onImport: ws => this.import_(ws)
             }),
-            buttonPrimary({
-              style: { marginTop: '1rem' },
-              disabled: !selectedWorkspace || isImporting,
-              onClick: () => this.import_()
-            }, ['Import']),
             isImporting && spinner({ style: { marginLeft: '0.5rem' } })
           ])
         )
@@ -43,9 +36,8 @@ const Importer = ajaxCaller(class Importer extends Component {
     ])
   }
 
-  async import_() {
+  async import_({ namespace, name }) {
     this.setState({ isImporting: true })
-    const { selectedWorkspace: { namespace, name } } = this.state
     const { queryParams: { url, format }, ajax: { Workspaces } } = this.props
 
     try {
