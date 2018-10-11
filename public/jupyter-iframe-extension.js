@@ -45,6 +45,19 @@ define([
 
     // frequent autosave
     Jupyter.notebook.set_autosave_interval(5000)
+
+    // listen for explicit save command
+    window.addEventListener('message', e => {
+      if (e.data === 'save') {
+        Jupyter.notebook.save_notebook()
+      }
+    })
+
+    // report save status up
+    Jupyter.notebook.save_widget.events.on('set_dirty.Notebook', function (event, data) {
+      window.parent.postMessage(data.value ? 'dirty' : 'saved', '*')
+    })
+
   }
 
   return {
