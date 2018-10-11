@@ -1,7 +1,8 @@
 import _ from 'lodash/fp'
-import { Fragment } from 'react'
+import { createRef, Fragment } from 'react'
 import { div, h, iframe } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
+import { spinnerDefault } from 'src/components/common'
 import { icon, spinner } from 'src/components/icons'
 import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
@@ -47,14 +48,36 @@ const NotebookLauncher = ajaxCaller(wrapWorkspace({
   showTabBar: false
 },
 class NotebookLauncherContent extends Component {
+  saveNotebook() {
+    this.notebookFrame.current.contentWindow.postMessage('save', '*')
+  }
+
   constructor(props) {
     super(props)
     this.state = { localizeFailures: 0 }
-    this.handleCloseMessage = e => {
+    this.isSaved = Utils.atom(true)
+    this.notebookFrame = createRef()
+    this.beforeUnload = e => {
+      if (!this.isSaved.get()) {
+        this.saveNotebook()
+        e.preventDefault()
+      }
+    }
+    this.handleMessages = e => {
       const { namespace, name } = this.props
 
-      if (e.data === 'close') {
-        Nav.goToPath('workspace-notebooks', { namespace, name })
+      switch (e.data) {
+        case 'close':
+          Nav.goToPath('workspace-notebooks', { namespace, name })
+          break
+        case 'saved':
+          this.isSaved.set(true)
+          break
+        case 'dirty':
+          this.isSaved.set(false)
+          break
+        default:
+          console.log('Unrecognized message:', e.data)
       }
     }
   }
@@ -62,7 +85,8 @@ class NotebookLauncherContent extends Component {
   async componentDidMount() {
     this.mounted = true
 
-    window.addEventListener('message', this.handleCloseMessage)
+    window.addEventListener('message', this.handleMessages)
+    window.addEventListener('beforeunload', this.beforeUnload)
 
     try {
       const { clusterName, clusterUrl } = await this.startCluster()
@@ -71,6 +95,16 @@ class NotebookLauncherContent extends Component {
         this.localizeNotebook(clusterName),
         Jupyter.notebooks(namespace, clusterName).setCookie()
       ])
+
+      Nav.blockNav.set(() => new Promise(resolve => {
+        if (this.isSaved.get()) {
+          resolve()
+        } else {
+          this.saveNotebook()
+          this.setState({ saving: true })
+          this.isSaved.subscribe(resolve)
+        }
+      }))
 
       const { name: workspaceName, notebookName } = this.props
       this.setState({ url: `${clusterUrl}/notebooks/${workspaceName}/${notebookName}` })
@@ -88,7 +122,9 @@ class NotebookLauncherContent extends Component {
       clearTimeout(this.scheduledRefresh)
     }
 
-    window.removeEventListener('message', this.handleCloseMessage)
+    window.removeEventListener('message', this.handleMessages)
+    window.removeEventListener('beforeunload', this.beforeUnload)
+    Nav.blockNav.reset()
   }
 
   componentDidUpdate(prevProps, prevState) {
@@ -156,13 +192,17 @@ class NotebookLauncherContent extends Component {
   }
 
   render() {
-    const { clusterStatus, localizeFailures, failed, url } = this.state
+    const { clusterStatus, localizeFailures, failed, url, saving } = this.state
 
     if (url) {
-      return iframe({
-        src: url,
-        style: { border: 'none', flex: 1, marginBottom: '-2rem' }
-      })
+      return h(Fragment, [
+        iframe({
+          src: url,
+          style: { border: 'none', flex: 1, marginBottom: '-2rem' },
+          ref: this.notebookFrame
+        }),
+        saving && spinnerDefault()
+      ])
     }
 
     const currentStep = clusterStatus !== 'Running' ? 1 : 2
