@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import { createRef, Fragment, PureComponent } from 'react'
 import { a, div, h, h2, p } from 'react-hyperscript-helpers'
 import ClusterManager from 'src/components/ClusterManager'
-import { Clickable, comingSoon, contextBar, MenuButton, link } from 'src/components/common'
+import { Clickable, comingSoon, contextBar, MenuButton, link, menuIcon } from 'src/components/common'
 import ErrorView from 'src/components/ErrorView'
 import { icon } from 'src/components/icons'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
@@ -77,9 +77,6 @@ class WorkspaceTabs extends PureComponent {
       ])
     }
     const isOwner = workspace && Utils.isOwner(workspace.accessLevel)
-    const menuIcon = iconName => {
-      return icon(iconName, { size: 15, style: { marginRight: '.5rem' } })
-    }
 
     return contextBar({ style: styles.tabContainer }, [
       activeTab !== TAB_NAMES[0] && navSeparator,

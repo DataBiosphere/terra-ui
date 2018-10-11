@@ -104,6 +104,10 @@ export const contextBar = function(props, children) {
   children)
 }
 
+export const menuIcon = iconName => {
+  return icon(iconName, { size: 15, style: { marginRight: '.5rem' } })
+}
+
 export const MenuButton = ({ disabled, children, ...props }) => {
   return h(Clickable, _.merge({
     disabled,
