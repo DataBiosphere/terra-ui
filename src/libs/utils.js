@@ -6,7 +6,7 @@ import uuid from 'uuid/v4'
 
 /**
  * A simple state container inspired by clojure atoms. Method names were chosen based on similarity
- * to lodash and Immutable. (deref => get, reset! => set, swap! => update)
+ * to lodash and Immutable. (deref => get, reset! => set, swap! => update, reset to go back to initial value)
  */
 export const atom = initialValue => {
   let value = initialValue
@@ -26,7 +26,8 @@ export const atom = initialValue => {
     },
     get: () => value,
     set,
-    update: fn => set(fn(value))
+    update: fn => set(fn(value)),
+    reset: () => set(initialValue)
   }
 }
 

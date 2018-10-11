@@ -1,11 +1,19 @@
-import { Component } from 'react'
 import createHistory from 'history/createHashHistory'
 import _ from 'lodash/fp'
 import pathToRegexp from 'path-to-regexp'
 import * as qs from 'qs'
+import { Component } from 'react'
+import { atom } from 'src/libs/utils'
 
 
-export const history = createHistory({ hashType: 'noslash' })
+export const blockNav = atom(() => Promise.resolve())
+
+export const history = createHistory({
+  hashType: 'noslash',
+  getUserConfirmation: (_, cb) => blockNav.get()().then(() => cb(true))
+})
+
+history.block('')
 
 let allPathHandlers = {}
 
