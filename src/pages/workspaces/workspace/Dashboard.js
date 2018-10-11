@@ -5,7 +5,7 @@ import { div, h } from 'react-hyperscript-helpers'
 import SimpleMDE from 'react-simplemde-editor'
 import 'simplemde/dist/simplemde.min.css'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { buttonPrimary, buttonSecondary, link, spinnerOverlay } from 'src/components/common'
+import { buttonPrimary, buttonSecondary, link, linkButton, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
@@ -19,22 +19,27 @@ import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer
 
 const styles = {
   leftBox: {
-    flex: 1, padding: '2rem', backgroundColor: colors.gray[4]
+    flex: 1, padding: '0 2rem'
   },
   rightBox: {
     flex: 'none', width: 350, backgroundColor: colors.gray[5],
-    padding: '2rem 1rem 1rem'
+    padding: '0 1rem'
   },
   header: {
     ...Style.elements.sectionHeader, textTransform: 'uppercase',
-    marginBottom: '1rem', display: 'flex'
+    margin: '2.5rem 0 1rem 0', display: 'flex'
   },
   infoTile: {
     backgroundColor: colors.gray[4], color: 'black',
-    borderRadius: 5, width: 90, padding: 7, margin: 4
+    width: 125, padding: 7, margin: 4
   },
   tinyCaps: {
-    fontSize: 8, fontWeight: 500, textTransform: 'uppercase'
+    fontSize: 12, fontWeight: 600, textTransform: 'uppercase', color: colors.darkBlue[0]
+  },
+  authDomain: {
+    padding: '0.5rem 0.25rem', marginBottom: '0.25rem',
+    backgroundColor: colors.gray[4],
+    whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'
   },
   label: {
     ...Style.elements.sectionHeader,
@@ -104,7 +109,15 @@ class WorkspaceDashboardContent extends Component {
   }
 
   render() {
-    const { workspace: { accessLevel, workspace: { createdDate, lastModified, bucketName, attributes: { description = '' } } } } = this.props
+    const {
+      workspace: {
+        accessLevel,
+        workspace: {
+          authorizationDomain, createdDate, lastModified, bucketName,
+          attributes: { description = '' }
+        }
+      }
+    } = this.props
     const { submissionsCount, storageCostEstimate, editDescription, saving } = this.state
     const canWrite = Utils.canWrite(accessLevel)
     const isEditing = _.isString(editDescription)
@@ -112,13 +125,13 @@ class WorkspaceDashboardContent extends Component {
     return div({ style: { flex: 1, display: 'flex', marginBottom: '-2rem' } }, [
       div({ style: styles.leftBox }, [
         div({ style: styles.header }, [
-          div({ style: { display: 'inline-block', lineHeight: '2.25rem' } }, 'About the project'),
-          !isEditing && buttonSecondary({
-            style: { width: '2rem' },
+          'About the project',
+          !isEditing && linkButton({
+            style: { marginLeft: '0.5rem' },
             disabled: !canWrite,
             tooltip: !canWrite && 'You do not have permission to edit this workspace',
             onClick: () => this.setState({ editDescription: description })
-          }, [icon('edit')])
+          }, [icon('edit', { className: 'is-solid' })])
         ]),
         Utils.cond(
           [
@@ -153,11 +166,18 @@ class WorkspaceDashboardContent extends Component {
             storageCostEstimate
           ])
         ]),
-        div({ style: { margin: '0.5rem 0', borderBottom: `1px solid ${colors.gray[3]}` } }),
+        !_.isEmpty(authorizationDomain) && h(Fragment, [
+          div({ style: styles.header }, ['Authorization Domain']),
+          div({ style: { marginBottom: '0.5rem' } }, [
+            'Collaborators must be a member of all of these groups to access this workspace.'
+          ]),
+          ..._.map(({ membersGroupName }) => div({ style: styles.authDomain }, [membersGroupName]), authorizationDomain)
+        ]),
+        div({ style: { margin: '1.5rem 0 0.5rem 0', borderBottom: `1px solid ${colors.gray[3]}` } }),
         link({
           target: '_blank',
           href: Utils.bucketBrowserUrl(bucketName),
-          style: styles.tinyCaps
+          style: { display: 'block', marginBottom: '3rem' }
         }, ['Google bucket'])
       ])
     ])
