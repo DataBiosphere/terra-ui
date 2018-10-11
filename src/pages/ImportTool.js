@@ -2,22 +2,19 @@ import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
-import { buttonPrimary, pageColumn } from 'src/components/common'
+import { pageColumn } from 'src/components/common'
 import ErrorView from 'src/components/ErrorView'
 import { centeredSpinner, icon, spinner } from 'src/components/icons'
 import TopBar from 'src/components/TopBar'
 import WDLViewer from 'src/components/WDLViewer'
-import WorkspaceSelector from 'src/components/WorkspaceSelector'
+import { WorkspaceImporter } from 'src/components/workspace-utils'
 import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
-import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 
-
-const writableWorkspacesOnly = workspaces => _.filter(ws => Utils.canWrite(ws.accessLevel), workspaces)
 
 const mutabilityWarning = 'Please note: Dockstore cannot guarantee that the WDL and Docker image' +
   ' referenced by this Workflow will not change. We advise you to review the WDL before future' +
@@ -37,19 +34,7 @@ const DockstoreImporter = ajaxCaller(class DockstoreImporter extends Component {
   }
 
   componentDidMount() {
-    const { ajax: { Workspaces } } = this.props
-
     this.loadWdl()
-    Workspaces.list().then(
-      workspaces => this.setState({ workspaces: writableWorkspacesOnly(workspaces) }),
-      error => reportError('Error loading workspaces', error)
-    )
-  }
-
-  componentWillReceiveProps(nextProps) {
-    if (nextProps.path !== this.props.path || nextProps.version !== this.props.version) {
-      this.setState({ wdl: undefined, loadError: undefined }, () => this.loadWdl())
-    }
   }
 
   loadWdl() {
@@ -61,20 +46,12 @@ const DockstoreImporter = ajaxCaller(class DockstoreImporter extends Component {
   }
 
   renderImport() {
-    const { selectedWorkspace, importError, isImporting } = this.state
+    const { importError, isImporting } = this.state
     return div({ style: { display: 'flex' } }, [
       pageColumn('Importing', 5, this.renderWdlArea()),
       pageColumn('Destination Workspace', 3,
         div({}, [
-          h(WorkspaceSelector, {
-            selectedWorkspace,
-            onWorkspaceSelected: selectedWorkspace => this.setState({ selectedWorkspace })
-          }),
-          buttonPrimary({
-            style: { marginTop: '1rem' },
-            disabled: !selectedWorkspace || isImporting,
-            onClick: () => this.import_()
-          }, ['Import']),
+          h(WorkspaceImporter, { onImport: ws => this.import_(ws) }),
           isImporting && spinner({ style: { marginLeft: '0.5rem' } }),
           importError && div({
             style: { marginTop: '1rem', color: colors.red[0] }
@@ -118,10 +95,9 @@ const DockstoreImporter = ajaxCaller(class DockstoreImporter extends Component {
     )
   }
 
-  async import_() {
+  async import_({ namespace, name }) {
     this.setState({ isImporting: true })
 
-    const { selectedWorkspace: { namespace, name } } = this.state
     const { path, version, ajax: { Workspaces } } = this.props
     const toolName = _.last(path.split('/'))
 
