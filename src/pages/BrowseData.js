@@ -159,7 +159,7 @@ const amppd = h(Participant, {
     validate the most promising biological targets for therapeutics. This AMP effort aims to identify and validate the
     most promising biological targets for therapeutics relevant to Parkinson's disease.`]),
     p(['Includes data from the following studies:']),
-    div({ style: { margin: '0.4rem 0', fontWeight: 500, lineHeight: '150%' } }, [
+    div({ style: { margin: '0.4rem 0', fontWeight: 'bold', lineHeight: '150%' } }, [
       div({ style: { display: 'flex' } }, [
         div({ style: { width: 410 } }, [`• Parkinson's Disease Biomarkers Program (PDBP)`]),
         div(['• BioFIND'])
