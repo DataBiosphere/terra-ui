@@ -24,7 +24,7 @@ import * as Tools from 'src/pages/workspaces/workspace/Tools'
 import * as WorkflowView from 'src/pages/workspaces/workspace/tools/WorkflowView'
 
 
-const pageWrapStyle = { minHeight: 'calc(100% - 2rem)', flexGrow: 1, display: 'flex', flexDirection: 'column', marginBottom: '2rem' }
+const pageWrapStyle = { minHeight: '100%', display: 'flex', flexDirection: 'column' }
 
 const initNavPaths = () => {
   Nav.clearPaths()

@@ -20,9 +20,6 @@ import * as Utils from 'src/libs/utils'
 
 
 const styles = {
-  page: {
-    display: 'flex', flexDirection: 'column', height: '100%', flexGrow: 1
-  },
   workspaceNameContainer: {
     display: 'flex', flexDirection: 'column',
     paddingLeft: '4rem', minWidth: 0, marginRight: '0.5rem'
@@ -137,7 +134,7 @@ class WorkspaceContainer extends Component {
     const { namespace, name, breadcrumbs, title, activeTab, showTabBar = true, refresh, refreshClusters, workspace, clusters } = this.props
     const { deletingWorkspace, cloningWorkspace, sharingWorkspace } = this.state
 
-    return div({ style: styles.page }, [
+    return h(Fragment, [
       h(TopBar, { title: 'Workspaces' }, [
         div({ style: styles.workspaceNameContainer }, [
           div({}, breadcrumbs),
