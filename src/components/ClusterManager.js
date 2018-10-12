@@ -42,7 +42,7 @@ const styles = {
   },
   label: {
     fontSize: 12,
-    fontWeight: 500
+    fontWeight: 'bold'
   },
   smallInput: {
     width: 80
@@ -336,7 +336,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
       !machineConfigsEqual(this.getMachineConfig(), currentCluster.machineConfig) ||
       jupyterUserScriptUri
     return div({ style: { padding: '1rem', width: 450 } }, [
-      div({ style: { fontSize: 16, fontWeight: 500 } }, 'Runtime environment'),
+      div({ style: { fontSize: 16, fontWeight: 'bold' } }, 'Runtime environment'),
       div({ style: styles.row }, [
         div({ style: { ...styles.col1, ...styles.label } }, 'Profile'),
         div({ style: { flex: 1 } }, [
@@ -546,7 +546,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
           div({
             style: { marginLeft: '0.5rem', paddingRight: '0.5rem', color: colors.gray[0] }
           }, [
-            div({ style: { fontSize: 12, fontWeight: 500 } }, 'Notebook Runtime'),
+            div({ style: { fontSize: 12, fontWeight: 'bold' } }, 'Notebook Runtime'),
             div({ style: { fontSize: 10 } }, [
               span({ style: { textTransform: 'uppercase', fontWeight: 500 } }, currentStatus || 'None'),
               ` (${Utils.formatUSD(totalCost)} hr)`
