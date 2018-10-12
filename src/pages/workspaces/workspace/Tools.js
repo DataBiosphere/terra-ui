@@ -100,8 +100,8 @@ const ToolCard = pure(({ listView, name, namespace, config, onCopy, onDelete }) 
     href: Nav.getLink('workflow', { namespace, name, workflowNamespace, workflowName })
   }, [
     div({ style: styles.shortTitle }, [workflowName]),
-    div([`V. ${methodVersion}`]),
-    div({ style: { display: 'flex', justifyContent: 'space-between', position: 'right' } }, [`Source: ${sourceRepo}`, toolCardMenu])
+    div({ style: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' } }, [
+      div([div([`V. ${methodVersion}`]),`Source: ${sourceRepo}`]), toolCardMenu])
   ])
 })
 
