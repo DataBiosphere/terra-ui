@@ -126,11 +126,14 @@ class NotebookCard extends Component {
   }
 }
 
-const WorkspaceNotebooks = ajaxCaller(togglesListView('notebooksTab')(wrapWorkspace({
-  breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
-  title: 'Notebooks', activeTab: 'notebooks'
-},
-class NotebooksContent extends Component {
+const Notebooks = _.flow(
+  wrapWorkspace({
+    breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
+    title: 'Notebooks', activeTab: 'notebooks'
+  }),
+  togglesListView('notebooksTab'),
+  ajaxCaller
+)(class Notebooks extends Component {
   constructor(props) {
     super(props)
     this.state = {
@@ -326,12 +329,12 @@ class NotebooksContent extends Component {
       this.state)
     )
   }
-})))
+})
 
 export const addNavPaths = () => {
   Nav.defPath('workspace-notebooks', {
     path: '/workspaces/:namespace/:name/notebooks',
-    component: WorkspaceNotebooks,
+    component: Notebooks,
     title: ({ name }) => `${name} - Notebooks`
   })
 }
