@@ -18,6 +18,7 @@ import * as Style from 'src/libs/style'
 import { Component } from 'src/libs/wrapped-components'
 import * as Utils from 'src/libs/utils'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
+import ExportNotebookModal from 'src/pages/workspaces/workspace/notebooks/ExportNotebookModal'
 
 
 const notebookCardCommonStyles = listView =>
@@ -34,7 +35,7 @@ const noWrite = 'You do not have access to modify this workspace.'
 
 class NotebookCard extends Component {
   render() {
-    const { namespace, name, updated, listView, wsName, onRename, onCopy, onDelete, canCompute, canWrite } = this.props
+    const { namespace, name, updated, listView, wsName, onRename, onCopy, onDelete, onExport, canCompute, canWrite } = this.props
 
     const iconHelp = (iconName, iconLabel) => {
       return h(Fragment, [icon(iconName, { size: 15, style: { marginRight: '.25rem' } }), iconLabel])
@@ -50,6 +51,9 @@ class NotebookCard extends Component {
         h(MenuButton, {
           onClick: () => onCopy()
         }, [iconHelp('copy', 'Duplicate')]),
+        h(MenuButton, {
+          onClick: () => onExport()
+        }, [iconHelp('export', 'Copy to another workspace')]),
         h(MenuButton, {
           onClick: () => onDelete()
         }, [iconHelp('trash', 'Delete')])
@@ -140,6 +144,7 @@ const Notebooks = _.flow(
       renamingNotebookName: undefined,
       copyingNotebookName: undefined,
       deletingNotebookName: undefined,
+      exportingNotebookName: undefined,
       ...StateHistory.get()
     }
     this.uploader = createRef()
@@ -207,6 +212,7 @@ const Notebooks = _.flow(
       name, updated, listView, bucketName, namespace, wsName, canCompute, canWrite,
       onRename: () => this.setState({ renamingNotebookName: name }),
       onCopy: () => this.setState({ copyingNotebookName: name }),
+      onExport: () => this.setState({ exportingNotebookName: name }),
       onDelete: () => this.setState({ deletingNotebookName: name })
     }), notebooks)
 
@@ -260,10 +266,10 @@ const Notebooks = _.flow(
   }
 
   render() {
-    const { loading, saving, notebooks, creating, renamingNotebookName, copyingNotebookName, deletingNotebookName } = this.state
+    const { loading, saving, notebooks, creating, renamingNotebookName, copyingNotebookName, deletingNotebookName, exportingNotebookName } = this.state
     const {
       namespace, viewToggleButtons,
-      workspace: { accessLevel, workspace: { bucketName } }
+      workspace: { accessLevel, workspace: { bucketName, workspaceId } }
     } = this.props
     const existingNames = this.getExistingNames()
 
@@ -307,6 +313,11 @@ const Notebooks = _.flow(
               this.setState({ copyingNotebookName: undefined })
               this.refresh()
             }
+          }),
+          exportingNotebookName && h(ExportNotebookModal, {
+            printName: printName(exportingNotebookName),
+            thisWorkspaceId: workspaceId,
+            onDismiss: () => this.setState({ exportingNotebookName: undefined })
           }),
           deletingNotebookName && h(NotebookDeleter, {
             printName: printName(deletingNotebookName), namespace, bucketName,
