@@ -17,5 +17,5 @@ export const elements = {
   pageTitle: {
     color: colors.darkBlue[0], fontSize: 22, fontWeight: 500, textTransform: 'uppercase'
   },
-  sectionHeader: { color: colors.darkBlue[0], fontSize: 16, fontWeight: 600 }
+  sectionHeader: { color: colors.darkBlue[0], fontSize: 16, fontWeight: 'bold' }
 }

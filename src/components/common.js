@@ -56,6 +56,7 @@ export const buttonPrimary = ({ disabled, ...props }, children) => {
     style: {
       ...styles.button,
       borderRadius: 5, color: 'white', padding: '0 1.5rem',
+      fontWeight: 'bold',
       backgroundColor: disabled ? colors.gray[2] : colors.blue[0],
       cursor: disabled ? 'not-allowed' : 'pointer'
     },
@@ -69,6 +70,7 @@ export const buttonSecondary = ({ disabled, ...props }, children) => {
     style: {
       ...styles.button,
       color: disabled ? colors.gray[2] : colors.gray[0],
+      fontWeight: 'bold',
       cursor: disabled ? 'not-allowed' : 'pointer'
     },
     hover: disabled ? undefined : { color: colors.gray[1] }
@@ -109,11 +111,11 @@ export const MenuButton = ({ disabled, children, ...props }) => {
     style: {
       display: 'flex', alignItems: 'center',
       fontSize: 12, minWidth: 125, height: '2rem',
-      color: disabled ? colors.gray[2] : colors.gray[0],
+      color: disabled ? colors.gray[2] : undefined,
       padding: '0 1.5rem',
       cursor: disabled ? 'not-allowed' : 'pointer'
     },
-    hover: !disabled ? { backgroundColor: colors.blue[3], fontWeight: 500 } : undefined
+    hover: !disabled ? { backgroundColor: colors.blue[3], fontWeight: 'bold' } : undefined
   }, props), [children])
 }
 
@@ -220,6 +222,7 @@ export const Select = ({ value, options, ...props }) => {
       singleValue: base => ({ ...base, color: colors.gray[0] }),
       option: (base, { isSelected, isFocused, isDisabled }) => _.merge(base, {
         backgroundColor: isSelected ? colors.blue[4] : isFocused ? colors.blue[5] : undefined,
+        fontWeight: isFocused ? 'bold' : undefined,
         color: isDisabled ? undefined : colors.gray[0],
         ':active': { backgroundColor: isSelected ? colors.blue[4] : colors.blue[5] }
       }),

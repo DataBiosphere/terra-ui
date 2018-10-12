@@ -16,7 +16,7 @@ const TabBar = ({ tabs, activeTab, onChangeTab, style }) => {
         key,
         style: {
           height: '2.25rem', display: 'flex', alignItems: 'center',
-          fontSize: 16, fontWeight: 500, color: colors.blue[0],
+          fontSize: 16, fontWeight: activeTab === key ? 'bold' : 500, color: colors.blue[0],
           borderBottom: `4px solid ${activeTab === key ? colors.blue[0] : 'transparent'}`,
           marginLeft: i * 1 > 0 ? '1rem' : undefined
         },
