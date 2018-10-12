@@ -42,12 +42,14 @@ const getCluster = clusters => {
   )(clusters)
 }
 
-const NotebookLauncher = ajaxCaller(wrapWorkspace({
-  breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
-  title: ({ notebookName }) => `Notebooks - ${notebookName}`,
-  showTabBar: false
-},
-class NotebookLauncherContent extends Component {
+const NotebookLauncher = _.flow(
+  wrapWorkspace({
+    breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
+    title: ({ notebookName }) => `Notebooks - ${notebookName}`,
+    showTabBar: false
+  }),
+  ajaxCaller
+)(class NotebookLauncher extends Component {
   saveNotebook() {
     this.notebookFrame.current.contentWindow.postMessage('save', '*')
   }
@@ -225,7 +227,7 @@ class NotebookLauncherContent extends Component {
       ])
     ])
   }
-}))
+})
 
 
 export const addNavPaths = () => {

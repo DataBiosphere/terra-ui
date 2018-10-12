@@ -567,20 +567,22 @@ export const Ajax = controller => {
 
 
 export const ajaxCaller = WrappedComponent => {
-  class AjaxWrapper extends Component {
+  class Wrapper extends Component {
     constructor(props) {
       super(props)
       this.controller = new window.AbortController()
       this.ajax = Ajax(this.controller)
     }
 
+    static displayName = 'ajaxCaller()'
+
     render() {
-      const { forwardedRef, ...rest } = this.props
+      const { forwardedRef, forwardedProps } = this.props
 
       return h(WrappedComponent, {
         ref: forwardedRef,
         ajax: this.ajax,
-        ...rest
+        ...forwardedProps
       })
     }
 
@@ -589,5 +591,5 @@ export const ajaxCaller = WrappedComponent => {
     }
   }
 
-  return forwardRef((props, ref) => h(AjaxWrapper, { forwardedRef: ref, ...props }))
+  return forwardRef((props, ref) => h(Wrapper, { forwardedRef: ref, forwardedProps: props }))
 }

@@ -61,11 +61,13 @@ const InfoTile = ({ title, children }) => {
   ])
 }
 
-export const WorkspaceDashboard = ajaxCaller(wrapWorkspace({
-  breadcrumbs: () => breadcrumbs.commonPaths.workspaceList(),
-  activeTab: 'dashboard'
-},
-class WorkspaceDashboardContent extends Component {
+export const WorkspaceDashboard = _.flow(
+  wrapWorkspace({
+    breadcrumbs: () => breadcrumbs.commonPaths.workspaceList(),
+    activeTab: 'dashboard'
+  }),
+  ajaxCaller
+)(class WorkspaceDashboard extends Component {
   constructor(props) {
     super(props)
     this.state = {
@@ -182,7 +184,7 @@ class WorkspaceDashboardContent extends Component {
       ])
     ])
   }
-}))
+})
 
 export const addNavPaths = () => {
   Nav.defPath('workspace-dashboard', {

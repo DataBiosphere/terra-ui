@@ -93,11 +93,13 @@ const statusCell = workflowStatuses => {
 const animationLengthMillis = 1000
 
 
-const JobHistory = ajaxCaller(wrapWorkspace({
-  breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
-  title: 'Job History', activeTab: 'job history'
-},
-class JobHistoryContent extends Component {
+const JobHistory = _.flow(
+  wrapWorkspace({
+    breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
+    title: 'Job History', activeTab: 'job history'
+  }),
+  ajaxCaller
+)(class JobHistory extends Component {
   constructor(props) {
     super(props)
 
@@ -258,7 +260,7 @@ class JobHistoryContent extends Component {
       clearTimeout(this.scheduledRefresh)
     }
   }
-}))
+})
 
 
 export const addNavPaths = () => {
