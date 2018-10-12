@@ -10,12 +10,14 @@ import { Component } from 'src/libs/wrapped-components'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
 
-const TerminalLauncher = ajaxCaller(wrapWorkspace({
-  breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
-  title: () => `Terminal`,
-  activeTab: 'notebooks'
-},
-class TerminalLauncherContent extends Component {
+const TerminalLauncher = _.flow(
+  wrapWorkspace({
+    breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
+    title: () => `Terminal`,
+    activeTab: 'notebooks'
+  }),
+  ajaxCaller
+)(class TerminalLauncher extends Component {
   async loadIframe() {
     const { clusters } = this.props
     const { url } = this.state
@@ -72,7 +74,7 @@ class TerminalLauncherContent extends Component {
       }) :
       centeredSpinner()
   }
-}))
+})
 
 
 export const addNavPaths = () => {

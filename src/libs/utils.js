@@ -36,11 +36,13 @@ export const atom = initialValue => {
  * component will re-render
  */
 export const connectAtom = (theAtom, name) => WrappedComponent => {
-  class AtomWrapper extends Component {
+  class Wrapper extends Component {
     constructor(props) {
       super(props)
       this.state = { value: theAtom.get() }
     }
+
+    static displayName = 'connectAtom()'
 
     componentDidMount() {
       theAtom.subscribe(this.handleChange)
@@ -55,17 +57,18 @@ export const connectAtom = (theAtom, name) => WrappedComponent => {
     }
 
     render() {
-      const { forwardedRef, ...rest } = this.props
+      const { forwardedRef, forwardedProps } = this.props
       const { value } = this.state
 
-      return h(WrappedComponent, _.merge({
+      return h(WrappedComponent, {
         ref: forwardedRef,
-        ...rest
-      }, name && { [name]: value }))
+        ...forwardedProps,
+        [name]: value
+      })
     }
   }
 
-  return forwardRef((props, ref) => h(AtomWrapper, { forwardedRef: ref, ...props }))
+  return forwardRef((props, ref) => h(Wrapper, { forwardedRef: ref, forwardedProps: props }))
 }
 
 export const makePrettyDate = function(dateString) {

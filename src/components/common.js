@@ -6,7 +6,6 @@ import RSelect from 'react-select'
 import { centeredSpinner, icon } from 'src/components/icons'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import colors from 'src/libs/colors'
-import * as Style from 'src/libs/style'
 
 
 const styles = {
@@ -166,17 +165,6 @@ export const RadioButton = ({ text, labelStyle, ...props }) => {
   ])
 }
 
-export const pageColumn = function(title, flex, contents) {
-  return div(
-    { style: { flex, overflow: 'hidden', margin: '3rem' } },
-    [
-      div({ style: { ...Style.elements.sectionHeader, marginBottom: '1rem' } },
-        title
-      ),
-      contents
-    ])
-}
-
 export const spinnerDefault = ({ outerStyles = {}, innerStyles = {} }) => div(
   {
     style: {
@@ -298,3 +286,8 @@ export const PageFadeBox = ({ children, style = {} }) => {
     }
   }, [children])
 }
+
+export const backgroundLogo = icon('logoIcon', {
+  size: 1200,
+  style: { position: 'fixed', top: -100, left: -100, zIndex: -1, opacity: 0.65 }
+})

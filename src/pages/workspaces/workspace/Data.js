@@ -82,11 +82,13 @@ const saveScroll = _.throttle(100, (initialX, initialY) => {
   StateHistory.update({ initialX, initialY })
 })
 
-const WorkspaceData = ajaxCaller(wrapWorkspace({
-  breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
-  title: 'Data', activeTab: 'data'
-},
-class WorkspaceDataContent extends Component {
+const WorkspaceData = _.flow(
+  wrapWorkspace({
+    breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
+    title: 'Data', activeTab: 'data'
+  }),
+  ajaxCaller
+)(class WorkspaceData extends Component {
   constructor(props) {
     super(props)
 
@@ -649,7 +651,7 @@ class WorkspaceDataContent extends Component {
       this.loadData()
     }
   }
-}))
+})
 
 export const addNavPaths = () => {
   Nav.defPath('workspace-data', {

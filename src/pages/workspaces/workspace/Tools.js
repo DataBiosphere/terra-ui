@@ -105,11 +105,14 @@ const ToolCard = pure(({ listView, name, namespace, config, onCopy, onDelete }) 
   ])
 })
 
-export const WorkspaceTools = ajaxCaller(togglesListView('toolsTab')(wrapWorkspace({
-  breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
-  title: 'Tools', activeTab: 'tools'
-},
-class ToolsContent extends Component {
+export const Tools = _.flow(
+  wrapWorkspace({
+    breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
+    title: 'Tools', activeTab: 'tools'
+  }),
+  togglesListView('toolsTab'),
+  ajaxCaller
+)(class Tools extends Component {
   constructor(props) {
     super(props)
     this.state = StateHistory.get()
@@ -167,12 +170,12 @@ class ToolsContent extends Component {
   componentDidUpdate() {
     StateHistory.update(_.pick(['configs'], this.state))
   }
-})))
+})
 
 export const addNavPaths = () => {
   Nav.defPath('workspace-tools', {
     path: '/workspaces/:namespace/:name/tools',
-    component: WorkspaceTools,
+    component: Tools,
     title: ({ name }) => `${name} - Tools`
   })
 }

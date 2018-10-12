@@ -172,12 +172,14 @@ class WorkspaceContainer extends Component {
 }
 
 
-export const wrapWorkspace = ({ breadcrumbs, activeTab, title, showTabBar = true }, content) => {
-  return ajaxCaller(class WorkspaceContainerWrapper extends Component {
+export const wrapWorkspace = ({ breadcrumbs, activeTab, title, showTabBar = true }) => WrappedComponent => {
+  return ajaxCaller(class Wrapper extends Component {
     constructor(props) {
       super(props)
       this.child = createRef()
     }
+
+    static displayName = 'wrapWorkspace()'
 
     render() {
       const { workspaceError } = this.state
@@ -202,7 +204,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, showTabBar = true
         },
         refreshClusters: () => this.refreshClusters()
       }, [
-        workspace && h(content, {
+        workspace && h(WrappedComponent, {
           ref: this.child,
           workspace, clusters,
           refreshWorkspace: () => this.refresh(),

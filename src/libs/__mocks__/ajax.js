@@ -64,22 +64,22 @@ export const Ajax = () => ({
 })
 
 export const ajaxCaller = WrappedComponent => {
-  class AjaxWrapper extends Component {
+  class Wrapper extends Component {
     constructor(props) {
       super(props)
       this.ajax = Ajax()
     }
 
     render() {
-      const { forwardedRef, ...rest } = this.props
+      const { forwardedRef, forwardedProps } = this.props
 
       return h(WrappedComponent, {
         ref: forwardedRef,
         ajax: this.ajax,
-        ...rest
+        ...forwardedProps
       })
     }
   }
 
-  return forwardRef((props, ref) => h(AjaxWrapper, { forwardedRef: ref, ...props }))
+  return forwardRef((props, ref) => h(Wrapper, { forwardedRef: ref, forwardedProps: props }))
 }
