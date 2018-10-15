@@ -242,7 +242,7 @@ export const FadeBox = ({ fadePoint = '60%', style = {}, children }) => {
     paddingTop = '1.5rem',
     paddingLR = '1.5rem',
     borderRadius = '8px',
-    backgroundColor = '#e5e5e5',
+    backgroundColor = 'transparent',
     borderColor = colors.gray[3],
     ...containerStyle
   } = style
