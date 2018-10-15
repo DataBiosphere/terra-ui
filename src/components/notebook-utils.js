@@ -97,7 +97,7 @@ export const NotebookCreator = ajaxCaller(class NotebookCreator extends Componen
         tooltip: Utils.summarizeErrors(errors),
         onClick: () => {
           this.setState({ creating: true })
-          Buckets.notebook(namespace, bucketName, notebookName).create(notebookData[notebookKernel]).then(
+          Buckets.notebook(namespace, bucketName, bucketName, notebookName).create(notebookData[notebookKernel]).then(
             () => {
               reloadList()
               onDismiss()
@@ -166,7 +166,7 @@ export const NotebookDuplicator = ajaxCaller(class NotebookDuplicator extends Co
         tooltip: Utils.summarizeErrors(errors),
         onClick: () => {
           this.setState({ processing: true })
-          Buckets.notebook(namespace, bucketName, printName)[destroyOld ? 'rename' : 'copy'](newName).then(
+          Buckets.notebook(namespace, bucketName, bucketName, printName)[destroyOld ? 'rename' : 'copy'](newName).then(
             onSuccess,
             error => reportError(`Error ${destroyOld ? 'renaming' : 'copying'} notebook`, error)
           )
@@ -209,7 +209,7 @@ export const NotebookDeleter = ajaxCaller(class NotebookDeleter extends Componen
         disabled: processing,
         onClick: () => {
           this.setState({ processing: true })
-          Buckets.notebook(namespace, bucketName, printName).delete().then(
+          Buckets.notebook(namespace, bucketName, bucketName, printName).delete().then(
             onSuccess,
             error => reportError('Error deleting notebook', error)
           )

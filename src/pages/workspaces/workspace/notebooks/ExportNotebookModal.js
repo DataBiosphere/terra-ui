@@ -1,11 +1,12 @@
 import _ from 'lodash/fp'
-import { h } from 'react-hyperscript-helpers'
+import { b, h } from 'react-hyperscript-helpers'
 import { buttonPrimary, spinnerOverlay } from 'src/components/common'
 import { validatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { withWorkspaces, WorkspaceSelector } from 'src/components/workspace-utils'
 import { ajaxCaller } from 'src/libs/ajax'
 import { requiredFormLabel } from 'src/libs/forms'
+import * as Nav from 'src/libs/nav'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 import validate from 'validate.js'
@@ -34,7 +35,9 @@ export default _.flow(
   }
 
   render() {
-    return this.renderExportForm()
+    const { exported } = this.state
+
+    return exported ? this.renderPostExport() : this.renderExportForm()
   }
 
   renderExportForm() {
@@ -57,7 +60,8 @@ export default _.flow(
       onDismiss,
       okButton: buttonPrimary({
         tooltip: Utils.summarizeErrors(errors),
-        disabled: !!errors
+        disabled: !!errors,
+        onClick: () => this.export()
       }, ['Export'])
     }, [
       requiredFormLabel('Destination'),
@@ -81,24 +85,38 @@ export default _.flow(
     ])
   }
 
-  async export() {
-    const { thisWorkspace, methodConfig, ajax: { Workspaces } } = this.props
-    const { notebookName } = this.state
+  renderPostExport() {
+    const { onDismiss } = this.props
+    const { newName } = this.state
     const selectedWorkspace = this.getSelectedWorkspace().workspace
 
+    return h(Modal, {
+      title: 'Copy to Workspace',
+      onDismiss,
+      cancelText: 'Stay Here',
+      okButton: buttonPrimary({
+        onClick: () => Nav.goToPath('workspace-notebooks', {
+          namespace: selectedWorkspace.namespace,
+          name: selectedWorkspace.name
+        })
+      }, ['Go to exported tool'])
+    }, [
+      'Successfully exported ',
+      b([newName]),
+      ' to ',
+      b([selectedWorkspace.name]),
+      '. Do you want to view the exported tool?'
+    ])
+  }
+
+  async export() {
+    const { thisWorkspaceNamespace, bucketName, ajax: { Buckets } } = this.props //where we are
+    const { newName } = this.state
+    const selectedWorkspace = this.getSelectedWorkspace().workspace //where we want to go
+    console.log({ bucketName, selectedWorkspace })
     try {
       this.setState({ exporting: true })
-      await Workspaces
-        .workspace(thisWorkspace.namespace, thisWorkspace.name)
-        .methodConfig(methodConfig.namespace, methodConfig.name)
-        .copyTo({
-          destConfigNamespace: selectedWorkspace.namespace,
-          destConfigName: notebookName,
-          workspaceName: {
-            namespace: selectedWorkspace.namespace,
-            name: selectedWorkspace.name
-          }
-        })
+      await Buckets.notebook(thisWorkspaceNamespace, bucketName, selectedWorkspace.bucketName, newName)['copy'](newName)
       this.setState({ exported: true })
     } catch (error) {
       this.setState({ error: await error.text(), exporting: false })
