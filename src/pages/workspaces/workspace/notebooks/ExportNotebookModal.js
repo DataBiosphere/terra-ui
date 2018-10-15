@@ -99,24 +99,23 @@ export default _.flow(
           namespace: selectedWorkspace.namespace,
           name: selectedWorkspace.name
         })
-      }, ['Go to exported tool'])
+      }, ['Go to exported notebook'])
     }, [
       'Successfully exported ',
       b([newName]),
       ' to ',
       b([selectedWorkspace.name]),
-      '. Do you want to view the exported tool?'
+      '. Do you want to view the exported notebook?'
     ])
   }
 
   async export() {
-    const { thisWorkspaceNamespace, bucketName, ajax: { Buckets } } = this.props //where we are
+    const { thisWorkspaceNamespace, bucketName, printName, ajax: { Buckets } } = this.props
     const { newName } = this.state
-    const selectedWorkspace = this.getSelectedWorkspace().workspace //where we want to go
-    console.log({ bucketName, selectedWorkspace })
+    const selectedWorkspace = this.getSelectedWorkspace().workspace
     try {
       this.setState({ exporting: true })
-      await Buckets.notebook(thisWorkspaceNamespace, bucketName, selectedWorkspace.bucketName, newName)['copy'](newName)
+      await Buckets.notebook(thisWorkspaceNamespace, bucketName, selectedWorkspace.bucketName, printName)['copy'](newName)
       this.setState({ exported: true })
     } catch (error) {
       this.setState({ error: await error.text(), exporting: false })
