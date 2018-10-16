@@ -116,7 +116,7 @@ const WorkspaceCard = pure(({
   ])
   const descText = description ?
     removeMd(listView ? description.split('\n')[0] : description) :
-    span({ style: { color: colors.gray[2] } }, ['No description added'])
+    span({ style: { color: colors.gray[1] } }, ['No description added'])
 
   return listView ? a({
     href: Nav.getLink('workspace-dashboard', { namespace, name }),

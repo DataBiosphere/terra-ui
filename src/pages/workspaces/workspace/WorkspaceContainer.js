@@ -43,7 +43,7 @@ const styles = {
   },
   activeTab: {
     backgroundColor: 'rgba(255,255,255,0.15)', color: 'unset',
-    borderBottom: `4px solid ${colors.blue[0]}`
+    borderBottom: `4px solid ${colors.blue[0]}`, fontWeight: 'bold'
   }
 }
 
@@ -175,12 +175,14 @@ class WorkspaceContainer extends Component {
 }
 
 
-export const wrapWorkspace = ({ breadcrumbs, activeTab, title, showTabBar = true }, content) => {
-  return ajaxCaller(class WorkspaceContainerWrapper extends Component {
+export const wrapWorkspace = ({ breadcrumbs, activeTab, title, showTabBar = true }) => WrappedComponent => {
+  return ajaxCaller(class Wrapper extends Component {
     constructor(props) {
       super(props)
       this.child = createRef()
     }
+
+    static displayName = 'wrapWorkspace()'
 
     render() {
       const { workspaceError } = this.state
@@ -205,7 +207,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, showTabBar = true
         },
         refreshClusters: () => this.refreshClusters()
       }, [
-        workspace && h(content, {
+        workspace && h(WrappedComponent, {
           ref: this.child,
           workspace, clusters,
           refreshWorkspace: () => this.refresh(),

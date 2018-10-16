@@ -6,7 +6,6 @@ import RSelect from 'react-select'
 import { centeredSpinner, icon } from 'src/components/icons'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import colors from 'src/libs/colors'
-import * as Style from 'src/libs/style'
 
 
 const styles = {
@@ -57,6 +56,7 @@ export const buttonPrimary = ({ disabled, ...props }, children) => {
     style: {
       ...styles.button,
       borderRadius: 5, color: 'white', padding: '0 1.5rem',
+      fontWeight: 'bold',
       backgroundColor: disabled ? colors.gray[2] : colors.blue[0],
       cursor: disabled ? 'not-allowed' : 'pointer'
     },
@@ -70,6 +70,7 @@ export const buttonSecondary = ({ disabled, ...props }, children) => {
     style: {
       ...styles.button,
       color: disabled ? colors.gray[2] : colors.gray[0],
+      fontWeight: 'bold',
       cursor: disabled ? 'not-allowed' : 'pointer'
     },
     hover: disabled ? undefined : { color: colors.gray[1] }
@@ -110,11 +111,11 @@ export const MenuButton = ({ disabled, children, ...props }) => {
     style: {
       display: 'flex', alignItems: 'center',
       fontSize: 12, minWidth: 125, height: '2rem',
-      color: disabled ? colors.gray[2] : colors.gray[0],
+      color: disabled ? colors.gray[2] : undefined,
       padding: '0 1.5rem',
       cursor: disabled ? 'not-allowed' : 'pointer'
     },
-    hover: !disabled ? { backgroundColor: colors.blue[3], fontWeight: 500 } : undefined
+    hover: !disabled ? { backgroundColor: colors.blue[3], fontWeight: 'bold' } : undefined
   }, props), [children])
 }
 
@@ -160,17 +161,6 @@ export const RadioButton = ({ text, labelStyle, ...props }) => {
     }),
     label({ htmlFor: id, style: labelStyle }, text)
   ])
-}
-
-export const pageColumn = function(title, flex, contents) {
-  return div(
-    { style: { flex, overflow: 'hidden', margin: '3rem' } },
-    [
-      div({ style: { ...Style.elements.sectionHeader, marginBottom: '1rem' } },
-        title
-      ),
-      contents
-    ])
 }
 
 export const spinnerDefault = ({ outerStyles = {}, innerStyles = {} }) => div(
@@ -232,6 +222,7 @@ export const Select = ({ value, options, ...props }) => {
       singleValue: base => ({ ...base, color: colors.gray[0] }),
       option: (base, { isSelected, isFocused, isDisabled }) => _.merge(base, {
         backgroundColor: isSelected ? colors.blue[4] : isFocused ? colors.blue[5] : undefined,
+        fontWeight: isFocused ? 'bold' : undefined,
         color: isDisabled ? undefined : colors.gray[0],
         ':active': { backgroundColor: isSelected ? colors.blue[4] : colors.blue[5] }
       }),
@@ -251,7 +242,7 @@ export const FadeBox = ({ fadePoint = '60%', style = {}, children }) => {
     paddingTop = '1.5rem',
     paddingLR = '1.5rem',
     borderRadius = '8px',
-    backgroundColor = '#e5e5e5',
+    backgroundColor = 'transparent',
     borderColor = colors.gray[3],
     ...containerStyle
   } = style
@@ -294,3 +285,8 @@ export const PageFadeBox = ({ children, style = {} }) => {
     }
   }, [children])
 }
+
+export const backgroundLogo = icon('logoIcon', {
+  size: 1200,
+  style: { position: 'fixed', top: -100, left: -100, zIndex: -1, opacity: 0.65 }
+})

@@ -34,7 +34,7 @@ const styles = {
     width: 125, padding: 7, margin: 4
   },
   tinyCaps: {
-    fontSize: 12, fontWeight: 600, textTransform: 'uppercase', color: colors.darkBlue[0]
+    fontSize: 8, fontWeight: 'bold', textTransform: 'uppercase', color: colors.darkBlue[0]
   },
   authDomain: {
     padding: '0.5rem 0.25rem', marginBottom: '0.25rem',
@@ -61,11 +61,13 @@ const InfoTile = ({ title, children }) => {
   ])
 }
 
-export const WorkspaceDashboard = ajaxCaller(wrapWorkspace({
-  breadcrumbs: () => breadcrumbs.commonPaths.workspaceList(),
-  activeTab: 'dashboard'
-},
-class WorkspaceDashboardContent extends Component {
+export const WorkspaceDashboard = _.flow(
+  wrapWorkspace({
+    breadcrumbs: () => breadcrumbs.commonPaths.workspaceList(),
+    activeTab: 'dashboard'
+  }),
+  ajaxCaller
+)(class WorkspaceDashboard extends Component {
   constructor(props) {
     super(props)
     this.state = {
@@ -182,7 +184,7 @@ class WorkspaceDashboardContent extends Component {
       ])
     ])
   }
-}))
+})
 
 export const addNavPaths = () => {
   Nav.defPath('workspace-dashboard', {
