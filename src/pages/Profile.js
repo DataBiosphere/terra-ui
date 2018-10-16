@@ -16,7 +16,7 @@ import validate from 'validate.js'
 
 const styles = {
   page: {
-    margin: '0 5rem',
+    margin: '0 5rem 2rem',
     width: 700
   },
   sectionTitle: {

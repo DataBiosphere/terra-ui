@@ -31,7 +31,7 @@ const initialSort = { field: 'name', direction: 'asc' }
 
 const styles = {
   tableContainer: {
-    display: 'flex', flex: 1, marginBottom: '-2rem'
+    display: 'flex', flex: 1
   },
   dataTypeSelectionPanel: {
     flex: 'none', width: 200, backgroundColor: 'white', padding: '1rem'
