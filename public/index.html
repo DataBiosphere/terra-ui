@@ -17,6 +17,46 @@
     <link rel="shortcut icon" href="%PUBLIC_URL%/favicon.png">
     <script src="https://apis.google.com/js/platform.js"></script>
     <title>Saturn</title>
+    <!-- Start of katetester Zendesk Widget script -->
+    <script id="ze-snippet" src="https://static.zdassets.com/ekr/snippet.js?key=a30d1ea2-f22c-4cb5-89ef-9c5596c73703"> </script>
+    <!-- End of katetester Zendesk Widget script -->
+    <script type="text/javascript">
+      window.zESettings = {
+        webWidget: {
+          contactForm: {
+            attachments: false//,
+            //suppress: true
+          },
+          position: {
+            horizontal: 'right',
+            vertical: 'bottom'
+          },
+          color: {
+            theme: '#cc853f',
+            launcher: '#cc853f',
+            launcherText: '#f4f5ff',
+            button: '#8A0648',
+            resultLists: '#691840',
+            header: '#203D9D',
+            articleLinks: '#FF4500'
+          },
+          launcher: {
+            label: {
+              'en-US': 'Email us',
+              '*': 'Help'
+            }
+          }
+        }
+      };
+    </script>
+    <script type="text/javascript">
+      /*const { profileInfo, displayName } = this.state*/
+      zE( function () {
+        var userName = 'fred'; //displayName;
+        var userEmail = 'fred@gmail.com'; //profileInfo.email
+        zE.identify({name: userName, email: userEmail});
+      });
+    </script>
   </head>
   <body>
     <noscript>
