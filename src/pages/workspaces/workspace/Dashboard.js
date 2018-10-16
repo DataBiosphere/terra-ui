@@ -124,7 +124,7 @@ export const WorkspaceDashboard = _.flow(
     const canWrite = Utils.canWrite(accessLevel)
     const isEditing = _.isString(editDescription)
 
-    return div({ style: { flex: 1, display: 'flex', marginBottom: '-2rem' } }, [
+    return div({ style: { flex: 1, display: 'flex' } }, [
       div({ style: styles.leftBox }, [
         div({ style: styles.header }, [
           'About the project',

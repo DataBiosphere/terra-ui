@@ -200,7 +200,7 @@ const NotebookLauncher = _.flow(
       return h(Fragment, [
         iframe({
           src: url,
-          style: { border: 'none', flex: 1, marginBottom: '-2rem' },
+          style: { border: 'none', flex: 1 },
           ref: this.notebookFrame
         }),
         saving && spinnerDefault()
