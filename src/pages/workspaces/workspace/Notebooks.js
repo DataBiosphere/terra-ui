@@ -1,3 +1,4 @@
+import clipboard from 'clipboard-polyfill/build/clipboard-polyfill'
 import _ from 'lodash/fp'
 import { createRef, Fragment } from 'react'
 import Dropzone from 'react-dropzone'
@@ -36,10 +37,21 @@ class NotebookCard extends Component {
   render() {
     const { namespace, name, updated, listView, wsName, onRename, onCopy, onDelete, canCompute, canWrite } = this.props
 
+    const notebookLink = Nav.getLink('workspace-notebook-launch', { namespace, name: wsName, notebookName: name.slice(10) })
+
     const notebookMenu = canWrite && h(PopupTrigger, {
       position: 'right',
       closeOnClick: true,
       content: h(Fragment, [
+        h(MenuButton, {
+          onClick: async () => {
+            try {
+              await clipboard.writeText(`${window.location.host}/${notebookLink}`)
+            } catch (error) {
+              reportError('Error copying to clipboard', error)
+            }
+          }
+        }, [menuIcon('copy-to-clipboard'), 'Copy notebook URL to clipboard']),
         h(MenuButton, {
           onClick: () => onRename()
         }, [menuIcon('renameIcon'), 'Rename']),
@@ -88,7 +100,7 @@ class NotebookCard extends Component {
     return h(Fragment, [
       h(TooltipTrigger, { content: !canCompute ? noCompute : undefined }, [
         a({
-          href: canCompute ? Nav.getLink('workspace-notebook-launch', { namespace, name: wsName, notebookName: name.slice(10) }) : undefined,
+          href: canCompute ? notebookLink : undefined,
           style: {
             ...Style.elements.card,
             ...notebookCardCommonStyles(listView),
