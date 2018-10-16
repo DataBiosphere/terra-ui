@@ -377,7 +377,7 @@ const WorkspaceData = _.flow(
         onClick: () => this.downloadForm.current.submit()
       }, [
         icon('download', { style: { marginRight: '0.5rem' } }),
-        'Download'
+        'Download Table TSV'
       ])
     ])
   }
