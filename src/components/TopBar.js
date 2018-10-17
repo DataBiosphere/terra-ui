@@ -62,11 +62,6 @@ export default class TopBar extends Component {
     children: PropTypes.node
   }
 
-  static defaultProps = {
-    title: undefined,
-    href: undefined
-  }
-
   showNav() {
     this.setState({ navShown: true })
     document.body.classList.add('overlayOpen')

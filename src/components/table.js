@@ -182,7 +182,7 @@ export class FlexTable extends Component {
 
   static defaultProps = {
     initialY: 0,
-    styleRow: _.identity({}),
+    styleRow: _.constant({}),
     columns: [],
     hoverHighlight: false,
     onScroll: _.noop
@@ -271,7 +271,7 @@ export class GridTable extends Component {
   static defaultProps = {
     initialX: 0,
     initialY: 0,
-    styleCell: _.identity({}),
+    styleCell: _.constant({}),
     columns: [],
     onScroll: _.noop
   }

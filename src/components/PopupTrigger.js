@@ -34,12 +34,10 @@ export default class PopupTrigger extends Component {
   }
 
   static defaultProps = {
-    content: undefined,
     position: 'right',
     align: 'center',
     closeOnClick: false,
-    onToggle: _.noop,
-    open: false
+    onToggle: _.noop
   }
 
   constructor(props) {

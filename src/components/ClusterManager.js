@@ -202,12 +202,8 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
     namespace: PropTypes.string.isRequired,
     name: PropTypes.string.isRequired,
     clusters: PropTypes.array,
-    canCompute: PropTypes.bool,
+    canCompute: PropTypes.bool.isRequired,
     refreshClusters: PropTypes.func.isRequired
-  }
-
-  static defaultProps = {
-    canCompute: false
   }
 
   constructor(props) {
