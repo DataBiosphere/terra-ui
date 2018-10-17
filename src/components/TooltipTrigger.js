@@ -7,6 +7,7 @@ import colors from 'src/libs/colors'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 
+
 const baseToolTip = {
   position: 'fixed', top: 0, left: 0, pointerEvents: 'none',
   maxWidth: 400, borderRadius: 4
@@ -36,8 +37,9 @@ const styles = {
 class Tooltip extends Component {
   static propTypes = {
     side: PropTypes.string,
-    target: PropTypes.string,
-    children: PropTypes.node
+    type: PropTypes.string.isRequired,
+    target: PropTypes.string.isRequired,
+    children: PropTypes.node.isRequired
   }
 
   static defaultProps = {
@@ -148,17 +150,19 @@ export default class TooltipTrigger extends Component {
   static propTypes = {
     content: PropTypes.node, // No tooltip if falsy
     side: PropTypes.string,
-    children: PropTypes.node
+    children: PropTypes.node,
+    type: PropTypes.string
+  }
+
+  static defaultProps = {
+    side: 'bottom',
+    type: 'default'
   }
 
   constructor(props) {
     super(props)
     this.state = { open: false }
     this.id = `tooltip-trigger-${_.uniqueId()}`
-  }
-
-  static defaultProps = {
-    type: 'default'
   }
 
   render() {

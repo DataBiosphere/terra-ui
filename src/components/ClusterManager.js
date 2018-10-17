@@ -206,12 +206,15 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
     refreshClusters: PropTypes.func.isRequired
   }
 
+  static defaultProps = {
+    canCompute: false
+  }
+
   constructor(props) {
     super(props)
     this.state = {
       open: false,
       busy: false,
-      clusters: undefined,
       profile: 'moderate',
       masterMachineType: 'n1-standard-4',
       masterDiskSize: 500,

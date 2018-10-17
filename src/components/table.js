@@ -164,7 +164,7 @@ export class FlexTable extends Component {
     height: PropTypes.number.isRequired,
     initialY: PropTypes.number,
     rowCount: PropTypes.number.isRequired,
-    rowStyle: PropTypes.object,
+    styleRow: PropTypes.func,
     columns: PropTypes.arrayOf(PropTypes.shape({
       headerRenderer: PropTypes.func.isRequired,
       cellRenderer: PropTypes.func.isRequired,
@@ -181,7 +181,11 @@ export class FlexTable extends Component {
   }
 
   static defaultProps = {
-    initialY: 0
+    initialY: 0,
+    styleRow: _.identity({}),
+    columns: [],
+    hoverHighlight: false,
+    onScroll: _.noop
   }
 
   constructor(props) {
@@ -196,7 +200,7 @@ export class FlexTable extends Component {
   }
 
   render() {
-    const { width, height, rowCount, rowStyle, columns, hoverHighlight, onScroll = _.noop } = this.props
+    const { width, height, rowCount, styleRow, columns, hoverHighlight, onScroll } = this.props
     const { scrollbarSize } = this.state
 
     return div([
@@ -230,7 +234,7 @@ export class FlexTable extends Component {
             key: data.key,
             as: 'div',
             className: 'table-row',
-            style: { ...data.style, backgroundColor: 'white', display: 'flex', ...(rowStyle ? rowStyle(data.rowIndex) : {}) },
+            style: { ...data.style, backgroundColor: 'white', display: 'flex', ...styleRow(data.rowIndex) },
             hover: hoverHighlight ? { backgroundColor: colors.blue[5] } : undefined
           }, [
             ..._.map(([i, { size, cellRenderer }]) => {
@@ -259,14 +263,17 @@ export class GridTable extends Component {
     initialX: PropTypes.number,
     initialY: PropTypes.number,
     rowCount: PropTypes.number.isRequired,
-    cellStyle: PropTypes.object,
+    styleCell: PropTypes.func,
     columns: PropTypes.arrayOf(PropTypes.shape({ width: PropTypes.number.isRequired })),
     onScroll: PropTypes.func
   }
 
   static defaultProps = {
     initialX: 0,
-    initialY: 0
+    initialY: 0,
+    styleCell: _.identity({}),
+    columns: [],
+    onScroll: _.noop
   }
 
   constructor(props) {
@@ -298,7 +305,7 @@ export class GridTable extends Component {
   }
 
   render() {
-    const { width, height, rowCount, columns, cellStyle, onScroll: customOnScroll = _.noop } = this.props
+    const { width, height, rowCount, columns, styleCell, onScroll: customOnScroll } = this.props
     const { scrollbarSize } = this.state
     return h(RVScrollSync, {
       ref: this.scrollSync
@@ -343,7 +350,7 @@ export class GridTable extends Component {
                   ...data.style,
                   ...styles.cell(data.columnIndex, columns.length),
                   backgroundColor: 'white',
-                  ...(cellStyle ? cellStyle(data) : {})
+                  ...styleCell(data)
                 }
               }, [
                 columns[data.columnIndex].cellRenderer(data)

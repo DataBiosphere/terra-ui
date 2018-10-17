@@ -4,7 +4,7 @@ import { reportError } from 'src/libs/error'
 
 export default class ErrorWrapper extends Component {
   static propTypes = {
-    children: PropTypes.node
+    children: PropTypes.node.isRequired
   }
 
   constructor(props) {

@@ -13,11 +13,13 @@ export default class TopBanner extends Component {
     isVisible: PropTypes.bool,
     showX: PropTypes.bool,
     onDismiss: PropTypes.func,
-    children: PropTypes.node
+    children: PropTypes.node.isRequired
   }
 
   static defaultProps = {
-    showX: true
+    isVisible: false,
+    showX: true,
+    onDismiss: _.noop
   }
 
   componentDidMount() {
@@ -55,7 +57,7 @@ export default class TopBanner extends Component {
         title: 'Hide banner',
         onClick: () => {
           this.setState({ show: false })
-          onDismiss && onDismiss()
+          onDismiss()
         }
       }, [icon('times', { size: 30, style: { marginRight: '1rem' } })])
     ])

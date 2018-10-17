@@ -19,7 +19,10 @@ export default class Collapse extends Component {
   }
 
   static defaultProps = {
-    showIcon: true
+    defaultHidden: false,
+    showIcon: true,
+    animate: false,
+    expandTitle: false
   }
 
   constructor(props) {
