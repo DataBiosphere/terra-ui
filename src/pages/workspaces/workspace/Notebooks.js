@@ -4,7 +4,7 @@ import Dropzone from 'react-dropzone'
 import { a, div, h } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import togglesListView from 'src/components/CardsListToggle'
-import { Clickable, link, MenuButton, PageFadeBox, spinnerOverlay } from 'src/components/common'
+import { Clickable, link, MenuButton, PageFadeBox, spinnerOverlay, menuIcon } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { NotebookCreator, NotebookDeleter, NotebookDuplicator } from 'src/components/notebook-utils'
 import PopupTrigger from 'src/components/PopupTrigger'
@@ -36,23 +36,19 @@ class NotebookCard extends Component {
   render() {
     const { namespace, name, updated, listView, wsName, onRename, onCopy, onDelete, canCompute, canWrite } = this.props
 
-    const iconHelp = (iconName, iconLabel) => {
-      return h(Fragment, [icon(iconName, { size: 15, style: { marginRight: '.25rem' } }), iconLabel])
-    }
-
     const notebookMenu = canWrite && h(PopupTrigger, {
       position: 'right',
       closeOnClick: true,
       content: h(Fragment, [
         h(MenuButton, {
           onClick: () => onRename()
-        }, [iconHelp('renameIcon', 'Rename')]),
+        }, [menuIcon('renameIcon'), 'Rename']),
         h(MenuButton, {
           onClick: () => onCopy()
-        }, [iconHelp('copy', 'Duplicate')]),
+        }, [menuIcon('copy'), 'Duplicate']),
         h(MenuButton, {
           onClick: () => onDelete()
-        }, [iconHelp('trash', 'Delete')])
+        }, [menuIcon('trash'), 'Delete'])
       ])
     }, [
       h(Clickable, {
@@ -64,7 +60,7 @@ class NotebookCard extends Component {
         hover: { color: colors.blue[2] }
       }, [
         icon('cardMenuIcon', {
-          size: listView ? 18 : 27
+          size: listView ? 18 : 24
         })
       ])
     ])

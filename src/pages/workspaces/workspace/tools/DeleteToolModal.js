@@ -25,7 +25,7 @@ export default ajaxCaller(class DeleteToolModal extends Component {
   }
 
   async delete() {
-    const { workspace, methodConfig, ajax: { Workspaces }, onDismiss, onSuccess } = this.props
+    const { workspace, methodConfig, ajax: { Workspaces }, onSuccess } = this.props
 
     try {
       await Workspaces
@@ -34,8 +34,7 @@ export default ajaxCaller(class DeleteToolModal extends Component {
         .delete()
       onSuccess()
     } catch (error) {
-      onDismiss()
-      reportError(error)
+      reportError('Error deleting tool', error)
     }
   }
 })

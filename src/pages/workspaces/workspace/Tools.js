@@ -1,9 +1,12 @@
 import _ from 'lodash/fp'
+import { Fragment } from 'react'
 import { a, div, h } from 'react-hyperscript-helpers'
 import { pure } from 'recompose'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import togglesListView from 'src/components/CardsListToggle'
-import { PageFadeBox, spinnerOverlay } from 'src/components/common'
+import { Clickable, MenuButton, PageFadeBox, spinnerOverlay, menuIcon } from 'src/components/common'
+import { icon } from 'src/components/icons'
+import PopupTrigger from 'src/components/PopupTrigger'
 import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
@@ -11,6 +14,8 @@ import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import { Component } from 'src/libs/wrapped-components'
+import DeleteToolModal from 'src/pages/workspaces/workspace/tools/DeleteToolModal'
+import ExportToolModal from 'src/pages/workspaces/workspace/tools/ExportToolModal'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
 
@@ -54,13 +59,38 @@ const styles = {
   }
 }
 
-const ToolCard = pure(({ listView, name, namespace, config }) => {
+const ToolCard = pure(({ listView, name, namespace, config, onCopy, onDelete }) => {
   const { namespace: workflowNamespace, name: workflowName, methodRepoMethod: { sourceRepo, methodVersion } } = config
+  const toolCardMenu = h(PopupTrigger, {
+    closeOnClick: true,
+    content: h(Fragment, [
+      h(MenuButton, {
+        onClick: () => onCopy()
+      }, [menuIcon('copy'), 'Copy to Another Workspace']),
+      h(MenuButton, {
+        onClick: () => onDelete()
+      }, [menuIcon('trash'), 'Delete'])
+    ])
+  }, [
+    h(Clickable, {
+      onClick: e => e.preventDefault(),
+      style: {
+        cursor: 'pointer', color: colors.blue[0]
+      },
+      focus: 'hover',
+      hover: { color: colors.blue[2] }
+    }, [
+      icon('cardMenuIcon', {
+        size: listView ? 18 : 24
+      })
+    ])
+  ])
   return listView ? a({
     style: styles.longCard,
     href: Nav.getLink('workflow', { namespace, name, workflowNamespace, workflowName })
   }, [
     div({ style: { display: 'flex', alignItems: 'center' } }, [
+      div({ style: { marginRight: '1rem' } }, [toolCardMenu]),
       div({ style: styles.longTitle }, [workflowName]),
       div({ style: styles.longMethodVersion }, [`V. ${methodVersion}`]),
       div({ style: { flex: 'none', width: 130 } }, [`Source: ${sourceRepo}`])
@@ -70,8 +100,9 @@ const ToolCard = pure(({ listView, name, namespace, config }) => {
     href: Nav.getLink('workflow', { namespace, name, workflowNamespace, workflowName })
   }, [
     div({ style: styles.shortTitle }, [workflowName]),
-    div([`V. ${methodVersion}`]),
-    div([`Source: ${sourceRepo}`])
+    div({ style: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' } }, [
+      div([div([`V. ${methodVersion}`]), `Source: ${sourceRepo}`]), toolCardMenu
+    ])
   ])
 })
 
@@ -102,17 +133,38 @@ export const Tools = _.flow(
     }
   }
 
+  getConfig({ namespace, name }) {
+    const { configs } = this.state
+    return _.find({ namespace, name }, configs)
+  }
+
   render() {
-    const { namespace, name, listView, viewToggleButtons } = this.props
-    const { loading, configs } = this.state
+    const { namespace, name, listView, viewToggleButtons, workspace: { workspace } } = this.props
+    const { loading, configs, copyingTool, deletingTool } = this.state
     return h(PageFadeBox, [
       div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' } }, [
         div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, ['Tools']),
-        viewToggleButtons
+        viewToggleButtons,
+        copyingTool && h(ExportToolModal, {
+          thisWorkspace: workspace, methodConfig: this.getConfig(copyingTool),
+          onDismiss: () => this.setState({ copyingTool: undefined })
+        }),
+        deletingTool && h(DeleteToolModal, {
+          workspace, methodConfig: this.getConfig(deletingTool),
+          onDismiss: () => this.setState({ deletingTool: undefined }),
+          onSuccess: () => {
+            this.refresh()
+            this.setState({ deletingTool: undefined })
+          }
+        })
       ]),
       div({ style: styles.cardContainer(listView) }, [
         _.map(config => {
-          return h(ToolCard, { key: `${config.namespace}/${config.name}`, namespace, name, config, listView })
+          return h(ToolCard, {
+            onCopy: () => this.setState({ copyingTool: { namespace: config.namespace, name: config.name } }),
+            onDelete: () => this.setState({ deletingTool: { namespace: config.namespace, name: config.name } }),
+            key: `${config.namespace}/${config.name}`, namespace, name, config, listView
+          })
         }, configs),
         configs && !configs.length && div(['No tools added']),
         loading && spinnerOverlay
