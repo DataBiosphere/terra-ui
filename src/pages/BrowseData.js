@@ -207,7 +207,7 @@ const fcDataLib = h(Participant, {
   title: 'FireCloud Dataset Library',
   description: `Search for datasets sequenced at the Broad Institute, or public datasets hosted at the Broad. Datasets
    are pre-loaded as workspaces. You can clone these, or copy data into the workspace of your choice.`,
-  sizeText: h(TooltipTrigger, { content: 'As of October 2018' }, [span('Samples: > 14,000')])
+  sizeText: h(TooltipTrigger, { content: 'As of October 2018' }, [span('Samples: > 158,629')])
 }, [
   buttonPrimary({
     as: 'a',
