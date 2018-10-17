@@ -18,7 +18,6 @@ import { ReferenceDataDeleter, ReferenceDataImporter, renderDataCell } from 'src
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
-import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
@@ -450,7 +449,7 @@ const WorkspaceData = _.flow(
 
   renderLocalVariables() {
     const { namespace, name, workspace: { accessLevel }, ajax: { Workspaces } } = this.props
-    const { workspaceAttributes, editIndex, deleteIndex, editKey, editValue, editType, addVariableHover } = this.state
+    const { workspaceAttributes, editIndex, deleteIndex, editKey, editValue, editType } = this.state
     const canEdit = Utils.canWrite(accessLevel)
     const stopEditing = () => this.setState({ editIndex: undefined, editKey: undefined, editValue: undefined, editType: undefined })
     const filteredAttributes = _.flow(

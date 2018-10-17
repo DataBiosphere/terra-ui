@@ -314,7 +314,8 @@ export const EntityDeleter = ajaxCaller(class EntityDeleter extends Component {
     namespace: PropTypes.string.isRequired,
     name: PropTypes.string.isRequired,
     entities: PropTypes.array.isRequired,
-    entityType: PropTypes.string.isRequired
+    entityType: PropTypes.string.isRequired,
+    runningSubmissionsCount: PropTypes.number.isRequired
   }
 
   render() {
