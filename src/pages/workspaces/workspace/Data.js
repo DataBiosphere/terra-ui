@@ -14,7 +14,7 @@ import { ajaxCaller } from 'src/libs/ajax'
 import { getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import * as Config from 'src/libs/config'
-import { ReferenceDataDeleter, ReferenceDataImporter, renderDataCell } from 'src/libs/data-utils'
+import { EntityDeleter, ReferenceDataDeleter, ReferenceDataImporter, renderDataCell } from 'src/libs/data-utils'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
@@ -178,8 +178,8 @@ const WorkspaceData = _.flow(
   }
 
   render() {
-    const { namespace, name, workspace: { accessLevel } } = this.props
-    const { selectedDataType, entityMetadata, loading, importingReference, deletingReference, deletingEntities } = this.state
+    const { namespace, name, workspace: { accessLevel, workspaceSubmissionStats: { runningSubmissionsCount } } } = this.props
+    const { selectedDataType, entityMetadata, loading, importingReference, deletingReference, deletingEntities, selectedEntities } = this.state
     const referenceData = this.getReferenceData()
     const canEdit = Utils.canWrite(accessLevel)
 
@@ -222,7 +222,12 @@ const WorkspaceData = _.flow(
               namespace, name, referenceDataType: deletingReference
             }),
           deletingEntities &&
-            true,
+            h(EntityDeleter, {
+              onDismiss: () => this.setState({ deletingEntities: false }),
+              onSuccess: () => this.setState({ deletingEntities: false }, () => this.loadData()),
+              namespace, name,
+              selectedEntities, selectedDataType, runningSubmissionsCount
+            }),
           _.map(type => {
             return h(DataTypeButton, {
               key: type,
@@ -305,16 +310,17 @@ const WorkspaceData = _.flow(
                     return h(Checkbox, {
                       checked,
                       onChange: () => {
-                        this.setState({ selectedEntities: checked ? [] : _.range(0, itemsPerPage) })
+                        this.setState({ selectedEntities: checked ? [] : _.map('name', entities) })
                       }
                     })
                   },
                   cellRenderer: ({ rowIndex }) => {
-                    const checked = selectedEntities.includes(rowIndex)
+                    const { name } = entities[rowIndex]
+                    const checked = selectedEntities.includes(name)
                     return h(Checkbox, {
                       checked,
                       onChange: () => {
-                        this.setState(({ selectedEntities }) => ({ selectedEntities: (checked ? _.pullAll : _.concat)([rowIndex], selectedEntities) }))
+                        this.setState(({ selectedEntities }) => ({ selectedEntities: (checked ? _.pullAll : _.concat)([name], selectedEntities) }))
                       }
                     })
                   }
