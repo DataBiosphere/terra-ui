@@ -10,7 +10,7 @@ import gtexLogo from 'src/images/browse-data/GTeX@2x.png'
 import hcaLogo from 'src/images/browse-data/HCA@2x.png'
 import nhsLogo from 'src/images/browse-data/NHS@2x.png'
 import topMedLogo from 'src/images/browse-data/TopMed@2x.png'
-import broadlogo from 'src/images/browse-data/broad_logo.png'
+import broadLogo from 'src/images/browse-data/broad_logo.png'
 import colors from 'src/libs/colors'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
@@ -44,7 +44,7 @@ const styles = {
 }
 
 
-const logoBox = ({ src, alt }) => div({
+const logoBox = ({ src, alt, height }) => div({
   style: {
     display: 'inline-flex', justifyContent: 'center', alignItems: 'center',
     flex: 'none',
@@ -54,7 +54,7 @@ const logoBox = ({ src, alt }) => div({
   }
 }, [
   img({
-    src, alt, height: '60%', width: 'auto'
+    src, alt, height: height || '60%', width: 'auto'
   })
 ])
 
@@ -203,7 +203,7 @@ const gtex = h(Participant, {
 ])
 
 const fcDataLib = h(Participant, {
-  logo: { src: broadlogo, alt: 'Broad logo', height: '40%' },
+  logo: { src: broadLogo, alt: 'Broad logo', height: '40%' },
   title: 'FireCloud Dataset Library',
   description: `Search for datasets sequenced at the Broad Institute, or public datasets hosted at the Broad. Datasets
    are pre-loaded as workspaces. You can clone these, or copy data into the workspace of your choice.`,
