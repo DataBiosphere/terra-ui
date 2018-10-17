@@ -15,7 +15,7 @@ import { Component } from 'src/libs/wrapped-components'
 const styles = {
   container: {
     display: 'flex', alignItems: 'flex-start', flex: 'auto',
-    position: 'relative', padding: '2rem', marginBottom: '-2rem'
+    position: 'relative', padding: '2rem'
   },
   title: {
     fontSize: 24, fontWeight: 600, color: colors.darkBlue[0], marginBottom: '2rem'

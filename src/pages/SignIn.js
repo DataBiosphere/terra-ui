@@ -22,10 +22,9 @@ export default class SignIn extends Component {
     return h(FooterWrapper, [
       div({
         style: {
-          flexGrow: 1, maxWidth: 1400,
-          padding: 82, marginBottom: '-2rem',
-          backgroundImage: `url(${signInBg})`,
-          backgroundRepeat: 'no-repeat', backgroundSize: 'cover', backgroundPosition: 'left bottom'
+          flexGrow: 1,
+          padding: 82,
+          background: `no-repeat left bottom / 1400px url(${signInBg}) ${colors.gray[5]}`
         }
       }, [
         div({ style: { maxWidth: 900 } }, [
