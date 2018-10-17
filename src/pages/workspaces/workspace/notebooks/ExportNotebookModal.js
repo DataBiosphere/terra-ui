@@ -12,6 +12,7 @@ import { Component } from 'src/libs/wrapped-components'
 import validate from 'validate.js'
 import ErrorView from 'src/components/ErrorView'
 
+const cutName = name => name.slice(10, -6) // removes 'notebooks/' and the .ipynb suffix
 
 export default _.flow(
   ajaxCaller,
@@ -24,6 +25,7 @@ export default _.flow(
       selectedWorkspaceId: undefined,
       error: undefined,
       exported: false,
+      renderOverride: false,
       newName: props.printName
     }
   }
@@ -35,9 +37,9 @@ export default _.flow(
   }
 
   render() {
-    const { exported } = this.state
-
-    return exported ? this.renderPostExport() : this.renderExportForm()
+    const { exported, renderOverride } = this.state
+    if (renderOverride) return this.renderWarningMessage()
+    else return exported ? this.renderPostExport() : this.renderExportForm()
   }
 
   renderExportForm() {
@@ -48,13 +50,10 @@ export default _.flow(
       { selectedWorkspaceId, newName },
       {
         selectedWorkspaceId: { presence: true },
-        newName: {
-          presence: { allowEmpty: false }
-        }
+        newName: { presence: { allowEmpty: false } }
       },
       { prettify: v => ({ newName: 'Name' }[v] || validate.prettify(v)) }
     )
-
     return h(Modal, {
       title: 'Copy to Workspace',
       onDismiss,
@@ -109,14 +108,53 @@ export default _.flow(
     ])
   }
 
-  async export() {
+  renderWarningMessage() {
+    const { onDismiss } = this.props
+    const { newName, exporting } = this.state
+    const selectedWorkspace = this.getSelectedWorkspace().workspace
+    return h(Modal, {
+      title: 'Warning: Name already exists',
+      onDismiss,
+      okButton: buttonPrimary({
+        onClick: () => this.overrideNotebook()
+      }, ['Export'])
+    }, [
+      b([newName]),
+      ' already exists in ',
+      b([selectedWorkspace.name]),
+      '. Exporting will override the currently existing notebook. Please choose a different name or choose Export to continue.',
+      exporting && spinnerOverlay
+    ])
+  }
+
+  async overrideNotebook() {
     const { thisWorkspaceNamespace, bucketName, printName, ajax: { Buckets } } = this.props
     const { newName } = this.state
     const selectedWorkspace = this.getSelectedWorkspace().workspace
     try {
       this.setState({ exporting: true })
       await Buckets.notebook(thisWorkspaceNamespace, bucketName, selectedWorkspace.bucketName, printName)['copy'](newName)
-      this.setState({ exported: true })
+      this.setState({ renderOverride: false, exported: true })
+    } catch (error) {
+      this.setState({ error: await error.text(), exporting: false })
+    }
+  }
+
+  async export() {
+    const { thisWorkspaceNamespace, bucketName, printName, ajax: { Buckets } } = this.props
+    const { newName } = this.state
+    const selectedWorkspace = this.getSelectedWorkspace().workspace
+    try {
+      this.setState({ exporting: true })
+      const selectedNotebooks = await Buckets.listNotebooks(selectedWorkspace.namespace, selectedWorkspace.bucketName)
+      const selectedNames = _.map(({ name }) => cutName(name), selectedNotebooks)
+      if (selectedNames.includes(newName)) {
+        this.setState({ exporting: false, renderOverride: true })
+        return this.renderWarningMessage()
+      } else {
+        await Buckets.notebook(thisWorkspaceNamespace, bucketName, selectedWorkspace.bucketName, printName)['copy'](newName)
+        this.setState({ exported: true })
+      }
     } catch (error) {
       this.setState({ error: await error.text(), exporting: false })
     }
