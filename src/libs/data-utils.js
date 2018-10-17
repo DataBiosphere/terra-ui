@@ -306,3 +306,37 @@ export const ReferenceDataDeleter = ajaxCaller(class ReferenceDataDeleter extend
     }, [`Are you sure you want to delete ${referenceDataType}?`])
   }
 })
+
+export const EntityDeleter = ajaxCaller(class EntityDeleter extends Component {
+  static propTypes = {
+    onDismiss: PropTypes.func.isRequired,
+    onSuccess: PropTypes.func.isRequired,
+    namespace: PropTypes.string.isRequired,
+    name: PropTypes.string.isRequired,
+    entities: PropTypes.array.isRequired,
+    entityType: PropTypes.string.isRequired
+  }
+
+  render() {
+    const { onDismiss, onSuccess, namespace, name, entities, entityType, ajax: { Workspaces } } = this.props
+    const { deleting } = this.state
+
+    return h(Modal, {
+      onDismiss,
+      title: 'Confirm Delete',
+      okButton: buttonPrimary({
+        disabled: deleting,
+        onClick: async () => {
+          this.setState({ deleting: true })
+          try {
+            await Workspaces.workspace(namespace, name).deleteEntities(entities, entityType)
+            onSuccess()
+          } catch (error) {
+            reportError('Error deleting reference data', error)
+            onDismiss()
+          }
+        }
+      }, ['Delete'])
+    }, [`Are you sure you want to delete ?`])
+  }
+})

@@ -4,7 +4,8 @@ import { createRef, Fragment } from 'react'
 import { div, form, h, input } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { buttonPrimary, Clickable, linkButton, Select, spinnerOverlay } from 'src/components/common'
+import { buttonPrimary, Checkbox, Clickable, linkButton, Select, spinnerOverlay } from 'src/components/common'
+import FloatingActionButton from 'src/components/FloatingActionButton'
 import { icon, spinner } from 'src/components/icons'
 import { textInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
@@ -100,6 +101,7 @@ const WorkspaceData = _.flow(
       workspaceAttributes: props.workspace.workspace.attributes,
       columnWidths: {},
       columnState: {},
+      selectedEntities: [],
       ...StateHistory.get()
     }
     this.downloadForm = createRef()
@@ -139,7 +141,7 @@ const WorkspaceData = _.flow(
         ])
 
         this.setState(_.merge(
-          isDataModel && { entities: entities.results, totalRowCount: entities.resultMetadata.unfilteredCount },
+          isDataModel && { entities: entities.results, totalRowCount: entities.resultMetadata.unfilteredCount, selectedEntities: [] },
           { workspaceAttributes }
         ))
       } catch (error) {
@@ -178,7 +180,7 @@ const WorkspaceData = _.flow(
 
   render() {
     const { namespace, name, workspace: { accessLevel } } = this.props
-    const { selectedDataType, entityMetadata, loading, importingReference, deletingReference } = this.state
+    const { selectedDataType, entityMetadata, loading, importingReference, deletingReference, deletingEntities } = this.state
     const referenceData = this.getReferenceData()
     const canEdit = Utils.canWrite(accessLevel)
 
@@ -220,6 +222,8 @@ const WorkspaceData = _.flow(
               }, () => this.loadData()),
               namespace, name, referenceDataType: deletingReference
             }),
+          deletingEntities &&
+            true,
           _.map(type => {
             return h(DataTypeButton, {
               key: type,
@@ -274,10 +278,11 @@ const WorkspaceData = _.flow(
 
   renderEntityTable() {
     const { namespace } = this.props
-    const { entities, selectedDataType, entityMetadata, totalRowCount, pageNumber, itemsPerPage, sort, columnWidths, columnState } = this.state
+    const { entities, selectedDataType, entityMetadata, totalRowCount, pageNumber, itemsPerPage, sort, columnWidths, columnState, selectedEntities } = this.state
     const theseColumnWidths = columnWidths[selectedDataType] || {}
     const columnSettings = applyColumnSettings(columnState[selectedDataType] || [], entityMetadata[selectedDataType].attributeNames)
     const resetScroll = () => this.table.current.scrollToTop()
+    const nameWidth = theseColumnWidths['name'] || 150
     return entities && h(Fragment, [
       div({ style: { flex: 'none', marginBottom: '1rem' } }, [
         this.renderDownloadButton(),
@@ -294,23 +299,41 @@ const WorkspaceData = _.flow(
               initialX: StateHistory.get().initialX,
               initialY: StateHistory.get().initialY,
               columns: [
-                (() => {
-                  const thisWidth = theseColumnWidths['name'] || 150
-                  return {
-                    width: thisWidth,
-                    headerRenderer: () => h(Resizable, {
-                      width: thisWidth, onWidthChange: delta => {
-                        this.setState({ columnWidths: _.set(`${selectedDataType}.name`, thisWidth + delta, columnWidths) },
-                          () => this.table.current.recomputeColumnSizes())
+                {
+                  width: 50,
+                  headerRenderer: () => {
+                    const checked = selectedEntities.length === itemsPerPage
+                    return h(Checkbox, {
+                      checked,
+                      onChange: () => {
+                        this.setState({ selectedEntities: checked ? [] : _.range(0, itemsPerPage) })
                       }
-                    }, [
-                      h(Sortable, { sort, field: 'name', onSort: v => this.setState({ sort: v }) }, [
-                        h(HeaderCell, [`${selectedDataType}_id`])
-                      ])
-                    ]),
-                    cellRenderer: ({ rowIndex }) => renderDataCell(entities[rowIndex].name, namespace)
+                    })
+                  },
+                  cellRenderer: ({ rowIndex }) => {
+                    const checked = selectedEntities.includes(rowIndex)
+                    return h(Checkbox, {
+                      checked,
+                      onChange: () => {
+                        this.setState(({ selectedEntities }) => ({ selectedEntities: (checked ? _.pullAll : _.concat)([rowIndex], selectedEntities) }))
+                      }
+                    })
                   }
-                })(),
+                },
+                {
+                  width: nameWidth,
+                  headerRenderer: () => h(Resizable, {
+                    width: nameWidth, onWidthChange: delta => {
+                      this.setState({ columnWidths: _.set(`${selectedDataType}.name`, nameWidth + delta, columnWidths) },
+                        () => this.table.current.recomputeColumnSizes())
+                    }
+                  }, [
+                    h(Sortable, { sort, field: 'name', onSort: v => this.setState({ sort: v, selectedEntities: [] }) }, [
+                      h(HeaderCell, [`${selectedDataType}_id`])
+                    ])
+                  ]),
+                  cellRenderer: ({ rowIndex }) => renderDataCell(entities[rowIndex].name, namespace)
+                },
                 ..._.map(({ name }) => {
                   const thisWidth = theseColumnWidths[name] || 300
                   return {
@@ -352,7 +375,12 @@ const WorkspaceData = _.flow(
           itemsPerPage,
           setItemsPerPage: v => this.setState({ itemsPerPage: v, pageNumber: 1 }, resetScroll)
         })
-      ])
+      ]),
+      !!selectedEntities.length && h(FloatingActionButton, {
+        label: 'DELETE DATA',
+        iconShape: 'trash',
+        onClick: () => this.setState({ deletingEntities: true })
+      })
     ])
   }
 
@@ -555,36 +583,16 @@ const WorkspaceData = _.flow(
             ]
           })
         ]),
-        !creatingNewVariable && canEdit && h(Clickable,
-          {
-            style: {
-              position: 'absolute', bottom: 25, right: 25,
-              backgroundColor: colors.blue[0], color: 'white',
-              padding: '0.5rem', borderRadius: 40,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              boxShadow: Style.standardShadow
-            },
-            onMouseEnter: () => this.setState({ addVariableHover: true }),
-            onMouseLeave: () => this.setState({ addVariableHover: false }),
-            onClick: () => this.setState({
-              addVariableHover: false,
-              editIndex: filteredAttributes.length,
-              editValue: '',
-              editKey: '',
-              editType: 'string'
-            })
-          },
-          [
-            div({
-              style: {
-                padding: `0 ${addVariableHover ? '0.5rem' : '0'}`, fontWeight: 'bold',
-                maxWidth: addVariableHover ? 200 : 0,
-                overflow: 'hidden', whiteSpace: 'pre',
-                transition: 'max-width 0.5s ease-out, padding 0.1s linear 0.2s'
-              }
-            }, ['ADD VARIABLE']),
-            icon('plus', { size: 25, style: { stroke: 'white', strokeWidth: 2 } })
-          ]),
+        !creatingNewVariable && canEdit && h(FloatingActionButton, {
+          label: 'ADD VARIABLE',
+          iconShape: 'plus',
+          onClick: () => this.setState({
+            editIndex: filteredAttributes.length,
+            editValue: '',
+            editKey: '',
+            editType: 'string'
+          })
+        }),
         deleteIndex && h(Modal, {
           onDismiss: () => this.setState({ deleteIndex: undefined }),
           title: 'Are you sure you wish to delete this variable?',
