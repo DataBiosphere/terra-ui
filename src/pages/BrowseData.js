@@ -10,6 +10,7 @@ import gtexLogo from 'src/images/browse-data/GTeX@2x.png'
 import hcaLogo from 'src/images/browse-data/HCA@2x.png'
 import nhsLogo from 'src/images/browse-data/NHS@2x.png'
 import topMedLogo from 'src/images/browse-data/TopMed@2x.png'
+import broadlogo from 'src/images/browse-data/broad_logo.png'
 import colors from 'src/libs/colors'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
@@ -201,6 +202,21 @@ const gtex = h(Participant, {
   NIHCommonsButtons
 ])
 
+const fcDataLib = h(Participant, {
+  logo: { src: broadlogo, alt: 'Broad logo' },
+  title: 'FireCloud Dataset Library',
+  description: `Search for datasets sequenced at the Broad Institute, or public datasets hosted at the Broad. Datasets
+   are pre-loaded as workspaces. You can clone these, or copy data into the workspace of your choice`,
+  sizeText: h(TooltipTrigger, { content: 'As of October 2018' }, [span('Participants: > ')])
+}, [
+  buttonPrimary({
+    as: 'a',
+    href: 'https://portal.firecloud.org/#library',
+    target: '_blank',
+    tooltip: 'Search for dataset workspaces'
+  }, ['Browse Datasets'])
+])
+
 
 const BrowseData = pure(() => {
   return h(Fragment, [
@@ -209,7 +225,7 @@ const BrowseData = pure(() => {
       div([
         div({ style: styles.header }, ['Data Library']),
         div({ style: styles.content }, [
-          nhs, hca, amppd, topMed, gtex
+          nhs, hca, amppd, topMed, gtex, fcDataLib
         ])
       ])
     ])
