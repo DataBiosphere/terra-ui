@@ -5,7 +5,7 @@ import Dropzone from 'react-dropzone'
 import { div, h, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { buttonPrimary, buttonSecondary, linkButton, MenuButton, Select, spinnerOverlay } from 'src/components/common'
+import { buttonPrimary, buttonSecondary, linkButton, MenuButton, Select, spinnerOverlay, menuIcon } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { AutocompleteTextInput } from 'src/components/input'
 import PopupTrigger from 'src/components/PopupTrigger'
@@ -238,10 +238,10 @@ const WorkflowView = _.flow(
                 content: h(Fragment, [
                   h(MenuButton, {
                     onClick: () => this.setState({ copying: true })
-                  }, ['Copy to Another Workspace']),
+                  }, [menuIcon('copy'), 'Copy to Another Workspace']),
                   h(MenuButton, {
                     onClick: () => this.setState({ deleting: true })
-                  }, ['Delete'])
+                  }, [menuIcon('trash'), 'Delete'])
                 ])
               }, [
                 linkButton({}, [icon('ellipsis-vertical', { size: 22 })])
