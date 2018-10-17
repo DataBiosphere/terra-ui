@@ -61,7 +61,8 @@ export default class Router extends Component {
     )
   }
 
-  componentWillReceiveProps() {
+  // FIXME - shouldn't be using unsafe methods
+  UNSAFE_componentWillReceiveProps() { // eslint-disable-line camelcase
     initNavPaths()
   }
 

@@ -1,5 +1,5 @@
 module.exports = {
-  'plugins': ['lodash-fp'],
+  'plugins': ['lodash-fp', 'react'],
   'extends': 'react-app',
   'globals': {
     'SATURN_VERSION': false,
@@ -8,6 +8,11 @@ module.exports = {
   'parserOptions': {
     'ecmaFeatures': {
       'jsx': false
+    }
+  },
+  'settings': {
+    'react': {
+      'version': '16.5.2'
     }
   },
   'rules': {
@@ -71,6 +76,11 @@ module.exports = {
     'lodash-fp/prefer-get': 'warn',
     'lodash-fp/prefer-identity': ['warn', { 'arrowFunctions': false }],
     'lodash-fp/preferred-alias': 'warn',
-    'lodash-fp/use-fp': 'warn'
+    'lodash-fp/use-fp': 'warn',
+
+
+    'react/default-props-match-prop-types': 'warn',
+    'react/no-children-prop': 'warn',
+    'react/no-unused-state': 'warn'
   }
 }

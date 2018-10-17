@@ -145,7 +145,7 @@ const JobHistory = _.flow(
         ({ width, height }) => h(FlexTable, {
           width, height, rowCount: submissions.length,
           hoverHighlight: true,
-          rowStyle: rowIndex => {
+          styleRow: rowIndex => {
             const { submissionId } = submissions[rowIndex]
             if (newSubmissionId === submissionId) {
               return {

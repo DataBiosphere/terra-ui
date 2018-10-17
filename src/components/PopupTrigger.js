@@ -33,6 +33,13 @@ export default class PopupTrigger extends Component {
     open: PropTypes.bool
   }
 
+  static defaultProps = {
+    position: 'right',
+    align: 'center',
+    closeOnClick: false,
+    onToggle: _.noop
+  }
+
   constructor(props) {
     super(props)
     this.state = { open: false }
@@ -44,14 +51,13 @@ export default class PopupTrigger extends Component {
   }
 
   render() {
-    const { children, content, position, align, closeOnClick, open: forceOpen } = this.props
+    const { children, content, position, align, closeOnClick, onToggle, open: forceOpen } = this.props
     const { open } = this.state
     const child = Children.only(children)
     const shouldShow = forceOpen === undefined ? open : forceOpen
     const setOpen = v => {
-      const { onToggle } = this.props
       this.setState({ open: v })
-      onToggle && onToggle(v)
+      onToggle(v)
     }
     return h(Fragment, [
       cloneElement(child, {
