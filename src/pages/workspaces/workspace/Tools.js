@@ -147,7 +147,10 @@ export const Tools = _.flow(
         deletingTool && h(DeleteToolModal, {
           workspace, methodConfig: deletingTool,
           onDismiss: () => this.setState({ deletingTool: undefined }),
-          onSuccess: () => Nav.goToPath('workspace-tools', _.pick(['namespace', 'name'], workspace))
+          onSuccess: () => {
+            this.refresh()
+            this.setState({ deletingTool: undefined })
+          }
         })
       ]),
       div({ style: styles.cardContainer(listView) }, [
