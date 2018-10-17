@@ -20,9 +20,6 @@ import * as Utils from 'src/libs/utils'
 
 
 const styles = {
-  page: {
-    display: 'flex', flexDirection: 'column', height: '100%', flexGrow: 1
-  },
   workspaceNameContainer: {
     display: 'flex', flexDirection: 'column',
     paddingLeft: '4rem', minWidth: 0, marginRight: '0.5rem'
@@ -137,7 +134,7 @@ class WorkspaceContainer extends Component {
     const { namespace, name, breadcrumbs, title, activeTab, showTabBar = true, refresh, refreshClusters, workspace, clusters } = this.props
     const { deletingWorkspace, cloningWorkspace, sharingWorkspace } = this.state
 
-    return div({ style: styles.page }, [
+    return h(Fragment, [
       h(TopBar, { title: 'Workspaces' }, [
         div({ style: styles.workspaceNameContainer }, [
           div({}, breadcrumbs),
@@ -147,7 +144,7 @@ class WorkspaceContainer extends Component {
         ]),
         h(ClusterManager, {
           namespace, name, clusters, refreshClusters,
-          canCompute: (workspace && workspace.canCompute) || (clusters && !!clusters.length)
+          canCompute: !!((workspace && workspace.canCompute) || (clusters && clusters.length))
         })
       ]),
       showTabBar && h(WorkspaceTabs, {
@@ -164,7 +161,8 @@ class WorkspaceContainer extends Component {
       }),
       cloningWorkspace && h(NewWorkspaceModal, {
         cloneWorkspace: workspace,
-        onDismiss: () => this.setState({ cloningWorkspace: false })
+        onDismiss: () => this.setState({ cloningWorkspace: false }),
+        onSuccess: ({ namespace, name }) => Nav.goToPath('workspace-dashboard', { namespace, name })
       }),
       sharingWorkspace && h(ShareWorkspaceModal, {
         namespace, name,

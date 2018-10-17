@@ -1,7 +1,8 @@
 import _ from 'lodash/fp'
 import { Component, forwardRef, Fragment } from 'react'
-import { h } from 'react-hyperscript-helpers'
-import { buttonPrimary, Select } from 'src/components/common'
+import { div, h } from 'react-hyperscript-helpers'
+import { buttonPrimary, linkButton, Select } from 'src/components/common'
+import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
 import { ajaxCaller } from 'src/libs/ajax'
 import { reportError } from 'src/libs/error'
 import * as StateHistory from 'src/libs/state-history'
@@ -74,7 +75,8 @@ export const WorkspaceImporter = withWorkspaces()(class WorkspaceImporter extend
   constructor(props) {
     super(props)
     this.state = {
-      selectedWorkspaceId: undefined
+      selectedWorkspaceId: undefined,
+      creatingWorkspace: false
     }
   }
 
@@ -85,8 +87,8 @@ export const WorkspaceImporter = withWorkspaces()(class WorkspaceImporter extend
   }
 
   render() {
-    const { workspaces, onImport, authorizationDomain: ad } = this.props
-    const { selectedWorkspaceId } = this.state
+    const { workspaces, refreshWorkspaces, onImport, authorizationDomain: ad } = this.props
+    const { selectedWorkspaceId, creatingWorkspace } = this.state
     return h(Fragment, [
       h(WorkspaceSelector, {
         workspaces: _.filter(ws => {
@@ -96,11 +98,25 @@ export const WorkspaceImporter = withWorkspaces()(class WorkspaceImporter extend
         value: selectedWorkspaceId,
         onChange: v => this.setState({ selectedWorkspaceId: v })
       }),
-      buttonPrimary({
-        style: { marginTop: '1rem' },
-        disabled: !this.getSelectedWorkspace(),
-        onClick: () => onImport(this.getSelectedWorkspace().workspace)
-      }, ['Import'])
+      div({ style: { display: 'flex', alignItems: 'center', marginTop: '1rem' } }, [
+        buttonPrimary({
+          disabled: !this.getSelectedWorkspace(),
+          onClick: () => onImport(this.getSelectedWorkspace().workspace)
+        }, ['Import']),
+        div({ style: { marginLeft: '1rem', whiteSpace: 'pre' } }, ['Or ']),
+        linkButton({
+          onClick: () => this.setState({ creatingWorkspace: true })
+        }, ['create a new workspace'])
+      ]),
+      creatingWorkspace && h(NewWorkspaceModal, {
+        requiredAuthDomain: ad,
+        onDismiss: () => this.setState({ creatingWorkspace: false }),
+        onSuccess: w => {
+          this.setState({ creatingWorkspace: false, selectedWorkspaceId: w.workspaceId })
+          refreshWorkspaces()
+          onImport(w)
+        }
+      })
     ])
   }
 })

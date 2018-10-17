@@ -143,6 +143,10 @@ export const NotebookDuplicator = ajaxCaller(class NotebookDuplicator extends Co
     existingNames: PropTypes.arrayOf(PropTypes.string).isRequired
   }
 
+  static defaultProps = {
+    destroyOld: false
+  }
+
   constructor(props) {
     super(props)
     this.state = { newName: '' }

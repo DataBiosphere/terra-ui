@@ -79,27 +79,32 @@ export class IntegerInput extends Component {
     onChange: PropTypes.func.isRequired
   }
 
-  constructor(props) {
-    super(props)
-    this.state = { textValue: undefined, lastValue: undefined }
+  static defaultProps = {
+    min: -Infinity,
+    max: Infinity
   }
 
-  static getDerivedStateFromProps({ value }, { lastValue }) {
-    if (value !== lastValue) {
-      return { textValue: value.toString(), lastValue: value }
+  constructor(props) {
+    super(props)
+    this.state = { textValue: undefined, lastValueProp: undefined } // eslint-disable-line react/no-unused-state
+  }
+
+  static getDerivedStateFromProps({ value }, { lastValueProp }) {
+    if (value !== lastValueProp) {
+      return { textValue: value.toString(), lastValueProp: value }
     }
     return null
   }
 
   render() {
     const { textValue } = this.state
-    const { onChange, min = -Infinity, max = Infinity, ...props } = this.props
+    const { onChange, min, max, ...props } = this.props
     return numberInput({
       ...props, min, max, value: textValue,
       onChange: e => this.setState({ textValue: e.target.value }),
       onBlur: () => {
         const newValue = _.clamp(min, max, _.floor(textValue * 1))
-        this.setState({ lastValue: undefined })
+        this.setState({ lastValueProp: undefined }) // eslint-disable-line react/no-unused-state
         onChange(newValue)
       }
     })
@@ -142,6 +147,10 @@ class AutocompleteSuggestions extends Component {
     containerRef: PropTypes.object.isRequired,
     containerProps: PropTypes.object,
     children: PropTypes.node
+  }
+
+  static defaultProps = {
+    containerProps: {}
   }
 
   constructor(props) {
@@ -187,9 +196,13 @@ class AutocompleteSuggestions extends Component {
  */
 export class AutocompleteTextInput extends Component {
   static propTypes = {
-    value: PropTypes.string,
+    value: PropTypes.string.isRequired,
     onChange: PropTypes.func.isRequired,
     suggestions: PropTypes.arrayOf(PropTypes.string)
+  }
+
+  static defaultProps = {
+    suggestions: []
   }
 
   constructor(props) {
@@ -242,6 +255,7 @@ export class AutocompleteSearch extends Component {
   }
 
   static defaultProps = {
+    suggestions: [],
     renderSuggestion: _.identity
   }
 

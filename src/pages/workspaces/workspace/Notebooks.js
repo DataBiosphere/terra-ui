@@ -196,7 +196,7 @@ const Notebooks = _.flow(
     }
   }
 
-  componentWillMount() {
+  componentDidMount() {
     this.refresh()
   }
 
