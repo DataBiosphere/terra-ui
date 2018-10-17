@@ -202,7 +202,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
     namespace: PropTypes.string.isRequired,
     name: PropTypes.string.isRequired,
     clusters: PropTypes.array,
-    canCompute: PropTypes.bool,
+    canCompute: PropTypes.bool.isRequired,
     refreshClusters: PropTypes.func.isRequired
   }
 
@@ -211,7 +211,6 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
     this.state = {
       open: false,
       busy: false,
-      clusters: undefined,
       profile: 'moderate',
       masterMachineType: 'n1-standard-4',
       masterDiskSize: 500,

@@ -130,7 +130,7 @@ export default ajaxCaller(class LaunchAnalysisModal extends Component {
                 }
               }), attributeNames)
             ],
-            cellStyle: ({ rowIndex }) => {
+            styleCell: ({ rowIndex }) => {
               return selectedEntity === filteredEntities[rowIndex].name ?
                 { backgroundColor: colors.blue[5] } : {}
             }
