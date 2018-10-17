@@ -122,7 +122,7 @@ export default _.flow(
       b([newName]),
       ' already exists in ',
       b([selectedWorkspace.name]),
-      '. Exporting will override the currently existing notebook. Please choose a different name or choose Export to continue.',
+      '. Exporting will override the currently existing notebook. Please choose a different name or select Export to continue.',
       exporting && spinnerOverlay
     ])
   }
