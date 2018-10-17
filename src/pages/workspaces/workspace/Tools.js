@@ -133,6 +133,11 @@ export const Tools = _.flow(
     }
   }
 
+  getConfig({ namespace, name }) {
+    const { configs } = this.state
+    return _.find({ namespace, name }, configs)
+  }
+
   render() {
     const { namespace, name, listView, viewToggleButtons, workspace: { workspace } } = this.props
     const { loading, configs, copyingTool, deletingTool } = this.state
@@ -141,11 +146,11 @@ export const Tools = _.flow(
         div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, ['Tools']),
         viewToggleButtons,
         copyingTool && h(ExportToolModal, {
-          thisWorkspace: workspace, methodConfig: copyingTool,
+          thisWorkspace: workspace, methodConfig: this.getConfig(copyingTool),
           onDismiss: () => this.setState({ copyingTool: undefined })
         }),
         deletingTool && h(DeleteToolModal, {
-          workspace, methodConfig: deletingTool,
+          workspace, methodConfig: this.getConfig(deletingTool),
           onDismiss: () => this.setState({ deletingTool: undefined }),
           onSuccess: () => {
             this.refresh()
@@ -156,8 +161,8 @@ export const Tools = _.flow(
       div({ style: styles.cardContainer(listView) }, [
         _.map(config => {
           return h(ToolCard, {
-            onCopy: () => this.setState({ copyingTool: config }),
-            onDelete: () => this.setState({ deletingTool: config }),
+            onCopy: () => this.setState({ copyingTool: { namespace: config.namespace, name: config.name } }),
+            onDelete: () => this.setState({ deletingTool: { namespace: config.namespace, name: config.name } }),
             key: `${config.namespace}/${config.name}`, namespace, name, config, listView
           })
         }, configs),
