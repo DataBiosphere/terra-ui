@@ -186,7 +186,7 @@ const topMed = h(Participant, {
   title: 'TopMed presented by NIH Commons',
   description: `Trans-Omics for Precision Medicine (TOPMed), sponsored by the National Institutes of Health's National
   Heart, Lung, and Blood Institute (NHLBI), is a program to generate scientific resources to enhance our understanding
-  of fundamental biological processes that underlie heart, lung, blood, and sleep disorders (HLBS)`,
+  of fundamental biological processes that underlie heart, lung, blood, and sleep disorders (HLBS).`,
   sizeText: h(TooltipTrigger, { content: 'As of November 2016' }, [span('Participants: > 54,000')])
 }, [
   NIHCommonsButtons
@@ -203,11 +203,11 @@ const gtex = h(Participant, {
 ])
 
 const fcDataLib = h(Participant, {
-  logo: { src: broadlogo, alt: 'Broad logo' },
+  logo: { src: broadlogo, alt: 'Broad logo', height: '40%' },
   title: 'FireCloud Dataset Library',
   description: `Search for datasets sequenced at the Broad Institute, or public datasets hosted at the Broad. Datasets
-   are pre-loaded as workspaces. You can clone these, or copy data into the workspace of your choice`,
-  sizeText: h(TooltipTrigger, { content: 'As of October 2018' }, [span('Participants: > ')])
+   are pre-loaded as workspaces. You can clone these, or copy data into the workspace of your choice.`,
+  sizeText: h(TooltipTrigger, { content: 'As of October 2018' }, [span('Samples: > 14,000')])
 }, [
   buttonPrimary({
     as: 'a',
