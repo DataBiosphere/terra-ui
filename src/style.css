@@ -59,3 +59,38 @@ a {
   border: 1px solid #2691d0 !important;
   outline: none !important;
 }
+
+/* Overrides for toast notifications library (react-notifications-component) */
+.notification-default {
+  background-color: #51719c;
+  border-left: 8px solid #224f83
+}
+
+.notification-success {
+  background-color: #97d1b0;
+  border-left: 8px solid #7dc69c
+}
+
+.notification-danger {
+  background-color: #d24e39;
+  border-left: 8px solid #c72314
+}
+
+.notification-info {
+  background-color: #5aa6da;
+  border-left: 8px solid #2691d0
+}
+
+.notification-warning {
+  background-color: #e69b59;
+  border-left: 8px solid #e08334
+}
+
+.notification-awesome {
+  background-color: #a180a9;
+  border-left: 8px solid #8a6194
+}
+
+.notification-item, .notification-item-root, .notification-message, .notification-title {
+  font-family: unset;
+}

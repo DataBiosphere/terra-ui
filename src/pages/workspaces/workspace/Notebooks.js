@@ -8,6 +8,7 @@ import togglesListView from 'src/components/CardsListToggle'
 import { Clickable, link, MenuButton, PageFadeBox, spinnerOverlay, menuIcon } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { NotebookCreator, NotebookDeleter, NotebookDuplicator } from 'src/components/notebook-utils'
+import { pushNotification } from 'src/components/Notifications'
 import PopupTrigger from 'src/components/PopupTrigger'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { ajaxCaller } from 'src/libs/ajax'
@@ -47,6 +48,7 @@ class NotebookCard extends Component {
           onClick: async () => {
             try {
               await clipboard.writeText(`${window.location.host}/${notebookLink}`)
+              pushNotification({ message: 'Successfully copied URL to clipboard' })
             } catch (error) {
               reportError('Error copying to clipboard', error)
             }
