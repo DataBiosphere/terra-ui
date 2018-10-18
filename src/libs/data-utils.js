@@ -319,7 +319,7 @@ export const EntityDeleter = ajaxCaller(class EntityDeleter extends Component {
   }
 
   render() {
-    const { onDismiss, onSuccess, namespace, name, selectedEntities, selectedDataType, ajax: { Workspaces } } = this.props
+    const { onDismiss, onSuccess, namespace, name, selectedEntities, selectedDataType, runningSubmissionsCount, ajax: { Workspaces } } = this.props
     const { deleting } = this.state
 
     return h(Modal, {
@@ -338,6 +338,12 @@ export const EntityDeleter = ajaxCaller(class EntityDeleter extends Component {
           }
         }
       }, ['Delete'])
-    }, [`Are you sure you want to delete ?`])
+    }, runningSubmissionsCount === 0 ?
+      [
+        ..._.map(name => div({}, name), selectedEntities),
+        div({}, [`${selectedEntities.length} data entries to be deleted.`])
+      ] :
+      []
+    )
   }
 })
