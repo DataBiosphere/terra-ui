@@ -9,9 +9,9 @@ import 'animate.css'
 const defaultNotificationProps = {
   type: 'success',
   container: 'top-right',
-  animationIn: ['animated', 'fadeInRight'],
-  animationOut: ['animated', 'fadeOutRight'],
-  dismiss: { duration: 2000 }
+  animationIn: ['animated', 'slideInRight'],
+  animationOut: ['animated', 'slideOutRight'],
+  dismiss: { duration: 3000 }
 }
 
 
