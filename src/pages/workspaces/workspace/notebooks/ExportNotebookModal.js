@@ -24,7 +24,7 @@ export default _.flow(
     this.state = {
       selectedWorkspaceId: undefined,
       error: undefined,
-      exported: false,
+      copied: false,
       renderOverride: false,
       newName: props.printName
     }
@@ -37,14 +37,14 @@ export default _.flow(
   }
 
   render() {
-    const { exported, renderOverride } = this.state
+    const { copied, renderOverride } = this.state
     if (renderOverride) return this.renderWarningMessage()
-    else return exported ? this.renderPostExport() : this.renderExportForm()
+    else return copied ? this.renderPostCopy() : this.renderCopyForm()
   }
 
-  renderExportForm() {
+  renderCopyForm() {
     const { workspaces, thisWorkspaceId, onDismiss } = this.props
-    const { selectedWorkspaceId, exporting, error, newName } = this.state
+    const { selectedWorkspaceId, copying, error, newName } = this.state
 
     const errors = validate(
       { selectedWorkspaceId, newName },
@@ -60,8 +60,8 @@ export default _.flow(
       okButton: buttonPrimary({
         tooltip: Utils.summarizeErrors(errors),
         disabled: !!errors,
-        onClick: () => this.export()
-      }, ['Export'])
+        onClick: () => this.copy()
+      }, ['Copy'])
     }, [
       requiredFormLabel('Destination'),
       h(WorkspaceSelector, {
@@ -79,12 +79,12 @@ export default _.flow(
           onChange: e => this.setState({ newName: e.target.value })
         }
       }),
-      exporting && spinnerOverlay,
+      copying && spinnerOverlay,
       error && h(ErrorView, { error, collapses: false })
     ])
   }
 
-  renderPostExport() {
+  renderPostCopy() {
     const { onDismiss } = this.props
     const { newName } = this.state
     const selectedWorkspace = this.getSelectedWorkspace().workspace
@@ -98,32 +98,32 @@ export default _.flow(
           namespace: selectedWorkspace.namespace,
           name: selectedWorkspace.name
         })
-      }, ['Go to exported notebook'])
+      }, ['Go to copied notebook'])
     }, [
-      'Successfully exported ',
+      'Successfully copied ',
       b([newName]),
       ' to ',
       b([selectedWorkspace.name]),
-      '. Do you want to view the exported notebook?'
+      '. Do you want to view the copied notebook?'
     ])
   }
 
   renderWarningMessage() {
     const { onDismiss } = this.props
-    const { newName, exporting } = this.state
+    const { newName, copying } = this.state
     const selectedWorkspace = this.getSelectedWorkspace().workspace
     return h(Modal, {
       title: 'Warning: Name already exists',
       onDismiss,
       okButton: buttonPrimary({
         onClick: () => this.overrideNotebook()
-      }, ['Export'])
+      }, ['Copy'])
     }, [
       b([newName]),
       ' already exists in ',
       b([selectedWorkspace.name]),
-      '. Exporting will override the currently existing notebook. Please choose a different name or select Export to continue.',
-      exporting && spinnerOverlay
+      '. Copying will override the currently existing notebook. Please choose a different name or select Copy to continue.',
+      copying && spinnerOverlay
     ])
   }
 
@@ -132,31 +132,31 @@ export default _.flow(
     const { newName } = this.state
     const selectedWorkspace = this.getSelectedWorkspace().workspace
     try {
-      this.setState({ exporting: true })
+      this.setState({ copying: true })
       await Buckets.notebook(thisWorkspaceNamespace, bucketName, selectedWorkspace.bucketName, printName)['copy'](newName)
-      this.setState({ renderOverride: false, exported: true })
+      this.setState({ renderOverride: false, copied: true })
     } catch (error) {
-      this.setState({ error: await error.text(), exporting: false })
+      this.setState({ error: await error.text(), copying: false })
     }
   }
 
-  async export() {
+  async copy() {
     const { thisWorkspaceNamespace, bucketName, printName, ajax: { Buckets } } = this.props
     const { newName } = this.state
     const selectedWorkspace = this.getSelectedWorkspace().workspace
     try {
-      this.setState({ exporting: true })
+      this.setState({ copying: true })
       const selectedNotebooks = await Buckets.listNotebooks(selectedWorkspace.namespace, selectedWorkspace.bucketName)
       const selectedNames = _.map(({ name }) => cutName(name), selectedNotebooks)
       if (selectedNames.includes(newName)) {
-        this.setState({ exporting: false, renderOverride: true })
+        this.setState({ copying: false, renderOverride: true })
         return this.renderWarningMessage()
       } else {
         await Buckets.notebook(thisWorkspaceNamespace, bucketName, selectedWorkspace.bucketName, printName)['copy'](newName)
-        this.setState({ exported: true })
+        this.setState({ copied: true })
       }
     } catch (error) {
-      this.setState({ error: await error.text(), exporting: false })
+      this.setState({ error: await error.text(), copying: false })
     }
   }
 })
