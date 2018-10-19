@@ -4,7 +4,7 @@ import { a, div, h } from 'react-hyperscript-helpers'
 import { pure } from 'recompose'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import togglesListView from 'src/components/CardsListToggle'
-import { Clickable, MenuButton, PageFadeBox, spinnerOverlay, menuIcon } from 'src/components/common'
+import { Clickable, MenuButton, PageFadeBox, spinnerOverlay, menuIcon, link } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import PopupTrigger from 'src/components/PopupTrigger'
 import { ajaxCaller } from 'src/libs/ajax'
@@ -60,7 +60,7 @@ const styles = {
 }
 
 const ToolCard = pure(({ listView, name, namespace, config, onCopy, onDelete }) => {
-  const { namespace: workflowNamespace, name: workflowName, methodRepoMethod: { sourceRepo, methodVersion } } = config
+  const { namespace: workflowNamespace, name: workflowName, methodRepoMethod: { sourceRepo, methodVersion, methodNamespace, methodName, methodPath } } = config
   const toolCardMenu = h(PopupTrigger, {
     closeOnClick: true,
     content: h(Fragment, [
@@ -85,6 +85,12 @@ const ToolCard = pure(({ listView, name, namespace, config, onCopy, onDelete }) 
       })
     ])
   ])
+
+  const repoLink = link({
+    href: sourceRepo === 'agora' ? `https://firecloud.dsde-dev.broadinstitute.org/#methods/${methodNamespace}/${methodName}/${methodVersion}`: `https://dockstore.org/workflows/${methodPath}`,
+    target: '_blank'
+  }, sourceRepo)
+
   return listView ? a({
     style: styles.longCard,
     href: Nav.getLink('workflow', { namespace, name, workflowNamespace, workflowName })
@@ -93,7 +99,7 @@ const ToolCard = pure(({ listView, name, namespace, config, onCopy, onDelete }) 
       div({ style: { marginRight: '1rem' } }, [toolCardMenu]),
       div({ style: styles.longTitle }, [workflowName]),
       div({ style: styles.longMethodVersion }, [`V. ${methodVersion}`]),
-      div({ style: { flex: 'none', width: 130 } }, [`Source: ${sourceRepo}`])
+      div({ style: { flex: 'none', width: 130 } }, ['Source: ', repoLink])
     ])
   ]) : a({
     style: styles.shortCard,
@@ -101,7 +107,7 @@ const ToolCard = pure(({ listView, name, namespace, config, onCopy, onDelete }) 
   }, [
     div({ style: styles.shortTitle }, [workflowName]),
     div({ style: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' } }, [
-      div([div([`V. ${methodVersion}`]), `Source: ${sourceRepo}`]), toolCardMenu
+      div([div([`V. ${methodVersion}`]), 'Source: ', repoLink]), toolCardMenu
     ])
   ])
 })
