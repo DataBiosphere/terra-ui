@@ -13,7 +13,7 @@ import { Component } from 'src/libs/wrapped-components'
 import validate from 'validate.js'
 
 
-const notebookNameValidator = existing => ({
+export const notebookNameValidator = existing => ({
   presence: { allowEmpty: false },
   format: {
     pattern: /^[^#[\]*?]*$/,
@@ -25,7 +25,7 @@ const notebookNameValidator = existing => ({
   }
 })
 
-const notebookNameInput = props => validatedInput(_.merge({
+export const notebookNameInput = props => validatedInput(_.merge({
   inputProps: {
     autoFocus: true,
     placeholder: 'Enter a name'
