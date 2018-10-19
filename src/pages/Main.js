@@ -10,7 +10,7 @@ import Router from 'src/components/Router'
 
 const Main = () => {
   return h(Fragment, [
-    h(NotificationsContainer),
+    NotificationsContainer,
     h(ErrorWrapper, [h(Router)]),
     h(ErrorBanner),
     h(ConfigOverridesWarning)
