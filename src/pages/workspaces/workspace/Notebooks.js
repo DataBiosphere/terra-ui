@@ -1,3 +1,4 @@
+import clipboard from 'clipboard-polyfill/build/clipboard-polyfill'
 import _ from 'lodash/fp'
 import { createRef, Fragment } from 'react'
 import Dropzone from 'react-dropzone'
@@ -7,6 +8,7 @@ import togglesListView from 'src/components/CardsListToggle'
 import { Clickable, link, MenuButton, PageFadeBox, spinnerOverlay, menuIcon } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { NotebookCreator, NotebookDeleter, NotebookDuplicator } from 'src/components/notebook-utils'
+import { pushNotification } from 'src/components/Notifications'
 import PopupTrigger from 'src/components/PopupTrigger'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { ajaxCaller } from 'src/libs/ajax'
@@ -36,10 +38,22 @@ class NotebookCard extends Component {
   render() {
     const { namespace, name, updated, listView, wsName, onRename, onCopy, onDelete, canCompute, canWrite } = this.props
 
+    const notebookLink = Nav.getLink('workspace-notebook-launch', { namespace, name: wsName, notebookName: name.slice(10) })
+
     const notebookMenu = canWrite && h(PopupTrigger, {
       position: 'right',
       closeOnClick: true,
       content: h(Fragment, [
+        h(MenuButton, {
+          onClick: async () => {
+            try {
+              await clipboard.writeText(`${window.location.host}/${notebookLink}`)
+              pushNotification({ message: 'Successfully copied URL to clipboard' })
+            } catch (error) {
+              reportError('Error copying to clipboard', error)
+            }
+          }
+        }, [menuIcon('copy-to-clipboard'), 'Copy notebook URL to clipboard']),
         h(MenuButton, {
           onClick: () => onRename()
         }, [menuIcon('renameIcon'), 'Rename']),
@@ -88,7 +102,7 @@ class NotebookCard extends Component {
     return h(Fragment, [
       h(TooltipTrigger, { content: !canCompute ? noCompute : undefined }, [
         a({
-          href: canCompute ? Nav.getLink('workspace-notebook-launch', { namespace, name: wsName, notebookName: name.slice(10) }) : undefined,
+          href: canCompute ? notebookLink : undefined,
           style: {
             ...Style.elements.card,
             ...notebookCardCommonStyles(listView),
