@@ -5,7 +5,7 @@ import Dropzone from 'react-dropzone'
 import { div, h, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { buttonPrimary, buttonSecondary, linkButton, MenuButton, Select, spinnerOverlay, menuIcon } from 'src/components/common'
+import { buttonPrimary, buttonSecondary, linkButton, MenuButton, Select, spinnerOverlay, menuIcon, link } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { AutocompleteTextInput } from 'src/components/input'
 import PopupTrigger from 'src/components/PopupTrigger'
@@ -221,7 +221,7 @@ const WorkflowView = _.flow(
   renderSummary() {
     const { workspace: { canCompute, workspace } } = this.props
     const { modifiedConfig, savedConfig, entityMetadata, saving, saved, copying, deleting, activeTab, errors } = this.state
-    const { name, methodRepoMethod: { methodPath, methodVersion }, rootEntityType } = modifiedConfig
+    const { name, methodRepoMethod: { methodPath, methodVersion, methodNamespace, methodName }, rootEntityType } = modifiedConfig
     const modified = !_.isEqual(modifiedConfig, savedConfig)
 
     const noLaunchReason = Utils.cond(
@@ -250,7 +250,14 @@ const WorkflowView = _.flow(
             span({ style: { color: colors.darkBlue[0], fontSize: 24 } }, name)
           ]),
           div(`V. ${methodVersion}`),
-          methodPath && div(`Path: ${methodPath}`),
+          methodPath && div(['Source: ', link({
+            href: `https://dockstore.org/workflows/${methodPath}`,
+            target: '_blank'
+          }, methodPath)]),
+          methodNamespace && div(['Source: ', link({
+            href: `https://firecloud.dsde-dev.broadinstitute.org/#methods/${methodNamespace}/${methodName}/${methodVersion}`,
+            target: '_blank'
+          }, `${methodNamespace}/${methodName}/${methodVersion}`)]),
           div({ style: { textTransform: 'capitalize', display: 'flex', alignItems: 'baseline', marginTop: '0.5rem' } }, [
             'Data Type:',
             h(Select, {
