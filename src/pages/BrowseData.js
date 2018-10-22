@@ -13,6 +13,7 @@ import topMedLogo from 'src/images/browse-data/TopMed@2x.png'
 import broadLogo from 'src/images/browse-data/broad_logo.png'
 import colors from 'src/libs/colors'
 import * as Nav from 'src/libs/nav'
+import * as Config from 'src/libs/config'
 import * as Style from 'src/libs/style'
 import { Component } from 'src/libs/wrapped-components'
 
@@ -202,6 +203,8 @@ const gtex = h(Participant, {
   NIHCommonsButtons
 ])
 
+const { firecloudRoot } = Config.getFirecloudUrlRoot
+
 const fcDataLib = h(Participant, {
   logo: { src: broadLogo, alt: 'Broad logo', height: '40%' },
   title: 'FireCloud Dataset Library',
@@ -211,7 +214,7 @@ const fcDataLib = h(Participant, {
 }, [
   buttonPrimary({
     as: 'a',
-    href: 'https://portal.firecloud.org/#library',
+    href: `${firecloudRoot}/#library`,
     target: '_blank',
     tooltip: 'Search for dataset workspaces'
   }, ['Browse Datasets'])
