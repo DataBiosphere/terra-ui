@@ -31,12 +31,11 @@ const notebookCardCommonStyles = listView =>
 
 const printName = name => name.slice(10, -6) // removes 'notebooks/' and the .ipynb suffix
 
-const noCompute = 'You do not have access to run analyses on this workspace.'
 const noWrite = 'You do not have access to modify this workspace.'
 
 class NotebookCard extends Component {
   render() {
-    const { namespace, name, updated, listView, wsName, onRename, onCopy, onDelete, canCompute, canWrite } = this.props
+    const { namespace, name, updated, listView, wsName, onRename, onCopy, onDelete, canWrite } = this.props
 
     const notebookLink = Nav.getLink('workspace-notebook-launch', { namespace, name: wsName, notebookName: name.slice(10) })
 
@@ -99,38 +98,34 @@ class NotebookCard extends Component {
       }
     }, printName(name))
 
-    return h(Fragment, [
-      h(TooltipTrigger, { content: !canCompute ? noCompute : undefined }, [
-        a({
-          href: canCompute ? notebookLink : undefined,
-          style: {
-            ...Style.elements.card,
-            ...notebookCardCommonStyles(listView),
-            flexShrink: 0,
-            justifyContent: listView ? undefined : 'space-between',
-            alignItems: listView ? 'center' : undefined
-          }
-        }, listView ? [
-          notebookMenu,
-          title,
-          div({ style: { flexGrow: 1 } }),
-          h(TooltipTrigger, { content: Utils.makeCompleteDate(updated) }, [
-            div({ style: { fontSize: '0.8rem', marginRight: '0.5rem' } },
-              `Last edited: ${Utils.makePrettyDate(updated)}`)
+    return a({
+      href: notebookLink,
+      style: {
+        ...Style.elements.card,
+        ...notebookCardCommonStyles(listView),
+        flexShrink: 0,
+        justifyContent: listView ? undefined : 'space-between',
+        alignItems: listView ? 'center' : undefined
+      }
+    }, listView ? [
+      notebookMenu,
+      title,
+      div({ style: { flexGrow: 1 } }),
+      h(TooltipTrigger, { content: Utils.makeCompleteDate(updated) }, [
+        div({ style: { fontSize: '0.8rem', marginRight: '0.5rem' } },
+          `Last edited: ${Utils.makePrettyDate(updated)}`)
+      ])
+    ] : [
+      title,
+      jupyterIcon,
+      div({ style: { display: 'flex', justifyContent: 'space-between' } }, [
+        h(TooltipTrigger, { content: Utils.makeCompleteDate(updated) }, [
+          div({ style: { fontSize: '0.8rem', flexGrow: 1, marginRight: '0.5rem' } }, [
+            'Last edited:',
+            div({}, Utils.makePrettyDate(updated))
           ])
-        ] : [
-          title,
-          jupyterIcon,
-          div({ style: { display: 'flex', justifyContent: 'space-between' } }, [
-            h(TooltipTrigger, { content: Utils.makeCompleteDate(updated) }, [
-              div({ style: { fontSize: '0.8rem', flexGrow: 1, marginRight: '0.5rem' } }, [
-                'Last edited:',
-                div({}, Utils.makePrettyDate(updated))
-              ])
-            ]),
-            notebookMenu
-          ])
-        ])
+        ]),
+        notebookMenu
       ])
     ])
   }
@@ -209,12 +204,12 @@ const Notebooks = _.flow(
     const { notebooks } = this.state
     const {
       name: wsName, namespace, listView,
-      workspace: { accessLevel, canCompute, workspace: { bucketName } }
+      workspace: { accessLevel, workspace: { bucketName } }
     } = this.props
     const canWrite = Utils.canWrite(accessLevel)
     const renderedNotebooks = _.map(({ name, updated }) => h(NotebookCard, {
       key: name,
-      name, updated, listView, bucketName, namespace, wsName, canCompute, canWrite,
+      name, updated, listView, bucketName, namespace, wsName, canWrite,
       onRename: () => this.setState({ renamingNotebookName: name }),
       onCopy: () => this.setState({ copyingNotebookName: name }),
       onDelete: () => this.setState({ deletingNotebookName: name })
