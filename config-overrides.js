@@ -11,7 +11,7 @@ module.exports = {
   webpack: function override(config, env) {
     config = rewireEslint(config, env)
     config.resolve.modules = manualOverrides.resolve.modules
-    config.module.rules[1].oneOf.unshift(
+    config.module.rules[2].oneOf.unshift(
       {
         include: [path.resolve(__dirname, 'src/icons')],
         loader: 'raw-loader'
