@@ -97,7 +97,7 @@ export const NotebookCreator = ajaxCaller(class NotebookCreator extends Componen
         tooltip: Utils.summarizeErrors(errors),
         onClick: () => {
           this.setState({ creating: true })
-          Buckets.notebook(namespace, bucketName, bucketName, notebookName).create(notebookData[notebookKernel]).then(
+          Buckets.notebook(namespace, bucketName, notebookName).create(notebookData[notebookKernel]).then(
             () => {
               reloadList()
               onDismiss()
@@ -168,12 +168,16 @@ export const NotebookDuplicator = ajaxCaller(class NotebookDuplicator extends Co
       okButton: buttonPrimary({
         disabled: errors || processing,
         tooltip: Utils.summarizeErrors(errors),
-        onClick: () => {
-          this.setState({ processing: true })
-          Buckets.notebook(namespace, bucketName, bucketName, printName)[destroyOld ? 'rename' : 'copy'](newName).then(
-            onSuccess,
-            error => reportError(`Error ${destroyOld ? 'renaming' : 'copying'} notebook`, error)
-          )
+        onClick: async () => {
+          try {
+            this.setState({ processing: true })
+            await (destroyOld ?
+              Buckets.notebook(namespace, bucketName, printName).rename(newName) :
+              Buckets.notebook(namespace, bucketName, printName).copy(newName, bucketName))
+            onSuccess()
+          } catch (error) {
+            reportError(`Error ${destroyOld ? 'renaming' : 'copying'} notebook`, error)
+          }
         }
       }, `${destroyOld ? 'Rename' : 'Duplicate'} Notebook`)
     },
@@ -213,7 +217,7 @@ export const NotebookDeleter = ajaxCaller(class NotebookDeleter extends Componen
         disabled: processing,
         onClick: () => {
           this.setState({ processing: true })
-          Buckets.notebook(namespace, bucketName, bucketName, printName).delete().then(
+          Buckets.notebook(namespace, bucketName, printName).delete().then(
             onSuccess,
             error => reportError('Error deleting notebook', error)
           )

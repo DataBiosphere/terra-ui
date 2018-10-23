@@ -410,10 +410,10 @@ const Buckets = signal => ({
     return _.filter(({ name }) => name.endsWith('.ipynb'), items)
   },
 
-  notebook: (namespace, bucket, newBucket, name) => {
+  notebook: (namespace, bucket, name) => {
     const bucketUrl = `storage/v1/b/${bucket}/o`
 
-    const copy = async newName => {
+    const copy = async (newName, newBucket) => {
       return fetchBuckets(
         `${bucketUrl}/${nbName(name)}/copyTo/b/${newBucket}/o/${nbName(newName)}`,
         _.merge(authOpts(await User(signal).token(namespace)), { signal, method: 'POST' })

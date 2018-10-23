@@ -42,7 +42,7 @@ export default _.flow(
   }
 
   renderCopyForm() {
-    const { workspaces, thisWorkspaceId, onDismiss } = this.props
+    const { workspaces, workspace, onDismiss } = this.props
     const { selectedWorkspaceId, copying, error, newName, existingNames } = this.state
     const errors = validate(
       { selectedWorkspaceId, newName },
@@ -64,7 +64,7 @@ export default _.flow(
       requiredFormLabel('Destination'),
       h(WorkspaceSelector, {
         workspaces: _.filter(({ workspace: { workspaceId }, accessLevel }) => {
-          return thisWorkspaceId !== workspaceId && Utils.canWrite(accessLevel)
+          return workspace.workspaceId !== workspaceId && Utils.canWrite(accessLevel)
         }, workspaces),
         value: selectedWorkspaceId,
         onChange: v => {
@@ -118,12 +118,12 @@ export default _.flow(
   }
 
   async copy() {
-    const { thisWorkspaceNamespace, bucketName, printName, ajax: { Buckets } } = this.props
+    const { printName, namespace, workspace, ajax: { Buckets } } = this.props
     const { newName } = this.state
     const selectedWorkspace = this.getSelectedWorkspace().workspace
     try {
       this.setState({ copying: true })
-      await Buckets.notebook(thisWorkspaceNamespace, bucketName, selectedWorkspace.bucketName, printName)['copy'](newName)
+      await Buckets.notebook(namespace, workspace.workspace.bucketName, printName)['copy'](newName, selectedWorkspace.bucketName)
       this.setState({ copied: true })
     } catch (error) {
       this.setState({ error: await error.text(), copying: false })

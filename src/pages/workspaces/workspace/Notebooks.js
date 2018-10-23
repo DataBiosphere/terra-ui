@@ -178,7 +178,7 @@ const Notebooks = _.flow(
           resolvedName = `${name} ${++c}`
         }
         const contents = await Utils.readFileAsText(file)
-        return Buckets.notebook(namespace, bucketName, bucketName, resolvedName).create(JSON.parse(contents))
+        return Buckets.notebook(namespace, bucketName, resolvedName).create(JSON.parse(contents))
       }, files))
       this.refresh()
     } catch (error) {
@@ -264,8 +264,8 @@ const Notebooks = _.flow(
   render() {
     const { loading, saving, notebooks, creating, renamingNotebookName, copyingNotebookName, deletingNotebookName, exportingNotebookName } = this.state
     const {
-      namespace, viewToggleButtons,
-      workspace: { accessLevel, workspace: { bucketName, workspaceId, name } }
+      namespace, viewToggleButtons, workspace,
+      workspace: { accessLevel, workspace: { bucketName } }
     } = this.props
     const existingNames = this.getExistingNames()
 
@@ -311,10 +311,7 @@ const Notebooks = _.flow(
             }
           }),
           exportingNotebookName && h(ExportNotebookModal, {
-            printName: printName(exportingNotebookName),
-            thisWorkspaceId: workspaceId,
-            thisWorkspaceNamespace: namespace,
-            thisWorkspaceName: name, bucketName,
+            printName: printName(exportingNotebookName), workspace, namespace,
             onDismiss: () => this.setState({ exportingNotebookName: undefined })
           }),
           deletingNotebookName && h(NotebookDeleter, {
