@@ -64,7 +64,7 @@ Prism.languages.wdl = {
 
 export default class WDLViewer extends Component {
   static propTypes = {
-    wdl: PropTypes.string
+    wdl: PropTypes.string.isRequired
   }
 
   render() {

@@ -5,7 +5,7 @@ import Dropzone from 'react-dropzone'
 import { div, h, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { buttonPrimary, buttonSecondary, linkButton, MenuButton, Select, spinnerOverlay } from 'src/components/common'
+import { buttonPrimary, buttonSecondary, linkButton, MenuButton, Select, spinnerOverlay, menuIcon } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { AutocompleteTextInput } from 'src/components/input'
 import PopupTrigger from 'src/components/PopupTrigger'
@@ -238,10 +238,10 @@ const WorkflowView = _.flow(
                 content: h(Fragment, [
                   h(MenuButton, {
                     onClick: () => this.setState({ copying: true })
-                  }, ['Copy to Another Workspace']),
+                  }, [menuIcon('copy'), 'Copy to Another Workspace']),
                   h(MenuButton, {
                     onClick: () => this.setState({ deleting: true })
-                  }, ['Delete'])
+                  }, [menuIcon('trash'), 'Delete'])
                 ])
               }, [
                 linkButton({}, [icon('ellipsis-vertical', { size: 22 })])
@@ -356,25 +356,27 @@ const WorkflowView = _.flow(
       disabled: !canCompute,
       disableClick: true,
       disablePreview: true,
-      style: { padding: `1rem ${sideMargin} 0`, flex: 1, minHeight: 500 },
+      style: { padding: `1rem ${sideMargin}`, flex: 'auto', display: 'flex', flexDirection: 'column' },
       activeStyle: { backgroundColor: colors.blue[3], cursor: 'copy' },
       ref: this.uploader,
       onDropRejected: () => reportError('Not a valid inputs file', 'The selected file is not a json file. To import inputs for this tool, upload a file with a .json extension.'),
       onDropAccepted: files => this.uploadJson(key, files[0])
     }, [
-      div({ style: { display: 'flex', justifyContent: 'flex-end', marginBottom: '0.25rem' } }, [
+      div({ style: { flex: 'none', display: 'flex', justifyContent: 'flex-end', marginBottom: '0.25rem' } }, [
         linkButton({ onClick: () => this.downloadJson(key) }, ['Download json']),
         div({ style: { padding: '0 0.5rem' } }, ['|']),
         linkButton({ onClick: () => this.uploader.current.open() }, ['Upload json'])
       ]),
-      h(WorkflowIOTable, {
-        which: key,
-        inputsOutputs,
-        config: modifiedConfig,
-        errors,
-        onChange: canCompute ? ((name, v) => this.setState(_.set(['modifiedConfig', key, name], v))) : undefined,
-        suggestions
-      })
+      div({ style: { flex: '1 0 500px' } }, [
+        h(WorkflowIOTable, {
+          which: key,
+          inputsOutputs,
+          config: modifiedConfig,
+          errors,
+          onChange: canCompute ? ((name, v) => this.setState(_.set(['modifiedConfig', key, name], v))) : undefined,
+          suggestions
+        })
+      ])
     ])
   }
 

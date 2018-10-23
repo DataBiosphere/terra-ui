@@ -43,10 +43,10 @@ export default class Modal extends Component {
   }
 
   static defaultProps = {
+    width: 450,
     showCancel: true,
     cancelText: 'Cancel',
-    showX: false,
-    width: 450
+    showX: false
   }
 
   render() {

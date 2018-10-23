@@ -21,7 +21,7 @@ import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer
 
 const styles = {
   submissionsTable: {
-    padding: '1rem', flex: 1, marginBottom: '-2rem'
+    padding: '1rem', flex: 1
   },
   deemphasized: {
     color: colors.gray[1]
@@ -145,7 +145,7 @@ const JobHistory = _.flow(
         ({ width, height }) => h(FlexTable, {
           width, height, rowCount: submissions.length,
           hoverHighlight: true,
-          rowStyle: rowIndex => {
+          styleRow: rowIndex => {
             const { submissionId } = submissions[rowIndex]
             if (newSubmissionId === submissionId) {
               return {

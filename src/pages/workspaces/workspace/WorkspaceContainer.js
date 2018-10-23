@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import { createRef, Fragment, PureComponent } from 'react'
 import { a, div, h, h2, p } from 'react-hyperscript-helpers'
 import ClusterManager from 'src/components/ClusterManager'
-import { Clickable, comingSoon, contextBar, MenuButton, link } from 'src/components/common'
+import { Clickable, comingSoon, contextBar, MenuButton, link, menuIcon } from 'src/components/common'
 import ErrorView from 'src/components/ErrorView'
 import { icon } from 'src/components/icons'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
@@ -20,9 +20,6 @@ import * as Utils from 'src/libs/utils'
 
 
 const styles = {
-  page: {
-    display: 'flex', flexDirection: 'column', height: '100%', flexGrow: 1
-  },
   workspaceNameContainer: {
     display: 'flex', flexDirection: 'column',
     paddingLeft: '4rem', minWidth: 0, marginRight: '0.5rem'
@@ -77,9 +74,6 @@ class WorkspaceTabs extends PureComponent {
       ])
     }
     const isOwner = workspace && Utils.isOwner(workspace.accessLevel)
-    const menuIcon = iconName => {
-      return icon(iconName, { size: 15, style: { marginRight: '.5rem' } })
-    }
 
     return contextBar({ style: styles.tabContainer }, [
       activeTab !== TAB_NAMES[0] && navSeparator,
@@ -137,7 +131,7 @@ class WorkspaceContainer extends Component {
     const { namespace, name, breadcrumbs, title, activeTab, showTabBar = true, refresh, refreshClusters, workspace, clusters } = this.props
     const { deletingWorkspace, cloningWorkspace, sharingWorkspace } = this.state
 
-    return div({ style: styles.page }, [
+    return h(Fragment, [
       h(TopBar, { title: 'Workspaces' }, [
         div({ style: styles.workspaceNameContainer }, [
           div({}, breadcrumbs),
@@ -147,7 +141,7 @@ class WorkspaceContainer extends Component {
         ]),
         h(ClusterManager, {
           namespace, name, clusters, refreshClusters,
-          canCompute: (workspace && workspace.canCompute) || (clusters && !!clusters.length)
+          canCompute: !!((workspace && workspace.canCompute) || (clusters && clusters.length))
         })
       ]),
       showTabBar && h(WorkspaceTabs, {
@@ -164,7 +158,8 @@ class WorkspaceContainer extends Component {
       }),
       cloningWorkspace && h(NewWorkspaceModal, {
         cloneWorkspace: workspace,
-        onDismiss: () => this.setState({ cloningWorkspace: false })
+        onDismiss: () => this.setState({ cloningWorkspace: false }),
+        onSuccess: ({ namespace, name }) => Nav.goToPath('workspace-dashboard', { namespace, name })
       }),
       sharingWorkspace && h(ShareWorkspaceModal, {
         namespace, name,

@@ -25,6 +25,7 @@ const getConfig = async () => {
 }
 
 export const getAgoraUrlRoot = async () => (await getConfig()).agoraUrlRoot
+export const getCalhounRoot = async () => (await getConfig()).calhounUrlRoot
 export const getDevUrlRoot = async () => (await getConfig()).devUrlRoot
 export const getDockstoreUrlRoot = async () => (await getConfig()).dockstoreUrlRoot
 export const getFirecloudUrlRoot = async () => (await getConfig()).firecloudUrlRoot

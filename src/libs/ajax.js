@@ -426,6 +426,16 @@ const Buckets = signal => ({
       )
     }
     return {
+      preview: async () => {
+        const nb = await fetchBuckets(
+          `${bucketUrl}/${encodeURIComponent(`notebooks/${name}`)}?alt=media`,
+          _.merge(authOpts(await User(signal).token(namespace)), { signal })
+        ).then(res => res.text())
+        return fetchOk(`${await Config.getCalhounRoot()}/api/convert`,
+          _.mergeAll([authOpts(), { signal, method: 'POST', body: nb }])
+        ).then(res => res.text())
+      },
+
       copy,
 
       create: async contents => {
