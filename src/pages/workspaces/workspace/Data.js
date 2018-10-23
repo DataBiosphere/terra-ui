@@ -315,17 +315,16 @@ const WorkspaceData = _.flow(
                   const thisWidth = theseColumnWidths[name] || 300
                   return {
                     width: thisWidth,
-                    headerRenderer: () =>
-                      h(Resizable, {
-                        width: thisWidth, onWidthChange: delta => {
-                          this.setState({ columnWidths: _.set(`${selectedDataType}.${name}`, thisWidth + delta, columnWidths) },
-                            () => this.table.current.recomputeColumnSizes())
-                        }
-                      }, [
-                        h(Sortable, { sort, field: name, onSort: v => this.setState({ sort: v }) }, [
-                          h(HeaderCell, [name])
-                        ])
-                      ]),
+                    headerRenderer: () => h(Resizable, {
+                      width: thisWidth, onWidthChange: delta => {
+                        this.setState({ columnWidths: _.set(`${selectedDataType}.${name}`, thisWidth + delta, columnWidths) },
+                          () => this.table.current.recomputeColumnSizes())
+                      }
+                    }, [
+                      h(Sortable, { sort, field: name, onSort: v => this.setState({ sort: v }) }, [
+                        h(HeaderCell, [name])
+                      ])
+                    ]),
                     cellRenderer: ({ rowIndex }) => {
                       return renderDataCell(
                         Utils.entityAttributeText(entities[rowIndex].attributes[name]), namespace
@@ -392,12 +391,11 @@ const WorkspaceData = _.flow(
         onClick: async () => {
           const attributeNames = entityMetadata[selectedDataType].attributeNames
 
-          const entityToRow = entity =>
-            _.join('\t', [
-              entity.name, ..._.map(
-                attribute => Utils.entityAttributeText(entity.attributes[attribute]),
-                attributeNames)
-            ])
+          const entityToRow = entity => _.join('\t', [
+            entity.name, ..._.map(
+              attribute => Utils.entityAttributeText(entity.attributes[attribute]),
+              attributeNames)
+          ])
 
           const header = _.join('\t', [`${selectedDataType}_id`, ...attributeNames])
 

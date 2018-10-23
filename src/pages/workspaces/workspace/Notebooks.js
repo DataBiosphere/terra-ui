@@ -22,12 +22,11 @@ import * as Utils from 'src/libs/utils'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
 
-const notebookCardCommonStyles = listView =>
-  _.merge({ display: 'flex' },
-    listView ?
-      { marginBottom: '0.5rem', flexDirection: 'row' } :
-      { margin: '0 2.5rem 2.5rem 0', height: 250, width: 200, flexDirection: 'column' }
-  )
+const notebookCardCommonStyles = listView => _.merge({ display: 'flex' },
+  listView ?
+    { marginBottom: '0.5rem', flexDirection: 'row' } :
+    { margin: '0 2.5rem 2.5rem 0', height: 250, width: 200, flexDirection: 'column' }
+)
 
 const printName = name => name.slice(10, -6) // removes 'notebooks/' and the .ipynb suffix
 

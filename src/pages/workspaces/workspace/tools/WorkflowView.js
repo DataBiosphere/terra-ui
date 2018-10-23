@@ -29,8 +29,7 @@ import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer
 
 const sideMargin = '3rem'
 
-const miniMessage = text =>
-  span({ style: { fontWeight: 500, fontSize: '75%', marginRight: '1rem', textTransform: 'uppercase' } }, [text])
+const miniMessage = text => span({ style: { fontWeight: 500, fontSize: '75%', marginRight: '1rem', textTransform: 'uppercase' } }, [text])
 
 const errorIcon = b => {
   return !_.isEmpty(b) && icon('error', {
