@@ -203,7 +203,7 @@ const gtex = h(Participant, {
   NIHCommonsButtons
 ])
 
-const { firecloudRoot } = Config.getFirecloudUrlRoot
+//const { firecloudRoot } = await Config.getFirecloudUrlRoot()
 
 const fcDataLib = h(Participant, {
   logo: { src: broadLogo, alt: 'Broad logo', height: '40%' },
@@ -214,7 +214,7 @@ const fcDataLib = h(Participant, {
 }, [
   buttonPrimary({
     as: 'a',
-    href: `${firecloudRoot}/#library`,
+    href: `${Config.getFirecloudUrlRoot()}/#library`,
     target: '_blank',
     tooltip: 'Search for dataset workspaces'
   }, ['Browse Datasets'])
