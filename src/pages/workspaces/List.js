@@ -4,7 +4,7 @@ import { a, div, h, span } from 'react-hyperscript-helpers'
 import { pure } from 'recompose'
 import removeMd from 'remove-markdown'
 import togglesListView from 'src/components/CardsListToggle'
-import { Clickable, MenuButton, PageFadeBox, search, topSpinnerOverlay, transparentSpinnerOverlay } from 'src/components/common'
+import { Clickable, MenuButton, PageFadeBox, search, topSpinnerOverlay, transparentSpinnerOverlay, menuIcon } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
 import PopupTrigger from 'src/components/PopupTrigger'
@@ -79,28 +79,25 @@ const WorkspaceCard = pure(({
   const lastChanged = `Last changed: ${Utils.makePrettyDate(lastModified)}`
   const badge = div({ title: createdBy, style: styles.badge }, [createdBy[0].toUpperCase()])
   const isOwner = Utils.isOwner(accessLevel)
-  const iconHelp = (iconName, iconLabel) => {
-    return h(Fragment, [icon(iconName, { size: 15, style: { marginRight: '.25rem' } }), iconLabel])
-  }
   const workspaceMenu = h(PopupTrigger, {
     position: 'right',
     closeOnClick: true,
     content: h(Fragment, [
       h(MenuButton, {
         onClick: () => onClone()
-      }, [iconHelp('copy', 'Clone')]),
+      }, [menuIcon('copy'), 'Clone']),
       h(MenuButton, {
         disabled: !isOwner,
         tooltip: !isOwner && 'You must be an owner of this workspace or the underlying billing project',
         tooltipSide: 'left',
         onClick: () => onShare()
-      }, [iconHelp('share', 'Share')]),
+      }, [menuIcon('share'), 'Share']),
       h(MenuButton, {
         disabled: !isOwner,
         tooltip: !isOwner && 'You must be an owner of this workspace or the underlying billing project',
         tooltipSide: 'left',
         onClick: () => onDelete()
-      }, [iconHelp('trash', 'Delete')])
+      }, [menuIcon('trash'), 'Delete'])
     ])
   }, [
     h(Clickable, {
@@ -111,7 +108,9 @@ const WorkspaceCard = pure(({
       focus: 'hover',
       hover: { color: colors.blue[2] }
     }, [
-      icon('cardMenuIcon', { size: 23 })
+      icon('cardMenuIcon', {
+        size: listView ? 18 : 24
+      })
     ])
   ])
   const descText = description ?

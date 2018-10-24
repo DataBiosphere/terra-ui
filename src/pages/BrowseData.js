@@ -1,4 +1,4 @@
-import { Fragment } from 'react'
+import { Children, Fragment, cloneElement } from 'react'
 import { div, h, img, p, span } from 'react-hyperscript-helpers'
 import { pure } from 'recompose'
 import { buttonPrimary, link, FadeBox, PageFadeBox } from 'src/components/common'
@@ -10,8 +10,10 @@ import gtexLogo from 'src/images/browse-data/GTeX@2x.png'
 import hcaLogo from 'src/images/browse-data/HCA@2x.png'
 import nhsLogo from 'src/images/browse-data/NHS@2x.png'
 import topMedLogo from 'src/images/browse-data/TopMed@2x.png'
+import broadLogo from 'src/images/browse-data/broad_logo.png'
 import colors from 'src/libs/colors'
 import * as Nav from 'src/libs/nav'
+import * as Config from 'src/libs/config'
 import * as Style from 'src/libs/style'
 import { Component } from 'src/libs/wrapped-components'
 
@@ -43,7 +45,7 @@ const styles = {
 }
 
 
-const logoBox = ({ src, alt }) => div({
+const logoBox = ({ src, alt, height }) => div({
   style: {
     display: 'inline-flex', justifyContent: 'center', alignItems: 'center',
     flex: 'none',
@@ -53,15 +55,16 @@ const logoBox = ({ src, alt }) => div({
   }
 }, [
   img({
-    src, alt, height: '60%', width: 'auto'
+    src, alt, height: height || '60%', width: 'auto'
   })
 ])
 
 
 class Participant extends Component {
   render() {
-    const { logo, title, shortDescription, description, sizeText, children } = this.props
-    const { showingModal } = this.state
+    const { logo, title, shortDescription, description, sizeText, children, isFirecloud } = this.props
+    const { showingModal, firecloudRoot } = this.state
+    const child = Children.only(children)
 
     const titleElement = div({ style: styles.participant.title }, [title])
 
@@ -80,7 +83,11 @@ class Participant extends Component {
           }, ['READ MORE'])
         ]),
         div({ style: styles.participant.sizeText }, [sizeText]),
-        div({ style: { marginTop: '1rem' } }, [children])
+        div({ style: { marginTop: '1rem' } }, [
+          isFirecloud ?
+            cloneElement(child, { href: firecloudRoot + child.props.href }) :
+            children
+        ])
       ]),
       showingModal && h(Modal, {
         onDismiss: () => this.setState({ showingModal: false }),
@@ -93,6 +100,10 @@ class Participant extends Component {
         sizeText && p([sizeText])
       ])
     ])
+  }
+
+  async componentDidMount() {
+    this.props.isFirecloud && this.setState({ firecloudRoot: await Config.getFirecloudUrlRoot() })
   }
 }
 
@@ -154,10 +165,12 @@ const amppd = h(Participant, {
   Institutes of Health (NIH), multiple biopharmaceutical and life sciences companies, and non-profit organizations to
   identify...`,
   description: h(Fragment, [
-    p([`The Accelerating Medicines Partnership (AMP) is a public-private partnership between the National Institutes of
+    p([
+      `The Accelerating Medicines Partnership (AMP) is a public-private partnership between the National Institutes of
     Health (NIH), multiple biopharmaceutical and life sciences companies, and non-profit organizations to identify and 
     validate the most promising biological targets for therapeutics. This AMP effort aims to identify and validate the
-    most promising biological targets for therapeutics relevant to Parkinson's disease.`]),
+    most promising biological targets for therapeutics relevant to Parkinson's disease.`
+    ]),
     p(['Includes data from the following studies:']),
     div({ style: { margin: '0.4rem 0', fontWeight: 'bold', lineHeight: '150%' } }, [
       div({ style: { display: 'flex' } }, [
@@ -185,7 +198,7 @@ const topMed = h(Participant, {
   title: 'TopMed presented by NIH Commons',
   description: `Trans-Omics for Precision Medicine (TOPMed), sponsored by the National Institutes of Health's National
   Heart, Lung, and Blood Institute (NHLBI), is a program to generate scientific resources to enhance our understanding
-  of fundamental biological processes that underlie heart, lung, blood, and sleep disorders (HLBS)`,
+  of fundamental biological processes that underlie heart, lung, blood, and sleep disorders (HLBS).`,
   sizeText: h(TooltipTrigger, { content: 'As of November 2016' }, [span('Participants: > 54,000')])
 }, [
   NIHCommonsButtons
@@ -201,6 +214,22 @@ const gtex = h(Participant, {
   NIHCommonsButtons
 ])
 
+const fcDataLib = h(Participant, {
+  isFirecloud: true,
+  logo: { src: broadLogo, alt: 'Broad logo', height: '40%' },
+  title: 'FireCloud Dataset Library',
+  description: `Search for datasets sequenced at the Broad Institute, or public datasets hosted at the Broad. Datasets
+   are pre-loaded as workspaces. You can clone these, or copy data into the workspace of your choice.`,
+  sizeText: h(TooltipTrigger, { content: 'As of October 2018' }, [span('Samples: > 158,629')])
+}, [
+  buttonPrimary({
+    as: 'a',
+    href: `/#library`,
+    target: '_blank',
+    tooltip: 'Search for dataset workspaces'
+  }, ['Browse Datasets'])
+])
+
 
 const BrowseData = pure(() => {
   return h(Fragment, [
@@ -209,7 +238,7 @@ const BrowseData = pure(() => {
       div([
         div({ style: styles.header }, ['Data Library']),
         div({ style: styles.content }, [
-          nhs, hca, amppd, topMed, gtex
+          nhs, hca, amppd, topMed, gtex, fcDataLib
         ])
       ])
     ])
