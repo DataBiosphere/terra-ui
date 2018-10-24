@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import { createRef, Fragment } from 'react'
 import { div, h, iframe } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { spinnerDefault } from 'src/components/common'
+import { linkButton, spinnerOverlay } from 'src/components/common'
 import { icon, spinner } from 'src/components/icons'
 import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
@@ -49,7 +49,52 @@ const NotebookLauncher = _.flow(
     showTabBar: false
   }),
   ajaxCaller
-)(class NotebookLauncher extends Component {
+)(({ workspace, ...props }) => {
+  return Utils.canWrite(workspace.accessLevel) && workspace.canCompute ?
+    h(NotebookEditor, { workspace, ...props }) :
+    h(NotebookViewer, { workspace, ...props })
+})
+
+class NotebookViewer extends Component {
+  constructor(props) {
+    super(props)
+    this.state = {
+      preview: undefined,
+      busy: false
+    }
+  }
+
+  async componentDidMount() {
+    try {
+      const { namespace, notebookName, workspace: { workspace: { bucketName } }, ajax: { Buckets } } = this.props
+      this.setState({ busy: true })
+      const preview = await Buckets.notebook(namespace, bucketName, notebookName).preview()
+      this.setState({ preview })
+    } catch (error) {
+      reportError('Error loading notebook', error)
+    } finally {
+      this.setState({ busy: false })
+    }
+  }
+
+  render() {
+    const { namespace, name } = this.props
+    const { preview, busy } = this.state
+    return h(Fragment, [
+      preview && iframe({
+        style: { border: 'none', flex: 1 },
+        srcDoc: preview
+      }),
+      preview && linkButton({
+        style: { position: 'absolute', top: 20, left: 'calc(50% + 570px)' },
+        onClick: () => Nav.goToPath('workspace-notebooks', { namespace, name })
+      }, [icon('times-circle', { size: 30 })]),
+      busy && spinnerOverlay
+    ])
+  }
+}
+
+class NotebookEditor extends Component {
   saveNotebook() {
     this.notebookFrame.current.contentWindow.postMessage('save', '*')
   }
@@ -203,7 +248,7 @@ const NotebookLauncher = _.flow(
           style: { border: 'none', flex: 1 },
           ref: this.notebookFrame
         }),
-        saving && spinnerDefault()
+        saving && spinnerOverlay
       ])
     }
 
@@ -227,7 +272,7 @@ const NotebookLauncher = _.flow(
       ])
     ])
   }
-})
+}
 
 
 export const addNavPaths = () => {

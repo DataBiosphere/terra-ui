@@ -1,5 +1,6 @@
 {
   "agoraUrlRoot": "https://agora.dsde-dev.broadinstitute.org",
+  "calhounUrlRoot": "https://terra-calhoun-dev.appspot.com",
   "devUrlRoot": "https://bvdp-saturn-dev.appspot.com",
   "dockstoreUrlRoot": "https://staging.dockstore.org",
   "firecloudUrlRoot": "https://firecloud.dsde-dev.broadinstitute.org",
