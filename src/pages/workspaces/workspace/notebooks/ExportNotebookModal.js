@@ -118,12 +118,13 @@ export default _.flow(
   }
 
   async copy() {
-    const { printName, namespace, workspace, ajax: { Buckets } } = this.props
+    const { printName, workspace, ajax: { Buckets } } = this.props
     const { newName } = this.state
     const selectedWorkspace = this.getSelectedWorkspace().workspace
+    console.log(selectedWorkspace)
     try {
       this.setState({ copying: true })
-      await Buckets.notebook(namespace, workspace.workspace.bucketName, printName)['copy'](newName, selectedWorkspace.bucketName)
+      await Buckets.notebook(workspace.workspace.namespace, workspace.workspace.bucketName, printName)['copy'](newName, selectedWorkspace.bucketName)
       this.setState({ copied: true })
     } catch (error) {
       this.setState({ error: await error.text(), copying: false })

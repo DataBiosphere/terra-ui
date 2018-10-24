@@ -318,7 +318,7 @@ const Notebooks = _.flow(
             }
           }),
           exportingNotebookName && h(ExportNotebookModal, {
-            printName: printName(exportingNotebookName), workspace, namespace,
+            printName: printName(exportingNotebookName), workspace,
             onDismiss: () => this.setState({ exportingNotebookName: undefined })
           }),
           deletingNotebookName && h(NotebookDeleter, {
