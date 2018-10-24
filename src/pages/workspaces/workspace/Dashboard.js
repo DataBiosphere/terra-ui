@@ -1,11 +1,10 @@
 import _ from 'lodash/fp'
-import marked from 'marked'
 import { Fragment } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import SimpleMDE from 'react-simplemde-editor'
 import 'simplemde/dist/simplemde.min.css'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { buttonPrimary, buttonSecondary, link, linkButton, spinnerOverlay } from 'src/components/common'
+import { buttonPrimary, buttonSecondary, link, linkButton, Markdown, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
@@ -154,7 +153,7 @@ export const WorkspaceDashboard = _.flow(
               saving && spinnerOverlay
             ])
           ],
-          [!!description, () => div({ dangerouslySetInnerHTML: { __html: marked(description) } })],
+          [!!description, () => h(Markdown, [description])],
           () => div({ style: { fontStyle: 'italic' } }, ['No description added']))
       ]),
       div({ style: styles.rightBox }, [

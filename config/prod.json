@@ -9,5 +9,6 @@
   "marthaUrlRoot": "https://us-central1-broad-dsde-prod.cloudfunctions.net/fileSummaryV1",
   "orchestrationUrlRoot": "https://api.firecloud.org",
   "rawlsUrlRoot": "https://rawls.dsde-prod.broadinstitute.org",
-  "samUrlRoot": "https://sam.dsde-prod.broadinstitute.org"
+  "samUrlRoot": "https://sam.dsde-prod.broadinstitute.org",
+  "tosUrlRoot": "https://us-central1-broad-workbench-tos-prod.cloudfunctions.net/tos"
 }
