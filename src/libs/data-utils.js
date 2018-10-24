@@ -175,7 +175,8 @@ export const EntityDeleter = ajaxCaller(class EntityDeleter extends Component {
         Utils.toIndexPairs(selectedEntities)),
         div({
           style: { ...warningStyle, textAlign: 'right' }
-        }, [`${selectedEntities.length} data entries to be deleted.`])
+        }, [`${selectedEntities.length} data entries to be deleted.`]),
+        deleting && spinnerOverlay
       ] :
       [
         div({ style: { ...warningStyle, display: 'flex', alignItems: 'center' } }, [
@@ -191,9 +192,9 @@ export const EntityDeleter = ajaxCaller(class EntityDeleter extends Component {
         Utils.toIndexPairs(additionalDeletions)),
         div({
           style: { ...warningStyle, textAlign: 'right' }
-        }, [`${selectedEntities.length + additionalDeletions.length} data entries to be deleted.`])
-      ],
-      deleting && spinnerOverlay
+        }, [`${selectedEntities.length + additionalDeletions.length} data entries to be deleted.`]),
+        deleting && spinnerOverlay
+      ]
     )
   }
 })
