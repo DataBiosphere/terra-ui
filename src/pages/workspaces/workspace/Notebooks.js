@@ -39,7 +39,7 @@ class NotebookCard extends Component {
 
     const notebookLink = Nav.getLink('workspace-notebook-launch', { namespace, name: wsName, notebookName: name.slice(10) })
 
-    const notebookMenu = canWrite && h(PopupTrigger, {
+    const notebookMenu = h(PopupTrigger, {
       position: 'right',
       closeOnClick: true,
       content: h(Fragment, [
@@ -54,12 +54,21 @@ class NotebookCard extends Component {
           }
         }, [menuIcon('copy-to-clipboard'), 'Copy notebook URL to clipboard']),
         h(MenuButton, {
+          disabled: !canWrite,
+          tooltip: !canWrite && noWrite,
+          tooltipSide: 'left',
           onClick: () => onRename()
         }, [menuIcon('renameIcon'), 'Rename']),
         h(MenuButton, {
+          disabled: !canWrite,
+          tooltip: !canWrite && noWrite,
+          tooltipSide: 'left',
           onClick: () => onCopy()
         }, [menuIcon('copy'), 'Duplicate']),
         h(MenuButton, {
+          disabled: !canWrite,
+          tooltip: !canWrite && noWrite,
+          tooltipSide: 'left',
           onClick: () => onDelete()
         }, [menuIcon('trash'), 'Delete'])
       ])
