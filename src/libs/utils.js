@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { Component, forwardRef } from 'react'
+import { Component } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import uuid from 'uuid/v4'
 
@@ -57,18 +57,16 @@ export const connectAtom = (theAtom, name) => WrappedComponent => {
     }
 
     render() {
-      const { forwardedRef, forwardedProps } = this.props
       const { value } = this.state
 
       return h(WrappedComponent, {
-        ref: forwardedRef,
-        ...forwardedProps,
+        ...this.props,
         [name]: value
       })
     }
   }
 
-  return forwardRef((props, ref) => h(Wrapper, { forwardedRef: ref, forwardedProps: props }))
+  return Wrapper
 }
 
 export const makePrettyDate = function(dateString) {
