@@ -15,6 +15,7 @@ import TooltipTrigger from 'src/components/TooltipTrigger'
 import WDLViewer from 'src/components/WDLViewer'
 import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
+import * as Config from 'src/libs/config'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
@@ -195,6 +196,8 @@ const WorkflowView = _.flow(
       this.setState({
         isFreshData: true, savedConfig: config, modifiedConfig: config,
         entityMetadata, inputsOutputs,
+        firecloudRoot: await Config.getFirecloudUrlRoot(),
+        dockstoreRoot: await Config.getDockstoreUrlRoot(),
         errors: augmentErrors(validationResponse),
         workspaceAttributes: _.flow(
           _.without(['description']),
@@ -220,7 +223,7 @@ const WorkflowView = _.flow(
 
   renderSummary() {
     const { workspace: { canCompute, workspace } } = this.props
-    const { modifiedConfig, savedConfig, entityMetadata, saving, saved, copying, deleting, activeTab, errors } = this.state
+    const { modifiedConfig, savedConfig, entityMetadata, saving, saved, copying, deleting, activeTab, errors, firecloudRoot, dockstoreRoot } = this.state
     const { name, methodRepoMethod: { methodPath, methodVersion, methodNamespace, methodName }, rootEntityType } = modifiedConfig
     const modified = !_.isEqual(modifiedConfig, savedConfig)
 
@@ -251,11 +254,11 @@ const WorkflowView = _.flow(
           ]),
           div(`V. ${methodVersion}`),
           methodPath && div(['Source: ', link({
-            href: `https://dockstore.org/workflows/${methodPath}`,
+            href: `${dockstoreRoot}/workflows/${methodPath}`,
             target: '_blank'
           }, methodPath)]),
           methodNamespace && div(['Source: ', link({
-            href: `https://firecloud.dsde-dev.broadinstitute.org/#methods/${methodNamespace}/${methodName}/${methodVersion}`,
+            href: `${firecloudRoot}/#methods/${methodNamespace}/${methodName}/${methodVersion}`,
             target: '_blank'
           }, `${methodNamespace}/${methodName}/${methodVersion}`)]),
           div({ style: { textTransform: 'capitalize', display: 'flex', alignItems: 'baseline', marginTop: '0.5rem' } }, [

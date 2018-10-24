@@ -9,6 +9,7 @@ import { icon } from 'src/components/icons'
 import PopupTrigger from 'src/components/PopupTrigger'
 import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
+import * as Config from 'src/libs/config'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
@@ -59,7 +60,7 @@ const styles = {
   }
 }
 
-const ToolCard = pure(({ listView, name, namespace, config, onCopy, onDelete }) => {
+const ToolCard = pure(({ listView, name, namespace, config, onCopy, onDelete, firecloudRoot, dockstoreRoot }) => {
   const { namespace: workflowNamespace, name: workflowName, methodRepoMethod: { sourceRepo, methodVersion, methodNamespace, methodName, methodPath } } = config
   const toolCardMenu = h(PopupTrigger, {
     closeOnClick: true,
@@ -85,9 +86,8 @@ const ToolCard = pure(({ listView, name, namespace, config, onCopy, onDelete }) 
       })
     ])
   ])
-
   const repoLink = link({
-    href: sourceRepo === 'agora' ? `https://firecloud.dsde-dev.broadinstitute.org/#methods/${methodNamespace}/${methodName}/${methodVersion}`: `https://dockstore.org/workflows/${methodPath}`,
+    href: sourceRepo === 'agora' ? `${firecloudRoot}/#methods/${methodNamespace}/${methodName}/${methodVersion}`: `${dockstoreRoot}/workflows/${methodPath}`,
     target: '_blank'
   }, sourceRepo)
 
@@ -146,7 +146,7 @@ export const Tools = _.flow(
 
   render() {
     const { namespace, name, listView, viewToggleButtons, workspace: { workspace } } = this.props
-    const { loading, configs, copyingTool, deletingTool } = this.state
+    const { loading, configs, copyingTool, deletingTool, firecloudRoot, dockstoreRoot } = this.state
     return h(PageFadeBox, [
       div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' } }, [
         div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, ['Tools']),
@@ -169,7 +169,7 @@ export const Tools = _.flow(
           return h(ToolCard, {
             onCopy: () => this.setState({ copyingTool: { namespace: config.namespace, name: config.name } }),
             onDelete: () => this.setState({ deletingTool: { namespace: config.namespace, name: config.name } }),
-            key: `${config.namespace}/${config.name}`, namespace, name, config, listView
+            key: `${config.namespace}/${config.name}`, namespace, name, config, listView, firecloudRoot, dockstoreRoot
           })
         }, configs),
         configs && !configs.length && div(['No tools added']),
@@ -178,8 +178,9 @@ export const Tools = _.flow(
     ])
   }
 
-  componentDidMount() {
+  async componentDidMount() {
     this.refresh()
+    this.setState({ firecloudRoot: await Config.getFirecloudUrlRoot(), dockstoreRoot: await Config.getDockstoreUrlRoot() })
   }
 
   componentDidUpdate() {
