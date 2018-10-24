@@ -1,4 +1,4 @@
-import { Fragment } from 'react'
+import { Children, Fragment, cloneElement } from 'react'
 import { div, h, img, p, span } from 'react-hyperscript-helpers'
 import { pure } from 'recompose'
 import { buttonPrimary, link, FadeBox, PageFadeBox } from 'src/components/common'
@@ -62,8 +62,9 @@ const logoBox = ({ src, alt, height }) => div({
 
 class Participant extends Component {
   render() {
-    const { logo, title, shortDescription, description, sizeText, children } = this.props
-    const { showingModal } = this.state
+    const { logo, title, shortDescription, description, sizeText, children, isFirecloud } = this.props
+    const { showingModal, firecloudRoot } = this.state
+    const child = Children.only(children)
 
     const titleElement = div({ style: styles.participant.title }, [title])
 
@@ -82,7 +83,11 @@ class Participant extends Component {
           }, ['READ MORE'])
         ]),
         div({ style: styles.participant.sizeText }, [sizeText]),
-        div({ style: { marginTop: '1rem' } }, [children])
+        div({ style: { marginTop: '1rem' } }, [
+          isFirecloud ?
+            cloneElement(child, { href: firecloudRoot + child.props.href }) :
+            children
+        ])
       ]),
       showingModal && h(Modal, {
         onDismiss: () => this.setState({ showingModal: false }),
@@ -95,6 +100,10 @@ class Participant extends Component {
         sizeText && p([sizeText])
       ])
     ])
+  }
+
+  async componentDidMount() {
+    this.props.isFirecloud && this.setState({ firecloudRoot: await Config.getFirecloudUrlRoot() })
   }
 }
 
@@ -156,10 +165,12 @@ const amppd = h(Participant, {
   Institutes of Health (NIH), multiple biopharmaceutical and life sciences companies, and non-profit organizations to
   identify...`,
   description: h(Fragment, [
-    p([`The Accelerating Medicines Partnership (AMP) is a public-private partnership between the National Institutes of
+    p([
+      `The Accelerating Medicines Partnership (AMP) is a public-private partnership between the National Institutes of
     Health (NIH), multiple biopharmaceutical and life sciences companies, and non-profit organizations to identify and 
     validate the most promising biological targets for therapeutics. This AMP effort aims to identify and validate the
-    most promising biological targets for therapeutics relevant to Parkinson's disease.`]),
+    most promising biological targets for therapeutics relevant to Parkinson's disease.`
+    ]),
     p(['Includes data from the following studies:']),
     div({ style: { margin: '0.4rem 0', fontWeight: 'bold', lineHeight: '150%' } }, [
       div({ style: { display: 'flex' } }, [
@@ -203,9 +214,8 @@ const gtex = h(Participant, {
   NIHCommonsButtons
 ])
 
-//const { firecloudRoot } = await Config.getFirecloudUrlRoot()
-
 const fcDataLib = h(Participant, {
+  isFirecloud: true,
   logo: { src: broadLogo, alt: 'Broad logo', height: '40%' },
   title: 'FireCloud Dataset Library',
   description: `Search for datasets sequenced at the Broad Institute, or public datasets hosted at the Broad. Datasets
@@ -214,7 +224,7 @@ const fcDataLib = h(Participant, {
 }, [
   buttonPrimary({
     as: 'a',
-    href: `${Config.getFirecloudUrlRoot()}/#library`,
+    href: `/#library`,
     target: '_blank',
     tooltip: 'Search for dataset workspaces'
   }, ['Browse Datasets'])
