@@ -1,6 +1,5 @@
 import _ from 'lodash/fp'
 import * as qs from 'qs'
-import { forwardRef } from 'react'
 import { h } from 'react-hyperscript-helpers'
 import { version } from 'src/data/clusters'
 import { getUser } from 'src/libs/auth'
@@ -587,12 +586,9 @@ export const ajaxCaller = WrappedComponent => {
     static displayName = 'ajaxCaller()'
 
     render() {
-      const { forwardedRef, forwardedProps } = this.props
-
       return h(WrappedComponent, {
-        ref: forwardedRef,
-        ajax: this.ajax,
-        ...forwardedProps
+        ...this.props,
+        ajax: this.ajax
       })
     }
 
@@ -601,5 +597,5 @@ export const ajaxCaller = WrappedComponent => {
     }
   }
 
-  return forwardRef((props, ref) => h(Wrapper, { forwardedRef: ref, forwardedProps: props }))
+  return Wrapper
 }
