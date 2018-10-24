@@ -650,7 +650,7 @@ const WorkspaceData = _.flow(
   componentDidUpdate(prevProps, prevState) {
     StateHistory.update(_.pick(
       [
-        'entityMetadata', 'selectedDataType', 'entities', 'workspaceAttributes', 'totalRowCount',
+        'entityMetadata', 'selectedDataType', 'isDataModel', 'entities', 'workspaceAttributes', 'totalRowCount',
         'itemsPerPage', 'pageNumber', 'sort', 'columnWidths', 'columnState'
       ],
       this.state)
