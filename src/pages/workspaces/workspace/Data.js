@@ -224,7 +224,7 @@ const WorkspaceData = _.flow(
           deletingEntities &&
             h(EntityDeleter, {
               onDismiss: () => this.setState({ deletingEntities: false }),
-              onSuccess: () => this.setState({ deletingEntities: false }, () => this.loadData()),
+              onSuccess: () => this.setState({ deletingEntities: false }, () => this.refresh()),
               namespace, name,
               selectedEntities, selectedDataType, runningSubmissionsCount
             }),

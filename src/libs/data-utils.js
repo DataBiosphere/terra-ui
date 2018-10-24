@@ -121,20 +121,29 @@ export const EntityDeleter = ajaxCaller(class EntityDeleter extends Component {
 
   async doDelete() {
     const { onDismiss, onSuccess, namespace, name, selectedEntities, selectedDataType, ajax: { Workspaces } } = this.props
+    const { additionalDeletions = [] } = this.state
+    const entitiesToDelete = _.concat(_.map(entityName => ({ entityName, entityType: selectedDataType }), selectedEntities), additionalDeletions)
 
     this.setState({ deleting: true })
+
     try {
-      await Workspaces.workspace(namespace, name).deleteEntities(selectedEntities, selectedDataType)
+      await Workspaces.workspace(namespace, name).deleteEntities(entitiesToDelete)
       onSuccess()
     } catch (error) {
-      reportError('Error deleting reference data', error)
-      onDismiss()
+      switch (error.status) {
+        case 409:
+          this.setState({ additionalDeletions: _.filter(entity => entity.entityType !== selectedDataType, await error.json()), deleting: false })
+          break
+        default:
+          reportError('Error deleting data entries', error)
+          onDismiss()
+      }
     }
   }
 
   render() {
     const { onDismiss, selectedEntities, runningSubmissionsCount } = this.props
-    const { deleting } = this.state
+    const { deleting, additionalDeletions } = this.state
 
     const warningStyle = {
       border: `1px solid ${colors.orange[1]}`, borderLeft: 'none', borderRight: 'none',
@@ -150,22 +159,41 @@ export const EntityDeleter = ajaxCaller(class EntityDeleter extends Component {
         disabled: deleting,
         onClick: () => this.doDelete()
       }, ['Delete'])
-    }, [
-      runningSubmissionsCount >= 0 && div({ style: { ...warningStyle, display: 'flex', alignItems: 'center', marginBottom: -1 } }, [
-        icon('warning-standard', { size: 36, className: 'is-solid', style: { flex: 'none', marginRight: '0.5rem' } }),
-        `WARNING: ${runningSubmissionsCount} workflows are currently running in this workspace. ` +
-        'Deleting the following data could cause failures if a workflow is using this data.'
-      ]),
-      ..._.map(([i, name]) => div({
-        style: {
-          borderTop: (i === 0 && runningSubmissionsCount === 0) ? undefined : Style.standardLine,
-          padding: '0.6rem 1.25rem', margin: '0 -1.25rem'
-        }
-      }, name),
-      Utils.toIndexPairs(selectedEntities)),
-      div({
-        style: { ...warningStyle, textAlign: 'right' }
-      }, [`${selectedEntities.length} data entries to be deleted.`])
-    ])
+    }, !additionalDeletions ?
+      [
+        runningSubmissionsCount >= 0 && div({ style: { ...warningStyle, display: 'flex', alignItems: 'center' } }, [
+          icon('warning-standard', { size: 36, className: 'is-solid', style: { flex: 'none', marginRight: '0.5rem' } }),
+          `WARNING: ${runningSubmissionsCount} workflows are currently running in this workspace. ` +
+          'Deleting the following data could cause failures if a workflow is using this data.'
+        ]),
+        ..._.map(([i, name]) => div({
+          style: {
+            borderTop: (i === 0 && runningSubmissionsCount === 0) ? undefined : Style.standardLine,
+            padding: '0.6rem 1.25rem', margin: '0 -1.25rem'
+          }
+        }, name),
+        Utils.toIndexPairs(selectedEntities)),
+        div({
+          style: { ...warningStyle, textAlign: 'right' }
+        }, [`${selectedEntities.length} data entries to be deleted.`])
+      ] :
+      [
+        div({ style: { ...warningStyle, display: 'flex', alignItems: 'center' } }, [
+          icon('warning-standard', { size: 36, className: 'is-solid', style: { flex: 'none', marginRight: '0.5rem' } }),
+          'In order to delete the selected data entries, the following entries that reference them must also be deleted.'
+        ]),
+        ..._.map(([i, { entityType, entityName }]) => div({
+          style: {
+            borderTop: (i === 0) ? undefined : Style.standardLine,
+            padding: '0.6rem 1.25rem', margin: '0 -1.25rem'
+          }
+        }, `${entityName} (${entityType})`),
+        Utils.toIndexPairs(additionalDeletions)),
+        div({
+          style: { ...warningStyle, textAlign: 'right' }
+        }, [`${selectedEntities.length + additionalDeletions.length} data entries to be deleted.`])
+      ],
+      deleting && spinnerOverlay
+    )
   }
 })
