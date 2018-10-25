@@ -171,7 +171,12 @@ export const WorkspaceDashboard = _.flow(
         !_.isEmpty(authorizationDomain) && h(Fragment, [
           div({ style: styles.header }, ['Authorization Domain']),
           div({ style: { marginBottom: '0.5rem' } }, [
-            'Collaborators must be a member of all of these groups to access this workspace.'
+            'Collaborators must be a member of all of these ',
+            link({
+              href: Nav.getLink('groups'),
+              target: '_blank'
+            }, 'groups'),
+            ' to access this workspace.'
           ]),
           ..._.map(({ membersGroupName }) => div({ style: styles.authDomain }, [membersGroupName]), authorizationDomain)
         ]),
