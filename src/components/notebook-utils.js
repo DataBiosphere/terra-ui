@@ -13,7 +13,7 @@ import { Component } from 'src/libs/wrapped-components'
 import validate from 'validate.js'
 
 
-const notebookNameValidator = existing => ({
+export const notebookNameValidator = existing => ({
   presence: { allowEmpty: false },
   format: {
     pattern: /^[^#[\]*?]*$/,
@@ -25,7 +25,7 @@ const notebookNameValidator = existing => ({
   }
 })
 
-const notebookNameInput = props => validatedInput(_.merge({
+export const notebookNameInput = props => validatedInput(_.merge({
   inputProps: {
     autoFocus: true,
     placeholder: 'Enter a name'
@@ -168,12 +168,16 @@ export const NotebookDuplicator = ajaxCaller(class NotebookDuplicator extends Co
       okButton: buttonPrimary({
         disabled: errors || processing,
         tooltip: Utils.summarizeErrors(errors),
-        onClick: () => {
-          this.setState({ processing: true })
-          Buckets.notebook(namespace, bucketName, printName)[destroyOld ? 'rename' : 'copy'](newName).then(
-            onSuccess,
-            error => reportError(`Error ${destroyOld ? 'renaming' : 'copying'} notebook`, error)
-          )
+        onClick: async () => {
+          try {
+            this.setState({ processing: true })
+            await (destroyOld ?
+              Buckets.notebook(namespace, bucketName, printName).rename(newName) :
+              Buckets.notebook(namespace, bucketName, printName).copy(newName, bucketName))
+            onSuccess()
+          } catch (error) {
+            reportError(`Error ${destroyOld ? 'renaming' : 'copying'} notebook`, error)
+          }
         }
       }, `${destroyOld ? 'Rename' : 'Duplicate'} Notebook`)
     },
