@@ -4,7 +4,7 @@ import { a, div, h } from 'react-hyperscript-helpers'
 import { pure } from 'recompose'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import togglesListView from 'src/components/CardsListToggle'
-import { Clickable, MenuButton, PageFadeBox, spinnerOverlay, menuIcon, link } from 'src/components/common'
+import { Clickable, MenuButton, PageFadeBox, spinnerOverlay, menuIcon, link, firecloudMethod, dockstoreMethod } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import PopupTrigger from 'src/components/PopupTrigger'
 import { ajaxCaller } from 'src/libs/ajax'
@@ -87,7 +87,9 @@ const ToolCard = pure(({ listView, name, namespace, config, onCopy, onDelete, fi
     ])
   ])
   const repoLink = link({
-    href: sourceRepo === 'agora' ? `${firecloudRoot}/#methods/${methodNamespace}/${methodName}/${methodVersion}`: `${dockstoreRoot}/workflows/${methodPath}`,
+    href: sourceRepo === 'agora' ?
+      firecloudMethod(firecloudRoot, methodNamespace, methodName, methodVersion):
+      dockstoreMethod(dockstoreRoot, methodPath),
     target: '_blank'
   }, sourceRepo)
 

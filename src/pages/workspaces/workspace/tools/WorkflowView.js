@@ -5,7 +5,9 @@ import Dropzone from 'react-dropzone'
 import { div, h, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { buttonPrimary, buttonSecondary, linkButton, MenuButton, Select, spinnerOverlay, menuIcon, link } from 'src/components/common'
+import {
+  buttonPrimary, buttonSecondary, linkButton, MenuButton, Select, spinnerOverlay, menuIcon, link, dockstoreMethod, firecloudMethod
+} from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { AutocompleteTextInput } from 'src/components/input'
 import PopupTrigger from 'src/components/PopupTrigger'
@@ -254,11 +256,11 @@ const WorkflowView = _.flow(
           ]),
           div(`V. ${methodVersion}`),
           methodPath && div(['Source: ', link({
-            href: `${dockstoreRoot}/workflows/${methodPath}`,
+            href: dockstoreMethod(dockstoreRoot, methodPath),
             target: '_blank'
           }, methodPath)]),
           methodNamespace && div(['Source: ', link({
-            href: `${firecloudRoot}/#methods/${methodNamespace}/${methodName}/${methodVersion}`,
+            href: firecloudMethod(firecloudRoot, methodNamespace, methodName, methodVersion),
             target: '_blank'
           }, `${methodNamespace}/${methodName}/${methodVersion}`)]),
           div({ style: { textTransform: 'capitalize', display: 'flex', alignItems: 'baseline', marginTop: '0.5rem' } }, [
