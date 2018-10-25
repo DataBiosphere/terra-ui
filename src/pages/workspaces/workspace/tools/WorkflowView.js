@@ -6,7 +6,7 @@ import { div, h, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import {
-  buttonPrimary, buttonSecondary, linkButton, MenuButton, Select, spinnerOverlay, menuIcon, link, dockstoreMethod, firecloudMethod
+  buttonPrimary, buttonSecondary, linkButton, MenuButton, Select, spinnerOverlay, menuIcon, link, methodLink
 } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { AutocompleteTextInput } from 'src/components/input'
@@ -255,14 +255,10 @@ const WorkflowView = _.flow(
             span({ style: { color: colors.darkBlue[0], fontSize: 24 } }, name)
           ]),
           div(`V. ${methodVersion}`),
-          methodPath && div(['Source: ', link({
-            href: dockstoreMethod(dockstoreRoot, methodPath),
+          div(['Source: ', link({
+            href: methodLink(modifiedConfig, firecloudRoot, dockstoreRoot),
             target: '_blank'
-          }, methodPath)]),
-          methodNamespace && div(['Source: ', link({
-            href: firecloudMethod(firecloudRoot, methodNamespace, methodName, methodVersion),
-            target: '_blank'
-          }, `${methodNamespace}/${methodName}/${methodVersion}`)]),
+          }, methodPath ? methodPath : `${methodNamespace}/${methodName}/${methodVersion}`)]),
           div({ style: { textTransform: 'capitalize', display: 'flex', alignItems: 'baseline', marginTop: '0.5rem' } }, [
             'Data Type:',
             h(Select, {

@@ -295,10 +295,7 @@ export const backgroundLogo = icon('logoIcon', {
   style: { position: 'fixed', top: -100, left: -100, zIndex: -1, opacity: 0.65 }
 })
 
-export const firecloudMethod = (root, namespace, name, version) => {
-  return `${root}/#methods/${namespace}/${name}/${version}`
-}
-
-export const dockstoreMethod = (root, path) => {
-  return `${root}/workflows/${path}`
+export const methodLink = (config, firecloudRoot, dockstoreRoot) => {
+  const { methodRepoMethod: { sourceRepo, methodVersion, methodNamespace, methodName, methodPath } } = config
+  return sourceRepo === 'agora' ? `${firecloudRoot}/#methods/${methodNamespace}/${methodName}/${methodVersion}` : `${dockstoreRoot}/workflows/${methodPath}`
 }
