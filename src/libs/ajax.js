@@ -113,7 +113,7 @@ const User = signal => ({
   }, namespace => namespace, 1000 * 60 * 30),
 
   getStatus: async () => {
-    return fetchSam('register/user/v2/self/info', _.merge(authOpts(), { signal }))
+    return instrumentedFetch(`${await Config.getSamUrlRoot()}/register/user/v2/self/info`, _.mergeAll([authOpts(), { signal }, appIdentifier]))
   },
 
   create: async () => {
