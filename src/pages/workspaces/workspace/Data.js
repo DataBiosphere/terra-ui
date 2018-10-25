@@ -109,9 +109,14 @@ const WorkspaceData = _.flow(
 
   async loadMetadata() {
     const { namespace, name, ajax: { Workspaces } } = this.props
+    const { isDataModel, selectedDataType } = this.state
+
     try {
       const entityMetadata = await Workspaces.workspace(namespace, name).entityMetadata()
-      this.setState({ entityMetadata })
+      this.setState({
+        selectedDataType: isDataModel && !entityMetadata[selectedDataType] ? undefined : selectedDataType,
+        entityMetadata
+      })
     } catch (error) {
       reportError('Error loading workspace entity data', error)
     }
@@ -206,28 +211,25 @@ const WorkspaceData = _.flow(
               onClick: () => this.setState({ importingReference: true })
             }, [icon('plus-circle')])
           ]),
-          importingReference &&
-            h(ReferenceDataImporter, {
-              onDismiss: () => this.setState({ importingReference: false }),
-              onSuccess: () => this.setState({ importingReference: false }, () => this.loadData()),
-              namespace, name
-            }),
-          deletingReference &&
-            h(ReferenceDataDeleter, {
-              onDismiss: () => this.setState({ deletingReference: false }),
-              onSuccess: () => this.setState({
-                deletingReference: false,
-                selectedDataType: selectedDataType === deletingReference ? undefined : selectedDataType
-              }, () => this.loadData()),
-              namespace, name, referenceDataType: deletingReference
-            }),
-          deletingEntities &&
-            h(EntityDeleter, {
-              onDismiss: () => this.setState({ deletingEntities: false }),
-              onSuccess: () => this.setState({ deletingEntities: false }, () => this.refresh()),
-              namespace, name,
-              selectedEntities, selectedDataType, runningSubmissionsCount
-            }),
+          importingReference && h(ReferenceDataImporter, {
+            onDismiss: () => this.setState({ importingReference: false }),
+            onSuccess: () => this.setState({ importingReference: false }, () => this.loadData()),
+            namespace, name
+          }),
+          deletingReference && h(ReferenceDataDeleter, {
+            onDismiss: () => this.setState({ deletingReference: false }),
+            onSuccess: () => this.setState({
+              deletingReference: false,
+              selectedDataType: selectedDataType === deletingReference ? undefined : selectedDataType
+            }, () => this.loadData()),
+            namespace, name, referenceDataType: deletingReference
+          }),
+          deletingEntities && h(EntityDeleter, {
+            onDismiss: () => this.setState({ deletingEntities: false }),
+            onSuccess: () => this.setState({ deletingEntities: false }, () => this.refresh()),
+            namespace, name,
+            selectedEntities, selectedDataType, runningSubmissionsCount
+          }),
           _.map(type => {
             return h(DataTypeButton, {
               key: type,
@@ -284,7 +286,8 @@ const WorkspaceData = _.flow(
     const { namespace, workspace: { accessLevel } } = this.props
     const { entities, selectedDataType, entityMetadata, totalRowCount, pageNumber, itemsPerPage, sort, columnWidths, columnState, selectedEntities } = this.state
     const theseColumnWidths = columnWidths[selectedDataType] || {}
-    const columnSettings = applyColumnSettings(columnState[selectedDataType] || [], entityMetadata[selectedDataType].attributeNames)
+    const columnSettings = entityMetadata[selectedDataType] &&
+      applyColumnSettings(columnState[selectedDataType] || [], entityMetadata[selectedDataType].attributeNames)
     const resetScroll = () => this.table.current.scrollToTop()
     const nameWidth = theseColumnWidths['name'] || 150
     return entities && h(Fragment, [
@@ -306,7 +309,7 @@ const WorkspaceData = _.flow(
                 {
                   width: 50,
                   headerRenderer: () => {
-                    const checked = selectedEntities.length === itemsPerPage
+                    const checked = selectedEntities.length === itemsPerPage || selectedEntities.length === entities.length
                     return h(Checkbox, {
                       checked,
                       onChange: () => {
@@ -600,7 +603,7 @@ const WorkspaceData = _.flow(
             editType: 'string'
           })
         }),
-        deleteIndex && h(Modal, {
+        !_.isUndefined(deleteIndex) && h(Modal, {
           onDismiss: () => this.setState({ deleteIndex: undefined }),
           title: 'Are you sure you wish to delete this variable?',
           okButton: buttonPrimary({
