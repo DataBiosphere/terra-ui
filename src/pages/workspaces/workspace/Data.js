@@ -281,7 +281,7 @@ const WorkspaceData = _.flow(
   }
 
   renderEntityTable() {
-    const { namespace } = this.props
+    const { namespace, workspace: { accessLevel } } = this.props
     const { entities, selectedDataType, entityMetadata, totalRowCount, pageNumber, itemsPerPage, sort, columnWidths, columnState, selectedEntities } = this.state
     const theseColumnWidths = columnWidths[selectedDataType] || {}
     const columnSettings = applyColumnSettings(columnState[selectedDataType] || [], entityMetadata[selectedDataType].attributeNames)
@@ -302,7 +302,7 @@ const WorkspaceData = _.flow(
               onScroll: saveScroll,
               initialX: StateHistory.get().initialX,
               initialY: StateHistory.get().initialY,
-              columns: [
+              columns: _.concat(Utils.canWrite(accessLevel) ? [
                 {
                   width: 50,
                   headerRenderer: () => {
@@ -324,7 +324,9 @@ const WorkspaceData = _.flow(
                       }
                     })
                   }
-                },
+                }
+              ] : [],
+              [
                 {
                   width: nameWidth,
                   headerRenderer: () => h(Resizable, {
@@ -361,7 +363,7 @@ const WorkspaceData = _.flow(
                     }
                   }
                 }, _.filter('visible', columnSettings))
-              ]
+              ])
             })
           }
         ]),
