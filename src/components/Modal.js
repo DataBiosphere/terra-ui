@@ -34,7 +34,7 @@ export default class Modal extends Component {
     onDismiss: PropTypes.func.isRequired,
     title: PropTypes.node,
     titleExtras: PropTypes.node,
-    width: PropTypes.number,
+    width: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
     showCancel: PropTypes.bool,
     cancelText: PropTypes.string,
     showX: PropTypes.bool,
