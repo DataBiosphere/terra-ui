@@ -296,6 +296,11 @@ export const backgroundLogo = icon('logoIcon', {
   style: { position: 'fixed', top: -100, left: -100, zIndex: -1, opacity: 0.65 }
 })
 
+export const methodLink = (config, firecloudRoot, dockstoreRoot) => {
+  const { methodRepoMethod: { sourceRepo, methodVersion, methodNamespace, methodName, methodPath } } = config
+  return sourceRepo === 'agora' ? `${firecloudRoot}/#methods/${methodNamespace}/${methodName}/${methodVersion}` : `${dockstoreRoot}/workflows/${methodPath}`
+}
+
 export const Markdown = ({ children, renderers = {}, ...props }) => {
   const content = marked(children, {
     renderer: Object.assign(new marked.Renderer(), renderers)

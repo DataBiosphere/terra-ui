@@ -5,7 +5,9 @@ import Dropzone from 'react-dropzone'
 import { div, h, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { buttonPrimary, buttonSecondary, linkButton, MenuButton, Select, spinnerOverlay, menuIcon } from 'src/components/common'
+import {
+  buttonPrimary, buttonSecondary, linkButton, MenuButton, Select, spinnerOverlay, menuIcon, link, methodLink
+} from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { AutocompleteTextInput } from 'src/components/input'
 import PopupTrigger from 'src/components/PopupTrigger'
@@ -15,6 +17,7 @@ import TooltipTrigger from 'src/components/TooltipTrigger'
 import WDLViewer from 'src/components/WDLViewer'
 import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
+import * as Config from 'src/libs/config'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
@@ -195,6 +198,8 @@ const WorkflowView = _.flow(
       this.setState({
         isFreshData: true, savedConfig: config, modifiedConfig: config,
         entityMetadata, inputsOutputs,
+        firecloudRoot: await Config.getFirecloudUrlRoot(),
+        dockstoreRoot: await Config.getDockstoreUrlRoot(),
         errors: augmentErrors(validationResponse),
         workspaceAttributes: _.flow(
           _.without(['description']),
@@ -220,8 +225,8 @@ const WorkflowView = _.flow(
 
   renderSummary() {
     const { workspace: { canCompute, workspace } } = this.props
-    const { modifiedConfig, savedConfig, entityMetadata, saving, saved, copying, deleting, activeTab, errors } = this.state
-    const { name, methodRepoMethod: { methodPath, methodVersion }, rootEntityType } = modifiedConfig
+    const { modifiedConfig, savedConfig, entityMetadata, saving, saved, copying, deleting, activeTab, errors, firecloudRoot, dockstoreRoot } = this.state
+    const { name, methodRepoMethod: { methodPath, methodVersion, methodNamespace, methodName }, rootEntityType } = modifiedConfig
     const modified = !_.isEqual(modifiedConfig, savedConfig)
 
     const noLaunchReason = Utils.cond(
@@ -250,7 +255,10 @@ const WorkflowView = _.flow(
             span({ style: { color: colors.darkBlue[0], fontSize: 24 } }, name)
           ]),
           div(`V. ${methodVersion}`),
-          methodPath && div(`Path: ${methodPath}`),
+          div(['Source: ', link({
+            href: methodLink(modifiedConfig, firecloudRoot, dockstoreRoot),
+            target: '_blank'
+          }, methodPath ? methodPath : `${methodNamespace}/${methodName}/${methodVersion}`)]),
           div({ style: { textTransform: 'capitalize', display: 'flex', alignItems: 'baseline', marginTop: '0.5rem' } }, [
             'Data Type:',
             h(Select, {
