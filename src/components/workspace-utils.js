@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { Component, forwardRef, Fragment } from 'react'
+import { Component, Fragment } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { buttonPrimary, linkButton, Select } from 'src/components/common'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
@@ -45,18 +45,16 @@ export const withWorkspaces = ({ persist } = {}) => WrappedComponent => {
     }
 
     render() {
-      const { forwardedRef, forwardedProps } = this.props
       const { workspaces, loadingWorkspaces } = this.state
       return h(WrappedComponent, {
-        ...forwardedProps,
+        ...this.props,
         workspaces,
         loadingWorkspaces,
-        refreshWorkspaces: () => this.refresh(),
-        ref: forwardedRef
+        refreshWorkspaces: () => this.refresh()
       })
     }
   })
-  return forwardRef((props, ref) => h(Wrapper, { forwardedProps: props, forwardedRef: ref }))
+  return Wrapper
 }
 
 export const WorkspaceSelector = ({ workspaces, value, onChange }) => {

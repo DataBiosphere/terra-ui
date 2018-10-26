@@ -1,8 +1,8 @@
 import _ from 'lodash/fp'
 import { createRef, Fragment, PureComponent } from 'react'
-import { a, div, h, h2, p } from 'react-hyperscript-helpers'
+import { a, div, h, h2, p, span } from 'react-hyperscript-helpers'
 import ClusterManager from 'src/components/ClusterManager'
-import { Clickable, comingSoon, contextBar, MenuButton, link, menuIcon } from 'src/components/common'
+import { Clickable, comingSoon, contextBar, link, MenuButton, menuIcon } from 'src/components/common'
 import ErrorView from 'src/components/ErrorView'
 import { icon } from 'src/components/icons'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
@@ -13,10 +13,10 @@ import { getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
-import { Component } from 'src/libs/wrapped-components'
-import ShareWorkspaceModal from 'src/pages/workspaces/workspace/ShareWorkspaceModal'
-import DeleteWorkspaceModal from 'src/pages/workspaces/workspace/DeleteWorkspaceModal'
 import * as Utils from 'src/libs/utils'
+import { Component } from 'src/libs/wrapped-components'
+import DeleteWorkspaceModal from 'src/pages/workspaces/workspace/DeleteWorkspaceModal'
+import ShareWorkspaceModal from 'src/pages/workspaces/workspace/ShareWorkspaceModal'
 
 
 const styles = {
@@ -136,7 +136,8 @@ class WorkspaceContainer extends Component {
         div({ style: styles.workspaceNameContainer }, [
           div({}, breadcrumbs),
           div({ style: styles.workspaceName }, [
-            title || `${namespace}/${name}`
+            title || `${namespace}/${name}`,
+            workspace && !Utils.canWrite(workspace.accessLevel) && span({ style: { paddingLeft: '0.5rem', color: colors.gray[1] } }, '(read only)')
           ])
         ]),
         h(ClusterManager, {
