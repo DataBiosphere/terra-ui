@@ -393,6 +393,10 @@ const Workspaces = signal => ({
         return fetchRawls(`${root}/entities/batchUpsert`, _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }]))
       },
 
+      deleteEntities: async entities => {
+        return fetchRawls(`${root}/entities/delete`, _.mergeAll([authOpts(), jsonBody(entities), { signal, method: 'POST' }]))
+      },
+
       storageCostEstimate: async () => {
         const res = await fetchOrchestration(`api/workspaces/${namespace}/${name}/storageCostEstimate`, _.merge(authOpts(), { signal }))
         return res.json()
