@@ -46,6 +46,8 @@ const collapseStatus = status => {
   }
 }
 
+const isTerminal = submissionStatus => submissionStatus === 'Aborted' || submissionStatus === 'Done'
+
 const successIcon = style => icon('check', { size: 24, style: { color: colors.green[0], ...style } })
 const failedIcon = style => icon('warning-standard', { className: 'is-solid', size: 24, style: { color: colors.red[0], ...style } })
 const runningIcon = style => icon('sync', { size: 24, style: { color: colors.green[0], ...style } })
@@ -118,7 +120,7 @@ const JobHistory = _.flow(
       const submissions = _.orderBy('submissionDate', 'desc', await Workspaces.workspace(namespace, name).listSubmissions())
       this.setState({ submissions })
 
-      if (_.some(sub => sub.status !== 'Done' && sub.status !== 'Aborted', submissions)) {
+      if (_.some(({ status }) => !isTerminal(status), submissions)) {
         this.scheduledRefresh = setTimeout(() => this.refresh(), 1000 * 60)
       }
     } catch (error) {
@@ -207,7 +209,7 @@ const JobHistory = _.flow(
                         target: '_blank',
                         href: `${firecloudRoot}/#workspaces/${namespace}/${name}/monitor/${submissionId}`
                       }, [menuIcon('circle-arrow right'), 'View job details']),
-                      (status === 'Done' || status === 'Aborted') && workflowStatuses['Failed'] && h(MenuButton, {
+                      isTerminal(status) && workflowStatuses['Failed'] && h(MenuButton, {
                         onClick: () => this.rerunFailures(submissionId, methodConfigurationName)
                       }, [menuIcon('sync'), 'Re-run failures']),
                       collapsedStatuses(workflowStatuses).running && h(MenuButton, {
