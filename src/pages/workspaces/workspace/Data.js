@@ -109,12 +109,12 @@ const WorkspaceData = _.flow(
 
   async loadMetadata() {
     const { namespace, name, ajax: { Workspaces } } = this.props
-    const { isDataModel, selectedDataType } = this.state
+    const { selectedDataType } = this.state
 
     try {
       const entityMetadata = await Workspaces.workspace(namespace, name).entityMetadata()
       this.setState({
-        selectedDataType: isDataModel && !entityMetadata[selectedDataType] ? undefined : selectedDataType,
+        selectedDataType: this.isDataModel() && !entityMetadata[selectedDataType] ? undefined : selectedDataType,
         entityMetadata
       })
     } catch (error) {
@@ -124,7 +124,8 @@ const WorkspaceData = _.flow(
 
   async loadData() {
     const { namespace, name, ajax: { Workspaces } } = this.props
-    const { itemsPerPage, pageNumber, sort, selectedDataType, isDataModel } = this.state
+    const { itemsPerPage, pageNumber, sort, selectedDataType } = this.state
+    const isDataModel = this.isDataModel()
 
     const getWorkspaceAttributes = async () => (await Workspaces.workspace(namespace, name).details()).workspace.attributes
 
@@ -182,6 +183,13 @@ const WorkspaceData = _.flow(
     this.loadData()
   }
 
+  isDataModel() {
+    const { selectedDataType } = this.state
+    const referenceData = this.getReferenceData()
+
+    return !!selectedDataType && (selectedDataType !== localVariables) && !_.keys(referenceData).includes(selectedDataType)
+  }
+
   render() {
     const { namespace, name, workspace: { accessLevel, workspaceSubmissionStats: { runningSubmissionsCount } } } = this.props
     const { selectedDataType, entityMetadata, loading, importingReference, deletingReference, deletingEntities, selectedEntities } = this.state
@@ -199,7 +207,7 @@ const WorkspaceData = _.flow(
               onClick: () => {
                 saveScroll(0, 0)
                 selectedDataType === type ? this.loadData() :
-                  this.setState({ selectedDataType: type, pageNumber: 1, sort: initialSort, entities: undefined, isDataModel: true })
+                  this.setState({ selectedDataType: type, pageNumber: 1, sort: initialSort, entities: undefined })
               }
             }, [`${type} (${typeDetails.count})`])
           }, _.toPairs(entityMetadata)),
@@ -236,7 +244,7 @@ const WorkspaceData = _.flow(
               selected: selectedDataType === type,
               onClick: () => {
                 saveScroll(0, 0)
-                this.setState({ selectedDataType: type, isDataModel: false })
+                this.setState({ selectedDataType: type })
               }
             }, [
               div({ style: { display: 'flex', justifyContent: 'space-between' } }, [
@@ -257,7 +265,7 @@ const WorkspaceData = _.flow(
             onClick: () => {
               saveScroll(0, 0)
               selectedDataType === localVariables ? this.loadData() :
-                this.setState({ selectedDataType: localVariables, isDataModel: false })
+                this.setState({ selectedDataType: localVariables })
             }
           }, ['Local Variables'])
         ]),
@@ -654,7 +662,7 @@ const WorkspaceData = _.flow(
   componentDidUpdate(prevProps, prevState) {
     StateHistory.update(_.pick(
       [
-        'entityMetadata', 'selectedDataType', 'isDataModel', 'entities', 'workspaceAttributes', 'totalRowCount',
+        'entityMetadata', 'selectedDataType', 'entities', 'workspaceAttributes', 'totalRowCount',
         'itemsPerPage', 'pageNumber', 'sort', 'columnWidths', 'columnState'
       ],
       this.state)
