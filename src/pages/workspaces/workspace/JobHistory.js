@@ -138,20 +138,26 @@ const JobHistory = _.flow(
     }
   }
 
-  async rerunFailures(submissionId, methodConfigurationName) {
+  async rerunFailures(submissionId, configNamespace, configName) {
     const { namespace, name, ajax: { Workspaces } } = this.props
     const workspace = Workspaces.workspace(namespace, name)
+    const methodConfig = workspace.methodConfig(configNamespace, configName)
 
-    const { workflows, submissionEntity } = await workspace.submission(submissionId).get()
+    const [{ workflows, submissionEntity, useCallCache }, { rootEntityType }] = await Promise.all([
+      workspace.submission(submissionId).get(),
+      methodConfig.get()
+    ])
 
     const failedEntities = _.flow(
       _.filter({ status: 'Failed' }),
       _.map('workflowEntity')
     )(workflows)
 
+    const newSetName = `${configName}-${submissionId.slice(0, 5)}-resubmission`
+    const newSetType = submissionEntity.entityType
     const newSet = {
-      name: `${methodConfigurationName}-${submissionId.slice(0, 5)}-resubmission`,
-      entityType: submissionEntity.entityType,
+      name: newSetName,
+      entityType: newSetType,
       attributes: {
         [`${failedEntities[0].entityType}s`]: {
           itemsType: 'EntityReference',
@@ -160,7 +166,15 @@ const JobHistory = _.flow(
       }
     }
 
-    workspace.createEntity(newSet)
+    await workspace.createEntity(newSet)
+    await methodConfig.launch({
+      entityName: newSetName,
+      entityType: newSetType,
+      expression: newSetType !== rootEntityType ? `this.${rootEntityType}s` : undefined,
+      useCallCache
+    })
+
+    this.refresh()
   }
 
   render() {
@@ -186,7 +200,10 @@ const JobHistory = _.flow(
               size: { basis: 600, grow: 0 },
               headerRenderer: () => h(HeaderCell, ['Job']),
               cellRenderer: ({ rowIndex }) => {
-                const { methodConfigurationNamespace, methodConfigurationName, submitter, submissionId, workflowStatuses, status } = submissions[rowIndex]
+                const {
+                  methodConfigurationNamespace, methodConfigurationName, submitter, submissionId, workflowStatuses,
+                  status, submissionEntity
+                } = submissions[rowIndex]
                 return h(Fragment, [
                   div([
                     div([
@@ -209,8 +226,8 @@ const JobHistory = _.flow(
                         target: '_blank',
                         href: `${firecloudRoot}/#workspaces/${namespace}/${name}/monitor/${submissionId}`
                       }, [menuIcon('circle-arrow right'), 'View job details']),
-                      isTerminal(status) && workflowStatuses['Failed'] && h(MenuButton, {
-                        onClick: () => this.rerunFailures(submissionId, methodConfigurationName)
+                      isTerminal(status) && workflowStatuses['Failed'] && submissionEntity.entityType.endsWith('_set') && h(MenuButton, {
+                        onClick: () => this.rerunFailures(submissionId, methodConfigurationNamespace, methodConfigurationName)
                       }, [menuIcon('sync'), 'Re-run failures']),
                       collapsedStatuses(workflowStatuses).running && h(MenuButton, {
                         onClick: () => this.setState({ aborting: submissionId })
