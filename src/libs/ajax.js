@@ -1,6 +1,5 @@
 import _ from 'lodash/fp'
 import * as qs from 'qs'
-import { forwardRef } from 'react'
 import { h } from 'react-hyperscript-helpers'
 import { version } from 'src/data/clusters'
 import { getUser } from 'src/libs/auth'
@@ -46,6 +45,7 @@ const authOpts = (token = getUser().token) => ({ headers: { Authorization: `Bear
 const jsonBody = body => ({ body: JSON.stringify(body), headers: { 'Content-Type': 'application/json' } })
 const appIdentifier = { headers: { 'X-App-ID': 'Saturn' } }
 const addAppIdentifier = _.merge(appIdentifier)
+const tosData = { appid: 'Saturn', tosversion: 1 }
 
 const instrumentedFetch = (url, options) => {
   if (noConnection) {
@@ -114,7 +114,7 @@ const User = signal => ({
   }, namespace => namespace, 1000 * 60 * 30),
 
   getStatus: async () => {
-    return fetchSam('register/user/v2/self/info', _.merge(authOpts(), { signal }))
+    return instrumentedFetch(`${await Config.getSamUrlRoot()}/register/user/v2/self/info`, _.mergeAll([authOpts(), { signal }, appIdentifier]))
   },
 
   create: async () => {
@@ -150,6 +150,26 @@ const User = signal => ({
   getProxyGroup: async email => {
     const res = await fetchOrchestration(`api/proxyGroup/${email}`, _.merge(authOpts(), { signal }))
     return res.json()
+  },
+
+  getTosAccepted: async () => {
+    const url = `${await Config.getTosUrlRoot()}/user/response?${qs.stringify(tosData)}`
+    const res = await instrumentedFetch(url, _.merge(authOpts(), { signal }))
+    if (res.status === 403 || res.status === 404) {
+      return false
+    }
+    if (!res.ok) {
+      throw res
+    }
+    const { accepted } = await res.json()
+    return accepted
+  },
+
+  acceptTos: async () => {
+    await fetchOk(
+      `${await Config.getTosUrlRoot()}/user/response`,
+      _.mergeAll([authOpts(), { signal, method: 'POST' }, jsonBody({ ...tosData, accepted: true })])
+    )
   }
 })
 
@@ -413,9 +433,9 @@ const Buckets = signal => ({
   notebook: (namespace, bucket, name) => {
     const bucketUrl = `storage/v1/b/${bucket}/o`
 
-    const copy = async newName => {
+    const copy = async (newName, newBucket) => {
       return fetchBuckets(
-        `${bucketUrl}/${nbName(name)}/copyTo/b/${bucket}/o/${nbName(newName)}`,
+        `${bucketUrl}/${nbName(name)}/copyTo/b/${newBucket}/o/${nbName(newName)}`,
         _.merge(authOpts(await User(signal).token(namespace)), { signal, method: 'POST' })
       )
     }
@@ -587,12 +607,9 @@ export const ajaxCaller = WrappedComponent => {
     static displayName = 'ajaxCaller()'
 
     render() {
-      const { forwardedRef, forwardedProps } = this.props
-
       return h(WrappedComponent, {
-        ref: forwardedRef,
-        ajax: this.ajax,
-        ...forwardedProps
+        ...this.props,
+        ajax: this.ajax
       })
     }
 
@@ -601,5 +618,5 @@ export const ajaxCaller = WrappedComponent => {
     }
   }
 
-  return forwardRef((props, ref) => h(Wrapper, { forwardedRef: ref, forwardedProps: props }))
+  return Wrapper
 }
