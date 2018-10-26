@@ -45,6 +45,7 @@ const authOpts = (token = getUser().token) => ({ headers: { Authorization: `Bear
 const jsonBody = body => ({ body: JSON.stringify(body), headers: { 'Content-Type': 'application/json' } })
 const appIdentifier = { headers: { 'X-App-ID': 'Saturn' } }
 const addAppIdentifier = _.merge(appIdentifier)
+const tosData = { appid: 'Saturn', tosversion: 1 }
 
 const instrumentedFetch = (url, options) => {
   if (noConnection) {
@@ -149,6 +150,26 @@ const User = signal => ({
   getProxyGroup: async email => {
     const res = await fetchOrchestration(`api/proxyGroup/${email}`, _.merge(authOpts(), { signal }))
     return res.json()
+  },
+
+  getTosAccepted: async () => {
+    const url = `${await Config.getTosUrlRoot()}/user/response?${qs.stringify(tosData)}`
+    const res = await instrumentedFetch(url, _.merge(authOpts(), { signal }))
+    if (res.status === 403 || res.status === 404) {
+      return false
+    }
+    if (!res.ok) {
+      throw res
+    }
+    const { accepted } = await res.json()
+    return accepted
+  },
+
+  acceptTos: async () => {
+    await fetchOk(
+      `${await Config.getTosUrlRoot()}/user/response`,
+      _.mergeAll([authOpts(), { signal, method: 'POST' }, jsonBody({ ...tosData, accepted: true })])
+    )
   }
 })
 

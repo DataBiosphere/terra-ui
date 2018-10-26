@@ -24,6 +24,7 @@ export const reloadAuthToken = () => {
 export const authStore = Utils.atom({
   isSignedIn: undefined,
   registrationStatus: undefined,
+  acceptedTos: undefined,
   user: {}
 })
 
@@ -43,6 +44,7 @@ const initializeAuth = _.memoize(async () => {
         ...state,
         isSignedIn,
         registrationStatus: isSignedIn ? state.registrationStatus : undefined,
+        acceptedTos: isSignedIn ? state.acceptedTos : undefined,
         user: {
           token: authResponse && authResponse.access_token,
           id: user.getId(),
@@ -107,6 +109,17 @@ authStore.subscribe(async (state, oldState) => {
     }, error => {
       reportError('Error checking registration', error)
     })
+  }
+})
+
+authStore.subscribe(async (state, oldState) => {
+  if (!oldState.isSignedIn && state.isSignedIn) {
+    try {
+      const acceptedTos = await Ajax().User.getTosAccepted()
+      authStore.update(state => ({ ...state, acceptedTos }))
+    } catch (error) {
+      reportError('Error checking TOS', error)
+    }
   }
 })
 
