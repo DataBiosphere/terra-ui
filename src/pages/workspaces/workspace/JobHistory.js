@@ -118,7 +118,7 @@ const JobHistory = _.flow(
       const submissions = _.orderBy('submissionDate', 'desc', await Workspaces.workspace(namespace, name).listSubmissions())
       this.setState({ submissions })
 
-      if (_.some(sub => sub.status !== 'Done', submissions)) {
+      if (_.some(sub => sub.status !== 'Done' && sub.status !== 'Aborted', submissions)) {
         this.scheduledRefresh = setTimeout(() => this.refresh(), 1000 * 60)
       }
     } catch (error) {
