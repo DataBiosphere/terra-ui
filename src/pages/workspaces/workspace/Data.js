@@ -286,8 +286,7 @@ const WorkspaceData = _.flow(
     const { namespace, workspace: { accessLevel } } = this.props
     const { entities, selectedDataType, entityMetadata, totalRowCount, pageNumber, itemsPerPage, sort, columnWidths, columnState, selectedEntities } = this.state
     const theseColumnWidths = columnWidths[selectedDataType] || {}
-    const columnSettings = entityMetadata[selectedDataType] &&
-      applyColumnSettings(columnState[selectedDataType] || [], entityMetadata[selectedDataType].attributeNames)
+    const columnSettings = applyColumnSettings(columnState[selectedDataType] || [], entityMetadata[selectedDataType].attributeNames)
     const resetScroll = () => this.table.current.scrollToTop()
     const nameWidth = theseColumnWidths['name'] || 150
     return entities && h(Fragment, [
@@ -309,7 +308,7 @@ const WorkspaceData = _.flow(
                 {
                   width: 50,
                   headerRenderer: () => {
-                    const checked = selectedEntities.length === itemsPerPage || selectedEntities.length === entities.length
+                    const checked = selectedEntities.length === entities.length
                     return h(Checkbox, {
                       checked,
                       onChange: () => {
