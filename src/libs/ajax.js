@@ -174,6 +174,7 @@ const User = signal => ({
 })
 
 const Groups = signal => ({
+  // TODO: Replace when switching back to SAM for groups api
   list: async () => {
     const res = await fetchRawls('groups', _.merge(authOpts(), { signal }))
     return res.json()
@@ -217,59 +218,6 @@ const Groups = signal => ({
     }
   }
 })
-
-
-/* TODO: Replace when switching back to SAM for groups api
-const Groups = signal => ({
-  list: async () => {
-    const res = await fetchSam('api/groups/v1', _.merge(authOpts(), { signal }))
-    return res.json()
-  },
-
-  group: groupName => {
-    const root = `api/groups/v1/${groupName}`
-
-    const addMember = async (role, email) => {
-      return fetchSam(`${root}/${role}/${email}`, _.merge(authOpts(), { signal, method: 'PUT' }))
-    }
-
-    const removeMember = async (role, email) => {
-      return fetchSam(`${root}/${role}/${email}`, _.merge(authOpts(), { signal, method: 'DELETE' }))
-    }
-
-    return {
-      create: () => {
-        return fetchSam(root, _.merge(authOpts(), { signal, method: 'POST' }))
-      },
-
-      delete: () => {
-        return fetchSam(root, _.merge(authOpts(), { signal, method: 'DELETE' }))
-      },
-
-      listMembers: async () => {
-        const res = await fetchSam(`${root}/member`, _.merge(authOpts(), { signal }))
-        return res.json()
-      },
-
-      listAdmins: async () => {
-        const res = await fetchSam(`${root}/admin`, _.merge(authOpts(), { signal }))
-        return res.json()
-      },
-
-      addMember,
-
-      removeMember,
-
-      changeMemberRole: async (email, oldRole, newRole) => {
-        if (oldRole !== newRole) {
-          await addMember(newRole, email)
-          return removeMember(oldRole, email)
-        }
-      }
-    }
-  }
-})
-*/
 
 
 const Billing = signal => ({
