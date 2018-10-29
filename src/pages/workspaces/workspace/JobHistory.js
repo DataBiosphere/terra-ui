@@ -16,6 +16,7 @@ import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
+import { rerunFailures } from 'src/pages/workspaces/workspace/tools/FailureRerunner'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
 
@@ -138,45 +139,6 @@ const JobHistory = _.flow(
     }
   }
 
-  async rerunFailures(submissionId, configNamespace, configName) {
-    const { namespace, name, ajax: { Workspaces } } = this.props
-    const workspace = Workspaces.workspace(namespace, name)
-    const methodConfig = workspace.methodConfig(configNamespace, configName)
-
-    const [{ workflows, submissionEntity, useCallCache }, { rootEntityType }] = await Promise.all([
-      workspace.submission(submissionId).get(),
-      methodConfig.get()
-    ])
-
-    const failedEntities = _.flow(
-      _.filter({ status: 'Failed' }),
-      _.map('workflowEntity')
-    )(workflows)
-
-    const newSetName = `${configName}-${submissionId.slice(0, 5)}-resubmission`
-    const newSetType = submissionEntity.entityType
-    const newSet = {
-      name: newSetName,
-      entityType: newSetType,
-      attributes: {
-        [`${failedEntities[0].entityType}s`]: {
-          itemsType: 'EntityReference',
-          items: failedEntities
-        }
-      }
-    }
-
-    await workspace.createEntity(newSet)
-    await methodConfig.launch({
-      entityName: newSetName,
-      entityType: newSetType,
-      expression: newSetType !== rootEntityType ? `this.${rootEntityType}s` : undefined,
-      useCallCache
-    })
-
-    this.refresh()
-  }
-
   render() {
     const { namespace, name, ajax: { Workspaces } } = this.props
     const { submissions, loading, aborting, newSubmissionId, highlightNewSubmission, firecloudRoot } = this.state
@@ -228,7 +190,12 @@ const JobHistory = _.flow(
                       }, [menuIcon('circle-arrow right'), 'View job details']),
                       isTerminal(status) && workflowStatuses['Failed'] &&
                       submissionEntity && submissionEntity.entityType.endsWith('_set') && h(MenuButton, {
-                        onClick: () => this.rerunFailures(submissionId, methodConfigurationNamespace, methodConfigurationName)
+                        onClick: () => rerunFailures({
+                          namespace, name, submissionId,
+                          configNamespace: methodConfigurationNamespace, configName: methodConfigurationName,
+                          onDone: () => this.refresh(),
+                          ajax: { Workspaces }
+                        })
                       }, [menuIcon('sync'), 'Re-run failures']),
                       collapsedStatuses(workflowStatuses).running && h(MenuButton, {
                         onClick: () => this.setState({ aborting: submissionId })
