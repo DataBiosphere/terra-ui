@@ -204,14 +204,8 @@ export const GroupDetails = ajaxCaller(class GroupDetails extends Component {
     try {
       this.setState({ loading: true, creatingNewUser: false, editingUser: false, deletingUser: false, updating: false })
 
+      // TODO: Replace when switching back to SAM for groups api
       const { membersEmails, adminsEmails } = await Groups.group(groupName).listMembers()
-
-      /* TODO: Replace when switching back to SAM for groups api
-      const [membersEmails, adminsEmails] = await Promise.all([
-        Groups.group(groupName).listMembers(),
-        Groups.group(groupName).listAdmins()
-      ])
-      */
 
       this.setState({
         members: _.sortBy(member => member.email.toUpperCase(), _.concat(
