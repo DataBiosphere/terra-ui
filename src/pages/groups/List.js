@@ -98,7 +98,7 @@ const DeleteGroupModal = pure(({ groupName, onDismiss, onSubmit }) => {
 })
 
 const GroupCard = pure(({ group: { groupName, groupEmail, role }, onDelete }) => {
-  const isAdmin = role === 'admin'
+  const isAdmin = role === 'Admin' // TODO: Replace when switching back to SAM for groups api
 
   return div({ style: styles.longCard }, [
     a({
@@ -195,7 +195,10 @@ export const GroupList = ajaxCaller(class GroupList extends Component {
                 group, key: `${group.groupName}-${group.role}`, // can be an admin and a user at same time
                 onDelete: () => this.setState({ deletingGroup: group })
               })
-            }, _.filter(({ groupName }) => Utils.textMatch(filter, groupName), groups))
+            }, _.flow(
+              _.filter(({ groupName }) => Utils.textMatch(filter, groupName)),
+              _.sortBy(['role', 'groupName'])
+            )(groups))
           ),
           !isDataLoaded && spinnerOverlay
         ]),
