@@ -27,7 +27,7 @@ module.exports = {
     'computed-property-spacing': 'warn',
     'eol-last': 'warn',
     'func-call-spacing': 'warn',
-    // 'implicit-arrow-linebreak': 'warn',
+    'implicit-arrow-linebreak': 'warn',
     'indent': ['warn', 2, { 'SwitchCase': 1, 'CallExpression': { 'arguments': 1 } }],
     'key-spacing': 'warn',
     'keyword-spacing': 'warn',
