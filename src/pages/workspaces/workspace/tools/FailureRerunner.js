@@ -1,11 +1,11 @@
 import _ from 'lodash/fp'
-import { popNotification, pushNotification } from 'src/components/Notifications'
-import * as Utils from 'src/libs/utils'
-import { Component } from 'src/libs/wrapped-components'
-import { icon, spinner } from 'src/components/icons'
 import { div, h } from 'react-hyperscript-helpers'
+import { icon, spinner } from 'src/components/icons'
+import { popNotification, pushNotification } from 'src/components/Notifications'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
+import * as Utils from 'src/libs/utils'
+import { Component } from 'src/libs/wrapped-components'
 
 
 const toastProps = Utils.atom(undefined)
