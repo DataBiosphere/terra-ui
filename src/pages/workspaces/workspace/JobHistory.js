@@ -226,7 +226,8 @@ const JobHistory = _.flow(
                         target: '_blank',
                         href: `${firecloudRoot}/#workspaces/${namespace}/${name}/monitor/${submissionId}`
                       }, [menuIcon('circle-arrow right'), 'View job details']),
-                      isTerminal(status) && workflowStatuses['Failed'] && submissionEntity.entityType.endsWith('_set') && h(MenuButton, {
+                      isTerminal(status) && workflowStatuses['Failed'] &&
+                      submissionEntity && submissionEntity.entityType.endsWith('_set') && h(MenuButton, {
                         onClick: () => this.rerunFailures(submissionId, methodConfigurationNamespace, methodConfigurationName)
                       }, [menuIcon('sync'), 'Re-run failures']),
                       collapsedStatuses(workflowStatuses).running && h(MenuButton, {
