@@ -151,8 +151,7 @@ const MachineSelector = ({ machineType, onChangeMachineType, diskSize, onChangeD
             styles: { container: styles.smallSelect },
             isSearchable: false,
             value: currentMemory,
-            onChange: ({ value }) =>
-              onChangeMachineType(_.find({ cpu: currentCpu, memory: value }, machineTypes).name),
+            onChange: ({ value }) => onChangeMachineType(_.find({ cpu: currentCpu, memory: value }, machineTypes).name),
             options: _.map(
               'memory',
               _.sortBy('memory', _.filter({ cpu: currentCpu }, machineTypes))

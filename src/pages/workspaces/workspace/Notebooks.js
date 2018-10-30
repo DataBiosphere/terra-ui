@@ -20,14 +20,14 @@ import * as Style from 'src/libs/style'
 import { Component } from 'src/libs/wrapped-components'
 import * as Utils from 'src/libs/utils'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
+import ExportNotebookModal from 'src/pages/workspaces/workspace/notebooks/ExportNotebookModal'
 
 
-const notebookCardCommonStyles = listView =>
-  _.merge({ display: 'flex' },
-    listView ?
-      { marginBottom: '0.5rem', flexDirection: 'row' } :
-      { margin: '0 2.5rem 2.5rem 0', height: 250, width: 200, flexDirection: 'column' }
-  )
+const notebookCardCommonStyles = listView => _.merge({ display: 'flex' },
+  listView ?
+    { marginBottom: '0.5rem', flexDirection: 'row' } :
+    { margin: '0 2.5rem 2.5rem 0', height: 250, width: 200, flexDirection: 'column' }
+)
 
 const printName = name => name.slice(10, -6) // removes 'notebooks/' and the .ipynb suffix
 
@@ -35,11 +35,10 @@ const noWrite = 'You do not have access to modify this workspace.'
 
 class NotebookCard extends Component {
   render() {
-    const { namespace, name, updated, listView, wsName, onRename, onCopy, onDelete, canWrite } = this.props
-
+    const { namespace, name, updated, listView, wsName, onRename, onCopy, onDelete, onExport, canWrite } = this.props
     const notebookLink = Nav.getLink('workspace-notebook-launch', { namespace, name: wsName, notebookName: name.slice(10) })
 
-    const notebookMenu = canWrite && h(PopupTrigger, {
+    const notebookMenu = h(PopupTrigger, {
       position: 'right',
       closeOnClick: true,
       content: h(Fragment, [
@@ -54,12 +53,24 @@ class NotebookCard extends Component {
           }
         }, [menuIcon('copy-to-clipboard'), 'Copy notebook URL to clipboard']),
         h(MenuButton, {
+          disabled: !canWrite,
+          tooltip: !canWrite && noWrite,
+          tooltipSide: 'left',
           onClick: () => onRename()
         }, [menuIcon('renameIcon'), 'Rename']),
         h(MenuButton, {
+          disabled: !canWrite,
+          tooltip: !canWrite && noWrite,
+          tooltipSide: 'left',
           onClick: () => onCopy()
         }, [menuIcon('copy'), 'Duplicate']),
         h(MenuButton, {
+          onClick: () => onExport()
+        }, [menuIcon('export'), 'Copy to another workspace']),
+        h(MenuButton, {
+          disabled: !canWrite,
+          tooltip: !canWrite && noWrite,
+          tooltipSide: 'left',
           onClick: () => onDelete()
         }, [menuIcon('trash'), 'Delete'])
       ])
@@ -145,6 +156,7 @@ const Notebooks = _.flow(
       renamingNotebookName: undefined,
       copyingNotebookName: undefined,
       deletingNotebookName: undefined,
+      exportingNotebookName: undefined,
       ...StateHistory.get()
     }
     this.uploader = createRef()
@@ -212,6 +224,7 @@ const Notebooks = _.flow(
       name, updated, listView, bucketName, namespace, wsName, canWrite,
       onRename: () => this.setState({ renamingNotebookName: name }),
       onCopy: () => this.setState({ copyingNotebookName: name }),
+      onExport: () => this.setState({ exportingNotebookName: name }),
       onDelete: () => this.setState({ deletingNotebookName: name })
     }), notebooks)
 
@@ -265,9 +278,9 @@ const Notebooks = _.flow(
   }
 
   render() {
-    const { loading, saving, notebooks, creating, renamingNotebookName, copyingNotebookName, deletingNotebookName } = this.state
+    const { loading, saving, notebooks, creating, renamingNotebookName, copyingNotebookName, deletingNotebookName, exportingNotebookName } = this.state
     const {
-      namespace, viewToggleButtons,
+      namespace, viewToggleButtons, workspace,
       workspace: { accessLevel, workspace: { bucketName } }
     } = this.props
     const existingNames = this.getExistingNames()
@@ -312,6 +325,10 @@ const Notebooks = _.flow(
               this.setState({ copyingNotebookName: undefined })
               this.refresh()
             }
+          }),
+          exportingNotebookName && h(ExportNotebookModal, {
+            printName: printName(exportingNotebookName), workspace,
+            onDismiss: () => this.setState({ exportingNotebookName: undefined })
           }),
           deletingNotebookName && h(NotebookDeleter, {
             printName: printName(deletingNotebookName), namespace, bucketName,

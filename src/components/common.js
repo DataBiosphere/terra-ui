@@ -1,4 +1,5 @@
 import _ from 'lodash/fp'
+import marked from 'marked'
 import { Fragment } from 'react'
 import { div, h, input, label, span } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
@@ -294,3 +295,15 @@ export const backgroundLogo = icon('logoIcon', {
   size: 1200,
   style: { position: 'fixed', top: -100, left: -100, zIndex: -1, opacity: 0.65 }
 })
+
+export const methodLink = (config, firecloudRoot, dockstoreRoot) => {
+  const { methodRepoMethod: { sourceRepo, methodVersion, methodNamespace, methodName, methodPath } } = config
+  return sourceRepo === 'agora' ? `${firecloudRoot}/#methods/${methodNamespace}/${methodName}/${methodVersion}` : `${dockstoreRoot}/workflows/${methodPath}`
+}
+
+export const Markdown = ({ children, renderers = {}, ...props }) => {
+  const content = marked(children, {
+    renderer: Object.assign(new marked.Renderer(), renderers)
+  })
+  return div({ ...props, dangerouslySetInnerHTML: { __html: content } })
+}

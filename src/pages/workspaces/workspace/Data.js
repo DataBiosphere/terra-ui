@@ -4,7 +4,8 @@ import { createRef, Fragment } from 'react'
 import { div, form, h, input } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { buttonPrimary, Clickable, linkButton, Select, spinnerOverlay } from 'src/components/common'
+import { buttonPrimary, Checkbox, Clickable, linkButton, Select, spinnerOverlay } from 'src/components/common'
+import FloatingActionButton from 'src/components/FloatingActionButton'
 import { icon, spinner } from 'src/components/icons'
 import { textInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
@@ -13,11 +14,10 @@ import { ajaxCaller } from 'src/libs/ajax'
 import { getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import * as Config from 'src/libs/config'
-import { ReferenceDataDeleter, ReferenceDataImporter, renderDataCell } from 'src/libs/data-utils'
+import { EntityDeleter, ReferenceDataDeleter, ReferenceDataImporter, renderDataCell } from 'src/libs/data-utils'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
-import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
@@ -100,6 +100,7 @@ const WorkspaceData = _.flow(
       workspaceAttributes: props.workspace.workspace.attributes,
       columnWidths: {},
       columnState: {},
+      selectedEntities: [],
       ...StateHistory.get()
     }
     this.downloadForm = createRef()
@@ -108,9 +109,14 @@ const WorkspaceData = _.flow(
 
   async loadMetadata() {
     const { namespace, name, ajax: { Workspaces } } = this.props
+    const { selectedDataType } = this.state
+
     try {
       const entityMetadata = await Workspaces.workspace(namespace, name).entityMetadata()
-      this.setState({ entityMetadata })
+      this.setState({
+        selectedDataType: this.isDataModel() && !entityMetadata[selectedDataType] ? undefined : selectedDataType,
+        entityMetadata
+      })
     } catch (error) {
       reportError('Error loading workspace entity data', error)
     }
@@ -118,7 +124,8 @@ const WorkspaceData = _.flow(
 
   async loadData() {
     const { namespace, name, ajax: { Workspaces } } = this.props
-    const { itemsPerPage, pageNumber, sort, selectedDataType, isDataModel } = this.state
+    const { itemsPerPage, pageNumber, sort, selectedDataType } = this.state
+    const isDataModel = this.isDataModel()
 
     const getWorkspaceAttributes = async () => (await Workspaces.workspace(namespace, name).details()).workspace.attributes
 
@@ -139,7 +146,7 @@ const WorkspaceData = _.flow(
         ])
 
         this.setState(_.merge(
-          isDataModel && { entities: entities.results, totalRowCount: entities.resultMetadata.unfilteredCount },
+          isDataModel && { entities: entities.results, totalRowCount: entities.resultMetadata.unfilteredCount, selectedEntities: [] },
           { workspaceAttributes }
         ))
       } catch (error) {
@@ -176,9 +183,16 @@ const WorkspaceData = _.flow(
     this.loadData()
   }
 
+  isDataModel() {
+    const { selectedDataType } = this.state
+    const referenceData = this.getReferenceData()
+
+    return !!selectedDataType && (selectedDataType !== localVariables) && !_.keys(referenceData).includes(selectedDataType)
+  }
+
   render() {
-    const { namespace, name, workspace: { accessLevel } } = this.props
-    const { selectedDataType, entityMetadata, loading, importingReference, deletingReference } = this.state
+    const { namespace, name, workspace: { accessLevel, workspaceSubmissionStats: { runningSubmissionsCount } } } = this.props
+    const { selectedDataType, entityMetadata, loading, importingReference, deletingReference, deletingEntities, selectedEntities } = this.state
     const referenceData = this.getReferenceData()
     const canEdit = Utils.canWrite(accessLevel)
 
@@ -193,7 +207,7 @@ const WorkspaceData = _.flow(
               onClick: () => {
                 saveScroll(0, 0)
                 selectedDataType === type ? this.loadData() :
-                  this.setState({ selectedDataType: type, pageNumber: 1, sort: initialSort, entities: undefined, isDataModel: true })
+                  this.setState({ selectedDataType: type, pageNumber: 1, sort: initialSort, entities: undefined })
               }
             }, [`${type} (${typeDetails.count})`])
           }, _.toPairs(entityMetadata)),
@@ -205,28 +219,32 @@ const WorkspaceData = _.flow(
               onClick: () => this.setState({ importingReference: true })
             }, [icon('plus-circle')])
           ]),
-          importingReference &&
-            h(ReferenceDataImporter, {
-              onDismiss: () => this.setState({ importingReference: false }),
-              onSuccess: () => this.setState({ importingReference: false }, () => this.loadData()),
-              namespace, name
-            }),
-          deletingReference &&
-            h(ReferenceDataDeleter, {
-              onDismiss: () => this.setState({ deletingReference: false }),
-              onSuccess: () => this.setState({
-                deletingReference: false,
-                selectedDataType: selectedDataType === deletingReference ? undefined : selectedDataType
-              }, () => this.loadData()),
-              namespace, name, referenceDataType: deletingReference
-            }),
+          importingReference && h(ReferenceDataImporter, {
+            onDismiss: () => this.setState({ importingReference: false }),
+            onSuccess: () => this.setState({ importingReference: false }, () => this.loadData()),
+            namespace, name
+          }),
+          deletingReference && h(ReferenceDataDeleter, {
+            onDismiss: () => this.setState({ deletingReference: false }),
+            onSuccess: () => this.setState({
+              deletingReference: false,
+              selectedDataType: selectedDataType === deletingReference ? undefined : selectedDataType
+            }, () => this.loadData()),
+            namespace, name, referenceDataType: deletingReference
+          }),
+          deletingEntities && h(EntityDeleter, {
+            onDismiss: () => this.setState({ deletingEntities: false }),
+            onSuccess: () => this.setState({ deletingEntities: false }, () => this.refresh()),
+            namespace, name,
+            selectedEntities, selectedDataType, runningSubmissionsCount
+          }),
           _.map(type => {
             return h(DataTypeButton, {
               key: type,
               selected: selectedDataType === type,
               onClick: () => {
                 saveScroll(0, 0)
-                this.setState({ selectedDataType: type, isDataModel: false })
+                this.setState({ selectedDataType: type })
               }
             }, [
               div({ style: { display: 'flex', justifyContent: 'space-between' } }, [
@@ -247,7 +265,7 @@ const WorkspaceData = _.flow(
             onClick: () => {
               saveScroll(0, 0)
               selectedDataType === localVariables ? this.loadData() :
-                this.setState({ selectedDataType: localVariables, isDataModel: false })
+                this.setState({ selectedDataType: localVariables })
             }
           }, ['Local Variables'])
         ]),
@@ -273,11 +291,12 @@ const WorkspaceData = _.flow(
   }
 
   renderEntityTable() {
-    const { namespace } = this.props
-    const { entities, selectedDataType, entityMetadata, totalRowCount, pageNumber, itemsPerPage, sort, columnWidths, columnState } = this.state
+    const { namespace, workspace: { accessLevel } } = this.props
+    const { entities, selectedDataType, entityMetadata, totalRowCount, pageNumber, itemsPerPage, sort, columnWidths, columnState, selectedEntities } = this.state
     const theseColumnWidths = columnWidths[selectedDataType] || {}
     const columnSettings = applyColumnSettings(columnState[selectedDataType] || [], entityMetadata[selectedDataType].attributeNames)
     const resetScroll = () => this.table.current.scrollToTop()
+    const nameWidth = theseColumnWidths['name'] || 150
     return entities && h(Fragment, [
       div({ style: { flex: 'none', marginBottom: '1rem' } }, [
         this.renderDownloadButton(),
@@ -293,39 +312,59 @@ const WorkspaceData = _.flow(
               onScroll: saveScroll,
               initialX: StateHistory.get().initialX,
               initialY: StateHistory.get().initialY,
-              columns: [
-                (() => {
-                  const thisWidth = theseColumnWidths['name'] || 150
-                  return {
-                    width: thisWidth,
-                    headerRenderer: () => h(Resizable, {
-                      width: thisWidth, onWidthChange: delta => {
-                        this.setState({ columnWidths: _.set(`${selectedDataType}.name`, thisWidth + delta, columnWidths) },
-                          () => this.table.current.recomputeColumnSizes())
+              columns: _.concat(Utils.canWrite(accessLevel) ? [
+                {
+                  width: 50,
+                  headerRenderer: () => {
+                    const checked = selectedEntities.length === entities.length
+                    return h(Checkbox, {
+                      checked,
+                      onChange: () => {
+                        this.setState({ selectedEntities: checked ? [] : _.map('name', entities) })
                       }
-                    }, [
-                      h(Sortable, { sort, field: 'name', onSort: v => this.setState({ sort: v }) }, [
-                        h(HeaderCell, [`${selectedDataType}_id`])
-                      ])
-                    ]),
-                    cellRenderer: ({ rowIndex }) => renderDataCell(entities[rowIndex].name, namespace)
+                    })
+                  },
+                  cellRenderer: ({ rowIndex }) => {
+                    const { name } = entities[rowIndex]
+                    const checked = selectedEntities.includes(name)
+                    return h(Checkbox, {
+                      checked,
+                      onChange: () => {
+                        this.setState(({ selectedEntities }) => ({ selectedEntities: (checked ? _.pullAll : _.concat)([name], selectedEntities) }))
+                      }
+                    })
                   }
-                })(),
+                }
+              ] : [],
+              [
+                {
+                  width: nameWidth,
+                  headerRenderer: () => h(Resizable, {
+                    width: nameWidth, onWidthChange: delta => {
+                      this.setState({ columnWidths: _.set(`${selectedDataType}.name`, nameWidth + delta, columnWidths) },
+                        () => this.table.current.recomputeColumnSizes())
+                    }
+                  }, [
+                    h(Sortable, { sort, field: 'name', onSort: v => this.setState({ sort: v, selectedEntities: [] }) }, [
+                      h(HeaderCell, [`${selectedDataType}_id`])
+                    ])
+                  ]),
+                  cellRenderer: ({ rowIndex }) => renderDataCell(entities[rowIndex].name, namespace)
+                },
                 ..._.map(({ name }) => {
                   const thisWidth = theseColumnWidths[name] || 300
                   return {
                     width: thisWidth,
-                    headerRenderer: () =>
-                      h(Resizable, {
-                        width: thisWidth, onWidthChange: delta => {
-                          this.setState({ columnWidths: _.set(`${selectedDataType}.${name}`, thisWidth + delta, columnWidths) },
-                            () => this.table.current.recomputeColumnSizes())
-                        }
-                      }, [
-                        h(Sortable, { sort, field: name, onSort: v => this.setState({ sort: v }) }, [
-                          h(HeaderCell, [name])
-                        ])
-                      ]),
+                    headerRenderer: () => h(Resizable, {
+                      width: thisWidth, onWidthChange: delta => {
+                        this.setState({ columnWidths: _.set(`${selectedDataType}.${name}`, thisWidth + delta, columnWidths) },
+                          () => this.table.current.recomputeColumnSizes())
+                      }
+                    }, [
+                      h(Sortable, { sort, field: name, onSort: v => this.setState({ sort: v }) }, [
+                        h(HeaderCell, [name])
+                      ])
+                    ]),
                     cellRenderer: ({ rowIndex }) => {
                       return renderDataCell(
                         Utils.entityAttributeText(entities[rowIndex].attributes[name]), namespace
@@ -333,7 +372,7 @@ const WorkspaceData = _.flow(
                     }
                   }
                 }, _.filter('visible', columnSettings))
-              ]
+              ])
             })
           }
         ]),
@@ -352,7 +391,12 @@ const WorkspaceData = _.flow(
           itemsPerPage,
           setItemsPerPage: v => this.setState({ itemsPerPage: v, pageNumber: 1 }, resetScroll)
         })
-      ])
+      ]),
+      !!selectedEntities.length && h(FloatingActionButton, {
+        label: 'DELETE DATA',
+        iconShape: 'trash',
+        onClick: () => this.setState({ deletingEntities: true })
+      })
     ])
   }
 
@@ -392,12 +436,11 @@ const WorkspaceData = _.flow(
         onClick: async () => {
           const attributeNames = entityMetadata[selectedDataType].attributeNames
 
-          const entityToRow = entity =>
-            _.join('\t', [
-              entity.name, ..._.map(
-                attribute => Utils.entityAttributeText(entity.attributes[attribute]),
-                attributeNames)
-            ])
+          const entityToRow = entity => _.join('\t', [
+            entity.name, ..._.map(
+              attribute => Utils.entityAttributeText(entity.attributes[attribute]),
+              attributeNames)
+          ])
 
           const header = _.join('\t', [`${selectedDataType}_id`, ...attributeNames])
 
@@ -422,7 +465,7 @@ const WorkspaceData = _.flow(
 
   renderLocalVariables() {
     const { namespace, name, workspace: { accessLevel }, ajax: { Workspaces } } = this.props
-    const { workspaceAttributes, editIndex, deleteIndex, editKey, editValue, editType, addVariableHover } = this.state
+    const { workspaceAttributes, editIndex, deleteIndex, editKey, editValue, editType } = this.state
     const canEdit = Utils.canWrite(accessLevel)
     const stopEditing = () => this.setState({ editIndex: undefined, editKey: undefined, editValue: undefined, editType: undefined })
     const filteredAttributes = _.flow(
@@ -555,37 +598,17 @@ const WorkspaceData = _.flow(
             ]
           })
         ]),
-        !creatingNewVariable && canEdit && h(Clickable,
-          {
-            style: {
-              position: 'absolute', bottom: 25, right: 25,
-              backgroundColor: colors.blue[0], color: 'white',
-              padding: '0.5rem', borderRadius: 40,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              boxShadow: Style.standardShadow
-            },
-            onMouseEnter: () => this.setState({ addVariableHover: true }),
-            onMouseLeave: () => this.setState({ addVariableHover: false }),
-            onClick: () => this.setState({
-              addVariableHover: false,
-              editIndex: filteredAttributes.length,
-              editValue: '',
-              editKey: '',
-              editType: 'string'
-            })
-          },
-          [
-            div({
-              style: {
-                padding: `0 ${addVariableHover ? '0.5rem' : '0'}`, fontWeight: 'bold',
-                maxWidth: addVariableHover ? 200 : 0,
-                overflow: 'hidden', whiteSpace: 'pre',
-                transition: 'max-width 0.5s ease-out, padding 0.1s linear 0.2s'
-              }
-            }, ['ADD VARIABLE']),
-            icon('plus', { size: 25, style: { stroke: 'white', strokeWidth: 2 } })
-          ]),
-        deleteIndex && h(Modal, {
+        !creatingNewVariable && canEdit && h(FloatingActionButton, {
+          label: 'ADD VARIABLE',
+          iconShape: 'plus',
+          onClick: () => this.setState({
+            editIndex: filteredAttributes.length,
+            editValue: '',
+            editKey: '',
+            editType: 'string'
+          })
+        }),
+        !_.isUndefined(deleteIndex) && h(Modal, {
           onDismiss: () => this.setState({ deleteIndex: undefined }),
           title: 'Are you sure you wish to delete this variable?',
           okButton: buttonPrimary({
