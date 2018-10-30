@@ -46,6 +46,9 @@ const NotebookLauncher = _.flow(
   wrapWorkspace({
     breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
     title: ({ notebookName }) => `Notebooks - ${notebookName}`,
+    topBarContent: ({ workspace }) => {
+      return workspace && !(Utils.canWrite(workspace.accessLevel) && workspace.canCompute) && div({ style: { marginLeft: '20rem', border: 'solid 1px', padding: '1rem' } }, ['Viewing in read-only mode. To edit this notebook, copy it to another workspace'])
+    },
     showTabBar: false
   }),
   ajaxCaller

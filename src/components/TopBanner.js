@@ -42,7 +42,7 @@ export default class TopBanner extends Component {
         position: 'fixed', top: 0, left: '50%',
         width: '100%',
         maxWidth: 750,
-        backgroundColor: colors.orange[0],
+        backgroundColor: colors.green[0],
         color: 'white', fontSize: '1rem',
         borderRadius: '0 0 4px 4px',
         padding: '1rem',
