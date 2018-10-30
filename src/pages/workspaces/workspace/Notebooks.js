@@ -5,7 +5,7 @@ import Dropzone from 'react-dropzone'
 import { a, div, h } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import togglesListView from 'src/components/CardsListToggle'
-import { Clickable, link, MenuButton, PageFadeBox, spinnerOverlay, menuIcon } from 'src/components/common'
+import { Clickable, link, MenuButton, PageFadeBox, spinnerOverlay, menuIcon, printName } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { NotebookCreator, NotebookDeleter, NotebookDuplicator } from 'src/components/notebook-utils'
 import { pushNotification } from 'src/components/Notifications'
@@ -28,8 +28,6 @@ const notebookCardCommonStyles = listView => _.merge({ display: 'flex' },
     { marginBottom: '0.5rem', flexDirection: 'row' } :
     { margin: '0 2.5rem 2.5rem 0', height: 250, width: 200, flexDirection: 'column' }
 )
-
-const printName = name => name.slice(10, -6) // removes 'notebooks/' and the .ipynb suffix
 
 const noWrite = 'You do not have access to modify this workspace.'
 

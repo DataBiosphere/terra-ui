@@ -13,8 +13,6 @@ import ErrorView from 'src/components/ErrorView'
 import { notebookNameValidator, notebookNameInput } from 'src/components/notebook-utils'
 
 
-const cutName = name => name.slice(10, -6) // removes 'notebooks/' and the .ipynb suffix
-
 export default _.flow(
   ajaxCaller,
   withWorkspaces()
@@ -113,7 +111,7 @@ export default _.flow(
     const { ajax: { Buckets }, workspaces } = this.props
     const tempChosenWorkspace = _.find({ workspace: { workspaceId: v } }, workspaces).workspace
     const selectedNotebooks = await Buckets.listNotebooks(tempChosenWorkspace.namespace, tempChosenWorkspace.bucketName)
-    const existingNames = _.map(({ name }) => cutName(name), selectedNotebooks)
+    const existingNames = _.map(({ name }) => name.slice(10, -6), selectedNotebooks)
     this.setState({ existingNames: existingNames })
   }
 

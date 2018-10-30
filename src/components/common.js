@@ -296,6 +296,8 @@ export const backgroundLogo = icon('logoIcon', {
   style: { position: 'fixed', top: -100, left: -100, zIndex: -1, opacity: 0.65 }
 })
 
+export const printName = name => name.slice(10, -6) // removes 'notebooks/' and the .ipynb suffix
+
 export const methodLink = (config, firecloudRoot, dockstoreRoot) => {
   const { methodRepoMethod: { sourceRepo, methodVersion, methodNamespace, methodName, methodPath } } = config
   return sourceRepo === 'agora' ? `${firecloudRoot}/#methods/${methodNamespace}/${methodName}/${methodVersion}` : `${dockstoreRoot}/workflows/${methodPath}`

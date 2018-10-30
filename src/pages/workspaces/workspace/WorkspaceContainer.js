@@ -194,7 +194,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
         namespace, name, activeTab, showTabBar, workspace, clusters,
         title: _.isFunction(title) ? title(this.props) : title,
         breadcrumbs: breadcrumbs(this.props),
-        topBarContent: topBarContent && topBarContent({ workspace }, this.props),
+        topBarContent: topBarContent && topBarContent({ workspace }),
         refresh: async () => {
           await this.refresh()
           const child = this.child.current

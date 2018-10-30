@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import { createRef, Fragment } from 'react'
 import { div, h, iframe } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { linkButton, spinnerOverlay } from 'src/components/common'
+import { linkButton, spinnerOverlay, link, printName } from 'src/components/common'
 import { icon, spinner } from 'src/components/icons'
 import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
@@ -11,6 +11,7 @@ import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
+import ExportNotebookModal from 'src/pages/workspaces/workspace/notebooks/ExportNotebookModal'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
 
@@ -46,7 +47,7 @@ const NotebookLauncher = _.flow(
   wrapWorkspace({
     breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
     title: ({ notebookName }) => `Notebooks - ${notebookName}`,
-    topBarContent: ({ workspace }, props) => {
+    topBarContent: ({ workspace }) => {
       return workspace && !(Utils.canWrite(workspace.accessLevel) && workspace.canCompute)
         && div({ style: { marginLeft: 'auto' } },
           [
@@ -54,7 +55,9 @@ const NotebookLauncher = _.flow(
               ['Viewing in read-only mode.']),
             div({ style: { fontSize: 14 } },
               [
-                'To edit this notebook, copy it to another workspace'
+                'To edit this notebook, ',
+                link({ onClick: () => this.setState({ copying: true }) }, 'copy'),
+                ' it to another workspace'
               ])
           ])
     },
@@ -72,7 +75,8 @@ class NotebookViewer extends Component {
     super(props)
     this.state = {
       preview: undefined,
-      busy: false
+      busy: false,
+      copying: false
     }
   }
 
@@ -90,9 +94,9 @@ class NotebookViewer extends Component {
   }
 
   render() {
-    const { namespace, name } = this.props
+    const { namespace, name, notebookName, workspace } = this.props
     const { preview, busy, copying } = this.state
-    console.log(copying)
+    console.log(notebookName, workspace)
     return h(Fragment, [
       preview && iframe({
         style: { border: 'none', flex: 1 },
@@ -102,6 +106,10 @@ class NotebookViewer extends Component {
         style: { position: 'absolute', top: 20, left: 'calc(50% + 570px)' },
         onClick: () => Nav.goToPath('workspace-notebooks', { namespace, name })
       }, [icon('times-circle', { size: 30 })]),
+      copying && h(ExportNotebookModal, {
+        printName: printName(notebookName), workspace,
+        onDismiss: () => this.setState({ copying: false })
+      }),
       busy && spinnerOverlay
     ])
   }
