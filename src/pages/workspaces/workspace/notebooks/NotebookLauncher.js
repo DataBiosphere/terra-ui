@@ -46,8 +46,17 @@ const NotebookLauncher = _.flow(
   wrapWorkspace({
     breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
     title: ({ notebookName }) => `Notebooks - ${notebookName}`,
-    topBarContent: ({ workspace }) => {
-      return workspace && !(Utils.canWrite(workspace.accessLevel) && workspace.canCompute) && div({ style: { marginLeft: '20rem', border: 'solid 1px', padding: '1rem' } }, ['Viewing in read-only mode. To edit this notebook, copy it to another workspace'])
+    topBarContent: ({ workspace }, props) => {
+      return workspace && !(Utils.canWrite(workspace.accessLevel) && workspace.canCompute)
+        && div({ style: { marginLeft: 'auto' } },
+          [
+            div({ style: { fontSize: 16, fontWeight: 'bold' } },
+              ['Viewing in read-only mode.']),
+            div({ style: { fontSize: 14 } },
+              [
+                'To edit this notebook, copy it to another workspace'
+              ])
+          ])
     },
     showTabBar: false
   }),
@@ -82,7 +91,8 @@ class NotebookViewer extends Component {
 
   render() {
     const { namespace, name } = this.props
-    const { preview, busy } = this.state
+    const { preview, busy, copying } = this.state
+    console.log(copying)
     return h(Fragment, [
       preview && iframe({
         style: { border: 'none', flex: 1 },
