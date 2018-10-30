@@ -56,7 +56,7 @@ const NotebookLauncher = _.flow(
             div({ style: { fontSize: 14 } },
               [
                 'To edit this notebook, ',
-                link({ onClick: () => this.setState({ copying: true }) }, 'copy'),
+                link({ onClick: () => NotebookViewer.setCopy() }, 'copy'),
                 ' it to another workspace'
               ])
           ])
@@ -80,6 +80,10 @@ class NotebookViewer extends Component {
     }
   }
 
+  setCopy = () => {
+    this.setState({ copying: true })
+  }
+
   async componentDidMount() {
     try {
       const { namespace, notebookName, workspace: { workspace: { bucketName } }, ajax: { Buckets } } = this.props
@@ -96,7 +100,7 @@ class NotebookViewer extends Component {
   render() {
     const { namespace, name, notebookName, workspace } = this.props
     const { preview, busy, copying } = this.state
-    console.log(notebookName, workspace)
+    console.log(notebookName, workspace, copying)
     return h(Fragment, [
       preview && iframe({
         style: { border: 'none', flex: 1 },
