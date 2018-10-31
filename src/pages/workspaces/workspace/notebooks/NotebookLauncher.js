@@ -264,7 +264,7 @@ class NotebookEditor extends Component {
 
     return h(Fragment, [
       div({ style: styles.pageContainer }, [
-        div({ style: Style.elements.sectionHeader }, 'Saturn is preparing your notebook'),
+        div({ style: Style.elements.sectionHeader }, 'Terra is preparing your notebook'),
         step(1, 'Waiting for notebooks runtime to be ready'),
         step(2, localizeFailures ?
           `Error loading notebook, retry number ${localizeFailures}...` :
