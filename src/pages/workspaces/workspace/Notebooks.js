@@ -29,7 +29,7 @@ const notebookCardCommonStyles = listView => _.merge({ display: 'flex' },
     { margin: '0 2.5rem 2.5rem 0', height: 250, width: 200, flexDirection: 'column' }
 )
 
-export const printName = name => name.slice(10, -6) // removes 'notebooks/' and the .ipynb suffix
+const printName = name => name.slice(10, -6) // removes 'notebooks/' and the .ipynb suffix
 
 const noWrite = 'You do not have access to modify this workspace.'
 
