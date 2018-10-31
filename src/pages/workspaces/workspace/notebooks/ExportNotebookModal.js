@@ -12,6 +12,7 @@ import validate from 'validate.js'
 import ErrorView from 'src/components/ErrorView'
 import { notebookNameValidator, notebookNameInput } from 'src/components/notebook-utils'
 
+
 export const cutName = name => name.slice(10, -6) // removes 'notebooks/' and the .ipynb suffix
 
 export default _.flow(

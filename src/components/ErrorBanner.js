@@ -22,7 +22,7 @@ class ErrorBanner extends Component {
 
     return createPortal(
       h(TopBanner, {
-        style: { padding: 0, backgroundColor: colors.orange[0] },
+        style: { padding: 0 },
         isVisible: !!errorState.length,
         onDismiss: () => {
           this.setState({ errorNumber: 0 })
