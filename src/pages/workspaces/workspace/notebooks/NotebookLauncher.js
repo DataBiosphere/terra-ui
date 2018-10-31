@@ -56,7 +56,7 @@ const NotebookLauncher = _.flow(
             div({ style: { fontSize: 14 } },
               [
                 'To edit this notebook, ',
-                link({ onClick: () => NotebookViewer.setCopy() }, 'copy'),
+                link({ onClick: () => this.setState({ copying: true }) }, 'copy'),
                 ' it to another workspace'
               ])
           ])
@@ -78,10 +78,6 @@ class NotebookViewer extends Component {
       busy: false,
       copying: false
     }
-  }
-
-  setCopy = () => {
-    this.setState({ copying: true })
   }
 
   async componentDidMount() {
