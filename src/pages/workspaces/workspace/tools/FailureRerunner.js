@@ -2,6 +2,7 @@ import _ from 'lodash/fp'
 import { div, h } from 'react-hyperscript-helpers'
 import { icon, spinner } from 'src/components/icons'
 import { popNotification, pushNotification } from 'src/components/Notifications'
+import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import * as Utils from 'src/libs/utils'
@@ -28,7 +29,7 @@ const ToastMessageComponent = Utils.connectAtom(toastProps, 'toastProps')(class 
 })
 
 
-export const rerunFailures = async ({ namespace, name, submissionId, configNamespace, configName, onDone, ajax: { Workspaces } }) => {
+export const rerunFailures = async ({ namespace, name, submissionId, configNamespace, configName, onDone }) => {
   toastProps.set({ text: 'Loading tool info...' })
   const id = pushNotification({
     dismiss: { duration: 0 },
@@ -36,7 +37,7 @@ export const rerunFailures = async ({ namespace, name, submissionId, configNames
   })
 
   try {
-    const workspace = Workspaces.workspace(namespace, name)
+    const workspace = Ajax().Workspaces.workspace(namespace, name)
     const methodConfig = workspace.methodConfig(configNamespace, configName)
 
     const [{ workflows, submissionEntity, useCallCache }, { rootEntityType }] = await Promise.all([

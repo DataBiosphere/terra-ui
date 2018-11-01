@@ -193,8 +193,7 @@ const JobHistory = _.flow(
                         onClick: () => rerunFailures({
                           namespace, name, submissionId,
                           configNamespace: methodConfigurationNamespace, configName: methodConfigurationName,
-                          onDone: () => this.refresh(),
-                          ajax: { Workspaces }
+                          onDone: () => this.refresh()
                         })
                       }, [menuIcon('sync'), 'Re-run failures']),
                       collapsedStatuses(workflowStatuses).running && h(MenuButton, {
