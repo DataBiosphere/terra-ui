@@ -86,7 +86,7 @@ export default _.flow(
   }
 
   renderPostCopy() {
-    const { onDismiss } = this.props
+    const { onDismiss, fromLauncher } = this.props
     const { newName } = this.state
     const selectedWorkspace = this.getSelectedWorkspace().workspace
 
@@ -95,10 +95,20 @@ export default _.flow(
       onDismiss,
       cancelText: 'Stay Here',
       okButton: buttonPrimary({
-        onClick: () => Nav.goToPath('workspace-notebooks', {
-          namespace: selectedWorkspace.namespace,
-          name: selectedWorkspace.name
-        })
+        onClick: () => {
+          if (fromLauncher) {
+            Nav.goToPath('workspace-notebook-launch', {
+              namespace: selectedWorkspace.namespace,
+              name: selectedWorkspace.name,
+              notebookName: newName + '.ipynb'
+            })
+          } else {
+            Nav.goToPath('workspace-notebooks', {
+              namespace: selectedWorkspace.namespace,
+              name: selectedWorkspace.name
+            })
+          }
+        }
       }, ['Go to copied notebook'])
     }, [
       'Successfully copied ',
@@ -121,7 +131,6 @@ export default _.flow(
     const { printName, workspace, ajax: { Buckets } } = this.props
     const { newName } = this.state
     const selectedWorkspace = this.getSelectedWorkspace().workspace
-    console.log(selectedWorkspace)
     try {
       this.setState({ copying: true })
       await Buckets.notebook(workspace.workspace.namespace, workspace.workspace.bucketName, printName)['copy'](newName, selectedWorkspace.bucketName)

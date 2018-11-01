@@ -128,9 +128,8 @@ class WorkspaceContainer extends Component {
   }
 
   render() {
-    const { namespace, name, breadcrumbs, title, activeTab, showTabBar = true, refresh, refreshClusters, workspace, clusters } = this.props
+    const { namespace, name, breadcrumbs, topBarContent, title, activeTab, showTabBar = true, refresh, refreshClusters, workspace, clusters } = this.props
     const { deletingWorkspace, cloningWorkspace, sharingWorkspace } = this.state
-
     return h(Fragment, [
       h(TopBar, { title: 'Workspaces' }, [
         div({ style: styles.workspaceNameContainer }, [
@@ -140,6 +139,7 @@ class WorkspaceContainer extends Component {
             workspace && !Utils.canWrite(workspace.accessLevel) && span({ style: { paddingLeft: '0.5rem', color: colors.gray[1] } }, '(read only)')
           ])
         ]),
+        topBarContent,
         h(ClusterManager, {
           namespace, name, clusters, refreshClusters,
           canCompute: !!((workspace && workspace.canCompute) || (clusters && clusters.length))
@@ -171,7 +171,7 @@ class WorkspaceContainer extends Component {
 }
 
 
-export const wrapWorkspace = ({ breadcrumbs, activeTab, title, showTabBar = true }) => WrappedComponent => {
+export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, showTabBar = true }) => WrappedComponent => {
   return ajaxCaller(class Wrapper extends Component {
     constructor(props) {
       super(props)
@@ -194,6 +194,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, showTabBar = true
         namespace, name, activeTab, showTabBar, workspace, clusters,
         title: _.isFunction(title) ? title(this.props) : title,
         breadcrumbs: breadcrumbs(this.props),
+        topBarContent: topBarContent && topBarContent({ workspace, ...this.props }),
         refresh: async () => {
           await this.refresh()
           const child = this.child.current
