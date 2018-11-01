@@ -52,7 +52,7 @@ export const rerunFailures = async ({ namespace, name, submissionId, configNames
       _.map('workflowEntity')
     )(workflows)
 
-    const newSetName = `${configName}-${submissionId.slice(0, 5)}-resubmission`
+    const newSetName = `${configName}-resubmission-${new Date().toISOString().slice(0, -5).replace(/:/g, '-')}`
     const newSetType = submissionEntity.entityType
     const newSet = {
       name: newSetName,
