@@ -79,7 +79,7 @@ export default class Router extends Component {
         document.title = handler.title
       }
     } else {
-      document.title = 'Saturn'
+      document.title = 'Terra'
     }
   }
 

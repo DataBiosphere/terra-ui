@@ -52,7 +52,7 @@ const NewUserModal = ajaxCaller(class NewUserModal extends Component {
 
     return h(Modal, {
       onDismiss,
-      title: 'Add user to Saturn Group',
+      title: 'Add user to Terra Group',
       okButton: buttonPrimary({
         tooltip: Utils.summarizeErrors(errors),
         onClick: () => this.submit(),
