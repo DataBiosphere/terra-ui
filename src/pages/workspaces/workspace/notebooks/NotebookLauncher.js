@@ -32,6 +32,9 @@ const styles = {
     col2: {
       flex: 1
     }
+  },
+  creatingMessage: {
+    paddingLeft: '4rem'
   }
 }
 
@@ -168,7 +171,13 @@ class NotebookEditor extends Component {
     window.addEventListener('beforeunload', this.beforeUnload)
 
     try {
-      const { clusterName, clusterUrl } = await this.startCluster()
+      const { clusterName, clusterUrl, error } = await this.startCluster()
+
+      if (error) {
+        this.setState({ clusterError: error, failed: true })
+        return
+      }
+
       const { namespace, ajax: { Jupyter } } = this.props
       await Promise.all([
         this.localizeNotebook(clusterName),
@@ -225,7 +234,7 @@ class NotebookEditor extends Component {
       const { clusters } = this.props //Note: placed here to read updated value after refresh
       const cluster = getCluster(clusters)
       if (!cluster) {
-        throw new Error('You do not have access to run analyses on this workspace.')
+        return { error: 'You do not have access to run analyses on this workspace.' }
       }
 
       const { status, googleProject, clusterName } = cluster
@@ -271,7 +280,7 @@ class NotebookEditor extends Component {
   }
 
   render() {
-    const { clusterStatus, localizeFailures, failed, url, saving } = this.state
+    const { clusterStatus, clusterError, localizeFailures, failed, url, saving } = this.state
 
     if (url) {
       return h(Fragment, [
@@ -284,6 +293,7 @@ class NotebookEditor extends Component {
       ])
     }
 
+    const isCreating = clusterStatus === 'Creating'
     const currentStep = clusterStatus !== 'Running' ? 1 : 2
 
     const step = (index, text) => div({ style: styles.step.container }, [
@@ -296,8 +306,18 @@ class NotebookEditor extends Component {
 
     return h(Fragment, [
       div({ style: styles.pageContainer }, [
-        div({ style: Style.elements.sectionHeader }, 'Terra is preparing your notebook'),
-        step(1, 'Waiting for notebooks runtime to be ready'),
+        div({ style: Style.elements.sectionHeader }, ['Terra is preparing your notebook']),
+        step(1,
+          Utils.cond(
+            [clusterError, clusterError],
+            [isCreating, 'Creating notebook runtime'],
+            'Waiting for notebook runtime to be ready'
+          )
+        ),
+        isCreating && div({ style: styles.creatingMessage }, [
+          icon('info', { size: 24, style: { color: colors.orange[0] } }),
+          'This can take several minutes. You may navigate away and come back once the cluster is ready.'
+        ]),
         step(2, localizeFailures ?
           `Error loading notebook, retry number ${localizeFailures}...` :
           'Loading notebook')
