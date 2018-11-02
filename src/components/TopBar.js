@@ -1,14 +1,17 @@
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
+import { Fragment } from 'react'
 import { createPortal } from 'react-dom'
 import { a, div, h } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
 import { Clickable, comingSoon, MenuButton } from 'src/components/common'
 import { icon, logo, profilePic } from 'src/components/icons'
-import { getUser, signOut } from 'src/libs/auth'
+import SignInButton from 'src/components/SignInButton'
+import { authStore, getUser, signOut } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
+import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 
 
@@ -55,7 +58,7 @@ const styles = {
   }
 }
 
-export default class TopBar extends Component {
+export default Utils.connectAtom(authStore, 'authState')(class TopBar extends Component {
   static propTypes = {
     title: PropTypes.node,
     href: PropTypes.string, // link destination
@@ -76,7 +79,7 @@ export default class TopBar extends Component {
   }
 
   buildNav() {
-    const { userMenuOpen } = this.state
+    const { authState: { isSignedIn } } = this.props
 
     return createPortal(
       div({
@@ -103,87 +106,12 @@ export default class TopBar extends Component {
               onClick: () => this.hideNav()
             }, [logo(), 'Terra'])
           ]),
-          h(Collapse, {
-            defaultHidden: true,
-            showIcon: false,
-            animate: true,
-            expandTitle: true,
-            style: styles.nav.profile(false),
-            buttonStyle: { marginBottom: 0 },
-            title: [
-              h(Clickable, {
-                style: { ...styles.nav.item, ...styles.nav.profile(userMenuOpen), boxShadow: `inset ${Style.standardShadow}` },
-                hover: styles.nav.profile(true),
-                onClick: () => this.setState({ userMenuOpen: !userMenuOpen })
-              }, [
-                div({ style: styles.nav.icon }, [
-                  profilePic({ size: 32 })
-                ]),
-                div({ style: { whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' } }, [
-                  getUser().name
-                ]),
-                div({ style: { flexGrow: 1 } }),
-                icon(`angle ${userMenuOpen ? 'up' : 'down'}`,
-                  { size: 18, style: { flex: 'none' } })
-              ])
-            ]
-          }, [
-            h(MenuButton, {
-              as: 'a',
-              href: Nav.getLink('profile'),
-              style: styles.nav.profileItem(false),
-              hover: styles.nav.profileItem(true),
-              onClick: () => this.hideNav() // In case we're already there
-            }, [
-              icon('user', { style: styles.nav.icon }), 'Profile'
+          isSignedIn ?
+            this.buildSignedInOptions() :
+            div({ style: { margin: '2rem auto' } }, [
+              div({ style: { fontWeight: 600, marginBottom: '0.5rem' } }, ['Have an account?']),
+              h(SignInButton)
             ]),
-            h(MenuButton, {
-              as: 'a',
-              href: Nav.getLink('groups'),
-              style: styles.nav.profileItem(false),
-              hover: styles.nav.profileItem(true),
-              onClick: () => this.hideNav() // In case we're already there
-            }, [
-              icon('users', { style: styles.nav.icon }), 'Groups'
-            ]),
-            h(MenuButton, {
-              onClick: signOut,
-              style: styles.nav.profileItem(false),
-              hover: styles.nav.profileItem(true)
-            }, [
-              icon('logout', { style: styles.nav.icon }), 'Sign Out'
-            ])
-          ]),
-          h(Clickable, {
-            as: 'a',
-            style: styles.nav.item,
-            hover: { backgroundColor: colors.darkBlue[1] },
-            href: Nav.getLink('browse-data'),
-            onClick: () => this.hideNav()
-          }, [
-            div({ style: styles.nav.icon }, [
-              icon('browse', { size: 24 })
-            ]),
-            'Browse Data'
-          ]),
-          div({ style: styles.nav.item }, [
-            div({ style: styles.nav.icon }, [
-              icon('search', { size: 24 })
-            ]),
-            'Find Code', comingSoon
-          ]),
-          h(Clickable, {
-            as: 'a',
-            style: styles.nav.item,
-            hover: { backgroundColor: colors.darkBlue[1] },
-            href: Nav.getLink('workspaces'),
-            onClick: () => this.hideNav()
-          }, [
-            div({ style: styles.nav.icon }, [
-              icon('workspace', { className: 'is-solid', size: 24 })
-            ]),
-            'See All Workspaces'
-          ]),
           div({
             style: {
               ..._.omit('borderBottom', styles.nav.item), marginTop: 'auto',
@@ -198,6 +126,94 @@ export default class TopBar extends Component {
       ]),
       document.getElementById('main-menu-container')
     )
+  }
+
+  buildSignedInOptions() {
+    const { userMenuOpen } = this.state
+
+    return h(Fragment, [
+      h(Collapse, {
+        defaultHidden: true,
+        showIcon: false,
+        animate: true,
+        expandTitle: true,
+        style: styles.nav.profile(false),
+        buttonStyle: { marginBottom: 0 },
+        title: [
+          h(Clickable, {
+            style: { ...styles.nav.item, ...styles.nav.profile(userMenuOpen), boxShadow: `inset ${Style.standardShadow}` },
+            hover: styles.nav.profile(true),
+            onClick: () => this.setState({ userMenuOpen: !userMenuOpen })
+          }, [
+            div({ style: styles.nav.icon }, [
+              profilePic({ size: 32 })
+            ]),
+            div({ style: { whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' } }, [
+              getUser().name
+            ]),
+            div({ style: { flexGrow: 1 } }),
+            icon(`angle ${userMenuOpen ? 'up' : 'down'}`,
+              { size: 18, style: { flex: 'none' } })
+          ])
+        ]
+      }, [
+        h(MenuButton, {
+          as: 'a',
+          href: Nav.getLink('profile'),
+          style: styles.nav.profileItem(false),
+          hover: styles.nav.profileItem(true),
+          onClick: () => this.hideNav() // In case we're already there
+        }, [
+          icon('user', { style: styles.nav.icon }), 'Profile'
+        ]),
+        h(MenuButton, {
+          as: 'a',
+          href: Nav.getLink('groups'),
+          style: styles.nav.profileItem(false),
+          hover: styles.nav.profileItem(true),
+          onClick: () => this.hideNav() // In case we're already there
+        }, [
+          icon('users', { style: styles.nav.icon }), 'Groups'
+        ]),
+        h(MenuButton, {
+          onClick: signOut,
+          style: styles.nav.profileItem(false),
+          hover: styles.nav.profileItem(true)
+        }, [
+          icon('logout', { style: styles.nav.icon }), 'Sign Out'
+        ])
+      ]),
+      h(Clickable, {
+        as: 'a',
+        style: styles.nav.item,
+        hover: { backgroundColor: colors.darkBlue[1] },
+        href: Nav.getLink('browse-data'),
+        onClick: () => this.hideNav()
+      }, [
+        div({ style: styles.nav.icon }, [
+          icon('browse', { size: 24 })
+        ]),
+        'Browse Data'
+      ]),
+      div({ style: styles.nav.item }, [
+        div({ style: styles.nav.icon }, [
+          icon('search', { size: 24 })
+        ]),
+        'Find Code', comingSoon
+      ]),
+      h(Clickable, {
+        as: 'a',
+        style: styles.nav.item,
+        hover: { backgroundColor: colors.darkBlue[1] },
+        href: Nav.getLink('workspaces'),
+        onClick: () => this.hideNav()
+      }, [
+        div({ style: styles.nav.icon }, [
+          icon('workspace', { className: 'is-solid', size: 24 })
+        ]),
+        'See All Workspaces'
+      ])
+    ])
   }
 
   render() {
@@ -226,4 +242,4 @@ export default class TopBar extends Component {
       navShown && this.buildNav()
     ])
   }
-}
+})
