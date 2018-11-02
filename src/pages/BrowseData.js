@@ -250,6 +250,7 @@ export const addNavPaths = () => {
   Nav.defPath('browse-data', {
     path: '/browse-data',
     component: BrowseData,
+    public: true,
     title: 'Browse Data'
   })
 }
