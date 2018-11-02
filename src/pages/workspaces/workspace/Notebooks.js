@@ -109,6 +109,11 @@ class NotebookCard extends Component {
       }
     }, printName(name))
 
+    const date = new Date(updated)
+    const now = new Date()
+    const tenMinutesAgo = _.tap(d => d.setMinutes(d.getMinutes() - 10), new Date(now))
+    const recent = date > tenMinutesAgo
+
     return a({
       href: notebookLink,
       style: {
@@ -123,7 +128,7 @@ class NotebookCard extends Component {
       title,
       div({ style: { flexGrow: 1 } }),
       h(TooltipTrigger, { content: Utils.makeCompleteDate(updated) }, [
-        div({ style: { fontSize: '0.8rem', marginRight: '0.5rem' } },
+        div({ style: { fontSize: '0.8rem', marginRight: '0.5rem', color: recent ? colors.orange[0] : undefined } },
           `Last edited: ${Utils.makePrettyDate(updated)}`)
       ])
     ] : [
@@ -131,7 +136,7 @@ class NotebookCard extends Component {
       jupyterIcon,
       div({ style: { display: 'flex', justifyContent: 'space-between' } }, [
         h(TooltipTrigger, { content: Utils.makeCompleteDate(updated) }, [
-          div({ style: { fontSize: '0.8rem', flexGrow: 1, marginRight: '0.5rem' } }, [
+          div({ style: { fontSize: '0.8rem', flexGrow: 1, marginRight: '0.5rem', color: recent ? colors.orange[0] : undefined  } }, [
             'Last edited:',
             div({}, Utils.makePrettyDate(updated))
           ])
