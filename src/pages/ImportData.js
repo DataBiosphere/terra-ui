@@ -57,7 +57,7 @@ const Importer = ajaxCaller(class Importer extends Component {
 
     try {
       await Utils.switchCase(format,
-        ['entitiesJson', () => Workspaces.workspace(namespace, name).flexibleImportEntities(url)],
+        ['entitiesJson', () => Workspaces.workspace(namespace, name).importEntities(url)],
         [Utils.DEFAULT, () => Workspaces.workspace(namespace, name).importBagit(url)]
       )
       Nav.goToPath('workspace-data', { namespace, name })
