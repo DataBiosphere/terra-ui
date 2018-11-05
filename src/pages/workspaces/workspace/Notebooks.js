@@ -125,16 +125,18 @@ class NotebookCard extends Component {
       notebookMenu,
       title,
       div({ style: { flexGrow: 1 } }),
+      isRecent ? div({ style: { color: colors.orange[0], marginRight: '1.5rem' } }, 'Possibly in use') : undefined,
       h(TooltipTrigger, { content: Utils.makeCompleteDate(updated) }, [
-        div({ style: { fontSize: '0.8rem', marginRight: '0.5rem', color: isRecent ? colors.orange[0] : undefined } },
+        div({ style: { fontSize: '0.8rem', marginRight: '0.5rem' } },
           `Last edited: ${Utils.makePrettyDate(updated)}`)
       ])
     ] : [
       title,
       jupyterIcon,
+      isRecent ? div({ style: { color: colors.orange[0] } }, 'Possibly in use') : undefined,
       div({ style: { display: 'flex', justifyContent: 'space-between' } }, [
         h(TooltipTrigger, { content: Utils.makeCompleteDate(updated) }, [
-          div({ style: { fontSize: '0.8rem', flexGrow: 1, marginRight: '0.5rem', color: isRecent ? colors.orange[0] : undefined  } }, [
+          div({ style: { fontSize: '0.8rem', flexGrow: 1, marginRight: '0.5rem' } }, [
             'Last edited:',
             div({}, Utils.makePrettyDate(updated))
           ])
