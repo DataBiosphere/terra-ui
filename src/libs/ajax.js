@@ -66,6 +66,31 @@ const instrumentedFetch = (url, options) => {
     })
   })
 }
+const options = {
+  method: 'POST',
+  body: JSON.stringify({
+    'request': {
+      'requester': { 'name': 'A person', 'email': 'kvoss@broadinstitute.org' },
+      'subject': 'testing31',
+      'custom_fields': [{ 'id': 360012744472, 'value': ['free text here'] }, { 'id': 360012744452, 'value': 'question' }],
+      'comment': {
+        'body': 'testing 1 2 3 \n\n------------------\nSubmitted from: app.terra.bio/#workspaces/a/real/url/here'
+      }
+    }
+  }),
+  headers: {
+    'Content-Type': 'application/json'
+  }
+}
+
+export const fetchZendesk = fetch(`https://broadinstitute.zendesk.com/api/v2/requests.json`, options)
+  .then(response => {
+    return response.json()
+  })
+  .then(json => {
+    console.log(JSON.stringify(json))
+  })
+
 
 const fetchOk = async (url, options) => {
   const res = await instrumentedFetch(url, options)

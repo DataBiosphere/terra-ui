@@ -5,6 +5,7 @@ import { a, div, h } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
 import { Clickable, comingSoon, MenuButton } from 'src/components/common'
 import { icon, logo, profilePic } from 'src/components/icons'
+import { fetchZendesk } from 'src/libs/ajax'
 import { getUser, signOut } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import * as Nav from 'src/libs/nav'
@@ -184,6 +185,24 @@ export default class TopBar extends Component {
             ]),
             'See All Workspaces'
           ]),
+
+          h(Clickable, {
+            as: 'a',
+            style: styles.nav.item,
+            hover: { backgroundColor: colors.darkBlue[1] },
+            href: Nav.getLink('workspaces'),
+            onClick: () => this.hideNav()
+          }, [
+            div({
+              style: {
+                width: 32, marginRight: '0.5rem', flex: 'none', color: colors.darkBlue[5]
+              }
+            }, [
+              icon('help', { size: 24 })
+            ]),
+            'Contact Us'
+          ]),
+
           div({
             style: {
               ..._.omit('borderBottom', styles.nav.item), marginTop: 'auto',
