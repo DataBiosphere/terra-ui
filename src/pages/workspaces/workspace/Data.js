@@ -409,7 +409,8 @@ const WorkspaceData = _.flow(
         action: `${orchestrationRoot}/cookie-authed/workspaces/${namespace}/${name}/entities/${selectedDataType}/tsv`,
         method: 'POST'
       }, [
-        input({ type: 'hidden', name: 'FCtoken', value: getUser().token })
+        input({ type: 'hidden', name: 'FCtoken', value: getUser().token }),
+        input({ type: 'hidden', name: 'model', value: 'flexible' })
         /*
          * TODO: once column selection is implemented, add another hidden input with name: 'attributeNames' and
          * value: comma-separated list of attribute names to support downloading only the selected columns
