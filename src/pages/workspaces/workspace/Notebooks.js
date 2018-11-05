@@ -111,30 +111,6 @@ class NotebookCard extends Component {
 
     const tenMinutesAgo = _.tap(d => d.setMinutes(d.getMinutes() - 10), new Date())
     const isRecent = new Date(updated) > tenMinutesAgo
-    const recentEditedInfo = h(PopupTrigger, {
-      position: listView ? 'bottom' : 'right',
-      closeOnClick: true,
-      content: div({ style: { padding: ' 1rem', borderRadius: '0.5rem', width: '20rem' } }, [
-        'This notebook was edited recently, so it may be in use. ',
-        'If you edit the notebook at the same time as someone else, your changes may be lost. ',
-        'If you made the recent changes yourself, you may disregard this message.'
-      ])
-    }, [
-      h(Clickable, {
-        onClick: e => e.preventDefault(),
-        style: {
-          cursor: 'pointer', color: colors.orange[0]
-        },
-        focus: 'hover',
-        hover: { color: colors.orange[2] }
-      }, [
-        icon('info-standard', {
-          size: 15,
-          style: { marginLeft: '0.25rem' }
-        })
-      ])
-    ])
-
     return a({
       href: notebookLink,
       style: {
@@ -148,7 +124,7 @@ class NotebookCard extends Component {
       notebookMenu,
       title,
       div({ style: { flexGrow: 1 } }),
-      isRecent ? div({ style: { display: 'flex', color: colors.orange[0], marginRight: '2rem' } }, ['Possibly in use', recentEditedInfo]) : undefined,
+      isRecent ? div({ style: { display: 'flex', color: colors.orange[0], marginRight: '2rem' } }, 'Possibly in use') : undefined,
       h(TooltipTrigger, { content: Utils.makeCompleteDate(updated) }, [
         div({ style: { fontSize: '0.8rem', marginRight: '0.5rem' } },
           `Last edited: ${Utils.makePrettyDate(updated)}`)
@@ -156,7 +132,7 @@ class NotebookCard extends Component {
     ] : [
       title,
       jupyterIcon,
-      isRecent ? div({ style: { display: 'flex', color: colors.orange[0] } }, ['Possibly in use', recentEditedInfo]) : undefined,
+      isRecent ? div({ style: { display: 'flex', color: colors.orange[0] } }, 'Possibly in use') : undefined,
       div({ style: { display: 'flex', justifyContent: 'space-between' } }, [
         h(TooltipTrigger, { content: Utils.makeCompleteDate(updated) }, [
           div({ style: { fontSize: '0.8rem', flexGrow: 1, marginRight: '0.5rem' } }, [

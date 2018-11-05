@@ -50,9 +50,24 @@ const NotebookLauncher = _.flow(
   wrapWorkspace({
     breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
     title: ({ notebookName }) => `Notebooks - ${notebookName}`,
-    topBarContent: ({ workspace, notebookName }) => {
-      return workspace && !(Utils.canWrite(workspace.accessLevel) && workspace.canCompute)
-        && h(ReadOnlyMessage, { notebookName, workspace })
+    topBarContent: ({ workspace, notebookName, updated }) => {
+      const tenMinutesAgo = _.tap(d => d.setMinutes(d.getMinutes() - 10), new Date())
+      const isRecent = new Date(updated) > tenMinutesAgo
+      if (workspace) {
+        if (!(Utils.canWrite(workspace.accessLevel) && workspace.canCompute)) {
+          return h(ReadOnlyMessage, { notebookName, workspace })
+        } else if (isRecent) {
+          return div({ style: { fontWeight: 'bold' } },
+            [
+              'This notebook has been edited recently, so it may be in use. ',
+              div({ style: { fontWeight: 'normal', width: '38rem' } },
+                [
+                  ' If you edit the notebook at the same time as someone else, your changes may be lost.',
+                  ' If you made the recent changes yourself, you may disregard this message.'
+                ])
+            ])
+        }
+      }
     },
     showTabBar: false
   }),
