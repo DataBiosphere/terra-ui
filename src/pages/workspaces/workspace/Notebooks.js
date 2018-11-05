@@ -130,7 +130,7 @@ class NotebookCard extends Component {
       }, [
         icon('info-standard', {
           size: 15,
-          style: { marginLeft: '0.25rem'}
+          style: { marginLeft: '0.25rem' }
         })
       ])
     ])
