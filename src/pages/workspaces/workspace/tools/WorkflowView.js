@@ -362,7 +362,6 @@ const WorkflowView = _.flow(
       multiple: false,
       disabled: !canCompute,
       disableClick: true,
-      disablePreview: true,
       style: { padding: `1rem ${sideMargin}`, flex: 'auto', display: 'flex', flexDirection: 'column' },
       activeStyle: { backgroundColor: colors.blue[3], cursor: 'copy' },
       ref: this.uploader,
