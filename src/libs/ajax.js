@@ -66,15 +66,18 @@ const instrumentedFetch = (url, options) => {
     })
   })
 }
+
+const myLocation = window.location.href
+
 const options = {
   method: 'POST',
   body: JSON.stringify({
     'request': {
       'requester': { 'name': 'A person', 'email': 'kvoss@broadinstitute.org' },
-      'subject': 'testing31',
-      'custom_fields': [{ 'id': 360012744472, 'value': ['free text here'] }, { 'id': 360012744452, 'value': 'question' }],
+      'subject': 'testing1',
+      'custom_fields': [{ 'id': 360012744472, 'value': 'free text here in the console errors' }, { 'id': 360012744452, 'value': 'feature_request' }, { 'id': 360007369412, 'value': 'This is the description!' }],
       'comment': {
-        'body': 'testing 1 2 3 \n\n------------------\nSubmitted from: app.terra.bio/#workspaces/a/real/url/here'
+        'body': 'testing 1 2 3 \n\n------------------\nSubmitted from: ' + myLocation
       }
     }
   }),
