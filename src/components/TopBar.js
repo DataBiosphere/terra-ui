@@ -1,6 +1,5 @@
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
-import { Fragment } from 'react'
 import { createPortal } from 'react-dom'
 import { a, div, h } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
