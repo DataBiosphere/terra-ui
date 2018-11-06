@@ -412,10 +412,6 @@ const WorkspaceData = _.flow(
         input({ type: 'hidden', name: 'FCtoken', value: getUser().token }),
         input({ type: 'hidden', name: 'attributeNames', value: _.map('name', _.filter('visible', columnSettings)).join(',') }),
         input({ type: 'hidden', name: 'model', value: 'flexible' })
-        /*
-         * TODO: once column selection is implemented, add another hidden input with name: 'attributeNames' and
-         * value: comma-separated list of attribute names to support downloading only the selected columns
-         */
       ]),
       buttonPrimary({
         disabled: !orchestrationRoot,
