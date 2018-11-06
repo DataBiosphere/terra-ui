@@ -22,7 +22,7 @@ const styles = {
   },
   nav: {
     background: {
-      position: 'absolute', left: 0, right: 0, top: 0, bottom: 0,
+      position: 'fixed', left: 0, right: 0, top: 0, bottom: 0,
       overflow: 'auto', cursor: 'pointer'
     },
     container: {
@@ -101,7 +101,7 @@ export default class TopBar extends Component {
               },
               href: Nav.getLink('workspaces'),
               onClick: () => this.hideNav()
-            }, [logo(), 'Saturn'])
+            }, [logo(), 'Terra'])
           ]),
           h(Collapse, {
             defaultHidden: true,
@@ -218,7 +218,7 @@ export default class TopBar extends Component {
         div({}, [
           div({
             style: { fontSize: '0.8rem', color: colors.slate, marginLeft: '0.1rem' }
-          }, ['Saturn']),
+          }, ['Terra']),
           title
         ])
       ]),

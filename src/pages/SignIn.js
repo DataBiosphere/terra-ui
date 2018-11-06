@@ -31,12 +31,12 @@ export default class SignIn extends Component {
           div({ style: { display: 'flex', marginBottom: '1rem', alignItems: 'center' } }, [
             div({ style: { fontWeight: 500, marginRight: '2rem' } }, [
               div({ style: { fontSize: 40, color: colors.slate } }, ['Welcome to']),
-              div({ style: { fontSize: 80, color: colors.darkBlue[0] } }, ['SATURN'])
+              div({ style: { fontSize: 80, color: colors.darkBlue[0] } }, ['TERRA'])
             ]),
             logo({ size: 265 })
           ]),
           div({ style: { fontSize: 40, fontWeight: 500, color: colors.slate } }, ['New User?']),
-          div({ style: { fontSize: 20, marginBottom: '2rem' } }, ['Saturn requires a Google Account.']),
+          div({ style: { fontSize: 20, marginBottom: '2rem' } }, ['Terra requires a Google Account.']),
           div({ style: { display: 'flex', alignItems: 'center' } }, [
             div({
               style: {
@@ -45,9 +45,9 @@ export default class SignIn extends Component {
                   `1px solid ${colors.gray[0]}`
               }
             }, [
-              div(['Need to create a SATURN account? Saturn uses your Google account.']),
+              div(['Need to create a TERRA account? Terra uses your Google account.']),
               div({ style: { paddingBottom: '1rem' } },
-                ['Once you have signed in and completed the user profile registration step, you can start using SATURN.']
+                ['Once you have signed in and completed the user profile registration step, you can start using TERRA.']
               ),
               link({ target: '_blank', href: 'https://software.broadinstitute.org/firecloud/documentation/article?id=9846' },
                 'Learn how to create a Google account with any email address.'

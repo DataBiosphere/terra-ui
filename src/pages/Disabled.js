@@ -18,7 +18,7 @@ export const Disabled = () => {
 export const Unlisted = () => {
   return div({ style: { padding: '1rem' } }, [
     div([
-      'Saturn is under development. If you are interested in contributing feedback as part of our user panel, please email ',
+      'Terra is under development. If you are interested in contributing feedback as part of our user panel, please email ',
       link({ href: 'mailto:saturn-dev@broadinstitute.org' }, 'saturn-dev@broadinstitute.org'),
       '.'
     ]),

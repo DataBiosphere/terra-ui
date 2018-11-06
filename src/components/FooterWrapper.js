@@ -29,7 +29,7 @@ const FooterWrapper = ({ children }) => {
         icon('logoGrey', { size: 36 }),
         div({
           style: { fontSize: 25, fontWeight: 500, textTransform: 'uppercase', marginLeft: '0.5rem' }
-        }, 'Saturn')
+        }, 'Terra')
       ]),
       a({ href: Nav.getLink('privacy'), style: styles.link }, 'Privacy Policy'),
       a({ target: '_blank', href: tosUrl, style: styles.link }, 'Terms of Service'),
