@@ -3,21 +3,12 @@ import { div, h, p } from 'react-hyperscript-helpers'
 import { link } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { logo } from 'src/components/icons'
+import SignInButton from 'src/components/SignInButton'
 import signInBg from 'src/images/sign-in-background.jpg'
 import colors from 'src/libs/colors'
 
 
 export default class SignIn extends Component {
-  componentDidMount() {
-    window.gapi.signin2.render('signInButton', {
-      scope: 'openid profile email',
-      'width': 250,
-      'height': 56,
-      'longtitle': true,
-      'theme': 'dark'
-    })
-  }
-
   render() {
     return h(FooterWrapper, [
       div({
@@ -53,7 +44,7 @@ export default class SignIn extends Component {
                 'Learn how to create a Google account with any email address.'
               )
             ]),
-            div({ id: 'signInButton' })
+            h(SignInButton)
           ]),
           div({ style: { lineHeight: 1.5, fontSize: 12, marginTop: '3rem' } }, [
             div({ style: { fontWeight: 500 } }, ['WARNING NOTICE']),
