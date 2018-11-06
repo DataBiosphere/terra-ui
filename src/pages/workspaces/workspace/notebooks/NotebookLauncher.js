@@ -50,9 +50,8 @@ const NotebookLauncher = _.flow(
   wrapWorkspace({
     breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
     title: ({ notebookName }) => `Notebooks - ${notebookName}`,
-    topBarContent: ({ workspace, notebookName, updated }) => {
-      const tenMinutesAgo = _.tap(d => d.setMinutes(d.getMinutes() - 10), new Date())
-      const isRecent = new Date(updated) > tenMinutesAgo
+    topBarContent: ({ workspace, notebookName, isRecent }) => {
+      console.log(isRecent)
       if (workspace) {
         if (!(Utils.canWrite(workspace.accessLevel) && workspace.canCompute)) {
           return h(ReadOnlyMessage, { notebookName, workspace })

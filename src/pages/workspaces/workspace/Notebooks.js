@@ -36,7 +36,9 @@ const noWrite = 'You do not have access to modify this workspace.'
 class NotebookCard extends Component {
   render() {
     const { namespace, name, updated, listView, wsName, onRename, onCopy, onDelete, onExport, canWrite } = this.props
-    const notebookLink = Nav.getLink('workspace-notebook-launch', { namespace, name: wsName, notebookName: name.slice(10) })
+    const tenMinutesAgo = _.tap(d => d.setMinutes(d.getMinutes() - 10), new Date())
+    const isRecent = new Date(updated) > tenMinutesAgo
+    const notebookLink = Nav.getLink('workspace-notebook-launch', { namespace, name: wsName, notebookName: name.slice(10), isRecent })
 
     const notebookMenu = h(PopupTrigger, {
       position: 'right',
@@ -109,8 +111,6 @@ class NotebookCard extends Component {
       }
     }, printName(name))
 
-    const tenMinutesAgo = _.tap(d => d.setMinutes(d.getMinutes() - 10), new Date())
-    const isRecent = new Date(updated) > tenMinutesAgo
     return a({
       href: notebookLink,
       style: {
