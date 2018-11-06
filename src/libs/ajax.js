@@ -67,33 +67,6 @@ const instrumentedFetch = (url, options) => {
   })
 }
 
-const myLocation = window.location.href
-
-const options = {
-  method: 'POST',
-  body: JSON.stringify({
-    'request': {
-      'requester': { 'name': 'A person', 'email': 'kvoss@broadinstitute.org' },
-      'subject': 'testing1',
-      'custom_fields': [{ 'id': 360012744472, 'value': 'free text here in the console errors' }, { 'id': 360012744452, 'value': 'feature_request' }, { 'id': 360007369412, 'value': 'This is the description!' }],
-      'comment': {
-        'body': 'testing 1 2 3 \n\n------------------\nSubmitted from: ' + myLocation
-      }
-    }
-  }),
-  headers: {
-    'Content-Type': 'application/json'
-  }
-}
-
-export const fetchZendesk = fetch(`https://broadinstitute.zendesk.com/api/v2/requests.json`, options)
-  .then(response => {
-    return response.json()
-  })
-  .then(json => {
-    console.log(JSON.stringify(json))
-  })
-
 
 const fetchOk = async (url, options) => {
   const res = await instrumentedFetch(url, options)
@@ -198,6 +171,33 @@ const User = signal => ({
       `${await Config.getTosUrlRoot()}/user/response`,
       _.mergeAll([authOpts(), { signal, method: 'POST' }, jsonBody({ ...tosData, accepted: true })])
     )
+  },
+
+  createSupportRequest: async ({ name, email, currUrl, subject, supportType, description }) => {
+    const options = {
+      method: 'POST',
+      body: JSON.stringify({
+        request: {
+          requester: { name, email },
+          subject,
+          'custom_fields': [
+            { id: 360012744452, value: supportType },
+            { id: 360007369412, value: description },
+            { id: 360012744292, value: name },
+            { id: 360012782111, value: email }
+          ],
+          comment: {
+            body: `${description}\n\n------------------\nSubmitted from: ${currUrl}`
+          }
+        }
+      }),
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    }
+    return await fetch(`https://broadinstitute.zendesk.com/api/v2/requests.json`, options)
+      .then(response => response.json())
+      .then(json => Utils.log(JSON.stringify(json)))
   }
 })
 

@@ -5,7 +5,7 @@ import { a, div, h } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
 import { Clickable, comingSoon, MenuButton } from 'src/components/common'
 import { icon, logo, profilePic } from 'src/components/icons'
-import { fetchZendesk } from 'src/libs/ajax'
+import { Ajax } from 'src/libs/ajax'
 import { getUser, signOut } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import * as Nav from 'src/libs/nav'
@@ -202,6 +202,17 @@ export default class TopBar extends Component {
             ]),
             'Contact Us'
           ]),
+
+          div({
+            onClick: () => {
+              const { givenName, familyName, email } = getUser()
+              const name = `${givenName} ${familyName}`
+              const userDetails = { name, email, currUrl: window.location.href, subject: 'help me', supportType: 'bug', description: 'This is the description' }
+              Ajax().User
+                .createSupportRequest(userDetails)
+            }
+          },
+          ['Contact Me']),
 
           div({
             style: {
