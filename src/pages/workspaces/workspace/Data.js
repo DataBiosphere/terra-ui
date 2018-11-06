@@ -299,7 +299,7 @@ const WorkspaceData = _.flow(
     const nameWidth = theseColumnWidths['name'] || 150
     return entities && h(Fragment, [
       div({ style: { flex: 'none', marginBottom: '1rem' } }, [
-        this.renderDownloadButton(),
+        this.renderDownloadButton(columnSettings),
         this.renderCopyButton()
       ]),
       div({ style: { flex: 1 } }, [
@@ -400,7 +400,7 @@ const WorkspaceData = _.flow(
     ])
   }
 
-  renderDownloadButton() {
+  renderDownloadButton(columnSettings) {
     const { namespace, name } = this.props
     const { selectedDataType, orchestrationRoot } = this.state
     return h(Fragment, [
@@ -410,6 +410,7 @@ const WorkspaceData = _.flow(
         method: 'POST'
       }, [
         input({ type: 'hidden', name: 'FCtoken', value: getUser().token }),
+        input({ type: 'hidden', name: 'attributeNames', value: _.map('name', _.filter('visible', columnSettings)).join(',') }),
         input({ type: 'hidden', name: 'model', value: 'flexible' })
         /*
          * TODO: once column selection is implemented, add another hidden input with name: 'attributeNames' and
