@@ -106,8 +106,8 @@ export const contextBar = function(props, children) {
   children)
 }
 
-export const menuIcon = iconName => {
-  return icon(iconName, { size: 15, style: { marginRight: '.5rem' } })
+export const menuIcon = (iconName, props) => {
+  return icon(iconName, _.merge({ size: 15, style: { marginRight: '.5rem' } }, props))
 }
 
 export const MenuButton = ({ disabled, children, ...props }) => {
