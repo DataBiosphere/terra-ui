@@ -289,7 +289,6 @@ const Notebooks = _.flow(
       accept: '.ipynb',
       disabled: !Utils.canWrite(accessLevel),
       disableClick: true,
-      disablePreview: true,
       style: { flexGrow: 1 },
       activeStyle: { backgroundColor: colors.blue[3], cursor: 'copy' }, // accept and reject don't work in all browsers
       acceptStyle: { cursor: 'copy' },
