@@ -107,11 +107,40 @@ export default Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
             }, [logo(), 'Terra'])
           ]),
           isSignedIn ?
-            this.buildSignedInOptions() :
-            div({ style: { margin: '2rem auto' } }, [
-              div({ style: { fontWeight: 600, marginBottom: '0.5rem' } }, ['Have an account?']),
+            this.buildUserSection() :
+            div({ style: { ...styles.nav.item, ...styles.nav.profile(false), boxShadow: `inset ${Style.standardShadow}` } }, [
               h(SignInButton)
             ]),
+          h(Clickable, {
+            as: 'a',
+            style: styles.nav.item,
+            hover: { backgroundColor: colors.darkBlue[1] },
+            href: Nav.getLink('browse-data'),
+            onClick: () => this.hideNav()
+          }, [
+            div({ style: styles.nav.icon }, [
+              icon('browse', { size: 24 })
+            ]),
+            'Browse Data'
+          ]),
+          div({ style: styles.nav.item }, [
+            div({ style: styles.nav.icon }, [
+              icon('search', { size: 24 })
+            ]),
+            'Find Code', comingSoon
+          ]),
+          h(Clickable, {
+            as: 'a',
+            style: styles.nav.item,
+            hover: { backgroundColor: colors.darkBlue[1] },
+            href: Nav.getLink('workspaces'),
+            onClick: () => this.hideNav()
+          }, [
+            div({ style: styles.nav.icon }, [
+              icon('workspace', { className: 'is-solid', size: 24 })
+            ]),
+            'See All Workspaces'
+          ]),
           div({
             style: {
               ..._.omit('borderBottom', styles.nav.item), marginTop: 'auto',
@@ -128,90 +157,58 @@ export default Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
     )
   }
 
-  buildSignedInOptions() {
+  buildUserSection() {
     const { userMenuOpen } = this.state
 
-    return h(Fragment, [
-      h(Collapse, {
-        defaultHidden: true,
-        showIcon: false,
-        animate: true,
-        expandTitle: true,
-        style: styles.nav.profile(false),
-        buttonStyle: { marginBottom: 0 },
-        title: [
-          h(Clickable, {
-            style: { ...styles.nav.item, ...styles.nav.profile(userMenuOpen), boxShadow: `inset ${Style.standardShadow}` },
-            hover: styles.nav.profile(true),
-            onClick: () => this.setState({ userMenuOpen: !userMenuOpen })
-          }, [
-            div({ style: styles.nav.icon }, [
-              profilePic({ size: 32 })
-            ]),
-            div({ style: { whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' } }, [
-              getUser().name
-            ]),
-            div({ style: { flexGrow: 1 } }),
-            icon(`angle ${userMenuOpen ? 'up' : 'down'}`,
-              { size: 18, style: { flex: 'none' } })
-          ])
-        ]
-      }, [
-        h(MenuButton, {
-          as: 'a',
-          href: Nav.getLink('profile'),
-          style: styles.nav.profileItem(false),
-          hover: styles.nav.profileItem(true),
-          onClick: () => this.hideNav() // In case we're already there
+    return h(Collapse, {
+      defaultHidden: true,
+      showIcon: false,
+      animate: true,
+      expandTitle: true,
+      style: styles.nav.profile(false),
+      buttonStyle: { marginBottom: 0 },
+      title: [
+        h(Clickable, {
+          style: { ...styles.nav.item, ...styles.nav.profile(userMenuOpen), boxShadow: `inset ${Style.standardShadow}` },
+          hover: styles.nav.profile(true),
+          onClick: () => this.setState({ userMenuOpen: !userMenuOpen })
         }, [
-          icon('user', { style: styles.nav.icon }), 'Profile'
-        ]),
-        h(MenuButton, {
-          as: 'a',
-          href: Nav.getLink('groups'),
-          style: styles.nav.profileItem(false),
-          hover: styles.nav.profileItem(true),
-          onClick: () => this.hideNav() // In case we're already there
-        }, [
-          icon('users', { style: styles.nav.icon }), 'Groups'
-        ]),
-        h(MenuButton, {
-          onClick: signOut,
-          style: styles.nav.profileItem(false),
-          hover: styles.nav.profileItem(true)
-        }, [
-          icon('logout', { style: styles.nav.icon }), 'Sign Out'
+          div({ style: styles.nav.icon }, [
+            profilePic({ size: 32 })
+          ]),
+          div({ style: { whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' } }, [
+            getUser().name
+          ]),
+          div({ style: { flexGrow: 1 } }),
+          icon(`angle ${userMenuOpen ? 'up' : 'down'}`,
+            { size: 18, style: { flex: 'none' } })
         ])
-      ]),
-      h(Clickable, {
+      ]
+    }, [
+      h(MenuButton, {
         as: 'a',
-        style: styles.nav.item,
-        hover: { backgroundColor: colors.darkBlue[1] },
-        href: Nav.getLink('browse-data'),
-        onClick: () => this.hideNav()
+        href: Nav.getLink('profile'),
+        style: styles.nav.profileItem(false),
+        hover: styles.nav.profileItem(true),
+        onClick: () => this.hideNav() // In case we're already there
       }, [
-        div({ style: styles.nav.icon }, [
-          icon('browse', { size: 24 })
-        ]),
-        'Browse Data'
+        icon('user', { style: styles.nav.icon }), 'Profile'
       ]),
-      div({ style: styles.nav.item }, [
-        div({ style: styles.nav.icon }, [
-          icon('search', { size: 24 })
-        ]),
-        'Find Code', comingSoon
-      ]),
-      h(Clickable, {
+      h(MenuButton, {
         as: 'a',
-        style: styles.nav.item,
-        hover: { backgroundColor: colors.darkBlue[1] },
-        href: Nav.getLink('workspaces'),
-        onClick: () => this.hideNav()
+        href: Nav.getLink('groups'),
+        style: styles.nav.profileItem(false),
+        hover: styles.nav.profileItem(true),
+        onClick: () => this.hideNav() // In case we're already there
       }, [
-        div({ style: styles.nav.icon }, [
-          icon('workspace', { className: 'is-solid', size: 24 })
-        ]),
-        'See All Workspaces'
+        icon('users', { style: styles.nav.icon }), 'Groups'
+      ]),
+      h(MenuButton, {
+        onClick: signOut,
+        style: styles.nav.profileItem(false),
+        hover: styles.nav.profileItem(true)
+      }, [
+        icon('logout', { style: styles.nav.icon }), 'Sign Out'
       ])
     ])
   }
