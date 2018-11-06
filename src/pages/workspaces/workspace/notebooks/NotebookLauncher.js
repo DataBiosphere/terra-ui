@@ -1,6 +1,7 @@
 import _ from 'lodash/fp'
 import { createRef, Fragment } from 'react'
 import { div, h, iframe } from 'react-hyperscript-helpers'
+import { withState } from 'recompose'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { linkButton, spinnerOverlay, link } from 'src/components/common'
 import { icon, spinner } from 'src/components/icons'
@@ -51,7 +52,6 @@ const NotebookLauncher = _.flow(
     breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
     title: ({ notebookName }) => `Notebooks - ${notebookName}`,
     topBarContent: ({ workspace, notebookName, isRecent }) => {
-      console.log(isRecent)
       if (workspace) {
         if (!(Utils.canWrite(workspace.accessLevel) && workspace.canCompute)) {
           return h(ReadOnlyMessage, { notebookName, workspace })
@@ -70,6 +70,7 @@ const NotebookLauncher = _.flow(
     },
     showTabBar: false
   }),
+  withState('isRecent', 'setRecent', false),
   ajaxCaller
 )(({ workspace, ...props }) => {
   return Utils.canWrite(workspace.accessLevel) && workspace.canCompute ?
@@ -198,6 +199,12 @@ class NotebookEditor extends Component {
         Jupyter.notebooks(namespace, clusterName).setCookie()
       ])
 
+      const { workspace: { workspace: { bucketName } }, setRecent, notebookName, ajax: { Buckets } } = this.props
+      const { updated } = await Buckets.notebook(namespace, bucketName, notebookName.slice(0, -6)).getObject()
+      const tenMinutesAgo = _.tap(d => d.setMinutes(d.getMinutes() - 10), new Date())
+      const isRecent = new Date(updated) > tenMinutesAgo
+      if (isRecent) setRecent(true)
+
       Nav.blockNav.set(() => new Promise(resolve => {
         if (this.isSaved.get()) {
           resolve()
@@ -208,7 +215,7 @@ class NotebookEditor extends Component {
         }
       }))
 
-      const { name: workspaceName, notebookName } = this.props
+      const { name: workspaceName } = this.props
       this.setState({ url: `${clusterUrl}/notebooks/${workspaceName}/${notebookName}` })
     } catch (error) {
       if (this.mounted) {
