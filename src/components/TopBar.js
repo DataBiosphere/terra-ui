@@ -5,10 +5,12 @@ import { a, div, h } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
 import { Clickable, comingSoon, MenuButton } from 'src/components/common'
 import { icon, logo, profilePic } from 'src/components/icons'
-import { getUser, signOut } from 'src/libs/auth'
+import SignInButton from 'src/components/SignInButton'
+import { authStore, getUser, signOut } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
+import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 
 
@@ -55,7 +57,7 @@ const styles = {
   }
 }
 
-export default class TopBar extends Component {
+export default Utils.connectAtom(authStore, 'authState')(class TopBar extends Component {
   static propTypes = {
     title: PropTypes.node,
     href: PropTypes.string, // link destination
@@ -76,7 +78,7 @@ export default class TopBar extends Component {
   }
 
   buildNav() {
-    const { userMenuOpen } = this.state
+    const { authState: { isSignedIn } } = this.props
 
     return createPortal(
       div({
@@ -103,57 +105,11 @@ export default class TopBar extends Component {
               onClick: () => this.hideNav()
             }, [logo(), 'Terra'])
           ]),
-          h(Collapse, {
-            defaultHidden: true,
-            showIcon: false,
-            animate: true,
-            expandTitle: true,
-            style: styles.nav.profile(false),
-            buttonStyle: { marginBottom: 0 },
-            title: [
-              h(Clickable, {
-                style: { ...styles.nav.item, ...styles.nav.profile(userMenuOpen), boxShadow: `inset ${Style.standardShadow}` },
-                hover: styles.nav.profile(true),
-                onClick: () => this.setState({ userMenuOpen: !userMenuOpen })
-              }, [
-                div({ style: styles.nav.icon }, [
-                  profilePic({ size: 32 })
-                ]),
-                div({ style: { whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' } }, [
-                  getUser().name
-                ]),
-                div({ style: { flexGrow: 1 } }),
-                icon(`angle ${userMenuOpen ? 'up' : 'down'}`,
-                  { size: 18, style: { flex: 'none' } })
-              ])
-            ]
-          }, [
-            h(MenuButton, {
-              as: 'a',
-              href: Nav.getLink('profile'),
-              style: styles.nav.profileItem(false),
-              hover: styles.nav.profileItem(true),
-              onClick: () => this.hideNav() // In case we're already there
-            }, [
-              icon('user', { style: styles.nav.icon }), 'Profile'
+          isSignedIn ?
+            this.buildUserSection() :
+            div({ style: { ...styles.nav.item, ...styles.nav.profile(false), boxShadow: `inset ${Style.standardShadow}` } }, [
+              h(SignInButton)
             ]),
-            h(MenuButton, {
-              as: 'a',
-              href: Nav.getLink('groups'),
-              style: styles.nav.profileItem(false),
-              hover: styles.nav.profileItem(true),
-              onClick: () => this.hideNav() // In case we're already there
-            }, [
-              icon('users', { style: styles.nav.icon }), 'Groups'
-            ]),
-            h(MenuButton, {
-              onClick: signOut,
-              style: styles.nav.profileItem(false),
-              hover: styles.nav.profileItem(true)
-            }, [
-              icon('logout', { style: styles.nav.icon }), 'Sign Out'
-            ])
-          ]),
           h(Clickable, {
             as: 'a',
             style: styles.nav.item,
@@ -200,6 +156,62 @@ export default class TopBar extends Component {
     )
   }
 
+  buildUserSection() {
+    const { userMenuOpen } = this.state
+
+    return h(Collapse, {
+      defaultHidden: true,
+      showIcon: false,
+      animate: true,
+      expandTitle: true,
+      style: styles.nav.profile(false),
+      buttonStyle: { marginBottom: 0 },
+      title: [
+        h(Clickable, {
+          style: { ...styles.nav.item, ...styles.nav.profile(userMenuOpen), boxShadow: `inset ${Style.standardShadow}` },
+          hover: styles.nav.profile(true),
+          onClick: () => this.setState({ userMenuOpen: !userMenuOpen })
+        }, [
+          div({ style: styles.nav.icon }, [
+            profilePic({ size: 32 })
+          ]),
+          div({ style: { whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' } }, [
+            getUser().name
+          ]),
+          div({ style: { flexGrow: 1 } }),
+          icon(`angle ${userMenuOpen ? 'up' : 'down'}`,
+            { size: 18, style: { flex: 'none' } })
+        ])
+      ]
+    }, [
+      h(MenuButton, {
+        as: 'a',
+        href: Nav.getLink('profile'),
+        style: styles.nav.profileItem(false),
+        hover: styles.nav.profileItem(true),
+        onClick: () => this.hideNav() // In case we're already there
+      }, [
+        icon('user', { style: styles.nav.icon }), 'Profile'
+      ]),
+      h(MenuButton, {
+        as: 'a',
+        href: Nav.getLink('groups'),
+        style: styles.nav.profileItem(false),
+        hover: styles.nav.profileItem(true),
+        onClick: () => this.hideNav() // In case we're already there
+      }, [
+        icon('users', { style: styles.nav.icon }), 'Groups'
+      ]),
+      h(MenuButton, {
+        onClick: signOut,
+        style: styles.nav.profileItem(false),
+        hover: styles.nav.profileItem(true)
+      }, [
+        icon('logout', { style: styles.nav.icon }), 'Sign Out'
+      ])
+    ])
+  }
+
   render() {
     const { title, href, children } = this.props
     const { navShown } = this.state
@@ -226,4 +238,4 @@ export default class TopBar extends Component {
       navShown && this.buildNav()
     ])
   }
-}
+})
