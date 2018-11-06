@@ -260,10 +260,6 @@ export const WorkspaceList = _.flow(
 })
 
 export const addNavPaths = () => {
-  Nav.defPath('root', {
-    path: '/',
-    component: () => h(Nav.Redirector, { pathname: '/workspaces' })
-  })
   Nav.defPath('workspaces', {
     path: '/workspaces',
     component: WorkspaceList,
