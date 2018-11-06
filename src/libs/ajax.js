@@ -278,6 +278,11 @@ const Workspaces = signal => ({
         return res.json()
       },
 
+      createEntity: async payload => {
+        const res = await fetchRawls(`${root}/entities`, _.mergeAll([authOpts(), jsonBody(payload), { signal, method: 'POST' }]))
+        return res.json()
+      },
+
       entitiesOfType: async type => {
         const res = await fetchRawls(`${root}/entities/${type}`, _.merge(authOpts(), { signal }))
         return res.json()
@@ -349,8 +354,19 @@ const Workspaces = signal => ({
         return res.json()
       },
 
-      abortSubmission: async submissionId => {
-        return fetchRawls(`${root}/submissions/${submissionId}`, _.merge(authOpts(), { signal, method: 'DELETE' }))
+      submission: submissionId => {
+        const submissionPath = `${root}/submissions/${submissionId}`
+
+        return {
+          get: async () => {
+            const res = await fetchRawls(submissionPath, _.merge(authOpts(), { signal }))
+            return res.json()
+          },
+
+          abort: async () => {
+            return fetchRawls(submissionPath, _.merge(authOpts(), { signal, method: 'DELETE' }))
+          }
+        }
       },
 
       delete: () => {

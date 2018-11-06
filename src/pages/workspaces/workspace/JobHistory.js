@@ -3,7 +3,7 @@ import { Fragment } from 'react'
 import { div, h, span, table, tbody, td, tr } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { Clickable, MenuButton, spinnerOverlay } from 'src/components/common'
+import { Clickable, MenuButton, menuIcon, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import PopupTrigger from 'src/components/PopupTrigger'
@@ -16,6 +16,7 @@ import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
+import { rerunFailures } from 'src/pages/workspaces/workspace/tools/FailureRerunner'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
 
@@ -45,6 +46,8 @@ const collapseStatus = status => {
       return 'running'
   }
 }
+
+const isTerminal = submissionStatus => submissionStatus === 'Aborted' || submissionStatus === 'Done'
 
 const successIcon = style => icon('check', { size: 24, style: { color: colors.green[0], ...style } })
 const failedIcon = style => icon('warning-standard', { className: 'is-solid', size: 24, style: { color: colors.red[0], ...style } })
@@ -118,7 +121,7 @@ const JobHistory = _.flow(
       const submissions = _.orderBy('submissionDate', 'desc', await Workspaces.workspace(namespace, name).listSubmissions())
       this.setState({ submissions })
 
-      if (_.some(sub => sub.status !== 'Done', submissions)) {
+      if (_.some(({ status }) => !isTerminal(status), submissions)) {
         this.scheduledRefresh = setTimeout(() => this.refresh(), 1000 * 60)
       }
     } catch (error) {
@@ -159,7 +162,10 @@ const JobHistory = _.flow(
               size: { basis: 600, grow: 0 },
               headerRenderer: () => h(HeaderCell, ['Job']),
               cellRenderer: ({ rowIndex }) => {
-                const { methodConfigurationNamespace, methodConfigurationName, submitter, submissionId, workflowStatuses } = submissions[rowIndex]
+                const {
+                  methodConfigurationNamespace, methodConfigurationName, submitter, submissionId, workflowStatuses,
+                  status, submissionEntity
+                } = submissions[rowIndex]
                 return h(Fragment, [
                   div([
                     div([
@@ -181,15 +187,20 @@ const JobHistory = _.flow(
                         as: 'a',
                         target: '_blank',
                         href: `${firecloudRoot}/#workspaces/${namespace}/${name}/monitor/${submissionId}`
-                      }, [
-                        icon('circle-arrow right'),
-                        div({ style: { marginLeft: '0.5rem' } }, ['View job details'])
-                      ]),
+                      }, [menuIcon('circle-arrow right'), 'View job details']),
+                      isTerminal(status) && workflowStatuses['Failed'] &&
+                      submissionEntity && submissionEntity.entityType.endsWith('_set') && h(MenuButton, {
+                        onClick: () => rerunFailures({
+                          namespace, name, submissionId,
+                          configNamespace: methodConfigurationNamespace, configName: methodConfigurationName,
+                          onDone: () => this.refresh()
+                        })
+                      }, [menuIcon('sync'), 'Re-run failures']),
                       collapsedStatuses(workflowStatuses).running && h(MenuButton, {
                         onClick: () => this.setState({ aborting: submissionId })
                       }, [
-                        icon('warning-standard', { style: { color: colors.orange[0] } }),
-                        div({ style: { marginLeft: '0.5rem' } }, ['Abort all workflows'])
+                        menuIcon('warning-standard', { style: { color: colors.orange[0] } }),
+                        'Abort all workflows'
                       ])
                     ])
                   }, [
@@ -236,7 +247,7 @@ const JobHistory = _.flow(
         title: 'Abort All Workflows',
         showX: true,
         okButton: () => {
-          Workspaces.workspace(namespace, name).abortSubmission(aborting)
+          Workspaces.workspace(namespace, name).submission(aborting).abort()
             .then(() => this.refresh())
             .catch(e => this.setState({ loading: false }, () => reportError('Error aborting submission', e)))
           this.setState({ aborting: undefined, loading: true })
