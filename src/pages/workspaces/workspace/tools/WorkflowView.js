@@ -371,8 +371,8 @@ const WorkflowView = _.flow(
     }, [
       div({ style: { flex: 'none', display: 'flex', justifyContent: 'flex-end', marginBottom: '0.25rem' } }, [
         linkButton({ onClick: () => this.downloadJson(key) }, ['Download json']),
-        div({ style: { padding: '0 0.5rem' } }, ['|']),
-        linkButton({ onClick: () => this.uploader.current.open() }, ['Upload json'])
+        div({ style: { whiteSpace: 'pre' } }, ['  |  Drag or click to ']),
+        linkButton({ onClick: () => this.uploader.current.open() }, ['upload json'])
       ]),
       div({ style: { flex: '1 0 500px' } }, [
         h(WorkflowIOTable, {
