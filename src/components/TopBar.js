@@ -101,7 +101,7 @@ export default Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
                 ...Style.elements.pageTitle,
                 textAlign: 'center', display: 'flex', alignItems: 'center'
               },
-              href: Nav.getLink('workspaces'),
+              href: Nav.getLink('root'),
               onClick: () => this.hideNav()
             }, [logo(), 'Terra'])
           ]),
@@ -224,12 +224,13 @@ export default Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
       }),
       a({
         style: { ...Style.elements.pageTitle, display: 'flex', alignItems: 'center' },
-        href: href || Nav.getLink('workspaces')
+        href: href || Nav.getLink('root')
       }, [
         logo(),
         div({}, [
           div({
-            style: { fontSize: '0.8rem', color: colors.slate, marginLeft: '0.1rem' }
+            style: _.merge(title ? { fontSize: '0.8rem' } : { fontSize: '1rem', fontWeight: 600 },
+              { color: colors.darkBlue[2], marginLeft: '0.1rem' })
           }, ['Terra']),
           title
         ])
