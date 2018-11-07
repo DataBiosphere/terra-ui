@@ -232,6 +232,7 @@ const WorkflowView = _.flow(
       [saving || modified, () => 'Save or cancel to Launch Analysis'],
       [!_.isEmpty(errors.inputs) || !_.isEmpty(errors.outputs), () => 'At least one required attribute is missing or invalid']
     )
+    console.log(this.fetchSynopsis())
     return div({ style: { backgroundColor: colors.blue[5], position: 'relative' } }, [
       div({ style: { display: 'flex', padding: `1.5rem ${sideMargin} 0`, minHeight: 120 } }, [
         div({ style: { flex: '1', lineHeight: '1.5rem' } }, [
@@ -253,11 +254,12 @@ const WorkflowView = _.flow(
             ]),
             span({ style: { color: colors.darkBlue[0], fontSize: 24 } }, name)
           ]),
-          div(`V. ${methodVersion}`),
+          div(`Snapshot ${methodVersion}`),
           div(['Source: ', link({
             href: methodLink(modifiedConfig, firecloudRoot, dockstoreRoot),
             target: '_blank'
           }, methodPath ? methodPath : `${methodNamespace}/${methodName}/${methodVersion}`)]),
+          div({ style: { marginTop: '1rem', display: 'flex', alignItems: 'center' } }, [icon('angle right', { size: 22, style: { color: colors.blue[0] } }), 'TOOL DESCRIPTION']),
           div({ style: { textTransform: 'capitalize', display: 'flex', alignItems: 'baseline', marginTop: '0.5rem' } }, [
             'Data Type:',
             h(Select, {
@@ -267,7 +269,6 @@ const WorkflowView = _.flow(
               value: rootEntityType,
               onChange: selected => {
                 const value = !!selected ? selected.value : undefined
-
                 this.setState(_.set(['modifiedConfig', 'rootEntityType'], value))
               },
               options: _.keys(entityMetadata)
@@ -315,6 +316,13 @@ const WorkflowView = _.flow(
         onSuccess: () => Nav.goToPath('workspace-tools', _.pick(['namespace', 'name'], workspace))
       })
     ])
+  }
+
+  async fetchSynopsis() {
+    const { methodRepoMethod: { methodNamespace, methodName, methodVersion } } = this.state.savedConfig
+    const { ajax: { Methods } } = this.props
+    const { synopsis }  = await Methods.method(methodNamespace, methodName, methodVersion).get()
+    return synopsis
   }
 
   downloadJson(key) {
@@ -398,7 +406,6 @@ const WorkflowView = _.flow(
   async fetchWDL() {
     const { methodRepoMethod: { sourceRepo, methodNamespace, methodName, methodVersion, methodPath } } = this.state.savedConfig
     const { ajax: { Dockstore, Methods } } = this.props
-
     this.setState({ loadedWdl: true })
     try {
       const wdl = await (() => {
