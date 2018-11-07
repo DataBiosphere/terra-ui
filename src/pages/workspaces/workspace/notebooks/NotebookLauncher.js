@@ -5,6 +5,7 @@ import { withState } from 'recompose'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { linkButton, spinnerOverlay, link } from 'src/components/common'
 import { icon, spinner } from 'src/components/icons'
+import { pushNotification } from 'src/components/Notifications'
 import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
@@ -144,6 +145,22 @@ class NotebookViewer extends Component {
   }
 }
 
+class NotebookInUseMessage extends Component {
+  constructor(props) {
+    super(props)
+  }
+
+  render() {
+    return div({ style: { backgroundColor: colors.orange[0], color: 'white', padding: '1rem', borderRadius: '0.5rem' } }, [
+      div({ style: { fontSize: 16, fontWeight: 'bold' } },
+        ['This notebook has been edited recently, so it may be in use.']),
+      div({ style: { fontSize: 14 } }, [
+        'If you edit the notebook at the same time as someone else, your changes may be lost. If you made the recent changes yourself, you may disregard this message.'
+      ])
+    ])
+  }
+}
+
 class NotebookEditor extends Component {
   saveNotebook() {
     this.notebookFrame.current.contentWindow.postMessage('save', '*')
@@ -203,7 +220,15 @@ class NotebookEditor extends Component {
       const { updated } = await Buckets.notebook(namespace, bucketName, notebookName.slice(0, -6)).getObject()
       const tenMinutesAgo = _.tap(d => d.setMinutes(d.getMinutes() - 10), new Date())
       const isRecent = new Date(updated) > tenMinutesAgo
-      if (isRecent) setRecent(true)
+      if (isRecent) {
+        pushNotification({
+          type: 'warning',
+          dismissable: { click: true },
+          dismiss: { duration: 0 },
+          content: h(NotebookInUseMessage),
+          width: 375
+        })
+      }
 
       Nav.blockNav.set(() => new Promise(resolve => {
         if (this.isSaved.get()) {
