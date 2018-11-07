@@ -53,7 +53,8 @@ const NotebookLauncher = _.flow(
     breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
     title: ({ notebookName }) => `Notebooks - ${notebookName}`,
     topBarContent: ({ workspace, notebookName }) => {
-      workspace && !(Utils.canWrite(workspace.accessLevel) && workspace.canCompute) && h(ReadOnlyMessage, { notebookName, workspace })
+      return workspace && !(Utils.canWrite(workspace.accessLevel) && workspace.canCompute)
+        && h(ReadOnlyMessage, { notebookName, workspace })
     },
     showTabBar: false
   }),
