@@ -132,7 +132,7 @@ class NotebookViewer extends Component {
 
 class NotebookInUseMessage extends Component {
   render() {
-    return div({ style: { backgroundColor: colors.orange[0], color: 'white', padding: '1.3rem', borderRadius: '0.5rem' } }, [
+    return div({ style: { backgroundColor: colors.orange[0], color: 'white', padding: '1.3rem', borderRadius: '0.3rem' } }, [
       div({ style: { position: 'absolute', left: '22rem', top: 5 } }, [icon('times', { size: 18 })]),
       div({ style: { fontSize: 16, fontWeight: 'bold' } },
         ['This notebook has been edited recently']),
@@ -206,7 +206,7 @@ class NotebookEditor extends Component {
         pushNotification({
           type: 'warning',
           dismissable: { click: true },
-          dismiss: { duration: 0 },
+          dismiss: { duration: 30000 },
           content: h(NotebookInUseMessage),
           width: 375
         })
