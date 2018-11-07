@@ -1,7 +1,6 @@
 import _ from 'lodash/fp'
 import { createRef, Fragment } from 'react'
 import { div, h, iframe } from 'react-hyperscript-helpers'
-import { withState } from 'recompose'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { linkButton, spinnerOverlay, link } from 'src/components/common'
 import { icon, spinner } from 'src/components/icons'
