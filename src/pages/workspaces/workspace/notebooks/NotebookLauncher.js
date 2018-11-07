@@ -132,11 +132,12 @@ class NotebookViewer extends Component {
 
 class NotebookInUseMessage extends Component {
   render() {
-    return div({ style: { backgroundColor: colors.orange[0], color: 'white', padding: '1rem', borderRadius: '0.5rem' } }, [
+    return div({ style: { backgroundColor: colors.orange[0], color: 'white', padding: '1.3rem', borderRadius: '0.5rem' } }, [
+      div({ style: { position: 'absolute', left: '22rem', top: 5 } }, [icon('times', { size: 18 })]),
       div({ style: { fontSize: 16, fontWeight: 'bold' } },
-        ['This notebook has been edited recently, so it may be in use.']),
+        ['This notebook has been edited recently']),
       div({ style: { fontSize: 14 } }, [
-        'If you edit the notebook at the same time as someone else, your changes may be lost. If you made the recent changes yourself, you may disregard this message.'
+        'If you recently edited this notebook, disregard this message. If another user is editing this notebook, your changes may be lost.'
       ])
     ])
   }
