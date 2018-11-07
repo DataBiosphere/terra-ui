@@ -58,7 +58,6 @@ const NotebookLauncher = _.flow(
     },
     showTabBar: false
   }),
-  withState('isRecent', 'setRecent', false),
   ajaxCaller
 )(({ workspace, ...props }) => {
   return Utils.canWrite(workspace.accessLevel) && workspace.canCompute ?
