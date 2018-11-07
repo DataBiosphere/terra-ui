@@ -131,7 +131,7 @@ class WorkspaceContainer extends Component {
     const { namespace, name, breadcrumbs, topBarContent, title, activeTab, showTabBar = true, refresh, refreshClusters, workspace, clusters } = this.props
     const { deletingWorkspace, cloningWorkspace, sharingWorkspace } = this.state
     return h(Fragment, [
-      h(TopBar, { title: 'Workspaces' }, [
+      h(TopBar, { title: 'Workspaces', href: Nav.getLink('workspaces') }, [
         div({ style: styles.workspaceNameContainer }, [
           div({}, breadcrumbs),
           div({ style: styles.workspaceName }, [

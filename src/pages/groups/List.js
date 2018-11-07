@@ -169,7 +169,7 @@ export const GroupList = ajaxCaller(class GroupList extends Component {
     const { groups, isDataLoaded, filter, creatingNewGroup, deletingGroup, updating } = this.state
     const { ajax: { Groups } } = this.props
     return h(Fragment, [
-      h(TopBar, { title: 'Groups', href: Nav.getLink('groups') }, [
+      h(TopBar, { title: 'Groups' }, [
         search({
           wrapperProps: { style: { marginLeft: '2rem', flexGrow: 1, maxWidth: 500 } },
           inputProps: {
