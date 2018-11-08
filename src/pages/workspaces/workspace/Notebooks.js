@@ -124,7 +124,7 @@ class NotebookCard extends Component {
       notebookMenu,
       title,
       div({ style: { flexGrow: 1 } }),
-      isRecent ? div({ style: { display: 'flex', color: colors.orange[0], marginRight: '2rem' } }, 'Possibly in use') : undefined,
+      isRecent ? div({ style: { display: 'flex', color: colors.orange[0], marginRight: '2rem' } }, 'Recently Edited') : undefined,
       h(TooltipTrigger, { content: Utils.makeCompleteDate(updated) }, [
         div({ style: { fontSize: '0.8rem', marginRight: '0.5rem' } },
           `Last edited: ${Utils.makePrettyDate(updated)}`)
@@ -132,7 +132,7 @@ class NotebookCard extends Component {
     ] : [
       title,
       jupyterIcon,
-      isRecent ? div({ style: { display: 'flex', color: colors.orange[0] } }, 'Possibly in use') : undefined,
+      isRecent ? div({ style: { display: 'flex', color: colors.orange[0] } }, 'Recently Edited') : undefined,
       div({ style: { display: 'flex', justifyContent: 'space-between' } }, [
         h(TooltipTrigger, { content: Utils.makeCompleteDate(updated) }, [
           div({ style: { fontSize: '0.8rem', flexGrow: 1, marginRight: '0.5rem' } }, [
