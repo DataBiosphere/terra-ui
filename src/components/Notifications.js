@@ -6,6 +6,8 @@ import 'react-notifications-component/dist/theme.css'
 import 'animate.css'
 
 
+// documentation: https://github.com/teodosii/react-notifications-component
+
 const defaultNotificationProps = {
   type: 'success',
   container: 'top-right',
@@ -19,5 +21,9 @@ const notificationsRef = createRef()
 export const NotificationsContainer = h(ReactNotification, { ref: notificationsRef })
 
 export const pushNotification = props => {
-  notificationsRef.current.addNotification(_.merge(defaultNotificationProps, props))
+  return notificationsRef.current.addNotification(_.merge(defaultNotificationProps, props))
+}
+
+export const popNotification = id => {
+  notificationsRef.current.removeNotification(id)
 }

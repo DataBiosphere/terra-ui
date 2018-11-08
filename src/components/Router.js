@@ -2,12 +2,13 @@ import _ from 'lodash/fp'
 import { Component } from 'react'
 import { div, h, h2 } from 'react-hyperscript-helpers'
 import AuthContainer from 'src/components/AuthContainer'
-import { link } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
+import TopBar from 'src/components/TopBar'
 import * as Nav from 'src/libs/nav'
 import * as BrowseData from 'src/pages/BrowseData'
 import * as Group from 'src/pages/groups/Group'
 import * as Groups from 'src/pages/groups/List'
+import * as LandingPage from 'src/pages/LandingPage'
 import * as ImportData from 'src/pages/ImportData'
 import * as ImportTool from 'src/pages/ImportTool'
 import * as PrivacyPolicy from 'src/pages/PrivacyPolicy'
@@ -24,10 +25,11 @@ import * as Tools from 'src/pages/workspaces/workspace/Tools'
 import * as WorkflowView from 'src/pages/workspaces/workspace/tools/WorkflowView'
 
 
-const pageWrapStyle = { minHeight: '100%', display: 'flex', flexDirection: 'column' }
+const pageWrapStyle = { minHeight: '100%', display: 'flex', flexDirection: 'column', flexGrow: 1 }
 
 const initNavPaths = () => {
   Nav.clearPaths()
+  LandingPage.addNavPaths()
   WorkspaceList.addNavPaths()
   WorkflowView.addNavPaths()
   StyleGuide.addNavPaths()
@@ -79,7 +81,7 @@ export default class Router extends Component {
         document.title = handler.title
       }
     } else {
-      document.title = 'Saturn'
+      document.title = 'Terra'
     }
   }
 
@@ -95,9 +97,9 @@ export default class Router extends Component {
     const handler = Nav.findHandler(pathname)
     if (!handler) {
       return h(FooterWrapper, [
+        h(TopBar),
         div({ style: { marginLeft: '1rem', ...pageWrapStyle } }, [
-          h2('Page not found'),
-          link({ href: Nav.getLink('root') }, 'Homepage')
+          h2('Page not found')
         ])
       ])
     }

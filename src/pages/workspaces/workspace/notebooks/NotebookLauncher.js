@@ -2,8 +2,9 @@ import _ from 'lodash/fp'
 import { createRef, Fragment } from 'react'
 import { div, h, iframe } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { linkButton, spinnerOverlay } from 'src/components/common'
+import { linkButton, spinnerOverlay, link } from 'src/components/common'
 import { icon, spinner } from 'src/components/icons'
+import { pushNotification } from 'src/components/Notifications'
 import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
@@ -11,6 +12,7 @@ import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
+import ExportNotebookModal from 'src/pages/workspaces/workspace/notebooks/ExportNotebookModal'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
 
@@ -31,6 +33,9 @@ const styles = {
     col2: {
       flex: 1
     }
+  },
+  creatingMessage: {
+    paddingLeft: '4rem'
   }
 }
 
@@ -46,6 +51,10 @@ const NotebookLauncher = _.flow(
   wrapWorkspace({
     breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
     title: ({ notebookName }) => `Notebooks - ${notebookName}`,
+    topBarContent: ({ workspace, notebookName }) => {
+      return workspace && !(Utils.canWrite(workspace.accessLevel) && workspace.canCompute)
+        && h(ReadOnlyMessage, { notebookName, workspace })
+    },
     showTabBar: false
   }),
   ajaxCaller
@@ -54,6 +63,33 @@ const NotebookLauncher = _.flow(
     h(NotebookEditor, { workspace, ...props }) :
     h(NotebookViewer, { workspace, ...props })
 })
+
+class ReadOnlyMessage extends Component {
+  constructor(props) {
+    super(props)
+    this.state = {
+      copying: false
+    }
+  }
+
+  render() {
+    const { notebookName, workspace } = this.props
+    const { copying } = this.state
+    return div({ style: { marginLeft: 'auto' } }, [
+      div({ style: { fontSize: 16, fontWeight: 'bold' } },
+        ['Viewing in read-only mode.']),
+      div({ style: { fontSize: 14 } }, [
+        'To edit this notebook, ',
+        link({ onClick: () => this.setState({ copying: true }) }, 'copy'),
+        ' it to another workspace'
+      ]),
+      copying && h(ExportNotebookModal, {
+        printName: notebookName.slice(0, -6), workspace, fromLauncher: true,
+        onDismiss: () => this.setState({ copying: false })
+      })
+    ])
+  }
+}
 
 class NotebookViewer extends Component {
   constructor(props) {
@@ -90,6 +126,19 @@ class NotebookViewer extends Component {
         onClick: () => Nav.goToPath('workspace-notebooks', { namespace, name })
       }, [icon('times-circle', { size: 30 })]),
       busy && spinnerOverlay
+    ])
+  }
+}
+
+class NotebookInUseMessage extends Component {
+  render() {
+    return div({ style: { backgroundColor: colors.orange[0], color: 'white', padding: '1.3rem', borderRadius: '0.3rem' } }, [
+      div({ style: { position: 'absolute', left: '22rem', top: 5 } }, [icon('times', { size: 18 })]),
+      div({ style: { fontSize: 16, fontWeight: 'bold' } },
+        ['This notebook has been edited recently']),
+      div({ style: { fontSize: 14 } }, [
+        'If you recently edited this notebook, disregard this message. If another user is editing this notebook, your changes may be lost.'
+      ])
     ])
   }
 }
@@ -136,12 +185,32 @@ class NotebookEditor extends Component {
     window.addEventListener('beforeunload', this.beforeUnload)
 
     try {
-      const { clusterName, clusterUrl } = await this.startCluster()
+      const { clusterName, clusterUrl, error } = await this.startCluster()
+
+      if (error) {
+        this.setState({ clusterError: error, failed: true })
+        return
+      }
+
       const { namespace, ajax: { Jupyter } } = this.props
       await Promise.all([
         this.localizeNotebook(clusterName),
         Jupyter.notebooks(namespace, clusterName).setCookie()
       ])
+
+      const { workspace: { workspace: { bucketName } }, notebookName, ajax: { Buckets } } = this.props
+      const { updated } = await Buckets.notebook(namespace, bucketName, notebookName.slice(0, -6)).getObject()
+      const tenMinutesAgo = _.tap(d => d.setMinutes(d.getMinutes() - 10), new Date())
+      const isRecent = new Date(updated) > tenMinutesAgo
+      if (isRecent) {
+        pushNotification({
+          type: 'warning',
+          dismissable: { click: true },
+          dismiss: { duration: 30000 },
+          content: h(NotebookInUseMessage),
+          width: 375
+        })
+      }
 
       Nav.blockNav.set(() => new Promise(resolve => {
         if (this.isSaved.get()) {
@@ -153,7 +222,7 @@ class NotebookEditor extends Component {
         }
       }))
 
-      const { name: workspaceName, notebookName } = this.props
+      const { name: workspaceName } = this.props
       this.setState({ url: `${clusterUrl}/notebooks/${workspaceName}/${notebookName}` })
     } catch (error) {
       if (this.mounted) {
@@ -193,7 +262,7 @@ class NotebookEditor extends Component {
       const { clusters } = this.props //Note: placed here to read updated value after refresh
       const cluster = getCluster(clusters)
       if (!cluster) {
-        throw new Error('You do not have access to run analyses on this workspace.')
+        return { error: 'You do not have access to run analyses on this workspace.' }
       }
 
       const { status, googleProject, clusterName } = cluster
@@ -239,7 +308,7 @@ class NotebookEditor extends Component {
   }
 
   render() {
-    const { clusterStatus, localizeFailures, failed, url, saving } = this.state
+    const { clusterStatus, clusterError, localizeFailures, failed, url, saving } = this.state
 
     if (url) {
       return h(Fragment, [
@@ -252,6 +321,7 @@ class NotebookEditor extends Component {
       ])
     }
 
+    const isCreating = clusterStatus === 'Creating'
     const currentStep = clusterStatus !== 'Running' ? 1 : 2
 
     const step = (index, text) => div({ style: styles.step.container }, [
@@ -264,8 +334,18 @@ class NotebookEditor extends Component {
 
     return h(Fragment, [
       div({ style: styles.pageContainer }, [
-        div({ style: Style.elements.sectionHeader }, 'Saturn is preparing your notebook'),
-        step(1, 'Waiting for notebooks runtime to be ready'),
+        div({ style: Style.elements.sectionHeader }, ['Terra is preparing your notebook']),
+        step(1,
+          Utils.cond(
+            [clusterError, clusterError],
+            [isCreating, 'Creating notebook runtime'],
+            'Waiting for notebook runtime to be ready'
+          )
+        ),
+        isCreating && div({ style: styles.creatingMessage }, [
+          icon('info', { size: 24, style: { color: colors.orange[0] } }),
+          'This can take several minutes. You may navigate away and come back once the cluster is ready.'
+        ]),
         step(2, localizeFailures ?
           `Error loading notebook, retry number ${localizeFailures}...` :
           'Loading notebook')

@@ -108,7 +108,7 @@ class Participant extends Component {
 }
 
 
-const browseTooltip = 'Look for the Export to Saturn icon to export data from this provider.'
+const browseTooltip = 'Look for the Export to Terra icon to export data from this provider.'
 
 
 const NIHCommonsButtons = h(Fragment, [
@@ -250,6 +250,7 @@ export const addNavPaths = () => {
   Nav.defPath('browse-data', {
     path: '/browse-data',
     component: BrowseData,
+    public: true,
     title: 'Browse Data'
   })
 }

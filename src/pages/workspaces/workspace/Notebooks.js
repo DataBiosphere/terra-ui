@@ -36,7 +36,9 @@ const noWrite = 'You do not have access to modify this workspace.'
 class NotebookCard extends Component {
   render() {
     const { namespace, name, updated, listView, wsName, onRename, onCopy, onDelete, onExport, canWrite } = this.props
-    const notebookLink = Nav.getLink('workspace-notebook-launch', { namespace, name: wsName, notebookName: name.slice(10) })
+    const tenMinutesAgo = _.tap(d => d.setMinutes(d.getMinutes() - 10), new Date())
+    const isRecent = new Date(updated) > tenMinutesAgo
+    const notebookLink = Nav.getLink('workspace-notebook-launch', { namespace, name: wsName, notebookName: name.slice(10), isRecent })
 
     const notebookMenu = h(PopupTrigger, {
       position: 'right',
@@ -122,6 +124,7 @@ class NotebookCard extends Component {
       notebookMenu,
       title,
       div({ style: { flexGrow: 1 } }),
+      isRecent ? div({ style: { display: 'flex', color: colors.orange[0], marginRight: '2rem' } }, 'Recently Edited') : undefined,
       h(TooltipTrigger, { content: Utils.makeCompleteDate(updated) }, [
         div({ style: { fontSize: '0.8rem', marginRight: '0.5rem' } },
           `Last edited: ${Utils.makePrettyDate(updated)}`)
@@ -129,6 +132,7 @@ class NotebookCard extends Component {
     ] : [
       title,
       jupyterIcon,
+      isRecent ? div({ style: { display: 'flex', color: colors.orange[0] } }, 'Recently Edited') : undefined,
       div({ style: { display: 'flex', justifyContent: 'space-between' } }, [
         h(TooltipTrigger, { content: Utils.makeCompleteDate(updated) }, [
           div({ style: { fontSize: '0.8rem', flexGrow: 1, marginRight: '0.5rem' } }, [
@@ -289,7 +293,6 @@ const Notebooks = _.flow(
       accept: '.ipynb',
       disabled: !Utils.canWrite(accessLevel),
       disableClick: true,
-      disablePreview: true,
       style: { flexGrow: 1 },
       activeStyle: { backgroundColor: colors.blue[3], cursor: 'copy' }, // accept and reject don't work in all browsers
       acceptStyle: { cursor: 'copy' },

@@ -34,7 +34,7 @@ export default class Modal extends Component {
     onDismiss: PropTypes.func.isRequired,
     title: PropTypes.node,
     titleExtras: PropTypes.node,
-    width: PropTypes.number,
+    width: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
     showCancel: PropTypes.bool,
     cancelText: PropTypes.string,
     showX: PropTypes.bool,
@@ -55,7 +55,6 @@ export default class Modal extends Component {
     return h(RModal, {
       parentSelector: () => document.getElementById('modal-root'),
       isOpen: true,
-      shouldCloseOnOverlayClick: false,
       onRequestClose: onDismiss,
       style: { overlay: styles.overlay, content: { ...styles.modal, width } },
       ariaHideApp: false

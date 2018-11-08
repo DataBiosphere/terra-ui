@@ -70,7 +70,7 @@ class StyleGuide extends Component {
             marginLeft: '2rem'
           }
         }, [
-          'SATURN STYLE GUIDE'
+          'TERRA STYLE GUIDE'
         ])
       ]),
       els.section('Color Styles', [

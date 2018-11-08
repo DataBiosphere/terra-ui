@@ -1,4 +1,5 @@
 import { a, div } from 'react-hyperscript-helpers'
+import { linkButton } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import colors from 'src/libs/colors'
 import * as Nav from 'src/libs/nav'
@@ -11,7 +12,7 @@ const styles = {
 const tosUrl = 'http://gatkforums.broadinstitute.org/firecloud/discussion/6819/firecloud-terms-of-service#latest'
 
 const FooterWrapper = ({ children }) => {
-  return div({ style: { display: 'flex', flexDirection: 'column', minHeight: '100%' } }, [
+  return div({ style: { display: 'flex', flexDirection: 'column', minHeight: '100%', flexGrow: 1 } }, [
     children,
     div({
       style: {
@@ -25,11 +26,11 @@ const FooterWrapper = ({ children }) => {
         borderTop: `4px solid ${colors.brick}`
       }
     }, [
-      div({ style: { display: 'flex', alignItems: 'center' } }, [
+      linkButton({ href: Nav.getLink('root'), style: { display: 'flex', alignItems: 'center' } }, [
         icon('logoGrey', { size: 36 }),
         div({
-          style: { fontSize: 25, fontWeight: 500, textTransform: 'uppercase', marginLeft: '0.5rem' }
-        }, 'Saturn')
+          style: { color: colors.gray[2], fontSize: 25, fontWeight: 500, textTransform: 'uppercase', marginLeft: '0.5rem' }
+        }, 'Terra')
       ]),
       a({ href: Nav.getLink('privacy'), style: styles.link }, 'Privacy Policy'),
       a({ target: '_blank', href: tosUrl, style: styles.link }, 'Terms of Service'),
