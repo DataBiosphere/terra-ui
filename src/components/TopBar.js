@@ -5,6 +5,7 @@ import { a, div, h } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
 import { Clickable, comingSoon, MenuButton } from 'src/components/common'
 import { icon, logo, profilePic } from 'src/components/icons'
+import { pushNotification } from 'src/components/Notifications'
 import SignInButton from 'src/components/SignInButton'
 import { authStore, getUser, signOut } from 'src/libs/auth'
 import colors from 'src/libs/colors'
@@ -52,6 +53,11 @@ const styles = {
       fontWeight: 600,
       borderBottom: `1px solid ${colors.darkBlue[2]}`, color: 'white'
     },
+    contact: {
+      display: 'flex', alignItems: 'center', flex: 'none',
+      height: 70, padding: '0 3rem',
+      fontWeight: 600
+    },
     icon: {
       width: 32, marginRight: '0.5rem', flex: 'none'
     }
@@ -76,17 +82,17 @@ export default Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
   hideNav() {
     this.setState({ navShown: false, userMenuOpen: false })
     document.body.classList.remove('overlayOpen', 'overHeight')
-    console.log('nav hidden')
   }
 
   buildNav() {
     const { authState: { isSignedIn } } = this.props
-    const { showingSupportModal } = this.state
 
     return createPortal(
       div({
         style: styles.nav.background,
-        onClick: () => this.hideNav()
+        onClick: () => {
+          this.hideNav()
+        }
       }, [
         div({
           style: styles.nav.container,
@@ -144,10 +150,8 @@ export default Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
             'See All Workspaces'
           ]),
           h(Clickable, {
-            as: 'a',
-            style: styles.nav.item,
+            style: styles.nav.contact,
             hover: { backgroundColor: colors.darkBlue[1] },
-            href: Nav.getLink('workspaces'),
             onClick: () => this.setState({ showingSupportModal: true })
           }, [
             div({
@@ -169,8 +173,7 @@ export default Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
             'Built on: ',
             new Date(SATURN_BUILD_TIMESTAMP).toLocaleString()
           ])
-        ]),
-        showingSupportModal && h(SupportRequestModal)
+        ])
       ]),
       document.getElementById('main-menu-container')
     )
@@ -234,7 +237,7 @@ export default Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
 
   render() {
     const { title, href, children } = this.props
-    const { navShown } = this.state
+    const { navShown, showingSupportModal } = this.state
 
     return div({ style: styles.topBar }, [
       icon('bars', {
@@ -256,7 +259,14 @@ export default Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
         ])
       ]),
       children,
-      navShown && this.buildNav()
+      navShown && this.buildNav(),
+      showingSupportModal && h(SupportRequestModal, {
+        onDismiss: () => this.setState({ showingSupportModal: false }),
+        onSuccess: () => {
+          this.setState({ showingSupportModal: false })
+          pushNotification({ message: 'Message sent successfully' })
+        }
+      })
     ])
   }
 })
