@@ -224,7 +224,7 @@ const WorkflowView = _.flow(
 
   renderSummary() {
     const { workspace: { canCompute, workspace } } = this.props
-    const { modifiedConfig, savedConfig, entityMetadata, saving, saved, copying, deleting, activeTab, errors, firecloudRoot, dockstoreRoot } = this.state
+    const { modifiedConfig, savedConfig, entityMetadata, saving, saved, copying, deleting, activeTab, errors, firecloudRoot, dockstoreRoot, description } = this.state
     const { name, methodRepoMethod: { methodPath, methodVersion, methodNamespace, methodName }, rootEntityType } = modifiedConfig
     const modified = !_.isEqual(modifiedConfig, savedConfig)
 
@@ -232,7 +232,7 @@ const WorkflowView = _.flow(
       [saving || modified, () => 'Save or cancel to Launch Analysis'],
       [!_.isEmpty(errors.inputs) || !_.isEmpty(errors.outputs), () => 'At least one required attribute is missing or invalid']
     )
-    console.log(this.fetchSynopsis())
+    this.fetchSynopsis()
     return div({ style: { backgroundColor: colors.blue[5], position: 'relative' } }, [
       div({ style: { display: 'flex', padding: `1.5rem ${sideMargin} 0`, minHeight: 120 } }, [
         div({ style: { flex: '1', lineHeight: '1.5rem' } }, [
@@ -259,7 +259,7 @@ const WorkflowView = _.flow(
             href: methodLink(modifiedConfig, firecloudRoot, dockstoreRoot),
             target: '_blank'
           }, methodPath ? methodPath : `${methodNamespace}/${methodName}/${methodVersion}`)]),
-          div({ style: { marginTop: '1rem', display: 'flex', alignItems: 'center' } }, [icon('angle right', { size: 22, style: { color: colors.blue[0] } }), 'TOOL DESCRIPTION']),
+          div({ style: { marginTop: '1rem', display: 'flex', alignItems: 'center' } }, [icon('angle right', { size: 22, style: { color: colors.blue[0] } }), description]),
           div({ style: { textTransform: 'capitalize', display: 'flex', alignItems: 'baseline', marginTop: '0.5rem' } }, [
             'Data Type:',
             h(Select, {
@@ -321,8 +321,10 @@ const WorkflowView = _.flow(
   async fetchSynopsis() {
     const { methodRepoMethod: { methodNamespace, methodName, methodVersion } } = this.state.savedConfig
     const { ajax: { Methods } } = this.props
-    const { synopsis }  = await Methods.method(methodNamespace, methodName, methodVersion).get()
-    return synopsis
+    const description = await (() => {
+      return Methods.method(methodNamespace, methodName, methodVersion).get().then(({ synopsis }) => synopsis)
+    })()
+    this.setState({ description })
   }
 
   downloadJson(key) {
