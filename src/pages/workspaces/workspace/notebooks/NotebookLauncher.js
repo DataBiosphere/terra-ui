@@ -4,6 +4,7 @@ import { div, h, iframe } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { linkButton, spinnerOverlay, link } from 'src/components/common'
 import { icon, spinner } from 'src/components/icons'
+import { pushNotification } from 'src/components/Notifications'
 import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
@@ -129,6 +130,19 @@ class NotebookViewer extends Component {
   }
 }
 
+class NotebookInUseMessage extends Component {
+  render() {
+    return div({ style: { backgroundColor: colors.orange[0], color: 'white', padding: '1.3rem', borderRadius: '0.3rem' } }, [
+      div({ style: { position: 'absolute', left: '22rem', top: 5 } }, [icon('times', { size: 18 })]),
+      div({ style: { fontSize: 16, fontWeight: 'bold' } },
+        ['This notebook has been edited recently']),
+      div({ style: { fontSize: 14 } }, [
+        'If you recently edited this notebook, disregard this message. If another user is editing this notebook, your changes may be lost.'
+      ])
+    ])
+  }
+}
+
 class NotebookEditor extends Component {
   saveNotebook() {
     this.notebookFrame.current.contentWindow.postMessage('save', '*')
@@ -184,6 +198,20 @@ class NotebookEditor extends Component {
         Jupyter.notebooks(namespace, clusterName).setCookie()
       ])
 
+      const { workspace: { workspace: { bucketName } }, notebookName, ajax: { Buckets } } = this.props
+      const { updated } = await Buckets.notebook(namespace, bucketName, notebookName.slice(0, -6)).getObject()
+      const tenMinutesAgo = _.tap(d => d.setMinutes(d.getMinutes() - 10), new Date())
+      const isRecent = new Date(updated) > tenMinutesAgo
+      if (isRecent) {
+        pushNotification({
+          type: 'warning',
+          dismissable: { click: true },
+          dismiss: { duration: 30000 },
+          content: h(NotebookInUseMessage),
+          width: 375
+        })
+      }
+
       Nav.blockNav.set(() => new Promise(resolve => {
         if (this.isSaved.get()) {
           resolve()
@@ -194,7 +222,7 @@ class NotebookEditor extends Component {
         }
       }))
 
-      const { name: workspaceName, notebookName } = this.props
+      const { name: workspaceName } = this.props
       this.setState({ url: `${clusterUrl}/notebooks/${workspaceName}/${notebookName}` })
     } catch (error) {
       if (this.mounted) {
