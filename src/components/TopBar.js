@@ -11,6 +11,7 @@ import colors from 'src/libs/colors'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import { Component } from 'src/libs/wrapped-components'
+import SupportRequestModal from 'src/components/SupportRequestModal'
 
 
 const styles = {
@@ -74,10 +75,11 @@ export default class TopBar extends Component {
   hideNav() {
     this.setState({ navShown: false, userMenuOpen: false })
     document.body.classList.remove('overlayOpen', 'overHeight')
+    console.log('nav hidden')
   }
 
   buildNav() {
-    const { userMenuOpen } = this.state
+    const { userMenuOpen, showingSupportModal } = this.state
 
     return createPortal(
       div({
@@ -185,13 +187,12 @@ export default class TopBar extends Component {
             ]),
             'See All Workspaces'
           ]),
-
           h(Clickable, {
             as: 'a',
             style: styles.nav.item,
             hover: { backgroundColor: colors.darkBlue[1] },
             href: Nav.getLink('workspaces'),
-            onClick: () => this.hideNav()
+            onClick: () => this.setState({ showingSupportModal: true })
           }, [
             div({
               style: {
@@ -202,18 +203,6 @@ export default class TopBar extends Component {
             ]),
             'Contact Us'
           ]),
-
-          div({
-            onClick: () => {
-              const { givenName, familyName, email } = getUser()
-              const name = `${givenName} ${familyName}`
-              const userDetails = { name, email, currUrl: window.location.href, subject: 'help me', supportType: 'bug', description: 'This is the description' }
-              Ajax().User
-                .createSupportRequest(userDetails)
-            }
-          },
-          ['Contact Me']),
-
           div({
             style: {
               ..._.omit('borderBottom', styles.nav.item), marginTop: 'auto',
@@ -224,7 +213,8 @@ export default class TopBar extends Component {
             'Built on: ',
             new Date(SATURN_BUILD_TIMESTAMP).toLocaleString()
           ])
-        ])
+        ]),
+        showingSupportModal && h(SupportRequestModal)
       ]),
       document.getElementById('main-menu-container')
     )

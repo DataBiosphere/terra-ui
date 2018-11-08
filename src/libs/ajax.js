@@ -173,7 +173,7 @@ const User = signal => ({
     )
   },
 
-  createSupportRequest: async ({ name, email, currUrl, subject, supportType, description }) => {
+  createSupportRequest: async ({ name, email, currUrl, subject, type, description }) => {
     const options = {
       method: 'POST',
       body: JSON.stringify({
@@ -181,7 +181,7 @@ const User = signal => ({
           requester: { name, email },
           subject,
           'custom_fields': [
-            { id: 360012744452, value: supportType },
+            { id: 360012744452, value: type },
             { id: 360007369412, value: description },
             { id: 360012744292, value: name },
             { id: 360012782111, value: email }
@@ -195,7 +195,7 @@ const User = signal => ({
         'Content-Type': 'application/json'
       }
     }
-    return await fetch(`https://broadinstitute.zendesk.com/api/v2/requests.json`, options)
+    return await fetchOk(`https://broadinstitute.zendesk.com/api/v2/requests.json`, options)
       .then(response => response.json())
       .then(json => Utils.log(JSON.stringify(json)))
   }
