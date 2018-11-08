@@ -460,6 +460,14 @@ const Buckets = signal => ({
         _.merge(authOpts(await User(signal).token(namespace)), { signal, method: 'DELETE' })
       )
     }
+
+    const getObject = async () => {
+      const res = await fetchBuckets(
+        `${bucketUrl}/${nbName(name)}`,
+        _.merge(authOpts(await User(signal).token(namespace)), { signal, method: 'GET' })
+      )
+      return await res.json()
+    }
     return {
       preview: async () => {
         const nb = await fetchBuckets(
@@ -484,6 +492,8 @@ const Buckets = signal => ({
       },
 
       delete: doDelete,
+
+      getObject,
 
       rename: async newName => {
         await copy(newName)
