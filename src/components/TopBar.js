@@ -53,9 +53,9 @@ const styles = {
       fontWeight: 600,
       borderBottom: `1px solid ${colors.darkBlue[2]}`, color: 'white'
     },
-    contact: {
-      display: 'flex', alignItems: 'center', flex: 'none',
-      height: 70, padding: '0 3rem',
+    miniItem: {
+      display: 'flex', alignItems: 'center',
+      margin: '1rem 3rem',
       fontWeight: 600
     },
     icon: {
@@ -149,19 +149,20 @@ export default Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
             ]),
             'See All Workspaces'
           ]),
-          h(Clickable, {
-            style: styles.nav.contact,
-            hover: { backgroundColor: colors.darkBlue[1] },
-            onClick: () => this.setState({ showingSupportModal: true })
-          }, [
-            div({
-              style: {
-                width: 32, marginRight: '0.5rem', flex: 'none', color: colors.darkBlue[5]
-              }
+          div({style: {marginTop: '2rem'}}, [
+            h(Clickable, {
+              style: styles.nav.miniItem,
+              onClick: () => this.setState({ showingSupportModal: true })
             }, [
-              icon('help', { size: 24 })
-            ]),
-            'Contact Us'
+              div({
+                style: {
+                  width: 32, marginRight: '0.5rem', flex: 'none', color: colors.darkBlue[5]
+                }
+              }, [
+                icon('envelope', { className: 'is-solid', size: 24 })
+              ]),
+              'Contact Us'
+            ])
           ]),
           div({
             style: {

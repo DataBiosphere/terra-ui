@@ -4,6 +4,7 @@ import { ClarityIcons } from '@clr/icons'
 import '@clr/icons/clr-icons.css'
 import '@clr/icons/shapes/essential-shapes'
 import '@clr/icons/shapes/media-shapes'
+import '@clr/icons/shapes/social-shapes'
 import '@clr/icons/shapes/technology-shapes'
 import _ from 'lodash/fp'
 import { h, img } from 'react-hyperscript-helpers'
@@ -12,7 +13,6 @@ import caretDown from 'src/icons/caret-down.svg'
 import checkSquare from 'src/icons/check-square.svg'
 import columnGrabber from 'src/icons/column_grabber.svg'
 import explore from 'src/icons/explore.svg'
-import help from 'src/icons/help-line.svg'
 import home from 'src/icons/home.svg'
 import jupyterIcon from 'src/icons/jupyter.svg'
 import listAlt from 'src/icons/list-alt.svg'
@@ -32,7 +32,7 @@ import colors from 'src/libs/colors'
 
 
 ClarityIcons.add({
-  browse, caretDown, checkSquare, columnGrabber, explore, help, home, jupyterIcon, listAlt, loadingSpinner, logoGrey, logoIcon, notebooks, square, table, workspace, cardMenuIcon, renameIcon, share, terminalIcon
+  browse, caretDown, checkSquare, columnGrabber, explore, home, jupyterIcon, listAlt, loadingSpinner, logoGrey, logoIcon, notebooks, square, table, workspace, cardMenuIcon, renameIcon, share, terminalIcon
 })
 
 /**
