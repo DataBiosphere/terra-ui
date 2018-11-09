@@ -30,8 +30,11 @@ const SupportRequestModal = ajaxCaller(class SupportRequestModal extends Compone
   }
 
   render() {
-    const { onDismiss } = this.props
+    const { onDismiss, ajax: { User } } = this.props
     const { submitting, submitError, subject, description, type, email } = this.state
+
+    //await console.log(User.profile.contactEmail)
+
     const { givenName } = getUser()
     const greetUser = givenName ? `, ${givenName}?` : `?`
     const errors = validate({ email, description, subject }, constraints)
