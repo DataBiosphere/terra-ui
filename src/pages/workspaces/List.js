@@ -151,7 +151,7 @@ const WorkspaceCard = pure(({
 const NewWorkspaceCard = pure(({ onClick }) => {
   return h(Clickable, {
     style: { ...styles.shortCard, ...styles.shortCreateCard },
-    onClick, testID: 'createNewWorkspace'
+    onClick, dataTestId: 'createNewWorkspace'
   }, [
     div(['Create a']),
     div(['New Workspace']),
