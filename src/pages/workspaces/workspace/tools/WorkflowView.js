@@ -134,19 +134,14 @@ const WorkflowIOTable = ({ which, inputsOutputs, config, errors, onChange, sugge
 
 class TextCollapse extends Component {
   static propTypes = {
-    title: PropTypes.node.isRequired,
     defaultHidden: PropTypes.bool,
     showIcon: PropTypes.bool,
-    animate: PropTypes.bool,
-    expandTitle: PropTypes.bool,
     children: PropTypes.node
   }
 
   static defaultProps = {
     defaultHidden: false,
-    showIcon: true,
-    animate: false,
-    expandTitle: false
+    showIcon: true
   }
 
   constructor(props) {
@@ -155,18 +150,24 @@ class TextCollapse extends Component {
   }
 
   render() {
-    const { showIcon, expandTitle, children, ...props } = _.omit('defaultHidden', this.props)
+    const { showIcon, children, ...props } = _.omit('defaultHidden', this.props)
     const { isOpened } = this.state
 
     return div(props, [
       div(
         {
-          style: { display: 'flex', marginBottom: '0.5rem', textOverflow: 'ellipsis' },
+          style: { display: 'flex', marginBottom: '0.5rem', marginTop: '0.5rem' },
           onClick: () => this.setState({ isOpened: !isOpened })
         },
         [
-          showIcon && icon(isOpened ? 'angle down' : 'angle right', { style: { marginRight: '0.5rem', marginTop: '1rem', flexShrink: 0, color: colors.blue[0] }, size: 18 }),
-          div({ style: { flex: expandTitle ? 1 : undefined, maxHeight: isOpened ? undefined:50, overflow: 'hidden' } }, children)
+          showIcon && icon(isOpened ? 'angle down' : 'angle right',
+            { style: { marginRight: '0.5rem', marginTop: '.25rem', flexShrink: 0, color: colors.blue[0] }, size: 21 }),
+          div({
+            style: {
+              maxHeight: isOpened ? undefined : 50, width: '74rem', overflow: isOpened ? 'visible' : 'hidden',
+              whiteSpace: isOpened ? 'normal' : 'nowrap', textOverflow: 'ellipsis'
+            }
+          }, children)
         ])
     ])
   }
@@ -309,9 +310,7 @@ const WorkflowView = _.flow(
           div(`Synopsis: ${synopsis ? synopsis : ''}`),
           h(TextCollapse, {
             defaultHidden: true,
-            showIcon: true,
-            animate: true,
-            expandTitle: false
+            showIcon: true
           }, [
             documentation ? documentation : noDocumentation
           ]),
