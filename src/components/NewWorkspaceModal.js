@@ -116,7 +116,8 @@ export default ajaxCaller(class NewWorkspaceModal extends Component {
       okButton: buttonPrimary({
         disabled: errors,
         tooltip: Utils.summarizeErrors(errors),
-        onClick: () => this.create()
+        onClick: () => this.create(),
+        testID: 'createWorkspaceButton'
       }, cloneWorkspace ? 'Clone Workspace' : 'Create Workspace')
     }, [
       Forms.requiredFormLabel('Workspace name'),
@@ -125,7 +126,8 @@ export default ajaxCaller(class NewWorkspaceModal extends Component {
           autoFocus: true,
           placeholder: 'Enter a name',
           value: name,
-          onChange: e => this.setState({ name: e.target.value, nameModified: true })
+          onChange: e => this.setState({ name: e.target.value, nameModified: true }),
+          testID: 'workspaceNameInput'
         },
         error: Utils.summarizeErrors(nameModified && errors && errors.name)
       }),
@@ -146,8 +148,16 @@ export default ajaxCaller(class NewWorkspaceModal extends Component {
         isClearable: false,
         placeholder: 'Select a billing project',
         value: namespace,
-        onChange: ({ value }) => this.setState({ namespace: value }),
+        onChange: ({ value }) => this.setState({ namespace: value,, testID: value }),
         options: _.uniq(_.map('projectName', billingProjects)).sort()
+
+//                options: _.map(name => {
+//                  return { label: name, value: name, testID: name }
+//                }, _.uniq(_.map('projectName', billingProjects)).sort()),
+//                name: 'billingProjectSelect',
+//                testID: namespace
+
+
       }),
       Forms.formLabel('Description'),
       h(TextArea, {
