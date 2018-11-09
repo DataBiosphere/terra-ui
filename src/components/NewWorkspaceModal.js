@@ -117,7 +117,7 @@ export default ajaxCaller(class NewWorkspaceModal extends Component {
         disabled: errors,
         tooltip: Utils.summarizeErrors(errors),
         onClick: () => this.create(),
-        testID: 'createWorkspaceButton'
+        dataTestId: 'createWorkspaceButton'
       }, cloneWorkspace ? 'Clone Workspace' : 'Create Workspace')
     }, [
       Forms.requiredFormLabel('Workspace name'),
@@ -127,7 +127,7 @@ export default ajaxCaller(class NewWorkspaceModal extends Component {
           placeholder: 'Enter a name',
           value: name,
           onChange: e => this.setState({ name: e.target.value, nameModified: true }),
-          testID: 'workspaceNameInput'
+          dataTestId: 'workspaceNameInput'
         },
         error: Utils.summarizeErrors(nameModified && errors && errors.name)
       }),
@@ -148,16 +148,8 @@ export default ajaxCaller(class NewWorkspaceModal extends Component {
         isClearable: false,
         placeholder: 'Select a billing project',
         value: namespace,
-        onChange: ({ value }) => this.setState({ namespace: value,, testID: value }),
+        onChange: ({ value }) => this.setState({ namespace: value, dataTestId: value }),
         options: _.uniq(_.map('projectName', billingProjects)).sort()
-
-//                options: _.map(name => {
-//                  return { label: name, value: name, testID: name }
-//                }, _.uniq(_.map('projectName', billingProjects)).sort()),
-//                name: 'billingProjectSelect',
-//                testID: namespace
-
-
       }),
       Forms.formLabel('Description'),
       h(TextArea, {
