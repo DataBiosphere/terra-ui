@@ -161,10 +161,10 @@ class TextCollapse extends Component {
         },
         [
           showIcon && icon(isOpened ? 'angle down' : 'angle right',
-            { style: { marginRight: '0.5rem', marginTop: '.25rem', flexShrink: 0, color: colors.blue[0] }, size: 21 }),
+            { style: { marginRight: '0.5rem', marginTop: '.1rem', flexShrink: 0, color: colors.blue[0] }, size: 21 }),
           div({
             style: {
-              maxHeight: isOpened ? undefined : 50, width: '74rem', overflow: isOpened ? 'visible' : 'hidden',
+              maxHeight: undefined, width: '74rem', overflow: isOpened ? 'visible' : 'hidden',
               whiteSpace: isOpened ? 'normal' : 'nowrap', textOverflow: 'ellipsis'
             }
           }, children)
