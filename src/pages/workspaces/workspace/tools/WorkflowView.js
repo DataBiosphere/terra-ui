@@ -1,11 +1,12 @@
 import FileSaver from 'file-saver'
 import _ from 'lodash/fp'
+import PropTypes from 'prop-types'
 import { createRef, Fragment } from 'react'
+import { Collapse as rCollapse } from 'react-collapse'
 import Dropzone from 'react-dropzone'
 import { div, h, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import Collapse from 'src/components/Collapse'
 import {
   buttonPrimary, buttonSecondary, linkButton, MenuButton, Select, spinnerOverlay, menuIcon, link, methodLink, Clickable
 } from 'src/components/common'
@@ -131,6 +132,46 @@ const WorkflowIOTable = ({ which, inputsOutputs, config, errors, onChange, sugge
   ])
 }
 
+class TextCollapse extends Component {
+  static propTypes = {
+    title: PropTypes.node.isRequired,
+    defaultHidden: PropTypes.bool,
+    showIcon: PropTypes.bool,
+    animate: PropTypes.bool,
+    expandTitle: PropTypes.bool,
+    children: PropTypes.node
+  }
+
+  static defaultProps = {
+    defaultHidden: false,
+    showIcon: true,
+    animate: false,
+    expandTitle: false
+  }
+
+  constructor(props) {
+    super(props)
+    this.state = { isOpened: !props.defaultHidden }
+  }
+
+  render() {
+    const { showIcon, expandTitle, children, ...props } = _.omit('defaultHidden', this.props)
+    const { isOpened } = this.state
+
+    return div(props, [
+      div(
+        {
+          style: { display: 'flex', marginBottom: '0.5rem', textOverflow: 'ellipsis' },
+          onClick: () => this.setState({ isOpened: !isOpened })
+        },
+        [
+          showIcon && icon(isOpened ? 'angle down' : 'angle right', { style: { marginRight: '0.5rem', marginTop: '1rem', flexShrink: 0, color: colors.blue[0] }, size: 18 }),
+          div({ style: { flex: expandTitle ? 1 : undefined, maxHeight: isOpened ? undefined:50, overflow: 'hidden' } }, children)
+        ])
+    ])
+  }
+}
+
 
 const WorkflowView = _.flow(
   wrapWorkspace({
@@ -225,7 +266,7 @@ const WorkflowView = _.flow(
 
   renderSummary() {
     const { workspace: { canCompute, workspace } } = this.props
-    const { modifiedConfig, savedConfig, entityMetadata, saving, saved, copying, deleting, activeTab, errors, firecloudRoot, dockstoreRoot, synopsis/*, documentation*/, isDocOpen } = this.state
+    const { modifiedConfig, savedConfig, entityMetadata, saving, saved, copying, deleting, activeTab, errors, firecloudRoot, dockstoreRoot, synopsis, /*documentation,*/ } = this.state
     const { name, methodRepoMethod: { methodPath, methodVersion, methodNamespace, methodName }, rootEntityType } = modifiedConfig
     const modified = !_.isEqual(modifiedConfig, savedConfig)
     const noDocumentation = div({ style: { fontStyle: 'italic' } }, 'No documentation provided')
@@ -266,20 +307,11 @@ const WorkflowView = _.flow(
             target: '_blank'
           }, methodPath ? methodPath : `${methodNamespace}/${methodName}/${methodVersion}`)]),
           div(`Synopsis: ${synopsis ? synopsis : ''}`),
-          h(Collapse, {
+          h(TextCollapse, {
             defaultHidden: true,
-            showIcon: false,
+            showIcon: true,
             animate: true,
-            expandTitle: true,
-            title: [
-              h(Clickable, {
-                onClick: () => this.setState({ isDocOpen: !isDocOpen })
-              }, [
-                div({ style: { flexGrow: 1 } }),
-                icon(`angle ${isDocOpen ? 'down' : 'right'}`,
-                  { size: 18, style: { flex: 'none' } })
-              ])
-            ]
+            expandTitle: false
           }, [
             documentation ? documentation : noDocumentation
           ]),
