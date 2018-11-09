@@ -5,8 +5,9 @@ import Dropzone from 'react-dropzone'
 import { div, h, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
+import Collapse from 'src/components/Collapse'
 import {
-  buttonPrimary, buttonSecondary, linkButton, MenuButton, Select, spinnerOverlay, menuIcon, link, methodLink
+  buttonPrimary, buttonSecondary, linkButton, MenuButton, Select, spinnerOverlay, menuIcon, link, methodLink, Clickable
 } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { AutocompleteTextInput } from 'src/components/input'
@@ -224,15 +225,20 @@ const WorkflowView = _.flow(
 
   renderSummary() {
     const { workspace: { canCompute, workspace } } = this.props
-    const { modifiedConfig, savedConfig, entityMetadata, saving, saved, copying, deleting, activeTab, errors, firecloudRoot, dockstoreRoot, description } = this.state
+    const { modifiedConfig, savedConfig, entityMetadata, saving, saved, copying, deleting, activeTab, errors, firecloudRoot, dockstoreRoot, synopsis/*, documentation*/, isDocOpen } = this.state
     const { name, methodRepoMethod: { methodPath, methodVersion, methodNamespace, methodName }, rootEntityType } = modifiedConfig
     const modified = !_.isEqual(modifiedConfig, savedConfig)
+    const noDocumentation = div({ style: { fontStyle: 'italic' } }, 'No documentation provided')
 
     const noLaunchReason = Utils.cond(
       [saving || modified, () => 'Save or cancel to Launch Analysis'],
       [!_.isEmpty(errors.inputs) || !_.isEmpty(errors.outputs), () => 'At least one required attribute is missing or invalid']
     )
-    this.fetchSynopsis()
+    this.fetchDescription()
+
+
+    const documentation = 'Copyright Broad Institute, 2018 This WDL pipeline implements data pre-processing and initial variant calling (GVCF generation) according to the GATK Best Practices (June 2016) for germline SNP and Indel discovery in human whole-genome sequencing data. Requirements/expectations : - Human whole-genome pair-end sequencing data in unmapped BAM (uBAM) format - One or more read groups, one per uBAM file, all belonging to a single sample (SM) - Input uBAM files must additionally comply with the following requirements: - - filenames all have the same suffix (we use ".unmapped.bam") - - files must pass validation by ValidateSamFile - - reads are provided in query-sorted order - - all reads must have an RG tag - GVCF output names must end in ".g.vcf.gz" - Reference genome must be Hg38 with ALT contigs Runtime parameters are optimized for Broad\'s Google Cloud Platform implementation. For program versions, see docker containers. LICENSING : This script is released under the WDL source code license (BSD-3) (see LICENSE in https://github.com/broadinstitute/wdl). Note however that the programs it calls may be subject to different licenses. Users are responsible for checking that they are authorized to run all programs before running this script. Please see the docker page at https://hub.docker.com/r/broadinstitute/genomes-in-the-cloud/ for detailed licensing information pertaining to the included programs.'
+
     return div({ style: { backgroundColor: colors.blue[5], position: 'relative' } }, [
       div({ style: { display: 'flex', padding: `1.5rem ${sideMargin} 0`, minHeight: 120 } }, [
         div({ style: { flex: '1', lineHeight: '1.5rem' } }, [
@@ -259,7 +265,24 @@ const WorkflowView = _.flow(
             href: methodLink(modifiedConfig, firecloudRoot, dockstoreRoot),
             target: '_blank'
           }, methodPath ? methodPath : `${methodNamespace}/${methodName}/${methodVersion}`)]),
-          div({ style: { marginTop: '1rem', display: 'flex', alignItems: 'center' } }, [icon('angle right', { size: 22, style: { color: colors.blue[0] } }), description]),
+          div(`Synopsis: ${synopsis ? synopsis : ''}`),
+          h(Collapse, {
+            defaultHidden: true,
+            showIcon: false,
+            animate: true,
+            expandTitle: true,
+            title: [
+              h(Clickable, {
+                onClick: () => this.setState({ isDocOpen: !isDocOpen })
+              }, [
+                div({ style: { flexGrow: 1 } }),
+                icon(`angle ${isDocOpen ? 'down' : 'right'}`,
+                  { size: 18, style: { flex: 'none' } })
+              ])
+            ]
+          }, [
+            documentation ? documentation : noDocumentation
+          ]),
           div({ style: { textTransform: 'capitalize', display: 'flex', alignItems: 'baseline', marginTop: '0.5rem' } }, [
             'Data Type:',
             h(Select, {
@@ -318,13 +341,16 @@ const WorkflowView = _.flow(
     ])
   }
 
-  async fetchSynopsis() {
+  async fetchDescription() {
     const { methodRepoMethod: { methodNamespace, methodName, methodVersion } } = this.state.savedConfig
     const { ajax: { Methods } } = this.props
-    const description = await (() => {
+    const synopsis = await (() => {
       return Methods.method(methodNamespace, methodName, methodVersion).get().then(({ synopsis }) => synopsis)
     })()
-    this.setState({ description })
+    const documentation = await (() => {
+      return Methods.method(methodNamespace, methodName, methodVersion).get().then(({ documentation }) => documentation)
+    })()
+    this.setState({ synopsis, documentation })
   }
 
   downloadJson(key) {
