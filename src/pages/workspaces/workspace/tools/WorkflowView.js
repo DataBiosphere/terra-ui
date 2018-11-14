@@ -173,10 +173,10 @@ class TextCollapse extends Component {
             { style: styles.angle, size: 21 }),
           div({
             style: {
-              maxHeight: undefined, width: '100%', overflow: isOpened ? 'visible' : 'hidden',
+              width: '100%', overflow: isOpened ? 'visible' : 'hidden',
               whiteSpace: isOpened ? 'normal' : 'nowrap', textOverflow: 'ellipsis'
             }
-          }, children)
+          }, [children])
         ])
     ])
   }
@@ -273,7 +273,7 @@ const WorkflowView = _.flow(
     const { methodRepoMethod: { sourceRepo, methodNamespace, methodName, methodVersion, methodPath } } = this.state.savedConfig
     const { ajax: { Dockstore, Methods } } = this.props
     const { synopsis, documentation } = await Methods.method(methodNamespace, methodName, methodVersion).get()
-    this.setState({ synopsis, documentation, loadedWdl: true })
+    this.setState({ synopsis, documentation })
     try {
       const wdl = await (() => {
         switch (sourceRepo) {
@@ -322,11 +322,13 @@ const WorkflowView = _.flow(
             ]),
             span({ style: { color: colors.darkBlue[0], fontSize: 24 } }, name)
           ]),
-          div(`Snapshot ${methodVersion}`),
-          div(['Source: ', link({
-            href: methodLink(modifiedConfig, firecloudRoot, dockstoreRoot),
-            target: '_blank'
-          }, methodPath ? methodPath : `${methodNamespace}/${methodName}/${methodVersion}`)]),
+          div({ style: { marginTop: '0.5rem' } }, `Snapshot ${methodVersion}`),
+          div([
+            'Source: ', link({
+              href: methodLink(modifiedConfig, firecloudRoot, dockstoreRoot),
+              target: '_blank'
+            }, methodPath ? methodPath : `${methodNamespace}/${methodName}/${methodVersion}`)
+          ]),
           div(`Synopsis: ${synopsis ? synopsis : ''}`),
           documentation ?
             h(TextCollapse, {
@@ -335,11 +337,7 @@ const WorkflowView = _.flow(
             }, [
               documentation
             ]) :
-            div({ style: { fontStyle: 'italic', ...styles.description } }, [
-              icon('angle right',
-                { style: styles.angle, size: 21 }),
-              'No documentation provided'
-            ]),
+            div({ style: { fontStyle: 'italic', ...styles.description } }, ['No documentation provided']),
           div({ style: { textTransform: 'capitalize', display: 'flex', alignItems: 'baseline', marginTop: '0.5rem' } }, [
             'Data Type:',
             h(Select, {
