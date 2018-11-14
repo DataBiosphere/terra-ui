@@ -14,7 +14,7 @@ import { ajaxCaller } from 'src/libs/ajax'
 import { getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import * as Config from 'src/libs/config'
-import { EntityDeleter, ReferenceDataDeleter, ReferenceDataImporter, renderDataCell } from 'src/libs/data-utils'
+import { EntityDeleter, EntityUploader, ReferenceDataDeleter, ReferenceDataImporter, renderDataCell } from 'src/libs/data-utils'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
@@ -237,6 +237,12 @@ const WorkspaceData = _.flow(
             onSuccess: () => this.setState({ deletingEntities: false }, () => this.refresh()),
             namespace, name,
             selectedEntities, selectedDataType, runningSubmissionsCount
+          }),
+          h(EntityUploader, {
+            onDismiss: () => this.setState({ uploadingFile: false }),
+            onSuccess: () => this.setState({ uploadingFile: false }, () => this.refresh()),
+            namespace, name,
+            entityTypes: _.keys(entityMetadata)
           }),
           _.map(type => {
             return h(DataTypeButton, {

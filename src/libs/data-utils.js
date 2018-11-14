@@ -1,9 +1,11 @@
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
-import { Fragment } from 'react'
+import { createRef, Fragment } from 'react'
+import Dropzone from 'react-dropzone'
 import { div, h } from 'react-hyperscript-helpers/lib/index'
-import { buttonPrimary, Select, spinnerOverlay } from 'src/components/common'
+import { buttonPrimary, Clickable, link, Select, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
+import { textInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { TextCell } from 'src/components/table'
 import UriViewer from 'src/components/UriViewer'
@@ -15,6 +17,13 @@ import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 
+
+const warningBoxStyle = {
+  border: `1px solid ${colors.orange[1]}`,
+  backgroundColor: colors.orange[4],
+  padding: '1rem 1.25rem',
+  color: colors.orange[0], fontWeight: 'bold', fontSize: 12
+}
 
 export const renderDataCell = (data, namespace) => {
   const isUri = datum => _.startsWith('gs://', datum) || _.startsWith('dos://', datum)
@@ -152,11 +161,10 @@ export const EntityDeleter = ajaxCaller(class EntityDeleter extends Component {
     const { deleting, additionalDeletions } = this.state
     const moreToDelete = !!additionalDeletions.length
 
-    const warningStyle = {
-      border: `1px solid ${colors.orange[1]}`, borderLeft: 'none', borderRight: 'none',
-      backgroundColor: colors.orange[4],
-      padding: '1rem 1.25rem', margin: '0 -1.25rem',
-      color: colors.orange[0], fontWeight: 'bold', fontSize: 12
+    const fullWidthWarning = {
+      ...warningBoxStyle,
+      borderLeft: 'none', borderRight: 'none',
+      margin: '0 -1.25rem'
     }
 
     return h(Modal, {
@@ -167,12 +175,12 @@ export const EntityDeleter = ajaxCaller(class EntityDeleter extends Component {
         onClick: () => this.doDelete()
       }, ['Delete'])
     }, [
-      runningSubmissionsCount > 0 && div({ style: { ...warningStyle, display: 'flex', alignItems: 'center' } }, [
+      runningSubmissionsCount > 0 && div({ style: { ...fullWidthWarning, display: 'flex', alignItems: 'center' } }, [
         icon('warning-standard', { size: 36, className: 'is-solid', style: { flex: 'none', marginRight: '0.5rem' } }),
         `WARNING: ${runningSubmissionsCount} workflows are currently running in this workspace. ` +
-          'Deleting the following data could cause failures if a workflow is using this data.'
+        'Deleting the following data could cause failures if a workflow is using this data.'
       ]),
-      moreToDelete && div({ style: { ...warningStyle, display: 'flex', alignItems: 'center' } }, [
+      moreToDelete && div({ style: { ...fullWidthWarning, display: 'flex', alignItems: 'center' } }, [
         icon('warning-standard', { size: 36, className: 'is-solid', style: { flex: 'none', marginRight: '0.5rem' } }),
         'In order to delete the selected data entries, the following entries that reference them must also be deleted.'
       ]),
@@ -184,9 +192,95 @@ export const EntityDeleter = ajaxCaller(class EntityDeleter extends Component {
       }, moreToDelete ? `${entity.entityName} (${entity.entityType})` : entity),
       Utils.toIndexPairs(moreToDelete ? additionalDeletions : selectedEntities)),
       div({
-        style: { ...warningStyle, textAlign: 'right' }
+        style: { ...fullWidthWarning, textAlign: 'right' }
       }, [`${selectedEntities.length + additionalDeletions.length} data entries to be deleted.`]),
       deleting && spinnerOverlay
+    ])
+  }
+})
+
+export const EntityUploader = ajaxCaller(class EntityUploader extends Component {
+  static propTypes = {
+    onDismiss: PropTypes.func.isRequired,
+    onSuccess: PropTypes.func.isRequired,
+    namespace: PropTypes.string.isRequired,
+    name: PropTypes.string.isRequired,
+    entityTypes: PropTypes.array.isRequired
+  }
+
+  constructor(props) {
+    super(props)
+
+    this.uploader = createRef()
+  }
+
+  async doUpload() {
+    const { onDismiss, onSuccess, namespace, name, ajax: { Workspaces } } = this.props
+    const { file, newEntityType = file.name.slice(0, -4) } = this.state
+
+    this.setState({ uploading: true })
+
+    try {
+      await Workspaces.workspace(namespace, name).importEntitiesFile(file, newEntityType)
+      onSuccess()
+    } catch (error) {
+      reportError('Error uploading entities', error)
+      onDismiss()
+    }
+  }
+
+  render() {
+    const { onDismiss, entityTypes } = this.props
+    const { uploading, file, newEntityType, isInvalidFile } = this.state
+    const workingNewName = newEntityType || (file && file.name.slice(0, -4))
+
+    const inputLabel = text => div({ style: { fontSize: 16, marginBottom: '0.3rem' } }, [text])
+
+    return h(Dropzone, {
+      accept: '.tsv',
+      disableClick: true,
+      style: { flexGrow: 1 },
+      activeStyle: { backgroundColor: colors.blue[3], cursor: 'copy' }, // accept and reject don't work in all browsers
+      acceptStyle: { cursor: 'copy' },
+      rejectStyle: { cursor: 'no-drop' },
+      ref: this.uploader,
+      onDropRejected: () => this.setState({ isInvalidFile: true }),
+      onDropAccepted: files => this.setState({ file: files[0] })
+    }, [
+      h(Modal, {
+        onDismiss,
+        title: 'Upload New Data',
+        okButton: buttonPrimary({
+          disabled: uploading,
+          onClick: () => this.doUpload()
+        }, ['Upload'])
+      }, [
+        inputLabel('New Data Type'),
+        textInput({
+          style: { marginBottom: '0.5rem' },
+          value: workingNewName || '',
+          onChange: e => this.setState({ newEntityType: e.target.value })
+        }),
+        _.includes(_.toLower(workingNewName), entityTypes) && div({
+          style: { ...warningBoxStyle, marginBottom: '0.5rem', display: 'flex', alignItems: 'center' }
+        }, [
+          icon('warning-standard', { size: 24, className: 'is-solid', style: { flex: 'none', marginRight: '0.5rem', marginLeft: '-0.5rem' } }),
+          div([`Warning: Data with the type '${workingNewName}' already exists in this workspace. `,
+            'Uploading another load file for the same type may overwrite some entries.'])
+        ]),
+        inputLabel('Selected File'),
+        (file && file.name) || 'None',
+        h(Clickable, {
+          style: {
+            ...Style.elements.card, flex: 1,
+            backgroundColor: colors.gray[4], border: `1px dashed ${colors.gray[2]}`, boxShadow: 'none'
+          },
+          onClick: () => this.uploader.current.open()
+        }, [
+          div(['Drag or ', link({}, ['Click']), ' to select a .tsv file'])
+        ])
+      ]),
+      uploading && spinnerOverlay
     ])
   }
 })
