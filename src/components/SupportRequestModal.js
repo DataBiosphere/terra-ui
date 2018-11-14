@@ -63,14 +63,12 @@ const SupportRequestModal = ajaxCaller(class SupportRequestModal extends Compone
       h(TextArea, {
         style: { height: 180 },
         placeholder: 'Enter a description',
-        autoFocus: false,
         value: description,
         onChange: e => this.setState({ description: e.target.value })
       }),
       Forms.requiredFormLabel('Contact email'),
       validatedInput({
         inputProps: {
-          autoFocus: false,
           value: email,
           onChange: e => this.setState({ email: e.target.value })
         },

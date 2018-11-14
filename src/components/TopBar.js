@@ -154,11 +154,7 @@ export default Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
               style: styles.nav.miniItem,
               onClick: () => this.setState({ showingSupportModal: true })
             }, [
-              div({
-                style: {
-                  width: 32, marginRight: '0.5rem', flex: 'none', color: colors.darkBlue[5]
-                }
-              }, [
+              div({ style: styles.nav.icon }, [
                 icon('envelope', { className: 'is-solid', size: 24 })
               ]),
               'Contact Us'

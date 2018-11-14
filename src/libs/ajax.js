@@ -176,7 +176,7 @@ const User = signal => ({
   createSupportRequest: async ({ name, email, currUrl, subject, type, description }) => {
     const options = {
       method: 'POST',
-      body: JSON.stringify({
+      body: jsonBody({
         request: {
           requester: { name, email },
           subject,
@@ -190,12 +190,9 @@ const User = signal => ({
             body: `${description}\n\n------------------\nSubmitted from: ${currUrl}`
           }
         }
-      }),
-      headers: {
-        'Content-Type': 'application/json'
-      }
+      })
     }
-    return await fetchOk(`https://broadinstitute.zendesk.com/api/v2/requests.json`, options)
+    return fetchOk(`https://broadinstitute.zendesk.com/api/v2/requests.json`, options)
   }
 })
 
