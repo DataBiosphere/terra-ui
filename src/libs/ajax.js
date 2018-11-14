@@ -495,8 +495,8 @@ const Buckets = signal => ({
 
       getObject,
 
-      rename: async newName => {
-        await copy(newName)
+      rename: async (newName, bucket) => {
+        await copy(newName, bucket)
         return doDelete()
       }
     }
