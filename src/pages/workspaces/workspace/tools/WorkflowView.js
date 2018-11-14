@@ -63,7 +63,17 @@ const styles = {
   cell: optional => ({
     fontWeight: !optional && 500,
     fontStyle: optional && 'italic'
-  })
+  }),
+  description: {
+    display: 'flex',
+    marginBottom: '0.5rem',
+    marginTop: '0.5rem'
+  },
+  angle: {
+    marginRight: '0.5rem',
+    marginTop: '.1rem',
+    color: colors.blue[0]
+  }
 }
 
 const ioTask = ({ name }) => _.nth(-2, name.split('.'))
@@ -155,12 +165,12 @@ class TextCollapse extends Component {
     return div(props, [
       div(
         {
-          style: { display: 'flex', marginBottom: '0.5rem', marginTop: '0.5rem' },
+          style: styles.description,
           onClick: () => this.setState({ isOpened: !isOpened })
         },
         [
           showIcon && icon(isOpened ? 'angle down' : 'angle right',
-            { style: { marginRight: '0.5rem', marginTop: '.1rem', color: colors.blue[0] }, size: 21 }),
+            { style: styles.angle, size: 21 }),
           div({
             style: {
               maxHeight: undefined, width: '74rem', overflow: isOpened ? 'visible' : 'hidden',
@@ -309,9 +319,9 @@ const WorkflowView = _.flow(
             }, [
               documentation
             ]) :
-            div({ style: { fontStyle: 'italic', marginTop: '0.5rem', display: 'flex', marginBottom: '0.5rem' } }, [
+            div({ style: { fontStyle: 'italic', ...styles.description } }, [
               icon('angle right',
-                { style: { marginRight: '0.5rem', marginTop: '0.1rem', color: colors.blue[0] }, size: 21 }),
+                { style: styles.angle, size: 21 }),
               'No documentation provided'
             ]),
           div({ style: { textTransform: 'capitalize', display: 'flex', alignItems: 'baseline', marginTop: '0.5rem' } }, [
