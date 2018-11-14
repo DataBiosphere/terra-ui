@@ -2,13 +2,12 @@ import FileSaver from 'file-saver'
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
 import { createRef, Fragment } from 'react'
-import { Collapse as rCollapse } from 'react-collapse'
 import Dropzone from 'react-dropzone'
 import { div, h, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import {
-  buttonPrimary, buttonSecondary, linkButton, MenuButton, Select, spinnerOverlay, menuIcon, link, methodLink, Clickable
+  buttonPrimary, buttonSecondary, linkButton, MenuButton, Select, spinnerOverlay, menuIcon, link, methodLink
 } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { AutocompleteTextInput } from 'src/components/input'
