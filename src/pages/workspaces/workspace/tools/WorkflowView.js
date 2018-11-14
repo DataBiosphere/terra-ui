@@ -272,14 +272,8 @@ const WorkflowView = _.flow(
   async fetchInfo() {
     const { methodRepoMethod: { sourceRepo, methodNamespace, methodName, methodVersion, methodPath } } = this.state.savedConfig
     const { ajax: { Dockstore, Methods } } = this.props
-    const synopsis = await (() => {
-      return Methods.method(methodNamespace, methodName, methodVersion).get().then(({ synopsis }) => synopsis)
-    })()
-    const documentation = await (() => {
-      return Methods.method(methodNamespace, methodName, methodVersion).get().then(({ documentation }) => documentation)
-    })()
-    this.setState({ synopsis, documentation })
-    this.setState({ loadedWdl: true })
+    const { synopsis, documentation } = await Methods.method(methodNamespace, methodName, methodVersion).get()
+    this.setState({ synopsis, documentation, loadedWdl: true })
     try {
       const wdl = await (() => {
         switch (sourceRepo) {
@@ -302,7 +296,6 @@ const WorkflowView = _.flow(
     const { modifiedConfig, savedConfig, entityMetadata, saving, saved, copying, deleting, activeTab, errors, firecloudRoot, dockstoreRoot, synopsis, documentation } = this.state
     const { name, methodRepoMethod: { methodPath, methodVersion, methodNamespace, methodName }, rootEntityType } = modifiedConfig
     const modified = !_.isEqual(modifiedConfig, savedConfig)
-
     const noLaunchReason = Utils.cond(
       [saving || modified, () => 'Save or cancel to Launch Analysis'],
       [!_.isEmpty(errors.inputs) || !_.isEmpty(errors.outputs), () => 'At least one required attribute is missing or invalid']
