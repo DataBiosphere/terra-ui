@@ -269,6 +269,34 @@ const WorkflowView = _.flow(
     )
   }
 
+  async fetchInfo() {
+    const { methodRepoMethod: { sourceRepo, methodNamespace, methodName, methodVersion, methodPath } } = this.state.savedConfig
+    const { ajax: { Dockstore, Methods } } = this.props
+    const synopsis = await (() => {
+      return Methods.method(methodNamespace, methodName, methodVersion).get().then(({ synopsis }) => synopsis)
+    })()
+    const documentation = await (() => {
+      return Methods.method(methodNamespace, methodName, methodVersion).get().then(({ documentation }) => documentation)
+    })()
+    this.setState({ synopsis, documentation })
+    this.setState({ loadedWdl: true })
+    try {
+      const wdl = await (() => {
+        switch (sourceRepo) {
+          case 'dockstore':
+            return Dockstore.getWdl(methodPath, methodVersion).then(({ descriptor }) => descriptor)
+          case 'agora':
+            return Methods.method(methodNamespace, methodName, methodVersion).get().then(({ payload }) => payload)
+          default:
+            throw new Error('unknown sourceRepo')
+        }
+      })()
+      this.setState({ wdl })
+    } catch (error) {
+      reportError('Error loading WDL', error)
+    }
+  }
+
   renderSummary() {
     const { workspace: { canCompute, workspace } } = this.props
     const { modifiedConfig, savedConfig, entityMetadata, saving, saved, copying, deleting, activeTab, errors, firecloudRoot, dockstoreRoot, synopsis, documentation } = this.state
@@ -453,34 +481,6 @@ const WorkflowView = _.flow(
       wdl, readOnly: true,
       style: { maxHeight: 500, margin: `1rem ${sideMargin}` }
     }) : centeredSpinner({ style: { marginTop: '1rem' } })
-  }
-
-  async fetchInfo() {
-    const { methodRepoMethod: { sourceRepo, methodNamespace, methodName, methodVersion, methodPath } } = this.state.savedConfig
-    const { ajax: { Dockstore, Methods } } = this.props
-    const synopsis = await (() => {
-      return Methods.method(methodNamespace, methodName, methodVersion).get().then(({ synopsis }) => synopsis)
-    })()
-    const documentation = await (() => {
-      return Methods.method(methodNamespace, methodName, methodVersion).get().then(({ documentation }) => documentation)
-    })()
-    this.setState({ synopsis, documentation })
-    this.setState({ loadedWdl: true })
-    try {
-      const wdl = await (() => {
-        switch (sourceRepo) {
-          case 'dockstore':
-            return Dockstore.getWdl(methodPath, methodVersion).then(({ descriptor }) => descriptor)
-          case 'agora':
-            return Methods.method(methodNamespace, methodName, methodVersion).get().then(({ payload }) => payload)
-          default:
-            throw new Error('unknown sourceRepo')
-        }
-      })()
-      this.setState({ wdl })
-    } catch (error) {
-      reportError('Error loading WDL', error)
-    }
   }
 
   async save() {
