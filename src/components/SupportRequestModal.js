@@ -88,7 +88,7 @@ const SupportRequestModal = ajaxCaller(class SupportRequestModal extends Compone
       const contactEmail = _.find({ key: 'contactEmail' }, keyValuePairs).value
       !!contactEmail && this.setState({ email: contactEmail })
     } catch (error) {
-      reportError('Error retrieving contact email', error)
+      reportError('Error finding contact email', error)
     }
   }
 
