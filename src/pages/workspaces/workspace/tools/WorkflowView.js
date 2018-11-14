@@ -256,18 +256,13 @@ const WorkflowView = _.flow(
           _.remove(s => s.includes(':'))
         )(_.keys(attributes))
       })
-      this.fetchDescription()
+      this.fetchInfo()
     } catch (error) {
       reportError('Error loading data', error)
     }
   }
 
   componentDidUpdate() {
-    const { activeTab, loadedWdl } = this.state
-    if (activeTab === 'wdl' && !loadedWdl) {
-      this.fetchWDL()
-    }
-
     StateHistory.update(_.pick(
       ['savedConfig', 'modifiedConfig', 'entityMetadata', 'inputsOutputs', 'invalid', 'activeTab', 'wdl'],
       this.state)
@@ -382,18 +377,6 @@ const WorkflowView = _.flow(
     ])
   }
 
-  async fetchDescription() {
-    const { methodRepoMethod: { methodNamespace, methodName, methodVersion } } = this.state.savedConfig
-    const { ajax: { Methods } } = this.props
-    const synopsis = await (() => {
-      return Methods.method(methodNamespace, methodName, methodVersion).get().then(({ synopsis }) => synopsis)
-    })()
-    const documentation = await (() => {
-      return Methods.method(methodNamespace, methodName, methodVersion).get().then(({ documentation }) => documentation)
-    })()
-    this.setState({ synopsis, documentation })
-  }
-
   downloadJson(key) {
     const { modifiedConfig } = this.state
     const prepIO = _.mapValues(v => /^".*"/.test(v) ? v.slice(1, -1) : `\${${v}}`)
@@ -472,9 +455,16 @@ const WorkflowView = _.flow(
     }) : centeredSpinner({ style: { marginTop: '1rem' } })
   }
 
-  async fetchWDL() {
+  async fetchInfo() {
     const { methodRepoMethod: { sourceRepo, methodNamespace, methodName, methodVersion, methodPath } } = this.state.savedConfig
     const { ajax: { Dockstore, Methods } } = this.props
+    const synopsis = await (() => {
+      return Methods.method(methodNamespace, methodName, methodVersion).get().then(({ synopsis }) => synopsis)
+    })()
+    const documentation = await (() => {
+      return Methods.method(methodNamespace, methodName, methodVersion).get().then(({ documentation }) => documentation)
+    })()
+    this.setState({ synopsis, documentation })
     this.setState({ loadedWdl: true })
     try {
       const wdl = await (() => {
