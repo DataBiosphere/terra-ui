@@ -172,7 +172,7 @@ export const NotebookDuplicator = ajaxCaller(class NotebookDuplicator extends Co
           try {
             this.setState({ processing: true })
             await (destroyOld ?
-              Buckets.notebook(namespace, bucketName, printName).rename(newName, bucketName) :
+              Buckets.notebook(namespace, bucketName, printName).rename(newName) :
               Buckets.notebook(namespace, bucketName, printName).copy(newName, bucketName))
             onSuccess()
           } catch (error) {
