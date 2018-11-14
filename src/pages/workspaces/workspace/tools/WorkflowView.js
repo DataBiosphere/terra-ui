@@ -173,7 +173,7 @@ class TextCollapse extends Component {
             { style: styles.angle, size: 21 }),
           div({
             style: {
-              maxHeight: undefined, width: '74rem', overflow: isOpened ? 'visible' : 'hidden',
+              maxHeight: undefined, width: '100%', overflow: isOpened ? 'visible' : 'hidden',
               whiteSpace: isOpened ? 'normal' : 'nowrap', textOverflow: 'ellipsis'
             }
           }, children)
