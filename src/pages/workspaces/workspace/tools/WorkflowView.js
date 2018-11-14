@@ -235,7 +235,6 @@ const WorkflowView = _.flow(
 
       const { methodConfiguration: config } = validationResponse
       const inputsOutputs = await Methods.configInputsOutputs(config)
-
       this.setState({
         isFreshData: true, savedConfig: config, modifiedConfig: config,
         entityMetadata, inputsOutputs,
@@ -247,6 +246,7 @@ const WorkflowView = _.flow(
           _.remove(s => s.includes(':'))
         )(_.keys(attributes))
       })
+      this.fetchDescription()
     } catch (error) {
       reportError('Error loading data', error)
     }
@@ -274,7 +274,6 @@ const WorkflowView = _.flow(
       [saving || modified, () => 'Save or cancel to Launch Analysis'],
       [!_.isEmpty(errors.inputs) || !_.isEmpty(errors.outputs), () => 'At least one required attribute is missing or invalid']
     )
-    this.fetchDescription()
 
     return div({ style: { backgroundColor: colors.blue[5], position: 'relative' } }, [
       div({ style: { display: 'flex', padding: `1.5rem ${sideMargin} 0`, minHeight: 120 } }, [
