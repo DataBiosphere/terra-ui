@@ -160,7 +160,7 @@ class TextCollapse extends Component {
         },
         [
           showIcon && icon(isOpened ? 'angle down' : 'angle right',
-            { style: { marginRight: '0.5rem', marginTop: '.1rem', flexShrink: 0, color: colors.blue[0] }, size: 21 }),
+            { style: { marginRight: '0.5rem', marginTop: '.1rem', color: colors.blue[0] }, size: 21 }),
           div({
             style: {
               maxHeight: undefined, width: '74rem', overflow: isOpened ? 'visible' : 'hidden',
@@ -302,12 +302,18 @@ const WorkflowView = _.flow(
             target: '_blank'
           }, methodPath ? methodPath : `${methodNamespace}/${methodName}/${methodVersion}`)]),
           div(`Synopsis: ${synopsis ? synopsis : ''}`),
-          h(TextCollapse, {
-            defaultHidden: true,
-            showIcon: true
-          }, [
-            documentation ? documentation : 'No documentation provided'
-          ]),
+          documentation ?
+            h(TextCollapse, {
+              defaultHidden: true,
+              showIcon: true
+            }, [
+              documentation
+            ]) :
+            div({ style: { fontStyle: 'italic', marginTop: '0.5rem', display: 'flex', marginBottom: '0.5rem' } }, [
+              icon('angle right',
+                { style: { marginRight: '0.5rem', marginTop: '0.1rem', color: colors.blue[0] }, size: 21 }),
+              'No documentation provided'
+            ]),
           div({ style: { textTransform: 'capitalize', display: 'flex', alignItems: 'baseline', marginTop: '0.5rem' } }, [
             'Data Type:',
             h(Select, {
