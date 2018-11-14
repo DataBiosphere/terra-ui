@@ -46,15 +46,6 @@ const SupportRequestModal = ajaxCaller(class SupportRequestModal extends Compone
         onClick: () => this.submit()
       }, ['SEND'])
     }, [
-      Forms.requiredFormLabel('Email address'),
-      validatedInput({
-        inputProps: {
-          autoFocus: false,
-          value: email,
-          onChange: e => this.setState({ email: e.target.value })
-        },
-        error: Utils.summarizeErrors(errors && errors.email)
-      }),
       Forms.requiredFormLabel('Type'),
       h(Select, {
         isMulti: false,
@@ -75,6 +66,15 @@ const SupportRequestModal = ajaxCaller(class SupportRequestModal extends Compone
         autoFocus: false,
         value: description,
         onChange: e => this.setState({ description: e.target.value })
+      }),
+      Forms.requiredFormLabel('Contact email'),
+      validatedInput({
+        inputProps: {
+          autoFocus: false,
+          value: email,
+          onChange: e => this.setState({ email: e.target.value })
+        },
+        error: Utils.summarizeErrors(errors && errors.email)
       }),
       submitError && div({ style: { marginTop: '0.5rem', textAlign: 'right', color: colors.red[0] } }, [submitError]),
       submitting && spinnerOverlay
