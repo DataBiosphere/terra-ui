@@ -149,7 +149,7 @@ export default Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
             ]),
             'See All Workspaces'
           ]),
-          div({style: {marginTop: '2rem'}}, [
+          div({ style: { marginTop: '2rem' } }, [
             h(Clickable, {
               style: styles.nav.miniItem,
               onClick: () => this.setState({ showingSupportModal: true })

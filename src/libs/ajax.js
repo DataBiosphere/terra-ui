@@ -196,8 +196,6 @@ const User = signal => ({
       }
     }
     return await fetchOk(`https://broadinstitute.zendesk.com/api/v2/requests.json`, options)
-      .then(response => response.json())
-      .then(json => Utils.log(JSON.stringify(json)))
   }
 })
 

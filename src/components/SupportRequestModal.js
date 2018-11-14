@@ -10,6 +10,7 @@ import * as Forms from 'src/libs/forms'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 import validate from 'validate.js'
+import _ from 'lodash/fp'
 
 
 const constraints = {
@@ -30,11 +31,8 @@ const SupportRequestModal = ajaxCaller(class SupportRequestModal extends Compone
   }
 
   render() {
-    const { onDismiss, ajax: { User } } = this.props
+    const { onDismiss } = this.props
     const { submitting, submitError, subject, description, type, email } = this.state
-
-    //await console.log(User.profile.contactEmail)
-
     const { givenName } = getUser()
     const greetUser = givenName ? `, ${givenName}?` : `?`
     const errors = validate({ email, description, subject }, constraints)
@@ -81,6 +79,17 @@ const SupportRequestModal = ajaxCaller(class SupportRequestModal extends Compone
       submitError && div({ style: { marginTop: '0.5rem', textAlign: 'right', color: colors.red[0] } }, [submitError]),
       submitting && spinnerOverlay
     ])
+  }
+
+  async componentDidMount() {
+    try {
+      const { ajax: { User } } = this.props
+      const { keyValuePairs } = await User.profile.get()
+      const contactEmail = _.find({ key: 'contactEmail' }, keyValuePairs).value
+      !!contactEmail && this.setState({ email: contactEmail })
+    } catch (error) {
+      reportError('Error retrieving contact email', error)
+    }
   }
 
   async submit() {
