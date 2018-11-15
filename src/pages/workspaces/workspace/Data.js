@@ -14,13 +14,14 @@ import { ajaxCaller } from 'src/libs/ajax'
 import { getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import * as Config from 'src/libs/config'
-import { EntityDeleter, ReferenceDataDeleter, ReferenceDataImporter, renderDataCell } from 'src/libs/data-utils'
+import { /*EntityDeleter,*/ ReferenceDataDeleter, ReferenceDataImporter, renderDataCell } from 'src/libs/data-utils'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
+import ExportDataModal from 'src/components/ExportDataModal'
 
 
 const filterState = _.pick(['pageNumber', 'itemsPerPage', 'selectedDataType', 'sort'])
@@ -191,7 +192,7 @@ const WorkspaceData = _.flow(
   }
 
   render() {
-    const { namespace, name, workspace: { accessLevel, workspaceSubmissionStats: { runningSubmissionsCount } } } = this.props
+    const { namespace, name, workspace, workspace: { accessLevel, workspaceSubmissionStats: { runningSubmissionsCount } } } = this.props
     const { selectedDataType, entityMetadata, loading, importingReference, deletingReference, deletingEntities, selectedEntities } = this.state
     const referenceData = this.getReferenceData()
     const canEdit = Utils.canWrite(accessLevel)
@@ -232,10 +233,16 @@ const WorkspaceData = _.flow(
             }, () => this.loadData()),
             namespace, name, referenceDataType: deletingReference
           }),
-          deletingEntities && h(EntityDeleter, {
+          /*deletingEntities && h(EntityDeleter, {
             onDismiss: () => this.setState({ deletingEntities: false }),
             onSuccess: () => this.setState({ deletingEntities: false }, () => this.refresh()),
             namespace, name,
+            selectedEntities, selectedDataType, runningSubmissionsCount
+          }),*/
+          deletingEntities && h(ExportDataModal, {
+            onDismiss: () => this.setState({ deletingEntities: false }),
+            onSuccess: () => this.setState({ deletingEntities: false }, () => this.refresh()),
+            workspace,
             selectedEntities, selectedDataType, runningSubmissionsCount
           }),
           _.map(type => {
