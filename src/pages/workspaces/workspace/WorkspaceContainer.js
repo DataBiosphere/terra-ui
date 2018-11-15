@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import { createRef, Fragment, PureComponent } from 'react'
 import { a, div, h, h2, p, span } from 'react-hyperscript-helpers'
 import ClusterManager from 'src/components/ClusterManager'
-import { Clickable, comingSoon, contextBar, link, MenuButton, menuIcon } from 'src/components/common'
+import { buttonPrimary, Clickable, comingSoon, contextBar, link, MenuButton, menuIcon } from 'src/components/common'
 import ErrorView from 'src/components/ErrorView'
 import { icon } from 'src/components/icons'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
@@ -233,7 +233,11 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
             ]),
             p({}, [
               'If you think the workspace exists but you do not have access, please contact the workspace owner.'
-            ])
+            ]),
+            buttonPrimary({
+              as: 'a',
+              href: Nav.getLink('workspaces')
+            }, ['Workspaces List'])
           ]) :
           h(Fragment, [
             h2({}, ['Failed to load workspace']),
