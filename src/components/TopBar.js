@@ -5,6 +5,7 @@ import { a, div, h } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
 import { Clickable, comingSoon, MenuButton } from 'src/components/common'
 import { icon, logo, profilePic } from 'src/components/icons'
+import { pushNotification } from 'src/components/Notifications'
 import SignInButton from 'src/components/SignInButton'
 import { authStore, getUser, signOut } from 'src/libs/auth'
 import colors from 'src/libs/colors'
@@ -12,6 +13,7 @@ import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
+import SupportRequestModal from 'src/components/SupportRequestModal'
 
 
 const styles = {
@@ -51,6 +53,11 @@ const styles = {
       fontWeight: 600,
       borderBottom: `1px solid ${colors.darkBlue[2]}`, color: 'white'
     },
+    miniItem: {
+      display: 'flex', alignItems: 'center',
+      margin: '1rem 3rem',
+      fontWeight: 600
+    },
     icon: {
       width: 32, marginRight: '0.5rem', flex: 'none'
     }
@@ -83,7 +90,9 @@ export default Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
     return createPortal(
       div({
         style: styles.nav.background,
-        onClick: () => this.hideNav()
+        onClick: () => {
+          this.hideNav()
+        }
       }, [
         div({
           style: styles.nav.container,
@@ -139,6 +148,17 @@ export default Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
               icon('workspace', { className: 'is-solid', size: 24 })
             ]),
             'See All Workspaces'
+          ]),
+          div({ style: { marginTop: '2rem' } }, [
+            h(Clickable, {
+              style: styles.nav.miniItem,
+              onClick: () => this.setState({ showingSupportModal: true })
+            }, [
+              div({ style: styles.nav.icon }, [
+                icon('envelope', { className: 'is-solid', size: 24 })
+              ]),
+              'Contact Us'
+            ])
           ]),
           div({
             style: {
@@ -214,7 +234,7 @@ export default Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
 
   render() {
     const { title, href, children } = this.props
-    const { navShown } = this.state
+    const { navShown, showingSupportModal } = this.state
 
     return div({ style: styles.topBar }, [
       icon('bars', {
@@ -236,7 +256,14 @@ export default Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
         ])
       ]),
       children,
-      navShown && this.buildNav()
+      navShown && this.buildNav(),
+      showingSupportModal && h(SupportRequestModal, {
+        onDismiss: () => this.setState({ showingSupportModal: false }),
+        onSuccess: () => {
+          this.setState({ showingSupportModal: false })
+          pushNotification({ message: 'Message sent successfully' })
+        }
+      })
     ])
   }
 })
