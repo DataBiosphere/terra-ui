@@ -2,6 +2,7 @@ import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
 import { div, h } from 'react-hyperscript-helpers'
 import { buttonPrimary, spinnerOverlay } from 'src/components/common'
+import ErrorView from 'src/components/ErrorView'
 import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import { withWorkspaces, WorkspaceSelector } from 'src/components/workspace-utils'
@@ -34,7 +35,7 @@ export default _.flow(
       additionalCopies: [],
       selectedWorkspaceId: undefined,
       error: undefined,
-      copied: false
+      copying: false
     }
   }
 
@@ -51,7 +52,7 @@ export default _.flow(
 
   renderCopyForm() {
     const { onDismiss, selectedEntities, runningSubmissionsCount, workspace, workspaces } = this.props
-    const { copying, additionalCopies, selectedWorkspaceId } = this.state
+    const { copying, additionalCopies, error, selectedWorkspaceId } = this.state
     const moreToCopy = !!additionalCopies.length
 
     const warningStyle = {
@@ -101,7 +102,8 @@ export default _.flow(
       div({
         style: { ...warningStyle, textAlign: 'right' }
       }, [`${selectedEntities.length + additionalCopies.length} data entries to be copied.`]),
-      copying && spinnerOverlay
+      copying && spinnerOverlay,
+      error && h(ErrorView, { error, collapses: false })
     ])
   }
 
@@ -112,9 +114,10 @@ export default _.flow(
     const selectedWorkspace = this.getSelectedWorkspace().workspace
 
     this.setState({ copying: true })
+    console.log(selectedWorkspace.namespace, selectedWorkspace.name)
 
     try {
-      await Workspaces.workspace(selectedWorkspace.namespace, selectedWorkspace.bucketName).copyEntities(entitiesToCopy)
+      await Workspaces.workspace(selectedWorkspace.namespace, selectedWorkspace.name).copyEntities(entitiesToCopy)
       onSuccess()
     } catch (error) {
       switch (error.status) {

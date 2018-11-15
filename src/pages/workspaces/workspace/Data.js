@@ -14,7 +14,7 @@ import { ajaxCaller } from 'src/libs/ajax'
 import { getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import * as Config from 'src/libs/config'
-import { /*EntityDeleter,*/ ReferenceDataDeleter, ReferenceDataImporter, renderDataCell } from 'src/libs/data-utils'
+import { EntityDeleter, ReferenceDataDeleter, ReferenceDataImporter, renderDataCell } from 'src/libs/data-utils'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
@@ -193,7 +193,7 @@ const WorkspaceData = _.flow(
 
   render() {
     const { namespace, name, workspace, workspace: { accessLevel, workspaceSubmissionStats: { runningSubmissionsCount } } } = this.props
-    const { selectedDataType, entityMetadata, loading, importingReference, deletingReference, deletingEntities, selectedEntities } = this.state
+    const { selectedDataType, entityMetadata, loading, importingReference, deletingReference, deletingEntities, selectedEntities, copyingEntities } = this.state
     const referenceData = this.getReferenceData()
     const canEdit = Utils.canWrite(accessLevel)
 
@@ -233,15 +233,15 @@ const WorkspaceData = _.flow(
             }, () => this.loadData()),
             namespace, name, referenceDataType: deletingReference
           }),
-          /*deletingEntities && h(EntityDeleter, {
+          deletingEntities && h(EntityDeleter, {
             onDismiss: () => this.setState({ deletingEntities: false }),
             onSuccess: () => this.setState({ deletingEntities: false }, () => this.refresh()),
             namespace, name,
             selectedEntities, selectedDataType, runningSubmissionsCount
-          }),*/
-          deletingEntities && h(ExportDataModal, {
-            onDismiss: () => this.setState({ deletingEntities: false }),
-            onSuccess: () => this.setState({ deletingEntities: false }, () => this.refresh()),
+          }),
+          copyingEntities && h(ExportDataModal, {
+            onDismiss: () => this.setState({ copyingEntities: false }),
+            onSuccess: () => this.setState({ copyingEntities: false }, () => this.refresh()),
             workspace,
             selectedEntities, selectedDataType, runningSubmissionsCount
           }),
@@ -399,10 +399,15 @@ const WorkspaceData = _.flow(
           setItemsPerPage: v => this.setState({ itemsPerPage: v, pageNumber: 1 }, resetScroll)
         })
       ]),
-      !!selectedEntities.length && h(FloatingActionButton, {
+      /*!!selectedEntities.length && h(FloatingActionButton, {
         label: 'DELETE DATA',
         iconShape: 'trash',
         onClick: () => this.setState({ deletingEntities: true })
+      }),*/
+      !!selectedEntities.length && h(FloatingActionButton, {
+        label: 'COPY DATA',
+        iconShape: 'clone',
+        onClick: () => this.setState({ copyingEntities: true })
       })
     ])
   }
