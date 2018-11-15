@@ -174,9 +174,9 @@ const User = signal => ({
   },
 
   createSupportRequest: async ({ name, email, currUrl, subject, type, description }) => {
-    const options = {
-      method: 'POST',
-      body: jsonBody({
+    return fetchOk(
+      `https://broadinstitute.zendesk.com/api/v2/requests.json`,
+      _.merge({ signal, method: 'POST' }, jsonBody({
         request: {
           requester: { name, email },
           subject,
@@ -190,9 +190,7 @@ const User = signal => ({
             body: `${description}\n\n------------------\nSubmitted from: ${currUrl}`
           }
         }
-      })
-    }
-    return fetchOk(`https://broadinstitute.zendesk.com/api/v2/requests.json`, options)
+      })))
   }
 })
 
