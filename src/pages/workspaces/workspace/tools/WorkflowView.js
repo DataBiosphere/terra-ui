@@ -186,7 +186,8 @@ class TextCollapse extends Component {
 const WorkflowView = _.flow(
   wrapWorkspace({
     breadcrumbs: props => breadcrumbs.commonPaths.workspaceTab(props, 'tools'),
-    title: ({ workflowName }) => workflowName, activeTab: 'tools'
+    title: ({ workflowName }) => workflowName, activeTab: 'tools',
+    showTabBar: false
   }),
   ajaxCaller
 )(class WorkflowView extends Component {
@@ -288,7 +289,7 @@ const WorkflowView = _.flow(
   }
 
   renderSummary() {
-    const { workspace: { canCompute, workspace } } = this.props
+    const { workspace: { canCompute, workspace }, namespace, name: workspaceName } = this.props
     const { modifiedConfig, savedConfig, entityMetadata, saving, saved, copying, deleting, activeTab, errors, firecloudRoot, dockstoreRoot, synopsis, documentation } = this.state
     const { name, methodRepoMethod: { methodPath, methodVersion, methodNamespace, methodName }, rootEntityType } = modifiedConfig
     const modified = !_.isEqual(modifiedConfig, savedConfig)
@@ -297,7 +298,7 @@ const WorkflowView = _.flow(
       [!_.isEmpty(errors.inputs) || !_.isEmpty(errors.outputs), () => 'At least one required attribute is missing or invalid']
     )
 
-    return div({ style: { backgroundColor: colors.blue[5], position: 'relative' } }, [
+    return div({ style: { backgroundColor: 'white', position: 'relative' } }, [
       div({ style: { display: 'flex', padding: `1.5rem ${sideMargin} 0`, minHeight: 120 } }, [
         div({ style: { flex: '1', lineHeight: '1.5rem' } }, [
           div({ style: { display: 'flex' } }, [
@@ -350,6 +351,11 @@ const WorkflowView = _.flow(
           ])
         ]),
         div({ style: { flex: 'none', display: 'flex', flexDirection: 'column', alignItems: 'flex-end' } }, [
+          linkButton({
+            href: Nav.getLink('workspace-tools', { namespace, name: workspaceName })
+          }, [
+            icon('times', { size: 36 })
+          ]),
           buttonPrimary({
             disabled: !canCompute || !!noLaunchReason,
             tooltip: !canCompute ? 'You do not have access to run analyses on this workspace.' : undefined,
