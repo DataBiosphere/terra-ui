@@ -240,12 +240,10 @@ export const EntityUploader = ajaxCaller(class EntityUploader extends Component 
       accept: '.tsv',
       disableClick: true,
       style: { flexGrow: 1 },
-      activeStyle: { backgroundColor: colors.blue[3], cursor: 'copy' }, // accept and reject don't work in all browsers
-      acceptStyle: { cursor: 'copy' },
-      rejectStyle: { cursor: 'no-drop' },
+      activeStyle: { backgroundColor: colors.blue[3], cursor: 'copy' },
       ref: this.uploader,
       onDropRejected: () => this.setState({ isInvalidFile: true }),
-      onDropAccepted: files => this.setState({ file: files[0] })
+      onDropAccepted: files => this.setState({ file: files[0], isInvalidFile: false })
     }, [
       h(Modal, {
         onDismiss,
@@ -265,7 +263,7 @@ export const EntityUploader = ajaxCaller(class EntityUploader extends Component 
           style: { ...warningBoxStyle, marginBottom: '0.5rem', display: 'flex', alignItems: 'center' }
         }, [
           icon('warning-standard', { size: 24, className: 'is-solid', style: { flex: 'none', marginRight: '0.5rem', marginLeft: '-0.5rem' } }),
-          div([`Warning: Data with the type '${workingNewName}' already exists in this workspace. `,
+          div([`Data with the type '${workingNewName}' already exists in this workspace. `,
             'Uploading another load file for the same type may overwrite some entries.'])
         ]),
         inputLabel('Selected File'),
@@ -273,10 +271,14 @@ export const EntityUploader = ajaxCaller(class EntityUploader extends Component 
         h(Clickable, {
           style: {
             ...Style.elements.card, flex: 1,
+            margin: '0.5rem 0',
             backgroundColor: colors.gray[4], border: `1px dashed ${colors.gray[2]}`, boxShadow: 'none'
           },
           onClick: () => this.uploader.current.open()
         }, [
+          isInvalidFile && div({
+            style: { color: colors.orange[0], fontWeight: 'bold', fontSize: 12, marginBottom: '0.5rem' }
+          }, ['Only .tsv files can be uploaded.']),
           div(['Drag or ', link({}, ['Click']), ' to select a .tsv file'])
         ])
       ]),
