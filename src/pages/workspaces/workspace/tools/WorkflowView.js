@@ -256,7 +256,7 @@ const WorkflowView = _.flow(
           _.remove(s => s.includes(':'))
         )(_.keys(attributes))
       })
-      this.fetchInfo()
+      this.fetchInfo(config)
     } catch (error) {
       reportError('Error loading data', error)
     }
@@ -269,23 +269,19 @@ const WorkflowView = _.flow(
     )
   }
 
-  async fetchInfo() {
-    const { methodRepoMethod: { sourceRepo, methodNamespace, methodName, methodVersion, methodPath } } = this.state.savedConfig
+  async fetchInfo(savedConfig) {
+    const { methodRepoMethod: { sourceRepo, methodNamespace, methodName, methodVersion, methodPath } } = savedConfig
     const { ajax: { Dockstore, Methods } } = this.props
-    const { synopsis, documentation } = await Methods.method(methodNamespace, methodName, methodVersion).get()
-    this.setState({ synopsis, documentation })
     try {
-      const wdl = await (() => {
-        switch (sourceRepo) {
-          case 'dockstore':
-            return Dockstore.getWdl(methodPath, methodVersion).then(({ descriptor }) => descriptor)
-          case 'agora':
-            return Methods.method(methodNamespace, methodName, methodVersion).get().then(({ payload }) => payload)
-          default:
-            throw new Error('unknown sourceRepo')
-        }
-      })()
-      this.setState({ wdl })
+      if (sourceRepo === 'agora') {
+        const { synopsis, documentation, payload } = await Methods.method(methodNamespace, methodName, methodVersion).get()
+        this.setState({ synopsis, documentation, wdl: payload })
+      } else if (sourceRepo === 'dockstore') {
+        const wdl = await Dockstore.getWdl(methodPath, methodVersion).then(({ descriptor }) => descriptor)
+        this.setState({ wdl })
+      } else {
+        throw new Error('unknown sourceRepo')
+      }
     } catch (error) {
       reportError('Error loading WDL', error)
     }
