@@ -67,6 +67,7 @@ const instrumentedFetch = (url, options) => {
   })
 }
 
+
 const fetchOk = async (url, options) => {
   const res = await instrumentedFetch(url, options)
   return res.ok ? res : Promise.reject(res)
@@ -170,6 +171,26 @@ const User = signal => ({
       `${await Config.getTosUrlRoot()}/user/response`,
       _.mergeAll([authOpts(), { signal, method: 'POST' }, jsonBody({ ...tosData, accepted: true })])
     )
+  },
+
+  createSupportRequest: async ({ name, email, currUrl, subject, type, description }) => {
+    return fetchOk(
+      `https://broadinstitute.zendesk.com/api/v2/requests.json`,
+      _.merge({ signal, method: 'POST' }, jsonBody({
+        request: {
+          requester: { name, email },
+          subject,
+          'custom_fields': [
+            { id: 360012744452, value: type },
+            { id: 360007369412, value: description },
+            { id: 360012744292, value: name },
+            { id: 360012782111, value: email }
+          ],
+          comment: {
+            body: `${description}\n\n------------------\nSubmitted from: ${currUrl}`
+          }
+        }
+      })))
   }
 })
 
