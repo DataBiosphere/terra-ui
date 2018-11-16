@@ -9,7 +9,7 @@ import { withWorkspaces, WorkspaceSelector } from 'src/components/workspace-util
 import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
-import { requiredFormLabel } from 'src/libs/forms'
+import { requiredFormLabel, formLabel } from 'src/libs/forms'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
@@ -92,6 +92,7 @@ export default _.flow(
         icon('warning-standard', { size: 36, className: 'is-solid', style: { flex: 'none', marginRight: '0.5rem' } }),
         'In order to copy the selected data entries, the following entries that reference them must also be copied.'
       ]),
+      formLabel('Entries selected'),
       ..._.map(([i, entity]) => div({
         style: {
           borderTop: (i === 0 && runningSubmissionsCount === 0) ? undefined : Style.standardLine,
@@ -108,16 +109,14 @@ export default _.flow(
   }
 
   async copy() {
-    const { onDismiss, onSuccess, selectedEntities, selectedDataType, ajax: { Workspaces } } = this.props
+    const { onDismiss, onSuccess, selectedEntities, selectedDataType, workspace, ajax: { Workspaces } } = this.props
     const { additionalCopies } = this.state
-    const entitiesToCopy = _.concat(_.map(entityName => ({ entityName, entityType: selectedDataType }), selectedEntities), additionalCopies)
+    const entitiesToCopy = _.concat(_.map(entityName => (entityName), selectedEntities), additionalCopies)
     const selectedWorkspace = this.getSelectedWorkspace().workspace
 
     this.setState({ copying: true })
-    console.log(selectedWorkspace.namespace, selectedWorkspace.name)
-
     try {
-      await Workspaces.workspace(selectedWorkspace.namespace, selectedWorkspace.name).copyEntities(entitiesToCopy)
+      await Workspaces.workspace(workspace.workspace.namespace, workspace.workspace.name).copyEntities(selectedWorkspace.namespace, selectedWorkspace.name, selectedDataType, entitiesToCopy)
       onSuccess()
     } catch (error) {
       switch (error.status) {
