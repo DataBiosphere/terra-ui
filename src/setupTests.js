@@ -1,3 +1,13 @@
+const {auth} = require('google-auth-library');
+const keys = JSON.parse(process.env['FIRECLOUD_DEV_SA_KEY_JSON'])
+
+
+const client = auth.fromJSON(keys)
+client.scopes = ['profile', 'email', 'openid', 'https://www.googleapis.com/auth/devstorage.full_control', 'https://www.googleapis.com/auth/cloud-platform']
+client.subject = 'dumbledore.admin@test.firecloud.org'
+client.authorize().then(auth => auth.access_token)
+
+/*
 import { configure, ReactWrapper } from 'enzyme'
 import Adapter from 'enzyme-adapter-react-16'
 import 'mutationobserver-shim'
@@ -37,3 +47,4 @@ ReactWrapper.prototype.findIcon = function(shape) {
 ReactWrapper.prototype.click = function() {
   return this.simulate('click')
 }
+*/

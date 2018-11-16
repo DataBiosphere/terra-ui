@@ -61,7 +61,8 @@
     "react-app-rewire-hot-loader": "^1.0.3",
     "react-app-rewired": "^2.0.0",
     "react-hot-loader": "^4.3.12",
-    "source-map-explorer": "^1.6.0"
+    "source-map-explorer": "^1.6.0",
+    "google-auth-library": "latest"
   },
   "browserslist": [
     ">0.2%",
