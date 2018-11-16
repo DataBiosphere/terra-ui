@@ -241,7 +241,6 @@ const WorkspaceData = _.flow(
           }),
           copyingEntities && h(ExportDataModal, {
             onDismiss: () => this.setState({ copyingEntities: false }),
-            onSuccess: () => this.setState({ copyingEntities: false }, () => this.refresh()),
             workspace,
             selectedEntities, selectedDataType, runningSubmissionsCount
           }),

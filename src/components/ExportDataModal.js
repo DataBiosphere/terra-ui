@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
-import { div, h } from 'react-hyperscript-helpers'
+import { b, div, h } from 'react-hyperscript-helpers'
 import { buttonPrimary, spinnerOverlay } from 'src/components/common'
 import ErrorView from 'src/components/ErrorView'
 import { icon } from 'src/components/icons'
@@ -10,6 +10,7 @@ import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import { requiredFormLabel, formLabel } from 'src/libs/forms'
+import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
@@ -22,7 +23,6 @@ export default _.flow(
 )(class ExportDataModal extends Component {
   static propTypes = {
     onDismiss: PropTypes.func.isRequired,
-    onSuccess: PropTypes.func.isRequired,
     selectedEntities: PropTypes.array.isRequired,
     selectedDataType: PropTypes.string.isRequired,
     runningSubmissionsCount: PropTypes.number.isRequired
@@ -108,16 +108,40 @@ export default _.flow(
     ])
   }
 
+  renderPostCopy() {
+    const { onDismiss } = this.props
+    const selectedWorkspace = this.getSelectedWorkspace().workspace
+
+    return h(Modal, {
+      title: 'Copy to Workspace',
+      onDismiss,
+      cancelText: 'Stay Here',
+      okButton: buttonPrimary({
+        onClick: () => {
+          Nav.goToPath('workspace-data', {
+            namespace: selectedWorkspace.namespace,
+            name: selectedWorkspace.name
+          })
+        }
+      }, ['Go to copied data'])
+    }, [
+      'Successfully copied data to ',
+      b([selectedWorkspace.name]),
+      '. Do you want to view the copied data?'
+    ])
+  }
+
   async copy() {
-    const { onDismiss, onSuccess, selectedEntities, selectedDataType, workspace, ajax: { Workspaces } } = this.props
+    const { onDismiss, selectedEntities, selectedDataType, workspace, ajax: { Workspaces } } = this.props
     const { additionalCopies } = this.state
     const entitiesToCopy = _.concat(_.map(entityName => (entityName), selectedEntities), additionalCopies)
     const selectedWorkspace = this.getSelectedWorkspace().workspace
 
     this.setState({ copying: true })
     try {
-      await Workspaces.workspace(workspace.workspace.namespace, workspace.workspace.name).copyEntities(selectedWorkspace.namespace, selectedWorkspace.name, selectedDataType, entitiesToCopy)
-      onSuccess()
+      await Workspaces.workspace(workspace.workspace.namespace, workspace.workspace.name)
+        .copyEntities(selectedWorkspace.namespace, selectedWorkspace.name, selectedDataType, entitiesToCopy)
+      this.setState({ copied: true })
     } catch (error) {
       switch (error.status) {
         case 409:
