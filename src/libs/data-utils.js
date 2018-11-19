@@ -211,12 +211,14 @@ export const EntityUploader = ajaxCaller(class EntityUploader extends Component 
   constructor(props) {
     super(props)
 
+    this.state = { newEntityType: '' }
+
     this.uploader = createRef()
   }
 
   async doUpload() {
     const { onDismiss, onSuccess, namespace, name, ajax: { Workspaces } } = this.props
-    const { file, newEntityType = file.name.slice(0, -4) } = this.state
+    const { file, newEntityType } = this.state
 
     this.setState({ uploading: true })
 
@@ -232,7 +234,6 @@ export const EntityUploader = ajaxCaller(class EntityUploader extends Component 
   render() {
     const { onDismiss, entityTypes } = this.props
     const { uploading, file, newEntityType, isInvalidFile } = this.state
-    const workingNewName = newEntityType || (file && file.name.slice(0, -4))
 
     const inputLabel = text => div({ style: { fontSize: 16, marginBottom: '0.3rem' } }, [text])
 
@@ -243,27 +244,27 @@ export const EntityUploader = ajaxCaller(class EntityUploader extends Component 
       activeStyle: { backgroundColor: colors.blue[3], cursor: 'copy' },
       ref: this.uploader,
       onDropRejected: () => this.setState({ isInvalidFile: true }),
-      onDropAccepted: files => this.setState({ file: files[0], isInvalidFile: false })
+      onDropAccepted: ([file]) => this.setState({ file, newEntityType: newEntityType || file.name.slice(0, -4), isInvalidFile: false })
     }, [
       h(Modal, {
         onDismiss,
         title: 'Upload New Data',
         okButton: buttonPrimary({
-          disabled: uploading,
+          disabled: !newEntityType || !file || uploading,
           onClick: () => this.doUpload()
         }, ['Upload'])
       }, [
         inputLabel('New Data Type'),
         textInput({
           style: { marginBottom: '0.5rem' },
-          value: workingNewName || '',
+          value: newEntityType,
           onChange: e => this.setState({ newEntityType: e.target.value })
         }),
-        _.includes(_.toLower(workingNewName), entityTypes) && div({
+        _.includes(_.toLower(newEntityType), entityTypes) && div({
           style: { ...warningBoxStyle, marginBottom: '0.5rem', display: 'flex', alignItems: 'center' }
         }, [
           icon('warning-standard', { size: 24, className: 'is-solid', style: { flex: 'none', marginRight: '0.5rem', marginLeft: '-0.5rem' } }),
-          div([`Data with the type '${workingNewName}' already exists in this workspace. `,
+          div([`Data with the type '${newEntityType}' already exists in this workspace. `,
             'Uploading another load file for the same type may overwrite some entries.'])
         ]),
         inputLabel('Selected File'),
