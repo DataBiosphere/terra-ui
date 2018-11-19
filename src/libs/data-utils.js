@@ -256,7 +256,7 @@ export const EntityUploader = ajaxCaller(class EntityUploader extends Component 
     }, [
       h(Modal, {
         onDismiss,
-        title: 'Upload New Data',
+        title: 'Upload Table From .tsv File',
         okButton: buttonPrimary({
           disabled: !file || uploading,
           onClick: () => this.doUpload()

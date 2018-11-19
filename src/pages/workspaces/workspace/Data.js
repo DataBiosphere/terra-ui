@@ -200,7 +200,7 @@ const WorkspaceData = _.flow(
       !entityMetadata ? spinnerOverlay : h(Fragment, [
         div({ style: styles.dataTypeSelectionPanel }, [
           div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between' } }, [
-            div({ style: styles.dataTypeHeading }, 'Data Model'),
+            div({ style: styles.dataTypeHeading }, 'Tables'),
             linkButton({
               disabled: !canEdit,
               tooltip: canEdit ? 'Upload .tsv' : 'You do not have access add data to this workspace.',
@@ -280,7 +280,7 @@ const WorkspaceData = _.flow(
               selectedDataType === localVariables ? this.loadData() :
                 this.setState({ selectedDataType: localVariables })
             }
-          }, ['Local Variables'])
+          }, ['Workspace Data'])
         ]),
         div({ style: styles.tableViewPanel(selectedDataType) }, [
           selectedDataType ? this.renderData() : 'Select a data type.',
@@ -524,7 +524,7 @@ const WorkspaceData = _.flow(
 
     return Utils.cond(
       [!amendedAttributes, () => undefined],
-      [_.isEmpty(amendedAttributes), () => 'No Local Variables defined'],
+      [_.isEmpty(amendedAttributes), () => 'No Workspace Data defined'],
       () => div({ style: { flex: 1 } }, [
         h(AutoSizer, [
           ({ width, height }) => h(FlexTable, {
@@ -635,7 +635,7 @@ const WorkspaceData = _.flow(
             }
           },
           'Delete Variable')
-        }, ['This will permanently delete the data from Local Variables.'])
+        }, ['This will permanently delete the data from Workspace Data.'])
       ])
     )
   }
