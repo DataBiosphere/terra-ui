@@ -192,14 +192,21 @@ const WorkspaceData = _.flow(
 
   render() {
     const { namespace, name, workspace: { accessLevel, workspaceSubmissionStats: { runningSubmissionsCount } } } = this.props
-    const { selectedDataType, entityMetadata, loading, importingReference, deletingReference, deletingEntities, selectedEntities } = this.state
+    const { selectedDataType, entityMetadata, loading, importingReference, deletingReference, deletingEntities, selectedEntities, uploadingFile } = this.state
     const referenceData = this.getReferenceData()
     const canEdit = Utils.canWrite(accessLevel)
 
     return div({ style: styles.tableContainer }, [
       !entityMetadata ? spinnerOverlay : h(Fragment, [
         div({ style: styles.dataTypeSelectionPanel }, [
-          div({ style: styles.dataTypeHeading }, 'Data Model'),
+          div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between' } }, [
+            div({ style: styles.dataTypeHeading }, 'Data Model'),
+            linkButton({
+              disabled: !canEdit,
+              tooltip: canEdit ? 'Upload .tsv' : 'You do not have access add data to this workspace.',
+              onClick: () => this.setState({ uploadingFile: true })
+            }, [icon('plus-circle')])
+          ]),
           _.map(([type, typeDetails]) => {
             return h(DataTypeButton, {
               key: type,
@@ -238,7 +245,7 @@ const WorkspaceData = _.flow(
             namespace, name,
             selectedEntities, selectedDataType, runningSubmissionsCount
           }),
-          h(EntityUploader, {
+          uploadingFile && h(EntityUploader, {
             onDismiss: () => this.setState({ uploadingFile: false }),
             onSuccess: () => this.setState({ uploadingFile: false }, () => this.refresh()),
             namespace, name,

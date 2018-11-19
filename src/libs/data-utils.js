@@ -5,7 +5,6 @@ import Dropzone from 'react-dropzone'
 import { div, h } from 'react-hyperscript-helpers/lib/index'
 import { buttonPrimary, Clickable, link, Select, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
-import { textInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { TextCell } from 'src/components/table'
 import { UriViewerLink } from 'src/components/UriViewer'
@@ -218,12 +217,12 @@ export const EntityUploader = ajaxCaller(class EntityUploader extends Component 
 
   async doUpload() {
     const { onDismiss, onSuccess, namespace, name, ajax: { Workspaces } } = this.props
-    const { file, newEntityType } = this.state
+    const { file } = this.state
 
     this.setState({ uploading: true })
 
     try {
-      await Workspaces.workspace(namespace, name).importEntitiesFile(file, newEntityType)
+      await Workspaces.workspace(namespace, name).importEntitiesFile(file)
       onSuccess()
     } catch (error) {
       reportError('Error uploading entities', error)
@@ -233,7 +232,7 @@ export const EntityUploader = ajaxCaller(class EntityUploader extends Component 
 
   render() {
     const { onDismiss, entityTypes } = this.props
-    const { uploading, file, newEntityType, isInvalidFile } = this.state
+    const { uploading, file, newEntityType, isInvalidFile, isInvalidTSV } = this.state
 
     const inputLabel = text => div({ style: { fontSize: 16, marginBottom: '0.3rem' } }, [text])
 
@@ -243,30 +242,36 @@ export const EntityUploader = ajaxCaller(class EntityUploader extends Component 
       style: { flexGrow: 1 },
       activeStyle: { backgroundColor: colors.blue[3], cursor: 'copy' },
       ref: this.uploader,
-      onDropRejected: () => this.setState({ isInvalidFile: true }),
-      onDropAccepted: ([file]) => this.setState({ file, newEntityType: newEntityType || file.name.slice(0, -4), isInvalidFile: false })
+      onDropRejected: () => this.setState({ file: undefined, isInvalidFile: true, isInvalidTSV: false }),
+      onDropAccepted: async ([file]) => {
+        const firstBytes = await Utils.readFileAsText(file.slice(0, 1000))
+        const definedTypeMatch = /(?:membership|entity):(.+)_id/.exec(firstBytes)
+
+        if (definedTypeMatch) {
+          this.setState({ file, isInvalidFile: false, isInvalidTSV: false, newEntityType: definedTypeMatch[1] })
+        } else {
+          this.setState({ file: undefined, isInvalidTSV: true, isInvalidFile: false })
+        }
+      }
     }, [
       h(Modal, {
         onDismiss,
         title: 'Upload New Data',
         okButton: buttonPrimary({
-          disabled: !newEntityType || !file || uploading,
+          disabled: !file || uploading,
           onClick: () => this.doUpload()
         }, ['Upload'])
       }, [
-        inputLabel('New Data Type'),
-        textInput({
-          style: { marginBottom: '0.5rem' },
-          value: newEntityType,
-          onChange: e => this.setState({ newEntityType: e.target.value })
-        }),
-        _.includes(_.toLower(newEntityType), entityTypes) && div({
+        file && _.includes(_.toLower(newEntityType), entityTypes) && div({
           style: { ...warningBoxStyle, marginBottom: '0.5rem', display: 'flex', alignItems: 'center' }
         }, [
           icon('warning-standard', { size: 24, className: 'is-solid', style: { flex: 'none', marginRight: '0.5rem', marginLeft: '-0.5rem' } }),
           div([`Data with the type '${newEntityType}' already exists in this workspace. `,
             'Uploading another load file for the same type may overwrite some entries.'])
         ]),
+        (isInvalidFile || isInvalidTSV) && div({
+          style: { color: colors.orange[0], fontWeight: 'bold', fontSize: 12, marginBottom: '0.5rem' }
+        }, [isInvalidFile ? 'Only .tsv files can be uploaded.' : 'File does not start with entity or membership definition.']),
         inputLabel('Selected File'),
         (file && file.name) || 'None',
         h(Clickable, {
@@ -277,9 +282,6 @@ export const EntityUploader = ajaxCaller(class EntityUploader extends Component 
           },
           onClick: () => this.uploader.current.open()
         }, [
-          isInvalidFile && div({
-            style: { color: colors.orange[0], fontWeight: 'bold', fontSize: 12, marginBottom: '0.5rem' }
-          }, ['Only .tsv files can be uploaded.']),
           div(['Drag or ', link({}, ['Click']), ' to select a .tsv file'])
         ])
       ]),
