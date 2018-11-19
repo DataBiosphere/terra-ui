@@ -21,7 +21,7 @@ describe('Google', () => {
   let browser
   let page
   beforeEach(async () => {
-    jasmine.DEFAULT_TIMEOUT_INTERVAL = 20000
+    // jasmine.DEFAULT_TIMEOUT_INTERVAL = 20000
     browser = await puppeteer.launch({
       headless: false//,
       // slowMo: 100 // slow down by X ms // this seems to make the test skip the things in beforeEach
