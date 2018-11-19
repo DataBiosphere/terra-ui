@@ -8,7 +8,7 @@ import { icon } from 'src/components/icons'
 import { textInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { TextCell } from 'src/components/table'
-import UriViewer from 'src/components/UriViewer'
+import { UriViewerLink } from 'src/components/UriViewer'
 import ReferenceData from 'src/data/reference-data'
 import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
@@ -29,7 +29,7 @@ export const renderDataCell = (data, namespace) => {
   const isUri = datum => _.startsWith('gs://', datum) || _.startsWith('dos://', datum)
 
   const renderCell = datum => h(TextCell, { title: datum },
-    [isUri(datum) ? h(UriViewer, { uri: datum, googleProject: namespace }) : datum])
+    [isUri(datum) ? h(UriViewerLink, { uri: datum, googleProject: namespace }) : datum])
 
   return _.isObject(data) ?
     data.items.map((v, i) => h(Fragment, { key: i }, [
