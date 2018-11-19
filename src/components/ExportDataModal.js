@@ -32,7 +32,7 @@ export default _.flow(
     super(props)
 
     this.state = {
-      additionalCopies: [],
+      conflicts: [],
       selectedWorkspaceId: undefined,
       error: undefined,
       copying: false
@@ -52,8 +52,8 @@ export default _.flow(
 
   renderCopyForm() {
     const { onDismiss, selectedEntities, runningSubmissionsCount, workspace, workspaces } = this.props
-    const { copying, additionalCopies, error, selectedWorkspaceId } = this.state
-    const moreToCopy = !!additionalCopies.length
+    const { copying, conflicts, error, selectedWorkspaceId } = this.state
+    const conflictsExist = !!conflicts.length
 
     const warningStyle = {
       border: `1px solid ${colors.orange[1]}`, borderLeft: 'none', borderRight: 'none',
@@ -88,9 +88,9 @@ export default _.flow(
         value: selectedWorkspaceId,
         onChange: v => this.setState({ selectedWorkspaceId: v })
       }),
-      moreToCopy && div({ style: { ...warningStyle, display: 'flex', alignItems: 'center' } }, [
+      conflictsExist && div({ style: { ...warningStyle, display: 'flex', alignItems: 'center' } }, [
         icon('warning-standard', { size: 36, className: 'is-solid', style: { flex: 'none', marginRight: '0.5rem' } }),
-        'In order to copy the selected data entries, the following entries that reference them must also be copied.'
+        'The following entries already exist in the selected workspace. Would you like to copy selections as a different table? '
       ]),
       formLabel('Entries selected'),
       ..._.map(([i, entity]) => div({
@@ -98,11 +98,11 @@ export default _.flow(
           borderTop: (i === 0 && runningSubmissionsCount === 0) ? undefined : Style.standardLine,
           padding: '0.6rem 1.25rem', margin: '0 -1.25rem'
         }
-      }, moreToCopy ? `${entity.entityName} (${entity.entityType})` : entity),
-      Utils.toIndexPairs(moreToCopy ? additionalCopies : selectedEntities)),
+      }, conflictsExist ? `${entity.entityName} (${entity.entityType})` : entity),
+      Utils.toIndexPairs(conflictsExist ? conflicts : selectedEntities)),
       div({
         style: { ...warningStyle, textAlign: 'right' }
-      }, [`${selectedEntities.length + additionalCopies.length} data entries to be copied.`]),
+      }, [`${selectedEntities.length} data entries to be copied.`]),
       copying && spinnerOverlay,
       error && h(ErrorView, { error, collapses: false })
     ])
@@ -133,8 +133,7 @@ export default _.flow(
 
   async copy() {
     const { onDismiss, selectedEntities, selectedDataType, workspace, ajax: { Workspaces } } = this.props
-    const { additionalCopies } = this.state
-    const entitiesToCopy = _.concat(_.map(entityName => (entityName), selectedEntities), additionalCopies)
+    const entitiesToCopy = _.map(entityName => (entityName), selectedEntities)
     const selectedWorkspace = this.getSelectedWorkspace().workspace
 
     this.setState({ copying: true })
@@ -145,7 +144,8 @@ export default _.flow(
     } catch (error) {
       switch (error.status) {
         case 409:
-          this.setState({ additionalCopies: _.filter(entity => entity.entityType !== selectedDataType, await error.json()), copying: false })
+          const { hardConflicts } = await error.json()
+          this.setState({ conflicts: hardConflicts, copying: false })
           break
         default:
           reportError('Error copying data entries', error)

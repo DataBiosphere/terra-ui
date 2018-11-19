@@ -405,7 +405,7 @@ const WorkspaceData = _.flow(
       }),*/
       !!selectedEntities.length && h(FloatingActionButton, {
         label: 'COPY DATA',
-        iconShape: 'clone',
+        iconShape: 'cardMenuIcon',
         onClick: () => this.setState({ copyingEntities: true })
       })
     ])

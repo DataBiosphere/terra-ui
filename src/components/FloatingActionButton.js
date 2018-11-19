@@ -43,7 +43,7 @@ export default class FloatingActionButton extends Component {
             transition: 'max-width 0.5s ease-out, padding 0.1s linear 0.2s'
           }
         }, label),
-        icon(iconShape, { size: 25, style: { stroke: 'white', strokeWidth: 2 } })
+        icon(iconShape, { size: 25, style: { stroke: 'white', strokeWidth: 0.25 } })
       ])
   }
 }
