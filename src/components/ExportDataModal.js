@@ -15,6 +15,7 @@ import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 import validate from 'validate.js'
+import { validatedInput } from 'src/components/input'
 
 
 export default _.flow(
@@ -61,6 +62,14 @@ export default _.flow(
       padding: '1rem 1.25rem', margin: '0 -1.25rem',
       color: colors.orange[0], fontWeight: 'bold', fontSize: 12
     }
+
+    const errorStyle = {
+      ...warningStyle,
+      border: `1px solid ${colors.red[1]}`,
+      backgroundColor: colors.red[4],
+      color: colors.red[0]
+    }
+
     const errors = validate(
       { selectedWorkspaceId },
       { selectedWorkspaceId: { presence: true } },
@@ -88,8 +97,8 @@ export default _.flow(
         value: selectedWorkspaceId,
         onChange: v => this.setState({ selectedWorkspaceId: v })
       }),
-      conflictsExist && div({ style: { ...warningStyle, display: 'flex', alignItems: 'center' } }, [
-        icon('warning-standard', { size: 36, className: 'is-solid', style: { flex: 'none', marginRight: '0.5rem' } }),
+      conflictsExist && div({ style: { ...errorStyle, display: 'flex', alignItems: 'center' } }, [
+        icon('error-standard', { size: 36, className: 'is-solid', style: { flex: 'none', marginRight: '0.5rem' } }),
         'The following entries already exist in the selected workspace. Would you like to copy selections as a different table? '
       ]),
       formLabel('Entries selected'),
@@ -100,8 +109,15 @@ export default _.flow(
         }
       }, conflictsExist ? `${entity.entityName} (${entity.entityType})` : entity),
       Utils.toIndexPairs(conflictsExist ? conflicts : selectedEntities)),
+      conflictsExist && formLabel('Table Name'),
+      conflictsExist && validatedInput({
+        inputProps: {
+          value: conflicts[0].entityType,
+          onChange: e => this.setState({ newEntityType: e.target.value })
+        }
+      }),
       div({
-        style: { ...warningStyle, textAlign: 'right' }
+        style: { ...warningStyle, textAlign: 'right', marginTop: conflictsExist ? '1rem' : undefined }
       }, [`${selectedEntities.length} data entries to be copied.`]),
       copying && spinnerOverlay,
       error && h(ErrorView, { error, collapses: false })
