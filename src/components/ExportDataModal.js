@@ -100,7 +100,7 @@ export default _.flow(
       }),
       conflictsExist && div({ style: { ...errorStyle, display: 'flex', alignItems: 'center' } }, [
         icon('error-standard', { size: 36, className: 'is-solid', style: { flex: 'none', marginRight: '0.5rem' } }),
-        'The following entries already exist in the selected workspace. Would you like to copy selections as a different table? '
+        'The following entries already exist in the selected workspace. Would you like to copy all your selections as a different table? '
       ]),
       formLabel('Entries selected'),
       ..._.map(([i, entity]) => div({
@@ -153,7 +153,6 @@ export default _.flow(
     const { selectedEntityType } = this.state
     const entitiesToCopy = _.map(entityName => (entityName), selectedEntities)
     const selectedWorkspace = this.getSelectedWorkspace().workspace
-    console.log(selectedEntityType)
     this.setState({ copying: true })
     try {
       await Workspaces.workspace(workspace.workspace.namespace, workspace.workspace.name)
