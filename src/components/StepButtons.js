@@ -4,7 +4,6 @@ import { div, h, span } from 'react-hyperscript-helpers'
 import { Clickable } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import colors from 'src/libs/colors'
-import { Component } from 'src/libs/wrapped-components'
 
 
 const buttonWidth = 185
@@ -26,7 +25,7 @@ const styles = {
     borderColor: isActive ? colors.blue[0] : colors.gray[3],
     backgroundColor: isActive ? colors.blue[1] : colors.gray[4],
     color: 'white',
-    padding: '0 1.5rem'
+    padding: '0 0.5rem 0 1.5rem'
   }),
   buttonLabel: {
     textTransform: 'uppercase', fontWeight: 600, fontSize: 16, marginLeft: '0.5rem'

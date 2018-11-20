@@ -37,7 +37,7 @@ const miniMessage = text => span({ style: { fontWeight: 500, fontSize: '75%', ma
 
 const errorIcon = b => {
   return !_.isEmpty(b) && icon('error', {
-    size: 28, style: { marginLeft: '0.5rem', marginRight: -28, color: colors.red[0] }
+    size: 28, style: { marginLeft: '0.5rem', color: colors.red[0] }
   })
 }
 
