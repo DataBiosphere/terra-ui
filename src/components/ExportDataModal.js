@@ -36,7 +36,8 @@ export default _.flow(
       conflicts: [],
       selectedWorkspaceId: undefined,
       error: undefined,
-      copying: false
+      copying: false,
+      selectedEntityType: props.selectedDataType
     }
   }
 
@@ -53,7 +54,7 @@ export default _.flow(
 
   renderCopyForm() {
     const { onDismiss, selectedEntities, runningSubmissionsCount, workspace, workspaces } = this.props
-    const { copying, conflicts, error, selectedWorkspaceId } = this.state
+    const { copying, conflicts, error, selectedWorkspaceId, selectedEntityType } = this.state
     const conflictsExist = !!conflicts.length
 
     const warningStyle = {
@@ -112,8 +113,8 @@ export default _.flow(
       conflictsExist && formLabel('Table Name'),
       conflictsExist && validatedInput({
         inputProps: {
-          value: conflicts[0].entityType,
-          onChange: e => this.setState({ newEntityType: e.target.value })
+          value: selectedEntityType,
+          onChange: e => this.setState({ selectedEntityType: e.target.value })
         }
       }),
       div({
@@ -148,14 +149,15 @@ export default _.flow(
   }
 
   async copy() {
-    const { onDismiss, selectedEntities, selectedDataType, workspace, ajax: { Workspaces } } = this.props
+    const { onDismiss, selectedEntities, workspace, ajax: { Workspaces } } = this.props
+    const { selectedEntityType } = this.state
     const entitiesToCopy = _.map(entityName => (entityName), selectedEntities)
     const selectedWorkspace = this.getSelectedWorkspace().workspace
-
+    console.log(selectedEntityType)
     this.setState({ copying: true })
     try {
       await Workspaces.workspace(workspace.workspace.namespace, workspace.workspace.name)
-        .copyEntities(selectedWorkspace.namespace, selectedWorkspace.name, selectedDataType, entitiesToCopy)
+        .copyEntities(selectedWorkspace.namespace, selectedWorkspace.name, selectedEntityType, entitiesToCopy)
       this.setState({ copied: true })
     } catch (error) {
       switch (error.status) {
