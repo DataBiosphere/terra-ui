@@ -232,7 +232,7 @@ export const EntityUploader = ajaxCaller(class EntityUploader extends Component 
 
   render() {
     const { onDismiss, entityTypes } = this.props
-    const { uploading, file, newEntityType, isInvalidFile, isInvalidTSV } = this.state
+    const { uploading, file, newEntityType, isInvalid } = this.state
 
     const inputLabel = text => div({ style: { fontSize: 16, marginBottom: '0.3rem' } }, [text])
 
@@ -242,15 +242,15 @@ export const EntityUploader = ajaxCaller(class EntityUploader extends Component 
       style: { flexGrow: 1 },
       activeStyle: { backgroundColor: colors.blue[3], cursor: 'copy' },
       ref: this.uploader,
-      onDropRejected: () => this.setState({ file: undefined, isInvalidFile: true, isInvalidTSV: false }),
+      onDropRejected: () => this.setState({ file: undefined, isInvalid: 'file' }),
       onDropAccepted: async ([file]) => {
         const firstBytes = await Utils.readFileAsText(file.slice(0, 1000))
         const definedTypeMatch = /(?:membership|entity):(.+)_id/.exec(firstBytes)
 
         if (definedTypeMatch) {
-          this.setState({ file, isInvalidFile: false, isInvalidTSV: false, newEntityType: definedTypeMatch[1] })
+          this.setState({ file, isInvalid: undefined, newEntityType: definedTypeMatch[1] })
         } else {
-          this.setState({ file: undefined, isInvalidTSV: true, isInvalidFile: false })
+          this.setState({ file: undefined, isInvalid: 'tsv' })
         }
       }
     }, [
@@ -269,9 +269,9 @@ export const EntityUploader = ajaxCaller(class EntityUploader extends Component 
           div([`Data with the type '${newEntityType}' already exists in this workspace. `,
             'Uploading another load file for the same type may overwrite some entries.'])
         ]),
-        (isInvalidFile || isInvalidTSV) && div({
+        isInvalid && div({
           style: { color: colors.orange[0], fontWeight: 'bold', fontSize: 12, marginBottom: '0.5rem' }
-        }, [isInvalidFile ? 'Only .tsv files can be uploaded.' : 'File does not start with entity or membership definition.']),
+        }, [isInvalid === 'file' ? 'Only .tsv files can be uploaded.' : 'File does not start with entity or membership definition.']),
         inputLabel('Selected File'),
         (file && file.name) || 'None',
         h(Clickable, {
