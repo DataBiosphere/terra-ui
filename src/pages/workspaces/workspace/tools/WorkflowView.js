@@ -12,7 +12,7 @@ import {
 import { centeredSpinner, icon } from 'src/components/icons'
 import { AutocompleteTextInput } from 'src/components/input'
 import PopupTrigger from 'src/components/PopupTrigger'
-import TabBar from 'src/components/TabBar'
+import StepButtons from 'src/components/StepButtons'
 import { FlexTable, HeaderCell, TextCell } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import WDLViewer from 'src/components/WDLViewer'
@@ -298,7 +298,7 @@ const WorkflowView = _.flow(
       [!_.isEmpty(errors.inputs) || !_.isEmpty(errors.outputs), () => 'At least one required attribute is missing or invalid']
     )
 
-    return div({ style: { backgroundColor: 'white', position: 'relative' } }, [
+    return div({ style: { position: 'relative', backgroundColor: 'white', borderBottom: `2px solid ${colors.blue[0]}` } }, [
       div({ style: { display: 'flex', padding: `1.5rem ${sideMargin} 0`, minHeight: 120 } }, [
         div({ style: { flex: '1', lineHeight: '1.5rem' } }, [
           div({ style: { display: 'flex' } }, [
@@ -335,7 +335,7 @@ const WorkflowView = _.flow(
               documentation
             ]) :
             div({ style: { fontStyle: 'italic', ...styles.description } }, ['No documentation provided']),
-          div({ style: { textTransform: 'capitalize', display: 'flex', alignItems: 'baseline', marginTop: '0.5rem' } }, [
+          div({ style: { display: 'flex', alignItems: 'baseline', marginTop: '0.5rem' } }, [
             'Data Type:',
             h(Select, {
               isClearable: true, isSearchable: false,
@@ -348,7 +348,16 @@ const WorkflowView = _.flow(
               },
               options: _.keys(entityMetadata)
             })
-          ])
+          ]),
+          h(StepButtons, {
+            tabs: [
+              { key: 'wdl', title: 'Script' },
+              { key: 'inputs', title: h(Fragment, ['Inputs', errorIcon(errors.inputs)]) },
+              { key: 'outputs', title: h(Fragment, ['Outputs', errorIcon(errors.outputs)]) }
+            ],
+            activeTab,
+            onChangeTab: v => this.setState({ activeTab: v })
+          })
         ]),
         div({ style: { flex: 'none', display: 'flex', flexDirection: 'column', alignItems: 'flex-end' } }, [
           linkButton({
@@ -370,16 +379,6 @@ const WorkflowView = _.flow(
           }, noLaunchReason)
         ])
       ]),
-      h(TabBar, {
-        style: { paddingLeft: sideMargin, marginTop: '1rem' },
-        tabs: [
-          { key: 'inputs', title: h(Fragment, ['Inputs', errorIcon(errors.inputs)]) },
-          { key: 'outputs', title: h(Fragment, ['Outputs', errorIcon(errors.outputs)]) },
-          { key: 'wdl', title: 'WDL' }
-        ],
-        activeTab,
-        onChangeTab: v => this.setState({ activeTab: v })
-      }),
       div({ style: styles.messageContainer }, [
         saving && miniMessage('Saving...'),
         saved && !saving && !modified && miniMessage('Saved!'),
