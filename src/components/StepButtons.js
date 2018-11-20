@@ -7,7 +7,7 @@ import colors from 'src/libs/colors'
 import { Component } from 'src/libs/wrapped-components'
 
 
-const buttonWidth = 170
+const buttonWidth = 185
 const buttonHeight = 50
 const dotSpace = 7
 const dotSize = 6
