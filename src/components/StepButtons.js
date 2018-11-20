@@ -75,25 +75,12 @@ const stepButton = ({ i, key, title, selectedIndex, onChangeTab }) => {
 }
 
 
-class StepButtons extends Component {
-  constructor(props) {
-    super(props)
+const StepButtons = ({ tabs, activeTab, onChangeTab }) => {
+  const selectedIndex = _.findIndex({ key: activeTab }, tabs)
 
-    this.tabMap = _.flow(
-      _.toPairs,
-      _.map(([i, { key }]) => ({ [key]: i * 1 })),
-      _.mergeAll
-    )(props.tabs)
-  }
-
-  render() {
-    const { tabs, activeTab, onChangeTab } = this.props
-    const selectedIndex = this.tabMap[activeTab]
-
-    return div({ style: styles.container }, [
-      ..._.map(([i, { key, title }]) => stepButton({ i: i * 1, key, title, selectedIndex, onChangeTab }), _.toPairs(tabs))
-    ])
-  }
+  return div({ style: styles.container }, [
+    ..._.map(([i, { key, title }]) => stepButton({ i: i * 1, key, title, selectedIndex, onChangeTab }), _.toPairs(tabs))
+  ])
 }
 
 export default StepButtons
