@@ -237,7 +237,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
             buttonPrimary({
               as: 'a',
               href: Nav.getLink('workspaces')
-            }, ['Workspaces List'])
+            }, ['Return to Workspace List'])
           ]) :
           h(Fragment, [
             h2({}, ['Failed to load workspace']),
