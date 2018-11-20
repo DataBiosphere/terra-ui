@@ -14,7 +14,7 @@ import { ajaxCaller } from 'src/libs/ajax'
 import { getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import * as Config from 'src/libs/config'
-import { EntityDeleter, ReferenceDataDeleter, ReferenceDataImporter, renderDataCell } from 'src/libs/data-utils'
+import { EntityDeleter, EntityUploader, ReferenceDataDeleter, ReferenceDataImporter, renderDataCell } from 'src/libs/data-utils'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
@@ -192,14 +192,21 @@ const WorkspaceData = _.flow(
 
   render() {
     const { namespace, name, workspace: { accessLevel, workspaceSubmissionStats: { runningSubmissionsCount } } } = this.props
-    const { selectedDataType, entityMetadata, loading, importingReference, deletingReference, deletingEntities, selectedEntities } = this.state
+    const { selectedDataType, entityMetadata, loading, importingReference, deletingReference, deletingEntities, selectedEntities, uploadingFile } = this.state
     const referenceData = this.getReferenceData()
     const canEdit = Utils.canWrite(accessLevel)
 
     return div({ style: styles.tableContainer }, [
       !entityMetadata ? spinnerOverlay : h(Fragment, [
         div({ style: styles.dataTypeSelectionPanel }, [
-          div({ style: styles.dataTypeHeading }, 'Data Model'),
+          div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between' } }, [
+            div({ style: styles.dataTypeHeading }, 'Tables'),
+            linkButton({
+              disabled: !canEdit,
+              tooltip: canEdit ? 'Upload .tsv' : 'You do not have access add data to this workspace.',
+              onClick: () => this.setState({ uploadingFile: true })
+            }, [icon('plus-circle')])
+          ]),
           _.map(([type, typeDetails]) => {
             return h(DataTypeButton, {
               key: type,
@@ -238,6 +245,12 @@ const WorkspaceData = _.flow(
             namespace, name,
             selectedEntities, selectedDataType, runningSubmissionsCount
           }),
+          uploadingFile && h(EntityUploader, {
+            onDismiss: () => this.setState({ uploadingFile: false }),
+            onSuccess: () => this.setState({ uploadingFile: false }, () => this.refresh()),
+            namespace, name,
+            entityTypes: _.keys(entityMetadata)
+          }),
           _.map(type => {
             return h(DataTypeButton, {
               key: type,
@@ -267,7 +280,7 @@ const WorkspaceData = _.flow(
               selectedDataType === localVariables ? this.loadData() :
                 this.setState({ selectedDataType: localVariables })
             }
-          }, ['Local Variables'])
+          }, ['Workspace Data'])
         ]),
         div({ style: styles.tableViewPanel(selectedDataType) }, [
           selectedDataType ? this.renderData() : 'Select a data type.',
@@ -511,7 +524,7 @@ const WorkspaceData = _.flow(
 
     return Utils.cond(
       [!amendedAttributes, () => undefined],
-      [_.isEmpty(amendedAttributes), () => 'No Local Variables defined'],
+      [_.isEmpty(amendedAttributes), () => 'No Workspace Data defined'],
       () => div({ style: { flex: 1 } }, [
         h(AutoSizer, [
           ({ width, height }) => h(FlexTable, {
@@ -622,7 +635,7 @@ const WorkspaceData = _.flow(
             }
           },
           'Delete Variable')
-        }, ['This will permanently delete the data from Local Variables.'])
+        }, ['This will permanently delete the data from Workspace Data.'])
       ])
     )
   }
