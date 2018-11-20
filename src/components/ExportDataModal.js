@@ -100,7 +100,7 @@ export default _.flow(
       }),
       conflictsExist && div({ style: { ...errorStyle, display: 'flex', alignItems: 'center' } }, [
         icon('error-standard', { size: 36, className: 'is-solid', style: { flex: 'none', marginRight: '0.5rem' } }),
-        'The following entries already exist in the selected workspace. Would you like to copy all your selections as a different table? '
+        'The following entries already exist in the selected workspace. Would you like to copy your selections as a different table? '
       ]),
       formLabel('Entries selected'),
       ..._.map(([i, entity]) => div({
