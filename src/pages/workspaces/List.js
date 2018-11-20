@@ -4,7 +4,7 @@ import { a, div, h, span } from 'react-hyperscript-helpers'
 import { pure } from 'recompose'
 import removeMd from 'remove-markdown'
 import togglesListView from 'src/components/CardsListToggle'
-import { Clickable, MenuButton, PageFadeBox, search, topSpinnerOverlay, transparentSpinnerOverlay, menuIcon } from 'src/components/common'
+import { Clickable, MenuButton, PageFadeBox, search, topSpinnerOverlay, transparentSpinnerOverlay, menuIcon, Select } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
 import PopupTrigger from 'src/components/PopupTrigger'
@@ -16,10 +16,12 @@ import colors from 'src/libs/colors'
 import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
+import { workspaceAccessLevels } from 'src/libs/utils'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 import DeleteWorkspaceModal from 'src/pages/workspaces/workspace/DeleteWorkspaceModal'
 import ShareWorkspaceModal from 'src/pages/workspaces/workspace/ShareWorkspaceModal'
+import * as Forms from 'src/libs/forms'
 
 
 const styles = {
@@ -173,6 +175,8 @@ export const WorkspaceList = _.flow(
       cloningWorkspaceId: undefined,
       deletingWorkspaceId: undefined,
       sharingWorkspaceId: undefined,
+      accessLevelsFilter: [],
+      projectsFilter: [],
       ...StateHistory.get()
     }
   }
@@ -184,8 +188,9 @@ export const WorkspaceList = _.flow(
 
   render() {
     const { workspaces, loadingWorkspaces, refreshWorkspaces, listView, viewToggleButtons } = this.props
-    const { filter, creatingNewWorkspace, cloningWorkspaceId, deletingWorkspaceId, sharingWorkspaceId } = this.state
-    const data = _.flow(
+    const { filter, creatingNewWorkspace, cloningWorkspaceId, deletingWorkspaceId, sharingWorkspaceId, accessLevelsFilter, projectsFilter } = this.state
+
+    const initialFiltered = _.flow(
       _.filter(ws => {
         const { workspace: { namespace, name } } = ws
         return Utils.textMatch(filter, `${namespace}/${name}`) &&
@@ -193,6 +198,11 @@ export const WorkspaceList = _.flow(
       }),
       _.sortBy('workspace.name')
     )(workspaces)
+    const namespaceList = _.uniq(_.map('workspace.namespace', initialFiltered))
+    const data = _.filter(ws => (_.isEmpty(accessLevelsFilter) || accessLevelsFilter.includes(ws.accessLevel)) &&
+      (_.isEmpty(projectsFilter) || projectsFilter.includes(ws.workspace.namespace)),
+    initialFiltered)
+
     const renderedWorkspaces = _.map(workspace => {
       return h(WorkspaceCard, {
         listView,
@@ -213,9 +223,34 @@ export const WorkspaceList = _.flow(
           }
         })
       ]),
+
+
       h(PageFadeBox, { style: { position: 'relative' } }, [
         div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' } }, [
           div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, ['Workspaces']),
+          div({ style: { color: colors.blue[0], marginLeft: 'auto', flex: '0 0 200px' } }, [
+            Forms.formLabel('Access Level'),
+            h(Select, {
+              isClearable: true,
+              isMulti: true,
+              placeholder: 'Select access levels',
+              value: accessLevelsFilter,
+              onChange: data => this.setState({ accessLevelsFilter: _.map('value', data) }),
+              options: _.drop(1, workspaceAccessLevels),
+              getOptionLabel: ({ value }) => Utils.normalizeLabel(value)
+            })
+          ]),
+          div({ style: {  color: colors.blue[0], margin: '0 1rem', flex: '0 0 200px' } }, [
+            Forms.formLabel('Project'),
+            h(Select, {
+              isClearable: true,
+              isMulti: true,
+              placeholder: 'Select projects',
+              value: projectsFilter,
+              onChange: data => this.setState({ projectsFilter: _.map('value', data) }),
+              options: namespaceList
+            })
+          ]),
           viewToggleButtons
         ]),
         div({ style: styles.cardContainer(listView) }, [
@@ -253,7 +288,7 @@ export const WorkspaceList = _.flow(
 
   componentDidUpdate() {
     StateHistory.update(_.pick(
-      ['filter'],
+      ['filter', 'accessLevelsFilter', 'projectsFilter'],
       this.state)
     )
   }
