@@ -16,7 +16,6 @@ import colors from 'src/libs/colors'
 import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
-import { workspaceAccessLevels } from 'src/libs/utils'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 import DeleteWorkspaceModal from 'src/pages/workspaces/workspace/DeleteWorkspaceModal'
@@ -236,7 +235,7 @@ export const WorkspaceList = _.flow(
               placeholder: 'Select access levels',
               value: accessLevelsFilter,
               onChange: data => this.setState({ accessLevelsFilter: _.map('value', data) }),
-              options: _.drop(1, workspaceAccessLevels),
+              options: _.drop(1, Utils.workspaceAccessLevels),
               getOptionLabel: ({ value }) => Utils.normalizeLabel(value)
             })
           ]),
