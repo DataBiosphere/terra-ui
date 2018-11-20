@@ -277,7 +277,7 @@ export const EntityUploader = ajaxCaller(class EntityUploader extends Component 
           style: { color: colors.orange[0], fontWeight: 'bold', fontSize: 12, marginBottom: '0.5rem' }
         }, [isInvalid === 'file' ? 'Only .tsv files can be uploaded.' : 'File does not start with entity or membership definition.']),
         inputLabel('Selected File'),
-        (file && file.name) || 'None',
+        (file && file.name) || div({ style: { color: colors.gray[2] } }, 'None'),
         h(Clickable, {
           style: {
             ...Style.elements.card, flex: 1,
