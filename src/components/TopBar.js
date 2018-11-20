@@ -1,19 +1,19 @@
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
 import { createPortal } from 'react-dom'
-import { a, div, h } from 'react-hyperscript-helpers'
+import { a, b, div, h } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
 import { Clickable, comingSoon, MenuButton } from 'src/components/common'
 import { icon, logo, profilePic } from 'src/components/icons'
 import { pushNotification } from 'src/components/Notifications'
 import SignInButton from 'src/components/SignInButton'
+import SupportRequestModal from 'src/components/SupportRequestModal'
 import { authStore, getUser, signOut } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
-import SupportRequestModal from 'src/components/SupportRequestModal'
 
 
 const styles = {
@@ -64,6 +64,15 @@ const styles = {
   }
 }
 
+const betaTag = b({
+  style: {
+    fontSize: 8, lineHeight: '9px',
+    color: 'white', backgroundColor: colors.brick,
+    padding: '3px 5px', marginLeft: '0.4rem', verticalAlign: 'middle',
+    borderRadius: 2
+  }
+}, 'BETA')
+
 export default Utils.connectAtom(authStore, 'authState')(class TopBar extends Component {
   static propTypes = {
     title: PropTypes.node,
@@ -112,7 +121,7 @@ export default Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
               },
               href: Nav.getLink('root'),
               onClick: () => this.hideNav()
-            }, [logo(), 'Terra'])
+            }, [logo(), 'Terra', betaTag])
           ]),
           isSignedIn ?
             this.buildUserSection() :
@@ -249,9 +258,9 @@ export default Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
         logo(),
         div({}, [
           div({
-            style: _.merge(title ? { fontSize: '0.8rem' } : { fontSize: '1rem', fontWeight: 600 },
+            style: _.merge(title ? { fontSize: '0.8rem', lineHeight: '19px' } : { fontSize: '1rem', fontWeight: 600 },
               { color: colors.darkBlue[2], marginLeft: '0.1rem' })
-          }, ['Terra']),
+          }, ['Terra', betaTag]),
           title
         ])
       ]),
