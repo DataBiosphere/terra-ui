@@ -232,15 +232,19 @@ export const EntityUploader = ajaxCaller(class EntityUploader extends Component 
 
   render() {
     const { onDismiss, entityTypes } = this.props
-    const { uploading, file, newEntityType, isInvalid } = this.state
+    const { uploading, file, newEntityType, isInvalid, dragging } = this.state
 
     const inputLabel = text => div({ style: { fontSize: 16, marginBottom: '0.3rem' } }, [text])
 
     return h(Dropzone, {
       accept: '.tsv',
       disableClick: true,
+      multiple: false,
       style: { flexGrow: 1 },
-      activeStyle: { backgroundColor: colors.blue[3], cursor: 'copy' },
+      onDragOver: () => this.setState({ dragging: true }),
+      onDrop: () => this.setState({ dragging: false }),
+      onDragLeave: () => this.setState({ dragging: false }),
+      activeStyle: { cursor: 'copy' },
       ref: this.uploader,
       onDropRejected: () => this.setState({ file: undefined, isInvalid: 'file' }),
       onDropAccepted: async ([file]) => {
@@ -278,7 +282,7 @@ export const EntityUploader = ajaxCaller(class EntityUploader extends Component 
           style: {
             ...Style.elements.card, flex: 1,
             margin: '0.5rem 0',
-            backgroundColor: colors.gray[4], border: `1px dashed ${colors.gray[2]}`, boxShadow: 'none'
+            backgroundColor: dragging ? colors.blue[3] : colors.gray[4], border: `1px dashed ${colors.gray[2]}`, boxShadow: 'none'
           },
           onClick: () => this.uploader.current.open()
         }, [
