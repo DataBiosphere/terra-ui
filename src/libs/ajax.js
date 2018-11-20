@@ -425,6 +425,12 @@ const Workspaces = signal => ({
         return fetchRawls(`${root}/entities/batchUpsert`, _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }]))
       },
 
+      importEntitiesFile: async file => {
+        const formData = new FormData()
+        formData.set('entities', file)
+        return fetchOrchestration(`api/${root}/flexibleImportEntities`, _.merge(authOpts(), { body: formData, signal, method: 'POST' }))
+      },
+
       deleteEntities: async entities => {
         return fetchRawls(`${root}/entities/delete`, _.mergeAll([authOpts(), jsonBody(entities), { signal, method: 'POST' }]))
       },
