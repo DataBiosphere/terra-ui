@@ -186,7 +186,7 @@ export default Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
   }
 
   buildUserSection() {
-    const { authState: { user: { givenName, familyName }, profile: { firstName = givenName, lastName = familyName } } } = this.props
+    const { authState: { profile: { firstName, lastName } } } = this.props
     const { userMenuOpen } = this.state
 
     return h(Collapse, {
