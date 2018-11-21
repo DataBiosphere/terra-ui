@@ -20,7 +20,6 @@ import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 import DeleteWorkspaceModal from 'src/pages/workspaces/workspace/DeleteWorkspaceModal'
 import ShareWorkspaceModal from 'src/pages/workspaces/workspace/ShareWorkspaceModal'
-import * as Forms from 'src/libs/forms'
 
 
 const styles = {
@@ -227,24 +226,22 @@ export const WorkspaceList = _.flow(
       h(PageFadeBox, { style: { position: 'relative' } }, [
         div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' } }, [
           div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, ['Workspaces']),
-          div({ style: { color: colors.blue[0], marginLeft: 'auto', flex: '0 0 200px' } }, [
-            Forms.formLabel('Access Level'),
+          div({ style: { marginLeft: 'auto', flex: '0 0 200px' } }, [
             h(Select, {
               isClearable: true,
               isMulti: true,
-              placeholder: 'Select access levels',
+              placeholder: 'Filter by access levels',
               value: accessLevelsFilter,
               onChange: data => this.setState({ accessLevelsFilter: _.map('value', data) }),
               options: _.drop(1, Utils.workspaceAccessLevels),
               getOptionLabel: ({ value }) => Utils.normalizeLabel(value)
             })
           ]),
-          div({ style: {  color: colors.blue[0], margin: '0 1rem', flex: '0 0 200px' } }, [
-            Forms.formLabel('Project'),
+          div({ style: { margin: '0 1rem', flex: '0 0 200px' } }, [
             h(Select, {
               isClearable: true,
               isMulti: true,
-              placeholder: 'Select projects',
+              placeholder: 'Filter by projects',
               value: projectsFilter,
               onChange: data => this.setState({ projectsFilter: _.map('value', data) }),
               options: namespaceList
