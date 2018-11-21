@@ -4,7 +4,7 @@ import { buttonPrimary, Select, spinnerOverlay } from 'src/components/common'
 import { TextArea, textInput, validatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { ajaxCaller } from 'src/libs/ajax'
-import { authStore, getUser } from 'src/libs/auth'
+import { authStore } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import * as Forms from 'src/libs/forms'
@@ -84,10 +84,9 @@ const SupportRequestModal = compose(
   }
 
   async submit() {
-    const { onSuccess, ajax: { User } } = this.props
+    const { onSuccess, ajax: { User }, authState: { profile: { firstName, lastName } } } = this.props
     const { email, type, description, subject } = this.state
-    const { givenName, familyName } = getUser()
-    const name = `${givenName} ${familyName}`
+    const name = `${firstName} ${lastName}`
     const currUrl = window.location.href
 
     try {
