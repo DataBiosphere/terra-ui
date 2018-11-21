@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import * as qs from 'qs'
-import { h } from 'react-hyperscript-helpers'
+import { h, input } from 'react-hyperscript-helpers'
 import { version } from 'src/data/clusters'
 import { getUser } from 'src/libs/auth'
 import * as Config from 'src/libs/config'
@@ -436,7 +436,8 @@ const Workspaces = signal => ({
           entityType,
           entityNames: entities
         }
-        const res = await fetchRawls('workspaces/entities/copy', _.mergeAll([authOpts(), jsonBody(payload), { signal, method: 'POST' }]))
+        const res = await fetchRawls('workspaces/entities/copy', _.mergeAll([authOpts(), jsonBody(payload),
+          { signal, method: 'POST' }, [input({ type: 'hidden', name: 'linkExistingEntities', value: true })]]))
         return res.json()
       },
 

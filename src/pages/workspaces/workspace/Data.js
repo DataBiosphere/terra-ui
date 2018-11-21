@@ -398,7 +398,7 @@ const WorkspaceData = _.flow(
           setItemsPerPage: v => this.setState({ itemsPerPage: v, pageNumber: 1 }, resetScroll)
         })
       ]),
-      /*!!selectedEntities.length && h(FloatingActionButton, {
+      /* !!selectedEntities.length && h(FloatingActionButton, {
         label: 'DELETE DATA',
         iconShape: 'trash',
         onClick: () => this.setState({ deletingEntities: true })
