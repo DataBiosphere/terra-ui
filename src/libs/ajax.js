@@ -128,6 +128,10 @@ const User = signal => ({
       const res = await fetchOrchestration('register/profile', _.merge(authOpts(), { signal }))
       return res.json()
     },
+    getExplicit: async token => {
+      const res = await fetchOrchestration('register/profile', _.merge(authOpts(token), { signal }))
+      return res.json()
+    },
     set: keysAndValues => {
       const blankProfile = {
         firstName: 'N/A',

@@ -25,19 +25,30 @@ export const authStore = Utils.atom({
   isSignedIn: undefined,
   registrationStatus: undefined,
   acceptedTos: undefined,
-  user: {}
+  user: {},
+  profile: {}
 })
 
 export const getUser = () => {
   return authStore.get().user
 }
 
+export const refreshTerraProfile = () => new Promise(async resolve => {
+  const profile = Utils.kvArrayToObject((await Ajax().User.profile.get()).keyValuePairs)
+  authStore.update(state => _.set('profile', profile, state))
+  resolve()
+})
+
 const initializeAuth = _.memoize(async () => {
   await new Promise(resolve => window.gapi.load('auth2', resolve))
   await window.gapi.auth2.init({ clientId: await Config.getGoogleClientId() })
-  const processUser = user => {
+  const processUser = async user => {
+    const authResponse = user.getAuthResponse(true)
+    const terraProfile = authResponse ?
+      Utils.kvArrayToObject((await Ajax().User.profile.getExplicit(authResponse.access_token)).keyValuePairs) :
+      {}
+
     return authStore.update(state => {
-      const authResponse = user.getAuthResponse(true)
       const profile = user.getBasicProfile()
       const isSignedIn = user.isSignedIn()
       return {
@@ -55,7 +66,8 @@ const initializeAuth = _.memoize(async () => {
             familyName: profile.getFamilyName(),
             imageUrl: profile.getImageUrl()
           } : {})
-        }
+        },
+        profile: terraProfile
       }
     })
   }

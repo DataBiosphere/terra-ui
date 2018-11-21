@@ -1,12 +1,14 @@
 import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { div, h, path, span, svg } from 'react-hyperscript-helpers'
+import { compose } from 'recompose'
 import { buttonPrimary, LabeledCheckbox, link, RadioButton, spinnerOverlay } from 'src/components/common'
 import { centeredSpinner, profilePic } from 'src/components/icons'
 import { textInput, validatedInput } from 'src/components/input'
 import { InfoBox } from 'src/components/PopupTrigger'
 import TopBar from 'src/components/TopBar'
 import { ajaxCaller } from 'src/libs/ajax'
+import { authStore, refreshTerraProfile } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import * as Nav from 'src/libs/nav'
 import * as Utils from 'src/libs/utils'
@@ -106,31 +108,27 @@ const profileKeys = [
 ]
 
 
-const Profile = ajaxCaller(class Profile extends Component {
-  async refresh() {
-    this.setState({ profileInfo: undefined, displayName: undefined, fractionCompleted: undefined, saving: false })
+const Profile = compose(
+  ajaxCaller,
+  Utils.connectAtom(authStore, 'authState')
+)(class Profile extends Component {
+  constructor(props) {
+    super(props)
 
-    const { ajax: { User } } = this.props
-    const profileInfo = Utils.kvArrayToObject((await User.profile.get()).keyValuePairs)
+    this.state = { profileInfo: props.authState.profile }
+  }
 
-    const countCompleted = _.flow(
+  render() {
+    const { profileInfo, saving } = this.state
+    const { firstName } = profileInfo
+
+    const fractionCompleted = _.flow(
       _.pick(profileKeys),
       _.values,
       _.compact,
       _.size
-    )(profileInfo)
+    )(profileInfo) / profileKeys.length
 
-    const proxyGroup = await User.getProxyGroup(profileInfo.email)
-
-    this.setState({
-      profileInfo, proxyGroup,
-      displayName: profileInfo.firstName,
-      fractionCompleted: countCompleted / profileKeys.length
-    })
-  }
-
-  render() {
-    const { profileInfo, displayName, fractionCompleted, saving } = this.state
     const isComplete = fractionCompleted === 1.0
 
     const profilePicRadius = 48
@@ -159,9 +157,9 @@ const Profile = ajaxCaller(class Profile extends Component {
               })
             ]),
             div({ style: styles.header.text.container }, [
-              div({ style: styles.header.text.nameLine }, [`Hello again, ${displayName}`]),
+              div({ style: styles.header.text.nameLine }, [`Hello again, ${firstName}`]),
               !isComplete && div({ style: styles.header.text.percentageLine }, [
-                `Complete your profile. It's at ${(100 * fractionCompleted) | 0}%`
+                `Complete your profile. It's at ${(100 * fractionCompleted) || 0}%`
               ])
             ])
           ]),
@@ -284,11 +282,14 @@ const Profile = ajaxCaller(class Profile extends Component {
 
     this.setState({ saving: true })
     await User.profile.set(_.pickBy(_.identity, profileInfo))
-    this.refresh()
+    await refreshTerraProfile()
+    this.setState({ saving: false })
   }
 
-  componentDidMount() {
-    this.refresh()
+  async componentDidMount() {
+    const { ajax: { User }, authState: { profile: { email } } } = this.props
+
+    this.setState({ proxyGroup: await User.getProxyGroup(email) })
   }
 })
 
