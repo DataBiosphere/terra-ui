@@ -24,7 +24,7 @@ const styles = {
     display: 'flex', alignItems: 'center',
     flex: 'none',
     width: params.buttonWidth, height: params.buttonHeight,
-    borderRadius: params.buttonHeight/2, borderWidth: 2, borderStyle: 'solid',
+    borderRadius: params.buttonHeight / 2, borderWidth: 2, borderStyle: 'solid',
     borderColor: isActive ? colors.blue[0] : colors.gray[3],
     backgroundColor: isActive ? colors.blue[1] : colors.gray[4],
     color: 'white',
@@ -39,7 +39,7 @@ const els = {
   dot: isActive => div({
     style: {
       width: params.dotSize, height: params.dotSize, borderRadius: '100%',
-      margin: `${(params.buttonHeight-params.dotSize)/2}px ${params.dotSpace}px 0 0`,
+      margin: `${(params.buttonHeight - params.dotSize) / 2}px ${params.dotSpace}px 0 0`,
       backgroundColor: isActive ? colors.green[0] : colors.gray[3]
     }
   }),
