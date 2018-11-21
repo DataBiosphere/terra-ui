@@ -10,7 +10,6 @@ import * as Forms from 'src/libs/forms'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 import validate from 'validate.js'
-import _ from 'lodash/fp'
 
 
 const constraints = {
@@ -82,8 +81,8 @@ const SupportRequestModal = ajaxCaller(class SupportRequestModal extends Compone
   async componentDidMount() {
     try {
       const { ajax: { User } } = this.props
-      const { keyValuePairs } = await User.profile.get()
-      const contactEmail = _.find({ key: 'contactEmail' }, keyValuePairs).value
+      const { contactEmail } = Utils.kvArrayToObject((await User.profile.get()).keyValuePairs)
+
       !!contactEmail && this.setState({ email: contactEmail })
     } catch (error) {
       reportError('Error finding contact email', error)

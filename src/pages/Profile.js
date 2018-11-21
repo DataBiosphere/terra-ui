@@ -67,7 +67,7 @@ const styles = {
 
 
 const percentageCircle = ({ radius, fraction, color = colors.green[0], strokeWidth = 6, style }) => {
-  const halfStroke = strokeWidth/2
+  const halfStroke = strokeWidth / 2
   const adjRadius = radius - halfStroke
   const diameter = 2 * radius
   const adjDiameter = 2 * adjRadius
@@ -111,12 +111,7 @@ const Profile = ajaxCaller(class Profile extends Component {
     this.setState({ profileInfo: undefined, displayName: undefined, fractionCompleted: undefined, saving: false })
 
     const { ajax: { User } } = this.props
-    const { keyValuePairs } = await User.profile.get()
-    const profileInfo = _.reduce(
-      (accum, { key, value }) => _.assign(accum, { [key]: value === 'N/A' ? '' : value }),
-      {},
-      keyValuePairs
-    )
+    const profileInfo = Utils.kvArrayToObject((await User.profile.get()).keyValuePairs)
 
     const countCompleted = _.flow(
       _.pick(profileKeys),
@@ -150,7 +145,7 @@ const Profile = ajaxCaller(class Profile extends Component {
           sectionTitle('Profile'),
           div({ style: styles.header.line }, [
             div({ style: { position: 'relative', padding: strokeRadius } }, [
-              profilePic({ size: 2*profilePicRadius }),
+              profilePic({ size: 2 * profilePicRadius }),
               h(InfoBox, { style: { alignSelf: 'flex-end', padding: '0.25rem' } }, [
                 'To change your profile image, visit your ',
                 link({
@@ -159,14 +154,14 @@ const Profile = ajaxCaller(class Profile extends Component {
                 }, ['Google account page.'])
               ]),
               percentageCircle({
-                radius: profilePicRadius+strokeRadius, fraction: fractionCompleted, strokeWidth: 2*strokeRadius,
+                radius: profilePicRadius + strokeRadius, fraction: fractionCompleted, strokeWidth: 2 * strokeRadius,
                 style: { position: 'absolute', top: strokeRadius, left: strokeRadius, margin: -strokeRadius }
               })
             ]),
             div({ style: styles.header.text.container }, [
               div({ style: styles.header.text.nameLine }, [`Hello again, ${displayName}`]),
               !isComplete && div({ style: styles.header.text.percentageLine }, [
-                `Complete your profile. It's at ${(100*fractionCompleted)|0}%`
+                `Complete your profile. It's at ${(100 * fractionCompleted) | 0}%`
               ])
             ])
           ]),
@@ -184,24 +179,27 @@ const Profile = ajaxCaller(class Profile extends Component {
 
     const line = (...children) => div({ style: styles.form.line }, children)
 
-    const textField = (key, title, { placeholder, required } = {}) => div({ style: styles.form.container }, [
-      div({ style: styles.form.title }, [title]),
-      required ?
-        validatedInput({
-          inputProps: {
-            value: profileInfo[key],
-            onChange: e => this.assignValue(key, e.target.value),
-            placeholder: placeholder || 'Required'
-          },
-          error: Utils.summarizeErrors(errors && errors[key])
-        }) :
-        textInput({
-          value: profileInfo[key],
-          onChange: e => this.assignValue(key, e.target.value),
-          placeholder
-        })
-    ])
+    const textField = (key, title, { placeholder, required } = {}) => {
+      const value = profileInfo[key] === 'N/A' ? '' : profileInfo[key]
 
+      return div({ style: styles.form.container }, [
+        div({ style: styles.form.title }, [title]),
+        required ?
+          validatedInput({
+            inputProps: {
+              value,
+              onChange: e => this.assignValue(key, e.target.value),
+              placeholder: placeholder || 'Required'
+            },
+            error: Utils.summarizeErrors(errors && errors[key])
+          }) :
+          textInput({
+            value,
+            onChange: e => this.assignValue(key, e.target.value),
+            placeholder
+          })
+      ])
+    }
     const radioButton = (key, value) => h(RadioButton, {
       text: value, checked: profileInfo[key] === value,
       labelStyle: { margin: '0 2rem 0 0.25rem' },
@@ -277,7 +275,7 @@ const Profile = ajaxCaller(class Profile extends Component {
   }
 
   assignValue(key, value) {
-    this.setState({ profileInfo: _.assign(this.state.profileInfo, { [key]: value }) })
+    this.setState({ profileInfo: _.set(key, value, this.state.profileInfo) })
   }
 
   async save() {

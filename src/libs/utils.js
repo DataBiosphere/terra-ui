@@ -238,3 +238,5 @@ export const convertValue = _.curry((type, value) => {
  * Converts a string to start case, for a label, but handles all caps correctly.
  */
 export const normalizeLabel = _.flow(_.camelCase, _.startCase)
+
+export const kvArrayToObject = _.reduce((acc, { key, value }) => _.set(key, value, acc), {})
