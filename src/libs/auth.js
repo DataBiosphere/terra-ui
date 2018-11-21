@@ -81,7 +81,9 @@ window.forceSignIn = async token => {
     'https://www.googleapis.com/oauth2/v3/userinfo',
     { headers: { Authorization: `Bearer ${token}` } }
   )
-  const data = await res.json()
+  const [data, profileResponse] = await Promise.all([res.json(), Ajax().User.profile.getExplicit(token)])
+  const terraProfile = Utils.kvArrayToObject(profileResponse.keyValuePairs)
+
   authStore.update(state => {
     return {
       ...state,
@@ -95,7 +97,8 @@ window.forceSignIn = async token => {
         givenName: data.given_name,
         familyName: data.family_name,
         imageUrl: data.picture
-      }
+      },
+      profile: terraProfile
     }
   })
 }
