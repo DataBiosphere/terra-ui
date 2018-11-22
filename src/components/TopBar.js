@@ -24,6 +24,9 @@ const styles = {
     borderBottom: `2px solid ${colors.blue[0]}`,
     boxShadow: Style.standardShadow, zIndex: 1
   },
+  pageTitle: {
+    color: colors.darkBlue[0], fontSize: 22, fontWeight: 500, textTransform: 'uppercase'
+  },
   nav: {
     background: {
       position: 'fixed', left: 0, right: 0, top: 0, bottom: 0,
@@ -116,7 +119,7 @@ export default Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
             }),
             a({
               style: {
-                ...Style.elements.pageTitle,
+                ...styles.pageTitle,
                 textAlign: 'center', display: 'flex', alignItems: 'center'
               },
               href: Nav.getLink('root'),
@@ -252,7 +255,7 @@ export default Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
         onClick: () => this.showNav()
       }),
       a({
-        style: { ...Style.elements.pageTitle, display: 'flex', alignItems: 'center' },
+        style: { ...styles.pageTitle, display: 'flex', alignItems: 'center' },
         href: href || Nav.getLink('root')
       }, [
         logo(),

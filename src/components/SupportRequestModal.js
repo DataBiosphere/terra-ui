@@ -1,3 +1,4 @@
+import _ from 'lodash/fp'
 import { div, h } from 'react-hyperscript-helpers'
 import { buttonPrimary, Select, spinnerOverlay } from 'src/components/common'
 import { TextArea, textInput, validatedInput } from 'src/components/input'
@@ -10,7 +11,6 @@ import * as Forms from 'src/libs/forms'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 import validate from 'validate.js'
-import _ from 'lodash/fp'
 
 
 const constraints = {
@@ -53,15 +53,16 @@ const SupportRequestModal = ajaxCaller(class SupportRequestModal extends Compone
         onChange: ({ value }) => this.setState({ type: value }),
         options: [{ value: 'bug', label: 'Bug' }, { value: 'question', label: 'Question' }, { value: 'feature_request', label: 'Feature Request' }]
       }),
-      Forms.requiredFormLabel('Subject'),
+      Forms.requiredFormLabel(`How can we help you${greetUser}`),
       textInput({
+        style: { borderBottomLeftRadius: 0, borderBottomRightRadius: 0, borderBottomStyle: 'dashed' },
+        placeholder: 'Enter a subject',
         autoFocus: true,
         value: subject,
         onChange: e => this.setState({ subject: e.target.value })
       }),
-      Forms.requiredFormLabel(`How can we help you${greetUser}`),
       h(TextArea, {
-        style: { height: 180 },
+        style: { height: 200, borderTopLeftRadius: 0, borderTopRightRadius: 0, borderTopStyle: 'dashed' },
         placeholder: 'Enter a description',
         value: description,
         onChange: e => this.setState({ description: e.target.value })
