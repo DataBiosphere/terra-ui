@@ -370,6 +370,30 @@ export class GridTable extends Component {
   }
 }
 
+export const SimpleTable = ({ columns, rows }) => {
+  const rowHeight = 24
+  const cellStyles = { display: 'flex', alignItems: 'center' }
+  return h(Fragment, [
+    div({ style: { display: 'flex', height: rowHeight } }, [
+      _.map(({ key, header, size }) => {
+        return div({ key, style: { ...cellStyles, ...styles.flexCell(size) } }, [header])
+      }, columns)
+    ]),
+    _.map(([i, row]) => {
+      return h(Interactive, {
+        key: i,
+        as: 'div',
+        style: { display: 'flex', height: rowHeight }, className: 'table-row',
+        hover: { backgroundColor: colors.blue[5] }
+      }, [
+        _.map(({ key, size }) => {
+          return div({ key, style: { ...cellStyles, ...styles.flexCell(size) } }, [row[key]])
+        }, columns)
+      ])
+    }, _.toPairs(rows))
+  ])
+}
+
 export const TextCell = props => {
   return div(_.merge({
     style: { overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }

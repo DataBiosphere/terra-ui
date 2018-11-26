@@ -472,6 +472,31 @@ const Buckets = signal => ({
     return _.filter(({ name }) => name.endsWith('.ipynb'), items)
   },
 
+  list: async (namespace, bucket, prefix) => {
+    const res = await fetchBuckets(
+      `storage/v1/b/${bucket}/o?${qs.stringify({ prefix, delimiter: '/' })}`,
+      _.merge(authOpts(await User(signal).token(namespace)), { signal })
+    )
+    return res.json()
+  },
+
+  delete: async (namespace, bucket, name) => {
+    return fetchBuckets(
+      `storage/v1/b/${bucket}/o/${encodeURIComponent(name)}`,
+      _.merge(authOpts(await User(signal).token(namespace)), { signal, method: 'DELETE' })
+    )
+  },
+
+  upload: async (namespace, bucket, prefix, file) => {
+    return fetchBuckets(
+      `upload/storage/v1/b/${bucket}/o?uploadType=media&name=${encodeURIComponent(prefix + file.name)}`,
+      _.merge(authOpts(await User(signal).token(namespace)), {
+        signal, method: 'POST', body: file,
+        headers: { 'Content-Type': file.type, 'Content-Length': file.size }
+      })
+    )
+  },
+
   notebook: (namespace, bucket, name) => {
     const bucketUrl = `storage/v1/b/${bucket}/o`
 
