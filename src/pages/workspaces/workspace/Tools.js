@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { Fragment } from 'react'
-import { a, div, h } from 'react-hyperscript-helpers'
+import { div, h } from 'react-hyperscript-helpers'
 import { pure } from 'recompose'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import togglesListView from 'src/components/CardsListToggle'
@@ -91,9 +91,11 @@ const ToolCard = pure(({ listView, name, namespace, config, onCopy, onDelete, fi
     target: '_blank'
   }, sourceRepo)
 
-  return listView ? a({
+  const goToWorkflow = () => Nav.goToPath('workflow', { namespace, name, workflowNamespace, workflowName })
+
+  return listView ? h(Clickable, {
     style: styles.longCard,
-    href: Nav.getLink('workflow', { namespace, name, workflowNamespace, workflowName })
+    onClick: goToWorkflow
   }, [
     div({ style: { display: 'flex', alignItems: 'center' } }, [
       div({ style: { marginRight: '1rem' } }, [toolCardMenu]),
@@ -101,9 +103,9 @@ const ToolCard = pure(({ listView, name, namespace, config, onCopy, onDelete, fi
       div({ style: styles.longMethodVersion }, [`V. ${methodVersion}`]),
       div({ style: { flex: 'none', width: 130 } }, ['Source: ', repoLink])
     ])
-  ]) : a({
+  ]) : h(Clickable, {
     style: styles.shortCard,
-    href: Nav.getLink('workflow', { namespace, name, workflowNamespace, workflowName })
+    onClick: goToWorkflow
   }, [
     div({ style: styles.shortTitle }, [workflowName]),
     div({ style: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' } }, [
