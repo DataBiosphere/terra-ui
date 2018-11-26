@@ -247,7 +247,7 @@ export const FadeBox = ({ fadePoint = '60%', style = {}, children }) => {
     paddingTop = '1.5rem',
     paddingLR = '1.5rem',
     borderRadius = '8px',
-    backgroundColor = 'transparent',
+    backgroundColor = 'rgba(255,255,255,0)',
     borderColor = colors.gray[3],
     ...containerStyle
   } = style
@@ -255,7 +255,7 @@ export const FadeBox = ({ fadePoint = '60%', style = {}, children }) => {
   return div({
     style: {
       display: 'flex', flexDirection: 'column',
-      background: `linear-gradient(to bottom, white 0%, ${backgroundColor} ${fadePoint}`,
+      background: `linear-gradient(to bottom, white, ${backgroundColor} ${fadePoint})`,
       borderRadius: `${borderRadius} ${borderRadius} 0 0`,
       ...containerStyle
     }
