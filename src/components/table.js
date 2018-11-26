@@ -387,7 +387,13 @@ export const SimpleTable = ({ columns, rows }) => {
         hover: { backgroundColor: colors.blue[5] }
       }, [
         _.map(({ key, size }) => {
-          return div({ key, style: { ...cellStyles, ...styles.flexCell(size) } }, [row[key]])
+          return div({
+            key,
+            style: {
+              ...cellStyles, ...styles.flexCell(size),
+              borderTop: `1px solid ${colors.gray[5]}`
+            }
+          }, [row[key]])
         }, columns)
       ])
     }, _.toPairs(rows))
