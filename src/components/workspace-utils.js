@@ -60,6 +60,7 @@ export const withWorkspaces = ({ persist } = {}) => WrappedComponent => {
 export const WorkspaceSelector = ({ workspaces, value, onChange }) => {
   return h(Select, {
     placeholder: 'Select a workspace',
+    disabled: !workspaces,
     value,
     onChange: ({ value }) => onChange(value),
     options: _.flow(
