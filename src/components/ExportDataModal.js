@@ -100,7 +100,7 @@ export default _.flow(
       }),
       conflictsExist && div({ style: { ...errorStyle, display: 'flex', alignItems: 'center' } }, [
         icon('error-standard', { size: 36, className: 'is-solid', style: { flex: 'none', marginRight: '0.5rem' } }),
-        'The following entries already exist in the selected workspace. Would you like to copy your selections as a different table? '
+        'The following entries already exist in the selected workspace. Please select cancel to go back or continue to override the existing entities. '
       ]),
       formLabel('Entries selected'),
       ..._.map(([i, entity]) => div({
@@ -110,13 +110,6 @@ export default _.flow(
         }
       }, conflictsExist ? `${entity.entityName} (${entity.entityType})` : entity),
       Utils.toIndexPairs(conflictsExist ? conflicts : selectedEntities)),
-      conflictsExist && formLabel('Table Name'),
-      conflictsExist && validatedInput({
-        inputProps: {
-          value: selectedEntityType,
-          onChange: e => this.setState({ selectedEntityType: e.target.value })
-        }
-      }),
       div({
         style: { ...warningStyle, textAlign: 'right', marginTop: conflictsExist ? '1rem' : undefined }
       }, [`${selectedEntities.length} data entries to be copied.`]),
