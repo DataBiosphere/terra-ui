@@ -8,11 +8,14 @@ import Interactive from 'react-interactive'
 import { search } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import colors from 'src/libs/colors'
-import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 
 
 const styles = {
+  input: {
+    height: '2.25rem',
+    border: `1px solid ${colors.gray[3]}`, borderRadius: 4
+  },
   suggestionsContainer: {
     position: 'fixed',
     maxHeight: 36 * 8 + 2, overflowY: 'auto',
@@ -39,36 +42,37 @@ const styles = {
 }
 
 export const textInput = function(props) {
-  return h(Interactive, _.mergeAll([
+  return h(Interactive, _.merge(
     {
       as: 'input',
       className: 'focus-style',
       style: {
+        ...styles.input,
         width: '100%',
         paddingLeft: '1rem', paddingRight: '1rem',
         fontWeight: 400, fontSize: 14,
         backgroundColor: props.disabled ? colors.gray[5] : undefined
       }
     },
-    Style.elements.input,
     props
-  ]))
+  ))
 }
 
 
 export const numberInput = props => {
-  return h(Interactive, _.mergeAll([{
+  return h(Interactive, _.merge({
     as: 'input',
     type: 'number',
     className: 'focus-style',
     style: {
+      ...styles.input,
       width: '100%',
       paddingLeft: '1rem',
       paddingRight: '0.25rem',
       fontWeight: 400,
       fontSize: 14
     }
-  }, Style.elements.input, props]))
+  }, props))
 }
 
 
@@ -300,7 +304,7 @@ export class AutocompleteSearch extends Component {
 export const TextArea = props => {
   return h(Interactive, _.merge({
     as: 'textarea',
-    style: styles.textarea,
-    focus: { border: `1px solid ${colors.blue[0]}` }
+    className: 'focus-style',
+    style: styles.textarea
   }, props))
 }
