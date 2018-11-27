@@ -103,7 +103,7 @@ export default _.flow(
       ]),
       moreToDelete && div({ style: { ...warningStyle, display: 'flex', alignItems: 'center' } }, [
         icon('warning-standard', { size: 36, className: 'is-solid', style: { flex: 'none', marginRight: '0.5rem' } }),
-        'In order to delete the selected data entries, the following entries that reference them must also be deleted.'
+        'In order to override the selected data entries, the following entries that reference the original data must be deleted.'
       ]),
       formLabel('Entries selected'),
       ..._.map(([i, entity]) => div({
@@ -111,8 +111,8 @@ export default _.flow(
           borderTop: (i === 0 && runningSubmissionsCount === 0) ? undefined : Style.standardLine,
           padding: '0.6rem 1.25rem', margin: '0 -1.25rem'
         }
-      }, hardConflictsExist ? `${entity.entityName} (${entity.entityType})` : entity),
-      Utils.toIndexPairs(hardConflictsExist ? hardConflicts : selectedEntities)),
+      }, (hardConflictsExist || moreToDelete) ? `${entity.entityName} (${entity.entityType})` : entity),
+      moreToDelete ? Utils.toIndexPairs(additionalDeletions) : Utils.toIndexPairs(hardConflictsExist ? hardConflicts : selectedEntities)),
       div({
         style: { ...warningStyle, textAlign: 'right', marginTop: hardConflictsExist ? '1rem' : undefined }
       }, [`${selectedEntities.length} data entries to be copied.`]),
@@ -147,7 +147,6 @@ export default _.flow(
   async doOverride() {
     const { onDismiss, selectedEntities, workspace, ajax: { Workspaces } } = this.props
     const { selectedEntityType, additionalDeletions, hardConflicts } = this.state
-    console.log(hardConflicts)
     const selectedWorkspace = this.getSelectedWorkspace().workspace
     const entitiesToDelete = _.concat(hardConflicts, additionalDeletions)
     try {
