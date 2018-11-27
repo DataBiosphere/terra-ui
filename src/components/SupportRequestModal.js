@@ -1,6 +1,5 @@
 import _ from 'lodash/fp'
 import { div, h } from 'react-hyperscript-helpers'
-import { compose } from 'recompose'
 import { buttonPrimary, Select, spinnerOverlay } from 'src/components/common'
 import { TextArea, textInput, validatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
@@ -20,7 +19,7 @@ const constraints = {
   description: { presence: { allowEmpty: false } }
 }
 
-const SupportRequestModal = compose(
+const SupportRequestModal = _.flow(
   ajaxCaller,
   Utils.connectAtom(authStore, 'authState')
 )(class SupportRequestModal extends Component {

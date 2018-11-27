@@ -1,7 +1,6 @@
 import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { div, h, path, span, svg } from 'react-hyperscript-helpers'
-import { compose } from 'recompose'
 import { buttonPrimary, LabeledCheckbox, link, RadioButton, spinnerOverlay } from 'src/components/common'
 import { centeredSpinner, profilePic } from 'src/components/icons'
 import { textInput, validatedInput } from 'src/components/input'
@@ -108,7 +107,7 @@ const profileKeys = [
 ]
 
 
-const Profile = compose(
+const Profile = _.flow(
   ajaxCaller,
   Utils.connectAtom(authStore, 'authState')
 )(class Profile extends Component {
