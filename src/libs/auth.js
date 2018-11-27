@@ -33,21 +33,11 @@ export const getUser = () => {
   return authStore.get().user
 }
 
-export const refreshTerraProfile = () => new Promise(async resolve => {
-  const profile = Utils.kvArrayToObject((await Ajax().User.profile.get()).keyValuePairs)
-  authStore.update(state => _.set('profile', profile, state))
-  resolve()
-})
-
 const initializeAuth = _.memoize(async () => {
   await new Promise(resolve => window.gapi.load('auth2', resolve))
   await window.gapi.auth2.init({ clientId: await Config.getGoogleClientId() })
-  const processUser = async user => {
+  const processUser = user => {
     const authResponse = user.getAuthResponse(true)
-    const terraProfile = authResponse ?
-      Utils.kvArrayToObject((await Ajax().User.profile.getExplicit(authResponse.access_token)).keyValuePairs) :
-      {}
-
     return authStore.update(state => {
       const profile = user.getBasicProfile()
       const isSignedIn = user.isSignedIn()
@@ -56,6 +46,7 @@ const initializeAuth = _.memoize(async () => {
         isSignedIn,
         registrationStatus: isSignedIn ? state.registrationStatus : undefined,
         acceptedTos: isSignedIn ? state.acceptedTos : undefined,
+        profile: isSignedIn ? state.profile : {},
         user: {
           token: authResponse && authResponse.access_token,
           id: user.getId(),
@@ -66,8 +57,7 @@ const initializeAuth = _.memoize(async () => {
             familyName: profile.getFamilyName(),
             imageUrl: profile.getImageUrl()
           } : {})
-        },
-        profile: terraProfile
+        }
       }
     })
   }
@@ -81,14 +71,14 @@ window.forceSignIn = async token => {
     'https://www.googleapis.com/oauth2/v3/userinfo',
     { headers: { Authorization: `Bearer ${token}` } }
   )
-  const [data, profileResponse] = await Promise.all([res.json(), Ajax().User.profile.getExplicit(token)])
-  const terraProfile = Utils.kvArrayToObject(profileResponse.keyValuePairs)
+  const data = await res.json()
 
   authStore.update(state => {
     return {
       ...state,
       isSignedIn: true,
       registrationStatus: undefined,
+      profile: {},
       user: {
         token,
         id: data.sub,
@@ -97,8 +87,7 @@ window.forceSignIn = async token => {
         givenName: data.given_name,
         familyName: data.family_name,
         imageUrl: data.picture
-      },
-      profile: terraProfile
+      }
     }
   })
 }
@@ -146,6 +135,23 @@ authStore.subscribe(async (state, oldState) => {
 authStore.subscribe((state, oldState) => {
   if (!oldState.isSignedIn && state.isSignedIn) {
     window.newrelic.setCustomAttribute('userGoogleId', state.user.id)
+  }
+})
+
+export const refreshTerraProfile = () => new Promise(async (resolve, reject) => {
+  try {
+    const profile = Utils.kvArrayToObject((await Ajax().User.profile.get()).keyValuePairs)
+    authStore.update(state => _.set('profile', profile, state))
+    resolve()
+  } catch (error) {
+    reject(error)
+  }
+})
+
+authStore.subscribe((state, oldState) => {
+  if ((!oldState.isSignedIn && state.isSignedIn) ||
+    (oldState.registrationStatus !== 'registered' && state.registrationStatus === 'registered')) {
+    refreshTerraProfile().catch(error => reportError('Error loading user profile', error))
   }
 })
 
