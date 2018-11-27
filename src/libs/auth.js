@@ -137,19 +137,13 @@ authStore.subscribe((state, oldState) => {
   }
 })
 
-export const refreshTerraProfile = () => new Promise(async (resolve, reject) => {
-  try {
-    const profile = Utils.kvArrayToObject((await Ajax().User.profile.get()).keyValuePairs)
-    authStore.update(state => _.set('profile', profile, state))
-    resolve()
-  } catch (error) {
-    reject(error)
-  }
-})
+export const refreshTerraProfile = async () => {
+  const profile = Utils.kvArrayToObject((await Ajax().User.profile.get()).keyValuePairs)
+  authStore.update(state => _.set('profile', profile, state))
+}
 
 authStore.subscribe((state, oldState) => {
-  if ((!oldState.isSignedIn && state.isSignedIn) ||
-    (oldState.registrationStatus !== 'registered' && state.registrationStatus === 'registered')) {
+  if (!oldState.isSignedIn && state.isSignedIn) {
     refreshTerraProfile().catch(error => reportError('Error loading user profile', error))
   }
 })
