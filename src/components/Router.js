@@ -5,7 +5,7 @@ import AuthContainer from 'src/components/AuthContainer'
 import FooterWrapper from 'src/components/FooterWrapper'
 import TopBar from 'src/components/TopBar'
 import * as Nav from 'src/libs/nav'
-import * as BrowseData from 'src/pages/BrowseData'
+import * as Datasets from 'src/pages/library/Datasets'
 import * as Group from 'src/pages/groups/Group'
 import * as Groups from 'src/pages/groups/List'
 import * as LandingPage from 'src/pages/LandingPage'
@@ -46,7 +46,7 @@ const initNavPaths = () => {
   Groups.addNavPaths()
   Group.addNavPaths()
   TerminalLauncher.addNavPaths()
-  BrowseData.addNavPaths()
+  Datasets.addNavPaths()
 }
 
 export default class Router extends Component {

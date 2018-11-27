@@ -129,7 +129,9 @@ export default Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
           ]),
           isSignedIn ?
             this.buildUserSection() :
-            div({ style: { ...styles.nav.item, ...styles.nav.profile(false), boxShadow: `inset ${Style.standardShadow}`, justifyContent: 'center' } }, [
+            div({
+              style: { ...styles.nav.item, ...styles.nav.profile(false), boxShadow: `inset ${Style.standardShadow}`, justifyContent: 'center' }
+            }, [
               h(SignInButton)
             ]),
           h(Clickable, {
@@ -155,7 +157,7 @@ export default Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
               style: styles.nav.subItem,
               as: 'a',
               hover: { backgroundColor: colors.darkBlue[1] },
-              href: Nav.getLink('datasets'),
+              href: Nav.getLink('library-datasets'),
               onClick: () => this.hideNav()
             }, [
               div({ style: styles.nav.icon }, [
@@ -167,7 +169,7 @@ export default Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
               style: styles.nav.subItem,
               as: 'a',
               hover: { backgroundColor: colors.darkBlue[1] },
-              href: Nav.getLink('datasets'),
+              href: Nav.getLink('library-datasets'),
               onClick: () => this.hideNav()
             }, [
               div({ style: styles.nav.icon }, [
@@ -179,7 +181,7 @@ export default Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
               style: styles.nav.subItem,
               as: 'a',
               hover: { backgroundColor: colors.darkBlue[1] },
-              href: Nav.getLink('datasets'),
+              href: Nav.getLink('library-datasets'),
               onClick: () => this.hideNav()
             }, [
               div({ style: styles.nav.icon }, [
@@ -190,7 +192,7 @@ export default Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
           ]),
           div({ style: { marginTop: '1rem' } }, [
             h(Clickable, {
-              style: {...styles.nav.item, borderBottom: 'none', height: 50},
+              style: { ...styles.nav.item, borderBottom: 'none', height: 50 },
               hover: { backgroundColor: colors.darkBlue[1] },
               onClick: () => this.setState({ showingSupportModal: true })
             }, [

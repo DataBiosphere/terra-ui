@@ -5,12 +5,12 @@ import { buttonPrimary, link, FadeBox, PageFadeBox } from 'src/components/common
 import Modal from 'src/components/Modal'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import TopBar from 'src/components/TopBar'
-import amppdLogo from 'src/images/browse-data/Amp@2x.png'
-import gtexLogo from 'src/images/browse-data/GTeX@2x.png'
-import hcaLogo from 'src/images/browse-data/HCA@2x.png'
-import nhsLogo from 'src/images/browse-data/NHS@2x.png'
-import topMedLogo from 'src/images/browse-data/TopMed@2x.png'
-import broadLogo from 'src/images/browse-data/broad_logo.png'
+import amppdLogo from 'src/images/library/datasets/Amp@2x.png'
+import gtexLogo from 'src/images/library/datasets/GTeX@2x.png'
+import hcaLogo from 'src/images/library/datasets/HCA@2x.png'
+import nhsLogo from 'src/images/library/datasets/NHS@2x.png'
+import topMedLogo from 'src/images/library/datasets/TopMed@2x.png'
+import broadLogo from 'src/images/library/datasets/broad_logo.png'
 import colors from 'src/libs/colors'
 import * as Nav from 'src/libs/nav'
 import * as Config from 'src/libs/config'
@@ -231,7 +231,7 @@ const fcDataLib = h(Participant, {
 ])
 
 
-const BrowseData = pure(() => {
+const Datasets = pure(() => {
   return h(Fragment, [
     h(TopBar, { title: 'Library' }), // TODO Add breadcrumbs from design once home page exists
     h(PageFadeBox, [
@@ -247,10 +247,10 @@ const BrowseData = pure(() => {
 
 
 export const addNavPaths = () => {
-  Nav.defPath('browse-data', {
-    path: '/browse-data',
-    component: BrowseData,
+  Nav.defPath('library-datasets', {
+    path: '/library/datasets',
+    component: Datasets,
     public: true,
-    title: 'Browse Data'
+    title: 'Datasets'
   })
 }
