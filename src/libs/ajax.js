@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import * as qs from 'qs'
-import { h, input } from 'react-hyperscript-helpers'
+import { h } from 'react-hyperscript-helpers'
 import { version } from 'src/data/clusters'
 import { getUser } from 'src/libs/auth'
 import * as Config from 'src/libs/config'
@@ -429,15 +429,15 @@ const Workspaces = signal => ({
         return fetchRawls(`${root}/entities/delete`, _.mergeAll([authOpts(), jsonBody(entities), { signal, method: 'POST' }]))
       },
 
-      copyEntities: async (destNamespace, destName, entityType, entities) => {
+      copyEntities: async (destNamespace, destName, entityType, entities, link) => {
         const payload = {
           sourceWorkspace: { namespace, name },
           destinationWorkspace: { namespace: destNamespace, name: destName },
           entityType,
           entityNames: entities
         }
-        const res = await fetchRawls('workspaces/entities/copy', _.mergeAll([authOpts(), jsonBody(payload),
-          { signal, method: 'POST' }, [input({ type: 'hidden', name: 'linkExistingEntities', value: true })]]))
+        const res = await fetchRawls(link ? 'workspaces/entities/copy?linkExistingEntities=true' : 'workspaces/entities/copy', _.mergeAll([authOpts(), jsonBody(payload),
+          { signal, method: 'POST' }]))
         return res.json()
       },
 

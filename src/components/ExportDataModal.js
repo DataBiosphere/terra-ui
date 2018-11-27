@@ -176,15 +176,22 @@ export default _.flow(
 
   async copy() {
     const { onDismiss, selectedEntities, workspace, ajax: { Workspaces } } = this.props
-    const { selectedEntityType, hardConflictsExist } = this.state
+    const { selectedEntityType, hardConflictsExist, softConflictsExist } = this.state
     const selectedWorkspace = this.getSelectedWorkspace().workspace
     this.setState({ copying: true })
-    if (hardConflictsExist) { //hardConflicts exist, delete and replace
+    let link = false
+    if (hardConflictsExist) {
       this.doOverride()
     } else {
       try {
-        await Workspaces.workspace(workspace.workspace.namespace, workspace.workspace.name)
-          .copyEntities(selectedWorkspace.namespace, selectedWorkspace.name, selectedEntityType, selectedEntities)
+        if (softConflictsExist) { //link it!
+          link = true
+          await Workspaces.workspace(workspace.workspace.namespace, workspace.workspace.name)
+            .copyEntities(selectedWorkspace.namespace, selectedWorkspace.name, selectedEntityType, selectedEntities, link)
+        } else {
+          await Workspaces.workspace(workspace.workspace.namespace, workspace.workspace.name)
+            .copyEntities(selectedWorkspace.namespace, selectedWorkspace.name, selectedEntityType, selectedEntities, link)
+        }
         this.setState({ copied: true })
       } catch (error) {
         switch (error.status) {
