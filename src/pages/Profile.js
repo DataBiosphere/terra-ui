@@ -114,7 +114,7 @@ const Profile = _.flow(
   constructor(props) {
     super(props)
 
-    this.state = { profileInfo: props.authState.profile }
+    this.state = { profileInfo: _.mapValues(v => v === 'N/A' ? '' : v, props.authState.profile) }
   }
 
   render() {
@@ -176,27 +176,24 @@ const Profile = _.flow(
 
     const line = (...children) => div({ style: styles.form.line }, children)
 
-    const textField = (key, title, { placeholder, required } = {}) => {
-      const value = profileInfo[key] === 'N/A' ? '' : profileInfo[key]
-
-      return div({ style: styles.form.container }, [
-        div({ style: styles.form.title }, [title]),
-        required ?
-          validatedInput({
-            inputProps: {
-              value,
-              onChange: e => this.assignValue(key, e.target.value),
-              placeholder: placeholder || 'Required'
-            },
-            error: Utils.summarizeErrors(errors && errors[key])
-          }) :
-          textInput({
-            value,
+    const textField = (key, title, { placeholder, required } = {}) => div({ style: styles.form.container }, [
+      div({ style: styles.form.title }, [title]),
+      required ?
+        validatedInput({
+          inputProps: {
+            value: profileInfo[key],
             onChange: e => this.assignValue(key, e.target.value),
-            placeholder
-          })
-      ])
-    }
+            placeholder: placeholder || 'Required'
+          },
+          error: Utils.summarizeErrors(errors && errors[key])
+        }) :
+        textInput({
+          value: profileInfo[key],
+          onChange: e => this.assignValue(key, e.target.value),
+          placeholder
+        })
+    ])
+
     const radioButton = (key, value) => h(RadioButton, {
       text: value, checked: profileInfo[key] === value,
       labelStyle: { margin: '0 2rem 0 0.25rem' },
