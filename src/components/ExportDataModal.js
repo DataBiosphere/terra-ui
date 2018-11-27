@@ -33,6 +33,7 @@ export default _.flow(
 
     this.state = {
       hardConflicts: [],
+      additionalDeletions: [],
       selectedWorkspaceId: undefined,
       error: undefined,
       copying: false,
@@ -53,8 +54,8 @@ export default _.flow(
 
   renderCopyForm() {
     const { onDismiss, selectedEntities, runningSubmissionsCount, workspace, workspaces } = this.props
-    const { copying, hardConflicts, hardConflictsExist, error, selectedWorkspaceId } = this.state
-
+    const { copying, hardConflicts, hardConflictsExist, error, selectedWorkspaceId, additionalDeletions } = this.state
+    const moreToDelete = !!additionalDeletions.length
     const warningStyle = {
       border: `1px solid ${colors.orange[1]}`, borderLeft: 'none', borderRight: 'none',
       backgroundColor: colors.orange[4],
@@ -100,6 +101,10 @@ export default _.flow(
         icon('error-standard', { size: 36, className: 'is-solid', style: { flex: 'none', marginRight: '0.5rem' } }),
         'The following entries already exist in the selected workspace. Please select CANCEL to go back or COPY to override the existing entities. '
       ]),
+      moreToDelete && div({ style: { ...warningStyle, display: 'flex', alignItems: 'center' } }, [
+        icon('warning-standard', { size: 36, className: 'is-solid', style: { flex: 'none', marginRight: '0.5rem' } }),
+        'In order to delete the selected data entries, the following entries that reference them must also be deleted.'
+      ]),
       formLabel('Entries selected'),
       ..._.map(([i, entity]) => div({
         style: {
@@ -141,17 +146,24 @@ export default _.flow(
 
   async doOverride() {
     const { onDismiss, selectedEntities, workspace, ajax: { Workspaces } } = this.props
-    const { selectedEntityType } = this.state
+    const { selectedEntityType, additionalDeletions, hardConflicts } = this.state
+    console.log(hardConflicts)
     const selectedWorkspace = this.getSelectedWorkspace().workspace
-    const entitiesToDelete = _.map(entityName => ({ entityName, entityType: selectedEntityType }), selectedEntities)
+    const entitiesToDelete = _.concat(hardConflicts, additionalDeletions)
     try {
       await Workspaces.workspace(selectedWorkspace.namespace, selectedWorkspace.name).deleteEntities(entitiesToDelete)
       await Workspaces.workspace(workspace.workspace.namespace, workspace.workspace.name)
         .copyEntities(selectedWorkspace.namespace, selectedWorkspace.name, selectedEntityType, selectedEntities)
       this.setState({ copied: true })
     } catch (error) {
-      reportError('Error deleting data entries', error)
-      onDismiss()
+      switch (error.status) {
+        case 409:
+          this.setState({ additionalDeletions: _.filter(entity => entity.entityType !== selectedEntityType, await error.json()), copying: false, hardConflictsExist: false })
+          break
+        default:
+          reportError('Error deleting data entries', error)
+          onDismiss()
+      }
     }
   }
 
