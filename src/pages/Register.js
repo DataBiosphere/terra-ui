@@ -5,7 +5,7 @@ import { centeredSpinner, logo } from 'src/components/icons'
 import { textInput } from 'src/components/input'
 import planet from 'src/images/register-planet.svg'
 import { ajaxCaller } from 'src/libs/ajax'
-import { authStore, getUser, signOut } from 'src/libs/auth'
+import { authStore, getUser, refreshTerraProfile, signOut } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import validate from 'validate.js'
@@ -41,6 +41,7 @@ export default ajaxCaller(class Register extends Component {
         contactEmail: email
       })
       authStore.update(state => ({ ...state, registrationStatus: 'registered' }))
+      await refreshTerraProfile()
     } catch (error) {
       reportError('Error registering', error)
     } finally {

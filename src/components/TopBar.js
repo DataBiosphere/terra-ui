@@ -8,7 +8,7 @@ import { icon, logo, profilePic } from 'src/components/icons'
 import { pushNotification } from 'src/components/Notifications'
 import SignInButton from 'src/components/SignInButton'
 import SupportRequestModal from 'src/components/SupportRequestModal'
-import { authStore, getUser, signOut } from 'src/libs/auth'
+import { authStore, signOut } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
@@ -189,6 +189,7 @@ export default Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
   }
 
   buildUserSection() {
+    const { authState: { profile: { firstName, lastName } } } = this.props
     const { userMenuOpen } = this.state
 
     return h(Collapse, {
@@ -208,7 +209,7 @@ export default Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
             profilePic({ size: 32 })
           ]),
           div({ style: { whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' } }, [
-            getUser().name
+            `${firstName} ${lastName}`
           ]),
           div({ style: { flexGrow: 1 } }),
           icon(`angle ${userMenuOpen ? 'up' : 'down'}`,

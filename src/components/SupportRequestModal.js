@@ -4,7 +4,7 @@ import { buttonPrimary, Select, spinnerOverlay } from 'src/components/common'
 import { TextArea, textInput, validatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { ajaxCaller } from 'src/libs/ajax'
-import { getUser } from 'src/libs/auth'
+import { authStore } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import * as Forms from 'src/libs/forms'
@@ -19,22 +19,26 @@ const constraints = {
   description: { presence: { allowEmpty: false } }
 }
 
-const SupportRequestModal = ajaxCaller(class SupportRequestModal extends Component {
+const SupportRequestModal = _.flow(
+  ajaxCaller,
+  Utils.connectAtom(authStore, 'authState')
+)(class SupportRequestModal extends Component {
   constructor(props) {
     super(props)
+    const { contactEmail, email } = props.authState.profile
+
     this.state = {
       subject: '',
       description: '',
-      type: 'bug',
-      email: getUser().email
+      type: 'question',
+      email: contactEmail || email
     }
   }
 
   render() {
-    const { onDismiss } = this.props
+    const { onDismiss, authState: { profile: { firstName } } } = this.props
     const { submitting, submitError, subject, description, type, email } = this.state
-    const { givenName } = getUser()
-    const greetUser = givenName ? `, ${givenName}?` : `?`
+    const greetUser = firstName === 'N/A' ? `?` : `, ${firstName}?`
     const errors = validate({ email, description, subject }, constraints)
 
     return h(Modal, {
@@ -51,7 +55,7 @@ const SupportRequestModal = ajaxCaller(class SupportRequestModal extends Compone
         isMulti: false,
         value: type,
         onChange: ({ value }) => this.setState({ type: value }),
-        options: [{ value: 'bug', label: 'Bug' }, { value: 'question', label: 'Question' }, { value: 'feature_request', label: 'Feature Request' }]
+        options: [{ value: 'question', label: 'Question' }, { value: 'bug', label: 'Bug' }, { value: 'feature_request', label: 'Feature Request' }]
       }),
       Forms.requiredFormLabel(`How can we help you${greetUser}`),
       textInput({
@@ -80,22 +84,10 @@ const SupportRequestModal = ajaxCaller(class SupportRequestModal extends Compone
     ])
   }
 
-  async componentDidMount() {
-    try {
-      const { ajax: { User } } = this.props
-      const { keyValuePairs } = await User.profile.get()
-      const contactEmail = _.find({ key: 'contactEmail' }, keyValuePairs).value
-      !!contactEmail && this.setState({ email: contactEmail })
-    } catch (error) {
-      reportError('Error finding contact email', error)
-    }
-  }
-
   async submit() {
-    const { onSuccess, ajax: { User } } = this.props
+    const { onSuccess, ajax: { User }, authState: { profile: { firstName, lastName } } } = this.props
     const { email, type, description, subject } = this.state
-    const { givenName, familyName } = getUser()
-    const name = `${givenName} ${familyName}`
+    const name = `${firstName} ${lastName}`
     const currUrl = window.location.href
 
     try {
