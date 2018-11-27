@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { Fragment } from 'react'
-import { div, h } from 'react-hyperscript-helpers'
+import { a, div, h } from 'react-hyperscript-helpers'
 import { pure } from 'recompose'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import togglesListView from 'src/components/CardsListToggle'
@@ -25,9 +25,23 @@ const styles = {
     display: 'flex', flexWrap: 'wrap',
     marginRight: listView ? undefined : '-1rem'
   }),
+  // Card's position: relative and the outer/inner styles are a little hack to fake nested links
+  // https://stackoverflow.com/questions/13052598/creating-anchor-tag-inside-anchor-tag
+  card: {
+    ...Style.elements.card, position: 'relative'
+  },
+  outerLink: {
+    position: 'absolute', top: 0, right: 0, bottom: 0, left: 0
+  },
+  innerContent: {
+    position: 'relative', pointerEvents: 'none', zIndex: 1
+  },
+  innerLink: {
+    pointerEvents: 'all'
+  },
+  // (end link hacks)
   shortCard: {
-    ...Style.elements.card, width: 300, height: 125, margin: '0 1rem 2rem 0',
-    display: 'flex', flexDirection: 'column', justifyContent: 'space-between'
+    width: 300, height: 125, margin: '0 1rem 2rem 0'
   },
   shortTitle: {
     flex: 1,
@@ -45,7 +59,6 @@ const styles = {
     whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'
   },
   longCard: {
-    ...Style.elements.card,
     width: '100%', minWidth: 0,
     marginBottom: '0.5rem'
   },
@@ -74,9 +87,9 @@ const ToolCard = pure(({ listView, name, namespace, config, onCopy, onDelete, fi
     ])
   }, [
     h(Clickable, {
-      onClick: e => e.preventDefault(),
+      onClick: e => e.stopPropagation(),
       style: {
-        cursor: 'pointer', color: colors.blue[0]
+        cursor: 'pointer', color: colors.blue[0], ...styles.innerLink
       },
       focus: 'hover',
       hover: { color: colors.blue[2] }
@@ -88,30 +101,35 @@ const ToolCard = pure(({ listView, name, namespace, config, onCopy, onDelete, fi
   ])
   const repoLink = link({
     href: methodLink(config, firecloudRoot, dockstoreRoot),
-    target: '_blank'
+    style: styles.innerLink,
+    target: '_blank',
+    onClick: e => e.stopPropagation()
   }, sourceRepo)
 
-  const goToWorkflow = () => Nav.goToPath('workflow', { namespace, name, workflowNamespace, workflowName })
+  const workflowLink = a({
+    href: Nav.getLink('workflow', { namespace, name, workflowNamespace, workflowName }),
+    style: styles.outerLink
+  })
 
-  return listView ? h(Clickable, {
-    style: styles.longCard,
-    onClick: goToWorkflow
-  }, [
-    div({ style: { display: 'flex', alignItems: 'center' } }, [
-      div({ style: { marginRight: '1rem' } }, [toolCardMenu]),
-      div({ style: styles.longTitle }, [workflowName]),
-      div({ style: styles.longMethodVersion }, [`V. ${methodVersion}`]),
-      div({ style: { flex: 'none', width: 130 } }, ['Source: ', repoLink])
+  return listView ?
+    div({ style: { ...styles.card, ...styles.longCard } }, [
+      workflowLink,
+      div({ style: { ...styles.innerContent, display: 'flex', alignItems: 'center' } }, [
+        div({ style: { marginRight: '1rem' } }, [toolCardMenu]),
+        div({ style: styles.longTitle }, [workflowName]),
+        div({ style: styles.longMethodVersion }, [`V. ${methodVersion}`]),
+        div({ style: { flex: 'none', width: 130 } }, ['Source: ', repoLink])
+      ])
+    ]) :
+    div({ style: { ...styles.card, ...styles.shortCard } }, [
+      workflowLink,
+      div({ style: { ...styles.innerContent, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%' } }, [
+        div({ style: styles.shortTitle }, [workflowName]),
+        div({ style: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' } }, [
+          div([div([`V. ${methodVersion}`]), 'Source: ', repoLink]), toolCardMenu
+        ])
+      ])
     ])
-  ]) : h(Clickable, {
-    style: styles.shortCard,
-    onClick: goToWorkflow
-  }, [
-    div({ style: styles.shortTitle }, [workflowName]),
-    div({ style: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' } }, [
-      div([div([`V. ${methodVersion}`]), 'Source: ', repoLink]), toolCardMenu
-    ])
-  ])
 })
 
 export const Tools = _.flow(
