@@ -221,8 +221,6 @@ export const WorkspaceList = _.flow(
           }
         })
       ]),
-
-
       h(PageFadeBox, { style: { position: 'relative' } }, [
         div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' } }, [
           div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, ['Workspaces']),
