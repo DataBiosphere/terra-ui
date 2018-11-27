@@ -8,6 +8,7 @@ import Modal from 'src/components/Modal'
 import { withWorkspaces, WorkspaceSelector } from 'src/components/workspace-utils'
 import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
+import { EntityDeleter } from 'src/libs/data-utils'
 import { reportError } from 'src/libs/error'
 import { requiredFormLabel, formLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
@@ -15,7 +16,6 @@ import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 import validate from 'validate.js'
-import { validatedInput } from 'src/components/input'
 
 
 export default _.flow(
@@ -33,7 +33,7 @@ export default _.flow(
     super(props)
 
     this.state = {
-      conflicts: [],
+      hardConflicts: [],
       selectedWorkspaceId: undefined,
       error: undefined,
       copying: false,
@@ -54,8 +54,8 @@ export default _.flow(
 
   renderCopyForm() {
     const { onDismiss, selectedEntities, runningSubmissionsCount, workspace, workspaces } = this.props
-    const { copying, conflicts, error, selectedWorkspaceId, selectedEntityType } = this.state
-    const conflictsExist = !!conflicts.length
+    const { copying, hardConflicts, hardConflictsExist, error, selectedWorkspaceId, deletingEntities, selectedWorkspace, selectedEntityType, entitiesToDelete } = this.state
+
 
     const warningStyle = {
       border: `1px solid ${colors.orange[1]}`, borderLeft: 'none', borderRight: 'none',
@@ -80,7 +80,7 @@ export default _.flow(
       onDismiss,
       title: 'Copy to Workspace',
       okButton: buttonPrimary({
-        tooltip: Utils.summarizeErrors(errors),
+        tooltip: hardConflictsExist ? 'Override existing entities, are you sure?' : Utils.summarizeErrors(errors),
         disabled: !!errors || copying,
         onClick: () => this.copy()
       }, ['Copy'])
@@ -98,20 +98,28 @@ export default _.flow(
         value: selectedWorkspaceId,
         onChange: v => this.setState({ selectedWorkspaceId: v })
       }),
-      conflictsExist && div({ style: { ...errorStyle, display: 'flex', alignItems: 'center' } }, [
+      hardConflictsExist && div({ style: { ...errorStyle, display: 'flex', alignItems: 'center' } }, [
         icon('error-standard', { size: 36, className: 'is-solid', style: { flex: 'none', marginRight: '0.5rem' } }),
-        'The following entries already exist in the selected workspace. Please select cancel to go back or continue to override the existing entities. '
+        'The following entries already exist in the selected workspace. Please select CANCEL to go back or COPY to override the existing entities. '
       ]),
+      deletingEntities && h(EntityDeleter, {
+        onDismiss: () => this.setState({ deletingEntities: false }),
+        onSuccess: () => this.setState({ deletingEntities: false }),
+        namespace: selectedWorkspace.namespace,
+        name: selectedWorkspace.name,
+        selectedEntities: entitiesToDelete,
+        selectedDataType: selectedEntityType, runningSubmissionsCount
+      }),
       formLabel('Entries selected'),
       ..._.map(([i, entity]) => div({
         style: {
           borderTop: (i === 0 && runningSubmissionsCount === 0) ? undefined : Style.standardLine,
           padding: '0.6rem 1.25rem', margin: '0 -1.25rem'
         }
-      }, conflictsExist ? `${entity.entityName} (${entity.entityType})` : entity),
-      Utils.toIndexPairs(conflictsExist ? conflicts : selectedEntities)),
+      }, hardConflictsExist ? `${entity.entityName} (${entity.entityType})` : entity),
+      Utils.toIndexPairs(hardConflictsExist ? hardConflicts : selectedEntities)),
       div({
-        style: { ...warningStyle, textAlign: 'right', marginTop: conflictsExist ? '1rem' : undefined }
+        style: { ...warningStyle, textAlign: 'right', marginTop: hardConflictsExist ? '1rem' : undefined }
       }, [`${selectedEntities.length} data entries to be copied.`]),
       copying && spinnerOverlay,
       error && h(ErrorView, { error, collapses: false })
@@ -143,19 +151,22 @@ export default _.flow(
 
   async copy() {
     const { onDismiss, selectedEntities, workspace, ajax: { Workspaces } } = this.props
-    const { selectedEntityType } = this.state
-    const entitiesToCopy = _.map(entityName => (entityName), selectedEntities)
+    const { selectedEntityType, hardConflicts } = this.state
     const selectedWorkspace = this.getSelectedWorkspace().workspace
     this.setState({ copying: true })
+    if (hardConflicts.length !== 0) { //hardConflicts exist, delete and replace
+      const entitiesToDelete = _.map('entityName', hardConflicts)
+      this.setState({ deletingEntities: true, selectedWorkspace, entitiesToDelete, hardConflictsExist: false })
+    }
     try {
       await Workspaces.workspace(workspace.workspace.namespace, workspace.workspace.name)
-        .copyEntities(selectedWorkspace.namespace, selectedWorkspace.name, selectedEntityType, entitiesToCopy)
+        .copyEntities(selectedWorkspace.namespace, selectedWorkspace.name, selectedEntityType, selectedEntities)
       this.setState({ copied: true })
     } catch (error) {
       switch (error.status) {
         case 409:
           const { hardConflicts } = await error.json()
-          this.setState({ conflicts: hardConflicts, copying: false })
+          this.setState({ hardConflicts, hardConflictsExist: true, copying: false })
           break
         default:
           reportError('Error copying data entries', error)
