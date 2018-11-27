@@ -171,7 +171,7 @@ export const RadioButton = ({ text, labelStyle, ...props }) => {
 export const spinnerDefault = ({ outerStyles = {}, innerStyles = {} }) => div(
   {
     style: {
-      position: 'absolute',
+      position: 'fixed',
       display: 'flex', alignItems: 'center',
       top: 0, right: 0, bottom: 0, left: 0,
       zIndex: 9999, // make sure it's on top of any third party components with z-indicies
