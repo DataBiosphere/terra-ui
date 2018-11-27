@@ -555,8 +555,9 @@ const DeleteObjectModal = ajaxCaller(class DeleteObjectModal extends Component {
     return h(Modal, {
       onDismiss,
       okButton: () => this.delete(),
-      title: 'Are you sure you want to delete this file?'
+      title: 'Delete this file?'
     }, [
+      'Are you sure you want to delete this file from the Google bucket?',
       deleting && spinnerOverlay
     ])
   }
@@ -581,7 +582,7 @@ const BucketContent = ajaxCaller(class BucketContent extends Component {
 
   componentDidUpdate(prevProps) {
     if (prevProps.refreshKey !== this.props.refreshKey) {
-      this.load()
+      this.load('')
     }
     StateHistory.update(_.pick(['objects', 'prefix'], this.state))
   }
@@ -658,7 +659,10 @@ const BucketContent = ajaxCaller(class BucketContent extends Component {
             }, prefixes),
             ..._.map(({ name, size, updated }) => {
               return {
-                button: linkButton({ onClick: () => this.setState({ deletingName: name }) }, [
+                button: linkButton({
+                  style: { display: 'flex' }, onClick: () => this.setState({ deletingName: name }),
+                  tooltip: 'Delete file'
+                }, [
                   icon('trash', { size: 16, className: 'hover-only' })
                 ]),
                 name: h(TextCell, [
