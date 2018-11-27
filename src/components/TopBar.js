@@ -3,7 +3,7 @@ import PropTypes from 'prop-types'
 import { createPortal } from 'react-dom'
 import { a, b, div, h } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
-import { Clickable, comingSoon, MenuButton } from 'src/components/common'
+import { Clickable, MenuButton } from 'src/components/common'
 import { icon, logo, profilePic } from 'src/components/icons'
 import { pushNotification } from 'src/components/Notifications'
 import SignInButton from 'src/components/SignInButton'
@@ -52,17 +52,18 @@ const styles = {
     }),
     item: {
       display: 'flex', alignItems: 'center', flex: 'none',
-      height: 70, padding: '0 3rem',
+      height: 70, padding: '0 28px',
       fontWeight: 600,
       borderBottom: `1px solid ${colors.darkBlue[2]}`, color: 'white'
     },
-    miniItem: {
-      display: 'flex', alignItems: 'center',
-      margin: '1rem 3rem',
-      fontWeight: 600
+    subItem: {
+      display: 'flex', alignItems: 'center', flex: 'none',
+      padding: '10px 28px', paddingLeft: 60,
+      fontWeight: 600,
+      color: 'white'
     },
     icon: {
-      width: 32, marginRight: '0.5rem', flex: 'none'
+      marginRight: 12, flex: 'none'
     }
   }
 }
@@ -128,27 +129,9 @@ export default Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
           ]),
           isSignedIn ?
             this.buildUserSection() :
-            div({ style: { ...styles.nav.item, ...styles.nav.profile(false), boxShadow: `inset ${Style.standardShadow}` } }, [
+            div({ style: { ...styles.nav.item, ...styles.nav.profile(false), boxShadow: `inset ${Style.standardShadow}`, justifyContent: 'center' } }, [
               h(SignInButton)
             ]),
-          h(Clickable, {
-            as: 'a',
-            style: styles.nav.item,
-            hover: { backgroundColor: colors.darkBlue[1] },
-            href: Nav.getLink('browse-data'),
-            onClick: () => this.hideNav()
-          }, [
-            div({ style: styles.nav.icon }, [
-              icon('browse', { size: 24 })
-            ]),
-            'Browse Data'
-          ]),
-          div({ style: styles.nav.item }, [
-            div({ style: styles.nav.icon }, [
-              icon('search', { size: 24 })
-            ]),
-            'Find Code', comingSoon
-          ]),
           h(Clickable, {
             as: 'a',
             style: styles.nav.item,
@@ -157,17 +140,62 @@ export default Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
             onClick: () => this.hideNav()
           }, [
             div({ style: styles.nav.icon }, [
-              icon('workspace', { className: 'is-solid', size: 24 })
+              icon('grid-chart', { className: 'is-solid', size: 24 })
             ]),
-            'See All Workspaces'
+            'Your Workspaces'
           ]),
-          div({ style: { marginTop: '2rem' } }, [
+          div({ style: { borderBottom: styles.nav.item.borderBottom, padding: '14px 0' } }, [
+            div({ style: _.omit('paddingLeft', styles.nav.subItem) }, [
+              div({ style: styles.nav.icon }, [
+                icon('library', { className: 'is-solid', size: 24 })
+              ]),
+              'Library'
+            ]),
             h(Clickable, {
-              style: styles.nav.miniItem,
+              style: styles.nav.subItem,
+              as: 'a',
+              hover: { backgroundColor: colors.darkBlue[1] },
+              href: Nav.getLink('datasets'),
+              onClick: () => this.hideNav()
+            }, [
+              div({ style: styles.nav.icon }, [
+                icon('data-cluster', { className: 'is-solid', size: 24 })
+              ]),
+              'Datasets'
+            ]),
+            h(Clickable, {
+              style: styles.nav.subItem,
+              as: 'a',
+              hover: { backgroundColor: colors.darkBlue[1] },
+              href: Nav.getLink('datasets'),
+              onClick: () => this.hideNav()
+            }, [
+              div({ style: styles.nav.icon }, [
+                icon('grid-chart', { className: 'is-solid', size: 24 })
+              ]),
+              'Showcase & Tutorials'
+            ]),
+            h(Clickable, {
+              style: styles.nav.subItem,
+              as: 'a',
+              hover: { backgroundColor: colors.darkBlue[1] },
+              href: Nav.getLink('datasets'),
+              onClick: () => this.hideNav()
+            }, [
+              div({ style: styles.nav.icon }, [
+                icon('tools', { className: 'is-solid', size: 24 })
+              ]),
+              'Code & Tools'
+            ])
+          ]),
+          div({ style: { marginTop: '1rem' } }, [
+            h(Clickable, {
+              style: {...styles.nav.item, borderBottom: 'none', height: 50},
+              hover: { backgroundColor: colors.darkBlue[1] },
               onClick: () => this.setState({ showingSupportModal: true })
             }, [
               div({ style: styles.nav.icon }, [
-                icon('envelope', { className: 'is-solid', size: 24 })
+                icon('envelope', { className: 'is-solid', size: 20 })
               ]),
               'Contact Us'
             ])
@@ -189,7 +217,7 @@ export default Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
   }
 
   buildUserSection() {
-    const { authState: { profile: { firstName, lastName } } } = this.props
+    const { authState: { profile: { firstName = 'Loading...', lastName = '' } } } = this.props
     const { userMenuOpen } = this.state
 
     return h(Collapse, {
