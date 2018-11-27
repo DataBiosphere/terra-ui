@@ -169,7 +169,7 @@ export default Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
               style: styles.nav.subItem,
               as: 'a',
               hover: { backgroundColor: colors.darkBlue[1] },
-              href: Nav.getLink('library-datasets'),
+              href: Nav.getLink('library-showcase'),
               onClick: () => this.hideNav()
             }, [
               div({ style: styles.nav.icon }, [
@@ -181,7 +181,7 @@ export default Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
               style: styles.nav.subItem,
               as: 'a',
               hover: { backgroundColor: colors.darkBlue[1] },
-              href: Nav.getLink('library-datasets'),
+              href: Nav.getLink('library-code'),
               onClick: () => this.hideNav()
             }, [
               div({ style: styles.nav.icon }, [
