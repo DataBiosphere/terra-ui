@@ -297,7 +297,7 @@ const WorkflowView = _.flow(
 
     return div({ style: { position: 'relative', backgroundColor: 'white', borderBottom: `2px solid ${colors.blue[0]}` } }, [
       div({ style: { display: 'flex', padding: `1.5rem ${sideMargin} 0`, minHeight: 120 } }, [
-        div({ style: { flex: '1', lineHeight: '1.5rem' } }, [
+        div({ style: { flex: '1', lineHeight: '1.5rem', minWidth: 0 } }, [
           div({ style: { display: 'flex' } }, [
             span({ style: { marginLeft: '-2rem', width: '2rem' } }, [
               h(PopupTrigger, {
