@@ -1,6 +1,8 @@
 import clipboard from 'clipboard-polyfill'
+import filesize from 'filesize'
 import _ from 'lodash/fp'
 import { createRef, Fragment } from 'react'
+import Dropzone from 'react-dropzone'
 import { div, form, h, input } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
@@ -9,7 +11,8 @@ import FloatingActionButton from 'src/components/FloatingActionButton'
 import { icon, spinner } from 'src/components/icons'
 import { textInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
-import { ColumnSelector, FlexTable, GridTable, HeaderCell, paginator, Resizable, Sortable } from 'src/components/table'
+import { ColumnSelector, FlexTable, GridTable, HeaderCell, paginator, Resizable, SimpleTable, Sortable, TextCell } from 'src/components/table'
+import UriViewer from 'src/components/UriViewer'
 import { ajaxCaller } from 'src/libs/ajax'
 import { getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
@@ -26,6 +29,7 @@ import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer
 const filterState = (props, state) => ({ ..._.pick(['pageNumber', 'itemsPerPage', 'sort'], state), ..._.pick(['refreshKey'], props) })
 
 const localVariables = 'localVariables'
+const bucketObjects = '__bucket_objects__'
 
 const initialSort = { field: 'name', direction: 'asc' }
 
@@ -47,16 +51,16 @@ const styles = {
   }
 }
 
-const DataTypeButton = ({ selected, children, ...props }) => {
+const DataTypeButton = ({ selected, children, iconName = 'listAlt', iconSize = 14, ...props }) => {
   return linkButton({
     style: { display: 'flex', alignItems: 'center', fontWeight: selected ? 500 : undefined, padding: '0.5rem 0' },
     ...props
   }, [
-    div({ style: { flex: 'none', width: '1.5rem' } }, [
+    div({ style: { flex: 'none', display: 'flex', width: '1.5rem' } }, [
       selected && icon('circle', { size: 14, className: 'is-solid' })
     ]),
-    div({ style: { flex: 'none', width: '1.5rem' } }, [
-      icon('listAlt', { size: 14 })
+    div({ style: { flex: 'none', display: 'flex', width: '1.5rem' } }, [
+      icon(iconName, { size: iconSize })
     ]),
     div({ style: { flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' } }, [
       children
@@ -526,6 +530,175 @@ const EntitiesContent = ajaxCaller(class EntitiesContent extends Component {
   }
 })
 
+const DeleteObjectModal = ajaxCaller(class DeleteObjectModal extends Component {
+  constructor(props) {
+    super(props)
+    this.state = { deleting: false }
+  }
+
+  async delete() {
+    const { name, workspace: { workspace: { namespace, bucketName } }, ajax: { Buckets }, onSuccess } = this.props
+    try {
+      this.setState({ deleting: true })
+      await Buckets.delete(namespace, bucketName, name)
+      onSuccess()
+    } catch (error) {
+      reportError('Error deleting object', error)
+    } finally {
+      this.setState({ deleting: false })
+    }
+  }
+
+  render() {
+    const { onDismiss } = this.props
+    const { deleting } = this.state
+    return h(Modal, {
+      onDismiss,
+      okButton: () => this.delete(),
+      title: 'Delete this file?'
+    }, [
+      'Are you sure you want to delete this file from the Google bucket?',
+      deleting && spinnerOverlay
+    ])
+  }
+})
+
+const BucketContent = ajaxCaller(class BucketContent extends Component {
+  constructor(props) {
+    super(props)
+    const { prefix = '', objects } = props.firstRender ? StateHistory.get() : {}
+    this.state = {
+      prefix,
+      objects,
+      deletingName: undefined,
+      viewingName: undefined
+    }
+    this.uploader = createRef()
+  }
+
+  componentDidMount() {
+    this.load()
+  }
+
+  componentDidUpdate(prevProps) {
+    if (prevProps.refreshKey !== this.props.refreshKey) {
+      this.load('')
+    }
+    StateHistory.update(_.pick(['objects', 'prefix'], this.state))
+  }
+
+  async load(prefix = this.state.prefix) {
+    const { workspace: { workspace: { namespace, bucketName } }, ajax: { Buckets } } = this.props
+    try {
+      this.setState({ loading: true })
+      const { items, prefixes } = await Buckets.list(namespace, bucketName, prefix)
+      this.setState({ objects: items, prefixes, prefix })
+    } catch (error) {
+      reportError('Error loading bucket data', error)
+    } finally {
+      this.setState({ loading: false })
+    }
+  }
+
+  async uploadFiles(files) {
+    const { workspace: { workspace: { namespace, bucketName } }, ajax: { Buckets } } = this.props
+    const { prefix } = this.state
+    try {
+      this.setState({ uploading: true })
+      await Buckets.upload(namespace, bucketName, prefix, files[0])
+      this.load()
+    } catch (error) {
+      reportError('Error uploading file', error)
+    } finally {
+      this.setState({ uploading: false })
+    }
+  }
+
+  render() {
+    const { workspace, workspace: { accessLevel, workspace: { namespace, bucketName } } } = this.props
+    const { prefix, prefixes, objects, loading, uploading, deletingName, viewingName } = this.state
+    const prefixParts = _.dropRight(1, prefix.split('/'))
+    const canEdit = Utils.canWrite(accessLevel)
+    return h(Fragment, [
+      h(Dropzone, {
+        disabled: !canEdit,
+        disableClick: true,
+        style: { flexGrow: 1, backgroundColor: 'white', border: `1px solid ${colors.gray[3]}`, padding: '1rem' },
+        activeStyle: { backgroundColor: colors.blue[3], cursor: 'copy' },
+        ref: this.uploader,
+        onDropAccepted: files => this.uploadFiles(files)
+      }, [
+        div([
+          _.map(({ label, target }) => {
+            return h(Fragment, { key: target }, [
+              linkButton({ onClick: () => this.load(target) }, [label]),
+              ' / '
+            ])
+          }, [
+            { label: 'Files', target: '' },
+            ..._.map(n => {
+              return { label: prefixParts[n], target: _.map(s => `${s}/`, _.take(n + 1, prefixParts)).join('') }
+            }, _.range(0, prefixParts.length))
+          ])
+        ]),
+        div({ style: { margin: '1rem -1rem 1rem -1rem', borderBottom: `1px solid ${colors.gray[5]}` } }),
+        h(SimpleTable, {
+          columns: [
+            { size: { basis: 24, grow: 0 }, key: 'button' },
+            { header: h(HeaderCell, ['Name']), size: { grow: 1 }, key: 'name' },
+            { header: h(HeaderCell, ['Size']), size: { basis: 200, grow: 0 }, key: 'size' },
+            { header: h(HeaderCell, ['Last modified']), size: { basis: 200, grow: 0 }, key: 'updated' }
+          ],
+          rows: [
+            ..._.map(p => {
+              return {
+                name: h(TextCell, [
+                  linkButton({ onClick: () => this.load(p) }, [p.slice(prefix.length)])
+                ])
+              }
+            }, prefixes),
+            ..._.map(({ name, size, updated }) => {
+              return {
+                button: linkButton({
+                  style: { display: 'flex' }, onClick: () => this.setState({ deletingName: name }),
+                  tooltip: 'Delete file'
+                }, [
+                  icon('trash', { size: 16, className: 'hover-only' })
+                ]),
+                name: h(TextCell, [
+                  linkButton({ onClick: () => this.setState({ viewingName: name }) }, [
+                    name.slice(prefix.length)
+                  ])
+                ]),
+                size: filesize(size, { round: 0 }),
+                updated: Utils.makePrettyDate(updated)
+              }
+            }, objects)
+          ]
+        }),
+        deletingName && h(DeleteObjectModal, {
+          workspace, name: deletingName,
+          onDismiss: () => this.setState({ deletingName: undefined }),
+          onSuccess: () => {
+            this.setState({ deletingName: undefined })
+            this.load()
+          }
+        }),
+        viewingName && h(UriViewer, {
+          googleProject: namespace, uri: `gs://${bucketName}/${viewingName}`,
+          onDismiss: () => this.setState({ viewingName: undefined })
+        }),
+        canEdit && h(FloatingActionButton, {
+          label: 'Upload',
+          iconShape: 'plus',
+          onClick: () => this.uploader.current.open()
+        })
+      ]),
+      (loading || uploading) && spinnerOverlay
+    ])
+  }
+})
+
 const WorkspaceData = _.flow(
   wrapWorkspace({
     breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
@@ -577,6 +750,7 @@ const WorkspaceData = _.flow(
     return Utils.cond(
       [!selectedDataType, () => 'none'],
       [selectedDataType === localVariables, () => 'localVariables'],
+      [selectedDataType === bucketObjects, () => 'bucketObjects'],
       [_.includes(selectedDataType, _.keys(referenceData)), () => 'referenceData'],
       () => 'entities'
     )
@@ -666,7 +840,14 @@ const WorkspaceData = _.flow(
               this.setState({ selectedDataType: localVariables })
               refreshWorkspace()
             }
-          }, ['Workspace Data'])
+          }, ['Workspace Data']),
+          h(DataTypeButton, {
+            iconName: 'folder', iconSize: 18,
+            selected: selectedDataType === bucketObjects,
+            onClick: () => {
+              this.setState({ selectedDataType: bucketObjects, refreshKey: refreshKey + 1 })
+            }
+          }, ['Files'])
         ]),
         div({ style: styles.tableViewPanel }, [
           Utils.switchCase(this.selectionType(),
@@ -683,6 +864,10 @@ const WorkspaceData = _.flow(
               loadingWorkspace,
               referenceKey: selectedDataType,
               firstRender
+            })],
+            ['bucketObjects', () => h(BucketContent, {
+              workspace,
+              firstRender, refreshKey
             })],
             ['entities', () => h(EntitiesContent, {
               key: selectedDataType,
