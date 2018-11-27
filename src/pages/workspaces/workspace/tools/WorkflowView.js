@@ -12,7 +12,7 @@ import {
 import { centeredSpinner, icon } from 'src/components/icons'
 import { AutocompleteTextInput } from 'src/components/input'
 import PopupTrigger from 'src/components/PopupTrigger'
-import TabBar from 'src/components/TabBar'
+import StepButtons, { params as StepButtonParams } from 'src/components/StepButtons'
 import { FlexTable, HeaderCell, TextCell } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import WDLViewer from 'src/components/WDLViewer'
@@ -34,12 +34,6 @@ import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer
 const sideMargin = '3rem'
 
 const miniMessage = text => span({ style: { fontWeight: 500, fontSize: '75%', marginRight: '1rem', textTransform: 'uppercase' } }, [text])
-
-const errorIcon = b => {
-  return !_.isEmpty(b) && icon('error', {
-    size: 28, style: { marginLeft: '0.5rem', color: colors.red[0] }
-  })
-}
 
 const augmentErrors = ({ invalidInputs, invalidOutputs, missingInputs }) => {
   return {
@@ -186,7 +180,8 @@ class TextCollapse extends Component {
 const WorkflowView = _.flow(
   wrapWorkspace({
     breadcrumbs: props => breadcrumbs.commonPaths.workspaceTab(props, 'tools'),
-    title: ({ workflowName }) => workflowName, activeTab: 'tools'
+    title: ({ workflowName }) => workflowName, activeTab: 'tools',
+    showTabBar: false
   }),
   ajaxCaller
 )(class WorkflowView extends Component {
@@ -288,7 +283,7 @@ const WorkflowView = _.flow(
   }
 
   renderSummary() {
-    const { workspace: { canCompute, workspace } } = this.props
+    const { workspace: { canCompute, workspace }, namespace, name: workspaceName } = this.props
     const { modifiedConfig, savedConfig, entityMetadata, saving, saved, copying, deleting, activeTab, errors, firecloudRoot, dockstoreRoot, synopsis, documentation } = this.state
     const { name, methodRepoMethod: { methodPath, methodVersion, methodNamespace, methodName }, rootEntityType } = modifiedConfig
     const modified = !_.isEqual(modifiedConfig, savedConfig)
@@ -297,7 +292,10 @@ const WorkflowView = _.flow(
       [!_.isEmpty(errors.inputs) || !_.isEmpty(errors.outputs), () => 'At least one required attribute is missing or invalid']
     )
 
-    return div({ style: { backgroundColor: colors.blue[5], position: 'relative' } }, [
+    const inputsValid = _.isEmpty(errors.inputs)
+    const outputsValid = _.isEmpty(errors.outputs)
+
+    return div({ style: { position: 'relative', backgroundColor: 'white', borderBottom: `2px solid ${colors.blue[0]}` } }, [
       div({ style: { display: 'flex', padding: `1.5rem ${sideMargin} 0`, minHeight: 120 } }, [
         div({ style: { flex: '1', lineHeight: '1.5rem' } }, [
           div({ style: { display: 'flex' } }, [
@@ -334,7 +332,7 @@ const WorkflowView = _.flow(
               documentation
             ]) :
             div({ style: { fontStyle: 'italic', ...styles.description } }, ['No documentation provided']),
-          div({ style: { textTransform: 'capitalize', display: 'flex', alignItems: 'baseline', marginTop: '0.5rem' } }, [
+          div({ style: { display: 'flex', alignItems: 'baseline', marginTop: '0.5rem' } }, [
             'Data Type:',
             h(Select, {
               isClearable: true, isSearchable: false,
@@ -347,14 +345,31 @@ const WorkflowView = _.flow(
               },
               options: _.keys(entityMetadata)
             })
-          ])
+          ]),
+          h(StepButtons, {
+            tabs: [
+              { key: 'wdl', title: 'Script', isValid: true },
+              { key: 'inputs', title: 'Inputs', isValid: inputsValid },
+              { key: 'outputs', title: 'Outputs', isValid: outputsValid }
+            ],
+            activeTab,
+            onChangeTab: v => this.setState({ activeTab: v }),
+            finalStep: buttonPrimary({
+              disabled: !canCompute || !!noLaunchReason,
+              tooltip: !canCompute ? 'You do not have access to run analyses on this workspace.' : undefined,
+              onClick: () => this.setState({ launching: true }),
+              style: {
+                height: StepButtonParams.buttonHeight, fontSize: StepButtonParams.fontSize
+              }
+            }, ['Run analysis'])
+          })
         ]),
         div({ style: { flex: 'none', display: 'flex', flexDirection: 'column', alignItems: 'flex-end' } }, [
-          buttonPrimary({
-            disabled: !canCompute || !!noLaunchReason,
-            tooltip: !canCompute ? 'You do not have access to run analyses on this workspace.' : undefined,
-            onClick: () => this.setState({ launching: true })
-          }, ['Launch analysis']),
+          linkButton({
+            href: Nav.getLink('workspace-tools', { namespace, name: workspaceName })
+          }, [
+            icon('times', { size: 36 })
+          ]),
           canCompute && noLaunchReason && div({
             style: {
               marginTop: '0.5rem', padding: '1rem',
@@ -364,16 +379,6 @@ const WorkflowView = _.flow(
           }, noLaunchReason)
         ])
       ]),
-      h(TabBar, {
-        style: { paddingLeft: sideMargin, marginTop: '1rem' },
-        tabs: [
-          { key: 'inputs', title: h(Fragment, ['Inputs', errorIcon(errors.inputs)]) },
-          { key: 'outputs', title: h(Fragment, ['Outputs', errorIcon(errors.outputs)]) },
-          { key: 'wdl', title: 'WDL' }
-        ],
-        activeTab,
-        onChangeTab: v => this.setState({ activeTab: v })
-      }),
       div({ style: styles.messageContainer }, [
         saving && miniMessage('Saving...'),
         saved && !saving && !modified && miniMessage('Saved!'),

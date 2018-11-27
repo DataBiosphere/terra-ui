@@ -11,11 +11,5 @@ export const elements = {
     borderRadius: 5, padding: '1rem', wordWrap: 'break-word', boxShadow: standardShadow,
     backgroundColor: 'white'
   },
-  input: {
-    style: { border: `1px solid ${colors.gray[3]}`, borderRadius: 4, height: '2.25rem' }
-  },
-  pageTitle: {
-    color: colors.darkBlue[0], fontSize: 22, fontWeight: 500, textTransform: 'uppercase'
-  },
   sectionHeader: { color: colors.darkBlue[0], fontSize: 16, fontWeight: 'bold' }
 }
