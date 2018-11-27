@@ -37,8 +37,8 @@ const initializeAuth = _.memoize(async () => {
   await new Promise(resolve => window.gapi.load('auth2', resolve))
   await window.gapi.auth2.init({ clientId: await Config.getGoogleClientId() })
   const processUser = user => {
-    const authResponse = user.getAuthResponse(true)
     return authStore.update(state => {
+      const authResponse = user.getAuthResponse(true)
       const profile = user.getBasicProfile()
       const isSignedIn = user.isSignedIn()
       return {
@@ -72,7 +72,6 @@ window.forceSignIn = async token => {
     { headers: { Authorization: `Bearer ${token}` } }
   )
   const data = await res.json()
-
   authStore.update(state => {
     return {
       ...state,
