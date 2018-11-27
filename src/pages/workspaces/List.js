@@ -226,10 +226,11 @@ export const WorkspaceList = _.flow(
       h(PageFadeBox, { style: { position: 'relative' } }, [
         div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' } }, [
           div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, ['Workspaces']),
-          div({ style: { marginLeft: 'auto', flex: '0 0 200px' } }, [
+          div({ style: { marginLeft: 'auto', flex: '0 0 300px' } }, [
             h(Select, {
               isClearable: true,
               isMulti: true,
+              isSearchable: false,
               placeholder: 'Filter by access levels',
               value: accessLevelsFilter,
               onChange: data => this.setState({ accessLevelsFilter: _.map('value', data) }),
@@ -237,13 +238,17 @@ export const WorkspaceList = _.flow(
               getOptionLabel: ({ value }) => Utils.normalizeLabel(value)
             })
           ]),
-          div({ style: { margin: '0 1rem', flex: '0 0 200px' } }, [
+          div({ style: { margin: '0 1rem', flex: '0 0 300px' } }, [
             h(Select, {
               isClearable: true,
-              isMulti: true,
-              placeholder: 'Filter by projects',
+              isMulti: false,
+              placeholder: 'Filter by project',
               value: projectsFilter,
-              onChange: data => this.setState({ projectsFilter: _.map('value', data) }),
+              hideSelectedOptions: true,
+              onChange: selected => {
+                const data = !!selected ? selected.value : undefined
+                this.setState({ projectsFilter: data })
+              },
               options: namespaceList
             })
           ]),
