@@ -33,7 +33,7 @@ const styles = {
       overflow: 'auto', cursor: 'pointer'
     },
     container: {
-      width: 350, color: 'white', position: 'absolute', cursor: 'default',
+      width: 290, color: 'white', position: 'absolute', cursor: 'default',
       backgroundColor: colors.darkBlue[0], height: '100%',
       boxShadow: '3px 0 13px 0 rgba(0,0,0,0.3)',
       display: 'flex', flexDirection: 'column'
@@ -206,7 +206,7 @@ export default Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
             style: {
               ..._.omit('borderBottom', styles.nav.item), marginTop: 'auto',
               color: colors.darkBlue[2],
-              fontSize: 10, marginBottom: '5rem'
+              fontSize: 10
             }
           }, [
             'Built on: ',
