@@ -74,6 +74,7 @@ export default _.flow(
       { selectedWorkspaceId: { presence: true } },
       { prettify: v => (validate.prettify(v)) }
     )
+
     return h(Modal, {
       onDismiss,
       title: 'Copy to Workspace',
@@ -102,11 +103,11 @@ export default _.flow(
       ]),
       moreToDelete && div({ style: { ...warningStyle, display: 'flex', alignItems: 'center' } }, [
         icon('warning-standard', { size: 36, className: 'is-solid', style: { flex: 'none', marginRight: '0.5rem' } }),
-        'In order to override the selected data entries, the following entries that reference the original data must be deleted.'
+        'In order to override the selected data entries, the following entries that reference the original data must ALSO be deleted.'
       ]),
       softConflictsExist && div({ style: { ...warningStyle, display: 'flex', alignItems: 'center' } }, [
         icon('warning-standard', { size: 36, className: 'is-solid', style: { flex: 'none', marginRight: '0.5rem' } }),
-        'The following entries already exist in the selected workspace. Would you like to link the selected entries to the existing ones?'
+        'The following is linked to entries which already exist in the selected workspace. You may link the following to the existing entities by clicking COPY.'
       ]),
       formLabel('Entries selected'),
       ..._.map(([i, entity]) => div({
@@ -159,16 +160,31 @@ export default _.flow(
     const entitiesToDelete = _.concat(hardConflicts, additionalDeletions)
     try {
       await Workspaces.workspace(selectedWorkspace.namespace, selectedWorkspace.name).deleteEntities(entitiesToDelete)
+      this.setState({ hardConflictsExist: false, additionalDeletions: [] })
+    } catch (error) {
+      switch (error.status) {
+        case 409:
+          this.setState({ additionalDeletions: _.filter(entity => entity.entityType !== selectedEntityType, await error.json()), copying: false })
+          break
+        default:
+          reportError('Error deleting data entries', error)
+          onDismiss()
+      }
+    }
+    try {
       await Workspaces.workspace(workspace.workspace.namespace, workspace.workspace.name)
         .copyEntities(selectedWorkspace.namespace, selectedWorkspace.name, selectedEntityType, selectedEntities)
       this.setState({ copied: true })
     } catch (error) {
       switch (error.status) {
         case 409:
-          this.setState({ additionalDeletions: _.filter(entity => entity.entityType !== selectedEntityType, await error.json()), copying: false, hardConflictsExist: false })
+          const { hardConflicts, softConflicts } = await error.json()
+          if (hardConflicts.length !== 0) this.setState({ hardConflictsExist: true })
+          if (softConflicts.length !== 0) this.setState({ softConflictsExist: true })
+          this.setState({ hardConflicts, softConflicts, copying: false })
           break
         default:
-          reportError('Error deleting data entries', error)
+          reportError('Error copying data entries', error)
           onDismiss()
       }
     }
