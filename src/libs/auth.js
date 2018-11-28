@@ -25,7 +25,8 @@ export const authStore = Utils.atom({
   isSignedIn: undefined,
   registrationStatus: undefined,
   acceptedTos: undefined,
-  user: {}
+  user: {},
+  profile: {}
 })
 
 export const getUser = () => {
@@ -45,6 +46,7 @@ const initializeAuth = _.memoize(async () => {
         isSignedIn,
         registrationStatus: isSignedIn ? state.registrationStatus : undefined,
         acceptedTos: isSignedIn ? state.acceptedTos : undefined,
+        profile: isSignedIn ? state.profile : {},
         user: {
           token: authResponse && authResponse.access_token,
           id: user.getId(),
@@ -75,6 +77,7 @@ window.forceSignIn = async token => {
       ...state,
       isSignedIn: true,
       registrationStatus: undefined,
+      profile: {},
       user: {
         token,
         id: data.sub,
@@ -131,6 +134,17 @@ authStore.subscribe(async (state, oldState) => {
 authStore.subscribe((state, oldState) => {
   if (!oldState.isSignedIn && state.isSignedIn) {
     window.newrelic.setCustomAttribute('userGoogleId', state.user.id)
+  }
+})
+
+export const refreshTerraProfile = async () => {
+  const profile = Utils.kvArrayToObject((await Ajax().User.profile.get()).keyValuePairs)
+  authStore.update(state => _.set('profile', profile, state))
+}
+
+authStore.subscribe((state, oldState) => {
+  if (!oldState.isSignedIn && state.isSignedIn) {
+    refreshTerraProfile().catch(error => reportError('Error loading user profile', error))
   }
 })
 

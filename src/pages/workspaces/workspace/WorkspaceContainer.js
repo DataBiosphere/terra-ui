@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import { createRef, Fragment, PureComponent } from 'react'
 import { a, div, h, h2, p, span } from 'react-hyperscript-helpers'
 import ClusterManager from 'src/components/ClusterManager'
-import { Clickable, comingSoon, contextBar, link, MenuButton, menuIcon } from 'src/components/common'
+import { buttonPrimary, Clickable, comingSoon, contextBar, link, MenuButton, menuIcon } from 'src/components/common'
 import ErrorView from 'src/components/ErrorView'
 import { icon } from 'src/components/icons'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
@@ -188,7 +188,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
 
     renderSuccess() {
       const { namespace, name } = this.props
-      const { workspace, clusters } = this.state
+      const { workspace, clusters, loadingWorkspace } = this.state
 
       return h(WorkspaceContainer, {
         namespace, name, activeTab, showTabBar, workspace, clusters,
@@ -206,7 +206,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
       }, [
         workspace && h(WrappedComponent, {
           ref: this.child,
-          workspace, clusters,
+          workspace, clusters, loadingWorkspace,
           refreshWorkspace: () => this.refresh(),
           refreshClusters: () => this.refreshClusters(),
           ...this.props
@@ -233,7 +233,11 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
             ]),
             p({}, [
               'If you think the workspace exists but you do not have access, please contact the workspace owner.'
-            ])
+            ]),
+            buttonPrimary({
+              as: 'a',
+              href: Nav.getLink('workspaces')
+            }, ['Return to Workspace List'])
           ]) :
           h(Fragment, [
             h2({}, ['Failed to load workspace']),
@@ -260,10 +264,13 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
     async refresh() {
       const { namespace, name, ajax: { Workspaces } } = this.props
       try {
+        this.setState({ loadingWorkspace: true })
         const workspace = await Workspaces.workspace(namespace, name).details()
         this.setState({ workspace })
       } catch (error) {
         this.setState({ workspaceError: error, errorText: await error.text().catch(() => 'Unknown') })
+      } finally {
+        this.setState({ loadingWorkspace: false })
       }
     }
   })

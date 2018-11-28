@@ -425,6 +425,12 @@ const Workspaces = signal => ({
         return fetchRawls(`${root}/entities/batchUpsert`, _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }]))
       },
 
+      importEntitiesFile: async file => {
+        const formData = new FormData()
+        formData.set('entities', file)
+        return fetchOrchestration(`api/${root}/flexibleImportEntities`, _.merge(authOpts(), { body: formData, signal, method: 'POST' }))
+      },
+
       deleteEntities: async entities => {
         return fetchRawls(`${root}/entities/delete`, _.mergeAll([authOpts(), jsonBody(entities), { signal, method: 'POST' }]))
       },
@@ -476,6 +482,31 @@ const Buckets = signal => ({
     )
     const { items } = await res.json()
     return _.filter(({ name }) => name.endsWith('.ipynb'), items)
+  },
+
+  list: async (namespace, bucket, prefix) => {
+    const res = await fetchBuckets(
+      `storage/v1/b/${bucket}/o?${qs.stringify({ prefix, delimiter: '/' })}`,
+      _.merge(authOpts(await User(signal).token(namespace)), { signal })
+    )
+    return res.json()
+  },
+
+  delete: async (namespace, bucket, name) => {
+    return fetchBuckets(
+      `storage/v1/b/${bucket}/o/${encodeURIComponent(name)}`,
+      _.merge(authOpts(await User(signal).token(namespace)), { signal, method: 'DELETE' })
+    )
+  },
+
+  upload: async (namespace, bucket, prefix, file) => {
+    return fetchBuckets(
+      `upload/storage/v1/b/${bucket}/o?uploadType=media&name=${encodeURIComponent(prefix + file.name)}`,
+      _.merge(authOpts(await User(signal).token(namespace)), {
+        signal, method: 'POST', body: file,
+        headers: { 'Content-Type': file.type, 'Content-Length': file.size }
+      })
+    )
   },
 
   notebook: (namespace, bucket, name) => {
