@@ -99,7 +99,7 @@ export default _.flow(
       }),
       hardConflictsExist && div({ style: { ...errorStyle, display: 'flex', alignItems: 'center' } }, [
         icon('error-standard', { size: 36, className: 'is-solid', style: { flex: 'none', marginRight: '0.5rem' } }),
-        'The following entries already exist in the selected workspace. Please select CANCEL to go back or COPY to override the existing entities. '
+        'The following entries already exist in the selected workspace. Please select CANCEL to go back or COPY to override the existing entities. ' //note: This is displayed as long as any hard conflict exists to warn user
       ]),
       moreToDelete && div({ style: { ...warningStyle, display: 'flex', alignItems: 'center' } }, [
         icon('warning-standard', { size: 36, className: 'is-solid', style: { flex: 'none', marginRight: '0.5rem' } }),
@@ -116,6 +116,7 @@ export default _.flow(
           padding: '0.6rem 1.25rem', margin: '0 -1.25rem'
         }
       }, (hardConflictsExist || moreToDelete || softConflictsExist) ? `${entity.entityName} (${entity.entityType})` : entity),
+      //following block determines what will get displayed depending on which conflict is occurring
       moreToDelete ?
         Utils.toIndexPairs(additionalDeletions) :
         hardConflictsExist ?
@@ -160,11 +161,11 @@ export default _.flow(
     const entitiesToDelete = _.concat(hardConflicts, additionalDeletions)
     try {
       await Workspaces.workspace(selectedWorkspace.namespace, selectedWorkspace.name).deleteEntities(entitiesToDelete)
-      this.setState({ hardConflictsExist: false, additionalDeletions: [] })
+      this.setState({ hardConflictsExist: false, additionalDeletions: [] }) //conflicted entities deleted, no more hard conflicts
     } catch (error) {
       switch (error.status) {
         case 409:
-          this.setState({ additionalDeletions: _.filter(entity => entity.entityType !== selectedEntityType, await error.json()), copying: false })
+          this.setState({ additionalDeletions: _.filter(entity => entity.entityType !== selectedEntityType, await error.json()), copying: false }) //handles dangling references when deleting entities
           break
         default:
           reportError('Error deleting data entries', error)
@@ -177,7 +178,7 @@ export default _.flow(
       this.setState({ copied: true })
     } catch (error) {
       switch (error.status) {
-        case 409:
+        case 409: //handle soft conflicts during copy created because of deletions from hardconflicts
           const { softConflicts } = await error.json()
           if (softConflicts.length !== 0) this.setState({ softConflictsExist: true })
           this.setState({ softConflicts, copying: false })
