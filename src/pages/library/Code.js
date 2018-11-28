@@ -1,19 +1,19 @@
-import { Children, Fragment, cloneElement } from 'react'
+import { Children, cloneElement, Fragment } from 'react'
 import { div, h, img, p, span } from 'react-hyperscript-helpers'
 import { pure } from 'recompose'
-import { buttonPrimary, link, FadeBox, PageFadeBox } from 'src/components/common'
+import { buttonPrimary, link } from 'src/components/common'
+import { libraryTopMatter } from 'src/components/library-common'
 import Modal from 'src/components/Modal'
 import TooltipTrigger from 'src/components/TooltipTrigger'
-import TopBar from 'src/components/TopBar'
 import amppdLogo from 'src/images/library/datasets/Amp@2x.png'
+import broadLogo from 'src/images/library/datasets/broad_logo.png'
 import gtexLogo from 'src/images/library/datasets/GTeX@2x.png'
 import hcaLogo from 'src/images/library/datasets/HCA@2x.png'
 import nhsLogo from 'src/images/library/datasets/NHS@2x.png'
 import topMedLogo from 'src/images/library/datasets/TopMed@2x.png'
-import broadLogo from 'src/images/library/datasets/broad_logo.png'
 import colors from 'src/libs/colors'
-import * as Nav from 'src/libs/nav'
 import * as Config from 'src/libs/config'
+import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import { Component } from 'src/libs/wrapped-components'
 
@@ -23,11 +23,11 @@ const styles = {
     ...Style.elements.sectionHeader, textTransform: 'uppercase'
   },
   content: {
-    display: 'flex', flexWrap: 'wrap'
+    display: 'flex', flexWrap: 'wrap', margin: '2.5rem'
   },
   participant: {
     container: {
-      margin: '1.5rem 1.5rem 0 0', width: 450
+      margin: '0 4rem 5rem 0', width: 350
     },
     title: {
       marginTop: '1rem',
@@ -35,7 +35,7 @@ const styles = {
     },
     description: {
       marginTop: '1rem',
-      height: 100
+      height: 125
     },
     sizeText: {
       marginTop: '1rem',
@@ -68,8 +68,7 @@ class Participant extends Component {
 
     const titleElement = div({ style: styles.participant.title }, [title])
 
-    return h(FadeBox, {
-      fadePoint: '90%',
+    return div({
       style: styles.participant.container
     }, [
       div({ style: { display: 'flex', flexDirection: 'column' } }, [
@@ -233,14 +232,9 @@ const fcDataLib = h(Participant, {
 
 const Code = pure(() => {
   return h(Fragment, [
-    h(TopBar, { title: 'Library' }), // TODO Add breadcrumbs from design once home page exists
-    h(PageFadeBox, [
-      div([
-        div({ style: styles.header }, ['Data Library']),
-        div({ style: styles.content }, [
-          nhs, hca, amppd, topMed, gtex, fcDataLib
-        ])
-      ])
+    libraryTopMatter('code'),
+    div({ style: styles.content }, [
+      nhs, hca, amppd, topMed, gtex, fcDataLib
     ])
   ])
 })
