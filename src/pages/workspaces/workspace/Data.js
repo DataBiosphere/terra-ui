@@ -513,14 +513,18 @@ const EntitiesContent = ajaxCaller(class EntitiesContent extends Component {
       ]),
       !!selectedEntities.length && h(FloatingActionButton, {
         label: 'COPY DATA',
-        iconShape: 'cardMenuIcon',
+        iconShape: 'copy',
+        bottom: 100,
+        right: 50,
         onClick: () => this.setState({ copyingEntities: true })
       }),
-      /*!!selectedEntities.length && h(FloatingActionButton, {
+      !!selectedEntities.length && h(FloatingActionButton, {
         label: 'DELETE DATA',
         iconShape: 'trash',
+        bottom: 50,
+        right: 50,
         onClick: () => this.setState({ deletingEntities: true })
-      }),*/
+      }),
       deletingEntities && h(EntityDeleter, {
         onDismiss: () => this.setState({ deletingEntities: false }),
         onSuccess: () => {

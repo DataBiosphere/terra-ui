@@ -178,10 +178,9 @@ export default _.flow(
     } catch (error) {
       switch (error.status) {
         case 409:
-          const { hardConflicts, softConflicts } = await error.json()
-          if (hardConflicts.length !== 0) this.setState({ hardConflictsExist: true })
+          const { softConflicts } = await error.json()
           if (softConflicts.length !== 0) this.setState({ softConflictsExist: true })
-          this.setState({ hardConflicts, softConflicts, copying: false })
+          this.setState({ softConflicts, copying: false })
           break
         default:
           reportError('Error copying data entries', error)

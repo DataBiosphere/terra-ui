@@ -15,13 +15,13 @@ export default class FloatingActionButton extends Component {
   }
 
   render() {
-    const { label, iconShape, onClick } = this.props
+    const { label, iconShape, onClick, bottom, right } = this.props
     const { hover } = this.state
 
     return h(Clickable,
       {
         style: {
-          position: 'absolute', bottom: 25, right: 25,
+          position: 'absolute', bottom: bottom, right: right,
           backgroundColor: colors.blue[0], color: 'white',
           padding: '0.5rem', borderRadius: 40,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
