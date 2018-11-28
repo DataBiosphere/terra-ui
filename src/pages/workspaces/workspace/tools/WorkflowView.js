@@ -74,7 +74,7 @@ const ioTask = ({ name }) => _.nth(-2, name.split('.'))
 const ioVariable = ({ name }) => _.nth(-1, name.split('.'))
 const ioType = ({ inputType, outputType }) => (inputType || outputType).match(/(.*?)\??$/)[1] // unify, and strip off trailing '?'
 
-const WorkflowIOTable = ({ which, inputsOutputs, config, errors, onChange, suggestions }) => {
+const WorkflowIOTable = ({ which, inputsOutputs, config, errors, onChange, onSetDefaults, suggestions }) => {
   const data = inputsOutputs[which]
   return h(AutoSizer, [
     ({ width, height }) => {
@@ -109,7 +109,13 @@ const WorkflowIOTable = ({ which, inputsOutputs, config, errors, onChange, sugge
             }
           },
           {
-            headerRenderer: () => h(HeaderCell, ['Attribute']),
+            headerRenderer: () => h(Fragment, [
+              div({ style: { fontWeight: 'bold' } }, ['Attribute']),
+              onSetDefaults && h(Fragment, [
+                div({ style: { whiteSpace: 'pre' } }, ['  |  ']),
+                linkButton({ onClick: onSetDefaults }, ['Use defaults'])
+              ])
+            ]),
             cellRenderer: ({ rowIndex }) => {
               const { name, optional } = data[rowIndex]
               const value = config[which][name] || ''
@@ -460,6 +466,13 @@ const WorkflowView = _.flow(
           config: modifiedConfig,
           errors,
           onChange: canCompute ? ((name, v) => this.setState(_.set(['modifiedConfig', key, name], v))) : undefined,
+          onSetDefaults: canCompute && key === 'outputs' ? () => {
+            this.setState(_.update(['modifiedConfig', 'outputs'], _.flow(
+              _.toPairs,
+              _.map(([k, v]) => [k, v || `this.${_.last(k.split('.'))}`]),
+              _.fromPairs
+            )))
+          } : undefined,
           suggestions
         })
       ])
