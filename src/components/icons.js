@@ -2,11 +2,7 @@ import '@webcomponents/custom-elements' // must be before icons
 
 import { ClarityIcons } from '@clr/icons'
 import '@clr/icons/clr-icons.css'
-import '@clr/icons/shapes/essential-shapes'
-import '@clr/icons/shapes/media-shapes'
-import '@clr/icons/shapes/social-shapes'
-import '@clr/icons/shapes/chart-shapes'
-import '@clr/icons/shapes/technology-shapes'
+import '@clr/icons/shapes/all-shapes'
 import _ from 'lodash/fp'
 import { h, img } from 'react-hyperscript-helpers'
 import browse from 'src/icons/browse.svg'
