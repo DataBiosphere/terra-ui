@@ -1,5 +1,5 @@
 import { Children, cloneElement, Fragment } from 'react'
-import { div, h, img, p, span } from 'react-hyperscript-helpers'
+import { a, div, h, img, p, span } from 'react-hyperscript-helpers'
 import { pure } from 'recompose'
 import { buttonPrimary, link } from 'src/components/common'
 import { libraryTopMatter } from 'src/components/library-common'
@@ -11,6 +11,7 @@ import gtexLogo from 'src/images/library/datasets/GTeX@2x.png'
 import hcaLogo from 'src/images/library/datasets/HCA@2x.png'
 import nhsLogo from 'src/images/library/datasets/NHS@2x.png'
 import topMedLogo from 'src/images/library/datasets/TopMed@2x.png'
+import ukbLogo from 'src/images/library/datasets/UKB@2x.jpg'
 import colors from 'src/libs/colors'
 import * as Config from 'src/libs/config'
 import * as Nav from 'src/libs/nav'
@@ -143,6 +144,25 @@ const nhs = h(Participant, {
   }, ['Browse Data'])
 ])
 
+const ukb = h(Participant, {
+  logo: { src: ukbLogo, alt: `UK Biobank logo`, height: '50%' },
+  title: `UK Biobank`,
+  description: h(Fragment, [
+    link({ href: 'https://www.ukbiobank.ac.uk/', target: '_blank' }, 'UK Biobank'),
+    ` is a national and international health resource with unparalleled research opportunities, 
+    open to bona fide health researchers. UK Biobank aims to improve the prevention, diagnosis and treatment of a wide 
+    range of serious and life-threatening illnesses`]),
+  sizeText: 'Participants: > 500,000'
+}, [
+  buttonPrimary({
+    as: 'a',
+    href: 'https://biobank-explorer.appspot.com/',
+    target: '_blank',
+    tooltip: browseTooltip
+  }, ['Browse Data'])
+])
+
+
 const hca = h(Participant, {
   logo: { src: hcaLogo, alt: 'Human Cell Atlas logo' },
   title: 'Human Cell Atlas',
@@ -234,7 +254,7 @@ const Datasets = pure(() => {
   return h(Fragment, [
     libraryTopMatter('datasets'),
     div({ style: styles.content }, [
-      nhs, hca, amppd, topMed, gtex, fcDataLib
+      nhs, ukb, hca, amppd, topMed, gtex, fcDataLib
     ])
   ])
 })
