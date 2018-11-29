@@ -74,8 +74,8 @@ const ioTask = ({ name }) => _.nth(-2, name.split('.'))
 const ioVariable = ({ name }) => _.nth(-1, name.split('.'))
 const ioType = ({ inputType, outputType }) => (inputType || outputType).match(/(.*?)\??$/)[1] // unify, and strip off trailing '?'
 
-const WorkflowIOTable = ({ which, inputsOutputs, config, errors, onChange, suggestions, includeOptional }) => {
-  const data = _.filter(includeOptional ? (() => true) : { optional: false }, inputsOutputs[which])
+const WorkflowIOTable = ({ which, inputsOutputs, config, errors, onChange, suggestions, includeOptionalInputs }) => {
+  const data = which === 'inputs' ? _.filter(includeOptionalInputs ? (() => true) : { optional: false }, inputsOutputs[which]) : inputsOutputs[which]
   return h(AutoSizer, [
     ({ width, height }) => {
       return h(FlexTable, {
@@ -190,7 +190,7 @@ const WorkflowView = _.flow(
 
     this.state = {
       activeTab: 'inputs',
-      includeOptional: false,
+      includeOptionalInputs: false,
       errors: { inputs: {}, outputs: {} },
       ...StateHistory.get()
     }
@@ -243,7 +243,7 @@ const WorkflowView = _.flow(
       const inputsOutputs = await Methods.configInputsOutputs(config)
       this.setState({
         isFreshData: true, savedConfig: config, modifiedConfig: config,
-        entityMetadata, inputsOutputs: _.update('outputs', _.sortBy('optional'), _.update('inputs', _.sortBy('optional'), inputsOutputs)),
+        entityMetadata, inputsOutputs: _.update('inputs', _.sortBy('optional'), inputsOutputs),
         firecloudRoot: await Config.getFirecloudUrlRoot(),
         dockstoreRoot: await Config.getDockstoreUrlRoot(),
         errors: augmentErrors(validationResponse),
@@ -430,7 +430,7 @@ const WorkflowView = _.flow(
 
   renderIOTable(key) {
     const { workspace: { canCompute } } = this.props
-    const { modifiedConfig, inputsOutputs, errors, entityMetadata, workspaceAttributes, includeOptional } = this.state
+    const { modifiedConfig, inputsOutputs, errors, entityMetadata, workspaceAttributes, includeOptionalInputs } = this.state
     // Sometimes we're getting totally empty metadata. Not sure if that's valid; if not, revert this
     const { attributeNames } = entityMetadata[modifiedConfig.rootEntityType] || {}
     const suggestions = [
@@ -450,7 +450,9 @@ const WorkflowView = _.flow(
       onDropAccepted: files => this.uploadJson(key, files[0])
     }, [
       div({ style: { flex: 'none', display: 'flex', marginBottom: '0.25rem' } }, [
-        linkButton({ style: { marginRight: 'auto' }, onClick: () => this.setState({ includeOptional: !includeOptional }) }, [includeOptional ? 'Hide optional ' + key : 'Show optional ' + key]),
+        key === 'inputs' ?
+          linkButton({ style: { marginRight: 'auto' }, onClick: () => this.setState({ includeOptionalInputs: !includeOptionalInputs }) }, [includeOptionalInputs ? 'Hide optional inputs' : 'Show optional inputs'])
+          : div({ style: { marginRight: 'auto' } }, []),
         linkButton({ onClick: () => this.downloadJson(key) }, ['Download json']),
         div({ style: { whiteSpace: 'pre' } }, ['  |  Drag or click to ']),
         linkButton({ onClick: () => this.uploader.current.open() }, ['upload json'])
@@ -458,7 +460,7 @@ const WorkflowView = _.flow(
       div({ style: { flex: '1 0 500px' } }, [
         h(WorkflowIOTable, {
           which: key,
-          includeOptional,
+          includeOptionalInputs,
           inputsOutputs,
           config: modifiedConfig,
           errors,
