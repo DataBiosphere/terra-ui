@@ -1,4 +1,5 @@
 import clipboard from 'clipboard-polyfill'
+import FileSaver from 'file-saver'
 import filesize from 'filesize'
 import _ from 'lodash/fp'
 import { createRef, Fragment } from 'react'
@@ -308,9 +309,10 @@ const EntitiesContent = ajaxCaller(class EntitiesContent extends Component {
       loading: false,
       columnWidths,
       columnState,
-      selectedEntities: [],
+      selectedEntities: {},
       deletingEntities: false,
-      totalRowCount
+      totalRowCount,
+      bulkSelecting: false
     }
     this.table = createRef()
     this.downloadForm = createRef()
@@ -337,7 +339,7 @@ const EntitiesContent = ajaxCaller(class EntitiesContent extends Component {
         .paginatedEntitiesOfType(entityKey, {
           page: pageNumber, pageSize: itemsPerPage, sortField: sort.field, sortDirection: sort.direction
         })
-      this.setState({ entities: results, totalRowCount: unfilteredCount, selectedEntities: [] })
+      this.setState({ entities: results, totalRowCount: unfilteredCount })
     } catch (error) {
       reportError('Error loading entities', error)
     } finally {
@@ -345,9 +347,22 @@ const EntitiesContent = ajaxCaller(class EntitiesContent extends Component {
     }
   }
 
-  renderDownloadButton(columnSettings) {
+  async loadAllData() {
+    const { entityKey, workspace: { workspace: { namespace, name } }, ajax: { Workspaces } } = this.props
+    try {
+      this.setState({ loading: true })
+      const results = await Workspaces.workspace(namespace, name).entitiesOfType(entityKey)
+      this.setState({ selectedEntities: _.fromPairs(_.map(e => [e.name, e], results)) })
+    } catch (error) {
+      reportError('Error loading entities', error)
+    } finally {
+      this.setState({ loading: false })
+    }
+  }
+
+  renderDownloadButtons(columnSettings) {
     const { workspace: { workspace: { namespace, name } }, entityKey } = this.props
-    const { orchestrationRoot } = this.state
+    const { orchestrationRoot, selectedEntities } = this.state
     return h(Fragment, [
       form({
         ref: this.downloadForm,
@@ -358,38 +373,38 @@ const EntitiesContent = ajaxCaller(class EntitiesContent extends Component {
         input({ type: 'hidden', name: 'attributeNames', value: _.map('name', _.filter('visible', columnSettings)).join(',') }),
         input({ type: 'hidden', name: 'model', value: 'flexible' })
       ]),
+      'Download TSV',
       buttonPrimary({
         disabled: !orchestrationRoot,
         tooltip: 'Download all data as a file',
         onClick: () => this.downloadForm.current.submit()
       }, [
         icon('download', { style: { marginRight: '0.5rem' } }),
-        'Download Table TSV'
+        'All'
+      ]),
+      buttonPrimary({
+        style: { margin: '0 1rem' },
+        disabled: _.isEmpty(selectedEntities),
+        tooltip: 'Download selected data as a file',
+        onClick: async () => {
+          const str = this.buildTSV(columnSettings, selectedEntities)
+          FileSaver.saveAs(new Blob([str], { type: 'text/tab-separated-values' }), 'test.tsv')
+        }
+      }, [
+        icon('download', { style: { marginRight: '0.5rem' } }),
+        `Selected${_.isEmpty(selectedEntities) ? '' : ` (${_.size(selectedEntities)})`}`
       ])
     ])
   }
 
-  renderCopyButton() {
-    const { entityKey, entityMetadata } = this.props
+  renderCopyButton(columnSettings) {
     const { entities, copying, copied } = this.state
 
     return h(Fragment, [
       buttonPrimary({
-        style: { margin: '0 1rem' },
         tooltip: 'Copy only the current page to the clipboard',
         onClick: async () => {
-          const attributeNames = entityMetadata[entityKey].attributeNames
-
-          const entityToRow = entity => _.join('\t', [
-            entity.name, ..._.map(
-              attribute => Utils.entityAttributeText(entity.attributes[attribute]),
-              attributeNames)
-          ])
-
-          const header = _.join('\t', [`${entityKey}_id`, ...attributeNames])
-
-          const str = _.join('\n', [header, ..._.map(entityToRow, entities)]) + '\n'
-
+          const str = this.buildTSV(columnSettings, entities)
           try {
             this.setState({ copying: true })
             await clipboard.writeText(str)
@@ -407,9 +422,64 @@ const EntitiesContent = ajaxCaller(class EntitiesContent extends Component {
     ])
   }
 
+  renderBulkSelectionOptions() {
+    const { selectedEntities, totalRowCount } = this.state
+    const allSelected = _.size(selectedEntities) === totalRowCount
+    return h(Fragment, [
+      `${_.size(selectedEntities)} currently selected.`,
+      !allSelected && linkButton({
+        onClick: () => this.loadAllData()
+      }, [`Select all ${totalRowCount}`]),
+      linkButton({
+        onClick: () => this.setState({ selectedEntities: {}, bulkSelecting: false })
+      }, ['Clear selection'])
+    ])
+  }
+
+  buildTSV(columnSettings, entities) {
+    const { entityKey } = this.props
+    const attributeNames = _.map('name', _.filter('visible', columnSettings))
+
+    const entityToRow = entity => _.join('\t', [
+      entity.name, ..._.map(
+        attribute => Utils.entityAttributeText(entity.attributes[attribute]),
+        attributeNames)
+    ])
+
+    const header = _.join('\t', [`${entityKey}_id`, ...attributeNames])
+
+    return _.join('\n', [header, ..._.map(entityToRow, entities)]) + '\n'
+  }
+
+  pageSelectClicked() {
+    const { selectedEntities, entities } = this.state
+    const entityMap = _.fromPairs(_.map(e => [e.name, e], entities))
+    if (this.pageSelected()) {
+      const newSelection = _.omitBy((v, k) => _.has(k, entityMap), selectedEntities)
+      // this.setState({ pageSelected: false, selectedEntities: newSelection, bulkSelecting: !!_.size(newSelection) })
+      this.setState(this.buildSelectionState(newSelection))
+    } else {
+      const newSelection = _.assign(selectedEntities, entityMap)
+      // this.setState({ pageSelected: true, selectedEntities: newSelection, bulkSelecting: true })
+      this.setState({ ...this.buildSelectionState(newSelection), bulkSelecting: true })
+    }
+  }
+
+  pageSelected() {
+    const { entities, selectedEntities } = this.state
+    const entityKeys = _.map('name', entities)
+    const selectedKeys = _.keys(selectedEntities)
+    return _.every(k => _.includes(k, selectedKeys), entityKeys)
+  }
+
+  buildSelectionState(selectedEntities) {
+    const { bulkSelecting } = this.state
+    return { selectedEntities, bulkSelecting: bulkSelecting && !!_.size(selectedEntities) }
+  }
+
   render() {
     const { workspace: { accessLevel, workspace: { namespace, name }, workspaceSubmissionStats: { runningSubmissionsCount } }, entityKey, entityMetadata, loadMetadata, firstRender } = this.props
-    const { entities, totalRowCount, pageNumber, itemsPerPage, sort, columnWidths, columnState, selectedEntities, deletingEntities, loading } = this.state
+    const { entities, totalRowCount, pageNumber, itemsPerPage, sort, columnWidths, columnState, selectedEntities, deletingEntities, loading, bulkSelecting } = this.state
     const theseColumnWidths = columnWidths[entityKey] || {}
     const columnSettings = applyColumnSettings(columnState[entityKey] || [], entityMetadata[entityKey].attributeNames)
     const resetScroll = () => this.table.current.scrollToTop()
@@ -418,8 +488,9 @@ const EntitiesContent = ajaxCaller(class EntitiesContent extends Component {
     return h(Fragment, [
       !!entities && h(Fragment, [
         div({ style: { flex: 'none', marginBottom: '1rem' } }, [
-          this.renderDownloadButton(columnSettings),
-          this.renderCopyButton()
+          this.renderDownloadButtons(columnSettings),
+          bulkSelecting && this.renderBulkSelectionOptions(),
+          this.renderCopyButton(columnSettings)
         ]),
         div({ style: { flex: 1 } }, [
           h(AutoSizer, [
@@ -431,26 +502,23 @@ const EntitiesContent = ajaxCaller(class EntitiesContent extends Component {
                 onScroll: saveScroll,
                 initialX,
                 initialY,
+                banner: bulkSelecting && this.renderBulkSelectionOptions(),
                 columns: [
                   ...(Utils.canWrite(accessLevel) ? [{
                     width: 50,
                     headerRenderer: () => {
-                      const checked = selectedEntities.length === entities.length
                       return h(Checkbox, {
-                        checked,
-                        onChange: () => {
-                          this.setState({ selectedEntities: checked ? [] : _.map('name', entities) })
-                        }
+                        checked: this.pageSelected(),
+                        onChange: () => this.pageSelectClicked()
                       })
                     },
                     cellRenderer: ({ rowIndex }) => {
                       const { name } = entities[rowIndex]
-                      const checked = selectedEntities.includes(name)
+                      const checked = _.has(name, selectedEntities)
+                      const newSelection = (checked ? _.unset(name) : _.set(name, entities[rowIndex]))(selectedEntities)
                       return h(Checkbox, {
                         checked,
-                        onChange: () => {
-                          this.setState(({ selectedEntities }) => ({ selectedEntities: (checked ? _.pullAll : _.concat)([name], selectedEntities) }))
-                        }
+                        onChange: () => this.setState(this.buildSelectionState(newSelection))
                       })
                     }
                   }] : []),
@@ -504,13 +572,13 @@ const EntitiesContent = ajaxCaller(class EntitiesContent extends Component {
           paginator({
             filteredDataLength: totalRowCount,
             pageNumber,
-            setPageNumber: v => this.setState({ pageNumber: v }, resetScroll),
+            setPageNumber: v => this.setState({ pageNumber: v, ...this.buildSelectionState(selectedEntities) }, resetScroll),
             itemsPerPage,
             setItemsPerPage: v => this.setState({ itemsPerPage: v, pageNumber: 1 }, resetScroll)
           })
         ])
       ]),
-      !!selectedEntities.length && h(FloatingActionButton, {
+      !_.isEmpty(selectedEntities) && h(FloatingActionButton, {
         label: 'DELETE DATA',
         iconShape: 'trash',
         onClick: () => this.setState({ deletingEntities: true })
@@ -518,12 +586,12 @@ const EntitiesContent = ajaxCaller(class EntitiesContent extends Component {
       deletingEntities && h(EntityDeleter, {
         onDismiss: () => this.setState({ deletingEntities: false }),
         onSuccess: () => {
-          this.setState({ deletingEntities: false })
+          this.setState({ deletingEntities: false, bulkSelecting: false })
           this.loadData()
           loadMetadata()
         },
         namespace, name,
-        selectedEntities, selectedDataType: entityKey, runningSubmissionsCount
+        selectedEntities: _.keys(selectedEntities), selectedDataType: entityKey, runningSubmissionsCount
       }),
       loading && spinnerOverlay
     ])
