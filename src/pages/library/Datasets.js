@@ -1,5 +1,5 @@
 import { Children, cloneElement, Fragment } from 'react'
-import { a, div, h, img, p, span } from 'react-hyperscript-helpers'
+import { div, h, img, p, span } from 'react-hyperscript-helpers'
 import { pure } from 'recompose'
 import { buttonPrimary, link } from 'src/components/common'
 import { libraryTopMatter } from 'src/components/library-common'
@@ -151,7 +151,8 @@ const ukb = h(Participant, {
     link({ href: 'https://www.ukbiobank.ac.uk/', target: '_blank' }, 'UK Biobank'),
     ` is a national and international health resource with unparalleled research opportunities, 
     open to bona fide health researchers. UK Biobank aims to improve the prevention, diagnosis and treatment of a wide 
-    range of serious and life-threatening illnesses`]),
+    range of serious and life-threatening illnesses`
+  ]),
   sizeText: 'Participants: > 500,000'
 }, [
   buttonPrimary({
