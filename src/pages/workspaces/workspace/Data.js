@@ -238,6 +238,8 @@ const LocalVariablesContent = ajaxCaller(class LocalVariablesContent extends Com
       !creatingNewVariable && canEdit && h(FloatingActionButton, {
         label: 'ADD VARIABLE',
         iconShape: 'plus',
+        bottom: 50,
+        right: 50,
         onClick: () => this.setState({
           editIndex: filteredAttributes.length,
           editValue: '',
@@ -704,8 +706,10 @@ const BucketContent = ajaxCaller(class BucketContent extends Component {
           onDismiss: () => this.setState({ viewingName: undefined })
         }),
         canEdit && h(FloatingActionButton, {
-          label: 'Upload',
+          label: 'UPLOAD',
           iconShape: 'plus',
+          bottom: 50,
+          right: 50,
           onClick: () => this.uploader.current.open()
         })
       ]),

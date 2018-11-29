@@ -11,7 +11,9 @@ export default class FloatingActionButton extends Component {
   static propTypes = {
     label: PropTypes.string.isRequired,
     iconShape: PropTypes.string.isRequired,
-    onClick: PropTypes.func.isRequired
+    onClick: PropTypes.func.isRequired,
+    bottom: PropTypes.number,
+    right: PropTypes.number
   }
 
   render() {
