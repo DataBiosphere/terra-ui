@@ -26,7 +26,6 @@ const styles = {
     marginRight: listView ? undefined : '-1rem'
   }),
   // Card's position: relative and the outer/inner styles are a little hack to fake nested links
-  // https://stackoverflow.com/questions/13052598/creating-anchor-tag-inside-anchor-tag
   card: {
     ...Style.elements.card, position: 'relative'
   },
@@ -34,10 +33,10 @@ const styles = {
     position: 'absolute', top: 0, right: 0, bottom: 0, left: 0
   },
   innerContent: {
-    position: 'relative', pointerEvents: 'none', zIndex: 1
+    position: 'relative', pointerEvents: 'none'
   },
   innerLink: {
-    pointerEvents: 'all'
+    pointerEvents: 'auto'
   },
   // (end link hacks)
   shortCard: {
