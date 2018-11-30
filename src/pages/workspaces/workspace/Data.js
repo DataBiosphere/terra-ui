@@ -497,7 +497,7 @@ const EntitiesContent = ajaxCaller(class EntitiesContent extends Component {
                           closeOnClick: true,
                           content: h(Fragment, [
                             h(MenuButton, { onClick: () => this.selectPage() }, ['Page']),
-                            h(MenuButton, { onClick: () => this.selectAll() }, ['All']),
+                            h(MenuButton, { onClick: () => this.selectAll() }, [`All (${totalRowCount})`]),
                             h(MenuButton, { onClick: () => this.selectNone() }, ['None'])
                           ]),
                           position: 'bottom'
