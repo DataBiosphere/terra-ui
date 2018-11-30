@@ -7,10 +7,11 @@ import { div, h, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import {
-  buttonPrimary, buttonSecondary, linkButton, MenuButton, Select, spinnerOverlay, menuIcon, link, methodLink
+  buttonPrimary, buttonSecondary, Clickable, linkButton, MenuButton, Select, spinnerOverlay, menuIcon, link, methodLink
 } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { AutocompleteTextInput } from 'src/components/input'
+import Modal from 'src/components/Modal'
 import PopupTrigger from 'src/components/PopupTrigger'
 import StepButtons, { params as StepButtonParams } from 'src/components/StepButtons'
 import { FlexTable, HeaderCell, TextCell } from 'src/components/table'
@@ -74,7 +75,7 @@ const ioTask = ({ name }) => _.nth(-2, name.split('.'))
 const ioVariable = ({ name }) => _.nth(-1, name.split('.'))
 const ioType = ({ inputType, outputType }) => (inputType || outputType).match(/(.*?)\??$/)[1] // unify, and strip off trailing '?'
 
-const WorkflowIOTable = ({ which, inputsOutputs, config, errors, onChange, onSetDefaults, suggestions }) => {
+const WorkflowIOTable = ({ which, inputsOutputs, config, errors, onChange, onBrowse, onSetDefaults, suggestions }) => {
   const data = inputsOutputs[which]
   return h(AutoSizer, [
     ({ width, height }) => {
@@ -117,9 +118,10 @@ const WorkflowIOTable = ({ which, inputsOutputs, config, errors, onChange, onSet
               ])
             ]),
             cellRenderer: ({ rowIndex }) => {
-              const { name, optional } = data[rowIndex]
+              const { name, optional, inputType } = data[rowIndex]
               const value = config[which][name] || ''
               const error = errors[which][name]
+              const isFile = inputType === 'File'
               return div({ style: { display: 'flex', alignItems: 'center', width: '100%' } }, [
                 onChange ? h(AutocompleteTextInput, {
                   placeholder: optional ? 'Optional' : 'Required',
@@ -127,6 +129,9 @@ const WorkflowIOTable = ({ which, inputsOutputs, config, errors, onChange, onSet
                   onChange: v => onChange(name, v),
                   suggestions
                 }) : h(TextCell, { style: { flex: 1 } }, value),
+                isFile && h(Clickable, {
+                  onClick: () => onBrowse()
+                }, [icon('folder-open', { size: 20 })]),
                 error && h(TooltipTrigger, { content: error }, [
                   icon('error', {
                     size: 28, style: { marginLeft: '0.5rem', color: colors.red[0], cursor: 'help' }
@@ -139,6 +144,16 @@ const WorkflowIOTable = ({ which, inputsOutputs, config, errors, onChange, onSet
       })
     }
   ])
+}
+
+class browseBucketModal extends Component{
+  render() {
+    const { onDismiss } = this.props
+    return h(Modal, {
+      title: 'Choose input file',
+      onDismiss
+    })
+  }
 }
 
 class TextCollapse extends Component {
@@ -203,7 +218,7 @@ const WorkflowView = _.flow(
   }
 
   render() {
-    const { isFreshData, savedConfig, launching, activeTab } = this.state
+    const { isFreshData, savedConfig, launching, activeTab, browsingBucket } = this.state
     const { namespace, name } = this.props
 
     const workspaceId = { namespace, name }
@@ -223,7 +238,8 @@ const WorkflowView = _.flow(
             JobHistory.flagNewSubmission(submissionId)
             Nav.goToPath('workspace-job-history', workspaceId)
           }
-        })
+        }),
+        browsingBucket && h(browseBucketModal)
       ]),
       !isFreshData && spinnerOverlay
     ])
@@ -465,6 +481,7 @@ const WorkflowView = _.flow(
           inputsOutputs,
           config: modifiedConfig,
           errors,
+          onBrowse: () => this.setState({ browsingBucket: true }),
           onChange: canCompute ? ((name, v) => this.setState(_.set(['modifiedConfig', key, name], v))) : undefined,
           onSetDefaults: canCompute && key === 'outputs' ? () => {
             this.setState(_.update(['modifiedConfig', 'outputs'], _.flow(
