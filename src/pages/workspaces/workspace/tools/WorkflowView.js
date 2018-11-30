@@ -75,7 +75,7 @@ const ioVariable = ({ name }) => _.nth(-1, name.split('.'))
 const ioType = ({ inputType, outputType }) => (inputType || outputType).match(/(.*?)\??$/)[1] // unify, and strip off trailing '?'
 
 const WorkflowIOTable = ({ which, inputsOutputs, config, errors, onChange, onSetDefaults, suggestions, includeOptionalInputs }) => {
-  const data = which === 'inputs' ? _.filter(includeOptionalInputs ? (() => true) : { optional: false }, inputsOutputs[which]) : inputsOutputs[which]
+  const data = _.filter(includeOptionalInputs || which === 'outputs' ? (() => true) : { optional: false }, inputsOutputs[which])
   return h(AutoSizer, [
     ({ width, height }) => {
       return h(FlexTable, {
