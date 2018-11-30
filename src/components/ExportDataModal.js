@@ -17,20 +17,11 @@ import { Component } from 'src/libs/wrapped-components'
 import validate from 'validate.js'
 
 
-class infoTile extends Component {
-  static propTypes = {
-    infoStyle: PropTypes.object.isRequired,
-    content: PropTypes.string.isRequired,
-    iconName: PropTypes.string.isRequired
-  }
-
-  render() {
-    const { infoStyle, content, iconName } = this.props
-    return div({ style: { ...infoStyle, display: 'flex', alignItems: 'center' } }, [
-      icon(iconName, { size: 36, className: 'is-solid', style: { flex: 'none', marginRight: '0.5rem' } }),
-      content
-    ])
-  }
+const InfoTile = ({ infoStyle, content, iconName }) => {
+  return div({ style: { ...infoStyle, display: 'flex', alignItems: 'center' } }, [
+    icon(iconName, { size: 36, className: 'is-solid', style: { flex: 'none', marginRight: '0.5rem' } }),
+    content
+  ])
 }
 
 
@@ -55,7 +46,6 @@ export default _.flow(
       selectedWorkspaceId: undefined,
       error: undefined,
       copying: false,
-      selectedEntityType: props.selectedDataType
     }
   }
 
@@ -90,7 +80,6 @@ export default _.flow(
     const errors = validate(
       { selectedWorkspaceId },
       { selectedWorkspaceId: { presence: true } },
-      { prettify: v => (validate.prettify(v)) }
     )
 
     return h(Modal, {
@@ -102,7 +91,7 @@ export default _.flow(
         onClick: () => this.copy()
       }, ['Copy'])
     }, [
-      runningSubmissionsCount > 0 && h(infoTile, {
+      runningSubmissionsCount > 0 && InfoTile({
         infoStyle: warningStyle, iconName: 'warning-standard',
         content: `WARNING: ${runningSubmissionsCount} workflows are currently running in this workspace. ` +
           'Copying the following data could cause failures if a workflow is using this data.'
@@ -115,15 +104,15 @@ export default _.flow(
         value: selectedWorkspaceId,
         onChange: v => this.setState({ selectedWorkspaceId: v })
       }),
-      (hardConflicts.length !== 0) && h(infoTile, {
+      (hardConflicts.length !== 0) && InfoTile({
         infoStyle: errorStyle, iconName: 'error-standard',
         content: 'The following entries already exist in the selected workspace. Please select CANCEL to go back or COPY to override the existing entities. '
       }),
-      moreToDelete && h(infoTile, {
+      moreToDelete && InfoTile({
         infoStyle: warningStyle, iconName: 'warning-standard',
         content: 'In order to override the selected data entries, the following entries that reference the original data must ALSO be deleted.'
       }),
-      (softConflicts.length !== 0) && h(infoTile, {
+      (softConflicts.length !== 0) && InfoTile({
         infoStyle: warningStyle, iconName: 'warning-standard',
         content: 'The following is linked to entries which already exist in the selected workspace. You may link the following to the existing entities by clicking COPY.'
       }),
@@ -175,54 +164,46 @@ export default _.flow(
     Utils.toIndexPairs(entities))
   }
 
-  async doOverride() {
-    const { onDismiss, ajax: { Workspaces } } = this.props
-    const { selectedEntityType, additionalDeletions, hardConflicts } = this.state
+  async copy() {
+    const { onDismiss, selectedEntities, selectedDataType, workspace, ajax: { Workspaces } } = this.props
+    const { additionalDeletions, hardConflicts, softConflicts } = this.state
     const selectedWorkspace = this.getSelectedWorkspace().workspace
     const entitiesToDelete = _.concat(hardConflicts, additionalDeletions)
-    try {
-      await Workspaces.workspace(selectedWorkspace.namespace, selectedWorkspace.name).deleteEntities(entitiesToDelete)
-      this.setState({ hardConflicts: [], additionalDeletions: [] })
-    } catch (error) {
-      switch (error.status) {
-        case 409:
-          this.setState({
-            additionalDeletions: _.filter(entity => entity.entityType !== selectedEntityType,
-              await error.json()), copying: false
-          }) //handles dangling references when deleting entities
-          return
-        default:
-          reportError('Error deleting data entries', error)
-          onDismiss()
-      }
-    }
-    this.copy()
-  }
-
-  async copy() {
-    const { onDismiss, selectedEntities, workspace, ajax: { Workspaces } } = this.props
-    const { selectedEntityType, hardConflicts, softConflicts } = this.state
-    const selectedWorkspace = this.getSelectedWorkspace().workspace
     this.setState({ copying: true })
     if ((hardConflicts.length !==0)) {
-      this.doOverride()
-    } else {
       try {
-        await Workspaces.workspace(workspace.workspace.namespace, workspace.workspace.name)
-          .copyEntities(selectedWorkspace.namespace, selectedWorkspace.name, selectedEntityType, selectedEntities,
-            (softConflicts.length !== 0))
-        this.setState({ copied: true })
+        await Workspaces.workspace(selectedWorkspace.namespace, selectedWorkspace.name).deleteEntities(entitiesToDelete)
+        this.setState({ hardConflicts: [], additionalDeletions: [] })
       } catch (error) {
         switch (error.status) {
           case 409:
-            const { hardConflicts, softConflicts } = await error.json()
-            this.setState({ hardConflicts, softConflicts, copying: false })
-            break
+            this.setState({
+              additionalDeletions: _.filter(entity => entity.entityType !== selectedDataType,
+                await error.json()), copying: false
+            }) //handles dangling references when deleting entities
+            return
           default:
-            reportError('Error copying data entries', error)
+            reportError('Error deleting data entries', error)
             onDismiss()
         }
       }
     }
+    try {
+      await Workspaces.workspace(workspace.workspace.namespace, workspace.workspace.name)
+        .copyEntities(selectedWorkspace.namespace, selectedWorkspace.name, selectedDataType, selectedEntities,
+          (softConflicts.length !== 0))
+      this.setState({ copied: true })
+    } catch (error) {
+      switch (error.status) {
+        case 409:
+          const { hardConflicts, softConflicts } = await error.json()
+          this.setState({ hardConflicts, softConflicts, copying: false })
+          break
+        default:
+          reportError('Error copying data entries', error)
+          onDismiss()
+      }
+    }
+
   }
 })
