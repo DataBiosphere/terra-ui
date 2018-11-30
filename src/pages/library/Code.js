@@ -111,7 +111,7 @@ const Code = ajaxCaller(class Code extends Component {
             div({ style: { display: 'flex' } }, [
               logoTile(dockstoreLogo),
               div([
-                link({ href: dockstoreRoot }, 'Dockstore'),
+                link({ href: `${dockstoreRoot}/search?descriptorType=wdl&searchMode=files` }, 'Dockstore'),
                 div(['Text about Dockstore'])
               ])
             ]),
