@@ -456,7 +456,7 @@ const WorkflowView = _.flow(
       onDropAccepted: files => this.uploadJson(key, files[0])
     }, [
       div({ style: { flex: 'none', display: 'flex', marginBottom: '0.25rem' } }, [
-        key === 'inputs' ?
+        key === 'inputs' && _.some('optional', inputsOutputs['inputs']) ?
           linkButton({ style: { marginRight: 'auto' }, onClick: () => this.setState({ includeOptionalInputs: !includeOptionalInputs }) }, [includeOptionalInputs ? 'Hide optional inputs' : 'Show optional inputs'])
           : div({ style: { marginRight: 'auto' } }, []),
         linkButton({ onClick: () => this.downloadJson(key) }, ['Download json']),
