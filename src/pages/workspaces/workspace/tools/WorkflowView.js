@@ -14,8 +14,9 @@ import { AutocompleteTextInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import PopupTrigger from 'src/components/PopupTrigger'
 import StepButtons, { params as StepButtonParams } from 'src/components/StepButtons'
-import { FlexTable, HeaderCell, TextCell } from 'src/components/table'
+import { FlexTable, HeaderCell, SimpleTable, TextCell } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
+import UriViewer from 'src/components/UriViewer'
 import WDLViewer from 'src/components/WDLViewer'
 import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
@@ -146,15 +147,126 @@ const WorkflowIOTable = ({ which, inputsOutputs, config, errors, onChange, onBro
   ])
 }
 
-class browseBucketModal extends Component{
+class browseBucketModal extends Component {
+  constructor(props) {
+    super(props)
+    this.state = {
+      firstRender: true,
+      refreshKey: 0
+    }
+  }
+
   render() {
-    const { onDismiss } = this.props
+    const { onDismiss, workspace } = this.props
+    const { refreshKey, firstRender } = this.state
+    console.log(workspace)
     return h(Modal, {
       title: 'Choose input file',
       onDismiss
-    })
+    }, [
+      h(BucketContent, {
+        workspace,
+        refreshKey, firstRender
+      })
+    ])
   }
 }
+
+const BucketContent = ajaxCaller(class BucketContent extends Component {
+  constructor(props) {
+    super(props)
+    const { prefix = '', objects } = props.firstRender ? StateHistory.get() : {}
+    this.state = {
+      prefix,
+      objects,
+      viewingName: undefined
+    }
+  }
+
+  componentDidMount() {
+    this.load()
+  }
+
+  componentDidUpdate(prevProps) {
+    if (prevProps.refreshKey !== this.props.refreshKey) {
+      this.load('')
+    }
+    StateHistory.update(_.pick(['objects', 'prefix'], this.state))
+  }
+
+  async load(prefix = this.state.prefix) {
+    const { workspace: { workspace: { namespace, bucketName } }, ajax: { Buckets } } = this.props
+    try {
+      this.setState({ loading: true })
+      const { items, prefixes } = await Buckets.list(namespace, bucketName, prefix)
+      this.setState({ objects: items, prefixes, prefix })
+    } catch (error) {
+      reportError('Error loading bucket data', error)
+    } finally {
+      this.setState({ loading: false })
+    }
+  }
+
+  render() {
+    const { workspace: { accessLevel, workspace: { namespace, bucketName } } } = this.props
+    const { prefix, prefixes, objects, loading, viewingName } = this.state
+    const prefixParts = _.dropRight(1, prefix.split('/'))
+    const canEdit = Utils.canWrite(accessLevel)
+    console.log(viewingName)
+    return h(Fragment, [
+      h(Dropzone, {
+        disabled: !canEdit,
+        disableClick: true,
+        style: { flexGrow: 1, backgroundColor: 'white', border: `1px solid ${colors.gray[3]}`, padding: '1rem' },
+        activeStyle: { backgroundColor: colors.blue[3], cursor: 'copy' }
+      }, [
+        div([
+          _.map(({ label, target }) => {
+            return h(Fragment, { key: target }, [
+              linkButton({ onClick: () => this.load(target) }, [label]),
+              ' / '
+            ])
+          }, [
+            { label: 'Files', target: '' },
+            ..._.map(n => {
+              return { label: prefixParts[n], target: _.map(s => `${s}/`, _.take(n + 1, prefixParts)).join('') }
+            }, _.range(0, prefixParts.length))
+          ])
+        ]),
+        div({ style: { margin: '1rem -1rem 1rem -1rem', borderBottom: `1px solid ${colors.gray[5]}` } }),
+        h(SimpleTable, {
+          columns: [
+            { size: { basis: 24, grow: 0 }, key: 'button' },
+            { header: h(HeaderCell, ['Name']), size: { grow: 1 }, key: 'name' }
+          ],
+          rows: [
+            ..._.map(p => {
+              return {
+                name: h(TextCell, [
+                  linkButton({ onClick: () => this.load(p) }, [p.slice(prefix.length)])
+                ])
+              }
+            }, prefixes),
+            ..._.map(({ name }) => {
+              return {
+                name: h(TextCell, [
+                  linkButton({ onClick: () => this.setState({ viewingName: name }) }, [
+                    name.slice(prefix.length)
+                  ])
+                ])
+              }
+            }, objects)
+          ]
+        }),
+        viewingName && h(UriViewer, {
+          googleProject: namespace, uri: `gs://${bucketName}/${viewingName}`,
+          onDismiss: () => this.setState({ viewingName: undefined })
+        })
+      ]),
+      (loading) && spinnerOverlay
+    ])
+  }
+})
 
 class TextCollapse extends Component {
   static propTypes = {
@@ -219,7 +331,7 @@ const WorkflowView = _.flow(
 
   render() {
     const { isFreshData, savedConfig, launching, activeTab, browsingBucket } = this.state
-    const { namespace, name } = this.props
+    const { namespace, name, workspace } = this.props
 
     const workspaceId = { namespace, name }
 
@@ -239,7 +351,10 @@ const WorkflowView = _.flow(
             Nav.goToPath('workspace-job-history', workspaceId)
           }
         }),
-        browsingBucket && h(browseBucketModal)
+        browsingBucket && h(browseBucketModal, {
+          workspace,
+          onDismiss: () => this.setState({ browsingBucket: false })
+        })
       ]),
       !isFreshData && spinnerOverlay
     ])
