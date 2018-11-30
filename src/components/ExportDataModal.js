@@ -45,7 +45,7 @@ export default _.flow(
       additionalDeletions: [],
       selectedWorkspaceId: undefined,
       error: undefined,
-      copying: false,
+      copying: false
     }
   }
 
@@ -204,6 +204,5 @@ export default _.flow(
           onDismiss()
       }
     }
-
   }
 })
