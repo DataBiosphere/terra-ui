@@ -265,8 +265,7 @@ export class GridTable extends Component {
     rowCount: PropTypes.number.isRequired,
     styleCell: PropTypes.func,
     columns: PropTypes.arrayOf(PropTypes.shape({ width: PropTypes.number.isRequired })),
-    onScroll: PropTypes.func,
-    banner: PropTypes.node
+    onScroll: PropTypes.func
   }
 
   static defaultProps = {
@@ -306,7 +305,7 @@ export class GridTable extends Component {
   }
 
   render() {
-    const { width, height, rowCount, columns, styleCell, onScroll: customOnScroll, banner } = this.props
+    const { width, height, rowCount, columns, styleCell, onScroll: customOnScroll } = this.props
     const { scrollbarSize } = this.state
     return h(RVScrollSync, {
       ref: this.scrollSync
@@ -333,7 +332,6 @@ export class GridTable extends Component {
             scrollLeft,
             onScroll
           }),
-          !!banner && div({ style: { ...styles.cell(0, 1), backgroundColor: 'white', width } }, [banner]),
           h(RVGrid, {
             ref: this.body,
             width,
