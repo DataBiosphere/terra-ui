@@ -1,242 +1,104 @@
-import { Children, cloneElement, Fragment } from 'react'
-import { div, h, img, p, span } from 'react-hyperscript-helpers'
-import { pure } from 'recompose'
-import { buttonPrimary, link } from 'src/components/common'
+import _ from 'lodash/fp'
+import { Fragment } from 'react'
+import { a, div, h } from 'react-hyperscript-helpers'
+import { centeredSpinner } from 'src/components/icons'
 import { libraryTopMatter } from 'src/components/library-common'
-import Modal from 'src/components/Modal'
-import TooltipTrigger from 'src/components/TooltipTrigger'
-import amppdLogo from 'src/images/library/datasets/Amp@2x.png'
-import broadLogo from 'src/images/library/datasets/broad_logo.png'
-import gtexLogo from 'src/images/library/datasets/GTeX@2x.png'
-import hcaLogo from 'src/images/library/datasets/HCA@2x.png'
-import nhsLogo from 'src/images/library/datasets/NHS@2x.png'
-import topMedLogo from 'src/images/library/datasets/TopMed@2x.png'
+import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import * as Config from 'src/libs/config'
 import * as Nav from 'src/libs/nav'
+import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import { Component } from 'src/libs/wrapped-components'
 
 
 const styles = {
   header: {
-    ...Style.elements.sectionHeader, textTransform: 'uppercase'
-  },
-  content: {
-    display: 'flex', flexWrap: 'wrap', margin: '2.5rem'
-  },
-  participant: {
-    container: {
-      margin: '0 4rem 5rem 0', width: 350
-    },
-    title: {
-      marginTop: '1rem',
-      fontSize: 20, color: colors.darkBlue[0]
-    },
-    description: {
-      marginTop: '1rem',
-      height: 125
-    },
-    sizeText: {
-      marginTop: '1rem',
-      height: '1rem'
-    }
+    fontSize: 22, color: colors.darkBlue[0], fontWeight: 500, lineHeight: '22px',
+    marginBottom: '1rem'
   }
 }
 
+const makeCard = firecloudRoot => method => {
+  const { namespace, name, synopsis } = method
 
-const logoBox = ({ src, alt, height }) => div({
-  style: {
-    display: 'inline-flex', justifyContent: 'center', alignItems: 'center',
-    flex: 'none',
-    height: 150, width: 'auto',
-    border: `1px solid ${colors.gray[3]}`, borderRadius: 5,
-    backgroundColor: 'white'
-  }
-}, [
-  img({
-    src, alt, height: height || '60%', width: 'auto'
-  })
-])
+  return a({
+    href: `${firecloudRoot}/?return=terra#methods/${namespace}/${name}/`,
+    style: {
+      backgroundColor: 'white',
+      width: 390, height: 140,
+      borderRadius: 5,
+      display: 'flex',
+      margin: '0 30px 27px 0',
+      boxShadow: Style.standardShadow,
+      position: 'relative'
+    }
+  }, [
+    div({ style: { flex: 1, padding: '15px 20px' } }, [
+      div({ style: { color: colors.blue[0], fontSize: 16, lineHeight: '20px', height: 40, marginBottom: 7 } }, [name]),
+      div({ style: { lineHeight: '20px', height: 100, whiteSpace: 'pre-wrap', overflow: 'hidden' } }, [synopsis])
+    ]),
+    div({
+      style: {
+        position: 'absolute', top: 0, right: 8,
+        color: 'white', fontSize: 6, fontWeight: 'bold',
+        backgroundColor: colors.darkBlue[0],
+        padding: '10px 2px 3px 2px'
+      }
+    }, ['WDL'])
+  ])
+}
 
 
-class Participant extends Component {
-  render() {
-    const { logo, title, shortDescription, description, sizeText, children, isFirecloud } = this.props
-    const { showingModal, firecloudRoot } = this.state
-    const child = Children.only(children)
+const Code = ajaxCaller(class Code extends Component {
+  constructor(props) {
+    super(props)
+    const { featuredList, methods, firecloudRoot } = StateHistory.get()
 
-    const titleElement = div({ style: styles.participant.title }, [title])
-
-    return div({
-      style: styles.participant.container
-    }, [
-      div({ style: { display: 'flex', flexDirection: 'column' } }, [
-        logoBox(logo),
-        titleElement,
-        div({ style: styles.participant.description }, [
-          shortDescription || description,
-          shortDescription && link({
-            style: { marginLeft: '0.5rem' },
-            onClick: () => this.setState({ showingModal: true })
-          }, ['READ MORE'])
-        ]),
-        div({ style: styles.participant.sizeText }, [sizeText]),
-        div({ style: { marginTop: '1rem' } }, [
-          isFirecloud ?
-            cloneElement(child, { href: firecloudRoot + child.props.href }) :
-            children
-        ])
-      ]),
-      showingModal && h(Modal, {
-        onDismiss: () => this.setState({ showingModal: false }),
-        width: 880,
-        showCancel: false
-      }, [
-        img({ src: logo.src, alt: logo.alt, height: 150, width: 'auto' }),
-        titleElement,
-        description,
-        sizeText && p([sizeText])
-      ])
-    ])
+    this.state = { featuredList, methods, firecloudRoot }
   }
 
   async componentDidMount() {
-    this.props.isFirecloud && this.setState({ firecloudRoot: await Config.getFirecloudUrlRoot() })
+    const { ajax: { Methods } } = this.props
+
+    const [featuredList, methods, firecloudRoot] = await Promise.all([
+      fetch(`${await Config.getFirecloudBucketRoot()}/featured-methods.json`).then(res => res.json()),
+      Methods.list({ namespace: 'gatk' }),
+      Config.getFirecloudUrlRoot()
+    ])
+
+    this.setState({ featuredList, methods, firecloudRoot })
+    StateHistory.update({ featuredList, methods, firecloudRoot })
   }
-}
 
+  render() {
+    const { featuredList, methods, firecloudRoot } = this.state
 
-const browseTooltip = 'Look for the Export to Terra icon to export data from this provider.'
+    const featuredMethods = _.compact(
+      _.map(
+        ({ namespace, name }) => _.maxBy('snapshotId', _.filter({ namespace, name }, methods)),
+        featuredList
+      )
+    )
 
-
-const NIHCommonsButtons = h(Fragment, [
-  buttonPrimary({
-    style: { margin: '0.25rem 0' },
-    as: 'a',
-    href: 'https://dcp.bionimbus.org/',
-    target: '_blank',
-    tooltip: browseTooltip
-  }, ['Browse Data via Windmill']),
-  buttonPrimary({
-    style: { margin: '0.25rem 0' },
-    as: 'a',
-    href: 'https://commons.ucsc-cgp.org/boardwalk',
-    target: '_blank',
-    tooltip: browseTooltip
-  }, ['Browse Data via Boardwalk'])
-])
-
-
-const nhs = h(Participant, {
-  logo: { src: nhsLogo, alt: `Nurses' Health Study logo` },
-  title: `Nurses' Health Study`,
-  description: `The Nurses' Health Study and Nurses' Health Study II are among the largest investigations into the risk
-  factors for major chronic diseases in women.`,
-  sizeText: 'Participants: > 280,000'
-}, [
-  buttonPrimary({
-    as: 'a',
-    href: 'http://nhs-explorer.appspot.com/',
-    target: '_blank',
-    tooltip: browseTooltip
-  }, ['Browse Data'])
-])
-
-const hca = h(Participant, {
-  logo: { src: hcaLogo, alt: 'Human Cell Atlas logo' },
-  title: 'Human Cell Atlas',
-  description: `The Human Cell Atlas (HCA) is made up of comprehensive reference maps of all human cells — the
-  fundamental units of life — as a basis for understanding fundamental human biological processes and diagnosing,
-  monitoring, and treating disease.`
-}, [
-  buttonPrimary({
-    disabled: true,
-    tooltip: 'HCA not yet in production'
-    //when in production, add this tooltip: browseTooltip
-  }, ['Browse Data'])
-])
-
-const amppd = h(Participant, {
-  logo: { src: amppdLogo, alt: 'AMP-PD logo' },
-  title: `AMP Parkinson's Disease`,
-  shortDescription: `The Accelerating Medicines Partnership (AMP) is a public-private partnership between the National
-  Institutes of Health (NIH), multiple biopharmaceutical and life sciences companies, and non-profit organizations to
-  identify...`,
-  description: h(Fragment, [
-    p([
-      `The Accelerating Medicines Partnership (AMP) is a public-private partnership between the National Institutes of
-    Health (NIH), multiple biopharmaceutical and life sciences companies, and non-profit organizations to identify and 
-    validate the most promising biological targets for therapeutics. This AMP effort aims to identify and validate the
-    most promising biological targets for therapeutics relevant to Parkinson's disease.`
-    ]),
-    p(['Includes data from the following studies:']),
-    div({ style: { margin: '0.4rem 0', fontWeight: 'bold', lineHeight: '150%' } }, [
-      div({ style: { display: 'flex' } }, [
-        div({ style: { width: 410 } }, [`• Parkinson's Disease Biomarkers Program (PDBP)`]),
-        div(['• BioFIND'])
-      ]),
-      div({ style: { display: 'flex' } }, [
-        div({ style: { width: 410 } }, [`• Parkinson's Progression Markers Initiative (PPMI)`]),
-        div(['• Harvard Biomarkers Study (HBS)'])
-      ])
+    return h(Fragment, [
+      libraryTopMatter('code'),
+      !(featuredList && methods && firecloudRoot) ?
+        centeredSpinner() :
+        div({ style: { display: 'flex', flex: 1 } }, [
+          div({ style: { margin: '30px 0 30px 40px' } }, [
+            div({ style: styles.header }, 'GATK4 Best Practices workflows'),
+            div({ style: { display: 'flex', flexWrap: 'wrap' } }, [
+              ..._.map(makeCard(firecloudRoot), featuredMethods)
+            ])
+          ]),
+          div({ style: { flex: '0 0 385px', padding: '25px 30px', backgroundColor: colors.gray[5] } }, [
+            div({ style: { ...styles.header, fontSize: 16 } }, 'FIND ADDITIONAL WORKFLOWS'),
+            div({ style: { display: 'flex' } })
+          ])
+        ])
     ])
-  ]),
-  sizeText: 'Participants: > 4,700'
-}, [
-  buttonPrimary({
-    as: 'a',
-    href: 'http://amp-pd-data-explorer.appspot.com/',
-    target: '_blank',
-    tooltip: browseTooltip
-  }, ['Browse Data'])
-])
-
-const topMed = h(Participant, {
-  logo: { src: topMedLogo, alt: 'TopMed logo' },
-  title: 'TopMed presented by NIH Commons',
-  description: `Trans-Omics for Precision Medicine (TOPMed), sponsored by the National Institutes of Health's National
-  Heart, Lung, and Blood Institute (NHLBI), is a program to generate scientific resources to enhance our understanding
-  of fundamental biological processes that underlie heart, lung, blood, and sleep disorders (HLBS).`,
-  sizeText: h(TooltipTrigger, { content: 'As of November 2016' }, [span('Participants: > 54,000')])
-}, [
-  NIHCommonsButtons
-])
-
-const gtex = h(Participant, {
-  logo: { src: gtexLogo, alt: 'GTEx logo' },
-  title: 'GTEx presented by NIH Commons',
-  description: `The Genotype-Tissue Expression (GTEx) Program established a data resource and tissue bank to study the
-  relationship between genetic variation and gene expression in multiple human tissues.`,
-  sizeText: h(TooltipTrigger, { content: 'As of release V7' }, [span('Samples: > 11,688')])
-}, [
-  NIHCommonsButtons
-])
-
-const fcDataLib = h(Participant, {
-  isFirecloud: true,
-  logo: { src: broadLogo, alt: 'Broad logo', height: '40%' },
-  title: 'FireCloud Dataset Library',
-  description: `Search for datasets sequenced at the Broad Institute, or public datasets hosted at the Broad. Datasets
-   are pre-loaded as workspaces. You can clone these, or copy data into the workspace of your choice.`,
-  sizeText: h(TooltipTrigger, { content: 'As of October 2018' }, [span('Samples: > 158,629')])
-}, [
-  buttonPrimary({
-    as: 'a',
-    href: `/?return=terra#library`,
-    target: '_blank',
-    tooltip: 'Search for dataset workspaces'
-  }, ['Browse Datasets'])
-])
-
-
-const Code = pure(() => {
-  return h(Fragment, [
-    libraryTopMatter('code'),
-    div({ style: styles.content }, [
-      nhs, hca, amppd, topMed, gtex, fcDataLib
-    ])
-  ])
+  }
 })
 
 
@@ -244,7 +106,7 @@ export const addNavPaths = () => {
   Nav.defPath('library-code', {
     path: '/library/code',
     component: Code,
-    public: true,
+    public: false,
     title: 'Code & Tools'
   })
 }
