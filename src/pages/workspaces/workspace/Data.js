@@ -97,7 +97,7 @@ const getReferenceData = _.flow(
   _.groupBy('datum')
 )
 
-const entityMap = (entities) => {
+const entityMap = entities => {
   return _.fromPairs(_.map(e => [e.name, e], entities))
 }
 
