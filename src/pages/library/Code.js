@@ -1,8 +1,11 @@
 import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { a, div, h } from 'react-hyperscript-helpers'
+import { link } from 'src/components/common'
 import { centeredSpinner } from 'src/components/icons'
 import { libraryTopMatter } from 'src/components/library-common'
+import dockstoreLogo from 'src/images/library/code/dockstore.svg'
+import firecloudLogo from 'src/images/library/code/firecloud.svg'
 import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import * as Config from 'src/libs/config'
@@ -49,6 +52,16 @@ const makeCard = firecloudRoot => method => {
   ])
 }
 
+const logoTile = logoFile => div({
+  style: {
+    backgroundImage: `url(${logoFile})`,
+    backgroundRepeat: 'no-repeat', backgroundPosition: 'center', backgroundColor: 'white',
+    backgroundSize: 27,
+    width: 37, height: 37,
+    marginRight: 13
+  }
+})
+
 
 const Code = ajaxCaller(class Code extends Component {
   constructor(props) {
@@ -61,18 +74,19 @@ const Code = ajaxCaller(class Code extends Component {
   async componentDidMount() {
     const { ajax: { Methods } } = this.props
 
-    const [featuredList, methods, firecloudRoot] = await Promise.all([
+    const [featuredList, methods, firecloudRoot, dockstoreRoot] = await Promise.all([
       fetch(`${await Config.getFirecloudBucketRoot()}/featured-methods.json`).then(res => res.json()),
       Methods.list({ namespace: 'gatk' }),
-      Config.getFirecloudUrlRoot()
+      Config.getFirecloudUrlRoot(),
+      Config.getDockstoreUrlRoot()
     ])
 
-    this.setState({ featuredList, methods, firecloudRoot })
-    StateHistory.update({ featuredList, methods, firecloudRoot })
+    this.setState({ featuredList, methods, firecloudRoot, dockstoreRoot })
+    StateHistory.update({ featuredList, methods, firecloudRoot, dockstoreRoot })
   }
 
   render() {
-    const { featuredList, methods, firecloudRoot } = this.state
+    const { featuredList, methods, firecloudRoot, dockstoreRoot } = this.state
 
     const featuredMethods = _.compact(
       _.map(
@@ -82,8 +96,8 @@ const Code = ajaxCaller(class Code extends Component {
     )
 
     return h(Fragment, [
-      libraryTopMatter('code'),
-      !(featuredList && methods && firecloudRoot) ?
+      libraryTopMatter('code & tools'),
+      !(featuredList && methods) ?
         centeredSpinner() :
         div({ style: { display: 'flex', flex: 1 } }, [
           div({ style: { margin: '30px 0 30px 40px' } }, [
@@ -92,9 +106,22 @@ const Code = ajaxCaller(class Code extends Component {
               ..._.map(makeCard(firecloudRoot), featuredMethods)
             ])
           ]),
-          div({ style: { flex: '0 0 385px', padding: '25px 30px', backgroundColor: colors.gray[5] } }, [
+          div({ style: { flex: '0 0 385px', padding: '25px 30px', backgroundColor: colors.gray[5], lineHeight: '20px' } }, [
             div({ style: { ...styles.header, fontSize: 16 } }, 'FIND ADDITIONAL WORKFLOWS'),
-            div({ style: { display: 'flex' } })
+            div({ style: { display: 'flex' } }, [
+              logoTile(dockstoreLogo),
+              div([
+                link({ href: dockstoreRoot }, 'Dockstore'),
+                div(['Text about Dockstore'])
+              ])
+            ]),
+            div({ style: { display: 'flex', marginTop: 40 } }, [
+              logoTile(firecloudLogo),
+              div([
+                link({ href: `${firecloudRoot}/#methods` }, 'Firecloud Methods Repository'),
+                div(['Text about Agora'])
+              ])
+            ])
           ])
         ])
     ])

@@ -24,7 +24,8 @@ export const tabBar = {
     paddingLeft: '5rem', borderBottom: `5px solid ${colors.blue[0]}`
   },
   tab: {
-    maxWidth: 140, flexGrow: 1, color: colors.gray[4],
+    minWidth: 140, flexGrow: 0, padding: '0 20px',
+    color: colors.gray[4],
     alignSelf: 'stretch', display: 'flex', justifyContent: 'center', alignItems: 'center'
   },
   active: {

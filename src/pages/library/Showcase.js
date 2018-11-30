@@ -78,7 +78,7 @@ const Showcase = withWorkspaces({ persist: true })(class Showcase extends Compon
     const featured = _.difference(allFeatured, bestPractices)
 
     return h(Fragment, [
-      libraryTopMatter('showcase'),
+      libraryTopMatter('showcase & tutorials'),
       !(featuredList && workspaces) ?
         centeredSpinner() :
         div({ style: { display: 'flex', margin: '2.5rem' } }, [
