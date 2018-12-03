@@ -38,6 +38,7 @@ export default class Modal extends Component {
     showCancel: PropTypes.bool,
     cancelText: PropTypes.string,
     showX: PropTypes.bool,
+    showButtons: PropTypes.bool,
     okButton: PropTypes.oneOfType([PropTypes.string, PropTypes.func, PropTypes.node]),
     children: PropTypes.node
   }
@@ -46,11 +47,12 @@ export default class Modal extends Component {
     width: 450,
     showCancel: true,
     cancelText: 'Cancel',
-    showX: false
+    showX: false,
+    showButtons: true
   }
 
   render() {
-    const { onDismiss, title, titleExtras, children, width, showCancel, cancelText, showX, okButton } = this.props
+    const { onDismiss, title, titleExtras, children, width, showCancel, cancelText, showX, showButtons, okButton } = this.props
 
     return h(RModal, {
       parentSelector: () => document.getElementById('modal-root'),
@@ -68,7 +70,7 @@ export default class Modal extends Component {
         }, [icon('times-circle')])
       ]),
       children,
-      div({ style: styles.buttonRow }, [
+      showButtons && div({ style: styles.buttonRow }, [
         showCancel ?
           buttonSecondary({
             style: { marginRight: '1rem' },

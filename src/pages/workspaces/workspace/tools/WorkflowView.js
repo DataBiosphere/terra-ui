@@ -130,7 +130,8 @@ const WorkflowIOTable = ({ which, inputsOutputs, config, errors, onChange, onBro
                   suggestions
                 }) : h(TextCell, { style: { flex: 1 } }, value),
                 isFile && h(Clickable, {
-                  onClick: () => onBrowse(name)
+                  onClick: () => onBrowse(name),
+                  tooltip: 'Browse bucket files'
                 }, [icon('folder-open', { size: 20 })]),
                 error && h(TooltipTrigger, { content: error }, [
                   icon('error', {
@@ -184,7 +185,9 @@ const BucketContent = ajaxCaller(class BucketContent extends Component {
       style: { flexGrow: 1, backgroundColor: 'white', border: `1px solid ${colors.gray[3]}`, padding: '1rem' },
       activeStyle: { backgroundColor: colors.blue[3], cursor: 'copy' },
       onDismiss,
-      title: 'Choose input file'
+      title: 'Choose input file',
+      showX: true,
+      showButtons: false
     }, [
       div([
         _.map(({ label, target }) => {
