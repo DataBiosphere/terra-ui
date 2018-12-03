@@ -90,7 +90,8 @@ export const search = function({ wrapperProps, inputProps }) {
           border: 'none', outline: 'none',
           flexGrow: 1,
           verticalAlign: 'bottom', marginLeft: '1rem',
-          fontSize: '1rem'
+          fontSize: '1rem',
+          backgroundColor: 'transparent'
         }
       }, inputProps))
     ])

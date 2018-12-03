@@ -25,6 +25,7 @@ import * as StateHistory from 'src/libs/state-history'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 import * as JobHistory from 'src/pages/workspaces/workspace/JobHistory'
+import DataSelector from 'src/pages/workspaces/workspace/tools/DataSelector'
 import DeleteToolModal from 'src/pages/workspaces/workspace/tools/DeleteToolModal'
 import ExportToolModal from 'src/pages/workspaces/workspace/tools/ExportToolModal'
 import LaunchAnalysisModal from 'src/pages/workspaces/workspace/tools/LaunchAnalysisModal'
@@ -194,7 +195,7 @@ const WorkflowView = _.flow(
     super(props)
 
     this.state = {
-      activeTab: 'inputs',
+      activeTab: 'data',
       includeOptionalInputs: false,
       errors: { inputs: {}, outputs: {} },
       ...StateHistory.get()
@@ -212,9 +213,10 @@ const WorkflowView = _.flow(
       savedConfig && h(Fragment, [
         this.renderSummary(),
         Utils.cond(
+          [activeTab === 'wdl', () => this.renderWDL()],
+          [activeTab === 'data', () => this.renderData()],
           [activeTab === 'inputs', () => this.renderIOTable('inputs')],
           [activeTab === 'outputs', () => this.renderIOTable('outputs')],
-          [activeTab === 'wdl', () => this.renderWDL()]
         ),
         launching && h(LaunchAnalysisModal, {
           workspaceId, config: savedConfig,
@@ -290,7 +292,10 @@ const WorkflowView = _.flow(
 
   renderSummary() {
     const { workspace: { canCompute, workspace }, namespace, name: workspaceName } = this.props
-    const { modifiedConfig, savedConfig, entityMetadata, saving, saved, copying, deleting, activeTab, errors, firecloudRoot, dockstoreRoot, synopsis, documentation } = this.state
+    const {
+      modifiedConfig, savedConfig, entityMetadata, selectedEntity,
+      saving, saved, copying, deleting, activeTab, errors, firecloudRoot, dockstoreRoot, synopsis, documentation
+    } = this.state
     const { name, methodRepoMethod: { methodPath, methodVersion, methodNamespace, methodName }, rootEntityType } = modifiedConfig
     const modified = !_.isEqual(modifiedConfig, savedConfig)
     const noLaunchReason = Utils.cond(
@@ -348,6 +353,7 @@ const WorkflowView = _.flow(
               onChange: selected => {
                 const value = !!selected ? selected.value : undefined
                 this.setState(_.set(['modifiedConfig', 'rootEntityType'], value))
+                this.setState({ selectedEntity: undefined })
               },
               options: _.keys(entityMetadata)
             })
@@ -355,6 +361,7 @@ const WorkflowView = _.flow(
           h(StepButtons, {
             tabs: [
               { key: 'wdl', title: 'Script', isValid: true },
+              { key: 'data', title: 'Data', isValid: selectedEntity || !rootEntityType },
               { key: 'inputs', title: 'Inputs', isValid: inputsValid },
               { key: 'outputs', title: 'Outputs', isValid: outputsValid }
             ],
@@ -433,6 +440,28 @@ const WorkflowView = _.flow(
     }
   }
 
+  renderWDL() {
+    const { wdl } = this.state
+    return wdl ? h(WDLViewer, {
+      wdl, readOnly: true,
+      style: { maxHeight: 500, margin: `1rem ${sideMargin}` }
+    }) : centeredSpinner({ style: { marginTop: '1rem' } })
+  }
+
+  renderData() {
+    const { namespace, name } = this.props
+    const { entityMetadata, selectedEntity, modifiedConfig: { rootEntityType } } = this.state
+
+    return h(DataSelector, {
+      entityType: rootEntityType,
+      entityMetadata,
+      selectedEntity,
+      onEntitySelected: e => this.setState({ selectedEntity: e }),
+      workspaceId: { namespace, name },
+      style: { margin: `1rem ${sideMargin}` }
+    })
+  }
+
   renderIOTable(key) {
     const { workspace: { canCompute } } = this.props
     const { modifiedConfig, inputsOutputs, errors, entityMetadata, workspaceAttributes, includeOptionalInputs } = this.state
@@ -482,14 +511,6 @@ const WorkflowView = _.flow(
         })
       ])
     ])
-  }
-
-  renderWDL() {
-    const { wdl } = this.state
-    return wdl ? h(WDLViewer, {
-      wdl, readOnly: true,
-      style: { maxHeight: 500, margin: `1rem ${sideMargin}` }
-    }) : centeredSpinner({ style: { marginTop: '1rem' } })
   }
 
   async save() {
