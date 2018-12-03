@@ -435,6 +435,18 @@ const Workspaces = signal => ({
         return fetchRawls(`${root}/entities/delete`, _.mergeAll([authOpts(), jsonBody(entities), { signal, method: 'POST' }]))
       },
 
+      copyEntities: async (destNamespace, destName, entityType, entities, link) => {
+        const payload = {
+          sourceWorkspace: { namespace, name },
+          destinationWorkspace: { namespace: destNamespace, name: destName },
+          entityType,
+          entityNames: entities
+        }
+        const res = await fetchRawls(`workspaces/entities/copy?linkExistingEntities=${link}`, _.mergeAll([authOpts(), jsonBody(payload),
+          { signal, method: 'POST' }]))
+        return res.json()
+      },
+
       storageCostEstimate: async () => {
         const res = await fetchOrchestration(`api/workspaces/${namespace}/${name}/storageCostEstimate`, _.merge(authOpts(), { signal }))
         return res.json()
