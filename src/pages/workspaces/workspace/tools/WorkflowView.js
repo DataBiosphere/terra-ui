@@ -16,7 +16,6 @@ import PopupTrigger from 'src/components/PopupTrigger'
 import StepButtons, { params as StepButtonParams } from 'src/components/StepButtons'
 import { FlexTable, HeaderCell, SimpleTable, TextCell } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
-import UriViewer from 'src/components/UriViewer'
 import WDLViewer from 'src/components/WDLViewer'
 import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
@@ -131,7 +130,7 @@ const WorkflowIOTable = ({ which, inputsOutputs, config, errors, onChange, onBro
                   suggestions
                 }) : h(TextCell, { style: { flex: 1 } }, value),
                 isFile && h(Clickable, {
-                  onClick: () => onBrowse()
+                  onClick: () => onBrowse(name)
                 }, [icon('folder-open', { size: 20 })]),
                 error && h(TooltipTrigger, { content: error }, [
                   icon('error', {
@@ -147,39 +146,12 @@ const WorkflowIOTable = ({ which, inputsOutputs, config, errors, onChange, onBro
   ])
 }
 
-class browseBucketModal extends Component {
-  constructor(props) {
-    super(props)
-    this.state = {
-      firstRender: true,
-      refreshKey: 0
-    }
-  }
-
-  render() {
-    const { onDismiss, workspace } = this.props
-    const { refreshKey, firstRender } = this.state
-    console.log(workspace)
-    return h(Modal, {
-      title: 'Choose input file',
-      onDismiss
-    }, [
-      h(BucketContent, {
-        workspace,
-        refreshKey, firstRender
-      })
-    ])
-  }
-}
-
 const BucketContent = ajaxCaller(class BucketContent extends Component {
   constructor(props) {
     super(props)
-    const { prefix = '', objects } = props.firstRender ? StateHistory.get() : {}
     this.state = {
-      prefix,
-      objects,
-      viewingName: undefined
+      prefix: '',
+      objects: undefined
     }
   }
 
@@ -188,9 +160,6 @@ const BucketContent = ajaxCaller(class BucketContent extends Component {
   }
 
   componentDidUpdate(prevProps) {
-    if (prevProps.refreshKey !== this.props.refreshKey) {
-      this.load('')
-    }
     StateHistory.update(_.pick(['objects', 'prefix'], this.state))
   }
 
@@ -208,61 +177,53 @@ const BucketContent = ajaxCaller(class BucketContent extends Component {
   }
 
   render() {
-    const { workspace: { accessLevel, workspace: { namespace, bucketName } } } = this.props
-    const { prefix, prefixes, objects, loading, viewingName } = this.state
+    const { workspace: { workspace: { bucketName } }, onDismiss, onSelect } = this.props
+    const { prefix, prefixes, objects, loading } = this.state
     const prefixParts = _.dropRight(1, prefix.split('/'))
-    const canEdit = Utils.canWrite(accessLevel)
-    console.log(viewingName)
-    return h(Fragment, [
-      h(Dropzone, {
-        disabled: !canEdit,
-        disableClick: true,
-        style: { flexGrow: 1, backgroundColor: 'white', border: `1px solid ${colors.gray[3]}`, padding: '1rem' },
-        activeStyle: { backgroundColor: colors.blue[3], cursor: 'copy' }
-      }, [
-        div([
-          _.map(({ label, target }) => {
-            return h(Fragment, { key: target }, [
-              linkButton({ onClick: () => this.load(target) }, [label]),
-              ' / '
-            ])
-          }, [
-            { label: 'Files', target: '' },
-            ..._.map(n => {
-              return { label: prefixParts[n], target: _.map(s => `${s}/`, _.take(n + 1, prefixParts)).join('') }
-            }, _.range(0, prefixParts.length))
+    return h(Modal, {
+      style: { flexGrow: 1, backgroundColor: 'white', border: `1px solid ${colors.gray[3]}`, padding: '1rem' },
+      activeStyle: { backgroundColor: colors.blue[3], cursor: 'copy' },
+      onDismiss,
+      title: 'Choose input file'
+    }, [
+      div([
+        _.map(({ label, target }) => {
+          return h(Fragment, { key: target }, [
+            linkButton({ onClick: () => this.load(target) }, [label]),
+            ' / '
           ])
-        ]),
-        div({ style: { margin: '1rem -1rem 1rem -1rem', borderBottom: `1px solid ${colors.gray[5]}` } }),
-        h(SimpleTable, {
-          columns: [
-            { size: { basis: 24, grow: 0 }, key: 'button' },
-            { header: h(HeaderCell, ['Name']), size: { grow: 1 }, key: 'name' }
-          ],
-          rows: [
-            ..._.map(p => {
-              return {
-                name: h(TextCell, [
-                  linkButton({ onClick: () => this.load(p) }, [p.slice(prefix.length)])
-                ])
-              }
-            }, prefixes),
-            ..._.map(({ name }) => {
-              return {
-                name: h(TextCell, [
-                  linkButton({ onClick: () => this.setState({ viewingName: name }) }, [
-                    name.slice(prefix.length)
-                  ])
-                ])
-              }
-            }, objects)
-          ]
-        }),
-        viewingName && h(UriViewer, {
-          googleProject: namespace, uri: `gs://${bucketName}/${viewingName}`,
-          onDismiss: () => this.setState({ viewingName: undefined })
-        })
+        }, [
+          { label: 'Files', target: '' },
+          ..._.map(n => {
+            return { label: prefixParts[n], target: _.map(s => `${s}/`, _.take(n + 1, prefixParts)).join('') }
+          }, _.range(0, prefixParts.length))
+        ])
       ]),
+      div({ style: { margin: '1rem -1rem 1rem -1rem', borderBottom: `1px solid ${colors.gray[5]}` } }),
+      h(SimpleTable, {
+        columns: [
+          { size: { basis: 24, grow: 0 }, key: 'button' },
+          { header: h(HeaderCell, ['Name']), size: { grow: 1 }, key: 'name' }
+        ],
+        rows: [
+          ..._.map(p => {
+            return {
+              name: h(TextCell, [
+                linkButton({ onClick: () => this.load(p) }, [p.slice(prefix.length)])
+              ])
+            }
+          }, prefixes),
+          ..._.map(({ name }) => {
+            return {
+              name: h(TextCell, [
+                linkButton({ onClick: () => onSelect(`gs://${bucketName}/${name}`) }, [
+                  name.slice(prefix.length)
+                ])
+              ])
+            }
+          }, objects)
+        ]
+      }),
       (loading) && spinnerOverlay
     ])
   }
@@ -334,7 +295,6 @@ const WorkflowView = _.flow(
     const { namespace, name, workspace } = this.props
 
     const workspaceId = { namespace, name }
-
     return h(Fragment, [
       savedConfig && h(Fragment, [
         this.renderSummary(),
@@ -351,9 +311,13 @@ const WorkflowView = _.flow(
             Nav.goToPath('workspace-job-history', workspaceId)
           }
         }),
-        browsingBucket && h(browseBucketModal, {
+        browsingBucket && h(BucketContent, {
           workspace,
-          onDismiss: () => this.setState({ browsingBucket: false })
+          onDismiss: () => this.setState({ browsingBucket: undefined }),
+          onSelect: v => {
+            this.setState(_.set(['modifiedConfig', 'inputs', browsingBucket], v))
+            this.setState({ browsingBucket: undefined })
+          }
         })
       ]),
       !isFreshData && spinnerOverlay
@@ -596,7 +560,7 @@ const WorkflowView = _.flow(
           inputsOutputs,
           config: modifiedConfig,
           errors,
-          onBrowse: () => this.setState({ browsingBucket: true }),
+          onBrowse: name => this.setState({ browsingBucket: name }),
           onChange: canCompute ? ((name, v) => this.setState(_.set(['modifiedConfig', key, name], v))) : undefined,
           onSetDefaults: canCompute && key === 'outputs' ? () => {
             this.setState(_.update(['modifiedConfig', 'outputs'], _.flow(
