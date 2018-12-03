@@ -77,6 +77,19 @@ const betaTag = b({
   }
 }, 'BETA')
 
+const librarySubItem = (linkName, iconName, label) => h(Clickable, {
+  style: styles.nav.subItem,
+  as: 'a',
+  hover: { backgroundColor: colors.darkBlue[1] },
+  href: Nav.getLink(linkName),
+  onClick: () => this.hideNav()
+}, [
+  div({ style: styles.nav.icon }, [
+    icon(iconName, { className: 'is-solid', size: 24 })
+  ]),
+  label
+])
+
 export default Utils.connectAtom(authStore, 'authState')(class TopBar extends Component {
   static propTypes = {
     title: PropTypes.node,
@@ -147,48 +160,15 @@ export default Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
             'Your Workspaces'
           ]),
           div({ style: { borderBottom: styles.nav.item.borderBottom, padding: '14px 0' } }, [
-            div({ style: _.omit('paddingLeft', styles.nav.subItem) }, [
+            div({ style: { ...styles.nav.subItem, paddingLeft: 28 } }, [
               div({ style: styles.nav.icon }, [
                 icon('library', { className: 'is-solid', size: 24 })
               ]),
               'Library'
             ]),
-            h(Clickable, {
-              style: styles.nav.subItem,
-              as: 'a',
-              hover: { backgroundColor: colors.darkBlue[1] },
-              href: Nav.getLink('library-datasets'),
-              onClick: () => this.hideNav()
-            }, [
-              div({ style: styles.nav.icon }, [
-                icon('data-cluster', { className: 'is-solid', size: 24 })
-              ]),
-              'Datasets'
-            ]),
-            h(Clickable, {
-              style: styles.nav.subItem,
-              as: 'a',
-              hover: { backgroundColor: colors.darkBlue[1] },
-              href: Nav.getLink('library-showcase'),
-              onClick: () => this.hideNav()
-            }, [
-              div({ style: styles.nav.icon }, [
-                icon('grid-chart', { className: 'is-solid', size: 24 })
-              ]),
-              'Showcase & Tutorials'
-            ]),
-            h(Clickable, {
-              style: styles.nav.subItem,
-              as: 'a',
-              hover: { backgroundColor: colors.darkBlue[1] },
-              href: Nav.getLink('library-code'),
-              onClick: () => this.hideNav()
-            }, [
-              div({ style: styles.nav.icon }, [
-                icon('tools', { className: 'is-solid', size: 24 })
-              ]),
-              'Code & Tools'
-            ])
+            librarySubItem('library-datasets', 'data-cluster', 'Datasets'),
+            librarySubItem('library-showcase', 'grid-chart', 'Showcase & Tutorials'),
+            librarySubItem('library-code', 'tools', 'Code & Tools')
           ]),
           div({ style: { marginTop: '1rem' } }, [
             h(Clickable, {

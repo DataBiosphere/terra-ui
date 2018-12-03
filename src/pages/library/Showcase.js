@@ -72,10 +72,8 @@ const Showcase = withWorkspaces({ persist: true })(class Showcase extends Compon
       workspaces,
       featuredList)
 
-    const bestPractices = _.filter(
+    const [bestPractices, featured] = _.partition(
       ({ workspace: { attributes: { description } } }) => description && description.startsWith('### GATK Best Practices'), allFeatured)
-
-    const featured = _.difference(allFeatured, bestPractices)
 
     return h(Fragment, [
       libraryTopMatter('showcase & tutorials'),

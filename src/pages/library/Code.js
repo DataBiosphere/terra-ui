@@ -54,6 +54,7 @@ const makeCard = firecloudRoot => method => {
 
 const logoTile = logoFile => div({
   style: {
+    flexShrink: 0,
     backgroundImage: `url(${logoFile})`,
     backgroundRepeat: 'no-repeat', backgroundPosition: 'center', backgroundColor: 'white',
     backgroundSize: 27,
@@ -112,14 +113,14 @@ const Code = ajaxCaller(class Code extends Component {
               logoTile(dockstoreLogo),
               div([
                 link({ href: `${dockstoreRoot}/search?descriptorType=wdl&searchMode=files` }, 'Dockstore'),
-                div(['Text about Dockstore'])
+                div(['Browse WDL workflows in Dockstore, an open platform used by the GA4GH for sharing Docker-based tools'])
               ])
             ]),
             div({ style: { display: 'flex', marginTop: 40 } }, [
               logoTile(firecloudLogo),
               div([
                 link({ href: `${firecloudRoot}/#methods` }, 'Firecloud Methods Repository'),
-                div(['Text about Agora'])
+                div(['Use FireCloud workflows in Terra. Share your own, or choose from > 700 public workflows'])
               ])
             ])
           ])
