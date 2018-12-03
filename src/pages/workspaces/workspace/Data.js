@@ -403,7 +403,7 @@ const EntitiesContent = ajaxCaller(class EntitiesContent extends Component {
         tooltip: 'Download selected data as a file',
         onClick: async () => {
           const str = this.buildTSV(columnSettings, selectedEntities)
-          FileSaver.saveAs(new Blob([str], { type: 'text/tab-separated-values' }), 'test.tsv')
+          FileSaver.saveAs(new Blob([str], { type: 'text/tab-separated-values' }), `${entityKey}.tsv`)
         }
       }, [
         icon('download', { style: { marginRight: '0.5rem' } }),
