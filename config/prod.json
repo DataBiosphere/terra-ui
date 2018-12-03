@@ -3,6 +3,7 @@
   "calhounUrlRoot": "https://terra-calhoun-prod.appspot.com",
   "dockstoreUrlRoot": "https://dockstore.org",
   "firecloudUrlRoot": "https://portal.firecloud.org",
+  "firecloudBucketRoot": "https://storage.googleapis.com/firecloud-alerts",
   "googleClientId": "424501080111-b3bt4p1vo4gbo4m0573nvi4d49784bp8.apps.googleusercontent.com",
   "isProd": true,
   "leoUrlRoot": "https://notebooks.firecloud.org",

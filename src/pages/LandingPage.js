@@ -46,7 +46,7 @@ const LandingPage = pure(() => {
       img({ src: landingPageHero, style: { position: 'absolute', right: 0, top: 60 } }),
       div({ style: { fontSize: 22 } }, 'Welcome to'),
       div({ style: { fontSize: 85 } }, 'Terra'),
-      hexLink('Access data from a rich ecosystem\nof Terra-connected data portals', 'Browse\nData', Nav.getLink('browse-data')),
+      hexLink('Access data from a rich ecosystem\nof Terra-connected data portals', 'Browse\nData', Nav.getLink('library-datasets')),
       div({ style: { margin: '-0.5rem 0 -0.5rem 3rem' } }, [
         hexLink('Find ready-for-use bioinformatics workflows\nfrom the Dockstore workflow repository', 'Explore\nTools',
           'https://dockstore.org/search?descriptorType=wdl&searchMode=files')

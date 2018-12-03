@@ -29,6 +29,7 @@ export const getCalhounRoot = async () => (await getConfig()).calhounUrlRoot
 export const getDevUrlRoot = async () => (await getConfig()).devUrlRoot
 export const getDockstoreUrlRoot = async () => (await getConfig()).dockstoreUrlRoot
 export const getFirecloudUrlRoot = async () => (await getConfig()).firecloudUrlRoot
+export const getFirecloudBucketRoot = async () => (await getConfig()).firecloudBucketRoot
 export const getGoogleClientId = async () => (await getConfig()).googleClientId
 export const getIsProd = async () => (await getConfig()).isProd
 export const getLeoUrlRoot = async () => (await getConfig()).leoUrlRoot
