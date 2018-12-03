@@ -217,7 +217,7 @@ export class AutocompleteTextInput extends Component {
   }
 
   render() {
-    const { value, onChange, suggestions, isFile, ...props } = this.props
+    const { value, onChange, suggestions, containsIcon, ...props } = this.props
     const { show } = this.state
     return h(Autosuggest, {
       id: this.id,
@@ -236,7 +236,7 @@ export class AutocompleteTextInput extends Component {
       },
       renderSuggestion: v => v,
       renderInputComponent: inputProps => {
-        return textInput({ ...props, ...inputProps, style: isFile ? { borderRadius: '4px 0px 0px 4px', borderRight: 'white' } : undefined, type: 'search' })
+        return textInput({ ...props, ...inputProps, style: containsIcon ? { borderRadius: '4px 0px 0px 4px', borderRight: 'white' } : undefined, type: 'search' })
       },
       theme: {
         container: { width: '100%' },
