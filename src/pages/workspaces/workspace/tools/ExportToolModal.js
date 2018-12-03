@@ -62,7 +62,7 @@ export default _.flow(
         tooltip: Utils.summarizeErrors(errors),
         disabled: !!errors,
         onClick: () => this.export()
-      }, ['Export'])
+      }, ['Copy'])
     }, [
       requiredFormLabel('Destination'),
       h(WorkspaceSelector, {
