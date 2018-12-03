@@ -121,7 +121,7 @@ const WorkflowIOTable = ({ which, inputsOutputs, config, errors, onChange, onBro
               const { name, optional, inputType } = data[rowIndex]
               const value = config[which][name] || ''
               const error = errors[which][name]
-              const isFile = inputType === 'File'
+              const isFile = (inputType === 'File') || (inputType === 'File?')
               return div({ style: { display: 'flex', alignItems: 'center', width: '100%' } }, [
                 onChange ? h(AutocompleteTextInput, {
                   placeholder: optional ? 'Optional' : 'Required',
@@ -233,7 +233,7 @@ const BucketContent = ajaxCaller(class BucketContent extends Component {
           ..._.map(({ name }) => {
             return {
               name: h(TextCell, [
-                linkButton({ onClick: () => onSelect(`gs://${bucketName}/${name}`) }, [
+                linkButton({ onClick: () => onSelect(`"gs://${bucketName}/${name}"`) }, [
                   name.slice(prefix.length)
                 ])
               ])
