@@ -24,6 +24,7 @@ import * as StateHistory from 'src/libs/state-history'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
+import ExportDataModal from 'src/components/ExportDataModal'
 
 
 const filterState = (props, state) => ({ ..._.pick(['pageNumber', 'itemsPerPage', 'sort'], state), ..._.pick(['refreshKey'], props) })
@@ -237,6 +238,8 @@ const LocalVariablesContent = ajaxCaller(class LocalVariablesContent extends Com
       !creatingNewVariable && canEdit && h(FloatingActionButton, {
         label: 'ADD VARIABLE',
         iconShape: 'plus',
+        bottom: 50,
+        right: 50,
         onClick: () => this.setState({
           editIndex: filteredAttributes.length,
           editValue: '',
@@ -408,8 +411,8 @@ const EntitiesContent = ajaxCaller(class EntitiesContent extends Component {
   }
 
   render() {
-    const { workspace: { accessLevel, workspace: { namespace, name }, workspaceSubmissionStats: { runningSubmissionsCount } }, entityKey, entityMetadata, loadMetadata, firstRender } = this.props
-    const { entities, totalRowCount, pageNumber, itemsPerPage, sort, columnWidths, columnState, selectedEntities, deletingEntities, loading } = this.state
+    const { workspace, workspace: { accessLevel, workspace: { namespace, name }, workspaceSubmissionStats: { runningSubmissionsCount } }, entityKey, entityMetadata, loadMetadata, firstRender } = this.props
+    const { entities, totalRowCount, pageNumber, itemsPerPage, sort, columnWidths, columnState, selectedEntities, deletingEntities, loading, copyingEntities } = this.state
     const theseColumnWidths = columnWidths[entityKey] || {}
     const columnSettings = applyColumnSettings(columnState[entityKey] || [], entityMetadata[entityKey].attributeNames)
     const resetScroll = () => this.table.current.scrollToTop()
@@ -510,9 +513,18 @@ const EntitiesContent = ajaxCaller(class EntitiesContent extends Component {
           })
         ])
       ]),
-      !!selectedEntities.length && h(FloatingActionButton, {
+      !_.isEmpty(selectedEntities) && h(FloatingActionButton, {
+        label: 'COPY DATA',
+        iconShape: 'copy',
+        bottom: 100,
+        right: 50,
+        onClick: () => this.setState({ copyingEntities: true })
+      }),
+      !_.isEmpty(selectedEntities) && h(FloatingActionButton, {
         label: 'DELETE DATA',
         iconShape: 'trash',
+        bottom: 50,
+        right: 50,
         onClick: () => this.setState({ deletingEntities: true })
       }),
       deletingEntities && h(EntityDeleter, {
@@ -523,6 +535,11 @@ const EntitiesContent = ajaxCaller(class EntitiesContent extends Component {
           loadMetadata()
         },
         namespace, name,
+        selectedEntities, selectedDataType: entityKey, runningSubmissionsCount
+      }),
+      copyingEntities && h(ExportDataModal, {
+        onDismiss: () => this.setState({ copyingEntities: false }),
+        workspace,
         selectedEntities, selectedDataType: entityKey, runningSubmissionsCount
       }),
       loading && spinnerOverlay
@@ -689,8 +706,10 @@ const BucketContent = ajaxCaller(class BucketContent extends Component {
           onDismiss: () => this.setState({ viewingName: undefined })
         }),
         canEdit && h(FloatingActionButton, {
-          label: 'Upload',
+          label: 'UPLOAD',
           iconShape: 'plus',
+          bottom: 50,
+          right: 50,
           onClick: () => this.uploader.current.open()
         })
       ]),
