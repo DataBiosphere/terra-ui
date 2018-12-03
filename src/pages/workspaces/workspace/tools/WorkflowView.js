@@ -126,13 +126,27 @@ const WorkflowIOTable = ({ which, inputsOutputs, config, errors, onChange, onBro
                 onChange ? h(AutocompleteTextInput, {
                   placeholder: optional ? 'Optional' : 'Required',
                   value,
+                  isFile,
                   onChange: v => onChange(name, v),
                   suggestions
-                }) : h(TextCell, { style: { flex: 1 } }, value),
+                }) : h(TextCell, { style: { flex: 1, borderRadius: '4px 0px 0px 4px', borderRight: 'white'} }, value),
                 isFile && h(Clickable, {
+                  style: {
+                    height: '2.25rem',
+                    border: `1px solid ${colors.gray[3]}`, borderRadius: '0px 4px 4px 0px',
+                    borderLeft: 'white'
+                  },
                   onClick: () => onBrowse(name),
                   tooltip: 'Browse bucket files'
-                }, [icon('folder-open', { size: 20 })]),
+                }, [
+                  icon('folder-open', {
+                    size: 20, style: {
+                      height: '2.25rem',
+                      marginTop: '0.4rem',
+                      marginRight: '0.5rem'
+                    }
+                  })
+                ]),
                 error && h(TooltipTrigger, { content: error }, [
                   icon('error', {
                     size: 28, style: { marginLeft: '0.5rem', color: colors.red[0], cursor: 'help' }
