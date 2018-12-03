@@ -314,7 +314,7 @@ const WorkflowView = _.flow(
   }
 
   render() {
-    const { isFreshData, savedConfig, launching, activeTab, variableSelected, modifiedConfig } = this.state
+    const { isFreshData, savedConfig, selectedEntity, launching, activeTab, variableSelected, modifiedConfig } = this.state
     const { namespace, name, workspace } = this.props
     const workspaceId = { namespace, name }
     return h(Fragment, [
@@ -327,7 +327,7 @@ const WorkflowView = _.flow(
           [activeTab === 'outputs' && !!modifiedConfig.rootEntityType, () => this.renderIOTable('outputs')]
         ),
         launching && h(LaunchAnalysisModal, {
-          workspaceId, config: savedConfig,
+          workspaceId, config: savedConfig, selectedEntity,
           onDismiss: () => this.setState({ launching: false }),
           onSuccess: submissionId => {
             JobHistory.flagNewSubmission(submissionId)
@@ -381,7 +381,7 @@ const WorkflowView = _.flow(
 
   componentDidUpdate() {
     StateHistory.update(_.pick(
-      ['savedConfig', 'modifiedConfig', 'entityMetadata', 'inputsOutputs', 'invalid', 'activeTab', 'wdl'],
+      ['savedConfig', 'modifiedConfig', 'entityMetadata', 'selectedEntity', 'inputsOutputs', 'invalid', 'activeTab', 'wdl'],
       this.state)
     )
   }
