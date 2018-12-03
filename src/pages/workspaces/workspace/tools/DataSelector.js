@@ -25,7 +25,7 @@ export default ajaxCaller(class DataSelector extends Component {
 
     return div({ style }, [
       Utils.cond(
-        [!entityType, () => div(['Nothing!'])],
+        [!entityType, () => div(['No data type selected'])],
         [attributeNames && entities, () => this.renderMain()],
         [attributeFailure || entityFailure, () => this.renderError()],
         () => centeredSpinner()
