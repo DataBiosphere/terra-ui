@@ -129,7 +129,7 @@ const WorkflowIOTable = ({ which, inputsOutputs, config, errors, onChange, onBro
                   isFile,
                   onChange: v => onChange(name, v),
                   suggestions
-                }) : h(TextCell, { style: { flex: 1, borderRadius: '4px 0px 0px 4px', borderRight: 'white'} }, value),
+                }) : h(TextCell, { style: { flex: 1, borderRadius: '4px 0px 0px 4px', borderRight: 'white' } }, value),
                 isFile && h(Clickable, {
                   style: {
                     height: '2.25rem',
