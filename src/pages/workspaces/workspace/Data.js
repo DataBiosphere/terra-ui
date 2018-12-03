@@ -579,7 +579,7 @@ const EntitiesContent = ajaxCaller(class EntitiesContent extends Component {
       deletingEntities && h(EntityDeleter, {
         onDismiss: () => this.setState({ deletingEntities: false }),
         onSuccess: () => {
-          this.setState({ deletingEntities: false })
+          this.setState({ deletingEntities: false, selectedEntities: {} })
           this.loadData()
           loadMetadata()
         },
