@@ -308,9 +308,8 @@ const WorkflowView = _.flow(
   }
 
   render() {
-    const { isFreshData, savedConfig, launching, activeTab, browsingBucket } = this.state
+    const { isFreshData, savedConfig, launching, activeTab, variableSelected } = this.state
     const { namespace, name, workspace } = this.props
-
     const workspaceId = { namespace, name }
     return h(Fragment, [
       savedConfig && h(Fragment, [
@@ -328,12 +327,12 @@ const WorkflowView = _.flow(
             Nav.goToPath('workspace-job-history', workspaceId)
           }
         }),
-        browsingBucket && h(BucketContent, {
+        variableSelected && h(BucketContent, {
           workspace,
-          onDismiss: () => this.setState({ browsingBucket: undefined }),
+          onDismiss: () => this.setState({ variableSelected: undefined }),
           onSelect: v => {
-            this.setState(_.set(['modifiedConfig', 'inputs', browsingBucket], v))
-            this.setState({ browsingBucket: undefined })
+            this.setState(_.set(['modifiedConfig', 'inputs', variableSelected], v))
+            this.setState({ variableSelected: undefined })
           }
         })
       ]),
@@ -577,7 +576,7 @@ const WorkflowView = _.flow(
           inputsOutputs,
           config: modifiedConfig,
           errors,
-          onBrowse: name => this.setState({ browsingBucket: name }),
+          onBrowse: name => this.setState({ variableSelected: name }),
           onChange: canCompute ? ((name, v) => this.setState(_.set(['modifiedConfig', key, name], v))) : undefined,
           onSetDefaults: canCompute && key === 'outputs' ? () => {
             this.setState(_.update(['modifiedConfig', 'outputs'], _.flow(
