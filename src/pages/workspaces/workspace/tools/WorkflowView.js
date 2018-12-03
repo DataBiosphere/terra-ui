@@ -161,7 +161,7 @@ const WorkflowIOTable = ({ which, inputsOutputs, config, errors, onChange, onBro
   ])
 }
 
-const BucketContent = ajaxCaller(class BucketContent extends Component {
+const BucketContentModal = ajaxCaller(class BucketContentModal extends Component {
   constructor(props) {
     super(props)
     this.state = {
@@ -327,7 +327,7 @@ const WorkflowView = _.flow(
             Nav.goToPath('workspace-job-history', workspaceId)
           }
         }),
-        variableSelected && h(BucketContent, {
+        variableSelected && h(BucketContentModal, {
           workspace,
           onDismiss: () => this.setState({ variableSelected: undefined }),
           onSelect: v => {
