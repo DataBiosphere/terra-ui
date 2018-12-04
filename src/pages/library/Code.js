@@ -101,13 +101,13 @@ const Code = ajaxCaller(class Code extends Component {
       !(featuredList && methods) ?
         centeredSpinner() :
         div({ style: { display: 'flex', flex: 1 } }, [
-          div({ style: { margin: '30px 0 30px 40px' } }, [
+          div({ style: { flex: 1, margin: '30px 0 30px 40px' } }, [
             div({ style: styles.header }, 'GATK4 Best Practices workflows'),
             div({ style: { display: 'flex', flexWrap: 'wrap' } }, [
               ..._.map(makeCard(firecloudRoot), featuredMethods)
             ])
           ]),
-          div({ style: { flex: '0 0 385px', padding: '25px 30px', backgroundColor: colors.gray[5], lineHeight: '20px' } }, [
+          div({ style: { width: 385, padding: '25px 30px', backgroundColor: colors.gray[5], lineHeight: '20px' } }, [
             div({ style: { ...styles.header, fontSize: 16 } }, 'FIND ADDITIONAL WORKFLOWS'),
             div({ style: { display: 'flex' } }, [
               logoTile(dockstoreLogo),
