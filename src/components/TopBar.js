@@ -77,19 +77,6 @@ const betaTag = b({
   }
 }, 'BETA')
 
-const librarySubItem = (linkName, iconName, label) => h(Clickable, {
-  style: styles.nav.subItem,
-  as: 'a',
-  hover: { backgroundColor: colors.darkBlue[1] },
-  href: Nav.getLink(linkName),
-  onClick: () => this.hideNav()
-}, [
-  div({ style: styles.nav.icon }, [
-    icon(iconName, { className: 'is-solid', size: 24 })
-  ]),
-  label
-])
-
 export default Utils.connectAtom(authStore, 'authState')(class TopBar extends Component {
   static propTypes = {
     title: PropTypes.node,
@@ -112,6 +99,19 @@ export default Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
 
   buildNav() {
     const { authState: { isSignedIn } } = this.props
+
+    const librarySubItem = (linkName, iconName, label) => h(Clickable, {
+      style: styles.nav.subItem,
+      as: 'a',
+      hover: { backgroundColor: colors.darkBlue[1] },
+      href: Nav.getLink(linkName),
+      onClick: () => this.hideNav()
+    }, [
+      div({ style: styles.nav.icon }, [
+        icon(iconName, { className: 'is-solid', size: 24 })
+      ]),
+      label
+    ])
 
     return createPortal(
       div({
