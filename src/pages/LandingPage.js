@@ -44,8 +44,12 @@ const LandingPage = pure(() => {
       }
     }, [
       img({ src: landingPageHero, style: { position: 'absolute', right: 0, top: 60 } }),
-      div({ style: { fontSize: 22 } }, 'Welcome to'),
-      div({ style: { fontSize: 85 } }, 'Terra'),
+      div({ style: { fontSize: 45, color: '#359448' } }, 'Welcome to Terra.'),
+      div({ style: { fontSize: 24 } }, 'Terra is a cloud-native platform for'),
+      div({ style: { fontSize: 24, display: 'flex' } }, ['biomedical researchers to access ', div({ style: { fontWeight: 'bold', marginLeft: '0.5rem' } }, 'data,')]),
+      div({ style: { fontSize: 24, marginBottom: '2rem', display: 'flex'} }, ['run analysis',
+        div({ style: { fontWeight: 'bold', marginLeft: '0.5rem', marginRight: '0.5rem' } }, 'tools,'), 'and',
+        div({ style: { fontWeight: 'bold', marginLeft: '0.5rem' } }, 'collaborate.')]),
       hexLink('Access data from a rich ecosystem\nof Terra-connected data portals', 'Browse\nData', Nav.getLink('library-datasets')),
       div({ style: { margin: '-0.5rem 0 -0.5rem 3rem' } }, [
         hexLink('Find ready-for-use bioinformatics workflows\nfrom the Dockstore workflow repository', 'Explore\nTools',

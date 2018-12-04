@@ -14,7 +14,7 @@ import home from 'src/icons/home.svg'
 import jupyterIcon from 'src/icons/jupyter.svg'
 import listAlt from 'src/icons/list-alt.svg'
 import loadingSpinner from 'src/icons/loading-spinner.svg'
-import logoGrey from 'src/icons/logo-grey.svg'
+import logoWhite from 'src/icons/logo-grey.svg'
 import logoIcon from 'src/icons/logo.svg'
 import notebooks from 'src/icons/notebooks.svg'
 import square from 'src/icons/square.svg'
@@ -26,7 +26,7 @@ import colors from 'src/libs/colors'
 
 
 ClarityIcons.add({
-  browse, caretDown, checkSquare, columnGrabber, explore, home, jupyterIcon, listAlt, loadingSpinner, logoGrey, logoIcon, notebooks, square, table, cardMenuIcon, renameIcon
+  browse, caretDown, checkSquare, columnGrabber, explore, home, jupyterIcon, listAlt, loadingSpinner, logoWhite, logoIcon, notebooks, square, table, cardMenuIcon, renameIcon
 })
 
 /**
@@ -43,7 +43,7 @@ export const breadcrumb = function(props) {
 }
 
 export const logo = function(props) {
-  return icon('logoIcon', _.merge({ size: 48, style: { marginRight: '0.5rem' } }, props))
+  return icon('logoIcon', _.merge({ size: 63, style: { marginRight: '0.5rem' } }, props))
 }
 
 export const spinner = function(props) {
