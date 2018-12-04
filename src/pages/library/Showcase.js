@@ -26,14 +26,14 @@ const makeCard = isGATK => ({ workspace: { namespace, name, attributes: { descri
     href: Nav.getLink('workspace-dashboard', { namespace, name }),
     style: {
       backgroundColor: 'white',
-      height: 175,
+      width: 400, height: 175,
       borderRadius: 5,
       display: 'flex',
       marginBottom: 20,
       boxShadow: Style.standardShadow
     }
   }, [
-    div({ style: { width: 303, padding: '15px 20px' } }, [
+    div({ style: { flex: 1, minWidth: 0, padding: '15px 20px' } }, [
       div({ style: { color: colors.blue[0], fontSize: 16, lineHeight: '20px', height: 40, marginBottom: 7 } }, [name]),
       div({ style: { lineHeight: '20px', height: 100, whiteSpace: 'pre-wrap', overflow: 'hidden' } }, [description])
     ]),
