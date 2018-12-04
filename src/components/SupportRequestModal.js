@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import { div, h } from 'react-hyperscript-helpers'
 import { buttonPrimary, Select, spinnerOverlay } from 'src/components/common'
-import { TextArea, textInput, validatedInput } from 'src/components/input'
+import { TextArea, textInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { ajaxCaller } from 'src/libs/ajax'
 import { authStore } from 'src/libs/auth'
@@ -14,9 +14,10 @@ import validate from 'validate.js'
 
 
 const constraints = {
-  email: { email: true },
+  name: { presence: { allowEmpty: false } },
   subject: { presence: { allowEmpty: false } },
-  description: { presence: { allowEmpty: false } }
+  description: { presence: { allowEmpty: false } },
+  email: { email: true, presence: { allowEmpty: false } }
 }
 
 const SupportRequestModal = _.flow(
@@ -31,15 +32,16 @@ const SupportRequestModal = _.flow(
       subject: '',
       description: '',
       type: 'question',
-      email: contactEmail || email
+      email: contactEmail || email,
+      signedOutName: ''
     }
   }
 
   render() {
-    const { onDismiss, authState: { profile: { firstName } } } = this.props
-    const { submitting, submitError, subject, description, type, email } = this.state
-    const greetUser = firstName === 'N/A' ? `?` : `, ${firstName}?`
-    const errors = validate({ email, description, subject }, constraints)
+    const { onDismiss, authState: { isSignedIn, profile: { firstName } } } = this.props
+    const { submitting, submitError, subject, description, type, email, signedOutName } = this.state
+    const greetUser = isSignedIn ? `, ${firstName}` : ``
+    const errors = validate({ email, description, subject, name: isSignedIn ? firstName : signedOutName }, constraints)
 
     return h(Modal, {
       onDismiss,
@@ -50,6 +52,13 @@ const SupportRequestModal = _.flow(
         onClick: () => this.submit()
       }, ['SEND'])
     }, [
+      !isSignedIn && Forms.requiredFormLabel('Name'),
+      !isSignedIn && textInput({
+        placeholder: 'What should we call you?',
+        autoFocus: true,
+        value: !isSignedIn ? signedOutName : firstName,
+        onChange: e => this.setState({ signedOutName: e.target.value })
+      }),
       Forms.requiredFormLabel('Type'),
       h(Select, {
         isMulti: false,
@@ -57,11 +66,11 @@ const SupportRequestModal = _.flow(
         onChange: ({ value }) => this.setState({ type: value }),
         options: [{ value: 'question', label: 'Question' }, { value: 'bug', label: 'Bug' }, { value: 'feature_request', label: 'Feature Request' }]
       }),
-      Forms.requiredFormLabel(`How can we help you${greetUser}`),
+      Forms.requiredFormLabel(`How can we help you${greetUser}?`),
       textInput({
         style: { borderBottomLeftRadius: 0, borderBottomRightRadius: 0, borderBottomStyle: 'dashed' },
         placeholder: 'Enter a subject',
-        autoFocus: true,
+        autoFocus: !!isSignedIn,
         value: subject,
         onChange: e => this.setState({ subject: e.target.value })
       }),
@@ -72,12 +81,10 @@ const SupportRequestModal = _.flow(
         onChange: e => this.setState({ description: e.target.value })
       }),
       Forms.requiredFormLabel('Contact email'),
-      validatedInput({
-        inputProps: {
-          value: email,
-          onChange: e => this.setState({ email: e.target.value })
-        },
-        error: Utils.summarizeErrors(errors && errors.email)
+      textInput({
+        value: email,
+        placeholder: 'Enter your email address',
+        onChange: e => this.setState({ email: e.target.value })
       }),
       submitError && div({ style: { marginTop: '0.5rem', textAlign: 'right', color: colors.red[0] } }, [submitError]),
       submitting && spinnerOverlay
@@ -85,9 +92,9 @@ const SupportRequestModal = _.flow(
   }
 
   async submit() {
-    const { onSuccess, ajax: { User }, authState: { profile: { firstName, lastName } } } = this.props
-    const { email, type, description, subject } = this.state
-    const name = `${firstName} ${lastName}`
+    const { onSuccess, ajax: { User }, authState: { isSignedIn, profile: { firstName, lastName } } } = this.props
+    const { email, type, description, subject, signedOutName } = this.state
+    const name = isSignedIn ? `${firstName} ${lastName}` : signedOutName
     const currUrl = window.location.href
 
     try {
