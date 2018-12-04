@@ -1,4 +1,4 @@
-import { div, h, img } from 'react-hyperscript-helpers'
+import { div, h, img, span } from 'react-hyperscript-helpers'
 import { pure } from 'recompose'
 import { linkButton } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
@@ -46,14 +46,14 @@ const LandingPage = pure(() => {
       img({ src: landingPageHero, style: { position: 'absolute', right: 0, top: 60 } }),
       div({ style: { fontSize: 45, color: '#359448' } }, 'Welcome to Terra.'),
       div({ style: { fontSize: 24 } }, 'Terra is a cloud-native platform for'),
-      div({ style: { fontSize: 24, display: 'flex' } }, ['biomedical researchers to access ', div({ style: { fontWeight: 'bold', marginLeft: '0.5rem' } }, 'data,')]),
-      div({ style: { fontSize: 24, marginBottom: '2rem', display: 'flex'} }, ['run analysis',
-        div({ style: { fontWeight: 'bold', marginLeft: '0.5rem', marginRight: '0.5rem' } }, 'tools,'), 'and',
-        div({ style: { fontWeight: 'bold', marginLeft: '0.5rem' } }, 'collaborate.')]),
+      div({ style: { fontSize: 24 } }, ['biomedical researchers to access ', span({ style: { fontWeight: 'bold' } }, 'data,')]),
+      div({ style: { fontSize: 24, marginBottom: '2rem' } }, [
+        'run analysis ', span({ style: { fontWeight: 'bold' } }, 'tools, '), 'and',
+        span({ style: { fontWeight: 'bold' } }, ' collaborate.')
+      ]),
       hexLink('Access data from a rich ecosystem\nof Terra-connected data portals', 'Browse\nData', Nav.getLink('library-datasets')),
       div({ style: { margin: '-0.5rem 0 -0.5rem 3rem' } }, [
-        hexLink('Find ready-for-use bioinformatics workflows\nfrom the Dockstore workflow repository', 'Explore\nTools',
-          'https://dockstore.org/search?descriptorType=wdl&searchMode=files')
+        hexLink('Find ready-for-use bioinformatics workflows,\nor search workflow repositories', 'Explore\nTools', Nav.getLink('library-code'))
       ]),
       hexLink(
         'Terra Workspaces connect your data to\npopular analysis tools powered by the\ncloud. Use Workspaces to share data,\ncode, and results easily and securely',
