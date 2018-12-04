@@ -119,7 +119,7 @@ const Code = ajaxCaller(class Code extends Component {
             div({ style: { display: 'flex', marginTop: 40 } }, [
               logoTile(firecloudLogo),
               div([
-                link({ href: `${firecloudRoot}/#methods` }, 'Firecloud Methods Repository'),
+                link({ href: `${firecloudRoot}/?return=terra#methods` }, 'Firecloud Methods Repository'),
                 div(['Use FireCloud workflows in Terra. Share your own, or choose from > 700 public workflows'])
               ])
             ])
