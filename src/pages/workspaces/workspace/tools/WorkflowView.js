@@ -307,7 +307,7 @@ const WorkflowView = _.flow(
   }
 
   render() {
-    const { isFreshData, savedConfig, launching, activeTab, variableSelected } = this.state
+    const { isFreshData, savedConfig, launching, activeTab, variableSelected, modifiedConfig } = this.state
     const { namespace, name, workspace } = this.props
     const workspaceId = { namespace, name }
     return h(Fragment, [
@@ -330,8 +330,7 @@ const WorkflowView = _.flow(
           workspace,
           onDismiss: () => this.setState({ variableSelected: undefined }),
           onSelect: v => {
-            this.setState(_.set(['modifiedConfig', 'inputs', variableSelected], v))
-            this.setState({ variableSelected: undefined })
+            this.setState({ modifiedConfig: _.set(['inputs', variableSelected], v, modifiedConfig), variableSelected: undefined })
           }
         })
       ]),
