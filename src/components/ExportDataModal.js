@@ -10,7 +10,7 @@ import { withWorkspaces, WorkspaceSelector } from 'src/components/workspace-util
 import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
-import { requiredFormLabel, formLabel } from 'src/libs/forms'
+import { formLabel, requiredFormLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -34,7 +34,8 @@ export default _.flow(
     onDismiss: PropTypes.func.isRequired,
     selectedEntities: PropTypes.array.isRequired,
     selectedDataType: PropTypes.string.isRequired,
-    runningSubmissionsCount: PropTypes.number.isRequired
+    runningSubmissionsCount: PropTypes.number.isRequired,
+    workspace: PropTypes.object.isRequired
   }
 
   constructor(props) {
@@ -80,14 +81,14 @@ export default _.flow(
 
     const errors = validate(
       { selectedWorkspaceId },
-      { selectedWorkspaceId: { presence: true } },
+      { selectedWorkspaceId: { presence: true } }
     )
 
     return h(Modal, {
       onDismiss,
       title: 'Copy Data to Workspace',
       okButton: buttonPrimary({
-        tooltip: (hardConflicts.length !==0) ? 'Are you sure you want to override existing data?' : Utils.summarizeErrors(errors),
+        tooltip: (hardConflicts.length !== 0) ? 'Are you sure you want to override existing data?' : Utils.summarizeErrors(errors),
         disabled: !!errors || copying,
         onClick: () => this.copy()
       }, ['Copy'])
@@ -100,9 +101,7 @@ export default _.flow(
       !((hardConflicts.length !== 0) || moreToDelete || (softConflicts.length !== 0)) && h(Fragment, [
         requiredFormLabel('Destination'),
         h(WorkspaceSelector, {
-          workspaces: _.filter(({ workspace: { workspaceId }, accessLevel }) => {
-            return workspace.workspaceId !== workspaceId && Utils.canWrite(accessLevel)
-          }, workspaces),
+          workspaces:_.filter(Utils.isValidWsExportTarget(workspace), workspaces),
           value: selectedWorkspaceId,
           onChange: v => this.setState({ selectedWorkspaceId: v })
         })
@@ -127,7 +126,7 @@ export default _.flow(
         () => this.displayEntities(selectedEntities, runningSubmissionsCount, false)
       ),
       div({
-        style: { ...warningStyle, textAlign: 'right', marginTop: (hardConflicts.length !==0) ? '1rem' : undefined }
+        style: { ...warningStyle, textAlign: 'right', marginTop: (hardConflicts.length !== 0) ? '1rem' : undefined }
       }, [`${selectedEntities.length} data entries to be copied.`]),
       copying && spinnerOverlay,
       error && h(ErrorView, { error, collapses: false })
@@ -173,7 +172,7 @@ export default _.flow(
     const selectedWorkspace = this.getSelectedWorkspace().workspace
     const entitiesToDelete = _.concat(hardConflicts, additionalDeletions)
     this.setState({ copying: true })
-    if ((hardConflicts.length !==0)) {
+    if ((hardConflicts.length !== 0)) {
       try {
         await Workspaces.workspace(selectedWorkspace.namespace, selectedWorkspace.name).deleteEntities(entitiesToDelete)
         this.setState({ hardConflicts: [], additionalDeletions: [] })
