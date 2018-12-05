@@ -1,3 +1,4 @@
+import { Fragment } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { buttonPrimary, Select, spinnerOverlay } from 'src/components/common'
 import { TextArea, textInput } from 'src/components/input'
@@ -49,13 +50,15 @@ const SupportRequestModal =
           onClick: () => this.submit()
         }, ['SEND'])
       }, [
-        !isSignedIn && Forms.requiredFormLabel('Name'),
-        !isSignedIn && textInput({
-          placeholder: 'What should we call you?',
-          autoFocus: true,
-          value: !isSignedIn ? nameEntered : firstName,
-          onChange: e => this.setState({ nameEntered: e.target.value })
-        }),
+        !isSignedIn && h(Fragment, [
+          Forms.requiredFormLabel('Name'),
+          textInput({
+            placeholder: 'What should we call you?',
+            autoFocus: true,
+            value: nameEntered,
+            onChange: e => this.setState({ nameEntered: e.target.value })
+          })
+        ]),
         Forms.requiredFormLabel('Type'),
         h(Select, {
           isMulti: false,
