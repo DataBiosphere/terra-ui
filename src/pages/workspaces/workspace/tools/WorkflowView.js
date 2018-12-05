@@ -75,7 +75,7 @@ const ioTask = ({ name }) => _.nth(-2, name.split('.'))
 const ioVariable = ({ name }) => _.nth(-1, name.split('.'))
 const ioType = ({ inputType, outputType }) => (inputType || outputType).match(/(.*?)\??$/)[1] // unify, and strip off trailing '?'
 
-const WorkflowIOTable = ({ which, inputsOutputs: data, config, errors, onChange, onSetDefaults, suggestions }) => {
+const WorkflowIOTable = ({ which, inputsOutputs: data, config, errors, onChange, onSetDefaults, onBrowse, suggestions }) => {
   return h(AutoSizer, [
     ({ width, height }) => {
       return h(FlexTable, {
