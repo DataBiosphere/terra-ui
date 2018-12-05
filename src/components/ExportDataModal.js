@@ -101,7 +101,7 @@ export default _.flow(
       !((hardConflicts.length !== 0) || moreToDelete || (softConflicts.length !== 0)) && h(Fragment, [
         requiredFormLabel('Destination'),
         h(WorkspaceSelector, {
-          workspaces:_.filter(Utils.isValidWsExportTarget(workspace), workspaces),
+          workspaces: _.filter(Utils.isValidWsExportTarget(workspace), workspaces),
           value: selectedWorkspaceId,
           onChange: v => this.setState({ selectedWorkspaceId: v })
         })
