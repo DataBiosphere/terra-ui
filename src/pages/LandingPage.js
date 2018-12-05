@@ -44,12 +44,13 @@ const LandingPage = pure(() => {
       }
     }, [
       img({ src: landingPageHero, style: { position: 'absolute', right: 0, top: 60 } }),
-      div({ style: { fontSize: 45, color: '#359448' } }, 'Welcome to Terra.'),
-      div({ style: { fontSize: 24 } }, 'Terra is a cloud-native platform for'),
-      div({ style: { fontSize: 24 } }, ['biomedical researchers to access ', span({ style: { fontWeight: 'bold' } }, 'data,')]),
-      div({ style: { fontSize: 24, marginBottom: '2rem' } }, [
-        'run analysis ', span({ style: { fontWeight: 'bold' } }, 'tools, '), 'and',
-        span({ style: { fontWeight: 'bold' } }, ' collaborate.')
+      div({ style: { whiteSpace: 'pre-line' } }, [
+        div({ style: { fontSize: 45, color: '#359448' } }, 'Welcome to Terra.\n'),
+        div({ style: { fontSize: 24, marginBottom: '2rem' } }, [
+          'Terra is a cloud-native platform for\n',
+          'biomedical researchers to access ', span({ style: { fontWeight: 'bold' } }, 'data,\n'),
+          'run analysis ', span({ style: { fontWeight: 'bold' } }, 'tools, '), 'and', span({ style: { fontWeight: 'bold' } }, ' collaborate.')
+        ])
       ]),
       hexLink('Access data from a rich ecosystem\nof Terra-connected data portals', 'Browse\nData', Nav.getLink('library-datasets')),
       div({ style: { margin: '-0.5rem 0 -0.5rem 3rem' } }, [
