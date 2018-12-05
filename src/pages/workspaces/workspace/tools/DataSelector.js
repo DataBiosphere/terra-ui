@@ -20,14 +20,14 @@ export default ajaxCaller(class DataSelector extends Component {
 
   render() {
     const { entityType, entityMetadata, style } = this.props
-    const { entities, attributeFailure, entityFailure } = this.state
+    const { entities, entityFailure } = this.state
     const { attributeNames } = (entityType && entityMetadata) ? entityMetadata[entityType] : {}
 
     return div({ style }, [
       Utils.cond(
         [!entityType, () => div(['No data type selected'])],
         [attributeNames && entities, () => this.renderMain()],
-        [attributeFailure || entityFailure, () => this.renderError()],
+        [entityFailure, () => this.renderError()],
         () => centeredSpinner()
       )
     ])
@@ -90,12 +90,11 @@ export default ajaxCaller(class DataSelector extends Component {
   }
 
   renderError() {
-    const { attributeFailure, entityFailure } = this.state
+    const { entityFailure } = this.state
 
     return div({}, [
       div({}, 'Unable to load data entities'),
-      attributeFailure && div({}, attributeFailure),
-      entityFailure && div({}, entityFailure)
+      div({}, entityFailure)
     ])
   }
 
