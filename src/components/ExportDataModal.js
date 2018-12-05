@@ -96,8 +96,8 @@ export default _.flow(
         content: `WARNING: ${runningSubmissionsCount} workflows are currently running in this workspace. ` +
           'Copying the following data could cause failures if a workflow is using this data.'
       }),
-      requiredFormLabel('Destination'),
-      h(WorkspaceSelector, {
+      !((hardConflicts.length !== 0) || moreToDelete || (softConflicts.length !== 0)) && requiredFormLabel('Destination'),
+      !((hardConflicts.length !== 0) || moreToDelete || (softConflicts.length !== 0)) && h(WorkspaceSelector, {
         workspaces: _.filter(({ workspace: { workspaceId }, accessLevel }) => {
           return workspace.workspaceId !== workspaceId && Utils.canWrite(accessLevel)
         }, workspaces),
