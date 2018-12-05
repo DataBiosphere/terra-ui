@@ -71,8 +71,8 @@ const styles = {
 const betaTag = b({
   style: {
     fontSize: 8, lineHeight: '9px',
-    color: 'white', backgroundColor: colors.brick,
-    padding: '3px 5px', marginLeft: '0.4rem', verticalAlign: 'middle',
+    color: 'white', backgroundColor: '#73AD43',
+    padding: '3px 5px', verticalAlign: 'middle',
     borderRadius: 2
   }
 }, 'BETA')
@@ -138,7 +138,7 @@ export default Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
               },
               href: Nav.getLink('root'),
               onClick: () => this.hideNav()
-            }, [logo(), 'Terra', betaTag])
+            }, [logo(), betaTag])
           ]),
           isSignedIn ?
             this.buildUserSection() :
@@ -274,7 +274,7 @@ export default Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
           div({
             style: _.merge(title ? { fontSize: '0.8rem', lineHeight: '19px' } : { fontSize: '1rem', fontWeight: 600 },
               { color: colors.darkBlue[2], marginLeft: '0.1rem' })
-          }, ['Terra', betaTag]),
+          }, [betaTag]),
           title
         ])
       ]),

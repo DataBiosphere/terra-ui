@@ -22,19 +22,15 @@ const FooterWrapper = ({ children }) => {
         paddingLeft: '6rem',
         paddingRight: '6rem',
         backgroundColor: colors.gray[0],
-        color: colors.gray[2],
-        borderTop: `4px solid ${colors.brick}`
+        color: 'white'
       }
     }, [
       linkButton({ href: Nav.getLink('root'), style: { display: 'flex', alignItems: 'center' } }, [
-        icon('logoGrey', { size: 36 }),
-        div({
-          style: { color: colors.gray[2], fontSize: 25, fontWeight: 500, textTransform: 'uppercase', marginLeft: '0.5rem' }
-        }, 'Terra')
+        icon('logoWhite', { size: 55 })
       ]),
       a({ href: Nav.getLink('privacy'), style: styles.link }, 'Privacy Policy'),
       a({ target: '_blank', href: tosUrl, style: styles.link }, 'Terms of Service'),
-      div({ style: { marginLeft: 'auto' } }, [
+      div({ style: { marginLeft: 'auto', fontWeight: 600, fontSize: '10px' } }, [
         'Built on: ',
         new Date(SATURN_BUILD_TIMESTAMP).toLocaleString()
       ])
