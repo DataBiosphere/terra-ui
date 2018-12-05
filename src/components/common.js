@@ -122,7 +122,7 @@ export const tabBar = ({ activeTab, tabNames, refresh = _.noop, getHref }, child
     activeTab !== tabNames[0] && navSeparator,
     ..._.map(name => navTab(name), tabNames),
     div({ style: { flexGrow: 1 } }),
-    children
+    ...children
   ])
 }
 
