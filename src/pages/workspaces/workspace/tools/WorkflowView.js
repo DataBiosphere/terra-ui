@@ -125,7 +125,7 @@ const WorkflowIOTable = ({ which, inputsOutputs: data, config, errors, onChange,
                 onChange ? h(AutocompleteTextInput, {
                   placeholder: optional ? 'Optional' : 'Required',
                   value,
-                  containsIcon: isFile,
+                  style: isFile ? { borderRadius: '4px 0px 0px 4px', borderRight: 'white' } : undefined,
                   onChange: v => onChange(name, v),
                   suggestions
                 }) : h(TextCell, { style: { flex: 1, borderRadius: '4px 0px 0px 4px', borderRight: 'white' } }, value),
