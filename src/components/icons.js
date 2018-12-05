@@ -2,10 +2,7 @@ import '@webcomponents/custom-elements' // must be before icons
 
 import { ClarityIcons } from '@clr/icons'
 import '@clr/icons/clr-icons.css'
-import '@clr/icons/shapes/essential-shapes'
-import '@clr/icons/shapes/media-shapes'
-import '@clr/icons/shapes/social-shapes'
-import '@clr/icons/shapes/technology-shapes'
+import '@clr/icons/shapes/all-shapes'
 import _ from 'lodash/fp'
 import { h, img } from 'react-hyperscript-helpers'
 import browse from 'src/icons/browse.svg'
@@ -22,17 +19,14 @@ import logoIcon from 'src/icons/logo.svg'
 import notebooks from 'src/icons/notebooks.svg'
 import square from 'src/icons/square.svg'
 import table from 'src/icons/table.svg'
-import terminalIcon from 'src/icons/terminal_icon.svg'
-import workspace from 'src/icons/workspace.svg'
 import cardMenuIcon from 'src/icons/card-menu-icon.svg'
 import renameIcon from 'src/icons/rename-icon.svg'
-import share from 'src/icons/share-line.svg'
 import { getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 
 
 ClarityIcons.add({
-  browse, caretDown, checkSquare, columnGrabber, explore, home, jupyterIcon, listAlt, loadingSpinner, logoGrey, logoIcon, notebooks, square, table, workspace, cardMenuIcon, renameIcon, share, terminalIcon
+  browse, caretDown, checkSquare, columnGrabber, explore, home, jupyterIcon, listAlt, loadingSpinner, logoGrey, logoIcon, notebooks, square, table, cardMenuIcon, renameIcon
 })
 
 /**

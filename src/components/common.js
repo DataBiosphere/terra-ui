@@ -7,6 +7,7 @@ import RSelect from 'react-select'
 import { centeredSpinner, icon } from 'src/components/icons'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import colors from 'src/libs/colors'
+import * as Style from 'src/libs/style'
 
 
 const styles = {
@@ -95,15 +96,34 @@ export const search = function({ wrapperProps, inputProps }) {
     ])
 }
 
-export const contextBar = function(props, children) {
-  return div(_.merge({
-    style: {
-      display: 'flex', alignItems: 'center', backgroundColor: colors.blue[1],
-      color: colors.gray[3], fontWeight: 500,
-      height: '3.75rem', padding: '0 1rem'
-    }
-  }, props),
-  children)
+export const tabBar = ({ activeTab, tabNames, refresh = _.noop, getHref }, children) => {
+  const navSeparator = div({
+    style: { background: 'rgba(255,255,255,0.15)', width: 1, height: '3rem', flexShrink: 0 }
+  })
+
+  const navTab = currentTab => {
+    const selected = currentTab === activeTab
+    const href = getHref(currentTab)
+    const hideSeparator = selected || tabNames.indexOf(activeTab) === tabNames.indexOf(currentTab) + 1
+
+    return h(Fragment, [
+      h(Interactive, {
+        as: 'a',
+        style: { ...Style.tabBar.tab, ...(selected ? Style.tabBar.active : {}) },
+        hover: { color: Style.tabBar.active.color },
+        onClick: href === window.location.hash ? refresh : undefined,
+        href
+      }, currentTab),
+      !hideSeparator && navSeparator
+    ])
+  }
+
+  return div({ style: Style.tabBar.container }, [
+    activeTab !== tabNames[0] && navSeparator,
+    ..._.map(name => navTab(name), tabNames),
+    div({ style: { flexGrow: 1 } }),
+    children
+  ])
 }
 
 export const menuIcon = (iconName, props) => {

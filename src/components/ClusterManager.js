@@ -523,7 +523,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
           () => 'Open terminal'
         ),
         style: { marginRight: '2rem' }
-      }, [icon('terminalIcon', { size: 21 })]),
+      }, [icon('terminal', { className: 'is-solid', size: 24 })]),
       renderIcon(),
       h(PopupTrigger, {
         position: 'bottom',
