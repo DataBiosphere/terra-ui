@@ -466,8 +466,7 @@ const WorkflowView = _.flow(
               value: rootEntityType,
               onChange: selected => {
                 const value = !!selected ? selected.value : undefined
-                this.setState(_.set(['modifiedConfig', 'rootEntityType'], value))
-                this.setState({ selectedEntity: undefined })
+                this.setState({ modifiedConfig: _.set('rootEntityType', value, modifiedConfig), selectedEntity: undefined })
               },
               options: _.keys(entityMetadata)
             })
