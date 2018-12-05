@@ -219,7 +219,6 @@ const BucketContentModal = ajaxCaller(class BucketContentModal extends Component
       div({ style: { margin: '1rem -1rem 1rem -1rem', borderBottom: `1px solid ${colors.gray[5]}` } }),
       h(SimpleTable, {
         columns: [
-          { size: { basis: 24, grow: 0 }, key: 'button' },
           { header: h(HeaderCell, ['Name']), size: { grow: 1 }, key: 'name' }
         ],
         rows: [
