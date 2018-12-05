@@ -1,5 +1,6 @@
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
+import { Fragment } from 'react'
 import { b, div, h } from 'react-hyperscript-helpers'
 import { buttonPrimary, spinnerOverlay } from 'src/components/common'
 import ErrorView from 'src/components/ErrorView'
@@ -96,14 +97,16 @@ export default _.flow(
         content: `WARNING: ${runningSubmissionsCount} workflows are currently running in this workspace. ` +
           'Copying the following data could cause failures if a workflow is using this data.'
       }),
-      !((hardConflicts.length !== 0) || moreToDelete || (softConflicts.length !== 0)) && requiredFormLabel('Destination'),
-      !((hardConflicts.length !== 0) || moreToDelete || (softConflicts.length !== 0)) && h(WorkspaceSelector, {
-        workspaces: _.filter(({ workspace: { workspaceId }, accessLevel }) => {
-          return workspace.workspaceId !== workspaceId && Utils.canWrite(accessLevel)
-        }, workspaces),
-        value: selectedWorkspaceId,
-        onChange: v => this.setState({ selectedWorkspaceId: v })
-      }),
+      !((hardConflicts.length !== 0) || moreToDelete || (softConflicts.length !== 0)) && h(Fragment, [
+        requiredFormLabel('Destination'),
+        h(WorkspaceSelector, {
+          workspaces: _.filter(({ workspace: { workspaceId }, accessLevel }) => {
+            return workspace.workspaceId !== workspaceId && Utils.canWrite(accessLevel)
+          }, workspaces),
+          value: selectedWorkspaceId,
+          onChange: v => this.setState({ selectedWorkspaceId: v })
+        })
+      ]),
       (hardConflicts.length !== 0) && InfoTile({
         infoStyle: errorStyle, iconName: 'error-standard',
         content: 'Some of the following data already exists in the selected workspace. Click CANCEL to go back or COPY to override the existing data.'
