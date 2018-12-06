@@ -68,6 +68,12 @@ const styles = {
     marginRight: '0.5rem',
     marginTop: '.1rem',
     color: colors.blue[0]
+  },
+  outputInfoLabel: {
+    color: colors.darkBlue[0]
+  },
+  placeholder: {
+    fontStyle: 'italic'
   }
 }
 
@@ -477,7 +483,27 @@ const WorkflowView = _.flow(
                 height: StepButtonParams.buttonHeight, fontSize: StepButtonParams.fontSize
               }
             }, ['Run analysis'])
-          })
+          }),
+          activeTab === 'outputs' && h(Fragment, [
+            div({ style: styles.outputInfoLabel }, 'Output files will be saved to'),
+            div({ style: { display: 'flex', alignItems: 'center' } }, [
+              div({ style: { flex: 'none', display: 'flex', width: '1.5rem' } }, [icon('folder', { size: 18 })]),
+              div({ style: { flex: 1 } }, [
+                'Files / ',
+                span({ style: styles.placeholder }, 'submission unique ID'),
+                ` / ${methodName} / `,
+                span({ style: styles.placeholder }, 'workflow unique ID')
+              ])
+            ]),
+            !!rootEntityType && h(Fragment, [
+              div({ style: { margin: '0.5rem 0', borderBottom: `1px solid ${colors.gray[3]}` } }),
+              div({ style: styles.outputInfoLabel }, 'File references will be written to'),
+              div({ style: { display: 'flex', alignItems: 'center' } }, [
+                div({ style: { flex: 'none', display: 'flex', width: '1.5rem' } }, [icon('listAlt')]),
+                `Tables / ${rootEntityType}`
+              ])
+            ])
+          ])
         ]),
         div({ style: { flex: 'none', display: 'flex', flexDirection: 'column', alignItems: 'flex-end' } }, [
           linkButton({
