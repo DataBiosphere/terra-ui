@@ -153,7 +153,11 @@ export const WorkspaceDashboard = _.flow(
               saving && spinnerOverlay
             ])
           ],
-          [!!description, () => h(Markdown, [description])],
+          [!!description, () => h(Markdown, {
+            renderers: {
+              link: (href, title, text) => `<a href="${href}" style="color: ${colors.blue[0]}">${text}</a>`
+            }
+          }, [description])],
           () => div({ style: { fontStyle: 'italic' } }, ['No description added']))
       ]),
       div({ style: styles.rightBox }, [
