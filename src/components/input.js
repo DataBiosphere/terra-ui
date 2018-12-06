@@ -217,7 +217,7 @@ export class AutocompleteTextInput extends Component {
   }
 
   render() {
-    const { value, onChange, suggestions, ...props } = this.props
+    const { value, onChange, suggestions, style, ...props } = this.props
     const { show } = this.state
     return h(Autosuggest, {
       id: this.id,
@@ -236,7 +236,7 @@ export class AutocompleteTextInput extends Component {
       },
       renderSuggestion: v => v,
       renderInputComponent: inputProps => {
-        return textInput({ ...props, ...inputProps, type: 'search' })
+        return textInput({ ...props, ...inputProps, style, type: 'search' })
       },
       theme: {
         container: { width: '100%' },
