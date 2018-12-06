@@ -7,7 +7,8 @@ import { div, h, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import {
-  buttonPrimary, buttonSecondary, Clickable, linkButton, MenuButton, Select, spinnerOverlay, menuIcon, link, methodLink
+  buttonPrimary, buttonSecondary, Clickable, linkButton, MenuButton, spinnerOverlay, menuIcon, link, methodLink,
+  RadioButton
 } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { AutocompleteTextInput } from 'src/components/input'
@@ -26,7 +27,7 @@ import * as StateHistory from 'src/libs/state-history'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 import * as JobHistory from 'src/pages/workspaces/workspace/JobHistory'
-import DataSelector from 'src/pages/workspaces/workspace/tools/DataSelector'
+import DataStepContent from 'src/pages/workspaces/workspace/tools/DataStepContent'
 import DeleteToolModal from 'src/pages/workspaces/workspace/tools/DeleteToolModal'
 import ExportToolModal from 'src/pages/workspaces/workspace/tools/ExportToolModal'
 import LaunchAnalysisModal from 'src/pages/workspaces/workspace/tools/LaunchAnalysisModal'
@@ -306,6 +307,7 @@ const WorkflowView = _.flow(
 
     this.state = {
       activeTab: 'data',
+      processSingle: true,
       includeOptionalInputs: false,
       errors: { inputs: {}, outputs: {} },
       ...StateHistory.get()
@@ -407,8 +409,9 @@ const WorkflowView = _.flow(
   renderSummary() {
     const { workspace: { canCompute, workspace }, namespace, name: workspaceName } = this.props
     const {
-      modifiedConfig, savedConfig, entityMetadata, selectedEntity,
-      saving, saved, copying, deleting, activeTab, errors, synopsis, documentation
+      modifiedConfig, savedConfig, selectedEntity,
+      saving, saved, copying, deleting, activeTab, errors, synopsis, documentation,
+      processSingle
     } = this.state
     const { name, methodRepoMethod: { methodPath, methodVersion, methodNamespace, methodName }, rootEntityType } = modifiedConfig
     const modified = !_.isEqual(modifiedConfig, savedConfig)
@@ -457,20 +460,6 @@ const WorkflowView = _.flow(
               documentation
             ]) :
             div({ style: { fontStyle: 'italic', ...styles.description } }, ['No documentation provided']),
-          div({ style: { display: 'flex', alignItems: 'baseline', marginTop: '0.5rem' } }, [
-            'Data Type:',
-            h(Select, {
-              isClearable: true, isSearchable: false,
-              styles: { container: old => ({ ...old, display: 'inline-block', width: 200, marginLeft: '0.5rem' }) },
-              getOptionLabel: ({ value }) => Utils.normalizeLabel(value),
-              value: rootEntityType,
-              onChange: selected => {
-                const value = !!selected ? selected.value : undefined
-                this.setState({ modifiedConfig: _.set('rootEntityType', value, modifiedConfig), selectedEntity: undefined })
-              },
-              options: _.keys(entityMetadata)
-            })
-          ]),
           h(StepButtons, {
             tabs: [
               { key: 'wdl', title: 'Script', isValid: true },
@@ -508,6 +497,28 @@ const WorkflowView = _.flow(
                 `Tables / ${rootEntityType}`
               ]),
               `Fill in the attributes below to add or update columns in your data table`
+            ])
+          ]),
+          activeTab === 'data' && div({
+            style: {
+              marginBottom: '2rem'
+            }
+          }, [
+            div([
+              h(RadioButton, {
+                text: 'Process single workflow from files',
+                checked: processSingle,
+                onChange: () => this.setState({ processSingle: true }),
+                labelStyle: { marginLeft: '0.5rem' }
+              })
+            ]),
+            div([
+              h(RadioButton, {
+                text: 'Process multiple workflows from tables',
+                checked: !processSingle,
+                onChange: () => this.setState({ processSingle: false }),
+                labelStyle: { marginLeft: '0.5rem' }
+              })
             ])
           ])
         ]),
@@ -584,16 +595,26 @@ const WorkflowView = _.flow(
 
   renderData() {
     const { namespace, name } = this.props
-    const { entityMetadata, selectedEntity, modifiedConfig: { rootEntityType } } = this.state
+    const { processSingle, entityMetadata, modifiedConfig } = this.state
 
-    return h(DataSelector, {
-      entityType: rootEntityType,
-      entityMetadata,
-      selectedEntity,
-      onEntitySelected: e => this.setState({ selectedEntity: e }),
-      workspaceId: { namespace, name },
-      style: { margin: `1rem ${sideMargin}` }
-    })
+    return div({ style: { margin: `1rem ${sideMargin}` } }, [
+      h(DataStepContent, {
+        visible: !processSingle,
+        entityMetadata,
+        rootEntityType: modifiedConfig.rootEntityType,
+        setRootEntityType: type => this.setState({ modifiedConfig: _.set('rootEntityType', type, modifiedConfig) }),
+        workspaceId: { namespace, name }
+      })
+    ])
+
+    // return h(DataSelector, {
+    //   entityType: rootEntityType,
+    //   entityMetadata,
+    //   selectedEntity,
+    //   onEntitySelected: e => this.setState({ selectedEntity: e }),
+    //   workspaceId: { namespace, name },
+    //   style: { margin: `1rem ${sideMargin}` }
+    // })
   }
 
   renderIOTable(key) {
