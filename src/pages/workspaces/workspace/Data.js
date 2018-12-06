@@ -601,7 +601,7 @@ const EntitiesContent = ajaxCaller(class EntitiesContent extends Component {
       copyingEntities && h(ExportDataModal, {
         onDismiss: () => this.setState({ copyingEntities: false }),
         workspace,
-        selectedEntities, _.keys(selectedEntities): entityKey, runningSubmissionsCount
+        selectedEntities: _.keys(selectedEntities), selectedDataType: entityKey, runningSubmissionsCount
       }),
       loading && spinnerOverlay
     ])
