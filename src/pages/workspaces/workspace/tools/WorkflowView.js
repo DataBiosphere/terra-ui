@@ -315,14 +315,13 @@ const WorkflowView = _.flow(
   render() {
     const { isFreshData, savedConfig, launching, activeTab, variableSelected, modifiedConfig } = this.state
     const { namespace, name, workspace } = this.props
-    const { rootEntityType } = modifiedConfig
     const workspaceId = { namespace, name }
     return h(Fragment, [
       savedConfig && h(Fragment, [
         this.renderSummary(),
         Utils.cond(
           [activeTab === 'inputs', () => this.renderIOTable('inputs')],
-          [activeTab === 'outputs' && !!rootEntityType, () => this.renderIOTable('outputs')],
+          [activeTab === 'outputs' && !!modifiedConfig.rootEntityType, () => this.renderIOTable('outputs')],
           [activeTab === 'wdl', () => this.renderWDL()]
         ),
         launching && h(LaunchAnalysisModal, {
