@@ -1,4 +1,5 @@
 import clipboard from 'clipboard-polyfill'
+import FileSaver from 'file-saver'
 import filesize from 'filesize'
 import _ from 'lodash/fp'
 import { createRef, Fragment } from 'react'
@@ -6,11 +7,12 @@ import Dropzone from 'react-dropzone'
 import { div, form, h, input } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { buttonPrimary, Checkbox, Clickable, linkButton, Select, spinnerOverlay } from 'src/components/common'
+import { buttonPrimary, Checkbox, Clickable, linkButton, MenuButton, Select, spinnerOverlay } from 'src/components/common'
 import FloatingActionButton from 'src/components/FloatingActionButton'
 import { icon, spinner } from 'src/components/icons'
 import { textInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
+import PopupTrigger from 'src/components/PopupTrigger'
 import { ColumnSelector, FlexTable, GridTable, HeaderCell, paginator, Resizable, SimpleTable, Sortable, TextCell } from 'src/components/table'
 import UriViewer from 'src/components/UriViewer'
 import { ajaxCaller } from 'src/libs/ajax'
@@ -95,6 +97,10 @@ const getReferenceData = _.flow(
   }),
   _.groupBy('datum')
 )
+
+const entityMap = entities => {
+  return _.fromPairs(_.map(e => [e.name, e], entities))
+}
 
 const LocalVariablesContent = ajaxCaller(class LocalVariablesContent extends Component {
   render() {
@@ -311,7 +317,7 @@ const EntitiesContent = ajaxCaller(class EntitiesContent extends Component {
       loading: false,
       columnWidths,
       columnState,
-      selectedEntities: [],
+      selectedEntities: {},
       deletingEntities: false,
       totalRowCount
     }
@@ -340,7 +346,7 @@ const EntitiesContent = ajaxCaller(class EntitiesContent extends Component {
         .paginatedEntitiesOfType(entityKey, {
           page: pageNumber, pageSize: itemsPerPage, sortField: sort.field, sortDirection: sort.direction
         })
-      this.setState({ entities: results, totalRowCount: unfilteredCount, selectedEntities: [] })
+      this.setState({ entities: results, totalRowCount: unfilteredCount })
     } catch (error) {
       reportError('Error loading entities', error)
     } finally {
@@ -348,9 +354,36 @@ const EntitiesContent = ajaxCaller(class EntitiesContent extends Component {
     }
   }
 
+  async selectAll() {
+    const { entityKey, workspace: { workspace: { namespace, name } }, ajax: { Workspaces } } = this.props
+    try {
+      this.setState({ loading: true })
+      const results = await Workspaces.workspace(namespace, name).entitiesOfType(entityKey)
+      this.setState({ selectedEntities: entityMap(results) })
+    } catch (error) {
+      reportError('Error loading entities', error)
+    } finally {
+      this.setState({ loading: false })
+    }
+  }
+
+  selectPage() {
+    const { entities, selectedEntities } = this.state
+    this.setState({ selectedEntities: _.assign(selectedEntities, entityMap(entities)) })
+  }
+
+  deselectPage() {
+    const { entities, selectedEntities } = this.state
+    this.setState({ selectedEntities: _.omit(_.map(a => [a], _.keys(entities)), selectedEntities) })
+  }
+
+  selectNone() {
+    this.setState({ selectedEntities: {} })
+  }
+
   renderDownloadButton(columnSettings) {
     const { workspace: { workspace: { namespace, name } }, entityKey } = this.props
-    const { orchestrationRoot } = this.state
+    const { orchestrationRoot, selectedEntities } = this.state
     return h(Fragment, [
       form({
         ref: this.downloadForm,
@@ -361,19 +394,28 @@ const EntitiesContent = ajaxCaller(class EntitiesContent extends Component {
         input({ type: 'hidden', name: 'attributeNames', value: _.map('name', _.filter('visible', columnSettings)).join(',') }),
         input({ type: 'hidden', name: 'model', value: 'flexible' })
       ]),
-      buttonPrimary({
+      _.isEmpty(selectedEntities) ? buttonPrimary({
         disabled: !orchestrationRoot,
         tooltip: 'Download all data as a file',
         onClick: () => this.downloadForm.current.submit()
       }, [
         icon('download', { style: { marginRight: '0.5rem' } }),
         'Download Table TSV'
+      ]) : buttonPrimary({
+        disabled: _.isEmpty(selectedEntities),
+        tooltip: 'Download selected data as a file',
+        onClick: async () => {
+          const str = this.buildTSV(columnSettings, selectedEntities)
+          FileSaver.saveAs(new Blob([str], { type: 'text/tab-separated-values' }), `${entityKey}.tsv`)
+        }
+      }, [
+        icon('download', { style: { marginRight: '0.5rem' } }),
+        `Download Selected TSV (${_.size(selectedEntities)})`
       ])
     ])
   }
 
-  renderCopyButton() {
-    const { entityKey, entityMetadata } = this.props
+  renderCopyButton(columnSettings) {
     const { entities, copying, copied } = this.state
 
     return h(Fragment, [
@@ -381,18 +423,7 @@ const EntitiesContent = ajaxCaller(class EntitiesContent extends Component {
         style: { margin: '0 1rem' },
         tooltip: 'Copy only the current page to the clipboard',
         onClick: async () => {
-          const attributeNames = entityMetadata[entityKey].attributeNames
-
-          const entityToRow = entity => _.join('\t', [
-            entity.name, ..._.map(
-              attribute => Utils.entityAttributeText(entity.attributes[attribute]),
-              attributeNames)
-          ])
-
-          const header = _.join('\t', [`${entityKey}_id`, ...attributeNames])
-
-          const str = _.join('\n', [header, ..._.map(entityToRow, entities)]) + '\n'
-
+          const str = this.buildTSV(columnSettings, entities)
           try {
             this.setState({ copying: true })
             await clipboard.writeText(str)
@@ -410,6 +441,28 @@ const EntitiesContent = ajaxCaller(class EntitiesContent extends Component {
     ])
   }
 
+  buildTSV(columnSettings, entities) {
+    const { entityKey } = this.props
+    const attributeNames = _.map('name', _.filter('visible', columnSettings))
+
+    const entityToRow = entity => _.join('\t', [
+      entity.name, ..._.map(
+        attribute => Utils.entityAttributeText(entity.attributes[attribute]),
+        attributeNames)
+    ])
+
+    const header = _.join('\t', [`${entityKey}_id`, ...attributeNames])
+
+    return _.join('\n', [header, ..._.map(entityToRow, entities)]) + '\n'
+  }
+
+  pageSelected() {
+    const { entities, selectedEntities } = this.state
+    const entityKeys = _.map('name', entities)
+    const selectedKeys = _.keys(selectedEntities)
+    return _.every(k => _.includes(k, selectedKeys), entityKeys)
+  }
+
   render() {
     const { workspace, workspace: { accessLevel, workspace: { namespace, name }, workspaceSubmissionStats: { runningSubmissionsCount } }, entityKey, entityMetadata, loadMetadata, firstRender } = this.props
     const { entities, totalRowCount, pageNumber, itemsPerPage, sort, columnWidths, columnState, selectedEntities, deletingEntities, loading, copyingEntities } = this.state
@@ -422,7 +475,7 @@ const EntitiesContent = ajaxCaller(class EntitiesContent extends Component {
       !!entities && h(Fragment, [
         div({ style: { flex: 'none', marginBottom: '1rem' } }, [
           this.renderDownloadButton(columnSettings),
-          this.renderCopyButton()
+          this.renderCopyButton(columnSettings)
         ]),
         div({ style: { flex: 1 } }, [
           h(AutoSizer, [
@@ -436,24 +489,32 @@ const EntitiesContent = ajaxCaller(class EntitiesContent extends Component {
                 initialY,
                 columns: [
                   ...(Utils.canWrite(accessLevel) ? [{
-                    width: 50,
+                    width: 70,
                     headerRenderer: () => {
-                      const checked = selectedEntities.length === entities.length
-                      return h(Checkbox, {
-                        checked,
-                        onChange: () => {
-                          this.setState({ selectedEntities: checked ? [] : _.map('name', entities) })
-                        }
-                      })
+                      return h(Fragment, [
+                        h(Checkbox, {
+                          checked: this.pageSelected(),
+                          onChange: () => this.pageSelected() ? this.deselectPage() : this.selectPage()
+                        }),
+                        h(PopupTrigger, {
+                          closeOnClick: true,
+                          content: h(Fragment, [
+                            h(MenuButton, { onClick: () => this.selectPage() }, ['Page']),
+                            h(MenuButton, { onClick: () => this.selectAll() }, [`All (${totalRowCount})`]),
+                            h(MenuButton, { onClick: () => this.selectNone() }, ['None'])
+                          ]),
+                          position: 'bottom'
+                        }, [
+                          h(Clickable, [icon('caretDown')])
+                        ])
+                      ])
                     },
                     cellRenderer: ({ rowIndex }) => {
                       const { name } = entities[rowIndex]
-                      const checked = selectedEntities.includes(name)
+                      const checked = _.has([name], selectedEntities)
                       return h(Checkbox, {
                         checked,
-                        onChange: () => {
-                          this.setState(({ selectedEntities }) => ({ selectedEntities: (checked ? _.pullAll : _.concat)([name], selectedEntities) }))
-                        }
+                        onChange: () => this.setState({ selectedEntities: (checked ? _.unset([name]) : _.set([name], entities[rowIndex]))(selectedEntities) })
                       })
                     }
                   }] : []),
@@ -530,17 +591,17 @@ const EntitiesContent = ajaxCaller(class EntitiesContent extends Component {
       deletingEntities && h(EntityDeleter, {
         onDismiss: () => this.setState({ deletingEntities: false }),
         onSuccess: () => {
-          this.setState({ deletingEntities: false })
+          this.setState({ deletingEntities: false, selectedEntities: {} })
           this.loadData()
           loadMetadata()
         },
         namespace, name,
-        selectedEntities, selectedDataType: entityKey, runningSubmissionsCount
+        selectedEntities: _.keys(selectedEntities), selectedDataType: entityKey, runningSubmissionsCount
       }),
       copyingEntities && h(ExportDataModal, {
         onDismiss: () => this.setState({ copyingEntities: false }),
         workspace,
-        selectedEntities, selectedDataType: entityKey, runningSubmissionsCount
+        selectedEntities: _.keys(selectedEntities), selectedDataType: entityKey, runningSubmissionsCount
       }),
       loading && spinnerOverlay
     ])
