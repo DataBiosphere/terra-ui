@@ -91,7 +91,9 @@ export default ajaxCaller(class NewWorkspaceModal extends Component {
         Workspaces.create(body))
       onSuccess(workspace)
     } catch (error) {
-      this.setState({ createError: JSON.parse(error).message, busy: false })
+      //this.setState({ createError: JSON.parse(error).message, busy: false })
+      reportError('Error copying workspace', error)
+      this.setState({ busy: false })
     }
   }
 
