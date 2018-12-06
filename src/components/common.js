@@ -96,7 +96,7 @@ export const search = function({ wrapperProps, inputProps }) {
     ])
 }
 
-export const tabBar = ({ activeTab, tabNames, refresh = _.noop, getHref }, children) => {
+export const tabBar = ({ activeTab, tabNames, refresh = _.noop, getHref }, children = []) => {
   const navSeparator = div({
     style: { background: 'rgba(255,255,255,0.15)', width: 1, height: '3rem', flexShrink: 0 }
   })
