@@ -63,9 +63,7 @@ export default _.flow(
     }, [
       requiredFormLabel('Destination'),
       h(WorkspaceSelector, {
-        workspaces: _.filter(({ workspace: { workspaceId }, accessLevel }) => {
-          return workspace.workspaceId !== workspaceId && Utils.canWrite(accessLevel)
-        }, workspaces),
+        workspaces: _.filter(Utils.isValidWsExportTarget(workspace), workspaces),
         value: selectedWorkspaceId,
         onChange: v => {
           this.setState({ selectedWorkspaceId: v })

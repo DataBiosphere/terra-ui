@@ -3,7 +3,7 @@ import PropTypes from 'prop-types'
 import { createPortal } from 'react-dom'
 import { a, b, div, h } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
-import { Clickable, comingSoon, MenuButton } from 'src/components/common'
+import { Clickable, MenuButton } from 'src/components/common'
 import { icon, logo, profilePic } from 'src/components/icons'
 import { pushNotification } from 'src/components/Notifications'
 import SignInButton from 'src/components/SignInButton'
@@ -33,7 +33,7 @@ const styles = {
       overflow: 'auto', cursor: 'pointer'
     },
     container: {
-      width: 350, color: 'white', position: 'absolute', cursor: 'default',
+      width: 290, color: 'white', position: 'absolute', cursor: 'default',
       backgroundColor: colors.darkBlue[0], height: '100%',
       boxShadow: '3px 0 13px 0 rgba(0,0,0,0.3)',
       display: 'flex', flexDirection: 'column'
@@ -52,17 +52,18 @@ const styles = {
     }),
     item: {
       display: 'flex', alignItems: 'center', flex: 'none',
-      height: 70, padding: '0 3rem',
+      height: 70, padding: '0 28px',
       fontWeight: 600,
       borderBottom: `1px solid ${colors.darkBlue[2]}`, color: 'white'
     },
-    miniItem: {
-      display: 'flex', alignItems: 'center',
-      margin: '1rem 3rem',
-      fontWeight: 600
+    subItem: {
+      display: 'flex', alignItems: 'center', flex: 'none',
+      padding: '10px 28px', paddingLeft: 60,
+      fontWeight: 600,
+      color: 'white'
     },
     icon: {
-      width: 32, marginRight: '0.5rem', flex: 'none'
+      marginRight: 12, flex: 'none'
     }
   }
 }
@@ -70,8 +71,8 @@ const styles = {
 const betaTag = b({
   style: {
     fontSize: 8, lineHeight: '9px',
-    color: 'white', backgroundColor: colors.brick,
-    padding: '3px 5px', marginLeft: '0.4rem', verticalAlign: 'middle',
+    color: 'white', backgroundColor: '#73AD43',
+    padding: '3px 5px', verticalAlign: 'middle',
     borderRadius: 2
   }
 }, 'BETA')
@@ -99,6 +100,19 @@ export default Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
   buildNav() {
     const { authState: { isSignedIn } } = this.props
 
+    const librarySubItem = (linkName, iconName, label) => h(Clickable, {
+      style: styles.nav.subItem,
+      as: 'a',
+      hover: { backgroundColor: colors.darkBlue[1] },
+      href: Nav.getLink(linkName),
+      onClick: () => this.hideNav()
+    }, [
+      div({ style: styles.nav.icon }, [
+        icon(iconName, { className: 'is-solid', size: 24 })
+      ]),
+      label
+    ])
+
     return createPortal(
       div({
         style: styles.nav.background,
@@ -124,31 +138,15 @@ export default Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
               },
               href: Nav.getLink('root'),
               onClick: () => this.hideNav()
-            }, [logo(), 'Terra', betaTag])
+            }, [logo(), betaTag])
           ]),
           isSignedIn ?
             this.buildUserSection() :
-            div({ style: { ...styles.nav.item, ...styles.nav.profile(false), boxShadow: `inset ${Style.standardShadow}` } }, [
+            div({
+              style: { ...styles.nav.item, ...styles.nav.profile(false), boxShadow: `inset ${Style.standardShadow}`, justifyContent: 'center' }
+            }, [
               h(SignInButton)
             ]),
-          h(Clickable, {
-            as: 'a',
-            style: styles.nav.item,
-            hover: { backgroundColor: colors.darkBlue[1] },
-            href: Nav.getLink('browse-data'),
-            onClick: () => this.hideNav()
-          }, [
-            div({ style: styles.nav.icon }, [
-              icon('browse', { size: 24 })
-            ]),
-            'Browse Data'
-          ]),
-          div({ style: styles.nav.item }, [
-            div({ style: styles.nav.icon }, [
-              icon('search', { size: 24 })
-            ]),
-            'Find Code', comingSoon
-          ]),
           h(Clickable, {
             as: 'a',
             style: styles.nav.item,
@@ -157,17 +155,29 @@ export default Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
             onClick: () => this.hideNav()
           }, [
             div({ style: styles.nav.icon }, [
-              icon('workspace', { className: 'is-solid', size: 24 })
+              icon('grid-chart', { className: 'is-solid', size: 24 })
             ]),
-            'See All Workspaces'
+            'Your Workspaces'
           ]),
-          div({ style: { marginTop: '2rem' } }, [
+          div({ style: { borderBottom: styles.nav.item.borderBottom, padding: '14px 0' } }, [
+            div({ style: { ...styles.nav.subItem, paddingLeft: 28 } }, [
+              div({ style: styles.nav.icon }, [
+                icon('library', { className: 'is-solid', size: 24 })
+              ]),
+              'Library'
+            ]),
+            librarySubItem('library-datasets', 'data-cluster', 'Datasets'),
+            librarySubItem('library-showcase', 'grid-chart', 'Showcase & Tutorials'),
+            librarySubItem('library-code', 'tools', 'Code & Tools')
+          ]),
+          div({ style: { marginTop: '1rem' } }, [
             h(Clickable, {
-              style: styles.nav.miniItem,
+              style: { ...styles.nav.item, borderBottom: 'none', height: 50 },
+              hover: { backgroundColor: colors.darkBlue[1] },
               onClick: () => this.setState({ showingSupportModal: true })
             }, [
               div({ style: styles.nav.icon }, [
-                icon('envelope', { className: 'is-solid', size: 24 })
+                icon('envelope', { className: 'is-solid', size: 20 })
               ]),
               'Contact Us'
             ])
@@ -176,7 +186,7 @@ export default Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
             style: {
               ..._.omit('borderBottom', styles.nav.item), marginTop: 'auto',
               color: colors.darkBlue[2],
-              fontSize: 10, marginBottom: '5rem'
+              fontSize: 10
             }
           }, [
             'Built on: ',
@@ -189,7 +199,7 @@ export default Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
   }
 
   buildUserSection() {
-    const { authState: { profile: { firstName, lastName } } } = this.props
+    const { authState: { profile: { firstName = 'Loading...', lastName = '' } } } = this.props
     const { userMenuOpen } = this.state
 
     return h(Collapse, {
@@ -264,7 +274,7 @@ export default Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
           div({
             style: _.merge(title ? { fontSize: '0.8rem', lineHeight: '19px' } : { fontSize: '1rem', fontWeight: 600 },
               { color: colors.darkBlue[2], marginLeft: '0.1rem' })
-          }, ['Terra', betaTag]),
+          }, [betaTag]),
           title
         ])
       ]),
