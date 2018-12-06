@@ -315,13 +315,14 @@ const WorkflowView = _.flow(
   render() {
     const { isFreshData, savedConfig, launching, activeTab, variableSelected, modifiedConfig } = this.state
     const { namespace, name, workspace } = this.props
+    const { rootEntityType } = modifiedConfig
     const workspaceId = { namespace, name }
     return h(Fragment, [
       savedConfig && h(Fragment, [
         this.renderSummary(),
         Utils.cond(
           [activeTab === 'inputs', () => this.renderIOTable('inputs')],
-          [activeTab === 'outputs', () => this.renderIOTable('outputs')],
+          [activeTab === 'outputs' && !!rootEntityType, () => this.renderIOTable('outputs')],
           [activeTab === 'wdl', () => this.renderWDL()]
         ),
         launching && h(LaunchAnalysisModal, {
@@ -484,7 +485,7 @@ const WorkflowView = _.flow(
               }
             }, ['Run analysis'])
           }),
-          activeTab === 'outputs' && h(Fragment, [
+          activeTab === 'outputs' && div({ style: { marginBottom: '1rem' } }, [
             div({ style: styles.outputInfoLabel }, 'Output files will be saved to'),
             div({ style: { display: 'flex', alignItems: 'center' } }, [
               div({ style: { flex: 'none', display: 'flex', width: '1.5rem' } }, [icon('folder', { size: 18 })]),
@@ -497,11 +498,12 @@ const WorkflowView = _.flow(
             ]),
             !!rootEntityType && h(Fragment, [
               div({ style: { margin: '0.5rem 0', borderBottom: `1px solid ${colors.gray[3]}` } }),
-              div({ style: styles.outputInfoLabel }, 'File references will be written to'),
+              div({ style: styles.outputInfoLabel }, 'Output references will be written to'),
               div({ style: { display: 'flex', alignItems: 'center' } }, [
                 div({ style: { flex: 'none', display: 'flex', width: '1.5rem' } }, [icon('listAlt')]),
                 `Tables / ${rootEntityType}`
-              ])
+              ]),
+              `Fill in the attributes below to add or update columns in your data table`
             ])
           ])
         ]),
