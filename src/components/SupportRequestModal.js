@@ -38,7 +38,7 @@ const SupportRequestModal =
     render() {
       const { onDismiss, authState: { isSignedIn, profile: { firstName } } } = this.props
       const { submitting, submitError, subject, description, type, email, nameEntered } = this.state
-      const greetUser = isSignedIn ? `, ${firstName}` : ``
+      const greetUser = isSignedIn ? `, ${firstName}` : ''
       const errors = validate({ email, description, subject, name: isSignedIn ? firstName : nameEntered }, constraints)
 
       return h(Modal, {
