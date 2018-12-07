@@ -3,7 +3,7 @@ import * as qs from 'qs'
 import { h } from 'react-hyperscript-helpers'
 import { version } from 'src/data/clusters'
 import { getUser } from 'src/libs/auth'
-import * as Config from 'src/libs/config'
+import { getConfig } from 'src/libs/config'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 
@@ -75,32 +75,32 @@ const fetchOk = async (url, options) => {
 
 
 const fetchSam = async (path, options) => {
-  return fetchOk(`${await Config.getSamUrlRoot()}/${path}`, addAppIdentifier(options))
+  return fetchOk(`${getConfig().samUrlRoot}/${path}`, addAppIdentifier(options))
 }
 
 const fetchBuckets = (path, options) => fetchOk(`https://www.googleapis.com/${path}`, options)
 const nbName = name => encodeURIComponent(`notebooks/${name}.ipynb`)
 
 const fetchRawls = async (path, options) => {
-  return fetchOk(`${await Config.getRawlsUrlRoot()}/api/${path}`, addAppIdentifier(options))
+  return fetchOk(`${getConfig().rawlsUrlRoot}/api/${path}`, addAppIdentifier(options))
 }
 
 const fetchLeo = async (path, options) => {
-  return fetchOk(`${await Config.getLeoUrlRoot()}/${path}`, options)
+  return fetchOk(`${getConfig().leoUrlRoot}/${path}`, options)
 }
 
 const fetchDockstore = async (path, options) => {
-  return fetchOk(`${await Config.getDockstoreUrlRoot()}/${path}`, options)
+  return fetchOk(`${getConfig().dockstoreUrlRoot}/${path}`, options)
 }
 // %23 = '#', %2F = '/'
 const dockstoreMethodPath = path => `api/ga4gh/v1/tools/%23workflow%2F${encodeURIComponent(path)}/versions`
 
 const fetchAgora = async (path, options) => {
-  return fetchOk(`${await Config.getAgoraUrlRoot()}/api/v1/${path}`, addAppIdentifier(options))
+  return fetchOk(`${getConfig().agoraUrlRoot}/api/v1/${path}`, addAppIdentifier(options))
 }
 
 const fetchOrchestration = async (path, options) => {
-  return fetchOk(`${await Config.getOrchestrationUrlRoot()}/${path}`, addAppIdentifier(options))
+  return fetchOk(`${getConfig().orchestrationUrlRoot}/${path}`, addAppIdentifier(options))
 }
 
 
@@ -115,7 +115,7 @@ const User = signal => ({
   }, namespace => namespace, 1000 * 60 * 30),
 
   getStatus: async () => {
-    return instrumentedFetch(`${await Config.getSamUrlRoot()}/register/user/v2/self/info`, _.mergeAll([authOpts(), { signal }, appIdentifier]))
+    return instrumentedFetch(`${getConfig().samUrlRoot}/register/user/v2/self/info`, _.mergeAll([authOpts(), { signal }, appIdentifier]))
   },
 
   create: async () => {
@@ -154,7 +154,7 @@ const User = signal => ({
   },
 
   getTosAccepted: async () => {
-    const url = `${await Config.getTosUrlRoot()}/user/response?${qs.stringify(tosData)}`
+    const url = `${getConfig().tosUrlRoot}/user/response?${qs.stringify(tosData)}`
     const res = await instrumentedFetch(url, _.merge(authOpts(), { signal }))
     if (res.status === 403 || res.status === 404) {
       return false
@@ -168,7 +168,7 @@ const User = signal => ({
 
   acceptTos: async () => {
     await fetchOk(
-      `${await Config.getTosUrlRoot()}/user/response`,
+      `${getConfig().tosUrlRoot}/user/response`,
       _.mergeAll([authOpts(), { signal, method: 'POST' }, jsonBody({ ...tosData, accepted: true })])
     )
   },
@@ -538,7 +538,7 @@ const Buckets = signal => ({
           `${bucketUrl}/${encodeURIComponent(`notebooks/${name}`)}?alt=media`,
           _.merge(authOpts(await User(signal).token(namespace)), { signal })
         ).then(res => res.text())
-        return fetchOk(`${await Config.getCalhounRoot()}/api/convert`,
+        return fetchOk(`${getConfig().calhounUrlRoot}/api/convert`,
           _.mergeAll([authOpts(), { signal, method: 'POST', body: nb }])
         ).then(res => res.text())
       },
@@ -606,11 +606,11 @@ const Jupyter = signal => ({
       create: async clusterOptions => {
         const body = _.merge(clusterOptions, {
           labels: { saturnAutoCreated: 'true', saturnVersion: version },
-          defaultClientId: await Config.getGoogleClientId(),
+          defaultClientId: getConfig().googleClientId,
           userJupyterExtensionConfig: {
             nbExtensions: {
               'saturn-iframe-extension':
-                `${window.location.hostname === 'localhost' ? await Config.getDevUrlRoot() : window.location.origin}/jupyter-iframe-extension.js`
+                `${window.location.hostname === 'localhost' ? getConfig().devUrlRoot : window.location.origin}/jupyter-iframe-extension.js`
             },
             serverExtensions: {},
             combinedExtensions: {}
@@ -666,7 +666,7 @@ const Dockstore = signal => ({
 
 const Martha = signal => ({
   call: async uri => {
-    return fetchOk(await Config.getMarthaUrlRoot(),
+    return fetchOk(getConfig().marthaUrlRoot,
       _.mergeAll([jsonBody({ uri }), authOpts(), appIdentifier, { signal, method: 'POST' }])
     ).then(res => res.json())
   }
