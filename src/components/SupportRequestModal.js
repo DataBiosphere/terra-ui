@@ -20,8 +20,15 @@ const constraints = {
   email: { email: true, presence: { allowEmpty: false } }
 }
 
-const SupportRequestModal =
-  Utils.connectAtom(authStore, 'authState')(class SupportRequestModal extends Component {
+const name = (( ) => {
+  const { authState: { profile: { firstName } } = this.props
+  const { nameEntered } = this.state
+
+  return
+
+})
+
+const SupportRequestModal = Utils.connectAtom(authStore, 'authState')(class SupportRequestModal extends Component {
     constructor(props) {
       super(props)
       const { contactEmail, email } = props.authState.profile
@@ -33,6 +40,11 @@ const SupportRequestModal =
         email: contactEmail || email || '',
         nameEntered: ''
       }
+    }
+
+    renderName() {
+
+
     }
 
     render() {
@@ -70,7 +82,7 @@ const SupportRequestModal =
         textInput({
           style: { borderBottomLeftRadius: 0, borderBottomRightRadius: 0, borderBottomStyle: 'dashed' },
           placeholder: 'Enter a subject',
-          autoFocus: !!isSignedIn,
+          autoFocus: isSignedIn,
           value: subject,
           onChange: e => this.setState({ subject: e.target.value })
         }),
