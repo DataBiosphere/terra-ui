@@ -20,6 +20,12 @@ const constraints = {
   email: { email: true, presence: { allowEmpty: false } }
 }
 
+// If you are making changes to the Support Request Modal, make sure you test the following:
+// 1. Submit a ticket via Terra while signed in and signed out
+// 2. Check the tickets are generated on Zendesk
+// 3. Reply internally (as a Light Agent) and make sure an email is not sent
+// 4. Reply externally (ask one of the Comms team with Full Agent access) and make sure you receive an email
+
 const SupportRequestModal = Utils.connectAtom(authStore, 'authState')(class SupportRequestModal extends Component {
   constructor(props) {
     super(props)
@@ -42,10 +48,9 @@ const SupportRequestModal = Utils.connectAtom(authStore, 'authState')(class Supp
   getRequest() {
     const { authState: { profile: { firstName, lastName } } } = this.props
     const { nameEntered, email, description, subject, type } = this.state
-    const name = this.hasName ? `${firstName} ${lastName}` : nameEntered
 
     return {
-      name,
+      name: this.hasName() ? `${firstName} ${lastName}` : nameEntered,
       email,
       description,
       subject,
@@ -54,9 +59,9 @@ const SupportRequestModal = Utils.connectAtom(authStore, 'authState')(class Supp
   }
 
   render() {
-    const { onDismiss, authState: { isSignedIn, profile: { firstName } } } = this.props
+    const { onDismiss, authState: { profile: { firstName } } } = this.props
     const { submitting, submitError, subject, description, type, email, nameEntered } = this.state
-    const greetUser = isSignedIn ? `, ${firstName}` : ''
+    const greetUser = this.hasName() ? `, ${firstName}` : ''
     const errors = validate(this.getRequest(), constraints)
 
     return h(Modal, {
@@ -88,7 +93,7 @@ const SupportRequestModal = Utils.connectAtom(authStore, 'authState')(class Supp
       textInput({
         style: { borderBottomLeftRadius: 0, borderBottomRightRadius: 0, borderBottomStyle: 'dashed' },
         placeholder: 'Enter a subject',
-        autoFocus: isSignedIn,
+        autoFocus: this.hasName(),
         value: subject,
         onChange: e => this.setState({ subject: e.target.value })
       }),
