@@ -68,6 +68,12 @@ const styles = {
     marginRight: '0.5rem',
     marginTop: '.1rem',
     color: colors.blue[0]
+  },
+  outputInfoLabel: {
+    color: colors.darkBlue[0]
+  },
+  placeholder: {
+    fontStyle: 'italic'
   }
 }
 
@@ -315,7 +321,7 @@ const WorkflowView = _.flow(
         this.renderSummary(),
         Utils.cond(
           [activeTab === 'inputs', () => this.renderIOTable('inputs')],
-          [activeTab === 'outputs', () => this.renderIOTable('outputs')],
+          [activeTab === 'outputs' && !!modifiedConfig.rootEntityType, () => this.renderIOTable('outputs')],
           [activeTab === 'wdl', () => this.renderWDL()]
         ),
         launching && h(LaunchAnalysisModal, {
@@ -477,7 +483,28 @@ const WorkflowView = _.flow(
                 height: StepButtonParams.buttonHeight, fontSize: StepButtonParams.fontSize
               }
             }, ['Run analysis'])
-          })
+          }),
+          activeTab === 'outputs' && div({ style: { marginBottom: '1rem' } }, [
+            div({ style: styles.outputInfoLabel }, 'Output files will be saved to'),
+            div({ style: { display: 'flex', alignItems: 'center' } }, [
+              div({ style: { flex: 'none', display: 'flex', width: '1.5rem' } }, [icon('folder', { size: 18 })]),
+              div({ style: { flex: 1 } }, [
+                'Files / ',
+                span({ style: styles.placeholder }, 'submission unique ID'),
+                ` / ${methodName} / `,
+                span({ style: styles.placeholder }, 'workflow unique ID')
+              ])
+            ]),
+            !!rootEntityType && h(Fragment, [
+              div({ style: { margin: '0.5rem 0', borderBottom: `1px solid ${colors.gray[3]}` } }),
+              div({ style: styles.outputInfoLabel }, 'Output references will be written to'),
+              div({ style: { display: 'flex', alignItems: 'center' } }, [
+                div({ style: { flex: 'none', display: 'flex', width: '1.5rem' } }, [icon('listAlt')]),
+                `Tables / ${rootEntityType}`
+              ]),
+              `Fill in the attributes below to add or update columns in your data table`
+            ])
+          ])
         ]),
         div({ style: { flex: 'none', display: 'flex', flexDirection: 'column', alignItems: 'flex-end' } }, [
           linkButton({
