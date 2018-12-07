@@ -173,6 +173,11 @@ const User = signal => ({
     )
   },
 
+  // If you are making changes to the Support Request Modal, make sure you test the following:
+  // 1. Submit a ticket via Terra while signed in and signed out
+  // 2. Check the tickets are generated on Zendesk
+  // 3. Reply internally (as a Light Agent) and make sure an email is not sent
+  // 4. Reply externally (ask one of the Comms team with Full Agent access) and make sure you receive an email
   createSupportRequest: async ({ name, email, currUrl, subject, type, description }) => {
     return fetchOk(
       `https://broadinstitute.zendesk.com/api/v2/requests.json`,
@@ -180,6 +185,7 @@ const User = signal => ({
         request: {
           requester: { name, email },
           subject,
+          // BEWARE changing the following ids or values! If you change them then you must thoroughly test.
           'custom_fields': [
             { id: 360012744452, value: type },
             { id: 360007369412, value: description },
