@@ -182,7 +182,7 @@ export default _.flow(
             }) //handles dangling references when deleting entities
             return
           default:
-            reportError('Error deleting data entries', error)
+            await reportError('Error deleting data entries', error)
             onDismiss()
         }
       }
@@ -199,7 +199,7 @@ export default _.flow(
           this.setState({ hardConflicts, softConflicts, copying: false })
           break
         default:
-          reportError('Error copying data entries', error)
+          await reportError('Error copying data entries', error)
           onDismiss()
       }
     }
