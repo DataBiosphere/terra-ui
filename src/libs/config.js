@@ -36,5 +36,6 @@ export const getLeoUrlRoot = async () => (await getConfig()).leoUrlRoot
 export const getMarthaUrlRoot = async () => (await getConfig()).marthaUrlRoot
 export const getOrchestrationUrlRoot = async () => (await getConfig()).orchestrationUrlRoot
 export const getRawlsUrlRoot = async () => (await getConfig()).rawlsUrlRoot
+export const getRexUrlRoot = async () => (await getConfig()).rexUrlRoot
 export const getSamUrlRoot = async () => (await getConfig()).samUrlRoot
 export const getTosUrlRoot = async () => (await getConfig()).tosUrlRoot
