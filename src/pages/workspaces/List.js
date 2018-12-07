@@ -5,6 +5,7 @@ import { pure } from 'recompose'
 import removeMd from 'remove-markdown'
 import togglesListView from 'src/components/CardsListToggle'
 import { Clickable, MenuButton, menuIcon, PageFadeBox, search, Select, topSpinnerOverlay, transparentSpinnerOverlay } from 'src/components/common'
+import { reportError } from 'src/libs/error'
 import { icon } from 'src/components/icons'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
 import PopupTrigger from 'src/components/PopupTrigger'
@@ -192,8 +193,12 @@ export const WorkspaceList = _.flow(
 
   async componentDidMount() {
     const { ajax: { Groups } } = this.props
-    const groupList = await Groups.list()
-    this.setState({ groupNames: _.map(({ groupName }) => groupName, groupList) })
+    try {
+      const groupList = await Groups.list()
+      this.setState({ groupNames: _.map(({ groupName }) => groupName, groupList) })
+    } catch (e) {
+      reportError('Error loading workspaces', e)
+    }
   }
 
   render() {
