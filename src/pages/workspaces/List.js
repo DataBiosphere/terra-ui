@@ -73,17 +73,22 @@ const styles = {
 }
 
 const WorkspaceCard = pure(({
-  listView, onClone, onDelete, onShare,
-  workspace: { accessLevel, workspace: { namespace, name, createdBy, lastModified, attributes: { description } } }
+  listView, onClone, onDelete, onShare, groupNames,
+  workspace: { accessLevel, workspace: { namespace, name, createdBy, lastModified, authorizationDomain, attributes: { description } } }
 }) => {
   const lastChanged = `Last changed: ${Utils.makePrettyDate(lastModified)}`
   const badge = div({ title: createdBy, style: styles.badge }, [createdBy[0].toUpperCase()])
   const isOwner = Utils.isOwner(accessLevel)
+  const adGroups = _.map(({ membersGroupName }) => membersGroupName, authorizationDomain)
+  const notAuthorized = groupNames && _.some(v => !groupNames.includes(v), adGroups)
   const workspaceMenu = h(PopupTrigger, {
     position: 'right',
     closeOnClick: true,
     content: h(Fragment, [
       h(MenuButton, {
+        disabled: notAuthorized,
+        tooltip: notAuthorized && 'You do not have access to the workspace Authorization Domain',
+        tooltipSide: 'left',
         onClick: () => onClone()
       }, [menuIcon('copy'), 'Clone']),
       h(MenuButton, {
@@ -175,6 +180,7 @@ export const WorkspaceList = _.flow(
       sharingWorkspaceId: undefined,
       accessLevelsFilter: [],
       projectsFilter: [],
+      groupNames: undefined,
       ...StateHistory.get()
     }
   }
@@ -184,10 +190,15 @@ export const WorkspaceList = _.flow(
     return _.find({ workspace: { workspaceId: id } }, workspaces)
   }
 
+  async componentDidMount() {
+    const { ajax: { Groups } } = this.props
+    const groupList = await Groups.list()
+    this.setState({ groupNames: _.map(({ groupName }) => groupName, groupList) })
+  }
+
   render() {
     const { workspaces, loadingWorkspaces, refreshWorkspaces, listView, viewToggleButtons } = this.props
-    const { filter, creatingNewWorkspace, cloningWorkspaceId, deletingWorkspaceId, sharingWorkspaceId, accessLevelsFilter, projectsFilter } = this.state
-
+    const { filter, creatingNewWorkspace, cloningWorkspaceId, deletingWorkspaceId, sharingWorkspaceId, accessLevelsFilter, projectsFilter, groupNames } = this.state
     const initialFiltered = _.flow(
       _.filter(ws => {
         const { workspace: { namespace, name } } = ws
@@ -207,7 +218,7 @@ export const WorkspaceList = _.flow(
         onClone: () => this.setState({ cloningWorkspaceId: workspace.workspace.workspaceId }),
         onDelete: () => this.setState({ deletingWorkspaceId: workspace.workspace.workspaceId }),
         onShare: () => this.setState({ sharingWorkspaceId: workspace.workspace.workspaceId }),
-        workspace, key: workspace.workspace.workspaceId
+        workspace, key: workspace.workspace.workspaceId, groupNames
       })
     }, data)
     return h(Fragment, [
