@@ -7,6 +7,7 @@ import RSelect from 'react-select'
 import { centeredSpinner, icon } from 'src/components/icons'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import colors from 'src/libs/colors'
+import { withConfig } from 'src/libs/config'
 import * as Style from 'src/libs/style'
 
 
@@ -316,10 +317,13 @@ export const backgroundLogo = icon('logoIcon', {
   style: { position: 'fixed', top: -100, left: -100, zIndex: -1, opacity: 0.65 }
 })
 
-export const methodLink = (config, firecloudRoot, dockstoreRoot) => {
+export const MethodLink = withConfig('appConfig')(({ appConfig, config, children, ...props }) => {
   const { methodRepoMethod: { sourceRepo, methodVersion, methodNamespace, methodName, methodPath } } = config
-  return sourceRepo === 'agora' ? `${firecloudRoot}/#methods/${methodNamespace}/${methodName}/${methodVersion}` : `${dockstoreRoot}/workflows/${methodPath}`
-}
+  const href = sourceRepo === 'agora' ?
+    `${appConfig.firecloudUrlRoot}/#methods/${methodNamespace}/${methodName}/${methodVersion}` :
+    `${appConfig.dockstoreUrlRoot}/workflows/${methodPath}`
+  return link({ href, ...props }, children)
+})
 
 export const Markdown = ({ children, renderers = {}, ...props }) => {
   const content = marked(children, {
