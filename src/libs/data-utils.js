@@ -54,17 +54,17 @@ export const ReferenceDataImporter = ajaxCaller(class ReferenceDataImporter exte
       title: 'Add Reference Data',
       okButton: buttonPrimary({
         disabled: !selectedReference || loading,
-        onClick: () => {
+        onClick: async () => {
           this.setState({ loading: true })
-          Workspaces.workspace(namespace, name).shallowMergeNewAttributes(
-            _.mapKeys(k => `referenceData-${selectedReference}-${k}`, ReferenceData[selectedReference])
-          ).then(
-            onSuccess,
-            error => {
-              reportError('Error importing reference data', error)
-              onDismiss()
-            }
-          )
+          try {
+            await Workspaces.workspace(namespace, name).shallowMergeNewAttributes(
+              _.mapKeys(k => `referenceData-${selectedReference}-${k}`, ReferenceData[selectedReference])
+            )
+            onSuccess()
+          } catch (error) {
+            await reportError('Error importing reference data', error)
+            onDismiss()
+          }
         }
       }, 'OK')
     }, [
@@ -107,7 +107,7 @@ export const ReferenceDataDeleter = ajaxCaller(class ReferenceDataDeleter extend
             )
             onSuccess()
           } catch (error) {
-            reportError('Error deleting reference data', error)
+            await reportError('Error deleting reference data', error)
             onDismiss()
           }
         }
@@ -149,7 +149,7 @@ export const EntityDeleter = ajaxCaller(class EntityDeleter extends Component {
           this.setState({ additionalDeletions: _.filter(entity => entity.entityType !== selectedDataType, await error.json()), deleting: false })
           break
         default:
-          reportError('Error deleting data entries', error)
+          await reportError('Error deleting data entries', error)
           onDismiss()
       }
     }
@@ -225,7 +225,7 @@ export const EntityUploader = ajaxCaller(class EntityUploader extends Component 
       await Workspaces.workspace(namespace, name).importEntitiesFile(file)
       onSuccess()
     } catch (error) {
-      reportError('Error uploading entities', error)
+      await reportError('Error uploading entities', error)
       onDismiss()
     }
   }

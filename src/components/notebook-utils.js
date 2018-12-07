@@ -95,18 +95,16 @@ export const NotebookCreator = ajaxCaller(class NotebookCreator extends Componen
       okButton: buttonPrimary({
         disabled: creating || errors,
         tooltip: Utils.summarizeErrors(errors),
-        onClick: () => {
+        onClick: async () => {
           this.setState({ creating: true })
-          Buckets.notebook(namespace, bucketName, notebookName).create(notebookData[notebookKernel]).then(
-            () => {
-              reloadList()
-              onDismiss()
-            },
-            error => {
-              reportError('Error creating notebook', error)
-              onDismiss()
-            }
-          )
+          try {
+            await Buckets.notebook(namespace, bucketName, notebookName).create(notebookData[notebookKernel])
+            reloadList()
+            onDismiss()
+          } catch (error) {
+            await reportError('Error creating notebook', error)
+            onDismiss()
+          }
         }
       }, 'Create Notebook')
     }, [
