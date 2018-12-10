@@ -93,7 +93,7 @@ const fetchDockstore = async (path, options) => {
   return fetchOk(`${getConfig().dockstoreUrlRoot}/${path}`, options)
 }
 // %23 = '#', %2F = '/'
-const dockstoreMethodPath = path => `api/ga4gh/v1/tools/%23workflow%2F${encodeURIComponent(path)}/versions`
+const dockstoreMethodPath = path => `api/ga4gh/v1/tools/%23workflow%2Fgithub.com${encodeURIComponent(path)}/versions`
 
 const fetchAgora = async (path, options) => {
   return fetchOk(`${getConfig().agoraUrlRoot}/api/v1/${path}`, addAppIdentifier(options))

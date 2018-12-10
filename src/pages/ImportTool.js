@@ -1,11 +1,12 @@
 import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
-import { backgroundLogo, spinnerOverlay } from 'src/components/common'
+import { spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import TopBar from 'src/components/TopBar'
 import WDLViewer from 'src/components/WDLViewer'
 import { WorkspaceImporter } from 'src/components/workspace-utils'
+import hexBackgroundPatternImport from 'src/images/hex-background-pattern.svg'
 import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
@@ -17,7 +18,7 @@ import { Component } from 'src/libs/wrapped-components'
 
 const styles = {
   container: {
-    display: 'flex', alignItems: 'flex-start', flex: 'auto',
+    display: 'flex', alignItems: 'flex-start', flex: 'auto', backgroundImage: hexBackgroundPatternImport,
     position: 'relative', padding: '2rem'
   },
   title: {
@@ -104,7 +105,7 @@ class Importer extends Component {
     const { source } = this.props
 
     return h(Fragment, [
-      backgroundLogo,
+      div({ style: { backgroundImage: `url(${hexBackgroundPatternImport})` } }),
       h(TopBar, { title: 'Import Tool' }),
       Utils.cond(
         [source === 'dockstore', () => this.renderDockstore()],
