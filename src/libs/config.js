@@ -2,10 +2,10 @@ import _ from 'lodash/fp'
 import * as Utils from 'src/libs/utils'
 
 let loadedConfig
-export const loadConfig = _.memoize(async () => {
+export const loadConfig = async () => {
   const res = await fetch('config.json')
   loadedConfig = await res.json()
-})
+}
 
 export const configOverridesStore = Utils.atom(
   sessionStorage['config-overrides'] && JSON.parse(sessionStorage['config-overrides'])
