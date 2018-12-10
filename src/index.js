@@ -4,6 +4,7 @@ import ReactDOM from 'react-dom'
 import { h } from 'react-hyperscript-helpers'
 import { initializeAuth } from 'src/libs/auth'
 import { loadConfig } from 'src/libs/config'
+import { initializeTCell } from 'src/libs/tcell'
 import Main from 'src/pages/Main'
 import 'src/style.css'
 
@@ -13,4 +14,7 @@ marked.setOptions({ sanitize: true, sanitizer: _.escape })
 
 ReactDOM.render(h(Main), document.getElementById('root'))
 
-loadConfig().then(initializeAuth)
+loadConfig().then(() => {
+  initializeAuth()
+  initializeTCell()
+})
