@@ -141,8 +141,12 @@ export const WorkspaceDashboard = _.flow(
                 options: {
                   autofocus: true,
                   placeholder: 'Enter a description',
+                  renderingConfig: {
+                    singleLineBreaks: false
+                  },
                   status: false
                 },
+                className: 'simplemde-container',
                 value: editDescription,
                 onChange: editDescription => this.setState({ editDescription })
               }),
@@ -153,11 +157,7 @@ export const WorkspaceDashboard = _.flow(
               saving && spinnerOverlay
             ])
           ],
-          [!!description, () => h(Markdown, {
-            renderers: {
-              link: (href, title, text) => `<a href="${href}" style="color: ${colors.blue[0]}">${text}</a>`
-            }
-          }, [description])],
+          [!!description, () => h(Markdown, { className: 'rendered-markdown-container' }, [description])],
           () => div({ style: { fontStyle: 'italic' } }, ['No description added']))
       ]),
       div({ style: styles.rightBox }, [

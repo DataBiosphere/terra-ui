@@ -1,4 +1,3 @@
-import { sanitize } from 'dompurify'
 import _ from 'lodash/fp'
 import marked from 'marked'
 import { Fragment } from 'react'
@@ -322,9 +321,18 @@ export const methodLink = (config, firecloudRoot, dockstoreRoot) => {
   return sourceRepo === 'agora' ? `${firecloudRoot}/#methods/${methodNamespace}/${methodName}/${methodVersion}` : `${dockstoreRoot}/workflows/${methodPath}`
 }
 
+/**
+ * WARNING: Be very careful when using custom renderers because they may override marked's built-in
+ * content sanitization.
+ * @param children markdown content; must be a string
+ * @param renderers element-specific renderers
+ * @param props properties for wraper div
+ * @returns {object} div containing rendered markdown
+ * @constructor
+ */
 export const Markdown = ({ children, renderers = {}, ...props }) => {
-  const content = sanitize(marked(children, {
+  const content = marked(children, {
     renderer: Object.assign(new marked.Renderer(), renderers)
-  }))
+  })
   return div({ ...props, dangerouslySetInnerHTML: { __html: content } })
 }
