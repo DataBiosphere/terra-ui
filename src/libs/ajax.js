@@ -104,7 +104,7 @@ const fetchOrchestration = async (path, options) => {
 }
 
 const fetchRex = async (path, options) => {
-  return fetchOk(`${getConfig().getRexUrlRoot()}/api/npsResponses/${path}`, options)
+  return fetchOk(`${getConfig().rexUrlRoot}/api/npsResponses/${path}`, options)
 }
 
 
