@@ -66,7 +66,7 @@ const DockstoreImporter = ajaxCaller(class DockstoreImporter extends Component {
         ]),
         wdl && h(WDLViewer, { wdl, style: { height: 500 } })
       ]),
-      div({ style: { ...styles.card, marginLeft: '2.5rem', maxWidth: 450, marginRight: '2.5rem' } }, [
+      div({ style: { ...styles.card, margin: '0 2.5rem', maxWidth: 450 } }, [
         div({ style: styles.title }, ['Destination Workspace']),
         h(WorkspaceImporter, { onImport: ws => this.import_(ws) }),
         isImporting && spinnerOverlay
