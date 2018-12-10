@@ -103,7 +103,7 @@ const ToolCard = pure(({ listView, name, namespace, config, onCopy, onDelete, fi
     style: styles.innerLink,
     target: '_blank',
     onClick: e => e.stopPropagation()
-  }, sourceRepo)
+  }, sourceRepo === 'agora' ? 'FireCloud' : sourceRepo)
 
   const workflowLink = a({
     href: Nav.getLink('workflow', { namespace, name, workflowNamespace, workflowName }),
