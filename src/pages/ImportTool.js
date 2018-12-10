@@ -6,7 +6,7 @@ import { icon } from 'src/components/icons'
 import TopBar from 'src/components/TopBar'
 import WDLViewer from 'src/components/WDLViewer'
 import { WorkspaceImporter } from 'src/components/workspace-utils'
-import hexBackgroundPatternImport from 'src/images/hex-background-pattern.svg'
+import hexBackgroundPatternImport from 'src/images/hex-background-pattern-import.svg'
 import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
@@ -18,15 +18,16 @@ import { Component } from 'src/libs/wrapped-components'
 
 const styles = {
   container: {
-    display: 'flex', alignItems: 'flex-start', flex: 'auto', backgroundImage: hexBackgroundPatternImport,
+    display: 'flex', alignItems: 'flex-start', flex: 'auto',
+    backgroundImage: `url(${hexBackgroundPatternImport})`, backgroundRepeat: 'no-repeat',
+    backgroundSize: '1800px', backgroundPosition: 'right -1200px top -75px',
     position: 'relative', padding: '2rem'
   },
   title: {
     fontSize: 24, fontWeight: 600, color: colors.darkBlue[0], marginBottom: '2rem'
   },
   card: {
-    borderRadius: 5, backgroundColor: 'rgba(255,255,255,0.85)', padding: '2rem',
-    flex: 1, minWidth: 0, boxShadow: Style.standardShadow
+    ...Style.elements.card, padding: '2rem', flex: 1, minWidth: 0
   }
 }
 
@@ -51,8 +52,8 @@ const DockstoreImporter = ajaxCaller(class DockstoreImporter extends Component {
     return div({ style: styles.container }, [
       div({ style: styles.card }, [
         div({ style: styles.title }, ['Importing from Dockstore']),
-        div({ style: { fontSize: 16 } }, [path]),
-        div([`V. ${version}`]),
+        div({ style: { fontSize: 18 } }, [path]),
+        div({ style: { fontSize: 13, color: colors.gray[0] } }, [`V. ${version}`]),
         div({
           style: {
             display: 'flex', alignItems: 'center',
@@ -65,7 +66,7 @@ const DockstoreImporter = ajaxCaller(class DockstoreImporter extends Component {
         ]),
         wdl && h(WDLViewer, { wdl, style: { height: 500 } })
       ]),
-      div({ style: { ...styles.card, marginLeft: '2rem' } }, [
+      div({ style: { ...styles.card, marginLeft: '2.5rem', maxWidth: 450, marginRight: '2.5rem' } }, [
         div({ style: styles.title }, ['Destination Workspace']),
         h(WorkspaceImporter, { onImport: ws => this.import_(ws) }),
         isImporting && spinnerOverlay
@@ -105,7 +106,6 @@ class Importer extends Component {
     const { source } = this.props
 
     return h(Fragment, [
-      div({ style: { backgroundImage: `url(${hexBackgroundPatternImport})` } }),
       h(TopBar, { title: 'Import Tool' }),
       Utils.cond(
         [source === 'dockstore', () => this.renderDockstore()],
