@@ -19,7 +19,6 @@ import TooltipTrigger from 'src/components/TooltipTrigger'
 import WDLViewer from 'src/components/WDLViewer'
 import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
-import * as Config from 'src/libs/config'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
@@ -364,8 +363,6 @@ const WorkflowView = _.flow(
       this.setState({
         isFreshData: true, savedConfig: config, modifiedConfig: config,
         entityMetadata, inputsOutputs: _.update('inputs', _.sortBy('optional'), inputsOutputs),
-        firecloudRoot: await Config.getFirecloudUrlRoot(),
-        dockstoreRoot: await Config.getDockstoreUrlRoot(),
         errors: augmentErrors(validationResponse),
         workspaceAttributes: _.flow(
           _.without(['description']),
@@ -405,7 +402,7 @@ const WorkflowView = _.flow(
 
   renderSummary() {
     const { workspace: { canCompute, workspace }, namespace, name: workspaceName } = this.props
-    const { modifiedConfig, savedConfig, entityMetadata, saving, saved, copying, deleting, activeTab, errors, firecloudRoot, dockstoreRoot, synopsis, documentation } = this.state
+    const { modifiedConfig, savedConfig, entityMetadata, saving, saved, copying, deleting, activeTab, errors, synopsis, documentation } = this.state
     const { name, methodRepoMethod: { methodPath, methodVersion, methodNamespace, methodName }, rootEntityType } = modifiedConfig
     const modified = !_.isEqual(modifiedConfig, savedConfig)
     const noLaunchReason = Utils.cond(
@@ -440,7 +437,7 @@ const WorkflowView = _.flow(
           div({ style: { marginTop: '0.5rem' } }, `Snapshot ${methodVersion}`),
           div([
             'Source: ', link({
-              href: methodLink(modifiedConfig, firecloudRoot, dockstoreRoot),
+              href: methodLink(modifiedConfig),
               target: '_blank'
             }, methodPath ? methodPath : `${methodNamespace}/${methodName}/${methodVersion}`)
           ]),
