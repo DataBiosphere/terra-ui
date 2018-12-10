@@ -7,7 +7,7 @@ import { withWorkspaces } from 'src/components/workspace-utils'
 import featuredBg from 'src/images/library/showcase/featured-workspace.svg'
 import gatkLogo from 'src/images/library/showcase/gatk-logo-light.svg'
 import colors from 'src/libs/colors'
-import * as Config from 'src/libs/config'
+import { getConfig } from 'src/libs/config'
 import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
@@ -57,7 +57,7 @@ const Showcase = withWorkspaces({ persist: true })(class Showcase extends Compon
   }
 
   async componentDidMount() {
-    const featuredList = await fetch(`${await Config.getFirecloudBucketRoot()}/featured-workspaces.json`).then(res => res.json())
+    const featuredList = await fetch(`${getConfig().firecloudBucketRoot}/featured-workspaces.json`).then(res => res.json())
 
     this.setState({ featuredList })
     StateHistory.update({ featuredList })

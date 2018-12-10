@@ -3,7 +3,7 @@ import * as md5 from 'md5'
 import { version } from 'src/data/clusters'
 import ProdWhitelist from 'src/data/prod-whitelist'
 import { Ajax } from 'src/libs/ajax'
-import * as Config from 'src/libs/config'
+import { getConfig } from 'src/libs/config'
 import { clearErrorCode, reportError } from 'src/libs/error'
 import * as Utils from 'src/libs/utils'
 
@@ -33,9 +33,9 @@ export const getUser = () => {
   return authStore.get().user
 }
 
-const initializeAuth = _.memoize(async () => {
+export const initializeAuth = _.memoize(async () => {
   await new Promise(resolve => window.gapi.load('auth2', resolve))
-  await window.gapi.auth2.init({ clientId: await Config.getGoogleClientId() })
+  await window.gapi.auth2.init({ clientId: getConfig().googleClientId })
   const processUser = user => {
     return authStore.update(state => {
       const authResponse = user.getAuthResponse(true)
@@ -94,7 +94,7 @@ window.forceSignIn = async token => {
 authStore.subscribe(async (state, oldState) => {
   if (!oldState.isSignedIn && state.isSignedIn) {
     clearErrorCode('sessionTimeout')
-    if (await Config.getIsProd() && !ProdWhitelist.includes(md5(state.user.email))) {
+    if (getConfig().isProd && !ProdWhitelist.includes(md5(state.user.email))) {
       authStore.update(state => ({ ...state, registrationStatus: 'unlisted' }))
       return
     }
@@ -187,5 +187,3 @@ authStore.subscribe(async (state, oldState) => {
     }
   }
 })
-
-initializeAuth()
