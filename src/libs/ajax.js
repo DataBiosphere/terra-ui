@@ -203,12 +203,12 @@ const User = signal => ({
 const Groups = signal => ({
   // TODO: Replace when switching back to SAM for groups api
   list: async () => {
-    const res = await fetchOrchestration('groups', _.merge(authOpts(), { signal }))
+    const res = await fetchOrchestration('api/groups', _.merge(authOpts(), { signal }))
     return res.json()
   },
 
   group: groupName => {
-    const root = `groups/${groupName}`
+    const root = `api/groups/${groupName}`
 
     const addMember = async (role, email) => {
       return fetchOrchestration(`${root}/${role}/${email}`, _.merge(authOpts(), { signal, method: 'PUT' }))
