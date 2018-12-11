@@ -58,9 +58,9 @@ export const NpsSurvey = _.flow(
     const { responseRequested } = this.props
     const { requestable, expanded, score, reasonComment, changeComment } = this.state
     const shouldShow = responseRequested && requestable
-    const goAway = () => {
+    const goAway = shouldSubmit => () => {
       this.setState({ requestable: false })
-      // Ajax().User.postNpsResponse({})
+      Ajax().User.postNpsResponse(shouldSubmit ? { score, reasonComment, changeComment } : {})
     }
 
     const scoreRadios = _.map(i => {
@@ -124,13 +124,17 @@ export const NpsSurvey = _.flow(
           div({ style: style.questionLabel }, 'What could we change?'),
           TextArea({ style: style.questionInput, value: changeComment, onChange: e => this.setState({ changeComment: e.target.value }) }),
           div({ style: { display: 'flex', justifyContent: 'flex-end' } }, [
-            buttonSecondary({ style: { color: 'white' }, hover: { color: colors.gray[5] } }, 'Submit')
+            buttonSecondary({
+              style: { color: 'white' },
+              hover: { color: colors.gray[5] },
+              onClick: goAway(true)
+            }, 'Submit')
           ])
         ]
       ),
       h(Clickable, {
         as: icon('times-circle'),
-        onClick: goAway,
+        onClick: goAway(false),
         size: 20,
         style: {
           position: 'absolute', top: shouldShow ? -5 : -9999, left: -5,
