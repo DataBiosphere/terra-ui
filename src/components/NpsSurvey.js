@@ -35,8 +35,6 @@ export const NpsSurvey = _.flow(
     if (isSignedIn) {
       this.loadStatus()
     }
-
-    setTimeout(() => responseRequested.set(true), 1000)
   }
 
   componentDidUpdate(prevProps) {
