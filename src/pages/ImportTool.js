@@ -27,7 +27,8 @@ const styles = {
     fontSize: 24, fontWeight: 600, color: colors.darkBlue[0], marginBottom: '2rem'
   },
   card: {
-    ...Style.elements.card, padding: '2rem', flex: 1, minWidth: 0
+    ...Style.elements.card, borderRadius: 8, padding: '2rem', flex: 1, minWidth: 0,
+    boxShadow: '0 1px 5px 0 rgba(0,0,0,0.26), 0 2px 10px 0 rgba(0,0,0,0.16)'
   }
 }
 
