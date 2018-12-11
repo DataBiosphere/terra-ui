@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { Component } from 'react'
-import { div, h } from 'react-hyperscript-helpers'
+import { div, h, input } from 'react-hyperscript-helpers'
 import { Clickable } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { Ajax } from 'src/libs/ajax'
@@ -9,7 +9,7 @@ import colors from 'src/libs/colors'
 import * as Utils from 'src/libs/utils'
 
 
-export const responseRequested = Utils.atom(true)
+export const responseRequested = Utils.atom(false)
 
 export const NpsSurvey = _.flow(
   Utils.connectAtom(responseRequested, 'responseRequested'),
@@ -27,6 +27,8 @@ export const NpsSurvey = _.flow(
     if (isSignedIn) {
       this.loadStatus()
     }
+
+    setTimeout(() => responseRequested.set(true), 1000)
   }
 
   componentDidUpdate(prevProps) {
@@ -53,7 +55,7 @@ export const NpsSurvey = _.flow(
       // Ajax().User.postNpsResponse({})
     }
 
-    return div({
+    return requestable && div({
       style: {
         position: 'absolute', bottom: '2rem', right: expanded ? '1rem' : 0,
         transition: 'right 0.5s linear'
@@ -61,18 +63,25 @@ export const NpsSurvey = _.flow(
     }, [
       div({ style: { overflow: 'hidden' } }, [
         h(Clickable, {
-          onClick: expanded ? undefined : () => this.setState({ expanded: true }),
+          onClick: () => this.setState({ expanded: true }),
           disabled: expanded,
           style: {
+            height: expanded ? 300 : 50,
+            width: expanded ? 250 : 175,
             padding: '1rem',
             backgroundColor: colors.darkBlue[0], color: 'white',
             borderRadius: expanded ? '0.5rem' : '0.5rem 0 0 0.5rem',
-            transition: 'transform 0.5s linear',
+            transition: 'all 0.5s linear',
             transform: `translate(${shouldShow ? '0%' : '100%'})`
           }
-        }, [
-          'How are we doing?'
-        ]),
+        },
+        !expanded ?
+          'How are we doing?' :
+          [
+            div('How likely are you to recommend Terra?'),
+            '0', input({ type: 'range', min: 0, max: 10 }), '10'
+          ]
+        ),
         h(Clickable, {
           as: icon('times-circle'),
           onClick: goAway,
@@ -80,7 +89,7 @@ export const NpsSurvey = _.flow(
             width: shouldShow ? 20 : 0,
             height: shouldShow ? 20 : 0,
             position: 'absolute', top: -5, left: -5,
-            transition: shouldShow ? undefined : 'all 0.5s 1s',
+            transition: 'all 0s 0.6s',
             backgroundColor: 'black',
             color: 'white',
             borderRadius: '1rem'
