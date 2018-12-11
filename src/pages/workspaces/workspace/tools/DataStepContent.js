@@ -1,12 +1,12 @@
 import _ from 'lodash/fp'
 import { div, h, span } from 'react-hyperscript-helpers'
 import { Clickable, RadioButton } from 'src/components/common'
+import DataTable from 'src/components/DataTable'
 import { icon } from 'src/components/icons'
-import { ajaxCaller } from 'src/libs/ajax'
+import { textInput } from 'src/components/input'
 import colors from 'src/libs/colors'
 import * as Style from 'src/libs/style'
 import { Component } from 'src/libs/wrapped-components'
-import DataSelector from 'src/pages/workspaces/workspace/tools/DataSelector'
 
 
 const typeOption = ({ name, count, isSelected, selectSelf, unselect }) => div({
@@ -29,18 +29,17 @@ const typeOption = ({ name, count, isSelected, selectSelf, unselect }) => div({
 ])
 
 
-export default ajaxCaller(class DataStepContent extends Component {
-  constructor(props) {
-    super(props)
-
-    this.state = { processAll: true }
-  }
-
+export default class DataStepContent extends Component {
   render() {
-    const { visible, entityMetadata, rootEntityType, setRootEntityType, workspaceId } = this.props
+    const {
+      visible, workspaceId,
+      processAllRows, setProcessAllRows,
+      entityMetadata,
+      rootEntityType, setRootEntityType,
+      selectedEntities, setSelectedEntities,
+      newSetName, setNewSetName
+    } = this.props
     const count = rootEntityType && entityMetadata[rootEntityType].count
-
-    const { processAll } = this.state
 
     return div({
       style: {
@@ -60,7 +59,7 @@ export default ajaxCaller(class DataStepContent extends Component {
             selectSelf: () => setRootEntityType(name)
           }), _.toPairs(entityMetadata))
       ]),
-      rootEntityType && count > 1 && div({
+      rootEntityType && div({
         style: {
           padding: '1rem 0.5rem', lineHeight: '1.5rem'
         }
@@ -68,25 +67,39 @@ export default ajaxCaller(class DataStepContent extends Component {
         div([
           h(RadioButton, {
             text: `Process all ${count} rows`,
-            checked: processAll,
-            onChange: () => this.setState({ processAll: true }),
+            checked: processAllRows,
+            onChange: () => setProcessAllRows(true),
             labelStyle: { marginLeft: '0.75rem' }
           })
         ]),
         div([
           h(RadioButton, {
             text: 'Choose specific rows to process',
-            checked: !processAll,
-            onChange: () => this.setState({ processAll: false }),
+            checked: !processAllRows,
+            onChange: () => setProcessAllRows(false),
             labelStyle: { marginLeft: '0.75rem' }
-          })
+          }),
+          div({}, [
+            span(['Selected rows will be saved as a new table named:']),
+            textInput({
+              style: { width: 500, marginLeft: '0.25rem' },
+              value: newSetName,
+              onChange: e => setNewSetName(e.target.value)
+            })
+          ])
         ]),
-        h(DataSelector, {
-          style: { display: processAll ? 'none' : 'initial' },
-          entityType: rootEntityType,
-          entityMetadata, workspaceId
-        })
+        div({
+          style: {
+            display: processAllRows ? 'none' : 'flex', flexDirection: 'column',
+            height: 500, marginTop: '1rem'
+          }
+        }, [
+          h(DataTable, {
+            entityType: rootEntityType, entityMetadata, workspaceId,
+            selectedEntities, setSelectedEntities
+          })
+        ])
       ])
     ])
   }
-})
+}
