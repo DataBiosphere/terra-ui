@@ -77,7 +77,7 @@ export const NpsSurvey = _.flow(
           cursor: 'pointer',
           ...(isSelected ? { backgroundColor: bgColor } : {})
         },
-        hover: isSelected ? {} : { backgroundColor: colors.gray[3] }
+        hover: isSelected ? {} : { backgroundColor: colors.gray[2] }
       }, [
         input({
           type: 'radio', value: i, name: 'nps-score',
