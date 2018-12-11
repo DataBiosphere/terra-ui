@@ -147,6 +147,7 @@ export default ajaxCaller(class NewWorkspaceModal extends Component {
       ]) : h(Select, {
         isClearable: false,
         placeholder: 'Select a billing project',
+        disabled: !billingProjects,
         value: namespace,
         onChange: ({ value }) => this.setState({ namespace: value, dataTestId: value }),
         options: _.uniq(_.map('projectName', billingProjects)).sort()
@@ -172,6 +173,7 @@ export default ajaxCaller(class NewWorkspaceModal extends Component {
         isClearable: false,
         isMulti: true,
         placeholder: 'Select groups',
+        disabled: !allGroups,
         value: groups,
         onChange: data => this.setState({ groups: _.map('value', data) }),
         options: _.difference(_.map('groupName', allGroups), existingGroups).sort()

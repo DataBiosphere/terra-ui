@@ -7,6 +7,8 @@ import RSelect from 'react-select'
 import { centeredSpinner, icon } from 'src/components/icons'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import colors from 'src/libs/colors'
+import { getConfig } from 'src/libs/config'
+import * as Style from 'src/libs/style'
 
 
 const styles = {
@@ -95,15 +97,34 @@ export const search = function({ wrapperProps, inputProps }) {
     ])
 }
 
-export const contextBar = function(props, children) {
-  return div(_.merge({
-    style: {
-      display: 'flex', alignItems: 'center', backgroundColor: colors.blue[1],
-      color: colors.gray[3], fontWeight: 500,
-      height: '3.75rem', padding: '0 1rem'
-    }
-  }, props),
-  children)
+export const tabBar = ({ activeTab, tabNames, refresh = _.noop, getHref }, children = []) => {
+  const navSeparator = div({
+    style: { background: 'rgba(255,255,255,0.15)', width: 1, height: '3rem', flexShrink: 0 }
+  })
+
+  const navTab = currentTab => {
+    const selected = currentTab === activeTab
+    const href = getHref(currentTab)
+    const hideSeparator = selected || tabNames.indexOf(activeTab) === tabNames.indexOf(currentTab) + 1
+
+    return h(Fragment, [
+      h(Interactive, {
+        as: 'a',
+        style: { ...Style.tabBar.tab, ...(selected ? Style.tabBar.active : {}) },
+        hover: { color: Style.tabBar.active.color },
+        onClick: href === window.location.hash ? refresh : undefined,
+        href
+      }, currentTab),
+      !hideSeparator && navSeparator
+    ])
+  }
+
+  return div({ style: Style.tabBar.container }, [
+    activeTab !== tabNames[0] && navSeparator,
+    ..._.map(name => navTab(name), tabNames),
+    div({ style: { flexGrow: 1 } }),
+    ...children
+  ])
 }
 
 export const menuIcon = (iconName, props) => {
@@ -247,7 +268,7 @@ export const FadeBox = ({ fadePoint = '60%', style = {}, children }) => {
     paddingTop = '1.5rem',
     paddingLR = '1.5rem',
     borderRadius = '8px',
-    backgroundColor = 'transparent',
+    backgroundColor = 'rgba(255,255,255,0)',
     borderColor = colors.gray[3],
     ...containerStyle
   } = style
@@ -255,7 +276,7 @@ export const FadeBox = ({ fadePoint = '60%', style = {}, children }) => {
   return div({
     style: {
       display: 'flex', flexDirection: 'column',
-      background: `linear-gradient(to bottom, white 0%, ${backgroundColor} ${fadePoint}`,
+      background: `linear-gradient(to bottom, white, ${backgroundColor} ${fadePoint})`,
       borderRadius: `${borderRadius} ${borderRadius} 0 0`,
       ...containerStyle
     }
@@ -296,9 +317,11 @@ export const backgroundLogo = icon('logoIcon', {
   style: { position: 'fixed', top: -100, left: -100, zIndex: -1, opacity: 0.65 }
 })
 
-export const methodLink = (config, firecloudRoot, dockstoreRoot) => {
+export const methodLink = config => {
   const { methodRepoMethod: { sourceRepo, methodVersion, methodNamespace, methodName, methodPath } } = config
-  return sourceRepo === 'agora' ? `${firecloudRoot}/#methods/${methodNamespace}/${methodName}/${methodVersion}` : `${dockstoreRoot}/workflows/${methodPath}`
+  return sourceRepo === 'agora' ?
+    `${getConfig().firecloudUrlRoot}/#methods/${methodNamespace}/${methodName}/${methodVersion}` :
+    `${getConfig().dockstoreUrlRoot}/workflows/${methodPath}`
 }
 
 export const Markdown = ({ children, renderers = {}, ...props }) => {

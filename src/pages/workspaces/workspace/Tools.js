@@ -9,7 +9,6 @@ import { icon } from 'src/components/icons'
 import PopupTrigger from 'src/components/PopupTrigger'
 import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
-import * as Config from 'src/libs/config'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
@@ -25,9 +24,22 @@ const styles = {
     display: 'flex', flexWrap: 'wrap',
     marginRight: listView ? undefined : '-1rem'
   }),
+  // Card's position: relative and the outer/inner styles are a little hack to fake nested links
+  card: {
+    ...Style.elements.card, position: 'relative'
+  },
+  outerLink: {
+    position: 'absolute', top: 0, right: 0, bottom: 0, left: 0
+  },
+  innerContent: {
+    position: 'relative', pointerEvents: 'none'
+  },
+  innerLink: {
+    pointerEvents: 'auto'
+  },
+  // (end link hacks)
   shortCard: {
-    ...Style.elements.card, width: 300, height: 125, margin: '0 1rem 2rem 0',
-    display: 'flex', flexDirection: 'column', justifyContent: 'space-between'
+    width: 300, height: 125, margin: '0 1rem 2rem 0'
   },
   shortTitle: {
     flex: 1,
@@ -45,7 +57,6 @@ const styles = {
     whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'
   },
   longCard: {
-    ...Style.elements.card,
     width: '100%', minWidth: 0,
     marginBottom: '0.5rem'
   },
@@ -60,7 +71,7 @@ const styles = {
   }
 }
 
-const ToolCard = pure(({ listView, name, namespace, config, onCopy, onDelete, firecloudRoot, dockstoreRoot }) => {
+const ToolCard = pure(({ listView, name, namespace, config, onCopy, onDelete }) => {
   const { namespace: workflowNamespace, name: workflowName, methodRepoMethod: { sourceRepo, methodVersion } } = config
   const toolCardMenu = h(PopupTrigger, {
     closeOnClick: true,
@@ -74,9 +85,9 @@ const ToolCard = pure(({ listView, name, namespace, config, onCopy, onDelete, fi
     ])
   }, [
     h(Clickable, {
-      onClick: e => e.preventDefault(),
+      onClick: e => e.stopPropagation(),
       style: {
-        cursor: 'pointer', color: colors.blue[0]
+        cursor: 'pointer', color: colors.blue[0], ...styles.innerLink
       },
       focus: 'hover',
       hover: { color: colors.blue[2] }
@@ -87,29 +98,36 @@ const ToolCard = pure(({ listView, name, namespace, config, onCopy, onDelete, fi
     ])
   ])
   const repoLink = link({
-    href: methodLink(config, firecloudRoot, dockstoreRoot),
-    target: '_blank'
-  }, sourceRepo)
+    href: methodLink(config),
+    style: styles.innerLink,
+    target: '_blank',
+    onClick: e => e.stopPropagation()
+  }, sourceRepo === 'agora' ? 'FireCloud' : sourceRepo)
 
-  return listView ? a({
-    style: styles.longCard,
-    href: Nav.getLink('workflow', { namespace, name, workflowNamespace, workflowName })
-  }, [
-    div({ style: { display: 'flex', alignItems: 'center' } }, [
-      div({ style: { marginRight: '1rem' } }, [toolCardMenu]),
-      div({ style: styles.longTitle }, [workflowName]),
-      div({ style: styles.longMethodVersion }, [`V. ${methodVersion}`]),
-      div({ style: { flex: 'none', width: 130 } }, ['Source: ', repoLink])
+  const workflowLink = a({
+    href: Nav.getLink('workflow', { namespace, name, workflowNamespace, workflowName }),
+    style: styles.outerLink
+  })
+
+  return listView ?
+    div({ style: { ...styles.card, ...styles.longCard } }, [
+      workflowLink,
+      div({ style: { ...styles.innerContent, display: 'flex', alignItems: 'center' } }, [
+        div({ style: { marginRight: '1rem' } }, [toolCardMenu]),
+        div({ style: styles.longTitle }, [workflowName]),
+        div({ style: styles.longMethodVersion }, [`V. ${methodVersion}`]),
+        div({ style: { flex: 'none', width: 130 } }, ['Source: ', repoLink])
+      ])
+    ]) :
+    div({ style: { ...styles.card, ...styles.shortCard } }, [
+      workflowLink,
+      div({ style: { ...styles.innerContent, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%' } }, [
+        div({ style: styles.shortTitle }, [workflowName]),
+        div({ style: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' } }, [
+          div([div([`V. ${methodVersion}`]), 'Source: ', repoLink]), toolCardMenu
+        ])
+      ])
     ])
-  ]) : a({
-    style: styles.shortCard,
-    href: Nav.getLink('workflow', { namespace, name, workflowNamespace, workflowName })
-  }, [
-    div({ style: styles.shortTitle }, [workflowName]),
-    div({ style: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' } }, [
-      div([div([`V. ${methodVersion}`]), 'Source: ', repoLink]), toolCardMenu
-    ])
-  ])
 })
 
 export const Tools = _.flow(
@@ -146,7 +164,7 @@ export const Tools = _.flow(
 
   render() {
     const { namespace, name, listView, viewToggleButtons, workspace: { workspace } } = this.props
-    const { loading, configs, copyingTool, deletingTool, firecloudRoot, dockstoreRoot } = this.state
+    const { loading, configs, copyingTool, deletingTool } = this.state
     return h(PageFadeBox, [
       div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' } }, [
         div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, ['Tools']),
@@ -169,7 +187,7 @@ export const Tools = _.flow(
           return h(ToolCard, {
             onCopy: () => this.setState({ copyingTool: { namespace: config.namespace, name: config.name } }),
             onDelete: () => this.setState({ deletingTool: { namespace: config.namespace, name: config.name } }),
-            key: `${config.namespace}/${config.name}`, namespace, name, config, listView, firecloudRoot, dockstoreRoot
+            key: `${config.namespace}/${config.name}`, namespace, name, config, listView
           })
         }, configs),
         configs && !configs.length && div(['No tools added']),
@@ -180,7 +198,6 @@ export const Tools = _.flow(
 
   async componentDidMount() {
     this.refresh()
-    this.setState({ firecloudRoot: await Config.getFirecloudUrlRoot(), dockstoreRoot: await Config.getDockstoreUrlRoot() })
   }
 
   componentDidUpdate() {

@@ -1,19 +1,20 @@
-import { Children, Fragment, cloneElement } from 'react'
+import { Children, cloneElement, Fragment } from 'react'
 import { div, h, img, p, span } from 'react-hyperscript-helpers'
 import { pure } from 'recompose'
-import { buttonPrimary, link, FadeBox, PageFadeBox } from 'src/components/common'
+import { buttonPrimary, link } from 'src/components/common'
+import { libraryTopMatter } from 'src/components/library-common'
 import Modal from 'src/components/Modal'
 import TooltipTrigger from 'src/components/TooltipTrigger'
-import TopBar from 'src/components/TopBar'
-import amppdLogo from 'src/images/browse-data/Amp@2x.png'
-import gtexLogo from 'src/images/browse-data/GTeX@2x.png'
-import hcaLogo from 'src/images/browse-data/HCA@2x.png'
-import nhsLogo from 'src/images/browse-data/NHS@2x.png'
-import topMedLogo from 'src/images/browse-data/TopMed@2x.png'
-import broadLogo from 'src/images/browse-data/broad_logo.png'
+import amppdLogo from 'src/images/library/datasets/Amp@2x.png'
+import broadLogo from 'src/images/library/datasets/broad_logo.png'
+import gtexLogo from 'src/images/library/datasets/GTeX@2x.png'
+import hcaLogo from 'src/images/library/datasets/HCA@2x.png'
+import nhsLogo from 'src/images/library/datasets/NHS@2x.png'
+import topMedLogo from 'src/images/library/datasets/TopMed@2x.png'
+import ukbLogo from 'src/images/library/datasets/UKB@2x.jpg'
 import colors from 'src/libs/colors'
+import { getConfig } from 'src/libs/config'
 import * as Nav from 'src/libs/nav'
-import * as Config from 'src/libs/config'
 import * as Style from 'src/libs/style'
 import { Component } from 'src/libs/wrapped-components'
 
@@ -23,11 +24,11 @@ const styles = {
     ...Style.elements.sectionHeader, textTransform: 'uppercase'
   },
   content: {
-    display: 'flex', flexWrap: 'wrap'
+    display: 'flex', flexWrap: 'wrap', margin: '2.5rem'
   },
   participant: {
     container: {
-      margin: '1.5rem 1.5rem 0 0', width: 450
+      margin: '0 4rem 5rem 0', width: 350
     },
     title: {
       marginTop: '1rem',
@@ -35,7 +36,7 @@ const styles = {
     },
     description: {
       marginTop: '1rem',
-      height: 100
+      height: 125
     },
     sizeText: {
       marginTop: '1rem',
@@ -63,13 +64,12 @@ const logoBox = ({ src, alt, height }) => div({
 class Participant extends Component {
   render() {
     const { logo, title, shortDescription, description, sizeText, children, isFirecloud } = this.props
-    const { showingModal, firecloudRoot } = this.state
+    const { showingModal } = this.state
     const child = Children.only(children)
 
     const titleElement = div({ style: styles.participant.title }, [title])
 
-    return h(FadeBox, {
-      fadePoint: '90%',
+    return div({
       style: styles.participant.container
     }, [
       div({ style: { display: 'flex', flexDirection: 'column' } }, [
@@ -85,7 +85,7 @@ class Participant extends Component {
         div({ style: styles.participant.sizeText }, [sizeText]),
         div({ style: { marginTop: '1rem' } }, [
           isFirecloud ?
-            cloneElement(child, { href: firecloudRoot + child.props.href }) :
+            cloneElement(child, { href: getConfig().firecloudUrlRoot + child.props.href }) :
             children
         ])
       ]),
@@ -100,10 +100,6 @@ class Participant extends Component {
         sizeText && p([sizeText])
       ])
     ])
-  }
-
-  async componentDidMount() {
-    this.props.isFirecloud && this.setState({ firecloudRoot: await Config.getFirecloudUrlRoot() })
   }
 }
 
@@ -144,6 +140,26 @@ const nhs = h(Participant, {
   }, ['Browse Data'])
 ])
 
+const ukb = h(Participant, {
+  logo: { src: ukbLogo, alt: `UK Biobank logo`, height: '50%' },
+  title: `UK Biobank`,
+  description: h(Fragment, [
+    link({ href: 'https://www.ukbiobank.ac.uk/', target: '_blank' }, 'UK Biobank'),
+    ` is a national and international health resource with unparalleled research opportunities,
+    open to bona fide health researchers. UK Biobank aims to improve the prevention, diagnosis and treatment of a wide
+    range of serious and life-threatening illnesses`
+  ]),
+  sizeText: 'Participants: > 500,000'
+}, [
+  buttonPrimary({
+    as: 'a',
+    href: 'https://biobank-explorer.appspot.com/',
+    target: '_blank',
+    tooltip: browseTooltip
+  }, ['Browse Data'])
+])
+
+
 const hca = h(Participant, {
   logo: { src: hcaLogo, alt: 'Human Cell Atlas logo' },
   title: 'Human Cell Atlas',
@@ -167,7 +183,7 @@ const amppd = h(Participant, {
   description: h(Fragment, [
     p([
       `The Accelerating Medicines Partnership (AMP) is a public-private partnership between the National Institutes of
-    Health (NIH), multiple biopharmaceutical and life sciences companies, and non-profit organizations to identify and 
+    Health (NIH), multiple biopharmaceutical and life sciences companies, and non-profit organizations to identify and
     validate the most promising biological targets for therapeutics. This AMP effort aims to identify and validate the
     most promising biological targets for therapeutics relevant to Parkinson's disease.`
     ]),
@@ -224,33 +240,28 @@ const fcDataLib = h(Participant, {
 }, [
   buttonPrimary({
     as: 'a',
-    href: `/#library`,
+    href: `/?return=terra#library`,
     target: '_blank',
     tooltip: 'Search for dataset workspaces'
   }, ['Browse Datasets'])
 ])
 
 
-const BrowseData = pure(() => {
+const Datasets = pure(() => {
   return h(Fragment, [
-    h(TopBar, { title: 'Library' }), // TODO Add breadcrumbs from design once home page exists
-    h(PageFadeBox, [
-      div([
-        div({ style: styles.header }, ['Data Library']),
-        div({ style: styles.content }, [
-          nhs, hca, amppd, topMed, gtex, fcDataLib
-        ])
-      ])
+    libraryTopMatter('datasets'),
+    div({ style: styles.content }, [
+      nhs, ukb, hca, amppd, topMed, gtex, fcDataLib
     ])
   ])
 })
 
 
 export const addNavPaths = () => {
-  Nav.defPath('browse-data', {
-    path: '/browse-data',
-    component: BrowseData,
+  Nav.defPath('library-datasets', {
+    path: '/library/datasets',
+    component: Datasets,
     public: true,
-    title: 'Browse Data'
+    title: 'Datasets'
   })
 }

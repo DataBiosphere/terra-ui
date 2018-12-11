@@ -238,3 +238,12 @@ export const convertValue = _.curry((type, value) => {
  * Converts a string to start case, for a label, but handles all caps correctly.
  */
 export const normalizeLabel = _.flow(_.camelCase, _.startCase)
+
+export const kvArrayToObject = _.reduce((acc, { key, value }) => _.set(key, value, acc), {})
+
+export const isValidWsExportTarget = _.curry((sourceWs, destWs) => {
+  const { workspace: { workspaceId: sourceId, authorizationDomain: sourceAD } } = sourceWs
+  const { accessLevel, workspace: { workspaceId: destId, authorizationDomain: destAD } } = destWs
+
+  return sourceId !== destId && canWrite(accessLevel) && (_.intersectionWith(_.isEqual, sourceAD, destAD).length === sourceAD.length)
+})

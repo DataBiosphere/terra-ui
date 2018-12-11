@@ -1,8 +1,8 @@
 import _ from 'lodash/fp'
 import { createRef, Fragment, PureComponent } from 'react'
-import { a, div, h, h2, p, span } from 'react-hyperscript-helpers'
+import { div, h, h2, p, span } from 'react-hyperscript-helpers'
 import ClusterManager from 'src/components/ClusterManager'
-import { Clickable, comingSoon, contextBar, link, MenuButton, menuIcon } from 'src/components/common'
+import { buttonPrimary, Clickable, comingSoon, link, MenuButton, menuIcon, tabBar } from 'src/components/common'
 import ErrorView from 'src/components/ErrorView'
 import { icon } from 'src/components/icons'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
@@ -13,6 +13,7 @@ import { getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
+import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 import DeleteWorkspaceModal from 'src/pages/workspaces/workspace/DeleteWorkspaceModal'
@@ -26,27 +27,8 @@ const styles = {
   },
   workspaceName: {
     fontSize: '1.25rem', overflowX: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'
-  },
-  childrenContainer: {
-    position: 'relative', flexGrow: 1, display: 'flex', flexDirection: 'column'
-  },
-  tabContainer: {
-    paddingLeft: '5rem', borderBottom: `5px solid ${colors.blue[0]}`,
-    color: 'white', textTransform: 'uppercase'
-  },
-  tab: {
-    maxWidth: 140, flexGrow: 1, color: colors.gray[4],
-    alignSelf: 'stretch', display: 'flex', justifyContent: 'center', alignItems: 'center'
-  },
-  activeTab: {
-    backgroundColor: 'rgba(255,255,255,0.15)', color: 'unset',
-    borderBottom: `4px solid ${colors.blue[0]}`, fontWeight: 'bold'
   }
 }
-
-const navSeparator = div({
-  style: { background: 'rgba(255,255,255,0.15)', width: 1, height: '3rem', flexShrink: 0 }
-})
 
 const navIconProps = {
   style: { opacity: 0.65, marginRight: '1rem' },
@@ -58,27 +40,13 @@ const TAB_NAMES = ['dashboard', 'data', 'notebooks', 'tools', 'job history']
 class WorkspaceTabs extends PureComponent {
   render() {
     const { namespace, name, workspace, activeTab, refresh, onShare, onDelete, onClone } = this.props
-    const navTab = currentTab => {
-      const selected = currentTab === activeTab
-      const href = Nav.getLink(_.kebabCase(`workspace ${currentTab}`), { namespace, name })
-      const hideSeparator = selected || TAB_NAMES.indexOf(activeTab) === TAB_NAMES.indexOf(currentTab) + 1
-
-      return h(Fragment, [
-        a({
-          style: { ...styles.tab, ...(selected ? styles.activeTab : {}) },
-          // some pages highlight a tab even when they're not on that url
-          onClick: href === window.location.hash ? refresh : undefined,
-          href
-        }, currentTab),
-        !hideSeparator && navSeparator
-      ])
-    }
     const isOwner = workspace && Utils.isOwner(workspace.accessLevel)
 
-    return contextBar({ style: styles.tabContainer }, [
-      activeTab !== TAB_NAMES[0] && navSeparator,
-      ..._.map(name => navTab(name), TAB_NAMES),
-      div({ style: { flexGrow: 1 } }),
+    return tabBar({
+      activeTab, refresh,
+      tabNames: TAB_NAMES,
+      getHref: currentTab => Nav.getLink(_.kebabCase(`workspace ${currentTab}`), { namespace, name })
+    }, [
       h(PopupTrigger, {
         closeOnClick: true,
         content: h(Fragment, [
@@ -149,7 +117,7 @@ class WorkspaceContainer extends Component {
         namespace, name, activeTab, refresh, workspace,
         onDelete: this.onDelete, onClone: this.onClone, onShare: this.onShare
       }),
-      div({ style: styles.childrenContainer }, [
+      div({ style: Style.elements.pageContentContainer }, [
         this.props.children
       ]),
       deletingWorkspace && h(DeleteWorkspaceModal, {
@@ -188,7 +156,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
 
     renderSuccess() {
       const { namespace, name } = this.props
-      const { workspace, clusters } = this.state
+      const { workspace, clusters, loadingWorkspace } = this.state
 
       return h(WorkspaceContainer, {
         namespace, name, activeTab, showTabBar, workspace, clusters,
@@ -206,7 +174,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
       }, [
         workspace && h(WrappedComponent, {
           ref: this.child,
-          workspace, clusters,
+          workspace, clusters, loadingWorkspace,
           refreshWorkspace: () => this.refresh(),
           refreshClusters: () => this.refreshClusters(),
           ...this.props
@@ -233,7 +201,11 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
             ]),
             p({}, [
               'If you think the workspace exists but you do not have access, please contact the workspace owner.'
-            ])
+            ]),
+            buttonPrimary({
+              as: 'a',
+              href: Nav.getLink('workspaces')
+            }, ['Return to Workspace List'])
           ]) :
           h(Fragment, [
             h2({}, ['Failed to load workspace']),
@@ -260,10 +232,13 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
     async refresh() {
       const { namespace, name, ajax: { Workspaces } } = this.props
       try {
+        this.setState({ loadingWorkspace: true })
         const workspace = await Workspaces.workspace(namespace, name).details()
         this.setState({ workspace })
       } catch (error) {
         this.setState({ workspaceError: error, errorText: await error.text().catch(() => 'Unknown') })
+      } finally {
+        this.setState({ loadingWorkspace: false })
       }
     }
   })

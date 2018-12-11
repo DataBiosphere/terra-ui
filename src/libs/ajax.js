@@ -3,7 +3,7 @@ import * as qs from 'qs'
 import { h } from 'react-hyperscript-helpers'
 import { version } from 'src/data/clusters'
 import { getUser } from 'src/libs/auth'
-import * as Config from 'src/libs/config'
+import { getConfig } from 'src/libs/config'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 
@@ -67,6 +67,7 @@ const instrumentedFetch = (url, options) => {
   })
 }
 
+
 const fetchOk = async (url, options) => {
   const res = await instrumentedFetch(url, options)
   return res.ok ? res : Promise.reject(res)
@@ -74,32 +75,32 @@ const fetchOk = async (url, options) => {
 
 
 const fetchSam = async (path, options) => {
-  return fetchOk(`${await Config.getSamUrlRoot()}/${path}`, addAppIdentifier(options))
+  return fetchOk(`${getConfig().samUrlRoot}/${path}`, addAppIdentifier(options))
 }
 
 const fetchBuckets = (path, options) => fetchOk(`https://www.googleapis.com/${path}`, options)
 const nbName = name => encodeURIComponent(`notebooks/${name}.ipynb`)
 
 const fetchRawls = async (path, options) => {
-  return fetchOk(`${await Config.getRawlsUrlRoot()}/api/${path}`, addAppIdentifier(options))
+  return fetchOk(`${getConfig().rawlsUrlRoot}/api/${path}`, addAppIdentifier(options))
 }
 
 const fetchLeo = async (path, options) => {
-  return fetchOk(`${await Config.getLeoUrlRoot()}/${path}`, options)
+  return fetchOk(`${getConfig().leoUrlRoot}/${path}`, options)
 }
 
 const fetchDockstore = async (path, options) => {
-  return fetchOk(`${await Config.getDockstoreUrlRoot()}/${path}`, options)
+  return fetchOk(`${getConfig().dockstoreUrlRoot}/${path}`, options)
 }
 // %23 = '#', %2F = '/'
 const dockstoreMethodPath = path => `api/ga4gh/v1/tools/%23workflow%2F${encodeURIComponent(path)}/versions`
 
 const fetchAgora = async (path, options) => {
-  return fetchOk(`${await Config.getAgoraUrlRoot()}/api/v1/${path}`, addAppIdentifier(options))
+  return fetchOk(`${getConfig().agoraUrlRoot}/api/v1/${path}`, addAppIdentifier(options))
 }
 
 const fetchOrchestration = async (path, options) => {
-  return fetchOk(`${await Config.getOrchestrationUrlRoot()}/${path}`, addAppIdentifier(options))
+  return fetchOk(`${getConfig().orchestrationUrlRoot}/${path}`, addAppIdentifier(options))
 }
 
 
@@ -114,7 +115,7 @@ const User = signal => ({
   }, namespace => namespace, 1000 * 60 * 30),
 
   getStatus: async () => {
-    return instrumentedFetch(`${await Config.getSamUrlRoot()}/register/user/v2/self/info`, _.mergeAll([authOpts(), { signal }, appIdentifier]))
+    return instrumentedFetch(`${getConfig().samUrlRoot}/register/user/v2/self/info`, _.mergeAll([authOpts(), { signal }, appIdentifier]))
   },
 
   create: async () => {
@@ -153,7 +154,7 @@ const User = signal => ({
   },
 
   getTosAccepted: async () => {
-    const url = `${await Config.getTosUrlRoot()}/user/response?${qs.stringify(tosData)}`
+    const url = `${getConfig().tosUrlRoot}/user/response?${qs.stringify(tosData)}`
     const res = await instrumentedFetch(url, _.merge(authOpts(), { signal }))
     if (res.status === 403 || res.status === 404) {
       return false
@@ -167,41 +168,67 @@ const User = signal => ({
 
   acceptTos: async () => {
     await fetchOk(
-      `${await Config.getTosUrlRoot()}/user/response`,
+      `${getConfig().tosUrlRoot}/user/response`,
       _.mergeAll([authOpts(), { signal, method: 'POST' }, jsonBody({ ...tosData, accepted: true })])
     )
+  },
+
+  // If you are making changes to the Support Request Modal, make sure you test the following:
+  // 1. Submit a ticket via Terra while signed in and signed out
+  // 2. Check the tickets are generated on Zendesk
+  // 3. Reply internally (as a Light Agent) and make sure an email is not sent
+  // 4. Reply externally (ask one of the Comms team with Full Agent access) and make sure you receive an email
+  createSupportRequest: async ({ name, email, currUrl, subject, type, description }) => {
+    return fetchOk(
+      `https://broadinstitute.zendesk.com/api/v2/requests.json`,
+      _.merge({ signal, method: 'POST' }, jsonBody({
+        request: {
+          requester: { name, email },
+          subject,
+          // BEWARE changing the following ids or values! If you change them then you must thoroughly test.
+          'custom_fields': [
+            { id: 360012744452, value: type },
+            { id: 360007369412, value: description },
+            { id: 360012744292, value: name },
+            { id: 360012782111, value: email }
+          ],
+          comment: {
+            body: `${description}\n\n------------------\nSubmitted from: ${currUrl}`
+          }
+        }
+      })))
   }
 })
 
 const Groups = signal => ({
   // TODO: Replace when switching back to SAM for groups api
   list: async () => {
-    const res = await fetchRawls('groups', _.merge(authOpts(), { signal }))
+    const res = await fetchOrchestration('api/groups', _.merge(authOpts(), { signal }))
     return res.json()
   },
 
   group: groupName => {
-    const root = `groups/${groupName}`
+    const root = `api/groups/${groupName}`
 
     const addMember = async (role, email) => {
-      return fetchRawls(`${root}/${role}/${email}`, _.merge(authOpts(), { signal, method: 'PUT' }))
+      return fetchOrchestration(`${root}/${role}/${email}`, _.merge(authOpts(), { signal, method: 'PUT' }))
     }
 
     const removeMember = async (role, email) => {
-      return fetchRawls(`${root}/${role}/${email}`, _.merge(authOpts(), { signal, method: 'DELETE' }))
+      return fetchOrchestration(`${root}/${role}/${email}`, _.merge(authOpts(), { signal, method: 'DELETE' }))
     }
 
     return {
       create: () => {
-        return fetchRawls(root, _.merge(authOpts(), { signal, method: 'POST' }))
+        return fetchOrchestration(root, _.merge(authOpts(), { signal, method: 'POST' }))
       },
 
       delete: () => {
-        return fetchRawls(root, _.merge(authOpts(), { signal, method: 'DELETE' }))
+        return fetchOrchestration(root, _.merge(authOpts(), { signal, method: 'DELETE' }))
       },
 
       listMembers: async () => {
-        const res = await fetchRawls(`${root}`, _.merge(authOpts(), { signal }))
+        const res = await fetchOrchestration(`${root}`, _.merge(authOpts(), { signal }))
         return res.json()
       },
 
@@ -404,8 +431,26 @@ const Workspaces = signal => ({
         return fetchRawls(`${root}/entities/batchUpsert`, _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }]))
       },
 
+      importEntitiesFile: async file => {
+        const formData = new FormData()
+        formData.set('entities', file)
+        return fetchOrchestration(`api/${root}/flexibleImportEntities`, _.merge(authOpts(), { body: formData, signal, method: 'POST' }))
+      },
+
       deleteEntities: async entities => {
         return fetchRawls(`${root}/entities/delete`, _.mergeAll([authOpts(), jsonBody(entities), { signal, method: 'POST' }]))
+      },
+
+      copyEntities: async (destNamespace, destName, entityType, entities, link) => {
+        const payload = {
+          sourceWorkspace: { namespace, name },
+          destinationWorkspace: { namespace: destNamespace, name: destName },
+          entityType,
+          entityNames: entities
+        }
+        const res = await fetchRawls(`workspaces/entities/copy?linkExistingEntities=${link}`, _.mergeAll([authOpts(), jsonBody(payload),
+          { signal, method: 'POST' }]))
+        return res.json()
       },
 
       storageCostEstimate: async () => {
@@ -445,6 +490,31 @@ const Buckets = signal => ({
     return _.filter(({ name }) => name.endsWith('.ipynb'), items)
   },
 
+  list: async (namespace, bucket, prefix) => {
+    const res = await fetchBuckets(
+      `storage/v1/b/${bucket}/o?${qs.stringify({ prefix, delimiter: '/' })}`,
+      _.merge(authOpts(await User(signal).token(namespace)), { signal })
+    )
+    return res.json()
+  },
+
+  delete: async (namespace, bucket, name) => {
+    return fetchBuckets(
+      `storage/v1/b/${bucket}/o/${encodeURIComponent(name)}`,
+      _.merge(authOpts(await User(signal).token(namespace)), { signal, method: 'DELETE' })
+    )
+  },
+
+  upload: async (namespace, bucket, prefix, file) => {
+    return fetchBuckets(
+      `upload/storage/v1/b/${bucket}/o?uploadType=media&name=${encodeURIComponent(prefix + file.name)}`,
+      _.merge(authOpts(await User(signal).token(namespace)), {
+        signal, method: 'POST', body: file,
+        headers: { 'Content-Type': file.type, 'Content-Length': file.size }
+      })
+    )
+  },
+
   notebook: (namespace, bucket, name) => {
     const bucketUrl = `storage/v1/b/${bucket}/o`
 
@@ -474,7 +544,7 @@ const Buckets = signal => ({
           `${bucketUrl}/${encodeURIComponent(`notebooks/${name}`)}?alt=media`,
           _.merge(authOpts(await User(signal).token(namespace)), { signal })
         ).then(res => res.text())
-        return fetchOk(`${await Config.getCalhounRoot()}/api/convert`,
+        return fetchOk(`${getConfig().calhounUrlRoot}/api/convert`,
           _.mergeAll([authOpts(), { signal, method: 'POST', body: nb }])
         ).then(res => res.text())
       },
@@ -496,7 +566,7 @@ const Buckets = signal => ({
       getObject,
 
       rename: async newName => {
-        await copy(newName)
+        await copy(newName, bucket)
         return doDelete()
       }
     }
@@ -505,6 +575,11 @@ const Buckets = signal => ({
 
 
 const Methods = signal => ({
+  list: async params => {
+    const res = await fetchAgora(`methods?${qs.stringify(params)}`, _.merge(authOpts(), { signal }))
+    return res.json()
+  },
+
   configInputsOutputs: async loadedConfig => {
     const res = await fetchRawls('methodconfigs/inputsOutputs',
       _.mergeAll([authOpts(), jsonBody(loadedConfig.methodRepoMethod), { signal, method: 'POST' }]))
@@ -537,11 +612,11 @@ const Jupyter = signal => ({
       create: async clusterOptions => {
         const body = _.merge(clusterOptions, {
           labels: { saturnAutoCreated: 'true', saturnVersion: version },
-          defaultClientId: await Config.getGoogleClientId(),
+          defaultClientId: getConfig().googleClientId,
           userJupyterExtensionConfig: {
             nbExtensions: {
               'saturn-iframe-extension':
-                `${window.location.hostname === 'localhost' ? await Config.getDevUrlRoot() : window.location.origin}/jupyter-iframe-extension.js`
+                `${window.location.hostname === 'localhost' ? getConfig().devUrlRoot : window.location.origin}/jupyter-iframe-extension.js`
             },
             serverExtensions: {},
             combinedExtensions: {}
@@ -597,7 +672,7 @@ const Dockstore = signal => ({
 
 const Martha = signal => ({
   call: async uri => {
-    return fetchOk(await Config.getMarthaUrlRoot(),
+    return fetchOk(getConfig().marthaUrlRoot,
       _.mergeAll([jsonBody({ uri }), authOpts(), appIdentifier, { signal, method: 'POST' }])
     ).then(res => res.json())
   }

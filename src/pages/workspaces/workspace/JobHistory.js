@@ -11,7 +11,7 @@ import { FlexTable, HeaderCell, TextCell } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
-import * as Config from 'src/libs/config'
+import { getConfig } from 'src/libs/config'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as Utils from 'src/libs/utils'
@@ -141,7 +141,7 @@ const JobHistory = _.flow(
 
   render() {
     const { namespace, name, ajax: { Workspaces } } = this.props
-    const { submissions, loading, aborting, newSubmissionId, highlightNewSubmission, firecloudRoot } = this.state
+    const { submissions, loading, aborting, newSubmissionId, highlightNewSubmission } = this.state
 
     return div({ style: styles.submissionsTable }, [
       submissions && !!submissions.length && h(AutoSizer, [
@@ -186,7 +186,7 @@ const JobHistory = _.flow(
                       h(MenuButton, {
                         as: 'a',
                         target: '_blank',
-                        href: `${firecloudRoot}/#workspaces/${namespace}/${name}/monitor/${submissionId}`
+                        href: `${getConfig().firecloudUrlRoot}/#workspaces/${namespace}/${name}/monitor/${submissionId}`
                       }, [menuIcon('circle-arrow right'), 'View job details']),
                       isTerminal(status) && workflowStatuses['Failed'] &&
                       submissionEntity && submissionEntity.entityType.endsWith('_set') && h(MenuButton, {
@@ -263,7 +263,6 @@ const JobHistory = _.flow(
 
   async componentDidMount() {
     this.refresh()
-    this.setState({ firecloudRoot: await Config.getFirecloudUrlRoot() })
   }
 
   componentWillUnmount() {

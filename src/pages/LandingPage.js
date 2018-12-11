@@ -1,4 +1,4 @@
-import { div, h, img } from 'react-hyperscript-helpers'
+import { div, h, img, span } from 'react-hyperscript-helpers'
 import { pure } from 'recompose'
 import { linkButton } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
@@ -44,12 +44,17 @@ const LandingPage = pure(() => {
       }
     }, [
       img({ src: landingPageHero, style: { position: 'absolute', right: 0, top: 60 } }),
-      div({ style: { fontSize: 22 } }, 'Welcome to'),
-      div({ style: { fontSize: 85 } }, 'Terra'),
-      hexLink('Access data from a rich ecosystem\nof Terra-connected data portals', 'Browse\nData', Nav.getLink('browse-data')),
+      div({ style: { whiteSpace: 'pre-line' } }, [
+        div({ style: { fontSize: 45, color: '#359448' } }, 'Welcome to Terra.\n'),
+        div({ style: { fontSize: 24, marginBottom: '2rem' } }, [
+          'Terra is a cloud-native platform for\n',
+          'biomedical researchers to access ', span({ style: { fontWeight: 'bold' } }, 'data,\n'),
+          'run analysis ', span({ style: { fontWeight: 'bold' } }, 'tools, '), 'and', span({ style: { fontWeight: 'bold' } }, ' collaborate.')
+        ])
+      ]),
+      hexLink('Access data from a rich ecosystem\nof Terra-connected data portals', 'Browse\nData', Nav.getLink('library-datasets')),
       div({ style: { margin: '-0.5rem 0 -0.5rem 3rem' } }, [
-        hexLink('Find ready-for-use bioinformatics workflows\nfrom the Dockstore workflow repository', 'Explore\nTools',
-          'https://dockstore.org/search?descriptorType=wdl&searchMode=files')
+        hexLink('Find ready-for-use bioinformatics workflows,\nor search workflow repositories', 'Explore\nTools', Nav.getLink('library-code'))
       ]),
       hexLink(
         'Terra Workspaces connect your data to\npopular analysis tools powered by the\ncloud. Use Workspaces to share data,\ncode, and results easily and securely',
