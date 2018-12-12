@@ -496,7 +496,7 @@ const WorkflowView = _.flow(
             ]),
             !!rootEntityType && h(Fragment, [
               div({ style: { margin: '0.5rem 0', borderBottom: `1px solid ${colors.gray[3]}` } }),
-              div({ style: styles.outputInfoLabel }, 'Output references will be written to'),
+              div({ style: styles.outputInfoLabel }, 'References to outputs will be written to'),
               div({ style: { display: 'flex', alignItems: 'center' } }, [
                 div({ style: { flex: 'none', display: 'flex', width: '1.5rem' } }, [icon('listAlt')]),
                 `Tables / ${rootEntityType}`

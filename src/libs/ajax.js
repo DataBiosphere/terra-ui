@@ -216,32 +216,32 @@ const User = signal => ({
 const Groups = signal => ({
   // TODO: Replace when switching back to SAM for groups api
   list: async () => {
-    const res = await fetchRawls('groups', _.merge(authOpts(), { signal }))
+    const res = await fetchOrchestration('api/groups', _.merge(authOpts(), { signal }))
     return res.json()
   },
 
   group: groupName => {
-    const root = `groups/${groupName}`
+    const root = `api/groups/${groupName}`
 
     const addMember = async (role, email) => {
-      return fetchRawls(`${root}/${role}/${email}`, _.merge(authOpts(), { signal, method: 'PUT' }))
+      return fetchOrchestration(`${root}/${role}/${email}`, _.merge(authOpts(), { signal, method: 'PUT' }))
     }
 
     const removeMember = async (role, email) => {
-      return fetchRawls(`${root}/${role}/${email}`, _.merge(authOpts(), { signal, method: 'DELETE' }))
+      return fetchOrchestration(`${root}/${role}/${email}`, _.merge(authOpts(), { signal, method: 'DELETE' }))
     }
 
     return {
       create: () => {
-        return fetchRawls(root, _.merge(authOpts(), { signal, method: 'POST' }))
+        return fetchOrchestration(root, _.merge(authOpts(), { signal, method: 'POST' }))
       },
 
       delete: () => {
-        return fetchRawls(root, _.merge(authOpts(), { signal, method: 'DELETE' }))
+        return fetchOrchestration(root, _.merge(authOpts(), { signal, method: 'DELETE' }))
       },
 
       listMembers: async () => {
-        const res = await fetchRawls(`${root}`, _.merge(authOpts(), { signal }))
+        const res = await fetchOrchestration(`${root}`, _.merge(authOpts(), { signal }))
         return res.json()
       },
 

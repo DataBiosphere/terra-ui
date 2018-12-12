@@ -1,11 +1,12 @@
 import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
-import { backgroundLogo, spinnerOverlay } from 'src/components/common'
+import { spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import TopBar from 'src/components/TopBar'
 import WDLViewer from 'src/components/WDLViewer'
 import { WorkspaceImporter } from 'src/components/workspace-utils'
+import importBackground from 'src/images/hex-import-background.svg'
 import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
@@ -18,14 +19,16 @@ import { Component } from 'src/libs/wrapped-components'
 const styles = {
   container: {
     display: 'flex', alignItems: 'flex-start', flex: 'auto',
+    backgroundImage: `url(${importBackground})`, backgroundRepeat: 'no-repeat',
+    backgroundSize: '1825px', backgroundPosition: 'left 745px top -90px',
     position: 'relative', padding: '2rem'
   },
   title: {
     fontSize: 24, fontWeight: 600, color: colors.darkBlue[0], marginBottom: '2rem'
   },
   card: {
-    borderRadius: 5, backgroundColor: 'rgba(255,255,255,0.85)', padding: '2rem',
-    flex: 1, minWidth: 0, boxShadow: Style.standardShadow
+    ...Style.elements.card, borderRadius: 8, padding: '2rem', flex: 1, minWidth: 0,
+    boxShadow: '0 1px 5px 0 rgba(0,0,0,0.26), 0 2px 10px 0 rgba(0,0,0,0.16)'
   }
 }
 
@@ -48,10 +51,10 @@ const DockstoreImporter = ajaxCaller(class DockstoreImporter extends Component {
     const { path, version } = this.props
     const { isImporting, wdl } = this.state
     return div({ style: styles.container }, [
-      div({ style: styles.card }, [
+      div({ style: { ...styles.card, maxWidth: 740 } }, [
         div({ style: styles.title }, ['Importing from Dockstore']),
-        div({ style: { fontSize: 16 } }, [path]),
-        div([`V. ${version}`]),
+        div({ style: { fontSize: 18 } }, [path]),
+        div({ style: { fontSize: 13, color: colors.gray[0] } }, [`V. ${version}`]),
         div({
           style: {
             display: 'flex', alignItems: 'center',
@@ -64,7 +67,7 @@ const DockstoreImporter = ajaxCaller(class DockstoreImporter extends Component {
         ]),
         wdl && h(WDLViewer, { wdl, style: { height: 500 } })
       ]),
-      div({ style: { ...styles.card, marginLeft: '2rem' } }, [
+      div({ style: { ...styles.card, margin: '0 2.5rem', maxWidth: 430 } }, [
         div({ style: styles.title }, ['Destination Workspace']),
         h(WorkspaceImporter, { onImport: ws => this.import_(ws) }),
         isImporting && spinnerOverlay
@@ -104,7 +107,6 @@ class Importer extends Component {
     const { source } = this.props
 
     return h(Fragment, [
-      backgroundLogo,
       h(TopBar, { title: 'Import Tool' }),
       Utils.cond(
         [source === 'dockstore', () => this.renderDockstore()],

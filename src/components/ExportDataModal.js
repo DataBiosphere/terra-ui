@@ -1,5 +1,6 @@
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
+import { Fragment } from 'react'
 import { b, div, h } from 'react-hyperscript-helpers'
 import { buttonPrimary, spinnerOverlay } from 'src/components/common'
 import ErrorView from 'src/components/ErrorView'
@@ -85,9 +86,9 @@ export default _.flow(
 
     return h(Modal, {
       onDismiss,
-      title: 'Copy to Workspace',
+      title: 'Copy Data to Workspace',
       okButton: buttonPrimary({
-        tooltip: (hardConflicts.length !== 0) ? 'Override existing entities, are you sure?' : Utils.summarizeErrors(errors),
+        tooltip: (hardConflicts.length !== 0) ? 'Are you sure you want to override existing data?' : Utils.summarizeErrors(errors),
         disabled: !!errors || copying,
         onClick: () => this.copy()
       }, ['Copy'])
@@ -97,23 +98,25 @@ export default _.flow(
         content: `WARNING: ${runningSubmissionsCount} workflows are currently running in this workspace. ` +
           'Copying the following data could cause failures if a workflow is using this data.'
       }),
-      requiredFormLabel('Destination'),
-      h(WorkspaceSelector, {
-        workspaces: _.filter(Utils.isValidWsExportTarget(workspace), workspaces),
-        value: selectedWorkspaceId,
-        onChange: v => this.setState({ selectedWorkspaceId: v })
-      }),
+      !((hardConflicts.length !== 0) || moreToDelete || (softConflicts.length !== 0)) && h(Fragment, [
+        requiredFormLabel('Destination'),
+        h(WorkspaceSelector, {
+          workspaces: _.filter(Utils.isValidWsExportTarget(workspace), workspaces),
+          value: selectedWorkspaceId,
+          onChange: v => this.setState({ selectedWorkspaceId: v })
+        })
+      ]),
       (hardConflicts.length !== 0) && InfoTile({
         infoStyle: errorStyle, iconName: 'error-standard',
-        content: 'The following entries already exist in the selected workspace. Please select CANCEL to go back or COPY to override the existing entities. '
+        content: 'Some of the following data already exists in the selected workspace. Click CANCEL to go back or COPY to override the existing data.'
       }),
       moreToDelete && InfoTile({
         infoStyle: warningStyle, iconName: 'warning-standard',
-        content: 'In order to override the selected data entries, the following entries that reference the original data must ALSO be deleted.'
+        content: 'To override the selected data entries, the following entries that reference the original data will also be deleted.'
       }),
       (softConflicts.length !== 0) && InfoTile({
         infoStyle: warningStyle, iconName: 'warning-standard',
-        content: 'The following is linked to entries which already exist in the selected workspace. You may link the following to the existing entities by clicking COPY.'
+        content: 'The following data is linked to entries which already exist in the selected workspace. You may re-link the following data to the existing entries by clicking COPY.'
       }),
       formLabel('Entries selected'),
       ...Utils.cond(
