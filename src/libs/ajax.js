@@ -178,7 +178,7 @@ const User = signal => ({
   // 2. Check the tickets are generated on Zendesk
   // 3. Reply internally (as a Light Agent) and make sure an email is not sent
   // 4. Reply externally (ask one of the Comms team with Full Agent access) and make sure you receive an email
-  createSupportRequest: async ({ name, email, currUrl, subject, type, description }) => {
+  createSupportRequest: async ({ name, email, currUrl, subject, type, description, attachmentToken }) => {
     return fetchOk(
       `https://broadinstitute.zendesk.com/api/v2/requests.json`,
       _.merge({ signal, method: 'POST' }, jsonBody({
@@ -193,10 +193,29 @@ const User = signal => ({
             { id: 360012782111, value: email }
           ],
           comment: {
-            body: `${description}\n\n------------------\nSubmitted from: ${currUrl}`
+            body: `${description}\n\n------------------\nSubmitted from: ${currUrl}`,
+            uploads: [`${attachmentToken}`]
           }
         }
       })))
+  },
+
+  uploadAttachment: async file => {
+    fetch(`https://broadinstitute.zendesk.com/api/v2/uploads?filename=${file.name}`, {
+      method: 'POST',
+      body: file,
+      headers: {
+        'Content-Type': 'application/binary'
+      }
+    })
+      .then(response => {
+        return response.json()
+      })
+      .then(json => {
+        console.log(json.upload.token)
+        console.log(json)
+        return json.upload.token
+      })
   }
 })
 
@@ -448,8 +467,10 @@ const Workspaces = signal => ({
           entityType,
           entityNames: entities
         }
-        const res = await fetchRawls(`workspaces/entities/copy?linkExistingEntities=${link}`, _.mergeAll([authOpts(), jsonBody(payload),
-          { signal, method: 'POST' }]))
+        const res = await fetchRawls(`workspaces/entities/copy?linkExistingEntities=${link}`, _.mergeAll([
+          authOpts(), jsonBody(payload),
+          { signal, method: 'POST' }
+        ]))
         return res.json()
       },
 
