@@ -93,8 +93,9 @@ export const NpsSurvey = _.flow(
     return requestable && div({
       style: {
         position: 'fixed', bottom: '1.5rem', right: expanded ? '1.5rem' : 0,
-        zIndex: 1,
-        transition: 'right 0.2s linear'
+        transform: `translate(${shouldShow ? '0%' : 'calc(100% + 5px)'})`,
+        transition: 'right 0.2s linear, transform 0.3s linear',
+        zIndex: 1
       }
     }, [
       h(Clickable, {
@@ -108,7 +109,6 @@ export const NpsSurvey = _.flow(
           backgroundColor: colors.darkBlue[0], color: 'white',
           borderRadius: expanded ? '0.5rem' : '0.5rem 0 0 0.5rem',
           transition: 'all 0.25s linear',
-          transform: `translate(${shouldShow ? '0%' : '100%'})`,
           boxShadow: Style.standardShadow
         }
       },
@@ -135,8 +135,7 @@ export const NpsSurvey = _.flow(
         onClick: goAway(false),
         size: 20,
         style: {
-          position: 'absolute', top: shouldShow ? -5 : -9999, left: -5,
-          transition: 'top 0s 0.6s',
+          position: 'absolute', top: -5, left: -5,
           backgroundColor: 'black',
           color: 'white',
           borderRadius: '1rem'
