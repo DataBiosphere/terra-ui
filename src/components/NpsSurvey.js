@@ -14,7 +14,7 @@ import * as Utils from 'src/libs/utils'
 
 export const responseRequested = Utils.atom(false)
 
-const style = {
+const styles = {
   questionLabel: { fontWeight: 600, marginBottom: '0.5rem' },
   questionInput: { marginBottom: '0.75rem', height: '4rem' }
 }
@@ -30,17 +30,17 @@ export const NpsSurvey = _.flow(
   }
 
   componentDidMount() {
-    const { authState: { isSignedIn } } = this.props
+    const { authState: { registrationStatus } } = this.props
 
-    if (isSignedIn) {
+    if (registrationStatus === 'registered') {
       this.loadStatus()
     }
   }
 
   componentDidUpdate(prevProps) {
-    const { authState: { isSignedIn } } = this.props
+    const { authState: { registrationStatus } } = this.props
 
-    if (isSignedIn && !prevProps.authState.isSignedIn) {
+    if (registrationStatus === 'registered' && prevProps.authState.registrationStatus !== 'registered') {
       this.loadStatus()
     }
   }
@@ -115,12 +115,12 @@ export const NpsSurvey = _.flow(
       !expanded ?
         'How are we doing?' :
         [
-          div({ style: style.questionLabel }, 'How likely are you to recommend Terra to others?'),
+          div({ style: styles.questionLabel }, 'How likely are you to recommend Terra to others?'),
           div({ style: { display: 'flex', justifyContent: 'space-around', marginBottom: '0.5rem' } }, scoreRadios),
-          div({ style: style.questionLabel }, 'What was the reason for this score?'),
-          TextArea({ style: style.questionInput, value: reasonComment, onChange: e => this.setState({ reasonComment: e.target.value }) }),
-          div({ style: style.questionLabel }, 'What could we change?'),
-          TextArea({ style: style.questionInput, value: changeComment, onChange: e => this.setState({ changeComment: e.target.value }) }),
+          div({ style: styles.questionLabel }, 'What was the reason for this score?'),
+          TextArea({ style: styles.questionInput, value: reasonComment, onChange: e => this.setState({ reasonComment: e.target.value }) }),
+          div({ style: styles.questionLabel }, 'What could we change?'),
+          TextArea({ style: styles.questionInput, value: changeComment, onChange: e => this.setState({ changeComment: e.target.value }) }),
           div({ style: { display: 'flex', justifyContent: 'flex-end' } }, [
             buttonSecondary({
               style: { color: 'white' },
