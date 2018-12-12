@@ -1,6 +1,6 @@
 // Each entry in this list is a MD5 hash of an email address which should be allowed access
 // to the Terra app. To add yourself to this list, generate your MD5 using the command
-// 'md5 -s me@example.com' or a web tool like https://www.md5hashgenerator.com/. Then edit
+// 'npx md5 -s me@example.com' or a web tool like https://www.md5hashgenerator.com/. Then edit
 // this file and submit a pull request to the Saturn-UI repo.
 export default [
   '550ef041a8027d71cf37ca79e5a1da34', // b.adm.firec@gmail.com
@@ -344,5 +344,6 @@ export default [
   '51511be7a41ed4b5281629fd9eeb2ec2',
   '76a00b417a6de0a93cdf1502bf08c738',
   '563418d13dba7b6eb64ef1c0f47f7a1b',
-  'bf3c811dd57688eb7fa38bf9526829b7'
+  'bf3c811dd57688eb7fa38bf9526829b7',
+  '77de2add026fe42f7e212766a123349a'
 ]
