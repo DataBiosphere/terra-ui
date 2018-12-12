@@ -151,10 +151,20 @@ export const GroupList = ajaxCaller(class GroupList extends Component {
 
     try {
       this.setState({ isDataLoaded: false, creatingNewGroup: false, deletingGroup: false, updating: false })
+
       const groups = await Groups.list()
+      const admins = _.flow(
+        _.filter({ role: 'Admin' }),
+        _.sortBy(({ groupName }) => groupName.toLowerCase())
+      )(groups)
+      const members = _.flow(
+        _.filter(({ groupEmail, role }) => role === 'Member' && !_.find({ groupEmail }, admins)),
+        _.sortBy(({ groupName }) => groupName.toLowerCase())
+      )(groups)
+
       this.setState({
         isDataLoaded: true,
-        groups: _.sortBy('group.groupName', groups)
+        groups: _.concat(admins, members)
       })
     } catch (error) {
       reportError('Error loading group list', error)
@@ -195,10 +205,7 @@ export const GroupList = ajaxCaller(class GroupList extends Component {
                 group, key: `${group.groupName}-${group.role}`, // can be an admin and a user at same time
                 onDelete: () => this.setState({ deletingGroup: group })
               })
-            }, _.flow(
-              _.filter(({ groupName }) => Utils.textMatch(filter, groupName)),
-              _.sortBy(['role', 'groupName'])
-            )(groups))
+            }, _.filter(({ groupName }) => Utils.textMatch(filter, groupName), groups))
           ),
           !isDataLoaded && spinnerOverlay
         ]),
