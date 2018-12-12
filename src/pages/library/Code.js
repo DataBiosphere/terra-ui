@@ -8,7 +8,7 @@ import dockstoreLogo from 'src/images/library/code/dockstore.svg'
 import firecloudLogo from 'src/images/library/code/firecloud.svg'
 import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
-import * as Config from 'src/libs/config'
+import { getConfig } from 'src/libs/config'
 import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
@@ -22,11 +22,11 @@ const styles = {
   }
 }
 
-const makeCard = firecloudRoot => method => {
+const makeCard = method => {
   const { namespace, name, synopsis } = method
 
   return a({
-    href: `${firecloudRoot}/?return=terra#methods/${namespace}/${name}/`,
+    href: `${getConfig().firecloudUrlRoot}/?return=terra#methods/${namespace}/${name}/`,
     style: {
       backgroundColor: 'white',
       width: 390, height: 140,
@@ -67,27 +67,25 @@ const logoTile = logoFile => div({
 const Code = ajaxCaller(class Code extends Component {
   constructor(props) {
     super(props)
-    const { featuredList, methods, firecloudRoot } = StateHistory.get()
+    const { featuredList, methods } = StateHistory.get()
 
-    this.state = { featuredList, methods, firecloudRoot }
+    this.state = { featuredList, methods }
   }
 
   async componentDidMount() {
     const { ajax: { Methods } } = this.props
 
-    const [featuredList, methods, firecloudRoot, dockstoreRoot] = await Promise.all([
-      fetch(`${await Config.getFirecloudBucketRoot()}/featured-methods.json`).then(res => res.json()),
-      Methods.list({ namespace: 'gatk' }),
-      Config.getFirecloudUrlRoot(),
-      Config.getDockstoreUrlRoot()
+    const [featuredList, methods] = await Promise.all([
+      fetch(`${getConfig().firecloudBucketRoot}/featured-methods.json`).then(res => res.json()),
+      Methods.list({ namespace: 'gatk' })
     ])
 
-    this.setState({ featuredList, methods, firecloudRoot, dockstoreRoot })
-    StateHistory.update({ featuredList, methods, firecloudRoot, dockstoreRoot })
+    this.setState({ featuredList, methods })
+    StateHistory.update({ featuredList, methods })
   }
 
   render() {
-    const { featuredList, methods, firecloudRoot, dockstoreRoot } = this.state
+    const { featuredList, methods } = this.state
 
     const featuredMethods = _.compact(
       _.map(
@@ -104,7 +102,7 @@ const Code = ajaxCaller(class Code extends Component {
           div({ style: { flex: 1, margin: '30px 0 30px 40px' } }, [
             div({ style: styles.header }, 'GATK4 Best Practices workflows'),
             div({ style: { display: 'flex', flexWrap: 'wrap' } }, [
-              ..._.map(makeCard(firecloudRoot), featuredMethods)
+              ..._.map(makeCard, featuredMethods)
             ])
           ]),
           div({ style: { width: 385, padding: '25px 30px', backgroundColor: colors.gray[5], lineHeight: '20px' } }, [
@@ -112,14 +110,14 @@ const Code = ajaxCaller(class Code extends Component {
             div({ style: { display: 'flex' } }, [
               logoTile(dockstoreLogo),
               div([
-                link({ href: `${dockstoreRoot}/search?descriptorType=wdl&searchMode=files` }, 'Dockstore'),
+                link({ href: `${getConfig().dockstoreUrlRoot}/search?descriptorType=wdl&searchMode=files` }, 'Dockstore'),
                 div(['Browse WDL workflows in Dockstore, an open platform used by the GA4GH for sharing Docker-based tools'])
               ])
             ]),
             div({ style: { display: 'flex', marginTop: 40 } }, [
               logoTile(firecloudLogo),
               div([
-                link({ href: `${firecloudRoot}/?return=terra#methods` }, 'Firecloud Methods Repository'),
+                link({ href: `${getConfig().firecloudUrlRoot}/?return=terra#methods` }, 'Firecloud Methods Repository'),
                 div(['Use FireCloud workflows in Terra. Share your own, or choose from > 700 public workflows'])
               ])
             ])

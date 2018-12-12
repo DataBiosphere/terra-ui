@@ -18,7 +18,7 @@ import UriViewer from 'src/components/UriViewer'
 import { ajaxCaller } from 'src/libs/ajax'
 import { getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
-import * as Config from 'src/libs/config'
+import { getConfig } from 'src/libs/config'
 import { EntityDeleter, EntityUploader, ReferenceDataDeleter, ReferenceDataImporter, renderDataCell } from 'src/libs/data-utils'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
@@ -327,7 +327,6 @@ const EntitiesContent = ajaxCaller(class EntitiesContent extends Component {
 
   async componentDidMount() {
     this.loadData()
-    this.setState({ orchestrationRoot: await Config.getOrchestrationUrlRoot() })
   }
 
   componentDidUpdate(prevProps, prevState) {
@@ -383,11 +382,11 @@ const EntitiesContent = ajaxCaller(class EntitiesContent extends Component {
 
   renderDownloadButton(columnSettings) {
     const { workspace: { workspace: { namespace, name } }, entityKey } = this.props
-    const { orchestrationRoot, selectedEntities } = this.state
+    const { selectedEntities } = this.state
     return h(Fragment, [
       form({
         ref: this.downloadForm,
-        action: `${orchestrationRoot}/cookie-authed/workspaces/${namespace}/${name}/entities/${entityKey}/tsv`,
+        action: `${getConfig().orchestrationUrlRoot}/cookie-authed/workspaces/${namespace}/${name}/entities/${entityKey}/tsv`,
         method: 'POST'
       }, [
         input({ type: 'hidden', name: 'FCtoken', value: getUser().token }),
@@ -395,7 +394,6 @@ const EntitiesContent = ajaxCaller(class EntitiesContent extends Component {
         input({ type: 'hidden', name: 'model', value: 'flexible' })
       ]),
       _.isEmpty(selectedEntities) ? buttonPrimary({
-        disabled: !orchestrationRoot,
         tooltip: 'Download all data as a file',
         onClick: () => this.downloadForm.current.submit()
       }, [

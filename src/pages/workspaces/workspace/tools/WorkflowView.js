@@ -7,18 +7,18 @@ import { div, h, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import {
-  buttonPrimary, buttonSecondary, linkButton, MenuButton, Select, spinnerOverlay, menuIcon, link, methodLink
+  buttonPrimary, buttonSecondary, Clickable, linkButton, MenuButton, Select, spinnerOverlay, menuIcon, link, methodLink
 } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { AutocompleteTextInput } from 'src/components/input'
+import Modal from 'src/components/Modal'
 import PopupTrigger from 'src/components/PopupTrigger'
 import StepButtons, { params as StepButtonParams } from 'src/components/StepButtons'
-import { FlexTable, HeaderCell, TextCell } from 'src/components/table'
+import { FlexTable, HeaderCell, SimpleTable, TextCell } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import WDLViewer from 'src/components/WDLViewer'
 import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
-import * as Config from 'src/libs/config'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
@@ -67,6 +67,12 @@ const styles = {
     marginRight: '0.5rem',
     marginTop: '.1rem',
     color: colors.blue[0]
+  },
+  outputInfoLabel: {
+    color: colors.darkBlue[0]
+  },
+  placeholder: {
+    fontStyle: 'italic'
   }
 }
 
@@ -74,7 +80,7 @@ const ioTask = ({ name }) => _.nth(-2, name.split('.'))
 const ioVariable = ({ name }) => _.nth(-1, name.split('.'))
 const ioType = ({ inputType, outputType }) => (inputType || outputType).match(/(.*?)\??$/)[1] // unify, and strip off trailing '?'
 
-const WorkflowIOTable = ({ which, inputsOutputs: data, config, errors, onChange, onSetDefaults, suggestions }) => {
+const WorkflowIOTable = ({ which, inputsOutputs: data, config, errors, onChange, onSetDefaults, onBrowse, suggestions }) => {
   return h(AutoSizer, [
     ({ width, height }) => {
       return h(FlexTable, {
@@ -116,16 +122,35 @@ const WorkflowIOTable = ({ which, inputsOutputs: data, config, errors, onChange,
               ])
             ]),
             cellRenderer: ({ rowIndex }) => {
-              const { name, optional } = data[rowIndex]
+              const { name, optional, inputType } = data[rowIndex]
               const value = config[which][name] || ''
               const error = errors[which][name]
+              const isFile = (inputType === 'File') || (inputType === 'File?')
               return div({ style: { display: 'flex', alignItems: 'center', width: '100%' } }, [
                 onChange ? h(AutocompleteTextInput, {
                   placeholder: optional ? 'Optional' : 'Required',
                   value,
+                  style: isFile ? { borderRadius: '4px 0px 0px 4px', borderRight: 'white' } : undefined,
                   onChange: v => onChange(name, v),
                   suggestions
-                }) : h(TextCell, { style: { flex: 1 } }, value),
+                }) : h(TextCell, { style: { flex: 1, borderRadius: '4px 0px 0px 4px', borderRight: 'white' } }, value),
+                isFile && h(Clickable, {
+                  style: {
+                    height: '2.25rem',
+                    border: `1px solid ${colors.gray[3]}`, borderRadius: '0px 4px 4px 0px',
+                    borderLeft: 'white'
+                  },
+                  onClick: () => onBrowse(name),
+                  tooltip: 'Browse bucket files'
+                }, [
+                  icon('folder-open', {
+                    size: 20, style: {
+                      height: '2.25rem',
+                      marginTop: '0.4rem',
+                      marginRight: '0.5rem'
+                    }
+                  })
+                ]),
                 error && h(TooltipTrigger, { content: error }, [
                   icon('error', {
                     size: 28, style: { marginLeft: '0.5rem', color: colors.red[0], cursor: 'help' }
@@ -139,6 +164,90 @@ const WorkflowIOTable = ({ which, inputsOutputs: data, config, errors, onChange,
     }
   ])
 }
+
+const BucketContentModal = ajaxCaller(class BucketContentModal extends Component {
+  constructor(props) {
+    super(props)
+    this.state = {
+      prefix: '',
+      objects: undefined
+    }
+  }
+
+  componentDidMount() {
+    this.load()
+  }
+
+  componentDidUpdate(prevProps) {
+    StateHistory.update(_.pick(['objects', 'prefix'], this.state))
+  }
+
+  async load(prefix = this.state.prefix) {
+    const { workspace: { workspace: { namespace, bucketName } }, ajax: { Buckets } } = this.props
+    try {
+      this.setState({ loading: true })
+      const { items, prefixes } = await Buckets.list(namespace, bucketName, prefix)
+      this.setState({ objects: items, prefixes, prefix })
+    } catch (error) {
+      reportError('Error loading bucket data', error)
+    } finally {
+      this.setState({ loading: false })
+    }
+  }
+
+  render() {
+    const { workspace: { workspace: { bucketName } }, onDismiss, onSelect } = this.props
+    const { prefix, prefixes, objects, loading } = this.state
+    const prefixParts = _.dropRight(1, prefix.split('/'))
+    return h(Modal, {
+      style: { flexGrow: 1, backgroundColor: 'white', border: `1px solid ${colors.gray[3]}`, padding: '1rem' },
+      activeStyle: { backgroundColor: colors.blue[3], cursor: 'copy' },
+      onDismiss,
+      title: 'Choose input file',
+      showX: true,
+      showButtons: false
+    }, [
+      div([
+        _.map(({ label, target }) => {
+          return h(Fragment, { key: target }, [
+            linkButton({ onClick: () => this.load(target) }, [label]),
+            ' / '
+          ])
+        }, [
+          { label: 'Files', target: '' },
+          ..._.map(n => {
+            return { label: prefixParts[n], target: _.map(s => `${s}/`, _.take(n + 1, prefixParts)).join('') }
+          }, _.range(0, prefixParts.length))
+        ])
+      ]),
+      div({ style: { margin: '1rem -1rem 1rem -1rem', borderBottom: `1px solid ${colors.gray[5]}` } }),
+      h(SimpleTable, {
+        columns: [
+          { header: h(HeaderCell, ['Name']), size: { grow: 1 }, key: 'name' }
+        ],
+        rows: [
+          ..._.map(p => {
+            return {
+              name: h(TextCell, [
+                linkButton({ onClick: () => this.load(p) }, [p.slice(prefix.length)])
+              ])
+            }
+          }, prefixes),
+          ..._.map(({ name }) => {
+            return {
+              name: h(TextCell, [
+                linkButton({ onClick: () => onSelect(`"gs://${bucketName}/${name}"`) }, [
+                  name.slice(prefix.length)
+                ])
+              ])
+            }
+          }, objects)
+        ]
+      }),
+      (loading) && spinnerOverlay
+    ])
+  }
+})
 
 class TextCollapse extends Component {
   static propTypes = {
@@ -203,17 +312,15 @@ const WorkflowView = _.flow(
   }
 
   render() {
-    const { isFreshData, savedConfig, launching, activeTab } = this.state
-    const { namespace, name } = this.props
-
+    const { isFreshData, savedConfig, launching, activeTab, variableSelected, modifiedConfig } = this.state
+    const { namespace, name, workspace } = this.props
     const workspaceId = { namespace, name }
-
     return h(Fragment, [
       savedConfig && h(Fragment, [
         this.renderSummary(),
         Utils.cond(
           [activeTab === 'inputs', () => this.renderIOTable('inputs')],
-          [activeTab === 'outputs', () => this.renderIOTable('outputs')],
+          [activeTab === 'outputs' && !!modifiedConfig.rootEntityType, () => this.renderIOTable('outputs')],
           [activeTab === 'wdl', () => this.renderWDL()]
         ),
         launching && h(LaunchAnalysisModal, {
@@ -222,6 +329,13 @@ const WorkflowView = _.flow(
           onSuccess: submissionId => {
             JobHistory.flagNewSubmission(submissionId)
             Nav.goToPath('workspace-job-history', workspaceId)
+          }
+        }),
+        variableSelected && h(BucketContentModal, {
+          workspace,
+          onDismiss: () => this.setState({ variableSelected: undefined }),
+          onSelect: v => {
+            this.setState({ modifiedConfig: _.set(['inputs', variableSelected], v, modifiedConfig), variableSelected: undefined })
           }
         })
       ]),
@@ -249,8 +363,6 @@ const WorkflowView = _.flow(
       this.setState({
         isFreshData: true, savedConfig: config, modifiedConfig: config,
         entityMetadata, inputsOutputs: _.update('inputs', _.sortBy('optional'), inputsOutputs),
-        firecloudRoot: await Config.getFirecloudUrlRoot(),
-        dockstoreRoot: await Config.getDockstoreUrlRoot(),
         errors: augmentErrors(validationResponse),
         workspaceAttributes: _.flow(
           _.without(['description']),
@@ -290,7 +402,7 @@ const WorkflowView = _.flow(
 
   renderSummary() {
     const { workspace: { canCompute, workspace }, namespace, name: workspaceName } = this.props
-    const { modifiedConfig, savedConfig, entityMetadata, saving, saved, copying, deleting, activeTab, errors, firecloudRoot, dockstoreRoot, synopsis, documentation } = this.state
+    const { modifiedConfig, savedConfig, entityMetadata, saving, saved, copying, deleting, activeTab, errors, synopsis, documentation } = this.state
     const { name, methodRepoMethod: { methodPath, methodVersion, methodNamespace, methodName }, rootEntityType } = modifiedConfig
     const modified = !_.isEqual(modifiedConfig, savedConfig)
     const noLaunchReason = Utils.cond(
@@ -325,7 +437,7 @@ const WorkflowView = _.flow(
           div({ style: { marginTop: '0.5rem' } }, `Snapshot ${methodVersion}`),
           div([
             'Source: ', link({
-              href: methodLink(modifiedConfig, firecloudRoot, dockstoreRoot),
+              href: methodLink(modifiedConfig),
               target: '_blank'
             }, methodPath ? methodPath : `${methodNamespace}/${methodName}/${methodVersion}`)
           ]),
@@ -368,7 +480,28 @@ const WorkflowView = _.flow(
                 height: StepButtonParams.buttonHeight, fontSize: StepButtonParams.fontSize
               }
             }, ['Run analysis'])
-          })
+          }),
+          activeTab === 'outputs' && div({ style: { marginBottom: '1rem' } }, [
+            div({ style: styles.outputInfoLabel }, 'Output files will be saved to'),
+            div({ style: { display: 'flex', alignItems: 'center' } }, [
+              div({ style: { flex: 'none', display: 'flex', width: '1.5rem' } }, [icon('folder', { size: 18 })]),
+              div({ style: { flex: 1 } }, [
+                'Files / ',
+                span({ style: styles.placeholder }, 'submission unique ID'),
+                ` / ${methodName} / `,
+                span({ style: styles.placeholder }, 'workflow unique ID')
+              ])
+            ]),
+            !!rootEntityType && h(Fragment, [
+              div({ style: { margin: '0.5rem 0', borderBottom: `1px solid ${colors.gray[3]}` } }),
+              div({ style: styles.outputInfoLabel }, 'References to outputs will be written to'),
+              div({ style: { display: 'flex', alignItems: 'center' } }, [
+                div({ style: { flex: 'none', display: 'flex', width: '1.5rem' } }, [icon('listAlt')]),
+                `Tables / ${rootEntityType}`
+              ]),
+              `Fill in the attributes below to add or update columns in your data table`
+            ])
+          ])
         ]),
         div({ style: { flex: 'none', display: 'flex', flexDirection: 'column', alignItems: 'flex-end' } }, [
           linkButton({
@@ -470,6 +603,7 @@ const WorkflowView = _.flow(
           inputsOutputs: filteredData,
           config: modifiedConfig,
           errors,
+          onBrowse: name => this.setState({ variableSelected: name }),
           onChange: canCompute ? ((name, v) => this.setState(_.set(['modifiedConfig', key, name], v))) : undefined,
           onSetDefaults: canCompute && key === 'outputs' ? () => {
             this.setState(_.update(['modifiedConfig', 'outputs'], _.flow(

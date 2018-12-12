@@ -13,7 +13,7 @@ import nhsLogo from 'src/images/library/datasets/NHS@2x.png'
 import topMedLogo from 'src/images/library/datasets/TopMed@2x.png'
 import ukbLogo from 'src/images/library/datasets/UKB@2x.jpg'
 import colors from 'src/libs/colors'
-import * as Config from 'src/libs/config'
+import { getConfig } from 'src/libs/config'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import { Component } from 'src/libs/wrapped-components'
@@ -64,7 +64,7 @@ const logoBox = ({ src, alt, height }) => div({
 class Participant extends Component {
   render() {
     const { logo, title, shortDescription, description, sizeText, children, isFirecloud } = this.props
-    const { showingModal, firecloudRoot } = this.state
+    const { showingModal } = this.state
     const child = Children.only(children)
 
     const titleElement = div({ style: styles.participant.title }, [title])
@@ -85,7 +85,7 @@ class Participant extends Component {
         div({ style: styles.participant.sizeText }, [sizeText]),
         div({ style: { marginTop: '1rem' } }, [
           isFirecloud ?
-            cloneElement(child, { href: firecloudRoot + child.props.href }) :
+            cloneElement(child, { href: getConfig().firecloudUrlRoot + child.props.href }) :
             children
         ])
       ]),
@@ -100,10 +100,6 @@ class Participant extends Component {
         sizeText && p([sizeText])
       ])
     ])
-  }
-
-  async componentDidMount() {
-    this.props.isFirecloud && this.setState({ firecloudRoot: await Config.getFirecloudUrlRoot() })
   }
 }
 
@@ -149,8 +145,8 @@ const ukb = h(Participant, {
   title: `UK Biobank`,
   description: h(Fragment, [
     link({ href: 'https://www.ukbiobank.ac.uk/', target: '_blank' }, 'UK Biobank'),
-    ` is a national and international health resource with unparalleled research opportunities, 
-    open to bona fide health researchers. UK Biobank aims to improve the prevention, diagnosis and treatment of a wide 
+    ` is a national and international health resource with unparalleled research opportunities,
+    open to bona fide health researchers. UK Biobank aims to improve the prevention, diagnosis and treatment of a wide
     range of serious and life-threatening illnesses`
   ]),
   sizeText: 'Participants: > 500,000'
@@ -187,7 +183,7 @@ const amppd = h(Participant, {
   description: h(Fragment, [
     p([
       `The Accelerating Medicines Partnership (AMP) is a public-private partnership between the National Institutes of
-    Health (NIH), multiple biopharmaceutical and life sciences companies, and non-profit organizations to identify and 
+    Health (NIH), multiple biopharmaceutical and life sciences companies, and non-profit organizations to identify and
     validate the most promising biological targets for therapeutics. This AMP effort aims to identify and validate the
     most promising biological targets for therapeutics relevant to Parkinson's disease.`
     ]),
