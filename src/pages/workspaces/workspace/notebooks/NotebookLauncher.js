@@ -5,6 +5,7 @@ import * as breadcrumbs from 'src/components/breadcrumbs'
 import { linkButton, spinnerOverlay, link } from 'src/components/common'
 import { icon, spinner } from 'src/components/icons'
 import { pushNotification } from 'src/components/Notifications'
+import * as NpsSurvey from 'src/components/NpsSurvey'
 import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
@@ -165,6 +166,7 @@ class NotebookEditor extends Component {
       switch (e.data) {
         case 'close':
           Nav.goToPath('workspace-notebooks', { namespace, name })
+          NpsSurvey.responseRequested.set(true)
           break
         case 'saved':
           this.isSaved.set(true)
