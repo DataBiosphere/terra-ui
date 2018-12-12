@@ -11,5 +11,9 @@
   "orchestrationUrlRoot": "https://api.firecloud.org",
   "rawlsUrlRoot": "https://rawls.dsde-prod.broadinstitute.org",
   "samUrlRoot": "https://sam.dsde-prod.broadinstitute.org",
+  "tCell": {
+    "appId": "saturnprod-VuHKy",
+    "apiKey": "AQEBBAEGP2gTM2pIdJAQOIeNrm8dcTM7E4FMSmaibbMUQxNU6qy6nLPOBK8QfSvPFSsX8PQ"
+  },
   "tosUrlRoot": "https://us-central1-broad-workbench-tos-prod.cloudfunctions.net/tos"
 }
