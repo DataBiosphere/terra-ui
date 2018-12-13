@@ -1,0 +1,15 @@
+{
+  "agoraUrlRoot": "https://agora-fiab.dsde-dev.broadinstitute.org:20443",
+  "calhounUrlRoot": "https://terra-calhoun-dev.appspot.com",
+  "devUrlRoot": "https://bvdp-saturn-dev.appspot.com",
+  "dockstoreUrlRoot": "https://staging.dockstore.org",
+  "firecloudUrlRoot": "https://firecloud-fiab.dsde-dev.broadinstitute.org",
+  "firecloudBucketRoot": "https://storage.googleapis.com/firecloud-alerts-dev",
+  "googleClientId": "500025638838-s2v23ar3spugtd5t2v1vgfa2sp7ppg0d.apps.googleusercontent.com",
+  "leoUrlRoot": "https://leonardo-fiab.dsde-dev.broadinstitute.org:30443",
+  "marthaUrlRoot": "https://martha-fiab.dsde-dev.broadinstitute.org:32443/fileSummaryV1",
+  "orchestrationUrlRoot": "https://firecloud-orchestration-fiab.dsde-dev.broadinstitute.org:23443",
+  "rawlsUrlRoot": "https://rawls-fiab.dsde-dev.broadinstitute.org:24443",
+  "samUrlRoot": "https://sam-fiab.dsde-dev.broadinstitute.org:29443",
+  "tosUrlRoot": "https://us-central1-broad-workbench-tos-dev.cloudfunctions.net/tos"
+}
