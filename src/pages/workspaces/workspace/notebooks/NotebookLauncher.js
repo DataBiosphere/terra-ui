@@ -59,9 +59,9 @@ const NotebookLauncher = _.flow(
     showTabBar: false
   }),
   ajaxCaller
-)(({ workspace, ...props }) => {
+)(({ workspace, iframeChoice, ...props }) => {
   return Utils.canWrite(workspace.accessLevel) && workspace.canCompute ?
-    h(NotebookEditor, { workspace, ...props }) :
+    h(NotebookEditor, { workspace, iframeChoice, ...props }) :
     h(NotebookViewer, { workspace, ...props })
 })
 
@@ -224,8 +224,9 @@ class NotebookEditor extends Component {
         }
       }))
 
-      const { name: workspaceName } = this.props
-      this.setState({ url: `${clusterUrl}/notebooks/${workspaceName}/${notebookName}` })
+      const { name: workspaceName, iframeChoice } = this.props
+      if (iframeChoice === 'lab') this.setState({ url: `${clusterUrl}/${iframeChoice}` })
+      else this.setState({ url: `${clusterUrl}/notebooks/${workspaceName}/${notebookName}` })
     } catch (error) {
       if (this.mounted) {
         reportError('Notebook cannot be launched', error)
@@ -359,7 +360,7 @@ class NotebookEditor extends Component {
 
 export const addNavPaths = () => {
   Nav.defPath('workspace-notebook-launch', {
-    path: '/workspaces/:namespace/:name/notebooks/launch/:notebookName',
+    path: '/workspaces/:namespace/:name/notebooks/launch/:notebookName/:iframeChoice?',
     component: NotebookLauncher,
     title: ({ name, notebookName }) => `${name} - Notebooks - ${notebookName}`
   })

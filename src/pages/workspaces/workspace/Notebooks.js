@@ -38,7 +38,7 @@ class NotebookCard extends Component {
     const { namespace, name, updated, listView, wsName, onRename, onCopy, onDelete, onExport, canWrite } = this.props
     const tenMinutesAgo = _.tap(d => d.setMinutes(d.getMinutes() - 10), new Date())
     const isRecent = new Date(updated) > tenMinutesAgo
-    const notebookLink = Nav.getLink('workspace-notebook-launch', { namespace, name: wsName, notebookName: name.slice(10), isRecent })
+    const notebookLink = Nav.getLink('workspace-notebook-launch', { namespace, name: wsName, notebookName: name.slice(10) })
 
     const notebookMenu = h(PopupTrigger, {
       position: 'right',
@@ -54,6 +54,9 @@ class NotebookCard extends Component {
             }
           }
         }, [menuIcon('copy-to-clipboard'), 'Copy notebook URL to clipboard']),
+        h(MenuButton, {
+          onClick: () => Nav.goToPath('workspace-notebook-launch', { namespace, iframeChoice: 'lab', name: wsName, notebookName: name.slice(10) })
+        }, [menuIcon('jupyterIcon'), 'Open in JupyterLab']),
         h(MenuButton, {
           disabled: !canWrite,
           tooltip: !canWrite && noWrite,
