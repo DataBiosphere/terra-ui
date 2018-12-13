@@ -324,7 +324,7 @@ export const methodLink = (config, firecloudRoot, dockstoreRoot) => {
 /**
  * WARNING: Be very careful when using custom renderers because they may override marked's built-in
  * content sanitization.
- * @param children markdown content; must be a string
+ * @param {string} children markdown content
  * @param renderers element-specific renderers
  * @param props properties for wraper div
  * @returns {object} div containing rendered markdown
