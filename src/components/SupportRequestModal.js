@@ -38,7 +38,9 @@ const SupportRequestModal = Utils.connectAtom(authStore, 'authState')(class Supp
       description: '',
       type: 'question',
       email: contactEmail || email || '',
-      nameEntered: ''
+      nameEntered: '',
+      attachmentToken: '',
+      uploadingFile: false
     }
     this.uploader = createRef()
   }
@@ -49,14 +51,19 @@ const SupportRequestModal = Utils.connectAtom(authStore, 'authState')(class Supp
   }
 
   async uploadFile(files) {
-    console.log(files[0])
-    await Ajax().User.uploadAttachment(files[0])
+    try {
+      this.setState({ uploadingFile: true })
+      const attachmentToken = await Ajax().User.uploadAttachment(files[0])
+      this.setState({ attachmentToken: attachmentToken, uploadingFile: false })
+    } catch (error) {
+      await reportError('Error uploading attachment', error)
+      this.setState({ uploadingFile: false })
+    }
   }
 
   getRequest() {
     const { authState: { profile: { firstName, lastName } } } = this.props
-    const { nameEntered, email, description, subject, type } = this.state
-    //const attachmentToken = this.uploadFile()
+    const { nameEntered, email, description, subject, type, attachmentToken } = this.state
 
     return {
       name: this.hasName() ? `${firstName} ${lastName}` : nameEntered,
@@ -64,25 +71,27 @@ const SupportRequestModal = Utils.connectAtom(authStore, 'authState')(class Supp
       description,
       subject,
       type,
-      //attachmentToken
+      attachmentToken
     }
   }
 
   render() {
     const { onDismiss, authState: { profile: { firstName } } } = this.props
-    const { submitting, submitError, subject, description, type, email, nameEntered } = this.state
+    const { submitting, submitError, subject, description, type, email, nameEntered, uploadingFile, attachmentToken } = this.state
     const greetUser = this.hasName() ? `, ${firstName}` : ''
     const errors = validate(this.getRequest(), constraints)
 
     return h(Dropzone, {
       maxSize: 20 * 1024 * 1024,
       disableClick: true,
+      multiple: false,
+      style: { flexGrow: 1 },
       activeStyle: { backgroundColor: colors.blue[3], cursor: 'copy' },
-      acceptStyle: { backgroundColor: colors.green[3], cursor: 'copy' },
-      rejectStyle: { backgroundColor: colors.red[3], cursor: 'no-drop' },
+      acceptStyle: { cursor: 'copy' },
+      rejectStyle: { cursor: 'no-drop' },
       ref: this.uploader,
       onDropRejected: e => reportError('Error uploading attachment', e),
-      onDropAccepted: file => this.uploadFile(file)
+      onDropAccepted: files => this.uploadFile(files)
     }, [
       h(Modal, {
         onDismiss,
@@ -123,20 +132,27 @@ const SupportRequestModal = Utils.connectAtom(authStore, 'authState')(class Supp
           value: description,
           onChange: e => this.setState({ description: e.target.value })
         }),
-        Forms.formLabel('Attachments'),
+        Forms.formLabel('Attachment'),
+        attachmentToken ? 'File uploaded successfully' : '',
         h(Clickable, {
           style: {
-            flex: 1, backgroundColor: colors.gray[5], borderRadius: 5,
+            flex: 1, backgroundColor: attachmentToken ? colors.green[5] : colors.gray[5], borderRadius: 3,
             border: `1px dashed ${colors.gray[2]}`
           },
           onClick: () => this.uploader.current.open()
         }, [
-          div({ style: { fontSize: 14, lineHeight: '30px', paddingLeft: '1rem' } }, [
-            'Drag or ', link({}, ['Click']), ' to add an attachment    ',
-            icon('upload-cloud', { size: 25, style: { opacity: 0.4 } })
-          ])
+          div({ style: { fontSize: 14, lineHeight: '30px', paddingLeft: '1rem' } },
+            !attachmentToken ? [
+              'Drag or ', link({}, ['Click']), ' to attach a file ',
+              icon('upload-cloud', { size: 25, style: { opacity: 0.4 } })
+            ]
+              : [
+                'Drag or ', link({}, ['Click']), ' to attach a different file ',
+                icon('upload-cloud', { size: 25, style: { opacity: 0.4 } })
+              ]
+          )
         ]),
-
+        uploadingFile && spinnerOverlay,
         Forms.requiredFormLabel('Contact email'),
         textInput({
           value: email,

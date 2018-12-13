@@ -201,21 +201,14 @@ const User = signal => ({
   },
 
   uploadAttachment: async file => {
-    fetch(`https://broadinstitute.zendesk.com/api/v2/uploads?filename=${file.name}`, {
+    const res = await fetch(`https://broadinstitute.zendesk.com/api/v2/uploads?filename=${file.name}`, {
       method: 'POST',
       body: file,
       headers: {
         'Content-Type': 'application/binary'
       }
     })
-      .then(response => {
-        return response.json()
-      })
-      .then(json => {
-        console.log(json.upload.token)
-        console.log(json)
-        return json.upload.token
-      })
+    return (await res.json()).upload.token
   }
 })
 
