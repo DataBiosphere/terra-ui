@@ -22,7 +22,7 @@
     "react-collapse": "^4.0.3",
     "react-dom": "~16.6.3",
     "react-draggable": "^3.0.5",
-    "react-dropzone": "^8.0.0",
+    "react-dropzone": "^7.0.1",
     "react-hyperscript-helpers": "^1.2.0",
     "react-interactive": "^0.8.1",
     "react-modal": "^3.7.1",
