@@ -473,10 +473,8 @@ const Workspaces = signal => ({
           entityType,
           entityNames: entities
         }
-        const res = await fetchRawls(`workspaces/entities/copy?linkExistingEntities=${link}`, _.mergeAll([
-          authOpts(), jsonBody(payload),
-          { signal, method: 'POST' }
-        ]))
+        const res = await fetchRawls(`workspaces/entities/copy?linkExistingEntities=${link}`, _.mergeAll([ authOpts(), jsonBody(payload),
+          { signal, method: 'POST' }]))
         return res.json()
       },
 
