@@ -212,7 +212,7 @@ const User = signal => ({
         'Content-Type': 'application/binary'
       }
     })
-    return (await res.json()).upload.token
+    return (await res.json()).upload
   },
 
   lastNpsResponse: async () => {

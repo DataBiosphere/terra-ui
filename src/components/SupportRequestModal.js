@@ -40,7 +40,8 @@ const SupportRequestModal = Utils.connectAtom(authStore, 'authState')(class Supp
       email: contactEmail || email || '',
       nameEntered: '',
       attachmentToken: '',
-      uploadingFile: false
+      uploadingFile: false,
+      attachmentName: ''
     }
     this.uploader = createRef()
   }
@@ -53,8 +54,10 @@ const SupportRequestModal = Utils.connectAtom(authStore, 'authState')(class Supp
   async uploadFile(files) {
     try {
       this.setState({ uploadingFile: true })
-      const attachmentToken = await Ajax().User.uploadAttachment(files[0])
-      this.setState({ attachmentToken: attachmentToken, uploadingFile: false })
+      const attachmentRes = await Ajax().User.uploadAttachment(files[0])
+      const attachmentToken = attachmentRes.token
+      const attachmentName = attachmentRes.attachment.file_name
+      this.setState({ attachmentToken: attachmentToken, uploadingFile: false, attachmentName: attachmentName })
     } catch (error) {
       await reportError('Error uploading attachment', error)
       this.setState({ uploadingFile: false })
@@ -77,7 +80,7 @@ const SupportRequestModal = Utils.connectAtom(authStore, 'authState')(class Supp
 
   render() {
     const { onDismiss, authState: { profile: { firstName } } } = this.props
-    const { submitting, submitError, subject, description, type, email, nameEntered, uploadingFile, attachmentToken } = this.state
+    const { submitting, submitError, subject, description, type, email, nameEntered, uploadingFile, attachmentToken, dragging, attachmentName } = this.state
     const greetUser = this.hasName() ? `, ${firstName}` : ''
     const errors = validate(this.getRequest(), constraints)
 
@@ -86,9 +89,11 @@ const SupportRequestModal = Utils.connectAtom(authStore, 'authState')(class Supp
       disableClick: true,
       multiple: false,
       style: { flexGrow: 1 },
-      activeStyle: { backgroundColor: colors.blue[3], cursor: 'copy' },
       acceptStyle: { cursor: 'copy' },
       rejectStyle: { cursor: 'no-drop' },
+      onDragOver: () => this.setState({ dragging: true }),
+      onDrop: () => this.setState({ dragging: false }),
+      onDragLeave: () => this.setState({ dragging: false }),
       ref: this.uploader,
       onDropRejected: e => reportError('Error uploading attachment', e),
       onDropAccepted: files => this.uploadFile(files)
@@ -133,10 +138,10 @@ const SupportRequestModal = Utils.connectAtom(authStore, 'authState')(class Supp
           onChange: e => this.setState({ description: e.target.value })
         }),
         Forms.formLabel('Attachment'),
-        attachmentToken ? 'File uploaded successfully' : '',
+        attachmentToken ? div({ style: { flex: 0, color: colors.green[0], fontWeight: 'bold' } }, [`File uploaded successfully! Uploaded ${attachmentName}`]) : '',
         h(Clickable, {
           style: {
-            flex: 1, backgroundColor: attachmentToken ? colors.green[5] : colors.gray[5], borderRadius: 3,
+            flex: 1, backgroundColor: dragging ? colors.blue[3] : colors.gray[5], borderRadius: 3,
             border: `1px dashed ${colors.gray[2]}`
           },
           onClick: () => this.uploader.current.open()
