@@ -1,6 +1,6 @@
 import { createRef, Fragment } from 'react'
-import { div, h } from 'react-hyperscript-helpers'
-import { Clickable, buttonPrimary, Select, spinnerOverlay, link } from 'src/components/common'
+import { div, h, span } from 'react-hyperscript-helpers'
+import { Clickable, buttonPrimary, Select, spinnerOverlay, link, linkButton } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { TextArea, textInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
@@ -138,25 +138,35 @@ const SupportRequestModal = Utils.connectAtom(authStore, 'authState')(class Supp
           onChange: e => this.setState({ description: e.target.value })
         }),
         Forms.formLabel('Attachment'),
-        attachmentToken ? div({ style: { flex: 0, color: colors.green[0], fontWeight: 'bold' } }, [`File uploaded successfully! Uploaded ${attachmentName}`]) : '',
-        h(Clickable, {
-          style: {
-            flex: 1, backgroundColor: dragging ? colors.blue[3] : colors.gray[5], borderRadius: 3,
-            border: `1px dashed ${colors.gray[2]}`
-          },
-          onClick: () => this.uploader.current.open()
-        }, [
-          div({ style: { fontSize: 14, lineHeight: '30px', paddingLeft: '1rem' } },
-            !attachmentToken ? [
+        attachmentToken ? div({ style: { display: 'flex', alignItems: 'center' } }, [
+          h(Clickable, {
+            tooltip: 'Change file',
+            style: { flex: 'auto' },
+            onClick: () => this.uploader.current.open()
+          }, [
+            div({
+              style: { marginLeft: '1rem', paddingTop: '0.5rem' }
+            },
+            [span({}, [`Successfully uploaded: `]), span({style: { color: colors.blue[0] }}, [`${attachmentName}`])])
+          ]),
+          linkButton({
+            tooltip: 'Remove file',
+            style: { flex: 0, paddingTop: '0.5rem' },
+            onClick: () => this.setState({ attachmentToken: '' })
+          }, [icon('times-circle', { size: 23 })])
+        ])
+          : (h(Clickable, {
+            style: {
+              flex: 1, backgroundColor: dragging ? colors.blue[3] : colors.gray[5], borderRadius: 3,
+              border: attachmentToken ? '' : `1px dashed ${colors.gray[2]}`
+            },
+            onClick: () => this.uploader.current.open()
+          }, [
+            div({ style: { fontSize: 14, lineHeight: '30px', paddingLeft: '1rem' } }, [
               'Drag or ', link({}, ['Click']), ' to attach a file ',
               icon('upload-cloud', { size: 25, style: { opacity: 0.4 } })
-            ]
-              : [
-                'Drag or ', link({}, ['Click']), ' to attach a different file ',
-                icon('upload-cloud', { size: 25, style: { opacity: 0.4 } })
-              ]
-          )
-        ]),
+            ])
+          ])),
         uploadingFile && spinnerOverlay,
         Forms.requiredFormLabel('Contact email'),
         textInput({
