@@ -225,7 +225,7 @@ class NotebookEditor extends Component {
       }))
 
       const { name: workspaceName, iframeChoice } = this.props
-      if (iframeChoice === 'lab') this.setState({ url: `${clusterUrl}/${iframeChoice}` })
+      if (iframeChoice === 'lab') this.setState({ url: `${clusterUrl}/${iframeChoice}/tree/${workspaceName}/${notebookName}` })
       else this.setState({ url: `${clusterUrl}/notebooks/${workspaceName}/${notebookName}` })
     } catch (error) {
       if (this.mounted) {
@@ -312,6 +312,7 @@ class NotebookEditor extends Component {
 
   render() {
     const { clusterStatus, clusterError, localizeFailures, failed, url, saving } = this.state
+    const { namespace, name, iframeChoice } = this.props
 
     if (url) {
       return h(Fragment, [
@@ -320,6 +321,10 @@ class NotebookEditor extends Component {
           style: { border: 'none', flex: 1 },
           ref: this.notebookFrame
         }),
+        iframeChoice && linkButton({
+          style: { position: 'absolute', top: 1, right: 30 },
+          onClick: () => Nav.goToPath('workspace-notebooks', { namespace, name })
+        }, [icon('times-circle', { size: 25 })]),
         saving && spinnerOverlay
       ])
     }
