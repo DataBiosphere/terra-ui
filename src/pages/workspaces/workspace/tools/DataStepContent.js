@@ -1,4 +1,5 @@
 import _ from 'lodash/fp'
+import { Fragment } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import { Clickable, RadioButton } from 'src/components/common'
 import DataTable from 'src/components/DataTable'
@@ -29,6 +30,9 @@ const typeOption = ({ name, count, isSelected, selectSelf, unselect }) => div({
 ])
 
 
+const isSet = _.endsWith('_set')
+
+
 export default class DataStepContent extends Component {
   render() {
     const {
@@ -39,6 +43,7 @@ export default class DataStepContent extends Component {
       selectedEntities, setSelectedEntities,
       newSetName, setNewSetName
     } = this.props
+
     const count = rootEntityType && entityMetadata[rootEntityType].count
 
     return div({
@@ -56,7 +61,12 @@ export default class DataStepContent extends Component {
           _.map(([name, { count }]) => typeOption({
             name, count,
             isSelected: false,
-            selectSelf: () => setRootEntityType(name)
+            selectSelf: () =>  {
+              setRootEntityType(name)
+              if (isSet(name)) {
+                setProcessAllRows(false)
+              }
+            }
           }), _.toPairs(entityMetadata))
       ]),
       rootEntityType && div({
@@ -64,28 +74,30 @@ export default class DataStepContent extends Component {
           padding: '1rem 0.5rem', lineHeight: '1.5rem'
         }
       }, [
-        div([
-          h(RadioButton, {
-            text: `Process all ${count} rows`,
-            checked: processAllRows,
-            onChange: () => setProcessAllRows(true),
-            labelStyle: { marginLeft: '0.75rem' }
-          })
-        ]),
-        div([
-          h(RadioButton, {
-            text: 'Choose specific rows to process',
-            checked: !processAllRows,
-            onChange: () => setProcessAllRows(false),
-            labelStyle: { marginLeft: '0.75rem' }
-          }),
-          div({}, [
-            span(['Selected rows will be saved as a new table named:']),
-            textInput({
-              style: { width: 500, marginLeft: '0.25rem' },
-              value: newSetName,
-              onChange: e => setNewSetName(e.target.value)
+        !isSet(rootEntityType) && h(Fragment, [
+          div([
+            h(RadioButton, {
+              text: `Process all ${count} rows`,
+              checked: processAllRows,
+              onChange: () => setProcessAllRows(true),
+              labelStyle: { marginLeft: '0.75rem' }
             })
+          ]),
+          div([
+            h(RadioButton, {
+              text: 'Choose specific rows to process',
+              checked: !processAllRows,
+              onChange: () => setProcessAllRows(false),
+              labelStyle: { marginLeft: '0.75rem' }
+            }),
+            div({}, [
+              span(['Selected rows will be saved as a new table named:']),
+              textInput({
+                style: { width: 500, marginLeft: '0.25rem' },
+                value: newSetName,
+                onChange: e => setNewSetName(e.target.value)
+              })
+            ])
           ])
         ]),
         div({
@@ -96,7 +108,10 @@ export default class DataStepContent extends Component {
         }, [
           h(DataTable, {
             entityType: rootEntityType, entityMetadata, workspaceId,
-            selectedEntities, setSelectedEntities
+            selectionModel: {
+              type: isSet(rootEntityType) ? 'single' : 'multiple',
+              selected: selectedEntities, setSelected: setSelectedEntities
+            }
           })
         ])
       ])

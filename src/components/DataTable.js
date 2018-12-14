@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import { createRef, Fragment } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
-import { Checkbox, Clickable, MenuButton, spinnerOverlay } from 'src/components/common'
+import { Checkbox, Clickable, MenuButton, RadioButton, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import PopupTrigger from 'src/components/PopupTrigger'
 import { ColumnSelector, GridTable, HeaderCell, paginator, Resizable, Sortable } from 'src/components/table'
@@ -56,7 +56,7 @@ export default ajaxCaller(class DataTable extends Component {
     const {
       entityType, entityMetadata, workspaceId: { namespace },
       onScroll, initialX, initialY,
-      selectedEntities, setSelectedEntities,
+      selectionModel,
       childrenBefore
     } = this.props
 
@@ -82,9 +82,9 @@ export default ajaxCaller(class DataTable extends Component {
                 initialX,
                 initialY,
                 columns: [
-                  ...(setSelectedEntities ? [{
+                  ...(selectionModel ? [{
                     width: 70,
-                    headerRenderer: () => {
+                    headerRenderer: selectionModel.type === 'multiple' ? () => {
                       return h(Fragment, [
                         h(Checkbox, {
                           checked: this.pageSelected(),
@@ -102,14 +102,26 @@ export default ajaxCaller(class DataTable extends Component {
                           h(Clickable, [icon('caretDown')])
                         ])
                       ])
-                    },
+                    } : () => div(),
                     cellRenderer: ({ rowIndex }) => {
-                      const { name } = entities[rowIndex]
-                      const checked = _.has([name], selectedEntities)
-                      return h(Checkbox, {
-                        checked,
-                        onChange: () => setSelectedEntities((checked ? _.unset([name]) : _.set([name], entities[rowIndex]))(selectedEntities))
-                      })
+                      const thisEntity = entities[rowIndex]
+                      const { name } = thisEntity
+                      const { type } = selectionModel
+
+                      if (type === 'multiple') {
+                        const { selected, setSelected } = selectionModel
+                        const checked = _.has([name], selected)
+                        return h(Checkbox, {
+                          checked,
+                          onChange: () => setSelected((checked ? _.unset([name]) : _.set([name], thisEntity))(selected))
+                        })
+                      } else if (type === 'single') {
+                        const { selected, setSelected } = selectionModel
+                        return h(RadioButton, {
+                          checked: selected === thisEntity,
+                          onChange: () => setSelected(thisEntity)
+                        })
+                      }
                     }
                   }] : []),
                   {
@@ -208,11 +220,11 @@ export default ajaxCaller(class DataTable extends Component {
   }
 
   async selectAll() {
-    const { entityType, workspaceId: { namespace, name }, ajax: { Workspaces }, setSelectedEntities } = this.props
+    const { entityType, workspaceId: { namespace, name }, ajax: { Workspaces }, selectionModel: { setSelected } } = this.props
     try {
       this.setState({ loading: true })
       const results = await Workspaces.workspace(namespace, name).entitiesOfType(entityType)
-      setSelectedEntities(entityMap(results))
+      setSelected(entityMap(results))
     } catch (error) {
       reportError('Error loading entities', error)
     } finally {
@@ -221,27 +233,27 @@ export default ajaxCaller(class DataTable extends Component {
   }
 
   selectPage() {
-    const { selectedEntities, setSelectedEntities } = this.props
+    const { selectionModel: { selected, setSelected } } = this.props
     const { entities } = this.state
-    setSelectedEntities(_.assign(selectedEntities, entityMap(entities)))
+    setSelected(_.assign(selected, entityMap(entities)))
   }
 
   deselectPage() {
-    const { selectedEntities, setSelectedEntities } = this.props
+    const { selectionModel: { selected, setSelected } } = this.props
     const { entities } = this.state
-    setSelectedEntities(_.omit(_.map(({ name }) => [name], entities), selectedEntities))
+    setSelected(_.omit(_.map(({ name }) => [name], entities), selected))
   }
 
   selectNone() {
-    const { setSelectedEntities } = this.props
-    setSelectedEntities({})
+    const { selectionModel: { setSelected } } = this.props
+    setSelected({})
   }
 
   pageSelected() {
-    const { selectedEntities } = this.props
+    const { selectionModel: { selected } } = this.props
     const { entities } = this.state
     const entityKeys = _.map('name', entities)
-    const selectedKeys = _.keys(selectedEntities)
+    const selectedKeys = _.keys(selected)
     return _.every(k => _.includes(k, selectedKeys), entityKeys)
   }
 })

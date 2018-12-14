@@ -383,8 +383,11 @@ class EntitiesContent extends Component {
         persist: true, firstRender, refreshKey,
         entityType: entityKey, entityMetadata, workspaceId: { namespace, name },
         onScroll: saveScroll, initialX, initialY,
-        selectedEntities,
-        setSelectedEntities: Utils.canWrite(accessLevel) && (e => this.setState({ selectedEntities: e })),
+        selectionModel: {
+          type: 'multiple',
+          selected: selectedEntities,
+          setSelected: Utils.canWrite(accessLevel) && (e => this.setState({ selectedEntities: e }))
+        },
         childrenBefore: ({ entities, columnSettings }) => div({
           style: { display: 'flex', alignItems: 'center', flex: 'none', marginBottom: '1rem' }
         }, [
