@@ -526,7 +526,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
       }, [icon('terminal', { className: 'is-solid', size: 24 })]),
       renderIcon(),
       h(PopupTrigger, {
-        position: 'bottom',
+        side: 'bottom',
         open: open || multiple,
         width: creating || multiple ? 300 : 450,
         onToggle: v => this.toggleDropdown(v),
