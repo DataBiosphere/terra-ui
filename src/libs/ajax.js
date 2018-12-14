@@ -103,6 +103,10 @@ const fetchOrchestration = async (path, options) => {
   return fetchOk(`${getConfig().orchestrationUrlRoot}/${path}`, addAppIdentifier(options))
 }
 
+const fetchRex = async (path, options) => {
+  return fetchOk(`${getConfig().rexUrlRoot}/api/npsResponses/${path}`, options)
+}
+
 
 const User = signal => ({
   token: Utils.memoizeWithTimeout(async namespace => {
@@ -209,6 +213,15 @@ const User = signal => ({
       }
     })
     return (await res.json()).upload.token
+  },
+
+  lastNpsResponse: async () => {
+    const res = await fetchRex('lastTimestamp', _.merge(authOpts(), { signal }))
+    return res.json()
+  },
+
+  postNpsResponse: async body => {
+    return fetchRex('create', _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }]))
   }
 })
 

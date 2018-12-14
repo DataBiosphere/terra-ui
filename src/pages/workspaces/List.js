@@ -79,11 +79,15 @@ const WorkspaceCard = pure(({
   const lastChanged = `Last changed: ${Utils.makePrettyDate(lastModified)}`
   const badge = div({ title: createdBy, style: styles.badge }, [createdBy[0].toUpperCase()])
   const isOwner = Utils.isOwner(accessLevel)
+  const notAuthorized = (accessLevel === 'NO ACCESS')
   const workspaceMenu = h(PopupTrigger, {
     position: 'right',
     closeOnClick: true,
     content: h(Fragment, [
       h(MenuButton, {
+        disabled: notAuthorized,
+        tooltip: notAuthorized && 'You do not have access to the workspace Authorization Domain',
+        tooltipSide: 'left',
         onClick: () => onClone()
       }, [menuIcon('copy'), 'Clone']),
       h(MenuButton, {
@@ -187,7 +191,6 @@ export const WorkspaceList = _.flow(
   render() {
     const { workspaces, loadingWorkspaces, refreshWorkspaces, listView, viewToggleButtons } = this.props
     const { filter, creatingNewWorkspace, cloningWorkspaceId, deletingWorkspaceId, sharingWorkspaceId, accessLevelsFilter, projectsFilter } = this.state
-
     const initialFiltered = _.flow(
       _.filter(ws => {
         const { workspace: { namespace, name } } = ws
