@@ -309,7 +309,7 @@ const WorkflowView = _.flow(
       activeTab: 'data',
       processSingle: true,
       processAllRows: true,
-      selectedEntities: [],
+      selectedEntities: {},
       newSetName: `${props.workflowName}_${new Date().toISOString().slice(0, -5).replace(/:/g, '-')}`,
       includeOptionalInputs: false,
       errors: { inputs: {}, outputs: {} },
@@ -475,7 +475,7 @@ const WorkflowView = _.flow(
                 isValid: processSingle ||
                   (!!rootEntityType &&
                     (processAllRows ||
-                      (selectedEntities.length > 0 && !!newSetName)))
+                      (_.size(selectedEntities) > 0 && !!newSetName)))
               },
               { key: 'inputs', title: 'Inputs', isValid: inputsValid },
               { key: 'outputs', title: 'Outputs', isValid: outputsValid }
@@ -618,7 +618,7 @@ const WorkflowView = _.flow(
         rootEntityType: modifiedConfig.rootEntityType,
         setRootEntityType: type => this.setState({
           modifiedConfig: _.set('rootEntityType', type, modifiedConfig),
-          selectedEntities: [],
+          selectedEntities: {},
           processAllRows: true
         }),
         selectedEntities, setSelectedEntities: e => this.setState({ selectedEntities: e }),
