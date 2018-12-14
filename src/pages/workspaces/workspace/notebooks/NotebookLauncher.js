@@ -59,9 +59,9 @@ const NotebookLauncher = _.flow(
     showTabBar: false
   }),
   ajaxCaller
-)(({ workspace, iframeChoice, ...props }) => {
+)(({ workspace, app, ...props }) => {
   return Utils.canWrite(workspace.accessLevel) && workspace.canCompute ?
-    h(NotebookEditor, { workspace, iframeChoice, ...props }) :
+    h(NotebookEditor, { workspace, app, ...props }) :
     h(NotebookViewer, { workspace, ...props })
 })
 
@@ -224,8 +224,8 @@ class NotebookEditor extends Component {
         }
       }))
 
-      const { name: workspaceName, iframeChoice } = this.props
-      if (iframeChoice === 'lab') this.setState({ url: `${clusterUrl}/${iframeChoice}/tree/${workspaceName}/${notebookName}` })
+      const { name: workspaceName, app } = this.props
+      if (app === 'lab') this.setState({ url: `${clusterUrl}/${app}/tree/${workspaceName}/${notebookName}` })
       else this.setState({ url: `${clusterUrl}/notebooks/${workspaceName}/${notebookName}` })
     } catch (error) {
       if (this.mounted) {
@@ -312,7 +312,7 @@ class NotebookEditor extends Component {
 
   render() {
     const { clusterStatus, clusterError, localizeFailures, failed, url, saving } = this.state
-    const { namespace, name, iframeChoice } = this.props
+    const { namespace, name, app } = this.props
 
     if (url) {
       return h(Fragment, [
@@ -321,7 +321,7 @@ class NotebookEditor extends Component {
           style: { border: 'none', flex: 1 },
           ref: this.notebookFrame
         }),
-        iframeChoice && linkButton({
+        app === 'lab' && linkButton({
           style: { position: 'absolute', top: 1, right: 30 },
           onClick: () => Nav.goToPath('workspace-notebooks', { namespace, name })
         }, [icon('times-circle', { size: 25 })]),
@@ -365,7 +365,7 @@ class NotebookEditor extends Component {
 
 export const addNavPaths = () => {
   Nav.defPath('workspace-notebook-launch', {
-    path: '/workspaces/:namespace/:name/notebooks/launch/:notebookName/:iframeChoice?',
+    path: '/workspaces/:namespace/:name/notebooks/launch/:notebookName/:app?',
     component: NotebookLauncher,
     title: ({ name, notebookName }) => `${name} - Notebooks - ${notebookName}`
   })

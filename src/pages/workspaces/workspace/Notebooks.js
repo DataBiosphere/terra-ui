@@ -55,7 +55,7 @@ class NotebookCard extends Component {
           }
         }, [menuIcon('copy-to-clipboard'), 'Copy notebook URL to clipboard']),
         h(MenuButton, {
-          onClick: () => Nav.goToPath('workspace-notebook-launch', { namespace, iframeChoice: 'lab', name: wsName, notebookName: name.slice(10) })
+          onClick: () => Nav.goToPath('workspace-notebook-launch', { namespace, app: 'lab', name: wsName, notebookName: name.slice(10) })
         }, [menuIcon('jupyterIcon'), 'Open in JupyterLab']),
         h(MenuButton, {
           disabled: !canWrite,
