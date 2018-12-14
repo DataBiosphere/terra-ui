@@ -30,7 +30,7 @@
     "react-notifications-component": "^1.0.1",
     "react-onclickoutside": "^6.7.1",
     "react-paginating": "^1.0.3-react16.0",
-    "react-portal-tooltip": "^2.4.1",
+    "react-portal-tooltip": "2.4.0",
     "react-scripts": "2.1.1",
     "react-select": "^2.1.2",
     "react-simplemde-editor": "^3.6.22",
