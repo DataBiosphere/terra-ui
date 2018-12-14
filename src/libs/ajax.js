@@ -264,6 +264,10 @@ const Billing = signal => ({
   listProjects: async () => {
     const res = await fetchRawls('user/billing', _.merge(authOpts(), { signal }))
     return res.json()
+  },
+  listProjectsExtended: async () => {
+    const res = await fetchSam('api/resources/v1/billing-project', _.merge(authOpts(), { signal }))
+    return res.json()
   }
 })
 
