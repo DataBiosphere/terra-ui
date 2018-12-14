@@ -147,7 +147,7 @@ const SupportRequestModal = Utils.connectAtom(authStore, 'authState')(class Supp
             div({
               style: { marginLeft: '1rem', paddingTop: '0.5rem' }
             },
-            [span({}, [`Successfully uploaded: `]), span({style: { color: colors.blue[0] }}, [`${attachmentName}`])])
+            [span({}, [`Successfully uploaded: `]), span({ style: { color: colors.blue[0] } }, [`${attachmentName}`])])
           ]),
           linkButton({
             tooltip: 'Remove file',
