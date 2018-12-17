@@ -30,21 +30,20 @@ const typeOption = ({ name, count, isSelected, selectSelf, unselect }) => div({
 ])
 
 
-const isSet = _.endsWith('_set')
-
-
 export default class DataStepContent extends Component {
   render() {
     const {
-      visible, workspaceId,
-      processAllRows, setProcessAllRows,
-      entityMetadata,
+      visible, workspaceId, entityMetadata,
       rootEntityType, setRootEntityType,
-      selectedEntities, setSelectedEntities,
-      newSetName, setNewSetName
+      entitySelectionModel: { type, selectedEntities, newSetName },
+      setEntitySelectionModel
     } = this.props
 
     const count = rootEntityType && entityMetadata[rootEntityType].count
+
+    const isSet = _.endsWith('_set', rootEntityType)
+    const setType = `${rootEntityType}_set`
+    const hasSet = _.has(setType, entityMetadata)
 
     return div({
       style: {
@@ -63,9 +62,6 @@ export default class DataStepContent extends Component {
             isSelected: false,
             selectSelf: () =>  {
               setRootEntityType(name)
-              if (isSet(name)) {
-                setProcessAllRows(false)
-              }
             }
           }), _.toPairs(entityMetadata))
       ]),
@@ -74,43 +70,53 @@ export default class DataStepContent extends Component {
           padding: '1rem 0.5rem', lineHeight: '1.5rem'
         }
       }, [
-        !isSet(rootEntityType) && h(Fragment, [
+        !isSet && h(Fragment, [
           div([
             h(RadioButton, {
               text: `Process all ${count} rows`,
-              checked: processAllRows,
-              onChange: () => setProcessAllRows(true),
+              checked: type === 'process all',
+              onChange: () => setEntitySelectionModel({ type: 'process all' }),
+              labelStyle: { marginLeft: '0.75rem' }
+            })
+          ]),
+          hasSet && div([
+            h(RadioButton, {
+              text: 'Choose an existing set',
+              checked: type === 'choose existing',
+              onChange: () => setEntitySelectionModel({ type: 'choose existing' }),
               labelStyle: { marginLeft: '0.75rem' }
             })
           ]),
           div([
             h(RadioButton, {
               text: 'Choose specific rows to process',
-              checked: !processAllRows,
-              onChange: () => setProcessAllRows(false),
+              checked: type === 'choose rows',
+              onChange: () => setEntitySelectionModel({ type: 'choose rows' }),
               labelStyle: { marginLeft: '0.75rem' }
-            }),
-            div({}, [
-              span(['Selected rows will be saved as a new table named:']),
-              textInput({
-                style: { width: 500, marginLeft: '0.25rem' },
-                value: newSetName,
-                onChange: e => setNewSetName(e.target.value)
-              })
-            ])
+            })
+          ]),
+          (type === 'process all' || type === 'choose rows') && div([
+            span(['Selected rows will be saved as a new table named:']),
+            textInput({
+              style: { width: 500, marginLeft: '0.25rem' },
+              value: newSetName,
+              onChange: e => setEntitySelectionModel({ newSetName: e.target.value })
+            })
           ])
         ]),
-        div({
+        type !== 'process all' && div({
           style: {
-            display: processAllRows ? 'none' : 'flex', flexDirection: 'column',
+            display: 'flex', flexDirection: 'column',
             height: 500, marginTop: '1rem'
           }
         }, [
           h(DataTable, {
-            entityType: rootEntityType, entityMetadata, workspaceId,
+            key: type,
+            entityType: type === 'choose existing' ? setType : rootEntityType,
+            entityMetadata, workspaceId,
             selectionModel: {
-              type: isSet(rootEntityType) ? 'single' : 'multiple',
-              selected: selectedEntities, setSelected: setSelectedEntities
+              type: (isSet || type === 'choose existing') ? 'single' : 'multiple',
+              selected: selectedEntities, setSelected: e => setEntitySelectionModel({ selectedEntities: e })
             }
           })
         ])

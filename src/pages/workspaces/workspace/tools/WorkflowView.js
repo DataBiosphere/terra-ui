@@ -308,9 +308,11 @@ const WorkflowView = _.flow(
     this.state = {
       activeTab: 'data',
       processSingle: true,
-      processAllRows: true,
-      selectedEntities: {},
-      newSetName: `${props.workflowName}_${new Date().toISOString().slice(0, -5).replace(/:/g, '-')}`,
+      entitySelectionModel: {
+        type: 'process all',
+        selectedEntities: {},
+        newSetName: `${props.workflowName}_${new Date().toISOString().slice(0, -5).replace(/:/g, '-')}`
+      },
       includeOptionalInputs: false,
       errors: { inputs: {}, outputs: {} },
       ...StateHistory.get()
@@ -321,7 +323,7 @@ const WorkflowView = _.flow(
   render() {
     const {
       isFreshData, savedConfig, launching, activeTab,
-      processSingle, processAllRows, selectedEntities, newSetName, variableSelected, modifiedConfig
+      processSingle, entitySelectionModel, variableSelected, modifiedConfig
     } = this.state
     const { namespace, name, workspace } = this.props
     const workspaceId = { namespace, name }
@@ -336,7 +338,7 @@ const WorkflowView = _.flow(
         ),
         launching && h(LaunchAnalysisModal, {
           workspaceId, config: savedConfig,
-          processSingle, processAllRows, selectedEntities, newSetName,
+          processSingle, entitySelectionModel,
           onDismiss: () => this.setState({ launching: false }),
           onSuccess: submissionId => {
             JobHistory.flagNewSubmission(submissionId)
@@ -416,9 +418,8 @@ const WorkflowView = _.flow(
   renderSummary() {
     const { workspace: { canCompute, workspace }, namespace, name: workspaceName } = this.props
     const {
-      modifiedConfig, savedConfig, processAllRows, selectedEntities, newSetName,
-      saving, saved, copying, deleting, activeTab, errors, synopsis, documentation,
-      processSingle
+      modifiedConfig, savedConfig, saving, saved, copying, deleting, activeTab, errors, synopsis, documentation,
+      processSingle, entitySelectionModel: { type: selectionType, selectedEntities, existingSet, newSetName }
     } = this.state
     const { name, methodRepoMethod: { methodPath, methodVersion, methodNamespace, methodName }, rootEntityType } = modifiedConfig
     const modified = !_.isEqual(modifiedConfig, savedConfig)
@@ -474,7 +475,8 @@ const WorkflowView = _.flow(
                 key: 'data', title: 'Data',
                 isValid: processSingle ||
                   (!!rootEntityType &&
-                    (processAllRows ||
+                    (selectionType === 'process all' ||
+                      (selectionType === 'choose existing' && !!existingSet) ||
                       (_.size(selectedEntities) > 0 && !!newSetName)))
               },
               { key: 'inputs', title: 'Inputs', isValid: inputsValid },
@@ -608,22 +610,24 @@ const WorkflowView = _.flow(
 
   renderData() {
     const { namespace, name } = this.props
-    const { processSingle, processAllRows, entityMetadata, modifiedConfig, selectedEntities, newSetName } = this.state
+    const { processSingle, entityMetadata, modifiedConfig, entitySelectionModel } = this.state
 
     return div({ style: { margin: `1rem ${sideMargin}` } }, [
       h(DataStepContent, {
         visible: !processSingle,
-        processAllRows, setProcessAllRows: b => this.setState({ processAllRows: b }),
+        workspaceId: { namespace, name },
         entityMetadata,
         rootEntityType: modifiedConfig.rootEntityType,
         setRootEntityType: type => this.setState({
           modifiedConfig: _.set('rootEntityType', type, modifiedConfig),
-          selectedEntities: {},
-          processAllRows: true
+          entitySelectionModel: {
+            ...entitySelectionModel,
+            type: 'process all',
+            selectedEntities: {}
+          }
         }),
-        selectedEntities, setSelectedEntities: e => this.setState({ selectedEntities: e }),
-        newSetName, setNewSetName: n => this.setState({ newSetName: n }),
-        workspaceId: { namespace, name }
+        entitySelectionModel,
+        setEntitySelectionModel: m => this.setState({ entitySelectionModel: { ...entitySelectionModel, ...m } })
       })
     ])
   }
