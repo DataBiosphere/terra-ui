@@ -1,4 +1,5 @@
 import { createRef, Fragment } from 'react'
+import Dropzone from 'react-dropzone'
 import { div, h, span } from 'react-hyperscript-helpers'
 import { Clickable, buttonPrimary, Select, spinnerOverlay, link, linkButton } from 'src/components/common'
 import { icon } from 'src/components/icons'
@@ -12,7 +13,6 @@ import * as Forms from 'src/libs/forms'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 import validate from 'validate.js'
-import Dropzone from 'react-dropzone'
 
 
 const constraints = {
@@ -57,7 +57,7 @@ const SupportRequestModal = Utils.connectAtom(authStore, 'authState')(class Supp
       const attachmentRes = await Ajax().User.uploadAttachment(files[0])
       const attachmentToken = attachmentRes.token
       const attachmentName = attachmentRes.attachment.file_name
-      this.setState({ attachmentToken: attachmentToken, uploadingFile: false, attachmentName: attachmentName })
+      this.setState({ attachmentToken, attachmentName, uploadingFile: false })
     } catch (error) {
       await reportError('Error uploading attachment', error)
       this.setState({ uploadingFile: false })
