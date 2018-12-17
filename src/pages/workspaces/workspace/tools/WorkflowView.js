@@ -29,6 +29,7 @@ import { Component } from 'src/libs/wrapped-components'
 import * as JobHistory from 'src/pages/workspaces/workspace/JobHistory'
 import DataStepContent from 'src/pages/workspaces/workspace/tools/DataStepContent'
 import DeleteToolModal from 'src/pages/workspaces/workspace/tools/DeleteToolModal'
+import EntitySelectionType from 'src/pages/workspaces/workspace/tools/EntitySelectionType'
 import ExportToolModal from 'src/pages/workspaces/workspace/tools/ExportToolModal'
 import LaunchAnalysisModal from 'src/pages/workspaces/workspace/tools/LaunchAnalysisModal'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
@@ -309,7 +310,7 @@ const WorkflowView = _.flow(
       activeTab: 'data',
       processSingle: true,
       entitySelectionModel: {
-        type: 'process all',
+        type: EntitySelectionType.processAll,
         selectedEntities: {},
         newSetName: `${props.workflowName}_${new Date().toISOString().slice(0, -5).replace(/:/g, '-')}`
       },

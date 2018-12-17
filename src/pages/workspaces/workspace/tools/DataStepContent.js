@@ -8,6 +8,7 @@ import { textInput } from 'src/components/input'
 import colors from 'src/libs/colors'
 import * as Style from 'src/libs/style'
 import { Component } from 'src/libs/wrapped-components'
+import EntitySelectionType from 'src/pages/workspaces/workspace/tools/EntitySelectionType'
 
 
 const typeOption = ({ name, count, isSelected, selectSelf, unselect }) => div({
@@ -74,28 +75,28 @@ export default class DataStepContent extends Component {
           div([
             h(RadioButton, {
               text: `Process all ${count} rows`,
-              checked: type === 'process all',
-              onChange: () => setEntitySelectionModel({ type: 'process all' }),
+              checked: type === EntitySelectionType.processAll,
+              onChange: () => setEntitySelectionModel({ type: EntitySelectionType.processAll, selectedEntities: {} }),
               labelStyle: { marginLeft: '0.75rem' }
             })
           ]),
           hasSet && div([
             h(RadioButton, {
               text: 'Choose an existing set',
-              checked: type === 'choose existing',
-              onChange: () => setEntitySelectionModel({ type: 'choose existing' }),
+              checked: type === EntitySelectionType.chooseExisting,
+              onChange: () => setEntitySelectionModel({ type: EntitySelectionType.chooseExisting, selectedEntities: {} }),
               labelStyle: { marginLeft: '0.75rem' }
             })
           ]),
           div([
             h(RadioButton, {
               text: 'Choose specific rows to process',
-              checked: type === 'choose rows',
-              onChange: () => setEntitySelectionModel({ type: 'choose rows' }),
+              checked: type === EntitySelectionType.chooseRows,
+              onChange: () => setEntitySelectionModel({ type: EntitySelectionType.chooseRows, selectedEntities: {} }),
               labelStyle: { marginLeft: '0.75rem' }
             })
           ]),
-          (type === 'process all' || type === 'choose rows') && div([
+          type !== EntitySelectionType.chooseExisting && div([
             span(['Selected rows will be saved as a new table named:']),
             textInput({
               style: { width: 500, marginLeft: '0.25rem' },
@@ -104,7 +105,7 @@ export default class DataStepContent extends Component {
             })
           ])
         ]),
-        type !== 'process all' && div({
+        type !== EntitySelectionType.processAll && div({
           style: {
             display: 'flex', flexDirection: 'column',
             height: 500, marginTop: '1rem'
@@ -112,10 +113,10 @@ export default class DataStepContent extends Component {
         }, [
           h(DataTable, {
             key: type,
-            entityType: type === 'choose existing' ? setType : rootEntityType,
+            entityType: type === EntitySelectionType.chooseExisting ? setType : rootEntityType,
             entityMetadata, workspaceId,
             selectionModel: {
-              type: (isSet || type === 'choose existing') ? 'single' : 'multiple',
+              type: (isSet || type === EntitySelectionType.chooseExisting) ? 'single' : 'multiple',
               selected: selectedEntities, setSelected: e => setEntitySelectionModel({ selectedEntities: e })
             }
           })
