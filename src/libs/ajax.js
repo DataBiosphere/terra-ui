@@ -182,7 +182,7 @@ const User = signal => ({
   // 2. Check the tickets are generated on Zendesk
   // 3. Reply internally (as a Light Agent) and make sure an email is not sent
   // 4. Reply externally (ask one of the Comms team with Full Agent access) and make sure you receive an email
-  createSupportRequest: async ({ name, email, currUrl, subject, type, description }) => {
+  createSupportRequest: async ({ name, email, currUrl, subject, type, description, attachmentToken }) => {
     return fetchOk(
       `https://broadinstitute.zendesk.com/api/v2/requests.json`,
       _.merge({ signal, method: 'POST' }, jsonBody({
@@ -197,10 +197,22 @@ const User = signal => ({
             { id: 360012782111, value: email }
           ],
           comment: {
-            body: `${description}\n\n------------------\nSubmitted from: ${currUrl}`
+            body: `${description}\n\n------------------\nSubmitted from: ${currUrl}`,
+            uploads: [`${attachmentToken}`]
           }
         }
       })))
+  },
+
+  uploadAttachment: async file => {
+    const res = await fetch(`https://broadinstitute.zendesk.com/api/v2/uploads?filename=${file.name}`, {
+      method: 'POST',
+      body: file,
+      headers: {
+        'Content-Type': 'application/binary'
+      }
+    })
+    return (await res.json()).upload
   },
 
   lastNpsResponse: async () => {
@@ -263,6 +275,10 @@ const Groups = signal => ({
 const Billing = signal => ({
   listProjects: async () => {
     const res = await fetchRawls('user/billing', _.merge(authOpts(), { signal }))
+    return res.json()
+  },
+  listProjectsExtended: async () => {
+    const res = await fetchSam('api/resources/v1/billing-project', _.merge(authOpts(), { signal }))
     return res.json()
   }
 })
