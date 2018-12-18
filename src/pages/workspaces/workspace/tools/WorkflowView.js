@@ -308,7 +308,6 @@ const WorkflowView = _.flow(
 
     this.state = {
       activeTab: 'data',
-      processSingle: true,
       entitySelectionModel: {
         type: EntitySelectionType.processAll,
         selectedEntities: {},
@@ -378,6 +377,7 @@ const WorkflowView = _.flow(
       const inputsOutputs = await Methods.configInputsOutputs(config)
       this.setState({
         isFreshData: true, savedConfig: config, modifiedConfig: config,
+        processSingle: !config.rootEntityType,
         entityMetadata, inputsOutputs: _.update('inputs', _.sortBy('optional'), inputsOutputs),
         errors: augmentErrors(validationResponse),
         workspaceAttributes: _.flow(
@@ -524,7 +524,10 @@ const WorkflowView = _.flow(
               h(RadioButton, {
                 text: 'Process single workflow from files',
                 checked: processSingle,
-                onChange: () => this.setState({ processSingle: true }),
+                onChange: () => this.setState({
+                  processSingle: true,
+                  modifiedConfig: _.omit('rootEntityType', modifiedConfig)
+                }),
                 labelStyle: { marginLeft: '0.5rem' }
               })
             ]),
