@@ -501,7 +501,7 @@ const EntitiesContent = ajaxCaller(class EntitiesContent extends Component {
                             h(MenuButton, { onClick: () => this.selectAll() }, [`All (${totalRowCount})`]),
                             h(MenuButton, { onClick: () => this.selectNone() }, ['None'])
                           ]),
-                          position: 'bottom'
+                          side: 'bottom'
                         }, [
                           h(Clickable, [icon('caretDown')])
                         ])
