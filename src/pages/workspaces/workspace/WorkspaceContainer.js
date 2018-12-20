@@ -65,7 +65,7 @@ class WorkspaceTabs extends PureComponent {
             onClick: () => onDelete()
           }, [menuIcon('trash'), 'Delete'])
         ]),
-        position: 'bottom'
+        side: 'bottom'
       }, [
         h(Clickable, { ...navIconProps }, [icon('cardMenuIcon', { size: 27 })])
       ])

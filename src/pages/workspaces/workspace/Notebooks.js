@@ -41,7 +41,7 @@ class NotebookCard extends Component {
     const notebookLink = Nav.getLink('workspace-notebook-launch', { namespace, name: wsName, notebookName: name.slice(10), isRecent })
 
     const notebookMenu = h(PopupTrigger, {
-      position: 'right',
+      side: 'right',
       closeOnClick: true,
       content: h(Fragment, [
         h(MenuButton, {
