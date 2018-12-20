@@ -97,7 +97,7 @@ export default ajaxCaller(class DataTable extends Component {
                             h(MenuButton, { onClick: () => this.selectAll() }, [`All (${totalRowCount})`]),
                             h(MenuButton, { onClick: () => this.selectNone() }, ['None'])
                           ]),
-                          position: 'bottom'
+                          side: 'bottom'
                         }, [
                           h(Clickable, [icon('caretDown')])
                         ])
