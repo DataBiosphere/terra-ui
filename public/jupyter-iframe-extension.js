@@ -1,7 +1,9 @@
 define([
-  'base/js/namespace'
+  'base/js/namespace',
+  'base/js/promises'
 ], function(
-  Jupyter
+  Jupyter,
+  promises
 ) {
   function close_notebook() {
     Jupyter.notebook.shutdown_kernel({ confirm: false })
@@ -44,7 +46,9 @@ define([
     $('#menubar-close-button').on('click', close_notebook)
 
     // frequent autosave
-    Jupyter.notebook.set_autosave_interval(5000)
+    promises.notebook_loaded.then(function() {
+      Jupyter.notebook.set_autosave_interval(5000);
+    });
 
     // listen for explicit save command
     window.addEventListener('message', e => {
