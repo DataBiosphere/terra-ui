@@ -49,4 +49,4 @@ export const profiles = [
   }
 ]
 
-export const version = '5'
+export const version = '6'  // updated jupyter-iframe-extension.js
