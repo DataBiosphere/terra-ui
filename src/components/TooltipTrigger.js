@@ -1,8 +1,8 @@
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
-import { Children, cloneElement, Component, createRef, Fragment } from 'react'
-import { createPortal } from 'react-dom'
+import { Children, cloneElement, Component, Fragment } from 'react'
 import { div, h, path, svg } from 'react-hyperscript-helpers'
+import { computePopupPosition, PopupPortal, withDynamicPosition } from 'src/components/popup-utils'
 import colors from 'src/libs/colors'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -34,7 +34,7 @@ const styles = {
   }
 }
 
-class Tooltip extends Component {
+const Tooltip = withDynamicPosition()(class Tooltip extends Component {
   static propTypes = {
     side: PropTypes.string,
     type: PropTypes.string.isRequired,
@@ -46,77 +46,16 @@ class Tooltip extends Component {
     side: 'bottom'
   }
 
-  constructor(props) {
-    super(props)
-    this.state = {
-      tooltip: { width: 0, height: 0 },
-      target: { top: 0, bottom: 0, left: 0, right: 0 },
-      viewport: { width: 0, height: 0 }
-    }
-    this.element = createRef()
-    this.container = document.createElement('div')
-  }
-
-  componentDidMount() {
-    document.getElementById('modal-root').appendChild(this.container)
-    this.reposition()
-  }
-
-  componentWillUnmount() {
-    cancelAnimationFrame(this.animation)
-    document.getElementById('modal-root').removeChild(this.container)
-  }
-
-  reposition() {
-    const { target } = this.props
-    this.animation = requestAnimationFrame(() => this.reposition())
-    const newState = {
-      tooltip: _.pick(['width', 'height'], this.element.current.getBoundingClientRect()),
-      target: _.pick(['top', 'bottom', 'left', 'right'], document.getElementById(target).getBoundingClientRect()),
-      viewport: { width: window.innerWidth, height: window.innerHeight }
-    }
-    if (!_.isEqual(newState, _.pick(['tooltip', 'target', 'viewport'], this.state))) {
-      this.setState(newState)
-    }
-  }
-
   render() {
-    const { children, side, type } = this.props
-    const { target, tooltip, viewport } = this.state
+    const { children, side, type, elementRef, dimensions: { target, element, viewport } } = this.props
     const gap = type === 'light' ? 5 : 10
-    const getPosition = s => {
-      const left = _.flow(
-        _.clamp(0, viewport.width - tooltip.width),
-        _.clamp(target.left - tooltip.width + 16, target.right - 16)
-      )(((target.left + target.right) / 2) - (tooltip.width / 2))
-      const top = _.flow(
-        _.clamp(0, viewport.height - tooltip.height),
-        _.clamp(target.top - tooltip.height + 16, target.bottom - 16)
-      )(((target.top + target.bottom) / 2) - (tooltip.height / 2))
-      return Utils.switchCase(s,
-        ['top', () => ({ top: target.top - tooltip.height - gap, left })],
-        ['bottom', () => ({ top: target.bottom + gap, left })],
-        ['left', () => ({ left: target.left - tooltip.width - gap, top })],
-        ['right', () => ({ left: target.right + gap, top })]
-      )
-    }
-    const initial = getPosition(side)
-    const maybeFlip = d => {
-      return Utils.switchCase(d,
-        ['top', () => initial.top < 0 ? 'bottom' : 'top'],
-        ['bottom', () => initial.top + tooltip.height >= viewport.height ? 'top' : 'bottom'],
-        ['left', () => initial.left < 0 ? 'right' : 'left'],
-        ['right', () => initial.left + tooltip.width >= viewport.width ? 'left' : 'right']
-      )
-    }
-    const finalSide = maybeFlip(side)
-    const finalPos = getPosition(finalSide)
+    const { side: finalSide, position } = computePopupPosition({ side, target, element, viewport, gap })
     const getNotchPosition = () => {
-      const left = _.clamp(12, tooltip.width - 12,
-        (target.left + target.right) / 2 - finalPos.left
+      const left = _.clamp(12, element.width - 12,
+        (target.left + target.right) / 2 - position.left
       )
-      const top = _.clamp(12, tooltip.height - 12,
-        (target.top + target.bottom) / 2 - finalPos.top
+      const top = _.clamp(12, element.height - 12,
+        (target.top + target.bottom) / 2 - position.top
       )
       return Utils.switchCase(finalSide,
         ['top', () => ({ bottom: 0, left, transform: 'rotate(180deg)' })],
@@ -125,11 +64,11 @@ class Tooltip extends Component {
         ['right', () => ({ left: 0, top, transform: 'rotate(270deg)' })]
       )
     }
-    return createPortal(
+    return h(PopupPortal, [
       div({
-        ref: this.element,
+        ref: elementRef,
         style: {
-          transform: `translate(${finalPos.left}px, ${finalPos.top}px)`,
+          transform: `translate(${position.left}px, ${position.top}px)`,
           ...(type === 'light') ? styles.lightBox : styles.tooltip
         }
       }, [
@@ -140,11 +79,10 @@ class Tooltip extends Component {
           }, [
             path({ d: 'M0,1l1,-1l1,1Z' })
           ])
-      ]),
-      this.container
-    )
+      ])
+    ])
   }
-}
+})
 
 export default class TooltipTrigger extends Component {
   static propTypes = {

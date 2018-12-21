@@ -68,7 +68,7 @@ const statusCell = workflowStatuses => {
   const { succeeded, failed, running } = collapsedStatuses(workflowStatuses)
 
   return h(TooltipTrigger, {
-    position: 'bottom',
+    side: 'bottom',
     type: 'light',
     content: table({ style: { margin: '0.5rem' } }, [
       tbody({}, [
@@ -180,7 +180,7 @@ const JobHistory = _.flow(
                     ])
                   ]),
                   h(PopupTrigger, {
-                    position: 'bottom',
+                    side: 'bottom',
                     closeOnClick: true,
                     content: h(Fragment, [
                       h(MenuButton, {

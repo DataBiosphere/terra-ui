@@ -3,30 +3,52 @@ import PropTypes from 'prop-types'
 import { Children, cloneElement, Component, Fragment } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import onClickOutside from 'react-onclickoutside'
-import ToolTip from 'react-portal-tooltip'
 import { icon } from 'src/components/icons'
 import colors from 'src/libs/colors'
+import { computePopupPosition, PopupPortal, withDynamicPosition } from 'src/components/popup-utils'
 import * as Style from 'src/libs/style'
 
 
 const styles = {
   popup: {
-    transition: 'none',
-    border: `1px solid ${colors.gray[3]}`,
-    boxShadow: Style.standardShadow,
-    padding: 0
+    position: 'fixed', top: 0, left: 0,
+    backgroundColor: 'white',
+    border: `1px solid ${colors.gray[3]}`, borderRadius: 4,
+    boxShadow: Style.standardShadow
   }
 }
 
-const PopupBody = onClickOutside(({ children }) => {
-  return children
+const Popup = _.flow(
+  onClickOutside,
+  withDynamicPosition()
+)(class Popup extends Component {
+  static propTypes = {
+    side: PropTypes.string,
+    target: PropTypes.string.isRequired,
+    children: PropTypes.node.isRequired
+  }
+
+  static defaultProps = {
+    side: 'bottom'
+  }
+
+  render() {
+    const { children, side, elementRef, dimensions: { target, element, viewport }, onClick } = this.props
+    const { position } = computePopupPosition({ side, target, element, viewport, gap: 10 })
+    return h(PopupPortal, [
+      div({
+        onClick,
+        ref: elementRef,
+        style: { transform: `translate(${position.left}px, ${position.top}px)`, ...styles.popup }
+      }, [children])
+    ])
+  }
 })
 
 export default class PopupTrigger extends Component {
   static propTypes = {
     content: PropTypes.node,
-    position: PropTypes.string,
-    align: PropTypes.string,
+    side: PropTypes.string,
     closeOnClick: PropTypes.bool,
     children: PropTypes.node,
     onToggle: PropTypes.func,
@@ -34,8 +56,7 @@ export default class PopupTrigger extends Component {
   }
 
   static defaultProps = {
-    position: 'right',
-    align: 'center',
+    side: 'right',
     closeOnClick: false,
     onToggle: _.noop
   }
@@ -51,7 +72,7 @@ export default class PopupTrigger extends Component {
   }
 
   render() {
-    const { children, content, position, align, closeOnClick, onToggle, open: forceOpen } = this.props
+    const { children, content, side, closeOnClick, onToggle, open: forceOpen } = this.props
     const { open } = this.state
     const child = Children.only(children)
     const shouldShow = forceOpen === undefined ? open : forceOpen
@@ -68,23 +89,18 @@ export default class PopupTrigger extends Component {
           setOpen(!shouldShow)
         }
       }),
-      shouldShow && h(ToolTip, {
-        active: true, position, align,
-        parent: `#${this.id}`, group: 'popup-trigger',
-        style: { style: styles.popup, arrowStyle: {} },
-        tooltipTimeout: 0
-      }, [
-        h(PopupBody, {
-          handleClickOutside: () => setOpen(false),
-          outsideClickIgnoreClass: this.id
-        }, [div({ onClick: closeOnClick ? () => this.close() : undefined }, [content])])
-      ])
+      shouldShow && h(Popup, {
+        side, target: this.id,
+        handleClickOutside: () => setOpen(false),
+        outsideClickIgnoreClass: this.id,
+        onClick: closeOnClick ? () => this.close() : undefined
+      }, [content])
     ])
   }
 }
 
-export const InfoBox = ({ size, children, style, position, align }) => h(PopupTrigger, {
-  position, align,
+export const InfoBox = ({ size, children, style, side }) => h(PopupTrigger, {
+  side,
   content: div({ style: { padding: '0.5rem', width: 300 } }, children)
 }, [
   span({ style: { cursor: 'pointer', color: colors.blue[0], ...style } }, [

@@ -157,7 +157,7 @@ class StyleGuide extends Component {
         els.fixWidth('18%', [
           h(PopupTrigger, {
             content: 'Qui blandit praesent luptatum zzril delenit.',
-            position: 'bottom'
+            side: 'bottom'
           }, [
             buttonPrimary({}, ['Popup trigger'])
           ])
@@ -168,7 +168,7 @@ class StyleGuide extends Component {
               span({}, ['Qui blandit praesent luptatum ']),
               link({}, ['zzril delenit.'])
             ]),
-            position: 'bottom'
+            side: 'bottom'
           }, [
             buttonPrimary({}, ['Popup trigger'])
           ])

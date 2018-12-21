@@ -81,7 +81,7 @@ const WorkspaceCard = pure(({
   const isOwner = Utils.isOwner(accessLevel)
   const notAuthorized = (accessLevel === 'NO ACCESS')
   const workspaceMenu = h(PopupTrigger, {
-    position: 'right',
+    side: 'right',
     closeOnClick: true,
     content: h(Fragment, [
       h(MenuButton, {
