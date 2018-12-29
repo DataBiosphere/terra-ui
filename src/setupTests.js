@@ -1,3 +1,10 @@
+/*import { configure, ReactWrapper } from 'enzyme'
+import Adapter from 'enzyme-adapter-react-16';
+configure({ adapter: new Adapter() });
+
+//https://github.com/airbnb/enzyme/issues/1265
+
+
 const {auth} = require('google-auth-library');
 const keys = JSON.parse(process.env['FIRECLOUD_DEV_SA_KEY_JSON'])
 
@@ -5,7 +12,7 @@ const keys = JSON.parse(process.env['FIRECLOUD_DEV_SA_KEY_JSON'])
 const client = auth.fromJSON(keys)
 client.scopes = ['profile', 'email', 'openid', 'https://www.googleapis.com/auth/devstorage.full_control', 'https://www.googleapis.com/auth/cloud-platform']
 client.subject = 'dumbledore.admin@test.firecloud.org'
-client.authorize().then(auth => auth.access_token)
+const token = client.authorize().then(auth => auth.access_token)*/
 
 /*
 import { configure, ReactWrapper } from 'enzyme'

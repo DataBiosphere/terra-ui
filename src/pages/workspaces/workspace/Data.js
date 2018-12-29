@@ -848,7 +848,8 @@ const WorkspaceData = _.flow(
             linkButton({
               disabled: !canEdit,
               tooltip: canEdit ? 'Upload .tsv' : 'You do not have access add data to this workspace.',
-              onClick: () => this.setState({ uploadingFile: true })
+              onClick: () => this.setState({ uploadingFile: true }),
+              dataTestId: 'uploadTsvButton'
             }, [icon('plus-circle')])
           ]),
           _.map(([type, typeDetails]) => {

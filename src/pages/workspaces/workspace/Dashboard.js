@@ -157,7 +157,7 @@ export const WorkspaceDashboard = _.flow(
           () => div({ style: { fontStyle: 'italic' } }, ['No description added']))
       ]),
       div({ style: styles.rightBox }, [
-        div({ style: styles.header }, ['Workspace information']),
+        div({ style: styles.header, dataTestId: 'workspaceInfoSidePanel' }, ['Workspace information']),
         div({ style: { display: 'flex', flexWrap: 'wrap', margin: -4 } }, [
           h(InfoTile, { title: 'Creation date' }, [new Date(createdDate).toLocaleDateString()]),
           h(InfoTile, { title: 'Last updated' }, [new Date(lastModified).toLocaleDateString()]),

@@ -122,7 +122,7 @@ const ToolCard = pure(({ listView, name, namespace, config, onCopy, onDelete }) 
     div({ style: { ...styles.card, ...styles.shortCard } }, [
       workflowLink,
       div({ style: { ...styles.innerContent, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%' } }, [
-        div({ style: styles.shortTitle }, [workflowName]),
+        div({ style: styles.shortTitle, dataTestId: 'workflow-link-'+workflowName }, [workflowName]),
         div({ style: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' } }, [
           div([div([`V. ${methodVersion}`]), 'Source: ', repoLink]), toolCardMenu
         ])

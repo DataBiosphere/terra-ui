@@ -149,8 +149,10 @@ export default ajaxCaller(class NewWorkspaceModal extends Component {
         placeholder: 'Select a billing project',
         disabled: !billingProjects,
         value: namespace,
-        onChange: ({ value }) => this.setState({ namespace: value, dataTestId: value }),
-        options: _.uniq(_.map('projectName', billingProjects)).sort()
+        onChange: ({ value }) => this.setState({ namespace: value, style: { dataTestId: value }, inputProps: { dataTestId: value } }),
+        options: _.uniq(_.map('projectName', billingProjects)).sort(),
+        className: 'billingProject',
+        'aria-label': 'billingProjectSelect'
       }),
       Forms.formLabel('Description'),
       h(TextArea, {

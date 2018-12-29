@@ -50,7 +50,8 @@ export default ajaxCaller(class LaunchAnalysisModal extends Component {
       okButton: buttonPrimary({
         onClick: () => this.launch(),
         disabled: launching || !selectedEntity,
-        tooltip: !selectedEntity && 'Please select an entity'
+        tooltip: !selectedEntity && 'Please select an entity',
+        dataTestId: 'launch-button'
       }, [launching ? 'Launching...' : 'Launch'])
     }, [
       Utils.cond(
@@ -116,7 +117,7 @@ export default ajaxCaller(class LaunchAnalysisModal extends Component {
                 cellRenderer: ({ rowIndex }) => {
                   const { name } = filteredEntities[rowIndex]
                   return h(TextCell, [
-                    link({ onClick: () => this.setState({ selectedEntity: name }), title: name }, [name])
+                    link({ onClick: () => this.setState({ selectedEntity: name }), title: name, dataTestId: `launch-analysis-${name}-link` }, [name])
                   ])
                 }
               },

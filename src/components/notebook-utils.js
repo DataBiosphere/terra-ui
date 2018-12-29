@@ -113,17 +113,19 @@ export const NotebookCreator = ajaxCaller(class NotebookCreator extends Componen
         error: Utils.summarizeErrors(nameTouched && errors && errors.notebookName),
         inputProps: {
           value: notebookName,
+          dataTestId: 'notebookNameInput',
           onChange: e => this.setState({ notebookName: e.target.value, nameTouched: true })
         }
       }),
       Forms.requiredFormLabel('Language'),
       h(Select, {
-        isSearchable: false,
+        // isSearchable: false, // aria-label only added if isSearchable is set to false
         placeholder: 'Select a language',
         getOptionLabel: ({ value }) => _.startCase(value),
         value: notebookKernel,
         onChange: ({ value: notebookKernel }) => this.setState({ notebookKernel }),
-        options: ['python2', 'python3', 'r']
+        options: ['python2', 'python3', 'r'],
+        'aria-label': 'Select a language'
       }),
       creating && spinnerOverlay
     ])

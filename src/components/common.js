@@ -113,7 +113,9 @@ export const tabBar = ({ activeTab, tabNames, refresh = _.noop, getHref }, child
         style: { ...Style.tabBar.tab, ...(selected ? Style.tabBar.active : {}) },
         hover: { color: Style.tabBar.active.color },
         onClick: href === window.location.hash ? refresh : undefined,
-        href
+        href,
+        'aria-label': currentTab+'-tab',
+        datatestid: currentTab+'-tab' // capitalizing here results in: // index.js:1452 Warning: React does not recognize the `dataTestId` prop on a DOM element. If you intentionally want it to appear in the DOM as a custom attribute, spell it as lowercase `datatestid` instead. If you accidentally passed it from a parent component, remove it from the DOM element.
       }, currentTab),
       !hideSeparator && navSeparator
     ])

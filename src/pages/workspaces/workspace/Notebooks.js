@@ -249,7 +249,8 @@ const Notebooks = _.flow(
           style: { ...Style.elements.card, flex: 1, color: colors.blue[0] },
           onClick: () => this.setState({ creating: true }),
           disabled: !canWrite,
-          tooltip: !canWrite ? noWrite : undefined
+          tooltip: !canWrite ? noWrite : undefined,
+          dataTestId: 'createNewNotebook'
         }, [
           div({ style: { fontSize: 18, lineHeight: '22px', width: 150 } }, [
             div(['Create a']),

@@ -105,7 +105,8 @@ export default Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
       as: 'a',
       hover: { backgroundColor: colors.darkBlue[1] },
       href: Nav.getLink(linkName),
-      onClick: () => this.hideNav()
+      onClick: () => this.hideNav(),
+      dataTestId: label+'-link'
     }, [
       div({ style: styles.nav.icon }, [
         icon(iconName, { className: 'is-solid', size: 24 })
@@ -263,7 +264,9 @@ export default Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
       icon('bars', {
         size: 36,
         style: { marginRight: '2rem', color: colors.purple[0], flex: 'none', cursor: 'pointer' },
-        onClick: () => this.showNav()
+        onClick: () => this.showNav(),
+        dataTestId: 'navigationHamburgerIcon',
+        'aria-label': 'navigationHamburgerIcon'
       }),
       a({
         style: { ...styles.pageTitle, display: 'flex', alignItems: 'center' },

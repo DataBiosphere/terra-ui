@@ -263,7 +263,8 @@ export const EntityUploader = ajaxCaller(class EntityUploader extends Component 
         title: 'Upload Table From .tsv File',
         okButton: buttonPrimary({
           disabled: !file || uploading,
-          onClick: () => this.doUpload()
+          onClick: () => this.doUpload(),
+          dataTestId: 'uploadButton'
         }, ['Upload'])
       }, [
         file && _.includes(_.toLower(newEntityType), entityTypes) && div({

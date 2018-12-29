@@ -49,9 +49,9 @@ const collapseStatus = status => {
 
 const isTerminal = submissionStatus => submissionStatus === 'Aborted' || submissionStatus === 'Done'
 
-const successIcon = style => icon('check', { size: 24, style: { color: colors.green[0], ...style } })
-const failedIcon = style => icon('warning-standard', { className: 'is-solid', size: 24, style: { color: colors.red[0], ...style } })
-const runningIcon = style => icon('sync', { size: 24, style: { color: colors.green[0], ...style } })
+const successIcon = style => icon('check', { size: 24, style: { color: colors.green[0], ...style }, dataTestId: 'successIcon' })
+const failedIcon = style => icon('warning-standard', { className: 'is-solid', size: 24, style: { color: colors.red[0], ...style }, dataTestId: 'failedIcon' })
+const runningIcon = style => icon('sync', { size: 24, style: { color: colors.green[0], ...style }, dataTestId: 'runningIcon' })
 
 
 export const flagNewSubmission = submissionId => {

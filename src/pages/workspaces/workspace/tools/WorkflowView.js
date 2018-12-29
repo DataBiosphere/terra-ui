@@ -132,7 +132,8 @@ const WorkflowIOTable = ({ which, inputsOutputs: data, config, errors, onChange,
                   value,
                   style: isFile ? { borderRadius: '4px 0px 0px 4px', borderRight: 'white' } : undefined,
                   onChange: v => onChange(name, v),
-                  suggestions
+                  suggestions,
+                  dataTestId: name
                 }) : h(TextCell, { style: { flex: 1, borderRadius: '4px 0px 0px 4px', borderRight: 'white' } }, value),
                 isFile && h(Clickable, {
                   style: {
@@ -478,8 +479,11 @@ const WorkflowView = _.flow(
               onClick: () => this.setState({ launching: true }),
               style: {
                 height: StepButtonParams.buttonHeight, fontSize: StepButtonParams.fontSize
-              }
-            }, ['Run analysis'])
+              },
+              dataTestId: 'run-analysis-button'
+            }, ['Run analysis']),
+            'aria-label': 'testest123',
+            style: { 'aria-label': 'testest123' }
           }),
           activeTab === 'outputs' && div({ style: { marginBottom: '1rem' } }, [
             div({ style: styles.outputInfoLabel }, 'Output files will be saved to'),
@@ -521,7 +525,7 @@ const WorkflowView = _.flow(
       div({ style: styles.messageContainer }, [
         saving && miniMessage('Saving...'),
         saved && !saving && !modified && miniMessage('Saved!'),
-        modified && buttonPrimary({ disabled: saving, onClick: () => this.save() }, 'Save'),
+        modified && buttonPrimary({ disabled: saving, onClick: () => this.save(), dataTestId: 'saveWorkflowButton' }, 'Save'),
         modified && buttonSecondary({ style: { marginLeft: '1rem' }, disabled: saving, onClick: () => this.cancel() }, 'Cancel')
       ]),
       copying && h(ExportToolModal, {
