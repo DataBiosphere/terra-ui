@@ -8,6 +8,7 @@ import { icon, logo, profilePic } from 'src/components/icons'
 import { pushNotification } from 'src/components/Notifications'
 import SignInButton from 'src/components/SignInButton'
 import SupportRequestModal from 'src/components/SupportRequestModal'
+import TrialBanner from 'src/components/TrialBanner'
 import { authStore, signOut } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import * as Nav from 'src/libs/nav'
@@ -279,6 +280,7 @@ export default Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
         ])
       ]),
       children,
+      h(TrialBanner),
       navShown && this.buildNav(),
       showingSupportModal && h(SupportRequestModal, {
         onDismiss: () => this.setState({ showingSupportModal: false }),
