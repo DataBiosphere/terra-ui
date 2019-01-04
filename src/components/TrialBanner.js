@@ -32,7 +32,9 @@ export default _.flow(
     this.state = {
       accessingCredits: false,
       pageTwo: false,
-      show: true
+      show: true,
+      termsAgreed: 'false',
+      cloudTermsAgreed: 'false'
     }
   }
 
@@ -99,7 +101,8 @@ export default _.flow(
         onDismiss: () => this.setState({ accessingCredits: false, pageTwo: false }),
         okButton: buttonPrimary({
           onClick: pageTwo ? async () => this.acceptCredits() : () => this.setState({ pageTwo: true }),
-          disabled: pageTwo ? !termsAgreed || !cloudTermsAgreed : false
+          disabled: pageTwo ? (termsAgreed === 'false') || (cloudTermsAgreed === 'false') : false,
+          tooltip: (pageTwo && ((termsAgreed === 'false') || (cloudTermsAgreed === 'false'))) && 'You must check the boxes to accept.' 
         }, [pageTwo ? 'Accept' : 'Review Terms of Service'])
       }, [
         h(FreeTrialEulas, { pageTwo }),
