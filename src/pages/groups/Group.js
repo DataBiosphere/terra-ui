@@ -72,7 +72,7 @@ const NewUserModal = ajaxCaller(class NewUserModal extends Component {
         onChange: e => this.setState({ userEmail: e.target.value, emailTouched: true })
       }),
       Forms.requiredFormLabel('Role'),
-      roleSelector({ role, updateState: role => this.setState({ role }) }),
+      roleSelector({ role, adminCanEdit: true, updateState: role => this.setState({ role }) }),
       submitError && div({ style: { marginTop: '0.5rem', textAlign: 'right', color: colors.red[0] } }, [submitError]),
       submitting && spinnerOverlay
     ])
