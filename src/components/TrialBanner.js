@@ -1,13 +1,14 @@
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
 import { div, h, a, span } from 'react-hyperscript-helpers'
-import { Clickable } from 'src/components/common'
+import colors from 'src/libs/colors'
+import { buttonPrimary, Clickable, LabeledCheckbox, link } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { withWorkspaces } from 'src/components/workspace-utils'
 import { ajaxCaller } from 'src/libs/ajax'
-import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 import Modal from 'src/components/Modal'
+import FreeTrialEulas from 'src/pages/FreeTrialEulas'
 
 
 export default _.flow(
@@ -26,22 +27,28 @@ export default _.flow(
     onDismiss: _.noop
   }
 
-  componentDidMount() {
-    Utils.waitOneTick().then(() => this.setState({ show: this.props.isVisible }))
+  constructor(props) {
+    super(props)
+    this.state = {
+      accessingCredits: false,
+      pageTwo: false,
+      show: true
+    }
   }
 
-  static getDerivedStateFromProps(props, state) {
-    return _.isUndefined(state.show) ? null : { show: props.isVisible }
+  componentDidMount() {
+    this.setState({ show: this.props.isVisible })
   }
 
   render() {
     const { showX, onDismiss, ...props } = _.omit('isVisible', this.props)
-    const { show, accessingCredits } = this.state
+    const { show, accessingCredits, pageTwo, termsAgreed, cloudTermsAgreed } = this.state
+    console.log({ termsAgreed, cloudTermsAgreed })
     return div(_.merge({
       style: {
         display: 'flex', alignItems: 'center',
         transition: 'all 0.25s linear',
-        transform: `translate(-50%, ${show ? '0px' : '-115%'})`,
+        transform: `translate(-50%, ${show ? '0px' : '-150%'})`,
         position: 'fixed', top: 0, left: '50%',
         width: '100%',
         maxWidth: '100%',
@@ -88,9 +95,37 @@ export default _.flow(
       }, [icon('times', { size: 25, style: { stroke: 'white', strokeWidth: 3 } })]),
       accessingCredits && h(Modal, {
         title: 'Welcome to the Terra Free Credit Program!',
-        onDismiss: () => this.setState({ accessingCredits: false }),
-        okButton: async () => this.acceptCredits()
-      })
+        width: 900,
+        onDismiss: () => this.setState({ accessingCredits: false, pageTwo: false }),
+        okButton: buttonPrimary({
+          onClick: pageTwo ? async () => this.acceptCredits() : () => this.setState({ pageTwo: true }),
+          disabled: pageTwo ? !termsAgreed || !cloudTermsAgreed : false
+        }, [pageTwo ? 'Accept' : 'Review Terms of Service'])
+      }, [
+        h(FreeTrialEulas, { pageTwo }),
+        pageTwo && div({ style: { marginTop: '0.5rem', padding: '1rem', border: `1px solid ${colors.blue[0]}`, borderRadius: '0.25rem', backgroundColor: '#f4f4f4' } }, [
+          h(LabeledCheckbox, {
+            checked: termsAgreed === 'true',
+            onChange: v => this.setState({ termsAgreed: v.toString() })
+          }, [span({ style: { marginLeft: '0.5rem' } }, ['I agree to the terms of this Agreement.'])]),
+          div({ style: { flexGrow: 1, marginBottom: '0.5rem' } }),
+          h(LabeledCheckbox, {
+            checked: cloudTermsAgreed === 'true',
+            onChange: v => this.setState({ cloudTermsAgreed: v.toString() })
+          }, [
+            span({ style: { marginLeft: '0.5rem' } }, [
+              'I agree to the Google Cloud Terms of Service.', div({ style: { marginLeft: '1.5rem' } }, [
+                'Google Cloud Terms of Service:',
+                link({
+                  style: { textDecoration: 'underline', marginLeft: '0.25rem' },
+                  target: 'blank',
+                  href: 'https://cloud.google.com/terms/'
+                }, ['https://cloud.google.com/terms/', icon('pop-out', { style: { marginLeft: '0.25rem' } })])
+              ])
+            ])
+          ])
+        ])
+      ])
     ])
   }
 
@@ -98,6 +133,7 @@ export default _.flow(
     const { ajax: { User } } = this.props
     try {
       await User.acceptEula()
+      await User.startTrial()
     } catch (error) {
       this.setState({ error: await error.text() })
     }
