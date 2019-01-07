@@ -7,12 +7,10 @@ import ErrorWrapper from 'src/components/ErrorWrapper'
 import { NotificationsContainer } from 'src/components/Notifications'
 import { NpsSurvey } from 'src/components/NpsSurvey'
 import Router from 'src/components/Router'
-import TrialBanner from 'src/components/TrialBanner'
 
 
 const Main = () => {
   return h(Fragment, [
-    h(TrialBanner),
     NotificationsContainer,
     h(ErrorWrapper, [h(Router)]),
     h(ErrorBanner),

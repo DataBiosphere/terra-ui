@@ -18,13 +18,11 @@ export default _.flow(
 )(class TrialBanner extends Component {
   static propTypes = {
     isVisible: PropTypes.bool,
-    showX: PropTypes.bool,
     onDismiss: PropTypes.func
   }
 
   static defaultProps = {
     isVisible: true,
-    showX: true,
     onDismiss: _.noop
   }
 
@@ -44,9 +42,8 @@ export default _.flow(
   }
 
   render() {
-    const { showX, onDismiss, authState: { isSignedIn }, ...props } = _.omit('isVisible', this.props)
+    const { onDismiss, authState: { isSignedIn }, ...props } = _.omit('isVisible', this.props)
     const { show, accessingCredits, pageTwo, termsAgreed, cloudTermsAgreed } = this.state
-    console.log(show)
     if (!isSignedIn) return null
     else return show && div(_.merge({
       style: {
@@ -86,7 +83,7 @@ export default _.flow(
             }
           }, ['Start Trial'])
         ]),
-      showX && h(Clickable, {
+      h(Clickable, {
         style: { marginRight: '1.5rem' },
         tooltip: 'Hide for now',
         onClick: () => {

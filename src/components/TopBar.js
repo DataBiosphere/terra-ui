@@ -14,6 +14,7 @@ import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
+import TrialBanner from 'src/components/TrialBanner'
 
 
 const styles = {
@@ -258,8 +259,7 @@ export default Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
   render() {
     const { title, href, children } = this.props
     const { navShown, showingSupportModal } = this.state
-
-    return div({ style: styles.topBar }, [
+    return div([h(TrialBanner), div({ style: styles.topBar }, [
       icon('bars', {
         size: 36,
         style: { marginRight: '2rem', color: colors.purple[0], flex: 'none', cursor: 'pointer' },
@@ -287,6 +287,6 @@ export default Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
           pushNotification({ message: 'Message sent successfully' })
         }
       })
-    ])
+    ])])
   }
 })
