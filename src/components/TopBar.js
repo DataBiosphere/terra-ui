@@ -117,7 +117,7 @@ export default Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
     console.log(show)
     return createPortal(
       div({
-        style: show ? { ...styles.nav.background, top: 90 }: styles.nav.background,
+        style: (show && isSignedIn) ? { ...styles.nav.background, top: 90 }: styles.nav.background,
         onClick: () => {
           this.hideNav()
         }
