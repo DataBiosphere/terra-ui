@@ -1,11 +1,12 @@
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
 import { div, h, a, span } from 'react-hyperscript-helpers'
+import { authStore } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { buttonPrimary, Clickable, LabeledCheckbox, link } from 'src/components/common'
 import { icon } from 'src/components/icons'
-import { withWorkspaces } from 'src/components/workspace-utils'
 import { ajaxCaller } from 'src/libs/ajax'
+import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 import Modal from 'src/components/Modal'
 import FreeTrialEulas from 'src/pages/FreeTrialEulas'
@@ -13,7 +14,7 @@ import FreeTrialEulas from 'src/pages/FreeTrialEulas'
 
 export default _.flow(
   ajaxCaller,
-  withWorkspaces()
+  Utils.connectAtom(authStore, 'authState')
 )(class TrialBanner extends Component {
   static propTypes = {
     isVisible: PropTypes.bool,
@@ -43,15 +44,13 @@ export default _.flow(
   }
 
   render() {
-    const { showX, onDismiss, ...props } = _.omit('isVisible', this.props)
+    const { showX, onDismiss, authState: { isSignedIn }, ...props } = _.omit('isVisible', this.props)
     const { show, accessingCredits, pageTwo, termsAgreed, cloudTermsAgreed } = this.state
-    console.log({ termsAgreed, cloudTermsAgreed })
-    return div(_.merge({
+    console.log(show)
+    if (!isSignedIn) return null
+    else return show && div(_.merge({
       style: {
         display: 'flex', alignItems: 'center',
-        transition: 'all 0.25s linear',
-        transform: `translate(-50%, ${show ? '0px' : '-150%'})`,
-        position: 'fixed', top: 0, left: '50%',
         width: '100%',
         maxWidth: '100%',
         backgroundColor: '#359448',
@@ -102,7 +101,7 @@ export default _.flow(
         okButton: buttonPrimary({
           onClick: pageTwo ? async () => this.acceptCredits() : () => this.setState({ pageTwo: true }),
           disabled: pageTwo ? (termsAgreed === 'false') || (cloudTermsAgreed === 'false') : false,
-          tooltip: (pageTwo && ((termsAgreed === 'false') || (cloudTermsAgreed === 'false'))) && 'You must check the boxes to accept.' 
+          tooltip: (pageTwo && ((termsAgreed === 'false') || (cloudTermsAgreed === 'false'))) && 'You must check the boxes to accept.'
         }, [pageTwo ? 'Accept' : 'Review Terms of Service'])
       }, [
         h(FreeTrialEulas, { pageTwo }),
