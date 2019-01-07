@@ -100,6 +100,7 @@ export default Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
 
   buildNav() {
     const { authState: { isSignedIn } } = this.props
+    const { show } = this.state
 
     const librarySubItem = (linkName, iconName, label) => h(Clickable, {
       style: styles.nav.subItem,
@@ -113,10 +114,10 @@ export default Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
       ]),
       label
     ])
-
+    console.log(show)
     return createPortal(
       div({
-        style: styles.nav.background,
+        style: show ? { ...styles.nav.background, top: 90 }: styles.nav.background,
         onClick: () => {
           this.hideNav()
         }
@@ -256,37 +257,46 @@ export default Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
     ])
   }
 
+  componentDidMount() {
+    this.setState({ show: true })
+  }
+
   render() {
     const { title, href, children } = this.props
-    const { navShown, showingSupportModal } = this.state
-    return div([h(TrialBanner), div({ style: styles.topBar }, [
-      icon('bars', {
-        size: 36,
-        style: { marginRight: '2rem', color: colors.purple[0], flex: 'none', cursor: 'pointer' },
-        onClick: () => this.showNav()
+    const { navShown, showingSupportModal, show } = this.state
+    return div([
+      show && h(TrialBanner, {
+        closeBanner: () => this.setState({ show: false })
       }),
-      a({
-        style: { ...styles.pageTitle, display: 'flex', alignItems: 'center' },
-        href: href || Nav.getLink('root')
-      }, [
-        logo(),
-        div({}, [
-          div({
-            style: _.merge(title ? { fontSize: '0.8rem', lineHeight: '19px' } : { fontSize: '1rem', fontWeight: 600 },
-              { color: colors.darkBlue[2], marginLeft: '0.1rem' })
-          }, [betaTag]),
-          title
-        ])
-      ]),
-      children,
-      navShown && this.buildNav(),
-      showingSupportModal && h(SupportRequestModal, {
-        onDismiss: () => this.setState({ showingSupportModal: false }),
-        onSuccess: () => {
-          this.setState({ showingSupportModal: false })
-          pushNotification({ message: 'Message sent successfully' })
-        }
-      })
-    ])])
+      div({ style: styles.topBar }, [
+        icon('bars', {
+          size: 36,
+          style: { marginRight: '2rem', color: colors.purple[0], flex: 'none', cursor: 'pointer' },
+          onClick: () => this.showNav()
+        }),
+        a({
+          style: { ...styles.pageTitle, display: 'flex', alignItems: 'center' },
+          href: href || Nav.getLink('root')
+        }, [
+          logo(),
+          div({}, [
+            div({
+              style: _.merge(title ? { fontSize: '0.8rem', lineHeight: '19px' } : { fontSize: '1rem', fontWeight: 600 },
+                { color: colors.darkBlue[2], marginLeft: '0.1rem' })
+            }, [betaTag]),
+            title
+          ])
+        ]),
+        children,
+        navShown && this.buildNav(),
+        showingSupportModal && h(SupportRequestModal, {
+          onDismiss: () => this.setState({ showingSupportModal: false }),
+          onSuccess: () => {
+            this.setState({ showingSupportModal: false })
+            pushNotification({ message: 'Message sent successfully' })
+          }
+        })
+      ])
+    ])
   }
 })

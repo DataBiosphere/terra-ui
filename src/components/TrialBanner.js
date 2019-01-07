@@ -18,12 +18,12 @@ export default _.flow(
 )(class TrialBanner extends Component {
   static propTypes = {
     isVisible: PropTypes.bool,
-    onDismiss: PropTypes.func
+    closeBanner: PropTypes.func
   }
 
   static defaultProps = {
     isVisible: true,
-    onDismiss: _.noop
+    closeBanner: _.noop
   }
 
   constructor(props) {
@@ -31,21 +31,17 @@ export default _.flow(
     this.state = {
       accessingCredits: false,
       pageTwo: false,
-      show: true,
       termsAgreed: 'false',
       cloudTermsAgreed: 'false'
     }
   }
 
-  componentDidMount() {
-    this.setState({ show: this.props.isVisible })
-  }
-
   render() {
-    const { onDismiss, authState: { isSignedIn }, ...props } = _.omit('isVisible', this.props)
-    const { show, accessingCredits, pageTwo, termsAgreed, cloudTermsAgreed } = this.state
-    if (!isSignedIn) return null
-    else return show && div(_.merge({
+    const { closeBanner, authState: { isSignedIn }, ...props } = _.omit('isVisible', this.props)
+    const { accessingCredits, pageTwo, termsAgreed, cloudTermsAgreed } = this.state
+    if (!isSignedIn) {
+      return null
+    } else return div(_.merge({
       style: {
         display: 'flex', alignItems: 'center',
         width: '100%',
@@ -86,14 +82,11 @@ export default _.flow(
       h(Clickable, {
         style: { marginRight: '1.5rem' },
         tooltip: 'Hide for now',
-        onClick: () => {
-          this.setState({ show: false })
-          onDismiss()
-        }
+        onClick: () => closeBanner()
       }, [icon('times', { size: 25, style: { stroke: 'white', strokeWidth: 3 } })]),
       accessingCredits && h(Modal, {
         title: 'Welcome to the Terra Free Credit Program!',
-        width: 900,
+        width: '65%',
         onDismiss: () => this.setState({ accessingCredits: false, pageTwo: false }),
         okButton: buttonPrimary({
           onClick: pageTwo ? async () => this.acceptCredits() : () => this.setState({ pageTwo: true }),
