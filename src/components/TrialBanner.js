@@ -6,6 +6,7 @@ import colors from 'src/libs/colors'
 import { buttonPrimary, Clickable, LabeledCheckbox, link } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { ajaxCaller } from 'src/libs/ajax'
+import { reportError } from 'src/libs/error'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 import Modal from 'src/components/Modal'
@@ -36,9 +37,20 @@ export default _.flow(
     }
   }
 
+  async componentDidMount() {
+    try {
+      const res = await fetch('trial.json')
+      this.setState({ messages: await res.json() })
+    } catch (error) {
+      reportError('Error loading user information', error)
+    }
+  }
+
   render() {
     const { closeBanner, authState: { isSignedIn }, ...props } = _.omit('isVisible', this.props)
-    const { accessingCredits, pageTwo, termsAgreed, cloudTermsAgreed } = this.state
+    const { accessingCredits, pageTwo, termsAgreed, cloudTermsAgreed, messages } = this.state
+    if (!messages) return null
+    const { Enabled: { title, message, link, button, isWarning } } = messages
     if (!isSignedIn) {
       return null
     } else return div(_.merge({
@@ -59,15 +71,15 @@ export default _.flow(
               fontSize: '1.5rem', fontWeight: 500, textAlign: 'right', borderRight: '1px solid', paddingRight: '1rem', marginRight: '1rem',
               maxWidth: 200, flexShrink: 0
             }
-          }, 'Welcome to Terra!'),
+          }, title),
           span({ style: { maxWidth: 600, lineHeight: '1.5rem' } },
             [
-              'You have free compute and storage credits available to upload your data and launch analyses.',
-              a({
+              message,
+              link && a({
                 style: { textDecoration: 'underline', marginLeft: '0.5rem' },
                 target: 'blank',
-                href: 'https://software.broadinstitute.org/firecloud/documentation/freecredits'
-              }, ['Learn more', icon('pop-out', { style: { marginLeft: '0.25rem' } })])
+                href: link.url
+              }, [link.label, icon('pop-out', { style: { marginLeft: '0.25rem' } })])
             ]),
           h(Clickable, {
             style: {
@@ -77,7 +89,7 @@ export default _.flow(
             onClick: () => {
               this.setState({ accessingCredits: true })
             }
-          }, ['Start Trial'])
+          }, [button.label])
         ]),
       h(Clickable, {
         style: { marginRight: '1.5rem' },
@@ -89,7 +101,10 @@ export default _.flow(
         width: '65%',
         onDismiss: () => this.setState({ accessingCredits: false, pageTwo: false }),
         okButton: buttonPrimary({
-          onClick: pageTwo ? async () => this.acceptCredits() : () => this.setState({ pageTwo: true }),
+          onClick: pageTwo ? async () => {
+            this.acceptCredits()
+            this.setState({ accessingCredits: false })
+          } : () => this.setState({ pageTwo: true }),
           disabled: pageTwo ? (termsAgreed === 'false') || (cloudTermsAgreed === 'false') : false,
           tooltip: (pageTwo && ((termsAgreed === 'false') || (cloudTermsAgreed === 'false'))) && 'You must check the boxes to accept.'
         }, [pageTwo ? 'Accept' : 'Review Terms of Service'])
