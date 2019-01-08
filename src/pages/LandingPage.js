@@ -43,7 +43,7 @@ const LandingPage = pure(() => {
         backgroundRepeat: 'no-repeat', backgroundSize: '750px', backgroundPosition: 'right -75px top -110px'
       }
     }, [
-      img({ src: landingPageHero, style: { position: 'absolute', right: 0, top: 60 } }),
+      img({ src: landingPageHero, style: { position: 'absolute', right: 0, top: 60+90 } }),
       div({ style: { whiteSpace: 'pre-line' } }, [
         div({ style: { fontSize: 45, color: '#359448' } }, 'Welcome to Terra.\n'),
         div({ style: { fontSize: 24, marginBottom: '2rem' } }, [

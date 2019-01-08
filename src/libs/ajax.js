@@ -155,8 +155,13 @@ const User = signal => ({
   acceptEula: async () => {
     return fetchOrchestration('api/profile/trial/userAgreement', _.merge(authOpts(), { signal, method: 'PUT' }))
   },
+
   startTrial: async () => {
     return fetchOrchestration('api/profile/trial', _.merge(authOpts(), { signal, method: 'POST' }))
+  },
+
+  terminateTrial: async () => {
+    return fetchOrchestration('api/profile/trial?operation=finalize', _.merge(authOpts(), { signal, method: 'POST' }))
   },
 
   getProxyGroup: async email => {

@@ -47,11 +47,12 @@ export default _.flow(
   }
 
   render() {
-    const { closeBanner, authState: { isSignedIn }, ...props } = _.omit('isVisible', this.props)
+    const { closeBanner, authState: { isSignedIn }, ajax: { User }, ...props } = _.omit('isVisible', this.props)
     const { accessingCredits, pageTwo, termsAgreed, cloudTermsAgreed, messages } = this.state
+    const isTerminate = false //change after trialState can be found
     if (!messages) return null
-    const { Terminated: { title, message, link, button, isWarning } } = messages
-    if (!isSignedIn) {
+    const { Enrolled: { title, message, link, button, isWarning } } = messages //change after trialState can be found
+    if (!isSignedIn || isTerminate) { //change after trialState can be found
       return null
     } else return div(_.merge({
       style: {
@@ -91,11 +92,15 @@ export default _.flow(
             }
           }, [button.label, button.isExternal ? icon('pop-out', { style: { marginLeft: '0.25rem' } }) : null])
         ]),
-      h(Clickable, {
-        style: { marginRight: '1.5rem' },
+      div({style: {alignSelf: 'center', padding: '1rem', display: 'flex', flexDirection: 'column', alignItems: 'flex-end'}}, [h(Clickable, {
+        style: { borderBottom: 'none' },
         tooltip: 'Hide for now',
         onClick: () => closeBanner()
-      }, [icon('times', { size: 25, style: { stroke: 'white', strokeWidth: 3 } })]),
+      }, [icon('times', { size: 25, style: { display: 'block', fontSize: '1.5rem', stroke: 'white', cursor: 'pointer', strokeWidth: 3 } })]),
+      h(Clickable, {//change after trialState can be found
+        style: { margin: '0.5rem -0.75rem -1.5rem', fontSize: 'small', color: 'white' },
+        onClick: async () => await User.terminateTrial()
+      }, 'or hide forever?')]),
       accessingCredits && h(Modal, {
         title: 'Welcome to the Terra Free Credit Program!',
         width: '65%',

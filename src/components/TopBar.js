@@ -101,6 +101,7 @@ export default Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
   buildNav() {
     const { authState: { isSignedIn } } = this.props
     const { show } = this.state
+    const isTerminate = false //change after trialState can be found
 
     const librarySubItem = (linkName, iconName, label) => h(Clickable, {
       style: styles.nav.subItem,
@@ -116,7 +117,7 @@ export default Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
     ])
     return createPortal(
       div({
-        style: (show && isSignedIn) ? { ...styles.nav.background, top: 90 }: styles.nav.background,
+        style: (show && isSignedIn && !isTerminate) ? { ...styles.nav.background, top: 100 }: styles.nav.background, //change after trialState can be found
         onClick: () => {
           this.hideNav()
         }
