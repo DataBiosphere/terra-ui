@@ -152,10 +152,9 @@ export const GroupList = ajaxCaller(class GroupList extends Component {
     try {
       this.setState({ isDataLoaded: false, creatingNewGroup: false, deletingGroup: false, updating: false })
       const rawGroups = await Groups.list()
-      const groupRoles = _.reduce((c, g) => { (c[g.groupName] || (c[g.groupName] = [])).push(g.role); return c }, {}, rawGroups)
       const groups = _.flow(
-        _.uniqBy('groupName'),
-        _.map(group => _.set('role', groupRoles[group.groupName], group)),
+        _.groupBy('groupName'),
+        _.map(gs => ({ ...gs[0], role: _.map('role', gs) })),
         _.sortBy('groupName')
       )(rawGroups)
       this.setState({ groups, isDataLoaded: true })
