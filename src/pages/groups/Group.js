@@ -1,8 +1,8 @@
 import _ from 'lodash/fp'
 import { Fragment } from 'react'
-import { b, div, h } from 'react-hyperscript-helpers'
+import { b, div, h, label } from 'react-hyperscript-helpers'
 import { pure } from 'recompose'
-import { buttonPrimary, Clickable, link, PageFadeBox, RadioButton, search, spinnerOverlay } from 'src/components/common'
+import { buttonPrimary, Clickable, LabeledCheckbox, link, PageFadeBox, search, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { textInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
@@ -21,18 +21,24 @@ import { styles } from 'src/pages/groups/common'
 import validate from 'validate.js'
 
 
-const roleSelector = ({ role, updateState }) => h(Fragment, [
-  h(RadioButton, {
-    text: 'Admin', checked: role === 'admin',
-    labelStyle: { margin: '0 2rem 0 0.25rem' },
-    onChange: () => updateState('admin')
-  }),
-  h(RadioButton, {
-    text: 'Member', checked: role === 'member',
-    labelStyle: { margin: '0 2rem 0 0.25rem' },
-    onChange: () => updateState('member')
-  })
-])
+const roleSelector = ({ role, adminCanEdit, updateState }) => {
+  const isAdmin = _.includes('admin', role)
+  const isMember = _.includes('member', role)
+  const tooltip = !adminCanEdit && 'This user is the only admin of this group'
+  return h(Fragment, [
+    h(TooltipTrigger, { content: tooltip }, [
+      h(LabeledCheckbox, {
+        checked: isAdmin,
+        disabled: !adminCanEdit,
+        onChange: () => updateState(isAdmin ? _.without(['admin'], role) : _.concat(role, 'admin'))
+      }, [label({ style: { margin: '0 2rem 0 0.25rem' } }, ['Admin'])])
+    ]),
+    h(LabeledCheckbox, {
+      checked: isMember,
+      onChange: () => updateState(isMember ? _.without(['member'], role) : _.concat(role, 'member'))
+    }, [label({ style: { margin: '0 2rem 0 0.25rem' } }, ['Member'])])
+  ])
+}
 
 
 const NewUserModal = ajaxCaller(class NewUserModal extends Component {
@@ -40,7 +46,7 @@ const NewUserModal = ajaxCaller(class NewUserModal extends Component {
     super(props)
     this.state = {
       userEmail: '',
-      role: 'member'
+      role: ['member']
     }
   }
 
@@ -66,7 +72,7 @@ const NewUserModal = ajaxCaller(class NewUserModal extends Component {
         onChange: e => this.setState({ userEmail: e.target.value, emailTouched: true })
       }),
       Forms.requiredFormLabel('Role'),
-      roleSelector({ role, updateState: role => this.setState({ role }) }),
+      roleSelector({ role, adminCanEdit: true, updateState: role => this.setState({ role }) }),
       submitError && div({ style: { marginTop: '0.5rem', textAlign: 'right', color: colors.red[0] } }, [submitError]),
       submitting && spinnerOverlay
     ])
@@ -100,7 +106,7 @@ const EditUserModal = ajaxCaller(class EditUserModal extends Component {
   }
 
   render() {
-    const { onDismiss, user: { email } } = this.props
+    const { onDismiss, user: { email }, adminCanEdit } = this.props
     const { role, submitting } = this.state
 
     return h(Modal, {
@@ -114,7 +120,7 @@ const EditUserModal = ajaxCaller(class EditUserModal extends Component {
         'Edit role for ',
         b([email])
       ]),
-      roleSelector({ role, updateState: role => this.setState({ role }) }),
+      roleSelector({ role, adminCanEdit: adminCanEdit || !_.includes('admin', this.props.user.role), updateState: role => this.setState({ role }) }),
       submitting && spinnerOverlay
     ])
   }
@@ -125,7 +131,7 @@ const EditUserModal = ajaxCaller(class EditUserModal extends Component {
 
     try {
       this.setState({ submitting: true })
-      await Groups.group(groupName).changeMemberRole(email, this.props.user.role, role)
+      await Groups.group(groupName).changeMemberRoles(email, this.props.user.role, role)
       onSuccess()
     } catch (error) {
       this.setState({ submitting: false })
@@ -148,21 +154,18 @@ const DeleteUserModal = pure(({ onDismiss, onSubmit, userEmail }) => {
 })
 
 const MemberCard = pure(({ member: { email, role }, adminCanEdit, onEdit, onDelete }) => {
-  const canEdit = adminCanEdit || role === 'member'
+  const canEdit = adminCanEdit || !_.includes('admin', role)
   const tooltip = !canEdit && 'This user is the only admin of this group'
 
   return div({
     style: styles.longCard
   }, [
     div({ style: { flex: '1' } }, [email]),
-    div({ style: { flex: '0 0 150px', textTransform: 'capitalize' } }, [role]),
+    div({ style: { flex: '0 0 150px', textTransform: 'capitalize' } }, [_.join(', ', role)]),
     div({ style: { flex: 'none' } }, [
-      h(TooltipTrigger, { content: tooltip }, [
-        link({
-          disabled: !canEdit,
-          onClick: canEdit ? onEdit : undefined
-        }, ['Edit Role'])
-      ]),
+      link({
+        onClick: onEdit
+      }, ['Edit Role']),
       ' | ',
       h(TooltipTrigger, { content: tooltip }, [
         link({
@@ -207,13 +210,16 @@ export const GroupDetails = ajaxCaller(class GroupDetails extends Component {
       // TODO: Replace when switching back to SAM for groups api
       const { membersEmails, adminsEmails } = await Groups.group(groupName).listMembers()
 
-      this.setState({
-        members: _.sortBy(member => member.email.toUpperCase(), _.concat(
-          _.map(adm => ({ email: adm, role: 'admin' }), adminsEmails),
-          _.map(mem => ({ email: mem, role: 'member' }), membersEmails)
-        )),
-        adminCanEdit: adminsEmails.length > 1
-      })
+      const rolesByMember = _.mergeAllWith((a, b) => { if (_.isArray(a)) return a.concat(b) }, [
+        _.fromPairs(_.map(email => [email, ['admin']], adminsEmails)),
+        _.fromPairs(_.map(email => [email, ['member']], membersEmails))
+      ])
+      const members = _.flow(
+        _.toPairs,
+        _.map(([email, role]) => ({ email, role })),
+        _.sortBy(member => member.email.toUpperCase())
+      )(rolesByMember)
+      this.setState({ members, adminCanEdit: adminsEmails.length > 1 })
     } catch (error) {
       reportError('Error loading group list', error)
     } finally {
@@ -267,7 +273,7 @@ export const GroupDetails = ajaxCaller(class GroupDetails extends Component {
           onSuccess: () => this.refresh()
         }),
         editingUser && h(EditUserModal, {
-          user: editingUser, groupName,
+          user: editingUser, groupName, adminCanEdit,
           onDismiss: () => this.setState({ editingUser: false }),
           onSuccess: () => this.refresh()
         }),
