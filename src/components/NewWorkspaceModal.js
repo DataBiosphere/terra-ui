@@ -84,7 +84,8 @@ export default ajaxCaller(class NewWorkspaceModal extends Component {
         namespace,
         name,
         authorizationDomain: _.map(v => ({ membersGroupName: v }), [...this.getRequiredGroups(), ...groups]),
-        attributes: { description }
+        attributes: { description },
+        copyFilesWithPrefix: 'notebooks/'
       }
       const workspace = await (cloneWorkspace ?
         Workspaces.workspace(cloneWorkspace.workspace.namespace, cloneWorkspace.workspace.name).clone(body) :
