@@ -98,7 +98,7 @@ const DeleteGroupModal = pure(({ groupName, onDismiss, onSubmit }) => {
 })
 
 const GroupCard = pure(({ group: { groupName, groupEmail, role }, onDelete }) => {
-  const isAdmin = role === 'Admin' // TODO: Replace when switching back to SAM for groups api
+  const isAdmin = !!_.includes('Admin', role) // TODO: Replace when switching back to SAM for groups api
 
   return div({ style: styles.longCard }, [
     a({
@@ -111,7 +111,7 @@ const GroupCard = pure(({ group: { groupName, groupEmail, role }, onDelete }) =>
     }, [groupName]),
     div({ style: { flexGrow: 1 } }, [groupEmail]),
     div({ style: { width: 100, display: 'flex', alignItems: 'center' } }, [
-      div({ style: { flexGrow: 1, textTransform: 'capitalize' } }, [role]),
+      div({ style: { flexGrow: 1, textTransform: 'capitalize' } }, [_.join(', ', role)]),
       isAdmin && linkButton({
         onClick: onDelete,
         style: { margin: '-1rem', padding: '1rem' }
@@ -151,11 +151,13 @@ export const GroupList = ajaxCaller(class GroupList extends Component {
 
     try {
       this.setState({ isDataLoaded: false, creatingNewGroup: false, deletingGroup: false, updating: false })
-      const groups = await Groups.list()
-      this.setState({
-        isDataLoaded: true,
-        groups: _.sortBy('group.groupName', groups)
-      })
+      const rawGroups = await Groups.list()
+      const groups = _.flow(
+        _.groupBy('groupName'),
+        _.map(gs => ({ ...gs[0], role: _.map('role', gs) })),
+        _.sortBy('groupName')
+      )(rawGroups)
+      this.setState({ groups, isDataLoaded: true })
     } catch (error) {
       reportError('Error loading group list', error)
     }
@@ -189,17 +191,17 @@ export const GroupList = ajaxCaller(class GroupList extends Component {
           h(NewGroupCard, {
             onClick: () => this.setState({ creatingNewGroup: true })
           }),
-          div({ style: { flexGrow: 1 } },
-            _.map(group => {
-              return h(GroupCard, {
-                group, key: `${group.groupName}-${group.role}`, // can be an admin and a user at same time
-                onDelete: () => this.setState({ deletingGroup: group })
-              })
-            }, _.flow(
+          div({ style: { flexGrow: 1 } }, [
+            _.flow(
               _.filter(({ groupName }) => Utils.textMatch(filter, groupName)),
-              _.sortBy(['role', 'groupName'])
-            )(groups))
-          ),
+              _.map(group => {
+                return h(GroupCard, {
+                  group, key: `${group.groupName}`,
+                  onDelete: () => this.setState({ deletingGroup: group })
+                })
+              })
+            )(groups)
+          ]),
           !isDataLoaded && spinnerOverlay
         ]),
         creatingNewGroup && h(NewGroupModal, {
