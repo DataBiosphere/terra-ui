@@ -16,8 +16,8 @@ import validate from 'validate.js'
 export const notebookNameValidator = existing => ({
   presence: { allowEmpty: false },
   format: {
-    pattern: /^[^#[\]*?:;]*$/,
-    message: 'can\'t contain any of these characters: # [ ] * ? : ; '
+    pattern: /^[^#[\]*?:;@$%+=\\,/]*$/,
+    message: 'can\'t contain any of these characters: # [ ] * ? , : ; @ $ % + = / \\ '
   },
   exclusion: {
     within: existing,
