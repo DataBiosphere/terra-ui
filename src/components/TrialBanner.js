@@ -3,7 +3,7 @@ import PropTypes from 'prop-types'
 import { div, h, a, span } from 'react-hyperscript-helpers'
 import { authStore } from 'src/libs/auth'
 import colors from 'src/libs/colors'
-import { buttonPrimary, Clickable, LabeledCheckbox, link } from 'src/components/common'
+import { buttonPrimary, Clickable, LabeledCheckbox } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { ajaxCaller } from 'src/libs/ajax'
 import { reportError } from 'src/libs/error'
@@ -50,7 +50,7 @@ export default _.flow(
     const { closeBanner, authState: { isSignedIn }, ...props } = _.omit('isVisible', this.props)
     const { accessingCredits, pageTwo, termsAgreed, cloudTermsAgreed, messages } = this.state
     if (!messages) return null
-    const { Enabled: { title, message, link, button, isWarning } } = messages
+    const { Terminated: { title, message, link, button, isWarning } } = messages
     if (!isSignedIn) {
       return null
     } else return div(_.merge({
@@ -58,7 +58,7 @@ export default _.flow(
         display: 'flex', alignItems: 'center',
         width: '100%',
         maxWidth: '100%',
-        backgroundColor: '#359448',
+        backgroundColor: isWarning ? colors.orange[0] : '#359448',
         color: 'white', fontSize: '1rem',
         borderRadius: '0 0 4px 4px'
       }
@@ -87,9 +87,9 @@ export default _.flow(
               marginLeft: '0.5rem', flexShrink: 0
             },
             onClick: () => {
-              this.setState({ accessingCredits: true })
+              button.isExternal ? window.open(button.url, '_blank') : this.setState({ accessingCredits: true })
             }
-          }, [button.label])
+          }, [button.label, button.isExternal ? icon('pop-out', { style: { marginLeft: '0.25rem' } }) : null])
         ]),
       h(Clickable, {
         style: { marginRight: '1.5rem' },
