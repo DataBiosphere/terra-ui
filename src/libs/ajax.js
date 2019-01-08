@@ -235,11 +235,11 @@ const Groups = signal => ({
   group: groupName => {
     const root = `api/groups/${groupName}`
 
-    const addMember = async (role, email) => {
+    const addRole = async (role, email) => {
       return fetchOrchestration(`${root}/${role}/${email}`, _.merge(authOpts(), { signal, method: 'PUT' }))
     }
 
-    const removeMember = async (role, email) => {
+    const removeRole = async (role, email) => {
       return fetchOrchestration(`${root}/${role}/${email}`, _.merge(authOpts(), { signal, method: 'DELETE' }))
     }
 
@@ -257,14 +257,18 @@ const Groups = signal => ({
         return res.json()
       },
 
-      addMember,
+      addMember: async (roles, email) => {
+        return Promise.all(_.map(role => addRole(role, email), roles))
+      },
 
-      removeMember,
+      removeMember: async (roles, email) => {
+        return Promise.all(_.map(role => removeRole(role, email), roles))
+      },
 
-      changeMemberRole: async (email, oldRole, newRole) => {
-        if (oldRole !== newRole) {
-          await addMember(newRole, email)
-          return removeMember(oldRole, email)
+      changeMemberRoles: async (email, oldRoles, newRoles) => {
+        if (!_.isEqual(oldRoles, newRoles)) {
+          await Promise.all(_.map(role => addRole(role, email), _.difference(newRoles, oldRoles)))
+          return Promise.all(_.map(role => removeRole(role, email), _.difference(oldRoles, newRoles)))
         }
       }
     }
