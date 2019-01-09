@@ -47,18 +47,18 @@ export default _.flow(
   }
 
   render() {
-    const { closeBanner, authState: { isSignedIn }, ajax: { User }, ...props } = _.omit('isVisible', this.props)
+    const { closeBanner, authState: { isSignedIn, profile }, ajax: { User }, ...props } = _.omit('isVisible', this.props)
     const { accessingCredits, pageTwo, termsAgreed, cloudTermsAgreed, messages } = this.state
-    const isTerminate = false //change after trialState can be found
-    if (!messages) return null
-    const { Enrolled: { title, message, link, button, isWarning } } = messages //change after trialState can be found
-    if (!isSignedIn || isTerminate) { //change after trialState can be found
+    const { trialState } = profile
+    if (!messages || !trialState) return null
+    const { [trialState]: { title, message, enabledLink, button, isWarning } } = messages
+    if (!isSignedIn) {
       return null
     } else return div(_.merge({
       style: {
         display: 'flex', alignItems: 'center',
         width: '100%',
-        maxWidth: '100%',
+        height: 110,
         backgroundColor: isWarning ? colors.orange[0] : '#359448',
         color: 'white', fontSize: '1rem',
         borderRadius: '0 0 4px 4px'
@@ -76,11 +76,11 @@ export default _.flow(
           span({ style: { maxWidth: 600, lineHeight: '1.5rem' } },
             [
               message,
-              link && a({
+              enabledLink && a({
                 style: { textDecoration: 'underline', marginLeft: '0.5rem' },
                 target: 'blank',
-                href: link.url
-              }, [link.label, icon('pop-out', { style: { marginLeft: '0.25rem' } })])
+                href: enabledLink.url
+              }, [enabledLink.label, icon('pop-out', { style: { marginLeft: '0.25rem' } })])
             ]),
           h(Clickable, {
             style: {
@@ -98,7 +98,7 @@ export default _.flow(
           tooltip: 'Hide for now',
           onClick: () => closeBanner()
         }, [icon('times', { size: 25, style: { display: 'block', fontSize: '1.5rem', stroke: 'white', cursor: 'pointer', strokeWidth: 3 } })]),
-        h(Clickable, {//change after trialState can be found
+        (trialState === 'Terminated') && h(Clickable, {
           style: { margin: '0.5rem -0.75rem -1.5rem', fontSize: 'small', color: 'white' },
           onClick: async () => await User.terminateTrial()
         }, 'or hide forever?')
@@ -130,7 +130,7 @@ export default _.flow(
             span({ style: { marginLeft: '0.5rem' } }, [
               'I agree to the Google Cloud Terms of Service.', div({ style: { marginLeft: '1.5rem' } }, [
                 'Google Cloud Terms of Service:',
-                link({
+                a({
                   style: { textDecoration: 'underline', marginLeft: '0.25rem' },
                   target: 'blank',
                   href: 'https://cloud.google.com/terms/'
@@ -146,10 +146,13 @@ export default _.flow(
   async acceptCredits() {
     const { ajax: { User } } = this.props
     try {
-      await User.acceptEula()
+      this.setState({ loading: true })
+      await User.acceptEula() //if successful, then do the startTrial, otherwise fail out
       await User.startTrial()
+      this.setState({ loading: false })
     } catch (error) {
-      this.setState({ error: await error.text() })
+      reportError('Error starting trial', error)
+      this.setState({ loading: false })
     }
   }
 })

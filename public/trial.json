@@ -1,9 +1,9 @@
 {
   "Enabled": {
-    "title":"Welcome to FireCloud!",
+    "title":"Welcome to Terra!",
     "message":"You have free compute and storage credits available to upload your data and launch analyses.",
     "isWarning": false,
-    "link": {
+    "enabledLink": {
       "label": "Learn more",
       "url":"https://software.broadinstitute.org/firecloud/documentation/freecredits"
     },

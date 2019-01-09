@@ -99,9 +99,8 @@ export default Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
   }
 
   buildNav() {
-    const { authState: { isSignedIn } } = this.props
+    const { authState: { isSignedIn, profile: { trialState } } } = this.props
     const { show } = this.state
-    const isTerminate = false //change after trialState can be found
 
     const librarySubItem = (linkName, iconName, label) => h(Clickable, {
       style: styles.nav.subItem,
@@ -117,7 +116,7 @@ export default Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
     ])
     return createPortal(
       div({
-        style: (show && isSignedIn && !isTerminate) ? { ...styles.nav.background, top: 100 }: styles.nav.background, //change after trialState can be found
+        style: (trialState && !(trialState === 'Finalized') && show && isSignedIn) ? { ...styles.nav.background, top: 110 }: styles.nav.background,
         onClick: () => {
           this.hideNav()
         }
@@ -262,10 +261,11 @@ export default Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
   }
 
   render() {
-    const { title, href, children } = this.props
+    const { title, href, authState: { profile, isSignedIn }, children } = this.props
     const { navShown, showingSupportModal, show } = this.state
+    const { trialState } = profile
     return div([
-      show && h(TrialBanner, {
+      trialState && !(trialState === 'Finalized') && show && isSignedIn && h(TrialBanner, {
         closeBanner: () => this.setState({ show: false })
       }),
       div({ style: styles.topBar }, [
