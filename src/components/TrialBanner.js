@@ -91,7 +91,7 @@ export default _.flow(
               button.isExternal ? window.open(button.url, '_blank') : this.setState({ accessingCredits: true })
             }
           }, [
-            loading ? spinner({ style: { fontSize: '1rem', color: 'white'} }) : button.label, button.isExternal ? icon('pop-out', { style: { marginLeft: '0.25rem' } }) : null
+            loading ? spinner({ style: { fontSize: '1rem', color: 'white' } }) : button.label, button.isExternal ? icon('pop-out', { style: { marginLeft: '0.25rem' } }) : null
           ])
         ]),
       div({ style: { alignSelf: 'center', padding: '1rem', display: 'flex', flexDirection: 'column', alignItems: 'flex-end' } }, [
