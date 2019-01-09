@@ -4,7 +4,7 @@ import { div, h, a, span } from 'react-hyperscript-helpers'
 import { authStore } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { buttonPrimary, Clickable, LabeledCheckbox } from 'src/components/common'
-import { icon } from 'src/components/icons'
+import { icon, spinner } from 'src/components/icons'
 import { ajaxCaller } from 'src/libs/ajax'
 import { reportError } from 'src/libs/error'
 import * as Utils from 'src/libs/utils'
@@ -48,7 +48,7 @@ export default _.flow(
 
   render() {
     const { closeBanner, authState: { isSignedIn, profile }, ajax: { User }, ...props } = _.omit('isVisible', this.props)
-    const { accessingCredits, pageTwo, termsAgreed, cloudTermsAgreed, messages } = this.state
+    const { accessingCredits, pageTwo, termsAgreed, cloudTermsAgreed, messages, loading } = this.state
     const { trialState } = profile
     if (!messages || !trialState) return null
     const { [trialState]: { title, message, enabledLink, button, isWarning } } = messages
@@ -90,7 +90,9 @@ export default _.flow(
             onClick: () => {
               button.isExternal ? window.open(button.url, '_blank') : this.setState({ accessingCredits: true })
             }
-          }, [button.label, button.isExternal ? icon('pop-out', { style: { marginLeft: '0.25rem' } }) : null])
+          }, [
+            loading ? spinner({ style: { fontSize: '1rem', color: 'white'} }) : button.label, button.isExternal ? icon('pop-out', { style: { marginLeft: '0.25rem' } }) : null
+          ])
         ]),
       div({ style: { alignSelf: 'center', padding: '1rem', display: 'flex', flexDirection: 'column', alignItems: 'flex-end' } }, [
         h(Clickable, {
@@ -149,9 +151,11 @@ export default _.flow(
       this.setState({ loading: true })
       await User.acceptEula() //if successful, then do the startTrial, otherwise fail out
       await User.startTrial()
-      this.setState({ loading: false })
+      //refresh profile
+      await User.profile.get()
     } catch (error) {
       reportError('Error starting trial', error)
+    } finally {
       this.setState({ loading: false })
     }
   }
