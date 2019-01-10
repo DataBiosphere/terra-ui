@@ -89,51 +89,56 @@ export const TrialBanner = _.flow(
     return div({
       style: {
         width: '100%',
-        height: 135,
-        backgroundColor: isWarning ? colors.orange[0] : '#359448',
         color: 'white', fontSize: '1rem'
       }
     }, [
-      div({ style: { flex: 1, display: 'flex', alignItems: 'center', padding: '1rem', margin: '0.5rem', justifyContent: 'center' } },
-        [
-          div({
-            style: {
-              fontSize: '1.5rem', fontWeight: 500, textAlign: 'right', borderRight: '1px solid', paddingRight: '1rem', marginRight: '1rem',
-              maxWidth: 200, flexShrink: 0
-            }
-          }, title),
-          span({ style: { maxWidth: 600, lineHeight: '1.5rem' } },
-            [
-              message,
-              enabledLink && a({
-                style: { textDecoration: 'underline', marginLeft: '0.5rem' },
-                target: 'blank',
-                href: enabledLink.url
-              }, [enabledLink.label, icon('pop-out', { style: { marginLeft: '0.25rem' } })])
-            ]),
-          h(Clickable, {
-            style: {
-              display: 'block', fontWeight: 500, fontSize: '1.125rem', border: '2px solid', borderRadius: '0.25rem', padding: '0.5rem 1rem',
-              marginLeft: '0.5rem', flexShrink: 0
-            },
-            onClick: () => {
-              button.isExternal ? window.open(button.url, '_blank') : this.setState({ accessingCredits: true })
-            }
-          }, [
-            loading ? spinner({ style: { fontSize: '1rem', color: 'white' } }) : button.label, button.isExternal ? icon('pop-out', { style: { marginLeft: '0.25rem' } }) : null
+      div({
+        style: {
+          flex: 1, display: 'flex', alignItems: 'center', padding: '1.5rem', height: 110,
+          backgroundColor: isWarning ? colors.orange[0] : '#359448',
+          justifyContent: 'center'
+        }
+      },
+      [
+        div({
+          style: {
+            fontSize: '1.5rem', fontWeight: 500, textAlign: 'right', borderRight: '1px solid', paddingRight: '1rem', marginRight: '1rem',
+            maxWidth: 200, flexShrink: 0
+          }
+        }, title),
+        span({ style: { maxWidth: 600, lineHeight: '1.5rem' } },
+          [
+            message,
+            enabledLink && a({
+              style: { textDecoration: 'underline', marginLeft: '0.5rem' },
+              target: 'blank',
+              href: enabledLink.url
+            }, [enabledLink.label, icon('pop-out', { style: { marginLeft: '0.25rem' } })])
           ]),
-          div({ style: { alignSelf: 'center', padding: '1rem', marginLeft: '3rem', display: 'flex', flexDirection: 'column', alignItems: 'flex-end' } }, [
-            h(Clickable, {
-              style: { borderBottom: 'none' },
-              tooltip: 'Hide for now',
-              onClick: () => this.setState({ show: false })
-            }, [icon('times-circle', { size: 25, style: { display: 'block', fontSize: '1.5rem', stroke: 'white', cursor: 'pointer', strokeWidth: 1.5 } })]),
-            (trialState === 'Terminated') && h(Clickable, {
-              style: { margin: '0.5rem -0.75rem -1.5rem', fontSize: 'small', color: 'white' },
-              onClick: async () => await User.finalizeTrial()
-            }, 'or hide forever?')
-          ])
+        h(Clickable, {
+          style: {
+            display: 'block', fontWeight: 500, fontSize: '1.125rem', border: '2px solid', borderRadius: '0.25rem', padding: '0.5rem 1rem',
+            marginLeft: '0.5rem', flexShrink: 0
+          },
+          onClick: () => {
+            button.isExternal ? window.open(button.url, '_blank') : this.setState({ accessingCredits: true })
+          }
+        }, [
+          loading ? spinner({ style: { fontSize: '1rem', color: 'white' } }) : button.label,
+          button.isExternal ? icon('pop-out', { style: { marginLeft: '0.25rem' } }) : null
         ]),
+        div({ style: { marginLeft: '3rem', display: 'flex', flexDirection: 'column', alignItems: 'flex-end' } }, [
+          h(Clickable, {
+            style: { borderBottom: 'none' },
+            tooltip: 'Hide for now',
+            onClick: () => this.setState({ show: false })
+          }, [icon('times-circle', { size: 25, style: { fontSize: '1.5rem', stroke: 'white', cursor: 'pointer', strokeWidth: 1.5 } })]),
+          (trialState === 'Terminated') && h(Clickable, {
+            style: { margin: '0.5rem -0.75rem -1.5rem', fontSize: 'small', color: 'white' },
+            onClick: async () => await User.finalizeTrial()
+          }, 'or hide forever?')
+        ])
+      ]),
       children,
       accessingCredits && freeCreditModal
     ])
