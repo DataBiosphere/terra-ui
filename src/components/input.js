@@ -36,7 +36,7 @@ const styles = {
   },
   validationError: {
     color: colors.red[0],
-    fontSize: 10, fontWeight: 500, textTransform: 'uppercase',
+    fontSize: 11, fontWeight: 600, textTransform: 'uppercase',
     marginLeft: '1rem', marginTop: '0.5rem'
   }
 }
