@@ -9,6 +9,7 @@ import landingPageHero from 'src/images/landing-page-hero.png'
 import textFrame from 'src/images/text-frame.svg'
 import colors from 'src/libs/colors'
 import * as Nav from 'src/libs/nav'
+import { TrialBanner } from 'src/components/TrialBanner'
 
 
 const hexLink = (description, label, href) => div({
@@ -32,33 +33,35 @@ const hexLink = (description, label, href) => div({
 
 
 const LandingPage = pure(() => {
-  return h(FooterWrapper, [
-    h(TopBar),
-    div({
-      style: {
-        flexGrow: 1,
-        color: colors.gray[0],
-        padding: '3rem 5rem',
-        backgroundImage: `url(${hexBackgroundPattern})`,
-        backgroundRepeat: 'no-repeat', backgroundSize: '750px', backgroundPosition: 'right -75px top -110px'
-      }
-    }, [
-      img({ src: landingPageHero, style: { position: 'absolute', right: 0, top: 60+90 } }),
-      div({ style: { whiteSpace: 'pre-line' } }, [
-        div({ style: { fontSize: 45, color: '#359448' } }, 'Welcome to Terra.\n'),
-        div({ style: { fontSize: 24, marginBottom: '2rem' } }, [
-          'Terra is a cloud-native platform for\n',
-          'biomedical researchers to access ', span({ style: { fontWeight: 'bold' } }, 'data,\n'),
-          'run analysis ', span({ style: { fontWeight: 'bold' } }, 'tools, '), 'and', span({ style: { fontWeight: 'bold' } }, ' collaborate.')
-        ])
-      ]),
-      hexLink('Access data from a rich ecosystem\nof Terra-connected data portals', 'Browse\nData', Nav.getLink('library-datasets')),
-      div({ style: { margin: '-0.5rem 0 -0.5rem 3rem' } }, [
-        hexLink('Find ready-for-use bioinformatics workflows,\nor search workflow repositories', 'Explore\nTools', Nav.getLink('library-code'))
-      ]),
-      hexLink(
-        'Terra Workspaces connect your data to\npopular analysis tools powered by the\ncloud. Use Workspaces to share data,\ncode, and results easily and securely',
-        'Analyze\n& Publish', Nav.getLink('workspaces'))
+  return h(TrialBanner, [
+    h(FooterWrapper, [
+      h(TopBar),
+      div({
+        style: {
+          flexGrow: 1,
+          color: colors.gray[0],
+          padding: '3rem 5rem',
+          backgroundImage: `url(${hexBackgroundPattern})`,
+          backgroundRepeat: 'no-repeat', backgroundSize: '750px', backgroundPosition: 'right -75px top -110px'
+        }
+      }, [
+        img({ src: landingPageHero, style: { position: 'absolute', right: 0, top: 60+120 } }),
+        div({ style: { whiteSpace: 'pre-line' } }, [
+          div({ style: { fontSize: 45, color: '#359448' } }, 'Welcome to Terra.\n'),
+          div({ style: { fontSize: 24, marginBottom: '2rem' } }, [
+            'Terra is a cloud-native platform for\n',
+            'biomedical researchers to access ', span({ style: { fontWeight: 'bold' } }, 'data,\n'),
+            'run analysis ', span({ style: { fontWeight: 'bold' } }, 'tools, '), 'and', span({ style: { fontWeight: 'bold' } }, ' collaborate.')
+          ])
+        ]),
+        hexLink('Access data from a rich ecosystem\nof Terra-connected data portals', 'Browse\nData', Nav.getLink('library-datasets')),
+        div({ style: { margin: '-0.5rem 0 -0.5rem 3rem' } }, [
+          hexLink('Find ready-for-use bioinformatics workflows,\nor search workflow repositories', 'Explore\nTools', Nav.getLink('library-code'))
+        ]),
+        hexLink(
+          'Terra Workspaces connect your data to\npopular analysis tools powered by the\ncloud. Use Workspaces to share data,\ncode, and results easily and securely',
+          'Analyze\n& Publish', Nav.getLink('workspaces'))
+      ])
     ])
   ])
 })

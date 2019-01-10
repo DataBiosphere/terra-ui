@@ -14,7 +14,6 @@ import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
-import TrialBanner from 'src/components/TrialBanner'
 
 
 const styles = {
@@ -99,8 +98,7 @@ export default Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
   }
 
   buildNav() {
-    const { authState: { isSignedIn, profile: { trialState } } } = this.props
-    const { show } = this.state
+    const { authState: { isSignedIn } } = this.props
 
     const librarySubItem = (linkName, iconName, label) => h(Clickable, {
       style: styles.nav.subItem,
@@ -116,7 +114,7 @@ export default Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
     ])
     return createPortal(
       div({
-        style: (trialState && !(trialState === 'Finalized') && show && isSignedIn) ? { ...styles.nav.background, top: 110 }: styles.nav.background,
+        style: styles.nav.background,
         onClick: () => {
           this.hideNav()
         }
@@ -256,18 +254,10 @@ export default Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
     ])
   }
 
-  componentDidMount() {
-    this.setState({ show: true })
-  }
-
   render() {
-    const { title, href, authState: { profile, isSignedIn }, children } = this.props
-    const { navShown, showingSupportModal, show } = this.state
-    const { trialState } = profile
+    const { title, href, children } = this.props
+    const { navShown, showingSupportModal } = this.state
     return div([
-      trialState && !(trialState === 'Finalized') && show && isSignedIn && h(TrialBanner, {
-        closeBanner: () => this.setState({ show: false })
-      }),
       div({ style: styles.topBar }, [
         icon('bars', {
           size: 36,

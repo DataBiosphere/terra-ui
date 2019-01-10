@@ -160,7 +160,7 @@ const User = signal => ({
     return fetchOrchestration('api/profile/trial', _.merge(authOpts(), { signal, method: 'POST' }))
   },
 
-  terminateTrial: async () => {
+  finalizeTrial: async () => {
     return fetchOrchestration('api/profile/trial?operation=finalize', _.merge(authOpts(), { signal, method: 'POST' }))
   },
 

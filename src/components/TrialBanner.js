@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
 import { div, h, a, span } from 'react-hyperscript-helpers'
-import { authStore } from 'src/libs/auth'
+import { authStore, refreshTerraProfile } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { buttonPrimary, Clickable, LabeledCheckbox } from 'src/components/common'
 import { icon, spinner } from 'src/components/icons'
@@ -13,18 +13,12 @@ import Modal from 'src/components/Modal'
 import FreeTrialEulas from 'src/pages/FreeTrialEulas'
 
 
-export default _.flow(
+export const TrialBanner = _.flow(
   ajaxCaller,
   Utils.connectAtom(authStore, 'authState')
 )(class TrialBanner extends Component {
   static propTypes = {
-    isVisible: PropTypes.bool,
-    closeBanner: PropTypes.func
-  }
-
-  static defaultProps = {
-    isVisible: true,
-    closeBanner: _.noop
+    children: PropTypes.node
   }
 
   constructor(props) {
@@ -39,6 +33,7 @@ export default _.flow(
 
   async componentDidMount() {
     try {
+      this.setState({ show: true })
       const res = await fetch('trial.json')
       this.setState({ messages: await res.json() })
     } catch (error) {
@@ -47,25 +42,59 @@ export default _.flow(
   }
 
   render() {
-    const { closeBanner, authState: { isSignedIn, profile }, ajax: { User }, ...props } = _.omit('isVisible', this.props)
-    const { accessingCredits, pageTwo, termsAgreed, cloudTermsAgreed, messages, loading } = this.state
+    const { children, authState: { isSignedIn, profile }, ajax: { User } } = _.omit('isVisible', this.props)
+    const { accessingCredits, pageTwo, termsAgreed, cloudTermsAgreed, messages, loading, show } = this.state
     const { trialState } = profile
-    if (!messages || !trialState) return null
+    if (!messages || !trialState || !isSignedIn || trialState === 'Finalized' || !show) return children
     const { [trialState]: { title, message, enabledLink, button, isWarning } } = messages
-    if (!isSignedIn) {
-      return null
-    } else return div(_.merge({
+
+    const freeCreditModal = h(Modal, {
+      title: 'Welcome to the Terra Free Credit Program!',
+      width: '65%',
+      onDismiss: () => this.setState({ accessingCredits: false, pageTwo: false }),
+      okButton: buttonPrimary({
+        onClick: pageTwo ? async () => {
+          this.acceptCredits()
+          this.setState({ accessingCredits: false })
+        } : () => this.setState({ pageTwo: true }),
+        disabled: pageTwo ? (termsAgreed === 'false') || (cloudTermsAgreed === 'false') : false,
+        tooltip: (pageTwo && ((termsAgreed === 'false') || (cloudTermsAgreed === 'false'))) && 'You must check the boxes to accept.'
+      }, [pageTwo ? 'Accept' : 'Review Terms of Service'])
+    }, [
+      h(FreeTrialEulas, { pageTwo }),
+      pageTwo && div({ style: { marginTop: '0.5rem', padding: '1rem', border: `1px solid ${colors.blue[0]}`, borderRadius: '0.25rem', backgroundColor: '#f4f4f4' } }, [
+        h(LabeledCheckbox, {
+          checked: termsAgreed === 'true',
+          onChange: v => this.setState({ termsAgreed: v.toString() })
+        }, [span({ style: { marginLeft: '0.5rem' } }, ['I agree to the terms of this Agreement.'])]),
+        div({ style: { flexGrow: 1, marginBottom: '0.5rem' } }),
+        h(LabeledCheckbox, {
+          checked: cloudTermsAgreed === 'true',
+          onChange: v => this.setState({ cloudTermsAgreed: v.toString() })
+        }, [
+          span({ style: { marginLeft: '0.5rem' } }, [
+            'I agree to the Google Cloud Terms of Service.', div({ style: { marginLeft: '1.5rem' } }, [
+              'Google Cloud Terms of Service:',
+              a({
+                style: { textDecoration: 'underline', marginLeft: '0.25rem' },
+                target: 'blank',
+                href: 'https://cloud.google.com/terms/'
+              }, ['https://cloud.google.com/terms/', icon('pop-out', { style: { marginLeft: '0.25rem' } })])
+            ])
+          ])
+        ])
+      ])
+    ])
+
+    return div({
       style: {
-        display: 'flex', alignItems: 'center',
         width: '100%',
-        height: 110,
+        height: 135,
         backgroundColor: isWarning ? colors.orange[0] : '#359448',
-        color: 'white', fontSize: '1rem',
-        borderRadius: '0 0 4px 4px'
+        color: 'white', fontSize: '1rem'
       }
-    },
-    props), [
-      div({ style: { flex: 1, display: 'flex', alignItems: 'center', padding: '1rem', justifyContent: 'center' } },
+    }, [
+      div({ style: { flex: 1, display: 'flex', alignItems: 'center', padding: '1rem', margin: '0.5rem', justifyContent: 'center' } },
         [
           div({
             style: {
@@ -92,56 +121,21 @@ export default _.flow(
             }
           }, [
             loading ? spinner({ style: { fontSize: '1rem', color: 'white' } }) : button.label, button.isExternal ? icon('pop-out', { style: { marginLeft: '0.25rem' } }) : null
+          ]),
+          div({ style: { alignSelf: 'center', padding: '1rem', marginLeft: '3rem', display: 'flex', flexDirection: 'column', alignItems: 'flex-end' } }, [
+            h(Clickable, {
+              style: { borderBottom: 'none' },
+              tooltip: 'Hide for now',
+              onClick: () => this.setState({ show: false })
+            }, [icon('times-circle', { size: 25, style: { display: 'block', fontSize: '1.5rem', stroke: 'white', cursor: 'pointer', strokeWidth: 1.5 } })]),
+            (trialState === 'Terminated') && h(Clickable, {
+              style: { margin: '0.5rem -0.75rem -1.5rem', fontSize: 'small', color: 'white' },
+              onClick: async () => await User.finalizeTrial()
+            }, 'or hide forever?')
           ])
         ]),
-      div({ style: { alignSelf: 'center', padding: '1rem', display: 'flex', flexDirection: 'column', alignItems: 'flex-end' } }, [
-        h(Clickable, {
-          style: { borderBottom: 'none' },
-          tooltip: 'Hide for now',
-          onClick: () => closeBanner()
-        }, [icon('times', { size: 25, style: { display: 'block', fontSize: '1.5rem', stroke: 'white', cursor: 'pointer', strokeWidth: 3 } })]),
-        (trialState === 'Terminated') && h(Clickable, {
-          style: { margin: '0.5rem -0.75rem -1.5rem', fontSize: 'small', color: 'white' },
-          onClick: async () => await User.terminateTrial()
-        }, 'or hide forever?')
-      ]),
-      accessingCredits && h(Modal, {
-        title: 'Welcome to the Terra Free Credit Program!',
-        width: '65%',
-        onDismiss: () => this.setState({ accessingCredits: false, pageTwo: false }),
-        okButton: buttonPrimary({
-          onClick: pageTwo ? async () => {
-            this.acceptCredits()
-            this.setState({ accessingCredits: false })
-          } : () => this.setState({ pageTwo: true }),
-          disabled: pageTwo ? (termsAgreed === 'false') || (cloudTermsAgreed === 'false') : false,
-          tooltip: (pageTwo && ((termsAgreed === 'false') || (cloudTermsAgreed === 'false'))) && 'You must check the boxes to accept.'
-        }, [pageTwo ? 'Accept' : 'Review Terms of Service'])
-      }, [
-        h(FreeTrialEulas, { pageTwo }),
-        pageTwo && div({ style: { marginTop: '0.5rem', padding: '1rem', border: `1px solid ${colors.blue[0]}`, borderRadius: '0.25rem', backgroundColor: '#f4f4f4' } }, [
-          h(LabeledCheckbox, {
-            checked: termsAgreed === 'true',
-            onChange: v => this.setState({ termsAgreed: v.toString() })
-          }, [span({ style: { marginLeft: '0.5rem' } }, ['I agree to the terms of this Agreement.'])]),
-          div({ style: { flexGrow: 1, marginBottom: '0.5rem' } }),
-          h(LabeledCheckbox, {
-            checked: cloudTermsAgreed === 'true',
-            onChange: v => this.setState({ cloudTermsAgreed: v.toString() })
-          }, [
-            span({ style: { marginLeft: '0.5rem' } }, [
-              'I agree to the Google Cloud Terms of Service.', div({ style: { marginLeft: '1.5rem' } }, [
-                'Google Cloud Terms of Service:',
-                a({
-                  style: { textDecoration: 'underline', marginLeft: '0.25rem' },
-                  target: 'blank',
-                  href: 'https://cloud.google.com/terms/'
-                }, ['https://cloud.google.com/terms/', icon('pop-out', { style: { marginLeft: '0.25rem' } })])
-              ])
-            ])
-          ])
-        ])
-      ])
+      children,
+      accessingCredits && freeCreditModal
     ])
   }
 
@@ -149,10 +143,9 @@ export default _.flow(
     const { ajax: { User } } = this.props
     try {
       this.setState({ loading: true })
-      await User.acceptEula() //if successful, then do the startTrial, otherwise fail out
+      await User.acceptEula()
       await User.startTrial()
-      //refresh profile
-      await User.profile.get()
+      await refreshTerraProfile()
     } catch (error) {
       reportError('Error starting trial', error)
     } finally {
