@@ -1,6 +1,6 @@
 import { Fragment } from 'react'
 import { hot } from 'react-hot-loader'
-import { h, div } from 'react-hyperscript-helpers'
+import { h } from 'react-hyperscript-helpers'
 import ConfigOverridesWarning from 'src/components/ConfigOverridesWarning'
 import ErrorBanner from 'src/components/ErrorBanner'
 import ErrorWrapper from 'src/components/ErrorWrapper'

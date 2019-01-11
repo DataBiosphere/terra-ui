@@ -9,8 +9,6 @@ import landingPageHero from 'src/images/landing-page-hero.png'
 import textFrame from 'src/images/text-frame.svg'
 import colors from 'src/libs/colors'
 import * as Nav from 'src/libs/nav'
-import { TrialBanner } from 'src/components/TrialBanner'
-
 
 const hexLink = (description, label, href) => div({
   style: {

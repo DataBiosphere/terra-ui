@@ -1,6 +1,5 @@
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
-import { createPortal } from 'react-dom'
 import { a, b, div, h } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
 import { Clickable, MenuButton } from 'src/components/common'

@@ -53,7 +53,6 @@ export const TrialBanner = _.flow(
   ajaxCaller,
   Utils.connectAtom(authStore, 'authState')
 )(class TrialBanner extends Component {
-
   constructor(props) {
     super(props)
     this.state = {
@@ -151,7 +150,7 @@ export const TrialBanner = _.flow(
             style: { borderBottom: 'none' },
             tooltip: 'Hide forever?',
             onClick: async () => await User.finalizeTrial()
-          }, [icon('times-circle', { size: 25, style: { fontSize: '1.5rem', cursor: 'pointer', strokeWidth: 1.5 } })]),
+          }, [icon('times-circle', { size: 25, style: { fontSize: '1.5rem', cursor: 'pointer', strokeWidth: 1.5 } })])
         ])
       ]),
       accessingCredits && freeCreditModal
