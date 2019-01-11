@@ -20,7 +20,6 @@ import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 import DeleteWorkspaceModal from 'src/pages/workspaces/workspace/DeleteWorkspaceModal'
 import ShareWorkspaceModal from 'src/pages/workspaces/workspace/ShareWorkspaceModal'
-import { TrialBanner } from 'src/components/TrialBanner'
 
 
 const styles = {
@@ -214,7 +213,7 @@ export const WorkspaceList = _.flow(
         workspace, key: workspace.workspace.workspaceId
       })
     }, data)
-    return h(TrialBanner, [
+    return h(Fragment, [
       h(TopBar, { title: 'Workspaces' }, [
         search({
           wrapperProps: { style: { marginLeft: '2rem', flexGrow: 1, maxWidth: 500 } },

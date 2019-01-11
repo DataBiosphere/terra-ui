@@ -18,7 +18,6 @@ import { getConfig } from 'src/libs/config'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import { Component } from 'src/libs/wrapped-components'
-import { TrialBanner } from 'src/components/TrialBanner'
 
 
 const styles = {
@@ -270,7 +269,7 @@ const fcDataLib = h(Participant, {
 
 
 const Datasets = pure(() => {
-  return h(TrialBanner, [
+  return h(Fragment, [
     libraryTopMatter('datasets'),
     div({ style: styles.content }, [
       encode, nhs, ukb, hca, amppd, topMed, gtex, fcDataLib

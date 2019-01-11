@@ -18,7 +18,6 @@ import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 import { styles } from 'src/pages/groups/common'
 import { validate } from 'validate.js'
-import { TrialBanner } from 'src/components/TrialBanner'
 
 
 const groupNameValidator = existing => ({
@@ -171,7 +170,7 @@ export const GroupList = ajaxCaller(class GroupList extends Component {
   render() {
     const { groups, isDataLoaded, filter, creatingNewGroup, deletingGroup, updating } = this.state
     const { ajax: { Groups } } = this.props
-    return h(TrialBanner, [
+    return h(Fragment, [
       h(TopBar, { title: 'Groups' }, [
         search({
           wrapperProps: { style: { marginLeft: '2rem', flexGrow: 1, maxWidth: 500 } },

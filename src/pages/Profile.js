@@ -13,7 +13,7 @@ import * as Nav from 'src/libs/nav'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 import validate from 'validate.js'
-import { TrialBanner } from 'src/components/TrialBanner'
+
 
 const styles = {
   page: {
@@ -134,7 +134,7 @@ const Profile = _.flow(
     const strokeRadius = 3
     // Rendering the circle to cover up the edge of the image to avoid aliasing issues
 
-    return h(TrialBanner, [
+    return h(Fragment, [
       saving && spinnerOverlay,
       h(TopBar),
       !profileInfo ? centeredSpinner() :
