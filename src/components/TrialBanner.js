@@ -29,7 +29,7 @@ const messages =
     },
     'Enrolled': {
       'title': 'Access Free Credits',
-      'message': 'You currently have access to your free credits. Learn how to use FireCloud, about this free credit period, and transitioning to your own billing account once the free credits have expired.',
+      'message': 'You currently have access to your free credits. Learn how to use Terra, about this free credit period, and transitioning to your own billing account once the free credits have expired.',
       'isWarning': false,
       'button': {
         'label': 'Learn More',
