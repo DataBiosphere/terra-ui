@@ -59,13 +59,14 @@ export const TrialBanner = _.flow(
       accessingCredits: false,
       pageTwo: false,
       termsAgreed: 'false',
-      cloudTermsAgreed: 'false'
+      cloudTermsAgreed: 'false',
+      finalizeTrial: false
     }
   }
 
   render() {
     const { authState: { isSignedIn, profile }, ajax: { User } } = _.omit('isVisible', this.props)
-    const { accessingCredits, pageTwo, termsAgreed, cloudTermsAgreed, loading } = this.state
+    const { accessingCredits, pageTwo, termsAgreed, cloudTermsAgreed, loading, finalizeTrial } = this.state
     const { trialState } = profile
     if (!trialState || !isSignedIn || trialState === 'Finalized') return null
     const { [trialState]: { title, message, enabledLink, button, isWarning } } = messages
@@ -149,11 +150,16 @@ export const TrialBanner = _.flow(
           (trialState === 'Terminated') && h(Clickable, {
             style: { borderBottom: 'none' },
             tooltip: 'Hide forever?',
-            onClick: async () => await User.finalizeTrial()
+            onClick: () => this.setState({ finalizeTrial: true })
           }, [icon('times-circle', { size: 25, style: { fontSize: '1.5rem', cursor: 'pointer', strokeWidth: 1.5 } })])
         ])
       ]),
-      accessingCredits && freeCreditModal
+      accessingCredits && freeCreditModal,
+      finalizeTrial && h(Modal, {
+        title: 'Are you sure?',
+        onDismiss: () => this.setState({ finalizeTrial: false }),
+        okButton: buttonPrimary({ onClick: async () => await User.finalizeTrial() }, ['Finalize Trial'])
+      }, ['Finalizing your trial will remove this banner forever.'])
     ])
   }
 
