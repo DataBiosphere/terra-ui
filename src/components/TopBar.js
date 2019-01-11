@@ -29,7 +29,7 @@ const styles = {
   },
   nav: {
     background: {
-      position: 'fixed', left: 0, right: 0, top: 0, bottom: 0,
+      position: 'absolute', left: 0, right: 0, top: 0, bottom: 0,
       overflow: 'auto', cursor: 'pointer'
     },
     container: {
@@ -257,36 +257,34 @@ export default Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
   render() {
     const { title, href, children } = this.props
     const { navShown, showingSupportModal } = this.state
-    return div([
-      div({ style: styles.topBar }, [
-        icon('bars', {
-          size: 36,
-          style: { marginRight: '2rem', color: colors.purple[0], flex: 'none', cursor: 'pointer' },
-          onClick: () => this.showNav()
-        }),
-        a({
-          style: { ...styles.pageTitle, display: 'flex', alignItems: 'center' },
-          href: href || Nav.getLink('root')
-        }, [
-          logo(),
-          div({}, [
-            div({
-              style: _.merge(title ? { fontSize: '0.8rem', lineHeight: '19px' } : { fontSize: '1rem', fontWeight: 600 },
-                { color: colors.darkBlue[2], marginLeft: '0.1rem' })
-            }, [betaTag]),
-            title
-          ])
-        ]),
-        children,
-        navShown && this.buildNav(),
-        showingSupportModal && h(SupportRequestModal, {
-          onDismiss: () => this.setState({ showingSupportModal: false }),
-          onSuccess: () => {
-            this.setState({ showingSupportModal: false })
-            pushNotification({ message: 'Message sent successfully' })
-          }
-        })
-      ])
+    return div({ style: styles.topBar }, [
+      icon('bars', {
+        size: 36,
+        style: { marginRight: '2rem', color: colors.purple[0], flex: 'none', cursor: 'pointer' },
+        onClick: () => this.showNav()
+      }),
+      a({
+        style: { ...styles.pageTitle, display: 'flex', alignItems: 'center' },
+        href: href || Nav.getLink('root')
+      }, [
+        logo(),
+        div({}, [
+          div({
+            style: _.merge(title ? { fontSize: '0.8rem', lineHeight: '19px' } : { fontSize: '1rem', fontWeight: 600 },
+              { color: colors.darkBlue[2], marginLeft: '0.1rem' })
+          }, [betaTag]),
+          title
+        ])
+      ]),
+      children,
+      navShown && this.buildNav(),
+      showingSupportModal && h(SupportRequestModal, {
+        onDismiss: () => this.setState({ showingSupportModal: false }),
+        onSuccess: () => {
+          this.setState({ showingSupportModal: false })
+          pushNotification({ message: 'Message sent successfully' })
+        }
+      })
     ])
   }
 })

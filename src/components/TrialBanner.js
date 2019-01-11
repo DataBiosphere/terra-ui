@@ -10,7 +10,7 @@ import { reportError } from 'src/libs/error'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 import Modal from 'src/components/Modal'
-import FreeTrialEulas from 'src/pages/FreeTrialEulas'
+import FreeTrialEulas from 'src/components/FreeTrialEulas'
 
 
 export const TrialBanner = _.flow(
@@ -27,13 +27,13 @@ export const TrialBanner = _.flow(
       accessingCredits: false,
       pageTwo: false,
       termsAgreed: 'false',
-      cloudTermsAgreed: 'false'
+      cloudTermsAgreed: 'false',
+      show: true
     }
   }
 
   async componentDidMount() {
     try {
-      this.setState({ show: true })
       const res = await fetch('trial.json')
       this.setState({ messages: await res.json() })
     } catch (error) {
@@ -45,7 +45,7 @@ export const TrialBanner = _.flow(
     const { children, authState: { isSignedIn, profile }, ajax: { User } } = _.omit('isVisible', this.props)
     const { accessingCredits, pageTwo, termsAgreed, cloudTermsAgreed, messages, loading, show } = this.state
     const { trialState } = profile
-    if (!messages || !trialState || !isSignedIn || trialState === 'Finalized' || !show) return children
+    if (!messages || !trialState || !isSignedIn || trialState === 'Finalized' || !show) return null
     const { [trialState]: { title, message, enabledLink, button, isWarning } } = messages
 
     const freeCreditModal = h(Modal, {
@@ -86,17 +86,13 @@ export const TrialBanner = _.flow(
       ])
     ])
 
-    return div({
-      style: {
-        width: '100%',
-        color: 'white', fontSize: '1rem'
-      }
-    }, [
+    return div([
       div({
         style: {
           flex: 1, display: 'flex', alignItems: 'center', padding: '1.5rem', height: 110,
           backgroundColor: isWarning ? colors.orange[0] : '#359448',
-          justifyContent: 'center'
+          justifyContent: 'center', color: 'white', width: '100%', fontSize: '1rem'
+
         }
       },
       [
@@ -132,9 +128,9 @@ export const TrialBanner = _.flow(
             style: { borderBottom: 'none' },
             tooltip: 'Hide for now',
             onClick: () => this.setState({ show: false })
-          }, [icon('times-circle', { size: 25, style: { fontSize: '1.5rem', stroke: 'white', cursor: 'pointer', strokeWidth: 1.5 } })]),
+          }, [icon('times-circle', { size: 25, style: { fontSize: '1.5rem', cursor: 'pointer', strokeWidth: 1.5 } })]),
           (trialState === 'Terminated') && h(Clickable, {
-            style: { margin: '0.5rem -0.75rem -1.5rem', fontSize: 'small', color: 'white' },
+            style: { margin: '0.5rem -0.75rem -1.5rem', fontSize: 'small' },
             onClick: async () => await User.finalizeTrial()
           }, 'or hide forever?')
         ])

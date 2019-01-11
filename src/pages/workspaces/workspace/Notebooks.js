@@ -302,7 +302,7 @@ const Notebooks = _.flow(
         'The selected file is not a ipynb notebook file. To import a notebook, upload a file with a .ipynb extension.'),
       onDropAccepted: files => this.uploadFiles(files)
     }, [
-      notebooks && h(PageFadeBox, {}, [
+      notebooks && h(PageFadeBox, [
         div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' } }, [
           div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, ['Notebooks']),
           viewToggleButtons,
