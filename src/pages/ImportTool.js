@@ -14,6 +14,7 @@ import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
+import { TrialBanner } from 'src/components/TrialBanner'
 
 
 const styles = {
@@ -106,7 +107,7 @@ class Importer extends Component {
   render() {
     const { source } = this.props
 
-    return h(Fragment, [
+    return h(TrialBanner, [
       h(TopBar, { title: 'Import Tool' }),
       Utils.cond(
         [source === 'dockstore', () => this.renderDockstore()],

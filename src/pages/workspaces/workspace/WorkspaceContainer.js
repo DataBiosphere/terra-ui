@@ -18,6 +18,7 @@ import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 import DeleteWorkspaceModal from 'src/pages/workspaces/workspace/DeleteWorkspaceModal'
 import ShareWorkspaceModal from 'src/pages/workspaces/workspace/ShareWorkspaceModal'
+import { TrialBanner } from 'src/components/TrialBanner'
 
 
 const styles = {
@@ -158,27 +159,29 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
       const { namespace, name } = this.props
       const { workspace, clusters, loadingWorkspace } = this.state
 
-      return h(WorkspaceContainer, {
-        namespace, name, activeTab, showTabBar, workspace, clusters,
-        title: _.isFunction(title) ? title(this.props) : title,
-        breadcrumbs: breadcrumbs(this.props),
-        topBarContent: topBarContent && topBarContent({ workspace, ...this.props }),
-        refresh: async () => {
-          await this.refresh()
-          const child = this.child.current
-          if (child.refresh) {
-            child.refresh()
-          }
-        },
-        refreshClusters: () => this.refreshClusters()
-      }, [
-        workspace && h(WrappedComponent, {
-          ref: this.child,
-          workspace, clusters, loadingWorkspace,
-          refreshWorkspace: () => this.refresh(),
-          refreshClusters: () => this.refreshClusters(),
-          ...this.props
-        })
+      return h(TrialBanner, [
+        h(WorkspaceContainer, {
+          namespace, name, activeTab, showTabBar, workspace, clusters,
+          title: _.isFunction(title) ? title(this.props) : title,
+          breadcrumbs: breadcrumbs(this.props),
+          topBarContent: topBarContent && topBarContent({ workspace, ...this.props }),
+          refresh: async () => {
+            await this.refresh()
+            const child = this.child.current
+            if (child.refresh) {
+              child.refresh()
+            }
+          },
+          refreshClusters: () => this.refreshClusters()
+        }, [
+          workspace && h(WrappedComponent, {
+            ref: this.child,
+            workspace, clusters, loadingWorkspace,
+            refreshWorkspace: () => this.refresh(),
+            refreshClusters: () => this.refreshClusters(),
+            ...this.props
+          })
+        ])
       ])
     }
 

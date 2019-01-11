@@ -19,6 +19,7 @@ import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 import { styles } from 'src/pages/groups/common'
 import validate from 'validate.js'
+import { TrialBanner } from 'src/components/TrialBanner'
 
 
 const roleSelector = ({ role, adminCanEdit, updateState }) => {
@@ -235,7 +236,7 @@ export const GroupDetails = ajaxCaller(class GroupDetails extends Component {
     const { members, adminCanEdit, loading, filter, creatingNewUser, editingUser, deletingUser, updating } = this.state
     const { groupName, ajax: { Groups } } = this.props
 
-    return h(Fragment, [
+    return h(TrialBanner, [
       h(TopBar, { title: 'Groups', href: Nav.getLink('groups') }, [
         search({
           wrapperProps: { style: { marginLeft: '2rem', flexGrow: 1, maxWidth: 500 } },

@@ -13,7 +13,7 @@ import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import { Component } from 'src/libs/wrapped-components'
-
+import { TrialBanner } from 'src/components/TrialBanner'
 
 const styles = {
   header: {
@@ -94,7 +94,7 @@ const Code = ajaxCaller(class Code extends Component {
       )
     )
 
-    return h(Fragment, [
+    return h(TrialBanner, [
       libraryTopMatter('code & tools'),
       !(featuredList && methods) ?
         centeredSpinner() :

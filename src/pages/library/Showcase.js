@@ -1,5 +1,4 @@
 import _ from 'lodash/fp'
-import { Fragment } from 'react'
 import { a, div, h } from 'react-hyperscript-helpers'
 import { centeredSpinner } from 'src/components/icons'
 import { libraryTopMatter } from 'src/components/library-common'
@@ -12,7 +11,7 @@ import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import { Component } from 'src/libs/wrapped-components'
-
+import { TrialBanner } from 'src/components/TrialBanner'
 
 const styles = {
   header: {
@@ -75,7 +74,7 @@ const Showcase = withWorkspaces({ persist: true })(class Showcase extends Compon
     const [bestPractices, featured] = _.partition(
       ({ workspace: { attributes: { description } } }) => description && description.startsWith('### GATK Best Practices'), allFeatured)
 
-    return h(Fragment, [
+    return h(TrialBanner, [
       libraryTopMatter('showcase & tutorials'),
       !(featuredList && workspaces) ?
         centeredSpinner() :

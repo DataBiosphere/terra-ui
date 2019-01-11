@@ -10,6 +10,7 @@ import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
+import { TrialBanner } from 'src/components/TrialBanner'
 
 
 const styles = {
@@ -31,7 +32,7 @@ const Importer = ajaxCaller(class Importer extends Component {
     const { queryParams: { url, ad } } = this.props
     const { isImporting } = this.state
 
-    return h(Fragment, [
+    return h(TrialBanner, [
       backgroundLogo,
       h(TopBar, { title: 'Import Data' }),
       div({ style: styles.container }, [
