@@ -15,7 +15,7 @@ const broadEula = `
 
 6. Credits are not redeemable for cash and are not transferable.
 
-7. All use of Terra by researchers is subject to the [Terra Terms of Use](https://software.broadinstitute.org/firecloud/documentation/article?id=6819), which may be updated from time to time. Terra reserves the right to revoke credits for any activity that violates the Terms of Use.
+7. All use of Terra by researchers is subject to the [Terra Terms of Use](http://gatkforums.broadinstitute.org/firecloud/discussion/6819/firecloud-terms-of-service#latest), which may be updated from time to time. Terra reserves the right to revoke credits for any activity that violates the Terms of Use.
 `
 
 const onixEula = `### Onix Networking Google Cloud Platform Online Customer Agreement
