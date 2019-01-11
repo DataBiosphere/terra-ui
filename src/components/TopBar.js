@@ -112,33 +112,33 @@ export default Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
       ]),
       label
     ])
-    return createPortal(
+    return div({
+      style: styles.nav.background,
+      onClick: () => {
+        this.hideNav()
+      }
+    }, [
       div({
-        style: styles.nav.background,
-        onClick: () => {
-          this.hideNav()
-        }
+        style: styles.nav.container,
+        onClick: e => e.stopPropagation()
       }, [
-        div({
-          style: styles.nav.container,
-          onClick: e => e.stopPropagation()
-        }, [
-          div({ style: styles.topBar }, [
-            icon('bars', {
-              dir: 'right',
-              size: 36,
-              style: { marginRight: '2rem', color: colors.purple[0], cursor: 'pointer' },
-              onClick: () => this.hideNav()
-            }),
-            a({
-              style: {
-                ...styles.pageTitle,
-                textAlign: 'center', display: 'flex', alignItems: 'center'
-              },
-              href: Nav.getLink('root'),
-              onClick: () => this.hideNav()
-            }, [logo(), betaTag])
-          ]),
+        div({ style: styles.topBar }, [
+          icon('bars', {
+            dir: 'right',
+            size: 36,
+            style: { marginRight: '2rem', color: colors.purple[0], cursor: 'pointer' },
+            onClick: () => this.hideNav()
+          }),
+          a({
+            style: {
+              ...styles.pageTitle,
+              textAlign: 'center', display: 'flex', alignItems: 'center'
+            },
+            href: Nav.getLink('root'),
+            onClick: () => this.hideNav()
+          }, [logo(), betaTag])
+        ]),
+        div({ style: { display: 'flex', flexDirection: 'column', overflowY: 'auto', flex: 1 } }, [
           isSignedIn ?
             this.buildUserSection() :
             div({
@@ -192,9 +192,8 @@ export default Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
             new Date(SATURN_BUILD_TIMESTAMP).toLocaleString()
           ])
         ])
-      ]),
-      document.getElementById('main-menu-container')
-    )
+      ])
+    ])
   }
 
   buildUserSection() {

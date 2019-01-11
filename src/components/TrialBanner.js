@@ -43,9 +43,9 @@ export const TrialBanner = _.flow(
 
   render() {
     const { children, authState: { isSignedIn, profile }, ajax: { User } } = _.omit('isVisible', this.props)
-    const { accessingCredits, pageTwo, termsAgreed, cloudTermsAgreed, messages, loading, show } = this.state
+    const { accessingCredits, pageTwo, termsAgreed, cloudTermsAgreed, messages, loading/*, show*/ } = this.state
     const { trialState } = profile
-    if (!messages || !trialState || !isSignedIn || trialState === 'Finalized' || !show) return null
+    if (!messages || !trialState || !isSignedIn || trialState === 'Finalized' /*|| !show*/) return null
     const { [trialState]: { title, message, enabledLink, button, isWarning } } = messages
 
     const freeCreditModal = h(Modal, {
@@ -124,10 +124,10 @@ export const TrialBanner = _.flow(
           button.isExternal ? icon('pop-out', { style: { marginLeft: '0.25rem' } }) : null
         ]),
         div({ style: { marginLeft: '3rem', display: 'flex', flexDirection: 'column', alignItems: 'flex-end' } }, [
-          h(Clickable, {
+          (trialState === 'Terminated') && h(Clickable, {
             style: { borderBottom: 'none' },
             tooltip: 'Hide for now',
-            onClick: () => this.setState({ show: false })
+            //onClick: () => this.setState({ show: false })
           }, [icon('times-circle', { size: 25, style: { fontSize: '1.5rem', cursor: 'pointer', strokeWidth: 1.5 } })]),
           (trialState === 'Terminated') && h(Clickable, {
             style: { margin: '0.5rem -0.75rem -1.5rem', fontSize: 'small' },
