@@ -64,14 +64,9 @@ export const TrialBanner = _.flow(
     }
   }
 
-  render() {
-    const { authState: { isSignedIn, profile }, ajax: { User } } = _.omit('isVisible', this.props)
-    const { accessingCredits, pageTwo, termsAgreed, cloudTermsAgreed, loading, finalizeTrial } = this.state
-    const { trialState } = profile
-    if (!trialState || !isSignedIn || trialState === 'Finalized') return null
-    const { [trialState]: { title, message, enabledLink, button, isWarning } } = messages
-
-    const freeCreditModal = h(Modal, {
+  renderFreeCreditModal = () => {
+    const { pageTwo, termsAgreed, cloudTermsAgreed } = this.state
+    return h(Modal, {
       title: 'Welcome to the Terra Free Credit Program!',
       width: '65%',
       onDismiss: () => this.setState({ accessingCredits: false, pageTwo: false }),
@@ -108,6 +103,14 @@ export const TrialBanner = _.flow(
         ])
       ])
     ])
+  }
+
+  render() {
+    const { authState: { isSignedIn, profile }, ajax: { User } } = _.omit('isVisible', this.props)
+    const { accessingCredits, loading, finalizeTrial } = this.state
+    const { trialState } = profile
+    if (!trialState || !isSignedIn || trialState === 'Finalized') return null
+    const { 'Enabled': { title, message, enabledLink, button, isWarning } } = messages
 
     return div([
       div({
@@ -154,7 +157,7 @@ export const TrialBanner = _.flow(
           }, [icon('times-circle', { size: 25, style: { fontSize: '1.5rem', cursor: 'pointer', strokeWidth: 1.5 } })])
         ])
       ]),
-      accessingCredits && freeCreditModal,
+      accessingCredits && this.renderFreeCreditModal(),
       finalizeTrial && h(Modal, {
         title: 'Are you sure?',
         onDismiss: () => this.setState({ finalizeTrial: false }),
