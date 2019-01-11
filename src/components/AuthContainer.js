@@ -9,15 +9,15 @@ import TermsOfService from 'src/pages/TermsOfService'
 
 
 export default Utils.connectAtom(authStore, 'authState')(
-  ({ children, authState: { isSignedIn, registrationStatus, acceptedTos } }) => {
+  ({ children, isPublic, authState: { isSignedIn, registrationStatus, acceptedTos } }) => {
     return Utils.cond(
-      [isSignedIn === undefined, centeredSpinner],
-      [isSignedIn === false, h(SignIn)],
-      [registrationStatus === undefined, centeredSpinner],
+      [isSignedIn === undefined && !isPublic, centeredSpinner],
+      [isSignedIn === false && !isPublic, h(SignIn)],
+      [registrationStatus === undefined && !isPublic, centeredSpinner],
       [registrationStatus === 'unregistered', h(Register)],
       [registrationStatus === 'disabled', () => h(Disabled)],
       [registrationStatus === 'unlisted', () => h(Unlisted)],
-      [acceptedTos === undefined, centeredSpinner],
+      [acceptedTos === undefined && !isPublic, centeredSpinner],
       [acceptedTos === false, () => h(TermsOfService)],
       children
     )
