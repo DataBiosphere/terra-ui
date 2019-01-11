@@ -1,5 +1,4 @@
 import _ from 'lodash/fp'
-import PropTypes from 'prop-types'
 import { div, h, a, span } from 'react-hyperscript-helpers'
 import { authStore, refreshTerraProfile } from 'src/libs/auth'
 import colors from 'src/libs/colors'
@@ -13,13 +12,47 @@ import Modal from 'src/components/Modal'
 import FreeTrialEulas from 'src/components/FreeTrialEulas'
 
 
+const messages =
+  {
+    'Enabled': {
+      'title': 'Welcome to Terra!',
+      'message': 'You have free compute and storage credits available to upload your data and launch analyses.',
+      'isWarning': false,
+      'enabledLink': {
+        'label': 'Learn more',
+        'url': 'https://software.broadinstitute.org/firecloud/documentation/freecredits'
+      },
+      'button': {
+        'label': 'Start trial',
+        'isExternal': false
+      }
+    },
+    'Enrolled': {
+      'title': 'Access Free Credits',
+      'message': 'You currently have access to your free credits. Learn how to use FireCloud, about this free credit period, and transitioning to your own billing account once the free credits have expired.',
+      'isWarning': false,
+      'button': {
+        'label': 'Learn More',
+        'url': 'https://software.broadinstitute.org/firecloud/documentation/freecredits',
+        'isExternal': true
+      }
+    },
+    'Terminated': {
+      'title': 'Your free credits have expired',
+      'message': 'Your data will be stored for 30 days from credit expiration date. Learn how you can create your own Google Billing Account and move your data to continue working.',
+      'isWarning': true,
+      'button': {
+        'label': 'Learn more',
+        'url': 'https://software.broadinstitute.org/firecloud/documentation/freecredits?page=faqs',
+        'isExternal': true
+      }
+    }
+  }
+
 export const TrialBanner = _.flow(
   ajaxCaller,
   Utils.connectAtom(authStore, 'authState')
 )(class TrialBanner extends Component {
-  static propTypes = {
-    children: PropTypes.node
-  }
 
   constructor(props) {
     super(props)
@@ -27,25 +60,15 @@ export const TrialBanner = _.flow(
       accessingCredits: false,
       pageTwo: false,
       termsAgreed: 'false',
-      cloudTermsAgreed: 'false',
-      show: true
-    }
-  }
-
-  async componentDidMount() {
-    try {
-      const res = await fetch('trial.json')
-      this.setState({ messages: await res.json() })
-    } catch (error) {
-      reportError('Error loading user information', error)
+      cloudTermsAgreed: 'false'
     }
   }
 
   render() {
-    const { children, authState: { isSignedIn, profile }, ajax: { User } } = _.omit('isVisible', this.props)
-    const { accessingCredits, pageTwo, termsAgreed, cloudTermsAgreed, messages, loading/*, show*/ } = this.state
+    const { authState: { isSignedIn, profile }, ajax: { User } } = _.omit('isVisible', this.props)
+    const { accessingCredits, pageTwo, termsAgreed, cloudTermsAgreed, loading } = this.state
     const { trialState } = profile
-    if (!messages || !trialState || !isSignedIn || trialState === 'Finalized' /*|| !show*/) return null
+    if (!trialState || !isSignedIn || trialState === 'Finalized') return null
     const { [trialState]: { title, message, enabledLink, button, isWarning } } = messages
 
     const freeCreditModal = h(Modal, {
@@ -126,16 +149,11 @@ export const TrialBanner = _.flow(
         div({ style: { marginLeft: '3rem', display: 'flex', flexDirection: 'column', alignItems: 'flex-end' } }, [
           (trialState === 'Terminated') && h(Clickable, {
             style: { borderBottom: 'none' },
-            tooltip: 'Hide for now',
-            //onClick: () => this.setState({ show: false })
-          }, [icon('times-circle', { size: 25, style: { fontSize: '1.5rem', cursor: 'pointer', strokeWidth: 1.5 } })]),
-          (trialState === 'Terminated') && h(Clickable, {
-            style: { margin: '0.5rem -0.75rem -1.5rem', fontSize: 'small' },
+            tooltip: 'Hide forever?',
             onClick: async () => await User.finalizeTrial()
-          }, 'or hide forever?')
+          }, [icon('times-circle', { size: 25, style: { fontSize: '1.5rem', cursor: 'pointer', strokeWidth: 1.5 } })]),
         ])
       ]),
-      children,
       accessingCredits && freeCreditModal
     ])
   }
