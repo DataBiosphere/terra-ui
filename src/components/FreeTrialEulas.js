@@ -4,15 +4,1321 @@ import { Markdown } from 'src/components/common'
 
 const broadEula = `
 1. The FireCloud Free Credits Program (“credits”), sponsored by Google, is administered by [Onix Networking](https://www.onixnet.com/products/google-cloud/google-cloud-platform/google-app-engine) (“Onix”), a Google Cloud Premier Partner. 
-\n2. By opting into this program, you are authorizing FireCloud to give Onix and Google access to your FireCloud user profile information. This is necessary for Onix and Google to give you the free credits. 
-\n3. Your credits of $300 will expire December 30, 2018 or 60 days after they were issued, whichever comes first.
-\n4. Onix will contact you during the trial with information on options for creating your own billing account to further use FireCloud once the credits expire. Other billing options will be available on the FireCloud website.
-\n5. FireCloud has no obligation to maintain a billing account or any data saved under an account once credits are exhausted.
-\n6. Credits are not redeemable for cash and are not transferable.
-\n7. All use of FireCloud by researchers is subject to the [FireCloud Terms of Use](https://software.broadinstitute.org/firecloud/documentation/article?id=6819), which may be updated from time to time. FireCloud reserves the right to revoke credits for any activity that violates the Terms of Use.
+
+2. By opting into this program, you are authorizing FireCloud to give Onix and Google access to your FireCloud user profile information. This is necessary for Onix and Google to give you the free credits. 
+
+3. Your credits of $300 will expire December 30, 2018 or 60 days after they were issued, whichever comes first.
+
+4. Onix will contact you during the trial with information on options for creating your own billing account to further use FireCloud once the credits expire. Other billing options will be available on the FireCloud website.
+
+5. FireCloud has no obligation to maintain a billing account or any data saved under an account once credits are exhausted.
+
+6. Credits are not redeemable for cash and are not transferable.
+
+7. All use of FireCloud by researchers is subject to the [FireCloud Terms of Use](https://software.broadinstitute.org/firecloud/documentation/article?id=6819), which may be updated from time to time. FireCloud reserves the right to revoke credits for any activity that violates the Terms of Use.
 `
 
-const onixEula = `### Onix Networking Google Cloud Platform Online Customer Agreement\n\nOnix Networking Google Cloud Platform Online Customer Agreement (the\n\\"Agreement\\") is entered into by and between Onix Networking Corp., an\nOhio corporation, with offices at 18519 Detroit Avenue, Lakewood, Ohio\n44107 (“Onix”) and the entity agreeing to these terms (\\"Customer\\"). This\nAgreement is effective as of the date you click the \\"I Accept\\" button\nbelow (the \\"Effective Date\\"). If you are accepting on behalf of your\nemployer or another entity, you represent and warrant that: (i) you have\nfull legal authority to bind your employer, or the applicable entity, to\nthese terms and conditions; (ii) you have read and understand this\nAgreement; and (iii) you agree, on behalf of the party that you\nrepresent, to this Agreement. If you don't have the legal authority to\nbind your employer or the applicable entity, please do not click the \\"I\nAccept\\" button below. This Agreement governs Customer's access to and\nuse of the Services.\n\n1.  **Services**. “Services” means the Google services currently known\n    as “Google Cloud Platform” as set forth at the following URL:\n    <https://cloud.google.com/terms/services>, as provided by Google and\n    used by Customer under this Agreement. Customer may use any or all\n    of the services.\n    \n    1.  Google will provide the Services to Customer. As part of\n        receiving the Services Customer will have access to the Admin\n        Console, through which Customer may administer the Services. The\n        Services shall be deemed accepted by Customer upon provisioning\n        of Admin Console.\n    \n    2.  Customer must have an Account to use the Services, and is\n        responsible for the information it provides to create the\n        Account, the security of its passwords for the Account, and for\n        any use of its Account. If Customer becomes aware of any\n        unauthorized use of its password or its Account, Customer will\n        notify Onix or Google as promptly as possible.\n    \n    3.  Documentation. Google will provide Customer with Documentation.\n        The Documentation may specify restrictions on how the\n        Applications may be built or how the Services may be used and\n        Customer will ensure that Customer and its End Users comply with\n        such restrictions.\n    \n    4.  Customer agrees to comply with the terms and conditions of the\n        Service Specific Terms.\n    \n    5.  Customer agrees to comply with the terms and conditions of the\n        Google Cloud Platform Acceptable Use Policy (“AUP”).\n    \n    6.  Service Level Agreement. Google will provide the Services in\n        accordance with the applicable Service Level Agreement (“SLA”),\n        if any.\n    \n    7.  Data Location. Customer may select where certain Customer Data\n        will be stored (\\"Data Location Selection\\"), and Google will\n        store it there in accordance with the Service Specific Terms. If\n        a Data Location Selection is not covered by the Service Specific\n        Terms (or a Data Location Selection is not made by Customer in\n        respect of any Customer Data), Google may store and process the\n        relevant Customer Data anywhere Google or its Subprocessors\n        maintain facilities. By using the Services, Customer consents to\n        this processing and storage of Customer Data.\n    \n    8.  New Applications and Services. Google may: (i) make new\n        applications, tools, features or functionality available through\n        the Services and (ii) add new services to the “Services”\n        definition (by adding them at the URL under that definition),\n        the use of which may be contingent upon Customer’s agreement to\n        additional terms.\n    \n    9.  Modifications.\n        \n        1.  Modifications to the Services. Google may make commercially\n            reasonable updates to the Services from time to time. If\n            Google makes a material change to the Services, Onix will\n            make commercially reasonable efforts to inform Customer.\n        \n        2.  Modifications to the URL Terms. Google may make commercially\n            reasonable changes to the URL Terms from time to time. If\n            Google makes a material change to the URL Terms, Onix will\n            inform Customer through email notification or the Admin\n            Console. If the change has a material adverse impact on\n            Customer and is not a result of Google complying with a\n            court order or applicable law, Customer may notify Onix\n            within 30 days after being informed of the change that\n            Customer does not agree with the change. If Customer\n            notifies Onix as required, then Customer will remain\n            governed by the terms in effect immediately prior to the\n            change until the earlier of: (i) the end of the then-current\n            Initial Term (as defined in section 6.1 below) or Renewal\n            Term (as defined in section 6.2 below) or (ii) 12 months\n            after Onix informs Customer of the change, unless the\n            modification to the URL Terms is in response to a court\n            order or to comply with applicable law. If the Agreement\n            renews, it will do so under the updated URL Terms.\n    \n    10. Third Party Components. Certain components of the Software\n        (including open source software) may be subject to separate\n        license agreements, which Google will provide to Customer along\n        with such components.\n    \n    11. Use of Customer Data. Google will not access or use Customer\n        Data, except as necessary to provide the Services to Customer\n        and its End Users.\n    \n    12. Onix and Google are independent contractors and Onix is not\n        Google’s agent or partner or in a joint venture with Google.\n\n2.  **Customer Obligations.**\n    \n    13. Compliance. Customer is responsible for any violations of the\n        AUP, the Service Specific Terms, or Section 2.2 (Restrictions),\n        in each case caused by Customer (and Customer End Users),\n        Customer Data, Applications, or Projects. Google reserves the\n        right to review the Customer Data, Applications, and Projects\n        for compliance with the AUP.\n    \n    14. Restrictions. Customer will not, and will not allow any third\n        parties under its control or End Users to: (a) copy, modify,\n        create a derivative work of, reverse engineer, decompile,\n        translate, disassemble, or otherwise attempt to extract any or\n        all of the source code of the Services (subject to Section 1.10\n        above and except to the extent such restriction is expressly\n        prohibited by applicable law); (b) create multiple Applications,\n        Accounts, or Projects to simulate or act as a single\n        Application, Account, or Project (respectively) or otherwise\n        access the Services in a manner intended to avoid incurring\n        Fees; (c) unless otherwise stated in the Service Specific Terms,\n        use the Services to operate or enable any telecommunications\n        service or in connection with any Application that allows\n        Customer End Users to place calls or to receive calls from any\n        public switched telephone network; (d) process or store any\n        Customer Data that is subject to the International Traffic in\n        Arms Regulations maintained by the Department of State; (e) use\n        the Services for High Risk Activities; or (f) sublicense,\n        resell, or distribute any or all of the Services separate from\n        any integrated solution.\n    \n    15. Unless otherwise specified in writing by Google or Onix, Google\n        and Onix do not intend uses of the Services to create\n        obligations under HIPAA, and makes no representations that the\n        Services satisfy HIPAA requirements. If Customer is (or becomes)\n        a Covered Entity or Business Associate, as defined in HIPAA,\n        Customer agrees not to use the Services for any purpose or in\n        any manner involving Protected Health Information (as defined in\n        HIPAA) unless Customer has received prior written consent to\n        such use from Onix or Google. As between the parties, Customer\n        is solely responsible for any applicable compliance with HIPAA.\n\n3.  **Privacy**.\n    \n    16. The Data Processing and Security Terms will apply. Subject to\n        Section 3.2, Google may change the Data Processing and Security\n        Terms from time to time by notifying Customer in writing.\n    \n    17. Updates to Data Processing and Security Terms. Google may only\n        change the Data Processing and Security Terms where such change\n        is required to comply with applicable law, applicable\n        regulation, court order or guidance issued by a governmental\n        regulator or agency, where such change is expressly permitted by\n        the Data Processing and Security Terms, or where such change:\n        \n        3.  is commercially reasonable;\n        \n        4.  does not result in a degradation of the overall security of\n            the Services;\n        \n        5.  does not expand the scope of or remove any restrictions on\n            Google’s processing of Customer Personal Data, as described\n            in Section 5.3 (Scope of Processing) of the Data Processing\n            and Security Terms; and\n        \n        6.  does not otherwise have a material adverse impact on\n            Customer’s rights under the Data Processing and Security\n            Terms.\n    \n    18. Consent to Processing. Customer will obtain and maintain any\n        required consents necessary to permit the processing of Customer\n        Data under this Agreement.\n    \n    19. Google is a processor of any personal data processed by it on\n        Customer’s behalf, and Customer is the controller of any such\n        data, as the terms “controller”, “processed”, “processor” and\n        “personal data” are defined in the EU Directive.\n\n4.  **DMCA Policy**. Google provides information to help copyright\n    holders manage their intellectual property online, but Google cannot\n    determine whether something is being used legally or not without\n    their input. Google responds to notices of alleged copyright\n    infringement and terminates accounts of repeat infringers according\n    to the process in the U.S. Digital Millennium Copyright Act. If\n    Customer thinks somebody is violating Customer’s copyrights and\n    wants to notify Google, Customer can find information about\n    submitting notices, and Google's policy about responding to notices\n    at <http://www.google.com/dmca.html>.\n\n5.  **Suspension of Services.**\n    \n    20. Suspension/Removals. If Customer becomes aware that any\n        Application, Project , or Customer Data violates the AUP,\n        Customer will immediately suspend the Application, Project, or\n        End User’s access and/or remove the relevant Customer Data (as\n        applicable). If Customer fails to suspend or remove as noted in\n        the prior sentence, Google or Onix may specifically request that\n        Customer do so. If Customer fails to comply with Google’s or\n        Onix’ request to do so, then Google or Onix may suspend the\n        Customer’s or applicable End Users’ Google accounts, disable the\n        Project or Application, or disable the Account (as may be\n        applicable) until the AUP violation is corrected..\n    \n    21. Emergency Security Issues. Despite the foregoing, if there is an\n        Emergency Security Issue, then Onix or Google may automatically\n        suspend the offending Application, Project, or the Account.\n        Suspension will be to the minimum extent required, and of the\n        minimum duration, to prevent or resolve the Emergency Security\n        Issue. If Onix or Google suspends an Application, Project, or\n        the Account, for any reason, without prior notice to Customer,\n        then at Customer’s request, Onix or Google will provide Customer\n        the reason for the suspension as soon as reasonably possible.\n\n6.  **Term and Termination**.\n    \n    22. Agreement Term. Subject to Customer’s payment of Fees, the\n        Initial Term will start on the Agreement effective date and\n        continue for a period of twelve (12) months, unless terminated\n        earlier in accordance with this Agreement.\n    \n    23. Auto Renewal. At the end of the Initial Term, the Agreement will\n        automatically renew for consecutive terms of twelve (12) months\n        (each a “Renewal Term”), unless terminated earlier in accordance\n        with this Agreement.\n    \n    24. Termination for Breach. Either party may suspend or terminate\n        this Agreement for breach if: (i) the other party is in material\n        breach of the Agreement and fails to cure that breach within\n        thirty (30) days after receipt of written notice; (ii) the other\n        party ceases its business operations or becomes subject to\n        insolvency proceedings and the proceedings are not dismissed\n        within ninety (90) days; or (iii) the other party is in material\n        breach of this Agreement more than two times notwithstanding any\n        cure of such breaches. Where Onix has the right to terminate\n        this Agreement under this Section, Onix may suspend or terminate\n        any, all, or any portion of the Services or Projects.\n    \n    25. Termination for Inactivity. Onix reserves the right to terminate\n        the Services for inactivity, if, for a period exceeding one\n        hundred and eighty (180) days, Customer (a) has failed to access\n        the Admin Console, (b) a Project has no active virtual machine\n        or storage resources or an Application has not served any\n        requests; and (c) no invoices are being generated.\n    \n    26. Termination for Convenience. Customer may stop using the Service\n        at any time.\n    \n    27. Effects of Termination. If the Agreement expires or is\n        terminated, then: (i) the rights granted by one Party to the\n        other will immediately cease; (ii) all Fees (including Taxes)\n        owed by Customer to Onix are immediately due upon receipt of the\n        final invoice; (iii) Customer will delete the Software, and any\n        Application, Instance, Project, and any Customer Data from the\n        Services; and (iv) upon request, each Party will use\n        commercially reasonable efforts to return or destroy all\n        Confidential Information of the other party in its possession.\n\n7.  **Technical Support Services (TSS)**.\n    \n    28. Customer is responsible for technical support of its\n        Applications and Projects.\n    \n    29. Subject to payment of applicable support Fees, Google and/or\n        Onix will provide TSS to Customer during the License Term in\n        accordance with the TSS Guidelines as specified at\n        <https://cloud.google.com/terms/tssg>.\n\n8.  **Deprecation Policy.**\n    \n    30. Google may discontinue any Services or any portion or feature of\n        the Services for any reason at any time without liability to\n        Customer.\n    \n    31. Notwithstanding Section 8.1, if Google intends to discontinue or\n        make backwards incompatible changes to those Services that are\n        specified at <https://cloud.google.com/cloud/terms/deprecation>\n        (“Deprecation URL”), Google will announce such change or\n        discontinuance and will use commercially reasonable efforts to\n        continue to operate those versions and features of those\n        Services identified at the Deprecation URL without these changes\n        for at least one year after that announcement, unless (as Google\n        determines in its reasonable good faith judgment):\n        \n        7.  required by law or third party relationship (including if\n            there is a change in applicable law or relationship), or\n        \n        8.  doing so could create a security risk or substantial\n            economic or material technical burden.\n    \n    32. The above policy in Section 8.2 is the “Deprecation Policy”.\n\n9.  **Fees and Billing**.\n    \n    33. Usage and Invoicing. Customer will pay for all Fees based on:\n        (a) Customer’s use of the Services; (b) any Reserved Units\n        selected; (c) any Committed Purchases selected; and/or (d) any\n        Package Purchases selected. Onix will invoice Customer on a\n        monthly basis for those Fees accrued at the end of each month\n        unless otherwise stated at the URL designating the Fees for an\n        applicable SKU. Fees are solely based on Google's measurements\n        of use of the Services under Customer’s Account and Google’s\n        determination is final.\n    \n    34. Payment. Fees are due thirty (30) days from the invoice date.\n        All payments due are in U.S. dollars. Customer’s obligation to\n        pay all Fees is non-cancellable.\n    \n    35. Taxes. Customer is responsible for paying any Taxes, and\n        Customer will pay the Fees to Onix without any deduction. If\n        Onix is obligated to collect or remit Taxes imposed on Customer,\n        the appropriate amount will be invoiced to and paid by Customer,\n        unless Customer provides Onix with a timely and valid tax\n        exemption certificate (or other documentation as required for\n        the exemption) authorized by the appropriate taxing authority.\n    \n    36. Any terms and conditions on a purchase order do not apply to\n        this Agreement and are null and void.\n\n10. **Warranty**.\n\n  > EXCEPT AS EXPRESSLY PROVIDED FOR HEREIN, TO THE MAXIMUM EXTENT\n  > PERMITTED BY APPLICABLE LAW, ONIX AND GOOGLE DO NOT MAKE ANY OTHER\n  > WARRANTY OF ANY KIND, WHETHER EXPRESS, IMPLIED, STATUTORY OR\n  > OTHERWISE, INCLUDING WITHOUT LIMITATION WARRANTIES OF MERCHANTABILITY,\n  > FITNESS FOR A PARTICULAR USE AND NONINFRINGEMENT. ONIX AND ITS\n  > SUPPLIERS ARE NOT RESPONSIBLE OR LIABLE FOR THE DELETION OF OR FAILURE\n  > TO STORE ANY CUSTOMER DATA AND OTHER COMMUNICATIONS MAINTAINED OR\n  > TRANSMITTED THROUGH USE OF THE SERVICES. CUSTOMER IS SOLELY\n  > RESPONSIBLE FOR SECURING AND BACKING UP ITS APPLICATION, PROJECT, AND\n  > CUSTOMER DATA. NEITHER ONIX NOR GOOGLE, WARRANTS THAT THE OPERATION OF\n  > THE SOFTWARE OR THE SERVICES WILL BE ERROR-FREE OR UNINTERRUPTED.\n  > NEITHER THE SOFTWARE NOR THE SERVICES ARE DESIGNED, MANUFACTURED, OR\n  > INTENDED FOR HIGH RISK ACTIVITIES.\n\n11. **Intellectual Property Rights**.\n    \n    37. Except as expressly set forth herein, this Agreement does not\n        grant either party any rights, implied or otherwise, to the\n        other’s content or any of the other’s intellectual property. As\n        between the parties, Customer owns all Intellectual Property\n        Rights in Customer Data and the Application or Project (if\n        applicable) and Google owns all Intellectual Property Rights in\n        the Services and Software.\n    \n    38. Services Feedback. If Customer provides Feedback to Google, then\n        Google may use that information without obligation to Customer,\n        and Customer irrevocably assigns to Google all right, title, and\n        interest in the Feedback..\n\n12. **Confidentiality.**\n    \n    39. Confidential Information. “Confidential Information” is\n        information disclosed by one Party to the other Party under this\n        Agreement that is marked as confidential or would normally under\n        the circumstances be considered confidential information of the\n        disclosing party. Confidential Information does not include\n        information that the recipient already knew, that becomes public\n        through no fault of the recipient, that was independently\n        developed by the recipient, or that was rightfully given to the\n        recipient by another party.\n    \n    40. Confidentiality Obligations. The recipient of the other Party's\n        Confidential Information will not disclose the Confidential\n        Information, except to Affiliates, employees, agents, or\n        professional advisors who need to know it and who have agreed in\n        writing (or in the case of professional advisors are otherwise\n        bound) to keep it confidential. The recipient will ensure that\n        those people and entities use the Confidential Information only\n        to exercise rights and fulfill obligations under this Agreement,\n        while using reasonable care to keep it confidential. The\n        recipient may also disclose Confidential Information when\n        required by law after giving reasonable notice to the discloser\n        if allowed by law. Customer is responsible for responding to all\n        third party requests concerning its use and its End Users' use\n        of the Services.\n\n13. **Indemnity.**\n    \n    41. By Customer. Customer will defend and indemnify Onix and its\n        Affiliates against Indemnified Liabilities in any Third-Party\n        Legal Proceeding to the extent arising from: (i) any Integrated\n        Solution, Application, Project, Customer Data, or Customer Brand\n        Features; or (ii) Customer’s or its End Users’, use of the\n        Services in violation of the AUP.\n    \n    42. By Onix. Onix will defend and indemnify Customer against\n        Indemnified Liabilities in any Third-Party Legal Proceeding to\n        the extent arising from a third party claim that Google's\n        technology used to provide the Service (excluding any open\n        source software) or any Google Brand Feature infringes or\n        misappropriates any patent, copyright, trade secret or trademark\n        of such third party. Notwithstanding the foregoing, in no event\n        shall Onix have any obligations or liability under this Section\n        arising from: (i) use of any Service or Google Brand Features in\n        a modified form or in combination with materials not furnished\n        by Google or Onix, and (ii) any Customer Data.\n\n14. **Limitation of Liability.**\n    \n    43. TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW AND SUBJECT TO\n        SECTION 14.3 (EXCEPTIONS TO LIMITATIONS), IN NO EVENT WILL\n        EITHER PARTY BE LIABLE TO THE OTHER FOR ANY SPECIAL, INCIDENTAL,\n        PUNITIVE, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,\n        WITHOUT LIMITATION, LOST PROFITS, LOSS OF USE, LOSS OF DATA OR\n        LOSS OF GOODWILL), ARISING OUT OF OR IN CONNECTION WITH THIS\n        AGREEMENT OR THE PERFORMANCE OR OPERATION OF THE LICENSES,\n        WHETHER SUCH LIABILITY ARISES FROM ANY CLAIM BASED UPON BREACH\n        OF CONTRACT, BREACH OF WARRANTY, TORT (INCLUDING NEGLIGENCE),\n        PRODUCT LIABILITY OR OTHERWISE, AND WHETHER OR NOT SUCH PARTY\n        HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.\n    \n    44. EACH PARTY'S TOTAL AGGREGATE LIABILITY FOR DIRECT DAMAGES\n        ARISING OUT OF OR RELATING TO THIS AGREEMENT IS LIMITED TO THE\n        FEES CUSTOMER PAID UNDER THE AGREEMENT DURING THE 12 MONTHS\n        BEFORE THE LIABILITY AROSE.\n    \n    45. EXCEPTIONS TO LIMITATIONS. NOTHING IN THIS AGREEMENT EXCLUDES OR\n        LIMITS EITHER PARTY’S LIABILITY FOR: (A) DEATH OR PERSONAL\n        INJURY RESULTING FROM ITS NEGLIGENCE OR THE NEGLIGENCE OF ITS\n        EMPLOYEES OR AGENTS; (B) FRAUD OR FRAUDULENT MISREPRESENTATION;\n        (C) OBLIGATIONS UNDER SECTION 13 (DEFENSE AND INDEMNITY); (D)\n        INFRINGEMENT OF THE OTHER PARTY’S INTELLECTUAL PROPERTY RIGHTS;\n        (E) CUSTOMER’S PAYMENT OBLIGATIONS; (F) BREACHES OF\n        CONFIDENTIALITY; OR (G) MATTERS FOR WHICH LIABILITY CANNOT BE\n        EXCLUDED OR LIMITED UNDER APPLICABLE LAW.\n    \n    46. Customer acknowledges that the Licenses are provided as a\n        service by Google, and Onix, to the extent permitted by\n        applicable law, disclaims Google’s liability for any damages,\n        whether direct or indirect, incidental or consequential, arising\n        from Onix’s distribution and resale of the Services to Customer.\n\n15. **Federal Agency Users**. The Services were developed solely at\n    private expense and are commercial computer software and related\n    documentation within the meaning of the Federal Acquisition\n    Regulations (“FAR”) and agency supplements to the FAR.\n\n16. **Assignment.** Neither Party may assign any part of this Agreement\n    without the written consent of the other, except to an Affiliate\n    where: (a) the assignee has agreed in writing to be bound by the\n    terms of this Agreement; (b) the assigning party remains liable for\n    obligations under the Agreement if the assignee defaults on them;\n    and (c) the assigning Party has notified the other Party of the\n    assignment. Any other attempt to assign is void. .\n\n17. **Governing Law**. This Agreement is governed by Ohio law excluding\n    Ohio’s choice of laws rules.\n\n18. **Severability.** If any term, condition or provision of this\n    Agreement is held or determined to be void, invalid, illegal, or\n    unenforceable in any respect, in whole or in part, such term,\n    condition or provision shall be severed from this Agreement, and the\n    remaining terms, conditions and provisions contained herein shall\n    continue in force and effect, and shall in no way be affected,\n    prejudiced or disturbed thereby.\n\n19. **Survival**. The rights and obligations of Onix and Customer\n    contained in this Section and in Sections 12-14, 16-17, and 24 shall\n    survive any expiration or termination of this Agreement.\n\n20. **Waiver**. Failure to enforce any provision will not constitute a\n    waiver.\n\n21. **Headings.** The headings and titles of the various sections of\n    this Agreement are intended solely for convenience of reference and\n    are not intended to define, limit, explain, expand, modify or place\n    any construction on any of the provisions of this Agreement.\n\n22. **Amendments.** Any amendment must be in writing, signed by both\n    parties, and expressly state that it is amending this Agreement.\n\n23. **Force Majeure.** Onix shall not be liable for inadequate\n    performance of its obligations under the Agreement to the extent\n    caused by a circumstance beyond its reasonable control, including,\n    without limitation, Domain Name Server issues outside its direct\n    control, labor strikes or shortages, riots, insurrection, fires,\n    flood, storm, explosions, acts of God, war, terrorism, governmental\n    action, labor conditions, earthquakes and material shortages.\n\n24. **Notices.** All notices, acknowledgments or other written\n    communications (referred to as “Notices”) required to be given under\n    this Agreement shall be in writing and shall be deemed to have been\n    given and properly delivered if duly mailed by certified or\n    registered mail to the other Party at its address set forth on the\n    first page of this Agreement, or to such other address as either\n    Party may, by written notice, designate to the other. Additionally,\n    Notices sent by any other means (i.e., email, facsimile, overnight\n    delivery, courier, and the like) are acceptable subject to written\n    confirmation of both the transmission and receipt of the Notice.\n\n25. **Publicity.** Customer agrees that Onix may include Customer's name\n    or Brand Features in a list of Onix customers, online or in\n    promotional materials. Customer also agrees that Onix may verbally\n    reference Customer as a customer of the products or services that\n    are the subject of this Agreement.\n\n26. **Counterparts.** The parties may execute this Agreement in\n    counterparts, including facsimile, PDF or other electronic copies\n    which taken together will constitute one instrument.\n\n27. **Equitable Relief.** Nothing in this Agreement will limit either\n    party’s ability to seek equitable relief.\n\n28. **Relationship of the Parties.** Nothing herein shall be construed\n    as creating a partnership, an employment relationship, or an agency\n    relationship between the parties, or as authorizing either party to\n    act as agent for the other. Each party maintains its separate\n    identity.\n\n29. **Entire Agreement.** This Agreement and the Exhibits hereto and any\n    documents expressly referenced herein or therein is the parties’\n    entire agreement relating to its subject and supersedes any prior or\n    contemporaneous agreements on that subject. The terms located at a\n    URL and referenced in this Agreement are hereby incorporated by this\n    reference.\n\n30. **Definitions.**\n\n> “Acceptable Use Policy” or “AUP” means the acceptable use policy for\n> the Services at <https://cloud.google.com/cloud/terms/aup>(or such\n> other URL as Google may provide).\n> \n> “Account” means Customer’s Google Cloud Platform account, subject to\n> those terms of service, as may be applicable.\n> \n> “Admin Console” means the online console(s) and/or tool(s) provided by\n> Google to Customer for administering the Services.\n> \n> \\"Affiliate\\" means any entity that directly or indirectly Controls, is\n> Controlled by, or is under common Control with a party.\n> \n> “Application(s)” means any web application Customer creates using the\n> Services, including any source code written by Customer to be used\n> with the Services.\n> \n> “Brand Features” means the trade names, trademarks, service marks,\n> logos, domain names, and other distinctive brand features of each\n> Party, respectively, as secured by such Party from time to time.\n> \n> “Committed Purchase(s)” have the meaning in the Service Specific\n> Terms.\n> \n> “Control” means control of greater than fifty percent of the voting\n> rights or equity interests of a party.\n> \n> “Customer Data” means content provided to Google or Onix by Customer\n> (or at its direction) through the Services under the Account.\n> \n> \\"Data Processing and Security Terms\\" means the terms set out in\n> Exhibit A (including its Appendices) to this Agreement.\n> \n> “Documentation” means the Google documentation (as may be updated from\n> time to time) in the form generally made available by Google to its\n> customers for use with the Services at\n> <https://cloud.google.com/docs/>.\n> \n> “Emergency Security Issue” means either: (a) Customer’s, or Customer\n> End Users’ use of the Services in violation of the AUP, which could\n> disrupt: (i) the Services; (ii) third parties’ use of the Services; or\n> (iii) the Google network or servers used to provide the Services; or\n> (b) unauthorized third party access to the Services.\n> \n> “End Users” means the individuals whom Customer permits to use the\n> Services, Application, or Project.\n> \n> “Feedback” means feedback or suggestions about the Services provided\n> to Google by Customer.\n> \n> “Fees” means the applicable fees for each Service and any applicable\n> Taxes. The Fees for each Service are at:\n> <https://cloud.google.com/skus> or are otherwise stated on the\n> Ordering Document.\n> \n> “High Risk Activities” means uses such as the operation of nuclear\n> facilities, air traffic control, or life support systems, where the\n> use or failure of the Services could lead to death, personal injury,\n> or environmental damage.\n> \n> “HIPAA” means the Health Insurance Portability and Accountability Act\n> of 1996 as it may be amended from time to time, and any regulations\n> issued under it.\n> \n> “Indemnified Liabilities” means any (a) settlement amounts approved by\n> the indemnifying party; and (b) damages and costs finally awarded\n> against the indemnified party and its Affiliates by a court of\n> competent jurisdiction.\n> \n> “Instance” means a virtual machine instance, configured and managed by\n> Customer, which runs on the Services. Instances are more fully\n> described in the Documentation.\n> \n> “Intellectual Property Rights” means current and future worldwide\n> rights under patent, copyright, trade secret, trademark, or moral\n> rights laws, and other similar rights.\n> \n> “Ordering Document” means an order form signed by the parties that\n> incorporates this Agreement.\n> \n> “Package Purchase” has the meaning in the Service Specific Terms.\n> \n> “Products” also referred to as “Services” means the services set forth\n> at <https://cloud.google.com/cloud/services> (or such other URL as\n> Google may provide) (including any associated APIs).\n> \n> “Project” means a grouping of computing, storage, and API resources\n> for Customer, through which Customer may use the Services. Projects\n> are more fully described in the Documentation.\n> \n> “Service Specific Terms” means the terms that are specific to each\n> Service at\n> [https://cloud.google.com/terms/service-terms](https://cloud.google.com/terms/service-terms%20)\n> (or such other URL as Google may provide).\n> \n> “SLA” means each of the then-current service level agreements at:\n> <https://cloud.google.com/terms/sla>.\n> \n> “Software” means any downloadable tools, software development kits, or\n> other proprietary computer software provided by Google in connection\n> with the Services that may be downloaded by Customer, and any updates\n> Google may make to such Software from time to time.\n> \n> “Third-Party Legal Proceeding” means any formal legal proceeding filed\n> by an unaffiliated third party before a court or government tribunal\n> (including any appellate proceeding).\n> \n> “URL Terms” means the following URL terms: AUP, Services, Fees, SLA,\n> Service Specific Terms and TSS Guidelines.\n\n  \n\n\n**Exhibit A - Data Processing and Security Terms**\n\n**1. Introduction**\n\nThese Data Processing and Security Terms, including the Appendices\n(collectively, the “Terms”) supplement the Agreement. These Terms\nreflect the parties’ agreement with respect to terms governing the\nprocessing of Customer Personal Data under the Agreement.\n\n**2. Definitions**\n\n2.1 In these Terms, unless expressly stated otherwise:\n\nAdditional Products means products, services and applications (whether\nmade available by Google or a third party) that are not part of the\nServices, but that may be accessible via the Admin Console or otherwise,\nfor use with the Services.\n\nAlternative Transfer Solution means any solution, other than the Model\nContract Clauses, that ensures an adequate level of protection of\npersonal data in a third country within the meaning of Article 25 of the\nDirective\n\nData Incident means (a) any unlawful access to Customer Data stored in\nthe Services or systems, equipment, or facilities of Google or its\nSubprocessors, or (b) unauthorized access to such Services, systems,\nequipment, or facilities that results in loss, disclosure, or alteration\nof Customer Data.\n\nData Protection Legislation means, as applicable: (a) any national\nprovisions adopted pursuant to the Directive that are applicable to\nCustomer and/or any Customers as the controller(s) of the Customer\nPersonal Data; and/or (b) the Federal Data Protection Act of 19 June\n1992 (Switzerland).\n\nDirective means Directive 95/46/EC of the European Parliament and of the\nCouncil on the Protection of Individuals with Regard to the Processing\nof Personal Data and on the Free Movement of Such Data.\n\nEEA means the European Economic Area.\n\nGoogle Group means those Google Affiliates involved in provision of the\nServices to Customer.\n\nInstructions means Customer’s written instructions to Google consisting\nof the Agreement, including instructions to Google to provide the\nServices as set out in the Agreement; instructions given via the Admin\nConsole and otherwise under Customer’s Account; and any subsequent\nwritten instructions given by Customer (acting on behalf of itself and\nits Customers) to Google and acknowledged by Google.\n\nModel Contract Clauses or MCCs mean an agreement containing the standard\ncontractual clauses (processors) for the purposes of Article 26(2) of\nDirective 95/46/EC for the transfer of personal data to processors\nestablished in third countries which do not ensure an adequate level of\ndata protection.\n\nCustomer Personal Data means the personal data that is contained within\nthe Customer Data.\n\nSecurity Measures has the meaning given in Section 6.1 (Security\nMeasures) of these Terms.\n\nSubprocessors means (a) all Google Group entities that have logical\naccess to, and process, Customer Personal Data (each, a “Google Group\nSubprocessor”), and (b) all third parties (other than Google Group\nentities) that are engaged to provide services to Customer and that have\nlogical access to, and process, Customer Personal Data (each, a \\"Third\nParty Subprocessor\\").\n\nThird Party Auditor means a qualified and independent third party\nauditor, whose then-current identity Google will disclose to Customer.\n\n2.2 The terms “personal data”, “processing”, “data subject”,\n“controller” and “processor” have the meanings given to them in the\nDirective. The terms “data importer” and “data exporter” have the\nmeanings given to them in the Model Contract Clauses.\n\n**3. Term**\n\nThese Terms will take effect on the Terms Effective Date and,\nnotwithstanding expiry or termination of the Agreement, will remain in\neffect until, and automatically terminate upon, deletion by Google of\nall data as described in Section 7 (Data Correction, Blocking,\nExporting, and Deletion) of these Terms.\n\n**4. Data Protection Legislation**\n\nThe parties agree and acknowledge that the Data Protection Legislation\nwill apply to the processing of Customer Personal Data if, for example,\nthe processing is carried out in the context of the activities of an\nestablishment of the Customer in the territory of an EU Member State.\n\n**5. Processing of Customer Personal Data**\n\n5.1 Controller and Processor. If the Data Protection Legislation applies\nto the processing of Customer Personal Data, then as between the\nparties, the parties acknowledge and agree that:\n\n(a) Google will be a processor of the Customer Personal Data and will,\nwithin the scope of the Agreement, comply with its obligations as a\nprocessor under the Agreement; and\n\n(b) where Customer is a controller with respect to certain Customer\nPersonal Data it will, within the scope of the Agreement, comply with\nits obligations as a controller under the Data Protection Legislation in\nrespect of that Customer Personal Data.\n\n5.2 Customers. Where Customer is not the controller of certain Customer\nPersonal Data, Customer represents and warrants to Google that:\n\n(a) it is authorized to provide the Instructions, and otherwise act on\nbehalf of the applicable controller, in relation to that Customer\nPersonal Data; and\n\nb) Google’s processing of the Customer Personal Data, in accordance with\nthe Instructions, will not breach the Data Protection Legislation.\n\nAppendix 1 sets out a description of the categories of data that may\nfall within Customer Personal Data and of the categories of data\nsubjects to which that data may relate.\n\n5.3 Scope of Processing. Google will only process Customer Personal Data\nin accordance with the Instructions, and will not process Customer\nPersonal Data for any other purpose.\n\n5.4 Additional Products. Customer acknowledges that if Additional\nProducts are installed, used or enabled via the Admin Console or\notherwise under the Customer’s Account, then the Services may allow such\nAdditional Products to access Customer Data as required for the\ninteroperation of those Additional Products with the Services. The\nAgreement does not apply to the processing of data transmitted to or\nfrom such Additional Products. Such Additional Products are not required\nto use the Services.\n\n**6. Data Security; Security Compliance; Audits**\n\n6.1 Security Measures. Google will take and implement appropriate\ntechnical and organizational measures to protect Customer Data against\naccidental or unlawful destruction or accidental loss or alteration, or\nunauthorized disclosure or access, or other unauthorized processing, as\ndetailed in Appendix 2 (the \\"Security Measures\\"). Google may update or\nmodify the Security Measures from time to time provided that such\nupdates and modifications do not result in the degradation of the\noverall security of the Services. Customer agrees that it is solely\nresponsible for its and its Customers’ use of the Services, including\nsecuring its and their account authentication credentials, and that\nGoogle has no obligation to protect Customer Data that Customer or its\nCustomers elect to store or transfer outside of Google’s and its\nSubprocessors’ systems (e.g., offline or on-premise storage).\n\n6.2 Security Compliance by Google Staff. Google will take appropriate\nsteps to ensure compliance with the Security Measures by its employees,\ncontractors and Subprocessors to the extent applicable to their scope of\nperformance.\n\n6.3 Data Incidents. If Google becomes aware of a Data Incident, Google\nwill promptly notify Customer of the Data Incident, and take reasonable\nsteps to minimize harm and secure Customer Data. Notification(s) of any\nData Incident(s) will be delivered to the email address provided by\nCustomer in the Agreement (or in the Admin Console) or, at Google’s\ndiscretion, by direct Customer communication (e.g., by phone call or an\nin-person meeting). Customer acknowledges that it is solely responsible\nfor ensuring that the contact information set forth above is current and\nvalid, and for fulfilling any third party notification obligations.\nCustomer agrees that “Data Incidents” do not include: (i) unsuccessful\naccess attempts or similar events that do not compromise the security or\nprivacy of Customer Data, including pings, port scans, denial of service\nattacks, and other network attacks on firewalls or networked systems; or\n(ii) accidental loss or disclosure of Customer Data caused by Customer’s\nor its Customers’ use of the Services or Customer’s or its Customers’\nloss of account authentication credentials. Google’s obligation to\nreport or respond to a Data Incident under this Section will not be\nconstrued as an acknowledgement by Google of any fault or liability with\nrespect to the Data Incident.\n\n6.4 Compliance with Security and Privacy Standards; SOC 2 and 3 Reports.\nDuring the Term, Google will maintain the following:\n\n(a) its ISO/IEC 27001:2013 Certification or a comparable certification\nfor the following Services: Google App Engine, Google Compute Engine,\nGoogle Cloud Storage, Google Cloud Datastore, Google BigQuery Service,\nGoogle Cloud SQL, and Google Genomics (“ISO 27001 Certification”);\n\n(b) its confidential Service Organization Control (SOC) 2 report (or a\ncomparable report) on Google’s systems examining logical security\ncontrols, physical security controls, and system availability applicable\nto the following Services: Google App Engine, Google Compute Engine,\nGoogle Cloud Storage, Google Cloud Datastore, Google BigQuery Service\nand Google Cloud SQL (“SOC 2 Report”), as produced by the Third Party\nAuditor and updated at least once every eighteen (18) months; and\n\n(c) its Service Organization Control (SOC) 3 report (or a comparable\nreport) applicable to the following Services: Google App Engine, Google\nCompute Engine, Google Cloud Storage, Google Cloud Datastore, Google\nBigQuery Service and Google Cloud SQL (“SOC 3 Report”), as produced by\nthe Third Party Auditor and updated at least once every eighteen (18)\nmonths.\n\n**6.5 Auditing Security Compliance.**\n\n6.5.1 Reviews of Security Documentation. Google will make the following\navailable for review by Customer:\n\n(a) the certificate issued in relation to Google’s ISO 27001\nCertification;\n\n(b) the then-current SOC 3 Report;\n\n(c) a summary or redacted version of the then-current confidential SOC 2\nReport; and\n\n(d) following a request by Customer in accordance with Section 6.5.4\nbelow, the then-current confidential SOC 2 Report.\n\n6.5.2 Customer Audits. If Customer has entered into Model Contract\nClauses as described in Section 10.2 of these Terms, Customer may\nexercise the audit rights granted under clauses 5(f) and 12(2) of such\nModel Contract Clauses:\n\n(a) by instructing Google to execute the audit as described in Sections\n6.4 and 6.5.1 above; and/or\n\n(b) following a request by Customer in accordance with Section 6.5.4\nbelow, by executing an audit as described in such Model Contract\nClauses.\n\n6.5.3 Additional Business Terms for Reviews and Audits. Google and\nCustomer will discuss and agree in advance on:\n\n(a) the reasonable date(s) of and security and confidentiality controls\napplicable to any Customer review under Section 6.5.1(d); and\n\n(b) the identity of a suitably qualified independent auditor for any\naudit under Section 6.5.2(b), and the reasonable start date, scope and\nduration of and security and confidentiality controls applicable to any\nsuch audit.\n\nGoogle reserves the right to charge a fee (based on Google’s reasonable\ncosts) for any review under Section 6.5.1(d) and/or audit under Section\n6.5.2(b). For clarity, Google is not responsible for any costs incurred\nor fees charged by any third party auditor appointed by Customer in\nconnection with an audit under Section 6.5.2(b). Nothing in this Section\n6.5 varies or modifies any rights or obligations of Customer or Google\nInc. under any Model Contract Clauses entered into as described in\nSection 10.2 (Transfers of Data Out of the EEA) of these Terms.\n\n6.5.4 Requests for Reviews and Audits. Any requests under Section 6.5.1\nor 6.5.2 must be sent to the Data Privacy Office as described in Section\n9 (Data Privacy Office for Google Cloud Platform) of these Terms.\n\n**7. Data Correction, Blocking, Exporting, and Deletion**\n\nDuring the Term, Google will provide Customer with the ability to\ncorrect, block, export and delete the Customer Data in a manner\nconsistent with the functionality of the Services and in accordance with\nthe terms of the Agreement. Once Customer deletes Customer Data via the\nServices such that the Customer Data cannot be recovered by Customer\n(the “Customer-Deleted Data”), Google will delete the Customer-Deleted\nData within a maximum period of 180 days, unless applicable legislation\nor legal process prevents it from doing so. On the expiry or termination\nof the Agreement (or, if applicable on expiry of any post-termination\nperiod during which Google may agree to continue providing access to the\nServices), after a recovery period of up to 30 days following such\nexpiry or termination, Google will thereafter delete the\nCustomer-Deleted Data within a maximum period of 180 days, unless\napplicable legislation or legal process prevents it from doing so.\n\n**8. Access; Export of Data**\n\nDuring the Term, Google will make available to Customer the Customer\nData in a manner consistent with the functionality of the Services and\nin accordance with the terms of the Agreement. To the extent Customer,\nin its use and administration of the Services during the Term, does not\nhave the ability to amend or delete Customer Data (as required by\napplicable law), or migrate Customer Data to another system or service\nprovider, Google will, at Customer’s reasonable expense, comply with any\nreasonable requests by Customer to assist in facilitating such actions\nto the extent Google is legally permitted to do so and has reasonable\naccess to the relevant Customer Data.\n\n**9. Data Privacy Office for Google Cloud Platform**\n\nGoogle’s Data Privacy Office for Google Cloud Platform can be contacted\nby Customer administrators at:\nhttps://support.google.com/cloud/contact/dpo (or via such other means as\nGoogle may provide).\n\n**10. Data Transfers**\n\n10.1 Data Location and Transfers. Customer may select where certain\nCustomer Data will be stored (the \\"Data Location Selection\\"), and Google\nwill store it there in accordance with the Service Specific Terms. If a\nData Location Selection is not covered by the Service Specific Terms (or\na Data Location Selection is not made by Customer in respect of any\nCustomer Data), Google may store and process the relevant Customer Data\nanywhere Google or its Subprocessors maintain facilities.\n\n10.2 Transfers of Data Out of the EEA.\n\n10.2.1 Customer Obligations. If the storage and/or processing of\nCustomer Data (as set out in Section 10.1 above) involves transfers of\nCustomer Personal Data out of the EEA, and Data Protection Legislation\napplies to the transfers of such data (**“Transferred Personal Data”**),\nCustomer acknowledges that Data Protection Legislation will require\nCustomer to enter into Model Contract Clauses in respect of such\ntransfers, unless Google has adopted an Alternative Transfer Solution.\n\n10.2.2 Google Obligations. In respect of Transferred Personal Data,\nGoogle will:\n\n(a) if requested to do so by Customer, ensure that Google Inc. as the\nimporter of the Transferred Personal Data enters into Model Contract\nClauses with Customer as the exporter of such data, and that the\ntransfers are made in accordance with such Model Contract Clauses;\nand/or\n\n(b) adopt an Alternative Transfer Solution and ensure that the transfers\nare made in accordance with such solution.\n\n10.3 Data Center Information. Google will make available to Customer\ninformation about the countries in which data centers used to store\nCustomer Personal Data are located.\n\n**11. Subprocessors**\n\n11.1 Subprocessors. Google may engage Subprocessors to provide limited\nparts of the Services, subject to the restrictions in these Terms.\n\n11.2 Subprocessing Restrictions. Google will ensure that Subprocessors\nonly access and use Customer Data in accordance with Section 10.1 (Data\nLocation and Transfers) and terms of the Agreement and that they are\nbound by written agreements that require them to provide at least the\nlevel of data protection required by the following, as applicable\npursuant to Section 10.2 (Transfers of Data Out of the EEA): (a) any\nModel Contract Clauses entered into by Google Inc. and Customer; and/or\n(b) any Alternative Transfer Solution adopted by Google.\n\n11.3 Consent to Subprocessing. Customer consents to Google\nsubcontracting the processing of Customer Data to Subprocessors in\naccordance with the Agreement. If the Model Contract Clauses have been\nentered into as described above, Customer consents to Google Inc.\nsubcontracting the processing of Customer Data in accordance with the\nterms of the Model Contract Clauses.\n\n11.4 Additional Information. Information about Third Party Subprocessors\nis available at: https://cloud.google.com/terms/third-party-suppliers,\nas such URL may be updated by Google from time to time. The information\navailable at this URL is accurate as at the time of publication. At the\nwritten request of the Customer, Google will provide additional\ninformation regarding Subprocessors and their locations. Any such\nrequests must be sent to Google’s Data Privacy Office for Google Cloud\nPlatform, the contact details of which are set out in Section 9 (Data\nPrivacy Office for Google Cloud Platform) above.\n\n11.5 Termination. If the Model Contract Clauses have been entered into\nby the parties: (i) Google will, at least 15 days before appointing any\nnew Third Party Subprocessor, inform Customer of the appointment\n(including the name and location of such subprocessor and the activities\nit will perform) either by sending an email to Customer or via the Admin\nConsole; and (ii) if Customer objects to Google's use of any new Third\nParty Subprocessors, Customer may, as its sole and exclusive remedy,\nterminate the Agreement by giving written notice to Google within 30\ndays of being informed by Google of the appointment of such\nsubprocessor.\n\n**12. Liability Cap**\n\nIf Google Inc. and Customer enter into Model Contract Clauses as\ndescribed above, then, subject to the remaining terms of the Agreement\nrelating to liability (including any specific exclusions from any\nlimitation of liability), the total combined liability of Google and its\nAffiliates, on the one hand, and Customer and its Affiliates, on the\nother hand, under or in connection with the Agreement and all those MCCs\ncombined will be limited to the maximum monetary or payment-based\nliability amount set out in the Agreement.\n\n**13. Third Party Beneficiary**\n\n13.1 Google Inc. Notwithstanding anything to the contrary in the\nAgreement, where Google Inc. is not a party to the Agreement, Google\nInc. will be a third party beneficiary of Section 6.5 (Auditing Security\nCompliance), Section 11.3 (Consent to Subprocessing), and Section 12\n(Liability Cap) of these Terms.\n\n13.2 Other Third Parties. Except as expressly provided herein and\nsubject to Section 13.1, no one other than a party to this Agreement\nshall have any right to enforce any of its terms. For the avoidance of\ndoubt, this includes Customers, who shall not have any right to enforce\nthis Agreement.\n\n**14. Priority**\n\nNotwithstanding anything to the contrary in the Agreement, to the extent\nof any conflict or inconsistency between these Terms and the remaining\nterms of the Agreement, these Terms will govern.\n\n**Appendix 1: Categories of Personal Data and Data Subjects**\n\n1. Categories of Personal Data. Data relating to individuals provided\nto Google via the Services, by (or at the direction of) Customer.\n\n2. Data Subjects. Data subjects include the individuals about whom data\nis provided to Google via the Services by (or at the direction of)\nCustomer.\n\n**Appendix 2: Security Measures**\n\nAs of the Terms Effective Date, Google will take and implement the\nSecurity Measures set out in this Appendix. Google may update or modify\nsuch Security Measures from time to time provided that such updates and\nmodifications do not result in the degradation of the overall security\nof the Services.\n\n**1. Data Center and Network Security**\n\n(a) Data Centers.\n\nInfrastructure. Google maintains geographically distributed data\ncenters. Google stores all production data in physically secure data\ncenters.\n\nRedundancy. Infrastructure systems have been designed to eliminate\nsingle points of failure and minimize the impact of anticipated\nenvironmental risks. Dual circuits, switches, networks or other\nnecessary devices help provide this redundancy. The Services are\ndesigned to allow Google to perform certain types of preventative and\ncorrective maintenance without interruption. All environmental equipment\nand facilities have documented preventative maintenance procedures that\ndetail the process for and frequency of performance in accordance with\nthe manufacturer’s or internal specifications. Preventative and\ncorrective maintenance of the data center equipment is scheduled through\na standard change process according to documented procedures.\n\nPower. The data center electrical power systems are designed to be\nredundant and maintainable without impact to continuous operations, 24\nhours a day, 7 days a week. In most cases, a primary as well as an\nalternate power source, each with equal capacity, is provided for\ncritical infrastructure components in the data center. Backup power is\nprovided by various mechanisms such as uninterruptible power supplies\n(UPS) batteries, which supply consistently reliable power protection\nduring utility brownouts, blackouts, over voltage, under voltage, and\nout-of-tolerance frequency conditions. If utility power is interrupted,\nbackup power is designed to provide transitory power to the data center,\nat full capacity, for up to 10 minutes until the diesel generator\nsystems take over. The diesel generators are capable of automatically\nstarting up within seconds to provide enough emergency electrical power\nto run the data center at full capacity typically for a period of days.\n\nServer Operating Systems. Google servers use a Linux based\nimplementation customized for the application environment. Data is\nstored using proprietary algorithms to augment data security and\nredundancy. Google employs a code review process to increase the\nsecurity of the code used to provide the Services and enhance the\nsecurity products in production environments.\n\nBusinesses Continuity. Google replicates data over multiple systems to\nhelp to protect against accidental destruction or loss. Google has\ndesigned and regularly plans and tests its business continuity\nplanning/disaster recovery programs.\n\n(b) Networks and Transmission.\n\nData Transmission. Data centers are typically connected via high-speed\nprivate links to provide secure and fast data transfer between data\ncenters. This is designed to prevent data from being read, copied,\naltered or removed without authorization during electronic transfer or\ntransport or while being recorded onto data storage media. Google\ntransfers data via Internet standard protocols.\n\nExternal Attack Surface. Google employs multiple layers of network\ndevices and intrusion detection to protect its external attack surface.\nGoogle considers potential attack vectors and incorporates appropriate\npurpose built technologies into external facing systems.\n\nIntrusion Detection. Intrusion detection is intended to provide insight\ninto ongoing attack activities and provide adequate information to\nrespond to incidents. Google intrusion detection involves:\n\n(i) tightly controlling the size and make-up of Google’s attack surface\nthrough preventative measures;\n\n(ii) employing intelligent detection controls at data entry points; and\n\n(iii) employing technologies that automatically remedy certain dangerous\nsituations.\n\nIncident Response. Google monitors a variety of communication channels\nfor security incidents, and Google’s security personnel will react\npromptly to known incidents.\n\nEncryption Technologies. Google makes HTTPS encryption (also referred to\nas SSL or TLS connection) available.\n\n**2. Access and Site Controls**\n\n(a) Site Controls.\n\nOn-site Data Center Security Operation. Google’s data centers maintain\nan on-site security operation responsible for all physical data center\nsecurity functions 24 hours a day, 7 days a week. The on-site security\noperation personnel monitor closed circuit TV (CCTV) cameras and all\nalarm systems. On-site security operation personnel perform internal and\nexternal patrols of the data center regularly.\n\nData Center Access Procedures. Google maintains formal access procedures\nfor allowing physical access to the data centers. The data centers are\nhoused in facilities that require electronic card key access, with\nalarms that are linked to the on-site security operation. All entrants\nto the data center are required to identify themselves as well as show\nproof of identity to on-site security operations. Only authorized\nemployees, contractors and visitors are allowed entry to the data\ncenters. Only authorized employees and contractors are permitted to\nrequest electronic card key access to these facilities. Data center\nelectronic card key access requests must be made through e-mail, and\nrequires the approval of the requestor’s manager and the data center\ndirector. All other entrants requiring temporary data center access\nmust: (i) obtain approval in advance from the data center managers for\nthe specific data center and internal areas they wish to visit; (ii)\nsign in at on-site security operations; and (iii) reference an approved\ndata center access record identifying the individual as approved.\n\nOn-site Data Center Security Devices. Google’s data centers employ an\nelectronic card key and biometric access control system that is linked\nto a system alarm. The access control system monitors and records each\nindividual’s electronic card key and when they access perimeter doors,\nshipping and receiving, and other critical areas. Unauthorized activity\nand failed access attempts are logged by the access control system and\ninvestigated, as appropriate. Authorized access throughout the business\noperations and data centers is restricted based on zones and the\nindividual’s job responsibilities. The fire doors at the data centers\nare alarmed. CCTV cameras are in operation both inside and outside the\ndata centers. The positioning of the cameras has been designed to cover\nstrategic areas including, among others, the perimeter, doors to the\ndata center building, and shipping/receiving. On-site security\noperations personnel manage the CCTV monitoring, recording and control\nequipment. Secure cables throughout the data centers connect the CCTV\nequipment. Cameras record on site via digital video recorders 24 hours a\nday, 7 days a week. The surveillance records are retained for up to 30\ndays based on activity.\n\n(b) Access Control.\n\nInfrastructure Security Personnel. Google has, and maintains, a security\npolicy for its personnel, and requires security training as part of the\ntraining package for its personnel. Google’s infrastructure security\npersonnel are responsible for the ongoing monitoring of Google’s\nsecurity infrastructure, the review of the Services, and responding to\nsecurity incidents.\n\nAccess Control and Privilege Management. Customer’s administrators must\nauthenticate themselves via a central authentication system or via a\nsingle sign on system in order to administer the Services.\n\nInternal Data Access Processes and Policies – Access Policy. Google’s\ninternal data access processes and policies are designed to prevent\nunauthorized persons and/or systems from gaining access to systems used\nto process personal data. Google designs its systems to (i) only allow\nauthorized persons to access data they are authorized to access; and\n(ii) ensure that personal data cannot be read, copied, altered or\nremoved without authorization during processing, use and after\nrecording. The systems are designed to detect any inappropriate access.\nGoogle employs a centralized access management system to control\npersonnel access to production servers, and only provides access to a\nlimited number of authorized personnel. LDAP, Kerberos and a proprietary\nsystem utilizing RSA keys are designed to provide Google with secure and\nflexible access mechanisms. These mechanisms are designed to grant only\napproved access rights to site hosts, logs, data and configuration\ninformation. Google requires the use of unique user IDs, strong\npasswords, two factor authentication and carefully monitored access\nlists to minimize the potential for unauthorized account use. The\ngranting or modification of access rights is based on: the authorized\npersonnel’s job responsibilities; job duty requirements necessary to\nperform authorized tasks; and a need to know basis. The granting or\nmodification of access rights must also be in accordance with Google’s\ninternal data access policies and training. Approvals are managed by\nworkflow tools that maintain audit records of all changes. Access to\nsystems is logged to create an audit trail for accountability. Where\npasswords are employed for authentication (e.g., login to workstations),\npassword policies that follow at least industry standard practices are\nimplemented. These standards include password expiry, restrictions on\npassword reuse and sufficient password strength. For access to extremely\nsensitive information (e.g. credit card data), Google uses hardware\ntokens.\n\n**3. Data**\n\n(a) Data Storage, Isolation and Logging. Google stores data in a\nmulti-tenant environment on Google-owned servers. The data and file\nsystem architecture are replicated between multiple geographically\ndispersed data centers. Google also logically isolates the Customer’s\ndata. Customer will be given control over specific data sharing\npolicies. Those policies, in accordance with the functionality of the\nServices, will enable Customer to determine the product sharing settings\napplicable to Customer End Users for specific purposes. Customer may\nchoose to make use of certain logging capability that Google may make\navailable via the Services.\n\n(b) Decommissioned Disks and Disk Erase Policy. Certain disks containing\ndata may experience performance issues, errors or hardware failure that\nlead them to be decommissioned (“Decommissioned Disk”). Every\nDecommissioned Disk is subject to a series of data destruction processes\n(the “Disk Erase Policy”) before leaving Google’s premises either for\nreuse or destruction. Decommissioned Disks are erased in a multi-step\nprocess and verified complete by at least two independent validators.\nThe erase results are logged by the Decommissioned Disk’s serial number\nfor tracking. Finally, the erased Decommissioned Disk is released to\ninventory for reuse and redeployment. If, due to hardware failure, the\nDecommissioned Disk cannot be erased, it is securely stored until it can\nbe destroyed. Each facility is audited regularly to monitor compliance\nwith the Disk Erase Policy.\n\n**4. Personnel Security**\n\nGoogle personnel are required to conduct themselves in a manner\nconsistent with the company’s guidelines regarding confidentiality,\nbusiness ethics, appropriate usage, and professional standards. Google\nconducts reasonably appropriate backgrounds checks to the extent legally\npermissible and in accordance with applicable local labor law and\nstatutory regulations.\n\nPersonnel are required to execute a confidentiality agreement and must\nacknowledge receipt of, and compliance with, Google’s confidentiality\nand privacy policies. Personnel are provided with security training.\nPersonnel handling Customer Data are required to complete additional\nrequirements appropriate to their role (eg., certifications). Google’s\npersonnel will not process Customer Data without authorization.\n\n**5. Subprocessor Security**\n\nPrior to onboarding Subprocessors, Google conducts an audit of the\nsecurity and privacy practices of Subprocessors to ensure Subprocessors\nprovide a level of security and privacy appropriate to their access to\ndata and the scope of the services they are engaged to provide. Once\nGoogle has assessed the risks presented by the Subprocessor, then\nsubject to the requirements set out in Section 11.2 (Subprocessing\nRestrictions) of these Terms, the Subprocessor is required to enter into\nappropriate security, confidentiality and privacy contract terms.\n\nNote: By clicking on the box you are indicating you have read this\nAgreement and agree to the Terms of Use above including the Terms\nrepeated\nhere:\n\n<https://cloud.google.com/terms/services>\n\n<http://www.google.com/dmca.html>\n\n<https://cloud.google.com/terms/tssg>\n\n<https://cloud.google.com/cloud/terms/deprecation>\n\n<https://cloud.google.com/cloud/terms/aup>\n\nhttps://cloud.google.com/docs\n\n<https://cloud.google.com/skus>\n\n<https://cloud.google.com/cloud/services>\n\n<https://cloud.google.com/terms/service-terms>\n\n<https://cloud.google.com/terms/sla>\n`
+const onixEula = `### Onix Networking Google Cloud Platform Online Customer Agreement
+
+Onix Networking Google Cloud Platform Online Customer Agreement (the
+\\"Agreement\\") is entered into by and between Onix Networking Corp., an
+Ohio corporation, with offices at 18519 Detroit Avenue, Lakewood, Ohio
+44107 (“Onix”) and the entity agreeing to these terms (\\"Customer\\"). This
+Agreement is effective as of the date you click the \\"I Accept\\" button
+below (the \\"Effective Date\\"). If you are accepting on behalf of your
+employer or another entity, you represent and warrant that: (i) you have
+full legal authority to bind your employer, or the applicable entity, to
+these terms and conditions; (ii) you have read and understand this
+Agreement; and (iii) you agree, on behalf of the party that you
+represent, to this Agreement. If you don't have the legal authority to
+bind your employer or the applicable entity, please do not click the \\"I
+Accept\\" button below. This Agreement governs Customer's access to and
+use of the Services.
+
+1.  **Services**. “Services” means the Google services currently known
+    as “Google Cloud Platform” as set forth at the following URL:
+    <https://cloud.google.com/terms/services>, as provided by Google and
+    used by Customer under this Agreement. Customer may use any or all
+    of the services.
+    
+    1.  Google will provide the Services to Customer. As part of
+        receiving the Services Customer will have access to the Admin
+        Console, through which Customer may administer the Services. The
+        Services shall be deemed accepted by Customer upon provisioning
+        of Admin Console.
+    
+    2.  Customer must have an Account to use the Services, and is
+        responsible for the information it provides to create the
+        Account, the security of its passwords for the Account, and for
+        any use of its Account. If Customer becomes aware of any
+        unauthorized use of its password or its Account, Customer will
+        notify Onix or Google as promptly as possible.
+    
+    3.  Documentation. Google will provide Customer with Documentation.
+        The Documentation may specify restrictions on how the
+        Applications may be built or how the Services may be used and
+        Customer will ensure that Customer and its End Users comply with
+        such restrictions.
+    
+    4.  Customer agrees to comply with the terms and conditions of the
+        Service Specific Terms.
+    
+    5.  Customer agrees to comply with the terms and conditions of the
+        Google Cloud Platform Acceptable Use Policy (“AUP”).
+    
+    6.  Service Level Agreement. Google will provide the Services in
+        accordance with the applicable Service Level Agreement (“SLA”),
+        if any.
+    
+    7.  Data Location. Customer may select where certain Customer Data
+        will be stored (\\"Data Location Selection\\"), and Google will
+        store it there in accordance with the Service Specific Terms. If
+        a Data Location Selection is not covered by the Service Specific
+        Terms (or a Data Location Selection is not made by Customer in
+        respect of any Customer Data), Google may store and process the
+        relevant Customer Data anywhere Google or its Subprocessors
+        maintain facilities. By using the Services, Customer consents to
+        this processing and storage of Customer Data.
+    
+    8.  New Applications and Services. Google may: (i) make new
+        applications, tools, features or functionality available through
+        the Services and (ii) add new services to the “Services”
+        definition (by adding them at the URL under that definition),
+        the use of which may be contingent upon Customer’s agreement to
+        additional terms.
+    
+    9.  Modifications.
+        
+        1.  Modifications to the Services. Google may make commercially
+            reasonable updates to the Services from time to time. If
+            Google makes a material change to the Services, Onix will
+            make commercially reasonable efforts to inform Customer.
+        
+        2.  Modifications to the URL Terms. Google may make commercially
+            reasonable changes to the URL Terms from time to time. If
+            Google makes a material change to the URL Terms, Onix will
+            inform Customer through email notification or the Admin
+            Console. If the change has a material adverse impact on
+            Customer and is not a result of Google complying with a
+            court order or applicable law, Customer may notify Onix
+            within 30 days after being informed of the change that
+            Customer does not agree with the change. If Customer
+            notifies Onix as required, then Customer will remain
+            governed by the terms in effect immediately prior to the
+            change until the earlier of: (i) the end of the then-current
+            Initial Term (as defined in section 6.1 below) or Renewal
+            Term (as defined in section 6.2 below) or (ii) 12 months
+            after Onix informs Customer of the change, unless the
+            modification to the URL Terms is in response to a court
+            order or to comply with applicable law. If the Agreement
+            renews, it will do so under the updated URL Terms.
+    
+    10. Third Party Components. Certain components of the Software
+        (including open source software) may be subject to separate
+        license agreements, which Google will provide to Customer along
+        with such components.
+    
+    11. Use of Customer Data. Google will not access or use Customer
+        Data, except as necessary to provide the Services to Customer
+        and its End Users.
+    
+    12. Onix and Google are independent contractors and Onix is not
+        Google’s agent or partner or in a joint venture with Google.
+
+2.  **Customer Obligations.**
+    
+    13. Compliance. Customer is responsible for any violations of the
+        AUP, the Service Specific Terms, or Section 2.2 (Restrictions),
+        in each case caused by Customer (and Customer End Users),
+        Customer Data, Applications, or Projects. Google reserves the
+        right to review the Customer Data, Applications, and Projects
+        for compliance with the AUP.
+    
+    14. Restrictions. Customer will not, and will not allow any third
+        parties under its control or End Users to: (a) copy, modify,
+        create a derivative work of, reverse engineer, decompile,
+        translate, disassemble, or otherwise attempt to extract any or
+        all of the source code of the Services (subject to Section 1.10
+        above and except to the extent such restriction is expressly
+        prohibited by applicable law); (b) create multiple Applications,
+        Accounts, or Projects to simulate or act as a single
+        Application, Account, or Project (respectively) or otherwise
+        access the Services in a manner intended to avoid incurring
+        Fees; (c) unless otherwise stated in the Service Specific Terms,
+        use the Services to operate or enable any telecommunications
+        service or in connection with any Application that allows
+        Customer End Users to place calls or to receive calls from any
+        public switched telephone network; (d) process or store any
+        Customer Data that is subject to the International Traffic in
+        Arms Regulations maintained by the Department of State; (e) use
+        the Services for High Risk Activities; or (f) sublicense,
+        resell, or distribute any or all of the Services separate from
+        any integrated solution.
+    
+    15. Unless otherwise specified in writing by Google or Onix, Google
+        and Onix do not intend uses of the Services to create
+        obligations under HIPAA, and makes no representations that the
+        Services satisfy HIPAA requirements. If Customer is (or becomes)
+        a Covered Entity or Business Associate, as defined in HIPAA,
+        Customer agrees not to use the Services for any purpose or in
+        any manner involving Protected Health Information (as defined in
+        HIPAA) unless Customer has received prior written consent to
+        such use from Onix or Google. As between the parties, Customer
+        is solely responsible for any applicable compliance with HIPAA.
+
+3.  **Privacy**.
+    
+    16. The Data Processing and Security Terms will apply. Subject to
+        Section 3.2, Google may change the Data Processing and Security
+        Terms from time to time by notifying Customer in writing.
+    
+    17. Updates to Data Processing and Security Terms. Google may only
+        change the Data Processing and Security Terms where such change
+        is required to comply with applicable law, applicable
+        regulation, court order or guidance issued by a governmental
+        regulator or agency, where such change is expressly permitted by
+        the Data Processing and Security Terms, or where such change:
+        
+        3.  is commercially reasonable;
+        
+        4.  does not result in a degradation of the overall security of
+            the Services;
+        
+        5.  does not expand the scope of or remove any restrictions on
+            Google’s processing of Customer Personal Data, as described
+            in Section 5.3 (Scope of Processing) of the Data Processing
+            and Security Terms; and
+        
+        6.  does not otherwise have a material adverse impact on
+            Customer’s rights under the Data Processing and Security
+            Terms.
+    
+    18. Consent to Processing. Customer will obtain and maintain any
+        required consents necessary to permit the processing of Customer
+        Data under this Agreement.
+    
+    19. Google is a processor of any personal data processed by it on
+        Customer’s behalf, and Customer is the controller of any such
+        data, as the terms “controller”, “processed”, “processor” and
+        “personal data” are defined in the EU Directive.
+
+4.  **DMCA Policy**. Google provides information to help copyright
+    holders manage their intellectual property online, but Google cannot
+    determine whether something is being used legally or not without
+    their input. Google responds to notices of alleged copyright
+    infringement and terminates accounts of repeat infringers according
+    to the process in the U.S. Digital Millennium Copyright Act. If
+    Customer thinks somebody is violating Customer’s copyrights and
+    wants to notify Google, Customer can find information about
+    submitting notices, and Google's policy about responding to notices
+    at <http://www.google.com/dmca.html>.
+
+5.  **Suspension of Services.**
+    
+    20. Suspension/Removals. If Customer becomes aware that any
+        Application, Project , or Customer Data violates the AUP,
+        Customer will immediately suspend the Application, Project, or
+        End User’s access and/or remove the relevant Customer Data (as
+        applicable). If Customer fails to suspend or remove as noted in
+        the prior sentence, Google or Onix may specifically request that
+        Customer do so. If Customer fails to comply with Google’s or
+        Onix’ request to do so, then Google or Onix may suspend the
+        Customer’s or applicable End Users’ Google accounts, disable the
+        Project or Application, or disable the Account (as may be
+        applicable) until the AUP violation is corrected..
+    
+    21. Emergency Security Issues. Despite the foregoing, if there is an
+        Emergency Security Issue, then Onix or Google may automatically
+        suspend the offending Application, Project, or the Account.
+        Suspension will be to the minimum extent required, and of the
+        minimum duration, to prevent or resolve the Emergency Security
+        Issue. If Onix or Google suspends an Application, Project, or
+        the Account, for any reason, without prior notice to Customer,
+        then at Customer’s request, Onix or Google will provide Customer
+        the reason for the suspension as soon as reasonably possible.
+
+6.  **Term and Termination**.
+    
+    22. Agreement Term. Subject to Customer’s payment of Fees, the
+        Initial Term will start on the Agreement effective date and
+        continue for a period of twelve (12) months, unless terminated
+        earlier in accordance with this Agreement.
+    
+    23. Auto Renewal. At the end of the Initial Term, the Agreement will
+        automatically renew for consecutive terms of twelve (12) months
+        (each a “Renewal Term”), unless terminated earlier in accordance
+        with this Agreement.
+    
+    24. Termination for Breach. Either party may suspend or terminate
+        this Agreement for breach if: (i) the other party is in material
+        breach of the Agreement and fails to cure that breach within
+        thirty (30) days after receipt of written notice; (ii) the other
+        party ceases its business operations or becomes subject to
+        insolvency proceedings and the proceedings are not dismissed
+        within ninety (90) days; or (iii) the other party is in material
+        breach of this Agreement more than two times notwithstanding any
+        cure of such breaches. Where Onix has the right to terminate
+        this Agreement under this Section, Onix may suspend or terminate
+        any, all, or any portion of the Services or Projects.
+    
+    25. Termination for Inactivity. Onix reserves the right to terminate
+        the Services for inactivity, if, for a period exceeding one
+        hundred and eighty (180) days, Customer (a) has failed to access
+        the Admin Console, (b) a Project has no active virtual machine
+        or storage resources or an Application has not served any
+        requests; and (c) no invoices are being generated.
+    
+    26. Termination for Convenience. Customer may stop using the Service
+        at any time.
+    
+    27. Effects of Termination. If the Agreement expires or is
+        terminated, then: (i) the rights granted by one Party to the
+        other will immediately cease; (ii) all Fees (including Taxes)
+        owed by Customer to Onix are immediately due upon receipt of the
+        final invoice; (iii) Customer will delete the Software, and any
+        Application, Instance, Project, and any Customer Data from the
+        Services; and (iv) upon request, each Party will use
+        commercially reasonable efforts to return or destroy all
+        Confidential Information of the other party in its possession.
+
+7.  **Technical Support Services (TSS)**.
+    
+    28. Customer is responsible for technical support of its
+        Applications and Projects.
+    
+    29. Subject to payment of applicable support Fees, Google and/or
+        Onix will provide TSS to Customer during the License Term in
+        accordance with the TSS Guidelines as specified at
+        <https://cloud.google.com/terms/tssg>.
+
+8.  **Deprecation Policy.**
+    
+    30. Google may discontinue any Services or any portion or feature of
+        the Services for any reason at any time without liability to
+        Customer.
+    
+    31. Notwithstanding Section 8.1, if Google intends to discontinue or
+        make backwards incompatible changes to those Services that are
+        specified at <https://cloud.google.com/cloud/terms/deprecation>
+        (“Deprecation URL”), Google will announce such change or
+        discontinuance and will use commercially reasonable efforts to
+        continue to operate those versions and features of those
+        Services identified at the Deprecation URL without these changes
+        for at least one year after that announcement, unless (as Google
+        determines in its reasonable good faith judgment):
+        
+        7.  required by law or third party relationship (including if
+            there is a change in applicable law or relationship), or
+        
+        8.  doing so could create a security risk or substantial
+            economic or material technical burden.
+    
+    32. The above policy in Section 8.2 is the “Deprecation Policy”.
+
+9.  **Fees and Billing**.
+    
+    33. Usage and Invoicing. Customer will pay for all Fees based on:
+        (a) Customer’s use of the Services; (b) any Reserved Units
+        selected; (c) any Committed Purchases selected; and/or (d) any
+        Package Purchases selected. Onix will invoice Customer on a
+        monthly basis for those Fees accrued at the end of each month
+        unless otherwise stated at the URL designating the Fees for an
+        applicable SKU. Fees are solely based on Google's measurements
+        of use of the Services under Customer’s Account and Google’s
+        determination is final.
+    
+    34. Payment. Fees are due thirty (30) days from the invoice date.
+        All payments due are in U.S. dollars. Customer’s obligation to
+        pay all Fees is non-cancellable.
+    
+    35. Taxes. Customer is responsible for paying any Taxes, and
+        Customer will pay the Fees to Onix without any deduction. If
+        Onix is obligated to collect or remit Taxes imposed on Customer,
+        the appropriate amount will be invoiced to and paid by Customer,
+        unless Customer provides Onix with a timely and valid tax
+        exemption certificate (or other documentation as required for
+        the exemption) authorized by the appropriate taxing authority.
+    
+    36. Any terms and conditions on a purchase order do not apply to
+        this Agreement and are null and void.
+
+10. **Warranty**.
+
+  > EXCEPT AS EXPRESSLY PROVIDED FOR HEREIN, TO THE MAXIMUM EXTENT
+  > PERMITTED BY APPLICABLE LAW, ONIX AND GOOGLE DO NOT MAKE ANY OTHER
+  > WARRANTY OF ANY KIND, WHETHER EXPRESS, IMPLIED, STATUTORY OR
+  > OTHERWISE, INCLUDING WITHOUT LIMITATION WARRANTIES OF MERCHANTABILITY,
+  > FITNESS FOR A PARTICULAR USE AND NONINFRINGEMENT. ONIX AND ITS
+  > SUPPLIERS ARE NOT RESPONSIBLE OR LIABLE FOR THE DELETION OF OR FAILURE
+  > TO STORE ANY CUSTOMER DATA AND OTHER COMMUNICATIONS MAINTAINED OR
+  > TRANSMITTED THROUGH USE OF THE SERVICES. CUSTOMER IS SOLELY
+  > RESPONSIBLE FOR SECURING AND BACKING UP ITS APPLICATION, PROJECT, AND
+  > CUSTOMER DATA. NEITHER ONIX NOR GOOGLE, WARRANTS THAT THE OPERATION OF
+  > THE SOFTWARE OR THE SERVICES WILL BE ERROR-FREE OR UNINTERRUPTED.
+  > NEITHER THE SOFTWARE NOR THE SERVICES ARE DESIGNED, MANUFACTURED, OR
+  > INTENDED FOR HIGH RISK ACTIVITIES.
+
+11. **Intellectual Property Rights**.
+    
+    37. Except as expressly set forth herein, this Agreement does not
+        grant either party any rights, implied or otherwise, to the
+        other’s content or any of the other’s intellectual property. As
+        between the parties, Customer owns all Intellectual Property
+        Rights in Customer Data and the Application or Project (if
+        applicable) and Google owns all Intellectual Property Rights in
+        the Services and Software.
+    
+    38. Services Feedback. If Customer provides Feedback to Google, then
+        Google may use that information without obligation to Customer,
+        and Customer irrevocably assigns to Google all right, title, and
+        interest in the Feedback..
+
+12. **Confidentiality.**
+    
+    39. Confidential Information. “Confidential Information” is
+        information disclosed by one Party to the other Party under this
+        Agreement that is marked as confidential or would normally under
+        the circumstances be considered confidential information of the
+        disclosing party. Confidential Information does not include
+        information that the recipient already knew, that becomes public
+        through no fault of the recipient, that was independently
+        developed by the recipient, or that was rightfully given to the
+        recipient by another party.
+    
+    40. Confidentiality Obligations. The recipient of the other Party's
+        Confidential Information will not disclose the Confidential
+        Information, except to Affiliates, employees, agents, or
+        professional advisors who need to know it and who have agreed in
+        writing (or in the case of professional advisors are otherwise
+        bound) to keep it confidential. The recipient will ensure that
+        those people and entities use the Confidential Information only
+        to exercise rights and fulfill obligations under this Agreement,
+        while using reasonable care to keep it confidential. The
+        recipient may also disclose Confidential Information when
+        required by law after giving reasonable notice to the discloser
+        if allowed by law. Customer is responsible for responding to all
+        third party requests concerning its use and its End Users' use
+        of the Services.
+
+13. **Indemnity.**
+    
+    41. By Customer. Customer will defend and indemnify Onix and its
+        Affiliates against Indemnified Liabilities in any Third-Party
+        Legal Proceeding to the extent arising from: (i) any Integrated
+        Solution, Application, Project, Customer Data, or Customer Brand
+        Features; or (ii) Customer’s or its End Users’, use of the
+        Services in violation of the AUP.
+    
+    42. By Onix. Onix will defend and indemnify Customer against
+        Indemnified Liabilities in any Third-Party Legal Proceeding to
+        the extent arising from a third party claim that Google's
+        technology used to provide the Service (excluding any open
+        source software) or any Google Brand Feature infringes or
+        misappropriates any patent, copyright, trade secret or trademark
+        of such third party. Notwithstanding the foregoing, in no event
+        shall Onix have any obligations or liability under this Section
+        arising from: (i) use of any Service or Google Brand Features in
+        a modified form or in combination with materials not furnished
+        by Google or Onix, and (ii) any Customer Data.
+
+14. **Limitation of Liability.**
+    
+    43. TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW AND SUBJECT TO
+        SECTION 14.3 (EXCEPTIONS TO LIMITATIONS), IN NO EVENT WILL
+        EITHER PARTY BE LIABLE TO THE OTHER FOR ANY SPECIAL, INCIDENTAL,
+        PUNITIVE, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+        WITHOUT LIMITATION, LOST PROFITS, LOSS OF USE, LOSS OF DATA OR
+        LOSS OF GOODWILL), ARISING OUT OF OR IN CONNECTION WITH THIS
+        AGREEMENT OR THE PERFORMANCE OR OPERATION OF THE LICENSES,
+        WHETHER SUCH LIABILITY ARISES FROM ANY CLAIM BASED UPON BREACH
+        OF CONTRACT, BREACH OF WARRANTY, TORT (INCLUDING NEGLIGENCE),
+        PRODUCT LIABILITY OR OTHERWISE, AND WHETHER OR NOT SUCH PARTY
+        HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
+    
+    44. EACH PARTY'S TOTAL AGGREGATE LIABILITY FOR DIRECT DAMAGES
+        ARISING OUT OF OR RELATING TO THIS AGREEMENT IS LIMITED TO THE
+        FEES CUSTOMER PAID UNDER THE AGREEMENT DURING THE 12 MONTHS
+        BEFORE THE LIABILITY AROSE.
+    
+    45. EXCEPTIONS TO LIMITATIONS. NOTHING IN THIS AGREEMENT EXCLUDES OR
+        LIMITS EITHER PARTY’S LIABILITY FOR: (A) DEATH OR PERSONAL
+        INJURY RESULTING FROM ITS NEGLIGENCE OR THE NEGLIGENCE OF ITS
+        EMPLOYEES OR AGENTS; (B) FRAUD OR FRAUDULENT MISREPRESENTATION;
+        (C) OBLIGATIONS UNDER SECTION 13 (DEFENSE AND INDEMNITY); (D)
+        INFRINGEMENT OF THE OTHER PARTY’S INTELLECTUAL PROPERTY RIGHTS;
+        (E) CUSTOMER’S PAYMENT OBLIGATIONS; (F) BREACHES OF
+        CONFIDENTIALITY; OR (G) MATTERS FOR WHICH LIABILITY CANNOT BE
+        EXCLUDED OR LIMITED UNDER APPLICABLE LAW.
+    
+    46. Customer acknowledges that the Licenses are provided as a
+        service by Google, and Onix, to the extent permitted by
+        applicable law, disclaims Google’s liability for any damages,
+        whether direct or indirect, incidental or consequential, arising
+        from Onix’s distribution and resale of the Services to Customer.
+
+15. **Federal Agency Users**. The Services were developed solely at
+    private expense and are commercial computer software and related
+    documentation within the meaning of the Federal Acquisition
+    Regulations (“FAR”) and agency supplements to the FAR.
+
+16. **Assignment.** Neither Party may assign any part of this Agreement
+    without the written consent of the other, except to an Affiliate
+    where: (a) the assignee has agreed in writing to be bound by the
+    terms of this Agreement; (b) the assigning party remains liable for
+    obligations under the Agreement if the assignee defaults on them;
+    and (c) the assigning Party has notified the other Party of the
+    assignment. Any other attempt to assign is void. .
+
+17. **Governing Law**. This Agreement is governed by Ohio law excluding
+    Ohio’s choice of laws rules.
+
+18. **Severability.** If any term, condition or provision of this
+    Agreement is held or determined to be void, invalid, illegal, or
+    unenforceable in any respect, in whole or in part, such term,
+    condition or provision shall be severed from this Agreement, and the
+    remaining terms, conditions and provisions contained herein shall
+    continue in force and effect, and shall in no way be affected,
+    prejudiced or disturbed thereby.
+
+19. **Survival**. The rights and obligations of Onix and Customer
+    contained in this Section and in Sections 12-14, 16-17, and 24 shall
+    survive any expiration or termination of this Agreement.
+
+20. **Waiver**. Failure to enforce any provision will not constitute a
+    waiver.
+
+21. **Headings.** The headings and titles of the various sections of
+    this Agreement are intended solely for convenience of reference and
+    are not intended to define, limit, explain, expand, modify or place
+    any construction on any of the provisions of this Agreement.
+
+22. **Amendments.** Any amendment must be in writing, signed by both
+    parties, and expressly state that it is amending this Agreement.
+
+23. **Force Majeure.** Onix shall not be liable for inadequate
+    performance of its obligations under the Agreement to the extent
+    caused by a circumstance beyond its reasonable control, including,
+    without limitation, Domain Name Server issues outside its direct
+    control, labor strikes or shortages, riots, insurrection, fires,
+    flood, storm, explosions, acts of God, war, terrorism, governmental
+    action, labor conditions, earthquakes and material shortages.
+
+24. **Notices.** All notices, acknowledgments or other written
+    communications (referred to as “Notices”) required to be given under
+    this Agreement shall be in writing and shall be deemed to have been
+    given and properly delivered if duly mailed by certified or
+    registered mail to the other Party at its address set forth on the
+    first page of this Agreement, or to such other address as either
+    Party may, by written notice, designate to the other. Additionally,
+    Notices sent by any other means (i.e., email, facsimile, overnight
+    delivery, courier, and the like) are acceptable subject to written
+    confirmation of both the transmission and receipt of the Notice.
+
+25. **Publicity.** Customer agrees that Onix may include Customer's name
+    or Brand Features in a list of Onix customers, online or in
+    promotional materials. Customer also agrees that Onix may verbally
+    reference Customer as a customer of the products or services that
+    are the subject of this Agreement.
+
+26. **Counterparts.** The parties may execute this Agreement in
+    counterparts, including facsimile, PDF or other electronic copies
+    which taken together will constitute one instrument.
+
+27. **Equitable Relief.** Nothing in this Agreement will limit either
+    party’s ability to seek equitable relief.
+
+28. **Relationship of the Parties.** Nothing herein shall be construed
+    as creating a partnership, an employment relationship, or an agency
+    relationship between the parties, or as authorizing either party to
+    act as agent for the other. Each party maintains its separate
+    identity.
+
+29. **Entire Agreement.** This Agreement and the Exhibits hereto and any
+    documents expressly referenced herein or therein is the parties’
+    entire agreement relating to its subject and supersedes any prior or
+    contemporaneous agreements on that subject. The terms located at a
+    URL and referenced in this Agreement are hereby incorporated by this
+    reference.
+
+30. **Definitions.**
+
+> “Acceptable Use Policy” or “AUP” means the acceptable use policy for
+> the Services at <https://cloud.google.com/cloud/terms/aup>(or such
+> other URL as Google may provide).
+> 
+> “Account” means Customer’s Google Cloud Platform account, subject to
+> those terms of service, as may be applicable.
+> 
+> “Admin Console” means the online console(s) and/or tool(s) provided by
+> Google to Customer for administering the Services.
+> 
+> \\"Affiliate\\" means any entity that directly or indirectly Controls, is
+> Controlled by, or is under common Control with a party.
+> 
+> “Application(s)” means any web application Customer creates using the
+> Services, including any source code written by Customer to be used
+> with the Services.
+> 
+> “Brand Features” means the trade names, trademarks, service marks,
+> logos, domain names, and other distinctive brand features of each
+> Party, respectively, as secured by such Party from time to time.
+> 
+> “Committed Purchase(s)” have the meaning in the Service Specific
+> Terms.
+> 
+> “Control” means control of greater than fifty percent of the voting
+> rights or equity interests of a party.
+> 
+> “Customer Data” means content provided to Google or Onix by Customer
+> (or at its direction) through the Services under the Account.
+> 
+> \\"Data Processing and Security Terms\\" means the terms set out in
+> Exhibit A (including its Appendices) to this Agreement.
+> 
+> “Documentation” means the Google documentation (as may be updated from
+> time to time) in the form generally made available by Google to its
+> customers for use with the Services at
+> <https://cloud.google.com/docs/>.
+> 
+> “Emergency Security Issue” means either: (a) Customer’s, or Customer
+> End Users’ use of the Services in violation of the AUP, which could
+> disrupt: (i) the Services; (ii) third parties’ use of the Services; or
+> (iii) the Google network or servers used to provide the Services; or
+> (b) unauthorized third party access to the Services.
+> 
+> “End Users” means the individuals whom Customer permits to use the
+> Services, Application, or Project.
+> 
+> “Feedback” means feedback or suggestions about the Services provided
+> to Google by Customer.
+> 
+> “Fees” means the applicable fees for each Service and any applicable
+> Taxes. The Fees for each Service are at:
+> <https://cloud.google.com/skus> or are otherwise stated on the
+> Ordering Document.
+> 
+> “High Risk Activities” means uses such as the operation of nuclear
+> facilities, air traffic control, or life support systems, where the
+> use or failure of the Services could lead to death, personal injury,
+> or environmental damage.
+> 
+> “HIPAA” means the Health Insurance Portability and Accountability Act
+> of 1996 as it may be amended from time to time, and any regulations
+> issued under it.
+> 
+> “Indemnified Liabilities” means any (a) settlement amounts approved by
+> the indemnifying party; and (b) damages and costs finally awarded
+> against the indemnified party and its Affiliates by a court of
+> competent jurisdiction.
+> 
+> “Instance” means a virtual machine instance, configured and managed by
+> Customer, which runs on the Services. Instances are more fully
+> described in the Documentation.
+> 
+> “Intellectual Property Rights” means current and future worldwide
+> rights under patent, copyright, trade secret, trademark, or moral
+> rights laws, and other similar rights.
+> 
+> “Ordering Document” means an order form signed by the parties that
+> incorporates this Agreement.
+> 
+> “Package Purchase” has the meaning in the Service Specific Terms.
+> 
+> “Products” also referred to as “Services” means the services set forth
+> at <https://cloud.google.com/cloud/services> (or such other URL as
+> Google may provide) (including any associated APIs).
+> 
+> “Project” means a grouping of computing, storage, and API resources
+> for Customer, through which Customer may use the Services. Projects
+> are more fully described in the Documentation.
+> 
+> “Service Specific Terms” means the terms that are specific to each
+> Service at
+> [https://cloud.google.com/terms/service-terms](https://cloud.google.com/terms/service-terms%20)
+> (or such other URL as Google may provide).
+> 
+> “SLA” means each of the then-current service level agreements at:
+> <https://cloud.google.com/terms/sla>.
+> 
+> “Software” means any downloadable tools, software development kits, or
+> other proprietary computer software provided by Google in connection
+> with the Services that may be downloaded by Customer, and any updates
+> Google may make to such Software from time to time.
+> 
+> “Third-Party Legal Proceeding” means any formal legal proceeding filed
+> by an unaffiliated third party before a court or government tribunal
+> (including any appellate proceeding).
+> 
+> “URL Terms” means the following URL terms: AUP, Services, Fees, SLA,
+> Service Specific Terms and TSS Guidelines.
+
+  
+
+
+**Exhibit A - Data Processing and Security Terms**
+
+**1. Introduction**
+
+These Data Processing and Security Terms, including the Appendices
+(collectively, the “Terms”) supplement the Agreement. These Terms
+reflect the parties’ agreement with respect to terms governing the
+processing of Customer Personal Data under the Agreement.
+
+**2. Definitions**
+
+2.1 In these Terms, unless expressly stated otherwise:
+
+Additional Products means products, services and applications (whether
+made available by Google or a third party) that are not part of the
+Services, but that may be accessible via the Admin Console or otherwise,
+for use with the Services.
+
+Alternative Transfer Solution means any solution, other than the Model
+Contract Clauses, that ensures an adequate level of protection of
+personal data in a third country within the meaning of Article 25 of the
+Directive
+
+Data Incident means (a) any unlawful access to Customer Data stored in
+the Services or systems, equipment, or facilities of Google or its
+Subprocessors, or (b) unauthorized access to such Services, systems,
+equipment, or facilities that results in loss, disclosure, or alteration
+of Customer Data.
+
+Data Protection Legislation means, as applicable: (a) any national
+provisions adopted pursuant to the Directive that are applicable to
+Customer and/or any Customers as the controller(s) of the Customer
+Personal Data; and/or (b) the Federal Data Protection Act of 19 June
+1992 (Switzerland).
+
+Directive means Directive 95/46/EC of the European Parliament and of the
+Council on the Protection of Individuals with Regard to the Processing
+of Personal Data and on the Free Movement of Such Data.
+
+EEA means the European Economic Area.
+
+Google Group means those Google Affiliates involved in provision of the
+Services to Customer.
+
+Instructions means Customer’s written instructions to Google consisting
+of the Agreement, including instructions to Google to provide the
+Services as set out in the Agreement; instructions given via the Admin
+Console and otherwise under Customer’s Account; and any subsequent
+written instructions given by Customer (acting on behalf of itself and
+its Customers) to Google and acknowledged by Google.
+
+Model Contract Clauses or MCCs mean an agreement containing the standard
+contractual clauses (processors) for the purposes of Article 26(2) of
+Directive 95/46/EC for the transfer of personal data to processors
+established in third countries which do not ensure an adequate level of
+data protection.
+
+Customer Personal Data means the personal data that is contained within
+the Customer Data.
+
+Security Measures has the meaning given in Section 6.1 (Security
+Measures) of these Terms.
+
+Subprocessors means (a) all Google Group entities that have logical
+access to, and process, Customer Personal Data (each, a “Google Group
+Subprocessor”), and (b) all third parties (other than Google Group
+entities) that are engaged to provide services to Customer and that have
+logical access to, and process, Customer Personal Data (each, a \\"Third
+Party Subprocessor\\").
+
+Third Party Auditor means a qualified and independent third party
+auditor, whose then-current identity Google will disclose to Customer.
+
+2.2 The terms “personal data”, “processing”, “data subject”,
+“controller” and “processor” have the meanings given to them in the
+Directive. The terms “data importer” and “data exporter” have the
+meanings given to them in the Model Contract Clauses.
+
+**3. Term**
+
+These Terms will take effect on the Terms Effective Date and,
+notwithstanding expiry or termination of the Agreement, will remain in
+effect until, and automatically terminate upon, deletion by Google of
+all data as described in Section 7 (Data Correction, Blocking,
+Exporting, and Deletion) of these Terms.
+
+**4. Data Protection Legislation**
+
+The parties agree and acknowledge that the Data Protection Legislation
+will apply to the processing of Customer Personal Data if, for example,
+the processing is carried out in the context of the activities of an
+establishment of the Customer in the territory of an EU Member State.
+
+**5. Processing of Customer Personal Data**
+
+5.1 Controller and Processor. If the Data Protection Legislation applies
+to the processing of Customer Personal Data, then as between the
+parties, the parties acknowledge and agree that:
+
+(a) Google will be a processor of the Customer Personal Data and will,
+within the scope of the Agreement, comply with its obligations as a
+processor under the Agreement; and
+
+(b) where Customer is a controller with respect to certain Customer
+Personal Data it will, within the scope of the Agreement, comply with
+its obligations as a controller under the Data Protection Legislation in
+respect of that Customer Personal Data.
+
+5.2 Customers. Where Customer is not the controller of certain Customer
+Personal Data, Customer represents and warrants to Google that:
+
+(a) it is authorized to provide the Instructions, and otherwise act on
+behalf of the applicable controller, in relation to that Customer
+Personal Data; and
+
+b) Google’s processing of the Customer Personal Data, in accordance with
+the Instructions, will not breach the Data Protection Legislation.
+
+Appendix 1 sets out a description of the categories of data that may
+fall within Customer Personal Data and of the categories of data
+subjects to which that data may relate.
+
+5.3 Scope of Processing. Google will only process Customer Personal Data
+in accordance with the Instructions, and will not process Customer
+Personal Data for any other purpose.
+
+5.4 Additional Products. Customer acknowledges that if Additional
+Products are installed, used or enabled via the Admin Console or
+otherwise under the Customer’s Account, then the Services may allow such
+Additional Products to access Customer Data as required for the
+interoperation of those Additional Products with the Services. The
+Agreement does not apply to the processing of data transmitted to or
+from such Additional Products. Such Additional Products are not required
+to use the Services.
+
+**6. Data Security; Security Compliance; Audits**
+
+6.1 Security Measures. Google will take and implement appropriate
+technical and organizational measures to protect Customer Data against
+accidental or unlawful destruction or accidental loss or alteration, or
+unauthorized disclosure or access, or other unauthorized processing, as
+detailed in Appendix 2 (the \\"Security Measures\\"). Google may update or
+modify the Security Measures from time to time provided that such
+updates and modifications do not result in the degradation of the
+overall security of the Services. Customer agrees that it is solely
+responsible for its and its Customers’ use of the Services, including
+securing its and their account authentication credentials, and that
+Google has no obligation to protect Customer Data that Customer or its
+Customers elect to store or transfer outside of Google’s and its
+Subprocessors’ systems (e.g., offline or on-premise storage).
+
+6.2 Security Compliance by Google Staff. Google will take appropriate
+steps to ensure compliance with the Security Measures by its employees,
+contractors and Subprocessors to the extent applicable to their scope of
+performance.
+
+6.3 Data Incidents. If Google becomes aware of a Data Incident, Google
+will promptly notify Customer of the Data Incident, and take reasonable
+steps to minimize harm and secure Customer Data. Notification(s) of any
+Data Incident(s) will be delivered to the email address provided by
+Customer in the Agreement (or in the Admin Console) or, at Google’s
+discretion, by direct Customer communication (e.g., by phone call or an
+in-person meeting). Customer acknowledges that it is solely responsible
+for ensuring that the contact information set forth above is current and
+valid, and for fulfilling any third party notification obligations.
+Customer agrees that “Data Incidents” do not include: (i) unsuccessful
+access attempts or similar events that do not compromise the security or
+privacy of Customer Data, including pings, port scans, denial of service
+attacks, and other network attacks on firewalls or networked systems; or
+(ii) accidental loss or disclosure of Customer Data caused by Customer’s
+or its Customers’ use of the Services or Customer’s or its Customers’
+loss of account authentication credentials. Google’s obligation to
+report or respond to a Data Incident under this Section will not be
+construed as an acknowledgement by Google of any fault or liability with
+respect to the Data Incident.
+
+6.4 Compliance with Security and Privacy Standards; SOC 2 and 3 Reports.
+During the Term, Google will maintain the following:
+
+(a) its ISO/IEC 27001:2013 Certification or a comparable certification
+for the following Services: Google App Engine, Google Compute Engine,
+Google Cloud Storage, Google Cloud Datastore, Google BigQuery Service,
+Google Cloud SQL, and Google Genomics (“ISO 27001 Certification”);
+
+(b) its confidential Service Organization Control (SOC) 2 report (or a
+comparable report) on Google’s systems examining logical security
+controls, physical security controls, and system availability applicable
+to the following Services: Google App Engine, Google Compute Engine,
+Google Cloud Storage, Google Cloud Datastore, Google BigQuery Service
+and Google Cloud SQL (“SOC 2 Report”), as produced by the Third Party
+Auditor and updated at least once every eighteen (18) months; and
+
+(c) its Service Organization Control (SOC) 3 report (or a comparable
+report) applicable to the following Services: Google App Engine, Google
+Compute Engine, Google Cloud Storage, Google Cloud Datastore, Google
+BigQuery Service and Google Cloud SQL (“SOC 3 Report”), as produced by
+the Third Party Auditor and updated at least once every eighteen (18)
+months.
+
+**6.5 Auditing Security Compliance.**
+
+6.5.1 Reviews of Security Documentation. Google will make the following
+available for review by Customer:
+
+(a) the certificate issued in relation to Google’s ISO 27001
+Certification;
+
+(b) the then-current SOC 3 Report;
+
+(c) a summary or redacted version of the then-current confidential SOC 2
+Report; and
+
+(d) following a request by Customer in accordance with Section 6.5.4
+below, the then-current confidential SOC 2 Report.
+
+6.5.2 Customer Audits. If Customer has entered into Model Contract
+Clauses as described in Section 10.2 of these Terms, Customer may
+exercise the audit rights granted under clauses 5(f) and 12(2) of such
+Model Contract Clauses:
+
+(a) by instructing Google to execute the audit as described in Sections
+6.4 and 6.5.1 above; and/or
+
+(b) following a request by Customer in accordance with Section 6.5.4
+below, by executing an audit as described in such Model Contract
+Clauses.
+
+6.5.3 Additional Business Terms for Reviews and Audits. Google and
+Customer will discuss and agree in advance on:
+
+(a) the reasonable date(s) of and security and confidentiality controls
+applicable to any Customer review under Section 6.5.1(d); and
+
+(b) the identity of a suitably qualified independent auditor for any
+audit under Section 6.5.2(b), and the reasonable start date, scope and
+duration of and security and confidentiality controls applicable to any
+such audit.
+
+Google reserves the right to charge a fee (based on Google’s reasonable
+costs) for any review under Section 6.5.1(d) and/or audit under Section
+6.5.2(b). For clarity, Google is not responsible for any costs incurred
+or fees charged by any third party auditor appointed by Customer in
+connection with an audit under Section 6.5.2(b). Nothing in this Section
+6.5 varies or modifies any rights or obligations of Customer or Google
+Inc. under any Model Contract Clauses entered into as described in
+Section 10.2 (Transfers of Data Out of the EEA) of these Terms.
+
+6.5.4 Requests for Reviews and Audits. Any requests under Section 6.5.1
+or 6.5.2 must be sent to the Data Privacy Office as described in Section
+9 (Data Privacy Office for Google Cloud Platform) of these Terms.
+
+**7. Data Correction, Blocking, Exporting, and Deletion**
+
+During the Term, Google will provide Customer with the ability to
+correct, block, export and delete the Customer Data in a manner
+consistent with the functionality of the Services and in accordance with
+the terms of the Agreement. Once Customer deletes Customer Data via the
+Services such that the Customer Data cannot be recovered by Customer
+(the “Customer-Deleted Data”), Google will delete the Customer-Deleted
+Data within a maximum period of 180 days, unless applicable legislation
+or legal process prevents it from doing so. On the expiry or termination
+of the Agreement (or, if applicable on expiry of any post-termination
+period during which Google may agree to continue providing access to the
+Services), after a recovery period of up to 30 days following such
+expiry or termination, Google will thereafter delete the
+Customer-Deleted Data within a maximum period of 180 days, unless
+applicable legislation or legal process prevents it from doing so.
+
+**8. Access; Export of Data**
+
+During the Term, Google will make available to Customer the Customer
+Data in a manner consistent with the functionality of the Services and
+in accordance with the terms of the Agreement. To the extent Customer,
+in its use and administration of the Services during the Term, does not
+have the ability to amend or delete Customer Data (as required by
+applicable law), or migrate Customer Data to another system or service
+provider, Google will, at Customer’s reasonable expense, comply with any
+reasonable requests by Customer to assist in facilitating such actions
+to the extent Google is legally permitted to do so and has reasonable
+access to the relevant Customer Data.
+
+**9. Data Privacy Office for Google Cloud Platform**
+
+Google’s Data Privacy Office for Google Cloud Platform can be contacted
+by Customer administrators at:
+https://support.google.com/cloud/contact/dpo (or via such other means as
+Google may provide).
+
+**10. Data Transfers**
+
+10.1 Data Location and Transfers. Customer may select where certain
+Customer Data will be stored (the \\"Data Location Selection\\"), and Google
+will store it there in accordance with the Service Specific Terms. If a
+Data Location Selection is not covered by the Service Specific Terms (or
+a Data Location Selection is not made by Customer in respect of any
+Customer Data), Google may store and process the relevant Customer Data
+anywhere Google or its Subprocessors maintain facilities.
+
+10.2 Transfers of Data Out of the EEA.
+
+10.2.1 Customer Obligations. If the storage and/or processing of
+Customer Data (as set out in Section 10.1 above) involves transfers of
+Customer Personal Data out of the EEA, and Data Protection Legislation
+applies to the transfers of such data (**“Transferred Personal Data”**),
+Customer acknowledges that Data Protection Legislation will require
+Customer to enter into Model Contract Clauses in respect of such
+transfers, unless Google has adopted an Alternative Transfer Solution.
+
+10.2.2 Google Obligations. In respect of Transferred Personal Data,
+Google will:
+
+(a) if requested to do so by Customer, ensure that Google Inc. as the
+importer of the Transferred Personal Data enters into Model Contract
+Clauses with Customer as the exporter of such data, and that the
+transfers are made in accordance with such Model Contract Clauses;
+and/or
+
+(b) adopt an Alternative Transfer Solution and ensure that the transfers
+are made in accordance with such solution.
+
+10.3 Data Center Information. Google will make available to Customer
+information about the countries in which data centers used to store
+Customer Personal Data are located.
+
+**11. Subprocessors**
+
+11.1 Subprocessors. Google may engage Subprocessors to provide limited
+parts of the Services, subject to the restrictions in these Terms.
+
+11.2 Subprocessing Restrictions. Google will ensure that Subprocessors
+only access and use Customer Data in accordance with Section 10.1 (Data
+Location and Transfers) and terms of the Agreement and that they are
+bound by written agreements that require them to provide at least the
+level of data protection required by the following, as applicable
+pursuant to Section 10.2 (Transfers of Data Out of the EEA): (a) any
+Model Contract Clauses entered into by Google Inc. and Customer; and/or
+(b) any Alternative Transfer Solution adopted by Google.
+
+11.3 Consent to Subprocessing. Customer consents to Google
+subcontracting the processing of Customer Data to Subprocessors in
+accordance with the Agreement. If the Model Contract Clauses have been
+entered into as described above, Customer consents to Google Inc.
+subcontracting the processing of Customer Data in accordance with the
+terms of the Model Contract Clauses.
+
+11.4 Additional Information. Information about Third Party Subprocessors
+is available at: https://cloud.google.com/terms/third-party-suppliers,
+as such URL may be updated by Google from time to time. The information
+available at this URL is accurate as at the time of publication. At the
+written request of the Customer, Google will provide additional
+information regarding Subprocessors and their locations. Any such
+requests must be sent to Google’s Data Privacy Office for Google Cloud
+Platform, the contact details of which are set out in Section 9 (Data
+Privacy Office for Google Cloud Platform) above.
+
+11.5 Termination. If the Model Contract Clauses have been entered into
+by the parties: (i) Google will, at least 15 days before appointing any
+new Third Party Subprocessor, inform Customer of the appointment
+(including the name and location of such subprocessor and the activities
+it will perform) either by sending an email to Customer or via the Admin
+Console; and (ii) if Customer objects to Google's use of any new Third
+Party Subprocessors, Customer may, as its sole and exclusive remedy,
+terminate the Agreement by giving written notice to Google within 30
+days of being informed by Google of the appointment of such
+subprocessor.
+
+**12. Liability Cap**
+
+If Google Inc. and Customer enter into Model Contract Clauses as
+described above, then, subject to the remaining terms of the Agreement
+relating to liability (including any specific exclusions from any
+limitation of liability), the total combined liability of Google and its
+Affiliates, on the one hand, and Customer and its Affiliates, on the
+other hand, under or in connection with the Agreement and all those MCCs
+combined will be limited to the maximum monetary or payment-based
+liability amount set out in the Agreement.
+
+**13. Third Party Beneficiary**
+
+13.1 Google Inc. Notwithstanding anything to the contrary in the
+Agreement, where Google Inc. is not a party to the Agreement, Google
+Inc. will be a third party beneficiary of Section 6.5 (Auditing Security
+Compliance), Section 11.3 (Consent to Subprocessing), and Section 12
+(Liability Cap) of these Terms.
+
+13.2 Other Third Parties. Except as expressly provided herein and
+subject to Section 13.1, no one other than a party to this Agreement
+shall have any right to enforce any of its terms. For the avoidance of
+doubt, this includes Customers, who shall not have any right to enforce
+this Agreement.
+
+**14. Priority**
+
+Notwithstanding anything to the contrary in the Agreement, to the extent
+of any conflict or inconsistency between these Terms and the remaining
+terms of the Agreement, these Terms will govern.
+
+**Appendix 1: Categories of Personal Data and Data Subjects**
+
+1. Categories of Personal Data. Data relating to individuals provided
+to Google via the Services, by (or at the direction of) Customer.
+
+2. Data Subjects. Data subjects include the individuals about whom data
+is provided to Google via the Services by (or at the direction of)
+Customer.
+
+**Appendix 2: Security Measures**
+
+As of the Terms Effective Date, Google will take and implement the
+Security Measures set out in this Appendix. Google may update or modify
+such Security Measures from time to time provided that such updates and
+modifications do not result in the degradation of the overall security
+of the Services.
+
+**1. Data Center and Network Security**
+
+(a) Data Centers.
+
+Infrastructure. Google maintains geographically distributed data
+centers. Google stores all production data in physically secure data
+centers.
+
+Redundancy. Infrastructure systems have been designed to eliminate
+single points of failure and minimize the impact of anticipated
+environmental risks. Dual circuits, switches, networks or other
+necessary devices help provide this redundancy. The Services are
+designed to allow Google to perform certain types of preventative and
+corrective maintenance without interruption. All environmental equipment
+and facilities have documented preventative maintenance procedures that
+detail the process for and frequency of performance in accordance with
+the manufacturer’s or internal specifications. Preventative and
+corrective maintenance of the data center equipment is scheduled through
+a standard change process according to documented procedures.
+
+Power. The data center electrical power systems are designed to be
+redundant and maintainable without impact to continuous operations, 24
+hours a day, 7 days a week. In most cases, a primary as well as an
+alternate power source, each with equal capacity, is provided for
+critical infrastructure components in the data center. Backup power is
+provided by various mechanisms such as uninterruptible power supplies
+(UPS) batteries, which supply consistently reliable power protection
+during utility brownouts, blackouts, over voltage, under voltage, and
+out-of-tolerance frequency conditions. If utility power is interrupted,
+backup power is designed to provide transitory power to the data center,
+at full capacity, for up to 10 minutes until the diesel generator
+systems take over. The diesel generators are capable of automatically
+starting up within seconds to provide enough emergency electrical power
+to run the data center at full capacity typically for a period of days.
+
+Server Operating Systems. Google servers use a Linux based
+implementation customized for the application environment. Data is
+stored using proprietary algorithms to augment data security and
+redundancy. Google employs a code review process to increase the
+security of the code used to provide the Services and enhance the
+security products in production environments.
+
+Businesses Continuity. Google replicates data over multiple systems to
+help to protect against accidental destruction or loss. Google has
+designed and regularly plans and tests its business continuity
+planning/disaster recovery programs.
+
+(b) Networks and Transmission.
+
+Data Transmission. Data centers are typically connected via high-speed
+private links to provide secure and fast data transfer between data
+centers. This is designed to prevent data from being read, copied,
+altered or removed without authorization during electronic transfer or
+transport or while being recorded onto data storage media. Google
+transfers data via Internet standard protocols.
+
+External Attack Surface. Google employs multiple layers of network
+devices and intrusion detection to protect its external attack surface.
+Google considers potential attack vectors and incorporates appropriate
+purpose built technologies into external facing systems.
+
+Intrusion Detection. Intrusion detection is intended to provide insight
+into ongoing attack activities and provide adequate information to
+respond to incidents. Google intrusion detection involves:
+
+(i) tightly controlling the size and make-up of Google’s attack surface
+through preventative measures;
+
+(ii) employing intelligent detection controls at data entry points; and
+
+(iii) employing technologies that automatically remedy certain dangerous
+situations.
+
+Incident Response. Google monitors a variety of communication channels
+for security incidents, and Google’s security personnel will react
+promptly to known incidents.
+
+Encryption Technologies. Google makes HTTPS encryption (also referred to
+as SSL or TLS connection) available.
+
+**2. Access and Site Controls**
+
+(a) Site Controls.
+
+On-site Data Center Security Operation. Google’s data centers maintain
+an on-site security operation responsible for all physical data center
+security functions 24 hours a day, 7 days a week. The on-site security
+operation personnel monitor closed circuit TV (CCTV) cameras and all
+alarm systems. On-site security operation personnel perform internal and
+external patrols of the data center regularly.
+
+Data Center Access Procedures. Google maintains formal access procedures
+for allowing physical access to the data centers. The data centers are
+housed in facilities that require electronic card key access, with
+alarms that are linked to the on-site security operation. All entrants
+to the data center are required to identify themselves as well as show
+proof of identity to on-site security operations. Only authorized
+employees, contractors and visitors are allowed entry to the data
+centers. Only authorized employees and contractors are permitted to
+request electronic card key access to these facilities. Data center
+electronic card key access requests must be made through e-mail, and
+requires the approval of the requestor’s manager and the data center
+director. All other entrants requiring temporary data center access
+must: (i) obtain approval in advance from the data center managers for
+the specific data center and internal areas they wish to visit; (ii)
+sign in at on-site security operations; and (iii) reference an approved
+data center access record identifying the individual as approved.
+
+On-site Data Center Security Devices. Google’s data centers employ an
+electronic card key and biometric access control system that is linked
+to a system alarm. The access control system monitors and records each
+individual’s electronic card key and when they access perimeter doors,
+shipping and receiving, and other critical areas. Unauthorized activity
+and failed access attempts are logged by the access control system and
+investigated, as appropriate. Authorized access throughout the business
+operations and data centers is restricted based on zones and the
+individual’s job responsibilities. The fire doors at the data centers
+are alarmed. CCTV cameras are in operation both inside and outside the
+data centers. The positioning of the cameras has been designed to cover
+strategic areas including, among others, the perimeter, doors to the
+data center building, and shipping/receiving. On-site security
+operations personnel manage the CCTV monitoring, recording and control
+equipment. Secure cables throughout the data centers connect the CCTV
+equipment. Cameras record on site via digital video recorders 24 hours a
+day, 7 days a week. The surveillance records are retained for up to 30
+days based on activity.
+
+(b) Access Control.
+
+Infrastructure Security Personnel. Google has, and maintains, a security
+policy for its personnel, and requires security training as part of the
+training package for its personnel. Google’s infrastructure security
+personnel are responsible for the ongoing monitoring of Google’s
+security infrastructure, the review of the Services, and responding to
+security incidents.
+
+Access Control and Privilege Management. Customer’s administrators must
+authenticate themselves via a central authentication system or via a
+single sign on system in order to administer the Services.
+
+Internal Data Access Processes and Policies – Access Policy. Google’s
+internal data access processes and policies are designed to prevent
+unauthorized persons and/or systems from gaining access to systems used
+to process personal data. Google designs its systems to (i) only allow
+authorized persons to access data they are authorized to access; and
+(ii) ensure that personal data cannot be read, copied, altered or
+removed without authorization during processing, use and after
+recording. The systems are designed to detect any inappropriate access.
+Google employs a centralized access management system to control
+personnel access to production servers, and only provides access to a
+limited number of authorized personnel. LDAP, Kerberos and a proprietary
+system utilizing RSA keys are designed to provide Google with secure and
+flexible access mechanisms. These mechanisms are designed to grant only
+approved access rights to site hosts, logs, data and configuration
+information. Google requires the use of unique user IDs, strong
+passwords, two factor authentication and carefully monitored access
+lists to minimize the potential for unauthorized account use. The
+granting or modification of access rights is based on: the authorized
+personnel’s job responsibilities; job duty requirements necessary to
+perform authorized tasks; and a need to know basis. The granting or
+modification of access rights must also be in accordance with Google’s
+internal data access policies and training. Approvals are managed by
+workflow tools that maintain audit records of all changes. Access to
+systems is logged to create an audit trail for accountability. Where
+passwords are employed for authentication (e.g., login to workstations),
+password policies that follow at least industry standard practices are
+implemented. These standards include password expiry, restrictions on
+password reuse and sufficient password strength. For access to extremely
+sensitive information (e.g. credit card data), Google uses hardware
+tokens.
+
+**3. Data**
+
+(a) Data Storage, Isolation and Logging. Google stores data in a
+multi-tenant environment on Google-owned servers. The data and file
+system architecture are replicated between multiple geographically
+dispersed data centers. Google also logically isolates the Customer’s
+data. Customer will be given control over specific data sharing
+policies. Those policies, in accordance with the functionality of the
+Services, will enable Customer to determine the product sharing settings
+applicable to Customer End Users for specific purposes. Customer may
+choose to make use of certain logging capability that Google may make
+available via the Services.
+
+(b) Decommissioned Disks and Disk Erase Policy. Certain disks containing
+data may experience performance issues, errors or hardware failure that
+lead them to be decommissioned (“Decommissioned Disk”). Every
+Decommissioned Disk is subject to a series of data destruction processes
+(the “Disk Erase Policy”) before leaving Google’s premises either for
+reuse or destruction. Decommissioned Disks are erased in a multi-step
+process and verified complete by at least two independent validators.
+The erase results are logged by the Decommissioned Disk’s serial number
+for tracking. Finally, the erased Decommissioned Disk is released to
+inventory for reuse and redeployment. If, due to hardware failure, the
+Decommissioned Disk cannot be erased, it is securely stored until it can
+be destroyed. Each facility is audited regularly to monitor compliance
+with the Disk Erase Policy.
+
+**4. Personnel Security**
+
+Google personnel are required to conduct themselves in a manner
+consistent with the company’s guidelines regarding confidentiality,
+business ethics, appropriate usage, and professional standards. Google
+conducts reasonably appropriate backgrounds checks to the extent legally
+permissible and in accordance with applicable local labor law and
+statutory regulations.
+
+Personnel are required to execute a confidentiality agreement and must
+acknowledge receipt of, and compliance with, Google’s confidentiality
+and privacy policies. Personnel are provided with security training.
+Personnel handling Customer Data are required to complete additional
+requirements appropriate to their role (eg., certifications). Google’s
+personnel will not process Customer Data without authorization.
+
+**5. Subprocessor Security**
+
+Prior to onboarding Subprocessors, Google conducts an audit of the
+security and privacy practices of Subprocessors to ensure Subprocessors
+provide a level of security and privacy appropriate to their access to
+data and the scope of the services they are engaged to provide. Once
+Google has assessed the risks presented by the Subprocessor, then
+subject to the requirements set out in Section 11.2 (Subprocessing
+Restrictions) of these Terms, the Subprocessor is required to enter into
+appropriate security, confidentiality and privacy contract terms.
+
+Note: By clicking on the box you are indicating you have read this
+Agreement and agree to the Terms of Use above including the Terms
+repeated
+here:
+
+<https://cloud.google.com/terms/services>
+
+<http://www.google.com/dmca.html>
+
+<https://cloud.google.com/terms/tssg>
+
+<https://cloud.google.com/cloud/terms/deprecation>
+
+<https://cloud.google.com/cloud/terms/aup>
+
+https://cloud.google.com/docs
+
+<https://cloud.google.com/skus>
+
+<https://cloud.google.com/cloud/services>
+
+<https://cloud.google.com/terms/service-terms>
+
+<https://cloud.google.com/terms/sla>
+`
 
 class FreeTrialEulas extends Component {
   render() {
