@@ -7,7 +7,7 @@ const broadEula = `
 
 2. By opting into this program, you are authorizing Terra to give Onix and Google access to your Terra user profile information. This is necessary for Onix and Google to give you the free credits. 
 
-3. Your credits of $300 will expire December 30, 2018 or 60 days after they were issued, whichever comes first.
+3. Your credits of $300 will expire December 30, 2019 or 60 days after they were issued, whichever comes first.
 
 4. Onix will contact you during the trial with information on options for creating your own billing account to further use Terra once the credits expire. Other billing options will be available on the Terra website.
 
