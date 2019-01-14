@@ -131,15 +131,14 @@ class NotebookViewer extends Component {
   }
 }
 
-class NotebookInUseMessage extends Component {
+class pushNotificationMessage extends Component {
   render() {
+    const {title, content} = this.props
     return div({ style: { backgroundColor: colors.orange[0], color: 'white', padding: '1.3rem', borderRadius: '0.3rem' } }, [
       div({ style: { position: 'absolute', left: '22rem', top: 5 } }, [icon('times', { size: 18 })]),
       div({ style: { fontSize: 16, fontWeight: 'bold' } },
-        ['This notebook has been edited recently']),
-      div({ style: { fontSize: 14 } }, [
-        'If you recently edited this notebook, disregard this message. If another user is editing this notebook, your changes may be lost.'
-      ])
+        [title]),
+      div({ style: { fontSize: 14 } }, [content])
     ])
   }
 }
@@ -209,7 +208,10 @@ class NotebookEditor extends Component {
           type: 'warning',
           dismissable: { click: true },
           dismiss: { duration: 30000 },
-          content: h(NotebookInUseMessage),
+          content: h(pushNotificationMessage, {
+            title: 'This notebook has been edited recently',
+            content: 'If you recently edited this notebook, disregard this message. If another user is editing this notebook, your changes may be lost.'
+          }),
           width: 375
         })
       }
@@ -225,8 +227,19 @@ class NotebookEditor extends Component {
       }))
 
       const { name: workspaceName, app } = this.props
-      if (app === 'lab') this.setState({ url: `${clusterUrl}/${app}/tree/${workspaceName}/${notebookName}` })
-      else this.setState({ url: `${clusterUrl}/notebooks/${workspaceName}/${notebookName}` })
+      if (app === 'lab') {
+        this.setState({ url: `${clusterUrl}/${app}/tree/${workspaceName}/${notebookName}` })
+        pushNotification({
+          type: 'warning',
+          dismissable: { click: true },
+          dismiss: { duration: 30000 },
+          content: h(pushNotificationMessage, {
+            title: 'Autosave every 2min',
+            content: 'JupyterLab autosaves every 2 min. Please be extra careful about saving your notebook before exiting the window.'
+          }),
+          width: 375
+        })
+      } else this.setState({ url: `${clusterUrl}/notebooks/${workspaceName}/${notebookName}` })
     } catch (error) {
       if (this.mounted) {
         reportError('Notebook cannot be launched', error)
