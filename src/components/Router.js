@@ -113,6 +113,6 @@ export default class Router extends Component {
         ...Nav.getHandlerProps(handler, pathname, search)
       })
     ])
-    return handler.public ? el : h(AuthContainer, [el])
+    return h(AuthContainer, { isPublic: handler.public }, [el])
   }
 }
