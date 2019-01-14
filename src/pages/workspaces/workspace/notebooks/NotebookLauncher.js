@@ -234,8 +234,8 @@ class NotebookEditor extends Component {
           dismissable: { click: true },
           dismiss: { duration: 30000 },
           content: h(pushNotificationMessage, {
-            title: 'Autosave every 2 minutes',
-            content: 'JupyterLab autosaves every 2 min. Please be extra careful about saving your notebook before exiting the window.'
+            title: 'Autosave occurs every 2 minutes',
+            content: 'JupyterLab autosaves every 2 min. Please remember to save your notebook before exiting the window.'
           }),
           width: 375
         })
