@@ -58,8 +58,8 @@ export const TrialBanner = _.flow(
     this.state = {
       accessingCredits: false,
       pageTwo: false,
-      termsAgreed: 'false',
-      cloudTermsAgreed: 'false',
+      termsAgreed: false,
+      cloudTermsAgreed: false,
       finalizeTrial: false
     }
   }
@@ -70,32 +70,38 @@ export const TrialBanner = _.flow(
       title: 'Welcome to the Terra Free Credit Program!',
       width: '65%',
       onDismiss: () => this.setState({ accessingCredits: false, pageTwo: false }),
-      okButton: buttonPrimary({
-        onClick: pageTwo ? async () => {
+      okButton: pageTwo ? buttonPrimary({
+        onClick: async () => {
           this.acceptCredits()
           this.setState({ accessingCredits: false })
-        } : () => this.setState({ pageTwo: true }),
-        disabled: pageTwo ? (termsAgreed === 'false') || (cloudTermsAgreed === 'false') : false,
-        tooltip: (pageTwo && ((termsAgreed === 'false') || (cloudTermsAgreed === 'false'))) && 'You must check the boxes to accept.'
-      }, [pageTwo ? 'Accept' : 'Review Terms of Service'])
+        },
+        disabled: (termsAgreed === false) || (cloudTermsAgreed === false),
+        tooltip: ((termsAgreed === false) || (cloudTermsAgreed === false)) && 'You must check the boxes to accept.'
+      }, ['Accept']) : buttonPrimary({
+        onClick: () => this.setState({ pageTwo: true })
+      }, ['Review Terms of Service'])
     }, [
       h(FreeTrialEulas, { pageTwo }),
-      pageTwo && div({ style: { marginTop: '0.5rem', padding: '1rem', border: `1px solid ${colors.blue[0]}`, borderRadius: '0.25rem', backgroundColor: '#f4f4f4' } }, [
+      pageTwo && div({
+        style: {
+          marginTop: '0.5rem', padding: '1rem', border: `1px solid ${colors.blue[0]}`, borderRadius: '0.25rem', backgroundColor: '#f4f4f4'
+        }
+      }, [
         h(LabeledCheckbox, {
-          checked: termsAgreed === 'true',
-          onChange: v => this.setState({ termsAgreed: v.toString() })
+          checked: termsAgreed === true,
+          onChange: v => this.setState({ termsAgreed: v })
         }, [span({ style: { marginLeft: '0.5rem' } }, ['I agree to the terms of this Agreement.'])]),
         div({ style: { flexGrow: 1, marginBottom: '0.5rem' } }),
         h(LabeledCheckbox, {
-          checked: cloudTermsAgreed === 'true',
-          onChange: v => this.setState({ cloudTermsAgreed: v.toString() })
+          checked: cloudTermsAgreed === true,
+          onChange: v => this.setState({ cloudTermsAgreed: v })
         }, [
           span({ style: { marginLeft: '0.5rem' } }, [
             'I agree to the Google Cloud Terms of Service.', div({ style: { marginLeft: '1.5rem' } }, [
               'Google Cloud Terms of Service:',
               a({
                 style: { textDecoration: 'underline', marginLeft: '0.25rem' },
-                target: 'blank',
+                target: '_blank',
                 href: 'https://cloud.google.com/terms/'
               }, ['https://cloud.google.com/terms/', icon('pop-out', { style: { marginLeft: '0.25rem' } })])
             ])
@@ -110,12 +116,12 @@ export const TrialBanner = _.flow(
     const { accessingCredits, loading, finalizeTrial } = this.state
     const { trialState } = profile
     if (!trialState || !isSignedIn || trialState === 'Finalized') return null
-    const { 'Enabled': { title, message, enabledLink, button, isWarning } } = messages
+    const { [trialState]: { title, message, enabledLink, button, isWarning } } = messages
 
     return div([
       div({
         style: {
-          flex: 1, display: 'flex', alignItems: 'center', padding: '1.5rem', height: 110,
+          display: 'flex', alignItems: 'center', padding: '1.5rem', height: 110,
           backgroundColor: isWarning ? colors.orange[0] : '#359448',
           justifyContent: 'center', color: 'white', width: '100%', fontSize: '1rem'
 
@@ -133,13 +139,13 @@ export const TrialBanner = _.flow(
             message,
             enabledLink && a({
               style: { textDecoration: 'underline', marginLeft: '0.5rem' },
-              target: 'blank',
+              target: '_blank',
               href: enabledLink.url
             }, [enabledLink.label, icon('pop-out', { style: { marginLeft: '0.25rem' } })])
           ]),
         h(Clickable, {
           style: {
-            display: 'block', fontWeight: 500, fontSize: '1.125rem', border: '2px solid', borderRadius: '0.25rem', padding: '0.5rem 1rem',
+            fontWeight: 500, fontSize: '1.125rem', border: '2px solid', borderRadius: '0.25rem', padding: '0.5rem 1rem',
             marginLeft: '0.5rem', flexShrink: 0
           },
           onClick: () => {
@@ -161,7 +167,15 @@ export const TrialBanner = _.flow(
       finalizeTrial && h(Modal, {
         title: 'Are you sure?',
         onDismiss: () => this.setState({ finalizeTrial: false }),
-        okButton: buttonPrimary({ onClick: async () => await User.finalizeTrial() }, ['Finalize Trial'])
+        okButton: buttonPrimary({
+          onClick: async () => {
+            try {
+              await User.finalizeTrial()
+            } catch (error) {
+              reportError('Error finalizing trial', error)
+            }
+          }
+        }, ['Finalize Trial'])
       }, ['Finalizing your trial will remove this banner forever.'])
     ])
   }
