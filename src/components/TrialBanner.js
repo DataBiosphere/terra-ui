@@ -158,14 +158,13 @@ export const TrialBanner = _.flow(
         div({ style: { marginLeft: '3rem', display: 'flex', flexDirection: 'column', alignItems: 'flex-end' } }, [
           (trialState === 'Terminated') && h(Clickable, {
             style: { borderBottom: 'none' },
-            tooltip: 'Hide forever?',
             onClick: () => this.setState({ finalizeTrial: true })
           }, [icon('times-circle', { size: 25, style: { fontSize: '1.5rem', cursor: 'pointer', strokeWidth: 1.5 } })])
         ])
       ]),
       accessingCredits && this.renderFreeCreditModal(),
       finalizeTrial && h(Modal, {
-        title: 'Are you sure?',
+        title: 'Remove banner',
         onDismiss: () => this.setState({ finalizeTrial: false }),
         okButton: buttonPrimary({
           onClick: async () => {
@@ -175,8 +174,8 @@ export const TrialBanner = _.flow(
               reportError('Error finalizing trial', error)
             }
           }
-        }, ['Finalize Trial'])
-      }, ['Finalizing your trial will remove this banner forever.'])
+        }, ['Confirm'])
+      }, ['Click confirm to remove banner forever.'])
     ])
   }
 
