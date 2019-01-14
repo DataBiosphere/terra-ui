@@ -319,7 +319,8 @@ const EntitiesContent = ajaxCaller(class EntitiesContent extends Component {
       columnState,
       selectedEntities: {},
       deletingEntities: false,
-      totalRowCount
+      totalRowCount,
+      viewData: undefined
     }
     this.table = createRef()
     this.downloadForm = createRef()
@@ -461,14 +462,20 @@ const EntitiesContent = ajaxCaller(class EntitiesContent extends Component {
     return _.every(k => _.includes(k, selectedKeys), entityKeys)
   }
 
+  displayData(selectedData) {
+    const { itemsType, items } = selectedData
+    console.log(itemsType, items)
+  }
+
   render() {
     const { workspace, workspace: { accessLevel, workspace: { namespace, name }, workspaceSubmissionStats: { runningSubmissionsCount } }, entityKey, entityMetadata, loadMetadata, firstRender } = this.props
-    const { entities, totalRowCount, pageNumber, itemsPerPage, sort, columnWidths, columnState, selectedEntities, deletingEntities, loading, copyingEntities } = this.state
+    const { entities, totalRowCount, pageNumber, itemsPerPage, sort, columnWidths, columnState, selectedEntities, deletingEntities, loading, copyingEntities, viewData } = this.state
     const theseColumnWidths = columnWidths[entityKey] || {}
     const columnSettings = applyColumnSettings(columnState[entityKey] || [], entityMetadata[entityKey].attributeNames)
     const resetScroll = () => this.table.current.scrollToTop()
     const nameWidth = theseColumnWidths['name'] || 150
     const { initialX, initialY } = firstRender ? StateHistory.get() : {}
+    //console.log(entities)
     return h(Fragment, [
       !!entities && h(Fragment, [
         div({ style: { flex: 'none', marginBottom: '1rem' } }, [
@@ -545,9 +552,12 @@ const EntitiesContent = ajaxCaller(class EntitiesContent extends Component {
                         ])
                       ]),
                       cellRenderer: ({ rowIndex }) => {
-                        return renderDataCell(
-                          Utils.entityAttributeText(entities[rowIndex].attributes[name]), namespace
-                        )
+                        const dataInfo = entities[rowIndex].attributes[name]
+                        return h(Fragment, [
+                          renderDataCell(Utils.entityAttributeText(dataInfo), namespace),
+                          (dataInfo && _.isArray(dataInfo.items)) && linkButton({ tooltip: 'Click to expand', onClick: () => this.setState({ viewData: dataInfo }) },
+                            [icon('pop-out', { size: 12 })])
+                        ])
                       }
                     }
                   }, _.filter('visible', columnSettings))
@@ -601,6 +611,12 @@ const EntitiesContent = ajaxCaller(class EntitiesContent extends Component {
         workspace,
         selectedEntities: _.keys(selectedEntities), selectedDataType: entityKey, runningSubmissionsCount
       }),
+      viewData && h(Modal, {
+        title: 'Contents',
+        showButtons: false,
+        showX: true,
+        onDismiss: () => this.setState({ viewData: undefined })
+      }, [viewData.items]),
       loading && spinnerOverlay
     ])
   }
