@@ -133,7 +133,7 @@ class NotebookViewer extends Component {
 
 class pushNotificationMessage extends Component {
   render() {
-    const {title, content} = this.props
+    const { title, content } = this.props
     return div({ style: { backgroundColor: colors.orange[0], color: 'white', padding: '1.3rem', borderRadius: '0.3rem' } }, [
       div({ style: { position: 'absolute', left: '22rem', top: 5 } }, [icon('times', { size: 18 })]),
       div({ style: { fontSize: 16, fontWeight: 'bold' } },
@@ -234,7 +234,7 @@ class NotebookEditor extends Component {
           dismissable: { click: true },
           dismiss: { duration: 30000 },
           content: h(pushNotificationMessage, {
-            title: 'Autosave every 2min',
+            title: 'Autosave every 2 minutes',
             content: 'JupyterLab autosaves every 2 min. Please be extra careful about saving your notebook before exiting the window.'
           }),
           width: 375
