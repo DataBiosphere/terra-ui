@@ -428,5 +428,6 @@ export default [
   '3a44ec0bb644fd68cd346b9ea9edebcb',
   'fc46d56ae897f22f15947abddb0534d6',
   '6501e7ba4498307f0ceb41720b2facad',
-  'fe2dc5a663bc649e2f423f841c1cba39'
+  'fe2dc5a663bc649e2f423f841c1cba39',
+  'f95bd59da9a149dd25989a8afd7d3811'
 ]
