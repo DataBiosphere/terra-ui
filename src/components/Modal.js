@@ -40,7 +40,8 @@ export default class Modal extends Component {
     showX: PropTypes.bool,
     showButtons: PropTypes.bool,
     okButton: PropTypes.oneOfType([PropTypes.string, PropTypes.func, PropTypes.node]),
-    children: PropTypes.node
+    children: PropTypes.node,
+    contentStyle: PropTypes.node
   }
 
   static defaultProps = {
@@ -52,16 +53,16 @@ export default class Modal extends Component {
   }
 
   render() {
-    const { onDismiss, title, titleExtras, children, width, showCancel, cancelText, showX, showButtons, okButton } = this.props
+    const { onDismiss, title, titleExtras, children, contentStyle, width, showCancel, cancelText, showX, showButtons, okButton } = this.props
 
     return h(RModal, {
       parentSelector: () => document.getElementById('modal-root'),
       isOpen: true,
       onRequestClose: onDismiss,
-      style: { overlay: styles.overlay, content: { ...styles.modal, width } },
+      style: { overlay: styles.overlay, content: { ...styles.modal, width, ...contentStyle } },
       ariaHideApp: false
     }, [
-      title && div({ style: { display: 'flex', alignItems: 'baseline', marginBottom: '1rem' } }, [
+      title && div({ style: { display: 'flex', alignItems: 'baseline', marginBottom: '1rem', flex: 'none' } }, [
         div({ style: { fontSize: 18, fontWeight: 'bold', color: colors.darkBlue[0] } }, [title]),
         titleExtras,
         showX && h(Clickable, {

@@ -23,7 +23,6 @@ import { EntityDeleter, EntityUploader, ReferenceDataDeleter, ReferenceDataImpor
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
-import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
@@ -465,8 +464,7 @@ const EntitiesContent = ajaxCaller(class EntitiesContent extends Component {
 
   displayData(selectedData) {
     const { itemsType, items } = selectedData
-    return _.map(entity => div({ padding: '0.6rem 1.25rem', margin: '0 -1.25rem', overflowY: 'auto' },
-      itemsType === 'EntityReference' ? `${entity.entityName} (${entity.entityType})` : entity), items)
+    return _.map(entity => div(itemsType === 'EntityReference' ? `${entity.entityName} (${entity.entityType})` : entity), items)
   }
 
   render() {
@@ -614,10 +612,10 @@ const EntitiesContent = ajaxCaller(class EntitiesContent extends Component {
         selectedEntities: _.keys(selectedEntities), selectedDataType: entityKey, runningSubmissionsCount
       }),
       viewData && h(Modal, {
-        style: {overflowY: 'auto'},
         title: 'Contents',
         showButtons: false,
         showX: true,
+        contentStyle: { display: 'flex', flexDirection: 'column', maxHeight: '90%', overflowY: 'auto' },
         onDismiss: () => this.setState({ viewData: undefined })
       }, [this.displayData(viewData)]),
       loading && spinnerOverlay
