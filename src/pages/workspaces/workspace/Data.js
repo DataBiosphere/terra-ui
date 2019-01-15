@@ -475,7 +475,6 @@ const EntitiesContent = ajaxCaller(class EntitiesContent extends Component {
     const resetScroll = () => this.table.current.scrollToTop()
     const nameWidth = theseColumnWidths['name'] || 150
     const { initialX, initialY } = firstRender ? StateHistory.get() : {}
-    //console.log(entities)
     return h(Fragment, [
       !!entities && h(Fragment, [
         div({ style: { flex: 'none', marginBottom: '1rem' } }, [
