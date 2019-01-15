@@ -555,8 +555,11 @@ const EntitiesContent = ajaxCaller(class EntitiesContent extends Component {
                         const dataInfo = entities[rowIndex].attributes[name]
                         return h(Fragment, [
                           renderDataCell(Utils.entityAttributeText(dataInfo), namespace),
-                          (dataInfo && _.isArray(dataInfo.items)) && linkButton({ tooltip: 'Click to expand', onClick: () => this.setState({ viewData: dataInfo }) },
-                            [icon('pop-out', { size: 12 })])
+                          (dataInfo && _.isArray(dataInfo.items)) && linkButton({
+                            tooltip: 'Click to expand',
+                            onClick: () => this.setState({ viewData: dataInfo })
+                          },
+                          [icon('pop-out', { size: 12, style: { marginLeft: '0.1rem' } })])
                         ])
                       }
                     }
