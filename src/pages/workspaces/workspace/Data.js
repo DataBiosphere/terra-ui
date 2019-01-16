@@ -464,7 +464,8 @@ const EntitiesContent = ajaxCaller(class EntitiesContent extends Component {
 
   displayData(selectedData) {
     const { itemsType, items } = selectedData
-    return _.map(entity => div(itemsType === 'EntityReference' ? `${entity.entityName} (${entity.entityType})` : entity), items)
+    return _.map(entity => div({ style: { borderBottom: `1px solid ${colors.gray[2]}`, padding: '0.5rem' } },
+      itemsType === 'EntityReference' ? `${entity.entityName} (${entity.entityType})` : JSON.stringify(entity)), items)
   }
 
   render() {
