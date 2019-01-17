@@ -645,8 +645,8 @@ const Methods = signal => ({
 
 
 const Jupyter = signal => ({
-  clustersList: async () => {
-    const res = await fetchLeo('api/clusters?saturnAutoCreated=true', _.mergeAll([authOpts(), appIdentifier, { signal }]))
+  clustersList: async project => {
+    const res = await fetchLeo(`api/clusters${project ? `/${project}` : ''}?saturnAutoCreated=true`, _.mergeAll([authOpts(), appIdentifier, { signal }]))
     return res.json()
   },
 
