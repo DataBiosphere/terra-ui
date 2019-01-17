@@ -93,8 +93,7 @@ export default ajaxCaller(class ShareWorkspaceModal extends Component {
                 icon('warning-standard', { style: { color: colors.red[0], marginRight: '0.5rem' } })
               ]),
               suggestion
-            ]),
-            canAdd(suggestion) && linkButton({}, [icon('plus-circle', { size: 24 })])
+            ])
           ]),
           onSuggestionSelected: selection => {
             if (canAdd(selection)) {
