@@ -307,7 +307,7 @@ export const PageFadeBox = ({ children, style = {} }) => {
   return h(FadeBox, {
     fadePoint: '125px',
     style: {
-      margin: '1.5rem', paddingTop: '1rem', minHeight: 125, ...style
+      margin: '1.5rem', paddingTop: '1rem', minHeight: 125, flex: 'none', ...style
     }
   }, [children])
 }
