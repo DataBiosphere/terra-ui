@@ -114,7 +114,7 @@ const NIHCommonsButtons = buttonPrimary({
   href: 'https://dcp.bionimbus.org/',
   target: '_blank',
   tooltip: browseTooltip
-}, ['Browse Data'])
+}, ['Browse Data via Windmill'])
 
 
 const encode = h(Participant, {
