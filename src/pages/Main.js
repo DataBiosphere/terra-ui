@@ -9,6 +9,7 @@ import { NpsSurvey } from 'src/components/NpsSurvey'
 import Router from 'src/components/Router'
 import { TrialBanner } from 'src/components/TrialBanner'
 
+
 const Main = () => {
   return h(Fragment, [
     NotificationsContainer,

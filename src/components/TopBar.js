@@ -255,6 +255,7 @@ export default Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
   render() {
     const { title, href, children } = this.props
     const { navShown, showingSupportModal } = this.state
+
     return div({ style: styles.topBar }, [
       icon('bars', {
         size: 36,
