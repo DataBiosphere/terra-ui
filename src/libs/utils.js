@@ -170,7 +170,7 @@ export const waitOneTick = () => new Promise(setImmediate)
 export const entityAttributeText = value => {
   return cond(
     [_.has('entityName', value), () => value.entityName],
-    [_.has('items', value), () => `[${value.items.length}]`],
+    [_.has('items', value), () => `${value.items.length} items`],
     () => value
   )
 }
