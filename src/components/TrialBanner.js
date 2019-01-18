@@ -159,7 +159,7 @@ export const TrialBanner = _.flow(
         div({ style: { marginLeft: '3rem', display: 'flex', flexDirection: 'column', alignItems: 'flex-end' } }, [
           (trialState === 'Enrolled') && h(Clickable, {
             style: { borderBottom: 'none' },
-            tooltip: 'Hide for now',
+            tooltip: 'Hide banner',
             onClick: () => this.setState({ snoozeBanner: true })
           }, [icon('times-circle', { size: 25, style: { fontSize: '1.5rem', cursor: 'pointer', strokeWidth: 1.5 } })]),
           (trialState === 'Terminated') && h(Clickable, {
