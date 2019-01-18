@@ -60,7 +60,8 @@ export const TrialBanner = _.flow(
       pageTwo: false,
       termsAgreed: false,
       cloudTermsAgreed: false,
-      finalizeTrial: false
+      finalizeTrial: false,
+      snoozeBanner: false
     }
   }
 
@@ -113,9 +114,9 @@ export const TrialBanner = _.flow(
 
   render() {
     const { authState: { isSignedIn, profile }, ajax: { User } } = _.omit('isVisible', this.props)
-    const { accessingCredits, loading, finalizeTrial } = this.state
+    const { accessingCredits, loading, finalizeTrial, snoozeBanner } = this.state
     const { trialState } = profile
-    if (!trialState || !isSignedIn || trialState === 'Finalized') return null
+    if (!trialState || !isSignedIn || trialState === 'Finalized' || snoozeBanner) return null
     const { [trialState]: { title, message, enabledLink, button, isWarning } } = messages
 
     return div([
@@ -156,6 +157,11 @@ export const TrialBanner = _.flow(
           button.isExternal ? icon('pop-out', { style: { marginLeft: '0.25rem' } }) : null
         ]),
         div({ style: { marginLeft: '3rem', display: 'flex', flexDirection: 'column', alignItems: 'flex-end' } }, [
+          (trialState === 'Enrolled') && h(Clickable, {
+            style: { borderBottom: 'none' },
+            tooltip: 'Hide for now',
+            onClick: () => this.setState({ snoozeBanner: true })
+          }, [icon('times-circle', { size: 25, style: { fontSize: '1.5rem', cursor: 'pointer', strokeWidth: 1.5 } })]),
           (trialState === 'Terminated') && h(Clickable, {
             style: { borderBottom: 'none' },
             onClick: () => this.setState({ finalizeTrial: true })
