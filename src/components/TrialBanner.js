@@ -161,11 +161,11 @@ export const TrialBanner = _.flow(
             style: { borderBottom: 'none' },
             tooltip: 'Hide banner',
             onClick: () => this.setState({ snoozeBanner: true })
-          }, [icon('times-circle', { size: 25, style: { fontSize: '1.5rem', cursor: 'pointer', strokeWidth: 1.5 } })]),
+          }, [icon('times-circle', { size: 25, style: { fontSize: '1.5rem', cursor: 'pointer' } })]),
           (trialState === 'Terminated') && h(Clickable, {
             style: { borderBottom: 'none' },
             onClick: () => this.setState({ finalizeTrial: true })
-          }, [icon('times-circle', { size: 25, style: { fontSize: '1.5rem', cursor: 'pointer', strokeWidth: 1.5 } })])
+          }, [icon('times-circle', { size: 25, style: { fontSize: '1.5rem', cursor: 'pointer' } })])
         ])
       ]),
       accessingCredits && this.renderFreeCreditModal(),
