@@ -663,6 +663,7 @@ const Jupyter = signal => ({
               'saturn-iframe-extension':
                 `${window.location.hostname === 'localhost' ? getConfig().devUrlRoot : window.location.origin}/jupyter-iframe-extension.js`
             },
+            labExtensions: {},
             serverExtensions: {},
             combinedExtensions: {}
           }
