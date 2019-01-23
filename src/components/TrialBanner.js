@@ -157,14 +157,10 @@ export const TrialBanner = _.flow(
           button.isExternal ? icon('pop-out', { style: { marginLeft: '0.25rem' } }) : null
         ]),
         div({ style: { marginLeft: '3rem', display: 'flex', flexDirection: 'column', alignItems: 'flex-end' } }, [
-          (trialState === 'Enrolled') && h(Clickable, {
+          h(Clickable, {
             style: { borderBottom: 'none' },
             tooltip: 'Hide banner',
-            onClick: () => this.setState({ snoozeBanner: true })
-          }, [icon('times-circle', { size: 25, style: { fontSize: '1.5rem', cursor: 'pointer' } })]),
-          (trialState === 'Terminated') && h(Clickable, {
-            style: { borderBottom: 'none' },
-            onClick: () => this.setState({ finalizeTrial: true })
+            onClick: () => this.setState(trialState === 'Terminated' ? { finalizeTrial: true } : { snoozeBanner: true })
           }, [icon('times-circle', { size: 25, style: { fontSize: '1.5rem', cursor: 'pointer' } })])
         ])
       ]),
