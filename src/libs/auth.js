@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import * as md5 from 'md5'
-import { clearNotification, notify, sessionTimeoutProps } from 'src/components/Notifications'
+import { clearNotification, sessionTimeoutProps } from 'src/components/Notifications'
 import { version } from 'src/data/clusters'
 import ProdWhitelist from 'src/data/prod-whitelist'
 import { Ajax } from 'src/libs/ajax'
