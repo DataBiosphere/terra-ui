@@ -213,7 +213,7 @@ class NotebookEditor extends Component {
         this.setState({ url: `${clusterUrl}/${app}/tree/${workspaceName}/${notebookName}` })
         notify('warn', 'Autosave occurs every 2 minutes', {
           message: 'Please remember to save your notebook by clicking the save icon before exiting the window. JupyterLab is new in Terra. We are working to improve its integration. Please contact us with any questions or feedback you may have.',
-          timeout: 30000,
+          timeout: 30000
         })
       } else this.setState({ url: `${clusterUrl}/notebooks/${workspaceName}/${notebookName}` })
     } catch (error) {
