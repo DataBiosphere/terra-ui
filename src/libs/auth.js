@@ -159,11 +159,15 @@ authStore.subscribe(async (state, oldState) => {
   if (oldState.registrationStatus !== 'registered' && state.registrationStatus === 'registered') {
     try {
       const [billingProjects, clusters] = await Promise.all([
-        Ajax().Billing.listProjects(),
+        Ajax().Billing.listProjectsExtended(),
         Ajax().Jupyter.clustersList()
       ])
       const ownClusters = _.filter({ creator: state.user.email }, clusters)
-      const googleProjects = _.uniq(_.map('projectName', billingProjects)) // can have duplicates for multiple roles
+      const googleProjects = _.flow(
+        _.filter(({ accessPolicyName }) => ['owner', 'workspace-creator', 'can-compute-user'].includes(accessPolicyName)),
+        _.map('resourceId'),
+        _.uniq
+      )(billingProjects) // can have duplicates for multiple roles
       const groupedClusters = _.groupBy('googleProject', ownClusters)
       const projectsNeedingCluster = _.filter(p => {
         return !_.some(c => _.toNumber(c.labels.saturnVersion) >= _.toNumber(version), groupedClusters[p])

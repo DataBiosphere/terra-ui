@@ -1,5 +1,5 @@
 import { Children, cloneElement, Fragment } from 'react'
-import { div, h, img, p, span } from 'react-hyperscript-helpers'
+import { b, div, h, img, p, span } from 'react-hyperscript-helpers'
 import { pure } from 'recompose'
 import { buttonPrimary, link } from 'src/components/common'
 import { libraryTopMatter } from 'src/components/library-common'
@@ -7,6 +7,7 @@ import Modal from 'src/components/Modal'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import amppdLogo from 'src/images/library/datasets/Amp@2x.png'
 import broadLogo from 'src/images/library/datasets/broad_logo.png'
+import encodeLogo from 'src/images/library/datasets/ENCODE@2x.png'
 import gtexLogo from 'src/images/library/datasets/GTeX@2x.png'
 import hcaLogo from 'src/images/library/datasets/HCA@2x.png'
 import nhsLogo from 'src/images/library/datasets/NHS@2x.png'
@@ -107,21 +108,32 @@ class Participant extends Component {
 const browseTooltip = 'Look for the Export to Terra icon to export data from this provider.'
 
 
-const NIHCommonsButtons = h(Fragment, [
+const NIHCommonsButtons = buttonPrimary({
+  style: { margin: '0.25rem 0' },
+  as: 'a',
+  href: 'https://dcp.bionimbus.org/',
+  target: '_blank',
+  tooltip: browseTooltip
+}, ['Browse Data via Windmill'])
+
+
+const encode = h(Participant, {
+  logo: { src: encodeLogo, alt: `ENCODE Project logo` },
+  title: `ENCODE Project`,
+  description: h(Fragment, [
+    `The `, b('Enc'), `yclopedia `, b('O'), `f `, b('D'), `NA `, b('E'), `lements (ENCODE) 
+    project aims to delineate all functional elements encoded in the human genome. To this end, ENCODE has 
+    systematically mapped regions of transcription, transcription factor association, chromatin structure 
+    and histone modification.`
+  ]),
+  sizeText: 'Donors: > 650 ; Files: > 158,000'
+}, [
   buttonPrimary({
-    style: { margin: '0.25rem 0' },
     as: 'a',
-    href: 'https://dcp.bionimbus.org/',
+    href: 'https://broad-gdr-encode.appspot.com/',
     target: '_blank',
     tooltip: browseTooltip
-  }, ['Browse Data via Windmill']),
-  buttonPrimary({
-    style: { margin: '0.25rem 0' },
-    as: 'a',
-    href: 'https://commons.ucsc-cgp.org/boardwalk',
-    target: '_blank',
-    tooltip: browseTooltip
-  }, ['Browse Data via Boardwalk'])
+  }, ['Browse Data'])
 ])
 
 
@@ -251,7 +263,7 @@ const Datasets = pure(() => {
   return h(Fragment, [
     libraryTopMatter('datasets'),
     div({ style: styles.content }, [
-      nhs, ukb, hca, amppd, topMed, gtex, fcDataLib
+      encode, nhs, ukb, hca, amppd, topMed, gtex, fcDataLib
     ])
   ])
 })

@@ -152,6 +152,18 @@ const User = signal => ({
     }
   },
 
+  acceptEula: async () => {
+    return fetchOrchestration('api/profile/trial/userAgreement', _.merge(authOpts(), { signal, method: 'PUT' }))
+  },
+
+  startTrial: async () => {
+    return fetchOrchestration('api/profile/trial', _.merge(authOpts(), { signal, method: 'POST' }))
+  },
+
+  finalizeTrial: async () => {
+    return fetchOrchestration('api/profile/trial?operation=finalize', _.merge(authOpts(), { signal, method: 'POST' }))
+  },
+
   getProxyGroup: async email => {
     const res = await fetchOrchestration(`api/proxyGroup/${email}`, _.merge(authOpts(), { signal }))
     return res.json()
@@ -182,7 +194,7 @@ const User = signal => ({
   // 2. Check the tickets are generated on Zendesk
   // 3. Reply internally (as a Light Agent) and make sure an email is not sent
   // 4. Reply externally (ask one of the Comms team with Full Agent access) and make sure you receive an email
-  createSupportRequest: async ({ name, email, currUrl, subject, type, description }) => {
+  createSupportRequest: async ({ name, email, currUrl, subject, type, description, attachmentToken }) => {
     return fetchOk(
       `https://broadinstitute.zendesk.com/api/v2/requests.json`,
       _.merge({ signal, method: 'POST' }, jsonBody({
@@ -197,10 +209,22 @@ const User = signal => ({
             { id: 360012782111, value: email }
           ],
           comment: {
-            body: `${description}\n\n------------------\nSubmitted from: ${currUrl}`
+            body: `${description}\n\n------------------\nSubmitted from: ${currUrl}`,
+            uploads: [`${attachmentToken}`]
           }
         }
       })))
+  },
+
+  uploadAttachment: async file => {
+    const res = await fetch(`https://broadinstitute.zendesk.com/api/v2/uploads?filename=${file.name}`, {
+      method: 'POST',
+      body: file,
+      headers: {
+        'Content-Type': 'application/binary'
+      }
+    })
+    return (await res.json()).upload
   },
 
   lastNpsResponse: async () => {
@@ -223,11 +247,11 @@ const Groups = signal => ({
   group: groupName => {
     const root = `api/groups/${groupName}`
 
-    const addMember = async (role, email) => {
+    const addRole = async (role, email) => {
       return fetchOrchestration(`${root}/${role}/${email}`, _.merge(authOpts(), { signal, method: 'PUT' }))
     }
 
-    const removeMember = async (role, email) => {
+    const removeRole = async (role, email) => {
       return fetchOrchestration(`${root}/${role}/${email}`, _.merge(authOpts(), { signal, method: 'DELETE' }))
     }
 
@@ -245,14 +269,18 @@ const Groups = signal => ({
         return res.json()
       },
 
-      addMember,
+      addMember: async (roles, email) => {
+        return Promise.all(_.map(role => addRole(role, email), roles))
+      },
 
-      removeMember,
+      removeMember: async (roles, email) => {
+        return Promise.all(_.map(role => removeRole(role, email), roles))
+      },
 
-      changeMemberRole: async (email, oldRole, newRole) => {
-        if (oldRole !== newRole) {
-          await addMember(newRole, email)
-          return removeMember(oldRole, email)
+      changeMemberRoles: async (email, oldRoles, newRoles) => {
+        if (!_.isEqual(oldRoles, newRoles)) {
+          await Promise.all(_.map(role => addRole(role, email), _.difference(newRoles, oldRoles)))
+          return Promise.all(_.map(role => removeRole(role, email), _.difference(oldRoles, newRoles)))
         }
       }
     }
@@ -263,6 +291,10 @@ const Groups = signal => ({
 const Billing = signal => ({
   listProjects: async () => {
     const res = await fetchRawls('user/billing', _.merge(authOpts(), { signal }))
+    return res.json()
+  },
+  listProjectsExtended: async () => {
+    const res = await fetchSam('api/resources/v1/billing-project', _.merge(authOpts(), { signal }))
     return res.json()
   }
 })
@@ -613,8 +645,8 @@ const Methods = signal => ({
 
 
 const Jupyter = signal => ({
-  clustersList: async () => {
-    const res = await fetchLeo('api/clusters?saturnAutoCreated=true', _.mergeAll([authOpts(), appIdentifier, { signal }]))
+  clustersList: async project => {
+    const res = await fetchLeo(`api/clusters${project ? `/${project}` : ''}?saturnAutoCreated=true`, _.mergeAll([authOpts(), appIdentifier, { signal }]))
     return res.json()
   },
 
@@ -631,6 +663,7 @@ const Jupyter = signal => ({
               'saturn-iframe-extension':
                 `${window.location.hostname === 'localhost' ? getConfig().devUrlRoot : window.location.origin}/jupyter-iframe-extension.js`
             },
+            labExtensions: {},
             serverExtensions: {},
             combinedExtensions: {}
           }

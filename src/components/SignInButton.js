@@ -9,7 +9,8 @@ export default class SignInButton extends Component {
       'width': 250,
       'height': 56,
       'longtitle': true,
-      'theme': 'dark'
+      'theme': 'dark',
+      prompt: 'select_account'
     })
   }
 
