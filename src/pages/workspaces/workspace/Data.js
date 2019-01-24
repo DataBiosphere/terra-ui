@@ -553,12 +553,12 @@ const EntitiesContent = ajaxCaller(class EntitiesContent extends Component {
                       ]),
                       cellRenderer: ({ rowIndex }) => {
                         const dataInfo = entities[rowIndex].attributes[name]
-                        return h(Fragment, [
-                          (dataInfo && _.isArray(dataInfo.items)) ? linkButton({
+                        const dataCell = renderDataCell(Utils.entityAttributeText(dataInfo), namespace)
+                        return (dataInfo && _.isArray(dataInfo.items)) ?
+                          linkButton({
                             onClick: () => this.setState({ viewData: dataInfo })
                           },
-                          [renderDataCell(Utils.entityAttributeText(dataInfo), namespace)]) : renderDataCell(Utils.entityAttributeText(dataInfo), namespace)
-                        ])
+                          [dataCell]) : dataCell
                       }
                     }
                   }, _.filter('visible', columnSettings))
