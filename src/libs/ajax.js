@@ -215,6 +215,12 @@ const User = signal => ({
     return (await res.json()).upload
   },
 
+  firstTimestamp: async body => {
+    const res = await fetchRex('firstTimestamp', _.mergeAll([authOpts(), jsonBody({ body }), { signal, method: 'POST' }]))
+    console.log('ajax.js: called /firstTimestamp')
+    return res.json()
+  },
+
   lastNpsResponse: async () => {
     const res = await fetchRex('lastTimestamp', _.merge(authOpts(), { signal }))
     return res.json()
