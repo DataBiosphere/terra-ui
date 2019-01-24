@@ -235,7 +235,7 @@ class NotebookEditor extends Component {
           dismiss: { duration: 30000 },
           content: h(pushNotificationMessage, {
             title: 'Autosave occurs every 2 minutes',
-            content: 'JupyterLab autosaves every 2 min. Please remember to save your notebook before exiting the window.'
+            content: 'JupyterLab autosaves every 2 min. Please remember to save your notebook by clicking the save icon before exiting the window. JupyterLab is new in Terra. We are working to improve its integration. Please contact us with any questions or feedback you may have.'
           }),
           width: 375
         })
