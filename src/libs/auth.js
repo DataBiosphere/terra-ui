@@ -1,10 +1,11 @@
 import _ from 'lodash/fp'
 import * as md5 from 'md5'
+import { clearNotification, notify, sessionTimeoutProps } from 'src/components/Notifications'
 import { version } from 'src/data/clusters'
 import ProdWhitelist from 'src/data/prod-whitelist'
 import { Ajax } from 'src/libs/ajax'
 import { getConfig } from 'src/libs/config'
-import { clearErrorCode, reportError } from 'src/libs/error'
+import { reportError } from 'src/libs/error'
 import * as Utils from 'src/libs/utils'
 
 
@@ -94,7 +95,7 @@ window.forceSignIn = async token => {
 authStore.subscribe(async (state, oldState) => {
   if (!oldState.isSignedIn && state.isSignedIn) {
     const isTrustedEmail = _.includes(state.user.email.match(/@.*/)[0], ['@broadinstitute.org', '@verily.com', '@channing.harvard.edu'])
-    clearErrorCode('sessionTimeout')
+    clearNotification(sessionTimeoutProps.id)
     if (getConfig().isProd && !ProdWhitelist.includes(md5(state.user.email)) && !isTrustedEmail) {
       authStore.update(state => ({ ...state, registrationStatus: 'unlisted' }))
       return

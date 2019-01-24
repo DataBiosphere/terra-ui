@@ -4,7 +4,7 @@ import { a, b, div, h } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
 import { Clickable, MenuButton } from 'src/components/common'
 import { icon, logo, profilePic } from 'src/components/icons'
-import { pushNotification } from 'src/components/Notifications'
+import { notify } from 'src/components/Notifications'
 import SignInButton from 'src/components/SignInButton'
 import SupportRequestModal from 'src/components/SupportRequestModal'
 import { authStore, signOut } from 'src/libs/auth'
@@ -281,7 +281,7 @@ export default Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
         onDismiss: () => this.setState({ showingSupportModal: false }),
         onSuccess: () => {
           this.setState({ showingSupportModal: false })
-          pushNotification({ message: 'Message sent successfully' })
+          notify('success', 'Message sent successfully', { timeout: 3000 })
         }
       })
     ])
