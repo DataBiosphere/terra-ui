@@ -46,7 +46,14 @@ export const NpsSurvey = _.flow(
   }
 
   async loadStatus() {
+    console.log('in NpsSurvey.js')
     const lastResponse = (await Ajax().User.lastNpsResponse()).timestamp
+
+    const currTimestamp = new Date()
+    console.log('it is now: ' + currTimestamp)
+    const firstTimestamp = (await Ajax().User.firstTimestamp(currTimestamp))
+    console.log(firstTimestamp)
+
     const oneMonthAgo = _.tap(d => d.setDate(d.getMonth() - 1), new Date())
 
     this.setState({ requestable: !lastResponse || (new Date(lastResponse) < oneMonthAgo) })
