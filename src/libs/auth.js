@@ -93,9 +93,8 @@ window.forceSignIn = async token => {
 
 authStore.subscribe(async (state, oldState) => {
   if (!oldState.isSignedIn && state.isSignedIn) {
-    const isTrustedEmail = (state.user.email.match(/@.*/g) === '@broadinstitute.org') ||
-      (state.user.email.match(/@.*/g) === '@verily.com') ||
-      (state.user.email.match(/@.*/g) === '@channing.harvard.edu')
+    const userEmailString = state.user.email.match(/@.*/g).toString()
+    const isTrustedEmail = (userEmailString === '@broadinstitute.org') || (userEmailString === '@verily.com') || (userEmailString === '@channing.harvard.edu')
     clearErrorCode('sessionTimeout')
     if (getConfig().isProd && !ProdWhitelist.includes(md5(state.user.email)) && !isTrustedEmail) {
       authStore.update(state => ({ ...state, registrationStatus: 'unlisted' }))
