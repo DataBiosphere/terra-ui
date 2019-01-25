@@ -152,6 +152,18 @@ const User = signal => ({
     }
   },
 
+  acceptEula: async () => {
+    return fetchOrchestration('api/profile/trial/userAgreement', _.merge(authOpts(), { signal, method: 'PUT' }))
+  },
+
+  startTrial: async () => {
+    return fetchOrchestration('api/profile/trial', _.merge(authOpts(), { signal, method: 'POST' }))
+  },
+
+  finalizeTrial: async () => {
+    return fetchOrchestration('api/profile/trial?operation=finalize', _.merge(authOpts(), { signal, method: 'POST' }))
+  },
+
   getProxyGroup: async email => {
     const res = await fetchOrchestration(`api/proxyGroup/${email}`, _.merge(authOpts(), { signal }))
     return res.json()
@@ -633,8 +645,8 @@ const Methods = signal => ({
 
 
 const Jupyter = signal => ({
-  clustersList: async () => {
-    const res = await fetchLeo('api/clusters?saturnAutoCreated=true', _.mergeAll([authOpts(), appIdentifier, { signal }]))
+  clustersList: async project => {
+    const res = await fetchLeo(`api/clusters${project ? `/${project}` : ''}?saturnAutoCreated=true`, _.mergeAll([authOpts(), appIdentifier, { signal }]))
     return res.json()
   },
 
@@ -651,6 +663,7 @@ const Jupyter = signal => ({
               'saturn-iframe-extension':
                 `${window.location.hostname === 'localhost' ? getConfig().devUrlRoot : window.location.origin}/jupyter-iframe-extension.js`
             },
+            labExtensions: {},
             serverExtensions: {},
             combinedExtensions: {}
           }

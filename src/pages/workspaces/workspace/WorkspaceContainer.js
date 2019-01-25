@@ -222,7 +222,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
     async refreshClusters() {
       const { namespace, ajax: { Jupyter } } = this.props
       try {
-        const clusters = _.filter({ googleProject: namespace, creator: getUser().email }, await Jupyter.clustersList())
+        const clusters = _.filter({ creator: getUser().email }, await Jupyter.clustersList(namespace))
         this.setState({ clusters })
       } catch (error) {
         reportError('Error loading clusters', error)

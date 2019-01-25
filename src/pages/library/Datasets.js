@@ -108,22 +108,13 @@ class Participant extends Component {
 const browseTooltip = 'Look for the Export to Terra icon to export data from this provider.'
 
 
-const NIHCommonsButtons = h(Fragment, [
-  buttonPrimary({
-    style: { margin: '0.25rem 0' },
-    as: 'a',
-    href: 'https://dcp.bionimbus.org/',
-    target: '_blank',
-    tooltip: browseTooltip
-  }, ['Browse Data via Windmill']),
-  buttonPrimary({
-    style: { margin: '0.25rem 0' },
-    as: 'a',
-    href: 'https://commons.ucsc-cgp.org/boardwalk',
-    target: '_blank',
-    tooltip: browseTooltip
-  }, ['Browse Data via Boardwalk'])
-])
+const NIHCommonsButtons = buttonPrimary({
+  style: { margin: '0.25rem 0' },
+  as: 'a',
+  href: 'https://dcp.bionimbus.org/',
+  target: '_blank',
+  tooltip: browseTooltip
+}, ['Browse Data via Windmill'])
 
 
 const encode = h(Participant, {
