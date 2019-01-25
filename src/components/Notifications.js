@@ -38,11 +38,19 @@ const notificationsRef = createRef()
 
 const defaultId = n => !!n.timeout ? uuid() : `${n.type || 'info'}-${n.title}`
 
+const makeNotification = props => {
+  const { id = defaultId(props) } = props
+  return { ...props, id }
+}
+
 export const notify = async (type, title, props) => {
-  const notification = { type, title, ...props }
-  const { id = defaultId(notification) } = notification
-  notificationStore.update(state => _.concat(state, [{ ...notification, id }]))
-  return id
+  const notification = makeNotification({ type, title, ...props })
+  const visibleNotificationIds = _.map('id', notificationStore.get())
+  notificationStore.update(state => _.concat(state, [notification]))
+  if (!_.includes(notification.id, visibleNotificationIds)) {
+    showNotification(notification)
+  }
+  return notification.id
 }
 
 export const clearNotification = id => notificationsRef.current.removeNotification(id)
@@ -137,9 +145,8 @@ const NotificationDisplay = Utils.connectAtom(notificationStore, 'notificationSt
 })
 
 const refreshPage = () => {
-  notificationStore.set([])
   StateHistory.clearCurrent()
-  // document.location.reload()
+  document.location.reload()
 }
 
 const showNotification = ({ id, timeout }) => {
@@ -155,12 +162,6 @@ const showNotification = ({ id, timeout }) => {
 }
 
 class Notifications extends Component {
-  static getDerivedStateFromProps({ notificationState }, { visibleNotifications = [] }) {
-    const newNotifications = _.reject(n => _.some(v => n.id === v, visibleNotifications), notificationState)
-    _.forEach(n => showNotification(n), newNotifications)
-    return { visibleNotifications: _.map('id', notificationState) }
-  }
-
   render() {
     return h(ReactNotification, {
       ref: notificationsRef,
