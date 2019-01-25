@@ -617,7 +617,7 @@ const EntitiesContent = ajaxCaller(class EntitiesContent extends Component {
         showButtons: false,
         showX: true,
         onDismiss: () => this.setState({ viewData: undefined })
-      }, [div({style: {maxHeight: '80vh', overflowY: 'auto'} }, [this.displayData(viewData)])]),
+      }, [div({ style: { maxHeight: '80vh', overflowY: 'auto' } }, [this.displayData(viewData)])]),
       loading && spinnerOverlay
     ])
   }
