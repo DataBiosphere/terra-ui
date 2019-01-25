@@ -49,31 +49,26 @@ const messages =
     }
   }
 
-export class renderFreeCreditModal extends Component {
+export class FreeCreditsModal extends Component {
   constructor(props) {
     super(props)
     this.state = {
       pageTwo: false,
       termsAgreed: false,
-      cloudTermsAgreed: false,
-      accessingCredits: true
+      cloudTermsAgreed: false
     }
   }
 
   render() {
-    const { pageTwo, termsAgreed, cloudTermsAgreed, accessingCredits } = this.state
-    return accessingCredits && h(Modal, {
+    const { onDismiss, onSuccess } = this.props
+    const { pageTwo, termsAgreed, cloudTermsAgreed } = this.state
+    console.log(onDismiss)
+    return h(Modal, {
+      onDismiss,
       title: 'Welcome to the Terra Free Credit Program!',
       width: '65%',
-      onDismiss: () => this.setState({
-        accessingCredits: false,
-        pageTwo: false
-      }),
       okButton: pageTwo ? buttonPrimary({
-        onClick: async () => {
-          this.acceptCredits()
-          this.setState({ accessingCredits: false })
-        },
+        onClick: onSuccess,
         disabled: (termsAgreed === false) || (cloudTermsAgreed === false),
         tooltip: ((termsAgreed === false) || (cloudTermsAgreed === false)) && 'You must check the boxes to accept.'
       }, ['Accept']) : buttonPrimary({
@@ -142,7 +137,6 @@ export const TrialBanner = _.flow(
     const { trialState } = profile
     if (!trialState || !isSignedIn || trialState === 'Finalized' || snoozeBanner) return null
     const { [trialState]: { title, message, enabledLink, button, isWarning } } = messages
-
     return div([
       div({
         style: {
@@ -188,7 +182,9 @@ export const TrialBanner = _.flow(
           }, [icon('times-circle', { size: 25, style: { fontSize: '1.5rem', cursor: 'pointer' } })])
         ])
       ]),
-      openFreeCreditsModal && h(renderFreeCreditModal),
+      openFreeCreditsModal && h(FreeCreditsModal, {
+        onDismiss: () => this.setState({ openFreeCreditsModal: false })
+      }),
       finalizeTrial && h(Modal, {
         title: 'Remove banner',
         onDismiss: () => this.setState({ finalizeTrial: false }),
