@@ -49,11 +49,11 @@ export const NpsSurvey = _.flow(
     const lastResponse = await Ajax().User.lastNpsResponse()
 
     const currTime = new Date()
-    const currTime_Hr = Date.parse(currTime)/3600000
+    const currTimeHours = Date.parse(currTime)/3600000
 
     const askTheUser = lastResponse
-      ? currTime_Hr - new Date(lastResponse).getTime()/3600000 >= 168
-      : currTime_Hr - Date.parse(await Ajax().User.firstTimestamp(currTime))/3600000 >= 24
+      ? currTimeHours - new Date(lastResponse).getTime()/3600000 >= 168
+      : currTimeHours - Date.parse(await Ajax().User.firstTimestamp(currTime))/3600000 >= 24
 
     this.setState({ requestable: askTheUser })
   }
