@@ -46,17 +46,16 @@ export const NpsSurvey = _.flow(
   }
 
   async loadStatus() {
-    console.log('in NpsSurvey.js')
-    const lastResponse = (await Ajax().User.lastNpsResponse()).timestamp
+    const lastResponse = await Ajax().User.lastNpsResponse()
 
-    const currTimestamp = new Date()
-    console.log('it is now: ' + currTimestamp)
-    const firstTimestamp = (await Ajax().User.firstTimestamp(currTimestamp))
-    console.log(firstTimestamp)
+    const currTime = new Date()
+    const currTime_Hr = Date.parse(currTime)/3600000
 
-    const oneMonthAgo = _.tap(d => d.setDate(d.getMonth() - 1), new Date())
+    const askTheUser = lastResponse
+      ? currTime_Hr - new Date(lastResponse).getTime()/3600000 >= 168
+      : currTime_Hr - Date.parse(await Ajax().User.firstTimestamp(currTime))/3600000 >= 24
 
-    this.setState({ requestable: !lastResponse || (new Date(lastResponse) < oneMonthAgo) })
+    this.setState({ requestable: askTheUser })
   }
 
   render() {
