@@ -28,8 +28,7 @@ const defaultNotificationProps = {
 
 export const sessionTimeoutProps = {
   id: 'sessionTimeout',
-  detail: 'You have been signed out due to inactivity',
-  type: 'info'
+  detail: 'You have been signed out due to inactivity'
 }
 
 const notificationStore = Utils.atom([])
@@ -43,7 +42,7 @@ const makeNotification = props => {
   return { ...props, id }
 }
 
-export const notify = async (type, title, props) => {
+export const notify = (type, title, props) => {
   const notification = makeNotification({ type, title, ...props })
   const visibleNotificationIds = _.map('id', notificationStore.get())
   notificationStore.update(state => _.concat(state, [notification]))
