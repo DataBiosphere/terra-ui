@@ -3,7 +3,7 @@ import PropTypes from 'prop-types'
 import { a, b, div, h } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
 import { Clickable, MenuButton } from 'src/components/common'
-import { icon, logo, profilePic } from 'src/components/icons'
+import { icon, logo, profilePic, spinner } from 'src/components/icons'
 import { pushNotification } from 'src/components/Notifications'
 import SignInButton from 'src/components/SignInButton'
 import SupportRequestModal from 'src/components/SupportRequestModal'
@@ -13,6 +13,7 @@ import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
+import { TrialBanner } from 'src/components/TrialBanner'
 
 
 const styles = {
@@ -180,6 +181,18 @@ export default Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
               'Contact Us'
             ])
           ]),
+          div({ style: { marginTop: '1rem'}}, [
+            'Sign up for $300 in free cloud credits',
+            h(Clickable, {
+              style: {
+                fontWeight: 500, fontSize: '1.125rem', border: '2px solid', borderRadius: '0.25rem', padding: '0.5rem 1rem',
+                marginLeft: '0.5rem', flexShrink: 0
+              },
+              onClick: () => {
+                this.setState({ accessingCredits: true })
+              }
+            }, ['Start Trial'])
+          ]),
           div({
             style: {
               ..._.omit('borderBottom', styles.nav.item), marginTop: 'auto',
@@ -254,7 +267,7 @@ export default Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
 
   render() {
     const { title, href, children } = this.props
-    const { navShown, showingSupportModal } = this.state
+    const { navShown, showingSupportModal, accessingCredits } = this.state
 
     return div({ style: styles.topBar }, [
       icon('bars', {
@@ -283,7 +296,8 @@ export default Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
           this.setState({ showingSupportModal: false })
           pushNotification({ message: 'Message sent successfully' })
         }
-      })
+      }),
+      accessingCredits && TrialBanner.renderFreeCreditModal()
     ])
   }
 })

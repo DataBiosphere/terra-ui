@@ -49,28 +49,26 @@ const messages =
     }
   }
 
-export const TrialBanner = _.flow(
-  ajaxCaller,
-  Utils.connectAtom(authStore, 'authState')
-)(class TrialBanner extends Component {
+export class renderFreeCreditModal extends Component {
   constructor(props) {
     super(props)
     this.state = {
-      accessingCredits: false,
       pageTwo: false,
       termsAgreed: false,
       cloudTermsAgreed: false,
-      finalizeTrial: false,
-      snoozeBanner: false
+      accessingCredits: true
     }
   }
 
-  renderFreeCreditModal = () => {
-    const { pageTwo, termsAgreed, cloudTermsAgreed } = this.state
-    return h(Modal, {
+  render() {
+    const { pageTwo, termsAgreed, cloudTermsAgreed, accessingCredits } = this.state
+    return accessingCredits && h(Modal, {
       title: 'Welcome to the Terra Free Credit Program!',
       width: '65%',
-      onDismiss: () => this.setState({ accessingCredits: false, pageTwo: false }),
+      onDismiss: () => this.setState({
+        accessingCredits: false,
+        pageTwo: false
+      }),
       okButton: pageTwo ? buttonPrimary({
         onClick: async () => {
           this.acceptCredits()
@@ -85,14 +83,23 @@ export const TrialBanner = _.flow(
       h(FreeTrialEulas, { pageTwo }),
       pageTwo && div({
         style: {
-          marginTop: '0.5rem', padding: '1rem', border: `1px solid ${colors.blue[0]}`, borderRadius: '0.25rem', backgroundColor: '#f4f4f4'
+          marginTop: '0.5rem',
+          padding: '1rem',
+          border: `1px solid ${colors.blue[0]}`,
+          borderRadius: '0.25rem',
+          backgroundColor: '#f4f4f4'
         }
       }, [
         h(LabeledCheckbox, {
           checked: termsAgreed === true,
           onChange: v => this.setState({ termsAgreed: v })
         }, [span({ style: { marginLeft: '0.5rem' } }, ['I agree to the terms of this Agreement.'])]),
-        div({ style: { flexGrow: 1, marginBottom: '0.5rem' } }),
+        div({
+          style: {
+            flexGrow: 1,
+            marginBottom: '0.5rem'
+          }
+        }),
         h(LabeledCheckbox, {
           checked: cloudTermsAgreed === true,
           onChange: v => this.setState({ cloudTermsAgreed: v })
@@ -101,7 +108,10 @@ export const TrialBanner = _.flow(
             'I agree to the Google Cloud Terms of Service.', div({ style: { marginLeft: '1.5rem' } }, [
               'Google Cloud Terms of Service:',
               a({
-                style: { textDecoration: 'underline', marginLeft: '0.25rem' },
+                style: {
+                  textDecoration: 'underline',
+                  marginLeft: '0.25rem'
+                },
                 target: '_blank',
                 href: 'https://cloud.google.com/terms/'
               }, ['https://cloud.google.com/terms/', icon('pop-out', { style: { marginLeft: '0.25rem' } })])
@@ -111,10 +121,24 @@ export const TrialBanner = _.flow(
       ])
     ])
   }
+}
+
+export const TrialBanner = _.flow(
+  ajaxCaller,
+  Utils.connectAtom(authStore, 'authState')
+)(class TrialBanner extends Component {
+  constructor(props) {
+    super(props)
+    this.state = {
+      openFreeCreditsModal: false,
+      finalizeTrial: false,
+      snoozeBanner: false
+    }
+  }
 
   render() {
     const { authState: { isSignedIn, profile }, ajax: { User } } = _.omit('isVisible', this.props)
-    const { accessingCredits, loading, finalizeTrial, snoozeBanner } = this.state
+    const { loading, finalizeTrial, snoozeBanner, openFreeCreditsModal } = this.state
     const { trialState } = profile
     if (!trialState || !isSignedIn || trialState === 'Finalized' || snoozeBanner) return null
     const { [trialState]: { title, message, enabledLink, button, isWarning } } = messages
@@ -150,7 +174,7 @@ export const TrialBanner = _.flow(
             marginLeft: '0.5rem', flexShrink: 0
           },
           onClick: () => {
-            button.isExternal ? window.open(button.url, '_blank') : this.setState({ accessingCredits: true })
+            button.isExternal ? window.open(button.url, '_blank') : this.setState({ openFreeCreditsModal: true })
           }
         }, [
           loading ? spinner({ style: { fontSize: '1rem', color: 'white' } }) : button.label,
@@ -164,7 +188,7 @@ export const TrialBanner = _.flow(
           }, [icon('times-circle', { size: 25, style: { fontSize: '1.5rem', cursor: 'pointer' } })])
         ])
       ]),
-      accessingCredits && this.renderFreeCreditModal(),
+      openFreeCreditsModal && h(renderFreeCreditModal),
       finalizeTrial && h(Modal, {
         title: 'Remove banner',
         onDismiss: () => this.setState({ finalizeTrial: false }),
