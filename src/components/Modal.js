@@ -61,7 +61,7 @@ export default class Modal extends Component {
       style: { overlay: styles.overlay, content: { ...styles.modal, width } },
       ariaHideApp: false
     }, [
-      title && div({ style: { display: 'flex', alignItems: 'baseline', marginBottom: '1rem' } }, [
+      title && div({ style: { display: 'flex', alignItems: 'baseline', marginBottom: '1rem', flex: 'none' } }, [
         div({ style: { fontSize: 18, fontWeight: 'bold', color: colors.darkBlue[0] } }, [title]),
         titleExtras,
         showX && h(Clickable, {
