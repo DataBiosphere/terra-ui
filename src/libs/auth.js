@@ -93,8 +93,9 @@ window.forceSignIn = async token => {
 
 authStore.subscribe(async (state, oldState) => {
   if (!oldState.isSignedIn && state.isSignedIn) {
+    const isTrustedEmail = _.includes(state.user.email.match(/@.*/)[0], ['@broadinstitute.org', '@verily.com', '@channing.harvard.edu'])
     clearErrorCode('sessionTimeout')
-    if (getConfig().isProd && !ProdWhitelist.includes(md5(state.user.email))) {
+    if (getConfig().isProd && !ProdWhitelist.includes(md5(state.user.email)) && !isTrustedEmail) {
       authStore.update(state => ({ ...state, registrationStatus: 'unlisted' }))
       return
     }
