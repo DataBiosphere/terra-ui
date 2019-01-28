@@ -169,33 +169,33 @@ export default Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
             librarySubItem('library-showcase', 'grid-chart', 'Showcase & Tutorials'),
             librarySubItem('library-code', 'tools', 'Code & Tools')
           ]),
-          div({ style: { marginTop: '1rem' } }, [
-            h(Clickable, {
-              style: { ...styles.nav.item, borderBottom: 'none', height: 50 },
-              hover: { backgroundColor: colors.darkBlue[1] },
-              onClick: () => this.setState({ showingSupportModal: true })
-            }, [
-              div({ style: styles.nav.icon }, [
-                icon('envelope', { className: 'is-solid', size: 20 })
-              ]),
-              'Contact Us'
-            ])
+          h(Clickable, {
+            style: styles.nav.item,
+            hover: { backgroundColor: colors.darkBlue[1] },
+            onClick: () => this.setState({ showingSupportModal: true })
+          }, [
+            div({ style: styles.nav.icon }, [
+              icon('envelope', { className: 'is-solid', size: 20 })
+            ]),
+            'Contact Us'
           ]),
-          div({ style: { marginTop: '1rem' } }, [
-            'Sign up for $300 in free cloud credits',
-            h(Clickable, {
-              style: {
-                fontWeight: 500, fontSize: '1.125rem', border: '2px solid', borderRadius: '0.25rem', padding: '0.5rem 1rem',
-                marginLeft: '0.5rem', flexShrink: 0
-              },
-              onClick: () => {
-                this.setState({ openFreeCreditsModal: true })
-              }
-            }, ['Start Trial'])
+          h(Clickable, {
+            style: {
+              ...styles.nav.item,
+              borderBottom: 'none'
+            },
+            hover: { backgroundColor: colors.darkBlue[1] },
+            onClick: () => this.setState({ openFreeCreditsModal: true })
+          }, [
+            div({ style: styles.nav.icon }, [
+              icon('cloud', { className: 'is-solid', size: 20 })
+            ]),
+            'Sign up for $300 in free cloud credits'
           ]),
           div({
             style: {
-              ..._.omit('borderBottom', styles.nav.item), marginTop: 'auto',
+              ..._.omit('borderBottom', styles.nav.item),
+              marginTop: 'auto',
               color: colors.darkBlue[2],
               fontSize: 10
             }

@@ -60,15 +60,17 @@ export class FreeCreditsModal extends Component {
   }
 
   render() {
-    const { onDismiss, onSuccess } = this.props
+    const { onDismiss } = this.props
     const { pageTwo, termsAgreed, cloudTermsAgreed } = this.state
-    console.log(onDismiss)
     return h(Modal, {
       onDismiss,
       title: 'Welcome to the Terra Free Credit Program!',
       width: '65%',
       okButton: pageTwo ? buttonPrimary({
-        onClick: onSuccess,
+        onClick: async () => {
+          this.acceptCredits()
+          onDismiss()
+        },
         disabled: (termsAgreed === false) || (cloudTermsAgreed === false),
         tooltip: ((termsAgreed === false) || (cloudTermsAgreed === false)) && 'You must check the boxes to accept.'
       }, ['Accept']) : buttonPrimary({
@@ -115,6 +117,20 @@ export class FreeCreditsModal extends Component {
         ])
       ])
     ])
+  }
+
+  async acceptCredits() {
+    const { ajax: { User } } = this.props
+    try {
+      this.setState({ loading: true })
+      await User.acceptEula()
+      await User.startTrial()
+      await refreshTerraProfile()
+    } catch (error) {
+      reportError('Error starting trial', error)
+    } finally {
+      this.setState({ loading: false })
+    }
   }
 }
 
@@ -199,19 +215,5 @@ export const TrialBanner = _.flow(
         }, ['Confirm'])
       }, ['Click confirm to remove banner forever.'])
     ])
-  }
-
-  async acceptCredits() {
-    const { ajax: { User } } = this.props
-    try {
-      this.setState({ loading: true })
-      await User.acceptEula()
-      await User.startTrial()
-      await refreshTerraProfile()
-    } catch (error) {
-      reportError('Error starting trial', error)
-    } finally {
-      this.setState({ loading: false })
-    }
   }
 })
