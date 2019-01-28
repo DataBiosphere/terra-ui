@@ -4,7 +4,7 @@ import { div, h, iframe } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { linkButton, spinnerOverlay, link } from 'src/components/common'
 import { icon, spinner } from 'src/components/icons'
-import { pushNotification } from 'src/components/Notifications'
+import { notify } from 'src/components/Notifications'
 import * as NpsSurvey from 'src/components/NpsSurvey'
 import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
@@ -131,18 +131,6 @@ class NotebookViewer extends Component {
   }
 }
 
-class pushNotificationMessage extends Component {
-  render() {
-    const { title, content } = this.props
-    return div({ style: { backgroundColor: colors.orange[0], color: 'white', padding: '1.3rem', borderRadius: '0.3rem' } }, [
-      div({ style: { position: 'absolute', left: '22rem', top: 5 } }, [icon('times', { size: 18 })]),
-      div({ style: { fontSize: 16, fontWeight: 'bold' } },
-        [title]),
-      div({ style: { fontSize: 14 } }, [content])
-    ])
-  }
-}
-
 class NotebookEditor extends Component {
   saveNotebook() {
     this.notebookFrame.current.contentWindow.postMessage('save', '*')
@@ -204,15 +192,9 @@ class NotebookEditor extends Component {
       const tenMinutesAgo = _.tap(d => d.setMinutes(d.getMinutes() - 10), new Date())
       const isRecent = new Date(updated) > tenMinutesAgo
       if (isRecent) {
-        pushNotification({
-          type: 'warning',
-          dismissable: { click: true },
-          dismiss: { duration: 30000 },
-          content: h(pushNotificationMessage, {
-            title: 'This notebook has been edited recently',
-            content: 'If you recently edited this notebook, disregard this message. If another user is editing this notebook, your changes may be lost.'
-          }),
-          width: 375
+        notify('warn', 'This notebook has been edited recently', {
+          message: 'If you recently edited this notebook, disregard this message. If another user is editing this notebook, your changes may be lost.',
+          timeout: 30000
         })
       }
 
@@ -229,15 +211,9 @@ class NotebookEditor extends Component {
       const { name: workspaceName, app } = this.props
       if (app === 'lab') {
         this.setState({ url: `${clusterUrl}/${app}/tree/${workspaceName}/${notebookName}` })
-        pushNotification({
-          type: 'warning',
-          dismissable: { click: true },
-          dismiss: { duration: 30000 },
-          content: h(pushNotificationMessage, {
-            title: 'Autosave occurs every 2 minutes',
-            content: 'Please remember to save your notebook by clicking the save icon before exiting the window. JupyterLab is new in Terra. We are working to improve its integration. Please contact us with any questions or feedback you may have.'
-          }),
-          width: 375
+        notify('warn', 'Autosave occurs every 2 minutes', {
+          message: 'Please remember to save your notebook by clicking the save icon before exiting the window. JupyterLab is new in Terra. We are working to improve its integration. Please contact us with any questions or feedback you may have.',
+          timeout: 30000
         })
       } else this.setState({ url: `${clusterUrl}/notebooks/${workspaceName}/${notebookName}` })
     } catch (error) {
