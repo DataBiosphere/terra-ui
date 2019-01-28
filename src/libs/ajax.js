@@ -104,7 +104,7 @@ const fetchOrchestration = async (path, options) => {
 }
 
 const fetchRex = async (path, options) => {
-  return fetchOk(`${getConfig().rexUrlRoot}/api/npsResponses/${path}`, options)
+  return fetchOk(`${getConfig().rexUrlRoot}/api/${path}`, options)
 }
 
 
@@ -215,18 +215,18 @@ const User = signal => ({
     return (await res.json()).upload
   },
 
-  firstTimestamp: async body => {
-    const res = await fetchRex('firstTimestamp', _.mergeAll([authOpts(), jsonBody({ body }), { signal, method: 'POST' }]))
+  firstTimestamp: async () => {
+    const res = await fetchRex('firstTimestamps/record', _.mergeAll([authOpts(), { signal, method: 'POST' }]))
     return res.text()
   },
 
   lastNpsResponse: async () => {
-    const res = await fetchRex('lastTimestamp', _.merge(authOpts(), { signal }))
+    const res = await fetchRex('npsResponses/lastTimestamp', _.merge(authOpts(), { signal }))
     return res.text()
   },
 
   postNpsResponse: async body => {
-    return fetchRex('create', _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }]))
+    return fetchRex('npsResponses/create', _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }]))
   }
 })
 
