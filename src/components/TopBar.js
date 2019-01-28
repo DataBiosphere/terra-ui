@@ -2,13 +2,16 @@ import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
 import { a, b, div, h } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
-import { Clickable, MenuButton } from 'src/components/common'
+import { buttonPrimary, Clickable, MenuButton } from 'src/components/common'
 import { icon, logo, profilePic } from 'src/components/icons'
+import Modal from 'src/components/Modal'
 import { pushNotification } from 'src/components/Notifications'
 import SignInButton from 'src/components/SignInButton'
 import SupportRequestModal from 'src/components/SupportRequestModal'
+import { ajaxCaller } from 'src/libs/ajax'
 import { authStore, signOut } from 'src/libs/auth'
 import colors from 'src/libs/colors'
+import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -77,7 +80,10 @@ const betaTag = b({
   }
 }, 'BETA')
 
-export default Utils.connectAtom(authStore, 'authState')(class TopBar extends Component {
+export default _.flow(
+  ajaxCaller,
+  Utils.connectAtom(authStore, 'authState')
+)(class TopBar extends Component {
   static propTypes = {
     title: PropTypes.node,
     href: PropTypes.string, // link destination
@@ -98,7 +104,8 @@ export default Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
   }
 
   buildNav() {
-    const { authState: { isSignedIn } } = this.props
+    const { authState: { isSignedIn, profile } } = this.props
+    const { trialState } = profile
 
     const librarySubItem = (linkName, iconName, label) => h(Clickable, {
       style: styles.nav.subItem,
@@ -108,10 +115,69 @@ export default Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
       onClick: () => this.hideNav()
     }, [
       div({ style: styles.nav.icon }, [
-        icon(iconName, { className: 'is-solid', size: 24 })
+        icon(iconName, {
+          className: 'is-solid',
+          size: 24
+        })
       ]),
       label
     ])
+
+    const enabledCredits = h(Clickable, {
+      style: {
+        ...styles.nav.item,
+        borderBottom: 'none'
+      },
+      hover: { backgroundColor: colors.darkBlue[1] },
+      onClick: () => this.setState({ openFreeCreditsModal: true })
+    }, [
+      div({ style: styles.nav.icon }, [
+        icon('cloud', {
+          className: 'is-solid',
+          size: 20
+        })
+      ]),
+      'Sign up for $300 in free cloud credits'
+    ])
+
+    const enrolledCredits = h(Clickable, {
+      style: {
+        ...styles.nav.item,
+        borderBottom: 'none'
+      },
+      as: 'a',
+      hover: { backgroundColor: colors.darkBlue[1] },
+      href: 'https://software.broadinstitute.org/firecloud/documentation/freecredits',
+      target: '_blank',
+      onClick: () => this.hideNav()
+    }, [
+      div({ style: styles.nav.icon }, [
+        icon('cloud', {
+          className: 'is-solid',
+          size: 20
+        })
+      ]),
+      'You are accessing your free cloud credits',
+      icon('pop-out', { size: 20 })
+    ])
+
+    const terminatedCredits = h(Clickable, {
+      style: {
+        ...styles.nav.item,
+        borderBottom: 'none'
+      },
+      hover: { backgroundColor: colors.darkBlue[1] },
+      onClick: () => this.setState({ finalizeTrial: true })
+    }, [
+      div({ style: styles.nav.icon }, [
+        icon('cloud', {
+          className: 'is-solid',
+          size: 20
+        })
+      ]),
+      'Your free trial has ended'
+    ])
+
     return div({
       style: styles.nav.background,
       onClick: () => {
@@ -179,19 +245,9 @@ export default Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
             ]),
             'Contact Us'
           ]),
-          h(Clickable, {
-            style: {
-              ...styles.nav.item,
-              borderBottom: 'none'
-            },
-            hover: { backgroundColor: colors.darkBlue[1] },
-            onClick: () => this.setState({ openFreeCreditsModal: true })
-          }, [
-            div({ style: styles.nav.icon }, [
-              icon('cloud', { className: 'is-solid', size: 20 })
-            ]),
-            'Sign up for $300 in free cloud credits'
-          ]),
+          (trialState === 'Enabled') && enabledCredits,
+          (trialState === 'Enrolled') && enrolledCredits,
+          (trialState === 'Terminated') && terminatedCredits,
           div({
             style: {
               ..._.omit('borderBottom', styles.nav.item),
@@ -266,8 +322,8 @@ export default Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
   }
 
   render() {
-    const { title, href, children } = this.props
-    const { navShown, showingSupportModal, openFreeCreditsModal } = this.state
+    const { title, href, children, ajax: { User } } = this.props
+    const { navShown, showingSupportModal, openFreeCreditsModal, finalizeTrial } = this.state
 
     return div({ style: styles.topBar }, [
       icon('bars', {
@@ -299,7 +355,20 @@ export default Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
       }),
       openFreeCreditsModal && h(FreeCreditsModal, {
         onDismiss: () => this.setState({ openFreeCreditsModal: false })
-      })
+      }),
+      finalizeTrial && h(Modal, {
+        title: 'Remove button',
+        onDismiss: () => this.setState({ finalizeTrial: false }),
+        okButton: buttonPrimary({
+          onClick: async () => {
+            try {
+              await User.finalizeTrial()
+            } catch (error) {
+              reportError('Error finalizing trial', error)
+            }
+          }
+        }, ['Confirm'])
+      }, ['Click confirm to remove button forever.'])
     ])
   }
 })

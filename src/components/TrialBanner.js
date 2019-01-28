@@ -122,14 +122,14 @@ export class FreeCreditsModal extends Component {
   async acceptCredits() {
     const { ajax: { User } } = this.props
     try {
-      this.setState({ loading: true })
+      //this.setState({ loading: true })
       await User.acceptEula()
       await User.startTrial()
       await refreshTerraProfile()
     } catch (error) {
       reportError('Error starting trial', error)
     } finally {
-      this.setState({ loading: false })
+      //this.setState({ loading: false })
     }
   }
 }
