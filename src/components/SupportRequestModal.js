@@ -1,19 +1,22 @@
+import _ from 'lodash/fp'
 import { createRef, Fragment } from 'react'
 import Dropzone from 'react-dropzone'
 import { div, h, span } from 'react-hyperscript-helpers'
-import { Clickable, buttonPrimary, Select, spinnerOverlay, link, linkButton } from 'src/components/common'
+import { Clickable, buttonPrimary, Select, spinnerOverlay, link, linkButton, buttonSecondary } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { TextArea, textInput } from 'src/components/input'
-import Modal from 'src/components/Modal'
 import { Ajax } from 'src/libs/ajax'
 import { authStore } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import * as Forms from 'src/libs/forms'
+import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 import validate from 'validate.js'
 
+
+export const contactUsActive = Utils.atom(false)
 
 const constraints = {
   name: { presence: { allowEmpty: false } },
@@ -22,18 +25,38 @@ const constraints = {
   email: { email: true, presence: { allowEmpty: false } }
 }
 
+const styles = {
+  buttonRow: {
+    marginTop: '1rem',
+    display: 'flex', justifyContent: 'flex-end', alignItems: 'baseline'
+  }
+}
+
 // If you are making changes to the Support Request Modal, make sure you test the following:
 // 1. Submit a ticket via Terra while signed in and signed out
 // 2. Check the tickets are generated on Zendesk
 // 3. Reply internally (as a Light Agent) and make sure an email is not sent
 // 4. Reply externally (ask one of the Comms team with Full Agent access) and make sure you receive an email
 
-const SupportRequestModal = Utils.connectAtom(authStore, 'authState')(class SupportRequestModal extends Component {
+const SupportRequestModal = _.flow(
+  Utils.connectAtom(contactUsActive, 'isActive'),
+  Utils.connectAtom(authStore, 'authState')
+)(class SupportRequestModal extends Component {
   constructor(props) {
     super(props)
-    const { contactEmail, email } = props.authState.profile
+    this.state = this.initialFormState()
+    this.uploader = createRef()
+  }
 
-    this.state = {
+  componentDidUpdate(prevProps) {
+    if (!prevProps.isActive && this.props.isActive) {
+      this.setState(this.initialFormState())
+    }
+  }
+
+  initialFormState() {
+    const { authState: { profile: { contactEmail, email } } } = this.props
+    return {
       subject: '',
       description: '',
       type: 'question',
@@ -43,7 +66,6 @@ const SupportRequestModal = Utils.connectAtom(authStore, 'authState')(class Supp
       uploadingFile: false,
       attachmentName: ''
     }
-    this.uploader = createRef()
   }
 
   hasName() {
@@ -79,104 +101,119 @@ const SupportRequestModal = Utils.connectAtom(authStore, 'authState')(class Supp
   }
 
   render() {
-    const { onDismiss, authState: { profile: { firstName } } } = this.props
+    const { isActive, authState: { profile: { firstName } } } = this.props
     const { submitting, submitError, subject, description, type, email, nameEntered, uploadingFile, attachmentToken, dragging, attachmentName } = this.state
     const greetUser = this.hasName() ? `, ${firstName}` : ''
     const errors = validate(this.getRequest(), constraints)
 
-    return h(Dropzone, {
-      maxSize: 20 * 1024 * 1024,
-      disableClick: true,
-      multiple: false,
-      style: { flexGrow: 1 },
-      activeStyle: { cursor: 'copy' },
-      onDragOver: () => this.setState({ dragging: true }),
-      onDrop: () => this.setState({ dragging: false }),
-      onDragLeave: () => this.setState({ dragging: false }),
-      ref: this.uploader,
-      onDropRejected: e => reportError('Error uploading attachment', e),
-      onDropAccepted: files => this.uploadFile(files)
+    return isActive && div({
+      style: {
+        position: 'fixed', bottom: '1.5rem', right: '1.5rem',
+        backgroundColor: 'white',
+        borderRadius: '0.5rem',
+        width: 450,
+        boxShadow: Style.modalShadow,
+        zIndex: 2
+      }
     }, [
-      h(Modal, {
-        onDismiss,
-        title: 'Contact Us',
-        okButton: buttonPrimary({
-          disabled: errors,
-          tooltip: Utils.summarizeErrors(errors),
-          onClick: () => this.submit()
-        }, ['SEND'])
+      h(Dropzone, {
+        maxSize: 20 * 1024 * 1024,
+        disableClick: true,
+        multiple: false,
+        style: { flexGrow: 1 },
+        activeStyle: { cursor: 'copy' },
+        onDragOver: () => this.setState({ dragging: true }),
+        onDrop: () => this.setState({ dragging: false }),
+        onDragLeave: () => this.setState({ dragging: false }),
+        ref: this.uploader,
+        onDropRejected: e => reportError('Error uploading attachment', e),
+        onDropAccepted: files => this.uploadFile(files)
       }, [
-        !this.hasName() && h(Fragment, [
-          Forms.requiredFormLabel('Name'),
+        div({ style: { padding: '1rem' } }, [
+          div({ style: { fontSize: 18, fontWeight: 'bold', color: colors.darkBlue[0] } }, ['Contact Us']),
+          !this.hasName() && h(Fragment, [
+            Forms.requiredFormLabel('Name'),
+            textInput({
+              placeholder: 'What should we call you?',
+              autoFocus: true,
+              value: nameEntered,
+              onChange: e => this.setState({ nameEntered: e.target.value })
+            })
+          ]),
+          Forms.requiredFormLabel('Type'),
+          h(Select, {
+            isMulti: false,
+            value: type,
+            onChange: ({ value }) => this.setState({ type: value }),
+            options: [{ value: 'question', label: 'Question' }, { value: 'bug', label: 'Bug' }, { value: 'feature_request', label: 'Feature Request' }]
+          }),
+          Forms.requiredFormLabel(`How can we help you${greetUser}?`),
           textInput({
-            placeholder: 'What should we call you?',
-            autoFocus: true,
-            value: nameEntered,
-            onChange: e => this.setState({ nameEntered: e.target.value })
-          })
-        ]),
-        Forms.requiredFormLabel('Type'),
-        h(Select, {
-          isMulti: false,
-          value: type,
-          onChange: ({ value }) => this.setState({ type: value }),
-          options: [{ value: 'question', label: 'Question' }, { value: 'bug', label: 'Bug' }, { value: 'feature_request', label: 'Feature Request' }]
-        }),
-        Forms.requiredFormLabel(`How can we help you${greetUser}?`),
-        textInput({
-          style: { borderBottomLeftRadius: 0, borderBottomRightRadius: 0, borderBottomStyle: 'dashed' },
-          placeholder: 'Enter a subject',
-          autoFocus: this.hasName(),
-          value: subject,
-          onChange: e => this.setState({ subject: e.target.value })
-        }),
-        h(TextArea, {
-          style: { height: 200, borderTopLeftRadius: 0, borderTopRightRadius: 0, borderTopStyle: 'dashed' },
-          placeholder: 'Enter a description',
-          value: description,
-          onChange: e => this.setState({ description: e.target.value })
-        }),
-        Forms.formLabel('Attachment'),
-        attachmentToken ?
-          div({ style: { display: 'flex', alignItems: 'center' } }, [
+            style: { borderBottomLeftRadius: 0, borderBottomRightRadius: 0, borderBottomStyle: 'dashed' },
+            placeholder: 'Enter a subject',
+            autoFocus: this.hasName(),
+            value: subject,
+            onChange: e => this.setState({ subject: e.target.value })
+          }),
+          h(TextArea, {
+            style: { height: 200, borderTopLeftRadius: 0, borderTopRightRadius: 0, borderTopStyle: 'dashed' },
+            placeholder: 'Enter a description',
+            value: description,
+            onChange: e => this.setState({ description: e.target.value })
+          }),
+          Forms.formLabel('Attachment'),
+          attachmentToken ?
+            div({ style: { display: 'flex', alignItems: 'center' } }, [
+              h(Clickable, {
+                tooltip: 'Change file',
+                style: { flex: 'auto' },
+                onClick: () => this.uploader.current.open()
+              }, [
+                div({
+                  style: { marginLeft: '1rem', paddingTop: '0.5rem' }
+                }, [
+                  'Successfully uploaded: ', span({ style: { color: colors.blue[0] } }, [attachmentName])
+                ])
+              ]),
+              linkButton({
+                tooltip: 'Remove file',
+                style: { flex: 0, paddingTop: '0.5rem' },
+                onClick: () => this.setState({ attachmentToken: '' })
+              }, [icon('times-circle', { size: 23 })])
+            ]) :
             h(Clickable, {
-              tooltip: 'Change file',
-              style: { flex: 'auto' },
+              style: {
+                flex: 1, backgroundColor: dragging ? colors.blue[3] : colors.gray[5], borderRadius: 3,
+                border: `1px dashed ${colors.gray[2]}`
+              },
               onClick: () => this.uploader.current.open()
             }, [
-              div({
-                style: { marginLeft: '1rem', paddingTop: '0.5rem' }
-              }, [
-                'Successfully uploaded: ', span({ style: { color: colors.blue[0] } }, [attachmentName])
+              div({ style: { fontSize: 14, lineHeight: '30px', paddingLeft: '1rem' } }, [
+                'Drag or ', link({}, ['Click']), ' to attach a file ',
+                icon('upload-cloud', { size: 25, style: { opacity: 0.4 } })
               ])
             ]),
-            linkButton({
-              tooltip: 'Remove file',
-              style: { flex: 0, paddingTop: '0.5rem' },
-              onClick: () => this.setState({ attachmentToken: '' })
-            }, [icon('times-circle', { size: 23 })])
-          ]) :
-          h(Clickable, {
-            style: {
-              flex: 1, backgroundColor: dragging ? colors.blue[3] : colors.gray[5], borderRadius: 3,
-              border: `1px dashed ${colors.gray[2]}`
-            },
-            onClick: () => this.uploader.current.open()
-          }, [
-            div({ style: { fontSize: 14, lineHeight: '30px', paddingLeft: '1rem' } }, [
-              'Drag or ', link({}, ['Click']), ' to attach a file ',
-              icon('upload-cloud', { size: 25, style: { opacity: 0.4 } })
-            ])
-          ]),
-        uploadingFile && spinnerOverlay,
-        Forms.requiredFormLabel('Contact email'),
-        textInput({
-          value: email,
-          placeholder: 'Enter your email address',
-          onChange: e => this.setState({ email: e.target.value })
-        }),
-        submitError && div({ style: { marginTop: '0.5rem', textAlign: 'right', color: colors.red[0] } }, [submitError]),
-        submitting && spinnerOverlay
+          uploadingFile && spinnerOverlay,
+          Forms.requiredFormLabel('Contact email'),
+          textInput({
+            value: email,
+            placeholder: 'Enter your email address',
+            onChange: e => this.setState({ email: e.target.value })
+          }),
+          submitError && div({ style: { marginTop: '0.5rem', textAlign: 'right', color: colors.red[0] } }, [submitError]),
+          submitting && spinnerOverlay,
+          div({ style: styles.buttonRow }, [
+            buttonSecondary({
+              style: { marginRight: '1rem' },
+              onClick: () => contactUsActive.set(false)
+            }, ['Cancel']),
+            buttonPrimary({
+              disabled: errors,
+              tooltip: Utils.summarizeErrors(errors),
+              onClick: () => this.submit()
+            }, ['SEND'])
+          ])
+        ])
       ])
     ])
   }

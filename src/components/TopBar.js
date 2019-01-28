@@ -6,7 +6,7 @@ import { Clickable, MenuButton } from 'src/components/common'
 import { icon, logo, profilePic } from 'src/components/icons'
 import { notify } from 'src/components/Notifications'
 import SignInButton from 'src/components/SignInButton'
-import SupportRequestModal from 'src/components/SupportRequestModal'
+import SupportRequestModal, { contactUsActive } from 'src/components/SupportRequestModal'
 import { authStore, signOut } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import * as Nav from 'src/libs/nav'
@@ -172,7 +172,7 @@ export default Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
             h(Clickable, {
               style: { ...styles.nav.item, borderBottom: 'none', height: 50 },
               hover: { backgroundColor: colors.darkBlue[1] },
-              onClick: () => this.setState({ showingSupportModal: true })
+              onClick: () => contactUsActive.set(true)
             }, [
               div({ style: styles.nav.icon }, [
                 icon('envelope', { className: 'is-solid', size: 20 })

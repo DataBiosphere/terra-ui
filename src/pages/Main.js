@@ -6,6 +6,7 @@ import ErrorWrapper from 'src/components/ErrorWrapper'
 import Notifications from 'src/components/Notifications'
 import { NpsSurvey } from 'src/components/NpsSurvey'
 import Router from 'src/components/Router'
+import SupportRequestModal from 'src/components/SupportRequestModal'
 import { TrialBanner } from 'src/components/TrialBanner'
 
 
@@ -13,6 +14,7 @@ const Main = () => {
   return h(Fragment, [
     h(Notifications),
     h(ErrorWrapper, [h(TrialBanner), h(Router)]),
+    h(SupportRequestModal),
     h(NpsSurvey),
     h(ConfigOverridesWarning)
   ])
