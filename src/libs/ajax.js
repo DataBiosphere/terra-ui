@@ -217,12 +217,12 @@ const User = signal => ({
 
   firstTimestamp: async () => {
     const res = await fetchRex('firstTimestamps/record', _.mergeAll([authOpts(), { signal, method: 'POST' }]))
-    return res.text()
+    return res.json()
   },
 
   lastNpsResponse: async () => {
     const res = await fetchRex('npsResponses/lastTimestamp', _.merge(authOpts(), { signal }))
-    return res.text()
+    return res.json()
   },
 
   postNpsResponse: async body => {
