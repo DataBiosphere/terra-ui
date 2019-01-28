@@ -8,7 +8,7 @@ import togglesListView from 'src/components/CardsListToggle'
 import { Clickable, link, MenuButton, PageFadeBox, spinnerOverlay, menuIcon } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { NotebookCreator, NotebookDeleter, NotebookDuplicator } from 'src/components/notebook-utils'
-import { pushNotification } from 'src/components/Notifications'
+import { notify } from 'src/components/Notifications'
 import PopupTrigger from 'src/components/PopupTrigger'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { ajaxCaller } from 'src/libs/ajax'
@@ -38,7 +38,7 @@ class NotebookCard extends Component {
     const { namespace, name, updated, listView, wsName, onRename, onCopy, onDelete, onExport, canWrite } = this.props
     const tenMinutesAgo = _.tap(d => d.setMinutes(d.getMinutes() - 10), new Date())
     const isRecent = new Date(updated) > tenMinutesAgo
-    const notebookLink = Nav.getLink('workspace-notebook-launch', { namespace, name: wsName, notebookName: name.slice(10), isRecent })
+    const notebookLink = Nav.getLink('workspace-notebook-launch', { namespace, name: wsName, notebookName: name.slice(10) })
 
     const notebookMenu = h(PopupTrigger, {
       side: 'right',
@@ -48,12 +48,15 @@ class NotebookCard extends Component {
           onClick: async () => {
             try {
               await clipboard.writeText(`${window.location.host}/${notebookLink}`)
-              pushNotification({ message: 'Successfully copied URL to clipboard' })
+              notify('success', 'Successfully copied URL to clipboard', { timeout: 3000 })
             } catch (error) {
               reportError('Error copying to clipboard', error)
             }
           }
         }, [menuIcon('copy-to-clipboard'), 'Copy notebook URL to clipboard']),
+        h(MenuButton, {
+          onClick: () => Nav.goToPath('workspace-notebook-launch', { namespace, app: 'lab', name: wsName, notebookName: name.slice(10) })
+        }, [menuIcon('jupyterIcon'), 'Open in JupyterLab']),
         h(MenuButton, {
           disabled: !canWrite,
           tooltip: !canWrite && noWrite,
@@ -302,7 +305,7 @@ const Notebooks = _.flow(
         'The selected file is not a ipynb notebook file. To import a notebook, upload a file with a .ipynb extension.'),
       onDropAccepted: files => this.uploadFiles(files)
     }, [
-      notebooks && h(PageFadeBox, {}, [
+      notebooks && h(PageFadeBox, [
         div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' } }, [
           div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, ['Notebooks']),
           viewToggleButtons,

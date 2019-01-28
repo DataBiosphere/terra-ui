@@ -176,7 +176,7 @@ export default ajaxCaller(class NewWorkspaceModal extends Component {
         disabled: !allGroups,
         value: groups,
         onChange: data => this.setState({ groups: _.map('value', data) }),
-        options: _.difference(_.map('groupName', allGroups), existingGroups).sort()
+        options: _.difference(_.uniq(_.map('groupName', allGroups)), existingGroups).sort()
       }),
       createError && div({
         style: { marginTop: '1rem', color: colors.red[0] }

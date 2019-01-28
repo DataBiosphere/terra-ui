@@ -4,7 +4,7 @@ import { div, h, iframe } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { linkButton, spinnerOverlay, link } from 'src/components/common'
 import { icon, spinner } from 'src/components/icons'
-import { pushNotification } from 'src/components/Notifications'
+import { notify } from 'src/components/Notifications'
 import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
@@ -58,9 +58,9 @@ const NotebookLauncher = _.flow(
     showTabBar: false
   }),
   ajaxCaller
-)(({ workspace, ...props }) => {
+)(({ workspace, app, ...props }) => {
   return Utils.canWrite(workspace.accessLevel) && workspace.canCompute ?
-    h(NotebookEditor, { workspace, ...props }) :
+    h(NotebookEditor, { workspace, app, ...props }) :
     h(NotebookViewer, { workspace, ...props })
 })
 
@@ -130,19 +130,6 @@ class NotebookViewer extends Component {
   }
 }
 
-class NotebookInUseMessage extends Component {
-  render() {
-    return div({ style: { backgroundColor: colors.orange[0], color: 'white', padding: '1.3rem', borderRadius: '0.3rem' } }, [
-      div({ style: { position: 'absolute', left: '22rem', top: 5 } }, [icon('times', { size: 18 })]),
-      div({ style: { fontSize: 16, fontWeight: 'bold' } },
-        ['This notebook has been edited recently']),
-      div({ style: { fontSize: 14 } }, [
-        'If you recently edited this notebook, disregard this message. If another user is editing this notebook, your changes may be lost.'
-      ])
-    ])
-  }
-}
-
 class NotebookEditor extends Component {
   saveNotebook() {
     this.notebookFrame.current.contentWindow.postMessage('save', '*')
@@ -203,12 +190,9 @@ class NotebookEditor extends Component {
       const tenMinutesAgo = _.tap(d => d.setMinutes(d.getMinutes() - 10), new Date())
       const isRecent = new Date(updated) > tenMinutesAgo
       if (isRecent) {
-        pushNotification({
-          type: 'warning',
-          dismissable: { click: true },
-          dismiss: { duration: 30000 },
-          content: h(NotebookInUseMessage),
-          width: 375
+        notify('warn', 'This notebook has been edited recently', {
+          message: 'If you recently edited this notebook, disregard this message. If another user is editing this notebook, your changes may be lost.',
+          timeout: 30000
         })
       }
 
@@ -222,8 +206,14 @@ class NotebookEditor extends Component {
         }
       }))
 
-      const { name: workspaceName } = this.props
-      this.setState({ url: `${clusterUrl}/notebooks/${workspaceName}/${notebookName}` })
+      const { name: workspaceName, app } = this.props
+      if (app === 'lab') {
+        this.setState({ url: `${clusterUrl}/${app}/tree/${workspaceName}/${notebookName}` })
+        notify('warn', 'Autosave occurs every 2 minutes', {
+          message: 'Please remember to save your notebook by clicking the save icon before exiting the window. JupyterLab is new in Terra. We are working to improve its integration. Please contact us with any questions or feedback you may have.',
+          timeout: 30000
+        })
+      } else this.setState({ url: `${clusterUrl}/notebooks/${workspaceName}/${notebookName}` })
     } catch (error) {
       if (this.mounted) {
         reportError('Notebook cannot be launched', error)
@@ -309,6 +299,7 @@ class NotebookEditor extends Component {
 
   render() {
     const { clusterStatus, clusterError, localizeFailures, failed, url, saving } = this.state
+    const { namespace, name, app } = this.props
 
     if (url) {
       return h(Fragment, [
@@ -317,6 +308,10 @@ class NotebookEditor extends Component {
           style: { border: 'none', flex: 1 },
           ref: this.notebookFrame
         }),
+        app === 'lab' && linkButton({
+          style: { position: 'absolute', top: 1, right: 30 },
+          onClick: () => Nav.goToPath('workspace-notebooks', { namespace, name })
+        }, [icon('times-circle', { size: 25 })]),
         saving && spinnerOverlay
       ])
     }
@@ -357,7 +352,7 @@ class NotebookEditor extends Component {
 
 export const addNavPaths = () => {
   Nav.defPath('workspace-notebook-launch', {
-    path: '/workspaces/:namespace/:name/notebooks/launch/:notebookName',
+    path: '/workspaces/:namespace/:name/notebooks/launch/:notebookName/:app?',
     component: NotebookLauncher,
     title: ({ name, notebookName }) => `${name} - Notebooks - ${notebookName}`
   })
