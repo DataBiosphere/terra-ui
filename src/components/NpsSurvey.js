@@ -47,8 +47,8 @@ export const NpsSurvey = Utils.connectAtom(authStore, 'authState')(class NpsSurv
     const lastResponseTimestamp = (await Ajax().User.lastNpsResponse()).timestamp
     const firstTimestamp = async () => (await Ajax().User.firstTimestamp()).timestamp
 
-    // Reasoning for the following logic: When a user first accesses Terra, wait 24 hours to show the NPS survey.
-    // Once they have interacted with the Survey, wait 2 weeks to show the NPS survey.
+    // Behavior of the following logic: When a user first accesses Terra, wait 24 hours to show the NPS survey.
+    // Once user has interacted with the NPS survey, wait 2 weeks to show the survey.
     const askTheUser = lastResponseTimestamp
       ? currentTimeHours - millisToHours(lastResponseTimestamp) >= (14 * 24)
       : currentTimeHours - millisToHours(await firstTimestamp()) >= 24
