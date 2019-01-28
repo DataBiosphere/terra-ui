@@ -374,7 +374,7 @@ const EntitiesContent = ajaxCaller(class EntitiesContent extends Component {
 
   deselectPage() {
     const { entities, selectedEntities } = this.state
-    this.setState({ selectedEntities: _.omit(_.map(a => [a], _.keys(entities)), selectedEntities) })
+    this.setState({ selectedEntities: _.omit(_.map(a => [a], _.map('name', entities)), selectedEntities) })
   }
 
   selectNone() {
