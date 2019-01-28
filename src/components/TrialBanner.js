@@ -49,7 +49,7 @@ const messages =
     }
   }
 
-export class FreeCreditsModal extends Component {
+export const FreeCreditsModal= ajaxCaller(class FreeCreditsModal extends Component {
   constructor(props) {
     super(props)
     this.state = {
@@ -132,7 +132,7 @@ export class FreeCreditsModal extends Component {
       //this.setState({ loading: false })
     }
   }
-}
+})
 
 export const TrialBanner = _.flow(
   ajaxCaller,
@@ -148,10 +148,11 @@ export const TrialBanner = _.flow(
   }
 
   render() {
-    const { authState: { isSignedIn, profile }, ajax: { User } } = _.omit('isVisible', this.props)
+    const { authState: { isSignedIn, profile, acceptedTos }, ajax: { User } } = _.omit('isVisible', this.props)
+    console.log(this.props)
     const { loading, finalizeTrial, snoozeBanner, openFreeCreditsModal } = this.state
     const { trialState } = profile
-    if (!trialState || !isSignedIn || trialState === 'Finalized' || snoozeBanner) return null
+    if (!trialState || !isSignedIn || !acceptedTos || trialState === 'Finalized' || snoozeBanner) return null
     const { [trialState]: { title, message, enabledLink, button, isWarning } } = messages
     return div([
       div({
