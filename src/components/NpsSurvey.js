@@ -46,14 +46,14 @@ export const NpsSurvey = _.flow(
   }
 
   async loadStatus() {
-    const convertToHours = timestamp => Date.parse(timestamp)/3600000
+    const millisToHours = timestamp => Date.parse(timestamp)/(60 * 60 * 1000)
 
     const lastResponseTimestamp = (await Ajax().User.lastNpsResponse()).timestamp
-    const currentTimeHours = convertToHours(new Date())
-    const firstTimestampHours = convertToHours((await Ajax().User.firstTimestamp()).timestamp)
+    const currentTimeHours = millisToHours(new Date())
+    const firstTimestampHours = millisToHours((await Ajax().User.firstTimestamp()).timestamp)
 
     const askTheUser = lastResponseTimestamp
-      ? currentTimeHours - convertToHours(lastResponseTimestamp) <= 336
+      ? currentTimeHours - millisToHours(lastResponseTimestamp) <= (14 * 24)
       : currentTimeHours - firstTimestampHours >= 24
 
     this.setState({ requestable: askTheUser })
