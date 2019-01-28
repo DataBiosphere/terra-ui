@@ -12,7 +12,6 @@ import {
 import { centeredSpinner, icon } from 'src/components/icons'
 import { AutocompleteTextInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
-import * as NpsSurvey from 'src/components/NpsSurvey'
 import PopupTrigger from 'src/components/PopupTrigger'
 import StepButtons, { params as StepButtonParams } from 'src/components/StepButtons'
 import { FlexTable, HeaderCell, SimpleTable, TextCell } from 'src/components/table'
@@ -329,7 +328,6 @@ const WorkflowView = _.flow(
           onDismiss: () => this.setState({ launching: false }),
           onSuccess: submissionId => {
             JobHistory.flagNewSubmission(submissionId)
-            NpsSurvey.responseRequested.set(true)
             Nav.goToPath('workspace-job-history', workspaceId)
           }
         }),
