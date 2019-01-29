@@ -2,8 +2,8 @@ import _ from 'lodash/fp'
 import { div, h, a, span } from 'react-hyperscript-helpers'
 import { authStore, refreshTerraProfile } from 'src/libs/auth'
 import colors from 'src/libs/colors'
-import { buttonPrimary, Clickable, LabeledCheckbox } from 'src/components/common'
-import { icon, spinner } from 'src/components/icons'
+import { buttonPrimary, Clickable, LabeledCheckbox, spinnerOverlay } from 'src/components/common'
+import { icon } from 'src/components/icons'
 import { ajaxCaller } from 'src/libs/ajax'
 import { reportError } from 'src/libs/error'
 import * as Utils from 'src/libs/utils'
@@ -55,13 +55,14 @@ export const FreeCreditsModal= ajaxCaller(class FreeCreditsModal extends Compone
     this.state = {
       pageTwo: false,
       termsAgreed: false,
-      cloudTermsAgreed: false
+      cloudTermsAgreed: false,
+      loading: false
     }
   }
 
   render() {
     const { onDismiss } = this.props
-    const { pageTwo, termsAgreed, cloudTermsAgreed } = this.state
+    const { pageTwo, termsAgreed, cloudTermsAgreed, loading } = this.state
     return h(Modal, {
       onDismiss,
       title: 'Welcome to the Terra Free Credit Program!',
@@ -69,7 +70,6 @@ export const FreeCreditsModal= ajaxCaller(class FreeCreditsModal extends Compone
       okButton: pageTwo ? buttonPrimary({
         onClick: async () => {
           this.acceptCredits()
-          onDismiss()
         },
         disabled: (termsAgreed === false) || (cloudTermsAgreed === false),
         tooltip: ((termsAgreed === false) || (cloudTermsAgreed === false)) && 'You must check the boxes to accept.'
@@ -115,21 +115,23 @@ export const FreeCreditsModal= ajaxCaller(class FreeCreditsModal extends Compone
             ])
           ])
         ])
-      ])
+      ]),
+      loading && spinnerOverlay
     ])
   }
 
   async acceptCredits() {
-    const { ajax: { User } } = this.props
+    const { onDismiss, ajax: { User } } = this.props
     try {
-      //this.setState({ loading: true })
+      this.setState({ loading: true })
       await User.acceptEula()
       await User.startTrial()
       await refreshTerraProfile()
+      onDismiss()
     } catch (error) {
       reportError('Error starting trial', error)
     } finally {
-      //this.setState({ loading: false })
+      this.setState({ loading: false })
     }
   }
 })
@@ -149,8 +151,7 @@ export const TrialBanner = _.flow(
 
   render() {
     const { authState: { isSignedIn, profile, acceptedTos }, ajax: { User } } = _.omit('isVisible', this.props)
-    console.log(this.props)
-    const { loading, finalizeTrial, snoozeBanner, openFreeCreditsModal } = this.state
+    const { finalizeTrial, snoozeBanner, openFreeCreditsModal } = this.state
     const { trialState } = profile
     if (!trialState || !isSignedIn || !acceptedTos || trialState === 'Finalized' || snoozeBanner) return null
     const { [trialState]: { title, message, enabledLink, button, isWarning } } = messages
@@ -187,11 +188,15 @@ export const TrialBanner = _.flow(
           onClick: () => {
             button.isExternal ? window.open(button.url, '_blank') : this.setState({ openFreeCreditsModal: true })
           }
+        }, [button.label, button.isExternal ? icon('pop-out', { style: { marginLeft: '0.25rem' } }) : null]),
+        div({
+          style: {
+            marginLeft: '3rem',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'flex-end'
+          }
         }, [
-          loading ? spinner({ style: { fontSize: '1rem', color: 'white' } }) : button.label,
-          button.isExternal ? icon('pop-out', { style: { marginLeft: '0.25rem' } }) : null
-        ]),
-        div({ style: { marginLeft: '3rem', display: 'flex', flexDirection: 'column', alignItems: 'flex-end' } }, [
           h(Clickable, {
             style: { borderBottom: 'none' },
             tooltip: 'Hide banner',
