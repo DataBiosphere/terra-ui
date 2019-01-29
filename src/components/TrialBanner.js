@@ -144,16 +144,15 @@ export const TrialBanner = _.flow(
     super(props)
     this.state = {
       openFreeCreditsModal: false,
-      finalizeTrial: false,
-      snoozeBanner: false
+      finalizeTrial: false
     }
   }
 
   render() {
     const { authState: { isSignedIn, profile, acceptedTos }, ajax: { User } } = _.omit('isVisible', this.props)
-    const { finalizeTrial, snoozeBanner, openFreeCreditsModal } = this.state
-    const { trialState } = profile
-    if (!trialState || !isSignedIn || !acceptedTos || trialState === 'Finalized' || snoozeBanner) return null
+    const { finalizeTrial, openFreeCreditsModal } = this.state
+    const { trialState, removeBanner } = profile
+    if (!trialState || !isSignedIn || !acceptedTos || removeBanner || trialState === 'Finalized') return null
     const { [trialState]: { title, message, enabledLink, button, isWarning } } = messages
     return div([
       div({
