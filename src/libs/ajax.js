@@ -134,7 +134,6 @@ const User = signal => ({
     },
     set: keysAndValues => {
       const blankProfile = {
-        dismissBanner: 'N/A',
         firstName: 'N/A',
         lastName: 'N/A',
         title: 'N/A',
