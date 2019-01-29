@@ -37,6 +37,8 @@ export const NpsSurvey = Utils.connectAtom(authStore, 'authState')(class NpsSurv
 
     if (registrationStatus === 'registered' && prevProps.authState.registrationStatus !== 'registered') {
       this.loadStatus()
+    } else if (registrationStatus !== 'registered' && prevProps.authState.registrationStatus === 'registered'){
+      this.setState({ requestable: false })
     }
   }
 
