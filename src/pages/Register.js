@@ -1,3 +1,4 @@
+import _ from 'lodash/fp'
 import { Component } from 'react'
 import { div } from 'react-hyperscript-helpers'
 import { buttonPrimary, buttonSecondary } from 'src/components/common'
@@ -32,14 +33,27 @@ export default ajaxCaller(class Register extends Component {
   async register() {
     const { ajax: { User } } = this.props
     const { givenName, familyName, email } = this.state
+    const blankProfile = {
+      firstName: 'N/A',
+      lastName: 'N/A',
+      title: 'N/A',
+      institute: 'N/A',
+      institutionalProgram: 'N/A',
+      programLocationCity: 'N/A',
+      programLocationState: 'N/A',
+      programLocationCountry: 'N/A',
+      pi: 'N/A',
+      nonProfitStatus: 'N/A'
+    }
+    const filledProfile = _.merge(blankProfile, {
+      firstName: givenName,
+      lastName: familyName,
+      contactEmail: email
+    })
     try {
       this.setState({ busy: true })
       await User.create()
-      await User.profile.set({
-        firstName: givenName,
-        lastName: familyName,
-        contactEmail: email
-      })
+      await User.profile.set(filledProfile)
       authStore.update(state => ({ ...state, registrationStatus: 'registered' }))
       await refreshTerraProfile()
     } catch (error) {

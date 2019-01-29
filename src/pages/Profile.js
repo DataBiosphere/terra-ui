@@ -275,9 +275,22 @@ const Profile = _.flow(
   async save() {
     const { profileInfo } = this.state
     const { ajax: { User } } = this.props
+    const blankProfile = {
+      firstName: 'N/A',
+      lastName: 'N/A',
+      title: 'N/A',
+      institute: 'N/A',
+      institutionalProgram: 'N/A',
+      programLocationCity: 'N/A',
+      programLocationState: 'N/A',
+      programLocationCountry: 'N/A',
+      pi: 'N/A',
+      nonProfitStatus: 'N/A'
+    }
+    const filledProfile = _.merge(blankProfile, _.pickBy(_.identity, profileInfo))
 
     this.setState({ saving: true })
-    await User.profile.set(_.pickBy(_.identity, profileInfo))
+    await User.profile.set(filledProfile)
     await refreshTerraProfile()
     this.setState({ saving: false })
   }
