@@ -214,8 +214,11 @@ export const TrialBanner = _.flow(
           onClick: async () => {
             try {
               await User.finalizeTrial()
+              await refreshTerraProfile()
             } catch (error) {
               reportError('Error finalizing trial', error)
+            } finally {
+              this.setState({ finalizeTrial: false })
             }
           }
         }, ['Confirm'])

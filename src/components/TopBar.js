@@ -9,7 +9,7 @@ import { pushNotification } from 'src/components/Notifications'
 import SignInButton from 'src/components/SignInButton'
 import SupportRequestModal from 'src/components/SupportRequestModal'
 import { ajaxCaller } from 'src/libs/ajax'
-import { authStore, signOut } from 'src/libs/auth'
+import { authStore, refreshTerraProfile, signOut } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
@@ -363,8 +363,11 @@ export default _.flow(
           onClick: async () => {
             try {
               await User.finalizeTrial()
+              await refreshTerraProfile()
             } catch (error) {
               reportError('Error finalizing trial', error)
+            } finally {
+              this.setState({ finalizeTrial: false })
             }
           }
         }, ['Confirm'])
