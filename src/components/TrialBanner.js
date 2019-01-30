@@ -199,7 +199,7 @@ export const TrialBanner = _.flow(
           h(Clickable, {
             style: { borderBottom: 'none' },
             tooltip: 'Hide banner',
-            onClick: trialState === 'Terminated' ? () => this.setState({ finalizeTrial: true }) : async () => this.removeBanner()
+            onClick: () => this.setState(trialState === 'Terminated' ? { finalizeTrial: true } : { snoozeBanner: true })
           }, [icon('times-circle', { size: 25, style: { fontSize: '1.5rem', cursor: 'pointer' } })])
         ])
       ]),
@@ -223,16 +223,5 @@ export const TrialBanner = _.flow(
         }, ['Confirm'])
       }, ['Click confirm to remove banner forever.'])
     ])
-  }
-
-  async removeBanner() {
-    const { ajax: { User } } = this.props
-    try {
-      const profile = Utils.kvArrayToObject((await User.profile.get()).keyValuePairs)
-      await User.profile.set(_.merge(profile, { removeBanner: 'true' }))
-      await refreshTerraProfile()
-    } catch (error) {
-      reportError('Error removing banner', error)
-    }
   }
 })
