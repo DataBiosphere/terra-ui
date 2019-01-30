@@ -144,16 +144,16 @@ export const TrialBanner = _.flow(
     super(props)
     this.state = {
       openFreeCreditsModal: false,
-      finalizeTrial: false,
-      snoozeBanner: false
+      finalizeTrial: false
     }
   }
 
   render() {
     const { authState: { isSignedIn, profile, acceptedTos }, ajax: { User } } = _.omit('isVisible', this.props)
-    const { finalizeTrial, snoozeBanner, openFreeCreditsModal } = this.state
+    const { finalizeTrial, openFreeCreditsModal } = this.state
     const { trialState } = profile
-    if (!trialState || !isSignedIn || !acceptedTos || trialState === 'Finalized' || snoozeBanner) return null
+    const removeBanner = localStorage.getItem('removeBanner')
+    if (!trialState || !isSignedIn || !acceptedTos || trialState === 'Finalized' || removeBanner === 'true') return null
     const { [trialState]: { title, message, enabledLink, button, isWarning } } = messages
     return div([
       div({
@@ -200,7 +200,10 @@ export const TrialBanner = _.flow(
           h(Clickable, {
             style: { borderBottom: 'none' },
             tooltip: 'Hide banner',
-            onClick: () => this.setState(trialState === 'Terminated' ? { finalizeTrial: true } : { snoozeBanner: true })
+            onClick: trialState === 'Terminated' ? () => this.setState({ finalizeTrial: true }) : () => {
+              localStorage.setItem('removeBanner', 'true')
+              this.forceUpdate()
+            }
           }, [icon('times-circle', { size: 25, style: { fontSize: '1.5rem', cursor: 'pointer' } })])
         ])
       ]),
