@@ -2,11 +2,13 @@ import _ from 'lodash/fp'
 import { createRef, Fragment } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
-import { Checkbox, Clickable, MenuButton, RadioButton, spinnerOverlay } from 'src/components/common'
+import { Checkbox, Clickable, linkButton, MenuButton, RadioButton, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
+import Modal from 'src/components/Modal'
 import PopupTrigger from 'src/components/PopupTrigger'
 import { ColumnSelector, GridTable, HeaderCell, paginator, Resizable, Sortable } from 'src/components/table'
 import { ajaxCaller } from 'src/libs/ajax'
+import colors from 'src/libs/colors'
 import { renderDataCell } from 'src/libs/data-utils'
 import { reportError } from 'src/libs/error'
 import * as StateHistory from 'src/libs/state-history'
@@ -48,6 +50,7 @@ export default ajaxCaller(class DataTable extends Component {
     this.table = createRef()
     this.state = {
       loading: false,
+      viewData: undefined,
       entities, totalRowCount, itemsPerPage, pageNumber, sort, columnWidths, columnState
     }
   }
@@ -60,7 +63,7 @@ export default ajaxCaller(class DataTable extends Component {
       childrenBefore
     } = this.props
 
-    const { loading, entities, totalRowCount, itemsPerPage, pageNumber, sort, columnWidths, columnState } = this.state
+    const { loading, entities, totalRowCount, itemsPerPage, pageNumber, sort, columnWidths, columnState, viewData } = this.state
 
     const theseColumnWidths = columnWidths[entityType] || {}
     const columnSettings = applyColumnSettings(columnState[entityType] || [], entityMetadata[entityType].attributeNames)
@@ -153,9 +156,13 @@ export default ajaxCaller(class DataTable extends Component {
                         ])
                       ]),
                       cellRenderer: ({ rowIndex }) => {
-                        return renderDataCell(
-                          Utils.entityAttributeText(entities[rowIndex].attributes[name]), namespace
-                        )
+                        const dataInfo = entities[rowIndex].attributes[name]
+                        const dataCell = renderDataCell(Utils.entityAttributeText(dataInfo), namespace)
+                        return (!!dataInfo && _.isArray(dataInfo.items)) ?
+                          linkButton({
+                            onClick: () => this.setState({ viewData: dataInfo })
+                          },
+                          [dataCell]): dataCell
                       }
                     }
                   }, _.filter('visible', columnSettings))
@@ -180,6 +187,12 @@ export default ajaxCaller(class DataTable extends Component {
           })
         ])
       ]),
+      !!viewData && h(Modal, {
+        title: 'Contents',
+        showButtons: false,
+        showX: true,
+        onDismiss: () => this.setState({ viewData: undefined })
+      }, [div({ style: { maxHeight: '80vh', overflowY: 'auto' } }, [this.displayData(viewData)])]),
       loading && spinnerOverlay
     ])
   }
@@ -255,5 +268,11 @@ export default ajaxCaller(class DataTable extends Component {
     const entityKeys = _.map('name', entities)
     const selectedKeys = _.keys(selected)
     return _.every(k => _.includes(k, selectedKeys), entityKeys)
+  }
+
+  displayData(selectedData) {
+    const { itemsType, items } = selectedData
+    return _.map(entity => div({ style: { borderBottom: `1px solid ${colors.gray[2]}`, padding: '0.5rem' } },
+      itemsType === 'EntityReference' ? `${entity.entityName} (${entity.entityType})` : JSON.stringify(entity)), items)
   }
 })
