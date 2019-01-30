@@ -5,7 +5,7 @@ import { div, h, span } from 'react-hyperscript-helpers'
 import { Clickable, buttonPrimary, Select, spinnerOverlay, link, linkButton, buttonSecondary } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { TextArea, textInput } from 'src/components/input'
-import { pushNotification } from 'src/components/Notifications'
+import { notify } from 'src/components/Notifications'
 import { Ajax } from 'src/libs/ajax'
 import { authStore } from 'src/libs/auth'
 import colors from 'src/libs/colors'
@@ -230,7 +230,7 @@ const SupportRequest = _.flow(
       this.setState({ submitting: true })
       await Ajax().User.createSupportRequest({ ...this.getRequest(), currUrl })
       SupportRequest.dismiss()
-      pushNotification({ message: 'Message sent successfully' })
+      notify('success', 'Message sent successfully', { timeout: 3000 })
     } catch (error) {
       this.setState({ submitting: false })
       reportError('Error submitting support request', error)
