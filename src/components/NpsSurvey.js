@@ -12,17 +12,12 @@ import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 
 
-export const responseRequested = Utils.atom(false)
-
 const styles = {
   questionLabel: { fontWeight: 600, marginBottom: '0.5rem' },
   questionInput: { marginBottom: '0.75rem', height: '4rem' }
 }
 
-export const NpsSurvey = _.flow(
-  Utils.connectAtom(responseRequested, 'responseRequested'),
-  Utils.connectAtom(authStore, 'authState')
-)(class NpsSurvey extends Component {
+export const NpsSurvey = Utils.connectAtom(authStore, 'authState')(class NpsSurvey extends Component {
   constructor(props) {
     super(props)
 
@@ -43,19 +38,30 @@ export const NpsSurvey = _.flow(
     if (registrationStatus === 'registered' && prevProps.authState.registrationStatus !== 'registered') {
       this.loadStatus()
     }
+
+    if (registrationStatus !== 'registered' && prevProps.authState.registrationStatus === 'registered') {
+      this.setState({ requestable: false })
+    }
   }
 
   async loadStatus() {
-    const lastResponse = (await Ajax().User.lastNpsResponse()).timestamp
-    const oneMonthAgo = _.tap(d => d.setDate(d.getMonth() - 1), new Date())
+    const millisToHours = timestamp => Date.parse(timestamp)/(60 * 60 * 1000)
 
-    this.setState({ requestable: !lastResponse || (new Date(lastResponse) < oneMonthAgo) })
+    const currentTimeHours = millisToHours(new Date())
+    const lastResponseTimestamp = (await Ajax().User.lastNpsResponse()).timestamp
+    const firstTimestamp = async () => (await Ajax().User.firstTimestamp()).timestamp
+
+    // Behavior of the following logic: When a user first accesses Terra, wait 24 hours to show the NPS survey.
+    // Once user has interacted with the NPS survey, wait 2 weeks to show the survey.
+    const askTheUser = lastResponseTimestamp
+      ? currentTimeHours - millisToHours(lastResponseTimestamp) >= (14 * 24)
+      : currentTimeHours - millisToHours(await firstTimestamp()) >= 24
+
+    this.setState({ requestable: askTheUser })
   }
 
   render() {
-    const { responseRequested } = this.props
     const { requestable, expanded, score, reasonComment, changeComment } = this.state
-    const shouldShow = responseRequested && requestable
     const goAway = shouldSubmit => () => {
       this.setState({ requestable: false })
       Ajax().User.postNpsResponse(shouldSubmit ? { score, reasonComment, changeComment } : {})
@@ -93,7 +99,7 @@ export const NpsSurvey = _.flow(
     return requestable && div({
       style: {
         position: 'fixed', bottom: '1.5rem', right: expanded ? '1.5rem' : 0,
-        transform: `translate(${shouldShow ? '0%' : 'calc(100% + 5px)'})`,
+        transform: `translate(${requestable ? '0%' : 'calc(100% + 5px)'})`,
         transition: 'right 0.2s linear, transform 0.3s linear',
         zIndex: 1
       }
