@@ -509,7 +509,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
         case 'Starting':
         case 'Stopping':
         case 'Creating':
-          return h(ClusterIcon, { shape: 'sync' })
+          return h(ClusterIcon, { shape: 'sync', disabled: true })
         case undefined:
           return h(ClusterIcon, {
             shape: 'play',
@@ -518,7 +518,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
             tooltip: canCompute ? 'Create cluster' : noCompute
           })
         default:
-          return h(ClusterIcon, { shape: 'ban' })
+          return h(ClusterIcon, { shape: 'ban', disabled: true })
       }
     }
     const totalCost = _.sum(_.map(({ machineConfig, status }) => {
@@ -541,7 +541,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
       }, [icon('terminal', { className: 'is-solid', size: 24 })]),
       renderIcon(),
       h(ClusterIcon, {
-        shape: 'stop',
+        shape: 'trash',
         onClick: () => this.setState({ deleting: true }),
         disabled: busy || !canCompute || !_.includes(currentStatus, ['Stopped', 'Running']),
         tooltip: 'Delete cluster',
@@ -582,7 +582,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
           this.setState({ deleting: false })
           this.destroyActiveCluster()
         }
-      }, ['Deleting the machine will stop all associated costs. You can recreate it later, which will take several minutes.'])
+      }, ['Deleting the cluster will stop all running notebooks and associated costs. You can recreate it later, which will take several minutes.'])
     ])
   }
 })
