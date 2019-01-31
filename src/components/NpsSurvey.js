@@ -109,7 +109,7 @@ export const NpsSurvey = Utils.connectAtom(authStore, 'authState')(class NpsSurv
         disabled: expanded,
         style: {
           height: expanded ? 325 : 100,
-          width: expanded ? 400 : 255,
+          width: expanded ? 405 : 255,
           padding: '1rem 1.5rem 1rem 1rem',
           overflow: 'hidden',
           backgroundColor: colors.darkBlue[0], color: 'white',
