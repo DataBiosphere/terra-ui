@@ -6,6 +6,7 @@ import Interactive from 'react-interactive'
 import { buttonPrimary, buttonSecondary, Clickable, LabeledCheckbox, Select } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { IntegerInput, textInput } from 'src/components/input'
+import Modal from 'src/components/Modal'
 import PopupTrigger from 'src/components/PopupTrigger'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { machineTypes, profiles, storagePrice } from 'src/data/clusters'
@@ -82,24 +83,13 @@ const machineTypesByName = _.keyBy('name', machineTypes)
 
 const profilesByName = _.keyBy('name', profiles)
 
-const normalizeMachineConfig = ({ masterMachineType, masterDiskSize, numberOfWorkers, numberOfPreemptibleWorkers, workerMachineType, workerDiskSize }) => {
-  return {
-    masterMachineType: masterMachineType || 'n1-standard-4',
-    masterDiskSize: masterDiskSize || 500,
-    numberOfWorkers: numberOfWorkers || 0,
-    numberOfPreemptibleWorkers: (numberOfWorkers && numberOfPreemptibleWorkers) || 0,
-    workerMachineType: (numberOfWorkers && workerMachineType) || 'n1-standard-4',
-    workerDiskSize: (numberOfWorkers && workerDiskSize) || 500
-  }
-}
-
 const machineStorageCost = config => {
-  const { masterDiskSize, numberOfWorkers, workerDiskSize } = normalizeMachineConfig(config)
+  const { masterDiskSize, numberOfWorkers, workerDiskSize } = Utils.normalizeMachineConfig(config)
   return (masterDiskSize + numberOfWorkers * workerDiskSize) * storagePrice
 }
 
 const machineConfigCost = config => {
-  const { masterMachineType, numberOfWorkers, numberOfPreemptibleWorkers, workerMachineType } = normalizeMachineConfig(config)
+  const { masterMachineType, numberOfWorkers, numberOfPreemptibleWorkers, workerMachineType } = Utils.normalizeMachineConfig(config)
   return _.sum([
     machineTypesByName[masterMachineType].price,
     (numberOfWorkers - numberOfPreemptibleWorkers) * machineTypesByName[workerMachineType].price,
@@ -109,7 +99,7 @@ const machineConfigCost = config => {
 }
 
 const machineConfigsEqual = (a, b) => {
-  return _.isEqual(normalizeMachineConfig(a), normalizeMachineConfig(b))
+  return _.isEqual(Utils.normalizeMachineConfig(a), Utils.normalizeMachineConfig(b))
 }
 
 const MachineSelector = ({ machineType, onChangeMachineType, diskSize, onChangeDiskSize, readOnly }) => {
@@ -163,9 +153,9 @@ const MachineSelector = ({ machineType, onChangeMachineType, diskSize, onChangeD
   ])
 }
 
-const ClusterIcon = ({ shape, onClick, disabled, ...props }) => {
+const ClusterIcon = ({ shape, onClick, disabled, style, ...props }) => {
   return h(Clickable, {
-    style: { color: onClick && !disabled ? colors.blue[0] : colors.gray[2] },
+    style: { color: onClick && !disabled ? colors.blue[0] : colors.gray[2], ...style },
     onClick, disabled, ...props
   }, [icon(shape, { size: 20, className: 'is-solid' })])
 }
@@ -210,6 +200,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
     this.state = {
       open: false,
       busy: false,
+      deleting: false,
       profile: 'moderate',
       masterMachineType: 'n1-standard-4',
       masterDiskSize: 500,
@@ -284,6 +275,15 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
     )
   }
 
+  createDefaultCluster() {
+    const { ajax: { Jupyter }, namespace } = this.props
+    this.executeAndRefresh(
+      Jupyter.cluster(namespace, Utils.generateClusterName()).create({
+        machineConfig: Utils.normalizeMachineConfig({})
+      })
+    )
+  }
+
   destroyClusters(keepIndex) {
     const { ajax: { Jupyter } } = this.props
     const activeClusters = this.getActiveClustersOldestFirst()
@@ -292,6 +292,14 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
         ({ googleProject, clusterName }) => Jupyter.cluster(googleProject, clusterName).delete(),
         _.without([_.nth(keepIndex, activeClusters)], activeClusters)
       ))
+    )
+  }
+
+  destroyActiveCluster() {
+    const { ajax: { Jupyter } } = this.props
+    const { googleProject, clusterName } = this.getCurrentCluster()
+    this.executeAndRefresh(
+      Jupyter.cluster(googleProject, clusterName).delete()
     )
   }
 
@@ -320,7 +328,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
     )
     this.setState({
       open: v,
-      ...normalizeMachineConfig(currentConfig),
+      ...Utils.normalizeMachineConfig(currentConfig),
       jupyterUserScriptUri: '',
       profile: matchingProfile ? matchingProfile.name : 'custom'
     })
@@ -343,7 +351,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
             onChange: ({ value }) => {
               this.setState({
                 profile: value,
-                ...(value === 'custom' ? {} : normalizeMachineConfig(profilesByName[value].machineConfig))
+                ...(value === 'custom' ? {} : Utils.normalizeMachineConfig(profilesByName[value].machineConfig))
               })
             },
             isSearchable: false,
@@ -442,7 +450,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
           style: { marginLeft: '1rem', marginRight: '1rem' },
           onClick: () => this.toggleDropdown(false)
         }, 'Cancel'),
-        buttonPrimary({ disabled: busy || !changed, onClick: () => this.createCluster() }, 'Update')
+        buttonPrimary({ disabled: busy || !changed, onClick: () => this.createCluster() }, currentCluster ? 'Update' : 'Create')
       ])
     ])
   }
@@ -475,7 +483,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
 
   render() {
     const { namespace, name, clusters, canCompute } = this.props
-    const { busy, open } = this.state
+    const { busy, open, deleting } = this.state
     if (!clusters) {
       return null
     }
@@ -502,6 +510,13 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
         case 'Stopping':
         case 'Creating':
           return h(ClusterIcon, { shape: 'sync' })
+        case undefined:
+          return h(ClusterIcon, {
+            shape: 'play',
+            onClick: () => this.createDefaultCluster(),
+            disabled: busy || !canCompute,
+            tooltip: canCompute ? 'Create cluster' : noCompute
+          })
         default:
           return h(ClusterIcon, { shape: 'ban' })
       }
@@ -525,6 +540,13 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
         style: { marginRight: '2rem' }
       }, [icon('terminal', { className: 'is-solid', size: 24 })]),
       renderIcon(),
+      h(ClusterIcon, {
+        shape: 'stop',
+        onClick: () => this.setState({ deleting: true }),
+        disabled: busy || !canCompute || !_.includes(currentStatus, ['Stopped', 'Running']),
+        tooltip: 'Delete cluster',
+        style: { marginLeft: '0.5rem' }
+      }),
       h(PopupTrigger, {
         side: 'bottom',
         open: open || multiple,
@@ -552,7 +574,15 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
           ]),
           icon('caretDown', { size: 18 })
         ])
-      ])
+      ]),
+      deleting && h(Modal, {
+        title: 'Delete notebook runtime?',
+        onDismiss: () => this.setState({ deleting: false }),
+        okButton: () => {
+          this.setState({ deleting: false })
+          this.destroyActiveCluster()
+        }
+      }, ['Deleting the machine will stop all associated costs. You can recreate it later, which will take several minutes.'])
     ])
   }
 })

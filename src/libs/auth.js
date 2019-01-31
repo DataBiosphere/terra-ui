@@ -1,7 +1,6 @@
 import _ from 'lodash/fp'
 import * as md5 from 'md5'
 import { clearNotification, sessionTimeoutProps } from 'src/components/Notifications'
-import { version } from 'src/data/clusters'
 import ProdWhitelist from 'src/data/prod-whitelist'
 import { Ajax } from 'src/libs/ajax'
 import { getConfig } from 'src/libs/config'
@@ -148,49 +147,5 @@ export const refreshTerraProfile = async () => {
 authStore.subscribe((state, oldState) => {
   if (!oldState.isSignedIn && state.isSignedIn) {
     refreshTerraProfile().catch(error => reportError('Error loading user profile', error))
-  }
-})
-
-const basicMachineConfig = {
-  'numberOfWorkers': 0, 'masterMachineType': 'n1-standard-4',
-  'masterDiskSize': 500, 'workerMachineType': 'n1-standard-4',
-  'workerDiskSize': 500, 'numberOfWorkerLocalSSDs': 0,
-  'numberOfPreemptibleWorkers': 0
-}
-
-authStore.subscribe(async (state, oldState) => {
-  if (oldState.registrationStatus !== 'registered' && state.registrationStatus === 'registered') {
-    try {
-      const [billingProjects, clusters] = await Promise.all([
-        Ajax().Billing.listProjectsExtended(),
-        Ajax().Jupyter.clustersList()
-      ])
-      const ownClusters = _.filter({ creator: state.user.email }, clusters)
-      const googleProjects = _.flow(
-        _.filter(({ accessPolicyName }) => ['owner', 'workspace-creator', 'can-compute-user'].includes(accessPolicyName)),
-        _.map('resourceId'),
-        _.uniq
-      )(billingProjects) // can have duplicates for multiple roles
-      const groupedClusters = _.groupBy('googleProject', ownClusters)
-      const projectsNeedingCluster = _.filter(p => {
-        return !_.some(c => _.toNumber(c.labels.saturnVersion) >= _.toNumber(version), groupedClusters[p])
-      }, googleProjects)
-      const oldClusters = _.filter(({ labels: { saturnVersion } }) => {
-        return _.toNumber(saturnVersion) < _.toNumber(version)
-      }, ownClusters)
-      await Promise.all([
-        ..._.map(p => {
-          return Ajax().Jupyter.cluster(p, Utils.generateClusterName()).create({
-            machineConfig: _.last(_.sortBy('createdDate', groupedClusters[p])) || basicMachineConfig,
-            stopAfterCreation: true
-          }).catch(r => r.status === 403 ? r : Promise.reject(r))
-        }, projectsNeedingCluster),
-        ..._.map(({ googleProject, clusterName }) => {
-          return Ajax().Jupyter.cluster(googleProject, clusterName).delete()
-        }, oldClusters)
-      ])
-    } catch (error) {
-      reportError('Error auto-creating clusters', error)
-    }
   }
 })
