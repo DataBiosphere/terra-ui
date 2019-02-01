@@ -238,29 +238,31 @@ class NotebookEditor extends Component {
     const { clusters } = this.props
     const prevCluster = getCluster(oldClusters)
     const currCluster = getCluster(clusters)
-    if (prevCluster && prevCluster.id !== currCluster.id) {
+    if (prevCluster && currCluster && prevCluster.id !== currCluster.id) {
       document.location.reload()
     }
   }
 
 
   async startCluster() {
-    const { refreshClusters, ajax: { Jupyter } } = this.props
+    const { refreshClusters, workspace: { workspace: { namespace } }, ajax: { Jupyter } } = this.props
+    await refreshClusters()
+    const cluster = getCluster(this.props.clusters) // Note: reading up-to-date prop
+    if (!cluster) {
+      await Jupyter.cluster(namespace, Utils.generateClusterName()).create({
+        machineConfig: Utils.normalizeMachineConfig({})
+      })
+    }
 
     while (this.mounted) {
       await refreshClusters()
-      const { clusters } = this.props //Note: placed here to read updated value after refresh
-      const cluster = getCluster(clusters)
-      if (!cluster) {
-        return { error: 'You do not have access to run analyses on this workspace.' }
-      }
-
-      const { status, googleProject, clusterName } = cluster
-      this.setState({ clusterStatus: status })
+      const cluster = getCluster(this.props.clusters) // Note: reading up-to-date prop
+      const status = cluster && cluster.status
 
       if (status === 'Running') {
         return cluster
       } else if (status === 'Stopped') {
+        const { googleProject, clusterName } = cluster
         await Jupyter.cluster(googleProject, clusterName).start()
         refreshClusters()
         await Utils.delay(10000)
@@ -298,8 +300,10 @@ class NotebookEditor extends Component {
   }
 
   render() {
-    const { clusterStatus, clusterError, localizeFailures, failed, url, saving } = this.state
-    const { namespace, name, app } = this.props
+    const { clusterError, localizeFailures, failed, url, saving } = this.state
+    const { namespace, name, app, clusters } = this.props
+    const cluster = getCluster(clusters)
+    const clusterStatus = cluster && cluster.status
 
     if (url) {
       return h(Fragment, [

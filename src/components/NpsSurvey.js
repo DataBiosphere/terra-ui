@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { Component } from 'react'
-import { div, h, input } from 'react-hyperscript-helpers'
+import { div, h, input, span } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
 import { buttonSecondary, Clickable } from 'src/components/common'
 import { icon } from 'src/components/icons'
@@ -14,7 +14,7 @@ import * as Utils from 'src/libs/utils'
 
 const styles = {
   questionLabel: { fontWeight: 600, marginBottom: '0.5rem' },
-  questionInput: { marginBottom: '0.75rem', height: '4rem' }
+  questionInput: { marginBottom: '0.75rem', height: '4rem', marginTop: '0.25rem' }
 }
 
 export const NpsSurvey = Utils.connectAtom(authStore, 'authState')(class NpsSurvey extends Component {
@@ -108,9 +108,9 @@ export const NpsSurvey = Utils.connectAtom(authStore, 'authState')(class NpsSurv
         onClick: () => this.setState({ expanded: true }),
         disabled: expanded,
         style: {
-          height: expanded ? 350 : 50,
-          width: expanded ? 300 : 175,
-          padding: '1rem',
+          height: expanded ? 325 : 100,
+          width: expanded ? 405 : 255,
+          padding: '1rem 1.5rem 1rem 1rem',
           overflow: 'hidden',
           backgroundColor: colors.darkBlue[0], color: 'white',
           borderRadius: expanded ? '0.5rem' : '0.5rem 0 0 0.5rem',
@@ -118,23 +118,24 @@ export const NpsSurvey = Utils.connectAtom(authStore, 'authState')(class NpsSurv
           boxShadow: Style.standardShadow
         }
       },
-      !expanded ?
-        'How are we doing?' :
-        [
-          div({ style: styles.questionLabel }, 'How likely are you to recommend Terra to others?'),
-          div({ style: { display: 'flex', justifyContent: 'space-around', marginBottom: '0.5rem' } }, scoreRadios),
-          div({ style: styles.questionLabel }, 'What was the reason for this score?'),
-          TextArea({ style: styles.questionInput, value: reasonComment, onChange: e => this.setState({ reasonComment: e.target.value }) }),
-          div({ style: styles.questionLabel }, 'What could we change?'),
-          TextArea({ style: styles.questionInput, value: changeComment, onChange: e => this.setState({ changeComment: e.target.value }) }),
-          div({ style: { display: 'flex', justifyContent: 'flex-end' } }, [
-            buttonSecondary({
-              style: { color: 'white' },
-              hover: { color: colors.gray[5] },
-              onClick: goAway(true)
-            }, 'Submit')
-          ])
-        ]
+      !expanded ? [
+        div({ style: styles.questionLabel }, 'How likely are you to recommend Terra to others?'),
+        div({ style: { display: 'flex', justifyContent: 'space-around', marginBottom: '0.5rem' } }, scoreRadios)
+      ] : [
+        div({ style: styles.questionLabel }, 'How likely are you to recommend Terra to others?'),
+        div({ style: { display: 'flex', justifyContent: 'space-around', marginBottom: '0.5rem' } }, scoreRadios),
+        span({ style: styles.questionLabel }, 'What was the reason for this score? '), span({ style: { ...styles.questionLabel, color: colors.gray[3] } }, '(Optional)'),
+        TextArea({ style: styles.questionInput, value: reasonComment, onChange: e => this.setState({ reasonComment: e.target.value }) }),
+        span({ style: styles.questionLabel }, 'What could we change? '), span({ style: { ...styles.questionLabel, color: colors.gray[3] } }, '(Optional)'),
+        TextArea({ style: styles.questionInput, value: changeComment, onChange: e => this.setState({ changeComment: e.target.value }) }),
+        div({ style: { display: 'flex', justifyContent: 'flex-end' } }, [
+          buttonSecondary({
+            style: { color: 'white' },
+            hover: { color: colors.gray[5] },
+            onClick: goAway(true)
+          }, 'Submit')
+        ])
+      ]
       ),
       h(Clickable, {
         as: icon('times-circle'),
