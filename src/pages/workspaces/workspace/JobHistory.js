@@ -3,7 +3,7 @@ import { Fragment } from 'react'
 import { div, h, span, table, tbody, td, tr } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { Clickable, MenuButton, menuIcon, spinnerOverlay } from 'src/components/common'
+import { Clickable, link, MenuButton, menuIcon, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import PopupTrigger from 'src/components/PopupTrigger'
@@ -159,12 +159,11 @@ const JobHistory = _.flow(
           },
           columns: [
             {
-              size: { basis: 600, grow: 0 },
+              size: { basis: 500, grow: 0 },
               headerRenderer: () => h(HeaderCell, ['Job']),
               cellRenderer: ({ rowIndex }) => {
                 const {
-                  methodConfigurationNamespace, methodConfigurationName, submitter, submissionId, workflowStatuses,
-                  status, submissionEntity
+                  methodConfigurationNamespace, submitter, submissionId, workflowStatuses,
                 } = submissions[rowIndex]
                 return h(Fragment, [
                   div([
@@ -172,31 +171,21 @@ const JobHistory = _.flow(
                       methodConfigurationNamespace !== namespace && span({ style: styles.deemphasized }, [
                         `${methodConfigurationNamespace}/`
                       ]),
-                      methodConfigurationName
+                      link({
+                        target: '_blank',
+                        href: `${getConfig().firecloudUrlRoot}/#workspaces/${namespace}/${name}/monitor/${submissionId}`
+                      }, ['methodConfigurationName'])
                     ]),
                     div([
                       span({ style: styles.deemphasized }, 'Submitted by '),
                       submitter
                     ])
                   ]),
-                  h(PopupTrigger, {
+                  collapsedStatuses(workflowStatuses).running && h(PopupTrigger, {
                     side: 'bottom',
                     closeOnClick: true,
                     content: h(Fragment, [
                       h(MenuButton, {
-                        as: 'a',
-                        target: '_blank',
-                        href: `${getConfig().firecloudUrlRoot}/#workspaces/${namespace}/${name}/monitor/${submissionId}`
-                      }, [menuIcon('circle-arrow right'), 'View job details']),
-                      isTerminal(status) && workflowStatuses['Failed'] &&
-                      submissionEntity && submissionEntity.entityType.endsWith('_set') && h(MenuButton, {
-                        onClick: () => rerunFailures({
-                          namespace, name, submissionId,
-                          configNamespace: methodConfigurationNamespace, configName: methodConfigurationName,
-                          onDone: () => this.refresh()
-                        })
-                      }, [menuIcon('sync'), 'Re-run failures']),
-                      collapsedStatuses(workflowStatuses).running && h(MenuButton, {
                         onClick: () => this.setState({ aborting: submissionId })
                       }, [
                         menuIcon('warning-standard', { style: { color: colors.orange[0] } }),
@@ -226,6 +215,27 @@ const JobHistory = _.flow(
               cellRenderer: ({ rowIndex }) => {
                 const { workflowStatuses, status } = submissions[rowIndex]
                 return h(Fragment, [statusCell(workflowStatuses), status === 'Aborting' && 'Aborting'])
+              }
+            },
+            {
+              size: { basis: 175, grow: 0 },
+              headerRenderer: () => h(HeaderCell, ['Re-run Failures']),
+              cellRenderer: ({ rowIndex }) => {
+                const { methodConfigurationNamespace, methodConfigurationName, submissionId, workflowStatuses,
+                  status, submissionEntity
+                } = submissions[rowIndex]
+                /*isTerminal(status) && workflowStatuses['Failed'] &&
+                  submissionEntity && submissionEntity.entityType.endsWith('_set') &&*/
+                return h(TextCell, {
+                  onClick: () => rerunFailures({
+                    namespace,
+                    name,
+                    submissionId,
+                    configNamespace: methodConfigurationNamespace,
+                    configName: methodConfigurationName,
+                    onDone: () => this.refresh()
+                  })
+                }, ['Re-run failures'])
               }
             },
             {
