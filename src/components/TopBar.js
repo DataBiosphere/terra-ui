@@ -157,6 +157,19 @@ export default Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
             ]),
             'Your Workspaces'
           ]),
+          h(Clickable, {
+            as: 'a',
+            target: '_blank',
+            style: styles.nav.item,
+            hover: { backgroundColor: colors.darkBlue[1] },
+            href: 'https://jobs.terra.bio/', //unfiltered view of job manager
+            onClick: () => this.hideNav()
+          }, [
+            div({ style: styles.nav.icon }, [
+              icon('layers', { className: 'is-solid', size: 24 })
+            ]),
+            'Your Jobs'
+          ]),
           div({ style: { borderBottom: styles.nav.item.borderBottom, padding: '14px 0' } }, [
             div({ style: { ...styles.nav.subItem, paddingLeft: 28 } }, [
               div({ style: styles.nav.icon }, [
