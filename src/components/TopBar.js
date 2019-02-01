@@ -163,7 +163,7 @@ export default Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
             target: '_blank',
             style: styles.nav.item,
             hover: { backgroundColor: colors.darkBlue[1] },
-            href: 'https://jobs.terra.bio/', //unfiltered view of job manager
+            href: 'https://jobs.terra.bio/', //unfiltered view of job manager link
             onClick: () => this.hideNav()
           }, [
             div({ style: styles.nav.icon }, [

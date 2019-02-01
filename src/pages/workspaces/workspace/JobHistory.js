@@ -173,7 +173,8 @@ const JobHistory = _.flow(
                       ]),
                       link({
                         target: '_blank',
-                        href: (getConfig().isJobManager === 'true') ? `jobs.terra.bio`: `${getConfig().firecloudUrlRoot}/#workspaces/${namespace}/${name}/monitor/${submissionId}`
+                        //replace link with actual job manager link
+                        href: (getConfig().isJobManager === 'true') ? `https://jobs.terra.bio/${namespace}/${name}/${submissionId}`: `${getConfig().firecloudUrlRoot}/#workspaces/${namespace}/${name}/monitor/${submissionId}`
                       }, ['methodConfigurationName'])
                     ]),
                     div([
