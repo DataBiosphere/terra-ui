@@ -157,6 +157,7 @@ export default Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
             ]),
             'Your Workspaces'
           ]),
+          //add flag
           h(Clickable, {
             as: 'a',
             target: '_blank',

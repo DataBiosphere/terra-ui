@@ -213,29 +213,33 @@ const JobHistory = _.flow(
               size: { basis: 150, grow: 0 },
               headerRenderer: () => h(HeaderCell, ['Status']),
               cellRenderer: ({ rowIndex }) => {
-                const { workflowStatuses, status } = submissions[rowIndex]
-                return h(Fragment, [statusCell(workflowStatuses), status === 'Aborting' && 'Aborting'])
-              }
-            },
-            {
-              size: { basis: 175, grow: 0 },
-              headerRenderer: () => h(HeaderCell, ['Re-run Failures']),
-              cellRenderer: ({ rowIndex }) => {
-                const { methodConfigurationNamespace, methodConfigurationName, submissionId, workflowStatuses,
+                const {
+                  methodConfigurationNamespace, methodConfigurationName, submissionId, workflowStatuses,
                   status, submissionEntity
                 } = submissions[rowIndex]
-                /*isTerminal(status) && workflowStatuses['Failed'] &&
-                  submissionEntity && submissionEntity.entityType.endsWith('_set') &&*/
-                return h(TextCell, {
-                  onClick: () => rerunFailures({
-                    namespace,
-                    name,
-                    submissionId,
-                    configNamespace: methodConfigurationNamespace,
-                    configName: methodConfigurationName,
-                    onDone: () => this.refresh()
-                  })
-                }, ['Re-run failures'])
+                return h(Fragment, [
+                  statusCell(workflowStatuses), status === 'Aborting' && 'Aborting',
+                  isTerminal(status) && workflowStatuses['Failed'] &&
+                  submissionEntity && submissionEntity.entityType.endsWith('_set') && h(TooltipTrigger, {
+                    content: 'Click to re-run'
+                  }, [
+                    h(Clickable, {
+                      onClick: () => rerunFailures({
+                        namespace,
+                        name,
+                        submissionId,
+                        configNamespace: methodConfigurationNamespace,
+                        configName: methodConfigurationName,
+                        onDone: () => this.refresh()
+                      })
+                    }, [
+                      icon('sync', {
+                        size: 14,
+                        style: { color: colors.blue[0] }
+                      })
+                    ])
+                  ])
+                ])
               }
             },
             {
