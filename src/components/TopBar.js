@@ -137,7 +137,7 @@ export default _.flow(
           size: 20
         })
       ]),
-      'Sign up for $300 in free cloud credits'
+      'Sign up for free credits'
     ])
 
     const enrolledCredits = h(Clickable, {
@@ -157,8 +157,11 @@ export default _.flow(
           size: 20
         })
       ]),
-      'You are accessing your free cloud credits',
-      icon('pop-out', { size: 20 })
+      'Access free credits',
+      icon('pop-out', {
+        size: 20,
+        style: { paddingLeft: '0.5rem' }
+      })
     ])
 
     const terminatedCredits = h(Clickable, {
