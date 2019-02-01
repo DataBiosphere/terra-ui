@@ -3,6 +3,7 @@ import PropTypes from 'prop-types'
 import { a, b, div, h } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
 import { Clickable, MenuButton } from 'src/components/common'
+import { getConfig } from 'src/libs/config'
 import { icon, logo, profilePic } from 'src/components/icons'
 import { notify } from 'src/components/Notifications'
 import SignInButton from 'src/components/SignInButton'
@@ -157,8 +158,7 @@ export default Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
             ]),
             'Your Workspaces'
           ]),
-          //add flag
-          h(Clickable, {
+          (getConfig().isJobManager === 'true') && h(Clickable, {
             as: 'a',
             target: '_blank',
             style: styles.nav.item,

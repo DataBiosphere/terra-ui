@@ -163,7 +163,7 @@ const JobHistory = _.flow(
               headerRenderer: () => h(HeaderCell, ['Job']),
               cellRenderer: ({ rowIndex }) => {
                 const {
-                  methodConfigurationNamespace, submitter, submissionId, workflowStatuses,
+                  methodConfigurationNamespace, submitter, submissionId, workflowStatuses
                 } = submissions[rowIndex]
                 return h(Fragment, [
                   div([
@@ -173,7 +173,7 @@ const JobHistory = _.flow(
                       ]),
                       link({
                         target: '_blank',
-                        href: `${getConfig().firecloudUrlRoot}/#workspaces/${namespace}/${name}/monitor/${submissionId}`
+                        href: (getConfig().isJobManager === 'true') ? `jobs.terra.bio`: `${getConfig().firecloudUrlRoot}/#workspaces/${namespace}/${name}/monitor/${submissionId}`
                       }, ['methodConfigurationName'])
                     ]),
                     div([
