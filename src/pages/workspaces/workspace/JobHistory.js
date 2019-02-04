@@ -19,7 +19,7 @@ import { Component } from 'src/libs/wrapped-components'
 import { rerunFailures } from 'src/pages/workspaces/workspace/tools/FailureRerunner'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
-export const linkToJobManager = true
+export const linkToJobManager = false
 
 const styles = {
   submissionsTable: {
@@ -175,8 +175,14 @@ const JobHistory = _.flow(
                       link({
                         target: '_blank',
                         //replace link with actual job manager link
-                        href: linkToJobManager ? `https://jobs.terra.bio/${namespace}/${name}/${submissionId}`: `${getConfig().firecloudUrlRoot}/#workspaces/${namespace}/${name}/monitor/${submissionId}`
-                      }, ['methodConfigurationName'])
+                        href: linkToJobManager ? `${getConfig().jobManagerUrlRoot}/${namespace}/${name}/${submissionId}` :
+                          `${getConfig().firecloudUrlRoot}/#workspaces/${namespace}/${name}/monitor/${submissionId}`
+                      }, [
+                        'methodConfigurationName', icon('pop-out', {
+                          size: 10,
+                          style: { marginLeft: '0.2rem' }
+                        })
+                      ])
                     ]),
                     div([
                       span({ style: styles.deemphasized }, 'Submitted by '),

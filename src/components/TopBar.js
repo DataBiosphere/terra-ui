@@ -10,6 +10,7 @@ import { authStore, refreshTerraProfile, signOut } from 'src/libs/auth'
 import SignInButton from 'src/components/SignInButton'
 import { contactUsActive } from 'src/components/SupportRequest'
 import colors from 'src/libs/colors'
+import { getConfig } from 'src/libs/config'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
@@ -232,13 +233,17 @@ export default _.flow(
             target: '_blank',
             style: styles.nav.item,
             hover: { backgroundColor: colors.darkBlue[1] },
-            href: 'https://jobs.terra.bio/', //unfiltered view of job manager link
+            href: getConfig().jobManagerUrlRoot, //unfiltered view of job manager link
             onClick: () => this.hideNav()
           }, [
             div({ style: styles.nav.icon }, [
               icon('layers', { className: 'is-solid', size: 24 })
             ]),
-            'Your Jobs'
+            'Your Jobs',
+            icon('pop-out', {
+              size: 12,
+              style: { marginLeft: '0.5rem' }
+            })
           ]),
           div({ style: { borderBottom: styles.nav.item.borderBottom, padding: '14px 0' } }, [
             div({ style: { ...styles.nav.subItem, paddingLeft: 28 } }, [
