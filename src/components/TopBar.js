@@ -2,7 +2,6 @@ import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
 import { a, b, div, h } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
-import { getConfig } from 'src/libs/config'
 import { buttonPrimary, Clickable, MenuButton } from 'src/components/common'
 import { icon, logo, profilePic } from 'src/components/icons'
 import Modal from 'src/components/Modal'
@@ -17,6 +16,7 @@ import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 import { FreeCreditsModal } from 'src/components/TrialBanner'
+import { linkToJobManager } from 'src/pages/workspaces/workspace/JobHistory'
 
 
 const styles = {
@@ -227,7 +227,7 @@ export default _.flow(
             ]),
             'Your Workspaces'
           ]),
-          (getConfig().isJobManager === 'true') && h(Clickable, {
+          linkToJobManager && h(Clickable, {
             as: 'a',
             target: '_blank',
             style: styles.nav.item,

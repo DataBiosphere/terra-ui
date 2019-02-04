@@ -19,6 +19,7 @@ import { Component } from 'src/libs/wrapped-components'
 import { rerunFailures } from 'src/pages/workspaces/workspace/tools/FailureRerunner'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
+export const linkToJobManager = true
 
 const styles = {
   submissionsTable: {
@@ -174,7 +175,7 @@ const JobHistory = _.flow(
                       link({
                         target: '_blank',
                         //replace link with actual job manager link
-                        href: (getConfig().isJobManager === 'true') ? `https://jobs.terra.bio/${namespace}/${name}/${submissionId}`: `${getConfig().firecloudUrlRoot}/#workspaces/${namespace}/${name}/monitor/${submissionId}`
+                        href: linkToJobManager ? `https://jobs.terra.bio/${namespace}/${name}/${submissionId}`: `${getConfig().firecloudUrlRoot}/#workspaces/${namespace}/${name}/monitor/${submissionId}`
                       }, ['methodConfigurationName'])
                     ]),
                     div([
@@ -222,7 +223,7 @@ const JobHistory = _.flow(
                   statusCell(workflowStatuses), status === 'Aborting' && 'Aborting',
                   isTerminal(status) && workflowStatuses['Failed'] &&
                   submissionEntity && submissionEntity.entityType.endsWith('_set') && h(TooltipTrigger, {
-                    content: 'Click to re-run'
+                    content: 'Re-run failures'
                   }, [
                     h(Clickable, {
                       onClick: () => rerunFailures({
