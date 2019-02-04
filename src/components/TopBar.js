@@ -5,11 +5,10 @@ import Collapse from 'src/components/Collapse'
 import { buttonPrimary, Clickable, MenuButton } from 'src/components/common'
 import { icon, logo, profilePic } from 'src/components/icons'
 import Modal from 'src/components/Modal'
-import { notify } from 'src/components/Notifications'
-import SignInButton from 'src/components/SignInButton'
-import SupportRequestModal from 'src/components/SupportRequestModal'
 import { ajaxCaller } from 'src/libs/ajax'
 import { authStore, refreshTerraProfile, signOut } from 'src/libs/auth'
+import SignInButton from 'src/components/SignInButton'
+import { contactUsActive } from 'src/components/SupportRequest'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
@@ -241,7 +240,7 @@ export default _.flow(
           h(Clickable, {
             style: styles.nav.item,
             hover: { backgroundColor: colors.darkBlue[1] },
-            onClick: () => this.setState({ showingSupportModal: true })
+            onClick: () => contactUsActive.set(true)
           }, [
             div({ style: styles.nav.icon }, [
               icon('envelope', { className: 'is-solid', size: 20 })
@@ -326,7 +325,7 @@ export default _.flow(
 
   render() {
     const { title, href, children, ajax: { User } } = this.props
-    const { navShown, showingSupportModal, openFreeCreditsModal, finalizeTrial } = this.state
+    const { navShown, openFreeCreditsModal, finalizeTrial } = this.state
 
     return div({ style: styles.topBar }, [
       icon('bars', {
@@ -349,13 +348,6 @@ export default _.flow(
       ]),
       children,
       navShown && this.buildNav(),
-      showingSupportModal && h(SupportRequestModal, {
-        onDismiss: () => this.setState({ showingSupportModal: false }),
-        onSuccess: () => {
-          this.setState({ showingSupportModal: false })
-          notify('success', 'Message sent successfully', { timeout: 3000 })
-        }
-      }),
       openFreeCreditsModal && h(FreeCreditsModal, {
         onDismiss: () => this.setState({ openFreeCreditsModal: false })
       }),
