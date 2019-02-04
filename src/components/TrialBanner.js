@@ -2,8 +2,8 @@ import _ from 'lodash/fp'
 import { div, h, a, span } from 'react-hyperscript-helpers'
 import { authStore, refreshTerraProfile } from 'src/libs/auth'
 import colors from 'src/libs/colors'
-import { buttonPrimary, Clickable, LabeledCheckbox } from 'src/components/common'
-import { icon, spinner } from 'src/components/icons'
+import { buttonPrimary, Clickable, LabeledCheckbox, spinnerOverlay } from 'src/components/common'
+import { icon } from 'src/components/icons'
 import { ajaxCaller } from 'src/libs/ajax'
 import { reportError } from 'src/libs/error'
 import * as Utils from 'src/libs/utils'
@@ -49,32 +49,27 @@ const messages =
     }
   }
 
-export const TrialBanner = _.flow(
-  ajaxCaller,
-  Utils.connectAtom(authStore, 'authState')
-)(class TrialBanner extends Component {
+export const FreeCreditsModal= ajaxCaller(class FreeCreditsModal extends Component {
   constructor(props) {
     super(props)
     this.state = {
-      accessingCredits: false,
       pageTwo: false,
       termsAgreed: false,
       cloudTermsAgreed: false,
-      finalizeTrial: false,
-      snoozeBanner: false
+      loading: false
     }
   }
 
-  renderFreeCreditModal = () => {
-    const { pageTwo, termsAgreed, cloudTermsAgreed } = this.state
+  render() {
+    const { onDismiss } = this.props
+    const { pageTwo, termsAgreed, cloudTermsAgreed, loading } = this.state
     return h(Modal, {
+      onDismiss,
       title: 'Welcome to the Terra Free Credit Program!',
       width: '65%',
-      onDismiss: () => this.setState({ accessingCredits: false, pageTwo: false }),
       okButton: pageTwo ? buttonPrimary({
         onClick: async () => {
           this.acceptCredits()
-          this.setState({ accessingCredits: false })
         },
         disabled: (termsAgreed === false) || (cloudTermsAgreed === false),
         tooltip: ((termsAgreed === false) || (cloudTermsAgreed === false)) && 'You must check the boxes to accept.'
@@ -85,14 +80,23 @@ export const TrialBanner = _.flow(
       h(FreeTrialEulas, { pageTwo }),
       pageTwo && div({
         style: {
-          marginTop: '0.5rem', padding: '1rem', border: `1px solid ${colors.blue[0]}`, borderRadius: '0.25rem', backgroundColor: '#f4f4f4'
+          marginTop: '0.5rem',
+          padding: '1rem',
+          border: `1px solid ${colors.blue[0]}`,
+          borderRadius: '0.25rem',
+          backgroundColor: '#f4f4f4'
         }
       }, [
         h(LabeledCheckbox, {
           checked: termsAgreed === true,
           onChange: v => this.setState({ termsAgreed: v })
         }, [span({ style: { marginLeft: '0.5rem' } }, ['I agree to the terms of this Agreement.'])]),
-        div({ style: { flexGrow: 1, marginBottom: '0.5rem' } }),
+        div({
+          style: {
+            flexGrow: 1,
+            marginBottom: '0.5rem'
+          }
+        }),
         h(LabeledCheckbox, {
           checked: cloudTermsAgreed === true,
           onChange: v => this.setState({ cloudTermsAgreed: v })
@@ -101,24 +105,56 @@ export const TrialBanner = _.flow(
             'I agree to the Google Cloud Terms of Service.', div({ style: { marginLeft: '1.5rem' } }, [
               'Google Cloud Terms of Service:',
               a({
-                style: { textDecoration: 'underline', marginLeft: '0.25rem' },
+                style: {
+                  textDecoration: 'underline',
+                  marginLeft: '0.25rem'
+                },
                 target: '_blank',
                 href: 'https://cloud.google.com/terms/'
               }, ['https://cloud.google.com/terms/', icon('pop-out', { style: { marginLeft: '0.25rem' } })])
             ])
           ])
         ])
-      ])
+      ]),
+      loading && spinnerOverlay
     ])
   }
 
-  render() {
-    const { authState: { isSignedIn, profile }, ajax: { User } } = _.omit('isVisible', this.props)
-    const { accessingCredits, loading, finalizeTrial, snoozeBanner } = this.state
-    const { trialState } = profile
-    if (!trialState || !isSignedIn || trialState === 'Finalized' || snoozeBanner) return null
-    const { [trialState]: { title, message, enabledLink, button, isWarning } } = messages
+  async acceptCredits() {
+    const { onDismiss, ajax: { User } } = this.props
+    try {
+      this.setState({ loading: true })
+      await User.acceptEula()
+      await User.startTrial()
+      await refreshTerraProfile()
+      onDismiss()
+    } catch (error) {
+      reportError('Error starting trial', error)
+    } finally {
+      this.setState({ loading: false })
+    }
+  }
+})
 
+export const TrialBanner = _.flow(
+  ajaxCaller,
+  Utils.connectAtom(authStore, 'authState')
+)(class TrialBanner extends Component {
+  constructor(props) {
+    super(props)
+    this.state = {
+      openFreeCreditsModal: false,
+      finalizeTrial: false
+    }
+  }
+
+  render() {
+    const { authState: { isSignedIn, profile, acceptedTos }, ajax: { User } } = _.omit('isVisible', this.props)
+    const { finalizeTrial, openFreeCreditsModal } = this.state
+    const { trialState } = profile
+    const removeBanner = localStorage.getItem('removeBanner')
+    if (!trialState || !isSignedIn || !acceptedTos || trialState === 'Finalized' || removeBanner === 'true') return null
+    const { [trialState]: { title, message, enabledLink, button, isWarning } } = messages
     return div([
       div({
         style: {
@@ -150,21 +186,30 @@ export const TrialBanner = _.flow(
             marginLeft: '0.5rem', flexShrink: 0
           },
           onClick: () => {
-            button.isExternal ? window.open(button.url, '_blank') : this.setState({ accessingCredits: true })
+            button.isExternal ? window.open(button.url, '_blank') : this.setState({ openFreeCreditsModal: true })
+          }
+        }, [button.label, button.isExternal ? icon('pop-out', { style: { marginLeft: '0.25rem' } }) : null]),
+        div({
+          style: {
+            marginLeft: '3rem',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'flex-end'
           }
         }, [
-          loading ? spinner({ style: { fontSize: '1rem', color: 'white' } }) : button.label,
-          button.isExternal ? icon('pop-out', { style: { marginLeft: '0.25rem' } }) : null
-        ]),
-        div({ style: { marginLeft: '3rem', display: 'flex', flexDirection: 'column', alignItems: 'flex-end' } }, [
           h(Clickable, {
             style: { borderBottom: 'none' },
             tooltip: 'Hide banner',
-            onClick: () => this.setState(trialState === 'Terminated' ? { finalizeTrial: true } : { snoozeBanner: true })
+            onClick: trialState === 'Terminated' ? () => this.setState({ finalizeTrial: true }) : () => {
+              localStorage.setItem('removeBanner', 'true')
+              this.forceUpdate()
+            }
           }, [icon('times-circle', { size: 25, style: { fontSize: '1.5rem', cursor: 'pointer' } })])
         ])
       ]),
-      accessingCredits && this.renderFreeCreditModal(),
+      openFreeCreditsModal && h(FreeCreditsModal, {
+        onDismiss: () => this.setState({ openFreeCreditsModal: false })
+      }),
       finalizeTrial && h(Modal, {
         title: 'Remove banner',
         onDismiss: () => this.setState({ finalizeTrial: false }),
@@ -182,19 +227,5 @@ export const TrialBanner = _.flow(
         }, ['Confirm'])
       }, ['Click confirm to remove banner forever.'])
     ])
-  }
-
-  async acceptCredits() {
-    const { ajax: { User } } = this.props
-    try {
-      this.setState({ loading: true })
-      await User.acceptEula()
-      await User.startTrial()
-      await refreshTerraProfile()
-    } catch (error) {
-      reportError('Error starting trial', error)
-    } finally {
-      this.setState({ loading: false })
-    }
   }
 })
