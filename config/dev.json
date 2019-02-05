@@ -6,7 +6,7 @@
   "firecloudUrlRoot": "https://firecloud.dsde-dev.broadinstitute.org",
   "firecloudBucketRoot": "https://storage.googleapis.com/firecloud-alerts-dev",
   "googleClientId": "500025638838-s2v23ar3spugtd5t2v1vgfa2sp7ppg0d.apps.googleusercontent.com",
-  "jobManagerUrlRoot": "https://job-manager.dsde-dev.broadinstitute.org/s",
+  "jobManagerUrlRoot": "https://job-manager.dsde-dev.broadinstitute.org/jobs",
   "leoUrlRoot": "https://leonardo.dsde-dev.broadinstitute.org",
   "marthaUrlRoot": "https://us-central1-broad-dsde-dev.cloudfunctions.net/fileSummaryV1",
   "orchestrationUrlRoot": "https://firecloud-orchestration.dsde-dev.broadinstitute.org",
