@@ -173,8 +173,8 @@ const JobHistory = _.flow(
                       ]),
                       link({
                         target: '_blank',
-                        //replace link with actual job manager link
-                        href: linkToJobManager ? `${getConfig().jobManagerUrlRoot}/${namespace}/${name}/${submissionId}` :
+                        //check link with actual job manager link
+                        href: linkToJobManager ? `${getConfig().jobManagerUrlRoot}?q=submission-id%3D${submissionId}` :
                           `${getConfig().firecloudUrlRoot}/#workspaces/${namespace}/${name}/monitor/${submissionId}`
                       }, [
                         methodConfigurationName, icon('pop-out', {
