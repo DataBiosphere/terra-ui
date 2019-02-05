@@ -3,10 +3,9 @@ import { Fragment } from 'react'
 import { div, h, span, table, tbody, td, tr } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { Clickable, link, MenuButton, menuIcon, spinnerOverlay } from 'src/components/common'
+import { Clickable, link, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
-import PopupTrigger from 'src/components/PopupTrigger'
 import { FlexTable, HeaderCell, TextCell } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { ajaxCaller } from 'src/libs/ajax'
@@ -161,10 +160,10 @@ const JobHistory = _.flow(
           columns: [
             {
               size: { basis: 500, grow: 0 },
-              headerRenderer: () => h(HeaderCell, ['Job']),
+              headerRenderer: () => h(HeaderCell, ['Job (click for details)']),
               cellRenderer: ({ rowIndex }) => {
                 const {
-                  methodConfigurationNamespace, submitter, submissionId, workflowStatuses
+                  methodConfigurationNamespace, methodConfigurationName, submitter, submissionId
                 } = submissions[rowIndex]
                 return h(Fragment, [
                   div([
@@ -178,7 +177,7 @@ const JobHistory = _.flow(
                         href: linkToJobManager ? `${getConfig().jobManagerUrlRoot}/${namespace}/${name}/${submissionId}` :
                           `${getConfig().firecloudUrlRoot}/#workspaces/${namespace}/${name}/monitor/${submissionId}`
                       }, [
-                        'methodConfigurationName', icon('pop-out', {
+                        methodConfigurationName, icon('pop-out', {
                           size: 10,
                           style: { marginLeft: '0.2rem' }
                         })
@@ -188,23 +187,6 @@ const JobHistory = _.flow(
                       span({ style: styles.deemphasized }, 'Submitted by '),
                       submitter
                     ])
-                  ]),
-                  collapsedStatuses(workflowStatuses).running && h(PopupTrigger, {
-                    side: 'bottom',
-                    closeOnClick: true,
-                    content: h(Fragment, [
-                      h(MenuButton, {
-                        onClick: () => this.setState({ aborting: submissionId })
-                      }, [
-                        menuIcon('warning-standard', { style: { color: colors.orange[0] } }),
-                        'Abort all workflows'
-                      ])
-                    ])
-                  }, [
-                    h(Clickable, {
-                      className: 'hover-only',
-                      style: { marginLeft: 'auto', color: colors.blue[1] }
-                    }, [icon('caretDown', { size: 18 })])
                   ])
                 ])
               }
@@ -227,6 +209,15 @@ const JobHistory = _.flow(
                 } = submissions[rowIndex]
                 return h(Fragment, [
                   statusCell(workflowStatuses), status === 'Aborting' && 'Aborting',
+                  (collapsedStatuses(workflowStatuses).running && status !== 'Aborting') && h(TooltipTrigger, {
+                    content: 'Abort all workflows'
+                  }, [
+                    h(Clickable, {
+                      onClick: () => this.setState({ aborting: submissionId })
+                    }, [
+                      icon('warning-standard', { style: { color: colors.orange[0] } })
+                    ])
+                  ]),
                   isTerminal(status) && workflowStatuses['Failed'] &&
                   submissionEntity && submissionEntity.entityType.endsWith('_set') && h(TooltipTrigger, {
                     content: 'Re-run failures'
