@@ -233,7 +233,7 @@ export default _.flow(
             target: '_blank',
             style: styles.nav.item,
             hover: { backgroundColor: colors.darkBlue[1] },
-            href: getConfig().jobManagerUrlRoot, //unfiltered view of job manager link
+            href: getConfig().jobManagerUrlRoot,
             onClick: () => this.hideNav()
           }, [
             div({ style: styles.nav.icon }, [
