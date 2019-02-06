@@ -97,7 +97,8 @@ authStore.subscribe(async (state, oldState) => {
 
     Ajax().User.getStatus().then(response => {
       if (response.status === 404) {
-        const isTrustedEmail = _.includes(state.user.email.match(/@.*/)[0], ['@broadinstitute.org', '@google.com', '@channing.harvard.edu'])
+        const isTrustedEmail = _.includes(state.user.email.match(/@.*/)[0],
+          ['@broadinstitute.org', '@google.com', '@channing.harvard.edu', '@duke.corp-partner.google.com', '@stanford.corp-partner.google.com'])
 
         if (getConfig().isProd && !isTrustedEmail && !ProdWhitelist.includes(md5(state.user.email))) {
           return 'unlisted'
