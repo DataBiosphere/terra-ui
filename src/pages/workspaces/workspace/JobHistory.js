@@ -3,10 +3,9 @@ import { Fragment } from 'react'
 import { div, h, span, table, tbody, td, tr } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { Clickable, MenuButton, menuIcon, spinnerOverlay } from 'src/components/common'
+import { Clickable, link, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
-import PopupTrigger from 'src/components/PopupTrigger'
 import { FlexTable, HeaderCell, TextCell } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { ajaxCaller } from 'src/libs/ajax'
@@ -19,6 +18,7 @@ import { Component } from 'src/libs/wrapped-components'
 import { rerunFailures } from 'src/pages/workspaces/workspace/tools/FailureRerunner'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
+export const linkToJobManager = false
 
 const styles = {
   submissionsTable: {
@@ -159,12 +159,11 @@ const JobHistory = _.flow(
           },
           columns: [
             {
-              size: { basis: 600, grow: 0 },
-              headerRenderer: () => h(HeaderCell, ['Job']),
+              size: { basis: 500, grow: 0 },
+              headerRenderer: () => h(HeaderCell, ['Job (click for details)']),
               cellRenderer: ({ rowIndex }) => {
                 const {
-                  methodConfigurationNamespace, methodConfigurationName, submitter, submissionId, workflowStatuses,
-                  status, submissionEntity
+                  methodConfigurationNamespace, methodConfigurationName, submitter, submissionId
                 } = submissions[rowIndex]
                 return h(Fragment, [
                   div([
@@ -172,42 +171,22 @@ const JobHistory = _.flow(
                       methodConfigurationNamespace !== namespace && span({ style: styles.deemphasized }, [
                         `${methodConfigurationNamespace}/`
                       ]),
-                      methodConfigurationName
+                      link({
+                        target: '_blank',
+                        //check link with actual job manager link
+                        href: linkToJobManager ? `${getConfig().jobManagerUrlRoot}?q=submission-id%3D${submissionId}` :
+                          `${getConfig().firecloudUrlRoot}/#workspaces/${namespace}/${name}/monitor/${submissionId}`
+                      }, [
+                        methodConfigurationName, icon('pop-out', {
+                          size: 10,
+                          style: { marginLeft: '0.2rem' }
+                        })
+                      ])
                     ]),
                     div([
                       span({ style: styles.deemphasized }, 'Submitted by '),
                       submitter
                     ])
-                  ]),
-                  h(PopupTrigger, {
-                    side: 'bottom',
-                    closeOnClick: true,
-                    content: h(Fragment, [
-                      h(MenuButton, {
-                        as: 'a',
-                        target: '_blank',
-                        href: `${getConfig().firecloudUrlRoot}/#workspaces/${namespace}/${name}/monitor/${submissionId}`
-                      }, [menuIcon('circle-arrow right'), 'View job details']),
-                      isTerminal(status) && workflowStatuses['Failed'] &&
-                      submissionEntity && submissionEntity.entityType.endsWith('_set') && h(MenuButton, {
-                        onClick: () => rerunFailures({
-                          namespace, name, submissionId,
-                          configNamespace: methodConfigurationNamespace, configName: methodConfigurationName,
-                          onDone: () => this.refresh()
-                        })
-                      }, [menuIcon('sync'), 'Re-run failures']),
-                      collapsedStatuses(workflowStatuses).running && h(MenuButton, {
-                        onClick: () => this.setState({ aborting: submissionId })
-                      }, [
-                        menuIcon('warning-standard', { style: { color: colors.orange[0] } }),
-                        'Abort all workflows'
-                      ])
-                    ])
-                  }, [
-                    h(Clickable, {
-                      className: 'hover-only',
-                      style: { marginLeft: 'auto', color: colors.blue[1] }
-                    }, [icon('caretDown', { size: 18 })])
                   ])
                 ])
               }
@@ -224,8 +203,39 @@ const JobHistory = _.flow(
               size: { basis: 150, grow: 0 },
               headerRenderer: () => h(HeaderCell, ['Status']),
               cellRenderer: ({ rowIndex }) => {
-                const { workflowStatuses, status } = submissions[rowIndex]
-                return h(Fragment, [statusCell(workflowStatuses), status === 'Aborting' && 'Aborting'])
+                const {
+                  methodConfigurationNamespace, methodConfigurationName, submissionId, workflowStatuses,
+                  status, submissionEntity
+                } = submissions[rowIndex]
+                return h(Fragment, [
+                  statusCell(workflowStatuses), status === 'Aborting' && 'Aborting',
+                  (collapsedStatuses(workflowStatuses).running && status !== 'Aborting') && h(TooltipTrigger, {
+                    content: 'Abort all workflows'
+                  }, [
+                    h(Clickable, {
+                      onClick: () => this.setState({ aborting: submissionId })
+                    }, [
+                      icon('times-circle', { size: 20, style: { color: colors.blue[0], marginLeft: '0.5rem' } })
+                    ])
+                  ]),
+                  isTerminal(status) && workflowStatuses['Failed'] &&
+                  submissionEntity && submissionEntity.entityType.endsWith('_set') && h(TooltipTrigger, {
+                    content: 'Re-run failures'
+                  }, [
+                    h(Clickable, {
+                      onClick: () => rerunFailures({
+                        namespace,
+                        name,
+                        submissionId,
+                        configNamespace: methodConfigurationNamespace,
+                        configName: methodConfigurationName,
+                        onDone: () => this.refresh()
+                      })
+                    }, [
+                      icon('sync', { size: 18, style: { color: colors.blue[0], marginLeft: '0.5rem' } })
+                    ])
+                  ])
+                ])
               }
             },
             {
