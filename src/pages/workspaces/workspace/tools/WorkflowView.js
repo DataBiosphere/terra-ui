@@ -8,7 +8,7 @@ import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import {
   buttonPrimary, buttonSecondary, Clickable, linkButton, MenuButton, spinnerOverlay, menuIcon, link, methodLink,
-  RadioButton
+  RadioButton, Select
 } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { AutocompleteTextInput } from 'src/components/input'
@@ -302,16 +302,20 @@ const WorkflowView = _.flow(
   }),
   ajaxCaller
 )(class WorkflowView extends Component {
+  resetSelectionModel() {
+    return {
+      type: EntitySelectionType.processAll,
+      selectedEntities: {},
+      newSetName: `${this.props.workflowName}_${new Date().toISOString().slice(0, -5).replace(/:/g, '-')}`
+    }
+  }
+
   constructor(props) {
     super(props)
 
     this.state = {
-      activeTab: 'data',
-      entitySelectionModel: {
-        type: EntitySelectionType.processAll,
-        selectedEntities: {},
-        newSetName: `${props.workflowName}_${new Date().toISOString().slice(0, -5).replace(/:/g, '-')}`
-      },
+      activeTab: 'inputs',
+      entitySelectionModel: this.resetSelectionModel(),
       includeOptionalInputs: false,
       errors: { inputs: {}, outputs: {} },
       ...StateHistory.get()
@@ -331,7 +335,6 @@ const WorkflowView = _.flow(
         this.renderSummary(),
         Utils.cond(
           [activeTab === 'wdl', () => this.renderWDL()],
-          [activeTab === 'data', () => this.renderData()],
           [activeTab === 'inputs', () => this.renderIOTable('inputs')],
           [activeTab === 'outputs' && !!modifiedConfig.rootEntityType, () => this.renderIOTable('outputs')]
         ),
@@ -414,11 +417,23 @@ const WorkflowView = _.flow(
     }
   }
 
+  describeSelectionModel() {
+    const { modifiedConfig: { rootEntityType }, entitySelectionModel: { newSetName, selectedEntities, type }, processSingle } = this.state
+    const { name } = selectedEntities // entityType?
+    return Utils.cond(
+      [processSingle, ''],
+      [!processSingle && !rootEntityType, ''],
+      [type === EntitySelectionType.processAll, `all ${rootEntityType}s`],
+      [type === EntitySelectionType.chooseExisting, `${rootEntityType}s from ${name}`],
+      [type === EntitySelectionType.chooseRows, `${_.size(selectedEntities)} selected ${rootEntityType}s (will create a new set named "${newSetName}")`],
+    )
+  }
+
   renderSummary() {
     const { workspace: { canCompute, workspace }, namespace, name: workspaceName } = this.props
     const {
-      modifiedConfig, savedConfig, saving, saved, copying, deleting, activeTab, errors, synopsis, documentation,
-      processSingle, entitySelectionModel: { type: selectionType, selectedEntities, existingSet, newSetName }
+      modifiedConfig, savedConfig, saving, saved, copying, deleting, selectingData, activeTab, errors, synopsis, documentation,
+      processSingle, entityMetadata, entitySelectionModel
     } = this.state
     const { name, methodRepoMethod: { methodPath, methodVersion, methodNamespace, methodName }, rootEntityType } = modifiedConfig
     const modified = !_.isEqual(modifiedConfig, savedConfig)
@@ -467,17 +482,55 @@ const WorkflowView = _.flow(
               documentation
             ]) :
             div({ style: { fontStyle: 'italic', ...styles.description } }, ['No documentation provided']),
+          div({
+            style: {
+              marginBottom: '2rem'
+            }
+          }, [
+            div([
+              h(RadioButton, {
+                text: 'Process single workflow from files',
+                checked: !!processSingle,
+                onChange: () => this.setState({
+                  processSingle: true,
+                  modifiedConfig: _.omit('rootEntityType', modifiedConfig)
+                }),
+                labelStyle: { marginLeft: '0.5rem' }
+              })
+            ]),
+            div([
+              h(RadioButton, {
+                text: `Process multiple workflows from:`,
+                checked: !processSingle,
+                onChange: () => this.setState({
+                  processSingle: false,
+                  modifiedConfig: { ...modifiedConfig, rootEntityType: savedConfig.rootEntityType }
+                }),
+                labelStyle: { marginLeft: '0.5rem' }
+              }),
+              h(Select, {
+                isClearable: false, isDisabled: !!processSingle, isSearchable: false,
+                placeholder: 'Select data type...',
+                styles: { container: old => ({ ...old, display: 'inline-block', width: 200, marginLeft: '0.5rem' }) },
+                getOptionLabel: ({ value }) => Utils.normalizeLabel(value),
+                value: rootEntityType,
+                onChange: selected => {
+                  const value = !!selected ? selected.value : undefined
+                  this.setState(_.set(['modifiedConfig', 'rootEntityType'], value))
+                },
+                options: _.keys(entityMetadata)
+              }),
+              linkButton({
+                disabled: !!processSingle || !rootEntityType,
+                onClick: () => this.setState({ selectingData: true }),
+                style: { marginLeft: '1rem' }
+              }, ['Select Data'])
+            ]),
+            div({ style: { marginLeft: '2rem', height: '1rem' } }, [`${this.describeSelectionModel()}`])
+          ]),
           h(StepButtons, {
             tabs: [
               { key: 'wdl', title: 'Script', isValid: true },
-              {
-                key: 'data', title: 'Data',
-                isValid: processSingle ||
-                  (!!rootEntityType &&
-                    (selectionType === 'process all' ||
-                      (selectionType === 'choose existing' && !!existingSet) ||
-                      (_.size(selectedEntities) > 0 && !!newSetName)))
-              },
               { key: 'inputs', title: 'Inputs', isValid: inputsValid },
               { key: 'outputs', title: 'Outputs', isValid: outputsValid }
             ],
@@ -485,7 +538,8 @@ const WorkflowView = _.flow(
             onChangeTab: v => this.setState({ activeTab: v }),
             finalStep: buttonPrimary({
               disabled: !canCompute || !!noLaunchReason,
-              tooltip: !canCompute ? 'You do not have access to run analyses on this workspace.' : undefined,
+              tooltip: !canCompute ? 'You do not have access to run analyses on this workspace.' :
+                !!noLaunchReason ? noLaunchReason : undefined,
               onClick: () => this.setState({ launching: true }),
               style: {
                 height: StepButtonParams.buttonHeight, fontSize: StepButtonParams.fontSize
@@ -512,31 +566,6 @@ const WorkflowView = _.flow(
               ]),
               `Fill in the attributes below to add or update columns in your data table`
             ])
-          ]),
-          activeTab === 'data' && div({
-            style: {
-              marginBottom: '2rem'
-            }
-          }, [
-            div([
-              h(RadioButton, {
-                text: 'Process single workflow from files',
-                checked: processSingle,
-                onChange: () => this.setState({
-                  processSingle: true,
-                  modifiedConfig: _.omit('rootEntityType', modifiedConfig)
-                }),
-                labelStyle: { marginLeft: '0.5rem' }
-              })
-            ]),
-            div([
-              h(RadioButton, {
-                text: 'Process multiple workflows from tables',
-                checked: !processSingle,
-                onChange: () => this.setState({ processSingle: false }),
-                labelStyle: { marginLeft: '0.5rem' }
-              })
-            ])
           ])
         ]),
         div({ style: { flex: 'none', display: 'flex', flexDirection: 'column', alignItems: 'flex-end' } }, [
@@ -544,20 +573,13 @@ const WorkflowView = _.flow(
             href: Nav.getLink('workspace-tools', { namespace, name: workspaceName })
           }, [
             icon('times', { size: 36 })
-          ]),
-          canCompute && noLaunchReason && div({
-            style: {
-              marginTop: '0.5rem', padding: '1rem',
-              backgroundColor: colors.orange[5],
-              color: colors.orange[0]
-            }
-          }, noLaunchReason)
+          ])
         ])
       ]),
       div({ style: styles.messageContainer }, [
         saving && miniMessage('Saving...'),
         saved && !saving && !modified && miniMessage('Saved!'),
-        modified && buttonPrimary({ disabled: saving, onClick: () => this.save() }, 'Save'),
+        modified && buttonPrimary({ disabled: !(processSingle || (!processSingle && !!rootEntityType)) || saving, onClick: () => this.save() }, 'Save'),
         modified && buttonSecondary({ style: { marginLeft: '1rem' }, disabled: saving, onClick: () => this.cancel() }, 'Cancel')
       ]),
       copying && h(ExportToolModal, {
@@ -568,6 +590,16 @@ const WorkflowView = _.flow(
         workspace, methodConfig: savedConfig,
         onDismiss: () => this.setState({ deleting: false }),
         onSuccess: () => Nav.goToPath('workspace-tools', _.pick(['namespace', 'name'], workspace))
+      }),
+      selectingData && h(DataStepContent, {
+        entityMetadata,
+        entitySelectionModel,
+        onDismiss: () => {
+          this.setState({ selectingData: false })
+        },
+        onSuccess: model => this.setState({ entitySelectionModel: model, selectingData: false }),
+        rootEntityType: modifiedConfig.rootEntityType,
+        workspaceId: { namespace, name: workspaceName }
       })
     ])
   }
@@ -608,30 +640,6 @@ const WorkflowView = _.flow(
       wdl, readOnly: true,
       style: { maxHeight: 500, margin: `1rem ${sideMargin}` }
     }) : centeredSpinner({ style: { marginTop: '1rem' } })
-  }
-
-  renderData() {
-    const { namespace, name } = this.props
-    const { processSingle, entityMetadata, modifiedConfig, entitySelectionModel } = this.state
-
-    return div({ style: { margin: `1rem ${sideMargin}` } }, [
-      h(DataStepContent, {
-        visible: !processSingle,
-        workspaceId: { namespace, name },
-        entityMetadata,
-        rootEntityType: modifiedConfig.rootEntityType,
-        setRootEntityType: type => this.setState({
-          modifiedConfig: _.set('rootEntityType', type, modifiedConfig),
-          entitySelectionModel: {
-            ...entitySelectionModel,
-            type: 'process all',
-            selectedEntities: {}
-          }
-        }),
-        entitySelectionModel,
-        setEntitySelectionModel: m => this.setState({ entitySelectionModel: { ...entitySelectionModel, ...m } })
-      })
-    ])
   }
 
   renderIOTable(key) {
@@ -713,7 +721,7 @@ const WorkflowView = _.flow(
   cancel() {
     const { savedConfig } = this.state
 
-    this.setState({ saved: false, modifiedConfig: savedConfig })
+    this.setState({ saved: false, modifiedConfig: savedConfig, processSingle: !savedConfig.rootEntityType })
   }
 })
 

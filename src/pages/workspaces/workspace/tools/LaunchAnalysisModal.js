@@ -41,7 +41,11 @@ export default ajaxCaller(class LaunchAnalysisModal extends Component {
       this.createSetAndLaunch(entities)
     } else if (type === EntitySelectionType.chooseRows) {
       const entities = _.keys(selectedEntities)
-      this.createSetAndLaunch(entities)
+      if (_.size(entities) === 1) {
+        this.launch(rootEntityType, _.head(entities))
+      } else {
+        this.createSetAndLaunch(entities)
+      }
     } else if (type === EntitySelectionType.chooseExisting) {
       const { entityType, name } = selectedEntities
       this.launch(entityType, name, `this.${rootEntityType}s`)

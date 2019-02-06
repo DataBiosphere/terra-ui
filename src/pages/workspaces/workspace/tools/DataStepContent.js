@@ -1,44 +1,43 @@
 import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
-import { Clickable, RadioButton } from 'src/components/common'
+import { buttonPrimary, RadioButton } from 'src/components/common'
 import DataTable from 'src/components/DataTable'
-import { icon } from 'src/components/icons'
 import { textInput } from 'src/components/input'
-import colors from 'src/libs/colors'
+import Modal from 'src/components/Modal'
 import * as Style from 'src/libs/style'
 import { Component } from 'src/libs/wrapped-components'
 import EntitySelectionType from 'src/pages/workspaces/workspace/tools/EntitySelectionType'
 
 
-const typeOption = ({ name, count, isSelected, selectSelf, unselect }) => div({
-  key: name,
-  style: {
-    display: 'flex', alignItems: 'center',
-    fontSize: 16,
-    padding: '0.5rem',
-    borderBottom: `1px solid ${colors.gray[4]}`
-  }
-}, [
-  isSelected ?
-    icon('check-circle', { size: 24, className: 'is-solid', style: { color: colors.blue[0], margin: '-2px 0' } }) :
-    h(Clickable, { onClick: selectSelf }, [icon('circle', { size: 20, style: { marginRight: 4 } })]),
-  icon('bullet-list', { style: { margin: '0 0.5rem' } }),
-  span({ style: { flex: 1 } }, [name]),
-  isSelected ?
-    h(Clickable, { onClick: unselect }, [icon('times', { size: 24, style: { color: colors.blue[0], margin: '-2px' } })]) :
-    `${count} row${count !== 1 ? 's' : ''}`
-])
-
-
 export default class DataStepContent extends Component {
+  constructor(props) {
+    super(props)
+    const { rootEntityType, entitySelectionModel } = props
+    this.state = { rootEntityType, entitySelectionModel }
+  }
+
+  setEntitySelectionModel(modelUpdates) {
+    this.setState(({ entitySelectionModel }) => {
+      return { entitySelectionModel: { ...entitySelectionModel, ...modelUpdates } }
+    })
+  }
+
+  isValidSelectionModel() {
+    const { entitySelectionModel } = this.state
+    const { newSetName, selectedEntities, type } = entitySelectionModel
+    const { entityType, name } = selectedEntities
+    return (type === EntitySelectionType.processAll ||
+      (type === EntitySelectionType.chooseExisting && !!entityType && !!name) ||
+      (_.size(selectedEntities) > 0 && !!newSetName))
+  }
+
   render() {
     const {
-      visible, workspaceId, entityMetadata,
-      rootEntityType, setRootEntityType,
-      entitySelectionModel: { type, selectedEntities, newSetName },
-      setEntitySelectionModel
+      onDismiss, onSuccess,
+      workspaceId, entityMetadata
     } = this.props
+    const { entitySelectionModel, entitySelectionModel: { type, selectedEntities, newSetName }, rootEntityType } = this.state
 
     const count = rootEntityType && entityMetadata[rootEntityType].count
 
@@ -46,26 +45,15 @@ export default class DataStepContent extends Component {
     const setType = `${rootEntityType}_set`
     const hasSet = _.has(setType, entityMetadata)
 
-    return div({
-      style: {
-        display: visible ? 'initial' : 'none'
-      }
+    return h(Modal, {
+      okButton: buttonPrimary({
+        disabled: !this.isValidSelectionModel(),
+        onClick: () => onSuccess(entitySelectionModel)
+      }, 'OK'),
+      onDismiss: onDismiss,
+      width: 'calc(100% - 2rem)'
     }, [
-      div({ style: { ...Style.elements.sectionHeader, marginBottom: '1rem' } }, ['Select index file to process']),
-      div({ style: { maxWidth: 600 } }, [
-        rootEntityType ?
-          typeOption({
-            name: rootEntityType, isSelected: true,
-            unselect: () => setRootEntityType(undefined)
-          }) :
-          _.map(([name, { count }]) => typeOption({
-            name, count,
-            isSelected: false,
-            selectSelf: () =>  {
-              setRootEntityType(name)
-            }
-          }), _.toPairs(entityMetadata))
-      ]),
+      div({ style: { ...Style.elements.sectionHeader, marginBottom: '1rem' } }, [`Select ${rootEntityType}s to process`]),
       rootEntityType && div({
         style: {
           padding: '1rem 0.5rem', lineHeight: '1.5rem'
@@ -76,7 +64,7 @@ export default class DataStepContent extends Component {
             h(RadioButton, {
               text: `Process all ${count} rows`,
               checked: type === EntitySelectionType.processAll,
-              onChange: () => setEntitySelectionModel({ type: EntitySelectionType.processAll, selectedEntities: {} }),
+              onChange: () => this.setEntitySelectionModel({ type: EntitySelectionType.processAll, selectedEntities: {} }),
               labelStyle: { marginLeft: '0.75rem' }
             })
           ]),
@@ -84,7 +72,7 @@ export default class DataStepContent extends Component {
             h(RadioButton, {
               text: 'Choose an existing set',
               checked: type === EntitySelectionType.chooseExisting,
-              onChange: () => setEntitySelectionModel({ type: EntitySelectionType.chooseExisting, selectedEntities: {} }),
+              onChange: () => this.setEntitySelectionModel({ type: EntitySelectionType.chooseExisting, selectedEntities: {} }),
               labelStyle: { marginLeft: '0.75rem' }
             })
           ]),
@@ -92,16 +80,16 @@ export default class DataStepContent extends Component {
             h(RadioButton, {
               text: 'Choose specific rows to process',
               checked: type === EntitySelectionType.chooseRows,
-              onChange: () => setEntitySelectionModel({ type: EntitySelectionType.chooseRows, selectedEntities: {} }),
+              onChange: () => this.setEntitySelectionModel({ type: EntitySelectionType.chooseRows, selectedEntities: {} }),
               labelStyle: { marginLeft: '0.75rem' }
             })
           ]),
           type !== EntitySelectionType.chooseExisting && div([
-            span(['Selected rows will be saved as a new table named:']),
+            span(['Selected rows will be saved as a new set named:']),
             textInput({
               style: { width: 500, marginLeft: '0.25rem' },
               value: newSetName,
-              onChange: e => setEntitySelectionModel({ newSetName: e.target.value })
+              onChange: e => this.setEntitySelectionModel({ newSetName: e.target.value })
             })
           ])
         ]),
@@ -117,7 +105,7 @@ export default class DataStepContent extends Component {
             entityMetadata, workspaceId,
             selectionModel: {
               type: (isSet || type === EntitySelectionType.chooseExisting) ? 'single' : 'multiple',
-              selected: selectedEntities, setSelected: e => setEntitySelectionModel({ selectedEntities: e })
+              selected: selectedEntities, setSelected: e => this.setEntitySelectionModel({ selectedEntities: e })
             }
           })
         ])
