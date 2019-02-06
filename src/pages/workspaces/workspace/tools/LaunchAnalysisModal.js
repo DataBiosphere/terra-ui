@@ -12,20 +12,28 @@ import EntitySelectionType from 'src/pages/workspaces/workspace/tools/EntitySele
 export default ajaxCaller(class LaunchAnalysisModal extends Component {
   render() {
     const { onDismiss } = this.props
-    const { message, launchError } = this.state
+    const { launching, message, launchError } = this.state
 
     return h(Modal, {
-      title: 'Launching Analysis',
+      title: !launching ? 'Run Analysis' : 'Launching Analysis',
       onDismiss,
-      showCancel: false,
-      okButton: !!launchError && buttonPrimary({ onClick: onDismiss }, ['OK'])
+      showCancel: !launching,
+      okButton: !launchError ?
+        buttonPrimary({
+          onClick: () => {
+            this.setState({ launching: true })
+            this.doLaunch()
+          }
+        }, ['Launch']) :
+        buttonPrimary({ onClick: onDismiss }, ['OK'])
     }, [
+      !launching && div('Confirm launch'),
       message && div([spinner({ style: { marginRight: '0.5rem' } }), message]),
       launchError && div({ style: { color: colors.red[0] } }, [launchError])
     ])
   }
 
-  async componentDidMount() {
+  async doLaunch() {
     const {
       workspaceId: { namespace, name },
       processSingle, entitySelectionModel: { type, selectedEntities },
