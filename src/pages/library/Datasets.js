@@ -6,6 +6,7 @@ import { libraryTopMatter } from 'src/components/library-common'
 import Modal from 'src/components/Modal'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import amppdLogo from 'src/images/library/datasets/Amp@2x.png'
+import baselineLogo from 'src/images/library/datasets/baseline.jpg'
 import broadLogo from 'src/images/library/datasets/broad_logo.png'
 import encodeLogo from 'src/images/library/datasets/ENCODE@2x.png'
 import gtexLogo from 'src/images/library/datasets/GTeX@2x.png'
@@ -117,75 +118,6 @@ const NIHCommonsButtons = buttonPrimary({
 }, ['Browse Data via Windmill'])
 
 
-const encode = h(Participant, {
-  logo: { src: encodeLogo, alt: `ENCODE Project logo` },
-  title: `ENCODE Project`,
-  description: h(Fragment, [
-    `The `, b('Enc'), `yclopedia `, b('O'), `f `, b('D'), `NA `, b('E'), `lements (ENCODE) 
-    project aims to delineate all functional elements encoded in the human genome. To this end, ENCODE has 
-    systematically mapped regions of transcription, transcription factor association, chromatin structure 
-    and histone modification.`
-  ]),
-  sizeText: 'Donors: > 650 ; Files: > 158,000'
-}, [
-  buttonPrimary({
-    as: 'a',
-    href: 'https://broad-gdr-encode.appspot.com/',
-    target: '_blank',
-    tooltip: browseTooltip
-  }, ['Browse Data'])
-])
-
-
-const nhs = h(Participant, {
-  logo: { src: nhsLogo, alt: `Nurses' Health Study logo` },
-  title: `Nurses' Health Study`,
-  description: `The Nurses' Health Study and Nurses' Health Study II are among the largest investigations into the risk
-  factors for major chronic diseases in women.`,
-  sizeText: 'Participants: > 280,000'
-}, [
-  buttonPrimary({
-    as: 'a',
-    href: 'http://nhs-explorer.appspot.com/',
-    target: '_blank',
-    tooltip: browseTooltip
-  }, ['Browse Data'])
-])
-
-const ukb = h(Participant, {
-  logo: { src: ukbLogo, alt: `UK Biobank logo`, height: '50%' },
-  title: `UK Biobank`,
-  description: h(Fragment, [
-    link({ href: 'https://www.ukbiobank.ac.uk/', target: '_blank' }, 'UK Biobank'),
-    ` is a national and international health resource with unparalleled research opportunities,
-    open to bona fide health researchers. UK Biobank aims to improve the prevention, diagnosis and treatment of a wide
-    range of serious and life-threatening illnesses`
-  ]),
-  sizeText: 'Participants: > 500,000'
-}, [
-  buttonPrimary({
-    as: 'a',
-    href: 'https://biobank-explorer.appspot.com/',
-    target: '_blank',
-    tooltip: browseTooltip
-  }, ['Browse Data'])
-])
-
-
-const hca = h(Participant, {
-  logo: { src: hcaLogo, alt: 'Human Cell Atlas logo' },
-  title: 'Human Cell Atlas',
-  description: `The Human Cell Atlas (HCA) is made up of comprehensive reference maps of all human cells — the
-  fundamental units of life — as a basis for understanding fundamental human biological processes and diagnosing,
-  monitoring, and treating disease.`
-}, [
-  buttonPrimary({
-    disabled: true,
-    tooltip: 'HCA not yet in production'
-    //when in production, add this tooltip: browseTooltip
-  }, ['Browse Data'])
-])
-
 const amppd = h(Participant, {
   logo: { src: amppdLogo, alt: 'AMP-PD logo' },
   title: `AMP Parkinson's Disease`,
@@ -221,25 +153,43 @@ const amppd = h(Participant, {
   }, ['Browse Data'])
 ])
 
-const topMed = h(Participant, {
-  logo: { src: topMedLogo, alt: 'TopMed logo' },
-  title: 'TopMed presented by NIH Commons',
-  description: `Trans-Omics for Precision Medicine (TOPMed), sponsored by the National Institutes of Health's National
-  Heart, Lung, and Blood Institute (NHLBI), is a program to generate scientific resources to enhance our understanding
-  of fundamental biological processes that underlie heart, lung, blood, and sleep disorders (HLBS).`,
-  sizeText: h(TooltipTrigger, { content: 'As of November 2016' }, [span('Participants: > 54,000')])
+const baseline = h(Participant, {
+  logo: { src: baselineLogo, alt: `Project Baseline logo`, height: '55%' },
+  title: `Baseline Health Study`,
+  description: h(Fragment, [
+    link({ href: 'https://www.projectbaseline.com/', target: '_blank' }, 'Baseline Health Study'),
+    ` is a longitudinal study that will collect broad phenotypic health data
+    from approximately 10,000 participants, who will each be followed over the
+    course of at least four years. The study is part of a broader effort
+    designed to develop a well-defined reference, or “baseline,” of health.`
+  ]),
+  sizeText: 'Participants: > 1,500'
 }, [
-  NIHCommonsButtons
+  buttonPrimary({
+    as: 'a',
+    href: 'https://baseline-baseline-explorer.appspot.com/',
+    target: '_blank',
+    tooltip: browseTooltip
+  }, ['Browse Data'])
 ])
 
-const gtex = h(Participant, {
-  logo: { src: gtexLogo, alt: 'GTEx logo' },
-  title: 'GTEx presented by NIH Commons',
-  description: `The Genotype-Tissue Expression (GTEx) Program established a data resource and tissue bank to study the
-  relationship between genetic variation and gene expression in multiple human tissues.`,
-  sizeText: h(TooltipTrigger, { content: 'As of release V7' }, [span('Samples: > 11,688')])
+const encode = h(Participant, {
+  logo: { src: encodeLogo, alt: `ENCODE Project logo` },
+  title: `ENCODE Project`,
+  description: h(Fragment, [
+    `The `, b('Enc'), `yclopedia `, b('O'), `f `, b('D'), `NA `, b('E'), `lements (ENCODE) 
+    project aims to delineate all functional elements encoded in the human genome. To this end, ENCODE has 
+    systematically mapped regions of transcription, transcription factor association, chromatin structure 
+    and histone modification.`
+  ]),
+  sizeText: 'Donors: > 650 ; Files: > 158,000'
 }, [
-  NIHCommonsButtons
+  buttonPrimary({
+    as: 'a',
+    href: 'https://broad-gdr-encode.appspot.com/',
+    target: '_blank',
+    tooltip: browseTooltip
+  }, ['Browse Data'])
 ])
 
 const fcDataLib = h(Participant, {
@@ -258,12 +208,82 @@ const fcDataLib = h(Participant, {
   }, ['Browse Datasets'])
 ])
 
+const gtex = h(Participant, {
+  logo: { src: gtexLogo, alt: 'GTEx logo' },
+  title: 'GTEx presented by NIH Commons',
+  description: `The Genotype-Tissue Expression (GTEx) Program established a data resource and tissue bank to study the
+  relationship between genetic variation and gene expression in multiple human tissues.`,
+  sizeText: h(TooltipTrigger, { content: 'As of release V7' }, [span('Samples: > 11,688')])
+}, [
+  NIHCommonsButtons
+])
+
+const hca = h(Participant, {
+  logo: { src: hcaLogo, alt: 'Human Cell Atlas logo' },
+  title: 'Human Cell Atlas',
+  description: `The Human Cell Atlas (HCA) is made up of comprehensive reference maps of all human cells — the
+  fundamental units of life — as a basis for understanding fundamental human biological processes and diagnosing,
+  monitoring, and treating disease.`
+}, [
+  buttonPrimary({
+    disabled: true,
+    tooltip: 'HCA not yet in production'
+    //when in production, add this tooltip: browseTooltip
+  }, ['Browse Data'])
+])
+
+const nhs = h(Participant, {
+  logo: { src: nhsLogo, alt: `Nurses' Health Study logo` },
+  title: `Nurses' Health Study`,
+  description: `The Nurses' Health Study and Nurses' Health Study II are among the largest investigations into the risk
+  factors for major chronic diseases in women.`,
+  sizeText: 'Participants: > 120,000'
+}, [
+  buttonPrimary({
+    as: 'a',
+    href: 'http://nhs-explorer.appspot.com/',
+    target: '_blank',
+    tooltip: browseTooltip
+  }, ['Browse Data'])
+])
+
+const topMed = h(Participant, {
+  logo: { src: topMedLogo, alt: 'TopMed logo' },
+  title: 'TopMed presented by NIH Commons',
+  description: `Trans-Omics for Precision Medicine (TOPMed), sponsored by the National Institutes of Health's National
+  Heart, Lung, and Blood Institute (NHLBI), is a program to generate scientific resources to enhance our understanding
+  of fundamental biological processes that underlie heart, lung, blood, and sleep disorders (HLBS).`,
+  sizeText: h(TooltipTrigger, { content: 'As of November 2016' }, [span('Participants: > 54,000')])
+}, [
+  NIHCommonsButtons
+])
+
+const ukb = h(Participant, {
+  logo: { src: ukbLogo, alt: `UK Biobank logo`, height: '50%' },
+  title: `UK Biobank`,
+  description: h(Fragment, [
+    link({ href: 'https://www.ukbiobank.ac.uk/', target: '_blank' }, 'UK Biobank'),
+    ` is a national and international health resource with unparalleled research opportunities,
+    open to bona fide health researchers. UK Biobank aims to improve the prevention, diagnosis and treatment of a wide
+    range of serious and life-threatening illnesses`
+  ]),
+  sizeText: 'Participants: > 500,000'
+}, [
+  buttonPrimary({
+    as: 'a',
+    href: 'https://biobank-explorer.appspot.com/',
+    target: '_blank',
+    tooltip: browseTooltip
+  }, ['Browse Data'])
+])
+
 
 const Datasets = pure(() => {
   return h(Fragment, [
     libraryTopMatter('datasets'),
     div({ style: styles.content }, [
-      encode, nhs, ukb, hca, amppd, topMed, gtex, fcDataLib
+      // Put datasets in alphabetical order
+      amppd, baseline, encode, fcDataLib, gtex, hca, nhs, topMed, ukb
     ])
   ])
 })
