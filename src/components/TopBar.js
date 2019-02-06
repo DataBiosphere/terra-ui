@@ -279,7 +279,11 @@ export default _.flow(
                 size: 20
               })
             ]),
-            'Terra Support'
+            'Terra Support',
+            icon('pop-out', {
+              size: 12,
+              style: { marginLeft: '0.5rem' }
+            })
           ]),
           div({
             style: {
