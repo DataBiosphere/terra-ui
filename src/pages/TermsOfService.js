@@ -12,6 +12,10 @@ Your access to and use of Terra is subject to the following terms and conditions
 Federal laws, including, but not limited to, the Privacy Act, 5 U.S.C. 552a. By accessing and using
 Terra, you accept, without limitation or qualification, these Terms of Service.
 
+#### Cookies
+Terra uses cookies to enable sign on, and to provide anonymized statistics to our development team regarding how the site is used. For more information, see our
+privacy policy.
+
 #### Modification of the Agreement
 
 The Broad Institute maintains the right to modify the Terms of Service, and may do so by posting
