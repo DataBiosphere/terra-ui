@@ -447,5 +447,6 @@ export default [
   'e4e05bd92e0b7fe66f2ddaad5ed85bcb',
   '551cc7cad840e3324bce4d671b2a9171',
   '55f8c6401e880386e164a325dabdfa73',
-  'd8645cb2ceae041c7b5bd023c2a963bd'
+  'd8645cb2ceae041c7b5bd023c2a963bd',
+  '06e179ae7d11ae21fbd47059caef8b74'
 ]
