@@ -66,6 +66,11 @@ const styles = {
       fontWeight: 600,
       color: 'white'
     },
+    supportItem: {
+      display: 'flex', alignItems: 'center', flex: 'none',
+      padding: '15px 28px',
+      fontWeight: 600, color: 'white'
+    },
     icon: {
       marginRight: 12, flex: 'none'
     }
@@ -125,10 +130,7 @@ export default _.flow(
     ])
 
     const enabledCredits = h(Clickable, {
-      style: {
-        ...styles.nav.item,
-        borderBottom: 'none'
-      },
+      style: styles.nav.item,
       hover: { backgroundColor: colors.darkBlue[1] },
       onClick: () => this.setState({ openFreeCreditsModal: true })
     }, [
@@ -142,10 +144,7 @@ export default _.flow(
     ])
 
     const enrolledCredits = h(Clickable, {
-      style: {
-        ...styles.nav.item,
-        borderBottom: 'none'
-      },
+      style: styles.nav.item,
       as: 'a',
       hover: { backgroundColor: colors.darkBlue[1] },
       href: 'https://software.broadinstitute.org/firecloud/documentation/freecredits',
@@ -166,10 +165,7 @@ export default _.flow(
     ])
 
     const terminatedCredits = h(Clickable, {
-      style: {
-        ...styles.nav.item,
-        borderBottom: 'none'
-      },
+      style: styles.nav.item,
       hover: { backgroundColor: colors.darkBlue[1] },
       onClick: () => this.setState({ finalizeTrial: true })
     }, [
@@ -256,8 +252,11 @@ export default _.flow(
             librarySubItem('library-showcase', 'grid-chart', 'Showcase & Tutorials'),
             librarySubItem('library-code', 'tools', 'Code & Tools')
           ]),
+          (trialState === 'Enabled') && enabledCredits,
+          (trialState === 'Enrolled') && enrolledCredits,
+          (trialState === 'Terminated') && terminatedCredits,
           h(Clickable, {
-            style: styles.nav.item,
+            style: { ...styles.nav.supportItem, marginTop: '15px' },
             hover: { backgroundColor: colors.darkBlue[1] },
             onClick: () => contactUsActive.set(true)
           }, [
@@ -266,9 +265,26 @@ export default _.flow(
             ]),
             'Contact Us'
           ]),
-          (trialState === 'Enabled') && enabledCredits,
-          (trialState === 'Enrolled') && enrolledCredits,
-          (trialState === 'Terminated') && terminatedCredits,
+          h(Clickable, {
+            style: styles.nav.supportItem,
+            as: 'a',
+            hover: { backgroundColor: colors.darkBlue[1] },
+            href: 'https://broadinstitute.zendesk.com/hc/en-us',
+            target: '_blank',
+            onClick: () => this.hideNav()
+          }, [
+            div({ style: styles.nav.icon }, [
+              icon('help', {
+                className: 'is-solid',
+                size: 20
+              })
+            ]),
+            'Terra Support',
+            icon('pop-out', {
+              size: 12,
+              style: { marginLeft: '0.5rem' }
+            })
+          ]),
           div({
             style: {
               ..._.omit('borderBottom', styles.nav.item),
