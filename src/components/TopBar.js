@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
 import { a, b, div, h } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
-import { buttonPrimary, Clickable, MenuButton } from 'src/components/common'
+import { buttonPrimary, Clickable, link, MenuButton } from 'src/components/common'
 import { icon, logo, profilePic } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import { ajaxCaller } from 'src/libs/ajax'
@@ -212,9 +212,18 @@ export default _.flow(
           isSignedIn ?
             this.buildUserSection() :
             div({
-              style: { ...styles.nav.item, ...styles.nav.profile(false), boxShadow: `inset ${Style.standardShadow}`, justifyContent: 'center' }
+              style: { ...styles.nav.item, ...styles.nav.profile(false), boxShadow: `inset ${Style.standardShadow}`, justifyContent: 'center', height: 95 }
             }, [
-              h(SignInButton)
+              div([
+                h(Clickable, {
+                  style: {
+                    color: colors.blue[0],
+                    marginLeft: '9rem'
+                  },
+                  onClick: () => this.setState({ cookiesModal: true })
+                }, ['Cookies policy']),
+                h(SignInButton)
+              ])
             ]),
           h(Clickable, {
             as: 'a',
@@ -344,7 +353,7 @@ export default _.flow(
 
   render() {
     const { title, href, children, ajax: { User } } = this.props
-    const { navShown, openFreeCreditsModal, finalizeTrial } = this.state
+    const { navShown, openFreeCreditsModal, finalizeTrial, cookiesModal } = this.state
 
     return div({ style: styles.topBar }, [
       icon('bars', {
@@ -385,7 +394,15 @@ export default _.flow(
             }
           }
         }, ['Confirm'])
-      }, ['Click confirm to remove button forever.'])
+      }, ['Click confirm to remove button forever.']),
+      cookiesModal && h(Modal, {
+        showCancel: false,
+        onDismiss: () => this.setState({ cookiesModal: false })
+      }, ['Terra uses cookies to enable sign on and other essential features when signed in, and to provide statistics to our development team regarding how the site is used. For more information, see our ',
+        link({
+          target: '_blank',
+          href: Nav.getLink('privacy')
+        }, ['privacy policy.'])])
     ])
   }
 })

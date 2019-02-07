@@ -56,10 +56,10 @@ export default class SignIn extends Component {
               h(Clickable, {
                 style: {
                   color: colors.blue[0],
-                  marginLeft: '10rem'
+                  marginLeft: '9rem'
                 },
                 onClick: () => this.setState({ cookiesModal: true })
-              }, ['Learn more']),
+              }, ['Cookies policy']),
               h(SignInButton)
             ])
           ]),
@@ -92,8 +92,9 @@ export default class SignIn extends Component {
             ])
           ]),
           cookiesModal && h(Modal, {
+            showCancel: false,
             onDismiss: () => this.setState({ cookiesModal: false })
-          }, ['Terra uses cookies to enable sign on, and to provide anonymized statistics to our development team regarding how the site is used. For more information, see our ',
+          }, ['Terra uses cookies to enable sign on and other essential features when signed in, and to provide statistics to our development team regarding how the site is used. For more information, see our ',
             link({
               target: '_blank',
               href: Nav.getLink('privacy')

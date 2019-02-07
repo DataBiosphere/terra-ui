@@ -13,8 +13,8 @@ Federal laws, including, but not limited to, the Privacy Act, 5 U.S.C. 552a. By 
 Terra, you accept, without limitation or qualification, these Terms of Service.
 
 #### Cookies
-Terra uses cookies to enable sign on, and to provide anonymized statistics to our development team regarding how the site is used. For more information, see our
-privacy policy.
+Terra uses cookies to enable sign on and other essential features when signed in, and to provide statistics to our development team regarding how the site is used.
+For more information, see our privacy policy.
 
 #### Modification of the Agreement
 
