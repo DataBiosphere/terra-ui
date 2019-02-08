@@ -127,6 +127,8 @@ const User = signal => ({
       const res = await fetchOrchestration('register/profile', _.merge(authOpts(), { signal }))
       return res.json()
     },
+
+    //We are not calling SAM directly because free credits logic is in orchestration
     set: keysAndValues => {
       const blankProfile = {
         firstName: 'N/A',
