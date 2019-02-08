@@ -122,11 +122,6 @@ const User = signal => ({
     return instrumentedFetch(`${getConfig().samUrlRoot}/register/user/v2/self/info`, _.mergeAll([authOpts(), { signal }, appIdentifier]))
   },
 
-  create: async () => {
-    const res = await fetchSam('register/user/v2/self', _.merge(authOpts(), { signal, method: 'POST' }))
-    return res.json()
-  },
-
   profile: {
     get: async () => {
       const res = await fetchOrchestration('register/profile', _.merge(authOpts(), { signal }))

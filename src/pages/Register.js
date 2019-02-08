@@ -34,7 +34,6 @@ export default ajaxCaller(class Register extends Component {
     const { givenName, familyName, email } = this.state
     try {
       this.setState({ busy: true })
-      await User.create()
       await User.profile.set({
         firstName: givenName,
         lastName: familyName,
