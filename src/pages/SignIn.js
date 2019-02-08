@@ -10,14 +10,31 @@ import Modal from 'src/components/Modal'
 import * as Nav from 'src/libs/nav'
 
 
+export class CookiesModal extends Component {
+
+  render() {
+    const { onDismiss } = this.props
+    return h(Modal, {
+      showCancel: false,
+      onDismiss
+    }, [
+      'Terra uses cookies to enable sign on and other essential features when signed in, and to provide statistics to our development team regarding how the site is used. For more information, see our ',
+      link({
+        target: '_blank',
+        href: Nav.getLink('privacy')
+      }, ['privacy policy.'])
+    ])
+  }
+}
+
 export default class SignIn extends Component {
   constructor(props) {
     super(props)
-    this.state = { cookiesModal: false }
+    this.state = { openCookiesModal: false }
   }
 
   render() {
-    const { cookiesModal } = this.state
+    const { openCookiesModal } = this.state
     return h(FooterWrapper, [
       div({
         style: {
@@ -58,7 +75,7 @@ export default class SignIn extends Component {
                   color: colors.blue[0],
                   marginLeft: '9rem'
                 },
-                onClick: () => this.setState({ cookiesModal: true })
+                onClick: () => this.setState({ openCookiesModal: true })
               }, ['Cookies policy']),
               h(SignInButton)
             ])
@@ -91,14 +108,9 @@ export default class SignIn extends Component {
               ])
             ])
           ]),
-          cookiesModal && h(Modal, {
-            showCancel: false,
-            onDismiss: () => this.setState({ cookiesModal: false })
-          }, ['Terra uses cookies to enable sign on and other essential features when signed in, and to provide statistics to our development team regarding how the site is used. For more information, see our ',
-            link({
-              target: '_blank',
-              href: Nav.getLink('privacy')
-            }, ['privacy policy.'])])
+          openCookiesModal && h(CookiesModal, {
+            onDismiss: () => this.setState({ openCookiesModal: false })
+          })
         ])
       ])
     ])

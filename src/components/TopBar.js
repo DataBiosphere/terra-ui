@@ -8,6 +8,7 @@ import Modal from 'src/components/Modal'
 import { ajaxCaller } from 'src/libs/ajax'
 import { authStore, refreshTerraProfile, signOut } from 'src/libs/auth'
 import SignInButton from 'src/components/SignInButton'
+import { CookiesModal} from 'src/pages/SignIn'
 import { contactUsActive } from 'src/components/SupportRequest'
 import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
@@ -220,7 +221,7 @@ export default _.flow(
                     color: colors.blue[0],
                     marginLeft: '9rem'
                   },
-                  onClick: () => this.setState({ cookiesModal: true })
+                  onClick: () => this.setState({ openCookiesModal: true })
                 }, ['Cookies policy']),
                 h(SignInButton)
               ])
@@ -353,7 +354,7 @@ export default _.flow(
 
   render() {
     const { title, href, children, ajax: { User } } = this.props
-    const { navShown, openFreeCreditsModal, finalizeTrial, cookiesModal } = this.state
+    const { navShown, openFreeCreditsModal, finalizeTrial, openCookiesModal } = this.state
 
     return div({ style: styles.topBar }, [
       icon('bars', {
@@ -395,14 +396,9 @@ export default _.flow(
           }
         }, ['Confirm'])
       }, ['Click confirm to remove button forever.']),
-      cookiesModal && h(Modal, {
-        showCancel: false,
-        onDismiss: () => this.setState({ cookiesModal: false })
-      }, ['Terra uses cookies to enable sign on and other essential features when signed in, and to provide statistics to our development team regarding how the site is used. For more information, see our ',
-        link({
-          target: '_blank',
-          href: Nav.getLink('privacy')
-        }, ['privacy policy.'])])
+      openCookiesModal && h(CookiesModal, {
+        onDismiss: () => this.setState({ openCookiesModal: false })
+      })
     ])
   }
 })
