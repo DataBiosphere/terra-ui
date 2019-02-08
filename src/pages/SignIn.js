@@ -11,7 +11,6 @@ import * as Nav from 'src/libs/nav'
 
 
 export class CookiesModal extends Component {
-
   render() {
     const { onDismiss } = this.props
     return h(Modal, {
