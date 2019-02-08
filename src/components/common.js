@@ -251,7 +251,7 @@ export const Select = ({ value, options, ...props }) => {
       multiValueRemove: base => _.merge(base, { ':hover': { backgroundColor: 'unset' } })
     },
     getOptionLabel: ({ value, label }) => label || value.toString(),
-    value: newValue,
+    value: newValue || null, // need null instead of undefined to clear the select
     options: newOptions
   }, props))
 }

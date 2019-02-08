@@ -323,10 +323,51 @@ const WorkflowView = _.flow(
     this.uploader = createRef()
   }
 
+  isSingle() { return !this.isMultiple() }
+
+  isMultiple() { return !this.state.processSingle }
+
+  selectSingle() {
+    const { modifiedConfig } = this.state
+    this.setState({
+      processSingle: true,
+      modifiedConfig: _.omit('rootEntityType', modifiedConfig)
+    })
+  }
+
+  selectMultiple() {
+    const { modifiedConfig, selectedEntityType } = this.state
+    this.setState({
+      processSingle: false,
+      modifiedConfig: { ...modifiedConfig, rootEntityType: selectedEntityType }
+    })
+  }
+
+  updateSingleOrMultipleRadioState(config) {
+    this.setState({
+      processSingle: !config.rootEntityType,
+      selectedEntityType: config.rootEntityType
+    })
+  }
+
+  updateEntityType(selection) {
+    const value = !!selection ? selection.value : undefined
+    this.setState({ selectedEntityType: value })
+    this.setState(_.set(['modifiedConfig', 'rootEntityType'], value))
+  }
+
+  updateEntityTypeUI(config) {
+    this.setState({ selectedEntityType: config.rootEntityType })
+  }
+
   render() {
+    // isFreshData: controls spinnerOverlay on initial load
+    // variableSelected: field of focus for bucket file browser
+    // savedConfig: unmodified copy of config for checking for unsaved edits
+    // modifiedConfig: active data, potentially unsaved
     const {
       isFreshData, savedConfig, launching, activeTab,
-      processSingle, entitySelectionModel, variableSelected, modifiedConfig
+      entitySelectionModel, variableSelected, modifiedConfig
     } = this.state
     const { namespace, name, workspace } = this.props
     const workspaceId = { namespace, name }
@@ -340,7 +381,7 @@ const WorkflowView = _.flow(
         ),
         launching && h(LaunchAnalysisModal, {
           workspaceId, config: savedConfig,
-          processSingle, entitySelectionModel,
+          processSingle: this.isSingle(), entitySelectionModel,
           onDismiss: () => this.setState({ launching: false }),
           onSuccess: submissionId => {
             JobHistory.flagNewSubmission(submissionId)
@@ -378,7 +419,6 @@ const WorkflowView = _.flow(
       const inputsOutputs = await Methods.configInputsOutputs(config)
       this.setState({
         isFreshData: true, savedConfig: config, modifiedConfig: config,
-        processSingle: !config.rootEntityType,
         entityMetadata, inputsOutputs: _.update('inputs', _.sortBy('optional'), inputsOutputs),
         errors: augmentErrors(validationResponse),
         workspaceAttributes: _.flow(
@@ -386,6 +426,7 @@ const WorkflowView = _.flow(
           _.remove(s => s.includes(':'))
         )(_.keys(attributes))
       })
+      this.updateSingleOrMultipleRadioState(config)
       this.fetchInfo(config)
     } catch (error) {
       reportError('Error loading data', error)
@@ -418,22 +459,26 @@ const WorkflowView = _.flow(
   }
 
   describeSelectionModel() {
-    const { modifiedConfig: { rootEntityType }, entitySelectionModel: { newSetName, selectedEntities, type }, processSingle } = this.state
+    const { modifiedConfig: { rootEntityType }, entitySelectionModel: { newSetName, selectedEntities, type } } = this.state
     const { name } = selectedEntities // entityType?
     return Utils.cond(
-      [processSingle, ''],
-      [!processSingle && !rootEntityType, ''],
+      [this.isSingle() || !rootEntityType, ''],
       [type === EntitySelectionType.processAll, `all ${rootEntityType}s`],
       [type === EntitySelectionType.chooseExisting, `${rootEntityType}s from ${name}`],
       [type === EntitySelectionType.chooseRows, `${_.size(selectedEntities)} selected ${rootEntityType}s (will create a new set named "${newSetName}")`],
     )
   }
 
+  canSave() {
+    const { modifiedConfig: { rootEntityType } } = this.state
+    return this.isSingle() || !!rootEntityType
+  }
+
   renderSummary() {
     const { workspace: { canCompute, workspace }, namespace, name: workspaceName } = this.props
     const {
       modifiedConfig, savedConfig, saving, saved, copying, deleting, selectingData, activeTab, errors, synopsis, documentation,
-      processSingle, entityMetadata, entitySelectionModel
+      selectedEntityType, entityMetadata, entitySelectionModel
     } = this.state
     const { name, methodRepoMethod: { methodPath, methodVersion, methodNamespace, methodName }, rootEntityType } = modifiedConfig
     const modified = !_.isEqual(modifiedConfig, savedConfig)
@@ -490,38 +535,29 @@ const WorkflowView = _.flow(
             div([
               h(RadioButton, {
                 text: 'Process single workflow from files',
-                checked: !!processSingle,
-                onChange: () => this.setState({
-                  processSingle: true,
-                  modifiedConfig: _.omit('rootEntityType', modifiedConfig)
-                }),
+                checked: this.isSingle(),
+                onChange: () => this.selectSingle(),
                 labelStyle: { marginLeft: '0.5rem' }
               })
             ]),
             div([
               h(RadioButton, {
                 text: `Process multiple workflows from:`,
-                checked: !processSingle,
-                onChange: () => this.setState({
-                  processSingle: false,
-                  modifiedConfig: { ...modifiedConfig, rootEntityType: savedConfig.rootEntityType }
-                }),
+                checked: this.isMultiple(),
+                onChange: () => this.selectMultiple(),
                 labelStyle: { marginLeft: '0.5rem' }
               }),
               h(Select, {
-                isClearable: false, isDisabled: !!processSingle, isSearchable: false,
+                isClearable: false, isDisabled: this.isSingle(), isSearchable: false,
                 placeholder: 'Select data type...',
                 styles: { container: old => ({ ...old, display: 'inline-block', width: 200, marginLeft: '0.5rem' }) },
                 getOptionLabel: ({ value }) => Utils.normalizeLabel(value),
-                value: rootEntityType,
-                onChange: selected => {
-                  const value = !!selected ? selected.value : undefined
-                  this.setState(_.set(['modifiedConfig', 'rootEntityType'], value))
-                },
+                value: selectedEntityType,
+                onChange: selection => this.updateEntityType(selection),
                 options: _.keys(entityMetadata)
               }),
               linkButton({
-                disabled: !!processSingle || !rootEntityType,
+                disabled: this.isSingle() || !rootEntityType,
                 onClick: () => this.setState({ selectingData: true }),
                 style: { marginLeft: '1rem' }
               }, ['Select Data'])
@@ -579,7 +615,7 @@ const WorkflowView = _.flow(
       div({ style: styles.messageContainer }, [
         saving && miniMessage('Saving...'),
         saved && !saving && !modified && miniMessage('Saved!'),
-        modified && buttonPrimary({ disabled: !(processSingle || (!processSingle && !!rootEntityType)) || saving, onClick: () => this.save() }, 'Save'),
+        modified && buttonPrimary({ disabled: saving || !this.canSave(), onClick: () => this.save() }, 'Save'),
         modified && buttonSecondary({ style: { marginLeft: '1rem' }, disabled: saving, onClick: () => this.cancel() }, 'Cancel')
       ]),
       copying && h(ExportToolModal, {
@@ -711,6 +747,7 @@ const WorkflowView = _.flow(
         modifiedConfig: validationResponse.methodConfiguration,
         errors: augmentErrors(validationResponse)
       }, () => setTimeout(() => this.setState({ saved: false }), 3000))
+      this.updateEntityTypeUI(modifiedConfig)
     } catch (error) {
       reportError('Error saving', error)
     } finally {
@@ -721,7 +758,8 @@ const WorkflowView = _.flow(
   cancel() {
     const { savedConfig } = this.state
 
-    this.setState({ saved: false, modifiedConfig: savedConfig, processSingle: !savedConfig.rootEntityType })
+    this.setState({ saved: false, modifiedConfig: savedConfig })
+    this.updateSingleOrMultipleRadioState(savedConfig)
   }
 })
 
