@@ -8,6 +8,7 @@ import Modal from 'src/components/Modal'
 import { ajaxCaller } from 'src/libs/ajax'
 import { authStore, refreshTerraProfile, signOut } from 'src/libs/auth'
 import SignInButton from 'src/components/SignInButton'
+import { CookiesModal } from 'src/pages/SignIn'
 import { contactUsActive } from 'src/components/SupportRequest'
 import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
@@ -208,9 +209,18 @@ export default _.flow(
           isSignedIn ?
             this.buildUserSection() :
             div({
-              style: { ...styles.nav.item, ...styles.nav.profile(false), boxShadow: `inset ${Style.standardShadow}`, justifyContent: 'center' }
+              style: { ...styles.nav.item, ...styles.nav.profile(false), boxShadow: `inset ${Style.standardShadow}`, justifyContent: 'center', height: 95 }
             }, [
-              h(SignInButton)
+              div([
+                h(Clickable, {
+                  style: {
+                    color: colors.blue[0],
+                    marginLeft: '9rem'
+                  },
+                  onClick: () => this.setState({ openCookiesModal: true })
+                }, ['Cookies policy']),
+                h(SignInButton)
+              ])
             ]),
           h(Clickable, {
             as: 'a',
@@ -360,7 +370,7 @@ export default _.flow(
 
   render() {
     const { title, href, children, ajax: { User } } = this.props
-    const { navShown, openFreeCreditsModal, finalizeTrial } = this.state
+    const { navShown, openFreeCreditsModal, finalizeTrial, openCookiesModal } = this.state
 
     return div({ style: styles.topBar }, [
       icon('bars', {
@@ -401,7 +411,10 @@ export default _.flow(
             }
           }
         }, ['Confirm'])
-      }, ['Click confirm to remove button forever.'])
+      }, ['Click confirm to remove button forever.']),
+      openCookiesModal && h(CookiesModal, {
+        onDismiss: () => this.setState({ openCookiesModal: false })
+      })
     ])
   }
 })
