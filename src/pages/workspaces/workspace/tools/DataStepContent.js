@@ -99,14 +99,6 @@ export default class DataStepContent extends Component {
               onChange: () => this.setEntitySelectionModel({ type: EntitySelectionType.chooseRows, selectedEntities: {} }),
               labelStyle: { marginLeft: '0.75rem' }
             })
-          ]),
-          type !== EntitySelectionType.processFromSet && div([
-            span(['Selected rows will be saved as a new set named:']),
-            textInput({
-              style: { width: 500, marginLeft: '0.25rem' },
-              value: newSetName,
-              onChange: e => this.setEntitySelectionModel({ newSetName: e.target.value })
-            })
           ])
         ]),
         type !== EntitySelectionType.processAll && div({
@@ -123,6 +115,17 @@ export default class DataStepContent extends Component {
               type: (isSet || type === EntitySelectionType.processFromSet) ? 'single' : 'multiple',
               selected: selectedEntities, setSelected: e => this.setEntitySelectionModel({ selectedEntities: e })
             }
+          })
+        ]),
+        (type === EntitySelectionType.processAll ||
+        (type === EntitySelectionType.chooseRows && _.size(selectedEntities) > 1)) && div({
+          style: { marginTop: '1rem' }
+        }, [
+          span(['Selected rows will be saved as a new set named:']),
+          textInput({
+            style: { width: 500, marginLeft: '0.25rem' },
+            value: newSetName,
+            onChange: e => this.setEntitySelectionModel({ newSetName: e.target.value })
           })
         ])
       ])
