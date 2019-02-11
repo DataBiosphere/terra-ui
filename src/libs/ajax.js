@@ -90,7 +90,7 @@ const fetchLeo = async (path, options) => {
 }
 
 const fetchDockstore = async (path, options) => {
-  return fetchOk(`${getConfig().dockstoreUrlRoot}/${path}`, options)
+  return fetchOk(`${getConfig().dockstoreUrlRoot}:8443/${path}`, options)
 }
 // %23 = '#', %2F = '/'
 const dockstoreMethodPath = path => `api/ga4gh/v1/tools/%23workflow%2F${encodeURIComponent(path)}/versions`
