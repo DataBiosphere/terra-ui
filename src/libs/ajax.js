@@ -45,7 +45,7 @@ const authOpts = (token = getUser().token) => ({ headers: { Authorization: `Bear
 const jsonBody = body => ({ body: JSON.stringify(body), headers: { 'Content-Type': 'application/json' } })
 const appIdentifier = { headers: { 'X-App-ID': 'Saturn' } }
 const addAppIdentifier = _.merge(appIdentifier)
-const tosData = { appid: 'Saturn', tosversion: 1 }
+const tosData = { appid: 'Saturn', tosversion: 2 }
 
 const instrumentedFetch = (url, options) => {
   if (noConnection) {

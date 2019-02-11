@@ -1,15 +1,39 @@
 import { Component } from 'react'
 import { div, h, p } from 'react-hyperscript-helpers'
-import { link } from 'src/components/common'
+import { link, Clickable } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { logo } from 'src/components/icons'
 import SignInButton from 'src/components/SignInButton'
 import signInBg from 'src/images/sign-in-background.jpg'
 import colors from 'src/libs/colors'
+import Modal from 'src/components/Modal'
+import * as Nav from 'src/libs/nav'
 
+
+export class CookiesModal extends Component {
+  render() {
+    const { onDismiss } = this.props
+    return h(Modal, {
+      showCancel: false,
+      onDismiss
+    }, [
+      'Terra uses cookies to enable sign on and other essential features when signed in, and to provide statistics to our development team regarding how the site is used. For more information, see our ',
+      link({
+        target: '_blank',
+        href: Nav.getLink('privacy')
+      }, ['privacy policy.'])
+    ])
+  }
+}
 
 export default class SignIn extends Component {
+  constructor(props) {
+    super(props)
+    this.state = { openCookiesModal: false }
+  }
+
   render() {
+    const { openCookiesModal } = this.state
     return h(FooterWrapper, [
       div({
         style: {
@@ -44,7 +68,16 @@ export default class SignIn extends Component {
                 'Learn how to create a Google account with any email address.'
               )
             ]),
-            h(SignInButton)
+            div([
+              h(Clickable, {
+                style: {
+                  color: colors.blue[0],
+                  marginLeft: '9rem'
+                },
+                onClick: () => this.setState({ openCookiesModal: true })
+              }, ['Cookies policy']),
+              h(SignInButton)
+            ])
           ]),
           div({ style: { lineHeight: 1.5, fontSize: 12, marginTop: '3rem' } }, [
             div({ style: { fontWeight: 500 } }, ['WARNING NOTICE']),
@@ -73,7 +106,10 @@ export default class SignIn extends Component {
                 'DATA USE CERTIFICATION AGREEMENT (DUCA)'
               ])
             ])
-          ])
+          ]),
+          openCookiesModal && h(CookiesModal, {
+            onDismiss: () => this.setState({ openCookiesModal: false })
+          })
         ])
       ])
     ])
