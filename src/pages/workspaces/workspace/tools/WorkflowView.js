@@ -302,9 +302,9 @@ const WorkflowView = _.flow(
   }),
   ajaxCaller
 )(class WorkflowView extends Component {
-  resetSelectionModel() {
+  resetSelectionModel(value) {
     return {
-      type: EntitySelectionType.processAll,
+      type: _.endsWith('_set', value) ? EntitySelectionType.chooseSet : EntitySelectionType.processAll,
       selectedEntities: {},
       newSetName: `${this.props.workflowName}_${new Date().toISOString().slice(0, -5).replace(/:/g, '-')}`
     }
@@ -315,7 +315,7 @@ const WorkflowView = _.flow(
 
     this.state = {
       activeTab: 'inputs',
-      entitySelectionModel: this.resetSelectionModel(),
+      entitySelectionModel: { selectedEntities: {} },
       includeOptionalInputs: false,
       errors: { inputs: {}, outputs: {} },
       ...StateHistory.get()
@@ -354,6 +354,7 @@ const WorkflowView = _.flow(
     const value = !!selection ? selection.value : undefined
     this.setState({ selectedEntityType: value })
     this.setState(_.set(['modifiedConfig', 'rootEntityType'], value))
+    return value
   }
 
   updateEntityTypeUI(config) {
@@ -421,6 +422,7 @@ const WorkflowView = _.flow(
         isFreshData: true, savedConfig: config, modifiedConfig: config,
         entityMetadata, inputsOutputs: _.update('inputs', _.sortBy('optional'), inputsOutputs),
         errors: augmentErrors(validationResponse),
+        entitySelectionModel: this.resetSelectionModel(config.rootEntityType),
         workspaceAttributes: _.flow(
           _.without(['description']),
           _.remove(s => s.includes(':'))
@@ -464,8 +466,9 @@ const WorkflowView = _.flow(
     return Utils.cond(
       [this.isSingle() || !rootEntityType, ''],
       [type === EntitySelectionType.processAll, `all ${rootEntityType}s`],
-      [type === EntitySelectionType.chooseExisting, `${rootEntityType}s from ${name}`],
+      [type === EntitySelectionType.processFromSet, `${rootEntityType}s from ${name}`],
       [type === EntitySelectionType.chooseRows, `${_.size(selectedEntities)} selected ${rootEntityType}s (will create a new set named "${newSetName}")`],
+      [type === EntitySelectionType.chooseSet, `${_.has('name', selectedEntities) ? 1 : 0} selected ${rootEntityType}`]
     )
   }
 
@@ -484,7 +487,8 @@ const WorkflowView = _.flow(
     const modified = !_.isEqual(modifiedConfig, savedConfig)
     const noLaunchReason = Utils.cond(
       [saving || modified, () => 'Save or cancel to Launch Analysis'],
-      [!_.isEmpty(errors.inputs) || !_.isEmpty(errors.outputs), () => 'At least one required attribute is missing or invalid']
+      [!_.isEmpty(errors.inputs) || !_.isEmpty(errors.outputs), () => 'At least one required attribute is missing or invalid'],
+      [entitySelectionModel.type === EntitySelectionType.chooseSet && !entitySelectionModel.selectedEntities.name, () => 'Select a set']
     )
 
     const inputsValid = _.isEmpty(errors.inputs)
@@ -553,7 +557,10 @@ const WorkflowView = _.flow(
                 styles: { container: old => ({ ...old, display: 'inline-block', width: 200, marginLeft: '0.5rem' }) },
                 getOptionLabel: ({ value }) => Utils.normalizeLabel(value),
                 value: selectedEntityType,
-                onChange: selection => this.updateEntityType(selection),
+                onChange: selection => {
+                  const value = this.updateEntityType(selection)
+                  this.setState({ entitySelectionModel: this.resetSelectionModel(value) })
+                },
                 options: _.keys(entityMetadata)
               }),
               linkButton({

@@ -1,4 +1,5 @@
 import _ from 'lodash/fp'
+import PropTypes from 'prop-types'
 import { Fragment } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import { buttonPrimary, RadioButton } from 'src/components/common'
@@ -11,6 +12,21 @@ import EntitySelectionType from 'src/pages/workspaces/workspace/tools/EntitySele
 
 
 export default class DataStepContent extends Component {
+  static propTypes = {
+    entityMetadata: PropTypes.objectOf(PropTypes.shape({
+      count: PropTypes.number.isRequired
+    })).isRequired,
+    entitySelectionModel: PropTypes.shape({
+      newSetName: PropTypes.string.isRequired,
+      selectedElements: PropTypes.array,
+      type: PropTypes.oneOf(_.values(EntitySelectionType))
+    }),
+    onDismiss: PropTypes.func,
+    onSuccess: PropTypes.func,
+    rootEntityType: PropTypes.string,
+    workspaceId: PropTypes.object
+  }
+
   constructor(props) {
     super(props)
     const { rootEntityType, entitySelectionModel } = props
@@ -28,7 +44,7 @@ export default class DataStepContent extends Component {
     const { newSetName, selectedEntities, type } = entitySelectionModel
     const { entityType, name } = selectedEntities
     return (type === EntitySelectionType.processAll ||
-      (type === EntitySelectionType.chooseExisting && !!entityType && !!name) ||
+      (type === EntitySelectionType.processFromSet && !!entityType && !!name) ||
       (_.size(selectedEntities) > 0 && !!newSetName))
   }
 
@@ -71,8 +87,8 @@ export default class DataStepContent extends Component {
           hasSet && div([
             h(RadioButton, {
               text: 'Choose an existing set',
-              checked: type === EntitySelectionType.chooseExisting,
-              onChange: () => this.setEntitySelectionModel({ type: EntitySelectionType.chooseExisting, selectedEntities: {} }),
+              checked: type === EntitySelectionType.processFromSet,
+              onChange: () => this.setEntitySelectionModel({ type: EntitySelectionType.processFromSet, selectedEntities: {} }),
               labelStyle: { marginLeft: '0.75rem' }
             })
           ]),
@@ -84,7 +100,7 @@ export default class DataStepContent extends Component {
               labelStyle: { marginLeft: '0.75rem' }
             })
           ]),
-          type !== EntitySelectionType.chooseExisting && div([
+          type !== EntitySelectionType.processFromSet && div([
             span(['Selected rows will be saved as a new set named:']),
             textInput({
               style: { width: 500, marginLeft: '0.25rem' },
@@ -101,10 +117,10 @@ export default class DataStepContent extends Component {
         }, [
           h(DataTable, {
             key: type,
-            entityType: type === EntitySelectionType.chooseExisting ? setType : rootEntityType,
+            entityType: type === EntitySelectionType.processFromSet ? setType : rootEntityType,
             entityMetadata, workspaceId,
             selectionModel: {
-              type: (isSet || type === EntitySelectionType.chooseExisting) ? 'single' : 'multiple',
+              type: (isSet || type === EntitySelectionType.processFromSet) ? 'single' : 'multiple',
               selected: selectedEntities, setSelected: e => this.setEntitySelectionModel({ selectedEntities: e })
             }
           })

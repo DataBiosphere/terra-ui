@@ -54,9 +54,11 @@ export default ajaxCaller(class LaunchAnalysisModal extends Component {
       } else {
         this.createSetAndLaunch(entities)
       }
-    } else if (type === EntitySelectionType.chooseExisting) {
+    } else if (type === EntitySelectionType.processFromSet) {
       const { entityType, name } = selectedEntities
       this.launch(entityType, name, `this.${rootEntityType}s`)
+    } else if (type === EntitySelectionType.chooseSet) {
+      this.launch(rootEntityType, selectedEntities['name'])
     }
   }
 
