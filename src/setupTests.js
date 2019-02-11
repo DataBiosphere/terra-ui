@@ -1,6 +1,5 @@
 import { configure, ReactWrapper } from 'enzyme'
 import Adapter from 'enzyme-adapter-react-16'
-import 'mutationobserver-shim'
 import * as Utils from 'src/libs/utils'
 
 
