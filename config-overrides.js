@@ -1,16 +1,18 @@
 const { execSync } = require('child_process')
 const webpack = require('webpack')
-const _ = require('lodash')
+const _ = require('lodash/fp')
 const path = require('path')
 const rewireReactHotLoader = require('react-app-rewire-hot-loader')
-const rewireEslint = require('react-app-rewire-eslint')
+const {useEslintRc} = require('customize-cra')
 const manualOverrides = require('./webpack.config')
 
 /* config-overrides.js */
 module.exports = {
-  webpack: function override(config, env) {
-    config = rewireEslint(config, env)
-    config.resolve.modules = manualOverrides.resolve.modules
+  webpack: function(config, env) {
+    config = useEslintRc()(config)
+
+    config = _.merge(config, manualOverrides)
+
     config.module.rules[2].oneOf.unshift(
       {
         include: [path.resolve(__dirname, 'src/icons')],

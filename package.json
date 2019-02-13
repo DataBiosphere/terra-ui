@@ -31,7 +31,7 @@
     "react-notifications-component": "^1.0.1",
     "react-onclickoutside": "^6.7.1",
     "react-paginating": "^1.2.1",
-    "react-scripts": "2.1.1",
+    "react-scripts": "2.1.5",
     "react-select": "^2.3.0",
     "react-simplemde-editor": "^4.0.0",
     "react-sortable-hoc": "^1.6.1",
@@ -50,14 +50,14 @@
     "eject": "react-app-rewired eject"
   },
   "devDependencies": {
+    "customize-cra": "^0.2.11",
     "enzyme": "^3.8.0",
     "enzyme-adapter-react-16": "^1.9.1",
     "eslint-plugin-lodash-fp": "^2.1.3",
     "eslint-plugin-react": "^7.12.4",
     "raw-loader": "^1.0.0",
-    "react-app-rewire-eslint": "^0.2.3",
-    "react-app-rewire-hot-loader": "^1.0.3",
-    "react-app-rewired": "2.0.0",
+    "react-app-rewire-hot-loader": "^2.0.1",
+    "react-app-rewired": "2.1.0",
     "react-hot-loader": "^4.6.5",
     "react-test-renderer": "~16.8.1",
     "source-map-explorer": "^1.6.0"
