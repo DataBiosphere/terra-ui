@@ -62,7 +62,7 @@ use of Terra.
 * Process U.S. classified national security information on the system.
 * Browse, search or reveal any protected data by Broad Institute except in accordance with that 
   which is required to perform your legitimate tasks or assigned duties.
-* Retrieve protected data, or in any other way disclose information, for someone who does not have
+* Retrieve protected data or information, or in any other way disclose information, for someone who does not have
   authority to access that information.
 * Establish any unauthorized interfaces between systems, networks, and applications owned 
   by Broad Institute.
