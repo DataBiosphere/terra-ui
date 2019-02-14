@@ -7,6 +7,9 @@ import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import * as Style from 'src/libs/style'
 
+// When updating the TOS, make sure you:
+// 1. update the TOS version number in the Ajax call
+// 2. update the dev and prod datastores to have a TOS of that version number
 const termsOfService = `
 Your access to systems and networks owned by Broad Institute is governed by, and subject to the 
 following terms and conditions, as well as all Federal laws, including, but not limited to, 
