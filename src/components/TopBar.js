@@ -1,19 +1,24 @@
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
-import { createPortal } from 'react-dom'
 import { a, b, div, h } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
-import { Clickable, MenuButton } from 'src/components/common'
+import { buttonPrimary, Clickable, MenuButton } from 'src/components/common'
 import { icon, logo, profilePic } from 'src/components/icons'
-import { pushNotification } from 'src/components/Notifications'
+import Modal from 'src/components/Modal'
+import { ajaxCaller } from 'src/libs/ajax'
+import { authStore, refreshTerraProfile, signOut } from 'src/libs/auth'
 import SignInButton from 'src/components/SignInButton'
-import SupportRequestModal from 'src/components/SupportRequestModal'
-import { authStore, signOut } from 'src/libs/auth'
+import { CookiesModal } from 'src/pages/SignIn'
+import { contactUsActive } from 'src/components/SupportRequest'
 import colors from 'src/libs/colors'
+import { getConfig } from 'src/libs/config'
+import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
+import { FreeCreditsModal } from 'src/components/TrialBanner'
+import { linkToJobManager } from 'src/pages/workspaces/workspace/JobHistory'
 
 
 const styles = {
@@ -29,7 +34,7 @@ const styles = {
   },
   nav: {
     background: {
-      position: 'fixed', left: 0, right: 0, top: 0, bottom: 0,
+      position: 'absolute', left: 0, right: 0, top: 0, bottom: 0,
       overflow: 'auto', cursor: 'pointer'
     },
     container: {
@@ -62,6 +67,11 @@ const styles = {
       fontWeight: 600,
       color: 'white'
     },
+    supportItem: {
+      display: 'flex', alignItems: 'center', flex: 'none',
+      padding: '15px 28px',
+      fontWeight: 600, color: 'white'
+    },
     icon: {
       marginRight: 12, flex: 'none'
     }
@@ -77,7 +87,10 @@ const betaTag = b({
   }
 }, 'BETA')
 
-export default Utils.connectAtom(authStore, 'authState')(class TopBar extends Component {
+export default _.flow(
+  ajaxCaller,
+  Utils.connectAtom(authStore, 'authState')
+)(class TopBar extends Component {
   static propTypes = {
     title: PropTypes.node,
     href: PropTypes.string, // link destination
@@ -98,7 +111,8 @@ export default Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
   }
 
   buildNav() {
-    const { authState: { isSignedIn } } = this.props
+    const { authState: { isSignedIn, profile } } = this.props
+    const { trialState } = profile
 
     const librarySubItem = (linkName, iconName, label) => h(Clickable, {
       style: styles.nav.subItem,
@@ -109,44 +123,105 @@ export default Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
       dataTestId: label+'-link'
     }, [
       div({ style: styles.nav.icon }, [
-        icon(iconName, { className: 'is-solid', size: 24 })
+        icon(iconName, {
+          className: 'is-solid',
+          size: 24
+        })
       ]),
       label
     ])
 
-    return createPortal(
+    const enabledCredits = h(Clickable, {
+      style: styles.nav.item,
+      hover: { backgroundColor: colors.darkBlue[1] },
+      onClick: () => this.setState({ openFreeCreditsModal: true })
+    }, [
+      div({ style: styles.nav.icon }, [
+        icon('cloud', {
+          className: 'is-solid',
+          size: 20
+        })
+      ]),
+      'Sign up for free credits'
+    ])
+
+    const enrolledCredits = h(Clickable, {
+      style: styles.nav.item,
+      as: 'a',
+      hover: { backgroundColor: colors.darkBlue[1] },
+      href: 'https://software.broadinstitute.org/firecloud/documentation/freecredits',
+      target: '_blank',
+      onClick: () => this.hideNav()
+    }, [
+      div({ style: styles.nav.icon }, [
+        icon('cloud', {
+          className: 'is-solid',
+          size: 20
+        })
+      ]),
+      'Access free credits',
+      icon('pop-out', {
+        size: 20,
+        style: { paddingLeft: '0.5rem' }
+      })
+    ])
+
+    const terminatedCredits = h(Clickable, {
+      style: styles.nav.item,
+      hover: { backgroundColor: colors.darkBlue[1] },
+      onClick: () => this.setState({ finalizeTrial: true })
+    }, [
+      div({ style: styles.nav.icon }, [
+        icon('cloud', {
+          className: 'is-solid',
+          size: 20
+        })
+      ]),
+      'Your free trial has ended'
+    ])
+
+    return div({
+      style: styles.nav.background,
+      onClick: () => {
+        this.hideNav()
+      }
+    }, [
       div({
-        style: styles.nav.background,
-        onClick: () => {
-          this.hideNav()
-        }
+        style: styles.nav.container,
+        onClick: e => e.stopPropagation()
       }, [
-        div({
-          style: styles.nav.container,
-          onClick: e => e.stopPropagation()
-        }, [
-          div({ style: styles.topBar }, [
-            icon('bars', {
-              dir: 'right',
-              size: 36,
-              style: { marginRight: '2rem', color: colors.purple[0], cursor: 'pointer' },
-              onClick: () => this.hideNav()
-            }),
-            a({
-              style: {
-                ...styles.pageTitle,
-                textAlign: 'center', display: 'flex', alignItems: 'center'
-              },
-              href: Nav.getLink('root'),
-              onClick: () => this.hideNav()
-            }, [logo(), betaTag])
-          ]),
+        div({ style: styles.topBar }, [
+          icon('bars', {
+            dir: 'right',
+            size: 36,
+            style: { marginRight: '2rem', color: colors.purple[0], cursor: 'pointer' },
+            onClick: () => this.hideNav()
+          }),
+          a({
+            style: {
+              ...styles.pageTitle,
+              textAlign: 'center', display: 'flex', alignItems: 'center'
+            },
+            href: Nav.getLink('root'),
+            onClick: () => this.hideNav()
+          }, [logo(), betaTag])
+        ]),
+        div({ style: { display: 'flex', flexDirection: 'column', overflowY: 'auto', flex: 1 } }, [
           isSignedIn ?
             this.buildUserSection() :
             div({
-              style: { ...styles.nav.item, ...styles.nav.profile(false), boxShadow: `inset ${Style.standardShadow}`, justifyContent: 'center' }
+              style: { ...styles.nav.item, ...styles.nav.profile(false), boxShadow: `inset ${Style.standardShadow}`, justifyContent: 'center', height: 95 }
             }, [
-              h(SignInButton)
+              div([
+                h(Clickable, {
+                  style: {
+                    color: colors.blue[0],
+                    marginLeft: '9rem'
+                  },
+                  onClick: () => this.setState({ openCookiesModal: true })
+                }, ['Cookies policy']),
+                h(SignInButton)
+              ])
             ]),
           h(Clickable, {
             as: 'a',
@@ -160,6 +235,23 @@ export default Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
             ]),
             'Your Workspaces'
           ]),
+          linkToJobManager && h(Clickable, {
+            as: 'a',
+            target: '_blank',
+            style: styles.nav.item,
+            hover: { backgroundColor: colors.darkBlue[1] },
+            href: getConfig().jobManagerUrlRoot,
+            onClick: () => this.hideNav()
+          }, [
+            div({ style: styles.nav.icon }, [
+              icon('layers', { className: 'is-solid', size: 24 })
+            ]),
+            'Your Jobs',
+            icon('pop-out', {
+              size: 12,
+              style: { marginLeft: '0.5rem' }
+            })
+          ]),
           div({ style: { borderBottom: styles.nav.item.borderBottom, padding: '14px 0' } }, [
             div({ style: { ...styles.nav.subItem, paddingLeft: 28 } }, [
               div({ style: styles.nav.icon }, [
@@ -171,21 +263,43 @@ export default Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
             librarySubItem('library-showcase', 'grid-chart', 'Showcase & Tutorials'),
             librarySubItem('library-code', 'tools', 'Code & Tools')
           ]),
-          div({ style: { marginTop: '1rem' } }, [
-            h(Clickable, {
-              style: { ...styles.nav.item, borderBottom: 'none', height: 50 },
-              hover: { backgroundColor: colors.darkBlue[1] },
-              onClick: () => this.setState({ showingSupportModal: true })
-            }, [
-              div({ style: styles.nav.icon }, [
-                icon('envelope', { className: 'is-solid', size: 20 })
-              ]),
-              'Contact Us'
-            ])
+          (trialState === 'Enabled') && enabledCredits,
+          (trialState === 'Enrolled') && enrolledCredits,
+          (trialState === 'Terminated') && terminatedCredits,
+          h(Clickable, {
+            style: { ...styles.nav.supportItem, marginTop: '15px' },
+            hover: { backgroundColor: colors.darkBlue[1] },
+            onClick: () => contactUsActive.set(true)
+          }, [
+            div({ style: styles.nav.icon }, [
+              icon('envelope', { className: 'is-solid', size: 20 })
+            ]),
+            'Contact Us'
+          ]),
+          h(Clickable, {
+            style: styles.nav.supportItem,
+            as: 'a',
+            hover: { backgroundColor: colors.darkBlue[1] },
+            href: 'https://broadinstitute.zendesk.com/hc/en-us',
+            target: '_blank',
+            onClick: () => this.hideNav()
+          }, [
+            div({ style: styles.nav.icon }, [
+              icon('help', {
+                className: 'is-solid',
+                size: 20
+              })
+            ]),
+            'Terra Support',
+            icon('pop-out', {
+              size: 12,
+              style: { marginLeft: '0.5rem' }
+            })
           ]),
           div({
             style: {
-              ..._.omit('borderBottom', styles.nav.item), marginTop: 'auto',
+              ..._.omit('borderBottom', styles.nav.item),
+              marginTop: 'auto',
               color: colors.darkBlue[2],
               fontSize: 10
             }
@@ -194,9 +308,8 @@ export default Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
             new Date(SATURN_BUILD_TIMESTAMP).toLocaleString()
           ])
         ])
-      ]),
-      document.getElementById('main-menu-container')
-    )
+      ])
+    ])
   }
 
   buildUserSection() {
@@ -257,8 +370,8 @@ export default Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
   }
 
   render() {
-    const { title, href, children } = this.props
-    const { navShown, showingSupportModal } = this.state
+    const { title, href, children, ajax: { User } } = this.props
+    const { navShown, openFreeCreditsModal, finalizeTrial, openCookiesModal } = this.state
 
     return div({ style: styles.topBar }, [
       icon('bars', {
@@ -283,12 +396,27 @@ export default Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
       ]),
       children,
       navShown && this.buildNav(),
-      showingSupportModal && h(SupportRequestModal, {
-        onDismiss: () => this.setState({ showingSupportModal: false }),
-        onSuccess: () => {
-          this.setState({ showingSupportModal: false })
-          pushNotification({ message: 'Message sent successfully' })
-        }
+      openFreeCreditsModal && h(FreeCreditsModal, {
+        onDismiss: () => this.setState({ openFreeCreditsModal: false })
+      }),
+      finalizeTrial && h(Modal, {
+        title: 'Remove button',
+        onDismiss: () => this.setState({ finalizeTrial: false }),
+        okButton: buttonPrimary({
+          onClick: async () => {
+            try {
+              await User.finalizeTrial()
+              await refreshTerraProfile()
+            } catch (error) {
+              reportError('Error finalizing trial', error)
+            } finally {
+              this.setState({ finalizeTrial: false })
+            }
+          }
+        }, ['Confirm'])
+      }, ['Click confirm to remove button forever.']),
+      openCookiesModal && h(CookiesModal, {
+        onDismiss: () => this.setState({ openCookiesModal: false })
       })
     ])
   }

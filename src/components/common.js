@@ -309,7 +309,7 @@ export const PageFadeBox = ({ children, style = {} }) => {
   return h(FadeBox, {
     fadePoint: '125px',
     style: {
-      margin: '1.5rem', paddingTop: '1rem', minHeight: 125, ...style
+      margin: '1.5rem', paddingTop: '1rem', minHeight: 125, flex: 'none', ...style
     }
   }, [children])
 }
@@ -326,6 +326,15 @@ export const methodLink = config => {
     `${getConfig().dockstoreUrlRoot}/workflows/${methodPath}`
 }
 
+/**
+ * WARNING: Be very careful when using custom renderers because they may override marked's built-in
+ * content sanitization.
+ * @param {string} children markdown content
+ * @param renderers element-specific renderers
+ * @param props properties for wraper div
+ * @returns {object} div containing rendered markdown
+ * @constructor
+ */
 export const Markdown = ({ children, renderers = {}, ...props }) => {
   const content = marked(children, {
     renderer: Object.assign(new marked.Renderer(), renderers)

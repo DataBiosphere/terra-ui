@@ -319,7 +319,8 @@ const EntitiesContent = ajaxCaller(class EntitiesContent extends Component {
       columnState,
       selectedEntities: {},
       deletingEntities: false,
-      totalRowCount
+      totalRowCount,
+      viewData: undefined
     }
     this.table = createRef()
     this.downloadForm = createRef()
@@ -373,7 +374,7 @@ const EntitiesContent = ajaxCaller(class EntitiesContent extends Component {
 
   deselectPage() {
     const { entities, selectedEntities } = this.state
-    this.setState({ selectedEntities: _.omit(_.map(a => [a], _.keys(entities)), selectedEntities) })
+    this.setState({ selectedEntities: _.omit(_.map(a => [a], _.map('name', entities)), selectedEntities) })
   }
 
   selectNone() {
@@ -461,9 +462,15 @@ const EntitiesContent = ajaxCaller(class EntitiesContent extends Component {
     return _.every(k => _.includes(k, selectedKeys), entityKeys)
   }
 
+  displayData(selectedData) {
+    const { itemsType, items } = selectedData
+    return _.map(entity => div({ style: { borderBottom: `1px solid ${colors.gray[2]}`, padding: '0.5rem' } },
+      itemsType === 'EntityReference' ? `${entity.entityName} (${entity.entityType})` : JSON.stringify(entity)), items)
+  }
+
   render() {
     const { workspace, workspace: { accessLevel, workspace: { namespace, name }, workspaceSubmissionStats: { runningSubmissionsCount } }, entityKey, entityMetadata, loadMetadata, firstRender } = this.props
-    const { entities, totalRowCount, pageNumber, itemsPerPage, sort, columnWidths, columnState, selectedEntities, deletingEntities, loading, copyingEntities } = this.state
+    const { entities, totalRowCount, pageNumber, itemsPerPage, sort, columnWidths, columnState, selectedEntities, deletingEntities, loading, copyingEntities, viewData } = this.state
     const theseColumnWidths = columnWidths[entityKey] || {}
     const columnSettings = applyColumnSettings(columnState[entityKey] || [], entityMetadata[entityKey].attributeNames)
     const resetScroll = () => this.table.current.scrollToTop()
@@ -501,7 +508,7 @@ const EntitiesContent = ajaxCaller(class EntitiesContent extends Component {
                             h(MenuButton, { onClick: () => this.selectAll() }, [`All (${totalRowCount})`]),
                             h(MenuButton, { onClick: () => this.selectNone() }, ['None'])
                           ]),
-                          position: 'bottom'
+                          side: 'bottom'
                         }, [
                           h(Clickable, [icon('caretDown')])
                         ])
@@ -545,9 +552,13 @@ const EntitiesContent = ajaxCaller(class EntitiesContent extends Component {
                         ])
                       ]),
                       cellRenderer: ({ rowIndex }) => {
-                        return renderDataCell(
-                          Utils.entityAttributeText(entities[rowIndex].attributes[name]), namespace
-                        )
+                        const dataInfo = entities[rowIndex].attributes[name]
+                        const dataCell = renderDataCell(Utils.entityAttributeText(dataInfo), namespace)
+                        return (dataInfo && _.isArray(dataInfo.items)) ?
+                          linkButton({
+                            onClick: () => this.setState({ viewData: dataInfo })
+                          },
+                          [dataCell]) : dataCell
                       }
                     }
                   }, _.filter('visible', columnSettings))
@@ -601,6 +612,12 @@ const EntitiesContent = ajaxCaller(class EntitiesContent extends Component {
         workspace,
         selectedEntities: _.keys(selectedEntities), selectedDataType: entityKey, runningSubmissionsCount
       }),
+      viewData && h(Modal, {
+        title: 'Contents',
+        showButtons: false,
+        showX: true,
+        onDismiss: () => this.setState({ viewData: undefined })
+      }, [div({ style: { maxHeight: '80vh', overflowY: 'auto' } }, [this.displayData(viewData)])]),
       loading && spinnerOverlay
     ])
   }

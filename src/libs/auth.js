@@ -1,10 +1,10 @@
 import _ from 'lodash/fp'
 import * as md5 from 'md5'
-import { version } from 'src/data/clusters'
+import { clearNotification, sessionTimeoutProps } from 'src/components/Notifications'
 import ProdWhitelist from 'src/data/prod-whitelist'
 import { Ajax } from 'src/libs/ajax'
 import { getConfig } from 'src/libs/config'
-import { clearErrorCode, reportError } from 'src/libs/error'
+import { reportError } from 'src/libs/error'
 import * as Utils from 'src/libs/utils'
 
 
@@ -93,15 +93,18 @@ window.forceSignIn = async token => {
 
 authStore.subscribe(async (state, oldState) => {
   if (!oldState.isSignedIn && state.isSignedIn) {
-    clearErrorCode('sessionTimeout')
-    if (getConfig().isProd && !ProdWhitelist.includes(md5(state.user.email))) {
-      authStore.update(state => ({ ...state, registrationStatus: 'unlisted' }))
-      return
-    }
+    clearNotification(sessionTimeoutProps.id)
 
     Ajax().User.getStatus().then(response => {
       if (response.status === 404) {
-        return 'unregistered'
+        const isTrustedEmail = _.includes(state.user.email.match(/@.*/)[0],
+          ['@broadinstitute.org', '@google.com', '@channing.harvard.edu', '@duke.corp-partner.google.com', '@stanford.corp-partner.google.com'])
+
+        if (getConfig().isProd && !isTrustedEmail && !ProdWhitelist.includes(md5(state.user.email))) {
+          return 'unlisted'
+        } else {
+          return 'unregistered'
+        }
       } else if (!response.ok) {
         throw response
       } else {
@@ -145,45 +148,5 @@ export const refreshTerraProfile = async () => {
 authStore.subscribe((state, oldState) => {
   if (!oldState.isSignedIn && state.isSignedIn) {
     refreshTerraProfile().catch(error => reportError('Error loading user profile', error))
-  }
-})
-
-const basicMachineConfig = {
-  'numberOfWorkers': 0, 'masterMachineType': 'n1-standard-4',
-  'masterDiskSize': 500, 'workerMachineType': 'n1-standard-4',
-  'workerDiskSize': 500, 'numberOfWorkerLocalSSDs': 0,
-  'numberOfPreemptibleWorkers': 0
-}
-
-authStore.subscribe(async (state, oldState) => {
-  if (oldState.registrationStatus !== 'registered' && state.registrationStatus === 'registered') {
-    try {
-      const [billingProjects, clusters] = await Promise.all([
-        Ajax().Billing.listProjects(),
-        Ajax().Jupyter.clustersList()
-      ])
-      const ownClusters = _.filter({ creator: state.user.email }, clusters)
-      const googleProjects = _.uniq(_.map('projectName', billingProjects)) // can have duplicates for multiple roles
-      const groupedClusters = _.groupBy('googleProject', ownClusters)
-      const projectsNeedingCluster = _.filter(p => {
-        return !_.some(c => _.toNumber(c.labels.saturnVersion) >= _.toNumber(version), groupedClusters[p])
-      }, googleProjects)
-      const oldClusters = _.filter(({ labels: { saturnVersion } }) => {
-        return _.toNumber(saturnVersion) < _.toNumber(version)
-      }, ownClusters)
-      await Promise.all([
-        ..._.map(p => {
-          return Ajax().Jupyter.cluster(p, Utils.generateClusterName()).create({
-            machineConfig: _.last(_.sortBy('createdDate', groupedClusters[p])) || basicMachineConfig,
-            stopAfterCreation: true
-          }).catch(r => r.status === 403 ? r : Promise.reject(r))
-        }, projectsNeedingCluster),
-        ..._.map(({ googleProject, clusterName }) => {
-          return Ajax().Jupyter.cluster(googleProject, clusterName).delete()
-        }, oldClusters)
-      ])
-    } catch (error) {
-      reportError('Error auto-creating clusters', error)
-    }
   }
 })

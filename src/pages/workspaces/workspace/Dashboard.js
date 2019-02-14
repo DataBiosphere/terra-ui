@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import SimpleMDE from 'react-simplemde-editor'
-import 'simplemde/dist/simplemde.min.css'
+import 'easymde/dist/easymde.min.css'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { buttonPrimary, buttonSecondary, link, linkButton, Markdown, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
@@ -141,8 +141,12 @@ export const WorkspaceDashboard = _.flow(
                 options: {
                   autofocus: true,
                   placeholder: 'Enter a description',
+                  renderingConfig: {
+                    singleLineBreaks: false
+                  },
                   status: false
                 },
+                className: 'simplemde-container',
                 value: editDescription,
                 onChange: editDescription => this.setState({ editDescription })
               }),
@@ -153,7 +157,7 @@ export const WorkspaceDashboard = _.flow(
               saving && spinnerOverlay
             ])
           ],
-          [!!description, () => h(Markdown, [description])],
+          [!!description, () => h(Markdown, { className: 'rendered-markdown-container' }, [description])],
           () => div({ style: { fontStyle: 'italic' } }, ['No description added']))
       ]),
       div({ style: styles.rightBox }, [

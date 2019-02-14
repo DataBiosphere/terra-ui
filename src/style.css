@@ -40,6 +40,8 @@ a {
   height: 100%;
   position: relative;
   z-index: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 #root.overlayOpen {
@@ -93,4 +95,13 @@ a {
 
 .notification-item, .notification-item-root, .notification-message, .notification-title {
   font-family: unset;
+}
+
+/* Styles for content rendered by marked (also used by react-simplemde-editor) */
+.rendered-markdown-container a, .simplemde-container .editor-preview a {
+  color: #2691d0;
+}
+
+.rendered-markdown-container a:hover, .simplemde-container .editor-preview a:hover {
+  color: #5aa6da;
 }

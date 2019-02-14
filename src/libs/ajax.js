@@ -45,7 +45,7 @@ const authOpts = (token = getUser().token) => ({ headers: { Authorization: `Bear
 const jsonBody = body => ({ body: JSON.stringify(body), headers: { 'Content-Type': 'application/json' } })
 const appIdentifier = { headers: { 'X-App-ID': 'Saturn' } }
 const addAppIdentifier = _.merge(appIdentifier)
-const tosData = { appid: 'Saturn', tosversion: 1 }
+const tosData = { appid: 'Saturn', tosversion: 2 }
 
 const instrumentedFetch = (url, options) => {
   if (noConnection) {
@@ -90,7 +90,7 @@ const fetchLeo = async (path, options) => {
 }
 
 const fetchDockstore = async (path, options) => {
-  return fetchOk(`${getConfig().dockstoreUrlRoot}/${path}`, options)
+  return fetchOk(`${getConfig().dockstoreUrlRoot}:8443/${path}`, options)
 }
 // %23 = '#', %2F = '/'
 const dockstoreMethodPath = path => `api/ga4gh/v1/tools/%23workflow%2F${encodeURIComponent(path)}/versions`
@@ -101,6 +101,10 @@ const fetchAgora = async (path, options) => {
 
 const fetchOrchestration = async (path, options) => {
   return fetchOk(`${getConfig().orchestrationUrlRoot}/${path}`, addAppIdentifier(options))
+}
+
+const fetchRex = async (path, options) => {
+  return fetchOk(`${getConfig().rexUrlRoot}/api/${path}`, options)
 }
 
 
@@ -118,16 +122,13 @@ const User = signal => ({
     return instrumentedFetch(`${getConfig().samUrlRoot}/register/user/v2/self/info`, _.mergeAll([authOpts(), { signal }, appIdentifier]))
   },
 
-  create: async () => {
-    const res = await fetchSam('register/user/v2/self', _.merge(authOpts(), { signal, method: 'POST' }))
-    return res.json()
-  },
-
   profile: {
     get: async () => {
       const res = await fetchOrchestration('register/profile', _.merge(authOpts(), { signal }))
       return res.json()
     },
+
+    //We are not calling SAM directly because free credits logic is in orchestration
     set: keysAndValues => {
       const blankProfile = {
         firstName: 'N/A',
@@ -146,6 +147,18 @@ const User = signal => ({
         _.mergeAll([authOpts(), jsonBody(_.merge(blankProfile, keysAndValues)), { signal, method: 'POST' }])
       )
     }
+  },
+
+  acceptEula: async () => {
+    return fetchOrchestration('api/profile/trial/userAgreement', _.merge(authOpts(), { signal, method: 'PUT' }))
+  },
+
+  startTrial: async () => {
+    return fetchOrchestration('api/profile/trial', _.merge(authOpts(), { signal, method: 'POST' }))
+  },
+
+  finalizeTrial: async () => {
+    return fetchOrchestration('api/profile/trial?operation=finalize', _.merge(authOpts(), { signal, method: 'POST' }))
   },
 
   getProxyGroup: async email => {
@@ -178,7 +191,7 @@ const User = signal => ({
   // 2. Check the tickets are generated on Zendesk
   // 3. Reply internally (as a Light Agent) and make sure an email is not sent
   // 4. Reply externally (ask one of the Comms team with Full Agent access) and make sure you receive an email
-  createSupportRequest: async ({ name, email, currUrl, subject, type, description }) => {
+  createSupportRequest: async ({ name, email, currUrl, subject, type, description, attachmentToken }) => {
     return fetchOk(
       `https://broadinstitute.zendesk.com/api/v2/requests.json`,
       _.merge({ signal, method: 'POST' }, jsonBody({
@@ -193,10 +206,36 @@ const User = signal => ({
             { id: 360012782111, value: email }
           ],
           comment: {
-            body: `${description}\n\n------------------\nSubmitted from: ${currUrl}`
+            body: `${description}\n\n------------------\nSubmitted from: ${currUrl}`,
+            uploads: [`${attachmentToken}`]
           }
         }
       })))
+  },
+
+  uploadAttachment: async file => {
+    const res = await fetch(`https://broadinstitute.zendesk.com/api/v2/uploads?filename=${file.name}`, {
+      method: 'POST',
+      body: file,
+      headers: {
+        'Content-Type': 'application/binary'
+      }
+    })
+    return (await res.json()).upload
+  },
+
+  firstTimestamp: async () => {
+    const res = await fetchRex('firstTimestamps/record', _.mergeAll([authOpts(), { signal, method: 'POST' }]))
+    return res.json()
+  },
+
+  lastNpsResponse: async () => {
+    const res = await fetchRex('npsResponses/lastTimestamp', _.merge(authOpts(), { signal }))
+    return res.json()
+  },
+
+  postNpsResponse: async body => {
+    return fetchRex('npsResponses/create', _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }]))
   }
 })
 
@@ -210,11 +249,11 @@ const Groups = signal => ({
   group: groupName => {
     const root = `api/groups/${groupName}`
 
-    const addMember = async (role, email) => {
+    const addRole = async (role, email) => {
       return fetchOrchestration(`${root}/${role}/${email}`, _.merge(authOpts(), { signal, method: 'PUT' }))
     }
 
-    const removeMember = async (role, email) => {
+    const removeRole = async (role, email) => {
       return fetchOrchestration(`${root}/${role}/${email}`, _.merge(authOpts(), { signal, method: 'DELETE' }))
     }
 
@@ -232,14 +271,18 @@ const Groups = signal => ({
         return res.json()
       },
 
-      addMember,
+      addMember: async (roles, email) => {
+        return Promise.all(_.map(role => addRole(role, email), roles))
+      },
 
-      removeMember,
+      removeMember: async (roles, email) => {
+        return Promise.all(_.map(role => removeRole(role, email), roles))
+      },
 
-      changeMemberRole: async (email, oldRole, newRole) => {
-        if (oldRole !== newRole) {
-          await addMember(newRole, email)
-          return removeMember(oldRole, email)
+      changeMemberRoles: async (email, oldRoles, newRoles) => {
+        if (!_.isEqual(oldRoles, newRoles)) {
+          await Promise.all(_.map(role => addRole(role, email), _.difference(newRoles, oldRoles)))
+          return Promise.all(_.map(role => removeRole(role, email), _.difference(oldRoles, newRoles)))
         }
       }
     }
@@ -250,6 +293,10 @@ const Groups = signal => ({
 const Billing = signal => ({
   listProjects: async () => {
     const res = await fetchRawls('user/billing', _.merge(authOpts(), { signal }))
+    return res.json()
+  },
+  listProjectsExtended: async () => {
+    const res = await fetchSam('api/resources/v1/billing-project', _.merge(authOpts(), { signal }))
     return res.json()
   }
 })
@@ -600,8 +647,8 @@ const Methods = signal => ({
 
 
 const Jupyter = signal => ({
-  clustersList: async () => {
-    const res = await fetchLeo('api/clusters?saturnAutoCreated=true', _.mergeAll([authOpts(), appIdentifier, { signal }]))
+  clustersList: async project => {
+    const res = await fetchLeo(`api/clusters${project ? `/${project}` : ''}?saturnAutoCreated=true`, _.mergeAll([authOpts(), appIdentifier, { signal }]))
     return res.json()
   },
 
@@ -618,6 +665,7 @@ const Jupyter = signal => ({
               'saturn-iframe-extension':
                 `${window.location.hostname === 'localhost' ? getConfig().devUrlRoot : window.location.origin}/jupyter-iframe-extension.js`
             },
+            labExtensions: {},
             serverExtensions: {},
             combinedExtensions: {}
           }

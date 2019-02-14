@@ -84,14 +84,16 @@ export default ajaxCaller(class NewWorkspaceModal extends Component {
         namespace,
         name,
         authorizationDomain: _.map(v => ({ membersGroupName: v }), [...this.getRequiredGroups(), ...groups]),
-        attributes: { description }
+        attributes: { description },
+        copyFilesWithPrefix: 'notebooks/'
       }
       const workspace = await (cloneWorkspace ?
         Workspaces.workspace(cloneWorkspace.workspace.namespace, cloneWorkspace.workspace.name).clone(body) :
         Workspaces.create(body))
       onSuccess(workspace)
     } catch (error) {
-      this.setState({ createError: JSON.parse(error).message, busy: false })
+      const { message } = await error.json()
+      this.setState({ createError: message, busy: false })
     }
   }
 
@@ -178,7 +180,7 @@ export default ajaxCaller(class NewWorkspaceModal extends Component {
         disabled: !allGroups,
         value: groups,
         onChange: data => this.setState({ groups: _.map('value', data) }),
-        options: _.difference(_.map('groupName', allGroups), existingGroups).sort()
+        options: _.difference(_.uniq(_.map('groupName', allGroups)), existingGroups).sort()
       }),
       createError && div({
         style: { marginTop: '1rem', color: colors.red[0] }
