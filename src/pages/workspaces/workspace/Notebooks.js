@@ -108,7 +108,8 @@ class NotebookCard extends Component {
       } : {
         ...Style.elements.cardTitle,
         textOverflow: 'ellipsis', whiteSpace: 'nowrap', overflow: 'hidden'
-      }
+      },
+      dataTestId: printName(name) + '-notebook-link'
     }, printName(name))
 
     return a({
@@ -266,7 +267,8 @@ const Notebooks = _.flow(
           },
           onClick: () => this.uploader.current.open(),
           disabled: !canWrite,
-          tooltip: !canWrite ? noWrite : undefined
+          tooltip: !canWrite ? noWrite : undefined,
+          dataTestId: 'uploadNotebook'
         }, [
           div({ style: { fontSize: 16, lineHeight: '20px' } }, [
             div(['Drag or ', link({}, ['Click']), ' to ']),

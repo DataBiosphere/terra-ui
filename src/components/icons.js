@@ -35,7 +35,7 @@ ClarityIcons.add({
  * @param {object} [props]
  */
 export const icon = function(shape, { className, ...props } = {}) {
-  return h('clr-icon', _.merge({ shape, class: className }, props))
+  return h('clr-icon', _.merge({ shape, class: className, dataTestId: 'icon-'+shape }, props))
 }
 
 export const breadcrumb = function(props) {
@@ -48,7 +48,7 @@ export const logo = function(props) {
 
 export const spinner = function(props) {
   return icon('loadingSpinner',
-    _.merge({ size: 24, style: { color: colors.blue[1] } }, props))
+    _.merge({ size: 24, style: { color: colors.blue[1] }, dataTestId: 'loadingSpinner' }, props))
 }
 
 export const centeredSpinner = function(props) {

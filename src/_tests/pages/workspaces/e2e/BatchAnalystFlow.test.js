@@ -1,36 +1,18 @@
 import expect from 'expect-puppeteer'
-// import { google } from 'googleapis'
 import puppeteer from 'puppeteer'
-// import { mount } from 'enzyme'
+import { getAccessToken, wait, generateUUID } from 'src/_tests/test-utils'
 
-import { getAccessToken } from 'src/_tests/test-utils'
-
-// import { fetchOk } from 'src/libs/ajax'
-
-
-expect.setDefaultOptions({ timeout: 5 * 1000 })
+expect.setDefaultOptions({ timeout: 5555 })
 
 // const appUrlBase = 'https://bvdp-saturn-dev.appspot.com'
 const appUrlBase = 'http://localhost:3000/#workspaces'
 
-function wait(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms))
-}
-
-function generateUUID() {
-  let d = new Date().getTime()
-  const uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
-    const r = (d + Math.random()*16)%16 | 0
-    d = Math.floor(d/16)
-    return (c=='x' ? r : (r&0x3|0x8)).toString(16)
-  })
-  return uuid
-}
 describe('Google', () => {
   let browser
   let page
   beforeEach(async () => {
-    puppeteer.DEFAULT_TIMEOUT_INTERVAL = 20000
+    puppeteer.DEFAULT_TIMEOUT_INTERVAL = 20001
+    jest.setTimeout(20002)
     browser = await puppeteer.launch({
       headless: false//,
       // slowMo: 100 // slow down by X ms // this seems to make the test skip the things in beforeEach
@@ -60,73 +42,36 @@ describe('Google', () => {
       }, token
     )
     await page.waitForNavigation({ waitUntil: 'networkidle0' })
-
-
-    // return page.waitForNavigation({waitUntil: 'networkidle0'});
-
-    // console.log('Taking a break...');
-    // await wait(1000);
-    // console.log('Two second later');
-
-
-    // await newPage.waitForSelector('#passwordNext', { visible: true });
-    //    await newPage.waitFor(500)
-    //    await newPage.hover('#passwordNext')
-    // return newPage.click('#passwordNext')
-    // await page.
   })
 
   afterEach(async () => {
     console.log('post-test 🎉')
     // if debug, wait 1 second
     await wait(2000)
-    // clean up here?
+    // TODO: clean up here?
     // clean up in beforeEach as well?
+    console.log('cleanup 🎉🎉🎉')
     await page.close()
     await browser.close()
     await browser.close()
-
-    //TODO: cleanup browser so it doesn't stay open
-    // return Promise.resolve();
   })
 
 
   it('create a workspace and launch a batch analysis (workflow)', async () => {
-    console.log('TEST STARTING')
-    // console.log('Taking a break...');
-    // await realGoogleLogin(browser, page)
-
-
-    // await page.waitForNavigation({waitUntil: 'load'});
-
-
-    // console.log('Two second later');
-    console.log('TEST CONTINUING')
-
-    // await page.waitForNavigation({waitUntil: 'networkidle0'});
+    // verify that we're on the workspaces page
     await expect(page).toMatch('New Workspace')
     await wait(4000)
 
     await page.hover('[datatestid="createNewWorkspace"]')
     await page.click('[datatestid="createNewWorkspace"] div') // searches for a div descendant - the click does not launch the modal otherwise. TODO: investigate
 
-    // const dialog = await expect(page).toDisplayDialog(async () => {
-    // 	await expect(page).toClick('[datatestid="createNewWorkspace"]')
-    // })
-    // this hangs ^
-
-    const workspaceName = 'TestWS-'+generateUUID()
+    // create a new function to handle this?
+    // note: all modals go inside: id="modal-root"
+    const workspaceName = 'WorkflowTestWS-'+ await generateUUID()
     const billingProjectName = 'general-dev-billing-account'
     await expect(page).toMatch('Workspace name *')
     await wait(4000)
-    // await page.type('[placeholder="Enter a name"]', workspaceName)
     await page.type('[datatestid="workspaceNameInput"]', workspaceName)
-
-    // note: all modals go inside: id="modal-root"
-
-    // use aria-labels ******** **
-    // aria-label="billingProjectSelect"
-    // could also use: `expect(instance).toSelect(selector, valueOrText[, options])`
     await page.click('[aria-label="billingProjectSelect"]')
     await page.type('[aria-label="billingProjectSelect"]', billingProjectName+'\n')
 

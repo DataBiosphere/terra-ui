@@ -1,133 +1,214 @@
 import expect from 'expect-puppeteer'
-import { google } from 'googleapis'
 import puppeteer from 'puppeteer'
+import { getAccessToken, wait, generateUUID } from 'src/_tests/test-utils'
 
-
-expect.setDefaultOptions({ timeout: 5 * 1000 })
+expect.setDefaultOptions({ timeout: 5555 })
 
 // const appUrlBase = 'https://bvdp-saturn-dev.appspot.com'
 const appUrlBase = 'http://localhost:3000/#workspaces'
-const user = {
-    email: 'b.adm.firec@gmail.com',
-    password: 'BroadDec1'
-}
-
-function wait(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms))
-}
-
 
 describe('Google', () => {
-    let browser
-    let page
-    beforeEach(async () => {
-        jasmine.DEFAULT_TIMEOUT_INTERVAL = 20000
-        browser = await puppeteer.launch({
-            headless: false//,
-            // slowMo: 100 // slow down by X ms // this seems to make the test skip the things in beforeEach
-        })
-        const context = await browser.createIncognitoBrowserContext()
-        page = await context.newPage()
-        await page.setViewport({
-            width: 1920,
-            height: 1080
-        })
-        page.on('console', msg => console.log('PAGE LOG:', msg.text()))
-
-        await Promise.all([
-            page.goto(appUrlBase),
-            wait(1000),
-            page.waitForNavigation({ waitUntil: 'networkidle0' }) // this is so that it waits until the signin button appears ..  | maybe increase the timeout instead?
-        ])
-        // return page.waitForNavigation({waitUntil: 'networkidle0'});
-
-        // console.log('Taking a break...');
-        // await wait(1000);
-        // console.log('Two second later');
-
-
-        // await newPage.waitForSelector('#passwordNext', { visible: true });
-        //    await newPage.waitFor(500)
-        //    await newPage.hover('#passwordNext')
-        // return newPage.click('#passwordNext')
-        // await page.
+  let browser
+  let page
+  beforeEach(async () => {
+    puppeteer.DEFAULT_TIMEOUT_INTERVAL = 20001
+    jest.setTimeout(20002)
+    browser = await puppeteer.launch({
+      args: ['--disable-features=site-per-process'], // this is needed to use waitForSelector within iframes
+      headless: false//,
+      // slowMo: 100 // slow down by X ms
     })
-
-    afterEach(async () => {
-        // if debug, wait 1 second
-        await wait(1000)
-        console.log('🎉')
-        await page.close()
-        //TODO: cleanup browser so it doesn't stay open
-        // return Promise.resolve();
+    const context = await browser.createIncognitoBrowserContext()
+    page = await context.newPage()
+    await page.setViewport({
+      width: 1920,
+      height: 1080
     })
+    page.on('console', msg => console.log('PAGE LOG:', msg.text()))
+
+    await Promise.all([
+      page.goto(appUrlBase),
+      wait(1000),
+      page.waitForNavigation({ waitUntil: 'networkidle0' }) // this is so that it waits until the signin button appears ..  | maybe increase the timeout instead?
+    ])
+
+    const token = await getAccessToken()
+    console.log('token is: ' + token)
+
+    // background signin
+    const executionContext = await page.mainFrame().executionContext()
+    await executionContext.evaluate(
+      token => {
+        window.forceSignIn(`${token}`)
+      }, token
+    )
+    await page.waitForNavigation({ waitUntil: 'networkidle0' })
+  })
+
+  afterEach(async () => {
+    console.log('post-test 🎉')
+    // if debug, wait 1 second
+    await wait(2000)
+    // clean up here?
+    // clean up in beforeEach as well?
+    console.log('cleanup 🎉🎉🎉')
+    await page.close()
+    await browser.close()
+    await browser.close()
+  })
 
 
+  it('create a workspace and launch an interactive analysis (notebook)', async () => {
+    // verify that we're on the workspaces page
+    await expect(page).toMatch('New Workspace')
+    await wait(4000)
 
-    it('create a workspace and launch an interactive analysis (notebook)', async () => {
-        console.log('TEST STARTING')
-        // console.log('Taking a break...');
-        await realGoogleLogin(browser, page)
+    await page.hover('[datatestid="createNewWorkspace"]')
+    await page.click('[datatestid="createNewWorkspace"] div') // searches for a div descendant - the click does not launch the modal otherwise. TODO: investigate
 
+    // create a new function to handle this?
+    // note: all modals go inside: id="modal-root"
+    const workspaceName = 'NotebookTestWS-'+ await generateUUID()
+    const billingProjectName = 'general-dev-billing-account'
+    await expect(page).toMatch('Workspace name *')
+    await wait(4000)
+    await page.type('[datatestid="workspaceNameInput"]', workspaceName)
+    await page.click('[aria-label="billingProjectSelect"]')
+    await page.type('[aria-label="billingProjectSelect"]', billingProjectName+'\n')
 
-        // await page.waitForNavigation({waitUntil: 'load'});
+    await page.type('[placeholder="Enter a description"]', 'description for ' + workspaceName)
+    await wait(2 * 1000)
+    await expect(page).toClick('[datatestid="createWorkspaceButton"]')
 
+    await page.waitForNavigation({ waitUntil: 'networkidle0' })
+    await wait(2 * 1000) // try this and see if the workspace loading issue persists
 
-        // console.log('Two second later');
-        console.log('TEST CONTINUING')
+    // confirm workspace created successfully
+    await expect(page).toMatchElement('[datatestid="workspaceInfoSidePanel"]')
 
-        // await page.waitForNavigation({waitUntil: 'networkidle0'});
-        await expect(page).toMatch('New Workspace')
+    // Create new notebook
+    await expect(page).toClick('[datatestid="notebooks-tab"]')
+    await page.waitForNavigation({ waitUntil: 'networkidle0' })
+    // await wait(10000)
+    // await expect(page).toMatch('[datatestid="uploadNotebook"]')
+    await page.screenshot({path: 'screenshots/'+workspaceName+'-0notebook.png'})
+    await page.waitForSelector('[datatestid="uploadNotebook"]', { timeout: 10000 })
+    const input = await page.$('input[type="file"]')
+    await input.uploadFile('./cluster_analysis.ipynb')
+    // Open notebook (load cluster within a reasonable amount of time)
+    await expect(page).toClick('[datatestid="cluster_analysis-notebook-link"]')
 
-        await page.hover('[testid="createNewWorkspace"]')
-        await page.click('[testid="createNewWorkspace"]')
+    let keepRunning = true
+    while (keepRunning) {
+      try {
+        await page.waitForSelector('[datatestid="loadingSpinner"]', { timeout: 4901 })
+      } catch (error) {
+        console.log('Notebook Loading screen - Notebook runtime finished')
+        keepRunning = false
+        await wait(4949)
+      }
+    }
+    await page.screenshot({path: 'screenshots/'+workspaceName+'-0b-nomospinner.png'});
 
-        // const dialog = await expect(page).toDisplayDialog(async () => {
-        // 	await expect(page).toClick('[testid="createNewWorkspace"]')
-        // })
-        // this hangs ^
-
-
-        const workspaceName = 'TestWS-1'
-        await expect(page).toMatch('Workspace name *')
-        // await page.type('[placeholder="Enter a name"]', workspaceName)
-        await page.type('[testid="workspaceNameInput"]', workspaceName)
-
-        //    await page.click('.Select-arrow-zone')
-        //    await page.type('#react-select-2--value', 'general-dev-billing-account')
-        // await page.keyboard.press('Enter')
-        expect(page).toSelect('select[]')
-
-        await page.type('[placeholder="Enter a description"]', 'description for ' + workspaceName)
-        await wait(1 * 1000)
-        // await page.hover('[style="outline: 0px; outline-offset: 0px; cursor: pointer; display: inline-flex; justify-content: space-around; align-items: center; height: 2.25rem; font-weight: 500; font-size: 14px; text-transform: uppercase; white-space: nowrap; user-select: none; border-radius: 5px; color: white; padding: 0px 1.5rem; background-color: rgb(38, 145, 208);"]')
-        // await page.click('[style="outline: 0px; outline-offset: 0px; cursor: pointer; display: inline-flex; justify-content: space-around; align-items: center; height: 2.25rem; font-weight: 500; font-size: 14px; text-transform: uppercase; white-space: nowrap; user-select: none; border-radius: 5px; color: white; padding: 0px 1.5rem; background-color: rgb(38, 145, 208);"]')
-        await page.hover('[testid="createWorkspaceButton"]')
-        await page.click('[testid="createWorkspaceButton"]')
-
-        // Error
-        //   Error: Text not found "Workspace name *"
-        //   waiting for function failed: timeout 500ms exceeded
-
-
-        // return Promise.resolve();
-
-        // TODO: login with a (saved) user
-
-        //TODO: confirm workspace created successfully
-        //TODO: * Create new notebook
-        //TODO: * Open notebook (load cluster within a reasonable amount of time)
-        //TODO: ((In notebook, execute a BQ call to public data)) -- can we do this?
-        //TODO: * Close notebook
-        //TODO: * Pause runtime
-        //TODO: * Wait for successful completion of pause
-        // TODO: cleanup the workspace
-
-
-
-    }, 50 * 1000) //TODO: remove this timeout. - doesn't help with the page load.
-
-
+    // keepRunning = true
+    // while (keepRunning) {
+      try {
+        await page.waitForSelector('[datatestid="icon-check"]', { timeout: 4902 })
+      } catch (error) {
+        console.log('Notebook Loading screen - Notebook runtime finished')
+        keepRunning = false
+        await wait(4949)
+      }
+    // }
+    await page.screenshot({path: 'screenshots/'+workspaceName+'-0c-check.png'});
 
 
+    // keepRunning = true
+    // while (keepRunning) {
+    //   await wait(4949)
+    //   try {
+    //     await expect(page).toMatch('Loading notebook')
+    //   } catch (error) {
+    //     console.log('Notebook Loading screen - Notebook finished loading')
+    //     keepRunning = false
+    //   }
+    // }
+    // await wait(4949)
+    // await page.waitForNavigation({ waitUntil: 'networkidle2' })
+
+    await page.screenshot({path: 'screenshots/'+workspaceName+'-1checkiframe-loaded.png'});
+    // await expect(page).toMatch('Cluster analysis', { timeout: 4900 }) // find something better to check -- this already exists on the loading screen. - check within the iframe.
+    //TODO: ((In notebook, execute a BQ call to public data)) -- can we do this?
+
+    //Close notebook. This is in an iframe so we need to find the iframe first and search within it.
+    const frame = await page.frames().find(f => f.name() === 'iframeID')
+    await page.screenshot({path: 'screenshots/'+workspaceName+'-1iframe-loaded.png'});
+    // const content = await frame.content();
+    //
+    // content.contains('Cluster analysis')
+
+    //
+    // // search general page?
+    // await expect(page).toMatch('Cluster analysis', { timeout: 4900 }) // does this work?
+
+    // // find something within frame.
+    // await expect(content).toMatch('Cluster analysis', { timeout: 4900 }) // does this work?
+
+    // is frame loaded?
+    await frame.waitForSelector('#notebook-container')
+
+
+    const button = await frame.waitForSelector('#menubar-close-button')
+    await button.click()
+    // await expect(frame).toClick('#menubar-close-button')
+    // await expect(page).toClick('[title="Shutdown this notebook\'s kernel, and close this window"]')
+    // await expect(page).toClick('[id="menubar-close-button"]')
+    // await expect(page).toClick('#menubar-close-button')
+
+    await page.waitForNavigation({ waitUntil: 'networkidle0' }) // doesn't seem to click on the pause icon here...
+    //Pause runtime
+    // await wait(10000)
+
+    await page.screenshot({path: 'screenshots/'+workspaceName+'-2a-checkforupdatednotebookmessage.png'});
+
+    try {
+      await page.waitForSelector('[datatestid="icon-times"]', { timeout: 4903 })
+      await expect(page).toClick('[datatestid="icon-times"]')
+      console.log('Closed "Recently updated notebook" popup')
+    } catch (error) {
+      console.log('No "times" icon for Recently updated notebook')
+    }
+    await page.screenshot({path: 'screenshots/'+workspaceName+'-2a2-closedupdatednotebookmessage.png'});
+
+
+    console.log('Pausing cluster')
+
+    await page.screenshot({path: 'screenshots/'+workspaceName+'-2pause-notebook.png'});
+    await expect(page).toClick('[datatestid="cluster-pause-icon"]', { timeout: 4904 })
+    //Wait for successful completion of pause
+    // while it's stopping, it will show the 'cluster-sync-icon'
+    // then once it's done it will show the 'cluster-play-icon'
+    await page.screenshot({path: 'screenshots/'+workspaceName+'-2pt2.png'});
+
+    await page.waitForSelector('[datatestid="cluster-sync-icon"]', { timeout: 10000 })
+    await page.screenshot({path: 'screenshots/'+workspaceName+'-3pausing-notebook.png'});
+
+    keepRunning = true
+    while (keepRunning) {
+      await wait(4949)
+      try {
+        await page.waitForSelector('[datatestid="cluster-sync-icon"]', { timeout: 4905 })
+        console.log('Pausing in progress.. waiting 5 seconds.')
+      } catch (error) {
+        console.log('Cluster loading icon is gone!')
+        keepRunning = false
+      }
+    }
+    await page.screenshot({path: 'screenshots/'+workspaceName+'-4paused-notebook.png'});
+    await page.waitForSelector('[datatestid="cluster-play-icon"]', { timeout: 10000 })
+    console.log('Cluster pause completed!')
+    // await wait(20000) // check where things are at
+    // return Promise.resolve();
+    // TODO: cleanup the workspace
+  }, 600 * 1000) // this is the max timeout for any individual step (?)
 })

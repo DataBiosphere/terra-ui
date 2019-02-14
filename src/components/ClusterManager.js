@@ -489,19 +489,21 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
             shape: 'play',
             onClick: () => this.startCluster(),
             disabled: busy || !canCompute,
-            tooltip: canCompute ? 'Start cluster' : noCompute
+            tooltip: canCompute ? 'Start cluster' : noCompute,
+            dataTestId: 'cluster-play-icon'
           })
         case 'Running':
           return h(ClusterIcon, {
             shape: 'pause',
             onClick: () => this.stopCluster(),
             disabled: busy || !canCompute,
-            tooltip: canCompute ? 'Stop cluster' : noCompute
+            tooltip: canCompute ? 'Stop cluster' : noCompute,
+            dataTestId: 'cluster-pause-icon'
           })
         case 'Starting':
         case 'Stopping':
         case 'Creating':
-          return h(ClusterIcon, { shape: 'sync' })
+          return h(ClusterIcon, { shape: 'sync', dataTestId: 'cluster-sync-icon' })
         default:
           return h(ClusterIcon, { shape: 'ban' })
       }

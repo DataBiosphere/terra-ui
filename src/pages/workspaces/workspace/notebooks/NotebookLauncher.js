@@ -119,7 +119,9 @@ class NotebookViewer extends Component {
     return h(Fragment, [
       preview && iframe({
         style: { border: 'none', flex: 1 },
-        srcDoc: preview
+        srcDoc: preview,
+        name: 'iframeID-viewer',
+        dataTestId: 'iframeID-viewer'
       }),
       preview && linkButton({
         style: { position: 'absolute', top: 20, left: 'calc(50% + 570px)' },
@@ -315,7 +317,9 @@ class NotebookEditor extends Component {
         iframe({
           src: url,
           style: { border: 'none', flex: 1 },
-          ref: this.notebookFrame
+          ref: this.notebookFrame,
+          name: 'iframeID',
+          dataTestId: 'iframeID'
         }),
         saving && spinnerOverlay
       ])
