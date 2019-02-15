@@ -45,6 +45,26 @@ class NotebookCard extends Component {
       closeOnClick: true,
       content: h(Fragment, [
         h(MenuButton, {
+          as: 'a',
+          href: notebookLink,
+          disabled: !canWrite,
+          tooltip: !canWrite && noWrite,
+          tooltipSide: 'left'
+        }, [menuIcon('edit'), 'Open']),
+        h(MenuButton, {
+          tooltipSide: 'left',
+          onClick: () => onRename()
+        }, [menuIcon('eye'), 'Open read-only']),
+        h(MenuButton, {
+          disabled: !canWrite,
+          tooltip: !canWrite && noWrite,
+          tooltipSide: 'left',
+          onClick: () => Nav.goToPath('workspace-notebook-launch', { namespace, app: 'lab', name: wsName, notebookName: name.slice(10) })
+        }, [menuIcon('jupyterIcon'), 'Open in JupyterLab']),
+        h(MenuButton, {
+          onClick: () => onExport()
+        }, [menuIcon('export'), 'Copy to another workspace']),
+        h(MenuButton, {
           onClick: async () => {
             try {
               await clipboard.writeText(`${window.location.host}/${notebookLink}`)
@@ -58,12 +78,6 @@ class NotebookCard extends Component {
           disabled: !canWrite,
           tooltip: !canWrite && noWrite,
           tooltipSide: 'left',
-          onClick: () => Nav.goToPath('workspace-notebook-launch', { namespace, app: 'lab', name: wsName, notebookName: name.slice(10) })
-        }, [menuIcon('jupyterIcon'), 'Open in JupyterLab']),
-        h(MenuButton, {
-          disabled: !canWrite,
-          tooltip: !canWrite && noWrite,
-          tooltipSide: 'left',
           onClick: () => onRename()
         }, [menuIcon('renameIcon'), 'Rename']),
         h(MenuButton, {
@@ -72,9 +86,6 @@ class NotebookCard extends Component {
           tooltipSide: 'left',
           onClick: () => onCopy()
         }, [menuIcon('copy'), 'Duplicate']),
-        h(MenuButton, {
-          onClick: () => onExport()
-        }, [menuIcon('export'), 'Copy to another workspace']),
         h(MenuButton, {
           disabled: !canWrite,
           tooltip: !canWrite && noWrite,
