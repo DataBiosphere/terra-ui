@@ -99,8 +99,8 @@ authStore.subscribe(async (state, oldState) => {
       if (response.status === 404) {
         const isTrustedEmail = _.includes(state.user.email.match(/@.*/)[0],
           ['@broadinstitute.org', '@google.com', '@channing.harvard.edu', '@duke.corp-partner.google.com', '@stanford.corp-partner.google.com'])
-
-        if (getConfig().isProd && !isTrustedEmail && !ProdWhitelist.includes(md5(state.user.email))) {
+        const tideWhitelist = Ajax().Buckets.getObject('terra-tide-prod-data', 'whitelistEmails')
+        if (getConfig().isProd && !isTrustedEmail && !ProdWhitelist.includes(md5(state.user.email)) && !tideWhitelist.includes(md5(state.user.email))) {
           return 'unlisted'
         } else {
           return 'unregistered'
