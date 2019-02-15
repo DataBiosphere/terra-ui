@@ -467,10 +467,10 @@ const WorkflowView = _.flow(
     const newSetMessage = count > 1 ? `(will create a new set named "${newSetName}")` : ''
     return Utils.cond(
       [this.isSingle() || !rootEntityType, ''],
-      [type === EntitySelectionType.processAll, `all ${entityMetadata[rootEntityType].count} ${rootEntityType}s (will create a new set named "${newSetName}")`],
-      [type === EntitySelectionType.processFromSet, `${rootEntityType}s from ${name}`],
-      [type === EntitySelectionType.chooseRows, `${count} selected ${rootEntityType}s ${newSetMessage}`],
-      [type === EntitySelectionType.chooseSet, `${_.has('name', selectedEntities) ? 1 : 0} selected ${rootEntityType}`]
+      [type === EntitySelectionType.processAll, () => `all ${entityMetadata[rootEntityType].count} ${rootEntityType}s (will create a new set named "${newSetName}")`],
+      [type === EntitySelectionType.processFromSet, () => `${rootEntityType}s from ${name}`],
+      [type === EntitySelectionType.chooseRows, () => `${count} selected ${rootEntityType}s ${newSetMessage}`],
+      [type === EntitySelectionType.chooseSet, () => `${_.has('name', selectedEntities) ? 1 : 0} selected ${rootEntityType}`]
     )
   }
 
