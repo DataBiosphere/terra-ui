@@ -59,7 +59,8 @@ const NotebookLauncher = _.flow(
   }),
   ajaxCaller
 )(({ workspace, app, ...props }) => {
-  return Utils.canWrite(workspace.accessLevel) && workspace.canCompute ?
+  return Utils.canWrite(workspace.accessLevel) && workspace.canCompute
+    && !_.endsWith('/#read-only', window.location.href) ?
     h(NotebookEditor, { workspace, app, ...props }) :
     h(NotebookViewer, { workspace, ...props })
 })
