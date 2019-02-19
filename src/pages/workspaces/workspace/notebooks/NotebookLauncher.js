@@ -80,8 +80,13 @@ class ReadOnlyMessage extends Component {
         ['Viewing in read-only mode.']),
       div({ style: { fontSize: 14 } }, [
         'To edit this notebook, ',
-        link({ onClick: () => this.setState({ copying: true }) }, 'copy'),
-        ' it to another workspace'
+        workspace.canCompute ? [
+          link({ onClick: () => this.setState({ copying: true }) }, 'create'),
+          ' a cluster'
+        ] : [
+          link({ onClick: () => this.setState({ copying: true }) }, 'copy'),
+          ' it to another workspace'
+        ]
       ]),
       copying && h(ExportNotebookModal, {
         printName: notebookName.slice(0, -6), workspace, fromLauncher: true,
