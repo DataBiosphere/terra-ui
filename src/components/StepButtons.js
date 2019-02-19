@@ -85,7 +85,7 @@ const StepButtons = ({ tabs, activeTab, onChangeTab, finalStep }) => {
       ([i, { key, title, isValid }]) => stepButton({ i: i * 1, key, title, isValid, selectedIndex, onChangeTab, tabs }),
       _.toPairs(tabs)
     ),
-    finalStep /*&& _.every('isValid', tabs)*/ && h(Fragment, [
+    finalStep && h(Fragment, [
       els.dot(true), els.dot(true),
       finalStep
     ])
