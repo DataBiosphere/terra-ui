@@ -82,7 +82,7 @@ export const FreeCreditsModal= ajaxCaller(class FreeCreditsModal extends Compone
         style: {
           marginTop: '0.5rem',
           padding: '1rem',
-          border: `1px solid ${colors.blue[0]}`,
+          border: `1px solid ${colors.green[0]}`,
           borderRadius: '0.25rem',
           backgroundColor: '#f4f4f4'
         }

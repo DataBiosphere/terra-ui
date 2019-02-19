@@ -66,10 +66,10 @@ const styles = {
   angle: {
     marginRight: '0.5rem',
     marginTop: '.1rem',
-    color: colors.blue[0]
+    color: colors.green[0]
   },
   outputInfoLabel: {
-    color: colors.darkBlue[0]
+    color: colors.gray[0]
   },
   placeholder: {
     fontStyle: 'italic'
@@ -220,7 +220,7 @@ const BucketContentModal = ajaxCaller(class BucketContentModal extends Component
           }, _.range(0, prefixParts.length))
         ])
       ]),
-      div({ style: { margin: '1rem -1rem 1rem -1rem', borderBottom: `1px solid ${colors.gray[5]}` } }),
+      div({ style: { margin: '1rem -1rem 1rem -1rem', borderBottom: `1px solid ${colors.grayBlue[5]}` } }),
       h(SimpleTable, {
         columns: [
           { header: h(HeaderCell, ['Name']), size: { grow: 1 }, key: 'name' }

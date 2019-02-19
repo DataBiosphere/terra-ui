@@ -86,10 +86,10 @@ class NotebookCard extends Component {
       h(Clickable, {
         onClick: e => e.preventDefault(),
         style: {
-          cursor: 'pointer', color: colors.blue[0]
+          cursor: 'pointer', color: colors.green[0]
         },
         focus: 'hover',
-        hover: { color: colors.blue[2] }
+        hover: { color: colors.green[2] }
       }, [
         icon('cardMenuIcon', {
           size: listView ? 18 : 24
@@ -252,7 +252,7 @@ const Notebooks = _.flow(
         }
       }, [
         h(Clickable, {
-          style: { ...Style.elements.card, flex: 1, color: colors.blue[0] },
+          style: { ...Style.elements.card, flex: 1, color: colors.green[0] },
           onClick: () => this.setState({ creating: true }),
           disabled: !canWrite,
           tooltip: !canWrite ? noWrite : undefined
@@ -267,7 +267,7 @@ const Notebooks = _.flow(
         h(Clickable, {
           style: {
             ...Style.elements.card, flex: 1,
-            backgroundColor: colors.gray[4], border: `1px dashed ${colors.gray[2]}`, boxShadow: 'none'
+            backgroundColor: colors.gray[6], border: `1px dashed ${colors.gray[2]}`, boxShadow: 'none'
           },
           onClick: () => this.uploader.current.open(),
           disabled: !canWrite,
@@ -300,7 +300,7 @@ const Notebooks = _.flow(
       disabled: !Utils.canWrite(accessLevel),
       disableClick: true,
       style: { flexGrow: 1 },
-      activeStyle: { backgroundColor: colors.blue[3], cursor: 'copy' }, // accept and reject don't work in all browsers
+      activeStyle: { backgroundColor: colors.green[6], cursor: 'copy' }, // accept and reject don't work in all browsers
       acceptStyle: { cursor: 'copy' },
       rejectStyle: { cursor: 'no-drop' },
       ref: this.uploader,

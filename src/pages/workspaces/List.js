@@ -36,7 +36,7 @@ const styles = {
   },
   shortTitle: {
     flex: 'none',
-    color: colors.blue[0], fontSize: 16,
+    color: colors.green[0], fontSize: 16, fontWeight: 500,
     lineHeight: '20px', height: '40px',
     overflow: 'hidden', wordWrap: 'break-word'
   },
@@ -48,7 +48,7 @@ const styles = {
   },
   shortCreateCard: {
     display: 'flex', flexDirection: 'column', justifyContent: 'center',
-    color: colors.blue[0], fontSize: 20, lineHeight: '28px'
+    color: colors.green[0], fontSize: 20, fontWeight: 500, lineHeight: '28px'
   },
   longCard: {
     ...Style.elements.card,
@@ -57,7 +57,7 @@ const styles = {
     marginBottom: '0.5rem'
   },
   longTitle: {
-    color: colors.blue[0], fontSize: 16,
+    color: colors.green[0], fontSize: 16,
     whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', flex: 1
   },
   longDescription: {
@@ -68,7 +68,7 @@ const styles = {
   badge: {
     height: '1.5rem', width: '1.5rem', borderRadius: '1.5rem',
     lineHeight: '1.5rem', textAlign: 'center',
-    backgroundColor: colors.purple[0], color: 'white'
+    backgroundColor: colors.gray[0], color: 'white'
   }
 }
 
@@ -107,10 +107,10 @@ const WorkspaceCard = pure(({
     h(Clickable, {
       onClick: e => e.preventDefault(),
       style: {
-        cursor: 'pointer', color: colors.blue[0], marginRight: 'auto'
+        cursor: 'pointer', color: colors.green[0], marginRight: 'auto'
       },
       focus: 'hover',
-      hover: { color: colors.blue[2] }
+      hover: { color: colors.green[2] }
     }, [
       icon('cardMenuIcon', {
         size: listView ? 18 : 24

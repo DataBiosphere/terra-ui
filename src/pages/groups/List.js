@@ -105,7 +105,7 @@ const GroupCard = pure(({ group: { groupName, groupEmail, role }, onDelete }) =>
       href: isAdmin ? Nav.getLink('group', { groupName }) : undefined,
       style: {
         marginRight: '1rem',
-        width: '30%', color: isAdmin ? colors.blue[0] : undefined,
+        width: '30%', color: isAdmin ? colors.green[0] : undefined,
         ...styles.longTitle
       }
     }, [groupName]),

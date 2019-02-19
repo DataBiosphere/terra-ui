@@ -46,7 +46,7 @@ export default class SignIn extends Component {
           div({ style: { display: 'flex', marginBottom: '1rem', alignItems: 'center' } }, [
             div({ style: { fontWeight: 500, marginRight: '2rem' } }, [
               div({ style: { fontSize: 40, color: colors.slate } }, ['Welcome to']),
-              div({ style: { fontSize: 80, color: colors.darkBlue[0] } }, ['TERRA'])
+              div({ style: { fontSize: 80, color: colors.gray[0] } }, ['TERRA'])
             ]),
             logo({ size: 265 })
           ]),
@@ -71,7 +71,7 @@ export default class SignIn extends Component {
             div([
               h(Clickable, {
                 style: {
-                  color: colors.blue[0],
+                  color: colors.green[0],
                   marginLeft: '9rem'
                 },
                 onClick: () => this.setState({ openCookiesModal: true })

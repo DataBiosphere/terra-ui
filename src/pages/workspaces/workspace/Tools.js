@@ -43,7 +43,7 @@ const styles = {
   },
   shortTitle: {
     flex: 1,
-    color: colors.blue[0], fontSize: 16,
+    color: colors.green[0], fontSize: 16,
     lineHeight: '20px', height: '40px',
     overflow: 'hidden', overflowWrap: 'break-word'
   },
@@ -61,7 +61,7 @@ const styles = {
     marginBottom: '0.5rem'
   },
   longTitle: {
-    color: colors.blue[0], fontSize: 16,
+    color: colors.green[0], fontSize: 16,
     whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', flex: 1
   },
   longDescription: {
@@ -87,10 +87,10 @@ const ToolCard = pure(({ listView, name, namespace, config, onCopy, onDelete }) 
     h(Clickable, {
       onClick: e => e.stopPropagation(),
       style: {
-        cursor: 'pointer', color: colors.blue[0], ...styles.innerLink
+        cursor: 'pointer', color: colors.green[0], ...styles.innerLink
       },
       focus: 'hover',
-      hover: { color: colors.blue[2] }
+      hover: { color: colors.green[2] }
     }, [
       icon('cardMenuIcon', {
         size: listView ? 18 : 24
