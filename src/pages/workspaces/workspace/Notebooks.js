@@ -52,8 +52,10 @@ class NotebookCard extends Component {
           tooltipSide: 'left'
         }, [menuIcon('edit'), 'Open']),
         h(MenuButton, {
+          as: 'a',
+          href: notebookLink + `/#read-only`,
           tooltipSide: 'left',
-          onClick: () => onRename()
+          tooltip: canWrite && 'Open without a cluster'
         }, [menuIcon('eye'), 'Open read-only']),
         h(MenuButton, {
           disabled: !canWrite,
