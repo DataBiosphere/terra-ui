@@ -7,7 +7,6 @@ import { getConfig } from 'src/libs/config'
 import { reportError } from 'src/libs/error'
 import * as Utils from 'src/libs/utils'
 
-
 const getAuthInstance = () => {
   return window.gapi.auth2.getAuthInstance()
 }
@@ -63,7 +62,6 @@ export const initializeAuth = _.memoize(async () => {
   }
   processUser(getAuthInstance().currentUser.get())
   getAuthInstance().currentUser.listen(processUser)
-  getTideWhitelist()
 })
 
 // This is intended for tests to short circuit the login flow
@@ -95,6 +93,7 @@ window.forceSignIn = async token => {
 authStore.subscribe(async (state, oldState) => {
   if (!oldState.isSignedIn && state.isSignedIn) {
     clearNotification(sessionTimeoutProps.id)
+    const tideWhitelist =  await Ajax().Buckets.getObjectPreview('terra-tide-prod-data', 'whitelistEmails', undefined, true).then(res => res.json())
     Ajax().User.getStatus().then(response => {
       if (response.status === 404) {
         const isTrustedEmail = _.includes(state.user.email.match(/@.*/)[0],
@@ -142,12 +141,6 @@ authStore.subscribe((state, oldState) => {
 export const refreshTerraProfile = async () => {
   const profile = Utils.kvArrayToObject((await Ajax().User.profile.get()).keyValuePairs)
   authStore.update(state => _.set('profile', profile, state))
-}
-
-const getTideWhitelist = async () => {
-  const tideWhitelist = await Ajax().Buckets.getObjectPreview('terra-tide-prod-data', 'whitelistEmails')
-  //const contents = tideWhitelist.createReadStream()
-  console.log(tideWhitelist)
 }
 
 authStore.subscribe((state, oldState) => {
