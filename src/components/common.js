@@ -48,17 +48,6 @@ export const link = function(props, children) {
     children)
 }
 
-export const linkUnderline = function(props, children) {
-  return h(Interactive,
-    _.mergeAll([
-      linkProps(props.disabled),
-      { style: { color: colors.gray[0], textDecoration: 'underline' } },
-      props
-    ]),
-    children)
-}
-
-
 export const linkButton = (props, children) => {
   return h(Clickable,
     _.merge(linkProps(props.disabled), props),
@@ -93,7 +82,7 @@ export const buttonSecondary = ({ disabled, ...props }, children) => {
 
 export const search = function({ wrapperProps, inputProps }) {
   return div(
-    _.merge({ style: { padding: '0.5rem 0.2rem', display: 'flex', backgroundColor: 'white' } },
+    _.merge({ style: { padding: '0.5rem 0.2rem', display: 'flex', backgroundColor: 'white', borderRadius: 3 } },
       wrapperProps),
     [
       icon('search', { size: 21 }),
@@ -266,51 +255,10 @@ export const Select = ({ value, options, ...props }) => {
   }, props))
 }
 
-export const FadeBox = ({ fadePoint = '60%', style = {}, children }) => {
-  const {
-    paddingTop = '1.5rem',
-    paddingLR = '1.5rem',
-    borderRadius = '8px',
-    backgroundColor = 'rgba(255,255,255,0)',
-    borderColor = colors.gray[3],
-    ...containerStyle
-  } = style
-
+export const PageBox = ({ children, style = {} }) => {
   return div({
     style: {
-      display: 'flex', flexDirection: 'column',
-      background: `linear-gradient(to bottom, white, ${backgroundColor} ${fadePoint})`,
-      borderRadius: `${borderRadius} ${borderRadius} 0 0`,
-      ...containerStyle
-    }
-  }, [
-    div({
-      style: {
-        height: paddingTop,
-        border: `1px solid ${borderColor}`,
-        borderBottom: 'none',
-        borderRadius: `${borderRadius} ${borderRadius} 0 0`
-      }
-    }),
-    div({
-      style: {
-        flex: 1,
-        padding: `0 ${paddingLR}`,
-        borderWidth: 1,
-        borderStyle: 'solid',
-        borderImage: `linear-gradient(to bottom, ${borderColor}, ${backgroundColor} ${fadePoint}) 1 100%`,
-        borderTop: 'none',
-        borderBottom: 'none'
-      }
-    }, [children])
-  ])
-}
-
-export const PageFadeBox = ({ children, style = {} }) => {
-  return h(FadeBox, {
-    fadePoint: '125px',
-    style: {
-      margin: '1.5rem', paddingTop: '1rem', minHeight: 125, flex: 'none', ...style
+      margin: '1.5rem', padding: '1.5rem 1.5rem 0', minHeight: 125, flex: 'none', ...style
     }
   }, [children])
 }

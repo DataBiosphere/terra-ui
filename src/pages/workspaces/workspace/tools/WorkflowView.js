@@ -137,8 +137,8 @@ const WorkflowIOTable = ({ which, inputsOutputs: data, config, errors, onChange,
                 isFile && h(Clickable, {
                   style: {
                     height: '2.25rem',
-                    border: `1px solid ${colors.gray[3]}`, borderRadius: '0px 4px 4px 0px',
-                    borderLeft: 'white'
+                    border: `1px solid ${colors.grayBlue[2]}`, borderRadius: '0px 4px 4px 0px',
+                    borderLeft: 'none'
                   },
                   onClick: () => onBrowse(name),
                   tooltip: 'Browse bucket files'

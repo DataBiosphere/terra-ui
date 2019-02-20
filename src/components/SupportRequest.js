@@ -184,7 +184,7 @@ const SupportRequest = _.flow(
             ]) :
             h(Clickable, {
               style: {
-                flex: 1, backgroundColor: dragging ? colors.green[3] : colors.gray[5], borderRadius: 3,
+                flex: 1, backgroundColor: dragging ? colors.green[3] : colors.gray[6], borderRadius: 3,
                 border: `1px dashed ${colors.gray[2]}`
               },
               onClick: () => this.uploader.current.open()

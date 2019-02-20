@@ -39,7 +39,7 @@ export default class SignIn extends Component {
         style: {
           flexGrow: 1,
           padding: 82,
-          background: `no-repeat left bottom / 1400px url(${signInBg}) ${colors.gray[5]}`
+          background: `no-repeat left bottom / 1400px url(${signInBg}) #ededed`
         }
       }, [
         div({ style: { maxWidth: 900 } }, [
@@ -71,7 +71,7 @@ export default class SignIn extends Component {
             div([
               h(Clickable, {
                 style: {
-                  color: colors.green[0],
+                  color: colors.blue[0],
                   marginLeft: '9rem'
                 },
                 onClick: () => this.setState({ openCookiesModal: true })

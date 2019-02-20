@@ -27,7 +27,7 @@ const styles = {
     backgroundColor: colors.green[1], paddingLeft: '1rem',
     display: 'flex', alignItems: 'center',
     borderBottom: `2px solid ${colors.lightGreen[0]}`,
-    boxShadow: Style.standardShadow, zIndex: 1
+    boxShadow: Style.standardShadow, zIndex: 2
   },
   pageTitle: {
     color: 'white', fontSize: 22, fontWeight: 500, textTransform: 'uppercase'
@@ -214,7 +214,7 @@ export default _.flow(
               div([
                 h(Clickable, {
                   style: {
-                    color: colors.green[6],
+                    color: colors.blue[0],
                     marginLeft: '9rem'
                   },
                   onClick: () => this.setState({ openCookiesModal: true })

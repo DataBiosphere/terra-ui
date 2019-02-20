@@ -4,7 +4,7 @@ import { a, div, h } from 'react-hyperscript-helpers'
 import { pure } from 'recompose'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import togglesListView from 'src/components/CardsListToggle'
-import { Clickable, MenuButton, PageFadeBox, spinnerOverlay, menuIcon, link, methodLink } from 'src/components/common'
+import { Clickable, MenuButton, PageBox, spinnerOverlay, menuIcon, link, methodLink } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import PopupTrigger from 'src/components/PopupTrigger'
 import { ajaxCaller } from 'src/libs/ajax'
@@ -165,7 +165,7 @@ export const Tools = _.flow(
   render() {
     const { namespace, name, listView, viewToggleButtons, workspace: { workspace } } = this.props
     const { loading, configs, copyingTool, deletingTool } = this.state
-    return h(PageFadeBox, [
+    return h(PageBox, [
       div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' } }, [
         div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, ['Tools']),
         viewToggleButtons,

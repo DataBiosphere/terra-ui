@@ -22,7 +22,7 @@ export const tabBar = {
     fontWeight: 500, textTransform: 'uppercase',
     height: '3.75rem', paddingRight: '1rem',
     borderBottom: `2px solid ${colors.green[1]}`, flex: 'none',
-    boxShadow: '0 2px 5px 0 rgba(0,0,0,0.25)'
+    boxShadow: '0 2px 5px 0 rgba(0,0,0,0.25)', zIndex: 1
   },
   tab: {
     minWidth: 140, flexGrow: 0, padding: '0 20px',
