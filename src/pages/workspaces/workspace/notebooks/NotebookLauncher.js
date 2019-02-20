@@ -60,7 +60,7 @@ const NotebookLauncher = _.flow(
   ajaxCaller
 )(({ workspace, app, ...props }) => {
   return Utils.canWrite(workspace.accessLevel) && workspace.canCompute
-    && !_.endsWith('/#read-only', window.location.href) ?
+    && !_.endsWith('/#read-only', window.location.href) ? //add condition for if the cluster status is creating?
     h(NotebookEditor, { workspace, app, ...props }) :
     h(NotebookViewer, { workspace, ...props })
 })
@@ -143,7 +143,7 @@ class NotebookEditor extends Component {
 
   constructor(props) {
     super(props)
-    this.state = { localizeFailures: 0 }
+    this.state = { clusterStatus: undefined, localizeFailures: 0 }
     this.isSaved = Utils.atom(true)
     this.notebookFrame = createRef()
     this.beforeUnload = e => {
@@ -310,6 +310,9 @@ class NotebookEditor extends Component {
     const { namespace, name, app, clusters } = this.props
     const cluster = getCluster(clusters)
     const clusterStatus = cluster && cluster.status
+    this.setState(clusterStatus === cluster.status)
+    console.log(clusterStatus)
+    console.log(cluster.status)
 
     if (url) {
       return h(Fragment, [
@@ -344,13 +347,14 @@ class NotebookEditor extends Component {
           Utils.cond(
             [clusterError, clusterError],
             [isCreating, 'Creating notebook runtime'],
-            'Waiting for notebook runtime to be ready'
+            'Waiting for notebook runtime to be ready.'
           )
         ),
-        isCreating && div({ style: styles.creatingMessage }, [
+        isCreating && (div({ style: styles.creatingMessage }, [
           icon('info', { size: 24, style: { color: colors.orange[0] } }),
-          'This can take several minutes. You may navigate away and come back once the cluster is ready.'
-        ]),
+          'This can take several minutes. You may view a read-only version of your notebook and edit it once the cluster is ready.'
+        ])
+        ),
         step(2, localizeFailures ?
           `Error loading notebook, retry number ${localizeFailures}...` :
           'Loading notebook')
