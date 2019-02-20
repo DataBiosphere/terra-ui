@@ -60,7 +60,7 @@ const NotebookLauncher = _.flow(
   ajaxCaller
 )(({ workspace, app, ...props }) => {
   return Utils.canWrite(workspace.accessLevel) && workspace.canCompute
-    && !_.endsWith('/#read-only', window.location.href) ? //add condition for if the cluster status is creating?
+    && !_.endsWith('?read-only', window.location.href) ?
     h(NotebookEditor, { workspace, app, ...props }) :
     h(NotebookViewer, { workspace, ...props })
 })
@@ -143,7 +143,7 @@ class NotebookEditor extends Component {
 
   constructor(props) {
     super(props)
-    this.state = { clusterStatus: undefined, localizeFailures: 0 }
+    this.state = { localizeFailures: 0 }
     this.isSaved = Utils.atom(true)
     this.notebookFrame = createRef()
     this.beforeUnload = e => {
@@ -172,8 +172,6 @@ class NotebookEditor extends Component {
   }
 
   async componentDidMount() {
-    this.mounted = true
-
     window.addEventListener('message', this.handleMessages)
     window.addEventListener('beforeunload', this.beforeUnload)
 
@@ -221,15 +219,12 @@ class NotebookEditor extends Component {
         })
       } else this.setState({ url: `${clusterUrl}/notebooks/${workspaceName}/${notebookName}` })
     } catch (error) {
-      if (this.mounted) {
-        reportError('Notebook cannot be launched', error)
-        this.setState({ failed: true })
-      }
+      reportError('Notebook cannot be launched', error)
+      this.setState({ failed: true })
     }
   }
 
   componentWillUnmount() {
-    this.mounted = false
     if (this.scheduledRefresh) {
       clearTimeout(this.scheduledRefresh)
     }
@@ -260,10 +255,11 @@ class NotebookEditor extends Component {
       })
     }
 
-    while (this.mounted) {
+    while (true) {
       await refreshClusters()
       const cluster = getCluster(this.props.clusters) // Note: reading up-to-date prop
       const status = cluster && cluster.status
+      console.log('checking for clusters')
 
       if (status === 'Running') {
         return cluster
@@ -281,7 +277,7 @@ class NotebookEditor extends Component {
   async localizeNotebook(clusterName) {
     const { namespace, name: workspaceName, notebookName, workspace: { workspace: { bucketName } }, ajax: { Jupyter } } = this.props
 
-    while (this.mounted) {
+    while (true) {
       try {
         await Promise.all([
           Jupyter.notebooks(namespace, clusterName).localize({
@@ -310,7 +306,6 @@ class NotebookEditor extends Component {
     const { namespace, name, app, clusters } = this.props
     const cluster = getCluster(clusters)
     const clusterStatus = cluster && cluster.status
-    this.setState(clusterStatus === cluster.status)
     console.log(clusterStatus)
     console.log(cluster.status)
 
