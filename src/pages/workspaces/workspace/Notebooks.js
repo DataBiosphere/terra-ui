@@ -5,7 +5,7 @@ import Dropzone from 'react-dropzone'
 import { a, div, h } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import togglesListView from 'src/components/CardsListToggle'
-import { Clickable, link, MenuButton, PageBox, spinnerOverlay, menuIcon } from 'src/components/common'
+import { Clickable, link, MenuButton, menuIcon, PageBox, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { NotebookCreator, NotebookDeleter, NotebookDuplicator } from 'src/components/notebook-utils'
 import { notify } from 'src/components/Notifications'
@@ -17,10 +17,10 @@ import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
-import { Component } from 'src/libs/wrapped-components'
 import * as Utils from 'src/libs/utils'
-import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
+import { Component } from 'src/libs/wrapped-components'
 import ExportNotebookModal from 'src/pages/workspaces/workspace/notebooks/ExportNotebookModal'
+import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
 
 const notebookCardCommonStyles = listView => _.merge({ display: 'flex' },
@@ -107,23 +107,20 @@ class NotebookCard extends Component {
 
     const title = div({
       title: printName(name),
-      style: listView ? {
-        ...Style.elements.cardTitle,
-        textOverflow: 'ellipsis', whiteSpace: 'nowrap', overflow: 'hidden',
+      style: _.merge({
+        ...Style.elements.card.title,
+        textOverflow: 'ellipsis', whiteSpace: 'nowrap'
+      }, listView ? {
         marginLeft: '1rem'
-      } : {
-        ...Style.elements.cardTitle,
-        textOverflow: 'ellipsis', whiteSpace: 'nowrap', overflow: 'hidden'
-      }
+      } : undefined)
     }, printName(name))
 
     return a({
       href: notebookLink,
       style: {
-        ...Style.elements.card,
+        ...Style.elements.card.container,
         ...notebookCardCommonStyles(listView),
         flexShrink: 0,
-        justifyContent: listView ? undefined : 'space-between',
         alignItems: listView ? 'center' : undefined
       }
     }, listView ? [
@@ -252,7 +249,7 @@ const Notebooks = _.flow(
         }
       }, [
         h(Clickable, {
-          style: { ...Style.elements.card, flex: 1, color: colors.green[0] },
+          style: { ...Style.elements.card.container, flex: 1, color: colors.green[0] },
           onClick: () => this.setState({ creating: true }),
           disabled: !canWrite,
           tooltip: !canWrite ? noWrite : undefined
@@ -266,7 +263,7 @@ const Notebooks = _.flow(
         div({ style: { width: 20, height: 15 } }),
         h(Clickable, {
           style: {
-            ...Style.elements.card, flex: 1,
+            ...Style.elements.card.container, flex: 1,
             backgroundColor: colors.gray[6], border: `1px dashed ${colors.gray[2]}`, boxShadow: 'none'
           },
           onClick: () => this.uploader.current.open(),

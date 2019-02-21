@@ -7,10 +7,14 @@ export const modalShadow = '0 0 8px 0 rgba(0,0,0,0.12), 0 8px 8px 0 rgba(0,0,0,0
 export const standardLine = `1px solid ${colors.gray[2]}`
 
 export const elements = {
-  cardTitle: { color: colors.green[0], fontSize: 16 },
   card: {
-    borderRadius: 5, padding: '1rem', wordWrap: 'break-word', boxShadow: '0 2px 5px 0 rgba(0,0,0,0.25), 0 3px 2px 0 rgba(0,0,0,0.08)',
-    backgroundColor: 'white'
+    title: { color: colors.green[0], fontSize: 16, overflow: 'hidden' },
+    container: {
+      display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
+      borderRadius: 5, padding: '1rem', wordWrap: 'break-word',
+      backgroundColor: 'white',
+      boxShadow: '0 2px 5px 0 rgba(0,0,0,0.25), 0 3px 2px 0 rgba(0,0,0,0.08)'
+    }
   },
   sectionHeader: { color: colors.gray[0], fontSize: 16, fontWeight: 'bold' },
   pageContentContainer: { position: 'relative', flexGrow: 1, display: 'flex', flexDirection: 'column' }

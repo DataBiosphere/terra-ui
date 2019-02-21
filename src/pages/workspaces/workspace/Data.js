@@ -721,7 +721,7 @@ const BucketContent = ajaxCaller(class BucketContent extends Component {
         disabled: !canEdit,
         disableClick: true,
         style: { flexGrow: 1, backgroundColor: 'white', border: `1px solid ${colors.gray[3]}`, padding: '1rem' },
-        activeStyle: { backgroundColor: colors.blue[3], cursor: 'copy' },
+        activeStyle: { backgroundColor: colors.green[6], cursor: 'copy' },
         ref: this.uploader,
         onDropAccepted: files => this.uploadFiles(files)
       }, [

@@ -26,7 +26,7 @@ const styles = {
   }),
   // Card's position: relative and the outer/inner styles are a little hack to fake nested links
   card: {
-    ...Style.elements.card, position: 'relative'
+    ...Style.elements.card.container, position: 'relative'
   },
   outerLink: {
     position: 'absolute', top: 0, right: 0, bottom: 0, left: 0
@@ -42,10 +42,10 @@ const styles = {
     width: 300, height: 125, margin: '0 1rem 2rem 0'
   },
   shortTitle: {
+    ...Style.elements.card.title,
     flex: 1,
-    color: colors.green[0], fontSize: 16,
     lineHeight: '20px', height: '40px',
-    overflow: 'hidden', overflowWrap: 'break-word'
+    overflowWrap: 'break-word'
   },
   shortDescription: {
     flex: 'none',
@@ -61,8 +61,8 @@ const styles = {
     marginBottom: '0.5rem'
   },
   longTitle: {
-    color: colors.green[0], fontSize: 16,
-    whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', flex: 1
+    ...Style.elements.card.title,
+    whiteSpace: 'nowrap', textOverflow: 'ellipsis', flex: 1
   },
   longDescription: {
     flex: 1,

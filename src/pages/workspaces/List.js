@@ -29,16 +29,16 @@ const styles = {
     marginRight: listView ? undefined : '-1rem'
   }),
   shortCard: {
-    ...Style.elements.card,
-    display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
+    ...Style.elements.card.container,
     width: 300, height: 225,
     margin: '0 1rem 2rem 0'
   },
   shortTitle: {
+    ...Style.elements.card.title,
     flex: 'none',
-    color: colors.green[0], fontSize: 16, fontWeight: 500,
+    fontWeight: 500,
     lineHeight: '20px', height: '40px',
-    overflow: 'hidden', wordWrap: 'break-word'
+    wordWrap: 'break-word'
   },
   shortDescription: {
     flex: 'none',
@@ -51,14 +51,13 @@ const styles = {
     color: colors.green[0], fontSize: 20, fontWeight: 500, lineHeight: '28px'
   },
   longCard: {
-    ...Style.elements.card,
-    display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
+    ...Style.elements.card.container,
     width: '100%', minWidth: 0, height: 80,
     marginBottom: '0.5rem'
   },
   longTitle: {
-    color: colors.green[0], fontSize: 16,
-    whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', flex: 1
+    ...Style.elements.card.title,
+    whiteSpace: 'nowrap', textOverflow: 'ellipsis', flex: 1
   },
   longDescription: {
     flex: 1,

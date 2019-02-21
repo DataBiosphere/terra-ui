@@ -583,7 +583,7 @@ const WorkflowView = _.flow(
       disabled: !canCompute,
       disableClick: true,
       style: { padding: `1rem ${sideMargin}`, flex: 'auto', display: 'flex', flexDirection: 'column' },
-      activeStyle: { backgroundColor: colors.blue[3], cursor: 'copy' },
+      activeStyle: { backgroundColor: colors.green[6], cursor: 'copy' },
       ref: this.uploader,
       onDropRejected: () => reportError('Not a valid inputs file', 'The selected file is not a json file. To import inputs for this tool, upload a file with a .json extension.'),
       onDropAccepted: files => this.uploadJson(key, files[0])
