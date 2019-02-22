@@ -41,22 +41,50 @@ const styles = {
 
 const getCluster = clusters => {
   return _.flow(
-    _.remove({ status: 'Deleting' }),
+    _.remove({ status: 'Deleting' }), // do we want to have a specific message for when deleting a cluster?
     _.sortBy('createdDate'),
     _.first
   )(clusters)
 }
 
-class loadNotebook extends Component {
+const statusMessage = ({ clusters }) => {
+  const cluster = getCluster(clusters)
+  const clusterStatus = cluster && cluster.status
+
+  const creatingMessage = 'Creating notebook runtime. This can take several minutes. You may view a read-only version of your notebook and edit it once the cluster is ready.'
+  const startingMessage = 'Waiting for notebook runtime to be ready. Loading notebook.'
+  const runningMessage = 'Cluster is running'
+
+  const isCreating = clusterStatus === 'Creating'
+  const isStarting = clusterStatus === 'Starting'
+  const isRunning = clusterStatus === 'Running'
+  //const isStopping = clusterStatus === 'Stopping'
+  //const isStopped = clusterStatus === 'Stopped'
+
+  return Utils.cond(
+    [isCreating, creatingMessage],
+    [isStarting, startingMessage],
+    [isRunning, runningMessage],
+    'Something went wrong'
+  )
+}
+
+class loadingMessage extends Component {
   render() {
-    const { clusterError, localizeFailures, failed } = this.state
+    const { clusterError, failed } = this.state
     const { clusters } = this.props
     const cluster = getCluster(clusters)
     const clusterStatus = cluster && cluster.status
     const isCreating = clusterStatus === 'Creating'
     const currentStep = clusterStatus !== 'Running' ? 1 : 2
 
-    const step = (index, text) => div({ style: styles.step.container }, [
+    /*
+    console.log(clusters)
+    console.log(currentStep)
+    console.log(clusterStatus)
+*/
+    const step = (index, text) => div({ style: { display: 'flex', alignItems: 'center', lineHeight: '2rem', margin: '0.5rem 0' }
+    }, [
       div({ style: styles.step.col1 }, [
         index < currentStep && icon('check', { size: 24, style: { color: colors.green[0] } }),
         index === currentStep && (failed ? icon('times', { size: 24, style: { color: colors.red[0] } }) : spinner())
@@ -65,7 +93,7 @@ class loadNotebook extends Component {
     ])
 
     return h(Fragment, [
-      div({ style: styles.pageContainer }, [
+      div({ style: { padding: '2rem' } }, [
         div({ style: Style.elements.sectionHeader }, ['Terra is preparing your notebook']),
         step(1,
           Utils.cond(
@@ -79,9 +107,7 @@ class loadNotebook extends Component {
           'This can take several minutes. You may view a read-only version of your notebook and edit it once the cluster is ready.'
         ])
         ),
-        step(2, localizeFailures ?
-          `Error loading notebook, retry number ${localizeFailures}...` :
-          'Loading notebook')
+        step(2, 'Loading notebook')
       ])
     ])
   }
@@ -175,7 +201,6 @@ class NotebookEditor extends Component {
 
   constructor(props) {
     super(props)
-    this.state = { localizeFailures: 0 }
     this.isSaved = Utils.atom(true)
     this.notebookFrame = createRef()
     this.beforeUnload = e => {
@@ -211,7 +236,7 @@ class NotebookEditor extends Component {
       const { clusterName, clusterUrl, error } = await this.startCluster()
 
       if (error) {
-        this.setState({ clusterError: error, failed: true })
+        this.setState({ clusterError: error, failed: true }) // report error instead
         return
       }
 
@@ -253,7 +278,7 @@ class NotebookEditor extends Component {
       } else this.setState({ url: `${clusterUrl}/notebooks/${workspaceName}/${notebookName}` })
     } catch (error) {
       reportError('Notebook cannot be launched', error)
-      this.setState({ failed: true })
+      this.setState({ failed: true }) // report error
     }
   }
 
@@ -276,7 +301,6 @@ class NotebookEditor extends Component {
       document.location.reload()
     }
   }
-
 
   async startCluster() {
     const { refreshClusters, workspace: { workspace: { namespace } }, ajax: { Jupyter } } = this.props
@@ -320,22 +344,16 @@ class NotebookEditor extends Component {
           })
         ])
         return
-      } catch (e) {
-        const { localizeFailures } = this.state
-
-        if (localizeFailures < 5) {
-          this.setState({ localizeFailures: localizeFailures + 1 })
-          await Utils.delay(5000)
-        } else {
-          throw new Error('Unable to copy notebook to cluster, was it renamed or deleted in the Workspace Bucket?')
-        }
+      } catch (error) {
+        await reportError('Unable to copy notebook to cluster, was it renamed or deleted in the Workspace Bucket?', error)
+        this.setState({ failed: true })
       }
     }
   }
 
   render() {
     const { url, saving } = this.state
-    const { namespace, name, app } = this.props
+    const { namespace, clusters, name, app } = this.props
 
     if (url) {
       return h(Fragment, [
@@ -352,7 +370,7 @@ class NotebookEditor extends Component {
       ])
     }
 
-    return h(loadNotebook)
+    return h(loadingMessage, { clusters })
   }
 }
 
