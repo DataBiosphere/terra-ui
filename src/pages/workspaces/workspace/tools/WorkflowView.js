@@ -66,10 +66,10 @@ const styles = {
   angle: {
     marginRight: '0.5rem',
     marginTop: '.1rem',
-    color: colors.blue[0]
+    color: colors.green[0]
   },
   outputInfoLabel: {
-    color: colors.darkBlue[0]
+    color: colors.gray[0]
   },
   placeholder: {
     fontStyle: 'italic'
@@ -137,8 +137,8 @@ const WorkflowIOTable = ({ which, inputsOutputs: data, config, errors, onChange,
                 isFile && h(Clickable, {
                   style: {
                     height: '2.25rem',
-                    border: `1px solid ${colors.gray[3]}`, borderRadius: '0px 4px 4px 0px',
-                    borderLeft: 'white'
+                    border: `1px solid ${colors.grayBlue[2]}`, borderRadius: '0px 4px 4px 0px',
+                    borderLeft: 'none'
                   },
                   onClick: () => onBrowse(name),
                   tooltip: 'Browse bucket files'
@@ -220,7 +220,7 @@ const BucketContentModal = ajaxCaller(class BucketContentModal extends Component
           }, _.range(0, prefixParts.length))
         ])
       ]),
-      div({ style: { margin: '1rem -1rem 1rem -1rem', borderBottom: `1px solid ${colors.gray[5]}` } }),
+      div({ style: { margin: '1rem -1rem 1rem -1rem', borderBottom: `1px solid ${colors.grayBlue[5]}` } }),
       h(SimpleTable, {
         columns: [
           { header: h(HeaderCell, ['Name']), size: { grow: 1 }, key: 'name' }
@@ -583,7 +583,7 @@ const WorkflowView = _.flow(
       disabled: !canCompute,
       disableClick: true,
       style: { padding: `1rem ${sideMargin}`, flex: 'auto', display: 'flex', flexDirection: 'column' },
-      activeStyle: { backgroundColor: colors.blue[3], cursor: 'copy' },
+      activeStyle: { backgroundColor: colors.green[6], cursor: 'copy' },
       ref: this.uploader,
       onDropRejected: () => reportError('Not a valid inputs file', 'The selected file is not a json file. To import inputs for this tool, upload a file with a .json extension.'),
       onDropAccepted: files => this.uploadJson(key, files[0])

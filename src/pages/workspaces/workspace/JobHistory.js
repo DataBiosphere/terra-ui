@@ -215,7 +215,7 @@ const JobHistory = _.flow(
                     h(Clickable, {
                       onClick: () => this.setState({ aborting: submissionId })
                     }, [
-                      icon('times-circle', { size: 20, style: { color: colors.blue[0], marginLeft: '0.5rem' } })
+                      icon('times-circle', { size: 20, style: { color: colors.green[0], marginLeft: '0.5rem' } })
                     ])
                   ]),
                   isTerminal(status) && workflowStatuses['Failed'] &&
@@ -232,7 +232,7 @@ const JobHistory = _.flow(
                         onDone: () => this.refresh()
                       })
                     }, [
-                      icon('sync', { size: 18, style: { color: colors.blue[0], marginLeft: '0.5rem' } })
+                      icon('sync', { size: 18, style: { color: colors.green[0], marginLeft: '0.5rem' } })
                     ])
                   ])
                 ])

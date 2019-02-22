@@ -23,14 +23,14 @@ import { linkToJobManager } from 'src/pages/workspaces/workspace/JobHistory'
 
 const styles = {
   topBar: {
-    flex: 'none', height: 90,
-    backgroundColor: 'white', paddingLeft: '1rem',
+    flex: 'none', height: 66,
+    backgroundColor: colors.green[1], paddingLeft: '1rem',
     display: 'flex', alignItems: 'center',
-    borderBottom: `2px solid ${colors.blue[0]}`,
-    boxShadow: Style.standardShadow, zIndex: 1
+    borderBottom: `2px solid ${colors.lightGreen[0]}`,
+    boxShadow: Style.standardShadow, zIndex: 2
   },
   pageTitle: {
-    color: colors.darkBlue[0], fontSize: 22, fontWeight: 500, textTransform: 'uppercase'
+    color: 'white', fontSize: 22, fontWeight: 500, textTransform: 'uppercase'
   },
   nav: {
     background: {
@@ -39,18 +39,18 @@ const styles = {
     },
     container: {
       width: 290, color: 'white', position: 'absolute', cursor: 'default',
-      backgroundColor: colors.darkBlue[0], height: '100%',
+      backgroundColor: colors.gray[0], height: '100%',
       boxShadow: '3px 0 13px 0 rgba(0,0,0,0.3)',
       display: 'flex', flexDirection: 'column'
     },
     profile: active => ({
-      backgroundColor: active ? colors.gray[5] : colors.gray[4],
-      color: colors.darkBlue[0],
+      backgroundColor: active ? colors.gray[6] : colors.gray[5],
+      color: colors.gray[0],
       borderBottom: active ? undefined : 'none'
     }),
     profileItem: active => ({
       ...styles.nav.profile(active),
-      borderTop: `1px solid ${colors.darkBlue[0]}`,
+      borderTop: `1px solid ${colors.gray[0]}`,
       padding: '0 3rem', height: 40,
       fontSize: 'unset',
       fontWeight: 500
@@ -59,7 +59,7 @@ const styles = {
       display: 'flex', alignItems: 'center', flex: 'none',
       height: 70, padding: '0 28px',
       fontWeight: 600,
-      borderBottom: `1px solid ${colors.darkBlue[2]}`, color: 'white'
+      borderBottom: `1px solid ${colors.gray[2]}`, color: 'white'
     },
     subItem: {
       display: 'flex', alignItems: 'center', flex: 'none',
@@ -81,7 +81,7 @@ const styles = {
 const betaTag = b({
   style: {
     fontSize: 8, lineHeight: '9px',
-    color: 'white', backgroundColor: '#73AD43',
+    color: 'white', backgroundColor: colors.lightGreen[0],
     padding: '3px 5px', verticalAlign: 'middle',
     borderRadius: 2
   }
@@ -117,7 +117,7 @@ export default _.flow(
     const librarySubItem = (linkName, iconName, label) => h(Clickable, {
       style: styles.nav.subItem,
       as: 'a',
-      hover: { backgroundColor: colors.darkBlue[1] },
+      hover: { backgroundColor: colors.gray[1] },
       href: Nav.getLink(linkName),
       onClick: () => this.hideNav()
     }, [
@@ -132,7 +132,7 @@ export default _.flow(
 
     const enabledCredits = h(Clickable, {
       style: styles.nav.item,
-      hover: { backgroundColor: colors.darkBlue[1] },
+      hover: { backgroundColor: colors.gray[1] },
       onClick: () => this.setState({ openFreeCreditsModal: true })
     }, [
       div({ style: styles.nav.icon }, [
@@ -147,7 +147,7 @@ export default _.flow(
     const enrolledCredits = h(Clickable, {
       style: styles.nav.item,
       as: 'a',
-      hover: { backgroundColor: colors.darkBlue[1] },
+      hover: { backgroundColor: colors.gray[1] },
       href: 'https://software.broadinstitute.org/firecloud/documentation/freecredits',
       target: '_blank',
       onClick: () => this.hideNav()
@@ -167,7 +167,7 @@ export default _.flow(
 
     const terminatedCredits = h(Clickable, {
       style: styles.nav.item,
-      hover: { backgroundColor: colors.darkBlue[1] },
+      hover: { backgroundColor: colors.gray[1] },
       onClick: () => this.setState({ finalizeTrial: true })
     }, [
       div({ style: styles.nav.icon }, [
@@ -193,7 +193,7 @@ export default _.flow(
           icon('bars', {
             dir: 'right',
             size: 36,
-            style: { marginRight: '2rem', color: colors.purple[0], cursor: 'pointer' },
+            style: { marginRight: '2rem', color: 'white', cursor: 'pointer' },
             onClick: () => this.hideNav()
           }),
           a({
@@ -225,7 +225,7 @@ export default _.flow(
           h(Clickable, {
             as: 'a',
             style: styles.nav.item,
-            hover: { backgroundColor: colors.darkBlue[1] },
+            hover: { backgroundColor: colors.gray[1] },
             href: Nav.getLink('workspaces'),
             onClick: () => this.hideNav()
           }, [
@@ -238,7 +238,7 @@ export default _.flow(
             as: 'a',
             target: '_blank',
             style: styles.nav.item,
-            hover: { backgroundColor: colors.darkBlue[1] },
+            hover: { backgroundColor: colors.gray[1] },
             href: getConfig().jobManagerUrlRoot,
             onClick: () => this.hideNav()
           }, [
@@ -267,7 +267,7 @@ export default _.flow(
           (trialState === 'Terminated') && terminatedCredits,
           h(Clickable, {
             style: { ...styles.nav.supportItem, marginTop: '15px' },
-            hover: { backgroundColor: colors.darkBlue[1] },
+            hover: { backgroundColor: colors.gray[1] },
             onClick: () => contactUsActive.set(true)
           }, [
             div({ style: styles.nav.icon }, [
@@ -278,7 +278,7 @@ export default _.flow(
           h(Clickable, {
             style: styles.nav.supportItem,
             as: 'a',
-            hover: { backgroundColor: colors.darkBlue[1] },
+            hover: { backgroundColor: colors.gray[1] },
             href: 'https://broadinstitute.zendesk.com/hc/en-us',
             target: '_blank',
             onClick: () => this.hideNav()
@@ -299,7 +299,7 @@ export default _.flow(
             style: {
               ..._.omit('borderBottom', styles.nav.item),
               marginTop: 'auto',
-              color: colors.darkBlue[2],
+              color: colors.gray[3],
               fontSize: 10
             }
           }, [
@@ -384,7 +384,7 @@ export default _.flow(
     return div({ style: styles.topBar }, [
       icon('bars', {
         size: 36,
-        style: { marginRight: '2rem', color: colors.purple[0], flex: 'none', cursor: 'pointer' },
+        style: { marginRight: '2rem', color: 'white', flex: 'none', cursor: 'pointer' },
         onClick: () => this.showNav()
       }),
       a({
@@ -395,7 +395,7 @@ export default _.flow(
         div({}, [
           div({
             style: _.merge(title ? { fontSize: '0.8rem', lineHeight: '19px' } : { fontSize: '1rem', fontWeight: 600 },
-              { color: colors.darkBlue[2], marginLeft: '0.1rem' })
+              { marginLeft: '0.1rem' })
           }, [betaTag]),
           title
         ])

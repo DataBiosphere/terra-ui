@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { a, b, div, h } from 'react-hyperscript-helpers'
 import { pure } from 'recompose'
-import { buttonPrimary, Clickable, linkButton, PageFadeBox, search, spinnerOverlay } from 'src/components/common'
+import { buttonPrimary, Clickable, linkButton, PageBox, search, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { validatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
@@ -104,9 +104,9 @@ const GroupCard = pure(({ group: { groupName, groupEmail, role }, onDelete }) =>
     a({
       href: isAdmin ? Nav.getLink('group', { groupName }) : undefined,
       style: {
+        ...styles.longTitle,
         marginRight: '1rem',
-        width: '30%', color: isAdmin ? colors.blue[0] : undefined,
-        ...styles.longTitle
+        width: '30%', color: isAdmin ? colors.green[0] : undefined
       }
     }, [groupName]),
     div({ style: { flexGrow: 1 } }, [groupEmail]),
@@ -181,7 +181,7 @@ export const GroupList = ajaxCaller(class GroupList extends Component {
           }
         })
       ]),
-      h(PageFadeBox, [
+      h(PageBox, [
         div({ style: styles.toolbarContainer }, [
           div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, [
             'Group Management'
