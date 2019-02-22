@@ -24,7 +24,7 @@ const getCluster = clusters => {
 }
 
 const statusMessage = ({ clusters }) => {
-  console.log({clusters})
+  console.log({ clusters })
   const cluster = getCluster(clusters)
   const clusterStatus = cluster && cluster.status
 
@@ -48,23 +48,23 @@ const statusMessage = ({ clusters }) => {
 
 class loadingMessage extends Component {
   render() {
-    const { clusterError, failed } = this.state
+    const { clusterError } = this.state
     const { clusters } = this.props
     const cluster = getCluster(clusters)
     const clusterStatus = cluster && cluster.status
     const isCreating = clusterStatus === 'Creating'
     const currentStep = clusterStatus !== 'Running' ? 1 : 2
 
-    /*
-    console.log(clusters)
-    console.log(currentStep)
-    console.log(clusterStatus)
-*/
-    const step = (index, text) => div({ style: { display: 'flex', alignItems: 'center', lineHeight: '2rem', margin: '0.5rem 0' }
-    }, [
+    console.log(statusMessage({ clusters }))
+
+    //console.log(clusters)
+    // console.log(currentStep)
+    // console.log(clusterStatus)
+
+    const step = (index, text) => div({ style: { display: 'flex', alignItems: 'center', lineHeight: '2rem', margin: '0.5rem 0' } }, [
       div({ style: { flex: '0 0 30px' } }, [
         index < currentStep && icon('check', { size: 24, style: { color: colors.green[0] } }),
-        index === currentStep && (failed ? icon('times', { size: 24, style: { color: colors.red[0] } }) : spinner())
+        index === currentStep && spinner()
       ]),
       div({ style: { flex: 1 } }, [text])
     ])
@@ -213,7 +213,7 @@ class NotebookEditor extends Component {
       const { clusterName, clusterUrl, error } = await this.startCluster()
 
       if (error) {
-        this.setState({ clusterError: error, failed: true }) // report error instead
+        reportError('There was an error', error)
         return
       }
 
@@ -255,7 +255,6 @@ class NotebookEditor extends Component {
       } else this.setState({ url: `${clusterUrl}/notebooks/${workspaceName}/${notebookName}` })
     } catch (error) {
       reportError('Notebook cannot be launched', error)
-      this.setState({ failed: true }) // report error
     }
   }
 
@@ -323,7 +322,6 @@ class NotebookEditor extends Component {
         return
       } catch (error) {
         await reportError('Unable to copy notebook to cluster, was it renamed or deleted in the Workspace Bucket?', error)
-        this.setState({ failed: true })
       }
     }
   }
