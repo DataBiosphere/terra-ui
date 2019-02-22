@@ -3,6 +3,7 @@ import { Fragment } from 'react'
 import { a, div, h } from 'react-hyperscript-helpers'
 import { pure } from 'recompose'
 import { PageFadeBox, search, spinnerOverlay } from 'src/components/common'
+import TooltipTrigger from 'src/components/TooltipTrigger'
 import TopBar from 'src/components/TopBar'
 import { ajaxCaller } from 'src/libs/ajax'
 import { reportError } from 'src/libs/error'
@@ -12,13 +13,29 @@ import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 import { styles } from 'src/pages/groups/common'
+import { icon } from 'src/components/icons'
+import colors from 'src/libs/colors'
+
 
 const BillingCard = pure(({ billingProject: { projectName, role, creationStatus } }) => {
-  return div({ style: styles.longCard }, [
+  return div({
+    style: styles.longCard
+  }, [
+    h(TooltipTrigger, {
+      content: creationStatus
+    }, [
+      icon((creationStatus === 'Ready') ? 'check' : 'bars', {
+        style: {
+          color: creationStatus === 'Ready' ? colors.green[0] : undefined,
+          marginRight: '2rem'
+        }
+      })
+    ]),
     a({
       style: {
         marginRight: '1rem',
-        width: '30%', color: undefined,
+        width: '30%',
+        color: undefined,
         ...styles.longTitle
       }
     }, [projectName]),
