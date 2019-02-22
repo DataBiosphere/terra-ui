@@ -15,30 +15,6 @@ import { Component } from 'src/libs/wrapped-components'
 import ExportNotebookModal from 'src/pages/workspaces/workspace/notebooks/ExportNotebookModal'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
-
-const styles = {
-  pageContainer: {
-    padding: '2rem'
-  },
-  step: {
-    container: {
-      display: 'flex',
-      alignItems: 'center',
-      lineHeight: '2rem',
-      margin: '0.5rem 0'
-    },
-    col1: {
-      flex: '0 0 30px'
-    },
-    col2: {
-      flex: 1
-    }
-  },
-  creatingMessage: {
-    paddingLeft: '4rem'
-  }
-}
-
 const getCluster = clusters => {
   return _.flow(
     _.remove({ status: 'Deleting' }), // do we want to have a specific message for when deleting a cluster?
@@ -48,6 +24,7 @@ const getCluster = clusters => {
 }
 
 const statusMessage = ({ clusters }) => {
+  console.log({clusters})
   const cluster = getCluster(clusters)
   const clusterStatus = cluster && cluster.status
 
@@ -85,11 +62,11 @@ class loadingMessage extends Component {
 */
     const step = (index, text) => div({ style: { display: 'flex', alignItems: 'center', lineHeight: '2rem', margin: '0.5rem 0' }
     }, [
-      div({ style: styles.step.col1 }, [
+      div({ style: { flex: '0 0 30px' } }, [
         index < currentStep && icon('check', { size: 24, style: { color: colors.green[0] } }),
         index === currentStep && (failed ? icon('times', { size: 24, style: { color: colors.red[0] } }) : spinner())
       ]),
-      div({ style: styles.step.col2 }, [text])
+      div({ style: { flex: 1 } }, [text])
     ])
 
     return h(Fragment, [
@@ -102,7 +79,7 @@ class loadingMessage extends Component {
             'Waiting for notebook runtime to be ready.'
           )
         ),
-        isCreating && (div({ style: styles.creatingMessage }, [
+        isCreating && (div({ style: { paddingLeft: '4rem' } }, [
           icon('info', { size: 24, style: { color: colors.orange[0] } }),
           'This can take several minutes. You may view a read-only version of your notebook and edit it once the cluster is ready.'
         ])
@@ -369,7 +346,6 @@ class NotebookEditor extends Component {
         saving && spinnerOverlay
       ])
     }
-
     return h(loadingMessage, { clusters })
   }
 }
