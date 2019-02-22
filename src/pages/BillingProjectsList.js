@@ -1,8 +1,8 @@
 import _ from 'lodash/fp'
 import { Fragment } from 'react'
-import { a, div, h } from 'react-hyperscript-helpers'
+import { a, div, h, span } from 'react-hyperscript-helpers'
 import { pure } from 'recompose'
-import { PageFadeBox, search, spinnerOverlay } from 'src/components/common'
+import { link, PageBox, search, spinnerOverlay } from 'src/components/common'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import TopBar from 'src/components/TopBar'
 import { ajaxCaller } from 'src/libs/ajax'
@@ -15,7 +15,8 @@ import { Component } from 'src/libs/wrapped-components'
 import { styles } from 'src/pages/groups/common'
 import { icon } from 'src/components/icons'
 import colors from 'src/libs/colors'
-
+import { FlexTable, HeaderCell } from 'src/components/table'
+import { AutoSizer } from 'react-virtualized'
 
 const BillingCard = pure(({ billingProject: { projectName, role, creationStatus } }) => {
   return div({
@@ -90,10 +91,10 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
           }
         })
       ]),
-      h(PageFadeBox, [
+      h(PageBox, [
         div({ style: styles.toolbarContainer }, [
           div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, [
-            'Billing Project Management'
+            'Billing Management'
           ])
         ]),
         div({ style: styles.cardContainer }, [
@@ -109,8 +110,49 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
           ]),
           !isDataLoaded && spinnerOverlay
         ]),
+        h(AutoSizer, [
+          ({ width, height }) => h(FlexTable, {
+            width,
+            height,
+            rowCount: billingProjects.length,
+            columns: [
+              {
+                size: {
+                  basis: 120,
+                  grow: 0
+                },
+                headerRenderer: () => h(HeaderCell, ['Status']),
+                cellRenderer: ({ rowIndex }) => {
+                  return h(Fragment, [
+                    icon((billingProjects[rowIndex].creationStatus === 'Ready') ? 'check' : 'bars', {
+                      style: {
+                        color: billingProjects[rowIndex].creationStatus === 'Ready' ? colors.green[0] : undefined,
+                        marginRight: '1rem'
+                      }
+                    }),
+                    billingProjects[rowIndex].creationStatus
+                  ])
+                }
+              },
+              {
+                size: {
+                  basis: 200,
+                  grow: 0
+                },
+                headerRenderer: () => h(HeaderCell, ['Project Name']),
+                cellRenderer: ({ rowIndex }) => {return billingProjects[rowIndex].projectName}
+              },
+              {
+                size: { basis: 150, grow: 0 },
+                headerRenderer: () => h(HeaderCell, ['Role']),
+                cellRenderer: ({ rowIndex }) => {return billingProjects[rowIndex].role}
+              }
+            ]
+          })
+        ]),
         updating && spinnerOverlay
       ])
+
     ])
   }
 
