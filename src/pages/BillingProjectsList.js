@@ -60,7 +60,12 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
           }
         })
       ]),
-      h(PageBox, { style: { flexGrow: 1 } }, [
+      h(PageBox, {
+        style: {
+          padding: '1.5rem',
+          flex: 1
+        }
+      }, [
         div({ style: styles.toolbarContainer }, [
           div({
             style: {
@@ -72,7 +77,7 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
             'Billing Management'
           ])
         ]),
-        h(AutoSizer, [
+        billingProjects && !!billingProjects.length && h(AutoSizer, [
           ({ height }) => h(FlexTable, {
             width: 600,
             height,
