@@ -193,7 +193,7 @@ class TermsOfService extends Component {
     return div({ style: styles.page }, [
       backgroundLogo,
       div({ style: styles.box }, [
-        div({ style: { color: colors.darkBlue[0], fontWeight: 600 } }, [
+        div({ style: { color: colors.gray[0], fontWeight: 600 } }, [
           span({ style: { fontSize: 36 } }, ['TERRA ']),
           span({ style: { fontSize: 24 } }, ['Terms of Service'])
         ]),
@@ -201,7 +201,7 @@ class TermsOfService extends Component {
           h(Markdown, {
             renderers: {
               heading: (text, level) => {
-                return `<h${level} style="color: ${colors.darkBlue[0]}; margin-bottom: 0">${text}</h${level}>`
+                return `<h${level} style="color: ${colors.gray[0]}; margin-bottom: 0">${text}</h${level}>`
               },
               paragraph: text => {
                 return `<p style="margin-top: 0">${text}</p>`

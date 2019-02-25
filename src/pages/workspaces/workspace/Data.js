@@ -8,6 +8,7 @@ import { div, form, h, input } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { buttonPrimary, Checkbox, Clickable, linkButton, MenuButton, Select, spinnerOverlay } from 'src/components/common'
+import ExportDataModal from 'src/components/ExportDataModal'
 import FloatingActionButton from 'src/components/FloatingActionButton'
 import { icon, spinner } from 'src/components/icons'
 import { textInput } from 'src/components/input'
@@ -26,7 +27,6 @@ import * as StateHistory from 'src/libs/state-history'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
-import ExportDataModal from 'src/components/ExportDataModal'
 
 
 const filterState = (props, state) => ({ ..._.pick(['pageNumber', 'itemsPerPage', 'sort'], state), ..._.pick(['refreshKey'], props) })
@@ -41,7 +41,8 @@ const styles = {
     display: 'flex', flex: 1
   },
   dataTypeSelectionPanel: {
-    flex: 'none', width: 200, backgroundColor: 'white', padding: '1rem'
+    flex: 'none', width: 280, backgroundColor: 'white', padding: '1rem',
+    boxShadow: '0 2px 10px 0 rgba(0,0,0,0.5)'
   },
   tableViewPanel: {
     position: 'relative',
@@ -50,7 +51,7 @@ const styles = {
     flex: 1, display: 'flex', flexDirection: 'column'
   },
   dataTypeHeading: {
-    fontWeight: 500, color: colors.darkBlue[0]
+    fontWeight: 500, color: colors.gray[0]
   }
 }
 
@@ -308,7 +309,9 @@ const ReferenceDataContent = ({ workspace: { workspace: { namespace, attributes 
 const EntitiesContent = ajaxCaller(class EntitiesContent extends Component {
   constructor(props) {
     super(props)
-    const { entities, totalRowCount = 0, itemsPerPage = 25, pageNumber = 1, sort = initialSort, columnWidths = {}, columnState = {} } = props.firstRender ? StateHistory.get() : {}
+    const { entities, totalRowCount = 0, itemsPerPage = 25, pageNumber = 1, sort = initialSort, columnWidths = {}, columnState = {} } = props.firstRender ?
+      StateHistory.get() :
+      {}
     this.state = {
       entities,
       itemsPerPage,
@@ -519,7 +522,8 @@ const EntitiesContent = ajaxCaller(class EntitiesContent extends Component {
                       const checked = _.has([name], selectedEntities)
                       return h(Checkbox, {
                         checked,
-                        onChange: () => this.setState({ selectedEntities: (checked ? _.unset([name]) : _.set([name], entities[rowIndex]))(selectedEntities) })
+                        onChange: () => this.setState(
+                          { selectedEntities: (checked ? _.unset([name]) : _.set([name], entities[rowIndex]))(selectedEntities) })
                       })
                     }
                   }] : []),
@@ -717,7 +721,7 @@ const BucketContent = ajaxCaller(class BucketContent extends Component {
         disabled: !canEdit,
         disableClick: true,
         style: { flexGrow: 1, backgroundColor: 'white', border: `1px solid ${colors.gray[3]}`, padding: '1rem' },
-        activeStyle: { backgroundColor: colors.blue[3], cursor: 'copy' },
+        activeStyle: { backgroundColor: colors.green[6], cursor: 'copy' },
         ref: this.uploader,
         onDropAccepted: files => this.uploadFiles(files)
       }, [
