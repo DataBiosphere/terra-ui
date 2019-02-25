@@ -3,7 +3,7 @@ import PropTypes from 'prop-types'
 import { a, b, div, h } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
 import { buttonPrimary, Clickable, MenuButton } from 'src/components/common'
-import { icon, logo, profilePic } from 'src/components/icons'
+import { icon, logoGlow, profilePic } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import { ajaxCaller } from 'src/libs/ajax'
 import { authStore, refreshTerraProfile, signOut } from 'src/libs/auth'
@@ -203,7 +203,7 @@ export default _.flow(
             },
             href: Nav.getLink('root'),
             onClick: () => this.hideNav()
-          }, [logo(), betaTag])
+          }, [logoGlow(), betaTag])
         ]),
         div({ style: { display: 'flex', flexDirection: 'column', overflowY: 'auto', flex: 1 } }, [
           isSignedIn ?
@@ -382,7 +382,7 @@ export default _.flow(
         style: { ...styles.pageTitle, display: 'flex', alignItems: 'center' },
         href: href || Nav.getLink('root')
       }, [
-        logo(),
+        logoGlow(),
         div({}, [
           div({
             style: _.merge(title ? { fontSize: '0.8rem', lineHeight: '19px' } : { fontSize: '1rem', fontWeight: 600 },

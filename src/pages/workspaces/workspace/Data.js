@@ -57,7 +57,7 @@ const styles = {
 
 const DataTypeButton = ({ selected, children, iconName = 'listAlt', iconSize = 14, ...props }) => {
   return linkButton({
-    style: { display: 'flex', alignItems: 'center', fontWeight: selected ? 500 : undefined, padding: '0.5rem 0' },
+    style: { display: 'flex', alignItems: 'center', color: 'black', fontWeight: selected ? 500 : undefined, padding: '0.5rem 0' },
     ...props
   }, [
     div({ style: { flex: 'none', display: 'flex', width: '1.5rem' } }, [
@@ -928,7 +928,7 @@ const WorkspaceData = _.flow(
                     e.stopPropagation()
                     this.setState({ deletingReference: type })
                   }
-                }, [icon('minus-circle', { size: 16 })])
+                }, [icon('minus-circle', { size: 16, style: {color: colors.green[0]} })])
               ])
             ])
           }, _.keys(referenceData)),
