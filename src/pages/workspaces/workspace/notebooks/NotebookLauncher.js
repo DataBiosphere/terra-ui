@@ -6,7 +6,6 @@ import { linkButton, spinnerOverlay, link } from 'src/components/common'
 import { icon, spinner } from 'src/components/icons'
 import { notify } from 'src/components/Notifications'
 import { ajaxCaller } from 'src/libs/ajax'
-import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
@@ -23,68 +22,41 @@ const getCluster = clusters => {
   )(clusters)
 }
 
-const statusMessage = ({ clusters }) => {
-  console.log({ clusters })
-  const cluster = getCluster(clusters)
-  const clusterStatus = cluster && cluster.status
-
-  const creatingMessage = 'Creating notebook runtime. This can take several minutes. You may view a read-only version of your notebook and edit it once the cluster is ready.'
-  const startingMessage = 'Waiting for notebook runtime to be ready. Loading notebook.'
-  const runningMessage = 'Cluster is running'
-
+const statusMessage = ({ clusters }, clusterStatus) => {
   const isCreating = clusterStatus === 'Creating'
   const isStarting = clusterStatus === 'Starting'
   const isRunning = clusterStatus === 'Running'
-  //const isStopping = clusterStatus === 'Stopping'
-  //const isStopped = clusterStatus === 'Stopped'
+  const isStopping = clusterStatus === 'Stopping'
+  const isStopped = clusterStatus === 'Stopped'
+
+  const creatingMessage = 'Creating notebook runtime, this may take several minutes. Here is a read-only version of the notebook in the meantime.'
+  const startingMessage = 'Starting notebook runtime'
+  const runningMessage = 'Loading notebook'
+  const stoppingMessage = 'Restarting notebook runtime'
+  const noStatusMessage = 'Waiting for notebook runtime to be ready'
 
   return Utils.cond(
+    [isStopped || isStopping, stoppingMessage],
     [isCreating, creatingMessage],
     [isStarting, startingMessage],
     [isRunning, runningMessage],
-    'Something went wrong'
+    noStatusMessage
   )
 }
 
 class loadingMessage extends Component {
   render() {
-    const { clusterError } = this.state
     const { clusters } = this.props
     const cluster = getCluster(clusters)
     const clusterStatus = cluster && cluster.status
-    const isCreating = clusterStatus === 'Creating'
-    const currentStep = clusterStatus !== 'Running' ? 1 : 2
 
-    console.log(statusMessage({ clusters }))
+    const message = statusMessage({ clusters }, clusterStatus)
 
-    //console.log(clusters)
-    // console.log(currentStep)
-    // console.log(clusterStatus)
-
-    const step = (index, text) => div({ style: { display: 'flex', alignItems: 'center', lineHeight: '2rem', margin: '0.5rem 0' } }, [
-      div({ style: { flex: '0 0 30px' } }, [
-        index < currentStep && icon('check', { size: 24, style: { color: colors.green[0] } }),
-        index === currentStep && spinner()
-      ]),
-      div({ style: { flex: 1 } }, [text])
-    ])
-
-    return h(Fragment, [
-      div({ style: { padding: '2rem' } }, [
-        div({ style: Style.elements.sectionHeader }, ['Terra is preparing your notebook']),
-        step(1,
-          Utils.cond(
-            [clusterError, clusterError],
-            [isCreating, 'Creating notebook runtime'],
-            'Waiting for notebook runtime to be ready.'
-          )
-        ),
-        isCreating && (div({ style: { paddingLeft: '4rem' } }, [
-          icon('info', { size: 24, style: { color: colors.orange[0] } }),
-          'This can take several minutes. You may view a read-only version of your notebook and edit it once the cluster is ready.'
-        ])
-        ),
-        step(2, 'Loading notebook')
+    return div({ style: { padding: '2rem' } }, [
+      div({ style: Style.elements.sectionHeader }, ['Terra is preparing your notebook']),
+      div({ style: { display: 'flex', alignItems: 'center', lineHeight: '2rem', margin: '0.5rem 0' } }, [
+        div({ style: { flex: '0 0 30px' } }, [spinner()]),
+        div({}, [message])
       ])
     ])
   }
