@@ -1,50 +1,19 @@
 import _ from 'lodash/fp'
 import { Fragment } from 'react'
-import { a, div, h, span } from 'react-hyperscript-helpers'
-import { pure } from 'recompose'
-import { link, PageBox, search, spinnerOverlay } from 'src/components/common'
-import TooltipTrigger from 'src/components/TooltipTrigger'
+import { div, h } from 'react-hyperscript-helpers'
+import { PageBox, search, spinnerOverlay } from 'src/components/common'
 import TopBar from 'src/components/TopBar'
 import { ajaxCaller } from 'src/libs/ajax'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
-import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 import { styles } from 'src/pages/groups/common'
 import { icon } from 'src/components/icons'
 import colors from 'src/libs/colors'
 import { FlexTable, HeaderCell } from 'src/components/table'
 import { AutoSizer } from 'react-virtualized'
-
-const BillingCard = pure(({ billingProject: { projectName, role, creationStatus } }) => {
-  return div({
-    style: styles.longCard
-  }, [
-    h(TooltipTrigger, {
-      content: creationStatus
-    }, [
-      icon((creationStatus === 'Ready') ? 'check' : 'bars', {
-        style: {
-          color: creationStatus === 'Ready' ? colors.green[0] : undefined,
-          marginRight: '2rem'
-        }
-      })
-    ]),
-    a({
-      style: {
-        marginRight: '1rem',
-        width: '30%',
-        color: undefined,
-        ...styles.longTitle
-      }
-    }, [projectName]),
-    div({ style: { width: 100, display: 'flex', alignItems: 'center' } }, [
-      div({ style: { flexGrow: 1, textTransform: 'capitalize' } }, [_.join(', ', role)])
-    ])
-  ])
-})
 
 export const BillingList = ajaxCaller(class BillingList extends Component {
   constructor(props) {
@@ -91,28 +60,21 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
           }
         })
       ]),
-      h(PageBox, [
+      h(PageBox, { style: { flexGrow: 1 } }, [
         div({ style: styles.toolbarContainer }, [
-          div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, [
+          div({
+            style: {
+              ...Style.elements.sectionHeader,
+              textTransform: 'uppercase',
+              marginBottom: '1rem'
+            }
+          }, [
             'Billing Management'
           ])
         ]),
-        div({ style: styles.cardContainer }, [
-          div({ style: { flexGrow: 1 } }, [
-            _.flow(
-              _.filter(({ projectName }) => Utils.textMatch(filter, projectName)),
-              _.map(billingProject => {
-                return h(BillingCard, {
-                  billingProject, key: `${billingProject.projectName}`
-                })
-              })
-            )(billingProjects)
-          ]),
-          !isDataLoaded && spinnerOverlay
-        ]),
         h(AutoSizer, [
-          ({ width, height }) => h(FlexTable, {
-            width,
+          ({ height }) => h(FlexTable, {
+            width: 600,
             height,
             rowCount: billingProjects.length,
             columns: [
@@ -135,21 +97,22 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
                 }
               },
               {
-                size: {
-                  basis: 200,
-                  grow: 0
-                },
+                size: { basis: 200 },
                 headerRenderer: () => h(HeaderCell, ['Project Name']),
-                cellRenderer: ({ rowIndex }) => {return billingProjects[rowIndex].projectName}
+                cellRenderer: ({ rowIndex }) => { return billingProjects[rowIndex].projectName }
               },
               {
-                size: { basis: 150, grow: 0 },
+                size: {
+                  basis: 150,
+                  grow: 0
+                },
                 headerRenderer: () => h(HeaderCell, ['Role']),
-                cellRenderer: ({ rowIndex }) => {return billingProjects[rowIndex].role}
+                cellRenderer: ({ rowIndex }) => { return billingProjects[rowIndex].role }
               }
             ]
           })
         ]),
+        !isDataLoaded && spinnerOverlay,
         updating && spinnerOverlay
       ])
 
