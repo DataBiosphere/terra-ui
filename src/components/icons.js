@@ -43,12 +43,12 @@ export const breadcrumb = function(props) {
 }
 
 export const logo = function(props) {
-  return icon('logoIcon', _.merge({ size: 63, style: { marginRight: '0.5rem' } }, props))
+  return icon('logoIcon', _.merge({ size: 50, style: { marginRight: '0.5rem' } }, props))
 }
 
 export const spinner = function(props) {
   return icon('loadingSpinner',
-    _.merge({ size: 24, style: { color: colors.blue[1] } }, props))
+    _.merge({ size: 24, style: { color: colors.green[1] } }, props))
 }
 
 export const centeredSpinner = function(props) {

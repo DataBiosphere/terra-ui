@@ -14,13 +14,13 @@ import * as Utils from 'src/libs/utils'
 const styles = {
   input: {
     height: '2.25rem',
-    border: `1px solid ${colors.gray[3]}`, borderRadius: 4
+    border: `1px solid ${colors.grayBlue[2]}`, borderRadius: 4
   },
   suggestionsContainer: {
     position: 'fixed',
     maxHeight: 36 * 8 + 2, overflowY: 'auto',
     backgroundColor: 'white',
-    border: `1px solid ${colors.gray[3]}`
+    border: `1px solid ${colors.grayBlue[2]}`
   },
   suggestion: {
     display: 'block', lineHeight: '2.25rem',
@@ -29,7 +29,7 @@ const styles = {
   },
   textarea: {
     width: '100%', resize: 'none',
-    border: `1px solid ${colors.gray[3]}`, borderRadius: 4,
+    border: `1px solid ${colors.grayBlue[2]}`, borderRadius: 4,
     fontSize: 14, fontWeight: 400,
     padding: '0.5rem 1rem',
     cursor: 'text'
@@ -51,7 +51,7 @@ export const textInput = function(props) {
         width: '100%',
         paddingLeft: '1rem', paddingRight: '1rem',
         fontWeight: 400, fontSize: 14,
-        backgroundColor: props.disabled ? colors.gray[5] : undefined
+        backgroundColor: props.disabled ? colors.grayBlue[4] : undefined
       }
     },
     props
@@ -130,7 +130,6 @@ export const validatedInput = props => {
       textInput(_.merge({
         style: error ? {
           paddingRight: '2.25rem', // leave room for error icon
-          backgroundColor: colors.red[4],
           border: `1px solid ${colors.red[0]}`
         } : undefined
       }, inputProps)),
@@ -242,7 +241,7 @@ export class AutocompleteTextInput extends Component {
         container: { width: '100%' },
         suggestionsList: { margin: 0, padding: 0 },
         suggestion: styles.suggestion,
-        suggestionHighlighted: { backgroundColor: colors.blue[5] }
+        suggestionHighlighted: { backgroundColor: colors.grayBlue[5] }
       }
     })
   }
@@ -295,7 +294,7 @@ export class AutocompleteSearch extends Component {
         container: { width: '100%' },
         suggestionsList: { margin: 0, padding: 0 },
         suggestion: styles.suggestion,
-        suggestionHighlighted: { backgroundColor: colors.blue[5] }
+        suggestionHighlighted: { backgroundColor: colors.grayBlue[5] }
       }, theme)
     })
   }
