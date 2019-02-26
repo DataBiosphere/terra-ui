@@ -1,6 +1,7 @@
 import _ from 'lodash/fp'
 import { Component } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
+import { getUser } from 'src/libs/auth'
 import uuid from 'uuid/v4'
 
 
@@ -199,7 +200,7 @@ export const summarizeErrors = errors => {
 }
 
 export const bucketBrowserUrl = id => {
-  return `https://accounts.google.com/AccountChooser?continue=https://console.cloud.google.com/storage/browser/${id}`
+  return `https://console.cloud.google.com/storage/browser/${id}?authuser=${getUser().email}`
 }
 
 export const readFileAsText = file => {
