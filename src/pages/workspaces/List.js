@@ -30,7 +30,7 @@ const styles = {
   }),
   shortCard: {
     ...Style.elements.card.container,
-    width: 300, height: 225,
+    width: 280, height: 260,
     margin: '0 1rem 2rem 0'
   },
   shortTitle: {

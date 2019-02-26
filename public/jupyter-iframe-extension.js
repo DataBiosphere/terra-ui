@@ -30,8 +30,8 @@ define([
       .css('display', 'flex')
       .append(
         '<style>' +
-        '#menubar-close-button { margin-left: 20px; margin-top: -5px; align-self: center; width: 30px; height: 30px; fill: currentColor; flex: none; color: #2691d0; }' +
-        '#menubar-close-button:hover { text-decoration: none; color: #5aa6da; }' +
+        '#menubar-close-button { margin-left: 20px; margin-top: -5px; align-self: center; width: 30px; height: 30px; fill: currentColor; flex: none; color: #5c912e; }' +
+        '#menubar-close-button:hover { text-decoration: none; color: #74ae43; }' +
         '</style>',
 
         '<a href="#" id="menubar-close-button" title="Shutdown this notebook\'s kernel, and close this window">' +
