@@ -28,6 +28,7 @@ import * as WorkflowView from 'src/pages/workspaces/workspace/tools/WorkflowView
 import * as BillingProjectsList from 'src/pages/Billing/projectsList'
 import * as BillingProjectUsers from 'src/pages/Billing/projectUsers'
 
+
 const pageWrapStyle = { display: 'flex', flexDirection: 'column', flex: '1 0 auto', position: 'relative' }
 
 const initNavPaths = () => {

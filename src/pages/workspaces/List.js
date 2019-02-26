@@ -67,7 +67,7 @@ const styles = {
   badge: {
     height: '1.5rem', width: '1.5rem', borderRadius: '1.5rem',
     lineHeight: '1.5rem', textAlign: 'center',
-    backgroundColor: colors.gray[0], color: 'white'
+    backgroundColor: colors.purple[0], color: 'white'
   }
 }
 

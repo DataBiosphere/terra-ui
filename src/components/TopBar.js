@@ -3,7 +3,7 @@ import PropTypes from 'prop-types'
 import { a, b, div, h } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
 import { buttonPrimary, Clickable, MenuButton } from 'src/components/common'
-import { icon, logo, profilePic } from 'src/components/icons'
+import { icon, logoGlow, profilePic } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import { ajaxCaller } from 'src/libs/ajax'
 import { authStore, refreshTerraProfile, signOut } from 'src/libs/auth'
@@ -39,7 +39,7 @@ const styles = {
     },
     container: {
       width: 290, color: 'white', position: 'absolute', cursor: 'default',
-      backgroundColor: colors.gray[0], height: '100%',
+      backgroundColor: colors.gray[2], height: '100%',
       boxShadow: '3px 0 13px 0 rgba(0,0,0,0.3)',
       display: 'flex', flexDirection: 'column'
     },
@@ -117,7 +117,7 @@ export default _.flow(
     const librarySubItem = (linkName, iconName, label) => h(Clickable, {
       style: styles.nav.subItem,
       as: 'a',
-      hover: { backgroundColor: colors.gray[1] },
+      hover: { backgroundColor: colors.gray[3] },
       href: Nav.getLink(linkName),
       onClick: () => this.hideNav()
     }, [
@@ -132,7 +132,7 @@ export default _.flow(
 
     const enabledCredits = h(Clickable, {
       style: styles.nav.item,
-      hover: { backgroundColor: colors.gray[1] },
+      hover: { backgroundColor: colors.gray[3] },
       onClick: () => this.setState({ openFreeCreditsModal: true })
     }, [
       div({ style: styles.nav.icon }, [
@@ -147,7 +147,7 @@ export default _.flow(
     const enrolledCredits = h(Clickable, {
       style: styles.nav.item,
       as: 'a',
-      hover: { backgroundColor: colors.gray[1] },
+      hover: { backgroundColor: colors.gray[3] },
       href: 'https://software.broadinstitute.org/firecloud/documentation/freecredits',
       target: '_blank',
       onClick: () => this.hideNav()
@@ -167,7 +167,7 @@ export default _.flow(
 
     const terminatedCredits = h(Clickable, {
       style: styles.nav.item,
-      hover: { backgroundColor: colors.gray[1] },
+      hover: { backgroundColor: colors.gray[3] },
       onClick: () => this.setState({ finalizeTrial: true })
     }, [
       div({ style: styles.nav.icon }, [
@@ -203,7 +203,11 @@ export default _.flow(
             },
             href: Nav.getLink('root'),
             onClick: () => this.hideNav()
-          }, [logo(), betaTag])
+          }, [
+            icon('headerLeftHexs', {
+              style: { zIndex: -1, position: 'absolute', top: -15, bottom: 0, left: 0, right: 0, width: 295, height: 80 }
+            }), logoGlow(), betaTag
+          ])
         ]),
         div({ style: { display: 'flex', flexDirection: 'column', overflowY: 'auto', flex: 1 } }, [
           isSignedIn ?
@@ -225,7 +229,7 @@ export default _.flow(
           h(Clickable, {
             as: 'a',
             style: styles.nav.item,
-            hover: { backgroundColor: colors.gray[1] },
+            hover: { backgroundColor: colors.gray[3] },
             href: Nav.getLink('workspaces'),
             onClick: () => this.hideNav()
           }, [
@@ -238,7 +242,7 @@ export default _.flow(
             as: 'a',
             target: '_blank',
             style: styles.nav.item,
-            hover: { backgroundColor: colors.gray[1] },
+            hover: { backgroundColor: colors.gray[3] },
             href: getConfig().jobManagerUrlRoot,
             onClick: () => this.hideNav()
           }, [
@@ -267,7 +271,7 @@ export default _.flow(
           (trialState === 'Terminated') && terminatedCredits,
           h(Clickable, {
             style: { ...styles.nav.supportItem, marginTop: '15px' },
-            hover: { backgroundColor: colors.gray[1] },
+            hover: { backgroundColor: colors.gray[3] },
             onClick: () => contactUsActive.set(true)
           }, [
             div({ style: styles.nav.icon }, [
@@ -278,7 +282,7 @@ export default _.flow(
           h(Clickable, {
             style: styles.nav.supportItem,
             as: 'a',
-            hover: { backgroundColor: colors.gray[1] },
+            hover: { backgroundColor: colors.gray[3] },
             href: 'https://broadinstitute.zendesk.com/hc/en-us',
             target: '_blank',
             onClick: () => this.hideNav()
@@ -391,14 +395,20 @@ export default _.flow(
         style: { ...styles.pageTitle, display: 'flex', alignItems: 'center' },
         href: href || Nav.getLink('root')
       }, [
-        logo(),
+        icon('headerLeftHexs', {
+          style: { zIndex: -1, position: 'absolute', top: -15, bottom: 0, left: 0, right: 0, width: 295, height: 80 }
+        }),
+        logoGlow(),
         div({}, [
           div({
             style: _.merge(title ? { fontSize: '0.8rem', lineHeight: '19px' } : { fontSize: '1rem', fontWeight: 600 },
               { marginLeft: '0.1rem' })
           }, [betaTag]),
           title
-        ])
+        ]),
+        icon('headerRightHexs', {
+          style: { position: 'absolute', top: -35, bottom: 0, right: 0, width: 665, height: 100, float: 'right', zIndex: -1 }
+        })
       ]),
       children,
       navShown && this.buildNav(),
