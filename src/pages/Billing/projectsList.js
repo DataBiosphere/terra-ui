@@ -142,6 +142,6 @@ export const addNavPaths = () => {
   Nav.defPath('billing', {
     path: '/billing',
     component: BillingList,
-    title: 'Billing Projects'
+    title: 'Billing Management'
   })
 }
