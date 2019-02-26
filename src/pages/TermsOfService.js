@@ -193,7 +193,7 @@ class TermsOfService extends Component {
         ]),
         div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '2rem' } }, [
           buttonSecondary({ style: { marginRight: '1rem' }, onClick: signOut }, 'Cancel'),
-          buttonPrimary({ onClick: () => this.accept(), disabled: busy }, ['Accept'])
+          buttonPrimary({ onClick: () => this.accept(), dataTestId: 'acceptTosButton', disabled: busy }, ['Accept'])
         ])
       ])
     ])

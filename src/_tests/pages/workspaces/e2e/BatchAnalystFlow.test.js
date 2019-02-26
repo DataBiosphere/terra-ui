@@ -1,89 +1,25 @@
 import expect from 'expect-puppeteer'
 import puppeteer from 'puppeteer'
-import { getAccessToken, wait, generateUUID } from 'src/_tests/test-utils'
+import { getAccessToken, wait, generateUUID, setupTest, cleanupTest, createWorkspace } from 'src/_tests/test-utils'
 
 expect.setDefaultOptions({ timeout: 5555 })
 
-// const appUrlBase = 'https://bvdp-saturn-dev.appspot.com'
-const appUrlBase = 'http://localhost:3000/#workspaces'
+const DEBUG = false
 
 describe('Google', () => {
   let browser
   let page
-  beforeEach(async () => {
-    puppeteer.DEFAULT_TIMEOUT_INTERVAL = 20001
-    jest.setTimeout(20002)
-    browser = await puppeteer.launch({
-      headless: false//,
-      // slowMo: 100 // slow down by X ms // this seems to make the test skip the things in beforeEach
-    })
-    const context = await browser.createIncognitoBrowserContext()
-    page = await context.newPage()
-    await page.setViewport({
-      width: 1920,
-      height: 1080
-    })
-    page.on('console', msg => console.log('PAGE LOG:', msg.text()))
+  let token
+  const workspaceName = 'WorkflowTestWS-'+ generateUUID()
+  const billingProjectName = 'general-dev-billing-account'
 
-    await Promise.all([
-      page.goto(appUrlBase),
-      wait(1000),
-      page.waitForNavigation({ waitUntil: 'networkidle0' }) // this is so that it waits until the signin button appears ..  | maybe increase the timeout instead?
-    ])
+  beforeEach(async () => [browser, page, token] = await setupTest(browser, page))
 
-    const token = await getAccessToken()
-    console.log('token is: ' + token)
-
-    // background signin
-    const executionContext = await page.mainFrame().executionContext()
-    await executionContext.evaluate(
-      token => {
-        window.forceSignIn(`${token}`)
-      }, token
-    )
-    await page.waitForNavigation({ waitUntil: 'networkidle0' })
-  })
-
-  afterEach(async () => {
-    console.log('post-test 🎉')
-    // if debug, wait 1 second
-    await wait(2000)
-    // TODO: clean up here?
-    // clean up in beforeEach as well?
-    console.log('cleanup 🎉🎉🎉')
-    await page.close()
-    await browser.close()
-    await browser.close()
-  })
+  afterEach(async () => cleanupTest(browser, page, workspaceName, billingProjectName))
 
 
   it('create a workspace and launch a batch analysis (workflow)', async () => {
-    // verify that we're on the workspaces page
-    await expect(page).toMatch('New Workspace')
-    await wait(4000)
-
-    await page.hover('[datatestid="createNewWorkspace"]')
-    await page.click('[datatestid="createNewWorkspace"] div') // searches for a div descendant - the click does not launch the modal otherwise. TODO: investigate
-
-    // create a new function to handle this?
-    // note: all modals go inside: id="modal-root"
-    const workspaceName = 'WorkflowTestWS-'+ await generateUUID()
-    const billingProjectName = 'general-dev-billing-account'
-    await expect(page).toMatch('Workspace name *')
-    await wait(4000)
-    await page.type('[datatestid="workspaceNameInput"]', workspaceName)
-    await page.click('[aria-label="billingProjectSelect"]')
-    await page.type('[aria-label="billingProjectSelect"]', billingProjectName+'\n')
-
-    await page.type('[placeholder="Enter a description"]', 'description for ' + workspaceName)
-    await wait(2 * 1000)
-    await expect(page).toClick('[datatestid="createWorkspaceButton"]')
-
-    await page.waitForNavigation({ waitUntil: 'networkidle0' })
-    await wait(2 * 1000) // try this and see if the workspace loading issue persists
-
-    // confirm workspace created successfully
-    await expect(page).toMatchElement('[datatestid="workspaceInfoSidePanel"]')
+    await createWorkspace(page, workspaceName, billingProjectName)
 
     // upload "small set" of data (& confirm)
     await expect(page).toClick('[datatestid="data-tab"]')
@@ -98,7 +34,6 @@ describe('Google', () => {
     await expect(page).toMatch('No tools added')
     // await page.waitForNavigation({ waitUntil: 'networkidle0' })
 
-    // TODO: * create a method config for a method in agora (set up the method)
     // add method config
     const workspaceUrl = page.url()
     console.log('here')
@@ -106,11 +41,8 @@ describe('Google', () => {
     await expect(page).toClick('[datatestid="navigationHamburgerIcon"]')
     await expect(page).toClick('[datatestid="Code & Tools-link"]')
     await expect(page).toClick('[datatestid="agoraLink"]')
-    // TODO: (Create a method config for a method in Agora which is a single “word count” task which uses a real file (gs://) as input and writes results to a real file (gs://))
-    // TODO: background signin again for FC
     await page.waitForNavigation({ waitUntil: 'networkidle0' }) // could wrap the following into a promise block with `page.waitForNavigation()`
     // background signin for FireCloud
-    const token = await getAccessToken()
     console.log('token used here is : '+token)
     let executionContext = await page.mainFrame().executionContext()
     await executionContext.evaluate(
@@ -160,10 +92,13 @@ describe('Google', () => {
 
     // Configure inputs
     for (let i = 1; i <= 10; i++) {
-      console.log('HERE1')
-      console.log('HERE2')
-      await expect(page).toFill('[datatestid="echo_strings.echo_files.input'+i+'"]', '"string'+i+'"')
+      const attributeTextboxDatatestid = 'echo_strings.echo_files.input'+i
+      // await page.hover('[datatestid="' + attributeTextboxDatatestid + '"]')
+      // await expect(page).toClick('[datatestid="' + attributeTextboxDatatestid + '"]')
+      await expect(page).toFill('[datatestid="' + attributeTextboxDatatestid + '"]', '"string'+i+'"')
     }
+    await page.screenshot({path: 'screenshots/'+workspaceName+'-0attributes.png'})
+
     // Configure outputs
     await expect(page).toClick('span', { text: 'Outputs' })
     await expect(page).toFill('[datatestid="echo_strings.echo_files.out"]', 'this.autooutput')
