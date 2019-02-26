@@ -90,10 +90,11 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
                 },
                 headerRenderer: () => h(HeaderCell, ['Status']),
                 cellRenderer: ({ rowIndex }) => {
+                  const projectReady = billingProjects[rowIndex].creationStatus === 'Ready'
                   return h(Fragment, [
-                    icon((billingProjects[rowIndex].creationStatus === 'Ready') ? 'check' : 'bars', {
+                    icon(projectReady ? 'check' : 'bars', {
                       style: {
-                        color: billingProjects[rowIndex].creationStatus === 'Ready' ? colors.green[0] : undefined,
+                        color: projectReady ? colors.green[0] : undefined,
                         marginRight: '1rem'
                       }
                     }),
@@ -104,7 +105,7 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
               {
                 size: { basis: 200 },
                 headerRenderer: () => h(HeaderCell, ['Project Name']),
-                cellRenderer: ({ rowIndex }) => { return billingProjects[rowIndex].projectName }
+                cellRenderer: ({ rowIndex }) => billingProjects[rowIndex].projectName
               },
               {
                 size: {
@@ -112,13 +113,12 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
                   grow: 0
                 },
                 headerRenderer: () => h(HeaderCell, ['Role']),
-                cellRenderer: ({ rowIndex }) => { return billingProjects[rowIndex].role }
+                cellRenderer: ({ rowIndex }) => billingProjects[rowIndex].role
               }
             ]
           })
         ]),
-        !isDataLoaded && spinnerOverlay,
-        updating && spinnerOverlay
+        (!isDataLoaded || updating) && spinnerOverlay
       ])
 
     ])
