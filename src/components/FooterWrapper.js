@@ -21,7 +21,7 @@ const FooterWrapper = ({ children }) => {
         height: 92,
         paddingLeft: '6rem',
         paddingRight: '6rem',
-        backgroundColor: colors.gray[0],
+        backgroundColor: colors.gray[1],
         color: 'white'
       }
     }, [
