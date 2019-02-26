@@ -1,10 +1,14 @@
 # Saturn UI
+Web user interface for the Terra platform.
+
 This project was bootstrapped with [Create React App](https://github.com/facebookincubator/create-react-app).
 
 Guide [here](https://github.com/facebookincubator/create-react-app/blob/master/packages/react-scripts/template/README.md).
 
 Builds/deploying handled by CircleCI.
 
+### Feature requests
+Requests related to the funtionality or usability of the UI can be submitted as issues on this repo. However, as features often impact multiple components of the Terra platform, we recommend users submit feature requests through the main Terra feature request [page](https://broadinstitute.zendesk.com/hc/en-us/community/topics/360000500452-Feature-Requests). See this [article](https://broadinstitute.zendesk.com/hc/en-us/community/posts/360040112171-Welcome-to-the-Feature-Request-section-) for more details.
 
 ### Developing
 
