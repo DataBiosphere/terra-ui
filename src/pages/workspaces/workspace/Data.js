@@ -928,7 +928,12 @@ const WorkspaceData = _.flow(
                     e.stopPropagation()
                     this.setState({ deletingReference: type })
                   }
-                }, [icon('minus-circle', { size: 16, style: {color: colors.green[0]} })])
+                }, [
+                  icon('minus-circle', {
+                    size: 16,
+                    style: { color: colors.green[0] }
+                  })
+                ])
               ])
             ])
           }, _.keys(referenceData)),
