@@ -363,6 +363,15 @@ export default _.flow(
         icon('users', { style: styles.nav.icon }), 'Groups'
       ]),
       h(MenuButton, {
+        as: 'a',
+        href: Nav.getLink('billing'),
+        style: styles.nav.profileItem(false),
+        hover: styles.nav.profileItem(true),
+        onClick: () => this.hideNav() // In case we're already there
+      }, [
+        icon('wallet', { style: styles.nav.icon }), 'Billing'
+      ]),
+      h(MenuButton, {
         onClick: signOut,
         style: styles.nav.profileItem(false),
         hover: styles.nav.profileItem(true)
