@@ -21,7 +21,6 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
     this.state = {
       filter: '',
       billingProjects: null,
-      updating: false,
       ...StateHistory.get()
     }
   }
@@ -30,7 +29,7 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
     const { ajax: { Billing } } = this.props
 
     try {
-      this.setState({ isDataLoaded: false, updating: false })
+      this.setState({ isDataLoaded: false })
       const rawBillingProjects = await Billing.listProjects()
       const billingProjects = _.flow(
         _.groupBy('projectName'),
@@ -48,7 +47,7 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
   }
 
   render() {
-    const { billingProjects, isDataLoaded, filter, updating } = this.state
+    const { billingProjects, isDataLoaded, filter } = this.state
     return h(Fragment, [
       h(TopBar, { title: 'Billing' }, [
         search({
@@ -118,7 +117,7 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
             ]
           })
         ]),
-        (!isDataLoaded || updating) && spinnerOverlay
+        !isDataLoaded && spinnerOverlay
       ])
 
     ])
