@@ -398,7 +398,7 @@ export default _.flow(
           title
         ]),
         icon('headerRightHexs', {
-          style: { position: 'absolute', top: -35, bottom: 0, right: 0, width: 665, height: 100, float: 'right' }
+          style: { position: 'absolute', top: -35, bottom: 0, right: 0, width: 665, height: 100, float: 'right', zIndex: -1 }
         })
       ]),
       children,
