@@ -298,6 +298,15 @@ const Billing = signal => ({
   listProjectsExtended: async () => {
     const res = await fetchSam('api/resources/v1/billing-project', _.merge(authOpts(), { signal }))
     return res.json()
+  },
+
+  project: projectId => {
+    return {
+      listUsers: async () => {
+        const res = await fetchRawls(`billing/${projectId}/members`, _.merge(authOpts(), { signal }))
+        return res.json()
+      }
+    }
   }
 })
 
