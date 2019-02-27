@@ -29,7 +29,7 @@ const styles = {
     background: `81px url(${headerLeftHexs}) no-repeat ${colors.green[1]}`, paddingLeft: '1rem',
     display: 'flex', alignItems: 'center',
     borderBottom: `2px solid ${colors.lightGreen[0]}`,
-    boxShadow: Style.standardShadow
+    boxShadow: Style.standardShadow, zIndex: 2
   },
   pageTitle: {
     color: 'white', fontSize: 22, fontWeight: 500, textTransform: 'uppercase'
