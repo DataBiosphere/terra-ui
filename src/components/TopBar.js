@@ -5,8 +5,8 @@ import Collapse from 'src/components/Collapse'
 import { buttonPrimary, Clickable, MenuButton } from 'src/components/common'
 import { icon, logoGlow, profilePic } from 'src/components/icons'
 import Modal from 'src/components/Modal'
-import headerLeftHexs from 'src/images/header-left-hexes.svg'
-import headerRightHexs from 'src/images/header-right-hexes.svg'
+import headerLeftHexes from 'src/images/header-left-hexes.svg'
+import headerRightHexes from 'src/images/header-right-hexes.svg'
 import { ajaxCaller } from 'src/libs/ajax'
 import { authStore, refreshTerraProfile, signOut } from 'src/libs/auth'
 import SignInButton from 'src/components/SignInButton'
@@ -193,7 +193,7 @@ export default _.flow(
         div({
           style: {
             ...styles.topBar,
-            background: `81px url(${headerLeftHexs}) no-repeat ${colors.green[1]}`
+            background: `81px url(${headerLeftHexes}) no-repeat ${colors.green[1]}`
           }
         }, [
           icon('bars', {
@@ -390,8 +390,8 @@ export default _.flow(
     return div({
       style: {
         ...styles.topBar,
-        background: `81px url(${headerLeftHexs}) no-repeat,
-    right url(${headerRightHexs}) no-repeat, ${colors.green[1]}`
+        background: `81px url(${headerLeftHexes}) no-repeat,
+    right url(${headerRightHexes}) no-repeat, ${colors.green[1]}`
       }
     }, [
       icon('bars', {
