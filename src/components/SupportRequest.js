@@ -173,7 +173,7 @@ const SupportRequest = _.flow(
                 div({
                   style: { marginLeft: '1rem', paddingTop: '0.5rem' }
                 }, [
-                  'Successfully uploaded: ', span({ style: { color: colors.blue[0] } }, [attachmentName])
+                  'Successfully uploaded: ', span({ style: { color: colors.green[0] } }, [attachmentName])
                 ])
               ]),
               linkButton({
@@ -184,7 +184,7 @@ const SupportRequest = _.flow(
             ]) :
             h(Clickable, {
               style: {
-                flex: 1, backgroundColor: dragging ? colors.blue[3] : colors.gray[5], borderRadius: 3,
+                flex: 1, backgroundColor: dragging ? colors.green[6] : colors.gray[6], borderRadius: 3,
                 border: `1px dashed ${colors.gray[2]}`
               },
               onClick: () => this.uploader.current.open()

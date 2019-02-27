@@ -4,7 +4,6 @@ import { div, h } from 'react-hyperscript-helpers'
 import RModal from 'react-modal'
 import { buttonPrimary, buttonSecondary, Clickable } from 'src/components/common'
 import { icon } from 'src/components/icons'
-import colors from 'src/libs/colors'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
@@ -62,7 +61,7 @@ export default class Modal extends Component {
       ariaHideApp: false
     }, [
       title && div({ style: { display: 'flex', alignItems: 'baseline', marginBottom: '1rem', flex: 'none' } }, [
-        div({ style: { fontSize: 18, fontWeight: 'bold', color: colors.darkBlue[0] } }, [title]),
+        div({ style: { fontSize: 18, fontWeight: 600 } }, [title]),
         titleExtras,
         showX && h(Clickable, {
           style: { alignSelf: 'flex-start', marginLeft: 'auto' },

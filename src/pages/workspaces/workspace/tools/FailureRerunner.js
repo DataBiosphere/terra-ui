@@ -18,7 +18,7 @@ const ToastMessageComponent = Utils.connectAtom(toastProps, 'toastProps')(class 
     return div({
       style: {
         width: '100%', padding: '1rem', borderRadius: 8,
-        backgroundColor: done ? colors.green[0] : colors.blue[0],
+        backgroundColor: done ? colors.green[0] : colors.gray[0],
         color: 'white'
       }
     }, [

@@ -34,7 +34,7 @@ const styles = {
     },
     title: {
       marginTop: '1rem',
-      fontSize: 20, color: colors.darkBlue[0]
+      fontSize: 20, color: colors.gray[0]
     },
     description: {
       marginTop: '1rem',

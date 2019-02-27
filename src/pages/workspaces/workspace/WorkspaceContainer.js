@@ -26,6 +26,7 @@ const styles = {
     paddingLeft: '4rem', minWidth: 0, marginRight: '0.5rem'
   },
   workspaceName: {
+    color: 'white',
     fontSize: '1.25rem', overflowX: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'
   }
 }

@@ -16,7 +16,8 @@ html, body {
 }
 
 body {
-  background-color: #e5e5e5;
+  background-color: #fafbfc;
+  color: #333f52;
   margin: 0;
   font-size: 14px;
   overflow: hidden;
@@ -58,24 +59,24 @@ a {
 
 .focus-style:focus {
   /* Note: using CSS and !important here because react-interactive focus style wasn't applying on autofocus */
-  border: 1px solid #2691d0 !important;
+  border: 1px solid #74ae43 !important;
   outline: none !important;
 }
 
 /* Overrides for toast notifications library (react-notifications-component) */
 .notification-default {
-  background-color: #51719c;
-  border-left: 8px solid #224f83;
+  background-color: #525c6C;
+  border-left: 8px solid #333f52;
 }
 
 .notification-success {
-  background-color: #97d1b0;
-  border-left: 8px solid #7dc69c;
+  background-color: #74ae43;
+  border-left: 8px solid #5d9033;
 }
 
 .notification-danger {
-  background-color: #d24e39;
-  border-left: 8px solid #c72314;
+  background-color: #db3214;
+  border-left: 8px solid #ba250A;
 }
 
 .notification-info {
@@ -84,8 +85,8 @@ a {
 }
 
 .notification-warning {
-  background-color: #e69b59;
-  border-left: 8px solid #e08334;
+  background-color: #f7981C;
+  border-left: 8px solid #dc8412;
 }
 
 .notification-awesome {
@@ -99,9 +100,9 @@ a {
 
 /* Styles for content rendered by marked (also used by react-simplemde-editor) */
 .rendered-markdown-container a, .simplemde-container .editor-preview a {
-  color: #2691d0;
+  color: #74ae43;
 }
 
 .rendered-markdown-container a:hover, .simplemde-container .editor-preview a:hover {
-  color: #5aa6da;
+  color: #89bb60;
 }

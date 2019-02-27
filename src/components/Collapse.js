@@ -2,8 +2,8 @@ import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
 import { Collapse as rCollapse } from 'react-collapse'
 import { div, h } from 'react-hyperscript-helpers'
+import { link } from 'src/components/common'
 import { icon } from 'src/components/icons'
-import colors from 'src/libs/colors'
 import { Component } from 'src/libs/wrapped-components'
 
 
@@ -41,7 +41,7 @@ export default class Collapse extends Component {
           onClick: () => this.setState({ isOpened: !isOpened })
         },
         [
-          div({ style: { color: colors.blue[0], flex: expandTitle ? 1 : undefined } }, title),
+          link({ style: { flex: expandTitle ? 1 : undefined } }, title),
           showIcon && icon(isOpened ? 'angle down' : 'angle left', { style: { marginLeft: '0.25rem', flexShrink: 0 } })
         ]),
       animate ?
