@@ -10,8 +10,6 @@ import caretDown from 'src/icons/caret-down.svg'
 import checkSquare from 'src/icons/check-square.svg'
 import columnGrabber from 'src/icons/column_grabber.svg'
 import explore from 'src/icons/explore.svg'
-import headerLeftHexs from 'src/icons/header-left-hexs.svg'
-import headerRightHexs from 'src/icons/header-right-hexs.svg'
 import home from 'src/icons/home.svg'
 import jupyterIcon from 'src/icons/jupyter.svg'
 import listAlt from 'src/icons/list-alt.svg'
@@ -29,7 +27,7 @@ import colors from 'src/libs/colors'
 
 
 ClarityIcons.add({
-  browse, caretDown, checkSquare, columnGrabber, explore, headerLeftHexs, headerRightHexs, home, jupyterIcon, listAlt, loadingSpinner, logoWhite, logoIcon, logowShadow, notebooks, square, table, cardMenuIcon, renameIcon
+  browse, caretDown, checkSquare, columnGrabber, explore, home, jupyterIcon, listAlt, loadingSpinner, logoWhite, logoIcon, logowShadow, notebooks, square, table, cardMenuIcon, renameIcon
 })
 
 /**

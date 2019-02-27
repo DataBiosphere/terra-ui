@@ -5,6 +5,8 @@ import Collapse from 'src/components/Collapse'
 import { buttonPrimary, Clickable, MenuButton } from 'src/components/common'
 import { icon, logoGlow, profilePic } from 'src/components/icons'
 import Modal from 'src/components/Modal'
+import headerLeftHexes from 'src/images/header-left-hexes.svg'
+import headerRightHexes from 'src/images/header-right-hexes.svg'
 import { ajaxCaller } from 'src/libs/ajax'
 import { authStore, refreshTerraProfile, signOut } from 'src/libs/auth'
 import SignInButton from 'src/components/SignInButton'
@@ -23,8 +25,7 @@ import { linkToJobManager } from 'src/pages/workspaces/workspace/JobHistory'
 
 const styles = {
   topBar: {
-    flex: 'none', height: 66,
-    backgroundColor: colors.green[1], paddingLeft: '1rem',
+    flex: 'none', height: 66, paddingLeft: '1rem',
     display: 'flex', alignItems: 'center',
     borderBottom: `2px solid ${colors.lightGreen[0]}`,
     boxShadow: Style.standardShadow, zIndex: 2
@@ -189,7 +190,12 @@ export default _.flow(
         style: styles.nav.container,
         onClick: e => e.stopPropagation()
       }, [
-        div({ style: styles.topBar }, [
+        div({
+          style: {
+            ...styles.topBar,
+            background: `81px url(${headerLeftHexes}) no-repeat ${colors.green[1]}`
+          }
+        }, [
           icon('bars', {
             dir: 'right',
             size: 36,
@@ -203,11 +209,7 @@ export default _.flow(
             },
             href: Nav.getLink('root'),
             onClick: () => this.hideNav()
-          }, [
-            /*icon('headerLeftHexs', {
-              style: { zIndex: -1, position: 'absolute', top: -15, bottom: 0, left: 0, right: 0, width: 295, height: 80 }
-            }), */logoGlow(), betaTag
-          ])
+          }, [logoGlow(), betaTag])
         ]),
         div({ style: { display: 'flex', flexDirection: 'column', overflowY: 'auto', flex: 1 } }, [
           isSignedIn ?
@@ -385,7 +387,13 @@ export default _.flow(
     const { title, href, children, ajax: { User } } = this.props
     const { navShown, openFreeCreditsModal, finalizeTrial, openCookiesModal } = this.state
 
-    return div({ style: styles.topBar }, [
+    return div({
+      style: {
+        ...styles.topBar,
+        background: `81px url(${headerLeftHexes}) no-repeat,
+    right url(${headerRightHexes}) no-repeat, ${colors.green[1]}`
+      }
+    }, [
       icon('bars', {
         size: 36,
         style: { marginRight: '2rem', color: 'white', flex: 'none', cursor: 'pointer' },
@@ -395,9 +403,6 @@ export default _.flow(
         style: { ...styles.pageTitle, display: 'flex', alignItems: 'center' },
         href: href || Nav.getLink('root')
       }, [
-        /*icon('headerLeftHexs', {
-          style: { zIndex: -1, position: 'absolute', top: -15, bottom: 0, left: 0, right: 0, width: 295, height: 80 }
-        }),*/
         logoGlow(),
         div({}, [
           div({
@@ -405,10 +410,7 @@ export default _.flow(
               { marginLeft: '0.1rem' })
           }, [betaTag]),
           title
-        ])/*,
-        icon('headerRightHexs', {
-          style: { position: 'absolute', top: -35, bottom: 0, right: 0, width: 665, height: 100, float: 'right', zIndex: -1 }
-        })*/
+        ])
       ]),
       children,
       navShown && this.buildNav(),
