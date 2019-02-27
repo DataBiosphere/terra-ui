@@ -10,35 +10,33 @@ import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import { Component } from 'src/libs/wrapped-components'
 import { styles } from 'src/pages/groups/common'
-import { icon } from 'src/components/icons'
-import colors from 'src/libs/colors'
 import { FlexTable, HeaderCell } from 'src/components/table'
 import { AutoSizer } from 'react-virtualized'
 
-export const BillingList = ajaxCaller(class BillingList extends Component {
+export const ProjectUsersList = ajaxCaller(class ProjectUsersList extends Component {
   constructor(props) {
     super(props)
     this.state = {
       filter: '',
-      billingProjects: null,
+      projectUsers: null,
       ...StateHistory.get()
     }
   }
 
   async refresh() {
-    const { ajax: { Billing } } = this.props
+    const { ajax: { Billing }, projectName } = this.props
 
     try {
       this.setState({ isDataLoaded: false })
-      const rawBillingProjects = await Billing.listProjects()
-      const billingProjects = _.flow(
-        _.groupBy('projectName'),
+      const rawProjectUsers = await Billing.project(projectName).listUsers()
+      const projectUsers = _.flow(
+        _.groupBy('email'),
         _.map(gs => ({ ...gs[0], role: _.map('role', gs) })),
-        _.sortBy('projectName')
-      )(rawBillingProjects)
-      this.setState({ billingProjects, isDataLoaded: true })
+        _.sortBy('email')
+      )(rawProjectUsers)
+      this.setState({ projectUsers, isDataLoaded: true })
     } catch (error) {
-      reportError('Error loading billing projects list', error)
+      reportError('Error loading billing project users list', error)
     }
   }
 
@@ -47,13 +45,14 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
   }
 
   render() {
-    const { billingProjects, isDataLoaded, filter } = this.state
+    const { projectName } = this.props
+    const { projectUsers, isDataLoaded, filter } = this.state
     return h(Fragment, [
-      h(TopBar, { title: 'Billing' }, [
+      h(TopBar, { title: 'Billing', href: Nav.getLink('billing') }, [
         search({
           wrapperProps: { style: { marginLeft: '2rem', flexGrow: 1, maxWidth: 500 } },
           inputProps: {
-            placeholder: 'SEARCH BILLING PROJECTS',
+            placeholder: 'SEARCH USERS',
             onChange: e => this.setState({ filter: e.target.value }),
             value: filter
           }
@@ -73,46 +72,26 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
               marginBottom: '1rem'
             }
           }, [
-            'Billing Management'
+            `Billing Project - ${projectName}`
           ])
         ]),
-        billingProjects && !!billingProjects.length && h(AutoSizer, [
+        projectUsers && !!projectUsers.length && h(AutoSizer, [
           ({ height }) => h(FlexTable, {
             width: 600,
             height,
-            rowCount: billingProjects.length,
+            rowCount: projectUsers.length,
             columns: [
               {
-                size: {
-                  basis: 120,
-                  grow: 0
-                },
-                headerRenderer: () => h(HeaderCell, ['Status']),
+                size: { basis: 200 },
+                headerRenderer: () => h(HeaderCell, ['Email']),
                 cellRenderer: ({ rowIndex }) => {
-                  const projectReady = billingProjects[rowIndex].creationStatus === 'Ready'
-                  return h(Fragment, [
-                    icon(projectReady ? 'check' : 'bars', {
-                      style: {
-                        color: projectReady ? colors.green[0] : undefined,
-                        marginRight: '1rem'
-                      }
-                    }),
-                    billingProjects[rowIndex].creationStatus
-                  ])
+                  return projectUsers[rowIndex].email
                 }
               },
               {
-                size: { basis: 200 },
-                headerRenderer: () => h(HeaderCell, ['Project Name']),
-                cellRenderer: ({ rowIndex }) => billingProjects[rowIndex].projectName
-              },
-              {
-                size: {
-                  basis: 150,
-                  grow: 0
-                },
+                size: { basis: 150, grow: 0 },
                 headerRenderer: () => h(HeaderCell, ['Role']),
-                cellRenderer: ({ rowIndex }) => billingProjects[rowIndex].role
+                cellRenderer: ({ rowIndex }) => _.join(', ', projectUsers[rowIndex].role)
               }
             ]
           })
@@ -125,7 +104,7 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
 
   componentDidUpdate() {
     StateHistory.update(_.pick(
-      ['billingProjects', 'filter'],
+      ['projectUsers', 'filter'],
       this.state)
     )
   }
@@ -133,9 +112,9 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
 
 
 export const addNavPaths = () => {
-  Nav.defPath('billing', {
-    path: '/billing',
-    component: BillingList,
-    title: 'Billing Projects'
+  Nav.defPath('project-users-list', {
+    path: '/billing/:projectName',
+    component: ProjectUsersList,
+    title: ({ projectName }) => `Billing Management - ${projectName}`
   })
 }

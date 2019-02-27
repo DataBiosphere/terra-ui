@@ -59,12 +59,7 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
           }
         })
       ]),
-      h(PageBox, {
-        style: {
-          padding: '1.5rem',
-          flex: 1
-        }
-      }, [
+      h(PageBox, { style: { padding: '1.5rem', flex: 1 } }, [
         div({ style: styles.toolbarContainer }, [
           div({
             style: {
@@ -72,9 +67,7 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
               textTransform: 'uppercase',
               marginBottom: '1rem'
             }
-          }, [
-            'Billing Projects Management'
-          ])
+          }, ['Billing Projects Management'])
         ]),
         billingProjects && !!billingProjects.length && h(AutoSizer, [
           ({ height }) => h(FlexTable, {
@@ -83,10 +76,7 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
             rowCount: billingProjects.length,
             columns: [
               {
-                size: {
-                  basis: 120,
-                  grow: 0
-                },
+                size: { basis: 120, grow: 0 },
                 headerRenderer: () => h(HeaderCell, ['Status']),
                 cellRenderer: ({ rowIndex }) => {
                   const projectReady = billingProjects[rowIndex].creationStatus === 'Ready'
@@ -113,10 +103,7 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
                 }
               },
               {
-                size: {
-                  basis: 150,
-                  grow: 0
-                },
+                size: { basis: 150, grow: 0 },
                 headerRenderer: () => h(HeaderCell, ['Role']),
                 cellRenderer: ({ rowIndex }) => billingProjects[rowIndex].role
               }

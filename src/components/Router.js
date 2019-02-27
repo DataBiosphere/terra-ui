@@ -25,8 +25,8 @@ import * as NotebookLauncher from 'src/pages/workspaces/workspace/notebooks/Note
 import * as TerminalLauncher from 'src/pages/workspaces/workspace/notebooks/TerminalLauncher'
 import * as Tools from 'src/pages/workspaces/workspace/Tools'
 import * as WorkflowView from 'src/pages/workspaces/workspace/tools/WorkflowView'
-import * as BillingProjectsList from 'src/pages/Billing/projectsList'
-import * as BillingProjectUsers from 'src/pages/Billing/projectUsers'
+import * as Projects from 'src/pages/Billing/List'
+import * as Project from 'src/pages/Billing/Project'
 
 
 const pageWrapStyle = { display: 'flex', flexDirection: 'column', flex: '1 0 auto', position: 'relative' }
@@ -53,8 +53,8 @@ const initNavPaths = () => {
   Code.addNavPaths()
   Datasets.addNavPaths()
   Showcase.addNavPaths()
-  BillingProjectsList.addNavPaths()
-  BillingProjectUsers.addNavPaths()
+  Projects.addNavPaths()
+  Project.addNavPaths()
 }
 
 export default class Router extends Component {
