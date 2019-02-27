@@ -204,9 +204,9 @@ export default _.flow(
             href: Nav.getLink('root'),
             onClick: () => this.hideNav()
           }, [
-            icon('headerLeftHexs', {
+            /*icon('headerLeftHexs', {
               style: { zIndex: -1, position: 'absolute', top: -15, bottom: 0, left: 0, right: 0, width: 295, height: 80 }
-            }), logoGlow(), betaTag
+            }), */logoGlow(), betaTag
           ])
         ]),
         div({ style: { display: 'flex', flexDirection: 'column', overflowY: 'auto', flex: 1 } }, [
@@ -395,9 +395,9 @@ export default _.flow(
         style: { ...styles.pageTitle, display: 'flex', alignItems: 'center' },
         href: href || Nav.getLink('root')
       }, [
-        icon('headerLeftHexs', {
+        /*icon('headerLeftHexs', {
           style: { zIndex: -1, position: 'absolute', top: -15, bottom: 0, left: 0, right: 0, width: 295, height: 80 }
-        }),
+        }),*/
         logoGlow(),
         div({}, [
           div({
@@ -405,10 +405,10 @@ export default _.flow(
               { marginLeft: '0.1rem' })
           }, [betaTag]),
           title
-        ]),
+        ])/*,
         icon('headerRightHexs', {
           style: { position: 'absolute', top: -35, bottom: 0, right: 0, width: 665, height: 100, float: 'right', zIndex: -1 }
-        })
+        })*/
       ]),
       children,
       navShown && this.buildNav(),
