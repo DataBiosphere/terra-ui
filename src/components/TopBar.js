@@ -405,8 +405,8 @@ export default _.flow(
               { marginLeft: '0.1rem' })
           }, [betaTag]),
           title
-        ]),
-        /*icon('headerRightHexs', {
+        ])/*,
+        icon('headerRightHexs', {
           style: { position: 'absolute', top: -35, bottom: 0, right: 0, width: 665, height: 100, float: 'right', zIndex: -1 }
         })*/
       ]),
