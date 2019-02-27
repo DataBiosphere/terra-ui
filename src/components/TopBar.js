@@ -5,8 +5,8 @@ import Collapse from 'src/components/Collapse'
 import { buttonPrimary, Clickable, MenuButton } from 'src/components/common'
 import { icon, logoGlow, profilePic } from 'src/components/icons'
 import Modal from 'src/components/Modal'
-import headerLeftHexs from 'src/images/header-left-hexs.svg'
-import headerRightHexs from 'src/images/header-right-hexs.svg'
+import headerLeftHexs from 'src/images/header-left-hexes.svg'
+import headerRightHexs from 'src/images/header-right-hexes.svg'
 import { ajaxCaller } from 'src/libs/ajax'
 import { authStore, refreshTerraProfile, signOut } from 'src/libs/auth'
 import SignInButton from 'src/components/SignInButton'
@@ -25,8 +25,7 @@ import { linkToJobManager } from 'src/pages/workspaces/workspace/JobHistory'
 
 const styles = {
   topBar: {
-    flex: 'none', height: 66,
-    background: `81px url(${headerLeftHexs}) no-repeat ${colors.green[1]}`, paddingLeft: '1rem',
+    flex: 'none', height: 66, paddingLeft: '1rem',
     display: 'flex', alignItems: 'center',
     borderBottom: `2px solid ${colors.lightGreen[0]}`,
     boxShadow: Style.standardShadow, zIndex: 2
@@ -191,7 +190,12 @@ export default _.flow(
         style: styles.nav.container,
         onClick: e => e.stopPropagation()
       }, [
-        div({ style: styles.topBar }, [
+        div({
+          style: {
+            ...styles.topBar,
+            background: `81px url(${headerLeftHexs}) no-repeat ${colors.green[1]}`
+          }
+        }, [
           icon('bars', {
             dir: 'right',
             size: 36,
@@ -392,20 +396,11 @@ export default _.flow(
     }, [
       icon('bars', {
         size: 36,
-        style: {
-          marginRight: '2rem',
-          color: 'white',
-          flex: 'none',
-          cursor: 'pointer'
-        },
+        style: { marginRight: '2rem', color: 'white', flex: 'none', cursor: 'pointer' },
         onClick: () => this.showNav()
       }),
       a({
-        style: {
-          ...styles.pageTitle,
-          display: 'flex',
-          alignItems: 'center'
-        },
+        style: { ...styles.pageTitle, display: 'flex', alignItems: 'center' },
         href: href || Nav.getLink('root')
       }, [
         logoGlow(),
