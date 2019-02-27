@@ -126,7 +126,7 @@ export const WorkspaceDashboard = _.flow(
     return div({ style: { flex: 1, display: 'flex' } }, [
       div({ style: styles.leftBox }, [
         div({ style: styles.header }, [
-          'About the project',
+          'About the workspace',
           !isEditing && linkButton({
             style: { marginLeft: '0.5rem' },
             disabled: !canWrite,
