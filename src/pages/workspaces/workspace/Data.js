@@ -7,13 +7,14 @@ import Dropzone from 'react-dropzone'
 import { div, form, h, input } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { buttonPrimary, Checkbox, Clickable, linkButton, MenuButton, Select, spinnerOverlay } from 'src/components/common'
+import { buttonPrimary, Clickable, linkButton, Select, spinnerOverlay } from 'src/components/common'
+import DataTable from 'src/components/DataTable'
+import ExportDataModal from 'src/components/ExportDataModal'
 import FloatingActionButton from 'src/components/FloatingActionButton'
 import { icon, spinner } from 'src/components/icons'
 import { textInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
-import PopupTrigger from 'src/components/PopupTrigger'
-import { ColumnSelector, FlexTable, GridTable, HeaderCell, paginator, Resizable, SimpleTable, Sortable, TextCell } from 'src/components/table'
+import { FlexTable, HeaderCell, SimpleTable, TextCell } from 'src/components/table'
 import UriViewer from 'src/components/UriViewer'
 import { ajaxCaller } from 'src/libs/ajax'
 import { getUser } from 'src/libs/auth'
@@ -26,22 +27,18 @@ import * as StateHistory from 'src/libs/state-history'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
-import ExportDataModal from 'src/components/ExportDataModal'
 
-
-const filterState = (props, state) => ({ ..._.pick(['pageNumber', 'itemsPerPage', 'sort'], state), ..._.pick(['refreshKey'], props) })
 
 const localVariables = 'localVariables'
 const bucketObjects = '__bucket_objects__'
-
-const initialSort = { field: 'name', direction: 'asc' }
 
 const styles = {
   tableContainer: {
     display: 'flex', flex: 1
   },
   dataTypeSelectionPanel: {
-    flex: 'none', width: 200, backgroundColor: 'white', padding: '1rem'
+    flex: 'none', width: 280, backgroundColor: 'white', padding: '1rem',
+    boxShadow: '0 2px 10px 0 rgba(0,0,0,0.5)'
   },
   tableViewPanel: {
     position: 'relative',
@@ -50,13 +47,13 @@ const styles = {
     flex: 1, display: 'flex', flexDirection: 'column'
   },
   dataTypeHeading: {
-    fontWeight: 500, color: colors.darkBlue[0]
+    fontWeight: 500, color: colors.gray[0]
   }
 }
 
 const DataTypeButton = ({ selected, children, iconName = 'listAlt', iconSize = 14, ...props }) => {
   return linkButton({
-    style: { display: 'flex', alignItems: 'center', fontWeight: selected ? 500 : undefined, padding: '0.5rem 0' },
+    style: { display: 'flex', alignItems: 'center', color: 'black', fontWeight: selected ? 500 : undefined, padding: '0.5rem 0' },
     ...props
   }, [
     div({ style: { flex: 'none', display: 'flex', width: '1.5rem' } }, [
@@ -69,19 +66,6 @@ const DataTypeButton = ({ selected, children, iconName = 'listAlt', iconSize = 1
       children
     ])
   ])
-}
-
-const applyColumnSettings = (columnSettings, columns) => {
-  const lookup = _.flow(
-    Utils.toIndexPairs,
-    _.map(([i, v]) => ({ ...v, index: i })),
-    _.keyBy('name')
-  )(columnSettings)
-  return _.flow(
-    _.map(name => lookup[name] || { name, visible: true, index: -1 }),
-    _.sortBy('index'),
-    _.map(_.omit('index'))
-  )(columns)
 }
 
 const saveScroll = _.throttle(100, (initialX, initialY) => {
@@ -97,10 +81,6 @@ const getReferenceData = _.flow(
   }),
   _.groupBy('datum')
 )
-
-const entityMap = entities => {
-  return _.fromPairs(_.map(e => [e.name, e], entities))
-}
 
 const LocalVariablesContent = ajaxCaller(class LocalVariablesContent extends Component {
   render() {
@@ -305,80 +285,15 @@ const ReferenceDataContent = ({ workspace: { workspace: { namespace, attributes 
   ])
 }
 
-const EntitiesContent = ajaxCaller(class EntitiesContent extends Component {
+class EntitiesContent extends Component {
   constructor(props) {
     super(props)
-    const { entities, totalRowCount = 0, itemsPerPage = 25, pageNumber = 1, sort = initialSort, columnWidths = {}, columnState = {} } = props.firstRender ? StateHistory.get() : {}
     this.state = {
-      entities,
-      itemsPerPage,
-      pageNumber,
-      sort,
-      loading: false,
-      columnWidths,
-      columnState,
       selectedEntities: {},
       deletingEntities: false,
-      totalRowCount,
-      viewData: undefined
+      refreshKey: 0
     }
-    this.table = createRef()
     this.downloadForm = createRef()
-  }
-
-  async componentDidMount() {
-    this.loadData()
-  }
-
-  componentDidUpdate(prevProps, prevState) {
-    if (!_.isEqual(filterState(prevProps, prevState), filterState(this.props, this.state))) {
-      this.loadData()
-    }
-    StateHistory.update(_.pick(['entities', 'totalRowCount', 'itemsPerPage', 'pageNumber', 'sort', 'columnWidths', 'columnState'], this.state))
-  }
-
-  async loadData() {
-    const { entityKey, workspace: { workspace: { namespace, name } }, ajax: { Workspaces } } = this.props
-    const { pageNumber, itemsPerPage, sort } = this.state
-    try {
-      this.setState({ loading: true })
-      const { results, resultMetadata: { unfilteredCount } } = await Workspaces.workspace(namespace, name)
-        .paginatedEntitiesOfType(entityKey, {
-          page: pageNumber, pageSize: itemsPerPage, sortField: sort.field, sortDirection: sort.direction
-        })
-      this.setState({ entities: results, totalRowCount: unfilteredCount })
-    } catch (error) {
-      reportError('Error loading entities', error)
-    } finally {
-      this.setState({ loading: false })
-    }
-  }
-
-  async selectAll() {
-    const { entityKey, workspace: { workspace: { namespace, name } }, ajax: { Workspaces } } = this.props
-    try {
-      this.setState({ loading: true })
-      const results = await Workspaces.workspace(namespace, name).entitiesOfType(entityKey)
-      this.setState({ selectedEntities: entityMap(results) })
-    } catch (error) {
-      reportError('Error loading entities', error)
-    } finally {
-      this.setState({ loading: false })
-    }
-  }
-
-  selectPage() {
-    const { entities, selectedEntities } = this.state
-    this.setState({ selectedEntities: _.assign(selectedEntities, entityMap(entities)) })
-  }
-
-  deselectPage() {
-    const { entities, selectedEntities } = this.state
-    this.setState({ selectedEntities: _.omit(_.map(a => [a], _.map('name', entities)), selectedEntities) })
-  }
-
-  selectNone() {
-    this.setState({ selectedEntities: {} })
   }
 
   renderDownloadButton(columnSettings) {
@@ -414,8 +329,8 @@ const EntitiesContent = ajaxCaller(class EntitiesContent extends Component {
     ])
   }
 
-  renderCopyButton(columnSettings) {
-    const { entities, copying, copied } = this.state
+  renderCopyButton(entities, columnSettings) {
+    const { copying, copied } = this.state
 
     return h(Fragment, [
       buttonPrimary({
@@ -455,134 +370,32 @@ const EntitiesContent = ajaxCaller(class EntitiesContent extends Component {
     return _.join('\n', [header, ..._.map(entityToRow, entities)]) + '\n'
   }
 
-  pageSelected() {
-    const { entities, selectedEntities } = this.state
-    const entityKeys = _.map('name', entities)
-    const selectedKeys = _.keys(selectedEntities)
-    return _.every(k => _.includes(k, selectedKeys), entityKeys)
-  }
-
-  displayData(selectedData) {
-    const { itemsType, items } = selectedData
-    return _.map(entity => div({ style: { borderBottom: `1px solid ${colors.gray[2]}`, padding: '0.5rem' } },
-      itemsType === 'EntityReference' ? `${entity.entityName} (${entity.entityType})` : JSON.stringify(entity)), items)
-  }
-
   render() {
-    const { workspace, workspace: { accessLevel, workspace: { namespace, name }, workspaceSubmissionStats: { runningSubmissionsCount } }, entityKey, entityMetadata, loadMetadata, firstRender } = this.props
-    const { entities, totalRowCount, pageNumber, itemsPerPage, sort, columnWidths, columnState, selectedEntities, deletingEntities, loading, copyingEntities, viewData } = this.state
-    const theseColumnWidths = columnWidths[entityKey] || {}
-    const columnSettings = applyColumnSettings(columnState[entityKey] || [], entityMetadata[entityKey].attributeNames)
-    const resetScroll = () => this.table.current.scrollToTop()
-    const nameWidth = theseColumnWidths['name'] || 150
+    const {
+      workspace, workspace: { accessLevel, workspace: { namespace, name }, workspaceSubmissionStats: { runningSubmissionsCount } },
+      entityKey, entityMetadata, loadMetadata, firstRender
+    } = this.props
+    const { selectedEntities, deletingEntities, copyingEntities, refreshKey } = this.state
+
     const { initialX, initialY } = firstRender ? StateHistory.get() : {}
+
     return h(Fragment, [
-      !!entities && h(Fragment, [
-        div({ style: { flex: 'none', marginBottom: '1rem' } }, [
+      h(DataTable, {
+        persist: true, firstRender, refreshKey,
+        entityType: entityKey, entityMetadata, workspaceId: { namespace, name },
+        onScroll: saveScroll, initialX, initialY,
+        selectionModel: {
+          type: 'multiple',
+          selected: selectedEntities,
+          setSelected: Utils.canWrite(accessLevel) && (e => this.setState({ selectedEntities: e }))
+        },
+        childrenBefore: ({ entities, columnSettings }) => div({
+          style: { display: 'flex', alignItems: 'center', flex: 'none', marginBottom: '1rem' }
+        }, [
           this.renderDownloadButton(columnSettings),
-          this.renderCopyButton(columnSettings)
-        ]),
-        div({ style: { flex: 1 } }, [
-          h(AutoSizer, [
-            ({ width, height }) => {
-              return h(GridTable, {
-                ref: this.table,
-                width, height,
-                rowCount: entities.length,
-                onScroll: saveScroll,
-                initialX,
-                initialY,
-                columns: [
-                  ...(Utils.canWrite(accessLevel) ? [{
-                    width: 70,
-                    headerRenderer: () => {
-                      return h(Fragment, [
-                        h(Checkbox, {
-                          checked: this.pageSelected(),
-                          onChange: () => this.pageSelected() ? this.deselectPage() : this.selectPage()
-                        }),
-                        h(PopupTrigger, {
-                          closeOnClick: true,
-                          content: h(Fragment, [
-                            h(MenuButton, { onClick: () => this.selectPage() }, ['Page']),
-                            h(MenuButton, { onClick: () => this.selectAll() }, [`All (${totalRowCount})`]),
-                            h(MenuButton, { onClick: () => this.selectNone() }, ['None'])
-                          ]),
-                          side: 'bottom'
-                        }, [
-                          h(Clickable, [icon('caretDown')])
-                        ])
-                      ])
-                    },
-                    cellRenderer: ({ rowIndex }) => {
-                      const { name } = entities[rowIndex]
-                      const checked = _.has([name], selectedEntities)
-                      return h(Checkbox, {
-                        checked,
-                        onChange: () => this.setState({ selectedEntities: (checked ? _.unset([name]) : _.set([name], entities[rowIndex]))(selectedEntities) })
-                      })
-                    }
-                  }] : []),
-                  {
-                    width: nameWidth,
-                    headerRenderer: () => h(Resizable, {
-                      width: nameWidth, onWidthChange: delta => {
-                        this.setState({ columnWidths: _.set(`${entityKey}.name`, nameWidth + delta, columnWidths) },
-                          () => this.table.current.recomputeColumnSizes())
-                      }
-                    }, [
-                      h(Sortable, { sort, field: 'name', onSort: v => this.setState({ sort: v }) }, [
-                        h(HeaderCell, [`${entityKey}_id`])
-                      ])
-                    ]),
-                    cellRenderer: ({ rowIndex }) => renderDataCell(entities[rowIndex].name, namespace)
-                  },
-                  ..._.map(({ name }) => {
-                    const thisWidth = theseColumnWidths[name] || 300
-                    return {
-                      width: thisWidth,
-                      headerRenderer: () => h(Resizable, {
-                        width: thisWidth, onWidthChange: delta => {
-                          this.setState({ columnWidths: _.set(`${entityKey}.${name}`, thisWidth + delta, columnWidths) },
-                            () => this.table.current.recomputeColumnSizes())
-                        }
-                      }, [
-                        h(Sortable, { sort, field: name, onSort: v => this.setState({ sort: v }) }, [
-                          h(HeaderCell, [name])
-                        ])
-                      ]),
-                      cellRenderer: ({ rowIndex }) => {
-                        const dataInfo = entities[rowIndex].attributes[name]
-                        const dataCell = renderDataCell(Utils.entityAttributeText(dataInfo), namespace)
-                        return (dataInfo && _.isArray(dataInfo.items)) ?
-                          linkButton({
-                            onClick: () => this.setState({ viewData: dataInfo })
-                          },
-                          [dataCell]) : dataCell
-                      }
-                    }
-                  }, _.filter('visible', columnSettings))
-                ]
-              })
-            }
-          ]),
-          h(ColumnSelector, {
-            columnSettings,
-            onSave: v => this.setState(_.set(['columnState', entityKey], v), () => {
-              this.table.current.recomputeColumnSizes()
-            })
-          })
-        ]),
-        div({ style: { flex: 'none', marginTop: '1rem' } }, [
-          paginator({
-            filteredDataLength: totalRowCount,
-            pageNumber,
-            setPageNumber: v => this.setState({ pageNumber: v }, resetScroll),
-            itemsPerPage,
-            setItemsPerPage: v => this.setState({ itemsPerPage: v, pageNumber: 1 }, resetScroll)
-          })
+          this.renderCopyButton(entities, columnSettings)
         ])
-      ]),
+      }),
       !_.isEmpty(selectedEntities) && h(FloatingActionButton, {
         label: 'COPY DATA',
         iconShape: 'copy',
@@ -600,8 +413,7 @@ const EntitiesContent = ajaxCaller(class EntitiesContent extends Component {
       deletingEntities && h(EntityDeleter, {
         onDismiss: () => this.setState({ deletingEntities: false }),
         onSuccess: () => {
-          this.setState({ deletingEntities: false, selectedEntities: {} })
-          this.loadData()
+          this.setState({ deletingEntities: false, selectedEntities: {}, refreshKey: refreshKey + 1 })
           loadMetadata()
         },
         namespace, name,
@@ -611,17 +423,10 @@ const EntitiesContent = ajaxCaller(class EntitiesContent extends Component {
         onDismiss: () => this.setState({ copyingEntities: false }),
         workspace,
         selectedEntities: _.keys(selectedEntities), selectedDataType: entityKey, runningSubmissionsCount
-      }),
-      viewData && h(Modal, {
-        title: 'Contents',
-        showButtons: false,
-        showX: true,
-        onDismiss: () => this.setState({ viewData: undefined })
-      }, [div({ style: { maxHeight: '80vh', overflowY: 'auto' } }, [this.displayData(viewData)])]),
-      loading && spinnerOverlay
+      })
     ])
   }
-})
+}
 
 const DeleteObjectModal = ajaxCaller(class DeleteObjectModal extends Component {
   constructor(props) {
@@ -717,7 +522,7 @@ const BucketContent = ajaxCaller(class BucketContent extends Component {
         disabled: !canEdit,
         disableClick: true,
         style: { flexGrow: 1, backgroundColor: 'white', border: `1px solid ${colors.gray[3]}`, padding: '1rem' },
-        activeStyle: { backgroundColor: colors.blue[3], cursor: 'copy' },
+        activeStyle: { backgroundColor: colors.green[6], cursor: 'copy' },
         ref: this.uploader,
         onDropAccepted: files => this.uploadFiles(files)
       }, [
@@ -925,7 +730,12 @@ const WorkspaceData = _.flow(
                     e.stopPropagation()
                     this.setState({ deletingReference: type })
                   }
-                }, [icon('minus-circle', { size: 16 })])
+                }, [
+                  icon('minus-circle', {
+                    size: 16,
+                    style: { color: colors.green[0] }
+                  })
+                ])
               ])
             ])
           }, _.keys(referenceData)),

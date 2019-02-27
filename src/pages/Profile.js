@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { Fragment } from 'react'
-import { div, h, path, span, svg } from 'react-hyperscript-helpers'
+import { div, h, span } from 'react-hyperscript-helpers'
 import { buttonPrimary, LabeledCheckbox, link, RadioButton, spinnerOverlay } from 'src/components/common'
 import { centeredSpinner, profilePic } from 'src/components/icons'
 import { textInput, validatedInput } from 'src/components/input'
@@ -29,20 +29,11 @@ const styles = {
       margin: '1rem 0',
       display: 'flex', alignItems: 'center'
     },
-    pic: {
-      borderRadius: '100%'
-    },
-    text: {
-      container: {
-        marginLeft: '2rem',
-        color: colors.darkBlue[0]
-      },
-      nameLine: {
-        fontSize: '150%'
-      },
-      percentageLine: {
-        fontSize: '125%'
-      }
+
+    nameLine: {
+      marginLeft: '1rem',
+      color: colors.darkBlue[0],
+      fontSize: '150%'
     }
   },
   form: {
@@ -67,45 +58,7 @@ const styles = {
 }
 
 
-const percentageCircle = ({ radius, fraction, color = colors.green[0], strokeWidth = 6, style }) => {
-  const halfStroke = strokeWidth / 2
-  const adjRadius = radius - halfStroke
-  const diameter = 2 * radius
-  const adjDiameter = 2 * adjRadius
-  const circumference = adjDiameter * Math.PI
-
-  const pathDesc =
-    `M${radius} ${halfStroke}
-     a ${adjRadius} ${adjRadius} 0 0 1 0 ${adjDiameter}
-     a ${adjRadius} ${adjRadius} 0 0 1 0 -${adjDiameter}`
-
-  return svg({ style: { width: diameter, height: diameter, ...style } }, [
-    path({
-      d: pathDesc,
-      fill: 'none',
-      stroke: colors.gray[4],
-      strokeWidth
-    }),
-    path({
-      d: pathDesc,
-      fill: 'none',
-      stroke: color,
-      strokeWidth,
-      strokeDasharray: `${fraction * circumference}, ${circumference}`,
-      strokeLinecap: 'round'
-    })
-  ])
-}
-
-
 const sectionTitle = text => div({ style: styles.sectionTitle }, [text])
-
-
-const profileKeys = [
-  'firstName', 'lastName', 'title', 'institute', 'institutionalProgram',
-  'nonProfitStatus', 'pi', 'programLocationCity', 'programLocationState', 'programLocationCountry'
-]
-
 
 const Profile = _.flow(
   ajaxCaller,
@@ -121,19 +74,6 @@ const Profile = _.flow(
     const { profileInfo, saving } = this.state
     const { firstName } = profileInfo
 
-    const fractionCompleted = _.flow(
-      _.pick(profileKeys),
-      _.values,
-      _.compact,
-      _.size
-    )(profileInfo) / profileKeys.length
-
-    const isComplete = fractionCompleted === 1.0
-
-    const profilePicRadius = 48
-    const strokeRadius = 3
-    // Rendering the circle to cover up the edge of the image to avoid aliasing issues
-
     return h(Fragment, [
       saving && spinnerOverlay,
       h(TopBar),
@@ -141,25 +81,18 @@ const Profile = _.flow(
         div({ style: styles.page }, [
           sectionTitle('Profile'),
           div({ style: styles.header.line }, [
-            div({ style: { position: 'relative', padding: strokeRadius } }, [
-              profilePic({ size: 2 * profilePicRadius }),
+            div({ style: { position: 'relative' } }, [
+              profilePic({ size: 48 }),
               h(InfoBox, { style: { alignSelf: 'flex-end', padding: '0.25rem' } }, [
                 'To change your profile image, visit your ',
                 link({
                   href: 'https://accounts.google.com/AccountChooser?continue=https://myaccount.google.com/',
                   target: '_blank'
                 }, ['Google account page.'])
-              ]),
-              percentageCircle({
-                radius: profilePicRadius + strokeRadius, fraction: fractionCompleted, strokeWidth: 2 * strokeRadius,
-                style: { position: 'absolute', top: strokeRadius, left: strokeRadius, margin: -strokeRadius }
-              })
-            ]),
-            div({ style: styles.header.text.container }, [
-              div({ style: styles.header.text.nameLine }, [`Hello again, ${firstName}`]),
-              !isComplete && div({ style: styles.header.text.percentageLine }, [
-                `Complete your profile. It's at ${(100 * fractionCompleted) || 0}%`
               ])
+            ]),
+            div({ style: styles.header.nameLine }, [
+              `Hello again, ${firstName}`
             ])
           ]),
           this.renderForm()

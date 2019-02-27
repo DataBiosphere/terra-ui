@@ -4,7 +4,7 @@ import { a, div, h, span } from 'react-hyperscript-helpers'
 import { pure } from 'recompose'
 import removeMd from 'remove-markdown'
 import togglesListView from 'src/components/CardsListToggle'
-import { Clickable, MenuButton, menuIcon, PageFadeBox, search, Select, topSpinnerOverlay, transparentSpinnerOverlay } from 'src/components/common'
+import { Clickable, MenuButton, menuIcon, PageBox, search, Select, topSpinnerOverlay, transparentSpinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
 import PopupTrigger from 'src/components/PopupTrigger'
@@ -29,16 +29,16 @@ const styles = {
     marginRight: listView ? undefined : '-1rem'
   }),
   shortCard: {
-    ...Style.elements.card,
-    display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
-    width: 300, height: 225,
+    ...Style.elements.card.container,
+    width: 280, height: 260,
     margin: '0 1rem 2rem 0'
   },
   shortTitle: {
+    ...Style.elements.card.title,
     flex: 'none',
-    color: colors.blue[0], fontSize: 16,
+    fontWeight: 500,
     lineHeight: '20px', height: '40px',
-    overflow: 'hidden', wordWrap: 'break-word'
+    wordWrap: 'break-word'
   },
   shortDescription: {
     flex: 'none',
@@ -48,17 +48,16 @@ const styles = {
   },
   shortCreateCard: {
     display: 'flex', flexDirection: 'column', justifyContent: 'center',
-    color: colors.blue[0], fontSize: 20, lineHeight: '28px'
+    color: colors.green[0], fontSize: 20, fontWeight: 500, lineHeight: '28px'
   },
   longCard: {
-    ...Style.elements.card,
-    display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
+    ...Style.elements.card.container,
     width: '100%', minWidth: 0, height: 80,
     marginBottom: '0.5rem'
   },
   longTitle: {
-    color: colors.blue[0], fontSize: 16,
-    whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', flex: 1
+    ...Style.elements.card.title,
+    whiteSpace: 'nowrap', textOverflow: 'ellipsis', flex: 1
   },
   longDescription: {
     flex: 1,
@@ -107,10 +106,10 @@ const WorkspaceCard = pure(({
     h(Clickable, {
       onClick: e => e.preventDefault(),
       style: {
-        cursor: 'pointer', color: colors.blue[0], marginRight: 'auto'
+        cursor: 'pointer', color: colors.green[0], marginRight: 'auto'
       },
       focus: 'hover',
-      hover: { color: colors.blue[2] }
+      hover: { color: colors.green[2] }
     }, [
       icon('cardMenuIcon', {
         size: listView ? 18 : 24
@@ -224,7 +223,7 @@ export const WorkspaceList = _.flow(
           }
         })
       ]),
-      h(PageFadeBox, { style: { position: 'relative' } }, [
+      h(PageBox, { style: { position: 'relative' } }, [
         div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' } }, [
           div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, ['Workspaces']),
           div({ style: { marginLeft: 'auto', flex: '0 0 300px' } }, [

@@ -25,7 +25,7 @@ const styles = {
     display: 'flex', alignItems: 'center', flex: 'none',
     marginLeft: 'auto', paddingLeft: '1rem', paddingRight: '1rem',
     borderTopLeftRadius: 5, borderBottomLeftRadius: 5,
-    backgroundColor: colors.gray[5]
+    backgroundColor: colors.grayBlue[4]
   },
   row: {
     display: 'flex',
@@ -155,7 +155,7 @@ const MachineSelector = ({ machineType, onChangeMachineType, diskSize, onChangeD
 
 const ClusterIcon = ({ shape, onClick, disabled, style, ...props }) => {
   return h(Clickable, {
-    style: { color: onClick && !disabled ? colors.blue[0] : colors.gray[2], ...style },
+    style: { color: onClick && !disabled ? colors.green[0] : colors.gray[2], ...style },
     onClick, disabled, ...props
   }, [icon(shape, { size: 20, className: 'is-solid' })])
 }
@@ -166,7 +166,7 @@ const MiniLink = ({ href, disabled, tooltip, children, ...props }) => {
       as: 'a',
       href: !disabled ? href : undefined,
       style: {
-        color: !disabled ? colors.blue[0] : colors.gray[2], backgroundColor: colors.gray[5],
+        color: !disabled ? colors.green[0] : colors.gray[2], backgroundColor: colors.grayBlue[4],
         cursor: disabled ? 'not-allowed' : 'pointer',
         borderRadius: 4
       }
@@ -562,7 +562,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
         )
       }, [
         h(Clickable, {
-          style: { ...styles.button(isDisabled), color: isDisabled ? colors.gray[2] : (open ? colors.blue[1] : colors.blue[0]) },
+          style: { ...styles.button(isDisabled), color: isDisabled ? colors.gray[2] : (open ? colors.green[1] : colors.green[0]) },
           tooltip: !canCompute && noCompute,
           disabled: isDisabled
         }, [

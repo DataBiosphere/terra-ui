@@ -35,10 +35,11 @@ export const Clickable = ({ as = 'div', disabled, tooltip, tooltipSide, onClick,
 const linkProps = disabled => ({
   as: 'a',
   style: {
-    color: disabled ? colors.gray[2] : colors.blue[0],
-    cursor: disabled ? 'not-allowed' : 'pointer'
+    color: disabled ? colors.gray[2] : colors.green[0],
+    cursor: disabled ? 'not-allowed' : 'pointer',
+    fontWeight: 500
   },
-  hover: disabled ? undefined : { color: colors.blue[1] }
+  hover: disabled ? undefined : { color: colors.green[1] }
 })
 
 export const link = function(props, children) {
@@ -58,12 +59,12 @@ export const buttonPrimary = ({ disabled, ...props }, children) => {
     disabled,
     style: {
       ...styles.button,
-      borderRadius: 5, color: 'white', padding: '0 1.5rem',
-      fontWeight: 'bold',
-      backgroundColor: disabled ? colors.gray[2] : colors.blue[0],
+      border: `1px solid ${disabled ? colors.gray[4] : colors.green[0]}`,
+      borderRadius: 5, color: 'white', padding: '0.875rem',
+      backgroundColor: disabled ? colors.gray[5] : colors.green[1],
       cursor: disabled ? 'not-allowed' : 'pointer'
     },
-    hover: disabled ? undefined : { backgroundColor: colors.blue[1] }
+    hover: disabled ? undefined : { backgroundColor: colors.green[2] }
   }, props), children)
 }
 
@@ -72,17 +73,16 @@ export const buttonSecondary = ({ disabled, ...props }, children) => {
     disabled,
     style: {
       ...styles.button,
-      color: disabled ? colors.gray[2] : colors.gray[0],
-      fontWeight: 'bold',
+      color: disabled ? colors.gray[2] : colors.green[0],
       cursor: disabled ? 'not-allowed' : 'pointer'
     },
-    hover: disabled ? undefined : { color: colors.gray[1] }
+    hover: disabled ? undefined : { color: colors.green[1] }
   }, props), children)
 }
 
 export const search = function({ wrapperProps, inputProps }) {
   return div(
-    _.merge({ style: { borderBottom: '1px solid black', padding: '0.5rem 0', display: 'flex' } },
+    _.merge({ style: { padding: '0.5rem 0.2rem', display: 'flex', backgroundColor: 'white', borderRadius: 3 } },
       wrapperProps),
     [
       icon('search', { size: 21 }),
@@ -91,38 +91,32 @@ export const search = function({ wrapperProps, inputProps }) {
           border: 'none', outline: 'none',
           flexGrow: 1,
           verticalAlign: 'bottom', marginLeft: '1rem',
-          fontSize: '1rem'
+          fontSize: '1rem',
+          backgroundColor: 'transparent'
         }
       }, inputProps))
     ])
 }
 
 export const tabBar = ({ activeTab, tabNames, refresh = _.noop, getHref }, children = []) => {
-  const navSeparator = div({
-    style: { background: 'rgba(255,255,255,0.15)', width: 1, height: '3rem', flexShrink: 0 }
-  })
-
   const navTab = currentTab => {
     const selected = currentTab === activeTab
     const href = getHref(currentTab)
-    const hideSeparator = selected || tabNames.indexOf(activeTab) === tabNames.indexOf(currentTab) + 1
 
     return h(Fragment, [
       h(Interactive, {
         as: 'a',
         style: { ...Style.tabBar.tab, ...(selected ? Style.tabBar.active : {}) },
-        hover: { color: Style.tabBar.active.color },
+        hover: selected ? {} : Style.tabBar.hover,
         onClick: href === window.location.hash ? refresh : undefined,
         href,
         'aria-label': currentTab+'-tab',
         datatestid: currentTab+'-tab' // capitalizing here results in: // index.js:1452 Warning: React does not recognize the `dataTestId` prop on a DOM element. If you intentionally want it to appear in the DOM as a custom attribute, spell it as lowercase `datatestid` instead. If you accidentally passed it from a parent component, remove it from the DOM element.
-      }, currentTab),
-      !hideSeparator && navSeparator
+      }, [div({ style: { marginBottom: selected ? -(Style.tabBar.active.borderBottomWidth) : undefined } }, currentTab)])
     ])
   }
 
   return div({ style: Style.tabBar.container }, [
-    activeTab !== tabNames[0] && navSeparator,
     ..._.map(name => navTab(name), tabNames),
     div({ style: { flexGrow: 1 } }),
     ...children
@@ -138,12 +132,12 @@ export const MenuButton = ({ disabled, children, ...props }) => {
     disabled,
     style: {
       display: 'flex', alignItems: 'center',
-      fontSize: 12, minWidth: 125, height: '2rem',
+      fontSize: 12, minWidth: 125, height: '2.25rem',
       color: disabled ? colors.gray[2] : undefined,
-      padding: '0 1.5rem',
+      padding: '0.875rem',
       cursor: disabled ? 'not-allowed' : 'pointer'
     },
-    hover: !disabled ? { backgroundColor: colors.blue[3], fontWeight: 'bold' } : undefined
+    hover: !disabled ? { backgroundColor: colors.grayBlue[5], color: colors.green[0] } : undefined
   }, props), [children])
 }
 
@@ -156,10 +150,10 @@ export const Checkbox = ({ checked, onChange, disabled, ...props }) => {
     style: {
       display: 'inline-flex',
       verticalAlign: 'middle',
-      color: disabled ? colors.gray[2] : colors.blue[0]
+      color: disabled ? colors.gray[4] : checked ? colors.green[0] : colors.gray[5]
     },
-    hover: disabled ? undefined : { color: colors.blue[1] },
-    active: disabled ? undefined : { backgroundColor: colors.blue[5] },
+    hover: disabled ? undefined : { color: colors.green[1] },
+    active: disabled ? undefined : { backgroundColor: colors.green[6] },
     disabled,
     ...props
   }, [
@@ -212,12 +206,12 @@ export const spinnerOverlay = spinnerDefault({ outerStyles: { backgroundColor: '
 
 export const transparentSpinnerOverlay = spinnerDefault({ innerStyles: { backgroundColor: 'rgba(255, 255, 255, 0.0)' } })
 
-export const topSpinnerOverlay = spinnerDefault({ outerStyles: { backgroundColor: 'rgba(0, 0, 0, 0.1)' }, innerStyles: { marginTop: 150  } })
+export const topSpinnerOverlay = spinnerDefault({ outerStyles: { backgroundColor: 'rgba(0, 0, 0, 0.1)' }, innerStyles: { marginTop: 150 } })
 
 export const comingSoon = span({
   style: {
     margin: '0.5rem', padding: 3, borderRadius: 2,
-    backgroundColor: colors.purple[0], color: 'white',
+    backgroundColor: colors.grayBlue[0], color: colors.gray[0],
     fontSize: '75%', textTransform: 'uppercase', fontWeight: 500,
     whiteSpace: 'nowrap', lineHeight: 1
   }
@@ -236,7 +230,7 @@ export const Select = ({ value, options, ...props }) => {
   return h(RSelect, _.merge({
     theme: base => _.merge(base, {
       colors: {
-        primary: colors.blue[0],
+        primary: colors.green[0],
         neutral20: colors.gray[3],
         neutral30: colors.gray[3]
       },
@@ -249,10 +243,9 @@ export const Select = ({ value, options, ...props }) => {
       }),
       singleValue: base => ({ ...base, color: colors.gray[0] }),
       option: (base, { isSelected, isFocused, isDisabled }) => _.merge(base, {
-        backgroundColor: isSelected ? colors.blue[4] : isFocused ? colors.blue[5] : undefined,
-        fontWeight: isFocused ? 'bold' : undefined,
-        color: isDisabled ? undefined : colors.gray[0],
-        ':active': { backgroundColor: isSelected ? colors.blue[4] : colors.blue[5] }
+        backgroundColor: isSelected ? colors.grayBlue[5] : isFocused ? colors.grayBlue[3] : undefined,
+        color: isSelected ? colors.green[0] : isDisabled ? undefined : colors.gray[0],
+        ':active': { backgroundColor: isSelected ? colors.green[4] : colors.green[5] }
       }),
       clearIndicator: base => ({ ...base, paddingRight: 0 }),
       indicatorSeparator: () => ({ display: 'none' }),
@@ -260,56 +253,15 @@ export const Select = ({ value, options, ...props }) => {
       multiValueRemove: base => _.merge(base, { ':hover': { backgroundColor: 'unset' } })
     },
     getOptionLabel: ({ value, label }) => label || value.toString(),
-    value: newValue,
+    value: newValue || null, // need null instead of undefined to clear the select
     options: newOptions
   }, props))
 }
 
-export const FadeBox = ({ fadePoint = '60%', style = {}, children }) => {
-  const {
-    paddingTop = '1.5rem',
-    paddingLR = '1.5rem',
-    borderRadius = '8px',
-    backgroundColor = 'rgba(255,255,255,0)',
-    borderColor = colors.gray[3],
-    ...containerStyle
-  } = style
-
+export const PageBox = ({ children, style = {} }) => {
   return div({
     style: {
-      display: 'flex', flexDirection: 'column',
-      background: `linear-gradient(to bottom, white, ${backgroundColor} ${fadePoint})`,
-      borderRadius: `${borderRadius} ${borderRadius} 0 0`,
-      ...containerStyle
-    }
-  }, [
-    div({
-      style: {
-        height: paddingTop,
-        border: `1px solid ${borderColor}`,
-        borderBottom: 'none',
-        borderRadius: `${borderRadius} ${borderRadius} 0 0`
-      }
-    }),
-    div({
-      style: {
-        flex: 1,
-        padding: `0 ${paddingLR}`,
-        borderWidth: 1,
-        borderStyle: 'solid',
-        borderImage: `linear-gradient(to bottom, ${borderColor}, ${backgroundColor} ${fadePoint}) 1 100%`,
-        borderTop: 'none',
-        borderBottom: 'none'
-      }
-    }, [children])
-  ])
-}
-
-export const PageFadeBox = ({ children, style = {} }) => {
-  return h(FadeBox, {
-    fadePoint: '125px',
-    style: {
-      margin: '1.5rem', paddingTop: '1rem', minHeight: 125, flex: 'none', ...style
+      margin: '1.5rem', padding: '1.5rem 1.5rem 0', minHeight: 125, flex: 'none', ...style
     }
   }, [children])
 }
