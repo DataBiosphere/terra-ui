@@ -33,6 +33,10 @@ export const getUser = () => {
   return authStore.get().user
 }
 
+export const bucketBrowserUrl = id => {
+  return `https://console.cloud.google.com/storage/browser/${id}?authuser=${getUser().email}`
+}
+
 export const initializeAuth = _.memoize(async () => {
   await new Promise(resolve => window.gapi.load('auth2', resolve))
   await window.gapi.auth2.init({ clientId: getConfig().googleClientId })
