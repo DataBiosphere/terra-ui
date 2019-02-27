@@ -1,5 +1,5 @@
 import { Fragment } from 'react'
-import { hot } from 'react-hot-loader'
+import { hot } from 'react-hot-loader/root'
 import { h } from 'react-hyperscript-helpers'
 import ConfigOverridesWarning from 'src/components/ConfigOverridesWarning'
 import ErrorWrapper from 'src/components/ErrorWrapper'
@@ -20,4 +20,4 @@ const Main = () => {
   ])
 }
 
-export default hot(module)(Main)
+export default hot(Main)
