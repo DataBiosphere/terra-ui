@@ -5,7 +5,7 @@ import Dropzone from 'react-dropzone'
 import { a, div, h } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import togglesListView from 'src/components/CardsListToggle'
-import { Clickable, link, MenuButton, PageFadeBox, spinnerOverlay, menuIcon } from 'src/components/common'
+import { Clickable, link, MenuButton, menuIcon, PageBox, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { NotebookCreator, NotebookDeleter, NotebookDuplicator } from 'src/components/notebook-utils'
 import { notify } from 'src/components/Notifications'
@@ -17,10 +17,10 @@ import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
-import { Component } from 'src/libs/wrapped-components'
 import * as Utils from 'src/libs/utils'
-import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
+import { Component } from 'src/libs/wrapped-components'
 import ExportNotebookModal from 'src/pages/workspaces/workspace/notebooks/ExportNotebookModal'
+import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
 
 const notebookCardCommonStyles = listView => _.merge({ display: 'flex' },
@@ -55,6 +55,9 @@ class NotebookCard extends Component {
           }
         }, [menuIcon('copy-to-clipboard'), 'Copy notebook URL to clipboard']),
         h(MenuButton, {
+          disabled: !canWrite,
+          tooltip: !canWrite && noWrite,
+          tooltipSide: 'left',
           onClick: () => Nav.goToPath('workspace-notebook-launch', { namespace, app: 'lab', name: wsName, notebookName: name.slice(10) })
         }, [menuIcon('jupyterIcon'), 'Open in JupyterLab']),
         h(MenuButton, {
@@ -83,10 +86,10 @@ class NotebookCard extends Component {
       h(Clickable, {
         onClick: e => e.preventDefault(),
         style: {
-          cursor: 'pointer', color: colors.blue[0]
+          cursor: 'pointer', color: colors.green[0]
         },
         focus: 'hover',
-        hover: { color: colors.blue[2] }
+        hover: { color: colors.green[2] }
       }, [
         icon('cardMenuIcon', {
           size: listView ? 18 : 24
@@ -104,23 +107,20 @@ class NotebookCard extends Component {
 
     const title = div({
       title: printName(name),
-      style: listView ? {
-        ...Style.elements.cardTitle,
-        textOverflow: 'ellipsis', whiteSpace: 'nowrap', overflow: 'hidden',
+      style: _.merge({
+        ...Style.elements.card.title,
+        textOverflow: 'ellipsis', whiteSpace: 'nowrap'
+      }, listView ? {
         marginLeft: '1rem'
-      } : {
-        ...Style.elements.cardTitle,
-        textOverflow: 'ellipsis', whiteSpace: 'nowrap', overflow: 'hidden'
-      }
+      } : undefined)
     }, printName(name))
 
     return a({
       href: notebookLink,
       style: {
-        ...Style.elements.card,
+        ...Style.elements.card.container,
         ...notebookCardCommonStyles(listView),
         flexShrink: 0,
-        justifyContent: listView ? undefined : 'space-between',
         alignItems: listView ? 'center' : undefined
       }
     }, listView ? [
@@ -249,7 +249,7 @@ const Notebooks = _.flow(
         }
       }, [
         h(Clickable, {
-          style: { ...Style.elements.card, flex: 1, color: colors.blue[0] },
+          style: { ...Style.elements.card.container, flex: 1, color: colors.green[0] },
           onClick: () => this.setState({ creating: true }),
           disabled: !canWrite,
           tooltip: !canWrite ? noWrite : undefined
@@ -263,8 +263,8 @@ const Notebooks = _.flow(
         div({ style: { width: 20, height: 15 } }),
         h(Clickable, {
           style: {
-            ...Style.elements.card, flex: 1,
-            backgroundColor: colors.gray[4], border: `1px dashed ${colors.gray[2]}`, boxShadow: 'none'
+            ...Style.elements.card.container, flex: 1,
+            backgroundColor: colors.gray[6], border: `1px dashed ${colors.gray[2]}`, boxShadow: 'none'
           },
           onClick: () => this.uploader.current.open(),
           disabled: !canWrite,
@@ -297,7 +297,7 @@ const Notebooks = _.flow(
       disabled: !Utils.canWrite(accessLevel),
       disableClick: true,
       style: { flexGrow: 1 },
-      activeStyle: { backgroundColor: colors.blue[3], cursor: 'copy' }, // accept and reject don't work in all browsers
+      activeStyle: { backgroundColor: colors.green[6], cursor: 'copy' }, // accept and reject don't work in all browsers
       acceptStyle: { cursor: 'copy' },
       rejectStyle: { cursor: 'no-drop' },
       ref: this.uploader,
@@ -305,7 +305,7 @@ const Notebooks = _.flow(
         'The selected file is not a ipynb notebook file. To import a notebook, upload a file with a .ipynb extension.'),
       onDropAccepted: files => this.uploadFiles(files)
     }, [
-      notebooks && h(PageFadeBox, [
+      notebooks && h(PageBox, [
         div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' } }, [
           div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, ['Notebooks']),
           viewToggleButtons,

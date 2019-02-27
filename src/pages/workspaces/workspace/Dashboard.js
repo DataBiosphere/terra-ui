@@ -21,7 +21,7 @@ const styles = {
     flex: 1, padding: '0 2rem'
   },
   rightBox: {
-    flex: 'none', width: 350, backgroundColor: colors.gray[5],
+    flex: 'none', width: 350, backgroundColor: colors.grayBlue[5],
     padding: '0 1rem'
   },
   header: {
@@ -29,15 +29,15 @@ const styles = {
     margin: '2.5rem 0 1rem 0', display: 'flex'
   },
   infoTile: {
-    backgroundColor: colors.gray[4], color: 'black',
+    backgroundColor: colors.grayBlue[3], color: 'black',
     width: 125, padding: 7, margin: 4
   },
   tinyCaps: {
-    fontSize: 8, fontWeight: 'bold', textTransform: 'uppercase', color: colors.darkBlue[0]
+    fontSize: 8, fontWeight: 'bold', textTransform: 'uppercase', color: colors.gray[0]
   },
   authDomain: {
     padding: '0.5rem 0.25rem', marginBottom: '0.25rem',
-    backgroundColor: colors.gray[4],
+    backgroundColor: colors.grayBlue[3],
     whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'
   },
   label: {
@@ -126,7 +126,7 @@ export const WorkspaceDashboard = _.flow(
     return div({ style: { flex: 1, display: 'flex' } }, [
       div({ style: styles.leftBox }, [
         div({ style: styles.header }, [
-          'About the project',
+          'About the workspace',
           !isEditing && linkButton({
             style: { marginLeft: '0.5rem' },
             disabled: !canWrite,

@@ -72,7 +72,7 @@ export const NpsSurvey = Utils.connectAtom(authStore, 'authState')(class NpsSurv
       const bgColor = Utils.cond(
         [i <= 6, colors.brick],
         [i <= 8, colors.orange[0]],
-        colors.blue[0]
+        colors.green[0]
       )
 
       return h(Interactive, {
@@ -112,7 +112,7 @@ export const NpsSurvey = Utils.connectAtom(authStore, 'authState')(class NpsSurv
           width: expanded ? 405 : 255,
           padding: '1rem 1.5rem 1rem 1rem',
           overflow: 'hidden',
-          backgroundColor: colors.darkBlue[0], color: 'white',
+          backgroundColor: colors.gray[0], color: 'white',
           borderRadius: expanded ? '0.5rem' : '0.5rem 0 0 0.5rem',
           transition: 'all 0.25s linear',
           boxShadow: Style.standardShadow

@@ -10,12 +10,15 @@ import caretDown from 'src/icons/caret-down.svg'
 import checkSquare from 'src/icons/check-square.svg'
 import columnGrabber from 'src/icons/column_grabber.svg'
 import explore from 'src/icons/explore.svg'
+import headerLeftHexs from 'src/icons/header-left-hexs.svg'
+import headerRightHexs from 'src/icons/header-right-hexs.svg'
 import home from 'src/icons/home.svg'
 import jupyterIcon from 'src/icons/jupyter.svg'
 import listAlt from 'src/icons/list-alt.svg'
 import loadingSpinner from 'src/icons/loading-spinner.svg'
 import logoWhite from 'src/icons/logo-grey.svg'
 import logoIcon from 'src/icons/logo.svg'
+import logowShadow from 'src/icons/logo-wShadow.svg'
 import notebooks from 'src/icons/notebooks.svg'
 import square from 'src/icons/square.svg'
 import table from 'src/icons/table.svg'
@@ -26,7 +29,7 @@ import colors from 'src/libs/colors'
 
 
 ClarityIcons.add({
-  browse, caretDown, checkSquare, columnGrabber, explore, home, jupyterIcon, listAlt, loadingSpinner, logoWhite, logoIcon, notebooks, square, table, cardMenuIcon, renameIcon
+  browse, caretDown, checkSquare, columnGrabber, explore, headerLeftHexs, headerRightHexs, home, jupyterIcon, listAlt, loadingSpinner, logoWhite, logoIcon, logowShadow, notebooks, square, table, cardMenuIcon, renameIcon
 })
 
 /**
@@ -43,12 +46,16 @@ export const breadcrumb = function(props) {
 }
 
 export const logo = function(props) {
-  return icon('logoIcon', _.merge({ size: 63, style: { marginRight: '0.5rem' } }, props))
+  return icon('logoIcon', _.merge({ size: 50, style: { marginRight: '0.5rem' } }, props))
+}
+
+export const logoGlow = function(props) {
+  return icon('logowShadow', _.merge({ size: 75, style: { marginRight: '0.5rem' } }, props))
 }
 
 export const spinner = function(props) {
   return icon('loadingSpinner',
-    _.merge({ size: 24, style: { color: colors.blue[1] } }, props))
+    _.merge({ size: 24, style: { color: colors.green[1] } }, props))
 }
 
 export const centeredSpinner = function(props) {

@@ -61,7 +61,7 @@ export default ajaxCaller(class Register extends Component {
     }, [
       div({ style: { display: 'flex', alignItems: 'center' } }, [
         logo({ size: 100, style: { marginRight: 20 } }),
-        div({ style: { fontWeight: 500, fontSize: 70, color: colors.darkBlue[0] } }, ['TERRA'])
+        div({ style: { fontWeight: 500, fontSize: 70, color: colors.gray[0] } }, ['TERRA'])
       ]),
       div({
         style: {

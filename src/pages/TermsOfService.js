@@ -7,10 +7,16 @@ import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import * as Style from 'src/libs/style'
 
+// When updating the TOS, make sure you:
+// 1. update the TOS version number in the Ajax call
+// 2. update the dev and prod datastores to have a TOS of that version number
 const termsOfService = `
-Your access to and use of Terra is subject to the following terms and conditions, as well as all
-Federal laws, including, but not limited to, the Privacy Act, 5 U.S.C. 552a. By accessing and using
-Terra, you accept, without limitation or qualification, these Terms of Service.
+Your access to systems and networks owned by Broad Institute is governed by, and subject to the 
+following terms and conditions, as well as all Federal laws, including, but not limited to, 
+the Privacy Act, 5 U.S.C. 552a, if the applicable Broad Institute system maintains individual 
+Privacy Act information. Your access to Broad Institute systems constitutes your consent to the 
+retrieval and disclosure of the information within the scope of your authorized access, subject to 
+the Privacy Act, and applicable State and Federal laws.
 
 #### Cookies
 Terra uses cookies to enable sign on and other essential features when signed in, and to provide 
@@ -30,28 +36,39 @@ You agree to access and use Terra for lawful purposes only. You are solely respo
 knowledge of and adherence to any and all laws, statutes, rules, and regulations pertaining to your
 use of Terra.
 
-#### By accessing and using Terra, you agree that you will:
+#### By accessing and using Terra, you agree that you must:
 
 * Conduct only authorized business on the system.
-* Notify the Broad Institute if you believe you are being granted access that you should not have.
 * Access Terra using only your own individual account. Group or shared accounts are NOT permitted.
-* Maintain the confidentiality of your authentication credentials such as your password; a Broad
-  Institute employee should never ask you to reveal your password.
-* Report any security incidents relating to lost passwords to the Broad Institute.
-* Follow proper logon/logoff procedures. You must manually logon to your session and promptly close
-  your browser when your session is no longer active.
+* Maintain the confidentiality of your authentication credentials such as your password. 
+  Do not reveal your authentication credentials to anyone; a Broad Institute employee should never 
+  ask you to reveal them.
+* Report all security incidents or suspected incidents (e.g., lost passwords, improper or 
+  suspicious acts) related to Broad Institute systems and networks to the Broad Institute Operations 
+  Center [infosec@broadinstitute.org](mailto:infosec@broadinstitute.org).
+* Follow proper logon/logoff procedures. You must manually logon to your session; do not 
+  store you password locally on your system or utilize any automated logon capabilities. You must 
+  promptly logoff when session access is no longer needed. If a logoff function is unavailable, you 
+  must close your browser. Never leave your computer unattended while logged into the system.
 * Ensure that Web browsers use Secure Socket Layer (SSL) version 3.0 (or higher) and Transport
   Layer Security (TLS) 1.0 (or higher). SSL and TLS must use a minimum of 256-bit, encryption.
+* Safeguard system resources against waste, loss, abuse, unauthorized use or disclosure, and 
+  misappropriation.
+* Contact the Broad Institute Chief Information Security Officer or the Broad Institute 
+  Operations Center ([infosec@broadinstitute.org](mailto:infosec@broadinstitute.org)) if you do not 
+  understand any of these rules.
 
-#### By accessing and using Terra, you agree that you will NOT:
+#### By accessing and using Terra, you agree that you must NOT:
 
 * Use Terra to commit a criminal offense, or to encourage others to conduct acts that would
   constitute a criminal offense or give rise to civil liability.
-* Browse, search or reveal any protected data except in accordance with that which is required to
-  perform your legitimate tasks or assigned duties.
-* Retrieve protected data, or in any other way disclose information, for someone who does not have
+* Process U.S. classified national security information on the system.
+* Browse, search or reveal any protected data by Broad Institute except in accordance with that 
+  which is required to perform your legitimate tasks or assigned duties.
+* Retrieve protected data or information, or in any other way disclose information, for someone who does not have
   authority to access that information.
-* Establish any unauthorized interfaces with Terra between systems, networks, and applications.
+* Establish any unauthorized interfaces between systems, networks, and applications owned 
+  by Broad Institute.
 * Upload any content that contains a software virus, such as a Trojan Horse or any other computer
   codes, files, or programs that may alter, damage, or interrupt the daily function of Terra and
   its users.
@@ -92,9 +109,10 @@ Unauthorized use of Terra is prohibited and subject to criminal and civil penalt
 
 #### Access Levels
 
-Your level of access to Terra is limited to ensure your access is no more than necessary to
-perform your legitimate tasks or assigned duties. If you believe you are being granted access that
-you should not have, you must immediately notify the Broad Institute.
+Your level of access to systems and networks owned by Broad Institute is limited to ensure your 
+access is no more than necessary to perform your legitimate tasks or assigned duties. If you believe 
+you are being granted access that you should not have, you must immediately notify the Broad 
+Institute Operations Center [infosec@broadinstitute.org](mailto:infosec@broadinstitute.org).
 
 #### Restricted Use of TCGA Controlled-Access Data
 
@@ -175,7 +193,7 @@ class TermsOfService extends Component {
     return div({ style: styles.page }, [
       backgroundLogo,
       div({ style: styles.box }, [
-        div({ style: { color: colors.darkBlue[0], fontWeight: 600 } }, [
+        div({ style: { color: colors.gray[0], fontWeight: 600 } }, [
           span({ style: { fontSize: 36 } }, ['TERRA ']),
           span({ style: { fontSize: 24 } }, ['Terms of Service'])
         ]),
@@ -183,7 +201,7 @@ class TermsOfService extends Component {
           h(Markdown, {
             renderers: {
               heading: (text, level) => {
-                return `<h${level} style="color: ${colors.darkBlue[0]}; margin-bottom: 0">${text}</h${level}>`
+                return `<h${level} style="color: ${colors.gray[0]}; margin-bottom: 0">${text}</h${level}>`
               },
               paragraph: text => {
                 return `<p style="margin-top: 0">${text}</p>`

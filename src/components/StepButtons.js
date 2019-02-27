@@ -25,13 +25,13 @@ const styles = {
     flex: 'none',
     width: params.buttonWidth, height: params.buttonHeight,
     borderRadius: params.buttonHeight / 2, borderWidth: 2, borderStyle: 'solid',
-    borderColor: isActive ? colors.blue[0] : colors.gray[3],
-    backgroundColor: isActive ? colors.blue[1] : colors.gray[4],
+    borderColor: isActive ? colors.green[0] : colors.gray[3],
+    backgroundColor: isActive ? colors.green[1] : colors.gray[4],
     color: 'white',
     padding: '0 0.5rem 0 1.5rem'
   }),
   buttonLabel: {
-    textTransform: 'uppercase', fontWeight: 600, fontSize: params.fontSize, marginLeft: '0.5rem'
+    textTransform: 'uppercase', fontWeight: 500, fontSize: params.fontSize, marginLeft: '0.5rem'
   }
 }
 
@@ -46,7 +46,7 @@ const els = {
   selectionUnderline: div({
     style: {
       margin: '8px auto 0', width: params.buttonWidth - params.buttonHeight,
-      border: `4px solid ${colors.blue[0]}`, borderRadius: 4
+      border: `4px solid ${colors.green[0]}`, borderRadius: 4
     }
   })
 }
@@ -85,7 +85,7 @@ const StepButtons = ({ tabs, activeTab, onChangeTab, finalStep }) => {
       ([i, { key, title, isValid }]) => stepButton({ i: i * 1, key, title, isValid, selectedIndex, onChangeTab, tabs }),
       _.toPairs(tabs)
     ),
-    finalStep && _.every('isValid', tabs) && h(Fragment, [
+    finalStep && h(Fragment, [
       els.dot(true), els.dot(true),
       finalStep
     ])

@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { b, div, h, label } from 'react-hyperscript-helpers'
 import { pure } from 'recompose'
-import { buttonPrimary, Clickable, LabeledCheckbox, link, PageFadeBox, search, spinnerOverlay } from 'src/components/common'
+import { buttonPrimary, Clickable, LabeledCheckbox, link, PageBox, search, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { textInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
@@ -246,7 +246,7 @@ export const GroupDetails = ajaxCaller(class GroupDetails extends Component {
           }
         })
       ]),
-      h(PageFadeBox, [
+      h(PageBox, [
         div({ style: styles.toolbarContainer }, [
           div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, [
             `Group Management: ${groupName}`

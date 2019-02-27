@@ -39,14 +39,14 @@ export default class SignIn extends Component {
         style: {
           flexGrow: 1,
           padding: 82,
-          background: `no-repeat left bottom / 1400px url(${signInBg}) ${colors.gray[5]}`
+          background: `no-repeat left bottom / 1400px url(${signInBg}) #ededed`
         }
       }, [
         div({ style: { maxWidth: 900 } }, [
           div({ style: { display: 'flex', marginBottom: '1rem', alignItems: 'center' } }, [
             div({ style: { fontWeight: 500, marginRight: '2rem' } }, [
               div({ style: { fontSize: 40, color: colors.slate } }, ['Welcome to']),
-              div({ style: { fontSize: 80, color: colors.darkBlue[0] } }, ['TERRA'])
+              div({ style: { fontSize: 80, color: colors.gray[0] } }, ['TERRA'])
             ]),
             logo({ size: 265 })
           ]),

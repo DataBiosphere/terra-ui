@@ -17,7 +17,7 @@ import { Component } from 'src/libs/wrapped-components'
 
 const styles = {
   header: {
-    fontSize: 22, color: colors.darkBlue[0], fontWeight: 500, lineHeight: '22px',
+    fontSize: 22, color: colors.gray[0], fontWeight: 500, lineHeight: '22px',
     marginBottom: '1rem'
   }
 }
@@ -38,14 +38,14 @@ const makeCard = method => {
     }
   }, [
     div({ style: { flex: 1, padding: '15px 20px' } }, [
-      div({ style: { color: colors.blue[0], fontSize: 16, lineHeight: '20px', height: 40, marginBottom: 7 } }, [name]),
+      div({ style: { color: colors.green[0], fontSize: 16, lineHeight: '20px', height: 40, marginBottom: 7 } }, [name]),
       div({ style: { lineHeight: '20px', height: 100, whiteSpace: 'pre-wrap', overflow: 'hidden' } }, [synopsis])
     ]),
     div({
       style: {
         position: 'absolute', top: 0, right: 8,
         color: 'white', fontSize: 6, fontWeight: 'bold',
-        backgroundColor: colors.darkBlue[0],
+        backgroundColor: colors.gray[0],
         padding: '10px 2px 3px 2px'
       }
     }, ['WDL'])
@@ -105,7 +105,7 @@ const Code = ajaxCaller(class Code extends Component {
               ..._.map(makeCard, featuredMethods)
             ])
           ]),
-          div({ style: { width: 385, padding: '25px 30px', backgroundColor: colors.gray[5], lineHeight: '20px' } }, [
+          div({ style: { width: 385, padding: '25px 30px', backgroundColor: colors.grayBlue[4], lineHeight: '20px' } }, [
             div({ style: { ...styles.header, fontSize: 16 } }, 'FIND ADDITIONAL WORKFLOWS'),
             div({ style: { display: 'flex' } }, [
               logoTile(dockstoreLogo),

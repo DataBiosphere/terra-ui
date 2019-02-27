@@ -280,9 +280,9 @@ export const EntityUploader = ajaxCaller(class EntityUploader extends Component 
         (file && file.name) || div({ style: { color: colors.gray[2] } }, 'None'),
         h(Clickable, {
           style: {
-            ...Style.elements.card, flex: 1,
+            ...Style.elements.card.container, flex: 1,
             margin: '0.5rem 0',
-            backgroundColor: dragging ? colors.blue[3] : colors.gray[4], border: `1px dashed ${colors.gray[2]}`, boxShadow: 'none'
+            backgroundColor: dragging ? colors.green[6] : colors.gray[6], border: `1px dashed ${colors.gray[2]}`, boxShadow: 'none'
           },
           onClick: () => this.uploader.current.open()
         }, [
