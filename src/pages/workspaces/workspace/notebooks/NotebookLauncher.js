@@ -357,7 +357,10 @@ class NotebookEditor extends Component {
           `Error loading notebook, retry number ${localizeFailures}...` :
           'Loading notebook')
       ]),
-      (clusterStatus !== 'Running') && h(NotebookPreviewFrame, { ...this.props })
+      (clusterStatus !== 'Running') && h(Fragment, [
+        div({ style: { color: colors.gray[2], fontSize: 14, fontWeight: 'bold', padding: '0 0 0 2rem' } }, ['Preview of your notebook:']),
+        h(NotebookPreviewFrame, { ...this.props })
+      ])
     ])
   }
 }
