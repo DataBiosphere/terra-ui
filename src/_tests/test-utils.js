@@ -55,9 +55,7 @@ export const setupTest = async (browser, page) => {
   page.on('console', msg => console.log('PAGE LOG:', msg.text()))
 
   await Promise.all([
-    page.goto(appUrlBase),
-    wait(1000),
-    page.waitForNavigation({ waitUntil: 'networkidle0' }) // this is so that it waits until the signin button appears ..  | maybe increase the timeout instead?
+    page.goto(appUrlBase, { waitUntil: 'networkidle0' })//,
   ])
 
   const token = await getAccessToken()
@@ -89,16 +87,15 @@ export const cleanupTest = async (browser, page, token, workspaceName, billingPr
   // TODO: if test failed, change the name of the screenshot
   const screenshotPath = 'screenshots/endoftest-batch-'+workspaceName+'-.png'
   console.log('screenshot saved at: ' + screenshotPath)
-  await page.screenshot({path: screenshotPath})
+  await page.screenshot({ path: screenshotPath })
   // if debug, wait 1 second
   await wait(2000)
-  // TODO: clean up here?
+  // clean up workspace via api call
   await fetch(rawlsUrl + '/api/workspaces/' + billingProjectName + '/' + workspaceName,
     { 'headers': { 'authorization': 'Bearer ' + token, 'x-app-id': 'Saturn' }, 'body': null, 'method': 'DELETE', 'mode': 'cors' })
-  // clean up in beforeEach as well?ra
+  // clean up in beforeEach as well?
   console.log('cleanup 🎉🎉🎉')
   await page.close()
-  await browser.close()
   await browser.close()
 }
 
@@ -127,4 +124,35 @@ export const createWorkspace = async (page, workspaceName, billingProjectName) =
 
   // confirm workspace created successfully
   await expect(page).toMatchElement('[datatestid="workspaceInfoSidePanel"]')
+}
+
+// waitForNetworkIdle is useful when you expect a network request without a page navigation
+export async function waitForNetworkIdle(page, timeout, maxInflightRequests = 0) {
+  page.on('request', onRequestStarted)
+  page.on('requestfinished', onRequestFinished)
+  page.on('requestfailed', onRequestFinished)
+
+  let inflight = 0
+  let fulfill
+  const promise = new Promise(x => fulfill = x)
+  let timeoutId = setTimeout(onTimeoutDone, timeout)
+  return promise
+
+  function onTimeoutDone() {
+    page.removeListener('request', onRequestStarted)
+    page.removeListener('requestfinished', onRequestFinished)
+    page.removeListener('requestfailed', onRequestFinished)
+    fulfill()
+  }
+
+  function onRequestStarted() {
+    ++inflight
+    if (inflight > maxInflightRequests) clearTimeout(timeoutId)
+  }
+
+  function onRequestFinished() {
+    if (inflight === 0) return
+    --inflight
+    if (inflight === maxInflightRequests) timeoutId = setTimeout(onTimeoutDone, timeout)
+  }
 }

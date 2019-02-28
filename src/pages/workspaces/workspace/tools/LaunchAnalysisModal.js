@@ -23,9 +23,9 @@ export default ajaxCaller(class LaunchAnalysisModal extends Component {
           onClick: () => {
             this.setState({ launching: true })
             this.doLaunch()
-          }
+          }, dataTestId: 'launch-button'
         }, ['Launch']) :
-        buttonPrimary({ onClick: onDismiss, dataTestId: 'launch-button' }, ['OK'])
+        buttonPrimary({ onClick: onDismiss }, ['OK'])
     }, [
       !launching && div('Confirm launch'),
       message && div([spinner({ style: { marginRight: '0.5rem' } }), message]),
