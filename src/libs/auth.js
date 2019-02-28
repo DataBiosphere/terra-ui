@@ -7,6 +7,7 @@ import { getConfig } from 'src/libs/config'
 import { reportError } from 'src/libs/error'
 import * as Utils from 'src/libs/utils'
 
+
 const getAuthInstance = () => {
   return window.gapi.auth2.getAuthInstance()
 }
@@ -93,13 +94,19 @@ window.forceSignIn = async token => {
 authStore.subscribe(async (state, oldState) => {
   if (!oldState.isSignedIn && state.isSignedIn) {
     clearNotification(sessionTimeoutProps.id)
-    const tideWhitelist =  await Ajax().Buckets.getObjectPreview('terra-tide-prod-data', 'whitelistEmails', undefined, true).then(res => res.json())
-    Ajax().User.getStatus().then(response => {
+
+    Ajax().User.getStatus().then(async response => {
       if (response.status === 404) {
         const isTrustedEmail = _.includes(state.user.email.match(/@.*/)[0],
           ['@broadinstitute.org', '@google.com', '@channing.harvard.edu', '@duke.corp-partner.google.com', '@stanford.corp-partner.google.com'])
-        if (getConfig().isProd && !isTrustedEmail && !ProdWhitelist.includes(md5(state.user.email)) && !tideWhitelist.includes(md5(state.user.email))) {
-          return 'unlisted'
+
+        if (getConfig().isProd && !isTrustedEmail && !ProdWhitelist.includes(md5(state.user.email))) {
+          const tideWhitelist = await Ajax()
+            .Buckets
+            .getObjectPreview('terra-tide-prod-data', 'whitelistEmails', undefined, true)
+            .then(res => res.json())
+
+          if (!tideWhitelist.includes(md5(state.user.email))) return 'unlisted'
         } else {
           return 'unregistered'
         }
