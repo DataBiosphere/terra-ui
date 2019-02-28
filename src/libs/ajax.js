@@ -301,22 +301,29 @@ const Billing = signal => ({
     return res.json()
   },
 
-  project: projectId => {
+  project: projectName => {
     const removeRole = async (role, email) => {
-      return fetchRawls(`billing/${projectId}/${role}/${email}`, _.merge(authOpts(), { signal, method: 'DELETE' }))
+      return fetchRawls(`billing/${projectName}/${role}/${email}`, _.merge(authOpts(), { signal, method: 'DELETE' }))
     }
 
     return {
       listUsers: async () => {
-        const res = await fetchRawls(`billing/${projectId}/members`, _.merge(authOpts(), { signal }))
+        const res = await fetchRawls(`billing/${projectName}/members`, _.merge(authOpts(), { signal }))
         return res.json()
       },
 
       addUser: async (role, email) => {
-        return fetchRawls(`billing/${projectId}/${role}/${email}`, _.merge(authOpts(), { signal, method: 'PUT' }))
+        return fetchRawls(`billing/${projectName}/${role}/${email}`, _.merge(authOpts(), { signal, method: 'PUT' }))
       },
       removeUser: async (roles, email) => {
         return Promise.all(_.map(role => removeRole(role, email), roles))
+      },
+
+      changeUserRoles: async (email, oldRoles, newRoles) => {
+        if (!_.isEqual(oldRoles, newRoles)) {
+          await Promise.all(_.map(role => addRole(role, email), _.difference(newRoles, oldRoles)))
+          return Promise.all(_.map(role => removeRole(role, email), _.difference(oldRoles, newRoles)))
+        }
       }
     }
   }

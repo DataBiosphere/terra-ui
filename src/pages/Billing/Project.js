@@ -82,6 +82,54 @@ const NewUserModal = ajaxCaller(class NewUserModal extends Component {
   }
 })
 
+const EditUserModal = ajaxCaller(class EditUserModal extends Component {
+  constructor(props) {
+    super(props)
+    this.state = {
+      role: props.user.role
+    }
+  }
+
+  render() {
+    const { onDismiss, user: { email } } = this.props
+    const { role, submitting } = this.state
+
+    return h(Modal, {
+      onDismiss,
+      title: 'Edit Roles',
+      okButton: buttonPrimary({
+        onClick: () => this.submit()
+      }, ['Change Role'])
+    }, [
+      div({ style: { marginBottom: '0.25rem' } }, [
+        'Edit role for ',
+        b([email])
+      ]),
+      h(Select, {
+        value: role,
+        onChange: ({ value }) => this.setState({ role: value }),
+        options: [{ value: 'User', label: 'User' }, { value: 'Owner', label: 'Owner' }]
+      }),
+      submitting && spinnerOverlay
+    ])
+  }
+
+  async submit() {
+    const { projectName, user: { email }, onSuccess, ajax: { Billing } } = this.props
+    const { role } = this.state
+
+    try {
+      this.setState({ submitting: true })
+      await Billing.project(projectName).changeUserRoles(email, this.props.user.role, role)
+      onSuccess()
+    } catch (error) {
+      this.setState({ submitting: false })
+      reportError('Error updating user', error)
+    }
+  }
+})
+
+
 const DeleteUserModal = pure(({ onDismiss, onSubmit, userEmail }) => {
   return h(Modal, {
     onDismiss,
@@ -101,6 +149,10 @@ export const ProjectUsersList = ajaxCaller(class ProjectUsersList extends Compon
     this.state = {
       filter: '',
       projectUsers: null,
+      addingUser: false,
+      editingUser: false,
+      deletingUser: false,
+      updating: false,
       ...StateHistory.get()
     }
   }
@@ -109,7 +161,7 @@ export const ProjectUsersList = ajaxCaller(class ProjectUsersList extends Compon
     const { ajax: { Billing }, projectName } = this.props
 
     try {
-      this.setState({ loading: true, addingUser: false, updating: false })
+      this.setState({ loading: true, addingUser: false, deletingUser: false, updating: false, editingUser: false })
       const rawProjectUsers = await Billing.project(projectName).listUsers()
       const projectUsers = _.flow(
         _.groupBy('email'),
@@ -130,7 +182,7 @@ export const ProjectUsersList = ajaxCaller(class ProjectUsersList extends Compon
 
   render() {
     const { projectName, ajax: { Billing } } = this.props
-    const { projectUsers, updating, filter, addingUser, deletingUser } = this.state
+    const { projectUsers, updating, filter, addingUser, deletingUser, editingUser } = this.state
 
     return h(Fragment, [
       h(TopBar, { title: 'Billing', href: Nav.getLink('billing') }, [
@@ -181,15 +233,28 @@ export const ProjectUsersList = ajaxCaller(class ProjectUsersList extends Compon
                 }
               },
               {
-                size: { basis: 175, grow: 0 },
+                size: { basis: 250, grow: 0 },
                 headerRenderer: () => h(HeaderCell, ['Role']),
                 cellRenderer: ({ rowIndex }) => {
                   return h(Fragment, [
                     _.join(', ', _.sortBy(_.identity, projectUsers[rowIndex].role)),
-                    h(Clickable, {
-                      style: { marginLeft: 'auto', color: colors.green[0] },
-                      onClick: () => this.setState({ deletingUser: projectUsers[rowIndex] })
-                    }, [icon('trash')])
+                    div({
+                      style: {
+                        marginLeft: 'auto',
+                        color: colors.green[0],
+                        display: 'flex'
+                      }
+                    }, [
+                      h(Clickable, {
+                        tooltip: 'Edit Role',
+                        style: { marginRight: '0.5rem' },
+                        onClick: () => this.setState({ editingUser: projectUsers[rowIndex] })
+                      }, [icon('pencil')]),
+                      h(Clickable, {
+                        tooltip: 'Remove User',
+                        onClick: () => this.setState({ deletingUser: projectUsers[rowIndex] })
+                      }, [icon('trash')])
+                    ])
                   ])
                 }
               }
@@ -199,6 +264,11 @@ export const ProjectUsersList = ajaxCaller(class ProjectUsersList extends Compon
         addingUser && h(NewUserModal, {
           projectName,
           onDismiss: () => this.setState({ addingUser: false }),
+          onSuccess: () => this.refresh()
+        }),
+        editingUser && h(EditUserModal, {
+          user: editingUser, projectName,
+          onDismiss: () => this.setState({ editingUser: false }),
           onSuccess: () => this.refresh()
         }),
         !!deletingUser && h(DeleteUserModal, {
@@ -211,7 +281,7 @@ export const ProjectUsersList = ajaxCaller(class ProjectUsersList extends Compon
               this.refresh()
             } catch (error) {
               this.setState({ updating: false })
-              reportError('Error removing member from group', error)
+              reportError('Error removing member from billing project', error)
             }
           }
         }),
