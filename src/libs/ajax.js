@@ -308,8 +308,7 @@ const Billing = signal => ({
       },
 
       addUser: async (role, email) => {
-        const res = await fetchRawls(`billing/${projectId}/${role}/${email}`, _.merge(authOpts(), { signal, method: 'PUT' }))
-        return res.json()
+        return fetchRawls(`billing/${projectId}/${role}/${email}`, _.merge(authOpts(), { signal, method: 'PUT' }))
       },
       removeUser: async (role, email) => {
         const res = await fetchRawls(`billing/${projectId}/${role}/${email}`, _.merge(authOpts(), { signal, method: 'DELETE' }))

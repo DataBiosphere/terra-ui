@@ -1,10 +1,9 @@
 import _ from 'lodash/fp'
 import { Fragment } from 'react'
-import { div, h, label } from 'react-hyperscript-helpers'
-import { buttonPrimary, Clickable, LabeledCheckbox, PageBox, search, Select, spinnerOverlay } from 'src/components/common'
+import { div, h } from 'react-hyperscript-helpers'
+import { buttonPrimary, Clickable, PageBox, search, Select, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { textInput } from 'src/components/input'
-import TooltipTrigger from 'src/components/TooltipTrigger'
 import TopBar from 'src/components/TopBar'
 import { ajaxCaller } from 'src/libs/ajax'
 import { reportError } from 'src/libs/error'
@@ -25,8 +24,7 @@ const NewUserModal = ajaxCaller(class NewUserModal extends Component {
   constructor(props) {
     super(props)
     this.state = {
-      userEmail: '',
-      role: ['member']
+      userEmail: ''
     }
   }
 
@@ -98,7 +96,7 @@ export const ProjectUsersList = ajaxCaller(class ProjectUsersList extends Compon
     const { ajax: { Billing }, projectName } = this.props
 
     try {
-      this.setState({ isDataLoaded: false })
+      this.setState({ loading: true, addingUser: false, updating: false })
       const rawProjectUsers = await Billing.project(projectName).listUsers()
       const projectUsers = _.flow(
         _.groupBy('email'),
@@ -108,6 +106,8 @@ export const ProjectUsersList = ajaxCaller(class ProjectUsersList extends Compon
       this.setState({ projectUsers, isDataLoaded: true })
     } catch (error) {
       reportError('Error loading billing project users list', error)
+    } finally {
+      this.setState({ loading: false })
     }
   }
 
@@ -117,7 +117,7 @@ export const ProjectUsersList = ajaxCaller(class ProjectUsersList extends Compon
 
   render() {
     const { projectName } = this.props
-    const { projectUsers, isDataLoaded, filter, addingUser } = this.state
+    const { projectUsers, updating, filter, addingUser } = this.state
 
     return h(Fragment, [
       h(TopBar, { title: 'Billing', href: Nav.getLink('billing') }, [
@@ -136,7 +136,7 @@ export const ProjectUsersList = ajaxCaller(class ProjectUsersList extends Compon
           flex: 1
         }
       }, [
-        div({ style: {...styles.toolbarContainer, marginBottom: '1rem'} }, [
+        div({ style: { ...styles.toolbarContainer, marginBottom: '1rem' } }, [
           div({
             style: {
               ...Style.elements.sectionHeader,
@@ -180,7 +180,7 @@ export const ProjectUsersList = ajaxCaller(class ProjectUsersList extends Compon
           onDismiss: () => this.setState({ addingUser: false }),
           onSuccess: () => this.refresh()
         }),
-        !isDataLoaded && spinnerOverlay
+        updating && spinnerOverlay
       ])
 
     ])
