@@ -92,7 +92,7 @@ const EditUserModal = ajaxCaller(class EditUserModal extends Component {
 
   render() {
     const { onDismiss, user: { email } } = this.props
-    const { role, submitting } = this.state
+    const { newRole, submitting } = this.state
 
     return h(Modal, {
       onDismiss,
@@ -106,8 +106,8 @@ const EditUserModal = ajaxCaller(class EditUserModal extends Component {
         b([email])
       ]),
       h(Select, {
-        value: role,
-        onChange: ({ value }) => this.setState({ role: value }),
+        value: newRole,
+        onChange: ({ value }) => this.setState({ newRole: value }),
         options: [{ value: 'User', label: 'User' }, { value: 'Owner', label: 'Owner' }]
       }),
       submitting && spinnerOverlay
@@ -115,12 +115,13 @@ const EditUserModal = ajaxCaller(class EditUserModal extends Component {
   }
 
   async submit() {
-    const { projectName, user: { email }, onSuccess, ajax: { Billing } } = this.props
-    const { role } = this.state
+    const { projectName, user: { email, role }, onSuccess, ajax: { Billing } } = this.props
+    const { newRole } = this.state
 
     try {
       this.setState({ submitting: true })
-      await Billing.project(projectName).changeUserRoles(email, this.props.user.role, role)
+      await Billing.project(projectName).removeUser(role, email)
+      await Billing.project(projectName).addUser(newRole, email)
       onSuccess()
     } catch (error) {
       this.setState({ submitting: false })

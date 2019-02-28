@@ -315,15 +315,9 @@ const Billing = signal => ({
       addUser: async (role, email) => {
         return fetchRawls(`billing/${projectName}/${role}/${email}`, _.merge(authOpts(), { signal, method: 'PUT' }))
       },
+
       removeUser: async (roles, email) => {
         return Promise.all(_.map(role => removeRole(role, email), roles))
-      },
-
-      changeUserRoles: async (email, oldRoles, newRoles) => {
-        if (!_.isEqual(oldRoles, newRoles)) {
-          await Promise.all(_.map(role => addRole(role, email), _.difference(newRoles, oldRoles)))
-          return Promise.all(_.map(role => removeRole(role, email), _.difference(oldRoles, newRoles)))
-        }
       }
     }
   }
