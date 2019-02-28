@@ -76,7 +76,7 @@ const NotebookLauncher = _.flow(
 )(({ workspace, app, queryParams = {}, ...props }) => {
   return Utils.canWrite(workspace.accessLevel) && workspace.canCompute && !queryParams['read-only'] ?
     h(NotebookEditor, { workspace, app, ...props }) :
-    h(NotebookViewer, { workspace, ...props })
+    h(NotebookPreview, { workspace, ...props })
 })
 
 class ReadOnlyMessage extends Component {
@@ -104,7 +104,20 @@ class ReadOnlyMessage extends Component {
   }
 }
 
-class NotebookViewer extends Component {
+class NotebookPreview extends Component {
+  render() {
+    const { namespace, name } = this.props
+    return h(Fragment, [
+      linkButton({
+        style: { position: 'absolute', top: 20, left: 'calc(50% + 570px)' },
+        onClick: () => Nav.goToPath('workspace-notebooks', { namespace, name })
+      }, [icon('times-circle', { size: 30 })]),
+      h(NotebookPreviewFrame, { ...this.props })
+    ])
+  }
+}
+
+class NotebookPreviewFrame extends Component {
   constructor(props) {
     super(props)
     this.state = {
@@ -127,17 +140,12 @@ class NotebookViewer extends Component {
   }
 
   render() {
-    const { namespace, name } = this.props
     const { preview, busy } = this.state
     return h(Fragment, [
       preview && iframe({
         style: { border: 'none', flex: 1 },
         srcDoc: preview
       }),
-      preview && linkButton({
-        style: { position: 'absolute', top: 20, left: 'calc(50% + 570px)' },
-        onClick: () => Nav.goToPath('workspace-notebooks', { namespace, name })
-      }, [icon('times-circle', { size: 30 })]),
       busy && spinnerOverlay
     ])
   }
@@ -301,6 +309,8 @@ class NotebookEditor extends Component {
   render() {
     const { url, saving } = this.state
     const { namespace, clusters, name, app } = this.props
+    const cluster = getCluster(this.props.clusters) // Note: reading up-to-date prop
+    const status = cluster && cluster.status
 
     if (url) {
       return h(Fragment, [
@@ -316,7 +326,10 @@ class NotebookEditor extends Component {
         saving && spinnerOverlay
       ])
     }
-    return h(loadingMessage, { clusters })
+    return h(Fragment, [
+      h(loadingMessage, { clusters }),
+      (status !== 'Running') && h(NotebookPreviewFrame, { ...this.props })
+    ])
   }
 }
 
