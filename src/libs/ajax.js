@@ -295,6 +295,7 @@ const Billing = signal => ({
     const res = await fetchRawls('user/billing', _.merge(authOpts(), { signal }))
     return res.json()
   },
+
   listProjectsExtended: async () => {
     const res = await fetchSam('api/resources/v1/billing-project', _.merge(authOpts(), { signal }))
     return res.json()
@@ -311,8 +312,7 @@ const Billing = signal => ({
         return fetchRawls(`billing/${projectId}/${role}/${email}`, _.merge(authOpts(), { signal, method: 'PUT' }))
       },
       removeUser: async (role, email) => {
-        const res = await fetchRawls(`billing/${projectId}/${role}/${email}`, _.merge(authOpts(), { signal, method: 'DELETE' }))
-        return res.json()
+        return fetchRawls(`billing/${projectId}/${role}/${email}`, _.merge(authOpts(), { signal, method: 'DELETE' }))
       }
     }
   }

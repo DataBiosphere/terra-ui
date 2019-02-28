@@ -1,6 +1,7 @@
 import _ from 'lodash/fp'
 import { Fragment } from 'react'
-import { div, h } from 'react-hyperscript-helpers'
+import { b, div, h } from 'react-hyperscript-helpers'
+import { pure } from 'recompose'
 import { buttonPrimary, Clickable, PageBox, search, Select, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { textInput } from 'src/components/input'
@@ -40,7 +41,7 @@ const NewUserModal = ajaxCaller(class NewUserModal extends Component {
       okButton: buttonPrimary({
         tooltip: Utils.summarizeErrors(errors),
         onClick: () => this.submit(),
-        disabled: errors
+        disabled: errors || !role
       }, ['Add User'])
     }, [
       Forms.requiredFormLabel('User email'),
@@ -81,6 +82,18 @@ const NewUserModal = ajaxCaller(class NewUserModal extends Component {
   }
 })
 
+const DeleteUserModal = pure(({ onDismiss, onSubmit, userEmail }) => {
+  return h(Modal, {
+    onDismiss,
+    title: 'Confirm',
+    okButton: buttonPrimary({
+      onClick: onSubmit
+    }, ['Remove'])
+  }, [
+    div(['Are you sure you want to remove']),
+    b(`${userEmail}?`)
+  ])
+})
 
 export const ProjectUsersList = ajaxCaller(class ProjectUsersList extends Component {
   constructor(props) {
@@ -116,8 +129,8 @@ export const ProjectUsersList = ajaxCaller(class ProjectUsersList extends Compon
   }
 
   render() {
-    const { projectName } = this.props
-    const { projectUsers, updating, filter, addingUser } = this.state
+    const { projectName, ajax: { Billing } } = this.props
+    const { projectUsers, updating, filter, addingUser, deletingUser } = this.state
 
     return h(Fragment, [
       h(TopBar, { title: 'Billing', href: Nav.getLink('billing') }, [
@@ -168,9 +181,17 @@ export const ProjectUsersList = ajaxCaller(class ProjectUsersList extends Compon
                 }
               },
               {
-                size: { basis: 150, grow: 0 },
+                size: { basis: 175, grow: 0 },
                 headerRenderer: () => h(HeaderCell, ['Role']),
-                cellRenderer: ({ rowIndex }) => _.join(', ', projectUsers[rowIndex].role)
+                cellRenderer: ({ rowIndex }) => {
+                  return h(Fragment, [
+                    _.join(', ', projectUsers[rowIndex].role),
+                    h(Clickable, {
+                      style: { marginLeft: 'auto', color: colors.green[0] },
+                      onClick: () => this.setState({ deletingUser: projectUsers[rowIndex] })
+                    }, [icon('trash')])
+                  ])
+                }
               }
             ]
           })
@@ -179,6 +200,20 @@ export const ProjectUsersList = ajaxCaller(class ProjectUsersList extends Compon
           projectName,
           onDismiss: () => this.setState({ addingUser: false }),
           onSuccess: () => this.refresh()
+        }),
+        !!deletingUser && h(DeleteUserModal, {
+          userEmail: deletingUser.email,
+          onDismiss: () => this.setState({ deletingUser: false }),
+          onSubmit: async () => {
+            try {
+              this.setState({ updating: true, deletingUser: false })
+              await Billing.project(projectName).removeUser(deletingUser.role, deletingUser.email)
+              this.refresh()
+            } catch (error) {
+              this.setState({ updating: false })
+              reportError('Error removing member from group', error)
+            }
+          }
         }),
         updating && spinnerOverlay
       ])
