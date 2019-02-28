@@ -302,6 +302,10 @@ const Billing = signal => ({
   },
 
   project: projectId => {
+    const removeRole = async (role, email) => {
+      return fetchRawls(`billing/${projectId}/${role}/${email}`, _.merge(authOpts(), { signal, method: 'DELETE' }))
+    }
+
     return {
       listUsers: async () => {
         const res = await fetchRawls(`billing/${projectId}/members`, _.merge(authOpts(), { signal }))
@@ -311,8 +315,8 @@ const Billing = signal => ({
       addUser: async (role, email) => {
         return fetchRawls(`billing/${projectId}/${role}/${email}`, _.merge(authOpts(), { signal, method: 'PUT' }))
       },
-      removeUser: async (role, email) => {
-        return fetchRawls(`billing/${projectId}/${role}/${email}`, _.merge(authOpts(), { signal, method: 'DELETE' }))
+      removeUser: async (roles, email) => {
+        return Promise.all(_.map(role => removeRole(role, email), roles))
       }
     }
   }

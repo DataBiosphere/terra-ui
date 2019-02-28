@@ -105,7 +105,7 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
               {
                 size: { basis: 150, grow: 0 },
                 headerRenderer: () => h(HeaderCell, ['Role']),
-                cellRenderer: ({ rowIndex }) => billingProjects[rowIndex].role
+                cellRenderer: ({ rowIndex }) => _.join(', ', _.sortBy(_.identity, billingProjects[rowIndex].role))
               }
             ]
           })

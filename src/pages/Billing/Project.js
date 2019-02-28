@@ -185,7 +185,7 @@ export const ProjectUsersList = ajaxCaller(class ProjectUsersList extends Compon
                 headerRenderer: () => h(HeaderCell, ['Role']),
                 cellRenderer: ({ rowIndex }) => {
                   return h(Fragment, [
-                    _.join(', ', projectUsers[rowIndex].role),
+                    _.join(', ', _.sortBy(_.identity, projectUsers[rowIndex].role)),
                     h(Clickable, {
                       style: { marginLeft: 'auto', color: colors.green[0] },
                       onClick: () => this.setState({ deletingUser: projectUsers[rowIndex] })
