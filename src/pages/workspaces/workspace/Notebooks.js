@@ -55,7 +55,7 @@ class NotebookCard extends Component {
           as: 'a',
           href: notebookLink + `?read-only=true`,
           tooltipSide: 'left',
-          tooltip: canWrite && 'Open without runtime' // should this be cluster? we hardly say "cluster" in terra
+          tooltip: canWrite && 'Open without runtime'
         }, [menuIcon('eye'), 'Open read-only']),
         h(MenuButton, {
           disabled: !canWrite,

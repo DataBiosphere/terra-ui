@@ -16,7 +16,7 @@ import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer
 
 const getCluster = clusters => {
   return _.flow(
-    _.remove({ status: 'Deleting' }), // do we want to have a specific message for when deleting a cluster?
+    _.remove({ status: 'Deleting' }),
     _.sortBy('createdDate'),
     _.first
   )(clusters)
@@ -29,7 +29,7 @@ const statusMessage = ({ clusters }, clusterStatus) => {
   const isStopping = clusterStatus === 'Stopping'
   const isStopped = clusterStatus === 'Stopped'
 
-  const creatingMessage = 'Creating notebook runtime, this may take several minutes. Here is a read-only version of the notebook in the meantime.'
+  const creatingMessage = 'Creating notebook runtime, this may take several minutes. Here is a read-only version of your notebook:'
   const startingMessage = 'Starting notebook runtime'
   const runningMessage = 'Loading notebook'
   const stoppingMessage = 'Restarting notebook runtime'
@@ -94,7 +94,7 @@ class ReadOnlyMessage extends Component {
       div({ style: { fontSize: 16, fontWeight: 'bold' } },
         ['Read-only']),
       workspace.canCompute ?
-        div({ style: { fontSize: 14 } }, [link({ href: window.location.href.split('?')[0] }, 'Switch to edit')]) // TODO: how to remove query params
+        div({ style: { fontSize: 14 } }, [link({ href: window.location.href.split('?')[0] }, 'Click here to edit your notebook')])
         : div({ style: { fontSize: 14 } }, ['To edit, ', link({ onClick: () => this.setState({ copying: true }) }, 'copy this notebook'), ' to another workspace']),
       copying && h(ExportNotebookModal, {
         printName: notebookName.slice(0, -6), workspace, fromLauncher: true,
