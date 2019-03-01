@@ -52,6 +52,12 @@ class NotebookCard extends Component {
           tooltipSide: 'left'
         }, [menuIcon('edit'), 'Open']),
         h(MenuButton, {
+          as: 'a',
+          href: notebookLink + '?read-only=true',
+          tooltip: canWrite && 'Open without runtime',
+          tooltipSide: 'left'
+        }, [menuIcon('eye'), 'Open read-only']),
+        h(MenuButton, {
           onClick: async () => {
             try {
               await clipboard.writeText(`${window.location.host}/${notebookLink}`)
