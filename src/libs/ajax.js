@@ -214,7 +214,7 @@ const User = signal => ({
   },
 
   uploadAttachment: async file => {
-    const res = await fetch(`https://broadinstitute.zendesk.com/api/v2/uploads?filename=${file.name}`, {
+    const res = await fetchOk(`https://broadinstitute.zendesk.com/api/v2/uploads?filename=${file.name}`, {
       method: 'POST',
       body: file,
       headers: {
@@ -492,7 +492,7 @@ const Workspaces = signal => ({
       },
 
       importEntities: async url => {
-        const res = await fetch(url)
+        const res = await fetchOk(url)
         const payload = await res.json()
         const body = _.map(({ name, entityType, attributes }) => {
           return { name, entityType, operations: attributesUpdateOps(attributes) }
