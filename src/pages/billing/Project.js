@@ -54,7 +54,7 @@ const NewUserModal = ajaxCaller(class NewUserModal extends Component {
       h(Select, {
         value: role,
         onChange: ({ value }) => this.setState({ role: value }),
-        options: [{ value: 'User', label: 'User' }, { value: 'Owner', label: 'Owner' }]
+        options: ['User', 'Owner']
       }),
       div({ style: { marginTop: '1rem' } },
         'Warning: Adding any user to this project will mean they can incur costs to the billing associated with this project. '),
@@ -108,7 +108,7 @@ const EditUserModal = ajaxCaller(class EditUserModal extends Component {
       h(Select, {
         value: newRole,
         onChange: ({ value }) => this.setState({ newRole: value }),
-        options: [{ value: 'User', label: 'User' }, { value: 'Owner', label: 'Owner' }]
+        options: ['User', 'Owner']
       }),
       submitting && spinnerOverlay
     ])
