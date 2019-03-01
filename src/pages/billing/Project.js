@@ -2,11 +2,14 @@ import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { b, div, h } from 'react-hyperscript-helpers'
 import { pure } from 'recompose'
-import { buttonPrimary, Clickable, PageBox, search, Select, spinnerOverlay } from 'src/components/common'
+import { buttonPrimary, Clickable, link, PageBox, search, Select, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { textInput } from 'src/components/input'
+import Modal from 'src/components/Modal'
+import TooltipTrigger from 'src/components/TooltipTrigger'
 import TopBar from 'src/components/TopBar'
 import { ajaxCaller } from 'src/libs/ajax'
+import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import * as Forms from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
@@ -14,12 +17,8 @@ import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
-import { styles } from 'src/pages/groups/common'
-import { FlexTable, HeaderCell } from 'src/components/table'
-import { AutoSizer } from 'react-virtualized'
-import colors from 'src/libs/colors'
-import Modal from 'src/components/Modal'
 import validate from 'validate.js'
+
 
 const NewUserModal = ajaxCaller(class NewUserModal extends Component {
   constructor(props) {
@@ -144,6 +143,40 @@ const DeleteUserModal = pure(({ onDismiss, onSubmit, userEmail }) => {
   ])
 })
 
+const MemberCard = pure(({ member: { email, role }, ownerCanEdit, onEdit, onDelete }) => {
+  const canEdit = ownerCanEdit || !_.includes('Owner', role)
+  const tooltip = !canEdit && 'This user is the only owner of this project'
+
+  return div({
+    style: Style.cardList.longCard
+  }, [
+    div({ style: { flex: '1' } }, [email]),
+    div({ style: { flex: '0 0 150px', textTransform: 'capitalize' } }, [_.join(', ', role)]),
+    div({ style: { flex: 'none' } }, [
+      link({
+        onClick: onEdit
+      }, ['Edit Role']),
+      ' | ',
+      h(TooltipTrigger, { content: tooltip }, [
+        link({
+          disabled: !canEdit,
+          onClick: canEdit ? onDelete : undefined
+        }, ['Remove'])
+      ])
+    ])
+  ])
+})
+
+const NewUserCard = pure(({ onClick }) => {
+  return h(Clickable, {
+    style: Style.cardList.shortCreateCard,
+    onClick
+  }, [
+    div(['Add a User']),
+    icon('plus-circle', { style: { marginTop: '0.5rem' }, size: 21 })
+  ])
+})
+
 export const ProjectUsersList = ajaxCaller(class ProjectUsersList extends Component {
   constructor(props) {
     super(props)
@@ -183,7 +216,8 @@ export const ProjectUsersList = ajaxCaller(class ProjectUsersList extends Compon
 
   render() {
     const { projectName, ajax: { Billing } } = this.props
-    const { projectUsers, updating, filter, addingUser, deletingUser, editingUser } = this.state
+    const { projectUsers, loading, updating, filter, addingUser, deletingUser, editingUser } = this.state
+    const ownerCanEdit = _.filter(({ role }) => _.includes('Owner', role), projectUsers).length > 1
 
     return h(Fragment, [
       h(TopBar, { title: 'Billing', href: Nav.getLink('billing') }, [
@@ -202,65 +236,28 @@ export const ProjectUsersList = ajaxCaller(class ProjectUsersList extends Compon
           flex: 1
         }
       }, [
-        div({ style: { ...styles.toolbarContainer, marginBottom: '1rem' } }, [
+        div({ style: { ...Style.cardList.toolbarContainer, marginBottom: '1rem' } }, [
           div({
             style: {
               ...Style.elements.sectionHeader,
               textTransform: 'uppercase'
             }
-          }, [`Billing Project - ${projectName}`]),
-          h(Clickable, {
-            style: { marginLeft: '1rem' },
-            tooltip: 'Add user',
-            onClick: () => this.setState({ addingUser: true })
-          }, [
-            icon('plus-circle', {
-              size: 20,
-              style: { color: colors.green[0] }
-            })
-          ])
+          }, [`Billing Project - ${projectName}`])
         ]),
-        projectUsers && !!projectUsers.length && h(AutoSizer, [
-          ({ height }) => h(FlexTable, {
-            width: 600,
-            height,
-            rowCount: projectUsers.length,
-            columns: [
-              {
-                size: { basis: 200 },
-                headerRenderer: () => h(HeaderCell, ['Email']),
-                cellRenderer: ({ rowIndex }) => {
-                  return projectUsers[rowIndex].email
-                }
-              },
-              {
-                size: { basis: 250, grow: 0 },
-                headerRenderer: () => h(HeaderCell, ['Role']),
-                cellRenderer: ({ rowIndex }) => {
-                  return h(Fragment, [
-                    _.join(', ', _.sortBy(_.identity, projectUsers[rowIndex].role)),
-                    div({
-                      style: {
-                        marginLeft: 'auto',
-                        color: colors.green[0],
-                        display: 'flex'
-                      }
-                    }, [
-                      h(Clickable, {
-                        tooltip: 'Edit Role',
-                        style: { marginRight: '0.5rem' },
-                        onClick: () => this.setState({ editingUser: projectUsers[rowIndex] })
-                      }, [icon('pencil')]),
-                      h(Clickable, {
-                        tooltip: 'Remove User',
-                        onClick: () => this.setState({ deletingUser: projectUsers[rowIndex] })
-                      }, [icon('trash')])
-                    ])
-                  ])
-                }
-              }
-            ]
-          })
+        div({ style: Style.cardList.cardContainer }, [
+          h(NewUserCard, {
+            onClick: () => this.setState({ addingUser: true })
+          }),
+          div({ style: { flexGrow: 1 } },
+            _.map(member => {
+              return h(MemberCard, {
+                member, ownerCanEdit,
+                onEdit: () => this.setState({ editingUser: member }),
+                onDelete: () => this.setState({ deletingUser: member })
+              })
+            }, _.filter(({ email }) => Utils.textMatch(filter, email), projectUsers))
+          ),
+          loading && spinnerOverlay
         ]),
         addingUser && h(NewUserModal, {
           projectName,
@@ -302,7 +299,7 @@ export const ProjectUsersList = ajaxCaller(class ProjectUsersList extends Compon
 
 
 export const addNavPaths = () => {
-  Nav.defPath('project-users-list', {
+  Nav.defPath('project', {
     path: '/billing/:projectName',
     component: ProjectUsersList,
     title: ({ projectName }) => `Billing Management - ${projectName}`

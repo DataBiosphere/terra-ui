@@ -17,7 +17,6 @@ import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
-import { styles } from 'src/pages/groups/common'
 import validate from 'validate.js'
 
 
@@ -158,7 +157,7 @@ const MemberCard = pure(({ member: { email, role }, adminCanEdit, onEdit, onDele
   const tooltip = !canEdit && 'This user is the only admin of this group'
 
   return div({
-    style: styles.longCard
+    style: Style.cardList.longCard
   }, [
     div({ style: { flex: '1' } }, [email]),
     div({ style: { flex: '0 0 150px', textTransform: 'capitalize' } }, [_.join(', ', role)]),
@@ -179,7 +178,7 @@ const MemberCard = pure(({ member: { email, role }, adminCanEdit, onEdit, onDele
 
 const NewUserCard = pure(({ onClick }) => {
   return h(Clickable, {
-    style: styles.shortCreateCard,
+    style: Style.cardList.shortCreateCard,
     onClick
   }, [
     div(['Add a User']),
@@ -247,12 +246,12 @@ export const GroupDetails = ajaxCaller(class GroupDetails extends Component {
         })
       ]),
       h(PageBox, [
-        div({ style: styles.toolbarContainer }, [
+        div({ style: Style.cardList.toolbarContainer }, [
           div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, [
             `Group Management: ${groupName}`
           ])
         ]),
-        div({ style: styles.cardContainer }, [
+        div({ style: Style.cardList.cardContainer }, [
           h(NewUserCard, {
             onClick: () => this.setState({ creatingNewUser: true })
           }),

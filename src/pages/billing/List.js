@@ -1,19 +1,47 @@
 import _ from 'lodash/fp'
 import { Fragment } from 'react'
-import { div, h } from 'react-hyperscript-helpers'
-import { PageBox, search, spinnerOverlay, link } from 'src/components/common'
+import { a, div, h } from 'react-hyperscript-helpers'
+import { pure } from 'recompose'
+import { PageBox, search, spinnerOverlay } from 'src/components/common'
+import { icon } from 'src/components/icons'
 import TopBar from 'src/components/TopBar'
 import { ajaxCaller } from 'src/libs/ajax'
+import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
+import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
-import { styles } from 'src/pages/groups/common'
-import { icon } from 'src/components/icons'
-import colors from 'src/libs/colors'
-import { FlexTable, HeaderCell } from 'src/components/table'
-import { AutoSizer } from 'react-virtualized'
+
+
+const ProjectCard = pure(({ project: { projectName, creationStatus, role }, onDelete }) => {
+  const isOwner = !!_.includes('Owner', role) // TODO: Replace when switching back to SAM for groups api
+  const projectReady = creationStatus === 'Ready'
+
+  return div({ style: Style.cardList.longCard }, [
+    div({ style: { flex: 'none' } }, [
+      icon(projectReady ? 'check' : 'bars', {
+        style: {
+          color: projectReady ? colors.green[0] : undefined,
+          marginRight: '1rem'
+        }
+      }),
+      creationStatus
+    ]),
+    div({ style: { flex: 1 } }, [
+      a({
+        href: isOwner ? Nav.getLink('project', { projectName }) : undefined,
+        style: {
+          ...Style.cardList.longTitle,
+          marginLeft: '2rem', marginRight: '1rem',
+          color: isOwner ? colors.green[0] : undefined
+        }
+      }, [projectName])
+    ]),
+    div({ style: { width: 100, textTransform: 'capitalize' } }, [_.join(', ', role)])
+  ])
+})
 
 export const BillingList = ajaxCaller(class BillingList extends Component {
   constructor(props) {
@@ -60,7 +88,7 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
         })
       ]),
       h(PageBox, { style: { padding: '1.5rem', flex: 1 } }, [
-        div({ style: styles.toolbarContainer }, [
+        div({ style: Style.cardList.toolbarContainer }, [
           div({
             style: {
               ...Style.elements.sectionHeader,
@@ -69,48 +97,20 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
             }
           }, ['Billing Projects Management'])
         ]),
-        billingProjects && !!billingProjects.length && h(AutoSizer, [
-          ({ height }) => h(FlexTable, {
-            width: 600,
-            height,
-            rowCount: billingProjects.length,
-            columns: [
-              {
-                size: { basis: 120, grow: 0 },
-                headerRenderer: () => h(HeaderCell, ['Status']),
-                cellRenderer: ({ rowIndex }) => {
-                  const projectReady = billingProjects[rowIndex].creationStatus === 'Ready'
-                  return h(Fragment, [
-                    icon(projectReady ? 'check' : 'bars', {
-                      style: {
-                        color: projectReady ? colors.green[0] : undefined,
-                        marginRight: '1rem'
-                      }
-                    }),
-                    billingProjects[rowIndex].creationStatus
-                  ])
-                }
-              },
-              {
-                size: { basis: 200 },
-                headerRenderer: () => h(HeaderCell, ['Project Name']),
-                cellRenderer: ({ rowIndex }) => {
-                  const isOwner = !!_.includes('Owner', billingProjects[rowIndex].role)
-                  const projectName = billingProjects[rowIndex].projectName
-                  return isOwner ? link({
-                    href: Nav.getLink('project-users-list', { projectName })
-                  }, [projectName]) : projectName
-                }
-              },
-              {
-                size: { basis: 150, grow: 0 },
-                headerRenderer: () => h(HeaderCell, ['Role']),
-                cellRenderer: ({ rowIndex }) => _.join(', ', _.sortBy(_.identity, billingProjects[rowIndex].role))
-              }
-            ]
-          })
-        ]),
-        !isDataLoaded && spinnerOverlay
+        div({ style: Style.cardList.cardContainer }, [
+          div({ style: { flexGrow: 1 } }, [
+            _.flow(
+              _.filter(({ projectName }) => Utils.textMatch(filter, projectName)),
+              _.map(project => {
+                return h(ProjectCard, {
+                  project, key: `${project.projectName}`
+                  // onDelete: () => this.setState({ deletingProject: project })
+                })
+              })
+            )(billingProjects)
+          ]),
+          !isDataLoaded && spinnerOverlay
+        ])
       ])
 
     ])
