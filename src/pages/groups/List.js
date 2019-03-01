@@ -98,7 +98,7 @@ const DeleteGroupModal = pure(({ groupName, onDismiss, onSubmit }) => {
 })
 
 const GroupCard = pure(({ group: { groupName, groupEmail, role }, onDelete }) => {
-  const isAdmin = !!_.includes('Admin', role) // TODO: Replace when switching back to SAM for groups api
+  const isAdmin = !!_.includes('admin', role)
 
   return div({ style: styles.longCard }, [
     a({

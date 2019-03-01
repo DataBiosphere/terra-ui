@@ -240,46 +240,50 @@ const User = signal => ({
 })
 
 const Groups = signal => ({
-  // TODO: Replace when switching back to SAM for groups api
   list: async () => {
-    const res = await fetchOrchestration('api/groups', _.merge(authOpts(), { signal }))
+    const res = await fetchSam('api/groups/v1', _.merge(authOpts(), { signal }))
     return res.json()
   },
 
   group: groupName => {
-    const root = `api/groups/${groupName}`
+    const root = `api/groups/v1/${groupName}`
 
     const addRole = async (role, email) => {
-      return fetchOrchestration(`${root}/${role}/${email}`, _.merge(authOpts(), { signal, method: 'PUT' }))
+      return fetchSam(`${root}/${role}/${email}`, _.merge(authOpts(), { signal, method: 'PUT' }))
     }
 
     const removeRole = async (role, email) => {
-      return fetchOrchestration(`${root}/${role}/${email}`, _.merge(authOpts(), { signal, method: 'DELETE' }))
+      return fetchSam(`${root}/${role}/${email}`, _.merge(authOpts(), { signal, method: 'DELETE' }))
     }
 
     return {
       create: () => {
-        return fetchOrchestration(root, _.merge(authOpts(), { signal, method: 'POST' }))
+        return fetchSam(root, _.merge(authOpts(), { signal, method: 'POST' }))
       },
 
       delete: () => {
-        return fetchOrchestration(root, _.merge(authOpts(), { signal, method: 'DELETE' }))
+        return fetchSam(root, _.merge(authOpts(), { signal, method: 'DELETE' }))
       },
 
-      listMembers: async () => {
-        const res = await fetchOrchestration(`${root}`, _.merge(authOpts(), { signal }))
+      listAdmins: async () => {
+        const res = await fetchSam(`${root}/admin`, _.merge(authOpts(), { signal }))
         return res.json()
       },
 
-      addMember: async (roles, email) => {
+      listMembers: async () => {
+        const res = await fetchSam(`${root}/member`, _.merge(authOpts(), { signal }))
+        return res.json()
+      },
+
+      addUser: async (roles, email) => {
         return Promise.all(_.map(role => addRole(role, email), roles))
       },
 
-      removeMember: async (roles, email) => {
+      removeUser: async (roles, email) => {
         return Promise.all(_.map(role => removeRole(role, email), roles))
       },
 
-      changeMemberRoles: async (email, oldRoles, newRoles) => {
+      changeUserRoles: async (email, oldRoles, newRoles) => {
         if (!_.isEqual(oldRoles, newRoles)) {
           await Promise.all(_.map(role => addRole(role, email), _.difference(newRoles, oldRoles)))
           return Promise.all(_.map(role => removeRole(role, email), _.difference(oldRoles, newRoles)))

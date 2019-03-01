@@ -83,7 +83,7 @@ const PrivacyPolicy = () => {
     p([
       'If you have any questions about this privacy statement, the practices of this site, or ',
       'your dealings with this site, you can contact us through our ',
-      link({ href: 'http://gatkforums.broadinstitute.org/firecloud' }, 'help forum')
+      link({ href: 'https://broadinstitute.zendesk.com/' }, 'help forum')
     ])
   ])
 }

@@ -7,7 +7,7 @@ import { textInput, validatedInput } from 'src/components/input'
 import { InfoBox } from 'src/components/PopupTrigger'
 import TopBar from 'src/components/TopBar'
 import { ajaxCaller } from 'src/libs/ajax'
-import { authStore, refreshTerraProfile } from 'src/libs/auth'
+import { authStore, getUser, refreshTerraProfile } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import * as Nav from 'src/libs/nav'
 import * as Utils from 'src/libs/utils'
@@ -86,7 +86,7 @@ const Profile = _.flow(
               h(InfoBox, { style: { alignSelf: 'flex-end', padding: '0.25rem' } }, [
                 'To change your profile image, visit your ',
                 link({
-                  href: 'https://accounts.google.com/AccountChooser?continue=https://myaccount.google.com/',
+                  href: `https://myaccount.google.com?authuser=${getUser().email}`,
                   target: '_blank'
                 }, ['Google account page.'])
               ])
