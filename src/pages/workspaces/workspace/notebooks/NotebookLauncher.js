@@ -51,15 +51,15 @@ const NotebookLauncher = _.flow(
   wrapWorkspace({
     breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
     title: ({ notebookName }) => `Notebooks - ${notebookName}`,
-    topBarContent: ({ workspace, notebookName }) => {
-      return workspace && !(Utils.canWrite(workspace.accessLevel) && workspace.canCompute)
+    topBarContent: ({ workspace, notebookName, queryParams = {} }) => {
+      return workspace && (!(Utils.canWrite(workspace.accessLevel) && workspace.canCompute)) || queryParams['read-only']
         && h(ReadOnlyMessage, { notebookName, workspace })
     },
     showTabBar: false
   }),
   ajaxCaller
-)(({ workspace, app, ...props }) => {
-  return Utils.canWrite(workspace.accessLevel) && workspace.canCompute ?
+)(({ workspace, app, queryParams = {}, ...props }) => {
+  return Utils.canWrite(workspace.accessLevel) && workspace.canCompute && !queryParams['read-only']?
     h(NotebookEditor, { workspace, app, ...props }) :
     h(NotebookViewer, { workspace, ...props })
 })
