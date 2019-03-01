@@ -45,6 +45,13 @@ class NotebookCard extends Component {
       closeOnClick: true,
       content: h(Fragment, [
         h(MenuButton, {
+          as: 'a',
+          href: notebookLink,
+          disabled: !canWrite,
+          tooltip: !canWrite && noWrite,
+          tooltipSide: 'left'
+        }, [menuIcon('edit'), 'Open']),
+        h(MenuButton, {
           onClick: async () => {
             try {
               await clipboard.writeText(`${window.location.host}/${notebookLink}`)
