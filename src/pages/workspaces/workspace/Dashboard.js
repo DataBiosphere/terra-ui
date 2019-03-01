@@ -7,6 +7,7 @@ import * as breadcrumbs from 'src/components/breadcrumbs'
 import { buttonPrimary, buttonSecondary, link, linkButton, Markdown, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { ajaxCaller } from 'src/libs/ajax'
+import { bucketBrowserUrl } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
@@ -186,7 +187,7 @@ export const WorkspaceDashboard = _.flow(
         div({ style: { margin: '1.5rem 0 0.5rem 0', borderBottom: `1px solid ${colors.gray[3]}` } }),
         link({
           target: '_blank',
-          href: Utils.bucketBrowserUrl(bucketName),
+          href: bucketBrowserUrl(bucketName),
           style: { display: 'block', marginBottom: '3rem' }
         }, ['Google bucket'])
       ])
