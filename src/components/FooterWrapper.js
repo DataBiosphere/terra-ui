@@ -9,7 +9,7 @@ const styles = {
   link: { marginLeft: '2rem' }
 }
 
-const tosUrl = 'http://gatkforums.broadinstitute.org/firecloud/discussion/6819/firecloud-terms-of-service#latest'
+const tosUrl = 'https://broadinstitute.zendesk.com/hc/en-us/articles/360024688731-Terms-of-Service'
 
 const FooterWrapper = ({ children }) => {
   return div({ style: { display: 'flex', flexDirection: 'column', minHeight: '100%', flexGrow: 1 } }, [
