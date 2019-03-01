@@ -84,7 +84,7 @@ const NewUserModal = ajaxCaller(class NewUserModal extends Component {
 
     try {
       this.setState({ submitting: true })
-      await Groups.group(groupName).addMember(role, userEmail)
+      await Groups.group(groupName).addUser(role, userEmail)
       onSuccess()
     } catch (error) {
       this.setState({ submitting: false })
@@ -131,7 +131,7 @@ const EditUserModal = ajaxCaller(class EditUserModal extends Component {
 
     try {
       this.setState({ submitting: true })
-      await Groups.group(groupName).changeMemberRoles(email, this.props.user.role, role)
+      await Groups.group(groupName).changeUserRoles(email, this.props.user.role, role)
       onSuccess()
     } catch (error) {
       this.setState({ submitting: false })
@@ -207,8 +207,8 @@ export const GroupDetails = ajaxCaller(class GroupDetails extends Component {
     try {
       this.setState({ loading: true, creatingNewUser: false, editingUser: false, deletingUser: false, updating: false })
 
-      // TODO: Replace when switching back to SAM for groups api
-      const { membersEmails, adminsEmails } = await Groups.group(groupName).listMembers()
+      const groupAjax = Groups.group(groupName)
+      const [membersEmails, adminsEmails] = await Promise.all([groupAjax.listMembers(), groupAjax.listAdmins()])
 
       const rolesByMember = _.mergeAllWith((a, b) => { if (_.isArray(a)) return a.concat(b) }, [
         _.fromPairs(_.map(email => [email, ['admin']], adminsEmails)),
@@ -283,7 +283,7 @@ export const GroupDetails = ajaxCaller(class GroupDetails extends Component {
           onSubmit: async () => {
             try {
               this.setState({ updating: true, deletingUser: false })
-              await Groups.group(groupName).removeMember(deletingUser.role, deletingUser.email)
+              await Groups.group(groupName).removeUser(deletingUser.role, deletingUser.email)
               this.refresh()
             } catch (error) {
               this.setState({ updating: false })
