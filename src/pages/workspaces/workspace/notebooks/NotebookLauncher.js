@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import { createRef, Fragment } from 'react'
 import { div, h, iframe } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { linkButton, spinnerOverlay, link } from 'src/components/common'
+import { linkButton, spinnerOverlay, buttonPrimary, buttonSecondary } from 'src/components/common'
 import { icon, spinner } from 'src/components/icons'
 import { notify } from 'src/components/Notifications'
 import { ajaxCaller } from 'src/libs/ajax'
@@ -51,10 +51,6 @@ const NotebookLauncher = _.flow(
   wrapWorkspace({
     breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
     title: ({ notebookName }) => `Notebooks - ${notebookName}`,
-    topBarContent: ({ workspace, notebookName, queryParams = {} }) => {
-      return workspace && (!(Utils.canWrite(workspace.accessLevel) && workspace.canCompute)) || queryParams['read-only']
-        && h(ReadOnlyMessage, { notebookName, workspace })
-    },
     showTabBar: false
   }),
   ajaxCaller
@@ -75,14 +71,25 @@ class ReadOnlyMessage extends Component {
   render() {
     const { notebookName, workspace } = this.props
     const { copying } = this.state
-    return div({ style: { marginLeft: 'auto' } }, [
+    return div({ style: { padding: '1rem 2rem' } }, [
       div({ style: { fontSize: 16, fontWeight: 'bold' } },
-        ['Viewing in read-only mode.']),
-      div({ style: { fontSize: 14 } }, [
-        'To edit this notebook, ',
-        link({ onClick: () => this.setState({ copying: true }) }, 'copy'),
-        ' it to another workspace'
-      ]),
+        ['Viewing read-only ',
+          workspace.canCompute ?
+            h(Fragment, [
+              buttonPrimary({
+                tooltip: 'Switch to edit',
+                onClick: window.location.href.split('?')[0] // FIX THIS
+              }, ['Edit']),
+              buttonPrimary({
+                tooltip: 'Edit in JupyterLab',
+                onClick: window.location.href.split('?')[0] // FIX THIS
+              }, ['Edit in JupyterLab'])
+            ])
+            : div({ style: { fontSize: 14 } }, [
+              'To edit this notebook, ',
+              buttonSecondary({ onClick: () => this.setState({ copying: true }) }, 'copy'),
+              ' it to another workspace'
+            ])]),
       copying && h(ExportNotebookModal, {
         printName: notebookName.slice(0, -6), workspace, fromLauncher: true,
         onDismiss: () => this.setState({ copying: false })
@@ -114,9 +121,10 @@ class NotebookViewer extends Component {
   }
 
   render() {
-    const { namespace, name } = this.props
+    const { namespace, name, notebookName, workspace } = this.props
     const { preview, busy } = this.state
     return h(Fragment, [
+      h(ReadOnlyMessage, { notebookName, workspace }),
       preview && iframe({
         style: { border: 'none', flex: 1 },
         srcDoc: preview
