@@ -10,6 +10,7 @@ import { icon, spinner } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import DownloadPrices from 'src/data/download-prices'
 import { ajaxCaller } from 'src/libs/ajax'
+import { bucketBrowserUrl } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import * as Utils from 'src/libs/utils'
@@ -138,7 +139,7 @@ const UriViewer = ajaxCaller(class UriViewer extends Component {
           els.cell([
             link({
               target: 'blank',
-              href: Utils.bucketBrowserUrl(bucket)
+              href: bucketBrowserUrl(bucket)
             }, ['View this file in the Google Cloud Storage Browser'])
           ]),
           els.cell([

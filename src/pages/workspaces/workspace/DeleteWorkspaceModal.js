@@ -3,8 +3,9 @@ import { div, h } from 'react-hyperscript-helpers'
 import { buttonPrimary, link, spinnerOverlay } from 'src/components/common'
 import Modal from 'src/components/Modal'
 import { ajaxCaller } from 'src/libs/ajax'
+import { bucketBrowserUrl } from 'src/libs/auth'
 import { reportError } from 'src/libs/error'
-import * as Utils from 'src/libs/utils'
+
 
 export default ajaxCaller(class DeleteWorkspaceModal extends Component {
   constructor(props) {
@@ -42,7 +43,7 @@ export default ajaxCaller(class DeleteWorkspaceModal extends Component {
         'Deleting it will delete the associated ',
         link({
           target: '_blank',
-          href: Utils.bucketBrowserUrl(bucketName)
+          href: bucketBrowserUrl(bucketName)
         }, ['Google Cloud Bucket']),
         ' and all its data.'
       ]),

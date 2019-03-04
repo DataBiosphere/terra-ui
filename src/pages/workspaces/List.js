@@ -190,18 +190,23 @@ export const WorkspaceList = _.flow(
   render() {
     const { workspaces, loadingWorkspaces, refreshWorkspaces, listView, viewToggleButtons } = this.props
     const { filter, creatingNewWorkspace, cloningWorkspaceId, deletingWorkspaceId, sharingWorkspaceId, accessLevelsFilter, projectsFilter } = this.state
-    const initialFiltered = _.flow(
-      _.filter(ws => {
-        const { workspace: { namespace, name } } = ws
-        return Utils.textMatch(filter, `${namespace}/${name}`) &&
-          (!ws.public || Utils.canWrite(ws.accessLevel))
-      }),
+    const initialFiltered = _.filter(ws => {
+      const { workspace: { namespace, name } } = ws
+      return Utils.textMatch(filter, `${namespace}/${name}`) &&
+        (!ws.public || Utils.canWrite(ws.accessLevel))
+    }, workspaces)
+
+    const namespaceList = _.flow(
+      _.map('workspace.namespace'),
+      _.uniq,
+      _.sortBy(_.identity)
+    )(initialFiltered)
+
+    const data = _.flow(
+      _.filter(ws => (_.isEmpty(accessLevelsFilter) || accessLevelsFilter.includes(ws.accessLevel)) &&
+        (_.isEmpty(projectsFilter) || projectsFilter.includes(ws.workspace.namespace))),
       _.sortBy('workspace.name')
-    )(workspaces)
-    const namespaceList = _.uniq(_.map('workspace.namespace', initialFiltered))
-    const data = _.filter(ws => (_.isEmpty(accessLevelsFilter) || accessLevelsFilter.includes(ws.accessLevel)) &&
-      (_.isEmpty(projectsFilter) || projectsFilter.includes(ws.workspace.namespace)),
-    initialFiltered)
+    )(initialFiltered)
 
     const renderedWorkspaces = _.map(workspace => {
       return h(WorkspaceCard, {
