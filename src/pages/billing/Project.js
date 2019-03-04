@@ -1,8 +1,8 @@
 import _ from 'lodash/fp'
 import { Fragment } from 'react'
-import { b, div, h } from 'react-hyperscript-helpers'
+import { b, div, h, label } from 'react-hyperscript-helpers'
 import { pure } from 'recompose'
-import { buttonPrimary, Clickable, link, PageBox, search, Select, spinnerOverlay } from 'src/components/common'
+import { buttonPrimary, Clickable, LabeledCheckbox, link, PageBox, search, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { textInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
@@ -30,7 +30,7 @@ const NewUserModal = ajaxCaller(class NewUserModal extends Component {
 
   render() {
     const { onDismiss } = this.props
-    const { userEmail, role, submitting, submitError } = this.state
+    const { userEmail, isOwner, submitting, submitError } = this.state
 
     const errors = validate({ userEmail }, { userEmail: { email: true } })
 
@@ -40,7 +40,7 @@ const NewUserModal = ajaxCaller(class NewUserModal extends Component {
       okButton: buttonPrimary({
         tooltip: Utils.summarizeErrors(errors),
         onClick: () => this.submit(),
-        disabled: errors || !role
+        disabled: errors
       }, ['Add User'])
     }, [
       Forms.requiredFormLabel('User email'),
@@ -49,12 +49,13 @@ const NewUserModal = ajaxCaller(class NewUserModal extends Component {
         value: userEmail,
         onChange: e => this.setState({ userEmail: e.target.value, emailTouched: true })
       }),
-      Forms.requiredFormLabel('Role'),
-      h(Select, {
-        value: role,
-        onChange: ({ value }) => this.setState({ role: value }),
-        options: ['User', 'Owner']
-      }),
+      Forms.formLabel('Role'),
+      h(LabeledCheckbox, {
+        checked: isOwner,
+        onChange: () => this.setState({ isOwner: !isOwner })
+      }, [
+        label({ style: { margin: '0 2rem 0 0.25rem' } }, ['Can manage users (owner)'])
+      ]),
       div({ style: { marginTop: '1rem' } },
         'Warning: Adding any user to this project will mean they can incur costs to the billing associated with this project. '),
       submitError && div({ style: { marginTop: '0.5rem', textAlign: 'right', color: colors.red[0] } }, [submitError]),
@@ -64,11 +65,11 @@ const NewUserModal = ajaxCaller(class NewUserModal extends Component {
 
   async submit() {
     const { projectName, onSuccess, ajax: { Billing } } = this.props
-    const { userEmail, role } = this.state
+    const { userEmail, isOwner } = this.state
 
     try {
       this.setState({ submitting: true })
-      await Billing.project(projectName).addUser(role, userEmail)
+      await Billing.project(projectName).addUser([isOwner ? 'owner' : 'user'], userEmail)
       onSuccess()
     } catch (error) {
       this.setState({ submitting: false })
@@ -85,13 +86,13 @@ const EditUserModal = ajaxCaller(class EditUserModal extends Component {
   constructor(props) {
     super(props)
     this.state = {
-      role: props.user.role
+      isOwner: _.includes('Owner', props.user.roles)
     }
   }
 
   render() {
     const { onDismiss, user: { email } } = this.props
-    const { newRole, submitting } = this.state
+    const { isOwner, submitting } = this.state
 
     return h(Modal, {
       onDismiss,
@@ -104,23 +105,24 @@ const EditUserModal = ajaxCaller(class EditUserModal extends Component {
         'Edit role for ',
         b([email])
       ]),
-      h(Select, {
-        value: newRole,
-        onChange: ({ value }) => this.setState({ newRole: value }),
-        options: ['User', 'Owner']
-      }),
+      h(LabeledCheckbox, {
+        checked: isOwner,
+        onChange: () => this.setState({ isOwner: !isOwner })
+      }, [
+        label({ style: { margin: '0 2rem 0 0.25rem' } }, ['Can manage users (owner)'])
+      ]),
       submitting && spinnerOverlay
     ])
   }
 
   async submit() {
-    const { projectName, user: { email, role }, onSuccess, ajax: { Billing } } = this.props
-    const { newRole } = this.state
+    const { projectName, user: { email, roles }, onSuccess, ajax: { Billing } } = this.props
+    const { isOwner } = this.state
 
     try {
       this.setState({ submitting: true })
-      await Billing.project(projectName).removeUser(role, email)
-      await Billing.project(projectName).addUser(newRole, email)
+      await Billing.project(projectName).removeUser(roles, email)
+      await Billing.project(projectName).addUser([isOwner ? 'owner' : 'user'], email)
       onSuccess()
     } catch (error) {
       this.setState({ submitting: false })
@@ -143,15 +145,15 @@ const DeleteUserModal = pure(({ onDismiss, onSubmit, userEmail }) => {
   ])
 })
 
-const MemberCard = pure(({ member: { email, role }, ownerCanEdit, onEdit, onDelete }) => {
-  const canEdit = ownerCanEdit || !_.includes('Owner', role)
+const MemberCard = pure(({ member: { email, roles }, ownerCanEdit, onEdit, onDelete }) => {
+  const canEdit = ownerCanEdit || !_.includes('Owner', roles)
   const tooltip = !canEdit && 'This user is the only owner of this project'
 
   return div({
     style: Style.cardList.longCard
   }, [
     div({ style: { flex: '1' } }, [email]),
-    div({ style: { flex: '0 0 150px', textTransform: 'capitalize' } }, [_.join(', ', role)]),
+    div({ style: { flex: '0 0 150px' } }, [_.includes('Owner', roles) ? 'Owner' : 'User']),
     div({ style: { flex: 'none' } }, [
       link({
         onClick: onEdit
@@ -199,7 +201,7 @@ export const ProjectUsersList = ajaxCaller(class ProjectUsersList extends Compon
       const rawProjectUsers = await Billing.project(projectName).listUsers()
       const projectUsers = _.flow(
         _.groupBy('email'),
-        _.map(gs => ({ ...gs[0], role: _.map('role', gs) })),
+        _.map(gs => ({ ..._.omit('role', gs[0]), roles: _.map('role', gs) })),
         _.sortBy('email')
       )(rawProjectUsers)
       this.setState({ projectUsers, isDataLoaded: true })
@@ -217,7 +219,7 @@ export const ProjectUsersList = ajaxCaller(class ProjectUsersList extends Compon
   render() {
     const { projectName, ajax: { Billing } } = this.props
     const { projectUsers, loading, updating, filter, addingUser, deletingUser, editingUser } = this.state
-    const ownerCanEdit = _.filter(({ role }) => _.includes('Owner', role), projectUsers).length > 1
+    const ownerCanEdit = _.filter(({ roles }) => _.includes('Owner', roles), projectUsers).length > 1
 
     return h(Fragment, [
       h(TopBar, { title: 'Billing', href: Nav.getLink('billing') }, [
@@ -275,7 +277,7 @@ export const ProjectUsersList = ajaxCaller(class ProjectUsersList extends Compon
           onSubmit: async () => {
             try {
               this.setState({ updating: true, deletingUser: false })
-              await Billing.project(projectName).removeUser(deletingUser.role, deletingUser.email)
+              await Billing.project(projectName).removeUser(deletingUser.roles, deletingUser.email)
               this.refresh()
             } catch (error) {
               this.setState({ updating: false })

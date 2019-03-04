@@ -20,22 +20,17 @@ import { Component } from 'src/libs/wrapped-components'
 import validate from 'validate.js'
 
 
-const roleSelector = ({ role, adminCanEdit, updateState }) => {
-  const isAdmin = _.includes('admin', role)
-  const isMember = _.includes('member', role)
+const roleSelector = ({ roles, adminCanEdit, updateState }) => {
+  const isAdmin = _.includes('admin', roles)
   const tooltip = !adminCanEdit && 'This user is the only admin of this group'
   return h(Fragment, [
     h(TooltipTrigger, { content: tooltip }, [
       h(LabeledCheckbox, {
         checked: isAdmin,
         disabled: !adminCanEdit,
-        onChange: () => updateState(isAdmin ? _.without(['admin'], role) : _.concat(role, 'admin'))
-      }, [label({ style: { margin: '0 2rem 0 0.25rem' } }, ['Admin'])])
-    ]),
-    h(LabeledCheckbox, {
-      checked: isMember,
-      onChange: () => updateState(isMember ? _.without(['member'], role) : _.concat(role, 'member'))
-    }, [label({ style: { margin: '0 2rem 0 0.25rem' } }, ['Member'])])
+        onChange: () => updateState([!isAdmin ? 'admin' : 'member'])
+      }, [label({ style: { margin: '0 2rem 0 0.25rem' } }, ['Can manage users (admin)'])])
+    ])
   ])
 }
 
@@ -45,13 +40,13 @@ const NewUserModal = ajaxCaller(class NewUserModal extends Component {
     super(props)
     this.state = {
       userEmail: '',
-      role: ['member']
+      roles: ['member']
     }
   }
 
   render() {
     const { onDismiss } = this.props
-    const { userEmail, role, submitting, submitError } = this.state
+    const { userEmail, roles, submitting, submitError } = this.state
 
     const errors = validate({ userEmail }, { userEmail: { email: true } })
 
@@ -68,10 +63,10 @@ const NewUserModal = ajaxCaller(class NewUserModal extends Component {
       textInput({
         autoFocus: true,
         value: userEmail,
-        onChange: e => this.setState({ userEmail: e.target.value, emailTouched: true })
+        onChange: e => this.setState({ userEmail: e.target.value })
       }),
-      Forms.requiredFormLabel('Role'),
-      roleSelector({ role, adminCanEdit: true, updateState: role => this.setState({ role }) }),
+      Forms.formLabel('Role'),
+      roleSelector({ roles, adminCanEdit: true, updateState: roles => this.setState({ roles }) }),
       submitError && div({ style: { marginTop: '0.5rem', textAlign: 'right', color: colors.red[0] } }, [submitError]),
       submitting && spinnerOverlay
     ])
@@ -79,11 +74,11 @@ const NewUserModal = ajaxCaller(class NewUserModal extends Component {
 
   async submit() {
     const { groupName, onSuccess, ajax: { Groups } } = this.props
-    const { userEmail, role } = this.state
+    const { userEmail, roles } = this.state
 
     try {
       this.setState({ submitting: true })
-      await Groups.group(groupName).addUser(role, userEmail)
+      await Groups.group(groupName).addUser(roles, userEmail)
       onSuccess()
     } catch (error) {
       this.setState({ submitting: false })
@@ -100,13 +95,13 @@ const EditUserModal = ajaxCaller(class EditUserModal extends Component {
   constructor(props) {
     super(props)
     this.state = {
-      role: props.user.role
+      isAdmin: _.includes('admin', props.user.roles)
     }
   }
 
   render() {
-    const { onDismiss, user: { email }, adminCanEdit } = this.props
-    const { role, submitting } = this.state
+    const { onDismiss, user: { email } } = this.props
+    const { isAdmin, submitting } = this.state
 
     return h(Modal, {
       onDismiss,
@@ -119,18 +114,23 @@ const EditUserModal = ajaxCaller(class EditUserModal extends Component {
         'Edit role for ',
         b([email])
       ]),
-      roleSelector({ role, adminCanEdit: adminCanEdit || !_.includes('admin', this.props.user.role), updateState: role => this.setState({ role }) }),
+      h(LabeledCheckbox, {
+        checked: isAdmin,
+        onChange: () => this.setState({ isAdmin: !isAdmin })
+      }, [
+        label({ style: { margin: '0 2rem 0 0.25rem' } }, ['Can manage users (owner)'])
+      ]),
       submitting && spinnerOverlay
     ])
   }
 
   async submit() {
-    const { groupName, user: { email }, onSuccess, ajax: { Groups } } = this.props
-    const { role } = this.state
+    const { groupName, user: { email, roles }, onSuccess, ajax: { Groups } } = this.props
+    const { isAdmin } = this.state
 
     try {
       this.setState({ submitting: true })
-      await Groups.group(groupName).changeUserRoles(email, this.props.user.role, role)
+      await Groups.group(groupName).changeUserRoles(email, roles, [isAdmin ? 'admin' : 'member'])
       onSuccess()
     } catch (error) {
       this.setState({ submitting: false })
@@ -152,15 +152,15 @@ const DeleteUserModal = pure(({ onDismiss, onSubmit, userEmail }) => {
   ])
 })
 
-const MemberCard = pure(({ member: { email, role }, adminCanEdit, onEdit, onDelete }) => {
-  const canEdit = adminCanEdit || !_.includes('admin', role)
+const MemberCard = pure(({ member: { email, roles }, adminCanEdit, onEdit, onDelete }) => {
+  const canEdit = adminCanEdit || !_.includes('admin', roles)
   const tooltip = !canEdit && 'This user is the only admin of this group'
 
   return div({
     style: Style.cardList.longCard
   }, [
     div({ style: { flex: '1' } }, [email]),
-    div({ style: { flex: '0 0 150px', textTransform: 'capitalize' } }, [_.join(', ', role)]),
+    div({ style: { flex: '0 0 100px' } }, [_.includes('admin', roles) ? 'Admin' : 'Member']),
     div({ style: { flex: 'none' } }, [
       link({
         onClick: onEdit
@@ -215,7 +215,7 @@ export const GroupDetails = ajaxCaller(class GroupDetails extends Component {
       ])
       const members = _.flow(
         _.toPairs,
-        _.map(([email, role]) => ({ email, role })),
+        _.map(([email, roles]) => ({ email, roles })),
         _.sortBy(member => member.email.toUpperCase())
       )(rolesByMember)
       this.setState({ members, adminCanEdit: adminsEmails.length > 1 })
@@ -282,7 +282,7 @@ export const GroupDetails = ajaxCaller(class GroupDetails extends Component {
           onSubmit: async () => {
             try {
               this.setState({ updating: true, deletingUser: false })
-              await Groups.group(groupName).removeUser(deletingUser.role, deletingUser.email)
+              await Groups.group(groupName).removeUser(deletingUser.roles, deletingUser.email)
               this.refresh()
             } catch (error) {
               this.setState({ updating: false })
