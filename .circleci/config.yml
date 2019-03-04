@@ -8,18 +8,18 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - deps2-{{ checksum "package.json" }}
-            - deps2-
+            - deps1-{{ checksum "package.json" }}
+            - deps1-
       - run: npm install
       - save_cache:
-          key: deps2-{{ checksum "package.json" }}
+          key: deps1-{{ checksum "package.json" }}
           paths:
-            - ~/.npm
+            - ./node_modules
       - run: npm test
       - persist_to_workspace:
           root: .
           paths:
-            - node_modules
+            - ./node_modules
   build:
     docker:
       - image: node:8
