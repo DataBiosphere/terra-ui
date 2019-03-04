@@ -55,7 +55,7 @@ const NotebookLauncher = _.flow(
   }),
   ajaxCaller
 )(props => {
-  const { workspace, app, queryParams = {}} = props
+  const { workspace, app, queryParams = {} } = props
   return Utils.canWrite(workspace.accessLevel) && workspace.canCompute && !queryParams['read-only']?
     h(NotebookEditor, { workspace, app, queryParams, ...props }) :
     h(NotebookPreview, { workspace, queryParams, ...props })
