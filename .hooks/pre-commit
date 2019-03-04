@@ -1,0 +1,11 @@
+#!/bin/sh
+FORBIDDEN=( private_key )
+
+for i in "${FORBIDDEN[@]}"
+do
+  git diff --cached --name-only | \
+        GREP_COLOR='4;5;37;41' xargs grep --color --with-filename -n ${i} --exclude .hooks/pre-commit && \
+        echo 'COMMIT REJECTED: Found "'${i}'" references. Please remove them before committing.' && exit 1
+done
+
+exit 0
