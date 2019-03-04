@@ -295,7 +295,47 @@ export default _.flow(
                 size: 20
               })
             ]),
-            'Terra Support',
+            'Learn about Terra',
+            icon('pop-out', {
+              size: 12,
+              style: { marginLeft: '0.5rem' }
+            })
+          ]),
+          h(Clickable, {
+            style: styles.nav.supportItem,
+            as: 'a',
+            hover: { backgroundColor: colors.gray[3] },
+            href: 'https://broadinstitute.zendesk.com/hc/en-us/community/topics/360000500452-Feature-Requests',
+            target: '_blank',
+            onClick: () => this.hideNav()
+          }, [
+            div({ style: styles.nav.icon }, [
+              icon('bubble-exclamation', {
+                className: 'is-solid',
+                size: 20
+              })
+            ]),
+            'Request a feature',
+            icon('pop-out', {
+              size: 12,
+              style: { marginLeft: '0.5rem' }
+            })
+          ]),
+          h(Clickable, {
+            style: styles.nav.supportItem,
+            as: 'a',
+            hover: { backgroundColor: colors.gray[3] },
+            href: 'https://broadinstitute.zendesk.com/hc/en-us/community/topics/360000500432-General-Discussion',
+            target: '_blank',
+            onClick: () => this.hideNav()
+          }, [
+            div({ style: styles.nav.icon }, [
+              icon('chat-bubble', {
+                className: 'is-solid',
+                size: 20
+              })
+            ]),
+            'Community discussion',
             icon('pop-out', {
               size: 12,
               style: { marginLeft: '0.5rem' }
