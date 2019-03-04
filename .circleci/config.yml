@@ -63,7 +63,9 @@ jobs:
       - run: cp config/dev.json build/config.json
       - run: echo "$SA_KEY_JSON" > /tmp/sa.json
       - run: gcloud auth activate-service-account --key-file=/tmp/sa.json
-      - deploy: gcloud app deploy --project=bvdp-saturn-dev --promote --quiet
+      - deploy:
+          name: Deploy Dev
+          command: gcloud app deploy --project=bvdp-saturn-dev --promote --quiet
 workflows:
   version: 2
   build-deploy:
