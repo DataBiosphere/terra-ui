@@ -15,6 +15,7 @@ import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
+import * as qs from 'qs'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -39,6 +40,8 @@ class NotebookCard extends Component {
     const tenMinutesAgo = _.tap(d => d.setMinutes(d.getMinutes() - 10), new Date())
     const isRecent = new Date(updated) > tenMinutesAgo
     const notebookLink = Nav.getLink('workspace-notebook-launch', { namespace, name: wsName, notebookName: name.slice(10) })
+    const readOnlyParam = { 'read-only': 'true' }
+    const notebookReadOnlyLink = `${notebookLink}/?${qs.stringify(readOnlyParam)}`
 
     const notebookMenu = h(PopupTrigger, {
       side: 'right',
@@ -53,7 +56,7 @@ class NotebookCard extends Component {
         }, [menuIcon('edit'), 'Open']),
         h(MenuButton, {
           as: 'a',
-          href: notebookLink + '?read-only=true',
+          href: notebookReadOnlyLink,
           tooltip: canWrite && 'Open without runtime',
           tooltipSide: 'left'
         }, [menuIcon('eye'), 'Open read-only']),

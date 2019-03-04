@@ -69,27 +69,35 @@ class ReadOnlyMessage extends Component {
   }
 
   render() {
-    const { notebookName, workspace } = this.props
+    const { notebookName, workspace, workspace: { workspace: { namespace, name } } } = this.props
+    const notebookLink = Nav.getLink('workspace-notebook-launch', { namespace, name, notebookName })
+    const notebookLabLink = Nav.getLink('workspace-notebook-launch', { namespace, app: 'lab', name, notebookName })
     const { copying } = this.state
     return div({ style: { padding: '1rem 2rem' } }, [
       div({ style: { fontSize: 16, fontWeight: 'bold' } },
-        ['Viewing read-only ',
-          workspace.canCompute ?
-            h(Fragment, [
-              buttonPrimary({
-                tooltip: 'Switch to edit',
-                onClick: window.location.href.split('?')[0] // FIX THIS
-              }, ['Edit']),
-              buttonPrimary({
-                tooltip: 'Edit in JupyterLab',
-                onClick: window.location.href.split('?')[0] // FIX THIS
-              }, ['Edit in JupyterLab'])
-            ])
-            : div({ style: { fontSize: 14 } }, [
-              'To edit this notebook, ',
-              buttonSecondary({ onClick: () => this.setState({ copying: true }) }, 'copy'),
-              ' it to another workspace'
-            ])]),
+        ['Viewing read-only']),
+      workspace.canCompute ?
+        h(Fragment, [
+          div({ style: { fontWeight: 500 } }, [
+            'Click to ',
+            linkButton({
+              styles: { display: 'flex', flex: 'auto' },
+              tooltip: 'Switch to edit notebook',
+              tooltipSide: 'bottom',
+              href: notebookLink
+            }, ['edit']), ' or ',
+            linkButton({
+              tooltip: 'Switch to edit notebook in JupyterLab',
+              tooltipSide: 'bottom',
+              href: notebookLabLink
+            }, ['edit in JupyterLab'])
+          ])
+        ])
+        : div({ style: { fontWeight: 500 } }, [
+          'To edit this notebook, ',
+          buttonSecondary({ onClick: () => this.setState({ copying: true }) }, 'copy'),
+          ' it to another workspace'
+        ]),
       copying && h(ExportNotebookModal, {
         printName: notebookName.slice(0, -6), workspace, fromLauncher: true,
         onDismiss: () => this.setState({ copying: false })
