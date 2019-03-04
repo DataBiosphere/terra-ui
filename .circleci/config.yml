@@ -7,17 +7,19 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          key: deps1-{{ .Branch }}-{{ checksum "package.json" }}
+          keys:
+            - deps1-{{ checksum "package.json" }}
+            - deps1-
       - run: npm install
       - save_cache:
-          key: deps1-{{ .Branch }}-{{ checksum "package.json" }}
+          key: deps1-{{ checksum "package.json" }}
           paths:
-            - node_modules
+            - ./node_modules
       - run: npm test
       - persist_to_workspace:
           root: .
           paths:
-            - node_modules
+            - ./node_modules
   build:
     docker:
       - image: node:8
@@ -44,7 +46,7 @@ jobs:
       - run: cp config/dev.json build/config.json
       - run: echo "$SA_KEY_JSON" > circleci-sa.json
       - run: gcloud auth activate-service-account --key-file=circleci-sa.json
-      - run:
+      - deploy:
           name: Deploy
           command: |
             CIRCLE_PR_NUMBER="${CIRCLE_PR_NUMBER:-${CIRCLE_PULL_REQUEST##*/}}"
@@ -61,18 +63,7 @@ jobs:
       - run: cp config/dev.json build/config.json
       - run: echo "$SA_KEY_JSON" > /tmp/sa.json
       - run: gcloud auth activate-service-account --key-file=/tmp/sa.json
-      - run: gcloud app deploy --project=bvdp-saturn-dev --promote --quiet
-  deploy-prod:
-    docker:
-      - image: google/cloud-sdk:latest
-    steps:
-      - run: |
-          set -o nounset
-          curl -s -f "$ARTIFACT_URL" | tar -xz
-          cp config/prod.json build/config.json
-          echo "$SA_KEY_JSON" > /tmp/sa.json
-          gcloud auth activate-service-account --key-file=/tmp/sa.json
-          gcloud app deploy --project=bvdp-saturn-prod --promote --quiet
+      - deploy: gcloud app deploy --project=bvdp-saturn-dev --promote --quiet
 workflows:
   version: 2
   build-deploy:
