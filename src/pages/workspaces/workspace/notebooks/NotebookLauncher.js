@@ -57,7 +57,7 @@ const NotebookLauncher = _.flow(
 )(({ workspace, app, queryParams = {}, ...props }) => {
   return Utils.canWrite(workspace.accessLevel) && workspace.canCompute && !queryParams['read-only']?
     h(NotebookEditor, { workspace, app, ...props }) :
-    h(NotebookViewer, { workspace, ...props })
+    h(NotebookPreview, { workspace, ...props })
 })
 
 class ReadOnlyMessage extends Component {
@@ -106,7 +106,20 @@ class ReadOnlyMessage extends Component {
   }
 }
 
-class NotebookViewer extends Component {
+class NotebookPreview extends Component {
+  render() {
+    const { namespace, name } = this.props
+    return h(Fragment, [
+      linkButton({
+        style: { position: 'absolute', top: 20, left: 'calc(50% + 570px)' },
+        onClick: () => Nav.goToPath('workspace-notebooks', { namespace, name })
+      }, [icon('times-circle', { size: 30 })]),
+      h(NotebookPreviewFrame, { ...this.props })
+    ])
+  }
+}
+
+class NotebookPreviewFrame extends Component {
   constructor(props) {
     super(props)
     this.state = {
@@ -129,7 +142,7 @@ class NotebookViewer extends Component {
   }
 
   render() {
-    const { namespace, name, notebookName, workspace } = this.props
+    const { notebookName, workspace } = this.props
     const { preview, busy } = this.state
     return h(Fragment, [
       h(ReadOnlyMessage, { notebookName, workspace }),
@@ -137,10 +150,6 @@ class NotebookViewer extends Component {
         style: { border: 'none', flex: 1 },
         srcDoc: preview
       }),
-      preview && linkButton({
-        style: { position: 'absolute', top: 20, left: 'calc(50% + 570px)' },
-        onClick: () => Nav.goToPath('workspace-notebooks', { namespace, name })
-      }, [icon('times-circle', { size: 30 })]),
       busy && spinnerOverlay
     ])
   }
@@ -364,6 +373,10 @@ class NotebookEditor extends Component {
         step(2, localizeFailures ?
           `Error loading notebook, retry number ${localizeFailures}...` :
           'Loading notebook')
+      ]),
+      (clusterStatus !== 'Running') && h(Fragment, [
+        div({ style: { color: colors.gray[2], fontSize: 14, fontWeight: 'bold', padding: '0 0 0 2rem' } }, ['Read-only preview of your notebook:']),
+        h(NotebookPreviewFrame, { ...this.props })
       ])
     ])
   }
