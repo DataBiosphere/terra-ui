@@ -54,10 +54,11 @@ const NotebookLauncher = _.flow(
     showTabBar: false
   }),
   ajaxCaller
-)(({ workspace, app, queryParams = {}, ...props }) => {
+)(props => {
+  const { workspace, app, queryParams = {}} = props
   return Utils.canWrite(workspace.accessLevel) && workspace.canCompute && !queryParams['read-only']?
-    h(NotebookEditor, { workspace, app, ...props }) :
-    h(NotebookPreview, { workspace, ...props })
+    h(NotebookEditor, { workspace, app, queryParams, ...props }) :
+    h(NotebookPreview, { workspace, queryParams, ...props })
 })
 
 class ReadOnlyMessage extends Component {
@@ -114,7 +115,7 @@ class NotebookPreview extends Component {
         style: { position: 'absolute', top: 20, left: 'calc(50% + 570px)' },
         onClick: () => Nav.goToPath('workspace-notebooks', { namespace, name })
       }, [icon('times-circle', { size: 30 })]),
-      h(NotebookPreviewFrame, { ...this.props })
+      h(NotebookPreviewFrame, this.props)
     ])
   }
 }
@@ -142,10 +143,10 @@ class NotebookPreviewFrame extends Component {
   }
 
   render() {
-    const { notebookName, workspace } = this.props
+    const { notebookName, workspace, queryParams }  = this.props
     const { preview, busy } = this.state
     return h(Fragment, [
-      h(ReadOnlyMessage, { notebookName, workspace }),
+      !!queryParams['read-only'] && h(ReadOnlyMessage, { notebookName, workspace }),
       preview && iframe({
         style: { border: 'none', flex: 1 },
         srcDoc: preview
@@ -376,7 +377,7 @@ class NotebookEditor extends Component {
       ]),
       (clusterStatus !== 'Running') && h(Fragment, [
         div({ style: { color: colors.gray[2], fontSize: 14, fontWeight: 'bold', padding: '0 0 0 2rem' } }, ['Read-only preview of your notebook:']),
-        h(NotebookPreviewFrame, { ...this.props })
+        h(NotebookPreviewFrame, this.props)
       ])
     ])
   }
