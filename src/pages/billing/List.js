@@ -16,7 +16,7 @@ import { Component } from 'src/libs/wrapped-components'
 
 
 const ProjectCard = pure(({ project: { projectName, creationStatus, role }, onDelete }) => {
-  const isOwner = !!_.includes('Owner', role) // TODO: Replace when switching back to SAM for groups api
+  const isOwner = !!_.includes('Owner', role)
   const projectReady = creationStatus === 'Ready'
 
   return div({ style: Style.cardList.longCard }, [
