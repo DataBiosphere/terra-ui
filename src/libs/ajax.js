@@ -313,7 +313,7 @@ const Billing = signal => ({
 
     return {
       listUsers: async () => {
-        const res = await fetchRawls(`billing/${projectName}/members`, _.merge(authOpts(), { signal }))
+        const res = await fetchRawls(`${root}/members`, _.merge(authOpts(), { signal }))
         return res.json()
       },
 
@@ -682,7 +682,8 @@ const Methods = signal => ({
 
 const Jupyter = signal => ({
   clustersList: async project => {
-    const res = await fetchLeo(`api/clusters${project ? `/${project}` : ''}?saturnAutoCreated=true`, _.mergeAll([authOpts(), appIdentifier, { signal }]))
+    const res = await fetchLeo(`api/clusters${project ? `/${project}` : ''}?saturnAutoCreated=true`,
+      _.mergeAll([authOpts(), appIdentifier, { signal }]))
     return res.json()
   },
 

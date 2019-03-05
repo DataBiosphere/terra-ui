@@ -254,6 +254,7 @@ export class AutocompleteSearch extends Component {
     onSuggestionSelected: PropTypes.func.isRequired,
     suggestions: PropTypes.array,
     renderSuggestion: PropTypes.func,
+    renderInputComponent: PropTypes.func,
     theme: PropTypes.object
   }
 
@@ -270,7 +271,7 @@ export class AutocompleteSearch extends Component {
   }
 
   render() {
-    const { value, onChange, onSuggestionSelected, suggestions, renderSuggestion, theme, ...props } = this.props
+    const { value, onChange, onSuggestionSelected, suggestions, renderSuggestion, renderInputComponent, theme, ...props } = this.props
     const { show } = this.state
     return h(Autosuggest, {
       id: this.id,
@@ -287,9 +288,7 @@ export class AutocompleteSearch extends Component {
         ])
       },
       renderSuggestion,
-      renderInputComponent: inputProps => {
-        return search({ inputProps })
-      },
+      renderInputComponent: renderInputComponent || (inputProps => search({ inputProps })),
       theme: _.merge({
         container: { width: '100%' },
         suggestionsList: { margin: 0, padding: 0 },
