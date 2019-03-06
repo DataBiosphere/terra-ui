@@ -7,8 +7,7 @@ import { div, h, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import {
-  buttonPrimary, buttonSecondary, Clickable, linkButton, MenuButton, spinnerOverlay, menuIcon, link, methodLink,
-  RadioButton, Select
+  buttonPrimary, buttonSecondary, Clickable, link, linkButton, MenuButton, menuIcon, methodLink, RadioButton, Select, spinnerOverlay
 } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { AutocompleteTextInput } from 'src/components/input'
@@ -467,7 +466,8 @@ const WorkflowView = _.flow(
     const newSetMessage = count > 1 ? `(will create a new set named "${newSetName}")` : ''
     return Utils.cond(
       [this.isSingle() || !rootEntityType, ''],
-      [type === EntitySelectionType.processAll, () => `all ${entityMetadata[rootEntityType].count} ${rootEntityType}s (will create a new set named "${newSetName}")`],
+      [type === EntitySelectionType.processAll, () => `all ${entityMetadata[rootEntityType] ? entityMetadata[rootEntityType].count : 0} 
+        ${rootEntityType}s (will create a new set named "${newSetName}")`],
       [type === EntitySelectionType.processFromSet, () => `${rootEntityType}s from ${name}`],
       [type === EntitySelectionType.chooseRows, () => `${count} selected ${rootEntityType}s ${newSetMessage}`],
       [type === EntitySelectionType.chooseSet, () => `${_.has('name', selectedEntities) ? 1 : 0} selected ${rootEntityType}`]
@@ -490,6 +490,7 @@ const WorkflowView = _.flow(
     const noLaunchReason = Utils.cond(
       [saving || modified, () => 'Save or cancel to Launch Analysis'],
       [!_.isEmpty(errors.inputs) || !_.isEmpty(errors.outputs), () => 'At least one required attribute is missing or invalid'],
+      [!entityMetadata[rootEntityType], () => `There are no ${selectedEntityType}s in this workspace.`],
       [entitySelectionModel.type === EntitySelectionType.chooseSet && !entitySelectionModel.selectedEntities.name, () => 'Select a set']
     )
 
@@ -706,13 +707,15 @@ const WorkflowView = _.flow(
       style: { padding: `1rem ${sideMargin}`, flex: 'auto', display: 'flex', flexDirection: 'column' },
       activeStyle: { backgroundColor: colors.green[6], cursor: 'copy' },
       ref: this.uploader,
-      onDropRejected: () => reportError('Not a valid inputs file', 'The selected file is not a json file. To import inputs for this tool, upload a file with a .json extension.'),
+      onDropRejected: () => reportError('Not a valid inputs file',
+        'The selected file is not a json file. To import inputs for this tool, upload a file with a .json extension.'),
       onDropAccepted: files => this.uploadJson(key, files[0])
     }, [
       div({ style: { flex: 'none', display: 'flex', marginBottom: '0.25rem' } }, [
         key === 'inputs' && _.some('optional', inputsOutputs['inputs']) ?
-          linkButton({ style: { marginRight: 'auto' }, onClick: () => this.setState({ includeOptionalInputs: !includeOptionalInputs }) }, [includeOptionalInputs ? 'Hide optional inputs' : 'Show optional inputs'])
-          : div({ style: { marginRight: 'auto' } }, []),
+          linkButton({ style: { marginRight: 'auto' }, onClick: () => this.setState({ includeOptionalInputs: !includeOptionalInputs }) },
+            [includeOptionalInputs ? 'Hide optional inputs' : 'Show optional inputs']) :
+          div({ style: { marginRight: 'auto' } }),
         linkButton({ onClick: () => this.downloadJson(key) }, ['Download json']),
         div({ style: { whiteSpace: 'pre' } }, ['  |  Drag or click to ']),
         linkButton({ onClick: () => this.uploader.current.open() }, ['upload json'])
