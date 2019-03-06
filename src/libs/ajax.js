@@ -299,16 +299,37 @@ const Billing = signal => ({
     const res = await fetchRawls('user/billing', _.merge(authOpts(), { signal }))
     return res.json()
   },
-  listProjectsExtended: async () => {
-    const res = await fetchSam('api/resources/v1/billing-project', _.merge(authOpts(), { signal }))
-    return res.json()
-  },
 
-  project: projectId => {
+  project: projectName => {
+    const root = `billing/${projectName}`
+
+    const removeRole = async (role, email) => {
+      return fetchRawls(`${root}/${role}/${email}`, _.merge(authOpts(), { signal, method: 'DELETE' }))
+    }
+
+    const addRole = async (role, email) => {
+      return fetchRawls(`${root}/${role}/${email}`, _.merge(authOpts(), { signal, method: 'PUT' }))
+    }
+
     return {
       listUsers: async () => {
-        const res = await fetchRawls(`billing/${projectId}/members`, _.merge(authOpts(), { signal }))
+        const res = await fetchRawls(`${root}/members`, _.merge(authOpts(), { signal }))
         return res.json()
+      },
+
+      addUser: async (roles, email) => {
+        return Promise.all(_.map(role => addRole(role, email), roles))
+      },
+
+      removeUser: async (roles, email) => {
+        return Promise.all(_.map(role => removeRole(role, email), roles))
+      },
+
+      changeUserRoles: async (email, oldRoles, newRoles) => {
+        if (!_.isEqual(oldRoles, newRoles)) {
+          await Promise.all(_.map(role => addRole(role, email), _.difference(newRoles, oldRoles)))
+          return Promise.all(_.map(role => removeRole(role, email), _.difference(oldRoles, newRoles)))
+        }
       }
     }
   }
@@ -661,7 +682,8 @@ const Methods = signal => ({
 
 const Jupyter = signal => ({
   clustersList: async project => {
-    const res = await fetchLeo(`api/clusters${project ? `/${project}` : ''}?saturnAutoCreated=true`, _.mergeAll([authOpts(), appIdentifier, { signal }]))
+    const res = await fetchLeo(`api/clusters${project ? `/${project}` : ''}?saturnAutoCreated=true`,
+      _.mergeAll([authOpts(), appIdentifier, { signal }]))
     return res.json()
   },
 

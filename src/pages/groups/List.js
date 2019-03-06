@@ -16,7 +16,6 @@ import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
-import { styles } from 'src/pages/groups/common'
 import { validate } from 'validate.js'
 
 
@@ -100,18 +99,18 @@ const DeleteGroupModal = pure(({ groupName, onDismiss, onSubmit }) => {
 const GroupCard = pure(({ group: { groupName, groupEmail, role }, onDelete }) => {
   const isAdmin = !!_.includes('admin', role)
 
-  return div({ style: styles.longCard }, [
+  return div({ style: Style.cardList.longCard }, [
     a({
       href: isAdmin ? Nav.getLink('group', { groupName }) : undefined,
       style: {
-        ...styles.longTitle,
+        ...Style.cardList.longTitle,
         marginRight: '1rem',
         width: '30%', color: isAdmin ? colors.green[0] : undefined
       }
     }, [groupName]),
     div({ style: { flexGrow: 1 } }, [groupEmail]),
     div({ style: { width: 100, display: 'flex', alignItems: 'center' } }, [
-      div({ style: { flexGrow: 1, textTransform: 'capitalize' } }, [_.join(', ', role)]),
+      div({ style: { flexGrow: 1 } }, [isAdmin ? 'Admin' : 'Member']),
       isAdmin && linkButton({
         onClick: onDelete,
         style: { margin: '-1rem', padding: '1rem' }
@@ -124,7 +123,7 @@ const GroupCard = pure(({ group: { groupName, groupEmail, role }, onDelete }) =>
 
 const NewGroupCard = pure(({ onClick }) => {
   return h(Clickable, {
-    style: styles.shortCreateCard,
+    style: Style.cardList.shortCreateCard,
     onClick
   }, [
     div(['Create a']),
@@ -182,12 +181,12 @@ export const GroupList = ajaxCaller(class GroupList extends Component {
         })
       ]),
       h(PageBox, [
-        div({ style: styles.toolbarContainer }, [
+        div({ style: Style.cardList.toolbarContainer }, [
           div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, [
             'Group Management'
           ])
         ]),
-        div({ style: styles.cardContainer }, [
+        div({ style: Style.cardList.cardContainer }, [
           h(NewGroupCard, {
             onClick: () => this.setState({ creatingNewGroup: true })
           }),
