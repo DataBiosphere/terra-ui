@@ -35,8 +35,8 @@ export const NewUserCard = pure(({ onClick }) => {
   ])
 })
 
-export const MemberCard = pure(({ member: { email, roles }, ownerCanEdit, onEdit, onDelete, adminLabel, userLabel }) => {
-  const canEdit = ownerCanEdit || !_.includes(adminLabel, roles)
+export const MemberCard = pure(({ member: { email, roles }, adminCanEdit, onEdit, onDelete, adminLabel, userLabel }) => {
+  const canEdit = adminCanEdit || !_.includes(adminLabel, roles)
   const tooltip = !canEdit && `This user is the only ${adminLabel}`
 
   return div({
@@ -45,9 +45,12 @@ export const MemberCard = pure(({ member: { email, roles }, ownerCanEdit, onEdit
     div({ style: { flex: '1' } }, [email]),
     div({ style: { flex: '0 0 150px', textTransform: 'capitalize' } }, [_.includes(adminLabel, roles) ? adminLabel : userLabel]),
     div({ style: { flex: 'none' } }, [
-      link({
-        onClick: onEdit
-      }, ['Edit Role']),
+      h(TooltipTrigger, { content: tooltip }, [
+        link({
+          disabled: !canEdit,
+          onClick: canEdit ? onEdit : undefined
+        }, ['Edit Role'])
+      ]),
       ' | ',
       h(TooltipTrigger, { content: tooltip }, [
         link({
@@ -231,7 +234,7 @@ export const EditUserModal = ajaxCaller(class EditUserModal extends Component {
     const { isAdmin } = this.state
 
     const applyAdminChange = _.flow(
-      _.without(isAdmin ? userLabel : adminLabel),
+      _.without([isAdmin ? userLabel : adminLabel]),
       _.union([isAdmin ? adminLabel : userLabel])
     )
 

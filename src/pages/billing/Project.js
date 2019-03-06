@@ -53,7 +53,7 @@ export const ProjectUsersList = ajaxCaller(class ProjectUsersList extends Compon
   render() {
     const { projectName, ajax: { Billing } } = this.props
     const { projectUsers, loading, updating, filter, addingUser, deletingUser, editingUser } = this.state
-    const ownerCanEdit = _.filter(({ roles }) => _.includes('Owner', roles), projectUsers).length > 1
+    const adminCanEdit = _.filter(({ roles }) => _.includes('Owner', roles), projectUsers).length > 1
 
     return h(Fragment, [
       h(TopBar, { title: 'Billing', href: Nav.getLink('billing') }, [
@@ -89,7 +89,7 @@ export const ProjectUsersList = ajaxCaller(class ProjectUsersList extends Compon
               return h(MemberCard, {
                 adminLabel: 'Owner',
                 userLabel: 'User',
-                member, ownerCanEdit,
+                member, adminCanEdit,
                 onEdit: () => this.setState({ editingUser: member }),
                 onDelete: () => this.setState({ deletingUser: member })
               })
