@@ -1,8 +1,9 @@
 import _ from 'lodash/fp'
 import { createRef, Fragment } from 'react'
 import { div, h, iframe } from 'react-hyperscript-helpers'
+import { pure } from 'recompose'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { linkButton, spinnerOverlay, buttonSecondary } from 'src/components/common'
+import { buttonOutline, linkButton, spinnerOverlay } from 'src/components/common'
 import { icon, spinner } from 'src/components/icons'
 import { notify } from 'src/components/Notifications'
 import { ajaxCaller } from 'src/libs/ajax'
@@ -56,7 +57,7 @@ const NotebookLauncher = _.flow(
   ajaxCaller
 )(props => {
   const { workspace, app, queryParams = {} } = props
-  return Utils.canWrite(workspace.accessLevel) && workspace.canCompute && !queryParams['read-only']?
+  return Utils.canWrite(workspace.accessLevel) && workspace.canCompute && !queryParams['read-only'] ?
     h(NotebookEditor, { workspace, app, queryParams, ...props }) :
     h(NotebookPreview, { workspace, queryParams, ...props })
 })
@@ -70,35 +71,30 @@ class ReadOnlyMessage extends Component {
   }
 
   render() {
-    const { notebookName, workspace, workspace: { workspace: { namespace, name } } } = this.props
+    const { notebookName, workspace, workspace: { canCompute, workspace: { namespace, name } } } = this.props
     const notebookLink = Nav.getLink('workspace-notebook-launch', { namespace, name, notebookName })
     const notebookLabLink = Nav.getLink('workspace-notebook-launch', { namespace, app: 'lab', name, notebookName })
     const { copying } = this.state
-    return div({ style: { padding: '1rem 2rem' } }, [
-      div({ style: { fontSize: 16, fontWeight: 'bold' } },
+    return div({ style: { padding: '1rem 2rem', display: 'flex', alignItems: 'center' } }, [
+      div({ style: { fontSize: 16, fontWeight: 'bold', position: 'absolute' } },
         ['Viewing read-only']),
-      workspace.canCompute ?
+      div({ style: { flexGrow: 1 } }),
+      canCompute ?
         h(Fragment, [
-          div({ style: { fontWeight: 500 } }, [
-            'Click to ',
-            linkButton({
-              styles: { display: 'flex', flex: 'auto' },
-              tooltip: 'Switch to edit notebook',
-              tooltipSide: 'bottom',
-              href: notebookLink
-            }, ['edit']), ' or ',
-            linkButton({
-              tooltip: 'Switch to edit notebook in JupyterLab',
-              tooltipSide: 'bottom',
-              href: notebookLabLink
-            }, ['edit in JupyterLab'])
-          ])
-        ])
-        : div({ style: { fontWeight: 500 } }, [
-          'To edit this notebook, ',
-          buttonSecondary({ onClick: () => this.setState({ copying: true }) }, 'copy'),
-          ' it to another workspace'
-        ]),
+          buttonOutline({
+            as: 'a',
+            href: notebookLink,
+            style: { marginRight: '1rem' }
+          }, ['edit in Jupyter']),
+          buttonOutline({
+            as: 'a',
+            href: notebookLabLink
+          }, ['edit in JupyterLab'])
+        ]) :
+        buttonOutline({
+          onClick: () => this.setState({ copying: true })
+        }, ['copy to another workspace to edit']),
+      div({ style: { flexGrow: 1 } }),
       copying && h(ExportNotebookModal, {
         printName: notebookName.slice(0, -6), workspace, fromLauncher: true,
         onDismiss: () => this.setState({ copying: false })
@@ -107,18 +103,21 @@ class ReadOnlyMessage extends Component {
   }
 }
 
-class NotebookPreview extends Component {
-  render() {
-    const { namespace, name } = this.props
-    return h(Fragment, [
-      linkButton({
-        style: { position: 'absolute', top: 20, left: 'calc(50% + 570px)' },
-        onClick: () => Nav.goToPath('workspace-notebooks', { namespace, name })
-      }, [icon('times-circle', { size: 30 })]),
-      h(NotebookPreviewFrame, this.props)
-    ])
-  }
-}
+const NotebookPreview = pure(props => {
+  const { namespace, name, notebookName, workspace } = props
+  return h(Fragment, [
+    h(ReadOnlyMessage, { notebookName, workspace }),
+    h(NotebookPreviewFrame, {
+      ...props,
+      loadedChildren: div({ style: { position: 'relative' } }, [
+        linkButton({
+          style: { position: 'absolute', top: 20, left: 'calc(50% + 580px)' },
+          href: Nav.getLink('workspace-notebooks', { namespace, name })
+        }, [icon('times-circle', { size: 30 })])
+      ])
+    })
+  ])
+})
 
 class NotebookPreviewFrame extends Component {
   constructor(props) {
@@ -143,15 +142,18 @@ class NotebookPreviewFrame extends Component {
   }
 
   render() {
-    const { notebookName, workspace, queryParams }  = this.props
+    const { loadedChildren } = this.props
     const { preview, busy } = this.state
     return h(Fragment, [
-      !!queryParams['read-only'] && h(ReadOnlyMessage, { notebookName, workspace }),
+      preview && loadedChildren,
       preview && iframe({
         style: { border: 'none', flex: 1 },
         srcDoc: preview
       }),
-      busy && spinnerOverlay
+      busy && div({ style: { ...styles.step.container, marginLeft: '2rem' } }, [
+        div({ style: styles.step.col1 }, [spinner()]),
+        div({ style: styles.step.col2 }, ['Generating preview...'])
+      ])
     ])
   }
 }
