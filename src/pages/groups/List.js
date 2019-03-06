@@ -110,7 +110,7 @@ const GroupCard = pure(({ group: { groupName, groupEmail, role }, onDelete }) =>
     }, [groupName]),
     div({ style: { flexGrow: 1 } }, [groupEmail]),
     div({ style: { width: 100, display: 'flex', alignItems: 'center' } }, [
-      div({ style: { flexGrow: 1 } }, [_.includes('admin', role) ? 'Admin' : 'Member']),
+      div({ style: { flexGrow: 1 } }, [isAdmin ? 'Admin' : 'Member']),
       isAdmin && linkButton({
         onClick: onDelete,
         style: { margin: '-1rem', padding: '1rem' }

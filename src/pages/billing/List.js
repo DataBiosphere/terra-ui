@@ -39,7 +39,7 @@ const ProjectCard = pure(({ project: { projectName, creationStatus, role }, onDe
         }
       }, [projectName])
     ]),
-    div({ style: { width: 100, textTransform: 'capitalize' } }, [_.join(', ', role)])
+    div({ style: { width: 100 } }, [isOwner ? 'Owner' : 'Member'])
   ])
 })
 

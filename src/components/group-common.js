@@ -230,9 +230,14 @@ export const EditUserModal = ajaxCaller(class EditUserModal extends Component {
     const { adminLabel, userLabel, user: { email, roles }, onSuccess, saveFunction } = this.props
     const { isAdmin } = this.state
 
+    const applyAdminChange = _.flow(
+      _.without(isAdmin ? userLabel : adminLabel),
+      _.union([isAdmin ? adminLabel : userLabel])
+    )
+
     try {
       this.setState({ submitting: true })
-      await saveFunction(email, roles, [isAdmin ? adminLabel : userLabel])
+      await saveFunction(email, roles, applyAdminChange(roles))
       onSuccess()
     } catch (error) {
       this.setState({ submitting: false })
