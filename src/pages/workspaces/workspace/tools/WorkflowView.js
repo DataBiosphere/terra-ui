@@ -490,6 +490,7 @@ const WorkflowView = _.flow(
     const noLaunchReason = Utils.cond(
       [saving || modified, () => 'Save or cancel to Launch Analysis'],
       [!_.isEmpty(errors.inputs) || !_.isEmpty(errors.outputs), () => 'At least one required attribute is missing or invalid'],
+      [!entityMetadata[rootEntityType], () => `There are no ${selectedEntityType}s in this workspace.`],
       [entitySelectionModel.type === EntitySelectionType.chooseSet && !entitySelectionModel.selectedEntities.name, () => 'Select a set']
     )
 
