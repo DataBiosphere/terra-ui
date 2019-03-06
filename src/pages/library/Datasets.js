@@ -12,6 +12,7 @@ import encodeLogo from 'src/images/library/datasets/ENCODE@2x.png'
 import gtexLogo from 'src/images/library/datasets/GTeX@2x.png'
 import hcaLogo from 'src/images/library/datasets/HCA@2x.png'
 import nhsLogo from 'src/images/library/datasets/NHS@2x.png'
+import thousandGenomesLogo from 'src/images/library/datasets/thousandgenomes.png'
 import topMedLogo from 'src/images/library/datasets/TopMed@2x.png'
 import ukbLogo from 'src/images/library/datasets/UKB@2x.jpg'
 import colors from 'src/libs/colors'
@@ -117,6 +118,24 @@ const NIHCommonsButtons = buttonPrimary({
   tooltip: browseTooltip
 }, ['Browse Data via Windmill'])
 
+const thousandGenomes = h(Participant, {
+  logo: { src: thousandGenomesLogo, alt: '1000 Genomes logo' },
+  title: '1000 Genomes',
+  description: h(Fragment, [
+    link({ href: 'http://www.internationalgenome.org/about', target: '_blank' }, 'The 1000 Genomes Project'),
+    ` ran between 2008 and 2015, creating the largest public catalogue of 
+  human variation and genotype data. The goal of the 1000 Genomes Project was to find most genetic variants 
+  with frequencies of at least 1% in the populations studied.`
+  ]),
+  sizeText: 'Participants: 3,500'
+}, [
+  buttonPrimary({
+    as: 'a',
+    href: 'https://test-data-explorer.appspot.com/',
+    target: '_blank',
+    tooltip: browseTooltip
+  }, ['Browse data'])
+])
 
 const amppd = h(Participant, {
   logo: { src: amppdLogo, alt: 'AMP-PD logo' },
@@ -283,7 +302,7 @@ const Datasets = pure(() => {
     libraryTopMatter('datasets'),
     div({ style: styles.content }, [
       // Put datasets in alphabetical order
-      amppd, baseline, encode, fcDataLib, gtex, hca, nhs, topMed, ukb
+      thousandGenomes, amppd, baseline, encode, fcDataLib, gtex, hca, nhs, topMed, ukb
     ])
   ])
 })
