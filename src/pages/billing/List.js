@@ -1,18 +1,22 @@
 import _ from 'lodash/fp'
 import { Fragment } from 'react'
-import { a, div, h } from 'react-hyperscript-helpers'
+import { a, b, div, h } from 'react-hyperscript-helpers'
 import { pure } from 'recompose'
-import { PageBox, search, spinnerOverlay } from 'src/components/common'
-import { icon } from 'src/components/icons'
+import { buttonPrimary, PageBox, search, spinnerOverlay } from 'src/components/common'
+import { icon, spinner } from 'src/components/icons'
+import { validatedInput } from 'src/components/input'
+import Modal from 'src/components/Modal'
 import TopBar from 'src/components/TopBar'
 import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
+import * as Forms from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
+import validate from 'validate.js'
 
 
 const billingProjectNameValidator = existing => ({
@@ -26,6 +30,67 @@ const billingProjectNameValidator = existing => ({
     within: existing,
     message: 'already exists'
   }
+})
+
+const NewBillingProjectModal = ajaxCaller(class NewBillingProjectModal extends Component {
+  constructor(props) {
+    super(props)
+    this.state = {
+      billingProjectName: '',
+      billingProjectNameTouched: false
+    }
+  }
+
+  render() {
+    const { onDismiss, existingBillingProjects } = this.props
+    const { billingProjectName, billingProjectNameTouched, submitting } = this.state
+    const errors = validate({ billingProjectName }, { billingProjectName: billingProjectNameValidator(existingBillingProjects) })
+
+    return h(Modal, {
+      onDismiss,
+      title: 'Create New Billing Project',
+      okButton: buttonPrimary({
+        disabled: errors,
+        onClick: () => this.submit()
+      }, ['Create Billing Project'])
+    }, [
+      Forms.requiredFormLabel('Enter a unique name'),
+      validatedInput({
+        inputProps: {
+          autoFocus: true,
+          value: billingProjectName,
+          onChange: e => this.setState({ billingProjectName: e.target.value, billingProjectNameTouched: true })
+        },
+        error: billingProjectNameTouched && Utils.summarizeErrors(errors && errors.billingProjectName)
+      }),
+      !(billingProjectNameTouched && errors) && Forms.formHint('Only letters etc etc'),
+      submitting && spinnerOverlay
+    ])
+  }
+
+  async submit() {
+    const { onSuccess, ajax: { Billing } } = this.props
+    const { billingProjectName } = this.state
+
+    try {
+      this.setState({ submitting: true })
+      await Billing.listProjects(billingProjectName).create()
+      onSuccess()
+    } catch (error) {
+      this.setState({ submitting: false })
+      reportError('Error creating billing project', error)
+    }
+  }
+})
+
+const DeleteBillingProjectModal = pure(({ billingProjectName, onDismiss, onSubmit }) => {
+  return h(Modal, {
+    onDismiss,
+    title: 'Confirm',
+    okButton: buttonPrimary({
+      onClick: onSubmit
+    }, ['Delete Billing Project'])
+  }, ['Are you sure you want to delete the billing project ', b([`${billingProjectName} ?`])])
 })
 
 const ProjectCard = pure(({ project: { projectName, creationStatus, role }, onDelete }) => {
