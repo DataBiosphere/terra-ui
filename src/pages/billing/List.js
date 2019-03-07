@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { Fragment } from 'react'
-import { a, b, div, h } from 'react-hyperscript-helpers'
+import { a, div, h } from 'react-hyperscript-helpers'
 import { pure } from 'recompose'
 import { buttonPrimary, Clickable, PageBox, search, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
@@ -54,7 +54,7 @@ const NewBillingProjectModal = ajaxCaller(class NewBillingProjectModal extends C
         onClick: () => this.submit()
       }, ['Create Billing Project'])
     }, [
-      Forms.requiredFormLabel('Enter a unique name'),
+      Forms.requiredFormLabel('Enter a unique name', div({ style: { fontWeight: 400 } }, 'This cannot be changed')),
       validatedInput({
         inputProps: {
           autoFocus: true,
@@ -83,17 +83,7 @@ const NewBillingProjectModal = ajaxCaller(class NewBillingProjectModal extends C
   }
 })
 
-const DeleteBillingProjectModal = pure(({ billingProjectName, onDismiss, onSubmit }) => {
-  return h(Modal, {
-    onDismiss,
-    title: 'Confirm',
-    okButton: buttonPrimary({
-      onClick: onSubmit
-    }, ['Delete Billing Project'])
-  }, ['Are you sure you want to delete the billing project ', b([`${billingProjectName} ?`])])
-})
-
-const ProjectCard = pure(({ project: { projectName, creationStatus, role }, onDelete }) => {
+const ProjectCard = pure(({ project: { projectName, creationStatus, role } }) => {
   const isOwner = !!_.includes('Owner', role)
   const projectReady = creationStatus === 'Ready'
 
@@ -127,7 +117,7 @@ const NewBillingProjectCard = pure(({ onClick }) => {
     onClick
   }, [
     div(['Create a']),
-    div(['New Billing Project']),
+    div(['New Project']),
     icon('plus-circle', { style: { marginTop: '0.5rem' }, size: 21 })
   ])
 })
@@ -139,7 +129,6 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
       filter: '',
       billingProjects: null,
       creatingBillingProject: false,
-      deletingBillingProject: false,
       updating: false,
       ...StateHistory.get()
     }
@@ -149,7 +138,7 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
     const { ajax: { Billing } } = this.props
 
     try {
-      this.setState({ isDataLoaded: false, creatingBillingProject: false, deletingBillingProject: false, updating: false })
+      this.setState({ isDataLoaded: false, creatingBillingProject: false, updating: false })
       const rawBillingProjects = await Billing.listProjects()
       const billingProjects = _.flow(
         _.groupBy('projectName'),
@@ -167,8 +156,7 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
   }
 
   render() {
-    const { billingProjects, isDataLoaded, filter, creatingBillingProject, deletingBillingProject, updating } = this.state
-    const { ajax: { Billing } } = this.props
+    const { billingProjects, isDataLoaded, filter, creatingBillingProject, updating } = this.state
     return h(Fragment, [
       h(TopBar, { title: 'Billing' }, [
         search({
@@ -180,27 +168,20 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
           }
         })
       ]),
-      h(PageBox, { style: { padding: '1.5rem', flex: 1 } }, [
+      h(PageBox, [
         div({ style: Style.cardList.toolbarContainer }, [
-          div({
-            style: {
-              ...Style.elements.sectionHeader,
-              textTransform: 'uppercase',
-              marginBottom: '1rem'
-            }
-          }, ['Billing Projects Management'])
+          div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, ['Billing Projects Management']) //Billing Projects? Billing Management? Billing Project Management?
         ]),
-        h(NewBillingProjectCard, {
-          onClick: () => this.setState({ creatingBillingProject: true })
-        }),
         div({ style: Style.cardList.cardContainer }, [
+          h(NewBillingProjectCard, {
+            onClick: () => this.setState({ creatingBillingProject: true })
+          }),
           div({ style: { flexGrow: 1 } }, [
             _.flow(
               _.filter(({ projectName }) => Utils.textMatch(filter, projectName)),
               _.map(project => {
                 return h(ProjectCard, {
                   project, key: `${project.projectName}`
-                  // onDelete: () => this.setState({ deletingProject: project })
                 })
               })
             )(billingProjects)
@@ -211,20 +192,6 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
           existingBillingProjects: _.map('billingProjectName', billingProjects),
           onDismiss: () => this.setState({ creatingBillingProject: false }),
           onSuccess: () => this.refresh()
-        }),
-        deletingBillingProject && h(DeleteBillingProjectModal, {
-          billingProjectName: deletingBillingProject.billingProjectName,
-          onDismiss: () => this.setState({ deletingBillingProject: false }),
-          onSubmit: async () => {
-            try {
-              this.setState({ deletingBillingProject: false, updating: true })
-              await Billing.list(deletingBillingProject.billingProjectName).delete()
-              this.refresh()
-            } catch (error) {
-              this.setState({ updating: false })
-              reportError('Error deleting billing project', error)
-            }
-          }
         })
       ]),
       updating && spinnerOverlay
