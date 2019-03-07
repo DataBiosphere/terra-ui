@@ -15,6 +15,19 @@ import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 
 
+const billingProjectNameValidator = existing => ({
+  presence: { allowEmpty: false },
+  length: { minimum: 6, maximum: 30 },
+  format: {
+    pattern: /^[a-z]([a-z0-9-])*$/,
+    message: 'can only contain lowercase letters, numbers, and hyphens, and must start with a letter.'
+  },
+  exclusion: {
+    within: existing,
+    message: 'already exists'
+  }
+})
+
 const ProjectCard = pure(({ project: { projectName, creationStatus, role }, onDelete }) => {
   const isOwner = !!_.includes('Owner', role)
   const projectReady = creationStatus === 'Ready'
