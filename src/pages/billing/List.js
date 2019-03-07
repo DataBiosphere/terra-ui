@@ -2,8 +2,8 @@ import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { a, b, div, h } from 'react-hyperscript-helpers'
 import { pure } from 'recompose'
-import { buttonPrimary, PageBox, search, spinnerOverlay } from 'src/components/common'
-import { icon, spinner } from 'src/components/icons'
+import { buttonPrimary, Clickable, PageBox, search, spinnerOverlay } from 'src/components/common'
+import { icon } from 'src/components/icons'
 import { validatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import TopBar from 'src/components/TopBar'
@@ -121,12 +121,26 @@ const ProjectCard = pure(({ project: { projectName, creationStatus, role }, onDe
   ])
 })
 
+const NewBillingProjectCard = pure(({ onClick }) => {
+  return h(Clickable, {
+    style: Style.cardList.shortCreateCard,
+    onClick
+  }, [
+    div(['Create a']),
+    div(['New Billing Project']),
+    icon('plus-circle', { style: { marginTop: '0.5rem' }, size: 21 })
+  ])
+})
+
 export const BillingList = ajaxCaller(class BillingList extends Component {
   constructor(props) {
     super(props)
     this.state = {
       filter: '',
       billingProjects: null,
+      creatingBillingProject: false,
+      deletingBillingProject: false,
+      updating: false,
       ...StateHistory.get()
     }
   }
@@ -135,7 +149,7 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
     const { ajax: { Billing } } = this.props
 
     try {
-      this.setState({ isDataLoaded: false })
+      this.setState({ isDataLoaded: false, creatingBillingProject: false, deletingBillingProject: false, updating: false })
       const rawBillingProjects = await Billing.listProjects()
       const billingProjects = _.flow(
         _.groupBy('projectName'),
@@ -153,7 +167,8 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
   }
 
   render() {
-    const { billingProjects, isDataLoaded, filter } = this.state
+    const { billingProjects, isDataLoaded, filter, creatingBillingProject, deletingBillingProject, updating } = this.state
+    const { ajax: { Billing } } = this.props
     return h(Fragment, [
       h(TopBar, { title: 'Billing' }, [
         search({
@@ -175,6 +190,9 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
             }
           }, ['Billing Projects Management'])
         ]),
+        h(NewBillingProjectCard, {
+          onClick: () => this.setState({ creatingBillingProject: true })
+        }),
         div({ style: Style.cardList.cardContainer }, [
           div({ style: { flexGrow: 1 } }, [
             _.flow(
@@ -188,9 +206,28 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
             )(billingProjects)
           ]),
           !isDataLoaded && spinnerOverlay
-        ])
-      ])
-
+        ]),
+        creatingBillingProject && h(NewBillingProjectModal, {
+          existingBillingProjects: _.map('billingProjectName', billingProjects),
+          onDismiss: () => this.setState({ creatingBillingProject: false }),
+          onSuccess: () => this.refresh()
+        }),
+        deletingBillingProject && h(DeleteBillingProjectModal, {
+          billingProjectName: deletingBillingProject.billingProjectName,
+          onDismiss: () => this.setState({ deletingBillingProject: false }),
+          onSubmit: async () => {
+            try {
+              this.setState({ deletingBillingProject: false, updating: true })
+              await Billing.list(deletingBillingProject.billingProjectName).delete()
+              this.refresh()
+            } catch (error) {
+              this.setState({ updating: false })
+              reportError('Error deleting billing project', error)
+            }
+          }
+        })
+      ]),
+      updating && spinnerOverlay
     ])
   }
 
