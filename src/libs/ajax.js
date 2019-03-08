@@ -300,6 +300,17 @@ const Billing = signal => ({
     return res.json()
   },
 
+  listAccounts: async () => {
+    const res = await fetchRawls('user/billingAccounts', _.merge(authOpts(), { signal }))
+    return res.json()
+  },
+
+  createProject: async (projectName, billingAccount) => {
+    const res = await fetchRawls('billing',
+      _.mergeAll([authOpts(), jsonBody({ projectName, billingAccount }), { signal, method: 'POST' }]))
+    return res.json()
+  },
+
   project: projectName => {
     const root = `billing/${projectName}`
 

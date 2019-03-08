@@ -8,7 +8,7 @@ import { reportError } from 'src/libs/error'
 import * as Utils from 'src/libs/utils'
 
 
-const getAuthInstance = () => {
+export const getAuthInstance = () => {
   return window.gapi.auth2.getAuthInstance()
 }
 
