@@ -27,7 +27,7 @@ import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer
 const notebookCardCommonStyles = listView => _.merge({ display: 'flex' },
   listView ?
     { marginBottom: '0.5rem', flexDirection: 'row' } :
-    { margin: '0 2.5rem 2.5rem 0', height: 250, width: 200, flexDirection: 'column' }
+    { margin: '0 2.5rem 2.5rem 0', height: 100, width: 400, flexDirection: 'column' }
 )
 
 const printName = name => name.slice(10, -6) // removes 'notebooks/' and the .ipynb suffix
@@ -113,22 +113,13 @@ class NotebookCard extends Component {
       ])
     ])
 
-    const jupyterIcon = icon('jupyterIcon', {
-      style: {
-        height: 125,
-        width: 'auto',
-        color: colors.gray[5]
-      }
-    })
-
     const title = div({
       title: printName(name),
       style: _.merge({
-        ...Style.elements.card.title,
-        textOverflow: 'ellipsis', whiteSpace: 'nowrap'
+        ...Style.elements.card.title, whiteSpace: 'normal'
       }, listView ? {
         marginLeft: '1rem'
-      } : undefined)
+      } : { height: 60, padding: '1rem' })
     }, printName(name))
 
     return a({
@@ -150,15 +141,14 @@ class NotebookCard extends Component {
       ])
     ] : [
       title,
-      jupyterIcon,
-      isRecent ? div({ style: { display: 'flex', color: colors.orange[0] } }, 'Recently Edited') : undefined,
-      div({ style: { display: 'flex', justifyContent: 'space-between' } }, [
+      div({ style: { display: 'flex', justifyContent: 'space-between', borderTop: `solid 1px ${colors.gray[4]}`, padding: '0.5rem', backgroundColor: colors.grayBlue[5], borderRadius: '0 0 5px 5px' } }, [
         h(TooltipTrigger, { content: Utils.makeCompleteDate(updated) }, [
           div({ style: { fontSize: '0.8rem', flexGrow: 1, marginRight: '0.5rem' } }, [
-            'Last edited:',
-            div({}, Utils.makePrettyDate(updated))
+            'Last edited: ',
+            Utils.makePrettyDate(updated)
           ])
         ]),
+        isRecent ? div({ style: { display: 'flex', color: colors.orange[0] } }, 'Recently Edited') : undefined,
         notebookMenu
       ])
     ])
@@ -265,7 +255,12 @@ const Notebooks = _.flow(
         }
       }, [
         h(Clickable, {
-          style: { ...Style.elements.card.container, flex: 1, color: colors.green[0] },
+          style: {
+            ...Style.elements.card.container,
+            padding: '1rem',
+            flex: 1,
+            color: colors.green[0]
+          },
           onClick: () => this.setState({ creating: true }),
           disabled: !canWrite,
           tooltip: !canWrite ? noWrite : undefined
@@ -280,7 +275,7 @@ const Notebooks = _.flow(
         h(Clickable, {
           style: {
             ...Style.elements.card.container, flex: 1,
-            backgroundColor: colors.gray[6], border: `1px dashed ${colors.gray[2]}`, boxShadow: 'none'
+            backgroundColor: colors.gray[6], border: `1px dashed ${colors.gray[2]}`, boxShadow: 'none', padding: '1rem'
           },
           onClick: () => this.uploader.current.open(),
           disabled: !canWrite,
