@@ -1,6 +1,7 @@
 import _ from 'lodash/fp'
 import { createRef, Fragment, PureComponent } from 'react'
 import { div, h, h2, p, span } from 'react-hyperscript-helpers'
+import { toClass } from 'recompose'
 import ClusterManager from 'src/components/ClusterManager'
 import { buttonPrimary, Clickable, comingSoon, link, MenuButton, menuIcon, tabBar } from 'src/components/common'
 import ErrorView from 'src/components/ErrorView'
@@ -173,7 +174,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
         },
         refreshClusters: () => this.refreshClusters()
       }, [
-        workspace && h(WrappedComponent, {
+        workspace && h(toClass(WrappedComponent), {
           ref: this.child,
           workspace, clusters, loadingWorkspace,
           refreshWorkspace: () => this.refresh(),
