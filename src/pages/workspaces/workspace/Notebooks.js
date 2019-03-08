@@ -124,15 +124,17 @@ class NotebookCard extends Component {
 
     return a({
       href: notebookLink,
-      style: {
+      style: _.merge({
         ...Style.elements.card.container,
         ...notebookCardCommonStyles(listView),
-        flexShrink: 0,
-        alignItems: listView ? 'center' : undefined,
-        padding: listView ? '1rem' : undefined,
-        boxShadow: listView ? 'rgba(0, 0, 0, 0.35) 0px 2px 5px 0px, rgba(0, 0, 0, 0.12) 0px 3px 2px 0px, rgba(0, 0, 0, 0.12) 0px 0px 2px 0px': '0 2px 10px 0 rgba(0,0,0,0.45), 0 2px 10px 0 rgba(0,0,0,0.25)'
-
-      }
+        flexShrink: 0
+      }, listView ? {
+        alignItems: 'center'
+      } : {
+        boxShadow: '0 2px 10px 0 rgba(0,0,0,0.45), 0 2px 10px 0 rgba(0,0,0,0.25)',
+        padding: 0,
+        alignItems: undefined
+      })
     }, listView ? [
       notebookMenu,
       title,
