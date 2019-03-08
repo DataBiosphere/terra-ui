@@ -12,9 +12,10 @@ export const elements = {
     container: {
       display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
       borderRadius: 5,
+      padding: '1rem',
       wordWrap: 'break-word',
       backgroundColor: 'white',
-      boxShadow: '0 2px 10px 0 rgba(0,0,0,0.45), 0 2px 10px 0 rgba(0,0,0,0.25)'
+      boxShadow: 'rgba(0, 0, 0, 0.35) 0px 2px 5px 0px, rgba(0, 0, 0, 0.12) 0px 3px 2px 0px, rgba(0, 0, 0, 0.12) 0px 0px 2px 0px'
     }
   },
   sectionHeader: { color: colors.gray[0], fontSize: 16, fontWeight: 'bold' },

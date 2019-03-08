@@ -116,7 +116,7 @@ class NotebookCard extends Component {
     const title = div({
       title: printName(name),
       style: _.merge({
-        ...Style.elements.card.title, whiteSpace: 'normal'
+        ...Style.elements.card.title, whiteSpace: 'normal', overflowY: 'auto'
       }, listView ? {
         marginLeft: '1rem'
       } : { height: 60, padding: '1rem' })
@@ -128,7 +128,10 @@ class NotebookCard extends Component {
         ...Style.elements.card.container,
         ...notebookCardCommonStyles(listView),
         flexShrink: 0,
-        alignItems: listView ? 'center' : undefined
+        alignItems: listView ? 'center' : undefined,
+        padding: listView ? '1rem' : undefined,
+        boxShadow: listView ? 'rgba(0, 0, 0, 0.35) 0px 2px 5px 0px, rgba(0, 0, 0, 0.12) 0px 3px 2px 0px, rgba(0, 0, 0, 0.12) 0px 0px 2px 0px': '0 2px 10px 0 rgba(0,0,0,0.45), 0 2px 10px 0 rgba(0,0,0,0.25)'
+
       }
     }, listView ? [
       notebookMenu,
@@ -253,7 +256,7 @@ const Notebooks = _.flow(
 
     return div({
       style: {
-        display: 'flex', flexWrap: listView ? undefined : 'wrap',
+        display: 'flex',
         marginRight: listView ? undefined : '-2.5rem'
       }
     }, [
@@ -267,7 +270,6 @@ const Notebooks = _.flow(
         h(Clickable, {
           style: {
             ...Style.elements.card.container,
-            padding: '1rem',
             flex: 1,
             color: colors.green[0]
           },
@@ -285,7 +287,7 @@ const Notebooks = _.flow(
         h(Clickable, {
           style: {
             ...Style.elements.card.container, flex: 1,
-            backgroundColor: colors.gray[6], border: `1px dashed ${colors.gray[2]}`, boxShadow: 'none', padding: '1rem'
+            backgroundColor: colors.gray[6], border: `1px dashed ${colors.gray[2]}`, boxShadow: 'none'
           },
           onClick: () => this.uploader.current.open(),
           disabled: !canWrite,
@@ -301,7 +303,7 @@ const Notebooks = _.flow(
       listView ?
         div({ style: { flex: 1 } }, [
           renderedNotebooks
-        ]) : renderedNotebooks
+        ]) : div({ style: { display: 'flex', flexWrap: 'wrap' } }, renderedNotebooks)
     ])
   }
 
