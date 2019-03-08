@@ -68,7 +68,7 @@ const instrumentedFetch = (url, options) => {
 }
 
 
-const fetchOk = async (url, options) => {
+export const fetchOk = async (url, options) => {
   const res = await instrumentedFetch(url, options)
   return res.ok ? res : Promise.reject(res)
 }
