@@ -64,7 +64,7 @@ const logoTile = logoFile => div({
   }
 })
 
-export const dockstoreTile = div({ style: { display: 'flex' } }, [
+export const dockstoreTile = () => div({ style: { display: 'flex' } }, [
   logoTile(dockstoreLogo),
   div([
     link({ href: `${getConfig().dockstoreUrlRoot}/search?descriptorType=wdl&searchMode=files` }, 'Dockstore'),
@@ -72,7 +72,7 @@ export const dockstoreTile = div({ style: { display: 'flex' } }, [
   ])
 ])
 
-export const fcMethodRepoTile = div({ style: { display: 'flex' } }, [
+export const fcMethodRepoTile = () => div({ style: { display: 'flex' } }, [
   logoTile(firecloudLogo),
   div([
     link({ href: `${getConfig().firecloudUrlRoot}/?return=terra#methods` }, 'Firecloud Methods Repository'),
@@ -124,9 +124,9 @@ const Code = ajaxCaller(class Code extends Component {
           ]),
           div({ style: { width: 385, padding: '25px 30px', backgroundColor: colors.grayBlue[4], lineHeight: '20px' } }, [
             div({ style: { ...styles.header, fontSize: 16 } }, 'FIND ADDITIONAL WORKFLOWS'),
-            dockstoreTile,
+            dockstoreTile(),
             div({ style: { marginTop: 40 } }, [
-              fcMethodRepoTile
+              fcMethodRepoTile()
             ])
           ])
         ])

@@ -183,8 +183,8 @@ const FindToolModal = ajaxCaller(class FindToolModal extends Component {
       ]),
       div({ style: { fontSize: 18, fontWeight: 600, marginTop: '1rem' } }, ['Find Additional Tools']),
       div({ style: { display: 'flex', padding: '0.5rem' } }, [
-        div({ style: { flex: 1, marginRight: 10 } }, [dockstoreTile]),
-        div({ style: { flex: 1, marginLeft: 10 } }, [fcMethodRepoTile])
+        div({ style: { flex: 1, marginRight: 10 } }, [dockstoreTile()]),
+        div({ style: { flex: 1, marginLeft: 10 } }, [fcMethodRepoTile()])
       ])
     ]
 
