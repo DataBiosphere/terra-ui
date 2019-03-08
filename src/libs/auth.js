@@ -109,7 +109,11 @@ authStore.subscribe(async (state, oldState) => {
             const tideWhitelist = await fetchOk(
               `https://www.googleapis.com/storage/v1/b/terra-tide-prod-data/o/${encodeURIComponent('whitelistEmails')}?alt=media`)
               .then(res => res.json())
-            if (!tideWhitelist.includes(md5(state.user.email))) return 'unlisted'
+            if (!tideWhitelist.includes(md5(state.user.email))) {
+              return 'unlisted'
+            } else {
+              return 'unregistered'
+            }
           } catch (error) {
             reportError('Error checking whitelist status', error)
           }
