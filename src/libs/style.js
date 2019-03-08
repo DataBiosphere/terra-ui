@@ -11,11 +11,9 @@ export const elements = {
     title: { color: colors.green[0], fontSize: 16, overflow: 'hidden' },
     container: {
       display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
-      borderRadius: 5,
-      padding: '1rem',
-      wordWrap: 'break-word',
+      borderRadius: 5, padding: '1rem', wordWrap: 'break-word',
       backgroundColor: 'white',
-      boxShadow: 'rgba(0, 0, 0, 0.35) 0px 2px 5px 0px, rgba(0, 0, 0, 0.12) 0px 3px 2px 0px, rgba(0, 0, 0, 0.12) 0px 0px 2px 0px'
+      boxShadow: '0 2px 5px 0 rgba(0,0,0,0.35), 0 3px 2px 0 rgba(0,0,0,0.12), 0 0 2px 0 rgba(0,0,0,0.12)'
     }
   },
   sectionHeader: { color: colors.gray[0], fontSize: 16, fontWeight: 'bold' },
