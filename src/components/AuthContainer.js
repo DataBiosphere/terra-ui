@@ -14,6 +14,7 @@ export default Utils.connectAtom(authStore, 'authState')(
       [isSignedIn === undefined && !isPublic, centeredSpinner],
       [isSignedIn === false && !isPublic, h(SignIn)],
       [registrationStatus === undefined && !isPublic, centeredSpinner],
+      [isPublic, children],
       [registrationStatus === 'unregistered', h(Register)],
       [registrationStatus === 'disabled', () => h(Disabled)],
       [registrationStatus === 'unlisted', () => h(Unlisted)],
