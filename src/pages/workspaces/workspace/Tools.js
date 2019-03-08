@@ -168,13 +168,13 @@ const FindToolModal = ajaxCaller(class FindToolModal extends Component {
           div([_.join(',', managers)])
         ]),
         div({ style: { margin: '0 1rem', display: 'flex', flexDirection: 'column' } }, [
-          buttonPrimary({ style: { marginBottom: '0.5rem' }, onClick: () => this.setState({ exporting: true }) }, ['Add to Workspace']),
+          buttonPrimary({ style: { marginBottom: '0.5rem' }, onClick: () => this.exportMethod() }, ['Add to Workspace']),
           buttonOutline({ onClick: () => this.setState({ selectedTool: undefined, selectedToolDetails: undefined }) }, ['Return to List'])
         ])
       ]),
       div({ style: { fontSize: 18, fontWeight: 600, margin: '1rem 0 0.5rem' } }, ['Documentation']),
       documentation && h(Markdown, { style: { maxHeight: 600, overflowY: 'auto' } }, [documentation]),
-      !selectedToolDetails && centeredSpinner()
+      (!selectedToolDetails || exporting) && spinnerOverlay
     ]
 
     const renderList = () => [
@@ -188,10 +188,6 @@ const FindToolModal = ajaxCaller(class FindToolModal extends Component {
       ])
     ]
 
-    const renderExportForm = () => [
-
-    ]
-
     return h(Modal, {
       onDismiss,
       showButtons: false,
@@ -200,7 +196,6 @@ const FindToolModal = ajaxCaller(class FindToolModal extends Component {
       width: 900
     }, Utils.cond(
       [selectedTool, () => renderDetails()],
-      [exporting, () => renderExportForm()],
       () => renderList()
     ))
   }
@@ -220,29 +215,22 @@ const FindToolModal = ajaxCaller(class FindToolModal extends Component {
   }
 
   async exportMethod() {
-    const { namespace, name, ajax: { Methods, Workspaces } } = this.props
+    const { namespace, name, ajax: { Methods } } = this.props
     const { selectedTool } = this.state
 
-    try {
-      const wsEntities = await Workspaces.workspace(namespace, name).entityMetadata()
-      /*
-      {
-        namespace, name: workflowName, rootEntityType: _.head(_.keys(entityMetadata)),
-        inputs: {}, outputs: {}, prerequisites: {}, methodConfigVersion: 1, deleted: false,
-        methodRepoMethod: {
-          sourceRepo: 'dockstore',
-          methodPath: path,
-          methodVersion: version
-        }
-      }
-      */
+    this.setState({ exporting: true })
 
-      await Methods.method(selectedTool.namespace, selectedTool.name, selectedTool.snapshotId)
-        .toWorkspace({ namespace, name }, { namespace: selectedTool.namespace, name: selectedTool.name })
+    try {
+      const methodAjax = Methods.method(selectedTool.namespace, selectedTool.name, selectedTool.snapshotId)
+
+      const config = _.maxBy('snapshotId', await methodAjax.configs())
+
+      await methodAjax.toWorkspace({ namespace, name }, config)
 
       Nav.goToPath('workflow', { namespace, name, workflowNamespace: selectedTool.namespace, workflowName: selectedTool.name })
     } catch (error) {
       reportError('Error importing tool', error)
+      this.setState({ exporting: false })
     }
   }
 })

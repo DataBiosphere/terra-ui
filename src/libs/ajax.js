@@ -676,15 +676,28 @@ const Methods = signal => ({
         return res.json()
       },
 
-      toWorkspace: async (workspace, target) => {
+      configs: async () => {
+        const res = await fetchAgora(`${root}/configurations`, _.merge(authOpts(), { signal }))
+        return res.json()
+      },
+
+      toWorkspace: async (workspace, config = {}) => {
         const res = await fetchRawls(`workspaces/${workspace.namespace}/${workspace.name}/methodconfigs`,
-          _.mergeAll([authOpts(), jsonBody({
+          _.mergeAll([authOpts(), jsonBody(_.merge({
             methodRepoMethod: {
-              methodUri: `agora://${namespace}/${name}/${snapshotId}`,
+              methodUri: `agora://${namespace}/${name}/${snapshotId}`
             },
-            name: target.name,
-            namespace: target.namespace,
-          }), { signal, method: 'POST' }]))
+            name,
+            namespace,
+            rootEntityType: '',
+            prerequisites: {},
+            inputs: {},
+            outputs: {},
+            methodConfigVersion: 1,
+            deleted: false
+          },
+          config.payloadObject
+          )), { signal, method: 'POST' }]))
         return res.json()
       }
     }
