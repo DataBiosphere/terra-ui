@@ -141,9 +141,19 @@ class NotebookCard extends Component {
       ])
     ] : [
       title,
-      div({ style: { display: 'flex', justifyContent: 'space-between', borderTop: `solid 1px ${colors.gray[4]}`, padding: '0.5rem', backgroundColor: colors.grayBlue[5], borderRadius: '0 0 5px 5px' } }, [
+      div({
+        style: {
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          borderTop: `solid 1px ${colors.gray[4]}`,
+          padding: '0.5rem',
+          backgroundColor: colors.grayBlue[5],
+          borderRadius: '0 0 5px 5px'
+        }
+      }, [
         h(TooltipTrigger, { content: Utils.makeCompleteDate(updated) }, [
-          div({ style: { fontSize: '0.8rem', flexGrow: 1, marginRight: '0.5rem' } }, [
+          div({ style: { fontSize: '0.8rem', marginRight: '0.5rem' } }, [
             'Last edited: ',
             Utils.makePrettyDate(updated)
           ])
