@@ -142,6 +142,8 @@ class WorkspaceContainer extends Component {
 
 
 export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, showTabBar = true, queryparams }) => WrappedComponent => {
+  const WrappedClassComponent = toClass(WrappedComponent)
+
   return ajaxCaller(class Wrapper extends Component {
     constructor(props) {
       super(props)
@@ -174,7 +176,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
         },
         refreshClusters: () => this.refreshClusters()
       }, [
-        workspace && h(toClass(WrappedComponent), {
+        workspace && h(WrappedClassComponent, {
           ref: this.child,
           workspace, clusters, loadingWorkspace,
           refreshWorkspace: () => this.refresh(),
