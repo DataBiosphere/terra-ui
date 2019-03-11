@@ -20,16 +20,12 @@ import { Component } from 'src/libs/wrapped-components'
 import validate from 'validate.js'
 
 
-const billingProjectNameValidator = existing => ({
+const billingProjectNameValidator = () => ({
   presence: { allowEmpty: false },
   length: { minimum: 6, maximum: 30 },
   format: {
     pattern: /^[a-z]([a-z0-9-])*$/,
     message: 'must start with a letter and can only contain lowercase letters, numbers, and hyphens.'
-  },
-  exclusion: {
-    within: existing,
-    message: 'already exists'
   }
 })
 
@@ -39,8 +35,8 @@ const NewBillingProjectModal = ajaxCaller(class NewBillingProjectModal extends C
     this.state = {
       billingProjectName: '',
       billingProjectNameTouched: false,
-      existingBillingProjects: undefined,
-      billingAccount: ''
+      billingAccount: '',
+      alreadyExists: false
     }
   }
 
@@ -48,7 +44,6 @@ const NewBillingProjectModal = ajaxCaller(class NewBillingProjectModal extends C
     const { ajax: { Billing } } = this.props
     try {
       const billingAccounts = await Billing.listAccounts()
-      console.log(billingAccounts)
       this.setState({ billingAccounts })
     } catch (error) {
       reportError('Error loading billing accounts', error)
@@ -56,19 +51,23 @@ const NewBillingProjectModal = ajaxCaller(class NewBillingProjectModal extends C
   }
 
   render() {
-    const { onDismiss, existingBillingProjects } = this.props
-    const { billingProjectName, billingProjectNameTouched, submitting, chosenBillingAccount, billingAccounts } = this.state
-    const errors = validate({ billingProjectName }, { billingProjectName: billingProjectNameValidator(existingBillingProjects) })
+    const { onDismiss } = this.props
+    const { billingProjectName, billingProjectNameTouched, submitting, chosenBillingAccount, billingAccounts, alreadyExists } = this.state
+    const errors = validate({ billingProjectName }, { billingProjectName: billingProjectNameValidator() })
 
     return h(Modal, {
       onDismiss,
       title: 'Create New Billing Project',
       okButton: buttonPrimary({
-        disabled: errors,
+        disabled: errors || !chosenBillingAccount.firecloudHasAccess,
         onClick: () => this.submit()
       }, ['Create Billing Project'])
     }, [
       Forms.requiredFormLabel('Enter name'),
+      !!alreadyExists && div({ style: { color: colors.red[0], fontSize: 11, fontWeight: 600 } }, [
+        icon('exclamation-circle', { size: 24 }),
+        `${alreadyExists} already exists. Choose another name.`
+      ]),
       validatedInput({
         inputProps: {
           autoFocus: true,
@@ -78,37 +77,49 @@ const NewBillingProjectModal = ajaxCaller(class NewBillingProjectModal extends C
         error: billingProjectNameTouched && Utils.summarizeErrors(errors && errors.billingProjectName)
       }),
       !(billingProjectNameTouched && errors) && Forms.formHint('Name must be unique and cannot be changed.'),
-      Forms.requiredFormLabel('Select billing account',
-        div({ style: { fontWeight: 300, fontSize: 14 } }, [
-          !!billingAccounts ?
-            h(Select, {
-              isMulti: false,
-              placeholder: 'Select billing account',
-              value: chosenBillingAccount,
-              getOptionLabel: value => value.displayName,
-              getOptionsValue: value => value.accountName,
-              rawValue: true,
-              onChange: selected => this.setState({ chosenBillingAccount: selected }),
-              options: billingAccounts
-            }) : spinnerOverlay
-        ]),
-        !!chosenBillingAccount && !chosenBillingAccount.firecloudHasAccess && div({ style: { fontWeight: 300, fontSize: 13 } },
-          'To grant Terra access to an account, enter its console and add billing@firecloud.org as a Billing Account User.')),
+      Forms.requiredFormLabel('Select billing account'),
+      div({ style: { fontWeight: 300, fontSize: 14 } }, [
+        !!billingAccounts ?
+          h(Select, {
+            isMulti: false,
+            placeholder: 'Select billing account',
+            value: chosenBillingAccount,
+            getOptionLabel: value => value.displayName,
+            getOptionsValue: value => value.accountName,
+            rawValue: true,
+            onChange: selected => this.setState({ chosenBillingAccount: selected }),
+            options: billingAccounts
+          }) : spinnerOverlay
+      ]),
+      !!chosenBillingAccount && chosenBillingAccount.firecloudHasAccess && div({ style: { fontWeight: 600, fontSize: 11, color: colors.red[0] } }, [
+        'Terra does not have access to this account. To grant access, add billing@firecloud.org as a Billing Account User on the ',
+        a({
+          style: { color: colors.blue[0], fontWeight: 700 },
+          href: `https://console.developers.google.com/billing/${chosenBillingAccount.accountName.split('/')[1]}?authuser=${Auth.getUser().email}`,
+          target: '_blank'
+        }, ['Google Cloud Console ', icon('pop-out', { size: 12 })])
+      ]),
       submitting && spinnerOverlay
     ])
   }
 
   async submit() {
     const { onSuccess, ajax: { Billing } } = this.props
-    const { billingProjectName, billingAccount } = this.state
+    const { billingProjectName, chosenBillingAccount } = this.state
 
     try {
       this.setState({ submitting: true })
-      await Billing.createProject(billingProjectName, billingAccount)
+      await Billing.createProject(billingProjectName, chosenBillingAccount.accountName)
       onSuccess()
     } catch (error) {
-      this.setState({ submitting: false })
-      reportError('Error creating billing project', error)
+      switch (error.status) {
+        case 409:
+          this.setState({ alreadyExists: billingProjectName, submitting: false })
+          break
+        default:
+          this.setState({ submitting: false })
+          reportError('Error creating billing project', error)
+      }
     }
   }
 })
@@ -119,7 +130,7 @@ const ProjectCard = pure(({ project: { projectName, creationStatus, role } }) =>
 
   return div({ style: Style.cardList.longCard }, [
     div({ style: { flex: 'none' } }, [
-      icon(projectReady ? 'check' : 'bars', {
+      icon(projectReady ? 'check' : 'dashboard', {
         style: {
           color: projectReady ? colors.green[0] : undefined,
           marginRight: '1rem'
@@ -229,7 +240,6 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
           !isDataLoaded && spinnerOverlay
         ]),
         creatingBillingProject && h(NewBillingProjectModal, {
-          existingBillingProjects: _.map('billingProjectName', billingProjects),
           onDismiss: () => this.setState({ creatingBillingProject: false }),
           onSuccess: () => this.refresh() // open the modal
         })
