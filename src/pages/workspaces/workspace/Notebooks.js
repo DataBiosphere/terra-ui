@@ -36,7 +36,6 @@ const notebookCardCommonStyles = listView => _.merge({ display: 'flex' },
       height: 100,
       width: 400,
       flexDirection: 'column',
-      boxShadow: '0 2px 10px 0 rgba(0,0,0,0.45), 0 2px 10px 0 rgba(0,0,0,0.25)',
       padding: 0
     }
 )
