@@ -220,10 +220,10 @@ export const comingSoon = span({
  * @param props.value - a member of options
  * @param {Array} props.options - can be of any type; if objects, they should each contain a value and label, unless defining getOptionLabel
  */
-export const Select = ({ value, options, ...props }) => {
+export const Select = ({ value, options, rawValue, ...props }) => {
   const newOptions = options && !_.isObject(options[0]) ? _.map(value => ({ value }), options) : options
   const findValue = target => _.find({ value: target }, newOptions)
-  const newValue = props.isMulti ? _.map(findValue, value) : findValue(value)
+  const newValue = rawValue ? value : props.isMulti ? _.map(findValue, value) : findValue(value)
 
   return h(RSelect, _.merge({
     theme: base => _.merge(base, {

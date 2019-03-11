@@ -1,8 +1,9 @@
+import * as Auth from 'src/libs/auth'
 import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { a, div, h } from 'react-hyperscript-helpers'
 import { pure } from 'recompose'
-import { buttonPrimary, Clickable, PageBox, search, spinnerOverlay } from 'src/components/common'
+import { buttonPrimary, Clickable, PageBox, search, Select, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { validatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
@@ -24,7 +25,7 @@ const billingProjectNameValidator = existing => ({
   length: { minimum: 6, maximum: 30 },
   format: {
     pattern: /^[a-z]([a-z0-9-])*$/,
-    message: 'can only contain lowercase letters, numbers, and hyphens, and must start with a letter.'
+    message: 'must start with a letter and can only contain lowercase letters, numbers, and hyphens.'
   },
   exclusion: {
     within: existing,
@@ -37,13 +38,26 @@ const NewBillingProjectModal = ajaxCaller(class NewBillingProjectModal extends C
     super(props)
     this.state = {
       billingProjectName: '',
-      billingProjectNameTouched: false
+      billingProjectNameTouched: false,
+      existingBillingProjects: undefined,
+      billingAccount: ''
+    }
+  }
+
+  async componentDidMount() {
+    const { ajax: { Billing } } = this.props
+    try {
+      const billingAccounts = await Billing.listAccounts()
+      console.log(billingAccounts)
+      this.setState({ billingAccounts })
+    } catch (error) {
+      reportError('Error loading billing accounts', error)
     }
   }
 
   render() {
     const { onDismiss, existingBillingProjects } = this.props
-    const { billingProjectName, billingProjectNameTouched, submitting } = this.state
+    const { billingProjectName, billingProjectNameTouched, submitting, chosenBillingAccount, billingAccounts } = this.state
     const errors = validate({ billingProjectName }, { billingProjectName: billingProjectNameValidator(existingBillingProjects) })
 
     return h(Modal, {
@@ -54,7 +68,7 @@ const NewBillingProjectModal = ajaxCaller(class NewBillingProjectModal extends C
         onClick: () => this.submit()
       }, ['Create Billing Project'])
     }, [
-      Forms.requiredFormLabel('Enter a unique name', div({ style: { fontWeight: 400 } }, 'This cannot be changed')),
+      Forms.requiredFormLabel('Enter name'),
       validatedInput({
         inputProps: {
           autoFocus: true,
@@ -63,18 +77,34 @@ const NewBillingProjectModal = ajaxCaller(class NewBillingProjectModal extends C
         },
         error: billingProjectNameTouched && Utils.summarizeErrors(errors && errors.billingProjectName)
       }),
-      !(billingProjectNameTouched && errors) && Forms.formHint('Only letters etc etc'),
+      !(billingProjectNameTouched && errors) && Forms.formHint('Name must be unique and cannot be changed.'),
+      Forms.requiredFormLabel('Select billing account',
+        div({ style: { fontWeight: 300, fontSize: 14 } }, [
+          !!billingAccounts ?
+            h(Select, {
+              isMulti: false,
+              placeholder: 'Select billing account',
+              value: chosenBillingAccount,
+              getOptionLabel: value => value.displayName,
+              getOptionsValue: value => value.accountName,
+              rawValue: true,
+              onChange: selected => this.setState({ chosenBillingAccount: selected }),
+              options: billingAccounts
+            }) : spinnerOverlay
+        ]),
+        !!chosenBillingAccount && !chosenBillingAccount.firecloudHasAccess && div({ style: { fontWeight: 300, fontSize: 13 } },
+          'To grant Terra access to an account, enter its console and add billing@firecloud.org as a Billing Account User.')),
       submitting && spinnerOverlay
     ])
   }
 
   async submit() {
     const { onSuccess, ajax: { Billing } } = this.props
-    const { billingProjectName } = this.state
+    const { billingProjectName, billingAccount } = this.state
 
     try {
       this.setState({ submitting: true })
-      await Billing.listProjects(billingProjectName).create()
+      await Billing.createProject(billingProjectName, billingAccount)
       onSuccess()
     } catch (error) {
       this.setState({ submitting: false })
@@ -174,7 +204,17 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
         ]),
         div({ style: Style.cardList.cardContainer }, [
           h(NewBillingProjectCard, {
-            onClick: () => this.setState({ creatingBillingProject: true })
+            onClick: () => {
+              if (Auth.getAuthInstance().currentUser.get().hasGrantedScopes('https://www.googleapis.com/auth/cloud-billing')) {
+                this.setState({ creatingBillingProject: true })
+              } else {
+                const options = new window.gapi.auth2.SigninOptionsBuilder({ 'scope': 'https://www.googleapis.com/auth/cloud-billing' })
+                Auth.getAuthInstance().currentUser.get().grant(options).then(
+                  () => this.setState({ creatingBillingProject: true }),
+                  e => reportError('Failed to grant permissions', e)
+                )
+              }
+            }
           }),
           div({ style: { flexGrow: 1 } }, [
             _.flow(
@@ -191,7 +231,7 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
         creatingBillingProject && h(NewBillingProjectModal, {
           existingBillingProjects: _.map('billingProjectName', billingProjects),
           onDismiss: () => this.setState({ creatingBillingProject: false }),
-          onSuccess: () => this.refresh()
+          onSuccess: () => this.refresh() // open the modal
         })
       ]),
       updating && spinnerOverlay
