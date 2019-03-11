@@ -26,8 +26,19 @@ import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer
 
 const notebookCardCommonStyles = listView => _.merge({ display: 'flex' },
   listView ?
-    { marginBottom: '0.5rem', flexDirection: 'row' } :
-    { margin: '0 2.5rem 2.5rem 0', height: 100, width: 400, flexDirection: 'column' }
+    {
+      marginBottom: '0.5rem',
+      flexDirection: 'row',
+      alignItems: 'center'
+    } :
+    {
+      margin: '0 2.5rem 2.5rem 0',
+      height: 100,
+      width: 400,
+      flexDirection: 'column',
+      boxShadow: '0 2px 10px 0 rgba(0,0,0,0.45), 0 2px 10px 0 rgba(0,0,0,0.25)',
+      padding: 0
+    }
 )
 
 const printName = name => name.slice(10, -6) // removes 'notebooks/' and the .ipynb suffix
@@ -124,17 +135,11 @@ class NotebookCard extends Component {
 
     return a({
       href: notebookLink,
-      style: _.merge({
+      style: {
         ...Style.elements.card.container,
         ...notebookCardCommonStyles(listView),
         flexShrink: 0
-      }, listView ? {
-        alignItems: 'center'
-      } : {
-        boxShadow: '0 2px 10px 0 rgba(0,0,0,0.45), 0 2px 10px 0 rgba(0,0,0,0.25)',
-        padding: 0,
-        alignItems: undefined
-      })
+      }
     }, listView ? [
       notebookMenu,
       title,
