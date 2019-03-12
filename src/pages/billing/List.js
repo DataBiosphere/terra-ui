@@ -136,13 +136,13 @@ const NewBillingProjectModal = ajaxCaller(class NewBillingProjectModal extends C
             }, ['HERE']), ' to refresh your billing accounts.'
           ]),
           div([
-              'Need help? ',
-              a({
-                style: { color: colors.blue[0], fontWeight: 700 },
-                href: `https://gatkforums.broadinstitute.org/firecloud/discussion/9762/howto-set-up-a-google-billing-account-non-broad-users`,
-                target: '_blank'
-              }, ['Click here ', icon('pop-out', { size: 12 })]), ' for more information.'
-            ])
+            'Need help? ',
+            a({
+              style: { color: colors.blue[0], fontWeight: 700 },
+              href: `https://gatkforums.broadinstitute.org/firecloud/discussion/9762/howto-set-up-a-google-billing-account-non-broad-users`,
+              target: '_blank'
+            }, ['Click here ', icon('pop-out', { size: 12 })]), ' for more information.'
+          ])
         ])
       ]),
       submitting && spinnerOverlay
