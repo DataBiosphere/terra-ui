@@ -111,12 +111,10 @@ const ToolCard = pure(({ listView, name, namespace, config, onCopy, onDelete }) 
 
   const redactedWarning = h(Clickable, {
     onClick: e => e.stopPropagation(),
+    style: { color: colors.orange[0], ...styles.innerLink },
     tooltip: 'This method is redacted'
   }, [
-    icon('warning', {
-      size: 20,
-      style: { color: colors.orange[0] }
-    })
+    icon('warning', { size: 22 })
   ])
 
   return listView ?
@@ -124,17 +122,17 @@ const ToolCard = pure(({ listView, name, namespace, config, onCopy, onDelete }) 
       workflowLink,
       div({ style: { ...styles.innerContent, display: 'flex', alignItems: 'center' } }, [
         div({ style: { marginRight: '1rem' } }, [toolCardMenu]),
-        div({ style: { ...styles.longTitle, display: 'flex' } }, [workflowName, isRedacted ? redactedWarning : undefined]),
-        div({ style: styles.longMethodVersion }, [`V. ${methodVersion}`]),
+        div({ style: styles.longTitle }, [workflowName]),
+        div({ style: { ...styles.longMethodVersion, display: 'flex', alignItems: 'center' } }, [`V. ${methodVersion}`, isRedacted ? redactedWarning : undefined]),
         div({ style: { flex: 'none', width: 130 } }, ['Source: ', repoLink])
       ])
     ]) :
     div({ style: { ...styles.card, ...styles.shortCard } }, [
       workflowLink,
       div({ style: { ...styles.innerContent, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%' } }, [
-        div({ style: { ...styles.shortTitle, display: 'flex' } }, [workflowName, isRedacted ? redactedWarning : undefined]),
+        div({ style: styles.shortTitle }, [workflowName]),
         div({ style: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' } }, [
-          div([div([`V. ${methodVersion}`]), 'Source: ', repoLink]), toolCardMenu
+          div([div({style: { display: 'flex', alignItems: 'center' } }, [`V. ${methodVersion}`, isRedacted ? redactedWarning : undefined]), 'Source: ', repoLink]), toolCardMenu
         ])
       ])
     ])
