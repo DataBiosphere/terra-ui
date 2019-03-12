@@ -9,6 +9,7 @@
     "clipboard-polyfill": "^2.7.0",
     "file-saver": "^2.0.1",
     "filesize": "^4.1.2",
+    "github-markdown-css": "^3.0.1",
     "history": "^4.7.2",
     "lodash": "^4.17.11",
     "marked": "^0.6.1",
