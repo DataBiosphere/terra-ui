@@ -1,7 +1,7 @@
 import * as Auth from 'src/libs/auth'
 import _ from 'lodash/fp'
 import { Fragment } from 'react'
-import { a, div, h } from 'react-hyperscript-helpers'
+import { a, div, h, span } from 'react-hyperscript-helpers'
 import { pure } from 'recompose'
 import { buttonPrimary, Clickable, PageBox, search, Select, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
@@ -40,14 +40,19 @@ const NewBillingProjectModal = ajaxCaller(class NewBillingProjectModal extends C
     }
   }
 
-  async componentDidMount() {
+  async loadBillingAccounts() {
     const { ajax: { Billing } } = this.props
     try {
       const billingAccounts = await Billing.listAccounts()
       this.setState({ billingAccounts })
+      console.log('loading billing accts')
     } catch (error) {
       reportError('Error loading billing accounts', error)
     }
+  }
+
+  async componentDidMount() {
+    this.loadBillingAccounts()
   }
 
   render() {
@@ -57,47 +62,81 @@ const NewBillingProjectModal = ajaxCaller(class NewBillingProjectModal extends C
 
     return h(Modal, {
       onDismiss,
-      title: 'Create New Billing Project',
-      okButton: buttonPrimary({
-        disabled: errors || !chosenBillingAccount.firecloudHasAccess,
-        onClick: () => this.submit()
-      }, ['Create Billing Project'])
+      title: 'Create Billing Project',
+      showCancel: !(billingAccounts && billingAccounts.length === 0),
+      showButtons: !!billingAccounts,
+      okButton: billingAccounts && billingAccounts.length !== 0 ?
+        buttonPrimary({
+          disabled: errors || !chosenBillingAccount || !chosenBillingAccount.firecloudHasAccess,
+          onClick: () => this.submit()
+        }, ['Create Billing Project']) :
+        buttonPrimary({
+          onClick: () => onDismiss()
+        }, ['Ok'])
     }, [
-      Forms.requiredFormLabel('Enter name'),
-      !!alreadyExists && div({ style: { color: colors.red[0], fontSize: 11, fontWeight: 600 } }, [
-        icon('exclamation-circle', { size: 24 }),
-        `${alreadyExists} already exists. Choose another name.`
+      !billingAccounts && spinnerOverlay,
+      billingAccounts && billingAccounts.length === 0 && h(Fragment, [
+        `You don't have access to any billing accounts.  `,
+        a({
+          style: { color: colors.blue[0], fontWeight: 700 },
+          href: `https://gatkforums.broadinstitute.org/firecloud/discussion/9762/howto-set-up-a-google-billing-account-non-broad-users`,
+          target: '_blank'
+        }, ['Learn how to create a billing account.  ', icon('pop-out', { size: 20 })])
       ]),
-      validatedInput({
-        inputProps: {
-          autoFocus: true,
-          value: billingProjectName,
-          onChange: e => this.setState({ billingProjectName: e.target.value, billingProjectNameTouched: true })
-        },
-        error: billingProjectNameTouched && Utils.summarizeErrors(errors && errors.billingProjectName)
-      }),
-      !(billingProjectNameTouched && errors) && Forms.formHint('Name must be unique and cannot be changed.'),
-      Forms.requiredFormLabel('Select billing account'),
-      div({ style: { fontWeight: 300, fontSize: 14 } }, [
-        !!billingAccounts ?
+      billingAccounts && billingAccounts.length !== 0 && h(Fragment, [
+        Forms.requiredFormLabel('Enter name'),
+        !!alreadyExists && div({ style: { color: colors.red[0], fontSize: 11, fontWeight: 600 } }, [
+          icon('exclamation-circle', { size: 24 }),
+          `${alreadyExists} already exists. Choose another name.`
+        ]),
+        validatedInput({
+          inputProps: {
+            autoFocus: true,
+            value: billingProjectName,
+            onChange: e => this.setState({ billingProjectName: e.target.value, billingProjectNameTouched: true })
+          },
+          error: billingProjectNameTouched && Utils.summarizeErrors(errors && errors.billingProjectName)
+        }),
+        !(billingProjectNameTouched && errors) && Forms.formHint('Name must be unique and cannot be changed.'),
+        Forms.requiredFormLabel('Select billing account'),
+        div({ style: { fontSize: 14 } }, [
           h(Select, {
             isMulti: false,
             placeholder: 'Select billing account',
             value: chosenBillingAccount,
-            getOptionLabel: value => value.displayName,
-            getOptionsValue: value => value.accountName,
-            rawValue: true,
-            onChange: selected => this.setState({ chosenBillingAccount: selected }),
-            options: billingAccounts
-          }) : spinnerOverlay
-      ]),
-      !!chosenBillingAccount && chosenBillingAccount.firecloudHasAccess && div({ style: { fontWeight: 600, fontSize: 11, color: colors.red[0] } }, [
-        'Terra does not have access to this account. To grant access, add billing@firecloud.org as a Billing Account User on the ',
-        a({
-          style: { color: colors.blue[0], fontWeight: 700 },
-          href: `https://console.developers.google.com/billing/${chosenBillingAccount.accountName.split('/')[1]}?authuser=${Auth.getUser().email}`,
-          target: '_blank'
-        }, ['Google Cloud Console ', icon('pop-out', { size: 12 })])
+            onChange: selected => this.setState({ chosenBillingAccount: selected.value }),
+            options: _.map(account => {
+              return {
+                value: account,
+                label: account.displayName
+              }
+            }, billingAccounts)
+          })
+        ]),
+        !!chosenBillingAccount && !chosenBillingAccount.firecloudHasAccess && div({ style: { fontWeight: 500, fontSize: 12 } }, [
+          div({ style: { color: colors.red[0], margin: '0.25rem 0 0.25rem 0', fontSize: 13 } }, [
+            'Terra does not have access to this account. To grant access: '
+          ]),
+          div({ style: { marginBottom: '0.25rem' } }, [
+            '1. Add ', span({ style: { fontWeight: 'bold' } }, 'billing@firecloud.org'), ' as a Billing Account User on the ',
+            a({
+              style: { color: colors.blue[0], fontWeight: 700 },
+              href: `https://console.developers.google.com/billing/${chosenBillingAccount.accountName.split('/')[1]}?authuser=${Auth.getUser().email}`,
+              target: '_blank'
+            }, ['Google Cloud Console ', icon('pop-out', { size: 12 })])
+          ]),
+          div([
+            '2. Click ',
+            h(Clickable, {
+              as: 'span',
+              style: { color: colors.blue[0], fontWeight: 700 },
+              onClick: () => {
+                this.setState({ billingAccounts: undefined })
+                this.loadBillingAccounts()
+              }
+            }, ['HERE']), ' to refresh your billing accounts.'
+          ])
+        ])
       ]),
       submitting && spinnerOverlay
     ])
@@ -222,7 +261,7 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
                 const options = new window.gapi.auth2.SigninOptionsBuilder({ 'scope': 'https://www.googleapis.com/auth/cloud-billing' })
                 Auth.getAuthInstance().currentUser.get().grant(options).then(
                   () => this.setState({ creatingBillingProject: true }),
-                  e => reportError('Failed to grant permissions', e)
+                  () => reportError('Failed to grant permissions', 'To create a new billing project, you must allow Terra to view your Google billing account(s).')
                 )
               }
             }
