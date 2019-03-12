@@ -3,7 +3,7 @@ import PropTypes from 'prop-types'
 import { Fragment, PureComponent } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
-import { buttonPrimary, buttonSecondary, Clickable, LabeledCheckbox, Select } from 'src/components/common'
+import { buttonPrimary, buttonSecondary, Clickable, LabeledCheckbox, Select, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { IntegerInput, textInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
@@ -56,20 +56,20 @@ const styles = {
   }),
   warningBox: {
     fontSize: 12,
-    backgroundColor: colors.orange[5],
+    backgroundColor: colors.orange[6],
     color: colors.orange[0],
     borderTop: `1px solid ${colors.orange[0]}`,
     borderBottom: `1px solid ${colors.orange[0]}`,
     padding: '1rem',
     marginTop: '1rem',
-    marginLeft: '-1rem',
-    marginRight: '-1rem'
+    marginLeft: '-1.25rem',
+    marginRight: '-1.25rem'
   },
   divider: {
     marginTop: '1rem',
-    marginLeft: '-1rem',
-    marginRight: '-1rem',
-    borderBottom: `1px solid ${colors.gray[3]}`
+    marginLeft: '-1.25rem',
+    marginRight: '-1.25rem',
+    borderBottom: `1px solid ${colors.gray[6]}`
   },
   button: isDisabled => ({
     display: 'flex',
@@ -186,58 +186,21 @@ const getUpdateIntervalMs = status => {
   }
 }
 
-export default ajaxCaller(class ClusterManager extends PureComponent {
-  static propTypes = {
-    namespace: PropTypes.string.isRequired,
-    name: PropTypes.string.isRequired,
-    clusters: PropTypes.array,
-    canCompute: PropTypes.bool.isRequired,
-    refreshClusters: PropTypes.func.isRequired
-  }
-
+const NewClusterModal = ajaxCaller(class NewClusterModal extends PureComponent {
   constructor(props) {
     super(props)
+    const { currentCluster } = props
+    const currentConfig = currentCluster ? currentCluster.machineConfig : profiles[0].machineConfig
+    const matchingProfile = _.find(
+      ({ machineConfig }) => machineConfigsEqual(machineConfig, currentConfig),
+      profiles
+    )
     this.state = {
-      open: false,
       busy: false,
-      deleting: false,
-      profile: 'moderate',
-      masterMachineType: 'n1-standard-4',
-      masterDiskSize: 500,
+      profile: matchingProfile ? matchingProfile.name : 'custom',
       jupyterUserScriptUri: '',
-      numberOfWorkers: 0,
-      numberOfPreemptibleWorkers: 0,
-      workerDiskSize: 500,
-      workerMachineType: 'n1-standard-4'
+      ...Utils.normalizeMachineConfig(currentConfig)
     }
-  }
-
-  refreshClusters = async () => {
-    this.props.refreshClusters().then(() => this.resetUpdateInterval())
-  }
-
-  resetUpdateInterval() {
-    const currentCluster = this.getCurrentCluster()
-
-    clearInterval(this.interval)
-    this.interval = setInterval(this.refreshClusters, getUpdateIntervalMs(currentCluster && currentCluster.status))
-  }
-
-  componentDidMount() {
-    this.resetUpdateInterval()
-  }
-
-  componentWillUnmount() {
-    clearInterval(this.interval)
-  }
-
-  getActiveClustersOldestFirst() {
-    const { clusters } = this.props
-    return _.sortBy('createdDate', _.remove({ status: 'Deleting' }, clusters))
-  }
-
-  getCurrentCluster() {
-    return _.last(this.getActiveClustersOldestFirst())
   }
 
   getMachineConfig() {
@@ -250,108 +213,35 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
     }
   }
 
-  async executeAndRefresh(promise) {
+  async createCluster() {
     try {
+      const { ajax: { Jupyter }, namespace, onSuccess } = this.props
+      const { jupyterUserScriptUri } = this.state
       this.setState({ busy: true })
-      await promise
-      await this.refreshClusters()
+      await Jupyter.cluster(namespace, Utils.generateClusterName()).create({
+        machineConfig: this.getMachineConfig(),
+        ...(jupyterUserScriptUri ? { jupyterUserScriptUri } : {})
+      })
+      onSuccess()
     } catch (error) {
-      reportError('Cluster Error', error)
+      reportError('Error creating cluster', error)
     } finally {
       this.setState({ busy: false })
     }
   }
 
-  async executeAndRefreshWithNav(promise) {
-    const { namespace, name } = this.props
-
-    this.executeAndRefresh(promise)
-    if (/notebooks\/.+/.test(window.location.hash)) {
-      Nav.goToPath('workspace-notebooks', { namespace, name })
-    }
-  }
-
-  createCluster() {
-    const { ajax: { Jupyter }, namespace } = this.props
-    const { jupyterUserScriptUri } = this.state
-    this.executeAndRefresh(
-      Jupyter.cluster(namespace, Utils.generateClusterName()).create({
-        machineConfig: this.getMachineConfig(),
-        ...(jupyterUserScriptUri ? { jupyterUserScriptUri } : {})
-      }).then(() => {
-        this.setState({ open: false })
-      })
-    )
-  }
-
-  createDefaultCluster() {
-    const { ajax: { Jupyter }, namespace } = this.props
-    this.executeAndRefresh(
-      Jupyter.cluster(namespace, Utils.generateClusterName()).create({
-        machineConfig: Utils.normalizeMachineConfig({})
-      })
-    )
-  }
-
-  destroyClusters(keepIndex) {
-    const { ajax: { Jupyter } } = this.props
-    const activeClusters = this.getActiveClustersOldestFirst()
-    this.executeAndRefresh(
-      Promise.all(_.map(
-        ({ googleProject, clusterName }) => Jupyter.cluster(googleProject, clusterName).delete(),
-        _.without([_.nth(keepIndex, activeClusters)], activeClusters)
-      ))
-    )
-  }
-
-  destroyActiveCluster() {
-    const { ajax: { Jupyter } } = this.props
-    const { googleProject, clusterName } = this.getCurrentCluster()
-    this.executeAndRefreshWithNav(
-      Jupyter.cluster(googleProject, clusterName).delete()
-    )
-  }
-
-  startCluster() {
-    const { ajax: { Jupyter } } = this.props
-    const { googleProject, clusterName } = this.getCurrentCluster()
-    this.executeAndRefresh(
-      Jupyter.cluster(googleProject, clusterName).start()
-    )
-  }
-
-  stopCluster() {
-    const { ajax: { Jupyter } } = this.props
-    const { googleProject, clusterName } = this.getCurrentCluster()
-    this.executeAndRefreshWithNav(
-      Jupyter.cluster(googleProject, clusterName).stop()
-    )
-  }
-
-  toggleDropdown(v) {
-    const currentCluster = this.getCurrentCluster()
-    const currentConfig = currentCluster ? currentCluster.machineConfig : profiles[0].machineConfig
-    const matchingProfile = _.find(
-      ({ machineConfig }) => machineConfigsEqual(machineConfig, currentConfig),
-      profiles
-    )
-    this.setState({
-      open: v,
-      ...Utils.normalizeMachineConfig(currentConfig),
-      jupyterUserScriptUri: '',
-      profile: matchingProfile ? matchingProfile.name : 'custom'
-    })
-  }
-
-  renderCreateForm() {
+  render() {
+    const { currentCluster, onCancel } = this.props
     const { busy, profile, masterMachineType, masterDiskSize, workerMachineType, numberOfWorkers, numberOfPreemptibleWorkers, workerDiskSize, jupyterUserScriptUri } = this.state
-    const currentCluster = this.getCurrentCluster()
     const changed = !currentCluster ||
       currentCluster.status === 'Error' ||
       !machineConfigsEqual(this.getMachineConfig(), currentCluster.machineConfig) ||
       jupyterUserScriptUri
-    return div({ style: { padding: '1rem', width: 450 } }, [
-      div({ style: { fontSize: 16, fontWeight: 'bold' } }, 'Runtime environment'),
+    return h(Modal, {
+      title: 'Runtime environment',
+      onDismiss: onCancel,
+      okButton: buttonPrimary({ disabled: busy || !changed, onClick: () => this.createCluster() }, currentCluster ? 'Update' : 'Create')
+    }, [
       div({ style: styles.row }, [
         div({ style: { ...styles.col1, ...styles.label } }, 'Profile'),
         div({ style: { flex: 1 } }, [
@@ -451,17 +341,122 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
       div({ style: styles.row }, [
         div({ style: styles.label }, [
           `Cost: ${Utils.formatUSD(machineConfigCost(this.getMachineConfig()))} per hour`
-        ]),
-        div({ style: { marginLeft: 'auto' } }, [
-          busy && icon('loadingSpinner')
-        ]),
-        buttonSecondary({
-          style: { marginLeft: '1rem', marginRight: '1rem' },
-          onClick: () => this.toggleDropdown(false)
-        }, 'Cancel'),
-        buttonPrimary({ disabled: busy || !changed, onClick: () => this.createCluster() }, currentCluster ? 'Update' : 'Create')
-      ])
+        ])
+      ]),
+      busy && spinnerOverlay
     ])
+  }
+})
+
+export default ajaxCaller(class ClusterManager extends PureComponent {
+  static propTypes = {
+    namespace: PropTypes.string.isRequired,
+    name: PropTypes.string.isRequired,
+    clusters: PropTypes.array,
+    canCompute: PropTypes.bool.isRequired,
+    refreshClusters: PropTypes.func.isRequired
+  }
+
+  constructor(props) {
+    super(props)
+    this.state = {
+      open: false,
+      busy: false,
+      deleting: false
+    }
+  }
+
+  refreshClusters = async () => {
+    this.props.refreshClusters().then(() => this.resetUpdateInterval())
+  }
+
+  resetUpdateInterval() {
+    const currentCluster = this.getCurrentCluster()
+
+    clearInterval(this.interval)
+    this.interval = setInterval(this.refreshClusters, getUpdateIntervalMs(currentCluster && currentCluster.status))
+  }
+
+  componentDidMount() {
+    this.resetUpdateInterval()
+  }
+
+  componentWillUnmount() {
+    clearInterval(this.interval)
+  }
+
+  getActiveClustersOldestFirst() {
+    const { clusters } = this.props
+    return _.sortBy('createdDate', _.remove({ status: 'Deleting' }, clusters))
+  }
+
+  getCurrentCluster() {
+    return _.last(this.getActiveClustersOldestFirst())
+  }
+
+  async executeAndRefresh(promise) {
+    try {
+      this.setState({ busy: true })
+      await promise
+      await this.refreshClusters()
+    } catch (error) {
+      reportError('Cluster Error', error)
+    } finally {
+      this.setState({ busy: false })
+    }
+  }
+
+  async executeAndRefreshWithNav(promise) {
+    const { namespace, name } = this.props
+
+    this.executeAndRefresh(promise)
+    if (/notebooks\/.+/.test(window.location.hash)) {
+      Nav.goToPath('workspace-notebooks', { namespace, name })
+    }
+  }
+
+  createDefaultCluster() {
+    const { ajax: { Jupyter }, namespace } = this.props
+    this.executeAndRefresh(
+      Jupyter.cluster(namespace, Utils.generateClusterName()).create({
+        machineConfig: Utils.normalizeMachineConfig({})
+      })
+    )
+  }
+
+  destroyClusters(keepIndex) {
+    const { ajax: { Jupyter } } = this.props
+    const activeClusters = this.getActiveClustersOldestFirst()
+    this.executeAndRefresh(
+      Promise.all(_.map(
+        ({ googleProject, clusterName }) => Jupyter.cluster(googleProject, clusterName).delete(),
+        _.without([_.nth(keepIndex, activeClusters)], activeClusters)
+      ))
+    )
+  }
+
+  destroyActiveCluster() {
+    const { ajax: { Jupyter } } = this.props
+    const { googleProject, clusterName } = this.getCurrentCluster()
+    this.executeAndRefreshWithNav(
+      Jupyter.cluster(googleProject, clusterName).delete()
+    )
+  }
+
+  startCluster() {
+    const { ajax: { Jupyter } } = this.props
+    const { googleProject, clusterName } = this.getCurrentCluster()
+    this.executeAndRefresh(
+      Jupyter.cluster(googleProject, clusterName).start()
+    )
+  }
+
+  stopCluster() {
+    const { ajax: { Jupyter } } = this.props
+    const { googleProject, clusterName } = this.getCurrentCluster()
+    this.executeAndRefreshWithNav(
+      Jupyter.cluster(googleProject, clusterName).stop()
+    )
   }
 
   renderDestroyForm() {
@@ -481,12 +476,6 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
         }, 'Discard'),
         buttonPrimary({ disabled: busy, onClick: () => this.destroyClusters(-1) }, 'Apply')
       ])
-    ])
-  }
-
-  renderCreatingMessage() {
-    return div({ style: { padding: '1rem', width: 300 } }, [
-      'Your environment is being created.'
     ])
   }
 
@@ -533,10 +522,10 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
     const totalCost = _.sum(_.map(({ machineConfig, status }) => {
       return (status === 'Stopped' ? machineStorageCost : machineConfigCost)(machineConfig)
     }, clusters))
-    const isDisabled = !canCompute
     const activeClusters = this.getActiveClustersOldestFirst()
     const creating = _.some({ status: 'Creating' }, activeClusters)
     const multiple = !creating && activeClusters.length > 1
+    const isDisabled = !canCompute || creating || multiple
     return div({ style: styles.container }, [
       h(MiniLink, {
         href: Nav.getLink('workspace-terminal-launch', { namespace, name }),
@@ -558,18 +547,14 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
       }),
       h(PopupTrigger, {
         side: 'bottom',
-        open: open || multiple,
-        width: creating || multiple ? 300 : 450,
-        onToggle: v => this.toggleDropdown(v),
-        content: Utils.cond(
-          [creating, () => this.renderCreatingMessage()],
-          [multiple, () => this.renderDestroyForm()],
-          () => this.renderCreateForm()
-        )
+        open: multiple,
+        width: 300,
+        content: this.renderDestroyForm()
       }, [
         h(Clickable, {
-          style: { ...styles.button(isDisabled), color: isDisabled ? colors.gray[2] : (open ? colors.green[1] : colors.green[0]) },
+          style: styles.button(isDisabled),
           tooltip: !canCompute && noCompute,
+          onClick: () => this.setState({ open: true }),
           disabled: isDisabled
         }, [
           div({
@@ -581,7 +566,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
               ` (${Utils.formatUSD(totalCost)} hr)`
             ])
           ]),
-          icon('caretDown', { size: 18 })
+          icon('caretDown', { size: 18, style: { color: isDisabled ? colors.gray[2] : colors.green[0] } })
         ])
       ]),
       deleting && h(Modal, {
@@ -591,7 +576,15 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
           this.setState({ deleting: false })
           this.destroyActiveCluster()
         }
-      }, ['Deleting the cluster will stop all running notebooks and associated costs. You can recreate it later, which will take several minutes.'])
+      }, ['Deleting the cluster will stop all running notebooks and associated costs. You can recreate it later, which will take several minutes.']),
+      open && h(NewClusterModal, {
+        namespace, currentCluster,
+        onCancel: () => this.setState({ open: false }),
+        onSuccess: () => {
+          this.setState({ open: false })
+          this.executeAndRefresh(Promise.resolve())
+        }
+      })
     ])
   }
 })
