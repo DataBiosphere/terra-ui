@@ -703,7 +703,8 @@ const Jupyter = signal => ({
             labExtensions: {},
             serverExtensions: {},
             combinedExtensions: {}
-          }
+          },
+          scopes: ['https://www.googleapis.com/auth/cloud-platform']
         })
         return fetchLeo(`api/cluster/v2/${project}/${name}`, _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'PUT' }, appIdentifier]))
       },
