@@ -22,7 +22,7 @@ const styles = {
   }
 }
 
-export const makeToolCard = (method, onClick) => {
+export const makeToolCard = ({ method, onClick }) => {
   const { namespace, name, synopsis } = method
 
   return h(Clickable, {
@@ -119,7 +119,7 @@ const Code = ajaxCaller(class Code extends Component {
           div({ style: { flex: 1, margin: '30px 0 30px 40px' } }, [
             div({ style: styles.header }, 'GATK4 Best Practices workflows'),
             div({ style: { display: 'flex', flexWrap: 'wrap' } }, [
-              ..._.map(method => makeToolCard(method), featuredMethods)
+              ..._.map(method => makeToolCard({ method }), featuredMethods)
             ])
           ]),
           div({ style: { width: 385, padding: '25px 30px', backgroundColor: colors.grayBlue[4], lineHeight: '20px' } }, [

@@ -179,7 +179,9 @@ const FindToolModal = ajaxCaller(class FindToolModal extends Component {
 
     const renderList = () => [
       div({ style: { display: 'flex', flexWrap: 'wrap', overflowY: 'auto', height: 400, paddingTop: 5, paddingLeft: 5 } }, [
-        ...(featuredMethods ? _.map(method => makeToolCard(method, () => this.loadMethod(method)), featuredMethods) : [centeredSpinner()])
+        ...(featuredMethods ?
+          _.map(method => makeToolCard({ method, onClick: () => this.loadMethod(method) }), featuredMethods) :
+          [centeredSpinner()])
       ]),
       div({ style: { fontSize: 18, fontWeight: 600, marginTop: '1rem' } }, ['Find Additional Tools']),
       div({ style: { display: 'flex', padding: '0.5rem' } }, [
@@ -309,7 +311,6 @@ export const Tools = _.flow(
           namespace, name,
           onDismiss: () => this.setState({ findingTool: false })
         }),
-        configs && !configs.length && div(['No tools added']),
         loading && spinnerOverlay
       ])
     ])
