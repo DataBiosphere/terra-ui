@@ -45,7 +45,6 @@ const NewBillingProjectModal = ajaxCaller(class NewBillingProjectModal extends C
     try {
       const billingAccounts = await Billing.listAccounts()
       this.setState({ billingAccounts })
-      console.log('loading billing accts')
     } catch (error) {
       reportError('Error loading billing accounts', error)
     }
@@ -125,7 +124,7 @@ const NewBillingProjectModal = ajaxCaller(class NewBillingProjectModal extends C
               target: '_blank'
             }, ['Google Cloud Console ', icon('pop-out', { size: 12 })])
           ]),
-          div([
+          div({ style: { marginBottom: '0.25rem' } }, [
             '2. Click ',
             h(Clickable, {
               as: 'span',
@@ -135,7 +134,15 @@ const NewBillingProjectModal = ajaxCaller(class NewBillingProjectModal extends C
                 this.loadBillingAccounts()
               }
             }, ['HERE']), ' to refresh your billing accounts.'
-          ])
+          ]),
+          div([
+              'Need help? ',
+              a({
+                style: { color: colors.blue[0], fontWeight: 700 },
+                href: `https://gatkforums.broadinstitute.org/firecloud/discussion/9762/howto-set-up-a-google-billing-account-non-broad-users`,
+                target: '_blank'
+              }, ['Click here ', icon('pop-out', { size: 12 })]), ' for more information.'
+            ])
         ])
       ]),
       submitting && spinnerOverlay
@@ -166,10 +173,11 @@ const NewBillingProjectModal = ajaxCaller(class NewBillingProjectModal extends C
 const ProjectCard = pure(({ project: { projectName, creationStatus, role } }) => {
   const isOwner = !!_.includes('Owner', role)
   const projectReady = creationStatus === 'Ready'
+  const isClickable = isOwner && projectReady
 
   return div({ style: Style.cardList.longCard }, [
     div({ style: { flex: 'none' } }, [
-      icon(projectReady ? 'check' : 'dashboard', {
+      icon(projectReady ? 'check' : 'loadingSpinner', {
         style: {
           color: projectReady ? colors.green[0] : undefined,
           marginRight: '1rem'
@@ -179,11 +187,11 @@ const ProjectCard = pure(({ project: { projectName, creationStatus, role } }) =>
     ]),
     div({ style: { flex: 1 } }, [
       a({
-        href: isOwner ? Nav.getLink('project', { projectName }) : undefined,
+        href: isClickable ? Nav.getLink('project', { projectName }) : undefined,
         style: {
           ...Style.cardList.longTitle,
           marginLeft: '2rem', marginRight: '1rem',
-          color: isOwner ? colors.green[0] : undefined
+          color: isClickable ? colors.green[0] : undefined
         }
       }, [projectName])
     ]),
@@ -288,10 +296,23 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
   }
 
   componentDidUpdate() {
+    const { billingProjects } = this.state
+
+    if (_.some({ creationStatus: 'Creating' }, billingProjects) && !this.interval) {
+      this.interval = setInterval(() => this.refresh(), 10000)
+    } else {
+      clearInterval(this.interval)
+      this.interval = undefined
+    }
+
     StateHistory.update(_.pick(
       ['billingProjects', 'filter'],
       this.state)
     )
+  }
+
+  componentWillUnmount() {
+    clearInterval(this.interval)
   }
 })
 
