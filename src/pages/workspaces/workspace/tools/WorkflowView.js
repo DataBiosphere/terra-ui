@@ -430,6 +430,7 @@ const WorkflowView = _.flow(
       this.updateSingleOrMultipleRadioState(config)
       this.fetchInfo(config)
     } catch (error) {
+      this.setState({ isFreshData: true })
       reportError('Error loading data', error)
     }
   }

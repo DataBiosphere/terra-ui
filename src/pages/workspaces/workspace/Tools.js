@@ -72,7 +72,7 @@ const styles = {
 }
 
 const ToolCard = pure(({ listView, name, namespace, config, onCopy, onDelete }) => {
-  const { namespace: workflowNamespace, name: workflowName, methodRepoMethod: { sourceRepo, methodVersion } } = config
+  const { namespace: workflowNamespace, name: workflowName, methodRepoMethod: { sourceRepo, methodVersion }, isRedacted } = config
   const toolCardMenu = h(PopupTrigger, {
     closeOnClick: true,
     content: h(Fragment, [
@@ -109,12 +109,22 @@ const ToolCard = pure(({ listView, name, namespace, config, onCopy, onDelete }) 
     style: styles.outerLink
   })
 
+  const redactedWarning = h(Clickable, {
+    onClick: e => e.stopPropagation(),
+    tooltip: 'This method is redacted'
+  }, [
+    icon('warning', {
+      size: 20,
+      style: { color: colors.orange[0] }
+    })
+  ])
+
   return listView ?
     div({ style: { ...styles.card, ...styles.longCard } }, [
       workflowLink,
       div({ style: { ...styles.innerContent, display: 'flex', alignItems: 'center' } }, [
         div({ style: { marginRight: '1rem' } }, [toolCardMenu]),
-        div({ style: styles.longTitle }, [workflowName]),
+        div({ style: { ...styles.longTitle, display: 'flex' } }, [workflowName, isRedacted ? redactedWarning : undefined]),
         div({ style: styles.longMethodVersion }, [`V. ${methodVersion}`]),
         div({ style: { flex: 'none', width: 130 } }, ['Source: ', repoLink])
       ])
@@ -122,7 +132,7 @@ const ToolCard = pure(({ listView, name, namespace, config, onCopy, onDelete }) 
     div({ style: { ...styles.card, ...styles.shortCard } }, [
       workflowLink,
       div({ style: { ...styles.innerContent, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%' } }, [
-        div({ style: styles.shortTitle }, [workflowName]),
+        div({ style: { ...styles.shortTitle, display: 'flex' } }, [workflowName, isRedacted ? redactedWarning : undefined]),
         div({ style: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' } }, [
           div([div([`V. ${methodVersion}`]), 'Source: ', repoLink]), toolCardMenu
         ])
@@ -144,12 +154,13 @@ export const Tools = _.flow(
   }
 
   async refresh() {
-    const { namespace, name, ajax: { Workspaces } } = this.props
+    const { namespace, name, ajax: { Workspaces, Methods } } = this.props
 
     try {
       this.setState({ loading: true })
       const configs = await Workspaces.workspace(namespace, name).listMethodConfigs()
-      this.setState({ configs })
+      const methods = await Methods.list()
+      this.setState({ configs, methods })
     } catch (error) {
       reportError('Error loading configs', error)
     } finally {
@@ -162,9 +173,21 @@ export const Tools = _.flow(
     return _.find({ namespace, name }, configs)
   }
 
+  addRedactedAttribute(config, methods) {
+    const { methodName, methodNamespace, methodVersion, sourceRepo } = config.methodRepoMethod
+    const snapshotObjects = _.map(m => _.pick('snapshotId', m), _.filter({
+      name: methodName,
+      namespace: methodNamespace
+    }, methods))
+    const snapshots = _.map(m => { return m.snapshotId }, snapshotObjects)
+    const isRedacted = !_.includes(methodVersion, snapshots)
+    if (!sourceRepo) reportError('Caller must specify source repo for method')
+    else config.isRedacted = isRedacted
+  }
+
   render() {
     const { namespace, name, listView, viewToggleButtons, workspace: { workspace } } = this.props
-    const { loading, configs, copyingTool, deletingTool } = this.state
+    const { loading, configs, methods, copyingTool, deletingTool } = this.state
     return h(PageBox, [
       div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' } }, [
         div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, ['Tools']),
@@ -184,6 +207,7 @@ export const Tools = _.flow(
       ]),
       div({ style: styles.cardContainer(listView) }, [
         _.map(config => {
+          this.addRedactedAttribute(config, methods)
           return h(ToolCard, {
             onCopy: () => this.setState({ copyingTool: { namespace: config.namespace, name: config.name } }),
             onDelete: () => this.setState({ deletingTool: { namespace: config.namespace, name: config.name } }),
