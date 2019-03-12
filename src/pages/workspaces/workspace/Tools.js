@@ -101,6 +101,7 @@ const ToolCard = pure(({ listView, name, namespace, config, onCopy, onDelete }) 
     href: methodLink(config),
     style: styles.innerLink,
     target: '_blank',
+    disabled: isRedacted,
     onClick: e => e.stopPropagation()
   }, sourceRepo === 'agora' ? 'FireCloud' : sourceRepo)
 
@@ -132,7 +133,13 @@ const ToolCard = pure(({ listView, name, namespace, config, onCopy, onDelete }) 
       div({ style: { ...styles.innerContent, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%' } }, [
         div({ style: styles.shortTitle }, [workflowName]),
         div({ style: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' } }, [
-          div([div({style: { display: 'flex', alignItems: 'center' } }, [`V. ${methodVersion}`, isRedacted ? redactedWarning : undefined]), 'Source: ', repoLink]), toolCardMenu
+          div([
+            div({ style: { display: 'flex', alignItems: 'center' } }, [
+              `V. ${methodVersion}`,
+              isRedacted ? redactedWarning : undefined
+            ]),
+            'Source: ', repoLink
+          ]), toolCardMenu
         ])
       ])
     ])
