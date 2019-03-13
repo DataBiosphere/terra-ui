@@ -19,7 +19,7 @@ import { rerunFailures } from 'src/pages/workspaces/workspace/tools/FailureRerun
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
 
-export const linkToJobManager = true
+export const linkToJobManager = false
 
 const styles = {
   submissionsTable: {
