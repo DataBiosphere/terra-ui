@@ -16,7 +16,6 @@ import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
-import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 import { FreeCreditsModal } from 'src/components/TrialBanner'
@@ -28,7 +27,7 @@ const styles = {
     flex: 'none', height: 66, paddingLeft: '1rem',
     display: 'flex', alignItems: 'center',
     borderBottom: `2px solid ${colors.lightGreen[0]}`,
-    boxShadow: Style.standardShadow, zIndex: 2
+    zIndex: 2
   },
   pageTitle: {
     color: 'white', fontSize: 22, fontWeight: 500, textTransform: 'uppercase'
@@ -215,7 +214,7 @@ export default _.flow(
           isSignedIn ?
             this.buildUserSection() :
             div({
-              style: { ...styles.nav.item, ...styles.nav.profile(false), boxShadow: `inset ${Style.standardShadow}`, justifyContent: 'center', height: 95 }
+              style: { ...styles.nav.item, ...styles.nav.profile(false), justifyContent: 'center', height: 95 }
             }, [
               div([
                 h(Clickable, {
@@ -370,7 +369,7 @@ export default _.flow(
       buttonStyle: { marginBottom: 0 },
       title: [
         h(Clickable, {
-          style: { ...styles.nav.item, ...styles.nav.profile(userMenuOpen), boxShadow: `inset ${Style.standardShadow}` },
+          style: { ...styles.nav.item, ...styles.nav.profile(userMenuOpen) },
           hover: styles.nav.profile(true),
           onClick: () => this.setState({ userMenuOpen: !userMenuOpen })
         }, [
