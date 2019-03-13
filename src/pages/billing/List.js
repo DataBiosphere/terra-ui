@@ -190,7 +190,7 @@ const ProjectCard = pure(({ project: { projectName, creationStatus, role } }) =>
         href: isClickable ? Nav.getLink('project', { projectName }) : undefined,
         style: {
           ...Style.cardList.longTitle,
-          marginLeft: '2rem', marginRight: '1rem',
+          marginLeft: projectReady ? '2rem' : '1rem', marginRight: '1rem',
           color: isClickable ? colors.green[0] : undefined
         }
       }, [projectName])
