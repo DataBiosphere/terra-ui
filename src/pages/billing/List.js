@@ -114,28 +114,27 @@ const NewBillingProjectModal = ajaxCaller(class NewBillingProjectModal extends C
         ]),
         !!chosenBillingAccount && !chosenBillingAccount.firecloudHasAccess && div({ style: { fontWeight: 500, fontSize: 12 } }, [
           div({ style: { color: colors.red[0], margin: '0.25rem 0 0.25rem 0', fontSize: 13 } }, [
-            'Terra does not have access to this account. To grant access: '
-          ]),
-          div({ style: { marginBottom: '0.25rem' } }, [
-            '1. Add ', span({ style: { fontWeight: 'bold' } }, 'billing@firecloud.org'), ' as a Billing Account User on the ',
+            'Terra does not have access to this account. To grant access, add ', span({ style: { fontWeight: 'bold' } }, 'billing@firecloud.org'),
+            ' as a Billing Account User on the ',
             a({
               style: { color: colors.blue[0], fontWeight: 700 },
               href: `https://console.developers.google.com/billing/${chosenBillingAccount.accountName.split('/')[1]}?authuser=${Auth.getUser().email}`,
               target: '_blank'
             }, ['Google Cloud Console ', icon('pop-out', { size: 12 })])
           ]),
-          div({ style: { marginBottom: '0.25rem' } }, [
-            '2. Click ',
-            h(Clickable, {
-              as: 'span',
-              style: { color: colors.blue[0], fontWeight: 700 },
-              onClick: () => {
-                this.setState({ billingAccounts: undefined })
-                this.loadBillingAccounts()
-              }
-            }, ['HERE']), ' to refresh your billing accounts.'
-          ]),
-          div([
+          // The following lines will be re-added soon:
+          // div({ style: { marginBottom: '0.25rem' } }, [
+          //   '2. Click ',
+          //   h(Clickable, {
+          //     as: 'span',
+          //     style: { color: colors.blue[0], fontWeight: 700 },
+          //     onClick: () => {
+          //       this.setState({ billingAccounts: undefined })
+          //       this.loadBillingAccounts()
+          //     }
+          //   }, ['HERE']), ' to refresh your billing accounts.'
+          // ]),
+          div({ style: { marginTop: '0.5rem' } }, [
             'Need help? ',
             a({
               style: { color: colors.blue[0], fontWeight: 700 },
