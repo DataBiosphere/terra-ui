@@ -267,7 +267,7 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
               } else {
                 const options = new window.gapi.auth2.SigninOptionsBuilder({ 'scope': 'https://www.googleapis.com/auth/cloud-billing' })
                 Auth.getAuthInstance().currentUser.get().grant(options).then(
-                  () => setTimeout(() => this.setState({ creatingBillingProject: true }), 500),
+                  () => setTimeout(() => this.setState({ creatingBillingProject: true }), 250),
                   () => reportError('Failed to grant permissions', 'To create a new billing project, you must allow Terra to view your Google billing account(s).')
                 )
               }
