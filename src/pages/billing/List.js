@@ -118,7 +118,7 @@ const NewBillingProjectModal = ajaxCaller(class NewBillingProjectModal extends C
             ' as a Billing Account User on the ',
             a({
               style: { color: colors.blue[0], fontWeight: 700 },
-              href: `https://console.developers.google.com/billing/${chosenBillingAccount.accountName.split('/')[1]}?authuser=${Auth.getUser().email}`,
+              href: `https://console.cloud.google.com/billing/${chosenBillingAccount.accountName.split('/')[1]}?authuser=${Auth.getUser().email}`,
               target: '_blank'
             }, ['Google Cloud Console ', icon('pop-out', { size: 12 })])
           ]),
@@ -267,7 +267,7 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
               } else {
                 const options = new window.gapi.auth2.SigninOptionsBuilder({ 'scope': 'https://www.googleapis.com/auth/cloud-billing' })
                 Auth.getAuthInstance().currentUser.get().grant(options).then(
-                  () => this.setState({ creatingBillingProject: true }),
+                  () => setTimeout(() => this.setState({ creatingBillingProject: true }), 500),
                   () => reportError('Failed to grant permissions', 'To create a new billing project, you must allow Terra to view your Google billing account(s).')
                 )
               }
