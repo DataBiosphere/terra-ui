@@ -1,13 +1,17 @@
 import _ from 'lodash/fp'
-import { Fragment } from 'react'
-import { a, div, h } from 'react-hyperscript-helpers'
+import { Fragment, useState } from 'react'
+import { a, div, h, label } from 'react-hyperscript-helpers'
 import { pure } from 'recompose'
 import { PageBox, search, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
+import { textInput } from 'src/components/input'
+import Modal from 'src/components/Modal'
 import TopBar from 'src/components/TopBar'
 import { ajaxCaller } from 'src/libs/ajax'
+import { authStore } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
+import { formLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
@@ -42,6 +46,44 @@ const ProjectCard = pure(({ project: { projectName, creationStatus, role }, onDe
     div({ style: { width: 100 } }, [isOwner ? 'Owner' : 'Member'])
   ])
 })
+
+const NewAccountForm = ({ onDismiss }) => {
+  const [page, setPage] = useState(0)
+  const [accountInfo, setAccountInfo] = useState(() => {
+    const {firstName, lastName, title, institute} = authStore.get().profile
+
+    return { name: `${firstName} ${lastName}`, title, institute }
+  })
+  const updateAccountInfo = key => ({ target: { value } }) => setAccountInfo({ ...accountInfo, [key]: value })
+
+  const makeField = (title, key) => label([
+    formLabel(title),
+    textInput({
+      value: accountInfo[key],
+      onChange: updateAccountInfo(key)
+    })
+  ])
+
+  return h(Modal, {
+    title: 'New Billing Account',
+    onDismiss,
+    showButtons: false,
+    showX: true,
+    width: 800
+  }, [
+    makeField('Your name', 'name'),
+    makeField('Your title', 'title'),
+    makeField('Institution name', 'institute'),
+    makeField('Billing address', 'billingAddress'),
+    makeField('New account name', 'accountName'),
+    makeField('Account admin email', 'adminEmail'),
+    makeField('Account value', 'accountValue'),
+    makeField('Budget alert policy', 'alertPolicy'),
+    makeField('Financial contact name', 'financialContactName'),
+    makeField('Financial contact email', 'financialContactEmail'),
+    makeField('Financial contact phone', 'financialContactPhone')
+  ])
+}
 
 export const BillingList = ajaxCaller(class BillingList extends Component {
   constructor(props) {
@@ -104,11 +146,11 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
               _.map(project => {
                 return h(ProjectCard, {
                   project, key: `${project.projectName}`
-                  // onDelete: () => this.setState({ deletingProject: project })
                 })
               })
             )(billingProjects)
           ]),
+          h(NewAccountForm),
           !isDataLoaded && spinnerOverlay
         ])
       ])
