@@ -35,10 +35,23 @@ export const launch = async ({
   entityType, entityNames, newSetName, expression, useCallCache = true,
   onCreateSet, onLaunch, onSuccess, onFailure
 }) => {
-  const entityName = _.head(entityNames)
-
   const workspace = Ajax().Workspaces.workspace(workspaceNamespace, workspaceName)
   const methodConfig = workspace.methodConfig(configNamespace, configName)
+
+  const launchParams = resolveLaunchParams({ entityNames, entityType, onCreateSet, newSetName, rootEntityType, workspace })
+  if (!!launchParams) {
+    try {
+      !!onLaunch && onLaunch()
+      const { submissionId } = await methodConfig.launch({ ...launchParams, useCallCache })
+      onSuccess(submissionId)
+    } catch (error) {
+      onFailure(error)
+    }
+  }
+}
+
+const resolveLaunchParams = async ({ entityNames, entityType, onCreateSet, newSetName, rootEntityType, workspace }) => {
+  const entityName = _.head(entityNames)
 
   if (_.isEmpty(entityNames)) {
     reportError('No entities selected')
@@ -48,15 +61,12 @@ export const launch = async ({
     } else if (entityType !== rootEntityType) {
       reportError(`Cannot use ${entityType} with method config that needs ${rootEntityType}`)
     } else {
-      return doLaunch({ methodConfig, onLaunch, onSuccess, onFailure, entityType: rootEntityType, entityName, useCallCache })
+      return { entityType: rootEntityType, entityName }
     }
   } else if (isSet(entityType)) {
-    return doLaunch({
-      methodConfig, onLaunch, onSuccess, onFailure,
-      entityType, entityName, expression: `this.${rootEntityType}s`, useCallCache
-    })
+    return { entityType, entityName, expression: `this.${rootEntityType}s` }
   } else if (_.size(entityNames) === 1) {
-    return doLaunch({ methodConfig, onLaunch, onSuccess, onFailure, entityType, entityName, useCallCache })
+    return { entityType, entityName }
   } else {
     const setType = `${entityType}_set`
     const set = {
@@ -76,19 +86,6 @@ export const launch = async ({
       reportError('Error creating entity set', error)
       return
     }
-    return doLaunch({
-      methodConfig, onLaunch, onSuccess, onFailure,
-      entityType: setType, entityName: newSetName, expression: `this.${rootEntityType}s`, useCallCache
-    })
-  }
-}
-
-const doLaunch = async ({ methodConfig, onLaunch, onSuccess, onFailure, entityType, entityName, expression, useCallCache }) => {
-  try {
-    !!onLaunch && onLaunch()
-    const { submissionId } = await methodConfig.launch({ entityType, entityName, expression, useCallCache })
-    onSuccess(submissionId)
-  } catch (error) {
-    onFailure(error)
+    return { entityType: setType, entityName: newSetName, expression: `this.${rootEntityType}s` }
   }
 }
