@@ -376,7 +376,7 @@ const WorkflowView = _.flow(
         this.renderSummary(),
         Utils.cond(
           [activeTab === 'wdl', () => this.renderWDL()],
-          [activeTab === 'inputs', () => this.renderIOTable('inputs')],
+          //[activeTab === 'inputs', () => this.renderIOTable('inputs')],
           [activeTab === 'outputs' && !!modifiedConfig.rootEntityType, () => this.renderIOTable('outputs')]
         ),
         launching && h(LaunchAnalysisModal, {
@@ -414,7 +414,6 @@ const WorkflowView = _.flow(
         ws.entityMetadata(),
         ws.methodConfig(workflowNamespace, workflowName).validate()
       ])
-
       const { methodConfiguration: config } = validationResponse
       const inputsOutputs = await Methods.configInputsOutputs(config)
       this.setState({
@@ -431,7 +430,15 @@ const WorkflowView = _.flow(
       this.fetchInfo(config)
     } catch (error) {
       this.setState({ isFreshData: true })
-      reportError('Error loading data', error)
+      switch (error.status) {
+        case 404:
+          const entityMetadata = await Workspaces.workspace(namespace, name).entityMetadata()
+          const savedConfig = await Workspaces.workspace(namespace, name).methodConfig(workflowNamespace, workflowName).get()
+          this.setState({ savedConfig, entityMetadata, isRedacted: true })
+          return
+        default:
+          await reportError('Error loading data', error)
+      }
     }
   }
 
@@ -484,11 +491,12 @@ const WorkflowView = _.flow(
     const { workspace: { canCompute, workspace }, namespace, name: workspaceName } = this.props
     const {
       modifiedConfig, savedConfig, saving, saved, copying, deleting, selectingData, activeTab, errors, synopsis, documentation,
-      selectedEntityType, entityMetadata, entitySelectionModel
+      selectedEntityType, entityMetadata, entitySelectionModel, isRedacted
     } = this.state
     const { name, methodRepoMethod: { methodPath, methodVersion, methodNamespace, methodName }, rootEntityType } = modifiedConfig
     const modified = !_.isEqual(modifiedConfig, savedConfig)
     const noLaunchReason = Utils.cond(
+      [isRedacted, () => 'The method snapshot this config references has been redacted'],
       [saving || modified, () => 'Save or cancel to Launch Analysis'],
       [!_.isEmpty(errors.inputs) || !_.isEmpty(errors.outputs), () => 'At least one required attribute is missing or invalid'],
       [!entityMetadata[rootEntityType], () => `There are no ${selectedEntityType}s in this workspace.`],
@@ -519,11 +527,14 @@ const WorkflowView = _.flow(
             ]),
             span({ style: { color: colors.darkBlue[0], fontSize: 24 } }, name)
           ]),
-          div({ style: { marginTop: '0.5rem' } }, `Snapshot ${methodVersion}`),
+          div({ style: { fontSize: 20, display: 'flex', alignItems: 'center', marginTop: '0.5rem' } }, [
+            icon('warning', { size: 30, style: { color: colors.orange[0] } }), 'Snapshot redacted']),
+          div({ style: { marginTop: '0.5rem' } }, isRedacted ? `Snapshot ${methodVersion} (redacted)` : `Snapshot ${methodVersion}`),
           div([
             'Source: ', link({
               href: methodLink(modifiedConfig),
-              target: '_blank'
+              target: '_blank',
+              disabled: isRedacted
             }, methodPath ? methodPath : `${methodNamespace}/${methodName}/${methodVersion}`)
           ]),
           div(`Synopsis: ${synopsis ? synopsis : ''}`),
@@ -626,7 +637,7 @@ const WorkflowView = _.flow(
       div({ style: styles.messageContainer }, [
         saving && miniMessage('Saving...'),
         saved && !saving && !modified && miniMessage('Saved!'),
-        modified && buttonPrimary({ disabled: saving || !this.canSave(), onClick: () => this.save() }, 'Save'),
+        modified && buttonPrimary({ disabled: isRedacted || saving || !this.canSave(), onClick: () => this.save() }, 'Save'),
         modified && buttonSecondary({ style: { marginLeft: '1rem' }, disabled: saving, onClick: () => this.cancel() }, 'Cancel')
       ]),
       copying && h(ExportToolModal, {
