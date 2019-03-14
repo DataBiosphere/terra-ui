@@ -153,7 +153,7 @@ const NewBillingProjectModal = ajaxCaller(class NewBillingProjectModal extends C
     const { billingProjectName, chosenBillingAccount } = this.state
 
     try {
-      this.setState({ submitting: true })
+      this.setState({ submitting: true, alreadyExists: undefined })
       await Billing.createProject(billingProjectName, chosenBillingAccount.accountName)
       onSuccess()
     } catch (error) {
