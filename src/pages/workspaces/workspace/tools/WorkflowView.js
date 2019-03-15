@@ -536,7 +536,7 @@ const WorkflowView = _.flow(
             ]),
             span({ style: { color: colors.darkBlue[0], fontSize: 24 } }, name)
           ]),
-          div({ style: { marginTop: '0.5rem' } },`Snapshot ${methodVersion}`),
+          div({ style: { marginTop: '0.5rem' } }, `Snapshot ${methodVersion}`),
           div([
             'Source: ', link({
               href: methodLink(modifiedConfig),
