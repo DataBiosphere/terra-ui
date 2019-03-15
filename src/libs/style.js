@@ -6,6 +6,8 @@ export const modalShadow = '0 0 8px 0 rgba(0,0,0,0.12), 0 8px 8px 0 rgba(0,0,0,0
 
 export const standardLine = `1px solid ${colors.gray[2]}`
 
+export const proportionalNumbers = { fontVariantNumeric: 'proportional-nums', fontFeatureSettings: 'initial' }
+
 export const elements = {
   card: {
     title: { color: colors.green[0], fontSize: 16, overflow: 'hidden' },
@@ -16,7 +18,7 @@ export const elements = {
       boxShadow: '0 2px 5px 0 rgba(0,0,0,0.35), 0 3px 2px 0 rgba(0,0,0,0.12), 0 0 2px 0 rgba(0,0,0,0.12)'
     }
   },
-  sectionHeader: { color: colors.gray[0], fontSize: 16, fontWeight: 'bold' },
+  sectionHeader: { color: colors.gray[0], fontSize: 16, fontWeight: 600 },
   pageContentContainer: { position: 'relative', flexGrow: 1, display: 'flex', flexDirection: 'column' }
 }
 
