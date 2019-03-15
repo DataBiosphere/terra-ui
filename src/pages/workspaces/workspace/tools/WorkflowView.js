@@ -380,10 +380,8 @@ const WorkflowView = _.flow(
           [activeTab === 'outputs' && !!modifiedConfig.rootEntityType, () => this.renderIOTable('outputs')]
         ),
         launching && h(LaunchAnalysisModal, {
-          workspaceId,
-          config: savedConfig,
-          processSingle: this.isSingle(),
-          entitySelectionModel,
+          workspaceId, config: savedConfig,
+          processSingle: this.isSingle(), entitySelectionModel,
           onDismiss: () => this.setState({ launching: false }),
           onSuccess: submissionId => {
             JobHistory.flagNewSubmission(submissionId)
@@ -394,10 +392,7 @@ const WorkflowView = _.flow(
           workspace,
           onDismiss: () => this.setState({ variableSelected: undefined }),
           onSelect: v => {
-            this.setState({
-              modifiedConfig: _.set(['inputs', variableSelected], v, modifiedConfig),
-              variableSelected: undefined
-            })
+            this.setState({ modifiedConfig: _.set(['inputs', variableSelected], v, modifiedConfig), variableSelected: undefined })
           }
         })
       ]),
