@@ -3,14 +3,14 @@ import PropTypes from 'prop-types'
 import { Fragment, PureComponent } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
-import { buttonPrimary, buttonSecondary, Clickable, LabeledCheckbox, Select, spinnerOverlay } from 'src/components/common'
+import { buttonPrimary, buttonSecondary, Clickable, LabeledCheckbox, Select } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { IntegerInput, textInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import PopupTrigger from 'src/components/PopupTrigger'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { machineTypes, profiles, storagePrice } from 'src/data/clusters'
-import { ajaxCaller } from 'src/libs/ajax'
+import { Ajax, ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
@@ -186,7 +186,7 @@ const getUpdateIntervalMs = status => {
   }
 }
 
-const NewClusterModal = ajaxCaller(class NewClusterModal extends PureComponent {
+const NewClusterModal = class NewClusterModal extends PureComponent {
   constructor(props) {
     super(props)
     const { currentCluster } = props
@@ -196,7 +196,6 @@ const NewClusterModal = ajaxCaller(class NewClusterModal extends PureComponent {
       profiles
     )
     this.state = {
-      busy: false,
       profile: matchingProfile ? matchingProfile.name : 'custom',
       jupyterUserScriptUri: '',
       ...Utils.normalizeMachineConfig(currentConfig)
@@ -213,26 +212,18 @@ const NewClusterModal = ajaxCaller(class NewClusterModal extends PureComponent {
     }
   }
 
-  async createCluster() {
-    try {
-      const { ajax: { Jupyter }, namespace, onSuccess } = this.props
-      const { jupyterUserScriptUri } = this.state
-      this.setState({ busy: true })
-      await Jupyter.cluster(namespace, Utils.generateClusterName()).create({
-        machineConfig: this.getMachineConfig(),
-        ...(jupyterUserScriptUri ? { jupyterUserScriptUri } : {})
-      })
-      onSuccess()
-    } catch (error) {
-      reportError('Error creating cluster', error)
-    } finally {
-      this.setState({ busy: false })
-    }
+  createCluster() {
+    const { namespace, onSuccess } = this.props
+    const { jupyterUserScriptUri } = this.state
+    onSuccess(Ajax().Jupyter.cluster(namespace, Utils.generateClusterName()).create({
+      machineConfig: this.getMachineConfig(),
+      ...(jupyterUserScriptUri ? { jupyterUserScriptUri } : {})
+    }))
   }
 
   render() {
     const { currentCluster, onCancel } = this.props
-    const { busy, profile, masterMachineType, masterDiskSize, workerMachineType, numberOfWorkers, numberOfPreemptibleWorkers, workerDiskSize, jupyterUserScriptUri } = this.state
+    const { profile, masterMachineType, masterDiskSize, workerMachineType, numberOfWorkers, numberOfPreemptibleWorkers, workerDiskSize, jupyterUserScriptUri } = this.state
     const changed = !currentCluster ||
       currentCluster.status === 'Error' ||
       !machineConfigsEqual(this.getMachineConfig(), currentCluster.machineConfig) ||
@@ -240,7 +231,7 @@ const NewClusterModal = ajaxCaller(class NewClusterModal extends PureComponent {
     return h(Modal, {
       title: 'Runtime environment',
       onDismiss: onCancel,
-      okButton: buttonPrimary({ disabled: busy || !changed, onClick: () => this.createCluster() }, currentCluster ? 'Update' : 'Create')
+      okButton: buttonPrimary({ disabled: !changed, onClick: () => this.createCluster() }, currentCluster ? 'Update' : 'Create')
     }, [
       div({ style: styles.row }, [
         div({ style: { ...styles.col1, ...styles.label } }, 'Profile'),
@@ -342,11 +333,10 @@ const NewClusterModal = ajaxCaller(class NewClusterModal extends PureComponent {
         div({ style: styles.label }, [
           `Cost: ${Utils.formatUSD(machineConfigCost(this.getMachineConfig()))} per hour`
         ])
-      ]),
-      busy && spinnerOverlay
+      ])
     ])
   }
-})
+}
 
 export default ajaxCaller(class ClusterManager extends PureComponent {
   static propTypes = {
@@ -525,7 +515,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
     const activeClusters = this.getActiveClustersOldestFirst()
     const creating = _.some({ status: 'Creating' }, activeClusters)
     const multiple = !creating && activeClusters.length > 1
-    const isDisabled = !canCompute || creating || multiple
+    const isDisabled = !canCompute || creating || multiple || busy
     return div({ style: styles.container }, [
       h(MiniLink, {
         href: Nav.getLink('workspace-terminal-launch', { namespace, name }),
@@ -553,7 +543,12 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
       }, [
         h(Clickable, {
           style: styles.button(isDisabled),
-          tooltip: !canCompute && noCompute,
+          tooltip: Utils.cond(
+            [!canCompute, () => noCompute],
+            [creating, () => 'Your environment is being created'],
+            [multiple, () => undefined],
+            () => 'Update runtime'
+          ),
           onClick: () => this.setState({ open: true }),
           disabled: isDisabled
         }, [
@@ -566,7 +561,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
               ` (${Utils.formatUSD(totalCost)} hr)`
             ])
           ]),
-          icon('caretDown', { size: 18, style: { color: isDisabled ? colors.gray[2] : colors.green[0] } })
+          icon('cog', { size: 22, className: 'is-solid', style: { color: isDisabled ? colors.gray[2] : colors.green[0] } })
         ])
       ]),
       deleting && h(Modal, {
@@ -580,9 +575,9 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
       open && h(NewClusterModal, {
         namespace, currentCluster,
         onCancel: () => this.setState({ open: false }),
-        onSuccess: () => {
+        onSuccess: promise => {
           this.setState({ open: false })
-          this.executeAndRefresh(Promise.resolve())
+          this.executeAndRefresh(promise)
         }
       })
     ])
