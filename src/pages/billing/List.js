@@ -162,9 +162,10 @@ const NewBillingProjectModal = ajaxCaller(class NewBillingProjectModal extends C
           this.setState({ alreadyExists: billingProjectName, submitting: false })
           break
         default:
-          this.setState({ submitting: false })
           reportError('Error creating billing project', error)
       }
+    } finally {
+      this.setState({ submitting: false })
     }
   }
 })
@@ -175,10 +176,13 @@ const ProjectCard = pure(({ project: { projectName, creationStatus, role } }) =>
   const isClickable = isOwner && projectReady
 
   return div({ style: Style.cardList.longCard }, [
-    div({ style: { flex: 'none' } }, [
-      icon(projectReady ? 'check' : 'loadingSpinner', {
+    div({ style: { flex: 'none', width: '6rem' } }, [
+      icon(Utils.cond(
+        [creationStatus === 'Ready', 'check'],
+        [creationStatus === 'Creating', 'loadingSpinner'],
+        'error-standard'), {
         style: {
-          color: projectReady ? colors.green[0] : undefined,
+          color: colors.green[0],
           marginRight: '1rem'
         }
       }),
@@ -189,8 +193,7 @@ const ProjectCard = pure(({ project: { projectName, creationStatus, role } }) =>
         href: isClickable ? Nav.getLink('project', { projectName }) : undefined,
         style: {
           ...Style.cardList.longTitle,
-          marginLeft: projectReady ? '2rem' : '1rem', marginRight: '1rem',
-          color: isClickable ? colors.green[0] : undefined
+          margin: '0 1rem', color: isClickable ? colors.green[0] : undefined
         }
       }, [projectName])
     ]),
@@ -257,7 +260,7 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
       ]),
       h(PageBox, [
         div({ style: Style.cardList.toolbarContainer }, [
-          div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, ['Billing Projects Management']) //Billing Projects? Billing Management? Billing Project Management?
+          div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, ['Billing Projects Management'])
         ]),
         div({ style: Style.cardList.cardContainer }, [
           h(NewBillingProjectCard, {
