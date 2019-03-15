@@ -331,7 +331,6 @@ export const Tools = _.flow(
         })
       ]),
       div({ style: styles.cardContainer(listView) }, [
-        configs && !configs.length && div(['No tools added']),
         h(Clickable, {
           style: { ...styles.card, ...styles.shortCard, color: colors.green[0], fontSize: 18, lineHeight: '22px' },
           onClick: () => this.setState({ findingTool: true })
