@@ -367,37 +367,50 @@ const WorkflowView = _.flow(
     // modifiedConfig: active data, potentially unsaved
     const {
       isFreshData, savedConfig, launching, activeTab,
-      entitySelectionModel, variableSelected, modifiedConfig
+      entitySelectionModel, variableSelected, modifiedConfig, isRedacted
     } = this.state
     const { namespace, name, workspace } = this.props
     const workspaceId = { namespace, name }
-    return h(Fragment, [
-      savedConfig && h(Fragment, [
-        this.renderSummary(),
-        Utils.cond(
-          [activeTab === 'wdl', () => this.renderWDL()],
-          [activeTab === 'inputs', () => this.renderIOTable('inputs')],
-          [activeTab === 'outputs' && !!modifiedConfig.rootEntityType, () => this.renderIOTable('outputs')]
-        ),
-        launching && h(LaunchAnalysisModal, {
-          workspaceId, config: savedConfig,
-          processSingle: this.isSingle(), entitySelectionModel,
-          onDismiss: () => this.setState({ launching: false }),
-          onSuccess: submissionId => {
-            JobHistory.flagNewSubmission(submissionId)
-            Nav.goToPath('workspace-job-history', workspaceId)
-          }
-        }),
-        variableSelected && h(BucketContentModal, {
-          workspace,
-          onDismiss: () => this.setState({ variableSelected: undefined }),
-          onSelect: v => {
-            this.setState({ modifiedConfig: _.set(['inputs', variableSelected], v, modifiedConfig), variableSelected: undefined })
-          }
-        })
-      ]),
-      !isFreshData && spinnerOverlay
-    ])
+    if (isRedacted === false) {
+      return h(Fragment, [
+        savedConfig && h(Fragment, [
+          this.renderSummary(),
+          Utils.cond(
+            [activeTab === 'wdl', () => this.renderWDL()],
+            [activeTab === 'inputs', () => this.renderIOTable('inputs')],
+            [activeTab === 'outputs' && !!modifiedConfig.rootEntityType, () => this.renderIOTable('outputs')]
+          ),
+          launching && h(LaunchAnalysisModal, {
+            workspaceId,
+            config: savedConfig,
+            processSingle: this.isSingle(),
+            entitySelectionModel,
+            onDismiss: () => this.setState({ launching: false }),
+            onSuccess: submissionId => {
+              JobHistory.flagNewSubmission(submissionId)
+              Nav.goToPath('workspace-job-history', workspaceId)
+            }
+          }),
+          variableSelected && h(BucketContentModal, {
+            workspace,
+            onDismiss: () => this.setState({ variableSelected: undefined }),
+            onSelect: v => {
+              this.setState({
+                modifiedConfig: _.set(['inputs', variableSelected], v, modifiedConfig),
+                variableSelected: undefined
+              })
+            }
+          })
+        ]),
+        !isFreshData && spinnerOverlay
+      ])
+    } else {
+      return h(Modal, {
+        showCancel: false,
+        title: 'This method has been redacted',
+        onDismiss: () => Nav.goToPath('workspace-tools', { namespace, name })
+      }, [div('Press OK to return to your list of tools.')])
+    }
   }
 
   async componentDidMount() {
@@ -420,6 +433,7 @@ const WorkflowView = _.flow(
         isFreshData: true, savedConfig: config, modifiedConfig: config,
         entityMetadata, inputsOutputs: _.update('inputs', _.sortBy('optional'), inputsOutputs),
         errors: augmentErrors(validationResponse),
+        isRedacted: false,
         entitySelectionModel: this.resetSelectionModel(config.rootEntityType),
         workspaceAttributes: _.flow(
           _.without(['description']),
