@@ -300,5 +300,5 @@ export const Markdown = ({ children, renderers = {}, ...props }) => {
   const content = marked(children, {
     renderer: Object.assign(new marked.Renderer(), renderers)
   })
-  return div({ ...props, dangerouslySetInnerHTML: { __html: content } })
+  return div({ className: 'markdown-body', ...props, dangerouslySetInnerHTML: { __html: content } })
 }
