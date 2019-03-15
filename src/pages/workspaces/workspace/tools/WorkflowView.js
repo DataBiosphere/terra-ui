@@ -501,12 +501,11 @@ const WorkflowView = _.flow(
     const { workspace: { canCompute, workspace }, namespace, name: workspaceName } = this.props
     const {
       modifiedConfig, savedConfig, saving, saved, copying, deleting, selectingData, activeTab, errors, synopsis, documentation,
-      selectedEntityType, entityMetadata, entitySelectionModel, isRedacted
+      selectedEntityType, entityMetadata, entitySelectionModel
     } = this.state
     const { name, methodRepoMethod: { methodPath, methodVersion, methodNamespace, methodName }, rootEntityType } = modifiedConfig
     const modified = !_.isEqual(modifiedConfig, savedConfig)
     const noLaunchReason = Utils.cond(
-      [isRedacted, () => 'The method snapshot this config references has been redacted'],
       [saving || modified, () => 'Save or cancel to Launch Analysis'],
       [!_.isEmpty(errors.inputs) || !_.isEmpty(errors.outputs), () => 'At least one required attribute is missing or invalid'],
       [!entityMetadata[rootEntityType], () => `There are no ${selectedEntityType}s in this workspace.`],
@@ -537,15 +536,11 @@ const WorkflowView = _.flow(
             ]),
             span({ style: { color: colors.darkBlue[0], fontSize: 24 } }, name)
           ]),
-          isRedacted && div({ style: { fontSize: 20, display: 'flex', alignItems: 'center', marginTop: '0.5rem' } }, [
-            icon('warning', { size: 30, style: { color: colors.orange[0] } }), 'Snapshot redacted'
-          ]),
-          div({ style: { marginTop: '0.5rem' } }, isRedacted ? `Snapshot ${methodVersion} (redacted)` : `Snapshot ${methodVersion}`),
+          div({ style: { marginTop: '0.5rem' } },`Snapshot ${methodVersion}`),
           div([
             'Source: ', link({
               href: methodLink(modifiedConfig),
-              target: '_blank',
-              disabled: isRedacted
+              target: '_blank'
             }, methodPath ? methodPath : `${methodNamespace}/${methodName}/${methodVersion}`)
           ]),
           div(`Synopsis: ${synopsis ? synopsis : ''}`),
@@ -648,7 +643,7 @@ const WorkflowView = _.flow(
       div({ style: styles.messageContainer }, [
         saving && miniMessage('Saving...'),
         saved && !saving && !modified && miniMessage('Saved!'),
-        modified && buttonPrimary({ disabled: isRedacted || saving || !this.canSave(), onClick: () => this.save() }, 'Save'),
+        modified && buttonPrimary({ disabled: saving || !this.canSave(), onClick: () => this.save() }, 'Save'),
         modified && buttonSecondary({ style: { marginLeft: '1rem' }, disabled: saving, onClick: () => this.cancel() }, 'Cancel')
       ]),
       copying && h(ExportToolModal, {
