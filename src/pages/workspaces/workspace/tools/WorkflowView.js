@@ -376,7 +376,7 @@ const WorkflowView = _.flow(
         this.renderSummary(),
         Utils.cond(
           [activeTab === 'wdl', () => this.renderWDL()],
-          //[activeTab === 'inputs', () => this.renderIOTable('inputs')],
+          [activeTab === 'inputs', () => this.renderIOTable('inputs')],
           [activeTab === 'outputs' && !!modifiedConfig.rootEntityType, () => this.renderIOTable('outputs')]
         ),
         launching && h(LaunchAnalysisModal, {
@@ -527,8 +527,9 @@ const WorkflowView = _.flow(
             ]),
             span({ style: { color: colors.darkBlue[0], fontSize: 24 } }, name)
           ]),
-          div({ style: { fontSize: 20, display: 'flex', alignItems: 'center', marginTop: '0.5rem' } }, [
-            icon('warning', { size: 30, style: { color: colors.orange[0] } }), 'Snapshot redacted']),
+          isRedacted && div({ style: { fontSize: 20, display: 'flex', alignItems: 'center', marginTop: '0.5rem' } }, [
+            icon('warning', { size: 30, style: { color: colors.orange[0] } }), 'Snapshot redacted'
+          ]),
           div({ style: { marginTop: '0.5rem' } }, isRedacted ? `Snapshot ${methodVersion} (redacted)` : `Snapshot ${methodVersion}`),
           div([
             'Source: ', link({

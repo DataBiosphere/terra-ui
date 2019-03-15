@@ -77,7 +77,10 @@ const ToolCard = pure(({ listView, name, namespace, config, onCopy, onDelete }) 
     closeOnClick: true,
     content: h(Fragment, [
       h(MenuButton, {
-        onClick: () => onCopy()
+        onClick: () => onCopy(),
+        disabled: isRedacted,
+        tooltip: isRedacted ? 'This method is redacted' : undefined,
+        tooltipSide: 'left'
       }, [menuIcon('copy'), 'Copy to Another Workspace']),
       h(MenuButton, {
         onClick: () => onDelete()
@@ -120,18 +123,18 @@ const ToolCard = pure(({ listView, name, namespace, config, onCopy, onDelete }) 
 
   return listView ?
     div({ style: { ...styles.card, ...styles.longCard } }, [
-      workflowLink,
+      isRedacted ? undefined: workflowLink,
       div({ style: { ...styles.innerContent, display: 'flex', alignItems: 'center' } }, [
         div({ style: { marginRight: '1rem' } }, [toolCardMenu]),
-        div({ style: styles.longTitle }, [workflowName]),
+        div({ style: isRedacted ? { ...styles.longTitle, color: colors.gray[0] }: styles.longTitle }, [workflowName]),
         div({ style: { ...styles.longMethodVersion, display: 'flex', alignItems: 'center' } }, [`V. ${methodVersion}`, isRedacted ? redactedWarning : undefined]),
         div({ style: { flex: 'none', width: 130 } }, ['Source: ', repoLink])
       ])
     ]) :
     div({ style: { ...styles.card, ...styles.shortCard } }, [
-      workflowLink,
+      isRedacted ? undefined: workflowLink,
       div({ style: { ...styles.innerContent, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%' } }, [
-        div({ style: styles.shortTitle }, [workflowName]),
+        div({ style: isRedacted ? { ...styles.shortTitle, color: colors.gray[0] }: styles.shortTitle }, [workflowName]),
         div({ style: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' } }, [
           div([
             div({ style: { display: 'flex', alignItems: 'center' } }, [
