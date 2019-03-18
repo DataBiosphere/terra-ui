@@ -28,12 +28,13 @@ jobs:
       - attach_workspace:
           at: .
       - run: npm run build
-      - run: tar -czf build.tgz app.yaml build config
+      - run: tar -czf build.tgz .gcloudignore app.yaml build config
       - store_artifacts:
           path: build.tgz
       - persist_to_workspace:
           root: .
           paths:
+            - .gcloudignore
             - app.yaml
             - build
             - config
