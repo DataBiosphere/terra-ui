@@ -80,6 +80,17 @@ export const buttonSecondary = ({ disabled, ...props }, children) => {
   }, props), children)
 }
 
+export const buttonOutline = ({ disabled, ...props }, children) => {
+  return h(buttonPrimary, _.merge({
+    style: {
+      border: `1px solid ${disabled ? colors.gray[4] : colors.green[0]}`,
+      color: colors.green[0],
+      backgroundColor: disabled ? colors.gray[5] : 'white'
+    },
+    hover: disabled ? undefined : { backgroundColor: colors.green[6] }
+  }, props), children)
+}
+
 export const search = function({ wrapperProps, inputProps }) {
   return div(
     _.merge({ style: { padding: '0.5rem 0.2rem', display: 'flex', backgroundColor: 'white', borderRadius: 3 } },
@@ -289,5 +300,5 @@ export const Markdown = ({ children, renderers = {}, ...props }) => {
   const content = marked(children, {
     renderer: Object.assign(new marked.Renderer(), renderers)
   })
-  return div({ ...props, dangerouslySetInnerHTML: { __html: content } })
+  return div({ className: 'markdown-body', ...props, dangerouslySetInnerHTML: { __html: content } })
 }

@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import { Fragment } from 'react'
-import { a, div, h } from 'react-hyperscript-helpers'
-import { link } from 'src/components/common'
+import { div, h } from 'react-hyperscript-helpers'
+import { Clickable, link } from 'src/components/common'
 import { centeredSpinner } from 'src/components/icons'
 import { libraryTopMatter } from 'src/components/library-common'
 import dockstoreLogo from 'src/images/library/code/dockstore.svg'
@@ -22,18 +22,19 @@ const styles = {
   }
 }
 
-const makeCard = method => {
+export const makeToolCard = ({ method, onClick }) => {
   const { namespace, name, synopsis } = method
 
-  return a({
-    href: `${getConfig().firecloudUrlRoot}/?return=terra#methods/${namespace}/${name}/`,
+  return h(Clickable, {
+    as: 'a',
+    href: _.isUndefined(onClick) ? `${getConfig().firecloudUrlRoot}/?return=terra#methods/${namespace}/${name}/` : undefined,
+    onClick,
     style: {
+      ...Style.elements.card.container,
       backgroundColor: 'white',
       width: 390, height: 140,
-      borderRadius: 5,
-      display: 'flex',
+      padding: undefined,
       margin: '0 30px 27px 0',
-      boxShadow: Style.standardShadow,
       position: 'relative'
     }
   }, [
@@ -62,6 +63,22 @@ const logoTile = logoFile => div({
     marginRight: 13
   }
 })
+
+export const dockstoreTile = () => div({ style: { display: 'flex' } }, [
+  logoTile(dockstoreLogo),
+  div([
+    link({ href: `${getConfig().dockstoreUrlRoot}/search?descriptorType=wdl&searchMode=files` }, 'Dockstore'),
+    div(['Browse WDL workflows in Dockstore, an open platform used by the GA4GH for sharing Docker-based tools'])
+  ])
+])
+
+export const fcMethodRepoTile = () => div({ style: { display: 'flex' } }, [
+  logoTile(firecloudLogo),
+  div([
+    link({ href: `${getConfig().firecloudUrlRoot}/?return=terra#methods` }, 'Firecloud Methods Repository'),
+    div(['Use FireCloud workflows in Terra. Share your own, or choose from > 700 public workflows'])
+  ])
+])
 
 
 const Code = ajaxCaller(class Code extends Component {
@@ -102,24 +119,14 @@ const Code = ajaxCaller(class Code extends Component {
           div({ style: { flex: 1, margin: '30px 0 30px 40px' } }, [
             div({ style: styles.header }, 'GATK4 Best Practices workflows'),
             div({ style: { display: 'flex', flexWrap: 'wrap' } }, [
-              ..._.map(makeCard, featuredMethods)
+              ..._.map(method => makeToolCard({ method }), featuredMethods)
             ])
           ]),
           div({ style: { width: 385, padding: '25px 30px', backgroundColor: colors.grayBlue[4], lineHeight: '20px' } }, [
             div({ style: { ...styles.header, fontSize: 16 } }, 'FIND ADDITIONAL WORKFLOWS'),
-            div({ style: { display: 'flex' } }, [
-              logoTile(dockstoreLogo),
-              div([
-                link({ href: `${getConfig().dockstoreUrlRoot}/search?descriptorType=wdl&searchMode=files` }, 'Dockstore'),
-                div(['Browse WDL workflows in Dockstore, an open platform used by the GA4GH for sharing Docker-based tools'])
-              ])
-            ]),
-            div({ style: { display: 'flex', marginTop: 40 } }, [
-              logoTile(firecloudLogo),
-              div([
-                link({ href: `${getConfig().firecloudUrlRoot}/?return=terra#methods` }, 'Firecloud Methods Repository'),
-                div(['Use FireCloud workflows in Terra. Share your own, or choose from > 700 public workflows'])
-              ])
+            dockstoreTile(),
+            div({ style: { marginTop: 40 } }, [
+              fcMethodRepoTile()
             ])
           ])
         ])

@@ -15,6 +15,7 @@ import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
+import * as qs from 'qs'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -25,8 +26,18 @@ import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer
 
 const notebookCardCommonStyles = listView => _.merge({ display: 'flex' },
   listView ?
-    { marginBottom: '0.5rem', flexDirection: 'row' } :
-    { margin: '0 2.5rem 2.5rem 0', height: 250, width: 200, flexDirection: 'column' }
+    {
+      marginBottom: '0.5rem',
+      flexDirection: 'row',
+      alignItems: 'center'
+    } :
+    {
+      margin: '0 2.5rem 2.5rem 0',
+      height: 100,
+      width: 400,
+      flexDirection: 'column',
+      padding: 0
+    }
 )
 
 const printName = name => name.slice(10, -6) // removes 'notebooks/' and the .ipynb suffix
@@ -39,11 +50,35 @@ class NotebookCard extends Component {
     const tenMinutesAgo = _.tap(d => d.setMinutes(d.getMinutes() - 10), new Date())
     const isRecent = new Date(updated) > tenMinutesAgo
     const notebookLink = Nav.getLink('workspace-notebook-launch', { namespace, name: wsName, notebookName: name.slice(10) })
+    const readOnlyParam = { 'read-only': 'true' }
+    const notebookReadOnlyLink = `${notebookLink}/?${qs.stringify(readOnlyParam)}`
 
     const notebookMenu = h(PopupTrigger, {
       side: 'right',
       closeOnClick: true,
       content: h(Fragment, [
+        h(MenuButton, {
+          as: 'a',
+          href: notebookLink,
+          disabled: !canWrite,
+          tooltip: !canWrite && noWrite,
+          tooltipSide: 'left'
+        }, [menuIcon('edit'), 'Open']),
+        h(MenuButton, {
+          as: 'a',
+          href: notebookReadOnlyLink,
+          tooltip: canWrite && 'Open without runtime',
+          tooltipSide: 'left'
+        }, [menuIcon('eye'), 'Open read-only']),
+        h(MenuButton, {
+          disabled: !canWrite,
+          tooltip: !canWrite && noWrite,
+          tooltipSide: 'left',
+          onClick: () => Nav.goToPath('workspace-notebook-launch', { namespace, app: 'lab', name: wsName, notebookName: name.slice(10) })
+        }, [menuIcon('jupyterIcon'), 'Open in JupyterLab']),
+        h(MenuButton, {
+          onClick: () => onExport()
+        }, [menuIcon('export'), 'Copy to another workspace']),
         h(MenuButton, {
           onClick: async () => {
             try {
@@ -58,12 +93,6 @@ class NotebookCard extends Component {
           disabled: !canWrite,
           tooltip: !canWrite && noWrite,
           tooltipSide: 'left',
-          onClick: () => Nav.goToPath('workspace-notebook-launch', { namespace, app: 'lab', name: wsName, notebookName: name.slice(10) })
-        }, [menuIcon('jupyterIcon'), 'Open in JupyterLab']),
-        h(MenuButton, {
-          disabled: !canWrite,
-          tooltip: !canWrite && noWrite,
-          tooltipSide: 'left',
           onClick: () => onRename()
         }, [menuIcon('renameIcon'), 'Rename']),
         h(MenuButton, {
@@ -72,9 +101,6 @@ class NotebookCard extends Component {
           tooltipSide: 'left',
           onClick: () => onCopy()
         }, [menuIcon('copy'), 'Duplicate']),
-        h(MenuButton, {
-          onClick: () => onExport()
-        }, [menuIcon('export'), 'Copy to another workspace']),
         h(MenuButton, {
           disabled: !canWrite,
           tooltip: !canWrite && noWrite,
@@ -97,22 +123,13 @@ class NotebookCard extends Component {
       ])
     ])
 
-    const jupyterIcon = icon('jupyterIcon', {
-      style: {
-        height: 125,
-        width: 'auto',
-        color: colors.gray[5]
-      }
-    })
-
     const title = div({
       title: printName(name),
       style: _.merge({
-        ...Style.elements.card.title,
-        textOverflow: 'ellipsis', whiteSpace: 'nowrap'
+        ...Style.elements.card.title, whiteSpace: 'normal', overflowY: 'auto'
       }, listView ? {
         marginLeft: '1rem'
-      } : undefined)
+      } : { height: 60, padding: '1rem' })
     }, printName(name))
 
     return a({
@@ -120,8 +137,7 @@ class NotebookCard extends Component {
       style: {
         ...Style.elements.card.container,
         ...notebookCardCommonStyles(listView),
-        flexShrink: 0,
-        alignItems: listView ? 'center' : undefined
+        flexShrink: 0
       }
     }, listView ? [
       notebookMenu,
@@ -134,15 +150,24 @@ class NotebookCard extends Component {
       ])
     ] : [
       title,
-      jupyterIcon,
-      isRecent ? div({ style: { display: 'flex', color: colors.orange[0] } }, 'Recently Edited') : undefined,
-      div({ style: { display: 'flex', justifyContent: 'space-between' } }, [
+      div({
+        style: {
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          borderTop: `solid 1px ${colors.gray[4]}`,
+          padding: '0.5rem',
+          backgroundColor: colors.grayBlue[5],
+          borderRadius: '0 0 5px 5px'
+        }
+      }, [
         h(TooltipTrigger, { content: Utils.makeCompleteDate(updated) }, [
-          div({ style: { fontSize: '0.8rem', flexGrow: 1, marginRight: '0.5rem' } }, [
-            'Last edited:',
-            div({}, Utils.makePrettyDate(updated))
+          div({ style: { fontSize: '0.8rem', marginRight: '0.5rem' } }, [
+            'Last edited: ',
+            Utils.makePrettyDate(updated)
           ])
         ]),
+        isRecent ? div({ style: { display: 'flex', color: colors.orange[0] } }, 'Recently Edited') : undefined,
         notebookMenu
       ])
     ])
@@ -237,7 +262,7 @@ const Notebooks = _.flow(
 
     return div({
       style: {
-        display: 'flex', flexWrap: listView ? undefined : 'wrap',
+        display: 'flex',
         marginRight: listView ? undefined : '-2.5rem'
       }
     }, [
@@ -249,7 +274,11 @@ const Notebooks = _.flow(
         }
       }, [
         h(Clickable, {
-          style: { ...Style.elements.card.container, flex: 1, color: colors.green[0] },
+          style: {
+            ...Style.elements.card.container,
+            flex: 1,
+            color: colors.green[0]
+          },
           onClick: () => this.setState({ creating: true }),
           disabled: !canWrite,
           tooltip: !canWrite ? noWrite : undefined
@@ -280,7 +309,7 @@ const Notebooks = _.flow(
       listView ?
         div({ style: { flex: 1 } }, [
           renderedNotebooks
-        ]) : renderedNotebooks
+        ]) : div({ style: { display: 'flex', flexWrap: 'wrap' } }, renderedNotebooks)
     ])
   }
 

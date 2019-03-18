@@ -45,7 +45,7 @@ const authOpts = (token = getUser().token) => ({ headers: { Authorization: `Bear
 const jsonBody = body => ({ body: JSON.stringify(body), headers: { 'Content-Type': 'application/json' } })
 const appIdentifier = { headers: { 'X-App-ID': 'Saturn' } }
 const addAppIdentifier = _.merge(appIdentifier)
-const tosData = { appid: 'Saturn', tosversion: 3 }
+const tosData = { appid: 'Saturn', tosversion: 4 }
 
 const instrumentedFetch = (url, options) => {
   if (noConnection) {
@@ -68,7 +68,7 @@ const instrumentedFetch = (url, options) => {
 }
 
 
-const fetchOk = async (url, options) => {
+export const fetchOk = async (url, options) => {
   const res = await instrumentedFetch(url, options)
   return res.ok ? res : Promise.reject(res)
 }
@@ -685,6 +685,31 @@ const Methods = signal => ({
       get: async () => {
         const res = await fetchAgora(root, _.merge(authOpts(), { signal }))
         return res.json()
+      },
+
+      configs: async () => {
+        const res = await fetchAgora(`${root}/configurations`, _.merge(authOpts(), { signal }))
+        return res.json()
+      },
+
+      toWorkspace: async (workspace, config = {}) => {
+        const res = await fetchRawls(`workspaces/${workspace.namespace}/${workspace.name}/methodconfigs`,
+          _.mergeAll([authOpts(), jsonBody(_.merge({
+            methodRepoMethod: {
+              methodUri: `agora://${namespace}/${name}/${snapshotId}`
+            },
+            name,
+            namespace,
+            rootEntityType: '',
+            prerequisites: {},
+            inputs: {},
+            outputs: {},
+            methodConfigVersion: 1,
+            deleted: false
+          },
+          config.payloadObject
+          )), { signal, method: 'POST' }]))
+        return res.json()
       }
     }
   }
@@ -714,7 +739,8 @@ const Jupyter = signal => ({
             labExtensions: {},
             serverExtensions: {},
             combinedExtensions: {}
-          }
+          },
+          scopes: ['https://www.googleapis.com/auth/cloud-platform', 'https://www.googleapis.com/auth/userinfo.email', 'https://www.googleapis.com/auth/userinfo.profile']
         })
         return fetchLeo(`api/cluster/v2/${project}/${name}`, _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'PUT' }, appIdentifier]))
       },
