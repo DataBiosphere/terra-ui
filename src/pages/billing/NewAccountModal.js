@@ -13,7 +13,7 @@ import validate from 'validate.js'
 
 export default ({ onDismiss }) => {
   const [page, setPage] = useState(0)
-  const [account, setAccountInfo] = useState(() => {
+  const [account, setAccount] = useState(() => {
     const {
       firstName, lastName, institute, email, contactEmail,
       programLocationCity, programLocationState, programLocationCountry
@@ -39,7 +39,7 @@ export default ({ onDismiss }) => {
       financialContactPhone: ''
     }
   })
-  const updateAccount = _.curry((key, value) => setAccountInfo({ ...account, [key]: value }))
+  const updateAccount = _.curry((key, value) => setAccount({ ...account, [key]: value }))
 
   const required = { presence: { allowEmpty: false } }
   const errors = [
