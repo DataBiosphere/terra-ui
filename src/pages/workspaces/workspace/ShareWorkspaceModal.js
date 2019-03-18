@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { Component, Fragment } from 'react'
+import { Component } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { buttonPrimary, linkButton, Select, spinnerOverlay } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
@@ -17,17 +17,13 @@ import validate from 'validate.js'
 
 
 const styles = {
-  searchArea: {
-    margin: '0 -1.25rem',
-    padding: '0 1.25rem 2rem',
-    borderBottom: Style.standardLine
-  },
   currentCollaboratorsArea: {
-    margin: '0 -1.25rem',
+    margin: '2rem -1.25rem 0rem',
     padding: '0.75rem 1.25rem',
     maxHeight: 550,
     overflowY: 'auto',
-    borderBottom: Style.standardLine
+    borderBottom: Style.standardLine,
+    borderTop: Style.standardLine
   },
   pending: {
     textTransform: 'uppercase', fontWeight: 500,
@@ -73,14 +69,13 @@ export default ajaxCaller(class ShareWorkspaceModal extends Component {
     )(groups)
 
     const canAdd = value => value !== searchValue || !searchValueInvalid
-
     return h(Modal, {
       title: 'Share Workspace',
       width: 550,
       okButton: buttonPrimary({ onClick: () => this.save() }, ['Save']),
       onDismiss
     }, [
-      Forms.requiredFormLabel('User email'),
+      Forms.formLabel('User email'),
       h(AutocompleteSearch, {
         autoFocus: true,
         placeholder: 'Add people or groups',
@@ -124,7 +119,7 @@ export default ajaxCaller(class ShareWorkspaceModal extends Component {
       }),
       h(buttonPrimary, {
         onClick: () => this.addAcl(searchValue, accessLevel),
-        disabled: accessLevel === undefined || searchValue === undefined
+        disabled: !accessLevel || searchValueInvalid
       }, ['Add User'])]),
       div({ style: styles.currentCollaboratorsArea }, [
         div({ style: Style.elements.sectionHeader }, ['Current Collaborators']),
