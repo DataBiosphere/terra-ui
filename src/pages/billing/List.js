@@ -290,7 +290,7 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
         ]),
         creatingBillingProject && h(NewBillingProjectModal, {
           onDismiss: () => this.setState({ creatingBillingProject: false }),
-          onSuccess: () => this.refresh() // open the modal
+          onSuccess: () => this.refresh()
         })
       ])
     ])
