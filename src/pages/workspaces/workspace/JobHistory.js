@@ -223,7 +223,7 @@ const JobHistory = _.flow(
                     ])
                   ]),
                   isTerminal(status) && workflowStatuses['Failed'] &&
-                  submissionEntity && submissionEntity.entityType.endsWith('_set') && h(TooltipTrigger, {
+                  submissionEntity && h(TooltipTrigger, {
                     content: 'Re-run failures'
                   }, [
                     h(Clickable, {
