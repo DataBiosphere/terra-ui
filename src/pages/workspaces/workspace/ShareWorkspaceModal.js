@@ -69,6 +69,7 @@ export default ajaxCaller(class ShareWorkspaceModal extends Component {
     )(groups)
 
     const canAdd = value => value !== searchValue || !searchValueInvalid
+
     return h(Modal, {
       title: 'Share Workspace',
       width: 550,
