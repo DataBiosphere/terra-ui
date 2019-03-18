@@ -20,12 +20,16 @@ import { Component } from 'src/libs/wrapped-components'
 import validate from 'validate.js'
 
 
-const billingProjectNameValidator = () => ({
+const billingProjectNameValidator = existing => ({
   presence: { allowEmpty: false },
   length: { minimum: 6, maximum: 30 },
   format: {
     pattern: /^[a-z]([a-z0-9-])*$/,
     message: 'must start with a letter and can only contain lowercase letters, numbers, and hyphens.'
+  },
+  exclusion: {
+    within: existing,
+    message: 'already exists'
   }
 })
 
@@ -36,7 +40,7 @@ const NewBillingProjectModal = ajaxCaller(class NewBillingProjectModal extends C
       billingProjectName: '',
       billingProjectNameTouched: false,
       billingAccount: '',
-      alreadyExists: false
+      existing: []
     }
   }
 
@@ -56,8 +60,8 @@ const NewBillingProjectModal = ajaxCaller(class NewBillingProjectModal extends C
 
   render() {
     const { onDismiss } = this.props
-    const { billingProjectName, billingProjectNameTouched, submitting, chosenBillingAccount, billingAccounts, alreadyExists } = this.state
-    const errors = validate({ billingProjectName }, { billingProjectName: billingProjectNameValidator() })
+    const { billingProjectName, billingProjectNameTouched, submitting, chosenBillingAccount, billingAccounts, existing } = this.state
+    const errors = validate({ billingProjectName }, { billingProjectName: billingProjectNameValidator(existing) })
 
     return h(Modal, {
       onDismiss,
@@ -84,10 +88,6 @@ const NewBillingProjectModal = ajaxCaller(class NewBillingProjectModal extends C
       ]),
       billingAccounts && billingAccounts.length !== 0 && h(Fragment, [
         Forms.requiredFormLabel('Enter name'),
-        !!alreadyExists && div({ style: { color: colors.red[0], fontSize: 11, fontWeight: 600 } }, [
-          icon('exclamation-circle', { size: 24 }),
-          `${alreadyExists} already exists. Choose another name.`
-        ]),
         validatedInput({
           inputProps: {
             autoFocus: true,
@@ -150,16 +150,16 @@ const NewBillingProjectModal = ajaxCaller(class NewBillingProjectModal extends C
 
   async submit() {
     const { onSuccess, ajax: { Billing } } = this.props
-    const { billingProjectName, chosenBillingAccount } = this.state
+    const { billingProjectName, chosenBillingAccount, existing } = this.state
 
     try {
-      this.setState({ submitting: true, alreadyExists: undefined })
+      this.setState({ submitting: true })
       await Billing.createProject(billingProjectName, chosenBillingAccount.accountName)
       onSuccess()
     } catch (error) {
       switch (error.status) {
         case 409:
-          this.setState({ alreadyExists: billingProjectName, submitting: false })
+          this.setState({ existing: _.concat(billingProjectName, existing), submitting: false })
           break
         default:
           reportError('Error creating billing project', error)
@@ -286,14 +286,13 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
               })
             )(billingProjects)
           ]),
-          !isDataLoaded && spinnerOverlay
+          (!isDataLoaded || updating) && spinnerOverlay
         ]),
         creatingBillingProject && h(NewBillingProjectModal, {
           onDismiss: () => this.setState({ creatingBillingProject: false }),
           onSuccess: () => this.refresh() // open the modal
         })
-      ]),
-      updating && spinnerOverlay
+      ])
     ])
   }
 
