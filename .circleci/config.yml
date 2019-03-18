@@ -40,7 +40,7 @@ jobs:
             - config
   deploy-pr:
     docker:
-      - image: google/cloud-sdk:latest
+      - image: google/cloud-sdk:alpine
     steps:
       - attach_workspace:
           at: .
@@ -57,7 +57,7 @@ jobs:
             fi
   deploy-dev:
     docker:
-      - image: google/cloud-sdk:latest
+      - image: google/cloud-sdk:alpine
     steps:
       - attach_workspace:
           at: /root/project
