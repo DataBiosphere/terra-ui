@@ -38,7 +38,7 @@ export const launch = async ({
   const workspace = Ajax().Workspaces.workspace(workspaceNamespace, workspaceName)
   const methodConfig = workspace.methodConfig(configNamespace, configName)
 
-  const launchParams = resolveLaunchParams({ entityNames, entityType, onCreateSet, newSetName, rootEntityType, workspace })
+  const launchParams = await resolveLaunchParams({ entityNames, entityType, onCreateSet, newSetName, rootEntityType, workspace })
   if (!!launchParams) {
     try {
       !!onLaunch && onLaunch()
