@@ -1,15 +1,16 @@
 import _ from 'lodash/fp'
-import { Component } from 'react'
+import { Component, Fragment } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { buttonPrimary, linkButton, Select, spinnerOverlay } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
-import { AutocompleteSearch } from 'src/components/input'
+import { AutocompleteSearch, textInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { ajaxCaller } from 'src/libs/ajax'
 import { getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
+import * as Forms from 'src/libs/forms'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import validate from 'validate.js'
@@ -62,7 +63,7 @@ export default ajaxCaller(class ShareWorkspaceModal extends Component {
 
   render() {
     const { onDismiss } = this.props
-    const { acl, shareSuggestions, groups, loaded, searchValue, working, updateError } = this.state
+    const { acl, shareSuggestions, groups, loaded, searchValue, working, updateError, accessLevel } = this.state
     const searchValueInvalid = !!validate({ searchValue }, { searchValue: { email: true } })
 
     const suggestions = _.flow(
@@ -79,41 +80,52 @@ export default ajaxCaller(class ShareWorkspaceModal extends Component {
       okButton: buttonPrimary({ onClick: () => this.save() }, ['Save']),
       onDismiss
     }, [
-      div({ style: styles.searchArea }, [
-        h(AutocompleteSearch, {
-          autoFocus: true,
-          placeholder: 'Add people or groups',
-          value: searchValue,
-          onChange: v => this.setState({ searchValue: v }),
-          renderSuggestion: suggestion => div({ style: styles.suggestionContainer }, [
-            div({ style: styles.suggestion }, [
-              !canAdd(suggestion) && h(TooltipTrigger, {
-                content: 'Not a valid email address'
-              }, [
-                icon('warning-standard', { style: { color: colors.red[0], marginRight: '0.5rem' } })
-              ]),
-              suggestion
-            ])
-          ]),
-          onSuggestionSelected: selection => {
-            if (canAdd(selection)) {
-              this.addAcl(selection)
-            }
-          },
-          onKeyDown: e => {
-            // 13 = Enter, 27 = Escape
-            if (e.which === 27 && !!searchValue) {
-              this.setState({ searchValue: '' })
-              e.stopPropagation()
-            } else if (e.which === 13 && !searchValueInvalid) {
-              this.addAcl(searchValue)
-            }
-          },
-          suggestions: _.difference(suggestions, _.map('email', acl)),
-          style: { fontSize: 16 },
-          theme: { suggestion: { padding: 0 } }
-        })
-      ]),
+      Forms.requiredFormLabel('User email'),
+      h(AutocompleteSearch, {
+        autoFocus: true,
+        placeholder: 'Add people or groups',
+        value: searchValue,
+        onChange: v => this.setState({ searchValue: v }),
+        renderSuggestion: suggestion => div({ style: styles.suggestionContainer }, [
+          div({ style: { flex: 1 } }, [
+            !canAdd(suggestion) && h(TooltipTrigger, {
+              content: 'Not a valid email address'
+            }, [
+              icon('warning-standard', {
+                style: { color: colors.red[0], marginRight: '0.5rem' }
+              })
+            ]),
+            suggestion
+          ])
+        ]),
+        onSuggestionSelected: selection => {
+          this.setState({ searchValue: selection })
+        },
+        onKeyDown: e => {
+          // 27 = Escape
+          if (e.which === 27 && !!searchValue) {
+            this.setState({ searchValue: '' })
+            e.stopPropagation()
+          }
+        },
+        suggestions: _.difference(suggestions, _.map('email', acl)),
+        style: { fontSize: 16 },
+        renderInputComponent: textInput,
+        theme: { suggestion: { padding: 0 } }
+      }),
+      Forms.formLabel('Role'),
+      div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between' } }, [h(Select, {
+        styles: { container: styles.roleSelect },
+        isSearchable: false,
+        getOptionLabel: ({ value }) => Utils.normalizeLabel(value),
+        value: accessLevel,
+        onChange: ({ value }) => this.setState({ accessLevel: value }),
+        options: ['READER', 'WRITER', 'OWNER']
+      }),
+      h(buttonPrimary, {
+        onClick: () => this.addAcl(searchValue, accessLevel),
+        disabled: accessLevel === undefined || searchValue === undefined
+      }, ['Add User'])]),
       div({ style: styles.currentCollaboratorsArea }, [
         div({ style: Style.elements.sectionHeader }, ['Current Collaborators']),
         ...acl.map(this.renderCollaborator),
@@ -127,9 +139,9 @@ export default ajaxCaller(class ShareWorkspaceModal extends Component {
     ])
   }
 
-  addAcl(email) {
+  addAcl(email, accessLevel) {
     const { acl } = this.state
-    this.setState({ acl: _.concat(acl, [{ email, accessLevel: 'READER', pending: false }]), searchValue: '' })
+    this.setState({ acl: _.concat(acl, [{ email, accessLevel, pending: false }]), searchValue: '' })
   }
 
   renderCollaborator = ({ email, accessLevel, pending }, index) => {
