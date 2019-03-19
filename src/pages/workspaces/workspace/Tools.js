@@ -293,10 +293,7 @@ export const Tools = _.flow(
   computeRedacted(config) {
     const { methods } = this.state
     const { methodName, methodNamespace, methodVersion, sourceRepo } = config.methodRepoMethod
-    if (!sourceRepo) reportError('Caller must specify source repo for method')
-    else {
-      return (sourceRepo === 'agora') ? !_.some({ name: methodName, namespace: methodNamespace, snapshotId: methodVersion }, methods) : false
-    }
+    return (sourceRepo === 'agora') ? !_.some({ name: methodName, namespace: methodNamespace, snapshotId: methodVersion }, methods) : false
   }
 
   render() {
