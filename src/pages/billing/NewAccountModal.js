@@ -2,6 +2,7 @@ import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { div, h, label } from 'react-hyperscript-helpers'
 import { buttonPrimary, buttonSecondary, Checkbox, Clickable, Select } from 'src/components/common'
+import { icon } from 'src/components/icons'
 import { validatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { authStore } from 'src/libs/auth'
@@ -26,6 +27,14 @@ export default ({ onDismiss }) => {
       firstName,
       lastName,
       email: contactEmail || email,
+
+      paymentType: '',
+
+      name: '',
+      budget: '',
+      alertsOn: false,
+      alertPolicy: 30,
+
       institute,
       billingAddress1: '',
       billingAddress2: '',
@@ -33,10 +42,6 @@ export default ({ onDismiss }) => {
       billingState: programLocationState,
       billingZip: '',
       billingCountry: programLocationCountry,
-      name: '',
-      budget: '',
-      alertsOn: false,
-      alertPolicy: 30,
       financialContactName: '',
       financialContactEmail: '',
       financialContactPhone: ''
@@ -48,6 +53,34 @@ export default ({ onDismiss }) => {
   /*
    * Sub-component constructors
    */
+  const makeStepIndicator = (index, stepLabel) => {
+    const isCurrent = page === index
+    const isClickable = _.every(_.isEmpty, _.map('errors', _.take(index, pages)))
+
+    const backgroundColor = isCurrent ?
+      colors.gray[0] :
+      (!_.isEmpty(pages[index].errors) || index === pages.length - 1) ?
+        colors.gray[5] :
+        colors.green[1]
+
+    return h(Clickable, {
+      style: { display: 'flex', flexDirection: 'column', alignItems: 'center', whiteSpace: 'nowrap', width: 50 },
+      disabled: !isClickable,
+      onClick: () => setPage(index)
+    }, [
+      div({
+        style: {
+          color: 'white', backgroundColor,
+          fontSize: 22, lineHeight: '36px', textAlign: 'center',
+          height: 36, width: 36,
+          borderRadius: '100%',
+          ...Style.proportionalNumbers
+        }
+      }, [index + 1]),
+      isCurrent && div({ style: { fontSize: 10, lineHeight: '20px', color: colors.gray[0] } }, [stepLabel])
+    ])
+  }
+
   const makePageHeader = title => div({ style: { ...Style.elements.sectionHeader, margin: '1rem 0' } }, [title])
 
   const makeField = ({ title, key }) => {
@@ -65,26 +98,29 @@ export default ({ onDismiss }) => {
     ])
   }
 
-  const makeStepIndicator = (number, stepLabel) => {
-    const isCurrent = page === number - 1
-    const isClickable = (_.isEmpty(pages[number - 1].errors) || _.isEmpty(pages[number - 2].errors))
-
-    return h(Clickable, {
-      style: { display: 'flex', flexDirection: 'column', alignItems: 'center', whiteSpace: 'nowrap', width: 50 },
-      onClick: isClickable ? () => setPage(number - 1) : undefined
+  const makePaymentCard = ({ label, iconName, time, text, paymentType }) => h(Clickable, {
+    style: { borderRadius: 5, border: `1px solid ${colors.gray[4]}`, width: 260, height: 275 },
+    onClick: () => updateAccount('paymentType', paymentType)
+  }, [
+    div({
+      style: {
+        borderRadius: '5px 5px 0 0',
+        padding: '1rem',
+        backgroundColor: paymentType === account.paymentType ? colors.green[6] : colors.grayBlue[5],
+        borderBottom: `1px solid ${colors.gray[4]}`
+      }
     }, [
-      div({
-        style: {
-          color: 'white', backgroundColor: colors.gray[isCurrent ? 0 : 5],
-          fontSize: 22, lineHeight: '36px', textAlign: 'center',
-          height: 36, width: 36,
-          borderRadius: '100%',
-          ...Style.proportionalNumbers
-        }
-      }, [number]),
-      isCurrent && div({ style: { fontSize: 10, lineHeight: '20px', color: colors.gray[0] } }, [stepLabel])
+      div({ style: { display: 'flex', justifyContent: 'space-between', alignItems: 'center' } }, [
+        div({ style: { ...Style.elements.sectionHeader, fontSize: 18 } }, [label]),
+        icon(iconName, { size: 36 })
+      ]),
+      icon('clock', { size: 18, style: { marginRight: '0.5rem' } }),
+      time
+    ]),
+    div({ style: { padding: '1rem' } }, [
+      text
     ])
-  }
+  ])
 
   const makeReviewField = (label, text, size = 175) => div({ style: { marginBottom: '0.5rem', display: 'flex' } }, [
     div({ style: { flex: `0 0 ${size}px`, color: colors.gray[2] } }, [label]),
@@ -112,9 +148,29 @@ export default ({ onDismiss }) => {
       makeField({ title: 'Email address', key: 'email' })
     ])
   }, {
-    errors: {},
+    errors: validate(account, { paymentType: required }),
     render: () => h(Fragment, [
-      'Credit or PO goes here'
+      makePageHeader('Click to choose a payment method'),
+      div({ style: { display: 'flex', justifyContent: 'center', marginTop: '1.5rem' } }, [
+        makePaymentCard({
+          label: 'Credit Card',
+          iconName: 'creditCard',
+          time: '24 hours to process',
+          text: 'Onix will contact you for your credit card information, then set up a Google Billing Account on your behalf.',
+          paymentType: 'credit'
+        }),
+        div({ style: { width: '1rem' } }),
+        makePaymentCard({
+          label: 'Purchase Order',
+          iconName: 'purchaseOrder',
+          time: '5-7 days to process',
+          text: 'You will provide more information for a quote. Onix will contact you to complete the process and set up a Google Billing Account.',
+          paymentType: 'PO'
+        })
+      ]),
+      div({ style: { fontSize: 12, marginTop: '3rem' } }, [
+        'Onix is the vendor we work with to help set up your billing account.'
+      ])
     ])
   }, {
     errors: validate(account, {
@@ -198,7 +254,6 @@ export default ({ onDismiss }) => {
       ])
     ])
   }, {
-    errors: {},
     render: () => h(Fragment, [
       makePageHeader('Account owner information'),
       makeReviewField('Account Owner Name', `${account.firstName} ${account.lastName}`),
@@ -248,11 +303,11 @@ export default ({ onDismiss }) => {
         style: { position: 'absolute', top: 60, color: colors.orange[0], fontStyle: 'italic', fontWeight: 600 }
       }, ['Please review your order']),
       div({ style: { flexGrow: 1 } }),
-      makeStepIndicator(1, 'Account owner'),
-      makeStepIndicator(2, 'Payment method'),
-      makeStepIndicator(3, 'Account information'),
-      makeStepIndicator(4, 'Billing information'),
-      makeStepIndicator(5, 'Review')
+      makeStepIndicator(0, 'Account owner'),
+      makeStepIndicator(1, 'Payment method'),
+      makeStepIndicator(2, 'Account information'),
+      makeStepIndicator(3, 'Billing information'),
+      makeStepIndicator(4, 'Review')
     ])
   }, [
     div({ style: { margin: '0 -1.25rem', borderTop: `1px solid ${colors.gray[0]}` } }),
