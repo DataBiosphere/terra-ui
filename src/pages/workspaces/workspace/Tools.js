@@ -290,20 +290,20 @@ export const Tools = _.flow(
     return _.find({ namespace, name }, configs)
   }
 
-  addRedactedAttribute(config, methods) {
+  computeRedacted(config) {
+    const { methods } = this.state
     const { methodName, methodNamespace, methodVersion, sourceRepo } = config.methodRepoMethod
-    const isRedacted = _.some({ name: methodName, namespace: methodNamespace, snapshotId: methodVersion }, methods)
     if (!sourceRepo) reportError('Caller must specify source repo for method')
     else {
-      return (sourceRepo === 'agora') ? !isRedacted : false
+      return (sourceRepo === 'agora') ? !_.some({ name: methodName, namespace: methodNamespace, snapshotId: methodVersion }, methods) : false
     }
   }
 
   render() {
     const { namespace, name, listView, viewToggleButtons, workspace: { workspace } } = this.props
-    const { loading, configs, copyingTool, deletingTool, findingTool, methods } = this.state
+    const { loading, configs, copyingTool, deletingTool, findingTool } = this.state
     const tools = _.map(config => {
-      const isRedacted = this.addRedactedAttribute(config, methods)
+      const isRedacted = this.computeRedacted(config)
       return h(ToolCard, {
         onCopy: () => this.setState({ copyingTool: { namespace: config.namespace, name: config.name } }),
         onDelete: () => this.setState({ deletingTool: { namespace: config.namespace, name: config.name } }),
