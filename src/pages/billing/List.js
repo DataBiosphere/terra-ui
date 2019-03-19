@@ -1,9 +1,10 @@
+import Interactive from 'react-interactive'
 import * as Auth from 'src/libs/auth'
 import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { a, div, h, span } from 'react-hyperscript-helpers'
 import { pure } from 'recompose'
-import { buttonPrimary, Clickable, PageBox, search, Select, spinnerOverlay } from 'src/components/common'
+import { buttonPrimary, Clickable, Select, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { validatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
@@ -18,7 +19,6 @@ import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 import validate from 'validate.js'
-
 
 const billingProjectNameValidator = existing => ({
   presence: { allowEmpty: false },
@@ -39,7 +39,6 @@ const NewBillingProjectModal = ajaxCaller(class NewBillingProjectModal extends C
     this.state = {
       billingProjectName: '',
       billingProjectNameTouched: false,
-      billingAccount: '',
       existing: []
     }
   }
@@ -170,35 +169,26 @@ const NewBillingProjectModal = ajaxCaller(class NewBillingProjectModal extends C
   }
 })
 
-const ProjectCard = pure(({ project: { projectName, creationStatus, role } }) => {
+const ProjectTabs = pure(({ project: { projectName, role, creationStatus } }, /*isActive*/ ) => {
   const isOwner = !!_.includes('Owner', role)
   const projectReady = creationStatus === 'Ready'
   const isClickable = isOwner && projectReady
+  const isActive = false
 
-  return div({ style: Style.cardList.longCard }, [
-    div({ style: { flex: 'none', width: '6rem' } }, [
-      icon(Utils.cond(
-        [creationStatus === 'Ready', 'check'],
-        [creationStatus === 'Creating', 'loadingSpinner'],
-        'error-standard'), {
-        style: {
-          color: colors.green[0],
-          marginRight: '1rem'
-        }
-      }),
-      creationStatus
-    ]),
-    div({ style: { flex: 1 } }, [
-      a({
-        href: isClickable ? Nav.getLink('project', { projectName }) : undefined,
-        style: {
-          ...Style.cardList.longTitle,
-          margin: '0 1rem', color: isClickable ? colors.green[0] : undefined
-        }
-      }, [projectName])
-    ]),
-    div({ style: { width: 100 } }, [isOwner ? 'Owner' : 'Member'])
-  ])
+  return h(Interactive, {
+    as: 'a',
+    style: {
+      display: 'flex', alignItems: 'center', flex: 'none',
+      height: 50, padding: '0 45px',
+      fontWeight: 500, fontSize: 16, overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis',
+      color: isClickable ? colors.green[0] : colors.gray[0],
+      borderRightWidth: isActive ? 10 : 0, borderRightStyle: 'solid', borderRightColor: colors.green[1],
+      backgroundColor: isActive ? colors.green[7] : colors.white,
+      borderBottom: isActive ? undefined : `0.5px solid ${colors.grayBlue[2]}`
+    },
+    href: isClickable ? Nav.getLink('project', { projectName }) : undefined,
+    hover: isActive ? {} : { backgroundColor: colors.green[6], color: colors.green[1] }
+  }, [div([projectName])])
 })
 
 const NewBillingProjectCard = pure(({ onClick }) => {
@@ -243,56 +233,73 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
 
   componentDidMount() {
     this.refresh()
+    //this.loadBillingAccounts()
   }
 
+  // async loadBillingAccounts() {
+  //   const { ajax: { Billing } } = this.props
+  //   try {
+  //     const billingAccounts = await Billing.listAccounts()
+  //     this.setState({ billingAccounts })
+  //   } catch (error) {
+  //     reportError('Error loading billing accounts', error)
+  //   }
+  // }
+
   render() {
-    const { billingProjects, isDataLoaded, filter, creatingBillingProject, updating } = this.state
+    const { billingProjects, isDataLoaded, creatingBillingProject, updating } = this.state
+    //const { breadcrumbs, title } = this.props
+    const breadcrumbs = 'Billing > this is a breadcrumb'
+    const title = 'First Billing account detail page'
+
     return h(Fragment, [
-      h(TopBar, { title: 'Billing' }, [
-        search({
-          wrapperProps: { style: { marginLeft: '2rem', flexGrow: 1, maxWidth: 500 } },
-          inputProps: {
-            placeholder: 'SEARCH BILLING PROJECTS',
-            onChange: e => this.setState({ filter: e.target.value }),
-            value: filter
+      h(TopBar, { title: 'Billing', href: Nav.getLink('billing') }, [
+        div({
+          style: {
+            color: 'white', paddingLeft: '5rem', minWidth: 0, marginRight: '0.5rem'
           }
-        })
-      ]),
-      h(PageBox, [
-        div({ style: Style.cardList.toolbarContainer }, [
-          div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, ['Billing Projects Management'])
-        ]),
-        div({ style: Style.cardList.cardContainer }, [
-          h(NewBillingProjectCard, {
-            onClick: () => {
-              if (Auth.getAuthInstance().currentUser.get().hasGrantedScopes('https://www.googleapis.com/auth/cloud-billing')) {
-                this.setState({ creatingBillingProject: true })
-              } else {
-                const options = new window.gapi.auth2.SigninOptionsBuilder({ 'scope': 'https://www.googleapis.com/auth/cloud-billing' })
-                Auth.getAuthInstance().currentUser.get().grant(options).then(
-                  () => setTimeout(() => this.setState({ creatingBillingProject: true }), 250),
-                  () => reportError('Failed to grant permissions', 'To create a new billing project, you must allow Terra to view your Google billing account(s).')
-                )
-              }
+        }, [
+          div(breadcrumbs),
+          div({
+            style: {
+              textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+              fontSize: '1.25rem', overflowX: 'hidden'
             }
-          }),
-          div({ style: { flexGrow: 1 } }, [
-            _.flow(
-              _.filter(({ projectName }) => Utils.textMatch(filter, projectName)),
-              _.map(project => {
-                return h(ProjectCard, {
-                  project, key: `${project.projectName}`
-                })
-              })
-            )(billingProjects)
+          }, [title])
+        ])
+      ]),
+      div({ style: { display: 'flex', flex: 1, flexWrap: 'wrap'  } }, [
+        div({ style: { width: 290, boxShadow: '0 2px 5px 0 rgba(0,0,0,0.25)' } }, [
+          div({
+            style: {
+              color: colors.gray[0], backgroundColor: colors.grayBlue[5], fontSize: 16,
+              fontWeight: 600, textTransform: 'uppercase', padding: 25, borderBottom: `0.5px solid ${colors.grayBlue[2]}`
+            }
+          },
+          ['Billing Accounts', icon('plus-circle', { size: 16 })]),
+          // h(NewBillingProjectCard, {
+          //   onClick: () => {
+          //     if (Auth.getAuthInstance().currentUser.get().hasGrantedScopes('https://www.googleapis.com/auth/cloud-billing')) {
+          //       this.setState({ creatingBillingProject: true })
+          //     } else {
+          //       const options = new window.gapi.auth2.SigninOptionsBuilder({ 'scope': 'https://www.googleapis.com/auth/cloud-billing' })
+          //       Auth.getAuthInstance().currentUser.get().grant(options).then(
+          //         () => setTimeout(() => this.setState({ creatingBillingProject: true }), 250),
+          //         () => reportError('Failed to grant permissions', 'To create a new billing project, you must allow Terra to view your Google billing account(s).')
+          //       )
+          //     }
+          //   }
+          // }),
+          div([
+            _.map(project => h(ProjectTabs, { project }), billingProjects)
           ]),
           (!isDataLoaded || updating) && spinnerOverlay
-        ]),
-        creatingBillingProject && h(NewBillingProjectModal, {
-          onDismiss: () => this.setState({ creatingBillingProject: false }),
-          onSuccess: () => this.refresh()
-        })
-      ])
+        ])
+      ]),
+      creatingBillingProject && h(NewBillingProjectModal, {
+        onDismiss: () => this.setState({ creatingBillingProject: false }),
+        onSuccess: () => this.refresh()
+      })
     ])
   }
 
