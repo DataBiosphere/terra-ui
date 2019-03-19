@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { h } from 'react-hyperscript-helpers'
@@ -5,7 +6,6 @@ import { version } from 'src/data/clusters'
 import { getUser } from 'src/libs/auth'
 import { getConfig } from 'src/libs/config'
 import * as Utils from 'src/libs/utils'
-import { Component } from 'src/libs/wrapped-components'
 
 
 let mockResponse
@@ -788,9 +788,7 @@ const Martha = signal => ({
 })
 
 
-export const Ajax = controller => {
-  const signal = controller && controller.signal
-
+export const Ajax = signal => {
   return {
     User: User(signal),
     Groups: Groups(signal),
@@ -804,28 +802,22 @@ export const Ajax = controller => {
   }
 }
 
+export const useCancellation = () => {
+  const controller = useRef()
+  useEffect(() => {
+    return () => controller.current.abort()
+  }, [])
+  if (!controller.current) {
+    controller.current = new window.AbortController()
+  }
+  return controller.current.signal
+}
 
 export const ajaxCaller = WrappedComponent => {
-  class Wrapper extends Component {
-    constructor(props) {
-      super(props)
-      this.controller = new window.AbortController()
-      this.ajax = Ajax(this.controller)
-    }
-
-    static displayName = 'ajaxCaller()'
-
-    render() {
-      return h(WrappedComponent, {
-        ...this.props,
-        ajax: this.ajax
-      })
-    }
-
-    componentWillUnmount() {
-      this.controller.abort()
-    }
+  const Wrapper = props => {
+    const signal = useCancellation()
+    return h(WrappedComponent, { ...props, ajax: Ajax(signal) })
   }
-
+  Wrapper.displayName = 'ajaxCaller()'
   return Wrapper
 }
