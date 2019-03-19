@@ -11,6 +11,7 @@ import broadLogo from 'src/images/library/datasets/broad_logo.png'
 import encodeLogo from 'src/images/library/datasets/ENCODE@2x.png'
 import gtexLogo from 'src/images/library/datasets/GTeX@2x.png'
 import hcaLogo from 'src/images/library/datasets/HCA@2x.png'
+import nemoLogo from 'src/images/library/datasets/nemo-logo.svg'
 import nhsLogo from 'src/images/library/datasets/NHS@2x.png'
 import thousandGenomesLogo from 'src/images/library/datasets/thousandgenomes.png'
 import topMedLogo from 'src/images/library/datasets/TopMed@2x.png'
@@ -123,8 +124,8 @@ const thousandGenomes = h(Participant, {
   title: '1000 Genomes',
   description: h(Fragment, [
     link({ href: 'http://www.internationalgenome.org/about', target: '_blank' }, 'The 1000 Genomes Project'),
-    ` ran between 2008 and 2015, creating the largest public catalogue of 
-  human variation and genotype data. The goal of the 1000 Genomes Project was to find most genetic variants 
+    ` ran between 2008 and 2015, creating the largest public catalogue of
+  human variation and genotype data. The goal of the 1000 Genomes Project was to find most genetic variants
   with frequencies of at least 1% in the populations studied.`
   ]),
   sizeText: 'Participants: 3,500'
@@ -196,9 +197,9 @@ const encode = h(Participant, {
   logo: { src: encodeLogo, alt: `ENCODE Project logo` },
   title: `ENCODE Project`,
   description: h(Fragment, [
-    `The `, b('Enc'), `yclopedia `, b('O'), `f `, b('D'), `NA `, b('E'), `lements (ENCODE) 
-    project aims to delineate all functional elements encoded in the human genome. To this end, ENCODE has 
-    systematically mapped regions of transcription, transcription factor association, chromatin structure 
+    `The `, b('Enc'), `yclopedia `, b('O'), `f `, b('D'), `NA `, b('E'), `lements (ENCODE)
+    project aims to delineate all functional elements encoded in the human genome. To this end, ENCODE has
+    systematically mapped regions of transcription, transcription factor association, chromatin structure
     and histone modification.`
   ]),
   sizeText: 'Donors: > 650 ; Files: > 158,000'
@@ -251,6 +252,22 @@ const hca = h(Participant, {
   }, ['Browse Data'])
 ])
 
+const nemo = h(Participant, {
+  logo: { src: nemoLogo, alt: 'NeMO logo', height: '40%' },
+  title: 'Neuroscience Multi-Omic Archive',
+  description: `The Neuroscience Multi-Omic (NeMO) Archive is a data repository specifically focused on the
+  storage and dissemination of omic data from the BRAIN Initiative and related brain research projects. NeMO
+  operates in close partnership with the Broad Single Cell Portal, Terra, and the Brain Cell Data Center (BCDC).`,
+  sizeText: h(TooltipTrigger, { content: 'As of March 2019' }, [span('Files: >= 210,000; Projects >= 5; Species >= 3')])
+}, [
+  buttonPrimary({
+    as: 'a',
+    href: 'http://portal.nemoarchive.org/',
+    target: '_blank',
+    tooltip: 'Look for the Export to Terra option in the Download Cart to export data.'
+  }, ['Browse Data'])
+]);
+
 const nhs = h(Participant, {
   logo: { src: nhsLogo, alt: `Nurses' Health Study logo` },
   title: `Nurses' Health Study`,
@@ -302,7 +319,7 @@ const Datasets = pure(() => {
     libraryTopMatter('datasets'),
     div({ style: styles.content }, [
       // Put datasets in alphabetical order
-      thousandGenomes, amppd, baseline, encode, fcDataLib, gtex, hca, nhs, topMed, ukb
+      thousandGenomes, amppd, baseline, encode, fcDataLib, gtex, hca, nemo, nhs, topMed, ukb
     ])
   ])
 })
