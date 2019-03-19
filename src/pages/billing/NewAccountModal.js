@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { div, h, label } from 'react-hyperscript-helpers'
-import { buttonPrimary, buttonSecondary, Checkbox, Select } from 'src/components/common'
+import { buttonPrimary, buttonSecondary, Checkbox, Clickable, Select } from 'src/components/common'
 import { validatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { authStore } from 'src/libs/auth'
@@ -12,6 +12,9 @@ import validate from 'validate.js'
 
 
 export default ({ onDismiss }) => {
+  /*
+   * State setup
+   */
   const [page, setPage] = useState(0)
   const [account, setAccount] = useState(() => {
     const {
@@ -39,33 +42,12 @@ export default ({ onDismiss }) => {
       financialContactPhone: ''
     }
   })
-  const updateAccount = _.curry((key, value) => setAccount({ ...account, [key]: value }))
+  const updateAccount = _.curry((key, value) => setAccount(_.set(key, value)))
 
-  const required = { presence: { allowEmpty: false } }
-  const errors = [
-    validate(account, {
-      firstName: required,
-      lastName: required,
-      email: { email: true, ...required }
-    }),
-    {},
-    validate(account, {
-      name: required,
-      budget: required
-    }),
-    validate(account, {
-      institute: required,
-      billingAddress1: required,
-      billingCity: required,
-      billingState: required,
-      billingZip: required,
-      billingCountry: required,
-      financialContactName: required,
-      financialContactEmail: { email: true, ...required },
-      financialContactPhone: required
-    })
-  ]
 
+  /*
+   * Sub-component constructors
+   */
   const makePageHeader = title => div({ style: { ...Style.elements.sectionHeader, margin: '1rem 0' } }, [title])
 
   const makeField = ({ title, key }) => {
@@ -78,16 +60,18 @@ export default ({ onDismiss }) => {
           value,
           onChange: ({ target: { value } }) => updateAccount(key, value)
         },
-        error: !!value && !!errors[page] && Utils.summarizeErrors(errors[page][key])
+        error: !!value && !!pages[page].errors && Utils.summarizeErrors(pages[page].errors[key])
       })
     ])
   }
 
   const makeStepIndicator = (number, stepLabel) => {
     const isCurrent = page === number - 1
+    const isClickable = (_.isEmpty(pages[number - 1].errors) || _.isEmpty(pages[number - 2].errors))
 
-    return div({
-      style: { display: 'flex', flexDirection: 'column', alignItems: 'center', whiteSpace: 'nowrap', width: 50 }
+    return h(Clickable, {
+      style: { display: 'flex', flexDirection: 'column', alignItems: 'center', whiteSpace: 'nowrap', width: 50 },
+      onClick: isClickable ? () => setPage(number - 1) : undefined
     }, [
       div({
         style: {
@@ -107,8 +91,18 @@ export default ({ onDismiss }) => {
     text
   ])
 
-  const pages = [
-    [
+
+  /*
+   * Form page renderers and validation states
+   */
+  const required = { presence: { allowEmpty: false } }
+  const pages = [{
+    errors: validate(account, {
+      firstName: required,
+      lastName: required,
+      email: { email: true, ...required }
+    }),
+    render: () => h(Fragment, [
       makePageHeader('Account owner information'),
       div({ style: { display: 'flex' } }, [
         makeField({ title: 'First name', key: 'firstName' }),
@@ -116,9 +110,18 @@ export default ({ onDismiss }) => {
         makeField({ title: 'Last name', key: 'lastName' })
       ]),
       makeField({ title: 'Email address', key: 'email' })
-    ], [
+    ])
+  }, {
+    errors: {},
+    render: () => h(Fragment, [
       'Credit or PO goes here'
-    ], [
+    ])
+  }, {
+    errors: validate(account, {
+      name: required,
+      budget: required
+    }),
+    render: () => h(Fragment, [
       makePageHeader('Account information'),
       makeField({ title: 'New billing account name', key: 'name' }),
       label([
@@ -128,9 +131,7 @@ export default ({ onDismiss }) => {
           div({ style: { flexGrow: 1 } }, [
             validatedInput({
               inputProps: {
-                type: 'number',
-                min: '0',
-                step: '0.01',
+                type: 'number', min: '0', step: '0.01',
                 value: account.budget,
                 onChange: ({ target: { value } }) => updateAccount('budget', value),
                 onBlur: () => updateAccount('budget', parseFloat(account.budget).toFixed(2))
@@ -148,20 +149,37 @@ export default ({ onDismiss }) => {
           'Notify me when the amount remaining reaches'
         ]),
         h(Select, {
-          onChange: ({ value }) => updateAccount('alertPolicy', value),
+          onChange: ({ value }) => {
+            updateAccount('alertPolicy', value)
+            updateAccount('alertsOn', true)
+          },
           value: account.alertPolicy,
           options: _.rangeStep(10, 0, 100),
           getOptionLabel: ({ value }) => value + '%',
           isSearchable: false,
           isClearable: false,
-          maxMenuHeight: 250,
+          menuPortalTarget: document.getElementById('modal-root'),
+          maxMenuHeight: 225,
           styles: { container: base => ({ ...base, width: 80, display: 'inline-block' }) }
         })
       ])
-    ], [
+    ])
+  }, {
+    errors: validate(account, {
+      institute: required,
+      billingAddress1: required,
+      billingCity: required,
+      billingState: required,
+      billingZip: required,
+      billingCountry: required,
+      financialContactName: required,
+      financialContactEmail: { email: true, ...required },
+      financialContactPhone: required
+    }),
+    render: () => h(Fragment, [
       div({ style: { display: 'flex' } }, [
         div({ style: { marginRight: '3rem', flex: 1 } }, [
-          makePageHeader('Your organization\'s billing info'),
+          makePageHeader('Your organization\'s billing information'),
           makeField({ title: 'Institution name', key: 'institute' }),
           makeField({ title: 'Billing address', key: 'billingAddress1' }),
           makeField({ title: '', key: 'billingAddress2' }),
@@ -178,7 +196,10 @@ export default ({ onDismiss }) => {
           makeField({ title: 'Phone Number', key: 'financialContactPhone' })
         ])
       ])
-    ], [
+    ])
+  }, {
+    errors: {},
+    render: () => h(Fragment, [
       makePageHeader('Account owner information'),
       makeReviewField('Account Owner Name', `${account.firstName} ${account.lastName}`),
       makeReviewField('Email', account.email),
@@ -205,15 +226,20 @@ export default ({ onDismiss }) => {
           makeReviewField('Phone', account.financialContactPhone, 80)
         ])
       ])
-    ]
-  ]
+    ])
+  }]
 
+
+  /*
+   * Modal render
+   */
   const onFirstPage = page === 0
   const onLastPage = page === pages.length - 1
 
   return h(Modal, {
     title: 'New Billing Account',
     onDismiss,
+    shouldCloseOnOverlayClick: false,
     showButtons: false,
     showX: true,
     width: 800,
@@ -225,12 +251,12 @@ export default ({ onDismiss }) => {
       makeStepIndicator(1, 'Account owner'),
       makeStepIndicator(2, 'Payment method'),
       makeStepIndicator(3, 'Account information'),
-      makeStepIndicator(4, 'Billing info'),
+      makeStepIndicator(4, 'Billing information'),
       makeStepIndicator(5, 'Review')
     ])
   }, [
     div({ style: { margin: '0 -1.25rem', borderTop: `1px solid ${colors.gray[0]}` } }),
-    div({ style: { minHeight: 400, overflow: 'auto' } }, pages[page]),
+    div({ style: { minHeight: 400, overflow: 'auto' } }, [pages[page].render()]),
     div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '2rem' } }, [
       h(buttonSecondary, { onClick: !onFirstPage ? () => setPage(page - 1) : () => onDismiss() }, [
         Utils.cond(
@@ -242,8 +268,8 @@ export default ({ onDismiss }) => {
       h(buttonPrimary, {
         style: { marginLeft: '2rem' },
         onClick: onLastPage ? () => console.log(account) : () => setPage(page + 1),
-        disabled: !_.isEmpty(errors[page]),
-        tooltip: !_.isEmpty(errors[page]) && 'All fields are required'
+        disabled: !_.isEmpty(pages[page].errors),
+        tooltip: !_.isEmpty(pages[page].errors) && 'All fields are required'
       }, [onLastPage ? 'Submit' : 'Next'])
     ])
   ])
