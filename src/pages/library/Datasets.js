@@ -266,7 +266,7 @@ const nemo = h(Participant, {
     target: '_blank',
     tooltip: 'Look for the Export to Terra option in the Download Cart to export data.'
   }, ['Browse Data'])
-]);
+])
 
 const nhs = h(Participant, {
   logo: { src: nhsLogo, alt: `Nurses' Health Study logo` },
