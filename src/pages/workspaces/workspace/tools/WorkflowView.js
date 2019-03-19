@@ -398,9 +398,9 @@ const WorkflowView = _.flow(
       ]),
       isRedacted && h(Modal, {
         showCancel: false,
-        title: 'This method has been redacted',
+        title: 'Tool Removed',
         onDismiss: () => Nav.goToPath('workspace-tools', { namespace, name })
-      }, [div('Press OK to return to your list of tools.')]),
+      }, [div('This tool has been removed. You cannot view or run an analysis with this tool. Press OK to return to your list of tools.')]),
       !isFreshData && spinnerOverlay
     ])
   }

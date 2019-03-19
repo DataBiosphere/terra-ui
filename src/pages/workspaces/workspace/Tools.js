@@ -121,8 +121,8 @@ const ToolCard = pure(({ listView, name, namespace, config, onCopy, onDelete, is
   })
 
   const redactedWarning = h(TooltipTrigger, {
-    content: 'This method is redacted'
-  }, [icon('warning', { size: 22, style: { color: colors.orange[0], ...styles.innerLink } })])
+    content: 'Tool has been removed. You cannot view or run an analysis with this tool.'
+  }, [icon('ban', { size: 20, style: { color: colors.orange[0], marginLeft: '.3rem', ...styles.innerLink } })])
 
   return listView ?
     div({ style: { ...styles.card, ...styles.longCard } }, [
