@@ -103,7 +103,7 @@ export default ajaxCaller(class ShareWorkspaceModal extends Component {
 
   addAcl(email) {
     const { acl, accessLevel } = this.state
-    this.setState({ acl: _.concat(acl, [{ email, accessLevel, pending: false }]), searchValue: '' })
+    this.setState({ acl: Utils.append({ email, accessLevel, pending: false }, acl), searchValue: '' })
   }
 
   renderCollaborator = ({ email, accessLevel, pending }, index) => {

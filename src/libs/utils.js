@@ -242,3 +242,5 @@ export const normalizeMachineConfig = ({ masterMachineType, masterDiskSize, numb
     workerDiskSize: (numberOfWorkers && workerDiskSize) || 500
   }
 }
+
+export const append = _.curry((value, arr) => _.concat(arr, [value]))
