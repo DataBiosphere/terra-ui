@@ -3,9 +3,8 @@ import { Component } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { buttonPrimary, linkButton, Select, spinnerOverlay } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
-import { AutocompleteSearch, textInput } from 'src/components/input'
+import { AutocompleteTextInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
-import TooltipTrigger from 'src/components/TooltipTrigger'
 import { ajaxCaller } from 'src/libs/ajax'
 import { getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
@@ -68,7 +67,11 @@ export default ajaxCaller(class ShareWorkspaceModal extends Component {
       _.uniq
     )(groups)
 
-    const canAdd = value => value !== searchValue || !searchValueInvalid
+    const noAddUser = Utils.cond(
+      [!accessLevel && searchValueInvalid, () => 'Required information is missing or invalid'],
+      [!accessLevel, () => 'Please select a role'],
+      [searchValueInvalid, () => 'Not a valid email address'],
+    )
 
     return h(Modal, {
       title: 'Share Workspace',
@@ -77,37 +80,12 @@ export default ajaxCaller(class ShareWorkspaceModal extends Component {
       onDismiss
     }, [
       Forms.formLabel('User email'),
-      h(AutocompleteSearch, {
-        autoFocus: true,
+      h(AutocompleteTextInput, {
         placeholder: 'Add people or groups',
         value: searchValue,
         onChange: v => this.setState({ searchValue: v }),
-        renderSuggestion: suggestion => div({ style: styles.suggestionContainer }, [
-          div({ style: { flex: 1 } }, [
-            !canAdd(suggestion) && h(TooltipTrigger, {
-              content: 'Not a valid email address'
-            }, [
-              icon('warning-standard', {
-                style: { color: colors.red[0], marginRight: '0.5rem' }
-              })
-            ]),
-            suggestion
-          ])
-        ]),
-        onSuggestionSelected: selection => {
-          this.setState({ searchValue: selection })
-        },
-        onKeyDown: e => {
-          // 27 = Escape
-          if (e.which === 27 && !!searchValue) {
-            this.setState({ searchValue: '' })
-            e.stopPropagation()
-          }
-        },
         suggestions: _.difference(suggestions, _.map('email', acl)),
-        style: { fontSize: 16 },
-        renderInputComponent: textInput,
-        theme: { suggestion: { padding: 0 } }
+        style: { fontSize: 16 }
       }),
       Forms.formLabel('Role'),
       div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between' } }, [h(Select, {
@@ -119,8 +97,9 @@ export default ajaxCaller(class ShareWorkspaceModal extends Component {
         options: ['READER', 'WRITER', 'OWNER']
       }),
       h(buttonPrimary, {
-        onClick: () => this.addAcl(searchValue, accessLevel),
-        disabled: !accessLevel || searchValueInvalid
+        onClick: () => this.addAcl(searchValue),
+        disabled: !!noAddUser,
+        tooltip: !!noAddUser && noAddUser
       }, ['Add User'])]),
       div({ style: styles.currentCollaboratorsArea }, [
         div({ style: Style.elements.sectionHeader }, ['Current Collaborators']),
@@ -135,8 +114,8 @@ export default ajaxCaller(class ShareWorkspaceModal extends Component {
     ])
   }
 
-  addAcl(email, accessLevel) {
-    const { acl } = this.state
+  addAcl(email) {
+    const { acl, accessLevel } = this.state
     this.setState({ acl: _.concat(acl, [{ email, accessLevel, pending: false }]), searchValue: '' })
   }
 
