@@ -25,12 +25,12 @@ export const useWorkspaces = ({ persist } = {}) => {
   }
   useEffect(() => {
     refresh()
-  }, [])
+  })
   useEffect(() => {
     if (persist) {
       StateHistory.update({ workspaces })
     }
-  }, [workspaces])
+  }, [workspaces, persist])
   return { workspaces, refresh, loading }
 }
 
