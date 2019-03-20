@@ -27,12 +27,13 @@ export default ({ onDismiss }) => {
       firstName,
       lastName,
       email: contactEmail || email,
+      phone: '',
 
       paymentType: '',
 
       name: '',
       budget: '',
-      alertsOn: false,
+      alertsOn: true,
       alertPolicy: 30,
 
       institute,
@@ -100,7 +101,10 @@ export default ({ onDismiss }) => {
 
   const makePaymentCard = ({ label, iconName, time, text, paymentType }) => h(Clickable, {
     style: { borderRadius: 5, border: `1px solid ${colors.gray[4]}`, width: 260, height: 275 },
-    onClick: () => updateAccount('paymentType', paymentType)
+    onClick: () => {
+      updateAccount('paymentType', paymentType)
+      setPage(1)
+    }
   }, [
     div({
       style: {
@@ -132,26 +136,16 @@ export default ({ onDismiss }) => {
    * Form page renderers and validation states
    */
   const required = { presence: { allowEmpty: false } }
+  const usingPO = account.paymentType === 'PO'
+  const usingCC = account.paymentType === 'credit'
   const pages = [{
-    errors: validate(account, {
-      firstName: required,
-      lastName: required,
-      email: { email: true, ...required }
-    }),
-    render: () => h(Fragment, [
-      makePageHeader('Account owner information'),
-      div({ style: { display: 'flex' } }, [
-        makeField({ title: 'First name', key: 'firstName' }),
-        div({ style: { width: '1rem' } }),
-        makeField({ title: 'Last name', key: 'lastName' })
-      ]),
-      makeField({ title: 'Email address', key: 'email' })
-    ])
-  }, {
     errors: validate(account, { paymentType: required }),
     render: () => h(Fragment, [
       makePageHeader('Click to choose a payment method'),
-      div({ style: { display: 'flex', justifyContent: 'center', marginTop: '1.5rem' } }, [
+      div({ style: { fontSize: 12, marginTop: '-0.5rem' } }, [
+        'Onix is the vendor we work with to help you set up a billing account with your funding source.'
+      ]),
+      div({ style: { display: 'flex', justifyContent: 'center', marginTop: '2rem' } }, [
         makePaymentCard({
           label: 'Credit Card',
           iconName: 'creditCard',
@@ -167,21 +161,35 @@ export default ({ onDismiss }) => {
           text: 'You will provide more information for a quote. Onix will contact you to complete the process and set up a Google Billing Account.',
           paymentType: 'PO'
         })
-      ]),
-      div({ style: { fontSize: 12, marginTop: '3rem' } }, [
-        'Onix is the vendor we work with to help set up your billing account.'
       ])
     ])
   }, {
     errors: validate(account, {
-      name: required,
+      firstName: required,
+      lastName: required,
+      email: { email: true, ...required },
+      ...(usingCC ? { phone: required } : {})
+    }),
+    render: () => h(Fragment, [
+      makePageHeader('Account owner information'),
+      div({ style: { display: 'flex' } }, [
+        makeField({ title: 'First name', key: 'firstName' }),
+        div({ style: { width: '1rem' } }),
+        makeField({ title: 'Last name', key: 'lastName' })
+      ]),
+      makeField({ title: 'Email address', key: 'email' }),
+      usingCC && makeField({ title: 'Phone number', key: 'phone' })
+    ])
+  }, {
+    errors: validate(account, {
+      name: { length: { maximum: 60 }, ...required },
       budget: required
     }),
     render: () => h(Fragment, [
       makePageHeader('Account information'),
       makeField({ title: 'New billing account name', key: 'name' }),
       label([
-        div({ style: { fontSize: 14, fontWeight: 500, margin: '1rem 0 0.5rem' } }, ['Account maximum budget']),
+        div({ style: { fontSize: 14, fontWeight: 500, margin: '1rem 0 0.5rem' } }, ['Desired maximum budget']),
         div({ style: { display: 'flex', alignItems: 'center' } }, [
           div({ style: { marginRight: '0.5rem' } }, ['$']),
           div({ style: { flexGrow: 1 } }, [
@@ -258,11 +266,11 @@ export default ({ onDismiss }) => {
       makePageHeader('Account owner information'),
       makeReviewField('Account Owner Name', `${account.firstName} ${account.lastName}`),
       makeReviewField('Email', account.email),
-      div({ style: { borderTop: `1px solid ${colors.gray[0]}`, marginTop: '1rem' } }),
+      div({ style: { borderTop: `1px solid ${colors.gray[5]}`, marginTop: '1rem' } }),
       makePageHeader('Account information'),
       makeReviewField('Billing Account Name', account.name),
-      makeReviewField('Amount Requested', `$${account.budget}`),
-      div({ style: { borderTop: `1px solid ${colors.gray[0]}`, marginTop: '1rem' } }),
+      makeReviewField('Desired Budget', `$${account.budget}`),
+      div({ style: { borderTop: `1px solid ${colors.gray[5]}`, marginTop: '1rem' } }),
       div({ style: { display: 'flex' } }, [
         div({ style: { flexBasis: '55%', marginRight: '1rem' } }, [
           makePageHeader('Your organization\'s billing information'),
@@ -290,42 +298,42 @@ export default ({ onDismiss }) => {
    */
   const onFirstPage = page === 0
   const onLastPage = page === pages.length - 1
+  const CCdone = usingCC && !onFirstPage
 
   return h(Modal, {
     title: 'New Billing Account',
     onDismiss,
     shouldCloseOnOverlayClick: false,
     showButtons: false,
-    showX: true,
     width: 800,
-    titleExtras: h(Fragment, [
+    titleExtras: !!account.paymentType && h(Fragment, [
       onLastPage && div({
         style: { position: 'absolute', top: 60, color: colors.orange[0], fontStyle: 'italic', fontWeight: 600 }
       }, ['Please review your order']),
       div({ style: { flexGrow: 1 } }),
-      makeStepIndicator(0, 'Account owner'),
-      makeStepIndicator(1, 'Payment method'),
-      makeStepIndicator(2, 'Account information'),
-      makeStepIndicator(3, 'Billing information'),
-      makeStepIndicator(4, 'Review')
+      makeStepIndicator(0, 'Payment method'),
+      makeStepIndicator(1, 'Account owner'),
+      usingPO && h(Fragment, [
+        makeStepIndicator(2, 'Account information'),
+        makeStepIndicator(3, 'Billing information'),
+        makeStepIndicator(4, 'Review')
+      ])
     ])
   }, [
-    div({ style: { margin: '0 -1.25rem', borderTop: `1px solid ${colors.gray[0]}` } }),
+    div({ style: { margin: '0 -1.25rem', borderTop: `1px solid ${colors.gray[5]}` } }),
     div({ style: { minHeight: 400, overflow: 'auto' } }, [pages[page].render()]),
     div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '2rem' } }, [
-      h(buttonSecondary, { onClick: !onFirstPage ? () => setPage(page - 1) : () => onDismiss() }, [
-        Utils.cond(
-          [onFirstPage, () => 'Cancel'],
-          [onLastPage, () => 'Make Changes'],
-          () => 'Back'
-        )
-      ]),
-      h(buttonPrimary, {
-        style: { marginLeft: '2rem' },
-        onClick: onLastPage ? () => console.log(account) : () => setPage(page + 1),
-        disabled: !_.isEmpty(pages[page].errors),
-        tooltip: !_.isEmpty(pages[page].errors) && 'All fields are required'
-      }, [onLastPage ? 'Submit' : 'Next'])
+      h(buttonSecondary, { onClick: () => onDismiss() }, ['Cancel']),
+      div({ style: { flexGrow: 1 } }),
+      (!onFirstPage || !!account.paymentType) && h(Fragment, [
+        h(buttonSecondary, { onClick: () => setPage(page - 1), disabled: onFirstPage }, ['Back']),
+        h(buttonPrimary, {
+          style: { marginLeft: '2rem' },
+          onClick: (onLastPage || CCdone) ? () => console.log(account) : () => setPage(page + 1),
+          disabled: !_.isEmpty(pages[page].errors),
+          tooltip: !_.isEmpty(pages[page].errors) && 'All fields are required'
+        }, [(onLastPage || CCdone) ? 'Submit' : 'Next'])
+      ])
     ])
   ])
 }
