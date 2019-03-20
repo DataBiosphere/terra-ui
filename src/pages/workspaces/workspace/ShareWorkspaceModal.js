@@ -32,15 +32,7 @@ const styles = {
     ...base,
     width: 200,
     marginTop: '0.25rem'
-  }),
-  suggestionContainer: {
-    display: 'flex', alignItems: 'center',
-    padding: '0.5rem 1rem',
-    borderBottom: `1px solid ${colors.gray[4]}`
-  },
-  suggestion: {
-    flex: 1
-  }
+  })
 }
 
 
@@ -52,7 +44,8 @@ export default ajaxCaller(class ShareWorkspaceModal extends Component {
       originalAcl: [],
       acl: [],
       loaded: false,
-      searchValue: ''
+      searchValue: '',
+      accessLevel: 'READER'
     }
   }
 
@@ -66,12 +59,6 @@ export default ajaxCaller(class ShareWorkspaceModal extends Component {
       _.concat(shareSuggestions),
       _.uniq
     )(groups)
-
-    const noAddUser = Utils.cond(
-      [!accessLevel && searchValueInvalid, () => 'Required information is missing or invalid'],
-      [!accessLevel, () => 'Please select a role'],
-      [searchValueInvalid, () => 'Not a valid email address'],
-    )
 
     return h(Modal, {
       title: 'Share Workspace',
@@ -98,8 +85,8 @@ export default ajaxCaller(class ShareWorkspaceModal extends Component {
       }),
       h(buttonPrimary, {
         onClick: () => this.addAcl(searchValue),
-        disabled: !!noAddUser,
-        tooltip: !!noAddUser && noAddUser
+        disabled: searchValueInvalid,
+        tooltip: searchValueInvalid && 'Not a valid email address'
       }, ['Add User'])]),
       div({ style: styles.currentCollaboratorsArea }, [
         div({ style: Style.elements.sectionHeader }, ['Current Collaborators']),
