@@ -478,6 +478,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
     const currentCluster = this.getCurrentCluster()
     const currentStatus = currentCluster && currentCluster.status
     const running = currentStatus === 'Running'
+    const isErrored = currentStatus === 'Error'
     const renderIcon = () => {
       switch (currentStatus) {
         case 'Stopped':
@@ -498,15 +499,13 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
         case 'Stopping':
         case 'Creating':
           return h(ClusterIcon, { shape: 'sync', disabled: true })
-        case undefined:
+        default:
           return h(ClusterIcon, {
             shape: 'play',
             onClick: () => this.createDefaultCluster(),
             disabled: busy || !canCompute,
             tooltip: canCompute ? 'Create cluster' : noCompute
           })
-        default:
-          return h(ClusterIcon, { shape: 'ban', disabled: true })
       }
     }
     const totalCost = _.sum(_.map(({ machineConfig, status }) => {
@@ -557,8 +556,8 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
           }, [
             div({ style: { fontSize: 12, fontWeight: 'bold' } }, 'Notebook Runtime'),
             div({ style: { fontSize: 10 } }, [
-              span({ style: { textTransform: 'uppercase', fontWeight: 500 } }, currentStatus || 'None'),
-              ` (${Utils.formatUSD(totalCost)} hr)`
+              span({ style: { textTransform: 'uppercase', fontWeight: 500 } }, isErrored ? 'None' : currentStatus || 'None'),
+              isErrored ? ' ($0.00 hr)': ` (${Utils.formatUSD(totalCost)} hr)`
             ])
           ]),
           icon('cog', { size: 22, className: 'is-solid', style: { color: isDisabled ? colors.gray[2] : colors.green[0] } })
