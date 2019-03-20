@@ -478,7 +478,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
     const currentCluster = this.getCurrentCluster()
     const currentStatus = currentCluster && currentCluster.status
     const running = currentStatus === 'Running'
-    const isErrored = currentStatus === 'Error'
+    const spendingClusters = _.remove({ status: 'Deleting' }, _.remove({ status: 'Error' }, clusters))
     const renderIcon = () => {
       switch (currentStatus) {
         case 'Stopped':
@@ -508,9 +508,9 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
           })
       }
     }
-    const totalCost = isErrored ? 0 : _.sum(_.map(({ machineConfig, status }) => {
+    const totalCost = _.sum(_.map(({ machineConfig, status }) => {
       return (status === 'Stopped' ? machineStorageCost : machineConfigCost)(machineConfig)
-    }, clusters))
+    }, spendingClusters))
     const activeClusters = this.getActiveClustersOldestFirst()
     const creating = _.some({ status: 'Creating' }, activeClusters)
     const multiple = !creating && activeClusters.length > 1
@@ -531,7 +531,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
       h(ClusterIcon, {
         shape: 'trash',
         onClick: () => this.setState({ deleting: true }),
-        disabled: busy || !canCompute || !_.includes(currentStatus, ['Stopped', 'Running']),
+        disabled: busy || !canCompute || !_.includes(currentStatus, ['Stopped', 'Running', 'Error']),
         tooltip: 'Delete cluster',
         style: { marginLeft: '0.5rem' }
       }),
@@ -557,7 +557,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
           }, [
             div({ style: { fontSize: 12, fontWeight: 'bold' } }, 'Notebook Runtime'),
             div({ style: { fontSize: 10 } }, [
-              span({ style: { textTransform: 'uppercase', fontWeight: 500 } }, isErrored ? 'None' : currentStatus || 'None'),
+              span({ style: { textTransform: 'uppercase', fontWeight: 500 } }, currentStatus || 'None'),
               ` (${Utils.formatUSD(totalCost)} hr)`
             ])
           ]),
