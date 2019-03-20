@@ -7,7 +7,7 @@ import { validatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { ajaxCaller } from 'src/libs/ajax'
 import { reportError } from 'src/libs/error'
-import * as Forms from 'src/libs/forms'
+import { RequiredFormLabel } from 'src/libs/forms'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 import validate from 'validate.js'
@@ -108,7 +108,7 @@ export const NotebookCreator = ajaxCaller(class NotebookCreator extends Componen
         }
       }, 'Create Notebook')
     }, [
-      Forms.requiredFormLabel('Name'),
+      h(RequiredFormLabel, ['Name']),
       notebookNameInput({
         error: Utils.summarizeErrors(nameTouched && errors && errors.notebookName),
         inputProps: {
@@ -116,7 +116,7 @@ export const NotebookCreator = ajaxCaller(class NotebookCreator extends Componen
           onChange: e => this.setState({ notebookName: e.target.value, nameTouched: true })
         }
       }),
-      Forms.requiredFormLabel('Language'),
+      h(RequiredFormLabel, ['Language']),
       h(Select, {
         isSearchable: false,
         placeholder: 'Select a language',
@@ -182,7 +182,7 @@ export const NotebookDuplicator = ajaxCaller(class NotebookDuplicator extends Co
     Utils.cond(
       [processing, () => [centeredSpinner()]],
       () => [
-        Forms.requiredFormLabel('New Name'),
+        h(RequiredFormLabel, ['New Name']),
         notebookNameInput({
           error: Utils.summarizeErrors(nameTouched && errors && errors.newName),
           inputProps: {

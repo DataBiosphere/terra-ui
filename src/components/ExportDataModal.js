@@ -10,7 +10,7 @@ import { withWorkspaces, WorkspaceSelector } from 'src/components/workspace-util
 import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
-import { formLabel, requiredFormLabel } from 'src/libs/forms'
+import { FormLabel, RequiredFormLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -99,7 +99,7 @@ export default _.flow(
           'Copying the following data could cause failures if a workflow is using this data.'
       }),
       !((hardConflicts.length !== 0) || moreToDelete || (softConflicts.length !== 0)) && h(Fragment, [
-        requiredFormLabel('Destination'),
+        h(RequiredFormLabel, ['Destination']),
         h(WorkspaceSelector, {
           workspaces: _.filter(Utils.isValidWsExportTarget(workspace), workspaces),
           value: selectedWorkspaceId,
@@ -118,7 +118,7 @@ export default _.flow(
         infoStyle: warningStyle, iconName: 'warning-standard',
         content: 'The following data is linked to entries which already exist in the selected workspace. You may re-link the following data to the existing entries by clicking COPY.'
       }),
-      formLabel('Entries selected'),
+      h(FormLabel, ['Entries selected']),
       ...Utils.cond(
         [moreToDelete, () => this.displayEntities(additionalDeletions, runningSubmissionsCount, true)],
         [(hardConflicts.length !== 0), () => this.displayEntities(hardConflicts, runningSubmissionsCount, true)],
