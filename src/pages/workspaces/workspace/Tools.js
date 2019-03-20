@@ -23,6 +23,7 @@ import { dockstoreTile, fcMethodRepoTile, makeToolCard } from 'src/pages/library
 import DeleteToolModal from 'src/pages/workspaces/workspace/tools/DeleteToolModal'
 import ExportToolModal from 'src/pages/workspaces/workspace/tools/ExportToolModal'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
+import TooltipTrigger from 'src/components/TooltipTrigger'
 
 
 const styles = {
@@ -77,13 +78,16 @@ const styles = {
   }
 }
 
-const ToolCard = pure(({ listView, name, namespace, config, onCopy, onDelete }) => {
+const ToolCard = pure(({ listView, name, namespace, config, onCopy, onDelete, isRedacted }) => {
   const { namespace: workflowNamespace, name: workflowName, methodRepoMethod: { sourceRepo, methodVersion } } = config
   const toolCardMenu = h(PopupTrigger, {
     closeOnClick: true,
     content: h(Fragment, [
       h(MenuButton, {
-        onClick: () => onCopy()
+        onClick: () => onCopy(),
+        disabled: isRedacted,
+        tooltip: isRedacted ? 'This method is redacted' : undefined,
+        tooltipSide: 'left'
       }, [menuIcon('copy'), 'Copy to Another Workspace']),
       h(MenuButton, {
         onClick: () => onDelete()
@@ -107,6 +111,7 @@ const ToolCard = pure(({ listView, name, namespace, config, onCopy, onDelete }) 
     href: methodLink(config),
     style: styles.innerLink,
     target: '_blank',
+    disabled: isRedacted,
     onClick: e => e.stopPropagation()
   }, sourceRepo === 'agora' ? 'FireCloud' : sourceRepo)
 
@@ -115,22 +120,35 @@ const ToolCard = pure(({ listView, name, namespace, config, onCopy, onDelete }) 
     style: styles.outerLink
   })
 
+  const redactedWarning = h(TooltipTrigger, {
+    content: 'Tool has been removed. You cannot view or run an analysis with this tool.'
+  }, [icon('ban', { size: 20, style: { color: colors.orange[0], marginLeft: '.3rem', ...styles.innerLink } })])
+
   return listView ?
     div({ style: { ...styles.card, ...styles.longCard } }, [
-      workflowLink,
+      isRedacted ? undefined: workflowLink,
       div({ style: { ...styles.innerContent, display: 'flex', alignItems: 'center' } }, [
         div({ style: { marginRight: '1rem' } }, [toolCardMenu]),
-        div({ style: styles.longTitle }, [workflowName]),
-        div({ style: styles.longMethodVersion }, [`V. ${methodVersion}`]),
+        div({ style: { ...styles.longTitle, ...(isRedacted ? { color: colors.gray[0] } : {}) } }, [workflowName]),
+        div({ style: { ...styles.longMethodVersion, display: 'flex', alignItems: 'center' } }, [
+          `V. ${methodVersion}`,
+          isRedacted && redactedWarning
+        ]),
         div({ style: { flex: 'none', width: 130 } }, ['Source: ', repoLink])
       ])
     ]) :
     div({ style: { ...styles.card, ...styles.shortCard } }, [
-      workflowLink,
+      !isRedacted && workflowLink,
       div({ style: { ...styles.innerContent, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%' } }, [
-        div({ style: styles.shortTitle }, [workflowName]),
+        div({ style: { ...styles.shortTitle, ...(isRedacted ? { color: colors.gray[0] } : {}) } }, [workflowName]),
         div({ style: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' } }, [
-          div([div([`V. ${methodVersion}`]), 'Source: ', repoLink]), toolCardMenu
+          div([
+            div({ style: { display: 'flex', alignItems: 'center' } }, [
+              `V. ${methodVersion}`,
+              isRedacted && redactedWarning
+            ]),
+            'Source: ', repoLink
+          ]), toolCardMenu
         ])
       ])
     ])
@@ -251,12 +269,15 @@ export const Tools = _.flow(
   }
 
   async refresh() {
-    const { namespace, name, ajax: { Workspaces } } = this.props
+    const { namespace, name, ajax: { Workspaces, Methods } } = this.props
 
     try {
       this.setState({ loading: true })
-      const configs = await Workspaces.workspace(namespace, name).listMethodConfigs()
-      this.setState({ configs })
+      const [configs, methods] = await Promise.all([
+        Workspaces.workspace(namespace, name).listMethodConfigs(),
+        Methods.list()
+      ])
+      this.setState({ configs, methods })
     } catch (error) {
       reportError('Error loading configs', error)
     } finally {
@@ -269,15 +290,21 @@ export const Tools = _.flow(
     return _.find({ namespace, name }, configs)
   }
 
+  computeRedacted(config) {
+    const { methods } = this.state
+    const { methodName, methodNamespace, methodVersion, sourceRepo } = config.methodRepoMethod
+    return (sourceRepo === 'agora') ? !_.some({ name: methodName, namespace: methodNamespace, snapshotId: methodVersion }, methods) : false
+  }
+
   render() {
     const { namespace, name, listView, viewToggleButtons, workspace: { workspace } } = this.props
     const { loading, configs, copyingTool, deletingTool, findingTool } = this.state
-
     const tools = _.map(config => {
+      const isRedacted = this.computeRedacted(config)
       return h(ToolCard, {
         onCopy: () => this.setState({ copyingTool: { namespace: config.namespace, name: config.name } }),
         onDelete: () => this.setState({ deletingTool: { namespace: config.namespace, name: config.name } }),
-        key: `${config.namespace}/${config.name}`, namespace, name, config, listView
+        key: `${config.namespace}/${config.name}`, namespace, name, config, listView, isRedacted
       })
     }, configs)
 
