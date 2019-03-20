@@ -508,13 +508,14 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
           })
       }
     }
-    const totalCost = _.sum(_.map(({ machineConfig, status }) => {
+    const totalCost = isErrored ? 0 : _.sum(_.map(({ machineConfig, status }) => {
       return (status === 'Stopped' ? machineStorageCost : machineConfigCost)(machineConfig)
     }, clusters))
     const activeClusters = this.getActiveClustersOldestFirst()
     const creating = _.some({ status: 'Creating' }, activeClusters)
     const multiple = !creating && activeClusters.length > 1
     const isDisabled = !canCompute || creating || multiple || busy
+
     return div({ style: styles.container }, [
       h(MiniLink, {
         href: Nav.getLink('workspace-terminal-launch', { namespace, name }),
@@ -557,7 +558,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
             div({ style: { fontSize: 12, fontWeight: 'bold' } }, 'Notebook Runtime'),
             div({ style: { fontSize: 10 } }, [
               span({ style: { textTransform: 'uppercase', fontWeight: 500 } }, isErrored ? 'None' : currentStatus || 'None'),
-              isErrored ? ' ($0.00 hr)': ` (${Utils.formatUSD(totalCost)} hr)`
+              ` (${Utils.formatUSD(totalCost)} hr)`
             ])
           ]),
           icon('cog', { size: 22, className: 'is-solid', style: { color: isDisabled ? colors.gray[2] : colors.green[0] } })
