@@ -478,7 +478,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
     const currentCluster = this.getCurrentCluster()
     const currentStatus = currentCluster && currentCluster.status
     const running = currentStatus === 'Running'
-    const spendingClusters = _.remove({ status: 'Deleting' }, _.remove({ status: 'Error' }, clusters))
+    const spendingClusters = _.remove(({ status }) => _.includes(status, ['Deleting', 'Error']), clusters)
     const renderIcon = () => {
       switch (currentStatus) {
         case 'Stopped':
