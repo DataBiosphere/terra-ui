@@ -9,7 +9,7 @@ import { ajaxCaller } from 'src/libs/ajax'
 import { getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
-import * as Forms from 'src/libs/forms'
+import { FormLabel } from 'src/libs/forms'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import validate from 'validate.js'
@@ -66,7 +66,7 @@ export default ajaxCaller(class ShareWorkspaceModal extends Component {
       okButton: buttonPrimary({ onClick: () => this.save() }, ['Save']),
       onDismiss
     }, [
-      Forms.formLabel('User email'),
+      h(FormLabel, ['User email']),
       h(AutocompleteTextInput, {
         placeholder: 'Add people or groups',
         value: searchValue,
@@ -74,7 +74,7 @@ export default ajaxCaller(class ShareWorkspaceModal extends Component {
         suggestions: _.difference(suggestions, _.map('email', acl)),
         style: { fontSize: 16 }
       }),
-      Forms.formLabel('Role'),
+      h(FormLabel, ['Role']),
       div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between' } }, [h(Select, {
         styles: { container: styles.roleSelect },
         isSearchable: false,
