@@ -21,6 +21,28 @@ export const reloadAuthToken = () => {
   return getAuthInstance().currentUser.get().reloadAuthResponse().then(() => true, () => false)
 }
 
+export const hasBillingScope = () => {
+  return getAuthInstance().currentUser.get().hasGrantedScopes('https://www.googleapis.com/auth/cloud-billing')
+}
+
+/*
+ * Request Google Cloud Billing scope if necessary, then do the thing.
+ *
+ * NOTE: Requesting additional scopes may invoke a browser pop-up which the browser might block.
+ * If you use withBillingScope during page load and the pop-up is blocked, onFailure will be called.
+ * In this case, you'll need to provide something for the user to deliberately click on and retry
+ * withBillingScope in reaction to the click.
+ */
+export const withBillingScope = (f, onFailure) => {
+  if (hasBillingScope()) {
+    f()
+  } else {
+    const options = new window.gapi.auth2.SigninOptionsBuilder({ 'scope': 'https://www.googleapis.com/auth/cloud-billing' })
+    // Wait 100ms before doing the thing to avoid errors due to delays in applying the new scope grant
+    getAuthInstance().currentUser.get().grant(options).then(() => setTimeout(f, 100), onFailure)
+  }
+}
+
 export const authStore = Utils.atom({
   isSignedIn: undefined,
   registrationStatus: undefined,

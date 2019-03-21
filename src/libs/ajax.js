@@ -3,8 +3,9 @@ import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { h } from 'react-hyperscript-helpers'
 import { version } from 'src/data/clusters'
-import { getUser } from 'src/libs/auth'
+import { getUser, hasBillingScope } from 'src/libs/auth'
 import { getConfig } from 'src/libs/config'
+import { reportError } from 'src/libs/error'
 import * as Utils from 'src/libs/utils'
 
 
@@ -80,6 +81,8 @@ const fetchSam = async (path, options) => {
 
 const fetchBuckets = (path, options) => fetchOk(`https://www.googleapis.com/${path}`, options)
 const nbName = name => encodeURIComponent(`notebooks/${name}.ipynb`)
+
+const fetchGoogleBilling = (path, options) => fetchOk(`https://cloudbilling.googleapis.com/v1/${path}`, options)
 
 const fetchRawls = async (path, options) => {
   return fetchOk(`${getConfig().rawlsUrlRoot}/api/${path}`, addAppIdentifier(options))
@@ -666,6 +669,39 @@ const Buckets = signal => ({
 })
 
 
+const GoogleBilling = signal => ({
+  listAccounts: async () => {
+    if (!hasBillingScope()) {
+      reportError('Terra does not have access to query your Google Cloud Billing information')
+    }
+    const response = await fetchGoogleBilling('billingAccounts', _.merge(authOpts(), { signal }))
+    const result = await response.json()
+    return result.billingAccounts
+  },
+
+  listProjectsWithAccounts: async billingAccountNames => {
+    return _.fromPairs(
+      _.compact(
+        await Promise.all(
+          _.map(
+            async name => fetchGoogleBilling(`${name}/projects`, _.merge(authOpts(), { signal })).then(
+              response => response.json().then(
+                json => [name, _.map(
+                  info => _.get('projectId', info),
+                  _.getOr([], 'projectBillingInfo', json)
+                )]
+              ),
+              () => undefined
+            ),
+            billingAccountNames
+          )
+        )
+      )
+    )
+  }
+})
+
+
 const Methods = signal => ({
   list: async params => {
     const res = await fetchAgora(`methods?${qs.stringify(params)}`, _.merge(authOpts(), { signal }))
@@ -806,6 +842,7 @@ export const Ajax = signal => {
     Billing: Billing(signal),
     Workspaces: Workspaces(signal),
     Buckets: Buckets(signal),
+    GoogleBilling: GoogleBilling(signal),
     Methods: Methods(signal),
     Jupyter: Jupyter(signal),
     Dockstore: Dockstore(signal),
