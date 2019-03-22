@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import * as md5 from 'md5'
 import { clearNotification, sessionTimeoutProps } from 'src/components/Notifications'
 import ProdWhitelist from 'src/data/prod-whitelist'
-import { Ajax } from 'src/libs/ajax'
+import { Ajax, fetchOk } from 'src/libs/ajax'
 import { getConfig } from 'src/libs/config'
 import { reportError } from 'src/libs/error'
 import * as Utils from 'src/libs/utils'
@@ -105,12 +105,18 @@ authStore.subscribe(async (state, oldState) => {
           ['@broadinstitute.org', '@google.com', '@channing.harvard.edu', '@duke.corp-partner.google.com', '@stanford.corp-partner.google.com'])
 
         if (getConfig().isProd && !isTrustedEmail && !ProdWhitelist.includes(md5(state.user.email))) {
-          const tideWhitelist = await Ajax()
-            .Buckets
-            .getObjectPreview('terra-tide-prod-data', 'whitelistEmails', undefined, true)
-            .then(res => res.json())
-
-          if (!tideWhitelist.includes(md5(state.user.email))) return 'unlisted'
+          try {
+            const tideWhitelist = await fetchOk(
+              `https://www.googleapis.com/storage/v1/b/terra-tide-prod-data/o/${encodeURIComponent('whitelistEmails')}?alt=media`)
+              .then(res => res.json())
+            if (!tideWhitelist.includes(md5(state.user.email))) {
+              return 'unlisted'
+            } else {
+              return 'unregistered'
+            }
+          } catch (error) {
+            reportError('Error checking whitelist status', error)
+          }
         } else {
           return 'unregistered'
         }

@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { h } from 'react-hyperscript-helpers'
@@ -5,7 +6,6 @@ import { version } from 'src/data/clusters'
 import { getUser } from 'src/libs/auth'
 import { getConfig } from 'src/libs/config'
 import * as Utils from 'src/libs/utils'
-import { Component } from 'src/libs/wrapped-components'
 
 
 let mockResponse
@@ -45,7 +45,7 @@ const authOpts = (token = getUser().token) => ({ headers: { Authorization: `Bear
 const jsonBody = body => ({ body: JSON.stringify(body), headers: { 'Content-Type': 'application/json' } })
 const appIdentifier = { headers: { 'X-App-ID': 'Saturn' } }
 const addAppIdentifier = _.merge(appIdentifier)
-const tosData = { appid: 'Saturn', tosversion: 3 }
+const tosData = { appid: 'Saturn', tosversion: 4 }
 
 const instrumentedFetch = (url, options) => {
   if (noConnection) {
@@ -68,7 +68,7 @@ const instrumentedFetch = (url, options) => {
 }
 
 
-const fetchOk = async (url, options) => {
+export const fetchOk = async (url, options) => {
   const res = await instrumentedFetch(url, options)
   return res.ok ? res : Promise.reject(res)
 }
@@ -685,6 +685,31 @@ const Methods = signal => ({
       get: async () => {
         const res = await fetchAgora(root, _.merge(authOpts(), { signal }))
         return res.json()
+      },
+
+      configs: async () => {
+        const res = await fetchAgora(`${root}/configurations`, _.merge(authOpts(), { signal }))
+        return res.json()
+      },
+
+      toWorkspace: async (workspace, config = {}) => {
+        const res = await fetchRawls(`workspaces/${workspace.namespace}/${workspace.name}/methodconfigs`,
+          _.mergeAll([authOpts(), jsonBody(_.merge({
+            methodRepoMethod: {
+              methodUri: `agora://${namespace}/${name}/${snapshotId}`
+            },
+            name,
+            namespace,
+            rootEntityType: '',
+            prerequisites: {},
+            inputs: {},
+            outputs: {},
+            methodConfigVersion: 1,
+            deleted: false
+          },
+          config.payloadObject
+          )), { signal, method: 'POST' }]))
+        return res.json()
       }
     }
   }
@@ -714,7 +739,8 @@ const Jupyter = signal => ({
             labExtensions: {},
             serverExtensions: {},
             combinedExtensions: {}
-          }
+          },
+          scopes: ['https://www.googleapis.com/auth/cloud-platform', 'https://www.googleapis.com/auth/userinfo.email', 'https://www.googleapis.com/auth/userinfo.profile']
         })
         return fetchLeo(`api/cluster/v2/${project}/${name}`, _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'PUT' }, appIdentifier]))
       },
@@ -773,9 +799,7 @@ const Martha = signal => ({
 })
 
 
-export const Ajax = controller => {
-  const signal = controller && controller.signal
-
+export const Ajax = signal => {
   return {
     User: User(signal),
     Groups: Groups(signal),
@@ -789,28 +813,22 @@ export const Ajax = controller => {
   }
 }
 
+export const useCancellation = () => {
+  const controller = useRef()
+  useEffect(() => {
+    return () => controller.current.abort()
+  }, [])
+  if (!controller.current) {
+    controller.current = new window.AbortController()
+  }
+  return controller.current.signal
+}
 
 export const ajaxCaller = WrappedComponent => {
-  class Wrapper extends Component {
-    constructor(props) {
-      super(props)
-      this.controller = new window.AbortController()
-      this.ajax = Ajax(this.controller)
-    }
-
-    static displayName = 'ajaxCaller()'
-
-    render() {
-      return h(WrappedComponent, {
-        ...this.props,
-        ajax: this.ajax
-      })
-    }
-
-    componentWillUnmount() {
-      this.controller.abort()
-    }
+  const Wrapper = props => {
+    const signal = useCancellation()
+    return h(WrappedComponent, { ...props, ajax: Ajax(signal) })
   }
-
+  Wrapper.displayName = 'ajaxCaller()'
   return Wrapper
 }

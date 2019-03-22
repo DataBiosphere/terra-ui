@@ -1,10 +1,11 @@
-import { div } from 'react-hyperscript-helpers'
+import { div, label } from 'react-hyperscript-helpers'
 import * as Style from 'src/libs/style'
 
 
 const styles = {
   formLabel: {
     ...Style.elements.sectionHeader,
+    display: 'block',
     margin: '1rem 0 0.25rem'
   },
   formHint: {
@@ -14,19 +15,13 @@ const styles = {
 }
 
 
-export const formLabel = (text, ...extras) => {
-  return div({ style: styles.formLabel }, [
-    text,
-    ...extras
-  ])
+export const FormLabel = ({ style = {}, children, ...props }) => {
+  return label({ ...props, style: { ...styles.formLabel, ...style } }, [children])
 }
 
 
-export const requiredFormLabel = (text, ...extras) => {
-  return div({ style: styles.formLabel }, [
-    `${text} *`,
-    ...extras
-  ])
+export const RequiredFormLabel = ({ style = {}, children, ...props }) => {
+  return label({ ...props, style: { ...styles.formLabel, ...style } }, [children, ' *'])
 }
 
 

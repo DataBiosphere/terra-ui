@@ -5,7 +5,7 @@ import { validatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { withWorkspaces, WorkspaceSelector } from 'src/components/workspace-utils'
 import { ajaxCaller } from 'src/libs/ajax'
-import { requiredFormLabel } from 'src/libs/forms'
+import { RequiredFormLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
@@ -64,7 +64,7 @@ export default _.flow(
         onClick: () => this.export()
       }, ['Copy'])
     }, [
-      requiredFormLabel('Destination'),
+      h(RequiredFormLabel, ['Destination']),
       h(WorkspaceSelector, {
         workspaces: _.filter(({ workspace: { workspaceId }, accessLevel }) => {
           return thisWorkspace.workspaceId !== workspaceId && Utils.canWrite(accessLevel)
@@ -72,7 +72,7 @@ export default _.flow(
         value: selectedWorkspaceId,
         onChange: v => this.setState({ selectedWorkspaceId: v })
       }),
-      requiredFormLabel('Name'),
+      h(RequiredFormLabel, ['Name']),
       validatedInput({
         error: Utils.summarizeErrors(errors && errors.toolName),
         inputProps: {

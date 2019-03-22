@@ -367,7 +367,7 @@ const WorkflowView = _.flow(
     // modifiedConfig: active data, potentially unsaved
     const {
       isFreshData, savedConfig, launching, activeTab,
-      entitySelectionModel, variableSelected, modifiedConfig
+      entitySelectionModel, variableSelected, modifiedConfig, isRedacted
     } = this.state
     const { namespace, name, workspace } = this.props
     const workspaceId = { namespace, name }
@@ -396,6 +396,11 @@ const WorkflowView = _.flow(
           }
         })
       ]),
+      isRedacted && h(Modal, {
+        showCancel: false,
+        title: 'Tool Removed',
+        onDismiss: () => Nav.goToPath('workspace-tools', { namespace, name })
+      }, [div('This tool has been removed. You cannot view or run an analysis with this tool. Press OK to return to your list of tools.')]),
       !isFreshData && spinnerOverlay
     ])
   }
@@ -414,13 +419,13 @@ const WorkflowView = _.flow(
         ws.entityMetadata(),
         ws.methodConfig(workflowNamespace, workflowName).validate()
       ])
-
       const { methodConfiguration: config } = validationResponse
       const inputsOutputs = await Methods.configInputsOutputs(config)
       this.setState({
-        isFreshData: true, savedConfig: config, modifiedConfig: config,
+        savedConfig: config, modifiedConfig: config,
         entityMetadata, inputsOutputs: _.update('inputs', _.sortBy('optional'), inputsOutputs),
         errors: augmentErrors(validationResponse),
+        isRedacted: false,
         entitySelectionModel: this.resetSelectionModel(config.rootEntityType),
         workspaceAttributes: _.flow(
           _.without(['description']),
@@ -430,7 +435,15 @@ const WorkflowView = _.flow(
       this.updateSingleOrMultipleRadioState(config)
       this.fetchInfo(config)
     } catch (error) {
-      reportError('Error loading data', error)
+      switch (error.status) {
+        case 404:
+          this.setState({ isRedacted: true })
+          break
+        default:
+          reportError('Error loading data', error)
+      }
+    } finally {
+      this.setState({ isFreshData: true })
     }
   }
 
@@ -490,8 +503,8 @@ const WorkflowView = _.flow(
     const noLaunchReason = Utils.cond(
       [saving || modified, () => 'Save or cancel to Launch Analysis'],
       [!_.isEmpty(errors.inputs) || !_.isEmpty(errors.outputs), () => 'At least one required attribute is missing or invalid'],
-      [!entityMetadata[rootEntityType], () => `There are no ${selectedEntityType}s in this workspace.`],
-      [entitySelectionModel.type === EntitySelectionType.chooseSet && !entitySelectionModel.selectedEntities.name, () => 'Select a set']
+      [this.isMultiple() && !entityMetadata[rootEntityType], () => `There are no ${selectedEntityType}s in this workspace.`],
+      [this.isMultiple() && entitySelectionModel.type === EntitySelectionType.chooseSet && !entitySelectionModel.selectedEntities.name, () => 'Select a set']
     )
 
     const inputsValid = _.isEmpty(errors.inputs)

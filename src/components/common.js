@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import marked from 'marked'
-import { Fragment } from 'react'
+import { Fragment, useState } from 'react'
 import { div, h, input, label, span } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
 import RSelect from 'react-select'
@@ -77,6 +77,17 @@ export const buttonSecondary = ({ disabled, ...props }, children) => {
       cursor: disabled ? 'not-allowed' : 'pointer'
     },
     hover: disabled ? undefined : { color: colors.green[1] }
+  }, props), children)
+}
+
+export const buttonOutline = ({ disabled, ...props }, children) => {
+  return h(buttonPrimary, _.merge({
+    style: {
+      border: `1px solid ${disabled ? colors.gray[4] : colors.green[0]}`,
+      color: colors.green[0],
+      backgroundColor: disabled ? colors.gray[5] : 'white'
+    },
+    hover: disabled ? undefined : { backgroundColor: colors.green[6] }
   }, props), children)
 }
 
@@ -220,12 +231,13 @@ export const comingSoon = span({
  * @param props.value - a member of options
  * @param {Array} props.options - can be of any type; if objects, they should each contain a value and label, unless defining getOptionLabel
  */
-export const Select = ({ value, options, ...props }) => {
+export const Select = ({ value, options, id, ...props }) => {
   const newOptions = options && !_.isObject(options[0]) ? _.map(value => ({ value }), options) : options
   const findValue = target => _.find({ value: target }, newOptions)
   const newValue = props.isMulti ? _.map(findValue, value) : findValue(value)
 
   return h(RSelect, _.merge({
+    inputId: id,
     theme: base => _.merge(base, {
       colors: {
         primary: colors.green[0],
@@ -289,5 +301,10 @@ export const Markdown = ({ children, renderers = {}, ...props }) => {
   const content = marked(children, {
     renderer: Object.assign(new marked.Renderer(), renderers)
   })
-  return div({ ...props, dangerouslySetInnerHTML: { __html: content } })
+  return div({ className: 'markdown-body', ...props, dangerouslySetInnerHTML: { __html: content } })
+}
+
+export const IdContainer = ({ children }) => {
+  const [id] = useState(() => _.uniqueId('element-'))
+  return children(id)
 }
