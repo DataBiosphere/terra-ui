@@ -10,7 +10,7 @@ import { InfoBox } from 'src/components/PopupTrigger'
 import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
-import { FormLabel, RequiredFormLabel } from 'src/libs/forms'
+import * as Forms from 'src/libs/forms'
 import * as Utils from 'src/libs/utils'
 import validate from 'validate.js'
 
@@ -121,7 +121,7 @@ export default ajaxCaller(class NewWorkspaceModal extends Component {
         onClick: () => this.create()
       }, cloneWorkspace ? 'Clone Workspace' : 'Create Workspace')
     }, [
-      h(RequiredFormLabel, ['Workspace name']),
+      Forms.requiredFormLabel('Workspace name'),
       validatedInput({
         inputProps: {
           autoFocus: true,
@@ -131,7 +131,7 @@ export default ajaxCaller(class NewWorkspaceModal extends Component {
         },
         error: Utils.summarizeErrors(nameModified && errors && errors.name)
       }),
-      h(RequiredFormLabel, ['Billing project']),
+      Forms.requiredFormLabel('Billing project'),
       billingProjects && !billingProjects.length ? h(Fragment, [
         div({ style: { color: colors.red[0] } }, [
           icon('error', { size: 16 }),
@@ -152,22 +152,19 @@ export default ajaxCaller(class NewWorkspaceModal extends Component {
         onChange: ({ value }) => this.setState({ namespace: value }),
         options: _.uniq(_.map('projectName', billingProjects)).sort()
       }),
-      h(FormLabel, ['Description']),
+      Forms.formLabel('Description'),
       h(TextArea, {
         style: { height: 100 },
         placeholder: 'Enter a description',
         value: description,
         onChange: e => this.setState({ description: e.target.value })
       }),
-      h(FormLabel, [
-        'Authorization domain',
-        h(InfoBox, [
-          'An authorization domain can only be set when creating a workspace. ',
-          'Once set, it cannot be changed. ',
-          'Any cloned workspace will automatically inherit the authorization domain(s) from the original workspace and cannot be removed. ',
-          link({ href: authDoc, target: '_blank' }, ['Read more about authorization domains'])
-        ])
-      ]),
+      Forms.formLabel('Authorization domain', h(InfoBox, [
+        'An authorization domain can only be set when creating a workspace. ',
+        'Once set, it cannot be changed. ',
+        'Any cloned workspace will automatically inherit the authorization domain(s) from the original workspace and cannot be removed. ',
+        link({ href: authDoc, target: '_blank' }, ['Read more about authorization domains'])
+      ])),
       !!existingGroups.length && div({ style: styles.groupNotice }, [
         div({ style: { marginBottom: '0.2rem' } }, ['Inherited groups:']),
         ...existingGroups.join(', ')

@@ -4,7 +4,7 @@ import { buttonPrimary, spinnerOverlay } from 'src/components/common'
 import Modal from 'src/components/Modal'
 import { withWorkspaces, WorkspaceSelector } from 'src/components/workspace-utils'
 import { ajaxCaller } from 'src/libs/ajax'
-import { RequiredFormLabel } from 'src/libs/forms'
+import { requiredFormLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
@@ -61,7 +61,7 @@ export default _.flow(
         onClick: () => this.copy()
       }, ['Copy'])
     }, [
-      h(RequiredFormLabel, ['Destination']),
+      requiredFormLabel('Destination'),
       h(WorkspaceSelector, {
         workspaces: _.filter(Utils.isValidWsExportTarget(workspace), workspaces),
         value: selectedWorkspaceId,
@@ -70,7 +70,7 @@ export default _.flow(
           this.findNotebooks(v)
         }
       }),
-      h(RequiredFormLabel, ['Name']),
+      requiredFormLabel('Name'),
       notebookNameInput({
         error: Utils.summarizeErrors(errors && errors.newName),
         inputProps: {

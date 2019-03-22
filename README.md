@@ -1,4 +1,4 @@
-# Terra UI
+# Saturn UI
 Web user interface for the Terra platform.
 
 This project was bootstrapped with [Create React App](https://github.com/facebookincubator/create-react-app).
@@ -43,4 +43,4 @@ Requests related to the funtionality or usability of the UI can be submitted as 
 
 
 ### Additional Documentation
-See [the wiki](https://github.com/DataBiosphere/terra-ui/wiki).
+See [the wiki](https://github.com/DataBiosphere/saturn-ui/wiki).

@@ -21,8 +21,7 @@ the Privacy Act, and applicable State and Federal laws.
 #### Cookies
 Terra uses cookies to enable sign on and other essential features when signed in, and to provide 
 statistics to our development team regarding how the site is used. For more information, see our 
-privacy policy. Privacy policy, including privacy policy of uploaded data, is [here](/#privacy). 
-You agree to read and consider before uploading data.
+privacy policy.
 
 #### Modification of the Agreement
 
@@ -158,27 +157,6 @@ In no event will the Broad Institute or its employees be liable for the incident
 special, punitive, exemplary, or consequential damages, arising out of your use of or inability to
 use Terra, including without limitation, loss of revenue or anticipated profits, loss of
 goodwill, loss of data, computer failure or malfunction, or any and all other damages.
-
-#### HIPAA, Protected Health Information, and the Clinical Compliance Features
-
-Terra is not a Covered Entity as that term is defined in the Health Insurance Portability 
-and Accountability Act of 1996, as amended, and its related regulations (collectively, "HIPAA"). 
-On occasion, Terra may agree in writing with a user to perform services for the user in the 
-storing PHI. We recommend that such users enter into a formal agreement with Terra/Firecloud.
-
-Terra does offer clinical compliance features as part of its service ("Compliance Features") 
-for users who wish to upload, store, or otherwise transfer PHI, as well as users who are using the Site 
-in connection with their clinical operations. Users who desire to upload, store, or otherwise transfer 
-PHI using the Site must implement all of the required Clinical Features and must enter a formal agreement 
-with Firecloud stating that. The uploading, storing, or transferring of PHI using the Site by users 
-that have not implemented the Clinical Features is strictly prohibited. You agree that, unless you have 
-implemented the Clinical Features, you will not upload, store, or otherwise transfer PHI using the Site.
-
-You acknowledge that this may require you, in some instances, to anonymize sequence data prior to 
-uploading it to the Site. You further agree to indemnify and hold harmless Terra of and from 
-any and all claims, demands, losses, causes of action, damage, lawsuits, judgments, including attorneys' 
-fees and costs, arising out of or relating to your uploading, storing, or transferring of PHI without 
-having fully implemented the Clinical Features.
 `
 
 const styles = {

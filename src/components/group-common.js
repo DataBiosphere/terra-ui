@@ -10,7 +10,7 @@ import TooltipTrigger from 'src/components/TooltipTrigger'
 import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
-import { FormLabel, RequiredFormLabel } from 'src/libs/forms'
+import * as Forms from 'src/libs/forms'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
@@ -122,7 +122,7 @@ export const NewUserModal = ajaxCaller(class NewUserModal extends Component {
         disabled: errors
       }, ['Add User'])
     }, [
-      h(RequiredFormLabel, ['User email']),
+      Forms.requiredFormLabel('User email'),
       h(AutocompleteSearch, {
         autoFocus: true,
         value: userEmail,
@@ -152,7 +152,7 @@ export const NewUserModal = ajaxCaller(class NewUserModal extends Component {
         renderInputComponent: textInput,
         theme: { suggestion: { padding: 0 } }
       }),
-      h(FormLabel, ['Role']),
+      Forms.formLabel('Role'),
       h(LabeledCheckbox, {
         checked: isAdmin,
         onChange: () => this.setState({ roles: [isAdmin ? userLabel : adminLabel] })
