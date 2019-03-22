@@ -4,19 +4,26 @@ import { a, div, h } from 'react-hyperscript-helpers'
 import { pure } from 'recompose'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import togglesListView from 'src/components/CardsListToggle'
-import { Clickable, MenuButton, PageBox, spinnerOverlay, menuIcon, link, methodLink } from 'src/components/common'
-import { icon } from 'src/components/icons'
+import {
+  buttonOutline, buttonPrimary, Clickable, link, Markdown, MenuButton, menuIcon, methodLink, PageBox, spinnerOverlay
+} from 'src/components/common'
+import { centeredSpinner, icon } from 'src/components/icons'
+import Modal from 'src/components/Modal'
 import PopupTrigger from 'src/components/PopupTrigger'
 import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
+import { getConfig } from 'src/libs/config'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
+import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
+import { dockstoreTile, fcMethodRepoTile, makeToolCard } from 'src/pages/library/Code'
 import DeleteToolModal from 'src/pages/workspaces/workspace/tools/DeleteToolModal'
 import ExportToolModal from 'src/pages/workspaces/workspace/tools/ExportToolModal'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
+import TooltipTrigger from 'src/components/TooltipTrigger'
 
 
 const styles = {
@@ -71,13 +78,16 @@ const styles = {
   }
 }
 
-const ToolCard = pure(({ listView, name, namespace, config, onCopy, onDelete }) => {
+const ToolCard = pure(({ listView, name, namespace, config, onCopy, onDelete, isRedacted }) => {
   const { namespace: workflowNamespace, name: workflowName, methodRepoMethod: { sourceRepo, methodVersion } } = config
   const toolCardMenu = h(PopupTrigger, {
     closeOnClick: true,
     content: h(Fragment, [
       h(MenuButton, {
-        onClick: () => onCopy()
+        onClick: () => onCopy(),
+        disabled: isRedacted,
+        tooltip: isRedacted ? 'This method is redacted' : undefined,
+        tooltipSide: 'left'
       }, [menuIcon('copy'), 'Copy to Another Workspace']),
       h(MenuButton, {
         onClick: () => onDelete()
@@ -101,6 +111,7 @@ const ToolCard = pure(({ listView, name, namespace, config, onCopy, onDelete }) 
     href: methodLink(config),
     style: styles.innerLink,
     target: '_blank',
+    disabled: isRedacted,
     onClick: e => e.stopPropagation()
   }, sourceRepo === 'agora' ? 'FireCloud' : sourceRepo)
 
@@ -109,25 +120,139 @@ const ToolCard = pure(({ listView, name, namespace, config, onCopy, onDelete }) 
     style: styles.outerLink
   })
 
+  const redactedWarning = h(TooltipTrigger, {
+    content: 'Tool has been removed. You cannot view or run an analysis with this tool.'
+  }, [icon('ban', { size: 20, style: { color: colors.orange[0], marginLeft: '.3rem', ...styles.innerLink } })])
+
   return listView ?
     div({ style: { ...styles.card, ...styles.longCard } }, [
-      workflowLink,
+      isRedacted ? undefined: workflowLink,
       div({ style: { ...styles.innerContent, display: 'flex', alignItems: 'center' } }, [
         div({ style: { marginRight: '1rem' } }, [toolCardMenu]),
-        div({ style: styles.longTitle }, [workflowName]),
-        div({ style: styles.longMethodVersion }, [`V. ${methodVersion}`]),
+        div({ style: { ...styles.longTitle, ...(isRedacted ? { color: colors.gray[0] } : {}) } }, [workflowName]),
+        div({ style: { ...styles.longMethodVersion, display: 'flex', alignItems: 'center' } }, [
+          `V. ${methodVersion}`,
+          isRedacted && redactedWarning
+        ]),
         div({ style: { flex: 'none', width: 130 } }, ['Source: ', repoLink])
       ])
     ]) :
     div({ style: { ...styles.card, ...styles.shortCard } }, [
-      workflowLink,
+      !isRedacted && workflowLink,
       div({ style: { ...styles.innerContent, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%' } }, [
-        div({ style: styles.shortTitle }, [workflowName]),
+        div({ style: { ...styles.shortTitle, ...(isRedacted ? { color: colors.gray[0] } : {}) } }, [workflowName]),
         div({ style: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' } }, [
-          div([div([`V. ${methodVersion}`]), 'Source: ', repoLink]), toolCardMenu
+          div([
+            div({ style: { display: 'flex', alignItems: 'center' } }, [
+              `V. ${methodVersion}`,
+              isRedacted && redactedWarning
+            ]),
+            'Source: ', repoLink
+          ]), toolCardMenu
         ])
       ])
     ])
+})
+
+const FindToolModal = ajaxCaller(class FindToolModal extends Component {
+  async componentDidMount() {
+    const { ajax: { Methods } } = this.props
+
+    const [featuredList, methods] = await Promise.all([
+      fetch(`${getConfig().firecloudBucketRoot}/featured-methods.json`).then(res => res.json()),
+      Methods.list({ namespace: 'gatk' })
+    ])
+
+    this.setState({ featuredList, methods })
+  }
+
+  render() {
+    const { onDismiss } = this.props
+    const { selectedTool, featuredList, methods, selectedToolDetails, exporting } = this.state
+
+    const featuredMethods = _.compact(_.map(
+      ({ namespace, name }) => _.maxBy('snapshotId', _.filter({ namespace, name }, methods)),
+      featuredList
+    ))
+
+    const { synopsis, managers, documentation } = selectedToolDetails || {}
+
+    const renderDetails = () => [
+      div({ style: { display: 'flex' } }, [
+        div({ style: { flexGrow: 1 } }, [
+          div({ style: { fontSize: 18, fontWeight: 600, margin: '1rem 0 0.5rem' } }, ['Synopsis']),
+          div([synopsis || (selectedToolDetails && 'None')]),
+          div({ style: { fontSize: 18, fontWeight: 600, margin: '1rem 0 0.5rem' } }, ['Method Owner']),
+          div([_.join(',', managers)])
+        ]),
+        div({ style: { margin: '0 1rem', display: 'flex', flexDirection: 'column' } }, [
+          buttonPrimary({ style: { marginBottom: '0.5rem' }, onClick: () => this.exportMethod() }, ['Add to Workspace']),
+          buttonOutline({ onClick: () => this.setState({ selectedTool: undefined, selectedToolDetails: undefined }) }, ['Return to List'])
+        ])
+      ]),
+      div({ style: { fontSize: 18, fontWeight: 600, margin: '1rem 0 0.5rem' } }, ['Documentation']),
+      documentation && h(Markdown, { style: { maxHeight: 600, overflowY: 'auto' } }, [documentation]),
+      (!selectedToolDetails || exporting) && spinnerOverlay
+    ]
+
+    const renderList = () => [
+      div({ style: { display: 'flex', flexWrap: 'wrap', overflowY: 'auto', height: 400, paddingTop: 5, paddingLeft: 5 } }, [
+        ...(featuredMethods ?
+          _.map(method => makeToolCard({ method, onClick: () => this.loadMethod(method) }), featuredMethods) :
+          [centeredSpinner()])
+      ]),
+      div({ style: { fontSize: 18, fontWeight: 600, marginTop: '1rem' } }, ['Find Additional Tools']),
+      div({ style: { display: 'flex', padding: '0.5rem' } }, [
+        div({ style: { flex: 1, marginRight: 10 } }, [dockstoreTile()]),
+        div({ style: { flex: 1, marginLeft: 10 } }, [fcMethodRepoTile()])
+      ])
+    ]
+
+    return h(Modal, {
+      onDismiss,
+      showButtons: false,
+      title: selectedTool ? `Tool: ${selectedTool.name}` : 'Suggested Tools',
+      showX: true,
+      width: 900
+    }, Utils.cond(
+      [selectedTool, () => renderDetails()],
+      () => renderList()
+    ))
+  }
+
+  async loadMethod(selectedTool) {
+    const { ajax: { Methods } } = this.props
+    const { namespace, name, snapshotId } = selectedTool
+
+    this.setState({ selectedTool })
+    try {
+      const selectedToolDetails = await Methods.method(namespace, name, snapshotId).get()
+      this.setState({ selectedToolDetails })
+    } catch (error) {
+      reportError('Error loading tool', error)
+      this.setState({ selectedTool: undefined })
+    }
+  }
+
+  async exportMethod() {
+    const { namespace, name, ajax: { Methods } } = this.props
+    const { selectedTool } = this.state
+
+    this.setState({ exporting: true })
+
+    try {
+      const methodAjax = Methods.method(selectedTool.namespace, selectedTool.name, selectedTool.snapshotId)
+
+      const config = _.maxBy('snapshotId', await methodAjax.configs())
+
+      await methodAjax.toWorkspace({ namespace, name }, config)
+
+      Nav.goToPath('workflow', { namespace, name, workflowNamespace: selectedTool.namespace, workflowName: selectedTool.name })
+    } catch (error) {
+      reportError('Error importing tool', error)
+      this.setState({ exporting: false })
+    }
+  }
 })
 
 export const Tools = _.flow(
@@ -144,12 +269,15 @@ export const Tools = _.flow(
   }
 
   async refresh() {
-    const { namespace, name, ajax: { Workspaces } } = this.props
+    const { namespace, name, ajax: { Workspaces, Methods } } = this.props
 
     try {
       this.setState({ loading: true })
-      const configs = await Workspaces.workspace(namespace, name).listMethodConfigs()
-      this.setState({ configs })
+      const [configs, methods] = await Promise.all([
+        Workspaces.workspace(namespace, name).listMethodConfigs(),
+        Methods.list()
+      ])
+      this.setState({ configs, methods })
     } catch (error) {
       reportError('Error loading configs', error)
     } finally {
@@ -162,9 +290,24 @@ export const Tools = _.flow(
     return _.find({ namespace, name }, configs)
   }
 
+  computeRedacted(config) {
+    const { methods } = this.state
+    const { methodName, methodNamespace, methodVersion, sourceRepo } = config.methodRepoMethod
+    return (sourceRepo === 'agora') ? !_.some({ name: methodName, namespace: methodNamespace, snapshotId: methodVersion }, methods) : false
+  }
+
   render() {
     const { namespace, name, listView, viewToggleButtons, workspace: { workspace } } = this.props
-    const { loading, configs, copyingTool, deletingTool } = this.state
+    const { loading, configs, copyingTool, deletingTool, findingTool } = this.state
+    const tools = _.map(config => {
+      const isRedacted = this.computeRedacted(config)
+      return h(ToolCard, {
+        onCopy: () => this.setState({ copyingTool: { namespace: config.namespace, name: config.name } }),
+        onDelete: () => this.setState({ deletingTool: { namespace: config.namespace, name: config.name } }),
+        key: `${config.namespace}/${config.name}`, namespace, name, config, listView, isRedacted
+      })
+    }, configs)
+
     return h(PageBox, [
       div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' } }, [
         div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, ['Tools']),
@@ -183,14 +326,18 @@ export const Tools = _.flow(
         })
       ]),
       div({ style: styles.cardContainer(listView) }, [
-        _.map(config => {
-          return h(ToolCard, {
-            onCopy: () => this.setState({ copyingTool: { namespace: config.namespace, name: config.name } }),
-            onDelete: () => this.setState({ deletingTool: { namespace: config.namespace, name: config.name } }),
-            key: `${config.namespace}/${config.name}`, namespace, name, config, listView
-          })
-        }, configs),
-        configs && !configs.length && div(['No tools added']),
+        h(Clickable, {
+          style: { ...styles.card, ...styles.shortCard, color: colors.green[0], fontSize: 18, lineHeight: '22px' },
+          onClick: () => this.setState({ findingTool: true })
+        }, [
+          'Find a Tool',
+          icon('plus-circle', { size: 32 })
+        ]),
+        listView ? div({ style: { flex: 1 } }, [tools]) : tools,
+        findingTool && h(FindToolModal, {
+          namespace, name,
+          onDismiss: () => this.setState({ findingTool: false })
+        }),
         loading && spinnerOverlay
       ])
     ])

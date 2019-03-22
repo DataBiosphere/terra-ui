@@ -3,7 +3,7 @@ import { Fragment } from 'react'
 import { div, h, span, table, tbody, td, tr } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { Clickable, link, spinnerOverlay } from 'src/components/common'
+import { buttonPrimary, Clickable, link, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import { FlexTable, HeaderCell, TextCell } from 'src/components/table'
@@ -18,7 +18,8 @@ import { Component } from 'src/libs/wrapped-components'
 import { rerunFailures } from 'src/pages/workspaces/workspace/tools/FailureRerunner'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
-export const linkToJobManager = false
+
+export const linkToJobManager = true
 
 const styles = {
   submissionsTable: {
@@ -140,8 +141,8 @@ const JobHistory = _.flow(
   }
 
   render() {
-    const { namespace, name, ajax: { Workspaces } } = this.props
-    const { submissions, loading, aborting, newSubmissionId, highlightNewSubmission } = this.state
+    const { namespace, name, ajax: { Workspaces }, workspace: { workspace: { workflowCollectionName } } } = this.props
+    const { submissions, loading, aborting, newSubmissionId, highlightNewSubmission, linkToFC } = this.state
 
     return div({ style: styles.submissionsTable }, [
       submissions && !!submissions.length && h(AutoSizer, [
@@ -165,17 +166,20 @@ const JobHistory = _.flow(
                 const {
                   methodConfigurationNamespace, methodConfigurationName, submitter, submissionId
                 } = submissions[rowIndex]
+                const viewInJobManager = linkToJobManager && !!workflowCollectionName
                 return h(Fragment, [
                   div([
                     div([
                       methodConfigurationNamespace !== namespace && span({ style: styles.deemphasized }, [
                         `${methodConfigurationNamespace}/`
                       ]),
-                      link({
+                      link(viewInJobManager ? {
                         target: '_blank',
-                        //check link with actual job manager link
-                        href: linkToJobManager ? `${getConfig().jobManagerUrlRoot}?q=submission-id%3D${submissionId}` :
-                          `${getConfig().firecloudUrlRoot}/#workspaces/${namespace}/${name}/monitor/${submissionId}`
+                        href: `${getConfig().jobManagerUrlRoot}?q=submission-id%3D${submissionId}`
+                      } : {
+                        onClick: () => this.setState({
+                          linkToFC: `${getConfig().firecloudUrlRoot}/#workspaces/${namespace}/${name}/monitor/${submissionId}`
+                        })
                       }, [
                         methodConfigurationName, icon('pop-out', {
                           size: 10,
@@ -219,7 +223,7 @@ const JobHistory = _.flow(
                     ])
                   ]),
                   isTerminal(status) && workflowStatuses['Failed'] &&
-                  submissionEntity && submissionEntity.entityType.endsWith('_set') && h(TooltipTrigger, {
+                  submissionEntity && h(TooltipTrigger, {
                     content: 'Re-run failures'
                   }, [
                     h(Clickable, {
@@ -266,6 +270,20 @@ const JobHistory = _.flow(
         `Are you sure you want to abort ${
           Utils.formatNumber(collapsedStatuses(_.find({ submissionId: aborting }, submissions).workflowStatuses).running)
         } running workflow(s)?`
+      ]),
+      linkToFC && h(Modal, {
+        onDismiss: () => this.setState({ linkToFC: undefined }),
+        title: 'Legacy Workflow Details',
+        okButton: buttonPrimary({
+          as: 'a',
+          href: linkToFC,
+          target: '_blank',
+          onClick: () => this.setState({ linkToFC: undefined })
+        }, 'Go To FireCloud')
+      }, [
+        `We are currently introducing Terra's new job management component for accessing workflow details. However, this 
+        workspace isn't yet ready to use the new job manager. For now, workflow details can be found in our legacy system, 
+        FireCloud. You will be asked to sign in to FireCloud to view your workflow details.`
       ]),
       loading && spinnerOverlay
     ])
