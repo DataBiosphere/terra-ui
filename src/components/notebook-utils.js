@@ -1,14 +1,13 @@
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
-import { Fragment } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
-import { buttonPrimary, IdContainer, Select, spinnerOverlay } from 'src/components/common'
+import { buttonPrimary, Select, spinnerOverlay } from 'src/components/common'
 import { centeredSpinner } from 'src/components/icons'
 import { validatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { ajaxCaller } from 'src/libs/ajax'
 import { reportError } from 'src/libs/error'
-import { RequiredFormLabel } from 'src/libs/forms'
+import * as Forms from 'src/libs/forms'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 import validate from 'validate.js'
@@ -109,27 +108,23 @@ export const NotebookCreator = ajaxCaller(class NotebookCreator extends Componen
         }
       }, 'Create Notebook')
     }, [
-      h(IdContainer, [id => h(Fragment, [
-        h(RequiredFormLabel, { htmlFor: id }, ['Name']),
-        notebookNameInput({
-          error: Utils.summarizeErrors(nameTouched && errors && errors.notebookName),
-          inputProps: {
-            id, value: notebookName,
-            onChange: e => this.setState({ notebookName: e.target.value, nameTouched: true })
-          }
-        })
-      ])]),
-      h(IdContainer, [id => h(Fragment, [
-        h(RequiredFormLabel, { htmlFor: id }, ['Language']),
-        h(Select, {
-          id, isSearchable: false,
-          placeholder: 'Select a language',
-          getOptionLabel: ({ value }) => _.startCase(value),
-          value: notebookKernel,
-          onChange: ({ value: notebookKernel }) => this.setState({ notebookKernel }),
-          options: ['python2', 'python3', 'r']
-        })
-      ])]),
+      Forms.requiredFormLabel('Name'),
+      notebookNameInput({
+        error: Utils.summarizeErrors(nameTouched && errors && errors.notebookName),
+        inputProps: {
+          value: notebookName,
+          onChange: e => this.setState({ notebookName: e.target.value, nameTouched: true })
+        }
+      }),
+      Forms.requiredFormLabel('Language'),
+      h(Select, {
+        isSearchable: false,
+        placeholder: 'Select a language',
+        getOptionLabel: ({ value }) => _.startCase(value),
+        value: notebookKernel,
+        onChange: ({ value: notebookKernel }) => this.setState({ notebookKernel }),
+        options: ['python2', 'python3', 'r']
+      }),
       creating && spinnerOverlay
     ])
   }
@@ -187,16 +182,14 @@ export const NotebookDuplicator = ajaxCaller(class NotebookDuplicator extends Co
     Utils.cond(
       [processing, () => [centeredSpinner()]],
       () => [
-        h(IdContainer, [id => h(Fragment, [
-          h(RequiredFormLabel, { htmlFor: id }, ['New Name']),
-          notebookNameInput({
-            error: Utils.summarizeErrors(nameTouched && errors && errors.newName),
-            inputProps: {
-              id, value: newName,
-              onChange: e => this.setState({ newName: e.target.value, nameTouched: true })
-            }
-          })
-        ])])
+        Forms.requiredFormLabel('New Name'),
+        notebookNameInput({
+          error: Utils.summarizeErrors(nameTouched && errors && errors.newName),
+          inputProps: {
+            value: newName,
+            onChange: e => this.setState({ newName: e.target.value, nameTouched: true })
+          }
+        })
       ]
     ))
   }

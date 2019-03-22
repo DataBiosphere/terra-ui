@@ -3,7 +3,6 @@ import { div, h } from 'react-hyperscript-helpers'
 import { icon, spinner } from 'src/components/icons'
 import { popNotification, pushNotification } from 'src/components/Notifications'
 import { Ajax } from 'src/libs/ajax'
-import { launch } from 'src/libs/analysis'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import * as Utils from 'src/libs/utils'
@@ -29,6 +28,7 @@ const ToastMessageComponent = Utils.connectAtom(toastProps, 'toastProps')(class 
   }
 })
 
+
 export const rerunFailures = async ({ namespace, name, submissionId, configNamespace, configName, onDone }) => {
   toastProps.set({ text: 'Loading tool info...' })
   const id = pushNotification({
@@ -40,10 +40,12 @@ export const rerunFailures = async ({ namespace, name, submissionId, configNames
     const workspace = Ajax().Workspaces.workspace(namespace, name)
     const methodConfig = workspace.methodConfig(configNamespace, configName)
 
-    const [{ workflows, useCallCache }, { rootEntityType }] = await Promise.all([
+    const [{ workflows, submissionEntity, useCallCache }, { rootEntityType }] = await Promise.all([
       workspace.submission(submissionId).get(),
       methodConfig.get()
     ])
+
+    toastProps.set({ text: 'Creating set from failures...' })
 
     const failedEntities = _.flow(
       _.filter({ status: 'Failed' }),
@@ -51,23 +53,32 @@ export const rerunFailures = async ({ namespace, name, submissionId, configNames
     )(workflows)
 
     const newSetName = `${configName}-resubmission-${new Date().toISOString().slice(0, -5).replace(/:/g, '-')}`
-
-    await launch({
-      workspaceNamespace: namespace, workspaceName: name,
-      config: { namespace: configNamespace, name: configName, rootEntityType },
-      entityType: rootEntityType, entityNames: _.map('entityName', failedEntities),
-      newSetName, useCallCache,
-      onCreateSet: () => toastProps.set({ text: 'Creating set from failures...' }),
-      onLaunch: () => toastProps.set({ text: 'Launching new job...' }),
-      onSuccess: () => {
-        toastProps.set({ text: 'Success!', done: true })
-        onDone()
-      },
-      onFailure: error => {
-        popNotification(id)
-        reportError('Error rerunning failed workflows', error)
+    const newSetType = submissionEntity.entityType
+    const newSet = {
+      name: newSetName,
+      entityType: newSetType,
+      attributes: {
+        [`${failedEntities[0].entityType}s`]: {
+          itemsType: 'EntityReference',
+          items: failedEntities
+        }
       }
+    }
+
+    await workspace.createEntity(newSet)
+
+    toastProps.set({ text: 'Launching new job...' })
+
+    await methodConfig.launch({
+      entityName: newSetName,
+      entityType: newSetType,
+      expression: newSetType !== rootEntityType ? `this.${rootEntityType}s` : undefined,
+      useCallCache
     })
+
+    toastProps.set({ text: 'Success!', done: true })
+
+    onDone()
 
     await Utils.delay(2000)
   } catch (error) {

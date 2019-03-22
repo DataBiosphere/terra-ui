@@ -12,7 +12,7 @@ module.exports = {
   },
   'settings': {
     'react': {
-      'version': 'detect'
+      'version': '16.5.2'
     }
   },
   'rules': {

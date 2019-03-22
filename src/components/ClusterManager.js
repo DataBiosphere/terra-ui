@@ -10,7 +10,7 @@ import Modal from 'src/components/Modal'
 import PopupTrigger from 'src/components/PopupTrigger'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { machineTypes, profiles, storagePrice } from 'src/data/clusters'
-import { Ajax, ajaxCaller } from 'src/libs/ajax'
+import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
@@ -56,20 +56,20 @@ const styles = {
   }),
   warningBox: {
     fontSize: 12,
-    backgroundColor: colors.orange[6],
+    backgroundColor: colors.orange[5],
     color: colors.orange[0],
     borderTop: `1px solid ${colors.orange[0]}`,
     borderBottom: `1px solid ${colors.orange[0]}`,
     padding: '1rem',
     marginTop: '1rem',
-    marginLeft: '-1.25rem',
-    marginRight: '-1.25rem'
+    marginLeft: '-1rem',
+    marginRight: '-1rem'
   },
   divider: {
     marginTop: '1rem',
-    marginLeft: '-1.25rem',
-    marginRight: '-1.25rem',
-    borderBottom: `1px solid ${colors.gray[6]}`
+    marginLeft: '-1rem',
+    marginRight: '-1rem',
+    borderBottom: `1px solid ${colors.gray[3]}`
   },
   button: isDisabled => ({
     display: 'flex',
@@ -186,20 +186,58 @@ const getUpdateIntervalMs = status => {
   }
 }
 
-const NewClusterModal = class NewClusterModal extends PureComponent {
+export default ajaxCaller(class ClusterManager extends PureComponent {
+  static propTypes = {
+    namespace: PropTypes.string.isRequired,
+    name: PropTypes.string.isRequired,
+    clusters: PropTypes.array,
+    canCompute: PropTypes.bool.isRequired,
+    refreshClusters: PropTypes.func.isRequired
+  }
+
   constructor(props) {
     super(props)
-    const { currentCluster } = props
-    const currentConfig = currentCluster ? currentCluster.machineConfig : profiles[0].machineConfig
-    const matchingProfile = _.find(
-      ({ machineConfig }) => machineConfigsEqual(machineConfig, currentConfig),
-      profiles
-    )
     this.state = {
-      profile: matchingProfile ? matchingProfile.name : 'custom',
+      open: false,
+      busy: false,
+      deleting: false,
+      profile: 'moderate',
+      masterMachineType: 'n1-standard-4',
+      masterDiskSize: 500,
       jupyterUserScriptUri: '',
-      ...Utils.normalizeMachineConfig(currentConfig)
+      numberOfWorkers: 0,
+      numberOfPreemptibleWorkers: 0,
+      workerDiskSize: 500,
+      workerMachineType: 'n1-standard-4'
     }
+  }
+
+  refreshClusters = async () => {
+    this.props.refreshClusters().then(() => this.resetUpdateInterval())
+  }
+
+  resetUpdateInterval() {
+    const currentCluster = this.getCurrentCluster()
+
+    clearInterval(this.interval)
+    this.interval = setInterval(this.refreshClusters, getUpdateIntervalMs(currentCluster && currentCluster.status))
+  }
+
+  componentDidMount() {
+    this.resetUpdateInterval()
+  }
+
+  componentWillUnmount() {
+    clearInterval(this.interval)
+  }
+
+  getActiveClustersOldestFirst() {
+    const { clusters } = this.props
+    return _.sortBy('createdDate', _.remove({ status: 'Deleting' }, clusters))
+  }
+
+  getCurrentCluster() {
+    return _.last(this.getActiveClustersOldestFirst())
   }
 
   getMachineConfig() {
@@ -212,27 +250,108 @@ const NewClusterModal = class NewClusterModal extends PureComponent {
     }
   }
 
-  createCluster() {
-    const { namespace, onSuccess } = this.props
-    const { jupyterUserScriptUri } = this.state
-    onSuccess(Ajax().Jupyter.cluster(namespace, Utils.generateClusterName()).create({
-      machineConfig: this.getMachineConfig(),
-      ...(jupyterUserScriptUri ? { jupyterUserScriptUri } : {})
-    }))
+  async executeAndRefresh(promise) {
+    try {
+      this.setState({ busy: true })
+      await promise
+      await this.refreshClusters()
+    } catch (error) {
+      reportError('Cluster Error', error)
+    } finally {
+      this.setState({ busy: false })
+    }
   }
 
-  render() {
-    const { currentCluster, onCancel } = this.props
-    const { profile, masterMachineType, masterDiskSize, workerMachineType, numberOfWorkers, numberOfPreemptibleWorkers, workerDiskSize, jupyterUserScriptUri } = this.state
+  async executeAndRefreshWithNav(promise) {
+    const { namespace, name } = this.props
+
+    this.executeAndRefresh(promise)
+    if (/notebooks\/.+/.test(window.location.hash)) {
+      Nav.goToPath('workspace-notebooks', { namespace, name })
+    }
+  }
+
+  createCluster() {
+    const { ajax: { Jupyter }, namespace } = this.props
+    const { jupyterUserScriptUri } = this.state
+    this.executeAndRefresh(
+      Jupyter.cluster(namespace, Utils.generateClusterName()).create({
+        machineConfig: this.getMachineConfig(),
+        ...(jupyterUserScriptUri ? { jupyterUserScriptUri } : {})
+      }).then(() => {
+        this.setState({ open: false })
+      })
+    )
+  }
+
+  createDefaultCluster() {
+    const { ajax: { Jupyter }, namespace } = this.props
+    this.executeAndRefresh(
+      Jupyter.cluster(namespace, Utils.generateClusterName()).create({
+        machineConfig: Utils.normalizeMachineConfig({})
+      })
+    )
+  }
+
+  destroyClusters(keepIndex) {
+    const { ajax: { Jupyter } } = this.props
+    const activeClusters = this.getActiveClustersOldestFirst()
+    this.executeAndRefresh(
+      Promise.all(_.map(
+        ({ googleProject, clusterName }) => Jupyter.cluster(googleProject, clusterName).delete(),
+        _.without([_.nth(keepIndex, activeClusters)], activeClusters)
+      ))
+    )
+  }
+
+  destroyActiveCluster() {
+    const { ajax: { Jupyter } } = this.props
+    const { googleProject, clusterName } = this.getCurrentCluster()
+    this.executeAndRefreshWithNav(
+      Jupyter.cluster(googleProject, clusterName).delete()
+    )
+  }
+
+  startCluster() {
+    const { ajax: { Jupyter } } = this.props
+    const { googleProject, clusterName } = this.getCurrentCluster()
+    this.executeAndRefresh(
+      Jupyter.cluster(googleProject, clusterName).start()
+    )
+  }
+
+  stopCluster() {
+    const { ajax: { Jupyter } } = this.props
+    const { googleProject, clusterName } = this.getCurrentCluster()
+    this.executeAndRefreshWithNav(
+      Jupyter.cluster(googleProject, clusterName).stop()
+    )
+  }
+
+  toggleDropdown(v) {
+    const currentCluster = this.getCurrentCluster()
+    const currentConfig = currentCluster ? currentCluster.machineConfig : profiles[0].machineConfig
+    const matchingProfile = _.find(
+      ({ machineConfig }) => machineConfigsEqual(machineConfig, currentConfig),
+      profiles
+    )
+    this.setState({
+      open: v,
+      ...Utils.normalizeMachineConfig(currentConfig),
+      jupyterUserScriptUri: '',
+      profile: matchingProfile ? matchingProfile.name : 'custom'
+    })
+  }
+
+  renderCreateForm() {
+    const { busy, profile, masterMachineType, masterDiskSize, workerMachineType, numberOfWorkers, numberOfPreemptibleWorkers, workerDiskSize, jupyterUserScriptUri } = this.state
+    const currentCluster = this.getCurrentCluster()
     const changed = !currentCluster ||
       currentCluster.status === 'Error' ||
       !machineConfigsEqual(this.getMachineConfig(), currentCluster.machineConfig) ||
       jupyterUserScriptUri
-    return h(Modal, {
-      title: 'Runtime environment',
-      onDismiss: onCancel,
-      okButton: buttonPrimary({ disabled: !changed, onClick: () => this.createCluster() }, currentCluster ? 'Update' : 'Create')
-    }, [
+    return div({ style: { padding: '1rem', width: 450 } }, [
+      div({ style: { fontSize: 16, fontWeight: 'bold' } }, 'Runtime environment'),
       div({ style: styles.row }, [
         div({ style: { ...styles.col1, ...styles.label } }, 'Profile'),
         div({ style: { flex: 1 } }, [
@@ -332,121 +451,17 @@ const NewClusterModal = class NewClusterModal extends PureComponent {
       div({ style: styles.row }, [
         div({ style: styles.label }, [
           `Cost: ${Utils.formatUSD(machineConfigCost(this.getMachineConfig()))} per hour`
-        ])
+        ]),
+        div({ style: { marginLeft: 'auto' } }, [
+          busy && icon('loadingSpinner')
+        ]),
+        buttonSecondary({
+          style: { marginLeft: '1rem', marginRight: '1rem' },
+          onClick: () => this.toggleDropdown(false)
+        }, 'Cancel'),
+        buttonPrimary({ disabled: busy || !changed, onClick: () => this.createCluster() }, currentCluster ? 'Update' : 'Create')
       ])
     ])
-  }
-}
-
-export default ajaxCaller(class ClusterManager extends PureComponent {
-  static propTypes = {
-    namespace: PropTypes.string.isRequired,
-    name: PropTypes.string.isRequired,
-    clusters: PropTypes.array,
-    canCompute: PropTypes.bool.isRequired,
-    refreshClusters: PropTypes.func.isRequired
-  }
-
-  constructor(props) {
-    super(props)
-    this.state = {
-      open: false,
-      busy: false,
-      deleting: false
-    }
-  }
-
-  refreshClusters = async () => {
-    this.props.refreshClusters().then(() => this.resetUpdateInterval())
-  }
-
-  resetUpdateInterval() {
-    const currentCluster = this.getCurrentCluster()
-
-    clearInterval(this.interval)
-    this.interval = setInterval(this.refreshClusters, getUpdateIntervalMs(currentCluster && currentCluster.status))
-  }
-
-  componentDidMount() {
-    this.resetUpdateInterval()
-  }
-
-  componentWillUnmount() {
-    clearInterval(this.interval)
-  }
-
-  getActiveClustersOldestFirst() {
-    const { clusters } = this.props
-    return _.sortBy('createdDate', _.remove({ status: 'Deleting' }, clusters))
-  }
-
-  getCurrentCluster() {
-    return _.last(this.getActiveClustersOldestFirst())
-  }
-
-  async executeAndRefresh(promise) {
-    try {
-      this.setState({ busy: true })
-      await promise
-      await this.refreshClusters()
-    } catch (error) {
-      reportError('Cluster Error', error)
-    } finally {
-      this.setState({ busy: false })
-    }
-  }
-
-  async executeAndRefreshWithNav(promise) {
-    const { namespace, name } = this.props
-
-    this.executeAndRefresh(promise)
-    if (/notebooks\/.+/.test(window.location.hash)) {
-      Nav.goToPath('workspace-notebooks', { namespace, name })
-    }
-  }
-
-  createDefaultCluster() {
-    const { ajax: { Jupyter }, namespace } = this.props
-    this.executeAndRefresh(
-      Jupyter.cluster(namespace, Utils.generateClusterName()).create({
-        machineConfig: Utils.normalizeMachineConfig({})
-      })
-    )
-  }
-
-  destroyClusters(keepIndex) {
-    const { ajax: { Jupyter } } = this.props
-    const activeClusters = this.getActiveClustersOldestFirst()
-    this.executeAndRefresh(
-      Promise.all(_.map(
-        ({ googleProject, clusterName }) => Jupyter.cluster(googleProject, clusterName).delete(),
-        _.without([_.nth(keepIndex, activeClusters)], activeClusters)
-      ))
-    )
-  }
-
-  destroyActiveCluster() {
-    const { ajax: { Jupyter } } = this.props
-    const { googleProject, clusterName } = this.getCurrentCluster()
-    this.executeAndRefreshWithNav(
-      Jupyter.cluster(googleProject, clusterName).delete()
-    )
-  }
-
-  startCluster() {
-    const { ajax: { Jupyter } } = this.props
-    const { googleProject, clusterName } = this.getCurrentCluster()
-    this.executeAndRefresh(
-      Jupyter.cluster(googleProject, clusterName).start()
-    )
-  }
-
-  stopCluster() {
-    const { ajax: { Jupyter } } = this.props
-    const { googleProject, clusterName } = this.getCurrentCluster()
-    this.executeAndRefreshWithNav(
-      Jupyter.cluster(googleProject, clusterName).stop()
-    )
   }
 
   renderDestroyForm() {
@@ -469,6 +484,12 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
     ])
   }
 
+  renderCreatingMessage() {
+    return div({ style: { padding: '1rem', width: 300 } }, [
+      'Your environment is being created.'
+    ])
+  }
+
   render() {
     const { namespace, name, clusters, canCompute } = this.props
     const { busy, open, deleting } = this.state
@@ -478,7 +499,6 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
     const currentCluster = this.getCurrentCluster()
     const currentStatus = currentCluster && currentCluster.status
     const running = currentStatus === 'Running'
-    const spendingClusters = _.remove(({ status }) => _.includes(status, ['Deleting', 'Error']), clusters)
     const renderIcon = () => {
       switch (currentStatus) {
         case 'Stopped':
@@ -499,23 +519,24 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
         case 'Stopping':
         case 'Creating':
           return h(ClusterIcon, { shape: 'sync', disabled: true })
-        default:
+        case undefined:
           return h(ClusterIcon, {
             shape: 'play',
             onClick: () => this.createDefaultCluster(),
             disabled: busy || !canCompute,
             tooltip: canCompute ? 'Create cluster' : noCompute
           })
+        default:
+          return h(ClusterIcon, { shape: 'ban', disabled: true })
       }
     }
     const totalCost = _.sum(_.map(({ machineConfig, status }) => {
       return (status === 'Stopped' ? machineStorageCost : machineConfigCost)(machineConfig)
-    }, spendingClusters))
+    }, clusters))
+    const isDisabled = !canCompute
     const activeClusters = this.getActiveClustersOldestFirst()
     const creating = _.some({ status: 'Creating' }, activeClusters)
     const multiple = !creating && activeClusters.length > 1
-    const isDisabled = !canCompute || creating || multiple || busy
-
     return div({ style: styles.container }, [
       h(MiniLink, {
         href: Nav.getLink('workspace-terminal-launch', { namespace, name }),
@@ -531,25 +552,24 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
       h(ClusterIcon, {
         shape: 'trash',
         onClick: () => this.setState({ deleting: true }),
-        disabled: busy || !canCompute || !_.includes(currentStatus, ['Stopped', 'Running', 'Error']),
+        disabled: busy || !canCompute || !_.includes(currentStatus, ['Stopped', 'Running']),
         tooltip: 'Delete cluster',
         style: { marginLeft: '0.5rem' }
       }),
       h(PopupTrigger, {
         side: 'bottom',
-        open: multiple,
-        width: 300,
-        content: this.renderDestroyForm()
+        open: open || multiple,
+        width: creating || multiple ? 300 : 450,
+        onToggle: v => this.toggleDropdown(v),
+        content: Utils.cond(
+          [creating, () => this.renderCreatingMessage()],
+          [multiple, () => this.renderDestroyForm()],
+          () => this.renderCreateForm()
+        )
       }, [
         h(Clickable, {
-          style: styles.button(isDisabled),
-          tooltip: Utils.cond(
-            [!canCompute, () => noCompute],
-            [creating, () => 'Your environment is being created'],
-            [multiple, () => undefined],
-            () => 'Update runtime'
-          ),
-          onClick: () => this.setState({ open: true }),
+          style: { ...styles.button(isDisabled), color: isDisabled ? colors.gray[2] : (open ? colors.green[1] : colors.green[0]) },
+          tooltip: !canCompute && noCompute,
           disabled: isDisabled
         }, [
           div({
@@ -561,7 +581,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
               ` (${Utils.formatUSD(totalCost)} hr)`
             ])
           ]),
-          icon('cog', { size: 22, className: 'is-solid', style: { color: isDisabled ? colors.gray[2] : colors.green[0] } })
+          icon('caretDown', { size: 18 })
         ])
       ]),
       deleting && h(Modal, {
@@ -571,15 +591,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
           this.setState({ deleting: false })
           this.destroyActiveCluster()
         }
-      }, ['Deleting the cluster will stop all running notebooks and associated costs. You can recreate it later, which will take several minutes.']),
-      open && h(NewClusterModal, {
-        namespace, currentCluster,
-        onCancel: () => this.setState({ open: false }),
-        onSuccess: promise => {
-          this.setState({ open: false })
-          this.executeAndRefresh(promise)
-        }
-      })
+      }, ['Deleting the cluster will stop all running notebooks and associated costs. You can recreate it later, which will take several minutes.'])
     ])
   }
 })

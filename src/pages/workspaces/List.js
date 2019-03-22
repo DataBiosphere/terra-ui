@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { Fragment, useRef, useState } from 'react'
+import { Fragment } from 'react'
 import { a, div, h, span } from 'react-hyperscript-helpers'
 import { pure } from 'recompose'
 import removeMd from 'remove-markdown'
@@ -69,23 +69,6 @@ const styles = {
     lineHeight: '1.5rem', textAlign: 'center',
     backgroundColor: colors.purple[0], color: 'white'
   }
-}
-
-const WsSearch = ({ onChange }) => {
-  const [filter, setFilter] = useState('')
-  const updateParent = useRef(_.debounce(100, onChange))
-
-  return search({
-    wrapperProps: { style: { marginLeft: '2rem', flexGrow: 1, maxWidth: 500 } },
-    inputProps: {
-      placeholder: 'SEARCH WORKSPACES',
-      onChange: ({ target: { value } }) => {
-        setFilter(value)
-        updateParent.current(value)
-      },
-      value: filter
-    }
-  })
 }
 
 const WorkspaceCard = pure(({
@@ -235,7 +218,16 @@ export const WorkspaceList = _.flow(
       })
     }, data)
     return h(Fragment, [
-      h(TopBar, { title: 'Workspaces' }, [h(WsSearch, { onChange: v => this.setState({ filter: v }) })]),
+      h(TopBar, { title: 'Workspaces' }, [
+        search({
+          wrapperProps: { style: { marginLeft: '2rem', flexGrow: 1, maxWidth: 500 } },
+          inputProps: {
+            placeholder: 'SEARCH WORKSPACES',
+            onChange: e => this.setState({ filter: e.target.value }),
+            value: filter
+          }
+        })
+      ]),
       h(PageBox, { style: { position: 'relative' } }, [
         div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' } }, [
           div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, ['Workspaces']),

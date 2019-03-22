@@ -45,7 +45,7 @@ const makeNotification = props => {
 export const notify = (type, title, props) => {
   const notification = makeNotification({ type, title, ...props })
   const visibleNotificationIds = _.map('id', notificationStore.get())
-  notificationStore.update(Utils.append(notification))
+  notificationStore.update(state => _.concat(state, [notification]))
   if (!_.includes(notification.id, visibleNotificationIds)) {
     showNotification(notification)
   }
