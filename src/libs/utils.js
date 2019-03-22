@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { Component } from 'react'
+import { useState, useEffect } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import uuid from 'uuid/v4'
 
@@ -32,40 +32,28 @@ export const atom = initialValue => {
 }
 
 /**
+ * Hook that returns the value of a given atom. When the atom changes, the component will re-render
+ */
+export const useAtom = theAtom => {
+  const [value, setValue] = useState(theAtom.get())
+  useEffect(() => {
+    const handleChange = v => setValue(v)
+    theAtom.subscribe(handleChange)
+    return () => theAtom.unsubscribe(handleChange)
+  }, [theAtom, setValue])
+  return value
+}
+
+/**
  * HOC that injects the value of the given atom as a prop. When the atom changes, the wrapped
  * component will re-render
  */
 export const connectAtom = (theAtom, name) => WrappedComponent => {
-  class Wrapper extends Component {
-    constructor(props) {
-      super(props)
-      this.state = { value: theAtom.get() }
-    }
-
-    static displayName = 'connectAtom()'
-
-    componentDidMount() {
-      theAtom.subscribe(this.handleChange)
-    }
-
-    componentWillUnmount() {
-      theAtom.unsubscribe(this.handleChange)
-    }
-
-    handleChange = value => {
-      this.setState({ value })
-    }
-
-    render() {
-      const { value } = this.state
-
-      return h(WrappedComponent, {
-        ...this.props,
-        [name]: value
-      })
-    }
+  const Wrapper = props => {
+    const value = useAtom(theAtom)
+    return h(WrappedComponent, { ...props, [name]: value })
   }
-
+  Wrapper.displayName = 'connectAtom()'
   return Wrapper
 }
 
@@ -254,3 +242,5 @@ export const normalizeMachineConfig = ({ masterMachineType, masterDiskSize, numb
     workerDiskSize: (numberOfWorkers && workerDiskSize) || 500
   }
 }
+
+export const append = _.curry((value, arr) => _.concat(arr, [value]))

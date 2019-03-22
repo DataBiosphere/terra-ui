@@ -12,8 +12,3 @@ handlers:
   static_files: build/index.html
   upload: build/index.html
   secure: always
-
-# If a file (relative path under ui/) matches this regex, do not upload it.
-# Skip everything not starting with "build".
-skip_files:
-- ^(?!build).*$

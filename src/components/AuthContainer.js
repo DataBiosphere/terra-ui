@@ -8,18 +8,19 @@ import SignIn from 'src/pages/SignIn'
 import TermsOfService from 'src/pages/TermsOfService'
 
 
-export default Utils.connectAtom(authStore, 'authState')(
-  ({ children, isPublic, authState: { isSignedIn, registrationStatus, acceptedTos } }) => {
-    return Utils.cond(
-      [isSignedIn === undefined && !isPublic, centeredSpinner],
-      [isSignedIn === false && !isPublic, h(SignIn)],
-      [registrationStatus === undefined && !isPublic, centeredSpinner],
-      [registrationStatus === 'unregistered', h(Register)],
-      [registrationStatus === 'disabled', () => h(Disabled)],
-      [registrationStatus === 'unlisted', () => h(Unlisted)],
-      [acceptedTos === undefined && !isPublic, centeredSpinner],
-      [acceptedTos === false, () => h(TermsOfService)],
-      children
-    )
-  }
-)
+const AuthContainer = ({ children, isPublic }) => {
+  const { isSignedIn, registrationStatus, acceptedTos } = Utils.useAtom(authStore)
+  return Utils.cond(
+    [isSignedIn === undefined && !isPublic, centeredSpinner],
+    [isSignedIn === false && !isPublic, h(SignIn)],
+    [registrationStatus === undefined && !isPublic, centeredSpinner],
+    [registrationStatus === 'unregistered', h(Register)],
+    [registrationStatus === 'disabled', () => h(Disabled)],
+    [registrationStatus === 'unlisted', () => h(Unlisted)],
+    [acceptedTos === undefined && !isPublic, centeredSpinner],
+    [acceptedTos === false, () => h(TermsOfService)],
+    children
+  )
+}
+
+export default AuthContainer

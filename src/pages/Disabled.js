@@ -18,8 +18,8 @@ export const Disabled = () => {
 export const Unlisted = () => {
   return div({ style: { padding: '1rem' } }, [
     div([
-      'Terra is under development. If you are interested in contributing feedback as part of our user panel, please email ',
-      link({ href: 'mailto:saturn-dev@broadinstitute.org' }, 'saturn-dev@broadinstitute.org'),
+      'Terra is currently in a closed-access beta phase. If you are interested in contributing early-access feedback as part of our user panel, please email us at ',
+      link({ href: 'mailto:info@terra.bio' }, 'info@terra.bio'),
       '.'
     ]),
     div({ style: { marginTop: '1rem' } }, [
