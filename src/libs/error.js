@@ -10,3 +10,12 @@ export const reportError = async (title, obj) => {
     notify('error', title, { detail: await (obj instanceof Response ? obj.text() : obj) })
   }
 }
+
+// Transforms an async function so that it catches and reports errors using the provided text
+export const withErrorReporting = title => fn => async (...args) => {
+  try {
+    return await fn(...args)
+  } catch (error) {
+    reportError(title, error)
+  }
+}

@@ -21,7 +21,7 @@ import { getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
 import { EntityDeleter, EntityUploader, ReferenceDataDeleter, ReferenceDataImporter, renderDataCell } from 'src/libs/data-utils'
-import { reportError } from 'src/libs/error'
+import { withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
 import * as Utils from 'src/libs/utils'
@@ -108,28 +108,24 @@ const LocalVariablesContent = ajaxCaller(class LocalVariablesContent extends Com
         ['Value is not a comma-separated list of numbers'] : [])
     ]
 
-    const saveAttribute = async originalKey => {
-      try {
-        const isList = editType.includes('list')
-        const newBaseType = isList ? editType.slice(0, -5) : editType
+    const saveAttribute = withErrorReporting('Error saving change to workspace variables')(async originalKey => {
+      const isList = editType.includes('list')
+      const newBaseType = isList ? editType.slice(0, -5) : editType
 
-        const parsedValue = isList ? _.map(Utils.convertValue(newBaseType), editValue.split(/,s*/)) :
-          Utils.convertValue(newBaseType, editValue)
+      const parsedValue = isList ? _.map(Utils.convertValue(newBaseType), editValue.split(/,s*/)) :
+        Utils.convertValue(newBaseType, editValue)
 
-        this.setState({ saving: true })
+      this.setState({ saving: true })
 
-        await Workspaces.workspace(namespace, name).shallowMergeNewAttributes({ [editKey]: parsedValue })
+      await Workspaces.workspace(namespace, name).shallowMergeNewAttributes({ [editKey]: parsedValue })
 
-        if (editKey !== originalKey) {
-          await Workspaces.workspace(namespace, name).deleteAttributes([originalKey])
-        }
-
-        await refreshWorkspace()
-        stopEditing()
-      } catch (e) {
-        reportError('Error saving change to workspace variables', e)
+      if (editKey !== originalKey) {
+        await Workspaces.workspace(namespace, name).deleteAttributes([originalKey])
       }
-    }
+
+      await refreshWorkspace()
+      stopEditing()
+    })
 
     const { initialY } = firstRender ? StateHistory.get() : {}
     return h(Fragment, [
@@ -237,17 +233,14 @@ const LocalVariablesContent = ajaxCaller(class LocalVariablesContent extends Com
         onDismiss: () => this.setState({ deleteIndex: undefined }),
         title: 'Are you sure you wish to delete this variable?',
         okButton: buttonPrimary({
-          onClick: async () => {
-            try {
-              this.setState({ deleteIndex: undefined, saving: true })
-              await Workspaces.workspace(namespace, name).deleteAttributes([amendedAttributes[deleteIndex][0]])
-              refreshWorkspace()
-            } catch (e) {
-              reportError('Error deleting workspace variable', e)
-            } finally {
-              this.setState({ saving: false })
-            }
-          }
+          onClick: _.flow(
+            withErrorReporting('Error deleting workspace variable'),
+            Utils.withBusyState(v => this.setState({ saving: v }))
+          )(async () => {
+            this.setState({ deleteIndex: undefined })
+            await Workspaces.workspace(namespace, name).deleteAttributes([amendedAttributes[deleteIndex][0]])
+            refreshWorkspace()
+          })
         },
         'Delete Variable')
       }, ['This will permanently delete the data from Workspace Data.']),
@@ -336,16 +329,14 @@ class EntitiesContent extends Component {
       buttonPrimary({
         style: { margin: '0 1rem' },
         tooltip: 'Copy only the current page to the clipboard',
-        onClick: async () => {
+        onClick: _.flow(
+          withErrorReporting('Error copying to clipboard'),
+          Utils.withBusyState(v => this.setState({ copying: v }))
+        )(async () => {
           const str = this.buildTSV(columnSettings, entities)
-          try {
-            this.setState({ copying: true })
-            await clipboard.writeText(str)
-            this.setState({ copying: false, copied: true })
-          } catch (error) {
-            reportError('Error copying to clipboard', error)
-          }
-        }
+          await clipboard.writeText(str)
+          this.setState({ copied: true })
+        })
       }, [
         icon('copy-to-clipboard', { style: { marginRight: '0.5rem' } }),
         'Copy to Clipboard'
@@ -434,17 +425,15 @@ const DeleteObjectModal = ajaxCaller(class DeleteObjectModal extends Component {
     this.state = { deleting: false }
   }
 
-  async delete() {
-    const { name, workspace: { workspace: { namespace, bucketName } }, ajax: { Buckets }, onSuccess } = this.props
-    try {
-      this.setState({ deleting: true })
+  delete() {
+    return _.flow(
+      withErrorReporting('Error deleting object'),
+      Utils.withBusyState(v => this.setState({ deleting: v }))
+    )(async () => {
+      const { name, workspace: { workspace: { namespace, bucketName } }, ajax: { Buckets }, onSuccess } = this.props
       await Buckets.delete(namespace, bucketName, name)
       onSuccess()
-    } catch (error) {
-      reportError('Error deleting object', error)
-    } finally {
-      this.setState({ deleting: false })
-    }
+    })()
   }
 
   render() {
@@ -485,31 +474,27 @@ const BucketContent = ajaxCaller(class BucketContent extends Component {
     StateHistory.update(_.pick(['objects', 'prefix'], this.state))
   }
 
-  async load(prefix = this.state.prefix) {
-    const { workspace: { workspace: { namespace, bucketName } }, ajax: { Buckets } } = this.props
-    try {
-      this.setState({ loading: true })
+  load(prefix = this.state.prefix) {
+    return _.flow(
+      withErrorReporting('Error loading bucket data'),
+      Utils.withBusyState(v => this.setState({ loading: v }))
+    )(async () => {
+      const { workspace: { workspace: { namespace, bucketName } }, ajax: { Buckets } } = this.props
       const { items, prefixes } = await Buckets.list(namespace, bucketName, prefix)
       this.setState({ objects: items, prefixes, prefix })
-    } catch (error) {
-      reportError('Error loading bucket data', error)
-    } finally {
-      this.setState({ loading: false })
-    }
+    })()
   }
 
-  async uploadFiles(files) {
-    const { workspace: { workspace: { namespace, bucketName } }, ajax: { Buckets } } = this.props
-    const { prefix } = this.state
-    try {
-      this.setState({ uploading: true })
+  uploadFiles(files) {
+    return _.flow(
+      withErrorReporting('Error uploading file'),
+      Utils.withBusyState(v => this.setState({ uploading: v }))
+    )(async () => {
+      const { workspace: { workspace: { namespace, bucketName } }, ajax: { Buckets } } = this.props
+      const { prefix } = this.state
       await Buckets.upload(namespace, bucketName, prefix, files[0])
       this.load()
-    } catch (error) {
-      reportError('Error uploading file', error)
-    } finally {
-      this.setState({ uploading: false })
-    }
+    })()
   }
 
   render() {
@@ -619,19 +604,16 @@ const WorkspaceData = _.flow(
     }
   }
 
-  async loadMetadata() {
-    const { namespace, name, ajax: { Workspaces } } = this.props
-    const { selectedDataType } = this.state
-
-    try {
+  loadMetadata() {
+    return withErrorReporting('Error loading workspace entity data')(async () => {
+      const { namespace, name, ajax: { Workspaces } } = this.props
+      const { selectedDataType } = this.state
       const entityMetadata = await Workspaces.workspace(namespace, name).entityMetadata()
       this.setState({
         selectedDataType: this.selectionType() === 'entities' && !entityMetadata[selectedDataType] ? undefined : selectedDataType,
         entityMetadata
       })
-    } catch (error) {
-      reportError('Error loading workspace entity data', error)
-    }
+    })()
   }
 
   async componentDidMount() {
