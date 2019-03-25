@@ -1,10 +1,10 @@
 import Interactive from 'react-interactive'
-import * as Auth from 'src/libs/auth'
-import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { pure } from 'recompose'
 import { spinnerOverlay } from 'src/components/common'
+import * as Auth from 'src/libs/auth'
+import _ from 'lodash/fp'
 import { icon } from 'src/components/icons'
 import TopBar from 'src/components/TopBar'
 import { ajaxCaller } from 'src/libs/ajax'
@@ -15,7 +15,8 @@ import * as StateHistory from 'src/libs/state-history'
 import { Component } from 'src/libs/wrapped-components'
 import ProjectUsersList from 'src/pages/billing/Project'
 
-const ProjectTabs = pure(({ project: { projectName, role, creationStatus } }, /*isActive*/) => {
+
+const ProjectTabs = pure(({ project: { projectName, role, creationStatus } } /*isActive*/) => {
   const isOwner = !!_.includes('Owner', role)
   const projectReady = creationStatus === 'Ready'
   const isClickable = isOwner && projectReady
@@ -111,7 +112,7 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
           }, [title])
         ])
       ]),
-      div({ style: { display: 'flex', flex: 1, flexWrap: 'wrap'  } }, [
+      div({ style: { display: 'flex', flex: 1, flexWrap: 'wrap' } }, [
         div({ style: { width: 290, boxShadow: '0 2px 5px 0 rgba(0,0,0,0.25)' } }, [
           div({
             style: {

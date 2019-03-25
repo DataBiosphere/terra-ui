@@ -478,6 +478,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
     const currentCluster = this.getCurrentCluster()
     const currentStatus = currentCluster && currentCluster.status
     const running = currentStatus === 'Running'
+    const spendingClusters = _.remove(({ status }) => _.includes(status, ['Deleting', 'Error']), clusters)
     const renderIcon = () => {
       switch (currentStatus) {
         case 'Stopped':
@@ -498,24 +499,23 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
         case 'Stopping':
         case 'Creating':
           return h(ClusterIcon, { shape: 'sync', disabled: true })
-        case undefined:
+        default:
           return h(ClusterIcon, {
             shape: 'play',
             onClick: () => this.createDefaultCluster(),
             disabled: busy || !canCompute,
             tooltip: canCompute ? 'Create cluster' : noCompute
           })
-        default:
-          return h(ClusterIcon, { shape: 'ban', disabled: true })
       }
     }
     const totalCost = _.sum(_.map(({ machineConfig, status }) => {
       return (status === 'Stopped' ? machineStorageCost : machineConfigCost)(machineConfig)
-    }, clusters))
+    }, spendingClusters))
     const activeClusters = this.getActiveClustersOldestFirst()
     const creating = _.some({ status: 'Creating' }, activeClusters)
     const multiple = !creating && activeClusters.length > 1
     const isDisabled = !canCompute || creating || multiple || busy
+
     return div({ style: styles.container }, [
       h(MiniLink, {
         href: Nav.getLink('workspace-terminal-launch', { namespace, name }),
@@ -531,7 +531,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
       h(ClusterIcon, {
         shape: 'trash',
         onClick: () => this.setState({ deleting: true }),
-        disabled: busy || !canCompute || !_.includes(currentStatus, ['Stopped', 'Running']),
+        disabled: busy || !canCompute || !_.includes(currentStatus, ['Stopped', 'Running', 'Error']),
         tooltip: 'Delete cluster',
         style: { marginLeft: '0.5rem' }
       }),

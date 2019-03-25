@@ -28,18 +28,19 @@ jobs:
       - attach_workspace:
           at: .
       - run: npm run build
-      - run: tar -czf build.tgz app.yaml build config
+      - run: tar -czf build.tgz .gcloudignore app.yaml build config
       - store_artifacts:
           path: build.tgz
       - persist_to_workspace:
           root: .
           paths:
+            - .gcloudignore
             - app.yaml
             - build
             - config
   deploy-pr:
     docker:
-      - image: google/cloud-sdk:latest
+      - image: google/cloud-sdk:alpine
     steps:
       - attach_workspace:
           at: .
@@ -56,7 +57,7 @@ jobs:
             fi
   deploy-dev:
     docker:
-      - image: google/cloud-sdk:latest
+      - image: google/cloud-sdk:alpine
     steps:
       - attach_workspace:
           at: /root/project

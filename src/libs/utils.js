@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import uuid from 'uuid/v4'
 
@@ -36,11 +36,11 @@ export const atom = initialValue => {
  */
 export const useAtom = theAtom => {
   const [value, setValue] = useState(theAtom.get())
-  const handleChange = useCallback(v => setValue(v), [setValue])
   useEffect(() => {
+    const handleChange = v => setValue(v)
     theAtom.subscribe(handleChange)
     return () => theAtom.unsubscribe(handleChange)
-  }, [theAtom, handleChange])
+  }, [theAtom, setValue])
   return value
 }
 
@@ -242,3 +242,5 @@ export const normalizeMachineConfig = ({ masterMachineType, masterDiskSize, numb
     workerDiskSize: (numberOfWorkers && workerDiskSize) || 500
   }
 }
+
+export const append = _.curry((value, arr) => _.concat(arr, [value]))
