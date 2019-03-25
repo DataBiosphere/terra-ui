@@ -1,19 +1,185 @@
 import _ from 'lodash/fp'
 import { Fragment } from 'react'
-import { div, h } from 'react-hyperscript-helpers'
-import { PageBox, search, spinnerOverlay } from 'src/components/common'
+import { a, div, h, span } from 'react-hyperscript-helpers'
+import { pure } from 'recompose'
+import { buttonPrimary, Clickable, PageBox, search, Select, spinnerOverlay } from 'src/components/common'
 import { DeleteUserModal, EditUserModal, MemberCard, NewUserCard, NewUserModal } from 'src/components/group-common'
-import TopBar from 'src/components/TopBar'
+import { icon } from 'src/components/icons'
+import { validatedInput } from 'src/components/input'
+import Modal from 'src/components/Modal'
 import { ajaxCaller } from 'src/libs/ajax'
+import * as Auth from 'src/libs/auth'
+import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
-import * as Nav from 'src/libs/nav'
+import * as Forms from 'src/libs/forms'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
+import validate from 'validate.js'
+
+const billingProjectNameValidator = existing => ({
+  presence: { allowEmpty: false },
+  length: { minimum: 6, maximum: 30 },
+  format: {
+    pattern: /^[a-z]([a-z0-9-])*$/,
+    message: 'must start with a letter and can only contain lowercase letters, numbers, and hyphens.'
+  },
+  exclusion: {
+    within: existing,
+    message: 'already exists'
+  }
+})
+
+const NewBillingProjectCard = pure(({ onClick }) => {
+  return h(Clickable, {
+    style: Style.cardList.shortCreateCard,
+    onClick
+  }, [
+    div(['Create a']),
+    div(['New Project']),
+    icon('plus-circle', { style: { marginTop: '0.5rem' }, size: 21 })
+  ])
+})
+
+const NewBillingProjectModal = ajaxCaller(class NewBillingProjectModal extends Component {
+  constructor(props) {
+    super(props)
+    this.state = {
+      billingProjectName: '',
+      billingProjectNameTouched: false,
+      existing: []
+    }
+  }
+
+  async loadBillingAccounts() {
+    const { ajax: { Billing } } = this.props
+    try {
+      const billingAccounts = await Billing.listAccounts()
+      this.setState({ billingAccounts })
+    } catch (error) {
+      reportError('Error loading billing accounts', error)
+    }
+  }
+
+  async componentDidMount() {
+    this.loadBillingAccounts()
+  }
+
+  render() {
+    const { onDismiss } = this.props
+    const { billingProjectName, billingProjectNameTouched, submitting, chosenBillingAccount, billingAccounts, existing } = this.state
+    const errors = validate({ billingProjectName }, { billingProjectName: billingProjectNameValidator(existing) })
+
+    return h(Modal, {
+      onDismiss,
+      title: 'Create Billing Project',
+      showCancel: !(billingAccounts && billingAccounts.length === 0),
+      showButtons: !!billingAccounts,
+      okButton: billingAccounts && billingAccounts.length !== 0 ?
+        buttonPrimary({
+          disabled: errors || !chosenBillingAccount || !chosenBillingAccount.firecloudHasAccess,
+          onClick: () => this.submit()
+        }, ['Create Billing Project']) :
+        buttonPrimary({
+          onClick: () => onDismiss()
+        }, ['Ok'])
+    }, [
+      !billingAccounts && spinnerOverlay,
+      billingAccounts && billingAccounts.length === 0 && h(Fragment, [
+        `You don't have access to any billing accounts.  `,
+        a({
+          style: { color: colors.blue[0], fontWeight: 700 },
+          href: `https://gatkforums.broadinstitute.org/firecloud/discussion/9762/howto-set-up-a-google-billing-account-non-broad-users`,
+          target: '_blank'
+        }, ['Learn how to create a billing account.  ', icon('pop-out', { size: 20 })])
+      ]),
+      billingAccounts && billingAccounts.length !== 0 && h(Fragment, [
+        Forms.requiredFormLabel('Enter name'),
+        validatedInput({
+          inputProps: {
+            autoFocus: true,
+            value: billingProjectName,
+            onChange: e => this.setState({ billingProjectName: e.target.value, billingProjectNameTouched: true })
+          },
+          error: billingProjectNameTouched && Utils.summarizeErrors(errors && errors.billingProjectName)
+        }),
+        !(billingProjectNameTouched && errors) && Forms.formHint('Name must be unique and cannot be changed.'),
+        Forms.requiredFormLabel('Select billing account'),
+        div({ style: { fontSize: 14 } }, [
+          h(Select, {
+            isMulti: false,
+            placeholder: 'Select billing account',
+            value: chosenBillingAccount,
+            onChange: selected => this.setState({ chosenBillingAccount: selected.value }),
+            options: _.map(account => {
+              return {
+                value: account,
+                label: account.displayName
+              }
+            }, billingAccounts)
+          })
+        ]),
+        !!chosenBillingAccount && !chosenBillingAccount.firecloudHasAccess && div({ style: { fontWeight: 500, fontSize: 12 } }, [
+          div({ style: { color: colors.red[0], margin: '0.25rem 0 0.25rem 0', fontSize: 13 } }, [
+            'Terra does not have access to this account. To grant access, add ', span({ style: { fontWeight: 'bold' } }, 'billing@firecloud.org'),
+            ' as a Billing Account User on the ',
+            a({
+              style: { color: colors.blue[0], fontWeight: 700 },
+              href: `https://console.cloud.google.com/billing/${chosenBillingAccount.accountName.split('/')[1]}?authuser=${Auth.getUser().email}`,
+              target: '_blank'
+            }, ['Google Cloud Console ', icon('pop-out', { size: 12 })])
+          ]),
+          // The following lines will be re-added soon:
+          // div({ style: { marginBottom: '0.25rem' } }, [
+          //   '2. Click ',
+          //   h(Clickable, {
+          //     as: 'span',
+          //     style: { color: colors.blue[0], fontWeight: 700 },
+          //     onClick: () => {
+          //       this.setState({ billingAccounts: undefined })
+          //       this.loadBillingAccounts()
+          //     }
+          //   }, ['HERE']), ' to refresh your billing accounts.'
+          // ]),
+          div({ style: { marginTop: '0.5rem' } }, [
+            'Need help? ',
+            a({
+              style: { color: colors.blue[0], fontWeight: 700 },
+              href: `https://gatkforums.broadinstitute.org/firecloud/discussion/9762/howto-set-up-a-google-billing-account-non-broad-users`,
+              target: '_blank'
+            }, ['Click here ', icon('pop-out', { size: 12 })]), ' for more information.'
+          ])
+        ])
+      ]),
+      submitting && spinnerOverlay
+    ])
+  }
+
+  async submit() {
+    const { onSuccess, ajax: { Billing } } = this.props
+    const { billingProjectName, chosenBillingAccount, existing } = this.state
+
+    try {
+      this.setState({ submitting: true })
+      await Billing.createProject(billingProjectName, chosenBillingAccount.accountName)
+      onSuccess()
+    } catch (error) {
+      switch (error.status) {
+        case 409:
+          this.setState({ existing: _.concat(billingProjectName, existing), submitting: false })
+          break
+        default:
+          reportError('Error creating billing project', error)
+      }
+    } finally {
+      this.setState({ submitting: false })
+    }
+  }
+})
 
 
-export const ProjectUsersList = ajaxCaller(class ProjectUsersList extends Component {
+export default ajaxCaller(class ProjectUsersList extends Component {
   constructor(props) {
     super(props)
     this.state = {
@@ -23,6 +189,7 @@ export const ProjectUsersList = ajaxCaller(class ProjectUsersList extends Compon
       editingUser: false,
       deletingUser: false,
       updating: false,
+      creatingBillingProject: false,
       ...StateHistory.get()
     }
   }
@@ -52,85 +219,85 @@ export const ProjectUsersList = ajaxCaller(class ProjectUsersList extends Compon
 
   render() {
     const { projectName, ajax: { Billing } } = this.props
-    const { projectUsers, loading, updating, filter, addingUser, deletingUser, editingUser } = this.state
+    const { projectUsers, loading, updating, filter, addingUser, deletingUser, editingUser, creatingBillingProject } = this.state
     const adminCanEdit = _.filter(({ roles }) => _.includes('Owner', roles), projectUsers).length > 1
+    const creationStatus = 'Ready'
 
     return h(Fragment, [
-      h(TopBar, { title: 'Billing', href: Nav.getLink('billing') }, [
-        search({
-          wrapperProps: { style: { marginLeft: '2rem', flexGrow: 1, maxWidth: 500 } },
-          inputProps: {
-            placeholder: 'SEARCH USERS',
-            onChange: e => this.setState({ filter: e.target.value }),
-            value: filter
+      div({ style: { padding: '1rem' } }, [
+        div({
+          style: {
+            ...Style.elements.sectionHeader,
+            textTransform: 'uppercase'
           }
-        })
+        }, [`Billing Project - ${projectName}`]),
+        icon(Utils.cond(
+          [creationStatus === 'Ready', 'check'],
+          [creationStatus === 'Creating', 'loadingSpinner'],
+          'error-standard'), {
+          style: {
+            color: colors.green[0],
+            marginRight: '1rem'
+          }
+        }),
+        creationStatus
       ]),
-      h(PageBox, {
-        style: {
-          padding: '1.5rem',
-          flex: 1
-        }
-      }, [
-        div({ style: { ...Style.cardList.toolbarContainer, marginBottom: '1rem' } }, [
-          div({
-            style: {
-              ...Style.elements.sectionHeader,
-              textTransform: 'uppercase'
-            }
-          }, [`Billing Project - ${projectName}`])
-        ]),
-        div({ style: Style.cardList.cardContainer }, [
-          h(NewUserCard, {
-            onClick: () => this.setState({ addingUser: true })
-          }),
-          div({ style: { flexGrow: 1 } },
-            _.map(member => {
-              return h(MemberCard, {
-                adminLabel: 'Owner',
-                userLabel: 'User',
-                member, adminCanEdit,
-                onEdit: () => this.setState({ editingUser: member }),
-                onDelete: () => this.setState({ deletingUser: member })
-              })
-            }, _.filter(({ email }) => Utils.textMatch(filter, email), projectUsers))
-          ),
-          loading && spinnerOverlay
-        ]),
-        addingUser && h(NewUserModal, {
-          adminLabel: 'Owner',
-          userLabel: 'User',
-          title: 'Add user to Billing Project',
-          footer: 'Warning: Adding any user to this project will mean they can incur costs to the billing associated with this project.',
-          addFunction: Billing.project(projectName).addUser,
-          onDismiss: () => this.setState({ addingUser: false }),
-          onSuccess: () => this.refresh()
+      div({ style: Style.cardList.cardContainer }, [
+        h(NewUserCard, {
+          onClick: () => this.setState({ addingUser: true })
         }),
-        editingUser && h(EditUserModal, {
-          adminLabel: 'Owner',
-          userLabel: 'User',
-          user: editingUser,
-          saveFunction: Billing.project(projectName).changeUserRoles,
-          onDismiss: () => this.setState({ editingUser: false }),
-          onSuccess: () => this.refresh()
+        h(NewBillingProjectCard, {
+          onClick: () => this.setState({ creatingBillingProject: true })
         }),
-        !!deletingUser && h(DeleteUserModal, {
-          userEmail: deletingUser.email,
-          onDismiss: () => this.setState({ deletingUser: false }),
-          onSubmit: async () => {
-            try {
-              this.setState({ updating: true, deletingUser: false })
-              await Billing.project(projectName).removeUser(deletingUser.roles, deletingUser.email)
-              this.refresh()
-            } catch (error) {
-              this.setState({ updating: false })
-              reportError('Error removing member from billing project', error)
-            }
+        div({ style: { flexGrow: 1 } },
+          _.map(member => {
+            return h(MemberCard, {
+              adminLabel: 'Owner',
+              userLabel: 'User',
+              member, adminCanEdit,
+              onEdit: () => this.setState({ editingUser: member }),
+              onDelete: () => this.setState({ deletingUser: member })
+            })
+          }, _.filter(({ email }) => Utils.textMatch(filter, email), projectUsers))
+        ),
+        loading && spinnerOverlay
+      ]),
+      addingUser && h(NewUserModal, {
+        adminLabel: 'Owner',
+        userLabel: 'User',
+        title: 'Add user to Billing Project',
+        footer: 'Warning: Adding any user to this project will mean they can incur costs to the billing associated with this project.',
+        addFunction: Billing.project(projectName).addUser,
+        onDismiss: () => this.setState({ addingUser: false }),
+        onSuccess: () => this.refresh()
+      }),
+      editingUser && h(EditUserModal, {
+        adminLabel: 'Owner',
+        userLabel: 'User',
+        user: editingUser,
+        saveFunction: Billing.project(projectName).changeUserRoles,
+        onDismiss: () => this.setState({ editingUser: false }),
+        onSuccess: () => this.refresh()
+      }),
+      !!deletingUser && h(DeleteUserModal, {
+        userEmail: deletingUser.email,
+        onDismiss: () => this.setState({ deletingUser: false }),
+        onSubmit: async () => {
+          try {
+            this.setState({ updating: true, deletingUser: false })
+            await Billing.project(projectName).removeUser(deletingUser.roles, deletingUser.email)
+            this.refresh()
+          } catch (error) {
+            this.setState({ updating: false })
+            reportError('Error removing member from billing project', error)
           }
-        }),
-        updating && spinnerOverlay
-      ])
-
+        }
+      }),
+      creatingBillingProject && h(NewBillingProjectModal, {
+        onDismiss: () => this.setState({ creatingBillingProject: false }),
+        onSuccess: () => this.refresh() //TODO also refresh project list
+      }),
+      updating && spinnerOverlay
     ])
   }
 
@@ -141,12 +308,3 @@ export const ProjectUsersList = ajaxCaller(class ProjectUsersList extends Compon
     )
   }
 })
-
-
-export const addNavPaths = () => {
-  Nav.defPath('project', {
-    path: '/billing/:projectName',
-    component: ProjectUsersList,
-    title: ({ projectName }) => `Billing Management - ${projectName}`
-  })
-}
