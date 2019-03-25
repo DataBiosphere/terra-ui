@@ -12,7 +12,7 @@ import * as Utils from 'src/libs/utils'
 import validate from 'validate.js'
 
 
-export default ({ onDismiss }) => {
+const NewAccountModal = ({ onDismiss }) => {
   /*
    * State setup
    */
@@ -337,3 +337,5 @@ export default ({ onDismiss }) => {
     ])
   ])
 }
+
+export default NewAccountModal
