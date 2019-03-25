@@ -51,7 +51,7 @@ export const initializeAuth = _.memoize(async () => {
         //tried to sign in (invoking processUser) and was still not signed in (isSignedIn === false).
         notify('info', 'Having trouble logging in?', {
           message: 'Click for more information',
-          detail: 'Login failure may be due to privacy tools such as Privacy Badger or Ghostery. Please disable those tools, refresh, and try signing in again.',
+          detail: 'If you are using privacy blockers, they may be preventing you from signing in. Please disable those tools, refresh, and try signing in again.',
           timeout: 30000
         })
       }
