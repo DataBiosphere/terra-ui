@@ -26,20 +26,20 @@ export const hasBillingScope = () => {
 }
 
 /*
- * Request Google Cloud Billing scope if necessary, then do the thing.
+ * Request Google Cloud Billing scope if necessary.
  *
  * NOTE: Requesting additional scopes may invoke a browser pop-up which the browser might block.
- * If you use withBillingScope during page load and the pop-up is blocked, onFailure will be called.
- * In this case, you'll need to provide something for the user to deliberately click on and retry
- * withBillingScope in reaction to the click.
+ * If you use ensureBillingScope during page load and the pop-up is blocked, a rejected promise will
+ * be returned. In this case, you'll need to provide something for the user to deliberately click on
+ * and retry ensureBillingScope in reaction to the click.
  */
-export const withBillingScope = (f, onFailure) => {
+export const ensureBillingScope = async () => {
   if (hasBillingScope()) {
-    f()
+    return Promise.resolve()
   } else {
     const options = new window.gapi.auth2.SigninOptionsBuilder({ 'scope': 'https://www.googleapis.com/auth/cloud-billing' })
     // Wait 100ms before doing the thing to avoid errors due to delays in applying the new scope grant
-    getAuthInstance().currentUser.get().grant(options).then(() => setTimeout(f, 100), onFailure)
+    return getAuthInstance().currentUser.get().grant(options).then(() => new Promise(resolve => setTimeout(resolve, 100)))
   }
 }
 
