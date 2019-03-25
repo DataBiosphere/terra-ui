@@ -11,6 +11,7 @@ import { ajaxCaller } from 'src/libs/ajax'
 import * as Auth from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
+import { formHint, RequiredFormLabel } from 'src/libs/forms'
 import * as Forms from 'src/libs/forms'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
@@ -95,7 +96,7 @@ const NewBillingProjectModal = ajaxCaller(class NewBillingProjectModal extends C
         }, ['Learn how to create a billing account.  ', icon('pop-out', { size: 20 })])
       ]),
       billingAccounts && billingAccounts.length !== 0 && h(Fragment, [
-        Forms.requiredFormLabel('Enter name'),
+        h(RequiredFormLabel, ['Enter name']),
         validatedInput({
           inputProps: {
             autoFocus: true,
@@ -104,8 +105,8 @@ const NewBillingProjectModal = ajaxCaller(class NewBillingProjectModal extends C
           },
           error: billingProjectNameTouched && Utils.summarizeErrors(errors && errors.billingProjectName)
         }),
-        !(billingProjectNameTouched && errors) && Forms.formHint('Name must be unique and cannot be changed.'),
-        Forms.requiredFormLabel('Select billing account'),
+        !(billingProjectNameTouched && errors) && formHint('Name must be unique and cannot be changed.'),
+        h(RequiredFormLabel, ['Select billing account']),
         div({ style: { fontSize: 14 } }, [
           h(Select, {
             isMulti: false,
