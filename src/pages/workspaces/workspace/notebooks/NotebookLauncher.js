@@ -43,6 +43,7 @@ const styles = {
 const getCluster = clusters => {
   return _.flow(
     _.remove({ status: 'Deleting' }),
+    _.remove({ status: 'Error' }),
     _.sortBy('createdDate'),
     _.first
   )(clusters)
