@@ -675,29 +675,24 @@ const GoogleBilling = signal => ({
       reportError('Terra does not have access to query your Google Cloud Billing information')
     }
     const response = await fetchGoogleBilling('billingAccounts', _.merge(authOpts(), { signal }))
-    const result = await response.json()
-    return result.billingAccounts
+    const json = await response.json()
+    return json.billingAccounts
   },
 
-  listProjectsWithAccounts: async billingAccountNames => {
-    return _.fromPairs(
-      _.compact(
-        await Promise.all(
-          _.map(
-            async name => fetchGoogleBilling(`${name}/projects`, _.merge(authOpts(), { signal })).then(
-              response => response.json().then(
-                json => [name, _.map(
-                  info => _.get('projectId', info),
-                  _.getOr([], 'projectBillingInfo', json)
-                )]
-              ),
-              () => undefined
-            ),
-            billingAccountNames
-          )
-        )
-      )
-    )
+  listProjectNames: async billingAccountName => {
+    try {
+      const response = await fetchGoogleBilling(`${billingAccountName}/projects`, _.merge(authOpts(), { signal }))
+      const json = await response.json()
+      return _.map('projectId', json.projectBillingInfo)
+    } catch (errorResponse) {
+      // This might happen if the user has permission to create projects with this account
+      // but is missing the billing.resourceAssociations.list permission.
+      if (errorResponse.status === 403) {
+        return []
+      } else {
+        throw errorResponse
+      }
+    }
   }
 })
 
