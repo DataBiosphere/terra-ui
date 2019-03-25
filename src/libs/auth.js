@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import * as md5 from 'md5'
-import { clearNotification, sessionTimeoutProps } from 'src/components/Notifications'
+import { clearNotification, sessionTimeoutProps, notify } from 'src/components/Notifications'
 import ProdWhitelist from 'src/data/prod-whitelist'
 import { Ajax, fetchOk } from 'src/libs/ajax'
 import { getConfig } from 'src/libs/config'
@@ -45,6 +45,16 @@ export const initializeAuth = _.memoize(async () => {
       const authResponse = user.getAuthResponse(true)
       const profile = user.getBasicProfile()
       const isSignedIn = user.isSignedIn()
+      //The following few lines of code are to handle sign-in failures due to privacy tools.
+      if (state.isSignedIn===false && isSignedIn === false) {
+        //if both of these values are false, it means that the user was initially not signed in (state.isSignedIn === false),
+        //tried to sign in (invoking processUser) and was still not signed in (isSignedIn === false).
+        notify('info', 'Having trouble logging in?', {
+          message: 'Click for more information',
+          detail: 'Login failure may be due to privacy tools such as Privacy Badger or Ghostery. Please disable those tools, refresh, and try signing in again.',
+          timeout: 30000
+        })
+      }
       return {
         ...state,
         isSignedIn,
