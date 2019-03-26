@@ -367,7 +367,7 @@ const WorkflowView = _.flow(
     // modifiedConfig: active data, potentially unsaved
     const {
       isFreshData, savedConfig, launching, activeTab,
-      entitySelectionModel, variableSelected, modifiedConfig, isRedacted
+      entitySelectionModel, variableSelected, modifiedConfig, isRedacted, updatingConfig
     } = this.state
     const { namespace, name, workspace } = this.props
     const workspaceId = { namespace, name }
@@ -401,7 +401,7 @@ const WorkflowView = _.flow(
         title: 'Tool Removed',
         onDismiss: () => Nav.goToPath('workspace-tools', { namespace, name })
       }, [div('This tool has been removed. You cannot view or run an analysis with this tool. Press OK to return to your list of tools.')]),
-      !isFreshData && spinnerOverlay
+      !isFreshData || updatingConfig && spinnerOverlay
     ])
   }
 
@@ -501,13 +501,16 @@ const WorkflowView = _.flow(
 
   async loadNewMethodConfig(newSnapshotId) {
     const { ajax: { Methods } } = this.props
-    const { modifiedConfig: { methodRepoMethod: { methodNamespace, methodName, sourceRepo } } } = this.state
+    const { modifiedConfig: { methodRepoMethod: { methodNamespace, methodName } } } = this.state
     try { //change format after new format of this goes in!
-      const config = await Methods.template({ methodNamespace, methodName, methodVersion: newSnapshotId, methodUri: `${sourceRepo}://${methodNamespace}/${methodName}/${newSnapshotId}` })
+      this.setState({ updatingConfig: true })
+      const config = await Methods.template({ methodNamespace, methodName, methodVersion: newSnapshotId })
       const inputsOutputs = await Methods.configInputsOutputs(config)
       this.setState({ inputsOutputs: _.update('inputs', _.sortBy('optional'), inputsOutputs) })
     } catch (e) {
       reportError(e)
+    } finally {
+      this.setState({ updatingConfig: false })
     }
   }
 
