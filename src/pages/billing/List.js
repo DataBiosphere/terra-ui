@@ -295,7 +295,6 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
               })
             )(billingProjects)
           ]),
-          h(NewAccountModal, { onDismiss: () => {} }),
           (!isDataLoaded || updating) && spinnerOverlay
         ]),
         creatingBillingProject && h(NewBillingProjectModal, {
