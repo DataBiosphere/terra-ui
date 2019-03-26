@@ -289,7 +289,7 @@ const Notebooks = _.flow(
             icon('plus-circle', { style: { marginTop: '0.5rem' }, size: 21 })
           ])
         ]),
-        div({ style: { width: 20, height: 15 } }),
+        div({ style: { height: 15 } }),
         h(Clickable, {
           style: {
             ...Style.elements.card.container, flex: 1,
