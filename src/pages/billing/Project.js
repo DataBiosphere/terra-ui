@@ -179,7 +179,7 @@ const NewBillingProjectModal = ajaxCaller(class NewBillingProjectModal extends C
 })
 
 
-export default ajaxCaller(class ProjectUsersList extends Component {
+export default ajaxCaller(class ProjectDetail extends Component {
   constructor(props) {
     super(props)
     this.state = {
@@ -224,21 +224,20 @@ export default ajaxCaller(class ProjectUsersList extends Component {
     const creationStatus = 'Ready'
 
     return h(Fragment, [
-      div({ style: { padding: '2rem 3rem' } }, [
-        div({ style: Style.elements.sectionHeader },
-          [`Billing Project - ${projectName}`]),
-        div({ style: { margin: '1rem 0' } }, [
-          icon(Utils.cond(
-            [creationStatus === 'Ready', 'check'],
-            [creationStatus === 'Creating', 'loadingSpinner'],
-            'error-standard'), {
-            style: {
-              color: colors.green[0],
-              marginRight: '1rem'
-            }
-          }),
-          creationStatus
-        ]),
+      div({ style: { padding: '1.5rem 3rem' } }, [
+        div({ style: { color: colors.gray[0], fontSize: 16, fontWeight: 600 } },
+          [
+            `BILLING PROJECT: ${projectName}`,
+            span({ style: { fontWeight: 500, fontSize: 14, margin: '0 1.5rem 0 3rem' } }, creationStatus),
+            span({ style: {  } }, [
+              icon(Utils.cond(
+                [creationStatus === 'Ready', 'check'],
+                [creationStatus === 'Creating', 'loadingSpinner'],
+                'error-standard'), {
+                style: { color: colors.green[0], marginRight: '1rem' }
+              })
+            ])
+          ]),
         div({ style: Style.cardList.cardContainer }, [
           h(NewUserCard, {
             onClick: () => this.setState({ addingUser: true })
@@ -257,9 +256,9 @@ export default ajaxCaller(class ProjectUsersList extends Component {
         ])
 
       ]),
-      h(NewBillingProjectCard, {
-        onClick: () => this.setState({ creatingBillingProject: true })
-      }),
+      // h(NewBillingProjectCard, {
+      //   onClick: () => this.setState({ creatingBillingProject: true })
+      // }),
       addingUser && h(NewUserModal, {
         adminLabel: 'Owner',
         userLabel: 'User',

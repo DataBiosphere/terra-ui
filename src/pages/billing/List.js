@@ -13,7 +13,7 @@ import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
 import { Component } from 'src/libs/wrapped-components'
-import ProjectUsersList from 'src/pages/billing/Project'
+import ProjectDetail from 'src/pages/billing/Project'
 
 
 const ProjectTabs = pure(({ project: { projectName, role, creationStatus } } /*isActive*/) => {
@@ -93,8 +93,8 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
   render() {
     const { billingProjects, isDataLoaded, updating } = this.state
     //const { breadcrumbs, title } = this.props
-    const breadcrumbs = 'Billing > this is a breadcrumb'
-    const title = 'First Billing account detail page'
+    const breadcrumbs = 'Billing > Billing Accounts'
+    const title = 'Example Billing account details'
 
     return h(Fragment, [
       h(TopBar, { title: 'Billing', href: Nav.getLink('billing') }, [
@@ -117,14 +117,14 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
           div({
             style: {
               color: colors.gray[0], backgroundColor: colors.grayBlue[5], fontSize: 16,
-              fontWeight: 600, textTransform: 'uppercase', padding: 25, borderBottom: `0.5px solid ${colors.grayBlue[2]}`
+              fontWeight: 600, textTransform: 'uppercase', padding: '1.5rem', borderBottom: `0.5px solid ${colors.grayBlue[2]}`
             }
           },
-          ['Billing Accounts', icon('plus-circle', { size: 16 })]),
+          ['Billing Accounts']), //button to create a modal
           _.map(project => h(ProjectTabs, { project, key: `${project.projectName}` }), billingProjects),
           (!isDataLoaded || updating) && spinnerOverlay
         ]),
-        h(ProjectUsersList, { projectName: 'asdff123123' })
+        h(ProjectDetail, { projectName: 'asdff123123' })
       ])
     ])
   }
