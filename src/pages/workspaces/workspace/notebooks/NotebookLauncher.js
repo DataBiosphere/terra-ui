@@ -1,8 +1,9 @@
 import _ from 'lodash/fp'
-import { createRef, Fragment } from 'react'
+import { createRef, Fragment, useState } from 'react'
 import { div, h, iframe } from 'react-hyperscript-helpers'
 import { pure } from 'recompose'
 import * as breadcrumbs from 'src/components/breadcrumbs'
+import { NewClusterModal } from 'src/components/ClusterManager'
 import { buttonOutline, linkButton, spinnerOverlay } from 'src/components/common'
 import { icon, spinner } from 'src/components/icons'
 import { notify } from 'src/components/Notifications'
@@ -56,52 +57,43 @@ const NotebookLauncher = _.flow(
     showTabBar: false
   }),
   ajaxCaller
-)(props => {
-  const { workspace, app, queryParams = {} } = props
+)(pure(props => {
+  const { workspace, app, clusters, queryParams = {} } = props
   return Utils.canWrite(workspace.accessLevel) && workspace.canCompute && !queryParams['read-only'] ?
-    h(NotebookEditor, { workspace, app, queryParams, ...props }) :
+    h(NotebookEditor, { workspace, app, cluster: getCluster(clusters), queryParams, ...props }) :
     h(NotebookPreview, { workspace, queryParams, ...props })
-})
+}))
 
-class ReadOnlyMessage extends Component {
-  constructor(props) {
-    super(props)
-    this.state = {
-      copying: false
-    }
-  }
+const ReadOnlyMessage = ({ notebookName, workspace, workspace: { canCompute, workspace: { namespace, name } } }) => {
+  const [copying, setCopying] = useState(false)
+  const notebookLink = Nav.getLink('workspace-notebook-launch', { namespace, name, notebookName })
+  const notebookLabLink = Nav.getLink('workspace-notebook-launch', { namespace, app: 'lab', name, notebookName })
 
-  render() {
-    const { notebookName, workspace, workspace: { canCompute, workspace: { namespace, name } } } = this.props
-    const notebookLink = Nav.getLink('workspace-notebook-launch', { namespace, name, notebookName })
-    const notebookLabLink = Nav.getLink('workspace-notebook-launch', { namespace, app: 'lab', name, notebookName })
-    const { copying } = this.state
-    return div({ style: { padding: '1rem 2rem', display: 'flex', alignItems: 'center' } }, [
-      div({ style: { fontSize: 16, fontWeight: 'bold', position: 'absolute' } },
-        ['Viewing read-only']),
-      div({ style: { flexGrow: 1 } }),
-      canCompute ?
-        h(Fragment, [
-          buttonOutline({
-            as: 'a',
-            href: notebookLink,
-            style: { marginRight: '1rem' }
-          }, ['edit in Jupyter']),
-          buttonOutline({
-            as: 'a',
-            href: notebookLabLink
-          }, ['edit in JupyterLab'])
-        ]) :
+  return div({ style: { padding: '1rem 2rem', display: 'flex', alignItems: 'center' } }, [
+    div({ style: { fontSize: 16, fontWeight: 'bold', position: 'absolute' } },
+      ['Viewing read-only']),
+    div({ style: { flexGrow: 1 } }),
+    canCompute ?
+      h(Fragment, [
         buttonOutline({
-          onClick: () => this.setState({ copying: true })
-        }, ['copy to another workspace to edit']),
-      div({ style: { flexGrow: 1 } }),
-      copying && h(ExportNotebookModal, {
-        printName: notebookName.slice(0, -6), workspace, fromLauncher: true,
-        onDismiss: () => this.setState({ copying: false })
-      })
-    ])
-  }
+          as: 'a',
+          href: notebookLink,
+          style: { marginRight: '1rem' }
+        }, ['edit in Jupyter']),
+        buttonOutline({
+          as: 'a',
+          href: notebookLabLink
+        }, ['edit in JupyterLab'])
+      ]) :
+      buttonOutline({
+        onClick: () => setCopying(true)
+      }, ['copy to another workspace to edit']),
+    div({ style: { flexGrow: 1 } }),
+    copying && h(ExportNotebookModal, {
+      printName: notebookName.slice(0, -6), workspace, fromLauncher: true,
+      onDismiss: () => this.setState({ copying: false })
+    })
+  ])
 }
 
 const NotebookPreview = pure(props => {
@@ -195,11 +187,39 @@ class NotebookEditor extends Component {
   }
 
   async componentDidMount() {
+    const { refreshClusters } = this.props
     this.mounted = true
 
     window.addEventListener('message', this.handleMessages)
     window.addEventListener('beforeunload', this.beforeUnload)
 
+    await refreshClusters()
+    if (!!this.props.cluster) { // Note: reading up-to-date prop
+      this.setUp()
+    }
+  }
+
+  componentWillUnmount() {
+    this.mounted = false
+    if (this.scheduledRefresh) {
+      clearTimeout(this.scheduledRefresh)
+    }
+
+    window.removeEventListener('message', this.handleMessages)
+    window.removeEventListener('beforeunload', this.beforeUnload)
+    Nav.blockNav.reset()
+  }
+
+  componentDidUpdate(prevProps) {
+    const prevCluster = prevProps.cluster
+    const currCluster = this.props.cluster
+    if (prevCluster && currCluster && prevCluster.id !== currCluster.id) {
+      document.location.reload()
+    }
+  }
+
+
+  async setUp() {
     try {
       const { clusterName, clusterUrl, error } = await this.startCluster()
 
@@ -242,7 +262,9 @@ class NotebookEditor extends Component {
           message: 'Please remember to save your notebook by clicking the save icon before exiting the window. JupyterLab is new in Terra. We are working to improve its integration. Please contact us with any questions or feedback you may have.',
           timeout: 30000
         })
-      } else this.setState({ url: `${clusterUrl}/notebooks/${workspaceName}/${notebookName}` })
+      } else {
+        this.setState({ url: `${clusterUrl}/notebooks/${workspaceName}/${notebookName}` })
+      }
     } catch (error) {
       if (this.mounted) {
         reportError('Notebook cannot be launched', error)
@@ -251,33 +273,10 @@ class NotebookEditor extends Component {
     }
   }
 
-  componentWillUnmount() {
-    this.mounted = false
-    if (this.scheduledRefresh) {
-      clearTimeout(this.scheduledRefresh)
-    }
-
-    window.removeEventListener('message', this.handleMessages)
-    window.removeEventListener('beforeunload', this.beforeUnload)
-    Nav.blockNav.reset()
-  }
-
-  componentDidUpdate(prevProps, prevState) {
-    const oldClusters = prevProps.clusters
-    const { clusters } = this.props
-    const prevCluster = getCluster(oldClusters)
-    const currCluster = getCluster(clusters)
-    if (prevCluster && currCluster && prevCluster.id !== currCluster.id) {
-      document.location.reload()
-    }
-  }
-
-
   async startCluster() {
     const { refreshClusters, workspace: { workspace: { namespace } }, ajax: { Jupyter } } = this.props
     await refreshClusters()
-    const cluster = getCluster(this.props.clusters) // Note: reading up-to-date prop
-    if (!cluster) {
+    if (!this.props.cluster) { // Note: reading up-to-date prop
       await Jupyter.cluster(namespace, Utils.generateClusterName()).create({
         machineConfig: Utils.normalizeMachineConfig({})
       })
@@ -285,7 +284,7 @@ class NotebookEditor extends Component {
 
     while (this.mounted) {
       await refreshClusters()
-      const cluster = getCluster(this.props.clusters) // Note: reading up-to-date prop
+      const cluster = this.props.cluster // Note: reading up-to-date prop
       const status = cluster && cluster.status
 
       if (status === 'Running') {
@@ -329,9 +328,8 @@ class NotebookEditor extends Component {
   }
 
   render() {
-    const { clusterError, localizeFailures, failed, url, saving } = this.state
-    const { namespace, name, app, clusters } = this.props
-    const cluster = getCluster(clusters)
+    const { namespace, name, app, cluster } = this.props
+    const { clusterError, localizeFailures, failed, url, saving, createOpen } = this.state
     const clusterStatus = cluster && cluster.status
 
     if (url) {
@@ -347,42 +345,65 @@ class NotebookEditor extends Component {
         }, [icon('times-circle', { size: 25 })]),
         saving && spinnerOverlay
       ])
-    }
-
-    const isCreating = clusterStatus === 'Creating'
-    const currentStep = clusterStatus !== 'Running' ? 1 : 2
-
-    const step = (index, text) => div({ style: styles.step.container }, [
-      div({ style: styles.step.col1 }, [
-        index < currentStep && icon('check', { size: 24, style: { color: colors.green[0] } }),
-        index === currentStep && (failed ? icon('times', { size: 24, style: { color: colors.red[0] } }) : spinner())
-      ]),
-      div({ style: styles.step.col2 }, [text])
-    ])
-
-    return h(Fragment, [
-      div({ style: styles.pageContainer }, [
-        div({ style: Style.elements.sectionHeader }, ['Terra is preparing your notebook']),
-        step(1,
-          Utils.cond(
-            [clusterError, clusterError],
-            [isCreating, 'Creating notebook runtime'],
-            'Waiting for notebook runtime to be ready'
-          )
-        ),
-        isCreating && div({ style: styles.creatingMessage }, [
-          icon('info', { size: 24, style: { color: colors.orange[0] } }),
-          'This can take several minutes. You may navigate away and come back once the cluster is ready.'
+    } else if (!cluster) {
+      return h(Fragment, [
+        div({ style: { ...styles.pageContainer, fontSize: 16, fontWeight: 'bold' } }, [
+          'You are viewing this notebook in read-only mode. You can ',
+          linkButton({ onClick: () => this.setState({ createOpen: true }) }, 'create a notebooks runtime'),
+          ' to edit and run it.'
         ]),
-        step(2, localizeFailures ?
-          `Error loading notebook, retry number ${localizeFailures}...` :
-          'Loading notebook')
-      ]),
-      (clusterStatus !== 'Running') && h(Fragment, [
-        div({ style: { color: colors.gray[2], fontSize: 14, fontWeight: 'bold', padding: '0 0 0 2rem' } }, ['Read-only preview of your notebook:']),
-        h(NotebookPreviewFrame, this.props)
+        h(NotebookPreviewFrame, this.props),
+        createOpen && h(NewClusterModal, {
+          namespace, currentCluster: cluster,
+          onCancel: () => this.setState({ createOpen: false }),
+          onSuccess: async promise => {
+            this.setState({ createOpen: false })
+            try {
+              await promise
+              this.setUp()
+            } catch (e) {
+              reportError('Error creating cluster', e)
+            }
+          }
+        })
+
       ])
-    ])
+    } else {
+      const isCreating = clusterStatus === 'Creating'
+      const currentStep = clusterStatus !== 'Running' ? 1 : 2
+
+      const step = (index, text) => div({ style: styles.step.container }, [
+        div({ style: styles.step.col1 }, [
+          index < currentStep && icon('check', { size: 24, style: { color: colors.green[0] } }),
+          index === currentStep && (failed ? icon('times', { size: 24, style: { color: colors.red[0] } }) : spinner())
+        ]),
+        div({ style: styles.step.col2 }, [text])
+      ])
+
+      return h(Fragment, [
+        div({ style: styles.pageContainer }, [
+          div({ style: Style.elements.sectionHeader }, ['Terra is preparing your notebook']),
+          step(1,
+            Utils.cond(
+              [clusterError, clusterError],
+              [isCreating, 'Creating notebook runtime'],
+              'Waiting for notebook runtime to be ready'
+            )
+          ),
+          isCreating && div({ style: styles.creatingMessage }, [
+            icon('info', { size: 24, style: { color: colors.orange[0] } }),
+            'This can take several minutes. You may navigate away and come back once the cluster is ready.'
+          ]),
+          step(2, localizeFailures ?
+            `Error loading notebook, retry number ${localizeFailures}...` :
+            'Loading notebook')
+        ]),
+        (clusterStatus !== 'Running') && h(Fragment, [
+          div({ style: { color: colors.gray[2], fontSize: 14, fontWeight: 'bold', padding: '0 0 0 2rem' } }, ['Read-only preview of your notebook:']),
+          h(NotebookPreviewFrame, this.props)
+        ])
+      ])
+    }
   }
 }
 
