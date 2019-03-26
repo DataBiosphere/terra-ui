@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { a, div, h, span } from 'react-hyperscript-helpers'
 import { pure } from 'recompose'
-import { buttonPrimary, Clickable, PageBox, search, Select, spinnerOverlay } from 'src/components/common'
+import { buttonPrimary, Clickable, Select, spinnerOverlay } from 'src/components/common'
 import { DeleteUserModal, EditUserModal, MemberCard, NewUserCard, NewUserModal } from 'src/components/group-common'
 import { icon } from 'src/components/icons'
 import { validatedInput } from 'src/components/input'
@@ -12,7 +12,6 @@ import * as Auth from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import { formHint, RequiredFormLabel } from 'src/libs/forms'
-import * as Forms from 'src/libs/forms'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -225,44 +224,42 @@ export default ajaxCaller(class ProjectUsersList extends Component {
     const creationStatus = 'Ready'
 
     return h(Fragment, [
-      div({ style: { padding: '1rem' } }, [
-        div({
-          style: {
-            ...Style.elements.sectionHeader,
-            textTransform: 'uppercase'
-          }
-        }, [`Billing Project - ${projectName}`]),
-        icon(Utils.cond(
-          [creationStatus === 'Ready', 'check'],
-          [creationStatus === 'Creating', 'loadingSpinner'],
-          'error-standard'), {
-          style: {
-            color: colors.green[0],
-            marginRight: '1rem'
-          }
-        }),
-        creationStatus
+      div({ style: { padding: '2rem 3rem' } }, [
+        div({ style: Style.elements.sectionHeader },
+          [`Billing Project - ${projectName}`]),
+        div({ style: { margin: '1rem 0' } }, [
+          icon(Utils.cond(
+            [creationStatus === 'Ready', 'check'],
+            [creationStatus === 'Creating', 'loadingSpinner'],
+            'error-standard'), {
+            style: {
+              color: colors.green[0],
+              marginRight: '1rem'
+            }
+          }),
+          creationStatus
+        ]),
+        div({ style: Style.cardList.cardContainer }, [
+          h(NewUserCard, {
+            onClick: () => this.setState({ addingUser: true })
+          }), div({ style: { width: '600px' } },
+            _.map(member => {
+              return h(MemberCard, {
+                adminLabel: 'Owner',
+                userLabel: 'User',
+                member, adminCanEdit,
+                onEdit: () => this.setState({ editingUser: member }),
+                onDelete: () => this.setState({ deletingUser: member })
+              })
+            }, _.filter(({ email }) => Utils.textMatch(filter, email), projectUsers))
+          ),
+          loading && spinnerOverlay
+        ])
+
       ]),
-      div({ style: Style.cardList.cardContainer }, [
-        h(NewUserCard, {
-          onClick: () => this.setState({ addingUser: true })
-        }),
-        h(NewBillingProjectCard, {
-          onClick: () => this.setState({ creatingBillingProject: true })
-        }),
-        div({ style: { flexGrow: 1 } },
-          _.map(member => {
-            return h(MemberCard, {
-              adminLabel: 'Owner',
-              userLabel: 'User',
-              member, adminCanEdit,
-              onEdit: () => this.setState({ editingUser: member }),
-              onDelete: () => this.setState({ deletingUser: member })
-            })
-          }, _.filter(({ email }) => Utils.textMatch(filter, email), projectUsers))
-        ),
-        loading && spinnerOverlay
-      ]),
+      h(NewBillingProjectCard, {
+        onClick: () => this.setState({ creatingBillingProject: true })
+      }),
       addingUser && h(NewUserModal, {
         adminLabel: 'Owner',
         userLabel: 'User',
