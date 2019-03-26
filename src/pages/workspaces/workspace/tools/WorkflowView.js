@@ -499,13 +499,25 @@ const WorkflowView = _.flow(
     return this.isSingle() || !!rootEntityType
   }
 
+  async loadNewMethodConfig(newSnapshotId) {
+    const { ajax: { Methods } } = this.props
+    const { modifiedConfig: { methodRepoMethod: { methodNamespace, methodName, sourceRepo } } } = this.state
+    try { //change format after new format of this goes in!
+      const config = await Methods.template({ methodNamespace, methodName, methodVersion: newSnapshotId, methodUri: `${sourceRepo}://${methodNamespace}/${methodName}/${newSnapshotId}` })
+      const inputsOutputs = await Methods.configInputsOutputs(config)
+      this.setState({ inputsOutputs: _.update('inputs', _.sortBy('optional'), inputsOutputs) })
+    } catch (e) {
+      reportError(e)
+    }
+  }
+
   renderSummary() {
     const { workspace: { canCompute, workspace }, namespace, name: workspaceName } = this.props
     const {
       modifiedConfig, savedConfig, saving, saved, copying, deleting, selectingData, activeTab, errors, synopsis, documentation,
       selectedEntityType, entityMetadata, entitySelectionModel, snapshotIds
     } = this.state
-    const { name, methodRepoMethod: { methodPath, methodVersion, methodNamespace, methodName }, rootEntityType } = modifiedConfig
+    const { name, methodRepoMethod: { methodPath, methodVersion, methodNamespace, methodName, sourceRepo }, rootEntityType } = modifiedConfig
     const modified = !_.isEqual(modifiedConfig, savedConfig)
     const noLaunchReason = Utils.cond(
       [saving || modified, () => 'Save or cancel to Launch Analysis'],
@@ -516,7 +528,6 @@ const WorkflowView = _.flow(
 
     const inputsValid = _.isEmpty(errors.inputs)
     const outputsValid = _.isEmpty(errors.outputs)
-    console.log(modifiedConfig.methodRepoMethod)
     return div({ style: { position: 'relative', backgroundColor: 'white', borderBottom: `2px solid ${colors.blue[0]}` } }, [
       div({ style: { display: 'flex', padding: `1.5rem ${sideMargin} 0`, minHeight: 120 } }, [
         div({ style: { flex: '1', lineHeight: '1.5rem', minWidth: 0 } }, [
@@ -543,7 +554,11 @@ const WorkflowView = _.flow(
             styles: { container: old => ({ ...old, display: 'inline-block', width: 100, marginLeft: '0.5rem' }) },
             getOptionLabel: ({ value }) => Utils.normalizeLabel(value),
             options: snapshotIds,
-            onChange: v => this.setState(_.set(['modifiedConfig', 'methodRepoMethod', 'methodVersion'], v.value))
+            onChange: async chosenSnapshot => {
+              this.setState(_.set(['modifiedConfig', 'methodRepoMethod', 'methodVersion'], chosenSnapshot.value))
+              this.setState(_.set(['modifiedConfig', 'methodRepoMethod', 'methodUri'], `${sourceRepo}://${methodNamespace}/${methodName}/${chosenSnapshot.value}`))
+              await this.loadNewMethodConfig(chosenSnapshot.value)
+            }
           })]),
           div([
             'Source: ', link({

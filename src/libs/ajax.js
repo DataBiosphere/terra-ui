@@ -678,6 +678,12 @@ const Methods = signal => ({
     return res.json()
   },
 
+  template: async modifiedConfigMethod => {
+    const res = await fetchOrchestration('api/template',
+      _.mergeAll([authOpts(), jsonBody(modifiedConfigMethod), { signal, method: 'POST' }]))
+    return res.json()
+  },
+
   method: (namespace, name, snapshotId) => {
     const root = `methods/${namespace}/${name}/${snapshotId}`
 
