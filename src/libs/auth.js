@@ -34,12 +34,11 @@ export const hasBillingScope = () => {
  * and retry ensureBillingScope in reaction to the click.
  */
 export const ensureBillingScope = async () => {
-  if (hasBillingScope()) {
-    return Promise.resolve()
-  } else {
+  if (!hasBillingScope()) {
     const options = new window.gapi.auth2.SigninOptionsBuilder({ 'scope': 'https://www.googleapis.com/auth/cloud-billing' })
-    // Wait 100ms before doing the thing to avoid errors due to delays in applying the new scope grant
-    return getAuthInstance().currentUser.get().grant(options).then(() => new Promise(resolve => setTimeout(resolve, 100)))
+    await getAuthInstance().currentUser.get().grant(options)
+    // Wait 100ms before continuing to avoid errors due to delays in applying the new scope grant
+    await Utils.delay(100)
   }
 }
 

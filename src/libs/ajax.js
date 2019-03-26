@@ -3,9 +3,8 @@ import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { h } from 'react-hyperscript-helpers'
 import { version } from 'src/data/clusters'
-import { getUser, hasBillingScope } from 'src/libs/auth'
+import { getUser } from 'src/libs/auth'
 import { getConfig } from 'src/libs/config'
-import { reportError } from 'src/libs/error'
 import * as Utils from 'src/libs/utils'
 
 
@@ -671,28 +670,15 @@ const Buckets = signal => ({
 
 const GoogleBilling = signal => ({
   listAccounts: async () => {
-    if (!hasBillingScope()) {
-      reportError('Terra does not have access to query your Google Cloud Billing information')
-    }
     const response = await fetchGoogleBilling('billingAccounts', _.merge(authOpts(), { signal }))
     const json = await response.json()
     return json.billingAccounts
   },
 
   listProjectNames: async billingAccountName => {
-    try {
-      const response = await fetchGoogleBilling(`${billingAccountName}/projects`, _.merge(authOpts(), { signal }))
-      const json = await response.json()
-      return _.map('projectId', json.projectBillingInfo)
-    } catch (errorResponse) {
-      // This might happen if the user has permission to create projects with this account
-      // but is missing the billing.resourceAssociations.list permission.
-      if (errorResponse.status === 403) {
-        return []
-      } else {
-        throw errorResponse
-      }
-    }
+    const response = await fetchGoogleBilling(`${billingAccountName}/projects`, _.merge(authOpts(), { signal }))
+    const json = await response.json()
+    return _.map('projectId', json.projectBillingInfo)
   }
 })
 
