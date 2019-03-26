@@ -46,7 +46,7 @@ export const initializeAuth = _.memoize(async () => {
       const profile = user.getBasicProfile()
       const isSignedIn = user.isSignedIn()
       //The following few lines of code are to handle sign-in failures due to privacy tools.
-      if (state.isSignedIn===false && isSignedIn === false) {
+      if (state.isSignedIn === false && isSignedIn === false) {
         //if both of these values are false, it means that the user was initially not signed in (state.isSignedIn === false),
         //tried to sign in (invoking processUser) and was still not signed in (isSignedIn === false).
         notify('info', 'Having trouble logging in?', {
