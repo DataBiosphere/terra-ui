@@ -421,9 +421,11 @@ const WorkflowView = _.flow(
       ])
       const { methodConfiguration: config } = validationResponse
       const inputsOutputs = await Methods.configInputsOutputs(config)
+      const methods = await Methods.list()
       this.setState({
         savedConfig: config, modifiedConfig: config,
         entityMetadata, inputsOutputs: _.update('inputs', _.sortBy('optional'), inputsOutputs),
+        methods,
         errors: augmentErrors(validationResponse),
         isRedacted: false,
         entitySelectionModel: this.resetSelectionModel(config.rootEntityType),
@@ -457,10 +459,15 @@ const WorkflowView = _.flow(
   async fetchInfo(savedConfig) {
     const { methodRepoMethod: { sourceRepo, methodNamespace, methodName, methodVersion, methodPath } } = savedConfig
     const { ajax: { Dockstore, Methods } } = this.props
+    const { methods } = this.state
     try {
       if (sourceRepo === 'agora') {
         const { synopsis, documentation, payload } = await Methods.method(methodNamespace, methodName, methodVersion).get()
-        this.setState({ synopsis, documentation, wdl: payload })
+        const snapshotIds = _.map(m => { return m.snapshotId }, _.map(m => _.pick('snapshotId', m), _.filter({
+          name: methodName,
+          namespace: methodNamespace
+        }, methods)))
+        this.setState({ synopsis, documentation, wdl: payload, snapshotIds })
       } else if (sourceRepo === 'dockstore') {
         const wdl = await Dockstore.getWdl(methodPath, methodVersion).then(({ descriptor }) => descriptor)
         this.setState({ wdl })
@@ -496,7 +503,7 @@ const WorkflowView = _.flow(
     const { workspace: { canCompute, workspace }, namespace, name: workspaceName } = this.props
     const {
       modifiedConfig, savedConfig, saving, saved, copying, deleting, selectingData, activeTab, errors, synopsis, documentation,
-      selectedEntityType, entityMetadata, entitySelectionModel
+      selectedEntityType, entityMetadata, entitySelectionModel, snapshotIds
     } = this.state
     const { name, methodRepoMethod: { methodPath, methodVersion, methodNamespace, methodName }, rootEntityType } = modifiedConfig
     const modified = !_.isEqual(modifiedConfig, savedConfig)
@@ -509,7 +516,7 @@ const WorkflowView = _.flow(
 
     const inputsValid = _.isEmpty(errors.inputs)
     const outputsValid = _.isEmpty(errors.outputs)
-
+    console.log(modifiedConfig.methodRepoMethod)
     return div({ style: { position: 'relative', backgroundColor: 'white', borderBottom: `2px solid ${colors.blue[0]}` } }, [
       div({ style: { display: 'flex', padding: `1.5rem ${sideMargin} 0`, minHeight: 120 } }, [
         div({ style: { flex: '1', lineHeight: '1.5rem', minWidth: 0 } }, [
@@ -531,7 +538,13 @@ const WorkflowView = _.flow(
             ]),
             span({ style: { color: colors.darkBlue[0], fontSize: 24 } }, name)
           ]),
-          div({ style: { marginTop: '0.5rem' } }, `Snapshot ${methodVersion}`),
+          div({ style: { marginTop: '0.5rem' } }, ['Snapshot', h(Select, {
+            isClearable: false, isSearchable: false, value: methodVersion,
+            styles: { container: old => ({ ...old, display: 'inline-block', width: 100, marginLeft: '0.5rem' }) },
+            getOptionLabel: ({ value }) => Utils.normalizeLabel(value),
+            options: snapshotIds,
+            onChange: v => this.setState(_.set(['modifiedConfig', 'methodRepoMethod', 'methodVersion'], v.value))
+          })]),
           div([
             'Source: ', link({
               href: methodLink(modifiedConfig),
