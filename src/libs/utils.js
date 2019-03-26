@@ -244,3 +244,7 @@ export const normalizeMachineConfig = ({ masterMachineType, masterDiskSize, numb
 }
 
 export const append = _.curry((value, arr) => _.concat(arr, [value]))
+
+export const useOnMountOnly = fn => {
+  useEffect(fn, []) // eslint-disable-line react-hooks/exhaustive-deps
+}
