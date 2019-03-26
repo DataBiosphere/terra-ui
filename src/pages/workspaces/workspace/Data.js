@@ -108,7 +108,7 @@ const LocalVariablesContent = ajaxCaller(class LocalVariablesContent extends Com
         ['Value is not a comma-separated list of numbers'] : [])
     ]
 
-    const saveAttribute = withErrorReporting('Error saving change to workspace variables')(async originalKey => {
+    const saveAttribute = withErrorReporting('Error saving change to workspace variables', async originalKey => {
       const isList = editType.includes('list')
       const newBaseType = isList ? editType.slice(0, -5) : editType
 
@@ -605,7 +605,7 @@ const WorkspaceData = _.flow(
   }
 
   loadMetadata() {
-    return withErrorReporting('Error loading workspace entity data')(async () => {
+    return withErrorReporting('Error loading workspace entity data', async () => {
       const { namespace, name, ajax: { Workspaces } } = this.props
       const { selectedDataType } = this.state
       const entityMetadata = await Workspaces.workspace(namespace, name).entityMetadata()

@@ -1,3 +1,4 @@
+import _ from 'lodash/fp'
 import { notify, sessionTimeoutProps } from 'src/components/Notifications'
 import { reloadAuthToken, signOut } from 'src/libs/auth'
 
@@ -12,10 +13,10 @@ export const reportError = async (title, obj) => {
 }
 
 // Transforms an async function so that it catches and reports errors using the provided text
-export const withErrorReporting = title => fn => async (...args) => {
+export const withErrorReporting = _.curry((title, fn) => async (...args) => {
   try {
     return await fn(...args)
   } catch (error) {
     reportError(title, error)
   }
-}
+})
