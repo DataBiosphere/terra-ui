@@ -48,7 +48,7 @@ const NewAccountModal = ({ onDismiss }) => {
       financialContactPhone: ''
     }
   })
-  const updateAccount = _.curry((key, value) => setAccount(_.set(key, value)))
+  const updateAccount = (key, value) => setAccount(_.set(key, value))
 
 
   /*
