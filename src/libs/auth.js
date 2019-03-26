@@ -49,7 +49,7 @@ export const initializeAuth = _.memoize(async () => {
       if (state.isSignedIn === false && isSignedIn === false) {
         //if both of these values are false, it means that the user was initially not signed in (state.isSignedIn === false),
         //tried to sign in (invoking processUser) and was still not signed in (isSignedIn === false).
-        notify('info', 'Having trouble logging in?', {
+        notify('error', 'Could not sign in', {
           message: 'Click for more information',
           detail: 'If you are using privacy blockers, they may be preventing you from signing in. Please disable those tools, refresh, and try signing in again.',
           timeout: 30000
