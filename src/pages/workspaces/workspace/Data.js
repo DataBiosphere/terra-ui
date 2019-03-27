@@ -425,16 +425,14 @@ const DeleteObjectModal = ajaxCaller(class DeleteObjectModal extends Component {
     this.state = { deleting: false }
   }
 
-  delete() {
-    return _.flow(
-      withErrorReporting('Error deleting object'),
-      Utils.withBusyState(v => this.setState({ deleting: v }))
-    )(async () => {
-      const { name, workspace: { workspace: { namespace, bucketName } }, ajax: { Buckets }, onSuccess } = this.props
-      await Buckets.delete(namespace, bucketName, name)
-      onSuccess()
-    })()
-  }
+  delete = _.flow(
+    withErrorReporting('Error deleting object'),
+    Utils.withBusyState(v => this.setState({ deleting: v }))
+  )(async () => {
+    const { name, workspace: { workspace: { namespace, bucketName } }, ajax: { Buckets }, onSuccess } = this.props
+    await Buckets.delete(namespace, bucketName, name)
+    onSuccess()
+  })
 
   render() {
     const { onDismiss } = this.props
@@ -474,28 +472,24 @@ const BucketContent = ajaxCaller(class BucketContent extends Component {
     StateHistory.update(_.pick(['objects', 'prefix'], this.state))
   }
 
-  load(prefix = this.state.prefix) {
-    return _.flow(
-      withErrorReporting('Error loading bucket data'),
-      Utils.withBusyState(v => this.setState({ loading: v }))
-    )(async () => {
-      const { workspace: { workspace: { namespace, bucketName } }, ajax: { Buckets } } = this.props
-      const { items, prefixes } = await Buckets.list(namespace, bucketName, prefix)
-      this.setState({ objects: items, prefixes, prefix })
-    })()
-  }
+  load = _.flow(
+    withErrorReporting('Error loading bucket data'),
+    Utils.withBusyState(v => this.setState({ loading: v }))
+  )(async (prefix = this.state.prefix) => {
+    const { workspace: { workspace: { namespace, bucketName } }, ajax: { Buckets } } = this.props
+    const { items, prefixes } = await Buckets.list(namespace, bucketName, prefix)
+    this.setState({ objects: items, prefixes, prefix })
+  })
 
-  uploadFiles(files) {
-    return _.flow(
-      withErrorReporting('Error uploading file'),
-      Utils.withBusyState(v => this.setState({ uploading: v }))
-    )(async () => {
-      const { workspace: { workspace: { namespace, bucketName } }, ajax: { Buckets } } = this.props
-      const { prefix } = this.state
-      await Buckets.upload(namespace, bucketName, prefix, files[0])
-      this.load()
-    })()
-  }
+  uploadFiles = _.flow(
+    withErrorReporting('Error uploading file'),
+    Utils.withBusyState(v => this.setState({ uploading: v }))
+  )(async files => {
+    const { workspace: { workspace: { namespace, bucketName } }, ajax: { Buckets } } = this.props
+    const { prefix } = this.state
+    await Buckets.upload(namespace, bucketName, prefix, files[0])
+    this.load()
+  })
 
   render() {
     const { workspace, workspace: { accessLevel, workspace: { namespace, bucketName } } } = this.props
@@ -604,17 +598,15 @@ const WorkspaceData = _.flow(
     }
   }
 
-  loadMetadata() {
-    return withErrorReporting('Error loading workspace entity data', async () => {
-      const { namespace, name, ajax: { Workspaces } } = this.props
-      const { selectedDataType } = this.state
-      const entityMetadata = await Workspaces.workspace(namespace, name).entityMetadata()
-      this.setState({
-        selectedDataType: this.selectionType() === 'entities' && !entityMetadata[selectedDataType] ? undefined : selectedDataType,
-        entityMetadata
-      })
-    })()
-  }
+  loadMetadata = withErrorReporting('Error loading workspace entity data', async () => {
+    const { namespace, name, ajax: { Workspaces } } = this.props
+    const { selectedDataType } = this.state
+    const entityMetadata = await Workspaces.workspace(namespace, name).entityMetadata()
+    this.setState({
+      selectedDataType: this.selectionType() === 'entities' && !entityMetadata[selectedDataType] ? undefined : selectedDataType,
+      entityMetadata
+    })
+  })
 
   async componentDidMount() {
     this.loadMetadata()
