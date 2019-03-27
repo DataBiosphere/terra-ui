@@ -463,10 +463,9 @@ const WorkflowView = _.flow(
     try {
       if (sourceRepo === 'agora') {
         const { synopsis, documentation, payload } = await Methods.method(methodNamespace, methodName, methodVersion).get()
-        const snapshotIds = _.map(m => { return m.snapshotId }, _.map(m => _.pick('snapshotId', m), _.filter({
-          name: methodName,
-          namespace: methodNamespace
-        }, methods)))
+        const snapshotIds = _.map(m => { return m.snapshotId },
+          _.map(m => _.pick('snapshotId', m),
+            _.filter({ name: methodName, namespace: methodNamespace }, methods)))
         this.setState({ synopsis, documentation, wdl: payload, snapshotIds })
       } else if (sourceRepo === 'dockstore') {
         const wdl = await Dockstore.getWdl(methodPath, methodVersion).then(({ descriptor }) => descriptor)
@@ -500,17 +499,14 @@ const WorkflowView = _.flow(
   }
 
   loadNewMethodConfig = _.flow(
-    withErrorReporting('Error loading new config'),
+    withErrorReporting('Error updating config'),
     Utils.withBusyState(v => this.setState({ updatingConfig: v }))
   )(async newSnapshotId => {
     const { ajax: { Methods } } = this.props
     const { modifiedConfig: { methodRepoMethod: { methodNamespace, methodName } }, modifiedConfig } = this.state
-    const config = await Methods.template({
-      methodNamespace,
-      methodName,
-      methodVersion: newSnapshotId
-    })
+    const config = await Methods.template({ methodNamespace, methodName, methodVersion: newSnapshotId })
     const inputsOutputs = await Methods.configInputsOutputs(config)
+
     this.setState({ inputsOutputs: _.update('inputs', _.sortBy('optional'), inputsOutputs) })
     this.setState(_.set(['modifiedConfig', 'methodRepoMethod'], _.merge(modifiedConfig.methodRepoMethod, config.methodRepoMethod)))
   })
