@@ -384,7 +384,11 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
 
   getActiveClustersOldestFirst() {
     const { clusters } = this.props
-    return _.sortBy('createdDate', _.remove({ status: 'Deleting' }, clusters))
+    return _.flow(
+      _.remove({ status: 'Deleting' }),
+      _.remove({ status: 'Error' }),
+      _.sortBy('createdDate')
+    )(clusters)
   }
 
   getCurrentCluster() {
@@ -406,7 +410,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
   async executeAndRefreshWithNav(promise) {
     const { namespace, name } = this.props
 
-    this.executeAndRefresh(promise)
+    await this.executeAndRefresh(promise)
     if (/notebooks\/.+/.test(window.location.hash)) {
       Nav.goToPath('workspace-notebooks', { namespace, name })
     }
