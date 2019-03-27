@@ -5,7 +5,6 @@ import { pure } from 'recompose'
 import { spinnerOverlay } from 'src/components/common'
 import * as Auth from 'src/libs/auth'
 import _ from 'lodash/fp'
-import { icon } from 'src/components/icons'
 import TopBar from 'src/components/TopBar'
 import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
@@ -16,11 +15,10 @@ import { Component } from 'src/libs/wrapped-components'
 import ProjectDetail from 'src/pages/billing/Project'
 
 
-const ProjectTabs = pure(({ project: { projectName, role, creationStatus } } /*isActive*/) => {
+const ProjectTabs = pure(({ project: { projectName, role, creationStatus } }, isActive) => {
   const isOwner = !!_.includes('Owner', role)
   const projectReady = creationStatus === 'Ready'
   const isClickable = isOwner && projectReady
-  const isActive = false
 
   return h(Interactive, {
     as: 'a',
@@ -121,10 +119,13 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
             }
           },
           ['Billing Accounts']), //button to create a modal
-          _.map(project => h(ProjectTabs, { project, key: `${project.projectName}` }), billingProjects),
+          _.map(project => h(ProjectTabs, {
+            project, key: `${project.projectName}`,
+            isActive: project.projectName === billingProjects.projectName
+          }), billingProjects),
           (!isDataLoaded || updating) && spinnerOverlay
         ]),
-        h(ProjectDetail, { projectName: 'asdff123123' })
+        h(ProjectDetail, { billingProjects })
       ])
     ])
   }

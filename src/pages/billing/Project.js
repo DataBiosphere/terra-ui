@@ -256,9 +256,9 @@ export default ajaxCaller(class ProjectDetail extends Component {
         ])
 
       ]),
-      // h(NewBillingProjectCard, {
-      //   onClick: () => this.setState({ creatingBillingProject: true })
-      // }),
+      h(NewBillingProjectCard, {
+        onClick: () => this.setState({ creatingBillingProject: true })
+      }),
       addingUser && h(NewUserModal, {
         adminLabel: 'Owner',
         userLabel: 'User',
