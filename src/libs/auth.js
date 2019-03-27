@@ -8,7 +8,7 @@ import { reportError } from 'src/libs/error'
 import * as Utils from 'src/libs/utils'
 
 
-export const getAuthInstance = () => {
+const getAuthInstance = () => {
   return window.gapi.auth2.getAuthInstance()
 }
 
@@ -19,6 +19,27 @@ export const signOut = () => {
 
 export const reloadAuthToken = () => {
   return getAuthInstance().currentUser.get().reloadAuthResponse().then(() => true, () => false)
+}
+
+export const hasBillingScope = () => {
+  return getAuthInstance().currentUser.get().hasGrantedScopes('https://www.googleapis.com/auth/cloud-billing')
+}
+
+/*
+ * Request Google Cloud Billing scope if necessary.
+ *
+ * NOTE: Requesting additional scopes may invoke a browser pop-up which the browser might block.
+ * If you use ensureBillingScope during page load and the pop-up is blocked, a rejected promise will
+ * be returned. In this case, you'll need to provide something for the user to deliberately click on
+ * and retry ensureBillingScope in reaction to the click.
+ */
+export const ensureBillingScope = async () => {
+  if (!hasBillingScope()) {
+    const options = new window.gapi.auth2.SigninOptionsBuilder({ 'scope': 'https://www.googleapis.com/auth/cloud-billing' })
+    await getAuthInstance().currentUser.get().grant(options)
+    // Wait 250ms before continuing to avoid errors due to delays in applying the new scope grant
+    await Utils.delay(250)
+  }
 }
 
 export const authStore = Utils.atom({
