@@ -1,5 +1,5 @@
 module.exports = {
-  'plugins': ['lodash-fp', 'react'],
+  'plugins': ['lodash-fp', 'react', 'react-hooks'],
   'extends': 'react-app',
   'globals': {
     'SATURN_VERSION': false,
@@ -81,6 +81,9 @@ module.exports = {
 
     'react/default-props-match-prop-types': 'warn',
     'react/no-children-prop': 'warn',
-    'react/no-unused-state': 'warn'
+    'react/no-unused-state': 'warn',
+
+    'react-hooks/rules-of-hooks': 'warn',
+    'react-hooks/exhaustive-deps': 'warn'
   }
 }
