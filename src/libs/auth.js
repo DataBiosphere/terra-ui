@@ -37,7 +37,7 @@ export const ensureBillingScope = async () => {
   if (!hasBillingScope()) {
     const options = new window.gapi.auth2.SigninOptionsBuilder({ 'scope': 'https://www.googleapis.com/auth/cloud-billing' })
     await getAuthInstance().currentUser.get().grant(options)
-    // Wait 100ms before continuing to avoid errors due to delays in applying the new scope grant
+    // Wait 250ms before continuing to avoid errors due to delays in applying the new scope grant
     await Utils.delay(250)
   }
 }
