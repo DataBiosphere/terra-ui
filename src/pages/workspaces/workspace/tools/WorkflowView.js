@@ -401,7 +401,7 @@ const WorkflowView = _.flow(
         title: 'Tool Removed',
         onDismiss: () => Nav.goToPath('workspace-tools', { namespace, name })
       }, [div('This tool has been removed. You cannot view or run an analysis with this tool. Press OK to return to your list of tools.')]),
-      !isFreshData || updatingConfig && spinnerOverlay
+      (!isFreshData || updatingConfig) && spinnerOverlay
     ])
   }
 
@@ -501,12 +501,13 @@ const WorkflowView = _.flow(
 
   async loadNewMethodConfig(newSnapshotId) {
     const { ajax: { Methods } } = this.props
-    const { modifiedConfig: { methodRepoMethod: { methodNamespace, methodName } } } = this.state
+    const { modifiedConfig: { methodRepoMethod: { methodNamespace, methodName } }, modifiedConfig } = this.state
     try { //change format after new format of this goes in!
       this.setState({ updatingConfig: true })
       const config = await Methods.template({ methodNamespace, methodName, methodVersion: newSnapshotId })
       const inputsOutputs = await Methods.configInputsOutputs(config)
       this.setState({ inputsOutputs: _.update('inputs', _.sortBy('optional'), inputsOutputs) })
+      this.setState(_.set(['modifiedConfig', 'methodRepoMethod'], _.merge(modifiedConfig.methodRepoMethod, config.methodRepoMethod)))
     } catch (e) {
       reportError(e)
     } finally {
@@ -552,17 +553,16 @@ const WorkflowView = _.flow(
             ]),
             span({ style: { color: colors.darkBlue[0], fontSize: 24 } }, name)
           ]),
-          div({ style: { marginTop: '0.5rem' } }, ['Snapshot', h(Select, {
-            isClearable: false, isSearchable: false, value: methodVersion,
-            styles: { container: old => ({ ...old, display: 'inline-block', width: 100, marginLeft: '0.5rem' }) },
-            getOptionLabel: ({ value }) => Utils.normalizeLabel(value),
-            options: snapshotIds,
-            onChange: async chosenSnapshot => {
-              this.setState(_.set(['modifiedConfig', 'methodRepoMethod', 'methodVersion'], chosenSnapshot.value))
-              this.setState(_.set(['modifiedConfig', 'methodRepoMethod', 'methodUri'], `${sourceRepo}://${methodNamespace}/${methodName}/${chosenSnapshot.value}`))
-              await this.loadNewMethodConfig(chosenSnapshot.value)
-            }
-          })]),
+          div({ style: { marginTop: '0.5rem' } },
+            (sourceRepo === 'agora') ? [
+              'Snapshot', h(Select, {
+                isClearable: false, isSearchable: false, value: methodVersion,
+                styles: { container: old => ({ ...old, display: 'inline-block', width: 60, marginLeft: '0.25rem' }) },
+                getOptionLabel: ({ value }) => Utils.normalizeLabel(value),
+                options: snapshotIds,
+                onChange: async chosenSnapshot => await this.loadNewMethodConfig(chosenSnapshot.value)
+              })
+            ] : [`Snapshot ${methodVersion}`]),
           div([
             'Source: ', link({
               href: methodLink(modifiedConfig),
