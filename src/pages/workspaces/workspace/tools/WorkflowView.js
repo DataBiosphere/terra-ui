@@ -19,7 +19,7 @@ import TooltipTrigger from 'src/components/TooltipTrigger'
 import WDLViewer from 'src/components/WDLViewer'
 import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
-import { reportError } from 'src/libs/error'
+import { reportError, withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
 import * as Utils from 'src/libs/utils'
@@ -499,21 +499,22 @@ const WorkflowView = _.flow(
     return this.isSingle() || !!rootEntityType
   }
 
-  async loadNewMethodConfig(newSnapshotId) {
+  loadNewMethodConfig = _.flow(
+    withErrorReporting('Error loading new config'),
+    Utils.withBusyState(v => this.setState({ updatingConfig: v }))
+  )(async newSnapshotId => {
     const { ajax: { Methods } } = this.props
     const { modifiedConfig: { methodRepoMethod: { methodNamespace, methodName } }, modifiedConfig } = this.state
-    try { //change format after new format of this goes in!
-      this.setState({ updatingConfig: true })
-      const config = await Methods.template({ methodNamespace, methodName, methodVersion: newSnapshotId })
-      const inputsOutputs = await Methods.configInputsOutputs(config)
-      this.setState({ inputsOutputs: _.update('inputs', _.sortBy('optional'), inputsOutputs) })
-      this.setState(_.set(['modifiedConfig', 'methodRepoMethod'], _.merge(modifiedConfig.methodRepoMethod, config.methodRepoMethod)))
-    } catch (e) {
-      reportError(e)
-    } finally {
-      this.setState({ updatingConfig: false })
-    }
-  }
+    const config = await Methods.template({
+      methodNamespace,
+      methodName,
+      methodVersion: newSnapshotId
+    })
+    const inputsOutputs = await Methods.configInputsOutputs(config)
+    this.setState({ inputsOutputs: _.update('inputs', _.sortBy('optional'), inputsOutputs) })
+    this.setState(_.set(['modifiedConfig', 'methodRepoMethod'], _.merge(modifiedConfig.methodRepoMethod, config.methodRepoMethod)))
+  })
+
 
   renderSummary() {
     const { workspace: { canCompute, workspace }, namespace, name: workspaceName } = this.props
