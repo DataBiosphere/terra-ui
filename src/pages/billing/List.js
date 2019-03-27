@@ -23,13 +23,10 @@ const ProjectTabs = pure(({ project: { projectName, role, creationStatus } }, is
   return h(Interactive, {
     as: 'a',
     style: {
-      display: 'flex', alignItems: 'center', flex: 'none',
-      height: 50, padding: '0 45px',
-      fontWeight: 500, fontSize: 16, overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis',
-      color: isClickable ? colors.green[0] : colors.gray[0],
-      borderRightWidth: isActive ? 10 : 0, borderRightStyle: 'solid', borderRightColor: colors.green[1],
-      backgroundColor: isActive ? colors.green[7] : colors.white,
-      borderBottom: isActive ? undefined : `0.5px solid ${colors.grayBlue[2]}`
+      display: 'flex', alignItems: 'center', fontSize: 16, height: 50, padding: '0 2rem',
+      fontWeight: 500, overflow: 'hidden', borderBottom: isActive ? undefined : `0.5px solid ${colors.grayBlue[2]}`,
+      color: isClickable ? colors.green[0] : colors.gray[0], borderRightColor: isActive ? colors.green[1] : colors.green[0], borderRightStyle: 'solid',
+      borderRightWidth: isActive ? 10 : 0, backgroundColor: isActive ? colors.green[7] : colors.white
     },
     href: Nav.getLink('billing', { projectName }),
     hover: isActive ? {} : { backgroundColor: colors.green[6], color: colors.green[1] }
@@ -42,16 +39,19 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
     this.state = {
       filter: '',
       billingProjects: null,
-      updating: false,
       ...StateHistory.get()
     }
   }
 
-  async refresh() {
+  componentDidMount() {
+    this.loadBillingProjects()
+  }
+
+  async loadBillingProjects() {
     const { ajax: { Billing } } = this.props
 
     try {
-      this.setState({ isDataLoaded: false, updating: false })
+      this.setState({ isDataLoaded: false })
       const rawBillingProjects = await Billing.listProjects()
       const billingProjects = _.flow(
         _.groupBy('projectName'),
@@ -64,39 +64,24 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
     }
   }
 
-  componentDidMount() {
-    if (Auth.getAuthInstance().currentUser.get().hasGrantedScopes('https://www.googleapis.com/auth/cloud-billing')) {
-      this.refresh()
-    } else {
-      const options = new window.gapi.auth2.SigninOptionsBuilder({ 'scope': 'https://www.googleapis.com/auth/cloud-billing' })
-      Auth.getAuthInstance().currentUser.get().grant(options).then(
-        () => setTimeout(() => this.refresh(), 250),
-        () => reportError('Failed to grant permissions', //TODO user can still view something?
-          'To create a new billing project, you must allow Terra to view your Google billing account(s).')
-      )
+  async loadBillingAccounts() {
+    const { ajax: { Billing } } = this.props
+    try {
+      const billingAccounts = await Billing.listAccounts()
+      this.setState({ billingAccounts })
+    } catch (error) {
+      reportError('Error loading billing accounts', error)
     }
-    //this.loadBillingAccounts()
   }
 
-  // async loadBillingAccounts() {
-  //   const { ajax: { Billing } } = this.props
-  //   try {
-  //     const billingAccounts = await Billing.listAccounts()
-  //     this.setState({ billingAccounts })
-  //   } catch (error) {
-  //     reportError('Error loading billing accounts', error)
-  //   }
-  // }
-
   render() {
-    const { billingProjects, isDataLoaded, updating } = this.state
-    //const { breadcrumbs, title } = this.props
+    const { billingProjects, isDataLoaded } = this.state
     const breadcrumbs = 'Billing > Billing Accounts'
-    const title = 'Example Billing account details'
+    const { projectName } = this.props
 
     return h(Fragment, [
       h(TopBar, { title: 'Billing', href: Nav.getLink('billing') }, [
-        div({
+        !!projectName && div({
           style: {
             color: 'white', paddingLeft: '5rem', minWidth: 0, marginRight: '0.5rem'
           }
@@ -107,25 +92,25 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
               textOverflow: 'ellipsis', whiteSpace: 'nowrap',
               fontSize: '1.25rem', overflowX: 'hidden'
             }
-          }, [title])
+          }, [projectName])
         ])
       ]),
       div({ style: { display: 'flex', flex: 1, flexWrap: 'wrap' } }, [
         div({ style: { width: 290, boxShadow: '0 2px 5px 0 rgba(0,0,0,0.25)' } }, [
           div({
             style: {
-              color: colors.gray[0], backgroundColor: colors.grayBlue[5], fontSize: 16,
-              fontWeight: 600, textTransform: 'uppercase', padding: '1.5rem', borderBottom: `0.5px solid ${colors.grayBlue[2]}`
+              color: colors.gray[0], backgroundColor: colors.grayBlue[5], fontSize: 16, padding: '1.5rem',
+              fontWeight: 600, textTransform: 'uppercase', borderBottom: `0.5px solid ${colors.grayBlue[2]}`
             }
           },
-          ['Billing Accounts']), //button to create a modal
+          ['Billing Accounts']), //button to create modal ?
           _.map(project => h(ProjectTabs, {
             project, key: `${project.projectName}`,
-            isActive: project.projectName === billingProjects.projectName
+            isActive: project.projectName === projectName
           }), billingProjects),
-          (!isDataLoaded || updating) && spinnerOverlay
+          !isDataLoaded && spinnerOverlay
         ]),
-        h(ProjectDetail, { billingProjects })
+        !!projectName && h(ProjectDetail, { projectName })
       ])
     ])
   }
@@ -134,7 +119,7 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
     const { billingProjects } = this.state
 
     if (_.some({ creationStatus: 'Creating' }, billingProjects) && !this.interval) { //TODO move this?
-      this.interval = setInterval(() => this.refresh(), 10000)
+      this.interval = setInterval(() => this.loadBillingProjects(), 10000)
     } else {
       clearInterval(this.interval)
       this.interval = undefined
@@ -154,8 +139,8 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
 
 export const addNavPaths = () => {
   Nav.defPath('billing', {
-    path: '/billing',
+    path: '/billing/:projectName?',
     component: BillingList,
-    title: 'Billing Management'
+    title: ({ projectName }) => `Billing ${projectName ? `- ${projectName}`  : 'Management'}`
   })
 }

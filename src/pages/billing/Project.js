@@ -251,13 +251,18 @@ export default ajaxCaller(class ProjectDetail extends Component {
                 onDelete: () => this.setState({ deletingUser: member })
               })
             }, _.filter(({ email }) => Utils.textMatch(filter, email), projectUsers))
-          ),
-          loading && spinnerOverlay
+          )
         ])
-
       ]),
       h(NewBillingProjectCard, {
-        onClick: () => this.setState({ creatingBillingProject: true })
+        onClick: async () => {
+          try {
+            await Auth.ensureBillingScope()
+            this.setState({ creatingBillingProject: true })
+          } catch (error) {
+            reportError('Failed to grant permissions', 'To create a new billing project, you must allow Terra to view your Google billing account(s).')
+          }
+        }
       }),
       addingUser && h(NewUserModal, {
         adminLabel: 'Owner',
@@ -292,9 +297,9 @@ export default ajaxCaller(class ProjectDetail extends Component {
       }),
       creatingBillingProject && h(NewBillingProjectModal, {
         onDismiss: () => this.setState({ creatingBillingProject: false }),
-        onSuccess: () => this.refresh() //TODO also refresh project list
+        onSuccess: () => this.setState({ creatingBillingProject: false }) //TODO refresh project list
       }),
-      updating && spinnerOverlay
+      (loading || updating) && spinnerOverlay
     ])
   }
 
