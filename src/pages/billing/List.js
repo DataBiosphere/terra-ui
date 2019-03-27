@@ -267,15 +267,12 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
           div([
             h(NewBillingCard, {
               newEntityLabel: 'New Project',
-              onClick: () => {
-                if (Auth.getAuthInstance().currentUser.get().hasGrantedScopes('https://www.googleapis.com/auth/cloud-billing')) {
+              onClick: async () => {
+                try {
+                  await Auth.ensureBillingScope()
                   this.setState({ creatingBillingProject: true })
-                } else {
-                  Auth.getAuthInstance().currentUser.get().grant({ scope: 'https://www.googleapis.com/auth/cloud-billing' }).then(
-                    () => setTimeout(() => this.setState({ creatingBillingProject: true }), 250),
-                    () => reportError('Failed to grant permissions',
-                      'To create a new billing project, you must allow Terra to view your Google billing account(s).')
-                  )
+                } catch (error) {
+                  reportError('Failed to grant permissions', 'To create a new billing project, you must allow Terra to view your Google billing account(s).')
                 }
               }
             }),

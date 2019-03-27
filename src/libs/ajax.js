@@ -81,6 +81,8 @@ const fetchSam = async (path, options) => {
 const fetchBuckets = (path, options) => fetchOk(`https://www.googleapis.com/${path}`, options)
 const nbName = name => encodeURIComponent(`notebooks/${name}.ipynb`)
 
+const fetchGoogleBilling = (path, options) => fetchOk(`https://cloudbilling.googleapis.com/v1/${path}`, options)
+
 const fetchRawls = async (path, options) => {
   return fetchOk(`${getConfig().rawlsUrlRoot}/api/${path}`, addAppIdentifier(options))
 }
@@ -666,6 +668,15 @@ const Buckets = signal => ({
 })
 
 
+const GoogleBilling = signal => ({
+  listProjectNames: async billingAccountName => {
+    const response = await fetchGoogleBilling(`${billingAccountName}/projects`, _.merge(authOpts(), { signal }))
+    const json = await response.json()
+    return _.map('projectId', json.projectBillingInfo)
+  }
+})
+
+
 const Methods = signal => ({
   list: async params => {
     const res = await fetchAgora(`methods?${qs.stringify(params)}`, _.merge(authOpts(), { signal }))
@@ -806,6 +817,7 @@ export const Ajax = signal => {
     Billing: Billing(signal),
     Workspaces: Workspaces(signal),
     Buckets: Buckets(signal),
+    GoogleBilling: GoogleBilling(signal),
     Methods: Methods(signal),
     Jupyter: Jupyter(signal),
     Dockstore: Dockstore(signal),

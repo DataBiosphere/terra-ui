@@ -248,3 +248,13 @@ export const append = _.curry((value, arr) => _.concat(arr, [value]))
 export const useOnMountOnly = fn => {
   useEffect(fn, []) // eslint-disable-line react-hooks/exhaustive-deps
 }
+
+// Transforms an async function so that it updates a busy flag via the provided callback
+export const withBusyState = _.curry((setBusy, fn) => async (...args) => {
+  try {
+    setBusy(true)
+    return await fn(...args)
+  } finally {
+    setBusy(false)
+  }
+})
