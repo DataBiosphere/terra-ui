@@ -669,12 +669,6 @@ const Buckets = signal => ({
 
 
 const GoogleBilling = signal => ({
-  listAccounts: async () => {
-    const response = await fetchGoogleBilling('billingAccounts', _.merge(authOpts(), { signal }))
-    const json = await response.json()
-    return json.billingAccounts
-  },
-
   listProjectNames: async billingAccountName => {
     const response = await fetchGoogleBilling(`${billingAccountName}/projects`, _.merge(authOpts(), { signal }))
     const json = await response.json()
