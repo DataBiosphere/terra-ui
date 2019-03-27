@@ -8,7 +8,7 @@ import { reportError } from 'src/libs/error'
 import * as Utils from 'src/libs/utils'
 
 
-export const getAuthInstance = () => {
+const getAuthInstance = () => {
   return window.gapi.auth2.getAuthInstance()
 }
 
@@ -38,7 +38,7 @@ export const ensureBillingScope = async () => {
     const options = new window.gapi.auth2.SigninOptionsBuilder({ 'scope': 'https://www.googleapis.com/auth/cloud-billing' })
     await getAuthInstance().currentUser.get().grant(options)
     // Wait 100ms before continuing to avoid errors due to delays in applying the new scope grant
-    await Utils.delay(100)
+    await Utils.delay(250)
   }
 }
 
