@@ -17,8 +17,6 @@ import ExportNotebookModal from 'src/pages/workspaces/workspace/notebooks/Export
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
 
-const getCluster = clusters => _.last(Utils.trimClustersOldestFirst(clusters))
-
 const NotebookLauncher = _.flow(
   wrapWorkspace({
     breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
@@ -29,7 +27,7 @@ const NotebookLauncher = _.flow(
 )(pure(({ clusters, queryParams = {}, ...props }) => {
   const { workspace } = props
   return (Utils.canWrite(workspace.accessLevel) && workspace.canCompute && !queryParams['read-only']) ?
-    h(NotebookEditor, { ...props, cluster: getCluster(clusters) }) :
+    h(NotebookEditor, { ...props, cluster: _.last(Utils.trimClustersOldestFirst(clusters)) }) :
     h(NotebookPreview, props)
 }))
 
