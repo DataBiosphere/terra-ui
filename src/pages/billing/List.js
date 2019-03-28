@@ -1,7 +1,6 @@
 import Interactive from 'react-interactive'
 import { Fragment } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
-import { pure } from 'recompose'
 import { spinnerOverlay } from 'src/components/common'
 import _ from 'lodash/fp'
 import { icon } from 'src/components/icons'
@@ -50,7 +49,6 @@ const ProjectTabs = ({ project: { projectName, role, creationStatus }, isActive 
 }
 
 const AccountTabs = ({ account: { accountName, firecloudHasAccess, displayName }, isActive }) => {
-
   return h(Interactive, {
     as: 'a',
     style: {
@@ -59,7 +57,7 @@ const AccountTabs = ({ account: { accountName, firecloudHasAccess, displayName }
       color: colors.green[0], borderRightColor: isActive ? colors.green[1] : colors.green[0], borderRightStyle: 'solid',
       borderRightWidth: isActive ? 10 : 0, backgroundColor: isActive ? colors.green[7] : colors.white
     }
-  }, [displayName, firecloudHasAccess])
+  }, [div([displayName])])
 }
 
 
