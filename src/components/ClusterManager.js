@@ -526,10 +526,10 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
     return div({ style: styles.container }, [
       h(MiniLink, {
         href: Nav.getLink('workspace-terminal-launch', { namespace, name }),
-        disabled: !running || !canCompute,
+        disabled: !canCompute,
         tooltip: Utils.cond(
           [!canCompute, () => noCompute],
-          [!running, () => 'Start runtime to open terminal'],
+          [!currentCluster, () => 'Create a basic cluster and open its terminal'],
           () => 'Open terminal'
         ),
         style: { marginRight: '2rem' }

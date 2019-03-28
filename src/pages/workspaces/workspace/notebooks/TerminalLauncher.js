@@ -1,9 +1,10 @@
 import _ from 'lodash/fp'
 import { findDOMNode } from 'react-dom'
-import { iframe } from 'react-hyperscript-helpers'
+import { div, iframe } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { centeredSpinner } from 'src/components/icons'
+import { spinner } from 'src/components/icons'
 import { ajaxCaller } from 'src/libs/ajax'
+import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as Utils from 'src/libs/utils'
@@ -20,12 +21,13 @@ const TerminalLauncher = _.flow(
   ajaxCaller
 )(class TerminalLauncher extends Component {
   async loadIframe() {
-    const { clusters } = this.props
+    const { cluster: { clusterName, clusterUrl, status } = {} } = this.props
     const { url } = this.state
 
-    if (clusters && !url) {
+    await this.startCluster()
+
+    if (status === 'Running' && !url) {
       try {
-        const { clusterName, clusterUrl } = _.last(Utils.trimClustersOldestFirst(clusters))
         await this.refreshCookie(clusterName)
         this.setState({ url: `${clusterUrl}/terminals/1` },
           () => { findDOMNode(this).onload = function() { this.contentWindow.focus() } })
@@ -43,33 +45,68 @@ const TerminalLauncher = _.flow(
     return Jupyter.notebooks(namespace, clusterName).setCookie()
   }
 
-  componentDidMount() {
-    this.loadIframe()
+  async startCluster() {
+    const { namespace, refreshClusters, ajax: { Jupyter } } = this.props
+    await refreshClusters()
+    if (!this.props.cluster) {
+      Jupyter.cluster(namespace, Utils.generateClusterName()).create({
+        machineConfig: Utils.normalizeMachineConfig({})
+      })
+    }
+
+    while (this.mounted) {
+      await refreshClusters()
+      const cluster = this.props.cluster // Note: reading up-to-date prop
+      const status = cluster && cluster.status
+
+      if (status === 'Running') {
+        return
+      } else if (status === 'Stopped') {
+        const { googleProject, clusterName } = cluster
+        await Jupyter.cluster(googleProject, clusterName).start()
+        refreshClusters()
+        await Utils.delay(10000)
+      } else if (status === 'Creating') {
+        await Utils.delay(15000)
+      } else {
+        await Utils.delay(3000)
+      }
+    }
   }
 
-  componentDidUpdate() {
+  async componentDidMount() {
+    this.mounted = true
     this.loadIframe()
   }
 
   componentWillUnmount() {
+    this.mounted = false
     if (this.scheduledRefresh) {
       clearTimeout(this.scheduledRefresh)
     }
   }
 
   render() {
-    const { clusters } = this.props
+    const { cluster }  = this.props
     const { url } = this.state
+    const clusterStatus = cluster && cluster.status
 
-    return clusters && url ?
-      iframe({
+    if (clusterStatus === 'Running' && url) {
+      return iframe({
         src: url,
         style: {
-          border: 'none', flex: 1, marginBottom: '-1.5rem',
+          border: 'none', flex: 1,
           marginTop: -45, clipPath: 'inset(45px 0 0)' // cuts off the useless Jupyter top bar
         }
-      }) :
-      centeredSpinner()
+      })
+    } else {
+      return div({ style: { padding: '2rem' } }, [
+        spinner({ style: { color: colors.green[0], marginRight: '0.5rem' } }),
+        (clusterStatus === 'Creating' || !cluster) ?
+          'Creating notebook runtime environment. You can navigate away and return in 5-10 minutes.':
+          'Starting notebook runtime environment, this may take up to 2 minutes.'
+      ])
+    }
   }
 })
 

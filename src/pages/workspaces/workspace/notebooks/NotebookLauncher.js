@@ -24,10 +24,10 @@ const NotebookLauncher = _.flow(
     showTabBar: false
   }),
   ajaxCaller
-)(pure(({ clusters, queryParams = {}, ...props }) => {
+)(pure(({ queryParams = {}, ...props }) => {
   const { workspace } = props
   return (Utils.canWrite(workspace.accessLevel) && workspace.canCompute && !queryParams['read-only']) ?
-    h(NotebookEditor, { ...props, cluster: _.last(Utils.trimClustersOldestFirst(clusters)) }) :
+    h(NotebookEditor, props) :
     h(NotebookPreview, props)
 }))
 
@@ -268,6 +268,8 @@ class NotebookEditor extends Component {
         await Jupyter.cluster(googleProject, clusterName).start()
         refreshClusters()
         await Utils.delay(10000)
+      } else if (status === 'Creating') {
+        await Utils.delay(15000)
       } else {
         await Utils.delay(3000)
       }
