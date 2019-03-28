@@ -14,7 +14,7 @@ import { Component } from 'src/libs/wrapped-components'
 import ProjectDetail from 'src/pages/billing/Project'
 
 
-const ProjectTabs = pure(({ project: { projectName, role, creationStatus } }, isActive) => {
+const ProjectTabs = pure(({ project: { projectName, role, creationStatus }, isActive }) => {
   const isOwner = !!_.includes('Owner', role)
   const projectReady = creationStatus === 'Ready'
   const isClickable = isOwner && projectReady
@@ -102,7 +102,7 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
               fontWeight: 600, textTransform: 'uppercase', borderBottom: `0.5px solid ${colors.grayBlue[2]}`
             }
           },
-          ['Billing Accounts']), //button to create modal ?
+          ['Billing Accounts']),
           _.map(project => h(ProjectTabs, {
             project, key: `${project.projectName}`,
             isActive: project.projectName === projectName
