@@ -36,7 +36,7 @@ const ProjectTabs = ({ project: { projectName, role, creationStatus }, isActive 
       color: colors.green[0], borderRightColor: isActive ? colors.green[1] : colors.green[0], borderRightStyle: 'solid',
       borderRightWidth: isActive ? 10 : 0, backgroundColor: isActive ? colors.green[7] : colors.white
     },
-    href: Nav.getLink('billing', { projectName }),
+    href: Nav.getLink('billing', { selectedName: `project ${projectName}` }),
     hover: isActive ? {} : { backgroundColor: colors.green[6], color: colors.green[1] }
   }, [projectName, statusIcon]) : div({
     style: {
@@ -56,7 +56,9 @@ const AccountTabs = ({ account: { accountName, firecloudHasAccess, displayName }
       fontWeight: 500, overflow: 'hidden', borderBottom: `0.5px solid ${colors.grayBlue[2]}`,
       color: colors.green[0], borderRightColor: isActive ? colors.green[1] : colors.green[0], borderRightStyle: 'solid',
       borderRightWidth: isActive ? 10 : 0, backgroundColor: isActive ? colors.green[7] : colors.white
-    }
+    },
+    href: Nav.getLink('billing', { selectedName: `account ${displayName}` }),
+    hover: isActive ? {} : { backgroundColor: colors.green[6], color: colors.green[1] }
   }, [div([displayName])])
 }
 
@@ -109,11 +111,13 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
   render() {
     const { billingProjects, billingAccounts, isDataLoaded } = this.state
     const breadcrumbs = 'Billing > Billing Accounts'
-    const { projectName } = this.props
+    const { selectedName } = this.props
+    const isAccount = _.startsWith('a', selectedName)
+    const selectedNameNoCategory = (selectedName.split(' '))[1]
 
     return h(Fragment, [
       h(TopBar, { title: 'Billing', href: Nav.getLink('billing') }, [
-        !!projectName && div({
+        !!selectedName && div({
           style: {
             color: 'white', paddingLeft: '5rem', minWidth: 0, marginRight: '0.5rem'
           }
@@ -124,7 +128,7 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
               textOverflow: 'ellipsis', whiteSpace: 'nowrap',
               fontSize: '1.25rem', overflowX: 'hidden'
             }
-          }, [projectName])
+          }, [selectedName])
         ])
       ]),
       div({ style: { display: 'flex', flex: 1, flexWrap: 'wrap' } }, [
@@ -140,7 +144,7 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
           ['Billing Accounts']),
           _.map(account => h(AccountTabs, {
             account, key: `${account.accountName}`,
-            isActive: false
+            isActive: account.displayName === selectedNameNoCategory
           }), billingAccounts),
 
           //begin projects
@@ -153,10 +157,10 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
           ['Billing Projects']),
           _.map(project => h(ProjectTabs, {
             project, key: `${project.projectName}`,
-            isActive: project.projectName === projectName
+            isActive: project.projectName === selectedNameNoCategory
           }), billingProjects)
         ]),
-        !!projectName && h(ProjectDetail, { projectName }),
+        !!selectedName && isAccount ? undefined : h(ProjectDetail, { projectName: (selectedName.split(' '))[1] }),
         !isDataLoaded && spinnerOverlay
       ])
     ])
@@ -186,8 +190,8 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
 
 export const addNavPaths = () => {
   Nav.defPath('billing', {
-    path: '/billing/:projectName?',
+    path: '/billing/:selectedName?',
     component: BillingList,
-    title: ({ projectName }) => `Billing ${projectName ? `- ${projectName}` : 'Management'}`
+    title: ({ selectedName }) => `Billing ${selectedName ? `- ${selectedName}` : 'Management'}`
   })
 }
