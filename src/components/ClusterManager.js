@@ -188,7 +188,7 @@ const getUpdateIntervalMs = status => {
 
 export class NewClusterModal extends PureComponent {
   static propTypes = {
-    currentCluster: PropTypes.object.isRequired,
+    currentCluster: PropTypes.object,
     namespace: PropTypes.string.isRequired,
     onCancel: PropTypes.func.isRequired,
     onSuccess: PropTypes.func.isRequired
