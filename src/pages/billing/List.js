@@ -16,7 +16,7 @@ import { Component } from 'src/libs/wrapped-components'
 import ProjectDetail from 'src/pages/billing/Project'
 
 
-const ProjectTabs = pure(({ project: { projectName, role, creationStatus }, isActive }) => {
+const ProjectTabs = ({ project: { projectName, role, creationStatus }, isActive }) => {
   const isOwner = !!_.includes('Owner', role)
   const projectReady = creationStatus === 'Ready'
   const isClickable = isOwner && projectReady
@@ -39,11 +39,7 @@ const ProjectTabs = pure(({ project: { projectName, role, creationStatus }, isAc
     },
     href: Nav.getLink('billing', { projectName }),
     hover: isActive ? {} : { backgroundColor: colors.green[6], color: colors.green[1] }
-  }, [
-    div([
-      projectName, statusIcon
-    ])
-  ]) : div({
+  }, [projectName, statusIcon]) : div({
     style: {
       display: 'flex', alignItems: 'center', fontSize: 16, height: 50, padding: '0 2rem',
       fontWeight: 500, overflow: 'hidden', borderBottom: `0.5px solid ${colors.grayBlue[2]}`,
@@ -51,7 +47,21 @@ const ProjectTabs = pure(({ project: { projectName, role, creationStatus }, isAc
       borderRightWidth: 0, backgroundColor: colors.white
     }
   }, [projectName, statusIcon])
-})
+}
+
+const AccountTabs = ({ account: { accountName, firecloudHasAccess, displayName }, isActive }) => {
+
+  return h(Interactive, {
+    as: 'a',
+    style: {
+      display: 'flex', alignItems: 'center', fontSize: 16, height: 50, padding: '0 2rem',
+      fontWeight: 500, overflow: 'hidden', borderBottom: `0.5px solid ${colors.grayBlue[2]}`,
+      color: colors.green[0], borderRightColor: isActive ? colors.green[1] : colors.green[0], borderRightStyle: 'solid',
+      borderRightWidth: isActive ? 10 : 0, backgroundColor: isActive ? colors.green[7] : colors.white
+    }
+  }, [displayName, firecloudHasAccess])
+}
+
 
 export const BillingList = ajaxCaller(class BillingList extends Component {
   constructor(props) {
@@ -64,10 +74,11 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
   }
 
   componentDidMount() {
-    this.loadBillingProjects()
+    this.loadProjects()
+    this.loadAccounts()
   }
 
-  async loadBillingProjects() {
+  async loadProjects() {
     const { ajax: { Billing } } = this.props
 
     try {
@@ -84,18 +95,21 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
     }
   }
 
-  async loadBillingAccounts() {
+  async loadAccounts() {
     const { ajax: { Billing } } = this.props
+
     try {
+      this.setState({ isDataLoaded: false })
       const billingAccounts = await Billing.listAccounts()
-      this.setState({ billingAccounts })
+      this.setState({ billingAccounts, isDataLoaded: true })
     } catch (error) {
+      this.setState({ isDataLoaded: true })
       reportError('Error loading billing accounts', error)
     }
   }
 
   render() {
-    const { billingProjects, isDataLoaded } = this.state
+    const { billingProjects, billingAccounts, isDataLoaded } = this.state
     const breadcrumbs = 'Billing > Billing Accounts'
     const { projectName } = this.props
 
@@ -117,6 +131,8 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
       ]),
       div({ style: { display: 'flex', flex: 1, flexWrap: 'wrap' } }, [
         div({ style: { width: 367, boxShadow: '0 2px 5px 0 rgba(0,0,0,0.25)' } }, [
+
+          //begin accounts
           div({
             style: {
               color: colors.gray[0], backgroundColor: colors.grayBlue[5], fontSize: 16, padding: '1.5rem',
@@ -124,13 +140,26 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
             }
           },
           ['Billing Accounts']),
+          _.map(account => h(AccountTabs, {
+            account, key: `${account.accountName}`,
+            isActive: false
+          }), billingAccounts),
+
+          //begin projects
+          div({
+            style: {
+              color: colors.gray[0], backgroundColor: colors.grayBlue[5], fontSize: 16, padding: '1.5rem',
+              fontWeight: 600, textTransform: 'uppercase', borderBottom: `0.5px solid ${colors.grayBlue[2]}`
+            }
+          },
+          ['Billing Projects']),
           _.map(project => h(ProjectTabs, {
             project, key: `${project.projectName}`,
             isActive: project.projectName === projectName
-          }), billingProjects),
-          !isDataLoaded && spinnerOverlay
+          }), billingProjects)
         ]),
-        !!projectName && h(ProjectDetail, { projectName })
+        !!projectName && h(ProjectDetail, { projectName }),
+        !isDataLoaded && spinnerOverlay
       ])
     ])
   }
@@ -139,7 +168,7 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
     const { billingProjects } = this.state
 
     if (_.some({ creationStatus: 'Creating' }, billingProjects) && !this.interval) {
-      this.interval = setInterval(() => this.loadBillingProjects(), 10000)
+      this.interval = setInterval(() => this.loadProjects(), 10000)
     } else {
       clearInterval(this.interval)
       this.interval = undefined
@@ -161,6 +190,6 @@ export const addNavPaths = () => {
   Nav.defPath('billing', {
     path: '/billing/:projectName?',
     component: BillingList,
-    title: ({ projectName }) => `Billing ${projectName ? `- ${projectName}`  : 'Management'}`
+    title: ({ projectName }) => `Billing ${projectName ? `- ${projectName}` : 'Management'}`
   })
 }

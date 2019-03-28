@@ -297,7 +297,7 @@ export default ajaxCaller(class ProjectDetail extends Component {
       }),
       creatingBillingProject && h(NewBillingProjectModal, {
         onDismiss: () => this.setState({ creatingBillingProject: false }),
-        onSuccess: () => this.setState({ creatingBillingProject: false }) //TODO refresh project list
+        onSuccess: () => this.setState({ creatingBillingProject: false })
       }),
       (loading || updating) && spinnerOverlay
     ])
