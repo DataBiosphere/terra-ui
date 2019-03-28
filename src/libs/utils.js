@@ -244,3 +244,9 @@ export const normalizeMachineConfig = ({ masterMachineType, masterDiskSize, numb
 }
 
 export const append = _.curry((value, arr) => _.concat(arr, [value]))
+
+export const trimClustersOldestFirst = _.flow(
+  _.remove({ status: 'Deleting' }),
+  _.remove({ status: 'Error' }),
+  _.sortBy('createdDate')
+)

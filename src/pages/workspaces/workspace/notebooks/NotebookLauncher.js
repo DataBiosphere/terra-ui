@@ -17,14 +17,7 @@ import ExportNotebookModal from 'src/pages/workspaces/workspace/notebooks/Export
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
 
-const getCluster = clusters => {
-  return _.flow(
-    _.remove({ status: 'Deleting' }),
-    _.remove({ status: 'Error' }),
-    _.sortBy('createdDate'),
-    _.first
-  )(clusters)
-}
+const getCluster = clusters => _.last(Utils.trimClustersOldestFirst(clusters))
 
 const NotebookLauncher = _.flow(
   wrapWorkspace({

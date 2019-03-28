@@ -384,11 +384,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
 
   getActiveClustersOldestFirst() {
     const { clusters } = this.props
-    return _.flow(
-      _.remove({ status: 'Deleting' }),
-      _.remove({ status: 'Error' }),
-      _.sortBy('createdDate')
-    )(clusters)
+    return Utils.trimClustersOldestFirst(clusters)
   }
 
   getCurrentCluster() {

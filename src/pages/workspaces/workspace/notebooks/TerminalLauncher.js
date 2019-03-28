@@ -6,6 +6,7 @@ import { centeredSpinner } from 'src/components/icons'
 import { ajaxCaller } from 'src/libs/ajax'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
+import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
@@ -24,11 +25,7 @@ const TerminalLauncher = _.flow(
 
     if (clusters && !url) {
       try {
-        const { clusterName, clusterUrl } = _.flow(
-          _.remove({ status: 'Deleting' }),
-          _.sortBy('createdDate'),
-          _.last
-        )(clusters)
+        const { clusterName, clusterUrl } = _.last(Utils.trimClustersOldestFirst(clusters))
         await this.refreshCookie(clusterName)
         this.setState({ url: `${clusterUrl}/terminals/1` },
           () => { findDOMNode(this).onload = function() { this.contentWindow.focus() } })
