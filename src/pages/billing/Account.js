@@ -3,6 +3,8 @@ import { Fragment } from 'react'
 import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { Component } from 'src/libs/wrapped-components'
+import { link } from 'src/components/common'
+import * as Auth from 'src/libs/auth'
 
 
 export default ajaxCaller(class AccountDetail extends Component {
@@ -21,9 +23,10 @@ export default ajaxCaller(class AccountDetail extends Component {
     return h(Fragment, [
       div({ style: { padding: '1.5rem 3rem' } }, [
         div({ style: { color: colors.gray[0], fontSize: 16, fontWeight: 600 } },
-          [
-            `BILLING ACCOUNT: ${accountName}`
-          ])
+          [`BILLING ACCOUNT: ${accountName}`]),
+        link({ target: '_blank', href: `https://console.cloud.google.com/billing/${accountName}/budgets?authuser=${Auth.getUser().email}` }, [
+          'View billing history on Google billing console'
+        ])
       ])
     ])
   }
