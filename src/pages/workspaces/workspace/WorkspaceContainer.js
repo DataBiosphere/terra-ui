@@ -141,7 +141,7 @@ class WorkspaceContainer extends Component {
 }
 
 
-export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, showTabBar = true, queryparams }) => WrappedComponent => {
+export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, showTabBar = true, queryParams }) => WrappedComponent => {
   const WrappedClassComponent = toClass(WrappedComponent)
 
   return ajaxCaller(class Wrapper extends Component {

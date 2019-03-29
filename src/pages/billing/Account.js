@@ -13,10 +13,6 @@ export default ajaxCaller(class AccountDetail extends Component {
     this.state = {}
   }
 
-  componentDidMount() {
-
-  }
-
   render() {
     const { accountName } = this.props
 
@@ -25,7 +21,7 @@ export default ajaxCaller(class AccountDetail extends Component {
         div({ style: { color: colors.gray[0], fontSize: 16, fontWeight: 600 } },
           [`BILLING ACCOUNT: ${accountName}`]),
         link({ target: '_blank', href: `https://console.cloud.google.com/billing/${accountName}/budgets?authuser=${Auth.getUser().email}` }, [
-          'View billing history on Google billing console'
+          'View billing history on Google console'
         ])
       ])
     ])
