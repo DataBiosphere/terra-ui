@@ -13,6 +13,7 @@ import * as StateHistory from 'src/libs/state-history'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 import ProjectDetail from 'src/pages/billing/Project'
+import AccountDetail from 'src/pages/billing/Account'
 import { listProjectsWithAccounts } from 'src/libs/billing'
 
 
@@ -61,7 +62,7 @@ const AccountTabs = ({ account: { accountName, firecloudHasAccess, displayName }
     },
     href: Nav.getLink('billing', { selectedName: `account ${accountName}` }),
     hover: isActive ? {} : { backgroundColor: colors.green[6], color: colors.green[1] }
-  }, [div([icon(isActive ? 'angle down' : 'angle right', { style: { marginRight: '0.5rem' } }), accountName.split('/')[1]])])
+  }, [div([icon(isActive ? 'angle down' : 'angle right', { style: { marginRight: '0.5rem', marginLeft: '-1.5rem' } }), accountName.split('/')[1]])])
 }
 
 
@@ -80,10 +81,10 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
     const { ajax: { Billing } } = this.props
     this.loadProjects()
     this.loadAccounts()
-    this.listProjectsInAccts(await Billing.listAccounts())
+    this.listProjectsInAccounts(await Billing.listAccounts())
   }
 
-  async listProjectsInAccts(billingAccounts) {
+  async listProjectsInAccounts(billingAccounts) {
     try {
       this.setState({ isDataLoaded: false })
       const projectsInAccounts = await listProjectsWithAccounts(billingAccounts)
@@ -146,7 +147,7 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
               textOverflow: 'ellipsis', whiteSpace: 'nowrap',
               fontSize: '1.25rem', overflowX: 'hidden'
             }
-          }, [selectedName])
+          }, [isAccount ? selectedName.split('%2F')[1] : selectedName.split(' ')[1]])
         ])
       ]),
       div({ style: { display: 'flex', flex: 1, flexWrap: 'wrap' } }, [
@@ -175,10 +176,10 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
           ['Billing Projects']),
           _.map(project => h(ProjectTabs, {
             project, key: `${project.projectName}`,
-            isActive: !!selectedName && !isAccount && project.projectName === (selectedName.split(' '))[1]
+            isActive: !!selectedName && !isAccount && project.projectName === selectedName.split(' ')[1]
           }), billingProjects)
         ]),
-        !!selectedName && (isAccount ? undefined : h(ProjectDetail, { projectName: (selectedName.split(' '))[1] })),
+        !!selectedName && (isAccount ? h(AccountDetail, { accountName: selectedName.split('%2F')[1] }) : h(ProjectDetail, { projectName: selectedName.split(' ')[1] })),
         !isDataLoaded && spinnerOverlay
       ])
     ])

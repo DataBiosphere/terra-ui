@@ -260,7 +260,8 @@ export default ajaxCaller(class ProjectDetail extends Component {
             await Auth.ensureBillingScope()
             this.setState({ creatingBillingProject: true })
           } catch (error) {
-            reportError('Failed to grant permissions', 'To create a new billing project, you must allow Terra to view your Google billing account(s).')
+            reportError('Failed to grant permissions',
+              'To create a new billing project, you must allow Terra to view your Google billing account(s).')
           }
         }
       }),
@@ -297,7 +298,7 @@ export default ajaxCaller(class ProjectDetail extends Component {
       }),
       creatingBillingProject && h(NewBillingProjectModal, {
         onDismiss: () => this.setState({ creatingBillingProject: false }),
-        onSuccess: () => this.setState({ creatingBillingProject: false })
+        onSuccess: () => this.setState({ creatingBillingProject: false }) //TODO check this
       }),
       (loading || updating) && spinnerOverlay
     ])

@@ -7,7 +7,7 @@ export const listProjectsWithAccounts = async accounts => {
   const { GoogleBilling } = Ajax()
 
   await ensureBillingScope()
-  //
+
   const accountNames = _.map('accountName', accounts)
   const projectNames = await Promise.all(_.map(async accountName => {
     try {
