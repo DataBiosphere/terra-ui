@@ -14,13 +14,13 @@ export default ajaxCaller(class AccountDetail extends Component {
   }
 
   render() {
-    const { accountName } = this.props
+    const { account } = this.props
 
     return h(Fragment, [
       div({ style: { padding: '1.5rem 3rem' } }, [
         div({ style: { color: colors.gray[0], fontSize: 16, fontWeight: 600 } },
-          [`BILLING ACCOUNT: ${accountName}`]),
-        link({ target: '_blank', href: `https://console.cloud.google.com/billing/${accountName}/budgets?authuser=${Auth.getUser().email}` }, [
+          [`BILLING ACCOUNT: ${account.accountName}`]),
+        link({ target: '_blank', href: `https://console.cloud.google.com/billing/${account.accountName}/budgets?authuser=${Auth.getUser().email}` }, [
           'View billing history on Google console'
         ])
       ])

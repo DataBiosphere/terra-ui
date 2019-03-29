@@ -335,9 +335,12 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
         creatingBillingProject && h(NewBillingProjectModal, {
           billingAccounts,
           onDismiss: () => this.setState({ creatingBillingProject: false }),
-          onSuccess: () => this.setState({ creatingBillingProject: false }) //TODO check this
+          onSuccess: () => {
+            this.setState({ creatingBillingProject: false })
+            this.loadProjects()
+          }
         }),
-        !!selectedName && (isAccount ? h(AccountDetail, { accountName: selectedName }) : h(ProjectDetail, { projectName: selectedName })),
+        !!selectedName && (isAccount ? h(AccountDetail, { account: _.find({ accountName: selectedName }, billingAccounts) }) : h(ProjectDetail, { project: _.find({ projectName: selectedName }, billingProjects) })),
         !isDataLoaded && spinnerOverlay
       ])
     ])
