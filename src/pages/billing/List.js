@@ -13,6 +13,7 @@ import * as StateHistory from 'src/libs/state-history'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 import ProjectDetail from 'src/pages/billing/Project'
+import { listProjectsWithAccounts } from 'src/libs/billing'
 
 
 const ProjectTabs = ({ project: { projectName, role, creationStatus }, isActive }) => {
@@ -49,6 +50,7 @@ const ProjectTabs = ({ project: { projectName, role, creationStatus }, isActive 
 }
 
 const AccountTabs = ({ account: { accountName, firecloudHasAccess, displayName }, isActive }) => {
+  //console.log(accountName)
   return h(Interactive, {
     as: 'a',
     style: {
@@ -57,9 +59,9 @@ const AccountTabs = ({ account: { accountName, firecloudHasAccess, displayName }
       color: colors.green[0], borderRightColor: isActive ? colors.green[1] : colors.green[0], borderRightStyle: 'solid',
       borderRightWidth: isActive ? 10 : 0, backgroundColor: isActive ? colors.green[7] : colors.white
     },
-    href: Nav.getLink('billing', { selectedName: `account ${displayName}` }),
+    href: Nav.getLink('billing', { selectedName: `account ${accountName}` }),
     hover: isActive ? {} : { backgroundColor: colors.green[6], color: colors.green[1] }
-  }, [div([displayName])])
+  }, [div([icon(isActive ? 'angle down' : 'angle right', { style: { marginRight: '0.5rem' } }), accountName.split('/')[1]])])
 }
 
 
@@ -73,9 +75,26 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
     }
   }
 
-  componentDidMount() {
+  async componentDidMount() {
+    //const { billingAccounts } = this.state
+    const { ajax: { Billing } } = this.props
     this.loadProjects()
     this.loadAccounts()
+    this.listProjectsInAccts(await Billing.listAccounts())
+  }
+
+  async listProjectsInAccts(billingAccounts) {
+    try {
+      this.setState({ isDataLoaded: false })
+      const projectsInAccounts = await listProjectsWithAccounts(billingAccounts)
+      console.log('success')
+      console.log({ projectsInAccounts })
+      this.setState({ projectsInAccounts })
+    } catch (error) {
+      reportError('Error loading projects within accounts', error)
+    } finally {
+      this.setState({ isDataLoaded: true })
+    }
   }
 
   async loadProjects() {
@@ -113,7 +132,6 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
     const breadcrumbs = 'Billing > Billing Accounts'
     const { selectedName } = this.props
     const isAccount = _.startsWith('a', selectedName)
-    const selectedNameNoCategory = (selectedName.split(' '))[1]
 
     return h(Fragment, [
       h(TopBar, { title: 'Billing', href: Nav.getLink('billing') }, [
@@ -144,7 +162,7 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
           ['Billing Accounts']),
           _.map(account => h(AccountTabs, {
             account, key: `${account.accountName}`,
-            isActive: account.displayName === selectedNameNoCategory
+            isActive: !!selectedName && isAccount && account.accountName.split('/')[1] === selectedName.split('%2F')[1]
           }), billingAccounts),
 
           //begin projects
@@ -157,10 +175,10 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
           ['Billing Projects']),
           _.map(project => h(ProjectTabs, {
             project, key: `${project.projectName}`,
-            isActive: project.projectName === selectedNameNoCategory
+            isActive: !!selectedName && !isAccount && project.projectName === (selectedName.split(' '))[1]
           }), billingProjects)
         ]),
-        !!selectedName && isAccount ? undefined : h(ProjectDetail, { projectName: (selectedName.split(' '))[1] }),
+        !!selectedName && (isAccount ? undefined : h(ProjectDetail, { projectName: (selectedName.split(' '))[1] })),
         !isDataLoaded && spinnerOverlay
       ])
     ])
