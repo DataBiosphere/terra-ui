@@ -258,3 +258,8 @@ export const withBusyState = _.curry((setBusy, fn) => async (...args) => {
     setBusy(false)
   }
 })
+
+// Performs the given effect, but only on component mount
+export const useOnMount = fn => {
+  useEffect(fn, [])
+}

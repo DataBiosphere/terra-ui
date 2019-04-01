@@ -24,8 +24,9 @@ export const useWorkspaces = ({ persist } = {}) => {
       setLoading(false)
     }
   }
-
-  Utils.useOnMountOnly(() => { refresh() })
+  Utils.useOnMount(() => {
+    refresh()
+  })
   useEffect(() => {
     if (persist) {
       StateHistory.update({ workspaces })
