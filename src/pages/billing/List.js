@@ -265,7 +265,7 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
         ]),
         div({ style: Style.cardList.cardContainer }, [
           div([
-            h(NewBillingCard, {
+            /*TODO: remove to enable -->*/ false && h(NewBillingCard, {
               newEntityLabel: 'New Project',
               onClick: async () => {
                 try {
@@ -276,7 +276,7 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
                 }
               }
             }),
-            div({ style: { height: 15 } }),
+            /*TODO: remove to enable -->*/ false && div({ style: { height: 15 } }),
             h(NewBillingCard, {
               newEntityLabel: 'Billing Account',
               onClick: () => this.setState({ creatingBillingAccount: true })

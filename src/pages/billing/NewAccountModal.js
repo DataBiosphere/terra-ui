@@ -329,7 +329,7 @@ const NewAccountModal = ({ onDismiss }) => {
         h(buttonSecondary, { onClick: () => setPage(page - 1), disabled: onFirstPage }, ['Back']),
         h(buttonPrimary, {
           style: { marginLeft: '2rem' },
-          onClick: (onLastPage || CCdone) ? () => console.log(account) : () => setPage(page + 1),
+          onClick: (onLastPage || CCdone) ? () => /*TODO: add submit action here*/ console.log(account) : () => setPage(page + 1),
           disabled: !_.isEmpty(pages[page].errors),
           tooltip: !_.isEmpty(pages[page].errors) && 'All fields are required'
         }, [(onLastPage || CCdone) ? 'Submit' : 'Next'])
