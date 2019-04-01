@@ -57,7 +57,7 @@ export default ajaxCaller(class ProjectDetail extends Component {
       div({ style: { padding: '1.5rem 3rem' } }, [
         div({ style: { color: colors.gray[0], fontSize: 16, fontWeight: 600 } },
           [
-            `BILLING PROJECT: ${project.projectName}`,
+            `${project.projectName}`,
             span({ style: { fontWeight: 500, fontSize: 14, margin: '0 1.5rem 0 3rem' } }, project.creationStatus),
             span([
               icon(Utils.cond(

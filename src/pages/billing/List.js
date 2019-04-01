@@ -19,8 +19,6 @@ import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 import ProjectDetail from 'src/pages/billing/Project'
-import AccountDetail from 'src/pages/billing/Account'
-import { listProjectsWithAccounts } from 'src/libs/billing'
 import validate from 'validate.js'
 
 
@@ -56,22 +54,6 @@ const ProjectTabs = ({ project: { projectName, role, creationStatus }, isActive 
     }
   }, [projectName, statusIcon])
 }
-
-/*const AccountTabs = ({ account: { accountName, firecloudHasAccess, displayName }, isActive }) => {
-  const accountParams = { selectedName: accountName, type: 'account' }
-
-  return h(Interactive, {
-    as: 'a',
-    style: {
-      display: 'flex', alignItems: 'center', fontSize: 16, height: 50, padding: '0 2rem',
-      fontWeight: 500, overflow: 'hidden', borderBottom: `0.5px solid ${colors.grayBlue[2]}`,
-      color: colors.green[0], borderRightColor: isActive ? colors.green[1] : colors.green[0], borderRightStyle: 'solid',
-      borderRightWidth: isActive ? 10 : 0, backgroundColor: isActive ? colors.green[7] : colors.white
-    },
-    href: `${Nav.getLink('billing')}?${qs.stringify(accountParams)}`,
-    hover: isActive ? {} : { backgroundColor: colors.green[6], color: colors.green[1] }
-  }, [div([icon(isActive ? 'angle down' : 'angle right', { style: { marginRight: '0.5rem', marginLeft: '-1.5rem' } }), displayName])])
-}*/
 
 const billingProjectNameValidator = existing => ({
   presence: { allowEmpty: false },
@@ -240,23 +222,7 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
   }
 
   async componentDidMount() {
-    //const { ajax: { Billing } } = this.props
     this.loadProjects()
-    //this.listProjectsInAccounts(await Billing.listAccounts())
-  }
-
-  async listProjectsInAccounts(billingAccounts) {
-    try {
-      this.setState({ isDataLoaded: false })
-      const projectsInAccounts = await listProjectsWithAccounts(billingAccounts)
-      console.log('success')
-      console.log({ projectsInAccounts })
-      this.setState({ projectsInAccounts })
-    } catch (error) {
-      reportError('Error loading projects within accounts', error)
-    } finally {
-      this.setState({ isDataLoaded: true })
-    }
   }
 
   async loadProjects() {
@@ -277,10 +243,9 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
   }
 
   render() {
-    const { billingProjects, billingAccounts, isDataLoaded, creatingBillingProject } = this.state
+    const { billingProjects, isDataLoaded, creatingBillingProject } = this.state
     const { queryParams: { type, selectedName } } = this.props
-    const breadcrumbs = `Billing${!type ? '': ` > Billing ${type}`}`
-    const isAccount = type === 'account'
+    const breadcrumbs = `Billing > Billing Project`
 
     return h(Fragment, [
       h(TopBar, { title: 'Billing', href: Nav.getLink('billing') }, [
@@ -300,17 +265,6 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
       ]),
       div({ style: { display: 'flex', flex: 1, flexWrap: 'wrap' } }, [
         div({ style: { width: 367, boxShadow: '0 2px 5px 0 rgba(0,0,0,0.25)' } }, [
-          /*div({
-            style: {
-              color: colors.gray[0], backgroundColor: colors.grayBlue[5], fontSize: 16, padding: '1.5rem',
-              fontWeight: 600, textTransform: 'uppercase', borderBottom: `0.5px solid ${colors.grayBlue[2]}`
-            }
-          },
-          ['Billing Accounts']),
-          _.map(account => h(AccountTabs, {
-            account, key: `${account.accountName}`,
-            isActive: !!selectedName && isAccount && account.accountName === selectedName
-          }), billingAccounts),*/
           div({
             style: {
               color: colors.gray[0], backgroundColor: colors.grayBlue[5], fontSize: 16, padding: '1rem 1.5rem',
@@ -331,18 +285,17 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
           ]),
           _.map(project => h(ProjectTabs, {
             project, key: `${project.projectName}`,
-            isActive: !!selectedName && !isAccount && project.projectName === selectedName
+            isActive: !!selectedName && project.projectName === selectedName
           }), billingProjects)
         ]),
         creatingBillingProject && h(NewBillingProjectModal, {
-          //billingAccounts,
           onDismiss: () => this.setState({ creatingBillingProject: false }),
           onSuccess: () => {
             this.setState({ creatingBillingProject: false })
             this.loadProjects()
           }
         }),
-        !!selectedName && (isAccount ? h(AccountDetail, { account: _.find({ accountName: selectedName }, billingAccounts) }) : h(ProjectDetail, { project: _.find({ projectName: selectedName }, billingProjects) })),
+        !!selectedName && h(ProjectDetail, { project: _.find({ projectName: selectedName }, billingProjects) }),
         !isDataLoaded && spinnerOverlay
       ])
     ])
