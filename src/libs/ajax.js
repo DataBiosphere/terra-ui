@@ -679,7 +679,7 @@ const Methods = signal => ({
   },
 
   template: async modifiedConfigMethod => {
-    const res = await fetchOrchestration('api/template',
+    const res = await fetchRawls('methodconfigs/template',
       _.mergeAll([authOpts(), jsonBody(modifiedConfigMethod), { signal, method: 'POST' }]))
     return res.json()
   },
