@@ -423,7 +423,8 @@ const WorkflowView = _.flow(
       const inputsOutputs = await Methods.configInputsOutputs(config)
       this.setState({
         savedConfig: config, modifiedConfig: config,
-        entityMetadata, inputsOutputs: _.update('inputs', _.sortBy('optional'), inputsOutputs),
+        entityMetadata, savedInputsOutputs: _.update('inputs', _.sortBy('optional'), inputsOutputs),
+        modifiedInputsOutputs: _.update('inputs', _.sortBy('optional'), inputsOutputs),
         errors: augmentErrors(validationResponse),
         isRedacted: false,
         entitySelectionModel: this.resetSelectionModel(config.rootEntityType),
@@ -449,7 +450,7 @@ const WorkflowView = _.flow(
 
   componentDidUpdate() {
     StateHistory.update(_.pick(
-      ['savedConfig', 'modifiedConfig', 'entityMetadata', 'inputsOutputs', 'invalid', 'activeTab', 'wdl'],
+      ['savedConfig', 'modifiedConfig', 'entityMetadata', 'savedInputsOutputs', 'modifiedInputsOutputs', 'invalid', 'activeTab', 'wdl'],
       this.state)
     )
   }
@@ -501,9 +502,8 @@ const WorkflowView = _.flow(
     const { ajax: { Methods } } = this.props
     const { modifiedConfig: { methodRepoMethod: { methodNamespace, methodName } } } = this.state
     const config = await Methods.template({ methodNamespace, methodName, methodVersion: newSnapshotId })
-    const inputsOutputs = await Methods.configInputsOutputs(config)
-
-    this.setState({ inputsOutputs: _.update('inputs', _.sortBy('optional'), inputsOutputs) })
+    const modifiedInputsOutputs = await Methods.configInputsOutputs(config)
+    this.setState({ modifiedInputsOutputs: _.update('inputs', _.sortBy('optional'), modifiedInputsOutputs) })
     this.setState(_.set(['modifiedConfig', 'methodRepoMethod'], config.methodRepoMethod))
   })
 
@@ -730,14 +730,14 @@ const WorkflowView = _.flow(
 
   renderIOTable(key) {
     const { workspace: { canCompute } } = this.props
-    const { modifiedConfig, inputsOutputs, errors, entityMetadata, workspaceAttributes, includeOptionalInputs } = this.state
+    const { modifiedConfig, modifiedInputsOutputs, errors, entityMetadata, workspaceAttributes, includeOptionalInputs } = this.state
     // Sometimes we're getting totally empty metadata. Not sure if that's valid; if not, revert this
     const { attributeNames } = entityMetadata[modifiedConfig.rootEntityType] || {}
     const suggestions = [
       ..._.map(name => `this.${name}`, attributeNames),
       ..._.map(name => `workspace.${name}`, workspaceAttributes)
     ]
-    const filteredData = _.filter(includeOptionalInputs || key === 'outputs' ? (() => true) : { optional: false }, inputsOutputs[key])
+    const filteredData = _.filter(includeOptionalInputs || key === 'outputs' ? (() => true) : { optional: false }, modifiedInputsOutputs[key])
 
     return h(Dropzone, {
       accept: '.json',
@@ -752,7 +752,7 @@ const WorkflowView = _.flow(
       onDropAccepted: files => this.uploadJson(key, files[0])
     }, [
       div({ style: { flex: 'none', display: 'flex', marginBottom: '0.25rem' } }, [
-        key === 'inputs' && _.some('optional', inputsOutputs['inputs']) ?
+        key === 'inputs' && _.some('optional', modifiedInputsOutputs['inputs']) ?
           linkButton({ style: { marginRight: 'auto' }, onClick: () => this.setState({ includeOptionalInputs: !includeOptionalInputs }) },
             [includeOptionalInputs ? 'Hide optional inputs' : 'Show optional inputs']) :
           div({ style: { marginRight: 'auto' } }),
@@ -784,7 +784,7 @@ const WorkflowView = _.flow(
 
   async save() {
     const { namespace, name, workflowNamespace, workflowName, ajax: { Workspaces } } = this.props
-    const { modifiedConfig } = this.state
+    const { modifiedConfig, modifiedInputsOutputs } = this.state
 
     this.setState({ saving: true })
 
@@ -797,7 +797,8 @@ const WorkflowView = _.flow(
         saved: true,
         savedConfig: validationResponse.methodConfiguration,
         modifiedConfig: validationResponse.methodConfiguration,
-        errors: augmentErrors(validationResponse)
+        errors: augmentErrors(validationResponse),
+        inputsOutputs: modifiedInputsOutputs
       }, () => setTimeout(() => this.setState({ saved: false }), 3000))
       this.updateEntityTypeUI(modifiedConfig)
     } catch (error) {
@@ -808,9 +809,9 @@ const WorkflowView = _.flow(
   }
 
   cancel() {
-    const { savedConfig, savedConfig: { rootEntityType } } = this.state
+    const { savedConfig, savedInputsOutputs, savedConfig: { rootEntityType } } = this.state
 
-    this.setState({ saved: false, modifiedConfig: savedConfig, entitySelectionModel: this.resetSelectionModel(rootEntityType) })
+    this.setState({ saved: false, modifiedConfig: savedConfig, modifiedInputsOutputs: savedInputsOutputs, entitySelectionModel: this.resetSelectionModel(rootEntityType) })
     this.updateSingleOrMultipleRadioState(savedConfig)
   }
 })
