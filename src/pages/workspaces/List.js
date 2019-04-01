@@ -159,7 +159,7 @@ const WorkspaceCard = pure(({
         div({ style: { ...styles.longDescription } }, [descText]),
         div({ style: { flex: 'none' } }, [badge])
       ])
-    ]),
+    ])
   ]) : a({
     href: Nav.getLink('workspace-dashboard', { namespace, name }),
     style: styles.shortCard
