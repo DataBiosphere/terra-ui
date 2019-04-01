@@ -548,7 +548,7 @@ const WorkflowView = _.flow(
           ]),
           div({ style: { marginTop: '0.5rem' } },
             (sourceRepo === 'agora') ? [
-              'Snapshot', div({ style: { display: 'inline-block', marginLeft: '0.25rem' } }, [
+              'Snapshot', div({ style: { display: 'inline-block', marginLeft: '0.25rem', minWidth: 60  } }, [
                 h(Select, {
                   isClearable: false,
                   isSearchable: false,
@@ -558,7 +558,7 @@ const WorkflowView = _.flow(
                   onChange: chosenSnapshot => this.loadNewMethodConfig(chosenSnapshot.value)
                 })
               ])
-            ] : [`Snapshot ${ methodVersion }`]),
+            ] : [`Snapshot ${methodVersion}`]),
           div([
             'Source: ', link({
               href: methodLink(modifiedConfig),
