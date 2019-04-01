@@ -114,10 +114,10 @@ const browseTooltip = 'Look for the Export to Terra icon to export data from thi
 const NIHCommonsButtons = buttonPrimary({
   style: { margin: '0.25rem 0' },
   as: 'a',
-  href: 'https://dcp.bionimbus.org/',
+  href: 'https://gen3.datastage.io/explorer',
   target: '_blank',
   tooltip: browseTooltip
-}, ['Browse Data via Windmill'])
+}, ['Browse STAGE Repository'])
 
 const thousandGenomes = h(Participant, {
   logo: { src: thousandGenomesLogo, alt: '1000 Genomes logo' },
@@ -230,7 +230,7 @@ const fcDataLib = h(Participant, {
 
 const gtex = h(Participant, {
   logo: { src: gtexLogo, alt: 'GTEx logo' },
-  title: 'GTEx presented by NIH Commons',
+  title: 'GTEx presented by NHLBI Data STAGE',
   description: `The Genotype-Tissue Expression (GTEx) Program established a data resource and tissue bank to study the
   relationship between genetic variation and gene expression in multiple human tissues.`,
   sizeText: h(TooltipTrigger, { content: 'As of release V7' }, [span('Samples: > 11,688')])
@@ -285,7 +285,7 @@ const nhs = h(Participant, {
 
 const topMed = h(Participant, {
   logo: { src: topMedLogo, alt: 'TopMed logo' },
-  title: 'TopMed presented by NIH Commons',
+  title: 'TopMed presented by NHLBI Data STAGE',
   description: `Trans-Omics for Precision Medicine (TOPMed), sponsored by the National Institutes of Health's National
   Heart, Lung, and Blood Institute (NHLBI), is a program to generate scientific resources to enhance our understanding
   of fundamental biological processes that underlie heart, lung, blood, and sleep disorders (HLBS).`,

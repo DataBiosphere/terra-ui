@@ -255,6 +255,11 @@ export const withBusyState = _.curry((setBusy, fn) => async (...args) => {
   }
 })
 
+// Performs the given effect, but only on component mount
+export const useOnMount = fn => {
+  useEffect(fn, [])
+}
+
 export const trimClustersOldestFirst = _.flow(
   _.remove({ status: 'Deleting' }),
   _.remove({ status: 'Error' }),
