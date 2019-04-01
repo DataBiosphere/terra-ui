@@ -244,7 +244,7 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
 
   render() {
     const { billingProjects, isDataLoaded, creatingBillingProject } = this.state
-    const { queryParams: { type, selectedName } } = this.props
+    const { queryParams: { selectedName } } = this.props
     const breadcrumbs = `Billing > Billing Project`
 
     return h(Fragment, [
