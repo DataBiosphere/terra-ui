@@ -25,34 +25,29 @@ import validate from 'validate.js'
 const ProjectTabs = ({ project: { projectName, role, creationStatus }, isActive }) => {
   const isOwner = !!_.includes('Owner', role)
   const projectReady = creationStatus === 'Ready'
-  const isClickable = isOwner && projectReady
-  const statusIcon = span({ style: { marginLeft: '0.5rem' } }, [
-    !projectReady && icon(Utils.cond(
-      [creationStatus === 'Creating', 'loadingSpinner'],
-      'error-standard'), {
-      style: { color: colors.green[0], marginRight: '1rem' }
-    })
-  ])
   const projectParams = { selectedName: projectName, type: 'project' }
+  const isClickable = isOwner && projectReady
+  const statusIcon = icon(creationStatus === 'Creating' ? 'loadingSpinner' : 'error-standard',
+    { style: { color: colors.green[0], marginRight: '1rem', marginLeft: '0.5rem' } })
 
   return isClickable ? h(Interactive, {
     as: 'a',
     style: {
       display: 'flex', alignItems: 'center', fontSize: 16, height: 50, padding: '0 2rem',
-      fontWeight: 500, overflow: 'hidden', borderBottom: `0.5px solid ${colors.grayBlue[2]}`,
+      fontWeight: 500, overflow: 'hidden', borderBottom: `1px solid ${colors.grayBlue[2]}`,
       color: colors.green[0], borderRightColor: isActive ? colors.green[1] : colors.green[0], borderRightStyle: 'solid',
       borderRightWidth: isActive ? 10 : 0, backgroundColor: isActive ? colors.green[7] : colors.white
     },
     href: `${Nav.getLink('billing')}?${qs.stringify(projectParams)}`,
     hover: isActive ? {} : { backgroundColor: colors.green[6], color: colors.green[1] }
-  }, [projectName, statusIcon]) : div({
+  }, [projectName, !projectReady && statusIcon]) : div({
     style: {
       display: 'flex', alignItems: 'center', fontSize: 16, height: 50, padding: '0 2rem',
-      fontWeight: 500, overflow: 'hidden', borderBottom: `0.5px solid ${colors.grayBlue[2]}`,
+      fontWeight: 500, overflow: 'hidden', borderBottom: `1px solid ${colors.grayBlue[2]}`,
       color: colors.gray[0], borderRightColor: colors.green[0], borderRightStyle: 'solid',
       borderRightWidth: 0, backgroundColor: colors.white
     }
-  }, [projectName, statusIcon])
+  }, [projectName, !projectReady && statusIcon])
 }
 
 const billingProjectNameValidator = existing => ({
@@ -264,7 +259,7 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
         ])
       ]),
       div({ style: { display: 'flex', flex: 1, flexWrap: 'wrap' } }, [
-        div({ style: { width: 367, boxShadow: '0 2px 5px 0 rgba(0,0,0,0.25)' } }, [
+        div({ style: { width: 330, boxShadow: '0 2px 5px 0 rgba(0,0,0,0.25)' } }, [
           div({
             style: {
               color: colors.gray[0], backgroundColor: colors.grayBlue[5], fontSize: 16, padding: '1rem 1.5rem',
