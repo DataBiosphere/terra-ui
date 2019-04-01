@@ -29,7 +29,8 @@ const ProjectTabs = ({ project: { projectName, role, creationStatus }, isActive 
   const projectReady = creationStatus === 'Ready'
   const isClickable = isOwner && projectReady
   const statusIcon = span({ style: { marginLeft: '0.5rem' } }, [
-    !projectReady && icon(Utils.cond(
+    icon(Utils.cond(
+      [creationStatus === 'Ready', 'check'],
       [creationStatus === 'Creating', 'loadingSpinner'],
       'error-standard'), {
       style: { color: colors.green[0], marginRight: '1rem' }
@@ -57,7 +58,7 @@ const ProjectTabs = ({ project: { projectName, role, creationStatus }, isActive 
   }, [projectName, statusIcon])
 }
 
-/*const AccountTabs = ({ account: { accountName, firecloudHasAccess, displayName }, isActive }) => {
+const AccountTabs = ({ account: { accountName, firecloudHasAccess, displayName }, isActive }) => {
   const accountParams = { selectedName: accountName, type: 'account' }
 
   return h(Interactive, {
@@ -71,7 +72,7 @@ const ProjectTabs = ({ project: { projectName, role, creationStatus }, isActive 
     href: `${Nav.getLink('billing')}?${qs.stringify(accountParams)}`,
     hover: isActive ? {} : { backgroundColor: colors.green[6], color: colors.green[1] }
   }, [div([icon(isActive ? 'angle down' : 'angle right', { style: { marginRight: '0.5rem', marginLeft: '-1.5rem' } }), displayName])])
-}*/
+}
 
 const billingProjectNameValidator = existing => ({
   presence: { allowEmpty: false },
@@ -92,32 +93,13 @@ const NewBillingProjectModal = ajaxCaller(class NewBillingProjectModal extends C
     this.state = {
       billingProjectName: '',
       billingProjectNameTouched: false,
-      existing: [],
-      isDataLoaded: true
-    }
-  }
-
-  componentDidMount() {
-    this.loadAccounts()
-  }
-
-  async loadAccounts() {
-    const { ajax: { Billing } } = this.props
-
-    try {
-      this.setState({ isDataLoaded: false })
-      await Auth.ensureBillingScope()
-      const billingAccounts = await Billing.listAccounts()
-      this.setState({ billingAccounts, isDataLoaded: true })
-    } catch (error) {
-      this.setState({ isDataLoaded: true })
-      reportError('Error loading billing accounts', error)
+      existing: []
     }
   }
 
   render() {
-    const { onDismiss } = this.props
-    const { billingProjectName, billingProjectNameTouched, submitting, chosenBillingAccount, existing, isDataLoaded, billingAccounts } = this.state
+    const { onDismiss, billingAccounts } = this.props
+    const { billingProjectName, billingProjectNameTouched, submitting, chosenBillingAccount, existing } = this.state
     const errors = validate({ billingProjectName }, { billingProjectName: billingProjectNameValidator(existing) })
 
     return h(Modal, {
@@ -201,7 +183,7 @@ const NewBillingProjectModal = ajaxCaller(class NewBillingProjectModal extends C
           ])
         ])
       ]),
-      (submitting || !isDataLoaded) && spinnerOverlay
+      submitting && spinnerOverlay
     ])
   }
 
@@ -241,6 +223,7 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
 
   async componentDidMount() {
     //const { ajax: { Billing } } = this.props
+    this.loadAccounts()
     this.loadProjects()
     //this.listProjectsInAccounts(await Billing.listAccounts())
   }
@@ -276,6 +259,20 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
     }
   }
 
+  async loadAccounts() {
+    const { ajax: { Billing } } = this.props
+
+    try {
+      this.setState({ isDataLoaded: false })
+      await Auth.ensureBillingScope()
+      const billingAccounts = await Billing.listAccounts()
+      this.setState({ billingAccounts, isDataLoaded: true })
+    } catch (error) {
+      this.setState({ isDataLoaded: true })
+      reportError('Error loading billing accounts', error)
+    }
+  }
+
   render() {
     const { billingProjects, billingAccounts, isDataLoaded, creatingBillingProject } = this.state
     const { queryParams: { type, selectedName } } = this.props
@@ -300,7 +297,8 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
       ]),
       div({ style: { display: 'flex', flex: 1, flexWrap: 'wrap' } }, [
         div({ style: { width: 367, boxShadow: '0 2px 5px 0 rgba(0,0,0,0.25)' } }, [
-          /*div({
+
+          div({
             style: {
               color: colors.gray[0], backgroundColor: colors.grayBlue[5], fontSize: 16, padding: '1.5rem',
               fontWeight: 600, textTransform: 'uppercase', borderBottom: `0.5px solid ${colors.grayBlue[2]}`
@@ -310,7 +308,7 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
           _.map(account => h(AccountTabs, {
             account, key: `${account.accountName}`,
             isActive: !!selectedName && isAccount && account.accountName === selectedName
-          }), billingAccounts),*/
+          }), billingAccounts),
           div({
             style: {
               color: colors.gray[0], backgroundColor: colors.grayBlue[5], fontSize: 16, padding: '1rem 1.5rem',
@@ -335,7 +333,7 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
           }), billingProjects)
         ]),
         creatingBillingProject && h(NewBillingProjectModal, {
-          //billingAccounts,
+          billingAccounts,
           onDismiss: () => this.setState({ creatingBillingProject: false }),
           onSuccess: () => {
             this.setState({ creatingBillingProject: false })
