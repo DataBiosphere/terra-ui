@@ -11,7 +11,7 @@ import TopBar from 'src/components/TopBar'
 import { ajaxCaller } from 'src/libs/ajax'
 import * as Auth from 'src/libs/auth'
 import colors from 'src/libs/colors'
-import { reportError } from 'src/libs/error'
+import { reportError, withErrorReporting } from 'src/libs/error'
 import { formHint, RequiredFormLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
@@ -21,6 +21,13 @@ import { Component } from 'src/libs/wrapped-components'
 import ProjectDetail from 'src/pages/billing/Project'
 import validate from 'validate.js'
 
+const styles = {
+  tab: {
+    display: 'flex', alignItems: 'center', fontSize: 16, height: 50, padding: '0 2rem',
+    fontWeight: 500, overflow: 'hidden', borderBottom: `1px solid ${colors.grayBlue[2]}`,
+    borderRightStyle: 'solid'
+  }
+}
 
 const ProjectTab = ({ project: { projectName, role, creationStatus }, isActive }) => {
   const isOwner = !!_.includes('Owner', role)
@@ -33,18 +40,16 @@ const ProjectTab = ({ project: { projectName, role, creationStatus }, isActive }
   return isClickable ? h(Interactive, {
     as: 'a',
     style: {
-      display: 'flex', alignItems: 'center', fontSize: 16, height: 50, padding: '0 2rem',
-      fontWeight: 500, overflow: 'hidden', borderBottom: `1px solid ${colors.grayBlue[2]}`,
-      color: colors.green[0], borderRightColor: isActive ? colors.green[1] : colors.green[0], borderRightStyle: 'solid',
+      ...styles.tab,
+      color: colors.green[0], borderRightColor: isActive ? colors.green[1] : colors.green[0],
       borderRightWidth: isActive ? 10 : 0, backgroundColor: isActive ? colors.green[7] : colors.white
     },
     href: `${Nav.getLink('billing')}?${qs.stringify(projectParams)}`,
     hover: isActive ? {} : { backgroundColor: colors.green[6], color: colors.green[1] }
   }, [projectName, !projectReady && statusIcon]) : div({
     style: {
-      display: 'flex', alignItems: 'center', fontSize: 16, height: 50, padding: '0 2rem',
-      fontWeight: 500, overflow: 'hidden', borderBottom: `1px solid ${colors.grayBlue[2]}`,
-      color: colors.gray[0], borderRightColor: colors.green[0], borderRightStyle: 'solid',
+      ...styles.tab,
+      color: colors.gray[0], borderRightColor: colors.green[0],
       borderRightWidth: 0, backgroundColor: colors.white
     }
   }, [projectName, !projectReady && statusIcon])
@@ -70,31 +75,27 @@ const NewBillingProjectModal = ajaxCaller(class NewBillingProjectModal extends C
       billingProjectName: '',
       billingProjectNameTouched: false,
       existing: [],
-      isDataLoaded: true
+      isBusy: false
     }
   }
 
-  componentDidMount() {
+  async componentDidMount() {
     this.loadAccounts()
   }
 
-  async loadAccounts() {
+  loadAccounts = _.flow(
+    withErrorReporting('Error loading billing accounts'),
+    Utils.withBusyState(v => this.setState({ isBusy: v }))
+  )(async () => {
     const { ajax: { Billing } } = this.props
-
-    try {
-      this.setState({ isDataLoaded: false })
-      await Auth.ensureBillingScope()
-      const billingAccounts = await Billing.listAccounts()
-      this.setState({ billingAccounts, isDataLoaded: true })
-    } catch (error) {
-      this.setState({ isDataLoaded: true })
-      reportError('Error loading billing accounts', error)
-    }
-  }
+    await Auth.ensureBillingScope()
+    const billingAccounts = await Billing.listAccounts()
+    this.setState({ billingAccounts })
+  })
 
   render() {
     const { onDismiss } = this.props
-    const { billingProjectName, billingProjectNameTouched, submitting, chosenBillingAccount, existing, isDataLoaded, billingAccounts } = this.state
+    const { billingProjectName, billingProjectNameTouched, chosenBillingAccount, existing, isBusy, billingAccounts } = this.state
     const errors = validate({ billingProjectName }, { billingProjectName: billingProjectNameValidator(existing) })
 
     return h(Modal, {
@@ -178,7 +179,7 @@ const NewBillingProjectModal = ajaxCaller(class NewBillingProjectModal extends C
           ])
         ])
       ]),
-      (submitting || !isDataLoaded) && spinnerOverlay
+      isBusy && spinnerOverlay
     ])
   }
 
@@ -186,20 +187,18 @@ const NewBillingProjectModal = ajaxCaller(class NewBillingProjectModal extends C
     const { onSuccess, ajax: { Billing } } = this.props
     const { billingProjectName, chosenBillingAccount, existing } = this.state
 
+    Utils.withBusyState(v => this.setState({ isBusy: v }))
     try {
-      this.setState({ submitting: true })
       await Billing.createProject(billingProjectName, chosenBillingAccount.accountName)
       onSuccess()
     } catch (error) {
       switch (error.status) {
         case 409:
-          this.setState({ existing: _.concat(billingProjectName, existing), submitting: false })
+          this.setState({ existing: _.concat(billingProjectName, existing) })
           break
         default:
           reportError('Error creating billing project', error)
       }
-    } finally {
-      this.setState({ submitting: false })
     }
   }
 })
@@ -219,25 +218,22 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
     this.loadProjects()
   }
 
-  async loadProjects() {
+  loadProjects = _.flow(
+    withErrorReporting('Error loading billing projects list'),
+    Utils.withBusyState(v => this.setState({ isBusy: v }))
+  )(async () => {
     const { ajax: { Billing } } = this.props
-
-    try {
-      this.setState({ isDataLoaded: false })
-      const rawBillingProjects = await Billing.listProjects()
-      const billingProjects = _.flow(
-        _.groupBy('projectName'),
-        _.map(gs => ({ ...gs[0], role: _.map('role', gs) })),
-        _.sortBy('projectName')
-      )(rawBillingProjects)
-      this.setState({ billingProjects, isDataLoaded: true })
-    } catch (error) {
-      reportError('Error loading billing projects list', error)
-    }
-  }
+    const rawBillingProjects = await Billing.listProjects()
+    const billingProjects = _.flow(
+      _.groupBy('projectName'),
+      _.map(gs => ({ ...gs[0], role: _.map('role', gs) })),
+      _.sortBy('projectName')
+    )(rawBillingProjects)
+    this.setState({ billingProjects })
+  })
 
   render() {
-    const { billingProjects, isDataLoaded, creatingBillingProject } = this.state
+    const { billingProjects, isBusy, creatingBillingProject } = this.state
     const { queryParams: { selectedName } } = this.props
     const breadcrumbs = `Billing > Billing Project`
     return h(Fragment, [
@@ -288,7 +284,7 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
           }
         }),
         !!selectedName && h(ProjectDetail, { key: selectedName, project: _.find({ projectName: selectedName }, billingProjects) }),
-        !isDataLoaded && spinnerOverlay
+        isBusy && spinnerOverlay
       ])
     ])
   }
