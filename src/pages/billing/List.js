@@ -34,16 +34,16 @@ const ProjectTabs = ({ project: { projectName, role, creationStatus }, isActive 
     as: 'a',
     style: {
       display: 'flex', alignItems: 'center', fontSize: 16, height: 50, padding: '0 2rem',
-      fontWeight: 500, overflow: 'hidden', borderBottom: `1px solid ${ colors.grayBlue[2] }`,
+      fontWeight: 500, overflow: 'hidden', borderBottom: `1px solid ${colors.grayBlue[2]}`,
       color: colors.green[0], borderRightColor: isActive ? colors.green[1] : colors.green[0], borderRightStyle: 'solid',
       borderRightWidth: isActive ? 10 : 0, backgroundColor: isActive ? colors.green[7] : colors.white
     },
-    href: `${ Nav.getLink('billing') }?${ qs.stringify(projectParams) }`,
+    href: `${Nav.getLink('billing')}?${qs.stringify(projectParams)}`,
     hover: isActive ? {} : { backgroundColor: colors.green[6], color: colors.green[1] }
   }, [projectName, !projectReady && statusIcon]) : div({
     style: {
       display: 'flex', alignItems: 'center', fontSize: 16, height: 50, padding: '0 2rem',
-      fontWeight: 500, overflow: 'hidden', borderBottom: `1px solid ${ colors.grayBlue[2] }`,
+      fontWeight: 500, overflow: 'hidden', borderBottom: `1px solid ${colors.grayBlue[2]}`,
       color: colors.gray[0], borderRightColor: colors.green[0], borderRightStyle: 'solid',
       borderRightWidth: 0, backgroundColor: colors.white
     }
@@ -152,7 +152,7 @@ const NewBillingProjectModal = ajaxCaller(class NewBillingProjectModal extends C
             ' as a Billing Account User on the ',
             a({
               style: { color: colors.blue[0], fontWeight: 700 },
-              href: `https://console.cloud.google.com/billing/${ chosenBillingAccount.accountName.split('/')[1] }?authuser=${ Auth.getUser().email }`,
+              href: `https://console.cloud.google.com/billing/${chosenBillingAccount.accountName.split('/')[1]}?authuser=${Auth.getUser().email}`,
               target: '_blank'
             }, ['Google Cloud Console ', icon('pop-out', { size: 12 })])
           ]),
@@ -263,22 +263,22 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
             style: {
               color: colors.gray[0], backgroundColor: colors.grayBlue[5], fontSize: 16, padding: '1rem 1.5rem',
               display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-              fontWeight: 600, textTransform: 'uppercase', borderBottom: `0.5px solid ${ colors.grayBlue[2] }`
+              fontWeight: 600, textTransform: 'uppercase', borderBottom: `0.5px solid ${colors.grayBlue[2]}`
             }
           }, [
             'Billing Projects',
             buttonSecondary({
-                onClick: () => { this.setState({ creatingBillingProject: true }) },
-                style: {
-                  borderRadius: 5, backgroundColor: 'white', padding: '0.5rem',
-                  boxShadow: Style.standardShadow
-                }
-              },
-              ['New', icon('plus-circle', { size: 21, style: { marginLeft: '0.5rem' } })])
+              onClick: () => { this.setState({ creatingBillingProject: true }) },
+              style: {
+                borderRadius: 5, backgroundColor: 'white', padding: '0.5rem',
+                boxShadow: Style.standardShadow
+              }
+            },
+            ['New', icon('plus-circle', { size: 21, style: { marginLeft: '0.5rem' } })])
 
           ]),
           _.map(project => h(ProjectTabs, {
-            project, key: `${ project.projectName }`,
+            project, key: `${project.projectName}`,
             isActive: !!selectedName && project.projectName === selectedName
           }), billingProjects)
         ]),
@@ -321,6 +321,6 @@ export const addNavPaths = () => {
   Nav.defPath('billing', {
     path: '/billing',
     component: BillingList,
-    title: ({ selectedName }) => `Billing ${ selectedName ? `- ${ selectedName }` : 'Management' }`
+    title: ({ selectedName }) => `Billing ${selectedName ? `- ${selectedName}` : 'Management'}`
   })
 }
