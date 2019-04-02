@@ -49,7 +49,7 @@ export default ajaxCaller(class ProjectDetail extends Component {
   }
 
   render() {
-    const { project, ajax: { Billing } } = this.props
+    const { project: { projectName, creationStatus }, ajax: { Billing } } = this.props
     const { projectUsers, loading, updating, filter, addingUser, deletingUser, editingUser } = this.state
     const adminCanEdit = _.filter(({ roles }) => _.includes('Owner', roles), projectUsers).length > 1
 
@@ -57,12 +57,12 @@ export default ajaxCaller(class ProjectDetail extends Component {
       div({ style: { padding: '1.5rem 3rem' } }, [
         div({ style: { color: colors.gray[0], fontSize: 16, fontWeight: 600 } },
           [
-            `${project.projectName}`,
-            span({ style: { fontWeight: 500, fontSize: 14, margin: '0 1.5rem 0 3rem' } }, project.creationStatus),
+            projectName,
+            span({ style: { fontWeight: 500, fontSize: 14, margin: '0 1.5rem 0 3rem' } }, creationStatus),
             span([
               icon(Utils.cond(
-                [project.creationStatus === 'Ready', 'check'],
-                [project.creationStatus === 'Creating', 'loadingSpinner'],
+                [creationStatus === 'Ready', 'check'],
+                [creationStatus === 'Creating', 'loadingSpinner'],
                 'error-standard'), {
                 style: { color: colors.green[0], marginRight: '1rem' }
               })
@@ -72,12 +72,13 @@ export default ajaxCaller(class ProjectDetail extends Component {
           style: {
             position: 'relative',
             marginTop: '1rem',
-            display: 'flex', flexWrap: 'wrap'
+            display: 'flex'
           }
         }, [
           h(NewUserCard, {
             onClick: () => this.setState({ addingUser: true })
-          }), div({ style: { width: '850px' } },
+          }),
+          div({ style: { width: '850px' } },
             _.map(member => {
               return h(MemberCard, {
                 adminLabel: 'Owner',
@@ -95,7 +96,7 @@ export default ajaxCaller(class ProjectDetail extends Component {
         userLabel: 'User',
         title: 'Add user to Billing Project',
         footer: 'Warning: Adding any user to this project will mean they can incur costs to the billing associated with this project.',
-        addFunction: Billing.project(project.projectName).addUser,
+        addFunction: Billing.project(projectName).addUser,
         onDismiss: () => this.setState({ addingUser: false }),
         onSuccess: () => this.refresh()
       }),
@@ -103,7 +104,7 @@ export default ajaxCaller(class ProjectDetail extends Component {
         adminLabel: 'Owner',
         userLabel: 'User',
         user: editingUser,
-        saveFunction: Billing.project(project.projectName).changeUserRoles,
+        saveFunction: Billing.project(projectName).changeUserRoles,
         onDismiss: () => this.setState({ editingUser: false }),
         onSuccess: () => this.refresh()
       }),
@@ -113,7 +114,7 @@ export default ajaxCaller(class ProjectDetail extends Component {
         onSubmit: async () => {
           try {
             this.setState({ updating: true, deletingUser: false })
-            await Billing.project(project.projectName).removeUser(deletingUser.roles, deletingUser.email)
+            await Billing.project(projectName).removeUser(deletingUser.roles, deletingUser.email)
             this.refresh()
           } catch (error) {
             this.setState({ updating: false })

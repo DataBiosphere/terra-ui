@@ -22,7 +22,7 @@ import ProjectDetail from 'src/pages/billing/Project'
 import validate from 'validate.js'
 
 
-const ProjectTabs = ({ project: { projectName, role, creationStatus }, isActive }) => {
+const ProjectTab = ({ project: { projectName, role, creationStatus }, isActive }) => {
   const isOwner = !!_.includes('Owner', role)
   const projectReady = creationStatus === 'Ready'
   const projectParams = { selectedName: projectName, type: 'project' }
@@ -257,7 +257,7 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
           }, [selectedName])
         ])
       ]),
-      div({ style: { display: 'flex', flex: 1, flexWrap: 'wrap' } }, [
+      div({ style: { display: 'flex', flex: 1 } }, [
         div({ style: { width: 330, boxShadow: '0 2px 5px 0 rgba(0,0,0,0.25)' } }, [
           div({
             style: {
@@ -277,8 +277,8 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
             ['New', icon('plus-circle', { size: 21, style: { marginLeft: '0.5rem' } })])
 
           ]),
-          _.map(project => h(ProjectTabs, {
-            project, key: `${project.projectName}`,
+          _.map(project => h(ProjectTab, {
+            project, key: project.projectName,
             isActive: !!selectedName && project.projectName === selectedName
           }), billingProjects)
         ]),
@@ -289,7 +289,7 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
             this.loadProjects()
           }
         }),
-        !!selectedName && h(ProjectDetail, { project: _.find({ projectName: selectedName }, billingProjects) }),
+        !!selectedName && h(ProjectDetail, { key: selectedName, project: _.find({ projectName: selectedName }, billingProjects) }),
         !isDataLoaded && spinnerOverlay
       ])
     ])
