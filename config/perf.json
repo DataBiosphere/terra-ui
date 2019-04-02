@@ -5,7 +5,7 @@
   "dockstoreUrlRoot": "https://staging.dockstore.org",
   "firecloudUrlRoot": "https://firecloud.dsde-perf.broadinstitute.org",
   "firecloudBucketRoot": "https://storage.googleapis.com/firecloud-alerts-perf",
-  "googleClientId": "500025638838-s2v23ar3spugtd5t2v1vgfa2sp7ppg0d.apps.googleusercontent.com",
+  "googleClientId": "1007916553388-94ubmcv4nrg23758of2n826me1th59m1.apps.googleusercontent.com",
   "jobManagerUrlRoot": "https://job-manager.dsde-perf.broadinstitute.org/jobs",
   "leoUrlRoot": "https://leonardo.dsde-perf.broadinstitute.org",
   "marthaUrlRoot": "https://us-central1-broad-dsde-perf.cloudfunctions.net/fileSummaryV1",
