@@ -49,9 +49,10 @@ const TerminalLauncher = _.flow(
     const { namespace, refreshClusters, ajax: { Jupyter } } = this.props
     await refreshClusters()
     if (!this.props.cluster) {
-      Jupyter.cluster(namespace, Utils.generateClusterName()).create({
+      await Jupyter.cluster(namespace, Utils.generateClusterName()).create({
         machineConfig: Utils.normalizeMachineConfig({})
       })
+      this.setState({ createRequested: true })
     }
 
     while (this.mounted) {
@@ -87,8 +88,8 @@ const TerminalLauncher = _.flow(
   }
 
   render() {
-    const { cluster }  = this.props
-    const { url } = this.state
+    const { cluster } = this.props
+    const { url, createRequested } = this.state
     const clusterStatus = cluster && cluster.status
 
     if (clusterStatus === 'Running' && url) {
@@ -102,8 +103,8 @@ const TerminalLauncher = _.flow(
     } else {
       return div({ style: { padding: '2rem' } }, [
         spinner({ style: { color: colors.green[0], marginRight: '0.5rem' } }),
-        (clusterStatus === 'Creating' || !cluster) ?
-          'Creating notebook runtime environment. You can navigate away and return in 5-10 minutes.':
+        (clusterStatus === 'Creating' || !cluster || createRequested) ?
+          'Creating notebook runtime environment. You can navigate away and return in 5-10 minutes.' :
           'Starting notebook runtime environment, this may take up to 2 minutes.'
       ])
     }
