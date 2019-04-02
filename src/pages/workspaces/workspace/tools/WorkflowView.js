@@ -405,6 +405,10 @@ const WorkflowView = _.flow(
     ])
   }
 
+  sortOptionalInputs(inputsOutputs) {
+    return _.update('inputs', _.sortBy('optional'), inputsOutputs)
+  }
+
   async componentDidMount() {
     const {
       namespace, name, workflowNamespace, workflowName,
@@ -420,11 +424,14 @@ const WorkflowView = _.flow(
         ws.methodConfig(workflowNamespace, workflowName).validate()
       ])
       const { methodConfiguration: config } = validationResponse
+      const methods = await Methods.list({ namespace: workflowNamespace, name: workflowName })
+      const snapshotIds = _.map(m => _.pick('snapshotId', m).snapshotId, methods)
       const inputsOutputs = await Methods.configInputsOutputs(config)
       this.setState({
         savedConfig: config, modifiedConfig: config,
-        entityMetadata, savedInputsOutputs: _.update('inputs', _.sortBy('optional'), inputsOutputs),
-        modifiedInputsOutputs: _.update('inputs', _.sortBy('optional'), inputsOutputs),
+        entityMetadata, savedInputsOutputs: this.sortOptionalInputs(inputsOutputs),
+        modifiedInputsOutputs: this.sortOptionalInputs(inputsOutputs),
+        snapshotIds,
         errors: augmentErrors(validationResponse),
         isRedacted: false,
         entitySelectionModel: this.resetSelectionModel(config.rootEntityType),
@@ -460,10 +467,8 @@ const WorkflowView = _.flow(
     const { ajax: { Dockstore, Methods } } = this.props
     try {
       if (sourceRepo === 'agora') {
-        const methods = await Methods.list()
         const { synopsis, documentation, payload } = await Methods.method(methodNamespace, methodName, methodVersion).get()
-        const snapshotIds = _.map(m => _.pick('snapshotId', m).snapshotId, _.filter({ name: methodName, namespace: methodNamespace }, methods))
-        this.setState({ synopsis, documentation, wdl: payload, snapshotIds })
+        this.setState({ synopsis, documentation, wdl: payload })
       } else if (sourceRepo === 'dockstore') {
         const wdl = await Dockstore.getWdl(methodPath, methodVersion).then(({ descriptor }) => descriptor)
         this.setState({ wdl })
@@ -503,7 +508,7 @@ const WorkflowView = _.flow(
     const { modifiedConfig: { methodRepoMethod: { methodNamespace, methodName } } } = this.state
     const config = await Methods.template({ methodNamespace, methodName, methodVersion: newSnapshotId })
     const modifiedInputsOutputs = await Methods.configInputsOutputs(config)
-    this.setState({ modifiedInputsOutputs: _.update('inputs', _.sortBy('optional'), modifiedInputsOutputs) })
+    this.setState({ modifiedInputsOutputs: this.sortOptionalInputs(modifiedInputsOutputs) })
     this.setState(_.set(['modifiedConfig', 'methodRepoMethod'], config.methodRepoMethod))
   })
 
