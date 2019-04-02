@@ -6,28 +6,31 @@ import '@clr/icons/shapes/all-shapes'
 import _ from 'lodash/fp'
 import { h, img } from 'react-hyperscript-helpers'
 import browse from 'src/icons/browse.svg'
+import cardMenuIcon from 'src/icons/card-menu-icon.svg'
 import caretDown from 'src/icons/caret-down.svg'
 import checkSquare from 'src/icons/check-square.svg'
 import columnGrabber from 'src/icons/column_grabber.svg'
+import creditCard from 'src/icons/credit-card.svg'
 import explore from 'src/icons/explore.svg'
 import home from 'src/icons/home.svg'
 import jupyterIcon from 'src/icons/jupyter.svg'
 import listAlt from 'src/icons/list-alt.svg'
 import loadingSpinner from 'src/icons/loading-spinner.svg'
 import logoWhite from 'src/icons/logo-grey.svg'
-import logoIcon from 'src/icons/logo.svg'
 import logowShadow from 'src/icons/logo-wShadow.svg'
+import logoIcon from 'src/icons/logo.svg'
 import notebooks from 'src/icons/notebooks.svg'
+import purchaseOrder from 'src/icons/purchase-order.svg'
+import renameIcon from 'src/icons/rename-icon.svg'
 import square from 'src/icons/square.svg'
 import table from 'src/icons/table.svg'
-import cardMenuIcon from 'src/icons/card-menu-icon.svg'
-import renameIcon from 'src/icons/rename-icon.svg'
 import { getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 
 
 ClarityIcons.add({
-  browse, caretDown, checkSquare, columnGrabber, explore, home, jupyterIcon, listAlt, loadingSpinner, logoWhite, logoIcon, logowShadow, notebooks, square, table, cardMenuIcon, renameIcon
+  browse, cardMenuIcon, caretDown, checkSquare, columnGrabber, creditCard, explore, home, jupyterIcon, listAlt, loadingSpinner, logoWhite, logoIcon,
+  logowShadow, notebooks, purchaseOrder, renameIcon, square, table
 })
 
 /**

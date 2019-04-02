@@ -52,8 +52,14 @@ const styles = {
   },
   longCard: {
     ...Style.elements.card.container,
-    width: '100%', minWidth: 0, height: 80,
+    flexDirection: 'row',
+    height: 80,
     marginBottom: '0.5rem'
+  },
+  longCardTextContainer: {
+    flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
+    width: '100%', minWidth: 0,
+    marginLeft: '1rem'
   },
   longTitle: {
     ...Style.elements.card.title,
@@ -141,16 +147,18 @@ const WorkspaceCard = pure(({
     href: Nav.getLink('workspace-dashboard', { namespace, name }),
     style: styles.longCard
   }, [
-    div({ style: { display: 'flex', alignItems: 'center', marginTop: '.75rem' } }, [
-      div({ style: { ...styles.longTitle, marginLeft: '2rem' } }, [name]),
-      h(TooltipTrigger, { content: Utils.makeCompleteDate(lastModified) }, [
-        div({ style: { flex: 'none' } }, [lastChanged])
-      ])
-    ]),
     workspaceMenu,
-    div({ style: { display: 'flex', alignItems: 'center', marginBottom: '.75rem' } }, [
-      div({ style: { ...styles.longDescription, marginLeft: '2rem' } }, [descText]),
-      div({ style: { flex: 'none' } }, [badge])
+    div({ style: { ...styles.longCardTextContainer } }, [
+      div({ style: { display: 'flex', alignItems: 'center' } }, [
+        div({ style: { ...styles.longTitle } }, [name]),
+        h(TooltipTrigger, { content: Utils.makeCompleteDate(lastModified) }, [
+          div({ style: { flex: 'none' } }, [lastChanged])
+        ])
+      ]),
+      div({ style: { display: 'flex', alignItems: 'center' } }, [
+        div({ style: { ...styles.longDescription } }, [descText]),
+        div({ style: { flex: 'none' } }, [badge])
+      ])
     ])
   ]) : a({
     href: Nav.getLink('workspace-dashboard', { namespace, name }),
