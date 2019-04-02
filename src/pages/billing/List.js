@@ -263,20 +263,20 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
           div({
             style: {
               color: colors.gray[0], backgroundColor: colors.grayBlue[5], fontSize: 16, padding: '1rem 1.5rem',
+              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
               fontWeight: 600, textTransform: 'uppercase', borderBottom: `0.5px solid ${colors.grayBlue[2]}`
             }
-          },
-          [
-            'Billing Projects', buttonSecondary({ onClick: () => { this.setState({ creatingBillingProject: true }) } }, [
-              span({
-                style: {
-                  borderRadius: 5, backgroundColor: 'white', padding: '0.5rem',
-                  margin: '1rem', color: colors.green[0], fontSize: 16, fontWeight: 500,
-                  boxShadow: Style.standardShadow
-                }
-              },
-              ['New ', icon('plus-circle', { size: 21 })])
-            ])
+          }, [
+            'Billing Projects',
+            buttonSecondary({
+              onClick: () => { this.setState({ creatingBillingProject: true }) },
+              style: {
+                borderRadius: 5, backgroundColor: 'white', padding: '0.5rem',
+                boxShadow: Style.standardShadow
+              }
+            },
+            ['New', icon('plus-circle', { size: 21, style: { marginLeft: '0.5rem' } })])
+
           ]),
           _.map(project => h(ProjectTabs, {
             project, key: `${project.projectName}`,
