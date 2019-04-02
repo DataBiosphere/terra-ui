@@ -240,7 +240,6 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
     const { billingProjects, isDataLoaded, creatingBillingProject } = this.state
     const { queryParams: { selectedName } } = this.props
     const breadcrumbs = `Billing > Billing Project`
-
     return h(Fragment, [
       h(TopBar, { title: 'Billing', href: Nav.getLink('billing') }, [
         !!selectedName && div({
@@ -275,7 +274,6 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
               }
             },
             ['New', icon('plus-circle', { size: 21, style: { marginLeft: '0.5rem' } })])
-
           ]),
           _.map(project => h(ProjectTab, {
             project, key: project.projectName,
