@@ -51,14 +51,15 @@ export default class Modal extends Component {
   }
 
   render() {
-    const { onDismiss, title, titleExtras, children, width, showCancel, cancelText, showX, showButtons, okButton } = this.props
+    const { onDismiss, title, titleExtras, children, width, showCancel, cancelText, showX, showButtons, okButton, ...props } = this.props
 
     return h(RModal, {
       parentSelector: () => document.getElementById('modal-root'),
       isOpen: true,
       onRequestClose: onDismiss,
       style: { overlay: styles.overlay, content: { ...styles.modal, width } },
-      ariaHideApp: false
+      ariaHideApp: false,
+      ...props
     }, [
       title && div({ style: { display: 'flex', alignItems: 'baseline', marginBottom: '1rem', flex: 'none' } }, [
         div({ style: { fontSize: 18, fontWeight: 600 } }, [title]),

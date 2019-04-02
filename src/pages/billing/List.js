@@ -1,4 +1,3 @@
-import * as Auth from 'src/libs/auth'
 import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { a, div, h, span } from 'react-hyperscript-helpers'
@@ -9,6 +8,7 @@ import { validatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import TopBar from 'src/components/TopBar'
 import { ajaxCaller } from 'src/libs/ajax'
+import * as Auth from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import { formHint, RequiredFormLabel } from 'src/libs/forms'
@@ -17,6 +17,7 @@ import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
+import NewAccountModal from 'src/pages/billing/NewAccountModal'
 import validate from 'validate.js'
 
 
@@ -201,13 +202,13 @@ const ProjectCard = pure(({ project: { projectName, creationStatus, role } }) =>
   ])
 })
 
-const NewBillingProjectCard = pure(({ onClick }) => {
+const NewBillingCard = pure(({ newEntityLabel, onClick }) => {
   return h(Clickable, {
     style: Style.cardList.shortCreateCard,
     onClick
   }, [
     div(['Create a']),
-    div(['New Project']),
+    div([newEntityLabel]),
     icon('plus-circle', { style: { marginTop: '0.5rem' }, size: 21 })
   ])
 })
@@ -246,7 +247,7 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
   }
 
   render() {
-    const { billingProjects, isDataLoaded, filter, creatingBillingProject, updating } = this.state
+    const { billingProjects, isDataLoaded, filter, creatingBillingProject, creatingBillingAccount, updating } = this.state
     return h(Fragment, [
       h(TopBar, { title: 'Billing' }, [
         search({
@@ -263,16 +264,24 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
           div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, ['Billing Projects Management'])
         ]),
         div({ style: Style.cardList.cardContainer }, [
-          h(NewBillingProjectCard, {
-            onClick: async () => {
-              try {
-                await Auth.ensureBillingScope()
-                this.setState({ creatingBillingProject: true })
-              } catch (error) {
-                reportError('Failed to grant permissions', 'To create a new billing project, you must allow Terra to view your Google billing account(s).')
+          div([
+            h(NewBillingCard, {
+              newEntityLabel: 'New Project',
+              onClick: async () => {
+                try {
+                  await Auth.ensureBillingScope()
+                  this.setState({ creatingBillingProject: true })
+                } catch (error) {
+                  reportError('Failed to grant permissions', 'To create a new billing project, you must allow Terra to view your Google billing account(s).')
+                }
               }
-            }
-          }),
+            }),
+            /*TODO: remove to enable -->*/ false && div({ style: { height: 15 } }),
+            /*TODO: remove to enable -->*/ false && h(NewBillingCard, {
+              newEntityLabel: 'Billing Account',
+              onClick: () => this.setState({ creatingBillingAccount: true })
+            })
+          ]),
           div({ style: { flexGrow: 1 } }, [
             _.flow(
               _.filter(({ projectName }) => Utils.textMatch(filter, projectName)),
@@ -288,7 +297,8 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
         creatingBillingProject && h(NewBillingProjectModal, {
           onDismiss: () => this.setState({ creatingBillingProject: false }),
           onSuccess: () => this.refresh()
-        })
+        }),
+        creatingBillingAccount && h(NewAccountModal, { onDismiss: () => this.setState({ creatingBillingAccount: false }) })
       ])
     ])
   }

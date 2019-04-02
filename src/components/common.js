@@ -151,7 +151,7 @@ export const MenuButton = ({ disabled, children, ...props }) => {
 }
 
 export const Checkbox = ({ checked, onChange, disabled, ...props }) => {
-  return h(Interactive, {
+  return h(Interactive, _.merge({
     as: 'span',
     role: 'checkbox',
     'aria-checked': checked,
@@ -163,9 +163,8 @@ export const Checkbox = ({ checked, onChange, disabled, ...props }) => {
     },
     hover: disabled ? undefined : { color: colors.green[1] },
     active: disabled ? undefined : { backgroundColor: colors.green[6] },
-    disabled,
-    ...props
-  }, [
+    disabled
+  }, props), [
     icon(checked ? 'checkSquare' : 'square', { size: 16 })
   ])
 }

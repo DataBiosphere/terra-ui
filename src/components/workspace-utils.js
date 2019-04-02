@@ -8,6 +8,7 @@ import { reportError } from 'src/libs/error'
 import * as StateHistory from 'src/libs/state-history'
 import * as Utils from 'src/libs/utils'
 
+
 export const useWorkspaces = ({ persist } = {}) => {
   const signal = useCancellation()
   const [loading, setLoading] = useState(false)
