@@ -201,26 +201,27 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
 
     if (accessError) {
       return h(WorkspaceAccessError)
+    } else {
+      return h(WorkspaceContainer, {
+        namespace, name, activeTab, showTabBar, workspace, clusters,
+        title: _.isFunction(title) ? title(props) : title,
+        breadcrumbs: breadcrumbs(props),
+        topBarContent: topBarContent && topBarContent({ workspace, ...props }),
+        refresh: async () => {
+          await refreshWorkspace()
+          if (child.current.refresh) {
+            child.current.refresh()
+          }
+        },
+        refreshClusters
+      }, [
+        workspace && h(WrappedClassComponent, {
+          ref: child,
+          workspace, clusters, loadingWorkspace, refreshWorkspace, refreshClusters,
+          ...props
+        })
+      ])
     }
-    return h(WorkspaceContainer, {
-      namespace, name, activeTab, showTabBar, workspace, clusters,
-      title: _.isFunction(title) ? title(props) : title,
-      breadcrumbs: breadcrumbs(props),
-      topBarContent: topBarContent && topBarContent({ workspace, ...props }),
-      refresh: async () => {
-        await refreshWorkspace()
-        if (child.current.refresh) {
-          child.current.refresh()
-        }
-      },
-      refreshClusters
-    }, [
-      workspace && h(WrappedClassComponent, {
-        ref: child,
-        workspace, clusters, loadingWorkspace, refreshWorkspace, refreshClusters,
-        ...props
-      })
-    ])
   }
   Wrapper.displayName = 'wrapWorkspace()'
   return Wrapper
