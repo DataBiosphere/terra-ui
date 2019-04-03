@@ -183,24 +183,23 @@ const NewBillingProjectModal = ajaxCaller(class NewBillingProjectModal extends C
     ])
   }
 
-  async submit() {
+  submit = _.flow(
+    withErrorReporting('Error creating billing project'),
+    Utils.withBusyState(v => this.setState({ isBusy: v }))
+  )(async () => {
     const { onSuccess, ajax: { Billing } } = this.props
     const { billingProjectName, chosenBillingAccount, existing } = this.state
-
-    Utils.withBusyState(v => this.setState({ isBusy: v }))
     try {
       await Billing.createProject(billingProjectName, chosenBillingAccount.accountName)
       onSuccess()
     } catch (error) {
-      switch (error.status) {
-        case 409:
-          this.setState({ existing: _.concat(billingProjectName, existing) })
-          break
-        default:
-          reportError('Error creating billing project', error)
+      if (error.status === 409) {
+        this.setState({ existing: _.concat(billingProjectName, existing) })
+      } else {
+        throw error
       }
     }
-  }
+  })
 })
 
 export const BillingList = ajaxCaller(class BillingList extends Component {
