@@ -72,7 +72,6 @@ export default ajaxCaller(class ProjectDetail extends Component {
           ]),
         div({
           style: {
-            position: 'relative',
             marginTop: '1rem',
             display: 'flex'
           }

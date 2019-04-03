@@ -1,8 +1,8 @@
 import _ from 'lodash/fp'
 import * as qs from 'qs'
-import Interactive from 'react-interactive'
 import { Fragment } from 'react'
 import { a, div, h, span } from 'react-hyperscript-helpers'
+import Interactive from 'react-interactive'
 import { buttonPrimary, buttonSecondary, Select, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { validatedInput } from 'src/components/input'
@@ -11,7 +11,7 @@ import TopBar from 'src/components/TopBar'
 import { ajaxCaller } from 'src/libs/ajax'
 import * as Auth from 'src/libs/auth'
 import colors from 'src/libs/colors'
-import { reportError, withErrorReporting } from 'src/libs/error'
+import { withErrorReporting } from 'src/libs/error'
 import { formHint, RequiredFormLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
@@ -20,6 +20,7 @@ import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 import ProjectDetail from 'src/pages/billing/Project'
 import validate from 'validate.js'
+
 
 const styles = {
   tab: {
@@ -32,19 +33,17 @@ const styles = {
 const ProjectTab = ({ project: { projectName, role, creationStatus }, isActive }) => {
   const isOwner = !!_.includes('Owner', role)
   const projectReady = creationStatus === 'Ready'
-  const projectParams = { selectedName: projectName, type: 'project' }
-  const isClickable = isOwner && projectReady
   const statusIcon = icon(creationStatus === 'Creating' ? 'loadingSpinner' : 'error-standard',
     { style: { color: colors.green[0], marginRight: '1rem', marginLeft: '0.5rem' } })
 
-  return isClickable ? h(Interactive, {
+  return isOwner && projectReady ? h(Interactive, {
     as: 'a',
     style: {
       ...styles.tab,
       color: colors.green[0], borderRightColor: isActive ? colors.green[1] : colors.green[0],
       borderRightWidth: isActive ? 10 : 0, backgroundColor: isActive ? colors.green[7] : colors.white
     },
-    href: `${Nav.getLink('billing')}?${qs.stringify(projectParams)}`,
+    href: `${Nav.getLink('billing')}?${qs.stringify({ selectedName: projectName, type: 'project' })}`,
     hover: isActive ? {} : { backgroundColor: colors.green[6], color: colors.green[1] }
   }, [projectName, !projectReady && statusIcon]) : div({
     style: {
