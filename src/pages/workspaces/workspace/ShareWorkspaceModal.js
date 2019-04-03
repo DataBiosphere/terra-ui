@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import { Component } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
-import { buttonPrimary, linkButton, Select, spinnerOverlay } from 'src/components/common'
+import { buttonPrimary, LabeledCheckbox, linkButton, Select, spinnerOverlay } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { AutocompleteTextInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
@@ -27,14 +27,49 @@ const styles = {
   pending: {
     textTransform: 'uppercase', fontWeight: 500,
     color: colors.orange[0]
-  },
-  roleSelect: base => ({
-    ...base,
-    width: 200,
-    marginTop: '0.25rem'
-  })
+  }
 }
 
+const AclInput = ({ value, onChange, disabled }) => {
+  const { accessLevel, canShare, canCompute } = value
+  return div({ style: { display: 'flex', marginTop: '0.25rem' } }, [
+    div({ style: { width: 200 } }, [
+      h(Select, {
+        isSearchable: false,
+        isDisabled: disabled,
+        getOptionLabel: o => Utils.normalizeLabel(o.value),
+        value: accessLevel,
+        onChange: o => onChange({
+          ...value,
+          accessLevel: o.value,
+          ...Utils.switchCase(o.value,
+            ['READER', () => ({ canCompute: false, canShare: false })],
+            ['WRITER', () => ({ canCompute: true, canShare: false })],
+            ['OWNER', () => ({ canCompute: true, canShare: true })]
+          )
+        }),
+        options: accessLevel === 'PROJECT_OWNER' ? ['PROJECT_OWNER'] : ['READER', 'WRITER', 'OWNER'],
+        menuPortalTarget: document.getElementById('modal-root')
+      })
+    ]),
+    div({ style: { marginLeft: '1rem' } }, [
+      div([
+        h(LabeledCheckbox, {
+          disabled: disabled || accessLevel === 'OWNER',
+          checked: canShare,
+          onChange: () => onChange(_.update('canShare', b => !b, value))
+        }, [' Can share'])
+      ]),
+      div([
+        h(LabeledCheckbox, {
+          disabled: disabled || accessLevel !== 'WRITER',
+          checked: canCompute,
+          onChange: () => onChange(_.update('canCompute', b => !b, value))
+        }, [' Can compute'])
+      ])
+    ])
+  ])
+}
 
 export default ajaxCaller(class ShareWorkspaceModal extends Component {
   constructor(props) {
@@ -45,13 +80,15 @@ export default ajaxCaller(class ShareWorkspaceModal extends Component {
       acl: [],
       loaded: false,
       searchValue: '',
-      accessLevel: 'READER'
+      accessLevel: 'READER',
+      canShare: false,
+      canCompute: false
     }
   }
 
   render() {
     const { onDismiss } = this.props
-    const { acl, shareSuggestions, groups, loaded, searchValue, working, updateError, accessLevel } = this.state
+    const { acl, shareSuggestions, groups, loaded, searchValue, working, updateError, accessLevel, canShare, canCompute } = this.state
     const searchValueInvalid = !!validate({ searchValue }, { searchValue: { email: true } })
 
     const suggestions = _.flow(
@@ -75,19 +112,17 @@ export default ajaxCaller(class ShareWorkspaceModal extends Component {
         style: { fontSize: 16 }
       }),
       h(FormLabel, ['Role']),
-      div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between' } }, [h(Select, {
-        styles: { container: styles.roleSelect },
-        isSearchable: false,
-        getOptionLabel: ({ value }) => Utils.normalizeLabel(value),
-        value: accessLevel,
-        onChange: ({ value }) => this.setState({ accessLevel: value }),
-        options: ['READER', 'WRITER', 'OWNER']
-      }),
-      h(buttonPrimary, {
-        onClick: () => this.addAcl(searchValue),
-        disabled: searchValueInvalid,
-        tooltip: searchValueInvalid && 'Not a valid email address'
-      }, ['Add User'])]),
+      div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between' } }, [
+        h(AclInput, {
+          value: { accessLevel, canShare, canCompute },
+          onChange: v => this.setState(v)
+        }),
+        h(buttonPrimary, {
+          onClick: () => this.addAcl(searchValue),
+          disabled: searchValueInvalid,
+          tooltip: searchValueInvalid && 'Not a valid email address'
+        }, ['Add User'])
+      ]),
       div({ style: styles.currentCollaboratorsArea }, [
         div({ style: Style.elements.sectionHeader }, ['Current Collaborators']),
         ...acl.map(this.renderCollaborator),
@@ -102,11 +137,12 @@ export default ajaxCaller(class ShareWorkspaceModal extends Component {
   }
 
   addAcl(email) {
-    const { acl, accessLevel } = this.state
-    this.setState({ acl: Utils.append({ email, accessLevel, pending: false }, acl), searchValue: '' })
+    const { acl, accessLevel, canShare, canCompute } = this.state
+    this.setState({ acl: Utils.append({ email, accessLevel, canShare, canCompute, pending: false }, acl), searchValue: '' })
   }
 
-  renderCollaborator = ({ email, accessLevel, pending }, index) => {
+  renderCollaborator = (aclItem, index) => {
+    const { email, accessLevel, pending } = aclItem
     const POAccessLevel = 'PROJECT_OWNER'
     const isPO = accessLevel === POAccessLevel
     const isMe = email === getUser().email
@@ -120,23 +156,11 @@ export default ajaxCaller(class ShareWorkspaceModal extends Component {
       }, [
         div({}, [email]),
         pending && div({ style: styles.pending }, ['Pending']),
-        isPO ?
-          h(Select, {
-            styles: { container: styles.roleSelect },
-            isDisabled: true,
-            value: POAccessLevel,
-            options: [{ value: POAccessLevel, label: Utils.normalizeLabel(POAccessLevel) }]
-          }) :
-          h(Select, {
-            styles: { container: styles.roleSelect },
-            isSearchable: false,
-            isDisabled: isMe,
-            menuPlacement: index < (acl.length - 2) ? 'bottom' : 'top',
-            getOptionLabel: ({ value }) => Utils.normalizeLabel(value),
-            value: accessLevel,
-            onChange: ({ value }) => this.setState({ acl: _.set([index, 'accessLevel'], value, acl) }),
-            options: ['READER', 'WRITER', 'OWNER']
-          })
+        h(AclInput, {
+          value: aclItem,
+          onChange: v => this.setState(_.set(['acl', index], v)),
+          disabled: isPO || isMe
+        })
       ]),
       !isPO && !isMe && linkButton({
         onClick: () => this.setState({ acl: _.remove({ email }, acl) })
@@ -156,7 +180,7 @@ export default ajaxCaller(class ShareWorkspaceModal extends Component {
 
       const fixedAcl = _.flow(
         _.toPairs,
-        _.map(([email, { pending, accessLevel }]) => ({ email, pending, accessLevel })),
+        _.map(([email, data]) => ({ email, ...data })),
         _.sortBy(x => -Utils.workspaceAccessLevels.indexOf(x.accessLevel))
       )(acl)
 
@@ -180,17 +204,13 @@ export default ajaxCaller(class ShareWorkspaceModal extends Component {
     const aclEmails = _.map('email', acl)
     const needsDelete = _.remove(entry => aclEmails.includes(entry.email), originalAcl)
 
-    const aclUpdates = _.concat(
-      _.flow(
+    const aclUpdates = [
+      ..._.flow(
         _.remove({ accessLevel: 'PROJECT_OWNER' }),
-        _.map(({ email, accessLevel }) => ({
-          email, accessLevel,
-          canShare: Utils.isOwner(accessLevel),
-          canCompute: Utils.canWrite(accessLevel)
-        }))
+        _.map(_.pick(['email', 'accessLevel', 'canShare', 'canCompute']))
       )(acl),
-      _.map(({ email }) => ({ email, accessLevel: 'NO ACCESS' }), needsDelete)
-    )
+      ..._.map(({ email }) => ({ email, accessLevel: 'NO ACCESS' }), needsDelete)
+    ]
 
     try {
       this.setState({ working: true })
