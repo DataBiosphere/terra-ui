@@ -242,7 +242,6 @@ export default class TermsOfService extends Component {
 }
 
 class TermsOfServicePage extends Component {
-
   render() {
     return div({ style: styles.page }, [
       backgroundLogo,
