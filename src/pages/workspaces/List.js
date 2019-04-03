@@ -191,7 +191,7 @@ const NewWorkspaceCard = pure(({ onClick }) => {
 export const WorkspaceList = _.flow(
   ajaxCaller,
   togglesListView('workspaceList'),
-  withWorkspaces({ persist: true })
+  withWorkspaces()
 )(class WorkspaceList extends Component {
   constructor(props) {
     super(props)

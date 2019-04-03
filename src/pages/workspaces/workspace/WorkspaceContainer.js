@@ -1,18 +1,17 @@
 import _ from 'lodash/fp'
-import { createRef, Fragment, PureComponent } from 'react'
+import { Fragment, PureComponent, useRef, useState } from 'react'
 import { div, h, h2, p, span } from 'react-hyperscript-helpers'
 import { toClass } from 'recompose'
 import ClusterManager from 'src/components/ClusterManager'
 import { buttonPrimary, Clickable, comingSoon, link, MenuButton, menuIcon, tabBar } from 'src/components/common'
-import ErrorView from 'src/components/ErrorView'
 import { icon } from 'src/components/icons'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
 import PopupTrigger from 'src/components/PopupTrigger'
 import TopBar from 'src/components/TopBar'
-import { ajaxCaller } from 'src/libs/ajax'
+import { Ajax, useCancellation } from 'src/libs/ajax'
 import { getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
-import { reportError } from 'src/libs/error'
+import { withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -141,109 +140,89 @@ class WorkspaceContainer extends Component {
 }
 
 
-export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, showTabBar = true }) => WrappedComponent => {
+const WorkspaceAccessError = () => {
+  const groupURL = 'https://software.broadinstitute.org/firecloud/documentation/article?id=9553'
+  const authorizationURL = 'https://software.broadinstitute.org/firecloud/documentation/article?id=9524'
+  return div({ style: { padding: '2rem' } }, [
+    h2(['Could not display workspace']),
+    p(['You are trying to access a workspace that either does not exist, or you do not have access to it.']),
+    p([
+      'To view an existing workspace, the owner of the workspace must share it with you or with a ',
+      link({ target: '_blank', href: groupURL }, 'Group'), ' of which you are a member. ',
+      'If the workspace is protected under an ', link({ target: '_blank', href: authorizationURL }, 'Authorization Domain'),
+      ', you must be a member of every group within the Authorization Domain.'
+    ]),
+    p(['If you think the workspace exists but you do not have access, please contact the workspace owner.']),
+    buttonPrimary({
+      as: 'a',
+      href: Nav.getLink('workspaces')
+    }, ['Return to Workspace List'])
+  ])
+}
+
+
+export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, showTabBar = true, queryparams }) => WrappedComponent => {
   const WrappedClassComponent = toClass(WrappedComponent)
 
-  return ajaxCaller(class Wrapper extends Component {
-    constructor(props) {
-      super(props)
-      this.child = createRef()
-    }
+  const Wrapper = props => {
+    const { namespace, name } = props
+    const child = useRef()
+    const signal = useCancellation()
+    const [accessError, setAccessError] = useState(false)
+    const [workspace, setWorkspace] = useState(undefined)
+    const [loadingWorkspace, setLoadingWorkspace] = useState(false)
+    const [clusters, setClusters] = useState(undefined)
 
-    static displayName = 'wrapWorkspace()'
+    const refreshClusters = withErrorReporting('Error loading clusters', async () => {
+      const clusters = await Ajax(signal).Jupyter.clustersList(namespace)
+      setClusters(_.filter({ creator: getUser().email }, clusters))
+    })
 
-    render() {
-      const { workspaceError } = this.state
+    const refreshWorkspace = _.flow(
+      withErrorReporting('Error loading workspace'),
+      Utils.withBusyState(setLoadingWorkspace)
+    )(async () => {
+      try {
+        const workspace = await Ajax(signal).Workspaces.workspace(namespace, name).details()
+        setWorkspace(workspace)
+      } catch (error) {
+        if (error.status === 404) {
+          setAccessError(true)
+        } else {
+          throw error
+        }
+      }
+    })
 
-      return workspaceError ? this.renderError() : this.renderSuccess()
-    }
+    Utils.useOnMount(() => {
+      refreshWorkspace()
+      refreshClusters()
+    })
 
-    renderSuccess() {
-      const { namespace, name } = this.props
-      const { workspace, clusters, loadingWorkspace } = this.state
-
+    if (accessError) {
+      return h(WorkspaceAccessError)
+    } else {
       return h(WorkspaceContainer, {
         namespace, name, activeTab, showTabBar, workspace, clusters,
-        title: _.isFunction(title) ? title(this.props) : title,
-        breadcrumbs: breadcrumbs(this.props),
-        topBarContent: topBarContent && topBarContent({ workspace, ...this.props }),
+        title: _.isFunction(title) ? title(props) : title,
+        breadcrumbs: breadcrumbs(props),
+        topBarContent: topBarContent && topBarContent({ workspace, ...props }),
         refresh: async () => {
-          await this.refresh()
-          const child = this.child.current
-          if (child.refresh) {
-            child.refresh()
+          await refreshWorkspace()
+          if (child.current.refresh) {
+            child.current.refresh()
           }
         },
-        refreshClusters: () => this.refreshClusters()
+        refreshClusters
       }, [
         workspace && h(WrappedClassComponent, {
-          ref: this.child,
-          workspace, clusters, loadingWorkspace,
-          refreshWorkspace: () => this.refresh(),
-          refreshClusters: () => this.refreshClusters(),
-          ...this.props
+          ref: child,
+          workspace, clusters, loadingWorkspace, refreshWorkspace, refreshClusters,
+          ...props
         })
       ])
     }
-
-    renderError() {
-      const { workspaceError, errorText } = this.state
-      const groupURL = 'https://software.broadinstitute.org/firecloud/documentation/article?id=9553'
-      const authorizationURL = 'https://software.broadinstitute.org/firecloud/documentation/article?id=9524'
-
-      return div({ style: { padding: '2rem' } }, [
-        workspaceError.status === 404 ?
-          h(Fragment, [
-            h2({}, ['Could not display workspace']),
-            p({},
-              ['You are trying to access a workspace that either does not exist, or you do not have access to it.']),
-            p({}, [
-              'To view an existing workspace, the owner of the workspace must share it with you or with a ',
-              link({ target: '_blank', href: groupURL }, 'Group'), ' of which you are a member. ',
-              'If the workspace is protected under an ', link({ target: '_blank', href: authorizationURL }, 'Authorization Domain'),
-              ', you must be a member of every group within the Authorization Domain.'
-            ]),
-            p({}, [
-              'If you think the workspace exists but you do not have access, please contact the workspace owner.'
-            ]),
-            buttonPrimary({
-              as: 'a',
-              href: Nav.getLink('workspaces')
-            }, ['Return to Workspace List'])
-          ]) :
-          h(Fragment, [
-            h2({}, ['Failed to load workspace']),
-            h(ErrorView, { error: errorText })
-          ])
-      ])
-    }
-
-    componentDidMount() {
-      this.refresh()
-      this.refreshClusters()
-    }
-
-    async refreshClusters() {
-      const { namespace, ajax: { Jupyter } } = this.props
-      try {
-        const clusters = _.filter({ creator: getUser().email }, await Jupyter.clustersList(namespace))
-        this.setState({ clusters })
-      } catch (error) {
-        reportError('Error loading clusters', error)
-      }
-    }
-
-    async refresh() {
-      const { namespace, name, ajax: { Workspaces } } = this.props
-      try {
-        this.setState({ loadingWorkspace: true })
-        const workspace = await Workspaces.workspace(namespace, name).details()
-        this.setState({ workspace })
-      } catch (error) {
-        this.setState({ workspaceError: error, errorText: await error.text().catch(() => 'Unknown') })
-      } finally {
-        this.setState({ loadingWorkspace: false })
-      }
-    }
-  })
+  }
+  Wrapper.displayName = 'wrapWorkspace()'
+  return Wrapper
 }
