@@ -11,6 +11,7 @@ import * as StateHistory from 'src/libs/state-history'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 
+
 export default ajaxCaller(class ProjectDetail extends Component {
   constructor(props) {
     super(props)
