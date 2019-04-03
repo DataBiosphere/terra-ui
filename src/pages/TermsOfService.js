@@ -269,7 +269,7 @@ class TermsOfServicePage extends Component {
 
 export const addNavPaths = () => {
   Nav.defPath('terms-of-service', {
-    path: '/TermsOfService',
+    path: '/terms-of-service',
     component: TermsOfServicePage,
     public: true,
     title: 'Terms of Service'
