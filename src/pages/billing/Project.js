@@ -54,7 +54,7 @@ export default ajaxCaller(class ProjectDetail extends Component {
     const adminCanEdit = _.filter(({ roles }) => _.includes('Owner', roles), projectUsers).length > 1
 
     return h(Fragment, [
-      div({ style: { padding: '1.5rem 3rem' } }, [
+      div({ style: { padding: '1.5rem 3rem', flexGrow: 1 } }, [
         div({ style: { color: colors.gray[0], fontSize: 16, fontWeight: 600 } },
           [
             projectName,
@@ -63,7 +63,8 @@ export default ajaxCaller(class ProjectDetail extends Component {
               icon(Utils.cond(
                 [creationStatus === 'Ready', 'check'],
                 [creationStatus === 'Creating', 'loadingSpinner'],
-                'error-standard'), {
+                'error-standard'
+              ), {
                 style: { color: colors.green[0], marginRight: '1rem' }
               })
             ])
@@ -78,7 +79,7 @@ export default ajaxCaller(class ProjectDetail extends Component {
           h(NewUserCard, {
             onClick: () => this.setState({ addingUser: true })
           }),
-          div({ style: { width: '850px' } },
+          div({ style: { flexGrow: 1 } },
             _.map(member => {
               return h(MemberCard, {
                 adminLabel: 'Owner',
