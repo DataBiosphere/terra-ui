@@ -76,7 +76,7 @@ const NewBillingProjectModal = ajaxCaller(class NewBillingProjectModal extends C
       existing: [],
       isBusy: false,
       chosenBillingAccount: '',
-      billingAccounts: []
+      billingAccounts: undefined
     }
   }
 
