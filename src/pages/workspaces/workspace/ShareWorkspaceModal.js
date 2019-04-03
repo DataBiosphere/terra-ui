@@ -43,8 +43,8 @@ const AclInput = ({ value, onChange, disabled }) => {
           ...value,
           accessLevel: o.value,
           ...Utils.switchCase(o.value,
-            ['READER', () => ({ canCompute: false })],
-            ['WRITER', () => ({ canCompute: true })],
+            ['READER', () => ({ canCompute: false, canShare: false })],
+            ['WRITER', () => ({ canCompute: true, canShare: false })],
             ['OWNER', () => ({ canCompute: true, canShare: true })]
           )
         }),
