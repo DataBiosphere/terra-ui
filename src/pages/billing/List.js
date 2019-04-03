@@ -22,7 +22,6 @@ import ProjectDetail from 'src/pages/billing/Project'
 import validate from 'validate.js'
 
 
-
 const styles = {
   tab: {
     display: 'flex', alignItems: 'center', fontSize: 16, height: 50, padding: '0 2rem',
