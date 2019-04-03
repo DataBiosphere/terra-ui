@@ -32,12 +32,11 @@ const styles = {
 }
 
 const ProjectTab = ({ project: { projectName, role, creationStatus }, isActive }) => {
-  const isOwner = !!_.includes('Owner', role)
   const projectReady = creationStatus === 'Ready'
   const statusIcon = icon(creationStatus === 'Creating' ? 'loadingSpinner' : 'error-standard',
     { style: { color: colors.green[0], marginRight: '1rem', marginLeft: '0.5rem' } })
 
-  return isOwner && projectReady ? h(Interactive, {
+  return !!_.includes('Owner', role) && projectReady ? h(Interactive, {
     as: 'a',
     style: {
       ...styles.tab,
@@ -75,7 +74,9 @@ const NewBillingProjectModal = ajaxCaller(class NewBillingProjectModal extends C
       billingProjectName: '',
       billingProjectNameTouched: false,
       existing: [],
-      isBusy: false
+      isBusy: false,
+      chosenBillingAccount: '',
+      billingAccounts: []
     }
   }
 
