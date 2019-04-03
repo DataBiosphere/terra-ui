@@ -4,7 +4,9 @@ import { a, div, h, span } from 'react-hyperscript-helpers'
 import { pure } from 'recompose'
 import removeMd from 'remove-markdown'
 import togglesListView from 'src/components/CardsListToggle'
-import { Clickable, MenuButton, menuIcon, PageBox, search, Select, topSpinnerOverlay, transparentSpinnerOverlay } from 'src/components/common'
+import {
+  Clickable, LabeledCheckbox, MenuButton, menuIcon, PageBox, search, Select, topSpinnerOverlay, transparentSpinnerOverlay
+} from 'src/components/common'
 import { icon } from 'src/components/icons'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
 import PopupTrigger from 'src/components/PopupTrigger'
@@ -203,6 +205,7 @@ export const WorkspaceList = _.flow(
       sharingWorkspaceId: undefined,
       accessLevelsFilter: [],
       projectsFilter: [],
+      includePublic: false,
       ...StateHistory.get()
     }
   }
@@ -214,11 +217,10 @@ export const WorkspaceList = _.flow(
 
   render() {
     const { workspaces, loadingWorkspaces, refreshWorkspaces, listView, viewToggleButtons } = this.props
-    const { filter, creatingNewWorkspace, cloningWorkspaceId, deletingWorkspaceId, sharingWorkspaceId, accessLevelsFilter, projectsFilter } = this.state
+    const { filter, creatingNewWorkspace, cloningWorkspaceId, deletingWorkspaceId, sharingWorkspaceId, accessLevelsFilter, projectsFilter, includePublic } = this.state
     const initialFiltered = _.filter(ws => {
       const { workspace: { namespace, name } } = ws
-      return Utils.textMatch(filter, `${namespace}/${name}`) &&
-        (!ws.public || Utils.canWrite(ws.accessLevel))
+      return includePublic ? Utils.textMatch(filter, `${namespace}/${name}`) : Utils.textMatch(filter, `${namespace}/${name}`) && (!ws.public || Utils.canWrite(ws.accessLevel))
     }, workspaces)
 
     const namespaceList = _.flow(
@@ -245,9 +247,15 @@ export const WorkspaceList = _.flow(
     return h(Fragment, [
       h(TopBar, { title: 'Workspaces' }, [h(WsSearch, { onChange: v => this.setState({ filter: v }) })]),
       h(PageBox, { style: { position: 'relative' } }, [
-        div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' } }, [
+        div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'flex-end', marginBottom: '1rem' } }, [
           div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, ['Workspaces']),
-          div({ style: { marginLeft: 'auto', flex: '0 0 300px' } }, [
+          div({ style: { marginLeft: 'auto' } }, [
+            h(LabeledCheckbox, {
+              checked: includePublic === true,
+              onChange: v => this.setState({ includePublic: v })
+            }, ' Include public workspaces')
+          ]),
+          div({ style: { marginLeft: '1rem', flex: '0 0 300px' } }, [
             h(Select, {
               isClearable: true,
               isMulti: true,
