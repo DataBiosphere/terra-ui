@@ -1,42 +1,41 @@
 import _ from 'lodash/fp'
-import { Component, Fragment, useEffect, useState } from 'react'
+import { Component, Fragment, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { buttonPrimary, linkButton, Select } from 'src/components/common'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
 import { Ajax, useCancellation } from 'src/libs/ajax'
-import { reportError } from 'src/libs/error'
-import * as StateHistory from 'src/libs/state-history'
+import { authStore } from 'src/libs/auth'
+import { withErrorReporting } from 'src/libs/error'
 import * as Utils from 'src/libs/utils'
 
-export const useWorkspaces = ({ persist } = {}) => {
+const workspacesStore = Utils.atom()
+
+authStore.subscribe((state, oldState) => {
+  if (oldState.isSignedIn && !state.isSignedIn) {
+    workspacesStore.reset()
+  }
+})
+
+export const useWorkspaces = () => {
   const signal = useCancellation()
   const [loading, setLoading] = useState(false)
-  const [workspaces, setWorkspaces] = useState(() => persist ? StateHistory.get().workspaces : undefined)
-  const refresh = async () => {
-    try {
-      setLoading(true)
-      const workspaces = await Ajax(signal).Workspaces.list()
-      setWorkspaces(workspaces)
-    } catch (error) {
-      reportError('Error loading workspace list', error)
-    } finally {
-      setLoading(false)
-    }
-  }
+  const workspaces = Utils.useAtom(workspacesStore)
+  const refresh = _.flow(
+    withErrorReporting('Error loading workspace list'),
+    Utils.withBusyState(setLoading)
+  )(async () => {
+    const ws = await Ajax(signal).Workspaces.list()
+    workspacesStore.set(ws)
+  })
   Utils.useOnMount(() => {
     refresh()
   })
-  useEffect(() => {
-    if (persist) {
-      StateHistory.update({ workspaces })
-    }
-  }, [workspaces, persist])
   return { workspaces, refresh, loading }
 }
 
-export const withWorkspaces = ({ persist } = {}) => WrappedComponent => {
+export const withWorkspaces = () => WrappedComponent => {
   const Wrapper = props => {
-    const { workspaces, refresh, loading } = useWorkspaces({ persist })
+    const { workspaces, refresh, loading } = useWorkspaces()
     return h(WrappedComponent, {
       ...props,
       workspaces,

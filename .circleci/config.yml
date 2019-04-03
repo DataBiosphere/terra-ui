@@ -1,4 +1,41 @@
-version: 2
+version: 2.1
+
+commands:
+  deploy-env:
+    description: "Deploy to a specific environment"
+    parameters:
+      sa_key_var:
+        type: string
+        default: "SA_KEY_JSON"
+      env:
+        type: string
+        default: "dev"
+      pr:
+        type: boolean
+        default: false
+    steps:
+      - attach_workspace:
+          at: /root/project
+      - run: cp config/<< parameters.env >>.json build/config.json
+      - run: echo "$<< parameters.sa_key_var >>" > /tmp/sa.json
+      - run: gcloud auth activate-service-account --key-file=/tmp/sa.json
+      - when:
+          condition: << parameters.pr >>
+          steps:
+            - deploy:
+                name: Deploy PR
+                command: |
+                  CIRCLE_PR_NUMBER="${CIRCLE_PR_NUMBER:-${CIRCLE_PULL_REQUEST##*/}}"
+                  if [[ ! -z "$CIRCLE_PR_NUMBER" ]]; then
+                    gcloud app deploy --project=bvdp-saturn-<< parameters.env >> \
+                      --version="pr-$(expr "$CIRCLE_PR_NUMBER" % 10)" --no-promote --quiet
+                  fi
+      - unless:
+          condition: << parameters.pr >>
+          steps:
+            - deploy:
+                name: Deploy << parameters.env >>
+                command: gcloud app deploy --project=bvdp-saturn-<< parameters.env >> --promote --quiet
 
 jobs:
   test:
@@ -42,31 +79,35 @@ jobs:
     docker:
       - image: google/cloud-sdk:alpine
     steps:
-      - attach_workspace:
-          at: .
-      - run: cp config/dev.json build/config.json
-      - run: echo "$SA_KEY_JSON" > circleci-sa.json
-      - run: gcloud auth activate-service-account --key-file=circleci-sa.json
-      - deploy:
-          name: Deploy
-          command: |
-            CIRCLE_PR_NUMBER="${CIRCLE_PR_NUMBER:-${CIRCLE_PULL_REQUEST##*/}}"
-            if [[ ! -z "$CIRCLE_PR_NUMBER" ]]; then
-              gcloud app deploy --project=bvdp-saturn-dev \
-                --version="pr-$(expr "$CIRCLE_PR_NUMBER" % 10)" --no-promote --quiet
-            fi
+      - deploy-env:
+          pr: true
   deploy-dev:
     docker:
       - image: google/cloud-sdk:alpine
     steps:
-      - attach_workspace:
-          at: /root/project
-      - run: cp config/dev.json build/config.json
-      - run: echo "$SA_KEY_JSON" > /tmp/sa.json
-      - run: gcloud auth activate-service-account --key-file=/tmp/sa.json
-      - deploy:
-          name: Deploy Dev
-          command: gcloud app deploy --project=bvdp-saturn-dev --promote --quiet
+      - deploy-env
+  deploy-alpha:
+    docker:
+      - image: google/cloud-sdk:alpine
+    steps:
+      - deploy-env:
+          sa_key_var: "ALPHA_SA_KEY_JSON"
+          env: "alpha"
+  deploy-perf:
+    docker:
+      - image: google/cloud-sdk:alpine
+    steps:
+      - deploy-env:
+          sa_key_var: "PERF_SA_KEY_JSON"
+          env: "perf"
+  deploy-staging:
+    docker:
+      - image: google/cloud-sdk:alpine
+    steps:
+      - deploy-env:
+          sa_key_var: "STAGING_SA_KEY_JSON"
+          env: "staging"
+
 workflows:
   version: 2
   build-deploy:
@@ -82,8 +123,25 @@ workflows:
             branches:
               ignore:
                 - dev
-                - prod
       - deploy-dev:
+          requires:
+            - build
+          filters:
+            branches:
+              only: dev
+      - deploy-alpha:
+          requires:
+            - build
+          filters:
+            branches:
+              only: dev
+      - deploy-perf:
+          requires:
+            - build
+          filters:
+            branches:
+              only: dev
+      - deploy-staging:
           requires:
             - build
           filters:

@@ -151,7 +151,7 @@ export const MenuButton = ({ disabled, children, ...props }) => {
 }
 
 export const Checkbox = ({ checked, onChange, disabled, ...props }) => {
-  return h(Interactive, {
+  return h(Interactive, _.merge({
     as: 'span',
     role: 'checkbox',
     'aria-checked': checked,
@@ -159,13 +159,12 @@ export const Checkbox = ({ checked, onChange, disabled, ...props }) => {
     style: {
       display: 'inline-flex',
       verticalAlign: 'middle',
-      color: disabled ? colors.gray[4] : checked ? colors.green[0] : colors.gray[5]
+      color: disabled ? colors.gray[4] : checked ? colors.green[0] : colors.gray[3]
     },
     hover: disabled ? undefined : { color: colors.green[1] },
     active: disabled ? undefined : { backgroundColor: colors.green[6] },
-    disabled,
-    ...props
-  }, [
+    disabled
+  }, props), [
     icon(checked ? 'checkSquare' : 'square', { size: 16 })
   ])
 }
@@ -175,8 +174,13 @@ export const LabeledCheckbox = ({ checked, onChange, disabled, children, ...prop
     h(Checkbox, { checked, onChange, disabled, ...props }),
     h(Interactive, {
       as: 'span',
-      style: { verticalAlign: 'middle' },
-      onClick: () => onChange && !disabled && onChange(!checked)
+      style: {
+        verticalAlign: 'middle',
+        color: disabled ? colors.gray[2] : undefined,
+        cursor: disabled ? 'default' : 'pointer'
+      },
+      onClick: () => onChange && !disabled && onChange(!checked),
+      disabled
     }, [children])
   ])
 }

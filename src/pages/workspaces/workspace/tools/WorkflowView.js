@@ -19,7 +19,7 @@ import TooltipTrigger from 'src/components/TooltipTrigger'
 import WDLViewer from 'src/components/WDLViewer'
 import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
-import { reportError } from 'src/libs/error'
+import { reportError, withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
 import * as Utils from 'src/libs/utils'
@@ -367,7 +367,7 @@ const WorkflowView = _.flow(
     // modifiedConfig: active data, potentially unsaved
     const {
       isFreshData, savedConfig, launching, activeTab,
-      entitySelectionModel, variableSelected, modifiedConfig, isRedacted
+      entitySelectionModel, variableSelected, modifiedConfig, isRedacted, updatingConfig
     } = this.state
     const { namespace, name, workspace } = this.props
     const workspaceId = { namespace, name }
@@ -401,8 +401,12 @@ const WorkflowView = _.flow(
         title: 'Tool Removed',
         onDismiss: () => Nav.goToPath('workspace-tools', { namespace, name })
       }, [div('This tool has been removed. You cannot view or run an analysis with this tool. Press OK to return to your list of tools.')]),
-      !isFreshData && spinnerOverlay
+      (!isFreshData || updatingConfig) && spinnerOverlay
     ])
+  }
+
+  sortOptionalInputs(inputsOutputs) {
+    return _.update('inputs', _.sortBy('optional'), inputsOutputs)
   }
 
   async componentDidMount() {
@@ -420,10 +424,14 @@ const WorkflowView = _.flow(
         ws.methodConfig(workflowNamespace, workflowName).validate()
       ])
       const { methodConfiguration: config } = validationResponse
+      const methods = await Methods.list({ namespace: workflowNamespace, name: workflowName })
+      const snapshotIds = _.map(m => _.pick('snapshotId', m).snapshotId, methods)
       const inputsOutputs = await Methods.configInputsOutputs(config)
       this.setState({
         savedConfig: config, modifiedConfig: config,
-        entityMetadata, inputsOutputs: _.update('inputs', _.sortBy('optional'), inputsOutputs),
+        entityMetadata, savedInputsOutputs: this.sortOptionalInputs(inputsOutputs),
+        modifiedInputsOutputs: this.sortOptionalInputs(inputsOutputs),
+        snapshotIds,
         errors: augmentErrors(validationResponse),
         isRedacted: false,
         entitySelectionModel: this.resetSelectionModel(config.rootEntityType),
@@ -449,7 +457,7 @@ const WorkflowView = _.flow(
 
   componentDidUpdate() {
     StateHistory.update(_.pick(
-      ['savedConfig', 'modifiedConfig', 'entityMetadata', 'inputsOutputs', 'invalid', 'activeTab', 'wdl'],
+      ['savedConfig', 'modifiedConfig', 'entityMetadata', 'savedInputsOutputs', 'modifiedInputsOutputs', 'invalid', 'activeTab', 'wdl'],
       this.state)
     )
   }
@@ -492,13 +500,26 @@ const WorkflowView = _.flow(
     return this.isSingle() || !!rootEntityType
   }
 
+  loadNewMethodConfig = _.flow(
+    withErrorReporting('Error updating config'),
+    Utils.withBusyState(v => this.setState({ updatingConfig: v }))
+  )(async newSnapshotId => {
+    const { ajax: { Methods } } = this.props
+    const { modifiedConfig: { methodRepoMethod: { methodNamespace, methodName } } } = this.state
+    const config = await Methods.template({ methodNamespace, methodName, methodVersion: newSnapshotId })
+    const modifiedInputsOutputs = await Methods.configInputsOutputs(config)
+    this.setState({ modifiedInputsOutputs: this.sortOptionalInputs(modifiedInputsOutputs) })
+    this.setState(_.set(['modifiedConfig', 'methodRepoMethod'], config.methodRepoMethod))
+  })
+
+
   renderSummary() {
     const { workspace: { canCompute, workspace }, namespace, name: workspaceName } = this.props
     const {
       modifiedConfig, savedConfig, saving, saved, copying, deleting, selectingData, activeTab, errors, synopsis, documentation,
-      selectedEntityType, entityMetadata, entitySelectionModel
+      selectedEntityType, entityMetadata, entitySelectionModel, snapshotIds
     } = this.state
-    const { name, methodRepoMethod: { methodPath, methodVersion, methodNamespace, methodName }, rootEntityType } = modifiedConfig
+    const { name, methodRepoMethod: { methodPath, methodVersion, methodNamespace, methodName, sourceRepo }, rootEntityType } = modifiedConfig
     const modified = !_.isEqual(modifiedConfig, savedConfig)
     const noLaunchReason = Utils.cond(
       [saving || modified, () => 'Save or cancel to Launch Analysis'],
@@ -509,7 +530,6 @@ const WorkflowView = _.flow(
 
     const inputsValid = _.isEmpty(errors.inputs)
     const outputsValid = _.isEmpty(errors.outputs)
-
     return div({ style: { position: 'relative', backgroundColor: 'white', borderBottom: `2px solid ${colors.blue[0]}` } }, [
       div({ style: { display: 'flex', padding: `1.5rem ${sideMargin} 0`, minHeight: 120 } }, [
         div({ style: { flex: '1', lineHeight: '1.5rem', minWidth: 0 } }, [
@@ -531,7 +551,19 @@ const WorkflowView = _.flow(
             ]),
             span({ style: { color: colors.darkBlue[0], fontSize: 24 } }, name)
           ]),
-          div({ style: { marginTop: '0.5rem' } }, `Snapshot ${methodVersion}`),
+          div({ style: { marginTop: '0.5rem' } },
+            (sourceRepo === 'agora') ? [
+              'Snapshot', div({ style: { display: 'inline-block', marginLeft: '0.25rem', minWidth: 60  } }, [
+                h(Select, {
+                  isClearable: false,
+                  isSearchable: false,
+                  value: methodVersion,
+                  getOptionLabel: ({ value }) => Utils.normalizeLabel(value),
+                  options: snapshotIds,
+                  onChange: chosenSnapshot => this.loadNewMethodConfig(chosenSnapshot.value)
+                })
+              ])
+            ] : [`Snapshot ${methodVersion}`]),
           div([
             'Source: ', link({
               href: methodLink(modifiedConfig),
@@ -703,14 +735,14 @@ const WorkflowView = _.flow(
 
   renderIOTable(key) {
     const { workspace: { canCompute } } = this.props
-    const { modifiedConfig, inputsOutputs, errors, entityMetadata, workspaceAttributes, includeOptionalInputs } = this.state
+    const { modifiedConfig, modifiedInputsOutputs, errors, entityMetadata, workspaceAttributes, includeOptionalInputs } = this.state
     // Sometimes we're getting totally empty metadata. Not sure if that's valid; if not, revert this
     const { attributeNames } = entityMetadata[modifiedConfig.rootEntityType] || {}
     const suggestions = [
       ..._.map(name => `this.${name}`, attributeNames),
       ..._.map(name => `workspace.${name}`, workspaceAttributes)
     ]
-    const filteredData = _.filter(includeOptionalInputs || key === 'outputs' ? (() => true) : { optional: false }, inputsOutputs[key])
+    const filteredData = _.filter(includeOptionalInputs || key === 'outputs' ? (() => true) : { optional: false }, modifiedInputsOutputs[key])
 
     return h(Dropzone, {
       accept: '.json',
@@ -725,7 +757,7 @@ const WorkflowView = _.flow(
       onDropAccepted: files => this.uploadJson(key, files[0])
     }, [
       div({ style: { flex: 'none', display: 'flex', marginBottom: '0.25rem' } }, [
-        key === 'inputs' && _.some('optional', inputsOutputs['inputs']) ?
+        key === 'inputs' && _.some('optional', modifiedInputsOutputs['inputs']) ?
           linkButton({ style: { marginRight: 'auto' }, onClick: () => this.setState({ includeOptionalInputs: !includeOptionalInputs }) },
             [includeOptionalInputs ? 'Hide optional inputs' : 'Show optional inputs']) :
           div({ style: { marginRight: 'auto' } }),
@@ -757,7 +789,7 @@ const WorkflowView = _.flow(
 
   async save() {
     const { namespace, name, workflowNamespace, workflowName, ajax: { Workspaces } } = this.props
-    const { modifiedConfig } = this.state
+    const { modifiedConfig, modifiedInputsOutputs } = this.state
 
     this.setState({ saving: true })
 
@@ -770,7 +802,8 @@ const WorkflowView = _.flow(
         saved: true,
         savedConfig: validationResponse.methodConfiguration,
         modifiedConfig: validationResponse.methodConfiguration,
-        errors: augmentErrors(validationResponse)
+        errors: augmentErrors(validationResponse),
+        inputsOutputs: modifiedInputsOutputs
       }, () => setTimeout(() => this.setState({ saved: false }), 3000))
       this.updateEntityTypeUI(modifiedConfig)
     } catch (error) {
@@ -781,9 +814,9 @@ const WorkflowView = _.flow(
   }
 
   cancel() {
-    const { savedConfig, savedConfig: { rootEntityType } } = this.state
+    const { savedConfig, savedInputsOutputs, savedConfig: { rootEntityType } } = this.state
 
-    this.setState({ saved: false, modifiedConfig: savedConfig, entitySelectionModel: this.resetSelectionModel(rootEntityType) })
+    this.setState({ saved: false, modifiedConfig: savedConfig, modifiedInputsOutputs: savedInputsOutputs, entitySelectionModel: this.resetSelectionModel(rootEntityType) })
     this.updateSingleOrMultipleRadioState(savedConfig)
   }
 })
