@@ -53,14 +53,15 @@ export const makeToolCard = ({ method, onClick }) => {
   ])
 }
 
-const logoTile = logoFile => div({
+const logoTile = (logoFile, props) => div({
   style: {
     flexShrink: 0,
     backgroundImage: `url(${logoFile})`,
     backgroundRepeat: 'no-repeat', backgroundPosition: 'center', backgroundColor: 'white',
     backgroundSize: 27,
     width: 37, height: 37,
-    marginRight: 13
+    marginRight: 13,
+    ...props
   }
 })
 
@@ -73,7 +74,7 @@ export const dockstoreTile = () => div({ style: { display: 'flex' } }, [
 ])
 
 export const fcMethodRepoTile = () => div({ style: { display: 'flex' } }, [
-  logoTile(broadSquare),
+  logoTile(broadSquare, { backgroundColor: undefined, backgroundSize: 37 }),
   div([
     link({ href: `${getConfig().firecloudUrlRoot}/?return=terra#methods` }, 'Broad Methods Repository'),
     div(['Use Broad workflows in Terra. Share your own, or choose from > 700 public workflows'])
