@@ -220,7 +220,7 @@ export const WorkspaceList = _.flow(
     const { filter, creatingNewWorkspace, cloningWorkspaceId, deletingWorkspaceId, sharingWorkspaceId, accessLevelsFilter, projectsFilter, includePublic } = this.state
     const initialFiltered = _.filter(ws => {
       const { workspace: { namespace, name } } = ws
-      return includePublic ? Utils.textMatch(filter, `${namespace}/${name}`) : Utils.textMatch(filter, `${namespace}/${name}`) && (!ws.public || Utils.canWrite(ws.accessLevel))
+      return Utils.textMatch(filter, `${namespace}/${name}`) && (includePublic || !ws.public || Utils.canWrite(ws.accessLevel))
     }, workspaces)
 
     const namespaceList = _.flow(
