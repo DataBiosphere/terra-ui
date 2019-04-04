@@ -6,7 +6,7 @@ import { DeleteUserModal, EditUserModal, MemberCard, NewUserCard, NewUserModal }
 import { icon } from 'src/components/icons'
 import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
-import { reportError } from 'src/libs/error'
+import { withErrorReporting } from 'src/libs/error'
 import * as StateHistory from 'src/libs/state-history'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
@@ -26,24 +26,20 @@ export default ajaxCaller(class ProjectDetail extends Component {
     }
   }
 
-  async refresh() {
+  refresh = _.flow(
+    withErrorReporting('Error loading billing project users list'),
+    Utils.withBusyState(v => this.setState({ loading: v }))
+  )(async () => {
     const { ajax: { Billing }, project } = this.props
-
-    try {
-      this.setState({ loading: true, addingUser: false, deletingUser: false, updating: false, editingUser: false })
-      const rawProjectUsers = await Billing.project(project.projectName).listUsers()
-      const projectUsers = _.flow(
-        _.groupBy('email'),
-        _.map(gs => ({ ..._.omit('role', gs[0]), roles: _.map('role', gs) })),
-        _.sortBy('email')
-      )(rawProjectUsers)
-      this.setState({ projectUsers, isDataLoaded: true })
-    } catch (error) {
-      reportError('Error loading billing project users list', error)
-    } finally {
-      this.setState({ loading: false })
-    }
-  }
+    this.setState({ addingUser: false, deletingUser: false, updating: false, editingUser: false })
+    const rawProjectUsers = await Billing.project(project.projectName).listUsers()
+    const projectUsers = _.flow(
+      _.groupBy('email'),
+      _.map(gs => ({ ..._.omit('role', gs[0]), roles: _.map('role', gs) })),
+      _.sortBy('email')
+    )(rawProjectUsers)
+    this.setState({ projectUsers })
+  })
 
   componentDidMount() {
     this.refresh()
@@ -112,16 +108,14 @@ export default ajaxCaller(class ProjectDetail extends Component {
       !!deletingUser && h(DeleteUserModal, {
         userEmail: deletingUser.email,
         onDismiss: () => this.setState({ deletingUser: false }),
-        onSubmit: async () => {
-          try {
-            this.setState({ updating: true, deletingUser: false })
-            await Billing.project(projectName).removeUser(deletingUser.roles, deletingUser.email)
-            this.refresh()
-          } catch (error) {
-            this.setState({ updating: false })
-            reportError('Error removing member from billing project', error)
-          }
-        }
+        onSubmit: _.flow(
+          withErrorReporting('Error removing member from billing project'),
+          Utils.withBusyState(v => this.setState({ updating: v }))
+        )(async () => {
+          this.setState({ deletingUser: false })
+          await Billing.project(projectName).removeUser(deletingUser.roles, deletingUser.email)
+          this.refresh()
+        })
       }),
       (loading || updating) && spinnerOverlay
     ])
