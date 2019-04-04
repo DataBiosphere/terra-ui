@@ -253,7 +253,7 @@ export const WorkspaceList = _.flow(
             h(LabeledCheckbox, {
               checked: includePublic === true,
               onChange: v => this.setState({ includePublic: v })
-            }, ' Include public workspaces')
+            }, ' Show public workspaces')
           ]),
           div({ style: { marginLeft: '1rem', flex: '0 0 300px' } }, [
             h(Select, {
@@ -318,7 +318,7 @@ export const WorkspaceList = _.flow(
 
   componentDidUpdate() {
     StateHistory.update(_.pick(
-      ['filter', 'accessLevelsFilter', 'projectsFilter'],
+      ['filter', 'accessLevelsFilter', 'projectsFilter', 'includePublic'],
       this.state)
     )
   }
