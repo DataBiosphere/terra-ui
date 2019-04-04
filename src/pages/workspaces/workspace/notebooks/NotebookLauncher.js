@@ -191,6 +191,8 @@ class NotebookEditor extends Component {
     const currCluster = this.props.cluster
     if (prevCluster && currCluster && prevCluster.id !== currCluster.id) {
       this.setState(initialEditorState, () => this.setUp())
+    } else {
+      this.setUp()
     }
   }
 
