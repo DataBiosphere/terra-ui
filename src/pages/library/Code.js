@@ -53,7 +53,7 @@ export const makeToolCard = ({ method, onClick }) => {
   ])
 }
 
-const logoTile = (logoFile, props) => div({
+const logoTile = ({ logoFile, style = {} }) => div({
   style: {
     flexShrink: 0,
     backgroundImage: `url(${logoFile})`,
@@ -61,12 +61,12 @@ const logoTile = (logoFile, props) => div({
     backgroundSize: 27,
     width: 37, height: 37,
     marginRight: 13,
-    ...props
+    ...style
   }
 })
 
 export const dockstoreTile = () => div({ style: { display: 'flex' } }, [
-  logoTile(dockstoreLogo),
+  logoTile({ logoFile: dockstoreLogo }),
   div([
     link({ href: `${getConfig().dockstoreUrlRoot}/search?descriptorType=wdl&searchMode=files` }, 'Dockstore'),
     div(['Browse WDL workflows in Dockstore, an open platform used by the GA4GH for sharing Docker-based tools'])
@@ -74,7 +74,7 @@ export const dockstoreTile = () => div({ style: { display: 'flex' } }, [
 ])
 
 export const fcMethodRepoTile = () => div({ style: { display: 'flex' } }, [
-  logoTile(broadSquare, { backgroundColor: undefined, backgroundSize: 37 }),
+  logoTile({ logoFile: broadSquare, style: { backgroundColor: undefined, backgroundSize: 37 } }),
   div([
     link({ href: `${getConfig().firecloudUrlRoot}/?return=terra#methods` }, 'Broad Methods Repository'),
     div(['Use Broad workflows in Terra. Share your own, or choose from > 700 public workflows'])
