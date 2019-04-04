@@ -5,7 +5,7 @@ import { Clickable, link } from 'src/components/common'
 import { centeredSpinner } from 'src/components/icons'
 import { libraryTopMatter } from 'src/components/library-common'
 import dockstoreLogo from 'src/images/library/code/dockstore.svg'
-import firecloudLogo from 'src/images/library/code/firecloud.svg'
+import broadLogo from 'src/images/library/datasets/broad_logo.png'
 import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
@@ -73,10 +73,10 @@ export const dockstoreTile = () => div({ style: { display: 'flex' } }, [
 ])
 
 export const fcMethodRepoTile = () => div({ style: { display: 'flex' } }, [
-  logoTile(firecloudLogo),
+  logoTile(broadLogo),
   div([
-    link({ href: `${getConfig().firecloudUrlRoot}/?return=terra#methods` }, 'Broad Hosted Methods Repository'),
-    div(['Use Broad hosted workflows in Terra. Share your own, or choose from > 700 public workflows'])
+    link({ href: `${getConfig().firecloudUrlRoot}/?return=terra#methods` }, 'Broad Methods Repository'),
+    div(['Use Broad workflows in Terra. Share your own, or choose from > 700 public workflows'])
   ])
 ])
 
