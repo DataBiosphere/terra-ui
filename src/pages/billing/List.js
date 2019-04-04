@@ -100,6 +100,7 @@ const NewBillingProjectModal = ajaxCaller(class NewBillingProjectModal extends C
 
     return h(Modal, {
       onDismiss,
+      shouldCloseOnOverlayClick: false,
       title: 'Create Billing Project',
       showCancel: !(billingAccounts && billingAccounts.length === 0),
       showButtons: !!billingAccounts,
@@ -112,7 +113,6 @@ const NewBillingProjectModal = ajaxCaller(class NewBillingProjectModal extends C
           onClick: () => onDismiss()
         }, ['Ok'])
     }, [
-      !billingAccounts && spinnerOverlay,
       billingAccounts && billingAccounts.length === 0 && h(Fragment, [
         `You don't have access to any billing accounts.  `,
         a({
@@ -179,7 +179,7 @@ const NewBillingProjectModal = ajaxCaller(class NewBillingProjectModal extends C
           ])
         ])
       ]),
-      isBusy && spinnerOverlay
+      (isBusy || !billingAccounts) && spinnerOverlay
     ])
   }
 
