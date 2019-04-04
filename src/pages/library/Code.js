@@ -75,8 +75,8 @@ export const dockstoreTile = () => div({ style: { display: 'flex' } }, [
 export const fcMethodRepoTile = () => div({ style: { display: 'flex' } }, [
   logoTile(firecloudLogo),
   div([
-    link({ href: `${getConfig().firecloudUrlRoot}/?return=terra#methods` }, 'Firecloud Methods Repository'),
-    div(['Use FireCloud workflows in Terra. Share your own, or choose from > 700 public workflows'])
+    link({ href: `${getConfig().firecloudUrlRoot}/?return=terra#methods` }, 'Broad Hosted Methods Repository'),
+    div(['Use Broad hosted workflows in Terra. Share your own, or choose from > 700 public workflows'])
   ])
 ])
 
