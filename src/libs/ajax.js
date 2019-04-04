@@ -238,6 +238,24 @@ const User = signal => ({
 
   postNpsResponse: async body => {
     return fetchRex('npsResponses/create', _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }]))
+  },
+
+  getNihStatus: async () => {
+    try {
+      const res = await fetchOrchestration('api/nih/status', _.merge(authOpts(), { signal }))
+      return res.json()
+    } catch (error) {
+      if (error.status === 404) {
+        return {}
+      } else {
+        throw error
+      }
+    }
+  },
+
+  linkNihAccount: async token => {
+    const res = await fetchOrchestration('api/nih/callback', _.mergeAll([authOpts(), jsonBody({ jwt: token }), { signal, method: 'POST' }]))
+    return res.json()
   }
 })
 

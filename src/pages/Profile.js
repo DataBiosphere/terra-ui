@@ -1,14 +1,15 @@
 import _ from 'lodash/fp'
-import { Fragment } from 'react'
+import { Fragment, useState } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import { buttonPrimary, LabeledCheckbox, link, RadioButton, spinnerOverlay } from 'src/components/common'
-import { centeredSpinner, profilePic } from 'src/components/icons'
+import { centeredSpinner, icon, profilePic, spinner } from 'src/components/icons'
 import { textInput, validatedInput } from 'src/components/input'
 import { InfoBox } from 'src/components/PopupTrigger'
 import TopBar from 'src/components/TopBar'
-import { ajaxCaller } from 'src/libs/ajax'
+import { Ajax, ajaxCaller } from 'src/libs/ajax'
 import { authStore, getUser, refreshTerraProfile } from 'src/libs/auth'
 import colors from 'src/libs/colors'
+import { getConfig } from 'src/libs/config'
 import * as Nav from 'src/libs/nav'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
@@ -58,6 +59,108 @@ const styles = {
 }
 
 
+const NihLink = ({ nihToken }) => {
+  const loadNihStatus = async () => {
+    const status = await Ajax().User.getNihStatus()
+    setNihStatus(status)
+  }
+
+  const linkNihAccount = async nihToken => {
+    setLinking(true)
+    const status = await Ajax().User.linkNihAccount(nihToken)
+    setNihStatus(status)
+    setLinking(false)
+  }
+
+
+  /*
+   * Hooks
+   */
+  const [{ linkedNihUsername, linkExpireTime, datasetPermissions }, setNihStatus] = useState({})
+  const [linking, setLinking] = useState(false)
+
+  Utils.useOnMount(() => {
+    if (nihToken) {
+      // Clear the query string, but use replace so the back button doesn't take the user back to the token
+      Nav.history.replace({ search: '' })
+      linkNihAccount(nihToken)
+    } else {
+      loadNihStatus()
+    }
+  })
+
+
+  /*
+   * Render helpers
+   */
+  const makeAccountLinkLink = label => {
+    const nihRedirectUrl = `${window.location.protocol}//${window.location.host}/#profile?nih-username-token={token}`
+
+    return link({
+      // href: `https://shibboleth.dsde-prod.broadinstitute.org/link-nih-account?redirect-url=${encodeURIComponent('https://firecloud.terra.bio/#profile?nih-username-token={token}')}`,
+      href: `${getConfig().shibbolethUrlRoot}/link-nih-account?redirect-url=${encodeURIComponent(nihRedirectUrl)}`,
+      style: { display: 'flex', alignItems: 'center' },
+      target: '_blank'
+    }, [
+      label,
+      icon('pop-out', { size: 12, style: { marginLeft: '0.5rem' } })
+    ])
+  }
+
+  const makeDatasetAuthStatus = ({ name, authorized }) => {
+    return div({ key: `nih-auth-status-${name}`, style: { display: 'flex' } }, [
+      div({ style: { flex: 1 } }, [`${name} Authorization`]),
+      div({ style: { flex: 2 } }, [
+        authorized ? 'Authorized' : 'Not Authorized',
+        !authorized && h(InfoBox, { style: { marginLeft: '0.5rem' } }, [
+          'Your account was linked, but you are not authorized to view this controlled dataset. Please go ',
+          link({
+            href: 'https://dbgap.ncbi.nlm.nih.gov/aa/wga.cgi?page=login',
+            target: '_blank'
+          }, [
+            'here',
+            icon('pop-out', { size: 12 })
+          ]),
+          ' to check your credentials.'
+        ])
+      ])
+    ])
+  }
+
+
+  /*
+   * Render
+   */
+  return h(Fragment, [
+    div({ style: styles.form.title }, [
+      'NIH Account',
+      h(InfoBox, { style: { marginLeft: '0.5rem' } }, [
+        'Linking with eRA Commons will allow FireCloud to automatically determine if you can access controlled datasets hosted in FireCloud (ex. TCGA) based on your valid dbGaP applications.'
+      ])
+    ]),
+    linking && div([spinner(), 'Linking NIH account...']),
+    !!linkedNihUsername && div({ style: { display: 'flex', flexDirection: 'column', width: '35rem' } }, [
+      div({ style: { display: 'flex' } }, [
+        div({ style: { flex: 1 } }, ['Username:']),
+        div({ style: { flex: 2 } }, [linkedNihUsername])
+      ]),
+      div({ style: { display: 'flex' } }, [
+        div({ style: { flex: 1 } }, ['Link Expiration:']),
+        div({ style: { flex: 2 } }, [
+          Utils.makeCompleteDate(linkExpireTime * 1000),
+          makeAccountLinkLink('Log-In to NIH to re-link your account')
+        ])
+      ]),
+      _.flow(
+        _.sortBy('name'),
+        _.map(makeDatasetAuthStatus)
+      )(datasetPermissions)
+    ]),
+    !linkedNihUsername && makeAccountLinkLink('Log-In to NIH to link your account')
+  ])
+}
+
+
 const sectionTitle = text => div({ style: styles.sectionTitle }, [text])
 
 const Profile = _.flow(
@@ -101,6 +204,7 @@ const Profile = _.flow(
   }
 
   renderForm() {
+    const { queryParams = {} } = this.props
     const { profileInfo, proxyGroup } = this.state
 
     const { firstName, lastName } = profileInfo
@@ -191,6 +295,10 @@ const Profile = _.flow(
       checkbox('notifications/GroupAccessRequestNotification', 'Group Access Requested'),
       checkbox('notifications/WorkspaceAddedNotification', 'Workspace Access Added'),
       checkbox('notifications/WorkspaceRemovedNotification', 'Workspace Access Removed'),
+
+      sectionTitle('Identity & External Servers'),
+
+      h(NihLink, { nihToken: queryParams['nih-username-token'] }),
 
       buttonPrimary({
         style: { marginTop: '3rem' },
