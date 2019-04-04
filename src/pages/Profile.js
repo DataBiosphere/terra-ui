@@ -97,7 +97,6 @@ const NihLink = ({ nihToken }) => {
     const nihRedirectUrl = `${window.location.protocol}//${window.location.host}/#profile?nih-username-token={token}`
 
     return link({
-      // href: `https://shibboleth.dsde-prod.broadinstitute.org/link-nih-account?redirect-url=${encodeURIComponent('https://firecloud.terra.bio/#profile?nih-username-token={token}')}`,
       href: `${getConfig().shibbolethUrlRoot}/link-nih-account?redirect-url=${encodeURIComponent(nihRedirectUrl)}`,
       style: { display: 'flex', alignItems: 'center' },
       target: '_blank'
