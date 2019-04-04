@@ -9,8 +9,6 @@ const styles = {
   link: { marginLeft: '2rem' }
 }
 
-const tosUrl = 'https://broadinstitute.zendesk.com/hc/en-us/articles/360024688731-Terms-of-Service'
-
 const FooterWrapper = ({ children }) => {
   return div({ style: { display: 'flex', flexDirection: 'column', minHeight: '100%', flexGrow: 1 } }, [
     children,
@@ -29,7 +27,7 @@ const FooterWrapper = ({ children }) => {
         icon('logoWhite', { size: 55 })
       ]),
       a({ href: Nav.getLink('privacy'), style: styles.link }, 'Privacy Policy'),
-      a({ target: '_blank', href: tosUrl, style: styles.link }, 'Terms of Service'),
+      a({ href: Nav.getLink('terms-of-service'), style: styles.link }, 'Terms of Service'),
       div({ style: { marginLeft: 'auto', fontWeight: 600, fontSize: '10px' } }, [
         'Built on: ',
         new Date(SATURN_BUILD_TIMESTAMP).toLocaleString()

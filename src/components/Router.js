@@ -23,6 +23,7 @@ import * as JobHistory from 'src/pages/workspaces/workspace/JobHistory'
 import * as Notebooks from 'src/pages/workspaces/workspace/Notebooks'
 import * as NotebookLauncher from 'src/pages/workspaces/workspace/notebooks/NotebookLauncher'
 import * as TerminalLauncher from 'src/pages/workspaces/workspace/notebooks/TerminalLauncher'
+import * as TermsOfService from 'src/pages/TermsOfService'
 import * as Tools from 'src/pages/workspaces/workspace/Tools'
 import * as WorkflowView from 'src/pages/workspaces/workspace/tools/WorkflowView'
 import * as Projects from 'src/pages/billing/List'
@@ -50,6 +51,7 @@ const initNavPaths = () => {
   Groups.addNavPaths()
   Group.addNavPaths()
   TerminalLauncher.addNavPaths()
+  TermsOfService.addNavPaths()
   Code.addNavPaths()
   Datasets.addNavPaths()
   Showcase.addNavPaths()

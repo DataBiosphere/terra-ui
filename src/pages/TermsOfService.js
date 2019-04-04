@@ -5,6 +5,7 @@ import { Ajax } from 'src/libs/ajax'
 import { authStore, signOut } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
+import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 
 // When updating the TOS, make sure you:
@@ -192,7 +193,26 @@ const styles = {
   }
 }
 
-class TermsOfService extends Component {
+const termsTitle = div({ style: { color: colors.gray[0], fontWeight: 600 } }, [
+  span({ style: { fontSize: 36 } }, ['TERRA ']), span({ style: { fontSize: 24 } }, ['Terms of Service'])
+])
+
+const TOSMarkdown = div({
+  style: { maxHeight: 400, overflowY: 'auto', lineHeight: 1.5, marginTop: '1rem', paddingRight: '1rem' }
+}, [
+  h(Markdown, {
+    renderers: {
+      heading: (text, level) => {
+        return `<h${level} style="color: ${colors.gray[0]}; margin-bottom: 0">${text}</h${level}>`
+      },
+      paragraph: text => {
+        return `<p style="margin-top: 0">${text}</p>`
+      }
+    }
+  }, [termsOfService])
+])
+
+export default class TermsOfService extends Component {
   constructor(props) {
     super(props)
     this.state = { busy: false }
@@ -215,22 +235,8 @@ class TermsOfService extends Component {
     return div({ style: styles.page }, [
       backgroundLogo,
       div({ style: styles.box }, [
-        div({ style: { color: colors.gray[0], fontWeight: 600 } }, [
-          span({ style: { fontSize: 36 } }, ['TERRA ']),
-          span({ style: { fontSize: 24 } }, ['Terms of Service'])
-        ]),
-        div({ style: { maxHeight: 400, overflowY: 'auto', lineHeight: 1.5, marginTop: '1rem', paddingRight: '1rem' } }, [
-          h(Markdown, {
-            renderers: {
-              heading: (text, level) => {
-                return `<h${level} style="color: ${colors.gray[0]}; margin-bottom: 0">${text}</h${level}>`
-              },
-              paragraph: text => {
-                return `<p style="margin-top: 0">${text}</p>`
-              }
-            }
-          }, [termsOfService])
-        ]),
+        termsTitle,
+        TOSMarkdown,
         div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '2rem' } }, [
           buttonSecondary({ style: { marginRight: '1rem' }, onClick: signOut }, 'Cancel'),
           buttonPrimary({ onClick: () => this.accept(), disabled: busy }, ['Accept'])
@@ -240,4 +246,23 @@ class TermsOfService extends Component {
   }
 }
 
-export default TermsOfService
+class TermsOfServicePage extends Component {
+  render() {
+    return div({ style: styles.page }, [
+      backgroundLogo,
+      div({ style: styles.box }, [
+        termsTitle,
+        TOSMarkdown
+      ])
+    ])
+  }
+}
+
+export const addNavPaths = () => {
+  Nav.defPath('terms-of-service', {
+    path: '/terms-of-service',
+    component: TermsOfServicePage,
+    public: true,
+    title: 'Terms of Service'
+  })
+}
