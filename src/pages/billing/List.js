@@ -287,10 +287,11 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
 
   componentDidUpdate() {
     const { billingProjects } = this.state
+    const anyProjectsCreating = _.some({ creationStatus: 'Creating' }, billingProjects)
 
-    if (_.some({ creationStatus: 'Creating' }, billingProjects) && !this.interval) {
+    if (anyProjectsCreating && !this.interval) {
       this.interval = setInterval(() => this.loadProjects(), 10000)
-    } else {
+    } else if (!anyProjectsCreating && this.interval) {
       clearInterval(this.interval)
       this.interval = undefined
     }
