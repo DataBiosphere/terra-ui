@@ -23,11 +23,12 @@ import validate from 'validate.js'
 
 
 const styles = {
-  tab: {
+  tab: isActive => ({
     display: 'flex', alignItems: 'center', fontSize: 16, height: 50, padding: '0 2rem',
-    fontWeight: 500, overflow: 'hidden', borderBottom: `1px solid ${colors.grayBlue[2]}`,
-    borderRightStyle: 'solid'
-  }
+    fontWeight: 500, overflow: 'hidden', borderBottom: `1px solid ${colors.grayBlue[2]}`, borderRightStyle: 'solid',
+    borderRightWidth: isActive ? 10 : 0, backgroundColor: isActive ? colors.green[7] : colors.white,
+    borderRightColor: isActive ? colors.green[1] : colors.green[0]
+  })
 }
 
 const ProjectTab = ({ project: { projectName, role, creationStatus }, isActive }) => {
@@ -35,20 +36,17 @@ const ProjectTab = ({ project: { projectName, role, creationStatus }, isActive }
   const statusIcon = icon(creationStatus === 'Creating' ? 'loadingSpinner' : 'error-standard',
     { style: { color: colors.green[0], marginRight: '1rem', marginLeft: '0.5rem' } })
 
-  return !!_.includes('Owner', role) && projectReady ? h(Interactive, {
+  return _.includes('Owner', role) && projectReady ? h(Interactive, {
     as: 'a',
     style: {
-      ...styles.tab,
-      color: colors.green[0], borderRightColor: isActive ? colors.green[1] : colors.green[0],
-      borderRightWidth: isActive ? 10 : 0, backgroundColor: isActive ? colors.green[7] : colors.white
+      ...styles.tab(isActive),
+      color: colors.green[0]
     },
     href: `${Nav.getLink('billing')}?${qs.stringify({ selectedName: projectName, type: 'project' })}`,
     hover: isActive ? {} : { backgroundColor: colors.green[6], color: colors.green[1] }
   }, [projectName, !projectReady && statusIcon]) : div({
     style: {
-      ...styles.tab,
-      color: colors.gray[0], borderRightColor: colors.green[0],
-      borderRightWidth: 0, backgroundColor: colors.white
+      ...styles.tab(false), color: colors.gray[0]
     }
   }, [projectName, !projectReady && statusIcon])
 }
@@ -206,7 +204,6 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
   constructor(props) {
     super(props)
     this.state = {
-      filter: '',
       billingProjects: null,
       creatingBillingProject: false,
       ...StateHistory.get()
@@ -299,7 +296,7 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
     }
 
     StateHistory.update(_.pick(
-      ['billingProjects', 'filter'],
+      ['billingProjects'],
       this.state)
     )
   }
