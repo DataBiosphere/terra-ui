@@ -27,7 +27,6 @@ import * as TermsOfService from 'src/pages/TermsOfService'
 import * as Tools from 'src/pages/workspaces/workspace/Tools'
 import * as WorkflowView from 'src/pages/workspaces/workspace/tools/WorkflowView'
 import * as Projects from 'src/pages/billing/List'
-import * as Project from 'src/pages/billing/Project'
 
 
 const pageWrapStyle = { display: 'flex', flexDirection: 'column', flex: '1 0 auto', position: 'relative' }
@@ -56,7 +55,6 @@ const initNavPaths = () => {
   Datasets.addNavPaths()
   Showcase.addNavPaths()
   Projects.addNavPaths()
-  Project.addNavPaths()
 }
 
 export default class Router extends Component {

@@ -3,12 +3,12 @@ import { Ajax } from 'src/libs/ajax'
 import { ensureBillingScope } from 'src/libs/auth'
 
 
-export const listProjectsWithAccounts = async () => {
-  const { Billing, GoogleBilling } = Ajax()
+export const listProjectsWithAccounts = async accounts => {
+  const { GoogleBilling } = Ajax()
 
   await ensureBillingScope()
 
-  const accountNames = _.map('accountName', await Billing.listAccounts()) // or fetch account names from FireCloud
+  const accountNames = _.map('accountName', accounts)
   const projectNames = await Promise.all(_.map(async accountName => {
     try {
       return await GoogleBilling.listProjectNames(accountName)
