@@ -1,6 +1,6 @@
 import { a, div } from 'react-hyperscript-helpers'
 import { linkButton } from 'src/components/common'
-import { icon } from 'src/components/icons'
+import { footerLogo } from 'src/libs/brands'
 import colors from 'src/libs/colors'
 import * as Nav from 'src/libs/nav'
 
@@ -16,15 +16,15 @@ const FooterWrapper = ({ children }) => {
       style: {
         flex: 'none',
         display: 'flex', alignItems: 'center',
-        height: 92,
-        paddingLeft: '6rem',
-        paddingRight: '6rem',
+        height: 66,
+        paddingLeft: '1rem',
+        paddingRight: '1rem',
         backgroundColor: colors.gray[1],
         color: 'white'
       }
     }, [
       linkButton({ href: Nav.getLink('root'), style: { display: 'flex', alignItems: 'center' } }, [
-        icon('logoWhite', { size: 55 })
+        footerLogo({ size: 40 })
       ]),
       a({ href: Nav.getLink('privacy'), style: styles.link }, 'Privacy Policy'),
       a({ href: Nav.getLink('terms-of-service'), style: styles.link }, 'Terms of Service'),
