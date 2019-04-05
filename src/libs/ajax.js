@@ -241,16 +241,8 @@ const User = signal => ({
   },
 
   getNihStatus: async () => {
-    try {
-      const res = await fetchOrchestration('api/nih/status', _.merge(authOpts(), { signal }))
-      return res.json()
-    } catch (error) {
-      if (error.status === 404) {
-        return {}
-      } else {
-        throw error
-      }
-    }
+    const res = await fetchOrchestration('api/nih/status', _.merge(authOpts(), { signal }))
+    return res.json()
   },
 
   linkNihAccount: async token => {

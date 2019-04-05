@@ -10,6 +10,7 @@ import { Ajax, ajaxCaller } from 'src/libs/ajax'
 import { authStore, getUser, refreshTerraProfile } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
+import { withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
@@ -18,7 +19,7 @@ import validate from 'validate.js'
 
 const styles = {
   page: {
-    margin: '0 5rem 2rem',
+    margin: '0 2rem 2rem',
     width: 700
   },
   sectionTitle: {
@@ -27,7 +28,7 @@ const styles = {
   },
   header: {
     line: {
-      margin: '1rem 0',
+      margin: '0 2rem',
       display: 'flex', alignItems: 'center'
     },
 
@@ -60,26 +61,33 @@ const styles = {
 
 
 const NihLink = ({ nihToken }) => {
-  const loadNihStatus = async () => {
-    const status = await Ajax().User.getNihStatus()
-    setNihStatus(status)
-  }
-
-  const linkNihAccount = async nihToken => {
-    setLinking(true)
-    const status = await Ajax().User.linkNihAccount(nihToken)
-    setNihStatus(status)
-    setLinking(false)
-  }
-
-
   /*
    * Hooks
    */
   const [{ linkedNihUsername, linkExpireTime, datasetPermissions }, setNihStatus] = useState({})
+  const [loading, setLoading] = useState(false)
   const [linking, setLinking] = useState(false)
 
   Utils.useOnMount(() => {
+    const linkNihAccount = _.flow(
+      withErrorReporting('Error linking NIH account'),
+      Utils.withBusyState(setLinking)
+    )(async nihToken => {
+      setNihStatus(await Ajax().User.linkNihAccount(nihToken))
+    })
+
+    const loadNihStatus = _.flow(
+      withErrorReporting('Error loading NIH account status'),
+      Utils.withBusyState(setLoading)
+    )(async () => {
+      try {
+        setNihStatus(await Ajax().User.getNihStatus())
+      } catch (error) {
+        if (error.status === 404) setNihStatus({})
+        else throw error
+      }
+    })
+
     if (nihToken) {
       // Clear the query string, but use replace so the back button doesn't take the user back to the token
       Nav.history.replace({ search: '' })
@@ -137,8 +145,9 @@ const NihLink = ({ nihToken }) => {
         'Linking with eRA Commons will allow FireCloud to automatically determine if you can access controlled datasets hosted in FireCloud (ex. TCGA) based on your valid dbGaP applications.'
       ])
     ]),
+    loading && div([spinner(), 'Loading NIH account status...']),
     linking && div([spinner(), 'Linking NIH account...']),
-    !!linkedNihUsername && div({ style: { display: 'flex', flexDirection: 'column', width: '35rem' } }, [
+    !!linkedNihUsername && div({ style: { display: 'flex', flexDirection: 'column', width: '33rem' } }, [
       div({ style: { display: 'flex' } }, [
         div({ style: { flex: 1 } }, ['Username:']),
         div({ style: { flex: 2 } }, [linkedNihUsername])
@@ -173,37 +182,44 @@ const Profile = _.flow(
   }
 
   render() {
+    const { queryParams = {} } = this.props
     const { profileInfo, saving } = this.state
     const { firstName } = profileInfo
 
     return h(Fragment, [
       saving && spinnerOverlay,
       h(TopBar),
-      !profileInfo ? centeredSpinner() :
-        div({ style: styles.page }, [
-          sectionTitle('Profile'),
-          div({ style: styles.header.line }, [
-            div({ style: { position: 'relative' } }, [
-              profilePic({ size: 48 }),
-              h(InfoBox, { style: { alignSelf: 'flex-end', padding: '0.25rem' } }, [
-                'To change your profile image, visit your ',
-                link({
-                  href: `https://myaccount.google.com?authuser=${getUser().email}`,
-                  target: '_blank'
-                }, ['Google account page.'])
-              ])
-            ]),
-            div({ style: styles.header.nameLine }, [
-              `Hello again, ${firstName}`
+      !profileInfo ? centeredSpinner() : h(Fragment, [
+        div({ style: { marginLeft: '2rem' } }, [sectionTitle('Profile')]),
+        div({ style: styles.header.line }, [
+          div({ style: { position: 'relative' } }, [
+            profilePic({ size: 48 }),
+            h(InfoBox, { style: { alignSelf: 'flex-end', padding: '0.25rem' } }, [
+              'To change your profile image, visit your ',
+              link({
+                href: `https://myaccount.google.com?authuser=${getUser().email}`,
+                target: '_blank'
+              }, ['Google account page.'])
             ])
           ]),
-          this.renderForm()
+          div({ style: styles.header.nameLine }, [
+            `Hello again, ${firstName}`
+          ])
+        ]),
+        div({ style: { display: 'flex' } }, [
+          div({ style: styles.page }, [
+            this.renderForm()
+          ]),
+          div({ style: { marginTop: '0' } }, [
+            sectionTitle('Identity & External Servers'),
+            h(NihLink, { nihToken: queryParams['nih-username-token'] })
+          ])
         ])
+      ])
     ])
   }
 
   renderForm() {
-    const { queryParams = {} } = this.props
     const { profileInfo, proxyGroup } = this.state
 
     const { firstName, lastName } = profileInfo
@@ -294,10 +310,6 @@ const Profile = _.flow(
       checkbox('notifications/GroupAccessRequestNotification', 'Group Access Requested'),
       checkbox('notifications/WorkspaceAddedNotification', 'Workspace Access Added'),
       checkbox('notifications/WorkspaceRemovedNotification', 'Workspace Access Removed'),
-
-      sectionTitle('Identity & External Servers'),
-
-      h(NihLink, { nihToken: queryParams['nih-username-token'] }),
 
       buttonPrimary({
         style: { marginTop: '3rem' },
