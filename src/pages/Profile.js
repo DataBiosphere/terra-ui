@@ -6,7 +6,7 @@ import { centeredSpinner, icon, profilePic, spinner } from 'src/components/icons
 import { textInput, validatedInput } from 'src/components/input'
 import { InfoBox } from 'src/components/PopupTrigger'
 import TopBar from 'src/components/TopBar'
-import { Ajax, ajaxCaller } from 'src/libs/ajax'
+import { Ajax, ajaxCaller, useCancellation } from 'src/libs/ajax'
 import { authStore, getUser, refreshTerraProfile } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
@@ -67,13 +67,16 @@ const NihLink = ({ nihToken }) => {
   const [{ linkedNihUsername, linkExpireTime, datasetPermissions }, setNihStatus] = useState({})
   const [loading, setLoading] = useState(false)
   const [linking, setLinking] = useState(false)
+  const signal = useCancellation()
 
   Utils.useOnMount(() => {
+    const { User } = Ajax(signal)
+
     const linkNihAccount = _.flow(
       withErrorReporting('Error linking NIH account'),
       Utils.withBusyState(setLinking)
     )(async nihToken => {
-      setNihStatus(await Ajax().User.linkNihAccount(nihToken))
+      setNihStatus(await User.linkNihAccount(nihToken))
     })
 
     const loadNihStatus = _.flow(
@@ -81,7 +84,7 @@ const NihLink = ({ nihToken }) => {
       Utils.withBusyState(setLoading)
     )(async () => {
       try {
-        setNihStatus(await Ajax().User.getNihStatus())
+        setNihStatus(await User.getNihStatus())
       } catch (error) {
         if (error.status === 404) setNihStatus({})
         else throw error
@@ -138,7 +141,7 @@ const NihLink = ({ nihToken }) => {
   /*
    * Render
    */
-  return h(Fragment, [
+  return div({ style: { marginBottom: '1rem' } }, [
     div({ style: styles.form.title }, [
       'NIH Account',
       h(InfoBox, { style: { marginLeft: '0.5rem' } }, [
@@ -147,24 +150,26 @@ const NihLink = ({ nihToken }) => {
     ]),
     loading && div([spinner(), 'Loading NIH account status...']),
     linking && div([spinner(), 'Linking NIH account...']),
-    !!linkedNihUsername && div({ style: { display: 'flex', flexDirection: 'column', width: '33rem' } }, [
-      div({ style: { display: 'flex' } }, [
-        div({ style: { flex: 1 } }, ['Username:']),
-        div({ style: { flex: 2 } }, [linkedNihUsername])
-      ]),
-      div({ style: { display: 'flex' } }, [
-        div({ style: { flex: 1 } }, ['Link Expiration:']),
-        div({ style: { flex: 2 } }, [
-          Utils.makeCompleteDate(linkExpireTime * 1000),
-          makeAccountLinkLink('Log-In to NIH to re-link your account')
-        ])
-      ]),
-      _.flow(
-        _.sortBy('name'),
-        _.map(makeDatasetAuthStatus)
-      )(datasetPermissions)
-    ]),
-    !linkedNihUsername && makeAccountLinkLink('Log-In to NIH to link your account')
+    !loading && !linking && h(Fragment, [
+      !linkedNihUsername && makeAccountLinkLink('Log-In to NIH to link your account'),
+      !!linkedNihUsername && div({ style: { display: 'flex', flexDirection: 'column', width: '33rem' } }, [
+        div({ style: { display: 'flex' } }, [
+          div({ style: { flex: 1 } }, ['Username:']),
+          div({ style: { flex: 2 } }, [linkedNihUsername])
+        ]),
+        div({ style: { display: 'flex' } }, [
+          div({ style: { flex: 1 } }, ['Link Expiration:']),
+          div({ style: { flex: 2 } }, [
+            Utils.makeCompleteDate(linkExpireTime * 1000),
+            makeAccountLinkLink('Log-In to NIH to re-link your account')
+          ])
+        ]),
+        _.flow(
+          _.sortBy('name'),
+          _.map(makeDatasetAuthStatus)
+        )(datasetPermissions)
+      ])
+    ])
   ])
 }
 
