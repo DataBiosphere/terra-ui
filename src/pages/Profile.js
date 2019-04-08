@@ -145,7 +145,7 @@ const NihLink = ({ nihToken }) => {
     div({ style: styles.form.title }, [
       'NIH Account',
       h(InfoBox, { style: { marginLeft: '0.5rem' } }, [
-        'Linking with eRA Commons will allow FireCloud to automatically determine if you can access controlled datasets hosted in FireCloud (ex. TCGA) based on your valid dbGaP applications.'
+        'Linking with eRA Commons will allow Terra to automatically determine if you can access controlled datasets hosted in Terra (ex. TCGA) based on your valid dbGaP applications.'
       ])
     ]),
     loading && div([spinner(), 'Loading NIH account status...']),
