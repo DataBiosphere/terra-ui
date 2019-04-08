@@ -1,12 +1,12 @@
 import { Component } from 'react'
 import { div, h, p } from 'react-hyperscript-helpers'
-import { link, Clickable } from 'src/components/common'
+import { Clickable, link } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
-import { logo } from 'src/components/icons'
+import Modal from 'src/components/Modal'
 import SignInButton from 'src/components/SignInButton'
 import signInBg from 'src/images/sign-in-background.jpg'
 import colors from 'src/libs/colors'
-import Modal from 'src/components/Modal'
+import { signInLogo } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
 
 
@@ -43,15 +43,10 @@ export default class SignIn extends Component {
         }
       }, [
         div({ style: { maxWidth: 900 } }, [
-          div({ style: { display: 'flex', marginBottom: '1rem', alignItems: 'center' } }, [
-            div({ style: { fontWeight: 500, marginRight: '2rem' } }, [
-              div({ style: { fontSize: 40, color: colors.slate } }, ['Welcome to']),
-              div({ style: { fontSize: 80, color: colors.gray[0] } }, ['TERRA'])
-            ]),
-            logo({ size: 265 })
-          ]),
-          div({ style: { fontSize: 40, fontWeight: 500, color: colors.slate } }, ['New User?']),
-          div({ style: { fontSize: 20, marginBottom: '2rem' } }, ['Terra requires a Google Account.']),
+          signInLogo,
+          div({ style: { fontSize: 54, margin: '1.5rem 0', color: colors.green[0] } }, ['Welcome to Terra']),
+          div({ style: { fontSize: 36, fontWeight: 500, color: colors.slate } }, ['New User?']),
+          div({ style: { fontSize: 36, marginBottom: '2rem' } }, ['Terra requires a Google Account.']),
           div({ style: { display: 'flex', alignItems: 'center' } }, [
             div({
               style: {

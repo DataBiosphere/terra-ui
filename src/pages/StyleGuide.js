@@ -2,11 +2,11 @@ import _ from 'lodash/fp'
 import { div, h, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import { buttonPrimary, buttonSecondary, Checkbox, link, RadioButton, search } from 'src/components/common'
-import { icon } from 'src/components/icons'
 import { textInput, validatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import PopupTrigger from 'src/components/PopupTrigger'
 import { FlexTable, GridTable, HeaderCell, TextCell } from 'src/components/table'
+import { logo } from 'src/libs/logos'
 import colors from 'src/libs/colors'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
@@ -63,7 +63,7 @@ class StyleGuide extends Component {
 
     return div({ style: { width: 1164, margin: '4rem auto' } }, [
       div({ style: { display: 'flex', alignItems: 'center', marginBottom: '4rem' } }, [
-        icon('logoIcon', { size: 210 }),
+        logo({ size: 210 }),
         span({
           style: {
             fontSize: 55, fontWeight: 700, color: colors.slate, letterSpacing: 1.78,

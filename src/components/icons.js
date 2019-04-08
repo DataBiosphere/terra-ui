@@ -1,5 +1,3 @@
-import '@webcomponents/custom-elements' // must be before icons
-
 import { ClarityIcons } from '@clr/icons'
 import '@clr/icons/clr-icons.css'
 import '@clr/icons/shapes/all-shapes'
@@ -16,9 +14,6 @@ import home from 'src/icons/home.svg'
 import jupyterIcon from 'src/icons/jupyter.svg'
 import listAlt from 'src/icons/list-alt.svg'
 import loadingSpinner from 'src/icons/loading-spinner.svg'
-import logoWhite from 'src/icons/logo-grey.svg'
-import logowShadow from 'src/icons/logo-wShadow.svg'
-import logoIcon from 'src/icons/logo.svg'
 import notebooks from 'src/icons/notebooks.svg'
 import purchaseOrder from 'src/icons/purchase-order.svg'
 import renameIcon from 'src/icons/rename-icon.svg'
@@ -29,8 +24,8 @@ import colors from 'src/libs/colors'
 
 
 ClarityIcons.add({
-  browse, cardMenuIcon, caretDown, checkSquare, columnGrabber, creditCard, explore, home, jupyterIcon, listAlt, loadingSpinner, logoWhite, logoIcon,
-  logowShadow, notebooks, purchaseOrder, renameIcon, square, table
+  browse, cardMenuIcon, caretDown, checkSquare, columnGrabber, creditCard, explore, home, jupyterIcon, listAlt, loadingSpinner,
+  notebooks, purchaseOrder, renameIcon, square, table
 })
 
 /**
@@ -44,14 +39,6 @@ export const icon = function(shape, { className, ...props } = {}) {
 
 export const breadcrumb = function(props) {
   return icon('angle right', _.merge({ size: 10, style: { margin: '0 0.25rem' } }, props))
-}
-
-export const logo = function(props) {
-  return icon('logoIcon', _.merge({ size: 50, style: { marginRight: '0.5rem' } }, props))
-}
-
-export const logoGlow = function(props) {
-  return icon('logowShadow', _.merge({ size: 75, style: { marginRight: '0.5rem' } }, props))
 }
 
 export const spinner = function(props) {

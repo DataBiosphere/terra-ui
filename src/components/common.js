@@ -6,6 +6,7 @@ import Interactive from 'react-interactive'
 import RSelect from 'react-select'
 import { centeredSpinner, icon } from 'src/components/icons'
 import TooltipTrigger from 'src/components/TooltipTrigger'
+import { logo } from 'src/libs/logos'
 import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
 import * as Style from 'src/libs/style'
@@ -280,7 +281,7 @@ export const PageBox = ({ children, style = {} }) => {
   }, [children])
 }
 
-export const backgroundLogo = icon('logoIcon', {
+export const backgroundLogo = logo({
   size: 1200,
   style: { position: 'fixed', top: -100, left: -100, zIndex: -1, opacity: 0.65 }
 })
@@ -288,7 +289,7 @@ export const backgroundLogo = icon('logoIcon', {
 export const methodLink = config => {
   const { methodRepoMethod: { sourceRepo, methodVersion, methodNamespace, methodName, methodPath } } = config
   return sourceRepo === 'agora' ?
-    `${getConfig().firecloudUrlRoot}/#methods/${methodNamespace}/${methodName}/${methodVersion}` :
+    `${getConfig().firecloudUrlRoot}/?return=terra#methods/${methodNamespace}/${methodName}/${methodVersion}` :
     `${getConfig().dockstoreUrlRoot}/workflows/${methodPath}`
 }
 
