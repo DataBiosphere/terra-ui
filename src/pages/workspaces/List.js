@@ -13,8 +13,9 @@ import PopupTrigger from 'src/components/PopupTrigger'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import TopBar from 'src/components/TopBar'
 import { withWorkspaces } from 'src/components/workspace-utils'
-import { ajaxCaller } from 'src/libs/ajax'
+import { Ajax, ajaxCaller, useCancellation } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
+import { withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
@@ -96,37 +97,51 @@ const WsSearch = ({ onChange }) => {
   })
 }
 
+const WorkspaceMenuContent = ({ namespace, name, onClone, onShare, onDelete }) => {
+  const [workspace, setWorkspace] = useState(undefined)
+  const signal = useCancellation()
+  const loadWorkspace = withErrorReporting('Error loading workspace', async () => {
+    setWorkspace(await Ajax(signal).Workspaces.workspace(namespace, name).details())
+  })
+  Utils.useOnMount(() => {
+    loadWorkspace()
+  })
+
+  const canRead = workspace && Utils.canRead(workspace.accessLevel)
+  const canShare = workspace && workspace.canShare
+  const isOwner = workspace && Utils.isOwner(workspace.accessLevel)
+  return h(Fragment, [
+    h(MenuButton, {
+      disabled: !canRead,
+      tooltip: workspace && !canRead && 'You do not have access to the workspace Authorization Domain',
+      tooltipSide: 'left',
+      onClick: () => onClone()
+    }, [menuIcon('copy'), 'Clone']),
+    h(MenuButton, {
+      disabled: !canShare,
+      tooltip: workspace && !canShare && 'You have not been granted permission to share this workspace',
+      tooltipSide: 'left',
+      onClick: () => onShare()
+    }, [menuIcon('share'), 'Share']),
+    h(MenuButton, {
+      disabled: !isOwner,
+      tooltip: workspace && !isOwner && 'You must be an owner of this workspace or the underlying billing project',
+      tooltipSide: 'left',
+      onClick: () => onDelete()
+    }, [menuIcon('trash'), 'Delete'])
+  ])
+}
+
 const WorkspaceCard = pure(({
   listView, onClone, onDelete, onShare,
-  workspace: { accessLevel, workspace: { namespace, name, createdBy, lastModified, attributes: { description } } }
+  workspace: { workspace: { namespace, name, createdBy, lastModified, attributes: { description } } }
 }) => {
   const lastChanged = `Last changed: ${Utils.makePrettyDate(lastModified)}`
   const badge = div({ title: createdBy, style: styles.badge }, [createdBy[0].toUpperCase()])
-  const isOwner = Utils.isOwner(accessLevel)
-  const notAuthorized = (accessLevel === 'NO ACCESS')
   const workspaceMenu = h(PopupTrigger, {
     side: 'right',
     closeOnClick: true,
-    content: h(Fragment, [
-      h(MenuButton, {
-        disabled: notAuthorized,
-        tooltip: notAuthorized && 'You do not have access to the workspace Authorization Domain',
-        tooltipSide: 'left',
-        onClick: () => onClone()
-      }, [menuIcon('copy'), 'Clone']),
-      h(MenuButton, {
-        disabled: !isOwner,
-        tooltip: !isOwner && 'You must be an owner of this workspace or the underlying billing project',
-        tooltipSide: 'left',
-        onClick: () => onShare()
-      }, [menuIcon('share'), 'Share']),
-      h(MenuButton, {
-        disabled: !isOwner,
-        tooltip: !isOwner && 'You must be an owner of this workspace or the underlying billing project',
-        tooltipSide: 'left',
-        onClick: () => onDelete()
-      }, [menuIcon('trash'), 'Delete'])
-    ])
+    content: h(WorkspaceMenuContent, { namespace, name, onShare, onClone, onDelete })
   }, [
     h(Clickable, {
       onClick: e => e.preventDefault(),
