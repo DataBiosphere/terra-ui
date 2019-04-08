@@ -816,6 +816,14 @@ const Martha = signal => ({
 })
 
 
+const Duos = signal => ({
+  getConsent: async orspId => {
+    const res = await fetchOrchestration(`/api/duos/consent/orsp/${orspId}`, _.merge(authOpts(), { signal }))
+    return res.json()
+  }
+})
+
+
 export const Ajax = signal => {
   return {
     User: User(signal),
@@ -827,7 +835,8 @@ export const Ajax = signal => {
     Methods: Methods(signal),
     Jupyter: Jupyter(signal),
     Dockstore: Dockstore(signal),
-    Martha: Martha(signal)
+    Martha: Martha(signal),
+    Duos: Duos(signal)
   }
 }
 
