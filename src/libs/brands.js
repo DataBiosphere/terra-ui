@@ -9,11 +9,12 @@ import fcLogo from 'src/icons/brands/firecloud/FireCloud-Logo.svg'
 import terraLogoWhite from 'src/icons/brands/terra/logo-grey.svg'
 import terraLogoShadow from 'src/icons/brands/terra/logo-wShadow.svg'
 import terraLogo from 'src/icons/brands/terra/logo.svg'
+import { getConfig } from 'src/libs/config'
 
 
 ClarityIcons.add({ fcIcon, fcIconWhite, terraLogo, terraLogoWhite, terraLogoShadow })
 
-const isFirecloud = window.location.hostname === 'firecloud.terra.bio'
+const isFirecloud = (window.location.hostname === 'firecloud.terra.bio') || getConfig().useFcLogo
 
 const fcLongLogo = (size, color = false) => div({ style: { display: 'flex', maxHeight: size, marginRight: '1.5rem' } }, [
   div({ style: { color: color ? '#4e7dbf' : 'white', textAlign: 'right', fontSize: _.max([size / 10, 9]) } }, [
