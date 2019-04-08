@@ -75,12 +75,12 @@ const displayAttributeValue = v => {
 
 const DataUseLimitations = ({ attributes }) => {
   return _.map(({ key, title }) => {
-    return div({ key, style: { display: 'inline-block', marginRight: '0.5rem' } }, [
+    return div({ key, style: { display: 'inline-block', marginRight: '0.75rem' } }, [
       span({ title, style: { textDecoration: 'underline dotted' } }, [key.slice(8)]),
       ': ',
       displayAttributeValue(attributes[key])
     ])
-  }, displayConsentCodes)
+  }, _.filter(({ key }) => _.has(key, attributes), displayConsentCodes))
 }
 
 export const WorkspaceDashboard = _.flow(
