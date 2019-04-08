@@ -1,11 +1,12 @@
 import { Component } from 'react'
 import { div } from 'react-hyperscript-helpers'
 import { buttonPrimary, buttonSecondary } from 'src/components/common'
-import { centeredSpinner, logo } from 'src/components/icons'
+import { centeredSpinner } from 'src/components/icons'
 import { textInput } from 'src/components/input'
 import planet from 'src/images/register-planet.svg'
 import { ajaxCaller } from 'src/libs/ajax'
 import { authStore, getUser, refreshTerraProfile, signOut } from 'src/libs/auth'
+import { registrationLogo } from 'src/libs/logos'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import validate from 'validate.js'
@@ -59,10 +60,7 @@ export default ajaxCaller(class Register extends Component {
         backgroundRepeat: 'no-repeat', backgroundSize: '750px', backgroundPosition: 'right 0px bottom -600px'
       }
     }, [
-      div({ style: { display: 'flex', alignItems: 'center' } }, [
-        logo({ size: 100, style: { marginRight: 20 } }),
-        div({ style: { fontWeight: 500, fontSize: 70, color: colors.gray[0] } }, ['TERRA'])
-      ]),
+      registrationLogo,
       div({
         style: {
           marginTop: '4rem', color: colors.slate,

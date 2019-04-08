@@ -3,22 +3,23 @@ import PropTypes from 'prop-types'
 import { a, b, div, h } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
 import { buttonPrimary, Clickable, MenuButton } from 'src/components/common'
-import { icon, logoGlow, profilePic } from 'src/components/icons'
+import { icon, profilePic } from 'src/components/icons'
 import Modal from 'src/components/Modal'
+import SignInButton from 'src/components/SignInButton'
+import { contactUsActive } from 'src/components/SupportRequest'
+import { FreeCreditsModal } from 'src/components/TrialBanner'
 import headerLeftHexes from 'src/images/header-left-hexes.svg'
 import headerRightHexes from 'src/images/header-right-hexes.svg'
 import { ajaxCaller } from 'src/libs/ajax'
 import { authStore, refreshTerraProfile, signOut } from 'src/libs/auth'
-import SignInButton from 'src/components/SignInButton'
-import { CookiesModal } from 'src/pages/SignIn'
-import { contactUsActive } from 'src/components/SupportRequest'
+import { menuOpenLogo, topBarLogo } from 'src/libs/logos'
 import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
-import { FreeCreditsModal } from 'src/components/TrialBanner'
+import { CookiesModal } from 'src/pages/SignIn'
 import { linkToJobManager } from 'src/pages/workspaces/workspace/JobHistory'
 
 
@@ -208,7 +209,7 @@ export default _.flow(
             },
             href: Nav.getLink('root'),
             onClick: () => this.hideNav()
-          }, [logoGlow(), betaTag])
+          }, [menuOpenLogo, betaTag])
         ]),
         div({ style: { display: 'flex', flexDirection: 'column', overflowY: 'auto', flex: 1 } }, [
           isSignedIn ?
@@ -442,11 +443,10 @@ export default _.flow(
         style: { ...styles.pageTitle, display: 'flex', alignItems: 'center' },
         href: href || Nav.getLink('root')
       }, [
-        logoGlow(),
+        topBarLogo,
         div({}, [
           div({
-            style: _.merge(title ? { fontSize: '0.8rem', lineHeight: '19px' } : { fontSize: '1rem', fontWeight: 600 },
-              { marginLeft: '0.1rem' })
+            style: title ? { fontSize: '0.8rem', lineHeight: '19px' } : { fontSize: '1rem', fontWeight: 600 }
           }, [betaTag]),
           title
         ])
