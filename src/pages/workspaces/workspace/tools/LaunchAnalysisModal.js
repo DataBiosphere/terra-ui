@@ -98,7 +98,7 @@ export default ajaxCaller(class LaunchAnalysisModal extends Component {
     const {
       workspaceId: { namespace, name },
       config: { namespace: configNamespace, name: configName },
-      onSuccess,
+      onSuccess, useCallCache,
       ajax: { Workspaces }
     } = this.props
 
@@ -106,7 +106,7 @@ export default ajaxCaller(class LaunchAnalysisModal extends Component {
       this.setState({ message: 'Launching analysis...' })
 
       const { submissionId } = await Workspaces.workspace(namespace, name).methodConfig(configNamespace, configName).launch({
-        entityType, entityName, expression, useCallCache: true
+        entityType, entityName, expression, useCallCache
       })
       onSuccess(submissionId)
     } catch (error) {
