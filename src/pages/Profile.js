@@ -1,4 +1,5 @@
 import _ from 'lodash/fp'
+import * as qs from 'qs'
 import { Fragment, useState } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import { buttonPrimary, LabeledCheckbox, link, RadioButton, spinnerOverlay } from 'src/components/common'
@@ -104,11 +105,11 @@ const NihLink = ({ nihToken }) => {
   /*
    * Render helpers
    */
-  const makeAccountLinkLink = label => {
-    const nihRedirectUrl = `${window.location.protocol}//${window.location.host}/#profile?nih-username-token={token}`
+  const makeLinkForAccountLinking = label => {
+    const nihRedirectUrl = `${window.location.origin}/${Nav.getLink('profile')}?nih-username-token={token}`
 
     return link({
-      href: `${getConfig().shibbolethUrlRoot}/link-nih-account?redirect-url=${encodeURIComponent(nihRedirectUrl)}`,
+      href: `${getConfig().shibbolethUrlRoot}/link-nih-account?${qs.stringify({ 'redirect-url': nihRedirectUrl })}`,
       style: { display: 'flex', alignItems: 'center' },
       target: '_blank'
     }, [
@@ -151,7 +152,7 @@ const NihLink = ({ nihToken }) => {
     loading && div([spinner(), 'Loading NIH account status...']),
     linking && div([spinner(), 'Linking NIH account...']),
     !loading && !linking && h(Fragment, [
-      !linkedNihUsername && makeAccountLinkLink('Log-In to NIH to link your account'),
+      !linkedNihUsername && makeLinkForAccountLinking('Log in to NIH to link your account'),
       !!linkedNihUsername && div({ style: { display: 'flex', flexDirection: 'column', width: '33rem' } }, [
         div({ style: { display: 'flex' } }, [
           div({ style: { flex: 1 } }, ['Username:']),
@@ -161,7 +162,7 @@ const NihLink = ({ nihToken }) => {
           div({ style: { flex: 1 } }, ['Link Expiration:']),
           div({ style: { flex: 2 } }, [
             Utils.makeCompleteDate(linkExpireTime * 1000),
-            makeAccountLinkLink('Log-In to NIH to re-link your account')
+            makeLinkForAccountLinking('Log in to NIH to re-link your account')
           ])
         ]),
         _.flow(
