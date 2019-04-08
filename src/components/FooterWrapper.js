@@ -1,6 +1,6 @@
 import { a, div } from 'react-hyperscript-helpers'
 import { linkButton } from 'src/components/common'
-import { footerLogo } from 'src/libs/brands'
+import { footerLogo } from 'src/libs/logos'
 import colors from 'src/libs/colors'
 import * as Nav from 'src/libs/nav'
 

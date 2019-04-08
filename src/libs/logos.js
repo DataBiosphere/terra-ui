@@ -24,7 +24,12 @@ const fcLongLogo = (size, color = false) => div({ style: { display: 'flex', maxH
   icon(color ? 'terraLogo' : 'terraLogoWhite', { size, style: { marginLeft: '0.5rem' } })
 ])
 
+
 export const logo = props => icon(isFirecloud ? 'fcIcon' : 'terraLogo', props)
+
+export const signInLogo = isFirecloud ?
+  fcLongLogo(70, true) :
+  icon('terraLogo', { size: 150 })
 
 export const registrationLogo = isFirecloud ?
   fcLongLogo(100, true) :

@@ -6,6 +6,7 @@ import Modal from 'src/components/Modal'
 import SignInButton from 'src/components/SignInButton'
 import signInBg from 'src/images/sign-in-background.jpg'
 import colors from 'src/libs/colors'
+import { signInLogo } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
 
 
@@ -42,7 +43,8 @@ export default class SignIn extends Component {
         }
       }, [
         div({ style: { maxWidth: 900 } }, [
-          div({ style: { fontSize: 54, marginBottom: '1.5rem', color: colors.green[0] } }, ['Welcome to Terra']),
+          signInLogo,
+          div({ style: { fontSize: 54, margin: '1.5rem 0', color: colors.green[0] } }, ['Welcome to Terra']),
           div({ style: { fontSize: 36, fontWeight: 500, color: colors.slate } }, ['New User?']),
           div({ style: { fontSize: 36, marginBottom: '2rem' } }, ['Terra requires a Google Account.']),
           div({ style: { display: 'flex', alignItems: 'center' } }, [
