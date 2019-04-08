@@ -202,8 +202,6 @@ const BucketContentModal = ajaxCaller(class BucketContentModal extends Component
     const { prefix, prefixes, objects, loading } = this.state
     const prefixParts = _.dropRight(1, prefix.split('/'))
     return h(Modal, {
-      style: { flexGrow: 1, backgroundColor: 'white', border: `1px solid ${colors.gray[3]}`, padding: '1rem' },
-      activeStyle: { backgroundColor: colors.blue[3], cursor: 'copy' },
       onDismiss,
       title: 'Choose input file',
       showX: true,
