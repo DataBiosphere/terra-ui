@@ -82,6 +82,7 @@ export const initializeAuth = _.memoize(async () => {
         registrationStatus: isSignedIn ? state.registrationStatus : undefined,
         acceptedTos: isSignedIn ? state.acceptedTos : undefined,
         profile: isSignedIn ? state.profile : {},
+        nihStatus: isSignedIn ? state.nihStatus : undefined,
         user: {
           token: authResponse && authResponse.access_token,
           id: user.getId(),
@@ -194,5 +195,17 @@ export const refreshTerraProfile = async () => {
 authStore.subscribe((state, oldState) => {
   if (!oldState.isSignedIn && state.isSignedIn) {
     refreshTerraProfile().catch(error => reportError('Error loading user profile', error))
+  }
+})
+
+authStore.subscribe(async (state, oldState) => {
+  if (!oldState.isSignedIn && state.isSignedIn) {
+    try {
+      const nihStatus = await Ajax().User.getNihStatus()
+      authStore.update(state => ({ ...state, nihStatus }))
+    } catch (error) {
+      if (error.status === 404) authStore.update(state => ({ ...state, nihStatus: {} }))
+      else throw error
+    }
   }
 })
