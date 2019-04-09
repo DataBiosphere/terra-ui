@@ -20,6 +20,7 @@ import * as WorkspaceList from 'src/pages/workspaces/List'
 import * as Dashboard from 'src/pages/workspaces/workspace/Dashboard'
 import * as Data from 'src/pages/workspaces/workspace/Data'
 import * as JobHistory from 'src/pages/workspaces/workspace/JobHistory'
+import * as SubmissionDetails from 'src/pages/workspaces/workspace/jobHistory/SubmissionDetails'
 import * as Notebooks from 'src/pages/workspaces/workspace/Notebooks'
 import * as NotebookLauncher from 'src/pages/workspaces/workspace/notebooks/NotebookLauncher'
 import * as TerminalLauncher from 'src/pages/workspaces/workspace/notebooks/TerminalLauncher'
@@ -44,6 +45,7 @@ const initNavPaths = () => {
   Data.addNavPaths()
   Notebooks.addNavPaths()
   JobHistory.addNavPaths()
+  SubmissionDetails.addNavPaths()
   Tools.addNavPaths()
   NotebookLauncher.addNavPaths()
   Profile.addNavPaths()

@@ -92,6 +92,8 @@ export const canWrite = hasAccessLevel('WRITER')
 export const canRead = hasAccessLevel('READER')
 export const isOwner = hasAccessLevel('OWNER')
 
+export const workflowStatuses = ['Queued', 'Launching', 'Submitted', 'Running', 'Aborting', 'Succeeded', 'Failed', 'Aborted']
+
 export const log = function(...args) {
   console.log.apply(null, args)
   return _.last(args)
@@ -244,10 +246,6 @@ export const normalizeMachineConfig = ({ masterMachineType, masterDiskSize, numb
 }
 
 export const append = _.curry((value, arr) => _.concat(arr, [value]))
-
-export const useOnMountOnly = fn => {
-  useEffect(fn, []) // eslint-disable-line react-hooks/exhaustive-deps
-}
 
 // Transforms an async function so that it updates a busy flag via the provided callback
 export const withBusyState = _.curry((setBusy, fn) => async (...args) => {

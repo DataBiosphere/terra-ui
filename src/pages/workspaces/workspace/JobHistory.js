@@ -3,14 +3,14 @@ import { Fragment } from 'react'
 import { div, h, span, table, tbody, td, tr } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { buttonPrimary, Clickable, link, spinnerOverlay } from 'src/components/common'
+import { Clickable, link, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
+import { collapseStatus, failedIcon, runningIcon, successIcon } from 'src/components/job-common'
 import Modal from 'src/components/Modal'
 import { FlexTable, HeaderCell, TextCell } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
-import { getConfig } from 'src/libs/config'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as Utils from 'src/libs/utils'
@@ -18,8 +18,6 @@ import { Component } from 'src/libs/wrapped-components'
 import { rerunFailures } from 'src/pages/workspaces/workspace/tools/FailureRerunner'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
-
-export const linkToJobManager = true
 
 const styles = {
   submissionsTable: {
@@ -35,24 +33,7 @@ const styles = {
 }
 
 
-const collapseStatus = status => {
-  switch (status) {
-    case 'Succeeded':
-      return 'succeeded'
-    case 'Aborting':
-    case 'Aborted':
-    case 'Failed':
-      return 'failed'
-    default:
-      return 'running'
-  }
-}
-
 const isTerminal = submissionStatus => submissionStatus === 'Aborted' || submissionStatus === 'Done'
-
-const successIcon = style => icon('check', { size: 24, style: { color: colors.green[0], ...style } })
-const failedIcon = style => icon('warning-standard', { className: 'is-solid', size: 24, style: { color: colors.red[0], ...style } })
-const runningIcon = style => icon('sync', { size: 24, style: { color: colors.green[0], ...style } })
 
 
 export const flagNewSubmission = submissionId => {
@@ -141,8 +122,8 @@ const JobHistory = _.flow(
   }
 
   render() {
-    const { namespace, name, ajax: { Workspaces }, workspace: { workspace: { workflowCollectionName } } } = this.props
-    const { submissions, loading, aborting, newSubmissionId, highlightNewSubmission, linkToFC } = this.state
+    const { namespace, name, ajax: { Workspaces } } = this.props
+    const { submissions, loading, aborting, newSubmissionId, highlightNewSubmission } = this.state
 
     return div({ style: styles.submissionsTable }, [
       submissions && !!submissions.length && h(AutoSizer, [
@@ -161,38 +142,35 @@ const JobHistory = _.flow(
           columns: [
             {
               size: { basis: 500, grow: 0 },
-              headerRenderer: () => h(HeaderCell, ['Job (click for details)']),
+              headerRenderer: () => h(HeaderCell, ['Submission (click for details)']),
               cellRenderer: ({ rowIndex }) => {
                 const {
                   methodConfigurationNamespace, methodConfigurationName, submitter, submissionId
                 } = submissions[rowIndex]
-                const viewInJobManager = linkToJobManager && !!workflowCollectionName
-                return h(Fragment, [
+                return link({
+                  style: { flex: 1 },
+                  href: Nav.getLink('workspace-submission-details', { namespace, name, submissionId })
+                }, [
                   div([
-                    div([
-                      methodConfigurationNamespace !== namespace && span({ style: styles.deemphasized }, [
-                        `${methodConfigurationNamespace}/`
-                      ]),
-                      link(viewInJobManager ? {
-                        target: '_blank',
-                        href: `${getConfig().jobManagerUrlRoot}?q=submission-id%3D${submissionId}`
-                      } : {
-                        onClick: () => this.setState({
-                          linkToFC: `${getConfig().firecloudUrlRoot}/#workspaces/${namespace}/${name}/monitor/${submissionId}`
-                        })
-                      }, [
-                        methodConfigurationName, icon('pop-out', {
-                          size: 10,
-                          style: { marginLeft: '0.2rem' }
-                        })
-                      ])
+                    methodConfigurationNamespace !== namespace && span({ style: styles.deemphasized }, [
+                      `${methodConfigurationNamespace}/`
                     ]),
-                    div([
-                      span({ style: styles.deemphasized }, 'Submitted by '),
-                      submitter
-                    ])
+                    methodConfigurationName
+                  ]),
+                  div([
+                    span({ style: styles.deemphasized }, 'Submitted by '),
+                    submitter
                   ])
                 ])
+              }
+            },
+            {
+              size: { basis: 250, grow: 0 },
+              headerRenderer: () => h(HeaderCell, ['Data entity']),
+              cellRenderer: ({ rowIndex }) => {
+                const { submissionEntity: { entityName, entityType } } = submissions[rowIndex]
+                const text = `${entityName} (${entityType})`
+                return h(TooltipTrigger, { content: text }, [h(TextCell, text)])
               }
             },
             {
@@ -243,20 +221,13 @@ const JobHistory = _.flow(
               }
             },
             {
-              size: { basis: 150, grow: 0 },
+              size: { basis: 150, grow: 1 },
               headerRenderer: () => h(HeaderCell, ['Submitted']),
               cellRenderer: ({ rowIndex }) => {
                 const { submissionDate } = submissions[rowIndex]
                 return h(TooltipTrigger, { content: Utils.makeCompleteDate(submissionDate) }, [
                   h(TextCell, Utils.makePrettyDate(submissionDate))
                 ])
-              }
-            },
-            {
-              headerRenderer: () => h(HeaderCell, ['Data entity']),
-              cellRenderer: ({ rowIndex }) => {
-                const { submissionEntity: { entityName, entityType } = {} } = submissions[rowIndex]
-                return h(TextCell, [entityType ? `${entityName} (${entityType})` : 'N/A'])
               }
             }
           ]
@@ -277,20 +248,6 @@ const JobHistory = _.flow(
         `Are you sure you want to abort ${
           Utils.formatNumber(collapsedStatuses(_.find({ submissionId: aborting }, submissions).workflowStatuses).running)
         } running workflow(s)?`
-      ]),
-      linkToFC && h(Modal, {
-        onDismiss: () => this.setState({ linkToFC: undefined }),
-        title: 'Legacy Workflow Details',
-        okButton: buttonPrimary({
-          as: 'a',
-          href: linkToFC,
-          target: '_blank',
-          onClick: () => this.setState({ linkToFC: undefined })
-        }, 'Go To FireCloud')
-      }, [
-        `We are currently introducing Terra's new job management component for accessing workflow details. However, this
-        workspace isn't yet ready to use the new job manager. For now, workflow details can be found in our legacy system,
-        FireCloud. You will be asked to sign in to FireCloud to view your workflow details.`
       ]),
       loading && spinnerOverlay
     ])
