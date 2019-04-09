@@ -243,13 +243,20 @@ const JobHistory = _.flow(
               }
             },
             {
-              size: { basis: 200 },
+              size: { basis: 150, grow: 0 },
               headerRenderer: () => h(HeaderCell, ['Submitted']),
               cellRenderer: ({ rowIndex }) => {
                 const { submissionDate } = submissions[rowIndex]
                 return h(TooltipTrigger, { content: Utils.makeCompleteDate(submissionDate) }, [
                   h(TextCell, Utils.makePrettyDate(submissionDate))
                 ])
+              }
+            },
+            {
+              headerRenderer: () => h(HeaderCell, ['Data entity']),
+              cellRenderer: ({ rowIndex }) => {
+                const { submissionEntity: { entityName, entityType } = {} } = submissions[rowIndex]
+                return h(TextCell, [entityType ? `${entityName} (${entityType})` : 'N/A'])
               }
             }
           ]
@@ -281,8 +288,8 @@ const JobHistory = _.flow(
           onClick: () => this.setState({ linkToFC: undefined })
         }, 'Go To FireCloud')
       }, [
-        `We are currently introducing Terra's new job management component for accessing workflow details. However, this 
-        workspace isn't yet ready to use the new job manager. For now, workflow details can be found in our legacy system, 
+        `We are currently introducing Terra's new job management component for accessing workflow details. However, this
+        workspace isn't yet ready to use the new job manager. For now, workflow details can be found in our legacy system,
         FireCloud. You will be asked to sign in to FireCloud to view your workflow details.`
       ]),
       loading && spinnerOverlay
