@@ -1,14 +1,17 @@
 import _ from 'lodash/fp'
-import { Fragment } from 'react'
+import * as qs from 'qs'
+import { Fragment, useState } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import { buttonPrimary, LabeledCheckbox, link, RadioButton, spinnerOverlay } from 'src/components/common'
-import { centeredSpinner, profilePic } from 'src/components/icons'
+import { centeredSpinner, icon, profilePic, spinner } from 'src/components/icons'
 import { textInput, validatedInput } from 'src/components/input'
 import { InfoBox } from 'src/components/PopupTrigger'
 import TopBar from 'src/components/TopBar'
-import { ajaxCaller } from 'src/libs/ajax'
+import { Ajax, ajaxCaller, useCancellation } from 'src/libs/ajax'
 import { authStore, getUser, refreshTerraProfile } from 'src/libs/auth'
 import colors from 'src/libs/colors'
+import { getConfig } from 'src/libs/config'
+import { withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
@@ -17,7 +20,7 @@ import validate from 'validate.js'
 
 const styles = {
   page: {
-    margin: '0 5rem 2rem',
+    margin: '0 2rem 2rem',
     width: 700
   },
   sectionTitle: {
@@ -26,7 +29,7 @@ const styles = {
   },
   header: {
     line: {
-      margin: '1rem 0',
+      margin: '0 2rem',
       display: 'flex', alignItems: 'center'
     },
 
@@ -58,6 +61,120 @@ const styles = {
 }
 
 
+const NihLink = ({ nihToken }) => {
+  /*
+   * Hooks
+   */
+  const [{ linkedNihUsername, linkExpireTime, datasetPermissions }, setNihStatus] = useState({})
+  const [loading, setLoading] = useState(false)
+  const [linking, setLinking] = useState(false)
+  const signal = useCancellation()
+
+  Utils.useOnMount(() => {
+    const { User } = Ajax(signal)
+
+    const linkNihAccount = _.flow(
+      withErrorReporting('Error linking NIH account'),
+      Utils.withBusyState(setLinking)
+    )(async nihToken => {
+      setNihStatus(await User.linkNihAccount(nihToken))
+    })
+
+    const loadNihStatus = _.flow(
+      withErrorReporting('Error loading NIH account status'),
+      Utils.withBusyState(setLoading)
+    )(async () => {
+      try {
+        setNihStatus(await User.getNihStatus())
+      } catch (error) {
+        if (error.status === 404) setNihStatus({})
+        else throw error
+      }
+    })
+
+    if (nihToken) {
+      // Clear the query string, but use replace so the back button doesn't take the user back to the token
+      Nav.history.replace({ search: '' })
+      linkNihAccount(nihToken)
+    } else {
+      loadNihStatus()
+    }
+  })
+
+
+  /*
+   * Render helpers
+   */
+  const makeLinkForAccountLinking = label => {
+    const nihRedirectUrl = `${window.location.origin}/${Nav.getLink('profile')}?nih-username-token={token}`
+
+    return link({
+      href: `${getConfig().shibbolethUrlRoot}/link-nih-account?${qs.stringify({ 'redirect-url': nihRedirectUrl })}`,
+      style: { display: 'flex', alignItems: 'center' },
+      target: '_blank'
+    }, [
+      label,
+      icon('pop-out', { size: 12, style: { marginLeft: '0.5rem' } })
+    ])
+  }
+
+  const makeDatasetAuthStatus = ({ name, authorized }) => {
+    return div({ key: `nih-auth-status-${name}`, style: { display: 'flex' } }, [
+      div({ style: { flex: 1 } }, [`${name} Authorization`]),
+      div({ style: { flex: 2 } }, [
+        authorized ? 'Authorized' : 'Not Authorized',
+        !authorized && h(InfoBox, { style: { marginLeft: '0.5rem' } }, [
+          'Your account was linked, but you are not authorized to view this controlled dataset. Please go ',
+          link({
+            href: 'https://dbgap.ncbi.nlm.nih.gov/aa/wga.cgi?page=login',
+            target: '_blank'
+          }, [
+            'here',
+            icon('pop-out', { size: 12 })
+          ]),
+          ' to check your credentials.'
+        ])
+      ])
+    ])
+  }
+
+
+  /*
+   * Render
+   */
+  return div({ style: { marginBottom: '1rem' } }, [
+    div({ style: styles.form.title }, [
+      'NIH Account',
+      h(InfoBox, { style: { marginLeft: '0.5rem' } }, [
+        'Linking with eRA Commons will allow Terra to automatically determine if you can access controlled datasets hosted in Terra (ex. TCGA) based on your valid dbGaP applications.'
+      ])
+    ]),
+    loading && div([spinner(), 'Loading NIH account status...']),
+    linking && div([spinner(), 'Linking NIH account...']),
+    !loading && !linking && h(Fragment, [
+      !linkedNihUsername && makeLinkForAccountLinking('Log in to NIH to link your account'),
+      !!linkedNihUsername && div({ style: { display: 'flex', flexDirection: 'column', width: '33rem' } }, [
+        div({ style: { display: 'flex' } }, [
+          div({ style: { flex: 1 } }, ['Username:']),
+          div({ style: { flex: 2 } }, [linkedNihUsername])
+        ]),
+        div({ style: { display: 'flex' } }, [
+          div({ style: { flex: 1 } }, ['Link Expiration:']),
+          div({ style: { flex: 2 } }, [
+            Utils.makeCompleteDate(linkExpireTime * 1000),
+            makeLinkForAccountLinking('Log in to NIH to re-link your account')
+          ])
+        ]),
+        _.flow(
+          _.sortBy('name'),
+          _.map(makeDatasetAuthStatus)
+        )(datasetPermissions)
+      ])
+    ])
+  ])
+}
+
+
 const sectionTitle = text => div({ style: styles.sectionTitle }, [text])
 
 const Profile = _.flow(
@@ -71,32 +188,40 @@ const Profile = _.flow(
   }
 
   render() {
+    const { queryParams = {} } = this.props
     const { profileInfo, saving } = this.state
     const { firstName } = profileInfo
 
     return h(Fragment, [
       saving && spinnerOverlay,
       h(TopBar),
-      !profileInfo ? centeredSpinner() :
-        div({ style: styles.page }, [
-          sectionTitle('Profile'),
-          div({ style: styles.header.line }, [
-            div({ style: { position: 'relative' } }, [
-              profilePic({ size: 48 }),
-              h(InfoBox, { style: { alignSelf: 'flex-end', padding: '0.25rem' } }, [
-                'To change your profile image, visit your ',
-                link({
-                  href: `https://myaccount.google.com?authuser=${getUser().email}`,
-                  target: '_blank'
-                }, ['Google account page.'])
-              ])
-            ]),
-            div({ style: styles.header.nameLine }, [
-              `Hello again, ${firstName}`
+      !profileInfo ? centeredSpinner() : h(Fragment, [
+        div({ style: { marginLeft: '2rem' } }, [sectionTitle('Profile')]),
+        div({ style: styles.header.line }, [
+          div({ style: { position: 'relative' } }, [
+            profilePic({ size: 48 }),
+            h(InfoBox, { style: { alignSelf: 'flex-end', padding: '0.25rem' } }, [
+              'To change your profile image, visit your ',
+              link({
+                href: `https://myaccount.google.com?authuser=${getUser().email}`,
+                target: '_blank'
+              }, ['Google account page.'])
             ])
           ]),
-          this.renderForm()
+          div({ style: styles.header.nameLine }, [
+            `Hello again, ${firstName}`
+          ])
+        ]),
+        div({ style: { display: 'flex' } }, [
+          div({ style: styles.page }, [
+            this.renderForm()
+          ]),
+          div({ style: { marginTop: '0' } }, [
+            sectionTitle('Identity & External Servers'),
+            h(NihLink, { nihToken: queryParams['nih-username-token'] })
+          ])
         ])
+      ])
     ])
   }
 
