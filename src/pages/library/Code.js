@@ -9,6 +9,7 @@ import broadSquare from 'src/images/library/code/broad-square.svg'
 import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
+import { isFirecloud } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
@@ -27,7 +28,7 @@ export const makeToolCard = ({ method, onClick }) => {
 
   return h(Clickable, {
     as: 'a',
-    href: _.isUndefined(onClick) ? `${getConfig().firecloudUrlRoot}/?return=terra#methods/${namespace}/${name}/` : undefined,
+    href: _.isUndefined(onClick) ? `${getConfig().firecloudUrlRoot}/?return=${isFirecloud ? `firecloud` : `terra`}#methods/${namespace}/${name}/` : undefined,
     onClick,
     style: {
       ...Style.elements.card.container,
@@ -76,7 +77,7 @@ export const dockstoreTile = () => div({ style: { display: 'flex' } }, [
 export const fcMethodRepoTile = () => div({ style: { display: 'flex' } }, [
   logoTile({ logoFile: broadSquare, style: { backgroundColor: undefined, backgroundSize: 37 } }),
   div([
-    link({ href: `${getConfig().firecloudUrlRoot}/?return=terra#methods` }, 'Broad Methods Repository'),
+    link({ href: `${getConfig().firecloudUrlRoot}/?return=${isFirecloud ? `firecloud` : `terra`}#methods` }, 'Broad Methods Repository'),
     div(['Use Broad workflows in Terra. Share your own, or choose from > 700 public workflows'])
   ])
 ])
