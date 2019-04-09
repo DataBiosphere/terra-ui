@@ -15,7 +15,7 @@ export const NihLinkWarning = () => {
     if (nihStatus) {
       const { linkedNihUsername, linkExpireTime } = nihStatus
       const expireTime = linkExpireTime * 1000
-      const expired = expireTime > Date.now()
+      const expired = expireTime < Date.now()
       const expiringSoon = !expired && expireTime < (Date.now() + (1000 * 60 * 60 * 24))
 
       if (!!linkedNihUsername && (expired || expiringSoon)) {
