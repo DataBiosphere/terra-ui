@@ -20,6 +20,8 @@ import DeleteWorkspaceModal from 'src/pages/workspaces/workspace/DeleteWorkspace
 import ShareWorkspaceModal from 'src/pages/workspaces/workspace/ShareWorkspaceModal'
 
 
+const workspaceStore = Utils.atom(undefined)
+
 const styles = {
   workspaceNameContainer: {
     display: 'flex', flexDirection: 'column',
@@ -169,9 +171,10 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
     const child = useRef()
     const signal = useCancellation()
     const [accessError, setAccessError] = useState(false)
-    const [workspace, setWorkspace] = useState(undefined)
+    const cachedWorkspace = Utils.useAtom(workspaceStore)
     const [loadingWorkspace, setLoadingWorkspace] = useState(false)
     const [clusters, setClusters] = useState(undefined)
+    const workspace = cachedWorkspace && _.isEqual({ namespace, name }, _.pick(['namespace', 'name'], cachedWorkspace.workspace)) ? cachedWorkspace : undefined
 
     const refreshClusters = withErrorReporting('Error loading clusters', async () => {
       const clusters = await Ajax(signal).Jupyter.clustersList(namespace)
@@ -184,7 +187,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
     )(async () => {
       try {
         const workspace = await Ajax(signal).Workspaces.workspace(namespace, name).details()
-        setWorkspace(workspace)
+        workspaceStore.set(workspace)
       } catch (error) {
         if (error.status === 404) {
           setAccessError(true)
@@ -195,7 +198,9 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
     })
 
     Utils.useOnMount(() => {
-      refreshWorkspace()
+      if (!workspace) {
+        refreshWorkspace()
+      }
       refreshClusters()
     })
 
