@@ -42,6 +42,7 @@ class WorkspaceTabs extends PureComponent {
   render() {
     const { namespace, name, workspace, activeTab, refresh, onShare, onDelete, onClone } = this.props
     const isOwner = workspace && Utils.isOwner(workspace.accessLevel)
+    const canShare = workspace && workspace.canShare
 
     return tabBar({
       activeTab, refresh,
@@ -53,8 +54,8 @@ class WorkspaceTabs extends PureComponent {
         content: h(Fragment, [
           h(MenuButton, { onClick: onClone }, [menuIcon('copy'), 'Clone']),
           h(MenuButton, {
-            disabled: !isOwner,
-            tooltip: !isOwner && 'You must be an owner of this workspace or the underlying billing project',
+            disabled: !canShare,
+            tooltip: !canShare && 'You have not been granted permission to share this workspace',
             tooltipSide: 'left',
             onClick: () => onShare()
           }, [menuIcon('share'), 'Share']),
