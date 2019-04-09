@@ -18,7 +18,7 @@ export const params = {
 const styles = {
   container: {
     display: 'flex', alignItems: 'flex-start',
-    margin: '2rem 0'
+    marginBottom: '2rem', marginTop: '1rem'
   },
   button: isActive => ({
     display: 'flex', alignItems: 'center',

@@ -7,7 +7,7 @@ import { div, h, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import {
-  buttonPrimary, buttonSecondary, Clickable, link, linkButton, MenuButton, menuIcon, methodLink, RadioButton, Select, spinnerOverlay
+  buttonPrimary, buttonSecondary, Clickable, LabeledCheckbox, link, linkButton, MenuButton, menuIcon, methodLink, RadioButton, Select, spinnerOverlay
 } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { AutocompleteTextInput } from 'src/components/input'
@@ -313,6 +313,7 @@ const WorkflowView = _.flow(
     this.state = {
       activeTab: 'inputs',
       entitySelectionModel: { selectedEntities: {} },
+      useCallCache: true,
       includeOptionalInputs: false,
       errors: { inputs: {}, outputs: {} },
       ...StateHistory.get()
@@ -364,7 +365,7 @@ const WorkflowView = _.flow(
     // savedConfig: unmodified copy of config for checking for unsaved edits
     // modifiedConfig: active data, potentially unsaved
     const {
-      isFreshData, savedConfig, launching, activeTab,
+      isFreshData, savedConfig, launching, activeTab, useCallCache,
       entitySelectionModel, variableSelected, modifiedConfig, isRedacted, updatingConfig
     } = this.state
     const { namespace, name, workspace } = this.props
@@ -379,7 +380,7 @@ const WorkflowView = _.flow(
         ),
         launching && h(LaunchAnalysisModal, {
           workspaceId, config: savedConfig,
-          processSingle: this.isSingle(), entitySelectionModel,
+          processSingle: this.isSingle(), entitySelectionModel, useCallCache,
           onDismiss: () => this.setState({ launching: false }),
           onSuccess: submissionId => {
             JobHistory.flagNewSubmission(submissionId)
@@ -485,7 +486,7 @@ const WorkflowView = _.flow(
     const newSetMessage = count > 1 ? `(will create a new set named "${newSetName}")` : ''
     return Utils.cond(
       [this.isSingle() || !rootEntityType, ''],
-      [type === EntitySelectionType.processAll, () => `all ${entityMetadata[rootEntityType] ? entityMetadata[rootEntityType].count : 0} 
+      [type === EntitySelectionType.processAll, () => `all ${entityMetadata[rootEntityType] ? entityMetadata[rootEntityType].count : 0}
         ${rootEntityType}s (will create a new set named "${newSetName}")`],
       [type === EntitySelectionType.processFromSet, () => `${rootEntityType}s from ${name}`],
       [type === EntitySelectionType.chooseRows, () => `${count} selected ${rootEntityType}s ${newSetMessage}`],
@@ -515,7 +516,7 @@ const WorkflowView = _.flow(
     const { workspace: { canCompute, workspace }, namespace, name: workspaceName } = this.props
     const {
       modifiedConfig, savedConfig, saving, saved, copying, deleting, selectingData, activeTab, errors, synopsis, documentation,
-      selectedEntityType, entityMetadata, entitySelectionModel, snapshotIds
+      selectedEntityType, entityMetadata, entitySelectionModel, snapshotIds, useCallCache
     } = this.state
     const { name, methodRepoMethod: { methodPath, methodVersion, methodNamespace, methodName, sourceRepo }, rootEntityType } = modifiedConfig
     const modified = !_.isEqual(modifiedConfig, savedConfig)
@@ -577,11 +578,7 @@ const WorkflowView = _.flow(
               documentation
             ]) :
             div({ style: { fontStyle: 'italic', ...styles.description } }, ['No documentation provided']),
-          div({
-            style: {
-              marginBottom: '2rem'
-            }
-          }, [
+          div({ style: { marginBottom: '1rem' } }, [
             div([
               h(RadioButton, {
                 text: 'Process single workflow from files',
@@ -615,7 +612,18 @@ const WorkflowView = _.flow(
                 style: { marginLeft: '1rem' }
               }, ['Select Data'])
             ]),
-            div({ style: { marginLeft: '2rem', height: '1rem' } }, [`${this.describeSelectionModel()}`])
+            div({ style: { marginLeft: '2rem', height: '1.5rem' } }, [`${this.describeSelectionModel()}`])
+          ]),
+          div({ style: { marginTop: '1rem' } }, [
+            h(LabeledCheckbox, {
+              checked: useCallCache,
+              onChange: v => this.setState({ useCallCache: v })
+            }, [' Use call caching']),
+            link({
+              style: { marginLeft: '1rem', verticalAlign: 'middle' },
+              href: 'https://gatkforums.broadinstitute.org/firecloud/discussion/9313/call-caching',
+              target: '_blank'
+            }, ['Learn more ', icon('pop-out', { size: 12 })])
           ]),
           h(StepButtons, {
             tabs: [
