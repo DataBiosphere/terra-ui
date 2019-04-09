@@ -12,17 +12,17 @@ import * as Style from 'src/libs/style'
 // 1. update the TOS version number in the Ajax call
 // 2. update the dev and prod datastores to have a TOS of that version number
 const termsOfService = `
-Your access to systems and networks owned by Broad Institute is governed by, and subject to the 
-following terms and conditions, as well as all Federal laws, including, but not limited to, 
-the Privacy Act, 5 U.S.C. 552a, if the applicable Broad Institute system maintains individual 
-Privacy Act information. Your access to Broad Institute systems constitutes your consent to the 
-retrieval and disclosure of the information within the scope of your authorized access, subject to 
+Your access to systems and networks owned by Broad Institute is governed by, and subject to the
+following terms and conditions, as well as all Federal laws, including, but not limited to,
+the Privacy Act, 5 U.S.C. 552a, if the applicable Broad Institute system maintains individual
+Privacy Act information. Your access to Broad Institute systems constitutes your consent to the
+retrieval and disclosure of the information within the scope of your authorized access, subject to
 the Privacy Act, and applicable State and Federal laws.
 
 #### Cookies
-Terra uses cookies to enable sign on and other essential features when signed in, and to provide 
-statistics to our development team regarding how the site is used. For more information, see our 
-privacy policy. Privacy policy, including privacy policy of uploaded data, is [here](/#privacy). 
+Terra uses cookies to enable sign on and other essential features when signed in, and to provide
+statistics to our development team regarding how the site is used. For more information, see our
+privacy policy. Privacy policy, including privacy policy of uploaded data, is [here](/#privacy).
 You agree to read and consider before uploading data.
 
 #### Modification of the Agreement
@@ -42,22 +42,22 @@ use of Terra.
 
 * Conduct only authorized business on the system.
 * Access Terra using only your own individual account. Group or shared accounts are NOT permitted.
-* Maintain the confidentiality of your authentication credentials such as your password. 
-  Do not reveal your authentication credentials to anyone; a Broad Institute employee should never 
+* Maintain the confidentiality of your authentication credentials such as your password.
+  Do not reveal your authentication credentials to anyone; a Broad Institute employee should never
   ask you to reveal them.
-* Report all security incidents or suspected incidents (e.g., lost passwords, improper or 
-  suspicious acts) related to Broad Institute systems and networks to the Broad Institute Operations 
+* Report all security incidents or suspected incidents (e.g., lost passwords, improper or
+  suspicious acts) related to Broad Institute systems and networks to the Broad Institute Operations
   Center [infosec@broadinstitute.org](mailto:infosec@broadinstitute.org).
-* Follow proper logon/logoff procedures. You must manually logon to your session; do not 
-  store you password locally on your system or utilize any automated logon capabilities. You must 
-  promptly logoff when session access is no longer needed. If a logoff function is unavailable, you 
+* Follow proper logon/logoff procedures. You must manually logon to your session; do not
+  store you password locally on your system or utilize any automated logon capabilities. You must
+  promptly logoff when session access is no longer needed. If a logoff function is unavailable, you
   must close your browser. Never leave your computer unattended while logged into the system.
 * Ensure that Web browsers use Secure Socket Layer (SSL) version 3.0 (or higher) and Transport
   Layer Security (TLS) 1.0 (or higher). SSL and TLS must use a minimum of 256-bit, encryption.
-* Safeguard system resources against waste, loss, abuse, unauthorized use or disclosure, and 
+* Safeguard system resources against waste, loss, abuse, unauthorized use or disclosure, and
   misappropriation.
-* Contact the Broad Institute Chief Information Security Officer or the Broad Institute 
-  Operations Center ([infosec@broadinstitute.org](mailto:infosec@broadinstitute.org)) if you do not 
+* Contact the Broad Institute Chief Information Security Officer or the Broad Institute
+  Operations Center ([infosec@broadinstitute.org](mailto:infosec@broadinstitute.org)) if you do not
   understand any of these rules.
 
 #### By accessing and using Terra, you agree that you must NOT:
@@ -65,11 +65,11 @@ use of Terra.
 * Use Terra to commit a criminal offense, or to encourage others to conduct acts that would
   constitute a criminal offense or give rise to civil liability.
 * Process U.S. classified national security information on the system.
-* Browse, search or reveal any protected data by Broad Institute except in accordance with that 
+* Browse, search or reveal any protected data by Broad Institute except in accordance with that
   which is required to perform your legitimate tasks or assigned duties.
 * Retrieve protected data or information, or in any other way disclose information, for someone who does not have
   authority to access that information.
-* Establish any unauthorized interfaces between systems, networks, and applications owned 
+* Establish any unauthorized interfaces between systems, networks, and applications owned
   by Broad Institute.
 * Upload any content that contains a software virus, such as a Trojan Horse or any other computer
   codes, files, or programs that may alter, damage, or interrupt the daily function of Terra and
@@ -111,9 +111,9 @@ Unauthorized use of Terra is prohibited and subject to criminal and civil penalt
 
 #### Access Levels
 
-Your level of access to systems and networks owned by Broad Institute is limited to ensure your 
-access is no more than necessary to perform your legitimate tasks or assigned duties. If you believe 
-you are being granted access that you should not have, you must immediately notify the Broad 
+Your level of access to systems and networks owned by Broad Institute is limited to ensure your
+access is no more than necessary to perform your legitimate tasks or assigned duties. If you believe
+you are being granted access that you should not have, you must immediately notify the Broad
 Institute Operations Center [infosec@broadinstitute.org](mailto:infosec@broadinstitute.org).
 
 #### Restricted Use of TCGA Controlled-Access Data
@@ -162,23 +162,23 @@ goodwill, loss of data, computer failure or malfunction, or any and all other da
 
 #### HIPAA, Protected Health Information, and the Clinical Compliance Features
 
-Terra is not a Covered Entity as that term is defined in the Health Insurance Portability 
-and Accountability Act of 1996, as amended, and its related regulations (collectively, "HIPAA"). 
-On occasion, Terra may agree in writing with a user to perform services for the user in the 
+Terra is not a Covered Entity as that term is defined in the Health Insurance Portability
+and Accountability Act of 1996, as amended, and its related regulations (collectively, "HIPAA").
+On occasion, Terra may agree in writing with a user to perform services for the user in the
 storing PHI. We recommend that such users enter into a formal agreement with Terra/Firecloud.
 
-Terra does offer clinical compliance features as part of its service ("Compliance Features") 
-for users who wish to upload, store, or otherwise transfer PHI, as well as users who are using the Site 
-in connection with their clinical operations. Users who desire to upload, store, or otherwise transfer 
-PHI using the Site must implement all of the required Clinical Features and must enter a formal agreement 
-with Firecloud stating that. The uploading, storing, or transferring of PHI using the Site by users 
-that have not implemented the Clinical Features is strictly prohibited. You agree that, unless you have 
+Terra does offer clinical compliance features as part of its service ("Compliance Features")
+for users who wish to upload, store, or otherwise transfer PHI, as well as users who are using the Site
+in connection with their clinical operations. Users who desire to upload, store, or otherwise transfer
+PHI using the Site must implement all of the required Clinical Features and must enter a formal agreement
+with Firecloud stating that. The uploading, storing, or transferring of PHI using the Site by users
+that have not implemented the Clinical Features is strictly prohibited. You agree that, unless you have
 implemented the Clinical Features, you will not upload, store, or otherwise transfer PHI using the Site.
 
-You acknowledge that this may require you, in some instances, to anonymize sequence data prior to 
-uploading it to the Site. You further agree to indemnify and hold harmless Terra of and from 
-any and all claims, demands, losses, causes of action, damage, lawsuits, judgments, including attorneys' 
-fees and costs, arising out of or relating to your uploading, storing, or transferring of PHI without 
+You acknowledge that this may require you, in some instances, to anonymize sequence data prior to
+uploading it to the Site. You further agree to indemnify and hold harmless Terra of and from
+any and all claims, demands, losses, causes of action, damage, lawsuits, judgments, including attorneys'
+fees and costs, arising out of or relating to your uploading, storing, or transferring of PHI without
 having fully implemented the Clinical Features.
 `
 
@@ -233,7 +233,7 @@ export default class TermsOfService extends Component {
   render() {
     const { busy } = this.state
     return div({ style: styles.page }, [
-      backgroundLogo,
+      backgroundLogo(),
       div({ style: styles.box }, [
         termsTitle,
         TOSMarkdown,
@@ -249,7 +249,7 @@ export default class TermsOfService extends Component {
 class TermsOfServicePage extends Component {
   render() {
     return div({ style: styles.page }, [
-      backgroundLogo,
+      backgroundLogo(),
       div({ style: styles.box }, [
         termsTitle,
         TOSMarkdown

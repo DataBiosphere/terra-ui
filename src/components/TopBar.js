@@ -209,7 +209,7 @@ export default _.flow(
             },
             href: Nav.getLink('root'),
             onClick: () => this.hideNav()
-          }, [menuOpenLogo, betaTag])
+          }, [menuOpenLogo(), betaTag])
         ]),
         div({ style: { display: 'flex', flexDirection: 'column', overflowY: 'auto', flex: 1 } }, [
           isSignedIn ?
@@ -443,7 +443,7 @@ export default _.flow(
         style: { ...styles.pageTitle, display: 'flex', alignItems: 'center' },
         href: href || Nav.getLink('root')
       }, [
-        topBarLogo,
+        topBarLogo(),
         div({}, [
           div({
             style: title ? { fontSize: '0.8rem', lineHeight: '19px' } : { fontSize: '1rem', fontWeight: 600 }
