@@ -149,7 +149,7 @@ const amppd = h(Participant, {
       `The Accelerating Medicines Partnership (AMP) is a public-private partnership between the National Institutes of
     Health (NIH), multiple biopharmaceutical and life sciences companies, and non-profit organizations to identify and
     validate the most promising biological targets for therapeutics. This AMP effort aims to identify and validate the
-    most promising biological targets for therapeutics relevant to Parkinson's disease.`
+    most promising biological targets for therapeutics relevant to Parkinson's disease. Access to this data will be restricted until a launch in 2019-Q3.`
     ]),
     p(['Includes data from the following studies:']),
     div({ style: { margin: '0.4rem 0', fontWeight: 'bold', lineHeight: '150%' } }, [
