@@ -7,6 +7,7 @@ import * as breadcrumbs from 'src/components/breadcrumbs'
 import { buttonPrimary, buttonSecondary, link, linkButton, Markdown, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { SimpleTable } from 'src/components/table'
+import TooltipTrigger from 'src/components/TooltipTrigger'
 import { displayConsentCodes, displayLibraryAttributes } from 'src/data/workspace-attributes'
 import { ajaxCaller } from 'src/libs/ajax'
 import { bucketBrowserUrl } from 'src/libs/auth'
@@ -76,7 +77,9 @@ const displayAttributeValue = v => {
 const DataUseLimitations = ({ attributes }) => {
   return _.map(({ key, title }) => {
     return div({ key, style: { display: 'inline-block', marginRight: '0.75rem' } }, [
-      span({ title, style: { textDecoration: 'underline dotted' } }, [key.slice(8)]),
+      h(TooltipTrigger, { content: title }, [
+        span({ style: { textDecoration: 'underline dotted' } }, [key.slice(8)])
+      ]),
       ': ',
       displayAttributeValue(attributes[key])
     ])
