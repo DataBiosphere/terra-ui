@@ -34,7 +34,11 @@ const SubmissionDetails = _.flow(
   const [textFilter, setTextFilter] = useState('')
   const [linkToFC, setLinkToFC] = useState()
 
-  Utils.useOnMount(() => { Workspaces.workspace(namespace, name).submission(submissionId).get().then(setSubmission) })
+  const getSubmission = Workspaces.workspace(namespace, name).submission(submissionId).get
+
+  Utils.useOnMount(() => {
+    getSubmission().then(setSubmission)
+  })
 
   const {
     cost, methodConfigurationName: workflowName, methodConfigurationNamespace: workflowNamespace, submissionDate,
@@ -103,7 +107,7 @@ const SubmissionDetails = _.flow(
         })
       ])
     ]),
-    div({ style: { flex: 1 } }, [
+    div({ style: { flex: 1, maxHeight: 500, overflowY: 'auto' } }, [
       !filteredWorkflows.length ? 'No matching workflows.' : h(AutoSizer, [({ width, height }) => h(FlexTable, {
         width, height,
         rowCount: workflows.length,
