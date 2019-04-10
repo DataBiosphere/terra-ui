@@ -38,11 +38,11 @@ const SubmissionDetails = _.flow(
 
   const {
     cost, methodConfigurationName: workflowName, methodConfigurationNamespace: workflowNamespace, submissionDate,
-    submissionEntity: { entityType, entityName } = {}, submitter, useCallCache, workflows
+    submissionEntity: { entityType, entityName } = {}, submitter, useCallCache, workflows = []
   } = submission
 
   const filteredWorkflows = _.filter(wf => {
-    const wfAsText = JSON.stringify(wf)
+    const wfAsText = JSON.stringify(_.values(wf))
     return (_.isEmpty(statusFilter) || statusFilter.includes(wf.status)) &&
       _.every(term => Utils.textMatch(term, wfAsText), textFilter.split(/s+/))
   }, workflows)
@@ -59,13 +59,13 @@ const SubmissionDetails = _.flow(
 
   const { succeeded, failed, running } = _.groupBy(wf => collapseStatus(wf.status), workflows)
 
-  return _.isEmpty(submission) ? centeredSpinner() : div({ style: { padding: '2rem' } }, [
+  return _.isEmpty(submission) ? centeredSpinner() : div({ style: { padding: '2rem', flex: 1, display: 'flex', flexDirection: 'column' } }, [
     div({ style: { display: 'flex' } }, [
       div({ style: { flexBasis: 200, marginRight: '2rem', lineHeight: '24px' } }, [
         div({ style: Style.elements.sectionHeader }, 'Workflow Statuses'),
         succeeded && makeStatusLine(successIcon, `Succeeded: ${succeeded.length}`),
         failed && makeStatusLine(failedIcon, `Failed: ${failed.length}`),
-        running && makeStatusLine(runningIcon(), `Running: ${running.length}`)
+        running && makeStatusLine(runningIcon, `Running: ${running.length}`)
       ]),
       div({ style: { display: 'flex', flexWrap: 'wrap' } }, [
         makeSection('Workflow Configuration', [link(
@@ -75,7 +75,7 @@ const SubmissionDetails = _.flow(
         makeSection('Submitted by', [
           div([submitter]), Utils.makeCompleteDate(submissionDate)
         ]),
-        makeSection('Total Run Cost', [`$${cost.toPrecision(3)}`]),
+        makeSection('Total Run Cost', [cost ? Utils.formatUSD(cost) : 'N/A']),
         makeSection('Data Entity', [`${entityName} (${entityType})`]),
         makeSection('Submission ID', [link(
           { href: bucketBrowserUrl(`${bucketName}/${submissionId}`), target: '_blank' },
@@ -103,67 +103,70 @@ const SubmissionDetails = _.flow(
         })
       ])
     ]),
-    filteredWorkflows.length === 0 ? 'No matching workflows.' : h(AutoSizer, [({ width, height }) => h(FlexTable, {
-      width, height,
-      rowCount: workflows.length,
-      columns: [
-        {
-          size: { basis: 75, grow: 0 },
-          headerRenderer: () => {},
-          cellRenderer: ({ rowIndex }) => {
-            const { workflowId } = filteredWorkflows[rowIndex]
-            return link(!!workflowCollectionName ? {
-              target: '_blank',
-              href: `${getConfig().jobManagerUrlRoot}/${workflowId}`
-            } : {
-              onClick: () => setLinkToFC(`${getConfig().firecloudUrlRoot}/#workspaces/${namespace}/${name}/monitor/${submissionId}/${workflowId}`)
-            }, 'View')
+    div({ style: { flex: 1 } }, [
+      !filteredWorkflows.length ? 'No matching workflows.' : h(AutoSizer, [({ width, height }) => h(FlexTable, {
+        width, height,
+        rowCount: workflows.length,
+        columns: [
+          {
+            size: { basis: 75, grow: 0 },
+            headerRenderer: () => {},
+            cellRenderer: ({ rowIndex }) => {
+              const { workflowId } = filteredWorkflows[rowIndex]
+              return link(!!workflowCollectionName ? {
+                target: '_blank',
+                href: `${getConfig().jobManagerUrlRoot}/${workflowId}`
+              } : {
+                onClick: () => setLinkToFC(`${getConfig().firecloudUrlRoot}/#workspaces/${namespace}/${name}/monitor/${submissionId}/${workflowId}`)
+              }, 'View')
+            }
+          }, {
+            size: { basis: 225, grow: 0 },
+            headerRenderer: () => 'Data Entity',
+            cellRenderer: ({ rowIndex }) => {
+              const { entityName, entityType } = filteredWorkflows[rowIndex].workflowEntity
+              return h(TooltipCell, [`${entityName} (${entityType})`])
+            }
+          }, {
+            size: { basis: 225, grow: 0 },
+            headerRenderer: () => 'Last Changed',
+            cellRenderer: ({ rowIndex }) => {
+              return h(TextCell, [Utils.makeCompleteDate(filteredWorkflows[rowIndex].statusLastChangedDate)])
+            }
+          }, {
+            size: { basis: 150, grow: 0 },
+            headerRenderer: () => 'Status',
+            cellRenderer: ({ rowIndex }) => {
+              const { status } = filteredWorkflows[rowIndex]
+              return div({ style: { display: 'flex' } }, [statusIcon(status, { marginRight: '0.5rem' }), status])
+            }
+          }, {
+            size: { basis: 100, grow: 0 },
+            headerRenderer: () => 'Run Cost',
+            cellRenderer: ({ rowIndex }) => {
+              const { cost } = filteredWorkflows[rowIndex]
+              return cost ? h(TextCell, [Utils.formatUSD(cost)]) : 'N/A'
+            }
+          }, {
+            size: { basis: 200, grow: 1 },
+            headerRenderer: () => 'Messages',
+            cellRenderer: ({ rowIndex }) => {
+              return h(TooltipCell, [h(Fragment, _.map(div, filteredWorkflows[rowIndex].messages))])
+            }
+          }, {
+            size: { basis: 175, grow: 0 },
+            headerRenderer: () => 'Workflow ID',
+            cellRenderer: ({ rowIndex }) => {
+              const { workflowId, inputResolutions: [{ inputName }] } = filteredWorkflows[rowIndex]
+              return h(TextCell, [link({
+                target: '_blank',
+                href: bucketBrowserUrl(`${bucketName}/${submissionId}/${inputName.split('.')[0]}/${workflowId}`)
+              }, [workflowId])])
+            }
           }
-        }, {
-          size: { basis: 225, grow: 0 },
-          headerRenderer: () => 'Data Entity',
-          cellRenderer: ({ rowIndex }) => {
-            const { entityName, entityType } = filteredWorkflows[rowIndex].workflowEntity
-            return h(TooltipCell, [`${entityName} (${entityType})`])
-          }
-        }, {
-          size: { basis: 225, grow: 0 },
-          headerRenderer: () => 'Last Changed',
-          cellRenderer: ({ rowIndex }) => {
-            return h(TextCell, [Utils.makeCompleteDate(filteredWorkflows[rowIndex].statusLastChangedDate)])
-          }
-        }, {
-          size: { basis: 150, grow: 0 },
-          headerRenderer: () => 'Status',
-          cellRenderer: ({ rowIndex }) => {
-            const { status } = filteredWorkflows[rowIndex]
-            return div({ style: { display: 'flex' } }, [statusIcon(status, { marginRight: '0.5rem' }), status])
-          }
-        }, {
-          size: { basis: 100, grow: 0 },
-          headerRenderer: () => 'Run Cost',
-          cellRenderer: ({ rowIndex }) => {
-            return h(TextCell, [`$${filteredWorkflows[rowIndex].cost.toPrecision(3)}`])
-          }
-        }, {
-          size: { basis: 200, grow: 1 },
-          headerRenderer: () => 'Messages',
-          cellRenderer: ({ rowIndex }) => {
-            return h(TooltipCell, [h(Fragment, _.map(div, filteredWorkflows[rowIndex].messages))])
-          }
-        }, {
-          size: { basis: 175, grow: 0 },
-          headerRenderer: () => 'Workflow ID',
-          cellRenderer: ({ rowIndex }) => {
-            const { workflowId, inputResolutions: [{ inputName }] } = filteredWorkflows[rowIndex]
-            return h(TextCell, [link({
-              target: '_blank',
-              href: bucketBrowserUrl(`${bucketName}/${submissionId}/${inputName.split('.')[0]}/${workflowId}`)
-            }, [workflowId])])
-          }
-        }
-      ]
-    })]),
+        ]
+      })])
+    ]),
     linkToFC && h(Modal, {
       onDismiss: () => setLinkToFC(undefined),
       title: 'Legacy Workflow Details',

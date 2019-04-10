@@ -49,7 +49,7 @@ const getMaxDownloadCostNA = bytes => {
   const nanos = DownloadPrices.pricingInfo[0].pricingExpression.tieredRates[1].unitPrice.nanos
   const downloadPrice = bytes * nanos / DownloadPrices.pricingInfo[0].pricingExpression.baseUnitConversionFactor / 10e8
 
-  return downloadPrice < 0.01 ? '< $0.01' : `$${downloadPrice.toPrecision(2)}`
+  return downloadPrice < 0.01 ? '< $0.01' : Utils.formatUSD(downloadPrice)
 }
 
 const UriViewer = ajaxCaller(class UriViewer extends Component {
