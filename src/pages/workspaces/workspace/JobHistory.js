@@ -7,7 +7,7 @@ import { Clickable, link, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { collapseStatus, failedIcon, runningIcon, successIcon } from 'src/components/job-common'
 import Modal from 'src/components/Modal'
-import { FlexTable, HeaderCell, TextCell } from 'src/components/table'
+import { FlexTable, HeaderCell, TextCell, TooltipCell } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
@@ -170,7 +170,7 @@ const JobHistory = _.flow(
               cellRenderer: ({ rowIndex }) => {
                 const { submissionEntity: { entityName, entityType } } = submissions[rowIndex]
                 const text = `${entityName} (${entityType})`
-                return h(TooltipTrigger, { content: text }, [h(TextCell, text)])
+                return h(TooltipCell, [text])
               }
             },
             {
@@ -225,9 +225,7 @@ const JobHistory = _.flow(
               headerRenderer: () => h(HeaderCell, ['Submitted']),
               cellRenderer: ({ rowIndex }) => {
                 const { submissionDate } = submissions[rowIndex]
-                return h(TooltipTrigger, { content: Utils.makeCompleteDate(submissionDate) }, [
-                  h(TextCell, Utils.makePrettyDate(submissionDate))
-                ])
+                return h(TooltipCell, { tooltip: Utils.makeCompleteDate(submissionDate) }, [Utils.makePrettyDate(submissionDate)])
               }
             }
           ]

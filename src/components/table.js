@@ -10,6 +10,7 @@ import { AutoSizer, Grid as RVGrid, List, ScrollSync as RVScrollSync } from 'rea
 import { buttonPrimary, Checkbox, Clickable, linkButton } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
+import TooltipTrigger from 'src/components/TooltipTrigger'
 import colors from 'src/libs/colors'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
@@ -404,6 +405,10 @@ export const TextCell = props => {
     style: { overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }
   }, props))
 }
+
+export const TooltipCell = ({ children, tooltip, ...props }) => h(TooltipTrigger, {
+  content: tooltip || children
+}, [h(TextCell, props, [children])])
 
 export const HeaderCell = props => {
   return h(TextCell, _.merge({ style: { fontWeight: 500 } }, props))
