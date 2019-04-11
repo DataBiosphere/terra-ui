@@ -5,6 +5,7 @@ import Collapse from 'src/components/Collapse'
 import { buttonPrimary, Clickable, MenuButton } from 'src/components/common'
 import { icon, profilePic } from 'src/components/icons'
 import Modal from 'src/components/Modal'
+import RedirectNotification from 'src/components/RedirectNotification'
 import SignInButton from 'src/components/SignInButton'
 import { contactUsActive } from 'src/components/SupportRequest'
 import { FreeCreditsModal } from 'src/components/TrialBanner'
@@ -341,6 +342,7 @@ export default _.flow(
               style: { marginLeft: '0.5rem' }
             })
           ]),
+          RedirectNotification(),
           div({
             style: {
               ..._.omit('borderBottom', styles.nav.item),
