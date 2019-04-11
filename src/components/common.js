@@ -281,7 +281,7 @@ export const PageBox = ({ children, style = {} }) => {
   }, [children])
 }
 
-export const backgroundLogo = logo({
+export const backgroundLogo = () => logo({
   size: 1200,
   style: { position: 'fixed', top: -100, left: -100, zIndex: -1, opacity: 0.65 }
 })

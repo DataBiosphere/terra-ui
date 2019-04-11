@@ -279,7 +279,7 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
             this.loadProjects()
           }
         }),
-        !!selectedName && h(ProjectDetail, { key: selectedName, project: _.find({ projectName: selectedName }, billingProjects) }),
+        !!selectedName && billingProjects && h(ProjectDetail, { key: selectedName, project: _.find({ projectName: selectedName }, billingProjects) }),
         isBusy && spinnerOverlay
       ])
     ])

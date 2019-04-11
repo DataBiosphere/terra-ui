@@ -32,7 +32,7 @@ const Importer = ajaxCaller(class Importer extends Component {
     const { isImporting } = this.state
 
     return h(Fragment, [
-      backgroundLogo,
+      backgroundLogo(),
       h(TopBar, { title: 'Import Data' }),
       div({ style: styles.container }, [
         div({ style: styles.card }, [
