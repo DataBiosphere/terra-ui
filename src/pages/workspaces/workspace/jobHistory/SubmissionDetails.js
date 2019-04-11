@@ -1,18 +1,19 @@
 import _ from 'lodash/fp'
-import { forwardRef, Fragment, useState } from 'react'
+import { forwardRef, Fragment, useEffect, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { buttonPrimary, link, Select } from 'src/components/common'
-import { centeredSpinner } from 'src/components/icons'
+import { link, Select } from 'src/components/common'
+import { centeredSpinner, icon } from 'src/components/icons'
 import { textInput } from 'src/components/input'
 import { collapseStatus, failedIcon, runningIcon, statusIcon, successIcon } from 'src/components/job-common'
-import Modal from 'src/components/Modal'
-import { FlexTable, TextCell, TooltipCell } from 'src/components/table'
+import { FlexTable, Sortable, TextCell, TooltipCell } from 'src/components/table'
+import TooltipTrigger from 'src/components/TooltipTrigger'
 import { ajaxCaller } from 'src/libs/ajax'
 import { bucketBrowserUrl } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
+import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -27,29 +28,65 @@ const SubmissionDetails = _.flow(
   }),
   ajaxCaller
 )((props, ref) => {
-  const { namespace, name, submissionId, ajax: { Workspaces }, workspace: { workspace: { bucketName, workflowCollectionName } } } = props
+  const { namespace, name, submissionId, ajax: { Workspaces }, workspace: { workspace: { bucketName } } } = props
 
   const [submission, setSubmission] = useState({})
+  const [methodAccessible, setMethodAccessible] = useState()
   const [statusFilter, setStatusFilter] = useState([])
   const [textFilter, setTextFilter] = useState('')
-  const [linkToFC, setLinkToFC] = useState()
+  const [sort, setSort] = useState({ field: 'workflowEntity', direction: 'asc' })
 
   const getSubmission = Workspaces.workspace(namespace, name).submission(submissionId).get
+  const initialize = async () => {
+    try {
+      const submission = await getSubmission()
+      setSubmission(submission)
+    } catch (e) {
+      reportError('Unable to fetch submission details', e)
+    }
 
-  Utils.useOnMount(() => {
-    getSubmission().then(setSubmission)
-  })
+    try {
+      const { methodConfigurationName: configName, methodConfigurationNamespace: configNamespace } = submission
+      await Workspaces.workspace(namespace, name).methodConfig(configNamespace, configName).get()
+      setMethodAccessible(true)
+    } catch {
+      setMethodAccessible(false)
+    }
+  }
+
+  const anyRunning = () => _.some(({ status }) => collapseStatus(status) === 'running', workflows)
+
+  Utils.useOnMount(() => { initialize() })
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      try {
+        const submission = await getSubmission()
+        setSubmission(submission)
+      } catch (e) {
+        reportError('Unable to update submission details', e)
+      }
+    }, 60000)
+
+    return () => clearInterval(interval)
+  }, [getSubmission])
 
   const {
     cost, methodConfigurationName: workflowName, methodConfigurationNamespace: workflowNamespace, submissionDate,
     submissionEntity: { entityType, entityName } = {}, submitter, useCallCache, workflows = []
   } = submission
 
-  const filteredWorkflows = _.filter(wf => {
-    const wfAsText = JSON.stringify(_.values(wf))
-    return (_.isEmpty(statusFilter) || statusFilter.includes(wf.status)) &&
-      _.every(term => Utils.textMatch(term, wfAsText), textFilter.split(/s+/))
-  }, workflows)
+  const filteredWorkflows = _.flow(
+    _.filter(wf => {
+      if (_.isEmpty(statusFilter) || statusFilter.includes(wf.status)) {
+        const wfAsText = JSON.stringify(_.values(wf))
+        return _.every(term => Utils.textMatch(term, wfAsText), textFilter.split(/s+/))
+      } else {
+        return false
+      }
+    }),
+    _.sortBy(sort.field),
+    sort.direction === 'asc' ? _.identity : _.reverse
+  )(workflows)
 
 
   const makeStatusLine = (iconFn, text) => div({ style: { display: 'flex', marginTop: '0.5rem', fontSize: 14 } }, [
@@ -72,10 +109,24 @@ const SubmissionDetails = _.flow(
         running && makeStatusLine(runningIcon, `Running: ${running.length}`)
       ]),
       div({ style: { display: 'flex', flexWrap: 'wrap' } }, [
-        makeSection('Workflow Configuration', [link(
-          { href: Nav.getLink('workflow', { namespace, name, workflowNamespace, workflowName }) },
-          [`${workflowNamespace}/${workflowName}`]
-        )]),
+        makeSection('Workflow Configuration',
+          Utils.cond(
+            [methodAccessible, () => [link(
+              { href: Nav.getLink('workflow', { namespace, name, workflowNamespace, workflowName }) },
+              [`${workflowNamespace}/${workflowName}`]
+            )]],
+            [methodAccessible === false,
+              () => [div({ style: { display: 'flex', alignItems: 'center' } }, [
+                `${workflowNamespace}/${workflowName}`,
+                h(TooltipTrigger, {
+                  content: 'This configuration was updated or deleted since this submission ran.'
+                }, [
+                  icon('ban', { size: 16, style: { color: colors.orange[0], marginLeft: '0.3rem' } })
+                ])
+              ])]],
+            () => [`${workflowNamespace}/${workflowName}`]
+          )
+        ),
         makeSection('Submitted by', [
           div([submitter]), Utils.makeCompleteDate(submissionDate)
         ]),
@@ -107,95 +158,70 @@ const SubmissionDetails = _.flow(
         })
       ])
     ]),
-    div({ style: { flex: 1, maxHeight: 500, overflowY: 'auto' } }, [
+    div({ style: { flex: 1 } }, [
       !filteredWorkflows.length ? 'No matching workflows.' : h(AutoSizer, [({ width, height }) => h(FlexTable, {
         width, height,
-        rowCount: workflows.length,
+        rowCount: filteredWorkflows.length,
         columns: [
           {
             size: { basis: 75, grow: 0 },
             headerRenderer: () => {},
             cellRenderer: ({ rowIndex }) => {
-              const { workflowId } = filteredWorkflows[rowIndex]
-              return link(!!workflowCollectionName ? {
+              return link({
                 target: '_blank',
-                href: `${getConfig().jobManagerUrlRoot}/${workflowId}`
-              } : {
-                onClick: () => setLinkToFC(`${getConfig().firecloudUrlRoot}/#workspaces/${namespace}/${name}/monitor/${submissionId}/${workflowId}`)
-              }, 'View')
+                href: `${getConfig().jobManagerUrlRoot}/${filteredWorkflows[rowIndex].workflowId}`,
+                style: { flexGrow: 1, textAlign: 'center' }
+              }, ['View'])
             }
           }, {
             size: { basis: 225, grow: 0 },
-            headerRenderer: () => 'Data Entity',
+            headerRenderer: () => h(Sortable, { sort, field: 'workflowEntity', onSort: setSort }, ['Data Entity']),
             cellRenderer: ({ rowIndex }) => {
               const { entityName, entityType } = filteredWorkflows[rowIndex].workflowEntity
               return h(TooltipCell, [`${entityName} (${entityType})`])
             }
           }, {
             size: { basis: 225, grow: 0 },
-            headerRenderer: () => 'Last Changed',
+            headerRenderer: () => h(Sortable, { sort, field: 'statusLastChangedDate', onSort: setSort }, ['Last Changed']),
             cellRenderer: ({ rowIndex }) => {
               return h(TextCell, [Utils.makeCompleteDate(filteredWorkflows[rowIndex].statusLastChangedDate)])
             }
           }, {
             size: { basis: 150, grow: 0 },
-            headerRenderer: () => 'Status',
+            headerRenderer: () => h(Sortable, { sort, field: 'status', onSort: setSort }, ['Status']),
             cellRenderer: ({ rowIndex }) => {
               const { status } = filteredWorkflows[rowIndex]
               return div({ style: { display: 'flex' } }, [statusIcon(status, { marginRight: '0.5rem' }), status])
             }
           }, {
-            size: { basis: 100, grow: 0 },
-            headerRenderer: () => 'Run Cost',
+            size: { basis: 125, grow: 0 },
+            headerRenderer: () => h(Sortable, { sort, field: 'cost', onSort: setSort }, ['Run Cost']),
             cellRenderer: ({ rowIndex }) => {
-              const { cost } = filteredWorkflows[rowIndex]
-              return cost ? h(TextCell, [Utils.formatUSD(cost)]) : 'N/A'
+              return cost ? h(TextCell, [Utils.formatUSD(filteredWorkflows[rowIndex].cost)]) : 'N/A'
             }
           }, {
-            size: { basis: 200, grow: 1 },
-            headerRenderer: () => 'Messages',
+            size: { basis: 200 },
+            headerRenderer: () => h(Sortable, { sort, field: 'messages', onSort: setSort }, ['Messages']),
             cellRenderer: ({ rowIndex }) => {
               return h(TooltipCell, [h(Fragment, _.map(div, filteredWorkflows[rowIndex].messages))])
             }
           }, {
-            size: { basis: 175, grow: 0 },
-            headerRenderer: () => 'Workflow ID',
+            size: { basis: 150, grow: 0 },
+            headerRenderer: () => h(Sortable, { sort, field: 'workflowId', onSort: setSort }, ['Workflow ID']),
             cellRenderer: ({ rowIndex }) => {
               const { workflowId, inputResolutions: [{ inputName }] } = filteredWorkflows[rowIndex]
-              return h(TextCell, [link({
-                target: '_blank',
-                href: bucketBrowserUrl(`${bucketName}/${submissionId}/${inputName.split('.')[0]}/${workflowId}`)
-              }, [workflowId])])
+              return h(TooltipCell, { tooltip: workflowId }, [
+                link({
+                  target: '_blank',
+                  href: bucketBrowserUrl(`${bucketName}/${submissionId}/${inputName.split('.')[0]}/${workflowId}`)
+                }, [workflowId])
+              ])
             }
           }
         ]
       })])
-    ]),
-    linkToFC && h(Modal, {
-      onDismiss: () => setLinkToFC(undefined),
-      title: 'Legacy Workflow Details',
-      okButton: buttonPrimary({
-        as: 'a',
-        href: linkToFC,
-        target: '_blank',
-        onClick: () => setLinkToFC(undefined)
-      }, 'Go To FireCloud')
-    }, [
-      `We are currently introducing Terra's new job management component for accessing workflow details. However, this
-        workspace isn't yet ready to use the new job manager. For now, workflow details can be found in our legacy system,
-        FireCloud. You will be asked to sign in to FireCloud to view your workflow details.`
     ])
   ])
-
-
-  /*!!workflowCollectionName ? {
-   target: '_blank',
-   href: `${getConfig().jobManagerUrlRoot}?q=submission-id%3D${submissionId}`
-   } : {
-   onClick: () => this.setState({
-   linkToFC: `${getConfig().firecloudUrlRoot}/#workspaces/${namespace}/${name}/monitor/${submissionId}/${workflowId}`
-   })
-   }*/
 })
 
 export const addNavPaths = () => {

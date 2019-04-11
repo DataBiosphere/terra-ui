@@ -10,6 +10,7 @@ import Modal from 'src/components/Modal'
 import { FlexTable, HeaderCell, TextCell, TooltipCell } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { ajaxCaller } from 'src/libs/ajax'
+import { bucketBrowserUrl } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
@@ -122,7 +123,7 @@ const JobHistory = _.flow(
   }
 
   render() {
-    const { namespace, name, ajax: { Workspaces } } = this.props
+    const { namespace, name, ajax: { Workspaces }, workspace: { workspace: { bucketName } } } = this.props
     const { submissions, loading, aborting, newSubmissionId, highlightNewSubmission } = this.state
 
     return div({ style: styles.submissionsTable }, [
@@ -221,11 +222,24 @@ const JobHistory = _.flow(
               }
             },
             {
-              size: { basis: 150, grow: 1 },
+              size: { basis: 150, grow: 0 },
               headerRenderer: () => h(HeaderCell, ['Submitted']),
               cellRenderer: ({ rowIndex }) => {
                 const { submissionDate } = submissions[rowIndex]
                 return h(TooltipCell, { tooltip: Utils.makeCompleteDate(submissionDate) }, [Utils.makePrettyDate(submissionDate)])
+              }
+            },
+            {
+              size: { basis: 150, grow: 1 },
+              headerRenderer: () => h(HeaderCell, ['Submission ID']),
+              cellRenderer: ({ rowIndex }) => {
+                const { submissionId } = submissions[rowIndex]
+                return h(TooltipCell, { tooltip: submissionId }, [
+                  link({
+                    target: '_blank',
+                    href: bucketBrowserUrl(`${bucketName}/${submissionId}`)
+                  }, [submissionId])
+                ])
               }
             }
           ]
