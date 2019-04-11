@@ -24,7 +24,7 @@ const FooterWrapper = ({ children }) => {
       }
     }, [
       linkButton({ href: Nav.getLink('root') }, [
-        footerLogo
+        footerLogo()
       ]),
       a({ href: Nav.getLink('privacy'), style: styles.link }, 'Privacy Policy'),
       a({ href: Nav.getLink('terms-of-service'), style: styles.link }, 'Terms of Service'),
