@@ -12,9 +12,8 @@ import 'src/style.css'
 window.SATURN_VERSION = SATURN_VERSION
 marked.setOptions({ sanitize: true, sanitizer: _.escape })
 
-ReactDOM.render(h(Main), document.getElementById('root'))
-
 loadConfig().then(() => {
+  ReactDOM.render(h(Main), document.getElementById('root'))
   initializeAuth()
   initializeTCell()
 })
