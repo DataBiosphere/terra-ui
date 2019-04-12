@@ -223,7 +223,7 @@ const fcDataLib = h(Participant, {
 }, [
   buttonPrimary({
     as: 'a',
-    href: `/?return=${isFirecloud ? `firecloud` : `terra`}#library`,
+    href: `/?return=${isFirecloud() ? `firecloud` : `terra`}#library`,
     target: '_blank',
     tooltip: 'Search for dataset workspaces'
   }, ['Browse Datasets'])
