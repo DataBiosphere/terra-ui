@@ -6,9 +6,9 @@ import Interactive from 'react-interactive'
 import RSelect from 'react-select'
 import { centeredSpinner, icon } from 'src/components/icons'
 import TooltipTrigger from 'src/components/TooltipTrigger'
-import { isFirecloud, logo } from 'src/libs/logos'
 import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
+import { isFirecloud, logo } from 'src/libs/logos'
 import * as Style from 'src/libs/style'
 
 
@@ -43,9 +43,16 @@ const linkProps = disabled => ({
   hover: disabled ? undefined : { color: colors.green[1] }
 })
 
-export const link = function(props, children) {
+export const link = ({ onClick, href, ...props }, children) => {
   return h(Interactive,
-    _.merge(linkProps(props.disabled), props),
+    _.merge(linkProps(props.disabled), {
+      href,
+      onClick: href && onClick ? e => {
+        e.preventDefault()
+        onClick(e)
+      } : onClick,
+      ...props
+    }),
     children)
 }
 
@@ -281,7 +288,7 @@ export const PageBox = ({ children, style = {} }) => {
   }, [children])
 }
 
-export const backgroundLogo = logo({
+export const backgroundLogo = () => logo({
   size: 1200,
   style: { position: 'fixed', top: -100, left: -100, zIndex: -1, opacity: 0.65 }
 })

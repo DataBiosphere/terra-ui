@@ -60,7 +60,7 @@ export default ajaxCaller(class Register extends Component {
         backgroundRepeat: 'no-repeat', backgroundSize: '750px', backgroundPosition: 'right 0px bottom -600px'
       }
     }, [
-      registrationLogo,
+      registrationLogo(),
       div({
         style: {
           marginTop: '4rem', color: colors.slate,

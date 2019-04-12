@@ -43,7 +43,7 @@ export default class SignIn extends Component {
         }
       }, [
         div({ style: { maxWidth: 900 } }, [
-          signInLogo,
+          signInLogo(),
           div({ style: { fontSize: 54, margin: '1.5rem 0', color: colors.green[0] } }, ['Welcome to Terra']),
           div({ style: { fontSize: 36, fontWeight: 500, color: colors.slate } }, ['New User?']),
           div({ style: { fontSize: 36, marginBottom: '2rem' } }, ['Terra requires a Google Account.']),

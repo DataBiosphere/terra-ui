@@ -25,26 +25,26 @@ const fcLongLogo = (size, color = false) => div({ style: { display: 'flex', maxH
 ])
 
 
-export const logo = props => icon(isFirecloud ? 'fcIcon' : 'terraLogo', props)
+export const logo = props => icon(isFirecloud() ? 'fcIcon' : 'terraLogo', props)
 
-export const signInLogo = isFirecloud ?
+export const signInLogo = () => isFirecloud() ?
   fcLongLogo(70, true) :
   icon('terraLogo', { size: 150 })
 
-export const registrationLogo = isFirecloud ?
+export const registrationLogo = () => isFirecloud() ?
   fcLongLogo(100, true) :
   div({ style: { display: 'flex', alignItems: 'center' } }, [
     icon('terraLogo', { size: 100, style: { marginRight: 20 } }),
     div({ style: { fontWeight: 500, fontSize: 70 } }, ['TERRA'])
   ])
 
-export const menuOpenLogo = icon(isFirecloud ? 'fcIconWhite' : 'terraLogoShadow',
-  { size: isFirecloud ? 50 : 75, style: { marginRight: '0.5rem' } })
+export const menuOpenLogo = () => icon(isFirecloud() ? 'fcIconWhite' : 'terraLogoShadow',
+  { size: isFirecloud() ? 50 : 75, style: { marginRight: '0.5rem' } })
 
-export const topBarLogo = isFirecloud ?
+export const topBarLogo = () => isFirecloud() ?
   fcLongLogo(50) :
   icon('terraLogoShadow', { size: 75, style: { marginRight: '0.1rem' } })
 
-export const footerLogo = isFirecloud ?
+export const footerLogo = () => isFirecloud() ?
   fcLongLogo(40) :
   icon('terraLogoWhite', { size: 40 })
