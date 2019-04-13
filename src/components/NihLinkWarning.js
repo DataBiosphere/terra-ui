@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { div } from 'react-hyperscript-helpers'
 import { clearNotification, notify } from 'src/components/Notifications'
 import { authStore } from 'src/libs/auth'
+import colors from 'src/libs/colors'
 import * as Utils from 'src/libs/utils'
 import * as Profile from 'src/pages/Profile'
 
@@ -21,9 +22,9 @@ export const NihLinkWarning = () => {
       if (!!linkedNihUsername && (expired || expiringSoon)) {
         const expirationMessage = expired ? 'has expired' : 'will expire soon'
         notify('info', div({}, [
-          `Your access to NIH Controlled Access workspaces and data ${expirationMessage} and your access to NIH Controlled Access workspaces will be revoked. `,
-          Profile.renderShibbolethLink('Re-link'),
-          ` your Terra and eRA Commons / NIH accounts (${linkedNihUsername}) to retain access to these workspaces and data.`
+          `Your access to NIH Controlled Access workspaces and data ${expirationMessage}. To regain access, `,
+          Profile.renderShibbolethLink('re-link', colors.lightGreen),
+          ` your eRA Commons / NIH account (${linkedNihUsername}) with Terra.`
         ]), { id: notificationId })
       }
     } else {

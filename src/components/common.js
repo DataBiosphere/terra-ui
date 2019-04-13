@@ -33,19 +33,19 @@ export const Clickable = ({ as = 'div', disabled, tooltip, tooltipSide, onClick,
   }
 }
 
-const linkProps = disabled => ({
+const linkProps = (disabled, color = colors.green) => ({
   as: 'a',
   style: {
-    color: disabled ? colors.gray[2] : colors.green[0],
+    color: disabled ? colors.gray[2] : color[0],
     cursor: disabled ? 'not-allowed' : 'pointer',
     fontWeight: 500
   },
-  hover: disabled ? undefined : { color: colors.green[1] }
+  hover: disabled ? undefined : { color: color[1] }
 })
 
 export const link = ({ onClick, href, ...props }, children) => {
   return h(Interactive,
-    _.merge(linkProps(props.disabled), {
+    _.merge(linkProps(props.disabled, props.color), {
       href,
       onClick: href && onClick ? e => {
         e.preventDefault()

@@ -61,11 +61,12 @@ const styles = {
 }
 
 
-export const renderShibbolethLink = label => {
+export const renderShibbolethLink = (label, color) => {
   const nihRedirectUrl = `${window.location.origin}/${Nav.getLink('profile')}?nih-username-token={token}`
 
   return link({
     href: `${getConfig().shibbolethUrlRoot}/link-nih-account?${qs.stringify({ 'redirect-url': nihRedirectUrl })}`,
+    color,
     style: { display: 'inline-flex', alignItems: 'center' },
     target: '_blank'
   }, [
