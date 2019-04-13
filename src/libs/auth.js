@@ -4,7 +4,7 @@ import { clearNotification, sessionTimeoutProps, notify } from 'src/components/N
 import ProdWhitelist from 'src/data/prod-whitelist'
 import { Ajax, fetchOk } from 'src/libs/ajax'
 import { getConfig } from 'src/libs/config'
-import { reportError } from 'src/libs/error'
+import { reportError, withErrorReporting } from 'src/libs/error'
 import * as Utils from 'src/libs/utils'
 
 
@@ -198,7 +198,7 @@ authStore.subscribe((state, oldState) => {
   }
 })
 
-authStore.subscribe(async (state, oldState) => {
+authStore.subscribe(withErrorReporting('Error loading NIH account link status', async (state, oldState) => {
   if (!oldState.isSignedIn && state.isSignedIn) {
     try {
       const nihStatus = await Ajax().User.getNihStatus()
@@ -208,4 +208,4 @@ authStore.subscribe(async (state, oldState) => {
       else throw error
     }
   }
-})
+}))
