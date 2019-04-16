@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { Fragment } from 'react'
-import { div, h, span, table, tbody, td, tr } from 'react-hyperscript-helpers'
+import { a, div, h, span, table, tbody, td, tr } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { Clickable, link, spinnerOverlay } from 'src/components/common'
@@ -25,7 +25,7 @@ const styles = {
     padding: '1rem', flex: 1
   },
   deemphasized: {
-    color: colors.gray[1]
+    color: colors.gray[2]
   },
   statusDetailCell: {
     align: 'center',
@@ -146,10 +146,17 @@ const JobHistory = _.flow(
               headerRenderer: () => h(HeaderCell, ['Submission (click for details)']),
               cellRenderer: ({ rowIndex }) => {
                 const {
-                  methodConfigurationNamespace, methodConfigurationName, submitter, submissionId
+                  methodConfigurationNamespace, methodConfigurationName, submitter, submissionId, workflowStatuses
                 } = submissions[rowIndex]
-                return link({
-                  style: { flex: 1 },
+                const { failed, running } = collapsedStatuses(workflowStatuses)
+
+                return a({
+                  style: {
+                    flex: 1, alignSelf: 'stretch', display: 'flex', flexDirection: 'column', justifyContent: 'center',
+                    margin: '0 -1rem', padding: '0 1rem',
+                    color: 'unset', fontWeight: 500,
+                    backgroundColor: Utils.cond([!!failed, colors.red[6]], [!!running, colors.blue[6]], colors.green[7])
+                  },
                   href: Nav.getLink('workspace-submission-details', { namespace, name, submissionId })
                 }, [
                   div([
