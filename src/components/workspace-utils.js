@@ -64,7 +64,7 @@ export const WorkspaceImporter = withWorkspaces()(class WorkspaceImporter extend
   constructor(props) {
     super(props)
     this.state = {
-      selectedWorkspaceId: this.props.selectedWorkspaceId,
+      selectedWorkspaceId: props.selectedWorkspaceId,
       creatingWorkspace: false
     }
   }
