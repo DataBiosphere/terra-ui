@@ -78,7 +78,7 @@ const styles = {
   }
 }
 
-const ToolCard = pure(({ listView, name, namespace, config, onCopy, onDelete, isRedacted }) => {
+const ToolCard = pure(({ listView, name, namespace, config, onCopy, onDelete, isRedacted, workspace }) => {
   const { namespace: workflowNamespace, name: workflowName, methodRepoMethod: { sourceRepo, methodVersion } } = config
   const toolCardMenu = h(PopupTrigger, {
     closeOnClick: true,
@@ -90,6 +90,9 @@ const ToolCard = pure(({ listView, name, namespace, config, onCopy, onDelete, is
         tooltipSide: 'left'
       }, [menuIcon('copy'), 'Copy to Another Workspace']),
       h(MenuButton, {
+        disabled: !!Utils.editWorkspaceError(workspace),
+        tooltip: Utils.editWorkspaceError(workspace),
+        tooltipSide: 'left',
         onClick: () => onDelete()
       }, [menuIcon('trash'), 'Delete'])
     ])
@@ -297,14 +300,14 @@ export const Tools = _.flow(
   }
 
   render() {
-    const { namespace, name, listView, viewToggleButtons, workspace: { workspace } } = this.props
+    const { namespace, name, listView, viewToggleButtons, workspace: ws, workspace: { workspace } } = this.props
     const { loading, configs, copyingTool, deletingTool, findingTool } = this.state
     const tools = _.map(config => {
       const isRedacted = this.computeRedacted(config)
       return h(ToolCard, {
         onCopy: () => this.setState({ copyingTool: { namespace: config.namespace, name: config.name } }),
         onDelete: () => this.setState({ deletingTool: { namespace: config.namespace, name: config.name } }),
-        key: `${config.namespace}/${config.name}`, namespace, name, config, listView, isRedacted
+        key: `${config.namespace}/${config.name}`, namespace, name, config, listView, isRedacted, workspace: ws
       })
     }, configs)
 
@@ -327,6 +330,8 @@ export const Tools = _.flow(
       ]),
       div({ style: styles.cardContainer(listView) }, [
         h(Clickable, {
+          disabled: !!Utils.editWorkspaceError(ws),
+          tooltip: Utils.editWorkspaceError(ws),
           style: { ...styles.card, ...styles.shortCard, color: colors.green[0], fontSize: 18, lineHeight: '22px' },
           onClick: () => this.setState({ findingTool: true })
         }, [
