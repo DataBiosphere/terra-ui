@@ -2,8 +2,11 @@ import _ from 'lodash/fp'
 import { Component } from 'react'
 import { div, h, h2 } from 'react-hyperscript-helpers'
 import AuthContainer from 'src/components/AuthContainer'
+import { link } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
+import { icon } from 'src/components/icons'
 import TopBar from 'src/components/TopBar'
+import { isFirecloud } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
 import * as Code from 'src/pages/library/Code'
 import * as Datasets from 'src/pages/library/Datasets'
@@ -27,6 +30,7 @@ import * as TermsOfService from 'src/pages/TermsOfService'
 import * as Tools from 'src/pages/workspaces/workspace/Tools'
 import * as WorkflowView from 'src/pages/workspaces/workspace/tools/WorkflowView'
 import * as Projects from 'src/pages/billing/List'
+import { notify } from './Notifications'
 
 
 const pageWrapStyle = { display: 'flex', flexDirection: 'column', flex: '1 0 auto', position: 'relative' }
@@ -69,6 +73,20 @@ export default class Router extends Component {
     this.unlisten = Nav.history.listen(
       ({ pathname, search }) => this.setState({ pathname, search })
     )
+
+    if (!isFirecloud() && new URLSearchParams(window.location.search).has('fcredir')) {
+      notify('', ['Welcome to Terra, the next version of FireCloud. All of your workspaces, data, notebooks, ' +
+        'and jobs are here, just as they are in FireCloud. The legacy FireCloud will continue to be available until ' +
+        'August 2019. Click ',
+      link({
+        href: 'https://legacy.firecloud.org',
+        target: '_blank'
+      }, [
+        'here',
+        icon('pop-out', { size: 12 })
+      ]), ' to return to the Legacy FireCloud platform.'])
+      //window.history.replaceState(null, '', `/${window.location.hash}`)
+    }
   }
 
   // FIXME - shouldn't be using unsafe methods
