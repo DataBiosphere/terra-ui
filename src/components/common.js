@@ -8,7 +8,7 @@ import { centeredSpinner, icon } from 'src/components/icons'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
-import { logo } from 'src/libs/logos'
+import { isFirecloud, logo } from 'src/libs/logos'
 import * as Style from 'src/libs/style'
 
 
@@ -296,7 +296,7 @@ export const backgroundLogo = () => logo({
 export const methodLink = config => {
   const { methodRepoMethod: { sourceRepo, methodVersion, methodNamespace, methodName, methodPath } } = config
   return sourceRepo === 'agora' ?
-    `${getConfig().firecloudUrlRoot}/?return=terra#methods/${methodNamespace}/${methodName}/${methodVersion}` :
+    `${getConfig().firecloudUrlRoot}/?return=${isFirecloud() ? `firecloud` : `terra`}#methods/${methodNamespace}/${methodName}/${methodVersion}` :
     `${getConfig().dockstoreUrlRoot}/workflows/${methodPath}`
 }
 
