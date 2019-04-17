@@ -148,6 +148,10 @@ const User = signal => ({
         'register/profile',
         _.mergeAll([authOpts(), jsonBody(_.merge(blankProfile, keysAndValues)), { signal, method: 'POST' }])
       )
+    },
+
+    setPreferences: body => {
+      return fetchOrchestration('api/profile/preferences', _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }]))
     }
   },
 

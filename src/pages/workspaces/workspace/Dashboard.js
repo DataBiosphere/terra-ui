@@ -160,7 +160,7 @@ export const WorkspaceDashboard = _.flow(
 
   render() {
     const {
-      workspace: {
+      workspace, workspace: {
         accessLevel,
         workspace: {
           authorizationDomain, createdDate, lastModified, bucketName,
@@ -169,7 +169,6 @@ export const WorkspaceDashboard = _.flow(
       }
     } = this.props
     const { submissionsCount, storageCostEstimate, editDescription, saving, consentStatus } = this.state
-    const canWrite = Utils.canWrite(accessLevel)
     const isEditing = _.isString(editDescription)
 
     return div({ style: { flex: 1, display: 'flex' } }, [
@@ -178,8 +177,8 @@ export const WorkspaceDashboard = _.flow(
           'About the workspace',
           !isEditing && linkButton({
             style: { marginLeft: '0.5rem' },
-            disabled: !canWrite,
-            tooltip: !canWrite && 'You do not have permission to edit this workspace',
+            disabled: !!Utils.editWorkspaceError(workspace),
+            tooltip: Utils.editWorkspaceError(workspace),
             onClick: () => this.setState({ editDescription: description })
           }, [icon('edit', { className: 'is-solid' })])
         ]),

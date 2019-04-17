@@ -28,7 +28,7 @@ const styles = {
 
 const Importer = ajaxCaller(class Importer extends Component {
   render() {
-    const { queryParams: { url, ad } } = this.props
+    const { queryParams: { url, ad, wid } } = this.props
     const { isImporting } = this.state
 
     return h(Fragment, [
@@ -43,6 +43,7 @@ const Importer = ajaxCaller(class Importer extends Component {
           div({ style: styles.title }, ['Destination Workspace']),
           h(WorkspaceImporter, {
             authorizationDomain: ad,
+            selectedWorkspaceId: wid,
             onImport: ws => this.import_(ws)
           }),
           isImporting && spinnerOverlay
