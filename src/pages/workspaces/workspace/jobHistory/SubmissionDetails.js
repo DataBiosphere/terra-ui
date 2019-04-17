@@ -57,7 +57,7 @@ const SubmissionDetails = _.flow(
   Utils.useOnMount(() => { initialize() })
   useEffect(() => {
     if (_.some(({ status }) => collapseStatus(status) === 'running', submission.workflows)) {
-      setTimeout(async () => {
+      const timeout = setTimeout(async () => {
         try {
           const submission = await getSubmission()
           setSubmission(submission)
@@ -65,6 +65,7 @@ const SubmissionDetails = _.flow(
           reportError('Unable to update submission details', e)
         }
       }, 60000)
+      return () => clearTimeout(timeout)
     }
   }, [getSubmission, submission])
 
