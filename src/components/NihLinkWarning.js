@@ -2,7 +2,6 @@ import { useEffect } from 'react'
 import { div } from 'react-hyperscript-helpers'
 import { clearNotification, notify } from 'src/components/Notifications'
 import { authStore } from 'src/libs/auth'
-import colors from 'src/libs/colors'
 import * as Utils from 'src/libs/utils'
 import * as Profile from 'src/pages/Profile'
 
@@ -23,7 +22,7 @@ export const NihLinkWarning = () => {
         const expirationMessage = expired ? 'has expired' : 'will expire soon'
         notify('info', div({}, [
           `Your access to NIH Controlled Access workspaces and data ${expirationMessage}. To regain access, `,
-          Profile.renderShibbolethLink('re-link', colors.lightGreen),
+          Profile.renderShibbolethLink('re-link', 'light'),
           ` your eRA Commons / NIH account (${linkedNihUsername}) with Terra.`
         ]), { id: notificationId })
       }

@@ -33,20 +33,20 @@ export const Clickable = ({ as = 'div', disabled, tooltip, tooltipSide, onClick,
   }
 }
 
-const linkProps = (disabled, color = colors.green) => ({
+const linkProps = ({ disabled, variant }) => ({
   as: 'a',
   style: {
-    color: disabled ? colors.gray[2] : color[0],
+    color: disabled ? colors.gray[2] : variant === 'light' ? colors.lightGreen[0] : colors.green[0],
     cursor: disabled ? 'not-allowed' : 'pointer',
     fontWeight: 500
   },
-  hover: disabled ? undefined : { color: color[1] }
+  hover: disabled ? undefined : { color: variant === 'light' ? colors.lightGreen[1] : colors.green[1] }
 })
 
-export const link = ({ onClick, href, ...props }, children) => {
+export const link = ({ onClick, href, disabled, variant, ...props }, children) => {
   return h(Interactive,
-    _.merge(linkProps(props.disabled, props.color), {
-      href,
+    _.merge(linkProps({ disabled, variant }), {
+      href, disabled,
       onClick: href && onClick ? e => {
         e.preventDefault()
         onClick(e)
@@ -56,9 +56,9 @@ export const link = ({ onClick, href, ...props }, children) => {
     children)
 }
 
-export const linkButton = (props, children) => {
+export const linkButton = ({ disabled, variant, ...props }, children) => {
   return h(Clickable,
-    _.merge(linkProps(props.disabled), props),
+    _.merge(linkProps({ disabled, variant }), { disabled, ...props }),
     children)
 }
 
