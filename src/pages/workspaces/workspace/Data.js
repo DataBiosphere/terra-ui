@@ -83,6 +83,18 @@ const getReferenceData = _.flow(
 )
 
 const LocalVariablesContent = ajaxCaller(class LocalVariablesContent extends Component {
+  constructor(props) {
+    super(props)
+    this.state = {
+      editIndex: undefined,
+      deleteIndex: undefined,
+      editKey: undefined,
+      editValue: undefined,
+      editType: undefined
+    }
+    this.uploader = createRef()
+  }
+
   render() {
     const { workspace, workspace: { workspace: { namespace, name, attributes } }, ajax: { Workspaces }, refreshWorkspace, loadingWorkspace, firstRender } = this.props
     const { editIndex, deleteIndex, editKey, editValue, editType } = this.state
@@ -126,8 +138,32 @@ const LocalVariablesContent = ajaxCaller(class LocalVariablesContent extends Com
       stopEditing()
     })
 
+    const upload = withErrorReporting('Error uploading file', async ([file]) => {
+      await Workspaces.workspace(namespace, name).importAttributes(file)
+      await refreshWorkspace()
+    })
+
+    const download = withErrorReporting('Error downloading attributes', async () => {
+      const blob = await Workspaces.workspace(namespace, name).exportAttributes()
+      FileSaver.saveAs(blob, `${name}-workspace-attributes.tsv`)
+    })
+
     const { initialY } = firstRender ? StateHistory.get() : {}
-    return h(Fragment, [
+    return h(Dropzone, {
+      disabled: !!Utils.editWorkspaceError(workspace),
+      disableClick: true,
+      style: { flex: 1, display: 'flex', flexDirection: 'column' },
+      activeStyle: { backgroundColor: colors.green[6], cursor: 'copy' },
+      ref: this.uploader,
+      onDropAccepted: upload
+    }, [
+      div({ style: { flex: 'none', display: 'flex', marginBottom: '0.25rem', justifyContent: 'flex-end' } }, [
+        linkButton({ onClick: download }, ['Download TSV']),
+        !Utils.editWorkspaceError(workspace) && h(Fragment, [
+          div({ style: { whiteSpace: 'pre' } }, ['  |  Drag or click to ']),
+          linkButton({ onClick: () => this.uploader.current.open() }, ['upload TSV'])
+        ])
+      ]),
       Utils.cond(
         [_.isEmpty(amendedAttributes), () => 'No Workspace Data defined'],
         () => div({ style: { flex: 1 } }, [
