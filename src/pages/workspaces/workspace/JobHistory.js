@@ -5,6 +5,7 @@ import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { buttonPrimary, Clickable, link, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
+import { SearchInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { FlexTable, HeaderCell, TextCell } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
@@ -107,10 +108,11 @@ const JobHistory = _.flow(
   constructor(props) {
     super(props)
 
-    const newSubmissionId = sessionStorage.getItem('new-submission')
-    if (newSubmissionId) {
-      sessionStorage.removeItem('new-submission')
-      this.state = { newSubmissionId, highlightNewSubmission: true }
+    this.state = {
+      submissions: undefined,
+      loading: false,
+      aborting: false,
+      textFilter: ''
     }
   }
 
@@ -142,157 +144,170 @@ const JobHistory = _.flow(
 
   render() {
     const { namespace, name, ajax: { Workspaces }, workspace: { workspace: { workflowCollectionName } } } = this.props
-    const { submissions, loading, aborting, newSubmissionId, highlightNewSubmission, linkToFC } = this.state
+    const { submissions, loading, aborting, newSubmissionId, highlightNewSubmission, linkToFC, textFilter } = this.state
 
-    return div({ style: styles.submissionsTable }, [
-      submissions && !!submissions.length && h(AutoSizer, [
-        ({ width, height }) => h(FlexTable, {
-          width, height, rowCount: submissions.length,
-          hoverHighlight: true,
-          styleRow: rowIndex => {
-            const { submissionId } = submissions[rowIndex]
-            if (newSubmissionId === submissionId) {
-              return {
-                transition: `background-color ${animationLengthMillis}ms cubic-bezier(0.33, -2, 0.74, 0.05)`,
-                backgroundColor: highlightNewSubmission ? colors.blue[5] : 'white'
+    const filteredSubmissions = _.filter(sub => {
+      const subAsText = JSON.stringify(_.values(sub))
+      return _.every(term => Utils.textMatch(term, subAsText), textFilter.split(/s+/))
+    }, submissions)
+
+    return h(Fragment, [
+      h(SearchInput, {
+        style: { width: 300, margin: '1rem 1rem 0', borderColor: colors.gray[3], alignSelf: 'flex-end' },
+        placeholder: 'Filter',
+        onChange: ({ target: { value } }) => this.setState({ textFilter: value }),
+        value: textFilter
+      }),
+      div({ style: styles.submissionsTable }, [
+        filteredSubmissions && !!filteredSubmissions.length && h(AutoSizer, [
+          ({ width, height }) => h(FlexTable, {
+            width, height, rowCount: filteredSubmissions.length,
+            hoverHighlight: true,
+            styleRow: rowIndex => {
+              const { submissionId } = filteredSubmissions[rowIndex]
+              if (newSubmissionId === submissionId) {
+                return {
+                  transition: `background-color ${animationLengthMillis}ms cubic-bezier(0.33, -2, 0.74, 0.05)`,
+                  backgroundColor: highlightNewSubmission ? colors.blue[5] : 'white'
+                }
               }
-            }
-          },
-          columns: [
-            {
-              size: { basis: 500, grow: 0 },
-              headerRenderer: () => h(HeaderCell, ['Job (click for details)']),
-              cellRenderer: ({ rowIndex }) => {
-                const {
-                  methodConfigurationNamespace, methodConfigurationName, submitter, submissionId
-                } = submissions[rowIndex]
-                const viewInJobManager = linkToJobManager && !!workflowCollectionName
-                return h(Fragment, [
-                  div([
+            },
+            columns: [
+              {
+                size: { basis: 500, grow: 0 },
+                headerRenderer: () => h(HeaderCell, ['Job (click for details)']),
+                cellRenderer: ({ rowIndex }) => {
+                  const {
+                    methodConfigurationNamespace, methodConfigurationName, submitter, submissionId
+                  } = filteredSubmissions[rowIndex]
+                  const viewInJobManager = linkToJobManager && !!workflowCollectionName
+                  return h(Fragment, [
                     div([
-                      methodConfigurationNamespace !== namespace && span({ style: styles.deemphasized }, [
-                        `${methodConfigurationNamespace}/`
+                      div([
+                        methodConfigurationNamespace !== namespace && span({ style: styles.deemphasized }, [
+                          `${methodConfigurationNamespace}/`
+                        ]),
+                        link(viewInJobManager ? {
+                          target: '_blank',
+                          href: `${getConfig().jobManagerUrlRoot}?q=submission-id%3D${submissionId}`
+                        } : {
+                          onClick: () => this.setState({
+                            linkToFC: `${getConfig().firecloudUrlRoot}/#workspaces/${namespace}/${name}/monitor/${submissionId}`
+                          })
+                        }, [
+                          methodConfigurationName, icon('pop-out', {
+                            size: 10,
+                            style: { marginLeft: '0.2rem' }
+                          })
+                        ])
                       ]),
-                      link(viewInJobManager ? {
-                        target: '_blank',
-                        href: `${getConfig().jobManagerUrlRoot}?q=submission-id%3D${submissionId}`
-                      } : {
-                        onClick: () => this.setState({
-                          linkToFC: `${getConfig().firecloudUrlRoot}/#workspaces/${namespace}/${name}/monitor/${submissionId}`
-                        })
+                      div([
+                        span({ style: styles.deemphasized }, 'Submitted by '),
+                        submitter
+                      ])
+                    ])
+                  ])
+                }
+              },
+              {
+                size: { basis: 175, grow: 0 },
+                headerRenderer: () => h(HeaderCell, ['No. of Workflows']),
+                cellRenderer: ({ rowIndex }) => {
+                  const { workflowStatuses } = filteredSubmissions[rowIndex]
+                  return h(TextCell, Utils.formatNumber(_.sum(_.values(workflowStatuses))))
+                }
+              },
+              {
+                size: { basis: 150, grow: 0 },
+                headerRenderer: () => h(HeaderCell, ['Status']),
+                cellRenderer: ({ rowIndex }) => {
+                  const {
+                    methodConfigurationNamespace, methodConfigurationName, submissionId, workflowStatuses,
+                    status, submissionEntity
+                  } = filteredSubmissions[rowIndex]
+                  return h(Fragment, [
+                    statusCell(workflowStatuses), status === 'Aborting' && 'Aborting',
+                    (collapsedStatuses(workflowStatuses).running && status !== 'Aborting') && h(TooltipTrigger, {
+                      content: 'Abort all workflows'
+                    }, [
+                      h(Clickable, {
+                        onClick: () => this.setState({ aborting: submissionId })
                       }, [
-                        methodConfigurationName, icon('pop-out', {
-                          size: 10,
-                          style: { marginLeft: '0.2rem' }
-                        })
+                        icon('times-circle', { size: 20, style: { color: colors.green[0], marginLeft: '0.5rem' } })
                       ])
                     ]),
-                    div([
-                      span({ style: styles.deemphasized }, 'Submitted by '),
-                      submitter
+                    isTerminal(status) && workflowStatuses['Failed'] &&
+                    submissionEntity && h(TooltipTrigger, {
+                      content: 'Re-run failures'
+                    }, [
+                      h(Clickable, {
+                        onClick: () => rerunFailures({
+                          namespace,
+                          name,
+                          submissionId,
+                          configNamespace: methodConfigurationNamespace,
+                          configName: methodConfigurationName,
+                          onDone: () => this.refresh()
+                        })
+                      }, [
+                        icon('sync', { size: 18, style: { color: colors.green[0], marginLeft: '0.5rem' } })
+                      ])
                     ])
                   ])
-                ])
-              }
-            },
-            {
-              size: { basis: 175, grow: 0 },
-              headerRenderer: () => h(HeaderCell, ['No. of Workflows']),
-              cellRenderer: ({ rowIndex }) => {
-                const { workflowStatuses } = submissions[rowIndex]
-                return h(TextCell, Utils.formatNumber(_.sum(_.values(workflowStatuses))))
-              }
-            },
-            {
-              size: { basis: 150, grow: 0 },
-              headerRenderer: () => h(HeaderCell, ['Status']),
-              cellRenderer: ({ rowIndex }) => {
-                const {
-                  methodConfigurationNamespace, methodConfigurationName, submissionId, workflowStatuses,
-                  status, submissionEntity
-                } = submissions[rowIndex]
-                return h(Fragment, [
-                  statusCell(workflowStatuses), status === 'Aborting' && 'Aborting',
-                  (collapsedStatuses(workflowStatuses).running && status !== 'Aborting') && h(TooltipTrigger, {
-                    content: 'Abort all workflows'
-                  }, [
-                    h(Clickable, {
-                      onClick: () => this.setState({ aborting: submissionId })
-                    }, [
-                      icon('times-circle', { size: 20, style: { color: colors.green[0], marginLeft: '0.5rem' } })
-                    ])
-                  ]),
-                  isTerminal(status) && workflowStatuses['Failed'] &&
-                  submissionEntity && h(TooltipTrigger, {
-                    content: 'Re-run failures'
-                  }, [
-                    h(Clickable, {
-                      onClick: () => rerunFailures({
-                        namespace,
-                        name,
-                        submissionId,
-                        configNamespace: methodConfigurationNamespace,
-                        configName: methodConfigurationName,
-                        onDone: () => this.refresh()
-                      })
-                    }, [
-                      icon('sync', { size: 18, style: { color: colors.green[0], marginLeft: '0.5rem' } })
-                    ])
+                }
+              },
+              {
+                size: { basis: 150, grow: 0 },
+                headerRenderer: () => h(HeaderCell, ['Submitted']),
+                cellRenderer: ({ rowIndex }) => {
+                  const { submissionDate } = filteredSubmissions[rowIndex]
+                  return h(TooltipTrigger, { content: Utils.makeCompleteDate(submissionDate) }, [
+                    h(TextCell, Utils.makePrettyDate(submissionDate))
                   ])
-                ])
+                }
+              },
+              {
+                headerRenderer: () => h(HeaderCell, ['Data entity']),
+                cellRenderer: ({ rowIndex }) => {
+                  const { submissionEntity: { entityName, entityType } = {} } = filteredSubmissions[rowIndex]
+                  return h(TextCell, [entityType ? `${entityName} (${entityType})` : 'N/A'])
+                }
               }
-            },
-            {
-              size: { basis: 150, grow: 0 },
-              headerRenderer: () => h(HeaderCell, ['Submitted']),
-              cellRenderer: ({ rowIndex }) => {
-                const { submissionDate } = submissions[rowIndex]
-                return h(TooltipTrigger, { content: Utils.makeCompleteDate(submissionDate) }, [
-                  h(TextCell, Utils.makePrettyDate(submissionDate))
-                ])
-              }
-            },
-            {
-              headerRenderer: () => h(HeaderCell, ['Data entity']),
-              cellRenderer: ({ rowIndex }) => {
-                const { submissionEntity: { entityName, entityType } = {} } = submissions[rowIndex]
-                return h(TextCell, [entityType ? `${entityName} (${entityType})` : 'N/A'])
-              }
-            }
-          ]
-        })
-      ]),
-      submissions && !submissions.length && div(['No jobs run']),
-      aborting && h(Modal, {
-        onDismiss: () => this.setState({ aborting: undefined }),
-        title: 'Abort All Workflows',
-        showX: true,
-        okButton: () => {
-          Workspaces.workspace(namespace, name).submission(aborting).abort()
-            .then(() => this.refresh())
-            .catch(e => this.setState({ loading: false }, () => reportError('Error aborting submission', e)))
-          this.setState({ aborting: undefined, loading: true })
-        }
-      }, [
-        `Are you sure you want to abort ${
-          Utils.formatNumber(collapsedStatuses(_.find({ submissionId: aborting }, submissions).workflowStatuses).running)
-        } running workflow(s)?`
-      ]),
-      linkToFC && h(Modal, {
-        onDismiss: () => this.setState({ linkToFC: undefined }),
-        title: 'Legacy Workflow Details',
-        okButton: buttonPrimary({
-          as: 'a',
-          href: linkToFC,
-          target: '_blank',
-          onClick: () => this.setState({ linkToFC: undefined })
-        }, 'Go To FireCloud')
-      }, [
-        `We are currently introducing Terra's new job management component for accessing workflow details. However, this
+            ]
+          })
+        ]),
+        filteredSubmissions && !filteredSubmissions.length && div(['No jobs run']),
+        aborting && h(Modal, {
+          onDismiss: () => this.setState({ aborting: undefined }),
+          title: 'Abort All Workflows',
+          showX: true,
+          okButton: () => {
+            Workspaces.workspace(namespace, name).submission(aborting).abort()
+              .then(() => this.refresh())
+              .catch(e => this.setState({ loading: false }, () => reportError('Error aborting submission', e)))
+            this.setState({ aborting: undefined, loading: true })
+          }
+        }, [
+          `Are you sure you want to abort ${
+            Utils.formatNumber(collapsedStatuses(_.find({ submissionId: aborting }, filteredSubmissions).workflowStatuses).running)
+          } running workflow(s)?`
+        ]),
+        linkToFC && h(Modal, {
+          onDismiss: () => this.setState({ linkToFC: undefined }),
+          title: 'Legacy Workflow Details',
+          okButton: buttonPrimary({
+            as: 'a',
+            href: linkToFC,
+            target: '_blank',
+            onClick: () => this.setState({ linkToFC: undefined })
+          }, 'Go To FireCloud')
+        }, [
+          `We are currently introducing Terra's new job management component for accessing workflow details. However, this
         workspace isn't yet ready to use the new job manager. For now, workflow details can be found in our legacy system,
         FireCloud. You will be asked to sign in to FireCloud to view your workflow details.`
-      ]),
-      loading && spinnerOverlay
+        ]),
+        loading && spinnerOverlay
+      ])
     ])
   }
 

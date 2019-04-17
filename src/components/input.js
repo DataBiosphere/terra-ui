@@ -1,8 +1,8 @@
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
-import { Component, createRef, Fragment } from 'react'
+import { Component, createRef, Fragment, useRef } from 'react'
 import Autosuggest from 'react-autosuggest'
-import { createPortal } from 'react-dom'
+import { createPortal, findDOMNode } from 'react-dom'
 import { div, h } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
 import { search } from 'src/components/common'
@@ -41,21 +41,53 @@ const styles = {
   }
 }
 
-export const textInput = function(props) {
-  return h(Interactive, _.merge(
-    {
-      as: 'input',
-      className: 'focus-style',
-      style: {
-        ...styles.input,
-        width: '100%',
-        paddingLeft: '1rem', paddingRight: '1rem',
-        fontWeight: 400, fontSize: 14,
-        backgroundColor: props.disabled ? colors.grayBlue[4] : undefined
+export const textInput = props => h(Interactive,
+  _.merge({
+    as: 'input',
+    className: 'focus-style',
+    style: {
+      ...styles.input,
+      width: '100%',
+      paddingLeft: '1rem', paddingRight: '1rem',
+      fontWeight: 400, fontSize: 14,
+      backgroundColor: props.disabled ? colors.grayBlue[4] : undefined
+    }
+  },
+  props)
+)
+
+export const SearchInput = ({ onSearch = _.noop, onChange, ...props }) => {
+  const supportsSearch = 'onsearch' in document.documentElement
+
+  const searchEl = useRef()
+  const attachRef = node => {
+    if (node) {
+      const el = findDOMNode(node)
+      searchEl.current = el
+      el.addEventListener('search', onSearch)
+    } else {
+      searchEl.current.removeEventListener('search', onSearch)
+    }
+  }
+
+  return textInput(_.merge({
+    ref: supportsSearch ? attachRef : undefined,
+    type: 'search',
+    style: { WebkitAppearance: 'none' },
+    onChange,
+    onKeyDown: supportsSearch ? undefined : e => { // to make firefox behave like webkit/blink
+      switch (e.which) {
+        case 13: // return
+          onSearch(e)
+          break
+        case 27: // escape
+          onChange(_.merge(e, { target: { value: '' } }))
+          setTimeout(() => onSearch(e), 0) // wait a tick to let the onChange fire first
+          break
+        default:
       }
-    },
-    props
-  ))
+    }
+  }, props))
 }
 
 
