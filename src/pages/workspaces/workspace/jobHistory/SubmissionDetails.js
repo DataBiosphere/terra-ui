@@ -30,12 +30,18 @@ const SubmissionDetails = _.flow(
 )((props, ref) => {
   const { namespace, name, submissionId, ajax: { Workspaces }, workspace: { workspace: { bucketName } } } = props
 
+  /*
+   * State setup
+   */
   const [submission, setSubmission] = useState({})
   const [methodAccessible, setMethodAccessible] = useState()
   const [statusFilter, setStatusFilter] = useState([])
   const [textFilter, setTextFilter] = useState('')
   const [sort, setSort] = useState({ field: 'workflowEntity', direction: 'asc' })
 
+  /*
+   * Data fetchers
+   */
   const getSubmission = Workspaces.workspace(namespace, name).submission(submissionId).get
   const initialize = async () => {
     try {
@@ -69,6 +75,21 @@ const SubmissionDetails = _.flow(
     }
   }, [getSubmission, submission])
 
+  /*
+   * Sub-component constructors
+   */
+  const makeStatusLine = (iconFn, text) => div({ style: { display: 'flex', marginTop: '0.5rem', fontSize: 14 } }, [
+    iconFn({ marginRight: '0.5rem' }), text
+  ])
+
+  const makeSection = (label, children) => div({ style: { flexBasis: '33%', marginBottom: '1rem' } }, [
+    div({ style: Style.elements.sectionHeader }, label),
+    h(Fragment, children)
+  ])
+
+  /*
+   * Data prep
+   */
   const {
     cost, methodConfigurationName: workflowName, methodConfigurationNamespace: workflowNamespace, submissionDate,
     submissionEntity: { entityType, entityName } = {}, submitter, useCallCache, workflows = []
@@ -87,18 +108,11 @@ const SubmissionDetails = _.flow(
     sort.direction === 'asc' ? _.identity : _.reverse
   )(workflows)
 
-
-  const makeStatusLine = (iconFn, text) => div({ style: { display: 'flex', marginTop: '0.5rem', fontSize: 14 } }, [
-    iconFn({ marginRight: '0.5rem' }), text
-  ])
-
-  const makeSection = (label, children) => div({ style: { flexBasis: '33%', marginBottom: '1rem' } }, [
-    div({ style: Style.elements.sectionHeader }, label),
-    h(Fragment, children)
-  ])
-
   const { succeeded, failed, running } = _.groupBy(wf => collapseStatus(wf.status), workflows)
 
+  /*
+   * Page render
+   */
   return _.isEmpty(submission) ? centeredSpinner() : div({ style: { padding: '2rem', flex: 1, display: 'flex', flexDirection: 'column' } }, [
     div({ style: { display: 'flex' } }, [
       div({ style: { flexBasis: 200, marginRight: '2rem', lineHeight: '24px' } }, [
