@@ -1,9 +1,11 @@
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
-import { a, b, div, h } from 'react-hyperscript-helpers'
+import { a, b, div, h, span } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
-import { buttonPrimary, Clickable, MenuButton } from 'src/components/common'
+import { buttonPrimary, Clickable, LabeledCheckbox, MenuButton, spinnerOverlay } from 'src/components/common'
+import FreeTrialEulas from 'src/components/FreeTrialEulas'
 import { icon, profilePic } from 'src/components/icons'
+import { TextArea, textInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import SignInButton from 'src/components/SignInButton'
 import { contactUsActive } from 'src/components/SupportRequest'
@@ -12,7 +14,8 @@ import headerLeftHexes from 'src/images/header-left-hexes.svg'
 import headerRightHexes from 'src/images/header-right-hexes.svg'
 import { ajaxCaller } from 'src/libs/ajax'
 import { authStore, refreshTerraProfile, signOut } from 'src/libs/auth'
-import { menuOpenLogo, topBarLogo } from 'src/libs/logos'
+import { FormLabel } from 'src/libs/forms'
+import { isFirecloud, menuOpenLogo, topBarLogo } from 'src/libs/logos'
 import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
 import { reportError } from 'src/libs/error'
@@ -341,6 +344,19 @@ export default _.flow(
               style: { marginLeft: '0.5rem' }
             })
           ]),
+          isFirecloud() && h(Clickable, {
+            style: styles.nav.supportItem,
+            hover: { backgroundColor: colors.gray[3] },
+            onClick: () => this.setState({ openFirecloudModal: true })
+          }, [
+            div({ style: styles.nav.icon }, [
+              icon('fcIconWhite', {
+                className: 'is-solid',
+                size: 20
+              })
+            ]),
+            'Go back to FireCloud'
+          ]),
           div({
             style: {
               ..._.omit('borderBottom', styles.nav.item),
@@ -425,7 +441,7 @@ export default _.flow(
 
   render() {
     const { title, href, children, ajax: { User } } = this.props
-    const { navShown, openFreeCreditsModal, finalizeTrial, openCookiesModal } = this.state
+    const { navShown, openFreeCreditsModal, finalizeTrial, openCookiesModal, openFirecloudModal } = this.state
 
     return div({
       style: {
@@ -474,7 +490,45 @@ export default _.flow(
       }, ['Click confirm to remove button forever.']),
       openCookiesModal && h(CookiesModal, {
         onDismiss: () => this.setState({ openCookiesModal: false })
+      }),
+      openFirecloudModal && h(preferFirecloudModal, {
+        onDismiss: () => this.setState({ openFirecloudModal: false })
       })
+    ])
+  }
+})
+
+const preferFirecloudModal = ajaxCaller(class preferFirecloudModal extends Component {
+  constructor(props) {
+    super(props)
+    this.state = {
+      reason: '',
+      emailAgreed: true,
+      loading: false
+    }
+  }
+
+  render() {
+    const { onDismiss } = this.props
+    const { emailAgreed, reason, loading } = this.state
+    return h(Modal, {
+      onDismiss,
+      title: 'Take me back to old FireCloud',
+      okButton: () => {}
+    }, [
+      'Are you sure you would like to opt-out of using Terra for now?',
+      h(FormLabel, ['Why are you leaving us :(?']),
+      h(TextArea, {
+        style: { height: 100, borderRadius: '0.5rem', marginBottom: '0.5rem' },
+        placeholder: 'Enter your reason',
+        value: reason,
+        onChange: e => this.setState({ reason: e.target.value })
+      }),
+      h(LabeledCheckbox, {
+        checked: emailAgreed === true,
+        onChange: v => this.setState({ emailAgreed: v })
+      }, [span({ style: { marginLeft: '0.5rem' } }, ['Yes, you can follow up with me by email.'])]),
+      loading && spinnerOverlay
     ])
   }
 })
