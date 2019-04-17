@@ -41,34 +41,32 @@ const SubmissionDetails = _.flow(
     try {
       const submission = await getSubmission()
       setSubmission(submission)
+
+      try {
+        const { methodConfigurationName: configName, methodConfigurationNamespace: configNamespace } = submission
+        await Workspaces.workspace(namespace, name).methodConfig(configNamespace, configName).get()
+        setMethodAccessible(true)
+      } catch {
+        setMethodAccessible(false)
+      }
     } catch (e) {
       reportError('Unable to fetch submission details', e)
     }
-
-    try {
-      const { methodConfigurationName: configName, methodConfigurationNamespace: configNamespace } = submission
-      await Workspaces.workspace(namespace, name).methodConfig(configNamespace, configName).get()
-      setMethodAccessible(true)
-    } catch {
-      setMethodAccessible(false)
-    }
   }
-
-  const anyRunning = () => _.some(({ status }) => collapseStatus(status) === 'running', workflows)
 
   Utils.useOnMount(() => { initialize() })
   useEffect(() => {
-    const interval = setInterval(async () => {
-      try {
-        const submission = await getSubmission()
-        setSubmission(submission)
-      } catch (e) {
-        reportError('Unable to update submission details', e)
-      }
-    }, 60000)
-
-    return () => clearInterval(interval)
-  }, [getSubmission])
+    if (_.some(({ status }) => collapseStatus(status) === 'running', submission.workflows)) {
+      setTimeout(async () => {
+        try {
+          const submission = await getSubmission()
+          setSubmission(submission)
+        } catch (e) {
+          reportError('Unable to update submission details', e)
+        }
+      }, 60000)
+    }
+  }, [getSubmission, submission])
 
   const {
     cost, methodConfigurationName: workflowName, methodConfigurationNamespace: workflowNamespace, submissionDate,
