@@ -165,6 +165,22 @@ export const entityAttributeText = value => {
   )
 }
 
+// Returns a message explaining why the user can't edit the workspace, or undefined if they can
+export const editWorkspaceError = ({ accessLevel, workspace: { isLocked } }) => {
+  return cond(
+    [!canWrite(accessLevel), () => 'You do not have permission to modify this workspace.'],
+    [isLocked, () => 'This workspace is locked']
+  )
+}
+
+// Returns a message explaining why the user can't compute in the workspace, or undefined if they can
+export const computeWorkspaceError = ({ canCompute, workspace: { isLocked } }) => {
+  return cond(
+    [!canCompute, () => 'You do not have access to run analyses on this workspace.'],
+    [isLocked, () => 'This workspace is locked']
+  )
+}
+
 export const textMatch = _.curry((needle, haystack) => {
   return haystack.toLowerCase().includes(needle.toLowerCase())
 })
