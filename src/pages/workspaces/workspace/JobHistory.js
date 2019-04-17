@@ -37,10 +37,6 @@ const styles = {
 const isTerminal = submissionStatus => submissionStatus === 'Aborted' || submissionStatus === 'Done'
 
 
-export const flagNewSubmission = submissionId => {
-  sessionStorage.setItem('new-submission', submissionId)
-}
-
 const collapsedStatuses = _.flow(
   _.toPairs,
   _.map(([status, count]) => ({ [collapseStatus(status)]: count })),
@@ -76,8 +72,6 @@ const statusCell = workflowStatuses => {
   ])
 }
 
-const animationLengthMillis = 1000
-
 
 const JobHistory = _.flow(
   wrapWorkspace({
@@ -86,16 +80,6 @@ const JobHistory = _.flow(
   }),
   ajaxCaller
 )(class JobHistory extends Component {
-  constructor(props) {
-    super(props)
-
-    const newSubmissionId = sessionStorage.getItem('new-submission')
-    if (newSubmissionId) {
-      sessionStorage.removeItem('new-submission')
-      this.state = { newSubmissionId, highlightNewSubmission: true }
-    }
-  }
-
   async refresh() {
     const { namespace, name, ajax: { Workspaces } } = this.props
 
@@ -113,33 +97,17 @@ const JobHistory = _.flow(
     } finally {
       this.setState({ loading: false })
     }
-
-    if (this.state.newSubmissionId) {
-      await Utils.waitOneTick()
-      this.setState({ highlightNewSubmission: false })
-      await Utils.delay(animationLengthMillis)
-      this.setState({ newSubmissionId: undefined })
-    }
   }
 
   render() {
     const { namespace, name, ajax: { Workspaces }, workspace: { workspace: { bucketName } } } = this.props
-    const { submissions, loading, aborting, newSubmissionId, highlightNewSubmission } = this.state
+    const { submissions, loading, aborting } = this.state
 
     return div({ style: styles.submissionsTable }, [
       submissions && !!submissions.length && h(AutoSizer, [
         ({ width, height }) => h(FlexTable, {
           width, height, rowCount: submissions.length,
           hoverHighlight: true,
-          styleRow: rowIndex => {
-            const { submissionId } = submissions[rowIndex]
-            if (newSubmissionId === submissionId) {
-              return {
-                transition: `background-color ${animationLengthMillis}ms cubic-bezier(0.33, -2, 0.74, 0.05)`,
-                backgroundColor: highlightNewSubmission ? colors.blue[5] : 'white'
-              }
-            }
-          },
           columns: [
             {
               size: { basis: 500, grow: 0 },

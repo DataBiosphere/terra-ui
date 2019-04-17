@@ -24,7 +24,6 @@ import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
-import * as JobHistory from 'src/pages/workspaces/workspace/JobHistory'
 import DataStepContent from 'src/pages/workspaces/workspace/tools/DataStepContent'
 import DeleteToolModal from 'src/pages/workspaces/workspace/tools/DeleteToolModal'
 import EntitySelectionType from 'src/pages/workspaces/workspace/tools/EntitySelectionType'
@@ -382,10 +381,7 @@ const WorkflowView = _.flow(
           workspaceId, config: savedConfig,
           processSingle: this.isSingle(), entitySelectionModel, useCallCache,
           onDismiss: () => this.setState({ launching: false }),
-          onSuccess: submissionId => {
-            JobHistory.flagNewSubmission(submissionId)
-            Nav.goToPath('workspace-job-history', workspaceId)
-          }
+          onSuccess: submissionId => Nav.goToPath('workspace-submission-details', { submissionId, ...workspaceId })
         }),
         variableSelected && h(BucketContentModal, {
           workspace,
@@ -524,7 +520,8 @@ const WorkflowView = _.flow(
       [saving || modified, () => 'Save or cancel to Launch Analysis'],
       [!_.isEmpty(errors.inputs) || !_.isEmpty(errors.outputs), () => 'At least one required attribute is missing or invalid'],
       [this.isMultiple() && !entityMetadata[rootEntityType], () => `There are no ${selectedEntityType}s in this workspace.`],
-      [this.isMultiple() && entitySelectionModel.type === EntitySelectionType.chooseSet && !entitySelectionModel.selectedEntities.name, () => 'Select a set']
+      [this.isMultiple() && entitySelectionModel.type === EntitySelectionType.chooseSet && !entitySelectionModel.selectedEntities.name,
+        () => 'Select a set']
     )
 
     const inputsValid = _.isEmpty(errors.inputs)
@@ -552,7 +549,7 @@ const WorkflowView = _.flow(
           ]),
           div({ style: { marginTop: '0.5rem' } },
             (sourceRepo === 'agora') ? [
-              'Snapshot', div({ style: { display: 'inline-block', marginLeft: '0.25rem', minWidth: 60  } }, [
+              'Snapshot', div({ style: { display: 'inline-block', marginLeft: '0.25rem', minWidth: 60 } }, [
                 h(Select, {
                   isClearable: false,
                   isSearchable: false,
@@ -822,7 +819,10 @@ const WorkflowView = _.flow(
   cancel() {
     const { savedConfig, savedInputsOutputs, savedConfig: { rootEntityType } } = this.state
 
-    this.setState({ saved: false, modifiedConfig: savedConfig, modifiedInputsOutputs: savedInputsOutputs, entitySelectionModel: this.resetSelectionModel(rootEntityType) })
+    this.setState({
+      saved: false, modifiedConfig: savedConfig, modifiedInputsOutputs: savedInputsOutputs,
+      entitySelectionModel: this.resetSelectionModel(rootEntityType)
+    })
     this.updateSingleOrMultipleRadioState(savedConfig)
   }
 })
