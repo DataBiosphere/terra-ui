@@ -330,15 +330,20 @@ const Profile = _.flow(
     this.setState({ profileInfo: _.set(key, value, this.state.profileInfo) })
   }
 
-  async save() {
+  save = _.flow(
+    Utils.withBusyState(v => this.setState({ saving: v })),
+    withErrorReporting('Error saving profile')
+  )(async () => {
     const { profileInfo } = this.state
     const { ajax: { User } } = this.props
 
-    this.setState({ saving: true })
-    await User.profile.set(_.pickBy(_.identity, profileInfo))
+    const [prefsData, profileData] = _.over([_.pickBy, _.omitBy])((v, k) => _.startsWith('notifications/', k), profileInfo)
+    await Promise.all([
+      User.profile.set(_.pickBy(_.identity, profileData)),
+      User.profile.setPreferences(prefsData)
+    ])
     await refreshTerraProfile()
-    this.setState({ saving: false })
-  }
+  })
 
   async componentDidMount() {
     const { ajax: { User }, authState: { profile: { email } } } = this.props
