@@ -1,5 +1,6 @@
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
+import { useState } from 'react'
 import { a, b, div, h, span } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
 import { buttonPrimary, Clickable, LabeledCheckbox, MenuButton, spinnerOverlay } from 'src/components/common'
@@ -12,13 +13,13 @@ import { contactUsActive } from 'src/components/SupportRequest'
 import { FreeCreditsModal } from 'src/components/TrialBanner'
 import headerLeftHexes from 'src/images/header-left-hexes.svg'
 import headerRightHexes from 'src/images/header-right-hexes.svg'
-import { ajaxCaller } from 'src/libs/ajax'
+import { Ajax, ajaxCaller } from 'src/libs/ajax'
 import { authStore, refreshTerraProfile, signOut } from 'src/libs/auth'
 import { FormLabel } from 'src/libs/forms'
 import { isFirecloud, menuOpenLogo, topBarLogo } from 'src/libs/logos'
 import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
-import { reportError } from 'src/libs/error'
+import { reportError, withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
@@ -346,6 +347,8 @@ export default _.flow(
           ]),
           isFirecloud() && h(Clickable, {
             style: styles.nav.supportItem,
+            disabled: !isSignedIn,
+            tooltip: isSignedIn ? undefined : 'Please sign in',
             hover: { backgroundColor: colors.gray[3] },
             onClick: () => this.setState({ openFirecloudModal: true })
           }, [
@@ -440,7 +443,7 @@ export default _.flow(
   }
 
   render() {
-    const { title, href, children, ajax: { User } } = this.props
+    const { title, href, children, ajax: { User }, authState } = this.props
     const { navShown, openFreeCreditsModal, finalizeTrial, openCookiesModal, openFirecloudModal } = this.state
 
     return div({
@@ -491,44 +494,53 @@ export default _.flow(
       openCookiesModal && h(CookiesModal, {
         onDismiss: () => this.setState({ openCookiesModal: false })
       }),
-      openFirecloudModal && h(preferFirecloudModal, {
-        onDismiss: () => this.setState({ openFirecloudModal: false })
+      openFirecloudModal && h(PreferFirecloudModal, {
+        onDismiss: () => this.setState({ openFirecloudModal: false }),
+        authState
       })
     ])
   }
 })
 
-const preferFirecloudModal = ajaxCaller(class preferFirecloudModal extends Component {
-  constructor(props) {
-    super(props)
-    this.state = {
-      reason: '',
-      emailAgreed: true,
-      loading: false
-    }
-  }
+const PreferFirecloudModal = ({ onDismiss, authState }) => {
+  const [emailAgreed, setEmailAgreed] = useState(true)
+  const [reason, setReason] = useState('')
+  const [submitting, setSubmitting] = useState(false)
 
-  render() {
-    const { onDismiss } = this.props
-    const { emailAgreed, reason, loading } = this.state
-    return h(Modal, {
-      onDismiss,
-      title: 'Take me back to old FireCloud',
-      okButton: () => {}
-    }, [
-      'Are you sure you would like to opt-out of using Terra for now?',
-      h(FormLabel, ['Why are you leaving us :(?']),
-      h(TextArea, {
-        style: { height: 100, borderRadius: '0.5rem', marginBottom: '0.5rem' },
-        placeholder: 'Enter your reason',
-        value: reason,
-        onChange: e => this.setState({ reason: e.target.value })
-      }),
-      h(LabeledCheckbox, {
-        checked: emailAgreed === true,
-        onChange: v => this.setState({ emailAgreed: v })
-      }, [span({ style: { marginLeft: '0.5rem' } }, ['Yes, you can follow up with me by email.'])]),
-      loading && spinnerOverlay
-    ])
-  }
-})
+  const { profile: { name, email, firstName, lastName } } = authState
+  const functiony = _.flow(
+    withErrorReporting('Error opting out of Terra'),
+    Utils.withBusyState(setSubmitting)
+  )(async () => {
+    // hit endpoint to set preferTerra: false
+
+    //send request to Zendesk if checked box or provided a description
+    if (emailAgreed === true || reason.length !== 0) await Ajax().User.createSupportRequest({
+      name: `${firstName}, ${lastName}`, email, description: reason,
+      subject: 'Opt out of Terra',
+      type: 'question', //is this what we want?
+      emailAgreed
+    })
+    window.location.assign(getConfig().firecloudUrlRoot)
+  })
+
+  return h(Modal, {
+    onDismiss,
+    title: 'Take me back to old FireCloud!',
+    okButton: functiony
+  }, [
+    'Are you sure you would like to opt-out of using Terra for now?',
+    h(FormLabel, ['Why are you leaving us :(?']),
+    h(TextArea, {
+      style: { height: 100, borderRadius: '0.5rem', marginBottom: '0.5rem' },
+      placeholder: 'Enter your reason',
+      value: reason,
+      onChange: e => setReason(e.target.value)
+    }),
+    h(LabeledCheckbox, {
+      checked: emailAgreed === true,
+      onChange: setEmailAgreed
+    }, [span({ style: { marginLeft: '0.5rem' } }, ['Yes, you can follow up with me by email.'])]),
+    submitting && spinnerOverlay
+  ])
+}
