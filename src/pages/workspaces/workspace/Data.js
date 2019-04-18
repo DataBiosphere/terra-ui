@@ -27,8 +27,8 @@ import * as StateHistory from 'src/libs/state-history'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
-
-
+import { IGVFileSelector } from 'src/components/IGVFileSelector'
+import { IGVBrowser } from 'src/components/IGVBrowser'
 const localVariables = 'localVariables'
 const bucketObjects = '__bucket_objects__'
 
@@ -340,7 +340,9 @@ class EntitiesContent extends Component {
     this.state = {
       selectedEntities: {},
       deletingEntities: false,
-      refreshKey: 0
+      refreshKey: 0,
+      igvFiles: undefined,
+      showIgvSelector: false
     }
     this.downloadForm = createRef()
   }
@@ -402,6 +404,20 @@ class EntitiesContent extends Component {
     ])
   }
 
+  renderIgvButton() {
+    const { selectedEntities } = this.state
+
+    return h(Fragment, [
+      buttonPrimary({
+        disabled: _.isEmpty(selectedEntities),
+        tooltip: 'Open with IGV',
+        onClick: () => this.setState({ showIgvSelector: true })
+      }, [
+        'Open with IGV'
+      ])
+    ])
+  }
+
   renderOpenInDataExplorerButton() {
     const { workspace: { workspace: { workspaceId } } } = this.props
     const { selectedEntities } = this.state
@@ -440,11 +456,10 @@ class EntitiesContent extends Component {
       workspace, workspace: { accessLevel, workspace: { namespace, name }, workspaceSubmissionStats: { runningSubmissionsCount } },
       entityKey, entityMetadata, loadMetadata, firstRender
     } = this.props
-    const { selectedEntities, deletingEntities, copyingEntities, refreshKey } = this.state
+    const { selectedEntities, deletingEntities, copyingEntities, refreshKey, igvFiles, showIgvSelector } = this.state
 
     const { initialX, initialY } = firstRender ? StateHistory.get() : {}
-
-    return h(Fragment, [
+    return igvFiles ? h(IGVBrowser, { selectedFiles: igvFiles, refGenome: 'hg19' }) : h(Fragment, [
       h(DataTable, {
         persist: true, firstRender, refreshKey,
         entityType: entityKey, entityMetadata, workspaceId: { namespace, name },
@@ -460,7 +475,8 @@ class EntitiesContent extends Component {
           this.renderOpenInDataExplorerButton()
         ] : [
           this.renderDownloadButton(columnSettings),
-          this.renderCopyButton(entities, columnSettings)
+          this.renderCopyButton(entities, columnSettings),
+          this.renderIgvButton()
         ])
       }),
       !_.isEmpty(selectedEntities) && h(FloatingActionButton, {
@@ -490,6 +506,11 @@ class EntitiesContent extends Component {
         onDismiss: () => this.setState({ copyingEntities: false }),
         workspace,
         selectedEntities: _.keys(selectedEntities), selectedDataType: entityKey, runningSubmissionsCount
+      }),
+      showIgvSelector && h(IGVFileSelector, {
+        onDismiss: () => this.setState({ showIgvSelector: false }),
+        onSuccess: selectedFiles => this.setState({ showIgvSelector: false, igvFiles: selectedFiles }),
+        selectedEntities
       })
     ])
   }
