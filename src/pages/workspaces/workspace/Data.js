@@ -91,14 +91,15 @@ const LocalVariablesContent = ajaxCaller(class LocalVariablesContent extends Com
       deleteIndex: undefined,
       editKey: undefined,
       editValue: undefined,
-      editType: undefined
+      editType: undefined,
+      textFilter: ''
     }
     this.uploader = createRef()
   }
 
   render() {
     const { workspace, workspace: { workspace: { namespace, name, attributes } }, ajax: { Workspaces }, refreshWorkspace, loadingWorkspace, firstRender } = this.props
-    const { editIndex, deleteIndex, editKey, editValue, editType, textFilter = '' } = this.state
+    const { editIndex, deleteIndex, editKey, editValue, editType, textFilter} = this.state
     const stopEditing = resetFilter => this.setState({
       editIndex: undefined, editKey: undefined, editValue: undefined, editType: undefined,
       ...(resetFilter ? { textFilter: '' } : {})
