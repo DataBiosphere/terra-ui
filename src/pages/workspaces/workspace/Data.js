@@ -99,7 +99,7 @@ const LocalVariablesContent = ajaxCaller(class LocalVariablesContent extends Com
 
   render() {
     const { workspace, workspace: { workspace: { namespace, name, attributes } }, ajax: { Workspaces }, refreshWorkspace, loadingWorkspace, firstRender } = this.props
-    const { editIndex, deleteIndex, editKey, editValue, editType, textFilter} = this.state
+    const { editIndex, deleteIndex, editKey, editValue, editType, textFilter } = this.state
     const stopEditing = resetFilter => this.setState({
       editIndex: undefined, editKey: undefined, editValue: undefined, editType: undefined,
       ...(resetFilter ? { textFilter: '' } : {})
@@ -279,16 +279,16 @@ const LocalVariablesContent = ajaxCaller(class LocalVariablesContent extends Com
         onDismiss: () => this.setState({ deleteIndex: undefined }),
         title: 'Are you sure you wish to delete this variable?',
         okButton: buttonPrimary({
-            onClick: _.flow(
-              withErrorReporting('Error deleting workspace variable'),
-              Utils.withBusyState(v => this.setState({ saving: v }))
-            )(async () => {
-              this.setState({ deleteIndex: undefined })
-              await Workspaces.workspace(namespace, name).deleteAttributes([amendedAttributes[deleteIndex][0]])
-              refreshWorkspace()
-            })
-          },
-          'Delete Variable')
+          onClick: _.flow(
+            withErrorReporting('Error deleting workspace variable'),
+            Utils.withBusyState(v => this.setState({ saving: v }))
+          )(async () => {
+            this.setState({ deleteIndex: undefined })
+            await Workspaces.workspace(namespace, name).deleteAttributes([amendedAttributes[deleteIndex][0]])
+            refreshWorkspace()
+          })
+        },
+        'Delete Variable')
       }, ['This will permanently delete the data from Workspace Data.']),
       loadingWorkspace && spinnerOverlay
     ])
