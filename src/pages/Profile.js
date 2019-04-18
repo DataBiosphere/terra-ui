@@ -1,8 +1,7 @@
 import _ from 'lodash/fp'
-import * as qs from 'qs'
 import { Fragment, useState } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
-import { buttonPrimary, LabeledCheckbox, link, RadioButton, spinnerOverlay } from 'src/components/common'
+import { buttonPrimary, LabeledCheckbox, link, RadioButton, ShibbolethLink, spinnerOverlay } from 'src/components/common'
 import { centeredSpinner, icon, profilePic, spinner } from 'src/components/icons'
 import { textInput, validatedInput } from 'src/components/input'
 import { InfoBox } from 'src/components/PopupTrigger'
@@ -10,7 +9,6 @@ import TopBar from 'src/components/TopBar'
 import { Ajax, ajaxCaller, useCancellation } from 'src/libs/ajax'
 import { authStore, getUser, refreshTerraProfile } from 'src/libs/auth'
 import colors from 'src/libs/colors'
-import { getConfig } from 'src/libs/config'
 import { withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as Utils from 'src/libs/utils'
@@ -58,21 +56,6 @@ const styles = {
       marginLeft: '0.5rem'
     }
   }
-}
-
-
-export const renderShibbolethLink = (label, variant) => {
-  const nihRedirectUrl = `${window.location.origin}/${Nav.getLink('profile')}?nih-username-token={token}`
-
-  return link({
-    href: `${getConfig().shibbolethUrlRoot}/link-nih-account?${qs.stringify({ 'redirect-url': nihRedirectUrl })}`,
-    variant,
-    style: { display: 'inline-flex', alignItems: 'center' },
-    target: '_blank'
-  }, [
-    label,
-    icon('pop-out', { size: 12, style: { marginLeft: '0.2rem' } })
-  ])
 }
 
 
@@ -129,7 +112,7 @@ const NihLink = ({ nihToken }) => {
   const renderStatus = () => {
     const { linkedNihUsername, linkExpireTime, datasetPermissions } = nihStatus
     return h(Fragment, [
-      !linkedNihUsername && renderShibbolethLink('Log in to NIH to link your account'),
+      !linkedNihUsername && h(ShibbolethLink, ['Log in to NIH to link your account']),
       !!linkedNihUsername && div({ style: { display: 'flex', flexDirection: 'column', width: '33rem' } }, [
         div({ style: { display: 'flex' } }, [
           div({ style: { flex: 1 } }, ['Username:']),
@@ -139,7 +122,7 @@ const NihLink = ({ nihToken }) => {
           div({ style: { flex: 1 } }, ['Link Expiration:']),
           div({ style: { flex: 2 } }, [
             div([Utils.makeCompleteDate(linkExpireTime * 1000)]),
-            div([renderShibbolethLink('Log in to NIH to re-link your account')])
+            div([h(ShibbolethLink, ['Log in to NIH to re-link your account'])])
           ])
         ]),
         _.flow(
@@ -162,9 +145,11 @@ const NihLink = ({ nihToken }) => {
         'Linking with eRA Commons will allow Terra to automatically determine if you can access controlled datasets hosted in Terra (ex. TCGA) based on your valid dbGaP applications.'
       ])
     ]),
-    loading && div([spinner(), 'Loading NIH account status...']),
-    linking && div([spinner(), 'Linking NIH account...']),
-    !loading && !linking && renderStatus()
+    Utils.cond(
+      [loading, () => div([spinner(), 'Loading NIH account status...'])],
+      [linking, () => div([spinner(), 'Linking NIH account...'])],
+      () => renderStatus()
+    )
   ])
 }
 

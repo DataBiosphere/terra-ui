@@ -1,5 +1,6 @@
 import _ from 'lodash/fp'
 import marked from 'marked'
+import * as qs from 'qs'
 import { Fragment, useState } from 'react'
 import { div, h, input, label, span } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
@@ -9,6 +10,7 @@ import TooltipTrigger from 'src/components/TooltipTrigger'
 import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
 import { isFirecloud, logo } from 'src/libs/logos'
+import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 
 
@@ -298,6 +300,19 @@ export const methodLink = config => {
   return sourceRepo === 'agora' ?
     `${getConfig().firecloudUrlRoot}/?return=${isFirecloud() ? `firecloud` : `terra`}#methods/${methodNamespace}/${methodName}/${methodVersion}` :
     `${getConfig().dockstoreUrlRoot}/workflows/${methodPath}`
+}
+
+export const ShibbolethLink = ({ children, ...props }) => {
+  const nihRedirectUrl = `${window.location.origin}/${Nav.getLink('profile')}?nih-username-token={token}`
+  return link({
+    ...props,
+    href: `${getConfig().shibbolethUrlRoot}/link-nih-account?${qs.stringify({ 'redirect-url': nihRedirectUrl })}`,
+    style: { display: 'inline-flex', alignItems: 'center' },
+    target: '_blank'
+  }, [
+    children,
+    icon('pop-out', { size: 12, style: { marginLeft: '0.2rem' } })
+  ])
 }
 
 /**

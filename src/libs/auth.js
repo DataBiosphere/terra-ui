@@ -1,5 +1,7 @@
 import _ from 'lodash/fp'
 import * as md5 from 'md5'
+import { div, h } from 'react-hyperscript-helpers'
+import { ShibbolethLink } from 'src/components/common'
 import { clearNotification, sessionTimeoutProps, notify } from 'src/components/Notifications'
 import ProdWhitelist from 'src/data/prod-whitelist'
 import { Ajax, fetchOk } from 'src/libs/ajax'
@@ -199,13 +201,41 @@ authStore.subscribe((state, oldState) => {
 })
 
 authStore.subscribe(withErrorReporting('Error loading NIH account link status', async (state, oldState) => {
-  if (!oldState.isSignedIn && state.isSignedIn) {
+  const loadNihStatus = async () => {
     try {
-      const nihStatus = await Ajax().User.getNihStatus()
-      authStore.update(state => ({ ...state, nihStatus }))
+      return await Ajax().User.getNihStatus()
     } catch (error) {
-      if (error.status === 404) authStore.update(state => ({ ...state, nihStatus: {} }))
-      else throw error
+      if (error.status === 404) {
+        return {}
+      } else {
+        throw error
+      }
     }
   }
+  if (!oldState.isSignedIn && state.isSignedIn) {
+    const nihStatus = await loadNihStatus()
+    authStore.update(_.set('nihStatus', nihStatus))
+  }
 }))
+
+authStore.subscribe((state, oldState) => {
+  if (state.nihStatus !== oldState.nihStatus) {
+    const notificationId = 'nih-link-warning'
+    const now = Date.now()
+    const expireTime = state.nihStatus && state.nihStatus.linkExpireTime * 1000
+    const expireStatus = Utils.cond(
+      [!expireTime, () => null],
+      [now > expireTime, () => 'has expired'],
+      [now > expireTime - (1000 * 60 * 60 * 24), () => 'will expire soon']
+    )
+    if (expireStatus) {
+      notify('info', div({}, [
+        `Your access to NIH Controlled Access workspaces and data ${expireStatus}. To regain access, `,
+        h(ShibbolethLink, { variant: 'light' }, ['re-link']),
+        ` your eRA Commons / NIH account (${state.nihStatus.linkedNihUsername}) with Terra.`
+      ]), { id: notificationId })
+    } else {
+      clearNotification(notificationId)
+    }
+  }
+})
