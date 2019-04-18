@@ -1,12 +1,13 @@
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
 import { Fragment, PureComponent } from 'react'
-import { div, h, span } from 'react-hyperscript-helpers'
+import { div, h, span, strong } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
 import { buttonPrimary, buttonSecondary, Clickable, LabeledCheckbox, Select } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { IntegerInput, textInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
+import { notify } from 'src/components/Notifications.js'
 import PopupTrigger from 'src/components/PopupTrigger'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { machineTypes, profiles, storagePrice } from 'src/data/clusters'
@@ -371,6 +372,17 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
     this.resetUpdateInterval()
   }
 
+  componentDidUpdate(prevProps) {
+    const prevCluster = _.last(_.sortBy('createdDate', _.remove({ status: 'Deleting' }, prevProps.clusters))) || {}
+    const currentCluster = this.getCurrentCluster() || {}
+    if (currentCluster.status === 'Error' && prevCluster.status !== 'Error') {
+      notify('error', 'Error creating cluster', {
+        message: h(Fragment, [strong(['Failed action: ']), currentCluster.jupyterUserScriptUri])
+      })
+      this.destroyClusters(-2)
+    }
+  }
+
   componentWillUnmount() {
     clearInterval(this.interval)
   }
@@ -513,7 +525,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
     }, spendingClusters))
     const activeClusters = this.getActiveClustersOldestFirst()
     const creating = _.some({ status: 'Creating' }, activeClusters)
-    const multiple = !creating && activeClusters.length > 1
+    const multiple = !creating && activeClusters.length > 1 && currentStatus !== 'Error'
     const isDisabled = !canCompute || creating || multiple || busy
 
     return div({ style: styles.container }, [
