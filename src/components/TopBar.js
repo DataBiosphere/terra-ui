@@ -503,7 +503,7 @@ export default _.flow(
 })
 
 const PreferFirecloudModal = ({ onDismiss, authState }) => {
-  const [emailAgreed, setEmailAgreed] = useState(true)
+  const [emailAgreed, setEmailAgreed] = useState(true) //should this be automatically selected? BRAD
   const [reason, setReason] = useState('')
   const [submitting, setSubmitting] = useState(false)
 
@@ -512,25 +512,23 @@ const PreferFirecloudModal = ({ onDismiss, authState }) => {
     withErrorReporting('Error opting out of Terra'),
     Utils.withBusyState(setSubmitting)
   )(async () => {
-    // hit endpoint to set preferTerra: false
     await Ajax().User.profile.preferLegacyFirecloud()
-    //send request to Zendesk if checked box or provided a description
     if (emailAgreed === true || reason.length !== 0) await Ajax().User.createSupportRequest({
       name: `${firstName} ${lastName}`,
       email,
       description: reason,
       subject: 'Opt out of Terra',
-      type: 'question', //is this what we want?
-      attachmentToken: '', //how to set this?
-      emailAgreed //how to include this?
+      type: 'survey',
+      attachmentToken: '',
+      emailAgreed //the side bar (ADD AN EXTRA CUSTOM FIELD--TALK TO BRAD, KATE, TIFF)
     })
-    //redirect to firecloud
+    onDismiss()
     window.location.assign(getConfig().firecloudUrlRoot)
   })
 
   return h(Modal, {
     onDismiss,
-    title: 'Take me back to old FireCloud!',
+    title: 'Take me back to old FireCloud!', //LANGUAGE FROM BRAD
     okButton: returnToLegacyFC
   }, [
     'Are you sure you would like to opt-out of using Terra for now?',
