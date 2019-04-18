@@ -561,6 +561,17 @@ const Workspaces = signal => ({
         return res.json()
       },
 
+      importAttributes: async file => {
+        const formData = new FormData()
+        formData.set('attributes', file)
+        return fetchOrchestration(`api/${root}/importAttributesTSV`, _.merge(authOpts(), { body: formData, signal, method: 'POST' }))
+      },
+
+      exportAttributes: async () => {
+        const res = await fetchOrchestration(`api/${root}/exportAttributesTSV`, _.merge(authOpts(), { signal }))
+        return res.blob()
+      },
+
       storageCostEstimate: async () => {
         const res = await fetchOrchestration(`api/workspaces/${namespace}/${name}/storageCostEstimate`, _.merge(authOpts(), { signal }))
         return res.json()
