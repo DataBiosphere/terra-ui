@@ -12,10 +12,10 @@ import headerLeftHexes from 'src/images/header-left-hexes.svg'
 import headerRightHexes from 'src/images/header-right-hexes.svg'
 import { ajaxCaller } from 'src/libs/ajax'
 import { authStore, refreshTerraProfile, signOut } from 'src/libs/auth'
-import { menuOpenLogo, topBarLogo } from 'src/libs/logos'
 import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
 import { reportError } from 'src/libs/error'
+import { isFirecloud, menuOpenLogo, topBarLogo } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
@@ -340,6 +340,31 @@ export default _.flow(
               size: 12,
               style: { marginLeft: '0.5rem' }
             })
+          ]),
+          isFirecloud() && h(Clickable, {
+            style: styles.nav.supportItem,
+            as: 'a',
+            hover: { backgroundColor: colors.gray[3] },
+            href: 'https://broadinstitute.zendesk.com/hc/en-us/articles/360022694271-Side-by-side-comparison-with-Terra',
+            target: '_blank',
+            onClick: () => this.hideNav()
+          }, [
+            div({ style: styles.nav.icon }, [
+              icon('help-info', {
+                className: 'is-solid',
+                size: 20
+              })
+            ]),
+            div([
+              'What\'s different in',
+              div([
+                'Terra?',
+                icon('pop-out', {
+                  size: 12,
+                  style: { marginLeft: '0.5rem', flexGrow: 1 }
+                })
+              ])
+            ])
           ]),
           div({
             style: {

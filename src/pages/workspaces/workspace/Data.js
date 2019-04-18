@@ -84,6 +84,18 @@ const getReferenceData = _.flow(
 )
 
 const LocalVariablesContent = ajaxCaller(class LocalVariablesContent extends Component {
+  constructor(props) {
+    super(props)
+    this.state = {
+      editIndex: undefined,
+      deleteIndex: undefined,
+      editKey: undefined,
+      editValue: undefined,
+      editType: undefined
+    }
+    this.uploader = createRef()
+  }
+
   render() {
     const { workspace, workspace: { workspace: { namespace, name, attributes } }, ajax: { Workspaces }, refreshWorkspace, loadingWorkspace, firstRender } = this.props
     const { editIndex, deleteIndex, editKey, editValue, editType, textFilter = '' } = this.state
@@ -131,14 +143,38 @@ const LocalVariablesContent = ajaxCaller(class LocalVariablesContent extends Com
       stopEditing(editKey !== originalKey)
     })
 
+    const upload = withErrorReporting('Error uploading file', async ([file]) => {
+      await Workspaces.workspace(namespace, name).importAttributes(file)
+      await refreshWorkspace()
+    })
+
+    const download = withErrorReporting('Error downloading attributes', async () => {
+      const blob = await Workspaces.workspace(namespace, name).exportAttributes()
+      FileSaver.saveAs(blob, `${name}-workspace-attributes.tsv`)
+    })
+
     const { initialY } = firstRender ? StateHistory.get() : {}
-    return h(Fragment, [
-      h(SearchInput, {
-        style: { width: 300, marginBottom: '1rem', borderColor: colors.gray[3], alignSelf: 'flex-end' },
-        placeholder: 'Filter',
-        onChange: ({ target: { value } }) => this.setState({ textFilter: value }),
-        value: textFilter
-      }),
+    return h(Dropzone, {
+      disabled: !!Utils.editWorkspaceError(workspace),
+      disableClick: true,
+      style: { flex: 1, display: 'flex', flexDirection: 'column' },
+      activeStyle: { backgroundColor: colors.green[6], cursor: 'copy' },
+      ref: this.uploader,
+      onDropAccepted: upload
+    }, [
+      div({ style: { flex: 'none', display: 'flex', alignItems: 'center', marginBottom: '1rem', justifyContent: 'flex-end' } }, [
+        linkButton({ onClick: download }, ['Download TSV']),
+        !Utils.editWorkspaceError(workspace) && h(Fragment, [
+          div({ style: { whiteSpace: 'pre' } }, ['  |  Drag or click to ']),
+          linkButton({ onClick: () => this.uploader.current.open() }, ['upload TSV'])
+        ]),
+        h(SearchInput, {
+          style: { width: 300, marginLeft: '1rem', borderColor: colors.gray[3] },
+          placeholder: 'Filter',
+          onChange: ({ target: { value } }) => this.setState({ textFilter: value }),
+          value: textFilter
+        })
+      ]),
       Utils.cond(
         [_.isEmpty(amendedAttributes), () => 'No Workspace Data defined'],
         () => div({ style: { flex: 1 } }, [
@@ -242,16 +278,16 @@ const LocalVariablesContent = ajaxCaller(class LocalVariablesContent extends Com
         onDismiss: () => this.setState({ deleteIndex: undefined }),
         title: 'Are you sure you wish to delete this variable?',
         okButton: buttonPrimary({
-          onClick: _.flow(
-            withErrorReporting('Error deleting workspace variable'),
-            Utils.withBusyState(v => this.setState({ saving: v }))
-          )(async () => {
-            this.setState({ deleteIndex: undefined })
-            await Workspaces.workspace(namespace, name).deleteAttributes([amendedAttributes[deleteIndex][0]])
-            refreshWorkspace()
-          })
-        },
-        'Delete Variable')
+            onClick: _.flow(
+              withErrorReporting('Error deleting workspace variable'),
+              Utils.withBusyState(v => this.setState({ saving: v }))
+            )(async () => {
+              this.setState({ deleteIndex: undefined })
+              await Workspaces.workspace(namespace, name).deleteAttributes([amendedAttributes[deleteIndex][0]])
+              refreshWorkspace()
+            })
+          },
+          'Delete Variable')
       }, ['This will permanently delete the data from Workspace Data.']),
       loadingWorkspace && spinnerOverlay
     ])
