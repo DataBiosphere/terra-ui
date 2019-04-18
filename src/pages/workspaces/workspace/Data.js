@@ -154,6 +154,16 @@ const LocalVariablesContent = ajaxCaller(class LocalVariablesContent extends Com
       FileSaver.saveAs(blob, `${name}-workspace-attributes.tsv`)
     })
 
+    const upload = withErrorReporting('Error uploading file', async ([file]) => {
+      await Workspaces.workspace(namespace, name).importAttributes(file)
+      await refreshWorkspace()
+    })
+
+    const download = withErrorReporting('Error downloading attributes', async () => {
+      const blob = await Workspaces.workspace(namespace, name).exportAttributes()
+      FileSaver.saveAs(blob, `${name}-workspace-attributes.tsv`)
+    })
+
     const { initialY } = firstRender ? StateHistory.get() : {}
     return h(Dropzone, {
       disabled: !!Utils.editWorkspaceError(workspace),
