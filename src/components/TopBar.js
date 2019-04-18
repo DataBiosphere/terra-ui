@@ -507,27 +507,31 @@ const PreferFirecloudModal = ({ onDismiss, authState }) => {
   const [reason, setReason] = useState('')
   const [submitting, setSubmitting] = useState(false)
 
-  const { profile: { name, email, firstName, lastName } } = authState
-  const functiony = _.flow(
+  const { profile: { email, firstName, lastName } } = authState
+  const returnToLegacyFC = _.flow(
     withErrorReporting('Error opting out of Terra'),
     Utils.withBusyState(setSubmitting)
   )(async () => {
     // hit endpoint to set preferTerra: false
-
+    await Ajax().User.profile.preferLegacyFirecloud()
     //send request to Zendesk if checked box or provided a description
     if (emailAgreed === true || reason.length !== 0) await Ajax().User.createSupportRequest({
-      name: `${firstName}, ${lastName}`, email, description: reason,
+      name: `${firstName} ${lastName}`,
+      email,
+      description: reason,
       subject: 'Opt out of Terra',
       type: 'question', //is this what we want?
-      emailAgreed
+      attachmentToken: '', //how to set this?
+      emailAgreed //how to include this?
     })
+    //redirect to firecloud
     window.location.assign(getConfig().firecloudUrlRoot)
   })
 
   return h(Modal, {
     onDismiss,
     title: 'Take me back to old FireCloud!',
-    okButton: functiony
+    okButton: returnToLegacyFC
   }, [
     'Are you sure you would like to opt-out of using Terra for now?',
     h(FormLabel, ['Why are you leaving us :(?']),

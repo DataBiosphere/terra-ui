@@ -152,6 +152,10 @@ const User = signal => ({
 
     setPreferences: body => {
       return fetchOrchestration('api/profile/preferences', _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }]))
+    },
+
+    preferLegacyFirecloud: () => {
+      return fetchOrchestration('api/profile/terra', _.mergeAll([authOpts(), { signal, method: 'DELETE' }]))
     }
   },
 
