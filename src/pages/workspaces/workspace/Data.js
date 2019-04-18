@@ -2,7 +2,7 @@ import clipboard from 'clipboard-polyfill'
 import FileSaver from 'file-saver'
 import filesize from 'filesize'
 import _ from 'lodash/fp'
-import { createRef, Fragment } from 'react'
+import { createRef, Fragment, useState } from 'react'
 import Dropzone from 'react-dropzone'
 import { div, form, h, input } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
@@ -12,7 +12,7 @@ import DataTable from 'src/components/DataTable'
 import ExportDataModal from 'src/components/ExportDataModal'
 import FloatingActionButton from 'src/components/FloatingActionButton'
 import { icon, spinner } from 'src/components/icons'
-import { textInput } from 'src/components/input'
+import { SearchInput, textInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { FlexTable, HeaderCell, SimpleTable, TextCell } from 'src/components/table'
 import UriViewer from 'src/components/UriViewer'
@@ -53,6 +53,7 @@ const styles = {
 
 const DataTypeButton = ({ selected, children, iconName = 'listAlt', iconSize = 14, ...props }) => {
   return linkButton({
+    as: 'span',
     style: { display: 'flex', alignItems: 'center', color: 'black', fontWeight: selected ? 500 : undefined, padding: '0.5rem 0' },
     ...props
   }, [
@@ -85,11 +86,15 @@ const getReferenceData = _.flow(
 const LocalVariablesContent = ajaxCaller(class LocalVariablesContent extends Component {
   render() {
     const { workspace, workspace: { workspace: { namespace, name, attributes } }, ajax: { Workspaces }, refreshWorkspace, loadingWorkspace, firstRender } = this.props
-    const { editIndex, deleteIndex, editKey, editValue, editType } = this.state
-    const stopEditing = () => this.setState({ editIndex: undefined, editKey: undefined, editValue: undefined, editType: undefined })
+    const { editIndex, deleteIndex, editKey, editValue, editType, textFilter = '' } = this.state
+    const stopEditing = resetFilter => this.setState({
+      editIndex: undefined, editKey: undefined, editValue: undefined, editType: undefined,
+      ...(resetFilter ? { textFilter: '' } : {})
+    })
     const filteredAttributes = _.flow(
       _.toPairs,
       _.remove(([key]) => key === 'description' || key.includes(':') || key.startsWith('referenceData-')),
+      _.filter(data => Utils.textMatch(textFilter, JSON.stringify(data))),
       _.sortBy(_.first)
     )(attributes)
 
@@ -123,11 +128,17 @@ const LocalVariablesContent = ajaxCaller(class LocalVariablesContent extends Com
       }
 
       await refreshWorkspace()
-      stopEditing()
+      stopEditing(editKey !== originalKey)
     })
 
     const { initialY } = firstRender ? StateHistory.get() : {}
     return h(Fragment, [
+      h(SearchInput, {
+        style: { width: 300, marginBottom: '1rem', borderColor: colors.gray[3], alignSelf: 'flex-end' },
+        placeholder: 'Filter',
+        onChange: ({ target: { value } }) => this.setState({ textFilter: value }),
+        value: textFilter
+      }),
       Utils.cond(
         [_.isEmpty(amendedAttributes), () => 'No Workspace Data defined'],
         () => div({ style: { flex: 1 } }, [
@@ -153,8 +164,7 @@ const LocalVariablesContent = ajaxCaller(class LocalVariablesContent extends Com
                   size: { grow: 1 },
                   headerRenderer: () => h(HeaderCell, ['Value']),
                   cellRenderer: ({ rowIndex }) => {
-                    const originalKey = amendedAttributes[rowIndex][0]
-                    const originalValue = amendedAttributes[rowIndex][1]
+                    const [originalKey, originalValue] = amendedAttributes[rowIndex]
 
                     return h(Fragment, [
                       div({ style: { flex: 1, minWidth: 0, display: 'flex' } }, [
@@ -249,9 +259,21 @@ const LocalVariablesContent = ajaxCaller(class LocalVariablesContent extends Com
 })
 
 const ReferenceDataContent = ({ workspace: { workspace: { namespace, attributes } }, referenceKey, loadingWorkspace, firstRender }) => {
-  const selectedData = _.sortBy('key', getReferenceData(attributes)[referenceKey])
+  const [textFilter, setTextFilter] = useState('')
+
+  const selectedData = _.flow(
+    _.filter(data => Utils.textMatch(textFilter, JSON.stringify(data))),
+    _.sortBy('key')
+  )(getReferenceData(attributes)[referenceKey])
   const { initialY } = firstRender ? StateHistory.get() : {}
+
   return h(Fragment, [
+    h(SearchInput, {
+      style: { width: 300, marginBottom: '1rem', borderColor: colors.gray[3], alignSelf: 'flex-end' },
+      placeholder: 'Filter',
+      onChange: ({ target: { value } }) => setTextFilter(value),
+      value: textFilter
+    }),
     div({ style: { flex: 1 } }, [
       h(AutoSizer, [
         ({ width, height }) => h(FlexTable, {

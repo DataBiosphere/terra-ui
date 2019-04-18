@@ -73,6 +73,7 @@ export const SearchInput = ({ onSearch = _.noop, onChange, ...props }) => {
   return textInput(_.merge({
     ref: supportsSearch ? attachRef : undefined,
     type: 'search',
+    spellCheck: false,
     style: { WebkitAppearance: 'none' },
     onChange,
     onKeyDown: supportsSearch ? undefined : e => { // to make firefox behave like webkit/blink
