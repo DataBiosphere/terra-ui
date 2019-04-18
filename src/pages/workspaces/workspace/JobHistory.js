@@ -159,7 +159,7 @@ const JobHistory = _.flow(
         value: textFilter
       }),
       div({ style: styles.submissionsTable }, [
-        filteredSubmissions && !!filteredSubmissions.length && h(AutoSizer, [
+        !_.isEmpty(filteredSubmissions) && h(AutoSizer, [
           ({ width, height }) => h(FlexTable, {
             width, height, rowCount: filteredSubmissions.length,
             hoverHighlight: true,
@@ -276,7 +276,7 @@ const JobHistory = _.flow(
             ]
           })
         ]),
-        filteredSubmissions && !filteredSubmissions.length && div(['No jobs run']),
+        _.isEmpty(filteredSubmissions) && div(['No jobs']),
         aborting && h(Modal, {
           onDismiss: () => this.setState({ aborting: undefined }),
           title: 'Abort All Workflows',
