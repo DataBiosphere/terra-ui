@@ -206,7 +206,7 @@ export default ajaxCaller(class DataTable extends Component {
       this.loadData()
     }
     if (this.props.persist) {
-      StateHistory.update(_.pick(['entities', 'totalRowCount', 'itemsPerPage', 'pageNumber', 'sort', 'columnWidths', 'columnState'], this.state))
+      StateHistory.update(_.pick(['itemsPerPage', 'pageNumber', 'sort', 'columnWidths', 'columnState'], this.state))
     }
   }
 
