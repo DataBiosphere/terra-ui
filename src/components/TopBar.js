@@ -377,7 +377,7 @@ export default _.flow(
               div({ style: styles.nav.icon }, [
                 icon('fcIconWhite', { className: 'is-solid', size: 20 })
               ]),
-              'Go back to FireCloud'
+              'Use Classic FireCloud'
             ])
           ]),
           div({
@@ -548,11 +548,11 @@ const PreferFirecloudModal = ({ onDismiss, authState }) => {
 
   return h(Modal, {
     onDismiss,
-    title: 'Take me back to old FireCloud!', //LANGUAGE FROM BRAD
+    title: 'Take me back to classic FireCloud!',
     okButton: returnToLegacyFC
   }, [
-    'Are you sure you would like to opt-out of using Terra?',
-    h(FormLabel, ['Why are you leaving us :(?']),
+    'Are you sure you would prefer the previous FireCloud interface?',
+    h(FormLabel, ['(Optional) Please tell us why']),
     h(TextArea, {
       style: { height: 100, borderRadius: '0.5rem', marginBottom: '0.5rem' },
       placeholder: 'Enter your reason',
@@ -562,7 +562,7 @@ const PreferFirecloudModal = ({ onDismiss, authState }) => {
     h(LabeledCheckbox, {
       checked: emailAgreed === true,
       onChange: setEmailAgreed
-    }, [span({ style: { marginLeft: '0.5rem' } }, ['Yes, you can follow up with me by email.'])]),
+    }, [span({ style: { marginLeft: '0.5rem' } }, ['You can follow up with me by email.'])]),
     submitting && spinnerOverlay
   ])
 }
