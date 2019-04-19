@@ -1,12 +1,11 @@
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
-import { useState } from 'react'
+import { useState, Fragment } from 'react'
 import { a, b, div, h, span } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
 import { buttonPrimary, Clickable, LabeledCheckbox, MenuButton, spinnerOverlay } from 'src/components/common'
-import FreeTrialEulas from 'src/components/FreeTrialEulas'
 import { icon, profilePic } from 'src/components/icons'
-import { TextArea, textInput } from 'src/components/input'
+import { TextArea } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import SignInButton from 'src/components/SignInButton'
 import { contactUsActive } from 'src/components/SupportRequest'
@@ -345,45 +344,41 @@ export default _.flow(
               style: { marginLeft: '0.5rem' }
             })
           ]),
-          isFirecloud() && h(Clickable, {
-            style: styles.nav.supportItem,
-            as: 'a',
-            hover: { backgroundColor: colors.gray[3] },
-            href: 'https://broadinstitute.zendesk.com/hc/en-us/articles/360022694271-Side-by-side-comparison-with-Terra',
-            target: '_blank',
-            onClick: () => this.hideNav()
-          }, [
-            div({ style: styles.nav.icon }, [
-              icon('help-info', {
-                className: 'is-solid',
-                size: 20
-              })
-            ]),
-            div([
-              'What\'s different in',
+          isFirecloud() && h(Fragment, [
+            h(Clickable, {
+              style: styles.nav.supportItem,
+              as: 'a',
+              hover: { backgroundColor: colors.gray[3] },
+              href: 'https://broadinstitute.zendesk.com/hc/en-us/articles/360022694271-Side-by-side-comparison-with-Terra',
+              target: '_blank',
+              onClick: () => this.hideNav()
+            }, [
+              div({ style: styles.nav.icon }, [
+                icon('help-info', { className: 'is-solid', size: 20 })
+              ]),
               div([
-                'Terra?',
-                icon('pop-out', {
-                  size: 12,
-                  style: { marginLeft: '0.5rem', flexGrow: 1 }
-                })
+                'What\'s different in',
+                div([
+                  'Terra?',
+                  icon('pop-out', {
+                    size: 12,
+                    style: { marginLeft: '0.5rem', flexGrow: 1 }
+                  })
+                ])
               ])
-            ])
-          ]),
-          isFirecloud() && h(Clickable, {
-            style: styles.nav.supportItem,
-            disabled: !isSignedIn,
-            tooltip: isSignedIn ? undefined : 'Please sign in',
-            hover: { backgroundColor: colors.gray[3] },
-            onClick: () => this.setState({ openFirecloudModal: true })
-          }, [
-            div({ style: styles.nav.icon }, [
-              icon('fcIconWhite', {
-                className: 'is-solid',
-                size: 20
-              })
             ]),
-            'Go back to FireCloud'
+            h(Clickable, {
+              style: styles.nav.supportItem,
+              disabled: !isSignedIn,
+              tooltip: isSignedIn ? undefined : 'Please sign in',
+              hover: { backgroundColor: colors.gray[3] },
+              onClick: () => this.setState({ openFirecloudModal: true })
+            }, [
+              div({ style: styles.nav.icon }, [
+                icon('fcIconWhite', { className: 'is-solid', size: 20 })
+              ]),
+              'Go back to FireCloud'
+            ])
           ]),
           div({
             style: {
@@ -528,7 +523,7 @@ export default _.flow(
 })
 
 const PreferFirecloudModal = ({ onDismiss, authState }) => {
-  const [emailAgreed, setEmailAgreed] = useState(true) //should this be automatically selected? BRAD
+  const [emailAgreed, setEmailAgreed] = useState(true)
   const [reason, setReason] = useState('')
   const [submitting, setSubmitting] = useState(false)
 
