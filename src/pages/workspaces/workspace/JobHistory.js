@@ -121,7 +121,23 @@ const JobHistory = _.flow(
 
     try {
       this.setState({ loading: true })
-      const submissions = _.orderBy('submissionDate', 'desc', await Workspaces.workspace(namespace, name).listSubmissions())
+      const submissions = _.flow(
+        _.orderBy('submissionDate', 'desc'),
+        _.map(sub => {
+          const subAsText = _.flow(
+            _.pick([
+              'methodConfigurationName', 'methodConfigurationNamespace', 'status', 'submissionDate',
+              'submissionEntity.entityType', 'submissionEntity.entityName', 'submissionId', 'submitter'
+            ]),
+            _.reduce((acc, val) => Utils.append(_.isObject(val) ? _.values(val) : val, acc), []),
+            _.flatten,
+            _.join(' ')
+          )(sub)
+
+          return _.set('asText', subAsText, sub)
+        })
+      )(await Workspaces.workspace(namespace, name).listSubmissions())
+
       this.setState({ submissions })
 
       if (_.some(({ status }) => !isTerminal(status), submissions)) {
@@ -146,10 +162,7 @@ const JobHistory = _.flow(
     const { namespace, name, ajax: { Workspaces }, workspace: { workspace: { workflowCollectionName } } } = this.props
     const { submissions, loading, aborting, newSubmissionId, highlightNewSubmission, linkToFC, textFilter } = this.state
 
-    const filteredSubmissions = _.filter(sub => {
-      const subAsText = JSON.stringify(_.values(sub))
-      return _.every(term => Utils.textMatch(term, subAsText), textFilter.split(/s+/))
-    }, submissions)
+    const filteredSubmissions = _.filter(({ asText }) => _.every(term => Utils.textMatch(term, asText), textFilter.split(/\s+/)), submissions)
 
     return h(Fragment, [
       h(SearchInput, {

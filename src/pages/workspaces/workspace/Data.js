@@ -107,7 +107,7 @@ const LocalVariablesContent = ajaxCaller(class LocalVariablesContent extends Com
     const filteredAttributes = _.flow(
       _.toPairs,
       _.remove(([key]) => key === 'description' || key.includes(':') || key.startsWith('referenceData-')),
-      _.filter(data => Utils.textMatch(textFilter, JSON.stringify(data))),
+      _.filter(data => Utils.textMatch(textFilter, _.join(' ', data))),
       _.sortBy(_.first)
     )(attributes)
 
@@ -299,7 +299,7 @@ const ReferenceDataContent = ({ workspace: { workspace: { namespace, attributes 
   const [textFilter, setTextFilter] = useState('')
 
   const selectedData = _.flow(
-    _.filter(data => Utils.textMatch(textFilter, JSON.stringify(data))),
+    _.filter(({ key, value }) => Utils.textMatch(textFilter, `${key} ${value}`)),
     _.sortBy('key')
   )(getReferenceData(attributes)[referenceKey])
   const { initialY } = firstRender ? StateHistory.get() : {}
