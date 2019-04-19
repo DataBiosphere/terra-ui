@@ -73,7 +73,7 @@ export default class Router extends Component {
     )
 
     if (isFirecloud() && new URLSearchParams(window.location.search).has('fcredir')) {
-      notify('', 'Welcome to Terra, the next version of FireCloud. All of your workspaces, data, notebooks, ' +
+      notify('info', 'Welcome to Terra, the next version of FireCloud. All of your workspaces, data, notebooks, ' +
       'and jobs are here, just as they are in FireCloud. The legacy FireCloud platform will continue to be available until ' +
       'August 2019. Click on the link in the left sidebar to return to FireCloud.')
       window.history.replaceState(null, '', `/${window.location.hash}`)
