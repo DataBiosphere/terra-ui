@@ -540,7 +540,7 @@ const PreferFirecloudModal = ({ onDismiss, authState }) => {
       subject: 'Opt out of Terra',
       type: 'survey',
       attachmentToken: '',
-      emailAgreed //the side bar (ADD AN EXTRA CUSTOM FIELD--TALK TO BRAD, TIFF)
+      emailAgreed
     })
     onDismiss()
     window.location.assign(getConfig().firecloudUrlRoot)

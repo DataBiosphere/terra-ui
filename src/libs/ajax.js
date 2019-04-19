@@ -214,7 +214,7 @@ const User = signal => ({
             { id: 360007369412, value: description },
             { id: 360012744292, value: name },
             { id: 360012782111, value: email },
-            { id: 360018545031, value: emailAgreed } //id value from Tiffany
+            { id: 360018545031, value: emailAgreed }
           ],
           comment: {
             body: `${description}\n\n------------------\n${(emailAgreed === undefined) ? `Submitted from: ${currUrl}` : ``}`,
