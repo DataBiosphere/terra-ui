@@ -725,8 +725,8 @@ const WorkflowView = _.flow(
         v.replace(/\${(.*)}/, (_, match) => match) :
         JSON.stringify(v)
       )(rawUpdates)
-      this.setState(({ modifiedConfig, inputsOutputs }) => {
-        const existing = _.map('name', inputsOutputs[key])
+      this.setState(({ modifiedConfig, modifiedInputsOutputs }) => {
+        const existing = _.map('name', modifiedInputsOutputs[key])
         return {
           modifiedConfig: _.update(key, _.assign(_, _.pick(existing, updates)), modifiedConfig)
         }
@@ -821,7 +821,7 @@ const WorkflowView = _.flow(
         savedConfig: validationResponse.methodConfiguration,
         modifiedConfig: validationResponse.methodConfiguration,
         errors: augmentErrors(validationResponse),
-        inputsOutputs: modifiedInputsOutputs
+        savedInputsOutputs: modifiedInputsOutputs
       }, () => setTimeout(() => this.setState({ saved: false }), 3000))
       this.updateEntityTypeUI(modifiedConfig)
     } catch (error) {
