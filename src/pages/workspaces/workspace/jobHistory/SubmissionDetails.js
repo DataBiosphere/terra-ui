@@ -13,7 +13,7 @@ import { Ajax, useCancellation } from 'src/libs/ajax'
 import { bucketBrowserUrl } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
-import { reportError } from 'src/libs/error'
+import { withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -42,38 +42,48 @@ const SubmissionDetails = _.flow(
   /*
    * Data fetchers
    */
-  const getSubmission = Workspaces.workspace(namespace, name).submission(submissionId).get
-  const initialize = async () => {
-    try {
-      const submission = await getSubmission()
-      setSubmission(submission)
 
-      try {
-        const { methodConfigurationName: configName, methodConfigurationNamespace: configNamespace } = submission
-        await Workspaces.workspace(namespace, name).methodConfig(configNamespace, configName).get()
-        setMethodAccessible(true)
-      } catch {
-        setMethodAccessible(false)
-      }
-    } catch (e) {
-      reportError('Unable to fetch submission details', e)
-    }
-  }
-
-  Utils.useOnMount(() => { initialize() })
   useEffect(() => {
-    if (_.some(({ status }) => collapseStatus(status) === 'running', submission.workflows)) {
-      const timeout = setTimeout(async () => {
-        try {
-          const submission = await getSubmission()
-          setSubmission(submission)
-        } catch (e) {
-          reportError('Unable to update submission details', e)
+    const initialize = withErrorReporting('Unable to fetch submission details',
+      async () => {
+        if (_.isEmpty(submission) || _.some(({ status }) => collapseStatus(status) === 'running', submission.workflows)) {
+          if (!_.isEmpty(submission)) {
+            await Utils.delay(60000)
+          }
+          const sub = _.update(
+            ['workflows'],
+            workflows => _.map(wf => {
+              const {
+                cost, inputResolutions, messages, status,
+                statusLastChangedDate, workflowEntity: { entityType, entityName } = {}, workflowId
+              } = wf
+
+              const wfAsText = _.join(' ', [
+                cost, ...messages, status, statusLastChangedDate, entityType, entityName, workflowId,
+                ..._.flatMap(({ inputName, value }) => [inputName, JSON.stringify(value)], inputResolutions)
+              ])
+
+              return _.set('asText', wfAsText, wf)
+            }, workflows),
+            await Workspaces.workspace(namespace, name).submission(submissionId).get())
+
+          setSubmission(sub)
+
+          if (_.isEmpty(submission)) {
+            try {
+              const { methodConfigurationName: configName, methodConfigurationNamespace: configNamespace } = sub
+              await Workspaces.workspace(namespace, name).methodConfig(configNamespace, configName).get()
+              setMethodAccessible(true)
+            } catch {
+              setMethodAccessible(false)
+            }
+          }
         }
-      }, 60000)
-      return () => clearTimeout(timeout)
-    }
-  }, [getSubmission, submission])
+      })
+
+    initialize()
+  }, [submission]) // eslint-disable-line react-hooks/exhaustive-deps
+
 
   /*
    * Sub-component constructors
