@@ -9,7 +9,7 @@ import { textInput } from 'src/components/input'
 import { collapseStatus, failedIcon, runningIcon, statusIcon, successIcon } from 'src/components/job-common'
 import { FlexTable, Sortable, TextCell, TooltipCell } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
-import { ajaxCaller } from 'src/libs/ajax'
+import { Ajax, useCancellation } from 'src/libs/ajax'
 import { bucketBrowserUrl } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
@@ -25,10 +25,9 @@ const SubmissionDetails = _.flow(
   wrapWorkspace({
     breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
     title: 'Job History', activeTab: 'job history'
-  }),
-  ajaxCaller
+  })
 )((props, ref) => {
-  const { namespace, name, submissionId, ajax: { Workspaces }, workspace: { workspace: { bucketName } } } = props
+  const { namespace, name, submissionId, workspace: { workspace: { bucketName } } } = props
 
   /*
    * State setup
@@ -38,6 +37,7 @@ const SubmissionDetails = _.flow(
   const [statusFilter, setStatusFilter] = useState([])
   const [textFilter, setTextFilter] = useState('')
   const [sort, setSort] = useState({ field: 'workflowEntity', direction: 'asc' })
+  const { Workspaces } = Ajax(useCancellation())
 
   /*
    * Data fetchers
@@ -82,7 +82,12 @@ const SubmissionDetails = _.flow(
     iconFn({ marginRight: '0.5rem' }), text
   ])
 
-  const makeSection = (label, children) => div({ style: { flexBasis: '33%', marginBottom: '1rem' } }, [
+  const makeSection = (label, children) => div({
+    style: {
+      flex: '0 0 33%', padding: '0 0.5rem 0.5rem',
+      whiteSpace: 'pre', textOverflow: 'ellipsis', overflow: 'hidden'
+    }
+  }, [
     div({ style: Style.elements.sectionHeader }, label),
     h(Fragment, children)
   ])
@@ -99,7 +104,7 @@ const SubmissionDetails = _.flow(
     _.filter(wf => {
       if (_.isEmpty(statusFilter) || statusFilter.includes(wf.status)) {
         const wfAsText = JSON.stringify(_.values(wf))
-        return _.every(term => Utils.textMatch(term, wfAsText), textFilter.split(/s+/))
+        return _.every(term => Utils.textMatch(term, wfAsText), textFilter.split(/\s+/))
       } else {
         return false
       }
@@ -115,7 +120,7 @@ const SubmissionDetails = _.flow(
    */
   return _.isEmpty(submission) ? centeredSpinner() : div({ style: { padding: '2rem', flex: 1, display: 'flex', flexDirection: 'column' } }, [
     div({ style: { display: 'flex' } }, [
-      div({ style: { flexBasis: 200, marginRight: '2rem', lineHeight: '24px' } }, [
+      div({ style: { flex: '0 0 200px', marginRight: '2rem', lineHeight: '24px' } }, [
         div({ style: Style.elements.sectionHeader }, 'Workflow Statuses'),
         succeeded && makeStatusLine(successIcon, `Succeeded: ${succeeded.length}`),
         failed && makeStatusLine(failedIcon, `Failed: ${failed.length}`),
@@ -144,7 +149,7 @@ const SubmissionDetails = _.flow(
           div([submitter]), Utils.makeCompleteDate(submissionDate)
         ]),
         makeSection('Total Run Cost', [cost ? Utils.formatUSD(cost) : 'N/A']),
-        makeSection('Data Entity', [`${entityName} (${entityType})`]),
+        makeSection('Data Entity', [div([entityName]), div([entityType])]),
         makeSection('Submission ID', [link(
           { href: bucketBrowserUrl(`${bucketName}/${submissionId}`), target: '_blank' },
           submissionId

@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { Fragment } from 'react'
-import { a, div, h, span, table, tbody, td, tr } from 'react-hyperscript-helpers'
+import { div, h, span, table, tbody, td, tr } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { Clickable, link, spinnerOverlay } from 'src/components/common'
@@ -118,7 +118,9 @@ const JobHistory = _.flow(
                 } = submissions[rowIndex]
                 const { failed, running } = collapsedStatuses(workflowStatuses)
 
-                return a({
+                return h(Clickable, {
+                  as: 'a',
+                  hover: { backgroundColor: Utils.cond([!!failed, colors.red[5]], [!!running, colors.blue[5]], colors.green[6]) },
                   style: {
                     flex: 1, alignSelf: 'stretch', display: 'flex', flexDirection: 'column', justifyContent: 'center',
                     margin: '0 -1rem', padding: '0 1rem',
