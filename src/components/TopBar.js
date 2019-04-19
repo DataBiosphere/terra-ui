@@ -347,6 +347,31 @@ export default _.flow(
           ]),
           isFirecloud() && h(Clickable, {
             style: styles.nav.supportItem,
+            as: 'a',
+            hover: { backgroundColor: colors.gray[3] },
+            href: 'https://broadinstitute.zendesk.com/hc/en-us/articles/360022694271-Side-by-side-comparison-with-Terra',
+            target: '_blank',
+            onClick: () => this.hideNav()
+          }, [
+            div({ style: styles.nav.icon }, [
+              icon('help-info', {
+                className: 'is-solid',
+                size: 20
+              })
+            ]),
+            div([
+              'What\'s different in',
+              div([
+                'Terra?',
+                icon('pop-out', {
+                  size: 12,
+                  style: { marginLeft: '0.5rem', flexGrow: 1 }
+                })
+              ])
+            ])
+          ]),
+          isFirecloud() && h(Clickable, {
+            style: styles.nav.supportItem,
             disabled: !isSignedIn,
             tooltip: isSignedIn ? undefined : 'Please sign in',
             hover: { backgroundColor: colors.gray[3] },
