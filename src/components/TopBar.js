@@ -520,7 +520,7 @@ const PreferFirecloudModal = ({ onDismiss, authState }) => {
       subject: 'Opt out of Terra',
       type: 'survey',
       attachmentToken: '',
-      emailAgreed //the side bar (ADD AN EXTRA CUSTOM FIELD--TALK TO BRAD, KATE, TIFF)
+      emailAgreed //the side bar (ADD AN EXTRA CUSTOM FIELD--TALK TO BRAD, TIFF)
     })
     onDismiss()
     window.location.assign(getConfig().firecloudUrlRoot)
@@ -531,7 +531,7 @@ const PreferFirecloudModal = ({ onDismiss, authState }) => {
     title: 'Take me back to old FireCloud!', //LANGUAGE FROM BRAD
     okButton: returnToLegacyFC
   }, [
-    'Are you sure you would like to opt-out of using Terra for now?',
+    'Are you sure you would like to opt-out of using Terra?',
     h(FormLabel, ['Why are you leaving us :(?']),
     h(TextArea, {
       style: { height: 100, borderRadius: '0.5rem', marginBottom: '0.5rem' },
