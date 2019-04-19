@@ -563,7 +563,7 @@ const WorkflowView = _.flow(
                   isSearchable: false,
                   value: methodVersion,
                   getOptionLabel: ({ value }) => Utils.normalizeLabel(value),
-                  options: snapshotIds,
+                  options: _.isEmpty(snapshotIds) ? [methodVersion] : snapshotIds,
                   onChange: chosenSnapshot => this.loadNewMethodConfig(chosenSnapshot.value)
                 })
               ]) :
