@@ -285,7 +285,7 @@ export const Select = ({ value, options, id, ...props }) => {
 export const PageBox = ({ children, style = {} }) => {
   return div({
     style: {
-      margin: '1.5rem', padding: '1.5rem 1.5rem 0', minHeight: 125, flex: 'none', ...style
+      margin: '1.5rem', padding: '1.5rem 1.5rem 0', minHeight: 125, flex: 'none', zIndex: 0, ...style
     }
   }, [children])
 }

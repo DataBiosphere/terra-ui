@@ -19,7 +19,7 @@ export const elements = {
     }
   },
   sectionHeader: { color: colors.gray[0], fontSize: 16, fontWeight: 600 },
-  pageContentContainer: { position: 'relative', flexGrow: 1, display: 'flex', flexDirection: 'column' }
+  pageContentContainer: { position: 'relative', flexGrow: 1, display: 'flex', flexDirection: 'column', zIndex: 0 }
 }
 
 export const tabBar = {
@@ -47,7 +47,6 @@ export const tabBar = {
 
 export const cardList = {
   cardContainer: {
-    position: 'relative',
     marginTop: '1rem',
     display: 'flex', flexWrap: 'wrap'
   },

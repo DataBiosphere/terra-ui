@@ -248,7 +248,7 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
           }, [selectedName])
         ])
       ]),
-      div({ style: { display: 'flex', flex: 1 } }, [
+      div({ style: { display: 'flex', flex: 1, position: 'relative' } }, [
         div({ style: { width: 330, boxShadow: '0 2px 5px 0 rgba(0,0,0,0.25)' } }, [
           div({
             style: {
