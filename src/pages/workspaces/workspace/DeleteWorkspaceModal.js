@@ -32,13 +32,13 @@ export default ajaxCaller(class DeleteWorkspaceModal extends Component {
     const { workspace: { workspace: { bucketName, name } }, onDismiss } = this.props
     const { deleting } = this.state
     return h(Modal, {
-      title: 'Confirm delete',
+      title: 'Delete workspace',
       onDismiss,
       okButton: buttonPrimary({
         onClick: () => this.deleteWorkspace()
-      }, 'Delete')
+      }, 'Delete workspace')
     }, [
-      div(['Are you sure you want to permanently delete this workspace, ',
+      div(['Are you sure you want to permanently delete ',
         span({ style: { fontWeight: 600 } }, name),
         '?']),
       div({ style: { marginTop: '1rem' } }, [
@@ -48,7 +48,12 @@ export default ajaxCaller(class DeleteWorkspaceModal extends Component {
           href: bucketBrowserUrl(bucketName)
         }, ['Google Cloud Bucket']),
         ' and all its data.'
-      ]),
+      ]), div({
+        style: {
+          fontWeight: 500,
+          marginTop: '1rem'
+        }
+      }, 'This cannot be undone.'),
       deleting && spinnerOverlay
     ])
   }
