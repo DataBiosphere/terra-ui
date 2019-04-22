@@ -1,7 +1,6 @@
 import _ from 'lodash/fp'
 import { Fragment, PureComponent, useRef, useState } from 'react'
 import { div, h, h2, p, span } from 'react-hyperscript-helpers'
-import { toClass } from 'recompose'
 import ClusterManager from 'src/components/ClusterManager'
 import { buttonPrimary, Clickable, comingSoon, link, MenuButton, menuIcon, tabBar } from 'src/components/common'
 import { icon } from 'src/components/icons'
@@ -165,8 +164,6 @@ const WorkspaceAccessError = () => {
 
 
 export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, showTabBar = true, queryparams }) => WrappedComponent => {
-  const WrappedClassComponent = toClass(WrappedComponent)
-
   const Wrapper = props => {
     const { namespace, name } = props
     const child = useRef()
@@ -221,7 +218,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
         },
         refreshClusters
       }, [
-        workspace && h(WrappedClassComponent, {
+        workspace && h(WrappedComponent, {
           ref: child,
           workspace, clusters, loadingWorkspace, refreshWorkspace, refreshClusters,
           ...props

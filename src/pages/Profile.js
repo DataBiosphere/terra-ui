@@ -1,8 +1,7 @@
 import _ from 'lodash/fp'
-import * as qs from 'qs'
 import { Fragment, useState } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
-import { buttonPrimary, LabeledCheckbox, link, RadioButton, spinnerOverlay } from 'src/components/common'
+import { buttonPrimary, LabeledCheckbox, link, RadioButton, ShibbolethLink, spinnerOverlay } from 'src/components/common'
 import { centeredSpinner, icon, profilePic, spinner } from 'src/components/icons'
 import { textInput, validatedInput } from 'src/components/input'
 import { InfoBox } from 'src/components/PopupTrigger'
@@ -10,7 +9,6 @@ import TopBar from 'src/components/TopBar'
 import { Ajax, ajaxCaller, useCancellation } from 'src/libs/ajax'
 import { authStore, getUser, refreshTerraProfile } from 'src/libs/auth'
 import colors from 'src/libs/colors'
-import { getConfig } from 'src/libs/config'
 import { withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as Utils from 'src/libs/utils'
@@ -65,8 +63,7 @@ const NihLink = ({ nihToken }) => {
   /*
    * Hooks
    */
-  const [{ linkedNihUsername, linkExpireTime, datasetPermissions }, setNihStatus] = useState({})
-  const [loading, setLoading] = useState(false)
+  const { nihStatus } = Utils.useAtom(authStore)
   const [linking, setLinking] = useState(false)
   const signal = useCancellation()
 
@@ -76,28 +73,15 @@ const NihLink = ({ nihToken }) => {
     const linkNihAccount = _.flow(
       withErrorReporting('Error linking NIH account'),
       Utils.withBusyState(setLinking)
-    )(async nihToken => {
-      setNihStatus(await User.linkNihAccount(nihToken))
-    })
-
-    const loadNihStatus = _.flow(
-      withErrorReporting('Error loading NIH account status'),
-      Utils.withBusyState(setLoading)
     )(async () => {
-      try {
-        setNihStatus(await User.getNihStatus())
-      } catch (error) {
-        if (error.status === 404) setNihStatus({})
-        else throw error
-      }
+      const nihStatus = await User.linkNihAccount(nihToken)
+      authStore.update(state => ({ ...state, nihStatus }))
     })
 
     if (nihToken) {
       // Clear the query string, but use replace so the back button doesn't take the user back to the token
       Nav.history.replace({ search: '' })
-      linkNihAccount(nihToken)
-    } else {
-      loadNihStatus()
+      linkNihAccount()
     }
   })
 
@@ -105,20 +89,7 @@ const NihLink = ({ nihToken }) => {
   /*
    * Render helpers
    */
-  const makeLinkForAccountLinking = label => {
-    const nihRedirectUrl = `${window.location.origin}/${Nav.getLink('profile')}?nih-username-token={token}`
-
-    return link({
-      href: `${getConfig().shibbolethUrlRoot}/link-nih-account?${qs.stringify({ 'redirect-url': nihRedirectUrl })}`,
-      style: { display: 'flex', alignItems: 'center' },
-      target: '_blank'
-    }, [
-      label,
-      icon('pop-out', { size: 12, style: { marginLeft: '0.5rem' } })
-    ])
-  }
-
-  const makeDatasetAuthStatus = ({ name, authorized }) => {
+  const renderDatasetAuthStatus = ({ name, authorized }) => {
     return div({ key: `nih-auth-status-${name}`, style: { display: 'flex' } }, [
       div({ style: { flex: 1 } }, [`${name} Authorization`]),
       div({ style: { flex: 2 } }, [
@@ -138,6 +109,31 @@ const NihLink = ({ nihToken }) => {
     ])
   }
 
+  const renderStatus = () => {
+    const { linkedNihUsername, linkExpireTime, datasetPermissions } = nihStatus
+    return h(Fragment, [
+      !linkedNihUsername && h(ShibbolethLink, ['Log in to NIH to link your account']),
+      !!linkedNihUsername && div({ style: { display: 'flex', flexDirection: 'column', width: '33rem' } }, [
+        div({ style: { display: 'flex' } }, [
+          div({ style: { flex: 1 } }, ['Username:']),
+          div({ style: { flex: 2 } }, [linkedNihUsername])
+        ]),
+        div({ style: { display: 'flex' } }, [
+          div({ style: { flex: 1 } }, ['Link Expiration:']),
+          div({ style: { flex: 2 } }, [
+            div([Utils.makeCompleteDate(linkExpireTime * 1000)]),
+            div([h(ShibbolethLink, ['Log in to NIH to re-link your account'])])
+          ])
+        ]),
+        _.flow(
+          _.sortBy('name'),
+          _.map(renderDatasetAuthStatus)
+        )(datasetPermissions)
+      ])
+    ])
+  }
+
+  const loading = !nihStatus
 
   /*
    * Render
@@ -149,28 +145,11 @@ const NihLink = ({ nihToken }) => {
         'Linking with eRA Commons will allow Terra to automatically determine if you can access controlled datasets hosted in Terra (ex. TCGA) based on your valid dbGaP applications.'
       ])
     ]),
-    loading && div([spinner(), 'Loading NIH account status...']),
-    linking && div([spinner(), 'Linking NIH account...']),
-    !loading && !linking && h(Fragment, [
-      !linkedNihUsername && makeLinkForAccountLinking('Log in to NIH to link your account'),
-      !!linkedNihUsername && div({ style: { display: 'flex', flexDirection: 'column', width: '33rem' } }, [
-        div({ style: { display: 'flex' } }, [
-          div({ style: { flex: 1 } }, ['Username:']),
-          div({ style: { flex: 2 } }, [linkedNihUsername])
-        ]),
-        div({ style: { display: 'flex' } }, [
-          div({ style: { flex: 1 } }, ['Link Expiration:']),
-          div({ style: { flex: 2 } }, [
-            Utils.makeCompleteDate(linkExpireTime * 1000),
-            makeLinkForAccountLinking('Log in to NIH to re-link your account')
-          ])
-        ]),
-        _.flow(
-          _.sortBy('name'),
-          _.map(makeDatasetAuthStatus)
-        )(datasetPermissions)
-      ])
-    ])
+    Utils.cond(
+      [loading, () => div([spinner(), 'Loading NIH account status...'])],
+      [linking, () => div([spinner(), 'Linking NIH account...'])],
+      () => renderStatus()
+    )
   ])
 }
 
