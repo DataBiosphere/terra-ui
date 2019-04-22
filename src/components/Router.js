@@ -90,7 +90,7 @@ export default class Router extends Component {
         div({ style: { marginTop: '1rem' } }, ['Please update your bookmarks to our new URL, firecloud.terra.bio. ' +
         'Welcome to the future of FireCloud!'])
       ]))
-      //window.history.replaceState(null, '', `/${window.location.hash}`)
+      window.history.replaceState(null, '', `/${window.location.hash}`)
     }
   }
 
