@@ -103,7 +103,7 @@ const UriViewer = ajaxCaller(class UriViewer extends Component {
             'Error loading data. You may not have permission to view this file.'
           ]),
           h(Collapse, { defaultHidden: true, title: 'Details' }, [
-            div({ style: { whiteSpace: 'pre-wrap', fontFamily: 'monospace' } }, [
+            div({ style: { whiteSpace: 'pre-wrap', fontFamily: 'monospace', overflowWrap: 'break-word' } }, [
               JSON.stringify(loadingError, null, 2)
             ])
           ])
