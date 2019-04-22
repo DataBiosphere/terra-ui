@@ -20,7 +20,6 @@ import * as Nav from 'src/libs/nav'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 import { CookiesModal } from 'src/pages/SignIn'
-import { linkToJobManager } from 'src/pages/workspaces/workspace/JobHistory'
 
 
 const styles = {
@@ -240,7 +239,7 @@ export default _.flow(
             ]),
             'Your Workspaces'
           ]),
-          linkToJobManager && h(Clickable, {
+          h(Clickable, {
             as: 'a',
             target: '_blank',
             style: styles.nav.item,

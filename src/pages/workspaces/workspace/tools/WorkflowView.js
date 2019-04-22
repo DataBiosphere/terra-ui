@@ -24,7 +24,6 @@ import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
-import * as JobHistory from 'src/pages/workspaces/workspace/JobHistory'
 import DataStepContent from 'src/pages/workspaces/workspace/tools/DataStepContent'
 import DeleteToolModal from 'src/pages/workspaces/workspace/tools/DeleteToolModal'
 import EntitySelectionType from 'src/pages/workspaces/workspace/tools/EntitySelectionType'
@@ -382,10 +381,7 @@ const WorkflowView = _.flow(
           workspaceId, config: savedConfig,
           processSingle: this.isSingle(), entitySelectionModel, useCallCache,
           onDismiss: () => this.setState({ launching: false }),
-          onSuccess: submissionId => {
-            JobHistory.flagNewSubmission(submissionId)
-            Nav.goToPath('workspace-job-history', workspaceId)
-          }
+          onSuccess: submissionId => Nav.goToPath('workspace-submission-details', { submissionId, ...workspaceId })
         }),
         variableSelected && h(BucketContentModal, {
           workspace,

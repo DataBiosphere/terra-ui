@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { createRef, Fragment } from 'react'
+import { createRef, forwardRef, Fragment } from 'react'
 import { div, h, iframe } from 'react-hyperscript-helpers'
 import { pure } from 'recompose'
 import * as breadcrumbs from 'src/components/breadcrumbs'
@@ -50,13 +50,14 @@ const getCluster = clusters => {
 }
 
 const NotebookLauncher = _.flow(
+  forwardRef,
   wrapWorkspace({
     breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
     title: ({ notebookName }) => `Notebooks - ${notebookName}`,
     showTabBar: false
   }),
-  ajaxCaller
-)(props => {
+  ajaxCaller,
+)((props, ref) => {
   const { workspace, app, queryParams = {} } = props
   return Utils.canWrite(workspace.accessLevel) && workspace.canCompute && !queryParams['read-only'] ?
     h(NotebookEditor, { workspace, app, queryParams, ...props }) :
