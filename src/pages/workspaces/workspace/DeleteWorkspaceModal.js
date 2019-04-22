@@ -1,5 +1,5 @@
 import { Component } from 'react'
-import { div, h } from 'react-hyperscript-helpers'
+import { div, h, span } from 'react-hyperscript-helpers'
 import { buttonPrimary, link, spinnerOverlay } from 'src/components/common'
 import Modal from 'src/components/Modal'
 import { ajaxCaller } from 'src/libs/ajax'
@@ -29,7 +29,7 @@ export default ajaxCaller(class DeleteWorkspaceModal extends Component {
   }
 
   render() {
-    const { workspace: { workspace: { bucketName } }, onDismiss } = this.props
+    const { workspace: { workspace: { bucketName, name } }, onDismiss } = this.props
     const { deleting } = this.state
     return h(Modal, {
       title: 'Confirm delete',
@@ -38,7 +38,9 @@ export default ajaxCaller(class DeleteWorkspaceModal extends Component {
         onClick: () => this.deleteWorkspace()
       }, 'Delete')
     }, [
-      div(['Are you sure you want to permanently delete this workspace?']),
+      div(['Are you sure you want to permanently delete this workspace, ',
+        span({ style: { fontWeight: 600 } }, name),
+        '?']),
       div({ style: { marginTop: '1rem' } }, [
         'Deleting it will delete the associated ',
         link({
