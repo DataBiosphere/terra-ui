@@ -71,10 +71,10 @@ export const SearchInput = ({ onSearch = _.noop, onChange, ...props }) => {
   }
 
   return textInput(_.merge({
-    ref: supportsSearch ? attachRef : undefined,
+    ref: attachRef,
     type: 'search',
     spellCheck: false,
-    style: { WebkitAppearance: 'none' },
+    style: { WebkitAppearance: 'none', borderColor: colors.gray[3] },
     onChange,
     onKeyDown: supportsSearch ? undefined : e => { // to make firefox behave like webkit/blink
       switch (e.which) {
@@ -82,8 +82,10 @@ export const SearchInput = ({ onSearch = _.noop, onChange, ...props }) => {
           onSearch(e)
           break
         case 27: // escape
-          onChange(_.merge(e, { target: { value: '' } }))
-          setTimeout(() => onSearch(e), 0) // wait a tick to let the onChange fire first
+          e.persist()
+          const touchedEvent = _.merge(e, { target: { value: '' } })
+          onChange(touchedEvent)
+          onSearch(touchedEvent)
           break
         default:
       }

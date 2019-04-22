@@ -100,15 +100,14 @@ const JobHistory = _.flow(
       const submissions = _.flow(
         _.orderBy('submissionDate', 'desc'),
         _.map(sub => {
-          const subAsText = _.flow(
-            _.pick([
-              'methodConfigurationName', 'methodConfigurationNamespace', 'status', 'submissionDate',
-              'submissionEntity.entityType', 'submissionEntity.entityName', 'submissionId', 'submitter'
-            ]),
-            _.reduce((acc, val) => Utils.append(_.isObject(val) ? _.values(val) : val, acc), []),
-            _.flatten,
-            _.join(' ')
-          )(sub)
+          const {
+            methodConfigurationName, methodConfigurationNamespace, status, submissionDate,
+            submissionEntity: { entityType, entityName } = {}, submissionId, submitter
+          } = sub
+
+          const subAsText = _.join(' ', [
+            methodConfigurationName, methodConfigurationNamespace, status, submissionDate, entityType, entityName, submissionId, submitter
+          ]).toLowerCase()
 
           return _.set('asText', subAsText, sub)
         })
@@ -131,11 +130,11 @@ const JobHistory = _.flow(
     const { namespace, name, ajax: { Workspaces }, workspace: { workspace: { bucketName } } } = this.props
     const { submissions, loading, aborting, textFilter } = this.state
 
-    const filteredSubmissions = _.filter(({ asText }) => _.every(term => Utils.textMatch(term, asText), textFilter.split(/\s+/)), submissions)
+    const filteredSubmissions = _.filter(({ asText }) => _.every(term => asText.includes(term.toLowerCase()), textFilter.split(/\s+/)), submissions)
 
     return h(Fragment, [
       h(SearchInput, {
-        style: { width: 300, margin: '1rem 1rem 0', borderColor: colors.gray[3], alignSelf: 'flex-end' },
+        style: { width: 300, margin: '1rem 1rem 0', alignSelf: 'flex-end' },
         placeholder: 'Filter',
         onChange: ({ target: { value } }) => this.setState({ textFilter: value }),
         value: textFilter

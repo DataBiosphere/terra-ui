@@ -100,10 +100,7 @@ const LocalVariablesContent = ajaxCaller(class LocalVariablesContent extends Com
   render() {
     const { workspace, workspace: { workspace: { namespace, name, attributes } }, ajax: { Workspaces }, refreshWorkspace, loadingWorkspace, firstRender } = this.props
     const { editIndex, deleteIndex, editKey, editValue, editType, textFilter } = this.state
-    const stopEditing = resetFilter => this.setState({
-      editIndex: undefined, editKey: undefined, editValue: undefined, editType: undefined,
-      ...(resetFilter ? { textFilter: '' } : {})
-    })
+    const stopEditing = () => this.setState({ editIndex: undefined, editKey: undefined, editValue: undefined, editType: undefined })
     const filteredAttributes = _.flow(
       _.toPairs,
       _.remove(([key]) => key === 'description' || key.includes(':') || key.startsWith('referenceData-')),
@@ -141,7 +138,8 @@ const LocalVariablesContent = ajaxCaller(class LocalVariablesContent extends Com
       }
 
       await refreshWorkspace()
-      stopEditing(editKey !== originalKey)
+      stopEditing()
+      this.setState({ textFilter: '' })
     })
 
     const upload = withErrorReporting('Error uploading file', async ([file]) => {
@@ -170,7 +168,7 @@ const LocalVariablesContent = ajaxCaller(class LocalVariablesContent extends Com
           linkButton({ onClick: () => this.uploader.current.open() }, ['upload TSV'])
         ]),
         h(SearchInput, {
-          style: { width: 300, marginLeft: '1rem', borderColor: colors.gray[3] },
+          style: { width: 300, marginLeft: '1rem' },
           placeholder: 'Filter',
           onChange: ({ target: { value } }) => this.setState({ textFilter: value }),
           value: textFilter
@@ -306,7 +304,7 @@ const ReferenceDataContent = ({ workspace: { workspace: { namespace, attributes 
 
   return h(Fragment, [
     h(SearchInput, {
-      style: { width: 300, marginBottom: '1rem', borderColor: colors.gray[3], alignSelf: 'flex-end' },
+      style: { width: 300, marginBottom: '1rem', alignSelf: 'flex-end' },
       placeholder: 'Filter',
       onChange: ({ target: { value } }) => setTextFilter(value),
       value: textFilter
@@ -439,7 +437,7 @@ class EntitiesContent extends Component {
           setSelected: Utils.canWrite(accessLevel) && (e => this.setState({ selectedEntities: e }))
         },
         childrenBefore: ({ entities, columnSettings }) => div({
-          style: { display: 'flex', alignItems: 'center', flex: 'none', marginBottom: '1rem' }
+          style: { display: 'flex', alignItems: 'center', flex: 'none' }
         }, [
           this.renderDownloadButton(columnSettings),
           this.renderCopyButton(entities, columnSettings)

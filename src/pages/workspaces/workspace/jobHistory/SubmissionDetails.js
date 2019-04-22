@@ -61,7 +61,7 @@ const SubmissionDetails = _.flow(
               const wfAsText = _.join(' ', [
                 cost, ...messages, status, statusLastChangedDate, entityType, entityName, workflowId,
                 ..._.flatMap(({ inputName, value }) => [inputName, JSON.stringify(value)], inputResolutions)
-              ])
+              ]).toLowerCase()
 
               return _.set('asText', wfAsText, wf)
             }, workflows),
@@ -111,10 +111,9 @@ const SubmissionDetails = _.flow(
   } = submission
 
   const filteredWorkflows = _.flow(
-    _.filter(wf => {
-      if (_.isEmpty(statusFilter) || statusFilter.includes(wf.status)) {
-        const wfAsText = JSON.stringify(_.values(wf))
-        return _.every(term => Utils.textMatch(term, wfAsText), textFilter.split(/\s+/))
+    _.filter(({ status, asText }) => {
+      if (_.isEmpty(statusFilter) || statusFilter.includes(status)) {
+        return _.every(term => asText.includes(term.toLowerCase()), textFilter.split(/\s+/))
       } else {
         return false
       }

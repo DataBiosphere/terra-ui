@@ -17,7 +17,7 @@ import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 
 
-const filterState = state => _.pick(['pageNumber', 'itemsPerPage', 'sort', 'filterTerms'], state)
+const filterState = state => _.pick(['pageNumber', 'itemsPerPage', 'sort', 'activeTextFilter'], state)
 
 const entityMap = entities => {
   return _.fromPairs(_.map(e => [e.name, e], entities))
@@ -46,6 +46,7 @@ export default ajaxCaller(class DataTable extends Component {
       totalRowCount = 0, itemsPerPage = 25, pageNumber = 1,
       sort = { field: 'name', direction: 'asc' },
       textFilter = '',
+      activeTextFilter = '',
       columnWidths = {}, columnState = {}
     } = props.firstRender ? StateHistory.get() : {}
 
@@ -53,7 +54,7 @@ export default ajaxCaller(class DataTable extends Component {
     this.state = {
       loading: false,
       viewData: undefined,
-      entities, totalRowCount, itemsPerPage, pageNumber, sort, textFilter, columnWidths, columnState
+      entities, totalRowCount, itemsPerPage, pageNumber, sort, textFilter, activeTextFilter, columnWidths, columnState
     }
   }
 
@@ -75,20 +76,20 @@ export default ajaxCaller(class DataTable extends Component {
 
     return h(Fragment, [
       !!entities && h(Fragment, [
-        div({ style: { display: 'flex' } }, [
+        div({ style: { display: 'flex', marginBottom: '1rem' } }, [
           childrenBefore && childrenBefore({ entities, columnSettings }),
           div({ style: { flexGrow: 1 } }),
           div({ style: { display: 'flex' } }, [
             h(SearchInput, {
-              style: { width: 300, borderColor: colors.gray[3], borderRadius: '4px 0 0 4px' },
+              style: { width: 300, borderRadius: '4px 0 0 4px' },
               placeholder: 'Filter',
               onChange: ({ target: { value } }) => this.setState({ textFilter: value }),
-              onSearch: () => this.loadData(),
+              onSearch: ({ target: { value } }) => this.setState({ activeTextFilter: value }),
               value: textFilter
             }),
             buttonPrimary({
               style: { borderRadius: '0 4px 4px 0', borderLeft: 'none' },
-              onClick: () => this.loadData()
+              onClick: () => this.setState({ activeTextFilter: textFilter })
             }, [icon('search', { size: 18 })])
           ])
         ]),
@@ -225,7 +226,7 @@ export default ajaxCaller(class DataTable extends Component {
     }
     if (this.props.persist) {
       StateHistory.update(
-        _.pick(['itemsPerPage', 'pageNumber', 'sort', 'textFilter', 'columnWidths', 'columnState'], this.state))
+        _.pick(['itemsPerPage', 'pageNumber', 'sort', 'textFilter', 'activeTextFilter', 'columnWidths', 'columnState'], this.state))
     }
   }
 
@@ -235,13 +236,13 @@ export default ajaxCaller(class DataTable extends Component {
       ajax: { Workspaces }
     } = this.props
 
-    const { pageNumber, itemsPerPage, sort, textFilter } = this.state
+    const { pageNumber, itemsPerPage, sort, activeTextFilter } = this.state
 
     try {
       this.setState({ loading: true })
       const { results, resultMetadata: { unfilteredCount } } = await Workspaces.workspace(namespace, name)
         .paginatedEntitiesOfType(entityType, {
-          page: pageNumber, pageSize: itemsPerPage, sortField: sort.field, sortDirection: sort.direction, filterTerms: textFilter
+          page: pageNumber, pageSize: itemsPerPage, sortField: sort.field, sortDirection: sort.direction, filterTerms: activeTextFilter
         })
       this.setState({ entities: results, totalRowCount: unfilteredCount })
     } catch (error) {
