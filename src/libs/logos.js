@@ -1,3 +1,5 @@
+import '@webcomponents/custom-elements' // this needs to be first, basically only for FF ESR now
+
 import { ClarityIcons } from '@clr/icons'
 import _ from 'lodash/fp'
 import { div, img } from 'react-hyperscript-helpers'

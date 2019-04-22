@@ -4,7 +4,7 @@
   "private": true,
   "dependencies": {
     "@clr/icons": "^1.1.2",
-    "@webcomponents/custom-elements": "^1.2.3",
+    "@webcomponents/custom-elements": "^1.2.4",
     "animate.css": "^3.7.0",
     "clipboard-polyfill": "^2.8.0",
     "file-saver": "^2.0.1",

@@ -1,3 +1,5 @@
+import '@webcomponents/custom-elements' // this needs to be first, basically only for FF ESR now
+
 import { ClarityIcons } from '@clr/icons'
 import '@clr/icons/clr-icons.css'
 import '@clr/icons/shapes/all-shapes'
