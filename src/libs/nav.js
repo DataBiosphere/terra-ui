@@ -1,4 +1,4 @@
-import createHistory from 'history/createHashHistory'
+import { createHashHistory as createHistory } from 'history'
 import _ from 'lodash/fp'
 import pathToRegexp from 'path-to-regexp'
 import * as qs from 'qs'

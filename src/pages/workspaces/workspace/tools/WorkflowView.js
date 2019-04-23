@@ -24,7 +24,6 @@ import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
-import * as JobHistory from 'src/pages/workspaces/workspace/JobHistory'
 import DataStepContent from 'src/pages/workspaces/workspace/tools/DataStepContent'
 import DeleteToolModal from 'src/pages/workspaces/workspace/tools/DeleteToolModal'
 import EntitySelectionType from 'src/pages/workspaces/workspace/tools/EntitySelectionType'
@@ -382,10 +381,7 @@ const WorkflowView = _.flow(
           workspaceId, config: savedConfig,
           processSingle: this.isSingle(), entitySelectionModel, useCallCache,
           onDismiss: () => this.setState({ launching: false }),
-          onSuccess: submissionId => {
-            JobHistory.flagNewSubmission(submissionId)
-            Nav.goToPath('workspace-job-history', workspaceId)
-          }
+          onSuccess: submissionId => Nav.goToPath('workspace-submission-details', { submissionId, ...workspaceId })
         }),
         variableSelected && h(BucketContentModal, {
           workspace,
@@ -563,7 +559,7 @@ const WorkflowView = _.flow(
                   isSearchable: false,
                   value: methodVersion,
                   getOptionLabel: ({ value }) => Utils.normalizeLabel(value),
-                  options: snapshotIds,
+                  options: _.isEmpty(snapshotIds) ? [methodVersion] : snapshotIds,
                   onChange: chosenSnapshot => this.loadNewMethodConfig(chosenSnapshot.value)
                 })
               ]) :
@@ -725,8 +721,8 @@ const WorkflowView = _.flow(
         v.replace(/\${(.*)}/, (_, match) => match) :
         JSON.stringify(v)
       )(rawUpdates)
-      this.setState(({ modifiedConfig, inputsOutputs }) => {
-        const existing = _.map('name', inputsOutputs[key])
+      this.setState(({ modifiedConfig, modifiedInputsOutputs }) => {
+        const existing = _.map('name', modifiedInputsOutputs[key])
         return {
           modifiedConfig: _.update(key, _.assign(_, _.pick(existing, updates)), modifiedConfig)
         }
@@ -752,9 +748,9 @@ const WorkflowView = _.flow(
     const { workspace } = this.props
     const { modifiedConfig, modifiedInputsOutputs, errors, entityMetadata, workspaceAttributes, includeOptionalInputs } = this.state
     // Sometimes we're getting totally empty metadata. Not sure if that's valid; if not, revert this
-    const { attributeNames } = entityMetadata[modifiedConfig.rootEntityType] || {}
+    const attributeNames = _.get([modifiedConfig.rootEntityType, 'attributeNames'], entityMetadata) || []
     const suggestions = [
-      ..._.map(name => `this.${name}`, attributeNames),
+      ...(modifiedConfig.rootEntityType ? _.map(name => `this.${name}`, [`${modifiedConfig.rootEntityType}_id`, ...attributeNames]) : []),
       ..._.map(name => `workspace.${name}`, workspaceAttributes)
     ]
     const filteredData = _.filter(includeOptionalInputs || key === 'outputs' ? (() => true) : { optional: false }, modifiedInputsOutputs[key])
@@ -821,7 +817,7 @@ const WorkflowView = _.flow(
         savedConfig: validationResponse.methodConfiguration,
         modifiedConfig: validationResponse.methodConfiguration,
         errors: augmentErrors(validationResponse),
-        inputsOutputs: modifiedInputsOutputs
+        savedInputsOutputs: modifiedInputsOutputs
       }, () => setTimeout(() => this.setState({ saved: false }), 3000))
       this.updateEntityTypeUI(modifiedConfig)
     } catch (error) {

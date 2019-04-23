@@ -69,7 +69,10 @@ export default ajaxCaller(class NewWorkspaceModal extends Component {
         Billing.listProjects(),
         Groups.list()
       ])
-      this.setState({ billingProjects, allGroups })
+      this.setState(({ namespace }) => ({
+        billingProjects, allGroups,
+        namespace: _.some({ projectName: namespace }, billingProjects) ? namespace : undefined
+      }))
     } catch (error) {
       reportError('Error loading data', error)
     }
