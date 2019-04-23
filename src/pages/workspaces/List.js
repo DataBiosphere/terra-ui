@@ -134,10 +134,11 @@ const WorkspaceMenuContent = ({ namespace, name, onClone, onShare, onDelete }) =
 
 const WorkspaceCard = pure(({
   listView, onClone, onDelete, onShare,
-  workspace: { workspace: { namespace, name, createdBy, lastModified, attributes: { description } } }
+  workspace: { accessLevel, workspace: { namespace, name, createdBy, lastModified, attributes: { description } } }
 }) => {
   const lastChanged = `Last changed: ${Utils.makePrettyDate(lastModified)}`
   const badge = div({ title: createdBy, style: styles.badge }, [createdBy[0].toUpperCase()])
+  const canView = Utils.canRead(accessLevel)
   const workspaceMenu = h(PopupTrigger, {
     side: 'right',
     closeOnClick: true,
@@ -145,6 +146,7 @@ const WorkspaceCard = pure(({
   }, [
     h(Clickable, {
       onClick: e => e.preventDefault(),
+      disabled: !canView,
       style: {
         cursor: 'pointer', color: colors.green[0], marginRight: 'auto'
       },
@@ -159,36 +161,44 @@ const WorkspaceCard = pure(({
   const descText = description ?
     removeMd(listView ? description.split('\n')[0] : description) :
     span({ style: { color: colors.gray[1] } }, ['No description added'])
+  const titleOverrides = !canView ? { color: colors.gray[2] } : {}
 
-  return listView ? a({
-    href: Nav.getLink('workspace-dashboard', { namespace, name }),
-    style: styles.longCard
+  return h(TooltipTrigger, {
+    content: !canView && `
+      You cannot access this workspace because it contains restricted data.
+      You need permission from the admin(s) of all of the groups in the Authorization Domain protecting the workspace.
+    `,
+    side: 'top'
   }, [
-    workspaceMenu,
-    div({ style: { ...styles.longCardTextContainer } }, [
-      div({ style: { display: 'flex', alignItems: 'center' } }, [
-        div({ style: { ...styles.longTitle } }, [name]),
-        h(TooltipTrigger, { content: Utils.makeCompleteDate(lastModified) }, [
-          div({ style: { flex: 'none' } }, [lastChanged])
+    a({
+      href: canView ? Nav.getLink('workspace-dashboard', { namespace, name }) : undefined,
+      style: listView ? styles.longCard : styles.shortCard
+    }, [
+      listView ? h(Fragment, [
+        workspaceMenu,
+        div({ style: { ...styles.longCardTextContainer } }, [
+          div({ style: { display: 'flex', alignItems: 'center' } }, [
+            div({ style: { ...styles.longTitle, ...titleOverrides } }, [name]),
+            h(TooltipTrigger, { content: Utils.makeCompleteDate(lastModified) }, [
+              div({ style: { flex: 'none' } }, [lastChanged])
+            ])
+          ]),
+          div({ style: { display: 'flex', alignItems: 'center' } }, [
+            div({ style: { ...styles.longDescription } }, [descText]),
+            div({ style: { flex: 'none' } }, [badge])
+          ])
         ])
-      ]),
-      div({ style: { display: 'flex', alignItems: 'center' } }, [
-        div({ style: { ...styles.longDescription } }, [descText]),
-        div({ style: { flex: 'none' } }, [badge])
+      ]) : h(Fragment, [
+        div({ style: { ...styles.shortTitle, ...titleOverrides } }, [name]),
+        div({ style: styles.shortDescription }, [descText]),
+        div({ style: { display: 'flex', marginLeft: 'auto' } }, [badge]),
+        div({ style: { display: 'flex', alignItems: 'center' } }, [
+          h(TooltipTrigger, { content: Utils.makeCompleteDate(lastModified) }, [
+            div({ style: { flex: 1 } }, [lastChanged])
+          ]),
+          workspaceMenu
+        ])
       ])
-    ])
-  ]) : a({
-    href: Nav.getLink('workspace-dashboard', { namespace, name }),
-    style: styles.shortCard
-  }, [
-    div({ style: styles.shortTitle }, [name]),
-    div({ style: styles.shortDescription }, [descText]),
-    div({ style: { display: 'flex', marginLeft: 'auto' } }, [badge]),
-    div({ style: { display: 'flex', alignItems: 'center' } }, [
-      h(TooltipTrigger, { content: Utils.makeCompleteDate(lastModified) }, [
-        div({ style: { flex: 1 } }, [lastChanged])
-      ]),
-      workspaceMenu
     ])
   ])
 })
@@ -278,7 +288,7 @@ export const WorkspaceList = _.flow(
               placeholder: 'Filter by access levels',
               value: accessLevelsFilter,
               onChange: data => this.setState({ accessLevelsFilter: _.map('value', data) }),
-              options: _.drop(1, Utils.workspaceAccessLevels),
+              options: Utils.workspaceAccessLevels,
               getOptionLabel: ({ value }) => Utils.normalizeLabel(value)
             })
           ]),
