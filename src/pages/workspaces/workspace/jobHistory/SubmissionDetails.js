@@ -204,8 +204,8 @@ const SubmissionDetails = _.flow(
             size: { basis: 225, grow: 0 },
             headerRenderer: () => h(Sortable, { sort, field: 'workflowEntity', onSort: setSort }, ['Data Entity']),
             cellRenderer: ({ rowIndex }) => {
-              const { entityName, entityType } = filteredWorkflows[rowIndex].workflowEntity
-              return h(TooltipCell, [`${entityName} (${entityType})`])
+              const { workflowEntity: { entityName, entityType } = {} } = filteredWorkflows[rowIndex]
+              return h(TooltipCell, [entityName && `${entityName} (${entityType})`])
             }
           }, {
             size: { basis: 225, grow: 0 },
@@ -236,12 +236,12 @@ const SubmissionDetails = _.flow(
             size: { basis: 150, grow: 0 },
             headerRenderer: () => h(Sortable, { sort, field: 'workflowId', onSort: setSort }, ['Workflow ID']),
             cellRenderer: ({ rowIndex }) => {
-              const { workflowId, inputResolutions: [{ inputName }] } = filteredWorkflows[rowIndex]
+              const { workflowId, inputResolutions: [{ inputName } = {}] } = filteredWorkflows[rowIndex]
               return h(TooltipCell, { tooltip: workflowId }, [
-                link({
+                inputName ? link({
                   target: '_blank',
-                  href: bucketBrowserUrl(`${bucketName}/${submissionId}/${inputName.split('.')[0]}/${workflowId}`)
-                }, [workflowId])
+                  href: inputName && bucketBrowserUrl(`${bucketName}/${submissionId}/${inputName.split('.')[0]}/${workflowId}`)
+                }, [workflowId]) : workflowId
               ])
             }
           }
