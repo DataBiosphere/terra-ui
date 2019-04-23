@@ -217,7 +217,7 @@ const User = signal => ({
             { id: 360018545031, value: emailAgreed }
           ],
           comment: {
-            body: `${description}\n\n------------------\n${(emailAgreed === undefined) ? `Submitted from: ${currUrl}` : ``}`,
+            body: `${description}\n\n------------------\nSubmitted from: ${currUrl}`,
             uploads: [`${attachmentToken}`]
           }
         }
