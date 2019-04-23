@@ -6,7 +6,6 @@ import { link } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { notify } from 'src/components/Notifications'
 import TopBar from 'src/components/TopBar'
-import colors from 'src/libs/colors'
 import { isFirecloud } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
 import * as Code from 'src/pages/library/Code'
@@ -76,14 +75,13 @@ export default class Router extends Component {
       ({ pathname, search }) => this.setState({ pathname, search })
     )
 
-    if (!isFirecloud() && new URLSearchParams(window.location.search).has('fcredir')) {
+    if (isFirecloud() && new URLSearchParams(window.location.search).has('fcredir')) {
       notify('welcome', div({ style: { fontSize: 14 } }, [
         div(['Welcome to the new FireCloud interface, powered by Terra. All of your workspaces are available. ',
           link({
-            style: { color: colors.gray[5] },
             target: '_blank',
             href: 'https://broadinstitute.zendesk.com/hc/en-us/sections/360003528231-FireCloud-users-Find-out-what-s-new-in-Terra',
-            hover: { color: colors.gray[4] }
+            variant: 'light'
           },
           'Learn what\'s new and different.'
           )]),
@@ -92,7 +90,7 @@ export default class Router extends Component {
         div({ style: { marginTop: '1rem' } }, ['Please update your bookmarks to our new URL, firecloud.terra.bio. ' +
         'Welcome to the future of FireCloud!'])
       ]))
-      //window.history.replaceState(null, '', `/${window.location.hash}`)
+      window.history.replaceState(null, '', `/${window.location.hash}`)
     }
   }
 
