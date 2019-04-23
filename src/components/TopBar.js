@@ -522,26 +522,28 @@ export default _.flow(
   }
 })
 
-const PreferFirecloudModal = ({ onDismiss, authState }) => {
+const PreferFirecloudModal = ({ onDismiss }) => {
   const [emailAgreed, setEmailAgreed] = useState(true)
   const [reason, setReason] = useState('')
   const [submitting, setSubmitting] = useState(false)
 
-  const { profile: { email, firstName, lastName } } = authState
+  const { profile: { email, firstName, lastName } } = Utils.useAtom(authStore)
   const returnToLegacyFC = _.flow(
     withErrorReporting('Error opting out of Terra'),
     Utils.withBusyState(setSubmitting)
   )(async () => {
     await Ajax().User.profile.preferLegacyFirecloud()
-    if (emailAgreed === true || reason.length !== 0) await Ajax().User.createSupportRequest({
-      name: `${firstName} ${lastName}`,
-      email,
-      description: reason,
-      subject: 'Opt out of Terra',
-      type: 'survey',
-      attachmentToken: '',
-      emailAgreed
-    })
+    if (emailAgreed === true || reason.length !== 0) {
+      await Ajax().User.createSupportRequest({
+        name: `${firstName} ${lastName}`,
+        email,
+        description: reason,
+        subject: 'Opt out of Terra',
+        type: 'survey',
+        attachmentToken: '',
+        emailAgreed
+      })
+    }
     onDismiss()
     window.location.assign(getConfig().firecloudUrlRoot)
   })
@@ -554,13 +556,13 @@ const PreferFirecloudModal = ({ onDismiss, authState }) => {
     'Are you sure you would prefer the previous FireCloud interface?',
     h(FormLabel, ['(Optional) Please tell us why']),
     h(TextArea, {
-      style: { height: 100, borderRadius: '0.5rem', marginBottom: '0.5rem' },
+      style: { height: 100, marginBottom: '0.5rem' },
       placeholder: 'Enter your reason',
       value: reason,
       onChange: e => setReason(e.target.value)
     }),
     h(LabeledCheckbox, {
-      checked: emailAgreed === true,
+      checked: emailAgreed,
       onChange: setEmailAgreed
     }, [span({ style: { marginLeft: '0.5rem' } }, ['You can follow up with me by email.'])]),
     submitting && spinnerOverlay
