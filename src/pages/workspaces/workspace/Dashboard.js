@@ -10,7 +10,7 @@ import { SimpleTable } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { displayConsentCodes, displayLibraryAttributes } from 'src/data/workspace-attributes'
 import { ajaxCaller } from 'src/libs/ajax'
-import { bucketBrowserUrl } from 'src/libs/auth'
+import { authStore, bucketBrowserUrl, refreshTerraProfile } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { reportError, withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
@@ -91,7 +91,8 @@ export const WorkspaceDashboard = _.flow(
     breadcrumbs: () => breadcrumbs.commonPaths.workspaceList(),
     activeTab: 'dashboard'
   }),
-  ajaxCaller
+  ajaxCaller,
+  Utils.connectAtom(authStore, 'authState')
 )(class WorkspaceDashboard extends Component {
   constructor(props) {
     super(props)
@@ -104,15 +105,12 @@ export const WorkspaceDashboard = _.flow(
   }
 
   async componentDidMount() {
+    const { ajax: { Workspaces }, namespace, name } = this.props
     this.loadSubmissionCount()
     this.loadStorageCost()
     this.loadConsent()
+    this.setState({ wsNotifications: await Workspaces.workspace(namespace, name).notifications() })
   }
-
-  /*loadPreferences = withErrorReporting('Error loading preferences', async () => {
-    const { ajax: { User } } = this.props
-    const preferences = await User.profile.setPreferences(prefsData)
-  })*/
 
   loadSubmissionCount = withErrorReporting('Error loading data', async () => {
     const { ajax: { Workspaces }, namespace, name } = this.props
@@ -171,9 +169,9 @@ export const WorkspaceDashboard = _.flow(
           authorizationDomain, createdDate, lastModified, bucketName,
           attributes, attributes: { description = '' }
         }
-      }
+      }, authState: { profile }, ajax: { User }
     } = this.props
-    const { submissionsCount, storageCostEstimate, editDescription, saving, consentStatus } = this.state
+    const { submissionsCount, storageCostEstimate, editDescription, saving, savingProfile, consentStatus, wsNotifications } = this.state
     const isEditing = _.isString(editDescription)
 
     return div({ style: { flex: 1, display: 'flex' } }, [
@@ -254,18 +252,27 @@ export const WorkspaceDashboard = _.flow(
           ..._.map(({ membersGroupName }) => div({ style: styles.authDomain }, [membersGroupName]), authorizationDomain)
         ]),
         div({ style: styles.header }, ['Notifications']),
-        div([
-          h(LabeledCheckbox, {
-            checked: true,
-            onChange: v => this.setState({ v })
-          }, [span({ style: { marginLeft: '0.5rem' } }, ['Data is changed or added'])])
-        ]),
+        h(Fragment,
+          _.map(({ notificationKey, description }) => div([
+            h(LabeledCheckbox, {
+              checked: profile[notificationKey] === 'true',
+              onChange: _.flow(
+                withErrorReporting('Error saving notification'),
+                Utils.withBusyState(v => this.setState({ savingProfile: v }))
+              )(async v => {
+                await User.profile.setPreferences({ [notificationKey]: v.toString() })
+                await refreshTerraProfile()
+              })
+            }, [span({ style: { marginLeft: '0.5rem' } }, [description])])
+          ]), wsNotifications)
+        ),
         div({ style: { margin: '1.5rem 0 0.5rem 0', borderBottom: `1px solid ${colors.gray[3]}` } }),
         link({
           target: '_blank',
           href: bucketBrowserUrl(bucketName),
           style: { display: 'block', marginBottom: '3rem' }
-        }, ['Google bucket'])
+        }, ['Google bucket']),
+        savingProfile && spinnerOverlay
       ])
     ])
   }

@@ -575,6 +575,11 @@ const Workspaces = signal => ({
       storageCostEstimate: async () => {
         const res = await fetchOrchestration(`api/workspaces/${namespace}/${name}/storageCostEstimate`, _.merge(authOpts(), { signal }))
         return res.json()
+      },
+
+      notifications: async () => {
+        const res = await fetchRawls(`notifications/workspace/${namespace}/${name}`, _.merge(authOpts(), { signal }))
+        return res.json()
       }
     }
   }
