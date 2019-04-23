@@ -365,7 +365,7 @@ const WorkflowView = _.flow(
     // modifiedConfig: active data, potentially unsaved
     const {
       isFreshData, savedConfig, launching, activeTab, useCallCache,
-      entitySelectionModel, variableSelected, modifiedConfig, isRedacted, updatingConfig
+      entitySelectionModel, variableSelected, modifiedConfig, updatingConfig
     } = this.state
     const { namespace, name, workspace } = this.props
     const workspaceId = { namespace, name }
@@ -456,7 +456,8 @@ const WorkflowView = _.flow(
 
   componentDidUpdate() {
     StateHistory.update(_.pick(
-      ['savedConfig', 'modifiedConfig', 'entityMetadata', 'savedInputsOutputs', 'modifiedInputsOutputs', 'invalid', 'activeTab', 'wdl', 'isRedacted', 'wasRedacted'],
+      ['savedConfig', 'modifiedConfig', 'entityMetadata', 'savedInputsOutputs', 'modifiedInputsOutputs', 'invalid', 'activeTab', 'wdl', 'isRedacted',
+        'wasRedacted'],
       this.state)
     )
   }
@@ -578,7 +579,7 @@ const WorkflowView = _.flow(
               methodVersion
           ]),
           div([
-            'Source: ', link({
+            'Source: ', isRedacted ? `${methodNamespace}/${methodName}/${methodVersion}` : link({
               href: methodLink(modifiedConfig),
               target: '_blank'
             }, methodPath ? methodPath : `${methodNamespace}/${methodName}/${methodVersion}`)
@@ -653,7 +654,7 @@ const WorkflowView = _.flow(
             onChangeTab: v => this.setState({ activeTab: v }),
             finalStep: buttonPrimary({
               disabled: !!Utils.computeWorkspaceError(ws) || !!noLaunchReason || isRedacted,
-              tooltip: Utils.computeWorkspaceError(ws) || noLaunchReason || isRedacted && 'Tool version was redacted.',
+              tooltip: Utils.computeWorkspaceError(ws) || noLaunchReason || (isRedacted && 'Tool version was redacted.'),
               onClick: () => this.setState({ launching: true }),
               style: {
                 height: StepButtonParams.buttonHeight, fontSize: StepButtonParams.fontSize
