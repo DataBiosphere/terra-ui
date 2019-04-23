@@ -87,11 +87,7 @@ class ReadOnlyMessage extends Component {
             as: 'a',
             href: notebookLink,
             style: { marginRight: '1rem' }
-          }, ['edit in Jupyter']),
-          buttonOutline({
-            as: 'a',
-            href: notebookLabLink
-          }, ['edit in JupyterLab'])
+          }, ['edit in Jupyter'])
         ]) :
         buttonOutline({
           onClick: () => this.setState({ copying: true })

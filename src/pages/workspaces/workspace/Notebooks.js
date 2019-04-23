@@ -71,12 +71,6 @@ class NotebookCard extends Component {
           tooltipSide: 'left'
         }, [menuIcon('eye'), 'Open read-only']),
         h(MenuButton, {
-          disabled: !canWrite,
-          tooltip: !canWrite && noWrite,
-          tooltipSide: 'left',
-          onClick: () => Nav.goToPath('workspace-notebook-launch', { namespace, app: 'lab', name: wsName, notebookName: name.slice(10) })
-        }, [menuIcon('jupyterIcon'), 'Open in JupyterLab']),
-        h(MenuButton, {
           onClick: () => onExport()
         }, [menuIcon('export'), 'Copy to another workspace']),
         h(MenuButton, {
