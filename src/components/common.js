@@ -38,11 +38,11 @@ export const Clickable = ({ as = 'div', disabled, tooltip, tooltipSide, onClick,
 const linkProps = ({ disabled, variant }) => ({
   as: 'a',
   style: {
-    color: disabled ? colors.gray[2] : variant === 'light' ? colors.lightGreen[0] : colors.green[0],
+    color: disabled ? colors.gray[2] : variant === 'light' ? colors.lightGreen[2] : colors.green[0],
     cursor: disabled ? 'not-allowed' : 'pointer',
     fontWeight: 500
   },
-  hover: disabled ? undefined : { color: variant === 'light' ? colors.lightGreen[1] : colors.green[1] }
+  hover: disabled ? undefined : { color: variant === 'light' ? colors.lightGreen[3] : colors.green[1] }
 })
 
 export const link = ({ onClick, href, disabled, variant, ...props }, children) => {
