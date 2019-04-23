@@ -550,11 +550,11 @@ const PreferFirecloudModal = ({ onDismiss }) => {
 
   return h(Modal, {
     onDismiss,
-    title: 'Take me back to classic FireCloud!',
+    title: 'Return to classic FireCloud',
     okButton: returnToLegacyFC
   }, [
     'Are you sure you would prefer the previous FireCloud interface?',
-    h(FormLabel, ['(Optional) Please tell us why']),
+    h(FormLabel, ['Please tell us why']),
     h(TextArea, {
       style: { height: 100, marginBottom: '0.5rem' },
       placeholder: 'Enter your reason',
