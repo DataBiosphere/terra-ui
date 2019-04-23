@@ -4,7 +4,7 @@ import { div, h, span } from 'react-hyperscript-helpers'
 import SimpleMDE from 'react-simplemde-editor'
 import 'easymde/dist/easymde.min.css'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { buttonPrimary, buttonSecondary, link, linkButton, Markdown, spinnerOverlay } from 'src/components/common'
+import { buttonPrimary, buttonSecondary, LabeledCheckbox, link, linkButton, Markdown, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { SimpleTable } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
@@ -108,6 +108,11 @@ export const WorkspaceDashboard = _.flow(
     this.loadStorageCost()
     this.loadConsent()
   }
+
+  /*loadPreferences = withErrorReporting('Error loading preferences', async () => {
+    const { ajax: { User } } = this.props
+    const preferences = await User.profile.setPreferences(prefsData)
+  })*/
 
   loadSubmissionCount = withErrorReporting('Error loading data', async () => {
     const { ajax: { Workspaces }, namespace, name } = this.props
@@ -247,6 +252,13 @@ export const WorkspaceDashboard = _.flow(
             ' to access this workspace.'
           ]),
           ..._.map(({ membersGroupName }) => div({ style: styles.authDomain }, [membersGroupName]), authorizationDomain)
+        ]),
+        div({ style: styles.header }, ['Notifications']),
+        div([
+          h(LabeledCheckbox, {
+            checked: true,
+            onChange: v => this.setState({ v })
+          }, [span({ style: { marginLeft: '0.5rem' } }, ['Data is changed or added'])])
         ]),
         div({ style: { margin: '1.5rem 0 0.5rem 0', borderBottom: `1px solid ${colors.gray[3]}` } }),
         link({
