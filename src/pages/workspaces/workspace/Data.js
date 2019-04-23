@@ -406,7 +406,7 @@ class EntitiesContent extends Component {
     const { workspace: { workspace: { workspaceId } } } = this.props
     const { selectedEntities } = this.state
 
-     return h(Fragment, [
+    return h(Fragment, [
       buttonPrimary({
         disabled: _.size(selectedEntities) !== 1,
         tooltip: _.size(selectedEntities) === 0 ? 'Select a cohort to open in Data Explorer' :
