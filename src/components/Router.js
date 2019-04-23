@@ -24,6 +24,7 @@ import * as WorkspaceList from 'src/pages/workspaces/List'
 import * as Dashboard from 'src/pages/workspaces/workspace/Dashboard'
 import * as Data from 'src/pages/workspaces/workspace/Data'
 import * as JobHistory from 'src/pages/workspaces/workspace/JobHistory'
+import * as SubmissionDetails from 'src/pages/workspaces/workspace/jobHistory/SubmissionDetails'
 import * as Notebooks from 'src/pages/workspaces/workspace/Notebooks'
 import * as NotebookLauncher from 'src/pages/workspaces/workspace/notebooks/NotebookLauncher'
 import * as TerminalLauncher from 'src/pages/workspaces/workspace/notebooks/TerminalLauncher'
@@ -48,6 +49,7 @@ const initNavPaths = () => {
   Data.addNavPaths()
   Notebooks.addNavPaths()
   JobHistory.addNavPaths()
+  SubmissionDetails.addNavPaths()
   Tools.addNavPaths()
   NotebookLauncher.addNavPaths()
   Profile.addNavPaths()
@@ -76,21 +78,21 @@ export default class Router extends Component {
 
     if (!isFirecloud() && new URLSearchParams(window.location.search).has('fcredir')) {
       notify('welcome', div({ style: { fontSize: 14 } }, [
-        div(['Welcome to the new FireCloud interface, powered by Terra. All of your workspaces are available. Click  ',
+        div(['Welcome to the new FireCloud interface, powered by Terra. All of your workspaces are available. ',
           link({
-            style: { color: colors.gray[0] },
+            style: { color: colors.gray[5] },
             target: '_blank',
             href: 'https://broadinstitute.zendesk.com/hc/en-us/sections/360003528231-FireCloud-users-Find-out-what-s-new-in-Terra',
-            hover: { color: colors.gray[1] }
+            hover: { color: colors.gray[4] }
           },
-          'here'
-          ), ' to learn what\'s new and different.']),
+          'Learn what\'s new and different.'
+          )]),
         div({ style: { marginTop: '1rem' } }, ['The legacy FireCloud is still available until ' +
         'August 2019. Click the three-bar menu on the upper-left corner and select "Use Classic FireCloud".']),
         div({ style: { marginTop: '1rem' } }, ['Please update your bookmarks to our new URL, firecloud.terra.bio. ' +
         'Welcome to the future of FireCloud!'])
       ]))
-      window.history.replaceState(null, '', `/${window.location.hash}`)
+      //window.history.replaceState(null, '', `/${window.location.hash}`)
     }
   }
 
