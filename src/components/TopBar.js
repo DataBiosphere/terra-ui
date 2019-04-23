@@ -528,6 +528,8 @@ const PreferFirecloudModal = ({ onDismiss }) => {
   const [submitting, setSubmitting] = useState(false)
 
   const { profile: { email, firstName, lastName } } = Utils.useAtom(authStore)
+  const currUrl = window.location.href
+
   const returnToLegacyFC = _.flow(
     withErrorReporting('Error opting out of Terra'),
     Utils.withBusyState(setSubmitting)
@@ -541,7 +543,8 @@ const PreferFirecloudModal = ({ onDismiss }) => {
         subject: 'Opt out of Terra',
         type: 'survey',
         attachmentToken: '',
-        emailAgreed
+        emailAgreed,
+        currUrl
       })
     }
     onDismiss()
