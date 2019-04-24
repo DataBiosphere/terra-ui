@@ -6,7 +6,7 @@ import * as breadcrumbs from 'src/components/breadcrumbs'
 import { Clickable, link, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { SearchInput } from 'src/components/input'
-import { collapseStatus, failedIcon, runningIcon, successIcon } from 'src/components/job-common'
+import { collapseStatus, failedIcon, runningIcon, submittedIcon, successIcon } from 'src/components/job-common'
 import Modal from 'src/components/Modal'
 import { FlexTable, HeaderCell, TextCell, TooltipCell } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
@@ -45,7 +45,7 @@ const collapsedStatuses = _.flow(
 )
 
 const statusCell = workflowStatuses => {
-  const { succeeded, failed, running } = collapsedStatuses(workflowStatuses)
+  const { succeeded, failed, running, submitted } = collapsedStatuses(workflowStatuses)
 
   return h(TooltipTrigger, {
     side: 'bottom',
@@ -55,12 +55,14 @@ const statusCell = workflowStatuses => {
         tr({}, [
           td(styles.statusDetailCell, [successIcon()]),
           td(styles.statusDetailCell, [failedIcon()]),
-          td(styles.statusDetailCell, [runningIcon()])
+          td(styles.statusDetailCell, [runningIcon()]),
+          td(styles.statusDetailCell, [submittedIcon()])
         ]),
         tr({}, [
           td(styles.statusDetailCell, [succeeded || 0]),
           td(styles.statusDetailCell, [failed || 0]),
-          td(styles.statusDetailCell, [running || 0])
+          td(styles.statusDetailCell, [running || 0]),
+          td(styles.statusDetailCell, [submitted || 0])
         ])
       ])
     ])
@@ -68,7 +70,8 @@ const statusCell = workflowStatuses => {
     div([
       succeeded && successIcon({ marginRight: '0.5rem' }),
       failed && failedIcon({ marginRight: '0.5rem' }),
-      running && runningIcon({ marginRight: '0.5rem' })
+      running && runningIcon({ marginRight: '0.5rem' }),
+      submitted && submittedIcon({ marginRight: '0.5rem' })
     ])
   ])
 }
@@ -203,7 +206,7 @@ const JobHistory = _.flow(
                     status, submissionEntity
                   } = filteredSubmissions[rowIndex]
                   return h(Fragment, [
-                    statusCell(workflowStatuses), status === 'Aborting' && 'Aborting',
+                    statusCell(workflowStatuses), _.keys(collapsedStatuses(workflowStatuses)).length === 1 && status,
                     (collapsedStatuses(workflowStatuses).running && status !== 'Aborting') && h(TooltipTrigger, {
                       content: 'Abort all workflows'
                     }, [
@@ -227,7 +230,7 @@ const JobHistory = _.flow(
                           onDone: () => this.refresh()
                         })
                       }, [
-                        icon('sync', { size: 18, style: { color: colors.green[0], marginLeft: '0.5rem' } })
+                        icon('refresh', { size: 18, style: { color: colors.green[0], marginLeft: '0.5rem' } })
                       ])
                     ])
                   ])
