@@ -434,11 +434,12 @@ const WorkflowView = _.flow(
       const inputsOutputs = !isRedacted && await Methods.configInputsOutputs(config)
       this.setState({
         savedConfig: config, modifiedConfig: config,
-        entityMetadata, savedInputsOutputs: isRedacted ? [] : this.sortOptionalInputs(inputsOutputs),
+        currentSnapRedacted: isRedacted, savedSnapRedacted: isRedacted,
+        entityMetadata,
+        savedInputsOutputs: isRedacted ? [] : this.sortOptionalInputs(inputsOutputs),
         modifiedInputsOutputs: isRedacted ? [] : this.sortOptionalInputs(inputsOutputs),
         snapshotIds,
         errors: isRedacted ? { inputs: {}, outputs: {} } : augmentErrors(validationResponse),
-        isRedacted,
         entitySelectionModel: this.resetSelectionModel(config.rootEntityType),
         workspaceAttributes: _.flow(
           _.without(['description']),
@@ -455,19 +456,18 @@ const WorkflowView = _.flow(
   }
 
   componentDidUpdate() {
-    StateHistory.update(_.pick(
-      ['savedConfig', 'modifiedConfig', 'entityMetadata', 'savedInputsOutputs', 'modifiedInputsOutputs', 'invalid', 'activeTab', 'wdl', 'isRedacted',
-        'wasRedacted'],
-      this.state)
-    )
+    StateHistory.update(_.pick([
+      'savedConfig', 'modifiedConfig', 'entityMetadata', 'savedInputsOutputs', 'modifiedInputsOutputs', 'invalid', 'activeTab', 'wdl',
+      'currentSnapRedacted', 'savedSnapRedacted'
+    ], this.state))
   }
 
-  async fetchInfo(savedConfig, isRedacted) {
+  async fetchInfo(savedConfig, currentSnapRedacted) {
     const { methodRepoMethod: { sourceRepo, methodNamespace, methodName, methodVersion, methodPath } } = savedConfig
     const { ajax: { Dockstore, Methods } } = this.props
     try {
       if (sourceRepo === 'agora') {
-        if (!isRedacted) {
+        if (!currentSnapRedacted) {
           const { synopsis, documentation, payload } = await Methods.method(methodNamespace, methodName, methodVersion).get()
           this.setState({ synopsis, documentation, wdl: payload })
         }
@@ -507,10 +507,11 @@ const WorkflowView = _.flow(
     Utils.withBusyState(v => this.setState({ updatingConfig: v }))
   )(async newSnapshotId => {
     const { ajax: { Methods } } = this.props
-    const { modifiedConfig: { methodRepoMethod: { methodNamespace, methodName } }, isRedacted } = this.state
+    const { modifiedConfig: { methodRepoMethod: { methodNamespace, methodName } }, currentSnapRedacted } = this.state
     const config = await Methods.template({ methodNamespace, methodName, methodVersion: newSnapshotId })
     const modifiedInputsOutputs = await Methods.configInputsOutputs(config)
-    this.setState({ modifiedInputsOutputs: this.sortOptionalInputs(modifiedInputsOutputs), wasRedacted: isRedacted, isRedacted: false })
+    this.setState(
+      { modifiedInputsOutputs: this.sortOptionalInputs(modifiedInputsOutputs), savedSnapRedacted: currentSnapRedacted, currentSnapRedacted: false })
     this.setState(_.set(['modifiedConfig', 'methodRepoMethod'], config.methodRepoMethod))
     this.fetchInfo(config)
   })
@@ -520,7 +521,7 @@ const WorkflowView = _.flow(
     const { workspace: ws, workspace: { workspace }, namespace, name: workspaceName } = this.props
     const {
       modifiedConfig, savedConfig, saving, saved, copying, deleting, selectingData, activeTab, errors, synopsis, documentation,
-      selectedEntityType, entityMetadata, entitySelectionModel, snapshotIds = [], useCallCache, isRedacted
+      selectedEntityType, entityMetadata, entitySelectionModel, snapshotIds = [], useCallCache, currentSnapRedacted, savedSnapRedacted
     } = this.state
     const { name, methodRepoMethod: { methodPath, methodVersion, methodNamespace, methodName, sourceRepo }, rootEntityType } = modifiedConfig
     const modified = !_.isEqual(modifiedConfig, savedConfig)
@@ -558,7 +559,7 @@ const WorkflowView = _.flow(
             ]),
             span({ style: { color: colors.darkBlue[0], fontSize: 24 } }, name)
           ]),
-          isRedacted && div({ style: { color: colors.orange[0], fontSize: 16, fontWeight: 500, marginTop: '0.5rem' } }, [
+          currentSnapRedacted && div({ style: { color: colors.orange[0], fontSize: 16, fontWeight: 500, marginTop: '0.5rem' } }, [
             'The selected snapshot of the referenced tool has been redacted. You will not be able to run an analysis until you select another snapshot.'
           ]),
           div({ style: { marginTop: '0.5rem' } }, [
@@ -571,15 +572,16 @@ const WorkflowView = _.flow(
                   isSearchable: false,
                   value: methodVersion,
                   getOptionLabel: ({ value }) => Utils.normalizeLabel(value),
-                  options: _.uniq([...snapshotIds, methodVersion]).sort(),
-                  isOptionDisabled: ({ value }) => isRedacted && (value === savedConfig.methodRepoMethod.methodVersion),
+                  options: _.uniq([...snapshotIds, savedConfig.methodRepoMethod.methodVersion]).sort(),
+                  isOptionDisabled: ({ value }) => (currentSnapRedacted || savedSnapRedacted) &&
+                    (value === savedConfig.methodRepoMethod.methodVersion),
                   onChange: chosenSnapshot => this.loadNewMethodConfig(chosenSnapshot.value)
                 })
               ]) :
               methodVersion
           ]),
           div([
-            'Source: ', isRedacted ? `${methodNamespace}/${methodName}/${methodVersion}` : link({
+            'Source: ', currentSnapRedacted ? `${methodNamespace}/${methodName}/${methodVersion}` : link({
               href: methodLink(modifiedConfig),
               target: '_blank'
             }, methodPath ? methodPath : `${methodNamespace}/${methodName}/${methodVersion}`)
@@ -596,7 +598,7 @@ const WorkflowView = _.flow(
           div({ style: { marginBottom: '1rem' } }, [
             div([
               h(RadioButton, {
-                disabled: !!Utils.editWorkspaceError(ws) || isRedacted,
+                disabled: !!Utils.editWorkspaceError(ws) || currentSnapRedacted,
                 text: 'Process single workflow from files',
                 checked: this.isSingle(),
                 onChange: () => this.selectSingle(),
@@ -605,14 +607,14 @@ const WorkflowView = _.flow(
             ]),
             div([
               h(RadioButton, {
-                disabled: !!Utils.editWorkspaceError(ws) || isRedacted,
+                disabled: !!Utils.editWorkspaceError(ws) || currentSnapRedacted,
                 text: `Process multiple workflows from:`,
                 checked: this.isMultiple(),
                 onChange: () => this.selectMultiple(),
                 labelStyle: { marginLeft: '0.5rem' }
               }),
               h(Select, {
-                isClearable: false, isDisabled: isRedacted || this.isSingle() || !!Utils.editWorkspaceError(ws), isSearchable: false,
+                isClearable: false, isDisabled: currentSnapRedacted || this.isSingle() || !!Utils.editWorkspaceError(ws), isSearchable: false,
                 placeholder: 'Select data type...',
                 styles: { container: old => ({ ...old, display: 'inline-block', width: 200, marginLeft: '0.5rem' }) },
                 getOptionLabel: ({ value }) => Utils.normalizeLabel(value),
@@ -624,7 +626,7 @@ const WorkflowView = _.flow(
                 options: _.keys(entityMetadata)
               }),
               linkButton({
-                disabled: isRedacted || this.isSingle() || !rootEntityType || !!Utils.editWorkspaceError(ws),
+                disabled: currentSnapRedacted || this.isSingle() || !rootEntityType || !!Utils.editWorkspaceError(ws),
                 tooltip: Utils.editWorkspaceError(ws),
                 onClick: () => this.setState({ selectingData: true }),
                 style: { marginLeft: '1rem' }
@@ -634,7 +636,7 @@ const WorkflowView = _.flow(
           ]),
           div({ style: { marginTop: '1rem' } }, [
             h(LabeledCheckbox, {
-              disabled: isRedacted || !!Utils.computeWorkspaceError(ws),
+              disabled: currentSnapRedacted || !!Utils.computeWorkspaceError(ws),
               checked: useCallCache,
               onChange: v => this.setState({ useCallCache: v })
             }, [' Use call caching']),
@@ -646,15 +648,15 @@ const WorkflowView = _.flow(
           ]),
           h(StepButtons, {
             tabs: [
-              ...(!isRedacted ? [{ key: 'wdl', title: 'Script', isValid: true }] : []),
+              ...(!currentSnapRedacted ? [{ key: 'wdl', title: 'Script', isValid: true }] : []),
               { key: 'inputs', title: 'Inputs', isValid: inputsValid },
               { key: 'outputs', title: 'Outputs', isValid: outputsValid }
             ],
             activeTab,
             onChangeTab: v => this.setState({ activeTab: v }),
             finalStep: buttonPrimary({
-              disabled: !!Utils.computeWorkspaceError(ws) || !!noLaunchReason || isRedacted,
-              tooltip: Utils.computeWorkspaceError(ws) || noLaunchReason || (isRedacted && 'Tool version was redacted.'),
+              disabled: !!Utils.computeWorkspaceError(ws) || !!noLaunchReason || currentSnapRedacted,
+              tooltip: Utils.computeWorkspaceError(ws) || noLaunchReason || (currentSnapRedacted && 'Tool version was redacted.'),
               onClick: () => this.setState({ launching: true }),
               style: {
                 height: StepButtonParams.buttonHeight, fontSize: StepButtonParams.fontSize
@@ -759,21 +761,21 @@ const WorkflowView = _.flow(
 
   renderIOTable(key) {
     const { workspace } = this.props
-    const { modifiedConfig, modifiedInputsOutputs, errors, entityMetadata, workspaceAttributes, includeOptionalInputs, isRedacted } = this.state
+    const { modifiedConfig, modifiedInputsOutputs, errors, entityMetadata, workspaceAttributes, includeOptionalInputs, currentSnapRedacted } = this.state
     // Sometimes we're getting totally empty metadata. Not sure if that's valid; if not, revert this
     const attributeNames = _.get([modifiedConfig.rootEntityType, 'attributeNames'], entityMetadata) || []
     const suggestions = [
       ...(modifiedConfig.rootEntityType ? _.map(name => `this.${name}`, [`${modifiedConfig.rootEntityType}_id`, ...attributeNames]) : []),
       ..._.map(name => `workspace.${name}`, workspaceAttributes)
     ]
-    const filteredData = isRedacted ?
+    const filteredData = currentSnapRedacted ?
       _.map(k => ({ name: k, inputType: 'unknown', optional: false }), _.keys(modifiedConfig[key])) :
       _.filter(includeOptionalInputs || key === 'outputs' ? (() => true) : { optional: false }, modifiedInputsOutputs[key])
 
     return h(Dropzone, {
       accept: '.json',
       multiple: false,
-      disabled: isRedacted || !!Utils.editWorkspaceError(workspace),
+      disabled: currentSnapRedacted || !!Utils.editWorkspaceError(workspace),
       disableClick: true,
       style: { padding: `1rem ${sideMargin}`, flex: 'auto', display: 'flex', flexDirection: 'column' },
       activeStyle: { backgroundColor: colors.green[6], cursor: 'copy' },
@@ -788,7 +790,7 @@ const WorkflowView = _.flow(
             [includeOptionalInputs ? 'Hide optional inputs' : 'Show optional inputs']) :
           div({ style: { marginRight: 'auto' } }),
         linkButton({ onClick: () => this.downloadJson(key) }, ['Download json']),
-        !isRedacted && !Utils.editWorkspaceError(workspace) && h(Fragment, [
+        !currentSnapRedacted && !Utils.editWorkspaceError(workspace) && h(Fragment, [
           div({ style: { whiteSpace: 'pre' } }, ['  |  Drag or click to ']),
           linkButton({ onClick: () => this.uploader.current.open() }, ['upload json'])
         ])
@@ -796,7 +798,7 @@ const WorkflowView = _.flow(
       filteredData.length !== 0 &&
       div({ style: { flex: '1 0 500px' } }, [
         h(WorkflowIOTable, {
-          readOnly: isRedacted || !!Utils.editWorkspaceError(workspace),
+          readOnly: currentSnapRedacted || !!Utils.editWorkspaceError(workspace),
           which: key,
           inputsOutputs: filteredData,
           config: modifiedConfig,
@@ -843,11 +845,11 @@ const WorkflowView = _.flow(
   }
 
   cancel() {
-    const { savedConfig, savedInputsOutputs, savedConfig: { rootEntityType }, wasRedacted } = this.state
+    const { savedConfig, savedInputsOutputs, savedConfig: { rootEntityType }, savedSnapRedacted } = this.state
 
     this.setState({
       saved: false, modifiedConfig: savedConfig, modifiedInputsOutputs: savedInputsOutputs,
-      entitySelectionModel: this.resetSelectionModel(rootEntityType), isRedacted: wasRedacted
+      entitySelectionModel: this.resetSelectionModel(rootEntityType), currentSnapRedacted: savedSnapRedacted
     })
     this.updateSingleOrMultipleRadioState(savedConfig)
   }
