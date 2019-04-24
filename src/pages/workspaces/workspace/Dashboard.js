@@ -259,18 +259,18 @@ export const WorkspaceDashboard = _.flow(
         ]),
         div({ style: styles.header }, ['Notifications']),
         h(Fragment,
-          _.map(({ notificationKey, description }) => h(TooltipTrigger, { content: notificationDetails[description].tooltip }, [
-            h(LabeledCheckbox, {
-              checked: profile[notificationKey] === 'true',
-              onChange: _.flow(
-                withErrorReporting('Error saving notification'),
-                Utils.withBusyState(v => this.setState({ savingProfile: v }))
-              )(async v => {
-                await User.profile.setPreferences({ [notificationKey]: v.toString() })
-                await refreshTerraProfile()
-              })
-            }, [span({ style: { marginLeft: '0.5rem' } }, [notificationDetails[description].label])])
-          ]), wsNotifications)
+          _.map(({ notificationKey, description }) => h(LabeledCheckbox, {
+            checked: profile[notificationKey] === 'true',
+            onChange: _.flow(
+              withErrorReporting('Error saving notification'),
+              Utils.withBusyState(v => this.setState({ savingProfile: v }))
+            )(async v => {
+              await User.profile.setPreferences({ [notificationKey]: v.toString() })
+              await refreshTerraProfile()
+            })
+          }, [h(TooltipTrigger, { content: notificationDetails[description].tooltip }, [
+            span({ style: { marginLeft: '0.5rem' } }, [notificationDetails[description].label])
+          ])]), wsNotifications)
         ),
         div({ style: { margin: '1.5rem 0 0.5rem 0', borderBottom: `1px solid ${colors.gray[3]}` } }),
         link({
