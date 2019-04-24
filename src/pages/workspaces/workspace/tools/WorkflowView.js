@@ -748,9 +748,9 @@ const WorkflowView = _.flow(
     const { workspace } = this.props
     const { modifiedConfig, modifiedInputsOutputs, errors, entityMetadata, workspaceAttributes, includeOptionalInputs } = this.state
     // Sometimes we're getting totally empty metadata. Not sure if that's valid; if not, revert this
-    const { attributeNames } = entityMetadata[modifiedConfig.rootEntityType] || {}
+    const attributeNames = _.get([modifiedConfig.rootEntityType, 'attributeNames'], entityMetadata) || []
     const suggestions = [
-      ..._.map(name => `this.${name}`, attributeNames),
+      ...(modifiedConfig.rootEntityType ? _.map(name => `this.${name}`, [`${modifiedConfig.rootEntityType}_id`, ...attributeNames]) : []),
       ..._.map(name => `workspace.${name}`, workspaceAttributes)
     ]
     const filteredData = _.filter(includeOptionalInputs || key === 'outputs' ? (() => true) : { optional: false }, modifiedInputsOutputs[key])

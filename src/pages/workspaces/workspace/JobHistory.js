@@ -182,9 +182,8 @@ const JobHistory = _.flow(
                 size: { basis: 250, grow: 0 },
                 headerRenderer: () => h(HeaderCell, ['Data entity']),
                 cellRenderer: ({ rowIndex }) => {
-                  const { submissionEntity: { entityName, entityType } } = filteredSubmissions[rowIndex]
-                  const text = `${entityName} (${entityType})`
-                  return h(TooltipCell, [text])
+                  const { submissionEntity: { entityName, entityType } = {} } = filteredSubmissions[rowIndex]
+                  return h(TooltipCell, [entityName && `${entityName} (${entityType})`])
                 }
               },
               {

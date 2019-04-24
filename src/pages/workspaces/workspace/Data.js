@@ -402,6 +402,24 @@ class EntitiesContent extends Component {
     ])
   }
 
+  renderOpenInDataExplorerButton() {
+    const { workspace: { workspace: { workspaceId } } } = this.props
+    const { selectedEntities } = this.state
+
+    return h(Fragment, [
+      buttonPrimary({
+        disabled: _.size(selectedEntities) !== 1,
+        tooltip: _.size(selectedEntities) === 0 ? 'Select a cohort to open in Data Explorer' :
+          _.size(selectedEntities) > 1 ? 'Select exactly one cohort to open in Data Explorer' :
+            '',
+        onClick: () => window.open(_.values(selectedEntities)[0].attributes.data_explorer_url + '&wid=' + workspaceId)
+      }, [
+        icon('search', { style: { marginRight: '0.5rem' } }),
+        'Open in Data Explorer'
+      ])
+    ])
+  }
+
   buildTSV(columnSettings, entities) {
     const { entityKey } = this.props
     const attributeNames = _.map('name', _.filter('visible', columnSettings))
@@ -438,7 +456,9 @@ class EntitiesContent extends Component {
         },
         childrenBefore: ({ entities, columnSettings }) => div({
           style: { display: 'flex', alignItems: 'center', flex: 'none' }
-        }, [
+        }, entityKey === 'cohort' && entityMetadata.cohort.attributeNames.includes('data_explorer_url') ? [
+          this.renderOpenInDataExplorerButton()
+        ] : [
           this.renderDownloadButton(columnSettings),
           this.renderCopyButton(entities, columnSettings)
         ])

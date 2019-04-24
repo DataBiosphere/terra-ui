@@ -2,8 +2,11 @@ import _ from 'lodash/fp'
 import { Component } from 'react'
 import { div, h, h2 } from 'react-hyperscript-helpers'
 import AuthContainer from 'src/components/AuthContainer'
+import { link } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
+import { notify } from 'src/components/Notifications'
 import TopBar from 'src/components/TopBar'
+import { isFirecloud } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
 import * as Code from 'src/pages/library/Code'
 import * as Datasets from 'src/pages/library/Datasets'
@@ -71,6 +74,24 @@ export default class Router extends Component {
     this.unlisten = Nav.history.listen(
       ({ pathname, search }) => this.setState({ pathname, search })
     )
+
+    if (isFirecloud() && new URLSearchParams(window.location.search).has('fcredir')) {
+      notify('welcome', div({ style: { fontSize: 14 } }, [
+        div(['Welcome to the new FireCloud interface, powered by Terra. All of your workspaces are available. ',
+          link({
+            target: '_blank',
+            href: 'https://broadinstitute.zendesk.com/hc/en-us/sections/360003528231-FireCloud-users-Find-out-what-s-new-in-Terra',
+            variant: 'light'
+          },
+          'Learn what\'s new and different.'
+          )]),
+        div({ style: { marginTop: '1rem' } }, ['The legacy FireCloud is still available until ' +
+        'August 2019. Click the three-bar menu on the upper-left corner and select "Use Classic FireCloud".']),
+        div({ style: { marginTop: '1rem' } }, ['Please update your bookmarks to our new URL, firecloud.terra.bio. ' +
+        'Welcome to the future of FireCloud!'])
+      ]))
+      window.history.replaceState(null, '', `/${window.location.hash}`)
+    }
   }
 
   // FIXME - shouldn't be using unsafe methods
