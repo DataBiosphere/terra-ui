@@ -431,13 +431,13 @@ const WorkflowView = _.flow(
       const isRedacted = !validationResponse
       const methods = await Methods.list({ namespace: workflowNamespace, name: workflowName })
       const snapshotIds = _.map(m => _.pick('snapshotId', m).snapshotId, methods)
-      const inputsOutputs = !isRedacted && await Methods.configInputsOutputs(config)
+      const inputsOutputs = isRedacted ? {} : await Methods.configInputsOutputs(config)
       this.setState({
         savedConfig: config, modifiedConfig: config,
         currentSnapRedacted: isRedacted, savedSnapRedacted: isRedacted,
         entityMetadata,
-        savedInputsOutputs: isRedacted ? [] : this.sortOptionalInputs(inputsOutputs),
-        modifiedInputsOutputs: isRedacted ? [] : this.sortOptionalInputs(inputsOutputs),
+        savedInputsOutputs: this.sortOptionalInputs(inputsOutputs),
+        modifiedInputsOutputs: this.sortOptionalInputs(inputsOutputs),
         snapshotIds,
         errors: isRedacted ? { inputs: {}, outputs: {} } : augmentErrors(validationResponse),
         entitySelectionModel: this.resetSelectionModel(config.rootEntityType),
@@ -845,11 +845,12 @@ const WorkflowView = _.flow(
   }
 
   cancel() {
-    const { savedConfig, savedInputsOutputs, savedConfig: { rootEntityType }, savedSnapRedacted } = this.state
+    const { savedConfig, savedInputsOutputs, savedConfig: { rootEntityType }, savedSnapRedacted, activeTab } = this.state
 
     this.setState({
       saved: false, modifiedConfig: savedConfig, modifiedInputsOutputs: savedInputsOutputs,
-      entitySelectionModel: this.resetSelectionModel(rootEntityType), currentSnapRedacted: savedSnapRedacted
+      entitySelectionModel: this.resetSelectionModel(rootEntityType), currentSnapRedacted: savedSnapRedacted,
+      activeTab: activeTab === 'wdl' && savedSnapRedacted ? 'inputs' : activeTab
     })
     this.updateSingleOrMultipleRadioState(savedConfig)
   }
