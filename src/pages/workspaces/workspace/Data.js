@@ -409,6 +409,7 @@ class EntitiesContent extends Component {
 
     return h(Fragment, [
       buttonPrimary({
+        style: { marginRight: '1rem' },
         disabled: _.isEmpty(selectedEntities),
         tooltip: 'Opens files of the selected data with IGV',
         onClick: () => this.setState({ showIgvSelector: true })
