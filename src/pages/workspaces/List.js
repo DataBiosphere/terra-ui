@@ -5,7 +5,7 @@ import { pure } from 'recompose'
 import removeMd from 'remove-markdown'
 import togglesListView from 'src/components/CardsListToggle'
 import {
-  Clickable, LabeledCheckbox, MenuButton, menuIcon, PageBox, search, Select, topSpinnerOverlay, transparentSpinnerOverlay
+  Clickable, LabeledCheckbox, linkButton, MenuButton, menuIcon, PageBox, search, Select, topSpinnerOverlay, transparentSpinnerOverlay
 } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
@@ -144,14 +144,10 @@ const WorkspaceCard = pure(({
     closeOnClick: true,
     content: h(WorkspaceMenuContent, { namespace, name, onShare, onClone, onDelete })
   }, [
-    h(Clickable, {
+    linkButton({
+      as: 'div',
       onClick: e => e.preventDefault(),
-      disabled: !canView,
-      style: {
-        cursor: 'pointer', color: colors.green[0], marginRight: 'auto'
-      },
-      focus: 'hover',
-      hover: { color: colors.green[2] }
+      disabled: !canView
     }, [
       icon('cardMenuIcon', {
         size: listView ? 18 : 24
