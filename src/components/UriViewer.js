@@ -55,11 +55,12 @@ const getMaxDownloadCostNA = bytes => {
 const UriViewer = ajaxCaller(class UriViewer extends Component {
   static propTypes = {
     googleProject: PropTypes.string.isRequired,
-    uri: PropTypes.string.isRequired
+    uri: PropTypes.string.isRequired,
+    previewOverride: PropTypes.bool
   }
 
   async componentDidMount() {
-    const { googleProject, uri, ajax: { Buckets, Martha } } = this.props
+    const { googleProject, uri, previewOverride, ajax: { Buckets, Martha } } = this.props
     const isGsUri = isGs(uri)
     const [bucket, name] = isGsUri ? parseUri(uri) : []
 
@@ -70,8 +71,8 @@ const UriViewer = ajaxCaller(class UriViewer extends Component {
 
       this.setState(_.merge({ metadata, price }, !isGsUri && { signedUrl }))
 
-      if (isGsUri && isFilePreviewable(metadata)) {
-        Buckets.getObjectPreview(bucket, name, googleProject, isImage(metadata))
+      if (isGsUri && (previewOverride || isFilePreviewable(metadata))) {
+        Buckets.getObjectPreview(bucket, name, googleProject, previewOverride || isImage(metadata))
           .then(res => isImage(metadata) ? res.blob().then(URL.createObjectURL) : res.text())
           .then(preview => this.setState({ preview }))
       }
@@ -85,10 +86,10 @@ const UriViewer = ajaxCaller(class UriViewer extends Component {
   }
 
   render() {
-    const { uri, onDismiss } = this.props
+    const { uri, onDismiss, previewOverride } = this.props
     const { metadata, preview, signedUrl, price, copied, loadingError } = this.state
-    const { size, timeCreated, updated, bucket, name, gsUri } = metadata || {}
-    const gsutilCommand = `gsutil cp ${gsUri || uri} .`
+    const { size, timeCreated, updated, name, gsUri = uri } = metadata || {}
+    const gsutilCommand = `gsutil cp ${gsUri} .`
 
     return h(Modal, {
       onDismiss,
@@ -116,7 +117,7 @@ const UriViewer = ajaxCaller(class UriViewer extends Component {
           els.cell([
             Utils.cond(
               [!isGs(uri), () => els.label(`DOS uri's can't be previewed`)],
-              [isFilePreviewable(metadata), () => h(Fragment, [
+              [previewOverride || isFilePreviewable(metadata), () => h(Fragment, [
                 els.label('Preview'),
                 Utils.cond(
                   [isImage(metadata), () => img({ src: preview, width: 400 })],
@@ -139,7 +140,7 @@ const UriViewer = ajaxCaller(class UriViewer extends Component {
           els.cell([
             link({
               target: 'blank',
-              href: bucketBrowserUrl(bucket)
+              href: bucketBrowserUrl(gsUri.match(/gs:\/\/(.+)\//)[1])
             }, ['View this file in the Google Cloud Storage Browser'])
           ]),
           els.cell([

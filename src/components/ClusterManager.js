@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
 import { Fragment, PureComponent } from 'react'
-import { div, h, span, strong } from 'react-hyperscript-helpers'
+import { a, div, h, span, strong } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
 import { buttonPrimary, buttonSecondary, Clickable, LabeledCheckbox, Select } from 'src/components/common'
 import { icon } from 'src/components/icons'
@@ -10,6 +10,7 @@ import Modal from 'src/components/Modal'
 import { notify } from 'src/components/Notifications.js'
 import PopupTrigger from 'src/components/PopupTrigger'
 import TooltipTrigger from 'src/components/TooltipTrigger'
+import UriViewer from 'src/components/UriViewer'
 import { machineTypes, profiles, storagePrice } from 'src/data/clusters'
 import { Ajax, ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
@@ -374,12 +375,17 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
 
   componentDidUpdate(prevProps) {
     const prevCluster = _.last(_.sortBy('createdDate', _.remove({ status: 'Deleting' }, prevProps.clusters))) || {}
-    const currentCluster = this.getCurrentCluster() || {}
-    if (currentCluster.status === 'Error' && prevCluster.status !== 'Error') {
+    const { status, jupyterUserScriptUri, stagingBucket, googleId, clusterName } = this.getCurrentCluster() || {}
+    if (status === 'Error' && prevCluster.status !== 'Error') {
       notify('error', 'Error creating cluster', {
-        message: h(Fragment, [strong(['Failed action: ']), currentCluster.jupyterUserScriptUri])
+        message: h(Fragment, [
+          strong(['Failed action: ']), jupyterUserScriptUri,
+          h(Clickable, {
+            onClick: () => this.setState({ errorModalOpen: true }),
+            style: { marginTop: '1rem', textDecoration: 'underline', fontWeight: 'bold' }
+          }, ['SEE LOG INFO'])
+        ])
       })
-      this.destroyClusters(-2)
     }
   }
 
@@ -483,16 +489,16 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
 
   render() {
     const { namespace, name, clusters, canCompute } = this.props
-    const { busy, open, deleting } = this.state
+    const { busy, open, deleting, errorModalOpen } = this.state
     if (!clusters) {
       return null
     }
-    const currentCluster = this.getCurrentCluster()
-    const currentStatus = currentCluster && currentCluster.status
-    const running = currentStatus === 'Running'
+    const currentCluster = this.getCurrentCluster() || {}
+    const { status, stagingBucket, googleId, clusterName, googleProject } = currentCluster
+    const running = status === 'Running'
     const spendingClusters = _.remove(({ status }) => _.includes(status, ['Deleting', 'Error']), clusters)
     const renderIcon = () => {
-      switch (currentStatus) {
+      switch (status) {
         case 'Stopped':
           return h(ClusterIcon, {
             shape: 'play',
@@ -525,7 +531,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
     }, spendingClusters))
     const activeClusters = this.getActiveClustersOldestFirst()
     const creating = _.some({ status: 'Creating' }, activeClusters)
-    const multiple = !creating && activeClusters.length > 1 && currentStatus !== 'Error'
+    const multiple = !creating && activeClusters.length > 1 && status !== 'Error'
     const isDisabled = !canCompute || creating || multiple || busy
 
     return div({ style: styles.container }, [
@@ -543,7 +549,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
       h(ClusterIcon, {
         shape: 'trash',
         onClick: () => this.setState({ deleting: true }),
-        disabled: busy || !canCompute || !_.includes(currentStatus, ['Stopped', 'Running', 'Error']),
+        disabled: busy || !canCompute || !_.includes(status, ['Stopped', 'Running', 'Error']),
         tooltip: 'Delete cluster',
         style: { marginLeft: '0.5rem' }
       }),
@@ -569,7 +575,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
           }, [
             div({ style: { fontSize: 12, fontWeight: 'bold' } }, 'Notebook Runtime'),
             div({ style: { fontSize: 10 } }, [
-              span({ style: { textTransform: 'uppercase', fontWeight: 500 } }, currentStatus || 'None'),
+              span({ style: { textTransform: 'uppercase', fontWeight: 500 } }, status || 'None'),
               ` (${Utils.formatUSD(totalCost)} hr)`
             ])
           ]),
@@ -591,6 +597,12 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
           this.setState({ open: false })
           this.executeAndRefresh(promise)
         }
+      }),
+      errorModalOpen && h(UriViewer, {
+        onDismiss: () => this.setState({ errorModalOpen: false }),
+        previewOverride: true,
+        uri: `gs://${stagingBucket}/google-cloud-dataproc-metainfo/${googleId}/${clusterName}-m/dataproc-initialization-script-0_output`,
+        googleProject
       })
     ])
   }
