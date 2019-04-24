@@ -561,7 +561,7 @@ const PreferFirecloudModal = ({ onDismiss }) => {
       style: { height: 100, marginBottom: '0.5rem' },
       placeholder: 'Enter your reason',
       value: reason,
-      onChange: e => setReason(e.target.value)
+      onChange: setReason
     }),
     h(LabeledCheckbox, {
       checked: emailAgreed,

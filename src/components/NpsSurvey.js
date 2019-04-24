@@ -125,9 +125,9 @@ export const NpsSurvey = Utils.connectAtom(authStore, 'authState')(class NpsSurv
         div({ style: styles.questionLabel }, 'How likely are you to recommend Terra to others?'),
         div({ style: { display: 'flex', justifyContent: 'space-around', marginBottom: '0.5rem' } }, scoreRadios),
         span({ style: styles.questionLabel }, 'What was the reason for this score? '), span({ style: { ...styles.questionLabel, color: colors.gray[3] } }, '(Optional)'),
-        TextArea({ style: styles.questionInput, value: reasonComment, onChange: e => this.setState({ reasonComment: e.target.value }) }),
+        h(TextArea, { style: styles.questionInput, value: reasonComment, onChange: v => this.setState({ reasonComment: v }) }),
         span({ style: styles.questionLabel }, 'What could we change? '), span({ style: { ...styles.questionLabel, color: colors.gray[3] } }, '(Optional)'),
-        TextArea({ style: styles.questionInput, value: changeComment, onChange: e => this.setState({ changeComment: e.target.value }) }),
+        h(TextArea, { style: styles.questionInput, value: changeComment, onChange: v => this.setState({ changeComment: v }) }),
         div({ style: { display: 'flex', justifyContent: 'flex-end' } }, [
           buttonSecondary({
             style: { color: 'white' },

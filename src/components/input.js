@@ -334,10 +334,11 @@ export class AutocompleteSearch extends Component {
   }
 }
 
-export const TextArea = props => {
+export const TextArea = ({ onChange, ...props }) => {
   return h(Interactive, _.merge({
     as: 'textarea',
     className: 'focus-style',
-    style: styles.textarea
+    style: styles.textarea,
+    onChange: onChange ? (e => onChange(e.target.value)) : undefined
   }, props))
 }
