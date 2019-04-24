@@ -173,6 +173,12 @@ export const WorkspaceDashboard = _.flow(
     } = this.props
     const { submissionsCount, storageCostEstimate, editDescription, saving, savingProfile, consentStatus, wsNotifications } = this.state
     const isEditing = _.isString(editDescription)
+    const notificationDetails = {
+      'Workspace changed': {
+        label: 'Data added or removed',
+        tooltip: 'Notify me when a Writer or Owner adds or changes data within this workspace'
+      }
+    }
 
     return div({ style: { flex: 1, display: 'flex' } }, [
       div({ style: styles.leftBox }, [
@@ -253,7 +259,7 @@ export const WorkspaceDashboard = _.flow(
         ]),
         div({ style: styles.header }, ['Notifications']),
         h(Fragment,
-          _.map(({ notificationKey, description }) => div([
+          _.map(({ notificationKey, description }) => h(TooltipTrigger, { content: notificationDetails[description].tooltip }, [
             h(LabeledCheckbox, {
               checked: profile[notificationKey] === 'true',
               onChange: _.flow(
@@ -263,7 +269,7 @@ export const WorkspaceDashboard = _.flow(
                 await User.profile.setPreferences({ [notificationKey]: v.toString() })
                 await refreshTerraProfile()
               })
-            }, [span({ style: { marginLeft: '0.5rem' } }, [description])])
+            }, [span({ style: { marginLeft: '0.5rem' } }, [notificationDetails[description].label])])
           ]), wsNotifications)
         ),
         div({ style: { margin: '1.5rem 0 0.5rem 0', borderBottom: `1px solid ${colors.gray[3]}` } }),
