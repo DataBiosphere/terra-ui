@@ -49,7 +49,7 @@ const getMaxDownloadCostNA = bytes => {
   const nanos = DownloadPrices.pricingInfo[0].pricingExpression.tieredRates[1].unitPrice.nanos
   const downloadPrice = bytes * nanos / DownloadPrices.pricingInfo[0].pricingExpression.baseUnitConversionFactor / 10e8
 
-  return downloadPrice < 0.01 ? '< $0.01' : `$${downloadPrice.toPrecision(2)}`
+  return downloadPrice < 0.01 ? '< $0.01' : Utils.formatUSD(downloadPrice)
 }
 
 const UriViewer = ajaxCaller(class UriViewer extends Component {
@@ -103,7 +103,7 @@ const UriViewer = ajaxCaller(class UriViewer extends Component {
             'Error loading data. You may not have permission to view this file.'
           ]),
           h(Collapse, { defaultHidden: true, title: 'Details' }, [
-            div({ style: { whiteSpace: 'pre-wrap', fontFamily: 'monospace' } }, [
+            div({ style: { whiteSpace: 'pre-wrap', fontFamily: 'monospace', overflowWrap: 'break-word' } }, [
               JSON.stringify(loadingError, null, 2)
             ])
           ])

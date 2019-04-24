@@ -2,17 +2,17 @@ import clipboard from 'clipboard-polyfill'
 import FileSaver from 'file-saver'
 import filesize from 'filesize'
 import _ from 'lodash/fp'
-import { createRef, Fragment } from 'react'
+import { createRef, Fragment, useState } from 'react'
 import Dropzone from 'react-dropzone'
 import { div, form, h, input } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { buttonPrimary, Clickable, linkButton, Select, spinnerOverlay } from 'src/components/common'
+import { buttonPrimary, linkButton, Select, spinnerOverlay } from 'src/components/common'
 import DataTable from 'src/components/DataTable'
 import ExportDataModal from 'src/components/ExportDataModal'
 import FloatingActionButton from 'src/components/FloatingActionButton'
 import { icon, spinner } from 'src/components/icons'
-import { textInput } from 'src/components/input'
+import { SearchInput, textInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { FlexTable, HeaderCell, SimpleTable, TextCell } from 'src/components/table'
 import UriViewer from 'src/components/UriViewer'
@@ -53,6 +53,7 @@ const styles = {
 
 const DataTypeButton = ({ selected, children, iconName = 'listAlt', iconSize = 14, ...props }) => {
   return linkButton({
+    as: 'span',
     style: { display: 'flex', alignItems: 'center', color: 'black', fontWeight: selected ? 500 : undefined, padding: '0.5rem 0' },
     ...props
   }, [
@@ -83,14 +84,27 @@ const getReferenceData = _.flow(
 )
 
 const LocalVariablesContent = ajaxCaller(class LocalVariablesContent extends Component {
+  constructor(props) {
+    super(props)
+    this.state = {
+      editIndex: undefined,
+      deleteIndex: undefined,
+      editKey: undefined,
+      editValue: undefined,
+      editType: undefined,
+      textFilter: ''
+    }
+    this.uploader = createRef()
+  }
+
   render() {
-    const { workspace: { accessLevel, workspace: { namespace, name, attributes } }, ajax: { Workspaces }, refreshWorkspace, loadingWorkspace, firstRender } = this.props
-    const { editIndex, deleteIndex, editKey, editValue, editType } = this.state
-    const canEdit = Utils.canWrite(accessLevel)
+    const { workspace, workspace: { workspace: { namespace, name, attributes } }, ajax: { Workspaces }, refreshWorkspace, loadingWorkspace, firstRender } = this.props
+    const { editIndex, deleteIndex, editKey, editValue, editType, textFilter } = this.state
     const stopEditing = () => this.setState({ editIndex: undefined, editKey: undefined, editValue: undefined, editType: undefined })
     const filteredAttributes = _.flow(
       _.toPairs,
       _.remove(([key]) => key === 'description' || key.includes(':') || key.startsWith('referenceData-')),
+      _.filter(data => Utils.textMatch(textFilter, _.join(' ', data))),
       _.sortBy(_.first)
     )(attributes)
 
@@ -125,10 +139,41 @@ const LocalVariablesContent = ajaxCaller(class LocalVariablesContent extends Com
 
       await refreshWorkspace()
       stopEditing()
+      this.setState({ textFilter: '' })
+    })
+
+    const upload = withErrorReporting('Error uploading file', async ([file]) => {
+      await Workspaces.workspace(namespace, name).importAttributes(file)
+      await refreshWorkspace()
+    })
+
+    const download = withErrorReporting('Error downloading attributes', async () => {
+      const blob = await Workspaces.workspace(namespace, name).exportAttributes()
+      FileSaver.saveAs(blob, `${name}-workspace-attributes.tsv`)
     })
 
     const { initialY } = firstRender ? StateHistory.get() : {}
-    return h(Fragment, [
+    return h(Dropzone, {
+      disabled: !!Utils.editWorkspaceError(workspace),
+      disableClick: true,
+      style: { flex: 1, display: 'flex', flexDirection: 'column' },
+      activeStyle: { backgroundColor: colors.green[6], cursor: 'copy' },
+      ref: this.uploader,
+      onDropAccepted: upload
+    }, [
+      div({ style: { flex: 'none', display: 'flex', alignItems: 'center', marginBottom: '1rem', justifyContent: 'flex-end' } }, [
+        linkButton({ onClick: download }, ['Download TSV']),
+        !Utils.editWorkspaceError(workspace) && h(Fragment, [
+          div({ style: { whiteSpace: 'pre' } }, ['  |  Drag or click to ']),
+          linkButton({ onClick: () => this.uploader.current.open() }, ['upload TSV'])
+        ]),
+        h(SearchInput, {
+          style: { width: 300, marginLeft: '1rem' },
+          placeholder: 'Filter',
+          onChange: ({ target: { value } }) => this.setState({ textFilter: value }),
+          value: textFilter
+        })
+      ]),
       Utils.cond(
         [_.isEmpty(amendedAttributes), () => 'No Workspace Data defined'],
         () => div({ style: { flex: 1 } }, [
@@ -154,8 +199,7 @@ const LocalVariablesContent = ajaxCaller(class LocalVariablesContent extends Com
                   size: { grow: 1 },
                   headerRenderer: () => h(HeaderCell, ['Value']),
                   cellRenderer: ({ rowIndex }) => {
-                    const originalKey = amendedAttributes[rowIndex][0]
-                    const originalValue = amendedAttributes[rowIndex][1]
+                    const [originalKey, originalValue] = amendedAttributes[rowIndex]
 
                     return h(Fragment, [
                       div({ style: { flex: 1, minWidth: 0, display: 'flex' } }, [
@@ -192,8 +236,8 @@ const LocalVariablesContent = ajaxCaller(class LocalVariablesContent extends Com
                         ]) :
                         div({ className: 'hover-only' }, [
                           linkButton({
-                            disabled: !canEdit,
-                            tooltip: canEdit ? 'Edit variable' : 'You do not have access to modify data in this workspace.',
+                            disabled: !!Utils.editWorkspaceError(workspace),
+                            tooltip: Utils.editWorkspaceError(workspace) || 'Edit variable',
                             style: { marginLeft: '1rem' },
                             onClick: () => this.setState({
                               editIndex: rowIndex,
@@ -203,8 +247,8 @@ const LocalVariablesContent = ajaxCaller(class LocalVariablesContent extends Com
                             })
                           }, [icon('pencil', { size: 19 })]),
                           linkButton({
-                            disabled: !canEdit,
-                            tooltip: canEdit ? 'Delete variable' : 'You do not have access to modify data in this workspace.',
+                            disabled: !!Utils.editWorkspaceError(workspace),
+                            tooltip: Utils.editWorkspaceError(workspace) || 'Delete variable',
                             style: { marginLeft: '1rem' },
                             onClick: () => this.setState({ deleteIndex: rowIndex })
                           }, [icon('trash', { size: 19 })])
@@ -217,7 +261,7 @@ const LocalVariablesContent = ajaxCaller(class LocalVariablesContent extends Com
           ])
         ])
       ),
-      !creatingNewVariable && canEdit && h(FloatingActionButton, {
+      !creatingNewVariable && !Utils.editWorkspaceError(workspace) && h(FloatingActionButton, {
         label: 'ADD VARIABLE',
         iconShape: 'plus',
         bottom: 50,
@@ -250,9 +294,21 @@ const LocalVariablesContent = ajaxCaller(class LocalVariablesContent extends Com
 })
 
 const ReferenceDataContent = ({ workspace: { workspace: { namespace, attributes } }, referenceKey, loadingWorkspace, firstRender }) => {
-  const selectedData = _.sortBy('key', getReferenceData(attributes)[referenceKey])
+  const [textFilter, setTextFilter] = useState('')
+
+  const selectedData = _.flow(
+    _.filter(({ key, value }) => Utils.textMatch(textFilter, `${key} ${value}`)),
+    _.sortBy('key')
+  )(getReferenceData(attributes)[referenceKey])
   const { initialY } = firstRender ? StateHistory.get() : {}
+
   return h(Fragment, [
+    h(SearchInput, {
+      style: { width: 300, marginBottom: '1rem', alignSelf: 'flex-end' },
+      placeholder: 'Filter',
+      onChange: ({ target: { value } }) => setTextFilter(value),
+      value: textFilter
+    }),
     div({ style: { flex: 1 } }, [
       h(AutoSizer, [
         ({ width, height }) => h(FlexTable, {
@@ -346,6 +402,24 @@ class EntitiesContent extends Component {
     ])
   }
 
+  renderOpenInDataExplorerButton() {
+    const { workspace: { workspace: { workspaceId } } } = this.props
+    const { selectedEntities } = this.state
+
+    return h(Fragment, [
+      buttonPrimary({
+        disabled: _.size(selectedEntities) !== 1,
+        tooltip: _.size(selectedEntities) === 0 ? 'Select a cohort to open in Data Explorer' :
+          _.size(selectedEntities) > 1 ? 'Select exactly one cohort to open in Data Explorer' :
+            '',
+        onClick: () => window.open(_.values(selectedEntities)[0].attributes.data_explorer_url + '&wid=' + workspaceId)
+      }, [
+        icon('search', { style: { marginRight: '0.5rem' } }),
+        'Open in Data Explorer'
+      ])
+    ])
+  }
+
   buildTSV(columnSettings, entities) {
     const { entityKey } = this.props
     const attributeNames = _.map('name', _.filter('visible', columnSettings))
@@ -381,8 +455,10 @@ class EntitiesContent extends Component {
           setSelected: Utils.canWrite(accessLevel) && (e => this.setState({ selectedEntities: e }))
         },
         childrenBefore: ({ entities, columnSettings }) => div({
-          style: { display: 'flex', alignItems: 'center', flex: 'none', marginBottom: '1rem' }
-        }, [
+          style: { display: 'flex', alignItems: 'center', flex: 'none' }
+        }, entityKey === 'cohort' && entityMetadata.cohort.attributeNames.includes('data_explorer_url') ? [
+          this.renderOpenInDataExplorerButton()
+        ] : [
           this.renderDownloadButton(columnSettings),
           this.renderCopyButton(entities, columnSettings)
         ])
@@ -394,7 +470,7 @@ class EntitiesContent extends Component {
         right: 50,
         onClick: () => this.setState({ copyingEntities: true })
       }),
-      !_.isEmpty(selectedEntities) && h(FloatingActionButton, {
+      !_.isEmpty(selectedEntities) && !Utils.editWorkspaceError(workspace) && h(FloatingActionButton, {
         label: 'DELETE DATA',
         iconShape: 'trash',
         bottom: 50,
@@ -492,13 +568,12 @@ const BucketContent = ajaxCaller(class BucketContent extends Component {
   })
 
   render() {
-    const { workspace, workspace: { accessLevel, workspace: { namespace, bucketName } } } = this.props
+    const { workspace, workspace: { workspace: { namespace, bucketName } } } = this.props
     const { prefix, prefixes, objects, loading, uploading, deletingName, viewingName } = this.state
     const prefixParts = _.dropRight(1, prefix.split('/'))
-    const canEdit = Utils.canWrite(accessLevel)
     return h(Fragment, [
       h(Dropzone, {
-        disabled: !canEdit,
+        disabled: !!Utils.editWorkspaceError(workspace),
         disableClick: true,
         style: { flexGrow: 1, backgroundColor: 'white', border: `1px solid ${colors.gray[3]}`, padding: '1rem' },
         activeStyle: { backgroundColor: colors.green[6], cursor: 'copy' },
@@ -565,7 +640,7 @@ const BucketContent = ajaxCaller(class BucketContent extends Component {
           googleProject: namespace, uri: `gs://${bucketName}/${viewingName}`,
           onDismiss: () => this.setState({ viewingName: undefined })
         }),
-        canEdit && h(FloatingActionButton, {
+        !Utils.editWorkspaceError(workspace) && h(FloatingActionButton, {
           label: 'UPLOAD',
           iconShape: 'plus',
           bottom: 50,
@@ -631,10 +706,9 @@ const WorkspaceData = _.flow(
   }
 
   render() {
-    const { namespace, name, workspace, workspace: { accessLevel, workspace: { attributes } }, loadingWorkspace, refreshWorkspace } = this.props
+    const { namespace, name, workspace, workspace: { workspace: { attributes } }, loadingWorkspace, refreshWorkspace } = this.props
     const { selectedDataType, entityMetadata, importingReference, deletingReference, firstRender, refreshKey, uploadingFile } = this.state
     const referenceData = getReferenceData(attributes)
-    const canEdit = Utils.canWrite(accessLevel)
 
     return div({ style: styles.tableContainer }, [
       !entityMetadata ? spinnerOverlay : h(Fragment, [
@@ -642,8 +716,8 @@ const WorkspaceData = _.flow(
           div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between' } }, [
             div({ style: styles.dataTypeHeading }, 'Tables'),
             linkButton({
-              disabled: !canEdit,
-              tooltip: canEdit ? 'Upload .tsv' : 'You do not have access add data to this workspace.',
+              disabled: !!Utils.editWorkspaceError(workspace),
+              tooltip: Utils.editWorkspaceError(workspace) || 'Upload .tsv',
               onClick: () => this.setState({ uploadingFile: true })
             }, [icon('plus-circle')])
           ]),
@@ -659,8 +733,8 @@ const WorkspaceData = _.flow(
           div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '1rem' } }, [
             div({ style: styles.dataTypeHeading }, 'Reference Data'),
             linkButton({
-              disabled: !canEdit,
-              tooltip: canEdit ? 'Add reference data' : 'You do not have access add data to this workspace.',
+              disabled: !!Utils.editWorkspaceError(workspace),
+              tooltip: Utils.editWorkspaceError(workspace) || 'Add reference data',
               onClick: () => this.setState({ importingReference: true })
             }, [icon('plus-circle')])
           ]),
@@ -697,8 +771,9 @@ const WorkspaceData = _.flow(
             }, [
               div({ style: { display: 'flex', justifyContent: 'space-between' } }, [
                 type,
-                h(Clickable, {
-                  tooltip: `Delete ${type}`,
+                linkButton({
+                  disabled: !!Utils.editWorkspaceError(workspace),
+                  tooltip: Utils.editWorkspaceError(workspace) || `Delete ${type}`,
                   onClick: e => {
                     e.stopPropagation()
                     this.setState({ deletingReference: type })

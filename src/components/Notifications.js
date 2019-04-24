@@ -65,11 +65,12 @@ const NotificationDisplay = Utils.connectAtom(notificationStore, 'notificationSt
 
     const { title, message, detail, type } = notifications[notificationNumber]
     const color = Utils.cond(
-      [type === 'success', colors.green],
-      [type === 'info', colors.gray],
-      [type === 'warn', colors.orange],
-      [type === 'error', colors.red],
-    ) || colors.gray
+      [type === 'success', colors.green[0]],
+      [type === 'info', colors.gray[0]],
+      [type === 'welcome', colors.blue[1]],
+      [type === 'warn', colors.orange[0]],
+      [type === 'error', colors.red[0]],
+    ) || colors.gray[0]
     const iconType = Utils.cond(
       [type === 'success', 'success-standard'],
       [type === 'warn' || type === 'error', 'warning-standard'],
@@ -78,7 +79,7 @@ const NotificationDisplay = Utils.connectAtom(notificationStore, 'notificationSt
 
     return div({
       style: {
-        backgroundColor: color[0],
+        backgroundColor: color,
         borderRadius: '4px',
         boxShadow: Style.standardShadow,
         color: 'white',
@@ -93,8 +94,8 @@ const NotificationDisplay = Utils.connectAtom(notificationStore, 'notificationSt
         // content
         div({ style: { display: 'flex', flex: 1, flexDirection: 'column' } }, [
           // icon and title
-          div({ style: { alignItems: 'center', display: 'flex' } }, [
-            !!iconType && icon(iconType, { className: 'is-solid', size: 26, style: { marginRight: '0.5rem' } }),
+          div({ style: { display: 'flex' } }, [
+            !!iconType && icon(iconType, { className: 'is-solid', size: 26, style: { flexShrink: 0, marginRight: '0.5rem' } }),
             div({ style: { fontWeight: 600 } }, [title])
           ]),
           !!message && div({ style: { marginTop: '0.5rem' } }, [message]),

@@ -24,7 +24,6 @@ import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
-import * as JobHistory from 'src/pages/workspaces/workspace/JobHistory'
 import DataStepContent from 'src/pages/workspaces/workspace/tools/DataStepContent'
 import DeleteToolModal from 'src/pages/workspaces/workspace/tools/DeleteToolModal'
 import EntitySelectionType from 'src/pages/workspaces/workspace/tools/EntitySelectionType'
@@ -82,7 +81,7 @@ const ioTask = ({ name }) => _.nth(-2, name.split('.'))
 const ioVariable = ({ name }) => _.nth(-1, name.split('.'))
 const ioType = ({ inputType, outputType }) => (inputType || outputType).match(/(.*?)\??$/)[1] // unify, and strip off trailing '?'
 
-const WorkflowIOTable = ({ which, inputsOutputs: data, config, errors, onChange, onSetDefaults, onBrowse, suggestions }) => {
+const WorkflowIOTable = ({ which, inputsOutputs: data, config, errors, onChange, onSetDefaults, onBrowse, suggestions, readOnly }) => {
   return h(AutoSizer, [
     ({ width, height }) => {
       return h(FlexTable, {
@@ -118,7 +117,7 @@ const WorkflowIOTable = ({ which, inputsOutputs: data, config, errors, onChange,
           {
             headerRenderer: () => h(Fragment, [
               div({ style: { fontWeight: 'bold' } }, ['Attribute']),
-              onSetDefaults && h(Fragment, [
+              !readOnly && which === 'outputs' && h(Fragment, [
                 div({ style: { whiteSpace: 'pre' } }, ['  |  ']),
                 linkButton({ onClick: onSetDefaults }, ['Use defaults'])
               ])
@@ -129,14 +128,14 @@ const WorkflowIOTable = ({ which, inputsOutputs: data, config, errors, onChange,
               const error = errors[which][name]
               const isFile = (inputType === 'File') || (inputType === 'File?')
               return div({ style: { display: 'flex', alignItems: 'center', width: '100%' } }, [
-                onChange ? h(AutocompleteTextInput, {
+                !readOnly ? h(AutocompleteTextInput, {
                   placeholder: optional ? 'Optional' : 'Required',
                   value,
                   style: isFile ? { borderRadius: '4px 0px 0px 4px', borderRight: 'white' } : undefined,
                   onChange: v => onChange(name, v),
                   suggestions
                 }) : h(TextCell, { style: { flex: 1, borderRadius: '4px 0px 0px 4px', borderRight: 'white' } }, value),
-                isFile && h(Clickable, {
+                !readOnly && isFile && h(Clickable, {
                   style: {
                     height: '2.25rem',
                     border: `1px solid ${colors.grayBlue[2]}`, borderRadius: '0px 4px 4px 0px',
@@ -382,10 +381,7 @@ const WorkflowView = _.flow(
           workspaceId, config: savedConfig,
           processSingle: this.isSingle(), entitySelectionModel, useCallCache,
           onDismiss: () => this.setState({ launching: false }),
-          onSuccess: submissionId => {
-            JobHistory.flagNewSubmission(submissionId)
-            Nav.goToPath('workspace-job-history', workspaceId)
-          }
+          onSuccess: submissionId => Nav.goToPath('workspace-submission-details', { submissionId, ...workspaceId })
         }),
         variableSelected && h(BucketContentModal, {
           workspace,
@@ -513,7 +509,7 @@ const WorkflowView = _.flow(
 
 
   renderSummary() {
-    const { workspace: { canCompute, workspace }, namespace, name: workspaceName } = this.props
+    const { workspace: ws, workspace: { workspace }, namespace, name: workspaceName } = this.props
     const {
       modifiedConfig, savedConfig, saving, saved, copying, deleting, selectingData, activeTab, errors, synopsis, documentation,
       selectedEntityType, entityMetadata, entitySelectionModel, snapshotIds, useCallCache
@@ -541,6 +537,9 @@ const WorkflowView = _.flow(
                     onClick: () => this.setState({ copying: true })
                   }, [menuIcon('copy'), 'Copy to Another Workspace']),
                   h(MenuButton, {
+                    disabled: !!Utils.editWorkspaceError(ws),
+                    tooltip: Utils.editWorkspaceError(ws),
+                    tooltipSide: 'right',
                     onClick: () => this.setState({ deleting: true })
                   }, [menuIcon('trash'), 'Delete'])
                 ])
@@ -550,19 +549,22 @@ const WorkflowView = _.flow(
             ]),
             span({ style: { color: colors.darkBlue[0], fontSize: 24 } }, name)
           ]),
-          div({ style: { marginTop: '0.5rem' } },
-            (sourceRepo === 'agora') ? [
-              'Snapshot', div({ style: { display: 'inline-block', marginLeft: '0.25rem', minWidth: 60  } }, [
+          div({ style: { marginTop: '0.5rem' } }, [
+            'Snapshot ',
+            sourceRepo === 'agora' ?
+              div({ style: { display: 'inline-block', marginLeft: '0.25rem', minWidth: 60  } }, [
                 h(Select, {
+                  isDisabled: !!Utils.editWorkspaceError(ws),
                   isClearable: false,
                   isSearchable: false,
                   value: methodVersion,
                   getOptionLabel: ({ value }) => Utils.normalizeLabel(value),
-                  options: snapshotIds,
+                  options: _.isEmpty(snapshotIds) ? [methodVersion] : snapshotIds,
                   onChange: chosenSnapshot => this.loadNewMethodConfig(chosenSnapshot.value)
                 })
-              ])
-            ] : [`Snapshot ${methodVersion}`]),
+              ]) :
+              methodVersion
+          ]),
           div([
             'Source: ', link({
               href: methodLink(modifiedConfig),
@@ -581,6 +583,7 @@ const WorkflowView = _.flow(
           div({ style: { marginBottom: '1rem' } }, [
             div([
               h(RadioButton, {
+                disabled: !!Utils.editWorkspaceError(ws),
                 text: 'Process single workflow from files',
                 checked: this.isSingle(),
                 onChange: () => this.selectSingle(),
@@ -589,13 +592,14 @@ const WorkflowView = _.flow(
             ]),
             div([
               h(RadioButton, {
+                disabled: !!Utils.editWorkspaceError(ws),
                 text: `Process multiple workflows from:`,
                 checked: this.isMultiple(),
                 onChange: () => this.selectMultiple(),
                 labelStyle: { marginLeft: '0.5rem' }
               }),
               h(Select, {
-                isClearable: false, isDisabled: this.isSingle(), isSearchable: false,
+                isClearable: false, isDisabled: this.isSingle() || !!Utils.editWorkspaceError(ws), isSearchable: false,
                 placeholder: 'Select data type...',
                 styles: { container: old => ({ ...old, display: 'inline-block', width: 200, marginLeft: '0.5rem' }) },
                 getOptionLabel: ({ value }) => Utils.normalizeLabel(value),
@@ -607,7 +611,8 @@ const WorkflowView = _.flow(
                 options: _.keys(entityMetadata)
               }),
               linkButton({
-                disabled: this.isSingle() || !rootEntityType,
+                disabled: this.isSingle() || !rootEntityType || !!Utils.editWorkspaceError(ws),
+                tooltip: Utils.editWorkspaceError(ws),
                 onClick: () => this.setState({ selectingData: true }),
                 style: { marginLeft: '1rem' }
               }, ['Select Data'])
@@ -616,6 +621,7 @@ const WorkflowView = _.flow(
           ]),
           div({ style: { marginTop: '1rem' } }, [
             h(LabeledCheckbox, {
+              disabled: !!Utils.computeWorkspaceError(ws),
               checked: useCallCache,
               onChange: v => this.setState({ useCallCache: v })
             }, [' Use call caching']),
@@ -634,9 +640,8 @@ const WorkflowView = _.flow(
             activeTab,
             onChangeTab: v => this.setState({ activeTab: v }),
             finalStep: buttonPrimary({
-              disabled: !canCompute || !!noLaunchReason,
-              tooltip: !canCompute ? 'You do not have access to run analyses on this workspace.' :
-                !!noLaunchReason ? noLaunchReason : undefined,
+              disabled: !!Utils.computeWorkspaceError(ws) || !!noLaunchReason,
+              tooltip: Utils.computeWorkspaceError(ws) || noLaunchReason,
               onClick: () => this.setState({ launching: true }),
               style: {
                 height: StepButtonParams.buttonHeight, fontSize: StepButtonParams.fontSize
@@ -716,8 +721,8 @@ const WorkflowView = _.flow(
         v.replace(/\${(.*)}/, (_, match) => match) :
         JSON.stringify(v)
       )(rawUpdates)
-      this.setState(({ modifiedConfig, inputsOutputs }) => {
-        const existing = _.map('name', inputsOutputs[key])
+      this.setState(({ modifiedConfig, modifiedInputsOutputs }) => {
+        const existing = _.map('name', modifiedInputsOutputs[key])
         return {
           modifiedConfig: _.update(key, _.assign(_, _.pick(existing, updates)), modifiedConfig)
         }
@@ -740,12 +745,12 @@ const WorkflowView = _.flow(
   }
 
   renderIOTable(key) {
-    const { workspace: { canCompute } } = this.props
+    const { workspace } = this.props
     const { modifiedConfig, modifiedInputsOutputs, errors, entityMetadata, workspaceAttributes, includeOptionalInputs } = this.state
     // Sometimes we're getting totally empty metadata. Not sure if that's valid; if not, revert this
-    const { attributeNames } = entityMetadata[modifiedConfig.rootEntityType] || {}
+    const attributeNames = _.get([modifiedConfig.rootEntityType, 'attributeNames'], entityMetadata) || []
     const suggestions = [
-      ..._.map(name => `this.${name}`, attributeNames),
+      ...(modifiedConfig.rootEntityType ? _.map(name => `this.${name}`, [`${modifiedConfig.rootEntityType}_id`, ...attributeNames]) : []),
       ..._.map(name => `workspace.${name}`, workspaceAttributes)
     ]
     const filteredData = _.filter(includeOptionalInputs || key === 'outputs' ? (() => true) : { optional: false }, modifiedInputsOutputs[key])
@@ -753,7 +758,7 @@ const WorkflowView = _.flow(
     return h(Dropzone, {
       accept: '.json',
       multiple: false,
-      disabled: !canCompute,
+      disabled: !!Utils.editWorkspaceError(workspace),
       disableClick: true,
       style: { padding: `1rem ${sideMargin}`, flex: 'auto', display: 'flex', flexDirection: 'column' },
       activeStyle: { backgroundColor: colors.green[6], cursor: 'copy' },
@@ -768,25 +773,28 @@ const WorkflowView = _.flow(
             [includeOptionalInputs ? 'Hide optional inputs' : 'Show optional inputs']) :
           div({ style: { marginRight: 'auto' } }),
         linkButton({ onClick: () => this.downloadJson(key) }, ['Download json']),
-        div({ style: { whiteSpace: 'pre' } }, ['  |  Drag or click to ']),
-        linkButton({ onClick: () => this.uploader.current.open() }, ['upload json'])
+        !Utils.editWorkspaceError(workspace) && h(Fragment, [
+          div({ style: { whiteSpace: 'pre' } }, ['  |  Drag or click to ']),
+          linkButton({ onClick: () => this.uploader.current.open() }, ['upload json'])
+        ])
       ]),
       filteredData.length !== 0 &&
       div({ style: { flex: '1 0 500px' } }, [
         h(WorkflowIOTable, {
+          readOnly: !!Utils.editWorkspaceError(workspace),
           which: key,
           inputsOutputs: filteredData,
           config: modifiedConfig,
           errors,
           onBrowse: name => this.setState({ variableSelected: name }),
-          onChange: canCompute ? ((name, v) => this.setState(_.set(['modifiedConfig', key, name], v))) : undefined,
-          onSetDefaults: canCompute && key === 'outputs' ? () => {
+          onChange: (name, v) => this.setState(_.set(['modifiedConfig', key, name], v)),
+          onSetDefaults: () => {
             this.setState(_.update(['modifiedConfig', 'outputs'], _.flow(
               _.toPairs,
               _.map(([k, v]) => [k, v || `this.${_.last(k.split('.'))}`]),
               _.fromPairs
             )))
-          } : undefined,
+          },
           suggestions
         })
       ])
@@ -809,7 +817,7 @@ const WorkflowView = _.flow(
         savedConfig: validationResponse.methodConfiguration,
         modifiedConfig: validationResponse.methodConfiguration,
         errors: augmentErrors(validationResponse),
-        inputsOutputs: modifiedInputsOutputs
+        savedInputsOutputs: modifiedInputsOutputs
       }, () => setTimeout(() => this.setState({ saved: false }), 3000))
       this.updateEntityTypeUI(modifiedConfig)
     } catch (error) {

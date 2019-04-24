@@ -160,7 +160,7 @@ const SupportRequest = _.flow(
             style: { height: 200, borderTopLeftRadius: 0, borderTopRightRadius: 0, borderTopStyle: 'dashed' },
             placeholder: 'Enter a description',
             value: description,
-            onChange: e => this.setState({ description: e.target.value })
+            onChange: v => this.setState({ description: v })
           }),
           h(FormLabel, ['Attachment']),
           attachmentToken ?

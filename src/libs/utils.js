@@ -92,6 +92,8 @@ export const canWrite = hasAccessLevel('WRITER')
 export const canRead = hasAccessLevel('READER')
 export const isOwner = hasAccessLevel('OWNER')
 
+export const workflowStatuses = ['Queued', 'Launching', 'Submitted', 'Running', 'Aborting', 'Succeeded', 'Failed', 'Aborted']
+
 export const log = function(...args) {
   console.log.apply(null, args)
   return _.last(args)
@@ -160,6 +162,22 @@ export const entityAttributeText = value => {
     [_.has('entityName', value), () => value.entityName],
     [_.has('items', value), () => `${value.items.length} items`],
     () => value
+  )
+}
+
+// Returns a message explaining why the user can't edit the workspace, or undefined if they can
+export const editWorkspaceError = ({ accessLevel, workspace: { isLocked } }) => {
+  return cond(
+    [!canWrite(accessLevel), () => 'You do not have permission to modify this workspace.'],
+    [isLocked, () => 'This workspace is locked']
+  )
+}
+
+// Returns a message explaining why the user can't compute in the workspace, or undefined if they can
+export const computeWorkspaceError = ({ canCompute, workspace: { isLocked } }) => {
+  return cond(
+    [!canCompute, () => 'You do not have access to run analyses on this workspace.'],
+    [isLocked, () => 'This workspace is locked']
   )
 }
 
@@ -244,10 +262,6 @@ export const normalizeMachineConfig = ({ masterMachineType, masterDiskSize, numb
 }
 
 export const append = _.curry((value, arr) => _.concat(arr, [value]))
-
-export const useOnMountOnly = fn => {
-  useEffect(fn, []) // eslint-disable-line react-hooks/exhaustive-deps
-}
 
 // Transforms an async function so that it updates a busy flag via the provided callback
 export const withBusyState = _.curry((setBusy, fn) => async (...args) => {
