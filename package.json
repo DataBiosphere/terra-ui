@@ -44,6 +44,7 @@
   },
   "scripts": {
     "analyze": "npm run build; source-map-explorer build/static/js/main.*",
+    "analyze-deps": "npm run build; source-map-explorer build/static/js/2.*",
     "start": "react-app-rewired start",
     "build": "react-app-rewired build",
     "postbuild": "rm build/config.json",
