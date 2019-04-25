@@ -1,4 +1,5 @@
 import _ from 'lodash/fp'
+import * as qs from 'qs'
 import { Fragment, useState } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import { buttonPrimary, LabeledCheckbox, link, RadioButton, ShibbolethLink, spinnerOverlay } from 'src/components/common'
@@ -154,6 +155,110 @@ const NihLink = ({ nihToken }) => {
 }
 
 
+const FenceLink = ({ provider, displayName }) => {
+  const decodeProvider = state => state ? JSON.parse(atob(state)).provider : ''
+
+  const extractToken = (provider, { state, code }) => {
+    const extractedProvider = decodeProvider(state)
+    return extractedProvider && provider === extractedProvider ? code : undefined
+  }
+
+  const queryParams = qs.parse(window.location.search, { ignoreQueryPrefix: true })
+  const token = extractToken(provider, queryParams)
+  const redirectUrl = `${window.location.origin}/${Nav.getLink('fence-callback')}`
+
+  /*
+   * Hooks
+   */
+  const [{ username, issued_at: issuedAt }, setStatus] = useState({})
+  const [href, setHref] = useState(undefined)
+  const [isLoadingStatus, setIsLoadingStatus] = useState(false)
+  const [isLoadingAuthUrl, setIsLoadingAuthUrl] = useState(false)
+  const [isLinking, setIsLinking] = useState(false)
+  const signal = useCancellation()
+
+  const { User } = Ajax(signal)
+
+  const loadAuthUrl = _.flow(
+    withErrorReporting(`Error loading Fence link`),
+    Utils.withBusyState(setIsLoadingAuthUrl)
+  )(async () => {
+    const result = await User.getFenceAuthUrl(provider, redirectUrl)
+    setHref(result.url)
+  })
+
+  const loadFenceStatus = _.flow(
+    withErrorReporting(`Error loading status for ${displayName}`),
+    Utils.withBusyState(setIsLoadingStatus)
+  )(async () => {
+    try {
+      setStatus(await User.getFenceStatus(provider))
+    } catch (error) {
+      if (error.status === 404) {
+        setStatus({})
+      } else {
+        throw error
+      }
+    }
+  })
+
+  const linkFenceAccount = _.flow(
+    withErrorReporting('Error linking NIH account'),
+    Utils.withBusyState(setIsLinking)
+  )(async () => {
+    setStatus(await User.linkFenceAccount(provider, token, redirectUrl))
+  })
+
+  Utils.useOnMount(() => {
+    loadAuthUrl()
+  })
+
+  Utils.useOnMount(() => {
+    if (token) {
+      const profileLink = `/${Nav.getLink('profile')}`
+      window.history.replaceState({}, '', profileLink)
+      linkFenceAccount()
+    } else {
+      loadFenceStatus()
+    }
+  })
+
+  /*
+   * Render helpers
+   */
+  const makeAccountLinkLink = () => {
+    return href && link({ href, style: { display: 'flex', alignItems: 'center' } }, [
+      'Log-In to Framework Services to link your account',
+      icon('pop-out', { size: 12, style: { marginLeft: '0.5rem' } })
+    ])
+  }
+
+  /*
+   * Render
+   */
+  const isBusy = isLoadingStatus || isLoadingAuthUrl || isLinking
+  const expireTime = new Date(issuedAt).getTime() + (1000 * 60 * 60 * 24 * 30)
+
+  return div({ style: { marginBottom: '1rem' } }, [
+    div({ style: styles.form.title }, [displayName]),
+    isBusy && div([spinner(), 'Loading account status...']),
+    !isBusy && h(Fragment, [
+      !username && makeAccountLinkLink(),
+      !!username && div({ style: { display: 'flex', flexDirection: 'column', width: '33rem' } }, [
+        div({ style: { display: 'flex' } }, [
+          div({ style: { flex: 1 } }, ['Username:']),
+          div({ style: { flex: 2 } }, [username])
+        ]),
+        div({ style: { display: 'flex' } }, [
+          div({ style: { flex: 1 } }, ['Link Expiration:']),
+          div({ style: { flex: 2 } }, [Utils.makeCompleteDate(expireTime)])
+        ])
+      ])
+    ])
+  ])
+}
+
+
 const sectionTitle = text => div({ style: styles.sectionTitle }, [text])
 
 const Profile = _.flow(
@@ -197,7 +302,15 @@ const Profile = _.flow(
           ]),
           div({ style: { marginTop: '0' } }, [
             sectionTitle('Identity & External Servers'),
-            h(NihLink, { nihToken: queryParams['nih-username-token'] })
+            h(NihLink, { nihToken: queryParams['nih-username-token'] }),
+            h(FenceLink, {
+              provider: 'fence',
+              displayName: 'DCP Framework Services by University of Chicago'
+            }),
+            h(FenceLink, {
+              provider: 'dcf-fence',
+              displayName: 'DCF Framework Services by University of Chicago'
+            })
           ])
         ])
       ])
@@ -335,6 +448,11 @@ const Profile = _.flow(
 export const addNavPaths = () => {
   Nav.defPath('profile', {
     path: '/profile',
+    component: Profile,
+    title: 'Profile'
+  })
+  Nav.defPath('fence-callback', {
+    path: '/fence-callback',
     component: Profile,
     title: 'Profile'
   })

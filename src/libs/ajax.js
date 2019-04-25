@@ -109,6 +109,10 @@ const fetchRex = async (path, options) => {
   return fetchOk(`${getConfig().rexUrlRoot}/api/${path}`, options)
 }
 
+const fetchBond = async (path, options) => {
+  return fetchOk(`${getConfig().bondUrlRoot}/${path}`, options)
+}
+
 
 const User = signal => ({
   token: Utils.memoizeWithTimeout(async namespace => {
@@ -256,6 +260,30 @@ const User = signal => ({
 
   linkNihAccount: async token => {
     const res = await fetchOrchestration('api/nih/callback', _.mergeAll([authOpts(), jsonBody({ jwt: token }), { signal, method: 'POST' }]))
+    return res.json()
+  },
+
+  getFenceStatus: async provider => {
+    const res = await fetchBond(`api/link/v1/${provider}`, _.merge(authOpts(), { signal }))
+    return res.json()
+  },
+
+  getFenceAuthUrl: async (provider, redirectUri) => {
+    const queryParams = {
+      'scopes': ['openid', 'google_credentials'],
+      'redirect_uri': redirectUri,
+      'state': btoa(JSON.stringify({ provider }))
+    }
+    const res = await fetchBond(`api/link/v1/${provider}/authorization-url?${qs.stringify(queryParams)}`, { signal })
+    return res.json()
+  },
+
+  linkFenceAccount: async (provider, authCode, redirectUri) => {
+    const queryParams = {
+      'oauthcode': authCode,
+      'redirect_uri': redirectUri
+    }
+    const res = await fetchBond(`api/link/v1/${provider}/oauthcode?${qs.stringify(queryParams)}`, _.merge(authOpts(), { signal, method: 'POST' }))
     return res.json()
   }
 })
