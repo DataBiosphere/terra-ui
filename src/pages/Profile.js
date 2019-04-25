@@ -179,52 +179,48 @@ const FenceLink = ({ provider, displayName }) => {
 
   const { User } = Ajax(signal)
 
-  Utils.useOnMount(() => {
-    const linkFenceAccount = _.flow(
-      withErrorReporting('Error linking NIH account'),
-      Utils.withBusyState(setIsLinking)
-    )(async () => {
-      setStatus(await User.linkFenceAccount(provider, token, redirectUrl))
-    })
+  const loadAuthUrl = _.flow(
+    withErrorReporting(`Error loading Fence link`),
+    Utils.withBusyState(setIsLoadingAuthUrl)
+  )(async () => {
+    const result = await User.getFenceAuthUrl(provider, redirectUrl)
+    setHref(result.url)
+  })
 
+  const loadFenceStatus = _.flow(
+    withErrorReporting(`Error loading status for ${displayName}`),
+    Utils.withBusyState(setIsLoadingStatus)
+  )(async () => {
+    try {
+      setStatus(await User.getFenceStatus(provider))
+    } catch (error) {
+      if (error.status === 404) {
+        setStatus({})
+      } else {
+        throw error
+      }
+    }
+  })
+
+  const linkFenceAccount = _.flow(
+    withErrorReporting('Error linking NIH account'),
+    Utils.withBusyState(setIsLinking)
+  )(async () => {
+    setStatus(await User.linkFenceAccount(provider, token, redirectUrl))
+  })
+
+  Utils.useOnMount(() => {
+    loadAuthUrl()
+  })
+
+  Utils.useOnMount(() => {
     if (token) {
       const profileLink = `/${Nav.getLink('profile')}`
       window.history.replaceState({}, '', profileLink)
       linkFenceAccount()
-    }
-  })
-
-  Utils.useOnMount(() => {
-    const loadFenceStatus = _.flow(
-      withErrorReporting(`Error loading status for ${displayName}`),
-      Utils.withBusyState(setIsLoadingStatus)
-    )(async () => {
-      try {
-        setStatus(await User.getFenceStatus(provider))
-      } catch (error) {
-        if (error.status === 404) {
-          setStatus({})
-        } else {
-          throw error
-        }
-      }
-    })
-
-    if (!token) {
+    } else {
       loadFenceStatus()
     }
-  })
-
-  Utils.useOnMount(() => {
-    const loadAuthUrl = _.flow(
-      withErrorReporting(`Error loading Fence link`),
-      Utils.withBusyState(setIsLoadingAuthUrl)
-    )(async () => {
-      const result = await User.getFenceAuthUrl(provider, redirectUrl)
-      setHref(result.url)
-    })
-
-    loadAuthUrl()
   })
 
   /*
@@ -240,13 +236,13 @@ const FenceLink = ({ provider, displayName }) => {
   /*
    * Render
    */
-  const isBusy = () => isLoadingStatus || isLoadingAuthUrl || isLinking
+  const isBusy = isLoadingStatus || isLoadingAuthUrl || isLinking
   const expireTime = new Date(issuedAt).getTime() + (1000 * 60 * 60 * 24 * 30)
 
   return div({ style: { marginBottom: '1rem' } }, [
     div({ style: styles.form.title }, [displayName]),
-    isBusy() && div([spinner(), 'Loading account status...']),
-    !isBusy() && h(Fragment, [
+    isBusy && div([spinner(), 'Loading account status...']),
+    !isBusy && h(Fragment, [
       !username && makeAccountLinkLink(),
       !!username && div({ style: { display: 'flex', flexDirection: 'column', width: '33rem' } }, [
         div({ style: { display: 'flex' } }, [
