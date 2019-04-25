@@ -191,7 +191,7 @@ const WorkspaceCard = pure(({
       Utils.switchCase(workspaceSubmissionStatus(workspace),
         ['success', () => h(SubmissionIndicator, { shape: 'success-standard', color: colors.green[1] })],
         ['failure', () => h(SubmissionIndicator, { shape: 'error-standard', color: colors.red[1] })],
-        ['running', () => h(SubmissionIndicator, { shape: 'clock', color: colors.darkBlue[1] })]
+        ['running', () => h(SubmissionIndicator, { shape: 'sync', color: colors.darkBlue[1] })]
       ),
       listView ? h(Fragment, [
         workspaceMenu,
