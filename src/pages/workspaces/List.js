@@ -77,7 +77,8 @@ const styles = {
     height: '1.5rem', width: '1.5rem', borderRadius: '1.5rem',
     lineHeight: '1.5rem', textAlign: 'center',
     backgroundColor: colors.purple[0], color: 'white'
-  }
+  },
+  filter: { marginLeft: '1rem', flex: '0 0 300px' }
 }
 
 const WsSearch = ({ onChange }) => {
@@ -227,6 +228,8 @@ export const WorkspaceList = _.flow(
       accessLevelsFilter: [],
       projectsFilter: [],
       includePublic: false,
+      tagsFilter: [],
+      allTags: undefined,
       ...StateHistory.get()
     }
   }
@@ -236,9 +239,15 @@ export const WorkspaceList = _.flow(
     return _.find({ workspace: { workspaceId: id } }, workspaces)
   }
 
+  async componentDidMount() {
+    const { ajax: { Workspaces } } = this.props
+    const allTags = await Workspaces.getTags()
+    this.setState({ allTags })
+  }
+
   render() {
     const { workspaces, loadingWorkspaces, refreshWorkspaces, listView, viewToggleButtons } = this.props
-    const { filter, creatingNewWorkspace, cloningWorkspaceId, deletingWorkspaceId, sharingWorkspaceId, accessLevelsFilter, projectsFilter, includePublic } = this.state
+    const { filter, creatingNewWorkspace, cloningWorkspaceId, deletingWorkspaceId, sharingWorkspaceId, accessLevelsFilter, projectsFilter, includePublic, tagsFilter, allTags } = this.state
     const initialFiltered = _.filter(ws => {
       const { workspace: { namespace, name } } = ws
       return Utils.textMatch(filter, `${namespace}/${name}`) && (includePublic || !ws.public || Utils.canWrite(ws.accessLevel))
@@ -249,6 +258,8 @@ export const WorkspaceList = _.flow(
       _.uniq,
       _.sortBy(_.identity)
     )(initialFiltered)
+
+    const tagsList = _.map('tag', allTags)
 
     const data = _.flow(
       _.filter(ws => (_.isEmpty(accessLevelsFilter) || accessLevelsFilter.includes(ws.accessLevel)) &&
@@ -276,7 +287,19 @@ export const WorkspaceList = _.flow(
               onChange: v => this.setState({ includePublic: v })
             }, ' Show public workspaces')
           ]),
-          div({ style: { marginLeft: '1rem', flex: '0 0 300px' } }, [
+          div({ style: styles.filter }, [
+            h(Select, {
+              isClearable: true,
+              isMulti: true,
+              isSearchable: true,
+              value: tagsFilter,
+              hideSelectedOptions: true,
+              placeholder: 'Filter by tags',
+              onChange: data => this.setState({ tagsFilter: _.map('value', data) }),
+              options: tagsList
+            })
+          ]),
+          div({ style: styles.filter }, [
             h(Select, {
               isClearable: true,
               isMulti: true,
@@ -288,7 +311,7 @@ export const WorkspaceList = _.flow(
               getOptionLabel: ({ value }) => Utils.normalizeLabel(value)
             })
           ]),
-          div({ style: { margin: '0 1rem', flex: '0 0 300px' } }, [
+          div({ style: styles.filter }, [
             h(Select, {
               isClearable: true,
               isMulti: false,
