@@ -294,9 +294,9 @@ const ukb = () => h(Participant, {
   title: `UK Biobank`,
   description: h(Fragment, [
     link({ href: 'https://www.ukbiobank.ac.uk/', target: '_blank' }, 'UK Biobank'),
-    ` is a national and international health resource with unparalleled research opportunities,
-    open to bona fide health researchers. UK Biobank aims to improve the prevention, diagnosis and treatment of a wide
-    range of serious and life-threatening illnesses`
+    ` is a national and international health resource with unparalleled research opportunities.
+    UK Biobank aims to improve the prevention, diagnosis and treatment of a wide range of serious and life-threatening
+    illnesses. This Data Explorer is only for Kathiresan Lab's view of UK Biobank data.`
   ]),
   sizeText: 'Participants: > 500,000'
 }, [
