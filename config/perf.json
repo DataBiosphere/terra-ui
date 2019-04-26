@@ -1,5 +1,6 @@
 {
   "agoraUrlRoot": "https://agora.dsde-perf.broadinstitute.org",
+  "bondUrlRoot": "https://broad-bond-perf.appspot.com",
   "calhounUrlRoot": "https://terra-calhoun-perf.appspot.com",
   "devUrlRoot": "https://bvdp-saturn-perf.appspot.com",
   "dockstoreUrlRoot": "https://staging.dockstore.org",
@@ -17,5 +18,5 @@
     "appId": "saturnnonprod-O9lUP",
     "apiKey": "AQEBBAEkx4iE2KxNyI7Wx08EwU1ycTM7E4FMSmaibbMUQxNU6uQvuAJt7fyABAtFYSYfgEE"
   },
-  "tosUrlRoot": "https://us-central1-broad-workbench-tos-dev.cloudfunctions.net/tos"
+  "tosUrlRoot": "https://us-central1-broad-workbench-tos-perf.cloudfunctions.net/tos"
 }

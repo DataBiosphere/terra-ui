@@ -1,8 +1,9 @@
 import _ from 'lodash/fp'
+import * as qs from 'qs'
 import { Fragment } from 'react'
 import { a, div, h, span } from 'react-hyperscript-helpers'
-import { pure } from 'recompose'
-import { buttonPrimary, Clickable, PageBox, search, Select, spinnerOverlay } from 'src/components/common'
+import Interactive from 'react-interactive'
+import { buttonPrimary, buttonSecondary, Select, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { validatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
@@ -10,16 +11,45 @@ import TopBar from 'src/components/TopBar'
 import { ajaxCaller } from 'src/libs/ajax'
 import * as Auth from 'src/libs/auth'
 import colors from 'src/libs/colors'
-import { reportError } from 'src/libs/error'
+import { withErrorReporting } from 'src/libs/error'
 import { formHint, RequiredFormLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
-import NewAccountModal from 'src/pages/billing/NewAccountModal'
+import ProjectDetail from 'src/pages/billing/Project'
 import validate from 'validate.js'
 
+
+const styles = {
+  tab: isActive => ({
+    display: 'flex', alignItems: 'center', fontSize: 16, height: 50, padding: '0 2rem',
+    fontWeight: 500, overflow: 'hidden', borderBottom: `1px solid ${colors.grayBlue[2]}`, borderRightStyle: 'solid',
+    borderRightWidth: isActive ? 10 : 0, backgroundColor: isActive ? colors.green[7] : colors.white,
+    borderRightColor: isActive ? colors.green[1] : colors.green[0]
+  })
+}
+
+const ProjectTab = ({ project: { projectName, role, creationStatus }, isActive }) => {
+  const projectReady = creationStatus === 'Ready'
+  const statusIcon = icon(creationStatus === 'Creating' ? 'loadingSpinner' : 'error-standard',
+    { style: { color: colors.green[0], marginRight: '1rem', marginLeft: '0.5rem' } })
+
+  return _.includes('Owner', role) && projectReady ? h(Interactive, {
+    as: 'a',
+    style: {
+      ...styles.tab(isActive),
+      color: colors.green[0]
+    },
+    href: `${Nav.getLink('billing')}?${qs.stringify({ selectedName: projectName, type: 'project' })}`,
+    hover: isActive ? {} : { backgroundColor: colors.green[6], color: colors.green[1] }
+  }, [projectName, !projectReady && statusIcon]) : div({
+    style: {
+      ...styles.tab(false), color: colors.gray[0]
+    }
+  }, [projectName, !projectReady && statusIcon])
+}
 
 const billingProjectNameValidator = existing => ({
   presence: { allowEmpty: false },
@@ -40,32 +70,35 @@ const NewBillingProjectModal = ajaxCaller(class NewBillingProjectModal extends C
     this.state = {
       billingProjectName: '',
       billingProjectNameTouched: false,
-      billingAccount: '',
-      existing: []
-    }
-  }
-
-  async loadBillingAccounts() {
-    const { ajax: { Billing } } = this.props
-    try {
-      const billingAccounts = await Billing.listAccounts()
-      this.setState({ billingAccounts })
-    } catch (error) {
-      reportError('Error loading billing accounts', error)
+      existing: [],
+      isBusy: false,
+      chosenBillingAccount: '',
+      billingAccounts: undefined
     }
   }
 
   async componentDidMount() {
-    this.loadBillingAccounts()
+    this.loadAccounts()
   }
+
+  loadAccounts = _.flow(
+    withErrorReporting('Error loading billing accounts'),
+    Utils.withBusyState(v => this.setState({ isBusy: v }))
+  )(async () => {
+    const { ajax: { Billing } } = this.props
+    await Auth.ensureBillingScope()
+    const billingAccounts = await Billing.listAccounts()
+    this.setState({ billingAccounts })
+  })
 
   render() {
     const { onDismiss } = this.props
-    const { billingProjectName, billingProjectNameTouched, submitting, chosenBillingAccount, billingAccounts, existing } = this.state
+    const { billingProjectName, billingProjectNameTouched, chosenBillingAccount, existing, isBusy, billingAccounts } = this.state
     const errors = validate({ billingProjectName }, { billingProjectName: billingProjectNameValidator(existing) })
 
     return h(Modal, {
       onDismiss,
+      shouldCloseOnOverlayClick: false,
       title: 'Create Billing Project',
       showCancel: !(billingAccounts && billingAccounts.length === 0),
       showButtons: !!billingAccounts,
@@ -78,7 +111,6 @@ const NewBillingProjectModal = ajaxCaller(class NewBillingProjectModal extends C
           onClick: () => onDismiss()
         }, ['Ok'])
     }, [
-      !billingAccounts && spinnerOverlay,
       billingAccounts && billingAccounts.length === 0 && h(Fragment, [
         `You don't have access to any billing accounts.  `,
         a({
@@ -145,176 +177,127 @@ const NewBillingProjectModal = ajaxCaller(class NewBillingProjectModal extends C
           ])
         ])
       ]),
-      submitting && spinnerOverlay
+      (isBusy || !billingAccounts) && spinnerOverlay
     ])
   }
 
-  async submit() {
+  submit = _.flow(
+    withErrorReporting('Error creating billing project'),
+    Utils.withBusyState(v => this.setState({ isBusy: v }))
+  )(async () => {
     const { onSuccess, ajax: { Billing } } = this.props
     const { billingProjectName, chosenBillingAccount, existing } = this.state
-
     try {
-      this.setState({ submitting: true })
       await Billing.createProject(billingProjectName, chosenBillingAccount.accountName)
       onSuccess()
     } catch (error) {
-      switch (error.status) {
-        case 409:
-          this.setState({ existing: _.concat(billingProjectName, existing), submitting: false })
-          break
-        default:
-          reportError('Error creating billing project', error)
+      if (error.status === 409) {
+        this.setState({ existing: _.concat(billingProjectName, existing) })
+      } else {
+        throw error
       }
-    } finally {
-      this.setState({ submitting: false })
     }
-  }
-})
-
-const ProjectCard = pure(({ project: { projectName, creationStatus, role } }) => {
-  const isOwner = !!_.includes('Owner', role)
-  const projectReady = creationStatus === 'Ready'
-  const isClickable = isOwner && projectReady
-
-  return div({ style: Style.cardList.longCard }, [
-    div({ style: { flex: 'none', width: '6rem' } }, [
-      icon(Utils.cond(
-        [creationStatus === 'Ready', 'check'],
-        [creationStatus === 'Creating', 'loadingSpinner'],
-        'error-standard'), {
-        style: {
-          color: colors.green[0],
-          marginRight: '1rem'
-        }
-      }),
-      creationStatus
-    ]),
-    div({ style: { flex: 1 } }, [
-      a({
-        href: isClickable ? Nav.getLink('project', { projectName }) : undefined,
-        style: {
-          ...Style.cardList.longTitle,
-          margin: '0 1rem', color: isClickable ? colors.green[0] : undefined
-        }
-      }, [projectName])
-    ]),
-    div({ style: { width: 100 } }, [isOwner ? 'Owner' : 'Member'])
-  ])
-})
-
-const NewBillingCard = pure(({ newEntityLabel, onClick }) => {
-  return h(Clickable, {
-    style: Style.cardList.shortCreateCard,
-    onClick
-  }, [
-    div(['Create a']),
-    div([newEntityLabel]),
-    icon('plus-circle', { style: { marginTop: '0.5rem' }, size: 21 })
-  ])
+  })
 })
 
 export const BillingList = ajaxCaller(class BillingList extends Component {
   constructor(props) {
     super(props)
     this.state = {
-      filter: '',
       billingProjects: null,
       creatingBillingProject: false,
-      updating: false,
       ...StateHistory.get()
     }
   }
 
-  async refresh() {
+  async componentDidMount() {
+    this.loadProjects()
+  }
+
+  loadProjects = _.flow(
+    withErrorReporting('Error loading billing projects list'),
+    Utils.withBusyState(v => this.setState({ isBusy: v }))
+  )(async () => {
     const { ajax: { Billing } } = this.props
-
-    try {
-      this.setState({ isDataLoaded: false, creatingBillingProject: false, updating: false })
-      const rawBillingProjects = await Billing.listProjects()
-      const billingProjects = _.flow(
-        _.groupBy('projectName'),
-        _.map(gs => ({ ...gs[0], role: _.map('role', gs) })),
-        _.sortBy('projectName')
-      )(rawBillingProjects)
-      this.setState({ billingProjects, isDataLoaded: true })
-    } catch (error) {
-      reportError('Error loading billing projects list', error)
-    }
-  }
-
-  componentDidMount() {
-    this.refresh()
-  }
+    const rawBillingProjects = await Billing.listProjects()
+    const billingProjects = _.flow(
+      _.groupBy('projectName'),
+      _.map(gs => ({ ...gs[0], role: _.map('role', gs) })),
+      _.sortBy('projectName')
+    )(rawBillingProjects)
+    this.setState({ billingProjects })
+  })
 
   render() {
-    const { billingProjects, isDataLoaded, filter, creatingBillingProject, creatingBillingAccount, updating } = this.state
+    const { billingProjects, isBusy, creatingBillingProject } = this.state
+    const { queryParams: { selectedName } } = this.props
+    const breadcrumbs = `Billing > Billing Project`
     return h(Fragment, [
-      h(TopBar, { title: 'Billing' }, [
-        search({
-          wrapperProps: { style: { marginLeft: '2rem', flexGrow: 1, maxWidth: 500 } },
-          inputProps: {
-            placeholder: 'SEARCH BILLING PROJECTS',
-            onChange: e => this.setState({ filter: e.target.value }),
-            value: filter
+      h(TopBar, { title: 'Billing', href: Nav.getLink('billing') }, [
+        !!selectedName && div({
+          style: {
+            color: 'white', paddingLeft: '5rem', minWidth: 0, marginRight: '0.5rem'
           }
-        })
+        }, [
+          div(breadcrumbs),
+          div({
+            style: {
+              textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+              fontSize: '1.25rem', overflowX: 'hidden'
+            }
+          }, [selectedName])
+        ])
       ]),
-      h(PageBox, [
-        div({ style: Style.cardList.toolbarContainer }, [
-          div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, ['Billing Projects Management'])
-        ]),
-        div({ style: Style.cardList.cardContainer }, [
-          div([
-            h(NewBillingCard, {
-              newEntityLabel: 'New Project',
-              onClick: async () => {
-                try {
-                  await Auth.ensureBillingScope()
-                  this.setState({ creatingBillingProject: true })
-                } catch (error) {
-                  reportError('Failed to grant permissions', 'To create a new billing project, you must allow Terra to view your Google billing account(s).')
-                }
+      div({ style: { display: 'flex', flex: 1, position: 'relative' } }, [
+        div({ style: { width: 330, boxShadow: '0 2px 5px 0 rgba(0,0,0,0.25)' } }, [
+          div({
+            style: {
+              color: colors.gray[0], backgroundColor: colors.grayBlue[5], fontSize: 16, padding: '1rem 1.5rem',
+              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+              fontWeight: 600, textTransform: 'uppercase', borderBottom: `0.5px solid ${colors.grayBlue[2]}`
+            }
+          }, [
+            'Billing Projects',
+            buttonSecondary({
+              onClick: () => { this.setState({ creatingBillingProject: true }) },
+              style: {
+                borderRadius: 5, backgroundColor: 'white', padding: '0.5rem',
+                boxShadow: Style.standardShadow
               }
-            }),
-            /*TODO: remove to enable -->*/ false && div({ style: { height: 15 } }),
-            /*TODO: remove to enable -->*/ false && h(NewBillingCard, {
-              newEntityLabel: 'Billing Account',
-              onClick: () => this.setState({ creatingBillingAccount: true })
-            })
+            },
+            ['New', icon('plus-circle', { size: 21, style: { marginLeft: '0.5rem' } })])
           ]),
-          div({ style: { flexGrow: 1 } }, [
-            _.flow(
-              _.filter(({ projectName }) => Utils.textMatch(filter, projectName)),
-              _.map(project => {
-                return h(ProjectCard, {
-                  project, key: `${project.projectName}`
-                })
-              })
-            )(billingProjects)
-          ]),
-          (!isDataLoaded || updating) && spinnerOverlay
+          _.map(project => h(ProjectTab, {
+            project, key: project.projectName,
+            isActive: !!selectedName && project.projectName === selectedName
+          }), billingProjects)
         ]),
         creatingBillingProject && h(NewBillingProjectModal, {
           onDismiss: () => this.setState({ creatingBillingProject: false }),
-          onSuccess: () => this.refresh()
+          onSuccess: () => {
+            this.setState({ creatingBillingProject: false })
+            this.loadProjects()
+          }
         }),
-        creatingBillingAccount && h(NewAccountModal, { onDismiss: () => this.setState({ creatingBillingAccount: false }) })
+        !!selectedName && billingProjects && h(ProjectDetail, { key: selectedName, project: _.find({ projectName: selectedName }, billingProjects) }),
+        isBusy && spinnerOverlay
       ])
     ])
   }
 
   componentDidUpdate() {
     const { billingProjects } = this.state
+    const anyProjectsCreating = _.some({ creationStatus: 'Creating' }, billingProjects)
 
-    if (_.some({ creationStatus: 'Creating' }, billingProjects) && !this.interval) {
-      this.interval = setInterval(() => this.refresh(), 10000)
-    } else {
+    if (anyProjectsCreating && !this.interval) {
+      this.interval = setInterval(() => this.loadProjects(), 10000)
+    } else if (!anyProjectsCreating && this.interval) {
       clearInterval(this.interval)
       this.interval = undefined
     }
 
     StateHistory.update(_.pick(
-      ['billingProjects', 'filter'],
+      ['billingProjects'],
       this.state)
     )
   }
@@ -329,6 +312,6 @@ export const addNavPaths = () => {
   Nav.defPath('billing', {
     path: '/billing',
     component: BillingList,
-    title: 'Billing Management'
+    title: 'Billing'
   })
 }

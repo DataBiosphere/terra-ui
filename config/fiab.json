@@ -1,5 +1,6 @@
 {
   "agoraUrlRoot": "https://agora-fiab.dsde-dev.broadinstitute.org:20443",
+  "bondUrlRoot": "https://broad-bond-dev.appspot.com",
   "calhounUrlRoot": "https://terra-calhoun-dev.appspot.com",
   "devUrlRoot": "https://bvdp-saturn-dev.appspot.com",
   "dockstoreUrlRoot": "https://staging.dockstore.org",

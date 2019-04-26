@@ -92,7 +92,7 @@ const fetchLeo = async (path, options) => {
 }
 
 const fetchDockstore = async (path, options) => {
-  return fetchOk(`${getConfig().dockstoreUrlRoot}:8443/${path}`, options)
+  return fetchOk(`${getConfig().dockstoreUrlRoot}/api/${path}`, options)
 }
 // %23 = '#', %2F = '/'
 const dockstoreMethodPath = path => `api/ga4gh/v1/tools/%23workflow%2F${encodeURIComponent(path)}/versions`
@@ -107,6 +107,10 @@ const fetchOrchestration = async (path, options) => {
 
 const fetchRex = async (path, options) => {
   return fetchOk(`${getConfig().rexUrlRoot}/api/${path}`, options)
+}
+
+const fetchBond = async (path, options) => {
+  return fetchOk(`${getConfig().bondUrlRoot}/${path}`, options)
 }
 
 
@@ -148,6 +152,14 @@ const User = signal => ({
         'register/profile',
         _.mergeAll([authOpts(), jsonBody(_.merge(blankProfile, keysAndValues)), { signal, method: 'POST' }])
       )
+    },
+
+    setPreferences: body => {
+      return fetchOrchestration('api/profile/preferences', _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }]))
+    },
+
+    preferLegacyFirecloud: () => {
+      return fetchOrchestration('api/profile/terra', _.mergeAll([authOpts(), { signal, method: 'DELETE' }]))
     }
   },
 
@@ -193,7 +205,7 @@ const User = signal => ({
   // 2. Check the tickets are generated on Zendesk
   // 3. Reply internally (as a Light Agent) and make sure an email is not sent
   // 4. Reply externally (ask one of the Comms team with Full Agent access) and make sure you receive an email
-  createSupportRequest: async ({ name, email, currUrl, subject, type, description, attachmentToken }) => {
+  createSupportRequest: async ({ name, email, currUrl, subject, type, description, attachmentToken, emailAgreed }) => {
     return fetchOk(
       `https://broadinstitute.zendesk.com/api/v2/requests.json`,
       _.merge({ signal, method: 'POST' }, jsonBody({
@@ -205,7 +217,8 @@ const User = signal => ({
             { id: 360012744452, value: type },
             { id: 360007369412, value: description },
             { id: 360012744292, value: name },
-            { id: 360012782111, value: email }
+            { id: 360012782111, value: email },
+            { id: 360018545031, value: emailAgreed }
           ],
           comment: {
             body: `${description}\n\n------------------\nSubmitted from: ${currUrl}`,
@@ -238,6 +251,40 @@ const User = signal => ({
 
   postNpsResponse: async body => {
     return fetchRex('npsResponses/create', _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }]))
+  },
+
+  getNihStatus: async () => {
+    const res = await fetchOrchestration('api/nih/status', _.merge(authOpts(), { signal }))
+    return res.json()
+  },
+
+  linkNihAccount: async token => {
+    const res = await fetchOrchestration('api/nih/callback', _.mergeAll([authOpts(), jsonBody({ jwt: token }), { signal, method: 'POST' }]))
+    return res.json()
+  },
+
+  getFenceStatus: async provider => {
+    const res = await fetchBond(`api/link/v1/${provider}`, _.merge(authOpts(), { signal }))
+    return res.json()
+  },
+
+  getFenceAuthUrl: async (provider, redirectUri) => {
+    const queryParams = {
+      'scopes': ['openid', 'google_credentials'],
+      'redirect_uri': redirectUri,
+      'state': btoa(JSON.stringify({ provider }))
+    }
+    const res = await fetchBond(`api/link/v1/${provider}/authorization-url?${qs.stringify(queryParams)}`, { signal })
+    return res.json()
+  },
+
+  linkFenceAccount: async (provider, authCode, redirectUri) => {
+    const queryParams = {
+      'oauthcode': authCode,
+      'redirect_uri': redirectUri
+    }
+    const res = await fetchBond(`api/link/v1/${provider}/oauthcode?${qs.stringify(queryParams)}`, _.merge(authOpts(), { signal, method: 'POST' }))
+    return res.json()
   }
 })
 
@@ -547,6 +594,17 @@ const Workspaces = signal => ({
         return res.json()
       },
 
+      importAttributes: async file => {
+        const formData = new FormData()
+        formData.set('attributes', file)
+        return fetchOrchestration(`api/${root}/importAttributesTSV`, _.merge(authOpts(), { body: formData, signal, method: 'POST' }))
+      },
+
+      exportAttributes: async () => {
+        const res = await fetchOrchestration(`api/${root}/exportAttributesTSV`, _.merge(authOpts(), { signal }))
+        return res.blob()
+      },
+
       storageCostEstimate: async () => {
         const res = await fetchOrchestration(`api/workspaces/${namespace}/${name}/storageCostEstimate`, _.merge(authOpts(), { signal }))
         return res.json()
@@ -816,6 +874,14 @@ const Martha = signal => ({
 })
 
 
+const Duos = signal => ({
+  getConsent: async orspId => {
+    const res = await fetchOrchestration(`/api/duos/consent/orsp/${orspId}`, _.merge(authOpts(), { signal }))
+    return res.json()
+  }
+})
+
+
 export const Ajax = signal => {
   return {
     User: User(signal),
@@ -827,7 +893,8 @@ export const Ajax = signal => {
     Methods: Methods(signal),
     Jupyter: Jupyter(signal),
     Dockstore: Dockstore(signal),
-    Martha: Martha(signal)
+    Martha: Martha(signal),
+    Duos: Duos(signal)
   }
 }
 

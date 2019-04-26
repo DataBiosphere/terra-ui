@@ -2,8 +2,9 @@ import _ from 'lodash/fp'
 import { createRef, Fragment } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
-import { Checkbox, Clickable, linkButton, MenuButton, RadioButton, spinnerOverlay } from 'src/components/common'
+import { buttonPrimary, Checkbox, Clickable, linkButton, MenuButton, RadioButton, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
+import { SearchInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import PopupTrigger from 'src/components/PopupTrigger'
 import { ColumnSelector, GridTable, HeaderCell, paginator, Resizable, Sortable } from 'src/components/table'
@@ -16,7 +17,7 @@ import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 
 
-const filterState = (props, state) => _.pick(['pageNumber', 'itemsPerPage', 'sort'], state)
+const filterState = state => _.pick(['pageNumber', 'itemsPerPage', 'sort', 'activeTextFilter'], state)
 
 const entityMap = entities => {
   return _.fromPairs(_.map(e => [e.name, e], entities))
@@ -44,6 +45,8 @@ export default ajaxCaller(class DataTable extends Component {
       entities,
       totalRowCount = 0, itemsPerPage = 25, pageNumber = 1,
       sort = { field: 'name', direction: 'asc' },
+      textFilter = '',
+      activeTextFilter = '',
       columnWidths = {}, columnState = {}
     } = props.firstRender ? StateHistory.get() : {}
 
@@ -51,7 +54,7 @@ export default ajaxCaller(class DataTable extends Component {
     this.state = {
       loading: false,
       viewData: undefined,
-      entities, totalRowCount, itemsPerPage, pageNumber, sort, columnWidths, columnState
+      entities, totalRowCount, itemsPerPage, pageNumber, sort, textFilter, activeTextFilter, columnWidths, columnState
     }
   }
 
@@ -63,7 +66,7 @@ export default ajaxCaller(class DataTable extends Component {
       childrenBefore
     } = this.props
 
-    const { loading, entities, totalRowCount, itemsPerPage, pageNumber, sort, columnWidths, columnState, viewData } = this.state
+    const { loading, entities, totalRowCount, itemsPerPage, pageNumber, sort, columnWidths, columnState, viewData, textFilter } = this.state
 
     const theseColumnWidths = columnWidths[entityType] || {}
     const columnSettings = applyColumnSettings(columnState[entityType] || [], entityMetadata[entityType].attributeNames)
@@ -73,7 +76,23 @@ export default ajaxCaller(class DataTable extends Component {
 
     return h(Fragment, [
       !!entities && h(Fragment, [
-        childrenBefore && childrenBefore({ entities, columnSettings }),
+        div({ style: { display: 'flex', marginBottom: '1rem' } }, [
+          childrenBefore && childrenBefore({ entities, columnSettings }),
+          div({ style: { flexGrow: 1 } }),
+          div({ style: { display: 'flex' } }, [
+            h(SearchInput, {
+              style: { width: 300, borderRadius: '4px 0 0 4px' },
+              placeholder: 'Filter',
+              onChange: ({ target: { value } }) => this.setState({ textFilter: value }),
+              onSearch: ({ target: { value } }) => this.setState({ activeTextFilter: value }),
+              value: textFilter
+            }),
+            buttonPrimary({
+              style: { borderRadius: '0 4px 4px 0', borderLeft: 'none' },
+              onClick: () => this.setState({ activeTextFilter: textFilter })
+            }, [icon('search', { size: 18 })])
+          ])
+        ]),
         div({ style: { flex: 1 } }, [
           h(AutoSizer, [
             ({ width, height }) => {
@@ -162,7 +181,7 @@ export default ajaxCaller(class DataTable extends Component {
                           linkButton({
                             onClick: () => this.setState({ viewData: dataInfo })
                           },
-                          [dataCell]): dataCell
+                          [dataCell]) : dataCell
                       }
                     }
                   }, _.filter('visible', columnSettings))
@@ -202,11 +221,12 @@ export default ajaxCaller(class DataTable extends Component {
   }
 
   componentDidUpdate(prevProps, prevState) {
-    if (!_.isEqual(filterState(prevProps, prevState), filterState(this.props, this.state)) || this.props.refreshKey !== prevProps.refreshKey) {
+    if (!_.isEqual(filterState(prevState), filterState(this.state)) || this.props.refreshKey !== prevProps.refreshKey) {
       this.loadData()
     }
     if (this.props.persist) {
-      StateHistory.update(_.pick(['entities', 'totalRowCount', 'itemsPerPage', 'pageNumber', 'sort', 'columnWidths', 'columnState'], this.state))
+      StateHistory.update(
+        _.pick(['itemsPerPage', 'pageNumber', 'sort', 'textFilter', 'activeTextFilter', 'columnWidths', 'columnState'], this.state))
     }
   }
 
@@ -216,13 +236,13 @@ export default ajaxCaller(class DataTable extends Component {
       ajax: { Workspaces }
     } = this.props
 
-    const { pageNumber, itemsPerPage, sort } = this.state
+    const { pageNumber, itemsPerPage, sort, activeTextFilter } = this.state
 
     try {
       this.setState({ loading: true })
       const { results, resultMetadata: { unfilteredCount } } = await Workspaces.workspace(namespace, name)
         .paginatedEntitiesOfType(entityType, {
-          page: pageNumber, pageSize: itemsPerPage, sortField: sort.field, sortDirection: sort.direction
+          page: pageNumber, pageSize: itemsPerPage, sortField: sort.field, sortDirection: sort.direction, filterTerms: activeTextFilter
         })
       this.setState({ entities: results, totalRowCount: unfilteredCount })
     } catch (error) {

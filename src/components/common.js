@@ -1,5 +1,6 @@
 import _ from 'lodash/fp'
 import marked from 'marked'
+import * as qs from 'qs'
 import { Fragment, useState } from 'react'
 import { div, h, input, label, span } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
@@ -8,6 +9,8 @@ import { centeredSpinner, icon } from 'src/components/icons'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
+import { isFirecloud, logo } from 'src/libs/logos'
+import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 
 
@@ -32,25 +35,32 @@ export const Clickable = ({ as = 'div', disabled, tooltip, tooltipSide, onClick,
   }
 }
 
-const linkProps = disabled => ({
+const linkProps = ({ disabled, variant }) => ({
   as: 'a',
   style: {
-    color: disabled ? colors.gray[2] : colors.green[0],
+    color: disabled ? colors.gray[2] : variant === 'light' ? colors.lightGreen[2] : colors.green[0],
     cursor: disabled ? 'not-allowed' : 'pointer',
     fontWeight: 500
   },
-  hover: disabled ? undefined : { color: colors.green[1] }
+  hover: disabled ? undefined : { color: variant === 'light' ? colors.lightGreen[3] : colors.green[1] }
 })
 
-export const link = function(props, children) {
+export const link = ({ onClick, href, disabled, variant, ...props }, children) => {
   return h(Interactive,
-    _.merge(linkProps(props.disabled), props),
+    _.merge(linkProps({ disabled, variant }), {
+      href, disabled,
+      onClick: href && onClick ? e => {
+        e.preventDefault()
+        onClick(e)
+      } : onClick,
+      ...props
+    }),
     children)
 }
 
-export const linkButton = (props, children) => {
+export const linkButton = ({ disabled, variant, ...props }, children) => {
   return h(Clickable,
-    _.merge(linkProps(props.disabled), props),
+    _.merge(linkProps({ disabled, variant }), { disabled, ...props }),
     children)
 }
 
@@ -275,12 +285,12 @@ export const Select = ({ value, options, id, ...props }) => {
 export const PageBox = ({ children, style = {} }) => {
   return div({
     style: {
-      margin: '1.5rem', padding: '1.5rem 1.5rem 0', minHeight: 125, flex: 'none', ...style
+      margin: '1.5rem', padding: '1.5rem 1.5rem 0', minHeight: 125, flex: 'none', zIndex: 0, ...style
     }
   }, [children])
 }
 
-export const backgroundLogo = icon('logoIcon', {
+export const backgroundLogo = () => logo({
   size: 1200,
   style: { position: 'fixed', top: -100, left: -100, zIndex: -1, opacity: 0.65 }
 })
@@ -288,8 +298,21 @@ export const backgroundLogo = icon('logoIcon', {
 export const methodLink = config => {
   const { methodRepoMethod: { sourceRepo, methodVersion, methodNamespace, methodName, methodPath } } = config
   return sourceRepo === 'agora' ?
-    `${getConfig().firecloudUrlRoot}/#methods/${methodNamespace}/${methodName}/${methodVersion}` :
+    `${getConfig().firecloudUrlRoot}/?return=${isFirecloud() ? `firecloud` : `terra`}#methods/${methodNamespace}/${methodName}/${methodVersion}` :
     `${getConfig().dockstoreUrlRoot}/workflows/${methodPath}`
+}
+
+export const ShibbolethLink = ({ children, ...props }) => {
+  const nihRedirectUrl = `${window.location.origin}/${Nav.getLink('profile')}?nih-username-token={token}`
+  return link({
+    ...props,
+    href: `${getConfig().shibbolethUrlRoot}/link-nih-account?${qs.stringify({ 'redirect-url': nihRedirectUrl })}`,
+    style: { display: 'inline-flex', alignItems: 'center' },
+    target: '_blank'
+  }, [
+    children,
+    icon('pop-out', { size: 12, style: { marginLeft: '0.2rem' } })
+  ])
 }
 
 /**

@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { createRef, Fragment, useState } from 'react'
+import { createRef, forwardRef, Fragment, useState } from 'react'
 import { div, h, iframe } from 'react-hyperscript-helpers'
 import { pure } from 'recompose'
 import * as breadcrumbs from 'src/components/breadcrumbs'
@@ -18,18 +18,19 @@ import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer
 
 
 const NotebookLauncher = _.flow(
+  forwardRef,
   wrapWorkspace({
     breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
     title: ({ notebookName }) => `Notebooks - ${notebookName}`,
     showTabBar: false
   }),
   ajaxCaller
-)(pure(({ queryParams = {}, ...props }) => {
+)(({ queryParams = {}, ...props }) => {
   const { workspace } = props
   return (Utils.canWrite(workspace.accessLevel) && workspace.canCompute && !queryParams['read-only']) ?
     h(NotebookEditor, props) :
     h(NotebookPreview, props)
-}))
+})
 
 const ReadOnlyMessage = ({ notebookName, workspace, workspace: { canCompute, workspace: { namespace, name } } }) => {
   const [copying, setCopying] = useState(false)

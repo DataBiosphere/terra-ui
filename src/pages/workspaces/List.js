@@ -4,15 +4,18 @@ import { a, div, h, span } from 'react-hyperscript-helpers'
 import { pure } from 'recompose'
 import removeMd from 'remove-markdown'
 import togglesListView from 'src/components/CardsListToggle'
-import { Clickable, MenuButton, menuIcon, PageBox, search, Select, topSpinnerOverlay, transparentSpinnerOverlay } from 'src/components/common'
+import {
+  Clickable, LabeledCheckbox, linkButton, MenuButton, menuIcon, PageBox, search, Select, topSpinnerOverlay, transparentSpinnerOverlay
+} from 'src/components/common'
 import { icon } from 'src/components/icons'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
 import PopupTrigger from 'src/components/PopupTrigger'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import TopBar from 'src/components/TopBar'
 import { withWorkspaces } from 'src/components/workspace-utils'
-import { ajaxCaller } from 'src/libs/ajax'
+import { Ajax, ajaxCaller, useCancellation } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
+import { withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
@@ -30,7 +33,7 @@ const styles = {
   }),
   shortCard: {
     ...Style.elements.card.container,
-    width: 280, height: 260,
+    width: 280, height: 260, position: 'relative',
     margin: '0 1rem 2rem 0'
   },
   shortTitle: {
@@ -53,7 +56,7 @@ const styles = {
   longCard: {
     ...Style.elements.card.container,
     flexDirection: 'row',
-    height: 80,
+    height: 80, position: 'relative',
     marginBottom: '0.5rem'
   },
   longCardTextContainer: {
@@ -74,7 +77,19 @@ const styles = {
     height: '1.5rem', width: '1.5rem', borderRadius: '1.5rem',
     lineHeight: '1.5rem', textAlign: 'center',
     backgroundColor: colors.purple[0], color: 'white'
+  },
+  submissionIndicator: {
+    position: 'absolute', top: 0, right: 0,
+    color: 'white', display: 'flex', padding: 2, borderRadius: '0 5px'
   }
+}
+
+const workspaceSubmissionStatus = ({ workspaceSubmissionStats: { runningSubmissionsCount, lastSuccessDate, lastFailureDate } }) => {
+  return Utils.cond(
+    [runningSubmissionsCount, () => 'running'],
+    [lastSuccessDate && (!lastFailureDate || new Date(lastSuccessDate) > new Date(lastFailureDate)), () => 'success'],
+    [lastFailureDate, () => 'failure'],
+  )
 }
 
 const WsSearch = ({ onChange }) => {
@@ -94,45 +109,63 @@ const WsSearch = ({ onChange }) => {
   })
 }
 
+const WorkspaceMenuContent = ({ namespace, name, onClone, onShare, onDelete }) => {
+  const [workspace, setWorkspace] = useState(undefined)
+  const signal = useCancellation()
+  const loadWorkspace = withErrorReporting('Error loading workspace', async () => {
+    setWorkspace(await Ajax(signal).Workspaces.workspace(namespace, name).details())
+  })
+  Utils.useOnMount(() => {
+    loadWorkspace()
+  })
+
+  const canRead = workspace && Utils.canRead(workspace.accessLevel)
+  const canShare = workspace && workspace.canShare
+  const isOwner = workspace && Utils.isOwner(workspace.accessLevel)
+  return h(Fragment, [
+    h(MenuButton, {
+      disabled: !canRead,
+      tooltip: workspace && !canRead && 'You do not have access to the workspace Authorization Domain',
+      tooltipSide: 'left',
+      onClick: () => onClone()
+    }, [menuIcon('copy'), 'Clone']),
+    h(MenuButton, {
+      disabled: !canShare,
+      tooltip: workspace && !canShare && 'You have not been granted permission to share this workspace',
+      tooltipSide: 'left',
+      onClick: () => onShare()
+    }, [menuIcon('share'), 'Share']),
+    h(MenuButton, {
+      disabled: !isOwner,
+      tooltip: workspace && !isOwner && 'You must be an owner of this workspace or the underlying billing project',
+      tooltipSide: 'left',
+      onClick: () => onDelete()
+    }, [menuIcon('trash'), 'Delete'])
+  ])
+}
+
+const SubmissionIndicator = ({ shape, color }) => {
+  return div({ style: { ...styles.submissionIndicator, backgroundColor: color } }, [
+    icon(shape, { size: 14, style: { color: 'white' } })
+  ])
+}
+
 const WorkspaceCard = pure(({
   listView, onClone, onDelete, onShare,
-  workspace: { accessLevel, workspace: { namespace, name, createdBy, lastModified, attributes: { description } } }
+  workspace, workspace: { accessLevel, workspace: { namespace, name, createdBy, lastModified, attributes: { description } } }
 }) => {
   const lastChanged = `Last changed: ${Utils.makePrettyDate(lastModified)}`
   const badge = div({ title: createdBy, style: styles.badge }, [createdBy[0].toUpperCase()])
-  const isOwner = Utils.isOwner(accessLevel)
-  const notAuthorized = (accessLevel === 'NO ACCESS')
+  const canView = Utils.canRead(accessLevel)
   const workspaceMenu = h(PopupTrigger, {
     side: 'right',
     closeOnClick: true,
-    content: h(Fragment, [
-      h(MenuButton, {
-        disabled: notAuthorized,
-        tooltip: notAuthorized && 'You do not have access to the workspace Authorization Domain',
-        tooltipSide: 'left',
-        onClick: () => onClone()
-      }, [menuIcon('copy'), 'Clone']),
-      h(MenuButton, {
-        disabled: !isOwner,
-        tooltip: !isOwner && 'You must be an owner of this workspace or the underlying billing project',
-        tooltipSide: 'left',
-        onClick: () => onShare()
-      }, [menuIcon('share'), 'Share']),
-      h(MenuButton, {
-        disabled: !isOwner,
-        tooltip: !isOwner && 'You must be an owner of this workspace or the underlying billing project',
-        tooltipSide: 'left',
-        onClick: () => onDelete()
-      }, [menuIcon('trash'), 'Delete'])
-    ])
+    content: h(WorkspaceMenuContent, { namespace, name, onShare, onClone, onDelete })
   }, [
-    h(Clickable, {
+    linkButton({
+      as: 'div',
       onClick: e => e.preventDefault(),
-      style: {
-        cursor: 'pointer', color: colors.green[0], marginRight: 'auto'
-      },
-      focus: 'hover',
-      hover: { color: colors.green[2] }
+      disabled: !canView
     }, [
       icon('cardMenuIcon', {
         size: listView ? 18 : 24
@@ -142,36 +175,49 @@ const WorkspaceCard = pure(({
   const descText = description ?
     removeMd(listView ? description.split('\n')[0] : description) :
     span({ style: { color: colors.gray[1] } }, ['No description added'])
+  const titleOverrides = !canView ? { color: colors.gray[2] } : {}
 
-  return listView ? a({
-    href: Nav.getLink('workspace-dashboard', { namespace, name }),
-    style: styles.longCard
+  return h(TooltipTrigger, {
+    content: !canView && `
+      You cannot access this workspace because it contains restricted data.
+      You need permission from the admin(s) of all of the groups in the Authorization Domain protecting the workspace.
+    `,
+    side: 'top'
   }, [
-    workspaceMenu,
-    div({ style: { ...styles.longCardTextContainer } }, [
-      div({ style: { display: 'flex', alignItems: 'center' } }, [
-        div({ style: { ...styles.longTitle } }, [name]),
-        h(TooltipTrigger, { content: Utils.makeCompleteDate(lastModified) }, [
-          div({ style: { flex: 'none' } }, [lastChanged])
+    a({
+      href: canView ? Nav.getLink('workspace-dashboard', { namespace, name }) : undefined,
+      style: listView ? styles.longCard : styles.shortCard
+    }, [
+      Utils.switchCase(workspaceSubmissionStatus(workspace),
+        ['success', () => h(SubmissionIndicator, { shape: 'success-standard', color: colors.green[1] })],
+        ['failure', () => h(SubmissionIndicator, { shape: 'error-standard', color: colors.red[1] })],
+        ['running', () => h(SubmissionIndicator, { shape: 'sync', color: colors.darkBlue[1] })]
+      ),
+      listView ? h(Fragment, [
+        workspaceMenu,
+        div({ style: { ...styles.longCardTextContainer } }, [
+          div({ style: { display: 'flex', alignItems: 'center' } }, [
+            div({ style: { ...styles.longTitle, ...titleOverrides } }, [name]),
+            h(TooltipTrigger, { content: Utils.makeCompleteDate(lastModified) }, [
+              div({ style: { flex: 'none' } }, [lastChanged])
+            ])
+          ]),
+          div({ style: { display: 'flex', alignItems: 'center' } }, [
+            div({ style: { ...styles.longDescription } }, [descText]),
+            div({ style: { flex: 'none' } }, [badge])
+          ])
         ])
-      ]),
-      div({ style: { display: 'flex', alignItems: 'center' } }, [
-        div({ style: { ...styles.longDescription } }, [descText]),
-        div({ style: { flex: 'none' } }, [badge])
+      ]) : h(Fragment, [
+        div({ style: { ...styles.shortTitle, ...titleOverrides } }, [name]),
+        div({ style: styles.shortDescription }, [descText]),
+        div({ style: { display: 'flex', marginLeft: 'auto' } }, [badge]),
+        div({ style: { display: 'flex', alignItems: 'center' } }, [
+          h(TooltipTrigger, { content: Utils.makeCompleteDate(lastModified) }, [
+            div({ style: { flex: 1 } }, [lastChanged])
+          ]),
+          workspaceMenu
+        ])
       ])
-    ])
-  ]) : a({
-    href: Nav.getLink('workspace-dashboard', { namespace, name }),
-    style: styles.shortCard
-  }, [
-    div({ style: styles.shortTitle }, [name]),
-    div({ style: styles.shortDescription }, [descText]),
-    div({ style: { display: 'flex', marginLeft: 'auto' } }, [badge]),
-    div({ style: { display: 'flex', alignItems: 'center' } }, [
-      h(TooltipTrigger, { content: Utils.makeCompleteDate(lastModified) }, [
-        div({ style: { flex: 1 } }, [lastChanged])
-      ]),
-      workspaceMenu
     ])
   ])
 })
@@ -203,6 +249,7 @@ export const WorkspaceList = _.flow(
       sharingWorkspaceId: undefined,
       accessLevelsFilter: [],
       projectsFilter: [],
+      includePublic: false,
       ...StateHistory.get()
     }
   }
@@ -214,11 +261,10 @@ export const WorkspaceList = _.flow(
 
   render() {
     const { workspaces, loadingWorkspaces, refreshWorkspaces, listView, viewToggleButtons } = this.props
-    const { filter, creatingNewWorkspace, cloningWorkspaceId, deletingWorkspaceId, sharingWorkspaceId, accessLevelsFilter, projectsFilter } = this.state
+    const { filter, creatingNewWorkspace, cloningWorkspaceId, deletingWorkspaceId, sharingWorkspaceId, accessLevelsFilter, projectsFilter, includePublic } = this.state
     const initialFiltered = _.filter(ws => {
       const { workspace: { namespace, name } } = ws
-      return Utils.textMatch(filter, `${namespace}/${name}`) &&
-        (!ws.public || Utils.canWrite(ws.accessLevel))
+      return Utils.textMatch(filter, `${namespace}/${name}`) && (includePublic || !ws.public || Utils.canWrite(ws.accessLevel))
     }, workspaces)
 
     const namespaceList = _.flow(
@@ -245,9 +291,15 @@ export const WorkspaceList = _.flow(
     return h(Fragment, [
       h(TopBar, { title: 'Workspaces' }, [h(WsSearch, { onChange: v => this.setState({ filter: v }) })]),
       h(PageBox, { style: { position: 'relative' } }, [
-        div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' } }, [
+        div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'flex-end', marginBottom: '1rem' } }, [
           div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, ['Workspaces']),
-          div({ style: { marginLeft: 'auto', flex: '0 0 300px' } }, [
+          div({ style: { marginLeft: 'auto' } }, [
+            h(LabeledCheckbox, {
+              checked: includePublic === true,
+              onChange: v => this.setState({ includePublic: v })
+            }, ' Show public workspaces')
+          ]),
+          div({ style: { marginLeft: '1rem', flex: '0 0 300px' } }, [
             h(Select, {
               isClearable: true,
               isMulti: true,
@@ -255,7 +307,7 @@ export const WorkspaceList = _.flow(
               placeholder: 'Filter by access levels',
               value: accessLevelsFilter,
               onChange: data => this.setState({ accessLevelsFilter: _.map('value', data) }),
-              options: _.drop(1, Utils.workspaceAccessLevels),
+              options: Utils.workspaceAccessLevels,
               getOptionLabel: ({ value }) => Utils.normalizeLabel(value)
             })
           ]),
@@ -310,7 +362,7 @@ export const WorkspaceList = _.flow(
 
   componentDidUpdate() {
     StateHistory.update(_.pick(
-      ['filter', 'accessLevelsFilter', 'projectsFilter'],
+      ['filter', 'accessLevelsFilter', 'projectsFilter', 'includePublic'],
       this.state)
     )
   }

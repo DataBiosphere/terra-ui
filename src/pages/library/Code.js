@@ -5,10 +5,11 @@ import { Clickable, link } from 'src/components/common'
 import { centeredSpinner } from 'src/components/icons'
 import { libraryTopMatter } from 'src/components/library-common'
 import dockstoreLogo from 'src/images/library/code/dockstore.svg'
-import firecloudLogo from 'src/images/library/code/firecloud.svg'
+import broadSquare from 'src/images/library/code/broad-square.svg'
 import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
+import { isFirecloud } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
@@ -27,7 +28,7 @@ export const makeToolCard = ({ method, onClick }) => {
 
   return h(Clickable, {
     as: 'a',
-    href: _.isUndefined(onClick) ? `${getConfig().firecloudUrlRoot}/?return=terra#methods/${namespace}/${name}/` : undefined,
+    href: _.isUndefined(onClick) ? `${getConfig().firecloudUrlRoot}/?return=${isFirecloud() ? `firecloud` : `terra`}#methods/${namespace}/${name}/` : undefined,
     onClick,
     style: {
       ...Style.elements.card.container,
@@ -53,19 +54,20 @@ export const makeToolCard = ({ method, onClick }) => {
   ])
 }
 
-const logoTile = logoFile => div({
+const logoTile = ({ logoFile, style = {} }) => div({
   style: {
     flexShrink: 0,
     backgroundImage: `url(${logoFile})`,
     backgroundRepeat: 'no-repeat', backgroundPosition: 'center', backgroundColor: 'white',
     backgroundSize: 27,
     width: 37, height: 37,
-    marginRight: 13
+    marginRight: 13,
+    ...style
   }
 })
 
 export const dockstoreTile = () => div({ style: { display: 'flex' } }, [
-  logoTile(dockstoreLogo),
+  logoTile({ logoFile: dockstoreLogo }),
   div([
     link({ href: `${getConfig().dockstoreUrlRoot}/search?descriptorType=wdl&searchMode=files` }, 'Dockstore'),
     div(['Browse WDL workflows in Dockstore, an open platform used by the GA4GH for sharing Docker-based tools'])
@@ -73,10 +75,10 @@ export const dockstoreTile = () => div({ style: { display: 'flex' } }, [
 ])
 
 export const fcMethodRepoTile = () => div({ style: { display: 'flex' } }, [
-  logoTile(firecloudLogo),
+  logoTile({ logoFile: broadSquare, style: { backgroundColor: undefined, backgroundSize: 37 } }),
   div([
-    link({ href: `${getConfig().firecloudUrlRoot}/?return=terra#methods` }, 'Firecloud Methods Repository'),
-    div(['Use FireCloud workflows in Terra. Share your own, or choose from > 700 public workflows'])
+    link({ href: `${getConfig().firecloudUrlRoot}/?return=${isFirecloud() ? `firecloud` : `terra`}#methods` }, 'Broad Methods Repository'),
+    div(['Use Broad workflows in Terra. Share your own, or choose from > 700 public workflows'])
   ])
 ])
 

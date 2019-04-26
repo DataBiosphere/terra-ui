@@ -1,14 +1,16 @@
 import _ from 'lodash/fp'
-import { Fragment } from 'react'
+import * as qs from 'qs'
+import { Fragment, useState } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
-import { buttonPrimary, LabeledCheckbox, link, RadioButton, spinnerOverlay } from 'src/components/common'
-import { centeredSpinner, profilePic } from 'src/components/icons'
+import { buttonPrimary, LabeledCheckbox, link, RadioButton, ShibbolethLink, spinnerOverlay } from 'src/components/common'
+import { centeredSpinner, icon, profilePic, spinner } from 'src/components/icons'
 import { textInput, validatedInput } from 'src/components/input'
 import { InfoBox } from 'src/components/PopupTrigger'
 import TopBar from 'src/components/TopBar'
-import { ajaxCaller } from 'src/libs/ajax'
+import { Ajax, ajaxCaller, useCancellation } from 'src/libs/ajax'
 import { authStore, getUser, refreshTerraProfile } from 'src/libs/auth'
 import colors from 'src/libs/colors'
+import { withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
@@ -17,7 +19,7 @@ import validate from 'validate.js'
 
 const styles = {
   page: {
-    margin: '0 5rem 2rem',
+    margin: '0 2rem 2rem',
     width: 700
   },
   sectionTitle: {
@@ -26,7 +28,7 @@ const styles = {
   },
   header: {
     line: {
-      margin: '1rem 0',
+      margin: '0 2rem',
       display: 'flex', alignItems: 'center'
     },
 
@@ -58,6 +60,205 @@ const styles = {
 }
 
 
+const NihLink = ({ nihToken }) => {
+  /*
+   * Hooks
+   */
+  const { nihStatus } = Utils.useAtom(authStore)
+  const [linking, setLinking] = useState(false)
+  const signal = useCancellation()
+
+  Utils.useOnMount(() => {
+    const { User } = Ajax(signal)
+
+    const linkNihAccount = _.flow(
+      withErrorReporting('Error linking NIH account'),
+      Utils.withBusyState(setLinking)
+    )(async () => {
+      const nihStatus = await User.linkNihAccount(nihToken)
+      authStore.update(state => ({ ...state, nihStatus }))
+    })
+
+    if (nihToken) {
+      // Clear the query string, but use replace so the back button doesn't take the user back to the token
+      Nav.history.replace({ search: '' })
+      linkNihAccount()
+    }
+  })
+
+
+  /*
+   * Render helpers
+   */
+  const renderDatasetAuthStatus = ({ name, authorized }) => {
+    return div({ key: `nih-auth-status-${name}`, style: { display: 'flex' } }, [
+      div({ style: { flex: 1 } }, [`${name} Authorization`]),
+      div({ style: { flex: 2 } }, [
+        authorized ? 'Authorized' : 'Not Authorized',
+        !authorized && h(InfoBox, { style: { marginLeft: '0.5rem' } }, [
+          'Your account was linked, but you are not authorized to view this controlled dataset. Please go ',
+          link({
+            href: 'https://dbgap.ncbi.nlm.nih.gov/aa/wga.cgi?page=login',
+            target: '_blank'
+          }, [
+            'here',
+            icon('pop-out', { size: 12 })
+          ]),
+          ' to check your credentials.'
+        ])
+      ])
+    ])
+  }
+
+  const renderStatus = () => {
+    const { linkedNihUsername, linkExpireTime, datasetPermissions } = nihStatus
+    return h(Fragment, [
+      !linkedNihUsername && h(ShibbolethLink, ['Log in to NIH to link your account']),
+      !!linkedNihUsername && div({ style: { display: 'flex', flexDirection: 'column', width: '33rem' } }, [
+        div({ style: { display: 'flex' } }, [
+          div({ style: { flex: 1 } }, ['Username:']),
+          div({ style: { flex: 2 } }, [linkedNihUsername])
+        ]),
+        div({ style: { display: 'flex' } }, [
+          div({ style: { flex: 1 } }, ['Link Expiration:']),
+          div({ style: { flex: 2 } }, [
+            div([Utils.makeCompleteDate(linkExpireTime * 1000)]),
+            div([h(ShibbolethLink, ['Log in to NIH to re-link your account'])])
+          ])
+        ]),
+        _.flow(
+          _.sortBy('name'),
+          _.map(renderDatasetAuthStatus)
+        )(datasetPermissions)
+      ])
+    ])
+  }
+
+  const loading = !nihStatus
+
+  /*
+   * Render
+   */
+  return div({ style: { marginBottom: '1rem' } }, [
+    div({ style: styles.form.title }, [
+      'NIH Account',
+      h(InfoBox, { style: { marginLeft: '0.5rem' } }, [
+        'Linking with eRA Commons will allow Terra to automatically determine if you can access controlled datasets hosted in Terra (ex. TCGA) based on your valid dbGaP applications.'
+      ])
+    ]),
+    Utils.cond(
+      [loading, () => div([spinner(), 'Loading NIH account status...'])],
+      [linking, () => div([spinner(), 'Linking NIH account...'])],
+      () => renderStatus()
+    )
+  ])
+}
+
+
+const FenceLink = ({ provider, displayName }) => {
+  const decodeProvider = state => state ? JSON.parse(atob(state)).provider : ''
+
+  const extractToken = (provider, { state, code }) => {
+    const extractedProvider = decodeProvider(state)
+    return extractedProvider && provider === extractedProvider ? code : undefined
+  }
+
+  const queryParams = qs.parse(window.location.search, { ignoreQueryPrefix: true })
+  const token = extractToken(provider, queryParams)
+  const redirectUrl = `${window.location.origin}/${Nav.getLink('fence-callback')}`
+
+  /*
+   * Hooks
+   */
+  const [{ username, issued_at: issuedAt }, setStatus] = useState({})
+  const [href, setHref] = useState(undefined)
+  const [isLoadingStatus, setIsLoadingStatus] = useState(false)
+  const [isLoadingAuthUrl, setIsLoadingAuthUrl] = useState(false)
+  const [isLinking, setIsLinking] = useState(false)
+  const signal = useCancellation()
+
+  const { User } = Ajax(signal)
+
+  const loadAuthUrl = _.flow(
+    withErrorReporting(`Error loading Fence link`),
+    Utils.withBusyState(setIsLoadingAuthUrl)
+  )(async () => {
+    const result = await User.getFenceAuthUrl(provider, redirectUrl)
+    setHref(result.url)
+  })
+
+  const loadFenceStatus = _.flow(
+    withErrorReporting(`Error loading status for ${displayName}`),
+    Utils.withBusyState(setIsLoadingStatus)
+  )(async () => {
+    try {
+      setStatus(await User.getFenceStatus(provider))
+    } catch (error) {
+      if (error.status === 404) {
+        setStatus({})
+      } else {
+        throw error
+      }
+    }
+  })
+
+  const linkFenceAccount = _.flow(
+    withErrorReporting('Error linking NIH account'),
+    Utils.withBusyState(setIsLinking)
+  )(async () => {
+    setStatus(await User.linkFenceAccount(provider, token, redirectUrl))
+  })
+
+  Utils.useOnMount(() => {
+    loadAuthUrl()
+  })
+
+  Utils.useOnMount(() => {
+    if (token) {
+      const profileLink = `/${Nav.getLink('profile')}`
+      window.history.replaceState({}, '', profileLink)
+      linkFenceAccount()
+    } else {
+      loadFenceStatus()
+    }
+  })
+
+  /*
+   * Render helpers
+   */
+  const makeAccountLinkLink = () => {
+    return href && link({ href, style: { display: 'flex', alignItems: 'center' } }, [
+      'Log-In to Framework Services to link your account',
+      icon('pop-out', { size: 12, style: { marginLeft: '0.5rem' } })
+    ])
+  }
+
+  /*
+   * Render
+   */
+  const isBusy = isLoadingStatus || isLoadingAuthUrl || isLinking
+  const expireTime = new Date(issuedAt).getTime() + (1000 * 60 * 60 * 24 * 30)
+
+  return div({ style: { marginBottom: '1rem' } }, [
+    div({ style: styles.form.title }, [displayName]),
+    isBusy && div([spinner(), 'Loading account status...']),
+    !isBusy && h(Fragment, [
+      !username && makeAccountLinkLink(),
+      !!username && div({ style: { display: 'flex', flexDirection: 'column', width: '33rem' } }, [
+        div({ style: { display: 'flex' } }, [
+          div({ style: { flex: 1 } }, ['Username:']),
+          div({ style: { flex: 2 } }, [username])
+        ]),
+        div({ style: { display: 'flex' } }, [
+          div({ style: { flex: 1 } }, ['Link Expiration:']),
+          div({ style: { flex: 2 } }, [Utils.makeCompleteDate(expireTime)])
+        ])
+      ])
+    ])
+  ])
+}
+
+
 const sectionTitle = text => div({ style: styles.sectionTitle }, [text])
 
 const Profile = _.flow(
@@ -71,32 +272,48 @@ const Profile = _.flow(
   }
 
   render() {
+    const { queryParams = {} } = this.props
     const { profileInfo, saving } = this.state
     const { firstName } = profileInfo
 
     return h(Fragment, [
       saving && spinnerOverlay,
       h(TopBar),
-      !profileInfo ? centeredSpinner() :
-        div({ style: styles.page }, [
-          sectionTitle('Profile'),
-          div({ style: styles.header.line }, [
-            div({ style: { position: 'relative' } }, [
-              profilePic({ size: 48 }),
-              h(InfoBox, { style: { alignSelf: 'flex-end', padding: '0.25rem' } }, [
-                'To change your profile image, visit your ',
-                link({
-                  href: `https://myaccount.google.com?authuser=${getUser().email}`,
-                  target: '_blank'
-                }, ['Google account page.'])
-              ])
-            ]),
-            div({ style: styles.header.nameLine }, [
-              `Hello again, ${firstName}`
+      !profileInfo ? centeredSpinner() : h(Fragment, [
+        div({ style: { marginLeft: '2rem' } }, [sectionTitle('Profile')]),
+        div({ style: styles.header.line }, [
+          div({ style: { position: 'relative' } }, [
+            profilePic({ size: 48 }),
+            h(InfoBox, { style: { alignSelf: 'flex-end', padding: '0.25rem' } }, [
+              'To change your profile image, visit your ',
+              link({
+                href: `https://myaccount.google.com?authuser=${getUser().email}`,
+                target: '_blank'
+              }, ['Google account page.'])
             ])
           ]),
-          this.renderForm()
+          div({ style: styles.header.nameLine }, [
+            `Hello again, ${firstName}`
+          ])
+        ]),
+        div({ style: { display: 'flex' } }, [
+          div({ style: styles.page }, [
+            this.renderForm()
+          ]),
+          div({ style: { marginTop: '0' } }, [
+            sectionTitle('Identity & External Servers'),
+            h(NihLink, { nihToken: queryParams['nih-username-token'] }),
+            h(FenceLink, {
+              provider: 'fence',
+              displayName: 'DCP Framework Services by University of Chicago'
+            }),
+            h(FenceLink, {
+              provider: 'dcf-fence',
+              displayName: 'DCF Framework Services by University of Chicago'
+            })
+          ])
         ])
+      ])
     ])
   }
 
@@ -205,15 +422,20 @@ const Profile = _.flow(
     this.setState({ profileInfo: _.set(key, value, this.state.profileInfo) })
   }
 
-  async save() {
+  save = _.flow(
+    Utils.withBusyState(v => this.setState({ saving: v })),
+    withErrorReporting('Error saving profile')
+  )(async () => {
     const { profileInfo } = this.state
     const { ajax: { User } } = this.props
 
-    this.setState({ saving: true })
-    await User.profile.set(_.pickBy(_.identity, profileInfo))
+    const [prefsData, profileData] = _.over([_.pickBy, _.omitBy])((v, k) => _.startsWith('notifications/', k), profileInfo)
+    await Promise.all([
+      User.profile.set(_.pickBy(_.identity, profileData)),
+      User.profile.setPreferences(prefsData)
+    ])
     await refreshTerraProfile()
-    this.setState({ saving: false })
-  }
+  })
 
   async componentDidMount() {
     const { ajax: { User }, authState: { profile: { email } } } = this.props
@@ -226,6 +448,11 @@ const Profile = _.flow(
 export const addNavPaths = () => {
   Nav.defPath('profile', {
     path: '/profile',
+    component: Profile,
+    title: 'Profile'
+  })
+  Nav.defPath('fence-callback', {
+    path: '/fence-callback',
     component: Profile,
     title: 'Profile'
   })

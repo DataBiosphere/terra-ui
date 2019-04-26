@@ -1,15 +1,18 @@
 import _ from 'lodash/fp'
 import { Fragment } from 'react'
-import { div, h } from 'react-hyperscript-helpers'
+import { div, h, span } from 'react-hyperscript-helpers'
 import SimpleMDE from 'react-simplemde-editor'
 import 'easymde/dist/easymde.min.css'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { buttonPrimary, buttonSecondary, link, linkButton, Markdown, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
+import { SimpleTable } from 'src/components/table'
+import TooltipTrigger from 'src/components/TooltipTrigger'
+import { displayConsentCodes, displayLibraryAttributes } from 'src/data/workspace-attributes'
 import { ajaxCaller } from 'src/libs/ajax'
 import { bucketBrowserUrl } from 'src/libs/auth'
 import colors from 'src/libs/colors'
-import { reportError } from 'src/libs/error'
+import { reportError, withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -19,7 +22,7 @@ import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer
 
 const styles = {
   leftBox: {
-    flex: 1, padding: '0 2rem'
+    flex: 1, padding: '0 2rem 2rem 2rem'
   },
   rightBox: {
     flex: 'none', width: 350, backgroundColor: colors.grayBlue[5],
@@ -61,6 +64,28 @@ const InfoTile = ({ title, children }) => {
   ])
 }
 
+const displayAttributeValue = v => {
+  return Utils.cond(
+    [_.isArray(v), () => v.join(', ')],
+    [v && v.items, () => v.items.join(', ')],
+    [v === true, () => 'Yes'],
+    [v === false, () => 'No'],
+    () => v
+  )
+}
+
+const DataUseLimitations = ({ attributes }) => {
+  return _.map(({ key, title }) => {
+    return div({ key, style: { display: 'inline-block', marginRight: '0.75rem' } }, [
+      h(TooltipTrigger, { content: title }, [
+        span({ style: { textDecoration: 'underline dotted' } }, [key.slice(8)])
+      ]),
+      ': ',
+      displayAttributeValue(attributes[key])
+    ])
+  }, _.filter(({ key }) => _.has(key, attributes), displayConsentCodes))
+}
+
 export const WorkspaceDashboard = _.flow(
   wrapWorkspace({
     breadcrumbs: () => breadcrumbs.commonPaths.workspaceList(),
@@ -79,22 +104,45 @@ export const WorkspaceDashboard = _.flow(
   }
 
   async componentDidMount() {
-    const { ajax: { Workspaces }, namespace, name, workspace: { accessLevel } } = this.props
-    try {
-      const [submissions, estimate] = await Promise.all([
-        Workspaces.workspace(namespace, name).listSubmissions(),
-        Utils.canWrite(accessLevel) ?
-          Workspaces.workspace(namespace, name).storageCostEstimate() :
-          undefined
-      ])
-      this.setState({
-        submissionsCount: submissions.length,
-        storageCostEstimate: estimate && estimate.estimate
-      })
-    } catch (error) {
-      reportError('Error loading data', error)
-    }
+    this.loadSubmissionCount()
+    this.loadStorageCost()
+    this.loadConsent()
   }
+
+  loadSubmissionCount = withErrorReporting('Error loading data', async () => {
+    const { ajax: { Workspaces }, namespace, name } = this.props
+    const submissions = await Workspaces.workspace(namespace, name).listSubmissions()
+    this.setState({ submissionsCount: submissions.length })
+  })
+
+  loadStorageCost = withErrorReporting('Error loading data', async () => {
+    const { ajax: { Workspaces }, namespace, name, workspace: { accessLevel } } = this.props
+    if (Utils.canWrite(accessLevel)) {
+      const { estimate } = await Workspaces.workspace(namespace, name).storageCostEstimate()
+      this.setState({ storageCostEstimate: estimate })
+    }
+  })
+
+  loadConsent = withErrorReporting('Error loading data', async () => {
+    const { ajax: { Duos }, workspace: { workspace: { attributes } } } = this.props
+    const orspId = attributes['library:orsp']
+    if (orspId) {
+      try {
+        const { translatedUseRestriction } = await Duos.getConsent(orspId)
+        this.setState({ consentStatus: translatedUseRestriction })
+      } catch (error) {
+        switch (error.status) {
+          case 400:
+            this.setState({ consentStatus: `Structured Data Use Limitations are not approved for ${orspId}` })
+            break
+          case 404:
+            this.setState({ consentStatus: `Structured Data Use Limitations are not available for ${orspId}` })
+            break
+          default: throw error
+        }
+      }
+    }
+  })
 
   async save() {
     const { refreshWorkspace, workspace: { workspace: { namespace, name } }, ajax: { Workspaces } } = this.props
@@ -112,16 +160,15 @@ export const WorkspaceDashboard = _.flow(
 
   render() {
     const {
-      workspace: {
+      workspace, workspace: {
         accessLevel,
         workspace: {
           authorizationDomain, createdDate, lastModified, bucketName,
-          attributes: { description = '' }
+          attributes, attributes: { description = '' }
         }
       }
     } = this.props
-    const { submissionsCount, storageCostEstimate, editDescription, saving } = this.state
-    const canWrite = Utils.canWrite(accessLevel)
+    const { submissionsCount, storageCostEstimate, editDescription, saving, consentStatus } = this.state
     const isEditing = _.isString(editDescription)
 
     return div({ style: { flex: 1, display: 'flex' } }, [
@@ -130,8 +177,8 @@ export const WorkspaceDashboard = _.flow(
           'About the workspace',
           !isEditing && linkButton({
             style: { marginLeft: '0.5rem' },
-            disabled: !canWrite,
-            tooltip: !canWrite && 'You do not have permission to edit this workspace',
+            disabled: !!Utils.editWorkspaceError(workspace),
+            tooltip: Utils.editWorkspaceError(workspace),
             onClick: () => this.setState({ editDescription: description })
           }, [icon('edit', { className: 'is-solid' })])
         ]),
@@ -159,7 +206,24 @@ export const WorkspaceDashboard = _.flow(
             ])
           ],
           [!!description, () => h(Markdown, [description])],
-          () => div({ style: { fontStyle: 'italic' } }, ['No description added']))
+          () => div({ style: { fontStyle: 'italic' } }, ['No description added'])),
+        _.some(_.startsWith('library:'), _.keys(attributes)) && h(Fragment, [
+          div({ style: styles.header }, ['Dataset Attributes']),
+          h(SimpleTable, {
+            rows: _.flow(
+              _.map(({ key, title }) => ({ name: title, value: displayAttributeValue(attributes[key]) })),
+              Utils.append({
+                name: 'Structured Data Use Limitations',
+                value: attributes['library:orsp'] ? consentStatus : h(DataUseLimitations, { attributes })
+              }),
+              _.filter('value')
+            )(displayLibraryAttributes),
+            columns: [
+              { key: 'name', size: { grow: 1 } },
+              { key: 'value', size: { grow: 2 } }
+            ]
+          })
+        ])
       ]),
       div({ style: styles.rightBox }, [
         div({ style: styles.header }, ['Workspace information']),
