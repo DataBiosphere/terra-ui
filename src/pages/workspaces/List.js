@@ -245,6 +245,15 @@ export const WorkspaceList = _.flow(
     this.setState({ allTags })
   }
 
+  returnTags(workspaceAttributes) {
+    if (workspaceAttributes['tag:tags']) {
+      console.log(workspaceAttributes['tag:tags'].items)
+      return workspaceAttributes['tag:tags'].items[0]
+    } else {
+      return []
+    }
+  }
+
   render() {
     const { workspaces, loadingWorkspaces, refreshWorkspaces, listView, viewToggleButtons } = this.props
     const { filter, creatingNewWorkspace, cloningWorkspaceId, deletingWorkspaceId, sharingWorkspaceId, accessLevelsFilter, projectsFilter, includePublic, tagsFilter, allTags } = this.state
@@ -263,7 +272,8 @@ export const WorkspaceList = _.flow(
 
     const data = _.flow(
       _.filter(ws => (_.isEmpty(accessLevelsFilter) || accessLevelsFilter.includes(ws.accessLevel)) &&
-        (_.isEmpty(projectsFilter) || projectsFilter.includes(ws.workspace.namespace))),
+        (_.isEmpty(projectsFilter) || projectsFilter.includes(ws.workspace.namespace)) &&
+        (_.isEmpty(tagsFilter) || tagsFilter.includes(this.returnTags(ws.workspace.attributes)))),
       _.sortBy('workspace.name')
     )(initialFiltered)
 
@@ -362,7 +372,7 @@ export const WorkspaceList = _.flow(
 
   componentDidUpdate() {
     StateHistory.update(_.pick(
-      ['filter', 'accessLevelsFilter', 'projectsFilter', 'includePublic'],
+      ['filter', 'accessLevelsFilter', 'projectsFilter', 'includePublic', 'tagsFilter'],
       this.state)
     )
   }
