@@ -76,7 +76,7 @@ export default class Router extends Component {
       ({ pathname, search }) => this.setState({ pathname, search })
     )
 
-    if (isFirecloud() && _.has('fcredir', qs.parse(Nav.history.location.search, { ignoreQueryPrefix: true, plainObjects: true }))) {
+    if (_.has('fcredir', qs.parse(Nav.history.location.search, { ignoreQueryPrefix: true, plainObjects: true }))) {
       notify('welcome', div({ style: { fontSize: 14 } }, [
         div(['Welcome to the new FireCloud interface, powered by Terra. All of your workspaces are available. ',
           link({
