@@ -6,7 +6,7 @@ import * as breadcrumbs from 'src/components/breadcrumbs'
 import { link, Select } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { textInput } from 'src/components/input'
-import { collapseStatus, failedIcon, runningIcon, statusIcon, successIcon } from 'src/components/job-common'
+import { collapseStatus, failedIcon, runningIcon, statusIcon, submittedIcon, successIcon } from 'src/components/job-common'
 import { FlexTable, Sortable, TextCell, TooltipCell } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { Ajax, useCancellation } from 'src/libs/ajax'
@@ -122,8 +122,7 @@ const SubmissionDetails = _.flow(
     sort.direction === 'asc' ? _.identity : _.reverse
   )(workflows)
 
-  const { succeeded, failed, running } = _.groupBy(wf => collapseStatus(wf.status), workflows)
-
+  const { succeeded, failed, running, submitted } = _.groupBy(wf => collapseStatus(wf.status), workflows)
   /*
    * Page render
    */
@@ -133,7 +132,8 @@ const SubmissionDetails = _.flow(
         div({ style: Style.elements.sectionHeader }, 'Workflow Statuses'),
         succeeded && makeStatusLine(successIcon, `Succeeded: ${succeeded.length}`),
         failed && makeStatusLine(failedIcon, `Failed: ${failed.length}`),
-        running && makeStatusLine(runningIcon, `Running: ${running.length}`)
+        running && makeStatusLine(runningIcon, `Running: ${running.length}`),
+        submitted && makeStatusLine(submittedIcon, `Submitted: ${submitted.length}`)
       ]),
       div({ style: { display: 'flex', flexWrap: 'wrap' } }, [
         makeSection('Workflow Configuration',
