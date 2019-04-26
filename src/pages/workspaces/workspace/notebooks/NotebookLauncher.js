@@ -25,7 +25,7 @@ const NotebookLauncher = _.flow(
     showTabBar: false
   }),
   ajaxCaller
-)(({ queryParams = {}, ...props }) => {
+)(({ queryParams = {}, ...props }, ref) => {
   const { workspace } = props
   return (Utils.canWrite(workspace.accessLevel) && workspace.canCompute && !queryParams['read-only']) ?
     h(NotebookEditor, props) :
@@ -190,10 +190,9 @@ class NotebookEditor extends Component {
   componentDidUpdate(prevProps) {
     const prevCluster = prevProps.cluster
     const currCluster = this.props.cluster
+    console.log(prevCluster, currCluster)
     if (prevCluster && currCluster && prevCluster.id !== currCluster.id) {
       this.setState(initialEditorState, () => this.setUp())
-    } else {
-      this.setUp()
     }
   }
 
@@ -328,50 +327,20 @@ class NotebookEditor extends Component {
     } else {
       const isCreating = clusterStatus === 'Creating'
       const isRunning = clusterStatus === 'Running'
-      const currentStep = isRunning ? 2 : 1
-
-      const makeStep = (index, shortText, fullText) => {
-        const isCurrent = index === currentStep
-        const isComplete = index < currentStep
-        const isIncomplete = index > currentStep
-        const stepCond = (current, complete, incomplete) => isCurrent ? current : isComplete ? complete : incomplete
-        const baseColor = stepCond(colors.blue, colors.green, colors.gray)
-
-        return div({
-          style: {
-            marginRight: '1rem', padding: '0.5rem 1rem',
-            borderRadius: '1rem', border: `1px solid ${baseColor[0]}`,
-            backgroundColor: stepCond(colors.blue[1], colors.green[1], colors.gray[6]),
-            color: isIncomplete ? undefined : 'white',
-            fontWeight: isCurrent ? 600 : undefined
-          }
-        }, [
-          !isIncomplete && icon(isCurrent ? 'loadingSpinner' : 'success-standard', {
-            className: 'is-solid',
-            style: { marginRight: '0.5rem' }
-          }),
-          isCurrent ? fullText : shortText
-        ])
-      }
 
       return h(Fragment, [
         (cluster || createRequested) ?
           div({ style: { padding: '2rem', display: 'flex' } }, [
-            failed ?
-              h(Fragment, [
+            !failed && icon('loadingSpinner', { className: 'is-solid', style: { marginRight: '0.5rem' } }),
+            Utils.cond(
+              [failed, () => h(Fragment, [
                 icon('times', { size: 24, style: { color: colors.red[0], marginRight: '1rem' } }),
                 clusterError || 'Error launching notebook.'
-              ]) :
-              h(Fragment, [
-                makeStep(1, 'Runtime started', (isCreating || createRequested) ?
-                  'Creating notebook runtime environment. You can navigate away and return in 5-10 minutes.' :
-                  'Starting notebook runtime environment, this may take up to 2 minutes.'
-                ),
-                makeStep(2, 'Copy notebook', localizeFailures ?
-                  `Error loading notebook, retry number ${localizeFailures}...` :
-                  'Copying notebook to the runtime.'
-                )
-              ])
+              ])],
+              [(isCreating || createRequested), () => 'Creating notebook runtime environment. You can navigate away and return in 5-10 minutes.'],
+              [isRunning, localizeFailures ? `Error loading notebook, retry number ${localizeFailures}...` : 'Copying notebook to the runtime...'],
+              'Starting notebook runtime environment, this may take up to 2 minutes.'
+            )
           ]) :
           div({ style: { padding: '2rem', fontSize: 16, fontWeight: 'bold' } }, [
             'You are viewing this notebook in read-only mode. You can ',
