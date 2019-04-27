@@ -2,8 +2,7 @@ import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
 import { Fragment, PureComponent } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
-import Interactive from 'react-interactive'
-import { buttonPrimary, buttonSecondary, Clickable, LabeledCheckbox, Select, spinnerOverlay } from 'src/components/common'
+import { buttonPrimary, buttonSecondary, Clickable, LabeledCheckbox, linkButton, Select, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { IntegerInput, textInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
@@ -158,20 +157,6 @@ const ClusterIcon = ({ shape, onClick, disabled, style, ...props }) => {
     style: { color: onClick && !disabled ? colors.green[0] : colors.gray[2], ...style },
     onClick, disabled, ...props
   }, [icon(shape, { size: 20, className: 'is-solid' })])
-}
-
-const MiniLink = ({ href, disabled, tooltip, children, ...props }) => {
-  return h(TooltipTrigger, { content: tooltip }, [
-    h(Interactive, _.merge({
-      as: 'a',
-      href: !disabled ? href : undefined,
-      style: {
-        color: !disabled ? colors.green[0] : colors.gray[2], backgroundColor: colors.grayBlue[4],
-        cursor: disabled ? 'not-allowed' : 'pointer',
-        borderRadius: 4
-      }
-    }, props), [children])
-  ])
 }
 
 const getUpdateIntervalMs = status => {
@@ -525,16 +510,19 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
     const isDisabled = !canCompute || creating || multiple || busy
 
     return div({ style: styles.container }, [
-      h(MiniLink, {
-        href: Nav.getLink('workspace-terminal-launch', { namespace, name }),
-        disabled: !canCompute,
-        tooltip: Utils.cond(
+      h(TooltipTrigger, {
+        content: Utils.cond(
           [!canCompute, () => noCompute],
           [!currentCluster, () => 'Create a basic cluster and open its terminal'],
           () => 'Open terminal'
-        ),
-        style: { marginRight: '2rem' }
-      }, [icon('terminal', { className: 'is-solid', size: 24 })]),
+        )
+      }, [
+        linkButton({
+          href: Nav.getLink('workspace-terminal-launch', { namespace, name }),
+          disabled: !canCompute,
+          style: { marginRight: '2rem' }
+        }, [icon('terminal', { className: 'is-solid', size: 24 })])
+      ]),
       renderIcon(),
       h(ClusterIcon, {
         shape: 'trash',
