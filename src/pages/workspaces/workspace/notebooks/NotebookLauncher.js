@@ -1,11 +1,10 @@
 import _ from 'lodash/fp'
 import { createRef, forwardRef, Fragment, useState } from 'react'
 import { div, h, iframe } from 'react-hyperscript-helpers'
-import { pure } from 'recompose'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { NewClusterModal } from 'src/components/ClusterManager'
 import { buttonOutline, linkButton, spinnerOverlay } from 'src/components/common'
-import { icon, spinner } from 'src/components/icons'
+import { centeredSpinner, icon, spinner } from 'src/components/icons'
 import { notify } from 'src/components/Notifications'
 import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
@@ -26,10 +25,13 @@ const NotebookLauncher = _.flow(
   }),
   ajaxCaller
 )(({ queryParams = {}, ...props }, ref) => {
-  const { workspace } = props
+  const { workspace, notebookName } = props
   return (Utils.canWrite(workspace.accessLevel) && workspace.canCompute && !queryParams['read-only']) ?
     h(NotebookEditor, props) :
-    h(NotebookPreview, props)
+    h(Fragment, [
+      h(ReadOnlyMessage, { notebookName, workspace }),
+      h(NotebookPreviewFrame, props)
+    ])
 })
 
 const ReadOnlyMessage = ({ notebookName, workspace, workspace: { canCompute, workspace: { namespace, name } } }) => {
@@ -64,22 +66,6 @@ const ReadOnlyMessage = ({ notebookName, workspace, workspace: { canCompute, wor
   ])
 }
 
-const NotebookPreview = pure(props => {
-  const { namespace, name, notebookName, workspace } = props
-  return h(Fragment, [
-    h(ReadOnlyMessage, { notebookName, workspace }),
-    h(NotebookPreviewFrame, {
-      ...props,
-      loadedChildren: div({ style: { position: 'relative' } }, [
-        linkButton({
-          style: { position: 'absolute', top: 20, left: 'calc(50% + 580px)' },
-          href: Nav.getLink('workspace-notebooks', { namespace, name })
-        }, [icon('times-circle', { size: 30 })])
-      ])
-    })
-  ])
-})
-
 class NotebookPreviewFrame extends Component {
   constructor(props) {
     super(props)
@@ -103,10 +89,15 @@ class NotebookPreviewFrame extends Component {
   }
 
   render() {
-    const { loadedChildren } = this.props
+    const { namespace, name } = this.props
     const { preview, busy } = this.state
     return h(Fragment, [
-      preview && loadedChildren,
+      preview && div({ style: { position: 'relative' } }, [
+        linkButton({
+          style: { position: 'absolute', top: 20, left: 'calc(50% + 580px)' },
+          href: Nav.getLink('workspace-notebooks', { namespace, name })
+        }, [icon('times-circle', { size: 30 })])
+      ]),
       preview && iframe({
         style: { border: 'none', flex: 1 },
         srcDoc: preview
@@ -125,7 +116,8 @@ const initialEditorState = {
   url: undefined,
   saving: false,
   createOpen: false,
-  createRequested: false
+  createRequested: false, // to handle the pause while Leo starts creation
+  clustersLoaded: false // to prevent the appearance of no cluster while waiting for response
 }
 
 class NotebookEditor extends Component {
@@ -147,18 +139,20 @@ class NotebookEditor extends Component {
     this.handleMessages = e => {
       const { namespace, name } = this.props
 
-      switch (e.data) {
-        case 'close':
-          Nav.goToPath('workspace-notebooks', { namespace, name })
-          break
-        case 'saved':
-          this.isSaved.set(true)
-          break
-        case 'dirty':
-          this.isSaved.set(false)
-          break
-        default:
-          console.log('Unrecognized message:', e.data)
+      if (!e.data.source.startsWith('react-')) { // for the react dev tools
+        switch (e.data) {
+          case 'close':
+            Nav.goToPath('workspace-notebooks', { namespace, name })
+            break
+          case 'saved':
+            this.isSaved.set(true)
+            break
+          case 'dirty':
+            this.isSaved.set(false)
+            break
+          default:
+            console.log('Unrecognized message:', e.data)
+        }
       }
     }
   }
@@ -171,6 +165,7 @@ class NotebookEditor extends Component {
     window.addEventListener('beforeunload', this.beforeUnload)
 
     await refreshClusters()
+    this.setState({ clustersLoaded: true })
     if (!!this.props.cluster) { // Note: reading up-to-date prop
       this.setUp()
     }
@@ -190,7 +185,6 @@ class NotebookEditor extends Component {
   componentDidUpdate(prevProps) {
     const prevCluster = prevProps.cluster
     const currCluster = this.props.cluster
-    console.log(prevCluster, currCluster)
     if (prevCluster && currCluster && prevCluster.id !== currCluster.id) {
       this.setState(initialEditorState, () => this.setUp())
     }
@@ -308,7 +302,7 @@ class NotebookEditor extends Component {
 
   render() {
     const { namespace, name, app, cluster } = this.props
-    const { clusterError, localizeFailures, failed, url, saving, createOpen, createRequested } = this.state
+    const { clusterError, localizeFailures, failed, url, saving, createOpen, createRequested, clustersLoaded } = this.state
     const clusterStatus = cluster && cluster.status
 
     if (url) {
@@ -324,13 +318,15 @@ class NotebookEditor extends Component {
         }, [icon('times-circle', { size: 25 })]),
         saving && spinnerOverlay
       ])
+    } else if (!clustersLoaded) {
+      return centeredSpinner()
     } else {
       const isCreating = clusterStatus === 'Creating'
       const isRunning = clusterStatus === 'Running'
 
       return h(Fragment, [
         (cluster || createRequested) ?
-          div({ style: { padding: '2rem', display: 'flex' } }, [
+          div({ style: { padding: '1.5rem 2rem', display: 'flex' } }, [
             !failed && icon('loadingSpinner', { className: 'is-solid', style: { marginRight: '0.5rem' } }),
             Utils.cond(
               [failed, () => h(Fragment, [
@@ -342,12 +338,12 @@ class NotebookEditor extends Component {
               'Starting notebook runtime environment, this may take up to 2 minutes.'
             )
           ]) :
-          div({ style: { padding: '2rem', fontSize: 16, fontWeight: 'bold' } }, [
+          div({ style: { padding: '1rem 2rem', fontSize: 16, fontWeight: 'bold' } }, [
             'You are viewing this notebook in read-only mode. You can ',
             linkButton({ onClick: () => this.setState({ createOpen: true }) }, 'create a notebooks runtime'),
             ' to edit and run it.'
           ]),
-        div({ style: { color: colors.gray[2], fontSize: 14, fontWeight: 'bold', padding: '0 0 0 2rem' } }, [
+        div({ style: { color: colors.gray[2], fontSize: 14, fontWeight: 'bold', padding: '0 0 1rem 2rem' } }, [
           isRunning ? 'Almost ready...' : 'Read-only preview of your notebook:'
         ]),
         !isRunning && h(NotebookPreviewFrame, this.props),

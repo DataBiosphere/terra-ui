@@ -3,7 +3,7 @@ import PropTypes from 'prop-types'
 import { Fragment, PureComponent } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
-import { buttonPrimary, buttonSecondary, Clickable, LabeledCheckbox, Select } from 'src/components/common'
+import { buttonPrimary, buttonSecondary, Clickable, LabeledCheckbox, Select, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { IntegerInput, textInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
@@ -406,6 +406,8 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
   async executeAndRefreshWithNav(promise) {
     const { namespace, name } = this.props
 
+    this.setState({ pendingNav: true })
+
     await this.executeAndRefresh(promise)
     if (/notebooks\/.+/.test(window.location.hash)) {
       Nav.goToPath('workspace-notebooks', { namespace, name })
@@ -478,7 +480,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
 
   render() {
     const { namespace, name, clusters, canCompute } = this.props
-    const { busy, open, deleting } = this.state
+    const { busy, open, deleting, pendingNav } = this.state
     if (!clusters) {
       return null
     }
@@ -585,7 +587,8 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
           this.setState({ open: false })
           this.executeAndRefresh(promise)
         }
-      })
+      }),
+      pendingNav && spinnerOverlay
     ])
   }
 })
