@@ -390,12 +390,14 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
 
   async executeAndRefreshWithNav(promise) {
     const { namespace, name } = this.props
+    const onNotebookPage = /notebooks\/.+/.test(window.location.hash)
 
-    this.setState({ pendingNav: true })
-
-    await this.executeAndRefresh(promise)
-    if (/notebooks\/.+/.test(window.location.hash)) {
+    if (onNotebookPage) {
+      this.setState({ pendingNav: true })
+      await this.executeAndRefresh(promise)
       Nav.goToPath('workspace-notebooks', { namespace, name })
+    } else {
+      this.executeAndRefresh(promise)
     }
   }
 
