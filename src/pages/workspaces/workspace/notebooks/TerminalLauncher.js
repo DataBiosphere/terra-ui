@@ -20,27 +20,10 @@ const TerminalLauncher = _.flow(
   }),
   ajaxCaller
 )(class TerminalLauncher extends Component {
-  async loadIframe() {
-    const { cluster: { clusterName, clusterUrl, status } = {} } = this.props
-    const { url } = this.state
+  async refreshCookie() {
+    const { namespace, cluster: { clusterName }, ajax: { Jupyter } } = this.props
 
-    await this.startCluster()
-
-    if (status === 'Running' && !url) {
-      try {
-        await this.refreshCookie(clusterName)
-        this.setState({ url: `${clusterUrl}/terminals/1` },
-          () => { findDOMNode(this).onload = function() { this.contentWindow.focus() } })
-      } catch (error) {
-        reportError('Error launching terminal', error)
-      }
-    }
-  }
-
-  async refreshCookie(clusterName) {
-    const { namespace, ajax: { Jupyter } } = this.props
-
-    this.scheduledRefresh = setTimeout(() => this.refreshCookie(clusterName), 1000 * 60 * 20)
+    this.scheduledRefresh = setTimeout(() => this.refreshCookie(), 1000 * 60 * 20)
 
     return Jupyter.notebooks(namespace, clusterName).setCookie()
   }
@@ -75,8 +58,18 @@ const TerminalLauncher = _.flow(
   }
 
   async componentDidMount() {
+    const { cluster: { clusterUrl } = {} } = this.props
     this.mounted = true
-    this.loadIframe()
+
+    try {
+      await this.startCluster()
+      await this.refreshCookie()
+
+      this.setState({ url: `${clusterUrl}/terminals/1` },
+        () => { findDOMNode(this).onload = function() { this.contentWindow.focus() } })
+    } catch (error) {
+      reportError('Error launching terminal', error)
+    }
   }
 
   componentWillUnmount() {
