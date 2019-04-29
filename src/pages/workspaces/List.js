@@ -252,7 +252,7 @@ export const WorkspaceList = _.flow(
       projectsFilter: [],
       includePublic: false,
       tagsFilter: [],
-      allTags: undefined,
+      tagsList: [],
       ...StateHistory.get()
     }
   }
@@ -265,20 +265,12 @@ export const WorkspaceList = _.flow(
   async componentDidMount() {
     const { ajax: { Workspaces } } = this.props
     const allTags = await Workspaces.getTags()
-    this.setState({ allTags })
-  }
-
-  returnTags(workspaceAttributes) {
-    if (workspaceAttributes['tag:tags']) {
-      return workspaceAttributes['tag:tags'].items
-    } else {
-      return []
-    }
+    this.setState({ tagsList: _.map('tag', allTags) })
   }
 
   render() {
     const { workspaces, loadingWorkspaces, refreshWorkspaces, listView, viewToggleButtons } = this.props
-    const { filter, creatingNewWorkspace, cloningWorkspaceId, deletingWorkspaceId, sharingWorkspaceId, accessLevelsFilter, projectsFilter, includePublic, tagsFilter, allTags } = this.state
+    const { filter, creatingNewWorkspace, cloningWorkspaceId, deletingWorkspaceId, sharingWorkspaceId, accessLevelsFilter, projectsFilter, includePublic, tagsFilter, tagsList } = this.state
     const initialFiltered = _.filter(ws => {
       const { workspace: { namespace, name } } = ws
       return Utils.textMatch(filter, `${namespace}/${name}`) && (includePublic || !ws.public || Utils.canWrite(ws.accessLevel))
@@ -290,12 +282,18 @@ export const WorkspaceList = _.flow(
       _.sortBy(_.identity)
     )(initialFiltered)
 
-    const tagsList = _.map('tag', allTags)
+    const returnTags = workspaceAttributes => {
+      if (workspaceAttributes['tag:tags']) {
+        return workspaceAttributes['tag:tags'].items
+      } else {
+        return []
+      }
+    }
 
     const data = _.flow(
       _.filter(ws => (_.isEmpty(accessLevelsFilter) || accessLevelsFilter.includes(ws.accessLevel)) &&
         (_.isEmpty(projectsFilter) || projectsFilter.includes(ws.workspace.namespace)) &&
-        (_.isEmpty(tagsFilter) || _.every(_.identity, _.map(a => this.returnTags(ws.workspace.attributes).includes(a), tagsFilter)))),
+        (_.isEmpty(tagsFilter) || _.every(_.identity, _.map(a => returnTags(ws.workspace.attributes).includes(a), tagsFilter)))),
       _.sortBy('workspace.name')
     )(initialFiltered)
 
