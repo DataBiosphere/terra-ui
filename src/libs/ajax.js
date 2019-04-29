@@ -420,6 +420,11 @@ const Workspaces = signal => ({
     return res.json()
   },
 
+  getAllTags: async () => {
+    const res = await fetchRawls('workspaces/tags', _.merge(authOpts(), { signal }))
+    return res.json()
+  },
+
   workspace: (namespace, name) => {
     const root = `workspaces/${namespace}/${name}`
     const mcPath = `${root}/methodconfigs`
@@ -608,7 +613,18 @@ const Workspaces = signal => ({
       storageCostEstimate: async () => {
         const res = await fetchOrchestration(`api/workspaces/${namespace}/${name}/storageCostEstimate`, _.merge(authOpts(), { signal }))
         return res.json()
+      },
+
+      getTags: async () => {
+        const res = await fetchOrchestration(`api/workspaces/${namespace}/${name}/tags`, _.merge(authOpts(), { signal, method: 'GET' }))
+        return res.json()
+      },
+
+      updateTags: async (method, tags) => {
+        const res = await fetchOrchestration(`api/workspaces/${namespace}/${name}/tags`, _.merge(authOpts(), { body: tags, signal, method }))
+        return res.json()
       }
+
     }
   }
 })

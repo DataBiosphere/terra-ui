@@ -107,6 +107,8 @@ export const WorkspaceDashboard = _.flow(
     this.loadSubmissionCount()
     this.loadStorageCost()
     this.loadConsent()
+    this.loadTags()
+    this.updateTags()
   }
 
   loadSubmissionCount = withErrorReporting('Error loading data', async () => {
@@ -142,6 +144,18 @@ export const WorkspaceDashboard = _.flow(
         }
       }
     }
+  })
+
+  loadTags = withErrorReporting('Error loading tags', async () => {
+    const { ajax: { Workspaces }, namespace, name } = this.props
+    const wsTags = await Workspaces.workspace(namespace, name).getTags()
+    console.log(wsTags)
+  })
+
+  updateTags = withErrorReporting('Error adding tags', async (method, tags) => {
+    const { ajax: { Workspaces }, namespace, name } = this.props
+    const updateTags = await Workspaces.workspace(namespace, name).updateTags(method, tags)
+    console.log(updateTags)
   })
 
   async save() {
@@ -248,6 +262,7 @@ export const WorkspaceDashboard = _.flow(
           ]),
           ..._.map(({ membersGroupName }) => div({ style: styles.authDomain }, [membersGroupName]), authorizationDomain)
         ]),
+        div({ style: styles.header }, ['Tags']),
         div({ style: { margin: '1.5rem 0 0.5rem 0', borderBottom: `1px solid ${colors.gray[3]}` } }),
         link({
           target: '_blank',
