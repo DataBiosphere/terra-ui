@@ -249,7 +249,7 @@ export const EntityUploader = ajaxCaller(class EntityUploader extends Component 
       onDropRejected: () => this.setState({ file: undefined, isInvalid: 'file' }),
       onDropAccepted: async ([file]) => {
         const firstBytes = await Utils.readFileAsText(file.slice(0, 1000))
-        const definedTypeMatch = /(?:membership|entity):(.+)_id/.exec(firstBytes)
+        const definedTypeMatch = /(?:membership|entity):([^\s]+)_id/.exec(firstBytes)
 
         if (definedTypeMatch) {
           this.setState({ file, isInvalid: undefined, newEntityType: definedTypeMatch[1] })
