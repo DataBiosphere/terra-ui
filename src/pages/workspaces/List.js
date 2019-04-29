@@ -247,8 +247,7 @@ export const WorkspaceList = _.flow(
 
   returnTags(workspaceAttributes) {
     if (workspaceAttributes['tag:tags']) {
-      console.log(workspaceAttributes['tag:tags'].items)
-      return workspaceAttributes['tag:tags'].items[0]
+      return workspaceAttributes['tag:tags'].items
     } else {
       return []
     }
@@ -273,7 +272,7 @@ export const WorkspaceList = _.flow(
     const data = _.flow(
       _.filter(ws => (_.isEmpty(accessLevelsFilter) || accessLevelsFilter.includes(ws.accessLevel)) &&
         (_.isEmpty(projectsFilter) || projectsFilter.includes(ws.workspace.namespace)) &&
-        (_.isEmpty(tagsFilter) || tagsFilter.includes(this.returnTags(ws.workspace.attributes)))),
+        (_.isEmpty(tagsFilter) || _.every(_.identity, _.map(a => this.returnTags(ws.workspace.attributes).includes(a), tagsFilter)))),
       _.sortBy('workspace.name')
     )(initialFiltered)
 
