@@ -357,10 +357,11 @@ export const Tools = _.flow(
   }
 })
 
-export const addNavPaths = () => {
-  Nav.defPath('workspace-tools', {
+export const navPaths = [
+  {
+    name: 'workspace-tools',
     path: '/workspaces/:namespace/:name/tools',
     component: Tools,
     title: ({ name }) => `${name} - Tools`
-  })
-}
+  }
+]

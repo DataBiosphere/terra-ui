@@ -1,16 +1,15 @@
 import { div, h } from 'react-hyperscript-helpers'
 import { Markdown, newWindowLinkRenderer } from 'src/components/Markdown'
-import * as Nav from 'src/libs/nav'
 
 
 const privacyPolicy = `
-We keep your name, email and company so you can use our system. 
+We keep your name, email and company so you can use our system.
 
-We place cookies on your browser to make our system faster. 
+We place cookies on your browser to make our system faster.
 
-We may use your name and email to send you information about our system. 
+We may use your name and email to send you information about our system.
 
-You are responsible for maintaining the privacy of data you enter into our system. We keep your data very private on our cloud providers. 
+You are responsible for maintaining the privacy of data you enter into our system. We keep your data very private on our cloud providers.
 
 We follow the laws of all the countries where we operate. We follow the laws of Europe, like GDPR. If you need more information, see the sections below.
 
@@ -26,7 +25,7 @@ We follow the laws of all the countries where we operate. We follow the laws of 
 
         * Terra is not a Covered Entity as that term is defined in the Health Insurance Portability and Accountability Act of 1996, as amended, and its related regulations (collectively, "HIPAA"). On occasion, Terra may agree in writing with a user to perform services for the user in the storing PHI. We recommend that such users enter into a formal agreement with Terra/Firecloud.
 
-        * Terra does offers clinical compliance features as part of its service ("Compliance Features") for users who wish to upload, store, or otherwise transfer PHI, as well as users who are using the Site in connection with their clinical operations. Users who desire to upload, store, or otherwise transfer PHI using the Site must implement all of the required Clinical Features and must enter a formal agreement with Firecloud stating that. The uploading, storing, or transferring of PHI using the Site by users that have not implemented the Clinical Features is strictly prohibited. You agree that, unless you have implemented the Clinical Features, you will not upload, store, or otherwise transfer PHI using the Site. 
+        * Terra does offers clinical compliance features as part of its service ("Compliance Features") for users who wish to upload, store, or otherwise transfer PHI, as well as users who are using the Site in connection with their clinical operations. Users who desire to upload, store, or otherwise transfer PHI using the Site must implement all of the required Clinical Features and must enter a formal agreement with Firecloud stating that. The uploading, storing, or transferring of PHI using the Site by users that have not implemented the Clinical Features is strictly prohibited. You agree that, unless you have implemented the Clinical Features, you will not upload, store, or otherwise transfer PHI using the Site.
 
         * You acknowledge that this may require you, in some instances, to anonymize sequence data prior to uploading it to the Site. You further agree to indemnify and hold harmless Terra of and from any and all claims, demands, losses, causes of action, damage, lawsuits, judgments, including attorneys' fees and costs, arising out of or relating to your uploading, storing, or transferring of PHI without having fully implemented the Clinical Features.
 
@@ -105,11 +104,12 @@ const PrivacyPolicy = () => {
   ])
 }
 
-export const addNavPaths = () => {
-  Nav.defPath('privacy', {
+export const navPaths = [
+  {
+    name: 'privacy',
     path: '/privacy',
     component: PrivacyPolicy,
     public: true,
     title: 'Privacy Policy'
-  })
-}
+  }
+]

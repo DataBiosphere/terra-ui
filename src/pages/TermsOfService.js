@@ -6,7 +6,6 @@ import { Ajax } from 'src/libs/ajax'
 import { authStore, signOut } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
-import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 
 // When updating the TOS, make sure you:
@@ -259,11 +258,12 @@ class TermsOfServicePage extends Component {
   }
 }
 
-export const addNavPaths = () => {
-  Nav.defPath('terms-of-service', {
+export const navPaths = [
+  {
+    name: 'terms-of-service',
     path: '/terms-of-service',
     component: TermsOfServicePage,
     public: true,
     title: 'Terms of Service'
-  })
-}
+  }
+]

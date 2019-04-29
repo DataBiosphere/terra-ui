@@ -852,10 +852,11 @@ const WorkflowView = _.flow(
 })
 
 
-export const addNavPaths = () => {
-  Nav.defPath('workflow', {
+export const navPaths = [
+  {
+    name: 'workflow',
     path: '/workspaces/:namespace/:name/tools/:workflowNamespace/:workflowName',
     component: WorkflowView,
     title: ({ name, workflowName }) => `${name} - Tools - ${workflowName}`
-  })
-}
+  }
+]

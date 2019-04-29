@@ -382,10 +382,11 @@ const Notebooks = _.flow(
   }
 })
 
-export const addNavPaths = () => {
-  Nav.defPath('workspace-notebooks', {
+export const navPaths = [
+  {
+    name: 'workspace-notebooks',
     path: '/workspaces/:namespace/:name/notebooks',
     component: Notebooks,
     title: ({ name }) => `${name} - Notebooks`
-  })
-}
+  }
+]

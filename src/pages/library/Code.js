@@ -9,7 +9,6 @@ import broadSquare from 'src/images/library/code/broad-square.svg'
 import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { getConfig, isFirecloud } from 'src/libs/config'
-import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import { Component } from 'src/libs/wrapped-components'
@@ -136,11 +135,12 @@ const Code = ajaxCaller(class Code extends Component {
 })
 
 
-export const addNavPaths = () => {
-  Nav.defPath('library-code', {
+export const navPaths = [
+  {
+    name: 'library-code',
     path: '/library/code',
     component: Code,
     public: false,
     title: 'Code & Tools'
-  })
-}
+  }
+]

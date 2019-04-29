@@ -38,30 +38,32 @@ const pageWrapStyle = { display: 'flex', flexDirection: 'column', flex: '1 0 aut
 
 const initNavPaths = () => {
   Nav.clearPaths()
-  LandingPage.addNavPaths()
-  WorkspaceList.addNavPaths()
-  WorkflowView.addNavPaths()
-  StyleGuide.addNavPaths()
-  ImportData.addNavPaths()
-  ImportTool.addNavPaths()
-  PrivacyPolicy.addNavPaths()
-  Dashboard.addNavPaths()
-  Data.addNavPaths()
-  Notebooks.addNavPaths()
-  JobHistory.addNavPaths()
-  SubmissionDetails.addNavPaths()
-  Tools.addNavPaths()
-  NotebookLauncher.addNavPaths()
-  Profile.addNavPaths()
-  Groups.addNavPaths()
-  Group.addNavPaths()
-  TerminalLauncher.addNavPaths()
-  TermsOfService.addNavPaths()
-  Code.addNavPaths()
-  DataExplorer.addNavPaths()
-  Datasets.addNavPaths()
-  Showcase.addNavPaths()
-  Projects.addNavPaths()
+  _.forEach(Nav.defPath, [
+    ...LandingPage.navPaths,
+    ...WorkspaceList.navPaths,
+    ...WorkflowView.navPaths,
+    ...StyleGuide.navPaths,
+    ...ImportData.navPaths,
+    ...ImportTool.navPaths,
+    ...PrivacyPolicy.navPaths,
+    ...Dashboard.navPaths,
+    ...Data.navPaths,
+    ...Notebooks.navPaths,
+    ...JobHistory.navPaths,
+    ...SubmissionDetails.navPaths,
+    ...Tools.navPaths,
+    ...NotebookLauncher.navPaths,
+    ...Profile.navPaths,
+    ...Groups.navPaths,
+    ...Group.navPaths,
+    ...TerminalLauncher.navPaths,
+    ...TermsOfService.navPaths,
+    ...Code.navPaths,
+    ...DataExplorer.navPaths,
+    ...Datasets.navPaths,
+    ...Showcase.navPaths,
+    ...Projects.navPaths
+  ])
 }
 
 export default class Router extends Component {
