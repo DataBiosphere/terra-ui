@@ -33,7 +33,7 @@ const styles = {
   }),
   shortCard: {
     ...Style.elements.card.container,
-    width: 280, height: 260,
+    width: 280, height: 260, position: 'relative',
     margin: '0 1rem 2rem 0'
   },
   shortTitle: {
@@ -56,7 +56,7 @@ const styles = {
   longCard: {
     ...Style.elements.card.container,
     flexDirection: 'row',
-    height: 80,
+    height: 80, position: 'relative',
     marginBottom: '0.5rem'
   },
   longCardTextContainer: {
@@ -78,7 +78,19 @@ const styles = {
     lineHeight: '1.5rem', textAlign: 'center',
     backgroundColor: colors.purple[0], color: 'white'
   },
-  filter: { marginLeft: '1rem', flex: '0 0 300px' }
+  filter: { marginLeft: '1rem', flex: '0 0 300px' },
+  submissionIndicator: {
+    position: 'absolute', top: 0, right: 0,
+    color: 'white', display: 'flex', padding: 2, borderRadius: '0 5px'
+  }
+}
+
+const workspaceSubmissionStatus = ({ workspaceSubmissionStats: { runningSubmissionsCount, lastSuccessDate, lastFailureDate } }) => {
+  return Utils.cond(
+    [runningSubmissionsCount, () => 'running'],
+    [lastSuccessDate && (!lastFailureDate || new Date(lastSuccessDate) > new Date(lastFailureDate)), () => 'success'],
+    [lastFailureDate, () => 'failure'],
+  )
 }
 
 const WsSearch = ({ onChange }) => {
@@ -133,9 +145,15 @@ const WorkspaceMenuContent = ({ namespace, name, onClone, onShare, onDelete }) =
   ])
 }
 
+const SubmissionIndicator = ({ shape, color }) => {
+  return div({ style: { ...styles.submissionIndicator, backgroundColor: color } }, [
+    icon(shape, { size: 14, style: { color: 'white' } })
+  ])
+}
+
 const WorkspaceCard = pure(({
   listView, onClone, onDelete, onShare,
-  workspace: { accessLevel, workspace: { namespace, name, createdBy, lastModified, attributes: { description } } }
+  workspace, workspace: { accessLevel, workspace: { namespace, name, createdBy, lastModified, attributes: { description } } }
 }) => {
   const lastChanged = `Last changed: ${Utils.makePrettyDate(lastModified)}`
   const badge = div({ title: createdBy, style: styles.badge }, [createdBy[0].toUpperCase()])
@@ -171,6 +189,11 @@ const WorkspaceCard = pure(({
       href: canView ? Nav.getLink('workspace-dashboard', { namespace, name }) : undefined,
       style: listView ? styles.longCard : styles.shortCard
     }, [
+      Utils.switchCase(workspaceSubmissionStatus(workspace),
+        ['success', () => h(SubmissionIndicator, { shape: 'success-standard', color: colors.green[1] })],
+        ['failure', () => h(SubmissionIndicator, { shape: 'error-standard', color: colors.red[1] })],
+        ['running', () => h(SubmissionIndicator, { shape: 'sync', color: colors.darkBlue[1] })]
+      ),
       listView ? h(Fragment, [
         workspaceMenu,
         div({ style: { ...styles.longCardTextContainer } }, [

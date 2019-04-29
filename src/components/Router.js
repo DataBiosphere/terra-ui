@@ -1,4 +1,5 @@
 import _ from 'lodash/fp'
+import * as qs from 'qs'
 import { Component } from 'react'
 import { div, h, h2 } from 'react-hyperscript-helpers'
 import AuthContainer from 'src/components/AuthContainer'
@@ -6,7 +7,6 @@ import { link } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { notify } from 'src/components/Notifications'
 import TopBar from 'src/components/TopBar'
-import { isFirecloud } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
 import * as Code from 'src/pages/library/Code'
 import * as Datasets from 'src/pages/library/Datasets'
@@ -75,7 +75,7 @@ export default class Router extends Component {
       ({ pathname, search }) => this.setState({ pathname, search })
     )
 
-    if (isFirecloud() && new URLSearchParams(window.location.search).has('fcredir')) {
+    if (_.has('fcredir', qs.parse(Nav.history.location.search, { ignoreQueryPrefix: true, plainObjects: true }))) {
       notify('welcome', div({ style: { fontSize: 14 } }, [
         div(['Welcome to the new FireCloud interface, powered by Terra. All of your workspaces are available. ',
           link({
