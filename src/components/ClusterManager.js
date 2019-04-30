@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
 import { Fragment, PureComponent } from 'react'
-import { a, div, h, span, strong } from 'react-hyperscript-helpers'
+import { div, h, span, strong } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
 import { buttonPrimary, buttonSecondary, Clickable, LabeledCheckbox, Select } from 'src/components/common'
 import { icon } from 'src/components/icons'
@@ -375,7 +375,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
 
   componentDidUpdate(prevProps) {
     const prevCluster = _.last(_.sortBy('createdDate', _.remove({ status: 'Deleting' }, prevProps.clusters))) || {}
-    const { status, jupyterUserScriptUri, stagingBucket, googleId, clusterName } = this.getCurrentCluster() || {}
+    const { status, jupyterUserScriptUri } = this.getCurrentCluster() || {}
     if (status === 'Error' && prevCluster.status !== 'Error') {
       notify('error', 'Error creating cluster', {
         message: h(Fragment, [
