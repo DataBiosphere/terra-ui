@@ -369,8 +369,7 @@ export const WorkspaceList = _.flow(
           onSuccess: () => refreshWorkspaces()
         }),
         sharingWorkspaceId && h(ShareWorkspaceModal, {
-          namespace: this.getWorkspace(sharingWorkspaceId).workspace.namespace,
-          name: this.getWorkspace(sharingWorkspaceId).workspace.name,
+          workspace: this.getWorkspace(sharingWorkspaceId),
           onDismiss: () => { this.setState({ sharingWorkspaceId: undefined }) }
         }),
         loadingWorkspaces && (!workspaces ? transparentSpinnerOverlay : topSpinnerOverlay)

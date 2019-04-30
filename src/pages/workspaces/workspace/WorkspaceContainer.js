@@ -134,7 +134,7 @@ class WorkspaceContainer extends Component {
         onSuccess: ({ namespace, name }) => Nav.goToPath('workspace-dashboard', { namespace, name })
       }),
       sharingWorkspace && h(ShareWorkspaceModal, {
-        namespace, name,
+        workspace,
         onDismiss: () => this.setState({ sharingWorkspace: false })
       })
     ])
