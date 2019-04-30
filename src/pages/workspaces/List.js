@@ -295,7 +295,8 @@ export const WorkspaceList = _.flow(
       h(PageBox, { style: { position: 'relative' } }, [
         div({ style: { display: 'flex', alignItems: 'center', marginBottom: '1rem' } }, [
           div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, ['Workspaces']),
-          div({ style: { marginLeft: 'auto', flex: '0 0 300px' } }, [
+          div({ style: { flex: 1 } }),
+          div({ style: { marginLeft: '1rem', flex: '0 0 300px' } }, [
             h(Select, {
               isClearable: true,
               isMulti: true,
