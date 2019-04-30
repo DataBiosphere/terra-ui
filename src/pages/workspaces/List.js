@@ -313,8 +313,16 @@ export const WorkspaceList = _.flow(
       h(PageBox, { style: { position: 'relative' } }, [
         div({ style: { display: 'flex', alignItems: 'center', marginBottom: '1rem' } }, [
           div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, ['Workspaces']),
-          div({ style: { flex: 1 } }),
-          div({ style: styles.filter }, [
+          div({ style: { marginLeft: 'auto', marginRight: '1rem' } }, [
+            h(LabeledCheckbox, {
+              checked: includePublic === true,
+              onChange: v => this.setState({ includePublic: v })
+            }, ' Show public workspaces')
+          ]),
+          viewToggleButtons
+        ]),
+        div({ style: { display: 'flex', marginBottom: '1rem' } }, [
+          div({ style: {...styles.filter, marginLeft: 'auto'} }, [
             h(Select, {
               isClearable: true,
               isMulti: true,
@@ -365,15 +373,6 @@ export const WorkspaceList = _.flow(
               getOptionLabel: ({ value }) => Utils.normalizeLabel(value)
             })
           ])
-        ]),
-        div({ style: { display: 'flex', alignItems: 'center', marginBottom: '1rem' } }, [
-          div({ style: { marginLeft: 'auto', marginRight: '1rem' } }, [
-            h(LabeledCheckbox, {
-              checked: includePublic === true,
-              onChange: v => this.setState({ includePublic: v })
-            }, ' Show public workspaces')
-          ]),
-          viewToggleButtons
         ]),
         div({ style: styles.cardContainer(listView) }, [
           h(NewWorkspaceCard, {
