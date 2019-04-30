@@ -10,6 +10,7 @@ import { AutoSizer, Grid as RVGrid, List, ScrollSync as RVScrollSync } from 'rea
 import { buttonPrimary, Checkbox, Clickable, linkButton } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
+import TooltipTrigger from 'src/components/TooltipTrigger'
 import colors from 'src/libs/colors'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
@@ -371,10 +372,9 @@ export class GridTable extends Component {
 }
 
 export const SimpleTable = ({ columns, rows }) => {
-  const rowHeight = 24
-  const cellStyles = { display: 'flex', alignItems: 'center' }
+  const cellStyles = { paddingTop: '0.25rem', paddingBottom: '0.25rem' }
   return h(Fragment, [
-    div({ style: { display: 'flex', height: rowHeight } }, [
+    div({ style: { display: 'flex' } }, [
       _.map(({ key, header, size }) => {
         return div({ key, style: { ...cellStyles, ...styles.flexCell(size) } }, [header])
       }, columns)
@@ -383,7 +383,7 @@ export const SimpleTable = ({ columns, rows }) => {
       return h(Interactive, {
         key: i,
         as: 'div',
-        style: { display: 'flex', height: rowHeight }, className: 'table-row',
+        style: { display: 'flex' }, className: 'table-row',
         hover: { backgroundColor: colors.grayBlue[5] }
       }, [
         _.map(({ key, size }) => {
@@ -405,6 +405,10 @@ export const TextCell = props => {
     style: { overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }
   }, props))
 }
+
+export const TooltipCell = ({ children, tooltip, ...props }) => h(TooltipTrigger, {
+  content: tooltip || children
+}, [h(TextCell, props, [children])])
 
 export const HeaderCell = props => {
   return h(TextCell, _.merge({ style: { fontWeight: 500 } }, props))

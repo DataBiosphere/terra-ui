@@ -69,7 +69,11 @@ export default ajaxCaller(class NewWorkspaceModal extends Component {
         Billing.listProjects(),
         Groups.list()
       ])
-      this.setState({ billingProjects, allGroups })
+      const usableProjects = _.filter({ creationStatus: 'Ready' }, billingProjects)
+      this.setState(({ namespace }) => ({
+        billingProjects: usableProjects, allGroups,
+        namespace: _.some({ projectName: namespace }, usableProjects) ? namespace : undefined
+      }))
     } catch (error) {
       reportError('Error loading data', error)
     }
@@ -157,7 +161,7 @@ export default ajaxCaller(class NewWorkspaceModal extends Component {
         style: { height: 100 },
         placeholder: 'Enter a description',
         value: description,
-        onChange: e => this.setState({ description: e.target.value })
+        onChange: v => this.setState({ description: v })
       }),
       h(FormLabel, [
         'Authorization domain',

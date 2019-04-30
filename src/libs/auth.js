@@ -1,8 +1,10 @@
 import _ from 'lodash/fp'
+import { div, h } from 'react-hyperscript-helpers'
+import { ShibbolethLink } from 'src/components/common'
 import { clearNotification, sessionTimeoutProps, notify } from 'src/components/Notifications'
 import { Ajax } from 'src/libs/ajax'
 import { getConfig } from 'src/libs/config'
-import { reportError } from 'src/libs/error'
+import { reportError, withErrorReporting } from 'src/libs/error'
 import * as Utils from 'src/libs/utils'
 
 
@@ -80,6 +82,7 @@ export const initializeAuth = _.memoize(async () => {
         registrationStatus: isSignedIn ? state.registrationStatus : undefined,
         acceptedTos: isSignedIn ? state.acceptedTos : undefined,
         profile: isSignedIn ? state.profile : {},
+        nihStatus: isSignedIn ? state.nihStatus : undefined,
         user: {
           token: authResponse && authResponse.access_token,
           id: user.getId(),
@@ -174,5 +177,45 @@ export const refreshTerraProfile = async () => {
 authStore.subscribe((state, oldState) => {
   if (!oldState.isSignedIn && state.isSignedIn) {
     refreshTerraProfile().catch(error => reportError('Error loading user profile', error))
+  }
+})
+
+authStore.subscribe(withErrorReporting('Error loading NIH account link status', async (state, oldState) => {
+  const loadNihStatus = async () => {
+    try {
+      return await Ajax().User.getNihStatus()
+    } catch (error) {
+      if (error.status === 404) {
+        return {}
+      } else {
+        throw error
+      }
+    }
+  }
+  if (oldState.registrationStatus !== 'registered' && state.registrationStatus === 'registered') {
+    const nihStatus = await loadNihStatus()
+    authStore.update(_.set('nihStatus', nihStatus))
+  }
+}))
+
+authStore.subscribe((state, oldState) => {
+  if (state.nihStatus !== oldState.nihStatus) {
+    const notificationId = 'nih-link-warning'
+    const now = Date.now()
+    const expireTime = state.nihStatus && state.nihStatus.linkExpireTime * 1000
+    const expireStatus = Utils.cond(
+      [!expireTime, () => null],
+      [now > expireTime, () => 'has expired'],
+      [now > expireTime - (1000 * 60 * 60 * 24), () => 'will expire soon']
+    )
+    if (expireStatus) {
+      notify('info', div({}, [
+        `Your access to NIH Controlled Access workspaces and data ${expireStatus}. To regain access, `,
+        h(ShibbolethLink, { variant: 'light' }, ['re-link']),
+        ` your eRA Commons / NIH account (${state.nihStatus.linkedNihUsername}) with Terra.`
+      ]), { id: notificationId })
+    } else {
+      clearNotification(notificationId)
+    }
   }
 })

@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { createRef, Fragment } from 'react'
+import { createRef, forwardRef, Fragment } from 'react'
 import { div, h, iframe } from 'react-hyperscript-helpers'
 import { pure } from 'recompose'
 import * as breadcrumbs from 'src/components/breadcrumbs'
@@ -50,13 +50,14 @@ const getCluster = clusters => {
 }
 
 const NotebookLauncher = _.flow(
+  forwardRef,
   wrapWorkspace({
     breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
     title: ({ notebookName }) => `Notebooks - ${notebookName}`,
     showTabBar: false
   }),
-  ajaxCaller
-)(props => {
+  ajaxCaller,
+)((props, ref) => {
   const { workspace, app, queryParams = {} } = props
   return Utils.canWrite(workspace.accessLevel) && workspace.canCompute && !queryParams['read-only'] ?
     h(NotebookEditor, { workspace, app, queryParams, ...props }) :
@@ -74,7 +75,6 @@ class ReadOnlyMessage extends Component {
   render() {
     const { notebookName, workspace, workspace: { canCompute, workspace: { namespace, name } } } = this.props
     const notebookLink = Nav.getLink('workspace-notebook-launch', { namespace, name, notebookName })
-    const notebookLabLink = Nav.getLink('workspace-notebook-launch', { namespace, app: 'lab', name, notebookName })
     const { copying } = this.state
     return div({ style: { padding: '1rem 2rem', display: 'flex', alignItems: 'center' } }, [
       div({ style: { fontSize: 16, fontWeight: 'bold', position: 'absolute' } },
@@ -86,11 +86,7 @@ class ReadOnlyMessage extends Component {
             as: 'a',
             href: notebookLink,
             style: { marginRight: '1rem' }
-          }, ['edit in Jupyter']),
-          buttonOutline({
-            as: 'a',
-            href: notebookLabLink
-          }, ['edit in JupyterLab'])
+          }, ['edit in Jupyter'])
         ]) :
         buttonOutline({
           onClick: () => this.setState({ copying: true })

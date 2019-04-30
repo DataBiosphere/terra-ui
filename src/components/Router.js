@@ -1,8 +1,11 @@
 import _ from 'lodash/fp'
+import * as qs from 'qs'
 import { Component } from 'react'
 import { div, h, h2 } from 'react-hyperscript-helpers'
 import AuthContainer from 'src/components/AuthContainer'
+import { link } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
+import { notify } from 'src/components/Notifications'
 import TopBar from 'src/components/TopBar'
 import * as Nav from 'src/libs/nav'
 import * as Code from 'src/pages/library/Code'
@@ -20,6 +23,7 @@ import * as WorkspaceList from 'src/pages/workspaces/List'
 import * as Dashboard from 'src/pages/workspaces/workspace/Dashboard'
 import * as Data from 'src/pages/workspaces/workspace/Data'
 import * as JobHistory from 'src/pages/workspaces/workspace/JobHistory'
+import * as SubmissionDetails from 'src/pages/workspaces/workspace/jobHistory/SubmissionDetails'
 import * as Notebooks from 'src/pages/workspaces/workspace/Notebooks'
 import * as NotebookLauncher from 'src/pages/workspaces/workspace/notebooks/NotebookLauncher'
 import * as TerminalLauncher from 'src/pages/workspaces/workspace/notebooks/TerminalLauncher'
@@ -44,6 +48,7 @@ const initNavPaths = () => {
   Data.addNavPaths()
   Notebooks.addNavPaths()
   JobHistory.addNavPaths()
+  SubmissionDetails.addNavPaths()
   Tools.addNavPaths()
   NotebookLauncher.addNavPaths()
   Profile.addNavPaths()
@@ -69,6 +74,24 @@ export default class Router extends Component {
     this.unlisten = Nav.history.listen(
       ({ pathname, search }) => this.setState({ pathname, search })
     )
+
+    if (_.has('fcredir', qs.parse(Nav.history.location.search, { ignoreQueryPrefix: true, plainObjects: true }))) {
+      notify('welcome', div({ style: { fontSize: 14 } }, [
+        div(['Welcome to the new FireCloud interface, powered by Terra. All of your workspaces are available. ',
+          link({
+            target: '_blank',
+            href: 'https://broadinstitute.zendesk.com/hc/en-us/sections/360003528231-FireCloud-users-Find-out-what-s-new-in-Terra',
+            variant: 'light'
+          },
+          'Learn what\'s new and different.'
+          )]),
+        div({ style: { marginTop: '1rem' } }, ['The legacy FireCloud is still available until ' +
+        'August 2019. Click the three-bar menu on the upper-left corner and select "Use Classic FireCloud".']),
+        div({ style: { marginTop: '1rem' } }, ['Please update your bookmarks to our new URL, firecloud.terra.bio. ' +
+        'Welcome to the future of FireCloud!'])
+      ]))
+      Nav.history.replace({ search: qs.stringify(_.omit(['fcredir'], qs.parse(Nav.history.location.search, { ignoreQueryPrefix: true, plainObjects: true }))) })
+    }
   }
 
   // FIXME - shouldn't be using unsafe methods

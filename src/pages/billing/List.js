@@ -248,7 +248,7 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
           }, [selectedName])
         ])
       ]),
-      div({ style: { display: 'flex', flex: 1 } }, [
+      div({ style: { display: 'flex', flex: 1, position: 'relative' } }, [
         div({ style: { width: 330, boxShadow: '0 2px 5px 0 rgba(0,0,0,0.25)' } }, [
           div({
             style: {
@@ -279,7 +279,7 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
             this.loadProjects()
           }
         }),
-        !!selectedName && h(ProjectDetail, { key: selectedName, project: _.find({ projectName: selectedName }, billingProjects) }),
+        !!selectedName && billingProjects && h(ProjectDetail, { key: selectedName, project: _.find({ projectName: selectedName }, billingProjects) }),
         isBusy && spinnerOverlay
       ])
     ])

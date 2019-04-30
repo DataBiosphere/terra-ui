@@ -1,4 +1,4 @@
-import { Children, cloneElement, Fragment } from 'react'
+import { Fragment } from 'react'
 import { b, div, h, img, p, span } from 'react-hyperscript-helpers'
 import { pure } from 'recompose'
 import { buttonPrimary, link } from 'src/components/common'
@@ -17,7 +17,7 @@ import thousandGenomesLogo from 'src/images/library/datasets/thousandgenomes.png
 import topMedLogo from 'src/images/library/datasets/TopMed@2x.png'
 import ukbLogo from 'src/images/library/datasets/UKB@2x.jpg'
 import colors from 'src/libs/colors'
-import { getConfig } from 'src/libs/config'
+import { getConfig, isFirecloud } from 'src/libs/config'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import { Component } from 'src/libs/wrapped-components'
@@ -67,9 +67,8 @@ const logoBox = ({ src, alt, height }) => div({
 
 class Participant extends Component {
   render() {
-    const { logo, title, shortDescription, description, sizeText, children, isFirecloud } = this.props
+    const { logo, title, shortDescription, description, sizeText, children } = this.props
     const { showingModal } = this.state
-    const child = Children.only(children)
 
     const titleElement = div({ style: styles.participant.title }, [title])
 
@@ -87,11 +86,7 @@ class Participant extends Component {
           }, ['READ MORE'])
         ]),
         div({ style: styles.participant.sizeText }, [sizeText]),
-        div({ style: { marginTop: '1rem' } }, [
-          isFirecloud ?
-            cloneElement(child, { href: getConfig().firecloudUrlRoot + child.props.href }) :
-            children
-        ])
+        div({ style: { marginTop: '1rem' } }, [children])
       ]),
       showingModal && h(Modal, {
         onDismiss: () => this.setState({ showingModal: false }),
@@ -111,7 +106,7 @@ class Participant extends Component {
 const browseTooltip = 'Look for the Export to Terra icon to export data from this provider.'
 
 
-const NIHCommonsButtons = buttonPrimary({
+const NIHCommonsButtons = () => buttonPrimary({
   style: { margin: '0.25rem 0' },
   as: 'a',
   href: 'https://gen3.datastage.io/explorer',
@@ -119,7 +114,7 @@ const NIHCommonsButtons = buttonPrimary({
   tooltip: browseTooltip
 }, ['Browse STAGE Repository'])
 
-const thousandGenomes = h(Participant, {
+const thousandGenomes = () => h(Participant, {
   logo: { src: thousandGenomesLogo, alt: '1000 Genomes logo' },
   title: '1000 Genomes',
   description: h(Fragment, [
@@ -138,7 +133,7 @@ const thousandGenomes = h(Participant, {
   }, ['Browse data'])
 ])
 
-const amppd = h(Participant, {
+const amppd = () => h(Participant, {
   logo: { src: amppdLogo, alt: 'AMP-PD logo' },
   title: `AMP Parkinson's Disease`,
   shortDescription: `The Accelerating Medicines Partnership (AMP) is a public-private partnership between the National
@@ -173,7 +168,7 @@ const amppd = h(Participant, {
   }, ['Browse Data'])
 ])
 
-const baseline = h(Participant, {
+const baseline = () => h(Participant, {
   logo: { src: baselineLogo, alt: `Project Baseline logo`, height: '55%' },
   title: `Baseline Health Study`,
   description: h(Fragment, [
@@ -193,7 +188,7 @@ const baseline = h(Participant, {
   }, ['Browse Data'])
 ])
 
-const encode = h(Participant, {
+const encode = () => h(Participant, {
   logo: { src: encodeLogo, alt: `ENCODE Project logo` },
   title: `ENCODE Project`,
   description: h(Fragment, [
@@ -212,8 +207,7 @@ const encode = h(Participant, {
   }, ['Browse Data'])
 ])
 
-const fcDataLib = h(Participant, {
-  isFirecloud: true,
+const fcDataLib = () => h(Participant, {
   logo: { src: broadLogo, alt: 'Broad logo', height: '40%' },
   title: 'Broad Dataset Workspace Library',
   description: `Search for datasets sequenced at the Broad Institute, or public datasets hosted at the Broad. Datasets
@@ -222,23 +216,23 @@ const fcDataLib = h(Participant, {
 }, [
   buttonPrimary({
     as: 'a',
-    href: `/?return=terra#library`,
+    href: `${getConfig().firecloudUrlRoot}/?return=${isFirecloud() ? `firecloud` : `terra`}#library`,
     target: '_blank',
     tooltip: 'Search for dataset workspaces'
   }, ['Browse Datasets'])
 ])
 
-const gtex = h(Participant, {
+const gtex = () => h(Participant, {
   logo: { src: gtexLogo, alt: 'GTEx logo' },
   title: 'GTEx presented by NHLBI Data STAGE',
   description: `The Genotype-Tissue Expression (GTEx) Program established a data resource and tissue bank to study the
   relationship between genetic variation and gene expression in multiple human tissues.`,
   sizeText: h(TooltipTrigger, { content: 'As of release V7' }, [span('Samples: > 11,688')])
 }, [
-  NIHCommonsButtons
+  h(NIHCommonsButtons)
 ])
 
-const hca = h(Participant, {
+const hca = () => h(Participant, {
   logo: { src: hcaLogo, alt: 'Human Cell Atlas logo' },
   title: 'Human Cell Atlas',
   description: `The Human Cell Atlas (HCA) is made up of comprehensive reference maps of all human cells — the
@@ -252,7 +246,7 @@ const hca = h(Participant, {
   }, ['Browse Data'])
 ])
 
-const nemo = h(Participant, {
+const nemo = () => h(Participant, {
   logo: { src: nemoLogo, alt: 'NeMO logo', height: '40%' },
   title: 'Neuroscience Multi-Omic Archive',
   description: `The Neuroscience Multi-Omic (NeMO) Archive is a data repository specifically focused on the
@@ -268,7 +262,7 @@ const nemo = h(Participant, {
   }, ['Browse Data'])
 ])
 
-const nhs = h(Participant, {
+const nhs = () => h(Participant, {
   logo: { src: nhsLogo, alt: `Nurses' Health Study logo` },
   title: `Nurses' Health Study`,
   description: `The Nurses' Health Study and Nurses' Health Study II are among the largest investigations into the risk
@@ -283,7 +277,7 @@ const nhs = h(Participant, {
   }, ['Browse Data'])
 ])
 
-const topMed = h(Participant, {
+const topMed = () => h(Participant, {
   logo: { src: topMedLogo, alt: 'TopMed logo' },
   title: 'TopMed presented by NHLBI Data STAGE',
   description: `Trans-Omics for Precision Medicine (TOPMed), sponsored by the National Institutes of Health's National
@@ -291,10 +285,10 @@ const topMed = h(Participant, {
   of fundamental biological processes that underlie heart, lung, blood, and sleep disorders (HLBS).`,
   sizeText: h(TooltipTrigger, { content: 'As of November 2016' }, [span('Participants: > 54,000')])
 }, [
-  NIHCommonsButtons
+  h(NIHCommonsButtons)
 ])
 
-const ukb = h(Participant, {
+const ukb = () => h(Participant, {
   logo: { src: ukbLogo, alt: `UK Biobank logo`, height: '50%' },
   title: `UK Biobank`,
   description: h(Fragment, [
@@ -319,7 +313,7 @@ const Datasets = pure(() => {
     libraryTopMatter('datasets'),
     div({ style: styles.content }, [
       // Put datasets in alphabetical order
-      thousandGenomes, amppd, baseline, encode, fcDataLib, gtex, hca, nemo, nhs, topMed, ukb
+      thousandGenomes(), amppd(), baseline(), encode(), fcDataLib(), gtex(), hca(), nemo(), nhs(), topMed(), ukb()
     ])
   ])
 })

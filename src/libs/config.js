@@ -24,3 +24,5 @@ export const getConfig = () => {
   console.assert(loadedConfig, 'Called getConfig before iniitialization')
   return _.merge(loadedConfig, configOverridesStore.get())
 }
+
+export const isFirecloud = () => (window.location.hostname === 'firecloud.terra.bio') || getConfig().isFirecloud

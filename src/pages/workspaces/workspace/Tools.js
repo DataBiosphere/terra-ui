@@ -10,6 +10,7 @@ import {
 import { centeredSpinner, icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import PopupTrigger from 'src/components/PopupTrigger'
+import TooltipTrigger from 'src/components/TooltipTrigger'
 import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
@@ -23,7 +24,6 @@ import { dockstoreTile, fcMethodRepoTile, makeToolCard } from 'src/pages/library
 import DeleteToolModal from 'src/pages/workspaces/workspace/tools/DeleteToolModal'
 import ExportToolModal from 'src/pages/workspaces/workspace/tools/ExportToolModal'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
-import TooltipTrigger from 'src/components/TooltipTrigger'
 
 
 const styles = {
@@ -78,7 +78,7 @@ const styles = {
   }
 }
 
-const ToolCard = pure(({ listView, name, namespace, config, onCopy, onDelete, isRedacted }) => {
+const ToolCard = pure(({ listView, name, namespace, config, onCopy, onDelete, isRedacted, workspace }) => {
   const { namespace: workflowNamespace, name: workflowName, methodRepoMethod: { sourceRepo, methodVersion } } = config
   const toolCardMenu = h(PopupTrigger, {
     closeOnClick: true,
@@ -86,10 +86,13 @@ const ToolCard = pure(({ listView, name, namespace, config, onCopy, onDelete, is
       h(MenuButton, {
         onClick: () => onCopy(),
         disabled: isRedacted,
-        tooltip: isRedacted ? 'This method is redacted' : undefined,
+        tooltip: isRedacted ? 'This tool version is redacted' : undefined,
         tooltipSide: 'left'
       }, [menuIcon('copy'), 'Copy to Another Workspace']),
       h(MenuButton, {
+        disabled: !!Utils.editWorkspaceError(workspace),
+        tooltip: Utils.editWorkspaceError(workspace),
+        tooltipSide: 'left',
         onClick: () => onDelete()
       }, [menuIcon('trash'), 'Delete'])
     ])
@@ -111,8 +114,7 @@ const ToolCard = pure(({ listView, name, namespace, config, onCopy, onDelete, is
     href: methodLink(config),
     style: styles.innerLink,
     target: '_blank',
-    disabled: isRedacted,
-    onClick: e => e.stopPropagation()
+    disabled: isRedacted
   }, sourceRepo === 'agora' ? 'FireCloud' : sourceRepo)
 
   const workflowLink = a({
@@ -121,15 +123,15 @@ const ToolCard = pure(({ listView, name, namespace, config, onCopy, onDelete, is
   })
 
   const redactedWarning = h(TooltipTrigger, {
-    content: 'Tool has been removed. You cannot view or run an analysis with this tool.'
+    content: 'Tool version has been removed. You cannot run an analysis until you change the version.'
   }, [icon('ban', { size: 20, style: { color: colors.orange[0], marginLeft: '.3rem', ...styles.innerLink } })])
 
   return listView ?
     div({ style: { ...styles.card, ...styles.longCard } }, [
-      isRedacted ? undefined: workflowLink,
+      workflowLink,
       div({ style: { ...styles.innerContent, display: 'flex', alignItems: 'center' } }, [
         div({ style: { marginRight: '1rem' } }, [toolCardMenu]),
-        div({ style: { ...styles.longTitle, ...(isRedacted ? { color: colors.gray[0] } : {}) } }, [workflowName]),
+        div({ style: { ...styles.longTitle } }, [workflowName]),
         div({ style: { ...styles.longMethodVersion, display: 'flex', alignItems: 'center' } }, [
           `V. ${methodVersion}`,
           isRedacted && redactedWarning
@@ -138,9 +140,9 @@ const ToolCard = pure(({ listView, name, namespace, config, onCopy, onDelete, is
       ])
     ]) :
     div({ style: { ...styles.card, ...styles.shortCard } }, [
-      !isRedacted && workflowLink,
+      workflowLink,
       div({ style: { ...styles.innerContent, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%' } }, [
-        div({ style: { ...styles.shortTitle, ...(isRedacted ? { color: colors.gray[0] } : {}) } }, [workflowName]),
+        div({ style: { ...styles.shortTitle } }, [workflowName]),
         div({ style: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' } }, [
           div([
             div({ style: { display: 'flex', alignItems: 'center' } }, [
@@ -297,14 +299,14 @@ export const Tools = _.flow(
   }
 
   render() {
-    const { namespace, name, listView, viewToggleButtons, workspace: { workspace } } = this.props
+    const { namespace, name, listView, viewToggleButtons, workspace: ws, workspace: { workspace } } = this.props
     const { loading, configs, copyingTool, deletingTool, findingTool } = this.state
     const tools = _.map(config => {
       const isRedacted = this.computeRedacted(config)
       return h(ToolCard, {
         onCopy: () => this.setState({ copyingTool: { namespace: config.namespace, name: config.name } }),
         onDelete: () => this.setState({ deletingTool: { namespace: config.namespace, name: config.name } }),
-        key: `${config.namespace}/${config.name}`, namespace, name, config, listView, isRedacted
+        key: `${config.namespace}/${config.name}`, namespace, name, config, listView, isRedacted, workspace: ws
       })
     }, configs)
 
@@ -327,6 +329,8 @@ export const Tools = _.flow(
       ]),
       div({ style: styles.cardContainer(listView) }, [
         h(Clickable, {
+          disabled: !!Utils.editWorkspaceError(ws),
+          tooltip: Utils.editWorkspaceError(ws),
           style: { ...styles.card, ...styles.shortCard, color: colors.green[0], fontSize: 18, lineHeight: '22px' },
           onClick: () => this.setState({ findingTool: true })
         }, [
