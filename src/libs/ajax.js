@@ -420,6 +420,11 @@ const Workspaces = signal => ({
     return res.json()
   },
 
+  getTags: async () => {
+    const res = await fetchRawls('workspaces/tags', _.merge(authOpts(), { signal }))
+    return res.json()
+  },
+
   workspace: (namespace, name) => {
     const root = `workspaces/${namespace}/${name}`
     const mcPath = `${root}/methodconfigs`
