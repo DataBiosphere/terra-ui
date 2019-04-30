@@ -58,9 +58,6 @@ export default class SignIn extends Component {
               div(['Need to create a TERRA account? Terra uses your Google account.']),
               div({ style: { paddingBottom: '1rem' } },
                 ['Once you have signed in and completed the user profile registration step, you can start using TERRA.']
-              ),
-              link({ target: '_blank', href: 'https://software.broadinstitute.org/firecloud/documentation/article?id=9846' },
-                'Learn how to create a Google account with any email address.'
               )
             ]),
             div([

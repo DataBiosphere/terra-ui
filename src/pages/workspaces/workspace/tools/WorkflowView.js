@@ -639,12 +639,7 @@ const WorkflowView = _.flow(
               disabled: currentSnapRedacted || !!Utils.computeWorkspaceError(ws),
               checked: useCallCache,
               onChange: v => this.setState({ useCallCache: v })
-            }, [' Use call caching']),
-            link({
-              style: { marginLeft: '1rem', verticalAlign: 'middle' },
-              href: 'https://gatkforums.broadinstitute.org/firecloud/discussion/9313/call-caching',
-              target: '_blank'
-            }, ['Learn more ', icon('pop-out', { size: 12 })])
+            }, [' Use call caching'])
           ]),
           h(StepButtons, {
             tabs: [
