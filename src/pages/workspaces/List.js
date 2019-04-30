@@ -352,12 +352,7 @@ export const WorkspaceList = _.flow(
               options: namespaceList
             })
           ]),
-          div({
-            style: {
-              marginLeft: '1rem',
-              flex: '0 0 300px'
-            }
-          }, [
+          div({ style: styles.filter }, [
             h(Select, {
               isClearable: true,
               isMulti: true,
@@ -371,19 +366,8 @@ export const WorkspaceList = _.flow(
             })
           ])
         ]),
-        div({
-          style: {
-            display: 'flex',
-            alignItems: 'center',
-            marginBottom: '1rem'
-          }
-        }, [
-          div({
-            style: {
-              marginLeft: 'auto',
-              marginRight: '1rem'
-            }
-          }, [
+        div({ style: { display: 'flex', alignItems: 'center', marginBottom: '1rem' } }, [
+          div({ style: { marginLeft: 'auto', marginRight: '1rem' } }, [
             h(LabeledCheckbox, {
               checked: includePublic === true,
               onChange: v => this.setState({ includePublic: v })
@@ -396,12 +380,7 @@ export const WorkspaceList = _.flow(
             onClick: () => this.setState({ creatingNewWorkspace: true })
           }),
           listView ?
-            div({
-              style: {
-                flex: 1,
-                minWidth: 0
-              }
-            }, [
+            div({ style: { flex: 1, minWidth: 0 } }, [
               renderedWorkspaces
             ]) : renderedWorkspaces
         ]),
