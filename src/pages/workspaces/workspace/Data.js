@@ -437,7 +437,7 @@ class EntitiesContent extends Component {
 
   render() {
     const {
-      workspace, workspace: { accessLevel, workspace: { namespace, name }, workspaceSubmissionStats: { runningSubmissionsCount } },
+      workspace, workspace: { workspace: { namespace, name }, workspaceSubmissionStats: { runningSubmissionsCount } },
       entityKey, entityMetadata, loadMetadata, firstRender
     } = this.props
     const { selectedEntities, deletingEntities, copyingEntities, refreshKey } = this.state
@@ -452,7 +452,7 @@ class EntitiesContent extends Component {
         selectionModel: {
           type: 'multiple',
           selected: selectedEntities,
-          setSelected: Utils.canWrite(accessLevel) && (e => this.setState({ selectedEntities: e }))
+          setSelected: e => this.setState({ selectedEntities: e })
         },
         childrenBefore: ({ entities, columnSettings }) => div({
           style: { display: 'flex', alignItems: 'center', flex: 'none' }
