@@ -212,7 +212,7 @@ authStore.subscribe(withErrorReporting('Error loading NIH account link status', 
       }
     }
   }
-  if (!oldState.isSignedIn && state.isSignedIn) {
+  if (oldState.registrationStatus !== 'registered' && state.registrationStatus === 'registered') {
     const nihStatus = await loadNihStatus()
     authStore.update(_.set('nihStatus', nihStatus))
   }

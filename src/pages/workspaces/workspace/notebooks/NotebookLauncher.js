@@ -75,7 +75,6 @@ class ReadOnlyMessage extends Component {
   render() {
     const { notebookName, workspace, workspace: { canCompute, workspace: { namespace, name } } } = this.props
     const notebookLink = Nav.getLink('workspace-notebook-launch', { namespace, name, notebookName })
-    const notebookLabLink = Nav.getLink('workspace-notebook-launch', { namespace, app: 'lab', name, notebookName })
     const { copying } = this.state
     return div({ style: { padding: '1rem 2rem', display: 'flex', alignItems: 'center' } }, [
       div({ style: { fontSize: 16, fontWeight: 'bold', position: 'absolute' } },
@@ -87,11 +86,7 @@ class ReadOnlyMessage extends Component {
             as: 'a',
             href: notebookLink,
             style: { marginRight: '1rem' }
-          }, ['edit in Jupyter']),
-          buttonOutline({
-            as: 'a',
-            href: notebookLabLink
-          }, ['edit in JupyterLab'])
+          }, ['edit in Jupyter'])
         ]) :
         buttonOutline({
           onClick: () => this.setState({ copying: true })
