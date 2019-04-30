@@ -5,7 +5,7 @@ import { pure } from 'recompose'
 import removeMd from 'remove-markdown'
 import togglesListView from 'src/components/CardsListToggle'
 import {
-  Clickable, LabeledCheckbox, MenuButton, menuIcon, PageBox, search, Select, topSpinnerOverlay, transparentSpinnerOverlay
+  Clickable, LabeledCheckbox, linkButton, MenuButton, menuIcon, PageBox, search, Select, topSpinnerOverlay, transparentSpinnerOverlay
 } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
@@ -33,7 +33,7 @@ const styles = {
   }),
   shortCard: {
     ...Style.elements.card.container,
-    width: 280, height: 260,
+    width: 280, height: 260, position: 'relative',
     margin: '0 1rem 2rem 0'
   },
   shortTitle: {
@@ -56,7 +56,7 @@ const styles = {
   longCard: {
     ...Style.elements.card.container,
     flexDirection: 'row',
-    height: 80,
+    height: 80, position: 'relative',
     marginBottom: '0.5rem'
   },
   longCardTextContainer: {
@@ -77,7 +77,20 @@ const styles = {
     height: '1.5rem', width: '1.5rem', borderRadius: '1.5rem',
     lineHeight: '1.5rem', textAlign: 'center',
     backgroundColor: colors.purple[0], color: 'white'
+  },
+  filter: { marginLeft: '1rem', flex: '0 0 300px' },
+  submissionIndicator: {
+    position: 'absolute', top: 0, right: 0,
+    color: 'white', display: 'flex', padding: 2, borderRadius: '0 5px'
   }
+}
+
+const workspaceSubmissionStatus = ({ workspaceSubmissionStats: { runningSubmissionsCount, lastSuccessDate, lastFailureDate } }) => {
+  return Utils.cond(
+    [runningSubmissionsCount, () => 'running'],
+    [lastSuccessDate && (!lastFailureDate || new Date(lastSuccessDate) > new Date(lastFailureDate)), () => 'success'],
+    [lastFailureDate, () => 'failure'],
+  )
 }
 
 const WsSearch = ({ onChange }) => {
@@ -132,24 +145,28 @@ const WorkspaceMenuContent = ({ namespace, name, onClone, onShare, onDelete }) =
   ])
 }
 
+const SubmissionIndicator = ({ shape, color }) => {
+  return div({ style: { ...styles.submissionIndicator, backgroundColor: color } }, [
+    icon(shape, { size: 14, style: { color: 'white' } })
+  ])
+}
+
 const WorkspaceCard = pure(({
   listView, onClone, onDelete, onShare,
-  workspace: { workspace: { namespace, name, createdBy, lastModified, attributes: { description } } }
+  workspace, workspace: { accessLevel, workspace: { namespace, name, createdBy, lastModified, attributes: { description } } }
 }) => {
   const lastChanged = `Last changed: ${Utils.makePrettyDate(lastModified)}`
   const badge = div({ title: createdBy, style: styles.badge }, [createdBy[0].toUpperCase()])
+  const canView = Utils.canRead(accessLevel)
   const workspaceMenu = h(PopupTrigger, {
     side: 'right',
     closeOnClick: true,
     content: h(WorkspaceMenuContent, { namespace, name, onShare, onClone, onDelete })
   }, [
-    h(Clickable, {
+    linkButton({
+      as: 'div',
       onClick: e => e.preventDefault(),
-      style: {
-        cursor: 'pointer', color: colors.green[0], marginRight: 'auto'
-      },
-      focus: 'hover',
-      hover: { color: colors.green[2] }
+      disabled: !canView
     }, [
       icon('cardMenuIcon', {
         size: listView ? 18 : 24
@@ -159,36 +176,49 @@ const WorkspaceCard = pure(({
   const descText = description ?
     removeMd(listView ? description.split('\n')[0] : description) :
     span({ style: { color: colors.gray[1] } }, ['No description added'])
+  const titleOverrides = !canView ? { color: colors.gray[2] } : {}
 
-  return listView ? a({
-    href: Nav.getLink('workspace-dashboard', { namespace, name }),
-    style: styles.longCard
+  return h(TooltipTrigger, {
+    content: !canView && `
+      You cannot access this workspace because it contains restricted data.
+      You need permission from the admin(s) of all of the groups in the Authorization Domain protecting the workspace.
+    `,
+    side: 'top'
   }, [
-    workspaceMenu,
-    div({ style: { ...styles.longCardTextContainer } }, [
-      div({ style: { display: 'flex', alignItems: 'center' } }, [
-        div({ style: { ...styles.longTitle } }, [name]),
-        h(TooltipTrigger, { content: Utils.makeCompleteDate(lastModified) }, [
-          div({ style: { flex: 'none' } }, [lastChanged])
+    a({
+      href: canView ? Nav.getLink('workspace-dashboard', { namespace, name }) : undefined,
+      style: listView ? styles.longCard : styles.shortCard
+    }, [
+      Utils.switchCase(workspaceSubmissionStatus(workspace),
+        ['success', () => h(SubmissionIndicator, { shape: 'success-standard', color: colors.green[1] })],
+        ['failure', () => h(SubmissionIndicator, { shape: 'error-standard', color: colors.red[1] })],
+        ['running', () => h(SubmissionIndicator, { shape: 'sync', color: colors.darkBlue[1] })]
+      ),
+      listView ? h(Fragment, [
+        workspaceMenu,
+        div({ style: { ...styles.longCardTextContainer } }, [
+          div({ style: { display: 'flex', alignItems: 'center' } }, [
+            div({ style: { ...styles.longTitle, ...titleOverrides } }, [name]),
+            h(TooltipTrigger, { content: Utils.makeCompleteDate(lastModified) }, [
+              div({ style: { flex: 'none' } }, [lastChanged])
+            ])
+          ]),
+          div({ style: { display: 'flex', alignItems: 'center' } }, [
+            div({ style: { ...styles.longDescription } }, [descText]),
+            div({ style: { flex: 'none' } }, [badge])
+          ])
         ])
-      ]),
-      div({ style: { display: 'flex', alignItems: 'center' } }, [
-        div({ style: { ...styles.longDescription } }, [descText]),
-        div({ style: { flex: 'none' } }, [badge])
+      ]) : h(Fragment, [
+        div({ style: { ...styles.shortTitle, ...titleOverrides } }, [name]),
+        div({ style: styles.shortDescription }, [descText]),
+        div({ style: { display: 'flex', marginLeft: 'auto' } }, [badge]),
+        div({ style: { display: 'flex', alignItems: 'center' } }, [
+          h(TooltipTrigger, { content: Utils.makeCompleteDate(lastModified) }, [
+            div({ style: { flex: 1 } }, [lastChanged])
+          ]),
+          workspaceMenu
+        ])
       ])
-    ])
-  ]) : a({
-    href: Nav.getLink('workspace-dashboard', { namespace, name }),
-    style: styles.shortCard
-  }, [
-    div({ style: styles.shortTitle }, [name]),
-    div({ style: styles.shortDescription }, [descText]),
-    div({ style: { display: 'flex', marginLeft: 'auto' } }, [badge]),
-    div({ style: { display: 'flex', alignItems: 'center' } }, [
-      h(TooltipTrigger, { content: Utils.makeCompleteDate(lastModified) }, [
-        div({ style: { flex: 1 } }, [lastChanged])
-      ]),
-      workspaceMenu
     ])
   ])
 })
@@ -220,7 +250,10 @@ export const WorkspaceList = _.flow(
       sharingWorkspaceId: undefined,
       accessLevelsFilter: [],
       projectsFilter: [],
+      submissionsFilter: [],
       includePublic: false,
+      tagsFilter: [],
+      tagsList: [],
       ...StateHistory.get()
     }
   }
@@ -230,9 +263,15 @@ export const WorkspaceList = _.flow(
     return _.find({ workspace: { workspaceId: id } }, workspaces)
   }
 
+  async componentDidMount() {
+    const { ajax: { Workspaces } } = this.props
+    const allTags = await Workspaces.getTags()
+    this.setState({ tagsList: _.map('tag', allTags) })
+  }
+
   render() {
     const { workspaces, loadingWorkspaces, refreshWorkspaces, listView, viewToggleButtons } = this.props
-    const { filter, creatingNewWorkspace, cloningWorkspaceId, deletingWorkspaceId, sharingWorkspaceId, accessLevelsFilter, projectsFilter, includePublic } = this.state
+    const { filter, creatingNewWorkspace, cloningWorkspaceId, deletingWorkspaceId, sharingWorkspaceId, accessLevelsFilter, projectsFilter, submissionsFilter, tagsFilter, tagsList, includePublic } = this.state
     const initialFiltered = _.filter(ws => {
       const { workspace: { namespace, name } } = ws
       return Utils.textMatch(filter, `${namespace}/${name}`) && (includePublic || !ws.public || Utils.canWrite(ws.accessLevel))
@@ -244,9 +283,19 @@ export const WorkspaceList = _.flow(
       _.sortBy(_.identity)
     )(initialFiltered)
 
+    const returnTags = workspaceAttributes => {
+      if (workspaceAttributes['tag:tags']) {
+        return workspaceAttributes['tag:tags'].items
+      } else {
+        return []
+      }
+    }
+
     const data = _.flow(
       _.filter(ws => (_.isEmpty(accessLevelsFilter) || accessLevelsFilter.includes(ws.accessLevel)) &&
-        (_.isEmpty(projectsFilter) || projectsFilter.includes(ws.workspace.namespace))),
+        (_.isEmpty(projectsFilter) || projectsFilter.includes(ws.workspace.namespace)) &&
+        (_.isEmpty(submissionsFilter) || submissionsFilter.includes(workspaceSubmissionStatus(ws))) &&
+        (_.isEmpty(tagsFilter) || _.every(_.identity, _.map(a => returnTags(ws.workspace.attributes).includes(a), tagsFilter)))),
       _.sortBy('workspace.name')
     )(initialFiltered)
 
@@ -262,15 +311,30 @@ export const WorkspaceList = _.flow(
     return h(Fragment, [
       h(TopBar, { title: 'Workspaces' }, [h(WsSearch, { onChange: v => this.setState({ filter: v }) })]),
       h(PageBox, { style: { position: 'relative' } }, [
-        div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'flex-end', marginBottom: '1rem' } }, [
+        div({ style: { display: 'flex', alignItems: 'center', marginBottom: '1rem' } }, [
           div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, ['Workspaces']),
-          div({ style: { marginLeft: 'auto' } }, [
+          div({ style: { marginLeft: 'auto', marginRight: '1rem' } }, [
             h(LabeledCheckbox, {
               checked: includePublic === true,
               onChange: v => this.setState({ includePublic: v })
             }, ' Show public workspaces')
           ]),
-          div({ style: { marginLeft: '1rem', flex: '0 0 300px' } }, [
+          viewToggleButtons
+        ]),
+        div({ style: { display: 'flex', marginBottom: '1rem' } }, [
+          div({ style: { ...styles.filter, marginLeft: 'auto' } }, [
+            h(Select, {
+              isClearable: true,
+              isMulti: true,
+              isSearchable: true,
+              value: tagsFilter,
+              hideSelectedOptions: true,
+              placeholder: 'Filter by tags',
+              onChange: data => this.setState({ tagsFilter: _.map('value', data) }),
+              options: tagsList
+            })
+          ]),
+          div({ style: styles.filter }, [
             h(Select, {
               isClearable: true,
               isMulti: true,
@@ -278,11 +342,11 @@ export const WorkspaceList = _.flow(
               placeholder: 'Filter by access levels',
               value: accessLevelsFilter,
               onChange: data => this.setState({ accessLevelsFilter: _.map('value', data) }),
-              options: _.drop(1, Utils.workspaceAccessLevels),
+              options: Utils.workspaceAccessLevels,
               getOptionLabel: ({ value }) => Utils.normalizeLabel(value)
             })
           ]),
-          div({ style: { margin: '0 1rem', flex: '0 0 300px' } }, [
+          div({ style: styles.filter }, [
             h(Select, {
               isClearable: true,
               isMulti: false,
@@ -296,7 +360,19 @@ export const WorkspaceList = _.flow(
               options: namespaceList
             })
           ]),
-          viewToggleButtons
+          div({ style: styles.filter }, [
+            h(Select, {
+              isClearable: true,
+              isMulti: true,
+              isSearchable: false,
+              placeholder: 'Filter by submission status',
+              value: submissionsFilter,
+              hideSelectedOptions: true,
+              onChange: data => this.setState({ submissionsFilter: _.map('value', data) }),
+              options: ['running', 'success', 'failure'],
+              getOptionLabel: ({ value }) => Utils.normalizeLabel(value)
+            })
+          ])
         ]),
         div({ style: styles.cardContainer(listView) }, [
           h(NewWorkspaceCard, {
@@ -333,7 +409,7 @@ export const WorkspaceList = _.flow(
 
   componentDidUpdate() {
     StateHistory.update(_.pick(
-      ['filter', 'accessLevelsFilter', 'projectsFilter', 'includePublic'],
+      ['filter', 'accessLevelsFilter', 'projectsFilter', 'includePublic', 'tagsFilter', 'submissionsFilter'],
       this.state)
     )
   }

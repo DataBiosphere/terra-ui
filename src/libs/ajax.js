@@ -92,7 +92,7 @@ const fetchLeo = async (path, options) => {
 }
 
 const fetchDockstore = async (path, options) => {
-  return fetchOk(`${getConfig().dockstoreUrlRoot}:8443/${path}`, options)
+  return fetchOk(`${getConfig().dockstoreUrlRoot}/api/${path}`, options)
 }
 // %23 = '#', %2F = '/'
 const dockstoreMethodPath = path => `api/ga4gh/v1/tools/%23workflow%2F${encodeURIComponent(path)}/versions`
@@ -107,6 +107,10 @@ const fetchOrchestration = async (path, options) => {
 
 const fetchRex = async (path, options) => {
   return fetchOk(`${getConfig().rexUrlRoot}/api/${path}`, options)
+}
+
+const fetchBond = async (path, options) => {
+  return fetchOk(`${getConfig().bondUrlRoot}/${path}`, options)
 }
 
 
@@ -257,6 +261,30 @@ const User = signal => ({
   linkNihAccount: async token => {
     const res = await fetchOrchestration('api/nih/callback', _.mergeAll([authOpts(), jsonBody({ jwt: token }), { signal, method: 'POST' }]))
     return res.json()
+  },
+
+  getFenceStatus: async provider => {
+    const res = await fetchBond(`api/link/v1/${provider}`, _.merge(authOpts(), { signal }))
+    return res.json()
+  },
+
+  getFenceAuthUrl: async (provider, redirectUri) => {
+    const queryParams = {
+      'scopes': ['openid', 'google_credentials'],
+      'redirect_uri': redirectUri,
+      'state': btoa(JSON.stringify({ provider }))
+    }
+    const res = await fetchBond(`api/link/v1/${provider}/authorization-url?${qs.stringify(queryParams)}`, { signal })
+    return res.json()
+  },
+
+  linkFenceAccount: async (provider, authCode, redirectUri) => {
+    const queryParams = {
+      'oauthcode': authCode,
+      'redirect_uri': redirectUri
+    }
+    const res = await fetchBond(`api/link/v1/${provider}/oauthcode?${qs.stringify(queryParams)}`, _.merge(authOpts(), { signal, method: 'POST' }))
+    return res.json()
   }
 })
 
@@ -389,6 +417,11 @@ const Workspaces = signal => ({
 
   getShareLog: async () => {
     const res = await fetchOrchestration('api/sharelog/sharees?shareType=workspace', _.merge(authOpts(), { signal }))
+    return res.json()
+  },
+
+  getTags: async () => {
+    const res = await fetchRawls('workspaces/tags', _.merge(authOpts(), { signal }))
     return res.json()
   },
 
@@ -763,6 +796,14 @@ const Methods = signal => ({
 })
 
 
+const Submissions = signal => ({
+  queueStatus: async () => {
+    const res = await fetchRawls('submissions/queueStatus', _.merge(authOpts(), { signal }))
+    return res.json()
+  }
+})
+
+
 const Jupyter = signal => ({
   clustersList: async project => {
     const res = await fetchLeo(`api/clusters${project ? `/${project}` : ''}?saturnAutoCreated=true`,
@@ -863,6 +904,7 @@ export const Ajax = signal => {
     Buckets: Buckets(signal),
     GoogleBilling: GoogleBilling(signal),
     Methods: Methods(signal),
+    Submissions: Submissions(signal),
     Jupyter: Jupyter(signal),
     Dockstore: Dockstore(signal),
     Martha: Martha(signal),

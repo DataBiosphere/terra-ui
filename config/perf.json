@@ -1,5 +1,6 @@
 {
   "agoraUrlRoot": "https://agora.dsde-perf.broadinstitute.org",
+  "bondUrlRoot": "https://broad-bond-perf.appspot.com",
   "calhounUrlRoot": "https://terra-calhoun-perf.appspot.com",
   "devUrlRoot": "https://bvdp-saturn-perf.appspot.com",
   "dockstoreUrlRoot": "https://staging.dockstore.org",

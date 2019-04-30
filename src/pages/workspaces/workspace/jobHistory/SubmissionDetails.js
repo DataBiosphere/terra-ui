@@ -6,7 +6,8 @@ import * as breadcrumbs from 'src/components/breadcrumbs'
 import { link, Select } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { textInput } from 'src/components/input'
-import { collapseStatus, failedIcon, runningIcon, statusIcon, successIcon } from 'src/components/job-common'
+import { collapseStatus, failedIcon, runningIcon, statusIcon, submittedIcon, successIcon } from 'src/components/job-common'
+import PopupTrigger from 'src/components/PopupTrigger'
 import { FlexTable, Sortable, TextCell, TooltipCell } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { Ajax, useCancellation } from 'src/libs/ajax'
@@ -17,6 +18,7 @@ import { withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
+import { SubmissionQueueStatus } from 'src/pages/workspaces/workspace/SubmissionQueueStatus'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
 
@@ -122,8 +124,7 @@ const SubmissionDetails = _.flow(
     sort.direction === 'asc' ? _.identity : _.reverse
   )(workflows)
 
-  const { succeeded, failed, running } = _.groupBy(wf => collapseStatus(wf.status), workflows)
-
+  const { succeeded, failed, running, submitted } = _.groupBy(wf => collapseStatus(wf.status), workflows)
   /*
    * Page render
    */
@@ -133,7 +134,8 @@ const SubmissionDetails = _.flow(
         div({ style: Style.elements.sectionHeader }, 'Workflow Statuses'),
         succeeded && makeStatusLine(successIcon, `Succeeded: ${succeeded.length}`),
         failed && makeStatusLine(failedIcon, `Failed: ${failed.length}`),
-        running && makeStatusLine(runningIcon, `Running: ${running.length}`)
+        running && makeStatusLine(runningIcon, `Running: ${running.length}`),
+        submitted && makeStatusLine(submittedIcon, `Submitted: ${submitted.length}`)
       ]),
       div({ style: { display: 'flex', flexWrap: 'wrap' } }, [
         makeSection('Workflow Configuration',
@@ -166,7 +168,7 @@ const SubmissionDetails = _.flow(
         makeSection('Call Caching', [useCallCache ? 'Enabled' : 'Disabled'])
       ])
     ]),
-    div({ style: { margin: '1rem 0', display: 'flex' } }, [
+    div({ style: { margin: '1rem 0', display: 'flex', alignItems: 'center' } }, [
       textInput({
         style: { marginRight: '2rem', flexBasis: 300, borderColor: colors.gray[3] },
         placeholder: 'Filter',
@@ -183,7 +185,12 @@ const SubmissionDetails = _.flow(
           onChange: data => setStatusFilter(_.map('value', data)),
           options: Utils.workflowStatuses
         })
-      ])
+      ]),
+      div({ style: { flexGrow: '1' } }),
+      h(PopupTrigger, {
+        content: div({ style: { margin: '0.5rem' } }, [h(SubmissionQueueStatus)]),
+        side: 'bottom'
+      }, [link({}, ['Queue Status'])])
     ]),
     div({ style: { flex: 1 } }, [
       !filteredWorkflows.length ? 'No matching workflows.' : h(AutoSizer, [({ width, height }) => h(FlexTable, {
