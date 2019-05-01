@@ -3,6 +3,7 @@ import { Component } from 'src/libs/wrapped-components'
 import { div, h } from 'react-hyperscript-helpers'
 import Modal from 'src/components/Modal'
 import { buttonPrimary, LabeledCheckbox, Clickable } from 'src/components/common'
+import * as Utils from 'src/libs/utils'
 import { AutoSizer, List } from 'react-virtualized'
 
 const styles = {
@@ -10,46 +11,45 @@ const styles = {
     paddingLeft: '0.25rem',
     flex: 1, display: 'flex', alignItems: 'center',
     whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'
-  },
-  columnHandle: {
-    paddingRight: '0.25rem', cursor: 'move',
-    display: 'flex', alignItems: 'center'
   }
+}
+
+const getStrings = v => {
+  return Utils.cond(
+    [_.isString(v), () => [v]],
+    [v.items, () => _.map(getStrings, v.items)],
+    () => []
+  )
 }
 
 export class IGVFileSelector extends Component {
   constructor(props) {
     super(props)
-    this.state = { selectedFiles: undefined }
+    this.state = { selectedFiles: _.fromPairs(_.map(v => [v, true], this.getIGVFileList())) }
   }
 
   toggleVisibility(name) {
     this.setState(_.update(['selectedFiles', name], b => !b))
   }
 
-  getIGVFileList(selectedFiles) {
-    return _.flow(
-      _.values,
-      _.map(k => _.values(k['attributes'])),
-      _.flattenDeep,
-      _.filter(v => ['cram', 'bam', 'bed', 'vcf'].includes(_.last(v.split('.'))))
-    )(selectedFiles)
-  }
-
-  componentDidMount() {
+  getIGVFileList() {
     const { selectedEntities } = this.props
-    const initializeSelectedFiles = _.flow(v => [v, true], _.fromPairs)
-    this.setState({ selectedFiles: initializeSelectedFiles(this.getIGVFileList(selectedEntities)) })
+    return _.flow(
+      _.flatMap(row => _.flatMap(getStrings, row.attributes)),
+      _.uniq,
+      _.filter(v => /\.(cram|bam|bed|vcf)$/.test(v))
+    )(selectedEntities)
   }
 
   render() {
-    const { onDismiss, onSuccess, selectedEntities } = this.props
+    const { onDismiss, onSuccess } = this.props
     const { selectedFiles } = this.state
-    const trackFiles = this.getIGVFileList(selectedEntities)
+    const trackFiles = this.getIGVFileList()
     return h(Modal, {
       onDismiss,
-      title: 'Opening files with IGV',
+      title: 'Open files with IGV',
       okButton: buttonPrimary({
+        disabled: !_.some(_.identity, selectedFiles),
         onClick: () => {
           const actuallySelectedFiles = _.flow(
             _.keys,
@@ -62,12 +62,10 @@ export class IGVFileSelector extends Component {
       h(AutoSizer, { disableHeight: true }, [
         ({ width }) => {
           return h(List, {
-            style: { outline: 'none' },
-            lockAxis: 'y',
-            useDragHandle: true,
             width, height: 400,
             rowCount: trackFiles.length,
             rowHeight: 30,
+            noRowsRenderer: () => 'No valid files found',
             rowRenderer: ({ index, style, key }) => {
               const name = trackFiles[index]
               return div({ key, index, style: { ...style, display: 'flex' } }, [
