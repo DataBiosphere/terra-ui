@@ -3,7 +3,7 @@ import { h } from 'react-hyperscript-helpers'
 import { centeredSpinner } from 'src/components/icons'
 import { authStore } from 'src/libs/auth'
 import * as Utils from 'src/libs/utils'
-import { Disabled, Unlisted } from 'src/pages/Disabled'
+import { Disabled } from 'src/pages/Disabled'
 import Register from 'src/pages/Register'
 import SignIn from 'src/pages/SignIn'
 import TermsOfService from 'src/pages/TermsOfService'
@@ -17,7 +17,6 @@ const AuthContainer = ({ children, isPublic }) => {
     [registrationStatus === undefined && !isPublic, centeredSpinner],
     [registrationStatus === 'unregistered', h(Register)],
     [registrationStatus === 'disabled', () => h(Disabled)],
-    [registrationStatus === 'unlisted', () => h(Unlisted)],
     [acceptedTos === undefined && !isPublic, centeredSpinner],
     [acceptedTos === false, () => h(TermsOfService)],
     [_.isEmpty(profile) && !isPublic, centeredSpinner],

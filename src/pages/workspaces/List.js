@@ -78,6 +78,7 @@ const styles = {
     lineHeight: '1.5rem', textAlign: 'center',
     backgroundColor: colors.purple[0], color: 'white'
   },
+  filter: { marginLeft: '1rem', flex: '0 0 300px' },
   submissionIndicator: {
     position: 'absolute', top: 0, right: 0,
     color: 'white', display: 'flex', padding: 2, borderRadius: '0 5px'
@@ -249,7 +250,10 @@ export const WorkspaceList = _.flow(
       sharingWorkspaceId: undefined,
       accessLevelsFilter: [],
       projectsFilter: [],
+      submissionsFilter: [],
       includePublic: false,
+      tagsFilter: [],
+      tagsList: [],
       ...StateHistory.get()
     }
   }
@@ -259,9 +263,15 @@ export const WorkspaceList = _.flow(
     return _.find({ workspace: { workspaceId: id } }, workspaces)
   }
 
+  async componentDidMount() {
+    const { ajax: { Workspaces } } = this.props
+    const allTags = await Workspaces.getTags()
+    this.setState({ tagsList: _.map('tag', allTags) })
+  }
+
   render() {
     const { workspaces, loadingWorkspaces, refreshWorkspaces, listView, viewToggleButtons } = this.props
-    const { filter, creatingNewWorkspace, cloningWorkspaceId, deletingWorkspaceId, sharingWorkspaceId, accessLevelsFilter, projectsFilter, includePublic } = this.state
+    const { filter, creatingNewWorkspace, cloningWorkspaceId, deletingWorkspaceId, sharingWorkspaceId, accessLevelsFilter, projectsFilter, submissionsFilter, tagsFilter, tagsList, includePublic } = this.state
     const initialFiltered = _.filter(ws => {
       const { workspace: { namespace, name } } = ws
       return Utils.textMatch(filter, `${namespace}/${name}`) && (includePublic || !ws.public || Utils.canWrite(ws.accessLevel))
@@ -273,9 +283,19 @@ export const WorkspaceList = _.flow(
       _.sortBy(_.identity)
     )(initialFiltered)
 
+    const returnTags = workspaceAttributes => {
+      if (workspaceAttributes['tag:tags']) {
+        return workspaceAttributes['tag:tags'].items
+      } else {
+        return []
+      }
+    }
+
     const data = _.flow(
       _.filter(ws => (_.isEmpty(accessLevelsFilter) || accessLevelsFilter.includes(ws.accessLevel)) &&
-        (_.isEmpty(projectsFilter) || projectsFilter.includes(ws.workspace.namespace))),
+        (_.isEmpty(projectsFilter) || projectsFilter.includes(ws.workspace.namespace)) &&
+        (_.isEmpty(submissionsFilter) || submissionsFilter.includes(workspaceSubmissionStatus(ws))) &&
+        (_.isEmpty(tagsFilter) || _.every(_.identity, _.map(a => returnTags(ws.workspace.attributes).includes(a), tagsFilter)))),
       _.sortBy('workspace.name')
     )(initialFiltered)
 
@@ -291,15 +311,30 @@ export const WorkspaceList = _.flow(
     return h(Fragment, [
       h(TopBar, { title: 'Workspaces' }, [h(WsSearch, { onChange: v => this.setState({ filter: v }) })]),
       h(PageBox, { style: { position: 'relative' } }, [
-        div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'flex-end', marginBottom: '1rem' } }, [
+        div({ style: { display: 'flex', alignItems: 'center', marginBottom: '1rem' } }, [
           div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, ['Workspaces']),
-          div({ style: { marginLeft: 'auto' } }, [
+          div({ style: { marginLeft: 'auto', marginRight: '1rem' } }, [
             h(LabeledCheckbox, {
               checked: includePublic === true,
               onChange: v => this.setState({ includePublic: v })
             }, ' Show public workspaces')
           ]),
-          div({ style: { marginLeft: '1rem', flex: '0 0 300px' } }, [
+          viewToggleButtons
+        ]),
+        div({ style: { display: 'flex', marginBottom: '1rem' } }, [
+          div({ style: { ...styles.filter, marginLeft: 'auto' } }, [
+            h(Select, {
+              isClearable: true,
+              isMulti: true,
+              isSearchable: true,
+              value: tagsFilter,
+              hideSelectedOptions: true,
+              placeholder: 'Filter by tags',
+              onChange: data => this.setState({ tagsFilter: _.map('value', data) }),
+              options: tagsList
+            })
+          ]),
+          div({ style: styles.filter }, [
             h(Select, {
               isClearable: true,
               isMulti: true,
@@ -311,7 +346,7 @@ export const WorkspaceList = _.flow(
               getOptionLabel: ({ value }) => Utils.normalizeLabel(value)
             })
           ]),
-          div({ style: { margin: '0 1rem', flex: '0 0 300px' } }, [
+          div({ style: styles.filter }, [
             h(Select, {
               isClearable: true,
               isMulti: false,
@@ -325,7 +360,19 @@ export const WorkspaceList = _.flow(
               options: namespaceList
             })
           ]),
-          viewToggleButtons
+          div({ style: styles.filter }, [
+            h(Select, {
+              isClearable: true,
+              isMulti: true,
+              isSearchable: false,
+              placeholder: 'Filter by submission status',
+              value: submissionsFilter,
+              hideSelectedOptions: true,
+              onChange: data => this.setState({ submissionsFilter: _.map('value', data) }),
+              options: ['running', 'success', 'failure'],
+              getOptionLabel: ({ value }) => Utils.normalizeLabel(value)
+            })
+          ])
         ]),
         div({ style: styles.cardContainer(listView) }, [
           h(NewWorkspaceCard, {
@@ -362,7 +409,7 @@ export const WorkspaceList = _.flow(
 
   componentDidUpdate() {
     StateHistory.update(_.pick(
-      ['filter', 'accessLevelsFilter', 'projectsFilter', 'includePublic'],
+      ['filter', 'accessLevelsFilter', 'projectsFilter', 'includePublic', 'tagsFilter', 'submissionsFilter'],
       this.state)
     )
   }

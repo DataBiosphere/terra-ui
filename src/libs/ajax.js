@@ -420,6 +420,11 @@ const Workspaces = signal => ({
     return res.json()
   },
 
+  getTags: async () => {
+    const res = await fetchRawls('workspaces/tags', _.merge(authOpts(), { signal }))
+    return res.json()
+  },
+
   workspace: (namespace, name) => {
     const root = `workspaces/${namespace}/${name}`
     const mcPath = `${root}/methodconfigs`
@@ -791,6 +796,14 @@ const Methods = signal => ({
 })
 
 
+const Submissions = signal => ({
+  queueStatus: async () => {
+    const res = await fetchRawls('submissions/queueStatus', _.merge(authOpts(), { signal }))
+    return res.json()
+  }
+})
+
+
 const Jupyter = signal => ({
   clustersList: async project => {
     const res = await fetchLeo(`api/clusters${project ? `/${project}` : ''}?saturnAutoCreated=true`,
@@ -891,6 +904,7 @@ export const Ajax = signal => {
     Buckets: Buckets(signal),
     GoogleBilling: GoogleBilling(signal),
     Methods: Methods(signal),
+    Submissions: Submissions(signal),
     Jupyter: Jupyter(signal),
     Dockstore: Dockstore(signal),
     Martha: Martha(signal),

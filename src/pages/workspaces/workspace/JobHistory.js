@@ -8,6 +8,7 @@ import { icon } from 'src/components/icons'
 import { SearchInput } from 'src/components/input'
 import { collapseStatus, failedIcon, runningIcon, submittedIcon, successIcon } from 'src/components/job-common'
 import Modal from 'src/components/Modal'
+import PopupTrigger from 'src/components/PopupTrigger'
 import { FlexTable, HeaderCell, TextCell, TooltipCell } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { ajaxCaller } from 'src/libs/ajax'
@@ -17,6 +18,7 @@ import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
+import { SubmissionQueueStatus } from 'src/pages/workspaces/workspace/SubmissionQueueStatus'
 import { rerunFailures } from 'src/pages/workspaces/workspace/tools/FailureRerunner'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
@@ -136,12 +138,18 @@ const JobHistory = _.flow(
     const filteredSubmissions = _.filter(({ asText }) => _.every(term => asText.includes(term.toLowerCase()), textFilter.split(/\s+/)), submissions)
 
     return h(Fragment, [
-      h(SearchInput, {
-        style: { width: 300, margin: '1rem 1rem 0', alignSelf: 'flex-end' },
-        placeholder: 'Filter',
-        onChange: ({ target: { value } }) => this.setState({ textFilter: value }),
-        value: textFilter
-      }),
+      div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'flex-end', margin: '1rem 1rem 0' } }, [
+        h(PopupTrigger, {
+          content: div({ style: { margin: '0.5rem' } }, [h(SubmissionQueueStatus)]),
+          side: 'bottom'
+        }, [link({}, ['Queue Status'])]),
+        h(SearchInput, {
+          style: { width: 300, marginLeft: '1rem' },
+          placeholder: 'Filter',
+          onChange: ({ target: { value } }) => this.setState({ textFilter: value }),
+          value: textFilter
+        })
+      ]),
       div({ style: styles.submissionsTable }, [
         !_.isEmpty(filteredSubmissions) && h(AutoSizer, [
           ({ width, height }) => h(FlexTable, {

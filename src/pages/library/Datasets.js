@@ -17,8 +17,7 @@ import thousandGenomesLogo from 'src/images/library/datasets/thousandgenomes.png
 import topMedLogo from 'src/images/library/datasets/TopMed@2x.png'
 import ukbLogo from 'src/images/library/datasets/UKB@2x.jpg'
 import colors from 'src/libs/colors'
-import { getConfig } from 'src/libs/config'
-import { isFirecloud } from 'src/libs/logos'
+import { getConfig, isFirecloud } from 'src/libs/config'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import { Component } from 'src/libs/wrapped-components'
@@ -294,9 +293,9 @@ const ukb = () => h(Participant, {
   title: `UK Biobank`,
   description: h(Fragment, [
     link({ href: 'https://www.ukbiobank.ac.uk/', target: '_blank' }, 'UK Biobank'),
-    ` is a national and international health resource with unparalleled research opportunities,
-    open to bona fide health researchers. UK Biobank aims to improve the prevention, diagnosis and treatment of a wide
-    range of serious and life-threatening illnesses`
+    ` is a national and international health resource with unparalleled research opportunities.
+    UK Biobank aims to improve the prevention, diagnosis and treatment of a wide range of serious and life-threatening
+    illnesses. This Data Explorer is only available to specific early-access Terra users at this time.`
   ]),
   sizeText: 'Participants: > 500,000'
 }, [

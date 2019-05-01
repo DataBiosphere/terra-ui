@@ -37,24 +37,17 @@ const NotebookLauncher = _.flow(
 const ReadOnlyMessage = ({ notebookName, workspace, workspace: { canCompute, workspace: { namespace, name } } }) => {
   const [copying, setCopying] = useState(false)
   const notebookLink = Nav.getLink('workspace-notebook-launch', { namespace, name, notebookName })
-  const notebookLabLink = Nav.getLink('workspace-notebook-launch', { namespace, app: 'lab', name, notebookName })
 
   return div({ style: { padding: '1rem 2rem', display: 'flex', alignItems: 'center' } }, [
     div({ style: { fontSize: 16, fontWeight: 'bold', position: 'absolute' } },
       ['Viewing read-only']),
     div({ style: { flexGrow: 1 } }),
     canCompute ?
-      h(Fragment, [
-        buttonOutline({
-          as: 'a',
-          href: notebookLink,
-          style: { marginRight: '1rem' }
-        }, ['edit in Jupyter']),
-        buttonOutline({
-          as: 'a',
-          href: notebookLabLink
-        }, ['edit in JupyterLab'])
-      ]) :
+      buttonOutline({
+        as: 'a',
+        href: notebookLink,
+        style: { marginRight: '1rem' }
+      }, ['edit in Jupyter']) :
       buttonOutline({
         onClick: () => setCopying(true)
       }, ['copy to another workspace to edit']),

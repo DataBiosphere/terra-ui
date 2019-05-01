@@ -14,16 +14,3 @@ export const Disabled = () => {
     ])
   ])
 }
-
-export const Unlisted = () => {
-  return div({ style: { padding: '1rem' } }, [
-    div([
-      'Terra is currently in a closed-access beta phase. If you are interested in contributing early-access feedback as part of our user panel, please email us at ',
-      link({ href: 'mailto:info@terra.bio' }, 'info@terra.bio'),
-      '.'
-    ]),
-    div({ style: { marginTop: '1rem' } }, [
-      link({ onClick: signOut }, 'Sign out')
-    ])
-  ])
-}

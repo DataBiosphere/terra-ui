@@ -20,7 +20,7 @@ const messages =
       'isWarning': false,
       'enabledLink': {
         'label': 'Learn more',
-        'url': 'https://software.broadinstitute.org/firecloud/documentation/freecredits'
+        'url': 'https://broadinstitute.zendesk.com/hc/en-us/articles/360022704371-Getting-started-with-Terra#free-credits-signup'
       },
       'button': {
         'label': 'Start trial',
@@ -33,7 +33,7 @@ const messages =
       'isWarning': false,
       'button': {
         'label': 'Learn More',
-        'url': 'https://software.broadinstitute.org/firecloud/documentation/freecredits',
+        'url': 'https://broadinstitute.zendesk.com/hc/en-us/articles/360022704371-Getting-started-with-Terra#free-credits-signup',
         'isExternal': true
       }
     },
@@ -43,7 +43,7 @@ const messages =
       'isWarning': true,
       'button': {
         'label': 'Learn more',
-        'url': 'https://software.broadinstitute.org/firecloud/documentation/freecredits?page=faqs',
+        'url': 'https://broadinstitute.zendesk.com/hc/en-us/articles/360026182251-Billing-Projects-Google-Billing-Accounts-and-Free-Credits#free-credits',
         'isExternal': true
       }
     }
