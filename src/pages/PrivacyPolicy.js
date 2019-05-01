@@ -1,5 +1,5 @@
 import { div, h } from 'react-hyperscript-helpers'
-import { Markdown, newWindowLinkRenderer } from 'src/components/common'
+import { Markdown, newWindowLinkRenderer } from 'src/components/Markdown'
 import * as Nav from 'src/libs/nav'
 
 
