@@ -1,5 +1,5 @@
 import { div, h } from 'react-hyperscript-helpers'
-import { Markdown } from 'src/components/common'
+import { Markdown, newWindowLinkRenderer } from 'src/components/common'
 import * as Nav from 'src/libs/nav'
 
 
@@ -97,7 +97,11 @@ We follow the laws of all the countries where we operate. We follow the laws of 
 
 const PrivacyPolicy = () => {
   return div({ style: { padding: '1rem' } }, [
-    h(Markdown, [privacyPolicy])
+    h(Markdown, {
+      renderers: {
+        link: newWindowLinkRenderer
+      }
+    }, [privacyPolicy])
   ])
 }
 

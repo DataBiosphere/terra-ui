@@ -331,6 +331,10 @@ export const Markdown = ({ children, renderers = {}, ...props }) => {
   return div({ className: 'markdown-body', ...props, dangerouslySetInnerHTML: { __html: content } })
 }
 
+export const newWindowLinkRenderer = (href, title, text) => {
+  return `<a href="${href}" ${(title ? `title=${title}` : '')} target="_blank">${text}</a>`
+}
+
 export const IdContainer = ({ children }) => {
   const [id] = useState(() => _.uniqueId('element-'))
   return children(id)
