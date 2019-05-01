@@ -127,8 +127,7 @@ const thousandGenomes = () => h(Participant, {
 }, [
   buttonPrimary({
     as: 'a',
-    href: 'https://test-data-explorer.appspot.com/',
-    target: '_blank',
+    href: Nav.getLink('library-datasets-data-explorer', { dataset: '1000 Genomes' }),
     tooltip: browseTooltip
   }, ['Browse data'])
 ])

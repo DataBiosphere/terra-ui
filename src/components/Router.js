@@ -9,6 +9,7 @@ import { notify } from 'src/components/Notifications'
 import TopBar from 'src/components/TopBar'
 import * as Nav from 'src/libs/nav'
 import * as Code from 'src/pages/library/Code'
+import * as DataExplorer from 'src/pages/library/DataExplorer'
 import * as Datasets from 'src/pages/library/Datasets'
 import * as Group from 'src/pages/groups/Group'
 import * as Groups from 'src/pages/groups/List'
@@ -57,6 +58,7 @@ const initNavPaths = () => {
   TerminalLauncher.addNavPaths()
   TermsOfService.addNavPaths()
   Code.addNavPaths()
+  DataExplorer.addNavPaths()
   Datasets.addNavPaths()
   Showcase.addNavPaths()
   Projects.addNavPaths()
