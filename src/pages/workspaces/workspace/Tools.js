@@ -5,9 +5,10 @@ import { pure } from 'recompose'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import togglesListView from 'src/components/CardsListToggle'
 import {
-  buttonOutline, buttonPrimary, Clickable, link, Markdown, MenuButton, menuIcon, methodLink, PageBox, spinnerOverlay
+  buttonOutline, buttonPrimary, Clickable, link, MenuButton, menuIcon, methodLink, PageBox, spinnerOverlay
 } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
+import { Markdown } from 'src/components/Markdown'
 import Modal from 'src/components/Modal'
 import PopupTrigger from 'src/components/PopupTrigger'
 import TooltipTrigger from 'src/components/TooltipTrigger'

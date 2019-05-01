@@ -1,6 +1,7 @@
 import { Component } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
-import { backgroundLogo, buttonPrimary, buttonSecondary, Markdown } from 'src/components/common'
+import { backgroundLogo, buttonPrimary, buttonSecondary } from 'src/components/common'
+import { Markdown } from 'src/components/Markdown'
 import { Ajax } from 'src/libs/ajax'
 import { authStore, signOut } from 'src/libs/auth'
 import colors from 'src/libs/colors'
