@@ -109,7 +109,6 @@ const initialEditorState = {
   url: undefined,
   saving: false,
   createOpen: false,
-  createRequested: false, // to handle the pause while Leo starts creation
   clustersLoaded: false // to prevent the appearance of no cluster while waiting for response
 }
 
@@ -132,20 +131,17 @@ class NotebookEditor extends Component {
     this.handleMessages = e => {
       const { namespace, name } = this.props
 
-      if (!e.data.source.startsWith('react-')) { // for the react dev tools
-        switch (e.data) {
-          case 'close':
-            Nav.goToPath('workspace-notebooks', { namespace, name })
-            break
-          case 'saved':
-            this.isSaved.set(true)
-            break
-          case 'dirty':
-            this.isSaved.set(false)
-            break
-          default:
-            console.log('Unrecognized message:', e.data)
-        }
+      switch (e.data) {
+        case 'close':
+          Nav.goToPath('workspace-notebooks', { namespace, name })
+          break
+        case 'saved':
+          this.isSaved.set(true)
+          break
+        case 'dirty':
+          this.isSaved.set(false)
+          break
+        default:
       }
     }
   }
@@ -295,7 +291,7 @@ class NotebookEditor extends Component {
 
   render() {
     const { namespace, name, app, cluster } = this.props
-    const { clusterError, localizeFailures, failed, url, saving, createOpen, createRequested, clustersLoaded } = this.state
+    const { clusterError, localizeFailures, failed, url, saving, createOpen, clustersLoaded } = this.state
     const clusterStatus = cluster && cluster.status
 
     if (url) {
@@ -318,7 +314,7 @@ class NotebookEditor extends Component {
       const isRunning = clusterStatus === 'Running'
 
       return h(Fragment, [
-        (cluster || createRequested) ?
+        cluster ?
           div({ style: { padding: '1.5rem 2rem', display: 'flex' } }, [
             !failed && icon('loadingSpinner', { className: 'is-solid', style: { marginRight: '0.5rem' } }),
             Utils.cond(
@@ -326,7 +322,7 @@ class NotebookEditor extends Component {
                 icon('times', { size: 24, style: { color: colors.red[0], marginRight: '1rem' } }),
                 clusterError || 'Error launching notebook.'
               ])],
-              [(isCreating || createRequested), () => 'Creating notebook runtime environment. You can navigate away and return in 5-10 minutes.'],
+              [isCreating, () => 'Creating notebook runtime environment. You can navigate away and return in 5-10 minutes.'],
               [isRunning, localizeFailures ? `Error loading notebook, retry number ${localizeFailures}...` : 'Copying notebook to the runtime...'],
               'Starting notebook runtime environment, this may take up to 2 minutes.'
             )
@@ -346,7 +342,6 @@ class NotebookEditor extends Component {
           onSuccess: async promise => {
             this.setState({ createOpen: false })
             try {
-              this.setState({ createRequested: true })
               await promise
               this.setUp()
             } catch (e) {

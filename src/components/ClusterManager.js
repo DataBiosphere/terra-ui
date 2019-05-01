@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
 import { Fragment, PureComponent } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
-import { buttonPrimary, buttonSecondary, Clickable, LabeledCheckbox, linkButton, Select, spinnerOverlay } from 'src/components/common'
+import { buttonPrimary, buttonSecondary, Clickable, LabeledCheckbox, link, Select, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { IntegerInput, textInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
@@ -519,7 +519,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
           () => 'Open terminal'
         )
       }, [
-        linkButton({
+        link({
           href: Nav.getLink('workspace-terminal-launch', { namespace, name }),
           disabled: !canCompute,
           style: { marginRight: '2rem' }
