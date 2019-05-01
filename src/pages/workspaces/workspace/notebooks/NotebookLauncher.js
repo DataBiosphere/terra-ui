@@ -54,7 +54,7 @@ const NotebookLauncher = _.flow(
   wrapWorkspace({
     breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
     title: ({ notebookName }) => `Notebooks - ${notebookName}`,
-    showTabBar: false
+    activeTab: 'notebooks'
   }),
   ajaxCaller,
 )((props, ref) => {
