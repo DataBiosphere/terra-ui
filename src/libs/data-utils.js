@@ -305,7 +305,6 @@ export const EntityUploader = ajaxCaller(class EntityUploader extends Component 
           h(LabeledCheckbox, {
             checked: useFireCloudDataModel,
             onChange: checked => this.setState({ useFireCloudDataModel: checked }),
-            disabled: !supportsFireCloudDataModel(newEntityType),
             style: { margin: '0.5rem' }
           }, [' Create participant, sample, and pair associations']),
           link({
