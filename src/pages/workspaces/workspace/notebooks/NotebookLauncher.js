@@ -25,32 +25,30 @@ const NotebookLauncher = _.flow(
   }),
   ajaxCaller
 )(({ queryParams = {}, ...props }, ref) => {
-  const { workspace, notebookName } = props
-  return (Utils.canWrite(workspace.accessLevel) && workspace.canCompute && !queryParams['read-only']) ?
+  const { workspace: { accessLevel, canCompute } } = props
+  return (Utils.canWrite(accessLevel) && canCompute && !queryParams['read-only']) ?
     h(NotebookEditor, props) :
     h(Fragment, [
-      h(ReadOnlyMessage, { notebookName, workspace }),
+      h(ReadOnlyMessage, props),
       h(NotebookPreviewFrame, props)
     ])
 })
 
-const ReadOnlyMessage = ({ notebookName, workspace, workspace: { canCompute, workspace: { namespace, name } } }) => {
+const ReadOnlyMessage = ({ cluster, notebookName, workspace, workspace: { canCompute, workspace: { namespace, name } }, openCreate }) => {
   const [copying, setCopying] = useState(false)
-  const notebookLink = Nav.getLink('workspace-notebook-launch', { namespace, name, notebookName })
 
   return div({ style: { padding: '1rem 2rem', display: 'flex', alignItems: 'center' } }, [
     div({ style: { fontSize: 16, fontWeight: 'bold', position: 'absolute' } },
       ['Viewing read-only']),
     div({ style: { flexGrow: 1 } }),
-    canCompute ?
-      buttonOutline({
-        as: 'a',
-        href: notebookLink,
-        style: { marginRight: '1rem' }
-      }, ['edit in Jupyter']) :
-      buttonOutline({
-        onClick: () => setCopying(true)
-      }, ['copy to another workspace to edit']),
+    Utils.cond(
+      [!canCompute, () => buttonOutline({ onClick: () => setCopying(true) }, ['copy to another workspace to edit'])],
+      [!cluster && openCreate, () => buttonOutline({ onClick: openCreate }, ['create a cluster to edit'])],
+      () => {
+        const notebookLink = Nav.getLink('workspace-notebook-launch', { namespace, name, notebookName })
+        return buttonOutline({ as: 'a', href: notebookLink }, ['edit in Jupyter'])
+      }
+    ),
     div({ style: { flexGrow: 1 } }),
     copying && h(ExportNotebookModal, {
       printName: notebookName.slice(0, -6), workspace, fromLauncher: true,
@@ -283,7 +281,7 @@ class NotebookEditor extends Component {
   }
 
   render() {
-    const { namespace, name, app, cluster } = this.props
+    const { namespace, name, app, cluster, workspace } = this.props
     const { clusterError, localizeFailures, failed, url, saving, createOpen, clustersLoaded } = this.state
     const clusterStatus = cluster && cluster.status
 
@@ -320,15 +318,10 @@ class NotebookEditor extends Component {
               'Starting notebook runtime environment, this may take up to 2 minutes.'
             )
           ]) :
-          div({ style: { padding: '1rem 2rem', fontSize: 16, fontWeight: 'bold' } }, [
-            'You are viewing this notebook in read-only mode. You can ',
-            linkButton({ onClick: () => this.setState({ createOpen: true }) }, 'create a notebooks runtime'),
-            ' to edit and run it.'
-          ]),
-        div({ style: { color: colors.gray[2], fontSize: 14, fontWeight: 'bold', padding: '0 0 1rem 2rem' } }, [
-          isRunning ? 'Almost ready...' : 'Read-only preview of your notebook:'
-        ]),
-        !isRunning && h(NotebookPreviewFrame, this.props),
+          h(ReadOnlyMessage, { cluster, workspace, openCreate: () => this.setState({ createOpen: true }) }),
+        isRunning ?
+          div({ style: { color: colors.gray[2], fontSize: 14, fontWeight: 'bold', padding: '0 0 1rem 2rem' } }, ['Almost ready...']) :
+          h(NotebookPreviewFrame, this.props),
         createOpen && h(NewClusterModal, {
           namespace, currentCluster: cluster,
           onCancel: () => this.setState({ createOpen: false }),
