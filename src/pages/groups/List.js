@@ -2,9 +2,9 @@ import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { a, b, div, h } from 'react-hyperscript-helpers'
 import { pure } from 'recompose'
-import { buttonPrimary, Clickable, linkButton, PageBox, search, spinnerOverlay } from 'src/components/common'
+import { buttonPrimary, Clickable, linkButton, PageBox, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
-import { validatedInput } from 'src/components/input'
+import { DelayedSearchInput, validatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import TopBar from 'src/components/TopBar'
 import { ajaxCaller } from 'src/libs/ajax'
@@ -171,13 +171,11 @@ export const GroupList = ajaxCaller(class GroupList extends Component {
     const { ajax: { Groups } } = this.props
     return h(Fragment, [
       h(TopBar, { title: 'Groups' }, [
-        search({
-          wrapperProps: { style: { marginLeft: '2rem', flexGrow: 1, maxWidth: 500 } },
-          inputProps: {
-            placeholder: 'SEARCH GROUPS',
-            onChange: e => this.setState({ filter: e.target.value }),
-            value: filter
-          }
+        h(DelayedSearchInput, {
+          style: { marginLeft: '2rem', width: 500 },
+          placeholder: 'SEARCH GROUPS',
+          onChange: v => this.setState({ filter: v }),
+          defaultValue: filter
         })
       ]),
       h(PageBox, [

@@ -12,7 +12,7 @@ import DataTable from 'src/components/DataTable'
 import ExportDataModal from 'src/components/ExportDataModal'
 import FloatingActionButton from 'src/components/FloatingActionButton'
 import { icon, spinner } from 'src/components/icons'
-import { SearchInput, textInput } from 'src/components/input'
+import { DelayedSearchInput, textInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { FlexTable, HeaderCell, SimpleTable, TextCell } from 'src/components/table'
 import UriViewer from 'src/components/UriViewer'
@@ -167,11 +167,11 @@ const LocalVariablesContent = ajaxCaller(class LocalVariablesContent extends Com
           div({ style: { whiteSpace: 'pre' } }, ['  |  Drag or click to ']),
           linkButton({ onClick: () => this.uploader.current.open() }, ['upload TSV'])
         ]),
-        h(SearchInput, {
+        h(DelayedSearchInput, {
           style: { width: 300, marginLeft: '1rem' },
-          placeholder: 'Filter',
-          onChange: ({ target: { value } }) => this.setState({ textFilter: value }),
-          value: textFilter
+          placeholder: 'Search',
+          onChange: v => this.setState({ textFilter: v }),
+          defaultValue: textFilter
         })
       ]),
       Utils.cond(
@@ -303,11 +303,11 @@ const ReferenceDataContent = ({ workspace: { workspace: { namespace, attributes 
   const { initialY } = firstRender ? StateHistory.get() : {}
 
   return h(Fragment, [
-    h(SearchInput, {
+    h(DelayedSearchInput, {
       style: { width: 300, marginBottom: '1rem', alignSelf: 'flex-end' },
-      placeholder: 'Filter',
-      onChange: ({ target: { value } }) => setTextFilter(value),
-      value: textFilter
+      placeholder: 'Search',
+      onChange: setTextFilter,
+      defaultValue: textFilter
     }),
     div({ style: { flex: 1 } }, [
       h(AutoSizer, [
