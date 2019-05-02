@@ -144,7 +144,7 @@ const thousandGenomesLowCoverage = () => h(Participant, {
 }, [
   h(ButtonPrimary, {
     as: 'a',
-    href: Nav.getLink('library-datasets-data-explorer', { dataset: '1000 Genomes' }),
+    href: Nav.getLink('library-datasets-data-explorer-public', { dataset: '1000 Genomes' }),
     tooltip: browseTooltip
   }, ['Browse data'])
 ])
@@ -178,9 +178,7 @@ const amppd = () => h(Participant, {
 }, [
   h(ButtonPrimary, {
     as: 'a',
-    href: 'http://amp-pd-data-explorer.appspot.com/',
-    ...Utils.newTabLinkProps,
-    tooltip: browseTooltip
+    href: Nav.getLink('library-datasets-data-explorer-private', { dataset: 'AMP PD - 2019_v1beta_0220' })
   }, ['Browse Data'])
 ])
 
@@ -198,9 +196,7 @@ const baseline = () => h(Participant, {
 }, [
   h(ButtonPrimary, {
     as: 'a',
-    href: 'https://baseline-baseline-explorer.appspot.com/',
-    ...Utils.newTabLinkProps,
-    tooltip: browseTooltip
+    href: Nav.getLink('library-datasets-data-explorer-private', { dataset: 'Baseline Health Study' })
   }, ['Browse Data'])
 ])
 
@@ -307,9 +303,7 @@ const nhs = () => h(Participant, {
 }, [
   h(ButtonPrimary, {
     as: 'a',
-    href: 'http://nhs-explorer.appspot.com/',
-    ...Utils.newTabLinkProps,
-    tooltip: browseTooltip
+    href: Nav.getLink('library-datasets-data-explorer-private', { dataset: `Nurses' Health Study` })
   }, ['Browse Data'])
 ])
 
@@ -337,9 +331,7 @@ const ukb = () => h(Participant, {
 }, [
   h(ButtonPrimary, {
     as: 'a',
-    href: 'https://biobank-explorer.appspot.com/',
-    ...Utils.newTabLinkProps,
-    tooltip: browseTooltip
+    href: Nav.getLink('library-datasets-data-explorer-private', { dataset: 'UK Biobank' })
   }, ['Browse Data'])
 ])
 
