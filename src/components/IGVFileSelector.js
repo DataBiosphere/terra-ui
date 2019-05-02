@@ -22,10 +22,12 @@ const getStrings = v => {
   )
 }
 
+const MAX_CONCURRENT_IGV_FILES = 10
+
 export class IGVFileSelector extends Component {
   constructor(props) {
     super(props)
-    this.state = { selectedFiles: _.fromPairs(_.map(v => [v, true], this.getIGVFileList())) }
+    this.state = { selectedFiles: _.fromPairs(_.map(v => [v, false], this.getIGVFileList())) }
   }
 
   toggleVisibility(name) {
@@ -41,6 +43,23 @@ export class IGVFileSelector extends Component {
     )(selectedEntities)
   }
 
+  getSelectedFilesList() {
+    const { selectedFiles } = this.state
+    return _.flow(
+      _.keys,
+      _.filter(v => selectedFiles[v])
+    )(selectedFiles)
+  }
+
+  buttonIsDisabled() {
+    const selectedFilesList = this.getSelectedFilesList()
+    return !(selectedFilesList.length > 0 && selectedFilesList.length <= MAX_CONCURRENT_IGV_FILES)
+  }
+
+  getButtonTooltip() {
+    return this.buttonIsDisabled() ? `Select between 1 and ${MAX_CONCURRENT_IGV_FILES} files` : ''
+  }
+
   setAll(value) {
     this.setState({ 'selectedFiles': _.fromPairs(_.map(v => [v, value], this.getIGVFileList())) })
   }
@@ -53,13 +72,10 @@ export class IGVFileSelector extends Component {
       onDismiss,
       title: 'Open files with IGV',
       okButton: buttonPrimary({
-        disabled: !_.some(_.identity, selectedFiles),
+        disabled: this.buttonIsDisabled(),
+        tooltip: this.getButtonTooltip(),
         onClick: () => {
-          const actuallySelectedFiles = _.flow(
-            _.keys,
-            _.filter(v => selectedFiles[v])
-          )(selectedFiles)
-          onSuccess(actuallySelectedFiles)
+          onSuccess(this.getSelectedFilesList())
         }
       }, ['Done'])
     }, [
