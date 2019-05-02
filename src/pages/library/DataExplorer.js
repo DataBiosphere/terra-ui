@@ -9,7 +9,11 @@ import * as Style from 'src/libs/style'
 
 const datasetToUrl = {
   // key must be dataset name from Data Explorer dataset.json
-  '1000 Genomes': 'https://test-data-explorer.appspot.com/?embed'
+  '1000 Genomes': 'https://test-data-explorer.appspot.com/?embed',
+  'AMP PD - 2019_v1beta_0220': 'https://amp-pd-data-explorer.appspot.com/?embed',
+  'Baseline Health Study': 'https://baseline-baseline-explorer.appspot.com/?embed',
+  'Nurses\' Health Study': 'https://nhs-explorer.appspot.com/?embed',
+  'UK Biobank': 'https://biobank-explorer.appspot.com/?embed'
 }
 
 

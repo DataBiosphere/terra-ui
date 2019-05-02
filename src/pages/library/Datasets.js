@@ -127,8 +127,7 @@ const thousandGenomes = () => h(Participant, {
 }, [
   buttonPrimary({
     as: 'a',
-    href: Nav.getLink('library-datasets-data-explorer', { dataset: '1000 Genomes' }),
-    tooltip: browseTooltip
+    href: Nav.getLink('library-datasets-data-explorer', { dataset: '1000 Genomes' })
   }, ['Browse data'])
 ])
 
@@ -161,9 +160,7 @@ const amppd = () => h(Participant, {
 }, [
   buttonPrimary({
     as: 'a',
-    href: 'http://amp-pd-data-explorer.appspot.com/',
-    target: '_blank',
-    tooltip: browseTooltip
+    href: Nav.getLink('library-datasets-data-explorer', { dataset: 'AMP PD - 2019_v1beta_0220' })
   }, ['Browse Data'])
 ])
 
@@ -181,9 +178,7 @@ const baseline = () => h(Participant, {
 }, [
   buttonPrimary({
     as: 'a',
-    href: 'https://baseline-baseline-explorer.appspot.com/',
-    target: '_blank',
-    tooltip: browseTooltip
+    href: Nav.getLink('library-datasets-data-explorer', { dataset: 'Baseline Health Study' })
   }, ['Browse Data'])
 ])
 
@@ -270,9 +265,7 @@ const nhs = () => h(Participant, {
 }, [
   buttonPrimary({
     as: 'a',
-    href: 'http://nhs-explorer.appspot.com/',
-    target: '_blank',
-    tooltip: browseTooltip
+    href: Nav.getLink('library-datasets-data-explorer', { dataset: `Nurses' Health Study` })
   }, ['Browse Data'])
 ])
 
@@ -300,9 +293,7 @@ const ukb = () => h(Participant, {
 }, [
   buttonPrimary({
     as: 'a',
-    href: 'https://biobank-explorer.appspot.com/',
-    target: '_blank',
-    tooltip: browseTooltip
+    href: Nav.getLink('library-datasets-data-explorer', { dataset: 'UK Biobank' })
   }, ['Browse Data'])
 ])
 
