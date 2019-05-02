@@ -42,9 +42,6 @@ export class IGVFileSelector extends Component {
   }
 
   setAll(value) {
-    console.log(value)
-    console.log(this.state.selectedFiles)
-    console.log(_.fromPairs(_.map(v => [v, value], this.getIGVFileList())))
     this.setState({ 'selectedFiles': _.fromPairs(_.map(v => [v, value], this.getIGVFileList())) })
   }
 

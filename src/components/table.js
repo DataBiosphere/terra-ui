@@ -486,7 +486,6 @@ export class ColumnSelector extends Component {
   }
 
   setAll(value) {
-    console.log(this.state.modifiedColumnSettings)
     this.setState(_.update(['modifiedColumnSettings'], _.map(_.set('visible', value))))
   }
 
