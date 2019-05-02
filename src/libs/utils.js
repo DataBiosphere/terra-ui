@@ -287,3 +287,14 @@ export const trimClustersOldestFirst = _.flow(
   _.remove({ status: 'Error' }),
   _.sortBy('createdDate')
 )
+
+export const handleNonRunningCluster = ({ status, googleProject, clusterName }, JupyterAjax) => {
+  switch (status) {
+    case 'Stopped':
+      return JupyterAjax.cluster(googleProject, clusterName).start()
+    case 'Creating':
+      return delay(15000)
+    default:
+      return delay(3000)
+  }
+}

@@ -37,29 +37,21 @@ const TerminalLauncher = _.flow(
       })
     }
 
-    while (this.mounted) {
+    while (true) {
       await refreshClusters()
       const cluster = this.props.cluster // Note: reading up-to-date prop
       const status = cluster && cluster.status
 
       if (status === 'Running') {
         return
-      } else if (status === 'Stopped') {
-        const { googleProject, clusterName } = cluster
-        await Jupyter.cluster(googleProject, clusterName).start()
-        refreshClusters()
-        await Utils.delay(10000)
-      } else if (status === 'Creating') {
-        await Utils.delay(15000)
       } else {
-        await Utils.delay(3000)
+        await Utils.handleNonRunningCluster(cluster, Jupyter)
       }
     }
   }
 
   async componentDidMount() {
     const { cluster: { clusterUrl } = {} } = this.props
-    this.mounted = true
 
     try {
       await this.startCluster()
@@ -73,7 +65,6 @@ const TerminalLauncher = _.flow(
   }
 
   componentWillUnmount() {
-    this.mounted = false
     if (this.scheduledRefresh) {
       clearTimeout(this.scheduledRefresh)
     }
