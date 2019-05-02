@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
-import { useRef, useState } from 'react'
-import { div } from 'react-hyperscript-helpers'
+import { Fragment, useRef, useState } from 'react'
+import { div, h } from 'react-hyperscript-helpers'
 import { centeredSpinner } from 'src/components/icons'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
@@ -14,11 +14,11 @@ const igvStyle = {
   border: `1px solid ${colors.gray[5]}`
 }
 
-export const IGVBrowser = ({ selectedFiles, refGenome }) => {
+export const IGVBrowser = ({ selectedFiles, refGenome, namespace }) => {
   const containerRef = useRef()
   const [loadingIgv, setLoadingIgv] = useState(true)
 
-  Utils.useOnMount(async () => {
+  Utils.useOnMount(() => {
     const getTrack = filePath => {
       const fileTypeToTrack = {
         'bam': 'alignment',
@@ -41,20 +41,27 @@ export const IGVBrowser = ({ selectedFiles, refGenome }) => {
       tracks: _.map(getTrack, selectedFiles)
     }
 
-    try {
-      const { default: igv } = await import('igv')
+    const igvSetup = async () => {
+      try {
+        const { default: igv } = await import('igv')
 
-      igv.oauth.google.setToken(Ajax().User.token())
-      igv.createBrowser(containerRef.current, options)
-    } catch (e) {
-      reportError('Error loading IGV.js', e)
-    } finally {
-      setLoadingIgv(false)
+        igv.oauth.google.setToken(Ajax().User.token(namespace))
+        igv.createBrowser(containerRef.current, options)
+      } catch (e) {
+        reportError('Error loading IGV.js', e)
+      } finally {
+        setLoadingIgv(false)
+      }
     }
+
+    igvSetup()
   })
 
 
   return (
-    div({ ref: containerRef, style: igvStyle }, [loadingIgv && centeredSpinner()])
+    h(Fragment, [
+      loadingIgv && centeredSpinner(),
+      div({ ref: containerRef, style: igvStyle })
+    ])
   )
 }
