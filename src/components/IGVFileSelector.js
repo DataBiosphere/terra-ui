@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import { Component } from 'src/libs/wrapped-components'
 import { div, h } from 'react-hyperscript-helpers'
 import Modal from 'src/components/Modal'
-import { buttonPrimary, LabeledCheckbox, Clickable } from 'src/components/common'
+import { buttonPrimary, LabeledCheckbox, Clickable, linkButton } from 'src/components/common'
 import * as Utils from 'src/libs/utils'
 import { AutoSizer, List } from 'react-virtualized'
 
@@ -41,6 +41,13 @@ export class IGVFileSelector extends Component {
     )(selectedEntities)
   }
 
+  setAll(value) {
+    console.log(value)
+    console.log(this.state.selectedFiles)
+    console.log(_.fromPairs(_.map(v => [v, value], this.getIGVFileList())))
+    this.setState({ 'selectedFiles': _.fromPairs(_.map(v => [v, value], this.getIGVFileList())) })
+  }
+
   render() {
     const { onDismiss, onSuccess } = this.props
     const { selectedFiles } = this.state
@@ -59,6 +66,12 @@ export class IGVFileSelector extends Component {
         }
       }, ['Done'])
     }, [
+      div({ style: { marginBottom: '1rem', display: 'flex' } }, [
+        div({ style: { fontWeight: 500 } }, ['Show:']),
+        linkButton({ style: { padding: '0 0.5rem' }, onClick: () => this.setAll(true) }, ['all']),
+        '|',
+        linkButton({ style: { padding: '0 0.5rem' }, onClick: () => this.setAll(false) }, ['none'])
+      ]),
       h(AutoSizer, { disableHeight: true }, [
         ({ width }) => {
           return h(List, {
