@@ -281,10 +281,11 @@ export const EntityUploader = ajaxCaller(class EntityUploader extends Component 
           span({ style: { fontFamily: 'monospace' } }, ['[type]']),
           ' is the desired name of the data table in Terra.',
           ' For example, use ',
-          span({ style: { fontFamily: 'monospace' } }, ['entity:sample_id']),
+          span({ style: { fontFamily: 'monospace' } }, ['entity:participant_id']),
           ' to create or update a ',
-          span({ style: { fontFamily: 'monospace' } }, ['sample']),
-          ' table.'
+          span({ style: { fontFamily: 'monospace' } }, ['participant']),
+          ' table.',
+          div({ style: { marginTop: '0.5rem' } }, ['All of the values in the ID column must be unique.'])
         ]),
         file && _.includes(_.toLower(newEntityType), entityTypes) && div({
           style: { ...warningBoxStyle, marginBottom: '0.5rem', display: 'flex', alignItems: 'center' }
