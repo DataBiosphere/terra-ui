@@ -460,7 +460,7 @@ class EntitiesContent extends Component {
     const { selectedEntities, deletingEntities, copyingEntities, refreshKey, igvFiles, showIgvSelector } = this.state
 
     const { initialX, initialY } = firstRender ? StateHistory.get() : {}
-    return igvFiles ? h(IGVBrowser, { selectedFiles: igvFiles, refGenome: 'hg19' }) : h(Fragment, [
+    return igvFiles ? h(IGVBrowser, { selectedFiles: igvFiles, refGenome: 'hg19', namespace }) : h(Fragment, [
       h(DataTable, {
         persist: true, firstRender, refreshKey,
         entityType: entityKey, entityMetadata, workspaceId: { namespace, name },
