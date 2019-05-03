@@ -15,7 +15,7 @@ commands:
         default: false
     steps:
       - attach_workspace:
-          at: /root/project
+          at: .
       - run: cp config/<< parameters.env >>.json build/config.json
       - run: echo "$<< parameters.sa_key_var >>" > /tmp/sa.json
       - run: gcloud auth activate-service-account --key-file=/tmp/sa.json
@@ -46,11 +46,11 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - deps2-{{ checksum "package.json" }}
-            - deps2-
+            - deps3-{{ checksum "package.json" }}
+            - deps3-
       - run: npx npm@6.9 install
       - save_cache:
-          key: deps2-{{ checksum "package.json" }}
+          key: deps3-{{ checksum "package.json" }}
           paths:
             - ./node_modules
       - run: npm test
