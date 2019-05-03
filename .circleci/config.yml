@@ -68,6 +68,7 @@ jobs:
     steps:
       - checkout
       - restore_cache:
+          name: Restoring Installed Dependencies
           key: deps-installed1-{{ checksum "package-lock.json" }}
       - run: npx npm@6.9 run build
       - run: tar -czf build.tgz .gcloudignore app.yaml build config
