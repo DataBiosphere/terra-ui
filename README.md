@@ -15,7 +15,7 @@ Requests related to the funtionality or usability of the UI can be submitted as 
 1. We use node@8 (the current LTS). On Darwin with Homebrew:
 
     ```sh
-    brew install node@8; brew link node@8 --force
+    brew install node@10; brew link node@10 --force --overwrite
     ```
 2. Update npm:
 

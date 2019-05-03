@@ -40,16 +40,17 @@ commands:
 jobs:
   test:
     docker:
-      - image: node:8
+      - image: node:10
     steps:
       - checkout
       - restore_cache:
           keys:
-            - deps1-{{ checksum "package.json" }}
-            - deps1-
-      - run: npm install
+            - deps2-{{ checksum "package.json" }}
+            - deps2-
+      - run: npm install --no-save npm@6.9
+      - run: npx npm install
       - save_cache:
-          key: deps1-{{ checksum "package.json" }}
+          key: deps2-{{ checksum "package.json" }}
           paths:
             - ./node_modules
       - run: npm test
@@ -59,12 +60,12 @@ jobs:
             - ./node_modules
   build:
     docker:
-      - image: node:8
+      - image: node:10
     steps:
       - checkout
       - attach_workspace:
           at: .
-      - run: npm run build
+      - run: npx npm run build
       - run: tar -czf build.tgz .gcloudignore app.yaml build config
       - store_artifacts:
           path: build.tgz
