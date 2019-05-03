@@ -49,11 +49,11 @@ jobs:
             - deps3-{{ checksum "package.json" }}-{{ checksum "package-lock.json" }}
             - deps3-{{ checksum "package.json" }}-
             - deps3-
-      - run: npx npm@6.9 install
+      - run: npx npm@6.9 ci
       - save_cache:
           key: deps3-{{ checksum "package.json" }}-{{ checksum "package-lock.json" }}
           paths:
-            - ./node_modules
+            - $HOME/.npm
       - run: npm test
   build:
     docker:
