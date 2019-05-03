@@ -47,8 +47,7 @@ jobs:
           keys:
             - deps2-{{ checksum "package.json" }}
             - deps2-
-      - run: npm install --no-save npm@6.9
-      - run: npx npm install
+      - run: npx npm@6.9 install
       - save_cache:
           key: deps2-{{ checksum "package.json" }}
           paths:
@@ -65,7 +64,7 @@ jobs:
       - checkout
       - attach_workspace:
           at: .
-      - run: npx npm run build
+      - run: npx npm@6.9 run build
       - run: tar -czf build.tgz .gcloudignore app.yaml build config
       - store_artifacts:
           path: build.tgz
