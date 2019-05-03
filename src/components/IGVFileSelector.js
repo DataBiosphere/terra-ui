@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import { Component } from 'src/libs/wrapped-components'
 import { div, h } from 'react-hyperscript-helpers'
 import Modal from 'src/components/Modal'
-import { buttonPrimary, LabeledCheckbox, Clickable } from 'src/components/common'
+import { buttonPrimary, LabeledCheckbox, Clickable, linkButton } from 'src/components/common'
 import * as Utils from 'src/libs/utils'
 import { AutoSizer, List } from 'react-virtualized'
 
@@ -22,10 +22,12 @@ const getStrings = v => {
   )
 }
 
+const MAX_CONCURRENT_IGV_FILES = 10
+
 export class IGVFileSelector extends Component {
   constructor(props) {
     super(props)
-    this.state = { selectedFiles: _.fromPairs(_.map(v => [v, true], this.getIGVFileList())) }
+    this.state = { selectedFiles: _.fromPairs(_.map(v => [v, false], this.getIGVFileList())) }
   }
 
   toggleVisibility(name) {
@@ -41,6 +43,23 @@ export class IGVFileSelector extends Component {
     )(selectedEntities)
   }
 
+  getSelectedFilesList() {
+    const { selectedFiles } = this.state
+    return _.flow(
+      _.keys,
+      _.filter(v => selectedFiles[v])
+    )(selectedFiles)
+  }
+
+  buttonIsDisabled() {
+    const selectedFilesList = this.getSelectedFilesList()
+    return !(selectedFilesList.length > 0 && selectedFilesList.length <= MAX_CONCURRENT_IGV_FILES)
+  }
+
+  setAll(value) {
+    this.setState({ 'selectedFiles': _.fromPairs(_.map(v => [v, value], this.getIGVFileList())) })
+  }
+
   render() {
     const { onDismiss, onSuccess } = this.props
     const { selectedFiles } = this.state
@@ -49,16 +68,19 @@ export class IGVFileSelector extends Component {
       onDismiss,
       title: 'Open files with IGV',
       okButton: buttonPrimary({
-        disabled: !_.some(_.identity, selectedFiles),
+        disabled: this.buttonIsDisabled(),
+        tooltip: this.buttonIsDisabled() ? `Select between 1 and ${MAX_CONCURRENT_IGV_FILES} files` : '',
         onClick: () => {
-          const actuallySelectedFiles = _.flow(
-            _.keys,
-            _.filter(v => selectedFiles[v])
-          )(selectedFiles)
-          onSuccess(actuallySelectedFiles)
+          onSuccess(this.getSelectedFilesList())
         }
       }, ['Done'])
     }, [
+      div({ style: { marginBottom: '1rem', display: 'flex' } }, [
+        div({ style: { fontWeight: 500 } }, ['Select:']),
+        linkButton({ style: { padding: '0 0.5rem' }, onClick: () => this.setAll(true) }, ['all']),
+        '|',
+        linkButton({ style: { padding: '0 0.5rem' }, onClick: () => this.setAll(false) }, ['none'])
+      ]),
       h(AutoSizer, { disableHeight: true }, [
         ({ width }) => {
           return h(List, {
