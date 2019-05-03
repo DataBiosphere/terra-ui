@@ -1,12 +1,14 @@
 import _ from 'lodash/fp'
 import * as qs from 'qs'
-import { Component } from 'react'
+import { Component, Fragment } from 'react'
 import { div, h, h2 } from 'react-hyperscript-helpers'
 import AuthContainer from 'src/components/AuthContainer'
 import { link } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { notify } from 'src/components/Notifications'
 import TopBar from 'src/components/TopBar'
+import { fetchOk } from 'src/libs/ajax'
+import { getConfig } from 'src/libs/config'
 import * as Nav from 'src/libs/nav'
 import * as Code from 'src/pages/library/Code'
 import * as DataExplorer from 'src/pages/library/DataExplorer'
@@ -94,6 +96,36 @@ export default class Router extends Component {
       ]))
       Nav.history.replace({ search: qs.stringify(_.omit(['fcredir'], qs.parse(Nav.history.location.search, { ignoreQueryPrefix: true, plainObjects: true }))) })
     }
+
+    this.alerts()
+  }
+
+  async alerts() {
+    //const alertsArray = await fetchOk(`https://storage.googleapis.com/firecloud-alerts-alpha/alerts.json`).then(res => res.json())
+    const alertsArray = [{
+      title: 'Test1',
+      message: 'boopyboop',
+      link: 'https://www.google.com'
+    }, {
+      title: 'Test2'
+    }]
+    console.log(alertsArray)
+    if (!_.isEmpty(alertsArray)) {
+      _.map(a => {
+        const { link: readMoreLink, message, title } = a
+        return notify('error', h(Fragment, [
+          div({ style: { fontSize: 14 } }, title),
+          div({ style: { fontSize: 12, fontWeight: 500 } }, [
+            message,
+            readMoreLink && link({
+              target: '_blank',
+              href: readMoreLink,
+              variant: 'light'
+            }, ' Read more')
+          ])
+        ]))
+      }, alertsArray)
+    } else return undefined
   }
 
   // FIXME - shouldn't be using unsafe methods
