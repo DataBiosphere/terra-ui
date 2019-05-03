@@ -56,10 +56,6 @@ export class IGVFileSelector extends Component {
     return !(selectedFilesList.length > 0 && selectedFilesList.length <= MAX_CONCURRENT_IGV_FILES)
   }
 
-  getButtonTooltip() {
-    return this.buttonIsDisabled() ? `Select between 1 and ${MAX_CONCURRENT_IGV_FILES} files` : ''
-  }
-
   setAll(value) {
     this.setState({ 'selectedFiles': _.fromPairs(_.map(v => [v, value], this.getIGVFileList())) })
   }
@@ -73,14 +69,14 @@ export class IGVFileSelector extends Component {
       title: 'Open files with IGV',
       okButton: buttonPrimary({
         disabled: this.buttonIsDisabled(),
-        tooltip: this.getButtonTooltip(),
+        tooltip: this.buttonIsDisabled() ? `Select between 1 and ${MAX_CONCURRENT_IGV_FILES} files` : '',
         onClick: () => {
           onSuccess(this.getSelectedFilesList())
         }
       }, ['Done'])
     }, [
       div({ style: { marginBottom: '1rem', display: 'flex' } }, [
-        div({ style: { fontWeight: 500 } }, ['Show:']),
+        div({ style: { fontWeight: 500 } }, ['Select:']),
         linkButton({ style: { padding: '0 0.5rem' }, onClick: () => this.setAll(true) }, ['all']),
         '|',
         linkButton({ style: { padding: '0 0.5rem' }, onClick: () => this.setAll(false) }, ['none'])
