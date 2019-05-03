@@ -1,9 +1,9 @@
 const { execSync } = require('child_process')
 
 const npmVersion = execSync('npm -v').toString().trim()
-const npmCorrect = npmVersion.startsWith('6.9.')
+const npmCorrect = npmVersion.startsWith('6.8.')
 const nodeVersion = process.version
-const nodeCorrect = nodeVersion.startsWith('v10.')
+const nodeCorrect = nodeVersion.startsWith('v11.')
 
 if (!npmCorrect || !nodeCorrect) {
   console.error('\x1b[1m' /* bold */ + '╔'.padEnd(70, '═') + '╗')
