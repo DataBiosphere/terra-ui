@@ -22,7 +22,6 @@ import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
 import { EntityDeleter, EntityUploader, ReferenceDataDeleter, ReferenceDataImporter, renderDataCell } from 'src/libs/data-utils'
 import { withErrorReporting } from 'src/libs/error'
-import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
@@ -864,10 +863,11 @@ const WorkspaceData = _.flow(
   }
 })
 
-export const addNavPaths = () => {
-  Nav.defPath('workspace-data', {
+export const navPaths = [
+  {
+    name: 'workspace-data',
     path: '/workspaces/:namespace/:name/data',
     component: WorkspaceData,
     title: ({ name }) => `${name} - Data`
-  })
-}
+  }
+]

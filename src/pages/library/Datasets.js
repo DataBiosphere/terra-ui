@@ -318,11 +318,12 @@ const Datasets = pure(() => {
 })
 
 
-export const addNavPaths = () => {
-  Nav.defPath('library-datasets', {
+export const navPaths = [
+  {
+    name: 'library-datasets',
     path: '/library/datasets',
     component: Datasets,
     public: true,
     title: 'Datasets'
-  })
-}
+  }
+]

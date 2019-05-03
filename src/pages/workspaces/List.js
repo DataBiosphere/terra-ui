@@ -414,10 +414,11 @@ export const WorkspaceList = _.flow(
   }
 })
 
-export const addNavPaths = () => {
-  Nav.defPath('workspaces', {
+export const navPaths = [
+  {
+    name: 'workspaces',
     path: '/workspaces',
     component: WorkspaceList,
     title: 'Workspaces'
-  })
-}
+  }
+]

@@ -236,10 +236,11 @@ export const GroupList = ajaxCaller(class GroupList extends Component {
 })
 
 
-export const addNavPaths = () => {
-  Nav.defPath('groups', {
+export const navPaths = [
+  {
+    name: 'groups',
     path: '/groups',
     component: GroupList,
     title: 'Group Management'
-  })
-}
+  }
+]

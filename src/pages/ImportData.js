@@ -71,10 +71,11 @@ const Importer = ajaxCaller(class Importer extends Component {
 })
 
 
-export const addNavPaths = () => {
-  Nav.defPath('import-data', {
+export const navPaths = [
+  {
+    name: 'import-data',
     path: '/import-data',
     component: Importer,
     title: 'Import Data'
-  })
-}
+  }
+]
