@@ -41,7 +41,7 @@ jobs:
   test:
     docker:
       - image: node:10
-      - user: node
+        user: node
     steps:
       - checkout
       - restore_cache:
@@ -61,7 +61,7 @@ jobs:
   build:
     docker:
       - image: node:10
-      - user: node
+        user: node
     steps:
       - checkout
       - attach_workspace:
