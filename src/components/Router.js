@@ -107,9 +107,9 @@ export default class Router extends Component {
       message: 'boopyboop',
       link: 'https://www.google.com'
     }, {
-      title: 'Test2'
+      title: 'Test2',
+      message: 'Boooooop'
     }]
-    console.log(alertsArray)
     if (!_.isEmpty(alertsArray)) {
       _.map(a => {
         const { link: readMoreLink, message, title } = a
@@ -125,7 +125,7 @@ export default class Router extends Component {
           ])
         ]))
       }, alertsArray)
-    } else return undefined
+    }
   }
 
   // FIXME - shouldn't be using unsafe methods
