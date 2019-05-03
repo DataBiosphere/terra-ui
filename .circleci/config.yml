@@ -55,7 +55,9 @@ jobs:
           paths:
             - ~/.npm
       - save_cache:
-          - key: deps-installed1-{{ checksum "package.json" }}-{{ checksum "package-lock.json" }}
+          key: deps-installed1-{{ checksum "package.json" }}-{{ checksum "package-lock.json" }}
+          paths:
+            - ./node_modules
       - run: npm test
   build:
     docker:
