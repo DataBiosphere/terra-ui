@@ -1,5 +1,14 @@
 version: 2.1
 
+executors:
+  node:
+    docker:
+      - image: node:10
+        user: node
+  gcloud:
+    docker:
+      - image: google/cloud-sdk:alpine
+
 commands:
   deploy-env:
     description: "Deploy to a specific environment"
@@ -39,9 +48,7 @@ commands:
 
 jobs:
   test:
-    docker:
-      - image: node:10
-        user: node
+    executor: node
     steps:
       - checkout
       - restore_cache:
@@ -62,9 +69,7 @@ jobs:
             - ./node_modules
       - run: npm test
   build:
-    docker:
-      - image: node:10
-        user: node
+    executor: node
     steps:
       - checkout
       - restore_cache:
@@ -82,33 +87,28 @@ jobs:
             - build
             - config
   deploy-pr:
-    docker:
-      - image: google/cloud-sdk:alpine
+    executor: gcloud
     steps:
       - deploy-env:
           pr: true
   deploy-dev:
-    docker:
-      - image: google/cloud-sdk:alpine
+    executor: gcloud
     steps:
       - deploy-env
   deploy-alpha:
-    docker:
-      - image: google/cloud-sdk:alpine
+    executor: gcloud
     steps:
       - deploy-env:
           sa_key_var: "ALPHA_SA_KEY_JSON"
           env: "alpha"
   deploy-perf:
-    docker:
-      - image: google/cloud-sdk:alpine
+    executor: gcloud
     steps:
       - deploy-env:
           sa_key_var: "PERF_SA_KEY_JSON"
           env: "perf"
   deploy-staging:
-    docker:
-      - image: google/cloud-sdk:alpine
+    executor: gcloud
     steps:
       - deploy-env:
           sa_key_var: "STAGING_SA_KEY_JSON"
