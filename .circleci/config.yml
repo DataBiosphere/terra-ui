@@ -44,25 +44,29 @@ jobs:
         user: node
     steps:
       - checkout
-      - restore_cache:
-          keys:
-            - deps3-{{ checksum "package.json" }}-{{ checksum "package-lock.json" }}
-            - deps3-{{ checksum "package.json" }}-
-            - deps3-
+#      - restore_cache:
+#          keys:
+#            - deps3-{{ checksum "package.json" }}-{{ checksum "package-lock.json" }}
+#            - deps3-{{ checksum "package.json" }}-
+#            - deps3-
       - run: npx npm@6.9 ci
       - save_cache:
-          key: deps3-{{ checksum "package.json" }}-{{ checksum "package-lock.json" }}
+          key: deps2-{{ checksum "package.json" }}-{{ checksum "package-lock.json" }}
           paths:
-            - $HOME/.npm
+            - ~/.npm
       - run: npm test
+      - persist_to_workspace:
+          root: .
+          paths:
+            - ./node_modules
   build:
     docker:
       - image: node:10
         user: node
     steps:
       - checkout
-      - restore_cache:
-          key: deps3-{{ checksum "package.json" }}-{{ checksum "package-lock.json" }}
+      - attach_workspace:
+          at: .
       - run: npx npm@6.9 run build
       - run: tar -czf build.tgz .gcloudignore app.yaml build config
       - store_artifacts:
