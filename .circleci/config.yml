@@ -54,18 +54,14 @@ jobs:
           paths:
             - ./node_modules
       - run: npm test
-      - persist_to_workspace:
-          root: .
-          paths:
-            - ./node_modules
   build:
     docker:
       - image: node:10
         user: node
     steps:
       - checkout
-      - attach_workspace:
-          at: .
+      - restore_cache:
+          key: deps3-{{ checksum "package.json" }}
       - run: npx npm@6.9 run build
       - run: tar -czf build.tgz .gcloudignore app.yaml build config
       - store_artifacts:
