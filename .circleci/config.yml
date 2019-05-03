@@ -51,11 +51,13 @@ jobs:
             - deps-cache1-
       - run: npx npm@6.9 ci
       - save_cache:
+          name: Saving Dependency Cache
           key: deps-cache1-{{ checksum "package.json" }}-{{ checksum "package-lock.json" }}
           paths:
             - ~/.npm
       - save_cache:
-          key: deps-installed1-{{ checksum "package.json" }}-{{ checksum "package-lock.json" }}
+          name: Saving Installed Dependencies
+          key: deps-installed1-{{ checksum "package-lock.json" }}
           paths:
             - ./node_modules
       - run: npm test
@@ -66,7 +68,7 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          key: deps-installed1-{{ checksum "package.json" }}-{{ checksum "package-lock.json" }}
+          key: deps-installed1-{{ checksum "package-lock.json" }}
       - run: npx npm@6.9 run build
       - run: tar -czf build.tgz .gcloudignore app.yaml build config
       - store_artifacts:
