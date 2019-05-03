@@ -46,11 +46,12 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - deps3-{{ checksum "package.json" }}
+            - deps3-{{ checksum "package.json" }}-{{ checksum "package-lock.json" }}
+            - deps3-{{ checksum "package.json" }}-
             - deps3-
       - run: npx npm@6.9 install
       - save_cache:
-          key: deps3-{{ checksum "package.json" }}
+          key: deps3-{{ checksum "package.json" }}-{{ checksum "package-lock.json" }}
           paths:
             - ./node_modules
       - run: npm test
@@ -61,7 +62,7 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          key: deps3-{{ checksum "package.json" }}
+          key: deps3-{{ checksum "package.json" }}-{{ checksum "package-lock.json" }}
       - run: npx npm@6.9 run build
       - run: tar -czf build.tgz .gcloudignore app.yaml build config
       - store_artifacts:
