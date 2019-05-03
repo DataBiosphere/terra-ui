@@ -47,6 +47,7 @@
     "validate.js": "^0.12.0"
   },
   "scripts": {
+    "preinstall": "node .hooks/check-engine-light.js",
     "analyze": "npm run build; source-map-explorer build/static/js/main.*",
     "analyze-deps": "npm run build; source-map-explorer build/static/js/2.*",
     "start": "react-app-rewired start",
