@@ -59,8 +59,7 @@ export default _.flow(
       groups: [],
       nameModified: false,
       busy: false,
-      createError: undefined,
-      openFreeCreditsModal: false
+      createError: undefined
     }
   }
 
@@ -116,8 +115,8 @@ export default _.flow(
     const { trialState } = profile
     const { namespace, name, billingProjects, allGroups, groups, description, nameModified, busy, createError } = this.state
     const existingGroups = this.getRequiredGroups()
-    const hasBillingProjects = false//!!billingProjects && !!billingProjects.length
-    const hasFreeCredits = true//trialState === 'Enabled'
+    const hasBillingProjects = !!billingProjects && !!billingProjects.length
+    const hasFreeCredits = trialState === 'Enabled'
     const errors = validate({ namespace, name }, constraints, {
       prettify: v => ({ namespace: 'Billing project', name: 'Name' }[v] || validate.prettify(v))
     })
