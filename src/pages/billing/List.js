@@ -115,9 +115,9 @@ const NewBillingProjectModal = ajaxCaller(class NewBillingProjectModal extends C
         `You don't have access to any billing accounts.  `,
         a({
           style: { color: colors.blue[0], fontWeight: 700 },
-          href: `https://gatkforums.broadinstitute.org/firecloud/discussion/9762/howto-set-up-a-google-billing-account-non-broad-users`,
+          href: `https://broadinstitute.zendesk.com/hc/en-us/articles/360026182251-Billing-Projects-Google-Billing-Accounts-and-Free-Credits`,
           target: '_blank'
-        }, ['Learn how to create a billing account.  ', icon('pop-out', { size: 20 })])
+        }, ['Learn how to create a billing account.', icon('pop-out', { size: 20, style: { marginLeft: '0.5rem' } })])
       ]),
       billingAccounts && billingAccounts.length !== 0 && h(Fragment, [
         h(RequiredFormLabel, ['Enter name']),
@@ -171,7 +171,7 @@ const NewBillingProjectModal = ajaxCaller(class NewBillingProjectModal extends C
             'Need help? ',
             a({
               style: { color: colors.blue[0], fontWeight: 700 },
-              href: `https://gatkforums.broadinstitute.org/firecloud/discussion/9762/howto-set-up-a-google-billing-account-non-broad-users`,
+              href: `https://broadinstitute.zendesk.com/hc/en-us/articles/360026182251-Billing-Projects-Google-Billing-Accounts-and-Free-Credits`,
               target: '_blank'
             }, ['Click here ', icon('pop-out', { size: 12 })]), ' for more information.'
           ])
@@ -308,10 +308,11 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
 })
 
 
-export const addNavPaths = () => {
-  Nav.defPath('billing', {
+export const navPaths = [
+  {
+    name: 'billing',
     path: '/billing',
     component: BillingList,
     title: 'Billing'
-  })
-}
+  }
+]

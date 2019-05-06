@@ -15,9 +15,9 @@ import * as Utils from 'src/libs/utils'
 import validate from 'validate.js'
 
 
-const authDoc = 'https://software.broadinstitute.org/firecloud/documentation/article?id=9524'
-const billingDoc = 'https://gatkforums.broadinstitute.org/firecloud/discussion/9763/howto-create-a-new-firecloud-billing-project'
-const billingMail = 'saturn-dev@broadinstitute.org'
+const authDoc = 'https://broadinstitute.zendesk.com/hc/en-us/articles/360026775691-Managing-Data-Privacy-and-Access-with-Authorization-Domains'
+const billingDoc = 'https://broadinstitute.zendesk.com/hc/en-us/articles/360026182251-Billing-Projects-Google-Billing-Accounts-and-Free-Credits'
+const billingMail = 'terra-support@broadinstitute.zendesk.org'
 
 const constraints = {
   name: {
@@ -144,9 +144,9 @@ export default ajaxCaller(class NewWorkspaceModal extends Component {
         div({ style: { marginTop: '1rem' } }, [
           'Billing projects are currently managed through FireCloud. ',
           link({ target: '_blank', href: billingDoc }, [
-            'Learn how to create a billing project using FireCloud. '
+            'Learn how to create a billing project. '
           ]),
-          'Or, email ', link({ href: `mailto:${billingMail}` }, [billingMail]), ' with questions.'
+          'Email ', link({ href: `mailto:${billingMail}` }, [billingMail]), ' with questions.'
         ])
       ]) : h(Select, {
         isClearable: false,

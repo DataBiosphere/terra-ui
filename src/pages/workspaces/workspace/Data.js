@@ -22,13 +22,12 @@ import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
 import { EntityDeleter, EntityUploader, ReferenceDataDeleter, ReferenceDataImporter, renderDataCell } from 'src/libs/data-utils'
 import { withErrorReporting } from 'src/libs/error'
-import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
-
-
+import { IGVFileSelector } from 'src/components/IGVFileSelector'
+import { IGVBrowser } from 'src/components/IGVBrowser'
 const localVariables = 'localVariables'
 const bucketObjects = '__bucket_objects__'
 
@@ -340,7 +339,9 @@ class EntitiesContent extends Component {
     this.state = {
       selectedEntities: {},
       deletingEntities: false,
-      refreshKey: 0
+      refreshKey: 0,
+      igvFiles: undefined,
+      showIgvSelector: false
     }
     this.downloadForm = createRef()
   }
@@ -402,6 +403,21 @@ class EntitiesContent extends Component {
     ])
   }
 
+  renderIgvButton() {
+    const { selectedEntities } = this.state
+
+    return h(Fragment, [
+      buttonPrimary({
+        style: { marginRight: '1rem' },
+        disabled: _.isEmpty(selectedEntities),
+        tooltip: 'Opens files of the selected data with IGV',
+        onClick: () => this.setState({ showIgvSelector: true })
+      }, [
+        'Open with IGV'
+      ])
+    ])
+  }
+
   renderOpenInDataExplorerButton() {
     const { workspace: { workspace: { workspaceId } } } = this.props
     const { selectedEntities } = this.state
@@ -437,14 +453,13 @@ class EntitiesContent extends Component {
 
   render() {
     const {
-      workspace, workspace: { accessLevel, workspace: { namespace, name }, workspaceSubmissionStats: { runningSubmissionsCount } },
+      workspace, workspace: { workspace: { namespace, name }, workspaceSubmissionStats: { runningSubmissionsCount } },
       entityKey, entityMetadata, loadMetadata, firstRender
     } = this.props
-    const { selectedEntities, deletingEntities, copyingEntities, refreshKey } = this.state
+    const { selectedEntities, deletingEntities, copyingEntities, refreshKey, igvFiles, showIgvSelector } = this.state
 
     const { initialX, initialY } = firstRender ? StateHistory.get() : {}
-
-    return h(Fragment, [
+    return igvFiles ? h(IGVBrowser, { selectedFiles: igvFiles, refGenome: 'hg19', namespace }) : h(Fragment, [
       h(DataTable, {
         persist: true, firstRender, refreshKey,
         entityType: entityKey, entityMetadata, workspaceId: { namespace, name },
@@ -452,7 +467,7 @@ class EntitiesContent extends Component {
         selectionModel: {
           type: 'multiple',
           selected: selectedEntities,
-          setSelected: Utils.canWrite(accessLevel) && (e => this.setState({ selectedEntities: e }))
+          setSelected: e => this.setState({ selectedEntities: e })
         },
         childrenBefore: ({ entities, columnSettings }) => div({
           style: { display: 'flex', alignItems: 'center', flex: 'none' }
@@ -460,7 +475,8 @@ class EntitiesContent extends Component {
           this.renderOpenInDataExplorerButton()
         ] : [
           this.renderDownloadButton(columnSettings),
-          this.renderCopyButton(entities, columnSettings)
+          this.renderCopyButton(entities, columnSettings),
+          this.renderIgvButton()
         ])
       }),
       !_.isEmpty(selectedEntities) && h(FloatingActionButton, {
@@ -490,6 +506,11 @@ class EntitiesContent extends Component {
         onDismiss: () => this.setState({ copyingEntities: false }),
         workspace,
         selectedEntities: _.keys(selectedEntities), selectedDataType: entityKey, runningSubmissionsCount
+      }),
+      showIgvSelector && h(IGVFileSelector, {
+        onDismiss: () => this.setState({ showIgvSelector: false }),
+        onSuccess: selectedFiles => this.setState({ showIgvSelector: false, igvFiles: selectedFiles }),
+        selectedEntities
       })
     ])
   }
@@ -842,10 +863,11 @@ const WorkspaceData = _.flow(
   }
 })
 
-export const addNavPaths = () => {
-  Nav.defPath('workspace-data', {
+export const navPaths = [
+  {
+    name: 'workspace-data',
     path: '/workspaces/:namespace/:name/data',
     component: WorkspaceData,
     title: ({ name }) => `${name} - Data`
-  })
-}
+  }
+]

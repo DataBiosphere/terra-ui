@@ -1,11 +1,11 @@
 import { Component } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
-import { backgroundLogo, buttonPrimary, buttonSecondary, Markdown } from 'src/components/common'
+import { backgroundLogo, buttonPrimary, buttonSecondary } from 'src/components/common'
+import { Markdown } from 'src/components/Markdown'
 import { Ajax } from 'src/libs/ajax'
 import { authStore, signOut } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
-import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 
 // When updating the TOS, make sure you:
@@ -97,7 +97,7 @@ data from TCGA. These workspaces are intended for tutorial purposes only, not fo
 personal data.
 
 You must not upload your own data sets to these workspaces, nor should you add tools (Method
-Configs). If you do not follow these guidelines, your Firecloud account may be deactivated.
+Configs). If you do not follow these guidelines, your Terra/Firecloud account may be deactivated.
 
 #### Accessing a Government Website
 
@@ -171,7 +171,7 @@ Terra does offer clinical compliance features as part of its service ("Complianc
 for users who wish to upload, store, or otherwise transfer PHI, as well as users who are using the Site
 in connection with their clinical operations. Users who desire to upload, store, or otherwise transfer
 PHI using the Site must implement all of the required Clinical Features and must enter a formal agreement
-with Firecloud stating that. The uploading, storing, or transferring of PHI using the Site by users
+with Terra/Firecloud stating that. The uploading, storing, or transferring of PHI using the Site by users
 that have not implemented the Clinical Features is strictly prohibited. You agree that, unless you have
 implemented the Clinical Features, you will not upload, store, or otherwise transfer PHI using the Site.
 
@@ -258,11 +258,12 @@ class TermsOfServicePage extends Component {
   }
 }
 
-export const addNavPaths = () => {
-  Nav.defPath('terms-of-service', {
+export const navPaths = [
+  {
+    name: 'terms-of-service',
     path: '/terms-of-service',
     component: TermsOfServicePage,
     public: true,
     title: 'Terms of Service'
-  })
-}
+  }
+]
