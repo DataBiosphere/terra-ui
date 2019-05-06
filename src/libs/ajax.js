@@ -626,8 +626,15 @@ const Workspaces = signal => ({
         return res.json()
       },
 
-      updateTags: async (method, tags) => {
-        const res = await fetchOrchestration(`api/workspaces/${namespace}/${name}/tags`, _.merge(authOpts(), { body: tags, signal, method }))
+      addTag: async tags => {
+        const res = await fetchOrchestration(`api/workspaces/${namespace}/${name}/tags`, _.merge(authOpts(), { body: JSON.stringify([tags]), signal, method: 'PATCH', headers: { 'Content-Type': 'application/json' } }))
+        console.log(res)
+        console.log(res.json)
+        return res.json()
+      },
+
+      deleteTag: async tags => {
+        const res = await fetchOrchestration(`api/workspaces/${namespace}/${name}/tags`, _.merge(authOpts(), { body: jsonBody(tags), signal, method: 'DELETE'  }))
         return res.json()
       }
 

@@ -109,7 +109,9 @@ export const WorkspaceDashboard = _.flow(
     this.loadStorageCost()
     this.loadConsent()
     this.loadTags()
-    this.updateTags()
+    const { ajax: { Workspaces }, namespace, name } = this.props
+    const res = await Workspaces.workspace(namespace, name).addTag('tag from dash')
+    console.log(res)
   }
 
   loadSubmissionCount = withErrorReporting('Error loading data', async () => {
@@ -153,10 +155,16 @@ export const WorkspaceDashboard = _.flow(
     console.log(wsTags)
   })
 
-  updateTags = withErrorReporting('Error adding tags', async (method, tags) => {
+  addTag = withErrorReporting('Error adding tag', async tag => {
     const { ajax: { Workspaces }, namespace, name } = this.props
-    const updateTags = await Workspaces.workspace(namespace, name).updateTags(method, tags)
-    console.log(updateTags)
+    const addTags = await Workspaces.workspace(namespace, name).addTag(tag)
+    console.log(addTags)
+  })
+
+  deleteTag = withErrorReporting('Error removing tag', async tags => {
+    const { ajax: { Workspaces }, namespace, name } = this.props
+    const updatedTags = await Workspaces.workspace(namespace, name).deleteTag(tags)
+    console.log(updatedTags)
   })
 
   async save() {
