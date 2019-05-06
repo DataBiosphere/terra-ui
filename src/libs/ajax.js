@@ -14,31 +14,30 @@ let noConnection
 const consoleStyle = 'font-weight: bold; color: darkBlue'
 
 window.saturnMock = {
-  currently: function() {
-    if (noConnection || mockResponse) {
-      if (noConnection) { console.info('%cSimulating no connection', consoleStyle) }
-      if (mockResponse) {
-        console.info('%cSimulating response:', consoleStyle)
-        console.info(mockResponse())
-      }
-    } else {
-      console.info('%cNot mocking responses', consoleStyle)
+    currently: function() {
+        if (noConnection || mockResponse) {
+            if (noConnection) { console.info('%cSimulating no connection', consoleStyle) }
+            if (mockResponse) {
+                console.info('%cSimulating response:', consoleStyle)
+                console.info(mockResponse())
+            }
+        } else {
+            console.info('%cNot mocking responses', consoleStyle)
+        }
+    },
+    malformed: function() {
+        mockResponse = () => new Response('{malformed', { status: 200 })
+    },
+    noConnection: function() {
+        noConnection = true
+    },
+    off: function() {
+        mockResponse = undefined
+        noConnection = undefined
+    },
+    status: function(code) {
+        mockResponse = () => new Response(new Blob([`Body of simulated ${code} response`]), { status: code })
     }
-  },
-  malformed: function() {
-    mockResponse = () => new Response('{malformed', { status: 200 })
-  },
-  noConnection: function() {
-    noConnection = true
-  },
-  off: function() {
-    mockResponse = undefined
-    noConnection = undefined
-  },
-  status: function(code) {
-    mockResponse = () => new Response(new Blob([`Body of simulated ${code} response`]),
-      { status: code })
-  }
 }
 
 const authOpts = (token = getUser().token) => ({ headers: { Authorization: `Bearer ${token}` } })
@@ -48,34 +47,34 @@ const addAppIdentifier = _.merge(appIdentifier)
 const tosData = { appid: 'Saturn', tosversion: 4 }
 
 const instrumentedFetch = (url, options) => {
-  if (noConnection) {
-    console.info('%cSimulating no connection', consoleStyle)
-    return Promise.reject(new TypeError('Simulating no connection'))
-  } else if (mockResponse) {
-    console.info('%cSimulating response:', consoleStyle, mockResponse())
-    return Promise.resolve(mockResponse())
-  }
+    if (noConnection) {
+        console.info('%cSimulating no connection', consoleStyle)
+        return Promise.reject(new TypeError('Simulating no connection'))
+    } else if (mockResponse) {
+        console.info('%cSimulating response:', consoleStyle, mockResponse())
+        return Promise.resolve(mockResponse())
+    }
 
-  return new Promise((resolve, reject) => {
-    fetch(url, options).then(resolve, error => {
-      if (error instanceof DOMException && error.name === 'AbortError') {
-        // no-op, this is from an aborted call
-      } else {
-        reject(error)
-      }
+    return new Promise((resolve, reject) => {
+        fetch(url, options).then(resolve, error => {
+            if (error instanceof DOMException && error.name === 'AbortError') {
+                // no-op, this is from an aborted call
+            } else {
+                reject(error)
+            }
+        })
     })
-  })
 }
 
 
-export const fetchOk = async (url, options) => {
-  const res = await instrumentedFetch(url, options)
-  return res.ok ? res : Promise.reject(res)
+export const fetchOk = async(url, options) => {
+    const res = await instrumentedFetch(url, options)
+    return res.ok ? res : Promise.reject(res)
 }
 
 
-const fetchSam = async (path, options) => {
-  return fetchOk(`${getConfig().samUrlRoot}/${path}`, addAppIdentifier(options))
+const fetchSam = async(path, options) => {
+    return fetchOk(`${getConfig().samUrlRoot}/${path}`, addAppIdentifier(options))
 }
 
 const fetchBuckets = (path, options) => fetchOk(`https://www.googleapis.com/${path}`, options)
@@ -83,622 +82,623 @@ const nbName = name => encodeURIComponent(`notebooks/${name}.ipynb`)
 
 const fetchGoogleBilling = (path, options) => fetchOk(`https://cloudbilling.googleapis.com/v1/${path}`, options)
 
-const fetchRawls = async (path, options) => {
-  return fetchOk(`${getConfig().rawlsUrlRoot}/api/${path}`, addAppIdentifier(options))
+const fetchRawls = async(path, options) => {
+    return fetchOk(`${getConfig().rawlsUrlRoot}/api/${path}`, addAppIdentifier(options))
 }
 
-const fetchLeo = async (path, options) => {
-  return fetchOk(`${getConfig().leoUrlRoot}/${path}`, options)
+const fetchLeo = async(path, options) => {
+    return fetchOk(`${getConfig().leoUrlRoot}/${path}`, options)
 }
 
-const fetchDockstore = async (path, options) => {
-  return fetchOk(`${getConfig().dockstoreUrlRoot}/api/${path}`, options)
-}
-// %23 = '#', %2F = '/'
+const fetchDockstore = async(path, options) => {
+        return fetchOk(`${getConfig().dockstoreUrlRoot}/api/${path}`, options)
+    }
+    // %23 = '#', %2F = '/'
 const dockstoreMethodPath = path => `api/ga4gh/v1/tools/%23workflow%2F${encodeURIComponent(path)}/versions`
 
-const fetchAgora = async (path, options) => {
-  return fetchOk(`${getConfig().agoraUrlRoot}/api/v1/${path}`, addAppIdentifier(options))
+const fetchAgora = async(path, options) => {
+    return fetchOk(`${getConfig().agoraUrlRoot}/api/v1/${path}`, addAppIdentifier(options))
 }
 
-const fetchOrchestration = async (path, options) => {
-  return fetchOk(`${getConfig().orchestrationUrlRoot}/${path}`, addAppIdentifier(options))
+const fetchOrchestration = async(path, options) => {
+    return fetchOk(`${getConfig().orchestrationUrlRoot}/${path}`, addAppIdentifier(options))
 }
 
-const fetchRex = async (path, options) => {
-  return fetchOk(`${getConfig().rexUrlRoot}/api/${path}`, options)
+const fetchRex = async(path, options) => {
+    return fetchOk(`${getConfig().rexUrlRoot}/api/${path}`, options)
 }
 
-const fetchBond = async (path, options) => {
-  return fetchOk(`${getConfig().bondUrlRoot}/${path}`, options)
+const fetchBond = async(path, options) => {
+    return fetchOk(`${getConfig().bondUrlRoot}/${path}`, options)
 }
 
 
 const User = signal => ({
-  token: Utils.memoizeWithTimeout(async namespace => {
-    const scopes = ['https://www.googleapis.com/auth/devstorage.full_control']
-    const res = await fetchSam(
-      `api/google/user/petServiceAccount/${namespace}/token`,
-      _.mergeAll([authOpts(), jsonBody(scopes), { signal, method: 'POST' }])
-    )
-    return res.json()
-  }, namespace => namespace, 1000 * 60 * 30),
+    token: Utils.memoizeWithTimeout(async namespace => {
+        const scopes = ['https://www.googleapis.com/auth/devstorage.full_control']
+        const res = await fetchSam(
+            `api/google/user/petServiceAccount/${namespace}/token`,
+            _.mergeAll([authOpts(), jsonBody(scopes), { signal, method: 'POST' }])
+        )
+        return res.json()
+    }, namespace => namespace, 1000 * 60 * 30),
 
-  getStatus: async () => {
-    return instrumentedFetch(`${getConfig().samUrlRoot}/register/user/v2/self/info`, _.mergeAll([authOpts(), { signal }, appIdentifier]))
-  },
-
-  profile: {
-    get: async () => {
-      const res = await fetchOrchestration('register/profile', _.merge(authOpts(), { signal }))
-      return res.json()
+    getStatus: async() => {
+        return instrumentedFetch(`${getConfig().samUrlRoot}/register/user/v2/self/info`, _.mergeAll([authOpts(), { signal }, appIdentifier]))
     },
 
-    //We are not calling SAM directly because free credits logic is in orchestration
-    set: keysAndValues => {
-      const blankProfile = {
-        firstName: 'N/A',
-        lastName: 'N/A',
-        title: 'N/A',
-        institute: 'N/A',
-        institutionalProgram: 'N/A',
-        programLocationCity: 'N/A',
-        programLocationState: 'N/A',
-        programLocationCountry: 'N/A',
-        pi: 'N/A',
-        nonProfitStatus: 'N/A'
-      }
-      return fetchOrchestration(
-        'register/profile',
-        _.mergeAll([authOpts(), jsonBody(_.merge(blankProfile, keysAndValues)), { signal, method: 'POST' }])
-      )
-    },
+    profile: {
+        get: async() => {
+            const res = await fetchOrchestration('register/profile', _.merge(authOpts(), { signal }))
+            return res.json()
+        },
 
-    setPreferences: body => {
-      return fetchOrchestration('api/profile/preferences', _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }]))
-    },
+        //We are not calling SAM directly because free credits logic is in orchestration
+        set: keysAndValues => {
+            const blankProfile = {
+                firstName: 'N/A',
+                lastName: 'N/A',
+                title: 'N/A',
+                institute: 'N/A',
+                institutionalProgram: 'N/A',
+                programLocationCity: 'N/A',
+                programLocationState: 'N/A',
+                programLocationCountry: 'N/A',
+                pi: 'N/A',
+                nonProfitStatus: 'N/A'
+            }
+            return fetchOrchestration(
+                'register/profile',
+                _.mergeAll([authOpts(), jsonBody(_.merge(blankProfile, keysAndValues)), { signal, method: 'POST' }])
+            )
+        },
 
-    preferLegacyFirecloud: () => {
-      return fetchOrchestration('api/profile/terra', _.mergeAll([authOpts(), { signal, method: 'DELETE' }]))
-    }
-  },
+        setPreferences: body => {
+            return fetchOrchestration('api/profile/preferences', _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }]))
+        },
 
-  acceptEula: async () => {
-    return fetchOrchestration('api/profile/trial/userAgreement', _.merge(authOpts(), { signal, method: 'PUT' }))
-  },
-
-  startTrial: async () => {
-    return fetchOrchestration('api/profile/trial', _.merge(authOpts(), { signal, method: 'POST' }))
-  },
-
-  finalizeTrial: async () => {
-    return fetchOrchestration('api/profile/trial?operation=finalize', _.merge(authOpts(), { signal, method: 'POST' }))
-  },
-
-  getProxyGroup: async email => {
-    const res = await fetchOrchestration(`api/proxyGroup/${email}`, _.merge(authOpts(), { signal }))
-    return res.json()
-  },
-
-  getTosAccepted: async () => {
-    const url = `${getConfig().tosUrlRoot}/user/response?${qs.stringify(tosData)}`
-    const res = await instrumentedFetch(url, _.merge(authOpts(), { signal }))
-    if (res.status === 403 || res.status === 404) {
-      return false
-    }
-    if (!res.ok) {
-      throw res
-    }
-    const { accepted } = await res.json()
-    return accepted
-  },
-
-  acceptTos: async () => {
-    await fetchOk(
-      `${getConfig().tosUrlRoot}/user/response`,
-      _.mergeAll([authOpts(), { signal, method: 'POST' }, jsonBody({ ...tosData, accepted: true })])
-    )
-  },
-
-  // If you are making changes to the Support Request Modal, make sure you test the following:
-  // 1. Submit a ticket via Terra while signed in and signed out
-  // 2. Check the tickets are generated on Zendesk
-  // 3. Reply internally (as a Light Agent) and make sure an email is not sent
-  // 4. Reply externally (ask one of the Comms team with Full Agent access) and make sure you receive an email
-  createSupportRequest: async ({ name, email, currUrl, subject, type, description, attachmentToken, emailAgreed }) => {
-    return fetchOk(
-      `https://broadinstitute.zendesk.com/api/v2/requests.json`,
-      _.merge({ signal, method: 'POST' }, jsonBody({
-        request: {
-          requester: { name, email },
-          subject,
-          // BEWARE changing the following ids or values! If you change them then you must thoroughly test.
-          'custom_fields': [
-            { id: 360012744452, value: type },
-            { id: 360007369412, value: description },
-            { id: 360012744292, value: name },
-            { id: 360012782111, value: email },
-            { id: 360018545031, value: emailAgreed }
-          ],
-          comment: {
-            body: `${description}\n\n------------------\nSubmitted from: ${currUrl}`,
-            uploads: [`${attachmentToken}`]
-          }
+        preferLegacyFirecloud: () => {
+            return fetchOrchestration('api/profile/terra', _.mergeAll([authOpts(), { signal, method: 'DELETE' }]))
         }
-      })))
-  },
+    },
 
-  uploadAttachment: async file => {
-    const res = await fetchOk(`https://broadinstitute.zendesk.com/api/v2/uploads?filename=${file.name}`, {
-      method: 'POST',
-      body: file,
-      headers: {
-        'Content-Type': 'application/binary'
-      }
-    })
-    return (await res.json()).upload
-  },
+    acceptEula: async() => {
+        return fetchOrchestration('api/profile/trial/userAgreement', _.merge(authOpts(), { signal, method: 'PUT' }))
+    },
 
-  firstTimestamp: async () => {
-    const res = await fetchRex('firstTimestamps/record', _.mergeAll([authOpts(), { signal, method: 'POST' }]))
-    return res.json()
-  },
+    startTrial: async() => {
+        return fetchOrchestration('api/profile/trial', _.merge(authOpts(), { signal, method: 'POST' }))
+    },
 
-  lastNpsResponse: async () => {
-    const res = await fetchRex('npsResponses/lastTimestamp', _.merge(authOpts(), { signal }))
-    return res.json()
-  },
+    finalizeTrial: async() => {
+        return fetchOrchestration('api/profile/trial?operation=finalize', _.merge(authOpts(), { signal, method: 'POST' }))
+    },
 
-  postNpsResponse: async body => {
-    return fetchRex('npsResponses/create', _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }]))
-  },
+    getProxyGroup: async email => {
+        const res = await fetchOrchestration(`api/proxyGroup/${email}`, _.merge(authOpts(), { signal }))
+        return res.json()
+    },
 
-  getNihStatus: async () => {
-    const res = await fetchOrchestration('api/nih/status', _.merge(authOpts(), { signal }))
-    return res.json()
-  },
+    getTosAccepted: async() => {
+        const url = `${getConfig().tosUrlRoot}/user/response?${qs.stringify(tosData)}`
+        const res = await instrumentedFetch(url, _.merge(authOpts(), { signal }))
+        if (res.status === 403 || res.status === 404) {
+            return false
+        }
+        if (!res.ok) {
+            throw res
+        }
+        const { accepted } = await res.json()
+        return accepted
+    },
 
-  linkNihAccount: async token => {
-    const res = await fetchOrchestration('api/nih/callback', _.mergeAll([authOpts(), jsonBody({ jwt: token }), { signal, method: 'POST' }]))
-    return res.json()
-  },
+    acceptTos: async() => {
+        await fetchOk(
+            `${getConfig().tosUrlRoot}/user/response`,
+            _.mergeAll([authOpts(), { signal, method: 'POST' }, jsonBody({...tosData, accepted: true })])
+        )
+    },
 
-  getFenceStatus: async provider => {
-    const res = await fetchBond(`api/link/v1/${provider}`, _.merge(authOpts(), { signal }))
-    return res.json()
-  },
+    // If you are making changes to the Support Request Modal, make sure you test the following:
+    // 1. Submit a ticket via Terra while signed in and signed out
+    // 2. Check the tickets are generated on Zendesk
+    // 3. Reply internally (as a Light Agent) and make sure an email is not sent
+    // 4. Reply externally (ask one of the Comms team with Full Agent access) and make sure you receive an email
+    createSupportRequest: async({ name, email, currUrl, subject, type, description, attachmentToken, emailAgreed }) => {
+        return fetchOk(
+            `https://broadinstitute.zendesk.com/api/v2/requests.json`,
+            _.merge({ signal, method: 'POST' }, jsonBody({
+                request: {
+                    requester: { name, email },
+                    subject,
+                    // BEWARE changing the following ids or values! If you change them then you must thoroughly test.
+                    'custom_fields': [
+                        { id: 360012744452, value: type },
+                        { id: 360007369412, value: description },
+                        { id: 360012744292, value: name },
+                        { id: 360012782111, value: email },
+                        { id: 360018545031, value: emailAgreed }
+                    ],
+                    comment: {
+                        body: `${description}\n\n------------------\nSubmitted from: ${currUrl}`,
+                        uploads: [`${attachmentToken}`]
+                    }
+                }
+            })))
+    },
 
-  getFenceAuthUrl: async (provider, redirectUri) => {
-    const queryParams = {
-      'scopes': ['openid', 'google_credentials'],
-      'redirect_uri': redirectUri,
-      'state': btoa(JSON.stringify({ provider }))
+    uploadAttachment: async file => {
+        const res = await fetchOk(`https://broadinstitute.zendesk.com/api/v2/uploads?filename=${file.name}`, {
+            method: 'POST',
+            body: file,
+            headers: {
+                'Content-Type': 'application/binary'
+            }
+        })
+        return (await res.json()).upload
+    },
+
+    firstTimestamp: async() => {
+        const res = await fetchRex('firstTimestamps/record', _.mergeAll([authOpts(), { signal, method: 'POST' }]))
+        return res.json()
+    },
+
+    lastNpsResponse: async() => {
+        const res = await fetchRex('npsResponses/lastTimestamp', _.merge(authOpts(), { signal }))
+        return res.json()
+    },
+
+    postNpsResponse: async body => {
+        return fetchRex('npsResponses/create', _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }]))
+    },
+
+    getNihStatus: async() => {
+        const res = await fetchOrchestration('api/nih/status', _.merge(authOpts(), { signal }))
+        return res.json()
+    },
+
+    linkNihAccount: async token => {
+        const res = await fetchOrchestration('api/nih/callback', _.mergeAll([authOpts(), jsonBody({ jwt: token }), { signal, method: 'POST' }]))
+        return res.json()
+    },
+
+    getFenceStatus: async provider => {
+        const res = await fetchBond(`api/link/v1/${provider}`, _.merge(authOpts(), { signal }))
+        return res.json()
+    },
+
+    getFenceAuthUrl: async(provider, redirectUri) => {
+        const queryParams = {
+            'scopes': ['openid', 'google_credentials'],
+            'redirect_uri': redirectUri,
+            'state': btoa(JSON.stringify({ provider }))
+        }
+        const res = await fetchBond(`api/link/v1/${provider}/authorization-url?${qs.stringify(queryParams)}`, { signal })
+        return res.json()
+    },
+
+    linkFenceAccount: async(provider, authCode, redirectUri) => {
+        const queryParams = {
+            'oauthcode': authCode,
+            'redirect_uri': redirectUri
+        }
+        const res = await fetchBond(`api/link/v1/${provider}/oauthcode?${qs.stringify(queryParams)}`, _.merge(authOpts(), { signal, method: 'POST' }))
+        return res.json()
     }
-    const res = await fetchBond(`api/link/v1/${provider}/authorization-url?${qs.stringify(queryParams)}`, { signal })
-    return res.json()
-  },
-
-  linkFenceAccount: async (provider, authCode, redirectUri) => {
-    const queryParams = {
-      'oauthcode': authCode,
-      'redirect_uri': redirectUri
-    }
-    const res = await fetchBond(`api/link/v1/${provider}/oauthcode?${qs.stringify(queryParams)}`, _.merge(authOpts(), { signal, method: 'POST' }))
-    return res.json()
-  }
 })
 
 const Groups = signal => ({
-  list: async () => {
-    const res = await fetchSam('api/groups/v1', _.merge(authOpts(), { signal }))
-    return res.json()
-  },
-
-  group: groupName => {
-    const root = `api/groups/v1/${groupName}`
-
-    const addRole = async (role, email) => {
-      return fetchSam(`${root}/${role}/${email}`, _.merge(authOpts(), { signal, method: 'PUT' }))
-    }
-
-    const removeRole = async (role, email) => {
-      return fetchSam(`${root}/${role}/${email}`, _.merge(authOpts(), { signal, method: 'DELETE' }))
-    }
-
-    return {
-      create: () => {
-        return fetchSam(root, _.merge(authOpts(), { signal, method: 'POST' }))
-      },
-
-      delete: () => {
-        return fetchSam(root, _.merge(authOpts(), { signal, method: 'DELETE' }))
-      },
-
-      listAdmins: async () => {
-        const res = await fetchSam(`${root}/admin`, _.merge(authOpts(), { signal }))
+    list: async() => {
+        const res = await fetchSam('api/groups/v1', _.merge(authOpts(), { signal }))
         return res.json()
-      },
+    },
 
-      listMembers: async () => {
-        const res = await fetchSam(`${root}/member`, _.merge(authOpts(), { signal }))
-        return res.json()
-      },
+    group: groupName => {
+        const root = `api/groups/v1/${groupName}`
 
-      addUser: async (roles, email) => {
-        return Promise.all(_.map(role => addRole(role, email), roles))
-      },
-
-      removeUser: async (roles, email) => {
-        return Promise.all(_.map(role => removeRole(role, email), roles))
-      },
-
-      changeUserRoles: async (email, oldRoles, newRoles) => {
-        if (!_.isEqual(oldRoles, newRoles)) {
-          await Promise.all(_.map(role => addRole(role, email), _.difference(newRoles, oldRoles)))
-          return Promise.all(_.map(role => removeRole(role, email), _.difference(oldRoles, newRoles)))
+        const addRole = async(role, email) => {
+            return fetchSam(`${root}/${role}/${email}`, _.merge(authOpts(), { signal, method: 'PUT' }))
         }
-      }
+
+        const removeRole = async(role, email) => {
+            return fetchSam(`${root}/${role}/${email}`, _.merge(authOpts(), { signal, method: 'DELETE' }))
+        }
+
+        return {
+            create: () => {
+                return fetchSam(root, _.merge(authOpts(), { signal, method: 'POST' }))
+            },
+
+            delete: () => {
+                return fetchSam(root, _.merge(authOpts(), { signal, method: 'DELETE' }))
+            },
+
+            listAdmins: async() => {
+                const res = await fetchSam(`${root}/admin`, _.merge(authOpts(), { signal }))
+                return res.json()
+            },
+
+            listMembers: async() => {
+                const res = await fetchSam(`${root}/member`, _.merge(authOpts(), { signal }))
+                return res.json()
+            },
+
+            addUser: async(roles, email) => {
+                return Promise.all(_.map(role => addRole(role, email), roles))
+            },
+
+            removeUser: async(roles, email) => {
+                return Promise.all(_.map(role => removeRole(role, email), roles))
+            },
+
+            changeUserRoles: async(email, oldRoles, newRoles) => {
+                if (!_.isEqual(oldRoles, newRoles)) {
+                    await Promise.all(_.map(role => addRole(role, email), _.difference(newRoles, oldRoles)))
+                    return Promise.all(_.map(role => removeRole(role, email), _.difference(oldRoles, newRoles)))
+                }
+            }
+        }
     }
-  }
 })
 
 
 const Billing = signal => ({
-  listProjects: async () => {
-    const res = await fetchRawls('user/billing', _.merge(authOpts(), { signal }))
-    return res.json()
-  },
-
-  listAccounts: async () => {
-    const res = await fetchRawls('user/billingAccounts', _.merge(authOpts(), { signal }))
-    return res.json()
-  },
-
-  createProject: async (projectName, billingAccount) => {
-    const res = await fetchRawls('billing',
-      _.mergeAll([authOpts(), jsonBody({ projectName, billingAccount }), { signal, method: 'POST' }]))
-    return res
-  },
-
-  project: projectName => {
-    const root = `billing/${projectName}`
-
-    const removeRole = async (role, email) => {
-      return fetchRawls(`${root}/${role}/${email}`, _.merge(authOpts(), { signal, method: 'DELETE' }))
-    }
-
-    const addRole = async (role, email) => {
-      return fetchRawls(`${root}/${role}/${email}`, _.merge(authOpts(), { signal, method: 'PUT' }))
-    }
-
-    return {
-      listUsers: async () => {
-        const res = await fetchRawls(`${root}/members`, _.merge(authOpts(), { signal }))
+    listProjects: async() => {
+        const res = await fetchRawls('user/billing', _.merge(authOpts(), { signal }))
         return res.json()
-      },
+    },
 
-      addUser: async (roles, email) => {
-        return Promise.all(_.map(role => addRole(role, email), roles))
-      },
+    listAccounts: async() => {
+        const res = await fetchRawls('user/billingAccounts', _.merge(authOpts(), { signal }))
+        return res.json()
+    },
 
-      removeUser: async (roles, email) => {
-        return Promise.all(_.map(role => removeRole(role, email), roles))
-      },
+    createProject: async(projectName, billingAccount) => {
+        const res = await fetchRawls('billing',
+            _.mergeAll([authOpts(), jsonBody({ projectName, billingAccount }), { signal, method: 'POST' }]))
+        return res
+    },
 
-      changeUserRoles: async (email, oldRoles, newRoles) => {
-        if (!_.isEqual(oldRoles, newRoles)) {
-          await Promise.all(_.map(role => addRole(role, email), _.difference(newRoles, oldRoles)))
-          return Promise.all(_.map(role => removeRole(role, email), _.difference(oldRoles, newRoles)))
+    project: projectName => {
+        const root = `billing/${projectName}`
+
+        const removeRole = async(role, email) => {
+            return fetchRawls(`${root}/${role}/${email}`, _.merge(authOpts(), { signal, method: 'DELETE' }))
         }
-      }
+
+        const addRole = async(role, email) => {
+            return fetchRawls(`${root}/${role}/${email}`, _.merge(authOpts(), { signal, method: 'PUT' }))
+        }
+
+        return {
+            listUsers: async() => {
+                const res = await fetchRawls(`${root}/members`, _.merge(authOpts(), { signal }))
+                return res.json()
+            },
+
+            addUser: async(roles, email) => {
+                return Promise.all(_.map(role => addRole(role, email), roles))
+            },
+
+            removeUser: async(roles, email) => {
+                return Promise.all(_.map(role => removeRole(role, email), roles))
+            },
+
+            changeUserRoles: async(email, oldRoles, newRoles) => {
+                if (!_.isEqual(oldRoles, newRoles)) {
+                    await Promise.all(_.map(role => addRole(role, email), _.difference(newRoles, oldRoles)))
+                    return Promise.all(_.map(role => removeRole(role, email), _.difference(oldRoles, newRoles)))
+                }
+            }
+        }
     }
-  }
 })
 
 const attributesUpdateOps = _.flow(
-  _.toPairs,
-  _.flatMap(([k, v]) => {
-    return _.isArray(v) ?
-      [{ op: 'RemoveAttribute', attributeName: k }, ..._.map(x => ({ op: 'AddListMember', attributeListName: k, newMember: x }), v)] :
-      [{ op: 'AddUpdateAttribute', attributeName: k, addUpdateAttribute: v }]
-  })
+    _.toPairs,
+    _.flatMap(([k, v]) => {
+        return _.isArray(v) ? [{ op: 'RemoveAttribute', attributeName: k }, ..._.map(x => ({ op: 'AddListMember', attributeListName: k, newMember: x }), v)] : [{ op: 'AddUpdateAttribute', attributeName: k, addUpdateAttribute: v }]
+    })
 )
 
 const Workspaces = signal => ({
-  list: async () => {
-    const res = await fetchRawls('workspaces', _.merge(authOpts(), { signal }))
-    return res.json()
-  },
-
-  create: async body => {
-    const res = await fetchRawls('workspaces', _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }]))
-    return res.json()
-  },
-
-  getShareLog: async () => {
-    const res = await fetchOrchestration('api/sharelog/sharees?shareType=workspace', _.merge(authOpts(), { signal }))
-    return res.json()
-  },
-
-  getTags: async () => {
-    const res = await fetchRawls('workspaces/tags', _.merge(authOpts(), { signal }))
-    return res.json()
-  },
-
-  workspace: (namespace, name) => {
-    const root = `workspaces/${namespace}/${name}`
-    const mcPath = `${root}/methodconfigs`
-
-    return {
-      details: async () => {
-        const res = await fetchRawls(root, _.merge(authOpts(), { signal }))
+    list: async() => {
+        const res = await fetchRawls('workspaces', _.merge(authOpts(), { signal }))
         return res.json()
-      },
+    },
 
-      getAcl: async () => {
-        const res = await fetchRawls(`${root}/acl`, _.merge(authOpts(), { signal }))
+    create: async body => {
+        const res = await fetchRawls('workspaces', _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }]))
         return res.json()
-      },
+    },
 
-      updateAcl: async (aclUpdates, inviteNew = true) => {
-        const res = await fetchRawls(`${root}/acl?inviteUsersNotFound=${inviteNew}`,
-          _.mergeAll([authOpts(), jsonBody(aclUpdates), { signal, method: 'PATCH' }]))
+    getShareLog: async() => {
+        const res = await fetchOrchestration('api/sharelog/sharees?shareType=workspace', _.merge(authOpts(), { signal }))
         return res.json()
-      },
+    },
 
-      entityMetadata: async () => {
-        const res = await fetchRawls(`${root}/entities`, _.merge(authOpts(), { signal }))
+    getTags: async() => {
+        const res = await fetchRawls('workspaces/tags', _.merge(authOpts(), { signal }))
         return res.json()
-      },
+    },
 
-      createEntity: async payload => {
-        const res = await fetchRawls(`${root}/entities`, _.mergeAll([authOpts(), jsonBody(payload), { signal, method: 'POST' }]))
-        return res.json()
-      },
-
-      entitiesOfType: async type => {
-        const res = await fetchRawls(`${root}/entities/${type}`, _.merge(authOpts(), { signal }))
-        return res.json()
-      },
-
-      paginatedEntitiesOfType: async (type, parameters) => {
-        const res = await fetchRawls(`${root}/entityQuery/${type}?${qs.stringify(parameters)}`, _.merge(authOpts(), { signal }))
-        return res.json()
-      },
-
-      listMethodConfigs: async (allRepos = true) => {
-        const res = await fetchRawls(`${mcPath}?allRepos=${allRepos}`, _.merge(authOpts(), { signal }))
-        return res.json()
-      },
-
-      importMethodConfigFromDocker: payload => {
-        return fetchRawls(mcPath, _.mergeAll([authOpts(), jsonBody(payload), { signal, method: 'POST' }]))
-      },
-
-      methodConfig: (configNamespace, configName) => {
-        const path = `${mcPath}/${configNamespace}/${configName}`
+    workspace: (namespace, name) => {
+        const root = `workspaces/${namespace}/${name}`
+        const mcPath = `${root}/methodconfigs`
 
         return {
-          get: async () => {
-            const res = await fetchRawls(path, _.merge(authOpts(), { signal }))
-            return res.json()
-          },
+            details: async() => {
+                const res = await fetchRawls(root, _.merge(authOpts(), { signal }))
+                return res.json()
+            },
 
-          save: async payload => {
-            const res = await fetchRawls(path, _.mergeAll([authOpts(), jsonBody(payload), { signal, method: 'POST' }]))
-            return res.json()
-          },
+            getAcl: async() => {
+                const res = await fetchRawls(`${root}/acl`, _.merge(authOpts(), { signal }))
+                return res.json()
+            },
 
-          copyTo: async ({ destConfigNamespace, destConfigName, workspaceName }) => {
-            const payload = {
-              source: { namespace: configNamespace, name: configName, workspaceName: { namespace, name } },
-              destination: { namespace: destConfigNamespace, name: destConfigName, workspaceName }
+            updateAcl: async(aclUpdates, inviteNew = true) => {
+                const res = await fetchRawls(`${root}/acl?inviteUsersNotFound=${inviteNew}`,
+                    _.mergeAll([authOpts(), jsonBody(aclUpdates), { signal, method: 'PATCH' }]))
+                return res.json()
+            },
+
+            entityMetadata: async() => {
+                const res = await fetchRawls(`${root}/entities`, _.merge(authOpts(), { signal }))
+                return res.json()
+            },
+
+            createEntity: async payload => {
+                const res = await fetchRawls(`${root}/entities`, _.mergeAll([authOpts(), jsonBody(payload), { signal, method: 'POST' }]))
+                return res.json()
+            },
+
+            entitiesOfType: async type => {
+                const res = await fetchRawls(`${root}/entities/${type}`, _.merge(authOpts(), { signal }))
+                return res.json()
+            },
+
+            paginatedEntitiesOfType: async(type, parameters) => {
+                const res = await fetchRawls(`${root}/entityQuery/${type}?${qs.stringify(parameters)}`, _.merge(authOpts(), { signal }))
+                return res.json()
+            },
+
+            listMethodConfigs: async(allRepos = true) => {
+                const res = await fetchRawls(`${mcPath}?allRepos=${allRepos}`, _.merge(authOpts(), { signal }))
+                return res.json()
+            },
+
+            importMethodConfigFromDocker: payload => {
+                return fetchRawls(mcPath, _.mergeAll([authOpts(), jsonBody(payload), { signal, method: 'POST' }]))
+            },
+
+            methodConfig: (configNamespace, configName) => {
+                const path = `${mcPath}/${configNamespace}/${configName}`
+
+                return {
+                    get: async() => {
+                        const res = await fetchRawls(path, _.merge(authOpts(), { signal }))
+                        return res.json()
+                    },
+
+                    save: async payload => {
+                        const res = await fetchRawls(path, _.mergeAll([authOpts(), jsonBody(payload), { signal, method: 'POST' }]))
+                        return res.json()
+                    },
+
+                    copyTo: async({ destConfigNamespace, destConfigName, workspaceName }) => {
+                        const payload = {
+                            source: { namespace: configNamespace, name: configName, workspaceName: { namespace, name } },
+                            destination: { namespace: destConfigNamespace, name: destConfigName, workspaceName }
+                        }
+                        const res = await fetchRawls('methodconfigs/copy', _.mergeAll([authOpts(), jsonBody(payload), { signal, method: 'POST' }]))
+                        return res.json()
+                    },
+
+                    validate: async() => {
+                        const res = await fetchRawls(`${path}/validate`, _.merge(authOpts(), { signal }))
+                        return res.json()
+                    },
+
+                    launch: async payload => {
+                        const res = await fetchRawls(`${root}/submissions`, _.mergeAll([
+                            authOpts(),
+                            jsonBody({
+                                ...payload,
+                                methodConfigurationNamespace: configNamespace,
+                                methodConfigurationName: configName
+                            }),
+                            { signal, method: 'POST' }
+                        ]))
+                        return res.json()
+                    },
+
+                    delete: () => {
+                        return fetchRawls(path, _.merge(authOpts(), { signal, method: 'DELETE' }))
+                    }
+                }
+            },
+
+            listSubmissions: async() => {
+                const res = await fetchRawls(`${root}/submissions`, _.merge(authOpts(), { signal }))
+                return res.json()
+            },
+
+            submission: submissionId => {
+                const submissionPath = `${root}/submissions/${submissionId}`
+
+                return {
+                    get: async() => {
+                        const res = await fetchRawls(submissionPath, _.merge(authOpts(), { signal }))
+                        return res.json()
+                    },
+
+                    abort: async() => {
+                        return fetchRawls(submissionPath, _.merge(authOpts(), { signal, method: 'DELETE' }))
+                    }
+                }
+            },
+
+            delete: () => {
+                return fetchRawls(root, _.merge(authOpts(), { signal, method: 'DELETE' }))
+            },
+
+            clone: async body => {
+                const res = await fetchRawls(`${root}/clone`, _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }]))
+                return res.json()
+            },
+
+            shallowMergeNewAttributes: attributesObject => {
+                const payload = attributesUpdateOps(attributesObject)
+                return fetchRawls(root, _.mergeAll([authOpts(), jsonBody(payload), { signal, method: 'PATCH' }]))
+            },
+
+            deleteAttributes: attributeNames => {
+                const payload = _.map(attributeName => ({ op: 'RemoveAttribute', attributeName }), attributeNames)
+                return fetchRawls(root, _.mergeAll([authOpts(), jsonBody(payload), { signal, method: 'PATCH' }]))
+            },
+
+            importBagit: bagitURL => {
+                return fetchOrchestration(
+                    `api/workspaces/${namespace}/${name}/importBagit`,
+                    _.mergeAll([authOpts(), jsonBody({ bagitURL, format: 'TSV' }), { signal, method: 'POST' }])
+                )
+            },
+
+            importEntities: async url => {
+                const res = await fetchOk(url)
+                const payload = await res.json()
+                const body = _.map(({ name, entityType, attributes }) => {
+                    return { name, entityType, operations: attributesUpdateOps(attributes) }
+                }, payload)
+                return fetchRawls(`${root}/entities/batchUpsert`, _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }]))
+            },
+
+            importEntitiesFile: async file => {
+                const formData = new FormData()
+                formData.set('entities', file)
+                return fetchOrchestration(`api/${root}/flexibleImportEntities`, _.merge(authOpts(), { body: formData, signal, method: 'POST' }))
+            },
+
+            deleteEntities: async entities => {
+                return fetchRawls(`${root}/entities/delete`, _.mergeAll([authOpts(), jsonBody(entities), { signal, method: 'POST' }]))
+            },
+
+            copyEntities: async(destNamespace, destName, entityType, entities, link) => {
+                const payload = {
+                    sourceWorkspace: { namespace, name },
+                    destinationWorkspace: { namespace: destNamespace, name: destName },
+                    entityType,
+                    entityNames: entities
+                }
+                const res = await fetchRawls(`workspaces/entities/copy?linkExistingEntities=${link}`, _.mergeAll([authOpts(), jsonBody(payload),
+                    { signal, method: 'POST' }
+                ]))
+                return res.json()
+            },
+
+            importAttributes: async file => {
+                const formData = new FormData()
+                formData.set('attributes', file)
+                return fetchOrchestration(`api/${root}/importAttributesTSV`, _.merge(authOpts(), { body: formData, signal, method: 'POST' }))
+            },
+
+            exportAttributes: async() => {
+                const res = await fetchOrchestration(`api/${root}/exportAttributesTSV`, _.merge(authOpts(), { signal }))
+                return res.blob()
+            },
+
+            storageCostEstimate: async() => {
+                const res = await fetchOrchestration(`api/workspaces/${namespace}/${name}/storageCostEstimate`, _.merge(authOpts(), { signal }))
+                return res.json()
             }
-            const res = await fetchRawls('methodconfigs/copy', _.mergeAll([authOpts(), jsonBody(payload), { signal, method: 'POST' }]))
-            return res.json()
-          },
-
-          validate: async () => {
-            const res = await fetchRawls(`${path}/validate`, _.merge(authOpts(), { signal }))
-            return res.json()
-          },
-
-          launch: async payload => {
-            const res = await fetchRawls(`${root}/submissions`, _.mergeAll([
-              authOpts(),
-              jsonBody({
-                ...payload,
-                methodConfigurationNamespace: configNamespace,
-                methodConfigurationName: configName
-              }),
-              { signal, method: 'POST' }
-            ]))
-            return res.json()
-          },
-
-          delete: () => {
-            return fetchRawls(path, _.merge(authOpts(), { signal, method: 'DELETE' }))
-          }
         }
-      },
-
-      listSubmissions: async () => {
-        const res = await fetchRawls(`${root}/submissions`, _.merge(authOpts(), { signal }))
-        return res.json()
-      },
-
-      submission: submissionId => {
-        const submissionPath = `${root}/submissions/${submissionId}`
-
-        return {
-          get: async () => {
-            const res = await fetchRawls(submissionPath, _.merge(authOpts(), { signal }))
-            return res.json()
-          },
-
-          abort: async () => {
-            return fetchRawls(submissionPath, _.merge(authOpts(), { signal, method: 'DELETE' }))
-          }
-        }
-      },
-
-      delete: () => {
-        return fetchRawls(root, _.merge(authOpts(), { signal, method: 'DELETE' }))
-      },
-
-      clone: async body => {
-        const res = await fetchRawls(`${root}/clone`, _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }]))
-        return res.json()
-      },
-
-      shallowMergeNewAttributes: attributesObject => {
-        const payload = attributesUpdateOps(attributesObject)
-        return fetchRawls(root, _.mergeAll([authOpts(), jsonBody(payload), { signal, method: 'PATCH' }]))
-      },
-
-      deleteAttributes: attributeNames => {
-        const payload = _.map(attributeName => ({ op: 'RemoveAttribute', attributeName }), attributeNames)
-        return fetchRawls(root, _.mergeAll([authOpts(), jsonBody(payload), { signal, method: 'PATCH' }]))
-      },
-
-      importBagit: bagitURL => {
-        return fetchOrchestration(
-          `api/workspaces/${namespace}/${name}/importBagit`,
-          _.mergeAll([authOpts(), jsonBody({ bagitURL, format: 'TSV' }), { signal, method: 'POST' }])
-        )
-      },
-
-      importEntities: async url => {
-        const res = await fetchOk(url)
-        const payload = await res.json()
-        const body = _.map(({ name, entityType, attributes }) => {
-          return { name, entityType, operations: attributesUpdateOps(attributes) }
-        }, payload)
-        return fetchRawls(`${root}/entities/batchUpsert`, _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }]))
-      },
-
-      importEntitiesFile: async file => {
-        const formData = new FormData()
-        formData.set('entities', file)
-        return fetchOrchestration(`api/${root}/flexibleImportEntities`, _.merge(authOpts(), { body: formData, signal, method: 'POST' }))
-      },
-
-      deleteEntities: async entities => {
-        return fetchRawls(`${root}/entities/delete`, _.mergeAll([authOpts(), jsonBody(entities), { signal, method: 'POST' }]))
-      },
-
-      copyEntities: async (destNamespace, destName, entityType, entities, link) => {
-        const payload = {
-          sourceWorkspace: { namespace, name },
-          destinationWorkspace: { namespace: destNamespace, name: destName },
-          entityType,
-          entityNames: entities
-        }
-        const res = await fetchRawls(`workspaces/entities/copy?linkExistingEntities=${link}`, _.mergeAll([authOpts(), jsonBody(payload),
-          { signal, method: 'POST' }]))
-        return res.json()
-      },
-
-      importAttributes: async file => {
-        const formData = new FormData()
-        formData.set('attributes', file)
-        return fetchOrchestration(`api/${root}/importAttributesTSV`, _.merge(authOpts(), { body: formData, signal, method: 'POST' }))
-      },
-
-      exportAttributes: async () => {
-        const res = await fetchOrchestration(`api/${root}/exportAttributesTSV`, _.merge(authOpts(), { signal }))
-        return res.blob()
-      },
-
-      storageCostEstimate: async () => {
-        const res = await fetchOrchestration(`api/workspaces/${namespace}/${name}/storageCostEstimate`, _.merge(authOpts(), { signal }))
-        return res.json()
-      }
     }
-  }
 })
 
 
 const Buckets = signal => ({
-  getObject: async (bucket, object, namespace) => {
-    return fetchBuckets(`storage/v1/b/${bucket}/o/${encodeURIComponent(object)}`,
-      _.merge(authOpts(await User(signal).token(namespace)), { signal })
-    ).then(
-      res => res.json()
-    )
-  },
+            getObject: async(bucket, object, namespace) => {
+                return fetchBuckets(`storage/v1/b/${bucket}/o/${encodeURIComponent(object)}`,
+                    _.merge(authOpts(await User(signal).token(namespace)), { signal })
+                ).then(
+                    res => res.json()
+                )
+            },
 
-  getObjectPreview: async (bucket, object, namespace, previewFull = false) => {
-    return fetchBuckets(`storage/v1/b/${bucket}/o/${encodeURIComponent(object)}?alt=media`,
-      _.mergeAll([
-        authOpts(await User(signal).token(namespace)),
-        { signal },
-        previewFull ? {} : { headers: { Range: 'bytes=0-20000' } }
-      ])
-    )
-  },
+            getObjectPreview: async(bucket, object, namespace, previewFull = false) => {
+                return fetchBuckets(`storage/v1/b/${bucket}/o/${encodeURIComponent(object)}?alt=media`,
+                    _.mergeAll([
+                        authOpts(await User(signal).token(namespace)),
+                        { signal },
+                        previewFull ? {} : { headers: { Range: 'bytes=0-20000' } }
+                    ])
+                )
+            },
 
-  listNotebooks: async (namespace, name) => {
-    const res = await fetchBuckets(
-      `storage/v1/b/${name}/o?prefix=notebooks/`,
-      _.merge(authOpts(await User(signal).token(namespace)), { signal })
-    )
-    const { items } = await res.json()
-    return _.filter(({ name }) => name.endsWith('.ipynb'), items)
-  },
+            listNotebooks: async(namespace, name) => {
+                const res = await fetchBuckets(
+                    `storage/v1/b/${name}/o?prefix=notebooks/`,
+                    _.merge(authOpts(await User(signal).token(namespace)), { signal })
+                )
+                const { items } = await res.json()
+                return _.filter(({ name }) => name.endsWith('.ipynb'), items)
+            },
 
-  list: async (namespace, bucket, prefix) => {
-    const res = await fetchBuckets(
-      `storage/v1/b/${bucket}/o?${qs.stringify({ prefix, delimiter: '/' })}`,
-      _.merge(authOpts(await User(signal).token(namespace)), { signal })
-    )
-    return res.json()
-  },
+            list: async(namespace, bucket, prefix) => {
+                const res = await fetchBuckets(
+                    `storage/v1/b/${bucket}/o?${qs.stringify({ prefix, delimiter: '/' })}`,
+                    _.merge(authOpts(await User(signal).token(namespace)), { signal })
+                )
+                return res.json()
+            },
 
-  delete: async (namespace, bucket, name) => {
-    return fetchBuckets(
-      `storage/v1/b/${bucket}/o/${encodeURIComponent(name)}`,
-      _.merge(authOpts(await User(signal).token(namespace)), { signal, method: 'DELETE' })
-    )
-  },
+            delete: async(namespace, bucket, name) => {
+                return fetchBuckets(
+                    `storage/v1/b/${bucket}/o/${encodeURIComponent(name)}`,
+                    _.merge(authOpts(await User(signal).token(namespace)), { signal, method: 'DELETE' })
+                )
+            },
 
-  upload: async (namespace, bucket, prefix, file) => {
-    return fetchBuckets(
-      `upload/storage/v1/b/${bucket}/o?uploadType=media&name=${encodeURIComponent(prefix + file.name)}`,
-      _.merge(authOpts(await User(signal).token(namespace)), {
-        signal, method: 'POST', body: file,
-        headers: { 'Content-Type': file.type, 'Content-Length': file.size }
-      })
-    )
-  },
+            upload: async(namespace, bucket, prefix, file) => {
+                return fetchBuckets(
+                    `upload/storage/v1/b/${bucket}/o?uploadType=media&name=${encodeURIComponent(prefix + file.name)}`,
+                    _.merge(authOpts(await User(signal).token(namespace)), {
+                        signal,
+                        method: 'POST',
+                        body: file,
+                        headers: { 'Content-Type': file.type, 'Content-Length': file.size }
+                    })
+                )
+            },
 
-  notebook: (namespace, bucket, name) => {
-    const bucketUrl = `storage/v1/b/${bucket}/o`
+            notebook: (namespace, bucket, name) => {
+                    const bucketUrl = `storage/v1/b/${bucket}/o`
 
-    const copy = async (newName, newBucket) => {
-      return fetchBuckets(
-        `${bucketUrl}/${nbName(name)}/copyTo/b/${newBucket}/o/${nbName(newName)}`,
-        _.merge(authOpts(await User(signal).token(namespace)), { signal, method: 'POST' })
-      )
-    }
-    const doDelete = async () => {
-      return fetchBuckets(
-        `${bucketUrl}/${nbName(name)}`,
-        _.merge(authOpts(await User(signal).token(namespace)), { signal, method: 'DELETE' })
-      )
-    }
+                    const copy = async(newName, newBucket) => {
+                        return fetchBuckets(
+                            `${bucketUrl}/${nbName(name)}/copyTo/b/${newBucket}/o/${nbName(newName)}`,
+                            _.merge(authOpts(await User(signal).token(namespace)), { signal, method: 'POST' })
+                        )
+                    }
+                    const doDelete = async() => {
+                        return fetchBuckets(
+                            `${bucketUrl}/${nbName(name)}`,
+                            _.merge(authOpts(await User(signal).token(namespace)), { signal, method: 'DELETE' })
+                        )
+                    }
 
-    const getObject = async () => {
-      const res = await fetchBuckets(
-        `${bucketUrl}/${nbName(name)}`,
-        _.merge(authOpts(await User(signal).token(namespace)), { signal, method: 'GET' })
-      )
-      return await res.json()
-    }
-    return {
-      preview: async () => {
-        const nb = await fetchBuckets(
-          `${bucketUrl}/${encodeURIComponent(`notebooks/${name}`)}?alt=media`,
+                    const getObject = async() => {
+                        const res = await fetchBuckets(
+                            `${bucketUrl}/${nbName(name)}`,
+                            _.merge(authOpts(await User(signal).token(namespace)), { signal, method: 'GET' })
+                        )
+                        return await res.json()
+                    }
+                    return {
+                        preview: async() => {
+                                const nb = await fetchBuckets(
+                                        `${bucketUrl}/${encodeURIComponent(`notebooks/${name}`)}?alt=media`,
           _.merge(authOpts(await User(signal).token(namespace)), { signal })
         ).then(res => res.text())
         return fetchOk(`${getConfig().calhounUrlRoot}/api/convert`,
@@ -831,6 +831,31 @@ const Jupyter = signal => ({
           scopes: ['https://www.googleapis.com/auth/cloud-platform', 'https://www.googleapis.com/auth/userinfo.email', 'https://www.googleapis.com/auth/userinfo.profile']
         })
         return fetchLeo(`api/cluster/v2/${project}/${name}`, _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'PUT' }, appIdentifier]))
+      },
+
+      update: async machineConfig => {
+        console.log('machine Config: ', machineConfig)
+        //filter the machineConfig from the UI modal by the keys the API requires
+        const updateConfigKeys = ['numberOfWorkers', 'numberOfPreemptibleWorkers', 'masterMachineType', 'masterDiskSize']
+
+        // const updateConfig = _.pickBy(machineConfig, (value, key) => {
+        //   return _.includes(updateConfigKeys, key)
+        // })
+        const updateConfig = {}
+        updateConfigKeys.forEach(key => {
+          return updateConfig[key] = machineConfig[key]
+        })
+
+        const body = _.merge(updateConfig, {
+          autopause: true,
+          autopauseThreshold: 0
+        })
+
+        console.log(appIdentifier)
+        console.log(authOpts())
+
+        console.log('Update request body:', body)
+        return fetchLeo(root, _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'PATCH' }, appIdentifier]))
       },
 
       start: () => {
