@@ -257,7 +257,7 @@ export const EntityUploader = ajaxCaller(class EntityUploader extends Component 
 
         if (definedTypeMatch) {
           const parsedEntityType = definedTypeMatch[1]
-          this.setState({ file, isInvalid: undefined, newEntityType: parsedEntityType, useFireCloudDataModel: supportsFireCloudDataModel(parsedEntityType) })
+          this.setState({ file, isInvalid: undefined, newEntityType: parsedEntityType, useFireCloudDataModel: false })
         } else {
           this.setState({ file: undefined, isInvalid: 'tsv' })
         }
