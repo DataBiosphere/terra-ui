@@ -493,8 +493,8 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
     if (!clusters) {
       return null
     }
-    const currentCluster = this.getCurrentCluster() || {}
-    const { status, stagingBucket, googleId, clusterName, googleProject } = currentCluster
+    const currentCluster = this.getCurrentCluster()
+    const { status, stagingBucket, googleId, clusterName, googleProject } = currentCluster || {}
     const running = status === 'Running'
     const spendingClusters = _.remove(({ status }) => _.includes(status, ['Deleting', 'Error']), clusters)
     const renderIcon = () => {
@@ -517,6 +517,14 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
         case 'Stopping':
         case 'Creating':
           return h(ClusterIcon, { shape: 'sync', disabled: true })
+        case 'Error':
+          return h(ClusterIcon, {
+            shape: 'warning-standard',
+            style: { color: colors.red[1] },
+            onClick: () => this.setState({ errorModalOpen: true }),
+            disabled: busy || !canCompute,
+            tooltip: canCompute ? 'View error logs' : noCompute
+          })
         default:
           return h(ClusterIcon, {
             shape: 'play',
