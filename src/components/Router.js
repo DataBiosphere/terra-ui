@@ -103,7 +103,7 @@ export default class Router extends Component {
   async alerts() {
     const alertsArray = await fetchOk(`${getConfig().firecloudBucketRoot}/alerts.json`).then(res => res.json())
     if (!_.isEmpty(alertsArray)) {
-      _.map(a => {
+      return _.map(a => {
         const { link: readMoreLink, message, title } = a
         return notify('error', h(Fragment, [
           div({ style: { fontSize: 14 } }, title),
