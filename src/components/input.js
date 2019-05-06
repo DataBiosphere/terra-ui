@@ -41,8 +41,9 @@ const styles = {
   }
 }
 
-export const textInput = props => h(Interactive,
+export const textInput = ({ ref, ...props }) => h(Interactive,
   _.merge({
+    refDOMNode: ref,
     as: 'input',
     className: 'focus-style',
     style: {
