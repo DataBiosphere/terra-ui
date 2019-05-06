@@ -173,6 +173,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
       Utils.withBusyState(setLoadingWorkspace)
     )(async () => {
       try {
+        await Ajax(signal).Workspaces.workspace(namespace, name).checkBucketReadAccess()
         const workspace = await Ajax(signal).Workspaces.workspace(namespace, name).details()
         workspaceStore.set(workspace)
       } catch (error) {

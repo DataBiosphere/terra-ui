@@ -430,6 +430,10 @@ const Workspaces = signal => ({
     const mcPath = `${root}/methodconfigs`
 
     return {
+      checkBucketReadAccess: () => {
+        return fetchRawls(`${root}/checkBucketReadAccess`, _.merge(authOpts(), { signal }))
+      },
+
       details: async () => {
         const res = await fetchRawls(root, _.merge(authOpts(), { signal }))
         return res.json()
