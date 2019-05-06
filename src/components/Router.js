@@ -101,15 +101,7 @@ export default class Router extends Component {
   }
 
   async alerts() {
-    //const alertsArray = await fetchOk(`https://storage.googleapis.com/firecloud-alerts-alpha/alerts.json`).then(res => res.json())
-    const alertsArray = [{
-      title: 'Test1',
-      message: 'boopyboop',
-      link: 'https://www.google.com'
-    }, {
-      title: 'Test2',
-      message: 'Boooooop'
-    }]
+    const alertsArray = await fetchOk(`${getConfig().firecloudBucketRoot}/alerts.json`).then(res => res.json())
     if (!_.isEmpty(alertsArray)) {
       _.map(a => {
         const { link: readMoreLink, message, title } = a
