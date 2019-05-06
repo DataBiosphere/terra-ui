@@ -109,9 +109,7 @@ export const WorkspaceDashboard = _.flow(
     this.loadStorageCost()
     this.loadConsent()
     this.loadTags()
-    const { ajax: { Workspaces }, namespace, name } = this.props
-    const res = await Workspaces.workspace(namespace, name).addTag('tag from dash')
-    console.log(res)
+    this.addTag('new tag')
   }
 
   loadSubmissionCount = withErrorReporting('Error loading data', async () => {
@@ -151,20 +149,17 @@ export const WorkspaceDashboard = _.flow(
 
   loadTags = withErrorReporting('Error loading tags', async () => {
     const { ajax: { Workspaces }, namespace, name } = this.props
-    const wsTags = await Workspaces.workspace(namespace, name).getTags()
-    console.log(wsTags)
+    this.setState({ tagsList: await Workspaces.workspace(namespace, name).getTags() })
   })
 
   addTag = withErrorReporting('Error adding tag', async tag => {
     const { ajax: { Workspaces }, namespace, name } = this.props
-    const addTags = await Workspaces.workspace(namespace, name).addTag(tag)
-    console.log(addTags)
+    this.setState({ tagsList: await Workspaces.workspace(namespace, name).addTag(tag) })
   })
 
-  deleteTag = withErrorReporting('Error removing tag', async tags => {
+  deleteTag = withErrorReporting('Error removing tag', async tag => {
     const { ajax: { Workspaces }, namespace, name } = this.props
-    const updatedTags = await Workspaces.workspace(namespace, name).deleteTag(tags)
-    console.log(updatedTags)
+    this.setState({ tagsList: await Workspaces.workspace(namespace, name).deleteTag(tag) })
   })
 
   async save() {
@@ -191,7 +186,8 @@ export const WorkspaceDashboard = _.flow(
         }
       }
     } = this.props
-    const { submissionsCount, storageCostEstimate, editDescription, saving, consentStatus } = this.state
+    const { submissionsCount, storageCostEstimate, editDescription, saving, consentStatus, tagsList } = this.state
+    console.log(tagsList)
     const isEditing = _.isString(editDescription)
 
     return div({ style: { flex: 1, display: 'flex' } }, [
@@ -272,6 +268,7 @@ export const WorkspaceDashboard = _.flow(
           ..._.map(({ membersGroupName }) => div({ style: styles.authDomain }, [membersGroupName]), authorizationDomain)
         ]),
         div({ style: styles.header }, ['Tags']),
+        _.map(tag => div({ style: styles.authDomain }, [tag]), tagsList),
         div({ style: { margin: '1.5rem 0 0.5rem 0', borderBottom: `1px solid ${colors.gray[3]}` } }),
         link({
           target: '_blank',
