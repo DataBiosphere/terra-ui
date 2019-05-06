@@ -308,10 +308,11 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
 })
 
 
-export const addNavPaths = () => {
-  Nav.defPath('billing', {
+export const navPaths = [
+  {
+    name: 'billing',
     path: '/billing',
     component: BillingList,
     title: 'Billing'
-  })
-}
+  }
+]

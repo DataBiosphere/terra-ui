@@ -577,6 +577,12 @@ const Workspaces = signal => ({
             importEntitiesFile: async file => {
                 const formData = new FormData()
                 formData.set('entities', file)
+                return fetchOrchestration(`api/${root}/importEntities`, _.merge(authOpts(), { body: formData, signal, method: 'POST' }))
+            },
+
+            importFlexibleEntitiesFile: async file => {
+                const formData = new FormData()
+                formData.set('entities', file)
                 return fetchOrchestration(`api/${root}/flexibleImportEntities`, _.merge(authOpts(), { body: formData, signal, method: 'POST' }))
             },
 

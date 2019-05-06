@@ -301,10 +301,11 @@ const JobHistory = _.flow(
 })
 
 
-export const addNavPaths = () => {
-  Nav.defPath('workspace-job-history', {
+export const navPaths = [
+  {
+    name: 'workspace-job-history',
     path: '/workspaces/:namespace/:name/job_history',
     component: JobHistory,
     title: ({ name }) => `${name} - Job History`
-  })
-}
+  }
+]

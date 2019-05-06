@@ -94,10 +94,11 @@ const Showcase = withWorkspaces()(class Showcase extends Component {
 })
 
 
-export const addNavPaths = () => {
-  Nav.defPath('library-showcase', {
+export const navPaths = [
+  {
+    name: 'library-showcase',
     path: '/library/showcase',
     component: Showcase,
     title: 'Showcase & Tutorials'
-  })
-}
+  }
+]
