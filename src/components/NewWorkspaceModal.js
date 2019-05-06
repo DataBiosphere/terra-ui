@@ -7,6 +7,7 @@ import { icon } from 'src/components/icons'
 import { TextArea, validatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { InfoBox } from 'src/components/PopupTrigger'
+import { freeCreditsActive } from 'src/components/TrialBanner'
 import { ajaxCaller } from 'src/libs/ajax'
 import { authStore } from 'src/libs/auth'
 import colors from 'src/libs/colors'
@@ -131,7 +132,10 @@ export default _.flow(
       }, cloneWorkspace ? 'Clone Workspace' : 'Create Workspace')
         : hasFreeCredits ?
           buttonPrimary({
-            onClick: () => Nav.goToPath('billing')
+            onClick: () => {
+              onDismiss()
+              freeCreditsActive.set(true)
+            }
           }, 'Get Free Credits')
           : buttonPrimary({
             onClick: () => Nav.goToPath('billing')

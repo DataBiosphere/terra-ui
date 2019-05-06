@@ -69,7 +69,10 @@ const FreeCreditsModal = _.flow(
     const { isActive } = this.props
     const { pageTwo, termsAgreed, cloudTermsAgreed, loading } = this.state
     return isActive && h(Modal, {
-      onDismiss: () => FreeCreditsModal.dismiss(),
+      onDismiss: () => {
+        this.setState({ pageTwo: false })
+        FreeCreditsModal.dismiss()
+      },
       title: 'Welcome to the Terra Free Credit Program!',
       width: '65%',
       okButton: pageTwo ? buttonPrimary({
