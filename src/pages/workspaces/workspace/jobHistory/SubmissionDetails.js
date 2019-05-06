@@ -258,10 +258,11 @@ const SubmissionDetails = _.flow(
   ])
 })
 
-export const addNavPaths = () => {
-  Nav.defPath('workspace-submission-details', {
+export const navPaths = [
+  {
+    name: 'workspace-submission-details',
     path: '/workspaces/:namespace/:name/job_history/:submissionId',
     component: SubmissionDetails,
     title: ({ name }) => `${name} - Submission Details`
-  })
-}
+  }
+]

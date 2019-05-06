@@ -383,10 +383,11 @@ class NotebookEditor extends Component {
 }
 
 
-export const addNavPaths = () => {
-  Nav.defPath('workspace-notebook-launch', {
+export const navPaths = [
+  {
+    name: 'workspace-notebook-launch',
     path: '/workspaces/:namespace/:name/notebooks/launch/:notebookName/:app?',
     component: NotebookLauncher,
     title: ({ name, notebookName }) => `${name} - Notebooks - ${notebookName}`
-  })
-}
+  }
+]
