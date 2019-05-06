@@ -12,6 +12,8 @@ import Modal from 'src/components/Modal'
 import FreeTrialEulas from 'src/components/FreeTrialEulas'
 
 
+export const freeCreditsActive = Utils.atom(false)
+
 const messages =
   {
     'Enabled': {
@@ -49,7 +51,10 @@ const messages =
     }
   }
 
-export const FreeCreditsModal= ajaxCaller(class FreeCreditsModal extends Component {
+const FreeCreditsModal = _.flow(
+  ajaxCaller,
+  Utils.connectAtom(freeCreditsActive, 'isActive')
+)(class FreeCreditsModal extends Component {
   constructor(props) {
     super(props)
     this.state = {
@@ -61,10 +66,10 @@ export const FreeCreditsModal= ajaxCaller(class FreeCreditsModal extends Compone
   }
 
   render() {
-    const { onDismiss } = this.props
+    const { isActive } = this.props
     const { pageTwo, termsAgreed, cloudTermsAgreed, loading } = this.state
-    return h(Modal, {
-      onDismiss,
+    return isActive && h(Modal, {
+      onDismiss: () => FreeCreditsModal.dismiss(),
       title: 'Welcome to the Terra Free Credit Program!',
       width: '65%',
       okButton: pageTwo ? buttonPrimary({
@@ -120,14 +125,18 @@ export const FreeCreditsModal= ajaxCaller(class FreeCreditsModal extends Compone
     ])
   }
 
+  static dismiss() {
+    freeCreditsActive.set(false)
+  }
+
   async acceptCredits() {
-    const { onDismiss, ajax: { User } } = this.props
+    const { ajax: { User } } = this.props
     try {
       this.setState({ loading: true })
       await User.acceptEula()
       await User.startTrial()
       await refreshTerraProfile()
-      onDismiss()
+      FreeCreditsModal.dismiss()
     } catch (error) {
       reportError('Error starting trial', error)
     } finally {
@@ -143,14 +152,13 @@ export const TrialBanner = _.flow(
   constructor(props) {
     super(props)
     this.state = {
-      openFreeCreditsModal: false,
       finalizeTrial: false
     }
   }
 
   render() {
     const { authState: { isSignedIn, profile, acceptedTos }, ajax: { User } } = _.omit('isVisible', this.props)
-    const { finalizeTrial, openFreeCreditsModal } = this.state
+    const { finalizeTrial } = this.state
     const { trialState } = profile
     const removeBanner = localStorage.getItem('removeBanner')
     if (!trialState || !isSignedIn || !acceptedTos || trialState === 'Finalized' || removeBanner === 'true') return null
@@ -161,7 +169,6 @@ export const TrialBanner = _.flow(
           display: 'flex', alignItems: 'center', padding: '1.5rem', height: 110,
           backgroundColor: isWarning ? colors.orange[0] : '#359448',
           justifyContent: 'center', color: 'white', width: '100%', fontSize: '1rem'
-
         }
       },
       [
@@ -186,7 +193,7 @@ export const TrialBanner = _.flow(
             marginLeft: '0.5rem', flexShrink: 0
           },
           onClick: () => {
-            button.isExternal ? window.open(button.url, '_blank') : this.setState({ openFreeCreditsModal: true })
+            button.isExternal ? window.open(button.url, '_blank') : freeCreditsActive.set(true)
           }
         }, [button.label, button.isExternal ? icon('pop-out', { style: { marginLeft: '0.25rem' } }) : null]),
         div({
@@ -207,9 +214,6 @@ export const TrialBanner = _.flow(
           }, [icon('times-circle', { size: 25, style: { fontSize: '1.5rem', cursor: 'pointer' } })])
         ])
       ]),
-      openFreeCreditsModal && h(FreeCreditsModal, {
-        onDismiss: () => this.setState({ openFreeCreditsModal: false })
-      }),
       finalizeTrial && h(Modal, {
         title: 'Remove banner',
         onDismiss: () => this.setState({ finalizeTrial: false }),
@@ -225,7 +229,8 @@ export const TrialBanner = _.flow(
             }
           }
         }, ['Confirm'])
-      }, ['Click confirm to remove banner forever.'])
+      }, ['Click confirm to remove banner forever.']),
+      h(FreeCreditsModal)
     ])
   }
 })
