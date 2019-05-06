@@ -17,9 +17,6 @@ import * as Utils from 'src/libs/utils'
 import validate from 'validate.js'
 
 
-const authDoc = 'https://broadinstitute.zendesk.com/hc/en-us/articles/360026775691-Managing-Data-Privacy-and-Access-with-Authorization-Domains'
-const billingDoc = 'https://broadinstitute.zendesk.com/hc/en-us/articles/360026182251-Billing-Projects-Google-Billing-Accounts-and-Free-Credits'
-
 const constraints = {
   name: {
     presence: { allowEmpty: false },
@@ -186,7 +183,10 @@ export default _.flow(
             'An authorization domain can only be set when creating a workspace. ',
             'Once set, it cannot be changed. ',
             'Any cloned workspace will automatically inherit the authorization domain(s) from the original workspace and cannot be removed. ',
-            link({ href: authDoc, target: '_blank' }, ['Read more about authorization domains'])
+            link({
+              href: 'https://broadinstitute.zendesk.com/hc/en-us/articles/360026775691-Managing-Data-Privacy-and-Access-with-Authorization-Domains',
+              target: '_blank'
+            }, ['Read more about authorization domains'])
           ])
         ]),
         !!existingGroups.length && div({ style: styles.groupNotice }, [
