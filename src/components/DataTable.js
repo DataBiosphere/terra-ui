@@ -81,7 +81,7 @@ export default ajaxCaller(class DataTable extends Component {
           div({ style: { width: 300 } }, [
             h(ConfirmedSearchInput, {
               placeholder: 'Search',
-              onChange: v => this.setState({ activeTextFilter: v }),
+              onChange: v => this.setState({ activeTextFilter: v, pageNumber: 1 }),
               defaultValue: activeTextFilter
             })
           ])
@@ -103,6 +103,7 @@ export default ajaxCaller(class DataTable extends Component {
                       return h(Fragment, [
                         h(Checkbox, {
                           checked: this.pageSelected(),
+                          disabled: !entities.length,
                           onChange: () => this.pageSelected() ? this.deselectPage() : this.selectPage()
                         }),
                         h(PopupTrigger, {
@@ -233,11 +234,11 @@ export default ajaxCaller(class DataTable extends Component {
 
     try {
       this.setState({ loading: true })
-      const { results, resultMetadata: { unfilteredCount } } = await Workspaces.workspace(namespace, name)
+      const { results, resultMetadata: { filteredCount } } = await Workspaces.workspace(namespace, name)
         .paginatedEntitiesOfType(entityType, {
           page: pageNumber, pageSize: itemsPerPage, sortField: sort.field, sortDirection: sort.direction, filterTerms: activeTextFilter
         })
-      this.setState({ entities: results, totalRowCount: unfilteredCount })
+      this.setState({ entities: results, totalRowCount: filteredCount })
     } catch (error) {
       reportError('Error loading entities', error)
     } finally {
@@ -280,7 +281,7 @@ export default ajaxCaller(class DataTable extends Component {
     const { entities } = this.state
     const entityKeys = _.map('name', entities)
     const selectedKeys = _.keys(selected)
-    return _.every(k => _.includes(k, selectedKeys), entityKeys)
+    return entities.length && _.every(k => _.includes(k, selectedKeys), entityKeys)
   }
 
   displayData(selectedData) {

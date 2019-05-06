@@ -504,6 +504,7 @@ export class ColumnSelector extends Component {
     return h(Fragment, [
       h(Clickable, {
         style: styles.columnSelector,
+        tooltip: 'Select columns',
         onClick: () => this.setState({ open: true, modifiedColumnSettings: columnSettings })
       }, [icon('cog', { size: 20, className: 'is-solid' })]),
       open && h(Modal, {
@@ -522,7 +523,7 @@ export class ColumnSelector extends Component {
           '|',
           linkButton({ style: { padding: '0 0.5rem' }, onClick: () => this.setAll(false) }, ['none']),
           div({ style: { marginLeft: 'auto', fontWeight: 500 } }, ['Sort:']),
-          linkButton({ style: { padding: '0 0.5rem' }, onClick: () => this.sort() }, ['reset'])
+          linkButton({ style: { padding: '0 0.5rem' }, onClick: () => this.sort() }, ['alphabetical'])
         ]),
         h(AutoSizer, { disableHeight: true }, [
           ({ width }) => {
