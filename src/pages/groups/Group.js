@@ -139,10 +139,11 @@ export const GroupDetails = ajaxCaller(class GroupDetails extends Component {
 })
 
 
-export const addNavPaths = () => {
-  Nav.defPath('group', {
+export const navPaths = [
+  {
+    name: 'group',
     path: '/groups/:groupName',
     component: GroupDetails,
     title: ({ groupName }) => `Group Management - ${groupName}`
-  })
-}
+  }
+]

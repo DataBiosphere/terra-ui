@@ -8,7 +8,6 @@ import PopupTrigger from 'src/components/PopupTrigger'
 import { FlexTable, GridTable, HeaderCell, TextCell } from 'src/components/table'
 import { logo } from 'src/libs/logos'
 import colors from 'src/libs/colors'
-import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
@@ -249,11 +248,12 @@ class StyleGuide extends Component {
   }
 }
 
-export const addNavPaths = () => {
-  Nav.defPath('styles', {
+export const navPaths = [
+  {
+    name: 'styles',
     path: '/styles',
     component: StyleGuide,
     public: true,
     title: 'Style Guide'
-  })
-}
+  }
+]

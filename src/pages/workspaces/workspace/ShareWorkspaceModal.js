@@ -30,7 +30,7 @@ const styles = {
   }
 }
 
-const AclInput = ({ value, onChange, disabled }) => {
+const AclInput = ({ value, onChange, disabled, maxAccessLevel }) => {
   const { accessLevel, canShare, canCompute } = value
   return div({ style: { display: 'flex', marginTop: '0.25rem' } }, [
     div({ style: { width: 200 } }, [
@@ -38,6 +38,7 @@ const AclInput = ({ value, onChange, disabled }) => {
         isSearchable: false,
         isDisabled: disabled,
         getOptionLabel: o => Utils.normalizeLabel(o.value),
+        isOptionDisabled: o => !Utils.hasAccessLevel(o.value, maxAccessLevel),
         value: accessLevel,
         onChange: o => onChange({
           ...value,
@@ -87,7 +88,7 @@ export default ajaxCaller(class ShareWorkspaceModal extends Component {
   }
 
   render() {
-    const { onDismiss } = this.props
+    const { workspace, onDismiss } = this.props
     const { acl, shareSuggestions, groups, loaded, searchValue, working, updateError, accessLevel, canShare, canCompute } = this.state
     const searchValueInvalid = !!validate({ searchValue }, { searchValue: { email: true } })
 
@@ -115,7 +116,8 @@ export default ajaxCaller(class ShareWorkspaceModal extends Component {
       div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between' } }, [
         h(AclInput, {
           value: { accessLevel, canShare, canCompute },
-          onChange: v => this.setState(v)
+          onChange: v => this.setState(v),
+          maxAccessLevel: workspace.accessLevel
         }),
         h(buttonPrimary, {
           onClick: () => this.addAcl(searchValue),
@@ -146,6 +148,7 @@ export default ajaxCaller(class ShareWorkspaceModal extends Component {
     const POAccessLevel = 'PROJECT_OWNER'
     const isPO = accessLevel === POAccessLevel
     const isMe = email === getUser().email
+    const { workspace } = this.props
     const { acl } = this.state
 
     return div({
@@ -159,7 +162,8 @@ export default ajaxCaller(class ShareWorkspaceModal extends Component {
         h(AclInput, {
           value: aclItem,
           onChange: v => this.setState(_.set(['acl', index], v)),
-          disabled: isPO || isMe
+          disabled: isPO || isMe,
+          maxAccessLevel: workspace.accessLevel
         })
       ]),
       !isPO && !isMe && linkButton({
@@ -169,7 +173,7 @@ export default ajaxCaller(class ShareWorkspaceModal extends Component {
   }
 
   async componentDidMount() {
-    const { namespace, name, onDismiss, ajax: { Workspaces, Groups } } = this.props
+    const { workspace: { workspace: { namespace, name } }, onDismiss, ajax: { Workspaces, Groups } } = this.props
 
     try {
       const [{ acl }, shareSuggestions, groups] = await Promise.all([
@@ -198,7 +202,7 @@ export default ajaxCaller(class ShareWorkspaceModal extends Component {
   }
 
   async save() {
-    const { namespace, name, onDismiss, ajax: { Workspaces } } = this.props
+    const { workspace: { workspace: { namespace, name } }, onDismiss, ajax: { Workspaces } } = this.props
     const { acl, originalAcl } = this.state
 
     const aclEmails = _.map('email', acl)

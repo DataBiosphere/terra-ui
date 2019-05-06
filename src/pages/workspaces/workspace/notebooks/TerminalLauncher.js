@@ -6,7 +6,6 @@ import { spinner } from 'src/components/icons'
 import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
-import * as Nav from 'src/libs/nav'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
@@ -95,10 +94,11 @@ const TerminalLauncher = _.flow(
 })
 
 
-export const addNavPaths = () => {
-  Nav.defPath('workspace-terminal-launch', {
+export const navPaths = [
+  {
+    name: 'workspace-terminal-launch',
     path: '/workspaces/:namespace/:name/notebooks/terminal',
     component: TerminalLauncher,
     title: ({ name }) => `${name} - Terminal`
-  })
-}
+  }
+]

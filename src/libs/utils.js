@@ -84,7 +84,7 @@ export const formatNumber = new Intl.NumberFormat('en-US').format
 
 export const workspaceAccessLevels = ['NO ACCESS', 'READER', 'WRITER', 'OWNER', 'PROJECT_OWNER']
 
-const hasAccessLevel = _.curry((required, current) => {
+export const hasAccessLevel = _.curry((required, current) => {
   return workspaceAccessLevels.indexOf(current) >= workspaceAccessLevels.indexOf(required)
 })
 

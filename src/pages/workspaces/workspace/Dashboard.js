@@ -4,8 +4,9 @@ import { div, h, span } from 'react-hyperscript-helpers'
 import SimpleMDE from 'react-simplemde-editor'
 import 'easymde/dist/easymde.min.css'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { buttonPrimary, buttonSecondary, link, linkButton, Markdown, spinnerOverlay } from 'src/components/common'
+import { buttonPrimary, buttonSecondary, link, linkButton, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
+import { Markdown } from 'src/components/Markdown'
 import { SimpleTable } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { displayConsentCodes, displayLibraryAttributes } from 'src/data/workspace-attributes'
@@ -259,10 +260,11 @@ export const WorkspaceDashboard = _.flow(
   }
 })
 
-export const addNavPaths = () => {
-  Nav.defPath('workspace-dashboard', {
+export const navPaths = [
+  {
+    name: 'workspace-dashboard',
     path: '/workspaces/:namespace/:name',
     component: WorkspaceDashboard,
     title: ({ name }) => `${name} - Dashboard`
-  })
-}
+  }
+]

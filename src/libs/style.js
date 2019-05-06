@@ -72,3 +72,14 @@ export const cardList = {
     flex: 'none', display: 'flex', alignItems: 'flex-end'
   }
 }
+
+export const breadcrumb = {
+  breadcrumb: {
+    display: 'flex', flexDirection: 'column',
+    paddingLeft: '4rem', minWidth: 0, marginRight: '0.5rem'
+  },
+  textUnderBreadcrumb: {
+    color: 'white',
+    fontSize: '1.25rem', overflowX: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'
+  }
+}

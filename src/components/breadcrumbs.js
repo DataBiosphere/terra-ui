@@ -13,6 +13,8 @@ export const breadcrumbElement = function(child, href) {
 
 
 export const commonPaths = {
+  datasetList: () => [breadcrumbElement('Datasets', Nav.getLink('library-datasets'))],
+
   workspaceList: () => [breadcrumbElement('Workspaces', Nav.getLink('workspaces'))],
 
   workspaceDashboard: ({ namespace, name }) => [
