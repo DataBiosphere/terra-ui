@@ -145,74 +145,75 @@ export default _.flow(
           }, 'Go to Billing')
     }, [
       !busy && h(Fragment,
-      hasBillingProjects ? [
-        h(RequiredFormLabel, ['Workspace name']),
-        validatedInput({
-          inputProps: {
-            autoFocus: true,
-            placeholder: 'Enter a name',
-            value: name,
-            onChange: e => this.setState({ name: e.target.value, nameModified: true })
-          },
-          error: Utils.summarizeErrors(nameModified && errors && errors.name)
-        }),
-        h(RequiredFormLabel, ['Billing project']),
-        h(Select, {
-          isClearable: false,
-          placeholder: 'Select a billing project',
-          value: namespace,
-          onChange: ({ value }) => this.setState({ namespace: value }),
-          options: _.uniq(_.map('projectName', billingProjects)).sort()
-        }),
-        h(FormLabel, ['Description']),
-        h(TextArea, {
-          style: { height: 100 },
-          placeholder: 'Enter a description',
-          value: description,
-          onChange: v => this.setState({ description: v })
-        }),
-        h(FormLabel, [
-          'Authorization domain',
-          h(InfoBox, [
-            'An authorization domain can only be set when creating a workspace. ',
-            'Once set, it cannot be changed. ',
-            'Any cloned workspace will automatically inherit the authorization domain(s) from the original workspace and cannot be removed. ',
-            link({
-              href: 'https://broadinstitute.zendesk.com/hc/en-us/articles/360026775691-Managing-Data-Privacy-and-Access-with-Authorization-Domains',
-              target: '_blank'
-            }, ['Read more about authorization domains'])
+        hasBillingProjects ? [
+          h(RequiredFormLabel, ['Workspace name']),
+          validatedInput({
+            inputProps: {
+              autoFocus: true,
+              placeholder: 'Enter a name',
+              value: name,
+              onChange: e => this.setState({ name: e.target.value, nameModified: true })
+            },
+            error: Utils.summarizeErrors(nameModified && errors && errors.name)
+          }),
+          h(RequiredFormLabel, ['Billing project']),
+          h(Select, {
+            isClearable: false,
+            placeholder: 'Select a billing project',
+            value: namespace,
+            onChange: ({ value }) => this.setState({ namespace: value }),
+            options: _.uniq(_.map('projectName', billingProjects)).sort()
+          }),
+          h(FormLabel, ['Description']),
+          h(TextArea, {
+            style: { height: 100 },
+            placeholder: 'Enter a description',
+            value: description,
+            onChange: v => this.setState({ description: v })
+          }),
+          h(FormLabel, [
+            'Authorization domain',
+            h(InfoBox, [
+              'An authorization domain can only be set when creating a workspace. ',
+              'Once set, it cannot be changed. ',
+              'Any cloned workspace will automatically inherit the authorization domain(s) from the original workspace and cannot be removed. ',
+              link({
+                href: 'https://broadinstitute.zendesk.com/hc/en-us/articles/360026775691-Managing-Data-Privacy-and-Access-with-Authorization-Domains',
+                target: '_blank'
+              }, ['Read more about authorization domains'])
+            ])
+          ]),
+          !!existingGroups.length && div({ style: styles.groupNotice }, [
+            div({ style: { marginBottom: '0.2rem' } }, ['Inherited groups:']),
+            ...existingGroups.join(', ')
+          ]),
+          h(Select, {
+            isClearable: false,
+            isMulti: true,
+            placeholder: 'Select groups',
+            disabled: !allGroups || !billingProjects,
+            value: groups,
+            onChange: data => this.setState({ groups: _.map('value', data) }),
+            options: _.difference(_.uniq(_.map('groupName', allGroups)), existingGroups).sort()
+          })
+        ] : [
+          div({ style: { color: colors.orange[0] } }, [
+            icon('error', { size: 16, style: { marginRight: '0.5rem' } }),
+            'You need a billing project to ', cloneWorkspace ? 'clone a' : 'create a new', ' workspace.'
+          ]),
+          div({ style: { marginTop: '0.5rem' } }, [
+            hasFreeCredits &&
+            div({ style: { fontWeight: 500, marginBottom: '0.5rem' } }, ['You have $300 in ',
+              link({
+                href: 'https://broadinstitute.zendesk.com/hc/en-us/articles/360022704371-Getting-started-with-Terra#free-credits-signup',
+                target: '_blank'
+              }, 'free credits'), ' available!'])
           ])
         ]),
-        !!existingGroups.length && div({ style: styles.groupNotice }, [
-          div({ style: { marginBottom: '0.2rem' } }, ['Inherited groups:']),
-          ...existingGroups.join(', ')
-        ]),
-        h(Select, {
-          isClearable: false,
-          isMulti: true,
-          placeholder: 'Select groups',
-          disabled: !allGroups || !billingProjects,
-          value: groups,
-          onChange: data => this.setState({ groups: _.map('value', data) }),
-          options: _.difference(_.uniq(_.map('groupName', allGroups)), existingGroups).sort()
-        })
-      ] : [
-        div({ style: { color: colors.orange[0] } }, [
-          icon('error', { size: 16, style: { marginRight: '0.5rem' } }),
-          'You need a billing project to ', cloneWorkspace ? 'clone a' : 'create a new', ' workspace.'
-        ]),
-        div({ style: { marginTop: '0.5rem' } }, [
-          hasFreeCredits &&
-          div({ style: { fontWeight: 500, marginBottom: '0.5rem' } }, ['You have $300 in ',
-            link({
-              href: 'https://broadinstitute.zendesk.com/hc/en-us/articles/360022704371-Getting-started-with-Terra#free-credits-signup',
-              target: '_blank'
-            }, 'free credits'), ' available!'])
-        ])
-      ]),
-    createError && div({
-      style: { marginTop: '1rem', color: colors.red[0] }
-    }, [createError]),
-    busy && spinnerOverlay])
+      createError && div({
+        style: { marginTop: '1rem', color: colors.red[0] }
+      }, [createError]),
+      busy && spinnerOverlay
+    ])
   }
 })
