@@ -420,7 +420,7 @@ const Workspaces = signal => ({
     return res.json()
   },
 
-  getAllTags: async () => {
+  getTags: async () => {
     const res = await fetchRawls('workspaces/tags', _.merge(authOpts(), { signal }))
     return res.json()
   },
@@ -578,6 +578,12 @@ const Workspaces = signal => ({
       },
 
       importEntitiesFile: async file => {
+        const formData = new FormData()
+        formData.set('entities', file)
+        return fetchOrchestration(`api/${root}/importEntities`, _.merge(authOpts(), { body: formData, signal, method: 'POST' }))
+      },
+
+      importFlexibleEntitiesFile: async file => {
         const formData = new FormData()
         formData.set('entities', file)
         return fetchOrchestration(`api/${root}/flexibleImportEntities`, _.merge(authOpts(), { body: formData, signal, method: 'POST' }))

@@ -5,7 +5,7 @@ import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { link, Select } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
-import { textInput } from 'src/components/input'
+import { DelayedSearchInput } from 'src/components/input'
 import { collapseStatus, failedIcon, runningIcon, statusIcon, submittedIcon, successIcon } from 'src/components/job-common'
 import PopupTrigger from 'src/components/PopupTrigger'
 import { FlexTable, Sortable, TextCell, TooltipCell } from 'src/components/table'
@@ -169,11 +169,11 @@ const SubmissionDetails = _.flow(
       ])
     ]),
     div({ style: { margin: '1rem 0', display: 'flex', alignItems: 'center' } }, [
-      textInput({
+      h(DelayedSearchInput, {
         style: { marginRight: '2rem', flexBasis: 300, borderColor: colors.gray[3] },
-        placeholder: 'Filter',
-        onChange: ({ target: { value } }) => setTextFilter(value),
-        value: textFilter
+        placeholder: 'Search',
+        onChange: setTextFilter,
+        defaultValue: textFilter
       }),
       div({ style: { flexBasis: 350 } }, [
         h(Select, {
@@ -258,10 +258,11 @@ const SubmissionDetails = _.flow(
   ])
 })
 
-export const addNavPaths = () => {
-  Nav.defPath('workspace-submission-details', {
+export const navPaths = [
+  {
+    name: 'workspace-submission-details',
     path: '/workspaces/:namespace/:name/job_history/:submissionId',
     component: SubmissionDetails,
     title: ({ name }) => `${name} - Submission Details`
-  })
-}
+  }
+]

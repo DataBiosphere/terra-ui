@@ -1,14 +1,13 @@
 import _ from 'lodash/fp'
 import { div, h, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
-import { buttonPrimary, buttonSecondary, Checkbox, link, RadioButton, search } from 'src/components/common'
-import { textInput, validatedInput } from 'src/components/input'
+import { buttonPrimary, buttonSecondary, Checkbox, link, RadioButton } from 'src/components/common'
+import { ConfirmedSearchInput, DelayedSearchInput, textInput, validatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import PopupTrigger from 'src/components/PopupTrigger'
 import { FlexTable, GridTable, HeaderCell, TextCell } from 'src/components/table'
 import { logo } from 'src/libs/logos'
 import colors from 'src/libs/colors'
-import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
@@ -127,7 +126,10 @@ class StyleGuide extends Component {
         ])
       ]),
       els.section('Search Box', [
-        search({ inputProps: { placeholder: 'Search' } })
+        els.columns([
+          els.fixWidth('30%', [h(DelayedSearchInput, { placeholder: 'Debounced search' })]),
+          els.fixWidth('30%', [h(ConfirmedSearchInput, { placeholder: 'Search with explicit confirmation' })])
+        ])
       ]),
       els.section('Text Box', [
         els.columns([
@@ -249,11 +251,12 @@ class StyleGuide extends Component {
   }
 }
 
-export const addNavPaths = () => {
-  Nav.defPath('styles', {
+export const navPaths = [
+  {
+    name: 'styles',
     path: '/styles',
     component: StyleGuide,
     public: true,
     title: 'Style Guide'
-  })
-}
+  }
+]

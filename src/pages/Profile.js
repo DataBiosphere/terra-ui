@@ -226,9 +226,9 @@ const FenceLink = ({ provider, displayName }) => {
   /*
    * Render helpers
    */
-  const makeAccountLinkLink = () => {
+  const renderFrameworkServicesLink = linkText => {
     return href && link({ href, style: { display: 'flex', alignItems: 'center' } }, [
-      'Log-In to Framework Services to link your account',
+      linkText,
       icon('pop-out', { size: 12, style: { marginLeft: '0.5rem' } })
     ])
   }
@@ -243,7 +243,7 @@ const FenceLink = ({ provider, displayName }) => {
     div({ style: styles.form.title }, [displayName]),
     isBusy && div([spinner(), 'Loading account status...']),
     !isBusy && h(Fragment, [
-      !username && makeAccountLinkLink(),
+      !username && renderFrameworkServicesLink('Log-In to Framework Services to link your account'),
       !!username && div({ style: { display: 'flex', flexDirection: 'column', width: '33rem' } }, [
         div({ style: { display: 'flex' } }, [
           div({ style: { flex: 1 } }, ['Username:']),
@@ -252,7 +252,8 @@ const FenceLink = ({ provider, displayName }) => {
         div({ style: { display: 'flex' } }, [
           div({ style: { flex: 1 } }, ['Link Expiration:']),
           div({ style: { flex: 2 } }, [Utils.makeCompleteDate(expireTime)])
-        ])
+        ]),
+        renderFrameworkServicesLink('Log-In to Framework Services to re-link your account')
       ])
     ])
   ])
@@ -445,15 +446,17 @@ const Profile = _.flow(
 })
 
 
-export const addNavPaths = () => {
-  Nav.defPath('profile', {
+export const navPaths = [
+  {
+    name: 'profile',
     path: '/profile',
     component: Profile,
     title: 'Profile'
-  })
-  Nav.defPath('fence-callback', {
+  },
+  {
+    name: 'fence-callback',
     path: '/fence-callback',
     component: Profile,
     title: 'Profile'
-  })
-}
+  }
+]

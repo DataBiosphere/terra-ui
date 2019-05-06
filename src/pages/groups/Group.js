@@ -1,8 +1,9 @@
 import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
-import { PageBox, search, spinnerOverlay } from 'src/components/common'
+import { PageBox, spinnerOverlay } from 'src/components/common'
 import { DeleteUserModal, EditUserModal, MemberCard, NewUserCard, NewUserModal } from 'src/components/group-common'
+import { DelayedSearchInput } from 'src/components/input'
 import TopBar from 'src/components/TopBar'
 import { ajaxCaller } from 'src/libs/ajax'
 import { reportError } from 'src/libs/error'
@@ -63,13 +64,11 @@ export const GroupDetails = ajaxCaller(class GroupDetails extends Component {
 
     return h(Fragment, [
       h(TopBar, { title: 'Groups', href: Nav.getLink('groups') }, [
-        search({
-          wrapperProps: { style: { marginLeft: '2rem', flexGrow: 1, maxWidth: 500 } },
-          inputProps: {
-            placeholder: 'SEARCH GROUP',
-            onChange: e => this.setState({ filter: e.target.value }),
-            value: filter
-          }
+        h(DelayedSearchInput, {
+          style: { marginLeft: '2rem', width: 500 },
+          placeholder: 'SEARCH GROUP',
+          onChange: v => this.setState({ filter: v }),
+          defaultValue: filter
         })
       ]),
       h(PageBox, [
@@ -139,10 +138,11 @@ export const GroupDetails = ajaxCaller(class GroupDetails extends Component {
 })
 
 
-export const addNavPaths = () => {
-  Nav.defPath('group', {
+export const navPaths = [
+  {
+    name: 'group',
     path: '/groups/:groupName',
     component: GroupDetails,
     title: ({ groupName }) => `Group Management - ${groupName}`
-  })
-}
+  }
+]

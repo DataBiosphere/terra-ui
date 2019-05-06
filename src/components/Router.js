@@ -9,6 +9,7 @@ import { notify } from 'src/components/Notifications'
 import TopBar from 'src/components/TopBar'
 import * as Nav from 'src/libs/nav'
 import * as Code from 'src/pages/library/Code'
+import * as DataExplorer from 'src/pages/library/DataExplorer'
 import * as Datasets from 'src/pages/library/Datasets'
 import * as Group from 'src/pages/groups/Group'
 import * as Groups from 'src/pages/groups/List'
@@ -37,29 +38,32 @@ const pageWrapStyle = { display: 'flex', flexDirection: 'column', flex: '1 0 aut
 
 const initNavPaths = () => {
   Nav.clearPaths()
-  LandingPage.addNavPaths()
-  WorkspaceList.addNavPaths()
-  WorkflowView.addNavPaths()
-  StyleGuide.addNavPaths()
-  ImportData.addNavPaths()
-  ImportTool.addNavPaths()
-  PrivacyPolicy.addNavPaths()
-  Dashboard.addNavPaths()
-  Data.addNavPaths()
-  Notebooks.addNavPaths()
-  JobHistory.addNavPaths()
-  SubmissionDetails.addNavPaths()
-  Tools.addNavPaths()
-  NotebookLauncher.addNavPaths()
-  Profile.addNavPaths()
-  Groups.addNavPaths()
-  Group.addNavPaths()
-  TerminalLauncher.addNavPaths()
-  TermsOfService.addNavPaths()
-  Code.addNavPaths()
-  Datasets.addNavPaths()
-  Showcase.addNavPaths()
-  Projects.addNavPaths()
+  _.forEach(Nav.defPath, _.flatten([
+    LandingPage.navPaths,
+    WorkspaceList.navPaths,
+    WorkflowView.navPaths,
+    StyleGuide.navPaths,
+    ImportData.navPaths,
+    ImportTool.navPaths,
+    PrivacyPolicy.navPaths,
+    Dashboard.navPaths,
+    Data.navPaths,
+    Notebooks.navPaths,
+    JobHistory.navPaths,
+    SubmissionDetails.navPaths,
+    Tools.navPaths,
+    NotebookLauncher.navPaths,
+    Profile.navPaths,
+    Groups.navPaths,
+    Group.navPaths,
+    TerminalLauncher.navPaths,
+    TermsOfService.navPaths,
+    Code.navPaths,
+    DataExplorer.navPaths,
+    Datasets.navPaths,
+    Showcase.navPaths,
+    Projects.navPaths
+  ]))
 }
 
 export default class Router extends Component {
@@ -90,7 +94,7 @@ export default class Router extends Component {
         div({ style: { marginTop: '1rem' } }, ['Please update your bookmarks to our new URL, firecloud.terra.bio. ' +
         'Welcome to the future of FireCloud!'])
       ]))
-      window.history.replaceState(null, '', `/${window.location.hash}`)
+      Nav.history.replace({ search: qs.stringify(_.omit(['fcredir'], qs.parse(Nav.history.location.search, { ignoreQueryPrefix: true, plainObjects: true }))) })
     }
   }
 

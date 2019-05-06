@@ -84,7 +84,7 @@ export const formatNumber = new Intl.NumberFormat('en-US').format
 
 export const workspaceAccessLevels = ['NO ACCESS', 'READER', 'WRITER', 'OWNER', 'PROJECT_OWNER']
 
-const hasAccessLevel = _.curry((required, current) => {
+export const hasAccessLevel = _.curry((required, current) => {
   return workspaceAccessLevels.indexOf(current) >= workspaceAccessLevels.indexOf(required)
 })
 
@@ -280,4 +280,21 @@ export const withBusyState = _.curry((setBusy, fn) => async (...args) => {
  */
 export const useOnMount = fn => {
   useEffect(fn, [])
+}
+
+export const trimClustersOldestFirst = _.flow(
+  _.remove({ status: 'Deleting' }),
+  _.remove({ status: 'Error' }),
+  _.sortBy('createdDate')
+)
+
+export const handleNonRunningCluster = ({ status, googleProject, clusterName }, JupyterAjax) => {
+  switch (status) {
+    case 'Stopped':
+      return JupyterAjax.cluster(googleProject, clusterName).start()
+    case 'Creating':
+      return delay(15000)
+    default:
+      return delay(3000)
+  }
 }

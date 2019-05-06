@@ -1,6 +1,6 @@
 import { Component } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
-import { Markdown } from 'src/components/common'
+import { Markdown, newWindowLinkRenderer } from 'src/components/Markdown'
 
 const broadEula = `
 1. The Terra Free Credits Program (“credits”), sponsored by Google, is administered by [Onix Networking](https://www.onixnet.com/products/google-cloud/google-cloud-platform/google-app-engine) (“Onix”), a Google Cloud Premier Partner. 
@@ -15,7 +15,7 @@ const broadEula = `
 
 6. Credits are not redeemable for cash and are not transferable.
 
-7. All use of Terra by researchers is subject to the [Terra Terms of Use](http://gatkforums.broadinstitute.org/firecloud/discussion/6819/firecloud-terms-of-service#latest), which may be updated from time to time. Terra reserves the right to revoke credits for any activity that violates the Terms of Use.
+7. All use of Terra by researchers is subject to the [Terra Terms of Use](https://app.terra.bio/#terms-of-service), which may be updated from time to time. Terra reserves the right to revoke credits for any activity that violates the Terms of Use.
 `
 
 const onixEula = `### Onix Networking Google Cloud Platform Online Customer Agreement
@@ -1326,6 +1326,7 @@ class FreeTrialEulas extends Component {
     return div({ style: { maxHeight: 500, maxWidth: 1500, overflowY: 'auto', lineHeight: 1.5, marginTop: '1rem', paddingRight: '1rem' } }, [
       h(Markdown, {
         renderers: {
+          link: newWindowLinkRenderer,
           paragraph: text => {
             return `<p style="margin-top: 0">${text}</p>`
           }

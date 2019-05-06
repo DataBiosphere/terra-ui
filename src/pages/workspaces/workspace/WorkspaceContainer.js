@@ -21,17 +21,6 @@ import ShareWorkspaceModal from 'src/pages/workspaces/workspace/ShareWorkspaceMo
 
 const workspaceStore = Utils.atom(undefined)
 
-const styles = {
-  workspaceNameContainer: {
-    display: 'flex', flexDirection: 'column',
-    paddingLeft: '4rem', minWidth: 0, marginRight: '0.5rem'
-  },
-  workspaceName: {
-    color: 'white',
-    fontSize: '1.25rem', overflowX: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'
-  }
-}
-
 const navIconProps = {
   style: { opacity: 0.65, marginRight: '1rem' },
   hover: { opacity: 1 }, focus: 'hover'
@@ -103,9 +92,9 @@ class WorkspaceContainer extends Component {
     const { deletingWorkspace, cloningWorkspace, sharingWorkspace } = this.state
     return h(Fragment, [
       h(TopBar, { title: 'Workspaces', href: Nav.getLink('workspaces') }, [
-        div({ style: styles.workspaceNameContainer }, [
+        div({ style: Style.breadcrumb.breadcrumb }, [
           div({}, breadcrumbs),
-          div({ style: styles.workspaceName }, [
+          div({ style: Style.breadcrumb.textUnderBreadcrumb }, [
             title || `${namespace}/${name}`,
             workspace && !Utils.canWrite(workspace.accessLevel) && span({ style: { paddingLeft: '0.5rem', color: colors.gray[1] } }, '(read only)')
           ])
@@ -134,7 +123,7 @@ class WorkspaceContainer extends Component {
         onSuccess: ({ namespace, name }) => Nav.goToPath('workspace-dashboard', { namespace, name })
       }),
       sharingWorkspace && h(ShareWorkspaceModal, {
-        namespace, name,
+        workspace,
         onDismiss: () => this.setState({ sharingWorkspace: false })
       })
     ])
@@ -220,7 +209,8 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
       }, [
         workspace && h(WrappedComponent, {
           ref: child,
-          workspace, clusters, loadingWorkspace, refreshWorkspace, refreshClusters,
+          workspace, loadingWorkspace, refreshWorkspace, refreshClusters,
+          cluster: _.last(Utils.trimClustersOldestFirst(clusters)),
           ...props
         })
       ])
