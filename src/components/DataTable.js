@@ -43,7 +43,7 @@ export default ajaxCaller(class DataTable extends Component {
 
     const {
       entities,
-      totalRowCount = 0, itemsPerPage = 25, pageNumber = 1,
+      filteredCount = 0, totalRowCount = 0, itemsPerPage = 25, pageNumber = 1,
       sort = { field: 'name', direction: 'asc' },
       activeTextFilter = '',
       columnWidths = {}, columnState = {}
@@ -53,7 +53,7 @@ export default ajaxCaller(class DataTable extends Component {
     this.state = {
       loading: false,
       viewData: undefined,
-      entities, totalRowCount, itemsPerPage, pageNumber, sort, activeTextFilter, columnWidths, columnState
+      entities, filteredCount, totalRowCount, itemsPerPage, pageNumber, sort, activeTextFilter, columnWidths, columnState
     }
   }
 
@@ -65,7 +65,7 @@ export default ajaxCaller(class DataTable extends Component {
       childrenBefore
     } = this.props
 
-    const { loading, entities, totalRowCount, itemsPerPage, pageNumber, sort, columnWidths, columnState, viewData, activeTextFilter } = this.state
+    const { loading, entities, filteredCount, totalRowCount, itemsPerPage, pageNumber, sort, columnWidths, columnState, viewData, activeTextFilter } = this.state
 
     const theseColumnWidths = columnWidths[entityType] || {}
     const columnSettings = applyColumnSettings(columnState[entityType] || [], entityMetadata[entityType].attributeNames)
@@ -192,7 +192,8 @@ export default ajaxCaller(class DataTable extends Component {
         ]),
         div({ style: { flex: 'none', marginTop: '1rem' } }, [
           paginator({
-            filteredDataLength: totalRowCount,
+            filteredDataLength: filteredCount,
+            unfilteredDataLength: totalRowCount,
             pageNumber,
             setPageNumber: v => this.setState({ pageNumber: v }, resetScroll),
             itemsPerPage,
@@ -234,11 +235,11 @@ export default ajaxCaller(class DataTable extends Component {
 
     try {
       this.setState({ loading: true })
-      const { results, resultMetadata: { filteredCount } } = await Workspaces.workspace(namespace, name)
+      const { results, resultMetadata: { filteredCount, unfilteredCount } } = await Workspaces.workspace(namespace, name)
         .paginatedEntitiesOfType(entityType, {
           page: pageNumber, pageSize: itemsPerPage, sortField: sort.field, sortDirection: sort.direction, filterTerms: activeTextFilter
         })
-      this.setState({ entities: results, totalRowCount: filteredCount })
+      this.setState({ entities: results, filteredCount, totalRowCount: unfilteredCount })
     } catch (error) {
       reportError('Error loading entities', error)
     } finally {

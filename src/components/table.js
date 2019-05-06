@@ -35,7 +35,7 @@ const paginatorButton = (props, label) => button(_.merge({
  */
 export const paginator = function(props) {
   const {
-    filteredDataLength, pageNumber, setPageNumber, setItemsPerPage,
+    filteredDataLength, unfilteredDataLength, pageNumber, setPageNumber, setItemsPerPage,
     itemsPerPage, itemsPerPageOptions = [10, 25, 50, 100]
   } = props
 
@@ -49,6 +49,7 @@ export const paginator = function(props) {
       [
         div({ style: { display: 'flex', justifyContent: 'flex-end', alignItems: 'center', marginRight: '1rem' } }, [
           `${(pageNumber - 1) * itemsPerPage + 1} - ${_.min([filteredDataLength, pageNumber * itemsPerPage])} of ${filteredDataLength}`,
+          unfilteredDataLength && filteredDataLength !== unfilteredDataLength && ` (filtered from ${unfilteredDataLength} total)`,
           div({ style: { display: 'inline-flex', padding: '0 1rem' } }, [
 
             paginatorButton(
