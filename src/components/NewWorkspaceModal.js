@@ -11,7 +11,7 @@ import { freeCreditsActive } from 'src/components/TrialBanner'
 import { ajaxCaller } from 'src/libs/ajax'
 import { authStore } from 'src/libs/auth'
 import colors from 'src/libs/colors'
-import { reportError } from 'src/libs/error'
+import { withErrorReporting } from 'src/libs/error'
 import { FormLabel, RequiredFormLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
 import * as Utils from 'src/libs/utils'
@@ -65,20 +65,7 @@ export default _.flow(
   }
 
   async componentDidMount() {
-    const { ajax: { Billing, Groups } } = this.props
-    try {
-      const [billingProjects, allGroups] = await Promise.all([
-        Billing.listProjects(),
-        Groups.list()
-      ])
-      const usableProjects = _.filter({ creationStatus: 'Ready' }, billingProjects)
-      this.setState(({ namespace }) => ({
-        billingProjects: usableProjects, allGroups,
-        namespace: _.some({ projectName: namespace }, usableProjects) ? namespace : undefined
-      }))
-    } catch (error) {
-      reportError('Error loading data', error)
-    }
+    this.loadProjectsGroups()
   }
 
   async create() {
@@ -111,6 +98,22 @@ export default _.flow(
     ])
   }
 
+  loadProjectsGroups = _.flow(
+    withErrorReporting('Error loading data'),
+    Utils.withBusyState(v => this.setState({ busy: v }))
+  )(async () => {
+    const { ajax: { Billing, Groups } } = this.props
+    const [billingProjects, allGroups] = await Promise.all([
+      Billing.listProjects(),
+      Groups.list()
+    ])
+    const usableProjects = _.filter({ creationStatus: 'Ready' }, billingProjects)
+    this.setState(({ namespace }) => ({
+      billingProjects: usableProjects, allGroups,
+      namespace: _.some({ projectName: namespace }, usableProjects) ? namespace : undefined
+    }))
+  })
+
   render() {
     const { onDismiss, cloneWorkspace, authState: { profile } } = this.props
     const { trialState } = profile
@@ -122,10 +125,10 @@ export default _.flow(
       prettify: v => ({ namespace: 'Billing project', name: 'Name' }[v] || validate.prettify(v))
     })
     return h(Modal, {
-      title: !hasBillingProjects ? 'Set up Billing' : cloneWorkspace ? 'Clone a Workspace' : 'Create a New Workspace',
+      title: busy ? '' : !hasBillingProjects ? 'Set up Billing' : cloneWorkspace ? 'Clone a Workspace' : 'Create a New Workspace',
       onDismiss,
       showCancel: hasBillingProjects,
-      okButton: hasBillingProjects ? buttonPrimary({
+      okButton: busy ? 'Loading...' : hasBillingProjects ? buttonPrimary({
         disabled: errors,
         tooltip: Utils.summarizeErrors(errors),
         onClick: () => this.create()
@@ -141,20 +144,8 @@ export default _.flow(
             onClick: () => Nav.goToPath('billing')
           }, 'Go to Billing')
     }, [
-      !hasBillingProjects ? h(Fragment, [
-        div({ style: { color: colors.orange[0] } }, [
-          icon('error', { size: 16, style: { marginRight: '0.5rem' } }),
-          'You need a billing project to ', cloneWorkspace ? 'clone a' : 'create a new', ' workspace.'
-        ]),
-        div({ style: { marginTop: '0.5rem' } }, [
-          hasFreeCredits &&
-          div({ style: { fontWeight: 500, marginBottom: '0.5rem' } }, ['You have $300 in ',
-            link({
-              href: 'https://broadinstitute.zendesk.com/hc/en-us/articles/360022704371-Getting-started-with-Terra#free-credits-signup',
-              target: '_blank'
-            }, 'free credits'), ' available!'])
-        ])
-      ]) : h(Fragment, [
+      !busy && h(Fragment,
+      hasBillingProjects ? [
         h(RequiredFormLabel, ['Workspace name']),
         validatedInput({
           inputProps: {
@@ -205,11 +196,23 @@ export default _.flow(
           onChange: data => this.setState({ groups: _.map('value', data) }),
           options: _.difference(_.uniq(_.map('groupName', allGroups)), existingGroups).sort()
         })
+      ] : [
+        div({ style: { color: colors.orange[0] } }, [
+          icon('error', { size: 16, style: { marginRight: '0.5rem' } }),
+          'You need a billing project to ', cloneWorkspace ? 'clone a' : 'create a new', ' workspace.'
+        ]),
+        div({ style: { marginTop: '0.5rem' } }, [
+          hasFreeCredits &&
+          div({ style: { fontWeight: 500, marginBottom: '0.5rem' } }, ['You have $300 in ',
+            link({
+              href: 'https://broadinstitute.zendesk.com/hc/en-us/articles/360022704371-Getting-started-with-Terra#free-credits-signup',
+              target: '_blank'
+            }, 'free credits'), ' available!'])
+        ])
       ]),
-      createError && div({
-        style: { marginTop: '1rem', color: colors.red[0] }
-      }, [createError]),
-      busy && spinnerOverlay
-    ])
+    createError && div({
+      style: { marginTop: '1rem', color: colors.red[0] }
+    }, [createError]),
+    busy && spinnerOverlay])
   }
 })
