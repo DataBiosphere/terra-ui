@@ -5,7 +5,7 @@ import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { Clickable, link, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
-import { SearchInput } from 'src/components/input'
+import { DelayedSearchInput } from 'src/components/input'
 import { collapseStatus, failedIcon, runningIcon, submittedIcon, successIcon } from 'src/components/job-common'
 import Modal from 'src/components/Modal'
 import PopupTrigger from 'src/components/PopupTrigger'
@@ -143,11 +143,11 @@ const JobHistory = _.flow(
           content: div({ style: { margin: '0.5rem' } }, [h(SubmissionQueueStatus)]),
           side: 'bottom'
         }, [link({}, ['Queue Status'])]),
-        h(SearchInput, {
+        h(DelayedSearchInput, {
           style: { width: 300, marginLeft: '1rem' },
-          placeholder: 'Filter',
-          onChange: ({ target: { value } }) => this.setState({ textFilter: value }),
-          value: textFilter
+          placeholder: 'Search',
+          onChange: v => this.setState({ textFilter: v }),
+          defaultValue: textFilter
         })
       ]),
       div({ style: styles.submissionsTable }, [
