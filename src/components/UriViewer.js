@@ -80,7 +80,7 @@ const UriViewer = ajaxCaller(class UriViewer extends Component {
         this.setState({ signedUrl: (await Martha.call(uri)).signedUrl || false })
       }
     } catch (e) {
-      this.setState({ loadingError: await (e.json ? e.json() : e) })
+      this.setState({ loadingError: await e.json() })
     }
   }
 
