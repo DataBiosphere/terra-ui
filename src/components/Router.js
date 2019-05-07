@@ -98,28 +98,6 @@ export default class Router extends Component {
       ]))
       Nav.history.replace({ search: qs.stringify(_.omit(['fcredir'], qs.parse(Nav.history.location.search, { ignoreQueryPrefix: true, plainObjects: true }))) })
     }
-
-    this.checkAlerts()
-  }
-
-  async checkAlerts() {
-    const alertsArray = await fetchOk(`${getConfig().firecloudBucketRoot}/alerts.json`).then(res => res.json())
-    if (!_.isEmpty(alertsArray)) {
-      return _.map(a => {
-        const { link: readMoreLink, message, title } = a
-        return notify('error', h(Fragment, [
-          div({ style: { fontSize: 14 } }, title),
-          div({ style: { fontSize: 12, fontWeight: 500 } }, [
-            message,
-            readMoreLink && link({
-              target: '_blank',
-              href: readMoreLink,
-              variant: 'light'
-            }, ' Read more')
-          ])
-        ]))
-      }, alertsArray)
-    }
   }
 
   // FIXME - shouldn't be using unsafe methods
