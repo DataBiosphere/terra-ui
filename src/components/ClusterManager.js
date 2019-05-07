@@ -494,7 +494,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
       return null
     }
     const currentCluster = this.getCurrentCluster()
-    const { status, stagingBucket, googleId, clusterName, googleProject } = currentCluster || {}
+    const { status, stagingBucket, googleProject } = currentCluster || {}
     const running = status === 'Running'
     const spendingClusters = _.remove(({ status }) => _.includes(status, ['Deleting', 'Error']), clusters)
     const renderIcon = () => {
@@ -608,9 +608,8 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
       }),
       errorModalOpen && h(UriViewer, {
         onDismiss: () => this.setState({ errorModalOpen: false }),
-        previewOverride: true,
-        uri: `gs://${stagingBucket}/google-cloud-dataproc-metainfo/${googleId}/${clusterName}-m/dataproc-initialization-script-0_output`,
-        googleProject
+        uri: `gs://${stagingBucket}/userscript_output.txt`,
+        googleProject: googleProject
       })
     ])
   }

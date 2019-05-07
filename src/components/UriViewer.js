@@ -55,12 +55,11 @@ const getMaxDownloadCostNA = bytes => {
 const UriViewer = ajaxCaller(class UriViewer extends Component {
   static propTypes = {
     googleProject: PropTypes.string.isRequired,
-    uri: PropTypes.string.isRequired,
-    previewOverride: PropTypes.bool
+    uri: PropTypes.string.isRequired
   }
 
   async componentDidMount() {
-    const { googleProject, uri, previewOverride, ajax: { Buckets, Martha } } = this.props
+    const { googleProject, uri, ajax: { Buckets, Martha } } = this.props
     const isGsUri = isGs(uri)
     const [bucket, name] = isGsUri ? parseUri(uri) : []
 
@@ -71,8 +70,8 @@ const UriViewer = ajaxCaller(class UriViewer extends Component {
 
       this.setState(_.merge({ metadata, price }, !isGsUri && { signedUrl }))
 
-      if (isGsUri && (previewOverride || isFilePreviewable(metadata))) {
-        Buckets.getObjectPreview(bucket, name, googleProject, previewOverride || isImage(metadata))
+      if (isGsUri && isFilePreviewable(metadata)) {
+        Buckets.getObjectPreview(bucket, name, googleProject, isImage(metadata))
           .then(res => isImage(metadata) ? res.blob().then(URL.createObjectURL) : res.text())
           .then(preview => this.setState({ preview }))
       }
@@ -81,12 +80,12 @@ const UriViewer = ajaxCaller(class UriViewer extends Component {
         this.setState({ signedUrl: (await Martha.call(uri)).signedUrl || false })
       }
     } catch (e) {
-      this.setState({ loadingError: await e.json() })
+      this.setState({ loadingError: await (e.json ? e.json() : e) })
     }
   }
 
   render() {
-    const { uri, onDismiss, previewOverride } = this.props
+    const { uri, onDismiss } = this.props
     const { metadata, preview, signedUrl, price, copied, loadingError } = this.state
     const { size, timeCreated, updated, name, gsUri = uri } = metadata || {}
     const gsutilCommand = `gsutil cp ${gsUri} .`
@@ -117,7 +116,7 @@ const UriViewer = ajaxCaller(class UriViewer extends Component {
           els.cell([
             Utils.cond(
               [!isGs(uri), () => els.label(`DOS uri's can't be previewed`)],
-              [previewOverride || isFilePreviewable(metadata), () => h(Fragment, [
+              [isFilePreviewable(metadata), () => h(Fragment, [
                 els.label('Preview'),
                 Utils.cond(
                   [isImage(metadata), () => img({ src: preview, width: 400 })],
