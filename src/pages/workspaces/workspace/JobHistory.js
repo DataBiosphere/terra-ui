@@ -170,19 +170,19 @@ const JobHistory = _.flow(
                     hover: { backgroundColor: Utils.cond([!!failed, colors.red[5]], [!!running, colors.blue[5]], colors.green[6]) },
                     style: {
                       flex: 1, alignSelf: 'stretch', display: 'flex', flexDirection: 'column', justifyContent: 'center',
-                      margin: '0 -1rem', padding: '0 1rem',
+                      margin: '0 -1rem', padding: '0 1rem', minWidth: 0,
                       color: 'unset', fontWeight: 500,
                       backgroundColor: Utils.cond([!!failed, colors.red[6]], [!!running, colors.blue[6]], colors.green[7])
                     },
                     href: Nav.getLink('workspace-submission-details', { namespace, name, submissionId })
                   }, [
-                    div([
+                    div({ style: { overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' } }, [
                       methodConfigurationNamespace !== namespace && span({ style: styles.deemphasized }, [
                         `${methodConfigurationNamespace}/`
                       ]),
                       methodConfigurationName
                     ]),
-                    div([
+                    div({ style: { overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' } }, [
                       span({ style: styles.deemphasized }, 'Submitted by '),
                       submitter
                     ])

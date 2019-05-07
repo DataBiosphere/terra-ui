@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import uuid from 'uuid/v4'
 
@@ -280,6 +280,16 @@ export const withBusyState = _.curry((setBusy, fn) => async (...args) => {
  */
 export const useOnMount = fn => {
   useEffect(fn, [])
+}
+
+export const usePrevious = value => {
+  const ref = useRef()
+
+  useEffect(() => {
+    ref.current = value
+  })
+
+  return ref.current
 }
 
 export const trimClustersOldestFirst = _.flow(

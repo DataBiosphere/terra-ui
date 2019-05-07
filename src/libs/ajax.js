@@ -1,6 +1,6 @@
-import { useEffect, useRef } from 'react'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
+import { useEffect, useRef } from 'react'
 import { h } from 'react-hyperscript-helpers'
 import { version } from 'src/data/clusters'
 import { getUser } from 'src/libs/auth'
@@ -660,6 +660,11 @@ const Buckets = signal => ({
     )
   },
 
+  getServiceAlerts: async () => {
+    const res = await fetchOk(`${getConfig().firecloudBucketRoot}/alerts.json`, { signal })
+    return res.json()
+  },
+
   listNotebooks: async (namespace, name) => {
     const res = await fetchBuckets(
       `storage/v1/b/${name}/o?prefix=notebooks/`,
@@ -850,7 +855,8 @@ const Jupyter = signal => ({
             serverExtensions: {},
             combinedExtensions: {}
           },
-          scopes: ['https://www.googleapis.com/auth/cloud-platform', 'https://www.googleapis.com/auth/userinfo.email', 'https://www.googleapis.com/auth/userinfo.profile']
+          scopes: ['https://www.googleapis.com/auth/cloud-platform', 'https://www.googleapis.com/auth/userinfo.email',
+            'https://www.googleapis.com/auth/userinfo.profile']
         })
         return fetchLeo(`api/cluster/v2/${project}/${name}`, _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'PUT' }, appIdentifier]))
       },
