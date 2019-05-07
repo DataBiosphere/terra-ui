@@ -22,6 +22,7 @@ import * as PrivacyPolicy from 'src/pages/PrivacyPolicy'
 import * as Profile from 'src/pages/Profile'
 import * as StyleGuide from 'src/pages/StyleGuide'
 import * as TermsOfService from 'src/pages/TermsOfService'
+import * as TestLogin from 'src/pages/TestLogin'
 import * as WorkspaceList from 'src/pages/workspaces/List'
 import * as Dashboard from 'src/pages/workspaces/workspace/Dashboard'
 import * as Data from 'src/pages/workspaces/workspace/Data'
@@ -39,6 +40,7 @@ const pageWrapStyle = { display: 'flex', flexDirection: 'column', flex: '1 0 aut
 const initNavPaths = () => {
   Nav.clearPaths()
   _.forEach(Nav.defPath, _.flatten([
+    TestLogin.navPaths,
     LandingPage.navPaths,
     WorkspaceList.navPaths,
     WorkflowView.navPaths,
