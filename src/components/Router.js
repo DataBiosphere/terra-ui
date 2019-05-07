@@ -1,27 +1,27 @@
 import _ from 'lodash/fp'
 import * as qs from 'qs'
-import { Component, Fragment } from 'react'
+import { Component } from 'react'
 import { div, h, h2 } from 'react-hyperscript-helpers'
 import AuthContainer from 'src/components/AuthContainer'
 import { link } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { notify } from 'src/components/Notifications'
 import TopBar from 'src/components/TopBar'
-import { fetchOk } from 'src/libs/ajax'
-import { getConfig } from 'src/libs/config'
 import * as Nav from 'src/libs/nav'
+import * as Projects from 'src/pages/billing/List'
+import * as Group from 'src/pages/groups/Group'
+import * as Groups from 'src/pages/groups/List'
+import * as ImportData from 'src/pages/ImportData'
+import * as ImportTool from 'src/pages/ImportTool'
+import * as LandingPage from 'src/pages/LandingPage'
 import * as Code from 'src/pages/library/Code'
 import * as DataExplorer from 'src/pages/library/DataExplorer'
 import * as Datasets from 'src/pages/library/Datasets'
-import * as Group from 'src/pages/groups/Group'
-import * as Groups from 'src/pages/groups/List'
-import * as LandingPage from 'src/pages/LandingPage'
-import * as ImportData from 'src/pages/ImportData'
-import * as ImportTool from 'src/pages/ImportTool'
 import * as Showcase from 'src/pages/library/Showcase'
 import * as PrivacyPolicy from 'src/pages/PrivacyPolicy'
 import * as Profile from 'src/pages/Profile'
 import * as StyleGuide from 'src/pages/StyleGuide'
+import * as TermsOfService from 'src/pages/TermsOfService'
 import * as WorkspaceList from 'src/pages/workspaces/List'
 import * as Dashboard from 'src/pages/workspaces/workspace/Dashboard'
 import * as Data from 'src/pages/workspaces/workspace/Data'
@@ -30,10 +30,8 @@ import * as SubmissionDetails from 'src/pages/workspaces/workspace/jobHistory/Su
 import * as Notebooks from 'src/pages/workspaces/workspace/Notebooks'
 import * as NotebookLauncher from 'src/pages/workspaces/workspace/notebooks/NotebookLauncher'
 import * as TerminalLauncher from 'src/pages/workspaces/workspace/notebooks/TerminalLauncher'
-import * as TermsOfService from 'src/pages/TermsOfService'
 import * as Tools from 'src/pages/workspaces/workspace/Tools'
 import * as WorkflowView from 'src/pages/workspaces/workspace/tools/WorkflowView'
-import * as Projects from 'src/pages/billing/List'
 
 
 const pageWrapStyle = { display: 'flex', flexDirection: 'column', flex: '1 0 auto', position: 'relative' }
@@ -96,7 +94,8 @@ export default class Router extends Component {
         div({ style: { marginTop: '1rem' } }, ['Please update your bookmarks to our new URL, firecloud.terra.bio. ' +
         'Welcome to the future of FireCloud!'])
       ]))
-      Nav.history.replace({ search: qs.stringify(_.omit(['fcredir'], qs.parse(Nav.history.location.search, { ignoreQueryPrefix: true, plainObjects: true }))) })
+      Nav.history.replace(
+        { search: qs.stringify(_.omit(['fcredir'], qs.parse(Nav.history.location.search, { ignoreQueryPrefix: true, plainObjects: true }))) })
     }
   }
 
