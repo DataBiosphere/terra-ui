@@ -2,8 +2,7 @@ import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
 import { Fragment, PureComponent } from 'react'
 import { div, h, span, strong } from 'react-hyperscript-helpers'
-import Interactive from 'react-interactive'
-import { buttonPrimary, buttonSecondary, Clickable, LabeledCheckbox, Select } from 'src/components/common'
+import { buttonPrimary, buttonSecondary, Clickable, LabeledCheckbox, link, Select, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { IntegerInput, textInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
@@ -162,20 +161,6 @@ const ClusterIcon = ({ shape, onClick, disabled, style, ...props }) => {
   }, [icon(shape, { size: 20, className: 'is-solid' })])
 }
 
-const MiniLink = ({ href, disabled, tooltip, children, ...props }) => {
-  return h(TooltipTrigger, { content: tooltip }, [
-    h(Interactive, _.merge({
-      as: 'a',
-      href: !disabled ? href : undefined,
-      style: {
-        color: !disabled ? colors.green[0] : colors.gray[2], backgroundColor: colors.grayBlue[4],
-        cursor: disabled ? 'not-allowed' : 'pointer',
-        borderRadius: 4
-      }
-    }, props), [children])
-  ])
-}
-
 const getUpdateIntervalMs = status => {
   switch (status) {
     case 'Starting':
@@ -188,7 +173,14 @@ const getUpdateIntervalMs = status => {
   }
 }
 
-const NewClusterModal = class NewClusterModal extends PureComponent {
+export class NewClusterModal extends PureComponent {
+  static propTypes = {
+    currentCluster: PropTypes.object,
+    namespace: PropTypes.string.isRequired,
+    onCancel: PropTypes.func.isRequired,
+    onSuccess: PropTypes.func.isRequired
+  }
+
   constructor(props) {
     super(props)
     const { currentCluster } = props
@@ -395,7 +387,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
 
   getActiveClustersOldestFirst() {
     const { clusters } = this.props
-    return _.sortBy('createdDate', _.remove({ status: 'Deleting' }, clusters))
+    return Utils.trimClustersOldestFirst(clusters)
   }
 
   getCurrentCluster() {
@@ -416,10 +408,14 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
 
   async executeAndRefreshWithNav(promise) {
     const { namespace, name } = this.props
+    const onNotebookPage = /notebooks\/.+/.test(window.location.hash)
 
-    this.executeAndRefresh(promise)
-    if (/notebooks\/.+/.test(window.location.hash)) {
+    if (onNotebookPage) {
+      this.setState({ pendingNav: true })
+      await this.executeAndRefresh(promise)
       Nav.goToPath('workspace-notebooks', { namespace, name })
+    } else {
+      this.executeAndRefresh(promise)
     }
   }
 
@@ -489,13 +485,12 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
 
   render() {
     const { namespace, name, clusters, canCompute } = this.props
-    const { busy, open, deleting, errorModalOpen } = this.state
+    const { busy, open, deleting, pendingNav, errorModalOpen } = this.state
     if (!clusters) {
       return null
     }
     const currentCluster = this.getCurrentCluster()
     const { status, stagingBucket, googleProject } = currentCluster || {}
-    const running = status === 'Running'
     const spendingClusters = _.remove(({ status }) => _.includes(status, ['Deleting', 'Error']), clusters)
     const renderIcon = () => {
       switch (status) {
@@ -543,16 +538,19 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
     const isDisabled = !canCompute || creating || multiple || busy
 
     return div({ style: styles.container }, [
-      h(MiniLink, {
-        href: Nav.getLink('workspace-terminal-launch', { namespace, name }),
-        disabled: !running || !canCompute,
-        tooltip: Utils.cond(
+      h(TooltipTrigger, {
+        content: Utils.cond(
           [!canCompute, () => noCompute],
-          [!running, () => 'Start runtime to open terminal'],
+          [!currentCluster, () => 'Create a basic cluster and open its terminal'],
           () => 'Open terminal'
-        ),
-        style: { marginRight: '2rem' }
-      }, [icon('terminal', { className: 'is-solid', size: 24 })]),
+        )
+      }, [
+        link({
+          href: Nav.getLink('workspace-terminal-launch', { namespace, name }),
+          disabled: !canCompute,
+          style: { marginRight: '2rem' }
+        }, [icon('terminal', { className: 'is-solid', size: 24 })])
+      ]),
       renderIcon(),
       h(ClusterIcon, {
         shape: 'trash',
@@ -610,7 +608,8 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
         onDismiss: () => this.setState({ errorModalOpen: false }),
         uri: `gs://${stagingBucket}/userscript_output.txt`,
         googleProject: googleProject
-      })
+      }),
+      pendingNav && spinnerOverlay
     ])
   }
 })

@@ -6,6 +6,7 @@ import ErrorWrapper from 'src/components/ErrorWrapper'
 import Notifications from 'src/components/Notifications'
 import { NpsSurvey } from 'src/components/NpsSurvey'
 import Router from 'src/components/Router'
+import ServiceAlerts from 'src/components/ServiceAlerts'
 import SupportRequest from 'src/components/SupportRequest'
 import { TrialBanner } from 'src/components/TrialBanner'
 
@@ -13,6 +14,7 @@ import { TrialBanner } from 'src/components/TrialBanner'
 const Main = () => {
   return h(Fragment, [
     h(Notifications),
+    h(ServiceAlerts),
     h(ErrorWrapper, [h(TrialBanner), h(Router)]),
     h(SupportRequest),
     h(NpsSurvey),

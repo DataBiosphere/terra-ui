@@ -1,8 +1,8 @@
 import _ from 'lodash/fp'
 import { div, h, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
-import { buttonPrimary, buttonSecondary, Checkbox, link, RadioButton, search } from 'src/components/common'
-import { textInput, validatedInput } from 'src/components/input'
+import { buttonPrimary, buttonSecondary, Checkbox, link, RadioButton } from 'src/components/common'
+import { ConfirmedSearchInput, DelayedSearchInput, textInput, validatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import PopupTrigger from 'src/components/PopupTrigger'
 import { FlexTable, GridTable, HeaderCell, TextCell } from 'src/components/table'
@@ -126,7 +126,10 @@ class StyleGuide extends Component {
         ])
       ]),
       els.section('Search Box', [
-        search({ inputProps: { placeholder: 'Search' } })
+        els.columns([
+          els.fixWidth('30%', [h(DelayedSearchInput, { placeholder: 'Debounced search' })]),
+          els.fixWidth('30%', [h(ConfirmedSearchInput, { placeholder: 'Search with explicit confirmation' })])
+        ])
       ]),
       els.section('Text Box', [
         els.columns([

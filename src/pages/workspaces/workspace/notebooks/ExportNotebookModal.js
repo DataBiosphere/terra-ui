@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types'
 import _ from 'lodash/fp'
 import { b, h } from 'react-hyperscript-helpers'
 import { buttonPrimary, spinnerOverlay } from 'src/components/common'
@@ -19,6 +20,13 @@ export default _.flow(
   ajaxCaller,
   withWorkspaces()
 )(class ExportNotebookModal extends Component {
+  static propTypes = {
+    fromLauncher: PropTypes.bool,
+    onDismiss: PropTypes.func.isRequired,
+    printName: PropTypes.string.isRequired,
+    workspace: PropTypes.object.isRequired
+  }
+
   constructor(props) {
     super(props)
 
