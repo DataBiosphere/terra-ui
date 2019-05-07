@@ -36,7 +36,7 @@ export const defPath = ({ name: k, path, component, ...data }) => {
   }
 }
 
-export const clearPaths = function() {
+export const clearPaths = () => {
   allPathHandlers = {}
 }
 

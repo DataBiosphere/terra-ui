@@ -14,7 +14,7 @@ let noConnection
 const consoleStyle = 'font-weight: bold; color: darkBlue'
 
 window.saturnMock = {
-  currently: function() {
+  currently: () => {
     if (noConnection || mockResponse) {
       if (noConnection) { console.info('%cSimulating no connection', consoleStyle) }
       if (mockResponse) {
@@ -25,17 +25,17 @@ window.saturnMock = {
       console.info('%cNot mocking responses', consoleStyle)
     }
   },
-  malformed: function() {
+  malformed: () => {
     mockResponse = () => new Response('{malformed', { status: 200 })
   },
-  noConnection: function() {
+  noConnection: () => {
     noConnection = true
   },
-  off: function() {
+  off: () => {
     mockResponse = undefined
     noConnection = undefined
   },
-  status: function(code) {
+  status: code => {
     mockResponse = () => new Response(new Blob([`Body of simulated ${code} response`]),
       { status: code })
   }
