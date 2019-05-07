@@ -97,10 +97,10 @@ export default class Router extends Component {
       Nav.history.replace({ search: qs.stringify(_.omit(['fcredir'], qs.parse(Nav.history.location.search, { ignoreQueryPrefix: true, plainObjects: true }))) })
     }
 
-    this.alerts()
+    this.checkAlerts()
   }
 
-  async alerts() {
+  async checkAlerts() {
     const alertsArray = await fetchOk(`${getConfig().firecloudBucketRoot}/alerts.json`).then(res => res.json())
     if (!_.isEmpty(alertsArray)) {
       return _.map(a => {
