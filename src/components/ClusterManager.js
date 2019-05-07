@@ -236,9 +236,9 @@ const NewClusterModal = class NewClusterModal extends PureComponent {
     updateCluster() {
         const { namespace, onSuccess, currentCluster } = this.props //PR question, are namespace and googleProject the same? any benefit of using one or the other?
 
-        onSuccess(Ajax().Jupyter.cluster(namespace, currentCluster.clusterName).update(
-            this.getMachineConfig()
-        ))
+        onSuccess(Ajax().Jupyter.cluster(namespace, currentCluster.clusterName).update({
+            machineConfig: this.getMachineConfig()
+        }))
     }
 
     render() {

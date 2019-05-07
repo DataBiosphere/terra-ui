@@ -840,27 +840,19 @@ const Jupyter = signal => ({
       },
 
       update: async machineConfig => {
-        console.log('machine Config: ', machineConfig)
         //filter the machineConfig from the UI modal by the keys the API requires
         const updateConfigKeys = ['numberOfWorkers', 'numberOfPreemptibleWorkers', 'masterMachineType', 'masterDiskSize']
 
-        // const updateConfig = _.pickBy(machineConfig, (value, key) => {
-        //   return _.includes(updateConfigKeys, key)
-        // })
-        const updateConfig = {}
+        const updateConfig = { machineConfig: {} }
         updateConfigKeys.forEach(key => {
-          return updateConfig[key] = machineConfig[key]
+          return updateConfig.machineConfig[key] = machineConfig.machineConfig[key]
         })
-
+       
         const body = _.merge(updateConfig, {
           autopause: true,
           autopauseThreshold: 0
         })
-
-        console.log(appIdentifier)
-        console.log(authOpts())
-
-        console.log('Update request body:', body)
+      
         return fetchLeo(root, _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'PATCH' }, appIdentifier]))
       },
 
