@@ -4,7 +4,7 @@ import { Component, Fragment } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { buttonPrimary, link, Select, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
-import { TextArea, validatedInput } from 'src/components/input'
+import { TextArea, ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { InfoBox } from 'src/components/PopupTrigger'
 import { ajaxCaller } from 'src/libs/ajax'
@@ -126,12 +126,12 @@ export default ajaxCaller(class NewWorkspaceModal extends Component {
       }, cloneWorkspace ? 'Clone Workspace' : 'Create Workspace')
     }, [
       h(RequiredFormLabel, ['Workspace name']),
-      validatedInput({
+      h(ValidatedInput, {
         inputProps: {
           autoFocus: true,
           placeholder: 'Enter a name',
           value: name,
-          onChange: e => this.setState({ name: e.target.value, nameModified: true })
+          onChange: v => this.setState({ name: v, nameModified: true })
         },
         error: Utils.summarizeErrors(nameModified && errors && errors.name)
       }),

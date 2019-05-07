@@ -1,8 +1,8 @@
 import { Component } from 'react'
-import { div } from 'react-hyperscript-helpers'
+import { div, h } from 'react-hyperscript-helpers'
 import { buttonPrimary, buttonSecondary } from 'src/components/common'
 import { centeredSpinner } from 'src/components/icons'
-import { textInput } from 'src/components/input'
+import { TextInput } from 'src/components/input'
 import planet from 'src/images/register-planet.svg'
 import { ajaxCaller } from 'src/libs/ajax'
 import { authStore, getUser, refreshTerraProfile, signOut } from 'src/libs/auth'
@@ -70,28 +70,28 @@ export default ajaxCaller(class Register extends Component {
       div({ style: { marginTop: '3rem', display: 'flex' } }, [
         div({ style: { lineHeight: '170%' } }, [
           'First Name *',
-          textInput({
+          h(TextInput, {
             style: { display: 'block' },
             value: givenName,
-            onChange: e => this.setState({ givenName: e.target.value })
+            onChange: v => this.setState({ givenName: v })
           })
         ]),
         div({ style: { width: '1rem' } }),
         div({ style: { lineHeight: '170%' } }, [
           'Last Name *',
-          textInput({
+          h(TextInput, {
             style: { display: 'block' },
             value: familyName,
-            onChange: e => this.setState({ familyName: e.target.value })
+            onChange: v => this.setState({ familyName: v })
           })
         ])
       ]),
       div({ style: { lineHeight: '170%' } }, [
         div({ style: { marginTop: '2rem' } }, 'Contact Email for Notifications *'),
         div([
-          textInput({
+          h(TextInput, {
             value: email,
-            onChange: e => this.setState({ email: e.target.value }),
+            onChange: v => this.setState({ email: v }),
             style: { width: '50ex' }
           })
         ])

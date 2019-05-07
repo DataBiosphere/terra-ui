@@ -5,7 +5,7 @@ import { a, div, h, span } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
 import { buttonPrimary, buttonSecondary, Select, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
-import { validatedInput } from 'src/components/input'
+import { ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import TopBar from 'src/components/TopBar'
 import { ajaxCaller } from 'src/libs/ajax'
@@ -121,11 +121,11 @@ const NewBillingProjectModal = ajaxCaller(class NewBillingProjectModal extends C
       ]),
       billingAccounts && billingAccounts.length !== 0 && h(Fragment, [
         h(RequiredFormLabel, ['Enter name']),
-        validatedInput({
+        h(ValidatedInput, {
           inputProps: {
             autoFocus: true,
             value: billingProjectName,
-            onChange: e => this.setState({ billingProjectName: e.target.value, billingProjectNameTouched: true })
+            onChange: v => this.setState({ billingProjectName: v, billingProjectNameTouched: true })
           },
           error: billingProjectNameTouched && Utils.summarizeErrors(errors && errors.billingProjectName)
         }),

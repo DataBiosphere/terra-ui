@@ -12,7 +12,7 @@ import DataTable from 'src/components/DataTable'
 import ExportDataModal from 'src/components/ExportDataModal'
 import FloatingActionButton from 'src/components/FloatingActionButton'
 import { icon, spinner } from 'src/components/icons'
-import { DelayedSearchInput, textInput } from 'src/components/input'
+import { DelayedSearchInput, TextInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { FlexTable, HeaderCell, SimpleTable, TextCell } from 'src/components/table'
 import UriViewer from 'src/components/UriViewer'
@@ -187,10 +187,10 @@ const LocalVariablesContent = ajaxCaller(class LocalVariablesContent extends Com
                   size: { basis: 400, grow: 0 },
                   headerRenderer: () => h(HeaderCell, ['Key']),
                   cellRenderer: ({ rowIndex }) => editIndex === rowIndex ?
-                    textInput({
+                    h(TextInput, {
                       autoFocus: true,
                       value: editKey,
-                      onChange: e => this.setState({ editKey: e.target.value })
+                      onChange: v => this.setState({ editKey: v })
                     }) :
                     renderDataCell(amendedAttributes[rowIndex][0], namespace)
                 },
@@ -203,9 +203,9 @@ const LocalVariablesContent = ajaxCaller(class LocalVariablesContent extends Com
                     return h(Fragment, [
                       div({ style: { flex: 1, minWidth: 0, display: 'flex' } }, [
                         editIndex === rowIndex ?
-                          textInput({
+                          h(TextInput, {
                             value: editValue,
-                            onChange: e => this.setState({ editValue: e.target.value })
+                            onChange: v => this.setState({ editValue: v })
                           }) :
                           renderDataCell(originalValue, namespace)
                       ]),
