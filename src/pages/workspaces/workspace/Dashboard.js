@@ -6,6 +6,7 @@ import 'easymde/dist/easymde.min.css'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { buttonPrimary, buttonSecondary, link, linkButton, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
+import { textInput } from 'src/components/input'
 import { Markdown } from 'src/components/Markdown'
 import { SimpleTable } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
@@ -44,6 +45,11 @@ const styles = {
     padding: '0.5rem 0.25rem', marginBottom: '0.25rem',
     backgroundColor: colors.grayBlue[3],
     whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'
+  },
+  tag: {
+    padding: '0.25rem', margin: '0.15rem',
+    backgroundColor: colors.grayBlue[3], borderRadius: 10,
+    whiteSpace: 'nowrap', wordWrap: 'break-word', textOverflow: 'ellipsis'
   },
   label: {
     ...Style.elements.sectionHeader,
@@ -100,7 +106,8 @@ export const WorkspaceDashboard = _.flow(
       submissionsCount: undefined,
       storageCostEstimate: undefined,
       editDescription: undefined,
-      saving: false
+      saving: false,
+      newTag: ''
     }
   }
 
@@ -109,7 +116,6 @@ export const WorkspaceDashboard = _.flow(
     this.loadStorageCost()
     this.loadConsent()
     this.loadTags()
-    this.addTag('new tag')
   }
 
   loadSubmissionCount = withErrorReporting('Error loading data', async () => {
@@ -186,7 +192,7 @@ export const WorkspaceDashboard = _.flow(
         }
       }
     } = this.props
-    const { submissionsCount, storageCostEstimate, editDescription, saving, consentStatus, tagsList } = this.state
+    const { submissionsCount, storageCostEstimate, editDescription, saving, consentStatus, tagsList, newTag } = this.state
     console.log(tagsList)
     const isEditing = _.isString(editDescription)
 
@@ -255,6 +261,24 @@ export const WorkspaceDashboard = _.flow(
             storageCostEstimate
           ])
         ]),
+        div({ style: styles.header }, ['Tags']),
+        div({ style: { marginBottom: '0.5rem' } }, [
+          textInput({
+            placeholder: 'Add a tag',
+            style: { display: 'block' },
+            value: newTag,
+            onChange: e => this.setState({ newTag: e.target.value })
+            //this.addTag(newTag)
+          })
+        ]),
+        div({ style: { display: 'flex', flexWrap: 'wrap' } }, [
+          _.map(tag => {
+            return span({ key: tag, style: styles.tag }, [tag, linkButton({
+              tooltip: 'Remove tag',
+              onClick: () => this.deleteTag(tag)
+            }, [icon('times-circle', { size: 20, style: { marginLeft: '0.5rem' } })])])
+          }, tagsList)
+        ]),
         !_.isEmpty(authorizationDomain) && h(Fragment, [
           div({ style: styles.header }, ['Authorization Domain']),
           div({ style: { marginBottom: '0.5rem' } }, [
@@ -267,8 +291,6 @@ export const WorkspaceDashboard = _.flow(
           ]),
           ..._.map(({ membersGroupName }) => div({ style: styles.authDomain }, [membersGroupName]), authorizationDomain)
         ]),
-        div({ style: styles.header }, ['Tags']),
-        _.map(tag => div({ style: styles.authDomain }, [tag]), tagsList),
         div({ style: { margin: '1.5rem 0 0.5rem 0', borderBottom: `1px solid ${colors.gray[3]}` } }),
         link({
           target: '_blank',
