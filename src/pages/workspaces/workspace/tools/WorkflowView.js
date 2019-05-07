@@ -801,11 +801,9 @@ const WorkflowView = _.flow(
           onBrowse: name => this.setState({ variableSelected: name }),
           onChange: (name, v) => this.setState(_.set(['modifiedConfig', key, name], v)),
           onSetDefaults: () => {
-            this.setState(_.update(['modifiedConfig', 'outputs'], _.flow(
-              _.toPairs,
-              _.map(([k, v]) => [k, v || `this.${_.last(k.split('.'))}`]),
-              _.fromPairs
-            )))
+            this.setState(_.set(['modifiedConfig', 'outputs'], _.fromPairs(_.map(({ name }) => {
+              return [name, modifiedConfig.outputs[name] || `this.${_.last(name.split('.'))}`]
+            }, modifiedInputsOutputs.outputs))))
           },
           suggestions
         })
@@ -852,10 +850,11 @@ const WorkflowView = _.flow(
 })
 
 
-export const addNavPaths = () => {
-  Nav.defPath('workflow', {
+export const navPaths = [
+  {
+    name: 'workflow',
     path: '/workspaces/:namespace/:name/tools/:workflowNamespace/:workflowName',
     component: WorkflowView,
     title: ({ name, workflowName }) => `${name} - Tools - ${workflowName}`
-  })
-}
+  }
+]

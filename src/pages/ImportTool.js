@@ -123,10 +123,11 @@ class Importer extends Component {
 }
 
 
-export const addNavPaths = () => {
-  Nav.defPath('import-tool', {
+export const navPaths = [
+  {
+    name: 'import-tool',
     path: '/import-tool/:source/:item*',
     component: Importer,
     title: 'Import Tool'
-  })
-}
+  }
+]

@@ -446,15 +446,17 @@ const Profile = _.flow(
 })
 
 
-export const addNavPaths = () => {
-  Nav.defPath('profile', {
+export const navPaths = [
+  {
+    name: 'profile',
     path: '/profile',
     component: Profile,
     title: 'Profile'
-  })
-  Nav.defPath('fence-callback', {
+  },
+  {
+    name: 'fence-callback',
     path: '/fence-callback',
     component: Profile,
     title: 'Profile'
-  })
-}
+  }
+]

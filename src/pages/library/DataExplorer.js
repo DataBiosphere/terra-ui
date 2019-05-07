@@ -46,11 +46,12 @@ const DataExplorer = props => {
 }
 
 
-export const addNavPaths = () => {
-  Nav.defPath('library-datasets-data-explorer', {
+export const navPaths = [
+  {
+    name: 'library-datasets-data-explorer',
     path: '/library/datasets/:dataset/data-explorer',
     component: DataExplorer,
     public: true,
     title: ({ dataset }) => `${dataset} - Data Explorer`
-  })
-}
+  }
+]

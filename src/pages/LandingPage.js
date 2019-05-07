@@ -64,10 +64,11 @@ const LandingPage = pure(() => {
 })
 
 
-export const addNavPaths = () => {
-  Nav.defPath('root', {
+export const navPaths = [
+  {
+    name: 'root',
     path: '/',
     component: LandingPage,
     public: true
-  })
-}
+  }
+]
