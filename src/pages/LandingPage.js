@@ -1,12 +1,11 @@
-import { div, h, img, span } from 'react-hyperscript-helpers'
+import { div, h, span } from 'react-hyperscript-helpers'
 import { pure } from 'recompose'
 import { Clickable, link } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { icon } from 'src/components/icons'
 import TopBar from 'src/components/TopBar'
-import hexBackgroundPattern from 'src/images/hex-background-pattern.svg'
 import hexButton from 'src/images/hex-button.svg'
-import landingPageHero from 'src/images/landing-page-hero.png'
+import landingPageHero from 'src/images/landing-page-hero.jpg'
 import colors from 'src/libs/colors'
 import { isFirecloud } from 'src/libs/config'
 import { getAppName } from 'src/libs/logos'
@@ -31,11 +30,9 @@ const makeCard = (link, title, body) => h(Clickable, {
     style: {
       height: 31, width: 27,
       display: 'flex', alignItems: 'center', alignSelf: 'flex-end', justifyContent: 'center',
-      backgroundImage: `url(${hexButton})`, backgroundRepeat: 'no-repeat', backgroundSize: 'contain'
+      backgroundImage: `url(${hexButton})`, backgroundRepeat: 'no-repeat', backgroundSize: 'contain', backgroundPosition: 'center'
     }
-  }, [
-    icon('arrowRight', { style: { color: 'white' } })
-  ])
+  }, [icon('arrowRight', { style: { color: 'white' } })])
 ])
 
 const LandingPage = pure(() => {
@@ -43,14 +40,13 @@ const LandingPage = pure(() => {
     h(TopBar),
     div({
       style: {
-        flex: '1 0 700px',
+        flexGrow: 1,
         color: colors.gray[0],
         padding: '3rem 5rem',
-        backgroundImage: `url(${hexBackgroundPattern})`,
-        backgroundRepeat: 'no-repeat', backgroundSize: '750px', backgroundPosition: 'right -5rem top -2rem'
+        backgroundImage: `url(${landingPageHero})`,
+        backgroundRepeat: 'no-repeat', backgroundSize: '750px', backgroundPosition: 'right 0 top 0'
       }
     }, [
-      img({ src: landingPageHero, style: { position: 'absolute', right: 0, top: 80 } }),
       div({ style: { fontSize: 54, color: colors.green[0] } }, `Welcome to ${getAppName()}`),
       div({ style: { fontSize: 20, color: colors.gray[0], marginTop: '1rem' } }, [
         div(`${getAppName()} is a cloud-native platform for biomedical`),
@@ -63,7 +59,7 @@ const LandingPage = pure(() => {
         style: { margin: '1rem 0', fontSize: 18, display: 'inline-flex', alignItems: 'center' }
       }, ['Already a FireCloud user? Learn what\'s new in Terra.', icon('pop-out', { size: 18, style: { marginLeft: '0.5rem' } })]),
       div({
-        style: { display: 'flex', margin: '1rem 0', position: 'relative' } // positioned to keep it above hero bg
+        style: { display: 'flex', margin: '1rem 0' }
       }, [
         makeCard('workspaces', 'View Workspaces', [
           `${getAppName()} Workspaces connect your data to popular analysis tools powered by the cloud. `,

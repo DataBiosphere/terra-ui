@@ -66,7 +66,7 @@ export const FreeCreditsModal= ajaxCaller(class FreeCreditsModal extends Compone
     const { pageTwo, termsAgreed, cloudTermsAgreed, loading } = this.state
     return h(Modal, {
       onDismiss,
-      title: `Welcome to the ${getAppName()} Free Credit Program!`,
+      title: 'Welcome to the Terra Free Credit Program!',
       width: '65%',
       okButton: pageTwo ? buttonPrimary({
         onClick: async () => {
