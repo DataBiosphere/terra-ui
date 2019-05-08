@@ -33,9 +33,9 @@ const paginatorButton = (props, label) => button(_.merge({
  * @param {number} props.itemsPerPage
  * @param {number[]} [props.itemsPerPageOptions=[10,25,50,100]]
  */
-export const paginator = function(props) {
+export const paginator = props => {
   const {
-    filteredDataLength, pageNumber, setPageNumber, setItemsPerPage,
+    filteredDataLength, unfilteredDataLength, pageNumber, setPageNumber, setItemsPerPage,
     itemsPerPage, itemsPerPageOptions = [10, 25, 50, 100]
   } = props
 
@@ -49,6 +49,7 @@ export const paginator = function(props) {
       [
         div({ style: { display: 'flex', justifyContent: 'flex-end', alignItems: 'center', marginRight: '1rem' } }, [
           `${(pageNumber - 1) * itemsPerPage + 1} - ${_.min([filteredDataLength, pageNumber * itemsPerPage])} of ${filteredDataLength}`,
+          unfilteredDataLength && filteredDataLength !== unfilteredDataLength && ` (filtered from ${unfilteredDataLength} total)`,
           div({ style: { display: 'inline-flex', padding: '0 1rem' } }, [
 
             paginatorButton(
@@ -504,6 +505,7 @@ export class ColumnSelector extends Component {
     return h(Fragment, [
       h(Clickable, {
         style: styles.columnSelector,
+        tooltip: 'Select columns',
         onClick: () => this.setState({ open: true, modifiedColumnSettings: columnSettings })
       }, [icon('cog', { size: 20, className: 'is-solid' })]),
       open && h(Modal, {
@@ -522,7 +524,7 @@ export class ColumnSelector extends Component {
           '|',
           linkButton({ style: { padding: '0 0.5rem' }, onClick: () => this.setAll(false) }, ['none']),
           div({ style: { marginLeft: 'auto', fontWeight: 500 } }, ['Sort:']),
-          linkButton({ style: { padding: '0 0.5rem' }, onClick: () => this.sort() }, ['reset'])
+          linkButton({ style: { padding: '0 0.5rem' }, onClick: () => this.sort() }, ['alphabetical'])
         ]),
         h(AutoSizer, { disableHeight: true }, [
           ({ width }) => {

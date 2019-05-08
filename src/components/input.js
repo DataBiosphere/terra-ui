@@ -1,11 +1,11 @@
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
-import { Component, createRef, Fragment, useRef } from 'react'
+import { Component, createRef, Fragment, useRef, useState } from 'react'
 import Autosuggest from 'react-autosuggest'
-import { createPortal, findDOMNode } from 'react-dom'
+import { createPortal } from 'react-dom'
 import { div, h } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
-import { search } from 'src/components/common'
+import { buttonPrimary } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import colors from 'src/libs/colors'
 import * as Utils from 'src/libs/utils'
@@ -41,8 +41,9 @@ const styles = {
   }
 }
 
-export const textInput = props => h(Interactive,
+export const textInput = ({ ref, ...props }) => h(Interactive,
   _.merge({
+    refDOMNode: ref,
     as: 'input',
     className: 'focus-style',
     style: {
@@ -56,38 +57,57 @@ export const textInput = props => h(Interactive,
   props)
 )
 
-export const SearchInput = ({ onSearch = _.noop, onChange, ...props }) => {
-  const supportsSearch = 'onsearch' in document.documentElement
+export const ConfirmedSearchInput = ({ defaultValue = '', onChange = _.noop, ...props }) => {
+  const [internalValue, setInternalValue] = useState(defaultValue)
+  return div({ style: { display: 'inline-flex', width: '100%' } }, [
+    textInput(_.merge({
+      type: 'search',
+      refDOMNode: el => {
+        el.addEventListener('search', e => {
+          setInternalValue(e.target.value)
+          onChange(e.target.value)
+        })
+      },
+      spellCheck: false,
+      style: { WebkitAppearance: 'none', borderColor: colors.gray[3], borderRadius: '4px 0 0 4px' },
+      value: internalValue,
+      onChange: e => setInternalValue(e.target.value),
+      onKeyDown: e => {
+        if (e.key === 'Enter') {
+          e.preventDefault()
+          onChange(internalValue)
+        } else if (e.key === 'Escape' && internalValue !== '') {
+          e.preventDefault()
+          e.stopPropagation()
+          setInternalValue('')
+          onChange('')
+        }
+      }
+    }, props)),
+    buttonPrimary({
+      style: { borderRadius: '0 4px 4px 0', borderLeft: 'none' },
+      onClick: () => onChange(internalValue)
+    }, [icon('search', { size: 18 })])
+  ])
+}
 
-  const searchEl = useRef()
-  const attachRef = node => {
-    if (node) {
-      const el = findDOMNode(node)
-      searchEl.current = el
-      el.addEventListener('search', onSearch)
-    } else {
-      searchEl.current.removeEventListener('search', onSearch)
-    }
-  }
-
+export const DelayedSearchInput = ({ defaultValue = '', onChange = _.noop, ...props }) => {
+  const [internalValue, setInternalValue] = useState(defaultValue)
+  const updateFn = useRef(_.debounce(250, onChange))
   return textInput(_.merge({
-    ref: attachRef,
     type: 'search',
     spellCheck: false,
     style: { WebkitAppearance: 'none', borderColor: colors.gray[3] },
-    onChange,
-    onKeyDown: supportsSearch ? undefined : e => { // to make firefox behave like webkit/blink
-      switch (e.which) {
-        case 13: // return
-          onSearch(e)
-          break
-        case 27: // escape
-          e.persist()
-          const touchedEvent = _.merge(e, { target: { value: '' } })
-          onChange(touchedEvent)
-          onSearch(touchedEvent)
-          break
-        default:
+    value: internalValue,
+    onChange: e => {
+      setInternalValue(e.target.value)
+      updateFn.current(e.target.value)
+    },
+    onKeyDown: e => {
+      if (e.key === 'Escape' && internalValue !== '') {
+        e.stopPropagation()
+        setInternalValue('')
+        updateFn.current('')
       }
     }
   }, props))
@@ -323,7 +343,7 @@ export class AutocompleteSearch extends Component {
         ])
       },
       renderSuggestion,
-      renderInputComponent: renderInputComponent || (inputProps => search({ inputProps })),
+      renderInputComponent: renderInputComponent || (inputProps => textInput({ inputProps })),
       theme: _.merge({
         container: { width: '100%' },
         suggestionsList: { margin: 0, padding: 0 },

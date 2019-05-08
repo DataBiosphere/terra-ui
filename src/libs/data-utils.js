@@ -167,6 +167,7 @@ export const EntityDeleter = ajaxCaller(class EntityDeleter extends Component {
       margin: '0 -1.25rem'
     }
 
+    const total = selectedEntities.length + additionalDeletions.length
     return h(Modal, {
       onDismiss,
       title: 'Confirm Delete',
@@ -193,7 +194,7 @@ export const EntityDeleter = ajaxCaller(class EntityDeleter extends Component {
       Utils.toIndexPairs(moreToDelete ? additionalDeletions : selectedEntities)),
       div({
         style: { ...fullWidthWarning, textAlign: 'right' }
-      }, [`${selectedEntities.length + additionalDeletions.length} data entries to be deleted.`]),
+      }, [`${total} data ${total > 1 ?'entries' : 'entry'} to be deleted.`]),
       deleting && spinnerOverlay
     ])
   }
@@ -257,7 +258,7 @@ export const EntityUploader = ajaxCaller(class EntityUploader extends Component 
 
         if (definedTypeMatch) {
           const parsedEntityType = definedTypeMatch[1]
-          this.setState({ file, isInvalid: undefined, newEntityType: parsedEntityType, useFireCloudDataModel: supportsFireCloudDataModel(parsedEntityType) })
+          this.setState({ file, isInvalid: undefined, newEntityType: parsedEntityType, useFireCloudDataModel: false })
         } else {
           this.setState({ file: undefined, isInvalid: 'tsv' })
         }

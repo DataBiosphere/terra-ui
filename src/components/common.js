@@ -100,24 +100,6 @@ export const buttonOutline = ({ disabled, ...props }, children) => {
   }, props), children)
 }
 
-export const search = function({ wrapperProps, inputProps }) {
-  return div(
-    _.merge({ style: { padding: '0.5rem 0.2rem', display: 'flex', backgroundColor: 'white', borderRadius: 3 } },
-      wrapperProps),
-    [
-      icon('search', { size: 21 }),
-      input(_.merge({
-        style: {
-          border: 'none', outline: 'none',
-          flexGrow: 1,
-          verticalAlign: 'bottom', marginLeft: '1rem',
-          fontSize: '1rem',
-          backgroundColor: 'transparent'
-        }
-      }, inputProps))
-    ])
-}
-
 export const tabBar = ({ activeTab, tabNames, refresh = _.noop, getHref }, children = []) => {
   const navTab = currentTab => {
     const selected = currentTab === activeTab
