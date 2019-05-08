@@ -1326,7 +1326,7 @@ class FreeTrialEulas extends Component {
     return div({ style: { maxHeight: 500, maxWidth: 1500, overflowY: 'auto', lineHeight: 1.5, marginTop: '1rem', paddingRight: '1rem' } }, [
       h(Markdown, {
         renderers: {
-          link: newWindowLinkRenderer,
+          item: newWindowLinkRenderer,
           paragraph: text => {
             return `<p style="margin-top: 0">${text}</p>`
           }

@@ -9,6 +9,7 @@ import broadSquare from 'src/images/library/code/broad-square.svg'
 import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { getConfig, isFirecloud } from 'src/libs/config'
+import { getAppName } from 'src/libs/logos'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import { Component } from 'src/libs/wrapped-components'
@@ -76,7 +77,7 @@ export const fcMethodRepoTile = () => div({ style: { display: 'flex' } }, [
   logoTile({ logoFile: broadSquare, style: { backgroundColor: undefined, backgroundSize: 37 } }),
   div([
     link({ href: `${getConfig().firecloudUrlRoot}/?return=${isFirecloud() ? `firecloud` : `terra`}#methods` }, 'Broad Methods Repository'),
-    div(['Use Broad workflows in Terra. Share your own, or choose from > 700 public workflows'])
+    div([`Use Broad workflows in ${getAppName()}. Share your own, or choose from > 700 public workflows`])
   ])
 ])
 

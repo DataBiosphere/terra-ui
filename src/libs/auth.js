@@ -5,6 +5,7 @@ import { clearNotification, sessionTimeoutProps, notify } from 'src/components/N
 import { Ajax } from 'src/libs/ajax'
 import { getConfig } from 'src/libs/config'
 import { reportError, withErrorReporting } from 'src/libs/error'
+import { getAppName } from 'src/libs/logos'
 import * as Utils from 'src/libs/utils'
 
 
@@ -212,7 +213,7 @@ authStore.subscribe((state, oldState) => {
       notify('info', div({}, [
         `Your access to NIH Controlled Access workspaces and data ${expireStatus}. To regain access, `,
         h(ShibbolethLink, { variant: 'light' }, ['re-link']),
-        ` your eRA Commons / NIH account (${state.nihStatus.linkedNihUsername}) with Terra.`
+        ` your eRA Commons / NIH account (${state.nihStatus.linkedNihUsername}) with ${getAppName()}.`
       ]), { id: notificationId })
     } else {
       clearNotification(notificationId)

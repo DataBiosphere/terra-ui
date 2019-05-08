@@ -6,6 +6,7 @@ import { buttonPrimary, Clickable, LabeledCheckbox, spinnerOverlay } from 'src/c
 import { icon } from 'src/components/icons'
 import { ajaxCaller } from 'src/libs/ajax'
 import { reportError } from 'src/libs/error'
+import { getAppName } from 'src/libs/logos'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 import Modal from 'src/components/Modal'
@@ -15,7 +16,7 @@ import FreeTrialEulas from 'src/components/FreeTrialEulas'
 const messages =
   {
     'Enabled': {
-      'title': 'Welcome to Terra!',
+      'title': `Welcome to ${getAppName()}!`,
       'message': 'You have free compute and storage credits available to upload your data and launch analyses.',
       'isWarning': false,
       'enabledLink': {
@@ -29,7 +30,7 @@ const messages =
     },
     'Enrolled': {
       'title': 'Access Free Credits',
-      'message': 'You currently have access to your free credits. Learn how to use Terra, about this free credit period, and transitioning to your own billing account once the free credits have expired.',
+      'message': `You currently have access to your free credits. Learn how to use ${getAppName()}, about this free credit period, and transitioning to your own billing account once the free credits have expired.`,
       'isWarning': false,
       'button': {
         'label': 'Learn More',
@@ -65,7 +66,7 @@ export const FreeCreditsModal= ajaxCaller(class FreeCreditsModal extends Compone
     const { pageTwo, termsAgreed, cloudTermsAgreed, loading } = this.state
     return h(Modal, {
       onDismiss,
-      title: 'Welcome to the Terra Free Credit Program!',
+      title: `Welcome to the ${getAppName()} Free Credit Program!`,
       width: '65%',
       okButton: pageTwo ? buttonPrimary({
         onClick: async () => {

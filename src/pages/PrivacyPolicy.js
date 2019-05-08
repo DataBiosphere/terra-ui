@@ -98,7 +98,7 @@ const PrivacyPolicy = () => {
   return div({ style: { padding: '1rem' } }, [
     h(Markdown, {
       renderers: {
-        link: newWindowLinkRenderer
+        item: newWindowLinkRenderer
       }
     }, [privacyPolicy])
   ])
