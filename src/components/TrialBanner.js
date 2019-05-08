@@ -2,17 +2,15 @@ import _ from 'lodash/fp'
 import { div, h, a, span } from 'react-hyperscript-helpers'
 import { authStore, refreshTerraProfile } from 'src/libs/auth'
 import colors from 'src/libs/colors'
-import { buttonPrimary, Clickable, LabeledCheckbox, spinnerOverlay } from 'src/components/common'
+import { buttonPrimary, Clickable } from 'src/components/common'
 import { icon } from 'src/components/icons'
+import { freeCreditsActive } from 'src/components/FreeCreditsModal'
 import { ajaxCaller } from 'src/libs/ajax'
 import { reportError } from 'src/libs/error'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 import Modal from 'src/components/Modal'
-import FreeTrialEulas from 'src/components/FreeTrialEulas'
 
-
-export const freeCreditsActive = Utils.atom(false)
 
 const messages =
   {
@@ -51,99 +49,9 @@ const messages =
     }
   }
 
-const FreeCreditsModal = ajaxCaller(class FreeCreditsModal extends Component {
-  constructor(props) {
-    super(props)
-    this.state = {
-      pageTwo: false,
-      termsAgreed: false,
-      cloudTermsAgreed: false,
-      loading: false
-    }
-  }
-
-  render() {
-    const { pageTwo, termsAgreed, cloudTermsAgreed, loading } = this.state
-    return h(Modal, {
-      onDismiss: () => FreeCreditsModal.dismiss(),
-      title: 'Welcome to the Terra Free Credit Program!',
-      width: '65%',
-      okButton: pageTwo ? buttonPrimary({
-        onClick: async () => {
-          this.acceptCredits()
-        },
-        disabled: (termsAgreed === false) || (cloudTermsAgreed === false),
-        tooltip: ((termsAgreed === false) || (cloudTermsAgreed === false)) && 'You must check the boxes to accept.'
-      }, ['Accept']) : buttonPrimary({
-        onClick: () => this.setState({ pageTwo: true })
-      }, ['Review Terms of Service'])
-    }, [
-      h(FreeTrialEulas, { pageTwo }),
-      pageTwo && div({
-        style: {
-          marginTop: '0.5rem',
-          padding: '1rem',
-          border: `1px solid ${colors.green[0]}`,
-          borderRadius: '0.25rem',
-          backgroundColor: '#f4f4f4'
-        }
-      }, [
-        h(LabeledCheckbox, {
-          checked: termsAgreed === true,
-          onChange: v => this.setState({ termsAgreed: v })
-        }, [span({ style: { marginLeft: '0.5rem' } }, ['I agree to the terms of this Agreement.'])]),
-        div({
-          style: {
-            flexGrow: 1,
-            marginBottom: '0.5rem'
-          }
-        }),
-        h(LabeledCheckbox, {
-          checked: cloudTermsAgreed === true,
-          onChange: v => this.setState({ cloudTermsAgreed: v })
-        }, [
-          span({ style: { marginLeft: '0.5rem' } }, [
-            'I agree to the Google Cloud Terms of Service.', div({ style: { marginLeft: '1.5rem' } }, [
-              'Google Cloud Terms of Service:',
-              a({
-                style: {
-                  textDecoration: 'underline',
-                  marginLeft: '0.25rem'
-                },
-                target: '_blank',
-                href: 'https://cloud.google.com/terms/'
-              }, ['https://cloud.google.com/terms/', icon('pop-out', { style: { marginLeft: '0.25rem' } })])
-            ])
-          ])
-        ])
-      ]),
-      loading && spinnerOverlay
-    ])
-  }
-
-  static dismiss() {
-    freeCreditsActive.set(false)
-  }
-
-  async acceptCredits() {
-    const { ajax: { User } } = this.props
-    try {
-      this.setState({ loading: true })
-      await User.acceptEula()
-      await User.startTrial()
-      await refreshTerraProfile()
-      FreeCreditsModal.dismiss()
-    } catch (error) {
-      reportError('Error starting trial', error)
-    } finally {
-      this.setState({ loading: false })
-    }
-  }
-})
 
 export const TrialBanner = _.flow(
   ajaxCaller,
-  Utils.connectAtom(freeCreditsActive, 'isActive'),
   Utils.connectAtom(authStore, 'authState')
 )(class TrialBanner extends Component {
   constructor(props) {
@@ -154,11 +62,10 @@ export const TrialBanner = _.flow(
   }
 
   render() {
-    const { authState: { isSignedIn, profile, acceptedTos }, ajax: { User }, isActive } = _.omit('isVisible', this.props)
+    const { authState: { isSignedIn, profile, acceptedTos }, ajax: { User } } = _.omit('isVisible', this.props)
     const { finalizeTrial } = this.state
     const { trialState } = profile
     const removeBanner = localStorage.getItem('removeBanner')
-    if (isActive) return h(FreeCreditsModal)
     if (!trialState || !isSignedIn || !acceptedTos || trialState === 'Finalized' || removeBanner === 'true') return null
     const { [trialState]: { title, message, enabledLink, button, isWarning } } = messages
     return div([

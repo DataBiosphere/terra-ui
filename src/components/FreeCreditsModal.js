@@ -1,0 +1,115 @@
+import * as _ from 'lodash/fp'
+import { a, div, h, span } from 'react-hyperscript-helpers'
+import { buttonPrimary, LabeledCheckbox, spinnerOverlay } from 'src/components/common'
+import FreeTrialEulas from 'src/components/FreeTrialEulas'
+import { icon } from 'src/components/icons'
+import Modal from 'src/components/Modal'
+import { ajaxCaller } from 'src/libs/ajax'
+import { refreshTerraProfile } from 'src/libs/auth'
+import colors from 'src/libs/colors'
+import { reportError } from 'src/libs/error'
+import * as Utils from 'src/libs/utils'
+import { Component } from 'src/libs/wrapped-components'
+
+
+export const freeCreditsActive = Utils.atom(false)
+
+const FreeCreditsModal = _.flow(
+  Utils.connectAtom(freeCreditsActive, 'isActive'),
+  ajaxCaller
+)(class FreeCreditsModal extends Component {
+  constructor(props) {
+    super(props)
+    this.state = {
+      pageTwo: false,
+      termsAgreed: false,
+      cloudTermsAgreed: false,
+      loading: false
+    }
+  }
+
+  render() {
+    const { isActive } = this.props
+    const { pageTwo, termsAgreed, cloudTermsAgreed, loading } = this.state
+
+    return isActive && h(Modal, {
+      onDismiss: () => {
+        this.setState({ pageTwo: false })
+        FreeCreditsModal.dismiss()
+      },
+      title: 'Welcome to the Terra Free Credit Program!',
+      width: '65%',
+      okButton: pageTwo ? buttonPrimary({
+        onClick: async () => {
+          this.acceptCredits()
+        },
+        disabled: (termsAgreed === false) || (cloudTermsAgreed === false),
+        tooltip: ((termsAgreed === false) || (cloudTermsAgreed === false)) && 'You must check the boxes to accept.'
+      }, ['Accept']) : buttonPrimary({
+        onClick: () => this.setState({ pageTwo: true })
+      }, ['Review Terms of Service'])
+    }, [
+      h(FreeTrialEulas, { pageTwo }),
+      pageTwo && div({
+        style: {
+          marginTop: '0.5rem',
+          padding: '1rem',
+          border: `1px solid ${colors.green[0]}`,
+          borderRadius: '0.25rem',
+          backgroundColor: '#f4f4f4'
+        }
+      }, [
+        h(LabeledCheckbox, {
+          checked: termsAgreed === true,
+          onChange: v => this.setState({ termsAgreed: v })
+        }, [span({ style: { marginLeft: '0.5rem' } }, ['I agree to the terms of this Agreement.'])]),
+        div({
+          style: {
+            flexGrow: 1,
+            marginBottom: '0.5rem'
+          }
+        }),
+        h(LabeledCheckbox, {
+          checked: cloudTermsAgreed === true,
+          onChange: v => this.setState({ cloudTermsAgreed: v })
+        }, [
+          span({ style: { marginLeft: '0.5rem' } }, [
+            'I agree to the Google Cloud Terms of Service.', div({ style: { marginLeft: '1.5rem' } }, [
+              'Google Cloud Terms of Service:',
+              a({
+                style: {
+                  textDecoration: 'underline',
+                  marginLeft: '0.25rem'
+                },
+                target: '_blank',
+                href: 'https://cloud.google.com/terms/'
+              }, ['https://cloud.google.com/terms/', icon('pop-out', { style: { marginLeft: '0.25rem' } })])
+            ])
+          ])
+        ])
+      ]),
+      loading && spinnerOverlay
+    ])
+  }
+
+  static dismiss() {
+    freeCreditsActive.set(false)
+  }
+
+  async acceptCredits() {
+    const { ajax: { User } } = this.props
+    try {
+      this.setState({ loading: true })
+      await User.acceptEula()
+      await User.startTrial()
+      await refreshTerraProfile()
+      FreeCreditsModal.dismiss()
+    } catch (error) {
+      reportError('Error starting trial', error)
+    } finally {
+      this.setState({ loading: false })
+    }
+  }
+})
+
+export default FreeCreditsModal
