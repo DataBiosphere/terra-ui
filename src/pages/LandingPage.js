@@ -69,7 +69,7 @@ const LandingPage = pure(() => {
           `${getAppName()} Workspaces connect your data to popular analysis tools powered by the cloud. `,
           'Use Workspaces to share data, code, and results easily and securely.'
         ]),
-        makeCard('library-showcase', 'View Examples', `Browse our gallery of showcase workspaces to see how science gets done on ${getAppName()}.`),
+        makeCard('library-showcase', 'View Examples', `Browse our gallery of showcase Workspaces to see how science gets done on ${getAppName()}.`),
         makeCard('library-datasets', 'Browse Data', `Access data from a rich ecosystem of ${getAppName()}-connected data portals.`)
       ])
     ])
