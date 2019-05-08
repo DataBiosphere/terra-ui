@@ -12,7 +12,7 @@ import DataTable from 'src/components/DataTable'
 import ExportDataModal from 'src/components/ExportDataModal'
 import FloatingActionButton from 'src/components/FloatingActionButton'
 import { icon, spinner } from 'src/components/icons'
-import { SearchInput, textInput } from 'src/components/input'
+import { DelayedSearchInput, TextInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { FlexTable, HeaderCell, SimpleTable, TextCell } from 'src/components/table'
 import UriViewer from 'src/components/UriViewer'
@@ -22,7 +22,6 @@ import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
 import { EntityDeleter, EntityUploader, ReferenceDataDeleter, ReferenceDataImporter, renderDataCell } from 'src/libs/data-utils'
 import { withErrorReporting } from 'src/libs/error'
-import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
@@ -167,11 +166,11 @@ const LocalVariablesContent = ajaxCaller(class LocalVariablesContent extends Com
           div({ style: { whiteSpace: 'pre' } }, ['  |  Drag or click to ']),
           linkButton({ onClick: () => this.uploader.current.open() }, ['upload TSV'])
         ]),
-        h(SearchInput, {
+        h(DelayedSearchInput, {
           style: { width: 300, marginLeft: '1rem' },
-          placeholder: 'Filter',
-          onChange: ({ target: { value } }) => this.setState({ textFilter: value }),
-          value: textFilter
+          placeholder: 'Search',
+          onChange: v => this.setState({ textFilter: v }),
+          defaultValue: textFilter
         })
       ]),
       Utils.cond(
@@ -188,10 +187,10 @@ const LocalVariablesContent = ajaxCaller(class LocalVariablesContent extends Com
                   size: { basis: 400, grow: 0 },
                   headerRenderer: () => h(HeaderCell, ['Key']),
                   cellRenderer: ({ rowIndex }) => editIndex === rowIndex ?
-                    textInput({
+                    h(TextInput, {
                       autoFocus: true,
                       value: editKey,
-                      onChange: e => this.setState({ editKey: e.target.value })
+                      onChange: v => this.setState({ editKey: v })
                     }) :
                     renderDataCell(amendedAttributes[rowIndex][0], namespace)
                 },
@@ -204,9 +203,9 @@ const LocalVariablesContent = ajaxCaller(class LocalVariablesContent extends Com
                     return h(Fragment, [
                       div({ style: { flex: 1, minWidth: 0, display: 'flex' } }, [
                         editIndex === rowIndex ?
-                          textInput({
+                          h(TextInput, {
                             value: editValue,
-                            onChange: e => this.setState({ editValue: e.target.value })
+                            onChange: v => this.setState({ editValue: v })
                           }) :
                           renderDataCell(originalValue, namespace)
                       ]),
@@ -303,11 +302,11 @@ const ReferenceDataContent = ({ workspace: { workspace: { namespace, attributes 
   const { initialY } = firstRender ? StateHistory.get() : {}
 
   return h(Fragment, [
-    h(SearchInput, {
+    h(DelayedSearchInput, {
       style: { width: 300, marginBottom: '1rem', alignSelf: 'flex-end' },
-      placeholder: 'Filter',
-      onChange: ({ target: { value } }) => setTextFilter(value),
-      value: textFilter
+      placeholder: 'Search',
+      onChange: setTextFilter,
+      defaultValue: textFilter
     }),
     div({ style: { flex: 1 } }, [
       h(AutoSizer, [
@@ -460,7 +459,7 @@ class EntitiesContent extends Component {
     const { selectedEntities, deletingEntities, copyingEntities, refreshKey, igvFiles, showIgvSelector } = this.state
 
     const { initialX, initialY } = firstRender ? StateHistory.get() : {}
-    return igvFiles ? h(IGVBrowser, { selectedFiles: igvFiles, refGenome: 'hg19' }) : h(Fragment, [
+    return igvFiles ? h(IGVBrowser, { selectedFiles: igvFiles, refGenome: 'hg19', namespace }) : h(Fragment, [
       h(DataTable, {
         persist: true, firstRender, refreshKey,
         entityType: entityKey, entityMetadata, workspaceId: { namespace, name },
@@ -864,10 +863,11 @@ const WorkspaceData = _.flow(
   }
 })
 
-export const addNavPaths = () => {
-  Nav.defPath('workspace-data', {
+export const navPaths = [
+  {
+    name: 'workspace-data',
     path: '/workspaces/:namespace/:name/data',
     component: WorkspaceData,
     title: ({ name }) => `${name} - Data`
-  })
-}
+  }
+]

@@ -9,7 +9,6 @@ import amppdLogo from 'src/images/library/datasets/Amp@2x.png'
 import baselineLogo from 'src/images/library/datasets/baseline.jpg'
 import broadLogo from 'src/images/library/datasets/broad_logo.png'
 import encodeLogo from 'src/images/library/datasets/ENCODE@2x.png'
-import gtexLogo from 'src/images/library/datasets/GTeX@2x.png'
 import hcaLogo from 'src/images/library/datasets/HCA@2x.png'
 import nemoLogo from 'src/images/library/datasets/nemo-logo.svg'
 import nhsLogo from 'src/images/library/datasets/NHS@2x.png'
@@ -127,8 +126,7 @@ const thousandGenomes = () => h(Participant, {
 }, [
   buttonPrimary({
     as: 'a',
-    href: 'https://test-data-explorer.appspot.com/',
-    target: '_blank',
+    href: Nav.getLink('library-datasets-data-explorer', { dataset: '1000 Genomes' }),
     tooltip: browseTooltip
   }, ['Browse data'])
 ])
@@ -222,16 +220,6 @@ const fcDataLib = () => h(Participant, {
   }, ['Browse Datasets'])
 ])
 
-const gtex = () => h(Participant, {
-  logo: { src: gtexLogo, alt: 'GTEx logo' },
-  title: 'GTEx presented by NHLBI Data STAGE',
-  description: `The Genotype-Tissue Expression (GTEx) Program established a data resource and tissue bank to study the
-  relationship between genetic variation and gene expression in multiple human tissues.`,
-  sizeText: h(TooltipTrigger, { content: 'As of release V7' }, [span('Samples: > 11,688')])
-}, [
-  h(NIHCommonsButtons)
-])
-
 const hca = () => h(Participant, {
   logo: { src: hcaLogo, alt: 'Human Cell Atlas logo' },
   title: 'Human Cell Atlas',
@@ -295,7 +283,7 @@ const ukb = () => h(Participant, {
     link({ href: 'https://www.ukbiobank.ac.uk/', target: '_blank' }, 'UK Biobank'),
     ` is a national and international health resource with unparalleled research opportunities.
     UK Biobank aims to improve the prevention, diagnosis and treatment of a wide range of serious and life-threatening
-    illnesses. This Data Explorer is only available to specific early-access Terra users at this time.`
+    illnesses. This Data Explorer is only available to specific early-access users at this time.`
   ]),
   sizeText: 'Participants: > 500,000'
 }, [
@@ -313,17 +301,18 @@ const Datasets = pure(() => {
     libraryTopMatter('datasets'),
     div({ style: styles.content }, [
       // Put datasets in alphabetical order
-      thousandGenomes(), amppd(), baseline(), encode(), fcDataLib(), gtex(), hca(), nemo(), nhs(), topMed(), ukb()
+      thousandGenomes(), amppd(), baseline(), encode(), fcDataLib(), hca(), nemo(), nhs(), topMed(), ukb()
     ])
   ])
 })
 
 
-export const addNavPaths = () => {
-  Nav.defPath('library-datasets', {
+export const navPaths = [
+  {
+    name: 'library-datasets',
     path: '/library/datasets',
     component: Datasets,
     public: true,
     title: 'Datasets'
-  })
-}
+  }
+]

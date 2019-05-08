@@ -15,7 +15,7 @@ export const elements = {
       display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
       borderRadius: 5, padding: '1rem', wordWrap: 'break-word',
       backgroundColor: 'white',
-      boxShadow: '0 2px 5px 0 rgba(0,0,0,0.35), 0 3px 2px 0 rgba(0,0,0,0.12), 0 0 2px 0 rgba(0,0,0,0.12)'
+      boxShadow: '0 2px 5px 0 rgba(0,0,0,0.35), 0 3px 2px 0 rgba(0,0,0,0.12)'
     }
   },
   sectionHeader: { color: colors.gray[0], fontSize: 16, fontWeight: 600 },
@@ -70,5 +70,16 @@ export const cardList = {
   },
   toolbarContainer: {
     flex: 'none', display: 'flex', alignItems: 'flex-end'
+  }
+}
+
+export const breadcrumb = {
+  breadcrumb: {
+    display: 'flex', flexDirection: 'column',
+    paddingLeft: '4rem', minWidth: 0, marginRight: '0.5rem'
+  },
+  textUnderBreadcrumb: {
+    color: 'white',
+    fontSize: '1.25rem', overflowX: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'
   }
 }

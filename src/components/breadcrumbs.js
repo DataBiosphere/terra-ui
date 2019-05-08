@@ -3,7 +3,7 @@ import { breadcrumb } from 'src/components/icons'
 import * as Nav from 'src/libs/nav'
 
 
-export const breadcrumbElement = function(child, href) {
+export const breadcrumbElement = (child, href) => {
   if (href) {
     return a({ style: { color: 'white' }, href }, [child, breadcrumb()])
   } else {
@@ -13,6 +13,8 @@ export const breadcrumbElement = function(child, href) {
 
 
 export const commonPaths = {
+  datasetList: () => [breadcrumbElement('Datasets', Nav.getLink('library-datasets'))],
+
   workspaceList: () => [breadcrumbElement('Workspaces', Nav.getLink('workspaces'))],
 
   workspaceDashboard: ({ namespace, name }) => [

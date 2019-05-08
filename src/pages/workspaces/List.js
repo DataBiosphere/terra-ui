@@ -1,13 +1,14 @@
 import _ from 'lodash/fp'
-import { Fragment, useRef, useState } from 'react'
+import { Fragment, useState } from 'react'
 import { a, div, h, span } from 'react-hyperscript-helpers'
 import { pure } from 'recompose'
 import removeMd from 'remove-markdown'
 import togglesListView from 'src/components/CardsListToggle'
 import {
-  Clickable, LabeledCheckbox, linkButton, MenuButton, menuIcon, PageBox, search, Select, topSpinnerOverlay, transparentSpinnerOverlay
+  Clickable, LabeledCheckbox, linkButton, MenuButton, menuIcon, PageBox, Select, topSpinnerOverlay, transparentSpinnerOverlay
 } from 'src/components/common'
 import { icon } from 'src/components/icons'
+import { DelayedSearchInput } from 'src/components/input'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
 import PopupTrigger from 'src/components/PopupTrigger'
 import TooltipTrigger from 'src/components/TooltipTrigger'
@@ -91,23 +92,6 @@ const workspaceSubmissionStatus = ({ workspaceSubmissionStats: { runningSubmissi
     [lastSuccessDate && (!lastFailureDate || new Date(lastSuccessDate) > new Date(lastFailureDate)), () => 'success'],
     [lastFailureDate, () => 'failure'],
   )
-}
-
-const WsSearch = ({ onChange }) => {
-  const [filter, setFilter] = useState('')
-  const updateParent = useRef(_.debounce(100, onChange))
-
-  return search({
-    wrapperProps: { style: { marginLeft: '2rem', flexGrow: 1, maxWidth: 500 } },
-    inputProps: {
-      placeholder: 'SEARCH WORKSPACES',
-      onChange: ({ target: { value } }) => {
-        setFilter(value)
-        updateParent.current(value)
-      },
-      value: filter
-    }
-  })
 }
 
 const WorkspaceMenuContent = ({ namespace, name, onClone, onShare, onDelete }) => {
@@ -309,7 +293,14 @@ export const WorkspaceList = _.flow(
       })
     }, data)
     return h(Fragment, [
-      h(TopBar, { title: 'Workspaces' }, [h(WsSearch, { onChange: v => this.setState({ filter: v }) })]),
+      h(TopBar, { title: 'Workspaces' }, [
+        h(DelayedSearchInput, {
+          style: { marginLeft: '2rem', width: 500 },
+          placeholder: 'SEARCH WORKSPACES',
+          onChange: v => this.setState({ filter: v }),
+          defaultValue: filter
+        })
+      ]),
       h(PageBox, { style: { position: 'relative' } }, [
         div({ style: { display: 'flex', alignItems: 'center', marginBottom: '1rem' } }, [
           div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, ['Workspaces']),
@@ -398,8 +389,7 @@ export const WorkspaceList = _.flow(
           onSuccess: () => refreshWorkspaces()
         }),
         sharingWorkspaceId && h(ShareWorkspaceModal, {
-          namespace: this.getWorkspace(sharingWorkspaceId).workspace.namespace,
-          name: this.getWorkspace(sharingWorkspaceId).workspace.name,
+          workspace: this.getWorkspace(sharingWorkspaceId),
           onDismiss: () => { this.setState({ sharingWorkspaceId: undefined }) }
         }),
         loadingWorkspaces && (!workspaces ? transparentSpinnerOverlay : topSpinnerOverlay)
@@ -415,10 +405,11 @@ export const WorkspaceList = _.flow(
   }
 })
 
-export const addNavPaths = () => {
-  Nav.defPath('workspaces', {
+export const navPaths = [
+  {
+    name: 'workspaces',
     path: '/workspaces',
     component: WorkspaceList,
     title: 'Workspaces'
-  })
-}
+  }
+]

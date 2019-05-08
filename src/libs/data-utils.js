@@ -2,16 +2,18 @@ import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
 import { createRef, Fragment } from 'react'
 import Dropzone from 'react-dropzone'
-import { div, h } from 'react-hyperscript-helpers/lib/index'
-import { buttonPrimary, Clickable, link, Select, spinnerOverlay } from 'src/components/common'
+import { div, h, span } from 'react-hyperscript-helpers/lib/index'
+import { buttonPrimary, Clickable, LabeledCheckbox, link, Select, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import { TextCell } from 'src/components/table'
+import TooltipTrigger from 'src/components/TooltipTrigger'
 import { UriViewerLink } from 'src/components/UriViewer'
 import ReferenceData from 'src/data/reference-data'
 import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
+import { getAppName } from 'src/libs/logos'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
@@ -166,6 +168,7 @@ export const EntityDeleter = ajaxCaller(class EntityDeleter extends Component {
       margin: '0 -1.25rem'
     }
 
+    const total = selectedEntities.length + additionalDeletions.length
     return h(Modal, {
       onDismiss,
       title: 'Confirm Delete',
@@ -192,11 +195,13 @@ export const EntityDeleter = ajaxCaller(class EntityDeleter extends Component {
       Utils.toIndexPairs(moreToDelete ? additionalDeletions : selectedEntities)),
       div({
         style: { ...fullWidthWarning, textAlign: 'right' }
-      }, [`${selectedEntities.length + additionalDeletions.length} data entries to be deleted.`]),
+      }, [`${total} data ${total > 1 ?'entries' : 'entry'} to be deleted.`]),
       deleting && spinnerOverlay
     ])
   }
 })
+
+const supportsFireCloudDataModel = entityType => _.includes(entityType, ['pair', 'participant', 'sample'])
 
 export const EntityUploader = ajaxCaller(class EntityUploader extends Component {
   static propTypes = {
@@ -210,19 +215,20 @@ export const EntityUploader = ajaxCaller(class EntityUploader extends Component 
   constructor(props) {
     super(props)
 
-    this.state = { newEntityType: '' }
+    this.state = { newEntityType: '', useFireCloudDataModel: false }
 
     this.uploader = createRef()
   }
 
   async doUpload() {
     const { onDismiss, onSuccess, namespace, name, ajax: { Workspaces } } = this.props
-    const { file } = this.state
+    const { file, useFireCloudDataModel } = this.state
 
     this.setState({ uploading: true })
 
     try {
-      await Workspaces.workspace(namespace, name).importEntitiesFile(file)
+      const workspace = Workspaces.workspace(namespace, name)
+      await (useFireCloudDataModel ? workspace.importEntitiesFile : workspace.importFlexibleEntitiesFile)(file)
       onSuccess()
     } catch (error) {
       await reportError('Error uploading entities', error)
@@ -232,7 +238,7 @@ export const EntityUploader = ajaxCaller(class EntityUploader extends Component 
 
   render() {
     const { onDismiss, entityTypes } = this.props
-    const { uploading, file, newEntityType, isInvalid, dragging } = this.state
+    const { uploading, file, newEntityType, isInvalid, dragging, useFireCloudDataModel } = this.state
 
     const inputLabel = text => div({ style: { fontSize: 16, marginBottom: '0.3rem' } }, [text])
 
@@ -252,7 +258,8 @@ export const EntityUploader = ajaxCaller(class EntityUploader extends Component 
         const definedTypeMatch = /(?:membership|entity):([^\s]+)_id/.exec(firstBytes)
 
         if (definedTypeMatch) {
-          this.setState({ file, isInvalid: undefined, newEntityType: definedTypeMatch[1] })
+          const parsedEntityType = definedTypeMatch[1]
+          this.setState({ file, isInvalid: undefined, newEntityType: parsedEntityType, useFireCloudDataModel: false })
         } else {
           this.setState({ file: undefined, isInvalid: 'tsv' })
         }
@@ -261,11 +268,27 @@ export const EntityUploader = ajaxCaller(class EntityUploader extends Component 
       h(Modal, {
         onDismiss,
         title: 'Upload Table From .tsv File',
+        width: '35rem',
         okButton: buttonPrimary({
           disabled: !file || uploading,
           onClick: () => this.doUpload()
         }, ['Upload'])
       }, [
+        div({ style: { borderBottom: Style.standardLine, marginBottom: '1rem', paddingBottom: '1rem' } }, [
+          'Select the ',
+          h(TooltipTrigger, { content: 'Tab Separated Values', side: 'bottom' }, [span({ style: { textDecoration: 'underline dashed' } }, 'TSV')]),
+          ' file containing your data. The first column header must be:',
+          div({ style: { fontFamily: 'monospace', margin: '0.5rem' } }, ['entity:[type]_id']),
+          'where ',
+          span({ style: { fontFamily: 'monospace' } }, ['[type]']),
+          ` is the desired name of the data table in ${getAppName()}.`,
+          ' For example, use ',
+          span({ style: { fontFamily: 'monospace' } }, ['entity:participant_id']),
+          ' to create or update a ',
+          span({ style: { fontFamily: 'monospace' } }, ['participant']),
+          ' table.',
+          div({ style: { marginTop: '0.5rem' } }, ['All of the values in the ID column must be unique.'])
+        ]),
         file && _.includes(_.toLower(newEntityType), entityTypes) && div({
           style: { ...warningBoxStyle, marginBottom: '0.5rem', display: 'flex', alignItems: 'center' }
         }, [
@@ -277,7 +300,21 @@ export const EntityUploader = ajaxCaller(class EntityUploader extends Component 
           style: { color: colors.orange[0], fontWeight: 'bold', fontSize: 12, marginBottom: '0.5rem' }
         }, [isInvalid === 'file' ? 'Only .tsv files can be uploaded.' : 'File does not start with entity or membership definition.']),
         inputLabel('Selected File'),
-        (file && file.name) || div({ style: { color: colors.gray[2] } }, 'None'),
+        div({ style: { marginLeft: '0.5rem' } }, [
+          (file && file.name) || div({ style: { color: colors.gray[2] } }, 'None')
+        ]),
+        file && supportsFireCloudDataModel(newEntityType) && div([
+          h(LabeledCheckbox, {
+            checked: useFireCloudDataModel,
+            onChange: checked => this.setState({ useFireCloudDataModel: checked }),
+            style: { margin: '0.5rem' }
+          }, [' Create participant, sample, and pair associations']),
+          link({
+            style: { marginLeft: '1rem', verticalAlign: 'middle' },
+            href: 'https://software.broadinstitute.org/firecloud/documentation/article?id=10738',
+            target: '_blank'
+          }, ['Learn more ', icon('pop-out', { size: 12 })])
+        ]),
         h(Clickable, {
           style: {
             ...Style.elements.card.container, flex: 1,

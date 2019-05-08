@@ -4,7 +4,7 @@ import { Fragment, useState } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import { buttonPrimary, LabeledCheckbox, link, RadioButton, ShibbolethLink, spinnerOverlay } from 'src/components/common'
 import { centeredSpinner, icon, profilePic, spinner } from 'src/components/icons'
-import { textInput, validatedInput } from 'src/components/input'
+import { TextInput, ValidatedInput } from 'src/components/input'
 import { InfoBox } from 'src/components/PopupTrigger'
 import TopBar from 'src/components/TopBar'
 import { Ajax, ajaxCaller, useCancellation } from 'src/libs/ajax'
@@ -330,17 +330,17 @@ const Profile = _.flow(
     const textField = (key, title, { placeholder, required } = {}) => div({ style: styles.form.container }, [
       div({ style: styles.form.title }, [title]),
       required ?
-        validatedInput({
+        h(ValidatedInput, {
           inputProps: {
             value: profileInfo[key],
-            onChange: e => this.assignValue(key, e.target.value),
+            onChange: v => this.assignValue(key, v),
             placeholder: placeholder || 'Required'
           },
           error: Utils.summarizeErrors(errors && errors[key])
         }) :
-        textInput({
+        h(TextInput, {
           value: profileInfo[key],
-          onChange: e => this.assignValue(key, e.target.value),
+          onChange: v => this.assignValue(key, v),
           placeholder
         })
     ])
@@ -446,15 +446,17 @@ const Profile = _.flow(
 })
 
 
-export const addNavPaths = () => {
-  Nav.defPath('profile', {
+export const navPaths = [
+  {
+    name: 'profile',
     path: '/profile',
     component: Profile,
     title: 'Profile'
-  })
-  Nav.defPath('fence-callback', {
+  },
+  {
+    name: 'fence-callback',
     path: '/fence-callback',
     component: Profile,
     title: 'Profile'
-  })
-}
+  }
+]

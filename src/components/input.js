@@ -1,11 +1,11 @@
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
-import { Component, createRef, Fragment, useRef } from 'react'
+import { Component, createRef, forwardRef, Fragment, useRef, useState } from 'react'
 import Autosuggest from 'react-autosuggest'
-import { createPortal, findDOMNode } from 'react-dom'
+import { createPortal } from 'react-dom'
 import { div, h } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
-import { search } from 'src/components/common'
+import { buttonPrimary } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import colors from 'src/libs/colors'
 import * as Utils from 'src/libs/utils'
@@ -41,10 +41,12 @@ const styles = {
   }
 }
 
-export const textInput = props => h(Interactive,
+export const TextInput = forwardRef(({ onChange, nativeOnChange = false, ...props }, ref) => h(Interactive,
   _.merge({
+    refDOMNode: ref,
     as: 'input',
     className: 'focus-style',
+    onChange: onChange ? e => onChange(nativeOnChange ? e : e.target.value) : undefined,
     style: {
       ...styles.input,
       width: '100%',
@@ -54,51 +56,71 @@ export const textInput = props => h(Interactive,
     }
   },
   props)
-)
+))
 
-export const SearchInput = ({ onSearch = _.noop, onChange, ...props }) => {
-  const supportsSearch = 'onsearch' in document.documentElement
+export const ConfirmedSearchInput = ({ defaultValue = '', onChange = _.noop, ...props }) => {
+  const [internalValue, setInternalValue] = useState(defaultValue)
+  return div({ style: { display: 'inline-flex', width: '100%' } }, [
+    h(TextInput, _.merge({
+      type: 'search',
+      refDOMNode: el => {
+        el.addEventListener('search', e => {
+          setInternalValue(e.target.value)
+          onChange(e.target.value)
+        })
+      },
+      spellCheck: false,
+      style: { WebkitAppearance: 'none', borderColor: colors.gray[3], borderRadius: '4px 0 0 4px' },
+      value: internalValue,
+      onChange: setInternalValue,
+      onKeyDown: e => {
+        if (e.key === 'Enter') {
+          e.preventDefault()
+          onChange(internalValue)
+        } else if (e.key === 'Escape' && internalValue !== '') {
+          e.preventDefault()
+          e.stopPropagation()
+          setInternalValue('')
+          onChange('')
+        }
+      }
+    }, props)),
+    buttonPrimary({
+      style: { borderRadius: '0 4px 4px 0', borderLeft: 'none' },
+      onClick: () => onChange(internalValue)
+    }, [icon('search', { size: 18 })])
+  ])
+}
 
-  const searchEl = useRef()
-  const attachRef = node => {
-    if (node) {
-      const el = findDOMNode(node)
-      searchEl.current = el
-      el.addEventListener('search', onSearch)
-    } else {
-      searchEl.current.removeEventListener('search', onSearch)
-    }
-  }
-
-  return textInput(_.merge({
-    ref: attachRef,
+export const DelayedSearchInput = ({ defaultValue = '', onChange = _.noop, ...props }) => {
+  const [internalValue, setInternalValue] = useState(defaultValue)
+  const updateFn = useRef(_.debounce(250, onChange))
+  return h(TextInput, _.merge({
     type: 'search',
     spellCheck: false,
     style: { WebkitAppearance: 'none', borderColor: colors.gray[3] },
-    onChange,
-    onKeyDown: supportsSearch ? undefined : e => { // to make firefox behave like webkit/blink
-      switch (e.which) {
-        case 13: // return
-          onSearch(e)
-          break
-        case 27: // escape
-          e.persist()
-          const touchedEvent = _.merge(e, { target: { value: '' } })
-          onChange(touchedEvent)
-          onSearch(touchedEvent)
-          break
-        default:
+    value: internalValue,
+    onChange: v => {
+      setInternalValue(v)
+      updateFn.current(v)
+    },
+    onKeyDown: e => {
+      if (e.key === 'Escape' && internalValue !== '') {
+        e.stopPropagation()
+        setInternalValue('')
+        updateFn.current('')
       }
     }
   }, props))
 }
 
 
-export const numberInput = props => {
+export const NumberInput = ({ onChange, ...props }) => {
   return h(Interactive, _.merge({
     as: 'input',
     type: 'number',
     className: 'focus-style',
+    onChange: onChange ? (e => onChange(e.target.value)) : undefined,
     style: {
       ...styles.input,
       width: '100%',
@@ -138,9 +160,9 @@ export class IntegerInput extends Component {
   render() {
     const { textValue } = this.state
     const { onChange, min, max, ...props } = this.props
-    return numberInput({
+    return h(NumberInput, {
       ...props, min, max, value: textValue,
-      onChange: e => this.setState({ textValue: e.target.value }),
+      onChange: v => this.setState({ textValue: v }),
       onBlur: () => {
         const newValue = _.clamp(min, max, _.floor(textValue * 1))
         this.setState({ lastValueProp: undefined }) // eslint-disable-line react/no-unused-state
@@ -155,14 +177,14 @@ export class IntegerInput extends Component {
  * @param {object} props.inputProps
  * @param {object} [props.error] - error message content
  */
-export const validatedInput = props => {
+export const ValidatedInput = props => {
   const { inputProps, error } = props
 
   return h(Fragment, [
     div({
       style: { position: 'relative', display: 'flex', alignItems: 'center' }
     }, [
-      textInput(_.merge({
+      h(TextInput, _.merge({
         style: error ? {
           paddingRight: '2.25rem', // leave room for error icon
           border: `1px solid ${colors.red[0]}`
@@ -255,7 +277,7 @@ export class AutocompleteTextInput extends Component {
     const { show } = this.state
     return h(Autosuggest, {
       id: this.id,
-      inputProps: { value, onChange: e => onChange(e.target.value) },
+      inputProps: { value, onChange },
       suggestions: show ? (value ? _.filter(Utils.textMatch(value), suggestions) : suggestions) : [],
       onSuggestionsFetchRequested: () => this.setState({ show: true }),
       onSuggestionsClearRequested: () => this.setState({ show: false }),
@@ -269,9 +291,7 @@ export class AutocompleteTextInput extends Component {
         ])
       },
       renderSuggestion: v => v,
-      renderInputComponent: inputProps => {
-        return textInput({ ...props, ...inputProps, style, type: 'search' })
-      },
+      renderInputComponent: inputProps => h(TextInput, { ...props, ...inputProps, style, type: 'search', nativeOnChange: true }),
       theme: {
         container: { width: '100%' },
         suggestionsList: { margin: 0, padding: 0 },
@@ -289,7 +309,6 @@ export class AutocompleteSearch extends Component {
     onSuggestionSelected: PropTypes.func.isRequired,
     suggestions: PropTypes.array,
     renderSuggestion: PropTypes.func,
-    renderInputComponent: PropTypes.func,
     theme: PropTypes.object
   }
 
@@ -306,11 +325,11 @@ export class AutocompleteSearch extends Component {
   }
 
   render() {
-    const { value, onChange, onSuggestionSelected, suggestions, renderSuggestion, renderInputComponent, theme, ...props } = this.props
+    const { value, onChange, onSuggestionSelected, suggestions, renderSuggestion, theme, ...props } = this.props
     const { show } = this.state
     return h(Autosuggest, {
       id: this.id,
-      inputProps: { value, onChange: e => onChange(e.target.value), ...props },
+      inputProps: { value, onChange: onChange ? (e => onChange(e.target.value)) : undefined, ...props },
       suggestions: show ? (value ? [value, ..._.filter(Utils.textMatch(value), suggestions)] : suggestions) : [],
       onSuggestionsFetchRequested: () => this.setState({ show: true }),
       onSuggestionsClearRequested: () => this.setState({ show: false }),
@@ -323,7 +342,7 @@ export class AutocompleteSearch extends Component {
         ])
       },
       renderSuggestion,
-      renderInputComponent: renderInputComponent || (inputProps => search({ inputProps })),
+      renderInputComponent: inputProps => h(TextInput, { nativeOnChange: true, ...inputProps }),
       theme: _.merge({
         container: { width: '100%' },
         suggestionsList: { margin: 0, padding: 0 },

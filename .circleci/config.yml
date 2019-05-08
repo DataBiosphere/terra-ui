@@ -1,5 +1,14 @@
 version: 2.1
 
+executors:
+  node:
+    docker:
+      - image: node:10
+        user: node
+  gcloud:
+    docker:
+      - image: google/cloud-sdk:alpine
+
 commands:
   deploy-env:
     description: "Deploy to a specific environment"
@@ -15,7 +24,7 @@ commands:
         default: false
     steps:
       - attach_workspace:
-          at: /root/project
+          at: .
       - run: cp config/<< parameters.env >>.json build/config.json
       - run: echo "$<< parameters.sa_key_var >>" > /tmp/sa.json
       - run: gcloud auth activate-service-account --key-file=/tmp/sa.json
@@ -39,32 +48,31 @@ commands:
 
 jobs:
   test:
-    docker:
-      - image: node:8
+    executor: node
     steps:
       - checkout
       - restore_cache:
           keys:
-            - deps1-{{ checksum "package.json" }}
-            - deps1-
-      - run: npm install
+            - deps2-{{ checksum "package.json" }}-{{ checksum "package-lock.json" }}
+            - deps2-{{ checksum "package.json" }}-
+            - deps2-
+      - run: npx npm@6.9 ci
       - save_cache:
-          key: deps1-{{ checksum "package.json" }}
+          key: deps2-{{ checksum "package.json" }}-{{ checksum "package-lock.json" }}
           paths:
-            - ./node_modules
+            - ~/.npm
       - run: npm test
-      - persist_to_workspace:
-          root: .
-          paths:
-            - ./node_modules
   build:
-    docker:
-      - image: node:8
+    executor: node
     steps:
       - checkout
-      - attach_workspace:
-          at: .
-      - run: npm run build
+      - restore_cache:
+          keys:
+            - deps2-{{ checksum "package.json" }}-{{ checksum "package-lock.json" }}
+            - deps2-{{ checksum "package.json" }}-
+            - deps2-
+      - run: npx npm@6.9 ci
+      - run: npx npm@6.9 run build
       - run: tar -czf build.tgz .gcloudignore app.yaml build config
       - store_artifacts:
           path: build.tgz
@@ -76,33 +84,28 @@ jobs:
             - build
             - config
   deploy-pr:
-    docker:
-      - image: google/cloud-sdk:alpine
+    executor: gcloud
     steps:
       - deploy-env:
           pr: true
   deploy-dev:
-    docker:
-      - image: google/cloud-sdk:alpine
+    executor: gcloud
     steps:
       - deploy-env
   deploy-alpha:
-    docker:
-      - image: google/cloud-sdk:alpine
+    executor: gcloud
     steps:
       - deploy-env:
           sa_key_var: "ALPHA_SA_KEY_JSON"
           env: "alpha"
   deploy-perf:
-    docker:
-      - image: google/cloud-sdk:alpine
+    executor: gcloud
     steps:
       - deploy-env:
           sa_key_var: "PERF_SA_KEY_JSON"
           env: "perf"
   deploy-staging:
-    docker:
-      - image: google/cloud-sdk:alpine
+    executor: gcloud
     steps:
       - deploy-env:
           sa_key_var: "STAGING_SA_KEY_JSON"
@@ -113,11 +116,10 @@ workflows:
   build-deploy:
     jobs:
       - test
-      - build:
-          requires:
-            - test
+      - build
       - deploy-pr:
           requires:
+            - test
             - build
           filters:
             branches:
@@ -125,24 +127,28 @@ workflows:
                 - dev
       - deploy-dev:
           requires:
+            - test
             - build
           filters:
             branches:
               only: dev
       - deploy-alpha:
           requires:
+            - test
             - build
           filters:
             branches:
               only: dev
       - deploy-perf:
           requires:
+            - test
             - build
           filters:
             branches:
               only: dev
       - deploy-staging:
           requires:
+            - test
             - build
           filters:
             branches:

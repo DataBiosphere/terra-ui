@@ -7,18 +7,23 @@ import { link } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { notify } from 'src/components/Notifications'
 import TopBar from 'src/components/TopBar'
+import { getAppName } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
-import * as Code from 'src/pages/library/Code'
-import * as Datasets from 'src/pages/library/Datasets'
+import * as Projects from 'src/pages/billing/List'
 import * as Group from 'src/pages/groups/Group'
 import * as Groups from 'src/pages/groups/List'
-import * as LandingPage from 'src/pages/LandingPage'
 import * as ImportData from 'src/pages/ImportData'
 import * as ImportTool from 'src/pages/ImportTool'
+import * as LandingPage from 'src/pages/LandingPage'
+import * as Code from 'src/pages/library/Code'
+import * as DataExplorer from 'src/pages/library/DataExplorer'
+import * as Datasets from 'src/pages/library/Datasets'
 import * as Showcase from 'src/pages/library/Showcase'
 import * as PrivacyPolicy from 'src/pages/PrivacyPolicy'
 import * as Profile from 'src/pages/Profile'
 import * as StyleGuide from 'src/pages/StyleGuide'
+import * as TermsOfService from 'src/pages/TermsOfService'
+import * as TestLogin from 'src/pages/TestLogin'
 import * as WorkspaceList from 'src/pages/workspaces/List'
 import * as Dashboard from 'src/pages/workspaces/workspace/Dashboard'
 import * as Data from 'src/pages/workspaces/workspace/Data'
@@ -27,39 +32,41 @@ import * as SubmissionDetails from 'src/pages/workspaces/workspace/jobHistory/Su
 import * as Notebooks from 'src/pages/workspaces/workspace/Notebooks'
 import * as NotebookLauncher from 'src/pages/workspaces/workspace/notebooks/NotebookLauncher'
 import * as TerminalLauncher from 'src/pages/workspaces/workspace/notebooks/TerminalLauncher'
-import * as TermsOfService from 'src/pages/TermsOfService'
 import * as Tools from 'src/pages/workspaces/workspace/Tools'
 import * as WorkflowView from 'src/pages/workspaces/workspace/tools/WorkflowView'
-import * as Projects from 'src/pages/billing/List'
 
 
 const pageWrapStyle = { display: 'flex', flexDirection: 'column', flex: '1 0 auto', position: 'relative' }
 
 const initNavPaths = () => {
   Nav.clearPaths()
-  LandingPage.addNavPaths()
-  WorkspaceList.addNavPaths()
-  WorkflowView.addNavPaths()
-  StyleGuide.addNavPaths()
-  ImportData.addNavPaths()
-  ImportTool.addNavPaths()
-  PrivacyPolicy.addNavPaths()
-  Dashboard.addNavPaths()
-  Data.addNavPaths()
-  Notebooks.addNavPaths()
-  JobHistory.addNavPaths()
-  SubmissionDetails.addNavPaths()
-  Tools.addNavPaths()
-  NotebookLauncher.addNavPaths()
-  Profile.addNavPaths()
-  Groups.addNavPaths()
-  Group.addNavPaths()
-  TerminalLauncher.addNavPaths()
-  TermsOfService.addNavPaths()
-  Code.addNavPaths()
-  Datasets.addNavPaths()
-  Showcase.addNavPaths()
-  Projects.addNavPaths()
+  _.forEach(Nav.defPath, _.flatten([
+    TestLogin.navPaths,
+    LandingPage.navPaths,
+    WorkspaceList.navPaths,
+    WorkflowView.navPaths,
+    StyleGuide.navPaths,
+    ImportData.navPaths,
+    ImportTool.navPaths,
+    PrivacyPolicy.navPaths,
+    Dashboard.navPaths,
+    Data.navPaths,
+    Notebooks.navPaths,
+    JobHistory.navPaths,
+    SubmissionDetails.navPaths,
+    Tools.navPaths,
+    NotebookLauncher.navPaths,
+    Profile.navPaths,
+    Groups.navPaths,
+    Group.navPaths,
+    TerminalLauncher.navPaths,
+    TermsOfService.navPaths,
+    Code.navPaths,
+    DataExplorer.navPaths,
+    Datasets.navPaths,
+    Showcase.navPaths,
+    Projects.navPaths
+  ]))
 }
 
 export default class Router extends Component {
@@ -90,7 +97,8 @@ export default class Router extends Component {
         div({ style: { marginTop: '1rem' } }, ['Please update your bookmarks to our new URL, firecloud.terra.bio. ' +
         'Welcome to the future of FireCloud!'])
       ]))
-      Nav.history.replace({ search: qs.stringify(_.omit(['fcredir'], qs.parse(Nav.history.location.search, { ignoreQueryPrefix: true, plainObjects: true }))) })
+      Nav.history.replace(
+        { search: qs.stringify(_.omit(['fcredir'], qs.parse(Nav.history.location.search, { ignoreQueryPrefix: true, plainObjects: true }))) })
     }
   }
 
@@ -112,7 +120,7 @@ export default class Router extends Component {
         document.title = handler.title
       }
     } else {
-      document.title = 'Terra'
+      document.title = getAppName()
     }
   }
 

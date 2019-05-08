@@ -1,6 +1,6 @@
-import { useEffect, useRef } from 'react'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
+import { useEffect, useRef } from 'react'
 import { h } from 'react-hyperscript-helpers'
 import { version } from 'src/data/clusters'
 import { getUser } from 'src/libs/auth'
@@ -14,7 +14,7 @@ let noConnection
 const consoleStyle = 'font-weight: bold; color: darkBlue'
 
 window.saturnMock = {
-  currently: function() {
+  currently: () => {
     if (noConnection || mockResponse) {
       if (noConnection) { console.info('%cSimulating no connection', consoleStyle) }
       if (mockResponse) {
@@ -25,17 +25,17 @@ window.saturnMock = {
       console.info('%cNot mocking responses', consoleStyle)
     }
   },
-  malformed: function() {
+  malformed: () => {
     mockResponse = () => new Response('{malformed', { status: 200 })
   },
-  noConnection: function() {
+  noConnection: () => {
     noConnection = true
   },
-  off: function() {
+  off: () => {
     mockResponse = undefined
     noConnection = undefined
   },
-  status: function(code) {
+  status: code => {
     mockResponse = () => new Response(new Blob([`Body of simulated ${code} response`]),
       { status: code })
   }
@@ -580,6 +580,12 @@ const Workspaces = signal => ({
       importEntitiesFile: async file => {
         const formData = new FormData()
         formData.set('entities', file)
+        return fetchOrchestration(`api/${root}/importEntities`, _.merge(authOpts(), { body: formData, signal, method: 'POST' }))
+      },
+
+      importFlexibleEntitiesFile: async file => {
+        const formData = new FormData()
+        formData.set('entities', file)
         return fetchOrchestration(`api/${root}/flexibleImportEntities`, _.merge(authOpts(), { body: formData, signal, method: 'POST' }))
       },
 
@@ -636,6 +642,11 @@ const Buckets = signal => ({
         previewFull ? {} : { headers: { Range: 'bytes=0-20000' } }
       ])
     )
+  },
+
+  getServiceAlerts: async () => {
+    const res = await fetchOk(`${getConfig().firecloudBucketRoot}/alerts.json`, { signal })
+    return res.json()
   },
 
   listNotebooks: async (namespace, name) => {
@@ -828,7 +839,8 @@ const Jupyter = signal => ({
             serverExtensions: {},
             combinedExtensions: {}
           },
-          scopes: ['https://www.googleapis.com/auth/cloud-platform', 'https://www.googleapis.com/auth/userinfo.email', 'https://www.googleapis.com/auth/userinfo.profile']
+          scopes: ['https://www.googleapis.com/auth/cloud-platform', 'https://www.googleapis.com/auth/userinfo.email',
+            'https://www.googleapis.com/auth/userinfo.profile']
         })
         return fetchLeo(`api/cluster/v2/${project}/${name}`, _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'PUT' }, appIdentifier]))
       },
