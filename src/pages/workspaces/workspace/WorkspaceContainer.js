@@ -5,6 +5,7 @@ import ClusterManager from 'src/components/ClusterManager'
 import { buttonPrimary, Clickable, comingSoon, link, MenuButton, menuIcon, tabBar } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
+import { notify } from 'src/components/Notifications'
 import PopupTrigger from 'src/components/PopupTrigger'
 import TopBar from 'src/components/TopBar'
 import { Ajax, useCancellation } from 'src/libs/ajax'
@@ -151,6 +152,53 @@ const WorkspaceAccessError = () => {
   ])
 }
 
+const checkBucketAccess = withErrorReporting('Error checking BucketAccess', async (signal, namespace, name) => {
+  try {
+    await Ajax(signal).Workspaces.workspace(namespace, name).checkBucketReadAccess()
+  } catch (error) {
+    if (error.status === 403) {
+      notify('error', div([
+        'The Google Bucket associated with this workspace is currently unavailable. This should be resolved shortly. If this persists for more than an hour, please write our',
+        link({
+          target: '_blank',
+          href: 'https://broadinstitute.zendesk.com/hc/en-us',
+          style: { color: 'white' },
+          hover: {
+            color: 'white',
+            textDecoration: 'underline'
+          }
+        }, ' help forum'),
+        icon('pop-out', {
+          size: 12,
+          style: { marginRight: '0.25rem' }
+        }),
+        'for assistance.'
+      ]))
+    } else if (error.status === 404) {
+      notify('error', div([
+        'The Google Bucket associated with this workspace does not exist. Please write our',
+        link({
+          target: '_blank',
+          href: 'https://broadinstitute.zendesk.com/hc/en-us',
+          style: { color: 'white' },
+          hover: {
+            color: 'white',
+            textDecoration: 'underline'
+          }
+        }, ' help forum'),
+        icon('pop-out', {
+          size: 12,
+          style: { marginRight: '0.25rem' }
+        }),
+        'for assistance.'
+      ]))
+    } else {
+      throw error
+    }
+  }
+  return null
+})
+
 
 export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, showTabBar = true, queryparams }) => WrappedComponent => {
   const Wrapper = props => {
@@ -173,7 +221,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
       Utils.withBusyState(setLoadingWorkspace)
     )(async () => {
       try {
-        await Ajax(signal).Workspaces.workspace(namespace, name).checkBucketReadAccess()
+        await checkBucketAccess(signal, namespace, name)
         const workspace = await Ajax(signal).Workspaces.workspace(namespace, name).details()
         workspaceStore.set(workspace)
       } catch (error) {
