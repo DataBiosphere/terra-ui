@@ -46,7 +46,7 @@ export const TextInput = forwardRef(({ onChange, nativeOnChange = false, ...prop
     refDOMNode: ref,
     as: 'input',
     className: 'focus-style',
-    onChange: e => onChange(nativeOnChange ? e : e.target.value),
+    onChange: onChange ? e => onChange(nativeOnChange ? e : e.target.value) : undefined,
     style: {
       ...styles.input,
       width: '100%',
@@ -120,7 +120,7 @@ export const NumberInput = ({ onChange, ...props }) => {
     as: 'input',
     type: 'number',
     className: 'focus-style',
-    onChange: e => onChange(e.target.value),
+    onChange: onChange ? (e => onChange(e.target.value)) : undefined,
     style: {
       ...styles.input,
       width: '100%',
@@ -291,7 +291,7 @@ export class AutocompleteTextInput extends Component {
         ])
       },
       renderSuggestion: v => v,
-      renderInputComponent: inputProps => h(TextInput, { ...props, ...inputProps, style, type: 'search' }),
+      renderInputComponent: inputProps => h(TextInput, { ...props, ...inputProps, style, type: 'search', nativeOnChange: true }),
       theme: {
         container: { width: '100%' },
         suggestionsList: { margin: 0, padding: 0 },
@@ -329,7 +329,7 @@ export class AutocompleteSearch extends Component {
     const { show } = this.state
     return h(Autosuggest, {
       id: this.id,
-      inputProps: { value, onChange: e => onChange(e.target.value), ...props },
+      inputProps: { value, onChange: onChange ? (e => onChange(e.target.value)) : undefined, ...props },
       suggestions: show ? (value ? [value, ..._.filter(Utils.textMatch(value), suggestions)] : suggestions) : [],
       onSuggestionsFetchRequested: () => this.setState({ show: true }),
       onSuggestionsClearRequested: () => this.setState({ show: false }),
@@ -358,6 +358,6 @@ export const TextArea = ({ onChange, ...props }) => {
     as: 'textarea',
     className: 'focus-style',
     style: styles.textarea,
-    onChange: e => onChange(e.target.value)
+    onChange: e => onChange ? (e => onChange(e.target.value)) : undefined
   }, props))
 }
