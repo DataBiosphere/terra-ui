@@ -51,10 +51,7 @@ const messages =
     }
   }
 
-const FreeCreditsModal = _.flow(
-  ajaxCaller,
-  Utils.connectAtom(freeCreditsActive, 'isActive')
-)(class FreeCreditsModal extends Component {
+const FreeCreditsModal = ajaxCaller(class FreeCreditsModal extends Component {
   constructor(props) {
     super(props)
     this.state = {
@@ -66,13 +63,9 @@ const FreeCreditsModal = _.flow(
   }
 
   render() {
-    const { isActive } = this.props
     const { pageTwo, termsAgreed, cloudTermsAgreed, loading } = this.state
-    return isActive && h(Modal, {
-      onDismiss: () => {
-        this.setState({ pageTwo: false })
-        FreeCreditsModal.dismiss()
-      },
+    return h(Modal, {
+      onDismiss: () => FreeCreditsModal.dismiss(),
       title: 'Welcome to the Terra Free Credit Program!',
       width: '65%',
       okButton: pageTwo ? buttonPrimary({
@@ -150,6 +143,7 @@ const FreeCreditsModal = _.flow(
 
 export const TrialBanner = _.flow(
   ajaxCaller,
+  Utils.connectAtom(freeCreditsActive, 'isActive'),
   Utils.connectAtom(authStore, 'authState')
 )(class TrialBanner extends Component {
   constructor(props) {
@@ -160,10 +154,11 @@ export const TrialBanner = _.flow(
   }
 
   render() {
-    const { authState: { isSignedIn, profile, acceptedTos }, ajax: { User } } = _.omit('isVisible', this.props)
+    const { authState: { isSignedIn, profile, acceptedTos }, ajax: { User }, isActive } = _.omit('isVisible', this.props)
     const { finalizeTrial } = this.state
     const { trialState } = profile
     const removeBanner = localStorage.getItem('removeBanner')
+    if (isActive) return h(FreeCreditsModal)
     if (!trialState || !isSignedIn || !acceptedTos || trialState === 'Finalized' || removeBanner === 'true') return null
     const { [trialState]: { title, message, enabledLink, button, isWarning } } = messages
     return div([
@@ -232,8 +227,7 @@ export const TrialBanner = _.flow(
             }
           }
         }, ['Confirm'])
-      }, ['Click confirm to remove banner forever.']),
-      h(FreeCreditsModal)
+      }, ['Click confirm to remove banner forever.'])
     ])
   }
 })
