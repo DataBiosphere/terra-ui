@@ -289,7 +289,7 @@ export const ShibbolethLink = ({ children, ...props }) => {
     ...props,
     href: `${getConfig().shibbolethUrlRoot}/link-nih-account?${qs.stringify({ 'redirect-url': nihRedirectUrl })}`,
     style: { display: 'inline-flex', alignItems: 'center' },
-    target: '_blank'
+    ...Utils.newTabLinkProps
   }, [
     children,
     icon('pop-out', { size: 12, style: { marginLeft: '0.2rem' } })

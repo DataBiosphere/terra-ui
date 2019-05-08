@@ -583,7 +583,7 @@ const WorkflowView = _.flow(
           div([
             'Source: ', currentSnapRedacted ? `${methodNamespace}/${methodName}/${methodVersion}` : link({
               href: methodLink(modifiedConfig),
-              target: '_blank'
+              ...Utils.newTabLinkProps
             }, methodPath ? methodPath : `${methodNamespace}/${methodName}/${methodVersion}`)
           ]),
           div(`Synopsis: ${synopsis ? synopsis : ''}`),

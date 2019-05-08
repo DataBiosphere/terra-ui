@@ -110,7 +110,7 @@ export const FreeCreditsModal= ajaxCaller(class FreeCreditsModal extends Compone
                   textDecoration: 'underline',
                   marginLeft: '0.25rem'
                 },
-                target: '_blank',
+                ...Utils.newTabLinkProps,
                 href: 'https://cloud.google.com/terms/'
               }, ['https://cloud.google.com/terms/', icon('pop-out', { style: { marginLeft: '0.25rem' } })])
             ])
@@ -177,7 +177,7 @@ export const TrialBanner = _.flow(
             message,
             enabledLink && a({
               style: { textDecoration: 'underline', marginLeft: '0.5rem' },
-              target: '_blank',
+              ...Utils.newTabLinkProps,
               href: enabledLink.url
             }, [enabledLink.label, icon('pop-out', { style: { marginLeft: '0.25rem' } })])
           ]),

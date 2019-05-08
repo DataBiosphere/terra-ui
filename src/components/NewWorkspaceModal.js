@@ -143,7 +143,7 @@ export default ajaxCaller(class NewWorkspaceModal extends Component {
         ]),
         div({ style: { marginTop: '1rem' } }, [
           'Billing projects are currently managed through FireCloud. ',
-          link({ target: '_blank', href: billingDoc }, [
+          link({ ...Utils.newTabLinkProps, href: billingDoc }, [
             'Learn how to create a billing project. '
           ]),
           'Email ', link({ href: `mailto:${billingMail}` }, [billingMail]), ' with questions.'
@@ -169,7 +169,7 @@ export default ajaxCaller(class NewWorkspaceModal extends Component {
           'An authorization domain can only be set when creating a workspace. ',
           'Once set, it cannot be changed. ',
           'Any cloned workspace will automatically inherit the authorization domain(s) from the original workspace and cannot be removed. ',
-          link({ href: authDoc, target: '_blank' }, ['Read more about authorization domains'])
+          link({ href: authDoc, ...Utils.newTabLinkProps }, ['Read more about authorization domains'])
         ])
       ]),
       !!existingGroups.length && div({ style: styles.groupNotice }, [

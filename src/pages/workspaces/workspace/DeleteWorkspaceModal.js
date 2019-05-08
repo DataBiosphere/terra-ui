@@ -44,7 +44,7 @@ export default ajaxCaller(class DeleteWorkspaceModal extends Component {
       div({ style: { marginTop: '1rem' } }, [
         'Deleting it will delete the associated ',
         link({
-          target: '_blank',
+          ...Utils.newTabLinkProps,
           href: bucketBrowserUrl(bucketName)
         }, ['Google Cloud Bucket']),
         ' and all its data.'
