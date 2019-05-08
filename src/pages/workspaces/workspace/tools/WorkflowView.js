@@ -293,7 +293,7 @@ class TextCollapse extends Component {
 const WorkflowView = _.flow(
   wrapWorkspace({
     breadcrumbs: props => breadcrumbs.commonPaths.workspaceTab(props, 'tools'),
-    title: ({ workflowName }) => workflowName, activeTab: 'tools'
+    title: _.get('workflowName'), activeTab: 'tools'
   }),
   ajaxCaller
 )(class WorkflowView extends Component {

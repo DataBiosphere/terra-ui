@@ -19,9 +19,9 @@ import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer
 const NotebookLauncher = _.flow(
   forwardRef,
   wrapWorkspace({
-    breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
-    title: ({ notebookName }) => `Notebooks - ${notebookName}`,
-    activeTab: 'notebooks'
+    breadcrumbs: props => breadcrumbs.commonPaths.workspaceTab(props, 'notebooks'),
+    title: _.get('notebookName'),
+    showTabBar: false
   }),
   ajaxCaller
 )(({ queryParams = {}, ...props }, ref) => {
