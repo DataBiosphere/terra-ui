@@ -346,6 +346,6 @@ export const navPaths = [
     name: 'workspace-notebook-launch',
     path: '/workspaces/:namespace/:name/notebooks/launch/:notebookName/:app?',
     component: NotebookLauncher,
-    title: ({ name, notebookName }) => `${name} - Notebooks - ${notebookName}`
+    title: ({ name, notebookName }) => `${notebookName} - ${name}`
   }
 ]
