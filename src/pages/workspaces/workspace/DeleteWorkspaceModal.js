@@ -5,6 +5,7 @@ import Modal from 'src/components/Modal'
 import { ajaxCaller } from 'src/libs/ajax'
 import { bucketBrowserUrl } from 'src/libs/auth'
 import { reportError } from 'src/libs/error'
+import * as Utils from 'src/libs/utils'
 
 
 export default ajaxCaller(class DeleteWorkspaceModal extends Component {
