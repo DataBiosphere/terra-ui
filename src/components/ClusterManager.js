@@ -182,14 +182,21 @@ const MiniLink = ({ href, disabled, tooltip, children, ...props }) => {
     ])
 }
 
-const getUpdateIntervalMs = status => {
+const getUpdateIntervalMs = (status, isUpdating) => {
     switch (status) {
         case 'Starting':
+        case 'Updating':
             return 5000
         case 'Creating':
-        case 'Updating':
         case 'Stopping':
             return 15000
+        case 'Stopped':
+            if (isUpdating) {
+                return 5000
+            } else {
+                return 120000
+            }
+            //intentional fallthrough
         default:
             return 120000
     }
@@ -225,19 +232,11 @@ const NewClusterModal = class NewClusterModal extends PureComponent {
     }
 
     createCluster() {
-        const { namespace, onSuccess } = this.props
+        const { namespace, create } = this.props
         const { jupyterUserScriptUri } = this.state
-        onSuccess(Ajax().Jupyter.cluster(namespace, Utils.generateClusterName()).create({
+        create(Ajax().Jupyter.cluster(namespace, Utils.generateClusterName()).create({
             machineConfig: this.getMachineConfig(),
             ...(jupyterUserScriptUri ? { jupyterUserScriptUri } : {})
-        }))
-    }
-
-    updateCluster() {
-        const { namespace, onSuccess, currentCluster } = this.props //PR question, are namespace and googleProject the same? any benefit of using one or the other?
-
-        onSuccess(Ajax().Jupyter.cluster(namespace, currentCluster.clusterName).update({
-            machineConfig: this.getMachineConfig()
         }))
     }
 
@@ -248,10 +247,14 @@ const NewClusterModal = class NewClusterModal extends PureComponent {
             currentCluster.status === 'Error' ||
             !machineConfigsEqual(this.getMachineConfig(), currentCluster.machineConfig) ||
             jupyterUserScriptUri
+        const shouldDisableUpdate = !changed && currentCluster.machineConfig.numberOfWorkers >= 2
         return h(Modal, {
             title: 'Runtime environment',
             onDismiss: onCancel,
-            okButton: buttonPrimary({ disabled: !changed, onClick: () => currentCluster ? this.updateCluster() : this.createCluster() }, currentCluster ? 'Update' : 'Create')
+            okButton: buttonPrimary({
+                disabled: currentCluster ? shouldDisableUpdate : !changed,
+                onClick: () => currentCluster ? this.props.update(this.getMachineConfig()) : this.createCluster()
+            }, currentCluster ? 'Update' : 'Create')
         }, [
             div({ style: styles.row }, [
                 div({ style: {...styles.col1, ...styles.label } }, 'Profile'),
@@ -342,10 +345,10 @@ const NewClusterModal = class NewClusterModal extends PureComponent {
                     ])
                 ])
             ]),
-            changed ?
+            changed && currentCluster ?
             div({ style: styles.warningBox }, [
-                'Updated environments take a few minutes to prepare. ',
-                'You will be notified when it is ready and can continue working as it builds.'
+                ' Updating the resources could take a few minutes to prepare, and may necessitate your cluster being stopped.',
+                ' The environment will automatically be started when it is ready.'
             ]) :
             div({ style: styles.divider }),
             div({ style: styles.row }, [
@@ -371,20 +374,39 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
         this.state = {
             open: false,
             busy: false,
-            deleting: false
+            deleting: false,
+            updatingStatus: false,
+            configToUpdate: {}
         }
     }
 
     refreshClusters = async() => {
         console.log('polling refresh')
-        this.props.refreshClusters().then(() => this.resetUpdateInterval())
+        this.props.refreshClusters().then(() => {
+            if (this.state.updatingStatus) {
+                console.log('trigger update status')
+                this.handleUpdate()
+            }
+            this.resetUpdateInterval()
+        })
+    }
+
+    handleUpdate() {
+        const { updatingStatus } = this.state
+        const currentStatus = this.getCurrentCluster().status
+        console.log('handling update', updatingStatus, currentStatus)
+        if (updatingStatus === 'Stopping' && currentStatus === 'Stopped') {
+            console.log('detected it should begin update after stopping')
+            this.setState({ updatingStatus: 'Updating' })
+            this.updateCluster()
+        }
     }
 
     resetUpdateInterval() {
         const currentCluster = this.getCurrentCluster()
 
         clearInterval(this.interval)
-        this.interval = setInterval(this.refreshClusters, getUpdateIntervalMs(currentCluster && currentCluster.status))
+        this.interval = setInterval(this.refreshClusters, getUpdateIntervalMs(currentCluster && currentCluster.status, this.state.updatingStatus))
     }
 
     componentDidMount() {
@@ -407,11 +429,8 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
     async executeAndRefresh(promise) {
         try {
             this.setState({ busy: true })
-            console.log('about to await promise')
             await promise
-            console.log('about to await refresh cluster')
             await this.refreshClusters()
-            console.log('finished awaiting refresh cluster')
         } catch (error) {
             reportError('Cluster Error', error)
         } finally {
@@ -426,6 +445,24 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
         if (/notebooks\/.+/.test(window.location.hash)) {
             Nav.goToPath('workspace-notebooks', { namespace, name })
         }
+    }
+
+    updateCluster() {
+        const { ajax: { Jupyter } } = this.props
+        const { googleProject, clusterName, status } = this.getCurrentCluster() //PR question, are namespace and googleProject the same? any benefit of using one or the other?
+
+        const { updatedConfig } = this.state
+        console.log('updated config: ', updatedConfig)
+        this.executeAndRefresh(Jupyter.cluster(googleProject, clusterName).update({
+            machineConfig: updatedConfig
+        })).then(() => {
+            if (this.state.updatingStatus === 'Updating' && status === 'Stopped') {
+                console.log('detected it should start after updating')
+                this.setState({ updatingStatus: false })
+                this.startCluster()
+            }
+            this.setState({ updatedConfig: {} })
+        })
     }
 
     createDefaultCluster() {
@@ -464,12 +501,22 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
         )
     }
 
-    stopCluster() {
+    stopCluster(shouldNav) {
         const { ajax: { Jupyter } } = this.props
         const { googleProject, clusterName } = this.getCurrentCluster()
-        this.executeAndRefreshWithNav(
-            Jupyter.cluster(googleProject, clusterName).stop()
-        )
+
+        if (shouldNav) {
+            this.executeAndRefreshWithNav(
+                Jupyter.cluster(googleProject, clusterName).stop()
+            )
+        } else {
+            this.executeAndRefresh(
+                //TODO: put nav here
+                Jupyter.cluster(googleProject, clusterName).stop().then(
+                    () => window.location.reload()
+                )
+            )
+        }
     }
 
     renderDestroyForm() {
@@ -514,7 +561,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
                 case 'Running':
                     return h(ClusterIcon, {
                         shape: 'pause',
-                        onClick: () => this.stopCluster(),
+                        onClick: () => this.stopCluster(true),
                         disabled: busy || !canCompute,
                         tooltip: canCompute ? 'Stop cluster' : noCompute
                     })
@@ -555,7 +602,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
             h(ClusterIcon, {
                 shape: 'trash',
                 onClick: () => this.setState({ deleting: true }),
-                disabled: busy || !canCompute || !_.includes(currentStatus, ['Stopped', 'Running', 'Error']),
+                disabled: busy || !canCompute || !_.includes(currentStatus, ['Stopped', 'Running', 'Error', 'Updating']),
                 tooltip: 'Delete cluster',
                 style: { marginLeft: '0.5rem' }
             }),
@@ -598,9 +645,19 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
                 namespace,
                 currentCluster,
                 onCancel: () => this.setState({ open: false }),
-                onSuccess: promise => {
+                create: promise => {
                     this.setState({ open: false })
                     this.executeAndRefresh(promise)
+                },
+                update: newMachineConfig => {
+                    //if the machine config is changing, we must first stop the cluster to update it
+                    console.log('old machine config: ', currentCluster.machineConfig)
+                    console.log('new machine config: ', newMachineConfig)
+                    if (newMachineConfig.masterMachineType !== currentCluster.machineConfig.masterMachineType && currentStatus === 'Running') {
+                        this.setState({ open: false, busy: true, updatedConfig: newMachineConfig, updatingStatus: 'Stopping' }, () => this.stopCluster(false))
+                    } else {
+                        this.setState({ open: false, updatedConfig: newMachineConfig }, this.updateCluster)
+                    }
                 }
             })
         ])

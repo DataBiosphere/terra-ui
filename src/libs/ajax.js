@@ -887,7 +887,6 @@ const Jupyter = signal => ({
   }
 })
 
-
 const Dockstore = signal => ({
   getWdl: async (path, version) => {
     const res = await fetchDockstore(`${dockstoreMethodPath(path)}/${encodeURIComponent(version)}/WDL/descriptor`, { signal })
