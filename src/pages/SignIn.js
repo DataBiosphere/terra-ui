@@ -8,6 +8,7 @@ import signInBg from 'src/images/sign-in-background.jpg'
 import colors from 'src/libs/colors'
 import { getAppName, signInLogo } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
+import * as Utils from 'src/libs/utils'
 
 
 export class CookiesModal extends Component {
