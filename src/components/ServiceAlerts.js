@@ -15,7 +15,7 @@ export const ServiceAlerts = () => {
     const checkAlerts = async () => {
       while (true) {
         try {
-          setAlerts(await Ajax().Buckets.getServiceAlerts())
+          setAlerts(_.uniqWith(_.isEqual, await Ajax().Buckets.getServiceAlerts()))
         } catch {
           // swallowing error, yum!
         }
@@ -28,23 +28,28 @@ export const ServiceAlerts = () => {
 
   useEffect(() => {
     if (prevAlerts) {
-      _.forEach(({ link: readMoreLink, message, title, 'link-title': linkTitle, severity }) => notify(
-        severity === 'info' ? 'info' : 'warn',
-        h(Fragment, [
-          div({ style: { fontSize: 14 } }, title),
-          div({ style: { fontSize: 12, fontWeight: 500 } }, [
-            message,
-            readMoreLink && div({ style: { marginTop: '1rem' } }, [
-              link({
-                target: '_blank',
-                href: readMoreLink,
-                style: { fontWeight: 700, color: 'white' },
-                hover: { color: 'white', textDecoration: 'underline' }
-              }, linkTitle || 'Read more')
+      _.forEach(alert => {
+        const { link: readMoreLink, message, title, 'link-title': linkTitle, severity } = alert
+
+        notify(
+          severity === 'info' ? 'info' : 'warn',
+          h(Fragment, [
+            div({ style: { fontSize: 14 } }, title),
+            div({ style: { fontSize: 12, fontWeight: 500 } }, [
+              message,
+              readMoreLink && div({ style: { marginTop: '1rem' } }, [
+                link({
+                  target: '_blank',
+                  href: readMoreLink,
+                  style: { fontWeight: 700, color: 'white' },
+                  hover: { color: 'white', textDecoration: 'underline' }
+                }, linkTitle || 'Read more')
+              ])
             ])
-          ])
-        ])
-      ),
+          ]),
+          { id: JSON.stringify(alert) }
+        )
+      },
       _.differenceWith(_.isEqual, alerts, prevAlerts)
       )
     }
