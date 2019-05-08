@@ -33,7 +33,7 @@ const paginatorButton = (props, label) => button(_.merge({
  * @param {number} props.itemsPerPage
  * @param {number[]} [props.itemsPerPageOptions=[10,25,50,100]]
  */
-export const paginator = function(props) {
+export const paginator = props => {
   const {
     filteredDataLength, unfilteredDataLength, pageNumber, setPageNumber, setItemsPerPage,
     itemsPerPage, itemsPerPageOptions = [10, 25, 50, 100]
