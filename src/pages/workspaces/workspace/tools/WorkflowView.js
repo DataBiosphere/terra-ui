@@ -518,7 +518,7 @@ const WorkflowView = _.flow(
 
 
   renderSummary() {
-    const { workspace: ws, workspace: { workspace }, namespace, name: workspaceName } = this.props
+    const { workspace: ws, workspace: { workspace }, namespace, name: workspaceName, hasBucketAccess } = this.props
     const {
       modifiedConfig, savedConfig, saving, saved, copying, deleting, selectingData, activeTab, errors, synopsis, documentation,
       selectedEntityType, entityMetadata, entitySelectionModel, snapshotIds = [], useCallCache, currentSnapRedacted, savedSnapRedacted
@@ -650,8 +650,8 @@ const WorkflowView = _.flow(
             activeTab,
             onChangeTab: v => this.setState({ activeTab: v }),
             finalStep: buttonPrimary({
-              disabled: !!Utils.computeWorkspaceError(ws) || !!noLaunchReason || currentSnapRedacted,
-              tooltip: Utils.computeWorkspaceError(ws) || noLaunchReason || (currentSnapRedacted && 'Tool version was redacted.'),
+              disabled: !!Utils.computeWorkspaceError(ws) || !!noLaunchReason || currentSnapRedacted || !hasBucketAccess,
+              tooltip: Utils.computeWorkspaceError(ws) || noLaunchReason || (currentSnapRedacted && 'Tool version was redacted.') || (!hasBucketAccess && 'You do not have access to the Google Bucket associated with this workspace'),
               onClick: () => this.setState({ launching: true }),
               style: {
                 height: StepButtonParams.buttonHeight, fontSize: StepButtonParams.fontSize

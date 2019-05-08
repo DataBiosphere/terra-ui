@@ -152,9 +152,10 @@ const WorkspaceAccessError = () => {
   ])
 }
 
-const checkBucketAccess = withErrorReporting('Error checking BucketAccess', async (signal, namespace, name) => {
+const checkBucketAccess = withErrorReporting('Error checking bucket access', async (signal, namespace, name) => {
   try {
     await Ajax(signal).Workspaces.workspace(namespace, name).checkBucketReadAccess()
+    return true
   } catch (error) {
     if (error.status === 403) {
       notify('error', div([
@@ -195,8 +196,8 @@ const checkBucketAccess = withErrorReporting('Error checking BucketAccess', asyn
     } else {
       throw error
     }
+    return false
   }
-  return null
 })
 
 
@@ -209,6 +210,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
     const cachedWorkspace = Utils.useAtom(workspaceStore)
     const [loadingWorkspace, setLoadingWorkspace] = useState(false)
     const [clusters, setClusters] = useState(undefined)
+    const [hasBucketAccess, setHasBucketAccess] = useState(true)
     const workspace = cachedWorkspace && _.isEqual({ namespace, name }, _.pick(['namespace', 'name'], cachedWorkspace.workspace)) ? cachedWorkspace : undefined
 
     const refreshClusters = withErrorReporting('Error loading clusters', async () => {
@@ -221,7 +223,8 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
       Utils.withBusyState(setLoadingWorkspace)
     )(async () => {
       try {
-        await checkBucketAccess(signal, namespace, name)
+        const res = await checkBucketAccess(signal, namespace, name)
+        setHasBucketAccess(res)
         const workspace = await Ajax(signal).Workspaces.workspace(namespace, name).details()
         workspaceStore.set(workspace)
       } catch (error) {
@@ -258,7 +261,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
       }, [
         workspace && h(WrappedComponent, {
           ref: child,
-          workspace, loadingWorkspace, refreshWorkspace, refreshClusters,
+          workspace, loadingWorkspace, refreshWorkspace, refreshClusters, hasBucketAccess,
           cluster: _.last(Utils.trimClustersOldestFirst(clusters)),
           ...props
         })
