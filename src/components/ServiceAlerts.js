@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import { Fragment, useEffect, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { link } from 'src/components/common'
-import { notify } from 'src/components/Notifications'
+import { clearNotification, notify } from 'src/components/Notifications'
 import { Ajax } from 'src/libs/ajax'
 import * as Utils from 'src/libs/utils'
 
@@ -49,9 +49,10 @@ export const ServiceAlerts = () => {
           ]),
           { id: JSON.stringify(alert) }
         )
-      },
-      _.differenceWith(_.isEqual, alerts, prevAlerts)
-      )
+      }, _.differenceWith(_.isEqual, alerts, prevAlerts))
+      _.forEach(alert => {
+        clearNotification(JSON.stringify(alert))
+      }, _.differenceWith(_.isEqual, prevAlerts, alerts))
     }
   })
 
