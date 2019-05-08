@@ -83,7 +83,7 @@ export default _.flow(
         error: Utils.summarizeErrors(errors && errors.newName),
         inputProps: {
           value: newName,
-          onChange: e => this.setState({ newName: e.target.value })
+          onChange: v => this.setState({ newName: v })
         }
       }),
       copying && spinnerOverlay,

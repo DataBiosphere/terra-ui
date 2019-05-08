@@ -57,7 +57,7 @@ const TerminalLauncher = _.flow(
       await this.refreshCookie()
 
       this.setState({ url: `${clusterUrl}/terminals/1` },
-        () => { findDOMNode(this).onload = function() { this.contentWindow.focus() } })
+        () => { findDOMNode(this).onload = () => this.contentWindow.focus() })
     } catch (error) {
       reportError('Error launching terminal', error)
     }

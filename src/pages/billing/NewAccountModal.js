@@ -3,7 +3,7 @@ import { Fragment, useState } from 'react'
 import { div, h, label } from 'react-hyperscript-helpers'
 import { buttonPrimary, buttonSecondary, Checkbox, Clickable, Select } from 'src/components/common'
 import { icon } from 'src/components/icons'
-import { validatedInput } from 'src/components/input'
+import { ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { authStore } from 'src/libs/auth'
 import colors from 'src/libs/colors'
@@ -89,10 +89,10 @@ const NewAccountModal = ({ onDismiss }) => {
 
     return label({ style: { flexGrow: 1 } }, [
       div({ style: { fontSize: 14, fontWeight: 500, margin: '1rem 0 0.5rem' } }, [title]),
-      validatedInput({
+      h(ValidatedInput, {
         inputProps: {
           value,
-          onChange: ({ target: { value } }) => updateAccount(key, value)
+          onChange: v => updateAccount(key, v)
         },
         error: !!value && !!pages[page].errors && Utils.summarizeErrors(pages[page].errors[key])
       })
@@ -193,11 +193,11 @@ const NewAccountModal = ({ onDismiss }) => {
         div({ style: { display: 'flex', alignItems: 'center' } }, [
           div({ style: { marginRight: '0.5rem' } }, ['$']),
           div({ style: { flexGrow: 1 } }, [
-            validatedInput({
+            h(ValidatedInput, {
               inputProps: {
                 type: 'number', min: '0', step: '0.01',
                 value: account.budget,
-                onChange: ({ target: { value } }) => updateAccount('budget', value),
+                onChange: v => updateAccount('budget', v),
                 onBlur: () => updateAccount('budget', parseFloat(account.budget).toFixed(2))
               }
             })
