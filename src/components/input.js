@@ -358,6 +358,6 @@ export const TextArea = ({ onChange, ...props }) => {
     as: 'textarea',
     className: 'focus-style',
     style: styles.textarea,
-    onChange: e => onChange ? (e => onChange(e.target.value)) : undefined
+    onChange: onChange ? (e => onChange(e.target.value)) : undefined
   }, props))
 }
