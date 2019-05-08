@@ -4,7 +4,7 @@ import { Fragment, PureComponent } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import { buttonPrimary, buttonSecondary, Clickable, LabeledCheckbox, link, Select, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
-import { IntegerInput, textInput } from 'src/components/input'
+import { IntegerInput, TextInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import PopupTrigger from 'src/components/PopupTrigger'
 import TooltipTrigger from 'src/components/TooltipTrigger'
@@ -261,10 +261,10 @@ export class NewClusterModal extends PureComponent {
         div({ style: styles.row }, [
           div({ style: { ...styles.col1, ...styles.label } }, 'Startup script'),
           div({ style: { flex: 1 } }, [
-            textInput({
+            h(TextInput, {
               placeholder: 'URI',
               value: jupyterUserScriptUri,
-              onChange: e => this.setState({ jupyterUserScriptUri: e.target.value })
+              onChange: v => this.setState({ jupyterUserScriptUri: v })
             })
           ])
         ]),
