@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import { b, h } from 'react-hyperscript-helpers'
 import { buttonPrimary, spinnerOverlay } from 'src/components/common'
-import { validatedInput } from 'src/components/input'
+import { ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { withWorkspaces, WorkspaceSelector } from 'src/components/workspace-utils'
 import { ajaxCaller } from 'src/libs/ajax'
@@ -73,11 +73,11 @@ export default _.flow(
         onChange: v => this.setState({ selectedWorkspaceId: v })
       }),
       h(RequiredFormLabel, ['Name']),
-      validatedInput({
+      h(ValidatedInput, {
         error: Utils.summarizeErrors(errors && errors.toolName),
         inputProps: {
           value: toolName,
-          onChange: e => this.setState({ toolName: e.target.value })
+          onChange: v => this.setState({ toolName: v })
         }
       }),
       exporting && spinnerOverlay,

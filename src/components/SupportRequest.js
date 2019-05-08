@@ -4,7 +4,7 @@ import Dropzone from 'react-dropzone'
 import { div, h, span } from 'react-hyperscript-helpers'
 import { Clickable, buttonPrimary, Select, spinnerOverlay, link, linkButton, buttonSecondary } from 'src/components/common'
 import { icon } from 'src/components/icons'
-import { TextArea, textInput } from 'src/components/input'
+import { TextArea, TextInput } from 'src/components/input'
 import { notify } from 'src/components/Notifications'
 import { Ajax } from 'src/libs/ajax'
 import { authStore } from 'src/libs/auth'
@@ -134,11 +134,11 @@ const SupportRequest = _.flow(
           div({ style: { fontSize: 18, fontWeight: 'bold', color: colors.darkBlue[0] } }, ['Contact Us']),
           !this.hasName() && h(Fragment, [
             h(RequiredFormLabel, ['Name']),
-            textInput({
+            h(TextInput, {
               placeholder: 'What should we call you?',
               autoFocus: true,
               value: nameEntered,
-              onChange: e => this.setState({ nameEntered: e.target.value })
+              onChange: v => this.setState({ nameEntered: v })
             })
           ]),
           h(RequiredFormLabel, ['Type']),
@@ -149,12 +149,12 @@ const SupportRequest = _.flow(
             options: [{ value: 'question', label: 'Question' }, { value: 'bug', label: 'Bug' }, { value: 'feature_request', label: 'Feature Request' }]
           }),
           h(RequiredFormLabel, [`How can we help you${greetUser}?`]),
-          textInput({
+          h(TextInput, {
             style: { borderBottomLeftRadius: 0, borderBottomRightRadius: 0, borderBottomStyle: 'dashed' },
             placeholder: 'Enter a subject',
             autoFocus: this.hasName(),
             value: subject,
-            onChange: e => this.setState({ subject: e.target.value })
+            onChange: v => this.setState({ subject: v })
           }),
           h(TextArea, {
             style: { height: 200, borderTopLeftRadius: 0, borderTopRightRadius: 0, borderTopStyle: 'dashed' },
@@ -196,10 +196,10 @@ const SupportRequest = _.flow(
             ]),
           uploadingFile && spinnerOverlay,
           h(RequiredFormLabel, ['Contact email']),
-          textInput({
+          h(TextInput, {
             value: email,
             placeholder: 'Enter your email address',
-            onChange: e => this.setState({ email: e.target.value })
+            onChange: v => this.setState({ email: v })
           }),
           submitError && div({ style: { marginTop: '0.5rem', textAlign: 'right', color: colors.red[0] } }, [submitError]),
           submitting && spinnerOverlay,

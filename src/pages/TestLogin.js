@@ -1,7 +1,7 @@
 import { useState } from 'react'
-import { div } from 'react-hyperscript-helpers'
+import { div, h } from 'react-hyperscript-helpers'
 import { buttonPrimary } from 'src/components/common'
-import { textInput } from 'src/components/input'
+import { TextInput } from 'src/components/input'
 import * as Nav from 'src/libs/nav'
 
 
@@ -10,10 +10,10 @@ const TestLogin = () => {
 
   return div({ style: { margin: '2rem', display: 'flex', alignItems: 'center' } }, [
     'Token:',
-    textInput({
+    h(TextInput, {
       style: { margin: '0 1rem' },
       value: token,
-      onChange: ({ target: { value } }) => setToken(value)
+      onChange: setToken
     }),
     buttonPrimary({
       onClick: async () => {
