@@ -7,6 +7,7 @@ import { link } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { notify } from 'src/components/Notifications'
 import TopBar from 'src/components/TopBar'
+import { getAppName } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
 import * as Projects from 'src/pages/billing/List'
 import * as Group from 'src/pages/groups/Group'
@@ -119,7 +120,7 @@ export default class Router extends Component {
         document.title = handler.title
       }
     } else {
-      document.title = 'Terra'
+      document.title = getAppName()
     }
   }
 

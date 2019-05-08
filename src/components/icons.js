@@ -5,6 +5,7 @@ import '@clr/icons/clr-icons.css'
 import '@clr/icons/shapes/all-shapes'
 import _ from 'lodash/fp'
 import { h, img } from 'react-hyperscript-helpers'
+import arrowRight from 'src/icons/arrow-right.svg'
 import browse from 'src/icons/browse.svg'
 import cardMenuIcon from 'src/icons/card-menu-icon.svg'
 import caretDown from 'src/icons/caret-down.svg'
@@ -26,7 +27,7 @@ import colors from 'src/libs/colors'
 
 
 ClarityIcons.add({
-  browse, cardMenuIcon, caretDown, checkSquare, columnGrabber, creditCard, explore, home, jupyterIcon, listAlt, loadingSpinner,
+  arrowRight, browse, cardMenuIcon, caretDown, checkSquare, columnGrabber, creditCard, explore, home, jupyterIcon, listAlt, loadingSpinner,
   notebooks, purchaseOrder, renameIcon, square, table
 })
 

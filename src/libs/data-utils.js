@@ -13,6 +13,7 @@ import ReferenceData from 'src/data/reference-data'
 import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
+import { getAppName } from 'src/libs/logos'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
@@ -280,7 +281,7 @@ export const EntityUploader = ajaxCaller(class EntityUploader extends Component 
           div({ style: { fontFamily: 'monospace', margin: '0.5rem' } }, ['entity:[type]_id']),
           'where ',
           span({ style: { fontFamily: 'monospace' } }, ['[type]']),
-          ' is the desired name of the data table in Terra.',
+          ` is the desired name of the data table in ${getAppName()}.`,
           ' For example, use ',
           span({ style: { fontFamily: 'monospace' } }, ['entity:participant_id']),
           ' to create or update a ',

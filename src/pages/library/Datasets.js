@@ -283,7 +283,7 @@ const ukb = () => h(Participant, {
     link({ href: 'https://www.ukbiobank.ac.uk/', target: '_blank' }, 'UK Biobank'),
     ` is a national and international health resource with unparalleled research opportunities.
     UK Biobank aims to improve the prevention, diagnosis and treatment of a wide range of serious and life-threatening
-    illnesses. This Data Explorer is only available to specific early-access Terra users at this time.`
+    illnesses. This Data Explorer is only available to specific early-access users at this time.`
   ]),
   sizeText: 'Participants: > 500,000'
 }, [
