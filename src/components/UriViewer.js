@@ -138,7 +138,7 @@ const UriViewer = ajaxCaller(class UriViewer extends Component {
           els.cell([els.label('File size'), els.data(filesize(parseInt(size, 10)))]),
           els.cell([
             link({
-              target: 'blank',
+              ...Utils.newTabLinkProps,
               href: bucketBrowserUrl(gsUri.match(/gs:\/\/(.+)\//)[1])
             }, ['View this file in the Google Cloud Storage Browser'])
           ]),
@@ -150,7 +150,7 @@ const UriViewer = ajaxCaller(class UriViewer extends Component {
                   as: 'a',
                   disabled: !signedUrl,
                   href: signedUrl,
-                  target: '_blank'
+                  ...Utils.newTabLinkProps
                 }, [
                   signedUrl ?
                     `Download for ${price}*` :

@@ -4,7 +4,7 @@ import { a, b, div, h } from 'react-hyperscript-helpers'
 import { pure } from 'recompose'
 import { buttonPrimary, Clickable, linkButton, PageBox, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
-import { DelayedSearchInput, validatedInput } from 'src/components/input'
+import { DelayedSearchInput, ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import TopBar from 'src/components/TopBar'
 import { ajaxCaller } from 'src/libs/ajax'
@@ -55,11 +55,11 @@ const NewGroupModal = ajaxCaller(class NewGroupModal extends Component {
       }, ['Create Group'])
     }, [
       h(RequiredFormLabel, ['Enter a unique name']),
-      validatedInput({
+      h(ValidatedInput, {
         inputProps: {
           autoFocus: true,
           value: groupName,
-          onChange: e => this.setState({ groupName: e.target.value, groupNameTouched: true })
+          onChange: v => this.setState({ groupName: v, groupNameTouched: true })
         },
         error: groupNameTouched && Utils.summarizeErrors(errors && errors.groupName)
       }),

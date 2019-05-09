@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
-import { Component, createRef, Fragment, useRef, useState } from 'react'
+import { Component, createRef, forwardRef, Fragment, useRef, useState } from 'react'
 import Autosuggest from 'react-autosuggest'
 import { createPortal } from 'react-dom'
 import { div, h } from 'react-hyperscript-helpers'
@@ -41,11 +41,12 @@ const styles = {
   }
 }
 
-export const textInput = ({ ref, ...props }) => h(Interactive,
+export const TextInput = forwardRef(({ onChange, nativeOnChange = false, ...props }, ref) => h(Interactive,
   _.merge({
     refDOMNode: ref,
     as: 'input',
     className: 'focus-style',
+    onChange: onChange ? e => onChange(nativeOnChange ? e : e.target.value) : undefined,
     style: {
       ...styles.input,
       width: '100%',
@@ -55,12 +56,12 @@ export const textInput = ({ ref, ...props }) => h(Interactive,
     }
   },
   props)
-)
+))
 
 export const ConfirmedSearchInput = ({ defaultValue = '', onChange = _.noop, ...props }) => {
   const [internalValue, setInternalValue] = useState(defaultValue)
   return div({ style: { display: 'inline-flex', width: '100%' } }, [
-    textInput(_.merge({
+    h(TextInput, _.merge({
       type: 'search',
       refDOMNode: el => {
         el.addEventListener('search', e => {
@@ -71,7 +72,7 @@ export const ConfirmedSearchInput = ({ defaultValue = '', onChange = _.noop, ...
       spellCheck: false,
       style: { WebkitAppearance: 'none', borderColor: colors.gray[3], borderRadius: '4px 0 0 4px' },
       value: internalValue,
-      onChange: e => setInternalValue(e.target.value),
+      onChange: setInternalValue,
       onKeyDown: e => {
         if (e.key === 'Enter') {
           e.preventDefault()
@@ -94,14 +95,14 @@ export const ConfirmedSearchInput = ({ defaultValue = '', onChange = _.noop, ...
 export const DelayedSearchInput = ({ defaultValue = '', onChange = _.noop, ...props }) => {
   const [internalValue, setInternalValue] = useState(defaultValue)
   const updateFn = useRef(_.debounce(250, onChange))
-  return textInput(_.merge({
+  return h(TextInput, _.merge({
     type: 'search',
     spellCheck: false,
     style: { WebkitAppearance: 'none', borderColor: colors.gray[3] },
     value: internalValue,
-    onChange: e => {
-      setInternalValue(e.target.value)
-      updateFn.current(e.target.value)
+    onChange: v => {
+      setInternalValue(v)
+      updateFn.current(v)
     },
     onKeyDown: e => {
       if (e.key === 'Escape' && internalValue !== '') {
@@ -114,11 +115,12 @@ export const DelayedSearchInput = ({ defaultValue = '', onChange = _.noop, ...pr
 }
 
 
-export const numberInput = props => {
+export const NumberInput = ({ onChange, ...props }) => {
   return h(Interactive, _.merge({
     as: 'input',
     type: 'number',
     className: 'focus-style',
+    onChange: onChange ? (e => onChange(e.target.value)) : undefined,
     style: {
       ...styles.input,
       width: '100%',
@@ -158,9 +160,9 @@ export class IntegerInput extends Component {
   render() {
     const { textValue } = this.state
     const { onChange, min, max, ...props } = this.props
-    return numberInput({
+    return h(NumberInput, {
       ...props, min, max, value: textValue,
-      onChange: e => this.setState({ textValue: e.target.value }),
+      onChange: v => this.setState({ textValue: v }),
       onBlur: () => {
         const newValue = _.clamp(min, max, _.floor(textValue * 1))
         this.setState({ lastValueProp: undefined }) // eslint-disable-line react/no-unused-state
@@ -175,14 +177,14 @@ export class IntegerInput extends Component {
  * @param {object} props.inputProps
  * @param {object} [props.error] - error message content
  */
-export const validatedInput = props => {
+export const ValidatedInput = props => {
   const { inputProps, error } = props
 
   return h(Fragment, [
     div({
       style: { position: 'relative', display: 'flex', alignItems: 'center' }
     }, [
-      textInput(_.merge({
+      h(TextInput, _.merge({
         style: error ? {
           paddingRight: '2.25rem', // leave room for error icon
           border: `1px solid ${colors.red[0]}`
@@ -275,7 +277,7 @@ export class AutocompleteTextInput extends Component {
     const { show } = this.state
     return h(Autosuggest, {
       id: this.id,
-      inputProps: { value, onChange: e => onChange(e.target.value) },
+      inputProps: { value, onChange: onChange ? (e => onChange(e.target.value)) : undefined },
       suggestions: show ? (value ? _.filter(Utils.textMatch(value), suggestions) : suggestions) : [],
       onSuggestionsFetchRequested: () => this.setState({ show: true }),
       onSuggestionsClearRequested: () => this.setState({ show: false }),
@@ -289,9 +291,7 @@ export class AutocompleteTextInput extends Component {
         ])
       },
       renderSuggestion: v => v,
-      renderInputComponent: inputProps => {
-        return textInput({ ...props, ...inputProps, style, type: 'search' })
-      },
+      renderInputComponent: inputProps => h(TextInput, { ...props, ...inputProps, style, type: 'search', nativeOnChange: true }),
       theme: {
         container: { width: '100%' },
         suggestionsList: { margin: 0, padding: 0 },
@@ -309,7 +309,6 @@ export class AutocompleteSearch extends Component {
     onSuggestionSelected: PropTypes.func.isRequired,
     suggestions: PropTypes.array,
     renderSuggestion: PropTypes.func,
-    renderInputComponent: PropTypes.func,
     theme: PropTypes.object
   }
 
@@ -326,11 +325,11 @@ export class AutocompleteSearch extends Component {
   }
 
   render() {
-    const { value, onChange, onSuggestionSelected, suggestions, renderSuggestion, renderInputComponent, theme, ...props } = this.props
+    const { value, onChange, onSuggestionSelected, suggestions, renderSuggestion, theme, ...props } = this.props
     const { show } = this.state
     return h(Autosuggest, {
       id: this.id,
-      inputProps: { value, onChange: e => onChange(e.target.value), ...props },
+      inputProps: { value, onChange: onChange ? (e => onChange(e.target.value)) : undefined, ...props },
       suggestions: show ? (value ? [value, ..._.filter(Utils.textMatch(value), suggestions)] : suggestions) : [],
       onSuggestionsFetchRequested: () => this.setState({ show: true }),
       onSuggestionsClearRequested: () => this.setState({ show: false }),
@@ -343,7 +342,7 @@ export class AutocompleteSearch extends Component {
         ])
       },
       renderSuggestion,
-      renderInputComponent: renderInputComponent || (inputProps => textInput({ inputProps })),
+      renderInputComponent: inputProps => h(TextInput, { nativeOnChange: true, ...inputProps }),
       theme: _.merge({
         container: { width: '100%' },
         suggestionsList: { margin: 0, padding: 0 },

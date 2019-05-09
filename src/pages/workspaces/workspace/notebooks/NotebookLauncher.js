@@ -19,8 +19,8 @@ import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer
 const NotebookLauncher = _.flow(
   forwardRef,
   wrapWorkspace({
-    breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
-    title: ({ notebookName }) => `Notebooks - ${notebookName}`,
+    breadcrumbs: props => breadcrumbs.commonPaths.workspaceTab(props, 'notebooks'),
+    title: _.get('notebookName'),
     showTabBar: false
   }),
   ajaxCaller
@@ -346,6 +346,6 @@ export const navPaths = [
     name: 'workspace-notebook-launch',
     path: '/workspaces/:namespace/:name/notebooks/launch/:notebookName/:app?',
     component: NotebookLauncher,
-    title: ({ name, notebookName }) => `${name} - Notebooks - ${notebookName}`
+    title: ({ name, notebookName }) => `${notebookName} - ${name}`
   }
 ]

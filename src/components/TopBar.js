@@ -152,7 +152,7 @@ export default _.flow(
       as: 'a',
       hover: { backgroundColor: colors.gray[3] },
       href: 'https://software.broadinstitute.org/firecloud/documentation/freecredits',
-      target: '_blank',
+      ...Utils.newTabLinkProps,
       onClick: () => this.hideNav()
     }, [
       div({ style: styles.nav.icon }, [
@@ -244,7 +244,7 @@ export default _.flow(
           ]),
           h(Clickable, {
             as: 'a',
-            target: '_blank',
+            ...Utils.newTabLinkProps,
             style: styles.nav.item,
             hover: { backgroundColor: colors.gray[3] },
             href: getConfig().jobManagerUrlRoot,
@@ -288,7 +288,7 @@ export default _.flow(
             as: 'a',
             hover: { backgroundColor: colors.gray[3] },
             href: 'https://broadinstitute.zendesk.com/hc/en-us',
-            target: '_blank',
+            ...Utils.newTabLinkProps,
             onClick: () => this.hideNav()
           }, [
             div({ style: styles.nav.icon }, [
@@ -308,7 +308,7 @@ export default _.flow(
             as: 'a',
             hover: { backgroundColor: colors.gray[3] },
             href: 'https://broadinstitute.zendesk.com/hc/en-us/community/topics/360000500452-Feature-Requests',
-            target: '_blank',
+            ...Utils.newTabLinkProps,
             onClick: () => this.hideNav()
           }, [
             div({ style: styles.nav.icon }, [
@@ -328,7 +328,7 @@ export default _.flow(
             as: 'a',
             hover: { backgroundColor: colors.gray[3] },
             href: 'https://broadinstitute.zendesk.com/hc/en-us/community/topics/360000500432-General-Discussion',
-            target: '_blank',
+            ...Utils.newTabLinkProps,
             onClick: () => this.hideNav()
           }, [
             div({ style: styles.nav.icon }, [
@@ -349,7 +349,7 @@ export default _.flow(
               as: 'a',
               hover: { backgroundColor: colors.gray[3] },
               href: 'https://broadinstitute.zendesk.com/hc/en-us/articles/360022694271-Side-by-side-comparison-with-Terra',
-              target: '_blank',
+              ...Utils.newTabLinkProps,
               onClick: () => this.hideNav()
             }, [
               div({ style: styles.nav.icon }, [

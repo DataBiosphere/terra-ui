@@ -57,7 +57,7 @@ export const connectAtom = (theAtom, name) => WrappedComponent => {
   return Wrapper
 }
 
-export const makePrettyDate = function(dateString) {
+export const makePrettyDate = dateString => {
   const date = new Date(dateString)
   const now = new Date()
   const oneDayAgo = _.tap(d => d.setDate(d.getDate() - 1), new Date(now))
@@ -94,14 +94,12 @@ export const isOwner = hasAccessLevel('OWNER')
 
 export const workflowStatuses = ['Queued', 'Launching', 'Submitted', 'Running', 'Aborting', 'Succeeded', 'Failed', 'Aborted']
 
-export const log = function(...args) {
+export const log = (...args) => {
   console.log.apply(null, args)
   return _.last(args)
 }
 
-const maybeCall = function(maybeFn) {
-  return _.isFunction(maybeFn) ? maybeFn() : maybeFn
-}
+const maybeCall = maybeFn => _.isFunction(maybeFn) ? maybeFn() : maybeFn
 
 /**
  * Returns the value for the first truthy predicate.
@@ -110,7 +108,7 @@ const maybeCall = function(maybeFn) {
  * Takes predicate/value pairs in arrays, followed by an optional default value.
  * Returns undefined if no predicate matches and there is no default value.
  */
-export const cond = function(...args) {
+export const cond = (...args) => {
   for (const arg of args) {
     if (_.isArray(arg)) {
       const [predicate, value] = arg
@@ -308,3 +306,5 @@ export const handleNonRunningCluster = ({ status, googleProject, clusterName }, 
       return delay(3000)
   }
 }
+
+export const newTabLinkProps = { target: '_blank', rel: 'noopener noreferrer' } // https://mathiasbynens.github.io/rel-noopener/
