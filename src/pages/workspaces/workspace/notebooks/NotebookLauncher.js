@@ -64,6 +64,7 @@ class NotebookPreviewFrame extends Component {
       preview: undefined,
       busy: false
     }
+    this.frame = createRef()
   }
 
   async componentDidMount() {
@@ -90,6 +91,11 @@ class NotebookPreviewFrame extends Component {
         }, [icon('times-circle', { size: 30 })])
       ]),
       preview && iframe({
+        ref: this.frame,
+        onLoad: () => {
+          const doc = this.frame.current.contentWindow.document
+          doc.head.appendChild(Utils.createHtmlElement(doc, 'base', Utils.newTabLinkProps))
+        },
         style: { border: 'none', flex: 1 },
         srcDoc: preview
       }),
