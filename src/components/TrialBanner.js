@@ -13,8 +13,8 @@ import Modal from 'src/components/Modal'
 import FreeTrialEulas from 'src/components/FreeTrialEulas'
 
 
-const messages =
-  {
+const getMessages = () => {
+  return {
     'Enabled': {
       'title': `Welcome to ${getAppName()}!`,
       'message': 'You have free compute and storage credits available to upload your data and launch analyses.',
@@ -49,6 +49,7 @@ const messages =
       }
     }
   }
+}
 
 export const FreeCreditsModal= ajaxCaller(class FreeCreditsModal extends Component {
   constructor(props) {
@@ -155,7 +156,7 @@ export const TrialBanner = _.flow(
     const { trialState } = profile
     const removeBanner = localStorage.getItem('removeBanner')
     if (!trialState || !isSignedIn || !acceptedTos || trialState === 'Finalized' || removeBanner === 'true') return null
-    const { [trialState]: { title, message, enabledLink, button, isWarning } } = messages
+    const { [trialState]: { title, message, enabledLink, button, isWarning } } = getMessages()
     return div([
       div({
         style: {
