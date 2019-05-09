@@ -4,9 +4,8 @@ import { div, h, span } from 'react-hyperscript-helpers'
 import SimpleMDE from 'react-simplemde-editor'
 import 'easymde/dist/easymde.min.css'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { buttonPrimary, buttonSecondary, link, linkButton, spinnerOverlay } from 'src/components/common'
-import { icon } from 'src/components/icons'
-import { textInput } from 'src/components/input'
+import { buttonPrimary, buttonSecondary, link, linkButton, Select, spinnerOverlay } from 'src/components/common'
+import { icon, spinner } from 'src/components/icons'
 import { Markdown } from 'src/components/Markdown'
 import { SimpleTable } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
@@ -107,7 +106,9 @@ export const WorkspaceDashboard = _.flow(
       storageCostEstimate: undefined,
       editDescription: undefined,
       saving: false,
-      newTag: ''
+      newTag: '',
+      allTagsList: [],
+      busy: false
     }
   }
 
@@ -115,7 +116,8 @@ export const WorkspaceDashboard = _.flow(
     this.loadSubmissionCount()
     this.loadStorageCost()
     this.loadConsent()
-    this.loadTags()
+    this.loadWsTags()
+    this.loadAllTags()
   }
 
   loadSubmissionCount = withErrorReporting('Error loading data', async () => {
@@ -147,23 +149,36 @@ export const WorkspaceDashboard = _.flow(
           case 404:
             this.setState({ consentStatus: `Structured Data Use Limitations are not available for ${orspId}` })
             break
-          default: throw error
+          default:
+            throw error
         }
       }
     }
   })
 
-  loadTags = withErrorReporting('Error loading tags', async () => {
+  loadAllTags = withErrorReporting('Error loading tags', async () => {
+    const { ajax: { Workspaces } } = this.props
+    const allTags = await Workspaces.getTags()
+    this.setState({ allTagsList: _.map('tag', allTags) })
+  })
+
+  loadWsTags = withErrorReporting('Error loading workspace tags', async () => {
     const { ajax: { Workspaces }, namespace, name } = this.props
     this.setState({ tagsList: await Workspaces.workspace(namespace, name).getTags() })
   })
 
-  addTag = withErrorReporting('Error adding tag', async tag => {
+  addTag = _.flow(
+    withErrorReporting('Error adding tag'),
+    Utils.withBusyState(v => this.setState({ busy: v }))
+  )(async tag => {
     const { ajax: { Workspaces }, namespace, name } = this.props
     this.setState({ tagsList: await Workspaces.workspace(namespace, name).addTag(tag) })
   })
 
-  deleteTag = withErrorReporting('Error removing tag', async tag => {
+  deleteTag = _.flow(
+    withErrorReporting('Error removing tag'),
+    Utils.withBusyState(v => this.setState({ busy: v }))
+  )(async tag => {
     const { ajax: { Workspaces }, namespace, name } = this.props
     this.setState({ tagsList: await Workspaces.workspace(namespace, name).deleteTag(tag) })
   })
@@ -192,7 +207,7 @@ export const WorkspaceDashboard = _.flow(
         }
       }
     } = this.props
-    const { submissionsCount, storageCostEstimate, editDescription, saving, consentStatus, tagsList, newTag } = this.state
+    const { submissionsCount, storageCostEstimate, editDescription, saving, consentStatus, tagsList, newTag, allTagsList, busy } = this.state
     console.log(tagsList)
     const isEditing = _.isString(editDescription)
 
@@ -263,12 +278,13 @@ export const WorkspaceDashboard = _.flow(
         ]),
         div({ style: styles.header }, ['Tags']),
         div({ style: { marginBottom: '0.5rem' } }, [
-          textInput({
-            placeholder: 'Add a tag',
-            style: { display: 'block' },
+          h(Select, {
+            isClearable: true,
+            isSearchable: true,
             value: newTag,
-            onChange: e => this.setState({ newTag: e.target.value })
-            //this.addTag(newTag)
+            placeholder: 'Add a tag',
+            onChange: data => this.addTag(data.value),
+            options: allTagsList
           })
         ]),
         div({ style: { display: 'flex', flexWrap: 'wrap' } }, [
@@ -277,7 +293,8 @@ export const WorkspaceDashboard = _.flow(
               tooltip: 'Remove tag',
               onClick: () => this.deleteTag(tag)
             }, [icon('times-circle', { size: 20, style: { marginLeft: '0.5rem' } })])])
-          }, tagsList)
+          }, tagsList),
+          busy && spinner({ style: { margin: '0 0 0 0.5rem' } })
         ]),
         !_.isEmpty(authorizationDomain) && h(Fragment, [
           div({ style: styles.header }, ['Authorization Domain']),
