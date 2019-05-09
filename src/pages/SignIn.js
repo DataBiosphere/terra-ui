@@ -6,8 +6,9 @@ import Modal from 'src/components/Modal'
 import SignInButton from 'src/components/SignInButton'
 import signInBg from 'src/images/sign-in-background.jpg'
 import colors from 'src/libs/colors'
-import { signInLogo } from 'src/libs/logos'
+import { getAppName, signInLogo } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
+import * as Utils from 'src/libs/utils'
 
 
 export class CookiesModal extends Component {
@@ -17,9 +18,9 @@ export class CookiesModal extends Component {
       showCancel: false,
       onDismiss
     }, [
-      'Terra uses cookies to enable sign on and other essential features when signed in, and to provide statistics to our development team regarding how the site is used. For more information, see our ',
+      `${getAppName()} uses cookies to enable sign on and other essential features when signed in, and to provide statistics to our development team regarding how the site is used. For more information, see our `,
       link({
-        target: '_blank',
+        ...Utils.newTabLinkProps,
         href: Nav.getLink('privacy')
       }, ['privacy policy.'])
     ])
@@ -44,9 +45,9 @@ export default class SignIn extends Component {
       }, [
         div({ style: { maxWidth: 900 } }, [
           signInLogo(),
-          div({ style: { fontSize: 54, margin: '1.5rem 0', color: colors.green[0] } }, ['Welcome to Terra']),
+          div({ style: { fontSize: 54, margin: '1.5rem 0', color: colors.green[0] } }, [`Welcome to ${getAppName()}`]),
           div({ style: { fontSize: 36, fontWeight: 500, color: colors.slate } }, ['New User?']),
-          div({ style: { fontSize: 36, marginBottom: '2rem' } }, ['Terra requires a Google Account.']),
+          div({ style: { fontSize: 36, marginBottom: '2rem' } }, [`${getAppName()} requires a Google Account.`]),
           div({ style: { display: 'flex', alignItems: 'center' } }, [
             div({
               style: {
@@ -55,9 +56,9 @@ export default class SignIn extends Component {
                   `1px solid ${colors.gray[0]}`
               }
             }, [
-              div(['Need to create a TERRA account? Terra uses your Google account.']),
+              div([`Need to create a ${getAppName()} account? ${getAppName()} uses your Google account.`]),
               div({ style: { paddingBottom: '1rem' } },
-                ['Once you have signed in and completed the user profile registration step, you can start using TERRA.']
+                [`Once you have signed in and completed the user profile registration step, you can start using ${getAppName()}.`]
               )
             ]),
             div([
@@ -94,7 +95,7 @@ export default class SignIn extends Component {
             p({ style: { fontWeight: 500 } }, [
               'You are reminded that when accessing TCGA controlled access information you are bound by ',
               'the dbGaP TCGA ',
-              link({ target: '_blank', href: 'http://cancergenome.nih.gov/pdfs/Data_Use_Certv082014' }, [
+              link({ ...Utils.newTabLinkProps, href: 'http://cancergenome.nih.gov/pdfs/Data_Use_Certv082014' }, [
                 'DATA USE CERTIFICATION AGREEMENT (DUCA)'
               ])
             ])

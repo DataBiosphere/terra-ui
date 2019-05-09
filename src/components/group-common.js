@@ -4,7 +4,7 @@ import { b, div, h, label } from 'react-hyperscript-helpers'
 import { pure } from 'recompose'
 import { buttonPrimary, Clickable, LabeledCheckbox, link, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
-import { AutocompleteSearch, textInput } from 'src/components/input'
+import { AutocompleteSearch } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { ajaxCaller } from 'src/libs/ajax'
@@ -149,7 +149,6 @@ export const NewUserModal = ajaxCaller(class NewUserModal extends Component {
         },
         suggestions: suggestions,
         style: { fontSize: 16 },
-        renderInputComponent: textInput,
         theme: { suggestion: { padding: 0 } }
       }),
       h(FormLabel, ['Role']),

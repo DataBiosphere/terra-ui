@@ -293,8 +293,7 @@ class TextCollapse extends Component {
 const WorkflowView = _.flow(
   wrapWorkspace({
     breadcrumbs: props => breadcrumbs.commonPaths.workspaceTab(props, 'tools'),
-    title: ({ workflowName }) => workflowName, activeTab: 'tools',
-    showTabBar: false
+    title: _.get('workflowName'), activeTab: 'tools'
   }),
   ajaxCaller
 )(class WorkflowView extends Component {
@@ -565,14 +564,14 @@ const WorkflowView = _.flow(
           div({ style: { marginTop: '0.5rem' } }, [
             'Snapshot ',
             sourceRepo === 'agora' ?
-              div({ style: { display: 'inline-block', marginLeft: '0.25rem', minWidth: 60 } }, [
+              div({ style: { display: 'inline-block', marginLeft: '0.25rem', minWidth: 75 } }, [
                 h(Select, {
                   isDisabled: !!Utils.editWorkspaceError(ws),
                   isClearable: false,
                   isSearchable: false,
                   value: methodVersion,
                   getOptionLabel: ({ value }) => Utils.normalizeLabel(value),
-                  options: _.uniq([...snapshotIds, savedConfig.methodRepoMethod.methodVersion]).sort(),
+                  options: _.sortBy(_.toNumber, _.uniq([...snapshotIds, savedConfig.methodRepoMethod.methodVersion])),
                   isOptionDisabled: ({ value }) => (currentSnapRedacted || savedSnapRedacted) &&
                     (value === savedConfig.methodRepoMethod.methodVersion),
                   onChange: chosenSnapshot => this.loadNewMethodConfig(chosenSnapshot.value)
@@ -583,7 +582,7 @@ const WorkflowView = _.flow(
           div([
             'Source: ', currentSnapRedacted ? `${methodNamespace}/${methodName}/${methodVersion}` : link({
               href: methodLink(modifiedConfig),
-              target: '_blank'
+              ...Utils.newTabLinkProps
             }, methodPath ? methodPath : `${methodNamespace}/${methodName}/${methodVersion}`)
           ]),
           div(`Synopsis: ${synopsis ? synopsis : ''}`),
@@ -678,13 +677,6 @@ const WorkflowView = _.flow(
               ]),
               `Fill in the attributes below to add or update columns in your data table`
             ])
-          ])
-        ]),
-        div({ style: { flex: 'none', display: 'flex', flexDirection: 'column', alignItems: 'flex-end' } }, [
-          linkButton({
-            href: Nav.getLink('workspace-tools', { namespace, name: workspaceName })
-          }, [
-            icon('times', { size: 36 })
           ])
         ])
       ]),

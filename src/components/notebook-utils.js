@@ -4,7 +4,7 @@ import { Fragment } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { buttonPrimary, IdContainer, Select, spinnerOverlay } from 'src/components/common'
 import { centeredSpinner } from 'src/components/icons'
-import { validatedInput } from 'src/components/input'
+import { ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { ajaxCaller } from 'src/libs/ajax'
 import { reportError } from 'src/libs/error'
@@ -26,7 +26,7 @@ export const notebookNameValidator = existing => ({
   }
 })
 
-export const notebookNameInput = props => validatedInput(_.merge({
+export const notebookNameInput = props => h(ValidatedInput, _.merge({
   inputProps: {
     autoFocus: true,
     placeholder: 'Enter a name'
@@ -115,7 +115,7 @@ export const NotebookCreator = ajaxCaller(class NotebookCreator extends Componen
           error: Utils.summarizeErrors(nameTouched && errors && errors.notebookName),
           inputProps: {
             id, value: notebookName,
-            onChange: e => this.setState({ notebookName: e.target.value, nameTouched: true })
+            onChange: v => this.setState({ notebookName: v, nameTouched: true })
           }
         })
       ])]),
@@ -193,7 +193,7 @@ export const NotebookDuplicator = ajaxCaller(class NotebookDuplicator extends Co
             error: Utils.summarizeErrors(nameTouched && errors && errors.newName),
             inputProps: {
               id, value: newName,
-              onChange: e => this.setState({ newName: e.target.value, nameTouched: true })
+              onChange: v => this.setState({ newName: v, nameTouched: true })
             }
           })
         ])])
