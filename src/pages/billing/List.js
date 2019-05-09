@@ -116,7 +116,7 @@ const NewBillingProjectModal = ajaxCaller(class NewBillingProjectModal extends C
         a({
           style: { color: colors.blue[0], fontWeight: 700 },
           href: `https://broadinstitute.zendesk.com/hc/en-us/articles/360026182251-Billing-Projects-Google-Billing-Accounts-and-Free-Credits`,
-          target: '_blank'
+          ...Utils.newTabLinkProps
         }, ['Learn how to create a billing account.', icon('pop-out', { size: 20, style: { marginLeft: '0.5rem' } })])
       ]),
       billingAccounts && billingAccounts.length !== 0 && h(Fragment, [
@@ -152,7 +152,7 @@ const NewBillingProjectModal = ajaxCaller(class NewBillingProjectModal extends C
             a({
               style: { color: colors.blue[0], fontWeight: 700 },
               href: `https://console.cloud.google.com/billing/${chosenBillingAccount.accountName.split('/')[1]}?authuser=${Auth.getUser().email}`,
-              target: '_blank'
+              ...Utils.newTabLinkProps
             }, ['Google Cloud Console ', icon('pop-out', { size: 12 })])
           ]),
           // The following lines will be re-added soon:
@@ -172,7 +172,7 @@ const NewBillingProjectModal = ajaxCaller(class NewBillingProjectModal extends C
             a({
               style: { color: colors.blue[0], fontWeight: 700 },
               href: `https://broadinstitute.zendesk.com/hc/en-us/articles/360026182251-Billing-Projects-Google-Billing-Accounts-and-Free-Credits`,
-              target: '_blank'
+              ...Utils.newTabLinkProps
             }, ['Click here ', icon('pop-out', { size: 12 })]), ' for more information.'
           ])
         ])

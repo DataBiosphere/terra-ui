@@ -11,6 +11,7 @@ import { getConfig, isFirecloud } from 'src/libs/config'
 import { logo } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
+import * as Utils from 'src/libs/utils'
 
 
 const styles = {
@@ -289,7 +290,7 @@ export const ShibbolethLink = ({ children, ...props }) => {
     ...props,
     href: `${getConfig().shibbolethUrlRoot}/link-nih-account?${qs.stringify({ 'redirect-url': nihRedirectUrl })}`,
     style: { display: 'inline-flex', alignItems: 'center' },
-    target: '_blank'
+    ...Utils.newTabLinkProps
   }, [
     children,
     icon('pop-out', { size: 12, style: { marginLeft: '0.2rem' } })

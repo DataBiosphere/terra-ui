@@ -99,7 +99,7 @@ const NihLink = ({ nihToken }) => {
           'Your account was linked, but you are not authorized to view this controlled dataset. Please go ',
           link({
             href: 'https://dbgap.ncbi.nlm.nih.gov/aa/wga.cgi?page=login',
-            target: '_blank'
+            ...Utils.newTabLinkProps
           }, [
             'here',
             icon('pop-out', { size: 12 })
@@ -289,7 +289,7 @@ const Profile = _.flow(
               'To change your profile image, visit your ',
               link({
                 href: `https://myaccount.google.com?authuser=${getUser().email}`,
-                target: '_blank'
+                ...Utils.newTabLinkProps
               }, ['Google account page.'])
             ])
           ]),
@@ -380,7 +380,7 @@ const Profile = _.flow(
           'For more information about proxy groups, see the ',
           link({
             href: 'https://software.broadinstitute.org/firecloud/documentation/article?id=11185',
-            target: '_blank'
+            ...Utils.newTabLinkProps
           }, ['user guide.'])
         ])
       ]),

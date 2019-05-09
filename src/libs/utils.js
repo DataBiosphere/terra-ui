@@ -306,3 +306,5 @@ export const handleNonRunningCluster = ({ status, googleProject, clusterName }, 
       return delay(3000)
   }
 }
+
+export const newTabLinkProps = { target: '_blank', rel: 'noopener noreferrer' } // https://mathiasbynens.github.io/rel-noopener/

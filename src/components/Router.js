@@ -9,6 +9,7 @@ import { notify } from 'src/components/Notifications'
 import TopBar from 'src/components/TopBar'
 import { getAppName } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
+import * as Utils from 'src/libs/utils'
 import * as Projects from 'src/pages/billing/List'
 import * as Group from 'src/pages/groups/Group'
 import * as Groups from 'src/pages/groups/List'
@@ -86,7 +87,7 @@ export default class Router extends Component {
       notify('welcome', div({ style: { fontSize: 14 } }, [
         div(['Welcome to the new FireCloud interface, powered by Terra. All of your workspaces are available. ',
           link({
-            target: '_blank',
+            ...Utils.newTabLinkProps,
             href: 'https://broadinstitute.zendesk.com/hc/en-us/sections/360003528231-FireCloud-users-Find-out-what-s-new-in-Terra',
             variant: 'light'
           },

@@ -8,6 +8,7 @@ import signInBg from 'src/images/sign-in-background.jpg'
 import colors from 'src/libs/colors'
 import { getAppName, signInLogo } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
+import * as Utils from 'src/libs/utils'
 
 
 export class CookiesModal extends Component {
@@ -19,7 +20,7 @@ export class CookiesModal extends Component {
     }, [
       `${getAppName()} uses cookies to enable sign on and other essential features when signed in, and to provide statistics to our development team regarding how the site is used. For more information, see our `,
       link({
-        target: '_blank',
+        ...Utils.newTabLinkProps,
         href: Nav.getLink('privacy')
       }, ['privacy policy.'])
     ])
@@ -94,7 +95,7 @@ export default class SignIn extends Component {
             p({ style: { fontWeight: 500 } }, [
               'You are reminded that when accessing TCGA controlled access information you are bound by ',
               'the dbGaP TCGA ',
-              link({ target: '_blank', href: 'http://cancergenome.nih.gov/pdfs/Data_Use_Certv082014' }, [
+              link({ ...Utils.newTabLinkProps, href: 'http://cancergenome.nih.gov/pdfs/Data_Use_Certv082014' }, [
                 'DATA USE CERTIFICATION AGREEMENT (DUCA)'
               ])
             ])

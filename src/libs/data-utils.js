@@ -312,7 +312,7 @@ export const EntityUploader = ajaxCaller(class EntityUploader extends Component 
           link({
             style: { marginLeft: '1rem', verticalAlign: 'middle' },
             href: 'https://software.broadinstitute.org/firecloud/documentation/article?id=10738',
-            target: '_blank'
+            ...Utils.newTabLinkProps
           }, ['Learn more ', icon('pop-out', { size: 12 })])
         ]),
         h(Clickable, {

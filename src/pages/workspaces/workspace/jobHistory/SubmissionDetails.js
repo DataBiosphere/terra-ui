@@ -162,7 +162,7 @@ const SubmissionDetails = _.flow(
         makeSection('Total Run Cost', [cost ? Utils.formatUSD(cost) : 'N/A']),
         makeSection('Data Entity', [div([entityName]), div([entityType])]),
         makeSection('Submission ID', [link(
-          { href: bucketBrowserUrl(`${bucketName}/${submissionId}`), target: '_blank' },
+          { href: bucketBrowserUrl(`${bucketName}/${submissionId}`), ...Utils.newTabLinkProps },
           submissionId
         )]),
         makeSection('Call Caching', [useCallCache ? 'Enabled' : 'Disabled'])
@@ -202,7 +202,7 @@ const SubmissionDetails = _.flow(
             headerRenderer: () => {},
             cellRenderer: ({ rowIndex }) => {
               return link({
-                target: '_blank',
+                ...Utils.newTabLinkProps,
                 href: `${getConfig().jobManagerUrlRoot}/${filteredWorkflows[rowIndex].workflowId}`,
                 style: { flexGrow: 1, textAlign: 'center' }
               }, ['View'])
@@ -246,7 +246,7 @@ const SubmissionDetails = _.flow(
               const { workflowId, inputResolutions: [{ inputName } = {}] } = filteredWorkflows[rowIndex]
               return h(TooltipCell, { tooltip: workflowId }, [
                 inputName ? link({
-                  target: '_blank',
+                  ...Utils.newTabLinkProps,
                   href: inputName && bucketBrowserUrl(`${bucketName}/${submissionId}/${inputName.split('.')[0]}/${workflowId}`)
                 }, [workflowId]) : workflowId
               ])

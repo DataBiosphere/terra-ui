@@ -19,6 +19,7 @@ import colors from 'src/libs/colors'
 import { getConfig, isFirecloud } from 'src/libs/config'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
+import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 
 
@@ -109,7 +110,7 @@ const NIHCommonsButtons = () => buttonPrimary({
   style: { margin: '0.25rem 0' },
   as: 'a',
   href: 'https://gen3.datastage.io/explorer',
-  target: '_blank',
+  ...Utils.newTabLinkProps,
   tooltip: browseTooltip
 }, ['Browse STAGE Repository'])
 
@@ -117,7 +118,7 @@ const thousandGenomes = () => h(Participant, {
   logo: { src: thousandGenomesLogo, alt: '1000 Genomes logo' },
   title: '1000 Genomes',
   description: h(Fragment, [
-    link({ href: 'http://www.internationalgenome.org/about', target: '_blank' }, 'The 1000 Genomes Project'),
+    link({ href: 'http://www.internationalgenome.org/about', ...Utils.newTabLinkProps }, 'The 1000 Genomes Project'),
     ` ran between 2008 and 2015, creating the largest public catalogue of
   human variation and genotype data. The goal of the 1000 Genomes Project was to find most genetic variants
   with frequencies of at least 1% in the populations studied.`
@@ -161,7 +162,7 @@ const amppd = () => h(Participant, {
   buttonPrimary({
     as: 'a',
     href: 'http://amp-pd-data-explorer.appspot.com/',
-    target: '_blank',
+    ...Utils.newTabLinkProps,
     tooltip: browseTooltip
   }, ['Browse Data'])
 ])
@@ -170,7 +171,7 @@ const baseline = () => h(Participant, {
   logo: { src: baselineLogo, alt: `Project Baseline logo`, height: '55%' },
   title: `Baseline Health Study`,
   description: h(Fragment, [
-    link({ href: 'https://www.projectbaseline.com/', target: '_blank' }, 'Baseline Health Study'),
+    link({ href: 'https://www.projectbaseline.com/', ...Utils.newTabLinkProps }, 'Baseline Health Study'),
     ` is a longitudinal study that will collect broad phenotypic health data
     from approximately 10,000 participants, who will each be followed over the
     course of at least four years. The study is part of a broader effort
@@ -181,7 +182,7 @@ const baseline = () => h(Participant, {
   buttonPrimary({
     as: 'a',
     href: 'https://baseline-baseline-explorer.appspot.com/',
-    target: '_blank',
+    ...Utils.newTabLinkProps,
     tooltip: browseTooltip
   }, ['Browse Data'])
 ])
@@ -200,7 +201,7 @@ const encode = () => h(Participant, {
   buttonPrimary({
     as: 'a',
     href: 'https://broad-gdr-encode.appspot.com/',
-    target: '_blank',
+    ...Utils.newTabLinkProps,
     tooltip: browseTooltip
   }, ['Browse Data'])
 ])
@@ -215,7 +216,7 @@ const fcDataLib = () => h(Participant, {
   buttonPrimary({
     as: 'a',
     href: `${getConfig().firecloudUrlRoot}/?return=${isFirecloud() ? `firecloud` : `terra`}#library`,
-    target: '_blank',
+    ...Utils.newTabLinkProps,
     tooltip: 'Search for dataset workspaces'
   }, ['Browse Datasets'])
 ])
@@ -245,7 +246,7 @@ const nemo = () => h(Participant, {
   buttonPrimary({
     as: 'a',
     href: 'http://portal.nemoarchive.org/',
-    target: '_blank',
+    ...Utils.newTabLinkProps,
     tooltip: 'Look for the Export to Terra option in the Download Cart to export data.'
   }, ['Browse Data'])
 ])
@@ -260,7 +261,7 @@ const nhs = () => h(Participant, {
   buttonPrimary({
     as: 'a',
     href: 'http://nhs-explorer.appspot.com/',
-    target: '_blank',
+    ...Utils.newTabLinkProps,
     tooltip: browseTooltip
   }, ['Browse Data'])
 ])
@@ -280,7 +281,7 @@ const ukb = () => h(Participant, {
   logo: { src: ukbLogo, alt: `UK Biobank logo`, height: '50%' },
   title: `UK Biobank`,
   description: h(Fragment, [
-    link({ href: 'https://www.ukbiobank.ac.uk/', target: '_blank' }, 'UK Biobank'),
+    link({ href: 'https://www.ukbiobank.ac.uk/', ...Utils.newTabLinkProps }, 'UK Biobank'),
     ` is a national and international health resource with unparalleled research opportunities.
     UK Biobank aims to improve the prevention, diagnosis and treatment of a wide range of serious and life-threatening
     illnesses. This Data Explorer is only available to specific early-access users at this time.`
@@ -290,7 +291,7 @@ const ukb = () => h(Participant, {
   buttonPrimary({
     as: 'a',
     href: 'https://biobank-explorer.appspot.com/',
-    target: '_blank',
+    ...Utils.newTabLinkProps,
     tooltip: browseTooltip
   }, ['Browse Data'])
 ])

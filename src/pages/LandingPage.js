@@ -11,6 +11,7 @@ import { isFirecloud } from 'src/libs/config'
 import { getAppName } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
+import * as Utils from 'src/libs/utils'
 
 
 const styles = {
@@ -55,7 +56,7 @@ const LandingPage = pure(() => {
       ]),
       isFirecloud() && link({
         href: 'https://broadinstitute.zendesk.com/hc/en-us/articles/360022694271-Side-by-side-comparison-with-Terra',
-        target: 'blank',
+        ...Utils.newTabLinkProps,
         style: { margin: '1rem 0', fontSize: 18, display: 'inline-flex', alignItems: 'center' }
       }, ['Already a FireCloud user? Learn what\'s new in Terra.', icon('pop-out', { size: 18, style: { marginLeft: '0.5rem' } })]),
       div({
