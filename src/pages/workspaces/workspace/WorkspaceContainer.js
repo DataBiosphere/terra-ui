@@ -201,7 +201,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
     const cachedWorkspace = Utils.useAtom(workspaceStore)
     const [loadingWorkspace, setLoadingWorkspace] = useState(false)
     const [clusters, setClusters] = useState(undefined)
-    const [hasBucketAccess, setHasBucketAccess] = useState(true)
+    const [hasBucketAccess, setHasBucketAccess] = useState(false)
     const workspace = cachedWorkspace && _.isEqual({ namespace, name }, _.pick(['namespace', 'name'], cachedWorkspace.workspace)) ? cachedWorkspace : undefined
 
     const refreshClusters = withErrorReporting('Error loading clusters', async () => {

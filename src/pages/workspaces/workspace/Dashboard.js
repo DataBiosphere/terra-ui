@@ -167,7 +167,7 @@ export const WorkspaceDashboard = _.flow(
           authorizationDomain, createdDate, lastModified, bucketName,
           attributes, attributes: { description = '' }
         }
-      }
+      }, hasBucketAccess
     } = this.props
     const { submissionsCount, storageCostEstimate, editDescription, saving, consentStatus } = this.state
     const isEditing = _.isString(editDescription)
@@ -252,7 +252,8 @@ export const WorkspaceDashboard = _.flow(
         div({ style: { margin: '1.5rem 0 0.5rem 0', borderBottom: `1px solid ${colors.gray[3]}` } }),
         link({
           ...Utils.newTabLinkProps,
-          href: bucketBrowserUrl(bucketName),
+          href: hasBucketAccess ? bucketBrowserUrl(bucketName) : undefined,
+          disabled: !hasBucketAccess,
           style: { display: 'block', marginBottom: '3rem' }
         }, ['Google bucket'])
       ])
