@@ -159,7 +159,7 @@ const checkBucketAccess = withErrorReporting('Error checking bucket access', asy
   } catch (error) {
     if (error.status === 403) {
       notify('error', div([
-        'The Google Bucket associated with this workspace is currently unavailable. This should be resolved shortly. If this persists for more than an hour, please write our',
+        'The Google Bucket associated with this workspace is currently unavailable. This should be resolved shortly. If this persists for more than an hour, please ',
         link({
           target: '_blank',
           href: 'https://broadinstitute.zendesk.com/hc/en-us',
@@ -168,16 +168,12 @@ const checkBucketAccess = withErrorReporting('Error checking bucket access', asy
             color: 'white',
             textDecoration: 'underline'
           }
-        }, ' help forum'),
-        icon('pop-out', {
-          size: 12,
-          style: { marginRight: '0.25rem' }
-        }),
-        'for assistance.'
+        }, ['contact us', icon('pop-out', { size: 10, hover: { textDecoration: 'underline' } })]),
+        ' for assistance.'
       ]))
     } else if (error.status === 404) {
       notify('error', div([
-        'The Google Bucket associated with this workspace does not exist. Please write our',
+        'The Google Bucket associated with this workspace does not exist. Please ',
         link({
           target: '_blank',
           href: 'https://broadinstitute.zendesk.com/hc/en-us',
@@ -186,12 +182,8 @@ const checkBucketAccess = withErrorReporting('Error checking bucket access', asy
             color: 'white',
             textDecoration: 'underline'
           }
-        }, ' help forum'),
-        icon('pop-out', {
-          size: 12,
-          style: { marginRight: '0.25rem' }
-        }),
-        'for assistance.'
+        }, ['contact us', icon('pop-out', { size: 10, hover: { textDecoration: 'underline' } })]),
+        ' for assistance.'
       ]))
     } else {
       throw error
@@ -223,10 +215,10 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
       Utils.withBusyState(setLoadingWorkspace)
     )(async () => {
       try {
-        const res = await checkBucketAccess(signal, namespace, name)
-        setHasBucketAccess(res)
         const workspace = await Ajax(signal).Workspaces.workspace(namespace, name).details()
         workspaceStore.set(workspace)
+        const res = await checkBucketAccess(signal, namespace, name)
+        setHasBucketAccess(res)
       } catch (error) {
         if (error.status === 404) {
           setAccessError(true)
