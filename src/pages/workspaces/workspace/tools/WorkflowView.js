@@ -511,7 +511,11 @@ const WorkflowView = _.flow(
     const modifiedInputsOutputs = await Methods.configInputsOutputs(config)
     this.setState(
       { modifiedInputsOutputs: this.sortOptionalInputs(modifiedInputsOutputs), savedSnapRedacted: currentSnapRedacted, currentSnapRedacted: false })
-    this.setState(_.set(['modifiedConfig', 'methodRepoMethod'], config.methodRepoMethod))
+    this.setState(_.update('modifiedConfig', _.flow(
+      _.set('methodRepoMethod', config.methodRepoMethod),
+      _.update('inputs', _.pick(_.map('name', modifiedInputsOutputs.inputs))),
+      _.update('outputs', _.pick(_.map('name', modifiedInputsOutputs.outputs))),
+    )))
     this.fetchInfo(config)
   })
 
