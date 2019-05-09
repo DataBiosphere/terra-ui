@@ -240,6 +240,26 @@ const NewClusterModal = class NewClusterModal extends PureComponent {
         }))
     }
 
+    shouldCreate() {
+        //we short circuit if the current cluster does not exist
+        if (!this.props.currentCluster) {
+            return true
+        }
+
+        const newMachineConfig = this.getMachineConfig()
+        const currMachineConfig = this.props.currentCluster.machineConfig
+
+        const shouldRecreateToAddWorkers = currMachineConfig.numberOfWorkers < 2 && currMachineConfig.numberOfWorkers !== newMachineConfig.numberOfWorkers
+
+        //this assumes the config has changed as this method would not be called otherwise
+        const nonUpdateableFields = ['workerMachineType', 'workerDiskSize', 'numberOfWorkerLocalSSDs']
+        const shouldRecreateDueToUpdateNotSupporting = nonUpdateableFields.map(field => {
+            return currMachineConfig[field] !== newMachineConfig[field]
+        }).some(isUpdated => isUpdated)
+
+        return shouldRecreateDueToUpdateNotSupporting || shouldRecreateToAddWorkers
+    }
+
     render() {
         const { currentCluster, onCancel } = this.props
         const { profile, masterMachineType, masterDiskSize, workerMachineType, numberOfWorkers, numberOfPreemptibleWorkers, workerDiskSize, jupyterUserScriptUri } = this.state
@@ -253,7 +273,7 @@ const NewClusterModal = class NewClusterModal extends PureComponent {
             onDismiss: onCancel,
             okButton: buttonPrimary({
                 disabled: currentCluster ? shouldDisableUpdate : !changed,
-                onClick: () => currentCluster ? this.props.update(this.getMachineConfig()) : this.createCluster()
+                onClick: () => this.shouldCreate() ? this.createCluster() : this.props.update(this.getMachineConfig())
             }, currentCluster ? 'Update' : 'Create')
         }, [
             div({ style: styles.row }, [
@@ -381,10 +401,8 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
     }
 
     refreshClusters = async() => {
-        console.log('polling refresh')
         this.props.refreshClusters().then(() => {
             if (this.state.updatingStatus) {
-                console.log('trigger update status')
                 this.handleUpdate()
             }
             this.resetUpdateInterval()
@@ -394,9 +412,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
     handleUpdate() {
         const { updatingStatus } = this.state
         const currentStatus = this.getCurrentCluster().status
-        console.log('handling update', updatingStatus, currentStatus)
         if (updatingStatus === 'Stopping' && currentStatus === 'Stopped') {
-            console.log('detected it should begin update after stopping')
             this.setState({ updatingStatus: 'Updating' })
             this.updateCluster()
         }
@@ -452,12 +468,10 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
         const { googleProject, clusterName, status } = this.getCurrentCluster() //PR question, are namespace and googleProject the same? any benefit of using one or the other?
 
         const { updatedConfig } = this.state
-        console.log('updated config: ', updatedConfig)
         this.executeAndRefresh(Jupyter.cluster(googleProject, clusterName).update({
             machineConfig: updatedConfig
         })).then(() => {
             if (this.state.updatingStatus === 'Updating' && status === 'Stopped') {
-                console.log('detected it should start after updating')
                 this.setState({ updatingStatus: false })
                 this.startCluster()
             }
@@ -511,7 +525,6 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
             )
         } else {
             this.executeAndRefresh(
-                //TODO: put nav here
                 Jupyter.cluster(googleProject, clusterName).stop().then(
                     () => window.location.reload()
                 )
@@ -651,8 +664,6 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
                 },
                 update: newMachineConfig => {
                     //if the machine config is changing, we must first stop the cluster to update it
-                    console.log('old machine config: ', currentCluster.machineConfig)
-                    console.log('new machine config: ', newMachineConfig)
                     if (newMachineConfig.masterMachineType !== currentCluster.machineConfig.masterMachineType && currentStatus === 'Running') {
                         this.setState({ open: false, busy: true, updatedConfig: newMachineConfig, updatingStatus: 'Stopping' }, () => this.stopCluster(false))
                     } else {
