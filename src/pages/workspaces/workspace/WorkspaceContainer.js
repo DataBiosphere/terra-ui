@@ -7,6 +7,7 @@ import { icon } from 'src/components/icons'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
 import { notify } from 'src/components/Notifications'
 import PopupTrigger from 'src/components/PopupTrigger'
+import { contactUsActive } from 'src/components/SupportRequest'
 import TopBar from 'src/components/TopBar'
 import { Ajax, useCancellation } from 'src/libs/ajax'
 import { getUser } from 'src/libs/auth'
@@ -161,8 +162,7 @@ const checkBucketAccess = withErrorReporting('Error checking bucket access', asy
       notify('error', div([
         'The Google Bucket associated with this workspace is currently unavailable. This should be resolved shortly. If this persists for more than an hour, please ',
         link({
-          target: '_blank',
-          href: 'https://broadinstitute.zendesk.com/hc/en-us',
+          onClick: () => contactUsActive.set(true),
           style: { color: 'white' },
           hover: {
             color: 'white',
@@ -175,8 +175,7 @@ const checkBucketAccess = withErrorReporting('Error checking bucket access', asy
       notify('error', div([
         'The Google Bucket associated with this workspace does not exist. Please ',
         link({
-          target: '_blank',
-          href: 'https://broadinstitute.zendesk.com/hc/en-us',
+          onClick: () => contactUsActive.set(true),
           style: { color: 'white' },
           hover: {
             color: 'white',
