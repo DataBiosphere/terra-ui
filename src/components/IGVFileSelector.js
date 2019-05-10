@@ -3,7 +3,6 @@ import { Component } from 'src/libs/wrapped-components'
 import { div, h } from 'react-hyperscript-helpers'
 import Modal from 'src/components/Modal'
 import { buttonPrimary, LabeledCheckbox, Clickable, linkButton } from 'src/components/common'
-import { TextInput } from 'src/components/input'
 import * as Utils from 'src/libs/utils'
 import { AutoSizer, List } from 'react-virtualized'
 
@@ -28,10 +27,7 @@ const MAX_CONCURRENT_IGV_FILES = 10
 export class IGVFileSelector extends Component {
   constructor(props) {
     super(props)
-    this.state = {
-      selectedFiles: _.fromPairs(_.map(v => [v, false], this.getIGVFileList())),
-      userProject: ''
-    }
+    this.state = { selectedFiles: _.fromPairs(_.map(v => [v, false], this.getIGVFileList())) }
   }
 
   toggleVisibility(name) {
@@ -66,7 +62,7 @@ export class IGVFileSelector extends Component {
 
   render() {
     const { onDismiss, onSuccess } = this.props
-    const { selectedFiles, userProject } = this.state
+    const { selectedFiles } = this.state
     const trackFiles = this.getIGVFileList()
     return h(Modal, {
       onDismiss,
@@ -74,9 +70,7 @@ export class IGVFileSelector extends Component {
       okButton: buttonPrimary({
         disabled: this.buttonIsDisabled(),
         tooltip: this.buttonIsDisabled() ? `Select between 1 and ${MAX_CONCURRENT_IGV_FILES} files` : '',
-        onClick: () => {
-          onSuccess(this.getSelectedFilesList(), userProject)
-        }
+        onClick: () => { onSuccess(this.getSelectedFilesList()) }
       }, ['Done'])
     }, [
       div({ style: { marginBottom: '1rem', display: 'flex' } }, [
@@ -110,15 +104,6 @@ export class IGVFileSelector extends Component {
             }
           })
         }
-      ]),
-      div({ style: { fontWeight: 500 } }, ['Optional: requester pays user project']),
-      div({ style: { marginLeft: '2rem', marginTop: '0.5rem' } }, [
-        div({ style: { display: 'flex' } }, [
-          h(TextInput, {
-            value: userProject,
-            onChange: v => this.setState({ userProject: v })
-          })
-        ])
       ])
     ])
   }
