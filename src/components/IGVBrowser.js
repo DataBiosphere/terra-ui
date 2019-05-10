@@ -14,7 +14,8 @@ const igvStyle = {
   border: `1px solid ${colors.gray[5]}`
 }
 
-export const IGVBrowser = ({ selectedFiles, refGenome, namespace }) => {
+export const IGVBrowser = ({ selectedFiles, refGenome, userProject, namespace }) => {
+  userProject ? console.log(userProject) : console.log('no user project')
   const containerRef = useRef()
   const [loadingIgv, setLoadingIgv] = useState(true)
 
@@ -27,13 +28,17 @@ export const IGVBrowser = ({ selectedFiles, refGenome, namespace }) => {
         'vcf': 'variant'
       }
 
-      return {
+      const j = {
         type: fileTypeToTrack[_.last(filePath.split('.'))],
         name: filePath,
-        url: filePath,
+        url: userProject ? filePath + '?userProject=' + userProject : filePath,
         // igv.js will automatically find the index file, but not for crams
-        indexURL: filePath.endsWith('cram') ? filePath + '.crai' : ''
+        indexURL: userProject ?
+          (filePath.endsWith('cram') ? filePath + '.crai?userProject=' + userProject : ''):
+          filePath.endsWith('cram') ? filePath + '.crai' : ''
       }
+      console.log(j)
+      return j
     }
 
     const options = {
