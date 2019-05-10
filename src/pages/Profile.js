@@ -4,7 +4,7 @@ import { Fragment, useState } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import { buttonPrimary, LabeledCheckbox, link, RadioButton, ShibbolethLink, spinnerOverlay } from 'src/components/common'
 import { centeredSpinner, icon, profilePic, spinner } from 'src/components/icons'
-import { textInput, validatedInput } from 'src/components/input'
+import { TextInput, ValidatedInput } from 'src/components/input'
 import { InfoBox } from 'src/components/PopupTrigger'
 import TopBar from 'src/components/TopBar'
 import { Ajax, ajaxCaller, useCancellation } from 'src/libs/ajax'
@@ -99,7 +99,7 @@ const NihLink = ({ nihToken }) => {
           'Your account was linked, but you are not authorized to view this controlled dataset. Please go ',
           link({
             href: 'https://dbgap.ncbi.nlm.nih.gov/aa/wga.cgi?page=login',
-            target: '_blank'
+            ...Utils.newTabLinkProps
           }, [
             'here',
             icon('pop-out', { size: 12 })
@@ -289,7 +289,7 @@ const Profile = _.flow(
               'To change your profile image, visit your ',
               link({
                 href: `https://myaccount.google.com?authuser=${getUser().email}`,
-                target: '_blank'
+                ...Utils.newTabLinkProps
               }, ['Google account page.'])
             ])
           ]),
@@ -330,17 +330,17 @@ const Profile = _.flow(
     const textField = (key, title, { placeholder, required } = {}) => div({ style: styles.form.container }, [
       div({ style: styles.form.title }, [title]),
       required ?
-        validatedInput({
+        h(ValidatedInput, {
           inputProps: {
             value: profileInfo[key],
-            onChange: e => this.assignValue(key, e.target.value),
+            onChange: v => this.assignValue(key, v),
             placeholder: placeholder || 'Required'
           },
           error: Utils.summarizeErrors(errors && errors[key])
         }) :
-        textInput({
+        h(TextInput, {
           value: profileInfo[key],
-          onChange: e => this.assignValue(key, e.target.value),
+          onChange: v => this.assignValue(key, v),
           placeholder
         })
     ])
@@ -380,7 +380,7 @@ const Profile = _.flow(
           'For more information about proxy groups, see the ',
           link({
             href: 'https://software.broadinstitute.org/firecloud/documentation/article?id=11185',
-            target: '_blank'
+            ...Utils.newTabLinkProps
           }, ['user guide.'])
         ])
       ]),

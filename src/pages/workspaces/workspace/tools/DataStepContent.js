@@ -4,7 +4,7 @@ import { Fragment } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import { buttonPrimary, RadioButton } from 'src/components/common'
 import DataTable from 'src/components/DataTable'
-import { textInput } from 'src/components/input'
+import { TextInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import * as Style from 'src/libs/style'
 import { Component } from 'src/libs/wrapped-components'
@@ -122,10 +122,10 @@ export default class DataStepContent extends Component {
           style: { marginTop: '1rem' }
         }, [
           span(['Selected rows will be saved as a new set named:']),
-          textInput({
+          h(TextInput, {
             style: { width: 500, marginLeft: '0.25rem' },
             value: newSetName,
-            onChange: e => this.setEntitySelectionModel({ newSetName: e.target.value })
+            onChange: v => this.setEntitySelectionModel({ newSetName: v })
           })
         ])
       ])

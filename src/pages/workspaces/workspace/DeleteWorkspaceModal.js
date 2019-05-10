@@ -5,6 +5,7 @@ import Modal from 'src/components/Modal'
 import { ajaxCaller } from 'src/libs/ajax'
 import { bucketBrowserUrl } from 'src/libs/auth'
 import { reportError } from 'src/libs/error'
+import * as Utils from 'src/libs/utils'
 
 
 export default ajaxCaller(class DeleteWorkspaceModal extends Component {
@@ -44,7 +45,7 @@ export default ajaxCaller(class DeleteWorkspaceModal extends Component {
       div({ style: { marginTop: '1rem' } }, [
         'Deleting it will delete the associated ',
         link({
-          target: '_blank',
+          ...Utils.newTabLinkProps,
           href: bucketBrowserUrl(bucketName)
         }, ['Google Cloud Bucket']),
         ' and all its data.'

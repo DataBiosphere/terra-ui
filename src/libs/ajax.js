@@ -1,6 +1,6 @@
-import { useEffect, useRef } from 'react'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
+import { useEffect, useRef } from 'react'
 import { h } from 'react-hyperscript-helpers'
 import { version } from 'src/data/clusters'
 import { getUser } from 'src/libs/auth'
@@ -14,7 +14,7 @@ let noConnection
 const consoleStyle = 'font-weight: bold; color: darkBlue'
 
 window.saturnMock = {
-    currently: function() {
+    currently: () => {
         if (noConnection || mockResponse) {
             if (noConnection) { console.info('%cSimulating no connection', consoleStyle) }
             if (mockResponse) {
@@ -25,17 +25,17 @@ window.saturnMock = {
             console.info('%cNot mocking responses', consoleStyle)
         }
     },
-    malformed: function() {
+    malformed: () => {
         mockResponse = () => new Response('{malformed', { status: 200 })
     },
-    noConnection: function() {
+    noConnection: () => {
         noConnection = true
     },
-    off: function() {
+    off: () => {
         mockResponse = undefined
         noConnection = undefined
     },
-    status: function(code) {
+    status: code => {
         mockResponse = () => new Response(new Blob([`Body of simulated ${code} response`]), { status: code })
     }
 }
@@ -206,7 +206,7 @@ const User = signal => ({
     // 4. Reply externally (ask one of the Comms team with Full Agent access) and make sure you receive an email
     createSupportRequest: async({ name, email, currUrl, subject, type, description, attachmentToken, emailAgreed }) => {
         return fetchOk(
-            `https://broadinstitute.zendesk.com/api/v2/requests.json`,
+            `https://support.terra.bio/api/v2/requests.json`,
             _.merge({ signal, method: 'POST' }, jsonBody({
                 request: {
                     requester: { name, email },
@@ -228,7 +228,7 @@ const User = signal => ({
     },
 
     uploadAttachment: async file => {
-        const res = await fetchOk(`https://broadinstitute.zendesk.com/api/v2/uploads?filename=${file.name}`, {
+        const res = await fetchOk(`https://support.terra.bio/api/v2/uploads?filename=${file.name}`, {
             method: 'POST',
             body: file,
             headers: {
@@ -642,6 +642,30 @@ const Buckets = signal => ({
                 )
             },
 
+            getServiceAlerts: async() => {
+                const res = await fetchOk(`${getConfig().firecloudBucketRoot}/alerts.json`, { signal })
+                return res.json()
+            },
+
+            listNotebooks: async(namespace, name) => {
+                const res = await fetchBuckets(
+                    `storage/v1/b/${name}/o?prefix=notebooks/`,
+                    _.merge(authOpts(await User(signal).token(namespace)), { signal })
+                )
+                const { items } = await res.json()
+                return _.filter(({ name }) => name.endsWith('.ipynb'), items)
+            },
+
+            getObjectPreview: async(bucket, object, namespace, previewFull = false) => {
+                return fetchBuckets(`storage/v1/b/${bucket}/o/${encodeURIComponent(object)}?alt=media`,
+                    _.mergeAll([
+                        authOpts(await User(signal).token(namespace)),
+                        { signal },
+                        previewFull ? {} : { headers: { Range: 'bytes=0-20000' } }
+                    ])
+                )
+            },
+
             listNotebooks: async(namespace, name) => {
                 const res = await fetchBuckets(
                     `storage/v1/b/${name}/o?prefix=notebooks/`,
@@ -834,7 +858,8 @@ const Jupyter = signal => ({
             serverExtensions: {},
             combinedExtensions: {}
           },
-          scopes: ['https://www.googleapis.com/auth/cloud-platform', 'https://www.googleapis.com/auth/userinfo.email', 'https://www.googleapis.com/auth/userinfo.profile']
+          scopes: ['https://www.googleapis.com/auth/cloud-platform', 'https://www.googleapis.com/auth/userinfo.email',
+            'https://www.googleapis.com/auth/userinfo.profile']
         })
         return fetchLeo(`api/cluster/v2/${project}/${name}`, _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'PUT' }, appIdentifier]))
       },

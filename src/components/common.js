@@ -11,6 +11,7 @@ import { getConfig, isFirecloud } from 'src/libs/config'
 import { logo } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
+import * as Utils from 'src/libs/utils'
 
 
 const styles = {
@@ -98,24 +99,6 @@ export const buttonOutline = ({ disabled, ...props }, children) => {
     },
     hover: disabled ? undefined : { backgroundColor: colors.green[6] }
   }, props), children)
-}
-
-export const search = function({ wrapperProps, inputProps }) {
-  return div(
-    _.merge({ style: { padding: '0.5rem 0.2rem', display: 'flex', backgroundColor: 'white', borderRadius: 3 } },
-      wrapperProps),
-    [
-      icon('search', { size: 21 }),
-      input(_.merge({
-        style: {
-          border: 'none', outline: 'none',
-          flexGrow: 1,
-          verticalAlign: 'bottom', marginLeft: '1rem',
-          fontSize: '1rem',
-          backgroundColor: 'transparent'
-        }
-      }, inputProps))
-    ])
 }
 
 export const tabBar = ({ activeTab, tabNames, refresh = _.noop, getHref }, children = []) => {
@@ -307,7 +290,7 @@ export const ShibbolethLink = ({ children, ...props }) => {
     ...props,
     href: `${getConfig().shibbolethUrlRoot}/link-nih-account?${qs.stringify({ 'redirect-url': nihRedirectUrl })}`,
     style: { display: 'inline-flex', alignItems: 'center' },
-    target: '_blank'
+    ...Utils.newTabLinkProps
   }, [
     children,
     icon('pop-out', { size: 12, style: { marginLeft: '0.2rem' } })

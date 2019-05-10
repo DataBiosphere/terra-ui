@@ -8,6 +8,7 @@ import { TextArea } from 'src/components/input'
 import { Ajax } from 'src/libs/ajax'
 import { authStore } from 'src/libs/auth'
 import colors from 'src/libs/colors'
+import { getAppName } from 'src/libs/logos'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 
@@ -119,10 +120,10 @@ export const NpsSurvey = Utils.connectAtom(authStore, 'authState')(class NpsSurv
         }
       },
       !expanded ? [
-        div({ style: styles.questionLabel }, 'How likely are you to recommend Terra to others?'),
+        div({ style: styles.questionLabel }, `How likely are you to recommend ${getAppName()} to others?`),
         div({ style: { display: 'flex', justifyContent: 'space-around', marginBottom: '0.5rem' } }, scoreRadios)
       ] : [
-        div({ style: styles.questionLabel }, 'How likely are you to recommend Terra to others?'),
+        div({ style: styles.questionLabel }, `How likely are you to recommend ${getAppName()} to others?`),
         div({ style: { display: 'flex', justifyContent: 'space-around', marginBottom: '0.5rem' } }, scoreRadios),
         span({ style: styles.questionLabel }, 'What was the reason for this score? '), span({ style: { ...styles.questionLabel, color: colors.gray[3] } }, '(Optional)'),
         h(TextArea, { style: styles.questionInput, value: reasonComment, onChange: v => this.setState({ reasonComment: v }) }),

@@ -6,21 +6,22 @@ import { buttonPrimary, Clickable, LabeledCheckbox, spinnerOverlay } from 'src/c
 import { icon } from 'src/components/icons'
 import { ajaxCaller } from 'src/libs/ajax'
 import { reportError } from 'src/libs/error'
+import { getAppName } from 'src/libs/logos'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 import Modal from 'src/components/Modal'
 import FreeTrialEulas from 'src/components/FreeTrialEulas'
 
 
-const messages =
-  {
+const getMessages = () => {
+  return {
     'Enabled': {
-      'title': 'Welcome to Terra!',
+      'title': `Welcome to ${getAppName()}!`,
       'message': 'You have free compute and storage credits available to upload your data and launch analyses.',
       'isWarning': false,
       'enabledLink': {
         'label': 'Learn more',
-        'url': 'https://broadinstitute.zendesk.com/hc/en-us/articles/360022704371-Getting-started-with-Terra#free-credits-signup'
+        'url': 'https://support.terra.bio/hc/en-us/articles/360022704371-Getting-started-with-Terra#free-credits-signup'
       },
       'button': {
         'label': 'Start trial',
@@ -29,11 +30,11 @@ const messages =
     },
     'Enrolled': {
       'title': 'Access Free Credits',
-      'message': 'You currently have access to your free credits. Learn how to use Terra, about this free credit period, and transitioning to your own billing account once the free credits have expired.',
+      'message': `You currently have access to your free credits. Learn how to use ${getAppName()}, about this free credit period, and transitioning to your own billing account once the free credits have expired.`,
       'isWarning': false,
       'button': {
         'label': 'Learn More',
-        'url': 'https://broadinstitute.zendesk.com/hc/en-us/articles/360022704371-Getting-started-with-Terra#free-credits-signup',
+        'url': 'https://support.terra.bio/hc/en-us/articles/360022704371-Getting-started-with-Terra#free-credits-signup',
         'isExternal': true
       }
     },
@@ -43,11 +44,12 @@ const messages =
       'isWarning': true,
       'button': {
         'label': 'Learn more',
-        'url': 'https://broadinstitute.zendesk.com/hc/en-us/articles/360026182251-Billing-Projects-Google-Billing-Accounts-and-Free-Credits#free-credits',
+        'url': 'https://support.terra.bio/hc/en-us/articles/360026182251-Billing-Projects-Google-Billing-Accounts-and-Free-Credits#free-credits',
         'isExternal': true
       }
     }
   }
+}
 
 export const FreeCreditsModal= ajaxCaller(class FreeCreditsModal extends Component {
   constructor(props) {
@@ -109,7 +111,7 @@ export const FreeCreditsModal= ajaxCaller(class FreeCreditsModal extends Compone
                   textDecoration: 'underline',
                   marginLeft: '0.25rem'
                 },
-                target: '_blank',
+                ...Utils.newTabLinkProps,
                 href: 'https://cloud.google.com/terms/'
               }, ['https://cloud.google.com/terms/', icon('pop-out', { style: { marginLeft: '0.25rem' } })])
             ])
@@ -154,7 +156,7 @@ export const TrialBanner = _.flow(
     const { trialState } = profile
     const removeBanner = localStorage.getItem('removeBanner')
     if (!trialState || !isSignedIn || !acceptedTos || trialState === 'Finalized' || removeBanner === 'true') return null
-    const { [trialState]: { title, message, enabledLink, button, isWarning } } = messages
+    const { [trialState]: { title, message, enabledLink, button, isWarning } } = getMessages()
     return div([
       div({
         style: {
@@ -176,7 +178,7 @@ export const TrialBanner = _.flow(
             message,
             enabledLink && a({
               style: { textDecoration: 'underline', marginLeft: '0.5rem' },
-              target: '_blank',
+              ...Utils.newTabLinkProps,
               href: enabledLink.url
             }, [enabledLink.label, icon('pop-out', { style: { marginLeft: '0.25rem' } })])
           ]),

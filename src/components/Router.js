@@ -7,19 +7,24 @@ import { link } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { notify } from 'src/components/Notifications'
 import TopBar from 'src/components/TopBar'
+import { getAppName } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
+import * as Utils from 'src/libs/utils'
+import * as Projects from 'src/pages/billing/List'
+import * as Group from 'src/pages/groups/Group'
+import * as Groups from 'src/pages/groups/List'
+import * as ImportData from 'src/pages/ImportData'
+import * as ImportTool from 'src/pages/ImportTool'
+import * as LandingPage from 'src/pages/LandingPage'
 import * as Code from 'src/pages/library/Code'
 import * as DataExplorer from 'src/pages/library/DataExplorer'
 import * as Datasets from 'src/pages/library/Datasets'
-import * as Group from 'src/pages/groups/Group'
-import * as Groups from 'src/pages/groups/List'
-import * as LandingPage from 'src/pages/LandingPage'
-import * as ImportData from 'src/pages/ImportData'
-import * as ImportTool from 'src/pages/ImportTool'
 import * as Showcase from 'src/pages/library/Showcase'
 import * as PrivacyPolicy from 'src/pages/PrivacyPolicy'
 import * as Profile from 'src/pages/Profile'
 import * as StyleGuide from 'src/pages/StyleGuide'
+import * as TermsOfService from 'src/pages/TermsOfService'
+import * as TestLogin from 'src/pages/TestLogin'
 import * as WorkspaceList from 'src/pages/workspaces/List'
 import * as Dashboard from 'src/pages/workspaces/workspace/Dashboard'
 import * as Data from 'src/pages/workspaces/workspace/Data'
@@ -28,10 +33,8 @@ import * as SubmissionDetails from 'src/pages/workspaces/workspace/jobHistory/Su
 import * as Notebooks from 'src/pages/workspaces/workspace/Notebooks'
 import * as NotebookLauncher from 'src/pages/workspaces/workspace/notebooks/NotebookLauncher'
 import * as TerminalLauncher from 'src/pages/workspaces/workspace/notebooks/TerminalLauncher'
-import * as TermsOfService from 'src/pages/TermsOfService'
 import * as Tools from 'src/pages/workspaces/workspace/Tools'
 import * as WorkflowView from 'src/pages/workspaces/workspace/tools/WorkflowView'
-import * as Projects from 'src/pages/billing/List'
 
 
 const pageWrapStyle = { display: 'flex', flexDirection: 'column', flex: '1 0 auto', position: 'relative' }
@@ -39,6 +42,7 @@ const pageWrapStyle = { display: 'flex', flexDirection: 'column', flex: '1 0 aut
 const initNavPaths = () => {
   Nav.clearPaths()
   _.forEach(Nav.defPath, _.flatten([
+    TestLogin.navPaths,
     LandingPage.navPaths,
     WorkspaceList.navPaths,
     WorkflowView.navPaths,
@@ -83,8 +87,8 @@ export default class Router extends Component {
       notify('welcome', div({ style: { fontSize: 14 } }, [
         div(['Welcome to the new FireCloud interface, powered by Terra. All of your workspaces are available. ',
           link({
-            target: '_blank',
-            href: 'https://broadinstitute.zendesk.com/hc/en-us/sections/360003528231-FireCloud-users-Find-out-what-s-new-in-Terra',
+            ...Utils.newTabLinkProps,
+            href: 'https://support.terra.bio/hc/en-us/sections/360004482892-Terra-for-FireCloud-Users',
             variant: 'light'
           },
           'Learn what\'s new and different.'
@@ -94,7 +98,8 @@ export default class Router extends Component {
         div({ style: { marginTop: '1rem' } }, ['Please update your bookmarks to our new URL, firecloud.terra.bio. ' +
         'Welcome to the future of FireCloud!'])
       ]))
-      Nav.history.replace({ search: qs.stringify(_.omit(['fcredir'], qs.parse(Nav.history.location.search, { ignoreQueryPrefix: true, plainObjects: true }))) })
+      Nav.history.replace(
+        { search: qs.stringify(_.omit(['fcredir'], qs.parse(Nav.history.location.search, { ignoreQueryPrefix: true, plainObjects: true }))) })
     }
   }
 
@@ -116,7 +121,7 @@ export default class Router extends Component {
         document.title = handler.title
       }
     } else {
-      document.title = 'Terra'
+      document.title = getAppName()
     }
   }
 

@@ -1,35 +1,50 @@
-import { div, h, img, span } from 'react-hyperscript-helpers'
+import { div, h, span } from 'react-hyperscript-helpers'
 import { pure } from 'recompose'
-import { linkButton } from 'src/components/common'
+import { Clickable, link } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
+import { icon } from 'src/components/icons'
 import TopBar from 'src/components/TopBar'
-import hexBackgroundPattern from 'src/images/hex-background-pattern.svg'
 import hexButton from 'src/images/hex-button.svg'
-import landingPageHero from 'src/images/landing-page-hero.png'
-import textFrame from 'src/images/text-frame.svg'
+import landingPageHero from 'src/images/landing-page-hero.jpg'
 import colors from 'src/libs/colors'
+import { isFirecloud } from 'src/libs/config'
+import { getAppName } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
+import * as Style from 'src/libs/style'
+import * as Utils from 'src/libs/utils'
 
 
-const hexLink = (description, label, href) => div({
-  style: {
-    height: 146, display: 'flex', alignItems: 'center',
-    backgroundImage: `url(${textFrame})`, backgroundRepeat: 'no-repeat', backgroundSize: 'contain'
-  }
+const styles = {
+  heavy: { fontWeight: 600 }
+}
+
+const makeDocLink = (href, title) => link({
+  href,
+  ...Utils.newTabLinkProps,
+  style: { marginBottom: '1rem', fontSize: 18, display: 'inline-flex', alignItems: 'center' }
 }, [
-  div({ style: { paddingLeft: '1.5rem', whiteSpace: 'pre' } }, description),
-  linkButton({
-    href,
-    style: {
-      display: 'flex', alignItems: 'center',
-      height: 120, width: 100, marginLeft: '1rem',
-      backgroundImage: `url(${hexButton})`, backgroundRepeat: 'no-repeat', backgroundSize: 'contain'
-    }
-  }, [
-    div({ style: { whiteSpace: 'pre', color: 'white', marginLeft: '1rem', marginTop: -7, fontSize: 15 } }, label)
-  ])
+  title,
+  icon('pop-out', { size: 18, style: { marginLeft: '0.5rem' } })
 ])
 
+
+const makeCard = (link, title, body) => h(Clickable, {
+  as: 'a',
+  href: Nav.getLink(link),
+  style: { ...Style.elements.card.container, height: 245, width: 225, marginRight: '1rem', justifyContent: undefined },
+  hover: { boxShadow: '0 3px 7px 0 rgba(0,0,0,0.5), 0 5px 3px 0 rgba(0,0,0,0.2)' }
+}, [
+  div({ style: { color: colors.green[0], fontSize: 18, fontWeight: 500, lineHeight: '22px', marginBottom: '0.5rem' } }, title),
+  div({ style: { lineHeight: '22px' } }, body),
+  div({ style: { flexGrow: 1 } }),
+  div({
+    style: {
+      height: 31, width: 27,
+      display: 'flex', alignItems: 'center', alignSelf: 'flex-end', justifyContent: 'center',
+      backgroundImage: `url(${hexButton})`, backgroundRepeat: 'no-repeat', backgroundSize: 'contain', backgroundPosition: 'center'
+    }
+  }, [icon('arrowRight', { style: { color: 'white' } })])
+])
 
 const LandingPage = pure(() => {
   return h(FooterWrapper, [
@@ -39,26 +54,29 @@ const LandingPage = pure(() => {
         flexGrow: 1,
         color: colors.gray[0],
         padding: '3rem 5rem',
-        backgroundImage: `url(${hexBackgroundPattern})`,
-        backgroundRepeat: 'no-repeat', backgroundSize: '750px', backgroundPosition: 'right -75px top -110px'
+        backgroundImage: `url(${landingPageHero})`,
+        backgroundRepeat: 'no-repeat', backgroundSize: '750px', backgroundPosition: 'right 0 top 0'
       }
     }, [
-      img({ src: landingPageHero, style: { position: 'absolute', right: 0, top: 60 } }),
-      div({ style: { whiteSpace: 'pre-line' } }, [
-        div({ style: { fontSize: 45, color: '#359448' } }, 'Welcome to Terra.\n'),
-        div({ style: { fontSize: 24, marginBottom: '2rem' } }, [
-          'Terra is a cloud-native platform for\n',
-          'biomedical researchers to access ', span({ style: { fontWeight: 'bold' } }, 'data,\n'),
-          'run analysis ', span({ style: { fontWeight: 'bold' } }, 'tools, '), 'and', span({ style: { fontWeight: 'bold' } }, ' collaborate.')
-        ])
+      div({ style: { fontSize: 54, color: colors.green[0] } }, `Welcome to ${getAppName()}`),
+      div({ style: { fontSize: 20, color: colors.gray[0], margin: '1rem 0' } }, [
+        div(`${getAppName()} is a cloud-native platform for biomedical`),
+        div(['researchers to access ', span({ style: styles.heavy }, 'data'), ', run analysis ', span({ style: styles.heavy }, 'tools'), ',']),
+        div(['and', span({ style: styles.heavy }, ' collaborate'), '.'])
       ]),
-      hexLink('Access data from a rich ecosystem\nof Terra-connected data portals', 'Browse\nData', Nav.getLink('library-datasets')),
-      div({ style: { margin: '-0.5rem 0 -0.5rem 3rem' } }, [
-        hexLink('Find ready-for-use bioinformatics workflows,\nor search workflow repositories', 'Explore\nTools', Nav.getLink('library-code'))
-      ]),
-      hexLink(
-        'Terra Workspaces connect your data to\npopular analysis tools powered by the\ncloud. Use Workspaces to share data,\ncode, and results easily and securely',
-        'Analyze\n& Publish', Nav.getLink('workspaces'))
+      div([makeDocLink('https://support.terra.bio/hc/en-us', 'Find how-to\'s, documentation, video tutorials, and discussion forums')]),
+      isFirecloud() && makeDocLink('https://support.terra.bio/hc/en-us/articles/360022694271-Side-by-side-comparison-with-Terra',
+        'Already a FireCloud user? Learn what\'s new in Terra.'),
+      div({
+        style: { display: 'flex', margin: '1rem 0' }
+      }, [
+        makeCard('workspaces', 'View Workspaces', [
+          `${getAppName()} Workspaces connect your data to popular analysis tools powered by the cloud. `,
+          'Use Workspaces to share data, code, and results easily and securely.'
+        ]),
+        makeCard('library-showcase', 'View Examples', `Browse our gallery of showcase Workspaces to see how science gets done on ${getAppName()}.`),
+        makeCard('library-datasets', 'Browse Data', `Access data from a rich ecosystem of ${getAppName()}-connected data portals.`)
+      ])
     ])
   ])
 })

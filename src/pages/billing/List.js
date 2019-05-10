@@ -5,7 +5,7 @@ import { a, div, h, span } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
 import { buttonPrimary, buttonSecondary, Select, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
-import { validatedInput } from 'src/components/input'
+import { ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import TopBar from 'src/components/TopBar'
 import { ajaxCaller } from 'src/libs/ajax'
@@ -115,17 +115,17 @@ const NewBillingProjectModal = ajaxCaller(class NewBillingProjectModal extends C
         `You don't have access to any billing accounts.  `,
         a({
           style: { color: colors.blue[0], fontWeight: 700 },
-          href: `https://broadinstitute.zendesk.com/hc/en-us/articles/360026182251-Billing-Projects-Google-Billing-Accounts-and-Free-Credits`,
-          target: '_blank'
+          href: `https://support.terra.bio/hc/en-us/articles/360026182251-Billing-Projects-Google-Billing-Accounts-and-Free-Credits`,
+          ...Utils.newTabLinkProps
         }, ['Learn how to create a billing account.', icon('pop-out', { size: 20, style: { marginLeft: '0.5rem' } })])
       ]),
       billingAccounts && billingAccounts.length !== 0 && h(Fragment, [
         h(RequiredFormLabel, ['Enter name']),
-        validatedInput({
+        h(ValidatedInput, {
           inputProps: {
             autoFocus: true,
             value: billingProjectName,
-            onChange: e => this.setState({ billingProjectName: e.target.value, billingProjectNameTouched: true })
+            onChange: v => this.setState({ billingProjectName: v, billingProjectNameTouched: true })
           },
           error: billingProjectNameTouched && Utils.summarizeErrors(errors && errors.billingProjectName)
         }),
@@ -147,12 +147,12 @@ const NewBillingProjectModal = ajaxCaller(class NewBillingProjectModal extends C
         ]),
         !!chosenBillingAccount && !chosenBillingAccount.firecloudHasAccess && div({ style: { fontWeight: 500, fontSize: 12 } }, [
           div({ style: { color: colors.red[0], margin: '0.25rem 0 0.25rem 0', fontSize: 13 } }, [
-            'Terra does not have access to this account. To grant access, add ', span({ style: { fontWeight: 'bold' } }, 'billing@firecloud.org'),
+            'Terra does not have access to this account. To grant access, add ', span({ style: { fontWeight: 'bold' } }, 'terra-billing@terra.bio'),
             ' as a Billing Account User on the ',
             a({
               style: { color: colors.blue[0], fontWeight: 700 },
               href: `https://console.cloud.google.com/billing/${chosenBillingAccount.accountName.split('/')[1]}?authuser=${Auth.getUser().email}`,
-              target: '_blank'
+              ...Utils.newTabLinkProps
             }, ['Google Cloud Console ', icon('pop-out', { size: 12 })])
           ]),
           // The following lines will be re-added soon:
@@ -171,8 +171,8 @@ const NewBillingProjectModal = ajaxCaller(class NewBillingProjectModal extends C
             'Need help? ',
             a({
               style: { color: colors.blue[0], fontWeight: 700 },
-              href: `https://broadinstitute.zendesk.com/hc/en-us/articles/360026182251-Billing-Projects-Google-Billing-Accounts-and-Free-Credits`,
-              target: '_blank'
+              href: `https://support.terra.bio/hc/en-us/articles/360026182251-Billing-Projects-Google-Billing-Accounts-and-Free-Credits`,
+              ...Utils.newTabLinkProps
             }, ['Click here ', icon('pop-out', { size: 12 })]), ' for more information.'
           ])
         ])
