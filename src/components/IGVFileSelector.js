@@ -101,7 +101,7 @@ export class IGVFileSelector extends Component {
                   style: styles.columnName,
                   title: name,
                   onClick: () => this.toggleVisibility(name)
-                }, [name])
+                }, [_.last(name.split('/'))])
               ])
             }
           })
