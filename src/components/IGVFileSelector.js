@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import { Component } from 'src/libs/wrapped-components'
 import { div, h } from 'react-hyperscript-helpers'
 import Modal from 'src/components/Modal'
-import { buttonPrimary, LabeledCheckbox, Clickable, linkButton } from 'src/components/common'
+import { buttonPrimary, LabeledCheckbox, Clickable, linkButton, Select } from 'src/components/common'
 import * as Utils from 'src/libs/utils'
 import { AutoSizer, List } from 'react-virtualized'
 
@@ -27,7 +27,10 @@ const MAX_CONCURRENT_IGV_FILES = 10
 export class IGVFileSelector extends Component {
   constructor(props) {
     super(props)
-    this.state = { selectedFiles: _.fromPairs(_.map(v => [v, false], this.getIGVFileList())) }
+    this.state = {
+      selectedFiles: _.fromPairs(_.map(v => [v, false], this.getIGVFileList())),
+      refGenome: 'hg19'
+    }
   }
 
   toggleVisibility(name) {
@@ -62,7 +65,7 @@ export class IGVFileSelector extends Component {
 
   render() {
     const { onDismiss, onSuccess } = this.props
-    const { selectedFiles } = this.state
+    const { selectedFiles, refGenome } = this.state
     const trackFiles = this.getIGVFileList()
     return h(Modal, {
       onDismiss,
@@ -70,7 +73,7 @@ export class IGVFileSelector extends Component {
       okButton: buttonPrimary({
         disabled: this.buttonIsDisabled(),
         tooltip: this.buttonIsDisabled() ? `Select between 1 and ${MAX_CONCURRENT_IGV_FILES} files` : '',
-        onClick: () => { onSuccess(this.getSelectedFilesList()) }
+        onClick: () => { onSuccess(this.getSelectedFilesList(), refGenome) }
       }, ['Done'])
     }, [
       div({ style: { marginBottom: '1rem', display: 'flex' } }, [
@@ -104,7 +107,14 @@ export class IGVFileSelector extends Component {
             }
           })
         }
-      ])
+      ]),
+      div({ style: { fontWeight: 500 } }, ['Reference genome']),
+      h(Select, {
+        options: ['hg38', 'hg19', 'hg18', 'mm10', 'panTro4', 'panPan2', 'susScr11',
+          'bosTau8', 'canFam3', 'rn6', 'danRer10', 'dm6', 'sacCer3'],
+        value: refGenome,
+        onChange: ({ value }) => this.setState({ refGenome: value })
+      })
     ])
   }
 }

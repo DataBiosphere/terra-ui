@@ -27,15 +27,13 @@ export const IGVBrowser = ({ selectedFiles, refGenome, namespace }) => {
         'vcf': 'variant'
       }
 
-      const j = {
+      return {
         type: fileTypeToTrack[_.last(filePath.split('.'))],
         name: filePath,
         url: filePath + '?userProject=' + namespace,
         // igv.js will automatically find the index file, but not for crams
         indexURL: filePath.endsWith('cram') ? filePath + '.crai?userProject=' + namespace : ''
       }
-      console.log(j)
-      return j
     }
 
     const options = {
