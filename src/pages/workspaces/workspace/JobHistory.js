@@ -236,7 +236,7 @@ const JobHistory = _.flow(
                         configName: methodConfigurationName,
                         onDone: () => this.refresh()
                       })
-                    }, ['Re-run failures'])
+                    }, ['Re-launch failures'])
                   ])
                 }
               },
