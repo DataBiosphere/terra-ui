@@ -430,20 +430,18 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
         this.executeAndRefresh(
             Jupyter.cluster(googleProject, clusterName).update({
                 machineConfig: updatedConfig
-            })
-        ).then(() => {
-            if (this.state.updatingStatus === 'Updating' && status === 'Stopped') {
-                this.setState({ updatingStatus: false, updatedConfig: {} })
-            } else {
-                console.log('detected a non-dynamic update')
-                this.setState({ updatedConfig: {} })
-            }
-
-            notify('info', 'Resources changed', {
-                message: 'Your cluster has been updated with the new resources you requested!',
-                timeout: 30000
-            })
-        })
+            }).then(() => {
+                if (this.state.updatingStatus === 'Updating' && status === 'Stopped') {
+                    this.setState({ updatingStatus: false, updatedConfig: {} })
+                } else {
+                    console.log('detected a non-dynamic update')
+                    this.setState({ updatedConfig: {} })
+                }
+                notify('info', 'Resources changed', {
+                    message: 'Your cluster update request has completed successfully!',
+                    timeout: 30000
+                })
+            }))
     }
 
 
