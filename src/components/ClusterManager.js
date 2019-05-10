@@ -432,11 +432,8 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
                 machineConfig: updatedConfig
             })
         ).then(() => {
-            console.log('in then after update')
             if (this.state.updatingStatus === 'Updating' && status === 'Stopped') {
-                console.log('updated')
                 this.setState({ updatingStatus: false, updatedConfig: {} })
-                this.startCluster()
             } else {
                 console.log('detected a non-dynamic update')
                 this.setState({ updatedConfig: {} })
@@ -590,7 +587,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
                 case 'Running':
                     return h(ClusterIcon, {
                         shape: 'pause',
-                        onClick: () => this.stopCluster(),
+                        onClick: () => this.stopCluster(true),
                         disabled: busy || !canCompute,
                         tooltip: canCompute ? 'Stop cluster' : noCompute
                     })
