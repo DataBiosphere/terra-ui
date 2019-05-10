@@ -18,6 +18,16 @@ const styles = {
   heavy: { fontWeight: 600 }
 }
 
+const makeDocLink = (href, title) => link({
+  href,
+  ...Utils.newTabLinkProps,
+  style: { marginBottom: '1rem', fontSize: 18, display: 'inline-flex', alignItems: 'center' }
+}, [
+  title,
+  icon('pop-out', { size: 18, style: { marginLeft: '0.5rem' } })
+])
+
+
 const makeCard = (link, title, body) => h(Clickable, {
   as: 'a',
   href: Nav.getLink(link),
@@ -49,16 +59,14 @@ const LandingPage = pure(() => {
       }
     }, [
       div({ style: { fontSize: 54, color: colors.green[0] } }, `Welcome to ${getAppName()}`),
-      div({ style: { fontSize: 20, color: colors.gray[0], marginTop: '1rem' } }, [
+      div({ style: { fontSize: 20, color: colors.gray[0], margin: '1rem 0' } }, [
         div(`${getAppName()} is a cloud-native platform for biomedical`),
         div(['researchers to access ', span({ style: styles.heavy }, 'data'), ', run analysis ', span({ style: styles.heavy }, 'tools'), ',']),
         div(['and', span({ style: styles.heavy }, ' collaborate'), '.'])
       ]),
-      isFirecloud() && link({
-        href: 'https://broadinstitute.zendesk.com/hc/en-us/articles/360022694271-Side-by-side-comparison-with-Terra',
-        ...Utils.newTabLinkProps,
-        style: { margin: '1rem 0', fontSize: 18, display: 'inline-flex', alignItems: 'center' }
-      }, ['Already a FireCloud user? Learn what\'s new in Terra.', icon('pop-out', { size: 18, style: { marginLeft: '0.5rem' } })]),
+      div([makeDocLink('https://support.terra.bio/hc/en-us', 'Find how-to\'s, documentation, video tutorials, and discussion forums')]),
+      isFirecloud() && makeDocLink('https://support.terra.bio/hc/en-us/articles/360022694271-Side-by-side-comparison-with-Terra',
+        'Already a FireCloud user? Learn what\'s new in Terra.'),
       div({
         style: { display: 'flex', margin: '1rem 0' }
       }, [

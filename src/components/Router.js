@@ -88,7 +88,7 @@ export default class Router extends Component {
         div(['Welcome to the new FireCloud interface, powered by Terra. All of your workspaces are available. ',
           link({
             ...Utils.newTabLinkProps,
-            href: 'https://broadinstitute.zendesk.com/hc/en-us/sections/360003528231-FireCloud-users-Find-out-what-s-new-in-Terra',
+            href: 'https://support.terra.bio/hc/en-us/sections/360004482892-Terra-for-FireCloud-Users',
             variant: 'light'
           },
           'Learn what\'s new and different.'

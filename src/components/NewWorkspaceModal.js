@@ -15,8 +15,8 @@ import * as Utils from 'src/libs/utils'
 import validate from 'validate.js'
 
 
-const authDoc = 'https://broadinstitute.zendesk.com/hc/en-us/articles/360026775691-Managing-Data-Privacy-and-Access-with-Authorization-Domains'
-const billingDoc = 'https://broadinstitute.zendesk.com/hc/en-us/articles/360026182251-Billing-Projects-Google-Billing-Accounts-and-Free-Credits'
+const authDoc = 'https://support.terra.bio/hc/en-us/articles/360026775691-Managing-Data-Privacy-and-Access-with-Authorization-Domains'
+const billingDoc = 'https://support.terra.bio/hc/en-us/articles/360026182251-Billing-Projects-Google-Billing-Accounts-and-Free-Credits'
 const billingMail = 'terra-support@broadinstitute.zendesk.org'
 
 const constraints = {

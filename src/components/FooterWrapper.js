@@ -33,7 +33,7 @@ const FooterWrapper = ({ children }) => {
       a({ href: Nav.getLink('terms-of-service'), style: styles.item }, 'Terms of Service'),
       div({ style: styles.item }, '|'),
       a({
-        href: 'https://broadinstitute.zendesk.com/hc/en-us', target: '_blank',
+        href: 'https://support.terra.bio/hc/en-us', target: '_blank',
         style: { ...styles.item, display: 'flex', alignItems: 'center' }
       }, [
         'Documentation', icon('pop-out', { size: 12, style: { marginLeft: '0.5rem' } })
