@@ -249,7 +249,8 @@ const NewClusterModal = class NewClusterModal extends PureComponent {
         const newMachineConfig = this.getMachineConfig()
         const currMachineConfig = this.props.currentCluster.machineConfig
 
-        const shouldRecreateToAddWorkers = currMachineConfig.numberOfWorkers < 2 && currMachineConfig.numberOfWorkers !== newMachineConfig.numberOfWorkers
+        const shouldRecreateToAddWorkers = currMachineConfig.numberOfWorkers < 2 &&
+            currMachineConfig.numberOfWorkers !== newMachineConfig.numberOfWorkers
 
         //this assumes the config has changed as this method would not be called otherwise
         const nonUpdateableFields = ['workerMachineType', 'workerDiskSize', 'numberOfWorkerLocalSSDs']
@@ -396,7 +397,8 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
             busy: false,
             deleting: false,
             updatingStatus: false,
-            configToUpdate: {}
+            configToUpdate: {},
+            confirmUpdate: false
         }
     }
 
@@ -414,6 +416,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
         const currentStatus = this.getCurrentCluster().status
         if (updatingStatus === 'Stopping' && currentStatus === 'Stopped') {
             this.setState({ updatingStatus: 'Updating' })
+            alert('performing update from stop/start')
             this.updateCluster()
         }
     }
@@ -457,25 +460,30 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
     async executeAndRefreshWithNav(promise) {
         const { namespace, name } = this.props
 
-        this.executeAndRefresh(promise)
+        await this.executeAndRefresh(promise)
         if (/notebooks\/.+/.test(window.location.hash)) {
             Nav.goToPath('workspace-notebooks', { namespace, name })
         }
     }
 
     updateCluster() {
+        alert('calling update')
         const { ajax: { Jupyter } } = this.props
-        const { googleProject, clusterName, status } = this.getCurrentCluster() //PR question, are namespace and googleProject the same? any benefit of using one or the other?
+        const { googleProject, clusterName, status } = this.getCurrentCluster()
 
         const { updatedConfig } = this.state
         this.executeAndRefresh(Jupyter.cluster(googleProject, clusterName).update({
             machineConfig: updatedConfig
         })).then(() => {
             if (this.state.updatingStatus === 'Updating' && status === 'Stopped') {
+                alert('updated')
                 this.setState({ updatingStatus: false })
-                this.startCluster()
+                this.startCluster().then(() => {
+                    this.setState({ updatedConfig: {}, dynamicUpdateOccurred: true })
+                })
+            } else {
+                this.setState({ updatedConfig: {}, dynamicUpdateOccurred: true })
             }
-            this.setState({ updatedConfig: {} })
         })
     }
 
@@ -646,6 +654,17 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
                     icon('cog', { size: 22, className: 'is-solid', style: { color: isDisabled ? colors.gray[2] : colors.green[0] } })
                 ])
             ]),
+            this.state.dynamicUpdateOccurred && h(Modal, {
+                title: 'Your runtime has been updated!',
+                showCancel: false,
+                onDismiss: () => this.setState({ dynamicUpdateOccurred: false }),
+                okButton: () => this.setState({ dynamicUpdateOccurred: false })
+            }),
+            this.state.shouldConfirmUpdate && h(Modal, {
+                title: 'This update will cause a stop of your runtime before automatically restarting. Would you like to proceed?',
+                okButton: () => this.setState({ shouldConfirmUpdate: false, updatingStatus: 'Stopping' }, () => this.stopCluster(false)),
+                onDismiss: () => this.setState({ shouldConfirmUpdate: false, updatedConfig: {}, busy: false })
+            }),
             deleting && h(Modal, {
                 title: 'Delete notebook runtime?',
                 onDismiss: () => this.setState({ deleting: false }),
@@ -665,9 +684,9 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
                 update: newMachineConfig => {
                     //if the machine config is changing, we must first stop the cluster to update it
                     if (newMachineConfig.masterMachineType !== currentCluster.machineConfig.masterMachineType && currentStatus === 'Running') {
-                        this.setState({ open: false, busy: true, updatedConfig: newMachineConfig, updatingStatus: 'Stopping' }, () => this.stopCluster(false))
+                        this.setState({ open: false, busy: true, updatedConfig: newMachineConfig, shouldConfirmUpdate: true })
                     } else {
-                        this.setState({ open: false, updatedConfig: newMachineConfig }, this.updateCluster)
+                        this.setState({ open: false, busy: true, updatedConfig: newMachineConfig }, this.updateCluster)
                     }
                 }
             })
