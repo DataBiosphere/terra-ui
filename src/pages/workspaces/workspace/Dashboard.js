@@ -4,7 +4,7 @@ import { div, h, span } from 'react-hyperscript-helpers'
 import SimpleMDE from 'react-simplemde-editor'
 import 'easymde/dist/easymde.min.css'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { buttonPrimary, buttonSecondary, link, linkButton, Select, spinnerOverlay } from 'src/components/common'
+import { buttonPrimary, buttonSecondary, link, linkButton, spinnerOverlay } from 'src/components/common'
 import { icon, spinner } from 'src/components/icons'
 import { Markdown } from 'src/components/Markdown'
 import { SimpleTable } from 'src/components/table'
@@ -19,6 +19,7 @@ import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
+import CreatableSelect from 'react-select/lib/Creatable'
 
 
 const styles = {
@@ -44,11 +45,6 @@ const styles = {
     padding: '0.5rem 0.25rem', marginBottom: '0.25rem',
     backgroundColor: colors.grayBlue[3],
     whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'
-  },
-  tag: {
-    padding: '0.25rem', margin: '0.15rem',
-    backgroundColor: colors.grayBlue[3], borderRadius: 10,
-    whiteSpace: 'nowrap', wordWrap: 'break-word', textOverflow: 'ellipsis'
   },
   label: {
     ...Style.elements.sectionHeader,
@@ -107,7 +103,7 @@ export const WorkspaceDashboard = _.flow(
       editDescription: undefined,
       saving: false,
       newTag: '',
-      allTagsList: [],
+      allTags: [],
       busy: false
     }
   }
@@ -158,13 +154,12 @@ export const WorkspaceDashboard = _.flow(
 
   loadAllTags = withErrorReporting('Error loading tags', async () => {
     const { ajax: { Workspaces } } = this.props
-    const allTags = await Workspaces.getTags()
-    this.setState({ allTagsList: _.map('tag', allTags) })
+    this.setState({ allTags: await Workspaces.getTags() })
   })
 
   loadWsTags = withErrorReporting('Error loading workspace tags', async () => {
     const { ajax: { Workspaces }, namespace, name } = this.props
-    this.setState({ tagsList: await Workspaces.workspace(namespace, name).getTags() })
+    this.setState({ tagsList: _.sortBy('tags', await Workspaces.workspace(namespace, name).getTags()) })
   })
 
   addTag = _.flow(
@@ -172,7 +167,7 @@ export const WorkspaceDashboard = _.flow(
     Utils.withBusyState(v => this.setState({ busy: v }))
   )(async tag => {
     const { ajax: { Workspaces }, namespace, name } = this.props
-    this.setState({ tagsList: await Workspaces.workspace(namespace, name).addTag(tag) })
+    this.setState({ tagsList: _.sortBy('tags', await Workspaces.workspace(namespace, name).addTag(tag)) })
   })
 
   deleteTag = _.flow(
@@ -180,7 +175,7 @@ export const WorkspaceDashboard = _.flow(
     Utils.withBusyState(v => this.setState({ busy: v }))
   )(async tag => {
     const { ajax: { Workspaces }, namespace, name } = this.props
-    this.setState({ tagsList: await Workspaces.workspace(namespace, name).deleteTag(tag) })
+    this.setState({ tagsList: _.sortBy('tags', await Workspaces.workspace(namespace, name).deleteTag(tag)) })
   })
 
   async save() {
@@ -207,8 +202,7 @@ export const WorkspaceDashboard = _.flow(
         }
       }
     } = this.props
-    const { submissionsCount, storageCostEstimate, editDescription, saving, consentStatus, tagsList, newTag, allTagsList, busy } = this.state
-    console.log(tagsList)
+    const { submissionsCount, storageCostEstimate, editDescription, saving, consentStatus, tagsList, newTag, allTags, busy } = this.state
     const isEditing = _.isString(editDescription)
 
     return div({ style: { flex: 1, display: 'flex' } }, [
@@ -278,18 +272,31 @@ export const WorkspaceDashboard = _.flow(
         ]),
         div({ style: styles.header }, ['Tags']),
         div({ style: { marginBottom: '0.5rem' } }, [
-          h(Select, {
+          allTags && h(CreatableSelect, {
             isClearable: true,
             isSearchable: true,
             value: newTag,
             placeholder: 'Add a tag',
             onChange: data => this.addTag(data.value),
-            options: allTagsList
+            styles: { container: base => ({ ...base, wordWrap: 'break-word' }) },
+            options: _.map(value => {
+              return {
+                value: value.tag,
+                label: `${value.tag} (${value.count})`
+              }
+            }, allTags)
           })
         ]),
         div({ style: { display: 'flex', flexWrap: 'wrap' } }, [
           _.map(tag => {
-            return span({ key: tag, style: styles.tag }, [tag, linkButton({
+            return span({
+              key: tag,
+              style: {
+                padding: '0.25rem', margin: '0.15rem',
+                backgroundColor: colors.grayBlue[3], borderRadius: 10,
+                overflow: 'hidden', wordWrap: 'break-word'
+              }
+            }, [tag, linkButton({
               tooltip: 'Remove tag',
               onClick: () => this.deleteTag(tag)
             }, [icon('times-circle', { size: 20, style: { marginLeft: '0.5rem' } })])])
