@@ -405,9 +405,9 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
         open: false,
         busy: false,
         deleting: false,
-        updatingStatus: false,
-        updatedConfig: {},
-        shouldConfirmUpdate: false
+        updatingStatus: false, //used only for tracking updates that require a stop/start
+        updatedConfig: {}, //the config stored in the state when a cluster update is requested
+        shouldConfirmUpdate: false //currently used to present a modal for updates that require a start/stop
       }
     }
 
