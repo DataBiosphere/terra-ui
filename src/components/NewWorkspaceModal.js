@@ -4,7 +4,7 @@ import { Component } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { buttonPrimary, link, Select, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
-import { TextArea, validatedInput } from 'src/components/input'
+import { TextArea, ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { InfoBox } from 'src/components/PopupTrigger'
 import { freeCreditsActive } from 'src/components/FreeCreditsModal'
@@ -138,7 +138,7 @@ export default _.flow(
         }, cloneWorkspace ? 'Clone Workspace' : 'Create Workspace')
       }, [
         h(RequiredFormLabel, ['Workspace name']),
-        validatedInput({
+        h(ValidatedInput, {
           inputProps: {
             autoFocus: true,
             placeholder: 'Enter a name',
@@ -169,8 +169,8 @@ export default _.flow(
             'Once set, it cannot be changed. ',
             'Any cloned workspace will automatically inherit the authorization domain(s) from the original workspace and cannot be removed. ',
             link({
-              href: 'https://broadinstitute.zendesk.com/hc/en-us/articles/360026775691-Managing-Data-Privacy-and-Access-with-Authorization-Domains',
-              target: '_blank'
+              href: 'https://support.terra.bio/hc/en-us/articles/360026775691-Managing-Data-Privacy-and-Access-with-Authorization-Domains',
+              ...Utils.newTabLinkProps
             }, ['Read more about authorization domains'])
           ])
         ]),
@@ -210,8 +210,8 @@ export default _.flow(
         div({ style: { marginTop: '0.5rem', fontWeight: 500, marginBottom: '0.5rem' } }, [
           'You have $300 in ',
           link({
-            href: 'https://broadinstitute.zendesk.com/hc/en-us/articles/360022704371-Getting-started-with-Terra#free-credits-signup',
-            target: '_blank'
+            href: 'https://support.terra.bio/hc/en-us/articles/360022704371-Getting-started-with-Terra#free-credits-signup',
+            ...Utils.newTabLinkProps
           }, 'free credits'), ' available!'
         ])
       ])],

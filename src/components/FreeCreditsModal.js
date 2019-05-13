@@ -81,8 +81,8 @@ const FreeCreditsModal = _.flow(
                   textDecoration: 'underline',
                   marginLeft: '0.25rem'
                 },
-                target: '_blank',
-                href: 'https://cloud.google.com/terms/'
+                href: 'https://cloud.google.com/terms/',
+                ...Utils.newTabLinkProps
               }, ['https://cloud.google.com/terms/', icon('pop-out', { style: { marginLeft: '0.25rem' } })])
             ])
           ])
