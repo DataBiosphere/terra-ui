@@ -434,7 +434,6 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
           if (this.state.updatingStatus === 'Updating' && status === 'Stopped') {
             this.setState({ updatingStatus: false, updatedConfig: {} })
           } else {
-            console.log('detected a non-dynamic update')
             this.setState({ updatedConfig: {} })
           }
           notify('info', 'Resources changed', {

@@ -38,12 +38,10 @@ const ReadOnlyMessage = ({ cluster, notebookName, workspace, workspace: { canCom
   const [copying, setCopying] = useState(false)
 
   return div({ style: { padding: '1rem 2rem', display: 'flex', alignItems: 'center' } }, [
-    div({ style: { fontSize: 16, fontWeight: 'bold', position: 'absolute' } },
-      ['Viewing read-only']),
+    div({ style: { fontSize: 16, fontWeight: 'bold', position: 'absolute' } }, ['Viewing read-only']),
     div({ style: { flexGrow: 1 } }),
     Utils.cond(
-      [!canCompute, () => buttonOutline({ onClick: () => setCopying(true) }, ['copy to another workspace to edit'])],
-      [!cluster && openCreate, () => buttonOutline({ onClick: openCreate }, ['create a cluster to edit'])],
+      [!canCompute, () => buttonOutline({ onClick: () => setCopying(true) }, ['copy to another workspace to edit'])], [!cluster && openCreate, () => buttonOutline({ onClick: openCreate }, ['create a cluster to edit'])],
       () => {
         const notebookLink = Nav.getLink('workspace-notebook-launch', { namespace, name, notebookName })
         return buttonOutline({ as: 'a', href: notebookLink }, ['edit in Jupyter'])
@@ -51,7 +49,9 @@ const ReadOnlyMessage = ({ cluster, notebookName, workspace, workspace: { canCom
     ),
     div({ style: { flexGrow: 1 } }),
     copying && h(ExportNotebookModal, {
-      printName: notebookName.slice(0, -6), workspace, fromLauncher: true,
+      printName: notebookName.slice(0, -6),
+      workspace,
+      fromLauncher: true,
       onDismiss: () => setCopying(false)
     })
   ])
@@ -182,7 +182,10 @@ class NotebookEditor extends Component {
     try {
       await this.startCluster()
       const {
-        notebookName, namespace, name: workspaceName, app,
+        notebookName,
+        namespace,
+        name: workspaceName,
+        app,
         cluster: { clusterName, clusterUrl, error },
         workspace: { workspace: { bucketName } },
         ajax: { Buckets, Jupyter }
@@ -244,7 +247,7 @@ class NotebookEditor extends Component {
       const cluster = this.props.cluster // Note: reading up-to-date prop
       const status = cluster && cluster.status
 
-      if (status === 'Running') {
+      if (status === 'Running' || status === 'Updating') {
         return
       } else {
         await Utils.handleNonRunningCluster(cluster, Jupyter)
@@ -306,24 +309,21 @@ class NotebookEditor extends Component {
 
       return h(Fragment, [
         cluster ?
-          div({ style: { padding: '1.5rem 2rem', display: 'flex' } }, [
-            !failed && icon('loadingSpinner', { className: 'is-solid', style: { marginRight: '0.5rem' } }),
+          div({ style: { padding: '1.5rem 2rem', display: 'flex' } }, [!failed && icon('loadingSpinner', { className: 'is-solid', style: { marginRight: '0.5rem' } }),
             Utils.cond(
               [failed, () => h(Fragment, [
                 icon('times', { size: 24, style: { color: colors.red[0], marginRight: '1rem' } }),
                 clusterError || 'Error launching notebook.'
-              ])],
-              [isCreating, () => 'Creating notebook runtime environment. You can navigate away and return in 5-10 minutes.'],
-              [isRunning, localizeFailures ? `Error loading notebook, retry number ${localizeFailures}...` : 'Copying notebook to the runtime...'],
+              ])], [isCreating, () => 'Creating notebook runtime environment. You can navigate away and return in 5-10 minutes.'], [isRunning, localizeFailures ? `Error loading notebook, retry number ${localizeFailures}...` : 'Copying notebook to the runtime...'],
               'Starting notebook runtime environment, this may take up to 2 minutes.'
-            )
-          ]) :
+            )]) :
           h(ReadOnlyMessage, { cluster, workspace, openCreate: () => this.setState({ createOpen: true }) }),
         isRunning ?
           div({ style: { color: colors.gray[2], fontSize: 14, fontWeight: 'bold', padding: '0 0 1rem 2rem' } }, ['Almost ready...']) :
           h(NotebookPreviewFrame, this.props),
         createOpen && h(NewClusterModal, {
-          namespace, currentCluster: cluster,
+          namespace,
+          currentCluster: cluster,
           onCancel: () => this.setState({ createOpen: false }),
           onSuccess: async promise => {
             this.setState({ createOpen: false })
@@ -341,11 +341,9 @@ class NotebookEditor extends Component {
 }
 
 
-export const navPaths = [
-  {
-    name: 'workspace-notebook-launch',
-    path: '/workspaces/:namespace/:name/notebooks/launch/:notebookName/:app?',
-    component: NotebookLauncher,
-    title: ({ name, notebookName }) => `${notebookName} - ${name}`
-  }
-]
+export const navPaths = [{
+  name: 'workspace-notebook-launch',
+  path: '/workspaces/:namespace/:name/notebooks/launch/:notebookName/:app?',
+  component: NotebookLauncher,
+  title: ({ name, notebookName }) => `${notebookName} - ${name}`
+}]
