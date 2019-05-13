@@ -5,7 +5,7 @@ import ClusterManager from 'src/components/ClusterManager'
 import { buttonPrimary, Clickable, comingSoon, link, MenuButton, menuIcon, tabBar } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
-import { notify } from 'src/components/Notifications'
+import { clearNotification, notify } from 'src/components/Notifications'
 import PopupTrigger from 'src/components/PopupTrigger'
 import { contactUsActive } from 'src/components/SupportRequest'
 import TopBar from 'src/components/TopBar'
@@ -159,31 +159,25 @@ const checkBucketAccess = withErrorReporting('Error checking bucket access', asy
     return true
   } catch (error) {
     if (error.status === 403) {
+      const notificationId = 'bucket-access-unavailable'
+
       notify('error', div([
-        'The Google Bucket associated with this workspace is currently unavailable. This should be resolved shortly. If this persists for more than an hour, please ',
+        'The Google Bucket associated with this workspace is currently unavailable. This should be resolved shortly.',
+        div({ style: { margin: '0.5rem' } }),
+        'If this persists for more than an hour, please ',
         link({
-          onClick: () => contactUsActive.set(true),
+          onClick: () => {
+            contactUsActive.set(true)
+            clearNotification(notificationId)
+          },
           style: { color: 'white' },
           hover: {
             color: 'white',
             textDecoration: 'underline'
           }
-        }, ['contact us', icon('pop-out', { size: 10, hover: { textDecoration: 'underline' } })]),
+        }, ['contact us', icon('pop-out', { size: 10, hover: { textDecoration: 'underline' }, style: { marginLeft: '0.25rem' }  })]),
         ' for assistance.'
-      ]))
-    } else if (error.status === 404) {
-      notify('error', div([
-        'The Google Bucket associated with this workspace does not exist. Please ',
-        link({
-          onClick: () => contactUsActive.set(true),
-          style: { color: 'white' },
-          hover: {
-            color: 'white',
-            textDecoration: 'underline'
-          }
-        }, ['contact us', icon('pop-out', { size: 10, hover: { textDecoration: 'underline' } })]),
-        ' for assistance.'
-      ]))
+      ]), { id: notificationId })
     } else {
       throw error
     }
