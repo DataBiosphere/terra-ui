@@ -2,15 +2,15 @@ import _ from 'lodash/fp'
 import { div, h, a, span } from 'react-hyperscript-helpers'
 import { authStore, refreshTerraProfile } from 'src/libs/auth'
 import colors from 'src/libs/colors'
-import { buttonPrimary, Clickable, LabeledCheckbox, spinnerOverlay } from 'src/components/common'
+import { buttonPrimary, Clickable } from 'src/components/common'
 import { icon } from 'src/components/icons'
+import { freeCreditsActive } from 'src/components/FreeCreditsModal'
 import { ajaxCaller } from 'src/libs/ajax'
 import { reportError } from 'src/libs/error'
 import { getAppName } from 'src/libs/logos'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 import Modal from 'src/components/Modal'
-import FreeTrialEulas from 'src/components/FreeTrialEulas'
 
 
 const getMessages = () => {
@@ -51,92 +51,6 @@ const getMessages = () => {
   }
 }
 
-export const FreeCreditsModal= ajaxCaller(class FreeCreditsModal extends Component {
-  constructor(props) {
-    super(props)
-    this.state = {
-      pageTwo: false,
-      termsAgreed: false,
-      cloudTermsAgreed: false,
-      loading: false
-    }
-  }
-
-  render() {
-    const { onDismiss } = this.props
-    const { pageTwo, termsAgreed, cloudTermsAgreed, loading } = this.state
-    return h(Modal, {
-      onDismiss,
-      title: 'Welcome to the Terra Free Credit Program!',
-      width: '65%',
-      okButton: pageTwo ? buttonPrimary({
-        onClick: async () => {
-          this.acceptCredits()
-        },
-        disabled: (termsAgreed === false) || (cloudTermsAgreed === false),
-        tooltip: ((termsAgreed === false) || (cloudTermsAgreed === false)) && 'You must check the boxes to accept.'
-      }, ['Accept']) : buttonPrimary({
-        onClick: () => this.setState({ pageTwo: true })
-      }, ['Review Terms of Service'])
-    }, [
-      h(FreeTrialEulas, { pageTwo }),
-      pageTwo && div({
-        style: {
-          marginTop: '0.5rem',
-          padding: '1rem',
-          border: `1px solid ${colors.green[0]}`,
-          borderRadius: '0.25rem',
-          backgroundColor: '#f4f4f4'
-        }
-      }, [
-        h(LabeledCheckbox, {
-          checked: termsAgreed === true,
-          onChange: v => this.setState({ termsAgreed: v })
-        }, [span({ style: { marginLeft: '0.5rem' } }, ['I agree to the terms of this Agreement.'])]),
-        div({
-          style: {
-            flexGrow: 1,
-            marginBottom: '0.5rem'
-          }
-        }),
-        h(LabeledCheckbox, {
-          checked: cloudTermsAgreed === true,
-          onChange: v => this.setState({ cloudTermsAgreed: v })
-        }, [
-          span({ style: { marginLeft: '0.5rem' } }, [
-            'I agree to the Google Cloud Terms of Service.', div({ style: { marginLeft: '1.5rem' } }, [
-              'Google Cloud Terms of Service:',
-              a({
-                style: {
-                  textDecoration: 'underline',
-                  marginLeft: '0.25rem'
-                },
-                ...Utils.newTabLinkProps,
-                href: 'https://cloud.google.com/terms/'
-              }, ['https://cloud.google.com/terms/', icon('pop-out', { style: { marginLeft: '0.25rem' } })])
-            ])
-          ])
-        ])
-      ]),
-      loading && spinnerOverlay
-    ])
-  }
-
-  async acceptCredits() {
-    const { onDismiss, ajax: { User } } = this.props
-    try {
-      this.setState({ loading: true })
-      await User.acceptEula()
-      await User.startTrial()
-      await refreshTerraProfile()
-      onDismiss()
-    } catch (error) {
-      reportError('Error starting trial', error)
-    } finally {
-      this.setState({ loading: false })
-    }
-  }
-})
 
 export const TrialBanner = _.flow(
   ajaxCaller,
@@ -145,14 +59,13 @@ export const TrialBanner = _.flow(
   constructor(props) {
     super(props)
     this.state = {
-      openFreeCreditsModal: false,
       finalizeTrial: false
     }
   }
 
   render() {
     const { authState: { isSignedIn, profile, acceptedTos }, ajax: { User } } = _.omit('isVisible', this.props)
-    const { finalizeTrial, openFreeCreditsModal } = this.state
+    const { finalizeTrial } = this.state
     const { trialState } = profile
     const removeBanner = localStorage.getItem('removeBanner')
     if (!trialState || !isSignedIn || !acceptedTos || trialState === 'Finalized' || removeBanner === 'true') return null
@@ -163,7 +76,6 @@ export const TrialBanner = _.flow(
           display: 'flex', alignItems: 'center', padding: '1.5rem', height: 110,
           backgroundColor: isWarning ? colors.orange[0] : '#359448',
           justifyContent: 'center', color: 'white', width: '100%', fontSize: '1rem'
-
         }
       },
       [
@@ -188,7 +100,7 @@ export const TrialBanner = _.flow(
             marginLeft: '0.5rem', flexShrink: 0
           },
           onClick: () => {
-            button.isExternal ? window.open(button.url, '_blank') : this.setState({ openFreeCreditsModal: true })
+            button.isExternal ? window.open(button.url, '_blank') : freeCreditsActive.set(true)
           }
         }, [button.label, button.isExternal ? icon('pop-out', { style: { marginLeft: '0.25rem' } }) : null]),
         div({
@@ -209,9 +121,6 @@ export const TrialBanner = _.flow(
           }, [icon('times-circle', { size: 25, style: { fontSize: '1.5rem', cursor: 'pointer' } })])
         ])
       ]),
-      openFreeCreditsModal && h(FreeCreditsModal, {
-        onDismiss: () => this.setState({ openFreeCreditsModal: false })
-      }),
       finalizeTrial && h(Modal, {
         title: 'Remove banner',
         onDismiss: () => this.setState({ finalizeTrial: false }),

@@ -9,7 +9,7 @@ import { TextArea } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import SignInButton from 'src/components/SignInButton'
 import { contactUsActive } from 'src/components/SupportRequest'
-import { FreeCreditsModal } from 'src/components/TrialBanner'
+import { freeCreditsActive } from 'src/components/FreeCreditsModal'
 import headerLeftHexes from 'src/images/header-left-hexes.svg'
 import headerRightHexes from 'src/images/header-right-hexes.svg'
 import { Ajax, ajaxCaller } from 'src/libs/ajax'
@@ -136,7 +136,10 @@ export default _.flow(
     const enabledCredits = h(Clickable, {
       style: styles.nav.item,
       hover: { backgroundColor: colors.gray[3] },
-      onClick: () => this.setState({ openFreeCreditsModal: true })
+      onClick: () => {
+        this.hideNav()
+        freeCreditsActive.set(true)
+      }
     }, [
       div({ style: styles.nav.icon }, [
         icon('cloud', {
@@ -463,7 +466,7 @@ export default _.flow(
 
   render() {
     const { title, href, children, ajax: { User }, authState } = this.props
-    const { navShown, openFreeCreditsModal, finalizeTrial, openCookiesModal, openFirecloudModal } = this.state
+    const { navShown, finalizeTrial, openCookiesModal, openFirecloudModal } = this.state
 
     return div({
       style: {
@@ -491,9 +494,6 @@ export default _.flow(
       ]),
       children,
       navShown && this.buildNav(),
-      openFreeCreditsModal && h(FreeCreditsModal, {
-        onDismiss: () => this.setState({ openFreeCreditsModal: false })
-      }),
       finalizeTrial && h(Modal, {
         title: 'Remove button',
         onDismiss: () => this.setState({ finalizeTrial: false }),
