@@ -195,7 +195,6 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
     const cachedWorkspace = Utils.useAtom(workspaceStore)
     const [loadingWorkspace, setLoadingWorkspace] = useState(false)
     const [clusters, setClusters] = useState(undefined)
-    const [hasBucketAccess, setHasBucketAccess] = useState(false)
     const workspace = cachedWorkspace && _.isEqual({ namespace, name }, _.pick(['namespace', 'name'], cachedWorkspace.workspace)) ? cachedWorkspace : undefined
 
     const refreshClusters = withErrorReporting('Error loading clusters', async () => {
@@ -209,9 +208,8 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
     )(async () => {
       try {
         const workspace = await Ajax(signal).Workspaces.workspace(namespace, name).details()
-        workspaceStore.set(workspace)
         const res = await checkBucketAccess(signal, namespace, name)
-        setHasBucketAccess(res)
+        workspaceStore.set({ hasBucketAccess: res, ...workspace })
       } catch (error) {
         if (error.status === 404) {
           setAccessError(true)
@@ -246,7 +244,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
       }, [
         workspace && h(WrappedComponent, {
           ref: child,
-          workspace, loadingWorkspace, refreshWorkspace, refreshClusters, hasBucketAccess,
+          workspace, loadingWorkspace, refreshWorkspace, refreshClusters,
           cluster: _.last(Utils.trimClustersOldestFirst(clusters)),
           ...props
         })

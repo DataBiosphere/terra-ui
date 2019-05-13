@@ -163,11 +163,12 @@ export const WorkspaceDashboard = _.flow(
     const {
       workspace, workspace: {
         accessLevel,
+        hasBucketAccess,
         workspace: {
           authorizationDomain, createdDate, lastModified, bucketName,
           attributes, attributes: { description = '' }
         }
-      }, hasBucketAccess
+      }
     } = this.props
     const { submissionsCount, storageCostEstimate, editDescription, saving, consentStatus } = this.state
     const isEditing = _.isString(editDescription)
