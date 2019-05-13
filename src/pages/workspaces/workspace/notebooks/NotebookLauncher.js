@@ -101,7 +101,6 @@ class NotebookPreviewFrame extends Component {
 }
 
 const initialEditorState = {
-  localizeFailures: 0,
   clusterError: undefined,
   failed: false,
   url: undefined,
@@ -194,7 +193,10 @@ class NotebookEditor extends Component {
       }
 
       await Promise.all([
-        this.localizeNotebook(clusterName),
+        Jupyter.notebooks(namespace, clusterName).localize({
+          [`~/${workspaceName}/.delocalize.json`]: `data:application/json,{"destination":"gs://${bucketName}/notebooks","pattern":""}`,
+          [`~/${workspaceName}/${notebookName}`]: `gs://${bucketName}/notebooks/${notebookName}`
+        }),
         Jupyter.notebooks(namespace, clusterName).setCookie()
       ])
 
@@ -252,37 +254,9 @@ class NotebookEditor extends Component {
     }
   }
 
-  async localizeNotebook(clusterName) {
-    const { namespace, name: workspaceName, notebookName, workspace: { workspace: { bucketName } }, ajax: { Jupyter } } = this.props
-
-    while (this.mounted) {
-      try {
-        await Promise.all([
-          Jupyter.notebooks(namespace, clusterName).localize({
-            [`~/${workspaceName}/.delocalize.json`]: `data:application/json,{"destination":"gs://${bucketName}/notebooks","pattern":""}`
-          }),
-          Jupyter.notebooks(namespace, clusterName).localize({
-            [`~/${workspaceName}/${notebookName}`]: `gs://${bucketName}/notebooks/${notebookName}`
-          })
-        ])
-        return
-      } catch (e) {
-        const { localizeFailures } = this.state
-
-        if (localizeFailures < 5) {
-          this.setState({ localizeFailures: localizeFailures + 1 })
-          await Utils.delay(5000)
-        } else {
-          this.setState({ failed: true })
-          throw new Error('Unable to copy notebook to cluster, was it renamed or deleted in the Workspace Bucket?')
-        }
-      }
-    }
-  }
-
   render() {
     const { namespace, name, app, cluster, workspace } = this.props
-    const { clusterError, localizeFailures, failed, url, saving, createOpen, clustersLoaded } = this.state
+    const { clusterError, failed, url, saving, createOpen, clustersLoaded } = this.state
     const clusterStatus = cluster && cluster.status
 
     if (url) {
@@ -314,7 +288,7 @@ class NotebookEditor extends Component {
                 clusterError || 'Error launching notebook.'
               ])],
               [isCreating, () => 'Creating notebook runtime environment. You can navigate away and return in 5-10 minutes.'],
-              [isRunning, localizeFailures ? `Error loading notebook, retry number ${localizeFailures}...` : 'Copying notebook to the runtime...'],
+              [isRunning, () => 'Copying notebook to the runtime...'],
               'Starting notebook runtime environment, this may take up to 2 minutes.'
             )
           ]) :
