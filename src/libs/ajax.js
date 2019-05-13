@@ -635,7 +635,6 @@ const Workspaces = signal => ({
         const res = await fetchOrchestration(`api/workspaces/${namespace}/${name}/tags`, _.mergeAll([authOpts(), jsonBody([tag]), { signal, method: 'DELETE' }]))
         return res.json()
       }
-
     }
   }
 })
