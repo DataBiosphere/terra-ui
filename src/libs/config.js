@@ -7,16 +7,8 @@ export const loadConfig = async () => {
   loadedConfig = await res.json()
 }
 
-export const configOverridesStore = Utils.atom(
-  sessionStorage['config-overrides'] && JSON.parse(sessionStorage['config-overrides'])
-)
-configOverridesStore.subscribe(v => {
-  if (!v) {
-    sessionStorage.removeItem('config-overrides')
-  } else {
-    sessionStorage['config-overrides'] = JSON.stringify(v)
-  }
-})
+export const configOverridesStore = Utils.atom()
+Utils.syncAtomToSessionStorage(configOverridesStore, 'config-overrides')
 // Values in this store will override config settings. This can be used from the console for testing.
 window.configOverridesStore = configOverridesStore
 
