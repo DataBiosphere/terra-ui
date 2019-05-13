@@ -143,7 +143,7 @@ export default _.flow(
             autoFocus: true,
             placeholder: 'Enter a name',
             value: name,
-            onChange: e => this.setState({ name: e.target.value, nameModified: true })
+            onChange: v => this.setState({ name: v, nameModified: true })
           },
           error: Utils.summarizeErrors(nameModified && errors && errors.name)
         }),
