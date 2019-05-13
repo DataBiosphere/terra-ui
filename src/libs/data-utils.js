@@ -13,6 +13,7 @@ import ReferenceData from 'src/data/reference-data'
 import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
+import { getAppName } from 'src/libs/logos'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
@@ -167,6 +168,7 @@ export const EntityDeleter = ajaxCaller(class EntityDeleter extends Component {
       margin: '0 -1.25rem'
     }
 
+    const total = selectedEntities.length + additionalDeletions.length
     return h(Modal, {
       onDismiss,
       title: 'Confirm Delete',
@@ -193,7 +195,7 @@ export const EntityDeleter = ajaxCaller(class EntityDeleter extends Component {
       Utils.toIndexPairs(moreToDelete ? additionalDeletions : selectedEntities)),
       div({
         style: { ...fullWidthWarning, textAlign: 'right' }
-      }, [`${selectedEntities.length + additionalDeletions.length} data entries to be deleted.`]),
+      }, [`${total} data ${total > 1 ?'entries' : 'entry'} to be deleted.`]),
       deleting && spinnerOverlay
     ])
   }
@@ -257,7 +259,7 @@ export const EntityUploader = ajaxCaller(class EntityUploader extends Component 
 
         if (definedTypeMatch) {
           const parsedEntityType = definedTypeMatch[1]
-          this.setState({ file, isInvalid: undefined, newEntityType: parsedEntityType, useFireCloudDataModel: supportsFireCloudDataModel(parsedEntityType) })
+          this.setState({ file, isInvalid: undefined, newEntityType: parsedEntityType, useFireCloudDataModel: false })
         } else {
           this.setState({ file: undefined, isInvalid: 'tsv' })
         }
@@ -279,7 +281,7 @@ export const EntityUploader = ajaxCaller(class EntityUploader extends Component 
           div({ style: { fontFamily: 'monospace', margin: '0.5rem' } }, ['entity:[type]_id']),
           'where ',
           span({ style: { fontFamily: 'monospace' } }, ['[type]']),
-          ' is the desired name of the data table in Terra.',
+          ` is the desired name of the data table in ${getAppName()}.`,
           ' For example, use ',
           span({ style: { fontFamily: 'monospace' } }, ['entity:participant_id']),
           ' to create or update a ',
@@ -310,7 +312,7 @@ export const EntityUploader = ajaxCaller(class EntityUploader extends Component 
           link({
             style: { marginLeft: '1rem', verticalAlign: 'middle' },
             href: 'https://software.broadinstitute.org/firecloud/documentation/article?id=10738',
-            target: '_blank'
+            ...Utils.newTabLinkProps
           }, ['Learn more ', icon('pop-out', { size: 12 })])
         ]),
         h(Clickable, {

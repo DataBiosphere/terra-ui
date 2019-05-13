@@ -139,8 +139,8 @@ const WorkspaceAccessError = () => {
     p(['You are trying to access a workspace that either does not exist, or you do not have access to it.']),
     p([
       'To view an existing workspace, the owner of the workspace must share it with you or with a ',
-      link({ target: '_blank', href: groupURL }, 'Group'), ' of which you are a member. ',
-      'If the workspace is protected under an ', link({ target: '_blank', href: authorizationURL }, 'Authorization Domain'),
+      link({ ...Utils.newTabLinkProps, href: groupURL }, 'Group'), ' of which you are a member. ',
+      'If the workspace is protected under an ', link({ ...Utils.newTabLinkProps, href: authorizationURL }, 'Authorization Domain'),
       ', you must be a member of every group within the Authorization Domain.'
     ]),
     p(['If you think the workspace exists but you do not have access, please contact the workspace owner.']),
@@ -209,7 +209,8 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
       }, [
         workspace && h(WrappedComponent, {
           ref: child,
-          workspace, clusters, loadingWorkspace, refreshWorkspace, refreshClusters,
+          workspace, loadingWorkspace, refreshWorkspace, refreshClusters,
+          cluster: _.last(Utils.trimClustersOldestFirst(clusters)),
           ...props
         })
       ])

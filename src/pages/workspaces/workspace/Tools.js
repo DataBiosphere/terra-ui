@@ -114,7 +114,7 @@ const ToolCard = pure(({ listView, name, namespace, config, onCopy, onDelete, is
   const repoLink = link({
     href: methodLink(config),
     style: styles.innerLink,
-    target: '_blank',
+    ...Utils.newTabLinkProps,
     disabled: isRedacted
   }, sourceRepo === 'agora' ? 'Terra' : sourceRepo)
 

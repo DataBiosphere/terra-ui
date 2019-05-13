@@ -5,7 +5,7 @@ import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { link, Select } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
-import { textInput } from 'src/components/input'
+import { DelayedSearchInput } from 'src/components/input'
 import { collapseStatus, failedIcon, runningIcon, statusIcon, submittedIcon, successIcon } from 'src/components/job-common'
 import PopupTrigger from 'src/components/PopupTrigger'
 import { FlexTable, Sortable, TextCell, TooltipCell } from 'src/components/table'
@@ -162,18 +162,18 @@ const SubmissionDetails = _.flow(
         makeSection('Total Run Cost', [cost ? Utils.formatUSD(cost) : 'N/A']),
         makeSection('Data Entity', [div([entityName]), div([entityType])]),
         makeSection('Submission ID', [link(
-          { href: bucketBrowserUrl(`${bucketName}/${submissionId}`), target: '_blank' },
+          { href: bucketBrowserUrl(`${bucketName}/${submissionId}`), ...Utils.newTabLinkProps },
           submissionId
         )]),
         makeSection('Call Caching', [useCallCache ? 'Enabled' : 'Disabled'])
       ])
     ]),
     div({ style: { margin: '1rem 0', display: 'flex', alignItems: 'center' } }, [
-      textInput({
+      h(DelayedSearchInput, {
         style: { marginRight: '2rem', flexBasis: 300, borderColor: colors.gray[3] },
-        placeholder: 'Filter',
-        onChange: ({ target: { value } }) => setTextFilter(value),
-        value: textFilter
+        placeholder: 'Search',
+        onChange: setTextFilter,
+        defaultValue: textFilter
       }),
       div({ style: { flexBasis: 350 } }, [
         h(Select, {
@@ -202,7 +202,7 @@ const SubmissionDetails = _.flow(
             headerRenderer: () => {},
             cellRenderer: ({ rowIndex }) => {
               return link({
-                target: '_blank',
+                ...Utils.newTabLinkProps,
                 href: `${getConfig().jobManagerUrlRoot}/${filteredWorkflows[rowIndex].workflowId}`,
                 style: { flexGrow: 1, textAlign: 'center' }
               }, ['View'])
@@ -246,7 +246,7 @@ const SubmissionDetails = _.flow(
               const { workflowId, inputResolutions: [{ inputName } = {}] } = filteredWorkflows[rowIndex]
               return h(TooltipCell, { tooltip: workflowId }, [
                 inputName ? link({
-                  target: '_blank',
+                  ...Utils.newTabLinkProps,
                   href: inputName && bucketBrowserUrl(`${bucketName}/${submissionId}/${inputName.split('.')[0]}/${workflowId}`)
                 }, [workflowId]) : workflowId
               ])

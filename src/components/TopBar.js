@@ -155,7 +155,7 @@ export default _.flow(
       as: 'a',
       hover: { backgroundColor: colors.gray[3] },
       href: 'https://software.broadinstitute.org/firecloud/documentation/freecredits',
-      target: '_blank',
+      ...Utils.newTabLinkProps,
       onClick: () => this.hideNav()
     }, [
       div({ style: styles.nav.icon }, [
@@ -247,7 +247,7 @@ export default _.flow(
           ]),
           h(Clickable, {
             as: 'a',
-            target: '_blank',
+            ...Utils.newTabLinkProps,
             style: styles.nav.item,
             hover: { backgroundColor: colors.gray[3] },
             href: getConfig().jobManagerUrlRoot,
@@ -290,8 +290,8 @@ export default _.flow(
             style: styles.nav.supportItem,
             as: 'a',
             hover: { backgroundColor: colors.gray[3] },
-            href: 'https://broadinstitute.zendesk.com/hc/en-us',
-            target: '_blank',
+            href: 'https://support.terra.bio/hc/en-us',
+            ...Utils.newTabLinkProps,
             onClick: () => this.hideNav()
           }, [
             div({ style: styles.nav.icon }, [
@@ -310,8 +310,8 @@ export default _.flow(
             style: styles.nav.supportItem,
             as: 'a',
             hover: { backgroundColor: colors.gray[3] },
-            href: 'https://broadinstitute.zendesk.com/hc/en-us/community/topics/360000500452-Feature-Requests',
-            target: '_blank',
+            href: 'https://support.terra.bio/hc/en-us/community/topics/360000500452-Feature-Requests',
+            ...Utils.newTabLinkProps,
             onClick: () => this.hideNav()
           }, [
             div({ style: styles.nav.icon }, [
@@ -330,8 +330,8 @@ export default _.flow(
             style: styles.nav.supportItem,
             as: 'a',
             hover: { backgroundColor: colors.gray[3] },
-            href: 'https://broadinstitute.zendesk.com/hc/en-us/community/topics/360000500432-General-Discussion',
-            target: '_blank',
+            href: 'https://support.terra.bio/hc/en-us/community/topics/360000500432-General-Discussion',
+            ...Utils.newTabLinkProps,
             onClick: () => this.hideNav()
           }, [
             div({ style: styles.nav.icon }, [
@@ -351,8 +351,8 @@ export default _.flow(
               style: styles.nav.supportItem,
               as: 'a',
               hover: { backgroundColor: colors.gray[3] },
-              href: 'https://broadinstitute.zendesk.com/hc/en-us/articles/360022694271-Side-by-side-comparison-with-Terra',
-              target: '_blank',
+              href: 'https://support.terra.bio/hc/en-us/articles/360022694271-Side-by-side-comparison-with-Terra',
+              ...Utils.newTabLinkProps,
               onClick: () => this.hideNav()
             }, [
               div({ style: styles.nav.icon }, [

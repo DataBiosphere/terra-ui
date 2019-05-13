@@ -1,8 +1,8 @@
 import _ from 'lodash/fp'
 import { div, h, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
-import { buttonPrimary, buttonSecondary, Checkbox, link, RadioButton, search } from 'src/components/common'
-import { textInput, validatedInput } from 'src/components/input'
+import { buttonPrimary, buttonSecondary, Checkbox, link, RadioButton } from 'src/components/common'
+import { ConfirmedSearchInput, DelayedSearchInput, TextInput, ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import PopupTrigger from 'src/components/PopupTrigger'
 import { FlexTable, GridTable, HeaderCell, TextCell } from 'src/components/table'
@@ -126,18 +126,21 @@ class StyleGuide extends Component {
         ])
       ]),
       els.section('Search Box', [
-        search({ inputProps: { placeholder: 'Search' } })
+        els.columns([
+          els.fixWidth('30%', [h(DelayedSearchInput, { placeholder: 'Debounced search' })]),
+          els.fixWidth('30%', [h(ConfirmedSearchInput, { placeholder: 'Search with explicit confirmation' })])
+        ])
       ]),
       els.section('Text Box', [
         els.columns([
-          els.fixWidth('30%', [textInput({ placeholder: 'Text box' })]),
-          els.fixWidth('30%', [textInput({ defaultValue: 'Text box' })]),
+          els.fixWidth('30%', [h(TextInput, { placeholder: 'Text box' })]),
+          els.fixWidth('30%', [h(TextInput, { defaultValue: 'Text box' })]),
           els.fixWidth('30%', [
-            validatedInput({
+            h(ValidatedInput, {
               inputProps: {
                 placeholder: 'ValidatedInput wants an email',
                 value: validatedInputValue,
-                onChange: e => this.setState({ validatedInputValue: e.target.value })
+                onChange: v => this.setState({ validatedInputValue: v })
               },
               error: Utils.summarizeErrors(errors && errors.validatedInputValue)
             })
@@ -218,7 +221,7 @@ class StyleGuide extends Component {
                     size: { basis: 150 },
                     headerRenderer: () => h(HeaderCell, ['Details']),
                     cellRenderer: ({ rowIndex }) => {
-                      return textInput({ readOnly: true, value: `details-${rowIndex}` })
+                      return h(TextInput, { readOnly: true, value: `details-${rowIndex}` })
                     }
                   }
                 ]

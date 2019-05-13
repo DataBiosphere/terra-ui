@@ -5,7 +5,7 @@ import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { Clickable, link, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
-import { SearchInput } from 'src/components/input'
+import { DelayedSearchInput } from 'src/components/input'
 import { collapseStatus, failedIcon, runningIcon, submittedIcon, successIcon } from 'src/components/job-common'
 import Modal from 'src/components/Modal'
 import PopupTrigger from 'src/components/PopupTrigger'
@@ -143,11 +143,11 @@ const JobHistory = _.flow(
           content: div({ style: { margin: '0.5rem' } }, [h(SubmissionQueueStatus)]),
           side: 'bottom'
         }, [link({}, ['Queue Status'])]),
-        h(SearchInput, {
+        h(DelayedSearchInput, {
           style: { width: 300, marginLeft: '1rem' },
-          placeholder: 'Filter',
-          onChange: ({ target: { value } }) => this.setState({ textFilter: value }),
-          value: textFilter
+          placeholder: 'Search',
+          onChange: v => this.setState({ textFilter: v }),
+          defaultValue: textFilter
         })
       ]),
       div({ style: styles.submissionsTable }, [
@@ -170,19 +170,19 @@ const JobHistory = _.flow(
                     hover: { backgroundColor: Utils.cond([!!failed, colors.red[5]], [!!running, colors.blue[5]], colors.green[6]) },
                     style: {
                       flex: 1, alignSelf: 'stretch', display: 'flex', flexDirection: 'column', justifyContent: 'center',
-                      margin: '0 -1rem', padding: '0 1rem',
+                      margin: '0 -1rem', padding: '0 1rem', minWidth: 0,
                       color: 'unset', fontWeight: 500,
                       backgroundColor: Utils.cond([!!failed, colors.red[6]], [!!running, colors.blue[6]], colors.green[7])
                     },
                     href: Nav.getLink('workspace-submission-details', { namespace, name, submissionId })
                   }, [
-                    div([
+                    div({ style: { overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' } }, [
                       methodConfigurationNamespace !== namespace && span({ style: styles.deemphasized }, [
                         `${methodConfigurationNamespace}/`
                       ]),
                       methodConfigurationName
                     ]),
-                    div([
+                    div({ style: { overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' } }, [
                       span({ style: styles.deemphasized }, 'Submitted by '),
                       submitter
                     ])
@@ -259,7 +259,7 @@ const JobHistory = _.flow(
                   const { submissionId } = filteredSubmissions[rowIndex]
                   return h(TooltipCell, { tooltip: submissionId }, [
                     link({
-                      target: '_blank',
+                      ...Utils.newTabLinkProps,
                       href: bucketBrowserUrl(`${bucketName}/${submissionId}`)
                     }, [submissionId])
                   ])
