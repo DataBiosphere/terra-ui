@@ -438,7 +438,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
             this.setState({ updatedConfig: {} })
           }
           notify('info', 'Resources changed', {
-            message: 'Your cluster update request has completed successfully!',
+            message: 'Your cluster update request has completed successfully! Updating workers can take a bit of time after the request goes through.',
             timeout: 30000
           })
         }))
