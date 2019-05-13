@@ -700,7 +700,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
         ]),
         this.state.shouldConfirmUpdate &&
             h(Modal, {
-              title: 'This update will cause a stop of your runtime. Changes you make during this will not be autosaved until it is automatically restarted. YOU MAY NOT NAVIGATE AWAY DURING THIS UPDATE. Would you like to proceed?',
+              title: 'This type of update requires us to stop then restart your runtime, which will take a couple of minutes. Installed libraries, packages and output files will be preserved across the update. During this time, changes you make to your notebook will not be autosaved until your runtime restarts. \nPLEASE DO NOT NAVIGATE AWAY DURING THIS UPDATE.\n Would you like to proceed?',
               okButton: () => this.setState({ shouldConfirmUpdate: false, updatingStatus: 'Stopping' },
                 () => this.stopCluster(false)
               ),
