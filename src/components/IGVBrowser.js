@@ -30,9 +30,9 @@ export const IGVBrowser = ({ selectedFiles, refGenome, namespace }) => {
       return {
         type: fileTypeToTrack[_.last(filePath.split('.'))],
         name: filePath,
-        url: filePath + '?userProject=' + namespace,
+        url: `${filePath}?userProject=${namespace}`,
         // igv.js will automatically find the index file, but not for crams
-        indexURL: filePath.endsWith('cram') ? filePath + '.crai?userProject=' + namespace : ''
+        indexURL: filePath.endsWith('cram') ? `${filePath}.crai?userProject=${namespace}` : ''
       }
     }
 

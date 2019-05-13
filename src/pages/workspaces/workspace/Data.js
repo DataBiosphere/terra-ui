@@ -510,7 +510,7 @@ class EntitiesContent extends Component {
       }),
       showIgvSelector && h(IGVFileSelector, {
         onDismiss: () => this.setState({ showIgvSelector: false }),
-        onSuccess: (selectedFiles, refGenome) => this.setState({ showIgvSelector: false, igvFiles: selectedFiles, igvRefGenome: refGenome }),
+        onSuccess: igvData => this.setState({ showIgvSelector: false, igvFiles: igvData.selectedFiles, igvRefGenome: igvData.refGenome }),
         selectedEntities
       })
     ])
