@@ -242,9 +242,16 @@ export class NewClusterModal extends PureComponent {
       const newMachineConfig = this.getMachineConfig()
       const currMachineConfig = this.props.currentCluster.machineConfig
 
+      //we must recreate to add workers if there are < 2 workers, or if the number we are decreasing to is < 2
+      //these conditions are captured in the two variables below
       const shouldRecreateToAddWorkers =
             currMachineConfig.numberOfWorkers < 2 &&
             currMachineConfig.numberOfWorkers !== newMachineConfig.numberOfWorkers
+
+      const shouldRecreateToRemoveWorkers =
+            newMachineConfig.numberOfWorkers < 2 &&
+            currMachineConfig.numberOfWorkers > newMachineConfig.numberOfWorkers
+
 
       //this assumes the config has changed as this method would not be called otherwise
       const nonUpdateableFields = [
@@ -257,7 +264,7 @@ export class NewClusterModal extends PureComponent {
           return currMachineConfig[field] !== newMachineConfig[field]
         }).some(isUpdated => isUpdated)
 
-      return shouldRecreateDueToUpdateNotSupporting || shouldRecreateToAddWorkers
+      return shouldRecreateDueToUpdateNotSupporting || shouldRecreateToAddWorkers || shouldRecreateToRemoveWorkers
     }
 
 
@@ -339,7 +346,7 @@ export class NewClusterModal extends PureComponent {
               div({ style: styles.col2 }, [
                 h(IntegerInput, {
                   style: styles.smallInput,
-                  min: 2,
+                  // min: 2,
                   value: numberOfWorkers,
                   onChange: v => this.setState({
                     numberOfWorkers: v,
@@ -399,7 +406,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
         busy: false,
         deleting: false,
         updatingStatus: false,
-        configToUpdate: {},
+        updatedConfig: {},
         shouldConfirmUpdate: false
       }
     }
@@ -433,6 +440,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
         }).then(() => {
           if (this.state.updatingStatus === 'Updating' && status === 'Stopped') {
             this.setState({ updatingStatus: false, updatedConfig: {} })
+            this.startCluster()
           } else {
             this.setState({ updatedConfig: {} })
           }
