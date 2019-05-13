@@ -309,7 +309,7 @@ export const WorkspaceDashboard = _.flow(
             'Collaborators must be a member of all of these ',
             link({
               href: Nav.getLink('groups'),
-              target: '_blank'
+              ...Utils.newTabLinkProps
             }, 'groups'),
             ' to access this workspace.'
           ]),
@@ -317,7 +317,7 @@ export const WorkspaceDashboard = _.flow(
         ]),
         div({ style: { margin: '1.5rem 0 0.5rem 0', borderBottom: `1px solid ${colors.gray[3]}` } }),
         link({
-          target: '_blank',
+          ...Utils.newTabLinkProps,
           href: bucketBrowserUrl(bucketName),
           style: { display: 'block', marginBottom: '3rem' }
         }, ['Google bucket'])

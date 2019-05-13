@@ -259,7 +259,7 @@ const JobHistory = _.flow(
                   const { submissionId } = filteredSubmissions[rowIndex]
                   return h(TooltipCell, { tooltip: submissionId }, [
                     link({
-                      target: '_blank',
+                      ...Utils.newTabLinkProps,
                       href: bucketBrowserUrl(`${bucketName}/${submissionId}`)
                     }, [submissionId])
                   ])

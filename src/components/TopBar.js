@@ -9,7 +9,7 @@ import { TextArea } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import SignInButton from 'src/components/SignInButton'
 import { contactUsActive } from 'src/components/SupportRequest'
-import { FreeCreditsModal } from 'src/components/TrialBanner'
+import { freeCreditsActive } from 'src/components/FreeCreditsModal'
 import headerLeftHexes from 'src/images/header-left-hexes.svg'
 import headerRightHexes from 'src/images/header-right-hexes.svg'
 import { Ajax, ajaxCaller } from 'src/libs/ajax'
@@ -136,7 +136,10 @@ export default _.flow(
     const enabledCredits = h(Clickable, {
       style: styles.nav.item,
       hover: { backgroundColor: colors.gray[3] },
-      onClick: () => this.setState({ openFreeCreditsModal: true })
+      onClick: () => {
+        this.hideNav()
+        freeCreditsActive.set(true)
+      }
     }, [
       div({ style: styles.nav.icon }, [
         icon('cloud', {
@@ -152,7 +155,7 @@ export default _.flow(
       as: 'a',
       hover: { backgroundColor: colors.gray[3] },
       href: 'https://software.broadinstitute.org/firecloud/documentation/freecredits',
-      target: '_blank',
+      ...Utils.newTabLinkProps,
       onClick: () => this.hideNav()
     }, [
       div({ style: styles.nav.icon }, [
@@ -244,7 +247,7 @@ export default _.flow(
           ]),
           h(Clickable, {
             as: 'a',
-            target: '_blank',
+            ...Utils.newTabLinkProps,
             style: styles.nav.item,
             hover: { backgroundColor: colors.gray[3] },
             href: getConfig().jobManagerUrlRoot,
@@ -287,8 +290,8 @@ export default _.flow(
             style: styles.nav.supportItem,
             as: 'a',
             hover: { backgroundColor: colors.gray[3] },
-            href: 'https://broadinstitute.zendesk.com/hc/en-us',
-            target: '_blank',
+            href: 'https://support.terra.bio/hc/en-us',
+            ...Utils.newTabLinkProps,
             onClick: () => this.hideNav()
           }, [
             div({ style: styles.nav.icon }, [
@@ -307,8 +310,8 @@ export default _.flow(
             style: styles.nav.supportItem,
             as: 'a',
             hover: { backgroundColor: colors.gray[3] },
-            href: 'https://broadinstitute.zendesk.com/hc/en-us/community/topics/360000500452-Feature-Requests',
-            target: '_blank',
+            href: 'https://support.terra.bio/hc/en-us/community/topics/360000500452-Feature-Requests',
+            ...Utils.newTabLinkProps,
             onClick: () => this.hideNav()
           }, [
             div({ style: styles.nav.icon }, [
@@ -327,8 +330,8 @@ export default _.flow(
             style: styles.nav.supportItem,
             as: 'a',
             hover: { backgroundColor: colors.gray[3] },
-            href: 'https://broadinstitute.zendesk.com/hc/en-us/community/topics/360000500432-General-Discussion',
-            target: '_blank',
+            href: 'https://support.terra.bio/hc/en-us/community/topics/360000500432-General-Discussion',
+            ...Utils.newTabLinkProps,
             onClick: () => this.hideNav()
           }, [
             div({ style: styles.nav.icon }, [
@@ -348,8 +351,8 @@ export default _.flow(
               style: styles.nav.supportItem,
               as: 'a',
               hover: { backgroundColor: colors.gray[3] },
-              href: 'https://broadinstitute.zendesk.com/hc/en-us/articles/360022694271-Side-by-side-comparison-with-Terra',
-              target: '_blank',
+              href: 'https://support.terra.bio/hc/en-us/articles/360022694271-Side-by-side-comparison-with-Terra',
+              ...Utils.newTabLinkProps,
               onClick: () => this.hideNav()
             }, [
               div({ style: styles.nav.icon }, [
@@ -463,7 +466,7 @@ export default _.flow(
 
   render() {
     const { title, href, children, ajax: { User }, authState } = this.props
-    const { navShown, openFreeCreditsModal, finalizeTrial, openCookiesModal, openFirecloudModal } = this.state
+    const { navShown, finalizeTrial, openCookiesModal, openFirecloudModal } = this.state
 
     return div({
       style: {
@@ -491,9 +494,6 @@ export default _.flow(
       ]),
       children,
       navShown && this.buildNav(),
-      openFreeCreditsModal && h(FreeCreditsModal, {
-        onDismiss: () => this.setState({ openFreeCreditsModal: false })
-      }),
       finalizeTrial && h(Modal, {
         title: 'Remove button',
         onDismiss: () => this.setState({ finalizeTrial: false }),

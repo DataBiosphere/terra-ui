@@ -39,7 +39,7 @@ export const ServiceAlerts = () => {
               message,
               readMoreLink && div({ style: { marginTop: '1rem' } }, [
                 link({
-                  target: '_blank',
+                  ...Utils.newTabLinkProps,
                   href: readMoreLink,
                   style: { fontWeight: 700, color: 'white' },
                   hover: { color: 'white', textDecoration: 'underline' }

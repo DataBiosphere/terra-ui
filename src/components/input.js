@@ -277,7 +277,7 @@ export class AutocompleteTextInput extends Component {
     const { show } = this.state
     return h(Autosuggest, {
       id: this.id,
-      inputProps: { value, onChange },
+      inputProps: { value, onChange: onChange ? (e => onChange(e.target.value)) : undefined },
       suggestions: show ? (value ? _.filter(Utils.textMatch(value), suggestions) : suggestions) : [],
       onSuggestionsFetchRequested: () => this.setState({ show: true }),
       onSuggestionsClearRequested: () => this.setState({ show: false }),

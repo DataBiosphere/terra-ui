@@ -57,6 +57,29 @@ export const connectAtom = (theAtom, name) => WrappedComponent => {
   return Wrapper
 }
 
+/**
+ * Sets up the given atom to sync to/from sessionStorage at the given key.
+ * On initialization, if the key exists, the value will be read in.
+ * If it doesn't, the current value of the atom will be written out.
+ */
+export const syncAtomToSessionStorage = (theAtom, key) => {
+  theAtom.subscribe(v => {
+    if (v === undefined) {
+      sessionStorage.removeItem(key)
+    } else {
+      sessionStorage[key] = JSON.stringify(v)
+    }
+  })
+  const existing = (() => {
+    try {
+      return JSON.parse(sessionStorage[key])
+    } catch (e) {
+      return undefined
+    }
+  })()
+  theAtom.update(v => existing === undefined ? v : existing)
+}
+
 export const makePrettyDate = dateString => {
   const date = new Date(dateString)
   const now = new Date()
@@ -305,4 +328,12 @@ export const handleNonRunningCluster = ({ status, googleProject, clusterName }, 
     default:
       return delay(3000)
   }
+}
+
+export const newTabLinkProps = { target: '_blank', rel: 'noopener noreferrer' } // https://mathiasbynens.github.io/rel-noopener/
+
+export const createHtmlElement = (doc, name, attrs) => {
+  const element = doc.createElement(name)
+  _.forEach(([k, v]) => element.setAttribute(k, v), _.toPairs(attrs))
+  return element
 }

@@ -207,7 +207,7 @@ const User = signal => ({
   // 4. Reply externally (ask one of the Comms team with Full Agent access) and make sure you receive an email
   createSupportRequest: async ({ name, email, currUrl, subject, type, description, attachmentToken, emailAgreed }) => {
     return fetchOk(
-      `https://broadinstitute.zendesk.com/api/v2/requests.json`,
+      `https://support.terra.bio/api/v2/requests.json`,
       _.merge({ signal, method: 'POST' }, jsonBody({
         request: {
           requester: { name, email },
@@ -229,7 +229,7 @@ const User = signal => ({
   },
 
   uploadAttachment: async file => {
-    const res = await fetchOk(`https://broadinstitute.zendesk.com/api/v2/uploads?filename=${file.name}`, {
+    const res = await fetchOk(`https://support.terra.bio/api/v2/uploads?filename=${file.name}`, {
       method: 'POST',
       body: file,
       headers: {
