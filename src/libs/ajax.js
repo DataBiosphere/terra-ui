@@ -125,7 +125,8 @@ const User = signal => ({
   }, namespace => namespace, 1000 * 60 * 30),
 
   getStatus: async () => {
-    return instrumentedFetch(`${getConfig().samUrlRoot}/register/user/v2/self/info`, _.mergeAll([authOpts(), { signal }, appIdentifier]))
+    const res = await fetchOk(`${getConfig().samUrlRoot}/register/user/v2/self/info`, _.mergeAll([authOpts(), { signal }, appIdentifier]))
+    return res.json()
   },
 
   profile: {
@@ -182,15 +183,16 @@ const User = signal => ({
 
   getTosAccepted: async () => {
     const url = `${getConfig().tosUrlRoot}/user/response?${qs.stringify(tosData)}`
-    const res = await instrumentedFetch(url, _.merge(authOpts(), { signal }))
-    if (res.status === 403 || res.status === 404) {
-      return false
+    try {
+      const res = await fetchOk(url, _.merge(authOpts(), { signal }))
+      const { accepted } = await res.json()
+      return accepted
+    } catch (error) {
+      if (error.status === 403 || error.status === 404) {
+        return false
+      }
+      throw error
     }
-    if (!res.ok) {
-      throw res
-    }
-    const { accepted } = await res.json()
-    return accepted
   },
 
   acceptTos: async () => {
