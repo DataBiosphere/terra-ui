@@ -38,15 +38,6 @@ const els = {
     div({ style: { textTransform: 'uppercase' } }, [title]),
     div({ style: { fontSize: '75%' } }, [color])
   ]),
-  colorWaterfall: (colorBase, title) => div({
-    style: {
-      display: 'flex', marginBottom: '0.5rem'
-    }
-  }, colorBase.map((color, index) => els.colorSwatch(
-    color,
-    index === 0 ? title : undefined,
-    index >= 4 ? colorBase[0] : 'white'))
-  ),
   buttonContainer: component => div({ style: { marginTop: '2rem' } }, [component])
 }
 
@@ -65,28 +56,11 @@ class StyleGuide extends Component {
         logo({ size: 210 }),
         span({
           style: {
-            fontSize: 55, fontWeight: 700, color: colors.slate, letterSpacing: 1.78,
+            fontSize: 55, fontWeight: 700, color: colors.dark(0.6), letterSpacing: 1.78,
             marginLeft: '2rem'
           }
         }, [
           'TERRA STYLE GUIDE'
-        ])
-      ]),
-      els.section('Color Styles', [
-        els.columns([
-          div([
-            els.colorWaterfall(colors.blue, 'blue'),
-            els.colorWaterfall(colors.darkBlue, 'dark blue'),
-            els.colorWaterfall(colors.gray, 'gray'),
-            els.colorWaterfall(colors.purple, 'purple')
-          ]),
-          div([
-            els.colorWaterfall(colors.green, 'green'),
-            els.colorWaterfall(colors.red, 'red'),
-            els.colorWaterfall(colors.orange, 'orange'),
-            els.colorSwatch(colors.slate, 'slate'),
-            els.colorSwatch(colors.brick, 'brick')
-          ])
         ])
       ]),
       els.section('Typeface', [

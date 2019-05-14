@@ -84,7 +84,7 @@ const TerminalLauncher = _.flow(
       })
     } else {
       return div({ style: { padding: '2rem' } }, [
-        spinner({ style: { color: colors.green[0], marginRight: '0.5rem' } }),
+        spinner({ style: { color: colors.primary(), marginRight: '0.5rem' } }),
         (clusterStatus === 'Creating' || !cluster) ?
           'Creating runtime environment. You can navigate away and return in 5-10 minutes.' :
           'Starting runtime environment, this may take up to 2 minutes.'

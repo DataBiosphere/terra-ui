@@ -8,7 +8,7 @@ const ConfigOverridesWarning = () => {
   return !!configOverrides && div({
     style: {
       position: 'fixed', bottom: 0, right: 0,
-      color: 'white', backgroundColor: colors.purple[0],
+      color: 'white', backgroundColor: colors.accent(),
       padding: '1rem'
     }
   }, [

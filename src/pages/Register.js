@@ -63,7 +63,7 @@ export default ajaxCaller(class Register extends Component {
       registrationLogo(),
       div({
         style: {
-          marginTop: '4rem', color: colors.slate,
+          marginTop: '4rem', color: colors.dark(0.6),
           fontSize: '1.5rem', fontWeight: 500
         }
       }, 'New User Registration'),

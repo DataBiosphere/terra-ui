@@ -28,7 +28,7 @@ const styles = {
     padding: '1rem', flex: 1
   },
   deemphasized: {
-    color: colors.gray[2]
+    color: colors.dark(0.7)
   },
   statusDetailCell: {
     align: 'center',
@@ -167,12 +167,12 @@ const JobHistory = _.flow(
 
                   return h(Clickable, {
                     as: 'a',
-                    hover: { backgroundColor: Utils.cond([!!failed, colors.red[5]], [!!running, colors.blue[5]], colors.green[6]) },
+                    hover: { backgroundColor: Utils.cond([!!failed, colors.danger(0.2)], [!!running, colors.accent(0.2)], colors.primary(0.2)) },
                     style: {
                       flex: 1, alignSelf: 'stretch', display: 'flex', flexDirection: 'column', justifyContent: 'center',
                       margin: '0 -1rem', padding: '0 1rem', minWidth: 0,
                       color: 'unset', fontWeight: 500,
-                      backgroundColor: Utils.cond([!!failed, colors.red[6]], [!!running, colors.blue[6]], colors.green[7])
+                      backgroundColor: Utils.cond([!!failed, colors.danger(0.1)], [!!running, colors.accent(0.1)], colors.primary(0.1))
                     },
                     href: Nav.getLink('workspace-submission-details', { namespace, name, submissionId })
                   }, [
@@ -221,7 +221,7 @@ const JobHistory = _.flow(
                       h(Clickable, {
                         onClick: () => this.setState({ aborting: submissionId })
                       }, [
-                        icon('times-circle', { size: 20, style: { color: colors.green[0], marginLeft: '0.5rem' } })
+                        icon('times-circle', { size: 20, style: { color: colors.primary(), marginLeft: '0.5rem' } })
                       ])
                     ]),
                     isTerminal(status) && workflowStatuses['Failed'] &&
@@ -238,7 +238,7 @@ const JobHistory = _.flow(
                           onDone: () => this.refresh()
                         })
                       }, [
-                        icon('refresh', { size: 18, style: { color: colors.green[0], marginLeft: '0.5rem' } })
+                        icon('refresh', { size: 18, style: { color: colors.primary(), marginLeft: '0.5rem' } })
                       ])
                     ])
                   ])

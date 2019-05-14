@@ -45,15 +45,15 @@ export default class SignIn extends Component {
       }, [
         div({ style: { maxWidth: 900 } }, [
           signInLogo(),
-          div({ style: { fontSize: 54, margin: '1.5rem 0', color: colors.green[0] } }, [`Welcome to ${getAppName()}`]),
-          div({ style: { fontSize: 36, fontWeight: 500, color: colors.slate } }, ['New User?']),
+          div({ style: { fontSize: 54, margin: '1.5rem 0', color: colors.primary() } }, [`Welcome to ${getAppName()}`]),
+          div({ style: { fontSize: 36, fontWeight: 500, color: colors.dark(0.6) } }, ['New User?']),
           div({ style: { fontSize: 36, marginBottom: '2rem' } }, [`${getAppName()} requires a Google Account.`]),
           div({ style: { display: 'flex', alignItems: 'center' } }, [
             div({
               style: {
                 fontSize: 16, lineHeight: 1.5,
                 paddingRight: '1rem', marginRight: '2rem', borderRight:
-                  `1px solid ${colors.gray[0]}`
+                  `1px solid ${colors.dark()}`
               }
             }, [
               div([`Need to create a ${getAppName()} account? ${getAppName()} uses your Google account.`]),
@@ -64,7 +64,7 @@ export default class SignIn extends Component {
             div([
               h(Clickable, {
                 style: {
-                  color: colors.blue[0],
+                  color: colors.accent(),
                   marginLeft: '9rem'
                 },
                 onClick: () => this.setState({ openCookiesModal: true })

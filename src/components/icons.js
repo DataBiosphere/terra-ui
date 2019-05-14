@@ -34,7 +34,7 @@ export const icon = (shape, { className, ...props } = {}) => h('clr-icon', _.mer
 
 export const breadcrumb = props => icon('angle right', _.merge({ size: 10, style: { margin: '0 0.25rem' } }, props))
 
-export const spinner = props => icon('loadingSpinner', _.merge({ size: 24, style: { color: colors.green[1] } }, props))
+export const spinner = props => icon('loadingSpinner', _.merge({ size: 24, style: { color: colors.primary(0.8) } }, props))
 
 export const centeredSpinner = props => spinner(_.merge({ size: 48, style: { display: 'block', margin: 'auto' } }, props))
 

@@ -193,7 +193,7 @@ const styles = {
   }
 }
 
-const termsTitle = div({ style: { color: colors.gray[0], fontWeight: 600 } }, [
+const termsTitle = div({ style: { color: colors.dark(), fontWeight: 600 } }, [
   span({ style: { fontSize: 36 } }, ['TERRA ']), span({ style: { fontSize: 24 } }, ['Terms of Service'])
 ])
 
@@ -203,7 +203,7 @@ const TOSMarkdown = div({
   h(Markdown, {
     renderers: {
       heading: (text, level) => {
-        return `<h${level} style="color: ${colors.gray[0]}; margin-bottom: 0">${text}</h${level}>`
+        return `<h${level} style="color: ${colors.dark()}; margin-bottom: 0">${text}</h${level}>`
       },
       paragraph: text => {
         return `<p style="margin-top: 0">${text}</p>`

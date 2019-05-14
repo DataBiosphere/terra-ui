@@ -106,10 +106,10 @@ class NotebookCard extends Component {
       h(Clickable, {
         onClick: e => e.preventDefault(),
         style: {
-          cursor: 'pointer', color: colors.green[0]
+          cursor: 'pointer', color: colors.primary()
         },
         focus: 'hover',
-        hover: { color: colors.green[2] }
+        hover: { color: colors.primary(0.85) }
       }, [
         icon('cardMenuIcon', {
           size: listView ? 18 : 24
@@ -137,7 +137,7 @@ class NotebookCard extends Component {
       notebookMenu,
       title,
       div({ style: { flexGrow: 1 } }),
-      isRecent ? div({ style: { display: 'flex', color: colors.orange[0], marginRight: '2rem' } }, 'Recently Edited') : undefined,
+      isRecent ? div({ style: { display: 'flex', color: colors.warning(), marginRight: '2rem' } }, 'Recently Edited') : undefined,
       h(TooltipTrigger, { content: Utils.makeCompleteDate(updated) }, [
         div({ style: { fontSize: '0.8rem', marginRight: '0.5rem' } },
           `Last edited: ${Utils.makePrettyDate(updated)}`)
@@ -149,9 +149,9 @@ class NotebookCard extends Component {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          borderTop: `solid 1px ${colors.gray[4]}`,
+          borderTop: `solid 1px ${colors.dark(0.4)}`,
           padding: '0.5rem',
-          backgroundColor: colors.grayBlue[5],
+          backgroundColor: colors.light(0.4),
           borderRadius: '0 0 5px 5px'
         }
       }, [
@@ -161,7 +161,7 @@ class NotebookCard extends Component {
             Utils.makePrettyDate(updated)
           ])
         ]),
-        isRecent ? div({ style: { display: 'flex', color: colors.orange[0] } }, 'Recently Edited') : undefined,
+        isRecent ? div({ style: { display: 'flex', color: colors.warning() } }, 'Recently Edited') : undefined,
         notebookMenu
       ])
     ])
@@ -271,7 +271,7 @@ const Notebooks = _.flow(
           style: {
             ...Style.elements.card.container,
             flex: 1,
-            color: colors.green[0]
+            color: colors.primary()
           },
           onClick: () => this.setState({ creating: true }),
           disabled: !canWrite,
@@ -287,7 +287,7 @@ const Notebooks = _.flow(
         h(Clickable, {
           style: {
             ...Style.elements.card.container, flex: 1,
-            backgroundColor: colors.gray[6], border: `1px dashed ${colors.gray[2]}`, boxShadow: 'none'
+            backgroundColor: colors.dark(0.1), border: `1px dashed ${colors.dark(0.7)}`, boxShadow: 'none'
           },
           onClick: () => this.uploader.current.open(),
           disabled: !canWrite,
@@ -320,7 +320,7 @@ const Notebooks = _.flow(
       disabled: !Utils.canWrite(accessLevel),
       disableClick: true,
       style: { flexGrow: 1 },
-      activeStyle: { backgroundColor: colors.green[6], cursor: 'copy' }, // accept and reject don't work in all browsers
+      activeStyle: { backgroundColor: colors.primary(0.2), cursor: 'copy' }, // accept and reject don't work in all browsers
       acceptStyle: { cursor: 'copy' },
       rejectStyle: { cursor: 'no-drop' },
       ref: this.uploader,

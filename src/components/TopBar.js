@@ -29,7 +29,7 @@ const styles = {
   topBar: {
     flex: 'none', height: 66, paddingLeft: '1rem',
     display: 'flex', alignItems: 'center',
-    borderBottom: `2px solid ${colors.lightGreen[0]}`,
+    borderBottom: `2px solid ${colors.primary(0.55)}`,
     zIndex: 2
   },
   pageTitle: {
@@ -42,18 +42,18 @@ const styles = {
     },
     container: {
       width: 290, color: 'white', position: 'absolute', cursor: 'default',
-      backgroundColor: colors.gray[2], height: '100%',
+      backgroundColor: colors.dark(0.7), height: '100%',
       boxShadow: '3px 0 13px 0 rgba(0,0,0,0.3)',
       display: 'flex', flexDirection: 'column'
     },
     profile: active => ({
-      backgroundColor: active ? colors.gray[6] : colors.gray[5],
-      color: colors.gray[0],
+      backgroundColor: active ? colors.dark(0.1) : colors.dark(0.25),
+      color: colors.dark(),
       borderBottom: active ? undefined : 'none'
     }),
     profileItem: active => ({
       ...styles.nav.profile(active),
-      borderTop: `1px solid ${colors.gray[0]}`,
+      borderTop: `1px solid ${colors.dark()}`,
       padding: '0 3rem', height: 40,
       fontSize: 'unset',
       fontWeight: 500
@@ -62,7 +62,7 @@ const styles = {
       display: 'flex', alignItems: 'center', flex: 'none',
       height: 70, padding: '0 28px',
       fontWeight: 600,
-      borderBottom: `1px solid ${colors.gray[2]}`, color: 'white'
+      borderBottom: `1px solid ${colors.dark(0.7)}`, color: 'white'
     },
     subItem: {
       display: 'flex', alignItems: 'center', flex: 'none',
@@ -84,7 +84,7 @@ const styles = {
 const betaTag = b({
   style: {
     fontSize: 8, lineHeight: '9px',
-    color: 'white', backgroundColor: colors.lightGreen[0],
+    color: 'white', backgroundColor: colors.primary(0.55),
     padding: '3px 5px', verticalAlign: 'middle',
     borderRadius: 2
   }
@@ -120,7 +120,7 @@ export default _.flow(
     const librarySubItem = (linkName, iconName, label) => h(Clickable, {
       style: styles.nav.subItem,
       as: 'a',
-      hover: { backgroundColor: colors.gray[3] },
+      hover: { backgroundColor: colors.dark(0.55) },
       href: Nav.getLink(linkName),
       onClick: () => this.hideNav()
     }, [
@@ -135,7 +135,7 @@ export default _.flow(
 
     const enabledCredits = h(Clickable, {
       style: styles.nav.item,
-      hover: { backgroundColor: colors.gray[3] },
+      hover: { backgroundColor: colors.dark(0.55) },
       onClick: () => {
         this.hideNav()
         freeCreditsActive.set(true)
@@ -153,7 +153,7 @@ export default _.flow(
     const enrolledCredits = h(Clickable, {
       style: styles.nav.item,
       as: 'a',
-      hover: { backgroundColor: colors.gray[3] },
+      hover: { backgroundColor: colors.dark(0.55) },
       href: 'https://software.broadinstitute.org/firecloud/documentation/freecredits',
       ...Utils.newTabLinkProps,
       onClick: () => this.hideNav()
@@ -173,7 +173,7 @@ export default _.flow(
 
     const terminatedCredits = h(Clickable, {
       style: styles.nav.item,
-      hover: { backgroundColor: colors.gray[3] },
+      hover: { backgroundColor: colors.dark(0.55) },
       onClick: () => this.setState({ finalizeTrial: true })
     }, [
       div({ style: styles.nav.icon }, [
@@ -198,7 +198,7 @@ export default _.flow(
         div({
           style: {
             ...styles.topBar,
-            background: `81px url(${headerLeftHexes}) no-repeat ${colors.green[1]}`
+            background: `81px url(${headerLeftHexes}) no-repeat ${colors.primary()}`
           }
         }, [
           icon('bars', {
@@ -225,7 +225,7 @@ export default _.flow(
               div([
                 h(Clickable, {
                   style: {
-                    color: colors.blue[0],
+                    color: colors.accent(),
                     marginLeft: '9rem'
                   },
                   onClick: () => this.setState({ openCookiesModal: true })
@@ -236,7 +236,7 @@ export default _.flow(
           h(Clickable, {
             as: 'a',
             style: styles.nav.item,
-            hover: { backgroundColor: colors.gray[3] },
+            hover: { backgroundColor: colors.dark(0.55) },
             href: Nav.getLink('workspaces'),
             onClick: () => this.hideNav()
           }, [
@@ -249,7 +249,7 @@ export default _.flow(
             as: 'a',
             ...Utils.newTabLinkProps,
             style: styles.nav.item,
-            hover: { backgroundColor: colors.gray[3] },
+            hover: { backgroundColor: colors.dark(0.55) },
             href: getConfig().jobManagerUrlRoot,
             onClick: () => this.hideNav()
           }, [
@@ -278,7 +278,7 @@ export default _.flow(
           (trialState === 'Terminated') && terminatedCredits,
           h(Clickable, {
             style: { ...styles.nav.supportItem, marginTop: '15px' },
-            hover: { backgroundColor: colors.gray[3] },
+            hover: { backgroundColor: colors.dark(0.55) },
             onClick: () => contactUsActive.set(true)
           }, [
             div({ style: styles.nav.icon }, [
@@ -289,7 +289,7 @@ export default _.flow(
           h(Clickable, {
             style: styles.nav.supportItem,
             as: 'a',
-            hover: { backgroundColor: colors.gray[3] },
+            hover: { backgroundColor: colors.dark(0.55) },
             href: 'https://support.terra.bio/hc/en-us',
             ...Utils.newTabLinkProps,
             onClick: () => this.hideNav()
@@ -309,7 +309,7 @@ export default _.flow(
           h(Clickable, {
             style: styles.nav.supportItem,
             as: 'a',
-            hover: { backgroundColor: colors.gray[3] },
+            hover: { backgroundColor: colors.dark(0.55) },
             href: 'https://support.terra.bio/hc/en-us/community/topics/360000500452-Feature-Requests',
             ...Utils.newTabLinkProps,
             onClick: () => this.hideNav()
@@ -329,7 +329,7 @@ export default _.flow(
           h(Clickable, {
             style: styles.nav.supportItem,
             as: 'a',
-            hover: { backgroundColor: colors.gray[3] },
+            hover: { backgroundColor: colors.dark(0.55) },
             href: 'https://support.terra.bio/hc/en-us/community/topics/360000500432-General-Discussion',
             ...Utils.newTabLinkProps,
             onClick: () => this.hideNav()
@@ -350,7 +350,7 @@ export default _.flow(
             h(Clickable, {
               style: styles.nav.supportItem,
               as: 'a',
-              hover: { backgroundColor: colors.gray[3] },
+              hover: { backgroundColor: colors.dark(0.55) },
               href: 'https://support.terra.bio/hc/en-us/articles/360022694271-Side-by-side-comparison-with-Terra',
               ...Utils.newTabLinkProps,
               onClick: () => this.hideNav()
@@ -373,7 +373,7 @@ export default _.flow(
               style: styles.nav.supportItem,
               disabled: !isSignedIn,
               tooltip: isSignedIn ? undefined : 'Please sign in',
-              hover: { backgroundColor: colors.gray[3] },
+              hover: { backgroundColor: colors.dark(0.55) },
               onClick: () => this.setState({ openFirecloudModal: true })
             }, [
               div({ style: styles.nav.icon }, [
@@ -386,7 +386,7 @@ export default _.flow(
             style: {
               ..._.omit('borderBottom', styles.nav.item),
               marginTop: 'auto',
-              color: colors.gray[3],
+              color: colors.dark(0.55),
               fontSize: 10
             }
           }, [
@@ -472,7 +472,7 @@ export default _.flow(
       style: {
         ...styles.topBar,
         background: `81px url(${headerLeftHexes}) no-repeat,
-    right url(${headerRightHexes}) no-repeat, ${colors.green[1]}`
+    right url(${headerRightHexes}) no-repeat, ${colors.primary()}`
       }
     }, [
       icon('bars', {

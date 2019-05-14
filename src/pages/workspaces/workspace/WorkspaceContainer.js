@@ -98,7 +98,7 @@ class WorkspaceContainer extends Component {
           div({}, breadcrumbs),
           div({ style: Style.breadcrumb.textUnderBreadcrumb }, [
             title || `${namespace}/${name}`,
-            workspace && !Utils.canWrite(workspace.accessLevel) && span({ style: { paddingLeft: '0.5rem', color: colors.gray[1] } }, '(read only)')
+            workspace && !Utils.canWrite(workspace.accessLevel) && span({ style: { paddingLeft: '0.5rem', color: colors.dark(0.85) } }, '(read only)')
           ])
         ]),
         topBarContent,

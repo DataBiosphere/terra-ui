@@ -13,7 +13,7 @@ const styles = {
   popup: {
     position: 'fixed', top: 0, left: 0,
     backgroundColor: 'white',
-    border: `1px solid ${colors.gray[3]}`, borderRadius: 4,
+    border: `1px solid ${colors.dark(0.55)}`, borderRadius: 4,
     boxShadow: Style.standardShadow
   }
 }
@@ -103,7 +103,7 @@ export const InfoBox = ({ size, children, style, side }) => h(PopupTrigger, {
   side,
   content: div({ style: { padding: '0.5rem', width: 300 } }, children)
 }, [
-  span({ style: { cursor: 'pointer', color: colors.green[0], ...style } }, [
+  span({ style: { cursor: 'pointer', color: colors.primary(), ...style } }, [
     icon('info-circle', { className: 'is-solid', size })
   ])
 ])

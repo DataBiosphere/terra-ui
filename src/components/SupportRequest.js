@@ -131,7 +131,7 @@ const SupportRequest = _.flow(
         onDropAccepted: files => this.uploadFile(files)
       }, [
         div({ style: { padding: '1rem' } }, [
-          div({ style: { fontSize: 18, fontWeight: 'bold', color: colors.darkBlue[0] } }, ['Contact Us']),
+          div({ style: { fontSize: 18, fontWeight: 'bold', color: colors.accent() } }, ['Contact Us']),
           !this.hasName() && h(Fragment, [
             h(RequiredFormLabel, ['Name']),
             h(TextInput, {
@@ -173,7 +173,7 @@ const SupportRequest = _.flow(
                 div({
                   style: { marginLeft: '1rem', paddingTop: '0.5rem' }
                 }, [
-                  'Successfully uploaded: ', span({ style: { color: colors.green[0] } }, [attachmentName])
+                  'Successfully uploaded: ', span({ style: { color: colors.primary() } }, [attachmentName])
                 ])
               ]),
               linkButton({
@@ -184,8 +184,8 @@ const SupportRequest = _.flow(
             ]) :
             h(Clickable, {
               style: {
-                flex: 1, backgroundColor: dragging ? colors.green[6] : colors.gray[6], borderRadius: 3,
-                border: `1px dashed ${colors.gray[2]}`
+                flex: 1, backgroundColor: dragging ? colors.primary(0.2) : colors.dark(0.1), borderRadius: 3,
+                border: `1px dashed ${colors.dark(0.7)}`
               },
               onClick: () => this.uploader.current.open()
             }, [
@@ -201,7 +201,7 @@ const SupportRequest = _.flow(
             placeholder: 'Enter your email address',
             onChange: v => this.setState({ email: v })
           }),
-          submitError && div({ style: { marginTop: '0.5rem', textAlign: 'right', color: colors.red[0] } }, [submitError]),
+          submitError && div({ style: { marginTop: '0.5rem', textAlign: 'right', color: colors.danger() } }, [submitError]),
           submitting && spinnerOverlay,
           div({ style: styles.buttonRow }, [
             buttonSecondary({

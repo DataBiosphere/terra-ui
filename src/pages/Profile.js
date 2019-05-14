@@ -24,7 +24,7 @@ const styles = {
   },
   sectionTitle: {
     margin: '2rem 0 1rem',
-    color: colors.darkBlue[0], fontSize: 16, fontWeight: 600, textTransform: 'uppercase'
+    color: colors.accent(), fontSize: 16, fontWeight: 600, textTransform: 'uppercase'
   },
   header: {
     line: {
@@ -34,7 +34,7 @@ const styles = {
 
     nameLine: {
       marginLeft: '1rem',
-      color: colors.darkBlue[0],
+      color: colors.accent(),
       fontSize: '150%'
     }
   },

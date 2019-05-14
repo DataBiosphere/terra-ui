@@ -38,11 +38,11 @@ export const Clickable = ({ as = 'div', disabled, tooltip, tooltipSide, onClick,
 const linkProps = ({ disabled, variant }) => ({
   as: 'a',
   style: {
-    color: disabled ? colors.gray[2] : variant === 'light' ? colors.lightGreen[2] : colors.green[0],
+    color: disabled ? colors.dark(0.7) : colors.primary(variant === 'light' ? 0.3 : 1),
     cursor: disabled ? 'not-allowed' : 'pointer',
     fontWeight: 500
   },
-  hover: disabled ? undefined : { color: variant === 'light' ? colors.lightGreen[3] : colors.green[1] }
+  hover: disabled ? undefined : { color: colors.primary(variant === 'light' ? 0.1 : 0.8) }
 })
 
 export const link = ({ onClick, href, disabled, variant, ...props }, children) => {
@@ -69,12 +69,12 @@ export const buttonPrimary = ({ disabled, ...props }, children) => {
     disabled,
     style: {
       ...styles.button,
-      border: `1px solid ${disabled ? colors.gray[4] : colors.green[0]}`,
+      border: `1px solid ${disabled ? colors.dark(0.4) : colors.primary()}`,
       borderRadius: 5, color: 'white', padding: '0.875rem',
-      backgroundColor: disabled ? colors.gray[5] : colors.green[1],
+      backgroundColor: disabled ? colors.dark(0.25) : colors.primary(0.8),
       cursor: disabled ? 'not-allowed' : 'pointer'
     },
-    hover: disabled ? undefined : { backgroundColor: colors.green[2] }
+    hover: disabled ? undefined : { backgroundColor: colors.primary(0.85) }
   }, props), children)
 }
 
@@ -83,21 +83,21 @@ export const buttonSecondary = ({ disabled, ...props }, children) => {
     disabled,
     style: {
       ...styles.button,
-      color: disabled ? colors.gray[2] : colors.green[0],
+      color: disabled ? colors.dark(0.7) : colors.primary(),
       cursor: disabled ? 'not-allowed' : 'pointer'
     },
-    hover: disabled ? undefined : { color: colors.green[1] }
+    hover: disabled ? undefined : { color: colors.primary(0.8) }
   }, props), children)
 }
 
 export const buttonOutline = ({ disabled, ...props }, children) => {
   return h(buttonPrimary, _.merge({
     style: {
-      border: `1px solid ${disabled ? colors.gray[4] : colors.green[0]}`,
-      color: colors.green[0],
-      backgroundColor: disabled ? colors.gray[5] : 'white'
+      border: `1px solid ${disabled ? colors.dark(0.4) : colors.primary()}`,
+      color: colors.primary(),
+      backgroundColor: disabled ? colors.dark(0.25) : 'white'
     },
-    hover: disabled ? undefined : { backgroundColor: colors.green[6] }
+    hover: disabled ? undefined : { backgroundColor: colors.primary(0.2) }
   }, props), children)
 }
 
@@ -134,11 +134,11 @@ export const MenuButton = ({ disabled, children, ...props }) => {
     style: {
       display: 'flex', alignItems: 'center',
       fontSize: 12, minWidth: 125, height: '2.25rem',
-      color: disabled ? colors.gray[2] : undefined,
+      color: disabled ? colors.dark(0.7) : undefined,
       padding: '0.875rem',
       cursor: disabled ? 'not-allowed' : 'pointer'
     },
-    hover: !disabled ? { backgroundColor: colors.grayBlue[5], color: colors.green[0] } : undefined
+    hover: !disabled ? { backgroundColor: colors.light(0.4), color: colors.primary() } : undefined
   }, props), [children])
 }
 
@@ -151,10 +151,10 @@ export const Checkbox = ({ checked, onChange, disabled, ...props }) => {
     style: {
       display: 'inline-flex',
       verticalAlign: 'middle',
-      color: disabled ? colors.gray[4] : checked ? colors.green[0] : colors.gray[3]
+      color: disabled ? colors.dark(0.4) : checked ? colors.primary() : colors.dark(0.55)
     },
-    hover: disabled ? undefined : { color: colors.green[1] },
-    active: disabled ? undefined : { backgroundColor: colors.green[6] },
+    hover: disabled ? undefined : { color: colors.primary(0.8) },
+    active: disabled ? undefined : { backgroundColor: colors.primary(0.2) },
     disabled
   }, props), [
     icon(checked ? 'checkSquare' : 'square', { size: 16 })
@@ -168,7 +168,7 @@ export const LabeledCheckbox = ({ checked, onChange, disabled, children, ...prop
       as: 'span',
       style: {
         verticalAlign: 'middle',
-        color: disabled ? colors.gray[2] : undefined,
+        color: disabled ? colors.dark(0.7) : undefined,
         cursor: disabled ? 'default' : 'pointer'
       },
       onClick: () => onChange && !disabled && onChange(!checked),
@@ -216,7 +216,7 @@ export const topSpinnerOverlay = spinnerDefault({ outerStyles: { backgroundColor
 export const comingSoon = span({
   style: {
     margin: '0.5rem', padding: 3, borderRadius: 2,
-    backgroundColor: colors.grayBlue[0], color: colors.gray[0],
+    backgroundColor: colors.dark(0.2), color: colors.dark(),
     fontSize: '75%', textTransform: 'uppercase', fontWeight: 500,
     whiteSpace: 'nowrap', lineHeight: 1
   }
@@ -236,22 +236,22 @@ export const Select = ({ value, options, id, ...props }) => {
     inputId: id,
     theme: base => _.merge(base, {
       colors: {
-        primary: colors.green[0],
-        neutral20: colors.gray[3],
-        neutral30: colors.gray[3]
+        primary: colors.primary(),
+        neutral20: colors.dark(0.55),
+        neutral30: colors.dark(0.55)
       },
       spacing: { controlHeight: 36 }
     }),
     styles: {
       control: (base, { isDisabled }) => _.merge(base, {
-        backgroundColor: isDisabled ? colors.gray[5] : 'white',
+        backgroundColor: isDisabled ? colors.dark(0.25) : 'white',
         boxShadow: 'none'
       }),
-      singleValue: base => ({ ...base, color: colors.gray[0] }),
+      singleValue: base => ({ ...base, color: colors.dark() }),
       option: (base, { isSelected, isFocused, isDisabled }) => _.merge(base, {
-        backgroundColor: isSelected ? colors.grayBlue[5] : isFocused ? colors.grayBlue[3] : undefined,
-        color: isSelected ? colors.green[0] : isDisabled ? undefined : colors.gray[0],
-        ':active': { backgroundColor: isSelected ? colors.green[4] : colors.green[5] }
+        backgroundColor: isSelected ? colors.light(0.4) : isFocused ? colors.dark(0.15) : undefined,
+        color: isSelected ? colors.primary() : isDisabled ? undefined : colors.dark(),
+        ':active': { backgroundColor: isSelected ? colors.primary(0.55) : colors.primary(0.4) }
       }),
       clearIndicator: base => ({ ...base, paddingRight: 0 }),
       indicatorSeparator: () => ({ display: 'none' }),

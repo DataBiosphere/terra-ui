@@ -52,7 +52,7 @@ export default ajaxCaller(class ProjectDetail extends Component {
 
     return h(Fragment, [
       div({ style: { padding: '1.5rem 3rem', flexGrow: 1 } }, [
-        div({ style: { color: colors.gray[0], fontSize: 16, fontWeight: 600 } },
+        div({ style: { color: colors.dark(), fontSize: 16, fontWeight: 600 } },
           [
             projectName,
             span({ style: { fontWeight: 500, fontSize: 14, margin: '0 1.5rem 0 3rem' } }, creationStatus),
@@ -62,7 +62,7 @@ export default ajaxCaller(class ProjectDetail extends Component {
                 [creationStatus === 'Creating', 'loadingSpinner'],
                 'error-standard'
               ), {
-                style: { color: colors.green[0], marginRight: '1rem' }
+                style: { color: colors.primary(), marginRight: '1rem' }
               })
             ])
           ]),

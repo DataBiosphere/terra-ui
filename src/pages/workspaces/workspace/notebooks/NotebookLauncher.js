@@ -290,7 +290,7 @@ class NotebookEditor extends Component {
             !failed && icon('loadingSpinner', { className: 'is-solid', style: { marginRight: '0.5rem' } }),
             Utils.cond(
               [failed, () => h(Fragment, [
-                icon('times', { size: 24, style: { color: colors.red[0], marginRight: '1rem' } }),
+                icon('times', { size: 24, style: { color: colors.danger(), marginRight: '1rem' } }),
                 clusterError || 'Error launching notebook.'
               ])],
               [isCreating, () => 'Creating notebook runtime environment. You can navigate away and return in 5-10 minutes.'],
@@ -300,7 +300,7 @@ class NotebookEditor extends Component {
           ]) :
           h(ReadOnlyMessage, { cluster, workspace, openCreate: () => this.setState({ createOpen: true }) }),
         isRunning ?
-          div({ style: { color: colors.gray[2], fontSize: 14, fontWeight: 'bold', padding: '0 0 1rem 2rem' } }, ['Almost ready...']) :
+          div({ style: { color: colors.dark(0.7), fontSize: 14, fontWeight: 'bold', padding: '0 0 1rem 2rem' } }, ['Almost ready...']) :
           h(NotebookPreviewFrame, this.props),
         createOpen && h(NewClusterModal, {
           namespace, currentCluster: cluster,

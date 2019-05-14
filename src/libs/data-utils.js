@@ -20,10 +20,10 @@ import { Component } from 'src/libs/wrapped-components'
 
 
 const warningBoxStyle = {
-  border: `1px solid ${colors.orange[1]}`,
-  backgroundColor: colors.orange[4],
+  border: `1px solid ${colors.warning(0.85)}`,
+  backgroundColor: colors.warning(0.4),
   padding: '1rem 1.25rem',
-  color: colors.orange[0], fontWeight: 'bold', fontSize: 12
+  color: colors.warning(), fontWeight: 'bold', fontSize: 12
 }
 
 export const renderDataCell = (data, namespace) => {
@@ -34,7 +34,7 @@ export const renderDataCell = (data, namespace) => {
 
   return _.isObject(data) ?
     data.items.map((v, i) => h(Fragment, { key: i }, [
-      renderCell(v.toString()), i < (data.items.length - 1) && div({ style: { marginRight: '0.5rem', color: colors.gray[1] } }, ',')
+      renderCell(v.toString()), i < (data.items.length - 1) && div({ style: { marginRight: '0.5rem', color: colors.dark(0.85) } }, ',')
     ])) :
     renderCell(data && data.toString())
 }
@@ -297,11 +297,11 @@ export const EntityUploader = ajaxCaller(class EntityUploader extends Component 
             'Uploading another load file for the same type may overwrite some entries.'])
         ]),
         isInvalid && div({
-          style: { color: colors.orange[0], fontWeight: 'bold', fontSize: 12, marginBottom: '0.5rem' }
+          style: { color: colors.warning(), fontWeight: 'bold', fontSize: 12, marginBottom: '0.5rem' }
         }, [isInvalid === 'file' ? 'Only .tsv files can be uploaded.' : 'File does not start with entity or membership definition.']),
         inputLabel('Selected File'),
         div({ style: { marginLeft: '0.5rem' } }, [
-          (file && file.name) || div({ style: { color: colors.gray[2] } }, 'None')
+          (file && file.name) || div({ style: { color: colors.dark(0.7) } }, 'None')
         ]),
         file && supportsFireCloudDataModel(newEntityType) && div([
           h(LabeledCheckbox, {
@@ -319,7 +319,7 @@ export const EntityUploader = ajaxCaller(class EntityUploader extends Component 
           style: {
             ...Style.elements.card.container, flex: 1,
             margin: '0.5rem 0',
-            backgroundColor: dragging ? colors.green[6] : colors.gray[6], border: `1px dashed ${colors.gray[2]}`, boxShadow: 'none'
+            backgroundColor: dragging ? colors.primary(0.2) : colors.dark(0.1), border: `1px dashed ${colors.dark(0.7)}`, boxShadow: 'none'
           },
           onClick: () => this.uploader.current.open()
         }, [

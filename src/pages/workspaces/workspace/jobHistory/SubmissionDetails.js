@@ -150,7 +150,7 @@ const SubmissionDetails = _.flow(
                 h(TooltipTrigger, {
                   content: 'This configuration was updated or deleted since this submission ran.'
                 }, [
-                  icon('ban', { size: 16, style: { color: colors.orange[0], marginLeft: '0.3rem' } })
+                  icon('ban', { size: 16, style: { color: colors.warning(), marginLeft: '0.3rem' } })
                 ])
               ])]],
             () => [`${workflowNamespace}/${workflowName}`]
@@ -170,7 +170,7 @@ const SubmissionDetails = _.flow(
     ]),
     div({ style: { margin: '1rem 0', display: 'flex', alignItems: 'center' } }, [
       h(DelayedSearchInput, {
-        style: { marginRight: '2rem', flexBasis: 300, borderColor: colors.gray[3] },
+        style: { marginRight: '2rem', flexBasis: 300, borderColor: colors.dark(0.55) },
         placeholder: 'Search',
         onChange: setTextFilter,
         defaultValue: textFilter

@@ -25,8 +25,8 @@ const styles = {
     flex: 'none',
     width: params.buttonWidth, height: params.buttonHeight,
     borderRadius: params.buttonHeight / 2, borderWidth: 2, borderStyle: 'solid',
-    borderColor: isActive ? colors.green[0] : colors.gray[3],
-    backgroundColor: isActive ? colors.green[1] : colors.gray[4],
+    borderColor: isActive ? colors.primary() : colors.dark(0.55),
+    backgroundColor: isActive ? colors.primary(0.8) : colors.dark(0.4),
     color: 'white',
     padding: '0 0.5rem 0 1.5rem'
   }),
@@ -40,13 +40,13 @@ const els = {
     style: {
       width: params.dotSize, height: params.dotSize, borderRadius: '100%',
       margin: `${(params.buttonHeight - params.dotSize) / 2}px ${params.dotSpace}px 0 0`,
-      backgroundColor: isActive ? colors.green[0] : colors.gray[3]
+      backgroundColor: isActive ? colors.primary() : colors.dark(0.55)
     }
   }),
   selectionUnderline: div({
     style: {
       margin: '8px auto 0', width: params.buttonWidth - params.buttonHeight,
-      border: `4px solid ${colors.green[0]}`, borderRadius: 4
+      border: `4px solid ${colors.primary()}`, borderRadius: 4
     }
   })
 }

@@ -21,7 +21,7 @@ const styles = {
   suggestionContainer: {
     display: 'flex', alignItems: 'center',
     padding: '0.5rem 1rem',
-    borderBottom: `1px solid ${colors.gray[4]}`
+    borderBottom: `1px solid ${colors.dark(0.4)}`
   }
 }
 
@@ -132,7 +132,7 @@ export const NewUserModal = ajaxCaller(class NewUserModal extends Component {
             !canAdd(suggestion) && h(TooltipTrigger, {
               content: 'Not a valid email address'
             }, [
-              icon('warning-standard', { style: { color: colors.red[0], marginRight: '0.5rem' } })
+              icon('warning-standard', { style: { color: colors.danger(), marginRight: '0.5rem' } })
             ]),
             suggestion
           ])
@@ -159,7 +159,7 @@ export const NewUserModal = ajaxCaller(class NewUserModal extends Component {
         label({ style: { margin: '0 2rem 0 0.25rem' } }, [`Can manage users (${adminLabel})`])
       ]),
       footer && div({ style: { marginTop: '1rem' } }, [footer]),
-      submitError && div({ style: { marginTop: '0.5rem', textAlign: 'right', color: colors.red[0] } }, [submitError]),
+      submitError && div({ style: { marginTop: '0.5rem', textAlign: 'right', color: colors.danger() } }, [submitError]),
       submitting && spinnerOverlay
     ])
   }

@@ -46,7 +46,7 @@ const styles = {
     flex: 1, display: 'flex', flexDirection: 'column'
   },
   dataTypeHeading: {
-    fontWeight: 500, color: colors.gray[0]
+    fontWeight: 500, color: colors.dark()
   }
 }
 
@@ -156,7 +156,7 @@ const LocalVariablesContent = ajaxCaller(class LocalVariablesContent extends Com
       disabled: !!Utils.editWorkspaceError(workspace),
       disableClick: true,
       style: { flex: 1, display: 'flex', flexDirection: 'column' },
-      activeStyle: { backgroundColor: colors.green[6], cursor: 'copy' },
+      activeStyle: { backgroundColor: colors.primary(0.2), cursor: 'copy' },
       ref: this.uploader,
       onDropAccepted: upload
     }, [
@@ -596,8 +596,8 @@ const BucketContent = ajaxCaller(class BucketContent extends Component {
       h(Dropzone, {
         disabled: !!Utils.editWorkspaceError(workspace),
         disableClick: true,
-        style: { flexGrow: 1, backgroundColor: 'white', border: `1px solid ${colors.gray[3]}`, padding: '1rem' },
-        activeStyle: { backgroundColor: colors.green[6], cursor: 'copy' },
+        style: { flexGrow: 1, backgroundColor: 'white', border: `1px solid ${colors.dark(0.55)}`, padding: '1rem' },
+        activeStyle: { backgroundColor: colors.primary(0.2), cursor: 'copy' },
         ref: this.uploader,
         onDropAccepted: files => this.uploadFiles(files)
       }, [
@@ -614,7 +614,7 @@ const BucketContent = ajaxCaller(class BucketContent extends Component {
             }, _.range(0, prefixParts.length))
           ])
         ]),
-        div({ style: { margin: '1rem -1rem 1rem -1rem', borderBottom: `1px solid ${colors.gray[5]}` } }),
+        div({ style: { margin: '1rem -1rem 1rem -1rem', borderBottom: `1px solid ${colors.dark(0.25)}` } }),
         h(SimpleTable, {
           columns: [
             { size: { basis: 24, grow: 0 }, key: 'button' },
@@ -802,7 +802,7 @@ const WorkspaceData = _.flow(
                 }, [
                   icon('minus-circle', {
                     size: 16,
-                    style: { color: colors.green[0] }
+                    style: { color: colors.primary() }
                   })
                 ])
               ])
