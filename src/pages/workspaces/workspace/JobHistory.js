@@ -216,7 +216,7 @@ const JobHistory = _.flow(
               },
               {
                 size: { basis: 220, grow: 0 },
-                headerRenderer: () => h(HeaderCell, ['Controls']),
+                headerRenderer: () => h(HeaderCell, ['Actions']),
                 cellRenderer: ({ rowIndex }) => {
                   const {
                     methodConfigurationNamespace, methodConfigurationName, submissionId, workflowStatuses,
