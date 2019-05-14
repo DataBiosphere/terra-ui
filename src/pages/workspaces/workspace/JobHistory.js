@@ -215,7 +215,7 @@ const JobHistory = _.flow(
                 }
               },
               {
-                size: { basis: 215, grow: 0 },
+                size: { basis: 220, grow: 0 },
                 headerRenderer: () => h(HeaderCell, ['Controls']),
                 cellRenderer: ({ rowIndex }) => {
                   const {
@@ -236,7 +236,7 @@ const JobHistory = _.flow(
                         configName: methodConfigurationName,
                         onDone: () => this.refresh()
                       })
-                    }, ['Re-launch failures'])
+                    }, ['Relaunch failures'])
                   ])
                 }
               },
