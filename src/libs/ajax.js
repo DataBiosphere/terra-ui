@@ -190,8 +190,9 @@ const User = signal => ({
     } catch (error) {
       if (error.status === 403 || error.status === 404) {
         return false
+      } else {
+        throw error
       }
-      throw error
     }
   },
 

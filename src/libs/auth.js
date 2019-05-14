@@ -136,8 +136,9 @@ authStore.subscribe(withErrorReporting('Error checking registration', async (sta
     } catch (error) {
       if (error.status === 404) {
         return 'unregistered'
+      } else {
+        throw error
       }
-      throw error
     }
   }
   if (!oldState.isSignedIn && state.isSignedIn) {
