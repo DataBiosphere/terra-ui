@@ -21,7 +21,7 @@ const getMessages = () => {
       'isWarning': false,
       'enabledLink': {
         'label': 'Learn more',
-        'url': 'https://support.terra.bio/hc/en-us/articles/360022704371-Getting-started-with-Terra#free-credits-signup'
+        'url': 'https://support.terra.bio/hc/en-us/articles/360027940952-Free-Credits-FAQs'
       },
       'button': {
         'label': 'Start trial',
@@ -34,7 +34,7 @@ const getMessages = () => {
       'isWarning': false,
       'button': {
         'label': 'Learn More',
-        'url': 'https://support.terra.bio/hc/en-us/articles/360022704371-Getting-started-with-Terra#free-credits-signup',
+        'url': 'https://support.terra.bio/hc/en-us/articles/360027940952-Free-Credits-FAQs',
         'isExternal': true
       }
     },
@@ -44,7 +44,7 @@ const getMessages = () => {
       'isWarning': true,
       'button': {
         'label': 'Learn more',
-        'url': 'https://support.terra.bio/hc/en-us/articles/360026182251-Billing-Projects-Google-Billing-Accounts-and-Free-Credits#free-credits',
+        'url': 'https://support.terra.bio/hc/en-us/articles/360027940952-Free-Credits-FAQs',
         'isExternal': true
       }
     }
