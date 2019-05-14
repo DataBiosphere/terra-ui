@@ -224,7 +224,7 @@ const JobHistory = _.flow(
                         icon('times-circle', { size: 20, style: { color: colors.green[0], marginLeft: '0.5rem' } })
                       ])
                     ]),
-                    isTerminal(status) && workflowStatuses['Failed'] &&
+                    isTerminal(status) && (workflowStatuses['Failed'] || workflowStatuses['Aborted']) &&
                     submissionEntity && h(TooltipTrigger, {
                       content: 'Re-run failures'
                     }, [

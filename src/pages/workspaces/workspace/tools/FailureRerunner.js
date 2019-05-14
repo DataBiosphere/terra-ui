@@ -46,7 +46,7 @@ export const rerunFailures = async ({ namespace, name, submissionId, configNames
     ])
 
     const failedEntities = _.flow(
-      _.filter({ status: 'Failed' }),
+      _.filter(v => { return (v.status === 'Aborted' || v.status === 'Failed') }),
       _.map('workflowEntity')
     )(workflows)
 
