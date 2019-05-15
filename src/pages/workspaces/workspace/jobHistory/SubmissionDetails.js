@@ -201,9 +201,10 @@ const SubmissionDetails = _.flow(
             size: { basis: 75, grow: 0 },
             headerRenderer: () => {},
             cellRenderer: ({ rowIndex }) => {
-              return link({
+              const { workflowId } = filteredWorkflows[rowIndex]
+              return workflowId && link({
                 ...Utils.newTabLinkProps,
-                href: `${getConfig().jobManagerUrlRoot}/${filteredWorkflows[rowIndex].workflowId}`,
+                href: `${getConfig().jobManagerUrlRoot}/${workflowId}`,
                 style: { flexGrow: 1, textAlign: 'center' }
               }, ['View'])
             }
