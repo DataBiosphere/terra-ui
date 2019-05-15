@@ -181,7 +181,6 @@ const getUpdateIntervalMs = (status, isUpdating) => {
       } else {
         return 120000
       }
-      //intentional fallthrough
     default:
       return 120000
   }
@@ -259,10 +258,13 @@ export class NewClusterModal extends PureComponent {
         'workerDiskSize',
         'numberOfWorkerLocalSSDs'
       ]
-      const shouldRecreateDueToUpdateNotSupporting = nonUpdateableFields
-        .map(field => {
-          return currMachineConfig[field] !== newMachineConfig[field]
-        }).some(isUpdated => isUpdated)
+
+      let shouldRecreateDueToUpdateNotSupporting = nonUpdateableFields.map(field => {
+        return currMachineConfig[field] !== newMachineConfig[field]
+      }).some(isUpdated => isUpdated)
+
+      //This condition isn't valid if there aren't any workers
+      shouldRecreateDueToUpdateNotSupporting = currMachineConfig.numberOfWorkers < 0 && shouldRecreateDueToUpdateNotSupporting
 
       return shouldRecreateDueToUpdateNotSupporting || shouldRecreateToAddWorkers || shouldRecreateToRemoveWorkers
     }
@@ -412,12 +414,12 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
     }
 
     refreshClusters = async () => {
-      this.props.refreshClusters().then(() => {
-        if (this.state.updatingStatus) {
-          this.handleUpdate()
-        }
-        this.resetUpdateInterval()
-      })
+      await this.props.refreshClusters()
+
+      if (this.state.updatingStatus) {
+        this.handleUpdate()
+      }
+      this.resetUpdateInterval()
     }
 
     handleUpdate() {
@@ -430,8 +432,8 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
     }
 
     triggerUpdateNotification() {
-      notify('info', 'Resources changed', {
-        message: 'Your cluster update request has completed successfully! Updating workers can take a bit of time after the request goes through.',
+      notify('info', 'Runtime Updated', {
+        message: 'Your runtime update request has completed successfully! Updating workers can take a bit of time after the request goes through.',
         timeout: 30000
       })
     }
@@ -447,7 +449,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
           machineConfig: updatedConfig
         }).then(() => {
           if (this.state.updatingStatus === 'Updating' && status === 'Stopped') {
-            this.setState({ updatingStatus: false, updatedConfig: {} })
+            this.setState({ updatingStatus: false, updatedConfig: {}, pendingNav: false })
             this.startCluster(() => this.triggerUpdateNotification())
           } else {
             this.setState({ updatedConfig: {} })
@@ -577,31 +579,6 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
       ])
     }
 
-    renderUpdateForm() {
-      const { busy } = this.state
-      return div({ style: { padding: '1rem', width: 300 } }, [
-        div([
-          'This update will cause a stop of your runtime. Changes you make during this will not be autosaved until it is automatically restarted. YOU MAY NOT NAVIGATE AWAY DURING THIS UPDATE. Would you like to proceed?'
-        ]),
-        div({ style: styles.row }, [
-          div({ style: { marginLeft: 'auto' } }, [
-            busy && icon('loadingSpinner')
-          ]),
-          buttonSecondary({
-            style: { marginLeft: '1rem', marginRight: '1rem' },
-            disabled: busy,
-            onClick: () => this.setState({ shouldConfirmUpdate: false, updatedConfig: {}, busy: false })
-          }, 'Cancel'),
-          buttonPrimary({
-            disabled: busy,
-            onClick:
-                        () => this.setState({ shouldConfirmUpdate: false, updatingStatus: 'Stopping' },
-                          () => this.stopCluster(false))
-          }, 'Apply')
-        ])
-      ])
-    }
-
     render() {
       const { namespace, name, clusters, canCompute } = this.props
       const { busy, open, deleting, pendingNav } = this.state
@@ -700,8 +677,8 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
         ]),
         this.state.shouldConfirmUpdate &&
             h(Modal, {
-              title: 'This type of update requires us to stop then restart your runtime, which will take a couple of minutes. Installed libraries, packages and output files will be preserved across the update. During this time, changes you make to your notebook will not be autosaved until your runtime restarts. \nPLEASE DO NOT NAVIGATE AWAY DURING THIS UPDATE.\n Would you like to proceed?',
-              okButton: () => this.setState({ shouldConfirmUpdate: false, updatingStatus: 'Stopping' },
+              title: 'Update runtime environment?',
+              okButton: () => this.setState({ shouldConfirmUpdate: false, updatingStatus: 'Stopping', pendingNav: true },
                 () => this.stopCluster(false)
               ),
               onDismiss: () => this.setState({
@@ -709,7 +686,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
                 updatedConfig: {},
                 busy: false
               })
-            }),
+            }, ['Updating the machine type (e.g. CPUs or Memory) will take a couple of minutes.', ' Would you like to proceed?']),
         deleting && h(Modal, {
           title: 'Delete notebook runtime?',
           onDismiss: () => this.setState({ deleting: false }),
