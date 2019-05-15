@@ -17,7 +17,7 @@ const styles = {
 const getStrings = v => {
   return Utils.cond(
     [_.isString(v), () => [v]],
-    [v.items, () => _.map(getStrings, v.items)],
+    [v && v.items, () => _.map(getStrings, v.items)],
     () => []
   )
 }
