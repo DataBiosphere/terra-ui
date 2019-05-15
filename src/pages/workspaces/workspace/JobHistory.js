@@ -3,8 +3,7 @@ import { Fragment } from 'react'
 import { div, h, span, table, tbody, td, tr } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { Clickable, link, spinnerOverlay } from 'src/components/common'
-import { icon } from 'src/components/icons'
+import { buttonPrimary, Clickable, link, spinnerOverlay } from 'src/components/common'
 import { DelayedSearchInput } from 'src/components/input'
 import { collapseStatus, failedIcon, runningIcon, submittedIcon, successIcon } from 'src/components/job-common'
 import Modal from 'src/components/Modal'
@@ -198,7 +197,7 @@ const JobHistory = _.flow(
                 }
               },
               {
-                size: { basis: 175, grow: 0 },
+                size: { basis: 170, grow: 0 },
                 headerRenderer: () => h(HeaderCell, ['No. of Workflows']),
                 cellRenderer: ({ rowIndex }) => {
                   const { workflowStatuses } = filteredSubmissions[rowIndex]
@@ -209,38 +208,35 @@ const JobHistory = _.flow(
                 size: { basis: 150, grow: 0 },
                 headerRenderer: () => h(HeaderCell, ['Status']),
                 cellRenderer: ({ rowIndex }) => {
+                  const { workflowStatuses, status } = filteredSubmissions[rowIndex]
+                  return h(Fragment, [
+                    statusCell(workflowStatuses), _.keys(collapsedStatuses(workflowStatuses)).length === 1 && status
+                  ])
+                }
+              },
+              {
+                size: { min: 220, max: 220 },
+                headerRenderer: () => h(HeaderCell, ['Actions']),
+                cellRenderer: ({ rowIndex }) => {
                   const {
                     methodConfigurationNamespace, methodConfigurationName, submissionId, workflowStatuses,
                     status, submissionEntity
                   } = filteredSubmissions[rowIndex]
                   return h(Fragment, [
-                    statusCell(workflowStatuses), _.keys(collapsedStatuses(workflowStatuses)).length === 1 && status,
-                    (collapsedStatuses(workflowStatuses).running && status !== 'Aborting') && h(TooltipTrigger, {
-                      content: 'Abort all workflows'
-                    }, [
-                      h(Clickable, {
-                        onClick: () => this.setState({ aborting: submissionId })
-                      }, [
-                        icon('times-circle', { size: 20, style: { color: colors.green[0], marginLeft: '0.5rem' } })
-                      ])
-                    ]),
-                    isTerminal(status) && workflowStatuses['Failed'] &&
-                    submissionEntity && h(TooltipTrigger, {
-                      content: 'Re-run failures'
-                    }, [
-                      h(Clickable, {
-                        onClick: () => rerunFailures({
-                          namespace,
-                          name,
-                          submissionId,
-                          configNamespace: methodConfigurationNamespace,
-                          configName: methodConfigurationName,
-                          onDone: () => this.refresh()
-                        })
-                      }, [
-                        icon('refresh', { size: 18, style: { color: colors.green[0], marginLeft: '0.5rem' } })
-                      ])
-                    ])
+                    (collapsedStatuses(workflowStatuses).running && status !== 'Aborting') && buttonPrimary({
+                      onClick: () => this.setState({ aborting: submissionId })
+                    }, ['Abort workflows']),
+                    isTerminal(status) && (workflowStatuses['Failed'] || workflowStatuses['Aborted']) &&
+                    submissionEntity && buttonPrimary({
+                      onClick: () => rerunFailures({
+                        namespace,
+                        name,
+                        submissionId,
+                        configNamespace: methodConfigurationNamespace,
+                        configName: methodConfigurationName,
+                        onDone: () => this.refresh()
+                      })
+                    }, ['Relaunch failures'])
                   ])
                 }
               },
