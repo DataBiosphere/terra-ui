@@ -50,16 +50,26 @@ const TerminalLauncher = _.flow(
   }
 
   async componentDidMount() {
-    const { cluster: { clusterUrl } = {} } = this.props
-
     try {
       await this.startCluster()
-      await this.refreshCookie()
-
-      this.setState({ url: `${clusterUrl}/terminals/1` },
-        () => { findDOMNode(this).onload = function() { this.contentWindow.focus() } })
     } catch (error) {
       reportError('Error launching terminal', error)
+    }
+  }
+
+  async componentDidUpdate() {
+    const { cluster: { clusterUrl } = {} } = this.props
+    const { url } = this.state
+
+    if (clusterUrl && !url) {
+      try {
+        await this.refreshCookie()
+
+        this.setState({ url: `${clusterUrl}/terminals/1` },
+          () => { findDOMNode(this).onload = function() { this.contentWindow.focus() } })
+      } catch (error) {
+        reportError('Error launching terminal', error)
+      }
     }
   }
 

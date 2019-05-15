@@ -210,7 +210,7 @@ export default _.flow(
         div({ style: { marginTop: '0.5rem', fontWeight: 500, marginBottom: '0.5rem' } }, [
           'You have $300 in ',
           link({
-            href: 'https://support.terra.bio/hc/en-us/articles/360022704371-Getting-started-with-Terra#free-credits-signup',
+            href: 'https://support.terra.bio/hc/en-us/articles/360027940952-Free-Credits-FAQs',
             ...Utils.newTabLinkProps
           }, 'free credits'), ' available!'
         ])
