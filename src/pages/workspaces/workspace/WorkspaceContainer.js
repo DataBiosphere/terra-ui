@@ -57,7 +57,7 @@ class WorkspaceTabs extends PureComponent {
             tooltip: !isOwner && 'You must be an owner of this workspace or the underlying billing project',
             tooltipSide: 'left',
             onClick: () => onDelete()
-          }, [menuIcon('trash'), 'Delete'])
+          }, [menuIcon('trash'), 'Delete Workspace'])
         ]),
         side: 'bottom'
       }, [
