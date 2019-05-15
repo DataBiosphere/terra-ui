@@ -365,19 +365,29 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
     this.resetUpdateInterval()
   }
 
-  componentDidUpdate(prevProps) {
+  async componentDidUpdate(prevProps) {
+    const { ajax: { Jupyter } } = this.props
     const prevCluster = _.last(_.sortBy('createdDate', _.remove({ status: 'Deleting' }, prevProps.clusters))) || {}
-    const { status, jupyterUserScriptUri } = this.getCurrentCluster() || {}
+    const { status, jupyterUserScriptUri, googleProject, clusterName } = this.getCurrentCluster() || {}
+
     if (status === 'Error' && prevCluster.status !== 'Error') {
-      notify('error', 'Error creating cluster', {
-        message: h(Fragment, [
-          strong(['Failed action: ']), jupyterUserScriptUri,
-          h(Clickable, {
-            onClick: () => this.setState({ errorModalOpen: true }),
-            style: { marginTop: '1rem', textDecoration: 'underline', fontWeight: 'bold' }
-          }, ['SEE LOG INFO'])
-        ])
-      })
+      const { clusterErrors } = await Jupyter.cluster(googleProject, clusterName).details()
+      this.setState({ clusterErrors })
+      if (_.some({ errorMessage: 'Userscript failed.' }, clusterErrors)) {
+        notify('error', 'Error creating cluster', {
+          message: h(Fragment, [
+            strong(['Failed action: ']), jupyterUserScriptUri,
+            h(Clickable, {
+              onClick: () => this.setState({ errorModalOpen: true }),
+              style: {
+                marginTop: '1rem',
+                textDecoration: 'underline',
+                fontWeight: 'bold'
+              }
+            }, ['SEE LOG INFO'])
+          ])
+        })
+      }
     }
   }
 
@@ -485,7 +495,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
 
   render() {
     const { namespace, name, clusters, canCompute } = this.props
-    const { busy, open, deleting, pendingNav, errorModalOpen } = this.state
+    const { busy, open, deleting, pendingNav, errorModalOpen, clusterErrors } = this.state
     if (!clusters) {
       return null
     }
@@ -513,13 +523,24 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
         case 'Creating':
           return h(ClusterIcon, { shape: 'sync', disabled: true })
         case 'Error':
-          return h(ClusterIcon, {
-            shape: 'warning-standard',
-            style: { color: colors.red[1] },
-            onClick: () => this.setState({ errorModalOpen: true }),
-            disabled: busy || !canCompute,
-            tooltip: canCompute ? 'View error logs' : noCompute
-          })
+          // eslint-disable-next-line
+          if (clusterErrors && _.some({ errorMessage: 'Userscript failed.' }, clusterErrors)) {
+            return h(ClusterIcon, {
+              shape: 'warning-standard',
+              style: { color: colors.red[1] },
+              onClick: () => this.setState({ errorModalOpen: true }),
+              disabled: busy || !canCompute,
+              tooltip: canCompute ? 'View error logs' : noCompute
+            })
+          }
+          else {
+            return h(ClusterIcon, {
+              shape: 'warning-standard',
+              style: { color: colors.red[1] },
+              disabled: busy || !canCompute,
+              tooltip: canCompute ? 'Cluster Errored. Please restart.' : noCompute
+            })
+          }
         default:
           return h(ClusterIcon, {
             shape: 'play',

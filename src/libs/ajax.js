@@ -826,6 +826,10 @@ const Jupyter = signal => ({
     const root = `api/cluster/${project}/${name}`
 
     return {
+      details: async () => {
+        const res = await fetchLeo(root, _.mergeAll([authOpts(), { signal }, appIdentifier]))
+        return res.json()
+      },
       create: async clusterOptions => {
         const body = _.merge(clusterOptions, {
           labels: { saturnAutoCreated: 'true', saturnVersion: version },
