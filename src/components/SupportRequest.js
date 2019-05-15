@@ -223,19 +223,16 @@ const SupportRequest = _.flow(
     contactUsActive.set(false)
   }
 
-  async submit() {
+  submit = Utils.withBusyState(v => this.setState({ submitting: v }), async () => {
     const currUrl = window.location.href
-
     try {
-      this.setState({ submitting: true })
       await Ajax().User.createSupportRequest({ ...this.getRequest(), currUrl })
       SupportRequest.dismiss()
       notify('success', 'Message sent successfully', { timeout: 3000 })
     } catch (error) {
-      this.setState({ submitting: false })
       reportError('Error submitting support request', error)
     }
-  }
+  })
 })
 
 export default SupportRequest

@@ -5,7 +5,9 @@ import ClusterManager from 'src/components/ClusterManager'
 import { buttonPrimary, Clickable, comingSoon, link, MenuButton, menuIcon, tabBar } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
+import { clearNotification, notify } from 'src/components/Notifications'
 import PopupTrigger from 'src/components/PopupTrigger'
+import { contactUsActive } from 'src/components/SupportRequest'
 import TopBar from 'src/components/TopBar'
 import { Ajax, useCancellation } from 'src/libs/ajax'
 import { getUser } from 'src/libs/auth'
@@ -55,7 +57,7 @@ class WorkspaceTabs extends PureComponent {
             tooltip: !isOwner && 'You must be an owner of this workspace or the underlying billing project',
             tooltipSide: 'left',
             onClick: () => onDelete()
-          }, [menuIcon('trash'), 'Delete'])
+          }, [menuIcon('trash'), 'Delete Workspace'])
         ]),
         side: 'bottom'
       }, [
@@ -151,6 +153,38 @@ const WorkspaceAccessError = () => {
   ])
 }
 
+const checkBucketAccess = withErrorReporting('Error checking bucket access', async (signal, namespace, name) => {
+  try {
+    await Ajax(signal).Workspaces.workspace(namespace, name).checkBucketReadAccess()
+    return true
+  } catch (error) {
+    if (error.status === 403) {
+      const notificationId = 'bucket-access-unavailable'
+
+      notify('error', div([
+        'The Google Bucket associated with this workspace is currently unavailable. This should be resolved shortly.',
+        div({ style: { margin: '0.5rem' } }),
+        'If this persists for more than an hour, please ',
+        link({
+          onClick: () => {
+            contactUsActive.set(true)
+            clearNotification(notificationId)
+          },
+          style: { color: 'white' },
+          hover: {
+            color: 'white',
+            textDecoration: 'underline'
+          }
+        }, ['contact us', icon('pop-out', { size: 10, hover: { textDecoration: 'underline' }, style: { marginLeft: '0.25rem' }  })]),
+        ' for assistance.'
+      ]), { id: notificationId })
+    } else {
+      throw error
+    }
+    return false
+  }
+})
+
 
 export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, showTabBar = true, queryparams }) => WrappedComponent => {
   const Wrapper = props => {
@@ -174,7 +208,8 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
     )(async () => {
       try {
         const workspace = await Ajax(signal).Workspaces.workspace(namespace, name).details()
-        workspaceStore.set(workspace)
+        const res = await checkBucketAccess(signal, namespace, name)
+        workspaceStore.set({ hasBucketAccess: res, ...workspace })
       } catch (error) {
         if (error.status === 404) {
           setAccessError(true)

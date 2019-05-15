@@ -33,14 +33,8 @@ const viewToggleButtons = (listView, setListView) => {
 }
 
 
-const toggleStateAtom = Utils.atom(JSON.parse(sessionStorage['toggleState'] || '{}'))
-toggleStateAtom.subscribe(v => {
-  if (!v) {
-    sessionStorage.removeItem('toggleState')
-  } else {
-    sessionStorage['toggleState'] = JSON.stringify(v)
-  }
-})
+const toggleStateAtom = Utils.atom({})
+Utils.syncAtomToSessionStorage(toggleStateAtom, 'toggleState')
 
 
 const togglesListView = key => {

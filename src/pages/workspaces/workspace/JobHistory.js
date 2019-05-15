@@ -226,7 +226,7 @@ const JobHistory = _.flow(
                     (collapsedStatuses(workflowStatuses).running && status !== 'Aborting') && buttonPrimary({
                       onClick: () => this.setState({ aborting: submissionId })
                     }, ['Abort workflows']),
-                    isTerminal(status) && workflowStatuses['Failed'] &&
+                    isTerminal(status) && (workflowStatuses['Failed'] || workflowStatuses['Aborted']) &&
                     submissionEntity && buttonPrimary({
                       onClick: () => rerunFailures({
                         namespace,
