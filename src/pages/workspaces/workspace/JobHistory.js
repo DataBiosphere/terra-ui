@@ -215,7 +215,7 @@ const JobHistory = _.flow(
                 }
               },
               {
-                size: { basis: 220, grow: 0 },
+                size: { min: 220, max: 220 },
                 headerRenderer: () => h(HeaderCell, ['Actions']),
                 cellRenderer: ({ rowIndex }) => {
                   const {
