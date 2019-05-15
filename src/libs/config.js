@@ -9,7 +9,7 @@ Utils.syncAtomToSessionStorage(configOverridesStore, 'config-overrides')
 window.configOverridesStore = configOverridesStore
 
 export const getConfig = () => {
-  console.assert(loadedConfigStore.current, 'Called getConfig before iniitialization')
+  console.assert(loadedConfigStore.current, 'Called getConfig before initialization')
   return _.merge(loadedConfigStore.current, configOverridesStore.get())
 }
 
