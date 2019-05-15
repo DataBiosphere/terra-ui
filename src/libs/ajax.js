@@ -8,38 +8,27 @@ import { getConfig } from 'src/libs/config'
 import * as Utils from 'src/libs/utils'
 
 
-let mockResponse
-let noConnection
-
-const consoleStyle = 'font-weight: bold; color: darkBlue'
-
-window.saturnMock = {
-  currently: () => {
-    if (noConnection || mockResponse) {
-      if (noConnection) { console.info('%cSimulating no connection', consoleStyle) }
-      if (mockResponse) {
-        console.info('%cSimulating response:', consoleStyle)
-        console.info(mockResponse())
-      }
+window.ajaxOverrideUtils = {
+  mapJsonBody: _.curry(async (fn, res) => {
+    return new Response(new Blob([JSON.stringify(fn(await res.json()))]), res)
+  }),
+  makeError: _.curry(async ({ status, frequency = 1 }, res) => {
+    if (Math.random() < frequency) {
+      return new Response('Instrumented error', { status })
     } else {
-      console.info('%cNot mocking responses', consoleStyle)
+      return res
     }
-  },
-  malformed: () => {
-    mockResponse = () => new Response('{malformed', { status: 200 })
-  },
-  noConnection: () => {
-    noConnection = true
-  },
-  off: () => {
-    mockResponse = undefined
-    noConnection = undefined
-  },
-  status: code => {
-    mockResponse = () => new Response(new Blob([`Body of simulated ${code} response`]),
-      { status: code })
-  }
+  })
 }
+
+/*
+ * Modifies ajax responses for testing purposes.
+ * Can be set to an array of objects of the form { fn, filter }.
+ * The fn should take a Response and return a Promise that resolves to a new Response. (See ajaxOverrideUtils)
+ * If present, filter should be a RegExp that is matched against the url to target specific requests.
+ */
+const ajaxOverridesStore = Utils.atom()
+window.ajaxOverridesStore = ajaxOverridesStore
 
 const authOpts = (token = getUser().token) => ({ headers: { Authorization: `Bearer ${token}` } })
 const jsonBody = body => ({ body: JSON.stringify(body), headers: { 'Content-Type': 'application/json' } })
@@ -47,31 +36,37 @@ const appIdentifier = { headers: { 'X-App-ID': 'Saturn' } }
 const addAppIdentifier = _.merge(appIdentifier)
 const tosData = { appid: 'Saturn', tosversion: 4 }
 
-const instrumentedFetch = (url, options) => {
-  if (noConnection) {
-    console.info('%cSimulating no connection', consoleStyle)
-    return Promise.reject(new TypeError('Simulating no connection'))
-  } else if (mockResponse) {
-    console.info('%cSimulating response:', consoleStyle, mockResponse())
-    return Promise.resolve(mockResponse())
-  }
+const withInstrumentation = wrappedFetch => (...args) => {
+  return _.flow(
+    _.filter(({ filter }) => args[0].match(filter)),
+    _.reduce(async (rn, { fn }) => fn(await rn), wrappedFetch(...args))
+  )(ajaxOverridesStore.get())
+}
 
-  return new Promise((resolve, reject) => {
-    fetch(url, options).then(resolve, error => {
+const withCancellation = wrappedFetch => (...args) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      resolve(await wrappedFetch(...args))
+    } catch (error) {
       if (error instanceof DOMException && error.name === 'AbortError') {
         // no-op, this is from an aborted call
       } else {
         reject(error)
       }
-    })
+    }
   })
 }
 
-
-export const fetchOk = async (url, options) => {
-  const res = await instrumentedFetch(url, options)
-  return res.ok ? res : Promise.reject(res)
+const withErrorRejection = wrappedFetch => async (...args) => {
+  const res = await wrappedFetch(...args)
+  if (res.ok) {
+    return res
+  } else {
+    throw res
+  }
 }
+
+const fetchOk = _.flow(withInstrumentation, withCancellation, withErrorRejection)(fetch)
 
 
 const fetchSam = async (path, options) => {
