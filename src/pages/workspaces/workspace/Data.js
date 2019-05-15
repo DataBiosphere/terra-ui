@@ -802,7 +802,7 @@ const WorkspaceData = _.flow(
                 }, [
                   icon('minus-circle', {
                     size: 16,
-                    style: { color: colors.primary() }
+                    style: { color: colors.primary(1.2) }
                   })
                 ])
               ])

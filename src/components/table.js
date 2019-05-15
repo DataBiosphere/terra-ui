@@ -141,7 +141,7 @@ const styles = {
   columnSelector: {
     position: 'absolute', top: 0, right: 0, width: 48, height: 48,
     display: 'flex', justifyContent: 'center', alignItems: 'center',
-    color: colors.primary(), backgroundColor: colors.light(0.4),
+    color: colors.primary(1.2), backgroundColor: colors.light(0.4),
     border: `1px solid ${colors.dark(0.2)}`,
     borderRadius: 5
   },
@@ -422,7 +422,7 @@ export const Sortable = ({ sort, field, onSort, children }) => {
   }, [
     children,
     sort.field === field && div({
-      style: { color: colors.primary(), marginLeft: 'auto' }
+      style: { color: colors.primary(1.2), marginLeft: 'auto' }
     }, [
       icon(sort.direction === 'asc' ? 'arrow down' : 'arrow')
     ])

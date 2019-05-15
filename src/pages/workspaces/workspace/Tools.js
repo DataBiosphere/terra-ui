@@ -101,7 +101,7 @@ const ToolCard = pure(({ listView, name, namespace, config, onCopy, onDelete, is
     h(Clickable, {
       onClick: e => e.stopPropagation(),
       style: {
-        cursor: 'pointer', color: colors.primary(), ...styles.innerLink
+        cursor: 'pointer', color: colors.primary(1.2), ...styles.innerLink
       },
       focus: 'hover',
       hover: { color: colors.primary(0.85) }
@@ -332,7 +332,7 @@ export const Tools = _.flow(
         h(Clickable, {
           disabled: !!Utils.editWorkspaceError(ws),
           tooltip: Utils.editWorkspaceError(ws),
-          style: { ...styles.card, ...styles.shortCard, color: colors.primary(), fontSize: 18, lineHeight: '22px' },
+          style: { ...styles.card, ...styles.shortCard, color: colors.primary(1.2), fontSize: 18, lineHeight: '22px' },
           onClick: () => this.setState({ findingTool: true })
         }, [
           'Find a Tool',

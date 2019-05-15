@@ -471,8 +471,7 @@ export default _.flow(
     return div({
       style: {
         ...styles.topBar,
-        background: `81px url(${headerLeftHexes}) no-repeat,
-    right url(${headerRightHexes}) no-repeat, ${colors.primary()}`
+        background: `81px url(${headerLeftHexes}) no-repeat, right url(${headerRightHexes}) no-repeat, ${colors.primary()}`
       }
     }, [
       icon('bars', {

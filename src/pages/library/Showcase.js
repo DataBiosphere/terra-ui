@@ -34,7 +34,7 @@ const makeCard = isGATK => ({ workspace: { namespace, name, attributes: { descri
     }
   }, [
     div({ style: { flex: 1, minWidth: 0, padding: '15px 20px' } }, [
-      div({ style: { color: colors.primary(), fontSize: 16, lineHeight: '20px', height: 40, marginBottom: 7 } }, [name]),
+      div({ style: { color: colors.primary(1.2), fontSize: 16, lineHeight: '20px', height: 40, marginBottom: 7 } }, [name]),
       div({ style: { lineHeight: '20px', height: 100, whiteSpace: 'pre-wrap', overflow: 'hidden' } }, [description])
     ]),
     div({

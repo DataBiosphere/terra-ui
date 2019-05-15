@@ -4,7 +4,6 @@ import { getAppName } from 'src/libs/logos'
 
 
 const ALL_COLORS = ['primary', 'secondary', 'accent', 'warning', 'danger', 'light', 'dark']
-const white = Color('white')
 
 const colorPalettes = {
   Terra: {
@@ -19,6 +18,6 @@ const colorPalettes = {
 }
 
 export default _.fromPairs(_.map(
-  color => [color, (intensity = 1) => Color(_.get([getAppName(), color], colorPalettes)).mix(white, 1 - intensity)],
+  color => [color, (intensity = 1) => Color(_.get([getAppName(), color], colorPalettes)).mix(Color('white'), 1 - intensity)],
   ALL_COLORS
 ))

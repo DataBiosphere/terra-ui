@@ -173,7 +173,7 @@ const SupportRequest = _.flow(
                 div({
                   style: { marginLeft: '1rem', paddingTop: '0.5rem' }
                 }, [
-                  'Successfully uploaded: ', span({ style: { color: colors.primary() } }, [attachmentName])
+                  'Successfully uploaded: ', span({ style: { color: colors.primary(1.2) } }, [attachmentName])
                 ])
               ]),
               linkButton({

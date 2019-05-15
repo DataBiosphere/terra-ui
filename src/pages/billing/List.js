@@ -40,10 +40,10 @@ const ProjectTab = ({ project: { projectName, role, creationStatus }, isActive }
     as: 'a',
     style: {
       ...styles.tab(isActive),
-      color: colors.primary()
+      color: colors.primary(1.2)
     },
     href: `${Nav.getLink('billing')}?${qs.stringify({ selectedName: projectName, type: 'project' })}`,
-    hover: isActive ? {} : { backgroundColor: colors.primary(0.2), color: colors.primary(0.8) }
+    hover: isActive ? {} : { backgroundColor: colors.primary(0.2), color: colors.primary() }
   }, [projectName, !projectReady && statusIcon]) : div({
     style: {
       ...styles.tab(false), color: colors.dark()

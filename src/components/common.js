@@ -38,11 +38,11 @@ export const Clickable = ({ as = 'div', disabled, tooltip, tooltipSide, onClick,
 const linkProps = ({ disabled, variant }) => ({
   as: 'a',
   style: {
-    color: disabled ? colors.dark(0.7) : colors.primary(variant === 'light' ? 0.3 : 1),
+    color: disabled ? colors.dark(0.7) : colors.primary(variant === 'light' ? 0.3 : 1.2),
     cursor: disabled ? 'not-allowed' : 'pointer',
     fontWeight: 500
   },
-  hover: disabled ? undefined : { color: colors.primary(variant === 'light' ? 0.1 : 0.8) }
+  hover: disabled ? undefined : { color: colors.primary(variant === 'light' ? 0.1 : 1) }
 })
 
 export const link = ({ onClick, href, disabled, variant, ...props }, children) => {
@@ -83,10 +83,10 @@ export const buttonSecondary = ({ disabled, ...props }, children) => {
     disabled,
     style: {
       ...styles.button,
-      color: disabled ? colors.dark(0.7) : colors.primary(),
+      color: disabled ? colors.dark(0.7) : colors.primary(1.2),
       cursor: disabled ? 'not-allowed' : 'pointer'
     },
-    hover: disabled ? undefined : { color: colors.primary(0.8) }
+    hover: disabled ? undefined : { color: colors.primary() }
   }, props), children)
 }
 
@@ -94,7 +94,7 @@ export const buttonOutline = ({ disabled, ...props }, children) => {
   return h(buttonPrimary, _.merge({
     style: {
       border: `1px solid ${disabled ? colors.dark(0.4) : colors.primary()}`,
-      color: colors.primary(),
+      color: colors.primary(1.2),
       backgroundColor: disabled ? colors.dark(0.25) : 'white'
     },
     hover: disabled ? undefined : { backgroundColor: colors.primary(0.2) }
@@ -236,7 +236,7 @@ export const Select = ({ value, options, id, ...props }) => {
     inputId: id,
     theme: base => _.merge(base, {
       colors: {
-        primary: colors.primary(),
+        primary: colors.primary(1.2),
         neutral20: colors.dark(0.55),
         neutral30: colors.dark(0.55)
       },
@@ -250,7 +250,7 @@ export const Select = ({ value, options, id, ...props }) => {
       singleValue: base => ({ ...base, color: colors.dark() }),
       option: (base, { isSelected, isFocused, isDisabled }) => _.merge(base, {
         backgroundColor: isSelected ? colors.light(0.4) : isFocused ? colors.dark(0.15) : undefined,
-        color: isSelected ? colors.primary() : isDisabled ? undefined : colors.dark(),
+        color: isSelected ? colors.primary(1.2) : isDisabled ? undefined : colors.dark(),
         ':active': { backgroundColor: isSelected ? colors.primary(0.55) : colors.primary(0.4) }
       }),
       clearIndicator: base => ({ ...base, paddingRight: 0 }),

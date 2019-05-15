@@ -67,7 +67,7 @@ const styles = {
   angle: {
     marginRight: '0.5rem',
     marginTop: '.1rem',
-    color: colors.primary()
+    color: colors.primary(1.2)
   },
   outputInfoLabel: {
     color: colors.dark()

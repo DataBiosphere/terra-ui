@@ -10,7 +10,7 @@ export const proportionalNumbers = { fontVariantNumeric: 'proportional-nums', fo
 
 export const elements = {
   card: {
-    title: { color: colors.primary(), fontSize: 16, overflow: 'hidden' },
+    title: { color: colors.primary(1.2), fontSize: 16, overflow: 'hidden' },
     container: {
       display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
       borderRadius: 5, padding: '1rem', wordWrap: 'break-word',
@@ -32,7 +32,7 @@ export const tabBar = {
   },
   tab: {
     minWidth: 140, flexGrow: 0, padding: '0 20px',
-    color: colors.primary(),
+    color: colors.primary(1.2),
     alignSelf: 'stretch', display: 'flex', justifyContent: 'center', alignItems: 'center'
   },
   active: {
@@ -41,7 +41,7 @@ export const tabBar = {
     fontWeight: 600
   },
   hover: {
-    backgroundColor: colors.primary(0.2), color: colors.primary(0.8)
+    backgroundColor: colors.primary(0.2), color: colors.primary()
   }
 }
 
@@ -55,7 +55,7 @@ export const cardList = {
     justifyContent: 'center',
     width: 180, height: 100,
     margin: '0.25rem 1rem 0 0',
-    color: colors.primary(), fontSize: 18, lineHeight: '22px'
+    color: colors.primary(1.2), fontSize: 18, lineHeight: '22px'
   },
   longCard: {
     ...elements.card.container,

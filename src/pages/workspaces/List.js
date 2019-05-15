@@ -52,7 +52,7 @@ const styles = {
   },
   shortCreateCard: {
     display: 'flex', flexDirection: 'column', justifyContent: 'center',
-    color: colors.primary(), fontSize: 20, fontWeight: 500, lineHeight: '28px'
+    color: colors.primary(1.2), fontSize: 20, fontWeight: 500, lineHeight: '28px'
   },
   longCard: {
     ...Style.elements.card.container,

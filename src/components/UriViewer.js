@@ -168,7 +168,7 @@ const UriViewer = ajaxCaller(class UriViewer extends Component {
                   style: { flexGrow: 1, fontWeight: 400, fontFamily: 'Menlo, monospace' }
                 }),
                 h(Clickable, {
-                  style: { margin: '0 1rem', color: colors.primary() },
+                  style: { margin: '0 1rem', color: colors.primary(1.2) },
                   tooltip: 'Copy to clipboard',
                   onClick: async () => {
                     try {

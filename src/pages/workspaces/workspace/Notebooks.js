@@ -106,7 +106,7 @@ class NotebookCard extends Component {
       h(Clickable, {
         onClick: e => e.preventDefault(),
         style: {
-          cursor: 'pointer', color: colors.primary()
+          cursor: 'pointer', color: colors.primary(1.2)
         },
         focus: 'hover',
         hover: { color: colors.primary(0.85) }
@@ -271,7 +271,7 @@ const Notebooks = _.flow(
           style: {
             ...Style.elements.card.container,
             flex: 1,
-            color: colors.primary()
+            color: colors.primary(1.2)
           },
           onClick: () => this.setState({ creating: true }),
           disabled: !canWrite,
