@@ -299,7 +299,7 @@ export const WorkspaceDashboard = _.flow(
             }, [tag, linkButton({
               tooltip: 'Remove tag',
               onClick: () => this.deleteTag(tag)
-            }, [icon('times-circle', { size: 20, style: { marginLeft: '0.5rem' } })])])
+            }, [span({ style: { margin: '0 0.25rem 0.25rem 0.5rem', color: 'black', fontWeight: 500 } }, ['x'])])])
           }, tagsList),
           busy && spinner({ style: { margin: '0 0 0 0.5rem' } })
         ]),
