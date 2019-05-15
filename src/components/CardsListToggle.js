@@ -12,29 +12,21 @@ const viewToggleStyles = {
   },
   toolbarButton: active => ({
     display: 'flex', justifyContent: 'center', alignItems: 'center',
-    border: `1px solid ${colors.primary()}`,
+    borderRadius: 3, border: `1px solid ${colors.primary()}`,
     height: '2.25rem', padding: '0 .75rem',
-    color: active ? 'white' : colors.primary(),
-    backgroundColor: active ? colors.primary() : 'white'
+    color: colors.primary(1.2),
+    backgroundColor: active ? colors.primary(0.2) : 'white'
   })
 }
 
 const viewToggleButtons = (listView, setListView) => {
   return div({ style: viewToggleStyles.toolbarContainer }, [
     h(Clickable, {
-      style: {
-        ...viewToggleStyles.toolbarButton(!listView),
-        marginLeft: 'auto',
-        borderRadius: '3px 0 0 3px'
-      },
+      style: { marginLeft: 'auto', ...viewToggleStyles.toolbarButton(!listView) },
       onClick: () => setListView(false)
     }, [icon('view-cards', { size: 24, style: { margin: '.3rem' } })]),
     h(Clickable, {
-      style: {
-        ...viewToggleStyles.toolbarButton(listView),
-        borderRadius: '0 3px 3px 0',
-        borderLeft: 'none'
-      },
+      style: { marginLeft: '1rem', ...viewToggleStyles.toolbarButton(listView) },
       onClick: () => setListView(true)
     }, [icon('view-list', { size: 24, style: { margin: '.3rem' } })])
   ])
