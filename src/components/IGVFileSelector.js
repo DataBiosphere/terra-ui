@@ -29,7 +29,7 @@ export class IGVFileSelector extends Component {
     super(props)
     this.state = {
       selectedFiles: _.fromPairs(_.map(v => [v, false], this.getIGVFileList())),
-      refGenome: 'hg19'
+      refGenome: 'hg38'
     }
   }
 
@@ -73,7 +73,7 @@ export class IGVFileSelector extends Component {
       okButton: buttonPrimary({
         disabled: this.buttonIsDisabled(),
         tooltip: this.buttonIsDisabled() ? `Select between 1 and ${MAX_CONCURRENT_IGV_FILES} files` : '',
-        onClick: () => onSuccess({selectedFiles: this.getSelectedFilesList(), refGenome: refGenome })
+        onClick: () => onSuccess({ selectedFiles: this.getSelectedFilesList(), refGenome })
       }, ['Done'])
     }, [
       div({ style: { marginBottom: '1rem', display: 'flex' } }, [

@@ -340,9 +340,11 @@ class EntitiesContent extends Component {
       selectedEntities: {},
       deletingEntities: false,
       refreshKey: 0,
-      igvFiles: undefined,
-      showIgvSelector: false,
-      igvRefGenome: ''
+      igvData: {
+        selectedFiles: undefined,
+        showIgvSelector: false,
+        igvRefGenome: ''
+      }
     }
     this.downloadForm = createRef()
   }
@@ -412,7 +414,7 @@ class EntitiesContent extends Component {
         style: { marginRight: '1rem' },
         disabled: _.isEmpty(selectedEntities),
         tooltip: 'Opens files of the selected data with IGV',
-        onClick: () => this.setState({ showIgvSelector: true })
+        onClick: () => this.setState({ igvData: { showIgvSelector: true } })
       }, [
         'Open with IGV'
       ])
@@ -457,10 +459,10 @@ class EntitiesContent extends Component {
       workspace, workspace: { workspace: { namespace, name }, workspaceSubmissionStats: { runningSubmissionsCount } },
       entityKey, entityMetadata, loadMetadata, firstRender
     } = this.props
-    const { selectedEntities, deletingEntities, copyingEntities, refreshKey, igvFiles, showIgvSelector, igvRefGenome } = this.state
+    const { selectedEntities, deletingEntities, copyingEntities, refreshKey, igvData } = this.state
 
     const { initialX, initialY } = firstRender ? StateHistory.get() : {}
-    return igvFiles ? h(IGVBrowser, { selectedFiles: igvFiles, refGenome: igvRefGenome, namespace }) : h(Fragment, [
+    return igvData.selectedFiles ? h(IGVBrowser, { selectedFiles: igvData.selectedFiles, refGenome: igvData.refGenome, namespace }) : h(Fragment, [
       h(DataTable, {
         persist: true, firstRender, refreshKey,
         entityType: entityKey, entityMetadata, workspaceId: { namespace, name },
@@ -508,9 +510,9 @@ class EntitiesContent extends Component {
         workspace,
         selectedEntities: _.keys(selectedEntities), selectedDataType: entityKey, runningSubmissionsCount
       }),
-      showIgvSelector && h(IGVFileSelector, {
-        onDismiss: () => this.setState({ showIgvSelector: false }),
-        onSuccess: igvData => this.setState({ showIgvSelector: false, igvFiles: igvData.selectedFiles, igvRefGenome: igvData.refGenome }),
+      igvData.showIgvSelector && h(IGVFileSelector, {
+        onDismiss: () => this.setState({ igvData: { showIgvSelector: false } }),
+        onSuccess: newIgvData => this.setState({ igvData: { showIgvSelector: false, ...newIgvData } }),
         selectedEntities
       })
     ])
