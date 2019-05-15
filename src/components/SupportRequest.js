@@ -236,7 +236,7 @@ const SupportRequest = _.flow(
         link({
           style: { fontWeight: 800, color: 'white' },
           hover: { color: 'white', textDecoration: 'underline' },
-          href: `mailto:terra-support@broadinstitute.zendesk.org?subject=${type}%3A%20${subject}&body=Original%20support%20request%3A%0A------------------------------------%0AContact email%3A%20${email}%0A%0A${description}%0A%0A------------------------------------%0AError%20reported%20from%20Zendesk%3A%0A%0A${error}`,
+          href: `mailto:terra-support@broadinstitute.zendesk.org?subject=${type}%3A%20${subject}&body=Original%20support%20request%3A%0A------------------------------------%0AContact email%3A%20${email}%0A%0A${description}%0A%0A------------------------------------%0AError%20reported%20from%20Zendesk%3A%0A%0A${JSON.stringify(error)}`,
           ...Utils.newTabLinkProps
         }, 'Click here to email support'), hasAttachment && ' and make sure to add your attachment to the email.']
       ))
