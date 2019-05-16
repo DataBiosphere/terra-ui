@@ -459,10 +459,10 @@ class EntitiesContent extends Component {
       workspace, workspace: { workspace: { namespace, name }, workspaceSubmissionStats: { runningSubmissionsCount } },
       entityKey, entityMetadata, loadMetadata, firstRender
     } = this.props
-    const { selectedEntities, deletingEntities, copyingEntities, refreshKey, igvData } = this.state
+    const { selectedEntities, deletingEntities, copyingEntities, refreshKey, igvData: { selectedFiles, refGenome, showIgvSelector } } = this.state
 
     const { initialX, initialY } = firstRender ? StateHistory.get() : {}
-    return igvData.selectedFiles ? h(IGVBrowser, { selectedFiles: igvData.selectedFiles, refGenome: igvData.refGenome, namespace }) : h(Fragment, [
+    return selectedFiles ? h(IGVBrowser, { selectedFiles, refGenome, namespace }) : h(Fragment, [
       h(DataTable, {
         persist: true, firstRender, refreshKey,
         entityType: entityKey, entityMetadata, workspaceId: { namespace, name },
@@ -510,7 +510,7 @@ class EntitiesContent extends Component {
         workspace,
         selectedEntities: _.keys(selectedEntities), selectedDataType: entityKey, runningSubmissionsCount
       }),
-      igvData.showIgvSelector && h(IGVFileSelector, {
+      showIgvSelector && h(IGVFileSelector, {
         onDismiss: () => this.setState({ igvData: { showIgvSelector: false } }),
         onSuccess: newIgvData => this.setState({ igvData: { showIgvSelector: false, ...newIgvData } }),
         selectedEntities
