@@ -101,6 +101,8 @@ export default class Router extends Component {
       Nav.history.replace(
         { search: qs.stringify(_.omit(['fcredir'], qs.parse(Nav.history.location.search, { ignoreQueryPrefix: true, plainObjects: true }))) })
     }
+
+    document.body.classList.add(getAppName())
   }
 
   // FIXME - shouldn't be using unsafe methods

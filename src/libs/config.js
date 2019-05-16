@@ -14,3 +14,4 @@ export const getConfig = () => {
 }
 
 export const isFirecloud = () => (window.location.hostname === 'firecloud.terra.bio') || getConfig().isFirecloud
+export const isTerra = () => !isFirecloud()

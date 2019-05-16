@@ -1,24 +1,24 @@
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
-import { useState, Fragment } from 'react'
+import { Fragment, useState } from 'react'
 import { a, b, div, h, span } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
 import { buttonPrimary, Clickable, LabeledCheckbox, MenuButton, spinnerOverlay } from 'src/components/common'
+import { freeCreditsActive } from 'src/components/FreeCreditsModal'
 import { icon, profilePic } from 'src/components/icons'
 import { TextArea } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import SignInButton from 'src/components/SignInButton'
 import { contactUsActive } from 'src/components/SupportRequest'
-import { freeCreditsActive } from 'src/components/FreeCreditsModal'
 import headerLeftHexes from 'src/images/header-left-hexes.svg'
 import headerRightHexes from 'src/images/header-right-hexes.svg'
 import { Ajax, ajaxCaller } from 'src/libs/ajax'
 import { authStore, refreshTerraProfile, signOut } from 'src/libs/auth'
+import colors from 'src/libs/colors'
+import { getConfig, isFirecloud, isTerra } from 'src/libs/config'
+import { reportError, withErrorReporting } from 'src/libs/error'
 import { FormLabel } from 'src/libs/forms'
 import { menuOpenLogo, topBarLogo } from 'src/libs/logos'
-import colors from 'src/libs/colors'
-import { getConfig, isFirecloud } from 'src/libs/config'
-import { reportError, withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
@@ -198,7 +198,7 @@ export default _.flow(
         div({
           style: {
             ...styles.topBar,
-            background: `81px url(${headerLeftHexes}) no-repeat ${colors.primary()}`
+            background: isTerra() ? `81px url(${headerLeftHexes}) no-repeat ${colors.primary()}` : colors.primary()
           }
         }, [
           icon('bars', {
@@ -471,7 +471,9 @@ export default _.flow(
     return div({
       style: {
         ...styles.topBar,
-        background: `81px url(${headerLeftHexes}) no-repeat, right url(${headerRightHexes}) no-repeat, ${colors.primary()}`
+        background: isTerra() ?
+          `81px url(${headerLeftHexes}) no-repeat, right url(${headerRightHexes}) no-repeat, ${colors.primary()}` :
+          colors.primary()
       }
     }, [
       icon('bars', {

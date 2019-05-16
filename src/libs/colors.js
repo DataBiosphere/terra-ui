@@ -14,6 +14,15 @@ const colorPalettes = {
     danger: '#db3214',
     light: '#e9ecef',
     dark: '#333f52'
+  },
+  FireCloud: {
+    primary: '#4d72aa',
+    secondary: '#6d6e70',
+    accent: '#0086c1',
+    warning: '#f7981c',
+    danger: '#db3214',
+    light: '#e9ecef',
+    dark: '#333f52'
   }
 }
 
