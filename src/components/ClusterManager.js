@@ -344,9 +344,9 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
   constructor(props) {
     super(props)
     this.state = {
-      open: false,
+      createModalOpen: false,
       busy: false,
-      deleting: false
+      deleteModalOpen: false
     }
   }
 
@@ -495,7 +495,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
 
   render() {
     const { namespace, name, clusters, canCompute, ajax: { Jupyter } } = this.props
-    const { busy, open, deleting, pendingNav, errorModalOpen, clusterErrors } = this.state
+    const { busy, createModalOpen, deleteModalOpen, pendingNav, errorModalOpen, clusterErrors } = this.state
     if (!clusters) {
       return null
     }
@@ -573,7 +573,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
       renderIcon(),
       h(ClusterIcon, {
         shape: 'trash',
-        onClick: () => this.setState({ deleting: true }),
+        onClick: () => this.setState({ deleteModalOpen: true }),
         disabled: busy || !canCompute || !_.includes(status, ['Stopped', 'Running', 'Error']),
         tooltip: 'Delete cluster',
         style: { marginLeft: '0.5rem' }
@@ -592,7 +592,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
             [multiple, () => undefined],
             () => 'Update runtime'
           ),
-          onClick: () => this.setState({ open: true }),
+          onClick: () => this.setState({ createModalOpen: true }),
           disabled: isDisabled
         }, [
           div({
@@ -607,29 +607,27 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
           icon('cog', { size: 22, className: 'is-solid', style: { color: isDisabled ? colors.gray[2] : colors.green[0] } })
         ])
       ]),
-      deleting && h(Modal, {
+      deleteModalOpen && h(Modal, {
         title: 'Delete notebook runtime?',
-        onDismiss: () => this.setState({ deleting: false }),
+        onDismiss: () => this.setState({ deleteModalOpen: false }),
         okButton: () => {
-          this.setState({ deleting: false })
+          this.setState({ deleteModalOpen: false })
           this.destroyActiveCluster()
         }
       }, ['Deleting the cluster will stop all running notebooks and associated costs. You can recreate it later, which will take several minutes.']),
-      open && h(NewClusterModal, {
+      createModalOpen && h(NewClusterModal, {
         namespace, currentCluster,
-        onCancel: () => this.setState({ open: false }),
+        onCancel: () => this.setState({ createModalOpen: false }),
         onSuccess: promise => {
-          this.setState({ open: false })
+          this.setState({ createModalOpen: false })
           const doCreate = async () => {
-            console.log(clusterErrors)
             if (clusterErrors) {
               const { googleProject, clusterName } = this.getCurrentCluster()
-              console.log(clusterName)
               await Jupyter.cluster(googleProject, clusterName).delete()
             }
             return promise
           }
-          this.executeAndRefresh(doCreate)
+          this.executeAndRefresh(doCreate())
         }
       }),
       errorModalOpen && h(UriViewer, {
