@@ -18,24 +18,7 @@ window.ajaxOverrideUtils = {
     } else {
       return res
     }
-<<<<<<< HEAD
-  },
-  malformed: () => {
-    mockResponse = () => new Response('{malformed', { status: 200 })
-  },
-  noConnection: () => {
-    noConnection = true
-  },
-  off: () => {
-    mockResponse = undefined
-    noConnection = undefined
-  },
-  status: code => {
-    mockResponse = () => new Response(new Blob([`Body of simulated ${code} response`]), { status: code })
-  }
-=======
   })
->>>>>>> 422826e7c6209d38e23714ac8b379c3aaea2d8b2
 }
 
 /*
