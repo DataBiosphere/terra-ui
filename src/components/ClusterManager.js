@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
-import { Fragment, PureComponent } from 'react'
+import { Fragment, PureComponent, useState } from 'react'
 import { div, h, span, strong } from 'react-hyperscript-helpers'
 import { buttonPrimary, buttonSecondary, Clickable, LabeledCheckbox, link, Select, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
@@ -332,6 +332,29 @@ export class NewClusterModal extends PureComponent {
   }
 }
 
+const errorNotified = { current: false }
+
+const UserscriptErrorNotification = ({ jupyterUserScriptUri, stagingBucket, googleProject }) => {
+  const [modalOpen, setModalOpen] = useState(false)
+
+  return h(Fragment, [
+    strong(['Failed action: ']), jupyterUserScriptUri,
+    h(Clickable, {
+      onClick: () => setModalOpen(true),
+      style: {
+        marginTop: '1rem',
+        textDecoration: 'underline',
+        fontWeight: 'bold'
+      }
+    }, ['SEE LOG INFO']),
+    modalOpen && h(UriViewer, {
+      onDismiss: () => setModalOpen(false),
+      uri: `gs://${stagingBucket}/userscript_output.txt`,
+      googleProject: googleProject
+    })
+  ])
+}
+
 export default ajaxCaller(class ClusterManager extends PureComponent {
   static propTypes = {
     namespace: PropTypes.string.isRequired,
@@ -368,24 +391,15 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
   async componentDidUpdate(prevProps) {
     const { ajax: { Jupyter } } = this.props
     const prevCluster = _.last(_.sortBy('createdDate', _.remove({ status: 'Deleting' }, prevProps.clusters))) || {}
-    const { status, jupyterUserScriptUri, googleProject, clusterName } = this.getCurrentCluster() || {}
+    const { status, jupyterUserScriptUri, googleProject, clusterName, stagingBucket } = this.getCurrentCluster() || {}
 
-    if (status === 'Error' && prevCluster.status !== 'Error') {
+    if (status === 'Error' && prevCluster.status !== 'Error' && !errorNotified.current) {
       const { errors: clusterErrors } = await Jupyter.cluster(googleProject, clusterName).details()
       this.setState({ clusterErrors })
-      if (_.some({ errorMessage: 'Internal Error' }, clusterErrors)) {
+      if (_.some({ errorMessage: 'Userscript failed.' }, clusterErrors)) {
+        errorNotified.current = true
         notify('error', 'Error creating cluster', {
-          message: h(Fragment, [
-            strong(['Failed action: ']), jupyterUserScriptUri,
-            h(Clickable, {
-              onClick: () => this.setState({ errorModalOpen: true }),
-              style: {
-                marginTop: '1rem',
-                textDecoration: 'underline',
-                fontWeight: 'bold'
-              }
-            }, ['SEE LOG INFO'])
-          ])
+          message: h(UserscriptErrorNotification, { jupyterUserScriptUri, googleProject, stagingBucket })
         })
       }
     }
@@ -452,6 +466,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
   destroyActiveCluster() {
     const { ajax: { Jupyter } } = this.props
     const { googleProject, clusterName } = this.getCurrentCluster()
+    errorNotified.current = false
     this.executeAndRefreshWithNav(
       Jupyter.cluster(googleProject, clusterName).delete()
     )
@@ -495,12 +510,12 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
 
   render() {
     const { namespace, name, clusters, canCompute, ajax: { Jupyter } } = this.props
-    const { busy, createModalOpen, deleteModalOpen, pendingNav, errorModalOpen, clusterErrors } = this.state
+    const { busy, createModalOpen, deleteModalOpen, pendingNav, clusterErrors } = this.state
     if (!clusters) {
       return null
     }
     const currentCluster = this.getCurrentCluster()
-    const { status, stagingBucket, googleProject } = currentCluster || {}
+    const { status } = currentCluster || {}
     const spendingClusters = _.remove(({ status }) => _.includes(status, ['Deleting', 'Error']), clusters)
     const renderIcon = () => {
       switch (status) {
@@ -523,7 +538,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
         case 'Creating':
           return h(ClusterIcon, { shape: 'sync', disabled: true })
         case 'Error':
-          if (clusterErrors && _.some({ errorMessage: 'Internal Error' }, clusterErrors)) {
+          if (clusterErrors && _.some({ errorMessage: 'Userscript failed.' }, clusterErrors)) {
             return h(ClusterIcon, {
               shape: 'warning-standard',
               style: { color: colors.red[1] },
@@ -624,16 +639,12 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
             if (clusterErrors) {
               const { googleProject, clusterName } = this.getCurrentCluster()
               await Jupyter.cluster(googleProject, clusterName).delete()
+              errorNotified.current = false
             }
             return promise
           }
           this.executeAndRefresh(doCreate())
         }
-      }),
-      errorModalOpen && h(UriViewer, {
-        onDismiss: () => this.setState({ errorModalOpen: false }),
-        uri: `gs://${stagingBucket}/userscript_output.txt`,
-        googleProject: googleProject
       }),
       pendingNav && spinnerOverlay
     ])
