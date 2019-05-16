@@ -371,9 +371,9 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
     const { status, jupyterUserScriptUri, googleProject, clusterName } = this.getCurrentCluster() || {}
 
     if (status === 'Error' && prevCluster.status !== 'Error') {
-      const { clusterErrors } = await Jupyter.cluster(googleProject, clusterName).details()
+      const { errors: clusterErrors } = await Jupyter.cluster(googleProject, clusterName).details()
       this.setState({ clusterErrors })
-      if (_.some({ errorMessage: 'Userscript failed.' }, clusterErrors)) {
+      if (_.some({ errorMessage: 'Internal Error' }, clusterErrors)) {
         notify('error', 'Error creating cluster', {
           message: h(Fragment, [
             strong(['Failed action: ']), jupyterUserScriptUri,
@@ -494,7 +494,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
   }
 
   render() {
-    const { namespace, name, clusters, canCompute } = this.props
+    const { namespace, name, clusters, canCompute, ajax: { Jupyter } } = this.props
     const { busy, open, deleting, pendingNav, errorModalOpen, clusterErrors } = this.state
     if (!clusters) {
       return null
@@ -523,8 +523,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
         case 'Creating':
           return h(ClusterIcon, { shape: 'sync', disabled: true })
         case 'Error':
-          // eslint-disable-next-line
-          if (clusterErrors && _.some({ errorMessage: 'Userscript failed.' }, clusterErrors)) {
+          if (clusterErrors && _.some({ errorMessage: 'Internal Error' }, clusterErrors)) {
             return h(ClusterIcon, {
               shape: 'warning-standard',
               style: { color: colors.red[1] },
@@ -532,8 +531,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
               disabled: busy || !canCompute,
               tooltip: canCompute ? 'View error logs' : noCompute
             })
-          }
-          else {
+          } else {
             return h(ClusterIcon, {
               shape: 'warning-standard',
               style: { color: colors.red[1] },
@@ -622,7 +620,16 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
         onCancel: () => this.setState({ open: false }),
         onSuccess: promise => {
           this.setState({ open: false })
-          this.executeAndRefresh(promise)
+          const doCreate = async () => {
+            console.log(clusterErrors)
+            if (clusterErrors) {
+              const { googleProject, clusterName } = this.getCurrentCluster()
+              console.log(clusterName)
+              await Jupyter.cluster(googleProject, clusterName).delete()
+            }
+            return promise
+          }
+          this.executeAndRefresh(doCreate)
         }
       }),
       errorModalOpen && h(UriViewer, {
