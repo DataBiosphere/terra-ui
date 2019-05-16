@@ -350,7 +350,7 @@ const UserscriptErrorNotification = ({ jupyterUserScriptUri, stagingBucket, goog
     modalOpen && h(UriViewer, {
       onDismiss: () => setModalOpen(false),
       uri: `gs://${stagingBucket}/userscript_output.txt`,
-      googleProject: googleProject
+      googleProject
     })
   ])
 }
