@@ -45,18 +45,19 @@ const styles = {
       boxShadow: '3px 0 13px 0 rgba(0,0,0,0.3)',
       display: 'flex', flexDirection: 'column'
     },
-    profile: active => ({
-      backgroundColor: active ? colors.gray[6] : colors.gray[5],
-      color: colors.gray[0],
-      borderBottom: active ? undefined : 'none'
-    }),
-    profileItem: active => ({
-      ...styles.nav.profile(active),
-      borderTop: `1px solid ${colors.gray[0]}`,
+    profile: {
+      backgroundColor: colors.gray[2],
+      color: 'white',
+      borderBottom: 'none'
+    },
+    profileItem: {
+      backgroundColor: colors.gray[2],
+      color: 'white',
+      borderBottom: 'none',
       padding: '0 3rem', height: 40,
       fontSize: 'unset',
       fontWeight: 500
-    }),
+    },
     item: {
       display: 'flex', alignItems: 'center', flex: 'none',
       height: 70, padding: '0 28px',
@@ -108,29 +109,13 @@ export default _.flow(
   }
 
   hideNav() {
-    this.setState({ navShown: false, userMenuOpen: false })
+    this.setState({ navShown: false, userMenuOpen: false, menuOpen: false })
     document.body.classList.remove('overlayOpen', 'overHeight')
   }
 
   buildNav() {
     const { authState: { isSignedIn, profile } } = this.props
     const { trialState } = profile
-
-    const librarySubItem = (linkName, iconName, label) => h(Clickable, {
-      style: styles.nav.subItem,
-      as: 'a',
-      hover: { backgroundColor: colors.gray[3] },
-      href: Nav.getLink(linkName),
-      onClick: () => this.hideNav()
-    }, [
-      div({ style: styles.nav.icon }, [
-        icon(iconName, {
-          className: 'is-solid',
-          size: 24
-        })
-      ]),
-      label
-    ])
 
     const enabledCredits = h(Clickable, {
       style: styles.nav.item,
@@ -262,15 +247,7 @@ export default _.flow(
             })
           ]),
           div({ style: { borderBottom: styles.nav.item.borderBottom, padding: '14px 0' } }, [
-            div({ style: { ...styles.nav.subItem, paddingLeft: 28 } }, [
-              div({ style: styles.nav.icon }, [
-                icon('library', { className: 'is-solid', size: 24 })
-              ]),
-              'Library'
-            ]),
-            librarySubItem('library-datasets', 'data-cluster', 'Datasets'),
-            librarySubItem('library-showcase', 'grid-chart', 'Showcase & Tutorials'),
-            librarySubItem('library-code', 'tools', 'Code & Tools')
+            this.buildLibrarySection()
           ]),
           (trialState === 'Enabled') && enabledCredits,
           (trialState === 'Enrolled') && enrolledCredits,
@@ -397,6 +374,67 @@ export default _.flow(
     ])
   }
 
+  buildLibrarySection() {
+    const { menuOpen } = this.state
+    return h(Collapse, {
+      defaultHidden: true,
+      showIcon: false,
+      animate: true,
+      expandTitle: true,
+      style: styles.nav.profile,
+      buttonStyle: { marginBottom: 0 },
+      title: [
+        h(Clickable, {
+          style: { ...styles.nav.item, ...styles.nav.profile },
+          hover: { backgroundColor: colors.gray[3] },
+          onClick: () => this.setState({ menuOpen: !menuOpen })
+        }, [
+          div({ style: styles.nav.icon }, [
+            icon('library', { className: 'is-solid', size: 24 })
+          ]),
+          div({ style: { whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' } }, [
+            'Terra Library'
+          ]),
+          div({ style: { flexGrow: 1 } }),
+          icon(`angle ${menuOpen ? 'up' : 'down'}`,
+            { size: 18, style: { flex: 'none' } })
+        ])
+      ]
+    }, [
+      h(MenuButton, {
+        as: 'a',
+        href: Nav.getLink('library-datasets'),
+        style: styles.nav.profileItem,
+        hover: {
+          ...styles.nav.profileItem,
+          backgroundColor: colors.gray[3]
+        },
+        onClick: () => this.hideNav() // In case we're already there
+      }, ['Datasets']),
+      h(MenuButton, {
+        as: 'a',
+        href: Nav.getLink('library-showcase'),
+        style: styles.nav.profileItem,
+        hover: {
+          ...styles.nav.profileItem,
+          backgroundColor: colors.gray[3]
+        },
+        onClick: () => this.hideNav() // In case we're already there
+      }, ['Showcase & Tutorials']),
+      h(MenuButton, {
+        as: 'a',
+        href: Nav.getLink('library-code'),
+        style: styles.nav.profileItem,
+        hover: {
+          ...styles.nav.profileItem,
+          backgroundColor: colors.gray[3]
+        },
+        onClick: () => this.hideNav() // In case we're already there
+      }, ['Code & Tools'])
+    ]
+    )
+  }
+
   buildUserSection() {
     const { authState: { profile: { firstName = 'Loading...', lastName = '' } } } = this.props
     const { userMenuOpen } = this.state
@@ -406,12 +444,12 @@ export default _.flow(
       showIcon: false,
       animate: true,
       expandTitle: true,
-      style: styles.nav.profile(false),
+      style: styles.nav.profile,
       buttonStyle: { marginBottom: 0 },
       title: [
         h(Clickable, {
-          style: { ...styles.nav.item, ...styles.nav.profile(userMenuOpen) },
-          hover: styles.nav.profile(true),
+          style: { ...styles.nav.item, ...styles.nav.profile },
+          hover: { backgroundColor: colors.gray[3] },
           onClick: () => this.setState({ userMenuOpen: !userMenuOpen })
         }, [
           div({ style: styles.nav.icon }, [
@@ -429,37 +467,29 @@ export default _.flow(
       h(MenuButton, {
         as: 'a',
         href: Nav.getLink('profile'),
-        style: styles.nav.profileItem(false),
-        hover: styles.nav.profileItem(true),
+        style: styles.nav.profileItem,
+        hover: { ...styles.nav.profileItem, backgroundColor: colors.gray[3] },
         onClick: () => this.hideNav() // In case we're already there
-      }, [
-        icon('user', { style: styles.nav.icon }), 'Profile'
-      ]),
+      }, ['Profile']),
       h(MenuButton, {
         as: 'a',
         href: Nav.getLink('groups'),
-        style: styles.nav.profileItem(false),
-        hover: styles.nav.profileItem(true),
+        style: styles.nav.profileItem,
+        hover: { ...styles.nav.profileItem, backgroundColor: colors.gray[3] },
         onClick: () => this.hideNav() // In case we're already there
-      }, [
-        icon('users', { style: styles.nav.icon }), 'Groups'
-      ]),
+      }, ['Groups']),
       h(MenuButton, {
         as: 'a',
         href: Nav.getLink('billing'),
-        style: styles.nav.profileItem(false),
-        hover: styles.nav.profileItem(true),
+        style: styles.nav.profileItem,
+        hover: { ...styles.nav.profileItem, backgroundColor: colors.gray[3] },
         onClick: () => this.hideNav() // In case we're already there
-      }, [
-        icon('wallet', { style: styles.nav.icon }), 'Billing'
-      ]),
+      }, ['Billing']),
       h(MenuButton, {
         onClick: signOut,
-        style: styles.nav.profileItem(false),
-        hover: styles.nav.profileItem(true)
-      }, [
-        icon('logout', { style: styles.nav.icon }), 'Sign Out'
-      ])
+        style: styles.nav.profileItem,
+        hover: { ...styles.nav.profileItem, backgroundColor: colors.gray[3] },
+      }, ['Sign Out'])
     ])
   }
 
