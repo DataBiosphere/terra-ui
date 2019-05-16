@@ -442,15 +442,17 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
       const { ajax: { Jupyter } } = this.props
       const { googleProject, clusterName, status } = this.getCurrentCluster()
 
-      const { updatedConfig } = this.state
+      const { updatedConfig, updatingStatus } = this.state
 
       this.executeAndRefresh(
         Jupyter.cluster(googleProject, clusterName).update({
           machineConfig: updatedConfig
         }).then(() => {
-          if (this.state.updatingStatus === 'Updating' && status === 'Stopped') {
-            this.setState({ updatingStatus: false, updatedConfig: {}, pendingNav: false })
-            this.startCluster(() => this.triggerUpdateNotification())
+          if (updatingStatus === 'Updating' && status === 'Stopped') {
+            this.startCluster(() => {
+              this.setState({ updatingStatus: false, updatedConfig: {} })
+              this.triggerUpdateNotification()
+            })
           } else {
             this.setState({ updatedConfig: {} })
             this.triggerUpdateNotification()
@@ -468,10 +470,13 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
     }
 
     componentDidMount() {
+      window.onbeforeunload = () => { return this.state.updatingStatus }
+      console.log('before unload:', window.onbeforeunload)
       this.resetUpdateInterval()
     }
 
     componentWillUnmount() {
+      window.onbeforeunload = () => { return false }
       clearInterval(this.interval)
     }
 
@@ -581,7 +586,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
 
     render() {
       const { namespace, name, clusters, canCompute } = this.props
-      const { busy, open, deleting, pendingNav } = this.state
+      const { busy, open, deleting, pendingNav, updatingStatus } = this.state
       if (!clusters) {
         return null
       }
@@ -678,7 +683,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
         this.state.shouldConfirmUpdate &&
             h(Modal, {
               title: 'Update runtime environment?',
-              okButton: () => this.setState({ shouldConfirmUpdate: false, updatingStatus: 'Stopping', pendingNav: true },
+              okButton: () => this.setState({ shouldConfirmUpdate: false, updatingStatus: 'Stopping' },
                 () => this.stopCluster(false)
               ),
               onDismiss: () => this.setState({
@@ -721,7 +726,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
             }
           }
         }),
-        pendingNav && spinnerOverlay
+        (pendingNav || updatingStatus) && spinnerOverlay
       ])
     }
 })
