@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
-import { useState, Fragment } from 'react'
+import { useState } from 'react'
 import { a, b, div, h, span } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
 import { buttonPrimary, Clickable, LabeledCheckbox, MenuButton, spinnerOverlay } from 'src/components/common'
@@ -109,13 +109,26 @@ export default _.flow(
   }
 
   hideNav() {
-    this.setState({ navShown: false, userMenuOpen: false, menuOpen: false })
+    this.setState({ navShown: false, userMenuOpen: false, openLibraryMenu: false, openSupportMenu: false })
     document.body.classList.remove('overlayOpen', 'overHeight')
   }
 
   buildNav() {
     const { authState: { isSignedIn, profile } } = this.props
     const { trialState } = profile
+    const { openLibraryMenu, openSupportMenu } = this.state
+
+    const dropDownSubItem = (linkToPage, title, onClick, props) => h(MenuButton, {
+      as: 'a',
+      href: linkToPage,
+      style: styles.nav.profileItem,
+      hover: {
+        ...styles.nav.profileItem,
+        backgroundColor: colors.gray[3]
+      },
+      onClick,
+      ...props
+    }, [title])
 
     const enabledCredits = h(Clickable, {
       style: styles.nav.item,
@@ -247,116 +260,39 @@ export default _.flow(
             })
           ]),
           div({ style: { borderBottom: styles.nav.item.borderBottom, padding: '14px 0' } }, [
-            this.buildLibrarySection()
+            this.buildDropDownSection(
+              'library', 'Terra Library', () => this.setState({ openLibraryMenu: !openLibraryMenu }), openLibraryMenu, [
+                dropDownSubItem(Nav.getLink('library-datasets'), 'Data', () => this.hideNav()),
+                dropDownSubItem(Nav.getLink('library-code'), 'Tools', () => this.hideNav()),
+                dropDownSubItem(Nav.getLink('library-showcase'), 'Showcase', () => this.hideNav())
+              ]
+            )
           ]),
           (trialState === 'Enabled') && enabledCredits,
           (trialState === 'Enrolled') && enrolledCredits,
           (trialState === 'Terminated') && terminatedCredits,
-          h(Clickable, {
-            style: { ...styles.nav.supportItem, marginTop: '15px' },
-            hover: { backgroundColor: colors.gray[3] },
-            onClick: () => contactUsActive.set(true)
-          }, [
-            div({ style: styles.nav.icon }, [
-              icon('envelope', { className: 'is-solid', size: 20 })
-            ]),
-            'Contact Us'
-          ]),
-          h(Clickable, {
+          this.buildDropDownSection(
+            'help', 'Terra Support', () => this.setState({ openSupportMenu: !openSupportMenu }), openSupportMenu, [
+              dropDownSubItem('https://support.terra.bio/hc/en-us', 'Learn about Terra', () => this.hideNav(), Utils.newTabLinkProps),
+              dropDownSubItem('https://support.terra.bio/hc/en-us/community/topics/360000500452-Feature-Requests', 'Request a feature',
+                () => this.hideNav(), Utils.newTabLinkProps),
+              dropDownSubItem('https://support.terra.bio/hc/en-us/community/topics/360000500432-General-Discussion', 'Community Discussion',
+                () => this.hideNav(), Utils.newTabLinkProps),
+              isFirecloud() && dropDownSubItem('https://support.terra.bio/hc/en-us/articles/360022694271-Side-by-side-comparison-with-Terra', 'What\'s different in Terra?', () => this.hideNav(), Utils.newTabLinkProps),
+              dropDownSubItem(undefined, 'Contact Us', () => contactUsActive.set(true))
+            ]
+          ),
+          isFirecloud() && h(Clickable, {
             style: styles.nav.supportItem,
-            as: 'a',
+            disabled: !isSignedIn,
+            tooltip: isSignedIn ? undefined : 'Please sign in',
             hover: { backgroundColor: colors.gray[3] },
-            href: 'https://support.terra.bio/hc/en-us',
-            ...Utils.newTabLinkProps,
-            onClick: () => this.hideNav()
+            onClick: () => this.setState({ openFirecloudModal: true })
           }, [
             div({ style: styles.nav.icon }, [
-              icon('help', {
-                className: 'is-solid',
-                size: 20
-              })
+              icon('fcIconWhite', { className: 'is-solid', size: 20 })
             ]),
-            'Learn about Terra',
-            icon('pop-out', {
-              size: 12,
-              style: { marginLeft: '0.5rem' }
-            })
-          ]),
-          h(Clickable, {
-            style: styles.nav.supportItem,
-            as: 'a',
-            hover: { backgroundColor: colors.gray[3] },
-            href: 'https://support.terra.bio/hc/en-us/community/topics/360000500452',
-            ...Utils.newTabLinkProps,
-            onClick: () => this.hideNav()
-          }, [
-            div({ style: styles.nav.icon }, [
-              icon('bubble-exclamation', {
-                className: 'is-solid',
-                size: 20
-              })
-            ]),
-            'Request a feature',
-            icon('pop-out', {
-              size: 12,
-              style: { marginLeft: '0.5rem' }
-            })
-          ]),
-          h(Clickable, {
-            style: styles.nav.supportItem,
-            as: 'a',
-            hover: { backgroundColor: colors.gray[3] },
-            href: 'https://support.terra.bio/hc/en-us/community/topics/360000500432',
-            ...Utils.newTabLinkProps,
-            onClick: () => this.hideNav()
-          }, [
-            div({ style: styles.nav.icon }, [
-              icon('chat-bubble', {
-                className: 'is-solid',
-                size: 20
-              })
-            ]),
-            'Community discussion',
-            icon('pop-out', {
-              size: 12,
-              style: { marginLeft: '0.5rem' }
-            })
-          ]),
-          isFirecloud() && h(Fragment, [
-            h(Clickable, {
-              style: styles.nav.supportItem,
-              as: 'a',
-              hover: { backgroundColor: colors.gray[3] },
-              href: 'https://support.terra.bio/hc/en-us/articles/360022694271',
-              ...Utils.newTabLinkProps,
-              onClick: () => this.hideNav()
-            }, [
-              div({ style: styles.nav.icon }, [
-                icon('help-info', { className: 'is-solid', size: 20 })
-              ]),
-              div([
-                'What\'s different in',
-                div([
-                  'Terra?',
-                  icon('pop-out', {
-                    size: 12,
-                    style: { marginLeft: '0.5rem', flexGrow: 1 }
-                  })
-                ])
-              ])
-            ]),
-            h(Clickable, {
-              style: styles.nav.supportItem,
-              disabled: !isSignedIn,
-              tooltip: isSignedIn ? undefined : 'Please sign in',
-              hover: { backgroundColor: colors.gray[3] },
-              onClick: () => this.setState({ openFirecloudModal: true })
-            }, [
-              div({ style: styles.nav.icon }, [
-                icon('fcIconWhite', { className: 'is-solid', size: 20 })
-              ]),
-              'Use Classic FireCloud'
-            ])
+            'Use Classic FireCloud'
           ]),
           div({
             style: {
@@ -374,8 +310,7 @@ export default _.flow(
     ])
   }
 
-  buildLibrarySection() {
-    const { menuOpen } = this.state
+  buildDropDownSection(titleIcon, title, onClick, menuOpen, subItems) {
     return h(Collapse, {
       defaultHidden: true,
       showIcon: false,
@@ -387,52 +322,30 @@ export default _.flow(
         h(Clickable, {
           style: { ...styles.nav.item, ...styles.nav.profile },
           hover: { backgroundColor: colors.gray[3] },
-          onClick: () => this.setState({ menuOpen: !menuOpen })
+          onClick
         }, [
           div({ style: styles.nav.icon }, [
-            icon('library', { className: 'is-solid', size: 24 })
+            icon(titleIcon, {
+              className: 'is-solid',
+              size: 24
+            })
           ]),
-          div({ style: { whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' } }, [
-            'Terra Library'
-          ]),
+          div({
+            style: {
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis'
+            }
+          }, [title]),
           div({ style: { flexGrow: 1 } }),
           icon(`angle ${menuOpen ? 'up' : 'down'}`,
-            { size: 18, style: { flex: 'none' } })
+            {
+              size: 18,
+              style: { flex: 'none' }
+            })
         ])
       ]
-    }, [
-      h(MenuButton, {
-        as: 'a',
-        href: Nav.getLink('library-datasets'),
-        style: styles.nav.profileItem,
-        hover: {
-          ...styles.nav.profileItem,
-          backgroundColor: colors.gray[3]
-        },
-        onClick: () => this.hideNav() // In case we're already there
-      }, ['Datasets']),
-      h(MenuButton, {
-        as: 'a',
-        href: Nav.getLink('library-showcase'),
-        style: styles.nav.profileItem,
-        hover: {
-          ...styles.nav.profileItem,
-          backgroundColor: colors.gray[3]
-        },
-        onClick: () => this.hideNav() // In case we're already there
-      }, ['Showcase & Tutorials']),
-      h(MenuButton, {
-        as: 'a',
-        href: Nav.getLink('library-code'),
-        style: styles.nav.profileItem,
-        hover: {
-          ...styles.nav.profileItem,
-          backgroundColor: colors.gray[3]
-        },
-        onClick: () => this.hideNav() // In case we're already there
-      }, ['Code & Tools'])
-    ]
-    )
+    }, subItems)
   }
 
   buildUserSection() {
@@ -488,7 +401,7 @@ export default _.flow(
       h(MenuButton, {
         onClick: signOut,
         style: styles.nav.profileItem,
-        hover: { ...styles.nav.profileItem, backgroundColor: colors.gray[3] },
+        hover: { ...styles.nav.profileItem, backgroundColor: colors.gray[3] }
       }, ['Sign Out'])
     ])
   }
