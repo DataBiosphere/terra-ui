@@ -46,35 +46,19 @@ const styles = {
       boxShadow: '3px 0 13px 0 rgba(0,0,0,0.3)',
       display: 'flex', flexDirection: 'column'
     },
-    profile: {
-      backgroundColor: colors.gray[2],
-      color: 'white',
-      borderBottom: 'none'
+    item: {
+      display: 'flex', alignItems: 'center', flex: 'none',
+      height: 70, padding: '0 28px',
+      fontWeight: 600,
+      borderTop: `1px solid ${colors.gray[3]}`, color: 'white'
     },
-    profileItem: {
+    dropDownItem: {
       backgroundColor: colors.gray[2],
       color: 'white',
       borderBottom: 'none',
       padding: '0 3rem', height: 40,
       fontSize: 'unset',
       fontWeight: 500
-    },
-    item: {
-      display: 'flex', alignItems: 'center', flex: 'none',
-      height: 70, padding: '0 28px',
-      fontWeight: 600,
-      borderBottom: `1px solid ${colors.gray[2]}`, color: 'white'
-    },
-    subItem: {
-      display: 'flex', alignItems: 'center', flex: 'none',
-      padding: '10px 28px', paddingLeft: 60,
-      fontWeight: 600,
-      color: 'white'
-    },
-    supportItem: {
-      display: 'flex', alignItems: 'center', flex: 'none',
-      padding: '15px 28px',
-      fontWeight: 600, color: 'white'
     },
     icon: {
       marginRight: 12, flex: 'none'
@@ -110,21 +94,21 @@ export default _.flow(
   }
 
   hideNav() {
-    this.setState({ navShown: false, userMenuOpen: false, openLibraryMenu: false, openSupportMenu: false })
+    this.setState({ navShown: false, openUserMenu: false, openLibraryMenu: false, openSupportMenu: false })
     document.body.classList.remove('overlayOpen', 'overHeight')
   }
 
   buildNav() {
-    const { authState: { isSignedIn, profile } } = this.props
+    const { authState: { isSignedIn, profile,  profile: { firstName = 'Loading...', lastName = '' }  } } = this.props
     const { trialState } = profile
-    const { openLibraryMenu, openSupportMenu } = this.state
+    const { openLibraryMenu, openSupportMenu, openUserMenu } = this.state
 
     const dropDownSubItem = (linkToPage, title, onClick, props) => h(MenuButton, {
       as: 'a',
       href: linkToPage,
-      style: styles.nav.profileItem,
+      style: styles.nav.dropDownItem,
       hover: {
-        ...styles.nav.profileItem,
+        ...styles.nav.dropDownItem,
         backgroundColor: colors.gray[3]
       },
       onClick,
@@ -216,16 +200,24 @@ export default _.flow(
         ]),
         div({ style: { display: 'flex', flexDirection: 'column', overflowY: 'auto', flex: 1 } }, [
           isSignedIn ?
-            this.buildUserSection() :
+            this.buildDropDownSection(profilePic({ size: 32 }), `${firstName} ${lastName}`, () => this.setState({ openUserMenu: !openUserMenu }), openUserMenu,
+              [
+                dropDownSubItem(Nav.getLink('profile'), 'Profile', () => this.hideNav()),
+                dropDownSubItem(Nav.getLink('groups'), 'Groups', () => this.hideNav()),
+                dropDownSubItem(Nav.getLink('billing'), 'Billing', () => this.hideNav()),
+                dropDownSubItem(undefined, 'Sign Out', signOut)
+              ]) :
             div({
-              style: { ...styles.nav.item, ...styles.nav.profile(false), justifyContent: 'center', height: 95 }
+              style: {
+                ...styles.nav.item,
+                justifyContent: 'center',
+                height: 95
+              }
             }, [
               div([
                 h(Clickable, {
-                  style: {
-                    color: colors.blue[0],
-                    marginLeft: '9rem'
-                  },
+                  style: { marginLeft: '9rem' },
+                  hover: {textDecoration: 'underline'},
                   onClick: () => this.setState({ openCookiesModal: true })
                 }, ['Cookies policy']),
                 h(SignInButton)
@@ -254,37 +246,30 @@ export default _.flow(
             div({ style: styles.nav.icon }, [
               icon('layers', { className: 'is-solid', size: 24 })
             ]),
-            'Your Jobs',
-            icon('pop-out', {
-              size: 12,
-              style: { marginLeft: '0.5rem' }
-            })
+            'Job Manager'
           ]),
-          div({ style: { borderBottom: styles.nav.item.borderBottom, padding: '14px 0' } }, [
-            this.buildDropDownSection(
-              'library', 'Terra Library', () => this.setState({ openLibraryMenu: !openLibraryMenu }), openLibraryMenu, [
-                dropDownSubItem(Nav.getLink('library-datasets'), 'Data', () => this.hideNav()),
-                dropDownSubItem(Nav.getLink('library-code'), 'Tools', () => this.hideNav()),
-                dropDownSubItem(Nav.getLink('library-showcase'), 'Showcase', () => this.hideNav())
-              ]
-            )
-          ]),
+          this.buildDropDownSection(
+            'library', 'Terra Library', () => this.setState({ openLibraryMenu: !openLibraryMenu }), openLibraryMenu, [
+              dropDownSubItem(Nav.getLink('library-datasets'), 'Data', () => this.hideNav()),
+              dropDownSubItem(Nav.getLink('library-showcase'), 'Showcase', () => this.hideNav()),
+              dropDownSubItem(Nav.getLink('library-code'), 'Tools', () => this.hideNav())
+            ]),
           (trialState === 'Enabled') && enabledCredits,
           (trialState === 'Enrolled') && enrolledCredits,
           (trialState === 'Terminated') && terminatedCredits,
           this.buildDropDownSection(
             'help', 'Terra Support', () => this.setState({ openSupportMenu: !openSupportMenu }), openSupportMenu, [
-              dropDownSubItem('https://support.terra.bio/hc/en-us', 'Learn about Terra', () => this.hideNav(), Utils.newTabLinkProps),
-              dropDownSubItem('https://support.terra.bio/hc/en-us/community/topics/360000500452-Feature-Requests', 'Request a feature',
+              dropDownSubItem('https://support.terra.bio/hc/en-us', 'How-to Guides', () => this.hideNav(), Utils.newTabLinkProps),
+              dropDownSubItem('https://support.terra.bio/hc/en-us/community/topics/360000500452-Feature-Requests', 'Request a Feature',
                 () => this.hideNav(), Utils.newTabLinkProps),
-              dropDownSubItem('https://support.terra.bio/hc/en-us/community/topics/360000500432-General-Discussion', 'Community Discussion',
+              dropDownSubItem('https://support.terra.bio/hc/en-us/community/topics/360000500432-General-Discussion', 'Community Forum',
                 () => this.hideNav(), Utils.newTabLinkProps),
               isFirecloud() && dropDownSubItem('https://support.terra.bio/hc/en-us/articles/360022694271-Side-by-side-comparison-with-Terra', 'What\'s different in Terra?', () => this.hideNav(), Utils.newTabLinkProps),
               dropDownSubItem(undefined, 'Contact Us', () => contactUsActive.set(true))
             ]
           ),
           isFirecloud() && h(Clickable, {
-            style: styles.nav.supportItem,
+            style: styles.nav.item,
             disabled: !isSignedIn,
             tooltip: isSignedIn ? undefined : 'Please sign in',
             hover: { backgroundColor: colors.gray[3] },
@@ -297,7 +282,7 @@ export default _.flow(
           ]),
           div({
             style: {
-              ..._.omit('borderBottom', styles.nav.item),
+              ..._.omit('borderTop', styles.nav.item),
               marginTop: 'auto',
               color: colors.gray[3],
               fontSize: 10
@@ -317,11 +302,10 @@ export default _.flow(
       showIcon: false,
       animate: true,
       expandTitle: true,
-      style: styles.nav.profile,
       buttonStyle: { marginBottom: 0 },
       title: [
         h(Clickable, {
-          style: { ...styles.nav.item, ...styles.nav.profile },
+          style: styles.nav.item,
           hover: { backgroundColor: colors.gray[3] },
           onClick
         }, [
@@ -347,64 +331,6 @@ export default _.flow(
         ])
       ]
     }, subItems)
-  }
-
-  buildUserSection() {
-    const { authState: { profile: { firstName = 'Loading...', lastName = '' } } } = this.props
-    const { userMenuOpen } = this.state
-
-    return h(Collapse, {
-      defaultHidden: true,
-      showIcon: false,
-      animate: true,
-      expandTitle: true,
-      style: styles.nav.profile,
-      buttonStyle: { marginBottom: 0 },
-      title: [
-        h(Clickable, {
-          style: { ...styles.nav.item, ...styles.nav.profile },
-          hover: { backgroundColor: colors.gray[3] },
-          onClick: () => this.setState({ userMenuOpen: !userMenuOpen })
-        }, [
-          div({ style: styles.nav.icon }, [
-            profilePic({ size: 32 })
-          ]),
-          div({ style: { whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' } }, [
-            `${firstName} ${lastName}`
-          ]),
-          div({ style: { flexGrow: 1 } }),
-          icon(`angle ${userMenuOpen ? 'up' : 'down'}`,
-            { size: 18, style: { flex: 'none' } })
-        ])
-      ]
-    }, [
-      h(MenuButton, {
-        as: 'a',
-        href: Nav.getLink('profile'),
-        style: styles.nav.profileItem,
-        hover: { ...styles.nav.profileItem, backgroundColor: colors.gray[3] },
-        onClick: () => this.hideNav() // In case we're already there
-      }, ['Profile']),
-      h(MenuButton, {
-        as: 'a',
-        href: Nav.getLink('groups'),
-        style: styles.nav.profileItem,
-        hover: { ...styles.nav.profileItem, backgroundColor: colors.gray[3] },
-        onClick: () => this.hideNav() // In case we're already there
-      }, ['Groups']),
-      h(MenuButton, {
-        as: 'a',
-        href: Nav.getLink('billing'),
-        style: styles.nav.profileItem,
-        hover: { ...styles.nav.profileItem, backgroundColor: colors.gray[3] },
-        onClick: () => this.hideNav() // In case we're already there
-      }, ['Billing']),
-      h(MenuButton, {
-        onClick: signOut,
-        style: styles.nav.profileItem,
-        hover: { ...styles.nav.profileItem, backgroundColor: colors.gray[3] }
-      }, ['Sign Out'])
-    ])
   }
 
   render() {
