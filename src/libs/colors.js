@@ -27,6 +27,6 @@ const colorPalettes = {
 }
 
 export default _.fromPairs(_.map(
-  color => [color, (intensity = 1) => Color(_.get([getAppName(), color], colorPalettes)).mix(Color('white'), 1 - intensity)],
+  color => [color, (intensity = 1) => Color(_.get([getAppName(), color], colorPalettes)).mix(Color('white'), 1 - intensity).hex()],
   ALL_COLORS
 ))
