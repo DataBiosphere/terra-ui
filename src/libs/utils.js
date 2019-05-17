@@ -86,10 +86,10 @@ const completeDateFormat = new Intl.DateTimeFormat('default', { day: 'numeric', 
 
 export const makePrettyDate = dateString => {
   const date = new Date(dateString)
-  const now = new Date()
-  const oneDayAgo = _.tap(d => d.setDate(d.getDate() - 1), now)
-  const twoDaysAgo = _.tap(d => d.setDate(d.getDate() - 2), now)
-  const oneYearAgo = _.tap(d => d.setFullYear(d.getFullYear() - 1), now)
+  const now = new Date() // cloning now below so it isn't mutated, slightly faster than from scratch https://jsperf.com/new-date-vs-clone-date
+  const oneDayAgo = _.tap(d => d.setDate(d.getDate() - 1), new Date(now))
+  const twoDaysAgo = _.tap(d => d.setDate(d.getDate() - 2), new Date(now))
+  const oneYearAgo = _.tap(d => d.setFullYear(d.getFullYear() - 1), new Date(now))
 
   return cond(
     [date > oneDayAgo, () => recentDateFormat.format(date)],
