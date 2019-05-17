@@ -27,7 +27,7 @@ const styles = {
     display: 'flex', alignItems: 'center', fontSize: 16, height: 50, padding: '0 2rem',
     fontWeight: 500, overflow: 'hidden', borderBottom: `1px solid ${colors.dark(0.2)}`, borderRightStyle: 'solid',
     borderRightWidth: isActive ? 10 : 0, backgroundColor: isActive ? colors.primary(0.1) : 'white',
-    borderRightColor: isActive ? colors.primary(0.8) : colors.primary()
+    borderRightColor: isActive ? colors.primary() : colors.primary(1.2)
   })
 }
 

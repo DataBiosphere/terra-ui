@@ -26,7 +26,7 @@ const styles = {
     width: params.buttonWidth, height: params.buttonHeight,
     borderRadius: params.buttonHeight / 2, borderWidth: 2, borderStyle: 'solid',
     borderColor: isActive ? colors.primary() : colors.dark(0.55),
-    backgroundColor: isActive ? colors.primary(0.8) : colors.dark(0.4),
+    backgroundColor: isActive ? colors.primary() : colors.dark(0.4),
     color: 'white',
     padding: '0 0.5rem 0 1.5rem'
   }),

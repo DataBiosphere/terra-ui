@@ -20,7 +20,7 @@ const paginatorButton = (props, label) => button(_.merge({
   style: {
     margin: '0 2px', padding: '0.25rem 0.5rem',
     border: '1px solid #ccc', borderRadius: 3,
-    color: props.disabled ? colors.dark(0.7) : colors.primary(0.8), backgroundColor: 'white',
+    color: props.disabled ? colors.dark(0.7) : colors.primary(), backgroundColor: 'white',
     cursor: props.disabled ? 'not-allowed' : 'pointer'
   }
 }, props), label)
@@ -69,9 +69,9 @@ export const paginator = props => {
                 key: num,
                 style: {
                   minWidth: '2rem',
-                  backgroundColor: currentPage === num ? colors.primary(0.8) : undefined,
-                  color: currentPage === num ? 'white' : colors.primary(0.8),
-                  border: currentPage === num ? colors.primary(0.8) : undefined
+                  backgroundColor: currentPage === num ? colors.primary() : undefined,
+                  color: currentPage === num ? 'white' : colors.primary(),
+                  border: currentPage === num ? colors.primary() : undefined
                 }
               },
               getPageItemProps({ pageValue: num, onPageChange: setPageNumber })),

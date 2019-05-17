@@ -62,7 +62,7 @@ const NewAccountModal = ({ onDismiss }) => {
       colors.dark() :
       (!_.isEmpty(pages[index].errors) || index === pages.length - 1) ?
         colors.dark(0.25) :
-        colors.primary(0.8)
+        colors.primary()
 
     return h(Clickable, {
       style: { display: 'flex', flexDirection: 'column', alignItems: 'center', whiteSpace: 'nowrap', width: 50 },

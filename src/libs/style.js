@@ -27,7 +27,7 @@ export const tabBar = {
     display: 'flex', alignItems: 'center', backgroundColor: colors.light(0.25),
     fontWeight: 500, textTransform: 'uppercase',
     height: '3.75rem', paddingRight: '1rem',
-    borderBottom: `2px solid ${colors.primary(0.8)}`, flex: 'none',
+    borderBottom: `2px solid ${colors.primary()}`, flex: 'none',
     boxShadow: '0 2px 5px 0 rgba(0,0,0,0.25)', zIndex: 1
   },
   tab: {
@@ -37,7 +37,7 @@ export const tabBar = {
   },
   active: {
     backgroundColor: colors.primary(0.2), color: 'unset',
-    borderBottomWidth: 8, borderBottomStyle: 'solid', borderBottomColor: colors.primary(0.8),
+    borderBottomWidth: 8, borderBottomStyle: 'solid', borderBottomColor: colors.primary(),
     fontWeight: 600
   },
   hover: {

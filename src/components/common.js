@@ -71,7 +71,7 @@ export const buttonPrimary = ({ disabled, ...props }, children) => {
       ...styles.button,
       border: `1px solid ${disabled ? colors.dark(0.4) : colors.primary()}`,
       borderRadius: 5, color: 'white', padding: '0.875rem',
-      backgroundColor: disabled ? colors.dark(0.25) : colors.primary(0.8),
+      backgroundColor: disabled ? colors.dark(0.25) : colors.primary(),
       cursor: disabled ? 'not-allowed' : 'pointer'
     },
     hover: disabled ? undefined : { backgroundColor: colors.primary(0.85) }
@@ -153,7 +153,7 @@ export const Checkbox = ({ checked, onChange, disabled, ...props }) => {
       verticalAlign: 'middle',
       color: disabled ? colors.dark(0.4) : checked ? colors.primary() : colors.dark(0.55)
     },
-    hover: disabled ? undefined : { color: colors.primary(0.8) },
+    hover: disabled ? undefined : { color: colors.primary() },
     active: disabled ? undefined : { backgroundColor: colors.primary(0.2) },
     disabled
   }, props), [
