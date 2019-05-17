@@ -169,7 +169,7 @@ export default _.flow(
             'Once set, it cannot be changed. ',
             'Any cloned workspace will automatically inherit the authorization domain(s) from the original workspace and cannot be removed. ',
             link({
-              href: 'https://support.terra.bio/hc/en-us/articles/360026775691-Managing-Data-Privacy-and-Access-with-Authorization-Domains',
+              href: 'https://support.terra.bio/hc/en-us/articles/360026775691',
               ...Utils.newTabLinkProps
             }, ['Read more about authorization domains'])
           ])
@@ -210,7 +210,7 @@ export default _.flow(
         div({ style: { marginTop: '0.5rem', fontWeight: 500, marginBottom: '0.5rem' } }, [
           'You have $300 in ',
           link({
-            href: 'https://support.terra.bio/hc/en-us/articles/360027940952-Free-Credits-FAQs',
+            href: 'https://support.terra.bio/hc/en-us/articles/360027940952',
             ...Utils.newTabLinkProps
           }, 'free credits'), ' available!'
         ])

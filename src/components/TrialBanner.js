@@ -21,7 +21,7 @@ const getMessages = () => {
       'isWarning': false,
       'enabledLink': {
         'label': 'Learn more',
-        'url': 'https://support.terra.bio/hc/en-us/articles/360027940952-Free-Credits-FAQs'
+        'url': 'https://support.terra.bio/hc/en-us/articles/360027940952'
       },
       'button': {
         'label': 'Start trial',
@@ -34,7 +34,7 @@ const getMessages = () => {
       'isWarning': false,
       'button': {
         'label': 'Learn More',
-        'url': 'https://support.terra.bio/hc/en-us/articles/360027940952-Free-Credits-FAQs',
+        'url': 'https://support.terra.bio/hc/en-us/articles/360027940952',
         'isExternal': true
       }
     },
@@ -44,7 +44,7 @@ const getMessages = () => {
       'isWarning': true,
       'button': {
         'label': 'Learn more',
-        'url': 'https://support.terra.bio/hc/en-us/articles/360027940952-Free-Credits-FAQs',
+        'url': 'https://support.terra.bio/hc/en-us/articles/360027940952',
         'isExternal': true
       }
     }

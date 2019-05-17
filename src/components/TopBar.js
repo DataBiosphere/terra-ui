@@ -310,7 +310,7 @@ export default _.flow(
             style: styles.nav.supportItem,
             as: 'a',
             hover: { backgroundColor: colors.gray[3] },
-            href: 'https://support.terra.bio/hc/en-us/community/topics/360000500452-Feature-Requests',
+            href: 'https://support.terra.bio/hc/en-us/community/topics/360000500452',
             ...Utils.newTabLinkProps,
             onClick: () => this.hideNav()
           }, [
@@ -330,7 +330,7 @@ export default _.flow(
             style: styles.nav.supportItem,
             as: 'a',
             hover: { backgroundColor: colors.gray[3] },
-            href: 'https://support.terra.bio/hc/en-us/community/topics/360000500432-General-Discussion',
+            href: 'https://support.terra.bio/hc/en-us/community/topics/360000500432',
             ...Utils.newTabLinkProps,
             onClick: () => this.hideNav()
           }, [
@@ -351,7 +351,7 @@ export default _.flow(
               style: styles.nav.supportItem,
               as: 'a',
               hover: { backgroundColor: colors.gray[3] },
-              href: 'https://support.terra.bio/hc/en-us/articles/360022694271-Side-by-side-comparison-with-Terra',
+              href: 'https://support.terra.bio/hc/en-us/articles/360022694271',
               ...Utils.newTabLinkProps,
               onClick: () => this.hideNav()
             }, [
