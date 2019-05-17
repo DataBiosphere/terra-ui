@@ -106,7 +106,7 @@ body:not(.Terra) .focus-style:focus {
 }
 
 /* Styles for content rendered by marked (also used by react-simplemde-editor) */
-body.Terra .markdown-body a, .simplemde-container .editor-preview a {
+body.Terra .markdown-body a, body.Terra .simplemde-container .editor-preview a {
   color: #74ae43;
 }
 
