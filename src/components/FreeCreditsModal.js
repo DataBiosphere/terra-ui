@@ -54,7 +54,7 @@ const FreeCreditsModal = _.flow(
         style: {
           marginTop: '0.5rem',
           padding: '1rem',
-          border: `1px solid ${colors.primary()}`,
+          border: `1px solid ${colors.primary(1.2)}`,
           borderRadius: '0.25rem',
           backgroundColor: '#f4f4f4'
         }

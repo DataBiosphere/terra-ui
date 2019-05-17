@@ -62,7 +62,7 @@ export default ajaxCaller(class ProjectDetail extends Component {
                 [creationStatus === 'Creating', 'loadingSpinner'],
                 'error-standard'
               ), {
-                style: { color: colors.primary(), marginRight: '1rem' }
+                style: { color: colors.primary(1.2), marginRight: '1rem' }
               })
             ])
           ]),

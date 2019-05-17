@@ -73,7 +73,7 @@ export const NpsSurvey = Utils.connectAtom(authStore, 'authState')(class NpsSurv
       const bgColor = Utils.cond(
         [i <= 6, colors.danger()],
         [i <= 8, colors.warning()],
-        colors.primary()
+        colors.primary(1.2)
       )
 
       return h(Interactive, {

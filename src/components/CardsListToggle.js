@@ -12,7 +12,7 @@ const viewToggleStyles = {
   },
   toolbarButton: active => ({
     display: 'flex', justifyContent: 'center', alignItems: 'center',
-    borderRadius: 3, border: `1px solid ${colors.primary()}`,
+    borderRadius: 3, border: `1px solid ${colors.primary(1.2)}`,
     height: '2.25rem', padding: '0 .75rem',
     color: colors.primary(1.2),
     backgroundColor: active ? colors.primary(0.2) : 'white'

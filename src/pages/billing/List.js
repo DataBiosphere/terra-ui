@@ -34,7 +34,7 @@ const styles = {
 const ProjectTab = ({ project: { projectName, role, creationStatus }, isActive }) => {
   const projectReady = creationStatus === 'Ready'
   const statusIcon = icon(creationStatus === 'Creating' ? 'loadingSpinner' : 'error-standard',
-    { style: { color: colors.primary(), marginRight: '1rem', marginLeft: '0.5rem' } })
+    { style: { color: colors.primary(1.2), marginRight: '1rem', marginLeft: '0.5rem' } })
 
   return _.includes('Owner', role) && projectReady ? h(Interactive, {
     as: 'a',

@@ -69,7 +69,7 @@ export const buttonPrimary = ({ disabled, ...props }, children) => {
     disabled,
     style: {
       ...styles.button,
-      border: `1px solid ${disabled ? colors.dark(0.4) : colors.primary()}`,
+      border: `1px solid ${disabled ? colors.dark(0.4) : colors.primary(1.2)}`,
       borderRadius: 5, color: 'white', padding: '0.875rem',
       backgroundColor: disabled ? colors.dark(0.25) : colors.primary(),
       cursor: disabled ? 'not-allowed' : 'pointer'
@@ -93,7 +93,7 @@ export const buttonSecondary = ({ disabled, ...props }, children) => {
 export const buttonOutline = ({ disabled, ...props }, children) => {
   return h(buttonPrimary, _.merge({
     style: {
-      border: `1px solid ${disabled ? colors.dark(0.4) : colors.primary()}`,
+      border: `1px solid ${disabled ? colors.dark(0.4) : colors.primary(1.2)}`,
       color: colors.primary(1.2),
       backgroundColor: disabled ? colors.dark(0.25) : 'white'
     },
@@ -138,7 +138,7 @@ export const MenuButton = ({ disabled, children, ...props }) => {
       padding: '0.875rem',
       cursor: disabled ? 'not-allowed' : 'pointer'
     },
-    hover: !disabled ? { backgroundColor: colors.light(0.4), color: colors.primary() } : undefined
+    hover: !disabled ? { backgroundColor: colors.light(0.4), color: colors.primary(1.2) } : undefined
   }, props), [children])
 }
 
@@ -151,7 +151,7 @@ export const Checkbox = ({ checked, onChange, disabled, ...props }) => {
     style: {
       display: 'inline-flex',
       verticalAlign: 'middle',
-      color: disabled ? colors.dark(0.4) : checked ? colors.primary() : colors.dark(0.55)
+      color: disabled ? colors.dark(0.4) : checked ? colors.primary(1.2) : colors.dark(0.55)
     },
     hover: disabled ? undefined : { color: colors.primary() },
     active: disabled ? undefined : { backgroundColor: colors.primary(0.2) },
