@@ -223,19 +223,27 @@ const SupportRequest = _.flow(
     contactUsActive.set(false)
   }
 
-  async submit() {
+  submit = Utils.withBusyState(v => this.setState({ submitting: v }), async () => {
+    const { type, email, subject, description, attachmentToken } = this.state
     const currUrl = window.location.href
+    const hasAttachment = attachmentToken !== ''
 
     try {
-      this.setState({ submitting: true })
       await Ajax().User.createSupportRequest({ ...this.getRequest(), currUrl })
-      SupportRequest.dismiss()
       notify('success', 'Message sent successfully', { timeout: 3000 })
     } catch (error) {
-      this.setState({ submitting: false })
-      reportError('Error submitting support request', error)
+      notify('error', div(['Error submitting support request. ',
+        link({
+          style: { fontWeight: 800, color: 'white' },
+          hover: { color: 'white', textDecoration: 'underline' },
+          href: `mailto:terra-support@broadinstitute.zendesk.org?subject=${type}%3A%20${subject}&body=Original%20support%20request%3A%0A------------------------------------%0AContact email%3A%20${email}%0A%0A${description}%0A%0A------------------------------------%0AError%20reported%20from%20Zendesk%3A%0A%0A${JSON.stringify(error)}`,
+          ...Utils.newTabLinkProps
+        }, 'Click here to email support'), hasAttachment && ' and make sure to add your attachment to the email.']
+      ))
+    } finally {
+      SupportRequest.dismiss()
     }
-  }
+  })
 })
 
 export default SupportRequest

@@ -196,6 +196,7 @@ export const WorkspaceDashboard = _.flow(
     const {
       workspace, workspace: {
         accessLevel,
+        hasBucketAccess,
         workspace: {
           authorizationDomain, createdDate, lastModified, bucketName,
           attributes, attributes: { description = '' }
@@ -318,7 +319,8 @@ export const WorkspaceDashboard = _.flow(
         div({ style: { margin: '1.5rem 0 0.5rem 0', borderBottom: `1px solid ${colors.gray[3]}` } }),
         link({
           ...Utils.newTabLinkProps,
-          href: bucketBrowserUrl(bucketName),
+          href: hasBucketAccess ? bucketBrowserUrl(bucketName) : undefined,
+          disabled: !hasBucketAccess,
           style: { display: 'block', marginBottom: '3rem' }
         }, ['Google bucket'])
       ])

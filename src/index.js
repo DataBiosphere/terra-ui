@@ -1,19 +1,10 @@
-import _ from 'lodash/fp'
-import marked from 'marked'
-import ReactDOM from 'react-dom'
-import { h } from 'react-hyperscript-helpers'
-import { initializeAuth } from 'src/libs/auth'
-import { loadConfig } from 'src/libs/config'
-import { initializeTCell } from 'src/libs/tcell'
-import Main from 'src/pages/Main'
-import 'src/style.css'
+import { loadedConfigStore } from 'src/configStore'
 
+const loadApp = async () => {
+  const res = await fetch('config.json')
+  loadedConfigStore.current = await res.json()
 
-window.SATURN_VERSION = SATURN_VERSION
-marked.setOptions({ sanitize: true, sanitizer: _.escape })
+  import('src/appLoader')
+}
 
-loadConfig().then(() => {
-  ReactDOM.render(h(Main), document.getElementById('root'))
-  initializeAuth()
-  initializeTCell()
-})
+loadApp()
