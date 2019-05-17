@@ -245,15 +245,16 @@ const Notebooks = _.flow(
       workspace: { accessLevel, workspace: { bucketName } }
     } = this.props
     const canWrite = Utils.canWrite(accessLevel)
-    const sortedNotebooks = _.orderBy('name', ['asc'], notebooks)
-    const renderedNotebooks = _.map(({ name, updated }) => h(NotebookCard, {
-      key: name,
-      name, updated, listView, bucketName, namespace, wsName, canWrite,
-      onRename: () => this.setState({ renamingNotebookName: name }),
-      onCopy: () => this.setState({ copyingNotebookName: name }),
-      onExport: () => this.setState({ exportingNotebookName: name }),
-      onDelete: () => this.setState({ deletingNotebookName: name })
-    }), sortedNotebooks)
+    const renderedNotebooks = _.flow(
+      _.orderBy('name', 'asc'),
+      _.map(({ name, updated }) => h(NotebookCard, {
+        key: name,
+        name, updated, listView, bucketName, namespace, wsName, canWrite,
+        onRename: () => this.setState({ renamingNotebookName: name }),
+        onCopy: () => this.setState({ copyingNotebookName: name }),
+        onExport: () => this.setState({ exportingNotebookName: name }),
+        onDelete: () => this.setState({ deletingNotebookName: name })
+      })))(notebooks)
 
     return div({
       style: {
