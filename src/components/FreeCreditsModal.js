@@ -8,11 +8,10 @@ import { ajaxCaller } from 'src/libs/ajax'
 import { refreshTerraProfile } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
+import { freeCreditsActive } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 
-
-export const freeCreditsActive = Utils.atom(false)
 
 const FreeCreditsModal = _.flow(
   Utils.connectAtom(freeCreditsActive, 'isActive'),

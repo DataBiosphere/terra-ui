@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import { h } from 'react-hyperscript-helpers'
 import { centeredSpinner } from 'src/components/icons'
-import { authStore } from 'src/libs/auth'
+import { authStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 import { Disabled } from 'src/pages/Disabled'
 import Register from 'src/pages/Register'

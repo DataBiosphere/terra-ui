@@ -6,6 +6,7 @@ import { Ajax } from 'src/libs/ajax'
 import { getConfig } from 'src/libs/config'
 import { withErrorReporting } from 'src/libs/error'
 import { getAppName } from 'src/libs/logos'
+import { authStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
 
@@ -42,14 +43,6 @@ export const ensureBillingScope = async () => {
     await Utils.delay(250)
   }
 }
-
-export const authStore = Utils.atom({
-  isSignedIn: undefined,
-  registrationStatus: undefined,
-  acceptedTos: undefined,
-  user: {},
-  profile: {}
-})
 
 export const getUser = () => {
   return authStore.get().user

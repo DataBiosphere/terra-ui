@@ -3,6 +3,7 @@ import { div, h } from 'react-hyperscript-helpers'
 import { Clickable } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import colors from 'src/libs/colors'
+import { toggleStateAtom } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
 
@@ -33,7 +34,6 @@ const viewToggleButtons = (listView, setListView) => {
 }
 
 
-const toggleStateAtom = Utils.atom({})
 Utils.syncAtomToSessionStorage(toggleStateAtom, 'toggleState')
 
 
