@@ -2,10 +2,10 @@ import clipboard from 'clipboard-polyfill/build/clipboard-polyfill'
 import _ from 'lodash/fp'
 import { createRef, Fragment } from 'react'
 import Dropzone from 'react-dropzone'
-import { a, div, h } from 'react-hyperscript-helpers'
+import { a, div, h, label } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import togglesListView from 'src/components/CardsListToggle'
-import { Clickable, link, MenuButton, menuIcon, PageBox, spinnerOverlay } from 'src/components/common'
+import { Clickable, link, MenuButton, menuIcon, PageBox, Select, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { NotebookCreator, NotebookDeleter, NotebookDuplicator } from 'src/components/notebook-utils'
 import { notify } from 'src/components/Notifications'
@@ -43,6 +43,12 @@ const notebookCardCommonStyles = listView => _.merge({ display: 'flex' },
 const printName = name => name.slice(10, -6) // removes 'notebooks/' and the .ipynb suffix
 
 const noWrite = 'You do not have access to modify this workspace.'
+
+const sortOptions = [
+  { label: 'Name: Ascending', value: { field: 'name', direction: 'asc' } },
+  { label: 'Name: Descending', value: { field: 'name', direction: 'desc' } },
+  { label: 'Updated: Descending', value: { field: 'updated', direction: 'desc' } }
+]
 
 class NotebookCard extends Component {
   render() {
@@ -183,6 +189,7 @@ const Notebooks = _.flow(
       copyingNotebookName: undefined,
       deletingNotebookName: undefined,
       exportingNotebookName: undefined,
+      sortOrder: { field: 'name', direction: 'asc' },
       ...StateHistory.get()
     }
     this.uploader = createRef()
@@ -239,14 +246,14 @@ const Notebooks = _.flow(
   }
 
   renderNotebooks() {
-    const { notebooks } = this.state
+    const { notebooks, sortOrder: { field, direction } } = this.state
     const {
       name: wsName, namespace, listView,
       workspace: { accessLevel, workspace: { bucketName } }
     } = this.props
     const canWrite = Utils.canWrite(accessLevel)
     const renderedNotebooks = _.flow(
-      _.orderBy('name', 'asc'),
+      _.orderBy(field, direction),
       _.map(({ name, updated }) => h(NotebookCard, {
         key: name,
         name, updated, listView, bucketName, namespace, wsName, canWrite,
@@ -310,7 +317,7 @@ const Notebooks = _.flow(
   }
 
   render() {
-    const { loading, saving, notebooks, creating, renamingNotebookName, copyingNotebookName, deletingNotebookName, exportingNotebookName } = this.state
+    const { loading, saving, notebooks, creating, renamingNotebookName, copyingNotebookName, deletingNotebookName, exportingNotebookName, sortOrder } = this.state
     const {
       namespace, viewToggleButtons, workspace,
       workspace: { accessLevel, workspace: { bucketName } }
@@ -333,6 +340,14 @@ const Notebooks = _.flow(
       notebooks && h(PageBox, [
         div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' } }, [
           div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, ['Notebooks']),
+          label({ style: { marginLeft: 'auto', marginRight: '0.75rem' } }, 'Sort By: '),
+          h(Select, {
+            value: sortOrder,
+            isClearable: false,
+            styles: { container: old => ({ ...old, width: 200, marginRight: '1.10rem' }) },
+            options: sortOptions,
+            onChange: selected => this.setState({ sortOrder: selected.value })
+          }),
           viewToggleButtons,
           creating && h(NotebookCreator, {
             namespace, bucketName, existingNames,
