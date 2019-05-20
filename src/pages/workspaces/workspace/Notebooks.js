@@ -45,9 +45,10 @@ const printName = name => name.slice(10, -6) // removes 'notebooks/' and the .ip
 const noWrite = 'You do not have access to modify this workspace.'
 
 const sortOptions = [
-  { label: 'Name: Ascending', value: { field: 'name', direction: 'asc' } },
-  { label: 'Name: Descending', value: { field: 'name', direction: 'desc' } },
-  { label: 'Updated: Descending', value: { field: 'updated', direction: 'desc' } }
+  { label: 'Most Recently Updated', value: { field: 'updated', direction: 'desc' } },
+  { label: 'Least Recently Updated', value: { field: 'updated', direction: 'asc' } },
+  { label: 'Alphabetical', value: { field: 'name', direction: 'asc' } },
+  { label: 'Reverse Alphabetical', value: { field: 'name', direction: 'desc' } }
 ]
 
 class NotebookCard extends Component {
@@ -189,7 +190,7 @@ const Notebooks = _.flow(
       copyingNotebookName: undefined,
       deletingNotebookName: undefined,
       exportingNotebookName: undefined,
-      sortOrder: { field: 'name', direction: 'asc' },
+      sortOrder: { field: 'updated', direction: 'desc' },
       ...StateHistory.get()
     }
     this.uploader = createRef()
@@ -344,7 +345,7 @@ const Notebooks = _.flow(
           h(Select, {
             value: sortOrder,
             isClearable: false,
-            styles: { container: old => ({ ...old, width: 200, marginRight: '1.10rem' }) },
+            styles: { container: old => ({ ...old, width: 220, marginRight: '1.10rem' }) },
             options: sortOptions,
             onChange: selected => this.setState({ sortOrder: selected.value })
           }),
