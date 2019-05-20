@@ -245,7 +245,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
         workspace && h(WrappedComponent, {
           ref: child,
           workspace, loadingWorkspace, refreshWorkspace, refreshClusters,
-          cluster: _.last(Utils.trimClustersOldestFirst(clusters)),
+          cluster: !clusters ? undefined : (_.last(Utils.trimClustersOldestFirst(clusters)) || null),
           ...props
         })
       ])
