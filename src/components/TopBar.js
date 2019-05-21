@@ -199,7 +199,7 @@ export default _.flow(
         ]),
         div({ style: { display: 'flex', flexDirection: 'column', overflowY: 'auto', flex: 1 } }, [
           isSignedIn ?
-            this.buildDropDownSection(profilePic({ size: 32 }), `${firstName} ${lastName}`, () => this.setState({ openUserMenu: !openUserMenu }), openUserMenu,
+            this.buildDropDownSection(undefined, `${firstName} ${lastName}`, () => this.setState({ openUserMenu: !openUserMenu }), openUserMenu,
               [
                 dropDownSubItem(Nav.getLink('profile'), 'Profile', () => this.hideNav()),
                 dropDownSubItem(Nav.getLink('groups'), 'Groups', () => this.hideNav()),
@@ -216,7 +216,7 @@ export default _.flow(
               div([
                 h(Clickable, {
                   style: { marginLeft: '9rem' },
-                  hover: {textDecoration: 'underline'},
+                  hover: { textDecoration: 'underline' },
                   onClick: () => this.setState({ openCookiesModal: true })
                 }, ['Cookies policy']),
                 h(SignInButton)
@@ -237,7 +237,7 @@ export default _.flow(
           h(Clickable, {
             as: 'a',
             ...Utils.newTabLinkProps,
-            style: styles.nav.item,
+            style: { ...styles.nav.item, borderBottom: `1px solid ${colors.gray[3]}` },
             hover: { backgroundColor: colors.gray[3] },
             href: getConfig().jobManagerUrlRoot,
             onClick: () => this.hideNav()
@@ -247,6 +247,7 @@ export default _.flow(
             ]),
             'Job Manager'
           ]),
+          div({ style: { margin: '5rem' } }),
           this.buildDropDownSection(
             'library', 'Terra Library', () => this.setState({ openLibraryMenu: !openLibraryMenu }), openLibraryMenu, [
               dropDownSubItem(Nav.getLink('library-datasets'), 'Data', () => this.hideNav()),
@@ -309,7 +310,7 @@ export default _.flow(
           onClick
         }, [
           div({ style: styles.nav.icon }, [
-            icon(titleIcon, {
+            (titleIcon === undefined) ? profilePic({ size: 32 }) : icon(titleIcon, {
               className: 'is-solid',
               size: 24
             })
