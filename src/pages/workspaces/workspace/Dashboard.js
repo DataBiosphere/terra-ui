@@ -151,16 +151,15 @@ export const WorkspaceDashboard = _.flow(
     }
   })
 
-  loadAllTags = withErrorReporting('Error loading tags', async () => {
+  loadAllTags = withErrorReporting('Error loading tags', async tag => {
     const { ajax: { Workspaces } } = this.props
     const allTags = _.map(value => {
       return {
         value: value.tag,
         label: `${value.tag} (${value.count})`
       }
-    }, await Workspaces.getTags())
+    }, await Workspaces.getTags(tag))
     this.setState({ allTags })
-    console.log(allTags)
     return allTags
   })
 
@@ -213,14 +212,7 @@ export const WorkspaceDashboard = _.flow(
     const { submissionsCount, storageCostEstimate, editDescription, saving, consentStatus, tagsList, newTag, allTags, busy } = this.state
     const isEditing = _.isString(editDescription)
 
-    const promiseLoadOptions = () => {
-      const { newTag } = this.state
-      return new Promise(async resolve => {
-        allTags.length === 0 ?
-          resolve(await this.loadAllTags()) :
-          resolve(console.log(_.filter(newTag, allTags)))
-      })
-    }
+    console.log(allTags)
 
     return div({ style: { flex: 1, display: 'flex' } }, [
       div({ style: styles.leftBox }, [
@@ -289,7 +281,7 @@ export const WorkspaceDashboard = _.flow(
         ]),
         div({ style: styles.header }, ['Tags']),
         div({ style: { marginBottom: '0.5rem' } }, [
-          allTags && h(AsyncCreatableSelect, {
+          h(AsyncCreatableSelect, {
             isClearable: true,
             isSearchable: true,
             allowCreateWhileLoading: true,
@@ -299,7 +291,7 @@ export const WorkspaceDashboard = _.flow(
             placeholder: 'Add a tag',
             onChange: data => console.log(data), //this.addTag(data.value),
             styles: { container: base => ({ ...base, wordWrap: 'break-word' }) },
-            loadOptions: promiseLoadOptions,
+            loadOptions: () => this.loadAllTags({ tag: newTag }),
             onInputChange: v => this.setState({ newTag: v })
           })
         ]),
