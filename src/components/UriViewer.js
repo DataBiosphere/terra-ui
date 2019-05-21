@@ -2,14 +2,14 @@ import clipboard from 'clipboard-polyfill'
 import filesize from 'filesize'
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
-import { Fragment } from 'react'
+import { Fragment, useState } from 'react'
 import { div, h, img, input } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
 import { buttonPrimary, Clickable, link } from 'src/components/common'
 import { icon, spinner } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import DownloadPrices from 'src/data/download-prices'
-import { ajaxCaller } from 'src/libs/ajax'
+import { Ajax, ajaxCaller, useCancellation } from 'src/libs/ajax'
 import { bucketBrowserUrl } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
@@ -52,7 +52,44 @@ const getMaxDownloadCostNA = bytes => {
   return downloadPrice < 0.01 ? '< $0.01' : Utils.formatUSD(downloadPrice)
 }
 
-const UriViewer = ajaxCaller(class UriViewer extends Component {
+const UriViewer = props => {
+  const signal = useCancellation()
+  const [valid, setValid] = useState(undefined)
+
+  const { googleProject, uri } = props
+  const isGsUri = isGs(uri)
+  const [bucket, name] = isGsUri ? parseUri(uri) : []
+
+  console.log('UriViewer')
+
+  const pingObject = async () => {
+    if (isGsUri) {
+      try {
+        await Ajax(signal).Buckets.getObject(bucket, name, googleProject)
+        setValid(true)
+      } catch (e) {
+        if (e.status === 400) {
+          const json = await e.json()
+          if (json.error.message.includes('requester pays')) {
+            setValid(false)
+          }
+        }
+      }
+    }
+  }
+
+  Utils.useOnMount(() => {
+    pingObject()
+  })
+
+  return Utils.switchCase(valid,
+    [undefined, () => h(Modal, {}, ['Loading...'])],
+    [true, () => h(UriViewerModal, props)],
+    [false, () => h(Modal, props, ['Error'])]
+  )
+}
+
+const UriViewerModal = ajaxCaller(class UriViewerModal extends Component {
   static propTypes = {
     googleProject: PropTypes.string.isRequired,
     uri: PropTypes.string.isRequired
@@ -64,6 +101,8 @@ const UriViewer = ajaxCaller(class UriViewer extends Component {
     const [bucket, name] = isGsUri ? parseUri(uri) : []
 
     try {
+      // check for requester pays here?
+
       const { signedUrl = false, ...metadata } = isGsUri ? await Buckets.getObject(bucket, name, googleProject) : await Martha.call(uri)
 
       const price = getMaxDownloadCostNA(metadata.size)
@@ -223,7 +262,7 @@ export class UriViewerLink extends Component {
         href: uri,
         onClick: () => this.setState({ modalOpen: true })
       }, [isGs(uri) ? _.last(uri.split('/')) : uri]),
-      modalOpen && h(UriViewer, {
+      modalOpen && h(UriViewerModal, {
         onDismiss: () => this.setState({ modalOpen: false }),
         uri, googleProject
       })
