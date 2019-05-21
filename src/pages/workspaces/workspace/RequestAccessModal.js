@@ -6,7 +6,7 @@ import { centeredSpinner } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import { Ajax, useCancellation } from 'src/libs/ajax'
 import { withErrorReporting } from 'src/libs/error'
-import { useOnMount, withBusyState } from 'src/libs/utils'
+import { cond, useOnMount, withBusyState } from 'src/libs/utils'
 
 
 export const RequestAccessModal = ({ onDismiss, workspace }) => {
@@ -45,6 +45,7 @@ export const RequestAccessModal = ({ onDismiss, workspace }) => {
   return h(Modal, {
     title: 'Request Access',
     width: '40rem',
+    showCancel: false,
     onDismiss
   }, [
     div(['You cannot access this Workspace because it contains restricted data. You need permission from the admin(s) of all of the Groups in the Authorization Domain protecting the workspace.']),
@@ -52,7 +53,7 @@ export const RequestAccessModal = ({ onDismiss, workspace }) => {
       centeredSpinner({ size: 32 }) :
       table({ style: { margin: '1rem', width: '100%' } }, [
         thead([
-          tr({ style: { height: '2rem' } }, [th({ style: { textAlign: 'left' } }, ['Group Name']), th({ style: { textAlign: 'left' } }, ['Access'])])
+          tr({ style: { height: '2rem' } }, [th({ style: { textAlign: 'left' } }, ['Group Name']), th({ style: { textAlign: 'left', width: '15rem' } }, ['Access'])])
         ]),
         tbody(
           _.map(({ membersGroupName: groupName }) => tr({ style: { height: '2rem' } }, [
@@ -83,6 +84,7 @@ const RequestAccessButton = ({ groupName, instructions }) => {
     withErrorReporting('Error requesting group access')
   )(async () => {
     await Groups.group(groupName).requestAccess()
+    setRequested(true)
   })
 
   return buttonPrimary({
@@ -91,5 +93,11 @@ const RequestAccessButton = ({ groupName, instructions }) => {
       await requestAccess()
       setRequested(true)
     }
-  }, [requested ? 'Request Sent' : 'Request Access'])
+  }, [
+    cond(
+      [requested, 'Request Sent'],
+      [requesting, 'Sending Request...'],
+      'Request Access'
+    )
+  ])
 }
