@@ -103,7 +103,6 @@ export const WorkspaceDashboard = _.flow(
       editDescription: undefined,
       saving: false,
       newTag: '',
-      allTags: [],
       busy: false
     }
   }
@@ -153,14 +152,12 @@ export const WorkspaceDashboard = _.flow(
 
   loadAllTags = withErrorReporting('Error loading tags', async tag => {
     const { ajax: { Workspaces } } = this.props
-    const allTags = _.map(value => {
+    return _.map(value => {
       return {
         value: value.tag,
         label: `${value.tag} (${value.count})`
       }
     }, await Workspaces.getTags(tag))
-    this.setState({ allTags })
-    return allTags
   })
 
   loadWsTags = withErrorReporting('Error loading workspace tags', async () => {
@@ -209,10 +206,8 @@ export const WorkspaceDashboard = _.flow(
         }
       }
     } = this.props
-    const { submissionsCount, storageCostEstimate, editDescription, saving, consentStatus, tagsList, newTag, allTags, busy } = this.state
+    const { submissionsCount, storageCostEstimate, editDescription, saving, consentStatus, tagsList, newTag, busy } = this.state
     const isEditing = _.isString(editDescription)
-
-    console.log(allTags)
 
     return div({ style: { flex: 1, display: 'flex' } }, [
       div({ style: styles.leftBox }, [
@@ -289,7 +284,7 @@ export const WorkspaceDashboard = _.flow(
             defaultOptions: true,
             cacheOptions: true,
             placeholder: 'Add a tag',
-            onChange: data => console.log(data), //this.addTag(data.value),
+            onChange: data => this.addTag(data.value),
             styles: { container: base => ({ ...base, wordWrap: 'break-word' }) },
             loadOptions: () => this.loadAllTags({ tag: newTag }),
             onInputChange: v => this.setState({ newTag: v })
