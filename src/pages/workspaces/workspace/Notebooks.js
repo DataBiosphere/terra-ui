@@ -2,7 +2,7 @@ import clipboard from 'clipboard-polyfill/build/clipboard-polyfill'
 import _ from 'lodash/fp'
 import { createRef, Fragment } from 'react'
 import Dropzone from 'react-dropzone'
-import { a, div, h, label } from 'react-hyperscript-helpers'
+import { a, div, h } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import togglesListView from 'src/components/CardsListToggle'
 import { Clickable, link, MenuButton, menuIcon, PageBox, Select, spinnerOverlay } from 'src/components/common'
@@ -44,11 +44,15 @@ const printName = name => name.slice(10, -6) // removes 'notebooks/' and the .ip
 
 const noWrite = 'You do not have access to modify this workspace.'
 
+const sortTokens = {
+  lowerCaseName: notebook => notebook.name.toLowerCase()
+}
+const defaultSort = { label: 'Most Recently Updated', value: { field: 'updated', direction: 'desc' } }
 const sortOptions = [
-  { label: 'Most Recently Updated', value: { field: 'updated', direction: 'desc' } },
+  defaultSort,
   { label: 'Least Recently Updated', value: { field: 'updated', direction: 'asc' } },
-  { label: 'Alphabetical', value: { field: 'name', direction: 'asc' } },
-  { label: 'Reverse Alphabetical', value: { field: 'name', direction: 'desc' } }
+  { label: 'Alphabetical', value: { field: 'lowerCaseName', direction: 'asc' } },
+  { label: 'Reverse Alphabetical', value: { field: 'lowerCaseName', direction: 'desc' } }
 ]
 
 class NotebookCard extends Component {
@@ -190,7 +194,7 @@ const Notebooks = _.flow(
       copyingNotebookName: undefined,
       deletingNotebookName: undefined,
       exportingNotebookName: undefined,
-      sortOrder: { field: 'updated', direction: 'desc' },
+      sortOrder: defaultSort.value,
       ...StateHistory.get()
     }
     this.uploader = createRef()
@@ -254,7 +258,7 @@ const Notebooks = _.flow(
     } = this.props
     const canWrite = Utils.canWrite(accessLevel)
     const renderedNotebooks = _.flow(
-      _.orderBy(field, direction),
+      _.orderBy(sortTokens[field] || field, direction),
       _.map(({ name, updated }) => h(NotebookCard, {
         key: name,
         name, updated, listView, bucketName, namespace, wsName, canWrite,
@@ -262,7 +266,8 @@ const Notebooks = _.flow(
         onCopy: () => this.setState({ copyingNotebookName: name }),
         onExport: () => this.setState({ exportingNotebookName: name }),
         onDelete: () => this.setState({ deletingNotebookName: name })
-      })))(notebooks)
+      }))
+    )(notebooks)
 
     return div({
       style: {
@@ -341,7 +346,7 @@ const Notebooks = _.flow(
       notebooks && h(PageBox, [
         div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' } }, [
           div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, ['Notebooks']),
-          label({ style: { marginLeft: 'auto', marginRight: '0.75rem' } }, 'Sort By: '),
+          div({ style: { marginLeft: 'auto', marginRight: '0.75rem' } }, ['Sort By:']),
           h(Select, {
             value: sortOrder,
             isClearable: false,
@@ -394,7 +399,7 @@ const Notebooks = _.flow(
 
   componentDidUpdate() {
     StateHistory.update(_.pick(
-      ['clusters', 'cluster', 'notebooks'],
+      ['clusters', 'cluster', 'notebooks', 'sortOrder'],
       this.state)
     )
   }
