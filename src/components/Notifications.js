@@ -64,7 +64,7 @@ const NotificationDisplay = Utils.connectAtom(notificationStore, 'notificationSt
 
     const { title, message, detail, type } = notifications[notificationNumber]
     const color = Utils.cond(
-      [type === 'success', colors.primary(1.2)],
+      [type === 'success', colors.success()],
       [type === 'info', colors.dark()],
       [type === 'welcome', colors.accent(0.85)],
       [type === 'warn', colors.warning()],

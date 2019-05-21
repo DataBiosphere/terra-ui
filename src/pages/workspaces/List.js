@@ -174,7 +174,7 @@ const WorkspaceCard = pure(({
       style: listView ? styles.longCard : styles.shortCard
     }, [
       Utils.switchCase(workspaceSubmissionStatus(workspace),
-        ['success', () => h(SubmissionIndicator, { shape: 'success-standard', color: colors.primary() })],
+        ['success', () => h(SubmissionIndicator, { shape: 'success-standard', color: colors.success() })],
         ['failure', () => h(SubmissionIndicator, { shape: 'error-standard', color: colors.danger(0.85) })],
         ['running', () => h(SubmissionIndicator, { shape: 'sync', color: colors.accent() })]
       ),
