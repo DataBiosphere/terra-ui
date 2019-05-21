@@ -19,7 +19,7 @@ import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
-import CreatableSelect from 'react-select/lib/Creatable'
+import AsyncCreatableSelect from 'react-select/lib/AsyncCreatable'
 
 
 const styles = {
@@ -154,7 +154,14 @@ export const WorkspaceDashboard = _.flow(
 
   loadAllTags = withErrorReporting('Error loading tags', async () => {
     const { ajax: { Workspaces } } = this.props
-    this.setState({ allTags: await Workspaces.getTags() })
+    const allTags = _.map(value => {
+      return {
+        value: value.tag,
+        label: `${value.tag} (${value.count})`
+      }
+    }, await Workspaces.getTags())
+    this.setState({ allTags })
+    console.log(allTags)
   })
 
   loadWsTags = withErrorReporting('Error loading workspace tags', async () => {
@@ -201,10 +208,24 @@ export const WorkspaceDashboard = _.flow(
           authorizationDomain, createdDate, lastModified, bucketName,
           attributes, attributes: { description = '' }
         }
-      }
+      }, ajax: { Workspaces }
     } = this.props
     const { submissionsCount, storageCostEstimate, editDescription, saving, consentStatus, tagsList, newTag, allTags, busy } = this.state
     const isEditing = _.isString(editDescription)
+
+    const promiseLoadOptions = () => {
+      const { newTag } = this.state
+      return new Promise(async resolve => {
+        allTags.length === 0 ?
+          resolve(_.map(value => {
+            return {
+              value: value.tag,
+              label: `${value.tag} (${value.count})`
+            }C
+          }, await Workspaces.getTags())) :
+          resolve(console.log(_.filter(newTag, allTags)))
+      })
+    }
 
     return div({ style: { flex: 1, display: 'flex' } }, [
       div({ style: styles.leftBox }, [
@@ -273,19 +294,18 @@ export const WorkspaceDashboard = _.flow(
         ]),
         div({ style: styles.header }, ['Tags']),
         div({ style: { marginBottom: '0.5rem' } }, [
-          allTags && h(CreatableSelect, {
+          allTags && h(AsyncCreatableSelect, {
             isClearable: true,
             isSearchable: true,
+            allowCreateWhileLoading: true,
             value: newTag,
+            defaultOptions: true,
+            cacheOptions: true,
             placeholder: 'Add a tag',
-            onChange: data => this.addTag(data.value),
+            onChange: data => console.log(data), //this.addTag(data.value),
             styles: { container: base => ({ ...base, wordWrap: 'break-word' }) },
-            options: _.map(value => {
-              return {
-                value: value.tag,
-                label: `${value.tag} (${value.count})`
-              }
-            }, allTags)
+            loadOptions: promiseLoadOptions,
+            onInputChange: v => this.setState({ newTag: v })
           })
         ]),
         div({ style: { display: 'flex', flexWrap: 'wrap' } }, [
