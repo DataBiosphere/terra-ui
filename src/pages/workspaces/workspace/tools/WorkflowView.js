@@ -20,6 +20,7 @@ import WDLViewer from 'src/components/WDLViewer'
 import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError, withErrorReporting } from 'src/libs/error'
+import { terraSpecial } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
 import * as Utils from 'src/libs/utils'
@@ -67,7 +68,7 @@ const styles = {
   angle: {
     marginRight: '0.5rem',
     marginTop: '.1rem',
-    color: colors.primary(1.2)
+    color: colors.accent()
   },
   outputInfoLabel: {
     color: colors.dark()
@@ -560,7 +561,7 @@ const WorkflowView = _.flow(
                 linkButton({}, [icon('ellipsis-vertical', { size: 22 })])
               ])
             ]),
-            span({ style: { color: colors.accent(), fontSize: 24 } }, name)
+            span({ style: { color: colors.dark(), fontSize: 24 } }, name)
           ]),
           currentSnapRedacted && div({ style: { color: colors.warning(), fontSize: 16, fontWeight: 500, marginTop: '0.5rem' } }, [
             'The selected snapshot of the referenced tool has been redacted. You will not be able to run an analysis until you select another snapshot.'
@@ -769,7 +770,7 @@ const WorkflowView = _.flow(
       disabled: currentSnapRedacted || !!Utils.editWorkspaceError(workspace),
       disableClick: true,
       style: { padding: `1rem ${sideMargin}`, flex: 'auto', display: 'flex', flexDirection: 'column' },
-      activeStyle: { backgroundColor: colors.primary(0.2), cursor: 'copy' },
+      activeStyle: { backgroundColor: terraSpecial(0.2), cursor: 'copy' },
       ref: this.uploader,
       onDropRejected: () => reportError('Not a valid inputs file',
         'The selected file is not a json file. To import inputs for this tool, upload a file with a .json extension.'),

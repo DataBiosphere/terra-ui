@@ -22,6 +22,7 @@ import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
 import { EntityDeleter, EntityUploader, ReferenceDataDeleter, ReferenceDataImporter, renderDataCell } from 'src/libs/data-utils'
 import { withErrorReporting } from 'src/libs/error'
+import { terraSpecial } from 'src/libs/logos'
 import * as StateHistory from 'src/libs/state-history'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
@@ -156,7 +157,7 @@ const LocalVariablesContent = ajaxCaller(class LocalVariablesContent extends Com
       disabled: !!Utils.editWorkspaceError(workspace),
       disableClick: true,
       style: { flex: 1, display: 'flex', flexDirection: 'column' },
-      activeStyle: { backgroundColor: colors.primary(0.2), cursor: 'copy' },
+      activeStyle: { backgroundColor: terraSpecial(0.2), cursor: 'copy' },
       ref: this.uploader,
       onDropAccepted: upload
     }, [
@@ -597,7 +598,7 @@ const BucketContent = ajaxCaller(class BucketContent extends Component {
         disabled: !!Utils.editWorkspaceError(workspace),
         disableClick: true,
         style: { flexGrow: 1, backgroundColor: 'white', border: `1px solid ${colors.dark(0.55)}`, padding: '1rem' },
-        activeStyle: { backgroundColor: colors.primary(0.2), cursor: 'copy' },
+        activeStyle: { backgroundColor: terraSpecial(0.2), cursor: 'copy' },
         ref: this.uploader,
         onDropAccepted: files => this.uploadFiles(files)
       }, [
@@ -802,7 +803,7 @@ const WorkspaceData = _.flow(
                 }, [
                   icon('minus-circle', {
                     size: 16,
-                    style: { color: colors.primary(1.2) }
+                    style: { color: colors.accent() }
                   })
                 ])
               ])

@@ -52,7 +52,7 @@ const styles = {
   },
   shortCreateCard: {
     display: 'flex', flexDirection: 'column', justifyContent: 'center',
-    color: colors.primary(1.2), fontSize: 20, fontWeight: 500, lineHeight: '28px'
+    color: colors.accent(), fontSize: 20, fontWeight: 500, lineHeight: '28px'
   },
   longCard: {
     ...Style.elements.card.container,
@@ -77,7 +77,7 @@ const styles = {
   badge: {
     height: '1.5rem', width: '1.5rem', borderRadius: '1.5rem',
     lineHeight: '1.5rem', textAlign: 'center',
-    backgroundColor: colors.accent(), color: 'white'
+    backgroundColor: colors.dark(), color: 'white'
   },
   filter: { marginLeft: '1rem', flex: '0 0 300px' },
   submissionIndicator: {
@@ -176,7 +176,7 @@ const WorkspaceCard = pure(({
       Utils.switchCase(workspaceSubmissionStatus(workspace),
         ['success', () => h(SubmissionIndicator, { shape: 'success-standard', color: colors.success() })],
         ['failure', () => h(SubmissionIndicator, { shape: 'error-standard', color: colors.danger(0.85) })],
-        ['running', () => h(SubmissionIndicator, { shape: 'sync', color: colors.accent() })]
+        ['running', () => h(SubmissionIndicator, { shape: 'sync', color: colors.success() })]
       ),
       listView ? h(Fragment, [
         workspaceMenu,

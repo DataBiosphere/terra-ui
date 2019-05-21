@@ -18,7 +18,7 @@ const ToastMessageComponent = Utils.connectAtom(rerunFailuresStatus, 'status')(c
     return div({
       style: {
         width: '100%', padding: '1rem', borderRadius: 8,
-        backgroundColor: done ? colors.primary(1.2) : colors.dark(),
+        backgroundColor: done ? colors.success() : colors.dark(),
         color: 'white'
       }
     }, [

@@ -16,7 +16,7 @@ import colors from 'src/libs/colors'
 import { getConfig, isFirecloud, isTerra } from 'src/libs/config'
 import { reportError, withErrorReporting } from 'src/libs/error'
 import { FormLabel } from 'src/libs/forms'
-import { menuOpenLogo, topBarLogo } from 'src/libs/logos'
+import { topBarLogo } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
 import { authStore, contactUsActive, freeCreditsActive } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
@@ -29,20 +29,24 @@ const styles = {
     flex: 'none', height: 66, paddingLeft: '1rem',
     display: 'flex', alignItems: 'center',
     borderBottom: `2px solid ${colors.primary(0.55)}`,
-    zIndex: 2
+    zIndex: 2,
+    boxShadow: '3px 0 13px 0 rgba(0,0,0,0.3)'
   },
   pageTitle: {
-    color: 'white', fontSize: 22, fontWeight: 500, textTransform: 'uppercase'
+    color: isTerra() ? 'white' : colors.dark(), fontSize: 22, fontWeight: 500, textTransform: 'uppercase'
   },
   nav: {
     background: {
       position: 'absolute', left: 0, right: 0, top: 0, bottom: 0,
-      overflow: 'auto', cursor: 'pointer'
+      overflow: 'auto', cursor: 'pointer',
+      zIndex: 2
     },
     container: {
+      paddingTop: 66,
       width: 290, color: 'white', position: 'absolute', cursor: 'default',
       backgroundColor: colors.dark(0.7), height: '100%',
       boxShadow: '3px 0 13px 0 rgba(0,0,0,0.3)',
+      zIndex: 2,
       display: 'flex', flexDirection: 'column'
     },
     profile: active => ({
@@ -194,27 +198,6 @@ export default _.flow(
         style: styles.nav.container,
         onClick: e => e.stopPropagation()
       }, [
-        div({
-          style: {
-            ...styles.topBar,
-            background: isTerra() ? `81px url(${headerLeftHexes}) no-repeat ${colors.primary()}` : colors.primary()
-          }
-        }, [
-          icon('bars', {
-            dir: 'right',
-            size: 36,
-            style: { marginRight: '2rem', color: 'white', cursor: 'pointer' },
-            onClick: () => this.hideNav()
-          }),
-          a({
-            style: {
-              ...styles.pageTitle,
-              textAlign: 'center', display: 'flex', alignItems: 'center'
-            },
-            href: Nav.getLink('root'),
-            onClick: () => this.hideNav()
-          }, [menuOpenLogo(), betaTag])
-        ]),
         div({ style: { display: 'flex', flexDirection: 'column', overflowY: 'auto', flex: 1 } }, [
           isSignedIn ?
             this.buildUserSection() :
@@ -467,56 +450,59 @@ export default _.flow(
     const { title, href, children, ajax: { User }, authState } = this.props
     const { navShown, finalizeTrial, openCookiesModal, openFirecloudModal } = this.state
 
-    return div({
-      style: {
-        ...styles.topBar,
-        background: isTerra() ?
-          `81px url(${headerLeftHexes}) no-repeat, right url(${headerRightHexes}) no-repeat, ${colors.primary()}` :
-          colors.primary()
-      }
-    }, [
-      icon('bars', {
-        size: 36,
-        style: { marginRight: '2rem', color: 'white', flex: 'none', cursor: 'pointer' },
-        onClick: () => this.showNav()
-      }),
-      a({
-        style: { ...styles.pageTitle, display: 'flex', alignItems: 'center' },
-        href: href || Nav.getLink('root')
-      }, [
-        topBarLogo(),
-        div({}, [
-          div({
-            style: title ? { fontSize: '0.8rem', lineHeight: '19px' } : { fontSize: '1rem', fontWeight: 600 }
-          }, [betaTag]),
-          title
-        ])
-      ]),
-      children,
+    return h(Fragment, [
       navShown && this.buildNav(),
-      finalizeTrial && h(Modal, {
-        title: 'Remove button',
-        onDismiss: () => this.setState({ finalizeTrial: false }),
-        okButton: buttonPrimary({
-          onClick: async () => {
-            try {
-              await User.finalizeTrial()
-              await refreshTerraProfile()
-            } catch (error) {
-              reportError('Error finalizing trial', error)
-            } finally {
-              this.setState({ finalizeTrial: false })
+      div({
+        style: {
+          ...styles.topBar,
+          background: isTerra() ?
+            `81px url(${headerLeftHexes}) no-repeat, right url(${headerRightHexes}) no-repeat, ${colors.primary()}` :
+            colors.secondary(0.15)
+        }
+      }, [
+        icon('bars', {
+          dir: navShown ? 'right' : undefined,
+          size: 36,
+          style: { marginRight: '2rem', color: isTerra() ? 'white' : colors.accent(), flex: 'none', cursor: 'pointer' },
+          onClick: () => navShown ? this.hideNav() : this.showNav()
+        }),
+        a({
+          style: { ...styles.pageTitle, display: 'flex', alignItems: 'center' },
+          href: href || Nav.getLink('root')
+        }, [
+          topBarLogo(),
+          div({}, [
+            div({
+              style: title ? { fontSize: '0.8rem', lineHeight: '19px' } : { fontSize: '1rem', fontWeight: 600 }
+            }, [betaTag]),
+            title
+          ])
+        ]),
+        children,
+        finalizeTrial && h(Modal, {
+          title: 'Remove button',
+          onDismiss: () => this.setState({ finalizeTrial: false }),
+          okButton: buttonPrimary({
+            onClick: async () => {
+              try {
+                await User.finalizeTrial()
+                await refreshTerraProfile()
+              } catch (error) {
+                reportError('Error finalizing trial', error)
+              } finally {
+                this.setState({ finalizeTrial: false })
+              }
             }
-          }
-        }, ['Confirm'])
-      }, ['Click confirm to remove button forever.']),
-      openCookiesModal && h(CookiesModal, {
-        onDismiss: () => this.setState({ openCookiesModal: false })
-      }),
-      openFirecloudModal && h(PreferFirecloudModal, {
-        onDismiss: () => this.setState({ openFirecloudModal: false }),
-        authState
-      })
+          }, ['Confirm'])
+        }, ['Click confirm to remove button forever.']),
+        openCookiesModal && h(CookiesModal, {
+          onDismiss: () => this.setState({ openCookiesModal: false })
+        }),
+        openFirecloudModal && h(PreferFirecloudModal, {
+          onDismiss: () => this.setState({ openFirecloudModal: false }),
+          authState
+        })
+      ])
     ])
   }
 })

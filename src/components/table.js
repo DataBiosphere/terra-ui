@@ -12,6 +12,7 @@ import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import colors from 'src/libs/colors'
+import { terraSpecial } from 'src/libs/logos'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 
@@ -20,7 +21,7 @@ const paginatorButton = (props, label) => button(_.merge({
   style: {
     margin: '0 2px', padding: '0.25rem 0.5rem',
     border: '1px solid #ccc', borderRadius: 3,
-    color: props.disabled ? colors.dark(0.7) : colors.primary(), backgroundColor: 'white',
+    color: props.disabled ? colors.dark(0.7) : terraSpecial(), backgroundColor: 'white',
     cursor: props.disabled ? 'not-allowed' : 'pointer'
   }
 }, props), label)
@@ -69,9 +70,9 @@ export const paginator = props => {
                 key: num,
                 style: {
                   minWidth: '2rem',
-                  backgroundColor: currentPage === num ? colors.primary() : undefined,
-                  color: currentPage === num ? 'white' : colors.primary(),
-                  border: currentPage === num ? colors.primary() : undefined
+                  backgroundColor: currentPage === num ? terraSpecial() : undefined,
+                  color: currentPage === num ? 'white' : terraSpecial(),
+                  border: currentPage === num ? terraSpecial() : undefined
                 }
               },
               getPageItemProps({ pageValue: num, onPageChange: setPageNumber })),
@@ -141,7 +142,7 @@ const styles = {
   columnSelector: {
     position: 'absolute', top: 0, right: 0, width: 48, height: 48,
     display: 'flex', justifyContent: 'center', alignItems: 'center',
-    color: colors.primary(1.2), backgroundColor: colors.light(0.4),
+    color: colors.accent(), backgroundColor: colors.light(0.4),
     border: `1px solid ${colors.dark(0.2)}`,
     borderRadius: 5
   },
@@ -422,7 +423,7 @@ export const Sortable = ({ sort, field, onSort, children }) => {
   }, [
     children,
     sort.field === field && div({
-      style: { color: colors.primary(1.2), marginLeft: 'auto' }
+      style: { color: colors.accent(), marginLeft: 'auto' }
     }, [
       icon(sort.direction === 'asc' ? 'arrow down' : 'arrow')
     ])

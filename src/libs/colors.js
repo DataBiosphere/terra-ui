@@ -9,7 +9,7 @@ const colorPalettes = {
   Terra: {
     primary: '#74ae43',
     secondary: '#6d6e70',
-    accent: '#0086c1',
+    accent: '#4d72aa',
     success: '#74ae43',
     warning: '#f7981c',
     danger: '#db3214',
@@ -19,7 +19,17 @@ const colorPalettes = {
   FireCloud: {
     primary: '#4d72aa',
     secondary: '#6d6e70',
-    accent: '#0086c1',
+    accent: '#4d72aa',
+    success: '#74ae43',
+    warning: '#f7981c',
+    danger: '#db3214',
+    light: '#e9ecef',
+    dark: '#333f52'
+  },
+  DataStage: {
+    primary: '#c02f42',
+    secondary: '#6d6e70',
+    accent: '#4d72aa',
     success: '#74ae43',
     warning: '#f7981c',
     danger: '#db3214',

@@ -34,14 +34,14 @@ const makeCard = (link, title, body) => h(Clickable, {
   style: { ...Style.elements.card.container, height: 245, width: 225, marginRight: '1rem', justifyContent: undefined },
   hover: { boxShadow: '0 3px 7px 0 rgba(0,0,0,0.5), 0 5px 3px 0 rgba(0,0,0,0.2)' }
 }, [
-  div({ style: { color: colors.primary(1.2), fontSize: 18, fontWeight: 500, lineHeight: '22px', marginBottom: '0.5rem' } }, title),
+  div({ style: { color: colors.accent(), fontSize: 18, fontWeight: 500, lineHeight: '22px', marginBottom: '0.5rem' } }, title),
   div({ style: { lineHeight: '22px' } }, body),
   div({ style: { flexGrow: 1 } }),
   div({
     style: {
       height: 30, width: 27,
       display: 'flex', alignItems: 'center', alignSelf: 'flex-end', justifyContent: 'center',
-      backgroundColor: colors.primary(),
+      backgroundColor: colors.accent(),
       maskImage: `url(${hexButton})`, WebkitMaskImage: `url(${hexButton})`
     }
   }, [icon('arrowRight', { style: { color: 'white' } })])
@@ -59,8 +59,8 @@ const LandingPage = pure(() => {
         backgroundRepeat: 'no-repeat', backgroundSize: '750px', backgroundPosition: 'right 0 top 0'
       }
     }, [
-      div({ style: { fontSize: 54, color: colors.primary(1.2) } }, `Welcome to ${getAppName()}`),
-      div({ style: { fontSize: 20, color: colors.dark(), margin: '1rem 0' } }, [
+      div({ style: { fontSize: 54 } }, `Welcome to ${getAppName()}`),
+      div({ style: { fontSize: 20, margin: '1rem 0' } }, [
         div(`${getAppName()} is a cloud-native platform for biomedical`),
         div(['researchers to access ', span({ style: styles.heavy }, 'data'), ', run analysis ', span({ style: styles.heavy }, 'tools'), ',']),
         div(['and', span({ style: styles.heavy }, ' collaborate'), '.'])

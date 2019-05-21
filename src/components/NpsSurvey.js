@@ -7,7 +7,7 @@ import { icon } from 'src/components/icons'
 import { TextArea } from 'src/components/input'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
-import { getAppName } from 'src/libs/logos'
+import { getAppName, terraSpecial } from 'src/libs/logos'
 import { authStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -73,7 +73,7 @@ export const NpsSurvey = Utils.connectAtom(authStore, 'authState')(class NpsSurv
       const bgColor = Utils.cond(
         [i <= 6, colors.danger()],
         [i <= 8, colors.warning()],
-        colors.primary(1.2)
+        terraSpecial(1.2)
       )
 
       return h(Interactive, {

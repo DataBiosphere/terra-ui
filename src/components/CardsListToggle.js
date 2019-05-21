@@ -13,10 +13,10 @@ const viewToggleStyles = {
   },
   toolbarButton: active => ({
     display: 'flex', justifyContent: 'center', alignItems: 'center',
-    borderRadius: 3, border: `1px solid ${colors.primary(1.2)}`,
+    borderRadius: 3, border: `1px solid ${colors.accent()}`,
     height: '2.25rem', padding: '0 .75rem',
-    color: colors.primary(1.2),
-    backgroundColor: active ? colors.primary(0.2) : 'white'
+    color: colors.accent(),
+    backgroundColor: active ? colors.accent(0.2) : 'white'
   })
 }
 

@@ -3,7 +3,7 @@ import { Fragment } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import { spinnerOverlay } from 'src/components/common'
 import { DeleteUserModal, EditUserModal, MemberCard, NewUserCard, NewUserModal } from 'src/components/group-common'
-import { icon } from 'src/components/icons'
+import { icon, spinner } from 'src/components/icons'
 import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
@@ -52,20 +52,15 @@ export default ajaxCaller(class ProjectDetail extends Component {
 
     return h(Fragment, [
       div({ style: { padding: '1.5rem 3rem', flexGrow: 1 } }, [
-        div({ style: { color: colors.dark(), fontSize: 16, fontWeight: 600 } },
-          [
-            projectName,
-            span({ style: { fontWeight: 500, fontSize: 14, margin: '0 1.5rem 0 3rem' } }, creationStatus),
-            span([
-              icon(Utils.cond(
-                [creationStatus === 'Ready', 'check'],
-                [creationStatus === 'Creating', 'loadingSpinner'],
-                'error-standard'
-              ), {
-                style: { color: colors.primary(1.2), marginRight: '1rem' }
-              })
-            ])
-          ]),
+        div({ style: { color: colors.dark(), fontSize: 16, fontWeight: 600 } }, [
+          projectName,
+          span({ style: { fontWeight: 500, fontSize: 14, margin: '0 1.5rem 0 3rem' } }, creationStatus),
+          Utils.cond(
+            [creationStatus === 'Ready', () => icon('check', { style: { color: colors.success() } })],
+            [creationStatus === 'Creating', () => spinner({ size: 16 })],
+            () => icon('error-standard', { style: { color: colors.danger() } })
+          )
+        ]),
         div({
           style: {
             marginTop: '1rem',

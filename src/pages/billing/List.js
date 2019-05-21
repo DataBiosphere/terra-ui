@@ -3,7 +3,7 @@ import * as qs from 'qs'
 import { Fragment } from 'react'
 import { a, div, h, span } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
-import { buttonPrimary, buttonSecondary, Select, spinnerOverlay } from 'src/components/common'
+import { buttonPrimary, Clickable, Select, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
@@ -13,9 +13,9 @@ import * as Auth from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
 import { formHint, RequiredFormLabel } from 'src/libs/forms'
+import { terraSpecial } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
-import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 import ProjectDetail from 'src/pages/billing/Project'
@@ -26,24 +26,24 @@ const styles = {
   tab: isActive => ({
     display: 'flex', alignItems: 'center', fontSize: 16, height: 50, padding: '0 2rem',
     fontWeight: 500, overflow: 'hidden', borderBottom: `1px solid ${colors.dark(0.2)}`, borderRightStyle: 'solid',
-    borderRightWidth: isActive ? 10 : 0, backgroundColor: isActive ? colors.primary(0.1) : 'white',
-    borderRightColor: isActive ? colors.primary() : colors.primary(1.2)
+    borderRightWidth: isActive ? 10 : 0, backgroundColor: isActive ? colors.accent(0.1) : 'white',
+    borderRightColor: isActive ? terraSpecial() : colors.accent()
   })
 }
 
 const ProjectTab = ({ project: { projectName, role, creationStatus }, isActive }) => {
   const projectReady = creationStatus === 'Ready'
   const statusIcon = icon(creationStatus === 'Creating' ? 'loadingSpinner' : 'error-standard',
-    { style: { color: colors.primary(1.2), marginRight: '1rem', marginLeft: '0.5rem' } })
+    { style: { color: colors.accent(), marginRight: '1rem', marginLeft: '0.5rem' } })
 
   return _.includes('Owner', role) && projectReady ? h(Interactive, {
     as: 'a',
     style: {
       ...styles.tab(isActive),
-      color: colors.primary(1.2)
+      color: colors.accent()
     },
     href: `${Nav.getLink('billing')}?${qs.stringify({ selectedName: projectName, type: 'project' })}`,
-    hover: isActive ? {} : { backgroundColor: colors.primary(0.2), color: colors.primary() }
+    hover: isActive ? {} : { backgroundColor: colors.accent(0.2), color: colors.accent() }
   }, [projectName, !projectReady && statusIcon]) : div({
     style: {
       ...styles.tab(false), color: colors.dark()
@@ -258,14 +258,10 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
             }
           }, [
             'Billing Projects',
-            buttonSecondary({
-              onClick: () => { this.setState({ creatingBillingProject: true }) },
-              style: {
-                borderRadius: 5, backgroundColor: 'white', padding: '0.5rem',
-                boxShadow: Style.standardShadow
-              }
-            },
-            ['New', icon('plus-circle', { size: 21, style: { marginLeft: '0.5rem' } })])
+            h(Clickable,
+              { onClick: () => { this.setState({ creatingBillingProject: true }) } },
+              [icon('plus-circle', { size: 21, style: { color: colors.accent() } })]
+            )
           ]),
           _.map(project => h(ProjectTab, {
             project, key: project.projectName,

@@ -1,17 +1,18 @@
 import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { Fragment, useState } from 'react'
-import { div, h, input, label, span } from 'react-hyperscript-helpers'
+import { div, h, img, input, label, span } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
 import RSelect from 'react-select'
 import { centeredSpinner, icon } from 'src/components/icons'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import colors from 'src/libs/colors'
 import { getConfig, isFirecloud } from 'src/libs/config'
-import { logo } from 'src/libs/logos'
+import { terraSpecial } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
+import scienceBackground from 'src/images/science-background.jpg'
 
 
 const styles = {
@@ -38,11 +39,11 @@ export const Clickable = ({ as = 'div', disabled, tooltip, tooltipSide, onClick,
 const linkProps = ({ disabled, variant }) => ({
   as: 'a',
   style: {
-    color: disabled ? colors.dark(0.7) : colors.primary(variant === 'light' ? 0.3 : 1.2),
+    color: disabled ? colors.dark(0.7) : colors.accent(variant === 'light' ? 0.3 : 1.2),
     cursor: disabled ? 'not-allowed' : 'pointer',
     fontWeight: 500
   },
-  hover: disabled ? undefined : { color: colors.primary(variant === 'light' ? 0.1 : 1) }
+  hover: disabled ? undefined : { color: colors.accent(variant === 'light' ? 0.1 : 1) }
 })
 
 export const link = ({ onClick, href, disabled, variant, ...props }, children) => {
@@ -69,12 +70,12 @@ export const buttonPrimary = ({ disabled, ...props }, children) => {
     disabled,
     style: {
       ...styles.button,
-      border: `1px solid ${disabled ? colors.dark(0.4) : colors.primary(1.2)}`,
+      border: `1px solid ${disabled ? colors.dark(0.4) : terraSpecial(1.2)}`,
       borderRadius: 5, color: 'white', padding: '0.875rem',
-      backgroundColor: disabled ? colors.dark(0.25) : colors.primary(),
+      backgroundColor: disabled ? colors.dark(0.25) : terraSpecial(),
       cursor: disabled ? 'not-allowed' : 'pointer'
     },
-    hover: disabled ? undefined : { backgroundColor: colors.primary(0.85) }
+    hover: disabled ? undefined : { backgroundColor: terraSpecial(0.85) }
   }, props), children)
 }
 
@@ -83,21 +84,21 @@ export const buttonSecondary = ({ disabled, ...props }, children) => {
     disabled,
     style: {
       ...styles.button,
-      color: disabled ? colors.dark(0.7) : colors.primary(1.2),
+      color: disabled ? colors.dark(0.7) : terraSpecial(1.2),
       cursor: disabled ? 'not-allowed' : 'pointer'
     },
-    hover: disabled ? undefined : { color: colors.primary() }
+    hover: disabled ? undefined : { color: terraSpecial() }
   }, props), children)
 }
 
 export const buttonOutline = ({ disabled, ...props }, children) => {
   return h(buttonPrimary, _.merge({
     style: {
-      border: `1px solid ${disabled ? colors.dark(0.4) : colors.primary(1.2)}`,
-      color: colors.primary(1.2),
+      border: `1px solid ${disabled ? colors.dark(0.4) : terraSpecial(1.2)}`,
+      color: terraSpecial(1.2),
       backgroundColor: disabled ? colors.dark(0.25) : 'white'
     },
-    hover: disabled ? undefined : { backgroundColor: colors.primary(0.2) }
+    hover: disabled ? undefined : { backgroundColor: terraSpecial(0.1) }
   }, props), children)
 }
 
@@ -138,7 +139,7 @@ export const MenuButton = ({ disabled, children, ...props }) => {
       padding: '0.875rem',
       cursor: disabled ? 'not-allowed' : 'pointer'
     },
-    hover: !disabled ? { backgroundColor: colors.light(0.4), color: colors.primary(1.2) } : undefined
+    hover: !disabled ? { backgroundColor: colors.light(0.4), color: colors.accent() } : undefined
   }, props), [children])
 }
 
@@ -151,10 +152,10 @@ export const Checkbox = ({ checked, onChange, disabled, ...props }) => {
     style: {
       display: 'inline-flex',
       verticalAlign: 'middle',
-      color: disabled ? colors.dark(0.4) : checked ? colors.primary(1.2) : colors.dark(0.55)
+      color: disabled ? colors.dark(0.4) : checked ? terraSpecial(1.2) : colors.dark(0.55)
     },
-    hover: disabled ? undefined : { color: colors.primary() },
-    active: disabled ? undefined : { backgroundColor: colors.primary(0.2) },
+    hover: disabled ? undefined : { color: terraSpecial() },
+    active: disabled ? undefined : { backgroundColor: terraSpecial(0.2) },
     disabled
   }, props), [
     icon(checked ? 'checkSquare' : 'square', { size: 16 })
@@ -236,7 +237,7 @@ export const Select = ({ value, options, id, ...props }) => {
     inputId: id,
     theme: base => _.merge(base, {
       colors: {
-        primary: colors.primary(1.2),
+        primary: terraSpecial(1.2),
         neutral20: colors.dark(0.55),
         neutral30: colors.dark(0.55)
       },
@@ -250,8 +251,8 @@ export const Select = ({ value, options, id, ...props }) => {
       singleValue: base => ({ ...base, color: colors.dark() }),
       option: (base, { isSelected, isFocused, isDisabled }) => _.merge(base, {
         backgroundColor: isSelected ? colors.light(0.4) : isFocused ? colors.dark(0.15) : undefined,
-        color: isSelected ? colors.primary(1.2) : isDisabled ? undefined : colors.dark(),
-        ':active': { backgroundColor: isSelected ? colors.primary(0.55) : colors.primary(0.4) }
+        color: isSelected ? terraSpecial() : isDisabled ? undefined : colors.dark(),
+        ':active': { backgroundColor: terraSpecial(isSelected ? 0.55 : 0.4) }
       }),
       clearIndicator: base => ({ ...base, paddingRight: 0 }),
       indicatorSeparator: () => ({ display: 'none' }),
@@ -272,9 +273,9 @@ export const PageBox = ({ children, style = {} }) => {
   }, [children])
 }
 
-export const backgroundLogo = () => logo({
-  size: 1200,
-  style: { position: 'fixed', top: -100, left: -100, zIndex: -1, opacity: 0.65 }
+export const backgroundLogo = () => img({
+  src: scienceBackground,
+  style: { position: 'fixed', top: 0, left: 0, zIndex: -1 }
 })
 
 export const methodLink = config => {

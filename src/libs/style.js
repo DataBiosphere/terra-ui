@@ -1,4 +1,6 @@
 import colors from 'src/libs/colors'
+import { isTerra } from 'src/libs/config'
+import { terraSpecial } from 'src/libs/logos'
 
 
 export const standardShadow = '0 3px 2px 0 rgba(0,0,0,0.12)'
@@ -10,7 +12,7 @@ export const proportionalNumbers = { fontVariantNumeric: 'proportional-nums', fo
 
 export const elements = {
   card: {
-    title: { color: colors.primary(1.2), fontSize: 16, overflow: 'hidden' },
+    title: { color: colors.accent(), fontSize: 16, overflow: 'hidden' },
     container: {
       display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
       borderRadius: 5, padding: '1rem', wordWrap: 'break-word',
@@ -27,21 +29,20 @@ export const tabBar = {
     display: 'flex', alignItems: 'center', backgroundColor: colors.light(0.25),
     fontWeight: 500, textTransform: 'uppercase',
     height: '3.75rem', paddingRight: '1rem',
-    borderBottom: `2px solid ${colors.primary()}`, flex: 'none',
+    borderBottom: `2px solid ${terraSpecial()}`, flex: 'none',
     boxShadow: '0 2px 5px 0 rgba(0,0,0,0.25)', zIndex: 1
   },
   tab: {
     minWidth: 140, flexGrow: 0, padding: '0 20px',
-    color: colors.primary(1.2),
     alignSelf: 'stretch', display: 'flex', justifyContent: 'center', alignItems: 'center'
   },
   active: {
-    backgroundColor: colors.primary(0.2), color: 'unset',
-    borderBottomWidth: 8, borderBottomStyle: 'solid', borderBottomColor: colors.primary(),
+    backgroundColor: terraSpecial(0.2),
+    borderBottomWidth: 8, borderBottomStyle: 'solid', borderBottomColor: terraSpecial(),
     fontWeight: 600
   },
   hover: {
-    backgroundColor: colors.primary(0.2), color: colors.primary()
+    backgroundColor: terraSpecial(0.2)
   }
 }
 
@@ -55,7 +56,7 @@ export const cardList = {
     justifyContent: 'center',
     width: 180, height: 100,
     margin: '0.25rem 1rem 0 0',
-    color: colors.primary(1.2), fontSize: 18, lineHeight: '22px'
+    color: colors.accent(), fontSize: 18, lineHeight: '22px'
   },
   longCard: {
     ...elements.card.container,
@@ -79,7 +80,7 @@ export const breadcrumb = {
     paddingLeft: '4rem', minWidth: 0, marginRight: '0.5rem'
   },
   textUnderBreadcrumb: {
-    color: 'white',
+    color: isTerra() ? 'white' : colors.accent(),
     fontSize: '1.25rem', overflowX: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'
   }
 }

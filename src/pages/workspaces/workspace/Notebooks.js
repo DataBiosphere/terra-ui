@@ -14,6 +14,7 @@ import TooltipTrigger from 'src/components/TooltipTrigger'
 import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
+import { terraSpecial } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
 import * as qs from 'qs'
 import * as StateHistory from 'src/libs/state-history'
@@ -106,10 +107,10 @@ class NotebookCard extends Component {
       h(Clickable, {
         onClick: e => e.preventDefault(),
         style: {
-          cursor: 'pointer', color: colors.primary(1.2)
+          cursor: 'pointer', color: colors.accent()
         },
         focus: 'hover',
-        hover: { color: colors.primary(0.85) }
+        hover: { color: colors.accent(0.85) }
       }, [
         icon('cardMenuIcon', {
           size: listView ? 18 : 24
@@ -271,7 +272,7 @@ const Notebooks = _.flow(
           style: {
             ...Style.elements.card.container,
             flex: 1,
-            color: colors.primary(1.2)
+            color: colors.accent()
           },
           onClick: () => this.setState({ creating: true }),
           disabled: !canWrite,
@@ -320,7 +321,7 @@ const Notebooks = _.flow(
       disabled: !Utils.canWrite(accessLevel),
       disableClick: true,
       style: { flexGrow: 1 },
-      activeStyle: { backgroundColor: colors.primary(0.2), cursor: 'copy' }, // accept and reject don't work in all browsers
+      activeStyle: { backgroundColor: terraSpecial(0.2), cursor: 'copy' }, // accept and reject don't work in all browsers
       acceptStyle: { cursor: 'copy' },
       rejectStyle: { cursor: 'no-drop' },
       ref: this.uploader,

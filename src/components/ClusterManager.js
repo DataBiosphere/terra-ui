@@ -154,7 +154,7 @@ const MachineSelector = ({ machineType, onChangeMachineType, diskSize, onChangeD
 
 const ClusterIcon = ({ shape, onClick, disabled, style, ...props }) => {
   return h(Clickable, {
-    style: { color: onClick && !disabled ? colors.primary(1.2) : colors.dark(0.7), ...style },
+    style: { color: onClick && !disabled ? colors.accent() : colors.dark(0.7), ...style },
     onClick, disabled, ...props
   }, [icon(shape, { size: 20, className: 'is-solid' })])
 }
@@ -559,7 +559,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
               ` (${Utils.formatUSD(totalCost)} hr)`
             ])
           ]),
-          icon('cog', { size: 22, className: 'is-solid', style: { color: isDisabled ? colors.dark(0.7) : colors.primary(1.2) } })
+          icon('cog', { size: 22, className: 'is-solid', style: { color: isDisabled ? colors.dark(0.7) : colors.accent() } })
         ])
       ]),
       deleting && h(Modal, {

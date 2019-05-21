@@ -17,10 +17,10 @@ export const collapseStatus = status => {
   }
 }
 
-export const successIcon = style => icon('check', { size: 24, style: { color: colors.primary(1.2), ...style } })
+export const successIcon = style => icon('check', { size: 24, style: { color: colors.success(), ...style } })
 export const failedIcon = style => icon('warning-standard', { className: 'is-solid', size: 24, style: { color: colors.danger(), ...style } })
-export const runningIcon = style => icon('sync', { size: 24, style: { color: colors.accent(), ...style } })
-export const submittedIcon = style => icon('clock', { size: 24, style })
+export const runningIcon = style => icon('sync', { size: 24, style: { color: colors.dark(), ...style } })
+export const submittedIcon = style => icon('clock', { size: 24, style: { color: colors.dark(), ...style } })
 
 export const statusIcon = (status, style) => {
   switch (collapseStatus(status)) {

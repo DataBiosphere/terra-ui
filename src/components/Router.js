@@ -3,7 +3,7 @@ import * as qs from 'qs'
 import { Component } from 'react'
 import { div, h, h2 } from 'react-hyperscript-helpers'
 import AuthContainer from 'src/components/AuthContainer'
-import { link } from 'src/components/common'
+import { buttonOutline } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { notify } from 'src/components/Notifications'
 import TopBar from 'src/components/TopBar'
@@ -22,7 +22,6 @@ import * as Datasets from 'src/pages/library/Datasets'
 import * as Showcase from 'src/pages/library/Showcase'
 import * as PrivacyPolicy from 'src/pages/PrivacyPolicy'
 import * as Profile from 'src/pages/Profile'
-import * as StyleGuide from 'src/pages/StyleGuide'
 import * as TermsOfService from 'src/pages/TermsOfService'
 import * as TestLogin from 'src/pages/TestLogin'
 import * as WorkspaceList from 'src/pages/workspaces/List'
@@ -46,7 +45,6 @@ const initNavPaths = () => {
     LandingPage.navPaths,
     WorkspaceList.navPaths,
     WorkflowView.navPaths,
-    StyleGuide.navPaths,
     ImportData.navPaths,
     ImportTool.navPaths,
     PrivacyPolicy.navPaths,
@@ -85,18 +83,17 @@ export default class Router extends Component {
 
     if (_.has('fcredir', qs.parse(Nav.history.location.search, { ignoreQueryPrefix: true, plainObjects: true }))) {
       notify('welcome', div({ style: { fontSize: 14 } }, [
-        div(['Welcome to the new FireCloud interface, powered by Terra. All of your workspaces are available. ',
-          link({
-            ...Utils.newTabLinkProps,
-            href: 'https://support.terra.bio/hc/en-us/sections/360004482892',
-            variant: 'light'
-          },
-          'Learn what\'s new and different.'
-          )]),
+        div(['Welcome to the new FireCloud interface, powered by Terra. All of your workspaces are available.']),
         div({ style: { marginTop: '1rem' } }, ['The legacy FireCloud is still available until ' +
         'August 2019. Click the three-bar menu on the upper-left corner and select "Use Classic FireCloud".']),
         div({ style: { marginTop: '1rem' } }, ['Please update your bookmarks to our new URL, firecloud.terra.bio. ' +
-        'Welcome to the future of FireCloud!'])
+        'Welcome to the future of FireCloud!']),
+        buttonOutline({
+          as: 'a',
+          ...Utils.newTabLinkProps,
+          href: 'https://support.terra.bio/hc/en-us/sections/360004482892',
+          style: { marginTop: '1rem' }
+        }, ['Learn what\'s new and different'])
       ]))
       Nav.history.replace(
         { search: qs.stringify(_.omit(['fcredir'], qs.parse(Nav.history.location.search, { ignoreQueryPrefix: true, plainObjects: true }))) })

@@ -10,6 +10,7 @@ import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import { FormLabel, RequiredFormLabel } from 'src/libs/forms'
+import { terraSpecial } from 'src/libs/logos'
 import { authStore, contactUsActive } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -129,7 +130,7 @@ const SupportRequest = _.flow(
         onDropAccepted: files => this.uploadFile(files)
       }, [
         div({ style: { padding: '1rem' } }, [
-          div({ style: { fontSize: 18, fontWeight: 'bold', color: colors.accent() } }, ['Contact Us']),
+          div({ style: { fontSize: 18, fontWeight: 'bold', color: colors.dark() } }, ['Contact Us']),
           !this.hasName() && h(Fragment, [
             h(RequiredFormLabel, ['Name']),
             h(TextInput, {
@@ -171,7 +172,7 @@ const SupportRequest = _.flow(
                 div({
                   style: { marginLeft: '1rem', paddingTop: '0.5rem' }
                 }, [
-                  'Successfully uploaded: ', span({ style: { color: colors.primary(1.2) } }, [attachmentName])
+                  'Successfully uploaded: ', span({ style: { color: colors.dark() } }, [attachmentName])
                 ])
               ]),
               linkButton({
@@ -182,7 +183,7 @@ const SupportRequest = _.flow(
             ]) :
             h(Clickable, {
               style: {
-                flex: 1, backgroundColor: dragging ? colors.primary(0.2) : colors.dark(0.1), borderRadius: 3,
+                flex: 1, backgroundColor: dragging ? terraSpecial(0.2) : colors.dark(0.1), borderRadius: 3,
                 border: `1px dashed ${colors.dark(0.7)}`
               },
               onClick: () => this.uploader.current.open()

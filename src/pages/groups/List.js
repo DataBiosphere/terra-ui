@@ -105,7 +105,7 @@ const GroupCard = pure(({ group: { groupName, groupEmail, role }, onDelete }) =>
       style: {
         ...Style.cardList.longTitle,
         marginRight: '1rem',
-        width: '30%', color: isAdmin ? colors.primary(1.2) : undefined
+        width: '30%', color: isAdmin ? colors.accent() : undefined
       }
     }, [groupName]),
     div({ style: { flexGrow: 1 } }, [groupEmail]),

@@ -6,6 +6,7 @@ import { icon } from 'src/components/icons'
 import { ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import colors from 'src/libs/colors'
+import { terraSpecial } from 'src/libs/logos'
 import { authStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -62,7 +63,7 @@ const NewAccountModal = ({ onDismiss }) => {
       colors.dark() :
       (!_.isEmpty(pages[index].errors) || index === pages.length - 1) ?
         colors.dark(0.25) :
-        colors.primary()
+        terraSpecial()
 
     return h(Clickable, {
       style: { display: 'flex', flexDirection: 'column', alignItems: 'center', whiteSpace: 'nowrap', width: 50 },
@@ -110,7 +111,7 @@ const NewAccountModal = ({ onDismiss }) => {
       style: {
         borderRadius: '5px 5px 0 0',
         padding: '1rem',
-        backgroundColor: paymentType === account.paymentType ? colors.primary(0.2) : colors.light(0.4),
+        backgroundColor: paymentType === account.paymentType ? terraSpecial(0.2) : colors.light(0.4),
         borderBottom: `1px solid ${colors.dark(0.4)}`
       }
     }, [
