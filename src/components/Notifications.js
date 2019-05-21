@@ -9,6 +9,7 @@ import ErrorView from 'src/components/ErrorView'
 import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import colors from 'src/libs/colors'
+import { notificationStore } from 'src/libs/state'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -30,8 +31,6 @@ export const sessionTimeoutProps = {
   id: 'sessionTimeout',
   detail: 'You have been signed out due to inactivity'
 }
-
-const notificationStore = Utils.atom([])
 
 const notificationsRef = createRef()
 

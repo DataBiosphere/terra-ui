@@ -20,6 +20,7 @@ export default ajaxCaller(class LaunchAnalysisModal extends Component {
       showCancel: !launching,
       okButton: !launchError ?
         buttonPrimary({
+          disabled: launching,
           onClick: () => {
             this.setState({ launching: true })
             this.doLaunch()

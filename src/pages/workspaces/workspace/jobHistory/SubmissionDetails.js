@@ -54,7 +54,7 @@ const SubmissionDetails = _.flow(
           }
           const sub = _.update(
             ['workflows'],
-            workflows => _.map(wf => {
+            _.map(wf => {
               const {
                 cost, inputResolutions, messages, status,
                 statusLastChangedDate, workflowEntity: { entityType, entityName } = {}, workflowId
@@ -66,7 +66,7 @@ const SubmissionDetails = _.flow(
               ]).toLowerCase()
 
               return _.set('asText', wfAsText, wf)
-            }, workflows),
+            }),
             await Workspaces.workspace(namespace, name).submission(submissionId).get())
 
           setSubmission(sub)

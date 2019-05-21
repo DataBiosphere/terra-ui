@@ -5,10 +5,11 @@ import { centeredSpinner } from 'src/components/icons'
 import { TextInput } from 'src/components/input'
 import planet from 'src/images/register-planet.svg'
 import { ajaxCaller } from 'src/libs/ajax'
-import { authStore, getUser, refreshTerraProfile, signOut } from 'src/libs/auth'
+import { getUser, refreshTerraProfile, signOut } from 'src/libs/auth'
 import { registrationLogo } from 'src/libs/logos'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
+import { authStore } from 'src/libs/state'
 import validate from 'validate.js'
 
 

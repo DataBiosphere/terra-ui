@@ -7,13 +7,12 @@ import { icon } from 'src/components/icons'
 import { TextArea, ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { InfoBox } from 'src/components/PopupTrigger'
-import { freeCreditsActive } from 'src/components/FreeCreditsModal'
 import { ajaxCaller } from 'src/libs/ajax'
-import { authStore } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
 import { FormLabel, RequiredFormLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
+import { authStore, freeCreditsActive } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 import validate from 'validate.js'
 
@@ -169,7 +168,7 @@ export default _.flow(
             'Once set, it cannot be changed. ',
             'Any cloned workspace will automatically inherit the authorization domain(s) from the original workspace and cannot be removed. ',
             link({
-              href: 'https://support.terra.bio/hc/en-us/articles/360026775691-Managing-Data-Privacy-and-Access-with-Authorization-Domains',
+              href: 'https://support.terra.bio/hc/en-us/articles/360026775691',
               ...Utils.newTabLinkProps
             }, ['Read more about authorization domains'])
           ])
@@ -210,7 +209,7 @@ export default _.flow(
         div({ style: { marginTop: '0.5rem', fontWeight: 500, marginBottom: '0.5rem' } }, [
           'You have $300 in ',
           link({
-            href: 'https://support.terra.bio/hc/en-us/articles/360027940952-Free-Credits-FAQs',
+            href: 'https://support.terra.bio/hc/en-us/articles/360027940952',
             ...Utils.newTabLinkProps
           }, 'free credits'), ' available!'
         ])
