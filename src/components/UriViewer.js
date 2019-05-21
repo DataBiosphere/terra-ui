@@ -44,11 +44,20 @@ const isFilePreviewable = ({ size, ...metadata }) => {
 
 const isGs = uri => _.startsWith('gs://', uri)
 
-const viewerProps = {
-  title: 'File Details',
-  showCancel: false,
-  showX: true,
-  okButton: 'Done'
+const viewerProps = onDismiss => {
+  return {
+    onDismiss,
+    title: 'File Details',
+    showCancel: false,
+    showX: true,
+    okButton: 'Done'
+  }
+}
+const loadingMetadata = uri => {
+  return [
+    isGs(uri) ? 'Loading metadata...' : 'Resolving DOS object...',
+    spinner({ style: { marginLeft: 4 } })
+  ]
 }
 
 const parseUri = uri => _.drop(1, /gs:[/][/]([^/]+)[/](.+)/.exec(uri))
@@ -63,7 +72,7 @@ const UriViewer = props => {
   const signal = useCancellation()
   const [valid, setValid] = useState(undefined)
 
-  const { googleProject, uri } = props
+  const { googleProject, uri, onDismiss } = props
   const isGsUri = isGs(uri)
   const [bucket, name] = isGsUri ? parseUri(uri) : []
 
@@ -84,9 +93,9 @@ const UriViewer = props => {
   })
 
   return Utils.switchCase(valid,
-    [undefined, () => h(Modal, viewerProps, ['Loading...'])],
+    [undefined, () => h(Modal, viewerProps(onDismiss), loadingMetadata(uri))],
     [true, () => h(UriViewerModal, props)],
-    [false, () => h(Modal, viewerProps, ['Error'])]
+    [false, () => h(Modal, viewerProps(onDismiss), ['Error: the file you are trying to access is in a requester pays bucket.'])]
   )
 }
 
@@ -129,8 +138,7 @@ const UriViewerModal = ajaxCaller(class UriViewerModal extends Component {
     const gsutilCommand = `gsutil cp ${gsUri || uri} .`
 
     return h(Modal, {
-      onDismiss,
-      ...viewerProps
+      ...viewerProps(onDismiss)
     }, [
       Utils.cond(
         [loadingError, () => h(Fragment, [
@@ -235,10 +243,7 @@ const UriViewerModal = ajaxCaller(class UriViewerModal extends Component {
           ]),
           div({ style: { fontSize: 10 } }, ['* Estimated. Download cost may be higher in China or Australia.'])
         ])],
-        () => h(Fragment, [
-          isGs(uri) ? 'Loading metadata...' : 'Resolving DOS object...',
-          spinner({ style: { marginLeft: 4 } })
-        ])
+        () => loadingMetadata(uri)
       )
     ])
   }
