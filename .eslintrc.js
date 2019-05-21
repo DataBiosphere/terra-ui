@@ -66,6 +66,9 @@ module.exports = {
     'lodash-fp/no-argumentless-calls': 'warn',
     'lodash-fp/no-chain': 'warn',
     'lodash-fp/no-extraneous-args': 'warn',
+    'lodash-fp/no-extraneous-function-wrapping': 'warn',
+    'lodash-fp/no-extraneous-iteratee-args': 'warn',
+    // 'lodash-fp/no-extraneous-partials': 'warn', // available in eslint-plugin-lodash-fp 2.2.0+
     'lodash-fp/no-partial-of-curried': 'warn',
     'lodash-fp/no-single-composition': 'warn',
     'lodash-fp/no-submodule-destructuring': 'warn',

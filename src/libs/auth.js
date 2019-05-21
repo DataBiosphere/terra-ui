@@ -161,7 +161,7 @@ authStore.subscribe((state, oldState) => {
 
 export const refreshTerraProfile = async () => {
   const profile = Utils.kvArrayToObject((await Ajax().User.profile.get()).keyValuePairs)
-  authStore.update(state => _.set('profile', profile, state))
+  authStore.update(state => ({ ...state, profile }))
 }
 
 authStore.subscribe(withErrorReporting('Error loading user profile', async (state, oldState) => {
@@ -184,7 +184,7 @@ authStore.subscribe(withErrorReporting('Error loading NIH account link status', 
   }
   if (oldState.registrationStatus !== 'registered' && state.registrationStatus === 'registered') {
     const nihStatus = await loadNihStatus()
-    authStore.update(_.set('nihStatus', nihStatus))
+    authStore.update(state => ({ ...state, nihStatus }))
   }
 }))
 
