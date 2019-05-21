@@ -95,7 +95,7 @@ const UriViewer = props => {
   return Utils.switchCase(valid,
     [undefined, () => h(Modal, viewerProps(onDismiss), loadingMetadata(uri))],
     [true, () => h(UriViewerModal, props)],
-    [false, () => h(Modal, viewerProps(onDismiss), ['Error: the file you are trying to access is in a requester pays bucket.'])]
+    [false, () => h(Modal, viewerProps(onDismiss), ['Error: The file is in a requester pays bucket but there is no user project provided.'])]
   )
 }
 
