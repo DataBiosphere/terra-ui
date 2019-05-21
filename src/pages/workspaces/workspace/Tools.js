@@ -80,7 +80,7 @@ const styles = {
 }
 
 const sortTokens = {
-  lowerCaseName: notebook => notebook.name.toLowerCase()
+  lowerCaseName: config => config.name.toLowerCase()
 }
 const defaultSort = { label: 'Alphabetical', value: { field: 'lowerCaseName', direction: 'asc' } }
 const sortOptions = [
