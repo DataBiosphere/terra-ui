@@ -315,7 +315,7 @@ export const Tools = _.flow(
     const { namespace, name, listView, viewToggleButtons, workspace: ws, workspace: { workspace } } = this.props
     const { loading, configs, copyingTool, deletingTool, findingTool, sortOrder, sortOrder: { field, direction } } = this.state
     const tools = _.flow(
-      _.orderBy(sortTokens[field], direction),
+      _.orderBy(sortTokens[field] || field, direction),
       _.map(config => {
         const isRedacted = this.computeRedacted(config)
         return h(ToolCard, {
