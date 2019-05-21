@@ -221,7 +221,7 @@ export const WorkspaceDashboard = _.flow(
             return {
               value: value.tag,
               label: `${value.tag} (${value.count})`
-            }C
+            }
           }, await Workspaces.getTags())) :
           resolve(console.log(_.filter(newTag, allTags)))
       })
