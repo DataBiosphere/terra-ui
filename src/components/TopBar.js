@@ -8,17 +8,18 @@ import { icon, profilePic } from 'src/components/icons'
 import { TextArea } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import SignInButton from 'src/components/SignInButton'
+import { contactUsActive } from 'src/components/SupportRequest'
+import { freeCreditsActive } from 'src/components/FreeCreditsModal'
 import headerLeftHexes from 'src/images/header-left-hexes.svg'
 import headerRightHexes from 'src/images/header-right-hexes.svg'
 import { Ajax, ajaxCaller } from 'src/libs/ajax'
-import { refreshTerraProfile, signOut } from 'src/libs/auth'
+import { authStore, refreshTerraProfile, signOut } from 'src/libs/auth'
 import { FormLabel } from 'src/libs/forms'
 import { menuOpenLogo, topBarLogo } from 'src/libs/logos'
 import colors from 'src/libs/colors'
 import { getConfig, isFirecloud } from 'src/libs/config'
 import { reportError, withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
-import { authStore, contactUsActive, freeCreditsActive } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 import { CookiesModal } from 'src/pages/SignIn'
@@ -260,11 +261,11 @@ export default _.flow(
           this.buildDropDownSection(
             'help', 'Terra Support', () => this.setState({ openSupportMenu: !openSupportMenu }), openSupportMenu, [
               dropDownSubItem('https://support.terra.bio/hc/en-us', 'How-to Guides', () => this.hideNav(), Utils.newTabLinkProps),
-              dropDownSubItem('https://support.terra.bio/hc/en-us/community/topics/360000500452', 'Request a Feature',
+              dropDownSubItem('https://support.terra.bio/hc/en-us/community/topics/360000500452-Feature-Requests', 'Request a Feature',
                 () => this.hideNav(), Utils.newTabLinkProps),
-              dropDownSubItem('https://support.terra.bio/hc/en-us/community/topics/360000500432', 'Community Forum',
+              dropDownSubItem('https://support.terra.bio/hc/en-us/community/topics/360000500432-General-Discussion', 'Community Forum',
                 () => this.hideNav(), Utils.newTabLinkProps),
-              isFirecloud() && dropDownSubItem('https://support.terra.bio/hc/en-us/articles/360022694271', 'What\'s different in Terra?', () => this.hideNav(), Utils.newTabLinkProps),
+              isFirecloud() && dropDownSubItem('https://support.terra.bio/hc/en-us/articles/360022694271-Side-by-side-comparison-with-Terra', 'What\'s different in Terra?', () => this.hideNav(), Utils.newTabLinkProps),
               dropDownSubItem(undefined, 'Contact Us', () => contactUsActive.set(true))
             ]
           ),
