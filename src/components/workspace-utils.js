@@ -4,11 +4,9 @@ import { div, h } from 'react-hyperscript-helpers'
 import { buttonPrimary, linkButton, Select } from 'src/components/common'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
 import { Ajax, useCancellation } from 'src/libs/ajax'
-import { authStore } from 'src/libs/auth'
 import { withErrorReporting } from 'src/libs/error'
+import { authStore, workspacesStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
-
-const workspacesStore = Utils.atom()
 
 authStore.subscribe((state, oldState) => {
   if (oldState.isSignedIn && !state.isSignedIn) {
