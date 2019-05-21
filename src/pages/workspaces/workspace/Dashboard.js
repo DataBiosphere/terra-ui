@@ -113,7 +113,6 @@ export const WorkspaceDashboard = _.flow(
     this.loadStorageCost()
     this.loadConsent()
     this.loadWsTags()
-    this.loadAllTags()
   }
 
   loadSubmissionCount = withErrorReporting('Error loading data', async () => {
@@ -162,6 +161,7 @@ export const WorkspaceDashboard = _.flow(
     }, await Workspaces.getTags())
     this.setState({ allTags })
     console.log(allTags)
+    return allTags
   })
 
   loadWsTags = withErrorReporting('Error loading workspace tags', async () => {
@@ -208,7 +208,7 @@ export const WorkspaceDashboard = _.flow(
           authorizationDomain, createdDate, lastModified, bucketName,
           attributes, attributes: { description = '' }
         }
-      }, ajax: { Workspaces }
+      }
     } = this.props
     const { submissionsCount, storageCostEstimate, editDescription, saving, consentStatus, tagsList, newTag, allTags, busy } = this.state
     const isEditing = _.isString(editDescription)
@@ -217,12 +217,7 @@ export const WorkspaceDashboard = _.flow(
       const { newTag } = this.state
       return new Promise(async resolve => {
         allTags.length === 0 ?
-          resolve(_.map(value => {
-            return {
-              value: value.tag,
-              label: `${value.tag} (${value.count})`
-            }
-          }, await Workspaces.getTags())) :
+          resolve(await this.loadAllTags()) :
           resolve(console.log(_.filter(newTag, allTags)))
       })
     }
