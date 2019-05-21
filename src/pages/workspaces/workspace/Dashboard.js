@@ -1,10 +1,11 @@
+import clipboard from 'clipboard-polyfill'
+import 'easymde/dist/easymde.min.css'
 import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import SimpleMDE from 'react-simplemde-editor'
-import 'easymde/dist/easymde.min.css'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { buttonPrimary, buttonSecondary, link, linkButton, spinnerOverlay } from 'src/components/common'
+import { buttonPrimary, buttonSecondary, Clickable, link, linkButton, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { Markdown } from 'src/components/Markdown'
 import { SimpleTable } from 'src/components/table'
@@ -170,7 +171,7 @@ export const WorkspaceDashboard = _.flow(
         }
       }
     } = this.props
-    const { submissionsCount, storageCostEstimate, editDescription, saving, consentStatus } = this.state
+    const { submissionsCount, storageCostEstimate, editDescription, saving, consentStatus, bucketCopied } = this.state
     const isEditing = _.isString(editDescription)
 
     return div({ style: { flex: 1, display: 'flex' } }, [
@@ -250,13 +251,30 @@ export const WorkspaceDashboard = _.flow(
           ]),
           ..._.map(({ membersGroupName }) => div({ style: styles.authDomain }, [membersGroupName]), authorizationDomain)
         ]),
-        div({ style: { margin: '1.5rem 0 0.5rem 0', borderBottom: `1px solid ${colors.gray[3]}` } }),
+        div({ style: { margin: '1.5rem 0 1rem 0', borderBottom: `1px solid ${colors.gray[3]}` } }),
+        div({ style: { fontSize: '1rem', fontWeight: 500, marginBottom: '0.5rem' } }, [
+          'Google Bucket',
+          h(Clickable, {
+            as: 'span',
+            style: { margin: '0 0.5rem', color: colors.green[0] },
+            tooltip: 'Copy bucket to clipboard',
+            onClick: async () => {
+              try {
+                await clipboard.writeText(bucketName)
+                this.setState({ bucketCopied: true }, () => {
+                  setTimeout(() => this.setState({ bucketCopied: undefined }), 1500)
+                })
+              } catch (error) {
+                reportError('Error copying to clipboard', error)
+              }
+            }
+          }, [icon(bucketCopied ? 'check' : 'copy-to-clipboard')])
+        ]),
         link({
           ...Utils.newTabLinkProps,
           href: hasBucketAccess ? bucketBrowserUrl(bucketName) : undefined,
-          disabled: !hasBucketAccess,
-          style: { display: 'block', marginBottom: '3rem' }
-        }, ['Google bucket'])
+          disabled: !hasBucketAccess
+        }, ['Open in browser', icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })])
       ])
     ])
   }
