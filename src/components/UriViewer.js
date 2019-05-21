@@ -12,7 +12,7 @@ import DownloadPrices from 'src/data/download-prices'
 import { Ajax, ajaxCaller, useCancellation } from 'src/libs/ajax'
 import { bucketBrowserUrl } from 'src/libs/auth'
 import colors from 'src/libs/colors'
-import { reportError } from 'src/libs/error'
+import { reportError, withErrorReporting } from 'src/libs/error'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 
@@ -44,6 +44,13 @@ const isFilePreviewable = ({ size, ...metadata }) => {
 
 const isGs = uri => _.startsWith('gs://', uri)
 
+const viewerProps = {
+  title: 'File Details',
+  showCancel: false,
+  showX: true,
+  okButton: 'Done'
+}
+
 const parseUri = uri => _.drop(1, /gs:[/][/]([^/]+)[/](.+)/.exec(uri))
 const getMaxDownloadCostNA = bytes => {
   const nanos = DownloadPrices.pricingInfo[0].pricingExpression.tieredRates[1].unitPrice.nanos
@@ -60,32 +67,26 @@ const UriViewer = props => {
   const isGsUri = isGs(uri)
   const [bucket, name] = isGsUri ? parseUri(uri) : []
 
-  console.log('UriViewer')
-
-  const pingObject = async () => {
+  const pingObject = withErrorReporting('Error fetching file metadata', async () => {
     if (isGsUri) {
       try {
         await Ajax(signal).Buckets.getObject(bucket, name, googleProject)
         setValid(true)
       } catch (e) {
-        if (e.status === 400) {
-          const json = await e.json()
-          if (json.error.message.includes('requester pays')) {
-            setValid(false)
-          }
-        }
+        const isRequesterPays = e.status === 400 && (await e.json()).error.message.includes('requester pays')
+        setValid(!isRequesterPays)
       }
     }
-  }
+  })
 
   Utils.useOnMount(() => {
     pingObject()
   })
 
   return Utils.switchCase(valid,
-    [undefined, () => h(Modal, {}, ['Loading...'])],
+    [undefined, () => h(Modal, viewerProps, ['Loading...'])],
     [true, () => h(UriViewerModal, props)],
-    [false, () => h(Modal, props, ['Error'])]
+    [false, () => h(Modal, viewerProps, ['Error'])]
   )
 }
 
@@ -101,8 +102,6 @@ const UriViewerModal = ajaxCaller(class UriViewerModal extends Component {
     const [bucket, name] = isGsUri ? parseUri(uri) : []
 
     try {
-      // check for requester pays here?
-
       const { signedUrl = false, ...metadata } = isGsUri ? await Buckets.getObject(bucket, name, googleProject) : await Martha.call(uri)
 
       const price = getMaxDownloadCostNA(metadata.size)
@@ -131,10 +130,7 @@ const UriViewerModal = ajaxCaller(class UriViewerModal extends Component {
 
     return h(Modal, {
       onDismiss,
-      title: 'File Details',
-      showCancel: false,
-      showX: true,
-      okButton: 'Done'
+      ...viewerProps
     }, [
       Utils.cond(
         [loadingError, () => h(Fragment, [
@@ -262,7 +258,7 @@ export class UriViewerLink extends Component {
         href: uri,
         onClick: () => this.setState({ modalOpen: true })
       }, [isGs(uri) ? _.last(uri.split('/')) : uri]),
-      modalOpen && h(UriViewerModal, {
+      modalOpen && h(UriViewer, {
         onDismiss: () => this.setState({ modalOpen: false }),
         uri, googleProject
       })
