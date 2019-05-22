@@ -280,7 +280,7 @@ export const WorkspaceDashboard = _.flow(
             isClearable: true,
             isSearchable: true,
             allowCreateWhileLoading: true,
-            value: newTag,
+            inputValue: newTag,
             defaultOptions: true,
             cacheOptions: true,
             placeholder: 'Add a tag',

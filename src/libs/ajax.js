@@ -419,7 +419,7 @@ const Workspaces = signal => ({
   },
 
   getTags: async tag => {
-    const res = await fetchRawls(`workspaces/tags?${qs.stringify({ q: tag.tag })}`, _.merge(authOpts(), { signal }))
+    const res = await fetchRawls(`workspaces/tags?${qs.stringify({ q: tag })}`, _.merge(authOpts(), { signal }))
     return res.json()
   },
 
