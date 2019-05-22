@@ -2,7 +2,7 @@ import PropTypes from 'prop-types'
 import { div, h } from 'react-hyperscript-helpers'
 import { Clickable } from 'src/components/common'
 import { icon } from 'src/components/icons'
-import { terraSpecial } from 'src/libs/logos'
+import colors from 'src/libs/colors'
 import * as Style from 'src/libs/style'
 import { Component } from 'src/libs/wrapped-components'
 
@@ -24,7 +24,7 @@ export default class FloatingActionButton extends Component {
       {
         style: {
           position: 'absolute', bottom: bottom, right: right,
-          backgroundColor: terraSpecial(), color: 'white',
+          backgroundColor: colors.accent(), color: 'white',
           padding: '0.5rem', borderRadius: 40,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           boxShadow: Style.standardShadow

@@ -7,7 +7,7 @@ import { icon } from 'src/components/icons'
 import { TextArea } from 'src/components/input'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
-import { getAppName, terraSpecial } from 'src/libs/logos'
+import { getAppName } from 'src/libs/logos'
 import { authStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -46,7 +46,7 @@ export const NpsSurvey = Utils.connectAtom(authStore, 'authState')(class NpsSurv
   }
 
   async loadStatus() {
-    const millisToHours = timestamp => Date.parse(timestamp)/(60 * 60 * 1000)
+    const millisToHours = timestamp => Date.parse(timestamp) / (60 * 60 * 1000)
 
     const currentTimeHours = millisToHours(new Date())
     const lastResponseTimestamp = (await Ajax().User.lastNpsResponse()).timestamp
@@ -73,7 +73,7 @@ export const NpsSurvey = Utils.connectAtom(authStore, 'authState')(class NpsSurv
       const bgColor = Utils.cond(
         [i <= 6, colors.danger()],
         [i <= 8, colors.warning()],
-        terraSpecial(1.2)
+        colors.success(1.2)
       )
 
       return h(Interactive, {
@@ -125,9 +125,11 @@ export const NpsSurvey = Utils.connectAtom(authStore, 'authState')(class NpsSurv
       ] : [
         div({ style: styles.questionLabel }, `How likely are you to recommend ${getAppName()} to others?`),
         div({ style: { display: 'flex', justifyContent: 'space-around', marginBottom: '0.5rem' } }, scoreRadios),
-        span({ style: styles.questionLabel }, 'What was the reason for this score? '), span({ style: { ...styles.questionLabel, color: colors.dark(0.55) } }, '(Optional)'),
+        span({ style: styles.questionLabel }, 'What was the reason for this score? '),
+        span({ style: { ...styles.questionLabel, color: colors.dark(0.55) } }, '(Optional)'),
         h(TextArea, { style: styles.questionInput, value: reasonComment, onChange: v => this.setState({ reasonComment: v }) }),
-        span({ style: styles.questionLabel }, 'What could we change? '), span({ style: { ...styles.questionLabel, color: colors.dark(0.55) } }, '(Optional)'),
+        span({ style: styles.questionLabel }, 'What could we change? '),
+        span({ style: { ...styles.questionLabel, color: colors.dark(0.55) } }, '(Optional)'),
         h(TextArea, { style: styles.questionInput, value: changeComment, onChange: v => this.setState({ changeComment: v }) }),
         div({ style: { display: 'flex', justifyContent: 'flex-end' } }, [
           buttonSecondary({

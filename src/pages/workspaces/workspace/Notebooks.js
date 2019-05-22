@@ -1,5 +1,6 @@
 import clipboard from 'clipboard-polyfill/build/clipboard-polyfill'
 import _ from 'lodash/fp'
+import * as qs from 'qs'
 import { createRef, Fragment } from 'react'
 import Dropzone from 'react-dropzone'
 import { a, div, h } from 'react-hyperscript-helpers'
@@ -14,9 +15,7 @@ import TooltipTrigger from 'src/components/TooltipTrigger'
 import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
-import { terraSpecial } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
-import * as qs from 'qs'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -321,7 +320,7 @@ const Notebooks = _.flow(
       disabled: !Utils.canWrite(accessLevel),
       disableClick: true,
       style: { flexGrow: 1 },
-      activeStyle: { backgroundColor: terraSpecial(0.2), cursor: 'copy' }, // accept and reject don't work in all browsers
+      activeStyle: { backgroundColor: colors.accent(0.2), cursor: 'copy' }, // accept and reject don't work in all browsers
       acceptStyle: { cursor: 'copy' },
       rejectStyle: { cursor: 'no-drop' },
       ref: this.uploader,

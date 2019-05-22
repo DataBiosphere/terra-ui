@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import { createRef, Fragment } from 'react'
 import Dropzone from 'react-dropzone'
 import { div, h, span } from 'react-hyperscript-helpers'
-import { Clickable, buttonPrimary, Select, spinnerOverlay, link, linkButton, buttonSecondary } from 'src/components/common'
+import { buttonPrimary, buttonSecondary, Clickable, link, linkButton, Select, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { TextArea, TextInput } from 'src/components/input'
 import { notify } from 'src/components/Notifications'
@@ -10,7 +10,6 @@ import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import { FormLabel, RequiredFormLabel } from 'src/libs/forms'
-import { terraSpecial } from 'src/libs/logos'
 import { authStore, contactUsActive } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -145,7 +144,11 @@ const SupportRequest = _.flow(
             isMulti: false,
             value: type,
             onChange: ({ value }) => this.setState({ type: value }),
-            options: [{ value: 'question', label: 'Question' }, { value: 'bug', label: 'Bug' }, { value: 'feature_request', label: 'Feature Request' }]
+            options: [
+              { value: 'question', label: 'Question' },
+              { value: 'bug', label: 'Bug' },
+              { value: 'feature_request', label: 'Feature Request' }
+            ]
           }),
           h(RequiredFormLabel, [`How can we help you${greetUser}?`]),
           h(TextInput, {
@@ -183,7 +186,7 @@ const SupportRequest = _.flow(
             ]) :
             h(Clickable, {
               style: {
-                flex: 1, backgroundColor: dragging ? terraSpecial(0.2) : colors.dark(0.1), borderRadius: 3,
+                flex: 1, backgroundColor: dragging ? colors.accent(0.2) : colors.dark(0.1), borderRadius: 3,
                 border: `1px dashed ${colors.dark(0.7)}`
               },
               onClick: () => this.uploader.current.open()
@@ -235,7 +238,9 @@ const SupportRequest = _.flow(
         link({
           style: { fontWeight: 800, color: 'white' },
           hover: { color: 'white', textDecoration: 'underline' },
-          href: `mailto:terra-support@broadinstitute.zendesk.org?subject=${type}%3A%20${subject}&body=Original%20support%20request%3A%0A------------------------------------%0AContact email%3A%20${email}%0A%0A${description}%0A%0A------------------------------------%0AError%20reported%20from%20Zendesk%3A%0A%0A${JSON.stringify(error)}`,
+          href: `mailto:terra-support@broadinstitute.zendesk.org?subject=${type}%3A%20${subject}&body=Original%20support%20request%3A%0A` +
+            `------------------------------------%0AContact email%3A%20${email}%0A%0A${description}%0A%0A------------------------------------` +
+            `%0AError%20reported%20from%20Zendesk%3A%0A%0A${JSON.stringify(error)}`,
           ...Utils.newTabLinkProps
         }, 'Click here to email support'), hasAttachment && ' and make sure to add your attachment to the email.']
       ))

@@ -13,7 +13,7 @@ import ReferenceData from 'src/data/reference-data'
 import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
-import { getAppName, terraSpecial } from 'src/libs/logos'
+import { getAppName } from 'src/libs/logos'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
@@ -195,7 +195,7 @@ export const EntityDeleter = ajaxCaller(class EntityDeleter extends Component {
       Utils.toIndexPairs(moreToDelete ? additionalDeletions : selectedEntities)),
       div({
         style: { ...fullWidthWarning, textAlign: 'right' }
-      }, [`${total} data ${total > 1 ?'entries' : 'entry'} to be deleted.`]),
+      }, [`${total} data ${total > 1 ? 'entries' : 'entry'} to be deleted.`]),
       deleting && spinnerOverlay
     ])
   }
@@ -319,7 +319,7 @@ export const EntityUploader = ajaxCaller(class EntityUploader extends Component 
           style: {
             ...Style.elements.card.container, flex: 1,
             margin: '0.5rem 0',
-            backgroundColor: dragging ? terraSpecial(0.2) : colors.dark(0.1), border: `1px dashed ${colors.dark(0.7)}`, boxShadow: 'none'
+            backgroundColor: dragging ? colors.accent(0.2) : colors.dark(0.1), border: `1px dashed ${colors.dark(0.7)}`, boxShadow: 'none'
           },
           onClick: () => this.uploader.current.open()
         }, [

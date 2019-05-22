@@ -5,36 +5,26 @@ import { getAppName } from 'src/libs/logos'
 
 const ALL_COLORS = ['primary', 'secondary', 'accent', 'success', 'warning', 'danger', 'light', 'dark']
 
+const baseColors = {
+  primary: '#4d72aa',
+  secondary: '#6d6e70',
+  accent: '#4d72aa',
+  success: '#74ae43',
+  warning: '#f7981c',
+  danger: '#db3214',
+  light: '#e9ecef',
+  dark: '#333f52'
+}
+
 const colorPalettes = {
   Terra: {
-    primary: '#74ae43',
-    secondary: '#6d6e70',
-    accent: '#4d72aa',
-    success: '#74ae43',
-    warning: '#f7981c',
-    danger: '#db3214',
-    light: '#e9ecef',
-    dark: '#333f52'
+    ...baseColors,
+    primary: '#74ae43'
   },
-  FireCloud: {
-    primary: '#4d72aa',
-    secondary: '#6d6e70',
-    accent: '#4d72aa',
-    success: '#74ae43',
-    warning: '#f7981c',
-    danger: '#db3214',
-    light: '#e9ecef',
-    dark: '#333f52'
-  },
+  FireCloud: baseColors,
   DataStage: {
-    primary: '#c02f42',
-    secondary: '#6d6e70',
-    accent: '#4d72aa',
-    success: '#74ae43',
-    warning: '#f7981c',
-    danger: '#db3214',
-    light: '#e9ecef',
-    dark: '#333f52'
+    ...baseColors,
+    primary: '#c02f42'
   }
 }
 

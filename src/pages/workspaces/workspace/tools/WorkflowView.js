@@ -20,7 +20,6 @@ import WDLViewer from 'src/components/WDLViewer'
 import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError, withErrorReporting } from 'src/libs/error'
-import { terraSpecial } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
 import * as Utils from 'src/libs/utils'
@@ -515,7 +514,7 @@ const WorkflowView = _.flow(
     this.setState(_.update('modifiedConfig', _.flow(
       _.set('methodRepoMethod', config.methodRepoMethod),
       _.update('inputs', _.pick(_.map('name', modifiedInputsOutputs.inputs))),
-      _.update('outputs', _.pick(_.map('name', modifiedInputsOutputs.outputs))),
+      _.update('outputs', _.pick(_.map('name', modifiedInputsOutputs.outputs)))
     )))
     this.fetchInfo(config)
   })
@@ -655,7 +654,8 @@ const WorkflowView = _.flow(
             onChangeTab: v => this.setState({ activeTab: v }),
             finalStep: buttonPrimary({
               disabled: !!Utils.computeWorkspaceError(ws) || !!noLaunchReason || currentSnapRedacted || !hasBucketAccess,
-              tooltip: Utils.computeWorkspaceError(ws) || noLaunchReason || (currentSnapRedacted && 'Tool version was redacted.') || (!hasBucketAccess && 'You do not have access to the Google Bucket associated with this workspace'),
+              tooltip: Utils.computeWorkspaceError(ws) || noLaunchReason || (currentSnapRedacted && 'Tool version was redacted.') ||
+                (!hasBucketAccess && 'You do not have access to the Google Bucket associated with this workspace'),
               onClick: () => this.setState({ launching: true }),
               style: {
                 height: StepButtonParams.buttonHeight, fontSize: StepButtonParams.fontSize
@@ -770,7 +770,7 @@ const WorkflowView = _.flow(
       disabled: currentSnapRedacted || !!Utils.editWorkspaceError(workspace),
       disableClick: true,
       style: { padding: `1rem ${sideMargin}`, flex: 'auto', display: 'flex', flexDirection: 'column' },
-      activeStyle: { backgroundColor: terraSpecial(0.2), cursor: 'copy' },
+      activeStyle: { backgroundColor: colors.accent(0.2), cursor: 'copy' },
       ref: this.uploader,
       onDropRejected: () => reportError('Not a valid inputs file',
         'The selected file is not a json file. To import inputs for this tool, upload a file with a .json extension.'),
@@ -787,7 +787,7 @@ const WorkflowView = _.flow(
           linkButton({ onClick: () => this.uploader.current.open() }, ['upload json'])
         ])
       ]),
-      filteredData.length !== 0 &&
+      filteredData.length !== 0  &&
       div({ style: { flex: '1 0 500px' } }, [
         h(WorkflowIOTable, {
           readOnly: currentSnapRedacted || !!Utils.editWorkspaceError(workspace),

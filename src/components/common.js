@@ -6,13 +6,12 @@ import Interactive from 'react-interactive'
 import RSelect from 'react-select'
 import { centeredSpinner, icon } from 'src/components/icons'
 import TooltipTrigger from 'src/components/TooltipTrigger'
+import scienceBackground from 'src/images/science-background.jpg'
 import colors from 'src/libs/colors'
 import { getConfig, isFirecloud } from 'src/libs/config'
-import { terraSpecial } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import scienceBackground from 'src/images/science-background.jpg'
 
 
 const styles = {
@@ -70,12 +69,12 @@ export const buttonPrimary = ({ disabled, ...props }, children) => {
     disabled,
     style: {
       ...styles.button,
-      border: `1px solid ${disabled ? colors.dark(0.4) : terraSpecial(1.2)}`,
+      border: `1px solid ${disabled ? colors.dark(0.4) : colors.accent(1.2)}`,
       borderRadius: 5, color: 'white', padding: '0.875rem',
-      backgroundColor: disabled ? colors.dark(0.25) : terraSpecial(),
+      backgroundColor: disabled ? colors.dark(0.25) : colors.accent(),
       cursor: disabled ? 'not-allowed' : 'pointer'
     },
-    hover: disabled ? undefined : { backgroundColor: terraSpecial(0.85) }
+    hover: disabled ? undefined : { backgroundColor: colors.accent(0.85) }
   }, props), children)
 }
 
@@ -84,21 +83,21 @@ export const buttonSecondary = ({ disabled, ...props }, children) => {
     disabled,
     style: {
       ...styles.button,
-      color: disabled ? colors.dark(0.7) : terraSpecial(1.2),
+      color: disabled ? colors.dark(0.7) : colors.accent(1.2),
       cursor: disabled ? 'not-allowed' : 'pointer'
     },
-    hover: disabled ? undefined : { color: terraSpecial() }
+    hover: disabled ? undefined : { color: colors.accent() }
   }, props), children)
 }
 
 export const buttonOutline = ({ disabled, ...props }, children) => {
   return h(buttonPrimary, _.merge({
     style: {
-      border: `1px solid ${disabled ? colors.dark(0.4) : terraSpecial(1.2)}`,
-      color: terraSpecial(1.2),
+      border: `1px solid ${disabled ? colors.dark(0.4) : colors.accent(1.2)}`,
+      color: colors.accent(1.2),
       backgroundColor: disabled ? colors.dark(0.25) : 'white'
     },
-    hover: disabled ? undefined : { backgroundColor: terraSpecial(0.1) }
+    hover: disabled ? undefined : { backgroundColor: colors.accent(0.1) }
   }, props), children)
 }
 
@@ -152,10 +151,10 @@ export const Checkbox = ({ checked, onChange, disabled, ...props }) => {
     style: {
       display: 'inline-flex',
       verticalAlign: 'middle',
-      color: disabled ? colors.dark(0.4) : checked ? terraSpecial(1.2) : colors.dark(0.55)
+      color: disabled ? colors.dark(0.4) : checked ? colors.accent(1.2) : colors.dark(0.55)
     },
-    hover: disabled ? undefined : { color: terraSpecial() },
-    active: disabled ? undefined : { backgroundColor: terraSpecial(0.2) },
+    hover: disabled ? undefined : { color: colors.accent() },
+    active: disabled ? undefined : { backgroundColor: colors.accent(0.2) },
     disabled
   }, props), [
     icon(checked ? 'checkSquare' : 'square', { size: 16 })
@@ -237,7 +236,7 @@ export const Select = ({ value, options, id, ...props }) => {
     inputId: id,
     theme: base => _.merge(base, {
       colors: {
-        primary: terraSpecial(1.2),
+        primary: colors.accent(1.2),
         neutral20: colors.dark(0.55),
         neutral30: colors.dark(0.55)
       },
@@ -251,8 +250,8 @@ export const Select = ({ value, options, id, ...props }) => {
       singleValue: base => ({ ...base, color: colors.dark() }),
       option: (base, { isSelected, isFocused, isDisabled }) => _.merge(base, {
         backgroundColor: isSelected ? colors.light(0.4) : isFocused ? colors.dark(0.15) : undefined,
-        color: isSelected ? terraSpecial() : isDisabled ? undefined : colors.dark(),
-        ':active': { backgroundColor: terraSpecial(isSelected ? 0.55 : 0.4) }
+        color: isSelected ? colors.accent() : isDisabled ? undefined : colors.dark(),
+        ':active': { backgroundColor: colors.accent(isSelected ? 0.55 : 0.4) }
       }),
       clearIndicator: base => ({ ...base, paddingRight: 0 }),
       indicatorSeparator: () => ({ display: 'none' }),

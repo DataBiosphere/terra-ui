@@ -12,7 +12,6 @@ import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import colors from 'src/libs/colors'
-import { terraSpecial } from 'src/libs/logos'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 
@@ -21,7 +20,7 @@ const paginatorButton = (props, label) => button(_.merge({
   style: {
     margin: '0 2px', padding: '0.25rem 0.5rem',
     border: '1px solid #ccc', borderRadius: 3,
-    color: props.disabled ? colors.dark(0.7) : terraSpecial(), backgroundColor: 'white',
+    color: props.disabled ? colors.dark(0.7) : colors.accent(), backgroundColor: 'white',
     cursor: props.disabled ? 'not-allowed' : 'pointer'
   }
 }, props), label)
@@ -70,9 +69,9 @@ export const paginator = props => {
                 key: num,
                 style: {
                   minWidth: '2rem',
-                  backgroundColor: currentPage === num ? terraSpecial() : undefined,
-                  color: currentPage === num ? 'white' : terraSpecial(),
-                  border: currentPage === num ? terraSpecial() : undefined
+                  backgroundColor: currentPage === num ? colors.accent() : undefined,
+                  color: currentPage === num ? 'white' : colors.accent(),
+                  border: currentPage === num ? colors.accent() : undefined
                 }
               },
               getPageItemProps({ pageValue: num, onPageChange: setPageNumber })),
