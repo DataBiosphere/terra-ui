@@ -286,7 +286,7 @@ export const WorkspaceDashboard = _.flow(
             placeholder: 'Add a tag',
             onChange: data => this.addTag(data.value),
             styles: { container: base => ({ ...base, wordWrap: 'break-word' }) },
-            loadOptions: () => this.loadAllTags({ tag: newTag }),
+            loadOptions: () => this.loadAllTags(newTag),
             onInputChange: v => this.setState({ newTag: v })
           })
         ]),
