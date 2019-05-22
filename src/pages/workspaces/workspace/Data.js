@@ -340,9 +340,9 @@ class EntitiesContent extends Component {
       selectedEntities: {},
       deletingEntities: false,
       refreshKey: 0,
+      showIgvSelector: false,
       igvData: {
         selectedFiles: undefined,
-        showIgvSelector: false,
         igvRefGenome: ''
       }
     }
@@ -414,7 +414,7 @@ class EntitiesContent extends Component {
         style: { marginRight: '1rem' },
         disabled: _.isEmpty(selectedEntities),
         tooltip: 'Opens files of the selected data with IGV',
-        onClick: () => this.setState({ igvData: { showIgvSelector: true } })
+        onClick: () => this.setState({ showIgvSelector: true })
       }, [
         'Open with IGV'
       ])
@@ -459,7 +459,7 @@ class EntitiesContent extends Component {
       workspace, workspace: { workspace: { namespace, name }, workspaceSubmissionStats: { runningSubmissionsCount } },
       entityKey, entityMetadata, loadMetadata, firstRender
     } = this.props
-    const { selectedEntities, deletingEntities, copyingEntities, refreshKey, igvData: { selectedFiles, refGenome, showIgvSelector } } = this.state
+    const { selectedEntities, deletingEntities, copyingEntities, refreshKey, showIgvSelector, igvData: { selectedFiles, refGenome } } = this.state
 
     const { initialX, initialY } = firstRender ? StateHistory.get() : {}
     return selectedFiles ? h(IGVBrowser, { selectedFiles, refGenome, namespace }) : h(Fragment, [
@@ -511,8 +511,8 @@ class EntitiesContent extends Component {
         selectedEntities: _.keys(selectedEntities), selectedDataType: entityKey, runningSubmissionsCount
       }),
       showIgvSelector && h(IGVFileSelector, {
-        onDismiss: () => this.setState({ igvData: { showIgvSelector: false } }),
-        onSuccess: newIgvData => this.setState({ igvData: { showIgvSelector: false, ...newIgvData } }),
+        onDismiss: () => this.setState({ showIgvSelector: false }),
+        onSuccess: newIgvData => this.setState({ showIgvSelector: false, igvData: newIgvData }),
         selectedEntities
       })
     ])
