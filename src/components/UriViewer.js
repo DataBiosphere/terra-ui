@@ -220,6 +220,7 @@ export class UriViewerLink extends Component {
     const { modalOpen } = this.state
     return h(Fragment, [
       link({
+        style: { textDecoration: 'underline' },
         href: uri,
         onClick: () => this.setState({ modalOpen: true })
       }, [isGs(uri) ? _.last(uri.split('/')) : uri]),

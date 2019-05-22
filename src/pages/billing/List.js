@@ -13,23 +13,14 @@ import * as Auth from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
 import { formHint, RequiredFormLabel } from 'src/libs/forms'
-import { terraSpecial } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
+import * as style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 import ProjectDetail from 'src/pages/billing/Project'
 import validate from 'validate.js'
 
-
-const styles = {
-  tab: isActive => ({
-    display: 'flex', alignItems: 'center', fontSize: 16, height: 50, padding: '0 2rem',
-    fontWeight: 500, overflow: 'hidden', borderBottom: `1px solid ${colors.dark(0.2)}`, borderRightStyle: 'solid',
-    borderRightWidth: isActive ? 10 : 0, backgroundColor: isActive ? colors.accent(0.1) : 'white',
-    borderRightColor: isActive ? terraSpecial() : colors.accent()
-  })
-}
 
 const ProjectTab = ({ project: { projectName, role, creationStatus }, isActive }) => {
   const projectReady = creationStatus === 'Ready'
@@ -39,14 +30,14 @@ const ProjectTab = ({ project: { projectName, role, creationStatus }, isActive }
   return _.includes('Owner', role) && projectReady ? h(Interactive, {
     as: 'a',
     style: {
-      ...styles.tab(isActive),
+      ...style.navList.item(isActive),
       color: colors.accent()
     },
     href: `${Nav.getLink('billing')}?${qs.stringify({ selectedName: projectName, type: 'project' })}`,
-    hover: isActive ? {} : { backgroundColor: colors.accent(0.2), color: colors.accent() }
+    hover: style.navList.itemHover(isActive)
   }, [projectName, !projectReady && statusIcon]) : div({
     style: {
-      ...styles.tab(false), color: colors.dark()
+      ...style.navList.item(false), color: colors.dark()
     }
   }, [projectName, !projectReady && statusIcon])
 }
@@ -250,13 +241,7 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
       ]),
       div({ style: { display: 'flex', flex: 1, position: 'relative' } }, [
         div({ style: { width: 330, boxShadow: '0 2px 5px 0 rgba(0,0,0,0.25)' } }, [
-          div({
-            style: {
-              color: colors.dark(), backgroundColor: colors.light(0.4), fontSize: 16, padding: '1rem 1.5rem',
-              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-              fontWeight: 600, textTransform: 'uppercase', borderBottom: `0.5px solid ${colors.dark(0.2)}`
-            }
-          }, [
+          div({ style: style.navList.heading }, [
             'Billing Projects',
             h(Clickable,
               { onClick: () => { this.setState({ creatingBillingProject: true }) } },

@@ -74,6 +74,22 @@ export const cardList = {
   }
 }
 
+export const navList = {
+  heading: {
+    color: colors.dark(), backgroundColor: colors.light(0.4), fontSize: 16, padding: '1rem 1.5rem',
+    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+    fontWeight: 600, textTransform: 'uppercase', borderBottom: `0.5px solid ${colors.dark(0.2)}`
+  },
+  item: selected => ({
+    display: 'flex', alignItems: 'center', padding: '0 1.5rem', height: 50, fontWeight: 500,
+    backgroundColor: selected ? colors.accent(0.1) : 'white',
+    borderBottom: `1px solid ${colors.dark(0.2)}`, borderRightStyle: 'solid',
+    borderRightWidth: selected ? 10 : 0,
+    borderRightColor: selected ? terraSpecial() : colors.accent()
+  }),
+  itemHover: selected => selected ? {} : { backgroundColor: colors.accent(0.1) }
+}
+
 export const breadcrumb = {
   breadcrumb: {
     display: 'flex', flexDirection: 'column',

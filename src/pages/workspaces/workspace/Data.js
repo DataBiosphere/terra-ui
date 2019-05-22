@@ -7,7 +7,7 @@ import Dropzone from 'react-dropzone'
 import { div, form, h, input } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { buttonPrimary, linkButton, Select, spinnerOverlay } from 'src/components/common'
+import { buttonPrimary, link, linkButton, Select, spinnerOverlay } from 'src/components/common'
 import DataTable from 'src/components/DataTable'
 import ExportDataModal from 'src/components/ExportDataModal'
 import FloatingActionButton from 'src/components/FloatingActionButton'
@@ -25,6 +25,7 @@ import { getConfig } from 'src/libs/config'
 import { EntityDeleter, EntityUploader, ReferenceDataDeleter, ReferenceDataImporter, renderDataCell } from 'src/libs/data-utils'
 import { withErrorReporting } from 'src/libs/error'
 import * as StateHistory from 'src/libs/state-history'
+import * as style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
@@ -38,29 +39,23 @@ const styles = {
     display: 'flex', flex: 1
   },
   dataTypeSelectionPanel: {
-    flex: 'none', width: 280, backgroundColor: 'white', padding: '1rem',
-    boxShadow: '0 2px 10px 0 rgba(0,0,0,0.5)'
+    flex: 'none', width: 280, backgroundColor: 'white',
+    boxShadow: '0 2px 5px 0 rgba(0,0,0,0.25)'
   },
   tableViewPanel: {
     position: 'relative',
     overflow: 'hidden',
     padding: '1rem', width: '100%',
     flex: 1, display: 'flex', flexDirection: 'column'
-  },
-  dataTypeHeading: {
-    fontWeight: 500, color: colors.dark()
   }
 }
 
 const DataTypeButton = ({ selected, children, iconName = 'listAlt', iconSize = 14, ...props }) => {
-  return linkButton({
-    as: 'span',
-    style: { display: 'flex', alignItems: 'center', color: 'black', fontWeight: selected ? 500 : undefined, padding: '0.5rem 0' },
+  return link({
+    style: style.navList.item(selected),
+    hover: style.navList.itemHover(selected),
     ...props
   }, [
-    div({ style: { flex: 'none', display: 'flex', width: '1.5rem' } }, [
-      selected && icon('circle', { size: 14, className: 'is-solid' })
-    ]),
     div({ style: { flex: 'none', display: 'flex', width: '1.5rem' } }, [
       icon(iconName, { size: iconSize })
     ]),
@@ -606,7 +601,7 @@ const BucketContent = ajaxCaller(class BucketContent extends Component {
         div([
           _.map(({ label, target }) => {
             return h(Fragment, { key: target }, [
-              linkButton({ onClick: () => this.load(target) }, [label]),
+              linkButton({ style: { textDecoration: 'underline' }, onClick: () => this.load(target) }, [label]),
               ' / '
             ])
           }, [
@@ -628,7 +623,7 @@ const BucketContent = ajaxCaller(class BucketContent extends Component {
             ..._.map(p => {
               return {
                 name: h(TextCell, [
-                  linkButton({ onClick: () => this.load(p) }, [p.slice(prefix.length)])
+                  linkButton({ style: { textDecoration: 'underline' }, onClick: () => this.load(p) }, [p.slice(prefix.length)])
                 ])
               }
             }, prefixes),
@@ -641,7 +636,7 @@ const BucketContent = ajaxCaller(class BucketContent extends Component {
                   icon('trash', { size: 16, className: 'hover-only' })
                 ]),
                 name: h(TextCell, [
-                  linkButton({ onClick: () => this.setState({ viewingName: name }) }, [
+                  linkButton({ style: { textDecoration: 'underline' }, onClick: () => this.setState({ viewingName: name }) }, [
                     name.slice(prefix.length)
                   ])
                 ]),
@@ -736,13 +731,13 @@ const WorkspaceData = _.flow(
     return div({ style: styles.tableContainer }, [
       !entityMetadata ? spinnerOverlay : h(Fragment, [
         div({ style: styles.dataTypeSelectionPanel }, [
-          div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between' } }, [
-            div({ style: styles.dataTypeHeading }, 'Tables'),
+          div({ style: style.navList.heading }, [
+            div(['Tables']),
             linkButton({
               disabled: !!Utils.editWorkspaceError(workspace),
               tooltip: Utils.editWorkspaceError(workspace) || 'Upload .tsv',
               onClick: () => this.setState({ uploadingFile: true })
-            }, [icon('plus-circle')])
+            }, [icon('plus-circle', { size: 21 })])
           ]),
           _.map(([type, typeDetails]) => {
             return h(DataTypeButton, {
@@ -753,13 +748,13 @@ const WorkspaceData = _.flow(
               }
             }, [`${type} (${typeDetails.count})`])
           }, _.toPairs(entityMetadata)),
-          div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '1rem' } }, [
-            div({ style: styles.dataTypeHeading }, 'Reference Data'),
+          div({ style: style.navList.heading }, [
+            div(['Reference Data']),
             linkButton({
               disabled: !!Utils.editWorkspaceError(workspace),
               tooltip: Utils.editWorkspaceError(workspace) || 'Add reference data',
               onClick: () => this.setState({ importingReference: true })
-            }, [icon('plus-circle')])
+            }, [icon('plus-circle', { size: 21 })])
           ]),
           importingReference && h(ReferenceDataImporter, {
             onDismiss: () => this.setState({ importingReference: false }),
@@ -810,7 +805,7 @@ const WorkspaceData = _.flow(
               ])
             ])
           }, _.keys(referenceData)),
-          div({ style: { ...styles.dataTypeHeading, marginTop: '1rem' } }, 'Other Data'),
+          div({ style: style.navList.heading }, 'Other Data'),
           h(DataTypeButton, {
             selected: selectedDataType === localVariables,
             onClick: () => {
