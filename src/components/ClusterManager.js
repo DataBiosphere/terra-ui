@@ -388,19 +388,6 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
     }
   }
 
-  async executeAndRefreshWithNav(promise) {
-    const { namespace, name } = this.props
-    const onNotebookPage = /notebooks\/.+/.test(window.location.hash)
-
-    if (onNotebookPage) {
-      this.setState({ pendingNav: true })
-      await this.executeAndRefresh(promise)
-      Nav.goToPath('workspace-notebooks', { namespace, name })
-    } else {
-      this.executeAndRefresh(promise)
-    }
-  }
-
   createDefaultCluster() {
     const { ajax: { Jupyter }, namespace } = this.props
     this.executeAndRefresh(
@@ -424,7 +411,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
   destroyActiveCluster() {
     const { ajax: { Jupyter } } = this.props
     const { googleProject, clusterName } = this.getCurrentCluster()
-    this.executeAndRefreshWithNav(
+    this.executeAndRefresh(
       Jupyter.cluster(googleProject, clusterName).delete()
     )
   }
@@ -440,7 +427,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
   stopCluster() {
     const { ajax: { Jupyter } } = this.props
     const { googleProject, clusterName } = this.getCurrentCluster()
-    this.executeAndRefreshWithNav(
+    this.executeAndRefresh(
       Jupyter.cluster(googleProject, clusterName).stop()
     )
   }
