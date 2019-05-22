@@ -135,7 +135,8 @@ const JupyterFrameManager = ({ onClose, frameRef }) => {
   return null
 }
 
-const NotebookEditorFrame = ({ notebookName, workspace: { workspace: { namespace, name, bucketName } }, cluster: { clusterName, clusterUrl } }) => {
+const NotebookEditorFrame = ({ notebookName, workspace: { workspace: { namespace, name, bucketName } }, cluster: { clusterName, clusterUrl, status } }) => {
+  console.assert(status === 'Running', 'Expected cluster to be running')
   const signal = useCancellation()
   const frameRef = useRef()
   const [busy, setBusy] = useState(false)
