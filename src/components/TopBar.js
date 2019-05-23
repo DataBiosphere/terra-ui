@@ -1,9 +1,9 @@
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
-import { Fragment, useState } from 'react'
+import { useState } from 'react'
 import { a, b, div, h, span } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
-import { buttonPrimary, Clickable, LabeledCheckbox, MenuButton, spinnerOverlay } from 'src/components/common'
+import { buttonPrimary, Clickable, LabeledCheckbox, spinnerOverlay } from 'src/components/common'
 import { icon, profilePic } from 'src/components/icons'
 import { TextArea } from 'src/components/input'
 import Modal from 'src/components/Modal'
@@ -96,6 +96,55 @@ class DropDownSubItem extends Component {
       onClick,
       ...props
     }, [title])
+  }
+}
+
+class BuildDropDownSection extends Component {
+  static propTypes = {
+    titleIcon: PropTypes.string,
+    title: PropTypes.any, //wat would this be, usually string but also is a div
+    menuOpen: PropTypes.bool,
+    onClick: PropTypes.func,
+    subItems: PropTypes.array
+  }
+
+  render() {
+    const { titleIcon, title, menuOpen, onClick, subItems } = this.props
+
+    return h(Collapse, {
+      defaultHidden: true,
+      showIcon: false,
+      animate: true,
+      expandTitle: true,
+      buttonStyle: { marginBottom: 0 },
+      title: [
+        h(Clickable, {
+          style: styles.nav.item,
+          hover: { backgroundColor: colors.gray[3] },
+          onClick
+        }, [
+          titleIcon && div({ style: styles.nav.icon }, [
+            icon(titleIcon, {
+              className: 'is-solid',
+              size: 24
+            })
+          ]),
+          div({
+            style: {
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis'
+            }
+          }, [title]),
+          div({ style: { flexGrow: 1 } }),
+          icon(`angle ${menuOpen ? 'up' : 'down'}`,
+            {
+              size: 18,
+              style: { flex: 'none' }
+            })
+        ])
+      ]
+    }, subItems)
   }
 }
 
@@ -212,30 +261,35 @@ export default _.flow(
         ]),
         div({ style: { display: 'flex', flexDirection: 'column', overflowY: 'auto', flex: 1 } }, [
           isSignedIn ?
-            this.buildDropDownSection(undefined, div({ style: { ..._.omit('borderTop', styles.nav.item), padding: 0 } }, [
-              profilePic({ size: 32, style: { marginRight: 12 } }), `${firstName} ${lastName}`
-            ]), () => this.setState({ openUserMenu: !openUserMenu }), openUserMenu,
-            [
-              h(DropDownSubItem, {
-                href: Nav.getLink('profile'),
-                title: 'Profile',
-                onClick: () => this.hideNav()
-              }),
-              h(DropDownSubItem, {
-                href: Nav.getLink('groups'),
-                title: 'Groups',
-                onClick: () => this.hideNav()
-              }),
-              h(DropDownSubItem, {
-                href: Nav.getLink('billing'),
-                title: 'Billing',
-                onClick: () => this.hideNav()
-              }),
-              h(DropDownSubItem, {
-                title: 'Sign Out',
-                onClick: signOut
-              })
-            ]) :
+            h(BuildDropDownSection, {
+              titleIcon: undefined,
+              title: div({ style: { ..._.omit('borderTop', styles.nav.item), padding: 0 } }, [
+                profilePic({ size: 32, style: { marginRight: 12 } }), `${firstName} ${lastName}`
+              ]),
+              onClick: () => this.setState({ openUserMenu: !openUserMenu }),
+              openUserMenu,
+              subItems: [
+                h(DropDownSubItem, {
+                  href: Nav.getLink('profile'),
+                  title: 'Profile',
+                  onClick: () => this.hideNav()
+                }),
+                h(DropDownSubItem, {
+                  href: Nav.getLink('groups'),
+                  title: 'Groups',
+                  onClick: () => this.hideNav()
+                }),
+                h(DropDownSubItem, {
+                  href: Nav.getLink('billing'),
+                  title: 'Billing',
+                  onClick: () => this.hideNav()
+                }),
+                h(DropDownSubItem, {
+                  title: 'Sign Out',
+                  onClick: signOut
+                })
+              ]
+            }) :
             div({
               style: {
                 ...styles.nav.item,
@@ -278,8 +332,12 @@ export default _.flow(
             'Job Manager'
           ]),
           div({ style: { margin: '5rem' } }),
-          this.buildDropDownSection(
-            'library', 'Terra Library', () => this.setState({ openLibraryMenu: !openLibraryMenu }), openLibraryMenu, [
+          h(BuildDropDownSection, {
+            titleIcon: 'library',
+            title: 'Terra Library',
+            onClick: () => this.setState({ openLibraryMenu: !openLibraryMenu }),
+            openMenu: openLibraryMenu,
+            subItems: [
               h(DropDownSubItem, {
                 href: Nav.getLink('library-datasets'),
                 title: 'Data',
@@ -295,12 +353,17 @@ export default _.flow(
                 title: 'Tools',
                 onClick: () => this.hideNav()
               })
-            ]),
+            ]
+          }),
           (trialState === 'Enabled') && enabledCredits,
           (trialState === 'Enrolled') && enrolledCredits,
           (trialState === 'Terminated') && terminatedCredits,
-          this.buildDropDownSection(
-            'help', 'Terra Support', () => this.setState({ openSupportMenu: !openSupportMenu }), openSupportMenu, [
+          h(BuildDropDownSection, {
+            titleIcon: 'help',
+            title: 'Terra Support',
+            onClick: () => this.setState({ openSupportMenu: !openSupportMenu }),
+            openMenu: openSupportMenu,
+            subItems: [
               h(DropDownSubItem, {
                 href: 'https://support.terra.bio/hc/en-us',
                 title: 'How-to Guides',
@@ -330,7 +393,7 @@ export default _.flow(
                 onClick: () => contactUsActive.set(true)
               })
             ]
-          ),
+          }),
           isFirecloud() && h(Clickable, {
             style: styles.nav.item,
             disabled: !isSignedIn,
@@ -357,43 +420,6 @@ export default _.flow(
         ])
       ])
     ])
-  }
-
-  buildDropDownSection(titleIcon, title, onClick, menuOpen, subItems) {
-    return h(Collapse, {
-      defaultHidden: true,
-      showIcon: false,
-      animate: true,
-      expandTitle: true,
-      buttonStyle: { marginBottom: 0 },
-      title: [
-        h(Clickable, {
-          style: styles.nav.item,
-          hover: { backgroundColor: colors.gray[3] },
-          onClick
-        }, [
-          titleIcon && div({ style: styles.nav.icon }, [
-            icon(titleIcon, {
-              className: 'is-solid',
-              size: 24
-            })
-          ]),
-          div({
-            style: {
-              whiteSpace: 'nowrap',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis'
-            }
-          }, [title]),
-          div({ style: { flexGrow: 1 } }),
-          icon(`angle ${menuOpen ? 'up' : 'down'}`,
-            {
-              size: 18,
-              style: { flex: 'none' }
-            })
-        ])
-      ]
-    }, subItems)
   }
 
   render() {
