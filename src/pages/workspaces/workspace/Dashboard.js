@@ -1,3 +1,4 @@
+import debouncePromise from 'debounce-promise'
 import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
@@ -49,6 +50,11 @@ const styles = {
   label: {
     ...Style.elements.sectionHeader,
     marginTop: '1rem', marginBottom: '0.25rem'
+  },
+  tag: {
+    padding: '0.25rem', margin: '0.15rem',
+    backgroundColor: colors.grayBlue[3], borderRadius: 10,
+    overflow: 'hidden', wordWrap: 'break-word'
   }
 }
 
@@ -102,7 +108,6 @@ export const WorkspaceDashboard = _.flow(
       storageCostEstimate: undefined,
       editDescription: undefined,
       saving: false,
-      newTag: '',
       busy: false
     }
   }
@@ -150,19 +155,20 @@ export const WorkspaceDashboard = _.flow(
     }
   })
 
-  loadAllTags = withErrorReporting('Error loading tags', async tag => {
+  getTagSuggestions = debouncePromise(withErrorReporting('Error loading tags', async text => {
     const { ajax: { Workspaces } } = this.props
-    return _.map(value => {
-      return {
-        value: value.tag,
-        label: `${value.tag} (${value.count})`
-      }
-    }, await Workspaces.getTags(tag))
-  })
+    if (text.length > 2) {
+      return _.map(({ tag, count }) => {
+        return { value: tag, label: `${tag} (${count})` }
+      }, _.take(10, await Workspaces.getTags(text)))
+    } else {
+      return []
+    }
+  }), 250)
 
   loadWsTags = withErrorReporting('Error loading workspace tags', async () => {
     const { ajax: { Workspaces }, namespace, name } = this.props
-    this.setState({ tagsList: _.sortBy('tags', await Workspaces.workspace(namespace, name).getTags()) })
+    this.setState({ tagsList: await Workspaces.workspace(namespace, name).getTags() })
   })
 
   addTag = _.flow(
@@ -170,7 +176,7 @@ export const WorkspaceDashboard = _.flow(
     Utils.withBusyState(v => this.setState({ busy: v }))
   )(async tag => {
     const { ajax: { Workspaces }, namespace, name } = this.props
-    this.setState({ tagsList: _.sortBy('tags', await Workspaces.workspace(namespace, name).addTag(tag)) })
+    this.setState({ tagsList: await Workspaces.workspace(namespace, name).addTag(tag) })
   })
 
   deleteTag = _.flow(
@@ -178,7 +184,7 @@ export const WorkspaceDashboard = _.flow(
     Utils.withBusyState(v => this.setState({ busy: v }))
   )(async tag => {
     const { ajax: { Workspaces }, namespace, name } = this.props
-    this.setState({ tagsList: _.sortBy('tags', await Workspaces.workspace(namespace, name).deleteTag(tag)) })
+    this.setState({ tagsList: await Workspaces.workspace(namespace, name).deleteTag(tag) })
   })
 
   async save() {
@@ -206,7 +212,7 @@ export const WorkspaceDashboard = _.flow(
         }
       }
     } = this.props
-    const { submissionsCount, storageCostEstimate, editDescription, saving, consentStatus, tagsList, newTag, busy } = this.state
+    const { submissionsCount, storageCostEstimate, editDescription, saving, consentStatus, tagsList, busy } = this.state
     const isEditing = _.isString(editDescription)
 
     return div({ style: { flex: 1, display: 'flex' } }, [
@@ -277,34 +283,26 @@ export const WorkspaceDashboard = _.flow(
         div({ style: styles.header }, ['Tags']),
         div({ style: { marginBottom: '0.5rem' } }, [
           h(AsyncCreatableSelect, {
-            isClearable: true,
-            isSearchable: true,
+            value: null,
             allowCreateWhileLoading: true,
-            inputValue: newTag,
-            defaultOptions: true,
-            cacheOptions: true,
             placeholder: 'Add a tag',
-            onChange: data => this.addTag(data.value),
-            styles: { container: base => ({ ...base, wordWrap: 'break-word' }) },
-            loadOptions: () => this.loadAllTags(newTag),
-            onInputChange: v => this.setState({ newTag: v })
+            onChange: ({ value }) => this.addTag(value),
+            styles: { option: base => ({ ...base, wordWrap: 'break-word' }) },
+            loadOptions: this.getTagSuggestions
           })
         ]),
         div({ style: { display: 'flex', flexWrap: 'wrap' } }, [
           _.map(tag => {
-            return span({
-              key: tag,
-              style: {
-                padding: '0.25rem', margin: '0.15rem',
-                backgroundColor: colors.grayBlue[3], borderRadius: 10,
-                overflow: 'hidden', wordWrap: 'break-word'
-              }
-            }, [tag, linkButton({
-              tooltip: 'Remove tag',
-              onClick: () => this.deleteTag(tag)
-            }, [span({ style: { margin: '0 0.25rem 0.25rem 0.5rem', color: 'black', fontWeight: 500 } }, ['x'])])])
+            return span({ key: tag, style: styles.tag }, [
+              tag,
+              linkButton({
+                tooltip: 'Remove tag',
+                onClick: () => this.deleteTag(tag),
+                style: { marginLeft: '0.25rem' }
+              }, [icon('times', { size: 18 })])
+            ])
           }, tagsList),
-          busy && spinner({ style: { margin: '0 0 0 0.5rem' } })
+          busy && spinner({ style: { marginTop: '0.5rem' } })
         ]),
         !_.isEmpty(authorizationDomain) && h(Fragment, [
           div({ style: styles.header }, ['Authorization Domain']),
