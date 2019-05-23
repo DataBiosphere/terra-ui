@@ -67,16 +67,16 @@ export default _.flow(
     const { copying, hardConflicts, softConflicts, error, selectedWorkspaceId, additionalDeletions } = this.state
     const moreToDelete = !!additionalDeletions.length
     const warningStyle = {
-      border: `1px solid ${colors.orange[1]}`, borderLeft: 'none', borderRight: 'none',
-      backgroundColor: colors.orange[4],
+      border: `1px solid ${colors.warning(0.8)}`, borderLeft: 'none', borderRight: 'none',
+      backgroundColor: colors.warning(0.4),
       padding: '1rem 1.25rem', margin: '0 -1.25rem',
-      color: colors.orange[0], fontWeight: 'bold', fontSize: 12
+      color: colors.warning(), fontWeight: 'bold', fontSize: 12
     }
     const errorStyle = {
       ...warningStyle,
-      border: `1px solid ${colors.red[1]}`,
-      backgroundColor: colors.red[4],
-      color: colors.red[0]
+      border: `1px solid ${colors.danger(0.8)}`,
+      backgroundColor: colors.danger(0.4),
+      color: colors.danger()
     }
 
     const errors = validate(

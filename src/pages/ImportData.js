@@ -18,7 +18,7 @@ const styles = {
     position: 'relative', padding: '2rem'
   },
   title: {
-    fontSize: 24, fontWeight: 600, color: colors.gray[0], marginBottom: '2rem'
+    fontSize: 24, fontWeight: 600, color: colors.dark(), marginBottom: '2rem'
   },
   card: {
     borderRadius: 5, backgroundColor: 'rgba(255,255,255,0.85)', padding: '2rem',

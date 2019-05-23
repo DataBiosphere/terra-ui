@@ -67,10 +67,10 @@ const styles = {
   angle: {
     marginRight: '0.5rem',
     marginTop: '.1rem',
-    color: colors.green[0]
+    color: colors.accent()
   },
   outputInfoLabel: {
-    color: colors.gray[0]
+    color: colors.dark()
   },
   placeholder: {
     fontStyle: 'italic'
@@ -138,7 +138,7 @@ const WorkflowIOTable = ({ which, inputsOutputs: data, config, errors, onChange,
                 !readOnly && isFile && h(Clickable, {
                   style: {
                     height: '2.25rem',
-                    border: `1px solid ${colors.grayBlue[2]}`, borderRadius: '0px 4px 4px 0px',
+                    border: `1px solid ${colors.dark(0.2)}`, borderRadius: '0px 4px 4px 0px',
                     borderLeft: 'none'
                   },
                   onClick: () => onBrowse(name),
@@ -154,7 +154,7 @@ const WorkflowIOTable = ({ which, inputsOutputs: data, config, errors, onChange,
                 ]),
                 error && h(TooltipTrigger, { content: error }, [
                   icon('error', {
-                    size: 28, style: { marginLeft: '0.5rem', color: colors.red[0], cursor: 'help' }
+                    size: 28, style: { marginLeft: '0.5rem', color: colors.danger(), cursor: 'help' }
                   })
                 ])
               ])
@@ -219,7 +219,7 @@ const BucketContentModal = ajaxCaller(class BucketContentModal extends Component
           }, _.range(0, prefixParts.length))
         ])
       ]),
-      div({ style: { margin: '1rem -1rem 1rem -1rem', borderBottom: `1px solid ${colors.grayBlue[5]}` } }),
+      div({ style: { margin: '1rem -1rem 1rem -1rem', borderBottom: `1px solid ${colors.light(0.4)}` } }),
       h(SimpleTable, {
         columns: [
           { header: h(HeaderCell, ['Name']), size: { grow: 1 }, key: 'name' }
@@ -514,7 +514,7 @@ const WorkflowView = _.flow(
     this.setState(_.update('modifiedConfig', _.flow(
       _.set('methodRepoMethod', config.methodRepoMethod),
       _.update('inputs', _.pick(_.map('name', modifiedInputsOutputs.inputs))),
-      _.update('outputs', _.pick(_.map('name', modifiedInputsOutputs.outputs))),
+      _.update('outputs', _.pick(_.map('name', modifiedInputsOutputs.outputs)))
     )))
     this.fetchInfo(config)
   })
@@ -538,7 +538,7 @@ const WorkflowView = _.flow(
 
     const inputsValid = _.isEmpty(errors.inputs)
     const outputsValid = _.isEmpty(errors.outputs)
-    return div({ style: { position: 'relative', backgroundColor: 'white', borderBottom: `2px solid ${colors.blue[0]}` } }, [
+    return div({ style: { position: 'relative', backgroundColor: 'white', borderBottom: `2px solid ${colors.accent()}` } }, [
       div({ style: { display: 'flex', padding: `1.5rem ${sideMargin} 0`, minHeight: 120 } }, [
         div({ style: { flex: '1', lineHeight: '1.5rem', minWidth: 0 } }, [
           div({ style: { display: 'flex' } }, [
@@ -560,9 +560,9 @@ const WorkflowView = _.flow(
                 linkButton({}, [icon('ellipsis-vertical', { size: 22 })])
               ])
             ]),
-            span({ style: { color: colors.darkBlue[0], fontSize: 24 } }, name)
+            span({ style: { color: colors.dark(), fontSize: 24 } }, name)
           ]),
-          currentSnapRedacted && div({ style: { color: colors.orange[0], fontSize: 16, fontWeight: 500, marginTop: '0.5rem' } }, [
+          currentSnapRedacted && div({ style: { color: colors.warning(), fontSize: 16, fontWeight: 500, marginTop: '0.5rem' } }, [
             'The selected snapshot of the referenced tool has been redacted. You will not be able to run an analysis until you select another snapshot.'
           ]),
           div({ style: { marginTop: '0.5rem' } }, [
@@ -654,7 +654,8 @@ const WorkflowView = _.flow(
             onChangeTab: v => this.setState({ activeTab: v }),
             finalStep: buttonPrimary({
               disabled: !!Utils.computeWorkspaceError(ws) || !!noLaunchReason || currentSnapRedacted || !hasBucketAccess,
-              tooltip: Utils.computeWorkspaceError(ws) || noLaunchReason || (currentSnapRedacted && 'Tool version was redacted.') || (!hasBucketAccess && 'You do not have access to the Google Bucket associated with this workspace'),
+              tooltip: Utils.computeWorkspaceError(ws) || noLaunchReason || (currentSnapRedacted && 'Tool version was redacted.') ||
+                (!hasBucketAccess && 'You do not have access to the Google Bucket associated with this workspace'),
               onClick: () => this.setState({ launching: true }),
               style: {
                 height: StepButtonParams.buttonHeight, fontSize: StepButtonParams.fontSize
@@ -673,7 +674,7 @@ const WorkflowView = _.flow(
               ])
             ]),
             !!rootEntityType && h(Fragment, [
-              div({ style: { margin: '0.5rem 0', borderBottom: `1px solid ${colors.gray[3]}` } }),
+              div({ style: { margin: '0.5rem 0', borderBottom: `1px solid ${colors.dark(0.55)}` } }),
               div({ style: styles.outputInfoLabel }, 'References to outputs will be written to'),
               div({ style: { display: 'flex', alignItems: 'center' } }, [
                 div({ style: { flex: 'none', display: 'flex', width: '1.5rem' } }, [icon('listAlt')]),
@@ -769,7 +770,7 @@ const WorkflowView = _.flow(
       disabled: currentSnapRedacted || !!Utils.editWorkspaceError(workspace),
       disableClick: true,
       style: { padding: `1rem ${sideMargin}`, flex: 'auto', display: 'flex', flexDirection: 'column' },
-      activeStyle: { backgroundColor: colors.green[6], cursor: 'copy' },
+      activeStyle: { backgroundColor: colors.accent(0.2), cursor: 'copy' },
       ref: this.uploader,
       onDropRejected: () => reportError('Not a valid inputs file',
         'The selected file is not a json file. To import inputs for this tool, upload a file with a .json extension.'),

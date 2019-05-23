@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
-import { useState } from 'react'
+import { Fragment, useState } from 'react'
 import { a, b, div, h, span } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
 import { buttonPrimary, Clickable, LabeledCheckbox, spinnerOverlay } from 'src/components/common'
@@ -12,11 +12,11 @@ import headerLeftHexes from 'src/images/header-left-hexes.svg'
 import headerRightHexes from 'src/images/header-right-hexes.svg'
 import { Ajax, ajaxCaller } from 'src/libs/ajax'
 import { refreshTerraProfile, signOut } from 'src/libs/auth'
-import { FormLabel } from 'src/libs/forms'
-import { menuOpenLogo, topBarLogo } from 'src/libs/logos'
 import colors from 'src/libs/colors'
-import { getConfig, isFirecloud } from 'src/libs/config'
+import { getConfig, isFirecloud, isTerra } from 'src/libs/config'
 import { reportError, withErrorReporting } from 'src/libs/error'
+import { FormLabel } from 'src/libs/forms'
+import { topBarLogo } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
 import { authStore, contactUsActive, freeCreditsActive } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
@@ -28,32 +28,36 @@ const styles = {
   topBar: {
     flex: 'none', height: 66, paddingLeft: '1rem',
     display: 'flex', alignItems: 'center',
-    borderBottom: `2px solid ${colors.lightGreen[0]}`,
-    zIndex: 2
+    borderBottom: `2px solid ${colors.primary(0.55)}`,
+    zIndex: 2,
+    boxShadow: '3px 0 13px 0 rgba(0,0,0,0.3)'
   },
   pageTitle: {
-    color: 'white', fontSize: 22, fontWeight: 500, textTransform: 'uppercase'
+    color: isTerra() ? 'white' : colors.dark(), fontSize: 22, fontWeight: 500, textTransform: 'uppercase'
   },
   nav: {
     background: {
       position: 'absolute', left: 0, right: 0, top: 0, bottom: 0,
-      overflow: 'auto', cursor: 'pointer'
+      overflow: 'auto', cursor: 'pointer',
+      zIndex: 2
     },
     container: {
+      paddingTop: 66,
       width: 290, color: 'white', position: 'absolute', cursor: 'default',
-      backgroundColor: colors.gray[2], height: '100%',
+      backgroundColor: colors.dark(0.7), height: '100%',
       boxShadow: '3px 0 13px 0 rgba(0,0,0,0.3)',
+      zIndex: 2,
       display: 'flex', flexDirection: 'column'
     },
     item: {
       display: 'flex', alignItems: 'center', flex: 'none',
       height: 70, padding: '0 28px',
       fontWeight: 600,
-      borderTop: `1px solid ${colors.gray[3]}`, color: 'white'
+      borderTop: `1px solid ${colors.dark(0.55)}`, color: 'white'
     },
     dropDownItem: {
       display: 'flex', alignItems: 'center',
-      backgroundColor: colors.gray[2],
+      backgroundColor: colors.dark(0.7),
       color: 'white',
       borderBottom: 'none',
       padding: '0 3rem', height: 40,
@@ -69,7 +73,7 @@ const styles = {
 const betaTag = b({
   style: {
     fontSize: 8, lineHeight: '9px',
-    color: 'white', backgroundColor: colors.lightGreen[0],
+    color: 'white', backgroundColor: colors.primary(0.75),
     padding: '3px 5px', verticalAlign: 'middle',
     borderRadius: 2
   }
@@ -91,7 +95,7 @@ class DropDownSubItem extends Component {
       style: styles.nav.dropDownItem,
       hover: {
         ...styles.nav.dropDownItem,
-        backgroundColor: colors.gray[3]
+        backgroundColor: colors.dark(0.55)
       },
       onClick,
       ...props
@@ -120,7 +124,7 @@ class BuildDropDownSection extends Component {
       title: [
         h(Clickable, {
           style: styles.nav.item,
-          hover: { backgroundColor: colors.gray[3] },
+          hover: { backgroundColor: colors.dark(0.55) },
           onClick
         }, [
           titleIcon && div({ style: styles.nav.icon }, [
@@ -176,9 +180,10 @@ export default _.flow(
     const { trialState } = profile
     const { openLibraryMenu, openSupportMenu, openUserMenu } = this.state
 
+
     const enabledCredits = h(Clickable, {
       style: styles.nav.item,
-      hover: { backgroundColor: colors.gray[3] },
+      hover: { backgroundColor: colors.dark(0.55) },
       onClick: () => {
         this.hideNav()
         freeCreditsActive.set(true)
@@ -196,7 +201,7 @@ export default _.flow(
     const enrolledCredits = h(Clickable, {
       style: styles.nav.item,
       as: 'a',
-      hover: { backgroundColor: colors.gray[3] },
+      hover: { backgroundColor: colors.dark(0.55) },
       href: 'https://software.broadinstitute.org/firecloud/documentation/freecredits',
       ...Utils.newTabLinkProps,
       onClick: () => this.hideNav()
@@ -216,7 +221,7 @@ export default _.flow(
 
     const terminatedCredits = h(Clickable, {
       style: styles.nav.item,
-      hover: { backgroundColor: colors.gray[3] },
+      hover: { backgroundColor: colors.dark(0.55) },
       onClick: () => this.setState({ finalizeTrial: true })
     }, [
       div({ style: styles.nav.icon }, [
@@ -238,27 +243,6 @@ export default _.flow(
         style: styles.nav.container,
         onClick: e => e.stopPropagation()
       }, [
-        div({
-          style: {
-            ...styles.topBar,
-            background: `81px url(${headerLeftHexes}) no-repeat ${colors.green[1]}`
-          }
-        }, [
-          icon('bars', {
-            dir: 'right',
-            size: 36,
-            style: { marginRight: '2rem', color: 'white', cursor: 'pointer' },
-            onClick: () => this.hideNav()
-          }),
-          a({
-            style: {
-              ...styles.pageTitle,
-              textAlign: 'center', display: 'flex', alignItems: 'center'
-            },
-            href: Nav.getLink('root'),
-            onClick: () => this.hideNav()
-          }, [menuOpenLogo(), betaTag])
-        ]),
         div({ style: { display: 'flex', flexDirection: 'column', overflowY: 'auto', flex: 1 } }, [
           isSignedIn ?
             h(BuildDropDownSection, {
@@ -299,8 +283,11 @@ export default _.flow(
             }, [
               div([
                 h(Clickable, {
-                  style: { marginLeft: '9rem' },
                   hover: { textDecoration: 'underline' },
+                  style: {
+                    color: colors.accent(),
+                    marginLeft: '9rem'
+                  },
                   onClick: () => this.setState({ openCookiesModal: true })
                 }, ['Cookies policy']),
                 h(SignInButton)
@@ -309,7 +296,7 @@ export default _.flow(
           h(Clickable, {
             as: 'a',
             style: styles.nav.item,
-            hover: { backgroundColor: colors.gray[3] },
+            hover: { backgroundColor: colors.dark(0.55) },
             href: Nav.getLink('workspaces'),
             onClick: () => this.hideNav()
           }, [
@@ -321,8 +308,8 @@ export default _.flow(
           h(Clickable, {
             as: 'a',
             ...Utils.newTabLinkProps,
-            style: { ...styles.nav.item, borderBottom: `1px solid ${colors.gray[3]}` },
-            hover: { backgroundColor: colors.gray[3] },
+            style: { ...styles.nav.item, borderBottom: `1px solid ${colors.dark(0.55)}` },
+            hover: { backgroundColor: colors.dark(0.55) },
             href: getConfig().jobManagerUrlRoot,
             onClick: () => this.hideNav()
           }, [
@@ -403,14 +390,13 @@ export default _.flow(
           }, [
             div({ style: styles.nav.icon }, [
               icon('fcIconWhite', { className: 'is-solid', size: 20 })
-            ]),
-            'Use Classic FireCloud'
+            ]), 'Use Classic FireCloud'
           ]),
           div({
             style: {
               ..._.omit('borderTop', styles.nav.item),
               marginTop: 'auto',
-              color: colors.gray[3],
+              color: colors.dark(0.55),
               fontSize: 10
             }
           }, [
@@ -426,55 +412,59 @@ export default _.flow(
     const { title, href, children, ajax: { User }, authState } = this.props
     const { navShown, finalizeTrial, openCookiesModal, openFirecloudModal } = this.state
 
-    return div({
-      style: {
-        ...styles.topBar,
-        background: `81px url(${headerLeftHexes}) no-repeat,
-    right url(${headerRightHexes}) no-repeat, ${colors.green[1]}`
-      }
-    }, [
-      icon('bars', {
-        size: 36,
-        style: { marginRight: '2rem', color: 'white', flex: 'none', cursor: 'pointer' },
-        onClick: () => this.showNav()
-      }),
-      a({
-        style: { ...styles.pageTitle, display: 'flex', alignItems: 'center' },
-        href: href || Nav.getLink('root')
-      }, [
-        topBarLogo(),
-        div({}, [
-          div({
-            style: title ? { fontSize: '0.8rem', lineHeight: '19px' } : { fontSize: '1rem', fontWeight: 600 }
-          }, [betaTag]),
-          title
-        ])
-      ]),
-      children,
+    return h(Fragment, [
       navShown && this.buildNav(),
-      finalizeTrial && h(Modal, {
-        title: 'Remove button',
-        onDismiss: () => this.setState({ finalizeTrial: false }),
-        okButton: buttonPrimary({
-          onClick: async () => {
-            try {
-              await User.finalizeTrial()
-              await refreshTerraProfile()
-            } catch (error) {
-              reportError('Error finalizing trial', error)
-            } finally {
-              this.setState({ finalizeTrial: false })
+      div({
+        style: {
+          ...styles.topBar,
+          background: isTerra() ?
+            `81px url(${headerLeftHexes}) no-repeat, right url(${headerRightHexes}) no-repeat, ${colors.primary()}` :
+            colors.secondary(0.15)
+        }
+      }, [
+        icon('bars', {
+          dir: navShown ? 'right' : undefined,
+          size: 36,
+          style: { marginRight: '2rem', color: isTerra() ? 'white' : colors.accent(), flex: 'none', cursor: 'pointer' },
+          onClick: () => navShown ? this.hideNav() : this.showNav()
+        }),
+        a({
+          style: { ...styles.pageTitle, display: 'flex', alignItems: 'center' },
+          href: href || Nav.getLink('root')
+        }, [
+          topBarLogo(),
+          div({}, [
+            div({
+              style: title ? { fontSize: '0.8rem', lineHeight: '19px' } : { fontSize: '1rem', fontWeight: 600 }
+            }, [betaTag]),
+            title
+          ])
+        ]),
+        children,
+        finalizeTrial && h(Modal, {
+          title: 'Remove button',
+          onDismiss: () => this.setState({ finalizeTrial: false }),
+          okButton: buttonPrimary({
+            onClick: async () => {
+              try {
+                await User.finalizeTrial()
+                await refreshTerraProfile()
+              } catch (error) {
+                reportError('Error finalizing trial', error)
+              } finally {
+                this.setState({ finalizeTrial: false })
+              }
             }
-          }
-        }, ['Confirm'])
-      }, ['Click confirm to remove button forever.']),
-      openCookiesModal && h(CookiesModal, {
-        onDismiss: () => this.setState({ openCookiesModal: false })
-      }),
-      openFirecloudModal && h(PreferFirecloudModal, {
-        onDismiss: () => this.setState({ openFirecloudModal: false }),
-        authState
-      })
+          }, ['Confirm'])
+        }, ['Click confirm to remove button forever.']),
+        openCookiesModal && h(CookiesModal, {
+          onDismiss: () => this.setState({ openCookiesModal: false })
+        }),
+        openFirecloudModal && h(PreferFirecloudModal, {
+          onDismiss: () => this.setState({ openFirecloudModal: false }),
+          authState
+        })
+      ])
     ])
   }
 })

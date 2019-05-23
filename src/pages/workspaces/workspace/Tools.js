@@ -5,7 +5,7 @@ import { pure } from 'recompose'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import togglesListView from 'src/components/CardsListToggle'
 import {
-  buttonOutline, buttonPrimary, Clickable, link, MenuButton, menuIcon, methodLink, PageBox, spinnerOverlay
+  buttonOutline, buttonPrimary, Clickable, link, MenuButton, menuIcon, methodLink, PageBox, Select, spinnerOverlay
 } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { Markdown } from 'src/components/Markdown'
@@ -79,6 +79,15 @@ const styles = {
   }
 }
 
+const sortTokens = {
+  lowerCaseName: config => config.name.toLowerCase()
+}
+const defaultSort = { label: 'Alphabetical', value: { field: 'lowerCaseName', direction: 'asc' } }
+const sortOptions = [
+  defaultSort,
+  { label: 'Reverse Alphabetical', value: { field: 'lowerCaseName', direction: 'desc' } }
+]
+
 const ToolCard = pure(({ listView, name, namespace, config, onCopy, onDelete, isRedacted, workspace }) => {
   const { namespace: workflowNamespace, name: workflowName, methodRepoMethod: { sourceRepo, methodVersion } } = config
   const toolCardMenu = h(PopupTrigger, {
@@ -101,10 +110,10 @@ const ToolCard = pure(({ listView, name, namespace, config, onCopy, onDelete, is
     h(Clickable, {
       onClick: e => e.stopPropagation(),
       style: {
-        cursor: 'pointer', color: colors.green[0], ...styles.innerLink
+        cursor: 'pointer', color: colors.accent(), ...styles.innerLink
       },
       focus: 'hover',
-      hover: { color: colors.green[2] }
+      hover: { color: colors.accent(0.85) }
     }, [
       icon('cardMenuIcon', {
         size: listView ? 18 : 24
@@ -125,7 +134,7 @@ const ToolCard = pure(({ listView, name, namespace, config, onCopy, onDelete, is
 
   const redactedWarning = h(TooltipTrigger, {
     content: 'Tool version has been removed. You cannot run an analysis until you change the version.'
-  }, [icon('ban', { size: 20, style: { color: colors.orange[0], marginLeft: '.3rem', ...styles.innerLink } })])
+  }, [icon('ban', { size: 20, style: { color: colors.warning(), marginLeft: '.3rem', ...styles.innerLink } })])
 
   return listView ?
     div({ style: { ...styles.card, ...styles.longCard } }, [
@@ -268,7 +277,10 @@ export const Tools = _.flow(
 )(class Tools extends Component {
   constructor(props) {
     super(props)
-    this.state = StateHistory.get()
+    this.state = {
+      sortOrder: defaultSort.value,
+      ...StateHistory.get()
+    }
   }
 
   async refresh() {
@@ -301,19 +313,30 @@ export const Tools = _.flow(
 
   render() {
     const { namespace, name, listView, viewToggleButtons, workspace: ws, workspace: { workspace } } = this.props
-    const { loading, configs, copyingTool, deletingTool, findingTool } = this.state
-    const tools = _.map(config => {
-      const isRedacted = this.computeRedacted(config)
-      return h(ToolCard, {
-        onCopy: () => this.setState({ copyingTool: { namespace: config.namespace, name: config.name } }),
-        onDelete: () => this.setState({ deletingTool: { namespace: config.namespace, name: config.name } }),
-        key: `${config.namespace}/${config.name}`, namespace, name, config, listView, isRedacted, workspace: ws
+    const { loading, configs, copyingTool, deletingTool, findingTool, sortOrder, sortOrder: { field, direction } } = this.state
+    const tools = _.flow(
+      _.orderBy(sortTokens[field] || field, direction),
+      _.map(config => {
+        const isRedacted = this.computeRedacted(config)
+        return h(ToolCard, {
+          onCopy: () => this.setState({ copyingTool: { namespace: config.namespace, name: config.name } }),
+          onDelete: () => this.setState({ deletingTool: { namespace: config.namespace, name: config.name } }),
+          key: `${config.namespace}/${config.name}`, namespace, name, config, listView, isRedacted, workspace: ws
+        })
       })
-    }, configs)
+    )(configs)
 
     return h(PageBox, [
       div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' } }, [
         div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, ['Tools']),
+        div({ style: { marginLeft: 'auto', marginRight: '0.75rem' } }, ['Sort By:']),
+        h(Select, {
+          value: sortOrder,
+          isClearable: false,
+          styles: { container: old => ({ ...old, width: 220, marginRight: '1.10rem' }) },
+          options: sortOptions,
+          onChange: selected => this.setState({ sortOrder: selected.value })
+        }),
         viewToggleButtons,
         copyingTool && h(ExportToolModal, {
           thisWorkspace: workspace, methodConfig: this.getConfig(copyingTool),
@@ -332,7 +355,7 @@ export const Tools = _.flow(
         h(Clickable, {
           disabled: !!Utils.editWorkspaceError(ws),
           tooltip: Utils.editWorkspaceError(ws),
-          style: { ...styles.card, ...styles.shortCard, color: colors.green[0], fontSize: 18, lineHeight: '22px' },
+          style: { ...styles.card, ...styles.shortCard, color: colors.accent(), fontSize: 18, lineHeight: '22px' },
           onClick: () => this.setState({ findingTool: true })
         }, [
           'Find a Tool',
@@ -353,7 +376,7 @@ export const Tools = _.flow(
   }
 
   componentDidUpdate() {
-    StateHistory.update(_.pick(['configs'], this.state))
+    StateHistory.update(_.pick(['configs', 'sortOrder'], this.state))
   }
 })
 

@@ -24,7 +24,7 @@ const styles = {
     position: 'relative', padding: '2rem'
   },
   title: {
-    fontSize: 24, fontWeight: 600, color: colors.gray[0], marginBottom: '2rem'
+    fontSize: 24, fontWeight: 600, color: colors.dark(), marginBottom: '2rem'
   },
   card: {
     ...Style.elements.card.container, borderRadius: 8, padding: '2rem', flex: 1, minWidth: 0,
@@ -54,11 +54,11 @@ const DockstoreImporter = ajaxCaller(class DockstoreImporter extends Component {
       div({ style: { ...styles.card, maxWidth: 740 } }, [
         div({ style: styles.title }, ['Importing from Dockstore']),
         div({ style: { fontSize: 18 } }, [path]),
-        div({ style: { fontSize: 13, color: colors.gray[0] } }, [`V. ${version}`]),
+        div({ style: { fontSize: 13, color: colors.dark() } }, [`V. ${version}`]),
         div({
           style: {
             display: 'flex', alignItems: 'center',
-            margin: '1rem 0', color: colors.orange[0]
+            margin: '1rem 0', color: colors.warning()
           }
         }, [
           icon('warning-standard', { className: 'is-solid', size: 32, style: { marginRight: '0.5rem', flex: 'none' } }),

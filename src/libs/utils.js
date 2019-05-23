@@ -313,6 +313,16 @@ export const usePrevious = value => {
   return ref.current
 }
 
+/*
+ * Given a value that changes over time, returns a getter function that reads the current value.
+ * Useful for asynchronous processes that need to read the current value of e.g. props or state.
+ */
+export const useGetter = value => {
+  const ref = useRef()
+  ref.current = value
+  return () => ref.current
+}
+
 export const trimClustersOldestFirst = _.flow(
   _.remove({ status: 'Deleting' }),
   _.remove({ status: 'Error' }),

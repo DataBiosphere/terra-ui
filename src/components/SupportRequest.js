@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import { createRef, Fragment } from 'react'
 import Dropzone from 'react-dropzone'
 import { div, h, span } from 'react-hyperscript-helpers'
-import { Clickable, buttonPrimary, Select, spinnerOverlay, link, linkButton, buttonSecondary } from 'src/components/common'
+import { buttonPrimary, buttonSecondary, Clickable, link, linkButton, Select, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { TextArea, TextInput } from 'src/components/input'
 import { notify } from 'src/components/Notifications'
@@ -129,7 +129,7 @@ const SupportRequest = _.flow(
         onDropAccepted: files => this.uploadFile(files)
       }, [
         div({ style: { padding: '1rem' } }, [
-          div({ style: { fontSize: 18, fontWeight: 'bold', color: colors.darkBlue[0] } }, ['Contact Us']),
+          div({ style: { fontSize: 18, fontWeight: 'bold', color: colors.dark() } }, ['Contact Us']),
           !this.hasName() && h(Fragment, [
             h(RequiredFormLabel, ['Name']),
             h(TextInput, {
@@ -144,7 +144,11 @@ const SupportRequest = _.flow(
             isMulti: false,
             value: type,
             onChange: ({ value }) => this.setState({ type: value }),
-            options: [{ value: 'question', label: 'Question' }, { value: 'bug', label: 'Bug' }, { value: 'feature_request', label: 'Feature Request' }]
+            options: [
+              { value: 'question', label: 'Question' },
+              { value: 'bug', label: 'Bug' },
+              { value: 'feature_request', label: 'Feature Request' }
+            ]
           }),
           h(RequiredFormLabel, [`How can we help you${greetUser}?`]),
           h(TextInput, {
@@ -171,7 +175,7 @@ const SupportRequest = _.flow(
                 div({
                   style: { marginLeft: '1rem', paddingTop: '0.5rem' }
                 }, [
-                  'Successfully uploaded: ', span({ style: { color: colors.green[0] } }, [attachmentName])
+                  'Successfully uploaded: ', span({ style: { color: colors.dark() } }, [attachmentName])
                 ])
               ]),
               linkButton({
@@ -182,8 +186,8 @@ const SupportRequest = _.flow(
             ]) :
             h(Clickable, {
               style: {
-                flex: 1, backgroundColor: dragging ? colors.green[6] : colors.gray[6], borderRadius: 3,
-                border: `1px dashed ${colors.gray[2]}`
+                flex: 1, backgroundColor: dragging ? colors.accent(0.2) : colors.dark(0.1), borderRadius: 3,
+                border: `1px dashed ${colors.dark(0.7)}`
               },
               onClick: () => this.uploader.current.open()
             }, [
@@ -199,7 +203,7 @@ const SupportRequest = _.flow(
             placeholder: 'Enter your email address',
             onChange: v => this.setState({ email: v })
           }),
-          submitError && div({ style: { marginTop: '0.5rem', textAlign: 'right', color: colors.red[0] } }, [submitError]),
+          submitError && div({ style: { marginTop: '0.5rem', textAlign: 'right', color: colors.danger() } }, [submitError]),
           submitting && spinnerOverlay,
           div({ style: styles.buttonRow }, [
             buttonSecondary({
@@ -234,7 +238,9 @@ const SupportRequest = _.flow(
         link({
           style: { fontWeight: 800, color: 'white' },
           hover: { color: 'white', textDecoration: 'underline' },
-          href: `mailto:terra-support@broadinstitute.zendesk.org?subject=${type}%3A%20${subject}&body=Original%20support%20request%3A%0A------------------------------------%0AContact email%3A%20${email}%0A%0A${description}%0A%0A------------------------------------%0AError%20reported%20from%20Zendesk%3A%0A%0A${JSON.stringify(error)}`,
+          href: `mailto:terra-support@broadinstitute.zendesk.org?subject=${type}%3A%20${subject}&body=Original%20support%20request%3A%0A` +
+            `------------------------------------%0AContact email%3A%20${email}%0A%0A${description}%0A%0A------------------------------------` +
+            `%0AError%20reported%20from%20Zendesk%3A%0A%0A${JSON.stringify(error)}`,
           ...Utils.newTabLinkProps
         }, 'Click here to email support'), hasAttachment && ' and make sure to add your attachment to the email.']
       ))
