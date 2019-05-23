@@ -75,7 +75,7 @@ const betaTag = b({
   }
 }, 'BETA')
 
-class dropDownSubItem extends Component {
+class DropDownSubItem extends Component {
   static propTypes = {
     href: PropTypes.string,
     title: PropTypes.string,
@@ -83,7 +83,7 @@ class dropDownSubItem extends Component {
   }
 
   render() {
-    const { href, title, onClick, props } = this.props
+    const { href, title, onClick, ...props } = this.props
 
     return h(Clickable, {
       as: 'a',
@@ -126,18 +126,6 @@ export default _.flow(
     const { authState: { isSignedIn, profile,  profile: { firstName = 'Loading...', lastName = '' }  } } = this.props
     const { trialState } = profile
     const { openLibraryMenu, openSupportMenu, openUserMenu } = this.state
-
-    const dropDownSubItem = (linkToPage, title, onClick, props) => h(Clickable, {
-      as: 'a',
-      href: linkToPage,
-      style: styles.nav.dropDownItem,
-      hover: {
-        ...styles.nav.dropDownItem,
-        backgroundColor: colors.gray[3]
-      },
-      onClick,
-      ...props
-    }, [title])
 
     const enabledCredits = h(Clickable, {
       style: styles.nav.item,
@@ -228,10 +216,25 @@ export default _.flow(
               profilePic({ size: 32, style: { marginRight: 12 } }), `${firstName} ${lastName}`
             ]), () => this.setState({ openUserMenu: !openUserMenu }), openUserMenu,
             [
-              dropDownSubItem(Nav.getLink('profile'), 'Profile', () => this.hideNav()),
-              dropDownSubItem(Nav.getLink('groups'), 'Groups', () => this.hideNav()),
-              dropDownSubItem(Nav.getLink('billing'), 'Billing', () => this.hideNav()),
-              dropDownSubItem(undefined, 'Sign Out', signOut)
+              h(DropDownSubItem, {
+                href: Nav.getLink('profile'),
+                title: 'Profile',
+                onClick: () => this.hideNav()
+              }),
+              h(DropDownSubItem, {
+                href: Nav.getLink('groups'),
+                title: 'Groups',
+                onClick: () => this.hideNav()
+              }),
+              h(DropDownSubItem, {
+                href: Nav.getLink('billing'),
+                title: 'Billing',
+                onClick: () => this.hideNav()
+              }),
+              h(DropDownSubItem, {
+                title: 'Sign Out',
+                onClick: signOut
+              })
             ]) :
             div({
               style: {
@@ -277,22 +280,55 @@ export default _.flow(
           div({ style: { margin: '5rem' } }),
           this.buildDropDownSection(
             'library', 'Terra Library', () => this.setState({ openLibraryMenu: !openLibraryMenu }), openLibraryMenu, [
-              dropDownSubItem(Nav.getLink('library-datasets'), 'Data', () => this.hideNav()),
-              dropDownSubItem(Nav.getLink('library-showcase'), 'Showcase', () => this.hideNav()),
-              dropDownSubItem(Nav.getLink('library-code'), 'Tools', () => this.hideNav())
+              h(DropDownSubItem, {
+                href: Nav.getLink('library-datasets'),
+                title: 'Data',
+                onClick: () => this.hideNav()
+              }),
+              h(DropDownSubItem, {
+                href: Nav.getLink('library-showcase'),
+                title: 'Showcase',
+                onClick: () => this.hideNav()
+              }),
+              h(DropDownSubItem, {
+                href: Nav.getLink('library-code'),
+                title: 'Tools',
+                onClick: () => this.hideNav()
+              })
             ]),
           (trialState === 'Enabled') && enabledCredits,
           (trialState === 'Enrolled') && enrolledCredits,
           (trialState === 'Terminated') && terminatedCredits,
           this.buildDropDownSection(
             'help', 'Terra Support', () => this.setState({ openSupportMenu: !openSupportMenu }), openSupportMenu, [
-              dropDownSubItem('https://support.terra.bio/hc/en-us', 'How-to Guides', () => this.hideNav(), Utils.newTabLinkProps),
-              dropDownSubItem('https://support.terra.bio/hc/en-us/community/topics/360000500452-Feature-Requests', 'Request a Feature',
-                () => this.hideNav(), Utils.newTabLinkProps),
-              dropDownSubItem('https://support.terra.bio/hc/en-us/community/topics/360000500432-General-Discussion', 'Community Forum',
-                () => this.hideNav(), Utils.newTabLinkProps),
-              isFirecloud() && dropDownSubItem('https://support.terra.bio/hc/en-us/articles/360022694271-Side-by-side-comparison-with-Terra', 'What\'s different in Terra?', () => this.hideNav(), Utils.newTabLinkProps),
-              dropDownSubItem(undefined, 'Contact Us', () => contactUsActive.set(true))
+              h(DropDownSubItem, {
+                href: 'https://support.terra.bio/hc/en-us',
+                title: 'How-to Guides',
+                onClick: () => this.hideNav(),
+                ...Utils.newTabLinkProps
+              }),
+              h(DropDownSubItem, {
+                href: 'https://support.terra.bio/hc/en-us/community/topics/360000500452',
+                title: 'Request a Feature',
+                onClick: () => this.hideNav(),
+                ...Utils.newTabLinkProps
+              }),
+              h(DropDownSubItem, {
+                href: 'https://support.terra.bio/hc/en-us/community/topics/360000500432',
+                title: 'Community Forum',
+                onClick: () => this.hideNav(),
+                ...Utils.newTabLinkProps
+              }),
+              isFirecloud() && h(DropDownSubItem, {
+                href: 'https://support.terra.bio/hc/en-us/articles/360022694271',
+                title: 'What\'s different in Terra?',
+                onClick: () => this.hideNav(),
+                ...Utils.newTabLinkProps
+              }),
+              h(DropDownSubItem, {
+                title: 'Contact Us',
+                onClick: () => contactUsActive.set(true)
+              })
             ]
           ),
           isFirecloud() && h(Clickable, {
