@@ -12,33 +12,30 @@ import { cond, useOnMount, withBusyState } from 'src/libs/utils'
 export const RequestAccessModal = ({ onDismiss, workspace }) => {
   const [groups, setGroups] = useState([])
   const [accessInstructions, setAccessInstructions] = useState([])
-  const [loadingGroups, setLoadingGroups] = useState(false)
-  const [loadingAccessInstructions, setLoadingAccessInstructions] = useState(false)
+  const [loading, setLoading] = useState(false)
   const signal = useCancellation()
 
   const { Groups, Workspaces } = Ajax(signal)
 
-  const fetchGroups = _.flow(
-    withBusyState(setLoadingGroups),
-    withErrorReporting('Error loading groups')
-  )(async () => {
+  const fetchGroups = withErrorReporting('Error loading groups')(async () => {
     setGroups(await Groups.list())
   })
 
-  const fetchAccessInstructions = _.flow(
-    withBusyState(setLoadingAccessInstructions),
-    withErrorReporting('Error loading instructions')
-  )(async () => {
-    const instructions = await Workspaces.workspace(workspace.workspace.namespace, workspace.workspace.name).accessInstructions()
-    setAccessInstructions(instructions)
+  const fetchAccessInstructions = withErrorReporting('Error loading instructions')(async () => {
+    setAccessInstructions(await Workspaces.workspace(workspace.workspace.namespace, workspace.workspace.name).accessInstructions())
+  })
+
+  const fetchAll = withBusyState(setLoading)(async () => {
+    await Promise.all([
+      fetchGroups(),
+      fetchAccessInstructions()
+    ])
   })
 
   useOnMount(() => {
-    fetchGroups()
-    fetchAccessInstructions()
+    fetchAll()
   })
 
-  const loading = loadingGroups || loadingAccessInstructions
   const groupNames = _.map('groupName', groups)
   const authDomain = workspace.workspace.authorizationDomain
   return h(Modal, {
