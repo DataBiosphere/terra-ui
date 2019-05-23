@@ -1,8 +1,8 @@
 import _ from 'lodash/fp'
 import { useState } from 'react'
 import { div, h, table, tbody, td, th, thead, tr } from 'react-hyperscript-helpers'
-import { buttonPrimary } from 'src/components/common'
-import { centeredSpinner } from 'src/components/icons'
+import { buttonPrimary, link } from 'src/components/common'
+import { centeredSpinner, icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import { Ajax, useCancellation } from 'src/libs/ajax'
 import { withErrorReporting } from 'src/libs/error'
@@ -27,11 +27,10 @@ export const RequestAccessModal = ({ onDismiss, workspace }) => {
 
   const fetchAccessInstructions = _.flow(
     withBusyState(setLoadingAccessInstructions),
-    withErrorReporting('Error loading groups')
+    withErrorReporting('Error loading instructions')
   )(async () => {
-    const i = await Workspaces.workspace(workspace.workspace.namespace, workspace.workspace.name).accessInstructions()
-    console.log(i)
-    setAccessInstructions(i)
+    const instructions = await Workspaces.workspace(workspace.workspace.namespace, workspace.workspace.name).accessInstructions()
+    setAccessInstructions(instructions)
   })
 
   useOnMount(() => {
@@ -48,7 +47,15 @@ export const RequestAccessModal = ({ onDismiss, workspace }) => {
     showCancel: false,
     onDismiss
   }, [
-    div(['You cannot access this Workspace because it contains restricted data. You need permission from the admin(s) of all of the Groups in the Authorization Domain protecting the workspace.']),
+    div([`
+      You cannot access this workspace because it is protected by an Authorization Domain.
+      You need to obtain permission from an admin of each group in the Authorization Domain in order to get access.
+      Clicking the "Request Access" button below will send an email to the admins of that group.`]),
+    div({ style: { marginTop: '1rem' } }, [
+      link({
+        href: 'https://support.terra.bio/hc/en-us/articles/360026775691'
+      }, ['Learn more about Authorization Domains', icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })])
+    ]),
     loading ?
       centeredSpinner({ size: 32 }) :
       table({ style: { margin: '1rem', width: '100%' } }, [
