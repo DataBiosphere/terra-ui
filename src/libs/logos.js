@@ -54,5 +54,3 @@ export const topBarLogo = () => isTerra() ?
   brandLongLogo(50, true)
 
 export const footerLogo = () => isTerra() ? icon('terraLogoWhite', { size: 40 }) : brandLongLogo(40)
-
-export const terraSpecial = intensity => isTerra() ? colors.primary(intensity) : colors.accent(intensity)

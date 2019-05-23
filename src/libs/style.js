@@ -1,6 +1,5 @@
-import colors from 'src/libs/colors'
+import colors, { terraSpecial } from 'src/libs/colors'
 import { isTerra } from 'src/libs/config'
-import { terraSpecial } from 'src/libs/logos'
 
 
 export const standardShadow = '0 3px 2px 0 rgba(0,0,0,0.12)'

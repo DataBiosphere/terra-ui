@@ -787,7 +787,7 @@ const WorkflowView = _.flow(
           linkButton({ onClick: () => this.uploader.current.open() }, ['upload json'])
         ])
       ]),
-      filteredData.length !== 0  &&
+      filteredData.length !== 0 &&
       div({ style: { flex: '1 0 500px' } }, [
         h(WorkflowIOTable, {
           readOnly: currentSnapRedacted || !!Utils.editWorkspaceError(workspace),

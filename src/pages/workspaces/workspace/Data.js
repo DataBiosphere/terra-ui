@@ -7,7 +7,7 @@ import Dropzone from 'react-dropzone'
 import { div, form, h, input } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { buttonPrimary, link, linkButton, Select, spinnerOverlay } from 'src/components/common'
+import { buttonPrimary, linkButton, Select, spinnerOverlay } from 'src/components/common'
 import DataTable from 'src/components/DataTable'
 import ExportDataModal from 'src/components/ExportDataModal'
 import FloatingActionButton from 'src/components/FloatingActionButton'
@@ -51,7 +51,8 @@ const styles = {
 }
 
 const DataTypeButton = ({ selected, children, iconName = 'listAlt', iconSize = 14, ...props }) => {
-  return link({
+  return linkButton({
+    as: 'span',
     style: style.navList.item(selected),
     hover: style.navList.itemHover(selected),
     ...props

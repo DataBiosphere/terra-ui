@@ -1,5 +1,6 @@
 import Color from 'color'
 import _ from 'lodash/fp'
+import { isTerra } from 'src/libs/config'
 import { getAppName } from 'src/libs/logos'
 
 
@@ -28,7 +29,11 @@ const colorPalettes = {
   }
 }
 
-export default _.fromPairs(_.map(
+const colors = _.fromPairs(_.map(
   color => [color, (intensity = 1) => Color(_.get([getAppName(), color], colorPalettes)).mix(Color('white'), 1 - intensity).hex()],
   ALL_COLORS
 ))
+
+export const terraSpecial = intensity => isTerra() ? colors.primary(intensity) : colors.accent(intensity)
+
+export default colors
