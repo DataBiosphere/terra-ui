@@ -6,6 +6,7 @@ import { Ajax } from 'src/libs/ajax'
 import { getConfig } from 'src/libs/config'
 import { withErrorReporting } from 'src/libs/error'
 import { getAppName } from 'src/libs/logos'
+import { authStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
 
@@ -42,14 +43,6 @@ export const ensureBillingScope = async () => {
     await Utils.delay(250)
   }
 }
-
-export const authStore = Utils.atom({
-  isSignedIn: undefined,
-  registrationStatus: undefined,
-  acceptedTos: undefined,
-  user: {},
-  profile: {}
-})
 
 export const getUser = () => {
   return authStore.get().user
@@ -168,7 +161,7 @@ authStore.subscribe((state, oldState) => {
 
 export const refreshTerraProfile = async () => {
   const profile = Utils.kvArrayToObject((await Ajax().User.profile.get()).keyValuePairs)
-  authStore.update(state => _.set('profile', profile, state))
+  authStore.update(state => ({ ...state, profile }))
 }
 
 authStore.subscribe(withErrorReporting('Error loading user profile', async (state, oldState) => {
@@ -191,7 +184,7 @@ authStore.subscribe(withErrorReporting('Error loading NIH account link status', 
   }
   if (oldState.registrationStatus !== 'registered' && state.registrationStatus === 'registered') {
     const nihStatus = await loadNihStatus()
-    authStore.update(_.set('nihStatus', nihStatus))
+    authStore.update(state => ({ ...state, nihStatus }))
   }
 }))
 

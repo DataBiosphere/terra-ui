@@ -1,6 +1,6 @@
 import { div, pre } from 'react-hyperscript-helpers'
-import { configOverridesStore } from 'src/libs/config'
 import colors from 'src/libs/colors'
+import { configOverridesStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
 const ConfigOverridesWarning = () => {

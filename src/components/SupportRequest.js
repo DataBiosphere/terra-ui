@@ -7,17 +7,15 @@ import { icon } from 'src/components/icons'
 import { TextArea, TextInput } from 'src/components/input'
 import { notify } from 'src/components/Notifications'
 import { Ajax } from 'src/libs/ajax'
-import { authStore } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import { FormLabel, RequiredFormLabel } from 'src/libs/forms'
+import { authStore, contactUsActive } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 import validate from 'validate.js'
 
-
-export const contactUsActive = Utils.atom(false)
 
 const constraints = {
   name: { presence: { allowEmpty: false } },

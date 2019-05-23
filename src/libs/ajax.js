@@ -5,6 +5,7 @@ import { h } from 'react-hyperscript-helpers'
 import { version } from 'src/data/clusters'
 import { getUser } from 'src/libs/auth'
 import { getConfig } from 'src/libs/config'
+import { ajaxOverridesStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
 
@@ -20,15 +21,6 @@ window.ajaxOverrideUtils = {
     }
   })
 }
-
-/*
- * Modifies ajax responses for testing purposes.
- * Can be set to an array of objects of the form { fn, filter }.
- * The fn should take a Response and return a Promise that resolves to a new Response. (See ajaxOverrideUtils)
- * If present, filter should be a RegExp that is matched against the url to target specific requests.
- */
-const ajaxOverridesStore = Utils.atom()
-window.ajaxOverridesStore = ajaxOverridesStore
 
 const authOpts = (token = getUser().token) => ({ headers: { Authorization: `Bearer ${token}` } })
 const jsonBody = body => ({ body: JSON.stringify(body), headers: { 'Content-Type': 'application/json' } })

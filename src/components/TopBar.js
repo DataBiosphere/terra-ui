@@ -8,18 +8,17 @@ import { icon, profilePic } from 'src/components/icons'
 import { TextArea } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import SignInButton from 'src/components/SignInButton'
-import { contactUsActive } from 'src/components/SupportRequest'
-import { freeCreditsActive } from 'src/components/FreeCreditsModal'
 import headerLeftHexes from 'src/images/header-left-hexes.svg'
 import headerRightHexes from 'src/images/header-right-hexes.svg'
 import { Ajax, ajaxCaller } from 'src/libs/ajax'
-import { authStore, refreshTerraProfile, signOut } from 'src/libs/auth'
+import { refreshTerraProfile, signOut } from 'src/libs/auth'
 import { FormLabel } from 'src/libs/forms'
 import { menuOpenLogo, topBarLogo } from 'src/libs/logos'
 import colors from 'src/libs/colors'
 import { getConfig, isFirecloud } from 'src/libs/config'
 import { reportError, withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
+import { authStore, contactUsActive, freeCreditsActive } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 import { CookiesModal } from 'src/pages/SignIn'
@@ -310,7 +309,7 @@ export default _.flow(
             style: styles.nav.supportItem,
             as: 'a',
             hover: { backgroundColor: colors.gray[3] },
-            href: 'https://support.terra.bio/hc/en-us/community/topics/360000500452-Feature-Requests',
+            href: 'https://support.terra.bio/hc/en-us/community/topics/360000500452',
             ...Utils.newTabLinkProps,
             onClick: () => this.hideNav()
           }, [
@@ -330,7 +329,7 @@ export default _.flow(
             style: styles.nav.supportItem,
             as: 'a',
             hover: { backgroundColor: colors.gray[3] },
-            href: 'https://support.terra.bio/hc/en-us/community/topics/360000500432-General-Discussion',
+            href: 'https://support.terra.bio/hc/en-us/community/topics/360000500432',
             ...Utils.newTabLinkProps,
             onClick: () => this.hideNav()
           }, [
@@ -351,7 +350,7 @@ export default _.flow(
               style: styles.nav.supportItem,
               as: 'a',
               hover: { backgroundColor: colors.gray[3] },
-              href: 'https://support.terra.bio/hc/en-us/articles/360022694271-Side-by-side-comparison-with-Terra',
+              href: 'https://support.terra.bio/hc/en-us/articles/360022694271',
               ...Utils.newTabLinkProps,
               onClick: () => this.hideNav()
             }, [
