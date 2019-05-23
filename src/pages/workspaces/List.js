@@ -181,8 +181,8 @@ const WorkspaceCard = pure(({
 
   return h(TooltipTrigger, {
     content: !canView && `
-      You cannot access this workspace because it contains restricted data.
-      You need permission from the admin(s) of all of the groups in the Authorization Domain protecting the workspace.
+      You cannot access this workspace because it is protected by an Authorization Domain.
+      Click to learn about gaining access.
     `,
     side: 'top'
   }, [
