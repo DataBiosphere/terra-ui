@@ -1,5 +1,5 @@
-import { compose, mapProps } from 'recompose'
 import { div, h } from 'react-hyperscript-helpers'
+import { compose, mapProps } from 'recompose'
 import { Clickable } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import colors from 'src/libs/colors'
@@ -13,10 +13,10 @@ const viewToggleStyles = {
   },
   toolbarButton: active => ({
     display: 'flex', justifyContent: 'center', alignItems: 'center',
-    borderRadius: 3, border: `1px solid ${colors.green[0]}`,
+    borderRadius: 3, border: `1px solid ${colors.accent()}`,
     height: '2.25rem', padding: '0 .75rem',
-    color: colors.green[0],
-    backgroundColor: active ? colors.green[6] : 'white'
+    color: colors.accent(),
+    backgroundColor: active ? colors.accent(0.2) : 'white'
   })
 }
 

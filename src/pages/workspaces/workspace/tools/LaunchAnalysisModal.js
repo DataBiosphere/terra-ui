@@ -30,7 +30,7 @@ export default ajaxCaller(class LaunchAnalysisModal extends Component {
     }, [
       !launching && div('Confirm launch'),
       message && div([spinner({ style: { marginRight: '0.5rem' } }), message]),
-      launchError && div({ style: { color: colors.red[0] } }, [launchError])
+      launchError && div({ style: { color: colors.danger() } }, [launchError])
     ])
   }
 

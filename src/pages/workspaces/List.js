@@ -52,7 +52,7 @@ const styles = {
   },
   shortCreateCard: {
     display: 'flex', flexDirection: 'column', justifyContent: 'center',
-    color: colors.green[0], fontSize: 20, fontWeight: 500, lineHeight: '28px'
+    color: colors.accent(), fontSize: 20, fontWeight: 500, lineHeight: '28px'
   },
   longCard: {
     ...Style.elements.card.container,
@@ -77,7 +77,7 @@ const styles = {
   badge: {
     height: '1.5rem', width: '1.5rem', borderRadius: '1.5rem',
     lineHeight: '1.5rem', textAlign: 'center',
-    backgroundColor: colors.purple[0], color: 'white'
+    backgroundColor: colors.dark(), color: 'white'
   },
   filter: { marginLeft: '1rem', flex: '0 0 300px' },
   submissionIndicator: {
@@ -159,8 +159,8 @@ const WorkspaceCard = pure(({
   ])
   const descText = description ?
     removeMd(listView ? description.split('\n')[0] : description) :
-    span({ style: { color: colors.gray[1] } }, ['No description added'])
-  const titleOverrides = !canView ? { color: colors.gray[2] } : {}
+    span({ style: { color: colors.dark(0.85) } }, ['No description added'])
+  const titleOverrides = !canView ? { color: colors.dark(0.7) } : {}
 
   return h(TooltipTrigger, {
     content: !canView && `
@@ -174,9 +174,9 @@ const WorkspaceCard = pure(({
       style: listView ? styles.longCard : styles.shortCard
     }, [
       Utils.switchCase(workspaceSubmissionStatus(workspace),
-        ['success', () => h(SubmissionIndicator, { shape: 'success-standard', color: colors.green[1] })],
-        ['failure', () => h(SubmissionIndicator, { shape: 'error-standard', color: colors.red[1] })],
-        ['running', () => h(SubmissionIndicator, { shape: 'sync', color: colors.darkBlue[1] })]
+        ['success', () => h(SubmissionIndicator, { shape: 'success-standard', color: colors.success() })],
+        ['failure', () => h(SubmissionIndicator, { shape: 'error-standard', color: colors.danger(0.85) })],
+        ['running', () => h(SubmissionIndicator, { shape: 'sync', color: colors.success() })]
       ),
       listView ? h(Fragment, [
         workspaceMenu,

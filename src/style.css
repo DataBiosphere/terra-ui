@@ -60,7 +60,7 @@ a {
 
 .focus-style:focus {
   /* Note: using CSS and !important here because react-interactive focus style wasn't applying on autofocus */
-  border: 1px solid #74ae43 !important;
+  border: 1px solid #4d72aa !important;
   outline: none !important;
 }
 
@@ -101,11 +101,7 @@ a {
 
 /* Styles for content rendered by marked (also used by react-simplemde-editor) */
 .markdown-body a, .simplemde-container .editor-preview a {
-  color: #74ae43;
-}
-
-.markdown-body a:hover, .simplemde-container .editor-preview a:hover {
-  color: #89bb60;
+  color: #4d72aa;
 }
 
 .markdown-body {
