@@ -284,7 +284,7 @@ export const WorkspaceDashboard = _.flow(
         ]),
         div({ style: styles.header }, [
           'Tags',
-          h(InfoBox, [
+          h(InfoBox, { style: { margin: '-0.1rem 0 0 0.25rem' } }, [
             `${getAppName()} is not intended to host personally identifiable information. Do not use any patient identifier including name,
           social security number, or medical record number.`
           ])
