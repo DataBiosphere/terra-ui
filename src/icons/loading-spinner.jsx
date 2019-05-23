@@ -1,0 +1,15 @@
+import React from 'react'
+
+
+export default props => <svg viewBox="0 0 38 38" xmlns="http://www.w3.org/2000/svg" {...props}>
+  <linearGradient id="loading-spinner" gradientUnits="userSpaceOnUse" x1="1" y1="28" x2="19" y2="28">
+    <stop offset="0" stopColor="currentColor"/>
+    <stop offset=".2" stopColor="currentColor"/>
+    <stop offset=".84" stopColor="currentColor" stopOpacity="0"/>
+  </linearGradient>
+  <g>
+    <path d="M19 3C10.2 3 3 10.2 3 19" fill="none" stroke="currentColor" strokeWidth="4"/>
+    <path d="M19 37C9.1 37 1 28.9 1 19h4c0 7.7 6.3 14 14 14v4z" fill="url(#loading-spinner)"/>
+    <animateTransform attributeName="transform" type="rotate" from="0 19 19" to="360 19 19" dur="1.4s" repeatCount="indefinite"/>
+  </g>
+</svg>

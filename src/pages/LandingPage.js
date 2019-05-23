@@ -2,9 +2,8 @@ import { div, h, span } from 'react-hyperscript-helpers'
 import { pure } from 'recompose'
 import { Clickable, link } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
-import { icon } from 'src/components/icons'
+import { icon, iconButton } from 'src/components/icons'
 import TopBar from 'src/components/TopBar'
-import hexButton from 'src/images/hex-button.svg'
 import landingPageHero from 'src/images/landing-page-hero.jpg'
 import colors from 'src/libs/colors'
 import { isFirecloud } from 'src/libs/config'
@@ -37,14 +36,7 @@ const makeCard = (link, title, body) => h(Clickable, {
   div({ style: { color: colors.accent(), fontSize: 18, fontWeight: 500, lineHeight: '22px', marginBottom: '0.5rem' } }, title),
   div({ style: { lineHeight: '22px' } }, body),
   div({ style: { flexGrow: 1 } }),
-  div({
-    style: {
-      height: 30, width: 27,
-      display: 'flex', alignItems: 'center', alignSelf: 'flex-end', justifyContent: 'center',
-      backgroundColor: colors.accent(),
-      maskImage: `url(${hexButton})`, WebkitMaskImage: `url(${hexButton})`
-    }
-  }, [icon('arrowRight', { style: { color: 'white' } })])
+  iconButton('arrowRight', { size: 30 })
 ])
 
 const LandingPage = pure(() => {
