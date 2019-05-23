@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
-import { useState } from 'react'
+import { Fragment, useState } from 'react'
 import { a, b, div, h, span } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
 import { buttonPrimary, Clickable, LabeledCheckbox, MenuButton, spinnerOverlay } from 'src/components/common'
@@ -199,13 +199,15 @@ export default _.flow(
         ]),
         div({ style: { display: 'flex', flexDirection: 'column', overflowY: 'auto', flex: 1 } }, [
           isSignedIn ?
-            this.buildDropDownSection(undefined, `${firstName} ${lastName}`, () => this.setState({ openUserMenu: !openUserMenu }), openUserMenu,
-              [
-                dropDownSubItem(Nav.getLink('profile'), 'Profile', () => this.hideNav()),
-                dropDownSubItem(Nav.getLink('groups'), 'Groups', () => this.hideNav()),
-                dropDownSubItem(Nav.getLink('billing'), 'Billing', () => this.hideNav()),
-                dropDownSubItem(undefined, 'Sign Out', signOut)
-              ]) :
+            this.buildDropDownSection(undefined, div({ style: { ..._.omit('borderTop', styles.nav.item), padding: 0 } }, [
+              profilePic({ size: 32, style: { marginRight: 12 } }), `${firstName} ${lastName}`
+            ]), () => this.setState({ openUserMenu: !openUserMenu }), openUserMenu,
+            [
+              dropDownSubItem(Nav.getLink('profile'), 'Profile', () => this.hideNav()),
+              dropDownSubItem(Nav.getLink('groups'), 'Groups', () => this.hideNav()),
+              dropDownSubItem(Nav.getLink('billing'), 'Billing', () => this.hideNav()),
+              dropDownSubItem(undefined, 'Sign Out', signOut)
+            ]) :
             div({
               style: {
                 ...styles.nav.item,
@@ -309,8 +311,8 @@ export default _.flow(
           hover: { backgroundColor: colors.gray[3] },
           onClick
         }, [
-          div({ style: styles.nav.icon }, [
-            (titleIcon === undefined) ? profilePic({ size: 32 }) : icon(titleIcon, {
+          titleIcon && div({ style: styles.nav.icon }, [
+            icon(titleIcon, {
               className: 'is-solid',
               size: 24
             })
