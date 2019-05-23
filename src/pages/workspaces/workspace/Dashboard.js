@@ -8,6 +8,7 @@ import * as breadcrumbs from 'src/components/breadcrumbs'
 import { buttonPrimary, buttonSecondary, link, linkButton, spinnerOverlay } from 'src/components/common'
 import { icon, spinner } from 'src/components/icons'
 import { Markdown } from 'src/components/Markdown'
+import { InfoBox } from 'src/components/PopupTrigger'
 import { SimpleTable } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { displayConsentCodes, displayLibraryAttributes } from 'src/data/workspace-attributes'
@@ -15,6 +16,7 @@ import { ajaxCaller } from 'src/libs/ajax'
 import { bucketBrowserUrl } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { reportError, withErrorReporting } from 'src/libs/error'
+import { getAppName } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -280,7 +282,13 @@ export const WorkspaceDashboard = _.flow(
             storageCostEstimate
           ])
         ]),
-        div({ style: styles.header }, ['Tags']),
+        div({ style: styles.header }, [
+          'Tags',
+          h(InfoBox, [
+            `${getAppName()} is not intended to host personally identifiable information. Do not use any patient identifier including name,
+          social security number, or medical record number.`
+          ])
+        ]),
         div({ style: { marginBottom: '0.5rem' } }, [
           h(AsyncCreatableSelect, {
             value: null,
