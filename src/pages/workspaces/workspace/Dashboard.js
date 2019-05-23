@@ -284,6 +284,7 @@ export const WorkspaceDashboard = _.flow(
         div({ style: { marginBottom: '0.5rem' } }, [
           h(AsyncCreatableSelect, {
             value: null,
+            noOptionsMessage: () => 'Enter at least 3 characters to search',
             allowCreateWhileLoading: true,
             placeholder: 'Add a tag',
             onChange: ({ value }) => this.addTag(value),
