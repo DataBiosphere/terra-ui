@@ -15,8 +15,8 @@ import iconDict from 'src/libs/icon-dict'
 
 
 /**
- * Creates a Clarity icon.
- * @param {string} shape - see {@link https://vmware.github.io/clarity/icons/icon-sets}
+ * Creates an icon: Clarity, FA, or custom.
+ * @param {string} shape - see {@link https://fontawesome.com/icons?d=gallery}
  * @param {object} [props]
  */
 export const icon = (shape, { size = 16, className, ...props } = {}) => iconDict[shape] ?
