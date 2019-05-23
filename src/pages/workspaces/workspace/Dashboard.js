@@ -55,7 +55,7 @@ const styles = {
   },
   tag: {
     padding: '0.25rem', margin: '0.15rem',
-    backgroundColor: colors.grayBlue[3], borderRadius: 10,
+    backgroundColor: colors.dark(0.15), borderRadius: 10,
     overflow: 'hidden', wordWrap: 'break-word'
   }
 }
