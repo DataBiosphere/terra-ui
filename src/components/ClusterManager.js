@@ -509,7 +509,8 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
         link({
           href: Nav.getLink('workspace-terminal-launch', { namespace, name }),
           disabled: !canCompute,
-          style: { marginRight: '2rem' }
+          style: { marginRight: '2rem' },
+          ...Utils.newTabLinkProps
         }, [icon('terminal', { className: 'is-solid', size: 24 })])
       ]),
       renderIcon(),
