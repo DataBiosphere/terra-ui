@@ -24,7 +24,7 @@ const styles = {
     display: 'flex', alignItems: 'center', flex: 'none',
     marginLeft: 'auto', paddingLeft: '1rem', paddingRight: '1rem',
     borderTopLeftRadius: 5, borderBottomLeftRadius: 5,
-    backgroundColor: colors.grayBlue[4]
+    backgroundColor: colors.light()
   },
   row: {
     display: 'flex',
@@ -55,10 +55,10 @@ const styles = {
   }),
   warningBox: {
     fontSize: 12,
-    backgroundColor: colors.orange[6],
-    color: colors.orange[0],
-    borderTop: `1px solid ${colors.orange[0]}`,
-    borderBottom: `1px solid ${colors.orange[0]}`,
+    backgroundColor: colors.warning(0.1),
+    color: colors.warning(),
+    borderTop: `1px solid ${colors.warning()}`,
+    borderBottom: `1px solid ${colors.warning()}`,
     padding: '1rem',
     marginTop: '1rem',
     marginLeft: '-1.25rem',
@@ -68,7 +68,7 @@ const styles = {
     marginTop: '1rem',
     marginLeft: '-1.25rem',
     marginRight: '-1.25rem',
-    borderBottom: `1px solid ${colors.gray[6]}`
+    borderBottom: `1px solid ${colors.dark(0.1)}`
   },
   button: isDisabled => ({
     display: 'flex',
@@ -154,7 +154,7 @@ const MachineSelector = ({ machineType, onChangeMachineType, diskSize, onChangeD
 
 const ClusterIcon = ({ shape, onClick, disabled, style, ...props }) => {
   return h(Clickable, {
-    style: { color: onClick && !disabled ? colors.green[0] : colors.gray[2], ...style },
+    style: { color: onClick && !disabled ? colors.accent() : colors.dark(0.7), ...style },
     onClick, disabled, ...props
   }, [icon(shape, { size: 20, className: 'is-solid' })])
 }
@@ -539,7 +539,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
           disabled: isDisabled
         }, [
           div({
-            style: { marginLeft: '0.5rem', paddingRight: '0.5rem', color: colors.gray[0] }
+            style: { marginLeft: '0.5rem', paddingRight: '0.5rem', color: colors.dark() }
           }, [
             div({ style: { fontSize: 12, fontWeight: 'bold' } }, 'Notebook Runtime'),
             div({ style: { fontSize: 10 } }, [
@@ -547,7 +547,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
               ` (${Utils.formatUSD(totalCost)} hr)`
             ])
           ]),
-          icon('cog', { size: 22, className: 'is-solid', style: { color: isDisabled ? colors.gray[2] : colors.green[0] } })
+          icon('cog', { size: 22, className: 'is-solid', style: { color: isDisabled ? colors.dark(0.7) : colors.accent() } })
         ])
       ]),
       deleting && h(Modal, {

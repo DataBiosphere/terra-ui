@@ -110,10 +110,10 @@ const ToolCard = pure(({ listView, name, namespace, config, onCopy, onDelete, is
     h(Clickable, {
       onClick: e => e.stopPropagation(),
       style: {
-        cursor: 'pointer', color: colors.green[0], ...styles.innerLink
+        cursor: 'pointer', color: colors.accent(), ...styles.innerLink
       },
       focus: 'hover',
-      hover: { color: colors.green[2] }
+      hover: { color: colors.accent(0.85) }
     }, [
       icon('cardMenuIcon', {
         size: listView ? 18 : 24
@@ -134,7 +134,7 @@ const ToolCard = pure(({ listView, name, namespace, config, onCopy, onDelete, is
 
   const redactedWarning = h(TooltipTrigger, {
     content: 'Tool version has been removed. You cannot run an analysis until you change the version.'
-  }, [icon('ban', { size: 20, style: { color: colors.orange[0], marginLeft: '.3rem', ...styles.innerLink } })])
+  }, [icon('ban', { size: 20, style: { color: colors.warning(), marginLeft: '.3rem', ...styles.innerLink } })])
 
   return listView ?
     div({ style: { ...styles.card, ...styles.longCard } }, [
@@ -355,7 +355,7 @@ export const Tools = _.flow(
         h(Clickable, {
           disabled: !!Utils.editWorkspaceError(ws),
           tooltip: Utils.editWorkspaceError(ws),
-          style: { ...styles.card, ...styles.shortCard, color: colors.green[0], fontSize: 18, lineHeight: '22px' },
+          style: { ...styles.card, ...styles.shortCard, color: colors.accent(), fontSize: 18, lineHeight: '22px' },
           onClick: () => this.setState({ findingTool: true })
         }, [
           'Find a Tool',

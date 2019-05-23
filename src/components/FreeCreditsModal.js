@@ -53,9 +53,9 @@ const FreeCreditsModal = _.flow(
         style: {
           marginTop: '0.5rem',
           padding: '1rem',
-          border: `1px solid ${colors.green[0]}`,
+          border: `1px solid ${colors.dark(0.5)}`,
           borderRadius: '0.25rem',
-          backgroundColor: '#f4f4f4'
+          backgroundColor: colors.dark(0.05)
         }
       }, [
         h(LabeledCheckbox, {

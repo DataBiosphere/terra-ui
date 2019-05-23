@@ -5,7 +5,7 @@ import { buttonPrimary, buttonSecondary, Checkbox, Clickable, Select } from 'src
 import { icon } from 'src/components/icons'
 import { ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
-import colors from 'src/libs/colors'
+import colors, { terraSpecial } from 'src/libs/colors'
 import { authStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -59,10 +59,10 @@ const NewAccountModal = ({ onDismiss }) => {
     const isClickable = _.every(_.isEmpty, _.map('errors', _.take(index, pages)))
 
     const backgroundColor = isCurrent ?
-      colors.gray[0] :
+      colors.dark() :
       (!_.isEmpty(pages[index].errors) || index === pages.length - 1) ?
-        colors.gray[5] :
-        colors.green[1]
+        colors.dark(0.25) :
+        terraSpecial()
 
     return h(Clickable, {
       style: { display: 'flex', flexDirection: 'column', alignItems: 'center', whiteSpace: 'nowrap', width: 50 },
@@ -78,7 +78,7 @@ const NewAccountModal = ({ onDismiss }) => {
           ...Style.proportionalNumbers
         }
       }, [index + 1]),
-      isCurrent && div({ style: { fontSize: 10, lineHeight: '20px', color: colors.gray[0] } }, [stepLabel])
+      isCurrent && div({ style: { fontSize: 10, lineHeight: '20px', color: colors.dark() } }, [stepLabel])
     ])
   }
 
@@ -100,7 +100,7 @@ const NewAccountModal = ({ onDismiss }) => {
   }
 
   const makePaymentCard = ({ label, iconName, time, text, paymentType }) => h(Clickable, {
-    style: { borderRadius: 5, border: `1px solid ${colors.gray[4]}`, width: 260, height: 275 },
+    style: { borderRadius: 5, border: `1px solid ${colors.dark(0.4)}`, width: 260, height: 275 },
     onClick: () => {
       updateAccount('paymentType', paymentType)
       setPage(1)
@@ -110,8 +110,8 @@ const NewAccountModal = ({ onDismiss }) => {
       style: {
         borderRadius: '5px 5px 0 0',
         padding: '1rem',
-        backgroundColor: paymentType === account.paymentType ? colors.green[6] : colors.grayBlue[5],
-        borderBottom: `1px solid ${colors.gray[4]}`
+        backgroundColor: paymentType === account.paymentType ? terraSpecial(0.2) : colors.light(0.4),
+        borderBottom: `1px solid ${colors.dark(0.4)}`
       }
     }, [
       div({ style: { display: 'flex', justifyContent: 'space-between', alignItems: 'center' } }, [
@@ -127,7 +127,7 @@ const NewAccountModal = ({ onDismiss }) => {
   ])
 
   const makeReviewField = (label, text, size = 175) => div({ style: { marginBottom: '0.5rem', display: 'flex' } }, [
-    div({ style: { flex: `0 0 ${size}px`, color: colors.gray[2] } }, [label]),
+    div({ style: { flex: `0 0 ${size}px`, color: colors.dark(0.7) } }, [label]),
     text
   ])
 
@@ -266,11 +266,11 @@ const NewAccountModal = ({ onDismiss }) => {
       makePageHeader('Account owner information'),
       makeReviewField('Account Owner Name', `${account.firstName} ${account.lastName}`),
       makeReviewField('Email', account.email),
-      div({ style: { borderTop: `1px solid ${colors.gray[5]}`, marginTop: '1rem' } }),
+      div({ style: { borderTop: `1px solid ${colors.dark(0.25)}`, marginTop: '1rem' } }),
       makePageHeader('Account information'),
       makeReviewField('Billing Account Name', account.name),
       makeReviewField('Desired Budget', `$${account.budget}`),
-      div({ style: { borderTop: `1px solid ${colors.gray[5]}`, marginTop: '1rem' } }),
+      div({ style: { borderTop: `1px solid ${colors.dark(0.25)}`, marginTop: '1rem' } }),
       div({ style: { display: 'flex' } }, [
         div({ style: { flexBasis: '55%', marginRight: '1rem' } }, [
           makePageHeader('Your organization\'s billing information'),
@@ -308,7 +308,7 @@ const NewAccountModal = ({ onDismiss }) => {
     width: 800,
     titleExtras: !!account.paymentType && h(Fragment, [
       onLastPage && div({
-        style: { position: 'absolute', top: 60, color: colors.orange[0], fontStyle: 'italic', fontWeight: 600 }
+        style: { position: 'absolute', top: 60, color: colors.warning(), fontStyle: 'italic', fontWeight: 600 }
       }, ['Please review your order']),
       div({ style: { flexGrow: 1 } }),
       makeStepIndicator(0, 'Payment method'),
@@ -320,7 +320,7 @@ const NewAccountModal = ({ onDismiss }) => {
       ])
     ])
   }, [
-    div({ style: { margin: '0 -1.25rem', borderTop: `1px solid ${colors.gray[5]}` } }),
+    div({ style: { margin: '0 -1.25rem', borderTop: `1px solid ${colors.dark(0.25)}` } }),
     div({ style: { minHeight: 400, overflow: 'auto' } }, [pages[page].render()]),
     div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '2rem' } }, [
       h(buttonSecondary, { onClick: () => onDismiss() }, ['Cancel']),

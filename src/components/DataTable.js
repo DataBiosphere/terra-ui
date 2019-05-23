@@ -287,7 +287,7 @@ export default ajaxCaller(class DataTable extends Component {
 
   displayData(selectedData) {
     const { itemsType, items } = selectedData
-    return _.map(entity => div({ style: { borderBottom: `1px solid ${colors.gray[2]}`, padding: '0.5rem' } },
+    return _.map(entity => div({ style: { borderBottom: `1px solid ${colors.dark(0.7)}`, padding: '0.5rem' } },
       itemsType === 'EntityReference' ? `${entity.entityName} (${entity.entityType})` : JSON.stringify(entity)), items)
   }
 })

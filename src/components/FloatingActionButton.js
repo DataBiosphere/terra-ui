@@ -24,7 +24,7 @@ export default class FloatingActionButton extends Component {
       {
         style: {
           position: 'absolute', bottom: bottom, right: right,
-          backgroundColor: colors.green[1], color: 'white',
+          backgroundColor: colors.accent(), color: 'white',
           padding: '0.5rem', borderRadius: 40,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           boxShadow: Style.standardShadow
