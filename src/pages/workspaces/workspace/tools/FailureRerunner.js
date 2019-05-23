@@ -6,15 +6,14 @@ import { Ajax } from 'src/libs/ajax'
 import { launch } from 'src/libs/analysis'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
+import { rerunFailuresStatus } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 
 
-const toastProps = Utils.atom(undefined)
-
-const ToastMessageComponent = Utils.connectAtom(toastProps, 'toastProps')(class ToastMessageComponent extends Component {
+const ToastMessageComponent = Utils.connectAtom(rerunFailuresStatus, 'status')(class ToastMessageComponent extends Component {
   render() {
-    const { toastProps: { done, text } } = this.props
+    const { status: { done, text } } = this.props
 
     return div({
       style: {
@@ -30,7 +29,7 @@ const ToastMessageComponent = Utils.connectAtom(toastProps, 'toastProps')(class 
 })
 
 export const rerunFailures = async ({ namespace, name, submissionId, configNamespace, configName, onDone }) => {
-  toastProps.set({ text: 'Loading tool info...' })
+  rerunFailuresStatus.set({ text: 'Loading tool info...' })
   const id = pushNotification({
     dismiss: { duration: 0 },
     content: h(ToastMessageComponent)
@@ -46,7 +45,7 @@ export const rerunFailures = async ({ namespace, name, submissionId, configNames
     ])
 
     const failedEntities = _.flow(
-      _.filter({ status: 'Failed' }),
+      _.filter(v =>  (v.status === 'Aborted' || v.status === 'Failed')),
       _.map('workflowEntity')
     )(workflows)
 
@@ -57,10 +56,10 @@ export const rerunFailures = async ({ namespace, name, submissionId, configNames
       config: { namespace: configNamespace, name: configName, rootEntityType },
       entityType: rootEntityType, entityNames: _.map('entityName', failedEntities),
       newSetName, useCallCache,
-      onCreateSet: () => toastProps.set({ text: 'Creating set from failures...' }),
-      onLaunch: () => toastProps.set({ text: 'Launching new job...' }),
+      onCreateSet: () => rerunFailuresStatus.set({ text: 'Creating set from failures...' }),
+      onLaunch: () => rerunFailuresStatus.set({ text: 'Launching new job...' }),
       onSuccess: () => {
-        toastProps.set({ text: 'Success!', done: true })
+        rerunFailuresStatus.set({ text: 'Success!', done: true })
         onDone()
       },
       onFailure: error => {

@@ -1,13 +1,13 @@
 import _ from 'lodash/fp'
 import { div, h, a, span } from 'react-hyperscript-helpers'
-import { authStore, refreshTerraProfile } from 'src/libs/auth'
+import { refreshTerraProfile } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { buttonPrimary, Clickable } from 'src/components/common'
 import { icon } from 'src/components/icons'
-import { freeCreditsActive } from 'src/components/FreeCreditsModal'
 import { ajaxCaller } from 'src/libs/ajax'
 import { reportError } from 'src/libs/error'
 import { getAppName } from 'src/libs/logos'
+import { authStore, freeCreditsActive } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 import Modal from 'src/components/Modal'
@@ -21,7 +21,7 @@ const getMessages = () => {
       'isWarning': false,
       'enabledLink': {
         'label': 'Learn more',
-        'url': 'https://support.terra.bio/hc/en-us/articles/360022704371-Getting-started-with-Terra#free-credits-signup'
+        'url': 'https://support.terra.bio/hc/en-us/articles/360027940952'
       },
       'button': {
         'label': 'Start trial',
@@ -34,7 +34,7 @@ const getMessages = () => {
       'isWarning': false,
       'button': {
         'label': 'Learn More',
-        'url': 'https://support.terra.bio/hc/en-us/articles/360022704371-Getting-started-with-Terra#free-credits-signup',
+        'url': 'https://support.terra.bio/hc/en-us/articles/360027940952',
         'isExternal': true
       }
     },
@@ -44,7 +44,7 @@ const getMessages = () => {
       'isWarning': true,
       'button': {
         'label': 'Learn more',
-        'url': 'https://support.terra.bio/hc/en-us/articles/360026182251-Billing-Projects-Google-Billing-Accounts-and-Free-Credits#free-credits',
+        'url': 'https://support.terra.bio/hc/en-us/articles/360027940952',
         'isExternal': true
       }
     }

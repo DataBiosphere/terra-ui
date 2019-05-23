@@ -430,19 +430,6 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
     }
   }
 
-  async executeAndRefreshWithNav(promise) {
-    const { namespace, name } = this.props
-    const onNotebookPage = /notebooks\/.+/.test(window.location.hash)
-
-    if (onNotebookPage) {
-      this.setState({ pendingNav: true })
-      await this.executeAndRefresh(promise)
-      Nav.goToPath('workspace-notebooks', { namespace, name })
-    } else {
-      this.executeAndRefresh(promise)
-    }
-  }
-
   createDefaultCluster() {
     const { ajax: { Jupyter }, namespace } = this.props
     this.executeAndRefresh(
@@ -467,7 +454,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
     const { ajax: { Jupyter } } = this.props
     const { googleProject, clusterName } = this.getCurrentCluster()
     errorNotified.current = false
-    this.executeAndRefreshWithNav(
+    this.executeAndRefresh(
       Jupyter.cluster(googleProject, clusterName).delete()
     )
   }
@@ -483,7 +470,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
   stopCluster() {
     const { ajax: { Jupyter } } = this.props
     const { googleProject, clusterName } = this.getCurrentCluster()
-    this.executeAndRefreshWithNav(
+    this.executeAndRefresh(
       Jupyter.cluster(googleProject, clusterName).stop()
     )
   }
@@ -582,7 +569,8 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
         link({
           href: Nav.getLink('workspace-terminal-launch', { namespace, name }),
           disabled: !canCompute,
-          style: { marginRight: '2rem' }
+          style: { marginRight: '2rem' },
+          ...Utils.newTabLinkProps
         }, [icon('terminal', { className: 'is-solid', size: 24 })])
       ]),
       renderIcon(),
@@ -636,7 +624,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
         onSuccess: promise => {
           this.setState({ createModalOpen: false })
           const doCreate = async () => {
-            if (clusterErrors) {
+            if (currentCluster.status === 'Error') {
               const { googleProject, clusterName } = this.getCurrentCluster()
               await Jupyter.cluster(googleProject, clusterName).delete()
               errorNotified.current = false

@@ -3,9 +3,10 @@ import { div, h, span } from 'react-hyperscript-helpers'
 import { backgroundLogo, buttonPrimary, buttonSecondary } from 'src/components/common'
 import { Markdown } from 'src/components/Markdown'
 import { Ajax } from 'src/libs/ajax'
-import { authStore, signOut } from 'src/libs/auth'
+import { signOut } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
+import { authStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 
 // When updating the TOS, make sure you:

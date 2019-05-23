@@ -80,26 +80,26 @@ export const syncAtomToSessionStorage = (theAtom, key) => {
   theAtom.update(v => existing === undefined ? v : existing)
 }
 
+const recentDateFormat = new Intl.DateTimeFormat('default', { hour: 'numeric', minute: 'numeric' })
+const olderDateFormat = new Intl.DateTimeFormat('default', { month: 'short', day: 'numeric' })
+const completeDateFormat = new Intl.DateTimeFormat('default', { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: 'numeric' })
+
 export const makePrettyDate = dateString => {
   const date = new Date(dateString)
-  const now = new Date()
+  const now = new Date() // cloning now below so it isn't mutated, slightly faster than from scratch https://jsperf.com/new-date-vs-clone-date
   const oneDayAgo = _.tap(d => d.setDate(d.getDate() - 1), new Date(now))
   const twoDaysAgo = _.tap(d => d.setDate(d.getDate() - 2), new Date(now))
   const oneYearAgo = _.tap(d => d.setFullYear(d.getFullYear() - 1), new Date(now))
-  const format = opts => date.toLocaleString(navigator.language, opts)
 
   return cond(
-    [date > oneDayAgo, () => format({ hour: 'numeric', minute: 'numeric' })],
+    [date > oneDayAgo, () => recentDateFormat.format(date)],
     [date > twoDaysAgo, () => 'Yesterday'],
-    [date > oneYearAgo, () => format({ month: 'short', day: 'numeric' })],
-    () => format({ year: 'numeric' })
+    [date > oneYearAgo, () => olderDateFormat.format(date)],
+    () => date.getFullYear()
   )
 }
 
-export const makeCompleteDate = dateString => new Date(dateString)
-  .toLocaleString(navigator.language,
-    { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: 'numeric' }
-  )
+export const makeCompleteDate = dateString => completeDateFormat.format(new Date(dateString))
 
 export const formatUSD = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format
 
@@ -311,6 +311,16 @@ export const usePrevious = value => {
   })
 
   return ref.current
+}
+
+/*
+ * Given a value that changes over time, returns a getter function that reads the current value.
+ * Useful for asynchronous processes that need to read the current value of e.g. props or state.
+ */
+export const useGetter = value => {
+  const ref = useRef()
+  ref.current = value
+  return () => ref.current
 }
 
 export const trimClustersOldestFirst = _.flow(

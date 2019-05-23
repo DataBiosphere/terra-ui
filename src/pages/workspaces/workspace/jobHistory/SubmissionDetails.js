@@ -54,7 +54,7 @@ const SubmissionDetails = _.flow(
           }
           const sub = _.update(
             ['workflows'],
-            workflows => _.map(wf => {
+            _.map(wf => {
               const {
                 cost, inputResolutions, messages, status,
                 statusLastChangedDate, workflowEntity: { entityType, entityName } = {}, workflowId
@@ -66,7 +66,7 @@ const SubmissionDetails = _.flow(
               ]).toLowerCase()
 
               return _.set('asText', wfAsText, wf)
-            }, workflows),
+            }),
             await Workspaces.workspace(namespace, name).submission(submissionId).get())
 
           setSubmission(sub)
@@ -201,9 +201,10 @@ const SubmissionDetails = _.flow(
             size: { basis: 75, grow: 0 },
             headerRenderer: () => {},
             cellRenderer: ({ rowIndex }) => {
-              return link({
+              const { workflowId } = filteredWorkflows[rowIndex]
+              return workflowId && link({
                 ...Utils.newTabLinkProps,
-                href: `${getConfig().jobManagerUrlRoot}/${filteredWorkflows[rowIndex].workflowId}`,
+                href: `${getConfig().jobManagerUrlRoot}/${workflowId}`,
                 style: { flexGrow: 1, textAlign: 'center' }
               }, ['View'])
             }

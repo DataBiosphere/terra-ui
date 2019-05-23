@@ -4,8 +4,9 @@ import { ShibbolethLink } from 'src/components/common'
 import { clearNotification, sessionTimeoutProps, notify } from 'src/components/Notifications'
 import { Ajax } from 'src/libs/ajax'
 import { getConfig } from 'src/libs/config'
-import { reportError, withErrorReporting } from 'src/libs/error'
+import { withErrorReporting } from 'src/libs/error'
 import { getAppName } from 'src/libs/logos'
+import { authStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
 
@@ -42,14 +43,6 @@ export const ensureBillingScope = async () => {
     await Utils.delay(250)
   }
 }
-
-export const authStore = Utils.atom({
-  isSignedIn: undefined,
-  registrationStatus: undefined,
-  acceptedTos: undefined,
-  user: {},
-  profile: {}
-})
 
 export const getUser = () => {
   return authStore.get().user
@@ -128,36 +121,32 @@ window.forceSignIn = async token => {
   })
 }
 
-authStore.subscribe(async (state, oldState) => {
-  if (!oldState.isSignedIn && state.isSignedIn) {
-    clearNotification(sessionTimeoutProps.id)
-
-    Ajax().User.getStatus().then(async response => {
-      if (response.status === 404) {
-        return 'unregistered'
-      } else if (!response.ok) {
-        throw response
-      } else {
-        return response.json().then(({ enabled }) => enabled ? 'registered' : 'disabled')
-      }
-    }).then(registrationStatus => {
-      authStore.update(state => ({ ...state, registrationStatus }))
-    }, error => {
-      reportError('Error checking registration', error)
-    })
-  }
-})
-
-authStore.subscribe(async (state, oldState) => {
-  if (!oldState.isSignedIn && state.isSignedIn) {
+authStore.subscribe(withErrorReporting('Error checking registration', async (state, oldState) => {
+  const getRegistrationStatus = async () => {
     try {
-      const acceptedTos = await Ajax().User.getTosAccepted()
-      authStore.update(state => ({ ...state, acceptedTos }))
+      const { enabled } = await Ajax().User.getStatus()
+      return enabled ? 'registered' : 'disabled'
     } catch (error) {
-      reportError('Error checking TOS', error)
+      if (error.status === 404) {
+        return 'unregistered'
+      } else {
+        throw error
+      }
     }
   }
-})
+  if (!oldState.isSignedIn && state.isSignedIn) {
+    clearNotification(sessionTimeoutProps.id)
+    const registrationStatus = await getRegistrationStatus()
+    authStore.update(state => ({ ...state, registrationStatus }))
+  }
+}))
+
+authStore.subscribe(withErrorReporting('Error checking TOS', async (state, oldState) => {
+  if (!oldState.isSignedIn && state.isSignedIn) {
+    const acceptedTos = await Ajax().User.getTosAccepted()
+    authStore.update(state => ({ ...state, acceptedTos }))
+  }
+}))
 
 /**
  * Developers can get access to a user's ID, so a determined person could compare user IDs to
@@ -172,14 +161,14 @@ authStore.subscribe((state, oldState) => {
 
 export const refreshTerraProfile = async () => {
   const profile = Utils.kvArrayToObject((await Ajax().User.profile.get()).keyValuePairs)
-  authStore.update(state => _.set('profile', profile, state))
+  authStore.update(state => ({ ...state, profile }))
 }
 
-authStore.subscribe((state, oldState) => {
+authStore.subscribe(withErrorReporting('Error loading user profile', async (state, oldState) => {
   if (!oldState.isSignedIn && state.isSignedIn) {
-    refreshTerraProfile().catch(error => reportError('Error loading user profile', error))
+    await refreshTerraProfile()
   }
-})
+}))
 
 authStore.subscribe(withErrorReporting('Error loading NIH account link status', async (state, oldState) => {
   const loadNihStatus = async () => {
@@ -195,7 +184,7 @@ authStore.subscribe(withErrorReporting('Error loading NIH account link status', 
   }
   if (oldState.registrationStatus !== 'registered' && state.registrationStatus === 'registered') {
     const nihStatus = await loadNihStatus()
-    authStore.update(_.set('nihStatus', nihStatus))
+    authStore.update(state => ({ ...state, nihStatus }))
   }
 }))
 
