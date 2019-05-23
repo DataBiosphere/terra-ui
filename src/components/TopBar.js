@@ -52,6 +52,7 @@ const styles = {
       borderTop: `1px solid ${colors.gray[3]}`, color: 'white'
     },
     dropDownItem: {
+      display: 'flex', alignItems: 'center',
       backgroundColor: colors.gray[2],
       color: 'white',
       borderBottom: 'none',
@@ -73,6 +74,30 @@ const betaTag = b({
     borderRadius: 2
   }
 }, 'BETA')
+
+class dropDownSubItem extends Component {
+  static propTypes = {
+    href: PropTypes.string,
+    title: PropTypes.string,
+    onClick: PropTypes.func
+  }
+
+  render() {
+    const { href, title, onClick, props } = this.props
+
+    return h(Clickable, {
+      as: 'a',
+      href,
+      style: styles.nav.dropDownItem,
+      hover: {
+        ...styles.nav.dropDownItem,
+        backgroundColor: colors.gray[3]
+      },
+      onClick,
+      ...props
+    }, [title])
+  }
+}
 
 export default _.flow(
   ajaxCaller,
@@ -102,7 +127,7 @@ export default _.flow(
     const { trialState } = profile
     const { openLibraryMenu, openSupportMenu, openUserMenu } = this.state
 
-    const dropDownSubItem = (linkToPage, title, onClick, props) => h(MenuButton, {
+    const dropDownSubItem = (linkToPage, title, onClick, props) => h(Clickable, {
       as: 'a',
       href: linkToPage,
       style: styles.nav.dropDownItem,
