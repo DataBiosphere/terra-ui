@@ -1,8 +1,8 @@
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
 import { Fragment, useState } from 'react'
+import { Collapse as RCollapse } from 'react-collapse'
 import { a, b, div, h, span } from 'react-hyperscript-helpers'
-import Collapse from 'src/components/Collapse'
 import { buttonPrimary, Clickable, LabeledCheckbox, spinnerOverlay } from 'src/components/common'
 import { icon, profilePic } from 'src/components/icons'
 import { TextArea } from 'src/components/input'
@@ -88,53 +88,37 @@ const DropDownSubItem = props => {
   })
 }
 
-class BuildDropDownSection extends Component {
-  static propTypes = {
-    titleIcon: PropTypes.string,
-    title: PropTypes.any, //wat would this be, usually string but also is a div
-    menuOpen: PropTypes.bool,
-    onClick: PropTypes.func,
-    subItems: PropTypes.array
-  }
+const DropDownSection = props => {
+  const { titleIcon, title, isOpened, onClick, children } = props
 
-  render() {
-    const { titleIcon, title, menuOpen, onClick, subItems } = this.props
-
-    return h(Collapse, {
-      defaultHidden: true,
-      showIcon: false,
-      animate: true,
-      expandTitle: true,
-      buttonStyle: { marginBottom: 0 },
-      title: [
-        h(Clickable, {
-          style: styles.nav.item,
-          hover: { backgroundColor: colors.dark(0.55) },
-          onClick
-        }, [
-          titleIcon && div({ style: styles.nav.icon }, [
-            icon(titleIcon, {
-              className: 'is-solid',
-              size: 24
-            })
-          ]),
-          div({
-            style: {
-              whiteSpace: 'nowrap',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis'
-            }
-          }, [title]),
-          div({ style: { flexGrow: 1 } }),
-          icon(`angle ${menuOpen ? 'up' : 'down'}`, //arrow isn't flipping
-            {
-              size: 18,
-              style: { flex: 'none' }
-            })
-        ])
-      ]
-    }, subItems)
-  }
+  return h(Fragment, [
+    h(Clickable, {
+      style: styles.nav.item,
+      hover: { backgroundColor: colors.dark(0.55) },
+      onClick
+    }, [
+      titleIcon && div({ style: styles.nav.icon }, [
+        icon(titleIcon, {
+          className: 'is-solid',
+          size: 24
+        })
+      ]),
+      div({
+        style: {
+          whiteSpace: 'nowrap',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis'
+        }
+      }, [title]),
+      div({ style: { flexGrow: 1 } }),
+      icon(`angle ${isOpened ? 'up' : 'down'}`, //arrow isn't flipping
+        {
+          size: 18,
+          style: { flex: 'none' }
+        })
+    ]),
+    h(RCollapse, { isOpened }, [children])
+  ])
 }
 
 export default _.flow(
@@ -230,31 +214,30 @@ export default _.flow(
       }, [
         div({ style: { display: 'flex', flexDirection: 'column', overflowY: 'auto', flex: 1 } }, [
           isSignedIn ?
-            h(BuildDropDownSection, {
+            h(DropDownSection, {
               titleIcon: undefined,
               title: div({ style: { ..._.omit('borderTop', styles.nav.item), padding: 0 } }, [
                 profilePic({ size: 32, style: { marginRight: 12 } }), `${firstName} ${lastName}`
               ]),
               onClick: () => this.setState({ openUserMenu: !openUserMenu }),
-              openUserMenu,
-              subItems: [
-                h(DropDownSubItem, {
-                  href: Nav.getLink('profile'),
-                  onClick: () => this.hideNav()
-                }, ['Profile']),
-                h(DropDownSubItem, {
-                  href: Nav.getLink('groups'),
-                  onClick: () => this.hideNav()
-                }, ['Groups']),
-                h(DropDownSubItem, {
-                  href: Nav.getLink('billing'),
-                  onClick: () => this.hideNav()
-                }, ['Billing']),
-                h(DropDownSubItem, {
-                  onClick: signOut
-                }, ['Sign Out'])
-              ]
-            }) :
+              isOpened: openUserMenu
+            }, [
+              h(DropDownSubItem, {
+                href: Nav.getLink('profile'),
+                onClick: () => this.hideNav()
+              }, ['Profile']),
+              h(DropDownSubItem, {
+                href: Nav.getLink('groups'),
+                onClick: () => this.hideNav()
+              }, ['Groups']),
+              h(DropDownSubItem, {
+                href: Nav.getLink('billing'),
+                onClick: () => this.hideNav()
+              }, ['Billing']),
+              h(DropDownSubItem, {
+                onClick: signOut
+              }, ['Sign Out'])
+            ]) :
             div({
               style: {
                 ...styles.nav.item,
@@ -297,60 +280,58 @@ export default _.flow(
             'Job Manager'
           ]),
           div({ style: { margin: '5rem' } }),
-          h(BuildDropDownSection, {
+          h(DropDownSection, {
             titleIcon: 'library',
             title: 'Terra Library',
             onClick: () => this.setState({ openLibraryMenu: !openLibraryMenu }),
-            openMenu: openLibraryMenu,
-            subItems: [
-              h(DropDownSubItem, {
-                href: Nav.getLink('library-datasets'),
-                onClick: () => this.hideNav()
-              }, ['Data']),
-              h(DropDownSubItem, {
-                href: Nav.getLink('library-showcase'),
-                onClick: () => this.hideNav()
-              }, ['Showcase']),
-              h(DropDownSubItem, {
-                href: Nav.getLink('library-code'),
-                onClick: () => this.hideNav()
-              }, ['Tools'])
-            ]
-          }),
+            isOpened: openLibraryMenu
+          }, [
+            h(DropDownSubItem, {
+              href: Nav.getLink('library-datasets'),
+              onClick: () => this.hideNav()
+            }, ['Data']),
+            h(DropDownSubItem, {
+              href: Nav.getLink('library-showcase'),
+              onClick: () => this.hideNav()
+            }, ['Showcase']),
+            h(DropDownSubItem, {
+              href: Nav.getLink('library-code'),
+              onClick: () => this.hideNav()
+            }, ['Tools'])
+          ]),
           (trialState === 'Enabled') && enabledCredits,
           (trialState === 'Enrolled') && enrolledCredits,
           (trialState === 'Terminated') && terminatedCredits,
-          h(BuildDropDownSection, {
+          h(DropDownSection, {
             titleIcon: 'help',
             title: 'Terra Support',
             onClick: () => this.setState({ openSupportMenu: !openSupportMenu }),
-            openMenu: openSupportMenu,
-            subItems: [
-              h(DropDownSubItem, {
-                href: 'https://support.terra.bio/hc/en-us',
-                onClick: () => this.hideNav(),
-                ...Utils.newTabLinkProps
-              }, ['How-to Guides']),
-              h(DropDownSubItem, {
-                href: 'https://support.terra.bio/hc/en-us/community/topics/360000500452',
-                onClick: () => this.hideNav(),
-                ...Utils.newTabLinkProps
-              }, ['Request a Feature']),
-              h(DropDownSubItem, {
-                href: 'https://support.terra.bio/hc/en-us/community/topics/360000500432',
-                onClick: () => this.hideNav(),
-                ...Utils.newTabLinkProps
-              }, ['Community Forum']),
-              isFirecloud() && h(DropDownSubItem, {
-                href: 'https://support.terra.bio/hc/en-us/articles/360022694271',
-                onClick: () => this.hideNav(),
-                ...Utils.newTabLinkProps
-              }, ['What\'s different in Terra']),
-              h(DropDownSubItem, {
-                onClick: () => contactUsActive.set(true)
-              }, ['Contact Us'])
-            ]
-          }),
+            isOpened: openSupportMenu
+          }, [
+            h(DropDownSubItem, {
+              href: 'https://support.terra.bio/hc/en-us',
+              onClick: () => this.hideNav(),
+              ...Utils.newTabLinkProps
+            }, ['How-to Guides']),
+            h(DropDownSubItem, {
+              href: 'https://support.terra.bio/hc/en-us/community/topics/360000500452',
+              onClick: () => this.hideNav(),
+              ...Utils.newTabLinkProps
+            }, ['Request a Feature']),
+            h(DropDownSubItem, {
+              href: 'https://support.terra.bio/hc/en-us/community/topics/360000500432',
+              onClick: () => this.hideNav(),
+              ...Utils.newTabLinkProps
+            }, ['Community Forum']),
+            isFirecloud() && h(DropDownSubItem, {
+              href: 'https://support.terra.bio/hc/en-us/articles/360022694271',
+              onClick: () => this.hideNav(),
+              ...Utils.newTabLinkProps
+            }, ['What\'s different in Terra']),
+            h(DropDownSubItem, {
+              onClick: () => contactUsActive.set(true)
+            }, ['Contact Us'])
+          ]),
           isFirecloud() && h(Clickable, {
             style: styles.nav.item,
             disabled: !isSignedIn,
