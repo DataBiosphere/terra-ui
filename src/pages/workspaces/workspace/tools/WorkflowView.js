@@ -66,7 +66,6 @@ const styles = {
   },
   angle: {
     marginRight: '0.5rem',
-    marginTop: '.1rem',
     color: colors.accent()
   },
   outputInfoLabel: {

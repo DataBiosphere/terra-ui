@@ -19,6 +19,7 @@ import { Component } from 'src/libs/wrapped-components'
 const paginatorButton = (props, label) => button(_.merge({
   style: {
     margin: '0 2px', padding: '0.25rem 0.5rem',
+    display: 'flex', justifyContent: 'center',
     border: '1px solid #ccc', borderRadius: 3,
     color: props.disabled ? colors.dark(0.7) : colors.accent(), backgroundColor: 'white',
     cursor: props.disabled ? 'not-allowed' : 'pointer'
@@ -507,7 +508,7 @@ export class ColumnSelector extends Component {
         style: styles.columnSelector,
         tooltip: 'Select columns',
         onClick: () => this.setState({ open: true, modifiedColumnSettings: columnSettings })
-      }, [icon('cog', { size: 20, className: 'is-solid' })]),
+      }, [icon('cog', { size: 20 })]),
       open && h(Modal, {
         title: 'Select columns',
         onDismiss: () => this.setState({ open: false }),

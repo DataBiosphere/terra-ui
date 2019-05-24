@@ -178,12 +178,12 @@ export const EntityDeleter = ajaxCaller(class EntityDeleter extends Component {
       }, ['Delete'])
     }, [
       runningSubmissionsCount > 0 && div({ style: { ...fullWidthWarning, display: 'flex', alignItems: 'center' } }, [
-        icon('warning-standard', { size: 36, className: 'is-solid', style: { flex: 'none', marginRight: '0.5rem' } }),
+        icon('warning-standard', { size: 36, style: { flex: 'none', marginRight: '0.5rem' } }),
         `WARNING: ${runningSubmissionsCount} workflows are currently running in this workspace. ` +
         'Deleting the following data could cause failures if a workflow is using this data.'
       ]),
       moreToDelete && div({ style: { ...fullWidthWarning, display: 'flex', alignItems: 'center' } }, [
-        icon('warning-standard', { size: 36, className: 'is-solid', style: { flex: 'none', marginRight: '0.5rem' } }),
+        icon('warning-standard', { size: 36, style: { flex: 'none', marginRight: '0.5rem' } }),
         'In order to delete the selected data entries, the following entries that reference them must also be deleted.'
       ]),
       ..._.map(([i, entity]) => div({
@@ -292,7 +292,7 @@ export const EntityUploader = ajaxCaller(class EntityUploader extends Component 
         file && _.includes(_.toLower(newEntityType), entityTypes) && div({
           style: { ...warningBoxStyle, marginBottom: '0.5rem', display: 'flex', alignItems: 'center' }
         }, [
-          icon('warning-standard', { size: 24, className: 'is-solid', style: { flex: 'none', marginRight: '0.5rem', marginLeft: '-0.5rem' } }),
+          icon('warning-standard', { size: 24, style: { flex: 'none', marginRight: '0.5rem', marginLeft: '-0.5rem' } }),
           div([`Data with the type '${newEntityType}' already exists in this workspace. `,
             'Uploading another load file for the same type may overwrite some entries.'])
         ]),

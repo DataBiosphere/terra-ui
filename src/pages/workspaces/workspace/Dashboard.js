@@ -226,7 +226,7 @@ export const WorkspaceDashboard = _.flow(
             disabled: !!Utils.editWorkspaceError(workspace),
             tooltip: Utils.editWorkspaceError(workspace),
             onClick: () => this.setState({ editDescription: description })
-          }, [icon('edit', { className: 'is-solid' })])
+          }, [icon('edit')])
         ]),
         Utils.cond(
           [
