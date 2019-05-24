@@ -79,28 +79,13 @@ const betaTag = b({
   }
 }, 'BETA')
 
-class DropDownSubItem extends Component {
-  static propTypes = {
-    href: PropTypes.string,
-    title: PropTypes.string,
-    onClick: PropTypes.func
-  }
-
-  render() {
-    const { href, title, onClick, ...props } = this.props
-
-    return h(Clickable, {
-      as: 'a',
-      href,
-      style: styles.nav.dropDownItem,
-      hover: {
-        ...styles.nav.dropDownItem,
-        backgroundColor: colors.dark(0.55)
-      },
-      onClick,
-      ...props
-    }, [title])
-  }
+const DropDownSubItem = props => {
+  return h(Clickable, {
+    as: 'a',
+    style: styles.nav.dropDownItem,
+    hover: { backgroundColor: colors.dark(0.55) },
+    ...props
+  })
 }
 
 class BuildDropDownSection extends Component {
@@ -141,7 +126,7 @@ class BuildDropDownSection extends Component {
             }
           }, [title]),
           div({ style: { flexGrow: 1 } }),
-          icon(`angle ${menuOpen ? 'up' : 'down'}`,
+          icon(`angle ${menuOpen ? 'up' : 'down'}`, //arrow isn't flipping
             {
               size: 18,
               style: { flex: 'none' }
@@ -255,23 +240,19 @@ export default _.flow(
               subItems: [
                 h(DropDownSubItem, {
                   href: Nav.getLink('profile'),
-                  title: 'Profile',
                   onClick: () => this.hideNav()
-                }),
+                }, ['Profile']),
                 h(DropDownSubItem, {
                   href: Nav.getLink('groups'),
-                  title: 'Groups',
                   onClick: () => this.hideNav()
-                }),
+                }, ['Groups']),
                 h(DropDownSubItem, {
                   href: Nav.getLink('billing'),
-                  title: 'Billing',
                   onClick: () => this.hideNav()
-                }),
+                }, ['Billing']),
                 h(DropDownSubItem, {
-                  title: 'Sign Out',
                   onClick: signOut
-                })
+                }, ['Sign Out'])
               ]
             }) :
             div({
@@ -284,10 +265,7 @@ export default _.flow(
               div([
                 h(Clickable, {
                   hover: { textDecoration: 'underline' },
-                  style: {
-                    color: colors.accent(),
-                    marginLeft: '9rem'
-                  },
+                  style: { color: 'white', marginLeft: '9rem' },
                   onClick: () => this.setState({ openCookiesModal: true })
                 }, ['Cookies policy']),
                 h(SignInButton)
@@ -327,19 +305,16 @@ export default _.flow(
             subItems: [
               h(DropDownSubItem, {
                 href: Nav.getLink('library-datasets'),
-                title: 'Data',
                 onClick: () => this.hideNav()
-              }),
+              }, ['Data']),
               h(DropDownSubItem, {
                 href: Nav.getLink('library-showcase'),
-                title: 'Showcase',
                 onClick: () => this.hideNav()
-              }),
+              }, ['Showcase']),
               h(DropDownSubItem, {
                 href: Nav.getLink('library-code'),
-                title: 'Tools',
                 onClick: () => this.hideNav()
-              })
+              }, ['Tools'])
             ]
           }),
           (trialState === 'Enabled') && enabledCredits,
@@ -353,39 +328,34 @@ export default _.flow(
             subItems: [
               h(DropDownSubItem, {
                 href: 'https://support.terra.bio/hc/en-us',
-                title: 'How-to Guides',
                 onClick: () => this.hideNav(),
                 ...Utils.newTabLinkProps
-              }),
+              }, ['How-to Guides']),
               h(DropDownSubItem, {
                 href: 'https://support.terra.bio/hc/en-us/community/topics/360000500452',
-                title: 'Request a Feature',
                 onClick: () => this.hideNav(),
                 ...Utils.newTabLinkProps
-              }),
+              }, ['Request a Feature']),
               h(DropDownSubItem, {
                 href: 'https://support.terra.bio/hc/en-us/community/topics/360000500432',
-                title: 'Community Forum',
                 onClick: () => this.hideNav(),
                 ...Utils.newTabLinkProps
-              }),
+              }, ['Community Forum']),
               isFirecloud() && h(DropDownSubItem, {
                 href: 'https://support.terra.bio/hc/en-us/articles/360022694271',
-                title: 'What\'s different in Terra?',
                 onClick: () => this.hideNav(),
                 ...Utils.newTabLinkProps
-              }),
+              }, ['What\'s different in Terra']),
               h(DropDownSubItem, {
-                title: 'Contact Us',
                 onClick: () => contactUsActive.set(true)
-              })
+              }, ['Contact Us'])
             ]
           }),
           isFirecloud() && h(Clickable, {
             style: styles.nav.item,
             disabled: !isSignedIn,
             tooltip: isSignedIn ? undefined : 'Please sign in',
-            hover: { backgroundColor: colors.gray[3] },
+            hover: { backgroundColor: colors.dark(0.55) },
             onClick: () => this.setState({ openFirecloudModal: true })
           }, [
             div({ style: styles.nav.icon }, [
