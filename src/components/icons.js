@@ -6,11 +6,8 @@ import '@clr/icons/shapes/all-shapes'
 
 import _ from 'lodash/fp'
 import { h, img } from 'react-hyperscript-helpers'
-import { linkButton } from 'src/components/common'
-import hexButton from 'src/icons/hex-button.svg'
 import { getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
-import { isTerra } from 'src/libs/config'
 import iconDict from 'src/libs/icon-dict'
 
 
@@ -36,18 +33,3 @@ export const profilePic = ({ size, style, ...props } = {}) => img({
   ...props
 })
 
-export const iconButton = (shape, { disabled, size, iconProps = {}, ...props } = {}) => linkButton(
-  _.merge({
-    as: 'span',
-    disabled,
-    style: {
-      height: size, width: isTerra() ? (size * 0.9) : size,
-      display: 'flex', alignItems: 'center', alignSelf: 'flex-end', justifyContent: 'center',
-      backgroundColor: disabled ? colors.dark(0.15) : colors.accent(),
-      ...(isTerra() ?
-        { maskImage: `url(${hexButton})`, WebkitMaskImage: `url(${hexButton})` } :
-        { borderRadius: '1rem' })
-    }
-  }, props),
-  [icon(shape, _.merge({ style: { color: disabled ? colors.dark() : 'white' } }, iconProps))]
-)
