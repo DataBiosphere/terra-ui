@@ -36,7 +36,7 @@ const makeCard = (link, title, body) => h(Clickable, {
   div({ style: { color: colors.accent(), fontSize: 18, fontWeight: 500, lineHeight: '22px', marginBottom: '0.5rem' } }, title),
   div({ style: { lineHeight: '22px' } }, body),
   div({ style: { flexGrow: 1 } }),
-  iconButton('arrowRight', { size: 30 })
+  iconButton('arrowRight', { size: 30, style: { alignSelf: 'flex-end' } })
 ])
 
 const LandingPage = pure(() => {

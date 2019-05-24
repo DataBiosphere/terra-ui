@@ -108,11 +108,11 @@ export const iconButton = (shape, { disabled, size, iconProps = {}, ...props } =
     as: 'span',
     disabled,
     style: {
-      height: size, width: isTerra() ? (size * 0.9) : size,
-      display: 'flex', alignItems: 'center', alignSelf: 'flex-end', justifyContent: 'center',
+      height: size, width: size,
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
       backgroundColor: disabled ? colors.dark(0.15) : colors.accent(),
       ...(isTerra() ?
-        { maskImage: `url(${hexButton})`, WebkitMaskImage: `url(${hexButton})` } :
+        { mask: `url(${hexButton}) center no-repeat`, WebkitMask: `url(${hexButton}) center no-repeat` } :
         { borderRadius: '1rem' })
     }
   }, props),

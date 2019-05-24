@@ -203,7 +203,7 @@ export default _.flow(
         }, 'Get Free Credits')
       }, [
         div({ style: { color: colors.warning() } }, [
-          icon('error', { size: 16, style: { marginRight: '0.5rem' } }),
+          icon('error-standard', { size: 16, style: { marginRight: '0.5rem' } }),
           'You need a billing project to ', cloneWorkspace ? 'clone a' : 'create a new', ' workspace.'
         ]),
         div({ style: { marginTop: '0.5rem', fontWeight: 500, marginBottom: '0.5rem' } }, [
@@ -223,7 +223,7 @@ export default _.flow(
         }, 'Go to Billing')
       }, [
         div({ style: { color: colors.warning() } }, [
-          icon('error', { size: 16, style: { marginRight: '0.5rem' } }),
+          icon('error-standard', { size: 16, style: { marginRight: '0.5rem' } }),
           'You need a billing project to ', cloneWorkspace ? 'clone a' : 'create a new', ' workspace.'
         ])
       ])

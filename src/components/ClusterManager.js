@@ -156,7 +156,7 @@ const ClusterIcon = ({ shape, onClick, disabled, style, ...props }) => {
   return h(Clickable, {
     style: { color: onClick && !disabled ? colors.accent() : colors.dark(0.7), ...style },
     onClick, disabled, ...props
-  }, [icon(shape, { size: 20, className: 'is-solid' })])
+  }, [icon(shape, { size: 20 })])
 }
 
 const getUpdateIntervalMs = status => {
@@ -511,7 +511,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
           disabled: !canCompute,
           style: { marginRight: '2rem' },
           ...Utils.newTabLinkProps
-        }, [icon('terminal', { className: 'is-solid', size: 24 })])
+        }, [icon('terminal', { size: 24 })])
       ]),
       renderIcon(),
       h(ClusterIcon, {
@@ -547,7 +547,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
               ` (${Utils.formatUSD(totalCost)} hr)`
             ])
           ]),
-          icon('cog', { size: 22, className: 'is-solid', style: { color: isDisabled ? colors.dark(0.7) : colors.accent() } })
+          icon('cog', { size: 22, style: { color: isDisabled ? colors.dark(0.7) : colors.accent() } })
         ])
       ]),
       deleting && h(Modal, {

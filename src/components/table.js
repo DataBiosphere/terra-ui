@@ -421,10 +421,10 @@ export const Sortable = ({ sort, field, onSort, children }) => {
     onClick: () => onSort(Utils.nextSort(sort, field))
   }, [
     children,
-    sort.field === field && div({
+    div({
       style: { color: colors.accent(), marginLeft: 'auto' }
     }, [
-      icon(sort.direction === 'asc' ? 'arrow down' : 'arrow')
+      icon(sort.field === field ? (sort.direction === 'asc' ? 'sort-down' : 'sort-up') : 'sort')
     ])
   ])
 }
@@ -539,7 +539,7 @@ export class ColumnSelector extends Component {
                 const { name, visible } = modifiedColumnSettings[index]
                 return h(SortableDiv, { key, index, style: { ...style, display: 'flex' } }, [
                   h(SortableHandleDiv, { style: styles.columnHandle }, [
-                    icon('bars')
+                    icon('columnGrabber', { style: { transform: 'rotate(90deg)' } })
                   ]),
                   div({ style: { display: 'flex', alignItems: 'center' } }, [
                     h(Checkbox, {

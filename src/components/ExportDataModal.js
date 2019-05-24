@@ -20,7 +20,7 @@ import validate from 'validate.js'
 
 const InfoTile = ({ infoStyle, content, iconName }) => {
   return div({ style: { ...infoStyle, display: 'flex', alignItems: 'center' } }, [
-    icon(iconName, { size: 36, className: 'is-solid', style: { flex: 'none', marginRight: '0.5rem' } }),
+    icon(iconName, { size: 36, style: { flex: 'none', marginRight: '0.5rem' } }),
     content
   ])
 }

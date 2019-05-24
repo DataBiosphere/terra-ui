@@ -104,6 +104,6 @@ export const InfoBox = ({ size, children, style, side }) => h(PopupTrigger, {
   content: div({ style: { padding: '0.5rem', width: 300 } }, children)
 }, [
   span({ style: { cursor: 'pointer', color: colors.accent(), ...style } }, [
-    icon('info-circle', { className: 'is-solid', size })
+    icon('info-circle', { size })
   ])
 ])
