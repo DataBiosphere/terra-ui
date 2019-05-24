@@ -10,7 +10,7 @@ import iconDict from 'src/libs/icon-dict'
  * @param {string} shape - see {@link https://fontawesome.com/icons?d=gallery}
  * @param {object} [props]
  */
-export const icon = (shape, { size = 16, className, ...props } = {}) => iconDict[shape]({ size, className, ...props })
+export const icon = (shape, { size = 16, ...props } = {}) => _.invokeArgs(shape, [{ size, ...props }], iconDict)
 
 export const breadcrumb = props => icon('angle right', _.merge({ size: 10, style: { margin: '0 0.25rem' } }, props))
 
