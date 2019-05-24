@@ -32,4 +32,3 @@ export const profilePic = ({ size, style, ...props } = {}) => img({
   style: { borderRadius: '100%', ...style },
   ...props
 })
-
