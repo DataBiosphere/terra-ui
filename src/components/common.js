@@ -6,9 +6,11 @@ import Interactive from 'react-interactive'
 import RSelect from 'react-select'
 import { centeredSpinner, icon } from 'src/components/icons'
 import TooltipTrigger from 'src/components/TooltipTrigger'
+import hexButton from 'src/icons/hex-button.svg'
 import scienceBackground from 'src/images/science-background.jpg'
 import colors from 'src/libs/colors'
-import { getConfig, isFirecloud } from 'src/libs/config'
+import { getConfig, isTerra } from 'src/libs/config'
+import { getAppName } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -100,6 +102,22 @@ export const buttonOutline = ({ disabled, ...props }, children) => {
     hover: disabled ? undefined : { backgroundColor: colors.accent(0.1) }
   }, props), children)
 }
+
+export const iconButton = (shape, { disabled, size, iconProps = {}, ...props } = {}) => linkButton(
+  _.merge({
+    as: 'span',
+    disabled,
+    style: {
+      height: size, width: isTerra() ? (size * 0.9) : size,
+      display: 'flex', alignItems: 'center', alignSelf: 'flex-end', justifyContent: 'center',
+      backgroundColor: disabled ? colors.dark(0.15) : colors.accent(),
+      ...(isTerra() ?
+        { maskImage: `url(${hexButton})`, WebkitMaskImage: `url(${hexButton})` } :
+        { borderRadius: '1rem' })
+    }
+  }, props),
+  [icon(shape, _.merge({ style: { color: disabled ? colors.dark() : 'white' } }, iconProps))]
+)
 
 export const tabBar = ({ activeTab, tabNames, refresh = _.noop, getHref }, children = []) => {
   const navTab = currentTab => {
@@ -280,7 +298,7 @@ export const backgroundLogo = () => img({
 export const methodLink = config => {
   const { methodRepoMethod: { sourceRepo, methodVersion, methodNamespace, methodName, methodPath } } = config
   return sourceRepo === 'agora' ?
-    `${getConfig().firecloudUrlRoot}/?return=${isFirecloud() ? `firecloud` : `terra`}#methods/${methodNamespace}/${methodName}/${methodVersion}` :
+    `${getConfig().firecloudUrlRoot}/?return=${getAppName().toLowerCase()}#methods/${methodNamespace}/${methodName}/${methodVersion}` :
     `${getConfig().dockstoreUrlRoot}/workflows/${methodPath}`
 }
 
