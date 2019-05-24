@@ -12,10 +12,18 @@ import { isDatastage, isFirecloud, isTerra } from 'src/libs/config'
 import * as Utils from 'src/libs/utils'
 
 
+export const getAppName = () => Utils.cond(
+  [isFirecloud(), 'FireCloud'],
+  [isDatastage(), 'DataStage'],
+  'Terra'
+)
+
 const pickBrandLogo = (color = false) => Utils.cond(
   [isFirecloud(), color ? fcLogo : fcLogoWhite],
   [isDatastage(), color ? datastageLogo : datastageLogoWhite]
 )
+
+export const terraLogoMaker = (logoVariant, style) => img({ src: logoVariant, style })
 
 const brandLongLogo = (size, color = false) => div({ style: { display: 'flex', maxHeight: size, marginRight: '1.5rem' } }, [
   div({ style: { color: color ? colors.secondary() : 'white', textAlign: 'right', fontSize: _.max([size / 10, 9]) } }, [
@@ -24,16 +32,6 @@ const brandLongLogo = (size, color = false) => div({ style: { display: 'flex', m
   ]),
   terraLogoMaker(color ? terraLogo : terraLogoWhite, { height: size, marginLeft: '0.5rem' })
 ])
-
-export const terraLogoMaker = (logoVariant, style) => img({
-  src: logoVariant, style
-})
-
-export const getAppName = () => Utils.cond(
-  [isFirecloud(), 'FireCloud'],
-  [isDatastage(), 'DataStage'],
-  'Terra'
-)
 
 export const signInLogo = () => isTerra() ?
   terraLogoMaker(terraLogo, { height: 150 }) :
