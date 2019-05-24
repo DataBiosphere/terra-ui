@@ -111,7 +111,7 @@ const DropDownSection = props => {
         }
       }, [title]),
       div({ style: { flexGrow: 1 } }),
-      icon(`angle ${isOpened ? 'up' : 'down'}`, //arrow isn't flipping
+      icon(`angle ${isOpened ? 'up' : 'down'}`,
         {
           size: 18,
           style: { flex: 'none' }
@@ -131,6 +131,16 @@ export default _.flow(
     children: PropTypes.node
   }
 
+  constructor(props) {
+    super(props)
+    this.state = {
+      navShown: false,
+      openUserMenu: false,
+      openLibraryMenu: false,
+      openSupportMenu: false
+    }
+  }
+
   showNav() {
     this.setState({ navShown: true })
     document.body.classList.add('overlayOpen')
@@ -148,7 +158,7 @@ export default _.flow(
     const { authState: { isSignedIn, profile,  profile: { firstName = 'Loading...', lastName = '' }  } } = this.props
     const { trialState } = profile
     const { openLibraryMenu, openSupportMenu, openUserMenu } = this.state
-
+    console.log(openUserMenu, openLibraryMenu, openSupportMenu)
 
     const enabledCredits = h(Clickable, {
       style: styles.nav.item,
