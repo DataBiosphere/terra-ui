@@ -410,8 +410,8 @@ const Workspaces = signal => ({
     return res.json()
   },
 
-  getTags: async () => {
-    const res = await fetchRawls('workspaces/tags', _.merge(authOpts(), { signal }))
+  getTags: async tag => {
+    const res = await fetchRawls(`workspaces/tags?${qs.stringify({ q: tag })}`, _.merge(authOpts(), { signal }))
     return res.json()
   },
 
@@ -612,6 +612,21 @@ const Workspaces = signal => ({
 
       storageCostEstimate: async () => {
         const res = await fetchOrchestration(`api/workspaces/${namespace}/${name}/storageCostEstimate`, _.merge(authOpts(), { signal }))
+        return res.json()
+      },
+
+      getTags: async () => {
+        const res = await fetchOrchestration(`api/workspaces/${namespace}/${name}/tags`, _.merge(authOpts(), { signal, method: 'GET' }))
+        return res.json()
+      },
+
+      addTag: async tag => {
+        const res = await fetchOrchestration(`api/workspaces/${namespace}/${name}/tags`, _.mergeAll([authOpts(), jsonBody([tag]), { signal, method: 'PATCH' }]))
+        return res.json()
+      },
+
+      deleteTag: async tag => {
+        const res = await fetchOrchestration(`api/workspaces/${namespace}/${name}/tags`, _.mergeAll([authOpts(), jsonBody([tag]), { signal, method: 'DELETE' }]))
         return res.json()
       }
     }
