@@ -256,7 +256,7 @@ export default _.flow(
             ]),
           h(Clickable, {
             as: 'a',
-            style: {...styles.nav.item, borderBottom: `1px solid ${colors.dark(0.55)}` },
+            style: { ...styles.nav.item, borderBottom: `1px solid ${colors.dark(0.55)}` },
             hover: { backgroundColor: colors.dark(0.55) },
             href: Nav.getLink('workspaces'),
             onClick: () => this.hideNav()
