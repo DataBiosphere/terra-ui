@@ -2,12 +2,13 @@ import { faClipboard, faClock, faClone, faEye, faFolder, faFolderOpen, faListAlt
 import {
   faAngleDoubleLeft, faAngleDoubleRight, faAngleDown, faAngleLeft, faAngleRight, faAngleUp, faArrowRight, faBan, faBars, faCaretDown, faCheck,
   faCheckCircle, faCheckSquare, faCloud, faCog, faCreditCard, faDownload, faEllipsisV, faExclamationCircle, faExclamationTriangle,
-  faFileInvoiceDollar, faInfoCircle, faList, faMinusCircle, faPause, faPen, faPlay, faPlus, faPlusCircle, faSearch, faShareAlt, faSortDown, faSortUp,
-  faSync, faTerminal, faThLarge, faTimes, faTrashAlt
+  faFileInvoiceDollar, faInfoCircle, faList, faMinusCircle, faPause, faPen, faPlay, faPlus, faPlusCircle, faQuestionCircle, faSearch, faShareAlt,
+  faSortDown, faSortUp, faSync, faTerminal, faThLarge, faTimes, faTrashAlt
 } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import _ from 'lodash/fp'
 import { h } from 'react-hyperscript-helpers'
+import booksSolid from 'src/icons/books-solid'
 import cardMenuIcon from 'src/icons/card-menu-icon'
 import cloudUploadSolid from 'src/icons/cloud-upload-solid'
 import columnGrabber from 'src/icons/column_grabber'
@@ -44,7 +45,9 @@ const iconDict = {
   'eye': fa(faEye),
   'folder': fa(faFolder),
   'folder-open': fa(faFolderOpen),
+  'help': fa(faQuestionCircle),
   'info-circle': fa(faInfoCircle),
+  'library': custom(booksSolid),
   'minus-circle': fa(faMinusCircle),
   'pause': fa(faPause),
   'play': fa(faPlay),
