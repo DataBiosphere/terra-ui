@@ -1,9 +1,9 @@
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
 import { Fragment, useState } from 'react'
+import { Collapse as RCollapse } from 'react-collapse'
 import { a, b, div, h, span } from 'react-hyperscript-helpers'
-import Collapse from 'src/components/Collapse'
-import { buttonPrimary, Clickable, LabeledCheckbox, MenuButton, spinnerOverlay } from 'src/components/common'
+import { buttonPrimary, Clickable, LabeledCheckbox, spinnerOverlay } from 'src/components/common'
 import { icon, profilePic } from 'src/components/icons'
 import { TextArea } from 'src/components/input'
 import Modal from 'src/components/Modal'
@@ -49,34 +49,20 @@ const styles = {
       zIndex: 2,
       display: 'flex', flexDirection: 'column'
     },
-    profile: active => ({
-      backgroundColor: active ? colors.dark(0.1) : colors.dark(0.25),
-      color: colors.dark(),
-      borderBottom: active ? undefined : 'none'
-    }),
-    profileItem: active => ({
-      ...styles.nav.profile(active),
-      borderTop: `1px solid ${colors.dark()}`,
-      padding: '0 3rem', height: 40,
-      fontSize: 'unset',
-      fontWeight: 500
-    }),
     item: {
       display: 'flex', alignItems: 'center', flex: 'none',
       height: 70, padding: '0 28px',
       fontWeight: 600,
-      borderBottom: `1px solid ${colors.dark(0.7)}`, color: 'white'
+      borderTop: `1px solid ${colors.dark(0.55)}`, color: 'white'
     },
-    subItem: {
-      display: 'flex', alignItems: 'center', flex: 'none',
-      padding: '10px 28px', paddingLeft: 60,
-      fontWeight: 600,
-      color: 'white'
-    },
-    supportItem: {
-      display: 'flex', alignItems: 'center', flex: 'none',
-      padding: '15px 28px',
-      fontWeight: 600, color: 'white'
+    dropDownItem: {
+      display: 'flex', alignItems: 'center',
+      backgroundColor: colors.dark(0.7),
+      color: 'white',
+      borderBottom: 'none',
+      padding: '0 3rem', height: 40,
+      fontSize: 'unset',
+      fontWeight: 500
     },
     icon: {
       marginRight: 12, flex: 'none'
@@ -93,6 +79,48 @@ const betaTag = b({
   }
 }, 'BETA')
 
+const DropDownSubItem = props => {
+  return h(Clickable, {
+    as: 'a',
+    style: styles.nav.dropDownItem,
+    hover: { backgroundColor: colors.dark(0.55) },
+    ...props
+  })
+}
+
+const DropDownSection = props => {
+  const { titleIcon, title, isOpened, onClick, children } = props
+
+  return h(Fragment, [
+    h(Clickable, {
+      style: styles.nav.item,
+      hover: { backgroundColor: colors.dark(0.55) },
+      onClick
+    }, [
+      titleIcon && div({ style: styles.nav.icon }, [
+        icon(titleIcon, {
+          className: 'is-solid',
+          size: 24
+        })
+      ]),
+      div({
+        style: {
+          whiteSpace: 'nowrap',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis'
+        }
+      }, [title]),
+      div({ style: { flexGrow: 1 } }),
+      icon(`angle ${isOpened ? 'up' : 'down'}`,
+        {
+          size: 18,
+          style: { flex: 'none' }
+        })
+    ]),
+    h(RCollapse, { isOpened, style: { flex: 'none' } }, [children])
+  ])
+}
+
 export default _.flow(
   ajaxCaller,
   Utils.connectAtom(authStore, 'authState')
@@ -101,6 +129,16 @@ export default _.flow(
     title: PropTypes.node,
     href: PropTypes.string, // link destination
     children: PropTypes.node
+  }
+
+  constructor(props) {
+    super(props)
+    this.state = {
+      navShown: false,
+      openUserMenu: false,
+      openLibraryMenu: false,
+      openSupportMenu: false
+    }
   }
 
   showNav() {
@@ -112,29 +150,14 @@ export default _.flow(
   }
 
   hideNav() {
-    this.setState({ navShown: false, userMenuOpen: false })
+    this.setState({ navShown: false, openUserMenu: false, openLibraryMenu: false, openSupportMenu: false })
     document.body.classList.remove('overlayOpen', 'overHeight')
   }
 
   buildNav() {
-    const { authState: { isSignedIn, profile } } = this.props
+    const { authState: { isSignedIn, profile,  profile: { firstName = 'Loading...', lastName = '' }  } } = this.props
     const { trialState } = profile
-
-    const librarySubItem = (linkName, iconName, label) => h(Clickable, {
-      style: styles.nav.subItem,
-      as: 'a',
-      hover: { backgroundColor: colors.dark(0.55) },
-      href: Nav.getLink(linkName),
-      onClick: () => this.hideNav()
-    }, [
-      div({ style: styles.nav.icon }, [
-        icon(iconName, {
-          className: 'is-solid',
-          size: 24
-        })
-      ]),
-      label
-    ])
+    const { openLibraryMenu, openSupportMenu, openUserMenu } = this.state
 
     const enabledCredits = h(Clickable, {
       style: styles.nav.item,
@@ -200,16 +223,41 @@ export default _.flow(
       }, [
         div({ style: { display: 'flex', flexDirection: 'column', overflowY: 'auto', flex: 1 } }, [
           isSignedIn ?
-            this.buildUserSection() :
+            h(DropDownSection, {
+              titleIcon: undefined,
+              title: div({ style: { ..._.omit('borderTop', styles.nav.item), padding: 0 } }, [
+                profilePic({ size: 32, style: { marginRight: 12 } }), `${firstName} ${lastName}`
+              ]),
+              onClick: () => this.setState({ openUserMenu: !openUserMenu }),
+              isOpened: openUserMenu
+            }, [
+              h(DropDownSubItem, {
+                href: Nav.getLink('profile'),
+                onClick: () => this.hideNav()
+              }, ['Profile']),
+              h(DropDownSubItem, {
+                href: Nav.getLink('groups'),
+                onClick: () => this.hideNav()
+              }, ['Groups']),
+              h(DropDownSubItem, {
+                href: Nav.getLink('billing'),
+                onClick: () => this.hideNav()
+              }, ['Billing']),
+              h(DropDownSubItem, {
+                onClick: signOut
+              }, ['Sign Out'])
+            ]) :
             div({
-              style: { ...styles.nav.item, ...styles.nav.profile(false), justifyContent: 'center', height: 95 }
+              style: {
+                ...styles.nav.item,
+                justifyContent: 'center',
+                height: 95
+              }
             }, [
               div([
                 h(Clickable, {
-                  style: {
-                    color: colors.accent(),
-                    marginLeft: '9rem'
-                  },
+                  hover: { textDecoration: 'underline' },
+                  style: { color: 'white', marginLeft: '9rem' },
                   onClick: () => this.setState({ openCookiesModal: true })
                 }, ['Cookies policy']),
                 h(SignInButton)
@@ -217,7 +265,7 @@ export default _.flow(
             ]),
           h(Clickable, {
             as: 'a',
-            style: styles.nav.item,
+            style: { ...styles.nav.item, borderBottom: `1px solid ${colors.dark(0.55)}` },
             hover: { backgroundColor: colors.dark(0.55) },
             href: Nav.getLink('workspaces'),
             onClick: () => this.hideNav()
@@ -227,146 +275,73 @@ export default _.flow(
             ]),
             'Your Workspaces'
           ]),
-          h(Clickable, {
-            as: 'a',
-            ...Utils.newTabLinkProps,
-            style: styles.nav.item,
-            hover: { backgroundColor: colors.dark(0.55) },
-            href: getConfig().jobManagerUrlRoot,
-            onClick: () => this.hideNav()
+          div({ style: { margin: '5rem' } }),
+          h(DropDownSection, {
+            titleIcon: 'library',
+            title: 'Terra Library',
+            onClick: () => this.setState({ openLibraryMenu: !openLibraryMenu }),
+            isOpened: openLibraryMenu
           }, [
-            div({ style: styles.nav.icon }, [
-              icon('layers', { className: 'is-solid', size: 24 })
-            ]),
-            'Your Jobs',
-            icon('pop-out', {
-              size: 12,
-              style: { marginLeft: '0.5rem' }
-            })
-          ]),
-          div({ style: { borderBottom: styles.nav.item.borderBottom, padding: '14px 0' } }, [
-            div({ style: { ...styles.nav.subItem, paddingLeft: 28 } }, [
-              div({ style: styles.nav.icon }, [
-                icon('library', { className: 'is-solid', size: 24 })
-              ]),
-              'Library'
-            ]),
-            librarySubItem('library-datasets', 'data-cluster', 'Datasets'),
-            librarySubItem('library-showcase', 'grid-chart', 'Showcase & Tutorials'),
-            librarySubItem('library-code', 'tools', 'Code & Tools')
+            h(DropDownSubItem, {
+              href: Nav.getLink('library-datasets'),
+              onClick: () => this.hideNav()
+            }, ['Data']),
+            h(DropDownSubItem, {
+              href: Nav.getLink('library-showcase'),
+              onClick: () => this.hideNav()
+            }, ['Showcase']),
+            h(DropDownSubItem, {
+              href: Nav.getLink('library-code'),
+              onClick: () => this.hideNav()
+            }, ['Tools'])
           ]),
           (trialState === 'Enabled') && enabledCredits,
           (trialState === 'Enrolled') && enrolledCredits,
           (trialState === 'Terminated') && terminatedCredits,
-          h(Clickable, {
-            style: { ...styles.nav.supportItem, marginTop: '15px' },
-            hover: { backgroundColor: colors.dark(0.55) },
-            onClick: () => contactUsActive.set(true)
+          h(DropDownSection, {
+            titleIcon: 'help',
+            title: 'Terra Support',
+            onClick: () => this.setState({ openSupportMenu: !openSupportMenu }),
+            isOpened: openSupportMenu
           }, [
-            div({ style: styles.nav.icon }, [
-              icon('envelope', { className: 'is-solid', size: 20 })
-            ]),
-            'Contact Us'
-          ]),
-          h(Clickable, {
-            style: styles.nav.supportItem,
-            as: 'a',
-            hover: { backgroundColor: colors.dark(0.55) },
-            href: 'https://support.terra.bio/hc/en-us',
-            ...Utils.newTabLinkProps,
-            onClick: () => this.hideNav()
-          }, [
-            div({ style: styles.nav.icon }, [
-              icon('help', {
-                className: 'is-solid',
-                size: 20
-              })
-            ]),
-            'Learn about Terra',
-            icon('pop-out', {
-              size: 12,
-              style: { marginLeft: '0.5rem' }
-            })
-          ]),
-          h(Clickable, {
-            style: styles.nav.supportItem,
-            as: 'a',
-            hover: { backgroundColor: colors.dark(0.55) },
-            href: 'https://support.terra.bio/hc/en-us/community/topics/360000500452',
-            ...Utils.newTabLinkProps,
-            onClick: () => this.hideNav()
-          }, [
-            div({ style: styles.nav.icon }, [
-              icon('bubble-exclamation', {
-                className: 'is-solid',
-                size: 20
-              })
-            ]),
-            'Request a feature',
-            icon('pop-out', {
-              size: 12,
-              style: { marginLeft: '0.5rem' }
-            })
-          ]),
-          h(Clickable, {
-            style: styles.nav.supportItem,
-            as: 'a',
-            hover: { backgroundColor: colors.dark(0.55) },
-            href: 'https://support.terra.bio/hc/en-us/community/topics/360000500432',
-            ...Utils.newTabLinkProps,
-            onClick: () => this.hideNav()
-          }, [
-            div({ style: styles.nav.icon }, [
-              icon('chat-bubble', {
-                className: 'is-solid',
-                size: 20
-              })
-            ]),
-            'Community discussion',
-            icon('pop-out', {
-              size: 12,
-              style: { marginLeft: '0.5rem' }
-            })
-          ]),
-          isFirecloud() && h(Fragment, [
-            h(Clickable, {
-              style: styles.nav.supportItem,
-              as: 'a',
-              hover: { backgroundColor: colors.dark(0.55) },
+            h(DropDownSubItem, {
+              href: 'https://support.terra.bio/hc/en-us',
+              onClick: () => this.hideNav(),
+              ...Utils.newTabLinkProps
+            }, ['How-to Guides']),
+            h(DropDownSubItem, {
+              href: 'https://support.terra.bio/hc/en-us/community/topics/360000500452',
+              onClick: () => this.hideNav(),
+              ...Utils.newTabLinkProps
+            }, ['Request a Feature']),
+            h(DropDownSubItem, {
+              href: 'https://support.terra.bio/hc/en-us/community/topics/360000500432',
+              onClick: () => this.hideNav(),
+              ...Utils.newTabLinkProps
+            }, ['Community Forum']),
+            isFirecloud() && h(DropDownSubItem, {
               href: 'https://support.terra.bio/hc/en-us/articles/360022694271',
-              ...Utils.newTabLinkProps,
-              onClick: () => this.hideNav()
-            }, [
-              div({ style: styles.nav.icon }, [
-                icon('help-info', { className: 'is-solid', size: 20 })
-              ]),
-              div([
-                'What\'s different in',
-                div([
-                  'Terra?',
-                  icon('pop-out', {
-                    size: 12,
-                    style: { marginLeft: '0.5rem', flexGrow: 1 }
-                  })
-                ])
-              ])
-            ]),
-            h(Clickable, {
-              style: styles.nav.supportItem,
-              disabled: !isSignedIn,
-              tooltip: isSignedIn ? undefined : 'Please sign in',
-              hover: { backgroundColor: colors.dark(0.55) },
-              onClick: () => this.setState({ openFirecloudModal: true })
-            }, [
-              div({ style: styles.nav.icon }, [
-                icon('fcIconWhite', { className: 'is-solid', size: 20 })
-              ]),
-              'Use Classic FireCloud'
-            ])
+              onClick: () => this.hideNav(),
+              ...Utils.newTabLinkProps
+            }, ['What\'s different in Terra']),
+            h(DropDownSubItem, {
+              onClick: () => contactUsActive.set(true)
+            }, ['Contact Us'])
+          ]),
+          isFirecloud() && h(Clickable, {
+            style: styles.nav.item,
+            disabled: !isSignedIn,
+            tooltip: isSignedIn ? undefined : 'Please sign in',
+            hover: { backgroundColor: colors.dark(0.55) },
+            onClick: () => this.setState({ openFirecloudModal: true })
+          }, [
+            div({ style: styles.nav.icon }, [
+              icon('fcIconWhite', { className: 'is-solid', size: 20 })
+            ]), 'Use Classic FireCloud'
           ]),
           div({
             style: {
-              ..._.omit('borderBottom', styles.nav.item),
+              ..._.omit('borderTop', styles.nav.item),
               marginTop: 'auto',
               color: colors.dark(0.55),
               fontSize: 10
@@ -376,72 +351,6 @@ export default _.flow(
             new Date(SATURN_BUILD_TIMESTAMP).toLocaleString()
           ])
         ])
-      ])
-    ])
-  }
-
-  buildUserSection() {
-    const { authState: { profile: { firstName = 'Loading...', lastName = '' } } } = this.props
-    const { userMenuOpen } = this.state
-
-    return h(Collapse, {
-      defaultHidden: true,
-      showIcon: false,
-      animate: true,
-      expandTitle: true,
-      style: styles.nav.profile(false),
-      buttonStyle: { marginBottom: 0 },
-      title: [
-        h(Clickable, {
-          style: { ...styles.nav.item, ...styles.nav.profile(userMenuOpen) },
-          hover: styles.nav.profile(true),
-          onClick: () => this.setState({ userMenuOpen: !userMenuOpen })
-        }, [
-          div({ style: styles.nav.icon }, [
-            profilePic({ size: 32 })
-          ]),
-          div({ style: { whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' } }, [
-            `${firstName} ${lastName}`
-          ]),
-          div({ style: { flexGrow: 1 } }),
-          icon(`angle ${userMenuOpen ? 'up' : 'down'}`,
-            { size: 18, style: { flex: 'none' } })
-        ])
-      ]
-    }, [
-      h(MenuButton, {
-        as: 'a',
-        href: Nav.getLink('profile'),
-        style: styles.nav.profileItem(false),
-        hover: styles.nav.profileItem(true),
-        onClick: () => this.hideNav() // In case we're already there
-      }, [
-        icon('user', { style: styles.nav.icon }), 'Profile'
-      ]),
-      h(MenuButton, {
-        as: 'a',
-        href: Nav.getLink('groups'),
-        style: styles.nav.profileItem(false),
-        hover: styles.nav.profileItem(true),
-        onClick: () => this.hideNav() // In case we're already there
-      }, [
-        icon('users', { style: styles.nav.icon }), 'Groups'
-      ]),
-      h(MenuButton, {
-        as: 'a',
-        href: Nav.getLink('billing'),
-        style: styles.nav.profileItem(false),
-        hover: styles.nav.profileItem(true),
-        onClick: () => this.hideNav() // In case we're already there
-      }, [
-        icon('wallet', { style: styles.nav.icon }), 'Billing'
-      ]),
-      h(MenuButton, {
-        onClick: signOut,
-        style: styles.nav.profileItem(false),
-        hover: styles.nav.profileItem(true)
-      }, [
-        icon('logout', { style: styles.nav.icon }), 'Sign Out'
       ])
     ])
   }
