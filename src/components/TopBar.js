@@ -117,7 +117,7 @@ const DropDownSection = props => {
           style: { flex: 'none' }
         })
     ]),
-    h(RCollapse, { isOpened }, [children])
+    h(RCollapse, { isOpened, style: { flex: 'none' } }, [children])
   ])
 }
 
@@ -158,7 +158,6 @@ export default _.flow(
     const { authState: { isSignedIn, profile,  profile: { firstName = 'Loading...', lastName = '' }  } } = this.props
     const { trialState } = profile
     const { openLibraryMenu, openSupportMenu, openUserMenu } = this.state
-    console.log(openUserMenu, openLibraryMenu, openSupportMenu)
 
     const enabledCredits = h(Clickable, {
       style: styles.nav.item,
