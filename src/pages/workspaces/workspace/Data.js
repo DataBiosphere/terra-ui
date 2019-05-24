@@ -423,12 +423,17 @@ class EntitiesContent extends Component {
     const { workspace: { workspace: { workspaceId } } } = this.props
     const { selectedEntities } = this.state
 
+    const dataExplorerUrl =
+       _.size(selectedEntities) === 1 && _.values(selectedEntities)[0].attributes.data_explorer_url ? _.values(selectedEntities)[0].attributes.data_explorer_url
+         : ''
     return h(Fragment, [
       buttonPrimary({
-        disabled: _.size(selectedEntities) !== 1,
+        // Old cohorts (before mid-Apr 2019) don't have data_explorer_url
+        disabled: _.size(selectedEntities) !== 1 || !dataExplorerUrl,
         tooltip: _.size(selectedEntities) === 0 ? 'Select a cohort to open in Data Explorer' :
           _.size(selectedEntities) > 1 ? 'Select exactly one cohort to open in Data Explorer' :
-            '',
+            !dataExplorerUrl ? 'cohort must have data_explorer_url set' :
+              '',
         onClick: () => window.open(_.values(selectedEntities)[0].attributes.data_explorer_url + '&wid=' + workspaceId)
       }, [
         icon('search', { style: { marginRight: '0.5rem' } }),
