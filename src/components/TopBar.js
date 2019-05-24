@@ -256,7 +256,7 @@ export default _.flow(
             ]),
           h(Clickable, {
             as: 'a',
-            style: styles.nav.item,
+            style: {...styles.nav.item, borderBottom: `1px solid ${colors.dark(0.55)}` },
             hover: { backgroundColor: colors.dark(0.55) },
             href: Nav.getLink('workspaces'),
             onClick: () => this.hideNav()
@@ -265,19 +265,6 @@ export default _.flow(
               icon('grid-chart', { className: 'is-solid', size: 24 })
             ]),
             'Your Workspaces'
-          ]),
-          h(Clickable, {
-            as: 'a',
-            ...Utils.newTabLinkProps,
-            style: { ...styles.nav.item, borderBottom: `1px solid ${colors.dark(0.55)}` },
-            hover: { backgroundColor: colors.dark(0.55) },
-            href: getConfig().jobManagerUrlRoot,
-            onClick: () => this.hideNav()
-          }, [
-            div({ style: styles.nav.icon }, [
-              icon('layers', { className: 'is-solid', size: 24 })
-            ]),
-            'Job Manager'
           ]),
           div({ style: { margin: '5rem' } }),
           h(DropDownSection, {
