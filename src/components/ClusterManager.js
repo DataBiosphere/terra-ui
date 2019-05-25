@@ -472,7 +472,6 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
   destroyActiveCluster() {
     const { ajax: { Jupyter } } = this.props
     const { googleProject, clusterName } = this.getCurrentCluster()
-    this.setState({ clusterErrors: [] })
     this.executeAndRefresh(
       Jupyter.cluster(googleProject, clusterName).delete()
     )
@@ -521,10 +520,10 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
       return null
     }
     const currentCluster = this.getCurrentCluster()
-    const { status } = currentCluster || {}
+    const currentStatus  = currentCluster && currentCluster.status
     const spendingClusters = _.remove(({ status }) => _.includes(status, ['Deleting', 'Error']), clusters)
     const renderIcon = () => {
-      switch (status) {
+      switch (currentStatus) {
         case 'Stopped':
           return h(ClusterIcon, {
             shape: 'play',
@@ -549,7 +548,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
             style: { color: colors.red[1] },
             onClick: () => this.setState({ errorModalOpen: true }),
             disabled: busy || !canCompute,
-            tooltip: canCompute ? 'View error logs' : noCompute
+            tooltip: canCompute ? 'View error' : noCompute
           })
         default:
           return h(ClusterIcon, {
@@ -565,7 +564,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
     }, spendingClusters))
     const activeClusters = this.getActiveClustersOldestFirst()
     const creating = _.some({ status: 'Creating' }, activeClusters)
-    const multiple = !creating && activeClusters.length > 1 && status !== 'Error'
+    const multiple = !creating && activeClusters.length > 1 && currentStatus !== 'Error'
     const isDisabled = !canCompute || creating || multiple || busy
 
     return div({ style: styles.container }, [
@@ -587,7 +586,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
       h(ClusterIcon, {
         shape: 'trash',
         onClick: () => this.setState({ deleteModalOpen: true }),
-        disabled: busy || !canCompute || !_.includes(status, ['Stopped', 'Running', 'Error']),
+        disabled: busy || !canCompute || !_.includes(currentStatus, ['Stopped', 'Running', 'Error']),
         tooltip: 'Delete cluster',
         style: { marginLeft: '0.5rem' }
       }),
@@ -613,7 +612,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
           }, [
             div({ style: { fontSize: 12, fontWeight: 'bold' } }, 'Notebook Runtime'),
             div({ style: { fontSize: 10 } }, [
-              span({ style: { textTransform: 'uppercase', fontWeight: 500 } }, status || 'None'),
+              span({ style: { textTransform: 'uppercase', fontWeight: 500 } }, currentStatus || 'None'),
               ` (${Utils.formatUSD(totalCost)} hr)`
             ])
           ]),
