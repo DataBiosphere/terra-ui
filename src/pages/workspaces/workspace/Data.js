@@ -434,7 +434,7 @@ class EntitiesContent extends Component {
           _.size(selectedEntities) > 1 ? 'Select exactly one cohort to open in Data Explorer' :
             !dataExplorerUrl ? 'cohort must have data_explorer_url set' :
               '',
-        onClick: () => window.open(_.values(selectedEntities)[0].attributes.data_explorer_url + '&wid=' + workspaceId)
+        onClick: () => window.open(dataExplorerUrl + '&wid=' + workspaceId)
       }, [
         icon('search', { style: { marginRight: '0.5rem' } }),
         'Open in Data Explorer'
