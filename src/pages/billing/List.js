@@ -250,7 +250,7 @@ export const BillingList = _.flow(
             )
           ]),
           hasFreeCredits && h(Clickable, {
-            style: {...style.navList.heading, backgroundColor: colors.accent() },
+            style: { ...style.navList.heading, backgroundColor: colors.accent() },
             onClick: () => freeCreditsActive.set(true)
           }, ['Enroll in Free Credits']),
           _.map(project => h(ProjectTab, {
