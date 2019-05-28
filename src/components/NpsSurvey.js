@@ -67,6 +67,7 @@ export const NpsSurvey = Utils.connectAtom(authStore, 'authState')(class NpsSurv
       this.setState({ requestable: false })
       Ajax().User.postNpsResponse(shouldSubmit ? { score, reasonComment, changeComment } : {})
     }
+    const longAppName = getAppName().length > 6
 
     const scoreRadios = _.map(i => {
       const isSelected = i === score
@@ -109,7 +110,7 @@ export const NpsSurvey = Utils.connectAtom(authStore, 'authState')(class NpsSurv
         onClick: () => this.setState({ expanded: true }),
         disabled: expanded,
         style: {
-          height: expanded ? 325 : 100,
+          height: expanded ? (longAppName ? 345 : 325) : (longAppName ? 120 : 100),
           width: expanded ? 405 : 255,
           padding: '1rem 1.5rem 1rem 1rem',
           overflow: 'hidden',
