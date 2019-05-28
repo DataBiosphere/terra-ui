@@ -354,9 +354,10 @@ const ClusterErrorModal = ({ cluster, onDismiss }) => {
 
   return h(Modal, {
     title: userscriptError ? 'Cluster Creation Failed due to Userscript Error' : 'Cluster Creation Failed',
+    showCancel: false,
     onDismiss
   }, [
-    div({ style: { whiteSpace: 'pre-wrap', overflowWrap: 'break-word', overflowY: 'auto', maxHeight: 500, background: colors.gray[6] } }, [error]),
+    div({ style: { whiteSpace: 'pre-wrap', overflowWrap: 'break-word', overflowY: 'auto', maxHeight: 500, background: colors.light() } }, [error]),
     loadingClusterDetails && spinnerOverlay
   ])
 }
@@ -421,6 +422,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
       notify('error', 'Error Creating Cluster', {
         message: h(ClusterErrorNotification, { cluster })
       })
+      errorNotifiedClusters.update(Utils.append(cluster.id))
     }
   }
 
@@ -520,7 +522,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
       return null
     }
     const currentCluster = this.getCurrentCluster()
-    const currentStatus  = currentCluster && currentCluster.status
+    const currentStatus = currentCluster && currentCluster.status
     const spendingClusters = _.remove(({ status }) => _.includes(status, ['Deleting', 'Error']), clusters)
     const renderIcon = () => {
       switch (currentStatus) {
@@ -545,7 +547,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
         case 'Error':
           return h(ClusterIcon, {
             shape: 'warning-standard',
-            style: { color: colors.red[1] },
+            style: { color: colors.danger(0.9) },
             onClick: () => this.setState({ errorModalOpen: true }),
             disabled: busy || !canCompute,
             tooltip: canCompute ? 'View error' : noCompute
