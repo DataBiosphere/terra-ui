@@ -20,7 +20,7 @@ export default ajaxCaller(class DeleteToolModal extends Component {
       }, ['Delete'])
     }, [
       `Are you sure you want to delete "${name}"?`,
-      error && div({ style: { marginTop: '0.5rem', color: colors.red[0] } }, [error])
+      error && div({ style: { marginTop: '0.5rem', color: colors.danger() } }, [error])
     ])
   }
 

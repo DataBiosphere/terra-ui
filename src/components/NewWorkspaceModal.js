@@ -187,7 +187,7 @@ export default _.flow(
           options: _.difference(_.uniq(_.map('groupName', allGroups)), existingGroups).sort()
         }),
         createError && div({
-          style: { marginTop: '1rem', color: colors.red[0] }
+          style: { marginTop: '1rem', color: colors.danger() }
         }, [createError]),
         creating && spinnerOverlay
       ])],
@@ -202,7 +202,7 @@ export default _.flow(
           }
         }, 'Get Free Credits')
       }, [
-        div({ style: { color: colors.orange[0] } }, [
+        div({ style: { color: colors.warning() } }, [
           icon('error', { size: 16, style: { marginRight: '0.5rem' } }),
           'You need a billing project to ', cloneWorkspace ? 'clone a' : 'create a new', ' workspace.'
         ]),
@@ -222,7 +222,7 @@ export default _.flow(
           onClick: () => Nav.goToPath('billing')
         }, 'Go to Billing')
       }, [
-        div({ style: { color: colors.orange[0] } }, [
+        div({ style: { color: colors.warning() } }, [
           icon('error', { size: 16, style: { marginRight: '0.5rem' } }),
           'You need a billing project to ', cloneWorkspace ? 'clone a' : 'create a new', ' workspace.'
         ])

@@ -11,7 +11,7 @@ import * as Utils from 'src/libs/utils'
 const igvStyle = {
   padding: '10px 0',
   margin: 8,
-  border: `1px solid ${colors.gray[5]}`
+  border: `1px solid ${colors.dark(0.25)}`
 }
 
 export const IGVBrowser = ({ selectedFiles, refGenome, namespace }) => {

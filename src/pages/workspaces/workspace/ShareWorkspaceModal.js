@@ -26,7 +26,7 @@ const styles = {
   },
   pending: {
     textTransform: 'uppercase', fontWeight: 500,
-    color: colors.orange[0]
+    color: colors.warning()
   }
 }
 
@@ -152,7 +152,7 @@ export default ajaxCaller(class ShareWorkspaceModal extends Component {
     const { acl } = this.state
 
     return div({
-      style: { display: 'flex', padding: '0.5rem', borderTop: index && `1px solid ${colors.gray[4]}` }
+      style: { display: 'flex', padding: '0.5rem', borderTop: index && `1px solid ${colors.dark(0.4)}` }
     }, [
       div({
         style: { flex: 1 }

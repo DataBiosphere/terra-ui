@@ -74,7 +74,7 @@ export const TrialBanner = _.flow(
       div({
         style: {
           display: 'flex', alignItems: 'center', padding: '1.5rem', height: 110,
-          backgroundColor: isWarning ? colors.orange[0] : '#359448',
+          backgroundColor: isWarning ? colors.warning() : '#359448',
           justifyContent: 'center', color: 'white', width: '100%', fontSize: '1rem'
         }
       },

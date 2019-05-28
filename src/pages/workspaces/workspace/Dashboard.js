@@ -1,3 +1,4 @@
+import debouncePromise from 'debounce-promise'
 import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
@@ -5,8 +6,9 @@ import SimpleMDE from 'react-simplemde-editor'
 import 'easymde/dist/easymde.min.css'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { buttonPrimary, buttonSecondary, link, linkButton, spinnerOverlay } from 'src/components/common'
-import { icon } from 'src/components/icons'
+import { icon, spinner } from 'src/components/icons'
 import { Markdown } from 'src/components/Markdown'
+import { InfoBox } from 'src/components/PopupTrigger'
 import { SimpleTable } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { displayConsentCodes, displayLibraryAttributes } from 'src/data/workspace-attributes'
@@ -14,11 +16,13 @@ import { ajaxCaller } from 'src/libs/ajax'
 import { bucketBrowserUrl } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { reportError, withErrorReporting } from 'src/libs/error'
+import { getAppName } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
+import AsyncCreatableSelect from 'react-select/lib/AsyncCreatable'
 
 
 const styles = {
@@ -26,7 +30,7 @@ const styles = {
     flex: 1, padding: '0 2rem 2rem 2rem'
   },
   rightBox: {
-    flex: 'none', width: 350, backgroundColor: colors.grayBlue[5],
+    flex: 'none', width: 350, backgroundColor: colors.light(0.4),
     padding: '0 1rem'
   },
   header: {
@@ -34,20 +38,25 @@ const styles = {
     margin: '2.5rem 0 1rem 0', display: 'flex'
   },
   infoTile: {
-    backgroundColor: colors.grayBlue[3], color: 'black',
+    backgroundColor: colors.dark(0.15), color: 'black',
     width: 125, padding: 7, margin: 4
   },
   tinyCaps: {
-    fontSize: 8, fontWeight: 'bold', textTransform: 'uppercase', color: colors.gray[0]
+    fontSize: 8, fontWeight: 'bold', textTransform: 'uppercase', color: colors.dark()
   },
   authDomain: {
     padding: '0.5rem 0.25rem', marginBottom: '0.25rem',
-    backgroundColor: colors.grayBlue[3],
+    backgroundColor: colors.dark(0.15),
     whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'
   },
   label: {
     ...Style.elements.sectionHeader,
     marginTop: '1rem', marginBottom: '0.25rem'
+  },
+  tag: {
+    padding: '0.25rem', margin: '0.15rem',
+    backgroundColor: colors.dark(0.15), borderRadius: 10,
+    overflow: 'hidden', wordWrap: 'break-word'
   }
 }
 
@@ -100,7 +109,8 @@ export const WorkspaceDashboard = _.flow(
       submissionsCount: undefined,
       storageCostEstimate: undefined,
       editDescription: undefined,
-      saving: false
+      saving: false,
+      busy: false
     }
   }
 
@@ -108,6 +118,7 @@ export const WorkspaceDashboard = _.flow(
     this.loadSubmissionCount()
     this.loadStorageCost()
     this.loadConsent()
+    this.loadWsTags()
   }
 
   loadSubmissionCount = withErrorReporting('Error loading data', async () => {
@@ -139,10 +150,43 @@ export const WorkspaceDashboard = _.flow(
           case 404:
             this.setState({ consentStatus: `Structured Data Use Limitations are not available for ${orspId}` })
             break
-          default: throw error
+          default:
+            throw error
         }
       }
     }
+  })
+
+  getTagSuggestions = debouncePromise(withErrorReporting('Error loading tags', async text => {
+    const { ajax: { Workspaces } } = this.props
+    if (text.length > 2) {
+      return _.map(({ tag, count }) => {
+        return { value: tag, label: `${tag} (${count})` }
+      }, _.take(10, await Workspaces.getTags(text)))
+    } else {
+      return []
+    }
+  }), 250)
+
+  loadWsTags = withErrorReporting('Error loading workspace tags', async () => {
+    const { ajax: { Workspaces }, namespace, name } = this.props
+    this.setState({ tagsList: await Workspaces.workspace(namespace, name).getTags() })
+  })
+
+  addTag = _.flow(
+    withErrorReporting('Error adding tag'),
+    Utils.withBusyState(v => this.setState({ busy: v }))
+  )(async tag => {
+    const { ajax: { Workspaces }, namespace, name } = this.props
+    this.setState({ tagsList: await Workspaces.workspace(namespace, name).addTag(tag) })
+  })
+
+  deleteTag = _.flow(
+    withErrorReporting('Error removing tag'),
+    Utils.withBusyState(v => this.setState({ busy: v }))
+  )(async tag => {
+    const { ajax: { Workspaces }, namespace, name } = this.props
+    this.setState({ tagsList: await Workspaces.workspace(namespace, name).deleteTag(tag) })
   })
 
   async save() {
@@ -170,7 +214,7 @@ export const WorkspaceDashboard = _.flow(
         }
       }
     } = this.props
-    const { submissionsCount, storageCostEstimate, editDescription, saving, consentStatus } = this.state
+    const { submissionsCount, storageCostEstimate, editDescription, saving, consentStatus, tagsList, busy } = this.state
     const isEditing = _.isString(editDescription)
 
     return div({ style: { flex: 1, display: 'flex' } }, [
@@ -238,6 +282,37 @@ export const WorkspaceDashboard = _.flow(
             storageCostEstimate
           ])
         ]),
+        div({ style: styles.header }, [
+          'Tags',
+          h(InfoBox, { style: { margin: '-0.1rem 0 0 0.25rem' } }, [
+            `${getAppName()} is not intended to host personally identifiable information. Do not use any patient identifier including name,
+          social security number, or medical record number.`
+          ])
+        ]),
+        div({ style: { marginBottom: '0.5rem' } }, [
+          h(AsyncCreatableSelect, {
+            value: null,
+            noOptionsMessage: () => 'Enter at least 3 characters to search',
+            allowCreateWhileLoading: true,
+            placeholder: 'Add a tag',
+            onChange: ({ value }) => this.addTag(value),
+            styles: { option: base => ({ ...base, wordWrap: 'break-word' }) },
+            loadOptions: this.getTagSuggestions
+          })
+        ]),
+        div({ style: { display: 'flex', flexWrap: 'wrap' } }, [
+          _.map(tag => {
+            return span({ key: tag, style: styles.tag }, [
+              tag,
+              linkButton({
+                tooltip: 'Remove tag',
+                onClick: () => this.deleteTag(tag),
+                style: { marginLeft: '0.25rem' }
+              }, [icon('times', { size: 18 })])
+            ])
+          }, tagsList),
+          busy && spinner({ style: { marginTop: '0.5rem' } })
+        ]),
         !_.isEmpty(authorizationDomain) && h(Fragment, [
           div({ style: styles.header }, ['Authorization Domain']),
           div({ style: { marginBottom: '0.5rem' } }, [
@@ -250,7 +325,7 @@ export const WorkspaceDashboard = _.flow(
           ]),
           ..._.map(({ membersGroupName }) => div({ style: styles.authDomain }, [membersGroupName]), authorizationDomain)
         ]),
-        div({ style: { margin: '1.5rem 0 0.5rem 0', borderBottom: `1px solid ${colors.gray[3]}` } }),
+        div({ style: { margin: '1.5rem 0 0.5rem 0', borderBottom: `1px solid ${colors.dark(0.55)}` } }),
         link({
           ...Utils.newTabLinkProps,
           href: hasBucketAccess ? bucketBrowserUrl(bucketName) : undefined,
