@@ -356,7 +356,7 @@ const ClusterErrorModal = ({ cluster, onDismiss }) => {
     title: userscriptError ? 'Cluster Creation Failed due to Userscript Error' : 'Cluster Creation Failed',
     onDismiss
   }, [
-    div({ style: { whiteSpace: 'pre-wrap', overflowWrap: 'break-word' } }, [error]),
+    div({ style: { whiteSpace: 'pre-wrap', overflowWrap: 'break-word', overflowY: 'auto', maxHeight: 500, background: colors.gray[6] } }, [error]),
     loadingClusterDetails && spinnerOverlay
   ])
 }
