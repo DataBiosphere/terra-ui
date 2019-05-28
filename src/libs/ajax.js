@@ -327,6 +327,10 @@ const Groups = signal => ({
           await Promise.all(_.map(role => addRole(role, email), _.difference(newRoles, oldRoles)))
           return Promise.all(_.map(role => removeRole(role, email), _.difference(oldRoles, newRoles)))
         }
+      },
+
+      requestAccess: async () => {
+        await fetchSam(`${root}/requestAccess`, _.merge(authOpts(), { signal, method: 'POST' }))
       }
     }
   }
@@ -627,6 +631,11 @@ const Workspaces = signal => ({
 
       deleteTag: async tag => {
         const res = await fetchOrchestration(`api/workspaces/${namespace}/${name}/tags`, _.mergeAll([authOpts(), jsonBody([tag]), { signal, method: 'DELETE' }]))
+        return res.json()
+      },
+
+      accessInstructions: async () => {
+        const res = await fetchRawls(`${root}/accessInstructions`, _.merge(authOpts(), { signal }))
         return res.json()
       }
     }
