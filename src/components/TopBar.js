@@ -338,6 +338,7 @@ export default _.flow(
               icon('fcIconWhite', { className: 'is-solid', size: 20 })
             ]), 'Use Classic FireCloud'
           ]),
+          div({ style: { borderTop: `1px solid ${colors.dark(0.55)}` } }, []),
           div({
             style: {
               ..._.omit('borderTop', styles.nav.item),
