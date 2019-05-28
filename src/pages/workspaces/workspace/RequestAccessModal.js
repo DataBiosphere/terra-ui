@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { useState } from 'react'
-import { div, h, table, tbody, td, th, thead, tr } from 'react-hyperscript-helpers'
+import { div, h, span, table, tbody, td, th, thead, tr } from 'react-hyperscript-helpers'
 import { buttonPrimary, link } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
@@ -64,7 +64,7 @@ export const RequestAccessModal = ({ onDismiss, workspace }) => {
             td([groupName]),
             td([
               _.includes(groupName, groupNames) ?
-                'Yes' :
+                span({ style: { fontWeight: 600 } }, ['Yes']) :
                 h(RequestAccessButton, {
                   groupName,
                   instructions: accessInstructions[groupName]
