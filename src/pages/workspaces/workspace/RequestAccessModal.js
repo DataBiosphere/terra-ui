@@ -95,7 +95,6 @@ const RequestAccessButton = ({ groupName, instructions }) => {
     disabled: requesting || requested,
     onClick: async () => {
       await requestAccess()
-      setRequested(true)
     }
   }, [
     cond(

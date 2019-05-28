@@ -173,7 +173,7 @@ const WorkspaceCard = pure(({
     } else {
       return h(Clickable, {
         as: 'a',
-        onClick: () => onRequestAccess(),
+        onClick: onRequestAccess,
         style
       }, children)
     }
