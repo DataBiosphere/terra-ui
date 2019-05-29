@@ -36,7 +36,7 @@ const styles = {
     },
     title: {
       marginTop: '1rem',
-      fontSize: 20, color: colors.gray[0]
+      fontSize: 20, color: colors.dark()
     },
     description: {
       marginTop: '1rem',
@@ -55,7 +55,7 @@ const logoBox = ({ src, alt, height }) => div({
     display: 'inline-flex', justifyContent: 'center', alignItems: 'center',
     flex: 'none',
     height: 150, width: 'auto',
-    border: `1px solid ${colors.gray[3]}`, borderRadius: 5,
+    border: `1px solid ${colors.dark(0.55)}`, borderRadius: 5,
     backgroundColor: 'white'
   }
 }, [

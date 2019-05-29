@@ -3,7 +3,7 @@ import * as qs from 'qs'
 import { Fragment } from 'react'
 import { a, div, h, span } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
-import { buttonPrimary, buttonSecondary, Select, spinnerOverlay } from 'src/components/common'
+import { buttonPrimary, Clickable, Select, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
@@ -22,33 +22,19 @@ import ProjectDetail from 'src/pages/billing/Project'
 import validate from 'validate.js'
 
 
-const styles = {
-  tab: isActive => ({
-    display: 'flex', alignItems: 'center', fontSize: 16, height: 50, padding: '0 2rem',
-    fontWeight: 500, overflow: 'hidden', borderBottom: `1px solid ${colors.grayBlue[2]}`, borderRightStyle: 'solid',
-    borderRightWidth: isActive ? 10 : 0, backgroundColor: isActive ? colors.green[7] : colors.white,
-    borderRightColor: isActive ? colors.green[1] : colors.green[0]
-  })
-}
-
 const ProjectTab = ({ project: { projectName, role, creationStatus }, isActive }) => {
   const projectReady = creationStatus === 'Ready'
   const statusIcon = icon(creationStatus === 'Creating' ? 'loadingSpinner' : 'error-standard',
-    { style: { color: colors.green[0], marginRight: '1rem', marginLeft: '0.5rem' } })
+    { style: { color: colors.accent(), marginRight: '1rem', marginLeft: '0.5rem' } })
 
-  return _.includes('Owner', role) && projectReady ? h(Interactive, {
-    as: 'a',
-    style: {
-      ...styles.tab(isActive),
-      color: colors.green[0]
-    },
-    href: `${Nav.getLink('billing')}?${qs.stringify({ selectedName: projectName, type: 'project' })}`,
-    hover: isActive ? {} : { backgroundColor: colors.green[6], color: colors.green[1] }
-  }, [projectName, !projectReady && statusIcon]) : div({
-    style: {
-      ...styles.tab(false), color: colors.gray[0]
-    }
-  }, [projectName, !projectReady && statusIcon])
+  return _.includes('Owner', role) && projectReady ?
+    h(Interactive, {
+      as: 'a',
+      style: { ...Style.navList.item(isActive), color: colors.accent() },
+      href: `${Nav.getLink('billing')}?${qs.stringify({ selectedName: projectName, type: 'project' })}`,
+      hover: Style.navList.itemHover(isActive)
+    }, [projectName, !projectReady && statusIcon]) :
+    div({ style: { ...Style.navList.item(false), color: colors.dark() } }, [projectName, !projectReady && statusIcon])
 }
 
 const billingProjectNameValidator = existing => ({
@@ -114,7 +100,7 @@ const NewBillingProjectModal = ajaxCaller(class NewBillingProjectModal extends C
       billingAccounts && billingAccounts.length === 0 && h(Fragment, [
         `You don't have access to any billing accounts.  `,
         a({
-          style: { color: colors.blue[0], fontWeight: 700 },
+          style: { color: colors.accent(), fontWeight: 700 },
           href: `https://support.terra.bio/hc/en-us/articles/360026182251`,
           ...Utils.newTabLinkProps
         }, ['Learn how to create a billing account.', icon('pop-out', { size: 20, style: { marginLeft: '0.5rem' } })])
@@ -146,11 +132,11 @@ const NewBillingProjectModal = ajaxCaller(class NewBillingProjectModal extends C
           })
         ]),
         !!chosenBillingAccount && !chosenBillingAccount.firecloudHasAccess && div({ style: { fontWeight: 500, fontSize: 12 } }, [
-          div({ style: { color: colors.red[0], margin: '0.25rem 0 0.25rem 0', fontSize: 13 } }, [
+          div({ style: { color: colors.danger(), margin: '0.25rem 0 0.25rem 0', fontSize: 13 } }, [
             'Terra does not have access to this account. To grant access, add ', span({ style: { fontWeight: 'bold' } }, 'terra-billing@terra.bio'),
             ' as a Billing Account User on the ',
             a({
-              style: { color: colors.blue[0], fontWeight: 700 },
+              style: { color: colors.accent(), fontWeight: 700 },
               href: `https://console.cloud.google.com/billing/${chosenBillingAccount.accountName.split('/')[1]}?authuser=${Auth.getUser().email}`,
               ...Utils.newTabLinkProps
             }, ['Google Cloud Console ', icon('pop-out', { size: 12 })])
@@ -160,7 +146,7 @@ const NewBillingProjectModal = ajaxCaller(class NewBillingProjectModal extends C
           //   '2. Click ',
           //   h(Clickable, {
           //     as: 'span',
-          //     style: { color: colors.blue[0], fontWeight: 700 },
+          //     style: { color: colors.accent(), fontWeight: 700 },
           //     onClick: () => {
           //       this.setState({ billingAccounts: undefined })
           //       this.loadBillingAccounts()
@@ -170,7 +156,7 @@ const NewBillingProjectModal = ajaxCaller(class NewBillingProjectModal extends C
           div({ style: { marginTop: '0.5rem' } }, [
             'Need help? ',
             a({
-              style: { color: colors.blue[0], fontWeight: 700 },
+              style: { color: colors.accent(), fontWeight: 700 },
               href: `https://support.terra.bio/hc/en-us/articles/360026182251`,
               ...Utils.newTabLinkProps
             }, ['Click here ', icon('pop-out', { size: 12 })]), ' for more information.'
@@ -245,22 +231,12 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
       ]),
       div({ style: { display: 'flex', flex: 1, position: 'relative' } }, [
         div({ style: { width: 330, boxShadow: '0 2px 5px 0 rgba(0,0,0,0.25)' } }, [
-          div({
-            style: {
-              color: colors.gray[0], backgroundColor: colors.grayBlue[5], fontSize: 16, padding: '1rem 1.5rem',
-              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-              fontWeight: 600, textTransform: 'uppercase', borderBottom: `0.5px solid ${colors.grayBlue[2]}`
-            }
-          }, [
+          div({ style: Style.navList.heading }, [
             'Billing Projects',
-            buttonSecondary({
-              onClick: () => { this.setState({ creatingBillingProject: true }) },
-              style: {
-                borderRadius: 5, backgroundColor: 'white', padding: '0.5rem',
-                boxShadow: Style.standardShadow
-              }
-            },
-            ['New', icon('plus-circle', { size: 21, style: { marginLeft: '0.5rem' } })])
+            h(Clickable,
+              { onClick: () => { this.setState({ creatingBillingProject: true }) } },
+              [icon('plus-circle', { size: 21, style: { color: colors.accent() } })]
+            )
           ]),
           _.map(project => h(ProjectTab, {
             project, key: project.projectName,

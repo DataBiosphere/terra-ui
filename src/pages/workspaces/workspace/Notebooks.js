@@ -1,11 +1,12 @@
 import clipboard from 'clipboard-polyfill/build/clipboard-polyfill'
 import _ from 'lodash/fp'
+import * as qs from 'qs'
 import { createRef, Fragment } from 'react'
 import Dropzone from 'react-dropzone'
 import { a, div, h } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import togglesListView from 'src/components/CardsListToggle'
-import { Clickable, link, MenuButton, menuIcon, PageBox, spinnerOverlay } from 'src/components/common'
+import { Clickable, link, MenuButton, menuIcon, PageBox, Select, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { NotebookCreator, NotebookDeleter, NotebookDuplicator } from 'src/components/notebook-utils'
 import { notify } from 'src/components/Notifications'
@@ -15,7 +16,6 @@ import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
-import * as qs from 'qs'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -43,6 +43,17 @@ const notebookCardCommonStyles = listView => _.merge({ display: 'flex' },
 const printName = name => name.slice(10, -6) // removes 'notebooks/' and the .ipynb suffix
 
 const noWrite = 'You do not have access to modify this workspace.'
+
+const sortTokens = {
+  lowerCaseName: notebook => notebook.name.toLowerCase()
+}
+const defaultSort = { label: 'Most Recently Updated', value: { field: 'updated', direction: 'desc' } }
+const sortOptions = [
+  defaultSort,
+  { label: 'Least Recently Updated', value: { field: 'updated', direction: 'asc' } },
+  { label: 'Alphabetical', value: { field: 'lowerCaseName', direction: 'asc' } },
+  { label: 'Reverse Alphabetical', value: { field: 'lowerCaseName', direction: 'desc' } }
+]
 
 class NotebookCard extends Component {
   render() {
@@ -106,10 +117,10 @@ class NotebookCard extends Component {
       h(Clickable, {
         onClick: e => e.preventDefault(),
         style: {
-          cursor: 'pointer', color: colors.green[0]
+          cursor: 'pointer', color: colors.accent()
         },
         focus: 'hover',
-        hover: { color: colors.green[2] }
+        hover: { color: colors.accent(0.85) }
       }, [
         icon('cardMenuIcon', {
           size: listView ? 18 : 24
@@ -137,7 +148,7 @@ class NotebookCard extends Component {
       notebookMenu,
       title,
       div({ style: { flexGrow: 1 } }),
-      isRecent ? div({ style: { display: 'flex', color: colors.orange[0], marginRight: '2rem' } }, 'Recently Edited') : undefined,
+      isRecent ? div({ style: { display: 'flex', color: colors.warning(), marginRight: '2rem' } }, 'Recently Edited') : undefined,
       h(TooltipTrigger, { content: Utils.makeCompleteDate(updated) }, [
         div({ style: { fontSize: '0.8rem', marginRight: '0.5rem' } },
           `Last edited: ${Utils.makePrettyDate(updated)}`)
@@ -149,9 +160,9 @@ class NotebookCard extends Component {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          borderTop: `solid 1px ${colors.gray[4]}`,
+          borderTop: `solid 1px ${colors.dark(0.4)}`,
           padding: '0.5rem',
-          backgroundColor: colors.grayBlue[5],
+          backgroundColor: colors.light(0.4),
           borderRadius: '0 0 5px 5px'
         }
       }, [
@@ -161,7 +172,7 @@ class NotebookCard extends Component {
             Utils.makePrettyDate(updated)
           ])
         ]),
-        isRecent ? div({ style: { display: 'flex', color: colors.orange[0] } }, 'Recently Edited') : undefined,
+        isRecent ? div({ style: { display: 'flex', color: colors.warning() } }, 'Recently Edited') : undefined,
         notebookMenu
       ])
     ])
@@ -183,6 +194,7 @@ const Notebooks = _.flow(
       copyingNotebookName: undefined,
       deletingNotebookName: undefined,
       exportingNotebookName: undefined,
+      sortOrder: defaultSort.value,
       ...StateHistory.get()
     }
     this.uploader = createRef()
@@ -239,20 +251,23 @@ const Notebooks = _.flow(
   }
 
   renderNotebooks() {
-    const { notebooks } = this.state
+    const { notebooks, sortOrder: { field, direction } } = this.state
     const {
       name: wsName, namespace, listView,
       workspace: { accessLevel, workspace: { bucketName } }
     } = this.props
     const canWrite = Utils.canWrite(accessLevel)
-    const renderedNotebooks = _.map(({ name, updated }) => h(NotebookCard, {
-      key: name,
-      name, updated, listView, bucketName, namespace, wsName, canWrite,
-      onRename: () => this.setState({ renamingNotebookName: name }),
-      onCopy: () => this.setState({ copyingNotebookName: name }),
-      onExport: () => this.setState({ exportingNotebookName: name }),
-      onDelete: () => this.setState({ deletingNotebookName: name })
-    }), notebooks)
+    const renderedNotebooks = _.flow(
+      _.orderBy(sortTokens[field] || field, direction),
+      _.map(({ name, updated }) => h(NotebookCard, {
+        key: name,
+        name, updated, listView, bucketName, namespace, wsName, canWrite,
+        onRename: () => this.setState({ renamingNotebookName: name }),
+        onCopy: () => this.setState({ copyingNotebookName: name }),
+        onExport: () => this.setState({ exportingNotebookName: name }),
+        onDelete: () => this.setState({ deletingNotebookName: name })
+      }))
+    )(notebooks)
 
     return div({
       style: {
@@ -271,7 +286,7 @@ const Notebooks = _.flow(
           style: {
             ...Style.elements.card.container,
             flex: 1,
-            color: colors.green[0]
+            color: colors.accent()
           },
           onClick: () => this.setState({ creating: true }),
           disabled: !canWrite,
@@ -287,7 +302,7 @@ const Notebooks = _.flow(
         h(Clickable, {
           style: {
             ...Style.elements.card.container, flex: 1,
-            backgroundColor: colors.gray[6], border: `1px dashed ${colors.gray[2]}`, boxShadow: 'none'
+            backgroundColor: colors.dark(0.1), border: `1px dashed ${colors.dark(0.7)}`, boxShadow: 'none'
           },
           onClick: () => this.uploader.current.open(),
           disabled: !canWrite,
@@ -308,7 +323,7 @@ const Notebooks = _.flow(
   }
 
   render() {
-    const { loading, saving, notebooks, creating, renamingNotebookName, copyingNotebookName, deletingNotebookName, exportingNotebookName } = this.state
+    const { loading, saving, notebooks, creating, renamingNotebookName, copyingNotebookName, deletingNotebookName, exportingNotebookName, sortOrder } = this.state
     const {
       namespace, viewToggleButtons, workspace,
       workspace: { accessLevel, workspace: { bucketName } }
@@ -320,7 +335,7 @@ const Notebooks = _.flow(
       disabled: !Utils.canWrite(accessLevel),
       disableClick: true,
       style: { flexGrow: 1 },
-      activeStyle: { backgroundColor: colors.green[6], cursor: 'copy' }, // accept and reject don't work in all browsers
+      activeStyle: { backgroundColor: colors.accent(0.2), cursor: 'copy' }, // accept and reject don't work in all browsers
       acceptStyle: { cursor: 'copy' },
       rejectStyle: { cursor: 'no-drop' },
       ref: this.uploader,
@@ -331,6 +346,14 @@ const Notebooks = _.flow(
       notebooks && h(PageBox, [
         div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' } }, [
           div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, ['Notebooks']),
+          div({ style: { marginLeft: 'auto', marginRight: '0.75rem' } }, ['Sort By:']),
+          h(Select, {
+            value: sortOrder,
+            isClearable: false,
+            styles: { container: old => ({ ...old, width: 220, marginRight: '1.10rem' }) },
+            options: sortOptions,
+            onChange: selected => this.setState({ sortOrder: selected.value })
+          }),
           viewToggleButtons,
           creating && h(NotebookCreator, {
             namespace, bucketName, existingNames,
@@ -376,7 +399,7 @@ const Notebooks = _.flow(
 
   componentDidUpdate() {
     StateHistory.update(_.pick(
-      ['clusters', 'cluster', 'notebooks'],
+      ['clusters', 'cluster', 'notebooks', 'sortOrder'],
       this.state)
     )
   }

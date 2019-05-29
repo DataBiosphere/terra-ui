@@ -16,7 +16,7 @@ import { Component } from 'src/libs/wrapped-components'
 
 const styles = {
   header: {
-    fontSize: 22, color: colors.gray[0], fontWeight: 500,
+    fontSize: 22, color: colors.dark(), fontWeight: 500,
     marginBottom: '1rem'
   }
 }
@@ -34,7 +34,7 @@ const makeCard = isGATK => ({ workspace: { namespace, name, attributes: { descri
     }
   }, [
     div({ style: { flex: 1, minWidth: 0, padding: '15px 20px' } }, [
-      div({ style: { color: colors.green[0], fontSize: 16, lineHeight: '20px', height: 40, marginBottom: 7 } }, [name]),
+      div({ style: { color: colors.accent(), fontSize: 16, lineHeight: '20px', height: 40, marginBottom: 7 } }, [name]),
       div({ style: { lineHeight: '20px', height: 100, whiteSpace: 'pre-wrap', overflow: 'hidden' } }, [description])
     ]),
     div({

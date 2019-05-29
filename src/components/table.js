@@ -21,7 +21,7 @@ const paginatorButton = (props, label) => button(_.merge({
   style: {
     margin: '0 2px', padding: '0.25rem 0.5rem',
     border: '1px solid #ccc', borderRadius: 3,
-    color: props.disabled ? colors.gray[2] : colors.green[1], backgroundColor: 'white',
+    color: props.disabled ? colors.dark(0.7) : colors.accent(), backgroundColor: 'white',
     cursor: props.disabled ? 'not-allowed' : 'pointer'
   }
 }, props), label)
@@ -70,9 +70,9 @@ export const paginator = props => {
                 key: num,
                 style: {
                   minWidth: '2rem',
-                  backgroundColor: currentPage === num ? colors.green[1] : undefined,
-                  color: currentPage === num ? 'white' : colors.green[1],
-                  border: currentPage === num ? colors.green[1] : undefined
+                  backgroundColor: currentPage === num ? colors.accent() : undefined,
+                  color: currentPage === num ? 'white' : colors.accent(),
+                  border: currentPage === num ? colors.accent() : undefined
                 }
               },
               getPageItemProps({ pageValue: num, onPageChange: setPageNumber })),
@@ -118,17 +118,17 @@ const cellStyles = {
 const styles = {
   cell: (col, total) => ({
     ...cellStyles,
-    borderBottom: `1px solid ${colors.grayBlue[2]}`,
-    borderLeft: `1px solid ${colors.grayBlue[2]}`,
-    borderRight: col === total - 1 ? `1px solid ${colors.grayBlue[2]}` : undefined
+    borderBottom: `1px solid ${colors.dark(0.2)}`,
+    borderLeft: `1px solid ${colors.dark(0.2)}`,
+    borderRight: col === total - 1 ? `1px solid ${colors.dark(0.2)}` : undefined
   }),
   header: (col, total) => ({
     ...cellStyles,
-    backgroundColor: colors.grayBlue[5],
-    borderTop: `1px solid ${colors.grayBlue[2]}`,
-    borderBottom: `1px solid ${colors.grayBlue[2]}`,
-    borderLeft: `1px solid ${colors.grayBlue[2]}`,
-    borderRight: col === total - 1 ? `1px solid ${colors.grayBlue[2]}` : undefined,
+    backgroundColor: colors.light(0.4),
+    borderTop: `1px solid ${colors.dark(0.2)}`,
+    borderBottom: `1px solid ${colors.dark(0.2)}`,
+    borderLeft: `1px solid ${colors.dark(0.2)}`,
+    borderRight: col === total - 1 ? `1px solid ${colors.dark(0.2)}` : undefined,
     borderTopLeftRadius: col === 0 ? '5px' : undefined,
     borderTopRightRadius: col === total - 1 ? '5px' : undefined
   }),
@@ -142,8 +142,8 @@ const styles = {
   columnSelector: {
     position: 'absolute', top: 0, right: 0, width: 48, height: 48,
     display: 'flex', justifyContent: 'center', alignItems: 'center',
-    color: colors.green[0], backgroundColor: colors.grayBlue[5],
-    border: `1px solid ${colors.grayBlue[2]}`,
+    color: colors.accent(), backgroundColor: colors.light(0.4),
+    border: `1px solid ${colors.dark(0.2)}`,
     borderRadius: 5
   },
   columnName: {
@@ -238,7 +238,7 @@ export class FlexTable extends Component {
             as: 'div',
             className: 'table-row',
             style: { ...data.style, backgroundColor: 'white', display: 'flex', ...styleRow(data.rowIndex) },
-            hover: hoverHighlight ? { backgroundColor: colors.grayBlue[5] } : undefined
+            hover: hoverHighlight ? { backgroundColor: colors.light(0.4) } : undefined
           }, [
             ..._.map(([i, { size, cellRenderer }]) => {
               return div({
@@ -386,14 +386,14 @@ export const SimpleTable = ({ columns, rows }) => {
         key: i,
         as: 'div',
         style: { display: 'flex' }, className: 'table-row',
-        hover: { backgroundColor: colors.grayBlue[5] }
+        hover: { backgroundColor: colors.light(0.4) }
       }, [
         _.map(({ key, size }) => {
           return div({
             key,
             style: {
               ...cellStyles, ...styles.flexCell(size),
-              borderTop: `1px solid ${colors.grayBlue[2]}`
+              borderTop: `1px solid ${colors.dark(0.2)}`
             }
           }, [row[key]])
         }, columns)
@@ -421,7 +421,7 @@ export const Sortable = ({ sort, field, onSort, children }) => {
   }, [
     children,
     sort.field === field && div({
-      style: { color: colors.green[0], marginLeft: 'auto' }
+      style: { color: colors.accent(), marginLeft: 'auto' }
     }, [
       icon(sort.direction === 'asc' ? 'arrow down' : 'arrow')
     ])

@@ -28,7 +28,7 @@ const styles = {
   },
   lightBox: {
     background: 'white',
-    border: `1px solid ${colors.gray[3]}`,
+    border: `1px solid ${colors.dark(0.55)}`,
     boxShadow: Style.standardShadow,
     ...baseToolTip
   }

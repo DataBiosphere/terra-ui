@@ -1,14 +1,16 @@
 import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { Fragment, useState } from 'react'
-import { div, h, input, label, span } from 'react-hyperscript-helpers'
+import { div, h, img, input, label, span } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
 import RSelect from 'react-select'
 import { centeredSpinner, icon } from 'src/components/icons'
 import TooltipTrigger from 'src/components/TooltipTrigger'
+import hexButton from 'src/icons/hex-button.svg'
+import scienceBackground from 'src/images/science-background.jpg'
 import colors from 'src/libs/colors'
-import { getConfig, isFirecloud } from 'src/libs/config'
-import { logo } from 'src/libs/logos'
+import { getConfig, isTerra } from 'src/libs/config'
+import { getAppName } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -38,11 +40,11 @@ export const Clickable = ({ as = 'div', disabled, tooltip, tooltipSide, onClick,
 const linkProps = ({ disabled, variant }) => ({
   as: 'a',
   style: {
-    color: disabled ? colors.gray[2] : variant === 'light' ? colors.lightGreen[2] : colors.green[0],
+    color: disabled ? colors.dark(0.7) : colors.accent(variant === 'light' ? 0.3 : 1.2),
     cursor: disabled ? 'not-allowed' : 'pointer',
     fontWeight: 500
   },
-  hover: disabled ? undefined : { color: variant === 'light' ? colors.lightGreen[3] : colors.green[1] }
+  hover: disabled ? undefined : { color: colors.accent(variant === 'light' ? 0.1 : 1) }
 })
 
 export const link = ({ onClick, href, disabled, variant, ...props }, children) => {
@@ -69,12 +71,12 @@ export const buttonPrimary = ({ disabled, ...props }, children) => {
     disabled,
     style: {
       ...styles.button,
-      border: `1px solid ${disabled ? colors.gray[4] : colors.green[0]}`,
+      border: `1px solid ${disabled ? colors.dark(0.4) : colors.accent(1.2)}`,
       borderRadius: 5, color: 'white', padding: '0.875rem',
-      backgroundColor: disabled ? colors.gray[5] : colors.green[1],
+      backgroundColor: disabled ? colors.dark(0.25) : colors.accent(),
       cursor: disabled ? 'not-allowed' : 'pointer'
     },
-    hover: disabled ? undefined : { backgroundColor: colors.green[2] }
+    hover: disabled ? undefined : { backgroundColor: colors.accent(0.85) }
   }, props), children)
 }
 
@@ -83,23 +85,39 @@ export const buttonSecondary = ({ disabled, ...props }, children) => {
     disabled,
     style: {
       ...styles.button,
-      color: disabled ? colors.gray[2] : colors.green[0],
+      color: disabled ? colors.dark(0.7) : colors.accent(1.2),
       cursor: disabled ? 'not-allowed' : 'pointer'
     },
-    hover: disabled ? undefined : { color: colors.green[1] }
+    hover: disabled ? undefined : { color: colors.accent() }
   }, props), children)
 }
 
 export const buttonOutline = ({ disabled, ...props }, children) => {
   return h(buttonPrimary, _.merge({
     style: {
-      border: `1px solid ${disabled ? colors.gray[4] : colors.green[0]}`,
-      color: colors.green[0],
-      backgroundColor: disabled ? colors.gray[5] : 'white'
+      border: `1px solid ${disabled ? colors.dark(0.4) : colors.accent(1.2)}`,
+      color: colors.accent(1.2),
+      backgroundColor: disabled ? colors.dark(0.25) : 'white'
     },
-    hover: disabled ? undefined : { backgroundColor: colors.green[6] }
+    hover: disabled ? undefined : { backgroundColor: colors.accent(0.1) }
   }, props), children)
 }
+
+export const iconButton = (shape, { disabled, size, iconProps = {}, ...props } = {}) => linkButton(
+  _.merge({
+    as: 'span',
+    disabled,
+    style: {
+      height: size, width: isTerra() ? (size * 0.9) : size,
+      display: 'flex', alignItems: 'center', alignSelf: 'flex-end', justifyContent: 'center',
+      backgroundColor: disabled ? colors.dark(0.15) : colors.accent(),
+      ...(isTerra() ?
+        { maskImage: `url(${hexButton})`, WebkitMaskImage: `url(${hexButton})` } :
+        { borderRadius: '1rem' })
+    }
+  }, props),
+  [icon(shape, _.merge({ style: { color: disabled ? colors.dark() : 'white' } }, iconProps))]
+)
 
 export const tabBar = ({ activeTab, tabNames, refresh = _.noop, getHref }, children = []) => {
   const navTab = currentTab => {
@@ -134,11 +152,11 @@ export const MenuButton = ({ disabled, children, ...props }) => {
     style: {
       display: 'flex', alignItems: 'center',
       fontSize: 12, minWidth: 125, height: '2.25rem',
-      color: disabled ? colors.gray[2] : undefined,
+      color: disabled ? colors.dark(0.7) : undefined,
       padding: '0.875rem',
       cursor: disabled ? 'not-allowed' : 'pointer'
     },
-    hover: !disabled ? { backgroundColor: colors.grayBlue[5], color: colors.green[0] } : undefined
+    hover: !disabled ? { backgroundColor: colors.light(0.4), color: colors.accent() } : undefined
   }, props), [children])
 }
 
@@ -151,10 +169,10 @@ export const Checkbox = ({ checked, onChange, disabled, ...props }) => {
     style: {
       display: 'inline-flex',
       verticalAlign: 'middle',
-      color: disabled ? colors.gray[4] : checked ? colors.green[0] : colors.gray[3]
+      color: disabled ? colors.dark(0.4) : checked ? colors.accent(1.2) : colors.dark(0.55)
     },
-    hover: disabled ? undefined : { color: colors.green[1] },
-    active: disabled ? undefined : { backgroundColor: colors.green[6] },
+    hover: disabled ? undefined : { color: colors.accent() },
+    active: disabled ? undefined : { backgroundColor: colors.accent(0.2) },
     disabled
   }, props), [
     icon(checked ? 'checkSquare' : 'square', { size: 16 })
@@ -168,7 +186,7 @@ export const LabeledCheckbox = ({ checked, onChange, disabled, children, ...prop
       as: 'span',
       style: {
         verticalAlign: 'middle',
-        color: disabled ? colors.gray[2] : undefined,
+        color: disabled ? colors.dark(0.7) : undefined,
         cursor: disabled ? 'default' : 'pointer'
       },
       onClick: () => onChange && !disabled && onChange(!checked),
@@ -216,7 +234,7 @@ export const topSpinnerOverlay = spinnerDefault({ outerStyles: { backgroundColor
 export const comingSoon = span({
   style: {
     margin: '0.5rem', padding: 3, borderRadius: 2,
-    backgroundColor: colors.grayBlue[0], color: colors.gray[0],
+    backgroundColor: colors.dark(0.2), color: colors.dark(),
     fontSize: '75%', textTransform: 'uppercase', fontWeight: 500,
     whiteSpace: 'nowrap', lineHeight: 1
   }
@@ -236,22 +254,22 @@ export const Select = ({ value, options, id, ...props }) => {
     inputId: id,
     theme: base => _.merge(base, {
       colors: {
-        primary: colors.green[0],
-        neutral20: colors.gray[3],
-        neutral30: colors.gray[3]
+        primary: colors.accent(1.2),
+        neutral20: colors.dark(0.55),
+        neutral30: colors.dark(0.55)
       },
       spacing: { controlHeight: 36 }
     }),
     styles: {
       control: (base, { isDisabled }) => _.merge(base, {
-        backgroundColor: isDisabled ? colors.gray[5] : 'white',
+        backgroundColor: isDisabled ? colors.dark(0.25) : 'white',
         boxShadow: 'none'
       }),
-      singleValue: base => ({ ...base, color: colors.gray[0] }),
+      singleValue: base => ({ ...base, color: colors.dark() }),
       option: (base, { isSelected, isFocused, isDisabled }) => _.merge(base, {
-        backgroundColor: isSelected ? colors.grayBlue[5] : isFocused ? colors.grayBlue[3] : undefined,
-        color: isSelected ? colors.green[0] : isDisabled ? undefined : colors.gray[0],
-        ':active': { backgroundColor: isSelected ? colors.green[4] : colors.green[5] }
+        backgroundColor: isSelected ? colors.light(0.4) : isFocused ? colors.dark(0.15) : undefined,
+        color: isSelected ? colors.accent() : isDisabled ? undefined : colors.dark(),
+        ':active': { backgroundColor: colors.accent(isSelected ? 0.55 : 0.4) }
       }),
       clearIndicator: base => ({ ...base, paddingRight: 0 }),
       indicatorSeparator: () => ({ display: 'none' }),
@@ -272,15 +290,15 @@ export const PageBox = ({ children, style = {} }) => {
   }, [children])
 }
 
-export const backgroundLogo = () => logo({
-  size: 1200,
-  style: { position: 'fixed', top: -100, left: -100, zIndex: -1, opacity: 0.65 }
+export const backgroundLogo = () => img({
+  src: scienceBackground,
+  style: { position: 'fixed', top: 0, left: 0, zIndex: -1 }
 })
 
 export const methodLink = config => {
   const { methodRepoMethod: { sourceRepo, methodVersion, methodNamespace, methodName, methodPath } } = config
   return sourceRepo === 'agora' ?
-    `${getConfig().firecloudUrlRoot}/?return=${isFirecloud() ? `firecloud` : `terra`}#methods/${methodNamespace}/${methodName}/${methodVersion}` :
+    `${getConfig().firecloudUrlRoot}/?return=${getAppName().toLowerCase()}#methods/${methodNamespace}/${methodName}/${methodVersion}` :
     `${getConfig().dockstoreUrlRoot}/workflows/${methodPath}`
 }
 
