@@ -3,11 +3,14 @@ version: 2.1
 executors:
   node:
     docker:
-      - image: node:10
-        user: node
+    - image: node:10
+      user: node
   gcloud:
     docker:
-      - image: google/cloud-sdk:alpine
+    - image: google/cloud-sdk:alpine
+  security-scanner:
+    docker:
+    - image: owasp/zap2docker-weekly
 
 commands:
   deploy-env:
@@ -23,133 +26,152 @@ commands:
         type: boolean
         default: false
     steps:
-      - attach_workspace:
-          at: .
-      - run: cp config/<< parameters.env >>.json build/config.json
-      - run: echo "$<< parameters.sa_key_var >>" > /tmp/sa.json
-      - run: gcloud auth activate-service-account --key-file=/tmp/sa.json
-      - when:
-          condition: << parameters.pr >>
-          steps:
-            - deploy:
-                name: Deploy PR
-                command: |
-                  CIRCLE_PR_NUMBER="${CIRCLE_PR_NUMBER:-${CIRCLE_PULL_REQUEST##*/}}"
-                  if [[ ! -z "$CIRCLE_PR_NUMBER" ]]; then
-                    gcloud app deploy --project=bvdp-saturn-<< parameters.env >> \
-                      --version="pr-$(expr "$CIRCLE_PR_NUMBER" % 10)" --no-promote --quiet
-                  fi
-      - unless:
-          condition: << parameters.pr >>
-          steps:
-            - deploy:
-                name: Deploy << parameters.env >>
-                command: gcloud app deploy --project=bvdp-saturn-<< parameters.env >> --promote --quiet
+    - attach_workspace:
+        at: .
+    - run: cp config/<< parameters.env >>.json build/config.json
+    - run: echo "$<< parameters.sa_key_var >>" > /tmp/sa.json
+    - run: gcloud auth activate-service-account --key-file=/tmp/sa.json
+    - when:
+        condition: << parameters.pr >>
+        steps:
+        - deploy:
+            name: Deploy PR
+            command: |
+              CIRCLE_PR_NUMBER="${CIRCLE_PR_NUMBER:-${CIRCLE_PULL_REQUEST##*/}}"
+              if [[ ! -z "$CIRCLE_PR_NUMBER" ]]; then
+                gcloud app deploy --project=bvdp-saturn-<< parameters.env >> \
+                  --version="pr-$(expr "$CIRCLE_PR_NUMBER" % 10)" --no-promote --quiet
+              fi
+    - unless:
+        condition: << parameters.pr >>
+        steps:
+        - deploy:
+            name: Deploy << parameters.env >>
+            command: gcloud app deploy --project=bvdp-saturn-<< parameters.env >> --promote --quiet
 
 jobs:
   test:
     executor: node
     steps:
-      - checkout
-      - restore_cache:
-          keys:
-            - deps2-{{ checksum "package.json" }}-{{ checksum "package-lock.json" }}
-            - deps2-{{ checksum "package.json" }}-
-            - deps2-
-      - run: npx npm@6.9 ci
-      - save_cache:
-          key: deps2-{{ checksum "package.json" }}-{{ checksum "package-lock.json" }}
-          paths:
-            - ~/.npm
-      - run: npm test
+    - checkout
+    - restore_cache:
+        keys:
+        - deps2-{{ checksum "package.json" }}-{{ checksum "package-lock.json" }}
+        - deps2-{{ checksum "package.json" }}-
+        - deps2-
+    - run: npx npm@6.9 ci
+    - save_cache:
+        key: deps2-{{ checksum "package.json" }}-{{ checksum "package-lock.json" }}
+        paths:
+        - ~/.npm
+    - run: npm test
   build:
     executor: node
     steps:
-      - checkout
-      - restore_cache:
-          keys:
-            - deps2-{{ checksum "package.json" }}-{{ checksum "package-lock.json" }}
-            - deps2-{{ checksum "package.json" }}-
-            - deps2-
-      - run: npx npm@6.9 ci
-      - run: npx npm@6.9 run build
-      - run: tar -czf build.tgz .gcloudignore app.yaml build config
-      - store_artifacts:
-          path: build.tgz
-      - persist_to_workspace:
-          root: .
-          paths:
-            - .gcloudignore
-            - app.yaml
-            - build
-            - config
+    - checkout
+    - restore_cache:
+        keys:
+        - deps2-{{ checksum "package.json" }}-{{ checksum "package-lock.json" }}
+        - deps2-{{ checksum "package.json" }}-
+        - deps2-
+    - run: npx npm@6.9 ci
+    - run: npx npm@6.9 run build
+    - run: tar -czf build.tgz .gcloudignore app.yaml build config
+    - store_artifacts:
+        path: build.tgz
+    - persist_to_workspace:
+        root: .
+        paths:
+        - .gcloudignore
+        - app.yaml
+        - build
+        - config
   deploy-pr:
     executor: gcloud
     steps:
-      - deploy-env:
-          pr: true
+    - deploy-env:
+        pr: true
   deploy-dev:
     executor: gcloud
     steps:
-      - deploy-env
+    - deploy-env
   deploy-alpha:
     executor: gcloud
     steps:
-      - deploy-env:
-          sa_key_var: "ALPHA_SA_KEY_JSON"
-          env: "alpha"
+    - deploy-env:
+        sa_key_var: "ALPHA_SA_KEY_JSON"
+        env: "alpha"
   deploy-perf:
     executor: gcloud
     steps:
-      - deploy-env:
-          sa_key_var: "PERF_SA_KEY_JSON"
-          env: "perf"
+    - deploy-env:
+        sa_key_var: "PERF_SA_KEY_JSON"
+        env: "perf"
   deploy-staging:
     executor: gcloud
     steps:
-      - deploy-env:
-          sa_key_var: "STAGING_SA_KEY_JSON"
-          env: "staging"
+    - deploy-env:
+        sa_key_var: "STAGING_SA_KEY_JSON"
+        env: "staging"
+  run-dev-security_scans:
+    executor: security-scanner
+    steps:
+    - run:
+        name: Run Dev Security Scans
+        shell: /bin/bash
+        command: |
+          docker pull owasp/zap2docker-weekly
+          (
+            env="https://bvdp-saturn-dev.appspot.com" &&
+            docker run -t owasp/zap2docker-weekly zap-baseline.py -t ${env};
+            if [ $? -ne 1 ]; then exit 0; else exit 1; fi;
+          )
 
 workflows:
   version: 2
   build-deploy:
     jobs:
-      - test
-      - build
-      - deploy-pr:
-          requires:
-            - test
-            - build
-          filters:
-            branches:
-              ignore:
-                - dev
-      - deploy-dev:
-          requires:
-            - test
-            - build
-          filters:
-            branches:
-              only: dev
-      - deploy-alpha:
-          requires:
-            - test
-            - build
-          filters:
-            branches:
-              only: dev
-      - deploy-perf:
-          requires:
-            - test
-            - build
-          filters:
-            branches:
-              only: dev
-      - deploy-staging:
-          requires:
-            - test
-            - build
-          filters:
-            branches:
-              only: dev
+    - test
+    - build
+    - deploy-pr:
+        requires:
+        - test
+        - build
+        filters:
+          branches:
+            ignore:
+            - dev
+    - deploy-dev:
+        requires:
+        - test
+        - build
+        filters:
+          branches:
+            only: dev
+    - deploy-alpha:
+        requires:
+        - test
+        - build
+        filters:
+          branches:
+            only: dev
+    - deploy-perf:
+        requires:
+        - test
+        - build
+        filters:
+          branches:
+            only: dev
+    - deploy-staging:
+        requires:
+        - test
+        - build
+        filters:
+          branches:
+            only: dev
+  run-security-scans:
+    jobs:
+    - run-dev-security_scans:
+        filters:
+          branches:
+            only: dev
