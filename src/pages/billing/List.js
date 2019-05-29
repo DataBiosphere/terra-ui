@@ -222,7 +222,7 @@ export const BillingList = _.flow(
     const { billingProjects, isBusy, creatingBillingProject } = this.state
     const { queryParams: { selectedName }, authState: { profile } } = this.props
     const { trialState } = profile
-    const hasFreeCredits = true//trialState === 'Enabled'
+    const hasFreeCredits = trialState === 'Enabled'
     const breadcrumbs = `Billing > Billing Project`
     return h(Fragment, [
       h(TopBar, { title: 'Billing', href: Nav.getLink('billing') }, [
@@ -250,9 +250,10 @@ export const BillingList = _.flow(
             )
           ]),
           hasFreeCredits && h(Clickable, {
-            style: { ...style.navList.heading, backgroundColor: colors.accent() },
+            style: { ...style.navList.heading, color: colors.light(), backgroundColor: colors.accent() },
+            hover: { backgroundColor: colors.accent(0.85) },
             onClick: () => freeCreditsActive.set(true)
-          }, ['Enroll in Free Credits']),
+          }, ['Click for $300 free credits']),
           _.map(project => h(ProjectTab, {
             project, key: project.projectName,
             isActive: !!selectedName && project.projectName === selectedName
