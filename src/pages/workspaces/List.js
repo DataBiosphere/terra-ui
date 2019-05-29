@@ -19,6 +19,7 @@ import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
+import { noWrapEllipsis } from 'src/libs/style'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
@@ -67,12 +68,12 @@ const styles = {
   },
   longTitle: {
     ...Style.elements.card.title,
-    whiteSpace: 'nowrap', textOverflow: 'ellipsis', flex: 1
+    ...Style.noWrapEllipsis, flex: 1
   },
   longDescription: {
     flex: 1,
     paddingRight: '1rem',
-    whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'
+    ...Style.noWrapEllipsis
   },
   badge: {
     height: '1.5rem', width: '1.5rem', borderRadius: '1.5rem',

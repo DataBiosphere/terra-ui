@@ -240,12 +240,7 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
           }
         }, [
           div(breadcrumbs),
-          div({
-            style: {
-              textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-              fontSize: '1.25rem', overflowX: 'hidden'
-            }
-          }, [selectedName])
+          div({ style: Style.breadcrumb.textUnderBreadcrumb }, [selectedName])
         ])
       ]),
       div({ style: { display: 'flex', flex: 1, position: 'relative' } }, [

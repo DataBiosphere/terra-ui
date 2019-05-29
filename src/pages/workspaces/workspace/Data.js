@@ -23,6 +23,7 @@ import { getConfig } from 'src/libs/config'
 import { EntityDeleter, EntityUploader, ReferenceDataDeleter, ReferenceDataImporter, renderDataCell } from 'src/libs/data-utils'
 import { withErrorReporting } from 'src/libs/error'
 import * as StateHistory from 'src/libs/state-history'
+import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
@@ -62,7 +63,7 @@ const DataTypeButton = ({ selected, children, iconName = 'listAlt', iconSize = 1
     div({ style: { flex: 'none', display: 'flex', width: '1.5rem' } }, [
       icon(iconName, { size: iconSize })
     ]),
-    div({ style: { flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' } }, [
+    div({ style: { flex: 1, ...Style.noWrapEllipsis } }, [
       children
     ])
   ])

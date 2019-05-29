@@ -22,6 +22,7 @@ import colors from 'src/libs/colors'
 import { reportError, withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
+import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 import DataStepContent from 'src/pages/workspaces/workspace/tools/DataStepContent'
@@ -280,8 +281,8 @@ class TextCollapse extends Component {
             { style: styles.angle, size: 21 }),
           div({
             style: {
-              width: '100%', overflow: isOpened ? 'visible' : 'hidden',
-              whiteSpace: isOpened ? 'normal' : 'nowrap', textOverflow: 'ellipsis'
+              width: '100%',
+              ...(isOpened ? {} : Style.noWrapEllipsis)
             }
           }, [children])
         ])

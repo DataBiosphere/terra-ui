@@ -19,6 +19,7 @@ import { getConfig, isFirecloud } from 'src/libs/config'
 import { reportError, withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import { authStore, contactUsActive, freeCreditsActive } from 'src/libs/state'
+import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 import { CookiesModal } from 'src/pages/SignIn'
@@ -417,7 +418,7 @@ export default _.flow(
           div({ style: styles.nav.icon }, [
             profilePic({ size: 32 })
           ]),
-          div({ style: { whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' } }, [
+          div({ style: Style.noWrapEllipsis }, [
             `${firstName} ${lastName}`
           ]),
           div({ style: { flexGrow: 1 } }),

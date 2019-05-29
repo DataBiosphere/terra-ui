@@ -15,6 +15,7 @@ import { bucketBrowserUrl } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
+import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 import { SubmissionQueueStatus } from 'src/pages/workspaces/workspace/SubmissionQueueStatus'
@@ -175,13 +176,13 @@ const JobHistory = _.flow(
                     },
                     href: Nav.getLink('workspace-submission-details', { namespace, name, submissionId })
                   }, [
-                    div({ style: { overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' } }, [
+                    div({ style: Style.noWrapEllipsis }, [
                       methodConfigurationNamespace !== namespace && span({ style: styles.deemphasized }, [
                         `${methodConfigurationNamespace}/`
                       ]),
                       methodConfigurationName
                     ]),
-                    div({ style: { overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' } }, [
+                    div({ style: Style.noWrapEllipsis }, [
                       span({ style: styles.deemphasized }, 'Submitted by '),
                       submitter
                     ])

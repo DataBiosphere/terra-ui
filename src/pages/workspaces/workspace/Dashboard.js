@@ -5,7 +5,7 @@ import { Fragment } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import SimpleMDE from 'react-simplemde-editor'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { buttonPrimary, buttonSecondary, Clickable, link, linkButton, spinnerOverlay } from 'src/components/common'
+import { buttonPrimary, buttonSecondary, link, linkButton, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { Markdown } from 'src/components/Markdown'
 import { SimpleTable } from 'src/components/table'
@@ -44,7 +44,7 @@ const styles = {
   authDomain: {
     padding: '0.5rem 0.25rem', marginBottom: '0.25rem',
     backgroundColor: colors.grayBlue[3],
-    whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'
+    ...Style.noWrapEllipsis
   },
   label: {
     ...Style.elements.sectionHeader,
@@ -253,21 +253,19 @@ export const WorkspaceDashboard = _.flow(
         ]),
         div({ style: { margin: '1.5rem 0 1rem 0', borderBottom: `1px solid ${colors.gray[3]}` } }),
         div({ style: { fontSize: '1rem', fontWeight: 500, marginBottom: '0.5rem' } }, [
-          'Google Bucket',
-          h(Clickable, {
-            as: 'span',
-            style: { margin: '0 0.5rem', color: colors.green[0] },
-            tooltip: 'Copy bucket to clipboard',
-            onClick: async () => {
-              try {
-                await clipboard.writeText(bucketName)
-                this.setState({ bucketCopied: true }, () => {
-                  setTimeout(() => this.setState({ bucketCopied: undefined }), 1500)
-                })
-              } catch (error) {
-                reportError('Error copying to clipboard', error)
-              }
-            }
+          'Google Bucket'
+        ]),
+        div({ style: { display: 'flex' } }, [
+          div({ style: Style.noWrapEllipsis  }, [bucketName]),
+          linkButton({
+            style: { margin: '0 0.5rem', flexShrink: 0 },
+            tooltip: 'Copy bucket name',
+            onClick: withErrorReporting('Error copying to clipboard', async () => {
+              await clipboard.writeText(bucketName)
+              this.setState({ bucketCopied: true }, () => {
+                setTimeout(() => this.setState({ bucketCopied: undefined }), 1500)
+              })
+            })
           }, [icon(bucketCopied ? 'check' : 'copy-to-clipboard')])
         ]),
         link({

@@ -62,7 +62,7 @@ const styles = {
   },
   longMethodVersion: {
     marginRight: '1rem', width: 90,
-    whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'
+    ...Style.noWrapEllipsis
   },
   longCard: {
     width: '100%', minWidth: 0,
@@ -70,12 +70,12 @@ const styles = {
   },
   longTitle: {
     ...Style.elements.card.title,
-    whiteSpace: 'nowrap', textOverflow: 'ellipsis', flex: 1
+    ...Style.noWrapEllipsis, flex: 1
   },
   longDescription: {
     flex: 1,
     paddingRight: '1rem',
-    whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'
+    ...Style.noWrapEllipsis
   }
 }
 
