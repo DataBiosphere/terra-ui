@@ -223,7 +223,7 @@ const JobHistory = _.flow(
                     status, submissionEntity
                   } = filteredSubmissions[rowIndex]
                   return h(Fragment, [
-                    (collapsedStatuses(workflowStatuses).running && status !== 'Aborting') && buttonPrimary({
+                    (!isTerminal(status) && status !== 'Aborting') && buttonPrimary({
                       onClick: () => this.setState({ aborting: submissionId })
                     }, ['Abort workflows']),
                     isTerminal(status) && (workflowStatuses['Failed'] || workflowStatuses['Aborted']) &&
