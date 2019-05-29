@@ -125,7 +125,7 @@ const MachineSelector = ({ machineType, onChangeMachineType, diskSize, onChangeD
           diskSize :
           h(IntegerInput, {
             style: styles.smallInput,
-            min: 100,
+            min: 10,
             max: 64000,
             value: diskSize,
             onChange: onChangeDiskSize
