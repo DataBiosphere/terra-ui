@@ -1,9 +1,10 @@
 import clipboard from 'clipboard-polyfill'
-import 'easymde/dist/easymde.min.css'
 import debouncePromise from 'debounce-promise'
+import 'easymde/dist/easymde.min.css'
 import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
+import AsyncCreatableSelect from 'react-select/lib/AsyncCreatable'
 import SimpleMDE from 'react-simplemde-editor'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { buttonPrimary, buttonSecondary, link, linkButton, spinnerOverlay } from 'src/components/common'
@@ -23,7 +24,6 @@ import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
-import AsyncCreatableSelect from 'react-select/lib/AsyncCreatable'
 
 
 const styles = {
@@ -331,7 +331,7 @@ export const WorkspaceDashboard = _.flow(
           'Google Bucket'
         ]),
         div({ style: { display: 'flex' } }, [
-          div({ style: Style.noWrapEllipsis  }, [bucketName]),
+          div({ style: Style.noWrapEllipsis }, [bucketName]),
           linkButton({
             style: { margin: '0 0.5rem', flexShrink: 0 },
             tooltip: 'Copy bucket name',
