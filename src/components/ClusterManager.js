@@ -207,12 +207,15 @@ export class NewClusterModal extends PureComponent {
   }
 
   createCluster() {
-    const { namespace, onSuccess } = this.props
+    const { namespace, onSuccess, currentCluster } = this.props
     const { jupyterUserScriptUri } = this.state
-    onSuccess(Ajax().Jupyter.cluster(namespace, Utils.generateClusterName()).create({
-      machineConfig: this.getMachineConfig(),
-      ...(jupyterUserScriptUri ? { jupyterUserScriptUri } : {})
-    }))
+    onSuccess(Promise.all([
+      Ajax().Jupyter.cluster(namespace, Utils.generateClusterName()).create({
+        machineConfig: this.getMachineConfig(),
+        ...(jupyterUserScriptUri ? { jupyterUserScriptUri } : {})
+      }),
+      currentCluster && currentCluster.status === 'Error' && Ajax().Jupyter.cluster(currentCluster.googleProject, currentCluster.clusterName).delete()
+    ]))
   }
 
   render() {
@@ -516,7 +519,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
   }
 
   render() {
-    const { namespace, name, clusters, canCompute, ajax: { Jupyter } } = this.props
+    const { namespace, name, clusters, canCompute } = this.props
     const { busy, createModalOpen, deleteModalOpen, errorModalOpen, pendingNav } = this.state
     if (!clusters) {
       return null
@@ -634,14 +637,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
         onCancel: () => this.setState({ createModalOpen: false }),
         onSuccess: promise => {
           this.setState({ createModalOpen: false })
-          const doCreate = async () => {
-            if (currentCluster.status === 'Error') {
-              const { googleProject, clusterName } = this.getCurrentCluster()
-              await Jupyter.cluster(googleProject, clusterName).delete()
-            }
-            return promise
-          }
-          this.executeAndRefresh(doCreate())
+          this.executeAndRefresh(promise)
         }
       }),
       errorModalOpen && h(ClusterErrorModal, {
