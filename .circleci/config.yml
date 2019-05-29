@@ -113,7 +113,7 @@ jobs:
     - deploy-env:
         sa_key_var: "STAGING_SA_KEY_JSON"
         env: "staging"
-  run-dev-security_scans:
+  run-dev-security-scans:
     executor: security-scanner
     steps:
     - run:
