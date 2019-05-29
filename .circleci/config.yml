@@ -171,7 +171,7 @@ workflows:
             only: dev
   run-security-scans:
     jobs:
-    - run-dev-security_scans:
+    - run-dev-security-scans:
         filters:
           branches:
             only: dev
