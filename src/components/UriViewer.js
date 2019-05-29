@@ -87,8 +87,8 @@ const UriViewer = ajaxCaller(class UriViewer extends Component {
   render() {
     const { uri, onDismiss } = this.props
     const { metadata, preview, signedUrl, price, copied, loadingError } = this.state
-    const { size, timeCreated, updated, bucket, name, gsUri } = metadata || {}
-    const gsutilCommand = `gsutil cp ${gsUri || uri} .`
+    const { size, timeCreated, updated, name, gsUri = uri } = metadata || {}
+    const gsutilCommand = `gsutil cp ${gsUri} .`
 
     return h(Modal, {
       onDismiss,
@@ -139,7 +139,7 @@ const UriViewer = ajaxCaller(class UriViewer extends Component {
           els.cell([
             link({
               ...Utils.newTabLinkProps,
-              href: bucketBrowserUrl(bucket)
+              href: bucketBrowserUrl(gsUri.match(/gs:\/\/(.+)\//)[1])
             }, ['View this file in the Google Cloud Storage Browser'])
           ]),
           els.cell([

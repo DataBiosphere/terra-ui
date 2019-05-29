@@ -325,7 +325,6 @@ export const useGetter = value => {
 
 export const trimClustersOldestFirst = _.flow(
   _.remove({ status: 'Deleting' }),
-  _.remove({ status: 'Error' }),
   _.sortBy('createdDate')
 )
 
