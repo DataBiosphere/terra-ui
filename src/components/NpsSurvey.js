@@ -67,7 +67,6 @@ export const NpsSurvey = Utils.connectAtom(authStore, 'authState')(class NpsSurv
       this.setState({ requestable: false })
       Ajax().User.postNpsResponse(shouldSubmit ? { score, reasonComment, changeComment } : {})
     }
-    const longAppName = getAppName().length > 6
 
     const scoreRadios = _.map(i => {
       const isSelected = i === score
@@ -110,7 +109,8 @@ export const NpsSurvey = Utils.connectAtom(authStore, 'authState')(class NpsSurv
         onClick: () => this.setState({ expanded: true }),
         disabled: expanded,
         style: {
-          height: expanded ? (longAppName ? 345 : 325) : (longAppName ? 120 : 100),
+          display: 'flex', flexDirection: 'column', justifyContent: 'space-evenly',
+          height: expanded ? 345 : 120,
           width: expanded ? 405 : 255,
           padding: '1rem 1.5rem 1rem 1rem',
           overflow: 'hidden',
@@ -126,11 +126,11 @@ export const NpsSurvey = Utils.connectAtom(authStore, 'authState')(class NpsSurv
       ] : [
         div({ style: styles.questionLabel }, `How likely are you to recommend ${getAppName()} to others?`),
         div({ style: { display: 'flex', justifyContent: 'space-around', marginBottom: '0.5rem' } }, scoreRadios),
-        span({ style: styles.questionLabel }, 'What was the reason for this score? '),
-        span({ style: { ...styles.questionLabel, color: colors.dark(0.55) } }, '(Optional)'),
+        div({ style: styles.questionLabel }, ['What was the reason for this score? ',
+          span({ style: { ...styles.questionLabel, color: colors.dark(0.55) } }, '(Optional)')]),
         h(TextArea, { style: styles.questionInput, value: reasonComment, onChange: v => this.setState({ reasonComment: v }) }),
-        span({ style: styles.questionLabel }, 'What could we change? '),
-        span({ style: { ...styles.questionLabel, color: colors.dark(0.55) } }, '(Optional)'),
+        div({ style: styles.questionLabel }, ['What could we change? ',
+          span({ style: { ...styles.questionLabel, color: colors.dark(0.55) } }, '(Optional)')]),
         h(TextArea, { style: styles.questionInput, value: changeComment, onChange: v => this.setState({ changeComment: v }) }),
         div({ style: { display: 'flex', justifyContent: 'flex-end' } }, [
           buttonSecondary({
