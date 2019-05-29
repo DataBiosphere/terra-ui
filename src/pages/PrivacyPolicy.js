@@ -3,6 +3,8 @@ import { Markdown, newWindowLinkRenderer } from 'src/components/Markdown'
 
 
 const privacyPolicy = `
+If there are any questions about privacy, please email [privacy@broadinstitute.org](mailto:privacy@broadinstitute.org).
+
 We keep your name, email and company so you can use our system.
 
 We place cookies on your browser to make our system faster.

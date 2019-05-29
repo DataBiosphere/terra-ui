@@ -14,6 +14,7 @@ import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
 import { formHint, RequiredFormLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
+import { authStore, freeCreditsActive } from 'src/libs/state'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -186,7 +187,10 @@ const NewBillingProjectModal = ajaxCaller(class NewBillingProjectModal extends C
   })
 })
 
-export const BillingList = ajaxCaller(class BillingList extends Component {
+export const BillingList = _.flow(
+  ajaxCaller,
+  Utils.connectAtom(authStore, 'authState')
+)(class  BillingList extends Component {
   constructor(props) {
     super(props)
     this.state = {
@@ -216,7 +220,9 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
 
   render() {
     const { billingProjects, isBusy, creatingBillingProject } = this.state
-    const { queryParams: { selectedName } } = this.props
+    const { queryParams: { selectedName }, authState: { profile } } = this.props
+    const { trialState } = profile
+    const hasFreeCredits = trialState === 'Enabled'
     const breadcrumbs = `Billing > Billing Project`
     return h(Fragment, [
       h(TopBar, { title: 'Billing', href: Nav.getLink('billing') }, [
@@ -238,6 +244,11 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
               [icon('plus-circle', { size: 21, style: { color: colors.accent() } })]
             )
           ]),
+          hasFreeCredits && h(Clickable, {
+            style: { ...Style.navList.heading, color: colors.light(), backgroundColor: colors.accent() },
+            hover: { backgroundColor: colors.accent(0.85) },
+            onClick: () => freeCreditsActive.set(true)
+          }, ['Click for $300 free credits']),
           _.map(project => h(ProjectTab, {
             project, key: project.projectName,
             isActive: !!selectedName && project.projectName === selectedName

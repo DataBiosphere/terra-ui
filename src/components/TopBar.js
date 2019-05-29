@@ -270,7 +270,6 @@ export default _.flow(
             ]),
             'Your Workspaces'
           ]),
-          div({ style: { margin: '5rem' } }),
           h(DropDownSection, {
             titleIcon: 'library',
             title: 'Terra Library',
@@ -334,6 +333,7 @@ export default _.flow(
               icon('fcIconWhite', { className: 'is-solid', size: 20 })
             ]), 'Use Classic FireCloud'
           ]),
+          div({ style: { borderTop: `1px solid ${colors.dark(0.55)}` } }, []),
           div({
             style: {
               ..._.omit('borderTop', styles.nav.item),
