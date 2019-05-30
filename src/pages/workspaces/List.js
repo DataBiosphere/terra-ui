@@ -329,14 +329,15 @@ export const WorkspaceList = _.flow(
           viewToggleButtons
         ]),
         div({ style: { display: 'flex', marginBottom: '1rem' } }, [
-          div({ style: { ...styles.filter, marginLeft: 'auto' } }, [
+          div({ style: { marginLeft: 'auto', display: 'flex', alignItems: 'center', fontSize: '1rem' } }, ['Filter by']),
+          div({ style: styles.filter }, [
             h(Select, {
               isClearable: true,
               isMulti: true,
               isSearchable: true,
               value: tagsFilter,
               hideSelectedOptions: true,
-              placeholder: 'Filter by tags',
+              placeholder: 'tags',
               onChange: data => this.setState({ tagsFilter: _.map('value', data) }),
               options: tagsList
             })
@@ -346,7 +347,7 @@ export const WorkspaceList = _.flow(
               isClearable: true,
               isMulti: true,
               isSearchable: false,
-              placeholder: 'Filter by access levels',
+              placeholder: 'access levels',
               value: accessLevelsFilter,
               onChange: data => this.setState({ accessLevelsFilter: _.map('value', data) }),
               options: Utils.workspaceAccessLevels,
@@ -357,7 +358,7 @@ export const WorkspaceList = _.flow(
             h(Select, {
               isClearable: true,
               isMulti: false,
-              placeholder: 'Filter by project',
+              placeholder: 'project',
               value: projectsFilter,
               hideSelectedOptions: true,
               onChange: selected => {
@@ -372,7 +373,7 @@ export const WorkspaceList = _.flow(
               isClearable: true,
               isMulti: true,
               isSearchable: false,
-              placeholder: 'Filter by submission status',
+              placeholder: 'submission status',
               value: submissionsFilter,
               hideSelectedOptions: true,
               onChange: data => this.setState({ submissionsFilter: _.map('value', data) }),
