@@ -168,7 +168,7 @@ const SubmissionDetails = _.flow(
         makeSection('Call Caching', [useCallCache ? 'Enabled' : 'Disabled'])
       ])
     ]),
-    div({ style: { display: 'flex', alignItems: 'center', padding: '0 2rem 1rem' } }, [
+    div({ style: { padding: '0 2rem 1rem', display: 'flex', alignItems: 'center' } }, [
       h(DelayedSearchInput, {
         style: { marginRight: '2rem', flexBasis: 300, borderColor: colors.dark(0.55) },
         placeholder: 'Search',

@@ -25,8 +25,7 @@ import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer
 
 const styles = {
   submissionsTable: {
-    padding: '1rem 0',
-    flex: 1
+    padding: '1rem 0', flex: 1
   },
   deemphasized: {
     color: colors.dark(0.7)
