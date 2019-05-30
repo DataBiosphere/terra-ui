@@ -29,13 +29,15 @@ const fa = _.curry((shape, { size, ...props }) => h(FontAwesomeIcon, _.merge({ i
 const custom = _.curry((shape, { size, className = '', ...props }) => h(shape,
   _.merge({ className: `svg-inline--fa ${className}`, style: { height: size, width: size } }, props)))
 
+const rotate = _.curry((rotation, shape, props) => shape(_.merge({ style: { transform: `rotate(${rotation}deg)` } }, props)))
+
 const iconDict = {
-  'angle down': ({ style = {}, ...props }) => custom(angleUp, { style: { transform: 'rotate(180deg)', ...style }, ...props }),
-  'angle left': ({ style = {}, ...props }) => custom(angleUp, { style: { transform: 'rotate(-90deg)', ...style }, ...props }),
-  'angle right': ({ style = {}, ...props }) => custom(angleUp, { style: { transform: 'rotate(90deg)', ...style }, ...props }),
+  'angle down': rotate(180, custom(angleUp)),
+  'angle left': rotate(-90, custom(angleUp)),
+  'angle right': rotate(90, custom(angleUp)),
   'angle up': custom(angleUp),
-  'angle-double left': ({ style = {}, ...props }) => custom(angleDoubleUp, { style: { transform: 'rotate(-90deg)', ...style }, ...props }),
-  'angle-double right': ({ style = {}, ...props }) => custom(angleDoubleUp, { style: { transform: 'rotate(90deg)', ...style }, ...props }),
+  'angle-double left': rotate(-90, custom(angleDoubleUp)),
+  'angle-double right': rotate(90, custom(angleDoubleUp)),
   'ban': fa(faBan),
   'bars': custom(bars),
   'check': fa(faCheck),
