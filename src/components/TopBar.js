@@ -358,9 +358,11 @@ export default _.flow(
         }
       }, [
         icon('bars', {
-          dir: navShown ? 'right' : undefined,
           size: 36,
-          style: { marginRight: '2rem', color: isTerra() ? 'white' : colors.accent(), flex: 'none', cursor: 'pointer' },
+          style: {
+            marginRight: '2rem', color: isTerra() ? 'white' : colors.accent(), flex: 'none', cursor: 'pointer',
+            transform: navShown ? 'rotate(90deg)' : undefined, transition: 'transform 0.1s ease-out'
+          },
           onClick: () => navShown ? this.hideNav() : this.showNav()
         }),
         a({
