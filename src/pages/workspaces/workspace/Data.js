@@ -40,12 +40,12 @@ const styles = {
   },
   dataTypeSelectionPanel: {
     flex: 'none', width: 280, backgroundColor: 'white',
-    boxShadow: '0 2px 5px 0 rgba(0,0,0,0.25)'
+    boxShadow: '0 2px 5px 0 rgba(0,0,0,0.25)', zIndex: 1
   },
   tableViewPanel: {
     position: 'relative',
     overflow: 'hidden',
-    padding: '1rem', width: '100%',
+    padding: '1rem 0', width: '100%',
     flex: 1, display: 'flex', flexDirection: 'column'
   }
 }
@@ -158,7 +158,7 @@ const LocalVariablesContent = ajaxCaller(class LocalVariablesContent extends Com
       ref: this.uploader,
       onDropAccepted: upload
     }, [
-      div({ style: { flex: 'none', display: 'flex', alignItems: 'center', marginBottom: '1rem', justifyContent: 'flex-end' } }, [
+      div({ style: { flex: 'none', display: 'flex', alignItems: 'center', margin: '0 1rem 1rem', justifyContent: 'flex-end' } }, [
         linkButton({ onClick: download }, ['Download TSV']),
         !Utils.editWorkspaceError(workspace) && h(Fragment, [
           div({ style: { whiteSpace: 'pre' } }, ['  |  Drag or click to ']),
@@ -301,7 +301,7 @@ const ReferenceDataContent = ({ workspace: { workspace: { namespace, attributes 
 
   return h(Fragment, [
     h(DelayedSearchInput, {
-      style: { width: 300, marginBottom: '1rem', alignSelf: 'flex-end' },
+      style: { width: 300, margin: '0 1rem 1rem', alignSelf: 'flex-end' },
       placeholder: 'Search',
       onChange: setTextFilter,
       defaultValue: textFilter
@@ -424,8 +424,10 @@ class EntitiesContent extends Component {
     const { selectedEntities } = this.state
 
     const dataExplorerUrl =
-      _.size(selectedEntities) === 1 && _.values(selectedEntities)[0].attributes.data_explorer_url ? _.values(selectedEntities)[0].attributes.data_explorer_url
-        : ''
+      _.size(selectedEntities) === 1 && _.values(selectedEntities)[0].attributes.data_explorer_url ?
+        _.values(selectedEntities)[0].attributes.data_explorer_url
+        :
+        ''
     return h(Fragment, [
       buttonPrimary({
         // Old cohorts (before mid-Apr 2019) don't have data_explorer_url
@@ -476,14 +478,15 @@ class EntitiesContent extends Component {
           setSelected: e => this.setState({ selectedEntities: e })
         },
         childrenBefore: ({ entities, columnSettings }) => div({
-          style: { display: 'flex', alignItems: 'center', flex: 'none' }
+          style: { display: 'flex', alignItems: 'center', flex: 'none', margin: '0 1rem' }
         }, entityKey === 'cohort' && entityMetadata.cohort.attributeNames.includes('data_explorer_url') ? [
           this.renderOpenInDataExplorerButton()
         ] : [
           this.renderDownloadButton(columnSettings),
           this.renderCopyButton(entities, columnSettings),
           this.renderIgvButton()
-        ])
+        ]),
+        childrenAfter: () => div({ style: { width: '1rem' } })
       }),
       !_.isEmpty(selectedEntities) && h(FloatingActionButton, {
         label: 'COPY DATA',
@@ -602,7 +605,7 @@ const BucketContent = ajaxCaller(class BucketContent extends Component {
       h(Dropzone, {
         disabled: !!Utils.editWorkspaceError(workspace),
         disableClick: true,
-        style: { flexGrow: 1, backgroundColor: 'white', border: `1px solid ${colors.dark(0.55)}`, padding: '1rem' },
+        style: { flexGrow: 1, backgroundColor: 'white', border: `1px solid ${colors.dark(0.55)}`, padding: '1rem', margin: '1rem' },
         activeStyle: { backgroundColor: colors.accent(0.2), cursor: 'copy' },
         ref: this.uploader,
         onDropAccepted: files => this.uploadFiles(files)

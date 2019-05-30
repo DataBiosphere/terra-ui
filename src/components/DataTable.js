@@ -62,7 +62,7 @@ export default ajaxCaller(class DataTable extends Component {
       entityType, entityMetadata, workspaceId: { namespace },
       onScroll, initialX, initialY,
       selectionModel,
-      childrenBefore
+      childrenBefore, childrenAfter
     } = this.props
 
     const { loading, entities, filteredCount, totalRowCount, itemsPerPage, pageNumber, sort, columnWidths, columnState, viewData, activeTextFilter } = this.state
@@ -84,7 +84,8 @@ export default ajaxCaller(class DataTable extends Component {
               onChange: v => this.setState({ activeTextFilter: v, pageNumber: 1 }),
               defaultValue: activeTextFilter
             })
-          ])
+          ]),
+          childrenAfter && childrenAfter({ entities, columnSettings })
         ]),
         div({ style: { flex: 1 } }, [
           h(AutoSizer, [
@@ -115,7 +116,7 @@ export default ajaxCaller(class DataTable extends Component {
                           ]),
                           side: 'bottom'
                         }, [
-                          h(Clickable, [icon('caretDown')])
+                          h(Clickable, { style: { marginLeft: '0.5rem' } }, [icon('caretDown')])
                         ])
                       ])
                     } : () => div(),

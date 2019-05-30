@@ -128,8 +128,8 @@ const SubmissionDetails = _.flow(
   /*
    * Page render
    */
-  return _.isEmpty(submission) ? centeredSpinner() : div({ style: { padding: '2rem', flex: 1, display: 'flex', flexDirection: 'column' } }, [
-    div({ style: { display: 'flex' } }, [
+  return _.isEmpty(submission) ? centeredSpinner() : div({ style: { flex: 1, display: 'flex', flexDirection: 'column' } }, [
+    div({ style: { display: 'flex', padding: '2rem' } }, [
       div({ style: { flex: '0 0 200px', marginRight: '2rem', lineHeight: '24px' } }, [
         div({ style: Style.elements.sectionHeader }, 'Workflow Statuses'),
         succeeded && makeStatusLine(successIcon, `Succeeded: ${succeeded.length}`),
@@ -168,7 +168,7 @@ const SubmissionDetails = _.flow(
         makeSection('Call Caching', [useCallCache ? 'Enabled' : 'Disabled'])
       ])
     ]),
-    div({ style: { margin: '1rem 0', display: 'flex', alignItems: 'center' } }, [
+    div({ style: { display: 'flex', alignItems: 'center', padding: '0 2rem 1rem' } }, [
       h(DelayedSearchInput, {
         style: { marginRight: '2rem', flexBasis: 300, borderColor: colors.dark(0.55) },
         placeholder: 'Search',

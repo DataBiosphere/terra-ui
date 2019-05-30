@@ -108,29 +108,25 @@ export const paginator = props => {
   ])
 }
 
-const cellStyles = {
+const cellStyles = (col, total) => ({
   display: 'flex',
   alignItems: 'center',
-  paddingLeft: '1rem',
-  paddingRight: '1rem'
-}
+  paddingLeft: col === 0 ? '1.5rem' : '1rem',
+  paddingRight: col === total - 1 ? '1.5rem' : '1rem'
+})
 
 const styles = {
   cell: (col, total) => ({
-    ...cellStyles,
+    ...cellStyles(col, total),
     borderBottom: `1px solid ${colors.dark(0.2)}`,
-    borderLeft: `1px solid ${colors.dark(0.2)}`,
-    borderRight: col === total - 1 ? `1px solid ${colors.dark(0.2)}` : undefined
+    borderLeft: col === 0 ? undefined : `1px solid ${colors.dark(0.2)}`
   }),
   header: (col, total) => ({
-    ...cellStyles,
+    ...cellStyles(col, total),
     backgroundColor: colors.light(0.4),
     borderTop: `1px solid ${colors.dark(0.2)}`,
     borderBottom: `1px solid ${colors.dark(0.2)}`,
-    borderLeft: `1px solid ${colors.dark(0.2)}`,
-    borderRight: col === total - 1 ? `1px solid ${colors.dark(0.2)}` : undefined,
-    borderTopLeftRadius: col === 0 ? '5px' : undefined,
-    borderTopRightRadius: col === total - 1 ? '5px' : undefined
+    borderLeft: col === 0 ? undefined : `1px solid ${colors.dark(0.2)}`
   }),
   flexCell: ({ basis = 0, grow = 1, shrink = 1, min = 0, max } = {}) => ({
     flexGrow: grow,
@@ -140,11 +136,10 @@ const styles = {
     maxWidth: max
   }),
   columnSelector: {
-    position: 'absolute', top: 0, right: 0, width: 48, height: 48,
+    position: 'absolute', top: 0, right: 0, width: 50, height: 50,
     display: 'flex', justifyContent: 'center', alignItems: 'center',
     color: colors.accent(), backgroundColor: colors.light(0.4),
-    border: `1px solid ${colors.dark(0.2)}`,
-    borderRadius: 5
+    border: `1px solid ${colors.dark(0.2)}`
   },
   columnName: {
     paddingLeft: '0.25rem',
@@ -210,7 +205,7 @@ export class FlexTable extends Component {
       div({
         style: {
           width: width - scrollbarSize,
-          height: 48,
+          height: 50,
           display: 'flex'
         }
       }, [
@@ -224,9 +219,9 @@ export class FlexTable extends Component {
       h(RVGrid, {
         ref: this.body,
         width,
-        height: height - 48,
+        height: height - 50,
         columnWidth: width - scrollbarSize,
-        rowHeight: 48,
+        rowHeight: 50,
         rowCount,
         columnCount: 1,
         onScrollbarPresenceChange: ({ vertical, size }) => {
@@ -318,9 +313,9 @@ export class GridTable extends Component {
           h(RVGrid, {
             ref: this.header,
             width: width - scrollbarSize,
-            height: 48,
+            height: 50,
             columnWidth: ({ index }) => columns[index].width,
-            rowHeight: 48,
+            rowHeight: 50,
             rowCount: 1,
             columnCount: columns.length,
             cellRenderer: data => {
@@ -338,9 +333,9 @@ export class GridTable extends Component {
           h(RVGrid, {
             ref: this.body,
             width,
-            height: height - 48,
+            height: height - 50,
             columnWidth: ({ index }) => columns[index].width,
-            rowHeight: 48,
+            rowHeight: 50,
             rowCount,
             columnCount: columns.length,
             onScrollbarPresenceChange: ({ vertical, size }) => {
@@ -506,7 +501,7 @@ export class ColumnSelector extends Component {
         style: styles.columnSelector,
         tooltip: 'Select columns',
         onClick: () => this.setState({ open: true, modifiedColumnSettings: columnSettings })
-      }, [icon('cog', { size: 20, className: 'is-solid' })]),
+      }, [icon('cog', { size: 25, className: 'is-solid' })]),
       open && h(Modal, {
         title: 'Select columns',
         onDismiss: () => this.setState({ open: false }),

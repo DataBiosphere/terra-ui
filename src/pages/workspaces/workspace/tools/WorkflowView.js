@@ -770,14 +770,14 @@ const WorkflowView = _.flow(
       multiple: false,
       disabled: currentSnapRedacted || !!Utils.editWorkspaceError(workspace),
       disableClick: true,
-      style: { padding: `1rem ${sideMargin}`, flex: 'auto', display: 'flex', flexDirection: 'column' },
+      style: { padding: `1rem ${sideMargin}`, flex: 'auto', display: 'flex', flexDirection: 'column', backgroundColor: colors.dark(0.1) },
       activeStyle: { backgroundColor: colors.accent(0.2), cursor: 'copy' },
       ref: this.uploader,
       onDropRejected: () => reportError('Not a valid inputs file',
         'The selected file is not a json file. To import inputs for this tool, upload a file with a .json extension.'),
       onDropAccepted: files => this.uploadJson(key, files[0])
     }, [
-      div({ style: { flex: 'none', display: 'flex', marginBottom: '0.25rem' } }, [
+      div({ style: { flex: 'none', display: 'flex', marginBottom: '0.5rem' } }, [
         key === 'inputs' && _.some('optional', modifiedInputsOutputs['inputs']) ?
           linkButton({ style: { marginRight: 'auto' }, onClick: () => this.setState({ includeOptionalInputs: !includeOptionalInputs }) },
             [includeOptionalInputs ? 'Hide optional inputs' : 'Show optional inputs']) :

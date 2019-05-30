@@ -25,7 +25,8 @@ import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer
 
 const styles = {
   submissionsTable: {
-    padding: '1rem', flex: 1
+    padding: '1rem 0',
+    flex: 1
   },
   deemphasized: {
     color: colors.dark(0.7)
@@ -170,7 +171,8 @@ const JobHistory = _.flow(
                     hover: { backgroundColor: Utils.cond([!!failed, colors.danger(0.2)], [!!running, colors.accent(0.2)], colors.success(0.2)) },
                     style: {
                       flex: 1, alignSelf: 'stretch', display: 'flex', flexDirection: 'column', justifyContent: 'center',
-                      margin: '0 -1rem', padding: '0 1rem', minWidth: 0,
+                      marginLeft: '-1.5rem', marginRight: '-1rem',
+                      paddingLeft: '1.5rem', paddingRight: '1rem', minWidth: 0,
                       color: 'unset', fontWeight: 500,
                       backgroundColor: Utils.cond([!!failed, colors.danger(0.1)], [!!running, colors.accent(0.1)], colors.success(0.1))
                     },
