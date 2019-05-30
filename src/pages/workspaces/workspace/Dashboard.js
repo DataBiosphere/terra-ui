@@ -4,10 +4,9 @@ import 'easymde/dist/easymde.min.css'
 import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
-import AsyncCreatableSelect from 'react-select/lib/AsyncCreatable'
 import SimpleMDE from 'react-simplemde-editor'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { buttonPrimary, buttonSecondary, link, linkButton, spinnerOverlay } from 'src/components/common'
+import { AsyncCreatableSelect, buttonPrimary, buttonSecondary, link, linkButton, spinnerOverlay } from 'src/components/common'
 import { icon, spinner } from 'src/components/icons'
 import { Markdown } from 'src/components/Markdown'
 import { InfoBox } from 'src/components/PopupTrigger'
@@ -297,7 +296,6 @@ export const WorkspaceDashboard = _.flow(
             allowCreateWhileLoading: true,
             placeholder: 'Add a tag',
             onChange: ({ value }) => this.addTag(value),
-            styles: { option: base => ({ ...base, wordWrap: 'break-word' }) },
             loadOptions: this.getTagSuggestions
           })
         ]),

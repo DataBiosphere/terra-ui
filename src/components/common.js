@@ -4,6 +4,7 @@ import { Fragment, useState } from 'react'
 import { div, h, img, input, label, span } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
 import RSelect from 'react-select'
+import RAsyncCreatableSelect from 'react-select/lib/AsyncCreatable'
 import { centeredSpinner, icon } from 'src/components/icons'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import hexButton from 'src/icons/hex-button.svg'
@@ -240,6 +241,35 @@ export const comingSoon = span({
   }
 }, ['coming soon'])
 
+const commonSelectProps = {
+  theme: base => _.merge(base, {
+    colors: {
+      primary: colors.accent(1.2),
+      neutral20: colors.dark(0.55),
+      neutral30: colors.dark(0.55)
+    },
+    spacing: { controlHeight: 36 }
+  }),
+  styles: {
+    control: (base, { isDisabled }) => _.merge(base, {
+      backgroundColor: isDisabled ? colors.dark(0.25) : 'white',
+      boxShadow: 'none'
+    }),
+    singleValue: base => ({ ...base, color: colors.dark() }),
+    option: (base, { isSelected, isFocused, isDisabled }) => _.merge(base, {
+      overflowWrap: 'break-word',
+      backgroundColor: isSelected ? colors.light(0.4) : isFocused ? colors.dark(0.15) : undefined,
+      color: isSelected ? colors.accent() : isDisabled ? undefined : colors.dark(),
+      ':active': { backgroundColor: colors.accent(isSelected ? 0.55 : 0.4) }
+    }),
+    clearIndicator: base => ({ ...base, paddingRight: 0 }),
+    indicatorSeparator: () => ({ display: 'none' }),
+    dropdownIndicator: (base, { selectProps: { isClearable } }) => _.merge(base, { paddingLeft: isClearable ? 0 : undefined }),
+    multiValueLabel: base => ({ ...base, maxWidth: '100%' }),
+    multiValueRemove: base => _.merge(base, { ':hover': { backgroundColor: 'unset' } })
+  }
+}
+
 /**
  * @param {Object} props - see {@link https://react-select.com/props#select-props}
  * @param props.value - a member of options
@@ -252,34 +282,15 @@ export const Select = ({ value, options, id, ...props }) => {
 
   return h(RSelect, _.merge({
     inputId: id,
-    theme: base => _.merge(base, {
-      colors: {
-        primary: colors.accent(1.2),
-        neutral20: colors.dark(0.55),
-        neutral30: colors.dark(0.55)
-      },
-      spacing: { controlHeight: 36 }
-    }),
-    styles: {
-      control: (base, { isDisabled }) => _.merge(base, {
-        backgroundColor: isDisabled ? colors.dark(0.25) : 'white',
-        boxShadow: 'none'
-      }),
-      singleValue: base => ({ ...base, color: colors.dark() }),
-      option: (base, { isSelected, isFocused, isDisabled }) => _.merge(base, {
-        backgroundColor: isSelected ? colors.light(0.4) : isFocused ? colors.dark(0.15) : undefined,
-        color: isSelected ? colors.accent() : isDisabled ? undefined : colors.dark(),
-        ':active': { backgroundColor: colors.accent(isSelected ? 0.55 : 0.4) }
-      }),
-      clearIndicator: base => ({ ...base, paddingRight: 0 }),
-      indicatorSeparator: () => ({ display: 'none' }),
-      dropdownIndicator: base => _.merge(base, { paddingLeft: props.isClearable ? 0 : undefined }),
-      multiValueRemove: base => _.merge(base, { ':hover': { backgroundColor: 'unset' } })
-    },
+    ...commonSelectProps,
     getOptionLabel: ({ value, label }) => label || value.toString(),
     value: newValue || null, // need null instead of undefined to clear the select
     options: newOptions
   }, props))
+}
+
+export const AsyncCreatableSelect = props => {
+  return h(RAsyncCreatableSelect, _.merge(commonSelectProps, props))
 }
 
 export const PageBox = ({ children, style = {} }) => {

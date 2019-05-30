@@ -1,3 +1,4 @@
+import debouncePromise from 'debounce-promise'
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { a, div, h, span } from 'react-hyperscript-helpers'
@@ -5,7 +6,7 @@ import { pure } from 'recompose'
 import removeMd from 'remove-markdown'
 import togglesListView from 'src/components/CardsListToggle'
 import {
-  Clickable, LabeledCheckbox, linkButton, MenuButton, menuIcon, PageBox, Select, topSpinnerOverlay, transparentSpinnerOverlay
+  AsyncCreatableSelect, Clickable, LabeledCheckbox, linkButton, MenuButton, menuIcon, PageBox, Select, topSpinnerOverlay, transparentSpinnerOverlay
 } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { DelayedSearchInput } from 'src/components/input'
@@ -252,7 +253,6 @@ export const WorkspaceList = _.flow(
       submissionsFilter: [],
       includePublic: false,
       tagsFilter: [],
-      tagsList: [],
       ...StateHistory.get()
     }
   }
@@ -262,15 +262,20 @@ export const WorkspaceList = _.flow(
     return _.find({ workspace: { workspaceId: id } }, workspaces)
   }
 
-  async componentDidMount() {
+  getTagSuggestions = debouncePromise(withErrorReporting('Error loading tags', async text => {
     const { ajax: { Workspaces } } = this.props
-    const allTags = await Workspaces.getTags()
-    this.setState({ tagsList: _.map('tag', allTags) })
-  }
+    if (text.length > 2) {
+      return _.map(({ tag, count }) => {
+        return { value: tag, label: `${tag} (${count})` }
+      }, _.take(10, await Workspaces.getTags(text)))
+    } else {
+      return []
+    }
+  }), 250)
 
   render() {
     const { workspaces, loadingWorkspaces, refreshWorkspaces, listView, viewToggleButtons } = this.props
-    const { filter, creatingNewWorkspace, cloningWorkspaceId, deletingWorkspaceId, sharingWorkspaceId, requestingAccessWorkspaceId, accessLevelsFilter, projectsFilter, submissionsFilter, tagsFilter, tagsList, includePublic } = this.state
+    const { filter, creatingNewWorkspace, cloningWorkspaceId, deletingWorkspaceId, sharingWorkspaceId, requestingAccessWorkspaceId, accessLevelsFilter, projectsFilter, submissionsFilter, tagsFilter, includePublic } = this.state
     const initialFiltered = _.filter(ws => {
       const { workspace: { namespace, name } } = ws
       return Utils.textMatch(filter, `${namespace}/${name}`) && (includePublic || !ws.public || Utils.canWrite(ws.accessLevel))
@@ -331,15 +336,16 @@ export const WorkspaceList = _.flow(
         div({ style: { display: 'flex', marginBottom: '1rem' } }, [
           div({ style: { display: 'flex', alignItems: 'center', fontSize: '1rem' } }, ['Filter by']),
           div({ style: styles.filter }, [
-            h(Select, {
+            h(AsyncCreatableSelect, {
               isClearable: true,
               isMulti: true,
-              isSearchable: true,
-              value: tagsFilter,
-              hideSelectedOptions: true,
+              noOptionsMessage: () => 'Enter at least 3 characters to search',
+              formatCreateLabel: _.identity,
+              allowCreateWhileLoading: true,
+              value: _.map(tag => ({ label: tag, value: tag }), tagsFilter),
               placeholder: 'Tags',
               onChange: data => this.setState({ tagsFilter: _.map('value', data) }),
-              options: tagsList
+              loadOptions: this.getTagSuggestions
             })
           ]),
           div({ style: { ...styles.filter, flexBasis: '250px', minWidth: 0 } }, [
