@@ -12,6 +12,7 @@ import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import colors from 'src/libs/colors'
+import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 
@@ -148,7 +149,7 @@ const styles = {
   columnName: {
     paddingLeft: '0.25rem',
     flex: 1, display: 'flex', alignItems: 'center',
-    whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'
+    ...Style.noWrapEllipsis
   },
   columnHandle: {
     paddingRight: '0.25rem', cursor: 'move',
@@ -402,9 +403,7 @@ export const SimpleTable = ({ columns, rows }) => {
 }
 
 export const TextCell = props => {
-  return div(_.merge({
-    style: { overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }
-  }, props))
+  return div(_.merge({ style: Style.noWrapEllipsis }, props))
 }
 
 export const TooltipCell = ({ children, tooltip, ...props }) => h(TooltipTrigger, {

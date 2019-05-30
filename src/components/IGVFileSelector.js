@@ -1,4 +1,5 @@
 import _ from 'lodash/fp'
+import * as Style from 'src/libs/style'
 import { Component } from 'src/libs/wrapped-components'
 import { div, h } from 'react-hyperscript-helpers'
 import Modal from 'src/components/Modal'
@@ -10,7 +11,7 @@ const styles = {
   columnName: {
     paddingLeft: '0.25rem',
     flex: 1, display: 'flex', alignItems: 'center',
-    whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'
+    ...Style.noWrapEllipsis
   }
 }
 

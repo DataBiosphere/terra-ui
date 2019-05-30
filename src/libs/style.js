@@ -9,6 +9,8 @@ export const standardLine = `1px solid ${colors.dark(0.7)}`
 
 export const proportionalNumbers = { fontVariantNumeric: 'proportional-nums', fontFeatureSettings: 'initial' }
 
+export const noWrapEllipsis = { whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }
+
 export const elements = {
   card: {
     title: { color: colors.accent(), fontSize: 16, overflow: 'hidden' },
@@ -66,7 +68,7 @@ export const cardList = {
   },
   longTitle: {
     ...elements.card.title,
-    whiteSpace: 'nowrap', textOverflow: 'ellipsis'
+    ...noWrapEllipsis
   },
   toolbarContainer: {
     flex: 'none', display: 'flex', alignItems: 'flex-end'
@@ -96,6 +98,6 @@ export const breadcrumb = {
   },
   textUnderBreadcrumb: {
     color: isTerra() ? 'white' : colors.accent(),
-    fontSize: '1.25rem', overflowX: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'
+    fontSize: '1.25rem', ...noWrapEllipsis
   }
 }
