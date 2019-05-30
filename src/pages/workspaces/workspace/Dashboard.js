@@ -284,7 +284,7 @@ export const WorkspaceDashboard = _.flow(
         ]),
         div({ style: styles.header }, [
           'Tags',
-          h(InfoBox, { style: { margin: '-0.1rem 0 0 0.25rem' } }, [
+          h(InfoBox, { style: { marginLeft: '0.25rem' } }, [
             `${getAppName()} is not intended to host personally identifiable information. Do not use any patient identifier including name,
           social security number, or medical record number.`
           ])
@@ -307,7 +307,7 @@ export const WorkspaceDashboard = _.flow(
               linkButton({
                 tooltip: 'Remove tag',
                 onClick: () => this.deleteTag(tag),
-                style: { marginLeft: '0.25rem' }
+                style: { marginLeft: '0.25rem', verticalAlign: 'middle', display: 'inline-block' }
               }, [icon('times', { size: 18 })])
             ])
           }, tagsList),

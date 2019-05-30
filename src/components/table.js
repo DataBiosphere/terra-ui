@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
 import { createRef, Fragment } from 'react'
-import DraggableCore from 'react-draggable'
+import Draggable from 'react-draggable'
 import { button, div, h, option, select } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
 import Pagination from 'react-paginating'
@@ -422,10 +422,10 @@ export const Sortable = ({ sort, field, onSort, children }) => {
     onClick: () => onSort(Utils.nextSort(sort, field))
   }, [
     children,
-    div({
+    sort.field === field && div({
       style: { color: colors.accent(), marginLeft: 'auto' }
     }, [
-      icon(sort.field === field ? (sort.direction === 'asc' ? 'sort-down' : 'sort-up') : 'sort')
+      icon(sort.direction === 'asc' ? 'long-arrow-alt-down' : 'long-arrow-alt-up')
     ])
   ])
 }
@@ -439,7 +439,7 @@ export class Resizable extends Component {
       style: { flex: 1, display: 'flex', alignItems: 'center', position: 'relative', width: '100%' }
     }, [
       children,
-      h(DraggableCore, {
+      h(Draggable, {
         axis: 'x',
         onStart: e => this.setState({ dragAmount: 0, lastX: e.clientX }),
         onDrag: e => {
@@ -452,7 +452,7 @@ export class Resizable extends Component {
           this.setState({ dragAmount: undefined })
           onWidthChange(dragAmount)
         },
-        position: { x: 0 }
+        position: { x: 0, y: 0 }
       }, [
         icon('columnGrabber', {
           size: 24,

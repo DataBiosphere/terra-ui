@@ -98,12 +98,10 @@ const DropDownSection = props => {
       hover: { backgroundColor: colors.dark(0.55) },
       onClick
     }, [
-      titleIcon && div({ style: styles.nav.icon }, [
-        icon(titleIcon, {
-          className: 'is-solid',
-          size: 24
-        })
-      ]),
+      titleIcon && icon(titleIcon, {
+        size: 24,
+        style: styles.nav.icon
+      }),
       div({
         style: {
           whiteSpace: 'nowrap',
@@ -262,9 +260,7 @@ export default _.flow(
             href: Nav.getLink('workspaces'),
             onClick: () => this.hideNav()
           }, [
-            div({ style: styles.nav.icon }, [
-              icon('view-cards', { size: 24 })
-            ]),
+            icon('view-cards', { size: 24, style: styles.nav.icon }),
             'Your Workspaces'
           ]),
           h(DropDownSection, {

@@ -21,6 +21,7 @@ import * as Utils from 'src/libs/utils'
 const noCompute = 'You do not have access to run analyses on this workspace.'
 
 const styles = {
+  verticalCenter: { display: 'flex', alignItems: 'center' },
   container: {
     height: '3rem',
     display: 'flex', alignItems: 'center', flex: 'none',
@@ -156,7 +157,7 @@ const MachineSelector = ({ machineType, onChangeMachineType, diskSize, onChangeD
 
 const ClusterIcon = ({ shape, onClick, disabled, style, ...props }) => {
   return h(Clickable, {
-    style: { color: onClick && !disabled ? colors.accent() : colors.dark(0.7), ...style },
+    style: { color: onClick && !disabled ? colors.accent() : colors.dark(0.7), ...styles.verticalCenter, ...style },
     onClick, disabled, ...props
   }, [icon(shape, { size: 20 })])
 }
@@ -583,7 +584,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
         link({
           href: Nav.getLink('workspace-terminal-launch', { namespace, name }),
           disabled: !canCompute,
-          style: { marginRight: '2rem' },
+          style: { marginRight: '2rem', ...styles.verticalCenter },
           ...Utils.newTabLinkProps
         }, [icon('terminal', { size: 24 })])
       ]),

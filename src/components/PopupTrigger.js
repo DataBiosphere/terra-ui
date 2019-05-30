@@ -1,11 +1,11 @@
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
 import { Children, cloneElement, Component, Fragment } from 'react'
-import { div, h, span } from 'react-hyperscript-helpers'
+import { div, h } from 'react-hyperscript-helpers'
 import onClickOutside from 'react-onclickoutside'
 import { icon } from 'src/components/icons'
-import colors from 'src/libs/colors'
 import { computePopupPosition, PopupPortal, withDynamicPosition } from 'src/components/popup-utils'
+import colors from 'src/libs/colors'
 import * as Style from 'src/libs/style'
 
 
@@ -103,7 +103,5 @@ export const InfoBox = ({ size, children, style, side }) => h(PopupTrigger, {
   side,
   content: div({ style: { padding: '0.5rem', width: 300 } }, children)
 }, [
-  span({ style: { cursor: 'pointer', color: colors.accent(), ...style } }, [
-    icon('info-circle', { size })
-  ])
+  icon('info-circle', { size, style: { cursor: 'pointer', color: colors.accent(), ...style } })
 ])

@@ -1,9 +1,11 @@
-import { faClipboard, faClock, faClone, faEye, faFolder, faFolderOpen, faListAlt, faSquare, faTimesCircle } from '@fortawesome/free-regular-svg-icons'
+import {
+  faClipboard, faClock, faClone, faEye, faFolder, faFolderOpen, faListAlt, faSquare as faSquareRegular, faTimesCircle
+} from '@fortawesome/free-regular-svg-icons'
 import {
   faAngleDoubleLeft, faAngleDoubleRight, faAngleDown, faAngleLeft, faAngleRight, faAngleUp, faArrowRight, faBan, faBars, faCaretDown, faCheck,
   faCheckCircle, faCheckSquare, faCloud, faCog, faCreditCard, faDownload, faEllipsisV, faExclamationCircle, faExclamationTriangle,
-  faFileInvoiceDollar, faInfoCircle, faList, faMinusCircle, faPause, faPen, faPlay, faPlus, faPlusCircle, faQuestionCircle, faSearch, faShareAlt,
-  faSortDown, faSortUp, faSync, faTerminal, faThLarge, faTimes, faTrashAlt
+  faFileInvoiceDollar, faInfoCircle, faList, faLongArrowAltDown, faLongArrowAltUp, faMinusCircle, faPause, faPen, faPlay, faPlus, faPlusCircle,
+  faQuestionCircle, faSearch, faShareAlt, faSquare as faSquareSolid, faSync, faTerminal, faThLarge, faTimes, faTrashAlt
 } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import _ from 'lodash/fp'
@@ -16,11 +18,11 @@ import externalLinkAltRegular from 'src/icons/external-link-alt-regular'
 import fileExportRegular from 'src/icons/file-export-regular'
 import loadingSpinner from 'src/icons/loading-spinner'
 import renameIcon from 'src/icons/rename-icon'
-import sortLight from 'src/icons/sort-light'
 
 
-const fa = shape => ({ size, ...props }) => h(FontAwesomeIcon, _.merge({ icon: shape, style: { height: size, width: size } }, props))
-const custom = shape => ({ size, ...props }) => h(shape, _.merge({ style: { height: size, width: size } }, props))
+const fa = _.curry((shape, { size, ...props }) => h(FontAwesomeIcon, _.merge({ icon: shape, style: { height: size, width: size } }, props)))
+const custom = _.curry((shape, { size, className = '', ...props }) => h(shape,
+  _.merge({ className: `svg-inline--fa ${className}`, style: { height: size, width: size } }, props)))
 
 const iconDict = {
   'angle down': fa(faAngleDown),
@@ -48,6 +50,8 @@ const iconDict = {
   'help': fa(faQuestionCircle),
   'info-circle': fa(faInfoCircle),
   'library': custom(booksSolid),
+  'long-arrow-alt-down': fa(faLongArrowAltDown),
+  'long-arrow-alt-up': fa(faLongArrowAltUp),
   'minus-circle': fa(faMinusCircle),
   'pause': fa(faPause),
   'play': fa(faPlay),
@@ -56,12 +60,9 @@ const iconDict = {
   'pop-out': custom(externalLinkAltRegular),
   'search': fa(faSearch),
   'share': fa(faShareAlt),
-  'sort': custom(sortLight),
-  'sort-down': fa(faSortDown),
-  'sort-up': fa(faSortUp),
   'success-standard': fa(faCheckCircle),
   'sync': fa(faSync),
-  'terminal': fa(faTerminal),
+  'terminal': props => fa(faTerminal, { mask: faSquareSolid, transform: 'shrink-8', ...props }),
   'times': fa(faTimes),
   'times-circle': fa(faTimesCircle),
   'trash': fa(faTrashAlt),
@@ -79,7 +80,7 @@ const iconDict = {
   loadingSpinner: custom(loadingSpinner),
   purchaseOrder: fa(faFileInvoiceDollar),
   renameIcon: custom(renameIcon),
-  square: fa(faSquare)
+  square: fa(faSquareRegular)
 }
 
 export default iconDict
