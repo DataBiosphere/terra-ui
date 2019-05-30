@@ -191,9 +191,9 @@ const SupportRequest = _.flow(
               },
               onClick: () => this.uploader.current.open()
             }, [
-              div({ style: { fontSize: 14, lineHeight: '30px', paddingLeft: '1rem' } }, [
-                'Drag or ', link({}, ['Click']), ' to attach a file ',
-                icon('upload-cloud', { size: 25, style: { opacity: 0.4 } })
+              div({ style: { fontSize: 14, lineHeight: '30px', paddingLeft: '1rem', display: 'flex', alignItems: 'center' } }, [
+                'Drag or', link({ style: { margin: '0 0.25rem' } }, ['Click']), 'to attach a file',
+                icon('upload-cloud', { size: 25, style: { opacity: 0.4, marginLeft: '0.5rem' } })
               ])
             ]),
           uploadingFile && spinnerOverlay,

@@ -308,7 +308,7 @@ export const WorkspaceDashboard = _.flow(
                 tooltip: 'Remove tag',
                 onClick: () => this.deleteTag(tag),
                 style: { marginLeft: '0.25rem', verticalAlign: 'middle', display: 'inline-block' }
-              }, [icon('times', { size: 18 })])
+              }, [icon('times', { size: 14 })])
             ])
           }, tagsList),
           busy && spinner({ style: { marginTop: '0.5rem' } })

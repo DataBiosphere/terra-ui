@@ -555,7 +555,7 @@ const WorkflowView = _.flow(
                   }, [menuIcon('trash'), 'Delete'])
                 ])
               }, [
-                linkButton({}, [icon('ellipsis-vertical', { size: 22 })])
+                linkButton({}, [icon('cardMenuIcon', { size: 22 })])
               ])
             ]),
             span({ style: { color: colors.dark(), fontSize: 24 } }, name)

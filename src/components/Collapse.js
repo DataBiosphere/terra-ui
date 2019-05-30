@@ -13,7 +13,6 @@ export default class Collapse extends Component {
     defaultHidden: PropTypes.bool,
     showIcon: PropTypes.bool,
     animate: PropTypes.bool,
-    expandTitle: PropTypes.bool,
     buttonStyle: PropTypes.object,
     children: PropTypes.node
   }
@@ -21,8 +20,7 @@ export default class Collapse extends Component {
   static defaultProps = {
     defaultHidden: false,
     showIcon: true,
-    animate: false,
-    expandTitle: false
+    animate: false
   }
 
   constructor(props) {
@@ -31,19 +29,17 @@ export default class Collapse extends Component {
   }
 
   render() {
-    const { title, showIcon, animate, expandTitle, buttonStyle, children, ...props } = _.omit('defaultHidden', this.props)
+    const { title, showIcon, animate, buttonStyle, children, ...props } = _.omit('defaultHidden', this.props)
     const { isOpened } = this.state
 
     return div(props, [
-      div(
-        {
-          style: { display: 'flex', cursor: 'pointer', alignItems: 'center', marginBottom: '0.5rem', ...buttonStyle },
-          onClick: () => this.setState({ isOpened: !isOpened })
-        },
-        [
-          link({ style: { flex: expandTitle ? 1 : undefined } }, title),
-          showIcon && icon(isOpened ? 'angle down' : 'angle left', { style: { marginLeft: '0.25rem', flexShrink: 0 } })
-        ]),
+      link({
+        style: { display: 'flex', alignItems: 'center', marginBottom: '0.5rem', ...buttonStyle },
+        onClick: () => this.setState({ isOpened: !isOpened })
+      }, [
+        showIcon && icon(isOpened ? 'angle down' : 'angle right', { style: { marginRight: '0.25rem', flexShrink: 0 } }),
+        title
+      ]),
       animate ?
         h(rCollapse, { isOpened }, [children]) :
         div({ style: { display: isOpened ? 'initial' : 'none' } },

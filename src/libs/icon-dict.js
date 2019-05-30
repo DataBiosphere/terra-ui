@@ -2,22 +2,27 @@ import {
   faClipboard, faClock, faClone, faEye, faFolder, faFolderOpen, faListAlt, faSquare as faSquareRegular, faTimesCircle
 } from '@fortawesome/free-regular-svg-icons'
 import {
-  faAngleDoubleLeft, faAngleDoubleRight, faAngleDown, faAngleLeft, faAngleRight, faAngleUp, faArrowRight, faBan, faBars, faCaretDown, faCheck,
-  faCheckCircle, faCheckSquare, faCloud, faCog, faCreditCard, faDownload, faEllipsisV, faExclamationCircle, faExclamationTriangle,
-  faFileInvoiceDollar, faInfoCircle, faList, faLongArrowAltDown, faLongArrowAltUp, faMinusCircle, faPause, faPen, faPlay, faPlus, faPlusCircle,
-  faQuestionCircle, faSearch, faShareAlt, faSquare as faSquareSolid, faSync, faTerminal, faThLarge, faTimes, faTrashAlt
+  faArrowRight, faBan, faCaretDown, faCheck, faCheckCircle, faCheckSquare, faCloud, faCog, faCreditCard, faDownload, faExclamationCircle,
+  faExclamationTriangle, faFileInvoiceDollar, faGripHorizontal, faInfoCircle, faLongArrowAltDown, faLongArrowAltUp, faMinusCircle, faPause, faPen,
+  faPlay, faPlus, faPlusCircle, faQuestionCircle, faSearch, faShareAlt, faSquare as faSquareSolid, faTerminal, faTrashAlt
 } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import _ from 'lodash/fp'
 import { h } from 'react-hyperscript-helpers'
-import booksSolid from 'src/icons/books-solid'
-import cardMenuIcon from 'src/icons/card-menu-icon'
-import cloudUploadSolid from 'src/icons/cloud-upload-solid'
-import columnGrabber from 'src/icons/column_grabber'
-import externalLinkAltRegular from 'src/icons/external-link-alt-regular'
-import fileExportRegular from 'src/icons/file-export-regular'
-import loadingSpinner from 'src/icons/loading-spinner'
-import renameIcon from 'src/icons/rename-icon'
+import angleDoubleUp from 'src/icons/angle-double-up-regular.svg'
+import angleUp from 'src/icons/angle-up-regular.svg'
+import bars from 'src/icons/bars-light.svg'
+import books from 'src/icons/books-solid.svg'
+import cardMenuIcon from 'src/icons/card-menu-icon.svg'
+import cloudUpload from 'src/icons/cloud-upload-solid.svg'
+import columnGrabber from 'src/icons/column_grabber.svg'
+import externalLinkAlt from 'src/icons/external-link-alt-regular.svg'
+import fileExport from 'src/icons/file-export-regular.svg'
+import list from 'src/icons/list-regular.svg'
+import loadingSpinner from 'src/icons/loading-spinner.svg'
+import renameIcon from 'src/icons/rename-icon.svg'
+import syncAlt from 'src/icons/sync-alt-regular.svg'
+import times from 'src/icons/times-light.svg'
 
 
 const fa = _.curry((shape, { size, ...props }) => h(FontAwesomeIcon, _.merge({ icon: shape, style: { height: size, width: size } }, props)))
@@ -25,14 +30,14 @@ const custom = _.curry((shape, { size, className = '', ...props }) => h(shape,
   _.merge({ className: `svg-inline--fa ${className}`, style: { height: size, width: size } }, props)))
 
 const iconDict = {
-  'angle down': fa(faAngleDown),
-  'angle left': fa(faAngleLeft),
-  'angle right': fa(faAngleRight),
-  'angle up': fa(faAngleUp),
-  'angle-double left': fa(faAngleDoubleLeft),
-  'angle-double right': fa(faAngleDoubleRight),
+  'angle down': ({ style = {}, ...props }) => custom(angleUp, { style: { transform: 'rotate(180deg)', ...style }, ...props }),
+  'angle left': ({ style = {}, ...props }) => custom(angleUp, { style: { transform: 'rotate(-90deg)', ...style }, ...props }),
+  'angle right': ({ style = {}, ...props }) => custom(angleUp, { style: { transform: 'rotate(90deg)', ...style }, ...props }),
+  'angle up': custom(angleUp),
+  'angle-double left': ({ style = {}, ...props }) => custom(angleDoubleUp, { style: { transform: 'rotate(-90deg)', ...style }, ...props }),
+  'angle-double right': ({ style = {}, ...props }) => custom(angleDoubleUp, { style: { transform: 'rotate(90deg)', ...style }, ...props }),
   'ban': fa(faBan),
-  'bars': fa(faBars),
+  'bars': custom(bars),
   'check': fa(faCheck),
   'clock': fa(faClock),
   'cloud': fa(faCloud),
@@ -41,15 +46,14 @@ const iconDict = {
   'copy-to-clipboard': fa(faClipboard),
   'download': fa(faDownload),
   'edit': fa(faPen),
-  'ellipsis-vertical': fa(faEllipsisV),
   'error-standard': fa(faExclamationCircle),
-  'export': custom(fileExportRegular),
+  'export': custom(fileExport),
   'eye': fa(faEye),
   'folder': fa(faFolder),
   'folder-open': fa(faFolderOpen),
   'help': fa(faQuestionCircle),
   'info-circle': fa(faInfoCircle),
-  'library': custom(booksSolid),
+  'library': custom(books),
   'long-arrow-alt-down': fa(faLongArrowAltDown),
   'long-arrow-alt-up': fa(faLongArrowAltUp),
   'minus-circle': fa(faMinusCircle),
@@ -57,18 +61,18 @@ const iconDict = {
   'play': fa(faPlay),
   'plus': fa(faPlus),
   'plus-circle': fa(faPlusCircle),
-  'pop-out': custom(externalLinkAltRegular),
+  'pop-out': custom(externalLinkAlt),
   'search': fa(faSearch),
   'share': fa(faShareAlt),
   'success-standard': fa(faCheckCircle),
-  'sync': fa(faSync),
+  'sync': custom(syncAlt),
   'terminal': props => fa(faTerminal, { mask: faSquareSolid, transform: 'shrink-8', ...props }),
-  'times': fa(faTimes),
+  'times': custom(times),
   'times-circle': fa(faTimesCircle),
   'trash': fa(faTrashAlt),
-  'upload-cloud': custom(cloudUploadSolid),
-  'view-cards': fa(faThLarge),
-  'view-list': fa(faList),
+  'upload-cloud': custom(cloudUpload),
+  'view-cards': fa(faGripHorizontal),
+  'view-list': custom(list),
   'warning-standard': fa(faExclamationTriangle),
   arrowRight: fa(faArrowRight),
   cardMenuIcon: custom(cardMenuIcon),
