@@ -5,7 +5,7 @@ import { h } from 'react-hyperscript-helpers'
 import { version } from 'src/data/clusters'
 import { getUser } from 'src/libs/auth'
 import { getConfig } from 'src/libs/config'
-import { ajaxOverridesStore } from 'src/libs/state'
+import { ajaxOverridesStore, requesterPaysBuckets, workspaceStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
 
@@ -58,6 +58,52 @@ const withErrorRejection = wrappedFetch => async (...args) => {
   }
 }
 
+const withUrlPrefix = prefix => wrappedFetch => async (path, ...args) => {
+  return wrappedFetch(prefix + path, ...args)
+}
+
+const checkRequesterPaysError = async response => {
+  if (response.status === 400) {
+    const data = await response.json()
+    const requesterPaysError = _.includes('requester pays', _.get(['error', 'message'], data))
+    return Object.assign(new Response(new Blob([JSON.stringify(data)]), response), { requesterPaysError })
+  } else {
+    return Object.assign(response, { requesterPaysError: false })
+  }
+}
+
+const mergeQueryParams = (params, urlString) => {
+  const url = new URL(urlString)
+  url.search = qs.stringify({ ...qs.parse(url.search, { ignoreQueryPrefix: true, plainObjects: true }), ...params })
+  return url.href
+}
+
+/*
+ * Detects errors due to requester pays buckets, and adds the current workspace's billing
+ * project if the user has access, retrying the request once if necessary.
+ */
+const withRequesterPays = wrappedFetch => async (url, ...args) => {
+  const bucket = /\/b\/([^/]+)\//.exec(url)[1]
+  const workspace = workspaceStore.get()
+  const userProject = workspace && Utils.canWrite(workspace.accessLevel) && workspace.workspace.namespace
+  const tryRequest = async () => {
+    const knownRequesterPays = _.includes(bucket, requesterPaysBuckets.get())
+    try {
+      return await wrappedFetch(mergeQueryParams({ userProject: (knownRequesterPays && userProject) || undefined }, url), ...args)
+    } catch (error) {
+      const newResponse = await checkRequesterPaysError(error)
+      if (newResponse.requesterPaysError && !knownRequesterPays) {
+        requesterPaysBuckets.update(_.union([bucket]))
+        if (userProject) {
+          return tryRequest()
+        }
+      }
+      throw newResponse
+    }
+  }
+  return tryRequest()
+}
+
 const fetchOk = _.flow(withInstrumentation, withCancellation, withErrorRejection)(fetch)
 
 
@@ -65,7 +111,7 @@ const fetchSam = async (path, options) => {
   return fetchOk(`${getConfig().samUrlRoot}/${path}`, addAppIdentifier(options))
 }
 
-const fetchBuckets = (path, options) => fetchOk(`https://www.googleapis.com/${path}`, options)
+const fetchBuckets = _.flow(withRequesterPays, withUrlPrefix('https://www.googleapis.com/'))(fetchOk)
 const nbName = name => encodeURIComponent(`notebooks/${name}.ipynb`)
 
 const fetchGoogleBilling = (path, options) => fetchOk(`https://cloudbilling.googleapis.com/v1/${path}`, options)
