@@ -425,8 +425,7 @@ class EntitiesContent extends Component {
 
     const dataExplorerUrl =
       _.size(selectedEntities) === 1 && _.values(selectedEntities)[0].attributes.data_explorer_url ?
-        _.values(selectedEntities)[0].attributes.data_explorer_url
-        :
+        _.values(selectedEntities)[0].attributes.data_explorer_url :
         ''
     return h(Fragment, [
       buttonPrimary({
