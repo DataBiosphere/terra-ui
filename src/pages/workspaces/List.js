@@ -337,7 +337,7 @@ export const WorkspaceList = _.flow(
               isSearchable: true,
               value: tagsFilter,
               hideSelectedOptions: true,
-              placeholder: 'tags',
+              placeholder: 'Tags',
               onChange: data => this.setState({ tagsFilter: _.map('value', data) }),
               options: tagsList
             })
@@ -347,7 +347,7 @@ export const WorkspaceList = _.flow(
               isClearable: true,
               isMulti: true,
               isSearchable: false,
-              placeholder: 'access levels',
+              placeholder: 'Access levels',
               value: accessLevelsFilter,
               onChange: data => this.setState({ accessLevelsFilter: _.map('value', data) }),
               options: Utils.workspaceAccessLevels,
@@ -358,7 +358,7 @@ export const WorkspaceList = _.flow(
             h(Select, {
               isClearable: true,
               isMulti: false,
-              placeholder: 'project',
+              placeholder: 'Project',
               value: projectsFilter,
               hideSelectedOptions: true,
               onChange: selected => {
@@ -373,7 +373,7 @@ export const WorkspaceList = _.flow(
               isClearable: true,
               isMulti: true,
               isSearchable: false,
-              placeholder: 'submission status',
+              placeholder: 'Submission status',
               value: submissionsFilter,
               hideSelectedOptions: true,
               onChange: data => this.setState({ submissionsFilter: _.map('value', data) }),
