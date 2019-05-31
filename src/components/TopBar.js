@@ -20,6 +20,7 @@ import { FormLabel } from 'src/libs/forms'
 import { topBarLogo } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
 import { authStore, contactUsActive, freeCreditsActive } from 'src/libs/state'
+import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 import { CookiesModal } from 'src/pages/SignIn'
@@ -102,13 +103,7 @@ const DropDownSection = props => {
         size: 24,
         style: styles.nav.icon
       }),
-      div({
-        style: {
-          whiteSpace: 'nowrap',
-          overflow: 'hidden',
-          textOverflow: 'ellipsis'
-        }
-      }, [title]),
+      div({ style: Style.noWrapEllipsis }, [title]),
       div({ style: { flexGrow: 1 } }),
       icon(`angle ${isOpened ? 'up' : 'down'}`,
         {

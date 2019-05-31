@@ -1,9 +1,11 @@
+import clipboard from 'clipboard-polyfill'
 import debouncePromise from 'debounce-promise'
+import 'easymde/dist/easymde.min.css'
 import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
+import AsyncCreatableSelect from 'react-select/lib/AsyncCreatable'
 import SimpleMDE from 'react-simplemde-editor'
-import 'easymde/dist/easymde.min.css'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { buttonPrimary, buttonSecondary, link, linkButton, spinnerOverlay } from 'src/components/common'
 import { icon, spinner } from 'src/components/icons'
@@ -22,7 +24,6 @@ import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
-import AsyncCreatableSelect from 'react-select/lib/AsyncCreatable'
 
 
 const styles = {
@@ -47,7 +48,7 @@ const styles = {
   authDomain: {
     padding: '0.5rem 0.25rem', marginBottom: '0.25rem',
     backgroundColor: colors.dark(0.15),
-    whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'
+    ...Style.noWrapEllipsis
   },
   label: {
     ...Style.elements.sectionHeader,
@@ -214,7 +215,7 @@ export const WorkspaceDashboard = _.flow(
         }
       }
     } = this.props
-    const { submissionsCount, storageCostEstimate, editDescription, saving, consentStatus, tagsList, busy } = this.state
+    const { submissionsCount, storageCostEstimate, editDescription, saving, consentStatus, tagsList, busy, bucketCopied } = this.state
     const isEditing = _.isString(editDescription)
 
     return div({ style: { flex: 1, display: 'flex' } }, [
@@ -325,13 +326,28 @@ export const WorkspaceDashboard = _.flow(
           ]),
           ..._.map(({ membersGroupName }) => div({ style: styles.authDomain }, [membersGroupName]), authorizationDomain)
         ]),
-        div({ style: { margin: '1.5rem 0 0.5rem 0', borderBottom: `1px solid ${colors.dark(0.55)}` } }),
+        div({ style: { margin: '1.5rem 0 1rem 0', borderBottom: `1px solid ${colors.dark(0.55)}` } }),
+        div({ style: { fontSize: '1rem', fontWeight: 500, marginBottom: '0.5rem' } }, [
+          'Google Bucket'
+        ]),
+        div({ style: { display: 'flex' } }, [
+          div({ style: Style.noWrapEllipsis }, [bucketName]),
+          linkButton({
+            style: { margin: '0 0.5rem', flexShrink: 0 },
+            tooltip: 'Copy bucket name',
+            onClick: withErrorReporting('Error copying to clipboard', async () => {
+              await clipboard.writeText(bucketName)
+              this.setState({ bucketCopied: true }, () => {
+                setTimeout(() => this.setState({ bucketCopied: undefined }), 1500)
+              })
+            })
+          }, [icon(bucketCopied ? 'check' : 'copy-to-clipboard')])
+        ]),
         link({
           ...Utils.newTabLinkProps,
           href: hasBucketAccess ? bucketBrowserUrl(bucketName) : undefined,
-          disabled: !hasBucketAccess,
-          style: { display: 'block', marginBottom: '3rem' }
-        }, ['Google bucket'])
+          disabled: !hasBucketAccess
+        }, ['Open in browser', icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })])
       ])
     ])
   }

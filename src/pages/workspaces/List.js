@@ -68,12 +68,12 @@ const styles = {
   },
   longTitle: {
     ...Style.elements.card.title,
-    whiteSpace: 'nowrap', textOverflow: 'ellipsis', flex: 1
+    ...Style.noWrapEllipsis, flex: 1
   },
   longDescription: {
     flex: 1,
     paddingRight: '1rem',
-    whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'
+    ...Style.noWrapEllipsis
   },
   badge: {
     height: '1.5rem', width: '1.5rem', borderRadius: '1.5rem',
@@ -329,14 +329,15 @@ export const WorkspaceList = _.flow(
           viewToggleButtons
         ]),
         div({ style: { display: 'flex', marginBottom: '1rem' } }, [
-          div({ style: { ...styles.filter, marginLeft: 'auto' } }, [
+          div({ style: { marginLeft: 'auto', display: 'flex', alignItems: 'center', fontSize: '1rem' } }, ['Filter by']),
+          div({ style: styles.filter }, [
             h(Select, {
               isClearable: true,
               isMulti: true,
               isSearchable: true,
               value: tagsFilter,
               hideSelectedOptions: true,
-              placeholder: 'Filter by tags',
+              placeholder: 'Tags',
               onChange: data => this.setState({ tagsFilter: _.map('value', data) }),
               options: tagsList
             })
@@ -346,7 +347,7 @@ export const WorkspaceList = _.flow(
               isClearable: true,
               isMulti: true,
               isSearchable: false,
-              placeholder: 'Filter by access levels',
+              placeholder: 'Access levels',
               value: accessLevelsFilter,
               onChange: data => this.setState({ accessLevelsFilter: _.map('value', data) }),
               options: Utils.workspaceAccessLevels,
@@ -357,7 +358,7 @@ export const WorkspaceList = _.flow(
             h(Select, {
               isClearable: true,
               isMulti: false,
-              placeholder: 'Filter by project',
+              placeholder: 'Project',
               value: projectsFilter,
               hideSelectedOptions: true,
               onChange: selected => {
@@ -372,7 +373,7 @@ export const WorkspaceList = _.flow(
               isClearable: true,
               isMulti: true,
               isSearchable: false,
-              placeholder: 'Filter by submission status',
+              placeholder: 'Submission status',
               value: submissionsFilter,
               hideSelectedOptions: true,
               onChange: data => this.setState({ submissionsFilter: _.map('value', data) }),
