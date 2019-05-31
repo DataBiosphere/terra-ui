@@ -100,7 +100,7 @@ const UriViewer = ajaxCaller(class UriViewer extends Component {
       Utils.cond(
         [loadingError, () => h(Fragment, [
           div({ style: { paddingBottom: '1rem' } }, [
-            'Error loading data. You may not have permission to view this file.'
+            'Error loading data. This file does not exist or you do not have permission to view it.'
           ]),
           h(Collapse, { defaultHidden: true, title: 'Details' }, [
             div({ style: { whiteSpace: 'pre-wrap', fontFamily: 'monospace', overflowWrap: 'break-word' } }, [
