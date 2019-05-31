@@ -342,7 +342,7 @@ export const WorkspaceList = _.flow(
               options: tagsList
             })
           ]),
-          div({ style: {...styles.filter, flexBasis: '250px'} }, [
+          div({ style: { ...styles.filter, flexBasis: '250px' } }, [
             h(Select, {
               styles: { container: base => ({ ...base, width: 250 }) },
               isClearable: true,
@@ -369,7 +369,7 @@ export const WorkspaceList = _.flow(
               options: namespaceList
             })
           ]),
-          div({ style: {...styles.filter, flexBasis: '250px'} }, [
+          div({ style: { ...styles.filter, flexBasis: '250px' } }, [
             h(Select, {
               styles: { container: base => ({ ...base, width: 250 }) },
               isClearable: true,
