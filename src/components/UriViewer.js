@@ -70,7 +70,7 @@ const getMaxDownloadCostNA = bytes => {
 
 const UriViewer = props => {
   const signal = useCancellation()
-  const [valid, setValid] = useState(undefined)
+  const [hasBillingProject, setHasBillingProject] = useState(undefined)
 
   const { googleProject, uri, onDismiss } = props
   const isGsUri = isGs(uri)
@@ -80,10 +80,10 @@ const UriViewer = props => {
     if (isGsUri) {
       try {
         await Ajax(signal).Buckets.getObject(bucket, name, googleProject)
-        setValid(true)
+        setHasBillingProject(true)
       } catch (e) {
         const isRequesterPays = e.status === 400 && (await e.json()).error.message.includes('requester pays')
-        setValid(!isRequesterPays)
+        setHasBillingProject(!isRequesterPays)
       }
     }
   })
@@ -92,10 +92,10 @@ const UriViewer = props => {
     pingObject()
   })
 
-  return Utils.switchCase(valid,
-    [undefined, () => h(Modal, viewerProps(onDismiss), loadingMetadata(uri))],
+  return Utils.switchCase(hasBillingProject,
+    [undefined, () => h(Modal, { ...viewerProps(onDismiss) }, loadingMetadata(uri))],
     [true, () => h(UriViewerModal, props)],
-    [false, () => h(Modal, viewerProps(onDismiss), ['Error: To view this file you must provide a billing project, because the file is in a requester pays Google Bucket.'])]
+    [false, () => h(Modal, { ...viewerProps(onDismiss) }, ['Error: To view this file you must provide a billing project, because the file is in a requester pays Google Bucket.'])]
   )
 }
 
