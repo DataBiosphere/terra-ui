@@ -274,11 +274,11 @@ export const isValidWsExportTarget = _.curry((sourceWs, destWs) => {
 export const normalizeMachineConfig = ({ masterMachineType, masterDiskSize, numberOfWorkers, numberOfPreemptibleWorkers, workerMachineType, workerDiskSize }) => {
   return {
     masterMachineType: masterMachineType || 'n1-standard-4',
-    masterDiskSize: masterDiskSize || 500,
+    masterDiskSize: masterDiskSize || 50,
     numberOfWorkers: numberOfWorkers || 0,
     numberOfPreemptibleWorkers: (numberOfWorkers && numberOfPreemptibleWorkers) || 0,
     workerMachineType: (numberOfWorkers && workerMachineType) || 'n1-standard-4',
-    workerDiskSize: (numberOfWorkers && workerDiskSize) || 500
+    workerDiskSize: (numberOfWorkers && workerDiskSize) || 50
   }
 }
 
@@ -313,9 +313,18 @@ export const usePrevious = value => {
   return ref.current
 }
 
+/*
+ * Given a value that changes over time, returns a getter function that reads the current value.
+ * Useful for asynchronous processes that need to read the current value of e.g. props or state.
+ */
+export const useGetter = value => {
+  const ref = useRef()
+  ref.current = value
+  return () => ref.current
+}
+
 export const trimClustersOldestFirst = _.flow(
   _.remove({ status: 'Deleting' }),
-  _.remove({ status: 'Error' }),
   _.sortBy('createdDate')
 )
 

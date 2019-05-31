@@ -15,6 +15,7 @@ import { bucketBrowserUrl } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
+import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 import { SubmissionQueueStatus } from 'src/pages/workspaces/workspace/SubmissionQueueStatus'
@@ -27,7 +28,7 @@ const styles = {
     padding: '1rem', flex: 1
   },
   deemphasized: {
-    color: colors.gray[2]
+    color: colors.dark(0.7)
   },
   statusDetailCell: {
     align: 'center',
@@ -166,22 +167,22 @@ const JobHistory = _.flow(
 
                   return h(Clickable, {
                     as: 'a',
-                    hover: { backgroundColor: Utils.cond([!!failed, colors.red[5]], [!!running, colors.blue[5]], colors.green[6]) },
+                    hover: { backgroundColor: Utils.cond([!!failed, colors.danger(0.2)], [!!running, colors.accent(0.2)], colors.success(0.2)) },
                     style: {
                       flex: 1, alignSelf: 'stretch', display: 'flex', flexDirection: 'column', justifyContent: 'center',
                       margin: '0 -1rem', padding: '0 1rem', minWidth: 0,
                       color: 'unset', fontWeight: 500,
-                      backgroundColor: Utils.cond([!!failed, colors.red[6]], [!!running, colors.blue[6]], colors.green[7])
+                      backgroundColor: Utils.cond([!!failed, colors.danger(0.1)], [!!running, colors.accent(0.1)], colors.success(0.1))
                     },
                     href: Nav.getLink('workspace-submission-details', { namespace, name, submissionId })
                   }, [
-                    div({ style: { overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' } }, [
+                    div({ style: Style.noWrapEllipsis }, [
                       methodConfigurationNamespace !== namespace && span({ style: styles.deemphasized }, [
                         `${methodConfigurationNamespace}/`
                       ]),
                       methodConfigurationName
                     ]),
-                    div({ style: { overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' } }, [
+                    div({ style: Style.noWrapEllipsis }, [
                       span({ style: styles.deemphasized }, 'Submitted by '),
                       submitter
                     ])
@@ -223,7 +224,7 @@ const JobHistory = _.flow(
                     status, submissionEntity
                   } = filteredSubmissions[rowIndex]
                   return h(Fragment, [
-                    (collapsedStatuses(workflowStatuses).running && status !== 'Aborting') && buttonPrimary({
+                    (!isTerminal(status) && status !== 'Aborting') && buttonPrimary({
                       onClick: () => this.setState({ aborting: submissionId })
                     }, ['Abort workflows']),
                     isTerminal(status) && (workflowStatuses['Failed'] || workflowStatuses['Aborted']) &&

@@ -12,3 +12,5 @@ export const getConfig = () => {
 }
 
 export const isFirecloud = () => (window.location.hostname === 'firecloud.terra.bio') || getConfig().isFirecloud
+export const isDatastage = () => (window.location.hostname === 'datastage.terra.bio') || getConfig().isDatastage
+export const isTerra = () => !isFirecloud() && !isDatastage()

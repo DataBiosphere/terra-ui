@@ -134,8 +134,8 @@ const UriViewerModal = ajaxCaller(class UriViewerModal extends Component {
   render() {
     const { uri, onDismiss } = this.props
     const { metadata, preview, signedUrl, price, copied, loadingError } = this.state
-    const { size, timeCreated, updated, bucket, name, gsUri } = metadata || {}
-    const gsutilCommand = `gsutil cp ${gsUri || uri} .`
+    const { size, timeCreated, updated, name, gsUri = uri } = metadata || {}
+    const gsutilCommand = `gsutil cp ${gsUri} .`
 
     return h(Modal, {
       ...viewerProps(onDismiss)
@@ -143,7 +143,7 @@ const UriViewerModal = ajaxCaller(class UriViewerModal extends Component {
       Utils.cond(
         [loadingError, () => h(Fragment, [
           div({ style: { paddingBottom: '1rem' } }, [
-            'Error loading data. You may not have permission to view this file.'
+            'Error loading data. This file does not exist or you do not have permission to view it.'
           ]),
           h(Collapse, { defaultHidden: true, title: 'Details' }, [
             div({ style: { whiteSpace: 'pre-wrap', fontFamily: 'monospace', overflowWrap: 'break-word' } }, [
@@ -168,7 +168,7 @@ const UriViewerModal = ajaxCaller(class UriViewerModal extends Component {
                       whiteSpace: 'pre', fontFamily: 'Menlo, monospace', fontSize: 12,
                       overflowY: 'auto', maxHeight: 206,
                       marginTop: '0.5rem', padding: '0.5rem',
-                      background: colors.gray[5], borderRadius: '0.2rem'
+                      background: colors.dark(0.25), borderRadius: '0.2rem'
                     }
                   }, [preview])],
                   () => 'Loading preview...'
@@ -182,7 +182,7 @@ const UriViewerModal = ajaxCaller(class UriViewerModal extends Component {
           els.cell([
             link({
               ...Utils.newTabLinkProps,
-              href: bucketBrowserUrl(bucket)
+              href: bucketBrowserUrl(gsUri.match(/gs:\/\/(.+)\//)[1])
             }, ['View this file in the Google Cloud Storage Browser'])
           ]),
           els.cell([
@@ -211,7 +211,7 @@ const UriViewerModal = ajaxCaller(class UriViewerModal extends Component {
                   style: { flexGrow: 1, fontWeight: 400, fontFamily: 'Menlo, monospace' }
                 }),
                 h(Clickable, {
-                  style: { margin: '0 1rem', color: colors.green[0] },
+                  style: { margin: '0 1rem', color: colors.accent() },
                   tooltip: 'Copy to clipboard',
                   onClick: async () => {
                     try {
@@ -260,6 +260,7 @@ export class UriViewerLink extends Component {
     const { modalOpen } = this.state
     return h(Fragment, [
       link({
+        style: { textDecoration: 'underline' },
         href: uri,
         onClick: () => this.setState({ modalOpen: true })
       }, [isGs(uri) ? _.last(uri.split('/')) : uri]),

@@ -46,7 +46,7 @@ export const NpsSurvey = Utils.connectAtom(authStore, 'authState')(class NpsSurv
   }
 
   async loadStatus() {
-    const millisToHours = timestamp => Date.parse(timestamp)/(60 * 60 * 1000)
+    const millisToHours = timestamp => Date.parse(timestamp) / (60 * 60 * 1000)
 
     const currentTimeHours = millisToHours(new Date())
     const lastResponseTimestamp = (await Ajax().User.lastNpsResponse()).timestamp
@@ -71,9 +71,9 @@ export const NpsSurvey = Utils.connectAtom(authStore, 'authState')(class NpsSurv
     const scoreRadios = _.map(i => {
       const isSelected = i === score
       const bgColor = Utils.cond(
-        [i <= 6, colors.brick],
-        [i <= 8, colors.orange[0]],
-        colors.green[0]
+        [i <= 6, colors.danger()],
+        [i <= 8, colors.warning()],
+        colors.success(1.2)
       )
 
       return h(Interactive, {
@@ -84,7 +84,7 @@ export const NpsSurvey = Utils.connectAtom(authStore, 'authState')(class NpsSurv
           cursor: 'pointer',
           ...(isSelected ? { backgroundColor: bgColor } : {})
         },
-        hover: isSelected ? {} : { backgroundColor: colors.gray[2] }
+        hover: isSelected ? {} : { backgroundColor: colors.dark(0.7) }
       }, [
         input({
           type: 'radio', value: i, name: 'nps-score',
@@ -113,7 +113,7 @@ export const NpsSurvey = Utils.connectAtom(authStore, 'authState')(class NpsSurv
           width: expanded ? 405 : 255,
           padding: '1rem 1.5rem 1rem 1rem',
           overflow: 'hidden',
-          backgroundColor: colors.gray[0], color: 'white',
+          backgroundColor: colors.dark(), color: 'white',
           borderRadius: expanded ? '0.5rem' : '0.5rem 0 0 0.5rem',
           transition: 'all 0.25s linear',
           boxShadow: Style.standardShadow
@@ -125,14 +125,16 @@ export const NpsSurvey = Utils.connectAtom(authStore, 'authState')(class NpsSurv
       ] : [
         div({ style: styles.questionLabel }, `How likely are you to recommend ${getAppName()} to others?`),
         div({ style: { display: 'flex', justifyContent: 'space-around', marginBottom: '0.5rem' } }, scoreRadios),
-        span({ style: styles.questionLabel }, 'What was the reason for this score? '), span({ style: { ...styles.questionLabel, color: colors.gray[3] } }, '(Optional)'),
+        span({ style: styles.questionLabel }, 'What was the reason for this score? '),
+        span({ style: { ...styles.questionLabel, color: colors.dark(0.55) } }, '(Optional)'),
         h(TextArea, { style: styles.questionInput, value: reasonComment, onChange: v => this.setState({ reasonComment: v }) }),
-        span({ style: styles.questionLabel }, 'What could we change? '), span({ style: { ...styles.questionLabel, color: colors.gray[3] } }, '(Optional)'),
+        span({ style: styles.questionLabel }, 'What could we change? '),
+        span({ style: { ...styles.questionLabel, color: colors.dark(0.55) } }, '(Optional)'),
         h(TextArea, { style: styles.questionInput, value: changeComment, onChange: v => this.setState({ changeComment: v }) }),
         div({ style: { display: 'flex', justifyContent: 'flex-end' } }, [
           buttonSecondary({
             style: { color: 'white' },
-            hover: { color: colors.gray[5] },
+            hover: { color: colors.dark(0.25) },
             onClick: goAway(true)
           }, 'Submit')
         ])

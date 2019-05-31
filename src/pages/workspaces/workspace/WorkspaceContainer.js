@@ -96,7 +96,7 @@ class WorkspaceContainer extends Component {
           div({}, breadcrumbs),
           div({ style: Style.breadcrumb.textUnderBreadcrumb }, [
             title || `${namespace}/${name}`,
-            workspace && !Utils.canWrite(workspace.accessLevel) && span({ style: { paddingLeft: '0.5rem', color: colors.gray[1] } }, '(read only)')
+            workspace && !Utils.canWrite(workspace.accessLevel) && span({ style: { paddingLeft: '0.5rem', color: colors.dark(0.85) } }, '(read only)')
           ])
         ]),
         topBarContent,
@@ -243,7 +243,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
         workspace && h(WrappedComponent, {
           ref: child,
           workspace, loadingWorkspace, refreshWorkspace, refreshClusters,
-          cluster: _.last(Utils.trimClustersOldestFirst(clusters)),
+          cluster: !clusters ? undefined : (_.flow(Utils.trimClustersOldestFirst, _.remove({ status: 'Error' }), _.last)(clusters) || null),
           ...props
         })
       ])

@@ -14,13 +14,13 @@ import * as Utils from 'src/libs/utils'
 const styles = {
   input: {
     height: '2.25rem',
-    border: `1px solid ${colors.grayBlue[2]}`, borderRadius: 4
+    border: `1px solid ${colors.light()}`, borderRadius: 4
   },
   suggestionsContainer: {
     position: 'fixed',
     maxHeight: 36 * 8 + 2, overflowY: 'auto',
     backgroundColor: 'white',
-    border: `1px solid ${colors.grayBlue[2]}`
+    border: `1px solid ${colors.light()}`
   },
   suggestion: {
     display: 'block', lineHeight: '2.25rem',
@@ -29,13 +29,13 @@ const styles = {
   },
   textarea: {
     width: '100%', resize: 'none',
-    border: `1px solid ${colors.grayBlue[2]}`, borderRadius: 4,
+    border: `1px solid ${colors.light()}`, borderRadius: 4,
     fontSize: 14, fontWeight: 400,
     padding: '0.5rem 1rem',
     cursor: 'text'
   },
   validationError: {
-    color: colors.red[0],
+    color: colors.danger(),
     fontSize: 11, fontWeight: 600, textTransform: 'uppercase',
     marginLeft: '1rem', marginTop: '0.5rem'
   }
@@ -52,7 +52,7 @@ export const TextInput = forwardRef(({ onChange, nativeOnChange = false, ...prop
       width: '100%',
       paddingLeft: '1rem', paddingRight: '1rem',
       fontWeight: 400, fontSize: 14,
-      backgroundColor: props.disabled ? colors.grayBlue[4] : undefined
+      backgroundColor: props.disabled ? colors.light() : undefined
     }
   },
   props)
@@ -70,7 +70,7 @@ export const ConfirmedSearchInput = ({ defaultValue = '', onChange = _.noop, ...
         })
       },
       spellCheck: false,
-      style: { WebkitAppearance: 'none', borderColor: colors.gray[3], borderRadius: '4px 0 0 4px' },
+      style: { WebkitAppearance: 'none', borderColor: colors.dark(0.55), borderRadius: '4px 0 0 4px' },
       value: internalValue,
       onChange: setInternalValue,
       onKeyDown: e => {
@@ -98,7 +98,7 @@ export const DelayedSearchInput = ({ defaultValue = '', onChange = _.noop, ...pr
   return h(TextInput, _.merge({
     type: 'search',
     spellCheck: false,
-    style: { WebkitAppearance: 'none', borderColor: colors.gray[3] },
+    style: { WebkitAppearance: 'none', borderColor: colors.dark(0.55) },
     value: internalValue,
     onChange: v => {
       setInternalValue(v)
@@ -187,13 +187,13 @@ export const ValidatedInput = props => {
       h(TextInput, _.merge({
         style: error ? {
           paddingRight: '2.25rem', // leave room for error icon
-          border: `1px solid ${colors.red[0]}`
+          border: `1px solid ${colors.danger()}`
         } : undefined
       }, inputProps)),
       error && icon('exclamation-circle', {
         size: 24,
         style: {
-          position: 'absolute', color: colors.red[0],
+          position: 'absolute', color: colors.danger(),
           right: '.5rem'
         }
       })
@@ -296,7 +296,7 @@ export class AutocompleteTextInput extends Component {
         container: { width: '100%' },
         suggestionsList: { margin: 0, padding: 0 },
         suggestion: styles.suggestion,
-        suggestionHighlighted: { backgroundColor: colors.grayBlue[5] }
+        suggestionHighlighted: { backgroundColor: colors.light(0.4) }
       }
     })
   }
@@ -347,7 +347,7 @@ export class AutocompleteSearch extends Component {
         container: { width: '100%' },
         suggestionsList: { margin: 0, padding: 0 },
         suggestion: styles.suggestion,
-        suggestionHighlighted: { backgroundColor: colors.grayBlue[5] }
+        suggestionHighlighted: { backgroundColor: colors.light(0.4) }
       }, theme)
     })
   }
