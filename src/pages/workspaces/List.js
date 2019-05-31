@@ -329,7 +329,7 @@ export const WorkspaceList = _.flow(
           viewToggleButtons
         ]),
         div({ style: { display: 'flex', marginBottom: '1rem' } }, [
-          div({ style: { marginLeft: 'auto', display: 'flex', alignItems: 'center', fontSize: '1rem' } }, ['Filter by']),
+          div({ style: { display: 'flex', alignItems: 'center', fontSize: '1rem' } }, ['Filter by']),
           div({ style: styles.filter }, [
             h(Select, {
               isClearable: true,
