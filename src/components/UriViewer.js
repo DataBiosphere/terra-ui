@@ -2,17 +2,17 @@ import clipboard from 'clipboard-polyfill'
 import filesize from 'filesize'
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
-import { Fragment } from 'react'
+import { Fragment, useState } from 'react'
 import { div, h, img, input } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
 import { buttonPrimary, Clickable, link } from 'src/components/common'
 import { icon, spinner } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import DownloadPrices from 'src/data/download-prices'
-import { ajaxCaller } from 'src/libs/ajax'
+import { Ajax, ajaxCaller, useCancellation } from 'src/libs/ajax'
 import { bucketBrowserUrl } from 'src/libs/auth'
 import colors from 'src/libs/colors'
-import { reportError } from 'src/libs/error'
+import { reportError, withErrorReporting } from 'src/libs/error'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 
@@ -44,6 +44,22 @@ const isFilePreviewable = ({ size, ...metadata }) => {
 
 const isGs = uri => _.startsWith('gs://', uri)
 
+const viewerProps = onDismiss => {
+  return {
+    onDismiss,
+    title: 'File Details',
+    showCancel: false,
+    showX: true,
+    okButton: 'Done'
+  }
+}
+const loadingMetadata = uri => {
+  return [
+    isGs(uri) ? 'Loading metadata...' : 'Resolving DOS object...',
+    spinner({ style: { marginLeft: 4 } })
+  ]
+}
+
 const parseUri = uri => _.drop(1, /gs:[/][/]([^/]+)[/](.+)/.exec(uri))
 const getMaxDownloadCostNA = bytes => {
   const nanos = DownloadPrices.pricingInfo[0].pricingExpression.tieredRates[1].unitPrice.nanos
@@ -52,7 +68,38 @@ const getMaxDownloadCostNA = bytes => {
   return downloadPrice < 0.01 ? '< $0.01' : Utils.formatUSD(downloadPrice)
 }
 
-const UriViewer = ajaxCaller(class UriViewer extends Component {
+const UriViewer = props => {
+  const signal = useCancellation()
+  const [hasBillingProject, setHasBillingProject] = useState(undefined)
+
+  const { googleProject, uri, onDismiss } = props
+  const isGsUri = isGs(uri)
+  const [bucket, name] = isGsUri ? parseUri(uri) : []
+
+  const pingObject = withErrorReporting('Error fetching file metadata', async () => {
+    if (isGsUri) {
+      try {
+        await Ajax(signal).Buckets.getObject(bucket, name, googleProject)
+        setHasBillingProject(true)
+      } catch (e) {
+        const isRequesterPays = e.status === 400 && (await e.json()).error.message.includes('requester pays')
+        setHasBillingProject(!isRequesterPays)
+      }
+    }
+  })
+
+  Utils.useOnMount(() => {
+    pingObject()
+  })
+
+  return Utils.switchCase(hasBillingProject,
+    [undefined, () => h(Modal, { ...viewerProps(onDismiss) }, loadingMetadata(uri))],
+    [true, () => h(UriViewerModal, props)],
+    [false, () => h(Modal, { ...viewerProps(onDismiss) }, ['Error: To view this file you must provide a billing project, because the file is in a requester pays Google Bucket.'])]
+  )
+}
+
+const UriViewerModal = ajaxCaller(class UriViewerModal extends Component {
   static propTypes = {
     googleProject: PropTypes.string.isRequired,
     uri: PropTypes.string.isRequired
@@ -91,11 +138,7 @@ const UriViewer = ajaxCaller(class UriViewer extends Component {
     const gsutilCommand = `gsutil cp ${gsUri} .`
 
     return h(Modal, {
-      onDismiss,
-      title: 'File Details',
-      showCancel: false,
-      showX: true,
-      okButton: 'Done'
+      ...viewerProps(onDismiss)
     }, [
       Utils.cond(
         [loadingError, () => h(Fragment, [
@@ -200,10 +243,7 @@ const UriViewer = ajaxCaller(class UriViewer extends Component {
           ]),
           div({ style: { fontSize: 10 } }, ['* Estimated. Download cost may be higher in China or Australia.'])
         ])],
-        () => h(Fragment, [
-          isGs(uri) ? 'Loading metadata...' : 'Resolving DOS object...',
-          spinner({ style: { marginLeft: 4 } })
-        ])
+        () => loadingMetadata(uri)
       )
     ])
   }
