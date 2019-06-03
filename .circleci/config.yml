@@ -8,6 +8,9 @@ executors:
   gcloud:
     docker:
       - image: google/cloud-sdk:alpine
+  security-scanner:
+    docker:
+      - image: owasp/zap2docker-weekly
 
 commands:
   deploy-env:
@@ -110,6 +113,19 @@ jobs:
       - deploy-env:
           sa_key_var: "STAGING_SA_KEY_JSON"
           env: "staging"
+  run-dev-security-scans:
+    executor: security-scanner
+    steps:
+      - run:
+          name: Run Dev Security Scans
+          shell: /bin/bash
+          command: |
+            docker pull owasp/zap2docker-weekly
+            (
+              env="https://bvdp-saturn-dev.appspot.com" &&
+              docker run -t owasp/zap2docker-weekly zap-baseline.py -t ${env};
+              if [ $? -ne 1 ]; then exit 0; else exit 1; fi;
+            )
 
 workflows:
   version: 2
@@ -150,6 +166,12 @@ workflows:
           requires:
             - test
             - build
+          filters:
+            branches:
+              only: dev
+  run-security-scans:
+    jobs:
+      - run-dev-security-scans:
           filters:
             branches:
               only: dev
