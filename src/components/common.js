@@ -10,7 +10,7 @@ import hexButton from 'src/icons/hex-button.svg'
 import scienceBackground from 'src/images/science-background.jpg'
 import colors from 'src/libs/colors'
 import { getConfig, isTerra } from 'src/libs/config'
-import { getAppName } from 'src/libs/logos'
+import { returnParam } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -298,7 +298,7 @@ export const backgroundLogo = () => img({
 export const methodLink = config => {
   const { methodRepoMethod: { sourceRepo, methodVersion, methodNamespace, methodName, methodPath } } = config
   return sourceRepo === 'agora' ?
-    `${getConfig().firecloudUrlRoot}/?return=${getAppName().toLowerCase()}#methods/${methodNamespace}/${methodName}/${methodVersion}` :
+    `${getConfig().firecloudUrlRoot}/?return=${returnParam()}#methods/${methodNamespace}/${methodName}/${methodVersion}` :
     `${getConfig().dockstoreUrlRoot}/workflows/${methodPath}`
 }
 

@@ -16,7 +16,8 @@ import thousandGenomesLogo from 'src/images/library/datasets/thousandgenomes.png
 import topMedLogo from 'src/images/library/datasets/TopMed@2x.png'
 import ukbLogo from 'src/images/library/datasets/UKB@2x.jpg'
 import colors from 'src/libs/colors'
-import { getConfig, isFirecloud } from 'src/libs/config'
+import { getConfig } from 'src/libs/config'
+import { returnParam } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -215,7 +216,7 @@ const fcDataLib = () => h(Participant, {
 }, [
   buttonPrimary({
     as: 'a',
-    href: `${getConfig().firecloudUrlRoot}/?return=${isFirecloud() ? `firecloud` : `terra`}#library`,
+    href: `${getConfig().firecloudUrlRoot}/?return=${returnParam()}#library`,
     ...Utils.newTabLinkProps,
     tooltip: 'Search for dataset workspaces'
   }, ['Browse Datasets'])
