@@ -7,7 +7,7 @@ import RSelect from 'react-select'
 import RAsyncCreatableSelect from 'react-select/lib/AsyncCreatable'
 import { centeredSpinner, icon } from 'src/components/icons'
 import TooltipTrigger from 'src/components/TooltipTrigger'
-import hexButton from 'src/icons/hex-button.svg'
+import hexButton from 'src/images/hex-button.svg'
 import scienceBackground from 'src/images/science-background.jpg'
 import colors from 'src/libs/colors'
 import { getConfig, isTerra } from 'src/libs/config'
@@ -109,11 +109,11 @@ export const iconButton = (shape, { disabled, size, iconProps = {}, ...props } =
     as: 'span',
     disabled,
     style: {
-      height: size, width: isTerra() ? (size * 0.9) : size,
-      display: 'flex', alignItems: 'center', alignSelf: 'flex-end', justifyContent: 'center',
+      height: size, width: size,
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
       backgroundColor: disabled ? colors.dark(0.15) : colors.accent(),
       ...(isTerra() ?
-        { maskImage: `url(${hexButton})`, WebkitMaskImage: `url(${hexButton})` } :
+        { mask: `url(${hexButton}) center no-repeat`, WebkitMask: `url(${hexButton}) center no-repeat` } :
         { borderRadius: '1rem' })
     }
   }, props),

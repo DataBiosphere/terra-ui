@@ -226,7 +226,7 @@ export const WorkspaceDashboard = _.flow(
             disabled: !!Utils.editWorkspaceError(workspace),
             tooltip: Utils.editWorkspaceError(workspace),
             onClick: () => this.setState({ editDescription: description })
-          }, [icon('edit', { className: 'is-solid' })])
+          }, [icon('edit')])
         ]),
         Utils.cond(
           [
@@ -284,7 +284,7 @@ export const WorkspaceDashboard = _.flow(
         ]),
         div({ style: styles.header }, [
           'Tags',
-          h(InfoBox, { style: { margin: '-0.1rem 0 0 0.25rem' } }, [
+          h(InfoBox, { style: { marginLeft: '0.25rem' } }, [
             `${getAppName()} is not intended to host personally identifiable information. Do not use any patient identifier including name,
           social security number, or medical record number.`
           ])
@@ -306,8 +306,8 @@ export const WorkspaceDashboard = _.flow(
               linkButton({
                 tooltip: 'Remove tag',
                 onClick: () => this.deleteTag(tag),
-                style: { marginLeft: '0.25rem' }
-              }, [icon('times', { size: 18 })])
+                style: { marginLeft: '0.25rem', verticalAlign: 'middle', display: 'inline-block' }
+              }, [icon('times', { size: 14 })])
             ])
           }, tagsList),
           busy && spinner({ style: { marginTop: '0.5rem' } })

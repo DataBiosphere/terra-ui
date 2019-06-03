@@ -190,7 +190,7 @@ export const ValidatedInput = props => {
           border: `1px solid ${colors.danger()}`
         } : undefined
       }, inputProps)),
-      error && icon('exclamation-circle', {
+      error && icon('error-standard', {
         size: 24,
         style: {
           position: 'absolute', color: colors.danger(),

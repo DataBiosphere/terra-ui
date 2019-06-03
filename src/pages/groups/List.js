@@ -115,7 +115,7 @@ const GroupCard = pure(({ group: { groupName, groupEmail, role }, onDelete }) =>
         onClick: onDelete,
         style: { margin: '-1rem', padding: '1rem' }
       }, [
-        icon('trash', { className: 'is-solid', size: 17 })
+        icon('trash', { size: 17 })
       ])
     ])
   ])

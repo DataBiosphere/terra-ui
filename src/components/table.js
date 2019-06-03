@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
 import { createRef, Fragment } from 'react'
-import DraggableCore from 'react-draggable'
+import Draggable from 'react-draggable'
 import { button, div, h, option, select } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
 import Pagination from 'react-paginating'
@@ -20,6 +20,7 @@ import { Component } from 'src/libs/wrapped-components'
 const paginatorButton = (props, label) => button(_.merge({
   style: {
     margin: '0 2px', padding: '0.25rem 0.5rem',
+    display: 'flex', justifyContent: 'center',
     border: '1px solid #ccc', borderRadius: 3,
     color: props.disabled ? colors.dark(0.7) : colors.accent(), backgroundColor: 'white',
     cursor: props.disabled ? 'not-allowed' : 'pointer'
@@ -423,7 +424,7 @@ export const Sortable = ({ sort, field, onSort, children }) => {
     sort.field === field && div({
       style: { color: colors.accent(), marginLeft: 'auto' }
     }, [
-      icon(sort.direction === 'asc' ? 'arrow down' : 'arrow')
+      icon(sort.direction === 'asc' ? 'long-arrow-alt-down' : 'long-arrow-alt-up')
     ])
   ])
 }
@@ -437,7 +438,7 @@ export class Resizable extends Component {
       style: { flex: 1, display: 'flex', alignItems: 'center', position: 'relative', width: '100%' }
     }, [
       children,
-      h(DraggableCore, {
+      h(Draggable, {
         axis: 'x',
         onStart: e => this.setState({ dragAmount: 0, lastX: e.clientX }),
         onDrag: e => {
@@ -450,7 +451,7 @@ export class Resizable extends Component {
           this.setState({ dragAmount: undefined })
           onWidthChange(dragAmount)
         },
-        position: { x: 0 }
+        position: { x: 0, y: 0 }
       }, [
         icon('columnGrabber', {
           size: 24,
@@ -506,7 +507,7 @@ export class ColumnSelector extends Component {
         style: styles.columnSelector,
         tooltip: 'Select columns',
         onClick: () => this.setState({ open: true, modifiedColumnSettings: columnSettings })
-      }, [icon('cog', { size: 20, className: 'is-solid' })]),
+      }, [icon('cog', { size: 20 })]),
       open && h(Modal, {
         title: 'Select columns',
         onDismiss: () => this.setState({ open: false }),
@@ -538,7 +539,7 @@ export class ColumnSelector extends Component {
                 const { name, visible } = modifiedColumnSettings[index]
                 return h(SortableDiv, { key, index, style: { ...style, display: 'flex' } }, [
                   h(SortableHandleDiv, { style: styles.columnHandle }, [
-                    icon('bars')
+                    icon('columnGrabber', { style: { transform: 'rotate(90deg)' } })
                   ]),
                   div({ style: { display: 'flex', alignItems: 'center' } }, [
                     h(Checkbox, {

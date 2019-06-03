@@ -242,7 +242,7 @@ const LocalVariablesContent = ajaxCaller(class LocalVariablesContent extends Com
                               editKey: originalKey,
                               editType: typeof originalValue === 'object' ? `${typeof originalValue.items[0]} list` : typeof originalValue
                             })
-                          }, [icon('pencil', { size: 19 })]),
+                          }, [icon('edit', { size: 19 })]),
                           linkButton({
                             disabled: !!Utils.editWorkspaceError(workspace),
                             tooltip: Utils.editWorkspaceError(workspace) || 'Delete variable',

@@ -67,7 +67,6 @@ const styles = {
   },
   angle: {
     marginRight: '0.5rem',
-    marginTop: '.1rem',
     color: colors.accent()
   },
   outputInfoLabel: {
@@ -148,14 +147,13 @@ const WorkflowIOTable = ({ which, inputsOutputs: data, config, errors, onChange,
                   icon('folder-open', {
                     size: 20, style: {
                       height: '2.25rem',
-                      marginTop: '0.4rem',
                       marginRight: '0.5rem'
                     }
                   })
                 ]),
                 error && h(TooltipTrigger, { content: error }, [
-                  icon('error', {
-                    size: 28, style: { marginLeft: '0.5rem', color: colors.danger(), cursor: 'help' }
+                  icon('error-standard', {
+                    size: 14, style: { marginLeft: '0.5rem', color: colors.danger(), cursor: 'help' }
                   })
                 ])
               ])
@@ -558,7 +556,7 @@ const WorkflowView = _.flow(
                   }, [menuIcon('trash'), 'Delete'])
                 ])
               }, [
-                linkButton({}, [icon('ellipsis-vertical', { size: 22 })])
+                linkButton({}, [icon('cardMenuIcon', { size: 22 })])
               ])
             ]),
             span({ style: { color: colors.dark(), fontSize: 24 } }, name)

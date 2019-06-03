@@ -2,12 +2,13 @@ import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
 import { Fragment, useState } from 'react'
 import { Collapse as RCollapse } from 'react-collapse'
-import { a, b, div, h, span } from 'react-hyperscript-helpers'
+import { a, b, div, h, img, span } from 'react-hyperscript-helpers'
 import { buttonPrimary, Clickable, LabeledCheckbox, spinnerOverlay } from 'src/components/common'
 import { icon, profilePic } from 'src/components/icons'
 import { TextArea } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import SignInButton from 'src/components/SignInButton'
+import fcIconWhite from 'src/images/brands/firecloud/FireCloud-icon-white.svg'
 import headerLeftHexes from 'src/images/header-left-hexes.svg'
 import headerRightHexes from 'src/images/header-right-hexes.svg'
 import { Ajax, ajaxCaller } from 'src/libs/ajax'
@@ -98,12 +99,10 @@ const DropDownSection = props => {
       hover: { backgroundColor: colors.dark(0.55) },
       onClick
     }, [
-      titleIcon && div({ style: styles.nav.icon }, [
-        icon(titleIcon, {
-          className: 'is-solid',
-          size: 24
-        })
-      ]),
+      titleIcon && icon(titleIcon, {
+        size: 24,
+        style: styles.nav.icon
+      }),
       div({ style: Style.noWrapEllipsis }, [title]),
       div({ style: { flexGrow: 1 } }),
       icon(`angle ${isOpened ? 'up' : 'down'}`,
@@ -150,7 +149,7 @@ export default _.flow(
   }
 
   buildNav() {
-    const { authState: { isSignedIn, profile,  profile: { firstName = 'Loading...', lastName = '' }  } } = this.props
+    const { authState: { isSignedIn, profile, profile: { firstName = 'Loading...', lastName = '' } } } = this.props
     const { trialState } = profile
     const { openLibraryMenu, openSupportMenu, openUserMenu } = this.state
 
@@ -163,10 +162,7 @@ export default _.flow(
       }
     }, [
       div({ style: styles.nav.icon }, [
-        icon('cloud', {
-          className: 'is-solid',
-          size: 20
-        })
+        icon('cloud', { size: 20 })
       ]),
       'Sign up for free credits'
     ])
@@ -180,10 +176,7 @@ export default _.flow(
       onClick: () => this.hideNav()
     }, [
       div({ style: styles.nav.icon }, [
-        icon('cloud', {
-          className: 'is-solid',
-          size: 20
-        })
+        icon('cloud', { size: 20 })
       ]),
       'Access free credits',
       icon('pop-out', {
@@ -198,10 +191,7 @@ export default _.flow(
       onClick: () => this.setState({ finalizeTrial: true })
     }, [
       div({ style: styles.nav.icon }, [
-        icon('cloud', {
-          className: 'is-solid',
-          size: 20
-        })
+        icon('cloud', { size: 20 })
       ]),
       'Your free trial has ended'
     ])
@@ -265,9 +255,7 @@ export default _.flow(
             href: Nav.getLink('workspaces'),
             onClick: () => this.hideNav()
           }, [
-            div({ style: styles.nav.icon }, [
-              icon('grid-chart', { className: 'is-solid', size: 24 })
-            ]),
+            icon('view-cards', { size: 24, style: styles.nav.icon }),
             'Your Workspaces'
           ]),
           h(DropDownSection, {
@@ -330,7 +318,7 @@ export default _.flow(
             onClick: () => this.setState({ openFirecloudModal: true })
           }, [
             div({ style: styles.nav.icon }, [
-              icon('fcIconWhite', { className: 'is-solid', size: 20 })
+              img({ src: fcIconWhite, style: { height: 20, width: 20 } })
             ]), 'Use Classic FireCloud'
           ]),
           div({ style: { borderTop: `1px solid ${colors.dark(0.55)}` } }, []),
@@ -365,9 +353,11 @@ export default _.flow(
         }
       }, [
         icon('bars', {
-          dir: navShown ? 'right' : undefined,
           size: 36,
-          style: { marginRight: '2rem', color: isTerra() ? 'white' : colors.accent(), flex: 'none', cursor: 'pointer' },
+          style: {
+            marginRight: '2rem', color: isTerra() ? 'white' : colors.accent(), flex: 'none', cursor: 'pointer',
+            transform: navShown ? 'rotate(90deg)' : undefined, transition: 'transform 0.1s ease-out'
+          },
           onClick: () => navShown ? this.hideNav() : this.showNav()
         }),
         a({

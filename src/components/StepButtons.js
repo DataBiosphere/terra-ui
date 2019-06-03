@@ -62,8 +62,8 @@ const stepButton = ({ i, key, title, isValid, selectedIndex, onChangeTab, tabs }
   }, [
     isValid ?
       // ugh, why are these so different visually?
-      icon('check-circle', { className: 'is-solid', size: 24 }) :
-      icon('edit', { className: 'is-solid', size: 16, style: { margin: 4 } }),
+      icon('success-standard', { size: 24 }) :
+      icon('edit', { size: 16, style: { margin: 4 } }),
     span({ style: styles.buttonLabel }, [title])
   ])
 
