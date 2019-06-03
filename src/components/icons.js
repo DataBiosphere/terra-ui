@@ -6,7 +6,7 @@ import iconDict from 'src/libs/icon-dict'
 
 
 /**
- * Creates an icon: Clarity, FA, or custom.
+ * Creates an icon: FA or custom.
  * @param {string} shape - see {@link https://fontawesome.com/icons?d=gallery}
  * @param {object} [props]
  */
