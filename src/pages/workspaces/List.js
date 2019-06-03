@@ -329,7 +329,7 @@ export const WorkspaceList = _.flow(
           viewToggleButtons
         ]),
         div({ style: { display: 'flex', marginBottom: '1rem' } }, [
-          div({ style: { marginLeft: 'auto', display: 'flex', alignItems: 'center', fontSize: '1rem' } }, ['Filter by']),
+          div({ style: { display: 'flex', alignItems: 'center', fontSize: '1rem' } }, ['Filter by']),
           div({ style: styles.filter }, [
             h(Select, {
               isClearable: true,
@@ -342,7 +342,7 @@ export const WorkspaceList = _.flow(
               options: tagsList
             })
           ]),
-          div({ style: styles.filter }, [
+          div({ style: { ...styles.filter, flexBasis: '250px', minWidth: 0 } }, [
             h(Select, {
               isClearable: true,
               isMulti: true,
@@ -368,7 +368,7 @@ export const WorkspaceList = _.flow(
               options: namespaceList
             })
           ]),
-          div({ style: styles.filter }, [
+          div({ style: { ...styles.filter, flexBasis: '250px', minWidth: 0 } }, [
             h(Select, {
               isClearable: true,
               isMulti: true,
