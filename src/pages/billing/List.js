@@ -14,8 +14,9 @@ import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
 import { formHint, RequiredFormLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
+import { authStore, freeCreditsActive } from 'src/libs/state'
 import * as StateHistory from 'src/libs/state-history'
-import * as style from 'src/libs/style'
+import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 import ProjectDetail from 'src/pages/billing/Project'
@@ -30,11 +31,11 @@ const ProjectTab = ({ project: { projectName, role, creationStatus }, isActive }
   return _.includes('Owner', role) && projectReady ?
     h(Interactive, {
       as: 'a',
-      style: { ...style.navList.item(isActive), color: colors.accent() },
+      style: { ...Style.navList.item(isActive), color: colors.accent() },
       href: `${Nav.getLink('billing')}?${qs.stringify({ selectedName: projectName, type: 'project' })}`,
-      hover: style.navList.itemHover(isActive)
+      hover: Style.navList.itemHover(isActive)
     }, [projectName, !projectReady && statusIcon]) :
-    div({ style: { ...style.navList.item(false), color: colors.dark() } }, [projectName, !projectReady && statusIcon])
+    div({ style: { ...Style.navList.item(false), color: colors.dark() } }, [projectName, !projectReady && statusIcon])
 }
 
 const billingProjectNameValidator = existing => ({
@@ -186,7 +187,10 @@ const NewBillingProjectModal = ajaxCaller(class NewBillingProjectModal extends C
   })
 })
 
-export const BillingList = ajaxCaller(class BillingList extends Component {
+export const BillingList = _.flow(
+  ajaxCaller,
+  Utils.connectAtom(authStore, 'authState')
+)(class  BillingList extends Component {
   constructor(props) {
     super(props)
     this.state = {
@@ -216,7 +220,9 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
 
   render() {
     const { billingProjects, isBusy, creatingBillingProject } = this.state
-    const { queryParams: { selectedName } } = this.props
+    const { queryParams: { selectedName }, authState: { profile } } = this.props
+    const { trialState } = profile
+    const hasFreeCredits = trialState === 'Enabled'
     const breadcrumbs = `Billing > Billing Project`
     return h(Fragment, [
       h(TopBar, { title: 'Billing', href: Nav.getLink('billing') }, [
@@ -226,23 +232,23 @@ export const BillingList = ajaxCaller(class BillingList extends Component {
           }
         }, [
           div(breadcrumbs),
-          div({
-            style: {
-              textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-              fontSize: '1.25rem', overflowX: 'hidden'
-            }
-          }, [selectedName])
+          div({ style: Style.breadcrumb.textUnderBreadcrumb }, [selectedName])
         ])
       ]),
       div({ style: { display: 'flex', flex: 1, position: 'relative' } }, [
         div({ style: { width: 330, boxShadow: '0 2px 5px 0 rgba(0,0,0,0.25)' } }, [
-          div({ style: style.navList.heading }, [
+          div({ style: Style.navList.heading }, [
             'Billing Projects',
             h(Clickable,
               { onClick: () => { this.setState({ creatingBillingProject: true }) } },
               [icon('plus-circle', { size: 21, style: { color: colors.accent() } })]
             )
           ]),
+          hasFreeCredits && h(Clickable, {
+            style: { ...Style.navList.heading, color: colors.light(), backgroundColor: colors.accent() },
+            hover: { backgroundColor: colors.accent(0.85) },
+            onClick: () => freeCreditsActive.set(true)
+          }, ['Click for $300 free credits']),
           _.map(project => h(ProjectTab, {
             project, key: project.projectName,
             isActive: !!selectedName && project.projectName === selectedName

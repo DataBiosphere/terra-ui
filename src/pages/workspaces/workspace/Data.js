@@ -25,7 +25,7 @@ import { getConfig } from 'src/libs/config'
 import { EntityDeleter, EntityUploader, ReferenceDataDeleter, ReferenceDataImporter, renderDataCell } from 'src/libs/data-utils'
 import { withErrorReporting } from 'src/libs/error'
 import * as StateHistory from 'src/libs/state-history'
-import * as style from 'src/libs/style'
+import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
@@ -53,14 +53,14 @@ const styles = {
 const DataTypeButton = ({ selected, children, iconName = 'listAlt', iconSize = 14, ...props }) => {
   return linkButton({
     as: 'span',
-    style: style.navList.item(selected),
-    hover: style.navList.itemHover(selected),
+    style: Style.navList.item(selected),
+    hover: Style.navList.itemHover(selected),
     ...props
   }, [
     div({ style: { flex: 'none', display: 'flex', width: '1.5rem' } }, [
       icon(iconName, { size: iconSize })
     ]),
-    div({ style: { flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' } }, [
+    div({ style: { flex: 1, ...Style.noWrapEllipsis } }, [
       children
     ])
   ])
@@ -424,8 +424,8 @@ class EntitiesContent extends Component {
     const { selectedEntities } = this.state
 
     const dataExplorerUrl =
-       _.size(selectedEntities) === 1 && _.values(selectedEntities)[0].attributes.data_explorer_url ? _.values(selectedEntities)[0].attributes.data_explorer_url
-         : ''
+      _.size(selectedEntities) === 1 && _.values(selectedEntities)[0].attributes.data_explorer_url ? _.values(selectedEntities)[0].attributes.data_explorer_url
+        : ''
     return h(Fragment, [
       buttonPrimary({
         // Old cohorts (before mid-Apr 2019) don't have data_explorer_url
@@ -740,7 +740,7 @@ const WorkspaceData = _.flow(
     return div({ style: styles.tableContainer }, [
       !entityMetadata ? spinnerOverlay : h(Fragment, [
         div({ style: styles.dataTypeSelectionPanel }, [
-          div({ style: style.navList.heading }, [
+          div({ style: Style.navList.heading }, [
             div(['Tables']),
             linkButton({
               disabled: !!Utils.editWorkspaceError(workspace),
@@ -757,7 +757,7 @@ const WorkspaceData = _.flow(
               }
             }, [`${type} (${typeDetails.count})`])
           }, _.toPairs(entityMetadata)),
-          div({ style: style.navList.heading }, [
+          div({ style: Style.navList.heading }, [
             div(['Reference Data']),
             linkButton({
               disabled: !!Utils.editWorkspaceError(workspace),
@@ -814,7 +814,7 @@ const WorkspaceData = _.flow(
               ])
             ])
           }, _.keys(referenceData)),
-          div({ style: style.navList.heading }, 'Other Data'),
+          div({ style: Style.navList.heading }, 'Other Data'),
           h(DataTypeButton, {
             selected: selectedDataType === localVariables,
             onClick: () => {

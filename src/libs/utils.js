@@ -274,11 +274,11 @@ export const isValidWsExportTarget = _.curry((sourceWs, destWs) => {
 export const normalizeMachineConfig = ({ masterMachineType, masterDiskSize, numberOfWorkers, numberOfPreemptibleWorkers, workerMachineType, workerDiskSize }) => {
   return {
     masterMachineType: masterMachineType || 'n1-standard-4',
-    masterDiskSize: masterDiskSize || 500,
+    masterDiskSize: masterDiskSize || 50,
     numberOfWorkers: numberOfWorkers || 0,
     numberOfPreemptibleWorkers: (numberOfWorkers && numberOfPreemptibleWorkers) || 0,
     workerMachineType: (numberOfWorkers && workerMachineType) || 'n1-standard-4',
-    workerDiskSize: (numberOfWorkers && workerDiskSize) || 500
+    workerDiskSize: (numberOfWorkers && workerDiskSize) || 50
   }
 }
 
@@ -325,7 +325,6 @@ export const useGetter = value => {
 
 export const trimClustersOldestFirst = _.flow(
   _.remove({ status: 'Deleting' }),
-  _.remove({ status: 'Error' }),
   _.sortBy('createdDate')
 )
 

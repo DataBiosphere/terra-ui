@@ -23,6 +23,7 @@ import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 import DeleteWorkspaceModal from 'src/pages/workspaces/workspace/DeleteWorkspaceModal'
+import { RequestAccessModal } from 'src/pages/workspaces/workspace/RequestAccessModal'
 import ShareWorkspaceModal from 'src/pages/workspaces/workspace/ShareWorkspaceModal'
 
 
@@ -67,12 +68,12 @@ const styles = {
   },
   longTitle: {
     ...Style.elements.card.title,
-    whiteSpace: 'nowrap', textOverflow: 'ellipsis', flex: 1
+    ...Style.noWrapEllipsis, flex: 1
   },
   longDescription: {
     flex: 1,
     paddingRight: '1rem',
-    whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'
+    ...Style.noWrapEllipsis
   },
   badge: {
     height: '1.5rem', width: '1.5rem', borderRadius: '1.5rem',
@@ -136,7 +137,7 @@ const SubmissionIndicator = ({ shape, color }) => {
 }
 
 const WorkspaceCard = pure(({
-  listView, onClone, onDelete, onShare,
+  listView, onClone, onDelete, onShare, onRequestAccess,
   workspace, workspace: { accessLevel, workspace: { namespace, name, createdBy, lastModified, attributes: { description } } }
 }) => {
   const lastChanged = `Last changed: ${Utils.makePrettyDate(lastModified)}`
@@ -162,17 +163,30 @@ const WorkspaceCard = pure(({
     span({ style: { color: colors.dark(0.85) } }, ['No description added'])
   const titleOverrides = !canView ? { color: colors.dark(0.7) } : {}
 
+  const renderCard = children => {
+    const style = listView ? styles.longCard : styles.shortCard
+    if (canView) {
+      return a({
+        href: Nav.getLink('workspace-dashboard', { namespace, name }),
+        style
+      }, children)
+    } else {
+      return h(Clickable, {
+        as: 'a',
+        onClick: onRequestAccess,
+        style
+      }, children)
+    }
+  }
+
   return h(TooltipTrigger, {
     content: !canView && `
-      You cannot access this workspace because it contains restricted data.
-      You need permission from the admin(s) of all of the groups in the Authorization Domain protecting the workspace.
+      You cannot access this workspace because it is protected by an Authorization Domain.
+      Click to learn about gaining access.
     `,
     side: 'top'
   }, [
-    a({
-      href: canView ? Nav.getLink('workspace-dashboard', { namespace, name }) : undefined,
-      style: listView ? styles.longCard : styles.shortCard
-    }, [
+    renderCard([
       Utils.switchCase(workspaceSubmissionStatus(workspace),
         ['success', () => h(SubmissionIndicator, { shape: 'success-standard', color: colors.success() })],
         ['failure', () => h(SubmissionIndicator, { shape: 'error-standard', color: colors.danger(0.85) })],
@@ -232,6 +246,7 @@ export const WorkspaceList = _.flow(
       cloningWorkspaceId: undefined,
       deletingWorkspaceId: undefined,
       sharingWorkspaceId: undefined,
+      requestingAccessWorkspaceId: undefined,
       accessLevelsFilter: [],
       projectsFilter: [],
       submissionsFilter: [],
@@ -255,7 +270,7 @@ export const WorkspaceList = _.flow(
 
   render() {
     const { workspaces, loadingWorkspaces, refreshWorkspaces, listView, viewToggleButtons } = this.props
-    const { filter, creatingNewWorkspace, cloningWorkspaceId, deletingWorkspaceId, sharingWorkspaceId, accessLevelsFilter, projectsFilter, submissionsFilter, tagsFilter, tagsList, includePublic } = this.state
+    const { filter, creatingNewWorkspace, cloningWorkspaceId, deletingWorkspaceId, sharingWorkspaceId, requestingAccessWorkspaceId, accessLevelsFilter, projectsFilter, submissionsFilter, tagsFilter, tagsList, includePublic } = this.state
     const initialFiltered = _.filter(ws => {
       const { workspace: { namespace, name } } = ws
       return Utils.textMatch(filter, `${namespace}/${name}`) && (includePublic || !ws.public || Utils.canWrite(ws.accessLevel))
@@ -289,6 +304,7 @@ export const WorkspaceList = _.flow(
         onClone: () => this.setState({ cloningWorkspaceId: workspace.workspace.workspaceId }),
         onDelete: () => this.setState({ deletingWorkspaceId: workspace.workspace.workspaceId }),
         onShare: () => this.setState({ sharingWorkspaceId: workspace.workspace.workspaceId }),
+        onRequestAccess: () => this.setState({ requestingAccessWorkspaceId: workspace.workspace.workspaceId }),
         workspace, key: workspace.workspace.workspaceId
       })
     }, data)
@@ -313,24 +329,25 @@ export const WorkspaceList = _.flow(
           viewToggleButtons
         ]),
         div({ style: { display: 'flex', marginBottom: '1rem' } }, [
-          div({ style: { ...styles.filter, marginLeft: 'auto' } }, [
+          div({ style: { display: 'flex', alignItems: 'center', fontSize: '1rem' } }, ['Filter by']),
+          div({ style: styles.filter }, [
             h(Select, {
               isClearable: true,
               isMulti: true,
               isSearchable: true,
               value: tagsFilter,
               hideSelectedOptions: true,
-              placeholder: 'Filter by tags',
+              placeholder: 'Tags',
               onChange: data => this.setState({ tagsFilter: _.map('value', data) }),
               options: tagsList
             })
           ]),
-          div({ style: styles.filter }, [
+          div({ style: { ...styles.filter, flexBasis: '250px', minWidth: 0 } }, [
             h(Select, {
               isClearable: true,
               isMulti: true,
               isSearchable: false,
-              placeholder: 'Filter by access levels',
+              placeholder: 'Access levels',
               value: accessLevelsFilter,
               onChange: data => this.setState({ accessLevelsFilter: _.map('value', data) }),
               options: Utils.workspaceAccessLevels,
@@ -341,7 +358,7 @@ export const WorkspaceList = _.flow(
             h(Select, {
               isClearable: true,
               isMulti: false,
-              placeholder: 'Filter by project',
+              placeholder: 'Project',
               value: projectsFilter,
               hideSelectedOptions: true,
               onChange: selected => {
@@ -351,12 +368,12 @@ export const WorkspaceList = _.flow(
               options: namespaceList
             })
           ]),
-          div({ style: styles.filter }, [
+          div({ style: { ...styles.filter, flexBasis: '250px', minWidth: 0 } }, [
             h(Select, {
               isClearable: true,
               isMulti: true,
               isSearchable: false,
-              placeholder: 'Filter by submission status',
+              placeholder: 'Submission status',
               value: submissionsFilter,
               hideSelectedOptions: true,
               onChange: data => this.setState({ submissionsFilter: _.map('value', data) }),
@@ -391,6 +408,10 @@ export const WorkspaceList = _.flow(
         sharingWorkspaceId && h(ShareWorkspaceModal, {
           workspace: this.getWorkspace(sharingWorkspaceId),
           onDismiss: () => { this.setState({ sharingWorkspaceId: undefined }) }
+        }),
+        requestingAccessWorkspaceId && h(RequestAccessModal, {
+          workspace: this.getWorkspace(requestingAccessWorkspaceId),
+          onDismiss: () => { this.setState({ requestingAccessWorkspaceId: undefined }) }
         }),
         loadingWorkspaces && (!workspaces ? transparentSpinnerOverlay : topSpinnerOverlay)
       ])

@@ -19,6 +19,7 @@ import { FormLabel } from 'src/libs/forms'
 import { topBarLogo } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
 import { authStore, contactUsActive, freeCreditsActive } from 'src/libs/state'
+import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 import { CookiesModal } from 'src/pages/SignIn'
@@ -103,13 +104,7 @@ const DropDownSection = props => {
           size: 24
         })
       ]),
-      div({
-        style: {
-          whiteSpace: 'nowrap',
-          overflow: 'hidden',
-          textOverflow: 'ellipsis'
-        }
-      }, [title]),
+      div({ style: Style.noWrapEllipsis }, [title]),
       div({ style: { flexGrow: 1 } }),
       icon(`angle ${isOpened ? 'up' : 'down'}`,
         {
@@ -265,7 +260,7 @@ export default _.flow(
             ]),
           h(Clickable, {
             as: 'a',
-            style: { ...styles.nav.item, borderBottom: `1px solid ${colors.dark(0.55)}` },
+            style: styles.nav.item,
             hover: { backgroundColor: colors.dark(0.55) },
             href: Nav.getLink('workspaces'),
             onClick: () => this.hideNav()
@@ -275,7 +270,6 @@ export default _.flow(
             ]),
             'Your Workspaces'
           ]),
-          div({ style: { margin: '5rem' } }),
           h(DropDownSection, {
             titleIcon: 'library',
             title: 'Terra Library',
@@ -339,6 +333,7 @@ export default _.flow(
               icon('fcIconWhite', { className: 'is-solid', size: 20 })
             ]), 'Use Classic FireCloud'
           ]),
+          div({ style: { borderTop: `1px solid ${colors.dark(0.55)}` } }, []),
           div({
             style: {
               ..._.omit('borderTop', styles.nav.item),
