@@ -64,23 +64,9 @@ const NewBillingProjectModal = ajaxCaller(class NewBillingProjectModal extends C
     }
   }
 
-  async componentDidMount() {
-    this.loadAccounts()
-  }
-
-  loadAccounts = _.flow(
-    withErrorReporting('Error loading billing accounts'),
-    Utils.withBusyState(v => this.setState({ isBusy: v }))
-  )(async () => {
-    const { ajax: { Billing } } = this.props
-    await Auth.ensureBillingScope()
-    const billingAccounts = await Billing.listAccounts()
-    this.setState({ billingAccounts })
-  })
-
   render() {
-    const { onDismiss } = this.props
-    const { billingProjectName, billingProjectNameTouched, chosenBillingAccount, existing, isBusy, billingAccounts } = this.state
+    const { onDismiss, billingAccounts } = this.props
+    const { billingProjectName, billingProjectNameTouched, chosenBillingAccount, existing, isBusy } = this.state
     const errors = validate({ billingProjectName }, { billingProjectName: billingProjectNameValidator(existing) })
 
     return h(Modal, {
@@ -200,26 +186,35 @@ export const BillingList = _.flow(
     }
   }
 
-  async componentDidMount() {
-    this.loadProjects()
-  }
+  componentDidMount = Utils.withBusyState(v => this.setState({ isBusy: v }),
+    () => Promise.all([
+      this.loadProjects(),
+      this.loadAccounts()
+    ])
+  )
 
-  loadProjects = _.flow(
-    withErrorReporting('Error loading billing projects list'),
-    Utils.withBusyState(v => this.setState({ isBusy: v }))
-  )(async () => {
-    const { ajax: { Billing } } = this.props
-    const rawBillingProjects = await Billing.listProjects()
-    const billingProjects = _.flow(
-      _.groupBy('projectName'),
-      _.map(gs => ({ ...gs[0], role: _.map('role', gs) })),
-      _.sortBy('projectName')
-    )(rawBillingProjects)
-    this.setState({ billingProjects })
-  })
+ loadProjects = withErrorReporting('Error loading billing projects list',
+   async () => {
+     const { ajax: { Billing } } = this.props
+     const rawBillingProjects = await Billing.listProjects()
+     const billingProjects = _.flow(
+       _.groupBy('projectName'),
+       _.map(gs => ({ ...gs[0], role: _.map('role', gs) })),
+       _.sortBy('projectName')
+     )(rawBillingProjects)
+     this.setState({ billingProjects })
+   })
+
+  loadAccounts = withErrorReporting('Error loading billing accounts',
+    (async () => {
+      const { ajax: { Billing } } = this.props
+      await Auth.ensureBillingScope()
+      const billingAccounts = await Billing.listAccounts()
+      this.setState({ billingAccounts })
+    }))
 
   render() {
-    const { billingProjects, isBusy, creatingBillingProject } = this.state
+    const { billingProjects, isBusy, creatingBillingProject, billingAccounts } = this.state
     const { queryParams: { selectedName }, authState: { profile } } = this.props
     const { trialState } = profile
     const hasFreeCredits = trialState === 'Enabled'
@@ -255,13 +250,14 @@ export const BillingList = _.flow(
           }), billingProjects)
         ]),
         creatingBillingProject && h(NewBillingProjectModal, {
+          billingAccounts,
           onDismiss: () => this.setState({ creatingBillingProject: false }),
           onSuccess: () => {
             this.setState({ creatingBillingProject: false })
             this.loadProjects()
           }
         }),
-        !!selectedName && billingProjects && h(ProjectDetail, { key: selectedName, project: _.find({ projectName: selectedName }, billingProjects) }),
+        !!selectedName && billingProjects && h(ProjectDetail, { key: selectedName, project: _.find({ projectName: selectedName }, billingProjects), billingAccounts }),
         isBusy && spinnerOverlay
       ])
     ])

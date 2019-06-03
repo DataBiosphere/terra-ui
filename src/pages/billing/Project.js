@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
-import { spinnerOverlay } from 'src/components/common'
+import { spinnerOverlay, Select } from 'src/components/common'
 import { DeleteUserModal, EditUserModal, MemberCard, NewUserCard, NewUserModal } from 'src/components/group-common'
 import { icon, spinner } from 'src/components/icons'
 import { ajaxCaller } from 'src/libs/ajax'
@@ -10,7 +10,6 @@ import { withErrorReporting } from 'src/libs/error'
 import * as StateHistory from 'src/libs/state-history'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
-
 
 export default ajaxCaller(class ProjectDetail extends Component {
   constructor(props) {
@@ -22,44 +21,72 @@ export default ajaxCaller(class ProjectDetail extends Component {
       editingUser: false,
       deletingUser: false,
       updating: false,
+      billingAccountName: null,
       ...StateHistory.get()
     }
   }
 
-  refresh = _.flow(
-    withErrorReporting('Error loading billing project users list'),
+  updateBillingAccount = _.flow(
+    withErrorReporting('Error updating billing account'),
     Utils.withBusyState(v => this.setState({ loading: v }))
-  )(async () => {
-    const { ajax: { Billing }, project } = this.props
-    this.setState({ addingUser: false, deletingUser: false, updating: false, editingUser: false })
-    const rawProjectUsers = await Billing.project(project.projectName).listUsers()
-    const projectUsers = _.flow(
-      _.groupBy('email'),
-      _.map(gs => ({ ..._.omit('role', gs[0]), roles: _.map('role', gs) })),
-      _.sortBy('email')
-    )(rawProjectUsers)
-    this.setState({ projectUsers })
+  )(async newAccountName => {
+    const { ajax: {  GoogleBilling }, project: { projectName }  } = this.props
+    const { billingAccountName } = await GoogleBilling.changeBillingAccount({ projectId: projectName, newAccountName })
+    this.setState({ billingAccountName })
   })
 
-  componentDidMount() {
-    this.refresh()
-  }
+  loadBillingInfo = withErrorReporting('Error loading current billing account',
+    async () => {
+      const { ajax: {  GoogleBilling }, project: { projectName } } = this.props
+      const { billingAccountName } = await GoogleBilling.getBillingInfo(projectName)
+      this.setState({ billingAccountName })
+    })
+
+  refresh = withErrorReporting('Error loading billing project users list',
+    async () => {
+      const { ajax: { Billing }, project } = this.props
+      this.setState({ addingUser: false, deletingUser: false, updating: false, editingUser: false })
+      const rawProjectUsers = await Billing.project(project.projectName).listUsers()
+      const projectUsers = _.flow(
+        _.groupBy('email'),
+        _.map(gs => ({ ..._.omit('role', gs[0]), roles: _.map('role', gs) })),
+        _.sortBy('email')
+      )(rawProjectUsers)
+      this.setState({ projectUsers })
+    })
+
+  componentDidMount = Utils.withBusyState(
+    v => this.setState({ loading: v }),
+    () => Promise.all([
+      this.refresh(),
+      this.loadBillingInfo()
+    ])
+  )
 
   render() {
-    const { project: { projectName, creationStatus }, ajax: { Billing } } = this.props
-    const { projectUsers, loading, updating, filter, addingUser, deletingUser, editingUser } = this.state
+    const { project: { projectName, creationStatus }, ajax: { Billing }, billingAccounts } = this.props
+    const { projectUsers, loading, updating, filter, addingUser, deletingUser, editingUser, billingAccountName } = this.state
     const adminCanEdit = _.filter(({ roles }) => _.includes('Owner', roles), projectUsers).length > 1
+    const accounts = _.map(({ displayName, accountName }) => ({ label: displayName, value: accountName }), billingAccounts)
 
     return h(Fragment, [
       div({ style: { padding: '1.5rem 3rem', flexGrow: 1 } }, [
-        div({ style: { color: colors.dark(), fontSize: 16, fontWeight: 600 } }, [
+        div({ style: { color: colors.dark(), fontSize: 16, fontWeight: 600, display: 'flex', alignItems: 'center' } }, [
           projectName,
           span({ style: { fontWeight: 500, fontSize: 14, margin: '0 1.5rem 0 3rem' } }, creationStatus),
           Utils.cond(
             [creationStatus === 'Ready', () => icon('check', { style: { color: colors.success() } })],
             [creationStatus === 'Creating', () => spinner({ size: 16 })],
             () => icon('error-standard', { style: { color: colors.danger() } })
-          )
+          ),
+          span({ style: { fontWeight: 500, fontSize: 14, margin: '0 0.75rem 0 auto' } }, 'Billing Account:'),
+          h(Select, {
+            value: billingAccountName,
+            isClearable: false,
+            styles: { container: old => ({ ...old, width: 320 }) },
+            options: accounts,
+            onChange: async ({ value: newAccountName }) => this.updateBillingAccount(newAccountName)
+          })
         ]),
         div({
           style: {
