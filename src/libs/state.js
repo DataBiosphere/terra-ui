@@ -24,6 +24,8 @@ export const rerunFailuresStatus = Utils.atom()
 
 export const errorNotifiedClusters = Utils.atom([])
 
+export const requesterPaysBuckets = Utils.atom([])
+
 /*
  * Modifies ajax responses for testing purposes.
  * Can be set to an array of objects of the form { fn, filter }.
