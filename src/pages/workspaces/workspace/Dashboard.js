@@ -1,4 +1,4 @@
-import clipboard from 'clipboard-polyfill'
+import * as clipboard from 'clipboard-polyfill'
 import debouncePromise from 'debounce-promise'
 import 'easymde/dist/easymde.min.css'
 import _ from 'lodash/fp'
