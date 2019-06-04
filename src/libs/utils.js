@@ -174,6 +174,11 @@ export const delay = ms => {
   return new Promise(resolve => setTimeout(resolve, ms))
 }
 
+// Returns a promise that will never resolve or reject. Useful for cancelling async flows.
+export const abandonedPromise = () => {
+  return new Promise(() => {})
+}
+
 export const generateClusterName = () => `saturn-${uuid()}`
 
 export const waitOneTick = () => new Promise(setImmediate)
