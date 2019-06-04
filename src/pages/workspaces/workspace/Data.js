@@ -1,4 +1,4 @@
-import clipboard from 'clipboard-polyfill'
+import * as clipboard from 'clipboard-polyfill'
 import FileSaver from 'file-saver'
 import filesize from 'filesize'
 import _ from 'lodash/fp'
