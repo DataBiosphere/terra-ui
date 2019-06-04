@@ -206,12 +206,12 @@ export const BillingList = _.flow(
    })
 
   loadAccounts = withErrorReporting('Error loading billing accounts',
-    (async () => {
+    async () => {
       const { ajax: { Billing } } = this.props
       await Auth.ensureBillingScope()
       const billingAccounts = await Billing.listAccounts()
       this.setState({ billingAccounts })
-    }))
+    })
 
   render() {
     const { billingProjects, isBusy, creatingBillingProject, billingAccounts } = this.state

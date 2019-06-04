@@ -30,7 +30,7 @@ export default ajaxCaller(class ProjectDetail extends Component {
     withErrorReporting('Error updating billing account'),
     Utils.withBusyState(v => this.setState({ loading: v }))
   )(async newAccountName => {
-    const { ajax: {  GoogleBilling }, project: { projectName }  } = this.props
+    const { ajax: { GoogleBilling }, project: { projectName } } = this.props
     const { billingAccountName } = await GoogleBilling.changeBillingAccount({ projectId: projectName, newAccountName })
     this.setState({ billingAccountName })
   })
@@ -85,7 +85,7 @@ export default ajaxCaller(class ProjectDetail extends Component {
             isClearable: false,
             styles: { container: old => ({ ...old, width: 320 }) },
             options: accounts,
-            onChange: async ({ value: newAccountName }) => this.updateBillingAccount(newAccountName)
+            onChange: ({ value: newAccountName }) => this.updateBillingAccount(newAccountName)
           })
         ]),
         div({
