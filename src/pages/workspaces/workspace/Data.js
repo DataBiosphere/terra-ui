@@ -1,4 +1,4 @@
-import clipboard from 'clipboard-polyfill'
+import * as clipboard from 'clipboard-polyfill'
 import FileSaver from 'file-saver'
 import filesize from 'filesize'
 import _ from 'lodash/fp'
@@ -16,6 +16,7 @@ import { IGVBrowser } from 'src/components/IGVBrowser'
 import { IGVFileSelector } from 'src/components/IGVFileSelector'
 import { DelayedSearchInput, TextInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
+import { notify } from 'src/components/Notifications'
 import { FlexTable, HeaderCell, SimpleTable, TextCell } from 'src/components/table'
 import UriViewer from 'src/components/UriViewer'
 import { ajaxCaller } from 'src/libs/ajax'
@@ -381,7 +382,7 @@ class EntitiesContent extends Component {
   }
 
   renderCopyButton(entities, columnSettings) {
-    const { copying, copied } = this.state
+    const { copying } = this.state
 
     return h(Fragment, [
       buttonPrimary({
@@ -393,14 +394,13 @@ class EntitiesContent extends Component {
         )(async () => {
           const str = this.buildTSV(columnSettings, entities)
           await clipboard.writeText(str)
-          this.setState({ copied: true })
+          notify('success', 'Successfully copied to clipboard', { timeout: 3000 })
         })
       }, [
         icon('copy-to-clipboard', { style: { marginRight: '0.5rem' } }),
         'Copy to Clipboard'
       ]),
-      copying && spinner(),
-      copied && 'Done!'
+      copying && spinner()
     ])
   }
 

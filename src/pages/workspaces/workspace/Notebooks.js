@@ -1,4 +1,4 @@
-import clipboard from 'clipboard-polyfill/build/clipboard-polyfill'
+import * as clipboard from 'clipboard-polyfill'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { createRef, Fragment } from 'react'
