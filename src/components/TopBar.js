@@ -39,12 +39,11 @@ const styles = {
     color: isTerra() ? 'white' : colors.dark(), fontSize: 22, fontWeight: 500, textTransform: 'uppercase'
   },
   nav: {
-    background: navShown => ({
-      position: navShown ? 'absolute' : undefined,
-      left: 0, right: 0, top: 0, bottom: 0,
+    background: {
+      position: 'absolute', left: 0, right: 0, top: 0, bottom: 0,
       overflow: 'auto', cursor: 'pointer',
       zIndex: 2
-    }),
+    },
     container: state => ({
       ...(state === 'entered' ? {} : { opacity: 0, transform: 'translate(-2rem)' }),
       transition: 'opacity 0.2s ease-out, transform 0.2s ease-out',
@@ -201,7 +200,7 @@ export default _.flow(
     ])
 
     return div({
-      style: styles.nav.background(navShown),
+      style: navShown ? styles.nav.background : undefined,
       onClick: () => {
         this.hideNav()
       }
