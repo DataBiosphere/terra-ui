@@ -1,3 +1,4 @@
+import 'animate.css'
 import _ from 'lodash/fp'
 import marked from 'marked'
 import ReactDOM from 'react-dom'
