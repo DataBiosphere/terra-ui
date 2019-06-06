@@ -3,8 +3,8 @@ import { forwardRef, Fragment, useRef, useState } from 'react'
 import { div, h, iframe } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { NewClusterModal } from 'src/components/ClusterManager'
-import { buttonOutline, linkButton } from 'src/components/common'
-import { icon, spinner } from 'src/components/icons'
+import { buttonOutline, buttonPrimary, linkButton } from 'src/components/common'
+import { spinner } from 'src/components/icons'
 import { notify } from 'src/components/Notifications'
 import { Ajax, useCancellation } from 'src/libs/ajax'
 import { withErrorReporting } from 'src/libs/error'
@@ -77,10 +77,10 @@ const NotebookPreviewFrame = ({ notebookName, workspace: { workspace: { namespac
   return h(Fragment, [
     preview && h(Fragment, [
       div({ style: { position: 'relative' } }, [
-        linkButton({
+        buttonPrimary({
           style: { position: 'absolute', top: 20, left: 'calc(50% + 580px)' },
-          href: Nav.getLink('workspace-notebooks', { namespace, name })
-        }, [icon('times-circle', { size: 30 })])
+          onClick: () => Nav.goToPath('workspace-notebooks', { namespace, name })
+        }, ['Close'])
       ]),
       iframe({
         ref: frame,
