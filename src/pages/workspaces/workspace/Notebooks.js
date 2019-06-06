@@ -182,7 +182,7 @@ class NotebookCard extends Component {
 
 const Notebooks = _.flow(
   requesterPaysWrapper({
-    onDismiss: ({ namespace, name }) => Nav.goToPath('workspace-dashboard', { namespace, name })
+    onDismiss: () => Nav.history.goBack()
   }),
   wrapWorkspace({
     breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
