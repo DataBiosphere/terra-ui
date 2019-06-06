@@ -2,9 +2,10 @@ import _ from 'lodash/fp'
 import { forwardRef, Fragment, useRef, useState } from 'react'
 import { div, h, iframe } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
+import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
 import { NewClusterModal } from 'src/components/ClusterManager'
-import { buttonOutline, linkButton } from 'src/components/common'
-import { icon, spinner } from 'src/components/icons'
+import { buttonOutline, buttonPrimary, linkButton } from 'src/components/common'
+import { spinner } from 'src/components/icons'
 import { notify } from 'src/components/Notifications'
 import { Ajax, useCancellation } from 'src/libs/ajax'
 import { withErrorReporting } from 'src/libs/error'
@@ -23,17 +24,20 @@ const StatusMessage = ({ showSpinner, children }) => {
 
 const NotebookLauncher = _.flow(
   forwardRef,
+  requesterPaysWrapper({
+    onDismiss: ({ namespace, name }) => Nav.goToPath('workspace-dashboard', { namespace, name })
+  }),
   wrapWorkspace({
     breadcrumbs: props => breadcrumbs.commonPaths.workspaceTab(props, 'notebooks'),
     title: _.get('notebookName'),
     showTabBar: false
   })
-)(({ queryParams = {}, notebookName, workspace, workspace: { accessLevel, canCompute }, cluster, refreshClusters }, ref) => {
+)(({ queryParams = {}, notebookName, workspace, workspace: { accessLevel, canCompute }, cluster, refreshClusters, onRequesterPaysError }, ref) => {
   return (Utils.canWrite(accessLevel) && canCompute && !queryParams['read-only']) ?
     h(NotebookEditor, { notebookName, workspace, cluster, refreshClusters }) :
     h(Fragment, [
       h(ReadOnlyMessage, { notebookName, workspace }),
-      h(NotebookPreviewFrame, { notebookName, workspace })
+      h(NotebookPreviewFrame, { notebookName, workspace, onRequesterPaysError })
     ])
 })
 
@@ -58,7 +62,7 @@ const ReadOnlyMessage = ({ notebookName, workspace, workspace: { canCompute, wor
   ])
 }
 
-const NotebookPreviewFrame = ({ notebookName, workspace: { workspace: { namespace, name, bucketName } } }) => {
+const NotebookPreviewFrame = ({ notebookName, workspace: { workspace: { namespace, name, bucketName } }, onRequesterPaysError }) => {
   const signal = useCancellation()
   const [busy, setBusy] = useState(false)
   const [preview, setPreview] = useState()
@@ -66,6 +70,7 @@ const NotebookPreviewFrame = ({ notebookName, workspace: { workspace: { namespac
 
   const loadPreview = _.flow(
     Utils.withBusyState(setBusy),
+    withRequesterPaysHandler(onRequesterPaysError),
     withErrorReporting('Error previewing notebook')
   )(async () => {
     setPreview(await Ajax(signal).Buckets.notebook(namespace, bucketName, notebookName).preview())
@@ -77,10 +82,10 @@ const NotebookPreviewFrame = ({ notebookName, workspace: { workspace: { namespac
   return h(Fragment, [
     preview && h(Fragment, [
       div({ style: { position: 'relative' } }, [
-        linkButton({
+        buttonPrimary({
           style: { position: 'absolute', top: 20, left: 'calc(50% + 580px)' },
-          href: Nav.getLink('workspace-notebooks', { namespace, name })
-        }, [icon('times-circle', { size: 30 })])
+          onClick: () => Nav.goToPath('workspace-notebooks', { namespace, name })
+        }, ['Close'])
       ]),
       iframe({
         ref: frame,
