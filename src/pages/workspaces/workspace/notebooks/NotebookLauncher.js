@@ -80,7 +80,7 @@ const NotebookPreviewFrame = ({ notebookName, workspace: { workspace: { namespac
         buttonPrimary({
           style: { position: 'absolute', top: 20, left: 'calc(50% + 580px)' },
           onClick: () => Nav.goToPath('workspace-notebooks', { namespace, name })
-        }, ['Close', icon('times-circle', { size: 30, style: { marginLeft: '0.5rem' } })])
+        }, ['Close'])
       ]),
       iframe({
         ref: frame,
