@@ -426,8 +426,9 @@ const WorkflowView = _.flow(
         this.getValidation(),
         ws.methodConfig(workflowNamespace, workflowName).get()
       ])
+      const { methodRepoMethod: { methodNamespace, methodName } } = config
       const isRedacted = !validationResponse
-      const methods = await Methods.list({ namespace: workflowNamespace, name: workflowName })
+      const methods = await Methods.list({ namespace: methodNamespace, name: methodName })
       const snapshotIds = _.map(m => _.pick('snapshotId', m).snapshotId, methods)
       const inputsOutputs = isRedacted ? {} : await Methods.configInputsOutputs(config)
       this.setState({
