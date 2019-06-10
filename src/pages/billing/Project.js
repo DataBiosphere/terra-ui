@@ -93,7 +93,7 @@ export default ajaxCaller(class ProjectDetail extends Component {
             style: { fontWeight: 500, fontSize: 14, margin: '0 0.75rem 0 auto' },
             onClick: onAuthClick
           },
-          'Enable changes to the billing account associated with this project')
+          'Enable changing the billing account associated with this project')
         ]),
         div({
           style: {
