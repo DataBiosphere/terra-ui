@@ -74,9 +74,9 @@ const saveScroll = _.throttle(100, (initialX, initialY) => {
 
 const getReferenceData = _.flow(
   _.toPairs,
-  _.filter(([key]) => key.startsWith('referenceData-')),
+  _.filter(([key]) => key.startsWith('referenceData_')),
   _.map(([k, value]) => {
-    const [, datum, key] = /referenceData-([^-]+)-(.+)/.exec(k)
+    const [, datum, key] = /referenceData_([^-]+)_(.+)/.exec(k)
     return { datum, key, value }
   }),
   _.groupBy('datum')
@@ -102,7 +102,7 @@ const LocalVariablesContent = ajaxCaller(class LocalVariablesContent extends Com
     const stopEditing = () => this.setState({ editIndex: undefined, editKey: undefined, editValue: undefined, editType: undefined })
     const filteredAttributes = _.flow(
       _.toPairs,
-      _.remove(([key]) => key === 'description' || key.includes(':') || key.startsWith('referenceData-')),
+      _.remove(([key]) => key === 'description' || key.includes(':') || key.startsWith('referenceData_')),
       _.filter(data => Utils.textMatch(textFilter, _.join(' ', data))),
       _.sortBy(_.first)
     )(attributes)
