@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
-import { spinnerOverlay, Select } from 'src/components/common'
+import { spinnerOverlay, Select, link } from 'src/components/common'
 import { DeleteUserModal, EditUserModal, MemberCard, NewUserCard, NewUserModal } from 'src/components/group-common'
 import { icon, spinner } from 'src/components/icons'
 import { ajaxCaller } from 'src/libs/ajax'
@@ -57,17 +57,19 @@ export default ajaxCaller(class ProjectDetail extends Component {
 
   componentDidMount = Utils.withBusyState(
     v => this.setState({ loading: v }),
-    () => Promise.all([
-      this.refresh(),
-      this.loadBillingInfo()
-    ])
+    () => {
+      const { billingAccounts } = this.props
+      return !!billingAccounts ? Promise.all([
+        this.refresh(),
+        this.loadBillingInfo()
+      ]) : this.refresh()
+    }
   )
 
   render() {
-    const { project: { projectName, creationStatus }, ajax: { Billing }, billingAccounts } = this.props
+    const { project: { projectName, creationStatus }, ajax: { Billing }, billingAccounts, onAuthClick, loadingAccountAuth } = this.props
     const { projectUsers, loading, updating, filter, addingUser, deletingUser, editingUser, billingAccountName } = this.state
     const adminCanEdit = _.filter(({ roles }) => _.includes('Owner', roles), projectUsers).length > 1
-    const accounts = _.map(({ displayName, accountName }) => ({ label: displayName, value: accountName }), billingAccounts)
 
     return h(Fragment, [
       div({ style: { padding: '1.5rem 3rem', flexGrow: 1 } }, [
@@ -79,14 +81,16 @@ export default ajaxCaller(class ProjectDetail extends Component {
             [creationStatus === 'Creating', () => spinner({ size: 16 })],
             () => icon('error-standard', { style: { color: colors.danger() } })
           ),
-          span({ style: { fontWeight: 500, fontSize: 14, margin: '0 0.75rem 0 auto' } }, 'Billing Account:'),
-          h(Select, {
+          !!billingAccounts && span({ style: { flexShrink: 0, fontWeight: 500, fontSize: 14, margin: '0 0.75rem 0 auto' } }, 'Billing Account For This Project:'),
+          !!billingAccounts && h(Select, {
             value: billingAccountName,
             isClearable: false,
             styles: { container: old => ({ ...old, width: 320 }) },
-            options: accounts,
+            options: _.map(({ displayName, accountName }) => ({ label: displayName, value: accountName }), billingAccounts),
             onChange: ({ value: newAccountName }) => this.updateBillingAccount(newAccountName)
-          })
+          }),
+          !billingAccounts && !loadingAccountAuth && link({ style: { fontWeight: 500, fontSize: 14, margin: '0 0.75rem 0 auto' }, onClick: onAuthClick },
+            'Authorize your account to update billing information')
         ]),
         div({
           style: {

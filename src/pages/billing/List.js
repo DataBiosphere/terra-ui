@@ -205,12 +205,21 @@ export const BillingList = _.flow(
      this.setState({ billingProjects })
    })
 
+  authorizeBillingScope = _.flow(
+    withErrorReporting('Error setting up authorization'),
+    Utils.withBusyState(v => this.setState({ isBusy: v }))
+  )(async () => {
+    await Auth.ensureBillingScope()
+    this.loadAccounts()
+  })
+
   loadAccounts = withErrorReporting('Error loading billing accounts',
     async () => {
       const { ajax: { Billing } } = this.props
-      await Auth.ensureBillingScope()
-      const billingAccounts = await Billing.listAccounts()
-      this.setState({ billingAccounts })
+      if (await Auth.hasBillingScope()) {
+        const billingAccounts = await Billing.listAccounts()
+        this.setState({ billingAccounts })
+      }
     })
 
   render() {
@@ -234,9 +243,13 @@ export const BillingList = _.flow(
         div({ style: { width: 330, boxShadow: '0 2px 5px 0 rgba(0,0,0,0.25)' } }, [
           div({ style: Style.navList.heading }, [
             'Billing Projects',
-            h(Clickable,
-              { onClick: () => { this.setState({ creatingBillingProject: true }) } },
-              [icon('plus-circle', { size: 21, style: { color: colors.accent() } })]
+            h(Clickable, {
+              onClick: async () => {
+                this.authorizeBillingScope()
+                this.setState({ creatingBillingProject: true })
+              }
+            },
+            [icon('plus-circle', { size: 21, style: { color: colors.accent() } })]
             )
           ]),
           hasFreeCredits && h(Clickable, {
@@ -257,7 +270,14 @@ export const BillingList = _.flow(
             this.loadProjects()
           }
         }),
-        !!selectedName && billingProjects && h(ProjectDetail, { key: selectedName, project: _.find({ projectName: selectedName }, billingProjects), billingAccounts }),
+        !!selectedName && billingProjects && h(ProjectDetail, {
+          key: selectedName,
+          project: _.find({ projectName: selectedName }, billingProjects),
+          billingAccounts,
+          loadingAccountAuth: isBusy,
+          onAuthClick: () => this.authorizeBillingScope()
+        }),
+        !selectedName && div({ style: { margin: '1rem auto 0 auto' } }, ['Select A Billing Project ']),
         isBusy && spinnerOverlay
       ])
     ])
