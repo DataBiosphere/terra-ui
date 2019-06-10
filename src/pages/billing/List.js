@@ -207,7 +207,7 @@ export const BillingList = _.flow(
 
   authorizeBillingScope = _.flow(
     withErrorReporting('Error setting up authorization'),
-    Utils.withBusyState(v => this.setState({ isBusy: v }))
+    Utils.withBusyState(v => this.setState({ isAuthorizing: v }))
   )(async () => {
     await Auth.ensureBillingScope()
     await this.loadAccounts()
@@ -223,7 +223,7 @@ export const BillingList = _.flow(
     })
 
   render() {
-    const { billingProjects, isBusy, creatingBillingProject, billingAccounts } = this.state
+    const { billingProjects, isBusy, isAuthorizing, creatingBillingProject, billingAccounts } = this.state
     const { queryParams: { selectedName }, authState: { profile } } = this.props
     const { trialState } = profile
     const hasFreeCredits = trialState === 'Enabled'
@@ -278,7 +278,7 @@ export const BillingList = _.flow(
           onAuthClick: () => this.authorizeBillingScope()
         }),
         !selectedName && div({ style: { margin: '1rem auto 0 auto' } }, ['Select A Billing Project ']),
-        isBusy && spinnerOverlay
+        (isBusy || isAuthorizing) && spinnerOverlay
       ])
     ])
   }
