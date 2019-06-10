@@ -210,7 +210,7 @@ export const BillingList = _.flow(
     Utils.withBusyState(v => this.setState({ isBusy: v }))
   )(async () => {
     await Auth.ensureBillingScope()
-    this.loadAccounts()
+    await this.loadAccounts()
   })
 
   loadAccounts = withErrorReporting('Error loading billing accounts',

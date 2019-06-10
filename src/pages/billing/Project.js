@@ -91,7 +91,7 @@ export default ajaxCaller(class ProjectDetail extends Component {
           }),
           !billingAccounts && !loadingAccountAuth && link({
             style: { fontWeight: 500, fontSize: 14, margin: '0 0.75rem 0 auto' },
-            onClick: Utils.withBusyState(v => this.setState({ updating: v }), onAuthClick)
+            onClick: onAuthClick
           },
           'Authorize your account to update billing information')
         ]),
