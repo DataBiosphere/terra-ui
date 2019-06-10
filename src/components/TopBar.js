@@ -3,6 +3,7 @@ import PropTypes from 'prop-types'
 import { Fragment, useState } from 'react'
 import { Collapse as RCollapse } from 'react-collapse'
 import { a, b, div, h, img, span } from 'react-hyperscript-helpers'
+import { Transition } from 'react-transition-group'
 import { buttonPrimary, Clickable, LabeledCheckbox, spinnerOverlay } from 'src/components/common'
 import { icon, profilePic } from 'src/components/icons'
 import { TextArea } from 'src/components/input'
@@ -43,14 +44,16 @@ const styles = {
       overflow: 'auto', cursor: 'pointer',
       zIndex: 2
     },
-    container: {
+    container: state => ({
+      ...(state === 'entered' ? {} : { opacity: 0, transform: 'translate(-2rem)' }),
+      transition: 'opacity 0.2s ease-out, transform 0.2s ease-out',
       paddingTop: 66,
       width: 290, color: 'white', position: 'absolute', cursor: 'default',
       backgroundColor: colors.dark(0.7), height: '100%',
       boxShadow: '3px 0 13px 0 rgba(0,0,0,0.3)',
       zIndex: 2,
       display: 'flex', flexDirection: 'column'
-    },
+    }),
     item: {
       display: 'flex', alignItems: 'center', flex: 'none',
       height: 70, padding: '0 28px',
@@ -148,10 +151,10 @@ export default _.flow(
     document.body.classList.remove('overlayOpen', 'overHeight')
   }
 
-  buildNav() {
+  buildNav(transitionState) {
     const { authState: { isSignedIn, profile, profile: { firstName = 'Loading...', lastName = '' } } } = this.props
     const { trialState } = profile
-    const { openLibraryMenu, openSupportMenu, openUserMenu } = this.state
+    const { navShown, openLibraryMenu, openSupportMenu, openUserMenu } = this.state
 
     const enabledCredits = h(Clickable, {
       style: styles.nav.item,
@@ -197,13 +200,13 @@ export default _.flow(
     ])
 
     return div({
-      style: styles.nav.background,
+      style: navShown ? styles.nav.background : undefined,
       onClick: () => {
         this.hideNav()
       }
     }, [
       div({
-        style: styles.nav.container,
+        style: styles.nav.container(transitionState),
         onClick: e => e.stopPropagation()
       }, [
         div({ style: { display: 'flex', flexDirection: 'column', overflowY: 'auto', flex: 1 } }, [
@@ -343,7 +346,12 @@ export default _.flow(
     const { navShown, finalizeTrial, openCookiesModal, openFirecloudModal } = this.state
 
     return h(Fragment, [
-      navShown && this.buildNav(),
+      h(Transition, {
+        in: navShown,
+        timeout: { exit: 200 },
+        mountOnEnter: true,
+        unmountOnExit: true
+      }, [transitionState => this.buildNav(transitionState)]),
       div({
         style: {
           ...styles.topBar,
