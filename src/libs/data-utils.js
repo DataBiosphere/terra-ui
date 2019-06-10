@@ -60,7 +60,7 @@ export const ReferenceDataImporter = ajaxCaller(class ReferenceDataImporter exte
           this.setState({ loading: true })
           try {
             await Workspaces.workspace(namespace, name).shallowMergeNewAttributes(
-              _.mapKeys(k => `referenceData-${selectedReference}-${k}`, ReferenceData[selectedReference])
+              _.mapKeys(k => `referenceData_${selectedReference}_${k}`, ReferenceData[selectedReference])
             )
             onSuccess()
           } catch (error) {
@@ -105,7 +105,7 @@ export const ReferenceDataDeleter = ajaxCaller(class ReferenceDataDeleter extend
           this.setState({ deleting: true })
           try {
             await Workspaces.workspace(namespace, name).deleteAttributes(
-              _.map(key => `referenceData-${referenceDataType}-${key}`, _.keys(ReferenceData[referenceDataType]))
+              _.map(key => `referenceData_${referenceDataType}_${key}`, _.keys(ReferenceData[referenceDataType]))
             )
             onSuccess()
           } catch (error) {
