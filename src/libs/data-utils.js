@@ -105,7 +105,7 @@ export const ReferenceDataDeleter = ajaxCaller(class ReferenceDataDeleter extend
           this.setState({ deleting: true })
           try {
             await Workspaces.workspace(namespace, name).deleteAttributes(
-              _.map(key => `referenceData_${referenceDataType}__${key}`, _.keys(ReferenceData[referenceDataType]))
+              _.map(key => `referenceData_${referenceDataType}_${key}`, _.keys(ReferenceData[referenceDataType]))
             )
             onSuccess()
           } catch (error) {
