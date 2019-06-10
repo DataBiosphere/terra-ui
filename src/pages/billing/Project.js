@@ -89,8 +89,11 @@ export default ajaxCaller(class ProjectDetail extends Component {
             options: _.map(({ displayName, accountName }) => ({ label: displayName, value: accountName }), billingAccounts),
             onChange: ({ value: newAccountName }) => this.updateBillingAccount(newAccountName)
           }),
-          !billingAccounts && !loadingAccountAuth && link({ style: { fontWeight: 500, fontSize: 14, margin: '0 0.75rem 0 auto' }, onClick: onAuthClick },
-            'Authorize your account to update billing information')
+          !billingAccounts && !loadingAccountAuth && link({
+            style: { fontWeight: 500, fontSize: 14, margin: '0 0.75rem 0 auto' },
+            onClick: Utils.withBusyState(v => this.setState({ updating: v }), onAuthClick)
+          },
+          'Authorize your account to update billing information')
         ]),
         div({
           style: {
