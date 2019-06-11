@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
-import { spinnerOverlay, Select, link } from 'src/components/common'
+import { spinnerOverlay, Select, buttonPrimary } from 'src/components/common'
 import { DeleteUserModal, EditUserModal, MemberCard, NewUserCard, NewUserModal } from 'src/components/group-common'
 import { icon, spinner } from 'src/components/icons'
 import { ajaxCaller } from 'src/libs/ajax'
@@ -58,8 +58,8 @@ export default ajaxCaller(class ProjectDetail extends Component {
   componentDidMount = Utils.withBusyState(
     v => this.setState({ loading: v }),
     () => {
-      const { billingAccounts } = this.props
-      return !!billingAccounts ? Promise.all([
+      const { billingScope } = this.props
+      return !!billingScope ? Promise.all([
         this.refresh(),
         this.loadBillingInfo()
       ]) : this.refresh()
@@ -67,9 +67,24 @@ export default ajaxCaller(class ProjectDetail extends Component {
   )
 
   render() {
-    const { project: { projectName, creationStatus }, ajax: { Billing }, billingAccounts, onAuthClick, loadingAccountAuth } = this.props
+    const { project: { projectName, creationStatus }, ajax: { Billing }, billingAccounts, authorizeBillingScope, loadingAccountAuth } = this.props
     const { projectUsers, loading, updating, filter, addingUser, deletingUser, editingUser, billingAccountName } = this.state
     const adminCanEdit = _.filter(({ roles }) => _.includes('Owner', roles), projectUsers).length > 1
+    const billingNode = Utils.cond(
+      [!!billingAccounts, () => h(Select, {
+        value: billingAccountName,
+        isClearable: false,
+        styles: { container: old => ({ ...old, width: 320 }) },
+        options: _.map(({ displayName, accountName }) => ({ label: displayName, value: accountName }), billingAccounts),
+        onChange: ({ value: newAccountName }) => this.updateBillingAccount(newAccountName)
+      })],
+      [!billingAccounts && !loadingAccountAuth, () => buttonPrimary({
+        onClick: async () => {
+          await authorizeBillingScope()
+          Utils.withBusyState(v => this.setState({ loading: v }), this.loadBillingInfo)()
+        }
+      }, 'Authorize')]
+    )
 
     return h(Fragment, [
       div({ style: { padding: '1.5rem 3rem', flexGrow: 1 } }, [
@@ -81,19 +96,8 @@ export default ajaxCaller(class ProjectDetail extends Component {
             [creationStatus === 'Creating', () => spinner({ size: 16 })],
             () => icon('error-standard', { style: { color: colors.danger() } })
           ),
-          !!billingAccounts && span({ style: { flexShrink: 0, fontWeight: 500, fontSize: 14, margin: '0 0.75rem 0 auto' } }, 'Billing Account For This Project:'),
-          !!billingAccounts && h(Select, {
-            value: billingAccountName,
-            isClearable: false,
-            styles: { container: old => ({ ...old, width: 320 }) },
-            options: _.map(({ displayName, accountName }) => ({ label: displayName, value: accountName }), billingAccounts),
-            onChange: ({ value: newAccountName }) => this.updateBillingAccount(newAccountName)
-          }),
-          !billingAccounts && !loadingAccountAuth && link({
-            style: { fontWeight: 500, fontSize: 14, margin: '0 0.75rem 0 auto' },
-            onClick: onAuthClick
-          },
-          'Enable changing the billing account associated with this project')
+          billingNode && span({ style: { flexShrink: 0, fontWeight: 500, fontSize: 14, margin: '0 0.75rem 0 auto' } }, 'Billing Account For This Project:'),
+          billingNode
         ]),
         div({
           style: {
@@ -150,7 +154,12 @@ export default ajaxCaller(class ProjectDetail extends Component {
     ])
   }
 
-  componentDidUpdate() {
+  componentDidUpdate(prevProps) {
+    const { billingScope } = this.props
+    if (billingScope && prevProps.billingScope !== billingScope) {
+      this.loadBillingInfo()
+    }
+
     StateHistory.update(_.pick(
       ['projectUsers', 'filter'],
       this.state)

@@ -59,8 +59,7 @@ const NewBillingProjectModal = ajaxCaller(class NewBillingProjectModal extends C
       billingProjectNameTouched: false,
       existing: [],
       isBusy: false,
-      chosenBillingAccount: '',
-      billingAccounts: undefined
+      chosenBillingAccount: ''
     }
   }
 
@@ -182,6 +181,8 @@ export const BillingList = _.flow(
     this.state = {
       billingProjects: null,
       creatingBillingProject: false,
+      billingAccounts: null,
+      billingScope: false,
       ...StateHistory.get()
     }
   }
@@ -218,12 +219,12 @@ export const BillingList = _.flow(
       const { ajax: { Billing } } = this.props
       if (await Auth.hasBillingScope()) {
         const billingAccounts = await Billing.listAccounts()
-        this.setState({ billingAccounts })
+        this.setState({ billingScope: true, billingAccounts })
       }
     })
 
   render() {
-    const { billingProjects, isBusy, isAuthorizing, creatingBillingProject, billingAccounts } = this.state
+    const { billingProjects, isBusy, isAuthorizing, creatingBillingProject, billingAccounts, billingScope } = this.state
     const { queryParams: { selectedName }, authState: { profile } } = this.props
     const { trialState } = profile
     const hasFreeCredits = trialState === 'Enabled'
@@ -274,8 +275,9 @@ export const BillingList = _.flow(
           key: selectedName,
           project: _.find({ projectName: selectedName }, billingProjects),
           billingAccounts,
+          billingScope,
           loadingAccountAuth: isBusy,
-          onAuthClick: () => this.authorizeBillingScope()
+          authorizeBillingScope: this.authorizeBillingScope
         }),
         !selectedName && div({ style: { margin: '1rem auto 0 auto' } }, ['Select A Billing Project ']),
         (isBusy || isAuthorizing) && spinnerOverlay
