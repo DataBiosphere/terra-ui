@@ -245,7 +245,7 @@ export const BillingList = _.flow(
           div({ style: Style.navList.heading }, [
             'Billing Projects',
             h(Clickable, {
-              onClick: async () => {
+              onClick: () => {
                 this.authorizeBillingScope()
                 this.setState({ creatingBillingProject: true })
               }
