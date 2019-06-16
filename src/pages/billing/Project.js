@@ -10,6 +10,7 @@ import { withErrorReporting } from 'src/libs/error'
 import * as StateHistory from 'src/libs/state-history'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
+import * as Auth from 'src/libs/auth'
 
 export default ajaxCaller(class ProjectDetail extends Component {
   constructor(props) {
@@ -38,8 +39,10 @@ export default ajaxCaller(class ProjectDetail extends Component {
   loadBillingInfo = withErrorReporting('Error loading current billing account',
     async () => {
       const { ajax: {  GoogleBilling }, project: { projectName } } = this.props
-      const { billingAccountName } = await GoogleBilling.getBillingInfo(projectName)
-      this.setState({ billingAccountName })
+      if (Auth.hasBillingScope()) {
+        const { billingAccountName } = await GoogleBilling.getBillingInfo(projectName)
+        this.setState({ billingAccountName })
+      }
     })
 
   refresh = withErrorReporting('Error loading billing project users list',
@@ -56,14 +59,11 @@ export default ajaxCaller(class ProjectDetail extends Component {
     })
 
   componentDidMount = Utils.withBusyState(
-    v => this.setState({ loading: v }),
-    () => {
-      const { billingScope } = this.props
-      return !!billingScope ? Promise.all([
-        this.refresh(),
-        this.loadBillingInfo()
-      ]) : this.refresh()
-    }
+    loading => this.setState({ loading }),
+    () => Promise.all([
+      this.refresh(),
+      this.loadBillingInfo()
+    ])
   )
 
   render() {
@@ -81,7 +81,7 @@ export default ajaxCaller(class ProjectDetail extends Component {
       [!billingAccounts && !loadingAccountAuth, () => buttonPrimary({
         onClick: async () => {
           await authorizeBillingScope()
-          Utils.withBusyState(v => this.setState({ loading: v }), this.loadBillingInfo)()
+          Utils.withBusyState(loading => this.setState({ loading }), this.loadBillingInfo)()
         }
       }, 'Authorize')]
     )
@@ -154,12 +154,7 @@ export default ajaxCaller(class ProjectDetail extends Component {
     ])
   }
 
-  componentDidUpdate(prevProps) {
-    const { billingScope } = this.props
-    if (billingScope && prevProps.billingScope !== billingScope) {
-      this.loadBillingInfo()
-    }
-
+  componentDidUpdate() {
     StateHistory.update(_.pick(
       ['projectUsers', 'filter'],
       this.state)

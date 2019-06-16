@@ -155,7 +155,7 @@ const NewBillingProjectModal = ajaxCaller(class NewBillingProjectModal extends C
 
   submit = _.flow(
     withErrorReporting('Error creating billing project'),
-    Utils.withBusyState(v => this.setState({ isBusy: v }))
+    Utils.withBusyState(isBusy => this.setState({ isBusy }))
   )(async () => {
     const { onSuccess, ajax: { Billing } } = this.props
     const { billingProjectName, chosenBillingAccount, existing } = this.state
@@ -182,12 +182,11 @@ export const BillingList = _.flow(
       billingProjects: null,
       creatingBillingProject: false,
       billingAccounts: null,
-      billingScope: false,
       ...StateHistory.get()
     }
   }
 
-  componentDidMount = Utils.withBusyState(v => this.setState({ isBusy: v }),
+  componentDidMount = Utils.withBusyState(isBusy => this.setState({ isBusy }),
     () => Promise.all([
       this.loadProjects(),
       this.loadAccounts()
@@ -208,7 +207,7 @@ export const BillingList = _.flow(
 
   authorizeBillingScope = _.flow(
     withErrorReporting('Error setting up authorization'),
-    Utils.withBusyState(v => this.setState({ isAuthorizing: v }))
+    Utils.withBusyState(isAuthorizing => this.setState({ isAuthorizing }))
   )(async () => {
     await Auth.ensureBillingScope()
     await this.loadAccounts()
@@ -217,14 +216,14 @@ export const BillingList = _.flow(
   loadAccounts = withErrorReporting('Error loading billing accounts',
     async () => {
       const { ajax: { Billing } } = this.props
-      if (await Auth.hasBillingScope()) {
+      if (Auth.hasBillingScope()) {
         const billingAccounts = await Billing.listAccounts()
-        this.setState({ billingScope: true, billingAccounts })
+        this.setState({ billingAccounts })
       }
     })
 
   render() {
-    const { billingProjects, isBusy, isAuthorizing, creatingBillingProject, billingAccounts, billingScope } = this.state
+    const { billingProjects, isBusy, isAuthorizing, creatingBillingProject, billingAccounts } = this.state
     const { queryParams: { selectedName }, authState: { profile } } = this.props
     const { trialState } = profile
     const hasFreeCredits = trialState === 'Enabled'
@@ -245,9 +244,13 @@ export const BillingList = _.flow(
           div({ style: Style.navList.heading }, [
             'Billing Projects',
             h(Clickable, {
-              onClick: () => {
-                this.authorizeBillingScope()
-                this.setState({ creatingBillingProject: true })
+              onClick: async () => {
+                if (Auth.hasBillingScope()) {
+                  this.setState({ creatingBillingProject: true })
+                } else {
+                  await this.authorizeBillingScope()
+                  Auth.hasBillingScope() && this.setState({ creatingBillingProject: true })
+                }
               }
             },
             [icon('plus-circle', { size: 21, style: { color: colors.accent() } })]
@@ -275,7 +278,6 @@ export const BillingList = _.flow(
           key: selectedName,
           project: _.find({ projectName: selectedName }, billingProjects),
           billingAccounts,
-          billingScope,
           loadingAccountAuth: isBusy,
           authorizeBillingScope: this.authorizeBillingScope
         }),

@@ -818,11 +818,10 @@ const GoogleBilling = signal => ({
   },
   changeBillingAccount: async ({ projectId, newAccountName }) => {
     const name = `projects/${projectId}/billingInfo`
-    const billingAccountName = `${newAccountName}`
     const response = await fetchGoogleBilling(`projects/${projectId}/billingInfo`,
       _.mergeAll([
         authOpts(), { signal, method: 'PUT' },
-        jsonBody({ billingEnabled: true, billingAccountName, name, projectId })
+        jsonBody({ billingEnabled: true, billingAccountName: newAccountName, name, projectId })
       ]))
     return response.json()
   }
