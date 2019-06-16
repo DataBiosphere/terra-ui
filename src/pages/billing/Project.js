@@ -67,7 +67,7 @@ export default ajaxCaller(class ProjectDetail extends Component {
   )
 
   render() {
-    const { project: { projectName, creationStatus }, ajax: { Billing }, billingAccounts, authorizeBillingScope, loadingAccountAuth } = this.props
+    const { project: { projectName, creationStatus }, ajax: { Billing }, billingAccounts, authorizeAndLoadAccounts, loadingAccountAuth } = this.props
     const { projectUsers, loading, updating, filter, addingUser, deletingUser, editingUser, billingAccountName } = this.state
     const adminCanEdit = _.filter(({ roles }) => _.includes('Owner', roles), projectUsers).length > 1
     const billingNode = Utils.cond(
@@ -80,7 +80,7 @@ export default ajaxCaller(class ProjectDetail extends Component {
       })],
       [!billingAccounts && !loadingAccountAuth, () => buttonPrimary({
         onClick: async () => {
-          await authorizeBillingScope()
+          await authorizeAndLoadAccounts()
           Utils.withBusyState(loading => this.setState({ loading }), this.loadBillingInfo)()
         }
       }, 'Authorize')]

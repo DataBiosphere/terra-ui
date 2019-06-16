@@ -205,7 +205,7 @@ export const BillingList = _.flow(
      this.setState({ billingProjects })
    })
 
-  authorizeBillingScope = _.flow(
+  authorizeAndLoadAccounts = _.flow(
     withErrorReporting('Error setting up authorization'),
     Utils.withBusyState(isAuthorizing => this.setState({ isAuthorizing }))
   )(async () => {
@@ -248,7 +248,7 @@ export const BillingList = _.flow(
                 if (Auth.hasBillingScope()) {
                   this.setState({ creatingBillingProject: true })
                 } else {
-                  await this.authorizeBillingScope()
+                  await this.authorizeAndLoadAccounts()
                   Auth.hasBillingScope() && this.setState({ creatingBillingProject: true })
                 }
               }
@@ -279,7 +279,7 @@ export const BillingList = _.flow(
           project: _.find({ projectName: selectedName }, billingProjects),
           billingAccounts,
           loadingAccountAuth: isBusy,
-          authorizeBillingScope: this.authorizeBillingScope
+          authorizeAndLoadAccounts: this.authorizeAndLoadAccounts
         }),
         !selectedName && div({ style: { margin: '1rem auto 0 auto' } }, ['Select A Billing Project ']),
         (isBusy || isAuthorizing) && spinnerOverlay
