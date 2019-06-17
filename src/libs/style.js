@@ -22,7 +22,7 @@ export const elements = {
     }
   },
   sectionHeader: { color: colors.dark(), fontSize: 16, fontWeight: 600 },
-  pageContentContainer: { position: 'relative', flexGrow: 1, display: 'flex', flexDirection: 'column', zIndex: 0 }
+  pageContentContainer: { position: 'relative', flexGrow: 1, display: 'flex', flexDirection: 'column' }
 }
 
 export const tabBar = {
