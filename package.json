@@ -61,6 +61,7 @@
     "eject": "react-app-rewired eject"
   },
   "devDependencies": {
+    "babel-plugin-prismjs": "^1.0.2",
     "customize-cra": "^0.2.13",
     "enzyme": "^3.10.0",
     "enzyme-adapter-react-16": "^1.14.0",
