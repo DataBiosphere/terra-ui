@@ -289,7 +289,7 @@ export const WorkspaceDashboard = _.flow(
           social security number, or medical record number.`
           ])
         ]),
-        div({ style: { marginBottom: '0.5rem' } }, [
+        Utils.canWrite(accessLevel) && div({ style: { marginBottom: '0.5rem' } }, [
           h(AsyncCreatableSelect, {
             value: null,
             noOptionsMessage: () => 'Enter at least 3 characters to search',
@@ -303,8 +303,9 @@ export const WorkspaceDashboard = _.flow(
           _.map(tag => {
             return span({ key: tag, style: styles.tag }, [
               tag,
-              linkButton({
+              Utils.canWrite(accessLevel) && linkButton({
                 tooltip: 'Remove tag',
+                disabled: busy,
                 onClick: () => this.deleteTag(tag),
                 style: { marginLeft: '0.25rem', verticalAlign: 'middle', display: 'inline-block' }
               }, [icon('times', { size: 14 })])
