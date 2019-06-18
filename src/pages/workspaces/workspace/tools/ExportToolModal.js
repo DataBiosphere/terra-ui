@@ -1,6 +1,7 @@
 import _ from 'lodash/fp'
 import { b, h } from 'react-hyperscript-helpers'
 import { buttonPrimary, spinnerOverlay } from 'src/components/common'
+import ErrorView from 'src/components/ErrorView'
 import { ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { withWorkspaces, WorkspaceSelector } from 'src/components/workspace-utils'
@@ -10,7 +11,6 @@ import * as Nav from 'src/libs/nav'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 import validate from 'validate.js'
-import ErrorView from 'src/components/ErrorView'
 
 
 export default _.flow(

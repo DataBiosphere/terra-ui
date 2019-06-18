@@ -4,6 +4,7 @@ import { h } from 'react-hyperscript-helpers'
 import Modal from 'src/components/Modal'
 import * as Utils from 'src/libs/utils'
 
+
 export const withRequesterPaysHandler = _.curry((handler, fn) => async (...args) => {
   try {
     return await fn(...args)
