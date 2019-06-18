@@ -1,9 +1,3 @@
-import 'prismjs/components/prism-bash'
-import 'prismjs/components/prism-python'
-import 'prismjs/plugins/line-numbers/prism-line-numbers'
-import 'prismjs/plugins/line-numbers/prism-line-numbers.css'
-import 'prismjs/themes/prism.css'
-
 import _ from 'lodash/fp'
 import Prism from 'prismjs'
 import PropTypes from 'prop-types'

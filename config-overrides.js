@@ -3,13 +3,22 @@ const webpack = require('webpack')
 const _ = require('lodash/fp')
 const path = require('path')
 const rewireReactHotLoader = require('react-app-rewire-hot-loader')
-const {useEslintRc} = require('customize-cra')
+const { addBabelPlugin, useEslintRc } = require('customize-cra')
 const manualOverrides = require('./webpack.config')
 
 /* config-overrides.js */
 module.exports = {
   webpack: function(config, env) {
     config = useEslintRc()(config)
+
+    config = addBabelPlugin([
+      'prismjs', {
+        'languages': ['bash', 'python'],
+        'plugins': ['line-numbers'],
+        'theme': 'default',
+        'css': true
+      }
+    ])(config)
 
     config = _.merge(config, manualOverrides)
 
