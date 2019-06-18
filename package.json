@@ -54,6 +54,7 @@
   "scripts": {
     "preinstall": "node .hooks/check-engine-light.js",
     "analyze": "npm run build; source-map-explorer build/static/js/*",
+    "optimize-image-svgs": "svgo --enable=inlineStyles,prefixIds  --config '{ \"plugins\": [ { \"inlineStyles\": { \"onlyMatchedOnce\": false } }] }' --pretty -f src/images -r -p 1 --multipass",
     "start": "react-app-rewired start",
     "build": "react-app-rewired build",
     "postbuild": "rm build/config.json",
@@ -76,7 +77,8 @@
     "react-hot-loader": "^4.9.0",
     "react-test-renderer": "~16.8.6",
     "source-map-explorer": "^2.0.0",
-    "svg-react-loader": "^0.4.6"
+    "svg-react-loader": "^0.4.6",
+    "svgo": "^1.2.2"
   },
   "browserslist": [
     ">0.2%",
