@@ -85,7 +85,7 @@ const mergeQueryParams = (params, urlString) => {
 const withRequesterPays = wrappedFetch => async (url, ...args) => {
   const bucket = /\/b\/([^/]+)\//.exec(url)[1]
   const workspace = workspaceStore.get()
-  const userProject = workspace && Utils.canWrite(workspace.accessLevel) && workspace.workspace.namespace
+  const userProject = workspace && Utils.canWrite(workspace.accessLevel) ? workspace.workspace.namespace : workspace.userProject
   const tryRequest = async () => {
     const knownRequesterPays = _.includes(bucket, requesterPaysBuckets.get())
     try {
