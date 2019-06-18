@@ -209,6 +209,7 @@ export const WorkspaceDashboard = _.flow(
       workspace, workspace: {
         accessLevel,
         hasBucketAccess,
+        owners,
         workspace: {
           authorizationDomain, createdDate, lastModified, bucketName,
           attributes, attributes: { description = '' }
@@ -283,6 +284,12 @@ export const WorkspaceDashboard = _.flow(
             storageCostEstimate
           ])
         ]),
+        div({ style: styles.header }, ['Owners']),
+        _.map(email => {
+          return div({ key: email, style: { overflow: 'hidden', textOverflow: 'ellipsis' } }, [
+            link({ href: `mailto:${email}` }, [email])
+          ])
+        }, owners),
         div({ style: styles.header }, [
           'Tags',
           h(InfoBox, { style: { marginLeft: '0.25rem' } }, [
