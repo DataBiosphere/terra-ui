@@ -1,6 +1,7 @@
+import 'easymde/dist/easymde.min.css'
+
 import * as clipboard from 'clipboard-polyfill'
 import debouncePromise from 'debounce-promise'
-import 'easymde/dist/easymde.min.css'
 import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'

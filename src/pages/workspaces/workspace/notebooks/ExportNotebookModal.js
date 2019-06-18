@@ -1,8 +1,10 @@
-import PropTypes from 'prop-types'
 import _ from 'lodash/fp'
+import PropTypes from 'prop-types'
 import { b, h } from 'react-hyperscript-helpers'
 import { buttonPrimary, spinnerOverlay } from 'src/components/common'
+import ErrorView from 'src/components/ErrorView'
 import Modal from 'src/components/Modal'
+import { notebookNameInput, notebookNameValidator } from 'src/components/notebook-utils'
 import { withWorkspaces, WorkspaceSelector } from 'src/components/workspace-utils'
 import { ajaxCaller } from 'src/libs/ajax'
 import { RequiredFormLabel } from 'src/libs/forms'
@@ -10,8 +12,6 @@ import * as Nav from 'src/libs/nav'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 import validate from 'validate.js'
-import ErrorView from 'src/components/ErrorView'
-import { notebookNameValidator, notebookNameInput } from 'src/components/notebook-utils'
 
 
 const cutName = name => name.slice(10, -6) // removes 'notebooks/' and the .ipynb suffix

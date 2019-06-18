@@ -1,5 +1,6 @@
 import * as Utils from 'src/libs/utils'
 
+
 export const authStore = Utils.atom({
   isSignedIn: undefined,
   registrationStatus: undefined,

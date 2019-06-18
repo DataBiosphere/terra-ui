@@ -1,11 +1,12 @@
 import _ from 'lodash/fp'
-import * as Style from 'src/libs/style'
-import { Component } from 'src/libs/wrapped-components'
 import { div, h } from 'react-hyperscript-helpers'
-import Modal from 'src/components/Modal'
-import { buttonPrimary, LabeledCheckbox, Clickable, linkButton, Select } from 'src/components/common'
-import * as Utils from 'src/libs/utils'
 import { AutoSizer, List } from 'react-virtualized'
+import { buttonPrimary, Clickable, LabeledCheckbox, linkButton, Select } from 'src/components/common'
+import Modal from 'src/components/Modal'
+import * as Style from 'src/libs/style'
+import * as Utils from 'src/libs/utils'
+import { Component } from 'src/libs/wrapped-components'
+
 
 const styles = {
   columnName: {
