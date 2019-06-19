@@ -310,7 +310,7 @@ const User = signal => ({
       'redirect_uri': redirectUri,
       'state': btoa(JSON.stringify({ provider }))
     }
-    const res = await fetchBond(`api/link/v1/${provider}/authorization-url?${qs.stringify(queryParams)}`, { signal })
+    const res = await fetchBond(`api/link/v1/${provider}/authorization-url?${qs.stringify(queryParams, { indices: false })}`, { signal })
     return res.json()
   },
 

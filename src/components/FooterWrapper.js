@@ -40,8 +40,7 @@ const FooterWrapper = ({ children }) => {
       ]),
       div({ style: { flexGrow: 1 } }),
       div({ style: { fontWeight: 600, fontSize: '10px' } }, [
-        `Copyright ©${buildTimestamp.getFullYear()}. Built on `,
-        buildTimestamp.toLocaleString()
+        `Copyright ©${buildTimestamp.getFullYear()}`
       ])
     ])
   ])

@@ -1,5 +1,5 @@
-import _ from 'lodash/fp'
 import { distanceInWordsToNow } from 'date-fns'
+import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { h, table, tbody, td, tr } from 'react-hyperscript-helpers'
 import { spinner } from 'src/components/icons'
