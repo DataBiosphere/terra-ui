@@ -336,6 +336,7 @@ export default _.flow(
             'Built on: ',
             a({
               href: `https://github.com/DataBiosphere/terra-ui/commits/${SATURN_VERSION}`,
+              ...Utils.newTabLinkProps,
               style: { textDecoration: 'underline', marginLeft: '0.25rem' }
             }, [new Date(SATURN_BUILD_TIMESTAMP).toLocaleString()])
           ])
