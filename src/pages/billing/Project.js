@@ -10,7 +10,6 @@ import { withErrorReporting } from 'src/libs/error'
 import * as StateHistory from 'src/libs/state-history'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
-import * as Auth from 'src/libs/auth'
 
 export default ajaxCaller(class ProjectDetail extends Component {
   constructor(props) {
@@ -38,8 +37,8 @@ export default ajaxCaller(class ProjectDetail extends Component {
 
   loadBillingInfo = withErrorReporting('Error loading current billing account',
     async () => {
-      const { ajax: {  GoogleBilling }, project: { projectName } } = this.props
-      if (Auth.hasBillingScope()) {
+      const { ajax: {  GoogleBilling }, project: { projectName }, hasBillingScope } = this.props
+      if (hasBillingScope) {
         const { billingAccountName } = await GoogleBilling.getBillingInfo(projectName)
         this.setState({ billingAccountName })
       }
@@ -67,24 +66,9 @@ export default ajaxCaller(class ProjectDetail extends Component {
   )
 
   render() {
-    const { project: { projectName, creationStatus }, ajax: { Billing }, billingAccounts, authorizeAndLoadAccounts, loadingAccountAuth } = this.props
+    const { project: { projectName, creationStatus }, ajax: { Billing }, billingAccounts, hasBillingScope, authorizeAndLoadAccounts } = this.props
     const { projectUsers, loading, updating, filter, addingUser, deletingUser, editingUser, billingAccountName } = this.state
     const adminCanEdit = _.filter(({ roles }) => _.includes('Owner', roles), projectUsers).length > 1
-    const billingNode = Utils.cond(
-      [!!billingAccounts, () => h(Select, {
-        value: billingAccountName,
-        isClearable: false,
-        styles: { container: old => ({ ...old, width: 320 }) },
-        options: _.map(({ displayName, accountName }) => ({ label: displayName, value: accountName }), billingAccounts),
-        onChange: ({ value: newAccountName }) => this.updateBillingAccount(newAccountName)
-      })],
-      [!billingAccounts && !loadingAccountAuth, () => buttonPrimary({
-        onClick: async () => {
-          await authorizeAndLoadAccounts()
-          Utils.withBusyState(loading => this.setState({ loading }), this.loadBillingInfo)()
-        }
-      }, 'Authorize')]
-    )
 
     return h(Fragment, [
       div({ style: { padding: '1.5rem 3rem', flexGrow: 1 } }, [
@@ -96,8 +80,14 @@ export default ajaxCaller(class ProjectDetail extends Component {
             [creationStatus === 'Creating', () => spinner({ size: 16 })],
             () => icon('error-standard', { style: { color: colors.danger() } })
           ),
-          billingNode && span({ style: { flexShrink: 0, fontWeight: 500, fontSize: 14, margin: '0 0.75rem 0 auto' } }, 'Billing Account For This Project:'),
-          billingNode
+          span({ style: { flexShrink: 0, fontWeight: 500, fontSize: 14, margin: '0 0.75rem 0 auto' } }, 'Billing Account For This Project:'),
+          hasBillingScope ? h(Select, {
+            value: billingAccountName,
+            isClearable: false,
+            styles: { container: old => ({ ...old, width: 320 }) },
+            options: _.map(({ displayName, accountName }) => ({ label: displayName, value: accountName }), billingAccounts),
+            onChange: ({ value: newAccountName }) => this.updateBillingAccount(newAccountName)
+          }) : buttonPrimary({ onClick: async () =>  await authorizeAndLoadAccounts() }, 'Authorize')
         ]),
         div({
           style: {
@@ -154,7 +144,11 @@ export default ajaxCaller(class ProjectDetail extends Component {
     ])
   }
 
-  componentDidUpdate() {
+  componentDidUpdate(prevProps) {
+    if (this.props.hasBillingScope !== prevProps.hasBillingScope) {
+      Utils.withBusyState(loading => this.setState({ loading }), this.loadBillingInfo)()
+    }
+
     StateHistory.update(_.pick(
       ['projectUsers', 'filter'],
       this.state)

@@ -278,7 +278,7 @@ export const BillingList = _.flow(
           key: selectedName,
           project: _.find({ projectName: selectedName }, billingProjects),
           billingAccounts,
-          loadingAccountAuth: isBusy,
+          hasBillingScope: Auth.hasBillingScope(),
           authorizeAndLoadAccounts: this.authorizeAndLoadAccounts
         }),
         !selectedName && div({ style: { margin: '1rem auto 0 auto' } }, ['Select A Billing Project ']),
