@@ -64,9 +64,9 @@ const withUrlPrefix = prefix => wrappedFetch => async (path, ...args) => {
 
 const checkRequesterPaysError = async response => {
   if (response.status === 400) {
-    const data = await response.json()
-    const requesterPaysError = _.includes('requester pays', _.get(['error', 'message'], data))
-    return Object.assign(new Response(new Blob([JSON.stringify(data)]), response), { requesterPaysError })
+    const data = await response.text()
+    const requesterPaysError = _.includes('requester pays', data)
+    return Object.assign(new Response(new Blob([data]), response), { requesterPaysError })
   } else {
     return Object.assign(response, { requesterPaysError: false })
   }
@@ -310,7 +310,7 @@ const User = signal => ({
       'redirect_uri': redirectUri,
       'state': btoa(JSON.stringify({ provider }))
     }
-    const res = await fetchBond(`api/link/v1/${provider}/authorization-url?${qs.stringify(queryParams)}`, { signal })
+    const res = await fetchBond(`api/link/v1/${provider}/authorization-url?${qs.stringify(queryParams, { indices: false })}`, { signal })
     return res.json()
   },
 

@@ -117,35 +117,31 @@ const NewBillingProjectModal = ajaxCaller(class NewBillingProjectModal extends C
             }, billingAccounts)
           })
         ]),
-        !!chosenBillingAccount && !chosenBillingAccount.firecloudHasAccess && div({ style: { fontWeight: 500, fontSize: 12 } }, [
-          div({ style: { color: colors.danger(), margin: '0.25rem 0 0.25rem 0', fontSize: 13 } }, [
-            'Terra does not have access to this account. To grant access, add ', span({ style: { fontWeight: 'bold' } }, 'terra-billing@terra.bio'),
-            ' as a Billing Account User on the ',
+        !!chosenBillingAccount && !chosenBillingAccount.firecloudHasAccess && div({ style: { fontWeight: 500, fontSize: 13 } }, [
+          div({ style: { margin: '0.25rem 0 0.25rem 0', color: colors.danger() } },
+            'Terra does not have access to this account. '),
+          div({ style: { marginBottom: '0.25rem' } }, ['To grant access, add ', span({ style: { fontWeight: 'bold' } }, 'terra-billing@terra.bio'),
+            ' as a ', span({ style: { fontWeight: 'bold' } }, 'Billing Account User'), ' on the ',
             a({
               style: { color: colors.accent(), fontWeight: 700 },
               href: `https://console.cloud.google.com/billing/${chosenBillingAccount.accountName.split('/')[1]}?authuser=${Auth.getUser().email}`,
               ...Utils.newTabLinkProps
-            }, ['Google Cloud Console ', icon('pop-out', { size: 12 })])
-          ]),
-          // The following lines will be re-added soon:
-          // div({ style: { marginBottom: '0.25rem' } }, [
-          //   '2. Click ',
-          //   h(Clickable, {
-          //     as: 'span',
-          //     style: { color: colors.accent(), fontWeight: 700 },
-          //     onClick: () => {
-          //       this.setState({ billingAccounts: undefined })
-          //       this.loadBillingAccounts()
-          //     }
-          //   }, ['HERE']), ' to refresh your billing accounts.'
-          // ]),
+            }, ['Google Cloud Console', icon('pop-out', { style: { marginLeft: '0.25rem' }, size: 12 })])]),
+          div({ style: { marginBottom: '0.25rem' } }, ['Then, ',
+            h(Clickable, {
+              as: 'span',
+              style: { color: colors.accent(), fontWeight: 700 },
+              onClick: () => {
+                this.setState({ billingAccounts: undefined })
+                this.loadAccounts()
+              }
+            }, ['click here']), ' to refresh your billing accounts.']),
           div({ style: { marginTop: '0.5rem' } }, [
-            'Need help? ',
             a({
               style: { color: colors.accent(), fontWeight: 700 },
               href: `https://support.terra.bio/hc/en-us/articles/360026182251`,
               ...Utils.newTabLinkProps
-            }, ['Click here ', icon('pop-out', { size: 12 })]), ' for more information.'
+            }, ['Need help?', icon('pop-out', { style: { marginLeft: '0.25rem' }, size: 12 })])
           ])
         ])
       ]),

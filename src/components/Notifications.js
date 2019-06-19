@@ -1,9 +1,9 @@
-import 'animate.css'
+import 'react-notifications-component/dist/theme.css'
+
 import _ from 'lodash/fp'
 import { createRef } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import ReactNotification from 'react-notifications-component'
-import 'react-notifications-component/dist/theme.css'
 import { buttonPrimary, Clickable } from 'src/components/common'
 import ErrorView from 'src/components/ErrorView'
 import { icon } from 'src/components/icons'

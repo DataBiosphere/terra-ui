@@ -8,6 +8,7 @@ import { withErrorReporting } from 'src/libs/error'
 import { authStore, workspacesStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
+
 authStore.subscribe((state, oldState) => {
   if (oldState.isSignedIn && !state.isSignedIn) {
     workspacesStore.reset()

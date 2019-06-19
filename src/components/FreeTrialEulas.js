@@ -2,6 +2,7 @@ import { Component } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { Markdown, newWindowLinkRenderer } from 'src/components/Markdown'
 
+
 const broadEula = `
 1. The Terra Free Credits Program (“credits”), sponsored by Google, is administered by [Onix Networking](https://www.onixnet.com/products/google-cloud/google-cloud-platform/google-app-engine) (“Onix”), a Google Cloud Premier Partner. 
 

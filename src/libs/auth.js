@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import { div, h } from 'react-hyperscript-helpers'
 import { ShibbolethLink } from 'src/components/common'
-import { clearNotification, sessionTimeoutProps, notify } from 'src/components/Notifications'
+import { clearNotification, notify, sessionTimeoutProps } from 'src/components/Notifications'
 import { Ajax } from 'src/libs/ajax'
 import { getConfig } from 'src/libs/config'
 import { withErrorReporting } from 'src/libs/error'

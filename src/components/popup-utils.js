@@ -4,6 +4,7 @@ import { createPortal } from 'react-dom'
 import { h } from 'react-hyperscript-helpers'
 import * as Utils from 'src/libs/utils'
 
+
 export const withDynamicPosition = () => WrappedComponent => {
   const Wrapper = class extends Component {
     constructor(props) {

@@ -1,10 +1,10 @@
 import { div, h } from 'react-hyperscript-helpers'
+import { buttonPrimary } from 'src/components/common'
 import Modal from 'src/components/Modal'
 import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
-import { Component } from 'src/libs/wrapped-components'
-import { buttonPrimary } from 'src/components/common'
 import { reportError } from 'src/libs/error'
+import { Component } from 'src/libs/wrapped-components'
 
 
 export default ajaxCaller(class DeleteToolModal extends Component {

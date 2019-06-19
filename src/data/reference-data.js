@@ -1,5 +1,5 @@
 export default {
-  b37: {
+  b37Human: {
     'axiomPoly_resource_vcf': 'gs://broad-references/hg19/v0/Axiom_Exome_Plus.genotypes.all_populations.poly.vcf.gz',
     'ref_fasta': 'gs://broad-references/hg19/v0/Homo_sapiens_assembly19.fasta',
     'ref_dict': 'gs://broad-references/hg19/v0/Homo_sapiens_assembly19.dict',

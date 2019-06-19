@@ -1,16 +1,16 @@
 import _ from 'lodash/fp'
-import { div, h, a, span } from 'react-hyperscript-helpers'
-import { refreshTerraProfile } from 'src/libs/auth'
-import colors from 'src/libs/colors'
+import { a, div, h, span } from 'react-hyperscript-helpers'
 import { buttonPrimary, Clickable } from 'src/components/common'
 import { icon } from 'src/components/icons'
+import Modal from 'src/components/Modal'
 import { ajaxCaller } from 'src/libs/ajax'
+import { refreshTerraProfile } from 'src/libs/auth'
+import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import { getAppName } from 'src/libs/logos'
 import { authStore, freeCreditsActive } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
-import Modal from 'src/components/Modal'
 
 
 const getMessages = () => {

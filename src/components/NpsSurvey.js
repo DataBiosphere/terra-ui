@@ -98,10 +98,10 @@ export const NpsSurvey = Utils.connectAtom(authStore, 'authState')(class NpsSurv
     _.range(0, 11))
 
     return requestable && div({
+      className: 'animated slideInRight',
       style: {
         position: 'fixed', bottom: '1.5rem', right: expanded ? '1.5rem' : 0,
-        transform: `translate(${requestable ? '0%' : 'calc(100% + 5px)'})`,
-        transition: 'right 0.2s linear, transform 0.3s linear',
+        transition: 'right 0.2s linear',
         zIndex: 1
       }
     }, [

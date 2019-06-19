@@ -5,6 +5,7 @@ import { createRef, Fragment } from 'react'
 import Dropzone from 'react-dropzone'
 import { a, div, h } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
+import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
 import togglesListView from 'src/components/CardsListToggle'
 import { Clickable, link, MenuButton, menuIcon, PageBox, Select, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
@@ -14,7 +15,7 @@ import PopupTrigger from 'src/components/PopupTrigger'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
-import { reportError } from 'src/libs/error'
+import { reportError, withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
@@ -180,6 +181,9 @@ class NotebookCard extends Component {
 }
 
 const Notebooks = _.flow(
+  requesterPaysWrapper({
+    onDismiss: () => Nav.history.goBack()
+  }),
   wrapWorkspace({
     breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
     title: 'Notebooks', activeTab: 'notebooks'
@@ -205,19 +209,15 @@ const Notebooks = _.flow(
     return _.map(({ name }) => printName(name), notebooks)
   }
 
-  async refresh() {
+  refresh = _.flow(
+    withRequesterPaysHandler(this.props.onRequesterPaysError),
+    withErrorReporting('Error loading notebooks'),
+    Utils.withBusyState(v => this.setState({ loading: v }))
+  )(async () => {
     const { namespace, workspace: { workspace: { bucketName } }, ajax: { Buckets } } = this.props
-
-    try {
-      this.setState({ launching: false, loading: true })
-      const notebooks = await Buckets.listNotebooks(namespace, bucketName)
-      this.setState({ notebooks: _.reverse(_.sortBy('updated', notebooks)) })
-    } catch (error) {
-      reportError('Error loading notebooks', error)
-    } finally {
-      this.setState({ loading: false })
-    }
-  }
+    const notebooks = await Buckets.listNotebooks(namespace, bucketName)
+    this.setState({ notebooks: _.reverse(_.sortBy('updated', notebooks)) })
+  })
 
   async uploadFiles(files) {
     const { namespace, workspace: { workspace: { bucketName } }, ajax: { Buckets } } = this.props

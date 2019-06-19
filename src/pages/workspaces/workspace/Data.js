@@ -7,6 +7,7 @@ import Dropzone from 'react-dropzone'
 import { div, form, h, input } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
+import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
 import { buttonPrimary, linkButton, Select, spinnerOverlay } from 'src/components/common'
 import DataTable from 'src/components/DataTable'
 import ExportDataModal from 'src/components/ExportDataModal'
@@ -73,9 +74,9 @@ const saveScroll = _.throttle(100, (initialX, initialY) => {
 
 const getReferenceData = _.flow(
   _.toPairs,
-  _.filter(([key]) => key.startsWith('referenceData-')),
+  _.filter(([key]) => key.startsWith('referenceData_')),
   _.map(([k, value]) => {
-    const [, datum, key] = /referenceData-([^-]+)-(.+)/.exec(k)
+    const [, datum, key] = /referenceData_([^_]+)_(.+)/.exec(k)
     return { datum, key, value }
   }),
   _.groupBy('datum')
@@ -101,7 +102,7 @@ const LocalVariablesContent = ajaxCaller(class LocalVariablesContent extends Com
     const stopEditing = () => this.setState({ editIndex: undefined, editKey: undefined, editValue: undefined, editType: undefined })
     const filteredAttributes = _.flow(
       _.toPairs,
-      _.remove(([key]) => key === 'description' || key.includes(':') || key.startsWith('referenceData-')),
+      _.remove(([key]) => key === 'description' || key.includes(':') || key.startsWith('referenceData_')),
       _.filter(data => Utils.textMatch(textFilter, _.join(' ', data))),
       _.sortBy(_.first)
     )(attributes)
@@ -551,7 +552,10 @@ const DeleteObjectModal = ajaxCaller(class DeleteObjectModal extends Component {
   }
 })
 
-const BucketContent = ajaxCaller(class BucketContent extends Component {
+const BucketContent = _.flow(
+  ajaxCaller,
+  requesterPaysWrapper({ onDismiss: ({ onClose }) => onClose() })
+)(class BucketContent extends Component {
   constructor(props) {
     super(props)
     const { prefix = '', objects } = props.firstRender ? StateHistory.get() : {}
@@ -576,6 +580,7 @@ const BucketContent = ajaxCaller(class BucketContent extends Component {
   }
 
   load = _.flow(
+    withRequesterPaysHandler(this.props.onRequesterPaysError),
     withErrorReporting('Error loading bucket data'),
     Utils.withBusyState(v => this.setState({ loading: v }))
   )(async (prefix = this.state.prefix) => {
@@ -847,7 +852,7 @@ const WorkspaceData = _.flow(
               firstRender
             })],
             ['bucketObjects', () => h(BucketContent, {
-              workspace,
+              workspace, onClose: () => this.setState({ selectedDataType: undefined }),
               firstRender, refreshKey
             })],
             ['entities', () => h(EntitiesContent, {
