@@ -334,7 +334,10 @@ export default _.flow(
             }
           }, [
             'Built on: ',
-            new Date(SATURN_BUILD_TIMESTAMP).toLocaleString()
+            a({
+              href: `https://github.com/DataBiosphere/terra-ui/commits/${SATURN_VERSION}`,
+              style: { textDecoration: 'underline', marginLeft: '0.25rem' }
+            }, [new Date(SATURN_BUILD_TIMESTAMP).toLocaleString()])
           ])
         ])
       ])
