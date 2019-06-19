@@ -3,14 +3,16 @@ import { buttonPrimary, link, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import * as Nav from 'src/libs/nav'
-import { freeCreditsActive } from 'src/libs/state'
+import { authStore, freeCreditsActive } from 'src/libs/state'
 import { Component } from 'src/libs/wrapped-components'
 import * as Utils from 'src/libs/utils'
 
 
-export default class RequesterPaysModal extends Component {
+export default Utils.connectAtom(authStore, 'authState')(class RequesterPaysModal extends Component {
   render() {
-    const hasFreeCredits = false
+    const { authState: { profile } } = this.props
+    const { trialState } = profile
+    const hasFreeCredits = trialState === 'Enabled'
     const loading = false
     const onDismiss = this.props
 
@@ -65,4 +67,4 @@ export default class RequesterPaysModal extends Component {
       ])
     )
   }
-}
+})
