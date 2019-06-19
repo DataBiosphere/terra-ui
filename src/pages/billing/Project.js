@@ -87,7 +87,7 @@ export default ajaxCaller(class ProjectDetail extends Component {
             isClearable: false,
             styles: { container: old => ({ ...old, width: 320 }) },
             options: _.map(({ displayName, accountName }) => ({ label: displayName, value: accountName }), billingAccounts),
-            onChange: ({ value: newAccountName }) => this.updateBillingAccount(newAccountName)
+            onChange: ({ value: newAccountName }) => billingAccountName !== newAccountName && this.updateBillingAccount(newAccountName)
           }) : buttonPrimary({ onClick: async () =>  await authorizeAndLoadAccounts() }, 'Authorize')
         ]),
         div({
