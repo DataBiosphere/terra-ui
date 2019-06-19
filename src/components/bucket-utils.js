@@ -63,8 +63,7 @@ export const requesterPaysWrapper = ({ onDismiss }) => WrappedComponent => {
       [!showModal, h(WrappedComponent, {
         ref, ...props,
         onRequesterPaysError: async () => {
-          const billingList = await Ajax(signal).Billing.listProjects()
-          billingList.length === 0 ? console.log('Kate\'s modal') : setBillingList(billingList)
+          setBillingList(await Ajax(signal).Billing.listProjects())
           return setShowModal(true)
         }
       })]
