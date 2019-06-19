@@ -27,8 +27,17 @@ export const requesterPaysWrapper = ({ onDismiss }) => WrappedComponent => {
     const [billingList, setBillingList] = useState([])
     const [selectedBilling, setSelectedBilling] = useState(workspaceStore.get().userProject)
     const signal = useCancellation()
-    return showModal ?
-      h(Modal, {
+
+    return Utils.cond(
+      // This is where the free credits modal will be used: SATURN-862
+      [showModal && billingList.length === 0, h(Modal, {
+        title: 'Cannot access data',
+        showCancel: false,
+        okButton: () => onDismiss()
+      }, [
+        'This data is in a requester pays bucket and there are no billing projects setup to bill to.'
+      ])],
+      [showModal && billingList.length > 0,  h(Modal, {
         title: 'Cannot access data',
         onDismiss: () => onDismiss(props),
         shouldCloseOnOverlayClick: false,
@@ -50,14 +59,16 @@ export const requesterPaysWrapper = ({ onDismiss }) => WrappedComponent => {
           onChange: ({ value }) => setSelectedBilling(value),
           options: _.uniq(_.map('projectName', billingList)).sort()
         })
-      ]) :
-      h(WrappedComponent, {
+      ])],
+      [!showModal, h(WrappedComponent, {
         ref, ...props,
         onRequesterPaysError: async () => {
-          setBillingList(await Ajax(signal).Billing.listProjects())
+          const billingList = await Ajax(signal).Billing.listProjects()
+          billingList.length === 0 ? console.log('Kate\'s modal') : setBillingList(billingList)
           return setShowModal(true)
         }
-      })
+      })]
+    )
   })
   return Wrapper
 }
