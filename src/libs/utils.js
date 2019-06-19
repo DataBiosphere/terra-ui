@@ -80,22 +80,29 @@ export const syncAtomToSessionStorage = (theAtom, key) => {
   theAtom.update(v => existing === undefined ? v : existing)
 }
 
-const recentDateFormat = new Intl.DateTimeFormat('default', { hour: 'numeric', minute: 'numeric' })
-const olderDateFormat = new Intl.DateTimeFormat('default', { month: 'short', day: 'numeric' })
+const dateFormat = new Intl.DateTimeFormat('default', { day: 'numeric', month: 'short', year: 'numeric' })
+const monthYearFormat = new Intl.DateTimeFormat('default', { month: 'short', year: 'numeric' })
 const completeDateFormat = new Intl.DateTimeFormat('default', { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: 'numeric' })
+
+const truncateDay = date => {
+  date.setHours(0)
+  date.setMinutes(0)
+  date.setSeconds(0)
+  date.setMilliseconds(0)
+}
 
 export const makePrettyDate = dateString => {
   const date = new Date(dateString)
   const now = new Date() // cloning now below so it isn't mutated, slightly faster than from scratch https://jsperf.com/new-date-vs-clone-date
-  const oneDayAgo = _.tap(d => d.setDate(d.getDate() - 1), new Date(now))
-  const twoDaysAgo = _.tap(d => d.setDate(d.getDate() - 2), new Date(now))
-  const oneYearAgo = _.tap(d => d.setFullYear(d.getFullYear() - 1), new Date(now))
+  const today = _.tap(truncateDay, new Date(now))
+  const yesterday = _.tap(d => { d.setDate(d.getDate() - 1); truncateDay(d) }, new Date(now))
+  const sixMonthsAgo = _.tap(d => d.setMonth(d.getMonth() - 6), new Date(now))
 
   return cond(
-    [date > oneDayAgo, () => recentDateFormat.format(date)],
-    [date > twoDaysAgo, () => 'Yesterday'],
-    [date > oneYearAgo, () => olderDateFormat.format(date)],
-    () => date.getFullYear()
+    [date >= today, () => 'Today'],
+    [date >= yesterday, () => 'Yesterday'],
+    [date >= sixMonthsAgo, () => dateFormat.format(date)],
+    () => monthYearFormat.format(date)
   )
 }
 

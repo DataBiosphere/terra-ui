@@ -1,7 +1,7 @@
-import { commonPaths } from 'src/components/breadcrumbs'
 import { Fragment } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import IframeResizer from 'react-iframe-resizer-super'
+import { commonPaths } from 'src/components/breadcrumbs'
 import TopBar from 'src/components/TopBar'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'

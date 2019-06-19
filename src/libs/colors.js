@@ -26,6 +26,13 @@ const colorPalettes = {
   DataStage: {
     ...baseColors,
     primary: '#c02f42'
+  },
+  Anvil: {
+    ...baseColors,
+    primary: '#e0dd10',
+    accent: '#035c94',
+    light: '#f6f7f4',
+    dark: '#012840'
   }
 }
 

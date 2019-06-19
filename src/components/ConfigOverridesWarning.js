@@ -1,19 +1,28 @@
-import { div, pre } from 'react-hyperscript-helpers'
+import { div } from 'react-hyperscript-helpers'
+import { linkButton } from 'src/components/common'
 import colors from 'src/libs/colors'
-import { configOverridesStore } from 'src/libs/state'
+import { ajaxOverridesStore, configOverridesStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
+
 
 const ConfigOverridesWarning = () => {
   const configOverrides = Utils.useAtom(configOverridesStore)
-  return !!configOverrides && div({
+  const ajaxOverrides = Utils.useAtom(ajaxOverridesStore)
+  return (!!configOverrides || !!ajaxOverrides) && div({
     style: {
       position: 'fixed', bottom: 0, right: 0,
       color: 'white', backgroundColor: colors.accent(),
-      padding: '1rem'
+      padding: '0.5rem'
     }
   }, [
-    'Warning! Config overrides are in effect:',
-    pre(JSON.stringify(configOverrides, null, 2))
+    !!configOverrides && div([
+      'Config overrides are in effect.',
+      linkButton({ variant: 'light', onClick: () => configOverridesStore.set() }, [' clear'])
+    ]),
+    !!ajaxOverrides && div([
+      'Ajax overrides are in effect.',
+      linkButton({ variant: 'light', onClick: () => ajaxOverridesStore.set() }, [' clear'])
+    ])
   ])
 }
 
