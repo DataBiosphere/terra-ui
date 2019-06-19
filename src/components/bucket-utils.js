@@ -41,8 +41,8 @@ export const requesterPaysWrapper = ({ onDismiss }) => WrappedComponent => {
           }
         }, ['Ok'])
       }, [
-        'This data is in a requester pays bucket.',
-        h(RequiredFormLabel, ['Billing project']),
+        'This data is in a requester pays bucket. Choose a billing project to continue:',
+        h(RequiredFormLabel, ['Billing Project']),
         h(Select, {
           isClearable: false,
           value: selectedBilling,
