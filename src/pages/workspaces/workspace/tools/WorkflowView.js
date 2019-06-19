@@ -799,7 +799,7 @@ const WorkflowView = _.flow(
           onChange: (name, v) => this.setState(_.set(['modifiedConfig', key, name], v)),
           onSetDefaults: () => {
             this.setState(_.set(['modifiedConfig', 'outputs'], _.fromPairs(_.map(({ name }) => {
-              return [name, modifiedConfig.outputs[name] || `this.${_.last(name.split('.'))}`]
+              return [name, `this.${_.last(name.split('.'))}`]
             }, modifiedInputsOutputs.outputs))))
           },
           suggestions
