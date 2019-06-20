@@ -1,12 +1,12 @@
 import _ from 'lodash/fp'
 import { forwardRef, useState } from 'react'
 import { h } from 'react-hyperscript-helpers'
+import { buttonPrimary, Select } from 'src/components/common'
 import Modal from 'src/components/Modal'
-import * as Utils from 'src/libs/utils'
-import { workspaceStore } from 'src/libs/state'
-import { RequiredFormLabel } from 'src/libs/forms'
-import { Select, buttonPrimary } from 'src/components/common'
 import { Ajax, useCancellation } from 'src/libs/ajax'
+import { RequiredFormLabel } from 'src/libs/forms'
+import { workspaceStore } from 'src/libs/state'
+import * as Utils from 'src/libs/utils'
 
 
 export const withRequesterPaysHandler = _.curry((handler, fn) => async (...args) => {
