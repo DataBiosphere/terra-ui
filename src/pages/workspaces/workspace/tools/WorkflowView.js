@@ -300,7 +300,7 @@ const WorkflowView = _.flow(
     return {
       type: _.endsWith('_set', value) ? EntitySelectionType.chooseSet : EntitySelectionType.processAll,
       selectedEntities: {},
-      newSetName: `${this.props.workflowName}_${new Date().toISOString().slice(0, -5).replace(/[^\w]/g, '-')}`
+      newSetName: `${this.props.workflowName}_${new Date().toISOString().slice(0, -5)}`.replace(/[^\w]/g, '-') // colons in date, periods in wf name
     }
   }
 
