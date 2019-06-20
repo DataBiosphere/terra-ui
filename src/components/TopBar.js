@@ -278,7 +278,7 @@ export default _.flow(
             h(DropDownSubItem, {
               href: Nav.getLink('library-code'),
               onClick: () => this.hideNav()
-            }, ['Tools'])
+            }, ['Workflows'])
           ]),
           (trialState === 'Enabled') && enabledCredits,
           (trialState === 'Enrolled') && enrolledCredits,

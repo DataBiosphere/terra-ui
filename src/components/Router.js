@@ -14,7 +14,7 @@ import * as Projects from 'src/pages/billing/List'
 import * as Group from 'src/pages/groups/Group'
 import * as Groups from 'src/pages/groups/List'
 import * as ImportData from 'src/pages/ImportData'
-import * as ImportTool from 'src/pages/ImportTool'
+import * as ImportWorkflow from 'src/pages/ImportWorkflow'
 import * as LandingPage from 'src/pages/LandingPage'
 import * as Code from 'src/pages/library/Code'
 import * as DataExplorer from 'src/pages/library/DataExplorer'
@@ -32,8 +32,8 @@ import * as SubmissionDetails from 'src/pages/workspaces/workspace/jobHistory/Su
 import * as Notebooks from 'src/pages/workspaces/workspace/Notebooks'
 import * as NotebookLauncher from 'src/pages/workspaces/workspace/notebooks/NotebookLauncher'
 import * as TerminalLauncher from 'src/pages/workspaces/workspace/notebooks/TerminalLauncher'
-import * as Tools from 'src/pages/workspaces/workspace/Tools'
-import * as WorkflowView from 'src/pages/workspaces/workspace/tools/WorkflowView'
+import * as Workflows from 'src/pages/workspaces/workspace/Workflows'
+import * as WorkflowView from 'src/pages/workspaces/workspace/workflows/WorkflowView'
 
 
 const pageWrapStyle = { display: 'flex', flexDirection: 'column', flex: '1 0 auto', position: 'relative' }
@@ -46,14 +46,14 @@ const initNavPaths = () => {
     WorkspaceList.navPaths,
     WorkflowView.navPaths,
     ImportData.navPaths,
-    ImportTool.navPaths,
+    ImportWorkflow.navPaths,
     PrivacyPolicy.navPaths,
     Dashboard.navPaths,
     Data.navPaths,
     Notebooks.navPaths,
     JobHistory.navPaths,
     SubmissionDetails.navPaths,
-    Tools.navPaths,
+    Workflows.navPaths,
     NotebookLauncher.navPaths,
     Profile.navPaths,
     Groups.navPaths,

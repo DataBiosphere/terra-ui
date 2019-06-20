@@ -113,7 +113,7 @@ const Code = ajaxCaller(class Code extends Component {
     )
 
     return h(Fragment, [
-      libraryTopMatter('code & tools'),
+      libraryTopMatter('code & workflows'),
       !(featuredList && methods) ?
         centeredSpinner() :
         div({ style: { display: 'flex', flex: 1 } }, [
@@ -142,6 +142,6 @@ export const navPaths = [
     path: '/library/code',
     component: Code,
     public: false,
-    title: 'Code & Tools'
+    title: 'Code & Workflows'
   }
 ]

@@ -19,7 +19,7 @@ import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 import { SubmissionQueueStatus } from 'src/pages/workspaces/workspace/SubmissionQueueStatus'
-import { rerunFailures } from 'src/pages/workspaces/workspace/tools/FailureRerunner'
+import { rerunFailures } from 'src/pages/workspaces/workspace/workflows/FailureRerunner'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
 

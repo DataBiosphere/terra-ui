@@ -22,8 +22,8 @@ import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 import { dockstoreTile, fcMethodRepoTile, makeToolCard } from 'src/pages/library/Code'
-import DeleteToolModal from 'src/pages/workspaces/workspace/tools/DeleteToolModal'
-import ExportToolModal from 'src/pages/workspaces/workspace/tools/ExportToolModal'
+import DeleteToolModal from 'src/pages/workspaces/workspace/workflows/DeleteWorkflowModal'
+import ExportToolModal from 'src/pages/workspaces/workspace/workflows/ExportWorkflowModal'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
 
@@ -213,7 +213,7 @@ const FindToolModal = ajaxCaller(class FindToolModal extends Component {
           _.map(method => makeToolCard({ method, onClick: () => this.loadMethod(method) }), featuredMethods) :
           [centeredSpinner()])
       ]),
-      div({ style: { fontSize: 18, fontWeight: 600, marginTop: '1rem' } }, ['Find Additional Tools']),
+      div({ style: { fontSize: 18, fontWeight: 600, marginTop: '1rem' } }, ['Find Additional Workflows']),
       div({ style: { display: 'flex', padding: '0.5rem' } }, [
         div({ style: { flex: 1, marginRight: 10 } }, [dockstoreTile()]),
         div({ style: { flex: 1, marginLeft: 10 } }, [fcMethodRepoTile()])
@@ -223,7 +223,7 @@ const FindToolModal = ajaxCaller(class FindToolModal extends Component {
     return h(Modal, {
       onDismiss,
       showButtons: false,
-      title: selectedTool ? `Tool: ${selectedTool.name}` : 'Suggested Tools',
+      title: selectedTool ? `Tool: ${selectedTool.name}` : 'Suggested Workflows',
       showX: true,
       width: 900
     }, Utils.cond(
@@ -267,14 +267,14 @@ const FindToolModal = ajaxCaller(class FindToolModal extends Component {
   }
 })
 
-export const Tools = _.flow(
+export const Workflows = _.flow(
   wrapWorkspace({
     breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
-    title: 'Tools', activeTab: 'tools'
+    title: 'Workflows', activeTab: 'workflows'
   }),
-  togglesListView('toolsTab'),
+  togglesListView('workflowsTab'),
   ajaxCaller
-)(class Tools extends Component {
+)(class Workflows extends Component {
   constructor(props) {
     super(props)
     this.state = {
@@ -314,7 +314,7 @@ export const Tools = _.flow(
   render() {
     const { namespace, name, listView, viewToggleButtons, workspace: ws, workspace: { workspace } } = this.props
     const { loading, configs, copyingTool, deletingTool, findingTool, sortOrder, sortOrder: { field, direction } } = this.state
-    const tools = _.flow(
+    const workflows = _.flow(
       _.orderBy(sortTokens[field] || field, direction),
       _.map(config => {
         const isRedacted = this.computeRedacted(config)
@@ -328,7 +328,7 @@ export const Tools = _.flow(
 
     return h(PageBox, [
       div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' } }, [
-        div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, ['Tools']),
+        div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, ['Workflows']),
         div({ style: { marginLeft: 'auto', marginRight: '0.75rem' } }, ['Sort By:']),
         h(Select, {
           value: sortOrder,
@@ -361,7 +361,7 @@ export const Tools = _.flow(
           'Find a Tool',
           icon('plus-circle', { size: 32 })
         ]),
-        listView ? div({ style: { flex: 1 } }, [tools]) : tools,
+        listView ? div({ style: { flex: 1 } }, [workflows]) : workflows,
         findingTool && h(FindToolModal, {
           namespace, name,
           onDismiss: () => this.setState({ findingTool: false })
@@ -382,9 +382,13 @@ export const Tools = _.flow(
 
 export const navPaths = [
   {
-    name: 'workspace-tools',
+    name: 'workspace-workflows',
+    path: '/workspaces/:namespace/:name/workflows',
+    component: Workflows,
+    title: ({ name }) => `${name} - Workflows`
+  }, {
+    name: 'workspace-tools', // legacy
     path: '/workspaces/:namespace/:name/tools',
-    component: Tools,
-    title: ({ name }) => `${name} - Tools`
+    component: props => h(Nav.Redirector, { pathname: Nav.getPath('workspace-workflows', props) })
   }
 ]
