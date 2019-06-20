@@ -6,6 +6,16 @@ import * as Style from 'src/libs/style'
 import { Component } from 'src/libs/wrapped-components'
 
 
+/*
+ * The WDL Language team maintains a TextMate Grammer for WDL syntax, which
+ * would be nice to use here. That grammar uses a flavor of regular expressions
+ * parsed by the Oniguruma regular expression (C?) library, so isn't readily
+ * available in the browser.
+ *   Additionally, this Prism grammar supports embedded languages, which allows
+ * accurate highlighting of the embedded Python. At the time of this writing,
+ * that support isn't available in the WDL TextMate Grammar, perhaps because it
+ * isn't possible.
+ */
 Prism.languages.wdl = {
   'embedded-code': [
     {
@@ -34,9 +44,9 @@ Prism.languages.wdl = {
     greedy: true
   },
   declaration: {
-    pattern: /(?:Array[\S]*|Boolean|File|Float|Int|Map|Object|String|Uri)\??\s+[A-Za-z_0-9]+/,
+    pattern: /(?:Array[\S]*|Boolean|File|Float|Int|Map|Object|String|Pair)\??\s+[A-Za-z_0-9]+/,
     inside: {
-      builtin: /(?:Array[\S]*|Boolean|File|Float|Int|Map|Object|String|Uri)\??/,
+      builtin: /(?:Array[\S]*|Boolean|File|Float|Int|Map|Object|String|Pair)\??/,
       variable: / [A-Za-z_0-9]+/
     }
   },
@@ -49,7 +59,7 @@ Prism.languages.wdl = {
     // Must be after 'declaration' or this will grab "scatter" in variable names
     /\bscatter\b/
   ],
-  keyword: /\b(?:import|as|input|output|call|command|runtime|task|workflow)\b/,
+  keyword: /\b(?:call|runtime|task|workflow|if|then|else|import|as|input|output|meta|parameter_meta|scatter)\b/,
   boolean: /\b(?:true|false)\b/,
   number: /\b0x[\da-f]+\b|(?:\b\d+\.?\d*|\B\.\d+)(?:e[+-]?\d+)?/i,
   operator: /=|\+=|-=|\*=|\/=|\/\/=|%=|&=|\|=|\^=|>>=|<<=|\*\*=|<=|>=|==|<|>|!=|\+|-|\*|\*\*|\/|\/\/|%|<<|>>|&|\||\^|~/,
