@@ -4,7 +4,7 @@ import { buttonPrimary, buttonSecondary } from 'src/components/common'
 import { centeredSpinner } from 'src/components/icons'
 import { TextInput } from 'src/components/input'
 import planet from 'src/images/register-planet.svg'
-import { ajaxCaller } from 'src/libs/ajax'
+import { Ajax } from 'src/libs/ajax'
 import { getUser, refreshTerraProfile, signOut } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
@@ -19,7 +19,7 @@ const constraints = {
   email: { presence: { allowEmpty: false } }
 }
 
-export default ajaxCaller(class Register extends Component {
+export default class Register extends Component {
   constructor(props) {
     super(props)
     const { givenName, familyName, email } = getUser()
@@ -32,11 +32,10 @@ export default ajaxCaller(class Register extends Component {
   }
 
   async register() {
-    const { ajax: { User } } = this.props
     const { givenName, familyName, email } = this.state
     try {
       this.setState({ busy: true })
-      await User.profile.set({
+      await Ajax().User.profile.set({
         firstName: givenName,
         lastName: familyName,
         contactEmail: email
@@ -108,4 +107,4 @@ export default ajaxCaller(class Register extends Component {
       ])
     ])
   }
-})
+}

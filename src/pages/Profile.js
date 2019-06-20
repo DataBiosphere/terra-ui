@@ -429,12 +429,11 @@ const Profile = _.flow(
     withErrorReporting('Error saving profile')
   )(async () => {
     const { profileInfo } = this.state
-    const { ajax: { User } } = this.props
 
     const [prefsData, profileData] = _.over([_.pickBy, _.omitBy])((v, k) => _.startsWith('notifications/', k), profileInfo)
     await Promise.all([
-      User.profile.set(_.pickBy(_.identity, profileData)),
-      User.profile.setPreferences(prefsData)
+      Ajax().User.profile.set(_.pickBy(_.identity, profileData)),
+      Ajax().User.profile.setPreferences(prefsData)
     ])
     await refreshTerraProfile()
   })

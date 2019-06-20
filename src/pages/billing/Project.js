@@ -4,7 +4,7 @@ import { div, h, span } from 'react-hyperscript-helpers'
 import { spinnerOverlay } from 'src/components/common'
 import { DeleteUserModal, EditUserModal, MemberCard, NewUserCard, NewUserModal } from 'src/components/group-common'
 import { icon, spinner } from 'src/components/icons'
-import { ajaxCaller } from 'src/libs/ajax'
+import { Ajax, ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
 import * as StateHistory from 'src/libs/state-history'
@@ -46,7 +46,7 @@ export default ajaxCaller(class ProjectDetail extends Component {
   }
 
   render() {
-    const { project: { projectName, creationStatus }, ajax: { Billing } } = this.props
+    const { project: { projectName, creationStatus } } = this.props
     const { projectUsers, loading, updating, filter, addingUser, deletingUser, editingUser } = this.state
     const adminCanEdit = _.filter(({ roles }) => _.includes('Owner', roles), projectUsers).length > 1
 
@@ -88,7 +88,7 @@ export default ajaxCaller(class ProjectDetail extends Component {
         userLabel: 'User',
         title: 'Add user to Billing Project',
         footer: 'Warning: Adding any user to this project will mean they can incur costs to the billing associated with this project.',
-        addFunction: Billing.project(projectName).addUser,
+        addFunction: Ajax().Billing.project(projectName).addUser,
         onDismiss: () => this.setState({ addingUser: false }),
         onSuccess: () => this.refresh()
       }),
@@ -96,7 +96,7 @@ export default ajaxCaller(class ProjectDetail extends Component {
         adminLabel: 'Owner',
         userLabel: 'User',
         user: editingUser,
-        saveFunction: Billing.project(projectName).changeUserRoles,
+        saveFunction: Ajax().Billing.project(projectName).changeUserRoles,
         onDismiss: () => this.setState({ editingUser: false }),
         onSuccess: () => this.refresh()
       }),
@@ -108,7 +108,7 @@ export default ajaxCaller(class ProjectDetail extends Component {
           Utils.withBusyState(v => this.setState({ updating: v }))
         )(async () => {
           this.setState({ deletingUser: false })
-          await Billing.project(projectName).removeUser(deletingUser.roles, deletingUser.email)
+          await Ajax().Billing.project(projectName).removeUser(deletingUser.roles, deletingUser.email)
           this.refresh()
         })
       }),

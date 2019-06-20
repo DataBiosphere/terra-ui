@@ -5,7 +5,7 @@ import { buttonPrimary, LabeledCheckbox, linkButton, Select, spinnerOverlay } fr
 import { centeredSpinner, icon } from 'src/components/icons'
 import { AutocompleteTextInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
-import { ajaxCaller } from 'src/libs/ajax'
+import { Ajax, ajaxCaller } from 'src/libs/ajax'
 import { getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
@@ -202,7 +202,7 @@ export default ajaxCaller(class ShareWorkspaceModal extends Component {
   }
 
   async save() {
-    const { workspace: { workspace: { namespace, name } }, onDismiss, ajax: { Workspaces } } = this.props
+    const { workspace: { workspace: { namespace, name } }, onDismiss } = this.props
     const { acl, originalAcl } = this.state
 
     const aclEmails = _.map('email', acl)
@@ -218,7 +218,7 @@ export default ajaxCaller(class ShareWorkspaceModal extends Component {
 
     try {
       this.setState({ working: true })
-      await Workspaces.workspace(namespace, name).updateAcl(aclUpdates)
+      await Ajax().Workspaces.workspace(namespace, name).updateAcl(aclUpdates)
       onDismiss()
     } catch (error) {
       this.setState({ updateError: await error.text(), working: false })

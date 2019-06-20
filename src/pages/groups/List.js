@@ -7,7 +7,7 @@ import { icon } from 'src/components/icons'
 import { DelayedSearchInput, ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import TopBar from 'src/components/TopBar'
-import { ajaxCaller } from 'src/libs/ajax'
+import { Ajax, ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import { formHint, RequiredFormLabel } from 'src/libs/forms'
@@ -31,7 +31,7 @@ const groupNameValidator = existing => ({
   }
 })
 
-const NewGroupModal = ajaxCaller(class NewGroupModal extends Component {
+const NewGroupModal = class NewGroupModal extends Component {
   constructor(props) {
     super(props)
     this.state = {
@@ -69,19 +69,19 @@ const NewGroupModal = ajaxCaller(class NewGroupModal extends Component {
   }
 
   async submit() {
-    const { onSuccess, ajax: { Groups } } = this.props
+    const { onSuccess } = this.props
     const { groupName } = this.state
 
     try {
       this.setState({ submitting: true })
-      await Groups.group(groupName).create()
+      await Ajax().Groups.group(groupName).create()
       onSuccess()
     } catch (error) {
       this.setState({ submitting: false })
       reportError('Error creating group', error)
     }
   }
-})
+}
 
 const DeleteGroupModal = pure(({ groupName, onDismiss, onSubmit }) => {
   return h(Modal, {
@@ -168,7 +168,6 @@ export const GroupList = ajaxCaller(class GroupList extends Component {
 
   render() {
     const { groups, isDataLoaded, filter, creatingNewGroup, deletingGroup, updating } = this.state
-    const { ajax: { Groups } } = this.props
     return h(Fragment, [
       h(TopBar, { title: 'Groups' }, [
         h(DelayedSearchInput, {
@@ -212,7 +211,7 @@ export const GroupList = ajaxCaller(class GroupList extends Component {
           onSubmit: async () => {
             try {
               this.setState({ deletingGroup: false, updating: true })
-              await Groups.group(deletingGroup.groupName).delete()
+              await Ajax().Groups.group(deletingGroup.groupName).delete()
               this.refresh()
             } catch (error) {
               this.setState({ updating: false })

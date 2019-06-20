@@ -17,7 +17,7 @@ import StepButtons, { params as StepButtonParams } from 'src/components/StepButt
 import { FlexTable, HeaderCell, SimpleTable, TextCell } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import WDLViewer from 'src/components/WDLViewer'
-import { ajaxCaller } from 'src/libs/ajax'
+import { Ajax, ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError, withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
@@ -809,13 +809,13 @@ const WorkflowView = _.flow(
   }
 
   async save() {
-    const { namespace, name, workflowNamespace, workflowName, ajax: { Workspaces } } = this.props
+    const { namespace, name, workflowNamespace, workflowName } = this.props
     const { modifiedConfig, modifiedInputsOutputs } = this.state
 
     this.setState({ saving: true })
 
     try {
-      const validationResponse = await Workspaces.workspace(namespace, name)
+      const validationResponse = await Ajax().Workspaces.workspace(namespace, name)
         .methodConfig(workflowNamespace, workflowName)
         .save(modifiedConfig)
 
