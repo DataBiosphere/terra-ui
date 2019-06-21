@@ -66,11 +66,10 @@ const LandingPage = pure(() => {
         style: { display: 'flex', margin: '1rem 0' }
       }, [
         makeCard('workspaces', 'View Workspaces', [
-          `${getAppName()} Workspaces connect your data to popular analysis tools powered by the cloud. `,
-          'Use Workspaces to share data, code, and results easily and securely.'
+          'Workspaces connect your data to popular analysis tools powered by the cloud. Use Workspaces to share data, code, and results easily and securely.'
         ]),
-        makeCard('library-showcase', 'View Examples', `Browse our gallery of showcase Workspaces to see how science gets done on ${getAppName()}.`),
-        makeCard('library-datasets', 'Browse Data', `Access data from a rich ecosystem of ${getAppName()}-connected data portals.`)
+        makeCard('library-showcase', 'View Examples', 'Browse our gallery of showcase Workspaces to see how science gets done on Terra.'),
+        makeCard('library-datasets', 'Browse Data', 'Access data from a rich ecosystem of Terra-connected data portals.')
       ])
     ])
   ])
