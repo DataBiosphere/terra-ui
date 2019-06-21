@@ -13,12 +13,12 @@ import { centeredSpinner, icon } from 'src/components/icons'
 import { AutocompleteTextInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import PopupTrigger from 'src/components/PopupTrigger'
-import StepButtons, { params as StepButtonParams } from 'src/components/StepButtons'
+import StepButtons from 'src/components/StepButtons'
 import { FlexTable, HeaderCell, SimpleTable, TextCell } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import WDLViewer from 'src/components/WDLViewer'
 import { ajaxCaller } from 'src/libs/ajax'
-import colors from 'src/libs/colors'
+import colors, { terraSpecial } from 'src/libs/colors'
 import { reportError, withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
@@ -534,7 +534,7 @@ const WorkflowView = _.flow(
 
     const inputsValid = _.isEmpty(errors.inputs)
     const outputsValid = _.isEmpty(errors.outputs)
-    return div({ style: { position: 'relative', backgroundColor: 'white', borderBottom: `2px solid ${colors.accent()}` } }, [
+    return div({ style: { position: 'relative', backgroundColor: 'white', borderBottom: `2px solid ${terraSpecial()}` } }, [
       div({ style: { display: 'flex', padding: `1.5rem ${sideMargin} 0`, minHeight: 120 } }, [
         div({ style: { flex: '1', lineHeight: '1.5rem', minWidth: 0 } }, [
           div({ style: { display: 'flex' } }, [
@@ -649,13 +649,11 @@ const WorkflowView = _.flow(
             activeTab,
             onChangeTab: v => this.setState({ activeTab: v }),
             finalStep: buttonPrimary({
+              style: { marginLeft: '1rem' },
               disabled: !!Utils.computeWorkspaceError(ws) || !!noLaunchReason || currentSnapRedacted || !hasBucketAccess,
               tooltip: Utils.computeWorkspaceError(ws) || noLaunchReason || (currentSnapRedacted && 'Tool version was redacted.') ||
                 (!hasBucketAccess && 'You do not have access to the Google Bucket associated with this workspace'),
-              onClick: () => this.setState({ launching: true }),
-              style: {
-                height: StepButtonParams.buttonHeight, fontSize: StepButtonParams.fontSize
-              }
+              onClick: () => this.setState({ launching: true })
             }, ['Run analysis'])
           }),
           activeTab === 'outputs' && div({ style: { marginBottom: '1rem' } }, [

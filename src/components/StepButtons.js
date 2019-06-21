@@ -1,95 +1,55 @@
 import _ from 'lodash/fp'
 import { Fragment } from 'react'
-import { div, h, span } from 'react-hyperscript-helpers'
-import { Clickable } from 'src/components/common'
+import { div, h } from 'react-hyperscript-helpers'
+import Interactive from 'react-interactive'
 import { icon } from 'src/components/icons'
 import colors from 'src/libs/colors'
-
-
-export const params = {
-  buttonWidth: 170,
-  buttonHeight: 50,
-  dotSpace: 7,
-  dotSize: 6,
-  fontSize: 16
-}
+import * as Style from 'src/libs/style'
 
 
 const styles = {
   container: {
-    display: 'flex', alignItems: 'flex-start',
-    marginBottom: '2rem', marginTop: '1rem'
+    display: 'flex', alignItems: 'center',
+    fontWeight: 500, textTransform: 'uppercase',
+    marginTop: '1rem', height: '3.75rem'
   },
   button: isActive => ({
-    display: 'flex', alignItems: 'center',
-    flex: 'none',
-    width: params.buttonWidth, height: params.buttonHeight,
-    borderRadius: params.buttonHeight / 2, borderWidth: 2, borderStyle: 'solid',
-    borderColor: isActive ? colors.accent(1.2) : colors.dark(0.55),
-    backgroundColor: isActive ? colors.accent() : colors.dark(0.4),
-    color: 'white',
-    padding: '0 0.5rem 0 1.5rem'
+    ...Style.tabBar.tab,
+    ...(isActive ? Style.tabBar.active : {}),
+    backgroundColor: undefined,
+    fontSize: '1rem'
   }),
-  buttonLabel: {
-    textTransform: 'uppercase', fontWeight: 500, fontSize: params.fontSize, marginLeft: '0.5rem'
+  dot: {
+    width: 6, height: 6, borderRadius: '100%',
+    margin: '0 2px',
+    backgroundColor: colors.dark(0.4)
   }
 }
 
-const els = {
-  dot: isActive => div({
-    style: {
-      width: params.dotSize, height: params.dotSize, borderRadius: '100%',
-      margin: `${(params.buttonHeight - params.dotSize) / 2}px ${params.dotSpace}px 0 0`,
-      backgroundColor: isActive ? colors.accent() : colors.dark(0.55)
-    }
-  }),
-  selectionUnderline: div({
-    style: {
-      margin: '8px auto 0', width: params.buttonWidth - params.buttonHeight,
-      border: `4px solid ${colors.accent()}`, borderRadius: 4
-    }
-  })
-}
+const dots = div({ style: { display: 'flex', margin: '0 0.5rem' } }, [
+  div({ style: styles.dot }), div({ style: styles.dot })
+])
 
-
-const stepButton = ({ i, key, title, isValid, selectedIndex, onChangeTab, tabs }) => {
-  const greenLight = _.every('isValid', _.take(i, tabs))
-
-  const button = h(Clickable, {
-    key,
-    style: styles.button(isValid),
-    onClick: () => onChangeTab(key)
-  }, [
-    isValid ?
-      // ugh, why are these so different visually?
-      icon('success-standard', { size: 24 }) :
-      icon('edit', { size: 16, style: { margin: 4 } }),
-    span({ style: styles.buttonLabel }, [title])
+const stepButton = ({ key, title, isValid, activeTabKey, onChangeTab }) => h(Interactive, {
+  as: 'a',
+  style: styles.button(key === activeTabKey),
+  onClick: () => onChangeTab(key)
+}, [
+  div({ style: { marginBottom: key === activeTabKey ? -(Style.tabBar.active.borderBottomWidth) : undefined } }, [
+    title,
+    !isValid && icon('error-standard', { size: 14, style: { marginLeft: '1rem' } })
   ])
+])
 
-  return h(Fragment, [
-    i > 0 && h(Fragment, [els.dot(greenLight), els.dot(greenLight)]),
-    div({ style: { marginRight: params.dotSpace } }, [
-      button,
-      i === selectedIndex && els.selectionUnderline
-    ])
-  ])
-}
-
-
-const StepButtons = ({ tabs, activeTab, onChangeTab, finalStep }) => {
-  const selectedIndex = _.findIndex({ key: activeTab }, tabs)
-
-  return div({ style: styles.container }, [
-    ..._.map(
-      ([i, { key, title, isValid }]) => stepButton({ i: i * 1, key, title, isValid, selectedIndex, onChangeTab, tabs }),
-      _.toPairs(tabs)
-    ),
-    finalStep && h(Fragment, [
-      els.dot(true), els.dot(true),
-      finalStep
-    ])
-  ])
-}
+const StepButtons = ({ tabs, activeTab: activeTabKey, onChangeTab, finalStep }) => div({ style: styles.container }, [
+  ..._.map(
+    ({ key, title, isValid }) => h(Fragment, [
+      stepButton({ key, title, isValid, activeTabKey, onChangeTab }),
+      dots
+    ]),
+    tabs
+  ),
+  finalStep
+])
 
 export default StepButtons
