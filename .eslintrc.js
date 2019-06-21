@@ -16,6 +16,8 @@ module.exports = {
     }
   },
   'rules': {
+    'no-multi-spaces': 'warn',
+
     'array-bracket-newline': ['warn', 'consistent'],
     'array-bracket-spacing': 'warn',
     'block-spacing': 'warn',
@@ -48,8 +50,6 @@ module.exports = {
     'space-before-blocks': 'warn',
     'space-before-function-paren': ['warn', { 'anonymous': 'never', 'named': 'never', 'asyncArrow': 'always' }],
     'space-in-parens': 'warn',
-    'no-multi-spaces': 'warn',
-
 
     'arrow-parens': ['warn', 'as-needed'],
     'arrow-spacing': 'warn',
