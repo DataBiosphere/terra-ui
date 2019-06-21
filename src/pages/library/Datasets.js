@@ -5,7 +5,6 @@ import { buttonPrimary, link } from 'src/components/common'
 import { libraryTopMatter } from 'src/components/library-common'
 import Modal from 'src/components/Modal'
 import TooltipTrigger from 'src/components/TooltipTrigger'
-import anvilLogo from 'src/images/library/datasets/Anvil-logo.svg'
 import amppdLogo from 'src/images/library/datasets/Amp@2x.png'
 import baselineLogo from 'src/images/library/datasets/baseline.jpg'
 import broadLogo from 'src/images/library/datasets/broad_logo.png'
@@ -14,6 +13,7 @@ import hcaLogo from 'src/images/library/datasets/HCA@2x.png'
 import nemoLogo from 'src/images/library/datasets/nemo-logo.svg'
 import nhsLogo from 'src/images/library/datasets/NHS@2x.png'
 import thousandGenomesLogo from 'src/images/library/datasets/thousandgenomes.png'
+import thousandGenomesAnvil from 'src/images/library/datasets/thousandGenomesAnvil.png'
 import topMedLogo from 'src/images/library/datasets/TopMed@2x.png'
 import ukbLogo from 'src/images/library/datasets/UKB@2x.jpg'
 import colors from 'src/libs/colors'
@@ -117,10 +117,10 @@ const NIHCommonsButtons = () => buttonPrimary({
 }, ['Browse STAGE Repository'])
 
 const thousandGenomesHighCoverage = () => h(Participant, {
-  logo: { src: anvilLogo, alt: '1000 Genomes and AnVIL' },
-  title: h(Fragment, ['1000 Genomes High Coverage ', div({ style: { fontSize: 16 } }, 'presented by NHGRI AnVIL')]),
+  logo: { src: thousandGenomesAnvil, alt: '1000 Genomes and AnVIL' },
+  title: '1000 Genomes High Coverage presented by NHGRI AnVIL',
   description: '1000 Genomes project phase 3 samples sequenced to 30x coverage. This dataset is delivered as a workspace. You may clone ' +
-  'this workspace to run analyses or copy specific samples to a workspace of your choice.',
+    'this workspace to run analyses or copy specific samples to a workspace of your choice.',
   sizeText: 'Participants: 2,504'
 }, [
   buttonPrimary({
