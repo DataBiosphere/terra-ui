@@ -62,7 +62,7 @@ const RequesterPaysModal = ({ onDismiss, onSuccess }) => {
       }),
       div({ style: { marginTop: '1rem' } }, [
         link({
-          href: '', // add link to documentation
+          href: 'https://support.terra.bio/hc/en-us/articles/360029801491',
           ...Utils.newTabLinkProps
         }, ['Why is billing required for this workspace?', icon('pop-out', { style: { marginLeft: '0.25rem' }, size: 12 })])
       ])
@@ -90,7 +90,7 @@ const RequesterPaysModal = ({ onDismiss, onSuccess }) => {
       ]),
       div({ style: { marginTop: '1rem' } }, [
         link({
-          href: '', // add link to documentation
+          href: 'https://support.terra.bio/hc/en-us/articles/360029801491',
           ...Utils.newTabLinkProps
         }, ['Why is billing required for this workspace?', icon('pop-out', { style: { marginLeft: '0.25rem' }, size: 12 })])
       ])
@@ -107,7 +107,7 @@ const RequesterPaysModal = ({ onDismiss, onSuccess }) => {
       div('To view or download data in this workspace, please set up a billing project.'),
       div([
         link({
-          href: '', // add link to documentation
+          href: 'https://support.terra.bio/hc/en-us/articles/360029801491',
           ...Utils.newTabLinkProps
         }, ['Why is billing required for this workspace?', icon('pop-out', { style: { marginLeft: '0.25rem' }, size: 12 })])
       ])
