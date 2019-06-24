@@ -8,9 +8,16 @@ import { Ajax, useCancellation } from 'src/libs/ajax'
 import { withErrorReporting } from 'src/libs/error'
 import { RequiredFormLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
-import { authStore, freeCreditsActive, workspaceStore } from 'src/libs/state'
+import { authStore, freeCreditsActive, requesterPaysProjectStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
+
+const billingHelpInfo = div({ style: { paddingTop: '1rem' } }, [
+  link({
+    href: 'https://support.terra.bio/hc/en-us/articles/360029801491',
+    ...Utils.newTabLinkProps
+  }, ['Why is billing required to access this data?', icon('pop-out', { style: { marginLeft: '0.25rem' }, size: 12 })])
+])
 
 const RequesterPaysModal = ({ onDismiss, onSuccess }) => {
   const { profile } = Utils.useAtom(authStore)
@@ -18,7 +25,7 @@ const RequesterPaysModal = ({ onDismiss, onSuccess }) => {
   const hasFreeCredits = trialState === 'Enabled'
   const [loading, setLoading] = useState(false)
   const [billingList, setBillingList] = useState([])
-  const [selectedBilling, setSelectedBilling] = useState(workspaceStore.get().userProject)
+  const [selectedBilling, setSelectedBilling] = useState(requesterPaysProjectStore.get())
   const signal = useCancellation()
 
   Utils.useOnMount(() => {
@@ -33,7 +40,7 @@ const RequesterPaysModal = ({ onDismiss, onSuccess }) => {
 
   return Utils.cond(
     [loading, () => h(Modal, {
-      title: 'Cannot access data',
+      title: 'Loading',
       onDismiss,
       showCancel: false,
       okButton: false
@@ -41,7 +48,7 @@ const RequesterPaysModal = ({ onDismiss, onSuccess }) => {
       spinnerOverlay
     ])],
     [billingList.length > 0, () => h(Modal, {
-      title: 'Cannot access data',
+      title: 'Choose a billing project',
       onDismiss,
       shouldCloseOnOverlayClick: false,
       okButton: buttonPrimary({
@@ -60,12 +67,7 @@ const RequesterPaysModal = ({ onDismiss, onSuccess }) => {
         onChange: ({ value }) => setSelectedBilling(value),
         options: _.uniq(_.map('projectName', billingList)).sort()
       }),
-      div({ style: { marginTop: '1rem' } }, [
-        link({
-          href: 'https://support.terra.bio/hc/en-us/articles/360029801491',
-          ...Utils.newTabLinkProps
-        }, ['Why is billing required for this workspace?', icon('pop-out', { style: { marginLeft: '0.25rem' }, size: 12 })])
-      ])
+      billingHelpInfo
     ])],
     [hasFreeCredits, () => h(Modal, {
       title: 'Cannot access data',
@@ -88,12 +90,7 @@ const RequesterPaysModal = ({ onDismiss, onSuccess }) => {
           'free credits', icon('pop-out', { style: { margin: '0 0.25rem' }, size: 12 })
         ]), 'available!'
       ]),
-      div({ style: { marginTop: '1rem' } }, [
-        link({
-          href: 'https://support.terra.bio/hc/en-us/articles/360029801491',
-          ...Utils.newTabLinkProps
-        }, ['Why is billing required for this workspace?', icon('pop-out', { style: { marginLeft: '0.25rem' }, size: 12 })])
-      ])
+      billingHelpInfo
     ])],
     () => h(Modal, {
       title: 'Cannot access data',
@@ -105,12 +102,7 @@ const RequesterPaysModal = ({ onDismiss, onSuccess }) => {
       }, 'Go to Billing')
     }, [
       div('To view or download data in this workspace, please set up a billing project.'),
-      div([
-        link({
-          href: 'https://support.terra.bio/hc/en-us/articles/360029801491',
-          ...Utils.newTabLinkProps
-        }, ['Why is billing required for this workspace?', icon('pop-out', { style: { marginLeft: '0.25rem' }, size: 12 })])
-      ])
+      billingHelpInfo
     ])
   )
 }

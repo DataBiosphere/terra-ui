@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import { forwardRef, useState } from 'react'
 import { h } from 'react-hyperscript-helpers'
 import RequesterPaysModal from 'src/components/RequesterPaysModal'
-import { workspaceStore } from 'src/libs/state'
+import { requesterPaysProjectStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
 
@@ -27,7 +27,7 @@ export const requesterPaysWrapper = ({ onDismiss }) => WrappedComponent => {
       [showModal, () => h(RequesterPaysModal, {
         onDismiss: () => onDismiss(props),
         onSuccess: selectedBilling => {
-          workspaceStore.set({ userProject: selectedBilling, ...workspaceStore.get() })
+          requesterPaysProjectStore.set(selectedBilling)
           setShowModal(false)
         }
       })],
