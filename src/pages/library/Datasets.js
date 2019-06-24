@@ -5,6 +5,7 @@ import { buttonPrimary, link } from 'src/components/common'
 import { libraryTopMatter } from 'src/components/library-common'
 import Modal from 'src/components/Modal'
 import TooltipTrigger from 'src/components/TooltipTrigger'
+import anvilLogoWhite from 'src/images/brands/anvil/ANVIL-Logo.svg'
 import amppdLogo from 'src/images/library/datasets/Amp@2x.png'
 import baselineLogo from 'src/images/library/datasets/baseline.jpg'
 import broadLogo from 'src/images/library/datasets/broad_logo.png'
@@ -297,13 +298,27 @@ const ukb = () => h(Participant, {
   }, ['Browse Data'])
 ])
 
+const anvil = () => h(Participant, {
+  logo: { src: anvilLogoWhite, alt: 'AnVIL logo' },
+  title: 'CCDG presented by NHGRI AnVIL',
+  description: `The Centers for Common Disease Genomics (CCDG) are a collaborative 
+  large-scale genome sequencing effort to comprehensively identify rare risk and protective 
+  variants contributing to multiple common disease phenotypes.`,
+  sizeText: 'Participants: > 65,000'
+}, [
+  buttonPrimary({
+    disabled: true,
+    tooltip: 'HCA not yet in production'
+    //when in production, add this tooltip: browseTooltip
+  }, ['Browse Data'])
+])
 
 const Datasets = pure(() => {
   return h(Fragment, [
     libraryTopMatter('datasets'),
     div({ style: styles.content }, [
       // Put datasets in alphabetical order
-      thousandGenomes(), amppd(), baseline(), encode(), fcDataLib(), hca(), nemo(), nhs(), topMed(), ukb()
+      thousandGenomes(), amppd(), baseline(), encode(), fcDataLib(), hca(), nemo(), nhs(), topMed(), ukb(), anvil()
     ])
   ])
 })
