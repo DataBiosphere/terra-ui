@@ -13,7 +13,7 @@ import { NotebookCreator, NotebookDeleter, NotebookDuplicator } from 'src/compon
 import { notify } from 'src/components/Notifications'
 import PopupTrigger from 'src/components/PopupTrigger'
 import TooltipTrigger from 'src/components/TooltipTrigger'
-import { ajaxCaller } from 'src/libs/ajax'
+import { Ajax, ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError, withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
@@ -220,7 +220,7 @@ const Notebooks = _.flow(
   })
 
   async uploadFiles(files) {
-    const { namespace, workspace: { workspace: { bucketName } }, ajax: { Buckets } } = this.props
+    const { namespace, workspace: { workspace: { bucketName } } } = this.props
     const existingNames = this.getExistingNames()
     try {
       this.setState({ saving: true })
@@ -232,7 +232,7 @@ const Notebooks = _.flow(
           resolvedName = `${name} ${++c}`
         }
         const contents = await Utils.readFileAsText(file)
-        return Buckets.notebook(namespace, bucketName, resolvedName).create(JSON.parse(contents))
+        return Ajax().Buckets.notebook(namespace, bucketName, resolvedName).create(JSON.parse(contents))
       }, files))
       this.refresh()
     } catch (error) {

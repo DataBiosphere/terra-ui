@@ -7,7 +7,7 @@ import TopBar from 'src/components/TopBar'
 import WDLViewer from 'src/components/WDLViewer'
 import { WorkspaceImporter } from 'src/components/workspace-utils'
 import importBackground from 'src/images/hex-import-background.svg'
-import { ajaxCaller } from 'src/libs/ajax'
+import { Ajax, ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
@@ -79,9 +79,9 @@ const DockstoreImporter = ajaxCaller(class DockstoreImporter extends Component {
     try {
       this.setState({ isImporting: true })
 
-      const { path, version, ajax: { Workspaces } } = this.props
+      const { path, version } = this.props
       const workflowName = _.last(path.split('/'))
-      const rawlsWorkspace = Workspaces.workspace(namespace, name)
+      const rawlsWorkspace = Ajax().Workspaces.workspace(namespace, name)
       const entityMetadata = await rawlsWorkspace.entityMetadata()
       await rawlsWorkspace.importMethodConfigFromDocker({
         namespace, name: workflowName, rootEntityType: _.head(_.keys(entityMetadata)),

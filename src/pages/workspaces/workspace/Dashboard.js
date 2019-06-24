@@ -14,7 +14,7 @@ import { InfoBox } from 'src/components/PopupTrigger'
 import { SimpleTable } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { displayConsentCodes, displayLibraryAttributes } from 'src/data/workspace-attributes'
-import { ajaxCaller } from 'src/libs/ajax'
+import { Ajax, ajaxCaller } from 'src/libs/ajax'
 import { bucketBrowserUrl } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { reportError, withErrorReporting } from 'src/libs/error'
@@ -178,24 +178,24 @@ export const WorkspaceDashboard = _.flow(
     withErrorReporting('Error adding tag'),
     Utils.withBusyState(v => this.setState({ busy: v }))
   )(async tag => {
-    const { ajax: { Workspaces }, namespace, name } = this.props
-    this.setState({ tagsList: await Workspaces.workspace(namespace, name).addTag(tag) })
+    const { namespace, name } = this.props
+    this.setState({ tagsList: await Ajax().Workspaces.workspace(namespace, name).addTag(tag) })
   })
 
   deleteTag = _.flow(
     withErrorReporting('Error removing tag'),
     Utils.withBusyState(v => this.setState({ busy: v }))
   )(async tag => {
-    const { ajax: { Workspaces }, namespace, name } = this.props
-    this.setState({ tagsList: await Workspaces.workspace(namespace, name).deleteTag(tag) })
+    const { namespace, name } = this.props
+    this.setState({ tagsList: await Ajax().Workspaces.workspace(namespace, name).deleteTag(tag) })
   })
 
   async save() {
-    const { refreshWorkspace, workspace: { workspace: { namespace, name } }, ajax: { Workspaces } } = this.props
+    const { refreshWorkspace, workspace: { workspace: { namespace, name } } } = this.props
     const { editDescription: description } = this.state
     try {
       this.setState({ saving: true })
-      await Workspaces.workspace(namespace, name).shallowMergeNewAttributes({ description })
+      await Ajax().Workspaces.workspace(namespace, name).shallowMergeNewAttributes({ description })
       await refreshWorkspace()
     } catch (error) {
       reportError('Error saving workspace', error)
