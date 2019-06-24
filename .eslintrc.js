@@ -16,6 +16,10 @@ module.exports = {
     }
   },
   'rules': {
+    // Best Practices
+    'no-multi-spaces': 'warn',
+
+    // Stylistic Issues
     'array-bracket-newline': ['warn', 'consistent'],
     'array-bracket-spacing': 'warn',
     'block-spacing': 'warn',
@@ -49,7 +53,7 @@ module.exports = {
     'space-before-function-paren': ['warn', { 'anonymous': 'never', 'named': 'never', 'asyncArrow': 'always' }],
     'space-in-parens': 'warn',
 
-
+    // ES6
     'arrow-parens': ['warn', 'as-needed'],
     'arrow-spacing': 'warn',
     'no-duplicate-imports': 'warn',

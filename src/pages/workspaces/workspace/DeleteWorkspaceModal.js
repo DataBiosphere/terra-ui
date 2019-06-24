@@ -2,13 +2,13 @@ import { Component } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import { buttonPrimary, link, spinnerOverlay } from 'src/components/common'
 import Modal from 'src/components/Modal'
-import { ajaxCaller } from 'src/libs/ajax'
+import { Ajax } from 'src/libs/ajax'
 import { bucketBrowserUrl } from 'src/libs/auth'
 import { reportError } from 'src/libs/error'
 import * as Utils from 'src/libs/utils'
 
 
-export default ajaxCaller(class DeleteWorkspaceModal extends Component {
+export default class DeleteWorkspaceModal extends Component {
   constructor(props) {
     super(props)
     this.state = {
@@ -17,10 +17,10 @@ export default ajaxCaller(class DeleteWorkspaceModal extends Component {
   }
 
   async deleteWorkspace() {
-    const { workspace: { workspace: { namespace, name } }, ajax: { Workspaces }, onDismiss, onSuccess } = this.props
+    const { workspace: { workspace: { namespace, name } }, onDismiss, onSuccess } = this.props
     try {
       this.setState({ deleting: true })
-      await Workspaces.workspace(namespace, name).delete()
+      await Ajax().Workspaces.workspace(namespace, name).delete()
       onDismiss()
       onSuccess()
     } catch (error) {
@@ -58,4 +58,4 @@ export default ajaxCaller(class DeleteWorkspaceModal extends Component {
       deleting && spinnerOverlay
     ])
   }
-})
+}

@@ -7,7 +7,7 @@ import { icon } from 'src/components/icons'
 import { TextArea, ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { InfoBox } from 'src/components/PopupTrigger'
-import { ajaxCaller } from 'src/libs/ajax'
+import { Ajax, ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
 import { FormLabel, RequiredFormLabel } from 'src/libs/forms'
@@ -69,7 +69,7 @@ export default _.flow(
   }
 
   async create() {
-    const { onSuccess, cloneWorkspace, ajax: { Workspaces } } = this.props
+    const { onSuccess, cloneWorkspace } = this.props
     const { namespace, name, description, groups } = this.state
     try {
       this.setState({ createError: undefined, creating: true })
@@ -81,8 +81,8 @@ export default _.flow(
         copyFilesWithPrefix: 'notebooks/'
       }
       const workspace = await (cloneWorkspace ?
-        Workspaces.workspace(cloneWorkspace.workspace.namespace, cloneWorkspace.workspace.name).clone(body) :
-        Workspaces.create(body))
+        Ajax().Workspaces.workspace(cloneWorkspace.workspace.namespace, cloneWorkspace.workspace.name).clone(body) :
+        Ajax().Workspaces.create(body))
       onSuccess(workspace)
     } catch (error) {
       const { message } = await error.json()
