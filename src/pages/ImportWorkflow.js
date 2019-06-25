@@ -129,7 +129,7 @@ export const navPaths = [
     path: '/import-workflow/:source/:item*',
     component: Importer,
     title: 'Import Workflow'
-  },  {
+  }, {
     name: 'import-tool', // legacy
     path: '/import-tool/:source/:item*',
     component: props => h(Nav.Redirector, { pathname: Nav.getPath('import-workflow', props) })
