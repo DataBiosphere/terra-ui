@@ -153,7 +153,7 @@ const WorkflowIOTable = ({ which, inputsOutputs: data, config, errors, onChange,
                 ]),
                 error && h(TooltipTrigger, { content: error }, [
                   icon('error-standard', {
-                    size: 14, style: { marginLeft: '0.5rem', color: colors.danger(), cursor: 'help' }
+                    size: 14, style: { marginLeft: '0.5rem', color: colors.warning(), cursor: 'help' }
                   })
                 ])
               ])
@@ -534,7 +534,13 @@ const WorkflowView = _.flow(
 
     const inputsValid = _.isEmpty(errors.inputs)
     const outputsValid = _.isEmpty(errors.outputs)
-    return div({ style: { position: 'relative', backgroundColor: 'white', borderBottom: `2px solid ${terraSpecial()}` } }, [
+    return div({
+      style: {
+        position: 'relative',
+        backgroundColor: 'white', borderBottom: `2px solid ${terraSpecial()}`,
+        boxShadow: '0 2px 5px 0 rgba(0,0,0,0.26), 0 2px 10px 0 rgba(0,0,0,0.16)'
+      }
+    }, [
       div({ style: { display: 'flex', padding: `1.5rem ${sideMargin} 0`, minHeight: 120 } }, [
         div({ style: { flex: '1', lineHeight: '1.5rem', minWidth: 0 } }, [
           div({ style: { display: 'flex' } }, [
@@ -767,7 +773,11 @@ const WorkflowView = _.flow(
       multiple: false,
       disabled: currentSnapRedacted || !!Utils.editWorkspaceError(workspace),
       disableClick: true,
-      style: { padding: `1rem ${sideMargin}`, flex: 'auto', display: 'flex', flexDirection: 'column' },
+      style: {
+        padding: `1rem ${sideMargin}`,
+        flex: 'auto', display: 'flex', flexDirection: 'column',
+        backgroundColor: colors.dark(0.1)
+      },
       activeStyle: { backgroundColor: colors.accent(0.2), cursor: 'copy' },
       ref: this.uploader,
       onDropRejected: () => reportError('Not a valid inputs file',

@@ -37,7 +37,7 @@ const stepButton = ({ key, title, isValid, activeTabKey, onChangeTab }) => h(Int
 }, [
   div({ style: { marginBottom: key === activeTabKey ? -(Style.tabBar.active.borderBottomWidth) : undefined } }, [
     title,
-    !isValid && icon('error-standard', { size: 14, style: { marginLeft: '1rem' } })
+    !isValid && icon('error-standard', { size: 14, style: { marginLeft: '1rem', color: colors.warning() } })
   ])
 ])
 
