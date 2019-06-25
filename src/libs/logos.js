@@ -12,10 +12,10 @@ import { isAnvil, isDatastage, isFirecloud, isTerra } from 'src/libs/config'
 import * as Utils from 'src/libs/utils'
 
 
-export const getAppName = () => Utils.cond(
+export const getAppName = (longName = false) => Utils.cond(
   [isFirecloud(), 'FireCloud'],
   [isDatastage(), 'DataStage'],
-  [isAnvil(), 'Anvil'],
+  [isAnvil(), longName ? 'The NHGRI AnVIL (Genomic Data Science Analysis, Visualization, and Informatics Lab-space)' : 'AnVIL'],
   'Terra'
 )
 

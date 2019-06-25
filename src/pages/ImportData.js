@@ -3,7 +3,7 @@ import { div, h } from 'react-hyperscript-helpers'
 import { backgroundLogo, spinnerOverlay } from 'src/components/common'
 import TopBar from 'src/components/TopBar'
 import { WorkspaceImporter } from 'src/components/workspace-utils'
-import { ajaxCaller } from 'src/libs/ajax'
+import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
@@ -26,7 +26,7 @@ const styles = {
   }
 }
 
-const Importer = ajaxCaller(class Importer extends Component {
+const Importer = class Importer extends Component {
   render() {
     const { queryParams: { url, ad, wid } } = this.props
     const { isImporting } = this.state
@@ -54,12 +54,12 @@ const Importer = ajaxCaller(class Importer extends Component {
 
   async import_({ namespace, name }) {
     this.setState({ isImporting: true })
-    const { queryParams: { url, format }, ajax: { Workspaces } } = this.props
+    const { queryParams: { url, format } } = this.props
 
     try {
       await Utils.switchCase(format,
-        ['entitiesJson', () => Workspaces.workspace(namespace, name).importEntities(url)],
-        [Utils.DEFAULT, () => Workspaces.workspace(namespace, name).importBagit(url)]
+        ['entitiesJson', () => Ajax().Workspaces.workspace(namespace, name).importEntities(url)],
+        [Utils.DEFAULT, () => Ajax().Workspaces.workspace(namespace, name).importBagit(url)]
       )
       Nav.goToPath('workspace-data', { namespace, name })
     } catch (e) {
@@ -68,7 +68,7 @@ const Importer = ajaxCaller(class Importer extends Component {
       this.setState({ isImporting: false })
     }
   }
-})
+}
 
 
 export const navPaths = [

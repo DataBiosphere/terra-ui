@@ -6,6 +6,7 @@ import { libraryTopMatter } from 'src/components/library-common'
 import Modal from 'src/components/Modal'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import amppdLogo from 'src/images/library/datasets/Amp@2x.png'
+import anvilLogo from 'src/images/library/datasets/Anvil-logo.svg'
 import baselineLogo from 'src/images/library/datasets/baseline.jpg'
 import broadLogo from 'src/images/library/datasets/broad_logo.png'
 import encodeLogo from 'src/images/library/datasets/ENCODE@2x.png'
@@ -203,6 +204,34 @@ const baseline = () => h(Participant, {
   }, ['Browse Data'])
 ])
 
+const ccdg = () => h(Participant, {
+  logo: { src: anvilLogo, alt: 'CCDG logo' },
+  title: 'CCDG presented by NHGRI AnVIL',
+  description: 'The Centers for Common Disease Genomics (CCDG) are a collaborative large-scale genome sequencing ' +
+    'effort to comprehensively identify rare risk and protective variants contributing to multiple common disease phenotypes.',
+  sizeText: 'Participants: > 65,000'
+}, [
+  buttonPrimary({
+    as: 'a',
+    tooltip: 'Coming soon',
+    disabled: true
+  }, ['Browse data'])
+])
+
+const cmg = () => h(Participant, {
+  logo: { src: anvilLogo, alt: 'CMG logo' },
+  title: 'CMG presented by NHGRI AnVIL',
+  description: 'The National Human Genome Research Institute funded the Centers for Mendelian Genomics (CMG) with the charge ' +
+    'to discover as many genes underlying human Mendelian disorders as possible.',
+  sizeText: 'Participants: > 5,000'
+}, [
+  buttonPrimary({
+    as: 'a',
+    tooltip: 'Coming soon',
+    disabled: true
+  }, ['Browse Data'])
+])
+
 const encode = () => h(Participant, {
   logo: { src: encodeLogo, alt: `ENCODE Project logo` },
   title: `ENCODE Project`,
@@ -318,7 +347,7 @@ const Datasets = pure(() => {
     libraryTopMatter('datasets'),
     div({ style: styles.content }, [
       // Put datasets in alphabetical order
-      thousandGenomesHighCoverage(), thousandGenomesLowCoverage(), amppd(), baseline(), encode(), fcDataLib(), hca(), nemo(), nhs(), topMed(), ukb()
+      thousandGenomesHighCoverage(), thousandGenomesLowCoverage(), amppd(), baseline(), ccdg(), cmg(), encode(), fcDataLib(), hca(), nemo(), nhs(), topMed(), ukb()
     ])
   ])
 })

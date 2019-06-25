@@ -5,7 +5,7 @@ import ErrorView from 'src/components/ErrorView'
 import { ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { withWorkspaces, WorkspaceSelector } from 'src/components/workspace-utils'
-import { ajaxCaller } from 'src/libs/ajax'
+import { Ajax } from 'src/libs/ajax'
 import { RequiredFormLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
 import * as Utils from 'src/libs/utils'
@@ -13,10 +13,7 @@ import { Component } from 'src/libs/wrapped-components'
 import validate from 'validate.js'
 
 
-export default _.flow(
-  ajaxCaller,
-  withWorkspaces()
-)(class ExportToolModal extends Component {
+const ExportToolModal = withWorkspaces()(class ExportToolModal extends Component {
   constructor(props) {
     super(props)
 
@@ -112,13 +109,13 @@ export default _.flow(
   }
 
   async export() {
-    const { thisWorkspace, methodConfig, ajax: { Workspaces } } = this.props
+    const { thisWorkspace, methodConfig } = this.props
     const { toolName } = this.state
     const selectedWorkspace = this.getSelectedWorkspace().workspace
 
     try {
       this.setState({ exporting: true })
-      await Workspaces
+      await Ajax().Workspaces
         .workspace(thisWorkspace.namespace, thisWorkspace.name)
         .methodConfig(methodConfig.namespace, methodConfig.name)
         .copyTo({
@@ -135,3 +132,5 @@ export default _.flow(
     }
   }
 })
+
+export default ExportToolModal

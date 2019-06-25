@@ -5,7 +5,7 @@ import { PageBox, spinnerOverlay } from 'src/components/common'
 import { DeleteUserModal, EditUserModal, MemberCard, NewUserCard, NewUserModal } from 'src/components/group-common'
 import { DelayedSearchInput } from 'src/components/input'
 import TopBar from 'src/components/TopBar'
-import { ajaxCaller } from 'src/libs/ajax'
+import { Ajax, ajaxCaller } from 'src/libs/ajax'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
@@ -60,7 +60,7 @@ export const GroupDetails = ajaxCaller(class GroupDetails extends Component {
 
   render() {
     const { members, adminCanEdit, loading, filter, creatingNewUser, editingUser, deletingUser, updating } = this.state
-    const { groupName, ajax: { Groups } } = this.props
+    const { groupName } = this.props
 
     return h(Fragment, [
       h(TopBar, { title: 'Groups', href: Nav.getLink('groups') }, [
@@ -98,7 +98,7 @@ export const GroupDetails = ajaxCaller(class GroupDetails extends Component {
           adminLabel: 'admin',
           userLabel: 'member',
           title: 'Add user to Terra Group',
-          addFunction: Groups.group(groupName).addUser,
+          addFunction: Ajax().Groups.group(groupName).addUser,
           onDismiss: () => this.setState({ creatingNewUser: false }),
           onSuccess: () => this.refresh()
         }),
@@ -106,7 +106,7 @@ export const GroupDetails = ajaxCaller(class GroupDetails extends Component {
           adminLabel: 'admin',
           userLabel: 'member',
           user: editingUser,
-          saveFunction: Groups.group(groupName).changeUserRoles,
+          saveFunction: Ajax().Groups.group(groupName).changeUserRoles,
           onDismiss: () => this.setState({ editingUser: false }),
           onSuccess: () => this.refresh()
         }),
@@ -116,7 +116,7 @@ export const GroupDetails = ajaxCaller(class GroupDetails extends Component {
           onSubmit: async () => {
             try {
               this.setState({ updating: true, deletingUser: false })
-              await Groups.group(groupName).removeUser(deletingUser.roles, deletingUser.email)
+              await Ajax().Groups.group(groupName).removeUser(deletingUser.roles, deletingUser.email)
               this.refresh()
             } catch (error) {
               this.setState({ updating: false })

@@ -12,7 +12,7 @@ import { Markdown } from 'src/components/Markdown'
 import Modal from 'src/components/Modal'
 import PopupTrigger from 'src/components/PopupTrigger'
 import TooltipTrigger from 'src/components/TooltipTrigger'
-import { ajaxCaller } from 'src/libs/ajax'
+import { Ajax, ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
 import { reportError } from 'src/libs/error'
@@ -247,13 +247,13 @@ const FindToolModal = ajaxCaller(class FindToolModal extends Component {
   }
 
   async exportMethod() {
-    const { namespace, name, ajax: { Methods } } = this.props
+    const { namespace, name } = this.props
     const { selectedTool } = this.state
 
     this.setState({ exporting: true })
 
     try {
-      const methodAjax = Methods.method(selectedTool.namespace, selectedTool.name, selectedTool.snapshotId)
+      const methodAjax = Ajax().Methods.method(selectedTool.namespace, selectedTool.name, selectedTool.snapshotId)
 
       const config = _.maxBy('snapshotId', await methodAjax.configs())
 
