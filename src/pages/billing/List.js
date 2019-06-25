@@ -182,14 +182,17 @@ export const BillingList = _.flow(
     }
   }
 
-  componentDidMount = Utils.withBusyState(isBusy => this.setState({ isBusy }),
-    () => Promise.all([
+  componentDidMount() {
+    Promise.all([
       this.loadProjects(),
       this.loadAccounts()
     ])
-  )
+  }
 
- loadProjects = withErrorReporting('Error loading billing projects list',
+ loadProjects = _.flow(
+   withErrorReporting('Error loading billing projects list'),
+   Utils.withBusyState(isLoadingProjects => this.setState({ isLoadingProjects }))
+ )(
    async () => {
      const { ajax: { Billing } } = this.props
      const rawBillingProjects = await Billing.listProjects()
@@ -209,17 +212,19 @@ export const BillingList = _.flow(
     await this.loadAccounts()
   })
 
-  loadAccounts = withErrorReporting('Error loading billing accounts',
-    async () => {
-      const { ajax: { Billing } } = this.props
-      if (Auth.hasBillingScope()) {
-        const billingAccounts = await Billing.listAccounts()
-        this.setState({ billingAccounts })
-      }
-    })
+  loadAccounts =  _.flow(
+    withErrorReporting('Error loading billing accounts'),
+    Utils.withBusyState(isLoadingAccounts => this.setState({ isLoadingAccounts }))
+  )(async () => {
+    const { ajax: { Billing } } = this.props
+    if (Auth.hasBillingScope()) {
+      const billingAccounts = await Billing.listAccounts()
+      this.setState({ billingAccounts })
+    }
+  })
 
   render() {
-    const { billingProjects, isBusy, isAuthorizing, creatingBillingProject, billingAccounts } = this.state
+    const { billingProjects, isLoadingProjects, isLoadingAccounts, isAuthorizing, creatingBillingProject, billingAccounts } = this.state
     const { queryParams: { selectedName }, authState: { profile } } = this.props
     const { trialState } = profile
     const hasFreeCredits = trialState === 'Enabled'
@@ -278,7 +283,7 @@ export const BillingList = _.flow(
           authorizeAndLoadAccounts: this.authorizeAndLoadAccounts
         }),
         !selectedName && div({ style: { margin: '1rem auto 0 auto' } }, ['Select A Billing Project ']),
-        (isBusy || isAuthorizing) && spinnerOverlay
+        (isLoadingProjects || isAuthorizing || isLoadingAccounts) && spinnerOverlay
       ])
     ])
   }
