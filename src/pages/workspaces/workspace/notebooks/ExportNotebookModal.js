@@ -6,7 +6,7 @@ import ErrorView from 'src/components/ErrorView'
 import Modal from 'src/components/Modal'
 import { notebookNameInput, notebookNameValidator } from 'src/components/notebook-utils'
 import { withWorkspaces, WorkspaceSelector } from 'src/components/workspace-utils'
-import { ajaxCaller } from 'src/libs/ajax'
+import { Ajax, ajaxCaller } from 'src/libs/ajax'
 import { RequiredFormLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
 import * as Utils from 'src/libs/utils'
@@ -134,12 +134,12 @@ export default _.flow(
   }
 
   async copy() {
-    const { printName, workspace, ajax: { Buckets } } = this.props
+    const { printName, workspace } = this.props
     const { newName } = this.state
     const selectedWorkspace = this.getSelectedWorkspace().workspace
     try {
       this.setState({ copying: true })
-      await Buckets.notebook(workspace.workspace.namespace, workspace.workspace.bucketName, printName)['copy'](newName, selectedWorkspace.bucketName)
+      await Ajax().Buckets.notebook(workspace.workspace.namespace, workspace.workspace.bucketName, printName).copy(newName, selectedWorkspace.bucketName)
       this.setState({ copied: true })
     } catch (error) {
       this.setState({ error: await error.text(), copying: false })

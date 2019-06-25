@@ -19,7 +19,7 @@ const baseColors = {
 
 const colorPalette = Utils.cond(
   [isFirecloud(), baseColors],
-  [isDatastage(), { ...baseColors, primary: '#c02f42' }],
+  [isDatastage(), { ...baseColors, primary: '#c02f42', secondary: '#1a568c', accent: '#1a568c', light: '#f4f4f6', dark: '#12385a' }],
   [isAnvil(), { ...baseColors, primary: '#e0dd10', accent: '#035c94', light: '#f6f7f4', dark: '#012840' }],
   { ...baseColors, primary: '#74ae43' }
 )
