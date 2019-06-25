@@ -6,7 +6,7 @@ import { buttonPrimary, IdContainer, Select, spinnerOverlay } from 'src/componen
 import { centeredSpinner } from 'src/components/icons'
 import { ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
-import { ajaxCaller } from 'src/libs/ajax'
+import { Ajax } from 'src/libs/ajax'
 import { reportError } from 'src/libs/error'
 import { RequiredFormLabel } from 'src/libs/forms'
 import * as Utils from 'src/libs/utils'
@@ -63,7 +63,7 @@ const notebookData = {
 }
 
 
-export const NotebookCreator = ajaxCaller(class NotebookCreator extends Component {
+export const NotebookCreator = class NotebookCreator extends Component {
   static propTypes = {
     reloadList: PropTypes.func.isRequired,
     onDismiss: PropTypes.func.isRequired,
@@ -79,7 +79,7 @@ export const NotebookCreator = ajaxCaller(class NotebookCreator extends Componen
 
   render() {
     const { notebookName, notebookKernel, creating, nameTouched } = this.state
-    const { reloadList, onDismiss, namespace, bucketName, existingNames, ajax: { Buckets } } = this.props
+    const { reloadList, onDismiss, namespace, bucketName, existingNames } = this.props
 
     const errors = validate(
       { notebookName, notebookKernel },
@@ -99,7 +99,7 @@ export const NotebookCreator = ajaxCaller(class NotebookCreator extends Componen
         onClick: async () => {
           this.setState({ creating: true })
           try {
-            await Buckets.notebook(namespace, bucketName, notebookName).create(notebookData[notebookKernel])
+            await Ajax().Buckets.notebook(namespace, bucketName, notebookName).create(notebookData[notebookKernel])
             reloadList()
             onDismiss()
           } catch (error) {
@@ -133,9 +133,9 @@ export const NotebookCreator = ajaxCaller(class NotebookCreator extends Componen
       creating && spinnerOverlay
     ])
   }
-})
+}
 
-export const NotebookDuplicator = ajaxCaller(class NotebookDuplicator extends Component {
+export const NotebookDuplicator = class NotebookDuplicator extends Component {
   static propTypes = {
     destroyOld: PropTypes.bool,
     printName: PropTypes.string.isRequired,
@@ -156,7 +156,7 @@ export const NotebookDuplicator = ajaxCaller(class NotebookDuplicator extends Co
   }
 
   render() {
-    const { destroyOld, printName, namespace, bucketName, onDismiss, onSuccess, existingNames, ajax: { Buckets } } = this.props
+    const { destroyOld, printName, namespace, bucketName, onDismiss, onSuccess, existingNames } = this.props
     const { newName, processing, nameTouched } = this.state
 
     const errors = validate(
@@ -175,8 +175,8 @@ export const NotebookDuplicator = ajaxCaller(class NotebookDuplicator extends Co
           try {
             this.setState({ processing: true })
             await (destroyOld ?
-              Buckets.notebook(namespace, bucketName, printName).rename(newName) :
-              Buckets.notebook(namespace, bucketName, printName).copy(newName, bucketName))
+              Ajax().Buckets.notebook(namespace, bucketName, printName).rename(newName) :
+              Ajax().Buckets.notebook(namespace, bucketName, printName).copy(newName, bucketName))
             onSuccess()
           } catch (error) {
             reportError(`Error ${destroyOld ? 'renaming' : 'copying'} notebook`, error)
@@ -200,9 +200,9 @@ export const NotebookDuplicator = ajaxCaller(class NotebookDuplicator extends Co
       ]
     ))
   }
-})
+}
 
-export const NotebookDeleter = ajaxCaller(class NotebookDeleter extends Component {
+export const NotebookDeleter = class NotebookDeleter extends Component {
   static propTypes = {
     printName: PropTypes.string.isRequired,
     namespace: PropTypes.string.isRequired,
@@ -212,7 +212,7 @@ export const NotebookDeleter = ajaxCaller(class NotebookDeleter extends Componen
   }
 
   render() {
-    const { printName, namespace, bucketName, onDismiss, onSuccess, ajax: { Buckets } } = this.props
+    const { printName, namespace, bucketName, onDismiss, onSuccess } = this.props
     const { processing } = this.state
 
     return h(Modal, {
@@ -222,7 +222,7 @@ export const NotebookDeleter = ajaxCaller(class NotebookDeleter extends Componen
         disabled: processing,
         onClick: () => {
           this.setState({ processing: true })
-          Buckets.notebook(namespace, bucketName, printName).delete().then(
+          Ajax().Buckets.notebook(namespace, bucketName, printName).delete().then(
             onSuccess,
             error => reportError('Error deleting notebook', error)
           )
@@ -241,4 +241,4 @@ export const NotebookDeleter = ajaxCaller(class NotebookDeleter extends Componen
       ]
     ))
   }
-})
+}

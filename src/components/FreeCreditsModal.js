@@ -1,10 +1,9 @@
-import * as _ from 'lodash/fp'
 import { a, div, h, span } from 'react-hyperscript-helpers'
 import { buttonPrimary, LabeledCheckbox, spinnerOverlay } from 'src/components/common'
 import FreeTrialEulas from 'src/components/FreeTrialEulas'
 import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
-import { ajaxCaller } from 'src/libs/ajax'
+import { Ajax } from 'src/libs/ajax'
 import { refreshTerraProfile } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
@@ -13,10 +12,7 @@ import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 
 
-const FreeCreditsModal = _.flow(
-  Utils.connectAtom(freeCreditsActive, 'isActive'),
-  ajaxCaller
-)(class FreeCreditsModal extends Component {
+const FreeCreditsModal = Utils.connectAtom(freeCreditsActive, 'isActive')(class FreeCreditsModal extends Component {
   constructor(props) {
     super(props)
     this.state = {
@@ -96,11 +92,10 @@ const FreeCreditsModal = _.flow(
   }
 
   async acceptCredits() {
-    const { ajax: { User } } = this.props
     try {
       this.setState({ loading: true })
-      await User.acceptEula()
-      await User.startTrial()
+      await Ajax().User.acceptEula()
+      await Ajax().User.startTrial()
       await refreshTerraProfile()
       FreeCreditsModal.dismiss()
     } catch (error) {

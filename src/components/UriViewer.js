@@ -118,7 +118,7 @@ const UriViewer = _.flow(
         [metadata, () => h(Fragment, [
           els.cell([
             els.label('Filename'),
-            els.data(_.last(name.split('/')).split('.').join('.\u200B'))  // allow line break on periods
+            els.data(_.last(name.split('/')).split('.').join('.\u200B')) // allow line break on periods
           ]),
           els.cell([
             Utils.cond(

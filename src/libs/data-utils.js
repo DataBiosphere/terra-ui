@@ -10,7 +10,7 @@ import { TextCell } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { UriViewerLink } from 'src/components/UriViewer'
 import ReferenceData from 'src/data/reference-data'
-import { ajaxCaller } from 'src/libs/ajax'
+import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import { getAppName } from 'src/libs/logos'
@@ -39,7 +39,7 @@ export const renderDataCell = (data, namespace) => {
     renderCell(data && data.toString())
 }
 
-export const ReferenceDataImporter = ajaxCaller(class ReferenceDataImporter extends Component {
+export const ReferenceDataImporter = class ReferenceDataImporter extends Component {
   static propTypes = {
     onDismiss: PropTypes.func.isRequired,
     onSuccess: PropTypes.func.isRequired,
@@ -48,7 +48,7 @@ export const ReferenceDataImporter = ajaxCaller(class ReferenceDataImporter exte
   }
 
   render() {
-    const { onDismiss, onSuccess, namespace, name, ajax: { Workspaces } } = this.props
+    const { onDismiss, onSuccess, namespace, name } = this.props
     const { loading, selectedReference } = this.state
 
     return h(Modal, {
@@ -59,7 +59,7 @@ export const ReferenceDataImporter = ajaxCaller(class ReferenceDataImporter exte
         onClick: async () => {
           this.setState({ loading: true })
           try {
-            await Workspaces.workspace(namespace, name).shallowMergeNewAttributes(
+            await Ajax().Workspaces.workspace(namespace, name).shallowMergeNewAttributes(
               _.mapKeys(k => `referenceData_${selectedReference}_${k}`, ReferenceData[selectedReference])
             )
             onSuccess()
@@ -81,9 +81,9 @@ export const ReferenceDataImporter = ajaxCaller(class ReferenceDataImporter exte
       loading && spinnerOverlay
     ])
   }
-})
+}
 
-export const ReferenceDataDeleter = ajaxCaller(class ReferenceDataDeleter extends Component {
+export const ReferenceDataDeleter = class ReferenceDataDeleter extends Component {
   static propTypes = {
     onDismiss: PropTypes.func.isRequired,
     onSuccess: PropTypes.func.isRequired,
@@ -93,7 +93,7 @@ export const ReferenceDataDeleter = ajaxCaller(class ReferenceDataDeleter extend
   }
 
   render() {
-    const { onDismiss, onSuccess, namespace, name, referenceDataType, ajax: { Workspaces } } = this.props
+    const { onDismiss, onSuccess, namespace, name, referenceDataType } = this.props
     const { deleting } = this.state
 
     return h(Modal, {
@@ -104,7 +104,7 @@ export const ReferenceDataDeleter = ajaxCaller(class ReferenceDataDeleter extend
         onClick: async () => {
           this.setState({ deleting: true })
           try {
-            await Workspaces.workspace(namespace, name).deleteAttributes(
+            await Ajax().Workspaces.workspace(namespace, name).deleteAttributes(
               _.map(key => `referenceData_${referenceDataType}_${key}`, _.keys(ReferenceData[referenceDataType]))
             )
             onSuccess()
@@ -116,9 +116,9 @@ export const ReferenceDataDeleter = ajaxCaller(class ReferenceDataDeleter extend
       }, ['Delete'])
     }, [`Are you sure you want to delete ${referenceDataType}?`])
   }
-})
+}
 
-export const EntityDeleter = ajaxCaller(class EntityDeleter extends Component {
+export const EntityDeleter = class EntityDeleter extends Component {
   static propTypes = {
     onDismiss: PropTypes.func.isRequired,
     onSuccess: PropTypes.func.isRequired,
@@ -136,14 +136,14 @@ export const EntityDeleter = ajaxCaller(class EntityDeleter extends Component {
   }
 
   async doDelete() {
-    const { onDismiss, onSuccess, namespace, name, selectedEntities, selectedDataType, ajax: { Workspaces } } = this.props
+    const { onDismiss, onSuccess, namespace, name, selectedEntities, selectedDataType } = this.props
     const { additionalDeletions } = this.state
     const entitiesToDelete = _.concat(_.map(entityName => ({ entityName, entityType: selectedDataType }), selectedEntities), additionalDeletions)
 
     this.setState({ deleting: true })
 
     try {
-      await Workspaces.workspace(namespace, name).deleteEntities(entitiesToDelete)
+      await Ajax().Workspaces.workspace(namespace, name).deleteEntities(entitiesToDelete)
       onSuccess()
     } catch (error) {
       switch (error.status) {
@@ -199,11 +199,11 @@ export const EntityDeleter = ajaxCaller(class EntityDeleter extends Component {
       deleting && spinnerOverlay
     ])
   }
-})
+}
 
 const supportsFireCloudDataModel = entityType => _.includes(entityType, ['pair', 'participant', 'sample'])
 
-export const EntityUploader = ajaxCaller(class EntityUploader extends Component {
+export const EntityUploader = class EntityUploader extends Component {
   static propTypes = {
     onDismiss: PropTypes.func.isRequired,
     onSuccess: PropTypes.func.isRequired,
@@ -221,13 +221,13 @@ export const EntityUploader = ajaxCaller(class EntityUploader extends Component 
   }
 
   async doUpload() {
-    const { onDismiss, onSuccess, namespace, name, ajax: { Workspaces } } = this.props
+    const { onDismiss, onSuccess, namespace, name } = this.props
     const { file, useFireCloudDataModel } = this.state
 
     this.setState({ uploading: true })
 
     try {
-      const workspace = Workspaces.workspace(namespace, name)
+      const workspace = Ajax().Workspaces.workspace(namespace, name)
       await (useFireCloudDataModel ? workspace.importEntitiesFile : workspace.importFlexibleEntitiesFile)(file)
       onSuccess()
     } catch (error) {
@@ -329,4 +329,4 @@ export const EntityUploader = ajaxCaller(class EntityUploader extends Component 
       uploading && spinnerOverlay
     ])
   }
-})
+}

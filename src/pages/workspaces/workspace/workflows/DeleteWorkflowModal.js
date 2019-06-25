@@ -1,13 +1,13 @@
 import { div, h } from 'react-hyperscript-helpers'
 import { buttonPrimary } from 'src/components/common'
 import Modal from 'src/components/Modal'
-import { ajaxCaller } from 'src/libs/ajax'
+import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import { Component } from 'src/libs/wrapped-components'
 
 
-export default ajaxCaller(class DeleteWorkflowModal extends Component {
+export default class DeleteWorkflowModal extends Component {
   render() {
     const { onDismiss, methodConfig: { name } } = this.props
     const { error } = this.state
@@ -25,10 +25,10 @@ export default ajaxCaller(class DeleteWorkflowModal extends Component {
   }
 
   async delete() {
-    const { workspace, methodConfig, ajax: { Workspaces }, onSuccess } = this.props
+    const { workspace, methodConfig, onSuccess } = this.props
 
     try {
-      await Workspaces
+      await Ajax().Workspaces
         .workspace(workspace.namespace, workspace.name)
         .methodConfig(methodConfig.namespace, methodConfig.name)
         .delete()
@@ -37,4 +37,4 @@ export default ajaxCaller(class DeleteWorkflowModal extends Component {
       reportError('Error deleting workflow', error)
     }
   }
-})
+}

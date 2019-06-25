@@ -8,7 +8,7 @@ import { icon } from 'src/components/icons'
 import { ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import TopBar from 'src/components/TopBar'
-import { ajaxCaller } from 'src/libs/ajax'
+import { Ajax, ajaxCaller } from 'src/libs/ajax'
 import * as Auth from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
@@ -168,10 +168,10 @@ const NewBillingProjectModal = ajaxCaller(class NewBillingProjectModal extends C
     withErrorReporting('Error creating billing project'),
     Utils.withBusyState(v => this.setState({ isBusy: v }))
   )(async () => {
-    const { onSuccess, ajax: { Billing } } = this.props
+    const { onSuccess } = this.props
     const { billingProjectName, chosenBillingAccount, existing } = this.state
     try {
-      await Billing.createProject(billingProjectName, chosenBillingAccount.accountName)
+      await Ajax().Billing.createProject(billingProjectName, chosenBillingAccount.accountName)
       onSuccess()
     } catch (error) {
       if (error.status === 409) {
@@ -186,7 +186,7 @@ const NewBillingProjectModal = ajaxCaller(class NewBillingProjectModal extends C
 export const BillingList = _.flow(
   ajaxCaller,
   Utils.connectAtom(authStore, 'authState')
-)(class  BillingList extends Component {
+)(class BillingList extends Component {
   constructor(props) {
     super(props)
     this.state = {

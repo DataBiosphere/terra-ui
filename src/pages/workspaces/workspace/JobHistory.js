@@ -10,7 +10,7 @@ import Modal from 'src/components/Modal'
 import PopupTrigger from 'src/components/PopupTrigger'
 import { FlexTable, HeaderCell, TextCell, TooltipCell } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
-import { ajaxCaller } from 'src/libs/ajax'
+import { Ajax, ajaxCaller } from 'src/libs/ajax'
 import { bucketBrowserUrl } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
@@ -132,7 +132,7 @@ const JobHistory = _.flow(
   }
 
   render() {
-    const { namespace, name, ajax: { Workspaces }, workspace: { workspace: { bucketName } } } = this.props
+    const { namespace, name, workspace: { workspace: { bucketName } } } = this.props
     const { submissions, loading, aborting, textFilter } = this.state
 
     const filteredSubmissions = _.filter(({ asText }) => _.every(term => asText.includes(term.toLowerCase()), textFilter.split(/\s+/)), submissions)
@@ -271,7 +271,7 @@ const JobHistory = _.flow(
           title: 'Abort All Workflows',
           showX: true,
           okButton: () => {
-            Workspaces.workspace(namespace, name).submission(aborting).abort()
+            Ajax().Workspaces.workspace(namespace, name).submission(aborting).abort()
               .then(() => this.refresh())
               .catch(e => this.setState({ loading: false }, () => reportError('Error aborting submission', e)))
             this.setState({ aborting: undefined, loading: true })
