@@ -56,6 +56,10 @@ const styles = {
     bottom: '0.5rem',
     right: sideMargin
   },
+  tabContents: {
+    padding: `1rem ${sideMargin}`,
+    backgroundColor: colors.dark(0.1)
+  },
   cell: optional => ({
     fontWeight: !optional && 500,
     fontStyle: optional && 'italic'
@@ -745,10 +749,12 @@ const WorkflowView = _.flow(
 
   renderWDL() {
     const { wdl } = this.state
-    return wdl ? h(WDLViewer, {
-      wdl, readOnly: true,
-      style: { maxHeight: 500, margin: `1rem ${sideMargin}` }
-    }) : centeredSpinner({ style: { marginTop: '1rem' } })
+    return div({ style: styles.tabContents }, [
+      wdl ? h(WDLViewer, {
+        wdl, readOnly: true,
+        style: { maxHeight: 500 }
+      }) : centeredSpinner()
+    ])
   }
 
   renderIOTable(key) {
@@ -774,9 +780,9 @@ const WorkflowView = _.flow(
       disabled: currentSnapRedacted || !!Utils.editWorkspaceError(workspace),
       disableClick: true,
       style: {
-        padding: `1rem ${sideMargin}`,
-        flex: 'auto', display: 'flex', flexDirection: 'column', position: undefined,
-        backgroundColor: colors.dark(0.1)
+        ...styles.tabContents,
+        flex: 'auto', display: 'flex', flexDirection: 'column',
+        position: undefined
       },
       activeStyle: { backgroundColor: colors.accent(0.2), cursor: 'copy' },
       ref: this.uploader,
