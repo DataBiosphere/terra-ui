@@ -358,7 +358,7 @@ const TopBar = Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
           ...styles.topBar,
           background: isTerra() ?
             `81px url(${headerLeftHexes}) no-repeat, right url(${headerRightHexes}) no-repeat, ${colors.primary()}` :
-            colors.secondary(0.15)
+            colors.light()
         }
       }, [
         icon('bars', {
