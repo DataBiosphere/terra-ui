@@ -775,7 +775,7 @@ const WorkflowView = _.flow(
       disableClick: true,
       style: {
         padding: `1rem ${sideMargin}`,
-        flex: 'auto', display: 'flex', flexDirection: 'column',
+        flex: 'auto', display: 'flex', flexDirection: 'column', position: undefined,
         backgroundColor: colors.dark(0.1)
       },
       activeStyle: { backgroundColor: colors.accent(0.2), cursor: 'copy' },
