@@ -5,6 +5,7 @@ import { buttonPrimary, Select, spinnerOverlay } from 'src/components/common'
 import { DeleteUserModal, EditUserModal, MemberCard, NewUserCard, NewUserModal } from 'src/components/group-common'
 import { icon, spinner } from 'src/components/icons'
 import { ajaxCaller } from 'src/libs/ajax'
+import * as Auth from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
 import * as StateHistory from 'src/libs/state-history'
@@ -23,6 +24,7 @@ export default ajaxCaller(class ProjectDetail extends Component {
       deletingUser: false,
       updating: false,
       billingAccountName: null,
+      hasBillingScope: Auth.hasBillingScope(),
       ...StateHistory.get()
     }
   }
@@ -38,7 +40,8 @@ export default ajaxCaller(class ProjectDetail extends Component {
 
   loadBillingInfo = withErrorReporting('Error loading current billing account',
     async () => {
-      const { ajax: {  GoogleBilling }, project: { projectName }, hasBillingScope } = this.props
+      const { ajax: {  GoogleBilling }, project: { projectName } } = this.props
+      const { hasBillingScope } = this.state
       if (hasBillingScope) {
         const { billingAccountName } = await GoogleBilling.getBillingInfo(projectName)
         this.setState({ billingAccountName })
@@ -67,8 +70,8 @@ export default ajaxCaller(class ProjectDetail extends Component {
   )
 
   render() {
-    const { project: { projectName, creationStatus }, ajax: { Billing }, billingAccounts, hasBillingScope, authorizeAndLoadAccounts } = this.props
-    const { projectUsers, loading, updating, filter, addingUser, deletingUser, editingUser, billingAccountName } = this.state
+    const { project: { projectName, creationStatus }, ajax: { Billing }, billingAccounts, authorizeAndLoadAccounts } = this.props
+    const { projectUsers, loading, updating, filter, addingUser, deletingUser, editingUser, billingAccountName, hasBillingScope } = this.state
     const adminCanEdit = _.filter(({ roles }) => _.includes('Owner', roles), projectUsers).length > 1
 
     return h(Fragment, [
@@ -145,9 +148,11 @@ export default ajaxCaller(class ProjectDetail extends Component {
     ])
   }
 
-  componentDidUpdate(prevProps) {
-    if (this.props.hasBillingScope !== prevProps.hasBillingScope) {
-      Utils.withBusyState(loading => this.setState({ loading }), this.loadBillingInfo)()
+  componentDidUpdate(prevProps, prevState) {
+    const hasBillingScope = Auth.hasBillingScope()
+    if (prevState.hasBillingScope !== hasBillingScope) {
+      this.setState({ hasBillingScope })
+      hasBillingScope && Utils.withBusyState(loading => this.setState({ loading }), this.loadBillingInfo)()
     }
 
     StateHistory.update(_.pick(
