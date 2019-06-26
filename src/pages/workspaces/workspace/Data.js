@@ -371,7 +371,7 @@ class EntitiesContent extends Component {
       ]) : buttonPrimary({
         disabled: _.isEmpty(selectedEntities),
         tooltip: 'Download selected data as a file',
-        onClick: async () => {
+        onClick: () => {
           const str = this.buildTSV(columnSettings, selectedEntities)
           FileSaver.saveAs(new Blob([str], { type: 'text/tab-separated-values' }), `${entityKey}.tsv`)
         }
@@ -715,7 +715,7 @@ const WorkspaceData = _.flow(
     })
   })
 
-  async componentDidMount() {
+  componentDidMount() {
     this.loadMetadata()
     this.setState({ firstRender: false })
   }

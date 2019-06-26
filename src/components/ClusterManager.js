@@ -403,7 +403,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
     }
   }
 
-  refreshClusters = async () => {
+  refreshClusters = () => {
     this.props.refreshClusters().then(() => this.resetUpdateInterval())
   }
 
@@ -418,7 +418,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
     this.resetUpdateInterval()
   }
 
-  async componentDidUpdate(prevProps) {
+  componentDidUpdate(prevProps) {
     const prevCluster = _.last(_.sortBy('createdDate', _.remove({ status: 'Deleting' }, prevProps.clusters))) || {}
     const cluster = this.getCurrentCluster() || {}
 

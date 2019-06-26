@@ -115,7 +115,7 @@ export const WorkspaceDashboard = _.flow(
     }
   }
 
-  async componentDidMount() {
+  componentDidMount() {
     this.loadSubmissionCount()
     this.loadStorageCost()
     this.loadConsent()

@@ -286,7 +286,7 @@ const JobHistory = _.flow(
     ])
   }
 
-  async componentDidMount() {
+  componentDidMount() {
     this.refresh()
   }
 

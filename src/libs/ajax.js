@@ -13,7 +13,7 @@ window.ajaxOverrideUtils = {
   mapJsonBody: _.curry(async (fn, res) => {
     return new Response(new Blob([JSON.stringify(fn(await res.json()))]), res)
   }),
-  makeError: _.curry(async ({ status, frequency = 1 }, res) => {
+  makeError: _.curry(({ status, frequency = 1 }, res) => {
     if (Math.random() < frequency) {
       return new Response('Instrumented error', { status })
     } else {
@@ -58,7 +58,7 @@ const withErrorRejection = wrappedFetch => async (...args) => {
   }
 }
 
-const withUrlPrefix = prefix => wrappedFetch => async (path, ...args) => {
+const withUrlPrefix = prefix => wrappedFetch => (path, ...args) => {
   return wrappedFetch(prefix + path, ...args)
 }
 
@@ -82,7 +82,7 @@ const mergeQueryParams = (params, urlString) => {
  * Detects errors due to requester pays buckets, and adds the current workspace's billing
  * project if the user has access, retrying the request once if necessary.
  */
-const withRequesterPays = wrappedFetch => async (url, ...args) => {
+const withRequesterPays = wrappedFetch => (url, ...args) => {
   const bucket = /\/b\/([^/]+)\//.exec(url)[1]
   const workspace = workspaceStore.get()
   const userProject = workspace && Utils.canWrite(workspace.accessLevel) && workspace.workspace.namespace
@@ -107,7 +107,7 @@ const withRequesterPays = wrappedFetch => async (url, ...args) => {
 const fetchOk = _.flow(withInstrumentation, withCancellation, withErrorRejection)(fetch)
 
 
-const fetchSam = async (path, options) => {
+const fetchSam = (path, options) => {
   return fetchOk(`${getConfig().samUrlRoot}/${path}`, addAppIdentifier(options))
 }
 
@@ -116,33 +116,33 @@ const nbName = name => encodeURIComponent(`notebooks/${name}.ipynb`)
 
 const fetchGoogleBilling = (path, options) => fetchOk(`https://cloudbilling.googleapis.com/v1/${path}`, options)
 
-const fetchRawls = async (path, options) => {
+const fetchRawls = (path, options) => {
   return fetchOk(`${getConfig().rawlsUrlRoot}/api/${path}`, addAppIdentifier(options))
 }
 
-const fetchLeo = async (path, options) => {
+const fetchLeo = (path, options) => {
   return fetchOk(`${getConfig().leoUrlRoot}/${path}`, options)
 }
 
-const fetchDockstore = async (path, options) => {
+const fetchDockstore = (path, options) => {
   return fetchOk(`${getConfig().dockstoreUrlRoot}/api/${path}`, options)
 }
 // %23 = '#', %2F = '/'
 const dockstoreMethodPath = path => `api/ga4gh/v1/tools/%23workflow%2F${encodeURIComponent(path)}/versions`
 
-const fetchAgora = async (path, options) => {
+const fetchAgora = (path, options) => {
   return fetchOk(`${getConfig().agoraUrlRoot}/api/v1/${path}`, addAppIdentifier(options))
 }
 
-const fetchOrchestration = async (path, options) => {
+const fetchOrchestration = (path, options) => {
   return fetchOk(`${getConfig().orchestrationUrlRoot}/${path}`, addAppIdentifier(options))
 }
 
-const fetchRex = async (path, options) => {
+const fetchRex = (path, options) => {
   return fetchOk(`${getConfig().rexUrlRoot}/api/${path}`, options)
 }
 
-const fetchBond = async (path, options) => {
+const fetchBond = (path, options) => {
   return fetchOk(`${getConfig().bondUrlRoot}/${path}`, options)
 }
 
@@ -197,15 +197,15 @@ const User = signal => ({
     }
   },
 
-  acceptEula: async () => {
+  acceptEula: () => {
     return fetchOrchestration('api/profile/trial/userAgreement', _.merge(authOpts(), { signal, method: 'PUT' }))
   },
 
-  startTrial: async () => {
+  startTrial: () => {
     return fetchOrchestration('api/profile/trial', _.merge(authOpts(), { signal, method: 'POST' }))
   },
 
-  finalizeTrial: async () => {
+  finalizeTrial: () => {
     return fetchOrchestration('api/profile/trial?operation=finalize', _.merge(authOpts(), { signal, method: 'POST' }))
   },
 
@@ -241,7 +241,7 @@ const User = signal => ({
   // 2. Check the tickets are generated on Zendesk
   // 3. Reply internally (as a Light Agent) and make sure an email is not sent
   // 4. Reply externally (ask one of the Comms team with Full Agent access) and make sure you receive an email
-  createSupportRequest: async ({ name, email, currUrl, subject, type, description, attachmentToken, emailAgreed }) => {
+  createSupportRequest: ({ name, email, currUrl, subject, type, description, attachmentToken, emailAgreed }) => {
     return fetchOk(
       `https://support.terra.bio/api/v2/requests.json`,
       _.merge({ signal, method: 'POST' }, jsonBody({
@@ -285,7 +285,7 @@ const User = signal => ({
     return res.json()
   },
 
-  postNpsResponse: async body => {
+  postNpsResponse: body => {
     return fetchRex('npsResponses/create', _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }]))
   },
 
@@ -333,11 +333,11 @@ const Groups = signal => ({
   group: groupName => {
     const root = `api/groups/v1/${groupName}`
 
-    const addRole = async (role, email) => {
+    const addRole = (role, email) => {
       return fetchSam(`${root}/${role}/${email}`, _.merge(authOpts(), { signal, method: 'PUT' }))
     }
 
-    const removeRole = async (role, email) => {
+    const removeRole = (role, email) => {
       return fetchSam(`${root}/${role}/${email}`, _.merge(authOpts(), { signal, method: 'DELETE' }))
     }
 
@@ -360,11 +360,11 @@ const Groups = signal => ({
         return res.json()
       },
 
-      addUser: async (roles, email) => {
+      addUser: (roles, email) => {
         return Promise.all(_.map(role => addRole(role, email), roles))
       },
 
-      removeUser: async (roles, email) => {
+      removeUser: (roles, email) => {
         return Promise.all(_.map(role => removeRole(role, email), roles))
       },
 
@@ -403,11 +403,11 @@ const Billing = signal => ({
   project: projectName => {
     const root = `billing/${projectName}`
 
-    const removeRole = async (role, email) => {
+    const removeRole = (role, email) => {
       return fetchRawls(`${root}/${role}/${email}`, _.merge(authOpts(), { signal, method: 'DELETE' }))
     }
 
-    const addRole = async (role, email) => {
+    const addRole = (role, email) => {
       return fetchRawls(`${root}/${role}/${email}`, _.merge(authOpts(), { signal, method: 'PUT' }))
     }
 
@@ -417,11 +417,11 @@ const Billing = signal => ({
         return res.json()
       },
 
-      addUser: async (roles, email) => {
+      addUser: (roles, email) => {
         return Promise.all(_.map(role => addRole(role, email), roles))
       },
 
-      removeUser: async (roles, email) => {
+      removeUser: (roles, email) => {
         return Promise.all(_.map(role => removeRole(role, email), roles))
       },
 
@@ -580,7 +580,7 @@ const Workspaces = signal => ({
             return res.json()
           },
 
-          abort: async () => {
+          abort: () => {
             return fetchRawls(submissionPath, _.merge(authOpts(), { signal, method: 'DELETE' }))
           }
         }
@@ -621,19 +621,19 @@ const Workspaces = signal => ({
         return fetchRawls(`${root}/entities/batchUpsert`, _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }]))
       },
 
-      importEntitiesFile: async file => {
+      importEntitiesFile: file => {
         const formData = new FormData()
         formData.set('entities', file)
         return fetchOrchestration(`api/${root}/importEntities`, _.merge(authOpts(), { body: formData, signal, method: 'POST' }))
       },
 
-      importFlexibleEntitiesFile: async file => {
+      importFlexibleEntitiesFile: file => {
         const formData = new FormData()
         formData.set('entities', file)
         return fetchOrchestration(`api/${root}/flexibleImportEntities`, _.merge(authOpts(), { body: formData, signal, method: 'POST' }))
       },
 
-      deleteEntities: async entities => {
+      deleteEntities: entities => {
         return fetchRawls(`${root}/entities/delete`, _.mergeAll([authOpts(), jsonBody(entities), { signal, method: 'POST' }]))
       },
 
@@ -649,7 +649,7 @@ const Workspaces = signal => ({
         return res.json()
       },
 
-      importAttributes: async file => {
+      importAttributes: file => {
         const formData = new FormData()
         formData.set('attributes', file)
         return fetchOrchestration(`api/${root}/importAttributesTSV`, _.merge(authOpts(), { body: formData, signal, method: 'POST' }))
@@ -894,7 +894,7 @@ const Jupyter = signal => ({
         const res = await fetchLeo(root, _.mergeAll([authOpts(), { signal }, appIdentifier]))
         return res.json()
       },
-      create: async clusterOptions => {
+      create: clusterOptions => {
         const body = _.merge(clusterOptions, {
           labels: { saturnAutoCreated: 'true', saturnVersion: version },
           defaultClientId: getConfig().googleClientId,
@@ -959,7 +959,7 @@ const Dockstore = signal => ({
 
 
 const Martha = signal => ({
-  call: async uri => {
+  call: uri => {
     return fetchOk(getConfig().marthaUrlRoot,
       _.mergeAll([jsonBody({ uri }), authOpts(), appIdentifier, { signal, method: 'POST' }])
     ).then(res => res.json())
