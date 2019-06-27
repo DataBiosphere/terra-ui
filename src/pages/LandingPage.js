@@ -6,7 +6,7 @@ import { icon } from 'src/components/icons'
 import TopBar from 'src/components/TopBar'
 import landingPageHero from 'src/images/landing-page-hero.jpg'
 import colors from 'src/libs/colors'
-import { isFirecloud } from 'src/libs/config'
+import { isFirecloud, isTerra } from 'src/libs/config'
 import { getAppName } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
@@ -14,7 +14,8 @@ import * as Utils from 'src/libs/utils'
 
 
 const styles = {
-  heavy: { fontWeight: 600 }
+  heavy: { fontWeight: 600 },
+  nowrap: { whiteSpace: 'nowrap' }
 }
 
 const makeDocLink = (href, title) => link({
@@ -52,10 +53,11 @@ const LandingPage = pure(() => {
       }
     }, [
       div({ style: { fontSize: 54 } }, `Welcome to ${getAppName()}`),
-      div({ style: { fontSize: 20, margin: '1rem 0' } }, [
-        div(`${getAppName()} is a cloud-native platform for biomedical`),
-        div(['researchers to access ', span({ style: styles.heavy }, 'data'), ', run analysis ', span({ style: styles.heavy }, 'tools'), ',']),
-        div(['and', span({ style: styles.heavy }, ' collaborate'), '.'])
+      div({ style: { fontSize: 20, lineHeight: '28px', margin: '1rem 0', width: 575 } }, [
+        `${getAppName(true)} is a ${isTerra() ? 'cloud-native platform' : 'project supported by Terra'} for biomedical researchers to `,
+        span({ style: { ...styles.heavy, ...styles.nowrap } }, 'access data'), ', ',
+        span({ style: { ...styles.heavy, ...styles.nowrap } }, 'run analysis tools'), ', ',
+        span({ style: styles.nowrap }, ['and', span({ style: styles.heavy }, ' collaborate'), '.'])
       ]),
       div([makeDocLink('https://support.terra.bio/hc/en-us', 'Find how-to\'s, documentation, video tutorials, and discussion forums')]),
       isFirecloud() && makeDocLink('https://support.terra.bio/hc/en-us/articles/360022694271',
@@ -64,11 +66,10 @@ const LandingPage = pure(() => {
         style: { display: 'flex', margin: '1rem 0' }
       }, [
         makeCard('workspaces', 'View Workspaces', [
-          `${getAppName()} Workspaces connect your data to popular analysis tools powered by the cloud. `,
-          'Use Workspaces to share data, code, and results easily and securely.'
+          'Workspaces connect your data to popular analysis tools powered by the cloud. Use Workspaces to share data, code, and results easily and securely.'
         ]),
-        makeCard('library-showcase', 'View Examples', `Browse our gallery of showcase Workspaces to see how science gets done on ${getAppName()}.`),
-        makeCard('library-datasets', 'Browse Data', `Access data from a rich ecosystem of ${getAppName()}-connected data portals.`)
+        makeCard('library-showcase', 'View Examples', 'Browse our gallery of showcase Workspaces to see how science gets done on Terra.'),
+        makeCard('library-datasets', 'Browse Data', 'Access data from a rich ecosystem of Terra-connected data portals.')
       ])
     ])
   ])

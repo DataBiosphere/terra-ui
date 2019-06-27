@@ -22,7 +22,7 @@ const FooterWrapper = ({ children }) => {
         height: 66,
         paddingLeft: '1rem',
         paddingRight: '1rem',
-        backgroundColor: colors.dark(0.85),
+        backgroundColor: colors.secondary(),
         color: 'white'
       }
     }, [
@@ -40,8 +40,7 @@ const FooterWrapper = ({ children }) => {
       ]),
       div({ style: { flexGrow: 1 } }),
       div({ style: { fontWeight: 600, fontSize: '10px' } }, [
-        `Copyright ©${buildTimestamp.getFullYear()}. Built on `,
-        buildTimestamp.toLocaleString()
+        `Copyright ©${buildTimestamp.getFullYear()}`
       ])
     ])
   ])

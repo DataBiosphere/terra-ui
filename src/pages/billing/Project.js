@@ -4,7 +4,7 @@ import { div, h, span } from 'react-hyperscript-helpers'
 import { buttonPrimary, Select, spinnerOverlay } from 'src/components/common'
 import { DeleteUserModal, EditUserModal, MemberCard, NewUserCard, NewUserModal } from 'src/components/group-common'
 import { icon, spinner } from 'src/components/icons'
-import { ajaxCaller } from 'src/libs/ajax'
+import { Ajax, ajaxCaller } from 'src/libs/ajax'
 import * as Auth from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
@@ -40,7 +40,7 @@ export default ajaxCaller(class ProjectDetail extends Component {
 
   loadBillingInfo = withErrorReporting('Error loading current billing account',
     async () => {
-      const { ajax: {  GoogleBilling }, project: { projectName } } = this.props
+      const { ajax: { GoogleBilling }, project: { projectName } } = this.props
       const { hasBillingScope } = this.state
       if (hasBillingScope) {
         const { billingAccountName } = await GoogleBilling.getBillingInfo(projectName)
@@ -91,7 +91,7 @@ export default ajaxCaller(class ProjectDetail extends Component {
             styles: { container: old => ({ ...old, width: 320 }) },
             options: _.map(({ displayName, accountName }) => ({ label: displayName, value: accountName }), billingAccounts),
             onChange: ({ value: newAccountName }) => billingAccountName !== newAccountName && this.updateBillingAccount(newAccountName)
-          }) : buttonPrimary({ onClick: async () =>  await authorizeAndLoadAccounts() }, 'Authorize')
+          }) : buttonPrimary({ onClick: async () => await authorizeAndLoadAccounts() }, 'Authorize')
         ]),
         div({
           style: {
@@ -120,7 +120,7 @@ export default ajaxCaller(class ProjectDetail extends Component {
         userLabel: 'User',
         title: 'Add user to Billing Project',
         footer: 'Warning: Adding any user to this project will mean they can incur costs to the billing associated with this project.',
-        addFunction: Billing.project(projectName).addUser,
+        addFunction: Ajax().Billing.project(projectName).addUser,
         onDismiss: () => this.setState({ addingUser: false }),
         onSuccess: () => this.refresh()
       }),
@@ -128,7 +128,7 @@ export default ajaxCaller(class ProjectDetail extends Component {
         adminLabel: 'Owner',
         userLabel: 'User',
         user: editingUser,
-        saveFunction: Billing.project(projectName).changeUserRoles,
+        saveFunction: Ajax().Billing.project(projectName).changeUserRoles,
         onDismiss: () => this.setState({ editingUser: false }),
         onSuccess: () => this.refresh()
       }),
@@ -140,7 +140,7 @@ export default ajaxCaller(class ProjectDetail extends Component {
           Utils.withBusyState(v => this.setState({ updating: v }))
         )(async () => {
           this.setState({ deletingUser: false })
-          await Billing.project(projectName).removeUser(deletingUser.roles, deletingUser.email)
+          await Ajax().Billing.project(projectName).removeUser(deletingUser.roles, deletingUser.email)
           this.refresh()
         })
       }),

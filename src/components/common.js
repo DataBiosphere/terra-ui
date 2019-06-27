@@ -41,11 +41,11 @@ export const Clickable = ({ as = 'div', disabled, tooltip, tooltipSide, onClick,
 const linkProps = ({ disabled, variant }) => ({
   as: 'a',
   style: {
-    color: disabled ? colors.dark(0.7) : colors.accent(variant === 'light' ? 0.3 : 1.2),
+    color: disabled ? colors.dark(0.7) : colors.accent(variant === 'light' ? 0.3 : 1),
     cursor: disabled ? 'not-allowed' : 'pointer',
     fontWeight: 500
   },
-  hover: disabled ? undefined : { color: colors.accent(variant === 'light' ? 0.1 : 1) }
+  hover: disabled ? undefined : { color: colors.accent(variant === 'light' ? 0.1 : 0.8) }
 })
 
 export const link = ({ onClick, href, disabled, variant, ...props }, children) => {
@@ -86,18 +86,18 @@ export const buttonSecondary = ({ disabled, ...props }, children) => {
     disabled,
     style: {
       ...styles.button,
-      color: disabled ? colors.dark(0.7) : colors.accent(1.2),
+      color: disabled ? colors.dark(0.7) : colors.accent(),
       cursor: disabled ? 'not-allowed' : 'pointer'
     },
-    hover: disabled ? undefined : { color: colors.accent() }
+    hover: disabled ? undefined : { color: colors.accent(0.8) }
   }, props), children)
 }
 
 export const buttonOutline = ({ disabled, ...props }, children) => {
   return h(buttonPrimary, _.merge({
     style: {
-      border: `1px solid ${disabled ? colors.dark(0.4) : colors.accent(1.2)}`,
-      color: colors.accent(1.2),
+      border: `1px solid ${disabled ? colors.dark(0.4) : colors.accent()}`,
+      color: colors.accent(),
       backgroundColor: disabled ? colors.dark(0.25) : 'white'
     },
     hover: disabled ? undefined : { backgroundColor: colors.accent(0.1) }
@@ -170,9 +170,9 @@ export const Checkbox = ({ checked, onChange, disabled, ...props }) => {
     style: {
       display: 'inline-flex',
       verticalAlign: 'middle',
-      color: disabled ? colors.dark(0.4) : checked ? colors.accent(1.2) : colors.dark(0.55)
+      color: disabled ? colors.dark(0.4) : checked ? colors.accent() : colors.dark(0.55)
     },
-    hover: disabled ? undefined : { color: colors.accent() },
+    hover: disabled ? undefined : { color: colors.accent(0.8) },
     active: disabled ? undefined : { backgroundColor: colors.accent(0.2) },
     disabled
   }, props), [
@@ -244,7 +244,7 @@ export const comingSoon = span({
 const commonSelectProps = {
   theme: base => _.merge(base, {
     colors: {
-      primary: colors.accent(1.2),
+      primary: colors.accent(),
       neutral20: colors.dark(0.55),
       neutral30: colors.dark(0.55)
     },

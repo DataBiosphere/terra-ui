@@ -12,7 +12,7 @@ import SignInButton from 'src/components/SignInButton'
 import fcIconWhite from 'src/images/brands/firecloud/FireCloud-icon-white.svg'
 import headerLeftHexes from 'src/images/header-left-hexes.svg'
 import headerRightHexes from 'src/images/header-right-hexes.svg'
-import { Ajax, ajaxCaller } from 'src/libs/ajax'
+import { Ajax } from 'src/libs/ajax'
 import { refreshTerraProfile, signOut } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { getConfig, isFirecloud, isTerra } from 'src/libs/config'
@@ -118,10 +118,7 @@ const DropDownSection = props => {
   ])
 }
 
-export default _.flow(
-  ajaxCaller,
-  Utils.connectAtom(authStore, 'authState')
-)(class TopBar extends Component {
+const TopBar = Utils.connectAtom(authStore, 'authState')(class TopBar extends Component {
   static propTypes = {
     title: PropTypes.node,
     href: PropTypes.string, // link destination
@@ -334,7 +331,11 @@ export default _.flow(
             }
           }, [
             'Built on: ',
-            new Date(SATURN_BUILD_TIMESTAMP).toLocaleString()
+            a({
+              href: `https://github.com/DataBiosphere/terra-ui/commits/${SATURN_VERSION}`,
+              ...Utils.newTabLinkProps,
+              style: { textDecoration: 'underline', marginLeft: '0.25rem' }
+            }, [new Date(SATURN_BUILD_TIMESTAMP).toLocaleString()])
           ])
         ])
       ])
@@ -342,7 +343,7 @@ export default _.flow(
   }
 
   render() {
-    const { title, href, children, ajax: { User }, authState } = this.props
+    const { title, href, children, authState } = this.props
     const { navShown, finalizeTrial, openCookiesModal, openFirecloudModal } = this.state
 
     return h(Fragment, [
@@ -357,7 +358,7 @@ export default _.flow(
           ...styles.topBar,
           background: isTerra() ?
             `81px url(${headerLeftHexes}) no-repeat, right url(${headerRightHexes}) no-repeat, ${colors.primary()}` :
-            colors.secondary(0.15)
+            colors.light()
         }
       }, [
         icon('bars', {
@@ -387,7 +388,7 @@ export default _.flow(
           okButton: buttonPrimary({
             onClick: async () => {
               try {
-                await User.finalizeTrial()
+                await Ajax().User.finalizeTrial()
                 await refreshTerraProfile()
               } catch (error) {
                 reportError('Error finalizing trial', error)
@@ -458,3 +459,5 @@ const PreferFirecloudModal = ({ onDismiss }) => {
     submitting && spinnerOverlay
   ])
 }
+
+export default TopBar

@@ -173,7 +173,7 @@ const checkBucketAccess = withErrorReporting('Error checking bucket access', asy
             color: 'white',
             textDecoration: 'underline'
           }
-        }, ['contact us', icon('pop-out', { size: 10, style: { marginLeft: '0.25rem' }  })]),
+        }, ['contact us', icon('pop-out', { size: 10, style: { marginLeft: '0.25rem' } })]),
         ' for assistance.'
       ]), { id: notificationId })
     } else {

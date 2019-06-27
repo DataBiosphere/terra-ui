@@ -5,14 +5,16 @@ import { buttonPrimary, link } from 'src/components/common'
 import { libraryTopMatter } from 'src/components/library-common'
 import Modal from 'src/components/Modal'
 import TooltipTrigger from 'src/components/TooltipTrigger'
+import thousandGenomesAnvil from 'src/images/library/datasets/1000Genome-Anvil-logo.png'
+import thousandGenomesLogo from 'src/images/library/datasets/1000Genome-logo.png'
 import amppdLogo from 'src/images/library/datasets/Amp@2x.png'
+import anvilLogo from 'src/images/library/datasets/Anvil-logo.svg'
 import baselineLogo from 'src/images/library/datasets/baseline.jpg'
 import broadLogo from 'src/images/library/datasets/broad_logo.png'
 import encodeLogo from 'src/images/library/datasets/ENCODE@2x.png'
 import hcaLogo from 'src/images/library/datasets/HCA@2x.png'
 import nemoLogo from 'src/images/library/datasets/nemo-logo.svg'
 import nhsLogo from 'src/images/library/datasets/NHS@2x.png'
-import thousandGenomesLogo from 'src/images/library/datasets/thousandgenomes.png'
 import topMedLogo from 'src/images/library/datasets/TopMed@2x.png'
 import ukbLogo from 'src/images/library/datasets/UKB@2x.jpg'
 import colors from 'src/libs/colors'
@@ -115,9 +117,23 @@ const NIHCommonsButtons = () => buttonPrimary({
   tooltip: browseTooltip
 }, ['Browse STAGE Repository'])
 
-const thousandGenomes = () => h(Participant, {
-  logo: { src: thousandGenomesLogo, alt: '1000 Genomes logo' },
-  title: '1000 Genomes',
+const thousandGenomesHighCoverage = () => h(Participant, {
+  logo: { src: thousandGenomesAnvil, alt: '1000 Genomes and AnVIL', height: '55%' },
+  title: '1000 Genomes High Coverage presented by NHGRI AnVIL',
+  description: '1000 Genomes project phase 3 samples sequenced to 30x coverage. This dataset is delivered as a workspace. You may clone ' +
+    'this workspace to run analyses or copy specific samples to a workspace of your choice.',
+  sizeText: 'Participants: 2,504'
+}, [
+  buttonPrimary({
+    as: 'a',
+    href: Nav.getLink('workspace-dashboard', { namespace: 'anvil-datastorage', name: '1000G-high-coverage-2019' }),
+    tooltip: 'Visit the workspace'
+  }, ['Browse data'])
+])
+
+const thousandGenomesLowCoverage = () => h(Participant, {
+  logo: { src: thousandGenomesLogo, alt: '1000 Genomes logo', height: '55%' },
+  title: '1000 Genomes Low Coverage',
   description: h(Fragment, [
     link({ href: 'http://www.internationalgenome.org/about', ...Utils.newTabLinkProps }, 'The 1000 Genomes Project'),
     ` ran between 2008 and 2015, creating the largest public catalogue of
@@ -185,6 +201,34 @@ const baseline = () => h(Participant, {
     href: 'https://baseline-baseline-explorer.appspot.com/',
     ...Utils.newTabLinkProps,
     tooltip: browseTooltip
+  }, ['Browse Data'])
+])
+
+const ccdg = () => h(Participant, {
+  logo: { src: anvilLogo, alt: 'CCDG logo' },
+  title: 'CCDG presented by NHGRI AnVIL',
+  description: 'The Centers for Common Disease Genomics (CCDG) are a collaborative large-scale genome sequencing ' +
+    'effort to comprehensively identify rare risk and protective variants contributing to multiple common disease phenotypes.',
+  sizeText: 'Participants: > 65,000'
+}, [
+  buttonPrimary({
+    as: 'a',
+    tooltip: 'Coming soon',
+    disabled: true
+  }, ['Browse data'])
+])
+
+const cmg = () => h(Participant, {
+  logo: { src: anvilLogo, alt: 'CMG logo' },
+  title: 'CMG presented by NHGRI AnVIL',
+  description: 'The National Human Genome Research Institute funded the Centers for Mendelian Genomics (CMG) with the charge ' +
+    'to discover as many genes underlying human Mendelian disorders as possible.',
+  sizeText: 'Participants: > 5,000'
+}, [
+  buttonPrimary({
+    as: 'a',
+    tooltip: 'Coming soon',
+    disabled: true
   }, ['Browse Data'])
 ])
 
@@ -303,7 +347,7 @@ const Datasets = pure(() => {
     libraryTopMatter('datasets'),
     div({ style: styles.content }, [
       // Put datasets in alphabetical order
-      thousandGenomes(), amppd(), baseline(), encode(), fcDataLib(), hca(), nemo(), nhs(), topMed(), ukb()
+      thousandGenomesHighCoverage(), thousandGenomesLowCoverage(), amppd(), baseline(), ccdg(), cmg(), encode(), fcDataLib(), hca(), nemo(), nhs(), topMed(), ukb()
     ])
   ])
 })

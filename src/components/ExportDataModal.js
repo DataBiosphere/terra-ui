@@ -7,7 +7,7 @@ import ErrorView from 'src/components/ErrorView'
 import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import { withWorkspaces, WorkspaceSelector } from 'src/components/workspace-utils'
-import { ajaxCaller } from 'src/libs/ajax'
+import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import { FormLabel, RequiredFormLabel } from 'src/libs/forms'
@@ -26,10 +26,7 @@ const InfoTile = ({ infoStyle, content, iconName }) => {
 }
 
 
-export default _.flow(
-  ajaxCaller,
-  withWorkspaces()
-)(class ExportDataModal extends Component {
+const ExportDataModal = withWorkspaces()(class ExportDataModal extends Component {
   static propTypes = {
     onDismiss: PropTypes.func.isRequired,
     selectedEntities: PropTypes.array.isRequired,
@@ -167,14 +164,14 @@ export default _.flow(
   }
 
   async copy() {
-    const { onDismiss, selectedEntities, selectedDataType, workspace, ajax: { Workspaces } } = this.props
+    const { onDismiss, selectedEntities, selectedDataType, workspace } = this.props
     const { additionalDeletions, hardConflicts, softConflicts } = this.state
     const selectedWorkspace = this.getSelectedWorkspace().workspace
     const entitiesToDelete = _.concat(hardConflicts, additionalDeletions)
     this.setState({ copying: true })
     if ((hardConflicts.length !== 0)) {
       try {
-        await Workspaces.workspace(selectedWorkspace.namespace, selectedWorkspace.name).deleteEntities(entitiesToDelete)
+        await Ajax().Workspaces.workspace(selectedWorkspace.namespace, selectedWorkspace.name).deleteEntities(entitiesToDelete)
         this.setState({ hardConflicts: [], additionalDeletions: [] })
       } catch (error) {
         switch (error.status) {
@@ -191,7 +188,7 @@ export default _.flow(
       }
     }
     try {
-      await Workspaces.workspace(workspace.workspace.namespace, workspace.workspace.name)
+      await Ajax().Workspaces.workspace(workspace.workspace.namespace, workspace.workspace.name)
         .copyEntities(selectedWorkspace.namespace, selectedWorkspace.name, selectedDataType, selectedEntities,
           (softConflicts.length !== 0))
       this.setState({ copied: true })
@@ -208,3 +205,5 @@ export default _.flow(
     }
   }
 })
+
+export default ExportDataModal

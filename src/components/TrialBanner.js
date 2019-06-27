@@ -3,7 +3,7 @@ import { a, div, h, span } from 'react-hyperscript-helpers'
 import { buttonPrimary, Clickable } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
-import { ajaxCaller } from 'src/libs/ajax'
+import { Ajax } from 'src/libs/ajax'
 import { refreshTerraProfile } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
@@ -52,10 +52,7 @@ const getMessages = () => {
 }
 
 
-export const TrialBanner = _.flow(
-  ajaxCaller,
-  Utils.connectAtom(authStore, 'authState')
-)(class TrialBanner extends Component {
+export const TrialBanner = Utils.connectAtom(authStore, 'authState')(class TrialBanner extends Component {
   constructor(props) {
     super(props)
     this.state = {
@@ -64,7 +61,7 @@ export const TrialBanner = _.flow(
   }
 
   render() {
-    const { authState: { isSignedIn, profile, acceptedTos }, ajax: { User } } = _.omit('isVisible', this.props)
+    const { authState: { isSignedIn, profile, acceptedTos } } = _.omit('isVisible', this.props)
     const { finalizeTrial } = this.state
     const { trialState } = profile
     const removeBanner = localStorage.getItem('removeBanner')
@@ -127,7 +124,7 @@ export const TrialBanner = _.flow(
         okButton: buttonPrimary({
           onClick: async () => {
             try {
-              await User.finalizeTrial()
+              await Ajax().User.finalizeTrial()
               await refreshTerraProfile()
             } catch (error) {
               reportError('Error finalizing trial', error)

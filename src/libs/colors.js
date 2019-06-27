@@ -1,7 +1,7 @@
 import Color from 'color'
 import _ from 'lodash/fp'
-import { isTerra } from 'src/libs/config'
-import { getAppName } from 'src/libs/logos'
+import { isAnvil, isDatastage, isFirecloud, isTerra } from 'src/libs/config'
+import * as Utils from 'src/libs/utils'
 
 
 const ALL_COLORS = ['primary', 'secondary', 'accent', 'success', 'warning', 'danger', 'light', 'dark']
@@ -17,20 +17,15 @@ const baseColors = {
   dark: '#333f52'
 }
 
-const colorPalettes = {
-  Terra: {
-    ...baseColors,
-    primary: '#74ae43'
-  },
-  FireCloud: baseColors,
-  DataStage: {
-    ...baseColors,
-    primary: '#c02f42'
-  }
-}
+const colorPalette = Utils.cond(
+  [isFirecloud(), baseColors],
+  [isDatastage(), { ...baseColors, primary: '#c02f42', secondary: '#1a568c', accent: '#1a568c', light: '#f4f4f6', dark: '#12385a' }],
+  [isAnvil(), { ...baseColors, primary: '#e0dd10', accent: '#035c94', light: '#f6f7f4', dark: '#012840' }],
+  { ...baseColors, primary: '#74ae43' }
+)
 
 const colors = _.fromPairs(_.map(
-  color => [color, (intensity = 1) => Color(_.get([getAppName(), color], colorPalettes)).mix(Color('white'), 1 - intensity).hex()],
+  color => [color, (intensity = 1) => Color(colorPalette[color]).mix(Color('white'), 1 - intensity).hex()],
   ALL_COLORS
 ))
 
