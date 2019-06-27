@@ -43,7 +43,7 @@ const stepButton = ({ key, title, isValid, activeTabKey, onChangeTab }) => h(Int
   }, [
     div({ style: { textAlign: 'center' } }, [
       title,
-      div({ style: { fontWeight: 600, height: 0, visibility: 'hidden' } }, [title]) // so the width of the text container doesn't change with boldness
+      div({ style: { fontWeight: styles.button(true).fontWeight, height: 0, visibility: 'hidden' } }, [title]) // so the width of the text container doesn't change with boldness
     ]),
     !isValid && icon('error-standard', { size: 14, style: { marginLeft: '1rem', color: colors.warning() } })
   ])
