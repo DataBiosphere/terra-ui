@@ -559,7 +559,7 @@ const WorkflowView = _.flow(
             span({ style: { color: colors.dark(), fontSize: 24 } }, name)
           ]),
           currentSnapRedacted && div({ style: { color: colors.warning(), fontSize: 16, fontWeight: 500, marginTop: '0.5rem' } }, [
-            'The selected snapshot of the referenced tool has been redacted. You will not be able to run an analysis until you select another snapshot.'
+            'The selected snapshot of the referenced workflow has been redacted. You will not be able to run an analysis until you select another snapshot.'
           ]),
           div({ style: { marginTop: '0.5rem' } }, [
             'Snapshot ',
@@ -773,7 +773,7 @@ const WorkflowView = _.flow(
       activeStyle: { backgroundColor: colors.accent(0.2), cursor: 'copy' },
       ref: this.uploader,
       onDropRejected: () => reportError('Not a valid inputs file',
-        'The selected file is not a json file. To import inputs for this tool, upload a file with a .json extension.'),
+        'The selected file is not a json file. To import inputs for this workflow, upload a file with a .json extension.'),
       onDropAccepted: files => this.uploadJson(key, files[0])
     }, [
       div({ style: { flex: 'none', display: 'flex', marginBottom: '0.25rem' } }, [

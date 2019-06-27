@@ -13,7 +13,7 @@ import { Component } from 'src/libs/wrapped-components'
 import validate from 'validate.js'
 
 
-const ExportToolModal = withWorkspaces()(class ExportWorkflowModal extends Component {
+const ExportWorkflowModal = withWorkspaces()(class ExportWorkflowModal extends Component {
   constructor(props) {
     super(props)
 
@@ -133,4 +133,4 @@ const ExportToolModal = withWorkspaces()(class ExportWorkflowModal extends Compo
   }
 })
 
-export default ExportToolModal
+export default ExportWorkflowModal
