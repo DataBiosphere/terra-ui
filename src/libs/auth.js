@@ -6,7 +6,7 @@ import { Ajax } from 'src/libs/ajax'
 import { getConfig } from 'src/libs/config'
 import { withErrorReporting } from 'src/libs/error'
 import { getAppName } from 'src/libs/logos'
-import { authStore, requesterPaysProjectStore, workspaceStore } from 'src/libs/state'
+import { authStore, requesterPaysProjectStore, workspacesStore, workspaceStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
 
@@ -207,6 +207,13 @@ authStore.subscribe((state, oldState) => {
     } else {
       clearNotification(notificationId)
     }
+  }
+})
+
+authStore.subscribe((state, oldState) => {
+  if (oldState.isSignedIn && !state.isSignedIn) {
+    workspaceStore.reset()
+    workspacesStore.reset()
   }
 })
 

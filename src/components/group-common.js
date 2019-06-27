@@ -183,7 +183,7 @@ export const NewUserModal = ajaxCaller(class NewUserModal extends Component {
   }
 })
 
-export const EditUserModal = ajaxCaller(class EditUserModal extends Component {
+export const EditUserModal = class EditUserModal extends Component {
   static propTypes = {
     adminLabel: PropTypes.string.isRequired,
     onDismiss: PropTypes.func.isRequired,
@@ -246,7 +246,7 @@ export const EditUserModal = ajaxCaller(class EditUserModal extends Component {
       reportError('Error updating user', error)
     }
   }
-})
+}
 
 export const DeleteUserModal = pure(({ onDismiss, onSubmit, userEmail }) => {
   return h(Modal, {

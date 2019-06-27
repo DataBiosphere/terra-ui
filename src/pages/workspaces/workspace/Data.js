@@ -20,7 +20,7 @@ import Modal from 'src/components/Modal'
 import { notify } from 'src/components/Notifications'
 import { FlexTable, HeaderCell, SimpleTable, TextCell } from 'src/components/table'
 import UriViewer from 'src/components/UriViewer'
-import { ajaxCaller } from 'src/libs/ajax'
+import { Ajax, ajaxCaller } from 'src/libs/ajax'
 import { getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
@@ -82,7 +82,7 @@ const getReferenceData = _.flow(
   _.groupBy('datum')
 )
 
-const LocalVariablesContent = ajaxCaller(class LocalVariablesContent extends Component {
+const LocalVariablesContent = class LocalVariablesContent extends Component {
   constructor(props) {
     super(props)
     this.state = {
@@ -97,7 +97,7 @@ const LocalVariablesContent = ajaxCaller(class LocalVariablesContent extends Com
   }
 
   render() {
-    const { workspace, workspace: { workspace: { namespace, name, attributes } }, ajax: { Workspaces }, refreshWorkspace, loadingWorkspace, firstRender } = this.props
+    const { workspace, workspace: { workspace: { namespace, name, attributes } }, refreshWorkspace, loadingWorkspace, firstRender } = this.props
     const { editIndex, deleteIndex, editKey, editValue, editType, textFilter } = this.state
     const stopEditing = () => this.setState({ editIndex: undefined, editKey: undefined, editValue: undefined, editType: undefined })
     const filteredAttributes = _.flow(
@@ -130,10 +130,10 @@ const LocalVariablesContent = ajaxCaller(class LocalVariablesContent extends Com
 
       this.setState({ saving: true })
 
-      await Workspaces.workspace(namespace, name).shallowMergeNewAttributes({ [editKey]: parsedValue })
+      await Ajax().Workspaces.workspace(namespace, name).shallowMergeNewAttributes({ [editKey]: parsedValue })
 
       if (editKey !== originalKey) {
-        await Workspaces.workspace(namespace, name).deleteAttributes([originalKey])
+        await Ajax().Workspaces.workspace(namespace, name).deleteAttributes([originalKey])
       }
 
       await refreshWorkspace()
@@ -142,12 +142,12 @@ const LocalVariablesContent = ajaxCaller(class LocalVariablesContent extends Com
     })
 
     const upload = withErrorReporting('Error uploading file', async ([file]) => {
-      await Workspaces.workspace(namespace, name).importAttributes(file)
+      await Ajax().Workspaces.workspace(namespace, name).importAttributes(file)
       await refreshWorkspace()
     })
 
     const download = withErrorReporting('Error downloading attributes', async () => {
-      const blob = await Workspaces.workspace(namespace, name).exportAttributes()
+      const blob = await Ajax().Workspaces.workspace(namespace, name).exportAttributes()
       FileSaver.saveAs(blob, `${name}-workspace-attributes.tsv`)
     })
 
@@ -281,7 +281,7 @@ const LocalVariablesContent = ajaxCaller(class LocalVariablesContent extends Com
             Utils.withBusyState(v => this.setState({ saving: v }))
           )(async () => {
             this.setState({ deleteIndex: undefined })
-            await Workspaces.workspace(namespace, name).deleteAttributes([amendedAttributes[deleteIndex][0]])
+            await Ajax().Workspaces.workspace(namespace, name).deleteAttributes([amendedAttributes[deleteIndex][0]])
             refreshWorkspace()
           })
         },
@@ -290,7 +290,7 @@ const LocalVariablesContent = ajaxCaller(class LocalVariablesContent extends Com
       loadingWorkspace && spinnerOverlay
     ])
   }
-})
+}
 
 const ReferenceDataContent = ({ workspace: { workspace: { namespace, attributes } }, referenceKey, loadingWorkspace, firstRender }) => {
   const [textFilter, setTextFilter] = useState('')
@@ -523,7 +523,7 @@ class EntitiesContent extends Component {
   }
 }
 
-const DeleteObjectModal = ajaxCaller(class DeleteObjectModal extends Component {
+const DeleteObjectModal = class DeleteObjectModal extends Component {
   constructor(props) {
     super(props)
     this.state = { deleting: false }
@@ -533,8 +533,8 @@ const DeleteObjectModal = ajaxCaller(class DeleteObjectModal extends Component {
     withErrorReporting('Error deleting object'),
     Utils.withBusyState(v => this.setState({ deleting: v }))
   )(async () => {
-    const { name, workspace: { workspace: { namespace, bucketName } }, ajax: { Buckets }, onSuccess } = this.props
-    await Buckets.delete(namespace, bucketName, name)
+    const { name, workspace: { workspace: { namespace, bucketName } }, onSuccess } = this.props
+    await Ajax().Buckets.delete(namespace, bucketName, name)
     onSuccess()
   })
 
@@ -550,7 +550,7 @@ const DeleteObjectModal = ajaxCaller(class DeleteObjectModal extends Component {
       deleting && spinnerOverlay
     ])
   }
-})
+}
 
 const BucketContent = _.flow(
   ajaxCaller,
@@ -593,9 +593,9 @@ const BucketContent = _.flow(
     withErrorReporting('Error uploading file'),
     Utils.withBusyState(v => this.setState({ uploading: v }))
   )(async files => {
-    const { workspace: { workspace: { namespace, bucketName } }, ajax: { Buckets } } = this.props
+    const { workspace: { workspace: { namespace, bucketName } } } = this.props
     const { prefix } = this.state
-    await Buckets.upload(namespace, bucketName, prefix, files[0])
+    await Ajax().Buckets.upload(namespace, bucketName, prefix, files[0])
     this.load()
   })
 
