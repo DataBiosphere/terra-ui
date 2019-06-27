@@ -212,7 +212,7 @@ export const BillingList = _.flow(
     await this.loadAccounts()
   })
 
-  loadAccounts =  _.flow(
+  loadAccounts = _.flow(
     withErrorReporting('Error loading billing accounts'),
     Utils.withBusyState(isLoadingAccounts => this.setState({ isLoadingAccounts }))
   )(async () => {

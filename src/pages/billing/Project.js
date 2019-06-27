@@ -70,7 +70,7 @@ export default ajaxCaller(class ProjectDetail extends Component {
   )
 
   render() {
-    const { project: { projectName, creationStatus }, ajax: { Billing }, billingAccounts, authorizeAndLoadAccounts } = this.props
+    const { project: { projectName, creationStatus }, billingAccounts, authorizeAndLoadAccounts } = this.props
     const { projectUsers, loading, updating, filter, addingUser, deletingUser, editingUser, billingAccountName, hasBillingScope } = this.state
     const adminCanEdit = _.filter(({ roles }) => _.includes('Owner', roles), projectUsers).length > 1
 
