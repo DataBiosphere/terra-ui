@@ -5,7 +5,7 @@ import { h } from 'react-hyperscript-helpers'
 import { version } from 'src/data/clusters'
 import { getUser } from 'src/libs/auth'
 import { getConfig } from 'src/libs/config'
-import { ajaxOverridesStore, requesterPaysBuckets, workspaceStore } from 'src/libs/state'
+import { ajaxOverridesStore, requesterPaysBuckets, requesterPaysProjectStore, workspaceStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
 
@@ -85,7 +85,7 @@ const mergeQueryParams = (params, urlString) => {
 const withRequesterPays = wrappedFetch => async (url, ...args) => {
   const bucket = /\/b\/([^/]+)\//.exec(url)[1]
   const workspace = workspaceStore.get()
-  const userProject = workspace && Utils.canWrite(workspace.accessLevel) && workspace.workspace.namespace
+  const userProject = workspace && Utils.canWrite(workspace.accessLevel) ? workspace.workspace.namespace : requesterPaysProjectStore.get()
   const tryRequest = async () => {
     const knownRequesterPays = _.includes(bucket, requesterPaysBuckets.get())
     try {
