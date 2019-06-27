@@ -17,7 +17,7 @@ const styles = {
     ...Style.tabBar.tab,
     ...(isActive ? Style.tabBar.active : {}),
     backgroundColor: undefined,
-    fontSize: '1rem'
+    fontSize: 14
   }),
   dot: {
     width: 6, height: 6, borderRadius: '100%',
@@ -35,8 +35,16 @@ const stepButton = ({ key, title, isValid, activeTabKey, onChangeTab }) => h(Int
   style: styles.button(key === activeTabKey),
   onClick: () => onChangeTab(key)
 }, [
-  div({ style: { marginBottom: key === activeTabKey ? -(Style.tabBar.active.borderBottomWidth) : undefined } }, [
-    title,
+  div({
+    style: {
+      marginBottom: key === activeTabKey ? -(Style.tabBar.active.borderBottomWidth) : undefined,
+      display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%'
+    }
+  }, [
+    div({ style: { textAlign: 'center' } }, [
+      title,
+      div({ style: { fontWeight: 600, height: 0, visibility: 'hidden' } }, [title]) // so the width of the text container doesn't change with boldness
+    ]),
     !isValid && icon('error-standard', { size: 14, style: { marginLeft: '1rem', color: colors.warning() } })
   ])
 ])
