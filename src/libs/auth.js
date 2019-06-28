@@ -6,7 +6,7 @@ import { Ajax } from 'src/libs/ajax'
 import { getConfig } from 'src/libs/config'
 import { withErrorReporting } from 'src/libs/error'
 import { getAppName } from 'src/libs/logos'
-import { authStore, workspacesStore, workspaceStore } from 'src/libs/state'
+import { authStore, requesterPaysProjectStore, workspacesStore, workspaceStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
 
@@ -214,5 +214,12 @@ authStore.subscribe((state, oldState) => {
   if (oldState.isSignedIn && !state.isSignedIn) {
     workspaceStore.reset()
     workspacesStore.reset()
+  }
+})
+
+workspaceStore.subscribe((newState, oldState) => {
+  const getWorkspaceId = ws => ws && ws.workspace.workspaceId
+  if (getWorkspaceId(newState) !== getWorkspaceId(oldState)) {
+    requesterPaysProjectStore.reset()
   }
 })

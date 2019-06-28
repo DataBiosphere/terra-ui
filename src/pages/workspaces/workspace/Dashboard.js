@@ -1,5 +1,3 @@
-import 'easymde/dist/easymde.min.css'
-
 import * as clipboard from 'clipboard-polyfill'
 import debouncePromise from 'debounce-promise'
 import _ from 'lodash/fp'

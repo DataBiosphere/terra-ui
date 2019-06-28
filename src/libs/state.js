@@ -27,6 +27,8 @@ export const errorNotifiedClusters = Utils.atom([])
 
 export const requesterPaysBuckets = Utils.atom([])
 
+export const requesterPaysProjectStore = Utils.atom()
+
 /*
  * Modifies ajax responses for testing purposes.
  * Can be set to an array of objects of the form { fn, filter }.

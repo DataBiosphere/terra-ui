@@ -1,7 +1,8 @@
 import _ from 'lodash/fp'
 import { forwardRef, useState } from 'react'
 import { h } from 'react-hyperscript-helpers'
-import Modal from 'src/components/Modal'
+import RequesterPaysModal from 'src/components/RequesterPaysModal'
+import { requesterPaysProjectStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
 
@@ -21,18 +22,20 @@ export const withRequesterPaysHandler = _.curry((handler, fn) => async (...args)
 export const requesterPaysWrapper = ({ onDismiss }) => WrappedComponent => {
   const Wrapper = forwardRef((props, ref) => {
     const [showModal, setShowModal] = useState(false)
-    return showModal ?
-      h(Modal, {
-        title: 'Cannot access data',
+
+    return Utils.cond(
+      [showModal, () => h(RequesterPaysModal, {
         onDismiss: () => onDismiss(props),
-        showCancel: false
-      }, [
-        'This data is in a requester pays bucket.'
-      ]) :
-      h(WrappedComponent, {
+        onSuccess: selectedBilling => {
+          requesterPaysProjectStore.set(selectedBilling)
+          setShowModal(false)
+        }
+      })],
+      () => h(WrappedComponent, {
         ref, ...props,
         onRequesterPaysError: () => setShowModal(true)
       })
+    )
   })
   return Wrapper
 }
