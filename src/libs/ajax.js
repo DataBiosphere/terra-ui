@@ -14,11 +14,13 @@ window.ajaxOverrideUtils = {
     return new Response(new Blob([JSON.stringify(fn(await res.json()))]), res)
   }),
   makeError: _.curry(({ status, frequency = 1 }, res) => {
-    if (Math.random() < frequency) {
-      return new Response('Instrumented error', { status })
-    } else {
-      return res
-    }
+    return new Promise(resolve => {
+      if (Math.random() < frequency) {
+        resolve(new Response('Instrumented error', { status }))
+      } else {
+        resolve(res)
+      }
+    })
   })
 }
 
