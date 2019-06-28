@@ -64,7 +64,7 @@ const NewBillingProjectModal = ajaxCaller(class NewBillingProjectModal extends C
     }
   }
 
-  async componentDidMount() {
+  componentDidMount() {
     this.loadAccounts()
   }
 
@@ -196,7 +196,7 @@ export const BillingList = _.flow(
     }
   }
 
-  async componentDidMount() {
+  componentDidMount() {
     this.loadProjects()
   }
 

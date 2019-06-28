@@ -18,6 +18,7 @@ module.exports = {
   'rules': {
     // Best Practices
     'no-multi-spaces': 'warn',
+    'require-await': 'warn',
 
     // Stylistic Issues
     'array-bracket-newline': ['warn', 'consistent'],
