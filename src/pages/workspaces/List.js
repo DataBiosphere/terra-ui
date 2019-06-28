@@ -17,6 +17,7 @@ import TopBar from 'src/components/TopBar'
 import { withWorkspaces } from 'src/components/workspace-utils'
 import { Ajax, ajaxCaller, useCancellation } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
+import { getConfig } from 'src/libs/config'
 import { withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
@@ -280,6 +281,7 @@ export const WorkspaceList = _.flow(
       const { workspace: { namespace, name } } = ws
       return Utils.textMatch(filter, `${namespace}/${name}`) && (includePublic || !ws.public || Utils.canWrite(ws.accessLevel))
     }, workspaces)
+    const noWorkspaces = _.isEmpty(initialFiltered)
 
     const namespaceList = _.flow(
       _.map('workspace.namespace'),
@@ -295,6 +297,18 @@ export const WorkspaceList = _.flow(
       }
     }
 
+    const noWorkspacesMessage = div({ style: { fontSize: 20, margin: '1rem' } }, [
+      div([
+        'To get started with Terra, click ', span({ style: { fontWeight: 600 } }, ['Create a New Workspace'])
+      ]),
+      div({ style: { marginTop: '1rem', fontSize: 16 } }, [
+        linkButton({
+          ...Utils.newTabLinkProps,
+          href: `https://support.terra.bio/hc/en-us/articles/360022716811`
+        }, [`What's a workspace?`])
+      ])
+    ])
+
     const data = _.flow(
       _.filter(ws => (_.isEmpty(accessLevelsFilter) || accessLevelsFilter.includes(ws.accessLevel)) &&
         (_.isEmpty(projectsFilter) || projectsFilter.includes(ws.workspace.namespace)) &&
@@ -303,7 +317,7 @@ export const WorkspaceList = _.flow(
       _.sortBy('workspace.name')
     )(initialFiltered)
 
-    const renderedWorkspaces = _.map(workspace => {
+    const renderedWorkspaces = noWorkspaces ? noWorkspacesMessage : _.map(workspace => {
       return h(WorkspaceCard, {
         listView,
         onClone: () => this.setState({ cloningWorkspaceId: workspace.workspace.workspaceId }),
