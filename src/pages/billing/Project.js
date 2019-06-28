@@ -1,3 +1,4 @@
+import Modal from 'components/Modal'
 import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
@@ -8,6 +9,7 @@ import { Ajax, ajaxCaller } from 'src/libs/ajax'
 import * as Auth from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
+import { RequiredFormLabel } from 'src/libs/forms'
 import * as StateHistory from 'src/libs/state-history'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
@@ -23,6 +25,9 @@ export default ajaxCaller(class ProjectDetail extends Component {
       editingUser: false,
       deletingUser: false,
       updating: false,
+      updatingAccount: false,
+      refreshing: false,
+      loadingBillingInfo: false,
       billingAccountName: null,
       hasBillingScope: Auth.hasBillingScope(),
       ...StateHistory.get()
@@ -31,14 +36,17 @@ export default ajaxCaller(class ProjectDetail extends Component {
 
   updateBillingAccount = _.flow(
     withErrorReporting('Error updating billing account'),
-    Utils.withBusyState(v => this.setState({ loading: v }))
+    Utils.withBusyState(updatingAccount => this.setState({ updatingAccount }))
   )(async newAccountName => {
     const { ajax: { GoogleBilling }, project: { projectName } } = this.props
     const { billingAccountName } = await GoogleBilling.changeBillingAccount({ projectId: projectName, newAccountName })
     this.setState({ billingAccountName })
   })
 
-  loadBillingInfo = withErrorReporting('Error loading current billing account',
+  loadBillingInfo = _.flow(
+    withErrorReporting('Error loading current billing account'),
+    Utils.withBusyState(loadingBillingInfo => this.setState({ loadingBillingInfo }))
+  )(
     async () => {
       const { ajax: { GoogleBilling }, project: { projectName } } = this.props
       const { hasBillingScope } = this.state
@@ -48,31 +56,36 @@ export default ajaxCaller(class ProjectDetail extends Component {
       }
     })
 
-  refresh = withErrorReporting('Error loading billing project users list',
-    async () => {
-      const { ajax: { Billing }, project } = this.props
-      this.setState({ addingUser: false, deletingUser: false, updating: false, editingUser: false })
-      const rawProjectUsers = await Billing.project(project.projectName).listUsers()
-      const projectUsers = _.flow(
-        _.groupBy('email'),
-        _.map(gs => ({ ..._.omit('role', gs[0]), roles: _.map('role', gs) })),
-        _.sortBy('email')
-      )(rawProjectUsers)
-      this.setState({ projectUsers })
-    })
+  refresh = _.flow(
+    withErrorReporting('Error loading billing project users list'),
+    Utils.withBusyState(refreshing => this.setState({ refreshing }))
+  )(async () => {
+    const { ajax: { Billing }, project } = this.props
+    this.setState({ addingUser: false, deletingUser: false, updating: false, editingUser: false })
+    const rawProjectUsers = await Billing.project(project.projectName).listUsers()
+    const projectUsers = _.flow(
+      _.groupBy('email'),
+      _.map(gs => ({ ..._.omit('role', gs[0]), roles: _.map('role', gs) })),
+      _.sortBy('email')
+    )(rawProjectUsers)
+    this.setState({ projectUsers })
+  })
 
-  componentDidMount = Utils.withBusyState(
-    loading => this.setState({ loading }),
-    () => Promise.all([
+  componentDidMount() {
+    Promise.all([
       this.refresh(),
       this.loadBillingInfo()
     ])
-  )
+  }
 
   render() {
     const { project: { projectName, creationStatus }, billingAccounts, authorizeAndLoadAccounts } = this.props
-    const { projectUsers, loading, updating, filter, addingUser, deletingUser, editingUser, billingAccountName, hasBillingScope } = this.state
+    const {
+      projectUsers, refreshing, loadingBillingInfo, updating, filter, addingUser, deletingUser, editingUser, billingAccountName,
+      hasBillingScope, showBillingModal, selectedBilling, updatingAccount
+    } = this.state
     const adminCanEdit = _.filter(({ roles }) => _.includes('Owner', roles), projectUsers).length > 1
+    const { displayName = null } = _.find({ 'accountName': billingAccountName }, billingAccounts) || {}
 
     return h(Fragment, [
       div({ style: { padding: '1.5rem 3rem', flexGrow: 1 } }, [
@@ -84,14 +97,37 @@ export default ajaxCaller(class ProjectDetail extends Component {
             [creationStatus === 'Creating', () => spinner({ size: 16 })],
             () => icon('error-standard', { style: { color: colors.danger() } })
           ),
-          span({ style: { flexShrink: 0, fontWeight: 500, fontSize: 14, margin: '0 0.75rem 0 auto' } }, 'Billing Account For This Project:'),
-          hasBillingScope ? h(Select, {
-            value: billingAccountName,
-            isClearable: false,
-            styles: { container: old => ({ ...old, width: 320 }) },
-            options: _.map(({ displayName, accountName }) => ({ label: displayName, value: accountName }), billingAccounts),
-            onChange: ({ value: newAccountName }) => billingAccountName !== newAccountName && this.updateBillingAccount(newAccountName)
-          }) : buttonPrimary({ onClick: async () => await authorizeAndLoadAccounts() }, 'Authorize')
+          !!displayName && span({ style: { flexShrink: 0, fontWeight: 500, fontSize: 14, margin: '0 0.75rem 0 auto' } }, 'Billing Account:'),
+          !!displayName && span({ style: { flexShrink: 0, fontWeight: 600, fontSize: 14 } }, displayName),
+          buttonPrimary({
+            style: { marginLeft: 'auto' },
+            onClick: async () => {
+              if (!hasBillingScope) {
+                await authorizeAndLoadAccounts()
+              }
+
+              Auth.hasBillingScope() && this.setState({ showBillingModal: true })
+            }
+          }, 'Change Billing Account'),
+          showBillingModal && h(Modal, {
+            title: 'Change Billing Account',
+            onDismiss: () => this.setState({ showBillingModal: false }),
+            okButton: buttonPrimary({
+              disabled: !selectedBilling || billingAccountName === selectedBilling,
+              onClick: async () => {
+                this.setState({ showBillingModal: false })
+                await this.updateBillingAccount(selectedBilling)
+              }
+            }, ['Ok'])
+          }, [
+            h(RequiredFormLabel, ['Select billing account']),
+            h(Select, {
+              value: selectedBilling || billingAccountName,
+              isClearable: false,
+              options: _.map(({ displayName, accountName }) => ({ label: displayName, value: accountName }), billingAccounts),
+              onChange: ({ value: newAccountName }) => this.setState({ selectedBilling: newAccountName })
+            })
+          ])
         ]),
         div({
           style: {
@@ -144,7 +180,7 @@ export default ajaxCaller(class ProjectDetail extends Component {
           this.refresh()
         })
       }),
-      (loading || updating) && spinnerOverlay
+      (refreshing || loadingBillingInfo || updatingAccount || updating) && spinnerOverlay
     ])
   }
 
