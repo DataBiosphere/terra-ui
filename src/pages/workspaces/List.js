@@ -281,7 +281,7 @@ export const WorkspaceList = _.flow(
       const { workspace: { namespace, name } } = ws
       return Utils.textMatch(filter, `${namespace}/${name}`) && (includePublic || !ws.public || Utils.canWrite(ws.accessLevel))
     }, workspaces)
-    const noWorkspaces = _.isEmpty(initialFiltered)
+    const noWorkspaces = _.isEmpty(initialFiltered) && !loadingWorkspaces
 
     const namespaceList = _.flow(
       _.map('workspace.namespace'),
