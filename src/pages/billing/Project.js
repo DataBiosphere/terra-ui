@@ -1,10 +1,10 @@
-import Modal from 'components/Modal'
 import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import { buttonPrimary, Select, spinnerOverlay } from 'src/components/common'
 import { DeleteUserModal, EditUserModal, MemberCard, NewUserCard, NewUserModal } from 'src/components/group-common'
 import { icon, spinner } from 'src/components/icons'
+import Modal from 'src/components/Modal'
 import { Ajax, ajaxCaller } from 'src/libs/ajax'
 import * as Auth from 'src/libs/auth'
 import colors from 'src/libs/colors'
@@ -82,7 +82,7 @@ export default ajaxCaller(class ProjectDetail extends Component {
     const { project: { projectName, creationStatus }, billingAccounts, authorizeAndLoadAccounts } = this.props
     const {
       projectUsers, refreshing, loadingBillingInfo, updating, filter, addingUser, deletingUser, editingUser, billingAccountName,
-      hasBillingScope, showBillingModal, selectedBilling, updatingAccount
+      showBillingModal, selectedBilling, updatingAccount
     } = this.state
     const adminCanEdit = _.filter(({ roles }) => _.includes('Owner', roles), projectUsers).length > 1
     const { displayName = null } = _.find({ 'accountName': billingAccountName }, billingAccounts) || {}
@@ -101,14 +101,8 @@ export default ajaxCaller(class ProjectDetail extends Component {
           !!displayName && span({ style: { flexShrink: 0, fontWeight: 600, fontSize: 14 } }, displayName),
           buttonPrimary({
             style: { marginLeft: 'auto' },
-            onClick: async () => {
-              if (!hasBillingScope) {
-                await authorizeAndLoadAccounts()
-              }
-
-              Auth.hasBillingScope() && this.setState({ showBillingModal: true })
-            }
-          }, 'Change Billing Account'),
+            onClick: () => Auth.hasBillingScope() ? this.setState({ showBillingModal: true }) : authorizeAndLoadAccounts()
+          }, 'Change Account'),
           showBillingModal && h(Modal, {
             title: 'Change Billing Account',
             onDismiss: () => this.setState({ showBillingModal: false }),
