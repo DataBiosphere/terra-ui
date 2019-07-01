@@ -13,12 +13,12 @@ import { centeredSpinner, icon } from 'src/components/icons'
 import { AutocompleteTextInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import PopupTrigger from 'src/components/PopupTrigger'
-import StepButtons, { params as StepButtonParams } from 'src/components/StepButtons'
+import StepButtons from 'src/components/StepButtons'
 import { FlexTable, HeaderCell, SimpleTable, TextCell } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import WDLViewer from 'src/components/WDLViewer'
 import { Ajax, ajaxCaller } from 'src/libs/ajax'
-import colors from 'src/libs/colors'
+import colors, { terraSpecial } from 'src/libs/colors'
 import { reportError, withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
@@ -55,6 +55,10 @@ const styles = {
     position: 'absolute',
     bottom: '0.5rem',
     right: sideMargin
+  },
+  tabContents: {
+    padding: `1rem ${sideMargin}`,
+    backgroundColor: colors.dark(0.1)
   },
   cell: optional => ({
     fontWeight: !optional && 500,
@@ -153,7 +157,7 @@ const WorkflowIOTable = ({ which, inputsOutputs: data, config, errors, onChange,
                 ]),
                 error && h(TooltipTrigger, { content: error }, [
                   icon('error-standard', {
-                    size: 14, style: { marginLeft: '0.5rem', color: colors.danger(), cursor: 'help' }
+                    size: 14, style: { marginLeft: '0.5rem', color: colors.warning(), cursor: 'help' }
                   })
                 ])
               ])
@@ -534,7 +538,13 @@ const WorkflowView = _.flow(
 
     const inputsValid = _.isEmpty(errors.inputs)
     const outputsValid = _.isEmpty(errors.outputs)
-    return div({ style: { position: 'relative', backgroundColor: 'white', borderBottom: `2px solid ${colors.accent()}` } }, [
+    return div({
+      style: {
+        position: 'relative',
+        backgroundColor: 'white', borderBottom: `2px solid ${terraSpecial()}`,
+        boxShadow: '0 2px 5px 0 rgba(0,0,0,0.26), 0 2px 10px 0 rgba(0,0,0,0.16)'
+      }
+    }, [
       div({ style: { display: 'flex', padding: `1.5rem ${sideMargin} 0`, minHeight: 120 } }, [
         div({ style: { flex: '1', lineHeight: '1.5rem', minWidth: 0 } }, [
           div({ style: { display: 'flex' } }, [
@@ -649,13 +659,11 @@ const WorkflowView = _.flow(
             activeTab,
             onChangeTab: v => this.setState({ activeTab: v }),
             finalStep: buttonPrimary({
+              style: { marginLeft: '1rem' },
               disabled: !!Utils.computeWorkspaceError(ws) || !!noLaunchReason || currentSnapRedacted || !hasBucketAccess,
               tooltip: Utils.computeWorkspaceError(ws) || noLaunchReason || (currentSnapRedacted && 'Tool version was redacted.') ||
                 (!hasBucketAccess && 'You do not have access to the Google Bucket associated with this workspace'),
-              onClick: () => this.setState({ launching: true }),
-              style: {
-                height: StepButtonParams.buttonHeight, fontSize: StepButtonParams.fontSize
-              }
+              onClick: () => this.setState({ launching: true })
             }, ['Run analysis'])
           }),
           activeTab === 'outputs' && div({ style: { marginBottom: '1rem' } }, [
@@ -741,10 +749,12 @@ const WorkflowView = _.flow(
 
   renderWDL() {
     const { wdl } = this.state
-    return wdl ? h(WDLViewer, {
-      wdl, readOnly: true,
-      style: { maxHeight: 500, margin: `1rem ${sideMargin}` }
-    }) : centeredSpinner({ style: { marginTop: '1rem' } })
+    return div({ style: styles.tabContents }, [
+      wdl ? h(WDLViewer, {
+        wdl, readOnly: true,
+        style: { maxHeight: 500 }
+      }) : centeredSpinner()
+    ])
   }
 
   renderIOTable(key) {
@@ -769,7 +779,11 @@ const WorkflowView = _.flow(
       multiple: false,
       disabled: currentSnapRedacted || !!Utils.editWorkspaceError(workspace),
       disableClick: true,
-      style: { padding: `1rem ${sideMargin}`, flex: 'auto', display: 'flex', flexDirection: 'column' },
+      style: {
+        ...styles.tabContents,
+        flex: 'auto', display: 'flex', flexDirection: 'column',
+        position: undefined
+      },
       activeStyle: { backgroundColor: colors.accent(0.2), cursor: 'copy' },
       ref: this.uploader,
       onDropRejected: () => reportError('Not a valid inputs file',
