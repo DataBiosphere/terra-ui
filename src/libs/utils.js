@@ -159,20 +159,23 @@ export const switchCase = (value, ...pairs) => {
 export const toIndexPairs = _.flow(_.toPairs, _.map(([k, v]) => [k * 1, v]))
 
 /**
- * Memoizes the given function, but expires after the specified duration (ms).
- * The resolver function is used to generate a cache key from the arguments.
+ * Memoizes an async function using the specified timeout. Rejected promises are not cached.
  */
-export const memoizeWithTimeout = (fn, resolver, ms) => {
+export const memoizeAsync = (fn, { resolver = _.identity, timeout }) => {
   const cache = {}
   return (...args) => {
     const now = Date.now()
     const key = resolver(...args)
-    const cached = cache[key]
-    if (cached && now < cached.timestamp + ms) {
-      return cached.value
+    const entry = cache[key]
+    if (entry && !entry.rejected && now < entry.timestamp + timeout) {
+      return entry.value
     }
     const value = fn(...args)
-    cache[key] = { timestamp: now, value }
+    const newEntry = { timestamp: now, value }
+    value.catch(() => {
+      newEntry.rejected = true
+    })
+    cache[key] = newEntry
     return value
   }
 }
