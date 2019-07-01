@@ -21,9 +21,9 @@ import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
-import { dockstoreTile, fcMethodRepoTile, makeToolCard } from 'src/pages/library/Code'
-import DeleteToolModal from 'src/pages/workspaces/workspace/tools/DeleteToolModal'
-import ExportToolModal from 'src/pages/workspaces/workspace/tools/ExportToolModal'
+import { dockstoreTile, fcMethodRepoTile, makeWorkflowCard } from 'src/pages/library/Code'
+import DeleteWorkflowModal from 'src/pages/workspaces/workspace/workflows/DeleteWorkflowModal'
+import ExportWorkflowModal from 'src/pages/workspaces/workspace/workflows/ExportWorkflowModal'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
 
@@ -88,15 +88,15 @@ const sortOptions = [
   { label: 'Reverse Alphabetical', value: { field: 'lowerCaseName', direction: 'desc' } }
 ]
 
-const ToolCard = pure(({ listView, name, namespace, config, onCopy, onDelete, isRedacted, workspace }) => {
+const WorkflowCard = pure(({ listView, name, namespace, config, onCopy, onDelete, isRedacted, workspace }) => {
   const { namespace: workflowNamespace, name: workflowName, methodRepoMethod: { sourceRepo, methodVersion } } = config
-  const toolCardMenu = h(PopupTrigger, {
+  const workflowCardMenu = h(PopupTrigger, {
     closeOnClick: true,
     content: h(Fragment, [
       h(MenuButton, {
         onClick: () => onCopy(),
         disabled: isRedacted,
-        tooltip: isRedacted ? 'This tool version is redacted' : undefined,
+        tooltip: isRedacted ? 'This workflow version is redacted' : undefined,
         tooltipSide: 'left'
       }, [menuIcon('copy'), 'Copy to Another Workspace']),
       h(MenuButton, {
@@ -133,14 +133,14 @@ const ToolCard = pure(({ listView, name, namespace, config, onCopy, onDelete, is
   })
 
   const redactedWarning = h(TooltipTrigger, {
-    content: 'Tool version has been removed. You cannot run an analysis until you change the version.'
+    content: 'Workflow version has been removed. You cannot run an analysis until you change the version.'
   }, [icon('ban', { size: 20, style: { color: colors.warning(), marginLeft: '.3rem', ...styles.innerLink } })])
 
   return listView ?
     div({ style: { ...styles.card, ...styles.longCard } }, [
       workflowLink,
       div({ style: { ...styles.innerContent, display: 'flex', alignItems: 'center' } }, [
-        div({ style: { marginRight: '1rem' } }, [toolCardMenu]),
+        div({ style: { marginRight: '1rem' } }, [workflowCardMenu]),
         div({ style: { ...styles.longTitle } }, [workflowName]),
         div({ style: { ...styles.longMethodVersion, display: 'flex', alignItems: 'center' } }, [
           `V. ${methodVersion}`,
@@ -160,13 +160,13 @@ const ToolCard = pure(({ listView, name, namespace, config, onCopy, onDelete, is
               isRedacted && redactedWarning
             ]),
             'Source: ', repoLink
-          ]), toolCardMenu
+          ]), workflowCardMenu
         ])
       ])
     ])
 })
 
-const FindToolModal = ajaxCaller(class FindToolModal extends Component {
+const FindWorkflowModal = ajaxCaller(class FindWorkflowModal extends Component {
   async componentDidMount() {
     const { ajax: { Methods } } = this.props
 
@@ -180,40 +180,40 @@ const FindToolModal = ajaxCaller(class FindToolModal extends Component {
 
   render() {
     const { onDismiss } = this.props
-    const { selectedTool, featuredList, methods, selectedToolDetails, exporting } = this.state
+    const { selectedWorkflow, featuredList, methods, selectedWorkflowDetails, exporting } = this.state
 
     const featuredMethods = _.compact(_.map(
       ({ namespace, name }) => _.maxBy('snapshotId', _.filter({ namespace, name }, methods)),
       featuredList
     ))
 
-    const { synopsis, managers, documentation } = selectedToolDetails || {}
+    const { synopsis, managers, documentation } = selectedWorkflowDetails || {}
 
     const renderDetails = () => [
       div({ style: { display: 'flex' } }, [
         div({ style: { flexGrow: 1 } }, [
           div({ style: { fontSize: 18, fontWeight: 600, margin: '1rem 0 0.5rem' } }, ['Synopsis']),
-          div([synopsis || (selectedToolDetails && 'None')]),
+          div([synopsis || (selectedWorkflowDetails && 'None')]),
           div({ style: { fontSize: 18, fontWeight: 600, margin: '1rem 0 0.5rem' } }, ['Method Owner']),
           div([_.join(',', managers)])
         ]),
         div({ style: { margin: '0 1rem', display: 'flex', flexDirection: 'column' } }, [
           buttonPrimary({ style: { marginBottom: '0.5rem' }, onClick: () => this.exportMethod() }, ['Add to Workspace']),
-          buttonOutline({ onClick: () => this.setState({ selectedTool: undefined, selectedToolDetails: undefined }) }, ['Return to List'])
+          buttonOutline({ onClick: () => this.setState({ selectedWorkflow: undefined, selectedWorkflowDetails: undefined }) }, ['Return to List'])
         ])
       ]),
       div({ style: { fontSize: 18, fontWeight: 600, margin: '1rem 0 0.5rem' } }, ['Documentation']),
       documentation && h(Markdown, { style: { maxHeight: 600, overflowY: 'auto' } }, [documentation]),
-      (!selectedToolDetails || exporting) && spinnerOverlay
+      (!selectedWorkflowDetails || exporting) && spinnerOverlay
     ]
 
     const renderList = () => [
       div({ style: { display: 'flex', flexWrap: 'wrap', overflowY: 'auto', height: 400, paddingTop: 5, paddingLeft: 5 } }, [
         ...(featuredMethods ?
-          _.map(method => makeToolCard({ method, onClick: () => this.loadMethod(method) }), featuredMethods) :
+          _.map(method => makeWorkflowCard({ method, onClick: () => this.loadMethod(method) }), featuredMethods) :
           [centeredSpinner()])
       ]),
-      div({ style: { fontSize: 18, fontWeight: 600, marginTop: '1rem' } }, ['Find Additional Tools']),
+      div({ style: { fontSize: 18, fontWeight: 600, marginTop: '1rem' } }, ['Find Additional Workflows']),
       div({ style: { display: 'flex', padding: '0.5rem' } }, [
         div({ style: { flex: 1, marginRight: 10 } }, [dockstoreTile()]),
         div({ style: { flex: 1, marginLeft: 10 } }, [fcMethodRepoTile()])
@@ -223,58 +223,58 @@ const FindToolModal = ajaxCaller(class FindToolModal extends Component {
     return h(Modal, {
       onDismiss,
       showButtons: false,
-      title: selectedTool ? `Tool: ${selectedTool.name}` : 'Suggested Tools',
+      title: selectedWorkflow ? `Workflow: ${selectedWorkflow.name}` : 'Suggested Workflows',
       showX: true,
       width: 900
     }, Utils.cond(
-      [selectedTool, () => renderDetails()],
+      [selectedWorkflow, () => renderDetails()],
       () => renderList()
     ))
   }
 
-  async loadMethod(selectedTool) {
+  async loadMethod(selectedWorkflow) {
     const { ajax: { Methods } } = this.props
-    const { namespace, name, snapshotId } = selectedTool
+    const { namespace, name, snapshotId } = selectedWorkflow
 
-    this.setState({ selectedTool })
+    this.setState({ selectedWorkflow })
     try {
-      const selectedToolDetails = await Methods.method(namespace, name, snapshotId).get()
-      this.setState({ selectedToolDetails })
+      const selectedWorkflowDetails = await Methods.method(namespace, name, snapshotId).get()
+      this.setState({ selectedWorkflowDetails })
     } catch (error) {
-      reportError('Error loading tool', error)
-      this.setState({ selectedTool: undefined })
+      reportError('Error loading workflow', error)
+      this.setState({ selectedWorkflow: undefined })
     }
   }
 
   async exportMethod() {
     const { namespace, name } = this.props
-    const { selectedTool } = this.state
+    const { selectedWorkflow } = this.state
 
     this.setState({ exporting: true })
 
     try {
-      const methodAjax = Ajax().Methods.method(selectedTool.namespace, selectedTool.name, selectedTool.snapshotId)
+      const methodAjax = Ajax().Methods.method(selectedWorkflow.namespace, selectedWorkflow.name, selectedWorkflow.snapshotId)
 
       const config = _.maxBy('snapshotId', await methodAjax.configs())
 
       await methodAjax.toWorkspace({ namespace, name }, config)
 
-      Nav.goToPath('workflow', { namespace, name, workflowNamespace: selectedTool.namespace, workflowName: selectedTool.name })
+      Nav.goToPath('workflow', { namespace, name, workflowNamespace: selectedWorkflow.namespace, workflowName: selectedWorkflow.name })
     } catch (error) {
-      reportError('Error importing tool', error)
+      reportError('Error importing workflow', error)
       this.setState({ exporting: false })
     }
   }
 })
 
-export const Tools = _.flow(
+export const Workflows = _.flow(
   wrapWorkspace({
     breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
-    title: 'Tools', activeTab: 'tools'
+    title: 'Workflows', activeTab: 'workflows'
   }),
-  togglesListView('toolsTab'),
+  togglesListView('workflowsTab'),
   ajaxCaller
-)(class Tools extends Component {
+)(class Workflows extends Component {
   constructor(props) {
     super(props)
     this.state = {
@@ -313,14 +313,14 @@ export const Tools = _.flow(
 
   render() {
     const { namespace, name, listView, viewToggleButtons, workspace: ws, workspace: { workspace } } = this.props
-    const { loading, configs, copyingTool, deletingTool, findingTool, sortOrder, sortOrder: { field, direction } } = this.state
-    const tools = _.flow(
+    const { loading, configs, copyingWorkflow, deletingWorkflow, findingWorkflow, sortOrder, sortOrder: { field, direction } } = this.state
+    const workflows = _.flow(
       _.orderBy(sortTokens[field] || field, direction),
       _.map(config => {
         const isRedacted = this.computeRedacted(config)
-        return h(ToolCard, {
-          onCopy: () => this.setState({ copyingTool: { namespace: config.namespace, name: config.name } }),
-          onDelete: () => this.setState({ deletingTool: { namespace: config.namespace, name: config.name } }),
+        return h(WorkflowCard, {
+          onCopy: () => this.setState({ copyingWorkflow: { namespace: config.namespace, name: config.name } }),
+          onDelete: () => this.setState({ deletingWorkflow: { namespace: config.namespace, name: config.name } }),
           key: `${config.namespace}/${config.name}`, namespace, name, config, listView, isRedacted, workspace: ws
         })
       })
@@ -328,7 +328,7 @@ export const Tools = _.flow(
 
     return h(PageBox, [
       div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' } }, [
-        div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, ['Tools']),
+        div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, ['Workflows']),
         div({ style: { marginLeft: 'auto', marginRight: '0.75rem' } }, ['Sort By:']),
         h(Select, {
           value: sortOrder,
@@ -338,16 +338,16 @@ export const Tools = _.flow(
           onChange: selected => this.setState({ sortOrder: selected.value })
         }),
         viewToggleButtons,
-        copyingTool && h(ExportToolModal, {
-          thisWorkspace: workspace, methodConfig: this.getConfig(copyingTool),
-          onDismiss: () => this.setState({ copyingTool: undefined })
+        copyingWorkflow && h(ExportWorkflowModal, {
+          thisWorkspace: workspace, methodConfig: this.getConfig(copyingWorkflow),
+          onDismiss: () => this.setState({ copyingWorkflow: undefined })
         }),
-        deletingTool && h(DeleteToolModal, {
-          workspace, methodConfig: this.getConfig(deletingTool),
-          onDismiss: () => this.setState({ deletingTool: undefined }),
+        deletingWorkflow && h(DeleteWorkflowModal, {
+          workspace, methodConfig: this.getConfig(deletingWorkflow),
+          onDismiss: () => this.setState({ deletingWorkflow: undefined }),
           onSuccess: () => {
             this.refresh()
-            this.setState({ deletingTool: undefined })
+            this.setState({ deletingWorkflow: undefined })
           }
         })
       ]),
@@ -356,15 +356,15 @@ export const Tools = _.flow(
           disabled: !!Utils.editWorkspaceError(ws),
           tooltip: Utils.editWorkspaceError(ws),
           style: { ...styles.card, ...styles.shortCard, color: colors.accent(), fontSize: 18, lineHeight: '22px' },
-          onClick: () => this.setState({ findingTool: true })
+          onClick: () => this.setState({ findingWorkflow: true })
         }, [
-          'Find a Tool',
+          'Find a Workflow',
           icon('plus-circle', { size: 32 })
         ]),
-        listView ? div({ style: { flex: 1 } }, [tools]) : tools,
-        findingTool && h(FindToolModal, {
+        listView ? div({ style: { flex: 1 } }, [workflows]) : workflows,
+        findingWorkflow && h(FindWorkflowModal, {
           namespace, name,
-          onDismiss: () => this.setState({ findingTool: false })
+          onDismiss: () => this.setState({ findingWorkflow: false })
         }),
         loading && spinnerOverlay
       ])
@@ -382,9 +382,13 @@ export const Tools = _.flow(
 
 export const navPaths = [
   {
-    name: 'workspace-tools',
+    name: 'workspace-workflows',
+    path: '/workspaces/:namespace/:name/workflows',
+    component: Workflows,
+    title: ({ name }) => `${name} - Workflows`
+  }, {
+    name: 'workspace-tools', // legacy
     path: '/workspaces/:namespace/:name/tools',
-    component: Tools,
-    title: ({ name }) => `${name} - Tools`
+    component: props => h(Nav.Redirector, { pathname: Nav.getPath('workspace-workflows', props) })
   }
 ]

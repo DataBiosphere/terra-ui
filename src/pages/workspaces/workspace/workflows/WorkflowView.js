@@ -25,11 +25,11 @@ import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
-import DataStepContent from 'src/pages/workspaces/workspace/tools/DataStepContent'
-import DeleteToolModal from 'src/pages/workspaces/workspace/tools/DeleteToolModal'
-import EntitySelectionType from 'src/pages/workspaces/workspace/tools/EntitySelectionType'
-import ExportToolModal from 'src/pages/workspaces/workspace/tools/ExportToolModal'
-import LaunchAnalysisModal from 'src/pages/workspaces/workspace/tools/LaunchAnalysisModal'
+import DataStepContent from 'src/pages/workspaces/workspace/workflows/DataStepContent'
+import DeleteWorkflowModal from 'src/pages/workspaces/workspace/workflows/DeleteWorkflowModal'
+import EntitySelectionType from 'src/pages/workspaces/workspace/workflows/EntitySelectionType'
+import ExportWorkflowModal from 'src/pages/workspaces/workspace/workflows/ExportWorkflowModal'
+import LaunchAnalysisModal from 'src/pages/workspaces/workspace/workflows/LaunchAnalysisModal'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
 
@@ -295,8 +295,8 @@ class TextCollapse extends Component {
 
 const WorkflowView = _.flow(
   wrapWorkspace({
-    breadcrumbs: props => breadcrumbs.commonPaths.workspaceTab(props, 'tools'),
-    title: _.get('workflowName'), activeTab: 'tools'
+    breadcrumbs: props => breadcrumbs.commonPaths.workspaceTab(props, 'workflows'),
+    title: _.get('workflowName'), activeTab: 'workflows'
   }),
   ajaxCaller
 )(class WorkflowView extends Component {
@@ -569,7 +569,7 @@ const WorkflowView = _.flow(
             span({ style: { color: colors.dark(), fontSize: 24 } }, name)
           ]),
           currentSnapRedacted && div({ style: { color: colors.warning(), fontSize: 16, fontWeight: 500, marginTop: '0.5rem' } }, [
-            'The selected snapshot of the referenced tool has been redacted. You will not be able to run an analysis until you select another snapshot.'
+            'The selected snapshot of the referenced workflow has been redacted. You will not be able to run an analysis until you select another snapshot.'
           ]),
           div({ style: { marginTop: '0.5rem' } }, [
             'Snapshot ',
@@ -661,7 +661,7 @@ const WorkflowView = _.flow(
             finalStep: buttonPrimary({
               style: { marginLeft: '1rem' },
               disabled: !!Utils.computeWorkspaceError(ws) || !!noLaunchReason || currentSnapRedacted || !hasBucketAccess,
-              tooltip: Utils.computeWorkspaceError(ws) || noLaunchReason || (currentSnapRedacted && 'Tool version was redacted.') ||
+              tooltip: Utils.computeWorkspaceError(ws) || noLaunchReason || (currentSnapRedacted && 'Workflow version was redacted.') ||
                 (!hasBucketAccess && 'You do not have access to the Google Bucket associated with this workspace'),
               onClick: () => this.setState({ launching: true })
             }, ['Run analysis'])
@@ -695,14 +695,14 @@ const WorkflowView = _.flow(
         modified && buttonPrimary({ disabled: saving || !this.canSave(), onClick: () => this.save() }, 'Save'),
         modified && buttonSecondary({ style: { marginLeft: '1rem' }, disabled: saving, onClick: () => this.cancel() }, 'Cancel')
       ]),
-      copying && h(ExportToolModal, {
+      copying && h(ExportWorkflowModal, {
         thisWorkspace: workspace, methodConfig: savedConfig,
         onDismiss: () => this.setState({ copying: false })
       }),
-      deleting && h(DeleteToolModal, {
+      deleting && h(DeleteWorkflowModal, {
         workspace, methodConfig: savedConfig,
         onDismiss: () => this.setState({ deleting: false }),
-        onSuccess: () => Nav.goToPath('workspace-tools', _.pick(['namespace', 'name'], workspace))
+        onSuccess: () => Nav.goToPath('workspace-workflows', _.pick(['namespace', 'name'], workspace))
       }),
       selectingData && h(DataStepContent, {
         entityMetadata,
@@ -787,7 +787,7 @@ const WorkflowView = _.flow(
       activeStyle: { backgroundColor: colors.accent(0.2), cursor: 'copy' },
       ref: this.uploader,
       onDropRejected: () => reportError('Not a valid inputs file',
-        'The selected file is not a json file. To import inputs for this tool, upload a file with a .json extension.'),
+        'The selected file is not a json file. To import inputs for this workflow, upload a file with a .json extension.'),
       onDropAccepted: files => this.uploadJson(key, files[0])
     }, [
       div({ style: { flex: 'none', display: 'flex', marginBottom: '0.25rem' } }, [
@@ -864,8 +864,12 @@ const WorkflowView = _.flow(
 export const navPaths = [
   {
     name: 'workflow',
-    path: '/workspaces/:namespace/:name/tools/:workflowNamespace/:workflowName',
+    path: '/workspaces/:namespace/:name/workflows/:workflowNamespace/:workflowName',
     component: WorkflowView,
-    title: ({ name, workflowName }) => `${name} - Tools - ${workflowName}`
+    title: ({ name, workflowName }) => `${name} - Workflows - ${workflowName}`
+  }, {
+    name: 'tools-workflow', // legacy
+    path: '/workspaces/:namespace/:name/tools/:workflowNamespace/:workflowName',
+    component: props => h(Nav.Redirector, { pathname: Nav.getPath('workflow', props) })
   }
 ]

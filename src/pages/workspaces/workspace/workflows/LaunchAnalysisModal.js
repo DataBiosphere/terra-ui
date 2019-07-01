@@ -6,7 +6,7 @@ import Modal from 'src/components/Modal'
 import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { Component } from 'src/libs/wrapped-components'
-import EntitySelectionType from 'src/pages/workspaces/workspace/tools/EntitySelectionType'
+import EntitySelectionType from 'src/pages/workspaces/workspace/workflows/EntitySelectionType'
 
 
 export default ajaxCaller(class LaunchAnalysisModal extends Component {

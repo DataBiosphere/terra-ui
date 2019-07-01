@@ -275,7 +275,7 @@ const TopBar = Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
             h(DropDownSubItem, {
               href: Nav.getLink('library-code'),
               onClick: () => this.hideNav()
-            }, ['Tools'])
+            }, ['Workflows'])
           ]),
           (trialState === 'Enabled') && enabledCredits,
           (trialState === 'Enrolled') && enrolledCredits,
