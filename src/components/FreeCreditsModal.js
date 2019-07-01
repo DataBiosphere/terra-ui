@@ -35,7 +35,7 @@ const FreeCreditsModal = Utils.connectAtom(freeCreditsActive, 'isActive')(class 
       title: 'Welcome to the Terra Free Credit Program!',
       width: '65%',
       okButton: pageTwo ? buttonPrimary({
-        onClick: async () => {
+        onClick: () => {
           this.acceptCredits()
         },
         disabled: (termsAgreed === false) || (cloudTermsAgreed === false),

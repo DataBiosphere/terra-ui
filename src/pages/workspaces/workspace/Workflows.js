@@ -371,7 +371,7 @@ export const Workflows = _.flow(
     ])
   }
 
-  async componentDidMount() {
+  componentDidMount() {
     this.refresh()
   }
 

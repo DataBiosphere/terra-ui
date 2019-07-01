@@ -1,5 +1,3 @@
-import 'react-notifications-component/dist/theme.css'
-
 import _ from 'lodash/fp'
 import { createRef } from 'react'
 import { div, h } from 'react-hyperscript-helpers'

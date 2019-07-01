@@ -64,7 +64,7 @@ export default _.flow(
     }
   }
 
-  async componentDidMount() {
+  componentDidMount() {
     this.loadProjectsGroups()
   }
 
