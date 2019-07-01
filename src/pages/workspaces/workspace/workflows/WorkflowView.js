@@ -650,7 +650,7 @@ const WorkflowView = _.flow(
             onChangeTab: v => this.setState({ activeTab: v }),
             finalStep: buttonPrimary({
               disabled: !!Utils.computeWorkspaceError(ws) || !!noLaunchReason || currentSnapRedacted || !hasBucketAccess,
-              tooltip: Utils.computeWorkspaceError(ws) || noLaunchReason || (currentSnapRedacted && 'Tool version was redacted.') ||
+              tooltip: Utils.computeWorkspaceError(ws) || noLaunchReason || (currentSnapRedacted && 'Workflow version was redacted.') ||
                 (!hasBucketAccess && 'You do not have access to the Google Bucket associated with this workspace'),
               onClick: () => this.setState({ launching: true }),
               style: {
