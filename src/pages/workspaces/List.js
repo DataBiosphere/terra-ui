@@ -276,10 +276,7 @@ export const WorkspaceList = _.flow(
   render() {
     const { workspaces, loadingWorkspaces, refreshWorkspaces, listView, viewToggleButtons } = this.props
     const { filter, creatingNewWorkspace, cloningWorkspaceId, deletingWorkspaceId, sharingWorkspaceId, requestingAccessWorkspaceId, accessLevelsFilter, projectsFilter, submissionsFilter, tagsFilter, includePublic } = this.state
-    const initialFiltered = _.filter(ws => {
-      const { workspace: { namespace, name } } = ws
-      return Utils.textMatch(filter, `${namespace}/${name}`) && (includePublic || !ws.public || Utils.canWrite(ws.accessLevel))
-    }, workspaces)
+    const initialFiltered = _.filter(ws => includePublic || !ws.public || Utils.canWrite(ws.accessLevel), workspaces)
     const noWorkspaces = _.isEmpty(initialFiltered) && !loadingWorkspaces
 
     const namespaceList = _.flow(
@@ -309,10 +306,14 @@ export const WorkspaceList = _.flow(
     ])
 
     const data = _.flow(
-      _.filter(ws => (_.isEmpty(accessLevelsFilter) || accessLevelsFilter.includes(ws.accessLevel)) &&
-        (_.isEmpty(projectsFilter) || projectsFilter.includes(ws.workspace.namespace)) &&
-        (_.isEmpty(submissionsFilter) || submissionsFilter.includes(workspaceSubmissionStatus(ws))) &&
-        (_.isEmpty(tagsFilter) || _.every(_.identity, _.map(a => returnTags(ws.workspace.attributes).includes(a), tagsFilter)))),
+      _.filter(ws => {
+        const { workspace: { namespace, name } } = ws
+        return Utils.textMatch(filter, `${namespace}/${name}`) &&
+          (_.isEmpty(accessLevelsFilter) || accessLevelsFilter.includes(ws.accessLevel)) &&
+          (_.isEmpty(projectsFilter) || projectsFilter.includes(ws.workspace.namespace)) &&
+          (_.isEmpty(submissionsFilter) || submissionsFilter.includes(workspaceSubmissionStatus(ws))) &&
+          (_.isEmpty(tagsFilter) || _.every(_.identity, _.map(a => returnTags(ws.workspace.attributes).includes(a), tagsFilter)))
+      }),
       _.sortBy('workspace.name')
     )(initialFiltered)
 
