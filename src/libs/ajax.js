@@ -14,20 +14,13 @@ window.ajaxOverrideUtils = {
     return new Response(new Blob([JSON.stringify(fn(await res.json()))]), res)
   }),
   makeError: _.curry(({ status, frequency = 1 }, res) => {
-    return new Promise(resolve => {
-      if (Math.random() < frequency) {
-        resolve(new Response('Instrumented error', { status }))
-      } else {
-        resolve(res)
-      }
-    })
+    return Promise.resolve(Math.random() < frequency ? new Response('Instrumented error', { status }) : res)
   })
 }
 
 const authOpts = (token = getUser().token) => ({ headers: { Authorization: `Bearer ${token}` } })
 const jsonBody = body => ({ body: JSON.stringify(body), headers: { 'Content-Type': 'application/json' } })
 const appIdentifier = { headers: { 'X-App-ID': 'Saturn' } }
-const addAppIdentifier = _.merge(appIdentifier)
 const tosData = { appid: 'Saturn', tosversion: 4 }
 
 const withInstrumentation = wrappedFetch => (...args) => {
@@ -37,18 +30,16 @@ const withInstrumentation = wrappedFetch => (...args) => {
   )(ajaxOverridesStore.get())
 }
 
-const withCancellation = wrappedFetch => (...args) => {
-  return new Promise(async (resolve, reject) => {
-    try {
-      resolve(await wrappedFetch(...args))
-    } catch (error) {
-      if (error instanceof DOMException && error.name === 'AbortError') {
-        // no-op, this is from an aborted call
-      } else {
-        reject(error)
-      }
+const withCancellation = wrappedFetch => async (...args) => {
+  try {
+    return await wrappedFetch(...args)
+  } catch (error) {
+    if (error instanceof DOMException && error.name === 'AbortError') {
+      return Utils.abandonedPromise()
+    } else {
+      throw error
     }
-  })
+  }
 }
 
 const withErrorRejection = wrappedFetch => async (...args) => {
@@ -60,8 +51,12 @@ const withErrorRejection = wrappedFetch => async (...args) => {
   }
 }
 
-const withUrlPrefix = prefix => wrappedFetch => (path, ...args) => {
+const withUrlPrefix = _.curry((prefix, wrappedFetch) => (path, ...args) => {
   return wrappedFetch(prefix + path, ...args)
+})
+
+const withAppIdentifier = wrappedFetch => (url, options) => {
+  return wrappedFetch(url, _.merge(options, appIdentifier))
 }
 
 const checkRequesterPaysError = async response => {
@@ -108,46 +103,21 @@ const withRequesterPays = wrappedFetch => (url, ...args) => {
 
 const fetchOk = _.flow(withInstrumentation, withCancellation, withErrorRejection)(fetch)
 
-
-const fetchSam = (path, options) => {
-  return fetchOk(`${getConfig().samUrlRoot}/${path}`, addAppIdentifier(options))
-}
-
+const fetchSam = _.flow(withUrlPrefix(`${getConfig().samUrlRoot}/`), withAppIdentifier)(fetchOk)
 const fetchBuckets = _.flow(withRequesterPays, withUrlPrefix('https://www.googleapis.com/'))(fetchOk)
+const fetchGoogleBilling = withUrlPrefix('https://cloudbilling.googleapis.com/v1/', fetchOk)
+const fetchRawls = _.flow(withUrlPrefix(`${getConfig().rawlsUrlRoot}/api/`), withAppIdentifier)(fetchOk)
+const fetchLeo = withUrlPrefix(`${getConfig().leoUrlRoot}/`, fetchOk)
+const fetchDockstore = withUrlPrefix(`${getConfig().dockstoreUrlRoot}/api/`, fetchOk)
+const fetchAgora = _.flow(withUrlPrefix(`${getConfig().agoraUrlRoot}/api/v1/`), withAppIdentifier)(fetchOk)
+const fetchOrchestration = _.flow(withUrlPrefix(`${getConfig().orchestrationUrlRoot}/`), withAppIdentifier)(fetchOk)
+const fetchRex = withUrlPrefix(`${getConfig().rexUrlRoot}/api/`, fetchOk)
+const fetchBond = withUrlPrefix(`${getConfig().bondUrlRoot}/`, fetchOk)
+
 const nbName = name => encodeURIComponent(`notebooks/${name}.ipynb`)
 
-const fetchGoogleBilling = (path, options) => fetchOk(`https://cloudbilling.googleapis.com/v1/${path}`, options)
-
-const fetchRawls = (path, options) => {
-  return fetchOk(`${getConfig().rawlsUrlRoot}/api/${path}`, addAppIdentifier(options))
-}
-
-const fetchLeo = (path, options) => {
-  return fetchOk(`${getConfig().leoUrlRoot}/${path}`, options)
-}
-
-const fetchDockstore = (path, options) => {
-  return fetchOk(`${getConfig().dockstoreUrlRoot}/api/${path}`, options)
-}
 // %23 = '#', %2F = '/'
 const dockstoreMethodPath = path => `api/ga4gh/v1/tools/%23workflow%2F${encodeURIComponent(path)}/versions`
-
-const fetchAgora = (path, options) => {
-  return fetchOk(`${getConfig().agoraUrlRoot}/api/v1/${path}`, addAppIdentifier(options))
-}
-
-const fetchOrchestration = (path, options) => {
-  return fetchOk(`${getConfig().orchestrationUrlRoot}/${path}`, addAppIdentifier(options))
-}
-
-const fetchRex = (path, options) => {
-  return fetchOk(`${getConfig().rexUrlRoot}/api/${path}`, options)
-}
-
-const fetchBond = (path, options) => {
-  return fetchOk(`${getConfig().bondUrlRoot}/${path}`, options)
-}
-
 
 const User = signal => ({
   token: Utils.memoizeWithTimeout(async namespace => {
