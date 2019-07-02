@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { Fragment } from 'react'
-import { a, b, div, h } from 'react-hyperscript-helpers'
+import { a, b, div, h, span } from 'react-hyperscript-helpers'
 import { pure } from 'recompose'
 import { buttonPrimary, Clickable, linkButton, PageBox, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
@@ -132,6 +132,18 @@ const NewGroupCard = pure(({ onClick }) => {
   ])
 })
 
+const noGroupsMessage = div({ style: { fontSize: 20, margin: '0 1rem' } }, [
+  div([
+    'Create a group to share your workspaces with others.'
+  ]),
+  div({ style: { marginTop: '1rem', fontSize: 16 } }, [
+    linkButton({
+      ...Utils.newTabLinkProps,
+      href: `https://support.terra.bio/hc/en-us/articles/360026775691`
+    }, [`How do I use groups to manage authorization?`])
+  ])
+])
+
 export const GroupList = ajaxCaller(class GroupList extends Component {
   constructor(props) {
     super(props)
@@ -168,6 +180,8 @@ export const GroupList = ajaxCaller(class GroupList extends Component {
 
   render() {
     const { groups, isDataLoaded, filter, creatingNewGroup, deletingGroup, updating } = this.state
+    const noGroups = _.isEmpty(groups) && isDataLoaded
+
     return h(Fragment, [
       h(TopBar, { title: 'Groups' }, [
         h(DelayedSearchInput, {
@@ -187,6 +201,7 @@ export const GroupList = ajaxCaller(class GroupList extends Component {
           h(NewGroupCard, {
             onClick: () => this.setState({ creatingNewGroup: true })
           }),
+          noGroups && noGroupsMessage,
           div({ style: { flexGrow: 1 } }, [
             _.flow(
               _.filter(({ groupName }) => Utils.textMatch(filter, groupName)),
