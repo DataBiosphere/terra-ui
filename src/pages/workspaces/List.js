@@ -298,7 +298,7 @@ export const WorkspaceList = _.flow(
 
     const noWorkspacesMessage = div({ style: { fontSize: 20, margin: '1rem' } }, [
       div([
-        'To get started with Terra, click ', span({ style: { fontWeight: 600 } }, ['Create a New Workspace'])
+        'To get started, click ', span({ style: { fontWeight: 600 } }, ['Create a New Workspace'])
       ]),
       div({ style: { marginTop: '1rem', fontSize: 16 } }, [
         linkButton({
