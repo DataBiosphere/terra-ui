@@ -1,6 +1,7 @@
 import _ from 'lodash/fp'
 import { h } from 'react-hyperscript-helpers'
 import { centeredSpinner } from 'src/components/icons'
+import { useRoute } from 'src/libs/nav'
 import { authStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 import { Disabled } from 'src/pages/Disabled'
@@ -9,7 +10,8 @@ import SignIn from 'src/pages/SignIn'
 import TermsOfService from 'src/pages/TermsOfService'
 
 
-const AuthContainer = ({ children, isPublic }) => {
+const AuthContainer = ({ children }) => {
+  const { public: isPublic } = useRoute()
   const { isSignedIn, registrationStatus, acceptedTos, profile } = Utils.useAtom(authStore)
   return Utils.cond(
     [isSignedIn === undefined && !isPublic, centeredSpinner],
