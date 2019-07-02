@@ -246,8 +246,6 @@ export const BillingList = _.flow(
     const { trialState } = profile
     const hasFreeCredits = trialState === 'Enabled'
     const breadcrumbs = `Billing > Billing Project`
-    const noBillingProjects = !!selectedName && !billingProjects
-    const hasBillingProjects = !!selectedName && billingProjects
 
     return h(Fragment, [
       h(TopBar, { title: 'Billing', href: Nav.getLink('billing') }, [
@@ -287,9 +285,9 @@ export const BillingList = _.flow(
           }
         }),
         Utils.cond(
-          [hasBillingProjects, () => h(ProjectDetail, { key: selectedName, project: _.find({ projectName: selectedName }, billingProjects) })],
-          [noBillingProjects && hasFreeCredits, () => freeCreditsMessage],
-          [noBillingProjects && !hasFreeCredits, () => noBillingMessage]
+          [!!selectedName && !!billingProjects, () => h(ProjectDetail, { key: selectedName, project: _.find({ projectName: selectedName }, billingProjects) })],
+          [!selectedName && _.isEmpty(billingProjects) && hasFreeCredits, () => freeCreditsMessage],
+          [!selectedName && _.isEmpty(billingProjects) && !hasFreeCredits, () => noBillingMessage]
         ),
         isBusy && spinnerOverlay
       ])
