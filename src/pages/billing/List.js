@@ -286,9 +286,11 @@ export const BillingList = _.flow(
             this.loadProjects()
           }
         }),
-        noBillingProjects && hasFreeCredits && freeCreditsMessage,
-        noBillingProjects && !hasFreeCredits && noBillingMessage,
-        hasBillingProjects && h(ProjectDetail, { key: selectedName, project: _.find({ projectName: selectedName }, billingProjects) }),
+        Utils.cond(
+          [hasBillingProjects, () => h(ProjectDetail, { key: selectedName, project: _.find({ projectName: selectedName }, billingProjects) })],
+          [noBillingProjects && hasFreeCredits, () => freeCreditsMessage],
+          [noBillingProjects && !hasFreeCredits, () => noBillingMessage]
+        ),
         isBusy && spinnerOverlay
       ])
     ])
