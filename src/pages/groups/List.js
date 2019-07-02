@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { Fragment } from 'react'
-import { a, b, div, h, span } from 'react-hyperscript-helpers'
+import { a, b, div, h } from 'react-hyperscript-helpers'
 import { pure } from 'recompose'
 import { buttonPrimary, Clickable, linkButton, PageBox, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
