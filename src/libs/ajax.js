@@ -36,8 +36,9 @@ const withCancellation = wrappedFetch => async (...args) => {
   } catch (error) {
     if (error instanceof DOMException && error.name === 'AbortError') {
       return Utils.abandonedPromise()
+    } else {
+      throw error
     }
-    throw error
   }
 }
 
@@ -50,9 +51,9 @@ const withErrorRejection = wrappedFetch => async (...args) => {
   }
 }
 
-const withUrlPrefix = prefix => wrappedFetch => (path, ...args) => {
+const withUrlPrefix = _.curry((prefix, wrappedFetch) => (path, ...args) => {
   return wrappedFetch(prefix + path, ...args)
-}
+})
 
 const withAppIdentifier = wrappedFetch => (url, options) => {
   return wrappedFetch(url, _.merge(options, appIdentifier))
@@ -104,14 +105,14 @@ const fetchOk = _.flow(withInstrumentation, withCancellation, withErrorRejection
 
 const fetchSam = _.flow(withUrlPrefix(`${getConfig().samUrlRoot}/`), withAppIdentifier)(fetchOk)
 const fetchBuckets = _.flow(withRequesterPays, withUrlPrefix('https://www.googleapis.com/'))(fetchOk)
-const fetchGoogleBilling = withUrlPrefix('https://cloudbilling.googleapis.com/v1/')(fetchOk)
+const fetchGoogleBilling = withUrlPrefix('https://cloudbilling.googleapis.com/v1/', fetchOk)
 const fetchRawls = _.flow(withUrlPrefix(`${getConfig().rawlsUrlRoot}/api/`), withAppIdentifier)(fetchOk)
-const fetchLeo = withUrlPrefix(`${getConfig().leoUrlRoot}/`)(fetchOk)
-const fetchDockstore = withUrlPrefix(`${getConfig().dockstoreUrlRoot}/api/`)(fetchOk)
+const fetchLeo = withUrlPrefix(`${getConfig().leoUrlRoot}/`, fetchOk)
+const fetchDockstore = withUrlPrefix(`${getConfig().dockstoreUrlRoot}/api/`, fetchOk)
 const fetchAgora = _.flow(withUrlPrefix(`${getConfig().agoraUrlRoot}/api/v1/`), withAppIdentifier)(fetchOk)
 const fetchOrchestration = _.flow(withUrlPrefix(`${getConfig().orchestrationUrlRoot}/`), withAppIdentifier)(fetchOk)
-const fetchRex = withUrlPrefix(`${getConfig().rexUrlRoot}/api/`)(fetchOk)
-const fetchBond = withUrlPrefix(`${getConfig().bondUrlRoot}/`)(fetchOk)
+const fetchRex = withUrlPrefix(`${getConfig().rexUrlRoot}/api/`, fetchOk)
+const fetchBond = withUrlPrefix(`${getConfig().bondUrlRoot}/`, fetchOk)
 
 const nbName = name => encodeURIComponent(`notebooks/${name}.ipynb`)
 
