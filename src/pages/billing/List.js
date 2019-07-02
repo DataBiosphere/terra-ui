@@ -53,7 +53,7 @@ const billingProjectNameValidator = existing => ({
 
 const noBillingMessage = div({ style: { fontSize: 20, margin: '2rem' } }, [
   div([
-    'To get started with Terra, click', icon('plus-circle', {
+    'To get started, click', icon('plus-circle', {
       size: 21, style: { color: colors.accent(), margin: '0 0.5rem' }
     }), 'to ', span({ style: { fontWeight: 600 } }, ['create a Billing Project'])
   ]),
@@ -67,7 +67,7 @@ const noBillingMessage = div({ style: { fontSize: 20, margin: '2rem' } }, [
 
 const freeCreditsMessage = div({ style: { fontSize: 20, margin: '2rem' } }, [
   div([
-    'Start your free trial with Terra by redeeming your ', span({ style: { fontWeight: 600 } }, ['Free Credits'])
+    'Start your free trial by redeeming your ', span({ style: { fontWeight: 600 } }, ['Free Credits'])
   ]),
   div({ style: { marginTop: '1rem', fontSize: 16 } }, [
     linkButton({
