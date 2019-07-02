@@ -3,7 +3,7 @@ import * as qs from 'qs'
 import { Fragment } from 'react'
 import { a, div, h, span } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
-import { buttonPrimary, Clickable, Select, spinnerOverlay } from 'src/components/common'
+import { buttonPrimary, Clickable, linkButton, Select, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
@@ -50,6 +50,32 @@ const billingProjectNameValidator = existing => ({
     message: 'already exists'
   }
 })
+
+const noBillingMessage = div({ style: { fontSize: 20, margin: '2rem' } }, [
+  div([
+    'To get started with Terra, click', icon('plus-circle', {
+      size: 21, style: { color: colors.accent(), margin: '0 0.5rem' }
+    }), 'to ', span({ style: { fontWeight: 600 } }, ['create a Billing Project'])
+  ]),
+  div({ style: { marginTop: '1rem', fontSize: 16 } }, [
+    linkButton({
+      ...Utils.newTabLinkProps,
+      href: `https://support.terra.bio/hc/en-us/articles/360026182251`
+    }, [`What is a billing project?`])
+  ])
+])
+
+const freeCreditsMessage = div({ style: { fontSize: 20, margin: '2rem' } }, [
+  div([
+    'Start your free trial with Terra by redeeming your ', span({ style: { fontWeight: 600 } }, ['Free Credits'])
+  ]),
+  div({ style: { marginTop: '1rem', fontSize: 16 } }, [
+    linkButton({
+      ...Utils.newTabLinkProps,
+      href: `https://support.terra.bio/hc/en-us/articles/360027940952`
+    }, [`What are Free Credits?`])
+  ])
+])
 
 const NewBillingProjectModal = ajaxCaller(class NewBillingProjectModal extends Component {
   constructor(props) {
@@ -220,6 +246,9 @@ export const BillingList = _.flow(
     const { trialState } = profile
     const hasFreeCredits = trialState === 'Enabled'
     const breadcrumbs = `Billing > Billing Project`
+    const noBillingProjects = !!selectedName && !billingProjects
+    const hasBillingProjects = !!selectedName && billingProjects
+
     return h(Fragment, [
       h(TopBar, { title: 'Billing', href: Nav.getLink('billing') }, [
         !!selectedName && div({
@@ -257,7 +286,9 @@ export const BillingList = _.flow(
             this.loadProjects()
           }
         }),
-        !!selectedName && billingProjects && h(ProjectDetail, { key: selectedName, project: _.find({ projectName: selectedName }, billingProjects) }),
+        noBillingProjects && hasFreeCredits && freeCreditsMessage,
+        noBillingProjects && !hasFreeCredits && noBillingMessage,
+        hasBillingProjects && h(ProjectDetail, { key: selectedName, project: _.find({ projectName: selectedName }, billingProjects) }),
         isBusy && spinnerOverlay
       ])
     ])
