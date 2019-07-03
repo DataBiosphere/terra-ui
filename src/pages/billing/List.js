@@ -183,10 +183,8 @@ export const BillingList = _.flow(
   }
 
   componentDidMount() {
-    Promise.all([
-      this.loadProjects(),
-      this.loadAccounts()
-    ])
+    this.loadProjects()
+    this.loadAccounts()
   }
 
  loadProjects = _.flow(

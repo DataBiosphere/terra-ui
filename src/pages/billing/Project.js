@@ -72,10 +72,8 @@ export default ajaxCaller(class ProjectDetail extends Component {
   })
 
   componentDidMount() {
-    Promise.all([
-      this.refresh(),
-      this.loadBillingInfo()
-    ])
+    this.refresh()
+    this.loadBillingInfo()
   }
 
   render() {
@@ -101,7 +99,14 @@ export default ajaxCaller(class ProjectDetail extends Component {
           !!displayName && span({ style: { flexShrink: 0, fontWeight: 600, fontSize: 14 } }, displayName),
           buttonPrimary({
             style: { marginLeft: 'auto' },
-            onClick: () => Auth.hasBillingScope() ? this.setState({ showBillingModal: true }) : authorizeAndLoadAccounts()
+            onClick: async () => {
+              if (Auth.hasBillingScope()) {
+                this.setState({ showBillingModal: true })
+              } else {
+                await authorizeAndLoadAccounts()
+                this.setState({ showBillingModal: Auth.hasBillingScope() })
+              }
+            }
           }, 'Change Account'),
           showBillingModal && h(Modal, {
             title: 'Change Billing Account',
