@@ -1,6 +1,5 @@
 import 'src/libs/routes'
 
-import { Fragment } from 'react'
 import { hot } from 'react-hot-loader/root'
 import { h } from 'react-hyperscript-helpers'
 import AuthContainer from 'src/components/AuthContainer'
@@ -13,11 +12,11 @@ import { NpsSurvey } from 'src/components/NpsSurvey'
 import ServiceAlerts from 'src/components/ServiceAlerts'
 import SupportRequest from 'src/components/SupportRequest'
 import { TrialBanner } from 'src/components/TrialBanner'
-import { Router, TitleManager } from 'src/libs/nav'
+import { LocationProvider, Router, TitleManager } from 'src/libs/nav'
 
 
 const Main = () => {
-  return h(Fragment, [
+  return h(LocationProvider, [
     h(Notifications),
     h(ServiceAlerts),
     h(FreeCreditsModal),
