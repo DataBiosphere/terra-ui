@@ -180,7 +180,6 @@ export const GroupList = ajaxCaller(class GroupList extends Component {
 
   render() {
     const { groups, isDataLoaded, filter, creatingNewGroup, deletingGroup, updating } = this.state
-    const noGroups = _.isEmpty(groups) && isDataLoaded
 
     return h(Fragment, [
       h(TopBar, { title: 'Groups' }, [
@@ -201,7 +200,7 @@ export const GroupList = ajaxCaller(class GroupList extends Component {
           h(NewGroupCard, {
             onClick: () => this.setState({ creatingNewGroup: true })
           }),
-          noGroups && noGroupsMessage,
+          isDataLoaded && _.isEmpty(groups) && noGroupsMessage,
           div({ style: { flexGrow: 1 } }, [
             _.flow(
               _.filter(({ groupName }) => Utils.textMatch(filter, groupName)),
