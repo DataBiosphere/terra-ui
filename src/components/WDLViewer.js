@@ -38,11 +38,12 @@ Prism.languages.wdl = {
     // Must be after 'declaration' or this will grab "scatter" in variable names
     /\bscatter\b/
   ],
+  // keywords before embeddable because of 'command'
   keyword: /\b(?:^version|call|runtime|task|workflow|if|then|else|import|as|input|output|meta|parameter_meta|scatter|struct|object(?=\s*{)|command(?=\s*(<<<|{)))\b/,
   boolean: /\b(?:true|false)\b/,
   number: /\b0x[\da-f]+\b|(?:\b\d+\.?\d*|\B\.\d+)(?:e[+-]?\d+)?/i,
-  operator: /\+=|-=|\*{1,2}=|\/{1,2}=|%=|&=|\|=|\^=|>{1,2}=|<{1,2}=|!=|<{1,2}|>{1,2}|={1,2}|\+|-|\*{1,2}|\/{1,2}|%|&|\||\^|~/,
-  punctuation: /([{}[\];(),.:]|<<<|>>>)/,
+  punctuation: /([{}[\\\];(),.:]|<<<|>>>)/, // before operators because of <<< & >>>
+  operator: /([=!*<>+-/%]|&&)/,
   'embedded-code': [
     {
       /*
@@ -63,7 +64,7 @@ Prism.languages.wdl = {
         rest: Prism.languages.bash
       }
     }
-  ],
+  ]
 }
 
 
