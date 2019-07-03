@@ -69,12 +69,6 @@ const checkRequesterPaysError = async response => {
   }
 }
 
-const mergeQueryParams = (params, urlString) => {
-  const url = new URL(urlString)
-  url.search = qs.stringify({ ...qs.parse(url.search, { ignoreQueryPrefix: true, plainObjects: true }), ...params })
-  return url.href
-}
-
 /*
  * Detects errors due to requester pays buckets, and adds the current workspace's billing
  * project if the user has access, retrying the request once if necessary.
@@ -86,7 +80,7 @@ const withRequesterPays = wrappedFetch => (url, ...args) => {
   const tryRequest = async () => {
     const knownRequesterPays = _.includes(bucket, requesterPaysBuckets.get())
     try {
-      return await wrappedFetch(mergeQueryParams({ userProject: (knownRequesterPays && userProject) || undefined }, url), ...args)
+      return await wrappedFetch(Utils.mergeQueryParams({ userProject: (knownRequesterPays && userProject) || undefined }, url), ...args)
     } catch (error) {
       const newResponse = await checkRequesterPaysError(error)
       if (newResponse.requesterPaysError && !knownRequesterPays) {
@@ -113,6 +107,7 @@ const fetchAgora = _.flow(withUrlPrefix(`${getConfig().agoraUrlRoot}/api/v1/`), 
 const fetchOrchestration = _.flow(withUrlPrefix(`${getConfig().orchestrationUrlRoot}/`), withAppIdentifier)(fetchOk)
 const fetchRex = withUrlPrefix(`${getConfig().rexUrlRoot}/api/`, fetchOk)
 const fetchBond = withUrlPrefix(`${getConfig().bondUrlRoot}/`, fetchOk)
+const fetchMartha = withUrlPrefix(`${getConfig().marthaUrlRoot}/`, fetchOk)
 
 const nbName = name => encodeURIComponent(`notebooks/${name}.ipynb`)
 
@@ -931,10 +926,14 @@ const Dockstore = signal => ({
 
 
 const Martha = signal => ({
-  call: uri => {
-    return fetchOk(getConfig().marthaUrlRoot,
-      _.mergeAll([jsonBody({ uri }), authOpts(), appIdentifier, { signal, method: 'POST' }])
-    ).then(res => res.json())
+  getDataObjectMetadata: async url => {
+    const res = await fetchMartha('martha_v2', _.mergeAll([jsonBody({ url }), appIdentifier, { signal, method: 'POST' }]))
+    return res.json()
+  },
+
+  getSignedUrl: async ({ bucket, object, dataObjectUri }) => {
+    const res = await fetchMartha('getSignedUrlV1', _.mergeAll([jsonBody({ bucket, object, dataObjectUri }), authOpts(), appIdentifier, { signal, method: 'POST' }]))
+    return res.json()
   }
 })
 
