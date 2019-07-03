@@ -19,7 +19,7 @@ const TerminalLauncher = _.flow(
   }),
   ajaxCaller
 )(class TerminalLauncher extends Component {
-  async refreshCookie() {
+  refreshCookie() {
     const { namespace, cluster: { clusterName }, ajax: { Jupyter } } = this.props
 
     this.scheduledRefresh = setTimeout(() => this.refreshCookie(), 1000 * 60 * 20)

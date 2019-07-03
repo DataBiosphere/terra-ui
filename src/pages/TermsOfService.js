@@ -97,7 +97,7 @@ Terra provides tutorial workspaces preloaded with best practice analysis pipelin
 data from TCGA. These workspaces are intended for tutorial purposes only, not for computing on
 personal data.
 
-You must not upload your own data sets to these workspaces, nor should you add tools (Method
+You must not upload your own data sets to these workspaces, nor should you add workflows (Method
 Configs). If you do not follow these guidelines, your Terra/Firecloud account may be deactivated.
 
 #### Accessing a Government Website

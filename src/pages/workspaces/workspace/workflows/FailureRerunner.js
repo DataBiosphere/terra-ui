@@ -29,7 +29,7 @@ const ToastMessageComponent = Utils.connectAtom(rerunFailuresStatus, 'status')(c
 })
 
 export const rerunFailures = async ({ namespace, name, submissionId, configNamespace, configName, onDone }) => {
-  rerunFailuresStatus.set({ text: 'Loading tool info...' })
+  rerunFailuresStatus.set({ text: 'Loading workflow info...' })
   const id = pushNotification({
     dismiss: { duration: 0 },
     content: h(ToastMessageComponent)
