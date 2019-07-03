@@ -276,10 +276,8 @@ export const WorkspaceList = _.flow(
   render() {
     const { workspaces, loadingWorkspaces, refreshWorkspaces, listView, viewToggleButtons } = this.props
     const { filter, creatingNewWorkspace, cloningWorkspaceId, deletingWorkspaceId, sharingWorkspaceId, requestingAccessWorkspaceId, accessLevelsFilter, projectsFilter, submissionsFilter, tagsFilter, includePublic } = this.state
-    const initialFiltered = _.filter(ws => {
-      const { workspace: { namespace, name } } = ws
-      return Utils.textMatch(filter, `${namespace}/${name}`) && (includePublic || !ws.public || Utils.canWrite(ws.accessLevel))
-    }, workspaces)
+    const initialFiltered = _.filter(ws => includePublic || !ws.public || Utils.canWrite(ws.accessLevel), workspaces)
+    const noWorkspaces = _.isEmpty(initialFiltered) && !loadingWorkspaces
 
     const namespaceList = _.flow(
       _.map('workspace.namespace'),
@@ -295,15 +293,31 @@ export const WorkspaceList = _.flow(
       }
     }
 
+    const noWorkspacesMessage = div({ style: { fontSize: 20, margin: '1rem' } }, [
+      div([
+        'To get started, click ', span({ style: { fontWeight: 600 } }, ['Create a New Workspace'])
+      ]),
+      div({ style: { marginTop: '1rem', fontSize: 16 } }, [
+        linkButton({
+          ...Utils.newTabLinkProps,
+          href: `https://support.terra.bio/hc/en-us/articles/360022716811`
+        }, [`What's a workspace?`])
+      ])
+    ])
+
     const data = _.flow(
-      _.filter(ws => (_.isEmpty(accessLevelsFilter) || accessLevelsFilter.includes(ws.accessLevel)) &&
-        (_.isEmpty(projectsFilter) || projectsFilter.includes(ws.workspace.namespace)) &&
-        (_.isEmpty(submissionsFilter) || submissionsFilter.includes(workspaceSubmissionStatus(ws))) &&
-        (_.isEmpty(tagsFilter) || _.every(_.identity, _.map(a => returnTags(ws.workspace.attributes).includes(a), tagsFilter)))),
+      _.filter(ws => {
+        const { workspace: { namespace, name } } = ws
+        return Utils.textMatch(filter, `${namespace}/${name}`) &&
+          (_.isEmpty(accessLevelsFilter) || accessLevelsFilter.includes(ws.accessLevel)) &&
+          (_.isEmpty(projectsFilter) || projectsFilter.includes(ws.workspace.namespace)) &&
+          (_.isEmpty(submissionsFilter) || submissionsFilter.includes(workspaceSubmissionStatus(ws))) &&
+          (_.isEmpty(tagsFilter) || _.every(_.identity, _.map(a => returnTags(ws.workspace.attributes).includes(a), tagsFilter)))
+      }),
       _.sortBy('workspace.name')
     )(initialFiltered)
 
-    const renderedWorkspaces = _.map(workspace => {
+    const renderedWorkspaces = noWorkspaces ? noWorkspacesMessage : _.map(workspace => {
       return h(WorkspaceCard, {
         listView,
         onClone: () => this.setState({ cloningWorkspaceId: workspace.workspace.workspaceId }),
