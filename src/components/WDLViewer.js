@@ -17,6 +17,32 @@ import { Component } from 'src/libs/wrapped-components'
  * isn't possible.
  */
 Prism.languages.wdl = {
+  comment: /#.*/,
+  string: {
+    pattern: /(["'])(?:\\(?:\r\n|[\s\S])|(?!\1)[^\\\r\n])*\1/,
+    greedy: true
+  },
+  declaration: {
+    pattern: /(?:Array[\S]*|Boolean|File|Float|Int|Map|Object|String|Pair)\??\s+\w+/,
+    inside: {
+      builtin: /(?:Array[\S]*|Boolean|File|Float|Int|Map|Object|String|Pair)\??/,
+      variable: / \w+/
+    }
+  },
+  'class-name': [
+    {
+      // For workflow/task declarations and their invocations, must be before 'keyword' for lookbehind to work
+      pattern: /((?:workflow|task|call)\s+)\w+/,
+      lookbehind: true
+    },
+    // Must be after 'declaration' or this will grab "scatter" in variable names
+    /\bscatter\b/
+  ],
+  keyword: /\b(?:^version|call|runtime|task|workflow|if|then|else|import|as|input|output|meta|parameter_meta|scatter|struct|object(?=\s*{)|command(?=\s*(<<<|{)))\b/,
+  boolean: /\b(?:true|false)\b/,
+  number: /\b0x[\da-f]+\b|(?:\b\d+\.?\d*|\B\.\d+)(?:e[+-]?\d+)?/i,
+  operator: /\+=|-=|\*{1,2}=|\/{1,2}=|%=|&=|\|=|\^=|>{1,2}=|<{1,2}=|!=|<{1,2}|>{1,2}|={1,2}|\+|-|\*{1,2}|\/{1,2}|%|&|\||\^|~/,
+  punctuation: /([{}[\];(),.:]|<<<|>>>)/,
   'embedded-code': [
     {
       /*
@@ -38,32 +64,6 @@ Prism.languages.wdl = {
       }
     }
   ],
-  comment: /#.*/,
-  string: {
-    pattern: /(["'])(?:\\(?:\r\n|[\s\S])|(?!\1)[^\\\r\n])*\1/,
-    greedy: true
-  },
-  declaration: {
-    pattern: /(?:Array[\S]*|Boolean|File|Float|Int|Map|Object|String|Pair)\??\s+[A-Za-z_0-9]+/,
-    inside: {
-      builtin: /(?:Array[\S]*|Boolean|File|Float|Int|Map|Object|String|Pair)\??/,
-      variable: / [A-Za-z_0-9]+/
-    }
-  },
-  'class-name': [
-    {
-      // For workflow/task declarations and their invocations, must be before 'keyword' for lookbehind to work
-      pattern: /((?:workflow|task|call) )[A-Za-z_]+/,
-      lookbehind: true
-    },
-    // Must be after 'declaration' or this will grab "scatter" in variable names
-    /\bscatter\b/
-  ],
-  keyword: /\b(?:call|runtime|task|workflow|if|then|else|import|as|input|output|meta|parameter_meta|scatter)\b/,
-  boolean: /\b(?:true|false)\b/,
-  number: /\b0x[\da-f]+\b|(?:\b\d+\.?\d*|\B\.\d+)(?:e[+-]?\d+)?/i,
-  operator: /=|\+=|-=|\*=|\/=|\/\/=|%=|&=|\|=|\^=|>>=|<<=|\*\*=|<=|>=|==|<|>|!=|\+|-|\*|\*\*|\/|\/\/|%|<<|>>|&|\||\^|~/,
-  punctuation: /[{}[\];(),.:]/
 }
 
 
