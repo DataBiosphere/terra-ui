@@ -53,9 +53,7 @@ const billingProjectNameValidator = existing => ({
 
 const noBillingMessage = div({ style: { fontSize: 20, margin: '2rem' } }, [
   div([
-    'To get started, click', icon('plus-circle', {
-      size: 21, style: { color: colors.accent(), margin: '0 0.5rem' }
-    }), 'to ', span({ style: { fontWeight: 600 } }, ['create a Billing Project'])
+    'To get started, click the plus button to ', span({ style: { fontWeight: 600 } }, ['create a Billing Project'])
   ]),
   div({ style: { marginTop: '1rem', fontSize: 16 } }, [
     linkButton({
@@ -287,8 +285,8 @@ export const BillingList = _.flow(
         }),
         Utils.cond(
           [selectedName && hasBillingProjects, () => h(ProjectDetail, { key: selectedName, project: _.find({ projectName: selectedName }, billingProjects) })],
-          [!selectedName && !hasBillingProjects && hasFreeCredits, () => freeCreditsMessage],
-          [!selectedName && !hasBillingProjects && !hasFreeCredits, () => noBillingMessage]
+          [!hasBillingProjects && hasFreeCredits, () => freeCreditsMessage],
+          [!hasBillingProjects && !hasFreeCredits, () => noBillingMessage]
         ),
         isBusy && spinnerOverlay
       ])
