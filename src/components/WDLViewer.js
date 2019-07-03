@@ -42,7 +42,7 @@ Prism.languages.wdl = {
   keyword: /\b(?:^version|call|runtime|task|workflow|if|then|else|import|as|input|output|meta|parameter_meta|scatter|struct|object(?=\s*{)|command(?=\s*(<<<|{)))\b/,
   boolean: /\b(?:true|false)\b/,
   number: /\b0x[\da-f]+\b|(?:\b\d+\.?\d*|\B\.\d+)(?:e[+-]?\d+)?/i,
-  punctuation: /([{}[\\\];(),.:]|<<<|>>>)/, // before operators because of <<< & >>>
+  punctuation: /([{}[\];(),.:]|<<<|>>>)/, // before operators because of <<< & >>>
   operator: /([=!*<>+-/%]|&&)/,
   'embedded-code': [
     {
