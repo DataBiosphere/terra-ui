@@ -7,13 +7,13 @@ import { reportError } from 'src/libs/error'
 import { Component } from 'src/libs/wrapped-components'
 
 
-export default class DeleteToolModal extends Component {
+export default class DeleteWorkflowModal extends Component {
   render() {
     const { onDismiss, methodConfig: { name } } = this.props
     const { error } = this.state
 
     return h(Modal, {
-      title: 'Delete Tool',
+      title: 'Delete Workflow',
       onDismiss,
       okButton: buttonPrimary({
         onClick: () => this.delete()
@@ -34,7 +34,7 @@ export default class DeleteToolModal extends Component {
         .delete()
       onSuccess()
     } catch (error) {
-      reportError('Error deleting tool', error)
+      reportError('Error deleting workflow', error)
     }
   }
 }

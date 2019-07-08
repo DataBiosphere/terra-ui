@@ -83,28 +83,13 @@ const NewBillingProjectModal = ajaxCaller(class NewBillingProjectModal extends C
       billingProjectNameTouched: false,
       existing: [],
       isBusy: false,
-      chosenBillingAccount: '',
-      billingAccounts: undefined
+      chosenBillingAccount: ''
     }
   }
 
-  componentDidMount() {
-    this.loadAccounts()
-  }
-
-  loadAccounts = _.flow(
-    withErrorReporting('Error loading billing accounts'),
-    Utils.withBusyState(v => this.setState({ isBusy: v }))
-  )(async () => {
-    const { ajax: { Billing } } = this.props
-    await Auth.ensureBillingScope()
-    const billingAccounts = await Billing.listAccounts()
-    this.setState({ billingAccounts })
-  })
-
   render() {
-    const { onDismiss } = this.props
-    const { billingProjectName, billingProjectNameTouched, chosenBillingAccount, existing, isBusy, billingAccounts } = this.state
+    const { onDismiss, billingAccounts } = this.props
+    const { billingProjectName, billingProjectNameTouched, chosenBillingAccount, existing, isBusy } = this.state
     const errors = validate({ billingProjectName }, { billingProjectName: billingProjectNameValidator(existing) })
 
     return h(Modal, {
@@ -190,7 +175,7 @@ const NewBillingProjectModal = ajaxCaller(class NewBillingProjectModal extends C
 
   submit = _.flow(
     withErrorReporting('Error creating billing project'),
-    Utils.withBusyState(v => this.setState({ isBusy: v }))
+    Utils.withBusyState(isBusy => this.setState({ isBusy }))
   )(async () => {
     const { onSuccess } = this.props
     const { billingProjectName, chosenBillingAccount, existing } = this.state
@@ -216,30 +201,52 @@ export const BillingList = _.flow(
     this.state = {
       billingProjects: null,
       creatingBillingProject: false,
+      billingAccounts: null,
       ...StateHistory.get()
     }
   }
 
   componentDidMount() {
     this.loadProjects()
+    this.loadAccounts()
   }
 
-  loadProjects = _.flow(
-    withErrorReporting('Error loading billing projects list'),
-    Utils.withBusyState(v => this.setState({ isBusy: v }))
+ loadProjects = _.flow(
+   withErrorReporting('Error loading billing projects list'),
+   Utils.withBusyState(isLoadingProjects => this.setState({ isLoadingProjects }))
+ )(
+   async () => {
+     const { ajax: { Billing } } = this.props
+     const rawBillingProjects = await Billing.listProjects()
+     const billingProjects = _.flow(
+       _.groupBy('projectName'),
+       _.map(gs => ({ ...gs[0], role: _.map('role', gs) })),
+       _.sortBy('projectName')
+     )(rawBillingProjects)
+     this.setState({ billingProjects })
+   })
+
+  authorizeAndLoadAccounts = _.flow(
+    withErrorReporting('Error setting up authorization'),
+    Utils.withBusyState(isAuthorizing => this.setState({ isAuthorizing }))
+  )(async () => {
+    await Auth.ensureBillingScope()
+    await this.loadAccounts()
+  })
+
+  loadAccounts = _.flow(
+    withErrorReporting('Error loading billing accounts'),
+    Utils.withBusyState(isLoadingAccounts => this.setState({ isLoadingAccounts }))
   )(async () => {
     const { ajax: { Billing } } = this.props
-    const rawBillingProjects = await Billing.listProjects()
-    const billingProjects = _.flow(
-      _.groupBy('projectName'),
-      _.map(gs => ({ ...gs[0], role: _.map('role', gs) })),
-      _.sortBy('projectName')
-    )(rawBillingProjects)
-    this.setState({ billingProjects })
+    if (Auth.hasBillingScope()) {
+      const billingAccounts = await Billing.listAccounts()
+      this.setState({ billingAccounts })
+    }
   })
 
   render() {
-    const { billingProjects, isBusy, creatingBillingProject } = this.state
+    const { billingProjects, isLoadingProjects, isLoadingAccounts, isAuthorizing, creatingBillingProject, billingAccounts } = this.state
     const { queryParams: { selectedName }, authState: { profile } } = this.props
     const { trialState } = profile
     const hasFreeCredits = trialState === 'Enabled'
@@ -261,9 +268,17 @@ export const BillingList = _.flow(
         div({ style: { width: 330, boxShadow: '0 2px 5px 0 rgba(0,0,0,0.25)' } }, [
           div({ style: Style.navList.heading }, [
             'Billing Projects',
-            h(Clickable,
-              { onClick: () => { this.setState({ creatingBillingProject: true }) } },
-              [icon('plus-circle', { size: 21, style: { color: colors.accent() } })]
+            h(Clickable, {
+              onClick: async () => {
+                if (Auth.hasBillingScope()) {
+                  this.setState({ creatingBillingProject: true })
+                } else {
+                  await this.authorizeAndLoadAccounts()
+                  Auth.hasBillingScope() && this.setState({ creatingBillingProject: true })
+                }
+              }
+            },
+            [icon('plus-circle', { size: 21, style: { color: colors.accent() } })]
             )
           ]),
           hasFreeCredits && h(Clickable, {
@@ -277,6 +292,7 @@ export const BillingList = _.flow(
           }), billingProjects)
         ]),
         creatingBillingProject && h(NewBillingProjectModal, {
+          billingAccounts,
           onDismiss: () => this.setState({ creatingBillingProject: false }),
           onSuccess: () => {
             this.setState({ creatingBillingProject: false })
@@ -284,11 +300,17 @@ export const BillingList = _.flow(
           }
         }),
         Utils.cond(
-          [selectedName && hasBillingProjects, () => h(ProjectDetail, { key: selectedName, project: _.find({ projectName: selectedName }, billingProjects) })],
+          [selectedName && hasBillingProjects, () => h(ProjectDetail, {
+            key: selectedName,
+            project: _.find({ projectName: selectedName }, billingProjects),
+            billingAccounts,
+            authorizeAndLoadAccounts: this.authorizeAndLoadAccounts
+          })],
+          [!selectedName && hasBillingProjects, () => div({ style: { margin: '1rem auto 0 auto' } }, ['Select a Billing Project'])],
           [!hasBillingProjects && hasFreeCredits, () => freeCreditsMessage],
           [!hasBillingProjects && !hasFreeCredits, () => noBillingMessage]
         ),
-        isBusy && spinnerOverlay
+        (isLoadingProjects || isAuthorizing || isLoadingAccounts) && spinnerOverlay
       ])
     ])
   }

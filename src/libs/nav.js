@@ -1,9 +1,11 @@
 import { createHashHistory as createHistory } from 'history'
 import _ from 'lodash/fp'
-import pathToRegexp from 'path-to-regexp'
 import * as qs from 'qs'
-import { Component } from 'react'
-import { atom } from 'src/libs/utils'
+import { Component, createContext, useContext, useEffect, useState } from 'react'
+import { div, h } from 'react-hyperscript-helpers'
+import { getAppName } from 'src/libs/logos'
+import { routeHandlersStore } from 'src/libs/state'
+import { atom, cond, useAtom, useOnMount } from 'src/libs/utils'
 
 
 export const blockNav = atom(() => Promise.resolve())
@@ -15,64 +17,15 @@ export const history = createHistory({
 
 history.block('')
 
-let allPathHandlers = {}
-
-/**
- * @param {string} k - key for path
- * @param {object} handler
- * @param {string} handler.path - path spec handled by path-to-regexp
- * @param handler.component - component to render
- */
-export const defPath = ({ name: k, path, component, ...data }) => {
-  console.assert(!_.has(k, allPathHandlers), `Key ${k} is already defined`)
-  const keys = [] // mutated by pathToRegexp
-  const regex = pathToRegexp(path, keys)
-  allPathHandlers[k] = {
-    regex,
-    component,
-    keys: _.map('name', keys),
-    makePath: pathToRegexp.compile(path),
-    ...data
-  }
-}
-
-export const clearPaths = () => {
-  allPathHandlers = {}
-}
-
-/**
- * @param {string} pathname
- * @returns {object} matchingHandler
- */
-export const findHandler = pathname => {
-  const matchingHandlers = _.filter(({ regex }) => regex.test(pathname), allPathHandlers)
-  console.assert(matchingHandlers.length <= 1, 'Multiple handlers matched', matchingHandlers)
-  return matchingHandlers[0]
-}
-
-/**
- * @param {object} handler
- * @param {string} pathname
- * @param {string} search
- * @returns {object} parsed props
- */
-export const getHandlerProps = ({ keys, regex }, pathname, search) => {
-  const pathProps = _.zipObject(keys, _.tail(pathname.match(regex)))
-  return {
-    ...pathProps,
-    queryParams: qs.parse(search, { ignoreQueryPrefix: true, plainObjects: true })
-  }
-}
-
 /**
  * @param k
  * @param params
  * @returns {string}
  */
-export const getPath = (k, params) => {
-  const handler = allPathHandlers[k]
+export const getPath = (name, params) => {
+  const handler = _.find({ name }, routeHandlersStore.get())
   console.assert(handler,
-    `No handler found for key ${k}. Valid path keys are: ${_.keysIn(allPathHandlers)}`)
+    `No handler found for key ${name}. Valid path keys are: ${_.map('name', routeHandlersStore.get())}`)
   return handler.makePath(params)
 }
 
@@ -98,4 +51,50 @@ export class Redirector extends Component {
   render() {
     return null
   }
+}
+
+const parseRoute = (handlers, { pathname, search }) => {
+  const handler = _.find(({ regex }) => regex.test(pathname), handlers)
+  console.assert(handler, 'No handler found for path')
+  return handler && {
+    ...handler,
+    params: _.zipObject(handler.keys, _.tail(handler.regex.exec(pathname))),
+    query: qs.parse(search, { ignoreQueryPrefix: true, plainObjects: true })
+  }
+}
+
+const locationContext = createContext()
+
+export const LocationProvider = ({ children }) => {
+  const [location, setLocation] = useState(history.location)
+  useOnMount(() => {
+    return history.listen(v => setLocation(v))
+  })
+  return h(locationContext.Provider, { value: location }, [children])
+}
+
+export const useRoute = () => {
+  const location = useContext(locationContext)
+  const handlers = useAtom(routeHandlersStore)
+  return parseRoute(handlers, location)
+}
+
+export const TitleManager = () => {
+  const { title, params, query } = useRoute()
+  const newTitle = cond(
+    [_.isFunction(title), () => title({ ...params, queryParams: query })],
+    [title, () => title],
+    getAppName
+  )
+  useEffect(() => {
+    document.title = newTitle
+  }, [newTitle])
+  return null
+}
+
+export const Router = () => {
+  const { component, params, query } = useRoute()
+  return div({ style: { display: 'flex', flexDirection: 'column', flex: '1 0 auto', position: 'relative' } }, [
+    h(component, { key: history.location.pathname, ...params, queryParams: query })
+  ])
 }

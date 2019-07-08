@@ -1,6 +1,8 @@
 import * as Utils from 'src/libs/utils'
 
 
+export const routeHandlersStore = Utils.atom([])
+
 export const authStore = Utils.atom({
   isSignedIn: undefined,
   registrationStatus: undefined,

@@ -8,7 +8,7 @@ import { TextInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import * as Style from 'src/libs/style'
 import { Component } from 'src/libs/wrapped-components'
-import EntitySelectionType from 'src/pages/workspaces/workspace/tools/EntitySelectionType'
+import EntitySelectionType from 'src/pages/workspaces/workspace/workflows/EntitySelectionType'
 
 
 export default class DataStepContent extends Component {

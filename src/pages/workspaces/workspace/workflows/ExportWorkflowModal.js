@@ -13,13 +13,13 @@ import { Component } from 'src/libs/wrapped-components'
 import validate from 'validate.js'
 
 
-const ExportToolModal = withWorkspaces()(class ExportToolModal extends Component {
+const ExportWorkflowModal = withWorkspaces()(class ExportWorkflowModal extends Component {
   constructor(props) {
     super(props)
 
     this.state = {
       selectedWorkspaceId: undefined,
-      toolName: props.methodConfig.name,
+      workflowName: props.methodConfig.name,
       error: undefined,
       exported: false
     }
@@ -39,11 +39,11 @@ const ExportToolModal = withWorkspaces()(class ExportToolModal extends Component
 
   renderExportForm() {
     const { workspaces, thisWorkspace, onDismiss } = this.props
-    const { selectedWorkspaceId, toolName, exporting, error } = this.state
+    const { selectedWorkspaceId, workflowName, exporting, error } = this.state
 
-    const errors = validate({ selectedWorkspaceId, toolName }, {
+    const errors = validate({ selectedWorkspaceId, workflowName }, {
       selectedWorkspaceId: { presence: true },
-      toolName: {
+      workflowName: {
         presence: { allowEmpty: false },
         format: {
           pattern: /^[A-Za-z0-9_\-.]*$/,
@@ -71,10 +71,10 @@ const ExportToolModal = withWorkspaces()(class ExportToolModal extends Component
       }),
       h(RequiredFormLabel, ['Name']),
       h(ValidatedInput, {
-        error: Utils.summarizeErrors(errors && errors.toolName),
+        error: Utils.summarizeErrors(errors && errors.workflowName),
         inputProps: {
-          value: toolName,
-          onChange: v => this.setState({ toolName: v })
+          value: workflowName,
+          onChange: v => this.setState({ workflowName: v })
         }
       }),
       exporting && spinnerOverlay,
@@ -84,7 +84,7 @@ const ExportToolModal = withWorkspaces()(class ExportToolModal extends Component
 
   renderPostExport() {
     const { onDismiss } = this.props
-    const { toolName } = this.state
+    const { workflowName } = this.state
     const selectedWorkspace = this.getSelectedWorkspace().workspace
 
     return h(Modal, {
@@ -96,21 +96,21 @@ const ExportToolModal = withWorkspaces()(class ExportToolModal extends Component
           namespace: selectedWorkspace.namespace,
           name: selectedWorkspace.name,
           workflowNamespace: selectedWorkspace.namespace,
-          workflowName: toolName
+          workflowName
         })
-      }, ['Go to exported tool'])
+      }, ['Go to exported workflow'])
     }, [
       'Successfully exported ',
-      b([toolName]),
+      b([workflowName]),
       ' to ',
       b([selectedWorkspace.name]),
-      '. Do you want to view the exported tool?'
+      '. Do you want to view the exported workflow?'
     ])
   }
 
   async export() {
     const { thisWorkspace, methodConfig } = this.props
-    const { toolName } = this.state
+    const { workflowName } = this.state
     const selectedWorkspace = this.getSelectedWorkspace().workspace
 
     try {
@@ -120,7 +120,7 @@ const ExportToolModal = withWorkspaces()(class ExportToolModal extends Component
         .methodConfig(methodConfig.namespace, methodConfig.name)
         .copyTo({
           destConfigNamespace: selectedWorkspace.namespace,
-          destConfigName: toolName,
+          destConfigName: workflowName,
           workspaceName: {
             namespace: selectedWorkspace.namespace,
             name: selectedWorkspace.name
@@ -133,4 +133,4 @@ const ExportToolModal = withWorkspaces()(class ExportToolModal extends Component
   }
 })
 
-export default ExportToolModal
+export default ExportWorkflowModal
