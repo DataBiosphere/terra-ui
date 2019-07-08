@@ -86,7 +86,7 @@ const noJobsMessage = div({ style: { fontSize: 20, margin: '1rem' } }, [
   div({ style: { marginTop: '1rem', fontSize: 16 } }, [
     linkButton({
       ...Utils.newTabLinkProps,
-      href: `https://support.terra.bio/hc/en-us/articles/360028028112`
+      href: `https://support.terra.bio/hc/en-us/articles/360027920592`
     }, [`What is a job?`])
   ])
 ])
