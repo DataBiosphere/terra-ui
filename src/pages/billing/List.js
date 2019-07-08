@@ -202,6 +202,7 @@ export const BillingList = _.flow(
       billingProjects: null,
       creatingBillingProject: false,
       billingAccounts: null,
+      isOwner: false,
       ...StateHistory.get()
     }
   }
@@ -209,6 +210,7 @@ export const BillingList = _.flow(
   componentDidMount() {
     this.loadProjects()
     this.loadAccounts()
+    this.checkOwner()
   }
 
  loadProjects = _.flow(
@@ -245,8 +247,13 @@ export const BillingList = _.flow(
     }
   })
 
+  checkOwner() {
+    const { billingProjects, isOwner } = this.state
+    !isOwner && _.map(project => _.includes('Owner', project.role) ? this.setState({ isOwner: true }) : null, billingProjects)
+  }
+
   render() {
-    const { billingProjects, isLoadingProjects, isLoadingAccounts, isAuthorizing, creatingBillingProject, billingAccounts } = this.state
+    const { billingProjects, isLoadingProjects, isLoadingAccounts, isAuthorizing, creatingBillingProject, billingAccounts, isOwner } = this.state
     const { queryParams: { selectedName }, authState: { profile } } = this.props
     const { trialState } = profile
     const hasFreeCredits = trialState === 'Enabled'
@@ -306,7 +313,7 @@ export const BillingList = _.flow(
             billingAccounts,
             authorizeAndLoadAccounts: this.authorizeAndLoadAccounts
           })],
-          [!selectedName && hasBillingProjects, () => div({ style: { margin: '1rem auto 0 auto' } }, ['Select a Billing Project'])],
+          [isOwner && !selectedName && hasBillingProjects, () => div({ style: { margin: '1rem auto 0 auto' } }, ['Select a Billing Project'])],
           [!hasBillingProjects && hasFreeCredits, () => freeCreditsMessage],
           [!hasBillingProjects && !hasFreeCredits, () => noBillingMessage]
         ),
