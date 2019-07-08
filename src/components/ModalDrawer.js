@@ -1,16 +1,12 @@
-import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
-import { useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import RModal from 'react-modal'
 import { Transition } from 'react-transition-group'
-import { buttonPrimary, buttonSecondary, Clickable } from 'src/components/common'
+import ButtonBar from 'src/components/ButtonBar'
+import { Clickable } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import colors from 'src/libs/colors'
-import * as Utils from 'src/libs/utils'
 
-
-RModal.defaultStyles = { overlay: {}, content: {} }
 
 const drawer ={
   overlay: transitionState => transitionState === 'entering' || transitionState === 'entered' ? {
@@ -66,20 +62,7 @@ const Modal = ({
       }, [icon('times')])
     ]),
     div({ style: drawer.body }, [children]),
-    showButtons && div({ style: drawer.buttonRow }, [
-      showCancel ?
-        buttonSecondary({
-          style: { marginRight: '3rem' },
-          onClick: onDismiss
-        }, [cancelText]) :
-        null,
-      Utils.cond(
-        [okButton === undefined, () => buttonPrimary({ onClick: onDismiss }, 'OK')],
-        [_.isString(okButton), () => buttonPrimary({ onClick: onDismiss }, okButton)],
-        [_.isFunction(okButton), () => buttonPrimary({ onClick: okButton }, 'OK')],
-        () => okButton
-      )
-    ])
+    h(ButtonBar, { onOk: onDismiss, onCancel: onDismiss, style: drawer.buttonRow })
   ])
 }
 
@@ -107,20 +90,15 @@ const defaultProps = {
 }
 
 export const ModalDrawer = props => {
-  const { openDrawer, onDismiss } = props
-  const [closeDrawer, setCloseDrawer] = useState(false)
+  const { openDrawer } = props
 
   const transitionModal = h(Transition, {
-    in: openDrawer && !closeDrawer,
+    in: openDrawer,
     timeout: { exit: 200 },
     appear: true,
     mountOnEnter: true,
-    unmountOnExit: true,
-    onExited: () => {
-      onDismiss()
-      setCloseDrawer(false)
-    }
-  }, [transitionState => h(Modal, { ...props, onDismiss: () => setCloseDrawer(true), transitionState })])
+    unmountOnExit: true
+  }, [transitionState => h(Modal, { ...props, transitionState })])
 
   return transitionModal
 }
