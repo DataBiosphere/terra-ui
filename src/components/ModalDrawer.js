@@ -1,10 +1,7 @@
 import PropTypes from 'prop-types'
-import { div, h } from 'react-hyperscript-helpers'
+import { h } from 'react-hyperscript-helpers'
 import RModal from 'react-modal'
 import { Transition } from 'react-transition-group'
-import ButtonBar from 'src/components/ButtonBar'
-import { Clickable } from 'src/components/common'
-import { icon } from 'src/components/icons'
 import colors from 'src/libs/colors'
 
 
@@ -22,25 +19,11 @@ const drawer ={
     backgroundColor: colors.light(0.4), height: '100%',
     boxShadow: '3px 0 13px 0 rgba(0,0,0,0.3)',
     display: 'flex', flexDirection: 'column'
-  }),
-  title: {
-    display: 'flex', alignItems: 'baseline', marginBottom: '1rem', flex: 'none', padding: '1.5rem 1.25rem'
-  },
-  body: {
-    display: 'flex', alignItems: 'baseline', marginBottom: '1rem', flex: 1, padding: '1.5rem 1.25rem', overflow: 'auto'
-  },
-  buttonRow: {
-    marginTop: 'auto', backgroundColor: colors.dark(0.2), padding: '1.75rem 1.25rem',
-    display: 'flex', justifyContent: 'flex-end', alignItems: 'baseline'
-  },
-  titleAlign: showPrevArrow => ({ marginLeft: showPrevArrow ? 'auto' : undefined })
+  })
 }
 
-const Modal = ({
-  onPrevious = () => {}, showPreviousArrow = false, transitionState = false,
-  ...props
-}) => {
-  const { onDismiss, title, titleExtras, children, width, showCancel, cancelText, showX, showButtons, okButton, ...restProps } = props
+const Modal = ({ transitionState = false, ...props }) => {
+  const { onDismiss, children, width, ...restProps } = props
 
   return h(RModal, {
     parentSelector: () => document.getElementById('modal-root'),
@@ -49,43 +32,17 @@ const Modal = ({
     style: { overlay: drawer.overlay(transitionState), content: { ...drawer.container(transitionState), width } },
     ariaHideApp: false,
     ...restProps
-  }, [
-    title && div({ style: drawer.title }, [
-      showPreviousArrow && h(Clickable, {
-        onClick: onPrevious
-      }, [icon('arrowLeft')]),
-      div({ style: { fontSize: 18, fontWeight: 600, ...drawer.titleAlign(showPreviousArrow) } }, [title]),
-      titleExtras,
-      showX && h(Clickable, {
-        style: { marginLeft: 'auto' },
-        onClick: onDismiss
-      }, [icon('times')])
-    ]),
-    div({ style: drawer.body }, [children]),
-    h(ButtonBar, { onOk: onDismiss, onCancel: onDismiss, style: drawer.buttonRow })
-  ])
+  }, [children])
 }
 
 const propTypes = {
   onDismiss: PropTypes.func.isRequired,
-  title: PropTypes.node,
-  titleExtras: PropTypes.node,
   width: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
-  showCancel: PropTypes.bool,
-  cancelText: PropTypes.string,
-  showX: PropTypes.bool,
-  showButtons: PropTypes.bool,
-  okButton: PropTypes.oneOfType([PropTypes.string, PropTypes.func, PropTypes.node]),
-  children: PropTypes.node
+  openDrawer: PropTypes.bool
 }
 
 const defaultProps = {
   width: 450,
-  showCancel: true,
-  cancelText: 'Cancel',
-  showX: false,
-  showButtons: false,
-  showPreviousArrow: false,
   openDrawer: false
 }
 
