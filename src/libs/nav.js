@@ -1,7 +1,7 @@
 import { createHashHistory as createHistory } from 'history'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
-import { Component, useEffect, useState } from 'react'
+import { Component, createContext, useContext, useEffect, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { getAppName } from 'src/libs/logos'
 import { routeHandlersStore } from 'src/libs/state'
@@ -63,12 +63,19 @@ const parseRoute = (handlers, { pathname, search }) => {
   }
 }
 
-export const useRoute = () => {
+const locationContext = createContext()
+
+export const LocationProvider = ({ children }) => {
   const [location, setLocation] = useState(history.location)
-  const handlers = useAtom(routeHandlersStore)
   useOnMount(() => {
     return history.listen(v => setLocation(v))
   })
+  return h(locationContext.Provider, { value: location }, [children])
+}
+
+export const useRoute = () => {
+  const location = useContext(locationContext)
+  const handlers = useAtom(routeHandlersStore)
   return parseRoute(handlers, location)
 }
 
