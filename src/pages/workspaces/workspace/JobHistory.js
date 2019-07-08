@@ -3,7 +3,7 @@ import { Fragment } from 'react'
 import { div, h, span, table, tbody, td, tr } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { buttonPrimary, Clickable, link, spinnerOverlay } from 'src/components/common'
+import { buttonPrimary, Clickable, link, linkButton, spinnerOverlay } from 'src/components/common'
 import { DelayedSearchInput } from 'src/components/input'
 import { collapseStatus, failedIcon, runningIcon, submittedIcon, successIcon } from 'src/components/job-common'
 import Modal from 'src/components/Modal'
@@ -79,6 +79,19 @@ const statusCell = workflowStatuses => {
 }
 
 
+const noJobsMessage = div({ style: { fontSize: 20, margin: '1rem' } }, [
+  div([
+    'You have not run any jobs yet. To get started, go to the ', span({ style: { fontWeight: 600 } }, ['Workflows']), ' tab and select a workflow to run.'
+  ]),
+  div({ style: { marginTop: '1rem', fontSize: 16 } }, [
+    linkButton({
+      ...Utils.newTabLinkProps,
+      href: `https://support.terra.bio/hc/en-us/articles/360026182251`
+    }, [`What is a job?`])
+  ])
+])
+
+
 const JobHistory = _.flow(
   wrapWorkspace({
     breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
@@ -134,8 +147,8 @@ const JobHistory = _.flow(
   render() {
     const { namespace, name, workspace: { workspace: { bucketName } } } = this.props
     const { submissions, loading, aborting, textFilter } = this.state
-
     const filteredSubmissions = _.filter(({ asText }) => _.every(term => asText.includes(term.toLowerCase()), textFilter.split(/\s+/)), submissions)
+    const hasJobs = !_.isEmpty(filteredSubmissions)
 
     return h(Fragment, [
       div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'flex-end', margin: '1rem 1rem 0' } }, [
@@ -151,7 +164,7 @@ const JobHistory = _.flow(
         })
       ]),
       div({ style: styles.submissionsTable }, [
-        !_.isEmpty(filteredSubmissions) && h(AutoSizer, [
+        !loading && hasJobs && h(AutoSizer, [
           ({ width, height }) => h(FlexTable, {
             width, height, rowCount: filteredSubmissions.length,
             hoverHighlight: true,
@@ -265,7 +278,7 @@ const JobHistory = _.flow(
             ]
           })
         ]),
-        _.isEmpty(filteredSubmissions) && div(['No jobs']),
+        !loading && !hasJobs && noJobsMessage,
         aborting && h(Modal, {
           onDismiss: () => this.setState({ aborting: undefined }),
           title: 'Abort All Workflows',
