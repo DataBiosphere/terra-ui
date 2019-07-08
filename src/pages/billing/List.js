@@ -3,7 +3,7 @@ import * as qs from 'qs'
 import { Fragment } from 'react'
 import { a, div, h, span } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
-import { buttonPrimary, Clickable, Select, spinnerOverlay } from 'src/components/common'
+import { buttonPrimary, Clickable, linkButton, Select, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
@@ -50,6 +50,30 @@ const billingProjectNameValidator = existing => ({
     message: 'already exists'
   }
 })
+
+const noBillingMessage = div({ style: { fontSize: 20, margin: '2rem' } }, [
+  div([
+    'To get started, click the plus button to ', span({ style: { fontWeight: 600 } }, ['create a Billing Project'])
+  ]),
+  div({ style: { marginTop: '1rem', fontSize: 16 } }, [
+    linkButton({
+      ...Utils.newTabLinkProps,
+      href: `https://support.terra.bio/hc/en-us/articles/360026182251`
+    }, [`What is a billing project?`])
+  ])
+])
+
+const freeCreditsMessage = div({ style: { fontSize: 20, margin: '2rem' } }, [
+  div([
+    'Start your free trial by redeeming your ', span({ style: { fontWeight: 600 } }, ['Free Credits'])
+  ]),
+  div({ style: { marginTop: '1rem', fontSize: 16 } }, [
+    linkButton({
+      ...Utils.newTabLinkProps,
+      href: `https://support.terra.bio/hc/en-us/articles/360027940952`
+    }, [`What are Free Credits?`])
+  ])
+])
 
 const NewBillingProjectModal = ajaxCaller(class NewBillingProjectModal extends Component {
   constructor(props) {
@@ -178,6 +202,7 @@ export const BillingList = _.flow(
       billingProjects: null,
       creatingBillingProject: false,
       billingAccounts: null,
+      isOwner: false,
       ...StateHistory.get()
     }
   }
@@ -185,6 +210,7 @@ export const BillingList = _.flow(
   componentDidMount() {
     this.loadProjects()
     this.loadAccounts()
+    this.checkOwner()
   }
 
  loadProjects = _.flow(
@@ -221,12 +247,19 @@ export const BillingList = _.flow(
     }
   })
 
+  checkOwner() {
+    const { billingProjects, isOwner } = this.state
+    !isOwner && _.map(project => _.includes('Owner', project.role) ? this.setState({ isOwner: true }) : null, billingProjects)
+  }
+
   render() {
-    const { billingProjects, isLoadingProjects, isLoadingAccounts, isAuthorizing, creatingBillingProject, billingAccounts } = this.state
+    const { billingProjects, isLoadingProjects, isLoadingAccounts, isAuthorizing, creatingBillingProject, billingAccounts, isOwner } = this.state
     const { queryParams: { selectedName }, authState: { profile } } = this.props
     const { trialState } = profile
     const hasFreeCredits = trialState === 'Enabled'
+    const hasBillingProjects = !_.isEmpty(billingProjects)
     const breadcrumbs = `Billing > Billing Project`
+
     return h(Fragment, [
       h(TopBar, { title: 'Billing', href: Nav.getLink('billing') }, [
         !!selectedName && div({
@@ -273,13 +306,17 @@ export const BillingList = _.flow(
             this.loadProjects()
           }
         }),
-        !!selectedName && billingProjects && h(ProjectDetail, {
-          key: selectedName,
-          project: _.find({ projectName: selectedName }, billingProjects),
-          billingAccounts,
-          authorizeAndLoadAccounts: this.authorizeAndLoadAccounts
-        }),
-        !selectedName && div({ style: { margin: '1rem auto 0 auto' } }, ['Select A Billing Project ']),
+        Utils.cond(
+          [selectedName && hasBillingProjects, () => h(ProjectDetail, {
+            key: selectedName,
+            project: _.find({ projectName: selectedName }, billingProjects),
+            billingAccounts,
+            authorizeAndLoadAccounts: this.authorizeAndLoadAccounts
+          })],
+          [isOwner && !selectedName && hasBillingProjects, () => div({ style: { margin: '1rem auto 0 auto' } }, ['Select a Billing Project'])],
+          [!hasBillingProjects && hasFreeCredits, () => freeCreditsMessage],
+          [!hasBillingProjects && !hasFreeCredits, () => noBillingMessage]
+        ),
         (isLoadingProjects || isAuthorizing || isLoadingAccounts) && spinnerOverlay
       ])
     ])
