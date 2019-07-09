@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import { createRef, Fragment } from 'react'
 import Dropzone from 'react-dropzone'
 import { div, h, span } from 'react-hyperscript-helpers'
-import { buttonPrimary, buttonSecondary, Clickable, link, linkButton, Select, spinnerOverlay } from 'src/components/common'
+import { buttonPrimary, buttonSecondary, Clickable, link, Select, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { TextArea, TextInput } from 'src/components/input'
 import { notify } from 'src/components/Notifications'
@@ -178,7 +178,7 @@ const SupportRequest = _.flow(
                   'Successfully uploaded: ', span({ style: { color: colors.dark() } }, [attachmentName])
                 ])
               ]),
-              linkButton({
+              link({
                 tooltip: 'Remove file',
                 style: { flex: 0, paddingTop: '0.5rem' },
                 onClick: () => this.setState({ attachmentToken: '' })

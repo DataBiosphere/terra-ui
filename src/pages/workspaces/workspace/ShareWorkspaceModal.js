@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import { Component } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
-import { buttonPrimary, LabeledCheckbox, linkButton, Select, spinnerOverlay } from 'src/components/common'
+import { buttonPrimary, LabeledCheckbox, link, Select, spinnerOverlay } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { AutocompleteTextInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
@@ -166,7 +166,7 @@ export default ajaxCaller(class ShareWorkspaceModal extends Component {
           maxAccessLevel: workspace.accessLevel
         })
       ]),
-      !isPO && !isMe && linkButton({
+      !isPO && !isMe && link({
         onClick: () => this.setState({ acl: _.remove({ email }, acl) })
       }, [icon('minus-circle', { size: 24 })])
     ])

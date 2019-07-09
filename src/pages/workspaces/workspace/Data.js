@@ -8,7 +8,7 @@ import { div, form, h, input } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
-import { buttonPrimary, linkButton, Select, spinnerOverlay } from 'src/components/common'
+import { buttonPrimary, Clickable, link, Select, spinnerOverlay } from 'src/components/common'
 import DataTable from 'src/components/DataTable'
 import ExportDataModal from 'src/components/ExportDataModal'
 import FloatingActionButton from 'src/components/FloatingActionButton'
@@ -53,9 +53,9 @@ const styles = {
 }
 
 const DataTypeButton = ({ selected, children, iconName = 'listAlt', iconSize = 14, ...props }) => {
-  return linkButton({
+  return h(Clickable, {
     as: 'span',
-    style: Style.navList.item(selected),
+    style: { ...Style.navList.item(selected), color: colors.accent() },
     hover: Style.navList.itemHover(selected),
     ...props
   }, [
@@ -161,10 +161,10 @@ const LocalVariablesContent = class LocalVariablesContent extends Component {
       onDropAccepted: upload
     }, [
       div({ style: { flex: 'none', display: 'flex', alignItems: 'center', marginBottom: '1rem', justifyContent: 'flex-end' } }, [
-        linkButton({ onClick: download }, ['Download TSV']),
+        link({ onClick: download }, ['Download TSV']),
         !Utils.editWorkspaceError(workspace) && h(Fragment, [
           div({ style: { whiteSpace: 'pre' } }, ['  |  Drag or click to ']),
-          linkButton({ onClick: () => this.uploader.current.open() }, ['upload TSV'])
+          link({ onClick: () => this.uploader.current.open() }, ['upload TSV'])
         ]),
         h(DelayedSearchInput, {
           style: { width: 300, marginLeft: '1rem' },
@@ -221,20 +221,20 @@ const LocalVariablesContent = class LocalVariablesContent extends Component {
                             onChange: ({ value }) => this.setState({ editType: value }),
                             options: ['string', 'number', 'boolean', 'string list', 'number list', 'boolean list']
                           }),
-                          linkButton({
+                          link({
                             tooltip: Utils.summarizeErrors(inputErrors) || 'Save changes',
                             disabled: !!inputErrors.length,
                             style: { marginLeft: '1rem' },
                             onClick: () => saveAttribute(originalKey)
                           }, [icon('success-standard', { size: 23 })]),
-                          linkButton({
+                          link({
                             tooltip: 'Cancel editing',
                             style: { marginLeft: '1rem' },
                             onClick: () => stopEditing()
                           }, [icon('times-circle', { size: 23 })])
                         ]) :
                         div({ className: 'hover-only' }, [
-                          linkButton({
+                          link({
                             disabled: !!Utils.editWorkspaceError(workspace),
                             tooltip: Utils.editWorkspaceError(workspace) || 'Edit variable',
                             style: { marginLeft: '1rem' },
@@ -245,7 +245,7 @@ const LocalVariablesContent = class LocalVariablesContent extends Component {
                               editType: typeof originalValue === 'object' ? `${typeof originalValue.items[0]} list` : typeof originalValue
                             })
                           }, [icon('edit', { size: 19 })]),
-                          linkButton({
+                          link({
                             disabled: !!Utils.editWorkspaceError(workspace),
                             tooltip: Utils.editWorkspaceError(workspace) || 'Delete variable',
                             style: { marginLeft: '1rem' },
@@ -615,7 +615,7 @@ const BucketContent = _.flow(
         div([
           _.map(({ label, target }) => {
             return h(Fragment, { key: target }, [
-              linkButton({ style: { textDecoration: 'underline' }, onClick: () => this.load(target) }, [label]),
+              link({ style: { textDecoration: 'underline' }, onClick: () => this.load(target) }, [label]),
               ' / '
             ])
           }, [
@@ -637,20 +637,20 @@ const BucketContent = _.flow(
             ..._.map(p => {
               return {
                 name: h(TextCell, [
-                  linkButton({ style: { textDecoration: 'underline' }, onClick: () => this.load(p) }, [p.slice(prefix.length)])
+                  link({ style: { textDecoration: 'underline' }, onClick: () => this.load(p) }, [p.slice(prefix.length)])
                 ])
               }
             }, prefixes),
             ..._.map(({ name, size, updated }) => {
               return {
-                button: linkButton({
+                button: link({
                   style: { display: 'flex' }, onClick: () => this.setState({ deletingName: name }),
                   tooltip: 'Delete file'
                 }, [
                   icon('trash', { size: 16, className: 'hover-only' })
                 ]),
                 name: h(TextCell, [
-                  linkButton({ style: { textDecoration: 'underline' }, onClick: () => this.setState({ viewingName: name }) }, [
+                  link({ style: { textDecoration: 'underline' }, onClick: () => this.setState({ viewingName: name }) }, [
                     name.slice(prefix.length)
                   ])
                 ]),
@@ -747,7 +747,7 @@ const WorkspaceData = _.flow(
         div({ style: styles.dataTypeSelectionPanel }, [
           div({ style: Style.navList.heading }, [
             div(['Tables']),
-            linkButton({
+            link({
               disabled: !!Utils.editWorkspaceError(workspace),
               tooltip: Utils.editWorkspaceError(workspace) || 'Upload .tsv',
               onClick: () => this.setState({ uploadingFile: true })
@@ -764,7 +764,7 @@ const WorkspaceData = _.flow(
           }, _.toPairs(entityMetadata)),
           div({ style: Style.navList.heading }, [
             div(['Reference Data']),
-            linkButton({
+            link({
               disabled: !!Utils.editWorkspaceError(workspace),
               tooltip: Utils.editWorkspaceError(workspace) || 'Add reference data',
               onClick: () => this.setState({ importingReference: true })
@@ -803,19 +803,14 @@ const WorkspaceData = _.flow(
             }, [
               div({ style: { display: 'flex', justifyContent: 'space-between' } }, [
                 type,
-                linkButton({
+                link({
                   disabled: !!Utils.editWorkspaceError(workspace),
                   tooltip: Utils.editWorkspaceError(workspace) || `Delete ${type}`,
                   onClick: e => {
                     e.stopPropagation()
                     this.setState({ deletingReference: type })
                   }
-                }, [
-                  icon('minus-circle', {
-                    size: 16,
-                    style: { color: colors.accent() }
-                  })
-                ])
+                }, [icon('minus-circle', { size: 16 })])
               ])
             ])
           }, _.keys(referenceData)),

@@ -1,5 +1,5 @@
 import { a, div } from 'react-hyperscript-helpers'
-import { linkButton } from 'src/components/common'
+import { link } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import colors from 'src/libs/colors'
 import { footerLogo } from 'src/libs/logos'
@@ -26,7 +26,7 @@ const FooterWrapper = ({ children }) => {
         color: 'white'
       }
     }, [
-      linkButton({ href: Nav.getLink('root') }, [
+      link({ href: Nav.getLink('root') }, [
         footerLogo()
       ]),
       a({ href: Nav.getLink('privacy'), style: styles.item }, 'Privacy Policy'),

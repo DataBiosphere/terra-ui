@@ -3,7 +3,7 @@ import * as qs from 'qs'
 import { Fragment } from 'react'
 import { a, div, h, span } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
-import { buttonPrimary, Clickable, linkButton, Select, spinnerOverlay } from 'src/components/common'
+import { buttonPrimary, Clickable, link, Select, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
@@ -56,7 +56,7 @@ const noBillingMessage = div({ style: { fontSize: 20, margin: '2rem' } }, [
     'To get started, click the plus button to ', span({ style: { fontWeight: 600 } }, ['create a Billing Project'])
   ]),
   div({ style: { marginTop: '1rem', fontSize: 16 } }, [
-    linkButton({
+    link({
       ...Utils.newTabLinkProps,
       href: `https://support.terra.bio/hc/en-us/articles/360026182251`
     }, [`What is a billing project?`])
@@ -68,7 +68,7 @@ const freeCreditsMessage = div({ style: { fontSize: 20, margin: '2rem' } }, [
     'Start your free trial by redeeming your ', span({ style: { fontWeight: 600 } }, ['Free Credits'])
   ]),
   div({ style: { marginTop: '1rem', fontSize: 16 } }, [
-    linkButton({
+    link({
       ...Utils.newTabLinkProps,
       href: `https://support.terra.bio/hc/en-us/articles/360027940952`
     }, [`What are Free Credits?`])

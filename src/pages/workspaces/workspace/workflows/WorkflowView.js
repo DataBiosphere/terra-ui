@@ -7,7 +7,7 @@ import { div, h, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import {
-  buttonPrimary, buttonSecondary, Clickable, LabeledCheckbox, link, linkButton, MenuButton, menuIcon, methodLink, RadioButton, Select, spinnerOverlay
+  buttonPrimary, buttonSecondary, Clickable, LabeledCheckbox, link, MenuButton, menuIcon, methodLink, RadioButton, Select, spinnerOverlay
 } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { AutocompleteTextInput } from 'src/components/input'
@@ -123,7 +123,7 @@ const WorkflowIOTable = ({ which, inputsOutputs: data, config, errors, onChange,
               div({ style: { fontWeight: 'bold' } }, ['Attribute']),
               !readOnly && which === 'outputs' && h(Fragment, [
                 div({ style: { whiteSpace: 'pre' } }, ['  |  ']),
-                linkButton({ onClick: onSetDefaults }, ['Use defaults'])
+                link({ onClick: onSetDefaults }, ['Use defaults'])
               ])
             ]),
             cellRenderer: ({ rowIndex }) => {
@@ -212,7 +212,7 @@ const BucketContentModal = ajaxCaller(class BucketContentModal extends Component
       div([
         _.map(({ label, target }) => {
           return h(Fragment, { key: target }, [
-            linkButton({ onClick: () => this.load(target) }, [label]),
+            link({ onClick: () => this.load(target) }, [label]),
             ' / '
           ])
         }, [
@@ -231,14 +231,14 @@ const BucketContentModal = ajaxCaller(class BucketContentModal extends Component
           ..._.map(p => {
             return {
               name: h(TextCell, [
-                linkButton({ onClick: () => this.load(p) }, [p.slice(prefix.length)])
+                link({ onClick: () => this.load(p) }, [p.slice(prefix.length)])
               ])
             }
           }, prefixes),
           ..._.map(({ name }) => {
             return {
               name: h(TextCell, [
-                linkButton({ onClick: () => onSelect(`"gs://${bucketName}/${name}"`) }, [
+                link({ onClick: () => onSelect(`"gs://${bucketName}/${name}"`) }, [
                   name.slice(prefix.length)
                 ])
               ])
@@ -563,7 +563,7 @@ const WorkflowView = _.flow(
                   }, [menuIcon('trash'), 'Delete'])
                 ])
               }, [
-                linkButton({}, [icon('cardMenuIcon', { size: 22 })])
+                link({}, [icon('cardMenuIcon', { size: 22 })])
               ])
             ]),
             span({ style: { color: colors.dark(), fontSize: 24 } }, name)
@@ -634,7 +634,7 @@ const WorkflowView = _.flow(
                 },
                 options: _.keys(entityMetadata)
               }),
-              linkButton({
+              link({
                 disabled: currentSnapRedacted || this.isSingle() || !rootEntityType || !!Utils.editWorkspaceError(ws),
                 tooltip: Utils.editWorkspaceError(ws),
                 onClick: () => this.setState({ selectingData: true }),
@@ -792,13 +792,13 @@ const WorkflowView = _.flow(
     }, [
       div({ style: { flex: 'none', display: 'flex', marginBottom: '0.25rem' } }, [
         key === 'inputs' && _.some('optional', modifiedInputsOutputs['inputs']) ?
-          linkButton({ style: { marginRight: 'auto' }, onClick: () => this.setState({ includeOptionalInputs: !includeOptionalInputs }) },
+          link({ style: { marginRight: 'auto' }, onClick: () => this.setState({ includeOptionalInputs: !includeOptionalInputs }) },
             [includeOptionalInputs ? 'Hide optional inputs' : 'Show optional inputs']) :
           div({ style: { marginRight: 'auto' } }),
-        linkButton({ onClick: () => this.downloadJson(key) }, ['Download json']),
+        link({ onClick: () => this.downloadJson(key) }, ['Download json']),
         !currentSnapRedacted && !Utils.editWorkspaceError(workspace) && h(Fragment, [
           div({ style: { whiteSpace: 'pre' } }, ['  |  Drag or click to ']),
-          linkButton({ onClick: () => this.uploader.current.open() }, ['upload json'])
+          link({ onClick: () => this.uploader.current.open() }, ['upload json'])
         ])
       ]),
       filteredData.length !== 0 &&
