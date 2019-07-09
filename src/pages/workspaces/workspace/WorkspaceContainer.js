@@ -26,7 +26,7 @@ const navIconProps = {
   hover: { opacity: 1 }, focus: 'hover'
 }
 
-const TAB_NAMES = ['dashboard', 'data', 'notebooks', 'tools', 'job history']
+const TAB_NAMES = ['dashboard', 'data', 'notebooks', 'workflows', 'job history']
 
 class WorkspaceTabs extends PureComponent {
   render() {

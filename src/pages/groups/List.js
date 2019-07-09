@@ -132,6 +132,18 @@ const NewGroupCard = pure(({ onClick }) => {
   ])
 })
 
+const noGroupsMessage = div({ style: { fontSize: 20, margin: '0 1rem' } }, [
+  div([
+    'Create a group to share your workspaces with others.'
+  ]),
+  div({ style: { marginTop: '1rem', fontSize: 16 } }, [
+    linkButton({
+      ...Utils.newTabLinkProps,
+      href: `https://support.terra.bio/hc/en-us/articles/360026775691`
+    }, [`How do I use groups to manage authorization?`])
+  ])
+])
+
 export const GroupList = ajaxCaller(class GroupList extends Component {
   constructor(props) {
     super(props)
@@ -168,6 +180,7 @@ export const GroupList = ajaxCaller(class GroupList extends Component {
 
   render() {
     const { groups, isDataLoaded, filter, creatingNewGroup, deletingGroup, updating } = this.state
+
     return h(Fragment, [
       h(TopBar, { title: 'Groups' }, [
         h(DelayedSearchInput, {
@@ -187,6 +200,7 @@ export const GroupList = ajaxCaller(class GroupList extends Component {
           h(NewGroupCard, {
             onClick: () => this.setState({ creatingNewGroup: true })
           }),
+          isDataLoaded && _.isEmpty(groups) && noGroupsMessage,
           div({ style: { flexGrow: 1 } }, [
             _.flow(
               _.filter(({ groupName }) => Utils.textMatch(filter, groupName)),

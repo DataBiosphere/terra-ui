@@ -13,23 +13,23 @@ import { centeredSpinner, icon } from 'src/components/icons'
 import { AutocompleteTextInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import PopupTrigger from 'src/components/PopupTrigger'
-import StepButtons, { params as StepButtonParams } from 'src/components/StepButtons'
+import StepButtons from 'src/components/StepButtons'
 import { FlexTable, HeaderCell, SimpleTable, TextCell } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import WDLViewer from 'src/components/WDLViewer'
 import { Ajax, ajaxCaller } from 'src/libs/ajax'
-import colors from 'src/libs/colors'
+import colors, { terraSpecial } from 'src/libs/colors'
 import { reportError, withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
-import DataStepContent from 'src/pages/workspaces/workspace/tools/DataStepContent'
-import DeleteToolModal from 'src/pages/workspaces/workspace/tools/DeleteToolModal'
-import EntitySelectionType from 'src/pages/workspaces/workspace/tools/EntitySelectionType'
-import ExportToolModal from 'src/pages/workspaces/workspace/tools/ExportToolModal'
-import LaunchAnalysisModal from 'src/pages/workspaces/workspace/tools/LaunchAnalysisModal'
+import DataStepContent from 'src/pages/workspaces/workspace/workflows/DataStepContent'
+import DeleteWorkflowModal from 'src/pages/workspaces/workspace/workflows/DeleteWorkflowModal'
+import EntitySelectionType from 'src/pages/workspaces/workspace/workflows/EntitySelectionType'
+import ExportWorkflowModal from 'src/pages/workspaces/workspace/workflows/ExportWorkflowModal'
+import LaunchAnalysisModal from 'src/pages/workspaces/workspace/workflows/LaunchAnalysisModal'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
 
@@ -55,6 +55,10 @@ const styles = {
     position: 'absolute',
     bottom: '0.5rem',
     right: sideMargin
+  },
+  tabContents: {
+    padding: `1rem ${sideMargin}`,
+    backgroundColor: colors.dark(0.1)
   },
   cell: optional => ({
     fontWeight: !optional && 500,
@@ -153,7 +157,7 @@ const WorkflowIOTable = ({ which, inputsOutputs: data, config, errors, onChange,
                 ]),
                 error && h(TooltipTrigger, { content: error }, [
                   icon('error-standard', {
-                    size: 14, style: { marginLeft: '0.5rem', color: colors.danger(), cursor: 'help' }
+                    size: 14, style: { marginLeft: '0.5rem', color: colors.warning(), cursor: 'help' }
                   })
                 ])
               ])
@@ -291,8 +295,8 @@ class TextCollapse extends Component {
 
 const WorkflowView = _.flow(
   wrapWorkspace({
-    breadcrumbs: props => breadcrumbs.commonPaths.workspaceTab(props, 'tools'),
-    title: _.get('workflowName'), activeTab: 'tools'
+    breadcrumbs: props => breadcrumbs.commonPaths.workspaceTab(props, 'workflows'),
+    title: _.get('workflowName'), activeTab: 'workflows'
   }),
   ajaxCaller
 )(class WorkflowView extends Component {
@@ -534,7 +538,13 @@ const WorkflowView = _.flow(
 
     const inputsValid = _.isEmpty(errors.inputs)
     const outputsValid = _.isEmpty(errors.outputs)
-    return div({ style: { position: 'relative', backgroundColor: 'white', borderBottom: `2px solid ${colors.accent()}` } }, [
+    return div({
+      style: {
+        position: 'relative',
+        backgroundColor: 'white', borderBottom: `2px solid ${terraSpecial()}`,
+        boxShadow: '0 2px 5px 0 rgba(0,0,0,0.26), 0 2px 10px 0 rgba(0,0,0,0.16)'
+      }
+    }, [
       div({ style: { display: 'flex', padding: `1.5rem ${sideMargin} 0`, minHeight: 120 } }, [
         div({ style: { flex: '1', lineHeight: '1.5rem', minWidth: 0 } }, [
           div({ style: { display: 'flex' } }, [
@@ -559,7 +569,7 @@ const WorkflowView = _.flow(
             span({ style: { color: colors.dark(), fontSize: 24 } }, name)
           ]),
           currentSnapRedacted && div({ style: { color: colors.warning(), fontSize: 16, fontWeight: 500, marginTop: '0.5rem' } }, [
-            'The selected snapshot of the referenced tool has been redacted. You will not be able to run an analysis until you select another snapshot.'
+            'The selected snapshot of the referenced workflow has been redacted. You will not be able to run an analysis until you select another snapshot.'
           ]),
           div({ style: { marginTop: '0.5rem' } }, [
             'Snapshot ',
@@ -649,13 +659,11 @@ const WorkflowView = _.flow(
             activeTab,
             onChangeTab: v => this.setState({ activeTab: v }),
             finalStep: buttonPrimary({
+              style: { marginLeft: '1rem' },
               disabled: !!Utils.computeWorkspaceError(ws) || !!noLaunchReason || currentSnapRedacted || !hasBucketAccess,
-              tooltip: Utils.computeWorkspaceError(ws) || noLaunchReason || (currentSnapRedacted && 'Tool version was redacted.') ||
+              tooltip: Utils.computeWorkspaceError(ws) || noLaunchReason || (currentSnapRedacted && 'Workflow version was redacted.') ||
                 (!hasBucketAccess && 'You do not have access to the Google Bucket associated with this workspace'),
-              onClick: () => this.setState({ launching: true }),
-              style: {
-                height: StepButtonParams.buttonHeight, fontSize: StepButtonParams.fontSize
-              }
+              onClick: () => this.setState({ launching: true })
             }, ['Run analysis'])
           }),
           activeTab === 'outputs' && div({ style: { marginBottom: '1rem' } }, [
@@ -687,14 +695,14 @@ const WorkflowView = _.flow(
         modified && buttonPrimary({ disabled: saving || !this.canSave(), onClick: () => this.save() }, 'Save'),
         modified && buttonSecondary({ style: { marginLeft: '1rem' }, disabled: saving, onClick: () => this.cancel() }, 'Cancel')
       ]),
-      copying && h(ExportToolModal, {
+      copying && h(ExportWorkflowModal, {
         thisWorkspace: workspace, methodConfig: savedConfig,
         onDismiss: () => this.setState({ copying: false })
       }),
-      deleting && h(DeleteToolModal, {
+      deleting && h(DeleteWorkflowModal, {
         workspace, methodConfig: savedConfig,
         onDismiss: () => this.setState({ deleting: false }),
-        onSuccess: () => Nav.goToPath('workspace-tools', _.pick(['namespace', 'name'], workspace))
+        onSuccess: () => Nav.goToPath('workspace-workflows', _.pick(['namespace', 'name'], workspace))
       }),
       selectingData && h(DataStepContent, {
         entityMetadata,
@@ -741,10 +749,12 @@ const WorkflowView = _.flow(
 
   renderWDL() {
     const { wdl } = this.state
-    return wdl ? h(WDLViewer, {
-      wdl, readOnly: true,
-      style: { maxHeight: 500, margin: `1rem ${sideMargin}` }
-    }) : centeredSpinner({ style: { marginTop: '1rem' } })
+    return div({ style: styles.tabContents }, [
+      wdl ? h(WDLViewer, {
+        wdl, readOnly: true,
+        style: { maxHeight: 500 }
+      }) : centeredSpinner()
+    ])
   }
 
   renderIOTable(key) {
@@ -769,11 +779,15 @@ const WorkflowView = _.flow(
       multiple: false,
       disabled: currentSnapRedacted || !!Utils.editWorkspaceError(workspace),
       disableClick: true,
-      style: { padding: `1rem ${sideMargin}`, flex: 'auto', display: 'flex', flexDirection: 'column' },
+      style: {
+        ...styles.tabContents,
+        flex: 'auto', display: 'flex', flexDirection: 'column',
+        position: undefined
+      },
       activeStyle: { backgroundColor: colors.accent(0.2), cursor: 'copy' },
       ref: this.uploader,
       onDropRejected: () => reportError('Not a valid inputs file',
-        'The selected file is not a json file. To import inputs for this tool, upload a file with a .json extension.'),
+        'The selected file is not a json file. To import inputs for this workflow, upload a file with a .json extension.'),
       onDropAccepted: files => this.uploadJson(key, files[0])
     }, [
       div({ style: { flex: 'none', display: 'flex', marginBottom: '0.25rem' } }, [
@@ -850,8 +864,12 @@ const WorkflowView = _.flow(
 export const navPaths = [
   {
     name: 'workflow',
-    path: '/workspaces/:namespace/:name/tools/:workflowNamespace/:workflowName',
+    path: '/workspaces/:namespace/:name/workflows/:workflowNamespace/:workflowName',
     component: WorkflowView,
-    title: ({ name, workflowName }) => `${name} - Tools - ${workflowName}`
+    title: ({ name, workflowName }) => `${name} - Workflows - ${workflowName}`
+  }, {
+    name: 'tools-workflow', // legacy
+    path: '/workspaces/:namespace/:name/tools/:workflowNamespace/:workflowName',
+    component: props => h(Nav.Redirector, { pathname: Nav.getPath('workflow', props) })
   }
 ]

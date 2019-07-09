@@ -94,7 +94,7 @@ const DockstoreImporter = ajaxCaller(class DockstoreImporter extends Component {
       })
       Nav.goToPath('workflow', { namespace, name, workflowNamespace: namespace, workflowName })
     } catch (error) {
-      reportError('Error importing tool', error)
+      reportError('Error importing workflow', error)
     } finally {
       this.setState({ isImporting: false })
     }
@@ -107,7 +107,7 @@ class Importer extends Component {
     const { source } = this.props
 
     return h(Fragment, [
-      h(TopBar, { title: 'Import Tool' }),
+      h(TopBar, { title: 'Import Workflow' }),
       Utils.cond(
         [source === 'dockstore', () => this.renderDockstore()],
         () => `Unknown source '${source}'`
@@ -125,9 +125,13 @@ class Importer extends Component {
 
 export const navPaths = [
   {
-    name: 'import-tool',
-    path: '/import-tool/:source/:item*',
+    name: 'import-workflow',
+    path: '/import-workflow/:source/:item*',
     component: Importer,
-    title: 'Import Tool'
+    title: 'Import Workflow'
+  }, {
+    name: 'import-tool', // legacy
+    path: '/import-tool/:source/:item*',
+    component: props => h(Nav.Redirector, { pathname: Nav.getPath('import-workflow', props) })
   }
 ]
