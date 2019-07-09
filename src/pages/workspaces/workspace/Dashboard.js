@@ -236,7 +236,8 @@ export const WorkspaceDashboard = _.flow(
                   autofocus: true,
                   placeholder: 'Enter a description',
                   renderingConfig: {
-                    singleLineBreaks: false
+                    singleLineBreaks: false,
+                    markedOptions: { sanitize: true, sanitizer: _.escape }
                   },
                   status: false
                 },
