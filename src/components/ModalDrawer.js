@@ -5,7 +5,7 @@ import { Transition } from 'react-transition-group'
 import colors from 'src/libs/colors'
 
 
-const drawer ={
+const drawer = {
   overlay: transitionState => transitionState === 'entering' || transitionState === 'entered' ? {
     backgroundColor: 'rgba(0, 0, 0, 0.5)', padding: '2rem 1rem',
     display: 'flex', justifyContent: 'center', alignItems: 'flex-start',
