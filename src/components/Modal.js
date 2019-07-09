@@ -9,8 +9,6 @@ import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 
 
-RModal.defaultStyles = { overlay: {}, content: {} }
-
 const styles = {
   overlay: {
     backgroundColor: 'rgba(0, 0, 0, 0.5)', padding: '2rem 1rem',

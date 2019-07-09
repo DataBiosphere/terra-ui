@@ -2,7 +2,7 @@ import {
   faClipboard, faClock, faClone, faEye, faFolder, faFolderOpen, faListAlt, faSquare as faSquareRegular, faTimesCircle
 } from '@fortawesome/free-regular-svg-icons'
 import {
-  faArrowRight, faBan, faCaretDown, faCheck, faCheckCircle, faCheckSquare, faCloud, faCog, faCreditCard, faDownload, faExclamationCircle,
+  faArrowLeft, faArrowRight, faBan, faCaretDown, faCheck, faCheckCircle, faCheckSquare, faCloud, faCog, faCreditCard, faDownload, faExclamationCircle,
   faExclamationTriangle, faFileInvoiceDollar, faGripHorizontal, faInfoCircle, faLongArrowAltDown, faLongArrowAltUp, faMinusCircle, faPause, faPen,
   faPlay, faPlus, faPlusCircle, faQuestionCircle, faSearch, faShareAlt, faSquare as faSquareSolid, faTerminal, faTrashAlt
 } from '@fortawesome/free-solid-svg-icons'
@@ -76,6 +76,7 @@ const iconDict = {
   'view-cards': fa(faGripHorizontal),
   'view-list': custom(list),
   'warning-standard': fa(faExclamationTriangle),
+  arrowLeft: fa(faArrowLeft),
   arrowRight: fa(faArrowRight),
   cardMenuIcon: custom(cardMenuIcon),
   caretDown: fa(faCaretDown),
