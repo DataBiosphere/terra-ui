@@ -2,7 +2,7 @@ import * as clipboard from 'clipboard-polyfill'
 import filesize from 'filesize'
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
-import { Fragment } from 'react'
+import { Fragment, useState } from 'react'
 import { div, h, img, input } from 'react-hyperscript-helpers'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
 import Collapse from 'src/components/Collapse'
@@ -10,13 +10,23 @@ import { buttonPrimary, Clickable, link } from 'src/components/common'
 import { icon, spinner } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import DownloadPrices from 'src/data/download-prices'
-import { ajaxCaller } from 'src/libs/ajax'
+import { Ajax, ajaxCaller, useCancellation } from 'src/libs/ajax'
 import { bucketBrowserUrl } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
+import { requesterPaysBuckets, requesterPaysProjectStore, workspaceStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
 
+
+const styles = {
+  previewText: {
+    whiteSpace: 'pre', fontFamily: 'Menlo, monospace', fontSize: 12,
+    overflowY: 'auto', maxHeight: 206,
+    marginTop: '0.5rem', padding: '0.5rem',
+    background: colors.dark(0.25), borderRadius: '0.2rem'
+  }
+}
 
 const els = {
   cell: children => div({ style: { marginBottom: '0.5rem' } }, children),
@@ -35,7 +45,8 @@ const isText = ({ contentType, name }) => {
 }
 
 const isBinary = ({ contentType, name }) => {
-  return /application(?!\/json)/.test(contentType) ||
+  // excluding json and google's default types (i.e. wasn't set to anything else)
+  return /application(?!\/(json|octet-stream|x-www-form-urlencoded)$)/.test(contentType) ||
     /(?:(\.(?:(ba[mi]|cra[mi]|pac|sa|bwt|gz))$|\.gz\.))/.test(name)
 }
 
@@ -53,9 +64,81 @@ const getMaxDownloadCostNA = bytes => {
   return downloadPrice < 0.01 ? '< $0.01' : Utils.formatUSD(downloadPrice)
 }
 
+const PreviewContent = ({ uri, metadata, metadata: { bucket, name }, googleProject }) => {
+  const signal = useCancellation()
+  const [preview, setPreview] = useState()
+  const loadPreview = async () => {
+    try {
+      const res = await Ajax(signal).Buckets.getObjectPreview(bucket, name, googleProject, isImage(metadata))
+      if (isImage(metadata)) {
+        setPreview(URL.createObjectURL(await res.blob()))
+      } else {
+        setPreview(await res.text())
+      }
+    } catch (error) {
+      setPreview(null)
+    }
+  }
+  Utils.useOnMount(() => {
+    if (isGs(uri) && isFilePreviewable(metadata)) {
+      loadPreview()
+    }
+  })
+  return els.cell([
+    Utils.cond(
+      [isGs(uri) && isFilePreviewable(metadata), () => h(Fragment, [
+        els.label('Preview'),
+        Utils.cond(
+          [preview === null, () => 'Unable to load preview.'],
+          [preview === undefined, () => 'Loading preview...'],
+          [isImage(metadata), () => img({ src: preview, width: 400 })],
+          () => div({ style: styles.previewText }, [preview])
+        )
+      ])],
+      [!isGs(uri), () => els.label(`DOS uri's can't be previewed`)],
+      [isImage(metadata), () => els.label('Image is too large to preview')],
+      () => els.label(`File can't be previewed.`)
+    )
+  ])
+}
+
+const DownloadButton = ({ uri, metadata: { bucket, name, size } }) => {
+  const signal = useCancellation()
+  const [url, setUrl] = useState()
+  const getUrl = async () => {
+    try {
+      const { url } = await Ajax(signal).Martha.getSignedUrl({ bucket, object: name, dataObjectUri: isGs(uri) ? undefined : uri })
+      const workspace = workspaceStore.get()
+      const userProject = workspace && Utils.canWrite(workspace.accessLevel) ? workspace.workspace.namespace : requesterPaysProjectStore.get()
+      setUrl(_.includes(bucket, requesterPaysBuckets.get()) ? Utils.mergeQueryParams({ userProject }, url) : url)
+    } catch (error) {
+      setUrl(null)
+    }
+  }
+  Utils.useOnMount(() => {
+    getUrl()
+  })
+  return els.cell([
+    url === null ?
+      'Unable to generate download link.' :
+      div({ style: { display: 'flex', justifyContent: 'center' } }, [
+        buttonPrimary({
+          as: 'a',
+          disabled: !url,
+          href: url,
+          ...Utils.newTabLinkProps
+        }, [
+          url ?
+            `Download for ${getMaxDownloadCostNA(size)}*` :
+            h(Fragment, ['Generating download link...', spinner({ style: { color: 'white', marginLeft: 4 } })])
+        ])
+      ])
+  ])
+}
+
 const UriViewer = _.flow(
   ajaxCaller,
-  requesterPaysWrapper({ onDismiss: ({ onDismiss }) => onDismiss() }),
+  requesterPaysWrapper({ onDismiss: ({ onDismiss }) => onDismiss() })
 )(class UriViewer extends Component {
   static propTypes = {
     googleProject: PropTypes.string.isRequired,
@@ -64,27 +147,18 @@ const UriViewer = _.flow(
 
   async componentDidMount() {
     const { googleProject, uri, ajax: { Buckets, Martha }, onRequesterPaysError } = this.props
-    const isGsUri = isGs(uri)
-    const [bucket, name] = isGsUri ? parseUri(uri) : []
-
     try {
-      const loadObject = withRequesterPaysHandler(onRequesterPaysError, () => {
-        return Buckets.getObject(bucket, name, googleProject)
-      })
-      const { signedUrl = false, ...metadata } = isGsUri ? await loadObject() : await Martha.call(uri)
-
-      const price = getMaxDownloadCostNA(metadata.size)
-
-      this.setState(_.merge({ metadata, price }, !isGsUri && { signedUrl }))
-
-      if (isGsUri && isFilePreviewable(metadata)) {
-        Buckets.getObjectPreview(bucket, name, googleProject, isImage(metadata))
-          .then(res => isImage(metadata) ? res.blob().then(URL.createObjectURL) : res.text())
-          .then(preview => this.setState({ preview }))
-      }
-
-      if (isGsUri) {
-        this.setState({ signedUrl: (await Martha.call(uri)).signedUrl || false })
+      if (isGs(uri)) {
+        const [bucket, name] = parseUri(uri)
+        const loadObject = withRequesterPaysHandler(onRequesterPaysError, () => {
+          return Buckets.getObject(bucket, name, googleProject)
+        })
+        const metadata = await loadObject(bucket, name, googleProject)
+        this.setState({ metadata })
+      } else {
+        const { dos: { data_object: { size, urls } } } = await Martha.getDataObjectMetadata(uri)
+        const [bucket, name] = parseUri(_.find(u => u.startsWith('gs://'), _.map('url', urls)))
+        this.setState({ metadata: { bucket, name, size } })
       }
     } catch (e) {
       this.setState({ loadingError: await e.json() })
@@ -92,9 +166,10 @@ const UriViewer = _.flow(
   }
 
   render() {
-    const { uri, onDismiss } = this.props
-    const { metadata, preview, signedUrl, price, copied, loadingError } = this.state
-    const { size, timeCreated, updated, name, gsUri = uri } = metadata || {}
+    const { uri, googleProject, onDismiss } = this.props
+    const { metadata, copied, loadingError } = this.state
+    const { size, timeCreated, updated, bucket, name } = metadata || {}
+    const gsUri = `gs://${bucket}/${name}`
     const gsutilCommand = `gsutil cp ${gsUri} .`
 
     return h(Modal, {
@@ -120,28 +195,7 @@ const UriViewer = _.flow(
             els.label('Filename'),
             els.data(_.last(name.split('/')).split('.').join('.\u200B')) // allow line break on periods
           ]),
-          els.cell([
-            Utils.cond(
-              [!isGs(uri), () => els.label(`DOS uri's can't be previewed`)],
-              [isFilePreviewable(metadata), () => h(Fragment, [
-                els.label('Preview'),
-                Utils.cond(
-                  [isImage(metadata), () => img({ src: preview, width: 400 })],
-                  [preview, () => div({
-                    style: {
-                      whiteSpace: 'pre', fontFamily: 'Menlo, monospace', fontSize: 12,
-                      overflowY: 'auto', maxHeight: 206,
-                      marginTop: '0.5rem', padding: '0.5rem',
-                      background: colors.dark(0.25), borderRadius: '0.2rem'
-                    }
-                  }, [preview])],
-                  () => 'Loading preview...'
-                )
-              ])],
-              [isImage(metadata), () => els.label('Image is too large to preview')],
-              () => els.label(`File can't be previewed.`)
-            )
-          ]),
+          h(PreviewContent, { uri, metadata, googleProject }),
           els.cell([els.label('File size'), els.data(filesize(parseInt(size, 10)))]),
           els.cell([
             link({
@@ -149,22 +203,7 @@ const UriViewer = _.flow(
               href: bucketBrowserUrl(gsUri.match(/gs:\/\/(.+)\//)[1])
             }, ['View this file in the Google Cloud Storage Browser'])
           ]),
-          els.cell([
-            signedUrl === false ?
-              'Unable to generate download link.' :
-              div({ style: { display: 'flex', justifyContent: 'center' } }, [
-                buttonPrimary({
-                  as: 'a',
-                  disabled: !signedUrl,
-                  href: signedUrl,
-                  ...Utils.newTabLinkProps
-                }, [
-                  signedUrl ?
-                    `Download for ${price}*` :
-                    h(Fragment, ['Generating download link...', spinner({ style: { color: 'white', marginLeft: 4 } })])
-                ])
-              ])
-          ]),
+          h(DownloadButton, { uri, metadata }),
           els.cell([
             els.label('Terminal download command'),
             els.data([

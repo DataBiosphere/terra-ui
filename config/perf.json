@@ -9,7 +9,7 @@
   "googleClientId": "1007916553388-94ubmcv4nrg23758of2n826me1th59m1.apps.googleusercontent.com",
   "jobManagerUrlRoot": "https://job-manager.dsde-perf.broadinstitute.org/jobs",
   "leoUrlRoot": "https://leonardo.dsde-perf.broadinstitute.org",
-  "marthaUrlRoot": "https://us-central1-broad-dsde-perf.cloudfunctions.net/fileSummaryV1",
+  "marthaUrlRoot": "https://us-central1-broad-dsde-perf.cloudfunctions.net",
   "orchestrationUrlRoot": "https://firecloud-orchestration.dsde-perf.broadinstitute.org",
   "rawlsUrlRoot": "https://rawls.dsde-perf.broadinstitute.org",
   "rexUrlRoot": "https://terra-rex-perf.appspot.com",

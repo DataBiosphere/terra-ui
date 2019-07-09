@@ -1,4 +1,5 @@
 import _ from 'lodash/fp'
+import * as qs from 'qs'
 import { useEffect, useRef, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import uuid from 'uuid/v4'
@@ -357,4 +358,10 @@ export const createHtmlElement = (doc, name, attrs) => {
   const element = doc.createElement(name)
   _.forEach(([k, v]) => element.setAttribute(k, v), _.toPairs(attrs))
   return element
+}
+
+export const mergeQueryParams = (params, urlString) => {
+  const url = new URL(urlString)
+  url.search = qs.stringify({ ...qs.parse(url.search, { ignoreQueryPrefix: true, plainObjects: true }), ...params })
+  return url.href
 }
