@@ -4,6 +4,7 @@ import { routeHandlersStore } from 'src/libs/state'
 import * as Projects from 'src/pages/billing/List'
 import * as Group from 'src/pages/groups/Group'
 import * as Groups from 'src/pages/groups/List'
+import * as HoF from 'src/pages/HoF'
 import * as ImportData from 'src/pages/ImportData'
 import * as ImportWorkflow from 'src/pages/ImportWorkflow'
 import * as LandingPage from 'src/pages/LandingPage'
@@ -53,6 +54,7 @@ const routes = _.flatten([
   Datasets.navPaths,
   Showcase.navPaths,
   Projects.navPaths,
+  HoF.navPaths,
   NotFound.navPaths // must be last
 ])
 

@@ -39,7 +39,7 @@ const FooterWrapper = ({ children }) => {
         'Documentation', icon('pop-out', { size: 12, style: { marginLeft: '0.5rem' } })
       ]),
       div({ style: { flexGrow: 1 } }),
-      div({ style: { fontWeight: 600, fontSize: '10px' } }, [
+      div({ onClick: () => Nav.goToPath('hall-of-fame'), style: { fontWeight: 600, fontSize: '10px' } }, [
         `Copyright ©${buildTimestamp.getFullYear()}`
       ])
     ])
