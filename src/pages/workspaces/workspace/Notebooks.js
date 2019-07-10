@@ -264,7 +264,6 @@ const Notebooks = _.flow(
 
   renderNotebooks() {
     const { notebooks, sortOrder: { field, direction } } = this.state
-    const hasNotebooks = !_.isEmpty(notebooks)
     const {
       name: wsName, namespace, listView,
       workspace: { accessLevel, workspace: { bucketName } }
@@ -329,7 +328,7 @@ const Notebooks = _.flow(
         ])
       ]),
       Utils.cond(
-        [!hasNotebooks, () => noNotebooksMessage],
+        [_.isEmpty(notebooks), () => noNotebooksMessage],
         [listView, () => div({ style: { flex: 1 } }, [renderedNotebooks])],
         () => div({ style: { display: 'flex', flexWrap: 'wrap' } }, renderedNotebooks)
       )
