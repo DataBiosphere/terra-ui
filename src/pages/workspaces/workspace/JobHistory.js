@@ -148,7 +148,7 @@ const JobHistory = _.flow(
     const { namespace, name, workspace: { workspace: { bucketName } } } = this.props
     const { submissions, loading, aborting, textFilter } = this.state
     const filteredSubmissions = _.filter(({ asText }) => _.every(term => asText.includes(term.toLowerCase()), textFilter.split(/\s+/)), submissions)
-    const hasJobs = !_.isEmpty(filteredSubmissions)
+    const hasJobs = !_.isEmpty(submissions)
 
     return h(Fragment, [
       div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'flex-end', margin: '1rem 1rem 0' } }, [
@@ -164,7 +164,7 @@ const JobHistory = _.flow(
         })
       ]),
       div({ style: styles.submissionsTable }, [
-        !loading && hasJobs && h(AutoSizer, [
+        hasJobs && h(AutoSizer, [
           ({ width, height }) => h(FlexTable, {
             width, height, rowCount: filteredSubmissions.length,
             hoverHighlight: true,
