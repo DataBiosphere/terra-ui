@@ -5,7 +5,7 @@ import { Fragment } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import SimpleMDE from 'react-simplemde-editor'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { AsyncCreatableSelect, buttonPrimary, buttonSecondary, link, linkButton, spinnerOverlay } from 'src/components/common'
+import { AsyncCreatableSelect, buttonPrimary, buttonSecondary, link, spinnerOverlay } from 'src/components/common'
 import { icon, spinner } from 'src/components/icons'
 import { Markdown } from 'src/components/Markdown'
 import { InfoBox } from 'src/components/PopupTrigger'
@@ -221,7 +221,7 @@ export const WorkspaceDashboard = _.flow(
       div({ style: styles.leftBox }, [
         div({ style: styles.header }, [
           'About the workspace',
-          !isEditing && linkButton({
+          !isEditing && link({
             style: { marginLeft: '0.5rem' },
             disabled: !!Utils.editWorkspaceError(workspace),
             tooltip: Utils.editWorkspaceError(workspace),
@@ -309,7 +309,7 @@ export const WorkspaceDashboard = _.flow(
           _.map(tag => {
             return span({ key: tag, style: styles.tag }, [
               tag,
-              Utils.canWrite(accessLevel) && linkButton({
+              Utils.canWrite(accessLevel) && link({
                 tooltip: 'Remove tag',
                 disabled: busy,
                 onClick: () => this.deleteTag(tag),
@@ -337,7 +337,7 @@ export const WorkspaceDashboard = _.flow(
         ]),
         div({ style: { display: 'flex' } }, [
           div({ style: Style.noWrapEllipsis }, [bucketName]),
-          linkButton({
+          link({
             style: { margin: '0 0.5rem', flexShrink: 0 },
             tooltip: 'Copy bucket name',
             onClick: withErrorReporting('Error copying to clipboard', async () => {

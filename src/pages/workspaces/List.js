@@ -6,7 +6,7 @@ import { pure } from 'recompose'
 import removeMd from 'remove-markdown'
 import togglesListView from 'src/components/CardsListToggle'
 import {
-  AsyncCreatableSelect, Clickable, LabeledCheckbox, linkButton, MenuButton, menuIcon, PageBox, Select, topSpinnerOverlay, transparentSpinnerOverlay
+  AsyncCreatableSelect, Clickable, LabeledCheckbox, link, MenuButton, menuIcon, PageBox, Select, topSpinnerOverlay, transparentSpinnerOverlay
 } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { DelayedSearchInput } from 'src/components/input'
@@ -149,7 +149,7 @@ const WorkspaceCard = pure(({
     closeOnClick: true,
     content: h(WorkspaceMenuContent, { namespace, name, onShare, onClone, onDelete })
   }, [
-    linkButton({
+    link({
       as: 'div',
       onClick: e => e.preventDefault(),
       disabled: !canView
@@ -298,7 +298,7 @@ export const WorkspaceList = _.flow(
         'To get started, click ', span({ style: { fontWeight: 600 } }, ['Create a New Workspace'])
       ]),
       div({ style: { marginTop: '1rem', fontSize: 16 } }, [
-        linkButton({
+        link({
           ...Utils.newTabLinkProps,
           href: `https://support.terra.bio/hc/en-us/articles/360022716811`
         }, [`What's a workspace?`])

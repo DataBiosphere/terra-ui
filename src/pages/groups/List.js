@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { a, b, div, h } from 'react-hyperscript-helpers'
 import { pure } from 'recompose'
-import { buttonPrimary, Clickable, linkButton, PageBox, spinnerOverlay } from 'src/components/common'
+import { buttonPrimary, Clickable, link, PageBox, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { DelayedSearchInput, ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
@@ -111,7 +111,7 @@ const GroupCard = pure(({ group: { groupName, groupEmail, role }, onDelete }) =>
     div({ style: { flexGrow: 1 } }, [groupEmail]),
     div({ style: { width: 100, display: 'flex', alignItems: 'center' } }, [
       div({ style: { flexGrow: 1 } }, [isAdmin ? 'Admin' : 'Member']),
-      isAdmin && linkButton({
+      isAdmin && link({
         onClick: onDelete,
         style: { margin: '-1rem', padding: '1rem' }
       }, [
@@ -137,7 +137,7 @@ const noGroupsMessage = div({ style: { fontSize: 20, margin: '0 1rem' } }, [
     'Create a group to share your workspaces with others.'
   ]),
   div({ style: { marginTop: '1rem', fontSize: 16 } }, [
-    linkButton({
+    link({
       ...Utils.newTabLinkProps,
       href: `https://support.terra.bio/hc/en-us/articles/360026775691`
     }, [`How do I use groups to manage authorization?`])

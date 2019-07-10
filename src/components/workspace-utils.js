@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import { Component, Fragment, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
-import { buttonPrimary, linkButton, Select } from 'src/components/common'
+import { buttonPrimary, link, Select } from 'src/components/common'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
 import { Ajax, useCancellation } from 'src/libs/ajax'
 import { withErrorReporting } from 'src/libs/error'
@@ -86,7 +86,7 @@ export const WorkspaceImporter = withWorkspaces()(class WorkspaceImporter extend
           onClick: () => onImport(this.getSelectedWorkspace().workspace)
         }, ['Import']),
         div({ style: { marginLeft: '1rem', whiteSpace: 'pre' } }, ['Or ']),
-        linkButton({
+        link({
           onClick: () => this.setState({ creatingWorkspace: true })
         }, ['create a new workspace'])
       ]),

@@ -49,7 +49,7 @@ const linkProps = ({ disabled, variant }) => ({
 })
 
 export const link = ({ onClick, href, disabled, variant, ...props }, children) => {
-  return h(Interactive,
+  return h(Clickable,
     _.merge(linkProps({ disabled, variant }), {
       href, disabled,
       onClick: href && onClick ? e => {
@@ -58,12 +58,6 @@ export const link = ({ onClick, href, disabled, variant, ...props }, children) =
       } : onClick,
       ...props
     }),
-    children)
-}
-
-export const linkButton = ({ disabled, variant, ...props }, children) => {
-  return h(Clickable,
-    _.merge(linkProps({ disabled, variant }), { disabled, ...props }),
     children)
 }
 
@@ -104,8 +98,8 @@ export const buttonOutline = ({ disabled, ...props }, children) => {
   }, props), children)
 }
 
-export const iconButton = (shape, { disabled, size, iconProps = {}, ...props } = {}) => linkButton(
-  _.merge({
+export const iconButton = (shape, { disabled, size, iconProps = {}, ...props } = {}) => {
+  return h(Clickable, _.merge({
     as: 'span',
     disabled,
     style: {
@@ -116,9 +110,10 @@ export const iconButton = (shape, { disabled, size, iconProps = {}, ...props } =
         { mask: `url(${hexButton}) center no-repeat`, WebkitMask: `url(${hexButton}) center no-repeat` } :
         { borderRadius: '1rem' })
     }
-  }, props),
-  [icon(shape, _.merge({ style: { color: disabled ? colors.dark() : 'white' } }, iconProps))]
-)
+  }, props), [
+    icon(shape, _.merge({ style: { color: disabled ? colors.dark() : 'white' } }, iconProps))
+  ])
+}
 
 export const tabBar = ({ activeTab, tabNames, refresh = _.noop, getHref }, children = []) => {
   const navTab = currentTab => {

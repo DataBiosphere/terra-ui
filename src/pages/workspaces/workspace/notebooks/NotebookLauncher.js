@@ -4,7 +4,7 @@ import { div, h, iframe } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
 import { NewClusterModal } from 'src/components/ClusterManager'
-import { buttonOutline, buttonPrimary, linkButton } from 'src/components/common'
+import { buttonOutline, buttonPrimary, link } from 'src/components/common'
 import { spinner } from 'src/components/icons'
 import { notify } from 'src/components/Notifications'
 import { Ajax, useCancellation } from 'src/libs/ajax'
@@ -237,7 +237,7 @@ const NotebookEditor = ({ notebookName, workspace, workspace: { workspace: { nam
       ['Error', () => h(StatusMessage, ['Notebook runtime error.'])],
       [null, () => h(StatusMessage, [
         'You need a notebook runtime environment. ',
-        linkButton({ onClick: () => setCreateOpen(true) }, ['Create one']),
+        link({ onClick: () => setCreateOpen(true) }, ['Create one']),
         ' to get started.'
       ])]
     ),
