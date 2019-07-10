@@ -5,7 +5,7 @@ import { pure } from 'recompose'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import togglesListView from 'src/components/CardsListToggle'
 import {
-  buttonOutline, buttonPrimary, Clickable, link, linkButton, MenuButton, menuIcon, methodLink, PageBox, Select, spinnerOverlay
+  buttonOutline, buttonPrimary, Clickable, link, MenuButton, menuIcon, methodLink, PageBox, Select, spinnerOverlay
 } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { Markdown } from 'src/components/Markdown'
@@ -272,7 +272,7 @@ const noWorkflowsMessage = div({ style: { fontSize: 20, margin: '1rem' } }, [
     'To get started, click ', span({ style: { fontWeight: 600 } }, ['Find a Workflow'])
   ]),
   div({ style: { marginTop: '1rem', fontSize: 16 } }, [
-    linkButton({
+    link({
       ...Utils.newTabLinkProps,
       href: `https://support.terra.bio/hc/en-us/sections/360004147011`
     }, [`What's a workflow?`])
