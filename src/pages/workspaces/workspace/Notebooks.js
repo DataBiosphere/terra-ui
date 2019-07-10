@@ -7,7 +7,7 @@ import { a, div, h, span } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
 import togglesListView from 'src/components/CardsListToggle'
-import { Clickable, link, linkButton, MenuButton, menuIcon, PageBox, Select, spinnerOverlay } from 'src/components/common'
+import { Clickable, link, MenuButton, menuIcon, PageBox, Select, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { NotebookCreator, NotebookDeleter, NotebookDuplicator } from 'src/components/notebook-utils'
 import { notify } from 'src/components/Notifications'
@@ -61,7 +61,7 @@ const noNotebooksMessage = div({ style: { fontSize: 20 } }, [
     'To get started, click ', span({ style: { fontWeight: 600 } }, ['Create a New Notebook'])
   ]),
   div({ style: { marginTop: '1rem', fontSize: 16 } }, [
-    linkButton({
+    link({
       ...Utils.newTabLinkProps,
       href: `https://support.terra.bio/hc/en-us/sections/360004143932`
     }, [`What's a notebook?`])
