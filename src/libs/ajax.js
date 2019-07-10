@@ -126,7 +126,7 @@ const getServiceAccountToken = Utils.memoizeAsync(async (namespace, token) => {
     _.mergeAll([authOpts(token), jsonBody(scopes), { method: 'POST' }])
   )
   return res.json()
-}, { timeout: 1000 * 60 * 30, resolver: (...args) => JSON.stringify(args) })
+}, { expires: 1000 * 60 * 30, keyFn: (...args) => JSON.stringify(args) })
 
 const saToken = namespace => getServiceAccountToken(namespace, getUser().token)
 
