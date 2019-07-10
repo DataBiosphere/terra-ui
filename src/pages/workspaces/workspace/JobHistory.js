@@ -3,7 +3,7 @@ import { Fragment } from 'react'
 import { div, h, span, table, tbody, td, tr } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { buttonPrimary, Clickable, link, linkButton, spinnerOverlay } from 'src/components/common'
+import { buttonPrimary, Clickable, link, spinnerOverlay } from 'src/components/common'
 import { DelayedSearchInput } from 'src/components/input'
 import { collapseStatus, failedIcon, runningIcon, submittedIcon, successIcon } from 'src/components/job-common'
 import Modal from 'src/components/Modal'
@@ -84,7 +84,7 @@ const noJobsMessage = div({ style: { fontSize: 20, margin: '1rem' } }, [
     'You have not run any jobs yet. To get started, go to the ', span({ style: { fontWeight: 600 } }, ['Workflows']), ' tab and select a workflow to run.'
   ]),
   div({ style: { marginTop: '1rem', fontSize: 16 } }, [
-    linkButton({
+    link({
       ...Utils.newTabLinkProps,
       href: `https://support.terra.bio/hc/en-us/articles/360027920592`
     }, [`What is a job?`])
