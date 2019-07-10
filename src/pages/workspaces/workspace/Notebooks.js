@@ -3,7 +3,7 @@ import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { createRef, Fragment } from 'react'
 import Dropzone from 'react-dropzone'
-import { a, div, h } from 'react-hyperscript-helpers'
+import { a, div, h, span } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
 import togglesListView from 'src/components/CardsListToggle'
@@ -55,6 +55,18 @@ const sortOptions = [
   { label: 'Alphabetical', value: { field: 'lowerCaseName', direction: 'asc' } },
   { label: 'Reverse Alphabetical', value: { field: 'lowerCaseName', direction: 'desc' } }
 ]
+
+const noNotebooksMessage = div({ style: { fontSize: 20 } }, [
+  div([
+    'To get started, click ', span({ style: { fontWeight: 600 } }, ['Create a New Notebook'])
+  ]),
+  div({ style: { marginTop: '1rem', fontSize: 16 } }, [
+    link({
+      ...Utils.newTabLinkProps,
+      href: `https://support.terra.bio/hc/en-us/sections/360004143932`
+    }, [`What's a notebook?`])
+  ])
+])
 
 class NotebookCard extends Component {
   render() {
@@ -315,10 +327,11 @@ const Notebooks = _.flow(
           ])
         ])
       ]),
-      listView ?
-        div({ style: { flex: 1 } }, [
-          renderedNotebooks
-        ]) : div({ style: { display: 'flex', flexWrap: 'wrap' } }, renderedNotebooks)
+      Utils.cond(
+        [_.isEmpty(notebooks), () => noNotebooksMessage],
+        [listView, () => div({ style: { flex: 1 } }, [renderedNotebooks])],
+        () => div({ style: { display: 'flex', flexWrap: 'wrap' } }, renderedNotebooks)
+      )
     ])
   }
 
