@@ -114,16 +114,18 @@ const nbName = name => encodeURIComponent(`notebooks/${name}.ipynb`)
 // %23 = '#', %2F = '/'
 const dockstoreMethodPath = path => `api/ga4gh/v1/tools/%23workflow%2F${encodeURIComponent(path)}/versions`
 
-const User = signal => ({
-  token: Utils.memoizeWithTimeout(async namespace => {
-    const scopes = ['https://www.googleapis.com/auth/devstorage.full_control']
-    const res = await fetchSam(
-      `api/google/user/petServiceAccount/${namespace}/token`,
-      _.mergeAll([authOpts(), jsonBody(scopes), { signal, method: 'POST' }])
-    )
-    return res.json()
-  }, namespace => namespace, 1000 * 60 * 30),
+const getServiceAccountToken = Utils.memoizeAsync(async (namespace, token) => {
+  const scopes = ['https://www.googleapis.com/auth/devstorage.full_control']
+  const res = await fetchSam(
+    `api/google/user/petServiceAccount/${namespace}/token`,
+    _.mergeAll([authOpts(token), jsonBody(scopes), { method: 'POST' }])
+  )
+  return res.json()
+}, { expires: 1000 * 60 * 30, keyFn: (...args) => JSON.stringify(args) })
 
+const saToken = namespace => getServiceAccountToken(namespace, getUser().token)
+
+const User = signal => ({
   getStatus: async () => {
     const res = await fetchOk(`${getConfig().samUrlRoot}/register/user/v2/self/info`, _.mergeAll([authOpts(), { signal }, appIdentifier]))
     return res.json()
@@ -659,7 +661,7 @@ const Workspaces = signal => ({
 const Buckets = signal => ({
   getObject: async (bucket, object, namespace) => {
     return fetchBuckets(`storage/v1/b/${bucket}/o/${encodeURIComponent(object)}`,
-      _.merge(authOpts(await User(signal).token(namespace)), { signal })
+      _.merge(authOpts(await saToken(namespace)), { signal })
     ).then(
       res => res.json()
     )
@@ -668,7 +670,7 @@ const Buckets = signal => ({
   getObjectPreview: async (bucket, object, namespace, previewFull = false) => {
     return fetchBuckets(`storage/v1/b/${bucket}/o/${encodeURIComponent(object)}?alt=media`,
       _.mergeAll([
-        authOpts(await User(signal).token(namespace)),
+        authOpts(await saToken(namespace)),
         { signal },
         previewFull ? {} : { headers: { Range: 'bytes=0-20000' } }
       ])
@@ -683,7 +685,7 @@ const Buckets = signal => ({
   listNotebooks: async (namespace, name) => {
     const res = await fetchBuckets(
       `storage/v1/b/${name}/o?prefix=notebooks/`,
-      _.merge(authOpts(await User(signal).token(namespace)), { signal })
+      _.merge(authOpts(await saToken(namespace)), { signal })
     )
     const { items } = await res.json()
     return _.filter(({ name }) => name.endsWith('.ipynb'), items)
@@ -692,7 +694,7 @@ const Buckets = signal => ({
   list: async (namespace, bucket, prefix) => {
     const res = await fetchBuckets(
       `storage/v1/b/${bucket}/o?${qs.stringify({ prefix, delimiter: '/' })}`,
-      _.merge(authOpts(await User(signal).token(namespace)), { signal })
+      _.merge(authOpts(await saToken(namespace)), { signal })
     )
     return res.json()
   },
@@ -700,14 +702,14 @@ const Buckets = signal => ({
   delete: async (namespace, bucket, name) => {
     return fetchBuckets(
       `storage/v1/b/${bucket}/o/${encodeURIComponent(name)}`,
-      _.merge(authOpts(await User(signal).token(namespace)), { signal, method: 'DELETE' })
+      _.merge(authOpts(await saToken(namespace)), { signal, method: 'DELETE' })
     )
   },
 
   upload: async (namespace, bucket, prefix, file) => {
     return fetchBuckets(
       `upload/storage/v1/b/${bucket}/o?uploadType=media&name=${encodeURIComponent(prefix + file.name)}`,
-      _.merge(authOpts(await User(signal).token(namespace)), {
+      _.merge(authOpts(await saToken(namespace)), {
         signal, method: 'POST', body: file,
         headers: { 'Content-Type': file.type, 'Content-Length': file.size }
       })
@@ -720,20 +722,20 @@ const Buckets = signal => ({
     const copy = async (newName, newBucket) => {
       return fetchBuckets(
         `${bucketUrl}/${nbName(name)}/copyTo/b/${newBucket}/o/${nbName(newName)}`,
-        _.merge(authOpts(await User(signal).token(namespace)), { signal, method: 'POST' })
+        _.merge(authOpts(await saToken(namespace)), { signal, method: 'POST' })
       )
     }
     const doDelete = async () => {
       return fetchBuckets(
         `${bucketUrl}/${nbName(name)}`,
-        _.merge(authOpts(await User(signal).token(namespace)), { signal, method: 'DELETE' })
+        _.merge(authOpts(await saToken(namespace)), { signal, method: 'DELETE' })
       )
     }
 
     const getObject = async () => {
       const res = await fetchBuckets(
         `${bucketUrl}/${nbName(name)}`,
-        _.merge(authOpts(await User(signal).token(namespace)), { signal, method: 'GET' })
+        _.merge(authOpts(await saToken(namespace)), { signal, method: 'GET' })
       )
       return await res.json()
     }
@@ -741,7 +743,7 @@ const Buckets = signal => ({
       preview: async () => {
         const nb = await fetchBuckets(
           `${bucketUrl}/${encodeURIComponent(`notebooks/${name}`)}?alt=media`,
-          _.merge(authOpts(await User(signal).token(namespace)), { signal })
+          _.merge(authOpts(await saToken(namespace)), { signal })
         ).then(res => res.text())
         return fetchOk(`${getConfig().calhounUrlRoot}/api/convert`,
           _.mergeAll([authOpts(), { signal, method: 'POST', body: nb }])
@@ -753,7 +755,7 @@ const Buckets = signal => ({
       create: async contents => {
         return fetchBuckets(
           `upload/${bucketUrl}?uploadType=media&name=${nbName(name)}`,
-          _.merge(authOpts(await User(signal).token(namespace)), {
+          _.merge(authOpts(await saToken(namespace)), {
             signal, method: 'POST', body: JSON.stringify(contents),
             headers: { 'Content-Type': 'application/x-ipynb+json' }
           })
