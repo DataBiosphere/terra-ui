@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { Fragment } from 'react'
-import { a, div, h } from 'react-hyperscript-helpers'
+import { a, div, h, span } from 'react-hyperscript-helpers'
 import { pure } from 'recompose'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import togglesListView from 'src/components/CardsListToggle'
@@ -267,6 +267,18 @@ const FindWorkflowModal = ajaxCaller(class FindWorkflowModal extends Component {
   }
 })
 
+const noWorkflowsMessage = div({ style: { fontSize: 20, margin: '1rem' } }, [
+  div([
+    'To get started, click ', span({ style: { fontWeight: 600 } }, ['Find a Workflow'])
+  ]),
+  div({ style: { marginTop: '1rem', fontSize: 16 } }, [
+    link({
+      ...Utils.newTabLinkProps,
+      href: `https://support.terra.bio/hc/en-us/sections/360004147011`
+    }, [`What's a workflow?`])
+  ])
+])
+
 export const Workflows = _.flow(
   wrapWorkspace({
     breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
@@ -361,6 +373,7 @@ export const Workflows = _.flow(
           'Find a Workflow',
           icon('plus-circle', { size: 32 })
         ]),
+        !loading && _.isEmpty(workflows) && noWorkflowsMessage,
         listView ? div({ style: { flex: 1 } }, [workflows]) : workflows,
         findingWorkflow && h(FindWorkflowModal, {
           namespace, name,
