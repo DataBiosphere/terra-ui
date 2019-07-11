@@ -92,7 +92,7 @@ const NotificationDisplay = Utils.connectAtom(notificationStore, 'notificationSt
         div({ style: { display: 'flex', flex: 1, flexDirection: 'column' } }, [
           // icon and title
           div({ style: { display: 'flex' } }, [
-            !!iconType && icon(iconType, { className: 'is-solid', size: 26, style: { flexShrink: 0, marginRight: '0.5rem' } }),
+            !!iconType && icon(iconType, { size: 26, style: { flexShrink: 0, marginRight: '0.5rem' } }),
             div({ style: { fontWeight: 600 } }, [title])
           ]),
           !!message && div({ style: { marginTop: '0.5rem' } }, [message]),

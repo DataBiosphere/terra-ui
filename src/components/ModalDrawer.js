@@ -1,4 +1,3 @@
-import PropTypes from 'prop-types'
 import { h } from 'react-hyperscript-helpers'
 import RModal from 'react-modal'
 import { Transition } from 'react-transition-group'
@@ -22,45 +21,21 @@ const drawer = {
   })
 }
 
-const Modal = ({ transitionState = false, ...props }) => {
-  const { onDismiss, children, width, ...restProps } = props
-
-  return h(RModal, {
-    parentSelector: () => document.getElementById('modal-root'),
-    isOpen: true,
-    onRequestClose: onDismiss,
-    style: { overlay: drawer.overlay(transitionState), content: { ...drawer.container(transitionState), width } },
-    ariaHideApp: false,
-    ...restProps
-  }, [children])
-}
-
-const propTypes = {
-  onDismiss: PropTypes.func.isRequired,
-  width: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
-  openDrawer: PropTypes.bool
-}
-
-const defaultProps = {
-  width: 450,
-  openDrawer: false
-}
-
-export const ModalDrawer = props => {
-  const { openDrawer } = props
-
-  const transitionModal = h(Transition, {
+const ModalDrawer = ({ openDrawer, onDismiss, transitionState = false, children, width = 450, ...props }) => {
+  return h(Transition, {
     in: openDrawer,
     timeout: { exit: 200 },
     appear: true,
     mountOnEnter: true,
     unmountOnExit: true
-  }, [transitionState => h(Modal, { ...props, transitionState })])
-
-  return transitionModal
+  }, [h(RModal, {
+    parentSelector: () => document.getElementById('modal-root'),
+    isOpen: true,
+    onRequestClose: onDismiss,
+    style: { overlay: drawer.overlay(transitionState), content: { ...drawer.container(transitionState), width } },
+    ariaHideApp: false,
+    ...props
+  }, [children])])
 }
-
-ModalDrawer.propTypes = propTypes
-Modal.defaultProps = defaultProps
 
 export default ModalDrawer

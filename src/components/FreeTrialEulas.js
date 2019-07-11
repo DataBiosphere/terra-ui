@@ -1,4 +1,3 @@
-import { Component } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { Markdown, newWindowLinkRenderer } from 'src/components/Markdown'
 
@@ -1321,20 +1320,17 @@ https://cloud.google.com/docs
 <https://cloud.google.com/terms/sla>
 `
 
-class FreeTrialEulas extends Component {
-  render() {
-    const { pageTwo } = this.props
-    return div({ style: { maxHeight: 500, maxWidth: 1500, overflowY: 'auto', lineHeight: 1.5, marginTop: '1rem', paddingRight: '1rem' } }, [
-      h(Markdown, {
-        renderers: {
-          link: newWindowLinkRenderer,
-          paragraph: text => {
-            return `<p style="margin-top: 0">${text}</p>`
-          }
+const FreeTrialEulas = ({ pageTwo }) => {
+  return div({ style: { maxHeight: 500, maxWidth: 1500, overflowY: 'auto', lineHeight: 1.5, marginTop: '1rem', paddingRight: '1rem' } }, [
+    h(Markdown, {
+      renderers: {
+        link: newWindowLinkRenderer,
+        paragraph: text => {
+          return `<p style="margin-top: 0">${text}</p>`
         }
-      }, [pageTwo ? onixEula : broadEula])
-    ])
-  }
+      }
+    }, [pageTwo ? onixEula : broadEula])
+  ])
 }
 
 export default FreeTrialEulas

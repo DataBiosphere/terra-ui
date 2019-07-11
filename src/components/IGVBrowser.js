@@ -8,12 +8,6 @@ import { reportError } from 'src/libs/error'
 import * as Utils from 'src/libs/utils'
 
 
-const igvStyle = {
-  padding: '10px 0',
-  margin: 8,
-  border: `1px solid ${colors.dark(0.25)}`
-}
-
 export const IGVBrowser = ({ selectedFiles, refGenome, namespace }) => {
   const containerRef = useRef()
   const [loadingIgv, setLoadingIgv] = useState(true)
@@ -61,7 +55,14 @@ export const IGVBrowser = ({ selectedFiles, refGenome, namespace }) => {
   return (
     h(Fragment, [
       loadingIgv && centeredSpinner(),
-      div({ ref: containerRef, style: igvStyle })
+      div({
+        ref: containerRef,
+        style: {
+          padding: '10px 0',
+          margin: 8,
+          border: `1px solid ${colors.dark(0.25)}`
+        }
+      })
     ])
   )
 }

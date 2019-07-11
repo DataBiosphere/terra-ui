@@ -1,20 +1,20 @@
 import { div } from 'react-hyperscript-helpers'
-import { Component } from 'src/libs/wrapped-components'
+import * as Utils from 'src/libs/utils'
 
 
-export default class SignInButton extends Component {
-  componentDidMount() {
+const SignInButton = () => {
+  Utils.useOnMount(() => {
     window.gapi.signin2.render('signInButton', {
       scope: 'openid profile email',
-      'width': 250,
-      'height': 56,
-      'longtitle': true,
-      'theme': 'dark',
+      width: 250,
+      height: 56,
+      longtitle: true,
+      theme: 'dark',
       prompt: 'select_account'
     })
-  }
+  })
 
-  render() {
-    return div({ id: 'signInButton' })
-  }
+  return div({ id: 'signInButton' })
 }
+
+export default SignInButton

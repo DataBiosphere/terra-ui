@@ -50,7 +50,7 @@ const makeCard = isGATK => ({ workspace: { namespace, name, attributes: { descri
 }
 
 
-const Showcase = withWorkspaces()(class Showcase extends Component {
+const Showcase = withWorkspaces(class Showcase extends Component {
   constructor(props) {
     super(props)
     this.state = { featuredList: StateHistory.get().featuredList }

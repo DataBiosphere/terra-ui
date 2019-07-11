@@ -1,9 +1,8 @@
 import _ from 'lodash/fp'
 import Prism from 'prismjs'
-import PropTypes from 'prop-types'
+import { useLayoutEffect, useRef } from 'react'
 import { code, pre } from 'react-hyperscript-helpers'
 import * as Style from 'src/libs/style'
-import { Component } from 'src/libs/wrapped-components'
 
 
 /*
@@ -67,31 +66,22 @@ Prism.languages.wdl = {
   ]
 }
 
+const WDLViewer = ({ wdl, ...props }) => {
+  const elem = useRef()
 
-export default class WDLViewer extends Component {
-  static propTypes = {
-    wdl: PropTypes.string.isRequired
-  }
+  useLayoutEffect(() => {
+    Prism.highlightElement(elem.current)
+  }, [wdl])
 
-  render() {
-    const { wdl, ...props } = this.props
-
-    return pre(_.merge(
-      {
-        className: 'line-numbers',
-        style: { border: Style.standardLine, backgroundColor: 'white' }
-      },
-      props),
-    [
-      code({ className: 'language-wdl', ref: r => this.elem = r }, [wdl])
-    ])
-  }
-
-  componentDidMount() {
-    Prism.highlightElement(this.elem)
-  }
-
-  componentDidUpdate() {
-    Prism.highlightElement(this.elem)
-  }
+  return pre(_.merge(
+    {
+      className: 'line-numbers',
+      style: { border: Style.standardLine, backgroundColor: 'white' }
+    },
+    props),
+  [
+    code({ className: 'language-wdl', ref: elem }, [wdl])
+  ])
 }
+
+export default WDLViewer

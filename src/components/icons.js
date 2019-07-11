@@ -12,8 +12,6 @@ import iconDict from 'src/libs/icon-dict'
  */
 export const icon = (shape, { size = 16, ...props } = {}) => _.invokeArgs(shape, [{ size, ...props }], iconDict)
 
-export const breadcrumb = props => icon('angle right', _.merge({ size: 10, style: { margin: '0 0.25rem' } }, props))
-
 export const spinner = props => icon('loadingSpinner', _.merge({ size: 24, style: { color: colors.primary() } }, props))
 
 export const centeredSpinner = props => spinner(_.merge({ size: 48, style: { display: 'block', margin: 'auto' } }, props))

@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { Component, Fragment, useState } from 'react'
+import { Fragment, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { buttonPrimary, link, Select } from 'src/components/common'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
@@ -26,7 +26,7 @@ export const useWorkspaces = () => {
   return { workspaces, refresh, loading }
 }
 
-export const withWorkspaces = () => WrappedComponent => {
+export const withWorkspaces = WrappedComponent => {
   const Wrapper = props => {
     const { workspaces, refresh, loading } = useWorkspaces()
     return h(WrappedComponent, {
@@ -53,24 +53,13 @@ export const WorkspaceSelector = ({ workspaces, value, onChange }) => {
   })
 }
 
-export const WorkspaceImporter = withWorkspaces()(class WorkspaceImporter extends Component {
-  constructor(props) {
-    super(props)
-    this.state = {
-      selectedWorkspaceId: props.selectedWorkspaceId,
-      creatingWorkspace: false
-    }
-  }
+export const WorkspaceImporter = withWorkspaces(
+  ({ workspaces, refreshWorkspaces, onImport, authorizationDomain: ad, selectedWorkspaceId: initialWs }) => {
+    const [selectedWorkspaceId, setSelectedWorkspaceId] = useState(initialWs)
+    const [creatingWorkspace, setCreatingWorkspace] = useState(false)
 
-  getSelectedWorkspace() {
-    const { workspaces } = this.props
-    const { selectedWorkspaceId } = this.state
-    return _.find({ workspace: { workspaceId: selectedWorkspaceId } }, workspaces)
-  }
+    const selectedWorkspace = _.find({ workspace: { workspaceId: selectedWorkspaceId } }, workspaces)
 
-  render() {
-    const { workspaces, refreshWorkspaces, onImport, authorizationDomain: ad } = this.props
-    const { selectedWorkspaceId, creatingWorkspace } = this.state
     return h(Fragment, [
       h(WorkspaceSelector, {
         workspaces: _.filter(ws => {
@@ -78,27 +67,28 @@ export const WorkspaceImporter = withWorkspaces()(class WorkspaceImporter extend
             (!ad || _.some({ membersGroupName: ad }, ws.workspace.authorizationDomain))
         }, workspaces),
         value: selectedWorkspaceId,
-        onChange: v => this.setState({ selectedWorkspaceId: v })
+        onChange: setSelectedWorkspaceId
       }),
       div({ style: { display: 'flex', alignItems: 'center', marginTop: '1rem' } }, [
         buttonPrimary({
-          disabled: !this.getSelectedWorkspace(),
-          onClick: () => onImport(this.getSelectedWorkspace().workspace)
+          disabled: !selectedWorkspace,
+          onClick: () => onImport(selectedWorkspace.workspace)
         }, ['Import']),
         div({ style: { marginLeft: '1rem', whiteSpace: 'pre' } }, ['Or ']),
         link({
-          onClick: () => this.setState({ creatingWorkspace: true })
+          onClick: () => setCreatingWorkspace(true)
         }, ['create a new workspace'])
       ]),
       creatingWorkspace && h(NewWorkspaceModal, {
         requiredAuthDomain: ad,
-        onDismiss: () => this.setState({ creatingWorkspace: false }),
+        onDismiss: () => setCreatingWorkspace(false),
         onSuccess: w => {
-          this.setState({ creatingWorkspace: false, selectedWorkspaceId: w.workspaceId })
+          setCreatingWorkspace(false)
+          setSelectedWorkspaceId(w.workspaceId)
           refreshWorkspaces()
           onImport(w)
         }
       })
     ])
   }
-})
+)
