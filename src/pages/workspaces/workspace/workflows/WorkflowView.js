@@ -411,6 +411,24 @@ const WorkflowView = _.flow(
     }
   }
 
+  /**
+   * Verify that the user's pet service account (used while running workflows) will be able to
+   * access the workspace bucket
+   *
+   * @returns {Promise<boolean>}
+   */
+  async preFlightBucketAccess() {
+    const { namespace, workspace: { workspace: { bucketName } }, ajax: { Buckets } } = this.props
+
+    try {
+      await Buckets.checkBucketAccess(bucketName, namespace)
+      return true
+    } catch (error) {
+      // Could check error.requesterPaysError here but for this purpose it really doesn't matter what the error was.
+      return false
+    }
+  }
+
   async componentDidMount() {
     const {
       namespace, name, workflowNamespace, workflowName,
@@ -421,10 +439,11 @@ const WorkflowView = _.flow(
     try {
       const ws = Workspaces.workspace(namespace, name)
 
-      const [entityMetadata, validationResponse, config] = await Promise.all([
+      const [entityMetadata, validationResponse, config, hasBucketAccess] = await Promise.all([
         ws.entityMetadata(),
         this.getValidation(),
-        ws.methodConfig(workflowNamespace, workflowName).get()
+        ws.methodConfig(workflowNamespace, workflowName).get(),
+        this.preFlightBucketAccess()
       ])
       const { methodRepoMethod: { methodNamespace, methodName } } = config
       const isRedacted = !validationResponse
@@ -432,6 +451,7 @@ const WorkflowView = _.flow(
       const snapshotIds = _.map(m => _.pick('snapshotId', m).snapshotId, methods)
       const inputsOutputs = isRedacted ? {} : await Methods.configInputsOutputs(config)
       this.setState({
+        hasBucketAccess,
         savedConfig: config, modifiedConfig: config,
         currentSnapRedacted: isRedacted, savedSnapRedacted: isRedacted,
         entityMetadata,
@@ -521,9 +541,9 @@ const WorkflowView = _.flow(
 
 
   renderSummary() {
-    const { workspace: ws, workspace: { workspace, hasBucketAccess }, namespace, name: workspaceName } = this.props
+    const { workspace: ws, workspace: { workspace }, namespace, name: workspaceName } = this.props
     const {
-      modifiedConfig, savedConfig, saving, saved, copying, deleting, selectingData, activeTab, errors, synopsis, documentation,
+      modifiedConfig, savedConfig, saving, saved, copying, deleting, selectingData, activeTab, errors, synopsis, documentation, hasBucketAccess,
       selectedEntityType, entityMetadata, entitySelectionModel, snapshotIds = [], useCallCache, currentSnapRedacted, savedSnapRedacted
     } = this.state
     const { name, methodRepoMethod: { methodPath, methodVersion, methodNamespace, methodName, sourceRepo }, rootEntityType } = modifiedConfig

@@ -74,7 +74,7 @@ const checkRequesterPaysError = async response => {
  * project if the user has access, retrying the request once if necessary.
  */
 const withRequesterPays = wrappedFetch => (url, ...args) => {
-  const bucket = /\/b\/([^/]+)\//.exec(url)[1]
+  const bucket = /\/b\/([^/?]+)[/?]/.exec(url)[1]
   const workspace = workspaceStore.get()
   const userProject = workspace && Utils.canWrite(workspace.accessLevel) ? workspace.workspace.namespace : requesterPaysProjectStore.get()
   const tryRequest = async () => {
@@ -714,6 +714,12 @@ const Buckets = signal => ({
         headers: { 'Content-Type': file.type, 'Content-Length': file.size }
       })
     )
+  },
+
+  checkBucketAccess: async (bucket, namespace) => {
+    const res = await fetchBuckets(`storage/v1/b/${bucket}?fields=billing`,
+      _.merge(authOpts(await saToken(namespace)), { signal }))
+    return res.json()
   },
 
   notebook: (namespace, bucket, name) => {
