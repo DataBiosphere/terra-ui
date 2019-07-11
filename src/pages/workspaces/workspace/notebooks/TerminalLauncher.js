@@ -4,6 +4,7 @@ import { div, iframe } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { spinner } from 'src/components/icons'
 import { ajaxCaller } from 'src/libs/ajax'
+import { normalizeMachineConfig } from 'src/libs/cluster-utils'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import * as Utils from 'src/libs/utils'
@@ -32,7 +33,7 @@ const TerminalLauncher = _.flow(
     await refreshClusters()
     if (!this.props.cluster) {
       await Jupyter.cluster(namespace, Utils.generateClusterName()).create({
-        machineConfig: Utils.normalizeMachineConfig({})
+        machineConfig: normalizeMachineConfig({})
       })
     }
 
