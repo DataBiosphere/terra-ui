@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types'
 import { h } from 'react-hyperscript-helpers'
 import RModal from 'react-modal'
 import { Transition } from 'react-transition-group'
@@ -21,14 +22,14 @@ const drawer = {
   })
 }
 
-const ModalDrawer = ({ openDrawer, onDismiss, transitionState = false, children, width = 450, ...props }) => {
+const ModalDrawer = ({ openDrawer, onDismiss, width = 450, children, ...props }) => {
   return h(Transition, {
     in: openDrawer,
     timeout: { exit: 200 },
     appear: true,
     mountOnEnter: true,
     unmountOnExit: true
-  }, [h(RModal, {
+  }, [transitionState => h(RModal, {
     parentSelector: () => document.getElementById('modal-root'),
     isOpen: true,
     onRequestClose: onDismiss,
@@ -36,6 +37,13 @@ const ModalDrawer = ({ openDrawer, onDismiss, transitionState = false, children,
     ariaHideApp: false,
     ...props
   }, [children])])
+}
+
+ModalDrawer.propTypes = {
+  openDrawer: PropTypes.bool,
+  onDismiss: PropTypes.func.isRequired,
+  width: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+  children: PropTypes.node
 }
 
 export default ModalDrawer
