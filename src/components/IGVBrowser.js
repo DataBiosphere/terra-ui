@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import { Fragment, useRef, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { centeredSpinner } from 'src/components/icons'
-import { Ajax } from 'src/libs/ajax'
+import { saToken } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import * as Utils from 'src/libs/utils'
@@ -45,7 +45,7 @@ export const IGVBrowser = ({ selectedFiles, refGenome, namespace }) => {
       try {
         const { default: igv } = await import('igv')
 
-        igv.oauth.google.setToken(Ajax().User.token(namespace))
+        igv.oauth.google.setToken(saToken(namespace))
         igv.createBrowser(containerRef.current, options)
       } catch (e) {
         reportError('Error loading IGV.js', e)
