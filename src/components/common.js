@@ -58,7 +58,7 @@ export const Link = ({ onClick, href, disabled, variant, children, ...props }) =
       } : onClick,
       ...props
     }),
-    children)
+    [children])
 }
 
 export const ButtonPrimary = ({ disabled, children, ...props }) => {
@@ -72,7 +72,7 @@ export const ButtonPrimary = ({ disabled, children, ...props }) => {
       cursor: disabled ? 'not-allowed' : 'pointer'
     },
     hover: disabled ? undefined : { backgroundColor: colors.accent(0.85) }
-  }, props), children)
+  }, props), [children])
 }
 
 export const ButtonSecondary = ({ disabled, children, ...props }) => {
@@ -84,7 +84,7 @@ export const ButtonSecondary = ({ disabled, children, ...props }) => {
       cursor: disabled ? 'not-allowed' : 'pointer'
     },
     hover: disabled ? undefined : { color: colors.accent(0.8) }
-  }, props), children)
+  }, props), [children])
 }
 
 export const ButtonOutline = ({ disabled, children, ...props }) => {
@@ -95,7 +95,7 @@ export const ButtonOutline = ({ disabled, children, ...props }) => {
       backgroundColor: disabled ? colors.dark(0.25) : 'white'
     },
     hover: disabled ? undefined : { backgroundColor: colors.accent(0.1) }
-  }, props), children)
+  }, props), [children])
 }
 
 export const makeIconButton = (shape, { disabled, size, iconProps = {}, ...props } = {}) => {
