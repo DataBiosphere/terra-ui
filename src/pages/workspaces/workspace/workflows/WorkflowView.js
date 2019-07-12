@@ -418,10 +418,10 @@ const WorkflowView = _.flow(
    * @returns {Promise<boolean>}
    */
   async preFlightBucketAccess() {
-    const { namespace, workspace: { workspace: { bucketName } }, ajax: { Buckets } } = this.props
+    const { namespace, name, workspace: { accessLevel, workspace: { bucketName } }, ajax: { Workspaces } } = this.props
 
     try {
-      await Buckets.checkBucketAccess(bucketName, namespace)
+      await Workspaces.workspace(namespace, name).checkBucketAccess(bucketName, accessLevel)
       return true
     } catch (error) {
       // Could check error.requesterPaysError here but for this purpose it really doesn't matter what the error was.

@@ -443,6 +443,16 @@ const Workspaces = signal => ({
         return fetchRawls(`${root}/checkBucketReadAccess`, _.merge(authOpts(), { signal }))
       },
 
+      checkBucketAccess: async (bucket, accessLevel) => {
+        if (!Utils.canWrite(accessLevel)) {
+          return false
+        }
+
+        const res = await fetchBuckets(`storage/v1/b/${bucket}?fields=billing`,
+          _.merge(authOpts(await saToken(namespace)), { signal }))
+        return res.json()
+      },
+
       details: async () => {
         const res = await fetchRawls(root, _.merge(authOpts(), { signal }))
         return res.json()
@@ -714,12 +724,6 @@ const Buckets = signal => ({
         headers: { 'Content-Type': file.type, 'Content-Length': file.size }
       })
     )
-  },
-
-  checkBucketAccess: async (bucket, namespace) => {
-    const res = await fetchBuckets(`storage/v1/b/${bucket}?fields=billing`,
-      _.merge(authOpts(await saToken(namespace)), { signal }))
-    return res.json()
   },
 
   notebook: (namespace, bucket, name) => {
