@@ -134,7 +134,7 @@ export const TabBar = ({ activeTab, tabNames, refresh = _.noop, getHref, childre
   return div({ style: Style.tabBar.container }, [
     ..._.map(name => navTab(name), tabNames),
     div({ style: { flexGrow: 1 } }),
-    ...children
+    children
   ])
 }
 
