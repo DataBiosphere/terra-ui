@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import { useState } from 'react'
 import { div, h, span, table, tbody, td, th, thead, tr } from 'react-hyperscript-helpers'
-import { buttonPrimary, link } from 'src/components/common'
+import { ButtonPrimary, Link } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import { Ajax, useCancellation } from 'src/libs/ajax'
@@ -49,7 +49,7 @@ export const RequestAccessModal = ({ onDismiss, workspace }) => {
       You need to obtain permission from an admin of each group in the Authorization Domain in order to get access.
       Clicking the "Request Access" button below will send an email to the admins of that group.`]),
     div({ style: { marginTop: '1rem' } }, [
-      link({
+      h(Link, {
         href: 'https://support.terra.bio/hc/en-us/articles/360026775691'
       }, ['Learn more about Authorization Domains', icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })])
     ]),
@@ -91,7 +91,7 @@ const RequestAccessButton = ({ groupName, instructions }) => {
     setRequested(true)
   })
 
-  return buttonPrimary({
+  return h(ButtonPrimary, {
     disabled: requesting || requested,
     onClick: async () => {
       await requestAccess()

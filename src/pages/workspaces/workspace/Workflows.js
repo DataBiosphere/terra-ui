@@ -5,7 +5,7 @@ import { pure } from 'recompose'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import togglesListView from 'src/components/CardsListToggle'
 import {
-  buttonOutline, buttonPrimary, Clickable, link, MenuButton, menuIcon, methodLink, PageBox, Select, spinnerOverlay
+  ButtonOutline, ButtonPrimary, Clickable, Link, makeMenuIcon, MenuButton, methodLink, PageBox, Select, spinnerOverlay
 } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { Markdown } from 'src/components/Markdown'
@@ -98,13 +98,13 @@ const WorkflowCard = pure(({ listView, name, namespace, config, onCopy, onDelete
         disabled: isRedacted,
         tooltip: isRedacted ? 'This workflow version is redacted' : undefined,
         tooltipSide: 'left'
-      }, [menuIcon('copy'), 'Copy to Another Workspace']),
+      }, [makeMenuIcon('copy'), 'Copy to Another Workspace']),
       h(MenuButton, {
         disabled: !!Utils.editWorkspaceError(workspace),
         tooltip: Utils.editWorkspaceError(workspace),
         tooltipSide: 'left',
         onClick: () => onDelete()
-      }, [menuIcon('trash'), 'Delete'])
+      }, [makeMenuIcon('trash'), 'Delete'])
     ])
   }, [
     h(Clickable, {
@@ -120,7 +120,7 @@ const WorkflowCard = pure(({ listView, name, namespace, config, onCopy, onDelete
       })
     ])
   ])
-  const repoLink = link({
+  const repoLink = h(Link, {
     href: methodLink(config),
     style: styles.innerLink,
     ...Utils.newTabLinkProps,
@@ -198,8 +198,8 @@ const FindWorkflowModal = ajaxCaller(class FindWorkflowModal extends Component {
           div([_.join(',', managers)])
         ]),
         div({ style: { margin: '0 1rem', display: 'flex', flexDirection: 'column' } }, [
-          buttonPrimary({ style: { marginBottom: '0.5rem' }, onClick: () => this.exportMethod() }, ['Add to Workspace']),
-          buttonOutline({ onClick: () => this.setState({ selectedWorkflow: undefined, selectedWorkflowDetails: undefined }) }, ['Return to List'])
+          h(ButtonPrimary, { style: { marginBottom: '0.5rem' }, onClick: () => this.exportMethod() }, ['Add to Workspace']),
+          h(ButtonOutline, { onClick: () => this.setState({ selectedWorkflow: undefined, selectedWorkflowDetails: undefined }) }, ['Return to List'])
         ])
       ]),
       div({ style: { fontSize: 18, fontWeight: 600, margin: '1rem 0 0.5rem' } }, ['Documentation']),
@@ -272,7 +272,7 @@ const noWorkflowsMessage = div({ style: { fontSize: 20, margin: '1rem' } }, [
     'To get started, click ', span({ style: { fontWeight: 600 } }, ['Find a Workflow'])
   ]),
   div({ style: { marginTop: '1rem', fontSize: 16 } }, [
-    link({
+    h(Link, {
       ...Utils.newTabLinkProps,
       href: `https://support.terra.bio/hc/en-us/sections/360004147011`
     }, [`What's a workflow?`])

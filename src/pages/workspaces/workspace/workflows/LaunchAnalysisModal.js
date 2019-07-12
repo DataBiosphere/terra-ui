@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { div, h } from 'react-hyperscript-helpers'
-import { buttonPrimary } from 'src/components/common'
+import { ButtonPrimary } from 'src/components/common'
 import { spinner } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import { ajaxCaller } from 'src/libs/ajax'
@@ -19,14 +19,14 @@ export default ajaxCaller(class LaunchAnalysisModal extends Component {
       onDismiss,
       showCancel: !launching,
       okButton: !launchError ?
-        buttonPrimary({
+        h(ButtonPrimary, {
           disabled: launching,
           onClick: () => {
             this.setState({ launching: true })
             this.doLaunch()
           }
         }, ['Launch']) :
-        buttonPrimary({ onClick: onDismiss }, ['OK'])
+        h(ButtonPrimary, { onClick: onDismiss }, ['OK'])
     }, [
       !launching && div('Confirm launch'),
       message && div([spinner({ style: { marginRight: '0.5rem' } }), message]),

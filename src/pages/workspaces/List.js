@@ -6,7 +6,7 @@ import { pure } from 'recompose'
 import removeMd from 'remove-markdown'
 import togglesListView from 'src/components/CardsListToggle'
 import {
-  AsyncCreatableSelect, Clickable, LabeledCheckbox, link, MenuButton, menuIcon, PageBox, Select, topSpinnerOverlay, transparentSpinnerOverlay
+  AsyncCreatableSelect, Clickable, LabeledCheckbox, Link, makeMenuIcon, MenuButton, PageBox, Select, topSpinnerOverlay, transparentSpinnerOverlay
 } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { DelayedSearchInput } from 'src/components/input'
@@ -92,7 +92,7 @@ const workspaceSubmissionStatus = ({ workspaceSubmissionStats: { runningSubmissi
   return Utils.cond(
     [runningSubmissionsCount, () => 'running'],
     [lastSuccessDate && (!lastFailureDate || new Date(lastSuccessDate) > new Date(lastFailureDate)), () => 'success'],
-    [lastFailureDate, () => 'failure'],
+    [lastFailureDate, () => 'failure']
   )
 }
 
@@ -115,19 +115,19 @@ const WorkspaceMenuContent = ({ namespace, name, onClone, onShare, onDelete }) =
       tooltip: workspace && !canRead && 'You do not have access to the workspace Authorization Domain',
       tooltipSide: 'left',
       onClick: () => onClone()
-    }, [menuIcon('copy'), 'Clone']),
+    }, [makeMenuIcon('copy'), 'Clone']),
     h(MenuButton, {
       disabled: !canShare,
       tooltip: workspace && !canShare && 'You have not been granted permission to share this workspace',
       tooltipSide: 'left',
       onClick: () => onShare()
-    }, [menuIcon('share'), 'Share']),
+    }, [makeMenuIcon('share'), 'Share']),
     h(MenuButton, {
       disabled: !isOwner,
       tooltip: workspace && !isOwner && 'You must be an owner of this workspace or the underlying billing project',
       tooltipSide: 'left',
       onClick: () => onDelete()
-    }, [menuIcon('trash'), 'Delete'])
+    }, [makeMenuIcon('trash'), 'Delete'])
   ])
 }
 
@@ -149,7 +149,7 @@ const WorkspaceCard = pure(({
     closeOnClick: true,
     content: h(WorkspaceMenuContent, { namespace, name, onShare, onClone, onDelete })
   }, [
-    link({
+    h(Link, {
       as: 'div',
       onClick: e => e.preventDefault(),
       disabled: !canView
@@ -298,7 +298,7 @@ export const WorkspaceList = _.flow(
         'To get started, click ', span({ style: { fontWeight: 600 } }, ['Create a New Workspace'])
       ]),
       div({ style: { marginTop: '1rem', fontSize: 16 } }, [
-        link({
+        h(Link, {
           ...Utils.newTabLinkProps,
           href: `https://support.terra.bio/hc/en-us/articles/360022716811`
         }, [`What's a workspace?`])

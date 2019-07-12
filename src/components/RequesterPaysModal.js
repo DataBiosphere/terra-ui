@@ -1,7 +1,7 @@
 import * as _ from 'lodash/fp'
 import { useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
-import { buttonPrimary, link, Select, spinnerOverlay } from 'src/components/common'
+import { ButtonPrimary, Link, Select, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import { Ajax, useCancellation } from 'src/libs/ajax'
@@ -13,7 +13,7 @@ import * as Utils from 'src/libs/utils'
 
 
 const billingHelpInfo = div({ style: { paddingTop: '1rem' } }, [
-  link({
+  h(Link, {
     href: 'https://support.terra.bio/hc/en-us/articles/360029801491',
     ...Utils.newTabLinkProps
   }, ['Why is billing required to access this data?', icon('pop-out', { style: { marginLeft: '0.25rem' }, size: 12 })])
@@ -51,7 +51,7 @@ const RequesterPaysModal = ({ onDismiss, onSuccess }) => {
       title: 'Choose a billing project',
       onDismiss,
       shouldCloseOnOverlayClick: false,
-      okButton: buttonPrimary({
+      okButton: h(ButtonPrimary, {
         disabled: !selectedBilling,
         onClick: () => {
           onSuccess(selectedBilling)
@@ -72,7 +72,7 @@ const RequesterPaysModal = ({ onDismiss, onSuccess }) => {
     [hasFreeCredits, () => h(Modal, {
       title: 'Cannot access data',
       onDismiss,
-      okButton: buttonPrimary({
+      okButton: h(ButtonPrimary, {
         onClick: () => {
           onDismiss()
           freeCreditsActive.set(true)
@@ -82,7 +82,7 @@ const RequesterPaysModal = ({ onDismiss, onSuccess }) => {
       div('To view or download data in this workspace, please set up a billing project.'),
       div([
         'You have $300 in',
-        link({
+        h(Link, {
           style: { marginLeft: '0.25rem' },
           href: 'https://support.terra.bio/hc/en-us/articles/360027940952',
           ...Utils.newTabLinkProps
@@ -95,7 +95,7 @@ const RequesterPaysModal = ({ onDismiss, onSuccess }) => {
     () => h(Modal, {
       title: 'Cannot access data',
       onDismiss,
-      okButton: buttonPrimary({
+      okButton: h(ButtonPrimary, {
         onClick: () => {
           Nav.goToPath('billing')
         }

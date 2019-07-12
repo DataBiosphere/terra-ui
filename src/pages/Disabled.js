@@ -1,5 +1,5 @@
-import { div } from 'react-hyperscript-helpers'
-import { link } from 'src/components/common'
+import { div, h } from 'react-hyperscript-helpers'
+import { Link } from 'src/components/common'
 import { signOut } from 'src/libs/auth'
 
 
@@ -10,7 +10,7 @@ export const Disabled = () => {
       'You will be contacted via email when your account is activated.'
     ]),
     div({ style: { marginTop: '1rem' } }, [
-      link({ onClick: signOut }, 'Sign out')
+      h(Link, { onClick: signOut }, 'Sign out')
     ])
   ])
 }

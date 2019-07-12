@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { div, h, label } from 'react-hyperscript-helpers'
-import { buttonPrimary, buttonSecondary, Checkbox, Clickable, Select } from 'src/components/common'
+import { ButtonPrimary, ButtonSecondary, Checkbox, Clickable, Select } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
@@ -323,11 +323,11 @@ const NewAccountModal = ({ onDismiss }) => {
     div({ style: { margin: '0 -1.25rem', borderTop: `1px solid ${colors.dark(0.25)}` } }),
     div({ style: { minHeight: 400, overflow: 'auto' } }, [pages[page].render()]),
     div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '2rem' } }, [
-      h(buttonSecondary, { onClick: () => onDismiss() }, ['Cancel']),
+      h(ButtonSecondary, { onClick: () => onDismiss() }, ['Cancel']),
       div({ style: { flexGrow: 1 } }),
       (!onFirstPage || !!account.paymentType) && h(Fragment, [
-        h(buttonSecondary, { onClick: () => setPage(page - 1), disabled: onFirstPage }, ['Back']),
-        h(buttonPrimary, {
+        h(ButtonSecondary, { onClick: () => setPage(page - 1), disabled: onFirstPage }, ['Back']),
+        h(ButtonPrimary, {
           style: { marginLeft: '2rem' },
           onClick: (onLastPage || CCdone) ? () => /*TODO: add submit action here*/ console.log(account) : () => setPage(page + 1),
           disabled: !_.isEmpty(pages[page].errors),

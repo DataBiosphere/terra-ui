@@ -6,7 +6,7 @@ import { Fragment, useState } from 'react'
 import { div, h, img, input } from 'react-hyperscript-helpers'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
 import Collapse from 'src/components/Collapse'
-import { buttonPrimary, Clickable, link } from 'src/components/common'
+import { ButtonPrimary, Clickable, Link } from 'src/components/common'
 import { icon, spinner } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import DownloadPrices from 'src/data/download-prices'
@@ -122,7 +122,7 @@ const DownloadButton = ({ uri, metadata: { bucket, name, size } }) => {
     url === null ?
       'Unable to generate download link.' :
       div({ style: { display: 'flex', justifyContent: 'center' } }, [
-        buttonPrimary({
+        h(ButtonPrimary, {
           as: 'a',
           disabled: !url,
           href: url,
@@ -198,7 +198,7 @@ const UriViewer = _.flow(
           h(PreviewContent, { uri, metadata, googleProject }),
           els.cell([els.label('File size'), els.data(filesize(parseInt(size, 10)))]),
           els.cell([
-            link({
+            h(Link, {
               ...Utils.newTabLinkProps,
               href: bucketBrowserUrl(gsUri.match(/gs:\/\/(.+)\//)[1])
             }, ['View this file in the Google Cloud Storage Browser'])
@@ -265,7 +265,7 @@ export class UriViewerLink extends Component {
     const { uri, googleProject } = this.props
     const { modalOpen } = this.state
     return h(Fragment, [
-      link({
+      h(Link, {
         style: { textDecoration: 'underline' },
         href: uri,
         onClick: () => this.setState({ modalOpen: true })

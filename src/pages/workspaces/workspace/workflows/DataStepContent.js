@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
 import { Fragment } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
-import { buttonPrimary, RadioButton } from 'src/components/common'
+import { ButtonPrimary, RadioButton } from 'src/components/common'
 import DataTable from 'src/components/DataTable'
 import { TextInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
@@ -62,7 +62,7 @@ export default class DataStepContent extends Component {
     const hasSet = _.has(setType, entityMetadata)
 
     return h(Modal, {
-      okButton: buttonPrimary({
+      okButton: h(ButtonPrimary, {
         disabled: !this.isValidSelectionModel(),
         onClick: () => onSuccess(entitySelectionModel)
       }, 'OK'),

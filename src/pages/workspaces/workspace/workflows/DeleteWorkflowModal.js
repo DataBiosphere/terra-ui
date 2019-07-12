@@ -1,5 +1,5 @@
 import { div, h } from 'react-hyperscript-helpers'
-import { buttonPrimary } from 'src/components/common'
+import { ButtonPrimary } from 'src/components/common'
 import Modal from 'src/components/Modal'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
@@ -15,7 +15,7 @@ export default class DeleteWorkflowModal extends Component {
     return h(Modal, {
       title: 'Delete Workflow',
       onDismiss,
-      okButton: buttonPrimary({
+      okButton: h(ButtonPrimary, {
         onClick: () => this.delete()
       }, ['Delete'])
     }, [

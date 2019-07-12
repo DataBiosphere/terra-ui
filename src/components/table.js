@@ -7,7 +7,7 @@ import Interactive from 'react-interactive'
 import Pagination from 'react-paginating'
 import { arrayMove, SortableContainer, SortableElement, SortableHandle } from 'react-sortable-hoc'
 import { AutoSizer, Grid as RVGrid, List, ScrollSync as RVScrollSync } from 'react-virtualized'
-import { buttonPrimary, Checkbox, Clickable, link } from 'src/components/common'
+import { ButtonPrimary, Checkbox, Clickable, Link } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import TooltipTrigger from 'src/components/TooltipTrigger'
@@ -511,7 +511,7 @@ export class ColumnSelector extends Component {
       open && h(Modal, {
         title: 'Select columns',
         onDismiss: () => this.setState({ open: false }),
-        okButton: buttonPrimary({
+        okButton: h(ButtonPrimary, {
           onClick: () => {
             onSave(modifiedColumnSettings)
             this.setState({ open: false })
@@ -520,11 +520,11 @@ export class ColumnSelector extends Component {
       }, [
         div({ style: { marginBottom: '1rem', display: 'flex' } }, [
           div({ style: { fontWeight: 500 } }, ['Show:']),
-          link({ style: { padding: '0 0.5rem' }, onClick: () => this.setAll(true) }, ['all']),
+          h(Link, { style: { padding: '0 0.5rem' }, onClick: () => this.setAll(true) }, ['all']),
           '|',
-          link({ style: { padding: '0 0.5rem' }, onClick: () => this.setAll(false) }, ['none']),
+          h(Link, { style: { padding: '0 0.5rem' }, onClick: () => this.setAll(false) }, ['none']),
           div({ style: { marginLeft: 'auto', fontWeight: 500 } }, ['Sort:']),
-          link({ style: { padding: '0 0.5rem' }, onClick: () => this.sort() }, ['alphabetical'])
+          h(Link, { style: { padding: '0 0.5rem' }, onClick: () => this.sort() }, ['alphabetical'])
         ]),
         h(AutoSizer, { disableHeight: true }, [
           ({ width }) => {

@@ -3,7 +3,7 @@ import PropTypes from 'prop-types'
 import { createRef, Fragment } from 'react'
 import Dropzone from 'react-dropzone'
 import { div, h, span } from 'react-hyperscript-helpers/lib/index'
-import { buttonPrimary, Clickable, LabeledCheckbox, link, Select, spinnerOverlay } from 'src/components/common'
+import { ButtonPrimary, Clickable, LabeledCheckbox, Link, Select, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import { TextCell } from 'src/components/table'
@@ -54,7 +54,7 @@ export const ReferenceDataImporter = class ReferenceDataImporter extends Compone
     return h(Modal, {
       onDismiss,
       title: 'Add Reference Data',
-      okButton: buttonPrimary({
+      okButton: h(ButtonPrimary, {
         disabled: !selectedReference || loading,
         onClick: async () => {
           this.setState({ loading: true })
@@ -99,7 +99,7 @@ export const ReferenceDataDeleter = class ReferenceDataDeleter extends Component
     return h(Modal, {
       onDismiss,
       title: 'Confirm Delete',
-      okButton: buttonPrimary({
+      okButton: h(ButtonPrimary, {
         disabled: deleting,
         onClick: async () => {
           this.setState({ deleting: true })
@@ -172,7 +172,7 @@ export const EntityDeleter = class EntityDeleter extends Component {
     return h(Modal, {
       onDismiss,
       title: 'Confirm Delete',
-      okButton: buttonPrimary({
+      okButton: h(ButtonPrimary, {
         disabled: deleting,
         onClick: () => this.doDelete()
       }, ['Delete'])
@@ -269,7 +269,7 @@ export const EntityUploader = class EntityUploader extends Component {
         onDismiss,
         title: 'Upload Table From .tsv File',
         width: '35rem',
-        okButton: buttonPrimary({
+        okButton: h(ButtonPrimary, {
           disabled: !file || uploading,
           onClick: () => this.doUpload()
         }, ['Upload'])
@@ -309,7 +309,7 @@ export const EntityUploader = class EntityUploader extends Component {
             onChange: checked => this.setState({ useFireCloudDataModel: checked }),
             style: { margin: '0.5rem' }
           }, [' Create participant, sample, and pair associations']),
-          link({
+          h(Link, {
             style: { marginLeft: '1rem', verticalAlign: 'middle' },
             href: 'https://software.broadinstitute.org/firecloud/documentation/article?id=10738',
             ...Utils.newTabLinkProps
@@ -323,7 +323,7 @@ export const EntityUploader = class EntityUploader extends Component {
           },
           onClick: () => this.uploader.current.open()
         }, [
-          div(['Drag or ', link({}, ['Click']), ' to select a .tsv file'])
+          div(['Drag or ', h(Link, ['Click']), ' to select a .tsv file'])
         ])
       ]),
       uploading && spinnerOverlay

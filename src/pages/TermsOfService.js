@@ -1,6 +1,6 @@
 import { Component } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
-import { backgroundLogo, buttonPrimary, buttonSecondary } from 'src/components/common'
+import { backgroundLogo, ButtonPrimary, ButtonSecondary } from 'src/components/common'
 import { Markdown } from 'src/components/Markdown'
 import { Ajax } from 'src/libs/ajax'
 import { signOut } from 'src/libs/auth'
@@ -234,13 +234,13 @@ export default class TermsOfService extends Component {
   render() {
     const { busy } = this.state
     return div({ style: styles.page }, [
-      backgroundLogo(),
+      backgroundLogo,
       div({ style: styles.box }, [
         termsTitle,
         TOSMarkdown,
         div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '2rem' } }, [
-          buttonSecondary({ style: { marginRight: '1rem' }, onClick: signOut }, 'Cancel'),
-          buttonPrimary({ onClick: () => this.accept(), disabled: busy }, ['Accept'])
+          h(ButtonSecondary, { style: { marginRight: '1rem' }, onClick: signOut }, 'Cancel'),
+          h(ButtonPrimary, { onClick: () => this.accept(), disabled: busy }, ['Accept'])
         ])
       ])
     ])
@@ -250,7 +250,7 @@ export default class TermsOfService extends Component {
 class TermsOfServicePage extends Component {
   render() {
     return div({ style: styles.page }, [
-      backgroundLogo(),
+      backgroundLogo,
       div({ style: styles.box }, [
         termsTitle,
         TOSMarkdown

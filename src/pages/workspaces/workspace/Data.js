@@ -8,7 +8,7 @@ import { div, form, h, input } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
-import { buttonPrimary, Clickable, link, Select, spinnerOverlay } from 'src/components/common'
+import { ButtonPrimary, Clickable, Link, Select, spinnerOverlay } from 'src/components/common'
 import DataTable from 'src/components/DataTable'
 import ExportDataModal from 'src/components/ExportDataModal'
 import FloatingActionButton from 'src/components/FloatingActionButton'
@@ -161,10 +161,10 @@ const LocalVariablesContent = class LocalVariablesContent extends Component {
       onDropAccepted: upload
     }, [
       div({ style: { flex: 'none', display: 'flex', alignItems: 'center', marginBottom: '1rem', justifyContent: 'flex-end' } }, [
-        link({ onClick: download }, ['Download TSV']),
+        h(Link, { onClick: download }, ['Download TSV']),
         !Utils.editWorkspaceError(workspace) && h(Fragment, [
           div({ style: { whiteSpace: 'pre' } }, ['  |  Drag or click to ']),
-          link({ onClick: () => this.uploader.current.open() }, ['upload TSV'])
+          h(Link, { onClick: () => this.uploader.current.open() }, ['upload TSV'])
         ]),
         h(DelayedSearchInput, {
           style: { width: 300, marginLeft: '1rem' },
@@ -221,20 +221,20 @@ const LocalVariablesContent = class LocalVariablesContent extends Component {
                             onChange: ({ value }) => this.setState({ editType: value }),
                             options: ['string', 'number', 'boolean', 'string list', 'number list', 'boolean list']
                           }),
-                          link({
+                          h(Link, {
                             tooltip: Utils.summarizeErrors(inputErrors) || 'Save changes',
                             disabled: !!inputErrors.length,
                             style: { marginLeft: '1rem' },
                             onClick: () => saveAttribute(originalKey)
                           }, [icon('success-standard', { size: 23 })]),
-                          link({
+                          h(Link, {
                             tooltip: 'Cancel editing',
                             style: { marginLeft: '1rem' },
                             onClick: () => stopEditing()
                           }, [icon('times-circle', { size: 23 })])
                         ]) :
                         div({ className: 'hover-only' }, [
-                          link({
+                          h(Link, {
                             disabled: !!Utils.editWorkspaceError(workspace),
                             tooltip: Utils.editWorkspaceError(workspace) || 'Edit variable',
                             style: { marginLeft: '1rem' },
@@ -245,7 +245,7 @@ const LocalVariablesContent = class LocalVariablesContent extends Component {
                               editType: typeof originalValue === 'object' ? `${typeof originalValue.items[0]} list` : typeof originalValue
                             })
                           }, [icon('edit', { size: 19 })]),
-                          link({
+                          h(Link, {
                             disabled: !!Utils.editWorkspaceError(workspace),
                             tooltip: Utils.editWorkspaceError(workspace) || 'Delete variable',
                             style: { marginLeft: '1rem' },
@@ -275,7 +275,7 @@ const LocalVariablesContent = class LocalVariablesContent extends Component {
       !!deleteIndex && h(Modal, {
         onDismiss: () => this.setState({ deleteIndex: undefined }),
         title: 'Are you sure you wish to delete this variable?',
-        okButton: buttonPrimary({
+        okButton: h(ButtonPrimary, {
           onClick: _.flow(
             withErrorReporting('Error deleting workspace variable'),
             Utils.withBusyState(v => this.setState({ saving: v }))
@@ -362,13 +362,13 @@ class EntitiesContent extends Component {
         input({ type: 'hidden', name: 'attributeNames', value: _.map('name', _.filter('visible', columnSettings)).join(',') }),
         input({ type: 'hidden', name: 'model', value: 'flexible' })
       ]),
-      _.isEmpty(selectedEntities) ? buttonPrimary({
+      _.isEmpty(selectedEntities) ? h(ButtonPrimary, {
         tooltip: 'Download all data as a file',
         onClick: () => this.downloadForm.current.submit()
       }, [
         icon('download', { style: { marginRight: '0.5rem' } }),
         'Download Table TSV'
-      ]) : buttonPrimary({
+      ]) : h(ButtonPrimary, {
         disabled: _.isEmpty(selectedEntities),
         tooltip: 'Download selected data as a file',
         onClick: () => {
@@ -386,7 +386,7 @@ class EntitiesContent extends Component {
     const { copying } = this.state
 
     return h(Fragment, [
-      buttonPrimary({
+      h(ButtonPrimary, {
         style: { margin: '0 1rem' },
         tooltip: 'Copy only the current page to the clipboard',
         onClick: _.flow(
@@ -409,7 +409,7 @@ class EntitiesContent extends Component {
     const { selectedEntities } = this.state
 
     return h(Fragment, [
-      buttonPrimary({
+      h(ButtonPrimary, {
         style: { marginRight: '1rem' },
         disabled: _.isEmpty(selectedEntities),
         tooltip: 'Opens files of the selected data with IGV',
@@ -428,7 +428,7 @@ class EntitiesContent extends Component {
       _.size(selectedEntities) === 1 && _.values(selectedEntities)[0].attributes.data_explorer_url ? _.values(selectedEntities)[0].attributes.data_explorer_url
         : ''
     return h(Fragment, [
-      buttonPrimary({
+      h(ButtonPrimary, {
         // Old cohorts (before mid-Apr 2019) don't have data_explorer_url
         disabled: _.size(selectedEntities) !== 1 || !dataExplorerUrl,
         tooltip: _.size(selectedEntities) === 0 ? 'Select a cohort to open in Data Explorer' :
@@ -615,7 +615,7 @@ const BucketContent = _.flow(
         div([
           _.map(({ label, target }) => {
             return h(Fragment, { key: target }, [
-              link({ style: { textDecoration: 'underline' }, onClick: () => this.load(target) }, [label]),
+              h(Link, { style: { textDecoration: 'underline' }, onClick: () => this.load(target) }, [label]),
               ' / '
             ])
           }, [
@@ -637,20 +637,20 @@ const BucketContent = _.flow(
             ..._.map(p => {
               return {
                 name: h(TextCell, [
-                  link({ style: { textDecoration: 'underline' }, onClick: () => this.load(p) }, [p.slice(prefix.length)])
+                  h(Link, { style: { textDecoration: 'underline' }, onClick: () => this.load(p) }, [p.slice(prefix.length)])
                 ])
               }
             }, prefixes),
             ..._.map(({ name, size, updated }) => {
               return {
-                button: link({
+                button: h(Link, {
                   style: { display: 'flex' }, onClick: () => this.setState({ deletingName: name }),
                   tooltip: 'Delete file'
                 }, [
                   icon('trash', { size: 16, className: 'hover-only' })
                 ]),
                 name: h(TextCell, [
-                  link({ style: { textDecoration: 'underline' }, onClick: () => this.setState({ viewingName: name }) }, [
+                  h(Link, { style: { textDecoration: 'underline' }, onClick: () => this.setState({ viewingName: name }) }, [
                     name.slice(prefix.length)
                   ])
                 ]),
@@ -747,7 +747,7 @@ const WorkspaceData = _.flow(
         div({ style: styles.dataTypeSelectionPanel }, [
           div({ style: Style.navList.heading }, [
             div(['Tables']),
-            link({
+            h(Link, {
               disabled: !!Utils.editWorkspaceError(workspace),
               tooltip: Utils.editWorkspaceError(workspace) || 'Upload .tsv',
               onClick: () => this.setState({ uploadingFile: true })
@@ -764,7 +764,7 @@ const WorkspaceData = _.flow(
           }, _.toPairs(entityMetadata)),
           div({ style: Style.navList.heading }, [
             div(['Reference Data']),
-            link({
+            h(Link, {
               disabled: !!Utils.editWorkspaceError(workspace),
               tooltip: Utils.editWorkspaceError(workspace) || 'Add reference data',
               onClick: () => this.setState({ importingReference: true })
@@ -803,7 +803,7 @@ const WorkspaceData = _.flow(
             }, [
               div({ style: { display: 'flex', justifyContent: 'space-between' } }, [
                 type,
-                link({
+                h(Link, {
                   disabled: !!Utils.editWorkspaceError(workspace),
                   tooltip: Utils.editWorkspaceError(workspace) || `Delete ${type}`,
                   onClick: e => {

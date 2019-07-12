@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
 import { Fragment } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
-import { buttonPrimary, IdContainer, Select, spinnerOverlay } from 'src/components/common'
+import { ButtonPrimary, IdContainer, Select, spinnerOverlay } from 'src/components/common'
 import { centeredSpinner } from 'src/components/icons'
 import { ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
@@ -93,7 +93,7 @@ export const NotebookCreator = class NotebookCreator extends Component {
     return h(Modal, {
       onDismiss,
       title: 'Create New Notebook',
-      okButton: buttonPrimary({
+      okButton: h(ButtonPrimary, {
         disabled: creating || errors,
         tooltip: Utils.summarizeErrors(errors),
         onClick: async () => {
@@ -168,7 +168,7 @@ export const NotebookDuplicator = class NotebookDuplicator extends Component {
     return h(Modal, {
       onDismiss,
       title: `${destroyOld ? 'Rename' : 'Duplicate'} "${printName}"`,
-      okButton: buttonPrimary({
+      okButton: h(ButtonPrimary, {
         disabled: errors || processing,
         tooltip: Utils.summarizeErrors(errors),
         onClick: async () => {
@@ -218,7 +218,7 @@ export const NotebookDeleter = class NotebookDeleter extends Component {
     return h(Modal, {
       onDismiss,
       title: `Delete "${printName}"`,
-      okButton: buttonPrimary({
+      okButton: h(ButtonPrimary, {
         disabled: processing,
         onClick: () => {
           this.setState({ processing: true })

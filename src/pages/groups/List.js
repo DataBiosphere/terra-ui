@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { a, b, div, h } from 'react-hyperscript-helpers'
 import { pure } from 'recompose'
-import { buttonPrimary, Clickable, link, PageBox, spinnerOverlay } from 'src/components/common'
+import { ButtonPrimary, Clickable, Link, PageBox, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { DelayedSearchInput, ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
@@ -49,7 +49,7 @@ const NewGroupModal = class NewGroupModal extends Component {
     return h(Modal, {
       onDismiss,
       title: 'Create New Group',
-      okButton: buttonPrimary({
+      okButton: h(ButtonPrimary, {
         disabled: errors,
         onClick: () => this.submit()
       }, ['Create Group'])
@@ -87,7 +87,7 @@ const DeleteGroupModal = pure(({ groupName, onDismiss, onSubmit }) => {
   return h(Modal, {
     onDismiss,
     title: 'Confirm',
-    okButton: buttonPrimary({
+    okButton: h(ButtonPrimary, {
       onClick: onSubmit
     }, ['Delete Group'])
   }, [
@@ -111,7 +111,7 @@ const GroupCard = pure(({ group: { groupName, groupEmail, role }, onDelete }) =>
     div({ style: { flexGrow: 1 } }, [groupEmail]),
     div({ style: { width: 100, display: 'flex', alignItems: 'center' } }, [
       div({ style: { flexGrow: 1 } }, [isAdmin ? 'Admin' : 'Member']),
-      isAdmin && link({
+      isAdmin && h(Link, {
         onClick: onDelete,
         style: { margin: '-1rem', padding: '1rem' }
       }, [
@@ -137,7 +137,7 @@ const noGroupsMessage = div({ style: { fontSize: 20, margin: '0 1rem' } }, [
     'Create a group to share your workspaces with others.'
   ]),
   div({ style: { marginTop: '1rem', fontSize: 16 } }, [
-    link({
+    h(Link, {
       ...Utils.newTabLinkProps,
       href: `https://support.terra.bio/hc/en-us/articles/360026775691`
     }, [`How do I use groups to manage authorization?`])

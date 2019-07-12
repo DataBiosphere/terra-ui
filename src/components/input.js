@@ -5,7 +5,7 @@ import Autosuggest from 'react-autosuggest'
 import { createPortal } from 'react-dom'
 import { div, h } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
-import { buttonPrimary } from 'src/components/common'
+import { ButtonPrimary } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import colors from 'src/libs/colors'
 import * as Utils from 'src/libs/utils'
@@ -85,7 +85,7 @@ export const ConfirmedSearchInput = ({ defaultValue = '', onChange = _.noop, ...
         }
       }
     }, props)),
-    buttonPrimary({
+    h(ButtonPrimary, {
       style: { borderRadius: '0 4px 4px 0', borderLeft: 'none' },
       onClick: () => onChange(internalValue)
     }, [icon('search', { size: 18 })])

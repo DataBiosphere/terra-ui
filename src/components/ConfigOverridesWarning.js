@@ -1,5 +1,5 @@
-import { div } from 'react-hyperscript-helpers'
-import { link } from 'src/components/common'
+import { div, h } from 'react-hyperscript-helpers'
+import { Link } from 'src/components/common'
 import colors from 'src/libs/colors'
 import { ajaxOverridesStore, configOverridesStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
@@ -17,11 +17,11 @@ const ConfigOverridesWarning = () => {
   }, [
     !!configOverrides && div([
       'Config overrides are in effect.',
-      link({ variant: 'light', onClick: () => configOverridesStore.set() }, [' clear'])
+      h(Link, { variant: 'light', onClick: () => configOverridesStore.set() }, [' clear'])
     ]),
     !!ajaxOverrides && div([
       'Ajax overrides are in effect.',
-      link({ variant: 'light', onClick: () => ajaxOverridesStore.set() }, [' clear'])
+      h(Link, { variant: 'light', onClick: () => ajaxOverridesStore.set() }, [' clear'])
     ])
   ])
 }

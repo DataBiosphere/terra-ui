@@ -1,5 +1,5 @@
-import { a, div } from 'react-hyperscript-helpers'
-import { link } from 'src/components/common'
+import { a, div, h } from 'react-hyperscript-helpers'
+import { Link } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import colors from 'src/libs/colors'
 import { footerLogo } from 'src/libs/logos'
@@ -26,7 +26,7 @@ const FooterWrapper = ({ children }) => {
         color: 'white'
       }
     }, [
-      link({ href: Nav.getLink('root') }, [
+      h(Link, { href: Nav.getLink('root') }, [
         footerLogo()
       ]),
       a({ href: Nav.getLink('privacy'), style: styles.item }, 'Privacy Policy'),

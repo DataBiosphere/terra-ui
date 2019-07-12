@@ -7,7 +7,7 @@ import { div, h, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import {
-  buttonPrimary, buttonSecondary, Clickable, LabeledCheckbox, link, MenuButton, menuIcon, methodLink, RadioButton, Select, spinnerOverlay
+  ButtonPrimary, ButtonSecondary, Clickable, LabeledCheckbox, Link, makeMenuIcon, MenuButton, methodLink, RadioButton, Select, spinnerOverlay
 } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { AutocompleteTextInput } from 'src/components/input'
@@ -123,7 +123,7 @@ const WorkflowIOTable = ({ which, inputsOutputs: data, config, errors, onChange,
               div({ style: { fontWeight: 'bold' } }, ['Attribute']),
               !readOnly && which === 'outputs' && h(Fragment, [
                 div({ style: { whiteSpace: 'pre' } }, ['  |  ']),
-                link({ onClick: onSetDefaults }, ['Use defaults'])
+                h(Link, { onClick: onSetDefaults }, ['Use defaults'])
               ])
             ]),
             cellRenderer: ({ rowIndex }) => {
@@ -212,7 +212,7 @@ const BucketContentModal = ajaxCaller(class BucketContentModal extends Component
       div([
         _.map(({ label, target }) => {
           return h(Fragment, { key: target }, [
-            link({ onClick: () => this.load(target) }, [label]),
+            h(Link, { onClick: () => this.load(target) }, [label]),
             ' / '
           ])
         }, [
@@ -231,14 +231,14 @@ const BucketContentModal = ajaxCaller(class BucketContentModal extends Component
           ..._.map(p => {
             return {
               name: h(TextCell, [
-                link({ onClick: () => this.load(p) }, [p.slice(prefix.length)])
+                h(Link, { onClick: () => this.load(p) }, [p.slice(prefix.length)])
               ])
             }
           }, prefixes),
           ..._.map(({ name }) => {
             return {
               name: h(TextCell, [
-                link({ onClick: () => onSelect(`"gs://${bucketName}/${name}"`) }, [
+                h(Link, { onClick: () => onSelect(`"gs://${bucketName}/${name}"`) }, [
                   name.slice(prefix.length)
                 ])
               ])
@@ -554,16 +554,16 @@ const WorkflowView = _.flow(
                 content: h(Fragment, [
                   h(MenuButton, {
                     onClick: () => this.setState({ copying: true })
-                  }, [menuIcon('copy'), 'Copy to Another Workspace']),
+                  }, [makeMenuIcon('copy'), 'Copy to Another Workspace']),
                   h(MenuButton, {
                     disabled: !!Utils.editWorkspaceError(ws),
                     tooltip: Utils.editWorkspaceError(ws),
                     tooltipSide: 'right',
                     onClick: () => this.setState({ deleting: true })
-                  }, [menuIcon('trash'), 'Delete'])
+                  }, [makeMenuIcon('trash'), 'Delete'])
                 ])
               }, [
-                link({}, [icon('cardMenuIcon', { size: 22 })])
+                h(Link, [icon('cardMenuIcon', { size: 22 })])
               ])
             ]),
             span({ style: { color: colors.dark(), fontSize: 24 } }, name)
@@ -590,7 +590,7 @@ const WorkflowView = _.flow(
               methodVersion
           ]),
           div([
-            'Source: ', currentSnapRedacted ? `${methodNamespace}/${methodName}/${methodVersion}` : link({
+            'Source: ', currentSnapRedacted ? `${methodNamespace}/${methodName}/${methodVersion}` : h(Link, {
               href: methodLink(modifiedConfig),
               ...Utils.newTabLinkProps
             }, methodPath ? methodPath : `${methodNamespace}/${methodName}/${methodVersion}`)
@@ -634,7 +634,7 @@ const WorkflowView = _.flow(
                 },
                 options: _.keys(entityMetadata)
               }),
-              link({
+              h(Link, {
                 disabled: currentSnapRedacted || this.isSingle() || !rootEntityType || !!Utils.editWorkspaceError(ws),
                 tooltip: Utils.editWorkspaceError(ws),
                 onClick: () => this.setState({ selectingData: true }),
@@ -658,7 +658,7 @@ const WorkflowView = _.flow(
             ],
             activeTab,
             onChangeTab: v => this.setState({ activeTab: v }),
-            finalStep: buttonPrimary({
+            finalStep: h(ButtonPrimary, {
               style: { marginLeft: '1rem' },
               disabled: !!Utils.computeWorkspaceError(ws) || !!noLaunchReason || currentSnapRedacted || !hasBucketAccess,
               tooltip: Utils.computeWorkspaceError(ws) || noLaunchReason || (currentSnapRedacted && 'Workflow version was redacted.') ||
@@ -692,8 +692,8 @@ const WorkflowView = _.flow(
       div({ style: styles.messageContainer }, [
         saving && miniMessage('Saving...'),
         saved && !saving && !modified && miniMessage('Saved!'),
-        modified && buttonPrimary({ disabled: saving || !this.canSave(), onClick: () => this.save() }, 'Save'),
-        modified && buttonSecondary({ style: { marginLeft: '1rem' }, disabled: saving, onClick: () => this.cancel() }, 'Cancel')
+        modified && h(ButtonPrimary, { disabled: saving || !this.canSave(), onClick: () => this.save() }, 'Save'),
+        modified && h(ButtonSecondary, { style: { marginLeft: '1rem' }, disabled: saving, onClick: () => this.cancel() }, 'Cancel')
       ]),
       copying && h(ExportWorkflowModal, {
         thisWorkspace: workspace, methodConfig: savedConfig,
@@ -792,13 +792,13 @@ const WorkflowView = _.flow(
     }, [
       div({ style: { flex: 'none', display: 'flex', marginBottom: '0.25rem' } }, [
         key === 'inputs' && _.some('optional', modifiedInputsOutputs['inputs']) ?
-          link({ style: { marginRight: 'auto' }, onClick: () => this.setState({ includeOptionalInputs: !includeOptionalInputs }) },
+          h(Link, { style: { marginRight: 'auto' }, onClick: () => this.setState({ includeOptionalInputs: !includeOptionalInputs }) },
             [includeOptionalInputs ? 'Hide optional inputs' : 'Show optional inputs']) :
           div({ style: { marginRight: 'auto' } }),
-        link({ onClick: () => this.downloadJson(key) }, ['Download json']),
+        h(Link, { onClick: () => this.downloadJson(key) }, ['Download json']),
         !currentSnapRedacted && !Utils.editWorkspaceError(workspace) && h(Fragment, [
           div({ style: { whiteSpace: 'pre' } }, ['  |  Drag or click to ']),
-          link({ onClick: () => this.uploader.current.open() }, ['upload json'])
+          h(Link, { onClick: () => this.uploader.current.open() }, ['upload json'])
         ])
       ]),
       filteredData.length !== 0 &&

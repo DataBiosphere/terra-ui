@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { Fragment, useState } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
-import { buttonPrimary, LabeledCheckbox, link, RadioButton, ShibbolethLink, spinnerOverlay } from 'src/components/common'
+import { ButtonPrimary, LabeledCheckbox, Link, RadioButton, ShibbolethLink, spinnerOverlay } from 'src/components/common'
 import { centeredSpinner, icon, profilePic, spinner } from 'src/components/icons'
 import { TextInput, ValidatedInput } from 'src/components/input'
 import { InfoBox } from 'src/components/PopupTrigger'
@@ -98,7 +98,7 @@ const NihLink = ({ nihToken }) => {
         authorized ? 'Authorized' : 'Not Authorized',
         !authorized && h(InfoBox, { style: { marginLeft: '0.5rem' } }, [
           'Your account was linked, but you are not authorized to view this controlled dataset. Please go ',
-          link({
+          h(Link, {
             href: 'https://dbgap.ncbi.nlm.nih.gov/aa/wga.cgi?page=login',
             ...Utils.newTabLinkProps
           }, [
@@ -228,7 +228,7 @@ const FenceLink = ({ provider, displayName }) => {
    * Render helpers
    */
   const renderFrameworkServicesLink = linkText => {
-    return href && link({ href, style: { display: 'flex', alignItems: 'center' } }, [
+    return href && h(Link, { href, style: { display: 'flex', alignItems: 'center' } }, [
       linkText,
       icon('pop-out', { size: 12, style: { marginLeft: '0.5rem' } })
     ])
@@ -288,7 +288,7 @@ const Profile = _.flow(
             profilePic({ size: 48 }),
             h(InfoBox, { style: { alignSelf: 'flex-end', padding: '0.25rem' } }, [
               'To change your profile image, visit your ',
-              link({
+              h(Link, {
                 href: `https://myaccount.google.com?authuser=${getUser().email}`,
                 ...Utils.newTabLinkProps
               }, ['Google account page.'])
@@ -379,7 +379,7 @@ const Profile = _.flow(
         'Proxy Group',
         h(InfoBox, { style: { marginLeft: '0.5rem' } }, [
           'For more information about proxy groups, see the ',
-          link({
+          h(Link, {
             href: 'https://software.broadinstitute.org/firecloud/documentation/article?id=11185',
             ...Utils.newTabLinkProps
           }, ['user guide.'])
@@ -411,7 +411,7 @@ const Profile = _.flow(
       checkbox('notifications/WorkspaceAddedNotification', 'Workspace Access Added'),
       checkbox('notifications/WorkspaceRemovedNotification', 'Workspace Access Removed'),
 
-      buttonPrimary({
+      h(ButtonPrimary, {
         style: { marginTop: '3rem' },
         onClick: () => this.save(),
         disabled: !!errors,

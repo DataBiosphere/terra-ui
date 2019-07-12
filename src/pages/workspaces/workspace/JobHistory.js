@@ -3,7 +3,7 @@ import { Fragment } from 'react'
 import { div, h, span, table, tbody, td, tr } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { buttonPrimary, Clickable, link, spinnerOverlay } from 'src/components/common'
+import { ButtonPrimary, Clickable, Link, spinnerOverlay } from 'src/components/common'
 import { DelayedSearchInput } from 'src/components/input'
 import { collapseStatus, failedIcon, runningIcon, submittedIcon, successIcon } from 'src/components/job-common'
 import Modal from 'src/components/Modal'
@@ -84,7 +84,7 @@ const noJobsMessage = div({ style: { fontSize: 20, margin: '1rem' } }, [
     'You have not run any jobs yet. To get started, go to the ', span({ style: { fontWeight: 600 } }, ['Workflows']), ' tab and select a workflow to run.'
   ]),
   div({ style: { marginTop: '1rem', fontSize: 16 } }, [
-    link({
+    h(Link, {
       ...Utils.newTabLinkProps,
       href: `https://support.terra.bio/hc/en-us/articles/360027920592`
     }, [`What is a job?`])
@@ -155,7 +155,7 @@ const JobHistory = _.flow(
         h(PopupTrigger, {
           content: div({ style: { margin: '0.5rem' } }, [h(SubmissionQueueStatus)]),
           side: 'bottom'
-        }, [link({}, ['Queue Status'])]),
+        }, [h(Link, ['Queue Status'])]),
         h(DelayedSearchInput, {
           style: { width: 300, marginLeft: '1rem' },
           placeholder: 'Search',
@@ -239,11 +239,11 @@ const JobHistory = _.flow(
                     status, submissionEntity
                   } = filteredSubmissions[rowIndex]
                   return h(Fragment, [
-                    (!isTerminal(status) && status !== 'Aborting') && buttonPrimary({
+                    (!isTerminal(status) && status !== 'Aborting') && h(ButtonPrimary, {
                       onClick: () => this.setState({ aborting: submissionId })
                     }, ['Abort workflows']),
                     isTerminal(status) && (workflowStatuses['Failed'] || workflowStatuses['Aborted']) &&
-                    submissionEntity && buttonPrimary({
+                    submissionEntity && h(ButtonPrimary, {
                       onClick: () => rerunFailures({
                         namespace,
                         name,
@@ -270,7 +270,7 @@ const JobHistory = _.flow(
                 cellRenderer: ({ rowIndex }) => {
                   const { submissionId } = filteredSubmissions[rowIndex]
                   return h(TooltipCell, { tooltip: submissionId }, [
-                    link({
+                    h(Link, {
                       ...Utils.newTabLinkProps,
                       href: bucketBrowserUrl(`${bucketName}/${submissionId}`)
                     }, [submissionId])

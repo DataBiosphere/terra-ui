@@ -1,7 +1,7 @@
 import { Fragment } from 'react'
 import { b, div, h, img, p, span } from 'react-hyperscript-helpers'
 import { pure } from 'recompose'
-import { buttonPrimary, link } from 'src/components/common'
+import { ButtonPrimary, Link } from 'src/components/common'
 import { libraryTopMatter } from 'src/components/library-common'
 import Modal from 'src/components/Modal'
 import TooltipTrigger from 'src/components/TooltipTrigger'
@@ -83,7 +83,7 @@ class Participant extends Component {
         titleElement,
         div({ style: styles.participant.description }, [
           shortDescription || description,
-          shortDescription && link({
+          shortDescription && h(Link, {
             style: { marginLeft: '0.5rem' },
             onClick: () => this.setState({ showingModal: true })
           }, ['READ MORE'])
@@ -109,7 +109,7 @@ class Participant extends Component {
 const browseTooltip = 'Look for the Export to Terra icon to export data from this provider.'
 
 
-const NIHCommonsButtons = () => buttonPrimary({
+const NIHCommonsButtons = () => h(ButtonPrimary, {
   style: { margin: '0.25rem 0' },
   as: 'a',
   href: 'https://gen3.datastage.io/explorer',
@@ -124,7 +124,7 @@ const thousandGenomesHighCoverage = () => h(Participant, {
     'this workspace to run analyses or copy specific samples to a workspace of your choice.',
   sizeText: 'Participants: 2,504'
 }, [
-  buttonPrimary({
+  h(ButtonPrimary, {
     as: 'a',
     href: Nav.getLink('workspace-dashboard', { namespace: 'anvil-datastorage', name: '1000G-high-coverage-2019' }),
     tooltip: 'Visit the workspace'
@@ -135,14 +135,14 @@ const thousandGenomesLowCoverage = () => h(Participant, {
   logo: { src: thousandGenomesLogo, alt: '1000 Genomes logo', height: '55%' },
   title: '1000 Genomes Low Coverage',
   description: h(Fragment, [
-    link({ href: 'http://www.internationalgenome.org/about', ...Utils.newTabLinkProps }, 'The 1000 Genomes Project'),
+    h(Link, { href: 'http://www.internationalgenome.org/about', ...Utils.newTabLinkProps }, 'The 1000 Genomes Project'),
     ` ran between 2008 and 2015, creating the largest public catalogue of
   human variation and genotype data. The goal of the 1000 Genomes Project was to find most genetic variants
   with frequencies of at least 1% in the populations studied.`
   ]),
   sizeText: 'Participants: 3,500'
 }, [
-  buttonPrimary({
+  h(ButtonPrimary, {
     as: 'a',
     href: Nav.getLink('library-datasets-data-explorer', { dataset: '1000 Genomes' }),
     tooltip: browseTooltip
@@ -176,7 +176,7 @@ const amppd = () => h(Participant, {
   ]),
   sizeText: 'Participants: > 4,700'
 }, [
-  buttonPrimary({
+  h(ButtonPrimary, {
     as: 'a',
     href: 'http://amp-pd-data-explorer.appspot.com/',
     ...Utils.newTabLinkProps,
@@ -188,7 +188,7 @@ const baseline = () => h(Participant, {
   logo: { src: baselineLogo, alt: `Project Baseline logo`, height: '55%' },
   title: `Baseline Health Study`,
   description: h(Fragment, [
-    link({ href: 'https://www.projectbaseline.com/', ...Utils.newTabLinkProps }, 'Baseline Health Study'),
+    h(Link, { href: 'https://www.projectbaseline.com/', ...Utils.newTabLinkProps }, 'Baseline Health Study'),
     ` is a longitudinal study that will collect broad phenotypic health data
     from approximately 10,000 participants, who will each be followed over the
     course of at least four years. The study is part of a broader effort
@@ -196,7 +196,7 @@ const baseline = () => h(Participant, {
   ]),
   sizeText: 'Participants: > 1,500'
 }, [
-  buttonPrimary({
+  h(ButtonPrimary, {
     as: 'a',
     href: 'https://baseline-baseline-explorer.appspot.com/',
     ...Utils.newTabLinkProps,
@@ -211,7 +211,7 @@ const ccdg = () => h(Participant, {
     'effort to comprehensively identify rare risk and protective variants contributing to multiple common disease phenotypes.',
   sizeText: 'Participants: > 65,000'
 }, [
-  buttonPrimary({
+  h(ButtonPrimary, {
     as: 'a',
     tooltip: 'Coming soon',
     disabled: true
@@ -225,7 +225,7 @@ const cmg = () => h(Participant, {
     'to discover as many genes underlying human Mendelian disorders as possible.',
   sizeText: 'Participants: > 5,000'
 }, [
-  buttonPrimary({
+  h(ButtonPrimary, {
     as: 'a',
     tooltip: 'Coming soon',
     disabled: true
@@ -243,7 +243,7 @@ const encode = () => h(Participant, {
   ]),
   sizeText: 'Donors: > 650 ; Files: > 158,000'
 }, [
-  buttonPrimary({
+  h(ButtonPrimary, {
     as: 'a',
     href: 'https://broad-gdr-encode.appspot.com/',
     ...Utils.newTabLinkProps,
@@ -258,7 +258,7 @@ const fcDataLib = () => h(Participant, {
    are pre-loaded as workspaces. You can clone these, or copy data into the workspace of your choice.`,
   sizeText: h(TooltipTrigger, { content: 'As of October 2018' }, [span('Samples: > 158,629')])
 }, [
-  buttonPrimary({
+  h(ButtonPrimary, {
     as: 'a',
     href: `${getConfig().firecloudUrlRoot}/?return=${returnParam()}#library`,
     ...Utils.newTabLinkProps,
@@ -273,7 +273,7 @@ const hca = () => h(Participant, {
   fundamental units of life — as a basis for understanding fundamental human biological processes and diagnosing,
   monitoring, and treating disease.`
 }, [
-  buttonPrimary({
+  h(ButtonPrimary, {
     disabled: true,
     tooltip: 'HCA not yet in production'
     //when in production, add this tooltip: browseTooltip
@@ -288,7 +288,7 @@ const nemo = () => h(Participant, {
   operates in close partnership with the Broad Single Cell Portal, Terra, and the Brain Cell Data Center (BCDC).`,
   sizeText: h(TooltipTrigger, { content: 'As of March 2019' }, [span('Files: >= 210,000; Projects >= 5; Species >= 3')])
 }, [
-  buttonPrimary({
+  h(ButtonPrimary, {
     as: 'a',
     href: 'http://portal.nemoarchive.org/',
     ...Utils.newTabLinkProps,
@@ -303,7 +303,7 @@ const nhs = () => h(Participant, {
   factors for major chronic diseases in women.`,
   sizeText: 'Participants: > 120,000'
 }, [
-  buttonPrimary({
+  h(ButtonPrimary, {
     as: 'a',
     href: 'http://nhs-explorer.appspot.com/',
     ...Utils.newTabLinkProps,
@@ -326,14 +326,14 @@ const ukb = () => h(Participant, {
   logo: { src: ukbLogo, alt: `UK Biobank logo`, height: '50%' },
   title: `UK Biobank`,
   description: h(Fragment, [
-    link({ href: 'https://www.ukbiobank.ac.uk/', ...Utils.newTabLinkProps }, 'UK Biobank'),
+    h(Link, { href: 'https://www.ukbiobank.ac.uk/', ...Utils.newTabLinkProps }, 'UK Biobank'),
     ` is a national and international health resource with unparalleled research opportunities.
     UK Biobank aims to improve the prevention, diagnosis and treatment of a wide range of serious and life-threatening
     illnesses. This Data Explorer is only available to specific early-access users at this time.`
   ]),
   sizeText: 'Participants: > 500,000'
 }, [
-  buttonPrimary({
+  h(ButtonPrimary, {
     as: 'a',
     href: 'https://biobank-explorer.appspot.com/',
     ...Utils.newTabLinkProps,

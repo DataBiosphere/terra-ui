@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
 import { div, h } from 'react-hyperscript-helpers'
 import RModal from 'react-modal'
-import { buttonPrimary, buttonSecondary, Clickable } from 'src/components/common'
+import { ButtonPrimary, ButtonSecondary, Clickable } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -70,15 +70,15 @@ export default class Modal extends Component {
       children,
       showButtons && div({ style: styles.buttonRow }, [
         showCancel ?
-          buttonSecondary({
+          h(ButtonSecondary, {
             style: { marginRight: '1rem' },
             onClick: onDismiss
           }, [cancelText]) :
           null,
         Utils.cond(
-          [okButton === undefined, () => buttonPrimary({ onClick: onDismiss }, 'OK')],
-          [_.isString(okButton), () => buttonPrimary({ onClick: onDismiss }, okButton)],
-          [_.isFunction(okButton), () => buttonPrimary({ onClick: okButton }, 'OK')],
+          [okButton === undefined, () => h(ButtonPrimary, { onClick: onDismiss }, 'OK')],
+          [_.isString(okButton), () => h(ButtonPrimary, { onClick: onDismiss }, okButton)],
+          [_.isFunction(okButton), () => h(ButtonPrimary, { onClick: okButton }, 'OK')],
           () => okButton
         )
       ])

@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
 import { Fragment } from 'react'
 import { b, div, h } from 'react-hyperscript-helpers'
-import { buttonPrimary, spinnerOverlay } from 'src/components/common'
+import { ButtonPrimary, spinnerOverlay } from 'src/components/common'
 import ErrorView from 'src/components/ErrorView'
 import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
@@ -84,7 +84,7 @@ const ExportDataModal = withWorkspaces()(class ExportDataModal extends Component
     return h(Modal, {
       onDismiss,
       title: 'Copy Data to Workspace',
-      okButton: buttonPrimary({
+      okButton: h(ButtonPrimary, {
         tooltip: (hardConflicts.length !== 0) ? 'Are you sure you want to override existing data?' : Utils.summarizeErrors(errors),
         disabled: !!errors || copying,
         onClick: () => this.copy()
@@ -138,7 +138,7 @@ const ExportDataModal = withWorkspaces()(class ExportDataModal extends Component
       title: 'Copy to Workspace',
       onDismiss,
       cancelText: 'Stay Here',
-      okButton: buttonPrimary({
+      okButton: h(ButtonPrimary, {
         onClick: () => {
           Nav.goToPath('workspace-data', {
             namespace: selectedWorkspace.namespace,

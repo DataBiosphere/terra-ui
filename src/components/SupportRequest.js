@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import { createRef, Fragment } from 'react'
 import Dropzone from 'react-dropzone'
 import { div, h, span } from 'react-hyperscript-helpers'
-import { buttonPrimary, buttonSecondary, Clickable, link, Select, spinnerOverlay } from 'src/components/common'
+import { ButtonPrimary, ButtonSecondary, Clickable, Link, Select, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { TextArea, TextInput } from 'src/components/input'
 import { notify } from 'src/components/Notifications'
@@ -178,7 +178,7 @@ const SupportRequest = _.flow(
                   'Successfully uploaded: ', span({ style: { color: colors.dark() } }, [attachmentName])
                 ])
               ]),
-              link({
+              h(Link, {
                 tooltip: 'Remove file',
                 style: { flex: 0, paddingTop: '0.5rem' },
                 onClick: () => this.setState({ attachmentToken: '' })
@@ -192,7 +192,7 @@ const SupportRequest = _.flow(
               onClick: () => this.uploader.current.open()
             }, [
               div({ style: { fontSize: 14, lineHeight: '30px', paddingLeft: '1rem', display: 'flex', alignItems: 'center' } }, [
-                'Drag or', link({ style: { margin: '0 0.25rem' } }, ['Click']), 'to attach a file',
+                'Drag or', h(Link, { style: { margin: '0 0.25rem' } }, ['Click']), 'to attach a file',
                 icon('upload-cloud', { size: 25, style: { opacity: 0.4, marginLeft: '0.5rem' } })
               ])
             ]),
@@ -206,11 +206,11 @@ const SupportRequest = _.flow(
           submitError && div({ style: { marginTop: '0.5rem', textAlign: 'right', color: colors.danger() } }, [submitError]),
           submitting && spinnerOverlay,
           div({ style: styles.buttonRow }, [
-            buttonSecondary({
+            h(ButtonSecondary, {
               style: { marginRight: '1rem' },
               onClick: () => SupportRequest.dismiss()
             }, ['Cancel']),
-            buttonPrimary({
+            h(ButtonPrimary, {
               disabled: errors,
               tooltip: Utils.summarizeErrors(errors),
               onClick: () => this.submit()
@@ -235,7 +235,7 @@ const SupportRequest = _.flow(
       notify('success', 'Message sent successfully', { timeout: 3000 })
     } catch (error) {
       notify('error', div(['Error submitting support request. ',
-        link({
+        h(Link, {
           style: { fontWeight: 800, color: 'white' },
           hover: { color: 'white', textDecoration: 'underline' },
           href: `mailto:terra-support@broadinstitute.zendesk.org?subject=${type}%3A%20${subject}&body=Original%20support%20request%3A%0A` +

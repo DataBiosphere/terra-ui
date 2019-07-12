@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
 import { Fragment, PureComponent, useState } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
-import { buttonPrimary, buttonSecondary, Clickable, LabeledCheckbox, link, Select, spinnerOverlay } from 'src/components/common'
+import { ButtonPrimary, ButtonSecondary, Clickable, LabeledCheckbox, Link, Select, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { IntegerInput, TextInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
@@ -229,7 +229,7 @@ export class NewClusterModal extends PureComponent {
     return h(Modal, {
       title: 'Runtime environment',
       onDismiss: onCancel,
-      okButton: buttonPrimary({ disabled: !changed, onClick: () => this.createCluster() }, currentCluster ? 'Update' : 'Create')
+      okButton: h(ButtonPrimary, { disabled: !changed, onClick: () => this.createCluster() }, currentCluster ? 'Update' : 'Create')
     }, [
       div({ style: styles.row }, [
         div({ style: { ...styles.col1, ...styles.label } }, 'Profile'),
@@ -509,12 +509,12 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
         div({ style: { marginLeft: 'auto' } }, [
           busy && icon('loadingSpinner')
         ]),
-        buttonSecondary({
+        h(ButtonSecondary, {
           style: { marginLeft: '1rem', marginRight: '1rem' },
           disabled: busy,
           onClick: () => this.destroyClusters(-2)
         }, 'Discard'),
-        buttonPrimary({ disabled: busy, onClick: () => this.destroyClusters(-1) }, 'Apply')
+        h(ButtonPrimary, { disabled: busy, onClick: () => this.destroyClusters(-1) }, 'Apply')
       ])
     ])
   }
@@ -581,7 +581,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
           () => 'Open terminal'
         )
       }, [
-        link({
+        h(Link, {
           href: Nav.getLink('workspace-terminal-launch', { namespace, name }),
           disabled: !canCompute,
           style: { marginRight: '2rem', ...styles.verticalCenter },

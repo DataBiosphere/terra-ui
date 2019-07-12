@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
 import { Collapse as rCollapse } from 'react-collapse'
 import { div, h } from 'react-hyperscript-helpers'
-import { link } from 'src/components/common'
+import { Link } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { Component } from 'src/libs/wrapped-components'
 
@@ -33,7 +33,7 @@ export default class Collapse extends Component {
     const { isOpened } = this.state
 
     return div(props, [
-      link({
+      h(Link, {
         style: { display: 'flex', alignItems: 'center', marginBottom: '0.5rem', ...buttonStyle },
         onClick: () => this.setState({ isOpened: !isOpened })
       }, [

@@ -5,7 +5,7 @@ import { Fragment } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import SimpleMDE from 'react-simplemde-editor'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { AsyncCreatableSelect, buttonPrimary, buttonSecondary, link, spinnerOverlay } from 'src/components/common'
+import { AsyncCreatableSelect, ButtonPrimary, ButtonSecondary, Link, spinnerOverlay } from 'src/components/common'
 import { icon, spinner } from 'src/components/icons'
 import { Markdown } from 'src/components/Markdown'
 import { InfoBox } from 'src/components/PopupTrigger'
@@ -221,7 +221,7 @@ export const WorkspaceDashboard = _.flow(
       div({ style: styles.leftBox }, [
         div({ style: styles.header }, [
           'About the workspace',
-          !isEditing && link({
+          !isEditing && h(Link, {
             style: { marginLeft: '0.5rem' },
             disabled: !!Utils.editWorkspaceError(workspace),
             tooltip: Utils.editWorkspaceError(workspace),
@@ -246,8 +246,8 @@ export const WorkspaceDashboard = _.flow(
                 onChange: editDescription => this.setState({ editDescription })
               }),
               div({ style: { display: 'flex', justifyContent: 'flex-end', margin: '1rem' } }, [
-                buttonSecondary({ onClick: () => this.setState({ editDescription: undefined }) }, 'Cancel'),
-                buttonPrimary({ style: { marginLeft: '1rem' }, onClick: () => this.save() }, 'Save')
+                h(ButtonSecondary, { onClick: () => this.setState({ editDescription: undefined }) }, 'Cancel'),
+                h(ButtonPrimary, { style: { marginLeft: '1rem' }, onClick: () => this.save() }, 'Save')
               ]),
               saving && spinnerOverlay
             ])
@@ -286,7 +286,7 @@ export const WorkspaceDashboard = _.flow(
         div({ style: styles.header }, ['Owners']),
         _.map(email => {
           return div({ key: email, style: { overflow: 'hidden', textOverflow: 'ellipsis' } }, [
-            link({ href: `mailto:${email}` }, [email])
+            h(Link, { href: `mailto:${email}` }, [email])
           ])
         }, owners),
         div({ style: styles.header }, [
@@ -310,7 +310,7 @@ export const WorkspaceDashboard = _.flow(
           _.map(tag => {
             return span({ key: tag, style: styles.tag }, [
               tag,
-              Utils.canWrite(accessLevel) && link({
+              Utils.canWrite(accessLevel) && h(Link, {
                 tooltip: 'Remove tag',
                 disabled: busy,
                 onClick: () => this.deleteTag(tag),
@@ -324,7 +324,7 @@ export const WorkspaceDashboard = _.flow(
           div({ style: styles.header }, ['Authorization Domain']),
           div({ style: { marginBottom: '0.5rem' } }, [
             'Collaborators must be a member of all of these ',
-            link({
+            h(Link, {
               href: Nav.getLink('groups'),
               ...Utils.newTabLinkProps
             }, 'groups'),
@@ -338,7 +338,7 @@ export const WorkspaceDashboard = _.flow(
         ]),
         div({ style: { display: 'flex' } }, [
           div({ style: Style.noWrapEllipsis }, [bucketName]),
-          link({
+          h(Link, {
             style: { margin: '0 0.5rem', flexShrink: 0 },
             tooltip: 'Copy bucket name',
             onClick: withErrorReporting('Error copying to clipboard', async () => {
@@ -349,7 +349,7 @@ export const WorkspaceDashboard = _.flow(
             })
           }, [icon(bucketCopied ? 'check' : 'copy-to-clipboard')])
         ]),
-        link({
+        h(Link, {
           ...Utils.newTabLinkProps,
           href: hasBucketAccess ? bucketBrowserUrl(bucketName) : undefined,
           disabled: !hasBucketAccess

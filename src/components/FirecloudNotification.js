@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import * as qs from 'qs'
-import { div } from 'react-hyperscript-helpers'
-import { buttonOutline } from 'src/components/common'
+import { div, h } from 'react-hyperscript-helpers'
+import { ButtonOutline } from 'src/components/common'
 import { notify } from 'src/components/Notifications'
 import * as Nav from 'src/libs/nav'
 import * as Utils from 'src/libs/utils'
@@ -20,7 +20,7 @@ const FirecloudNotification = () => {
         div({ style: { marginTop: '1rem' } }, [
           'Please update your bookmarks to our new URL, firecloud.terra.bio. Welcome to the future of FireCloud!'
         ]),
-        buttonOutline({
+        h(ButtonOutline, {
           as: 'a',
           ...Utils.newTabLinkProps,
           href: 'https://support.terra.bio/hc/en-us/sections/360004482892',

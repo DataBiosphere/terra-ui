@@ -3,7 +3,7 @@ import { forwardRef, Fragment, useEffect, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { link, Select } from 'src/components/common'
+import { Link, Select } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { DelayedSearchInput } from 'src/components/input'
 import { collapseStatus, failedIcon, runningIcon, statusIcon, submittedIcon, successIcon } from 'src/components/job-common'
@@ -140,7 +140,7 @@ const SubmissionDetails = _.flow(
       div({ style: { display: 'flex', flexWrap: 'wrap' } }, [
         makeSection('Workflow Configuration',
           Utils.cond(
-            [methodAccessible, () => [link(
+            [methodAccessible, () => [h(Link,
               { href: Nav.getLink('workflow', { namespace, name, workflowNamespace, workflowName }) },
               [`${workflowNamespace}/${workflowName}`]
             )]],
@@ -161,7 +161,7 @@ const SubmissionDetails = _.flow(
         ]),
         makeSection('Total Run Cost', [cost ? Utils.formatUSD(cost) : 'N/A']),
         makeSection('Data Entity', [div([entityName]), div([entityType])]),
-        makeSection('Submission ID', [link(
+        makeSection('Submission ID', [h(Link,
           { href: bucketBrowserUrl(`${bucketName}/${submissionId}`), ...Utils.newTabLinkProps },
           submissionId
         )]),
@@ -190,7 +190,7 @@ const SubmissionDetails = _.flow(
       h(PopupTrigger, {
         content: div({ style: { margin: '0.5rem' } }, [h(SubmissionQueueStatus)]),
         side: 'bottom'
-      }, [link({}, ['Queue Status'])])
+      }, [h(Link, ['Queue Status'])])
     ]),
     div({ style: { flex: 1 } }, [
       !filteredWorkflows.length ? 'No matching workflows.' : h(AutoSizer, [({ width, height }) => h(FlexTable, {
@@ -202,7 +202,7 @@ const SubmissionDetails = _.flow(
             headerRenderer: () => {},
             cellRenderer: ({ rowIndex }) => {
               const { workflowId } = filteredWorkflows[rowIndex]
-              return workflowId && link({
+              return workflowId && h(Link, {
                 ...Utils.newTabLinkProps,
                 href: `${getConfig().jobManagerUrlRoot}/${workflowId}`,
                 style: { flexGrow: 1, textAlign: 'center' }
@@ -246,7 +246,7 @@ const SubmissionDetails = _.flow(
             cellRenderer: ({ rowIndex }) => {
               const { workflowId, inputResolutions: [{ inputName } = {}] } = filteredWorkflows[rowIndex]
               return h(TooltipCell, { tooltip: workflowId }, [
-                inputName ? link({
+                inputName ? h(Link, {
                   ...Utils.newTabLinkProps,
                   href: inputName && bucketBrowserUrl(`${bucketName}/${submissionId}/${inputName.split('.')[0]}/${workflowId}`)
                 }, [workflowId]) : workflowId

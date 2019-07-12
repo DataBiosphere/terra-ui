@@ -7,7 +7,7 @@ import { a, div, h, span } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
 import togglesListView from 'src/components/CardsListToggle'
-import { Clickable, link, MenuButton, menuIcon, PageBox, Select, spinnerOverlay } from 'src/components/common'
+import { Clickable, Link, makeMenuIcon, MenuButton, PageBox, Select, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { NotebookCreator, NotebookDeleter, NotebookDuplicator } from 'src/components/notebook-utils'
 import { notify } from 'src/components/Notifications'
@@ -61,7 +61,7 @@ const noNotebooksMessage = div({ style: { fontSize: 20 } }, [
     'To get started, click ', span({ style: { fontWeight: 600 } }, ['Create a New Notebook'])
   ]),
   div({ style: { marginTop: '1rem', fontSize: 16 } }, [
-    link({
+    h(Link, {
       ...Utils.newTabLinkProps,
       href: `https://support.terra.bio/hc/en-us/sections/360004143932`
     }, [`What's a notebook?`])
@@ -87,16 +87,16 @@ class NotebookCard extends Component {
           disabled: !canWrite,
           tooltip: !canWrite && noWrite,
           tooltipSide: 'left'
-        }, [menuIcon('edit'), 'Open']),
+        }, [makeMenuIcon('edit'), 'Open']),
         h(MenuButton, {
           as: 'a',
           href: notebookReadOnlyLink,
           tooltip: canWrite && 'Open without runtime',
           tooltipSide: 'left'
-        }, [menuIcon('eye'), 'Open read-only']),
+        }, [makeMenuIcon('eye'), 'Open read-only']),
         h(MenuButton, {
           onClick: () => onExport()
-        }, [menuIcon('export'), 'Copy to another workspace']),
+        }, [makeMenuIcon('export'), 'Copy to another workspace']),
         h(MenuButton, {
           onClick: async () => {
             try {
@@ -106,25 +106,25 @@ class NotebookCard extends Component {
               reportError('Error copying to clipboard', error)
             }
           }
-        }, [menuIcon('copy-to-clipboard'), 'Copy notebook URL to clipboard']),
+        }, [makeMenuIcon('copy-to-clipboard'), 'Copy notebook URL to clipboard']),
         h(MenuButton, {
           disabled: !canWrite,
           tooltip: !canWrite && noWrite,
           tooltipSide: 'left',
           onClick: () => onRename()
-        }, [menuIcon('renameIcon'), 'Rename']),
+        }, [makeMenuIcon('renameIcon'), 'Rename']),
         h(MenuButton, {
           disabled: !canWrite,
           tooltip: !canWrite && noWrite,
           tooltipSide: 'left',
           onClick: () => onCopy()
-        }, [menuIcon('copy'), 'Duplicate']),
+        }, [makeMenuIcon('copy'), 'Duplicate']),
         h(MenuButton, {
           disabled: !canWrite,
           tooltip: !canWrite && noWrite,
           tooltipSide: 'left',
           onClick: () => onDelete()
-        }, [menuIcon('trash'), 'Delete'])
+        }, [makeMenuIcon('trash'), 'Delete'])
       ])
     }, [
       h(Clickable, {
@@ -321,7 +321,7 @@ const Notebooks = _.flow(
           tooltip: !canWrite ? noWrite : undefined
         }, [
           div({ style: { fontSize: 16, lineHeight: '20px' } }, [
-            div(['Drag or ', link({}, ['Click']), ' to ']),
+            div(['Drag or ', h(Link, ['Click']), ' to ']),
             div(['Add an ipynb File']),
             icon('upload-cloud', { size: 25, style: { opacity: 0.4, marginTop: '0.5rem' } })
           ])
