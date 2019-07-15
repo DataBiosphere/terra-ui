@@ -31,13 +31,6 @@ const constraints = {
   }
 }
 
-const styles = {
-  groupNotice: {
-    marginBottom: '0.5rem',
-    fontSize: 12
-  }
-}
-
 export default _.flow(
   ajaxCaller,
   Utils.connectAtom(authStore, 'authState')
@@ -173,7 +166,7 @@ export default _.flow(
             }, ['Read more about authorization domains'])
           ])
         ]),
-        !!existingGroups.length && div({ style: styles.groupNotice }, [
+        !!existingGroups.length && div({ style: { marginBottom: '0.5rem', fontSize: 12 } }, [
           div({ style: { marginBottom: '0.2rem' } }, ['Inherited groups:']),
           ...existingGroups.join(', ')
         ]),

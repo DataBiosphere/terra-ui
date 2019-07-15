@@ -149,8 +149,7 @@ const TopBar = Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
   }
 
   buildNav(transitionState) {
-    const { authState: { isSignedIn, profile, profile: { firstName = 'Loading...', lastName = '' } } } = this.props
-    const { trialState } = profile
+    const { authState: { isSignedIn, profile: { firstName = 'Loading...', lastName = '', trialState } } } = this.props
     const { navShown, openLibraryMenu, openSupportMenu, openUserMenu } = this.state
 
     const enabledCredits = h(Clickable, {

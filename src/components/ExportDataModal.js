@@ -26,7 +26,7 @@ const InfoTile = ({ infoStyle, content, iconName }) => {
 }
 
 
-const ExportDataModal = withWorkspaces()(class ExportDataModal extends Component {
+const ExportDataModal = withWorkspaces(class ExportDataModal extends Component {
   static propTypes = {
     onDismiss: PropTypes.func.isRequired,
     selectedEntities: PropTypes.array.isRequired,

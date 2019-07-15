@@ -263,8 +263,6 @@ const LocalVariablesContent = class LocalVariablesContent extends Component {
       !creatingNewVariable && !Utils.editWorkspaceError(workspace) && h(FloatingActionButton, {
         label: 'ADD VARIABLE',
         iconShape: 'plus',
-        bottom: 50,
-        right: 50,
         onClick: () => this.setState({
           editIndex: filteredAttributes.length,
           editValue: '',
@@ -490,14 +488,11 @@ class EntitiesContent extends Component {
         label: 'COPY DATA',
         iconShape: 'copy',
         bottom: 100,
-        right: 50,
         onClick: () => this.setState({ copyingEntities: true })
       }),
       !_.isEmpty(selectedEntities) && !Utils.editWorkspaceError(workspace) && h(FloatingActionButton, {
         label: 'DELETE DATA',
         iconShape: 'trash',
-        bottom: 50,
-        right: 50,
         onClick: () => this.setState({ deletingEntities: true })
       }),
       deletingEntities && h(EntityDeleter, {
@@ -675,8 +670,6 @@ const BucketContent = _.flow(
         !Utils.editWorkspaceError(workspace) && h(FloatingActionButton, {
           label: 'UPLOAD',
           iconShape: 'plus',
-          bottom: 50,
-          right: 50,
           onClick: () => this.uploader.current.open()
         })
       ]),

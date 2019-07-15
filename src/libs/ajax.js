@@ -123,7 +123,7 @@ const getServiceAccountToken = Utils.memoizeAsync(async (namespace, token) => {
   return res.json()
 }, { expires: 1000 * 60 * 30, keyFn: (...args) => JSON.stringify(args) })
 
-const saToken = namespace => getServiceAccountToken(namespace, getUser().token)
+export const saToken = namespace => getServiceAccountToken(namespace, getUser().token)
 
 const User = signal => ({
   getStatus: async () => {

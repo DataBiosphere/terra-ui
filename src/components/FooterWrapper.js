@@ -20,8 +20,7 @@ const FooterWrapper = ({ children }) => {
         flex: 'none',
         display: 'flex', alignItems: 'center',
         height: 66,
-        paddingLeft: '1rem',
-        paddingRight: '1rem',
+        padding: '0 1rem',
         backgroundColor: colors.secondary(),
         color: 'white'
       }

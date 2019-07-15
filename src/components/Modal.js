@@ -6,7 +6,6 @@ import { ButtonPrimary, ButtonSecondary, Clickable } from 'src/components/common
 import { icon } from 'src/components/icons'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import { Component } from 'src/libs/wrapped-components'
 
 
 const styles = {
@@ -26,62 +25,52 @@ const styles = {
   }
 }
 
-export default class Modal extends Component {
-  static propTypes = {
-    onDismiss: PropTypes.func.isRequired,
-    title: PropTypes.node,
-    titleExtras: PropTypes.node,
-    width: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
-    showCancel: PropTypes.bool,
-    cancelText: PropTypes.string,
-    showX: PropTypes.bool,
-    showButtons: PropTypes.bool,
-    okButton: PropTypes.oneOfType([PropTypes.string, PropTypes.func, PropTypes.node]),
-    children: PropTypes.node
-  }
-
-  static defaultProps = {
-    width: 450,
-    showCancel: true,
-    cancelText: 'Cancel',
-    showX: false,
-    showButtons: true
-  }
-
-  render() {
-    const { onDismiss, title, titleExtras, children, width, showCancel, cancelText, showX, showButtons, okButton, ...props } = this.props
-
-    return h(RModal, {
-      parentSelector: () => document.getElementById('modal-root'),
-      isOpen: true,
-      onRequestClose: onDismiss,
-      style: { overlay: styles.overlay, content: { ...styles.modal, width } },
-      ariaHideApp: false,
-      ...props
-    }, [
-      title && div({ style: { display: 'flex', alignItems: 'baseline', marginBottom: '1rem', flex: 'none' } }, [
-        div({ style: { fontSize: 18, fontWeight: 600 } }, [title]),
-        titleExtras,
-        showX && h(Clickable, {
-          style: { alignSelf: 'flex-start', marginLeft: 'auto' },
+const Modal = ({ onDismiss, title, titleExtras, children, width = 450, showCancel = true, cancelText = 'Cancel', showX, showButtons = true, okButton, ...props }) => {
+  return h(RModal, {
+    parentSelector: () => document.getElementById('modal-root'),
+    isOpen: true,
+    onRequestClose: onDismiss,
+    style: { overlay: styles.overlay, content: { ...styles.modal, width } },
+    ariaHideApp: false,
+    ...props
+  }, [
+    title && div({ style: { display: 'flex', alignItems: 'baseline', marginBottom: '1rem', flex: 'none' } }, [
+      div({ style: { fontSize: 18, fontWeight: 600 } }, [title]),
+      titleExtras,
+      showX && h(Clickable, {
+        style: { alignSelf: 'flex-start', marginLeft: 'auto' },
+        onClick: onDismiss
+      }, [icon('times-circle')])
+    ]),
+    children,
+    showButtons && div({ style: styles.buttonRow }, [
+      showCancel ?
+        h(ButtonSecondary, {
+          style: { marginRight: '1rem' },
           onClick: onDismiss
-        }, [icon('times-circle')])
-      ]),
-      children,
-      showButtons && div({ style: styles.buttonRow }, [
-        showCancel ?
-          h(ButtonSecondary, {
-            style: { marginRight: '1rem' },
-            onClick: onDismiss
-          }, [cancelText]) :
-          null,
-        Utils.cond(
-          [okButton === undefined, () => h(ButtonPrimary, { onClick: onDismiss }, 'OK')],
-          [_.isString(okButton), () => h(ButtonPrimary, { onClick: onDismiss }, okButton)],
-          [_.isFunction(okButton), () => h(ButtonPrimary, { onClick: okButton }, 'OK')],
-          () => okButton
-        )
-      ])
+        }, [cancelText]) :
+        null,
+      Utils.cond(
+        [okButton === undefined, () => h(ButtonPrimary, { onClick: onDismiss }, 'OK')],
+        [_.isString(okButton), () => h(ButtonPrimary, { onClick: onDismiss }, okButton)],
+        [_.isFunction(okButton), () => h(ButtonPrimary, { onClick: okButton }, 'OK')],
+        () => okButton
+      )
     ])
-  }
+  ])
 }
+
+Modal.propTypes = {
+  onDismiss: PropTypes.func.isRequired,
+  title: PropTypes.node,
+  titleExtras: PropTypes.node,
+  width: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+  showCancel: PropTypes.bool,
+  cancelText: PropTypes.string,
+  showX: PropTypes.bool,
+  showButtons: PropTypes.bool,
+  okButton: PropTypes.oneOfType([PropTypes.string, PropTypes.func, PropTypes.node]),
+  children: PropTypes.node
+}
+
+export default Modal
