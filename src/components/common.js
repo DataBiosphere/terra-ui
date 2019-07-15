@@ -48,20 +48,18 @@ const linkProps = ({ disabled, variant }) => ({
   hover: disabled ? undefined : { color: colors.accent(variant === 'light' ? 0.1 : 0.8) }
 })
 
-export const Link = ({ onClick, href, disabled, variant, children, ...props }) => {
-  return h(Clickable,
-    _.merge(linkProps({ disabled, variant }), {
-      href, disabled,
-      onClick: href && onClick ? e => {
-        e.preventDefault()
-        onClick(e)
-      } : onClick,
-      ...props
-    }),
-    [children])
+export const Link = ({ onClick, href, disabled, variant, ...props }) => {
+  return h(Clickable, _.merge({
+    ...linkProps({ disabled, variant }),
+    href, disabled,
+    onClick: href && onClick ? e => {
+      e.preventDefault()
+      onClick(e)
+    } : onClick
+  }, props))
 }
 
-export const ButtonPrimary = ({ disabled, children, ...props }) => {
+export const ButtonPrimary = ({ disabled, ...props }) => {
   return h(Clickable, _.merge({
     disabled,
     style: {
@@ -72,10 +70,10 @@ export const ButtonPrimary = ({ disabled, children, ...props }) => {
       cursor: disabled ? 'not-allowed' : 'pointer'
     },
     hover: disabled ? undefined : { backgroundColor: colors.accent(0.85) }
-  }, props), [children])
+  }, props))
 }
 
-export const ButtonSecondary = ({ disabled, children, ...props }) => {
+export const ButtonSecondary = ({ disabled, ...props }) => {
   return h(Clickable, _.merge({
     disabled,
     style: {
@@ -84,10 +82,10 @@ export const ButtonSecondary = ({ disabled, children, ...props }) => {
       cursor: disabled ? 'not-allowed' : 'pointer'
     },
     hover: disabled ? undefined : { color: colors.accent(0.8) }
-  }, props), [children])
+  }, props))
 }
 
-export const ButtonOutline = ({ disabled, children, ...props }) => {
+export const ButtonOutline = ({ disabled, ...props }) => {
   return h(ButtonPrimary, _.merge({
     style: {
       border: `1px solid ${disabled ? colors.dark(0.4) : colors.accent()}`,
@@ -95,7 +93,7 @@ export const ButtonOutline = ({ disabled, children, ...props }) => {
       backgroundColor: disabled ? colors.dark(0.25) : 'white'
     },
     hover: disabled ? undefined : { backgroundColor: colors.accent(0.1) }
-  }, props), [children])
+  }, props))
 }
 
 export const makeIconButton = (shape, { disabled, size, iconProps = {}, ...props } = {}) => {
@@ -142,7 +140,7 @@ export const makeMenuIcon = (iconName, props) => {
   return icon(iconName, _.merge({ size: 15, style: { marginRight: '.5rem' } }, props))
 }
 
-export const MenuButton = ({ disabled, children, ...props }) => {
+export const MenuButton = ({ disabled, ...props }) => {
   return h(Clickable, _.merge({
     disabled,
     style: {
@@ -153,7 +151,7 @@ export const MenuButton = ({ disabled, children, ...props }) => {
       cursor: disabled ? 'not-allowed' : 'pointer'
     },
     hover: !disabled ? { backgroundColor: colors.light(0.4), color: colors.accent() } : undefined
-  }, props), [children])
+  }, props))
 }
 
 export const Checkbox = ({ checked, onChange, disabled, ...props }) => {
