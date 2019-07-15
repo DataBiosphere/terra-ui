@@ -213,8 +213,9 @@ const ccdg = () => h(Participant, {
 }, [
   h(ButtonPrimary, {
     as: 'a',
-    tooltip: 'Coming soon',
-    disabled: true
+    href: `${getConfig().firecloudUrlRoot}/?return=${returnParam()}&project=AnVIL CCDG&project=AnVIL CCDG CVD#library`,
+    ...Utils.newTabLinkProps,
+    tooltip: browseTooltip
   }, ['Browse data'])
 ])
 
@@ -227,8 +228,9 @@ const cmg = () => h(Participant, {
 }, [
   h(ButtonPrimary, {
     as: 'a',
-    tooltip: 'Coming soon',
-    disabled: true
+    href: `${getConfig().firecloudUrlRoot}/?return=${returnParam()}&project=AnVIL CMG#library`,
+    ...Utils.newTabLinkProps,
+    tooltip: browseTooltip
   }, ['Browse Data'])
 ])
 
