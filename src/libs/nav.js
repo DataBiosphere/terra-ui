@@ -22,11 +22,11 @@ history.block('')
  * @param params
  * @returns {string}
  */
-export const getPath = (name, params) => {
+export const getPath = (name, params, options) => {
   const handler = _.find({ name }, routeHandlersStore.get())
   console.assert(handler,
     `No handler found for key ${name}. Valid path keys are: ${_.map('name', routeHandlersStore.get())}`)
-  return handler.makePath(params)
+  return handler.makePath(params, options)
 }
 
 /**
