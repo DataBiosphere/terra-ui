@@ -20,6 +20,7 @@ history.block('')
 /**
  * @param k
  * @param params
+ * @param [options]
  * @returns {string}
  */
 export const getPath = (name, params, options) => {
