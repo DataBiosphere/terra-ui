@@ -213,7 +213,7 @@ const ccdg = () => h(Participant, {
 }, [
   h(ButtonPrimary, {
     as: 'a',
-    href: `${getConfig().firecloudUrlRoot}/?return=${returnParam()}&project=AnVIL CCDG#library`,
+    href: `${getConfig().firecloudUrlRoot}/?return=${returnParam()}&project=AnVIL CCDG&project=AnVIL CCDG CVD#library`,
     ...Utils.newTabLinkProps,
     tooltip: browseTooltip
   }, ['Browse data'])
