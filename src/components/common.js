@@ -48,20 +48,18 @@ const linkProps = ({ disabled, variant }) => ({
   hover: disabled ? undefined : { color: colors.accent(variant === 'light' ? 0.1 : 0.8) }
 })
 
-export const link = ({ onClick, href, disabled, variant, ...props }, children) => {
-  return h(Clickable,
-    _.merge(linkProps({ disabled, variant }), {
-      href, disabled,
-      onClick: href && onClick ? e => {
-        e.preventDefault()
-        onClick(e)
-      } : onClick,
-      ...props
-    }),
-    children)
+export const Link = ({ onClick, href, disabled, variant, ...props }) => {
+  return h(Clickable, _.merge({
+    ...linkProps({ disabled, variant }),
+    href, disabled,
+    onClick: href && onClick ? e => {
+      e.preventDefault()
+      onClick(e)
+    } : onClick
+  }, props))
 }
 
-export const buttonPrimary = ({ disabled, ...props }, children) => {
+export const ButtonPrimary = ({ disabled, ...props }) => {
   return h(Clickable, _.merge({
     disabled,
     style: {
@@ -72,10 +70,10 @@ export const buttonPrimary = ({ disabled, ...props }, children) => {
       cursor: disabled ? 'not-allowed' : 'pointer'
     },
     hover: disabled ? undefined : { backgroundColor: colors.accent(0.85) }
-  }, props), children)
+  }, props))
 }
 
-export const buttonSecondary = ({ disabled, ...props }, children) => {
+export const ButtonSecondary = ({ disabled, ...props }) => {
   return h(Clickable, _.merge({
     disabled,
     style: {
@@ -84,21 +82,21 @@ export const buttonSecondary = ({ disabled, ...props }, children) => {
       cursor: disabled ? 'not-allowed' : 'pointer'
     },
     hover: disabled ? undefined : { color: colors.accent(0.8) }
-  }, props), children)
+  }, props))
 }
 
-export const buttonOutline = ({ disabled, ...props }, children) => {
-  return h(buttonPrimary, _.merge({
+export const ButtonOutline = ({ disabled, ...props }) => {
+  return h(ButtonPrimary, _.merge({
     style: {
       border: `1px solid ${disabled ? colors.dark(0.4) : colors.accent()}`,
       color: colors.accent(),
       backgroundColor: disabled ? colors.dark(0.25) : 'white'
     },
     hover: disabled ? undefined : { backgroundColor: colors.accent(0.1) }
-  }, props), children)
+  }, props))
 }
 
-export const iconButton = (shape, { disabled, size, iconProps = {}, ...props } = {}) => {
+export const makeIconButton = (shape, { disabled, size, iconProps = {}, ...props } = {}) => {
   return h(Clickable, _.merge({
     as: 'span',
     disabled,
@@ -115,7 +113,7 @@ export const iconButton = (shape, { disabled, size, iconProps = {}, ...props } =
   ])
 }
 
-export const tabBar = ({ activeTab, tabNames, refresh = _.noop, getHref }, children = []) => {
+export const TabBar = ({ activeTab, tabNames, refresh = _.noop, getHref, children }) => {
   const navTab = currentTab => {
     const selected = currentTab === activeTab
     const href = getHref(currentTab)
@@ -134,15 +132,15 @@ export const tabBar = ({ activeTab, tabNames, refresh = _.noop, getHref }, child
   return div({ style: Style.tabBar.container }, [
     ..._.map(name => navTab(name), tabNames),
     div({ style: { flexGrow: 1 } }),
-    ...children
+    children
   ])
 }
 
-export const menuIcon = (iconName, props) => {
+export const makeMenuIcon = (iconName, props) => {
   return icon(iconName, _.merge({ size: 15, style: { marginRight: '.5rem' } }, props))
 }
 
-export const MenuButton = ({ disabled, children, ...props }) => {
+export const MenuButton = ({ disabled, ...props }) => {
   return h(Clickable, _.merge({
     disabled,
     style: {
@@ -153,7 +151,7 @@ export const MenuButton = ({ disabled, children, ...props }) => {
       cursor: disabled ? 'not-allowed' : 'pointer'
     },
     hover: !disabled ? { backgroundColor: colors.light(0.4), color: colors.accent() } : undefined
-  }, props), [children])
+  }, props))
 }
 
 export const Checkbox = ({ checked, onChange, disabled, ...props }) => {
@@ -204,7 +202,7 @@ export const RadioButton = ({ text, labelStyle, ...props }) => {
   ])
 }
 
-export const spinnerDefault = ({ outerStyles = {}, innerStyles = {} }) => div(
+const makeBaseSpinner = ({ outerStyles = {}, innerStyles = {} }) => div(
   {
     style: {
       position: 'absolute',
@@ -221,11 +219,11 @@ export const spinnerDefault = ({ outerStyles = {}, innerStyles = {} }) => div(
   ]
 )
 
-export const spinnerOverlay = spinnerDefault({ outerStyles: { backgroundColor: 'rgba(0, 0, 0, 0.1)' } })
+export const spinnerOverlay = makeBaseSpinner({ outerStyles: { backgroundColor: 'rgba(0, 0, 0, 0.1)' } })
 
-export const transparentSpinnerOverlay = spinnerDefault({ innerStyles: { backgroundColor: 'rgba(255, 255, 255, 0.0)' } })
+export const transparentSpinnerOverlay = makeBaseSpinner({ innerStyles: { backgroundColor: 'rgba(255, 255, 255, 0.0)' } })
 
-export const topSpinnerOverlay = spinnerDefault({ outerStyles: { backgroundColor: 'rgba(0, 0, 0, 0.1)' }, innerStyles: { marginTop: 150 } })
+export const topSpinnerOverlay = makeBaseSpinner({ outerStyles: { backgroundColor: 'rgba(0, 0, 0, 0.1)' }, innerStyles: { marginTop: 150 } })
 
 export const comingSoon = span({
   style: {
@@ -296,7 +294,7 @@ export const PageBox = ({ children, style = {} }) => {
   }, [children])
 }
 
-export const backgroundLogo = () => img({
+export const backgroundLogo = img({
   src: scienceBackground,
   style: { position: 'fixed', top: 0, left: 0, zIndex: -1 }
 })
@@ -310,7 +308,7 @@ export const methodLink = config => {
 
 export const ShibbolethLink = ({ children, ...props }) => {
   const nihRedirectUrl = `${window.location.origin}/${Nav.getLink('profile')}?nih-username-token={token}`
-  return link({
+  return h(Link, {
     ...props,
     href: `${getConfig().shibbolethUrlRoot}/link-nih-account?${qs.stringify({ 'redirect-url': nihRedirectUrl })}`,
     style: { display: 'inline-flex', alignItems: 'center' },

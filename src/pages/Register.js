@@ -1,6 +1,6 @@
 import { Component } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
-import { buttonPrimary, buttonSecondary } from 'src/components/common'
+import { ButtonPrimary, ButtonSecondary } from 'src/components/common'
 import { centeredSpinner } from 'src/components/icons'
 import { TextInput } from 'src/components/input'
 import planet from 'src/images/register-planet.svg'
@@ -97,10 +97,10 @@ export default class Register extends Component {
         ])
       ]),
       div({ style: { marginTop: '3rem' } }, [
-        buttonPrimary({ disabled: errors || busy, onClick: () => this.register() },
+        h(ButtonPrimary, { disabled: errors || busy, onClick: () => this.register() },
           'Register'
         ),
-        buttonSecondary({ style: { marginLeft: '1rem' }, onClick: signOut }, 'Cancel'),
+        h(ButtonSecondary, { style: { marginLeft: '1rem' }, onClick: signOut }, 'Cancel'),
         busy && centeredSpinner({
           size: 34, style: { display: null, margin: null, marginLeft: '1ex' }
         })

@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import { createRef, Fragment } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
-import { Checkbox, Clickable, link, MenuButton, RadioButton, spinnerOverlay } from 'src/components/common'
+import { Checkbox, Clickable, Link, MenuButton, RadioButton, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { ConfirmedSearchInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
@@ -172,7 +172,7 @@ export default ajaxCaller(class DataTable extends Component {
                         const dataInfo = entities[rowIndex].attributes[name]
                         const dataCell = renderDataCell(Utils.entityAttributeText(dataInfo), namespace)
                         return (!!dataInfo && _.isArray(dataInfo.items)) ?
-                          link({
+                          h(Link, {
                             onClick: () => this.setState({ viewData: dataInfo })
                           },
                           [dataCell]) : dataCell

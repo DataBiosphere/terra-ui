@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import { createRef } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import ReactNotification from 'react-notifications-component'
-import { buttonPrimary, Clickable } from 'src/components/common'
+import { ButtonPrimary, Clickable } from 'src/components/common'
 import ErrorView from 'src/components/ErrorView'
 import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
@@ -133,7 +133,7 @@ const NotificationDisplay = Utils.connectAtom(notificationStore, 'notificationSt
         showCancel: false,
         showX: true,
         onDismiss: () => this.setState({ modal: false }),
-        okButton: buttonPrimary({ onClick: () => refreshPage() }, 'Refresh Page')
+        okButton: h(ButtonPrimary, { onClick: () => refreshPage() }, 'Refresh Page')
       }, [
         h(ErrorView, { error: detail, collapses: false })
       ])

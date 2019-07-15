@@ -1,15 +1,15 @@
 import PropTypes from 'prop-types'
-import { div } from 'react-hyperscript-helpers'
-import { buttonPrimary, buttonSecondary } from 'src/components/common'
+import { div, h } from 'react-hyperscript-helpers'
+import { ButtonPrimary, ButtonSecondary } from 'src/components/common'
 
 
 const ButtonBar = ({ onCancel, cancelText = 'Cancel', onOk, okText = 'Ok', ...props }) => {
   return div(props, [
-    !!onCancel && buttonSecondary({
+    !!onCancel && h(ButtonSecondary, {
       style: { marginRight: '1rem' },
       onClick: onCancel
     }, [cancelText]),
-    buttonPrimary({ onClick: onOk }, [okText])
+    h(ButtonPrimary, { onClick: onOk }, [okText])
   ])
 }
 

@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import { Component } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
-import { buttonPrimary, LabeledCheckbox, link, Select, spinnerOverlay } from 'src/components/common'
+import { ButtonPrimary, LabeledCheckbox, Link, Select, spinnerOverlay } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { AutocompleteTextInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
@@ -101,7 +101,7 @@ export default ajaxCaller(class ShareWorkspaceModal extends Component {
     return h(Modal, {
       title: 'Share Workspace',
       width: 550,
-      okButton: buttonPrimary({ onClick: () => this.save() }, ['Save']),
+      okButton: h(ButtonPrimary, { onClick: () => this.save() }, ['Save']),
       onDismiss
     }, [
       h(FormLabel, ['User email']),
@@ -119,7 +119,7 @@ export default ajaxCaller(class ShareWorkspaceModal extends Component {
           onChange: v => this.setState(v),
           maxAccessLevel: workspace.accessLevel
         }),
-        h(buttonPrimary, {
+        h(ButtonPrimary, {
           onClick: () => this.addAcl(searchValue),
           disabled: searchValueInvalid,
           tooltip: searchValueInvalid && 'Not a valid email address'
@@ -166,7 +166,7 @@ export default ajaxCaller(class ShareWorkspaceModal extends Component {
           maxAccessLevel: workspace.accessLevel
         })
       ]),
-      !isPO && !isMe && link({
+      !isPO && !isMe && h(Link, {
         onClick: () => this.setState({ acl: _.remove({ email }, acl) })
       }, [icon('minus-circle', { size: 24 })])
     ])

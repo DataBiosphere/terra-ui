@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
-import { buttonPrimary, Select, spinnerOverlay } from 'src/components/common'
+import { ButtonPrimary, Select, spinnerOverlay } from 'src/components/common'
 import { DeleteUserModal, EditUserModal, MemberCard, NewUserCard, NewUserModal } from 'src/components/group-common'
 import { icon, spinner } from 'src/components/icons'
 import Modal from 'src/components/Modal'
@@ -97,7 +97,7 @@ export default ajaxCaller(class ProjectDetail extends Component {
           ),
           !!displayName && span({ style: { flexShrink: 0, fontWeight: 500, fontSize: 14, margin: '0 0.75rem 0 auto' } }, 'Billing Account:'),
           !!displayName && span({ style: { flexShrink: 0, fontWeight: 600, fontSize: 14 } }, displayName),
-          buttonPrimary({
+          h(ButtonPrimary, {
             style: { marginLeft: 'auto' },
             onClick: async () => {
               if (Auth.hasBillingScope()) {
@@ -111,7 +111,7 @@ export default ajaxCaller(class ProjectDetail extends Component {
           showBillingModal && h(Modal, {
             title: 'Change Billing Account',
             onDismiss: () => this.setState({ showBillingModal: false }),
-            okButton: buttonPrimary({
+            okButton: h(ButtonPrimary, {
               disabled: !selectedBilling || billingAccountName === selectedBilling,
               onClick: async () => {
                 this.setState({ showBillingModal: false })

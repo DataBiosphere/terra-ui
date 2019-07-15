@@ -1,6 +1,6 @@
 import { div, h, span } from 'react-hyperscript-helpers'
 import { pure } from 'recompose'
-import { Clickable, iconButton, link } from 'src/components/common'
+import { Clickable, Link, makeIconButton } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { icon } from 'src/components/icons'
 import TopBar from 'src/components/TopBar'
@@ -18,7 +18,7 @@ const styles = {
   nowrap: { whiteSpace: 'nowrap' }
 }
 
-const makeDocLink = (href, title) => link({
+const makeDocLink = (href, title) => h(Link, {
   href,
   ...Utils.newTabLinkProps,
   style: { marginBottom: '1rem', fontSize: 18, display: 'inline-flex', alignItems: 'center' }
@@ -37,7 +37,7 @@ const makeCard = (link, title, body) => h(Clickable, {
   div({ style: { color: colors.accent(), fontSize: 18, fontWeight: 500, lineHeight: '22px', marginBottom: '0.5rem' } }, title),
   div({ style: { lineHeight: '22px' } }, body),
   div({ style: { flexGrow: 1 } }),
-  iconButton('arrowRight', { size: 30, style: { alignSelf: 'flex-end' } })
+  makeIconButton('arrowRight', { size: 30, style: { alignSelf: 'flex-end' } })
 ])
 
 const LandingPage = pure(() => {

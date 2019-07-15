@@ -1,5 +1,5 @@
 import { a, div, h, span } from 'react-hyperscript-helpers'
-import { buttonPrimary, LabeledCheckbox, spinnerOverlay } from 'src/components/common'
+import { ButtonPrimary, LabeledCheckbox, spinnerOverlay } from 'src/components/common'
 import FreeTrialEulas from 'src/components/FreeTrialEulas'
 import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
@@ -34,13 +34,13 @@ const FreeCreditsModal = Utils.connectAtom(freeCreditsActive, 'isActive')(class 
       },
       title: 'Welcome to the Terra Free Credit Program!',
       width: '65%',
-      okButton: pageTwo ? buttonPrimary({
+      okButton: pageTwo ? h(ButtonPrimary, {
         onClick: () => {
           this.acceptCredits()
         },
         disabled: (termsAgreed === false) || (cloudTermsAgreed === false),
         tooltip: ((termsAgreed === false) || (cloudTermsAgreed === false)) && 'You must check the boxes to accept.'
-      }, ['Accept']) : buttonPrimary({
+      }, ['Accept']) : h(ButtonPrimary, {
         onClick: () => this.setState({ pageTwo: true })
       }, ['Review Terms of Service'])
     }, [

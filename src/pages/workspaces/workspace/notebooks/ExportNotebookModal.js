@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
 import { b, h } from 'react-hyperscript-helpers'
-import { buttonPrimary, spinnerOverlay } from 'src/components/common'
+import { ButtonPrimary, spinnerOverlay } from 'src/components/common'
 import ErrorView from 'src/components/ErrorView'
 import Modal from 'src/components/Modal'
 import { notebookNameInput, notebookNameValidator } from 'src/components/notebook-utils'
@@ -63,7 +63,7 @@ export default _.flow(
     return h(Modal, {
       title: 'Copy to Workspace',
       onDismiss,
-      okButton: buttonPrimary({
+      okButton: h(ButtonPrimary, {
         tooltip: Utils.summarizeErrors(errors),
         disabled: !!errors,
         onClick: () => this.copy()
@@ -100,7 +100,7 @@ export default _.flow(
       title: 'Copy to Workspace',
       onDismiss,
       cancelText: 'Stay Here',
-      okButton: buttonPrimary({
+      okButton: h(ButtonPrimary, {
         onClick: () => {
           if (fromLauncher) {
             Nav.goToPath('workspace-notebook-launch', {

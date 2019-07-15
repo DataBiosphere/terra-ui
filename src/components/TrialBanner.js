@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { a, div, h, span } from 'react-hyperscript-helpers'
-import { buttonPrimary, Clickable } from 'src/components/common'
+import { ButtonPrimary, Clickable } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import { Ajax } from 'src/libs/ajax'
@@ -119,7 +119,7 @@ export const TrialBanner = Utils.connectAtom(authStore, 'authState')(class Trial
       finalizeTrial && h(Modal, {
         title: 'Remove banner',
         onDismiss: () => this.setState({ finalizeTrial: false }),
-        okButton: buttonPrimary({
+        okButton: h(ButtonPrimary, {
           onClick: async () => {
             try {
               await Ajax().User.finalizeTrial()

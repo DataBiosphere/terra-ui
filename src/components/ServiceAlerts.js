@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import { Fragment, useEffect, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
-import { link } from 'src/components/common'
+import { Link } from 'src/components/common'
 import { clearNotification, notify } from 'src/components/Notifications'
 import { Ajax } from 'src/libs/ajax'
 import * as Utils from 'src/libs/utils'
@@ -38,7 +38,7 @@ export const ServiceAlerts = () => {
             div({ style: { fontSize: 12, fontWeight: 500 } }, [
               message,
               readMoreLink && div({ style: { marginTop: '1rem' } }, [
-                link({
+                h(Link, {
                   ...Utils.newTabLinkProps,
                   href: readMoreLink,
                   style: { fontWeight: 700, color: 'white' },

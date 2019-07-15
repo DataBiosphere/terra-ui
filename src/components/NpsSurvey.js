@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import { Component } from 'react'
 import { div, h, input, span } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
-import { buttonSecondary, Clickable } from 'src/components/common'
+import { ButtonSecondary, Clickable } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { TextArea } from 'src/components/input'
 import { Ajax } from 'src/libs/ajax'
@@ -133,7 +133,7 @@ export const NpsSurvey = Utils.connectAtom(authStore, 'authState')(class NpsSurv
           span({ style: { ...styles.questionLabel, color: colors.dark(0.55) } }, '(Optional)')]),
         h(TextArea, { style: styles.questionInput, value: changeComment, onChange: v => this.setState({ changeComment: v }) }),
         div({ style: { display: 'flex', justifyContent: 'flex-end' } }, [
-          buttonSecondary({
+          h(ButtonSecondary, {
             style: { color: 'white' },
             hover: { color: colors.dark(0.25) },
             onClick: goAway(true)

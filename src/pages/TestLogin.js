@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
-import { buttonPrimary } from 'src/components/common'
+import { ButtonPrimary } from 'src/components/common'
 import { TextInput } from 'src/components/input'
 import * as Nav from 'src/libs/nav'
 
@@ -15,7 +15,7 @@ const TestLogin = () => {
       value: token,
       onChange: setToken
     }),
-    buttonPrimary({
+    h(ButtonPrimary, {
       onClick: async () => {
         await window.forceSignIn(token)
         Nav.goToPath('root')

@@ -4,7 +4,7 @@ import { Fragment, useState } from 'react'
 import { Collapse as RCollapse } from 'react-collapse'
 import { a, b, div, h, img, span } from 'react-hyperscript-helpers'
 import { Transition } from 'react-transition-group'
-import { buttonPrimary, Clickable, LabeledCheckbox, spinnerOverlay } from 'src/components/common'
+import { ButtonPrimary, Clickable, LabeledCheckbox, spinnerOverlay } from 'src/components/common'
 import { icon, profilePic } from 'src/components/icons'
 import { TextArea } from 'src/components/input'
 import Modal from 'src/components/Modal'
@@ -384,7 +384,7 @@ const TopBar = Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
         finalizeTrial && h(Modal, {
           title: 'Remove button',
           onDismiss: () => this.setState({ finalizeTrial: false }),
-          okButton: buttonPrimary({
+          okButton: h(ButtonPrimary, {
             onClick: async () => {
               try {
                 await Ajax().User.finalizeTrial()

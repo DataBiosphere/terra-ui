@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
 import { b, div, h, label } from 'react-hyperscript-helpers'
 import { pure } from 'recompose'
-import { buttonPrimary, Clickable, LabeledCheckbox, link, spinnerOverlay } from 'src/components/common'
+import { ButtonPrimary, Clickable, LabeledCheckbox, Link, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { AutocompleteSearch } from 'src/components/input'
 import Modal from 'src/components/Modal'
@@ -46,14 +46,14 @@ export const MemberCard = pure(({ member: { email, roles }, adminCanEdit, onEdit
     div({ style: { flex: '0 0 150px', textTransform: 'capitalize' } }, [_.includes(adminLabel, roles) ? adminLabel : userLabel]),
     div({ style: { flex: 'none' } }, [
       h(TooltipTrigger, { content: tooltip }, [
-        link({
+        h(Link, {
           disabled: !canEdit,
           onClick: canEdit ? onEdit : undefined
         }, ['Edit Role'])
       ]),
       ' | ',
       h(TooltipTrigger, { content: tooltip }, [
-        link({
+        h(Link, {
           disabled: !canEdit,
           onClick: canEdit ? onDelete : undefined
         }, ['Remove'])
@@ -116,7 +116,7 @@ export const NewUserModal = ajaxCaller(class NewUserModal extends Component {
     return h(Modal, {
       onDismiss,
       title,
-      okButton: buttonPrimary({
+      okButton: h(ButtonPrimary, {
         tooltip: Utils.summarizeErrors(errors),
         onClick: () => this.submit(),
         disabled: errors
@@ -210,7 +210,7 @@ export const EditUserModal = class EditUserModal extends Component {
     return h(Modal, {
       onDismiss,
       title: 'Edit Roles',
-      okButton: buttonPrimary({
+      okButton: h(ButtonPrimary, {
         onClick: () => this.submit()
       }, ['Change Role'])
     }, [
@@ -252,7 +252,7 @@ export const DeleteUserModal = pure(({ onDismiss, onSubmit, userEmail }) => {
   return h(Modal, {
     onDismiss,
     title: 'Confirm',
-    okButton: buttonPrimary({
+    okButton: h(ButtonPrimary, {
       onClick: onSubmit
     }, ['Remove'])
   }, [

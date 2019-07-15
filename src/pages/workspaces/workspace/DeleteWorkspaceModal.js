@@ -1,6 +1,6 @@
 import { Component } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
-import { buttonPrimary, link, spinnerOverlay } from 'src/components/common'
+import { ButtonPrimary, Link, spinnerOverlay } from 'src/components/common'
 import Modal from 'src/components/Modal'
 import { Ajax } from 'src/libs/ajax'
 import { bucketBrowserUrl } from 'src/libs/auth'
@@ -35,7 +35,7 @@ export default class DeleteWorkspaceModal extends Component {
     return h(Modal, {
       title: 'Delete workspace',
       onDismiss,
-      okButton: buttonPrimary({
+      okButton: h(ButtonPrimary, {
         onClick: () => this.deleteWorkspace()
       }, 'Delete workspace')
     }, [
@@ -44,7 +44,7 @@ export default class DeleteWorkspaceModal extends Component {
         '?']),
       div({ style: { marginTop: '1rem' } }, [
         'Deleting it will delete the associated ',
-        link({
+        h(Link, {
           ...Utils.newTabLinkProps,
           href: bucketBrowserUrl(bucketName)
         }, ['Google Cloud Bucket']),

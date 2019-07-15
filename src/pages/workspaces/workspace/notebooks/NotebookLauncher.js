@@ -4,7 +4,7 @@ import { div, h, iframe } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
 import { NewClusterModal } from 'src/components/ClusterManager'
-import { buttonOutline, buttonPrimary, link } from 'src/components/common'
+import { ButtonOutline, ButtonPrimary, Link } from 'src/components/common'
 import { spinner } from 'src/components/icons'
 import { notify } from 'src/components/Notifications'
 import { Ajax, useCancellation } from 'src/libs/ajax'
@@ -49,8 +49,8 @@ const ReadOnlyMessage = ({ notebookName, workspace, workspace: { canCompute, wor
       ['Viewing read-only']),
     div({ style: { flexGrow: 1 } }),
     Utils.cond(
-      [!canCompute, () => buttonOutline({ onClick: () => setCopying(true) }, ['copy to another workspace to edit'])],
-      () => buttonOutline({
+      [!canCompute, () => h(ButtonOutline, { onClick: () => setCopying(true) }, ['copy to another workspace to edit'])],
+      () => h(ButtonOutline, {
         as: 'a', href: Nav.getLink('workspace-notebook-launch', { namespace, name, notebookName })
       }, ['edit in Jupyter'])
     ),
@@ -82,7 +82,7 @@ const NotebookPreviewFrame = ({ notebookName, workspace: { workspace: { namespac
   return h(Fragment, [
     preview && h(Fragment, [
       div({ style: { position: 'relative' } }, [
-        buttonPrimary({
+        h(ButtonPrimary, {
           style: { position: 'absolute', top: 20, left: 'calc(50% + 580px)' },
           onClick: () => Nav.goToPath('workspace-notebooks', { namespace, name })
         }, ['Close'])
@@ -237,7 +237,7 @@ const NotebookEditor = ({ notebookName, workspace, workspace: { workspace: { nam
       ['Error', () => h(StatusMessage, ['Notebook runtime error.'])],
       [null, () => h(StatusMessage, [
         'You need a notebook runtime environment. ',
-        link({ onClick: () => setCreateOpen(true) }, ['Create one']),
+        h(Link, { onClick: () => setCreateOpen(true) }, ['Create one']),
         ' to get started.'
       ])]
     ),

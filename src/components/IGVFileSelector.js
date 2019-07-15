@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import { div, h } from 'react-hyperscript-helpers'
 import { AutoSizer, List } from 'react-virtualized'
-import { buttonPrimary, Clickable, LabeledCheckbox, link, Select } from 'src/components/common'
+import { ButtonPrimary, Clickable, LabeledCheckbox, Link, Select } from 'src/components/common'
 import Modal from 'src/components/Modal'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -72,7 +72,7 @@ export class IGVFileSelector extends Component {
     return h(Modal, {
       onDismiss,
       title: 'Open files with IGV',
-      okButton: buttonPrimary({
+      okButton: h(ButtonPrimary, {
         disabled: this.buttonIsDisabled(),
         tooltip: this.buttonIsDisabled() ? `Select between 1 and ${MAX_CONCURRENT_IGV_FILES} files` : '',
         onClick: () => onSuccess({ selectedFiles: this.getSelectedFilesList(), refGenome })
@@ -80,9 +80,9 @@ export class IGVFileSelector extends Component {
     }, [
       div({ style: { marginBottom: '1rem', display: 'flex' } }, [
         div({ style: { fontWeight: 500 } }, ['Select:']),
-        link({ style: { padding: '0 0.5rem' }, onClick: () => this.setAll(true) }, ['all']),
+        h(Link, { style: { padding: '0 0.5rem' }, onClick: () => this.setAll(true) }, ['all']),
         '|',
-        link({ style: { padding: '0 0.5rem' }, onClick: () => this.setAll(false) }, ['none'])
+        h(Link, { style: { padding: '0 0.5rem' }, onClick: () => this.setAll(false) }, ['none'])
       ]),
       h(AutoSizer, { disableHeight: true }, [
         ({ width }) => {

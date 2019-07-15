@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import { Fragment, PureComponent, useRef, useState } from 'react'
 import { div, h, h2, p, span } from 'react-hyperscript-helpers'
 import ClusterManager from 'src/components/ClusterManager'
-import { buttonPrimary, Clickable, comingSoon, link, MenuButton, menuIcon, tabBar } from 'src/components/common'
+import { ButtonPrimary, Clickable, comingSoon, Link, makeMenuIcon, MenuButton, TabBar } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
 import { clearNotification, notify } from 'src/components/Notifications'
@@ -34,7 +34,7 @@ class WorkspaceTabs extends PureComponent {
     const isOwner = workspace && Utils.isOwner(workspace.accessLevel)
     const canShare = workspace && workspace.canShare
 
-    return tabBar({
+    return h(TabBar, {
       activeTab, refresh,
       tabNames: TAB_NAMES,
       getHref: currentTab => Nav.getLink(_.kebabCase(`workspace ${currentTab}`), { namespace, name })
@@ -42,20 +42,20 @@ class WorkspaceTabs extends PureComponent {
       h(PopupTrigger, {
         closeOnClick: true,
         content: h(Fragment, [
-          h(MenuButton, { onClick: onClone }, [menuIcon('copy'), 'Clone']),
+          h(MenuButton, { onClick: onClone }, [makeMenuIcon('copy'), 'Clone']),
           h(MenuButton, {
             disabled: !canShare,
             tooltip: !canShare && 'You have not been granted permission to share this workspace',
             tooltipSide: 'left',
             onClick: () => onShare()
-          }, [menuIcon('share'), 'Share']),
-          h(MenuButton, { disabled: true }, [menuIcon('export'), 'Publish', comingSoon]),
+          }, [makeMenuIcon('share'), 'Share']),
+          h(MenuButton, { disabled: true }, [makeMenuIcon('export'), 'Publish', comingSoon]),
           h(MenuButton, {
             disabled: !isOwner,
             tooltip: !isOwner && 'You must be an owner of this workspace or the underlying billing project',
             tooltipSide: 'left',
             onClick: () => onDelete()
-          }, [menuIcon('trash'), 'Delete Workspace'])
+          }, [makeMenuIcon('trash'), 'Delete Workspace'])
         ]),
         side: 'bottom'
       }, [
@@ -139,12 +139,12 @@ const WorkspaceAccessError = () => {
     p(['You are trying to access a workspace that either does not exist, or you do not have access to it.']),
     p([
       'To view an existing workspace, the owner of the workspace must share it with you or with a ',
-      link({ ...Utils.newTabLinkProps, href: groupURL }, 'Group'), ' of which you are a member. ',
-      'If the workspace is protected under an ', link({ ...Utils.newTabLinkProps, href: authorizationURL }, 'Authorization Domain'),
+      h(Link, { ...Utils.newTabLinkProps, href: groupURL }, 'Group'), ' of which you are a member. ',
+      'If the workspace is protected under an ', h(Link, { ...Utils.newTabLinkProps, href: authorizationURL }, 'Authorization Domain'),
       ', you must be a member of every group within the Authorization Domain.'
     ]),
     p(['If you think the workspace exists but you do not have access, please contact the workspace owner.']),
-    buttonPrimary({
+    h(ButtonPrimary, {
       as: 'a',
       href: Nav.getLink('workspaces')
     }, ['Return to Workspace List'])
@@ -163,7 +163,7 @@ const checkBucketAccess = withErrorReporting('Error checking bucket access', asy
         'The Google Bucket associated with this workspace is currently unavailable. This should be resolved shortly.',
         div({ style: { margin: '0.5rem' } }),
         'If this persists for more than an hour, please ',
-        link({
+        h(Link, {
           onClick: () => {
             contactUsActive.set(true)
             clearNotification(notificationId)

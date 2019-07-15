@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
-import { Clickable, link } from 'src/components/common'
+import { Clickable, Link } from 'src/components/common'
 import { centeredSpinner } from 'src/components/icons'
 import { libraryTopMatter } from 'src/components/library-common'
 import broadSquare from 'src/images/library/code/broad-square.svg'
@@ -68,7 +68,7 @@ const logoTile = ({ logoFile, style = {} }) => div({
 export const dockstoreTile = () => div({ style: { display: 'flex' } }, [
   logoTile({ logoFile: dockstoreLogo }),
   div([
-    link({ href: `${getConfig().dockstoreUrlRoot}/search?descriptorType=wdl&searchMode=files` }, 'Dockstore'),
+    h(Link, { href: `${getConfig().dockstoreUrlRoot}/search?descriptorType=wdl&searchMode=files` }, 'Dockstore'),
     div(['Browse WDL workflows in Dockstore, an open platform used by the GA4GH for sharing Docker-based workflows'])
   ])
 ])
@@ -76,7 +76,7 @@ export const dockstoreTile = () => div({ style: { display: 'flex' } }, [
 export const fcMethodRepoTile = () => div({ style: { display: 'flex' } }, [
   logoTile({ logoFile: broadSquare, style: { backgroundColor: undefined, backgroundSize: 37 } }),
   div([
-    link({ href: `${getConfig().firecloudUrlRoot}/?return=${returnParam()}#methods` }, 'Broad Methods Repository'),
+    h(Link, { href: `${getConfig().firecloudUrlRoot}/?return=${returnParam()}#methods` }, 'Broad Methods Repository'),
     div([`Use Broad workflows in ${getAppName()}. Share your own, or choose from > 700 public workflows`])
   ])
 ])
