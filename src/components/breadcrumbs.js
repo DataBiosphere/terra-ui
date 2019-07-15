@@ -1,18 +1,17 @@
-import { a, span } from 'react-hyperscript-helpers/lib/index'
-import { breadcrumb } from 'src/components/icons'
+import { a } from 'react-hyperscript-helpers/lib/index'
+import { icon } from 'src/components/icons'
 import colors from 'src/libs/colors'
 import { isTerra } from 'src/libs/config'
 import * as Nav from 'src/libs/nav'
 
 
-const breadcrumbColor = isTerra() ? 'white' : colors.accent()
-
 export const breadcrumbElement = (child, href) => {
-  if (href) {
-    return a({ style: { color: breadcrumbColor }, href }, [child, breadcrumb()])
-  } else {
-    return span({ style: { color: breadcrumbColor } }, [child, breadcrumb()])
-  }
+  return a({
+    style: { color: isTerra() ? 'white' : colors.accent() }, href
+  }, [
+    child,
+    icon('angle right', { size: 10, style: { margin: '0 0.25rem' } })
+  ])
 }
 
 

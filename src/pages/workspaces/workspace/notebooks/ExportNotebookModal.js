@@ -18,7 +18,7 @@ const cutName = name => name.slice(10, -6) // removes 'notebooks/' and the .ipyn
 
 export default _.flow(
   ajaxCaller,
-  withWorkspaces()
+  withWorkspaces
 )(class ExportNotebookModal extends Component {
   static propTypes = {
     fromLauncher: PropTypes.bool,

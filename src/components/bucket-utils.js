@@ -20,7 +20,7 @@ export const withRequesterPaysHandler = _.curry((handler, fn) => async (...args)
 })
 
 export const requesterPaysWrapper = ({ onDismiss }) => WrappedComponent => {
-  const Wrapper = forwardRef((props, ref) => {
+  const RequesterPaysWrapper = (props, ref) => {
     const [showModal, setShowModal] = useState(false)
 
     return Utils.cond(
@@ -36,6 +36,7 @@ export const requesterPaysWrapper = ({ onDismiss }) => WrappedComponent => {
         onRequesterPaysError: () => setShowModal(true)
       })
     )
-  })
-  return Wrapper
+  }
+
+  return forwardRef(RequesterPaysWrapper)
 }

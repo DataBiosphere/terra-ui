@@ -13,7 +13,7 @@ import { Component } from 'src/libs/wrapped-components'
 import validate from 'validate.js'
 
 
-const ExportWorkflowModal = withWorkspaces()(class ExportWorkflowModal extends Component {
+const ExportWorkflowModal = withWorkspaces(class ExportWorkflowModal extends Component {
   constructor(props) {
     super(props)
 

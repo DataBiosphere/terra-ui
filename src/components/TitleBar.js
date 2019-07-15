@@ -4,20 +4,16 @@ import { Clickable } from 'src/components/common'
 import { icon } from 'src/components/icons'
 
 
-const styles = {
-  title: {
-    display: 'flex', alignItems: 'baseline', marginBottom: '1rem', flex: 'none', padding: '1.5rem 1.25rem'
-  },
-  titleAlign: hasPrevious => ({ marginLeft: hasPrevious ? 'auto' : undefined })
-}
-
-const TitleBar = props => {
-  const { onPrevious, title, onDismiss, titleExtras } = props
-  return div({ style: styles.title }, [
+const TitleBar = ({ onPrevious, title, onDismiss, titleExtras }) => {
+  return div({
+    style: {
+      display: 'flex', alignItems: 'baseline', marginBottom: '1rem', flex: 'none', padding: '1.5rem 1.25rem'
+    }
+  }, [
     onPrevious && h(Clickable, {
       onClick: onPrevious
     }, [icon('arrowLeft')]),
-    div({ style: { fontSize: 18, fontWeight: 600, ...styles.titleAlign(onPrevious) } }, [title]),
+    div({ style: { fontSize: 18, fontWeight: 600, marginLeft: onPrevious ? 'auto' : undefined } }, [title]),
     titleExtras,
     onDismiss && h(Clickable, {
       style: { marginLeft: 'auto' },

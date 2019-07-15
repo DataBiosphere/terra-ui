@@ -16,6 +16,11 @@ export default class FloatingActionButton extends Component {
     right: PropTypes.number
   }
 
+  static defaultProps = {
+    bottom: 50,
+    right: 50
+  }
+
   render() {
     const { label, iconShape, onClick, bottom, right } = this.props
     const { hover } = this.state
@@ -23,7 +28,7 @@ export default class FloatingActionButton extends Component {
     return h(Clickable,
       {
         style: {
-          position: 'absolute', bottom: bottom, right: right,
+          position: 'absolute', bottom, right,
           backgroundColor: colors.accent(), color: 'white',
           padding: '0.5rem', borderRadius: 40,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
