@@ -289,17 +289,6 @@ export const isValidWsExportTarget = _.curry((sourceWs, destWs) => {
   return sourceId !== destId && canWrite(accessLevel) && (_.intersectionWith(_.isEqual, sourceAD, destAD).length === sourceAD.length)
 })
 
-export const normalizeMachineConfig = ({ masterMachineType, masterDiskSize, numberOfWorkers, numberOfPreemptibleWorkers, workerMachineType, workerDiskSize }) => {
-  return {
-    masterMachineType: masterMachineType || 'n1-standard-4',
-    masterDiskSize: masterDiskSize || 50,
-    numberOfWorkers: numberOfWorkers || 0,
-    numberOfPreemptibleWorkers: (numberOfWorkers && numberOfPreemptibleWorkers) || 0,
-    workerMachineType: (numberOfWorkers && workerMachineType) || 'n1-standard-4',
-    workerDiskSize: (numberOfWorkers && workerDiskSize) || 50
-  }
-}
-
 export const append = _.curry((value, arr) => _.concat(arr, [value]))
 
 // Transforms an async function so that it updates a busy flag via the provided callback

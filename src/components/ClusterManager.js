@@ -9,8 +9,9 @@ import Modal from 'src/components/Modal'
 import { notify } from 'src/components/Notifications.js'
 import PopupTrigger from 'src/components/PopupTrigger'
 import TooltipTrigger from 'src/components/TooltipTrigger'
-import { machineTypes, profiles, storagePrice } from 'src/data/clusters'
+import { machineTypes, profiles } from 'src/data/clusters'
 import { Ajax, ajaxCaller } from 'src/libs/ajax'
+import { clusterCost, machineConfigCost, normalizeMachineConfig } from 'src/libs/cluster-utils'
 import colors from 'src/libs/colors'
 import { reportError, withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
@@ -81,31 +82,12 @@ const styles = {
   })
 }
 
-const machineTypesByName = _.keyBy('name', machineTypes)
-
-const profilesByName = _.keyBy('name', profiles)
-
-const machineStorageCost = config => {
-  const { masterDiskSize, numberOfWorkers, workerDiskSize } = Utils.normalizeMachineConfig(config)
-  return (masterDiskSize + numberOfWorkers * workerDiskSize) * storagePrice
-}
-
-const machineConfigCost = config => {
-  const { masterMachineType, numberOfWorkers, numberOfPreemptibleWorkers, workerMachineType } = Utils.normalizeMachineConfig(config)
-  return _.sum([
-    machineTypesByName[masterMachineType].price,
-    (numberOfWorkers - numberOfPreemptibleWorkers) * machineTypesByName[workerMachineType].price,
-    numberOfPreemptibleWorkers * machineTypesByName[workerMachineType].preemptiblePrice,
-    machineStorageCost(config)
-  ])
-}
-
 const machineConfigsEqual = (a, b) => {
-  return _.isEqual(Utils.normalizeMachineConfig(a), Utils.normalizeMachineConfig(b))
+  return _.isEqual(normalizeMachineConfig(a), normalizeMachineConfig(b))
 }
 
 const MachineSelector = ({ machineType, onChangeMachineType, diskSize, onChangeDiskSize, readOnly }) => {
-  const { cpu: currentCpu, memory: currentMemory } = machineTypesByName[machineType]
+  const { cpu: currentCpu, memory: currentMemory } = _.find({ name: machineType }, machineTypes)
   return div([
     div({ style: styles.row }, [
       div({ style: { ...styles.col1, ...styles.label } }, 'CPUs'),
@@ -193,7 +175,7 @@ export class NewClusterModal extends PureComponent {
     this.state = {
       profile: matchingProfile ? matchingProfile.name : 'custom',
       jupyterUserScriptUri: '',
-      ...Utils.normalizeMachineConfig(currentConfig)
+      ...normalizeMachineConfig(currentConfig)
     }
   }
 
@@ -239,7 +221,7 @@ export class NewClusterModal extends PureComponent {
             onChange: ({ value }) => {
               this.setState({
                 profile: value,
-                ...(value === 'custom' ? {} : Utils.normalizeMachineConfig(profilesByName[value].machineConfig))
+                ...(value === 'custom' ? {} : normalizeMachineConfig(_.find({ name: value }, profiles).machineConfig))
               })
             },
             isSearchable: false,
@@ -459,7 +441,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
     const { ajax: { Jupyter }, namespace } = this.props
     this.executeAndRefresh(
       Jupyter.cluster(namespace, Utils.generateClusterName()).create({
-        machineConfig: Utils.normalizeMachineConfig({})
+        machineConfig: normalizeMachineConfig({})
       })
     )
   }
@@ -527,7 +509,6 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
     }
     const currentCluster = this.getCurrentCluster()
     const currentStatus = currentCluster && currentCluster.status
-    const spendingClusters = _.remove(({ status }) => _.includes(status, ['Deleting', 'Error']), clusters)
     const renderIcon = () => {
       switch (currentStatus) {
         case 'Stopped':
@@ -565,9 +546,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
           })
       }
     }
-    const totalCost = _.sum(_.map(({ machineConfig, status }) => {
-      return (status === 'Stopped' ? machineStorageCost : machineConfigCost)(machineConfig)
-    }, spendingClusters))
+    const totalCost = _.sum(_.map(clusterCost, clusters))
     const activeClusters = this.getActiveClustersOldestFirst()
     const creating = _.some({ status: 'Creating' }, activeClusters)
     const multiple = !creating && activeClusters.length > 1 && currentStatus !== 'Error'
