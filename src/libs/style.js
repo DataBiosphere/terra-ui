@@ -101,3 +101,14 @@ export const breadcrumb = {
     fontSize: '1.25rem', ...noWrapEllipsis
   }
 }
+
+export const modalDrawer = {
+  content: {
+    display: 'flex', alignItems: 'baseline', marginBottom: '1rem', flex: 1, padding: '1.5rem 1.25rem',
+    overflow: 'hidden', flexDirection: 'column'
+  },
+  buttonBar: {
+    marginTop: 'auto', backgroundColor: colors.dark(0.2), padding: '1.75rem 1.25rem',
+    display: 'flex', justifyContent: 'flex-end', alignItems: 'baseline'
+  }
+}
