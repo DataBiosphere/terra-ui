@@ -76,8 +76,7 @@ export class IGVFileSelector extends Component {
       openDrawer,
       onDismiss,
       width: 450,
-      title: 'Open files with IGV',
-      okButton: ButtonPrimary({
+      okButton: h(ButtonPrimary, {
         disabled: this.buttonIsDisabled(),
         tooltip: this.buttonIsDisabled() ? `Select between 1 and ${MAX_CONCURRENT_IGV_FILES} files` : '',
         onClick: () => onSuccess({ selectedFiles: this.getSelectedFilesList(), refGenome })
@@ -85,11 +84,11 @@ export class IGVFileSelector extends Component {
     }, [
       h(TitleBar, {
         title: 'IGV',
-        onDismiss: onDismiss
+        onDismiss
       }),
       div({ style: { fontWeight: 500, paddingLeft: '1.25rem' } }, [
         'Reference genome: ',
-        div({ style: { display: 'inline-block', marginLeft: '0.25rem', marginBottom: '0.5rem', minWidth: 125 } }, [
+        div({ style: { display: 'inline-block', marginLeft: '0.25rem', marginBottom: '1rem', minWidth: 125 } }, [
           h(Select, {
             options: ['hg38', 'hg19', 'hg18', 'mm10', 'panTro4', 'panPan2', 'susScr11',
               'bosTau8', 'canFam3', 'rn6', 'danRer10', 'dm6', 'sacCer3'],
