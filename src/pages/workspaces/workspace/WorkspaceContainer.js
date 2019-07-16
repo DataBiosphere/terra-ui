@@ -10,6 +10,7 @@ import PopupTrigger from 'src/components/PopupTrigger'
 import TopBar from 'src/components/TopBar'
 import { Ajax, useCancellation } from 'src/libs/ajax'
 import { getUser } from 'src/libs/auth'
+import { currentCluster } from 'src/libs/cluster-utils'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
@@ -243,7 +244,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
         workspace && h(WrappedComponent, {
           ref: child,
           workspace, loadingWorkspace, refreshWorkspace, refreshClusters,
-          cluster: !clusters ? undefined : (_.flow(Utils.trimClustersOldestFirst, _.remove({ status: 'Error' }), _.last)(clusters) || null),
+          cluster: !clusters ? undefined : (currentCluster(clusters) || null),
           ...props
         })
       ])

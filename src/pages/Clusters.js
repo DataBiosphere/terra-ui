@@ -10,12 +10,12 @@ import TooltipTrigger from 'src/components/TooltipTrigger'
 import TopBar from 'src/components/TopBar'
 import { Ajax, useCancellation } from 'src/libs/ajax'
 import { getUser } from 'src/libs/auth'
-import { clusterCost } from 'src/libs/cluster-utils'
+import { clusterCost, currentCluster } from 'src/libs/cluster-utils'
 import colors from 'src/libs/colors'
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
-import { delay, formatUSD, makeCompleteDate, trimClustersOldestFirst, useGetter, useOnMount, withBusyState } from 'src/libs/utils'
+import { delay, formatUSD, makeCompleteDate, useGetter, useOnMount, withBusyState } from 'src/libs/utils'
 
 
 const Clusters = () => {
@@ -28,7 +28,7 @@ const Clusters = () => {
   const getDeleteClusterId = useGetter(deleteClusterId)
   const [sort, setSort] = useState({ field: 'project', direction: 'asc' })
 
-  const updateClusters = async () => {
+  const refreshClusters = withBusyState(setLoading, async () => {
     const newClusters = _.filter({ creator: getUser().email }, await Ajax(signal).Jupyter.clustersList())
     setClusters(newClusters)
     if (!_.some({ id: getErrorClusterId() }, newClusters)) {
@@ -37,12 +37,9 @@ const Clusters = () => {
     if (!_.some({ id: getDeleteClusterId() }, newClusters)) {
       setDeleteClusterId(undefined)
     }
-  }
-  const loadClusters = _.flow(
-    withErrorReporting('Error loading clusters'),
-    withBusyState(setLoading)
-  )(updateClusters)
-  const loadClustersSilently = withErrorIgnoring(updateClusters)
+  })
+  const loadClusters = withErrorReporting('Error loading clusters', refreshClusters)
+  const loadClustersSilently = withErrorIgnoring(refreshClusters)
   const pollClusters = async () => {
     while (true) {
       await delay(30000)
@@ -80,7 +77,7 @@ const Clusters = () => {
                 cellRenderer: ({ rowIndex }) => {
                   const cluster = filteredClusters[rowIndex]
                   const inactive = !_.includes(cluster.status, ['Deleting', 'Error']) &&
-                    _.last(trimClustersOldestFirst(clustersByProject[cluster.googleProject])) !== cluster
+                    currentCluster(clustersByProject[cluster.googleProject]) !== cluster
                   return h(Fragment, [
                     cluster.googleProject,
                     inactive && h(TooltipTrigger, {

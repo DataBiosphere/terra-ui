@@ -330,11 +330,6 @@ export const useGetter = value => {
   return () => ref.current
 }
 
-export const trimClustersOldestFirst = _.flow(
-  _.remove({ status: 'Deleting' }),
-  _.sortBy('createdDate')
-)
-
 export const handleNonRunningCluster = ({ status, googleProject, clusterName }, JupyterAjax) => {
   switch (status) {
     case 'Stopped':

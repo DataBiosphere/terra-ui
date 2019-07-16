@@ -11,7 +11,7 @@ import PopupTrigger from 'src/components/PopupTrigger'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { machineTypes, profiles } from 'src/data/clusters'
 import { Ajax, ajaxCaller } from 'src/libs/ajax'
-import { clusterCost, machineConfigCost, normalizeMachineConfig } from 'src/libs/cluster-utils'
+import { clusterCost, currentCluster, machineConfigCost, normalizeMachineConfig, trimClustersOldestFirst } from 'src/libs/cluster-utils'
 import colors from 'src/libs/colors'
 import { reportError, withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
@@ -437,11 +437,12 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
 
   getActiveClustersOldestFirst() {
     const { clusters } = this.props
-    return Utils.trimClustersOldestFirst(clusters)
+    return trimClustersOldestFirst(clusters)
   }
 
   getCurrentCluster() {
-    return _.last(this.getActiveClustersOldestFirst())
+    const { clusters } = this.props
+    return currentCluster(clusters)
   }
 
   async executeAndRefresh(promise) {
