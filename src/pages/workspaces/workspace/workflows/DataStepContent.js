@@ -66,7 +66,7 @@ export default class DataStepContent extends Component {
         disabled: !this.isValidSelectionModel(),
         onClick: () => onSuccess(entitySelectionModel)
       }, 'OK'),
-      onDismiss: onDismiss,
+      onDismiss,
       width: 'calc(100% - 2rem)'
     }, [
       div({ style: { ...Style.elements.sectionHeader, marginBottom: '1rem' } }, [`Select ${rootEntityType}s to process`]),
