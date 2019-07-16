@@ -318,7 +318,7 @@ export class NewClusterModal extends PureComponent {
   }
 }
 
-const ClusterErrorModal = ({ cluster, onDismiss }) => {
+export const ClusterErrorModal = ({ cluster, onDismiss }) => {
   const [error, setError] = useState()
   const [userscriptError, setUserscriptError] = useState(false)
   const [loadingClusterDetails, setLoadingClusterDetails] = useState(false)
@@ -345,6 +345,25 @@ const ClusterErrorModal = ({ cluster, onDismiss }) => {
   }, [
     div({ style: { whiteSpace: 'pre-wrap', overflowWrap: 'break-word', overflowY: 'auto', maxHeight: 500, background: colors.light() } }, [error]),
     loadingClusterDetails && spinnerOverlay
+  ])
+}
+
+export const DeleteClusterModal = ({ cluster: { googleProject, clusterName }, onDismiss, onSuccess }) => {
+  const [deleting, setDeleting] = useState()
+  const deleteCluster = _.flow(
+    Utils.withBusyState(setDeleting),
+    withErrorReporting('Error deleting cluster')
+  )(async () => {
+    await Ajax().Jupyter.cluster(googleProject, clusterName).delete()
+    onSuccess()
+  })
+  return h(Modal, {
+    title: 'Delete notebook runtime?',
+    onDismiss,
+    okButton: deleteCluster
+  }, [
+    'Deleting the notebook runtime will stop all running notebooks and associated costs. You can recreate it later, which will take several minutes.',
+    deleting && spinnerOverlay
   ])
 }
 
@@ -454,14 +473,6 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
         ({ googleProject, clusterName }) => Jupyter.cluster(googleProject, clusterName).delete(),
         _.without([_.nth(keepIndex, activeClusters)], activeClusters)
       ))
-    )
-  }
-
-  destroyActiveCluster() {
-    const { ajax: { Jupyter } } = this.props
-    const { googleProject, clusterName } = this.getCurrentCluster()
-    this.executeAndRefresh(
-      Jupyter.cluster(googleProject, clusterName).delete()
     )
   }
 
@@ -604,14 +615,14 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
           icon('cog', { size: 22, style: { color: isDisabled ? colors.dark(0.7) : colors.accent() } })
         ])
       ]),
-      deleteModalOpen && h(Modal, {
-        title: 'Delete notebook runtime?',
+      deleteModalOpen && h(DeleteClusterModal, {
+        cluster: this.getCurrentCluster(),
         onDismiss: () => this.setState({ deleteModalOpen: false }),
-        okButton: () => {
+        onSuccess: () => {
           this.setState({ deleteModalOpen: false })
-          this.destroyActiveCluster()
+          this.refreshClusters()
         }
-      }, ['Deleting the cluster will stop all running notebooks and associated costs. You can recreate it later, which will take several minutes.']),
+      }),
       createModalOpen && h(NewClusterModal, {
         namespace, currentCluster,
         onCancel: () => this.setState({ createModalOpen: false }),
