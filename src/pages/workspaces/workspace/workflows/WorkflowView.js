@@ -425,7 +425,7 @@ const WorkflowView = _.flow(
       const [entityMetadata, validationResponse, config] = await Promise.all([
         ws.entityMetadata(),
         this.getValidation(),
-        ws.methodConfig(workflowNamespace, workflowName).get(),
+        ws.methodConfig(workflowNamespace, workflowName).get()
       ])
       const { methodRepoMethod: { methodNamespace, methodName } } = config
       const isRedacted = !validationResponse
