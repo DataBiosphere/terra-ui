@@ -10,9 +10,36 @@ import EntitySelectionType from 'src/pages/workspaces/workspace/workflows/Entity
 
 
 export default ajaxCaller(class LaunchAnalysisModal extends Component {
+  /**
+   * Verify that the user's pet service account (used while running workflows) will be able to
+   * access the workspace bucket
+   *
+   * @returns {Promise<boolean>}
+   */
+  async preFlightBucketAccess() {
+    const { workspaceId: { namespace, name }, accessLevel, bucketName, ajax: { Workspaces } } = this.props
+
+    try {
+      await Workspaces.workspace(namespace, name).checkBucketAccess(bucketName, accessLevel)
+      return true
+    } catch (error) {
+      // Could check error.requesterPaysError here but for this purpose it really doesn't matter what the error was.
+      return false
+    }
+  }
+
+  async componentDidMount() {
+    this.setState({ checkingBucketAccess: true, message: 'Checking bucket access...' })
+    const hasBucketAccess = await this.preFlightBucketAccess()
+    this.setState({
+      checkingBucketAccess: false, message: undefined,
+      hasBucketAccess, bucketCheckFailed: !hasBucketAccess
+    })
+  }
+
   render() {
     const { onDismiss } = this.props
-    const { launching, message, launchError } = this.state
+    const { hasBucketAccess, bucketCheckFailed, launching, message, launchError } = this.state
 
     return h(Modal, {
       title: !launching ? 'Run Analysis' : 'Launching Analysis',
@@ -20,7 +47,7 @@ export default ajaxCaller(class LaunchAnalysisModal extends Component {
       showCancel: !launching,
       okButton: !launchError ?
         buttonPrimary({
-          disabled: launching,
+          disabled: !hasBucketAccess || launching,
           onClick: () => {
             this.setState({ launching: true })
             this.doLaunch()
@@ -28,8 +55,11 @@ export default ajaxCaller(class LaunchAnalysisModal extends Component {
         }, ['Launch']) :
         buttonPrimary({ onClick: onDismiss }, ['OK'])
     }, [
-      !launching && div('Confirm launch'),
+      !message && !bucketCheckFailed && !launchError && div('Confirm launch'),
       message && div([spinner({ style: { marginRight: '0.5rem' } }), message]),
+      bucketCheckFailed && div({ style: { color: colors.danger() } }, [
+        'Error confirming workspace bucket access. This may be a transient problem. Please try again in a few minutes. If the problem persists, please contact support.'
+      ]),
       launchError && div({ style: { color: colors.danger() } }, [launchError])
     ])
   }

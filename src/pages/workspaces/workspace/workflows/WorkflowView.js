@@ -381,6 +381,7 @@ const WorkflowView = _.flow(
         ),
         launching && h(LaunchAnalysisModal, {
           workspaceId, config: savedConfig,
+          accessLevel: workspace.accessLevel, bucketName: workspace.workspace.bucketName,
           processSingle: this.isSingle(), entitySelectionModel, useCallCache,
           onDismiss: () => this.setState({ launching: false }),
           onSuccess: submissionId => Nav.goToPath('workspace-submission-details', { submissionId, ...workspaceId })
@@ -411,24 +412,6 @@ const WorkflowView = _.flow(
     }
   }
 
-  /**
-   * Verify that the user's pet service account (used while running workflows) will be able to
-   * access the workspace bucket
-   *
-   * @returns {Promise<boolean>}
-   */
-  async preFlightBucketAccess() {
-    const { namespace, name, workspace: { accessLevel, workspace: { bucketName } }, ajax: { Workspaces } } = this.props
-
-    try {
-      await Workspaces.workspace(namespace, name).checkBucketAccess(bucketName, accessLevel)
-      return true
-    } catch (error) {
-      // Could check error.requesterPaysError here but for this purpose it really doesn't matter what the error was.
-      return false
-    }
-  }
-
   async componentDidMount() {
     const {
       namespace, name, workflowNamespace, workflowName,
@@ -439,11 +422,10 @@ const WorkflowView = _.flow(
     try {
       const ws = Workspaces.workspace(namespace, name)
 
-      const [entityMetadata, validationResponse, config, hasBucketAccess] = await Promise.all([
+      const [entityMetadata, validationResponse, config] = await Promise.all([
         ws.entityMetadata(),
         this.getValidation(),
         ws.methodConfig(workflowNamespace, workflowName).get(),
-        this.preFlightBucketAccess()
       ])
       const { methodRepoMethod: { methodNamespace, methodName } } = config
       const isRedacted = !validationResponse
@@ -451,7 +433,6 @@ const WorkflowView = _.flow(
       const snapshotIds = _.map(m => _.pick('snapshotId', m).snapshotId, methods)
       const inputsOutputs = isRedacted ? {} : await Methods.configInputsOutputs(config)
       this.setState({
-        hasBucketAccess,
         savedConfig: config, modifiedConfig: config,
         currentSnapRedacted: isRedacted, savedSnapRedacted: isRedacted,
         entityMetadata,
@@ -543,7 +524,7 @@ const WorkflowView = _.flow(
   renderSummary() {
     const { workspace: ws, workspace: { workspace }, namespace, name: workspaceName } = this.props
     const {
-      modifiedConfig, savedConfig, saving, saved, copying, deleting, selectingData, activeTab, errors, synopsis, documentation, hasBucketAccess,
+      modifiedConfig, savedConfig, saving, saved, copying, deleting, selectingData, activeTab, errors, synopsis, documentation,
       selectedEntityType, entityMetadata, entitySelectionModel, snapshotIds = [], useCallCache, currentSnapRedacted, savedSnapRedacted
     } = this.state
     const { name, methodRepoMethod: { methodPath, methodVersion, methodNamespace, methodName, sourceRepo }, rootEntityType } = modifiedConfig
@@ -680,9 +661,8 @@ const WorkflowView = _.flow(
             onChangeTab: v => this.setState({ activeTab: v }),
             finalStep: buttonPrimary({
               style: { marginLeft: '1rem' },
-              disabled: !!Utils.computeWorkspaceError(ws) || !!noLaunchReason || currentSnapRedacted || !hasBucketAccess,
-              tooltip: Utils.computeWorkspaceError(ws) || noLaunchReason || (currentSnapRedacted && 'Workflow version was redacted.') ||
-                (!hasBucketAccess && 'You do not have access to the Google Bucket associated with this workspace'),
+              disabled: !!Utils.computeWorkspaceError(ws) || !!noLaunchReason || currentSnapRedacted,
+              tooltip: Utils.computeWorkspaceError(ws) || noLaunchReason || (currentSnapRedacted && 'Workflow version was redacted.'),
               onClick: () => this.setState({ launching: true })
             }, ['Run analysis'])
           }),
