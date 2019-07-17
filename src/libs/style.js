@@ -107,7 +107,7 @@ export const modalDrawer = {
     display: 'flex', marginBottom: '3rem', flex: 1, padding: '0 1.25rem', flexDirection: 'column'
   },
   buttonBar: {
-    marginTop: 'auto', backgroundColor: colors.dark(0.2), padding: '1.75rem 1.25rem',
+    marginTop: 'auto', borderTop: `1px solid ${colors.dark(0.3)}`, padding: '1.75rem 1.25rem',
     display: 'flex', justifyContent: 'flex-end', alignItems: 'baseline'
   }
 }
