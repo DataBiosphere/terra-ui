@@ -302,7 +302,7 @@ const Profile = _.flow(
           div({ style: styles.page }, [
             this.renderForm()
           ]),
-          div({ style: { marginTop: '0' } }, [
+          div({ style: { marginTop: '0', marginLeft: '1rem' } }, [
             sectionTitle('Identity & External Servers'),
             h(NihLink, { nihToken: queryParams['nih-username-token'] }),
             h(FenceLink, {
@@ -368,6 +368,10 @@ const Profile = _.flow(
         textField('title', 'Title')
       ),
       line(
+        div([
+          div({ style: styles.form.title }, ['Email']),
+          div({ style: { margin: '1rem' } }, [profileInfo.email])
+        ]),
         textField('contactEmail', 'Contact Email for Notifications (if different)', { placeholder: profileInfo.email })
       ),
       line(
