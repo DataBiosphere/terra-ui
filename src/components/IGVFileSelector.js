@@ -71,10 +71,14 @@ export class IGVFileSelector extends Component {
     const { onDismiss, onSuccess, openDrawer } = this.props
     const { selectedFiles, refGenome } = this.state
     const trackFiles = this.getIGVFileList()
+    const clearSelectionsAndDismiss = () => {
+      this.setAll(false)
+      onDismiss()
+    }
 
     return h(ModalDrawer, {
       openDrawer,
-      onDismiss,
+      onDismiss: clearSelectionsAndDismiss,
       width: 450,
       okButton: h(ButtonPrimary, {
         disabled: this.buttonIsDisabled(),
@@ -84,7 +88,7 @@ export class IGVFileSelector extends Component {
     }, [
       h(TitleBar, {
         title: 'IGV',
-        onDismiss
+        onDismiss: clearSelectionsAndDismiss
       }),
       div({ style: { fontWeight: 500, paddingLeft: '1.25rem' } }, [
         'Reference genome: ',
@@ -134,7 +138,7 @@ export class IGVFileSelector extends Component {
       ]),
       h(ButtonBar, {
         style: Style.modalDrawer.buttonBar,
-        onCancel: onDismiss,
+        onDismiss: clearSelectionsAndDismiss,
         okButton: h(ButtonPrimary, {
           disabled: this.buttonIsDisabled(),
           tooltip: this.buttonIsDisabled() ? `Select between 1 and ${MAX_CONCURRENT_IGV_FILES} files` : '',
