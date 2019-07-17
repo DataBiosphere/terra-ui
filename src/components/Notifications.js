@@ -111,7 +111,7 @@ const NotificationDisplay = Utils.connectAtom(notificationStore, 'notificationSt
           disabled: onFirst,
           style: { color: onFirst ? color[1] : null },
           onClick: () => this.setState({ notificationNumber: notificationNumber - 1 })
-        }, [icon('angle left', { size: 12 })]),
+        }, [icon('angle-left', { size: 12 })]),
         div({
           style: {
             backgroundColor: color[1],
@@ -125,7 +125,7 @@ const NotificationDisplay = Utils.connectAtom(notificationStore, 'notificationSt
           disabled: onLast,
           style: { color: onLast ? color[1] : null },
           onClick: () => this.setState({ notificationNumber: notificationNumber + 1 })
-        }, [icon('angle right', { size: 12 })])
+        }, [icon('angle-right', { size: 12 })])
       ]),
       modal && h(Modal, {
         width: 800,

@@ -1,10 +1,14 @@
+### Submit an issue [here](https://broadworkbench.atlassian.net/secure/CreateIssueDetails!init.jspa?pid=10023&issuetype=10004&priority=2)
+
+------------------------
+
 # Terra UI
 Web user interface for the Terra platform.
 
 ------------------------
 ### Links:
 [Support](https://support.terra.bio/hc/en-us)  
-[File an issue](mailto:terra-support@broadinstitute.zendesk.com)  
+[Email an issue](mailto:terra-support@broadinstitute.zendesk.com)  
 [Board and backlog](https://broadworkbench.atlassian.net/projects/SATURN/issues?filter=allopenissues&orderby=status%20DESC)
 
 -----------------------
