@@ -279,7 +279,7 @@ class TextCollapse extends Component {
           onClick: () => this.setState({ isOpened: !isOpened })
         },
         [
-          showIcon && icon(isOpened ? 'angle down' : 'angle right',
+          showIcon && icon(isOpened ? 'angle-down' : 'angle-right',
             { style: styles.angle, size: 21 }),
           div({
             style: {

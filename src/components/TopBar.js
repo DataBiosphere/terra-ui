@@ -108,7 +108,7 @@ const DropDownSection = props => {
       }),
       div({ style: Style.noWrapEllipsis }, [title]),
       div({ style: { flexGrow: 1 } }),
-      icon(`angle ${isOpened ? 'up' : 'down'}`,
+      icon(`angle-${isOpened ? 'up' : 'down'}`,
         {
           size: 18,
           style: { flex: 'none' }
