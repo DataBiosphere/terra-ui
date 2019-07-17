@@ -4,12 +4,12 @@ import { ButtonPrimary, ButtonSecondary } from 'src/components/common'
 import * as Utils from 'src/libs/utils'
 
 
-const ButtonBar = ({ onCancel, cancelText = 'Cancel', onOk, okText = 'Ok', okButton, ...props }) => {
-  return div(props, [
-    onCancel ? h(ButtonSecondary, {
+const ButtonBar = ({ onCancel, cancelText = 'Cancel', onOk, okText = 'Ok', okButton, style }) => {
+  return div({ style }, [
+    !!onCancel && h(ButtonSecondary, {
       style: { marginRight: '2.5rem' },
       onClick: onCancel
-    }, [cancelText]) : null,
+    }, [cancelText]),
     Utils.cond(
       [!!okButton, () => okButton],
       () => h(ButtonPrimary, { onClick: onOk }, okText)
