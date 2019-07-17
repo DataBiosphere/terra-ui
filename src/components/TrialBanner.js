@@ -14,37 +14,37 @@ import { Component } from 'src/libs/wrapped-components'
 
 
 const messages = {
-  'Enabled': {
-    'title': `Welcome to ${getAppName()}!`,
-    'message': 'You have free compute and storage credits available to upload your data and launch analyses.',
-    'isWarning': false,
-    'enabledLink': {
-      'label': 'Learn more',
-      'url': 'https://support.terra.bio/hc/en-us/articles/360027940952'
+  Enabled: {
+    title: `Welcome to ${getAppName()}!`,
+    message: 'You have free compute and storage credits available to upload your data and launch analyses.',
+    isWarning: false,
+    enabledLink: {
+      label: 'Learn more',
+      url: 'https://support.terra.bio/hc/en-us/articles/360027940952'
     },
-    'button': {
-      'label': 'Start trial',
-      'isExternal': false
+    button: {
+      label: 'Start trial',
+      isExternal: false
     }
   },
-  'Enrolled': {
-    'title': 'Access Free Credits',
-    'message': `You currently have access to your free credits. Learn how to use ${getAppName()}, about this free credit period, and transitioning to your own billing account once the free credits have expired.`,
-    'isWarning': false,
-    'button': {
-      'label': 'Learn More',
-      'url': 'https://support.terra.bio/hc/en-us/articles/360027940952',
-      'isExternal': true
+  Enrolled: {
+    title: 'Access Free Credits',
+    message: `You currently have access to your free credits. Learn how to use ${getAppName()}, about this free credit period, and transitioning to your own billing account once the free credits have expired.`,
+    isWarning: false,
+    button: {
+      label: 'Learn More',
+      url: 'https://support.terra.bio/hc/en-us/articles/360027940952',
+      isExternal: true
     }
   },
-  'Terminated': {
-    'title': 'Your free credits have expired',
-    'message': 'Your data will be stored for 30 days from credit expiration date. Learn how you can create your own Google Billing Account and move your data to continue working.',
-    'isWarning': true,
-    'button': {
-      'label': 'Learn more',
-      'url': 'https://support.terra.bio/hc/en-us/articles/360027940952',
-      'isExternal': true
+  Terminated: {
+    title: 'Your free credits have expired',
+    message: 'Your data will be stored for 30 days from credit expiration date. Learn how you can create your own Google Billing Account and move your data to continue working.',
+    isWarning: true,
+    button: {
+      label: 'Learn more',
+      url: 'https://support.terra.bio/hc/en-us/articles/360027940952',
+      isExternal: true
     }
   }
 }
