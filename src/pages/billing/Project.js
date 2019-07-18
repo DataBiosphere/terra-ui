@@ -83,7 +83,7 @@ export default ajaxCaller(class ProjectDetail extends Component {
       showBillingModal, selectedBilling, updatingAccount
     } = this.state
     const adminCanEdit = _.filter(({ roles }) => _.includes('Owner', roles), projectUsers).length > 1
-    const { displayName = null } = _.find({ 'accountName': billingAccountName }, billingAccounts) || {}
+    const { displayName = null } = _.find({ accountName: billingAccountName }, billingAccounts) || {}
 
     return h(Fragment, [
       div({ style: { padding: '1.5rem 3rem', flexGrow: 1 } }, [

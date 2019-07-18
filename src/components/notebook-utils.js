@@ -35,28 +35,28 @@ export const notebookNameInput = props => h(ValidatedInput, _.merge({
 
 
 const baseNotebook = {
-  'cells': [
-    { 'cell_type': 'code', 'execution_count': null, 'metadata': {}, 'outputs': [], 'source': [] }
-  ], 'nbformat': 4, 'nbformat_minor': 2
+  cells: [
+    { cell_type: 'code', execution_count: null, metadata: {}, outputs: [], source: [] }
+  ], nbformat: 4, nbformat_minor: 2
 }
 
 const notebookData = {
   python2: _.merge({
-    'metadata': {
-      'kernelspec': { 'display_name': 'Python 2', 'language': 'python', 'name': 'python2' }
+    metadata: {
+      kernelspec: { display_name: 'Python 2', language: 'python', name: 'python2' }
     }
   }, baseNotebook),
   python3: _.merge({
-    'metadata': {
-      'kernelspec': { 'display_name': 'Python 3', 'language': 'python', 'name': 'python3' }
+    metadata: {
+      kernelspec: { display_name: 'Python 3', language: 'python', name: 'python3' }
     }
   }, baseNotebook),
   r: _.merge({
-    'metadata': {
-      'kernelspec': { 'display_name': 'R', 'language': 'R', 'name': 'ir' },
-      'language_info': {
-        'codemirror_mode': 'r', 'file_extension': '.r', 'mimetype': 'text/x-r-source', 'name': 'R',
-        'pygments_lexer': 'r', 'version': '3.3.3'
+    metadata: {
+      kernelspec: { display_name: 'R', language: 'R', name: 'ir' },
+      language_info: {
+        codemirror_mode: 'r', file_extension: '.r', mimetype: 'text/x-r-source', name: 'R',
+        pygments_lexer: 'r', version: '3.3.3'
       }
     }
   }, baseNotebook)

@@ -15,10 +15,10 @@ export const IGVBrowser = ({ selectedFiles, refGenome, namespace }) => {
   Utils.useOnMount(() => {
     const getTrack = filePath => {
       const fileTypeToTrack = {
-        'bam': 'alignment',
-        'cram': 'alignment',
-        'bed': 'annotation',
-        'vcf': 'variant'
+        bam: 'alignment',
+        cram: 'alignment',
+        bed: 'annotation',
+        vcf: 'variant'
       }
 
       return {

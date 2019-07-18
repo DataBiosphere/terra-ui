@@ -57,13 +57,13 @@ export const paginator = props => {
             paginatorButton(
               _.merge({ disabled: currentPage === 1, style: { marginRight: '0.5rem' } },
                 getPageItemProps({ pageValue: 1, onPageChange: setPageNumber })),
-              [icon('angle-double left', { size: 12 })]
+              [icon('angle-double-left', { size: 12 })]
             ),
 
             paginatorButton(
               _.merge({ disabled: !hasPreviousPage, style: { marginRight: '1rem' } },
                 getPageItemProps({ pageValue: previousPage, onPageChange: setPageNumber })),
-              [icon('angle left', { size: 12 })]
+              [icon('angle-left', { size: 12 })]
             ),
 
             _.map(num => paginatorButton(
@@ -83,13 +83,13 @@ export const paginator = props => {
             paginatorButton(
               _.merge({ disabled: !hasNextPage, style: { marginLeft: '1rem' } },
                 getPageItemProps({ pageValue: nextPage, onPageChange: setPageNumber })),
-              [icon('angle right', { size: 12 })]
+              [icon('angle-right', { size: 12 })]
             ),
 
             paginatorButton(
               _.merge({ disabled: currentPage === totalPages, style: { marginLeft: '0.5rem' } },
                 getPageItemProps({ pageValue: totalPages, onPageChange: setPageNumber })),
-              [icon('angle-double right', { size: 12 })]
+              [icon('angle-double-right', { size: 12 })]
             )
           ]),
 

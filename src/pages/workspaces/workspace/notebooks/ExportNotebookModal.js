@@ -130,7 +130,7 @@ export default _.flow(
     const tempChosenWorkspace = _.find({ workspace: { workspaceId: v } }, workspaces).workspace
     const selectedNotebooks = await Buckets.listNotebooks(tempChosenWorkspace.namespace, tempChosenWorkspace.bucketName)
     const existingNames = _.map(({ name }) => cutName(name), selectedNotebooks)
-    this.setState({ existingNames: existingNames })
+    this.setState({ existingNames })
   }
 
   async copy() {

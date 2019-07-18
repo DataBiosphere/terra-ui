@@ -218,7 +218,7 @@ const User = signal => ({
           requester: { name, email },
           subject,
           // BEWARE changing the following ids or values! If you change them then you must thoroughly test.
-          'custom_fields': [
+          custom_fields: [
             { id: 360012744452, value: type },
             { id: 360007369412, value: description },
             { id: 360012744292, value: name },
@@ -275,9 +275,9 @@ const User = signal => ({
 
   getFenceAuthUrl: async (provider, redirectUri) => {
     const queryParams = {
-      'scopes': ['openid', 'google_credentials'],
-      'redirect_uri': redirectUri,
-      'state': btoa(JSON.stringify({ provider }))
+      scopes: ['openid', 'google_credentials'],
+      redirect_uri: redirectUri,
+      state: btoa(JSON.stringify({ provider }))
     }
     const res = await fetchBond(`api/link/v1/${provider}/authorization-url?${qs.stringify(queryParams, { indices: false })}`, { signal })
     return res.json()
@@ -285,8 +285,8 @@ const User = signal => ({
 
   linkFenceAccount: async (provider, authCode, redirectUri) => {
     const queryParams = {
-      'oauthcode': authCode,
-      'redirect_uri': redirectUri
+      oauthcode: authCode,
+      redirect_uri: redirectUri
     }
     const res = await fetchBond(`api/link/v1/${provider}/oauthcode?${qs.stringify(queryParams)}`, _.merge(authOpts(), { signal, method: 'POST' }))
     return res.json()

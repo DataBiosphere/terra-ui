@@ -147,7 +147,7 @@ export const NewUserModal = ajaxCaller(class NewUserModal extends Component {
             e.stopPropagation()
           }
         },
-        suggestions: suggestions,
+        suggestions,
         style: { fontSize: 16 },
         theme: { suggestion: { padding: 0 } }
       }),

@@ -10,7 +10,7 @@ export const breadcrumbElement = (child, href) => {
     style: { color: isTerra() ? 'white' : colors.accent() }, href
   }, [
     child,
-    icon('angle right', { size: 10, style: { margin: '0 0.25rem' } })
+    icon('angle-right', { size: 10, style: { margin: '0 0.25rem' } })
   ])
 }
 

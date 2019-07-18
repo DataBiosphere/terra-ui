@@ -37,7 +37,7 @@ export default class Collapse extends Component {
         style: { display: 'flex', alignItems: 'center', marginBottom: '0.5rem', ...buttonStyle },
         onClick: () => this.setState({ isOpened: !isOpened })
       }, [
-        showIcon && icon(isOpened ? 'angle down' : 'angle right', { style: { marginRight: '0.25rem', flexShrink: 0 } }),
+        showIcon && icon(isOpened ? 'angle-down' : 'angle-right', { style: { marginRight: '0.25rem', flexShrink: 0 } }),
         title
       ]),
       animate ?
