@@ -1,6 +1,7 @@
 import { Fragment } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { backgroundLogo, spinnerOverlay } from 'src/components/common'
+import { notify } from 'src/components/Notifications'
 import TopBar from 'src/components/TopBar'
 import { WorkspaceImporter } from 'src/components/workspace-utils'
 import { Ajax } from 'src/libs/ajax'
@@ -61,6 +62,7 @@ const Importer = class Importer extends Component {
         ['entitiesJson', () => Ajax().Workspaces.workspace(namespace, name).importEntities(url)],
         [Utils.DEFAULT, () => Ajax().Workspaces.workspace(namespace, name).importBagit(url)]
       )
+      notify('success', 'Data imported successfully.', { timeout: 3000 })
       Nav.goToPath('workspace-data', { namespace, name })
     } catch (e) {
       reportError('Import Error', e)
