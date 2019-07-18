@@ -378,7 +378,7 @@ export const WorkspaceList = _.flow(
             h(Select, {
               isClearable: true,
               isMulti: false,
-              placeholder: 'Project',
+              placeholder: 'Billing project',
               value: projectsFilter,
               hideSelectedOptions: true,
               onChange: selected => {
