@@ -13,7 +13,7 @@ const TitleBar = ({ onPrevious, title, onDismiss, titleExtras }) => {
     onPrevious && h(Clickable, {
       onClick: onPrevious
     }, [icon('arrowLeft')]),
-    div({ style: { fontSize: 18, fontWeight: 600, marginLeft: onPrevious ? 'auto' : undefined } }, [title]),
+    div({ style: { fontSize: '0.875rem', fontWeight: 600, marginLeft: onPrevious ? 'auto' : undefined } }, [title]),
     titleExtras,
     onDismiss && h(Clickable, {
       style: { marginLeft: 'auto' },
