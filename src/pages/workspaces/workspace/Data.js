@@ -97,7 +97,7 @@ const LocalVariablesContent = class LocalVariablesContent extends Component {
   }
 
   render() {
-    const { workspace, workspace: { workspace: { namespace, name, attributes } }, refreshWorkspace, loadingWorkspace, firstRender } = this.props
+    const { workspace, workspace: { workspace: { namespace, name, attributes } }, refreshWorkspace, firstRender } = this.props
     const { editIndex, deleteIndex, editKey, editValue, editType, textFilter } = this.state
     const stopEditing = () => this.setState({ editIndex: undefined, editKey: undefined, editValue: undefined, editType: undefined })
     const filteredAttributes = _.flow(
@@ -284,13 +284,12 @@ const LocalVariablesContent = class LocalVariablesContent extends Component {
           })
         },
         'Delete Variable')
-      }, ['This will permanently delete the data from Workspace Data.']),
-      loadingWorkspace && spinnerOverlay
+      }, ['This will permanently delete the data from Workspace Data.'])
     ])
   }
 }
 
-const ReferenceDataContent = ({ workspace: { workspace: { namespace, attributes } }, referenceKey, loadingWorkspace, firstRender }) => {
+const ReferenceDataContent = ({ workspace: { workspace: { namespace, attributes } }, referenceKey, firstRender }) => {
   const [textFilter, setTextFilter] = useState('')
 
   const selectedData = _.flow(
@@ -326,8 +325,7 @@ const ReferenceDataContent = ({ workspace: { workspace: { namespace, attributes 
           ]
         })
       ])
-    ]),
-    loadingWorkspace && spinnerOverlay
+    ])
   ])
 }
 
@@ -732,7 +730,7 @@ const WorkspaceData = _.flow(
   }
 
   render() {
-    const { namespace, name, workspace, workspace: { workspace: { attributes } }, loadingWorkspace, refreshWorkspace } = this.props
+    const { namespace, name, workspace, workspace: { workspace: { attributes } }, refreshWorkspace } = this.props
     const { selectedDataType, entityMetadata, importingReference, deletingReference, firstRender, refreshKey, uploadingFile } = this.state
     const referenceData = getReferenceData(attributes)
 
@@ -830,13 +828,11 @@ const WorkspaceData = _.flow(
             ['localVariables', () => h(LocalVariablesContent, {
               workspace,
               refreshWorkspace,
-              loadingWorkspace,
               firstRender
             })],
             ['referenceData', () => h(ReferenceDataContent, {
               key: selectedDataType,
               workspace,
-              loadingWorkspace,
               referenceKey: selectedDataType,
               firstRender
             })],
