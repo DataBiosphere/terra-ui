@@ -15,7 +15,7 @@ const drawer = {
     ...(state === 'entered' ? {} : { opacity: 0, transform: 'translate(4rem)' }),
     top: 0, right: 0, outline: 'none',
     transition: 'opacity 0.2s ease-out, transform 0.2s ease-out',
-    color: colors.dark(1), position: 'absolute', cursor: 'default',
+    color: colors.dark(1), position: 'fixed', cursor: 'default',
     backgroundColor: colors.light(0.4), height: '100%',
     boxShadow: '3px 0 13px 0 rgba(0,0,0,0.3)',
     display: 'flex', flexDirection: 'column'
