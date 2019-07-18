@@ -509,7 +509,8 @@ class EntitiesContent extends Component {
         workspace,
         selectedEntities: _.keys(selectedEntities), selectedDataType: entityKey, runningSubmissionsCount
       }),
-      showIgvSelector && h(IGVFileSelector, {
+      h(IGVFileSelector, {
+        openDrawer: showIgvSelector,
         onDismiss: () => this.setState({ showIgvSelector: false }),
         onSuccess: newIgvData => this.setState({ showIgvSelector: false, igvData: newIgvData }),
         selectedEntities

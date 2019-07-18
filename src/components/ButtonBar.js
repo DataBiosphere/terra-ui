@@ -1,23 +1,28 @@
 import PropTypes from 'prop-types'
 import { div, h } from 'react-hyperscript-helpers'
 import { ButtonPrimary, ButtonSecondary } from 'src/components/common'
+import * as Utils from 'src/libs/utils'
 
 
-const ButtonBar = ({ onCancel, cancelText = 'Cancel', onOk, okText = 'Ok', ...props }) => {
-  return div(props, [
+const ButtonBar = ({ onCancel, cancelText = 'Cancel', onOk, okText = 'Ok', okButton, style }) => {
+  return div({ style }, [
     !!onCancel && h(ButtonSecondary, {
-      style: { marginRight: '1rem' },
+      style: { marginRight: '2.5rem' },
       onClick: onCancel
     }, [cancelText]),
-    h(ButtonPrimary, { onClick: onOk }, [okText])
+    Utils.cond(
+      [!!okButton, () => okButton],
+      () => h(ButtonPrimary, { onClick: onOk }, okText)
+    )
   ])
 }
 
 ButtonBar.propTypes = {
   onCancel: PropTypes.func,
   cancelText: PropTypes.string,
-  onOk: PropTypes.func.isRequired,
-  okText: PropTypes.string
+  onOk: PropTypes.func,
+  okText: PropTypes.string,
+  style: PropTypes.object
 }
 
 export default ButtonBar
