@@ -138,7 +138,7 @@ export class IGVFileSelector extends Component {
       ]),
       h(ButtonBar, {
         style: Style.modalDrawer.buttonBar,
-        onDismiss: clearSelectionsAndDismiss,
+        onCancel: clearSelectionsAndDismiss,
         okButton: h(ButtonPrimary, {
           disabled: this.buttonIsDisabled(),
           tooltip: this.buttonIsDisabled() ? `Select between 1 and ${MAX_CONCURRENT_IGV_FILES} files` : '',
