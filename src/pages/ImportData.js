@@ -62,7 +62,7 @@ const Importer = class Importer extends Component {
         ['entitiesJson', () => Ajax().Workspaces.workspace(namespace, name).importEntities(url)],
         [Utils.DEFAULT, () => Ajax().Workspaces.workspace(namespace, name).importBagit(url)]
       )
-      notify('success', 'Data imported successfully.')
+      notify('success', 'Data imported successfully.', { timeout: 3000 })
       Nav.goToPath('workspace-data', { namespace, name })
     } catch (e) {
       reportError('Import Error', e)
