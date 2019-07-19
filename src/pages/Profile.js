@@ -1,3 +1,4 @@
+import { addDays } from 'date-fns'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { Fragment, useState } from 'react'
@@ -238,7 +239,7 @@ const FenceLink = ({ provider, displayName }) => {
    * Render
    */
   const isBusy = isLoadingStatus || isLoadingAuthUrl || isLinking
-  const expireTime = new Date(issuedAt).getTime() + (1000 * 60 * 60 * 24 * 30)
+  const expireTime = addDays(issuedAt, 30)
 
   return div({ style: { marginBottom: '1rem' } }, [
     div({ style: styles.form.title }, [displayName]),

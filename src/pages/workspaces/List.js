@@ -1,3 +1,4 @@
+import { isAfter } from 'date-fns'
 import debouncePromise from 'debounce-promise'
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
@@ -91,7 +92,7 @@ const styles = {
 const workspaceSubmissionStatus = ({ workspaceSubmissionStats: { runningSubmissionsCount, lastSuccessDate, lastFailureDate } }) => {
   return Utils.cond(
     [runningSubmissionsCount, () => 'running'],
-    [lastSuccessDate && (!lastFailureDate || new Date(lastSuccessDate) > new Date(lastFailureDate)), () => 'success'],
+    [lastSuccessDate && (!lastFailureDate || isAfter(lastSuccessDate, lastFailureDate)), () => 'success'],
     [lastFailureDate, () => 'failure']
   )
 }
