@@ -21,7 +21,7 @@ import * as Utils from 'src/libs/utils'
     2. Clear browser cache
     3. Go to de.appspot.com/_gcp_iap/clear_login_cookie to delete IAP login cookie
   To test "User has completed oauth but has not used DE from this browser:
-    1 and 2 from above.
+    2 and 3 from above.
   To test "Used DE from this browser but IAP login cookie has expired":
     No easy way to test, just have to wait for cookie to expire
 */
@@ -39,16 +39,8 @@ export default _.flow(
   }
 
   async componentDidMount() {
-    const { ajax: { Groups }, authState: { isSignedIn }, dataset } = this.props
-    const { authDomain, origin } = _.find({ name: dataset }, datasets)
-
-    // Don't fetch favicon.ico if we don't need to, to avoid console error
-    if (!isSignedIn) {
-      this.setState({ completedDeOauth: false })
-      return
-    } else if (!authDomain) {
-      return
-    }
+    const { ajax: { Groups }, dataset } = this.props
+    const { origin } = _.find({ name: dataset }, datasets)
 
     const [groupObjs] = await Promise.all([
       Groups.list(),
@@ -61,7 +53,7 @@ export default _.flow(
       })
         // fetch will succeed iff user has used this Data Explorer from
         // this browser.
-        .then(this.setState({ completedDeOauth: true }))
+        .then(() => this.setState({ completedDeOauth: true }))
         // fetch will fail if:
         // - User has not completed oauth for this Data Explorer
         // - User has completed oauth but has not used DE from this browser
@@ -99,7 +91,6 @@ export default _.flow(
 
     return h(Fragment, [
       Utils.cond(
-        [authDomain === undefined, h(DataExplorer, { dataset })],
         [groups === undefined || completedDeOauth === undefined, centeredSpinner],
         [groups && groups.includes(authDomain) && completedDeOauth === false, () => { window.open(origin, '_self') }],
         [groups && groups.includes(authDomain), h(DataExplorer, { dataset })],
