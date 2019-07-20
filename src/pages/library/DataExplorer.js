@@ -4,11 +4,12 @@ import { div, h } from 'react-hyperscript-helpers'
 import { commonPaths } from 'src/components/breadcrumbs'
 import DataExplorer from 'src/components/DataExplorer'
 import PrivateDataExplorer from 'src/components/PrivateDataExplorer'
+import TopBar from 'src/components/TopBar'
 import datasets from 'src/libs/datasets'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
-import TopBar from 'src/components/TopBar'
 import * as Utils from 'src/libs/utils'
+
 
 const DataExplorerPage = props => {
   const { dataset } = props
@@ -26,8 +27,8 @@ const DataExplorerPage = props => {
   return h(Fragment, [
     header,
     Utils.cond(
-      [authDomain === undefined, h(DataExplorer, { dataset: dataset })],
-      h(PrivateDataExplorer, { dataset: dataset })
+      [authDomain === undefined, h(DataExplorer, { dataset })],
+      h(PrivateDataExplorer, { dataset })
     )
   ])
 }

@@ -1,12 +1,12 @@
 import _ from 'lodash/fp'
 import { Component, Fragment } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
-import { ajaxCaller } from 'src/libs/ajax'
-import { authStore, contactUsActive } from 'src/libs/state'
-import { centeredSpinner } from 'src/components/icons'
+import { Link } from 'src/components/common'
 import DataExplorer from 'src/components/DataExplorer'
+import { centeredSpinner } from 'src/components/icons'
+import { ajaxCaller } from 'src/libs/ajax'
 import datasets from 'src/libs/datasets'
-import { link } from 'src/components/common'
+import { authStore, contactUsActive } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
 /*
@@ -93,16 +93,16 @@ export default _.flow(
         'click on your name, then click Sign Out'),
       div(paragraphStyle, [
         'If you don\'t have a Google account in that group, please ',
-        link({ onClick: () => { contactUsActive.set(true) } }, 'apply for access.')
+        Link({ onClick: () => { contactUsActive.set(true) } }, 'apply for access.')
       ])
     ])
 
     return h(Fragment, [
       Utils.cond(
-        [authDomain === undefined, h(DataExplorer, { dataset: dataset })],
+        [authDomain === undefined, h(DataExplorer, { dataset })],
         [groups === undefined || completedDeOauth === undefined, centeredSpinner],
         [groups && groups.includes(authDomain) && completedDeOauth === false, () => { window.open(origin, '_self') }],
-        [groups && groups.includes(authDomain), h(DataExplorer, { dataset: dataset })],
+        [groups && groups.includes(authDomain), h(DataExplorer, { dataset })],
         notInAuthDomainError
       )
     ])

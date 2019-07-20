@@ -5,12 +5,13 @@ import IframeResizer from 'react-iframe-resizer-super'
 import datasets from 'src/libs/datasets'
 import * as Nav from 'src/libs/nav'
 
+
 export default class DataExplorer extends Component {
   render() {
     const { dataset } = this.props
     const { origin } = _.find({ name: dataset }, datasets)
 
-     return h(IframeResizer, {
+    return h(IframeResizer, {
       src: origin + '/?embed&' + Nav.history.location.search.slice(1),
       iframeResizerOptions: {
         onMessage: ({ iframe, message }) => {
