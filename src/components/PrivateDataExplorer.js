@@ -93,7 +93,7 @@ export default _.flow(
         'click on your name, then click Sign Out'),
       div(paragraphStyle, [
         'If you don\'t have a Google account in that group, please ',
-        Link({ onClick: () => { contactUsActive.set(true) } }, 'apply for access.')
+        h(Link, { onClick: () => { contactUsActive.set(true) } }, 'apply for access.')
       ])
     ])
 
