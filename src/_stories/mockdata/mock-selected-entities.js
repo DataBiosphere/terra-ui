@@ -144,7 +144,6 @@ export const mockSelectedEntities = [
       platform: 'illumina',
       bai: 'gs://cancer-exome-pipeline-demo-data/HCC1143.100_gene_250bp_pad.bai',
       bam: 'gs://cancer-exome-pipeline-demo-data/HCC1143.100_gene_250bp_pad.bam',
-      foo: 'result: gs://cancer-exome-pipeline-demo-data/HCC1143.100_gene_250bp_pad.bam',
       ref_pac: 'gs://cancer-exome-pipeline-demo-data/Homo_sapiens_assembly19.fasta.64.pac'
     },
     entityType: 'sample',
@@ -420,7 +419,6 @@ export const mockSelectedEntities = [
       platform: 'illumina',
       bai: 'gs://cancer-exome-pipeline-demo-data/HCC1143.100_gene_250bp_pad.bai',
       bam: 'gs://cancer-exome-pipeline-demo-data/HCC1143.100_gene_250bp_pad.bam',
-      foo: 'result: gs://cancer-exome-pipeline-demo-data/HCC1143.100_gene_250bp_pad.bam',
       ref_pac: 'gs://cancer-exome-pipeline-demo-data/Homo_sapiens_assembly19.fasta.64.pac'
     },
     entityType: 'sample',
@@ -696,7 +694,6 @@ export const mockSelectedEntities = [
       platform: 'illumina',
       bai: 'gs://cancer-exome-pipeline-demo-data/HCC1143.100_gene_250bp_pad.bai',
       bam: 'gs://cancer-exome-pipeline-demo-data/HCC1143.100_gene_250bp_pad.bam',
-      foo: 'result: gs://cancer-exome-pipeline-demo-data/HCC1143.100_gene_250bp_pad.bam',
       ref_pac: 'gs://cancer-exome-pipeline-demo-data/Homo_sapiens_assembly19.fasta.64.pac'
     },
     entityType: 'sample',
@@ -973,7 +970,6 @@ export const mockSelectedEntities = [
       platform: 'illumina',
       bai: 'gs://cancer-exome-pipeline-demo-data/HCC1143.100_gene_250bp_pad.bai',
       bam: 'gs://cancer-exome-pipeline-demo-data/HCC1143.100_gene_250bp_pad.bam',
-      foo: 'result: gs://cancer-exome-pipeline-demo-data/HCC1143.100_gene_250bp_pad.bam',
       ref_pac: 'gs://cancer-exome-pipeline-demo-data/Homo_sapiens_assembly19.fasta.64.pac'
     },
     entityType: 'sample',
@@ -1249,7 +1245,6 @@ export const mockSelectedEntities = [
       platform: 'illumina',
       bai: 'gs://cancer-exome-pipeline-demo-data/HCC1143.100_gene_250bp_pad.bai',
       bam: 'gs://cancer-exome-pipeline-demo-data/HCC1143.100_gene_250bp_pad.bam',
-      foo: 'result: gs://cancer-exome-pipeline-demo-data/HCC1143.100_gene_250bp_pad.bam',
       ref_pac: 'gs://cancer-exome-pipeline-demo-data/Homo_sapiens_assembly19.fasta.64.pac'
     },
     entityType: 'sample',
@@ -1525,7 +1520,6 @@ export const mockSelectedEntities = [
       platform: 'illumina',
       bai: 'gs://cancer-exome-pipeline-demo-data/HCC1143.100_gene_250bp_pad.bai',
       bam: 'gs://cancer-exome-pipeline-demo-data/HCC1143.100_gene_250bp_pad.bam',
-      foo: 'result: gs://cancer-exome-pipeline-demo-data/HCC1143.100_gene_250bp_pad.bam',
       ref_pac: 'gs://cancer-exome-pipeline-demo-data/Homo_sapiens_assembly19.fasta.64.pac'
     },
     entityType: 'sample',
@@ -1801,7 +1795,6 @@ export const mockSelectedEntities = [
       platform: 'illumina',
       bai: 'gs://cancer-exome-pipeline-demo-data/HCC1143.100_gene_250bp_pad.bai',
       bam: 'gs://cancer-exome-pipeline-demo-data/HCC1143.100_gene_250bp_pad.bam',
-      foo: 'result: gs://cancer-exome-pipeline-demo-data/HCC1143.100_gene_250bp_pad.bam',
       ref_pac: 'gs://cancer-exome-pipeline-demo-data/Homo_sapiens_assembly19.fasta.64.pac'
     },
     entityType: 'sample',
@@ -2077,7 +2070,6 @@ export const mockSelectedEntities = [
       platform: 'illumina',
       bai: 'gs://cancer-exome-pipeline-demo-data/HCC1143.100_gene_250bp_pad.bai',
       bam: 'gs://cancer-exome-pipeline-demo-data/HCC1143.100_gene_250bp_pad.bam',
-      foo: 'result: gs://cancer-exome-pipeline-demo-data/HCC1143.100_gene_250bp_pad.bam',
       ref_pac: 'gs://cancer-exome-pipeline-demo-data/Homo_sapiens_assembly19.fasta.64.pac'
     },
     entityType: 'sample',

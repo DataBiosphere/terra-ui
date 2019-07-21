@@ -46,4 +46,4 @@ const IGVDrawer = () => {
 
 storiesOf('IGVPanel', module)
   .addDecorator(withKnobs)
-  .add('With variable data', () => h(IGVDrawer))
+  .add('Set the number of rows', () => h(IGVDrawer))
