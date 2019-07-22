@@ -2,6 +2,7 @@ import _ from 'lodash/fp'
 import pathToRegexp from 'path-to-regexp'
 import { routeHandlersStore } from 'src/libs/state'
 import * as Projects from 'src/pages/billing/List'
+import * as Clusters from 'src/pages/Clusters'
 import * as Group from 'src/pages/groups/Group'
 import * as Groups from 'src/pages/groups/List'
 import * as HoF from 'src/pages/HoF'
@@ -55,6 +56,7 @@ const routes = _.flatten([
   Showcase.navPaths,
   Projects.navPaths,
   HoF.navPaths,
+  Clusters.navPaths,
   NotFound.navPaths // must be last
 ])
 

@@ -228,6 +228,10 @@ const TopBar = Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
                 onClick: () => this.hideNav()
               }, ['Billing']),
               h(DropDownSubItem, {
+                href: Nav.getLink('clusters'),
+                onClick: () => this.hideNav()
+              }, ['Notebook Runtimes']),
+              h(DropDownSubItem, {
                 onClick: signOut
               }, ['Sign Out'])
             ]) :
