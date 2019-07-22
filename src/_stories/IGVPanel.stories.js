@@ -4,9 +4,8 @@ import { storiesOf } from '@storybook/react'
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
+import { mockSelectedEntities as selectedEntities } from 'src/_stories/mockdata/mock-selected-entities'
 import { IGVFileSelector } from 'src/components/IGVFileSelector'
-
-import { mockSelectedEntities as selectedEntities } from '_stories/mockdata/mock-selected-entities'
 
 
 const DEFAULT_ENTITIES = 3
