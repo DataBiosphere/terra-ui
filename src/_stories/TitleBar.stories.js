@@ -10,12 +10,12 @@ const container = titleBar => div({ style: { width: `${number('Container Width',
 storiesOf('Title Bar', module)
   .addDecorator(withKnobs)
   .add('With Title Only', () => container(h(TitleBar, { title: text('Title', 'Test') })))
-  .add('With Previous Button', () => container(h(TitleBar, { title: text('Title', 'Test'), onPrevious: action('On previous clicked') })))
-  .add('With Cancel Button', () => container(h(TitleBar, { title: text('Title', 'Test'), onDismiss: action('Dismiss clicked') })))
-  .add('With Previous and Cancel', () => container(
+  .add('With Previous Button', () => container(h(TitleBar, { title: text('Title', 'Test'), onPrevious: action('Previous clicked') })))
+  .add('With Dismiss Button', () => container(h(TitleBar, { title: text('Title', 'Test'), onDismiss: action('Dismiss clicked') })))
+  .add('With Previous and Dismiss', () => container(
     h(TitleBar, {
       title: text('Title', 'Test'),
       onPrevious: action('On previous clicked'),
-      onDismiss: action('Dsimiss clicked')
+      onDismiss: action('Dismiss clicked')
     })
   ))
