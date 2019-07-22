@@ -1,3 +1,4 @@
+import { differenceInCalendarDays } from 'date-fns'
 import _ from 'lodash/fp'
 import { Component } from 'react'
 import { div, h, input, span } from 'react-hyperscript-helpers'
@@ -46,17 +47,13 @@ export const NpsSurvey = Utils.connectAtom(authStore, 'authState')(class NpsSurv
   }
 
   async loadStatus() {
-    const millisToHours = timestamp => Date.parse(timestamp) / (60 * 60 * 1000)
-
-    const currentTimeHours = millisToHours(new Date())
     const lastResponseTimestamp = (await Ajax().User.lastNpsResponse()).timestamp
-    const firstTimestamp = async () => (await Ajax().User.firstTimestamp()).timestamp
 
     // Behavior of the following logic: When a user first accesses Terra, wait 7 days to show the NPS survey.
     // Once user has interacted with the NPS survey, wait 90 days to show the survey.
-    const askTheUser = lastResponseTimestamp
-      ? currentTimeHours - millisToHours(lastResponseTimestamp) >= (90 * 24)
-      : currentTimeHours - millisToHours(await firstTimestamp()) >= (7 * 24)
+    const askTheUser = !!lastResponseTimestamp ?
+      differenceInCalendarDays(Date.now(), lastResponseTimestamp) >= 90 :
+      differenceInCalendarDays(Date.now(), (await Ajax().User.firstTimestamp()).timestamp) >= 7
 
     this.setState({ requestable: askTheUser })
   }
