@@ -123,7 +123,6 @@ const DownloadButton = ({ uri, metadata: { bucket, name, size } }) => {
       'Unable to generate download link.' :
       div({ style: { display: 'flex', justifyContent: 'center' } }, [
         h(ButtonPrimary, {
-          as: 'a',
           disabled: !url,
           href: url,
           ...Utils.newTabLinkProps
@@ -268,7 +267,10 @@ export class UriViewerLink extends Component {
       h(Link, {
         style: { textDecoration: 'underline' },
         href: uri,
-        onClick: () => this.setState({ modalOpen: true })
+        onClick: e => {
+          e.preventDefault()
+          this.setState({ modalOpen: true })
+        }
       }, [isGs(uri) ? _.last(uri.split('/')) : uri]),
       modalOpen && h(UriViewer, {
         onDismiss: () => this.setState({ modalOpen: false }),

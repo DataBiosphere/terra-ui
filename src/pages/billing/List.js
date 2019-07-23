@@ -1,8 +1,7 @@
 import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { Fragment } from 'react'
-import { a, div, h, span } from 'react-hyperscript-helpers'
-import Interactive from 'react-interactive'
+import { div, h, span } from 'react-hyperscript-helpers'
 import { ButtonPrimary, Clickable, Link, Select, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { ValidatedInput } from 'src/components/input'
@@ -29,8 +28,7 @@ const ProjectTab = ({ project: { projectName, role, creationStatus }, isActive }
     { style: { color: colors.accent(), marginRight: '1rem', marginLeft: '0.5rem' } })
 
   return _.includes('Owner', role) && projectReady ?
-    h(Interactive, {
-      as: 'a',
+    h(Clickable, {
       style: { ...Style.navList.item(isActive), color: colors.accent() },
       href: `${Nav.getLink('billing')}?${qs.stringify({ selectedName: projectName, type: 'project' })}`,
       hover: Style.navList.itemHover(isActive)
@@ -109,11 +107,10 @@ const NewBillingProjectModal = ajaxCaller(class NewBillingProjectModal extends C
     }, [
       billingAccounts && billingAccounts.length === 0 && h(Fragment, [
         `You don't have access to any billing accounts.  `,
-        a({
-          style: { color: colors.accent(), fontWeight: 700 },
+        h(Link, {
           href: `https://support.terra.bio/hc/en-us/articles/360026182251`,
           ...Utils.newTabLinkProps
-        }, ['Learn how to create a billing account.', icon('pop-out', { size: 20, style: { marginLeft: '0.5rem' } })])
+        }, ['Learn how to create a billing account.', icon('pop-out', { size: 12, style: { marginLeft: '0.5rem' } })])
       ]),
       billingAccounts && billingAccounts.length !== 0 && h(Fragment, [
         h(RequiredFormLabel, ['Enter name']),
@@ -146,23 +143,19 @@ const NewBillingProjectModal = ajaxCaller(class NewBillingProjectModal extends C
             'Terra does not have access to this account. '),
           div({ style: { marginBottom: '0.25rem' } }, ['To grant access, add ', span({ style: { fontWeight: 'bold' } }, 'terra-billing@terra.bio'),
             ' as a ', span({ style: { fontWeight: 'bold' } }, 'Billing Account User'), ' on the ',
-            a({
-              style: { color: colors.accent(), fontWeight: 700 },
+            h(Link, {
               href: `https://console.cloud.google.com/billing/${chosenBillingAccount.accountName.split('/')[1]}?authuser=${Auth.getUser().email}`,
               ...Utils.newTabLinkProps
             }, ['Google Cloud Console', icon('pop-out', { style: { marginLeft: '0.25rem' }, size: 12 })])]),
           div({ style: { marginBottom: '0.25rem' } }, ['Then, ',
-            h(Clickable, {
-              as: 'span',
-              style: { color: colors.accent(), fontWeight: 700 },
+            h(Link, {
               onClick: () => {
                 this.setState({ billingAccounts: undefined })
                 this.loadAccounts()
               }
             }, ['click here']), ' to refresh your billing accounts.']),
           div({ style: { marginTop: '0.5rem' } }, [
-            a({
-              style: { color: colors.accent(), fontWeight: 700 },
+            h(Link, {
               href: `https://support.terra.bio/hc/en-us/articles/360026182251`,
               ...Utils.newTabLinkProps
             }, ['Need help?', icon('pop-out', { style: { marginLeft: '0.25rem' }, size: 12 })])

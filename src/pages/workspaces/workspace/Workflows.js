@@ -107,14 +107,7 @@ const WorkflowCard = pure(({ listView, name, namespace, config, onCopy, onDelete
       }, [makeMenuIcon('trash'), 'Delete'])
     ])
   }, [
-    h(Clickable, {
-      onClick: e => e.stopPropagation(),
-      style: {
-        cursor: 'pointer', color: colors.accent(), ...styles.innerLink
-      },
-      focus: 'hover',
-      hover: { color: colors.accent(0.85) }
-    }, [
+    h(Link, { onClick: e => e.stopPropagation(), style: styles.innerLink }, [
       icon('cardMenuIcon', {
         size: listView ? 18 : 24
       })

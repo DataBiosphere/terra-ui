@@ -21,7 +21,6 @@ const FirecloudNotification = () => {
           'Please update your bookmarks to our new URL, firecloud.terra.bio. Welcome to the future of FireCloud!'
         ]),
         h(ButtonOutline, {
-          as: 'a',
           ...Utils.newTabLinkProps,
           href: 'https://support.terra.bio/hc/en-us/sections/360004482892',
           style: { marginTop: '1rem' }

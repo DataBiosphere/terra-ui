@@ -54,21 +54,6 @@ const styles = {
       zIndex: 2,
       display: 'flex', flexDirection: 'column'
     }),
-    item: {
-      display: 'flex', alignItems: 'center', flex: 'none',
-      height: 70, padding: '0 28px',
-      fontWeight: 600,
-      borderTop: `1px solid ${colors.dark(0.55)}`, color: 'white'
-    },
-    dropDownItem: {
-      display: 'flex', alignItems: 'center',
-      backgroundColor: colors.dark(0.7),
-      color: 'white',
-      borderBottom: 'none',
-      padding: '0 3rem', height: 40,
-      fontSize: 'unset',
-      fontWeight: 500
-    },
     icon: {
       marginRight: 12, flex: 'none'
     }
@@ -84,35 +69,35 @@ const betaTag = b({
   }
 }, 'BETA')
 
-const DropDownSubItem = props => {
-  return h(Clickable, {
-    as: 'a',
-    style: styles.nav.dropDownItem,
-    hover: { backgroundColor: colors.dark(0.55) },
-    ...props
-  })
+const NavItem = ({ children, ...props }) => {
+  return h(Clickable, _.merge({
+    style: { display: 'flex', alignItems: 'center', color: 'white' },
+    hover: { backgroundColor: colors.dark(0.55) }
+  }, props), [children])
 }
 
-const DropDownSection = props => {
-  const { titleIcon, title, isOpened, onClick, children } = props
+const NavSection = ({ children, ...props }) => {
+  return h(NavItem, _.merge({
+    style: {
+      flex: 'none', height: 70, padding: '0 28px', fontWeight: 600,
+      borderTop: `1px solid ${colors.dark(0.55)}`, color: 'white'
+    }
+  }, props), [children])
+}
 
+const DropDownSubItem = ({ children, ...props }) => {
+  return h(NavItem, _.merge({
+    style: { padding: '0 3rem', height: 40, fontWeight: 500 }
+  }, props), [children])
+}
+
+const DropDownSection = ({ titleIcon, title, isOpened, onClick, children }) => {
   return h(Fragment, [
-    h(Clickable, {
-      style: styles.nav.item,
-      hover: { backgroundColor: colors.dark(0.55) },
-      onClick
-    }, [
-      titleIcon && icon(titleIcon, {
-        size: 24,
-        style: styles.nav.icon
-      }),
-      div({ style: Style.noWrapEllipsis }, [title]),
+    h(NavSection, { onClick }, [
+      titleIcon && icon(titleIcon, { size: 24, style: styles.nav.icon }),
+      title,
       div({ style: { flexGrow: 1 } }),
-      icon(`angle-${isOpened ? 'up' : 'down'}`,
-        {
-          size: 18,
-          style: { flex: 'none' }
-        })
+      icon(isOpened ? 'angle-up' : 'angle-down', { size: 18, style: { flex: 'none' } })
     ]),
     h(RCollapse, { isOpened, style: { flex: 'none' } }, [children])
   ])
@@ -152,49 +137,6 @@ const TopBar = Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
     const { authState: { isSignedIn, profile: { firstName = 'Loading...', lastName = '', trialState } } } = this.props
     const { navShown, openLibraryMenu, openSupportMenu, openUserMenu } = this.state
 
-    const enabledCredits = h(Clickable, {
-      style: styles.nav.item,
-      hover: { backgroundColor: colors.dark(0.55) },
-      onClick: () => {
-        this.hideNav()
-        freeCreditsActive.set(true)
-      }
-    }, [
-      div({ style: styles.nav.icon }, [
-        icon('cloud', { size: 20 })
-      ]),
-      'Sign up for free credits'
-    ])
-
-    const enrolledCredits = h(Clickable, {
-      style: styles.nav.item,
-      as: 'a',
-      hover: { backgroundColor: colors.dark(0.55) },
-      href: 'https://software.broadinstitute.org/firecloud/documentation/freecredits',
-      ...Utils.newTabLinkProps,
-      onClick: () => this.hideNav()
-    }, [
-      div({ style: styles.nav.icon }, [
-        icon('cloud', { size: 20 })
-      ]),
-      'Access free credits',
-      icon('pop-out', {
-        size: 20,
-        style: { paddingLeft: '0.5rem' }
-      })
-    ])
-
-    const terminatedCredits = h(Clickable, {
-      style: styles.nav.item,
-      hover: { backgroundColor: colors.dark(0.55) },
-      onClick: () => this.setState({ finalizeTrial: true })
-    }, [
-      div({ style: styles.nav.icon }, [
-        icon('cloud', { size: 20 })
-      ]),
-      'Your free trial has ended'
-    ])
-
     return div({
       style: navShown ? styles.nav.background : undefined,
       onClick: () => {
@@ -208,9 +150,9 @@ const TopBar = Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
         div({ style: { display: 'flex', flexDirection: 'column', overflowY: 'auto', flex: 1 } }, [
           isSignedIn ?
             h(DropDownSection, {
-              titleIcon: undefined,
-              title: div({ style: { ..._.omit('borderTop', styles.nav.item), padding: 0 } }, [
-                profilePic({ size: 32, style: { marginRight: 12 } }), `${firstName} ${lastName}`
+              title: h(Fragment, [
+                profilePic({ size: 32, style: { marginRight: 12, flex: 'none' } }),
+                div({ style: { ...Style.noWrapEllipsis } }, [`${firstName} ${lastName}`])
               ]),
               onClick: () => this.setState({ openUserMenu: !openUserMenu }),
               isOpened: openUserMenu
@@ -235,26 +177,17 @@ const TopBar = Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
                 onClick: signOut
               }, ['Sign Out'])
             ]) :
-            div({
-              style: {
-                ...styles.nav.item,
-                justifyContent: 'center',
-                height: 95
-              }
-            }, [
+            div({ style: { flex: 'none', display: 'flex', justifyContent: 'center', alignItems: 'center', height: 95 } }, [
               div([
                 h(Clickable, {
                   hover: { textDecoration: 'underline' },
-                  style: { color: 'white', marginLeft: '9rem' },
+                  style: { color: 'white', marginLeft: '9rem', fontWeight: 600 },
                   onClick: () => this.setState({ openCookiesModal: true })
                 }, ['Cookies policy']),
                 h(SignInButton)
               ])
             ]),
-          h(Clickable, {
-            as: 'a',
-            style: styles.nav.item,
-            hover: { backgroundColor: colors.dark(0.55) },
+          h(NavSection, {
             href: Nav.getLink('workspaces'),
             onClick: () => this.hideNav()
           }, [
@@ -280,9 +213,38 @@ const TopBar = Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
               onClick: () => this.hideNav()
             }, ['Workflows'])
           ]),
-          (trialState === 'Enabled') && enabledCredits,
-          (trialState === 'Enrolled') && enrolledCredits,
-          (trialState === 'Terminated') && terminatedCredits,
+          Utils.switchCase(trialState,
+            ['Enabled', () => {
+              return h(NavSection, {
+                onClick: () => {
+                  this.hideNav()
+                  freeCreditsActive.set(true)
+                }
+              }, [
+                div({ style: styles.nav.icon }, [icon('cloud', { size: 20 })]),
+                'Sign up for free credits'
+              ])
+            }],
+            ['Enrolled', () => {
+              return h(NavSection, {
+                href: 'https://software.broadinstitute.org/firecloud/documentation/freecredits',
+                ...Utils.newTabLinkProps,
+                onClick: () => this.hideNav()
+              }, [
+                div({ style: styles.nav.icon }, [icon('cloud', { size: 20 })]),
+                'Access free credits',
+                icon('pop-out', { size: 20, style: { paddingLeft: '0.5rem' } })
+              ])
+            }],
+            ['Terminated', () => {
+              return h(NavSection, {
+                onClick: () => this.setState({ finalizeTrial: true })
+              }, [
+                div({ style: styles.nav.icon }, [icon('cloud', { size: 20 })]),
+                'Your free trial has ended'
+              ])
+            }]
+          ),
           h(DropDownSection, {
             titleIcon: 'help',
             title: 'Terra Support',
@@ -313,11 +275,9 @@ const TopBar = Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
               onClick: () => contactUsActive.set(true)
             }, ['Contact Us'])
           ]),
-          isFirecloud() && h(Clickable, {
-            style: styles.nav.item,
+          isFirecloud() && h(NavSection, {
             disabled: !isSignedIn,
             tooltip: isSignedIn ? undefined : 'Please sign in',
-            hover: { backgroundColor: colors.dark(0.55) },
             onClick: () => this.setState({ openFirecloudModal: true })
           }, [
             div({ style: styles.nav.icon }, [
@@ -326,15 +286,10 @@ const TopBar = Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
           ]),
           div({ style: { borderTop: `1px solid ${colors.dark(0.55)}` } }, []),
           div({
-            style: {
-              ..._.omit('borderTop', styles.nav.item),
-              marginTop: 'auto',
-              color: colors.dark(0.55),
-              fontSize: 10
-            }
+            style: { flex: 'none', padding: 28, marginTop: 'auto', color: colors.dark(0.55), fontSize: 10, fontWeight: 600 }
           }, [
             'Built on: ',
-            a({
+            h(Clickable, {
               href: `https://github.com/DataBiosphere/terra-ui/commits/${SATURN_VERSION}`,
               ...Utils.newTabLinkProps,
               style: { textDecoration: 'underline', marginLeft: '0.25rem' }

@@ -111,7 +111,6 @@ const browseTooltip = 'Look for the Export to Terra icon to export data from thi
 
 const NIHCommonsButtons = () => h(ButtonPrimary, {
   style: { margin: '0.25rem 0' },
-  as: 'a',
   href: 'https://gen3.datastage.io/explorer',
   ...Utils.newTabLinkProps,
   tooltip: browseTooltip
@@ -125,7 +124,6 @@ const thousandGenomesHighCoverage = () => h(Participant, {
   sizeText: 'Participants: 2,504'
 }, [
   h(ButtonPrimary, {
-    as: 'a',
     href: Nav.getLink('workspace-dashboard', { namespace: 'anvil-datastorage', name: '1000G-high-coverage-2019' }),
     tooltip: 'Visit the workspace'
   }, ['Browse data'])
@@ -143,7 +141,6 @@ const thousandGenomesLowCoverage = () => h(Participant, {
   sizeText: 'Participants: 3,500'
 }, [
   h(ButtonPrimary, {
-    as: 'a',
     href: Nav.getLink('library-datasets-data-explorer-public', { dataset: '1000 Genomes' }),
     tooltip: browseTooltip
   }, ['Browse data'])
@@ -177,7 +174,6 @@ const amppd = () => h(Participant, {
   sizeText: 'Participants: > 4,700'
 }, [
   h(ButtonPrimary, {
-    as: 'a',
     href: Nav.getLink('library-datasets-data-explorer-private', { dataset: 'AMP PD - 2019_v1beta_0220' })
   }, ['Browse Data'])
 ])
@@ -195,7 +191,6 @@ const baseline = () => h(Participant, {
   sizeText: 'Participants: > 1,500'
 }, [
   h(ButtonPrimary, {
-    as: 'a',
     href: Nav.getLink('library-datasets-data-explorer-private', { dataset: 'Baseline Health Study' })
   }, ['Browse Data'])
 ])
@@ -208,7 +203,6 @@ const ccdg = () => h(Participant, {
   sizeText: 'Participants: > 65,000'
 }, [
   h(ButtonPrimary, {
-    as: 'a',
     href: `${getConfig().firecloudUrlRoot}/?return=${returnParam()}&project=AnVIL CCDG&project=AnVIL CCDG CVD#library`,
     ...Utils.newTabLinkProps,
     tooltip: browseTooltip
@@ -223,7 +217,6 @@ const cmg = () => h(Participant, {
   sizeText: 'Participants: > 5,000'
 }, [
   h(ButtonPrimary, {
-    as: 'a',
     href: `${getConfig().firecloudUrlRoot}/?return=${returnParam()}&project=AnVIL CMG#library`,
     ...Utils.newTabLinkProps,
     tooltip: browseTooltip
@@ -242,7 +235,6 @@ const encode = () => h(Participant, {
   sizeText: 'Donors: > 650 ; Files: > 158,000'
 }, [
   h(ButtonPrimary, {
-    as: 'a',
     href: 'https://broad-gdr-encode.appspot.com/',
     ...Utils.newTabLinkProps,
     tooltip: browseTooltip
@@ -257,7 +249,6 @@ const fcDataLib = () => h(Participant, {
   sizeText: h(TooltipTrigger, { content: 'As of October 2018' }, [span('Samples: > 158,629')])
 }, [
   h(ButtonPrimary, {
-    as: 'a',
     href: `${getConfig().firecloudUrlRoot}/?return=${returnParam()}#library`,
     ...Utils.newTabLinkProps,
     tooltip: 'Search for dataset workspaces'
@@ -287,7 +278,6 @@ const nemo = () => h(Participant, {
   sizeText: h(TooltipTrigger, { content: 'As of March 2019' }, [span('Files: >= 210,000; Projects >= 5; Species >= 3')])
 }, [
   h(ButtonPrimary, {
-    as: 'a',
     href: 'http://portal.nemoarchive.org/',
     ...Utils.newTabLinkProps,
     tooltip: 'Look for the Export to Terra option in the Download Cart to export data.'
@@ -302,7 +292,6 @@ const nhs = () => h(Participant, {
   sizeText: 'Participants: > 120,000'
 }, [
   h(ButtonPrimary, {
-    as: 'a',
     href: Nav.getLink('library-datasets-data-explorer-private', { dataset: `Nurses' Health Study` })
   }, ['Browse Data'])
 ])
@@ -330,7 +319,6 @@ const ukb = () => h(Participant, {
   sizeText: 'Participants: > 500,000'
 }, [
   h(ButtonPrimary, {
-    as: 'a',
     href: Nav.getLink('library-datasets-data-explorer-private', { dataset: 'UK Biobank' })
   }, ['Browse Data'])
 ])

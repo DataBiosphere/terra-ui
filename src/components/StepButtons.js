@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
-import Interactive from 'react-interactive'
+import { Clickable } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import colors from 'src/libs/colors'
 import * as Style from 'src/libs/style'
@@ -30,8 +30,7 @@ const dots = div({ style: { display: 'flex', margin: '0 0.5rem' } }, [
   div({ style: styles.dot }), div({ style: styles.dot })
 ])
 
-const stepButton = ({ key, title, isValid, activeTabKey, onChangeTab }) => h(Interactive, {
-  as: 'a',
+const stepButton = ({ key, title, isValid, activeTabKey, onChangeTab }) => h(Clickable, {
   style: styles.button(key === activeTabKey),
   onClick: () => onChangeTab(key)
 }, [

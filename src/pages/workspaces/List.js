@@ -2,7 +2,7 @@ import { isAfter } from 'date-fns'
 import debouncePromise from 'debounce-promise'
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
-import { a, div, h, span } from 'react-hyperscript-helpers'
+import { div, h, span } from 'react-hyperscript-helpers'
 import { pure } from 'recompose'
 import removeMd from 'remove-markdown'
 import togglesListView from 'src/components/CardsListToggle'
@@ -150,11 +150,7 @@ const WorkspaceCard = pure(({
     closeOnClick: true,
     content: h(WorkspaceMenuContent, { namespace, name, onShare, onClone, onDelete })
   }, [
-    h(Link, {
-      as: 'div',
-      onClick: e => e.preventDefault(),
-      disabled: !canView
-    }, [
+    h(Link, { onClick: e => e.preventDefault(), disabled: !canView }, [
       icon('cardMenuIcon', {
         size: listView ? 18 : 24
       })
@@ -165,22 +161,6 @@ const WorkspaceCard = pure(({
     span({ style: { color: colors.dark(0.85) } }, ['No description added'])
   const titleOverrides = !canView ? { color: colors.dark(0.7) } : {}
 
-  const renderCard = children => {
-    const style = listView ? styles.longCard : styles.shortCard
-    if (canView) {
-      return a({
-        href: Nav.getLink('workspace-dashboard', { namespace, name }),
-        style
-      }, children)
-    } else {
-      return h(Clickable, {
-        as: 'a',
-        onClick: onRequestAccess,
-        style
-      }, children)
-    }
-  }
-
   return h(TooltipTrigger, {
     content: !canView && `
       You cannot access this workspace because it is protected by an Authorization Domain.
@@ -188,7 +168,11 @@ const WorkspaceCard = pure(({
     `,
     side: 'top'
   }, [
-    renderCard([
+    h(Clickable, {
+      href: canView ? Nav.getLink('workspace-dashboard', { namespace, name }) : undefined,
+      onClick: !canView ? onRequestAccess : undefined,
+      style: listView ? styles.longCard : styles.shortCard
+    }, [
       Utils.switchCase(workspaceSubmissionStatus(workspace),
         ['success', () => h(SubmissionIndicator, { shape: 'success-standard', color: colors.success() })],
         ['failure', () => h(SubmissionIndicator, { shape: 'error-standard', color: colors.danger(0.85) })],

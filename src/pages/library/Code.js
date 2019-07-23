@@ -26,7 +26,6 @@ export const makeWorkflowCard = ({ method, onClick }) => {
   const { namespace, name, synopsis } = method
 
   return h(Clickable, {
-    as: 'a',
     href: !onClick ? `${getConfig().firecloudUrlRoot}/?return=${returnParam()}#methods/${namespace}/${name}/` : undefined,
     onClick,
     style: {

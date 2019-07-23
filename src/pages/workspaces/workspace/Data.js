@@ -54,7 +54,6 @@ const styles = {
 
 const DataTypeButton = ({ selected, children, iconName = 'listAlt', iconSize = 14, ...props }) => {
   return h(Clickable, {
-    as: 'span',
     style: { ...Style.navList.item(selected), color: colors.accent() },
     hover: Style.navList.itemHover(selected),
     ...props
