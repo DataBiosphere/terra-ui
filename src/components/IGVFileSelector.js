@@ -8,6 +8,7 @@ import TitleBar from 'src/components/TitleBar'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
+import { Fragment } from 'react'
 
 
 const styles = {
@@ -76,16 +77,7 @@ export class IGVFileSelector extends Component {
       onDismiss()
     }
 
-    return h(ModalDrawer, {
-      openDrawer,
-      onDismiss: clearSelectionsAndDismiss,
-      width: 450,
-      okButton: h(ButtonPrimary, {
-        disabled: this.buttonIsDisabled(),
-        tooltip: this.buttonIsDisabled() ? `Select between 1 and ${MAX_CONCURRENT_IGV_FILES} files` : '',
-        onClick: () => onSuccess({ selectedFiles: this.getSelectedFilesList(), refGenome })
-      }, ['Done'])
-    }, [
+    return h(Fragment, [
       h(TitleBar, {
         title: 'IGV',
         onDismiss: clearSelectionsAndDismiss
