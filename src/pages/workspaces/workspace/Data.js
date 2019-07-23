@@ -401,10 +401,10 @@ const ReferenceDataContent = ({ workspace: { workspace: { namespace, attributes 
   ])
 }
 
-const ToolDrawer = () => {
+const ToolDrawer = ({openDrawer, onDismiss, selectedEntities}) => {
   return h(ModalDrawer, {
     openDrawer,
-    onDismiss: clearSelectionsAndDismiss,
+    onDismiss,
     width: 450
   })
 }
@@ -643,16 +643,20 @@ class EntitiesContent extends Component {
           selectedDataType: entityKey,
           runningSubmissionsCount
         }),
-        h(IGVFileSelector, {
+        // h(IGVFileSelector, {
+        //   openDrawer: showToolSelector,
+        //   onDismiss: () => this.setState({ showToolSelector: false }),
+        //   onSuccess: newIgvData => this.setState({
+        //     showIgvSelector: false,
+        //     igvData: newIgvData
+        //   }),
+        //   selectedEntities
+        // }),
+        h(ToolDrawer, {
           openDrawer: showToolSelector,
           onDismiss: () => this.setState({ showToolSelector: false }),
-          onSuccess: newIgvData => this.setState({
-            showIgvSelector: false,
-            igvData: newIgvData
-          }),
           selectedEntities
-        }),
-        h(ToolDrawer)
+        })
       ])
   }
 }
