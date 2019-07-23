@@ -28,18 +28,9 @@ export default ajaxCaller(class LaunchAnalysisModal extends Component {
     }
   }
 
-  async componentDidMount() {
-    this.setState({ checkingBucketAccess: true, message: 'Checking bucket access...' })
-    const hasBucketAccess = await this.preFlightBucketAccess()
-    this.setState({
-      checkingBucketAccess: false, message: undefined,
-      hasBucketAccess, bucketCheckFailed: !hasBucketAccess
-    })
-  }
-
   render() {
     const { onDismiss } = this.props
-    const { hasBucketAccess, bucketCheckFailed, launching, message, launchError } = this.state
+    const { launching, message, launchError } = this.state
 
     return h(Modal, {
       title: !launching ? 'Run Analysis' : 'Launching Analysis',
@@ -47,7 +38,7 @@ export default ajaxCaller(class LaunchAnalysisModal extends Component {
       showCancel: !launching,
       okButton: !launchError ?
         buttonPrimary({
-          disabled: !hasBucketAccess || launching,
+          disabled: launching,
           onClick: () => {
             this.setState({ launching: true })
             this.doLaunch()
@@ -55,11 +46,8 @@ export default ajaxCaller(class LaunchAnalysisModal extends Component {
         }, ['Launch']) :
         buttonPrimary({ onClick: onDismiss }, ['OK'])
     }, [
-      !message && !bucketCheckFailed && !launchError && div('Confirm launch'),
+      !message && !launchError && div('Confirm launch'),
       message && div([spinner({ style: { marginRight: '0.5rem' } }), message]),
-      bucketCheckFailed && div({ style: { color: colors.danger() } }, [
-        'Error confirming workspace bucket access. This may be a transient problem. Please try again in a few minutes. If the problem persists, please contact support.'
-      ]),
       launchError && div({ style: { color: colors.danger() } }, [launchError])
     ])
   }
@@ -72,7 +60,14 @@ export default ajaxCaller(class LaunchAnalysisModal extends Component {
       ajax: { Workspaces }
     } = this.props
 
-    if (processSingle) {
+    this.setState({ message: 'Checking bucket access...' })
+    const hasBucketAccess = await this.preFlightBucketAccess()
+    if (!hasBucketAccess) {
+      this.setState({
+        message: undefined,
+        launchError: 'Error confirming workspace bucket access. This may be a transient problem. Please try again in a few minutes. If the problem persists, please contact support.'
+      })
+    } else if (processSingle) {
       this.launch()
     } else if (type === EntitySelectionType.processAll) {
       this.setState({ message: 'Fetching data...' })

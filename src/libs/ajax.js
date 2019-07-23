@@ -444,6 +444,7 @@ const Workspaces = signal => ({
       },
 
       checkBucketAccess: async (bucket, accessLevel) => {
+        // Protect against asking for a project-specific pet service account token if user cannot write to the workspace
         if (!Utils.canWrite(accessLevel)) {
           return false
         }
