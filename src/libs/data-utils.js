@@ -32,11 +32,15 @@ export const renderDataCell = (data, namespace) => {
   const renderCell = datum => h(TextCell, { title: datum },
     [isUri(datum) ? h(UriViewerLink, { uri: datum, googleProject: namespace }) : datum])
 
-  return _.isObject(data) ?
-    data.items.map((v, i) => h(Fragment, { key: i }, [
-      renderCell(v.toString()), i < (data.items.length - 1) && div({ style: { marginRight: '0.5rem', color: colors.dark(0.85) } }, ',')
-    ])) :
-    renderCell(data && data.toString())
+  return Utils.cond(
+    [_.isArray(data), () => data.join(', ')],
+    [_.isObject(data), () => {
+      return data.items.map((v, i) => h(Fragment, { key: i }, [
+        renderCell(v.toString()), i < (data.items.length - 1) && div({ style: { marginRight: '0.5rem', color: colors.dark(0.85) } }, ',')
+      ]))
+    }],
+    () => renderCell(data && data.toString())
+  )
 }
 
 export const ReferenceDataImporter = class ReferenceDataImporter extends Component {
