@@ -14,8 +14,7 @@ const FirecloudNotification = () => {
       notify('welcome', div({ style: { fontSize: 14 } }, [
         div(['Welcome to the new FireCloud interface, powered by Terra. All of your workspaces are available.']),
         div({ style: { marginTop: '1rem' } }, [
-          'The legacy FireCloud is currently available but will permanently migrate to our new experience. ',
-          'Click the three-bar menu on the upper-left corner and select "Use Classic FireCloud".'
+          'To access legacy FireCloud, click the three-bar menu on the upper-left corner and select "Use Classic FireCloud".'
         ]),
         div({ style: { marginTop: '1rem' } }, [
           'Please update your bookmarks to our new URL, firecloud.terra.bio. Welcome to the future of FireCloud!'
