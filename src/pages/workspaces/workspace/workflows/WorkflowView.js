@@ -21,6 +21,7 @@ import { Ajax, ajaxCaller } from 'src/libs/ajax'
 import colors, { terraSpecial } from 'src/libs/colors'
 import { reportError, withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
+import { workflowSelectionStore } from 'src/libs/state'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -300,10 +301,14 @@ const WorkflowView = _.flow(
   }),
   ajaxCaller
 )(class WorkflowView extends Component {
-  resetSelectionModel(value) {
+  resetSelectionModel(value, selectedEntities = {}) {
     return {
-      type: _.endsWith('_set', value) ? EntitySelectionType.chooseSet : EntitySelectionType.processAll,
-      selectedEntities: {},
+      type: Utils.cond(
+        [_.endsWith('_set', value), () => EntitySelectionType.chooseSet],
+        [_.isEmpty(selectedEntities), () => EntitySelectionType.processAll],
+        () => EntitySelectionType.chooseRows
+      ),
+      selectedEntities,
       newSetName: `${this.props.workflowName}_${new Date().toISOString().slice(0, -5)}`.replace(/[^\w]/g, '-') // colons in date, periods in wf name
     }
   }
@@ -381,6 +386,7 @@ const WorkflowView = _.flow(
         ),
         launching && h(LaunchAnalysisModal, {
           workspaceId, config: savedConfig,
+          accessLevel: workspace.accessLevel, bucketName: workspace.workspace.bucketName,
           processSingle: this.isSingle(), entitySelectionModel, useCallCache,
           onDismiss: () => this.setState({ launching: false }),
           onSuccess: submissionId => Nav.goToPath('workspace-submission-details', { submissionId, ...workspaceId })
@@ -415,7 +421,8 @@ const WorkflowView = _.flow(
     const {
       namespace, name, workflowNamespace, workflowName,
       workspace: { workspace: { attributes } },
-      ajax: { Workspaces, Methods }
+      ajax: { Workspaces, Methods },
+      queryParams: { selectionKey }
     } = this.props
 
     try {
@@ -431,21 +438,23 @@ const WorkflowView = _.flow(
       const methods = await Methods.list({ namespace: methodNamespace, name: methodName })
       const snapshotIds = _.map(m => _.pick('snapshotId', m).snapshotId, methods)
       const inputsOutputs = isRedacted ? {} : await Methods.configInputsOutputs(config)
+      const selection = workflowSelectionStore.get()
+      const modifiedConfig = selection.key === selectionKey ? _.set('rootEntityType', selection.entityType, config) : config
       this.setState({
-        savedConfig: config, modifiedConfig: config,
+        savedConfig: config, modifiedConfig,
         currentSnapRedacted: isRedacted, savedSnapRedacted: isRedacted,
         entityMetadata,
         savedInputsOutputs: inputsOutputs,
         modifiedInputsOutputs: inputsOutputs,
         snapshotIds,
         errors: isRedacted ? { inputs: {}, outputs: {} } : augmentErrors(validationResponse),
-        entitySelectionModel: this.resetSelectionModel(config.rootEntityType),
+        entitySelectionModel: this.resetSelectionModel(modifiedConfig.rootEntityType, selection.key === selectionKey ? selection.entities : {}),
         workspaceAttributes: _.flow(
           _.without(['description']),
           _.remove(s => s.includes(':'))
         )(_.keys(attributes))
       })
-      this.updateSingleOrMultipleRadioState(config)
+      this.updateSingleOrMultipleRadioState(modifiedConfig)
       this.fetchInfo(config, isRedacted)
     } catch (error) {
       reportError('Error loading data', error)
@@ -521,7 +530,7 @@ const WorkflowView = _.flow(
 
 
   renderSummary() {
-    const { workspace: ws, workspace: { workspace, hasBucketAccess }, namespace, name: workspaceName } = this.props
+    const { workspace: ws, workspace: { workspace }, namespace, name: workspaceName } = this.props
     const {
       modifiedConfig, savedConfig, saving, saved, copying, deleting, selectingData, activeTab, errors, synopsis, documentation,
       selectedEntityType, entityMetadata, entitySelectionModel, snapshotIds = [], useCallCache, currentSnapRedacted, savedSnapRedacted
@@ -660,9 +669,8 @@ const WorkflowView = _.flow(
             onChangeTab: v => this.setState({ activeTab: v }),
             finalStep: h(ButtonPrimary, {
               style: { marginLeft: '1rem' },
-              disabled: !!Utils.computeWorkspaceError(ws) || !!noLaunchReason || currentSnapRedacted || !hasBucketAccess,
-              tooltip: Utils.computeWorkspaceError(ws) || noLaunchReason || (currentSnapRedacted && 'Workflow version was redacted.') ||
-                (!hasBucketAccess && 'You do not have access to the Google Bucket associated with this workspace'),
+              disabled: !!Utils.computeWorkspaceError(ws) || !!noLaunchReason || currentSnapRedacted,
+              tooltip: Utils.computeWorkspaceError(ws) || noLaunchReason || (currentSnapRedacted && 'Workflow version was redacted.'),
               onClick: () => this.setState({ launching: true })
             }, ['Run analysis'])
           }),

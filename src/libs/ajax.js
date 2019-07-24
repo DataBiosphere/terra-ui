@@ -74,7 +74,7 @@ const checkRequesterPaysError = async response => {
  * project if the user has access, retrying the request once if necessary.
  */
 const withRequesterPays = wrappedFetch => (url, ...args) => {
-  const bucket = /\/b\/([^/]+)\//.exec(url)[1]
+  const bucket = /\/b\/([^/?]+)[/?]/.exec(url)[1]
   const workspace = workspaceStore.get()
   const userProject = workspace && Utils.canWrite(workspace.accessLevel) ? workspace.workspace.namespace : requesterPaysProjectStore.get()
   const tryRequest = async () => {
@@ -441,6 +441,17 @@ const Workspaces = signal => ({
     return {
       checkBucketReadAccess: () => {
         return fetchRawls(`${root}/checkBucketReadAccess`, _.merge(authOpts(), { signal }))
+      },
+
+      checkBucketAccess: async (bucket, accessLevel) => {
+        // Protect against asking for a project-specific pet service account token if user cannot write to the workspace
+        if (!Utils.canWrite(accessLevel)) {
+          return false
+        }
+
+        const res = await fetchBuckets(`storage/v1/b/${bucket}?fields=billing`,
+          _.merge(authOpts(await saToken(namespace)), { signal }))
+        return res.json()
       },
 
       details: async () => {

@@ -31,6 +31,12 @@ export const requesterPaysBuckets = Utils.atom([])
 
 export const requesterPaysProjectStore = Utils.atom()
 
+export const workflowSelectionStore = Utils.atom({
+  key: undefined,
+  entityType: undefined,
+  entities: undefined
+})
+
 /*
  * Modifies ajax responses for testing purposes.
  * Can be set to an array of objects of the form { fn, filter }.

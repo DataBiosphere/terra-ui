@@ -41,3 +41,10 @@ export const clusterCost = ({ machineConfig, status }) => {
       return machineConfigCost(machineConfig)
   }
 }
+
+export const trimClustersOldestFirst = _.flow(
+  _.remove({ status: 'Deleting' }),
+  _.sortBy('createdDate')
+)
+
+export const currentCluster = _.flow(trimClustersOldestFirst, _.last)

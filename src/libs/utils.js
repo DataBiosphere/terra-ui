@@ -1,3 +1,4 @@
+import { differenceInCalendarMonths, isToday, isYesterday } from 'date-fns'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { useEffect, useRef, useState } from 'react'
@@ -85,24 +86,13 @@ const dateFormat = new Intl.DateTimeFormat('default', { day: 'numeric', month: '
 const monthYearFormat = new Intl.DateTimeFormat('default', { month: 'short', year: 'numeric' })
 const completeDateFormat = new Intl.DateTimeFormat('default', { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: 'numeric' })
 
-const truncateDay = date => {
-  date.setHours(0)
-  date.setMinutes(0)
-  date.setSeconds(0)
-  date.setMilliseconds(0)
-}
-
 export const makePrettyDate = dateString => {
   const date = new Date(dateString)
-  const now = new Date() // cloning now below so it isn't mutated, slightly faster than from scratch https://jsperf.com/new-date-vs-clone-date
-  const today = _.tap(truncateDay, new Date(now))
-  const yesterday = _.tap(d => { d.setDate(d.getDate() - 1); truncateDay(d) }, new Date(now))
-  const sixMonthsAgo = _.tap(d => d.setMonth(d.getMonth() - 6), new Date(now))
 
   return cond(
-    [date >= today, () => 'Today'],
-    [date >= yesterday, () => 'Yesterday'],
-    [date >= sixMonthsAgo, () => dateFormat.format(date)],
+    [isToday(date), () => 'Today'],
+    [isYesterday(date), () => 'Yesterday'],
+    [differenceInCalendarMonths(Date.now(), date) <= 6, () => dateFormat.format(date)],
     () => monthYearFormat.format(date)
   )
 }
@@ -329,11 +319,6 @@ export const useGetter = value => {
   ref.current = value
   return () => ref.current
 }
-
-export const trimClustersOldestFirst = _.flow(
-  _.remove({ status: 'Deleting' }),
-  _.sortBy('createdDate')
-)
 
 export const handleNonRunningCluster = ({ status, googleProject, clusterName }, JupyterAjax) => {
   switch (status) {

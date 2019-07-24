@@ -1,8 +1,9 @@
+import { differenceInSeconds } from 'date-fns'
 import _ from 'lodash/fp'
 import { Fragment, PureComponent, useRef, useState } from 'react'
 import { div, h, h2, p, span } from 'react-hyperscript-helpers'
 import ClusterManager from 'src/components/ClusterManager'
-import { ButtonPrimary, Clickable, comingSoon, Link, makeMenuIcon, MenuButton, TabBar } from 'src/components/common'
+import { ButtonPrimary, Clickable, comingSoon, Link, makeMenuIcon, MenuButton, spinnerOverlay, TabBar } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
 import { clearNotification, notify } from 'src/components/Notifications'
@@ -10,6 +11,7 @@ import PopupTrigger from 'src/components/PopupTrigger'
 import TopBar from 'src/components/TopBar'
 import { Ajax, useCancellation } from 'src/libs/ajax'
 import { getUser } from 'src/libs/auth'
+import { currentCluster } from 'src/libs/cluster-utils'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
@@ -190,6 +192,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
     const child = useRef()
     const signal = useCancellation()
     const [accessError, setAccessError] = useState(false)
+    const accessNotificationId = useRef()
     const cachedWorkspace = Utils.useAtom(workspaceStore)
     const [loadingWorkspace, setLoadingWorkspace] = useState(false)
     const [clusters, setClusters] = useState(undefined)
@@ -208,6 +211,22 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
         const workspace = await Ajax(signal).Workspaces.workspace(namespace, name).details()
         const res = await checkBucketAccess(signal, namespace, name)
         workspaceStore.set({ hasBucketAccess: res, ...workspace })
+
+        const { accessLevel, workspace: { createdBy, createdDate } } = workspace
+        if (!Utils.isOwner(accessLevel) && (createdBy === getUser().email) && (differenceInSeconds(new Date(createdDate), new Date()) < 60)) {
+          accessNotificationId.current = notify('info', 'Workspace access synchronizing', {
+            message: h(Fragment, [
+              'It looks like you just created this workspace. It may take up to a minute before you have access to modify it. Refresh at any time to re-check.',
+              div({ style: { marginTop: '1rem' } }, [h(Link, {
+                variant: 'light',
+                onClick: () => {
+                  refreshWorkspace()
+                  clearNotification(accessNotificationId.current)
+                }
+              }, 'Click to refresh now')])
+            ])
+          })
+        }
       } catch (error) {
         if (error.status === 404) {
           setAccessError(true)
@@ -242,10 +261,11 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
       }, [
         workspace && h(WrappedComponent, {
           ref: child,
-          workspace, loadingWorkspace, refreshWorkspace, refreshClusters,
-          cluster: !clusters ? undefined : (_.flow(Utils.trimClustersOldestFirst, _.remove({ status: 'Error' }), _.last)(clusters) || null),
+          workspace, refreshWorkspace, refreshClusters,
+          cluster: !clusters ? undefined : (currentCluster(clusters) || null),
           ...props
-        })
+        }),
+        loadingWorkspace && spinnerOverlay
       ])
     }
   }

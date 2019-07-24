@@ -20,3 +20,12 @@ export const withErrorReporting = _.curry((title, fn) => async (...args) => {
     reportError(title, error)
   }
 })
+
+// Transforms an async function so that it catches and ignores errors
+export const withErrorIgnoring = fn => async (...args) => {
+  try {
+    return await fn(...args)
+  } catch (error) {
+    // ignore error
+  }
+}
