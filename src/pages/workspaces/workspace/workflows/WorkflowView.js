@@ -439,7 +439,8 @@ const WorkflowView = _.flow(
       const snapshotIds = _.map(m => _.pick('snapshotId', m).snapshotId, methods)
       const inputsOutputs = isRedacted ? {} : await Methods.configInputsOutputs(config)
       const selection = workflowSelectionStore.get()
-      const modifiedConfig = selection.key === selectionKey ? _.set('rootEntityType', selection.entityType, config) : config
+      const readSelection = selectionKey && selection.key === selectionKey
+      const modifiedConfig = readSelection ? _.set('rootEntityType', selection.entityType, config) : config
       this.setState({
         savedConfig: config, modifiedConfig,
         currentSnapRedacted: isRedacted, savedSnapRedacted: isRedacted,
@@ -448,7 +449,7 @@ const WorkflowView = _.flow(
         modifiedInputsOutputs: inputsOutputs,
         snapshotIds,
         errors: isRedacted ? { inputs: {}, outputs: {} } : augmentErrors(validationResponse),
-        entitySelectionModel: this.resetSelectionModel(modifiedConfig.rootEntityType, selection.key === selectionKey ? selection.entities : {}),
+        entitySelectionModel: this.resetSelectionModel(modifiedConfig.rootEntityType, readSelection ? selection.entities : {}),
         workspaceAttributes: _.flow(
           _.without(['description']),
           _.remove(s => s.includes(':'))
