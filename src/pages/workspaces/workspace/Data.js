@@ -449,7 +449,7 @@ class EntitiesContent extends Component {
         attributeNames)
     ])
 
-    const header = _.join('\t', [`${entityKey}_id`, ...attributeNames])
+    const header = _.join('\t', [`entity:${entityKey}_id`, ...attributeNames])
 
     return _.join('\n', [header, ..._.map(entityToRow, entities)]) + '\n'
   }
