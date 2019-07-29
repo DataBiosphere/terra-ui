@@ -401,12 +401,43 @@ const ReferenceDataContent = ({ workspace: { workspace: { namespace, attributes 
   ])
 }
 
-const ToolDrawer = ({openDrawer, onDismiss, selectedEntities}) => {
+const ToolDrawer = ({openDrawer, onDismiss, selectedEntities, showIgvSelector}) => {
+  const [toolMode, setToolMode] = useState()
+
   return h(ModalDrawer, {
     openDrawer,
     onDismiss,
     width: 450
-  })
+  }, [
+    Utils.switchCase(toolMode,
+      [undefined, () => {
+        return h(ButtonPrimary,
+          {onClick: () => setToolMode('IGV')},
+          ['I\'m a button!']
+          )
+      }],
+      ['IGV', h(ModalDrawer, {
+        openDrawer,
+        onDismiss,
+        width: 450
+      },
+        [h(IGVFileSelector, {
+          openDrawer: showIgvSelector,
+          onDismiss: () => this.setState({ showIgvSelector: false }),
+          onSuccess: newIgvData => this.setState({
+            showIgvSelector: false,
+            igvData: newIgvData
+          }),
+          selectedEntities
+        })]
+      )],
+      ['workflow', () => {
+        return h(ButtonPrimary,
+          {onClick: () => setToolMode('workflow')},
+          ['I\'m a workflow button!'])
+      }]
+    )
+  ])
 }
 
 class EntitiesContent extends Component {
@@ -567,7 +598,7 @@ class EntitiesContent extends Component {
       workspace, workspace: { workspace: { namespace, name }, workspaceSubmissionStats: { runningSubmissionsCount } },
       entityKey, entityMetadata, loadMetadata, firstRender
     } = this.props
-    const { selectedEntities, deletingEntities, copyingEntities, refreshKey, showToolSelector, igvData: { selectedFiles, refGenome } } = this.state
+    const { selectedEntities, deletingEntities, copyingEntities, refreshKey, showToolSelector, showIgvSelector, igvData: { selectedFiles, refGenome } } = this.state
 
     const { initialX, initialY } = firstRender ? StateHistory.get() : {}
     return selectedFiles ?
@@ -655,7 +686,8 @@ class EntitiesContent extends Component {
         h(ToolDrawer, {
           openDrawer: showToolSelector,
           onDismiss: () => this.setState({ showToolSelector: false }),
-          selectedEntities
+          selectedEntities,
+          showIgvSelector
         })
       ])
   }
