@@ -337,16 +337,16 @@ const LocalVariablesContent = class LocalVariablesContent extends Component {
         onDismiss: () => this.setState({ deleteIndex: undefined }),
         title: 'Are you sure you wish to delete this variable?',
         okButton: h(ButtonPrimary, {
-            onClick: _.flow(
-              withErrorReporting('Error deleting workspace variable'),
-              Utils.withBusyState(v => this.setState({ saving: v }))
-            )(async () => {
-              this.setState({ deleteIndex: undefined })
-              await Ajax().Workspaces.workspace(namespace, name).deleteAttributes([amendedAttributes[deleteIndex][0]])
-              refreshWorkspace()
-            })
-          },
-          'Delete Variable')
+          onClick: _.flow(
+            withErrorReporting('Error deleting workspace variable'),
+            Utils.withBusyState(v => this.setState({ saving: v }))
+          )(async () => {
+            this.setState({ deleteIndex: undefined })
+            await Ajax().Workspaces.workspace(namespace, name).deleteAttributes([amendedAttributes[deleteIndex][0]])
+            refreshWorkspace()
+          })
+        },
+        'Delete Variable')
       }, ['This will permanently delete the data from Workspace Data.'])
     ])
   }
@@ -401,7 +401,7 @@ const ReferenceDataContent = ({ workspace: { workspace: { namespace, attributes 
   ])
 }
 
-const ToolDrawer = ({openDrawer, onDismiss, selectedEntities, showIgvSelector}) => {
+const ToolDrawer = ({ openDrawer, onDismiss, selectedEntities, showIgvSelector }) => {
   const [toolMode, setToolMode] = useState()
 
   return h(ModalDrawer, {
@@ -409,33 +409,38 @@ const ToolDrawer = ({openDrawer, onDismiss, selectedEntities, showIgvSelector}) 
     onDismiss,
     width: 450
   }, [
-    Utils.switchCase(toolMode,
-      [undefined, () => {
+    Utils.switchCase(toolMode, [
+      undefined, () => {
         return h(ButtonPrimary,
-          {onClick: () => setToolMode('IGV')},
+          { onClick: () => setToolMode('IGV') },
           ['I\'m a button!']
-          )
-      }],
-      ['IGV', h(ModalDrawer, {
+        )
+      }
+    ], [
+      'IGV', () => h(ModalDrawer, {
         openDrawer,
         onDismiss,
         width: 450
       },
-        [h(IGVFileSelector, {
+      [
+        h(IGVFileSelector, {
           openDrawer: showIgvSelector,
-          onDismiss: () => this.setState({ showIgvSelector: false }),
+          onDismiss: setToolMode,
           onSuccess: newIgvData => this.setState({
             showIgvSelector: false,
             igvData: newIgvData
           }),
           selectedEntities
-        })]
-      )],
-      ['workflow', () => {
+        })
+      ]
+      )
+    ], [
+      'workflow', () => {
         return h(ButtonPrimary,
-          {onClick: () => setToolMode('workflow')},
+          { onClick: () => setToolMode('workflow') },
           ['I\'m a workflow button!'])
-      }]
+      }
+    ]
     )
   ])
 }
@@ -674,15 +679,6 @@ class EntitiesContent extends Component {
           selectedDataType: entityKey,
           runningSubmissionsCount
         }),
-        // h(IGVFileSelector, {
-        //   openDrawer: showToolSelector,
-        //   onDismiss: () => this.setState({ showToolSelector: false }),
-        //   onSuccess: newIgvData => this.setState({
-        //     showIgvSelector: false,
-        //     igvData: newIgvData
-        //   }),
-        //   selectedEntities
-        // }),
         h(ToolDrawer, {
           openDrawer: showToolSelector,
           onDismiss: () => this.setState({ showToolSelector: false }),
@@ -1082,37 +1078,37 @@ const WorkspaceData = _.flow(
             ['none', () => div({ style: { textAlign: 'center' } }, ['Select a data type'])],
             [
               'localVariables', () => h(LocalVariablesContent, {
-              workspace,
-              refreshWorkspace,
-              firstRender
-            })
+                workspace,
+                refreshWorkspace,
+                firstRender
+              })
             ],
             [
               'referenceData', () => h(ReferenceDataContent, {
-              key: selectedDataType,
-              workspace,
-              referenceKey: selectedDataType,
-              firstRender
-            })
+                key: selectedDataType,
+                workspace,
+                referenceKey: selectedDataType,
+                firstRender
+              })
             ],
             [
               'bucketObjects', () => h(BucketContent, {
-              workspace,
-              onClose: () => this.setState({ selectedDataType: undefined }),
-              firstRender,
-              refreshKey
-            })
+                workspace,
+                onClose: () => this.setState({ selectedDataType: undefined }),
+                firstRender,
+                refreshKey
+              })
             ],
             [
               'entities', () => h(EntitiesContent, {
-              key: selectedDataType,
-              workspace,
-              entityMetadata,
-              entityKey: selectedDataType,
-              loadMetadata: () => this.loadMetadata(),
-              firstRender,
-              refreshKey
-            })
+                key: selectedDataType,
+                workspace,
+                entityMetadata,
+                entityKey: selectedDataType,
+                loadMetadata: () => this.loadMetadata(),
+                firstRender,
+                refreshKey
+              })
             ]
           )
         ])
