@@ -20,6 +20,7 @@ import Modal from 'src/components/Modal'
 import ModalDrawer from 'src/components/ModalDrawer'
 import { notify } from 'src/components/Notifications'
 import { FlexTable, HeaderCell, SimpleTable, TextCell } from 'src/components/table'
+import TitleBar from 'src/components/TitleBar'
 import UriViewer from 'src/components/UriViewer'
 import { Ajax, ajaxCaller } from 'src/libs/ajax'
 import { getUser } from 'src/libs/auth'
@@ -410,34 +411,36 @@ const ToolDrawer = ({ openDrawer, onDismiss, selectedEntities, showIgvSelector }
     width: 450
   }, [
     Utils.switchCase(toolMode, [
-      undefined, () => {
-        return h(ButtonPrimary,
-          { onClick: () => setToolMode('IGV') },
-          ['I\'m a IGV button!']
-        )
-      }
+      undefined, () => h(Fragment, [
+        h(TitleBar, {
+          title: 'Open with...',
+          onDismiss
+        }),
+        div({ style: { margin: '1rem 2rem' } }, [
+          h(ButtonPrimary,
+            { onClick: () => setToolMode('IGV') },
+            ['I\'m a IGV button!']
+          ),
+          h(ButtonPrimary,
+            { onClick: () => setToolMode('workflow') },
+            ['I\'m a workflow button!']
+          ),
+        ])
+      ])
     ], [
-      'IGV', () => h(ModalDrawer, {
-        openDrawer,
-        onDismiss,
-        width: 450
-      },
-      [
-        h(IGVFileSelector, {
-          openDrawer: showIgvSelector,
-          onDismiss: setToolMode,
-          onSuccess: newIgvData => this.setState({
-            showIgvSelector: false,
-            igvData: newIgvData
-          }),
-          selectedEntities
-        })
-      ]
-      )
+      'IGV', () => h(IGVFileSelector, {
+        openDrawer: showIgvSelector,
+        onDismiss: setToolMode,
+        onSuccess: newIgvData => this.setState({
+          showIgvSelector: false,
+          igvData: newIgvData
+        }),
+        selectedEntities
+      })
     ], [
       'workflow', () => {
         return h(ButtonPrimary,
-          { onClick: () => setToolMode('workflow') },
+          { onClick: () => setToolMode(undefined) },
           ['I\'m a workflow button!'])
       }
     ]
