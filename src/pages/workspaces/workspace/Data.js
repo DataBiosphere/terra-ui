@@ -413,7 +413,7 @@ const ToolDrawer = ({ openDrawer, onDismiss, selectedEntities, showIgvSelector }
       undefined, () => {
         return h(ButtonPrimary,
           { onClick: () => setToolMode('IGV') },
-          ['I\'m a button!']
+          ['I\'m a IGV button!']
         )
       }
     ], [
@@ -527,21 +527,6 @@ class EntitiesContent extends Component {
         'Copy to Clipboard'
       ]),
       copying && spinner()
-    ])
-  }
-
-  renderIgvButton() {
-    const { selectedEntities } = this.state
-
-    return h(Fragment, [
-      h(ButtonPrimary, {
-        style: { marginRight: '1rem' },
-        disabled: _.isEmpty(selectedEntities),
-        tooltip: 'Opens files of the selected data with IGV',
-        onClick: () => this.setState({ showIgvSelector: true })
-      }, [
-        'Open with IGV'
-      ])
     ])
   }
 
