@@ -1,58 +1,34 @@
 import _ from 'lodash/fp'
-import { Children, Component, createRef } from 'react'
+import { Children, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { h } from 'react-hyperscript-helpers'
 import * as Utils from 'src/libs/utils'
 
 
-export const withDynamicPosition = () => WrappedComponent => {
-  const Wrapper = class extends Component {
-    constructor(props) {
-      super(props)
-      this.state = {
-        dimensions: {
-          element: { width: 0, height: 0 },
-          target: { top: 0, bottom: 0, left: 0, right: 0 },
-          viewport: { width: 0, height: 0 }
-        }
-      }
-      this.element = createRef()
+export const useDynamicPosition = selectors => {
+  const pickValues = _.pick(['top', 'bottom', 'left', 'right', 'width', 'height'])
+  const [dimensions, setDimensions] = useState(_.map(({ viewport }) => {
+    return viewport ? { width: 0, height: 0 } : pickValues(new DOMRect())
+  }, selectors))
+  const getDimensions = Utils.useGetter(dimensions)
+  const animation = useRef()
+  const computePosition = () => {
+    const newDimensions = _.map(({ ref, id, viewport }) => {
+      return Utils.cond(
+        [ref, () => pickValues(ref.current.getBoundingClientRect())],
+        [id, () => pickValues(document.getElementById(id).getBoundingClientRect())],
+        [viewport, () => ({ width: window.innerWidth, height: window.innerHeight })]
+      )
+    }, selectors)
+    if (!_.isEqual(newDimensions, getDimensions())) {
+      setDimensions(newDimensions)
     }
-
-    static displayName = `withDynamicPosition()`
-
-    componentDidMount() {
-      this.reposition()
-    }
-
-    componentWillUnmount() {
-      cancelAnimationFrame(this.animation)
-    }
-
-    reposition() {
-      const { target } = this.props
-      const { dimensions } = this.state
-      this.animation = requestAnimationFrame(() => this.reposition())
-      const newDimensions = {
-        element: _.pick(['width', 'height'], this.element.current.getBoundingClientRect()),
-        target: _.pick(['top', 'bottom', 'left', 'right'], document.getElementById(target).getBoundingClientRect()),
-        viewport: { width: window.innerWidth, height: window.innerHeight }
-      }
-      if (!_.isEqual(newDimensions, dimensions)) {
-        this.setState({ dimensions: newDimensions })
-      }
-    }
-
-    render() {
-      const { dimensions } = this.state
-      return h(WrappedComponent, {
-        dimensions,
-        elementRef: this.element,
-        ...this.props
-      })
-    }
+    animation.current = requestAnimationFrame(computePosition)
   }
-  return Wrapper
+  Utils.useOnMount(() => {
+    computePosition()
+    return () => cancelAnimationFrame(animation.current)
+  })
+  return dimensions
 }
 
 export const computePopupPosition = ({ side, viewport, target, element, gap }) => {
