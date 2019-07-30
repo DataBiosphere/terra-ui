@@ -714,7 +714,7 @@ const WorkflowView = _.flow(
       copying && h(ExportWorkflowModal, {
         thisWorkspace: workspace, methodConfig: savedConfig,
         sameWorkspace: true,
-        onDismiss: () => this.setState({ copying: undefined }),
+        onDismiss: () => this.setState({ copying: false }),
         onSuccess: () => Nav.goToPath('workspace-workflows', { namespace, name: workspaceName })
       }),
       deleting && h(DeleteWorkflowModal, {
