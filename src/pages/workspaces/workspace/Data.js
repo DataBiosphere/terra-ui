@@ -1,6 +1,7 @@
 import * as clipboard from 'clipboard-polyfill'
 import FileSaver from 'file-saver'
 import filesize from 'filesize'
+import JSZip from 'jszip'
 import _ from 'lodash/fp'
 import { createRef, Fragment, useState } from 'react'
 import Dropzone from 'react-dropzone'
@@ -348,6 +349,7 @@ class EntitiesContent extends Component {
   renderDownloadButton(columnSettings) {
     const { workspace: { workspace: { namespace, name } }, entityKey } = this.props
     const { selectedEntities } = this.state
+    const isSet = _.endsWith('_set', entityKey)
     return h(Fragment, [
       form({
         ref: this.downloadForm,
@@ -359,17 +361,21 @@ class EntitiesContent extends Component {
         input({ type: 'hidden', name: 'model', value: 'flexible' })
       ]),
       _.isEmpty(selectedEntities) ? h(ButtonPrimary, {
+        style: { marginRight: '1rem' },
         tooltip: 'Download all data as a file',
         onClick: () => this.downloadForm.current.submit()
       }, [
         icon('download', { style: { marginRight: '0.5rem' } }),
         'Download Table TSV'
       ]) : h(ButtonPrimary, {
+        style: { marginRight: '1rem' },
         disabled: _.isEmpty(selectedEntities),
         tooltip: 'Download selected data as a file',
-        onClick: () => {
-          const str = this.buildTSV(columnSettings, selectedEntities)
-          FileSaver.saveAs(new Blob([str], { type: 'text/tab-separated-values' }), `${entityKey}.tsv`)
+        onClick: async () => {
+          const tsv = this.buildTSV(columnSettings, selectedEntities)
+          isSet ?
+            FileSaver.saveAs(await tsv, `${entityKey}.zip`) :
+            FileSaver.saveAs(new Blob([tsv], { type: 'text/tab-separated-values' }), `${entityKey}.tsv`)
         }
       }, [
         icon('download', { style: { marginRight: '0.5rem' } }),
@@ -383,7 +389,7 @@ class EntitiesContent extends Component {
 
     return h(Fragment, [
       h(ButtonPrimary, {
-        style: { margin: '0 1rem' },
+        style: { marginRight: '1rem' },
         tooltip: 'Copy only the current page to the clipboard',
         onClick: _.flow(
           withErrorReporting('Error copying to clipboard'),
@@ -421,8 +427,9 @@ class EntitiesContent extends Component {
     const { selectedEntities } = this.state
 
     const dataExplorerUrl =
-      _.size(selectedEntities) === 1 && _.values(selectedEntities)[0].attributes.data_explorer_url ? _.values(selectedEntities)[0].attributes.data_explorer_url
-        : ''
+      _.size(selectedEntities) === 1 && _.values(selectedEntities)[0].attributes.data_explorer_url ?
+        _.values(selectedEntities)[0].attributes.data_explorer_url :
+        ''
     return h(Fragment, [
       h(ButtonPrimary, {
         // Old cohorts (before mid-Apr 2019) don't have data_explorer_url
@@ -441,17 +448,43 @@ class EntitiesContent extends Component {
 
   buildTSV(columnSettings, entities) {
     const { entityKey } = this.props
-    const attributeNames = _.map('name', _.filter('visible', columnSettings))
+    const sortedEntities = _.sortBy('name', entities)
+    const isSet = _.endsWith('_set', entityKey)
+    const setRoot = entityKey.slice(0, -4)
+    const attributeNames = _.flow(
+      _.filter('visible'),
+      _.map('name'),
+      isSet ? _.without([`${setRoot}s`]) : _.identity
+    )(columnSettings)
 
     const entityToRow = entity => _.join('\t', [
       entity.name, ..._.map(
-        attribute => Utils.entityAttributeText(entity.attributes[attribute]),
+        attribute => Utils.entityAttributeText(entity.attributes[attribute], true),
         attributeNames)
     ])
 
     const header = _.join('\t', [`entity:${entityKey}_id`, ...attributeNames])
 
-    return _.join('\n', [header, ..._.map(entityToRow, entities)]) + '\n'
+    const entityTsv = _.join('\n', [header, ..._.map(entityToRow, sortedEntities)]) + '\n'
+
+    if (isSet) {
+      const entityToMembership = ({ attributes, name }) => _.join('\n', _.map(
+        ({ entityName }) => `${name}\t${entityName}`,
+        attributes[`${setRoot}s`].items
+      ))
+
+      const header = `membership:${entityKey}_id\t${setRoot}`
+
+      const membershipTsv = _.join('\n', [header, ..._.map(entityToMembership, sortedEntities)])
+
+      const zipFile = new JSZip()
+        .file(`${entityKey}_entity.tsv`, entityTsv)
+        .file(`${entityKey}_membership.tsv`, membershipTsv)
+
+      return zipFile.generateAsync({ type: 'blob' })
+    } else {
+      return entityTsv
+    }
   }
 
   render() {
@@ -478,7 +511,7 @@ class EntitiesContent extends Component {
           this.renderOpenInDataExplorerButton()
         ] : [
           this.renderDownloadButton(columnSettings),
-          this.renderCopyButton(entities, columnSettings),
+          !_.endsWith('_set', entityKey) && this.renderCopyButton(entities, columnSettings),
           this.renderIgvButton()
         ])
       }),

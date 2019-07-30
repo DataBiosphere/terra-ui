@@ -186,10 +186,12 @@ export const generateClusterName = () => `saturn-${uuid()}`
 
 export const waitOneTick = () => new Promise(setImmediate)
 
-export const entityAttributeText = value => {
+export const entityAttributeText = (value, machineReadable) => {
   return cond(
     [_.has('entityName', value), () => value.entityName],
-    [_.has('items', value), () => `${value.items.length} items`],
+    [_.has('items', value), () => machineReadable ?
+      JSON.stringify(value.items) :
+      `${value.items.length} ${value.itemsType === 'EntityReference' ? 'entities' : 'items'}`],
     () => value
   )
 }
