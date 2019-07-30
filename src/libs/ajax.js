@@ -733,7 +733,7 @@ const Buckets = signal => ({
     const copy = async (newName, newBucket) => {
       return fetchBuckets(
         `${bucketUrl}/${nbName(name)}/copyTo/b/${newBucket}/o/${nbName(newName)}`,
-        _.merge(authOpts(await saToken(namespace)), { signal, method: 'POST' })
+        _.mergeAll([authOpts(await saToken(namespace)), jsonBody({ metadata: { lastLockedBy: '' } }), { signal, method: 'POST' }])
       )
     }
     const doDelete = async () => {
@@ -750,6 +750,24 @@ const Buckets = signal => ({
       )
       return await res.json()
     }
+
+    const lock = async (lastLockedBy, lockExpiration, generation, metageneration) => {
+      const queryParams = {
+        ifGenerationMatch: generation,
+        ifMetagenerationMatch: metageneration
+      }
+      const res = await fetchBuckets(
+        `${bucketUrl}/${nbName(name)}?${qs.stringify(queryParams)}`,
+        _.mergeAll([authOpts(await User(signal).token(namespace)), jsonBody({
+          metadata: {
+            'x-goog-meta-lastLockedBy': lastLockedBy,
+            'x-goog-meta-lockExpiration': lockExpiration
+          }
+        }), { signal, method: 'PATCH' }])
+      )
+      return await res.json()
+    }
+
     return {
       preview: async () => {
         const nb = await fetchBuckets(
@@ -780,7 +798,9 @@ const Buckets = signal => ({
       rename: async newName => {
         await copy(newName, bucket)
         return doDelete()
-      }
+      },
+
+      lock
     }
   }
 })
@@ -901,7 +921,8 @@ const Jupyter = signal => ({
             combinedExtensions: {}
           },
           scopes: ['https://www.googleapis.com/auth/cloud-platform', 'https://www.googleapis.com/auth/userinfo.email',
-            'https://www.googleapis.com/auth/userinfo.profile']
+            'https://www.googleapis.com/auth/userinfo.profile'],
+          enableWelder: true
         })
         return fetchLeo(`api/cluster/v2/${project}/${name}`, _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'PUT' }, appIdentifier]))
       },
@@ -921,17 +942,37 @@ const Jupyter = signal => ({
   },
 
   notebooks: (project, name) => {
-    const root = `notebooks/${project}/${name}`
+    const root = `proxy/${project}/${name}`
 
     return {
-      localize: files => {
-        return fetchLeo(`${root}/api/localize`,
-          _.mergeAll([authOpts(), jsonBody(files), { signal, method: 'POST' }]))
+
+      localize: entries => {
+        const body = {
+          action: 'localize',
+          entries
+        }
+        return fetchLeo(`${root}/welder/objects`,
+          _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }]))
       },
 
       setCookie: () => {
         return fetchLeo(`${root}/setCookie`,
           _.merge(authOpts(), { signal, credentials: 'include' }))
+      },
+
+      storageLinks: (localBaseDirectory, localSafeModeBaseDirectory, cloudStorageDirectory, pattern) => {
+        return fetchLeo(`${root}/welder/storageLinks`,
+          _.mergeAll([authOpts(), jsonBody({
+            localBaseDirectory,
+            localSafeModeBaseDirectory,
+            cloudStorageDirectory,
+            pattern
+          }), { signal, method: 'POST' }]))
+      },
+
+      lock: localPath => {
+        return fetchLeo(`${root}/welder/objects/lock`,
+          _.mergeAll([authOpts(), jsonBody({ localPath }), { signal, method: 'POST' }]))
       }
     }
   }

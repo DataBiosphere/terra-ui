@@ -6,7 +6,7 @@ import { ButtonPrimary, IdContainer, Select, spinnerOverlay } from 'src/componen
 import { centeredSpinner } from 'src/components/icons'
 import { ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
-import { Ajax } from 'src/libs/ajax'
+import { Ajax, ajaxCaller } from 'src/libs/ajax'
 import { reportError } from 'src/libs/error'
 import { RequiredFormLabel } from 'src/libs/forms'
 import * as Utils from 'src/libs/utils'
@@ -135,15 +135,15 @@ export const NotebookCreator = class NotebookCreator extends Component {
   }
 }
 
-export const NotebookDuplicator = class NotebookDuplicator extends Component {
+export const NotebookDuplicator = ajaxCaller(class NotebookDuplicator extends Component {
   static propTypes = {
     destroyOld: PropTypes.bool,
     printName: PropTypes.string.isRequired,
     namespace: PropTypes.string.isRequired,
     bucketName: PropTypes.string.isRequired,
+    name: PropTypes.string.isRequired,
     onDismiss: PropTypes.func.isRequired,
-    onSuccess: PropTypes.func.isRequired,
-    existingNames: PropTypes.arrayOf(PropTypes.string).isRequired
+    onSuccess: PropTypes.func.isRequired
   }
 
   static defaultProps = {
@@ -152,12 +152,19 @@ export const NotebookDuplicator = class NotebookDuplicator extends Component {
 
   constructor(props) {
     super(props)
-    this.state = { newName: '' }
+    this.state = { newName: '', existingNames: [] }
+  }
+
+  async componentDidMount() {
+    const { ajax: { Buckets }, namespace, bucketName } = this.props
+    const selectedNotebooks = await Buckets.listNotebooks(namespace, bucketName)
+    const existingNames = _.map(({ name }) => name.slice(10, -6), selectedNotebooks)
+    this.setState({ existingNames })
   }
 
   render() {
-    const { destroyOld, printName, namespace, bucketName, onDismiss, onSuccess, existingNames } = this.props
-    const { newName, processing, nameTouched } = this.state
+    const { destroyOld, printName, namespace, bucketName, onDismiss, onSuccess } = this.props
+    const { newName, processing, nameTouched, existingNames } = this.state
 
     const errors = validate(
       { newName },
@@ -200,7 +207,7 @@ export const NotebookDuplicator = class NotebookDuplicator extends Component {
       ]
     ))
   }
-}
+})
 
 export const NotebookDeleter = class NotebookDeleter extends Component {
   static propTypes = {

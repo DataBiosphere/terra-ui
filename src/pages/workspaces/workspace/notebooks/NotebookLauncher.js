@@ -1,15 +1,22 @@
+import * as clipboard from 'clipboard-polyfill'
 import _ from 'lodash/fp'
+import * as qs from 'qs'
 import { forwardRef, Fragment, useRef, useState } from 'react'
-import { div, h, iframe } from 'react-hyperscript-helpers'
+import { div, h, iframe, span } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
 import { NewClusterModal } from 'src/components/ClusterManager'
-import { ButtonOutline, ButtonPrimary, Link } from 'src/components/common'
-import { spinner } from 'src/components/icons'
+import { ButtonPrimary, ButtonSecondary, Clickable, LabeledCheckbox, Link, MenuButton } from 'src/components/common'
+import { icon, spinner } from 'src/components/icons'
+import Modal from 'src/components/Modal'
+import { NotebookDuplicator } from 'src/components/notebook-utils'
 import { notify } from 'src/components/Notifications'
+import PopupTrigger from 'src/components/PopupTrigger'
 import { Ajax, useCancellation } from 'src/libs/ajax'
-import { withErrorReporting } from 'src/libs/error'
+import colors from 'src/libs/colors'
+import { reportError, withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
+import { authStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 import ExportNotebookModal from 'src/pages/workspaces/workspace/notebooks/ExportNotebookModal'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
@@ -32,37 +39,256 @@ const NotebookLauncher = _.flow(
     title: _.get('notebookName'),
     showTabBar: false
   })
-)(({ queryParams = {}, notebookName, workspace, workspace: { accessLevel, canCompute }, cluster, refreshClusters, onRequesterPaysError }, ref) => {
-  return (Utils.canWrite(accessLevel) && canCompute && !queryParams['read-only']) ?
-    h(NotebookEditor, { notebookName, workspace, cluster, refreshClusters }) :
-    h(Fragment, [
-      h(ReadOnlyMessage, { notebookName, workspace }),
-      h(NotebookPreviewFrame, { notebookName, workspace, onRequesterPaysError })
+)(
+  ({ queryParams = {}, notebookName, workspace, workspace: { namespace, name, accessLevel, canCompute }, cluster, refreshClusters, onRequesterPaysError }, ref) => {
+    const [createOpen, setCreateOpen] = useState(false)
+    // Status note: undefined means still loading, null means no cluster
+    const clusterStatus = cluster && cluster.status
+
+    return h(Fragment, [
+      Utils.cond([
+        !(Utils.canWrite(accessLevel) && canCompute), () => h(Fragment, [
+          h(PreviewHeader, { cluster, refreshClusters, notebookName, workspace, readOnlyAccess: true }),
+          h(NotebookPreviewFrame, { notebookName, workspace })
+        ])
+      ], [
+        Utils.canWrite(accessLevel) && canCompute && queryParams['edit'] && clusterStatus === 'Running',
+        () => h(NotebookEditorFrame, { key: cluster.clusterName, workspace, cluster, notebookName, mode: 'Edit' })
+      ], [
+        Utils.canWrite(accessLevel) && canCompute && queryParams['playground'] && clusterStatus === 'Running',
+        () => h(NotebookEditorFrame, { key: cluster.clusterName, workspace, cluster, notebookName, mode: 'Playground' })
+      ],
+      () => h(Fragment, [
+        h(PreviewHeader, { cluster, refreshClusters, notebookName, workspace, readOnlyAccess: false }),
+        h(NotebookPreviewFrame, { notebookName, workspace })
+      ])),
+      createOpen && h(NewClusterModal, {
+        namespace, currentCluster: cluster,
+        onCancel: () => setCreateOpen(false),
+        onSuccess: withErrorReporting('Error creating cluster', async promise => {
+          setCreateOpen(false)
+          await promise
+          await refreshClusters()
+        })
+      })
     ])
-})
+  })
 
-const ReadOnlyMessage = ({ notebookName, workspace, workspace: { canCompute, workspace: { namespace, name } } }) => {
-  const [copying, setCopying] = useState(false)
-
-  return div({ style: { padding: '1rem 2rem', display: 'flex', alignItems: 'center' } }, [
-    div({ style: { fontSize: 16, fontWeight: 'bold', position: 'absolute' } },
-      ['Viewing read-only']),
+const FileInUseModal = ({ onDismiss, onCopy, playgroundActions }) => {
+  return h(Modal, {
+    width: 530,
+    title: 'File Is In Use',
+    onDismiss,
+    showButtons: false
+  }, [
+    `File is currently in use.`,
     div({ style: { flexGrow: 1 } }),
+    'You can make a copy, or run it in Playground Mode to explore and execute its contents without saving any changes.',
+    div({}, [
+      h(ButtonSecondary, {
+        style: { paddingRight: '1rem', paddingLeft: '1rem' },
+        onClick: () => onDismiss()
+      }, ['CANCEL']),
+      h(ButtonSecondary, {
+        style: { paddingRight: '1rem', paddingLeft: '1rem' },
+        onClick: () => onCopy()
+      }, ['MAKE A COPY']),
+      h(ButtonPrimary, {
+        onClick: () => playgroundActions()
+      }, ['RUN IN PLAYGROUND MODE'])
+    ])
+  ])
+}
+
+const PlaygroundModal = ({ onDismiss, playgroundActions }) => {
+  const [userChoice, setUserChoice] = useState(false)
+  return h(Modal, {
+    width: 530,
+    title: 'Playground Mode',
+    onDismiss,
+    okButton: h(ButtonPrimary,
+      {
+        onClick: () => {
+          localStorage.setItem('hidePlaygroundModal', userChoice.toString())
+          playgroundActions()
+        }
+      },
+      'Continue')
+  }, [
+    `Playground mode allows you to explore, change, and run the code, but your edits will not be saved.`,
+    div({ style: { flexGrow: 1 } }),
+    'To save your work, choose Make a Copy from the File menu to make your own version.',
+    h(LabeledCheckbox, {
+      checked: userChoice === true,
+      onChange: v => setUserChoice(v)
+    }, [span({ style: { marginLeft: '0.5rem' } }, ['Do not show again '])])
+  ])
+}
+
+
+const PreviewHeader = ({ cluster, readOnlyAccess, refreshClusters, notebookName, workspace, workspace: { workspace: { namespace, name, bucketName } } }) => {
+  const signal = useCancellation()
+  const { profile: { email } } = Utils.useAtom(authStore)
+  const hidePlaygroundModal = localStorage.getItem('hidePlaygroundModal')
+  const [createOpen, setCreateOpen] = useState(false)
+  const [fileInUseOpen, setFileInUseOpen] = useState(false)
+  const [playgroundModalOpen, setPlaygroundModalOpen] = useState(false)
+  const [locked, setLocked] = useState(false)
+  const [exportingNotebookName, setExportingNotebookName] = useState()
+  const [copyingNotebookName, setCopyingNotebookName] = useState()
+  const clusterStatus = cluster && cluster.status
+  const notebookLink = Nav.getLink('workspace-notebook-launch', { namespace, name, notebookName })
+
+  const hexString = buffer => {
+    const byteArray = new Uint8Array(buffer)
+    return [...byteArray].map(value => value.toString(16).padStart(2, '0')).join('')
+  }
+
+  const digestMessage = message => {
+    const encoder = new TextEncoder()
+    const data = encoder.encode(message)
+    return window.crypto.subtle.digest('SHA-256', data)
+  }
+
+  const checkIfLocked = withErrorReporting('Error checking notebook lock status', async () => {
+    const { metadata: { lastLockedBy, lockExpiresAt } } = await Ajax(signal).Buckets.notebook(namespace, bucketName, notebookName.slice(0, -6)).getObject()
+    const hashedUser = await digestMessage(`${bucketName}:${email}`).then(digestValue => {
+      return hexString(digestValue)
+    })
+    const lockExpirationDate = new Date(parseInt(lockExpiresAt))
+
+    if (lastLockedBy && lastLockedBy !== hashedUser && lockExpirationDate > Date.now()) {
+      setLocked(true)
+    }
+  })
+
+  Utils.useOnMount(() => { checkIfLocked() })
+
+  const clusterActions = async (mode, clusterStatus) => {
+    const choosePlaygroundMode = () => Nav.history.push({
+      pathname: Nav.getPath('workspace-notebook-launch', { namespace, name, notebookName }),
+      search: '?' + qs.stringify({ playground: 'true' })
+    })
+    const chooseEditMode = () => Nav.history.push({
+      pathname: Nav.getPath('workspace-notebook-launch', { namespace, name, notebookName }),
+      search: '?' + qs.stringify({ edit: 'true' })
+    })
+    if (mode === 'playground') {
+      choosePlaygroundMode()
+    } else {
+      chooseEditMode()
+    }
+    if (clusterStatus === 'Stopped') {
+      await Ajax().Jupyter.cluster(namespace, cluster.clusterName).start()
+      await refreshClusters()
+    } else if (clusterStatus === null) {
+      setCreateOpen(true)
+    }
+  }
+
+  return div({ style: { display: 'flex', alignItems: 'center', borderBottom: `2px solid ${colors.dark(0.2)}` } }, [
+    div({ style: { fontSize: 18, fontWeight: 'bold', backgroundColor: colors.dark(0.2), paddingRight: '4rem', paddingLeft: '4rem', height: '100%', display: 'flex', alignItems: 'center' } },
+      ['PREVIEW (READ-ONLY)']),
     Utils.cond(
-      [!canCompute, () => h(ButtonOutline, { onClick: () => setCopying(true) }, ['copy to another workspace to edit'])],
-      () => h(ButtonOutline, {
-        as: 'a', href: Nav.getLink('workspace-notebook-launch', { namespace, name, notebookName })
-      }, ['edit in Jupyter'])
+      [
+        !readOnlyAccess && clusterStatus === 'Creating', () => h(StatusMessage, { showSpinner: true }, [
+          'Creating notebook runtime environment, this will take 5-10 minutes. You can navigate away and return when it’s ready.'
+        ])
+      ],
+      [
+        !readOnlyAccess && clusterStatus === 'Starting', () => h(StatusMessage, { showSpinner: true }, [
+          'Starting notebook runtime environment, this may take up to 2 minutes.'
+        ])
+      ],
+      [
+        !readOnlyAccess && clusterStatus === 'Stopping', () => h(StatusMessage, { showSpinner: true }, [
+          'Notebook runtime environment is stopping. You can restart it after it finishes.'
+        ])
+      ],
+      [!readOnlyAccess && clusterStatus === 'Error', () => h(StatusMessage, ['Notebook runtime error.'])],
+      [
+        !readOnlyAccess && (clusterStatus === 'Running' || clusterStatus === 'Stopped' || clusterStatus === null),
+        () => h(Fragment, [
+          locked ? h(ButtonSecondary, {
+            style: { paddingRight: '1rem', paddingLeft: '1rem', paddingTop: '1rem', paddingBottom: '1rem', backgroundColor: colors.dark(0.1), height: '100%', marginRight: '2px' },
+            onClick: () => setFileInUseOpen(true)
+          }, [icon('lock', { style: { paddingRight: '3px' } }), 'EDIT (IN USE)']) : h(ButtonSecondary, {
+            style: { paddingRight: '1rem', paddingLeft: '1rem', paddingTop: '1rem', paddingBottom: '1rem', backgroundColor: colors.dark(0.1), height: '100%', marginRight: '2px' },
+            onClick: () => clusterActions('edit', clusterStatus)
+          }, [icon('edit', { style: { paddingRight: '3px' } }), 'EDIT']),
+          h(ButtonSecondary, {
+            style: { paddingRight: '1rem', paddingLeft: '1rem', backgroundColor: colors.dark(0.1), height: '100%', marginRight: '2px' },
+            onClick: () => {
+              hidePlaygroundModal === 'true' ? clusterActions('playground', clusterStatus) : setPlaygroundModalOpen(true)
+            }
+          }, [icon('chalkboard', { style: { paddingRight: '3px' } }), 'PLAYGROUND MODE']),
+          h(ButtonSecondary, {
+            style: { paddingRight: '1rem', paddingLeft: '1rem', backgroundColor: colors.dark(0.1), height: '100%' }
+          }, [
+            h(PopupTrigger, {
+              closeOnClick: true,
+              content: h(Fragment, [
+                h(MenuButton, { onClick: () => setCopyingNotebookName(notebookName) }, ['Make a Copy']),
+                h(MenuButton, { onClick: () => setExportingNotebookName(notebookName) }, ['Copy to another workspace']),
+                h(MenuButton, {
+                  onClick: async () => {
+                    try {
+                      await clipboard.writeText(`${window.location.host}/${notebookLink}`)
+                      notify('success', 'Successfully copied URL to clipboard', { timeout: 3000 })
+                    } catch (error) {
+                      reportError('Error copying to clipboard', error)
+                    }
+                  }
+                }, ['Copy URL to clipboard'])
+              ]),
+              side: 'bottom'
+            }, [
+              h(Clickable, {}, [icon('ellipsis-v', {})])
+            ])
+          ])
+        ])
+      ]
     ),
     div({ style: { flexGrow: 1 } }),
-    copying && h(ExportNotebookModal, {
-      printName: notebookName.slice(0, -6), workspace, fromLauncher: true,
-      onDismiss: () => setCopying(false)
+    Link({
+      style: { marginRight: '2rem' },
+      href: Nav.getLink('workspace-notebooks', { namespace, name })
+    }, [icon('times', { size: 30 })]),
+    createOpen && h(NewClusterModal, {
+      namespace, currentCluster: cluster,
+      onCancel: () => setCreateOpen(false),
+      onSuccess: withErrorReporting('Error creating cluster', async promise => {
+        setCreateOpen(false)
+        await promise
+        await refreshClusters()
+      })
+    }),
+    fileInUseOpen && h(FileInUseModal, {
+      onDismiss: () => setFileInUseOpen(false),
+      onCopy: () => setCopyingNotebookName(notebookName),
+      playgroundActions: () => clusterActions('playground', clusterStatus)
+    }),
+    copyingNotebookName && h(NotebookDuplicator, {
+      printName: copyingNotebookName.slice(0, -6),
+      name, namespace, bucketName, destroyOld: false,
+      onDismiss: () => setCopyingNotebookName(undefined),
+      onSuccess: () => setCopyingNotebookName(undefined)
+    }),
+    exportingNotebookName && h(ExportNotebookModal, {
+      printName: exportingNotebookName.slice(0, -6), workspace,
+      onDismiss: () => setExportingNotebookName(undefined)
+    }),
+    playgroundModalOpen && h(PlaygroundModal, {
+      onDismiss: () => setPlaygroundModalOpen(false),
+      playgroundActions: () => {
+        setPlaygroundModalOpen(false)
+        clusterActions('playground', clusterStatus)
+      }
     })
   ])
 }
 
-const NotebookPreviewFrame = ({ notebookName, workspace: { workspace: { namespace, name, bucketName } }, onRequesterPaysError }) => {
+const NotebookPreviewFrame = ({ notebookName, workspace: { workspace: { namespace, bucketName } }, onRequesterPaysError }) => {
   const signal = useCancellation()
   const [busy, setBusy] = useState(false)
   const [preview, setPreview] = useState()
@@ -81,12 +307,6 @@ const NotebookPreviewFrame = ({ notebookName, workspace: { workspace: { namespac
 
   return h(Fragment, [
     preview && h(Fragment, [
-      div({ style: { position: 'relative' } }, [
-        h(ButtonPrimary, {
-          style: { position: 'absolute', top: 20, left: 'calc(50% + 580px)' },
-          onClick: () => Nav.goToPath('workspace-notebooks', { namespace, name })
-        }, ['Close'])
-      ]),
       iframe({
         ref: frame,
         onLoad: () => {
@@ -140,25 +360,46 @@ const JupyterFrameManager = ({ onClose, frameRef }) => {
   return null
 }
 
-const NotebookEditorFrame = ({ notebookName, workspace: { workspace: { namespace, name, bucketName } }, cluster: { clusterName, clusterUrl, status } }) => {
+const NotebookEditorFrame = ({ mode, notebookName, workspace: { workspace: { namespace, name, bucketName } }, cluster: { clusterName, clusterUrl, status } }) => {
   console.assert(status === 'Running', 'Expected cluster to be running')
   const signal = useCancellation()
   const frameRef = useRef()
   const [busy, setBusy] = useState(false)
-  const [localized, setLocalized] = useState(false)
-  const localizeNotebook = _.flow(
+  const [notebookSetUp, setNotebookSetUp] = useState(false)
+
+  const localBaseDirectory = `${name}/edit`
+  const localSafeModeBaseDirectory = `${name}/safe`
+  const cloudStorageDirectory = `gs://${bucketName}/notebooks`
+
+  const setUpNotebook = _.flow(
     Utils.withBusyState(setBusy),
-    withErrorReporting('Error copying notebook')
-  )(async () => {
-    await Promise.all([
-      Ajax(signal).Jupyter.notebooks(namespace, clusterName).localize({
-        [`~/${name}/.delocalize.json`]: `data:application/json,{"destination":"gs://${bucketName}/notebooks","pattern":""}`,
-        [`~/${name}/${notebookName}`]: `gs://${bucketName}/notebooks/${notebookName}`
-      }),
-      Ajax(signal).Jupyter.notebooks(namespace, clusterName).setCookie()
-    ])
-    setLocalized(true)
+    withErrorReporting('Error setting up notebook')
+  )(() => {
+    if (mode === 'Edit') {
+      console.log('Setting up notebook to edit')
+      Promise.all([
+        Ajax(signal).Jupyter.notebooks(namespace, clusterName).storageLinks(localBaseDirectory, localSafeModeBaseDirectory, cloudStorageDirectory, `.*\\.ipynb`),
+        Ajax(signal).Jupyter.notebooks(namespace, clusterName).lock(`${localBaseDirectory}/${notebookName}`),
+        Ajax(signal).Jupyter.notebooks(namespace, clusterName).localize([{
+          sourceUri: `${cloudStorageDirectory}/${notebookName}`,
+          localDestinationPath: `${localBaseDirectory}/${notebookName}`
+        }]),
+        Ajax(signal).Jupyter.notebooks(namespace, clusterName).setCookie()
+      ])
+    } else {
+      console.log('Setting up notebook for playground mode')
+      Promise.all([
+        Ajax(signal).Jupyter.notebooks(namespace, clusterName).storageLinks(localBaseDirectory, localSafeModeBaseDirectory, cloudStorageDirectory, `.*\\.ipynb`),
+        Ajax(signal).Jupyter.notebooks(namespace, clusterName).localize([{
+          sourceUri: `${cloudStorageDirectory}/${notebookName}`,
+          localDestinationPath: `${localSafeModeBaseDirectory}/${notebookName}`
+        }]),
+        Ajax(signal).Jupyter.notebooks(namespace, clusterName).setCookie()
+      ])
+    }
+    setNotebookSetUp(true)
   })
+
   const checkRecentAccess = async () => {
     const { updated } = await Ajax(signal).Buckets.notebook(namespace, bucketName, notebookName.slice(0, -6)).getObject()
     const tenMinutesAgo = _.tap(d => d.setMinutes(d.getMinutes() - 10), new Date())
@@ -170,13 +411,13 @@ const NotebookEditorFrame = ({ notebookName, workspace: { workspace: { namespace
     }
   }
   Utils.useOnMount(() => {
-    localizeNotebook()
+    setUpNotebook()
     checkRecentAccess()
   })
   return h(Fragment, [
-    localized && h(Fragment, [
+    notebookSetUp && h(Fragment, [
       iframe({
-        src: `${clusterUrl}/notebooks/${name}/${notebookName}`,
+        src: `${clusterUrl}/notebooks/${name}/edit/${notebookName}`,
         style: { border: 'none', flex: 1 },
         ref: frameRef
       }),
@@ -188,72 +429,6 @@ const NotebookEditorFrame = ({ notebookName, workspace: { workspace: { namespace
     busy && h(StatusMessage, { showSpinner: true }, ['Copying notebook to runtime environment, almost ready...'])
   ])
 }
-
-const NotebookEditor = ({ notebookName, workspace, workspace: { workspace: { namespace } }, cluster, refreshClusters }) => {
-  const signal = useCancellation()
-  const [createOpen, setCreateOpen] = useState(false)
-  const [startingCluster, setStartingCluster] = useState(false)
-  // Status note: undefined means still loading, null means no cluster
-  const clusterStatus = cluster && cluster.status
-  const getCluster = Utils.useGetter(cluster)
-  const startClusterOnce = _.flow(
-    Utils.withBusyState(setStartingCluster),
-    withErrorReporting('Error starting cluster')
-  )(async () => {
-    while (!signal.aborted) {
-      const currentCluster = getCluster()
-      const currentStatus = currentCluster && currentCluster.status
-      if (currentStatus === 'Stopped') {
-        await Ajax().Jupyter.cluster(namespace, currentCluster.clusterName).start()
-        await refreshClusters()
-        return
-      } else if (currentStatus === undefined || currentStatus === 'Stopping') {
-        await Utils.delay(500)
-        continue
-      } else {
-        return
-      }
-    }
-  })
-  Utils.useOnMount(() => {
-    startClusterOnce()
-  })
-  return h(Fragment, [
-    Utils.switchCase(clusterStatus,
-      ['Creating', () => h(StatusMessage, { showSpinner: true }, [
-        'Creating notebook runtime environment, this will take 5-10 minutes. You can navigate away and return when it’s ready.'
-      ])],
-      ['Starting', () => h(StatusMessage, { showSpinner: true }, [
-        'Starting notebook runtime environment, this may take up to 2 minutes.'
-      ])],
-      ['Stopping', () => h(StatusMessage, { showSpinner: true }, [
-        'Notebook runtime environment is stopping. ',
-        startingCluster ? 'It will be restarted after it finishes.' : 'You can restart it after it finishes.'
-      ])],
-      ['Stopped', () => startingCluster ?
-        h(StatusMessage, { showSpinner: true }, ['Starting notebook runtime environment...']) :
-        h(StatusMessage, ['Notebook runtime environment is stopped. Start it to edit your notebook.'])],
-      ['Running', () => h(NotebookEditorFrame, { key: cluster.clusterName, workspace, cluster, notebookName })],
-      ['Error', () => h(StatusMessage, ['Notebook runtime error.'])],
-      [null, () => h(StatusMessage, [
-        'You need a notebook runtime environment. ',
-        h(Link, { onClick: () => setCreateOpen(true) }, ['Create one']),
-        ' to get started.'
-      ])]
-    ),
-    !_.includes(clusterStatus, ['Running', undefined]) && h(NotebookPreviewFrame, { notebookName, workspace }),
-    createOpen && h(NewClusterModal, {
-      namespace, currentCluster: cluster,
-      onCancel: () => setCreateOpen(false),
-      onSuccess: withErrorReporting('Error creating cluster', async promise => {
-        setCreateOpen(false)
-        await promise
-        await refreshClusters()
-      })
-    })
-  ])
-}
-
 
 export const navPaths = [
   {
