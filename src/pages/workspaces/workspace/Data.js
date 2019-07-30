@@ -113,6 +113,7 @@ const LocalVariablesContent = class LocalVariablesContent extends Component {
 
     const inputErrors = editIndex && [
       ...(_.keys(_.unset(amendedAttributes[editIndex][0], attributes)).includes(editKey) ? ['Key must be unique'] : []),
+      ...(!/^[\w-]*$/.test(editKey) ? ['Key can only contain letters, numbers, underscores, and dashes'] : []),
       ...(!editKey ? ['Key is required'] : []),
       ...(!editValue ? ['Value is required'] : []),
       ...(editValue && editType === 'number' && Utils.cantBeNumber(editValue) ? ['Value is not a number'] : []),
@@ -124,7 +125,7 @@ const LocalVariablesContent = class LocalVariablesContent extends Component {
       const isList = editType.includes('list')
       const newBaseType = isList ? editType.slice(0, -5) : editType
 
-      const parsedValue = isList ? _.map(Utils.convertValue(newBaseType), editValue.split(/,s*/)) :
+      const parsedValue = isList ? _.map(Utils.convertValue(newBaseType), editValue.split(/,\s*/)) :
         Utils.convertValue(newBaseType, editValue)
 
       this.setState({ saving: true })
@@ -259,7 +260,7 @@ const LocalVariablesContent = class LocalVariablesContent extends Component {
           ])
         ])
       ),
-      !creatingNewVariable && !Utils.editWorkspaceError(workspace) && h(FloatingActionButton, {
+      !creatingNewVariable && editIndex === undefined && !Utils.editWorkspaceError(workspace) && h(FloatingActionButton, {
         label: 'ADD VARIABLE',
         iconShape: 'plus',
         onClick: () => this.setState({
@@ -484,7 +485,7 @@ class EntitiesContent extends Component {
       !_.isEmpty(selectedEntities) && h(FloatingActionButton, {
         label: 'COPY DATA',
         iconShape: 'copy',
-        bottom: 100,
+        bottom: 80,
         onClick: () => this.setState({ copyingEntities: true })
       }),
       !_.isEmpty(selectedEntities) && !Utils.editWorkspaceError(workspace) && h(FloatingActionButton, {
