@@ -179,7 +179,6 @@ const JobHistory = _.flow(
                   const { failed, running, submitted } = collapsedStatuses(workflowStatuses)
 
                   return h(Clickable, {
-                    as: 'a',
                     hover: {
                       backgroundColor: Utils.cond([!!failed, colors.danger(0.2)], [!!running || !!submitted, colors.accent(0.2)], colors.success(0.2))
                     },

@@ -25,10 +25,11 @@ const styles = {
   }
 }
 
-export const Clickable = ({ as = 'div', disabled, tooltip, tooltipSide, onClick, children, ...props }) => {
+export const Clickable = ({ href, as = (!!href ? 'a' : 'div'), disabled, tooltip, tooltipSide, onClick, children, ...props }) => {
   const child = h(Interactive, {
     as, disabled,
     onClick: (...args) => onClick && !disabled && onClick(...args),
+    href: !disabled ? href : undefined,
     ...props
   }, [children])
 
@@ -39,24 +40,15 @@ export const Clickable = ({ as = 'div', disabled, tooltip, tooltipSide, onClick,
   }
 }
 
-const linkProps = ({ disabled, variant }) => ({
-  as: 'a',
-  style: {
-    color: disabled ? colors.dark(0.7) : colors.accent(variant === 'light' ? 0.3 : 1),
-    cursor: disabled ? 'not-allowed' : 'pointer',
-    fontWeight: 500
-  },
-  hover: disabled ? undefined : { color: colors.accent(variant === 'light' ? 0.1 : 0.8) }
-})
-
-export const Link = ({ onClick, href, disabled, variant, children, ...props }) => {
+export const Link = ({ disabled, variant, children, ...props }) => {
   return h(Clickable, _.merge({
-    ...linkProps({ disabled, variant }),
-    href, disabled,
-    onClick: href && onClick ? e => {
-      e.preventDefault()
-      onClick(e)
-    } : onClick
+    style: {
+      color: disabled ? colors.dark(0.7) : colors.accent(variant === 'light' ? 0.3 : 1),
+      cursor: disabled ? 'not-allowed' : 'pointer',
+      fontWeight: 500, display: 'inline'
+    },
+    hover: disabled ? undefined : { color: colors.accent(variant === 'light' ? 0.1 : 0.8) },
+    disabled
   }, props), [children])
 }
 
@@ -120,8 +112,7 @@ export const TabBar = ({ activeTab, tabNames, refresh = _.noop, getHref, childre
     const href = getHref(currentTab)
 
     return h(Fragment, [
-      h(Interactive, {
-        as: 'a',
+      h(Clickable, {
         style: { ...Style.tabBar.tab, ...(selected ? Style.tabBar.active : {}) },
         hover: selected ? {} : Style.tabBar.hover,
         onClick: href === window.location.hash ? refresh : undefined,

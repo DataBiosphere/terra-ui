@@ -82,14 +82,12 @@ class NotebookCard extends Component {
       closeOnClick: true,
       content: h(Fragment, [
         h(MenuButton, {
-          as: 'a',
           href: notebookLink,
           disabled: !canWrite,
           tooltip: !canWrite && noWrite,
           tooltipSide: 'left'
         }, [makeMenuIcon('edit'), 'Open']),
         h(MenuButton, {
-          as: 'a',
           href: notebookReadOnlyLink,
           tooltip: canWrite && 'Open without runtime',
           tooltipSide: 'left'
@@ -127,14 +125,7 @@ class NotebookCard extends Component {
         }, [makeMenuIcon('trash'), 'Delete'])
       ])
     }, [
-      h(Clickable, {
-        onClick: e => e.preventDefault(),
-        style: {
-          cursor: 'pointer', color: colors.accent()
-        },
-        focus: 'hover',
-        hover: { color: colors.accent(0.85) }
-      }, [
+      h(Link, { onClick: e => e.preventDefault() }, [
         icon('cardMenuIcon', {
           size: listView ? 18 : 24
         })

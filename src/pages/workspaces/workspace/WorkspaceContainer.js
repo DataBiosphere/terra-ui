@@ -147,7 +147,6 @@ const WorkspaceAccessError = () => {
     ]),
     p(['If you think the workspace exists but you do not have access, please contact the workspace owner.']),
     h(ButtonPrimary, {
-      as: 'a',
       href: Nav.getLink('workspaces')
     }, ['Return to Workspace List'])
   ])
