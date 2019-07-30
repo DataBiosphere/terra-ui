@@ -260,7 +260,7 @@ const LocalVariablesContent = class LocalVariablesContent extends Component {
           ])
         ])
       ),
-      !creatingNewVariable && !editIndex && !Utils.editWorkspaceError(workspace) && h(FloatingActionButton, {
+      !creatingNewVariable && editIndex === undefined && !Utils.editWorkspaceError(workspace) && h(FloatingActionButton, {
         label: 'ADD VARIABLE',
         iconShape: 'plus',
         onClick: () => this.setState({
