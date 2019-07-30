@@ -4,11 +4,13 @@ import filesize from 'filesize'
 import _ from 'lodash/fp'
 import { createRef, Fragment, useState } from 'react'
 import Dropzone from 'react-dropzone'
-import { div, form, h, input } from 'react-hyperscript-helpers'
+import { div, form, h, img, input } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
-import { ButtonPrimary, Clickable, Link, Select, spinnerOverlay } from 'src/components/common'
+import {
+  ButtonInModal, ButtonOutline, ButtonPrimary, ButtonSecondary, Clickable, Link, makeIconButton, Select, spinnerOverlay
+} from 'src/components/common'
 import DataTable from 'src/components/DataTable'
 import ExportDataModal from 'src/components/ExportDataModal'
 import FloatingActionButton from 'src/components/FloatingActionButton'
@@ -22,6 +24,7 @@ import { notify } from 'src/components/Notifications'
 import { FlexTable, HeaderCell, SimpleTable, TextCell } from 'src/components/table'
 import TitleBar from 'src/components/TitleBar'
 import UriViewer from 'src/components/UriViewer'
+import igvLogo from 'src/images/igv-logo.png'
 import { Ajax, ajaxCaller } from 'src/libs/ajax'
 import { getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
@@ -417,14 +420,26 @@ const ToolDrawer = ({ openDrawer, onDismiss, selectedEntities, showIgvSelector }
           onDismiss
         }),
         div({ style: { margin: '1rem 2rem' } }, [
-          h(ButtonPrimary,
+          h(ButtonInModal,
             { onClick: () => setToolMode('IGV') },
-            ['I\'m a IGV button!']
+            [
+              img({
+                src: igvLogo,
+                style: {
+                  height: '2rem',
+                  marginRight: '1rem'
+                }
+              }),
+              'IGV'
+            ]
           ),
-          h(ButtonPrimary,
-            { onClick: () => setToolMode('workflow') },
-            ['I\'m a workflow button!']
-          ),
+          h(ButtonInModal,
+            {
+              tooltip: 'Feature coming soon!',
+              style: { marginTop: '0.5rem' }
+            },
+            ['Workflow']
+          )
         ])
       ])
     ], [
@@ -437,14 +452,7 @@ const ToolDrawer = ({ openDrawer, onDismiss, selectedEntities, showIgvSelector }
         }),
         selectedEntities
       })
-    ], [
-      'workflow', () => {
-        return h(ButtonPrimary,
-          { onClick: () => setToolMode(undefined) },
-          ['I\'m a workflow button!'])
-      }
-    ]
-    )
+    ])
   ])
 }
 
