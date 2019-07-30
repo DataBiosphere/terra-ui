@@ -152,38 +152,6 @@ const WorkspaceAccessError = () => {
   ])
 }
 
-const checkBucketAccess = withErrorReporting('Error checking bucket access', async (signal, namespace, name) => {
-  try {
-    await Ajax(signal).Workspaces.workspace(namespace, name).checkBucketReadAccess()
-    return true
-  } catch (error) {
-    if (error.status === 403) {
-      const notificationId = 'bucket-access-unavailable'
-
-      notify('error', div([
-        'The Google Bucket associated with this workspace is currently unavailable. This should be resolved shortly.',
-        div({ style: { margin: '0.5rem' } }),
-        'If this persists for more than an hour, please ',
-        h(Link, {
-          onClick: () => {
-            contactUsActive.set(true)
-            clearNotification(notificationId)
-          },
-          style: { color: 'white' },
-          hover: {
-            color: 'white',
-            textDecoration: 'underline'
-          }
-        }, ['contact us', icon('pop-out', { size: 10, style: { marginLeft: '0.25rem' } })]),
-        ' for assistance.'
-      ]), { id: notificationId })
-    } else {
-      throw error
-    }
-    return false
-  }
-})
-
 
 export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, showTabBar = true, queryparams }) => WrappedComponent => {
   const Wrapper = props => {
