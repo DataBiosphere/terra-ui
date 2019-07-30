@@ -9,7 +9,7 @@ import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
 import { clearNotification, notify } from 'src/components/Notifications'
 import PopupTrigger from 'src/components/PopupTrigger'
 import TopBar from 'src/components/TopBar'
-import { Ajax, useCancellation } from 'src/libs/ajax'
+import { Ajax, saToken, useCancellation } from 'src/libs/ajax'
 import { getUser } from 'src/libs/auth'
 import { currentCluster } from 'src/libs/cluster-utils'
 import colors from 'src/libs/colors'
@@ -208,10 +208,19 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
     )(async () => {
       try {
         const workspace = await Ajax(signal).Workspaces.workspace(namespace, name).details()
-        const res = await checkBucketAccess(signal, namespace, name)
-        workspaceStore.set({ hasBucketAccess: res, ...workspace })
+        workspaceStore.set(workspace)
 
         const { accessLevel, workspace: { createdBy, createdDate } } = workspace
+
+        // Request a service account token. If this is the first time, it could take some time before everything is in sync.
+        // Doing this now, even though we don't explicitly need it now, increases the likelihood that it will be ready when it is needed.
+        if (Utils.canWrite(accessLevel)) {
+          saToken(namespace)
+        } else {
+          // Request a "default" service account token to prevent proliferation of service accounts in public workspaces
+          saToken()
+        }
+
         if (!Utils.isOwner(accessLevel) && (createdBy === getUser().email) && (differenceInSeconds(new Date(createdDate), new Date()) < 60)) {
           accessNotificationId.current = notify('info', 'Workspace access synchronizing', {
             message: h(Fragment, [

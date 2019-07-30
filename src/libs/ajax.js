@@ -117,7 +117,9 @@ const dockstoreMethodPath = path => `api/ga4gh/v1/tools/%23workflow%2F${encodeUR
 const getServiceAccountToken = Utils.memoizeAsync(async (namespace, token) => {
   const scopes = ['https://www.googleapis.com/auth/devstorage.full_control']
   const res = await fetchSam(
-    `api/google/user/petServiceAccount/${namespace}/token`,
+    namespace ?
+      `api/google/user/petServiceAccount/${namespace}/token` :
+      'api/google/user/petServiceAccount/token',
     _.mergeAll([authOpts(token), jsonBody(scopes), { method: 'POST' }])
   )
   return res.json()
