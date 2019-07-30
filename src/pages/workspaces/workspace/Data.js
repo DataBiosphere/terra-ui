@@ -485,7 +485,7 @@ class EntitiesContent extends Component {
       !_.isEmpty(selectedEntities) && h(FloatingActionButton, {
         label: 'COPY DATA',
         iconShape: 'copy',
-        bottom: 100,
+        bottom: 80,
         onClick: () => this.setState({ copyingEntities: true })
       }),
       !_.isEmpty(selectedEntities) && !Utils.editWorkspaceError(workspace) && h(FloatingActionButton, {
