@@ -17,8 +17,8 @@ export default class FloatingActionButton extends Component {
   }
 
   static defaultProps = {
-    bottom: 50,
-    right: 50
+    bottom: 30,
+    right: 30
   }
 
   render() {
