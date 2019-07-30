@@ -51,7 +51,7 @@ const ReadOnlyMessage = ({ notebookName, workspace, workspace: { canCompute, wor
     Utils.cond(
       [!canCompute, () => h(ButtonOutline, { onClick: () => setCopying(true) }, ['copy to another workspace to edit'])],
       () => h(ButtonOutline, {
-        as: 'a', href: Nav.getLink('workspace-notebook-launch', { namespace, name, notebookName })
+        href: Nav.getLink('workspace-notebook-launch', { namespace, name, notebookName })
       }, ['edit in Jupyter'])
     ),
     div({ style: { flexGrow: 1 } }),
