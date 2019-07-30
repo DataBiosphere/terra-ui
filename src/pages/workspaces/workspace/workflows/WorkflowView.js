@@ -533,7 +533,7 @@ const WorkflowView = _.flow(
   renderSummary() {
     const { workspace: ws, workspace: { workspace }, namespace, name: workspaceName } = this.props
     const {
-      modifiedConfig, savedConfig, saving, saved, copying, deleting, selectingData, activeTab, errors, synopsis, documentation,
+      modifiedConfig, savedConfig, saving, saved, exporting, copying, deleting, selectingData, activeTab, errors, synopsis, documentation,
       selectedEntityType, entityMetadata, entitySelectionModel, snapshotIds = [], useCallCache, currentSnapRedacted, savedSnapRedacted
     } = this.state
     const { name, methodRepoMethod: { methodPath, methodVersion, methodNamespace, methodName, sourceRepo }, rootEntityType } = modifiedConfig
@@ -563,8 +563,11 @@ const WorkflowView = _.flow(
                 closeOnClick: true,
                 content: h(Fragment, [
                   h(MenuButton, {
+                    onClick: () => this.setState({ exporting: true })
+                  }, [makeMenuIcon('export'), 'Copy to Another Workspace']),
+                  h(MenuButton, {
                     onClick: () => this.setState({ copying: true })
-                  }, [makeMenuIcon('copy'), 'Copy to Another Workspace']),
+                  }, [makeMenuIcon('copy'), 'Duplicate']),
                   h(MenuButton, {
                     disabled: !!Utils.editWorkspaceError(ws),
                     tooltip: Utils.editWorkspaceError(ws),
@@ -704,9 +707,15 @@ const WorkflowView = _.flow(
         modified && h(ButtonPrimary, { disabled: saving || !this.canSave(), onClick: () => this.save() }, 'Save'),
         modified && h(ButtonSecondary, { style: { marginLeft: '1rem' }, disabled: saving, onClick: () => this.cancel() }, 'Cancel')
       ]),
+      exporting && h(ExportWorkflowModal, {
+        thisWorkspace: workspace, methodConfig: savedConfig,
+        onDismiss: () => this.setState({ exporting: false })
+      }),
       copying && h(ExportWorkflowModal, {
         thisWorkspace: workspace, methodConfig: savedConfig,
-        onDismiss: () => this.setState({ copying: false })
+        sameWorkspace: true,
+        onDismiss: () => this.setState({ copying: undefined }),
+        onSuccess: () => Nav.goToPath('workspace-workflows', { namespace, name: workspaceName })
       }),
       deleting && h(DeleteWorkflowModal, {
         workspace, methodConfig: savedConfig,
