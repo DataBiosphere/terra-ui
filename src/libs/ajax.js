@@ -114,6 +114,10 @@ const nbName = name => encodeURIComponent(`notebooks/${name}.ipynb`)
 // %23 = '#', %2F = '/'
 const dockstoreMethodPath = path => `api/ga4gh/v1/tools/%23workflow%2F${encodeURIComponent(path)}/versions`
 
+/**
+ * Only use this if the user has write access to the workspace to avoid proliferation of service accounts in projects containing public workspaces.
+ * If we want to fetch a SA token for read access, we must use a "default" SA instead (api/google/user/petServiceAccount/token).
+ */
 const getServiceAccountToken = Utils.memoizeAsync(async (namespace, token) => {
   const scopes = ['https://www.googleapis.com/auth/devstorage.full_control']
   const res = await fetchSam(

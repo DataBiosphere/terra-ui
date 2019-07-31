@@ -8,9 +8,7 @@ import { div, form, h, img, input } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
-import {
-  ButtonInModal, ButtonOutline, ButtonPrimary, ButtonSecondary, Clickable, Link, makeIconButton, Select, spinnerOverlay
-} from 'src/components/common'
+import { ButtonInModal, ButtonOutline, ButtonPrimary, ButtonSecondary, Clickable, Link, makeIconButton, Select, spinnerOverlay } from 'src/components/common'
 import DataTable from 'src/components/DataTable'
 import ExportDataModal from 'src/components/ExportDataModal'
 import FloatingActionButton from 'src/components/FloatingActionButton'
@@ -43,23 +41,17 @@ const bucketObjects = '__bucket_objects__'
 
 const styles = {
   tableContainer: {
-    display: 'flex',
-    flex: 1
+    display: 'flex', flex: 1
   },
   dataTypeSelectionPanel: {
-    flex: 'none',
-    width: 280,
-    backgroundColor: 'white',
+    flex: 'none', width: 280, backgroundColor: 'white',
     boxShadow: '0 2px 5px 0 rgba(0,0,0,0.25)'
   },
   tableViewPanel: {
     position: 'relative',
     overflow: 'hidden',
-    padding: '1rem',
-    width: '100%',
-    flex: 1,
-    display: 'flex',
-    flexDirection: 'column'
+    padding: '1rem', width: '100%',
+    flex: 1, display: 'flex', flexDirection: 'column'
   }
 }
 
@@ -69,13 +61,7 @@ const DataTypeButton = ({ selected, children, iconName = 'listAlt', iconSize = 1
     hover: Style.navList.itemHover(selected),
     ...props
   }, [
-    div({
-      style: {
-        flex: 'none',
-        display: 'flex',
-        width: '1.5rem'
-      }
-    }, [
+    div({ style: { flex: 'none', display: 'flex', width: '1.5rem' } }, [
       icon(iconName, { size: iconSize })
     ]),
     div({ style: { flex: 1, ...Style.noWrapEllipsis } }, [
@@ -85,10 +71,7 @@ const DataTypeButton = ({ selected, children, iconName = 'listAlt', iconSize = 1
 }
 
 const saveScroll = _.throttle(100, (initialX, initialY) => {
-  StateHistory.update({
-    initialX,
-    initialY
-  })
+  StateHistory.update({ initialX, initialY })
 })
 
 const getReferenceData = _.flow(
@@ -96,11 +79,7 @@ const getReferenceData = _.flow(
   _.filter(([key]) => key.startsWith('referenceData_')),
   _.map(([k, value]) => {
     const [, datum, key] = /referenceData_([^_]+)_(.+)/.exec(k)
-    return {
-      datum,
-      key,
-      value
-    }
+    return { datum, key, value }
   }),
   _.groupBy('datum')
 )
@@ -122,12 +101,7 @@ const LocalVariablesContent = class LocalVariablesContent extends Component {
   render() {
     const { workspace, workspace: { workspace: { namespace, name, attributes } }, refreshWorkspace, firstRender } = this.props
     const { editIndex, deleteIndex, editKey, editValue, editType, textFilter } = this.state
-    const stopEditing = () => this.setState({
-      editIndex: undefined,
-      editKey: undefined,
-      editValue: undefined,
-      editType: undefined
-    })
+    const stopEditing = () => this.setState({ editIndex: undefined, editKey: undefined, editValue: undefined, editType: undefined })
     const filteredAttributes = _.flow(
       _.toPairs,
       _.remove(([key]) => key === 'description' || key.includes(':') || key.startsWith('referenceData_')),
@@ -142,6 +116,7 @@ const LocalVariablesContent = class LocalVariablesContent extends Component {
 
     const inputErrors = editIndex && [
       ...(_.keys(_.unset(amendedAttributes[editIndex][0], attributes)).includes(editKey) ? ['Key must be unique'] : []),
+      ...(!/^[\w-]*$/.test(editKey) ? ['Key can only contain letters, numbers, underscores, and dashes'] : []),
       ...(!editKey ? ['Key is required'] : []),
       ...(!editValue ? ['Value is required'] : []),
       ...(editValue && editType === 'number' && Utils.cantBeNumber(editValue) ? ['Value is not a number'] : []),
@@ -153,7 +128,7 @@ const LocalVariablesContent = class LocalVariablesContent extends Component {
       const isList = editType.includes('list')
       const newBaseType = isList ? editType.slice(0, -5) : editType
 
-      const parsedValue = isList ? _.map(Utils.convertValue(newBaseType), editValue.split(/,s*/)) :
+      const parsedValue = isList ? _.map(Utils.convertValue(newBaseType), editValue.split(/,\s*/)) :
         Utils.convertValue(newBaseType, editValue)
 
       this.setState({ saving: true })
@@ -183,37 +158,19 @@ const LocalVariablesContent = class LocalVariablesContent extends Component {
     return h(Dropzone, {
       disabled: !!Utils.editWorkspaceError(workspace),
       disableClick: true,
-      style: {
-        flex: 1,
-        display: 'flex',
-        flexDirection: 'column'
-      },
-      activeStyle: {
-        backgroundColor: colors.accent(0.2),
-        cursor: 'copy'
-      },
+      style: { flex: 1, display: 'flex', flexDirection: 'column' },
+      activeStyle: { backgroundColor: colors.accent(0.2), cursor: 'copy' },
       ref: this.uploader,
       onDropAccepted: upload
     }, [
-      div({
-        style: {
-          flex: 'none',
-          display: 'flex',
-          alignItems: 'center',
-          marginBottom: '1rem',
-          justifyContent: 'flex-end'
-        }
-      }, [
+      div({ style: { flex: 'none', display: 'flex', alignItems: 'center', marginBottom: '1rem', justifyContent: 'flex-end' } }, [
         h(Link, { onClick: download }, ['Download TSV']),
         !Utils.editWorkspaceError(workspace) && h(Fragment, [
           div({ style: { whiteSpace: 'pre' } }, ['  |  Drag or click to ']),
           h(Link, { onClick: () => this.uploader.current.open() }, ['upload TSV'])
         ]),
         h(DelayedSearchInput, {
-          style: {
-            width: 300,
-            marginLeft: '1rem'
-          },
+          style: { width: 300, marginLeft: '1rem' },
           placeholder: 'Search',
           onChange: v => this.setState({ textFilter: v }),
           defaultValue: textFilter
@@ -224,18 +181,13 @@ const LocalVariablesContent = class LocalVariablesContent extends Component {
         () => div({ style: { flex: 1 } }, [
           h(AutoSizer, [
             ({ width, height }) => h(FlexTable, {
-              width,
-              height,
-              rowCount: amendedAttributes.length,
+              width, height, rowCount: amendedAttributes.length,
               onScroll: y => saveScroll(0, y),
               initialY,
               hoverHighlight: true,
               columns: [
                 {
-                  size: {
-                    basis: 400,
-                    grow: 0
-                  },
+                  size: { basis: 400, grow: 0 },
                   headerRenderer: () => h(HeaderCell, ['Key']),
                   cellRenderer: ({ rowIndex }) => editIndex === rowIndex ?
                     h(TextInput, {
@@ -252,13 +204,7 @@ const LocalVariablesContent = class LocalVariablesContent extends Component {
                     const [originalKey, originalValue] = amendedAttributes[rowIndex]
 
                     return h(Fragment, [
-                      div({
-                        style: {
-                          flex: 1,
-                          minWidth: 0,
-                          display: 'flex'
-                        }
-                      }, [
+                      div({ style: { flex: 1, minWidth: 0, display: 'flex' } }, [
                         editIndex === rowIndex ?
                           h(TextInput, {
                             value: editValue,
@@ -269,13 +215,7 @@ const LocalVariablesContent = class LocalVariablesContent extends Component {
                       editIndex === rowIndex ?
                         h(Fragment, [
                           h(Select, {
-                            styles: {
-                              container: base => ({
-                                ...base,
-                                marginLeft: '1rem',
-                                width: 150
-                              })
-                            },
+                            styles: { container: base => ({ ...base, marginLeft: '1rem', width: 150 }) },
                             isSearchable: false,
                             isClearable: false,
                             menuPortalTarget: document.getElementById('root'),
@@ -323,7 +263,7 @@ const LocalVariablesContent = class LocalVariablesContent extends Component {
           ])
         ])
       ),
-      !creatingNewVariable && !Utils.editWorkspaceError(workspace) && h(FloatingActionButton, {
+      !creatingNewVariable && editIndex === undefined && !Utils.editWorkspaceError(workspace) && h(FloatingActionButton, {
         label: 'ADD VARIABLE',
         iconShape: 'plus',
         onClick: () => this.setState({
@@ -363,11 +303,7 @@ const ReferenceDataContent = ({ workspace: { workspace: { namespace, attributes 
 
   return h(Fragment, [
     h(DelayedSearchInput, {
-      style: {
-        width: 300,
-        marginBottom: '1rem',
-        alignSelf: 'flex-end'
-      },
+      style: { width: 300, marginBottom: '1rem', alignSelf: 'flex-end' },
       placeholder: 'Search',
       onChange: setTextFilter,
       defaultValue: textFilter
@@ -375,17 +311,12 @@ const ReferenceDataContent = ({ workspace: { workspace: { namespace, attributes 
     div({ style: { flex: 1 } }, [
       h(AutoSizer, [
         ({ width, height }) => h(FlexTable, {
-          width,
-          height,
-          rowCount: selectedData.length,
+          width, height, rowCount: selectedData.length,
           onScroll: y => saveScroll(0, y),
           initialY,
           columns: [
             {
-              size: {
-                basis: 400,
-                grow: 0
-              },
+              size: { basis: 400, grow: 0 },
               headerRenderer: () => h(HeaderCell, ['Key']),
               cellRenderer: ({ rowIndex }) => renderDataCell(selectedData[rowIndex].key, namespace)
             },
@@ -472,7 +403,6 @@ class EntitiesContent extends Component {
       deletingEntities: false,
       refreshKey: 0,
       showIgvSelector: false,
-      showToolSelector: false,
       igvData: {
         selectedFiles: undefined,
         igvRefGenome: ''
@@ -490,21 +420,9 @@ class EntitiesContent extends Component {
         action: `${getConfig().orchestrationUrlRoot}/cookie-authed/workspaces/${namespace}/${name}/entities/${entityKey}/tsv`,
         method: 'POST'
       }, [
-        input({
-          type: 'hidden',
-          name: 'FCtoken',
-          value: getUser().token
-        }),
-        input({
-          type: 'hidden',
-          name: 'attributeNames',
-          value: _.map('name', _.filter('visible', columnSettings)).join(',')
-        }),
-        input({
-          type: 'hidden',
-          name: 'model',
-          value: 'flexible'
-        })
+        input({ type: 'hidden', name: 'FCtoken', value: getUser().token }),
+        input({ type: 'hidden', name: 'attributeNames', value: _.map('name', _.filter('visible', columnSettings)).join(',') }),
+        input({ type: 'hidden', name: 'model', value: 'flexible' })
       ]),
       _.isEmpty(selectedEntities) ? h(ButtonPrimary, {
         tooltip: 'Download all data as a file',
@@ -567,10 +485,8 @@ class EntitiesContent extends Component {
     const { selectedEntities } = this.state
 
     const dataExplorerUrl =
-      _.size(selectedEntities) === 1 && _.values(selectedEntities)[0].attributes.data_explorer_url ?
-        _.values(selectedEntities)[0].attributes.data_explorer_url
-        :
-        ''
+      _.size(selectedEntities) === 1 && _.values(selectedEntities)[0].attributes.data_explorer_url ? _.values(selectedEntities)[0].attributes.data_explorer_url
+        : ''
     return h(Fragment, [
       h(ButtonPrimary, {
         // Old cohorts (before mid-Apr 2019) don't have data_explorer_url
@@ -610,86 +526,58 @@ class EntitiesContent extends Component {
     const { selectedEntities, deletingEntities, copyingEntities, refreshKey, showToolSelector, showIgvSelector, igvData: { selectedFiles, refGenome } } = this.state
 
     const { initialX, initialY } = firstRender ? StateHistory.get() : {}
-    return selectedFiles ?
-      h(IGVBrowser, {
-        selectedFiles,
-        refGenome,
-        namespace
-      }) :
-      h(Fragment, [
-        h(DataTable, {
-          persist: true,
-          firstRender,
-          refreshKey,
-          entityType: entityKey,
-          entityMetadata,
-          workspaceId: {
-            namespace,
-            name
-          },
-          onScroll: saveScroll,
-          initialX,
-          initialY,
-          selectionModel: {
-            type: 'multiple',
-            selected: selectedEntities,
-            setSelected: e => this.setState({ selectedEntities: e })
-          },
-          childrenBefore: ({ entities, columnSettings }) => div({
-            style: {
-              display: 'flex',
-              alignItems: 'center',
-              flex: 'none'
-            }
-          }, entityKey === 'cohort' && entityMetadata.cohort.attributeNames.includes('data_explorer_url') ? [
-            this.renderOpenInDataExplorerButton()
-          ] : [
-            this.renderDownloadButton(columnSettings),
-            this.renderCopyButton(entities, columnSettings),
-            this.renderToolButton()
-          ])
-        }),
-        !_.isEmpty(selectedEntities) && h(FloatingActionButton, {
-          label: 'COPY DATA',
-          iconShape: 'copy',
-          bottom: 100,
-          onClick: () => this.setState({ copyingEntities: true })
-        }),
-        !_.isEmpty(selectedEntities) && !Utils.editWorkspaceError(workspace) && h(FloatingActionButton, {
-          label: 'DELETE DATA',
-          iconShape: 'trash',
-          onClick: () => this.setState({ deletingEntities: true })
-        }),
-        deletingEntities && h(EntityDeleter, {
-          onDismiss: () => this.setState({ deletingEntities: false }),
-          onSuccess: () => {
-            this.setState({
-              deletingEntities: false,
-              selectedEntities: {},
-              refreshKey: refreshKey + 1
-            })
-            loadMetadata()
-          },
-          namespace,
-          name,
-          selectedEntities: _.keys(selectedEntities),
-          selectedDataType: entityKey,
-          runningSubmissionsCount
-        }),
-        copyingEntities && h(ExportDataModal, {
-          onDismiss: () => this.setState({ copyingEntities: false }),
-          workspace,
-          selectedEntities: _.keys(selectedEntities),
-          selectedDataType: entityKey,
-          runningSubmissionsCount
-        }),
-        h(ToolDrawer, {
-          openDrawer: showToolSelector,
-          onDismiss: () => this.setState({ showToolSelector: false }),
-          onIgvSuccess: newIgvData => this.setState({ showToolSelector: false, igvData: newIgvData }),
-          selectedEntities: _.keys(selectedEntities)
-        })
-      ])
+    return selectedFiles ? h(IGVBrowser, { selectedFiles, refGenome, namespace }) : h(Fragment, [
+      h(DataTable, {
+        persist: true, firstRender, refreshKey,
+        entityType: entityKey, entityMetadata, workspaceId: { namespace, name },
+        onScroll: saveScroll, initialX, initialY,
+        selectionModel: {
+          type: 'multiple',
+          selected: selectedEntities,
+          setSelected: e => this.setState({ selectedEntities: e })
+        },
+        childrenBefore: ({ entities, columnSettings }) => div({
+          style: { display: 'flex', alignItems: 'center', flex: 'none' }
+        }, entityKey === 'cohort' && entityMetadata.cohort.attributeNames.includes('data_explorer_url') ? [
+          this.renderOpenInDataExplorerButton()
+        ] : [
+          this.renderDownloadButton(columnSettings),
+          this.renderCopyButton(entities, columnSettings),
+          this.renderIgvButton()
+        ])
+      }),
+      !_.isEmpty(selectedEntities) && h(FloatingActionButton, {
+        label: 'COPY DATA',
+        iconShape: 'copy',
+        bottom: 80,
+        onClick: () => this.setState({ copyingEntities: true })
+      }),
+      !_.isEmpty(selectedEntities) && !Utils.editWorkspaceError(workspace) && h(FloatingActionButton, {
+        label: 'DELETE DATA',
+        iconShape: 'trash',
+        onClick: () => this.setState({ deletingEntities: true })
+      }),
+      deletingEntities && h(EntityDeleter, {
+        onDismiss: () => this.setState({ deletingEntities: false }),
+        onSuccess: () => {
+          this.setState({ deletingEntities: false, selectedEntities: {}, refreshKey: refreshKey + 1 })
+          loadMetadata()
+        },
+        namespace, name,
+        selectedEntities: _.keys(selectedEntities), selectedDataType: entityKey, runningSubmissionsCount
+      }),
+      copyingEntities && h(ExportDataModal, {
+        onDismiss: () => this.setState({ copyingEntities: false }),
+        workspace,
+        selectedEntities: _.keys(selectedEntities), selectedDataType: entityKey, runningSubmissionsCount
+      }),
+      h(ToolDrawer, {
+        openDrawer: showToolSelector,
+        onDismiss: () => this.setState({ showToolSelector: false }),
+        onIgvSuccess: newIgvData => this.setState({ showToolSelector: false, igvData: newIgvData }),
+        selectedEntities: _.keys(selectedEntities)
+      })
+    ])
   }
 }
 
@@ -756,11 +644,7 @@ const BucketContent = _.flow(
   )(async (prefix = this.state.prefix) => {
     const { workspace: { workspace: { namespace, bucketName } }, ajax: { Buckets } } = this.props
     const { items, prefixes } = await Buckets.list(namespace, bucketName, prefix)
-    this.setState({
-      objects: items,
-      prefixes,
-      prefix
-    })
+    this.setState({ objects: items, prefixes, prefix })
   })
 
   uploadFiles = _.flow(
@@ -781,106 +665,50 @@ const BucketContent = _.flow(
       h(Dropzone, {
         disabled: !!Utils.editWorkspaceError(workspace),
         disableClick: true,
-        style: {
-          flexGrow: 1,
-          backgroundColor: 'white',
-          border: `1px solid ${colors.dark(0.55)}`,
-          padding: '1rem'
-        },
-        activeStyle: {
-          backgroundColor: colors.accent(0.2),
-          cursor: 'copy'
-        },
+        style: { flexGrow: 1, backgroundColor: 'white', border: `1px solid ${colors.dark(0.55)}`, padding: '1rem' },
+        activeStyle: { backgroundColor: colors.accent(0.2), cursor: 'copy' },
         ref: this.uploader,
         onDropAccepted: files => this.uploadFiles(files)
       }, [
         div([
           _.map(({ label, target }) => {
             return h(Fragment, { key: target }, [
-              h(Link, {
-                style: { textDecoration: 'underline' },
-                onClick: () => this.load(target)
-              }, [label]),
+              h(Link, { style: { textDecoration: 'underline' }, onClick: () => this.load(target) }, [label]),
               ' / '
             ])
           }, [
-            {
-              label: 'Files',
-              target: ''
-            },
+            { label: 'Files', target: '' },
             ..._.map(n => {
-              return {
-                label: prefixParts[n],
-                target: _.map(s => `${s}/`, _.take(n + 1, prefixParts)).join('')
-              }
+              return { label: prefixParts[n], target: _.map(s => `${s}/`, _.take(n + 1, prefixParts)).join('') }
             }, _.range(0, prefixParts.length))
           ])
         ]),
-        div({
-          style: {
-            margin: '1rem -1rem 1rem -1rem',
-            borderBottom: `1px solid ${colors.dark(0.25)}`
-          }
-        }),
+        div({ style: { margin: '1rem -1rem 1rem -1rem', borderBottom: `1px solid ${colors.dark(0.25)}` } }),
         h(SimpleTable, {
           columns: [
-            {
-              size: {
-                basis: 24,
-                grow: 0
-              },
-              key: 'button'
-            },
-            {
-              header: h(HeaderCell, ['Name']),
-              size: { grow: 1 },
-              key: 'name'
-            },
-            {
-              header: h(HeaderCell, ['Size']),
-              size: {
-                basis: 200,
-                grow: 0
-              },
-              key: 'size'
-            },
-            {
-              header: h(HeaderCell, ['Last modified']),
-              size: {
-                basis: 200,
-                grow: 0
-              },
-              key: 'updated'
-            }
+            { size: { basis: 24, grow: 0 }, key: 'button' },
+            { header: h(HeaderCell, ['Name']), size: { grow: 1 }, key: 'name' },
+            { header: h(HeaderCell, ['Size']), size: { basis: 200, grow: 0 }, key: 'size' },
+            { header: h(HeaderCell, ['Last modified']), size: { basis: 200, grow: 0 }, key: 'updated' }
           ],
           rows: [
             ..._.map(p => {
               return {
                 name: h(TextCell, [
-                  h(Link, {
-                    style: { textDecoration: 'underline' },
-                    onClick: () => this.load(p)
-                  }, [p.slice(prefix.length)])
+                  h(Link, { style: { textDecoration: 'underline' }, onClick: () => this.load(p) }, [p.slice(prefix.length)])
                 ])
               }
             }, prefixes),
             ..._.map(({ name, size, updated }) => {
               return {
                 button: h(Link, {
-                  style: { display: 'flex' },
-                  onClick: () => this.setState({ deletingName: name }),
+                  style: { display: 'flex' }, onClick: () => this.setState({ deletingName: name }),
                   tooltip: 'Delete file'
                 }, [
-                  icon('trash', {
-                    size: 16,
-                    className: 'hover-only'
-                  })
+                  icon('trash', { size: 16, className: 'hover-only' })
                 ]),
                 name: h(TextCell, [
-                  h(Link, {
-                    style: { textDecoration: 'underline' },
-                    onClick: () => this.setState({ viewingName: name })
-                  }, [
+                  h(Link, { style: { textDecoration: 'underline' }, onClick: () => this.setState({ viewingName: name }) }, [
                     name.slice(prefix.length)
                   ])
                 ]),
@@ -891,8 +719,7 @@ const BucketContent = _.flow(
           ]
         }),
         deletingName && h(DeleteObjectModal, {
-          workspace,
-          name: deletingName,
+          workspace, name: deletingName,
           onDismiss: () => this.setState({ deletingName: undefined }),
           onSuccess: () => {
             this.setState({ deletingName: undefined })
@@ -900,8 +727,7 @@ const BucketContent = _.flow(
           }
         }),
         viewingName && h(UriViewer, {
-          googleProject: namespace,
-          uri: `gs://${bucketName}/${viewingName}`,
+          googleProject: namespace, uri: `gs://${bucketName}/${viewingName}`,
           onDismiss: () => this.setState({ viewingName: undefined })
         }),
         !Utils.editWorkspaceError(workspace) && h(FloatingActionButton, {
@@ -918,8 +744,7 @@ const BucketContent = _.flow(
 const WorkspaceData = _.flow(
   wrapWorkspace({
     breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
-    title: 'Data',
-    activeTab: 'data'
+    title: 'Data', activeTab: 'data'
   }),
   ajaxCaller
 )(class WorkspaceData extends Component {
@@ -989,10 +814,7 @@ const WorkspaceData = _.flow(
               key: type,
               selected: selectedDataType === type,
               onClick: () => {
-                this.setState({
-                  selectedDataType: type,
-                  refreshKey: refreshKey + 1
-                })
+                this.setState({ selectedDataType: type, refreshKey: refreshKey + 1 })
               }
             }, [`${type} (${typeDetails.count})`])
           }, _.toPairs(entityMetadata)),
@@ -1007,8 +829,7 @@ const WorkspaceData = _.flow(
           importingReference && h(ReferenceDataImporter, {
             onDismiss: () => this.setState({ importingReference: false }),
             onSuccess: () => this.setState({ importingReference: false }, refreshWorkspace),
-            namespace,
-            name
+            namespace, name
           }),
           deletingReference && h(ReferenceDataDeleter, {
             onDismiss: () => this.setState({ deletingReference: false }),
@@ -1016,9 +837,7 @@ const WorkspaceData = _.flow(
               deletingReference: false,
               selectedDataType: selectedDataType === deletingReference ? undefined : selectedDataType
             }, refreshWorkspace),
-            namespace,
-            name,
-            referenceDataType: deletingReference
+            namespace, name, referenceDataType: deletingReference
           }),
           uploadingFile && h(EntityUploader, {
             onDismiss: () => this.setState({ uploadingFile: false }),
@@ -1026,8 +845,7 @@ const WorkspaceData = _.flow(
               this.loadMetadata()
               this.refresh()
             }),
-            namespace,
-            name,
+            namespace, name,
             entityTypes: _.keys(entityMetadata)
           }),
           _.map(type => {
@@ -1039,12 +857,7 @@ const WorkspaceData = _.flow(
                 refreshWorkspace()
               }
             }, [
-              div({
-                style: {
-                  display: 'flex',
-                  justifyContent: 'space-between'
-                }
-              }, [
+              div({ style: { display: 'flex', justifyContent: 'space-between' } }, [
                 type,
                 h(Link, {
                   disabled: !!Utils.editWorkspaceError(workspace),
@@ -1066,54 +879,39 @@ const WorkspaceData = _.flow(
             }
           }, ['Workspace Data']),
           h(DataTypeButton, {
-            iconName: 'folder',
-            iconSize: 18,
+            iconName: 'folder', iconSize: 18,
             selected: selectedDataType === bucketObjects,
             onClick: () => {
-              this.setState({
-                selectedDataType: bucketObjects,
-                refreshKey: refreshKey + 1
-              })
+              this.setState({ selectedDataType: bucketObjects, refreshKey: refreshKey + 1 })
             }
           }, ['Files'])
         ]),
         div({ style: styles.tableViewPanel }, [
           Utils.switchCase(this.selectionType(),
             ['none', () => div({ style: { textAlign: 'center' } }, ['Select a data type'])],
-            [
-              'localVariables', () => h(LocalVariablesContent, {
-                workspace,
-                refreshWorkspace,
-                firstRender
-              })
-            ],
-            [
-              'referenceData', () => h(ReferenceDataContent, {
-                key: selectedDataType,
-                workspace,
-                referenceKey: selectedDataType,
-                firstRender
-              })
-            ],
-            [
-              'bucketObjects', () => h(BucketContent, {
-                workspace,
-                onClose: () => this.setState({ selectedDataType: undefined }),
-                firstRender,
-                refreshKey
-              })
-            ],
-            [
-              'entities', () => h(EntitiesContent, {
-                key: selectedDataType,
-                workspace,
-                entityMetadata,
-                entityKey: selectedDataType,
-                loadMetadata: () => this.loadMetadata(),
-                firstRender,
-                refreshKey
-              })
-            ]
+            ['localVariables', () => h(LocalVariablesContent, {
+              workspace,
+              refreshWorkspace,
+              firstRender
+            })],
+            ['referenceData', () => h(ReferenceDataContent, {
+              key: selectedDataType,
+              workspace,
+              referenceKey: selectedDataType,
+              firstRender
+            })],
+            ['bucketObjects', () => h(BucketContent, {
+              workspace, onClose: () => this.setState({ selectedDataType: undefined }),
+              firstRender, refreshKey
+            })],
+            ['entities', () => h(EntitiesContent, {
+              key: selectedDataType,
+              workspace,
+              entityMetadata,
+              entityKey: selectedDataType,
+              loadMetadata: () => this.loadMetadata(),
+              firstRender, refreshKey
+            })]
           )
         ])
       ])

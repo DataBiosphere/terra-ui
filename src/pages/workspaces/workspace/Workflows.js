@@ -88,22 +88,28 @@ const sortOptions = [
   { label: 'Reverse Alphabetical', value: { field: 'lowerCaseName', direction: 'desc' } }
 ]
 
-const WorkflowCard = pure(({ listView, name, namespace, config, onCopy, onDelete, isRedacted, workspace }) => {
+const WorkflowCard = pure(({ listView, name, namespace, config, onExport, onCopy, onDelete, isRedacted, workspace }) => {
   const { namespace: workflowNamespace, name: workflowName, methodRepoMethod: { sourceRepo, methodVersion } } = config
   const workflowCardMenu = h(PopupTrigger, {
     closeOnClick: true,
     content: h(Fragment, [
       h(MenuButton, {
-        onClick: () => onCopy(),
+        onClick: onExport,
         disabled: isRedacted,
         tooltip: isRedacted ? 'This workflow version is redacted' : undefined,
         tooltipSide: 'left'
-      }, [makeMenuIcon('copy'), 'Copy to Another Workspace']),
+      }, [makeMenuIcon('export'), 'Copy to Another Workspace']),
       h(MenuButton, {
+        onClick: onCopy,
         disabled: !!Utils.editWorkspaceError(workspace),
         tooltip: Utils.editWorkspaceError(workspace),
-        tooltipSide: 'left',
-        onClick: () => onDelete()
+        tooltipSide: 'left'
+      }, [makeMenuIcon('copy'), 'Duplicate']),
+      h(MenuButton, {
+        onClick: onDelete,
+        disabled: !!Utils.editWorkspaceError(workspace),
+        tooltip: Utils.editWorkspaceError(workspace),
+        tooltipSide: 'left'
       }, [makeMenuIcon('trash'), 'Delete'])
     ])
   }, [
@@ -318,12 +324,13 @@ export const Workflows = _.flow(
 
   render() {
     const { namespace, name, listView, viewToggleButtons, workspace: ws, workspace: { workspace } } = this.props
-    const { loading, configs, copyingWorkflow, deletingWorkflow, findingWorkflow, sortOrder, sortOrder: { field, direction } } = this.state
+    const { loading, configs, exportingWorkflow, copyingWorkflow, deletingWorkflow, findingWorkflow, sortOrder, sortOrder: { field, direction } } = this.state
     const workflows = _.flow(
       _.orderBy(sortTokens[field] || field, direction),
       _.map(config => {
         const isRedacted = this.computeRedacted(config)
         return h(WorkflowCard, {
+          onExport: () => this.setState({ exportingWorkflow: { namespace: config.namespace, name: config.name } }),
           onCopy: () => this.setState({ copyingWorkflow: { namespace: config.namespace, name: config.name } }),
           onDelete: () => this.setState({ deletingWorkflow: { namespace: config.namespace, name: config.name } }),
           key: `${config.namespace}/${config.name}`, namespace, name, config, listView, isRedacted, workspace: ws
@@ -343,9 +350,18 @@ export const Workflows = _.flow(
           onChange: selected => this.setState({ sortOrder: selected.value })
         }),
         viewToggleButtons,
+        exportingWorkflow && h(ExportWorkflowModal, {
+          thisWorkspace: workspace, methodConfig: this.getConfig(exportingWorkflow),
+          onDismiss: () => this.setState({ exportingWorkflow: undefined })
+        }),
         copyingWorkflow && h(ExportWorkflowModal, {
           thisWorkspace: workspace, methodConfig: this.getConfig(copyingWorkflow),
-          onDismiss: () => this.setState({ copyingWorkflow: undefined })
+          sameWorkspace: true,
+          onDismiss: () => this.setState({ copyingWorkflow: undefined }),
+          onSuccess: () => {
+            this.refresh()
+            this.setState({ copyingWorkflow: undefined })
+          }
         }),
         deletingWorkflow && h(DeleteWorkflowModal, {
           workspace, methodConfig: this.getConfig(deletingWorkflow),
