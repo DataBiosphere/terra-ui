@@ -184,9 +184,6 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
         // Doing this now, even though we don't explicitly need it now, increases the likelihood that it will be ready when it is needed.
         if (Utils.canWrite(accessLevel)) {
           saToken(namespace)
-        } else {
-          // Request a "default" service account token to prevent proliferation of service accounts in public workspaces
-          saToken()
         }
 
         if (!Utils.isOwner(accessLevel) && (createdBy === getUser().email) && (differenceInSeconds(new Date(createdDate), new Date()) < 60)) {
