@@ -401,7 +401,7 @@ const ReferenceDataContent = ({ workspace: { workspace: { namespace, attributes 
   ])
 }
 
-const ToolDrawer = ({ openDrawer, onDismiss, selectedEntities, showIgvSelector }) => {
+const ToolDrawer = ({ openDrawer, onDismiss, onIgvSuccess, selectedEntities }) => {
   const [toolMode, setToolMode] = useState()
 
   return h(ModalDrawer, {
@@ -440,12 +440,8 @@ const ToolDrawer = ({ openDrawer, onDismiss, selectedEntities, showIgvSelector }
       ])
     ], [
       'IGV', () => h(IGVFileSelector, {
-        openDrawer: showIgvSelector,
         onDismiss: setToolMode,
-        onSuccess: newIgvData => this.setState({
-          showIgvSelector: false,
-          igvData: newIgvData
-        }),
+        onSuccess: onIgvSuccess,
         selectedEntities
       })
     ])
@@ -674,8 +670,8 @@ class EntitiesContent extends Component {
         h(ToolDrawer, {
           openDrawer: showToolSelector,
           onDismiss: () => this.setState({ showToolSelector: false }),
-          selectedEntities,
-          showIgvSelector
+          onIgvSuccess: newIgvData => this.setState({showToolSelector: false, igvData: newIgvData}),
+          selectedEntities
         })
       ])
   }
