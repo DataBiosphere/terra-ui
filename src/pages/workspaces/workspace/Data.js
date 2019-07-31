@@ -415,6 +415,22 @@ const ToolDrawer = ({ openDrawer, onDismiss, onIgvSuccess, selectedEntities }) =
           title: 'Open with...',
           onDismiss
         }),
+        div({
+          style: {
+            borderRadius: '25%',
+            border: `1px solid ${colors.dark()}`,
+            alignItems: 'center',
+            height: '2rem',
+            margin: '0rem 2rem',
+            padding: '0 0.875rem',
+            display: 'flex',
+            justifyContent: 'center',
+            width: '40%',
+            fontSize: 12
+          }
+        }, [
+          ((selectedEntities.length === undefined) ? 0 : selectedEntities.length) + ' participants selected'
+        ]),
         div({ style: { margin: '1rem 2rem' } }, [
           h(ButtonInModal,
             { onClick: () => setToolMode('IGV') },
@@ -670,7 +686,7 @@ class EntitiesContent extends Component {
         h(ToolDrawer, {
           openDrawer: showToolSelector,
           onDismiss: () => this.setState({ showToolSelector: false }),
-          onIgvSuccess: newIgvData => this.setState({showToolSelector: false, igvData: newIgvData}),
+          onIgvSuccess: newIgvData => this.setState({ showToolSelector: false, igvData: newIgvData }),
           selectedEntities
         })
       ])
