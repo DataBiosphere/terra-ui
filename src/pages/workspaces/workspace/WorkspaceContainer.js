@@ -9,13 +9,13 @@ import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
 import { clearNotification, notify } from 'src/components/Notifications'
 import PopupTrigger from 'src/components/PopupTrigger'
 import TopBar from 'src/components/TopBar'
-import { Ajax, useCancellation } from 'src/libs/ajax'
+import { Ajax, saToken, useCancellation } from 'src/libs/ajax'
 import { getUser } from 'src/libs/auth'
 import { currentCluster } from 'src/libs/cluster-utils'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
-import { contactUsActive, workspaceStore } from 'src/libs/state'
+import { workspaceStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Component } from 'src/libs/wrapped-components'
@@ -152,38 +152,6 @@ const WorkspaceAccessError = () => {
   ])
 }
 
-const checkBucketAccess = withErrorReporting('Error checking bucket access', async (signal, namespace, name) => {
-  try {
-    await Ajax(signal).Workspaces.workspace(namespace, name).checkBucketReadAccess()
-    return true
-  } catch (error) {
-    if (error.status === 403) {
-      const notificationId = 'bucket-access-unavailable'
-
-      notify('error', div([
-        'The Google Bucket associated with this workspace is currently unavailable. This should be resolved shortly.',
-        div({ style: { margin: '0.5rem' } }),
-        'If this persists for more than an hour, please ',
-        h(Link, {
-          onClick: () => {
-            contactUsActive.set(true)
-            clearNotification(notificationId)
-          },
-          style: { color: 'white' },
-          hover: {
-            color: 'white',
-            textDecoration: 'underline'
-          }
-        }, ['contact us', icon('pop-out', { size: 10, style: { marginLeft: '0.25rem' } })]),
-        ' for assistance.'
-      ]), { id: notificationId })
-    } else {
-      throw error
-    }
-    return false
-  }
-})
-
 
 export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, showTabBar = true, queryparams }) => WrappedComponent => {
   const Wrapper = props => {
@@ -208,10 +176,16 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
     )(async () => {
       try {
         const workspace = await Ajax(signal).Workspaces.workspace(namespace, name).details()
-        const res = await checkBucketAccess(signal, namespace, name)
-        workspaceStore.set({ hasBucketAccess: res, ...workspace })
+        workspaceStore.set(workspace)
 
         const { accessLevel, workspace: { createdBy, createdDate } } = workspace
+
+        // Request a service account token. If this is the first time, it could take some time before everything is in sync.
+        // Doing this now, even though we don't explicitly need it now, increases the likelihood that it will be ready when it is needed.
+        if (Utils.canWrite(accessLevel)) {
+          saToken(namespace)
+        }
+
         if (!Utils.isOwner(accessLevel) && (createdBy === getUser().email) && (differenceInSeconds(new Date(createdDate), new Date()) < 60)) {
           accessNotificationId.current = notify('info', 'Workspace access synchronizing', {
             message: h(Fragment, [
