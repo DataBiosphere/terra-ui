@@ -206,7 +206,6 @@ export const WorkspaceDashboard = _.flow(
     const {
       workspace, workspace: {
         accessLevel,
-        hasBucketAccess,
         owners,
         workspace: {
           authorizationDomain, createdDate, lastModified, bucketName,
@@ -351,8 +350,7 @@ export const WorkspaceDashboard = _.flow(
         ]),
         h(Link, {
           ...Utils.newTabLinkProps,
-          href: hasBucketAccess ? bucketBrowserUrl(bucketName) : undefined,
-          disabled: !hasBucketAccess
+          href: bucketBrowserUrl(bucketName)
         }, ['Open in browser', icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })])
       ])
     ])
