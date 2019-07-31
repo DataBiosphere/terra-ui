@@ -101,7 +101,6 @@ export const ButtonInModal = ({ disabled, children, ...props }) => {
       alignItems: 'center',
       height: '3rem',
       fontSize: 18,
-      // whiteSpace: 'nowrap',
       userSelect: 'none'
     },
     hover: {
