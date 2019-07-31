@@ -687,7 +687,7 @@ class EntitiesContent extends Component {
           openDrawer: showToolSelector,
           onDismiss: () => this.setState({ showToolSelector: false }),
           onIgvSuccess: newIgvData => this.setState({ showToolSelector: false, igvData: newIgvData }),
-          selectedEntities
+          selectedEntities: _.keys(selectedEntities)
         })
       ])
   }
