@@ -1,16 +1,16 @@
 import * as clipboard from 'clipboard-polyfill'
-import debouncePromise from 'debounce-promise'
 import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import SimpleMDE from 'react-simplemde-editor'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { AsyncCreatableSelect, ButtonPrimary, ButtonSecondary, Link, spinnerOverlay } from 'src/components/common'
+import { ButtonPrimary, ButtonSecondary, Link, spinnerOverlay } from 'src/components/common'
 import { icon, spinner } from 'src/components/icons'
 import { Markdown } from 'src/components/Markdown'
 import { InfoBox } from 'src/components/PopupTrigger'
 import { SimpleTable } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
+import { WorkspaceTagSelect } from 'src/components/workspace-utils'
 import { displayConsentCodes, displayLibraryAttributes } from 'src/data/workspace-attributes'
 import { Ajax, ajaxCaller } from 'src/libs/ajax'
 import { bucketBrowserUrl } from 'src/libs/auth'
@@ -156,17 +156,6 @@ export const WorkspaceDashboard = _.flow(
     }
   })
 
-  getTagSuggestions = debouncePromise(withErrorReporting('Error loading tags', async text => {
-    const { ajax: { Workspaces } } = this.props
-    if (text.length > 2) {
-      return _.map(({ tag, count }) => {
-        return { value: tag, label: `${tag} (${count})` }
-      }, _.take(10, await Workspaces.getTags(text)))
-    } else {
-      return []
-    }
-  }), 250)
-
   loadWsTags = withErrorReporting('Error loading workspace tags', async () => {
     const { ajax: { Workspaces }, namespace, name } = this.props
     this.setState({ tagsList: await Workspaces.workspace(namespace, name).getTags() })
@@ -296,13 +285,10 @@ export const WorkspaceDashboard = _.flow(
           ])
         ]),
         Utils.canWrite(accessLevel) && div({ style: { marginBottom: '0.5rem' } }, [
-          h(AsyncCreatableSelect, {
+          h(WorkspaceTagSelect, {
             value: null,
-            noOptionsMessage: () => 'Enter at least 3 characters to search',
-            allowCreateWhileLoading: true,
             placeholder: 'Add a tag',
-            onChange: ({ value }) => this.addTag(value),
-            loadOptions: this.getTagSuggestions
+            onChange: ({ value }) => this.addTag(value)
           })
         ]),
         div({ style: { display: 'flex', flexWrap: 'wrap' } }, [
