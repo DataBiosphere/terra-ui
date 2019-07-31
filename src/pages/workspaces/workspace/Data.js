@@ -543,7 +543,7 @@ class EntitiesContent extends Component {
         ] : [
           this.renderDownloadButton(columnSettings),
           this.renderCopyButton(entities, columnSettings),
-          this.renderIgvButton()
+          this.renderToolButton()
         ])
       }),
       !_.isEmpty(selectedEntities) && h(FloatingActionButton, {
