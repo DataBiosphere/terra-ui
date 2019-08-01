@@ -334,6 +334,7 @@ const ReferenceDataContent = ({ workspace: { workspace: { namespace, attributes 
 
 const ToolDrawer = ({ openDrawer, onDismiss, onIgvSuccess, selectedEntities }) => {
   const [toolMode, setToolMode] = useState()
+  const entitiesCount = _.keys(selectedEntities).length
 
   return h(ModalDrawer, {
     openDrawer,
@@ -360,7 +361,7 @@ const ToolDrawer = ({ openDrawer, onDismiss, onIgvSuccess, selectedEntities }) =
             fontSize: 12
           }
         }, [
-          ((selectedEntities.length === undefined) ? 0 : selectedEntities.length) + ' participants selected'
+          ((entitiesCount === undefined) ? 0 : entitiesCount) + ' participants selected'
         ]),
         div({ style: { margin: '1rem 2rem' } }, [
           h(ButtonInModal,
@@ -576,7 +577,7 @@ class EntitiesContent extends Component {
         openDrawer: showToolSelector,
         onDismiss: () => this.setState({ showToolSelector: false }),
         onIgvSuccess: newIgvData => this.setState({ showToolSelector: false, igvData: newIgvData }),
-        selectedEntities: _.keys(selectedEntities)
+        selectedEntities
       })
     ])
   }
