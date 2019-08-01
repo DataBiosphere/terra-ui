@@ -77,6 +77,8 @@ export const NewUserModal = ajaxCaller(class NewUserModal extends Component {
     super(props)
     this.state = {
       userEmail: '',
+      confirmAddUser: false,
+      checkingUser: false,
       roles: [props.userLabel],
       submitting: false
     }
@@ -104,8 +106,8 @@ export const NewUserModal = ajaxCaller(class NewUserModal extends Component {
   }
 
   render() {
-    const { adminLabel, userLabel, title, onDismiss, footer } = this.props
-    const { userEmail, roles, suggestions, submitting, submitError } = this.state
+    const { adminLabel, userLabel, title, onDismiss, footer, inviteFunction } = this.props
+    const { confirmAddUser, userEmail, roles, suggestions, submitting, submitError, checkingUser } = this.state
 
     const errors = validate({ userEmail }, { userEmail: { email: true } })
     const isAdmin = _.includes(adminLabel, roles)
@@ -113,67 +115,91 @@ export const NewUserModal = ajaxCaller(class NewUserModal extends Component {
     const userEmailInvalid = !!validate({ userEmail }, { userEmail: { email: true } })
     const canAdd = value => value !== userEmail || !userEmailInvalid
 
-    return h(Modal, {
-      onDismiss,
-      title,
-      okButton: h(ButtonPrimary, {
-        tooltip: Utils.summarizeErrors(errors),
-        onClick: () => this.submit(),
-        disabled: errors
-      }, ['Add User'])
-    }, [
-      h(RequiredFormLabel, ['User email']),
-      h(AutocompleteSearch, {
-        autoFocus: true,
-        value: userEmail,
-        onChange: v => this.setState({ userEmail: v }),
-        renderSuggestion: suggestion => div({ style: styles.suggestionContainer }, [
-          div({ style: { flex: 1 } }, [
-            !canAdd(suggestion) && h(TooltipTrigger, {
-              content: 'Not a valid email address'
-            }, [
-              icon('warning-standard', { style: { color: colors.danger(), marginRight: '0.5rem' } })
-            ]),
-            suggestion
-          ])
-        ]),
-        onSuggestionSelected: selection => {
-          this.setState({ userEmail: selection })
+    return Utils.cond(
+      [confirmAddUser, h(Modal, {
+        title: 'Confirm',
+        okButton: async () => {
+          this.setState({ submitting: true })
+          await inviteFunction(userEmail)
+          await this.submit()
         },
-        onKeyDown: e => {
-          // 27 = Escape
-          if (e.which === 27 && !!userEmail) {
-            this.setState({ userEmail: '' })
-            e.stopPropagation()
-          }
-        },
-        suggestions,
-        style: { fontSize: 16 },
-        theme: { suggestion: { padding: 0 } }
-      }),
-      h(FormLabel, ['Role']),
-      h(LabeledCheckbox, {
-        checked: isAdmin,
-        onChange: () => this.setState({ roles: [isAdmin ? userLabel : adminLabel] })
+        onDismiss: () => this.setState({ confirmAddUser: false })
       }, [
-        label({ style: { margin: '0 2rem 0 0.25rem' } }, [`Can manage users (${adminLabel})`])
-      ]),
-      footer && div({ style: { marginTop: '1rem' } }, [footer]),
-      submitError && div({ style: { marginTop: '0.5rem', textAlign: 'right', color: colors.danger() } }, [submitError]),
-      submitting && spinnerOverlay
-    ])
+        'User ', b(userEmail), ' is not registered.', div('Add this user to the group anyway?'),
+        submitting && spinnerOverlay
+      ])],
+      h(Modal, {
+        onDismiss,
+        title,
+        okButton: h(ButtonPrimary, {
+          tooltip: Utils.summarizeErrors(errors),
+          onClick: async () => await this.checkUserRegistration() ? this.submit() : this.setState({ confirmAddUser: true }),
+          disabled: errors
+        }, ['Add User'])
+      }, [
+        h(RequiredFormLabel, ['User email']),
+        h(AutocompleteSearch, {
+          autoFocus: true,
+          value: userEmail,
+          onChange: v => this.setState({ userEmail: v }),
+          renderSuggestion: suggestion => div({ style: styles.suggestionContainer }, [
+            div({ style: { flex: 1 } }, [
+              !canAdd(suggestion) && h(TooltipTrigger, {
+                content: 'Not a valid email address'
+              }, [
+                icon('warning-standard', { style: { color: colors.danger(), marginRight: '0.5rem' } })
+              ]),
+              suggestion
+            ])
+          ]),
+          onSuggestionSelected: selection => {
+            this.setState({ userEmail: selection })
+          },
+          onKeyDown: e => {
+            // 27 = Escape
+            if (e.which === 27 && !!userEmail) {
+              this.setState({ userEmail: '' })
+              e.stopPropagation()
+            }
+          },
+          suggestions,
+          style: { fontSize: 16 },
+          theme: { suggestion: { padding: 0 } }
+        }),
+        h(FormLabel, ['Role']),
+        h(LabeledCheckbox, {
+          checked: isAdmin,
+          onChange: () => this.setState({ roles: [isAdmin ? userLabel : adminLabel] })
+        }, [
+          label({ style: { margin: '0 2rem 0 0.25rem' } }, [`Can manage users (${adminLabel})`])
+        ]),
+        footer && div({ style: { marginTop: '1rem' } }, [footer]),
+        submitError && div({ style: { marginTop: '0.5rem', textAlign: 'right', color: colors.danger() } }, [submitError]),
+        (checkingUser || submitting) && spinnerOverlay
+      ])
+    )
+  }
+
+  async checkUserRegistration() {
+    const { checkRegistrationFunction } = this.props
+    const { userEmail } = this.state
+
+    this.setState({ checkingUser: true })
+    const isUserRegistered = await checkRegistrationFunction(userEmail)
+    this.setState({ checkingUser: false })
+
+    return isUserRegistered
   }
 
   async submit() {
     const { addFunction, onSuccess } = this.props
     const { userEmail, roles } = this.state
-
     try {
       this.setState({ submitting: true })
       await addFunction(roles, userEmail)
       onSuccess()
     } catch (error) {
-      this.setState({ submitting: false })
+      this.setState({ submitting: false, confirmAddUser: false })
       if (400 <= error.status <= 499) {
         this.setState({ submitError: (await error.json()).message })
       } else {
