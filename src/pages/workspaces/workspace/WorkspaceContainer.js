@@ -152,10 +152,10 @@ const WorkspaceAccessError = () => {
   ])
 }
 
-const useClusterPolling = ({ namespace }) => {
+const useClusterPolling = namespace => {
   const signal = useCancellation()
   const timeout = useRef()
-  const [clusters, setClusters] = useState(undefined)
+  const [clusters, setClusters] = useState()
   const reschedule = ms => {
     clearTimeout(timeout.current)
     timeout.current = setTimeout(refreshClustersSilently, ms)
@@ -189,7 +189,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
     const accessNotificationId = useRef()
     const cachedWorkspace = Utils.useAtom(workspaceStore)
     const [loadingWorkspace, setLoadingWorkspace] = useState(false)
-    const { clusters, refreshClusters } = useClusterPolling({ namespace })
+    const { clusters, refreshClusters } = useClusterPolling(namespace)
     const workspace = cachedWorkspace && _.isEqual({ namespace, name }, _.pick(['namespace', 'name'], cachedWorkspace.workspace)) ? cachedWorkspace : undefined
 
     const refreshWorkspace = _.flow(
