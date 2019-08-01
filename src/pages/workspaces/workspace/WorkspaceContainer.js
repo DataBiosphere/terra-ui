@@ -13,7 +13,7 @@ import { Ajax, saToken, useCancellation } from 'src/libs/ajax'
 import { getUser } from 'src/libs/auth'
 import { currentCluster } from 'src/libs/cluster-utils'
 import colors from 'src/libs/colors'
-import { withErrorReporting } from 'src/libs/error'
+import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import { workspaceStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
@@ -152,6 +152,33 @@ const WorkspaceAccessError = () => {
   ])
 }
 
+const useClusterPolling = ({ namespace }) => {
+  const signal = useCancellation()
+  const timeout = useRef()
+  const [clusters, setClusters] = useState(undefined)
+  const reschedule = ms => {
+    clearTimeout(timeout.current)
+    timeout.current = setTimeout(refreshClustersSilently, ms)
+  }
+  const loadClusters = async () => {
+    try {
+      const newClusters = await Ajax(signal).Jupyter.clustersList(namespace)
+      setClusters(_.filter({ creator: getUser().email }, newClusters))
+      const cluster = currentCluster(newClusters)
+      reschedule(_.includes(cluster && cluster.status, ['Creating', 'Starting', 'Stopping']) ? 10000 : 120000)
+    } catch (error) {
+      reschedule(30000)
+      throw error
+    }
+  }
+  const refreshClusters = withErrorReporting('Error loading clusters', loadClusters)
+  const refreshClustersSilently = withErrorIgnoring(loadClusters)
+  Utils.useOnMount(() => {
+    refreshClusters()
+    return () => clearTimeout(timeout.current)
+  })
+  return { clusters, refreshClusters }
+}
 
 export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, showTabBar = true, queryparams }) => WrappedComponent => {
   const Wrapper = props => {
@@ -162,13 +189,8 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
     const accessNotificationId = useRef()
     const cachedWorkspace = Utils.useAtom(workspaceStore)
     const [loadingWorkspace, setLoadingWorkspace] = useState(false)
-    const [clusters, setClusters] = useState(undefined)
+    const { clusters, refreshClusters } = useClusterPolling({ namespace })
     const workspace = cachedWorkspace && _.isEqual({ namespace, name }, _.pick(['namespace', 'name'], cachedWorkspace.workspace)) ? cachedWorkspace : undefined
-
-    const refreshClusters = withErrorReporting('Error loading clusters', async () => {
-      const clusters = await Ajax(signal).Jupyter.clustersList(namespace)
-      setClusters(_.filter({ creator: getUser().email }, clusters))
-    })
 
     const refreshWorkspace = _.flow(
       withErrorReporting('Error loading workspace'),
@@ -213,7 +235,6 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
       if (!workspace) {
         refreshWorkspace()
       }
-      refreshClusters()
     })
 
     if (accessError) {
