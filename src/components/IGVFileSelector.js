@@ -68,7 +68,7 @@ export class IGVFileSelector extends Component {
   }
 
   render() {
-    const { onDismiss, onSuccess, openDrawer } = this.props
+    const { onDismiss, onSuccess } = this.props
     const { selectedFiles, refGenome } = this.state
     const trackFiles = this.getIGVFileList()
     const clearSelectionsAndDismiss = () => {
