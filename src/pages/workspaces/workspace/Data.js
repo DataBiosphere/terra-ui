@@ -468,14 +468,14 @@ class EntitiesContent extends Component {
     const entityTsv = _.join('\n', [header, ..._.map(entityToRow, sortedEntities)]) + '\n'
 
     if (isSet) {
-      const entityToMembership = ({ attributes, name }) => _.join('\n', _.map(
+      const entityToMembership = ({ attributes, name }) => _.map(
         ({ entityName }) => `${name}\t${entityName}`,
         attributes[`${setRoot}s`].items
-      ))
+      )
 
       const header = `membership:${entityKey}_id\t${setRoot}`
 
-      const membershipTsv = _.join('\n', [header, ..._.map(entityToMembership, sortedEntities)])
+      const membershipTsv = _.join('\n', [header, ..._.flatMap(entityToMembership, sortedEntities)]) + '\n'
 
       const zipFile = new JSZip()
         .file(`${entityKey}_entity.tsv`, entityTsv)
