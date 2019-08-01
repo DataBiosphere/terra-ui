@@ -403,7 +403,6 @@ class EntitiesContent extends Component {
       selectedEntities: {},
       deletingEntities: false,
       refreshKey: 0,
-      showIgvSelector: false,
       igvData: {
         selectedFiles: undefined,
         igvRefGenome: ''
@@ -486,8 +485,9 @@ class EntitiesContent extends Component {
     const { selectedEntities } = this.state
 
     const dataExplorerUrl =
-      _.size(selectedEntities) === 1 && _.values(selectedEntities)[0].attributes.data_explorer_url ? _.values(selectedEntities)[0].attributes.data_explorer_url
-        : ''
+      _.size(selectedEntities) === 1 && _.values(selectedEntities)[0].attributes.data_explorer_url ?
+        _.values(selectedEntities)[0].attributes.data_explorer_url :
+        ''
     return h(Fragment, [
       h(ButtonPrimary, {
         // Old cohorts (before mid-Apr 2019) don't have data_explorer_url
