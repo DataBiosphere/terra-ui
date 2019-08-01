@@ -23,7 +23,8 @@ const datasets = [
   {
     name: 'UK Biobank',
     origin: 'https://biobank-explorer.appspot.com',
-    authDomain: 'Kathiresan_UKBB'
+    authDomain: 'Kathiresan_UKBB',
+    isUKB: true
   }
 ]
 
