@@ -45,7 +45,10 @@ const Modal = ({ addFn }) => {
           await delayedResolve(checkRegistrationDelay)
           return isRegistered
         },
-        inviteFunction: async () => await delayedResolve(inviteUserDelay),
+        inviteFunction: async userEmail => {
+          await delayedResolve(inviteUserDelay)
+          action(`Inviting ${userEmail}`)()
+        },
         onDismiss: () => setShowModal(false)
       })
     ])
