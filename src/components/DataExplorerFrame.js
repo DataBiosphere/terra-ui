@@ -22,7 +22,6 @@ const DataExplorerFrame = ({ dataset }) => {
           // Propagate Data Explorer URL params to app.terra.bio.
           // Don't call Nav.history.replace(). That will trigger a request and
           // cause the page to flicker.
-          console.log(Nav.history)
           window.history.replaceState({}, `Data Explorer - ${dataset}`, `#${Nav.history.location.pathname.slice(1)}?${deQueryStr}`)
         }
       }
