@@ -125,7 +125,7 @@ const styles = {
   }),
   header: (col, total) => ({
     ...cellStyles,
-    backgroundColor: colors.light(0.4),
+    backgroundColor: colors.light(0.5),
     borderTop: `1px solid ${colors.dark(0.2)}`,
     borderBottom: `1px solid ${colors.dark(0.2)}`,
     borderLeft: `1px solid ${colors.dark(0.2)}`,

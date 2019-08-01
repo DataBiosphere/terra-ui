@@ -179,7 +179,10 @@ export default ajaxCaller(class DataTable extends Component {
                       }
                     }
                   }, _.filter('visible', columnSettings))
-                ]
+                ],
+                styleCell: ({ rowIndex }) => {
+                  return rowIndex % 2 && { backgroundColor: colors.light(0.2) }
+                }
               })
             }
           ]),
