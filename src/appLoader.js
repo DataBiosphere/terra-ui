@@ -11,10 +11,8 @@ import RModal from 'react-modal'
 import { initializeAuth } from 'src/libs/auth'
 import { initializeTCell } from 'src/libs/tcell'
 import Main from 'src/pages/Main'
-import validate from 'validate.js'
 
 
-validate.validators.email.PATTERN = /\w+@(gmail\.com|broadinstitute\.org)$/
 RModal.defaultStyles = { overlay: {}, content: {} }
 window.SATURN_VERSION = SATURN_VERSION
 marked.setOptions({ sanitize: true, sanitizer: _.escape })

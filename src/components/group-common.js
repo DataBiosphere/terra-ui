@@ -108,11 +108,11 @@ export const NewUserModal = ajaxCaller(class NewUserModal extends Component {
   render() {
     const { adminLabel, userLabel, title, onDismiss, footer, inviteFunction } = this.props
     const { confirmAddUser, userEmail, roles, suggestions, submitting, submitError, checkingUser } = this.state
-
-    const errors = validate({ userEmail }, { userEmail: { email: true } })
+    const emailConstraints = { format: /\w+@(gmail\.com|broadinstitute\.org)$/ }
+    const errors = validate({ userEmail }, { userEmail: emailConstraints })
     const isAdmin = _.includes(adminLabel, roles)
 
-    const userEmailInvalid = !!validate({ userEmail }, { userEmail: { email: true } })
+    const userEmailInvalid = !!validate({ userEmail }, { userEmail: emailConstraints })
     const canAdd = value => value !== userEmail || !userEmailInvalid
 
     return Utils.cond(
