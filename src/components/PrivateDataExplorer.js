@@ -2,10 +2,10 @@ import _ from 'lodash/fp'
 import { Component, Fragment } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import { Link } from 'src/components/common'
-import DataExplorer from 'src/components/DataExplorer'
+import DataExplorerFrame from 'src/components/DataExplorerFrame'
 import { centeredSpinner } from 'src/components/icons'
+import datasets from 'src/data/datasets'
 import { ajaxCaller } from 'src/libs/ajax'
-import datasets from 'src/libs/datasets'
 import { authStore, contactUsActive } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
@@ -104,7 +104,7 @@ export default _.flow(
       Utils.cond(
         [groups === undefined || completedDeOauth === undefined, centeredSpinner],
         [groups && groups.includes(authDomain) && completedDeOauth === false, () => { window.open(origin, '_self') }],
-        [groups && groups.includes(authDomain), h(DataExplorer, { dataset })],
+        [groups && groups.includes(authDomain), h(DataExplorerFrame, { dataset })],
         notInAuthDomainError
       )
     ])
