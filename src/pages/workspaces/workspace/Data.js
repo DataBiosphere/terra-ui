@@ -630,6 +630,15 @@ const BucketContent = _.flow(
     const { workspace, workspace: { workspace: { namespace, bucketName } } } = this.props
     const { prefix, prefixes, objects, loading, uploading, deletingName, viewingName } = this.state
     const prefixParts = _.dropRight(1, prefix.split('/'))
+    const makeBucketLink = ({ label, target, onClick }) => h(Link, {
+      style: { textDecoration: 'underline' },
+      href: `gs://${bucketName}/${target}`,
+      onClick: e => {
+        e.preventDefault()
+        onClick()
+      }
+    }, [label])
+
     return h(Fragment, [
       h(Dropzone, {
         disabled: !!Utils.editWorkspaceError(workspace),
@@ -642,14 +651,7 @@ const BucketContent = _.flow(
         div([
           _.map(({ label, target }) => {
             return h(Fragment, { key: target }, [
-              h(Link, {
-                style: { textDecoration: 'underline' },
-                href: `gs://${bucketName}/${target}`,
-                onClick: e => {
-                  e.preventDefault()
-                  return this.load(target)
-                }
-              }, [label]),
+              makeBucketLink({ label, target, onClick: () => this.load(target) }),
               ' / '
             ])
           }, [
@@ -671,14 +673,11 @@ const BucketContent = _.flow(
             ..._.map(p => {
               return {
                 name: h(TextCell, [
-                  h(Link, {
-                    style: { textDecoration: 'underline' },
-                    href: `gs://${bucketName}/${p}`,
-                    onClick: e => {
-                      e.preventDefault()
-                      this.load(p)
-                    }
-                  }, [p.slice(prefix.length)])
+                  makeBucketLink({
+                    label: p.slice(prefix.length),
+                    target: `gs://${bucketName}/${p}`,
+                    onClick: () => this.load(p)
+                  })
                 ])
               }
             }, prefixes),
@@ -691,16 +690,11 @@ const BucketContent = _.flow(
                   icon('trash', { size: 16, className: 'hover-only' })
                 ]),
                 name: h(TextCell, [
-                  h(Link, {
-                    style: { textDecoration: 'underline' },
-                    href: `gs://${bucketName}/${name}`,
-                    onClick: e => {
-                      e.preventDefault()
-                      this.setState({ viewingName: name })
-                    }
-                  }, [
-                    name.slice(prefix.length)
-                  ])
+                  makeBucketLink({
+                    label: name.slice(prefix.length),
+                    target: `gs://${bucketName}/${name}`,
+                    onClick: () => this.setState({ viewingName: name })
+                  })
                 ]),
                 size: filesize(size, { round: 0 }),
                 updated: Utils.makePrettyDate(updated)
