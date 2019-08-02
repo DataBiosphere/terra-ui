@@ -1,7 +1,7 @@
 import { iframeResizer } from 'iframe-resizer'
 import _ from 'lodash/fp'
-import { useLayoutEffect, useRef } from 'react'
-import { h, iframe } from 'react-hyperscript-helpers'
+import { useEffect, useRef } from 'react'
+import { iframe } from 'react-hyperscript-helpers'
 import datasets from 'src/data/datasets'
 import * as Nav from 'src/libs/nav'
 
@@ -10,7 +10,7 @@ const DataExplorerFrame = ({ dataset }) => {
   const elem = useRef()
   const { origin } = _.find({ name: dataset }, datasets)
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     iframeResizer({
       onMessage: ({ message: { importDataQueryStr, deQueryStr } }) => {
         if (importDataQueryStr) {
@@ -26,9 +26,11 @@ const DataExplorerFrame = ({ dataset }) => {
         }
       }
     }, elem.current)
+
+    return elem.current.iFrameResizer.removeListeners
   }, [dataset])
 
-  return h(iframe, { src: `${origin}/?embed&${Nav.history.location.search.slice(1)}`, style: { border: 'none' } })
+  return iframe({ src: `${origin}/?embed&${Nav.history.location.search.slice(1)}`, ref: elem, style: { border: 'none' } })
 }
 
 export default DataExplorerFrame
