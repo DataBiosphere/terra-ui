@@ -1,4 +1,5 @@
 import _ from 'lodash/fp'
+import { Component } from 'react'
 import { a, div, h, span } from 'react-hyperscript-helpers'
 import { ButtonPrimary, Clickable } from 'src/components/common'
 import { icon } from 'src/components/icons'
@@ -10,7 +11,6 @@ import { reportError } from 'src/libs/error'
 import { getAppName } from 'src/libs/logos'
 import { authStore, freeCreditsActive } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
-import { Component } from 'src/libs/wrapped-components'
 
 
 const messages = {

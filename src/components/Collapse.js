@@ -1,10 +1,10 @@
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
+import { Component } from 'react'
 import { Collapse as rCollapse } from 'react-collapse'
 import { div, h } from 'react-hyperscript-helpers'
 import { Link } from 'src/components/common'
 import { icon } from 'src/components/icons'
-import { Component } from 'src/libs/wrapped-components'
 
 
 export default class Collapse extends Component {

@@ -1,7 +1,7 @@
 import { addDays } from 'date-fns'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
-import { Fragment, useState } from 'react'
+import { Component, Fragment, useState } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import { ButtonPrimary, LabeledCheckbox, Link, RadioButton, ShibbolethLink, spinnerOverlay } from 'src/components/common'
 import { centeredSpinner, icon, profilePic, spinner } from 'src/components/icons'
@@ -15,7 +15,6 @@ import { withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import { authStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
-import { Component } from 'src/libs/wrapped-components'
 import validate from 'validate.js'
 
 

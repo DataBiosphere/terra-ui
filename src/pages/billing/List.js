@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import * as qs from 'qs'
-import { Fragment } from 'react'
+import { Component, Fragment } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import { ButtonPrimary, Clickable, Link, Select, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
@@ -17,7 +17,6 @@ import { authStore, freeCreditsActive } from 'src/libs/state'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import { Component } from 'src/libs/wrapped-components'
 import ProjectDetail from 'src/pages/billing/Project'
 import validate from 'validate.js'
 
@@ -206,20 +205,19 @@ export const BillingList = _.flow(
     this.checkOwner()
   }
 
- loadProjects = _.flow(
-   withErrorReporting('Error loading billing projects list'),
-   Utils.withBusyState(isLoadingProjects => this.setState({ isLoadingProjects }))
- )(
-   async () => {
-     const { ajax: { Billing } } = this.props
-     const rawBillingProjects = await Billing.listProjects()
-     const billingProjects = _.flow(
-       _.groupBy('projectName'),
-       _.map(gs => ({ ...gs[0], role: _.map('role', gs) })),
-       _.sortBy('projectName')
-     )(rawBillingProjects)
-     this.setState({ billingProjects })
-   })
+  loadProjects = _.flow(
+    withErrorReporting('Error loading billing projects list'),
+    Utils.withBusyState(isLoadingProjects => this.setState({ isLoadingProjects }))
+  )(async () => {
+    const { ajax: { Billing } } = this.props
+    const rawBillingProjects = await Billing.listProjects()
+    const billingProjects = _.flow(
+      _.groupBy('projectName'),
+      _.map(gs => ({ ...gs[0], role: _.map('role', gs) })),
+      _.sortBy('projectName')
+    )(rawBillingProjects)
+    this.setState({ billingProjects })
+  })
 
   authorizeAndLoadAccounts = _.flow(
     withErrorReporting('Error setting up authorization'),

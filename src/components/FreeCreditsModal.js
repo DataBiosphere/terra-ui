@@ -1,3 +1,4 @@
+import { Component } from 'react'
 import { a, div, h, span } from 'react-hyperscript-helpers'
 import { ButtonPrimary, LabeledCheckbox, spinnerOverlay } from 'src/components/common'
 import FreeTrialEulas from 'src/components/FreeTrialEulas'
@@ -9,7 +10,6 @@ import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import { freeCreditsActive } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
-import { Component } from 'src/libs/wrapped-components'
 
 
 const FreeCreditsModal = Utils.connectAtom(freeCreditsActive, 'isActive')(class FreeCreditsModal extends Component {

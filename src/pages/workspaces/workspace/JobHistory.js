@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { Fragment } from 'react'
+import { Component, Fragment } from 'react'
 import { div, h, span, table, tbody, td, tr } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
@@ -17,7 +17,6 @@ import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import { Component } from 'src/libs/wrapped-components'
 import { SubmissionQueueStatus } from 'src/pages/workspaces/workspace/SubmissionQueueStatus'
 import { rerunFailures } from 'src/pages/workspaces/workspace/workflows/FailureRerunner'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
@@ -81,7 +80,8 @@ const statusCell = workflowStatuses => {
 
 const noJobsMessage = div({ style: { fontSize: 20, margin: '1rem' } }, [
   div([
-    'You have not run any jobs yet. To get started, go to the ', span({ style: { fontWeight: 600 } }, ['Workflows']), ' tab and select a workflow to run.'
+    'You have not run any jobs yet. To get started, go to the ', span({ style: { fontWeight: 600 } }, ['Workflows']),
+    ' tab and select a workflow to run.'
   ]),
   div({ style: { marginTop: '1rem', fontSize: 16 } }, [
     h(Link, {

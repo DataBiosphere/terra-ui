@@ -1,4 +1,4 @@
-import { Fragment } from 'react'
+import { Component, Fragment } from 'react'
 import { b, div, h, img, p, span } from 'react-hyperscript-helpers'
 import { pure } from 'recompose'
 import { ButtonPrimary, Link } from 'src/components/common'
@@ -23,7 +23,6 @@ import { returnParam } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import { Component } from 'src/libs/wrapped-components'
 
 
 const styles = {
@@ -69,6 +68,11 @@ const logoBox = ({ src, alt, height }) => div({
 
 
 class Participant extends Component {
+  constructor(props) {
+    super(props)
+    this.state = { showingModal: false }
+  }
+
   render() {
     const { logo, title, shortDescription, description, sizeText, children } = this.props
     const { showingModal } = this.state
@@ -329,7 +333,8 @@ const Datasets = pure(() => {
     libraryTopMatter('datasets'),
     div({ style: styles.content }, [
       // Put datasets in alphabetical order
-      thousandGenomesHighCoverage(), thousandGenomesLowCoverage(), amppd(), baseline(), ccdg(), cmg(), encode(), fcDataLib(), hca(), nemo(), nhs(), topMed(), ukb()
+      thousandGenomesHighCoverage(), thousandGenomesLowCoverage(), amppd(), baseline(), ccdg(), cmg(), encode(), fcDataLib(), hca(), nemo(), nhs(),
+      topMed(), ukb()
     ])
   ])
 })

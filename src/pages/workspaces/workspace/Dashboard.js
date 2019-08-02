@@ -1,7 +1,7 @@
 import * as clipboard from 'clipboard-polyfill'
 import debouncePromise from 'debounce-promise'
 import _ from 'lodash/fp'
-import { Fragment } from 'react'
+import { Component, Fragment } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import SimpleMDE from 'react-simplemde-editor'
 import * as breadcrumbs from 'src/components/breadcrumbs'
@@ -20,7 +20,6 @@ import { getAppName } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import { Component } from 'src/libs/wrapped-components'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
 

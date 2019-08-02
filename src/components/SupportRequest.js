@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { createRef, Fragment } from 'react'
+import { Component, createRef, Fragment } from 'react'
 import Dropzone from 'react-dropzone'
 import { div, h, span } from 'react-hyperscript-helpers'
 import { ButtonPrimary, ButtonSecondary, Clickable, Link, Select, spinnerOverlay } from 'src/components/common'
@@ -13,7 +13,6 @@ import { FormLabel, RequiredFormLabel } from 'src/libs/forms'
 import { authStore, contactUsActive } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import { Component } from 'src/libs/wrapped-components'
 import validate from 'validate.js'
 
 

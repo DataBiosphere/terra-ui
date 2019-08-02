@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { createRef, Fragment } from 'react'
+import { Component, createRef, Fragment } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import { Checkbox, Clickable, Link, MenuButton, RadioButton, spinnerOverlay } from 'src/components/common'
@@ -14,7 +14,6 @@ import { renderDataCell } from 'src/libs/data-utils'
 import { reportError } from 'src/libs/error'
 import * as StateHistory from 'src/libs/state-history'
 import * as Utils from 'src/libs/utils'
-import { Component } from 'src/libs/wrapped-components'
 
 
 const filterState = state => _.pick(['pageNumber', 'itemsPerPage', 'sort', 'activeTextFilter'], state)

@@ -1,6 +1,6 @@
 import { differenceInSeconds } from 'date-fns'
 import _ from 'lodash/fp'
-import { Fragment, PureComponent, useRef, useState } from 'react'
+import { Component, Fragment, PureComponent, useRef, useState } from 'react'
 import { div, h, h2, p, span } from 'react-hyperscript-helpers'
 import ClusterManager from 'src/components/ClusterManager'
 import { ButtonPrimary, Clickable, comingSoon, Link, makeMenuIcon, MenuButton, spinnerOverlay, TabBar } from 'src/components/common'
@@ -18,7 +18,6 @@ import * as Nav from 'src/libs/nav'
 import { workspaceStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import { Component } from 'src/libs/wrapped-components'
 import DeleteWorkspaceModal from 'src/pages/workspaces/workspace/DeleteWorkspaceModal'
 import ShareWorkspaceModal from 'src/pages/workspaces/workspace/ShareWorkspaceModal'
 
@@ -190,7 +189,9 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
     const cachedWorkspace = Utils.useAtom(workspaceStore)
     const [loadingWorkspace, setLoadingWorkspace] = useState(false)
     const { clusters, refreshClusters } = useClusterPolling(namespace)
-    const workspace = cachedWorkspace && _.isEqual({ namespace, name }, _.pick(['namespace', 'name'], cachedWorkspace.workspace)) ? cachedWorkspace : undefined
+    const workspace = cachedWorkspace && _.isEqual({ namespace, name }, _.pick(['namespace', 'name'], cachedWorkspace.workspace)) ?
+      cachedWorkspace :
+      undefined
 
     const refreshWorkspace = _.flow(
       withErrorReporting('Error loading workspace'),
