@@ -642,7 +642,14 @@ const BucketContent = _.flow(
         div([
           _.map(({ label, target }) => {
             return h(Fragment, { key: target }, [
-              h(Link, { style: { textDecoration: 'underline' }, onClick: () => this.load(target) }, [label]),
+              h(Link, {
+                style: { textDecoration: 'underline' },
+                href: `gs://${bucketName}/${target}`,
+                onClick: e => {
+                  e.preventDefault()
+                  return this.load(target)
+                }
+              }, [label]),
               ' / '
             ])
           }, [
@@ -664,7 +671,14 @@ const BucketContent = _.flow(
             ..._.map(p => {
               return {
                 name: h(TextCell, [
-                  h(Link, { style: { textDecoration: 'underline' }, onClick: () => this.load(p) }, [p.slice(prefix.length)])
+                  h(Link, {
+                    style: { textDecoration: 'underline' },
+                    href: `gs://${bucketName}/${p}`,
+                    onClick: e => {
+                      e.preventDefault()
+                      this.load(p)
+                    }
+                  }, [p.slice(prefix.length)])
                 ])
               }
             }, prefixes),
@@ -677,7 +691,14 @@ const BucketContent = _.flow(
                   icon('trash', { size: 16, className: 'hover-only' })
                 ]),
                 name: h(TextCell, [
-                  h(Link, { style: { textDecoration: 'underline' }, onClick: () => this.setState({ viewingName: name }) }, [
+                  h(Link, {
+                    style: { textDecoration: 'underline' },
+                    href: `gs://${bucketName}/${name}`,
+                    onClick: e => {
+                      e.preventDefault()
+                      this.setState({ viewingName: name })
+                    }
+                  }, [
                     name.slice(prefix.length)
                   ])
                 ]),
