@@ -141,7 +141,7 @@ const thousandGenomesLowCoverage = () => h(Participant, {
   sizeText: 'Participants: 3,500'
 }, [
   h(ButtonPrimary, {
-    href: Nav.getLink('library-datasets-data-explorer-public', { dataset: '1000 Genomes' }),
+    href: Nav.getLink('data-explorer-public', { dataset: '1000 Genomes' }),
     tooltip: browseTooltip
   }, ['Browse data'])
 ])
@@ -174,7 +174,7 @@ const amppd = () => h(Participant, {
   sizeText: 'Participants: > 4,700'
 }, [
   h(ButtonPrimary, {
-    href: Nav.getLink('library-datasets-data-explorer-private', { dataset: 'AMP PD - 2019_v1beta_0220' })
+    href: Nav.getLink('data-explorer-private', { dataset: 'AMP PD - 2019_v1beta_0220' })
   }, ['Browse Data'])
 ])
 
@@ -191,7 +191,7 @@ const baseline = () => h(Participant, {
   sizeText: 'Participants: > 1,500'
 }, [
   h(ButtonPrimary, {
-    href: Nav.getLink('library-datasets-data-explorer-private', { dataset: 'Baseline Health Study' })
+    href: Nav.getLink('data-explorer-private', { dataset: 'Baseline Health Study' })
   }, ['Browse Data'])
 ])
 
@@ -292,7 +292,7 @@ const nhs = () => h(Participant, {
   sizeText: 'Participants: > 120,000'
 }, [
   h(ButtonPrimary, {
-    href: Nav.getLink('library-datasets-data-explorer-private', { dataset: `Nurses' Health Study` })
+    href: Nav.getLink('data-explorer-private', { dataset: `Nurses' Health Study` })
   }, ['Browse Data'])
 ])
 
@@ -319,7 +319,7 @@ const ukb = () => h(Participant, {
   sizeText: 'Participants: > 500,000'
 }, [
   h(ButtonPrimary, {
-    href: Nav.getLink('library-datasets-data-explorer-private', { dataset: 'UK Biobank' })
+    href: Nav.getLink('data-explorer-private', { dataset: 'UK Biobank' })
   }, ['Browse Data'])
 ])
 
