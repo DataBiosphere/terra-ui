@@ -114,7 +114,7 @@ export default ajaxCaller(class DataTable extends Component {
                           ]),
                           side: 'bottom'
                         }, [
-                          h(Clickable, [icon('caretDown')])
+                          h(Clickable, { 'aria-label': '"Select All" options' }, [icon('caretDown')])
                         ])
                       ])
                     } : () => div(),
