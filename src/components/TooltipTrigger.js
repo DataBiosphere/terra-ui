@@ -34,7 +34,7 @@ const styles = {
   }
 }
 
-const Tooltip = ({ side = 'bottom', type, target: targetId, children }) => {
+const Tooltip = ({ side = 'bottom', type, target: targetId, children, id }) => {
   const elementRef = useRef()
   const [target, element, viewport] = useDynamicPosition([{ id: targetId }, { ref: elementRef }, { viewport: true }])
   const gap = type === 'light' ? 5 : 10
@@ -55,6 +55,7 @@ const Tooltip = ({ side = 'bottom', type, target: targetId, children }) => {
   }
   return h(PopupPortal, [
     div({
+      id, role: 'tooltip',
       ref: elementRef,
       style: {
         transform: `translate(${position.left}px, ${position.top}px)`,
@@ -87,6 +88,7 @@ export default class TooltipTrigger extends Component {
     super(props)
     this.state = { open: false }
     this.id = `tooltip-trigger-${_.uniqueId()}`
+    this.tooltipId = `tooltip-${_.uniqueId()}`
   }
 
   render() {
@@ -99,6 +101,7 @@ export default class TooltipTrigger extends Component {
     return h(Fragment, [
       cloneElement(child, {
         id: this.id,
+        'aria-describedby': open ? this.tooltipId : undefined,
         onMouseEnter: (...args) => {
           child.props.onMouseEnter && child.props.onMouseEnter(...args)
           this.setState({ open: true })
@@ -108,7 +111,7 @@ export default class TooltipTrigger extends Component {
           this.setState({ open: false })
         }
       }),
-      open && h(Tooltip, { target: this.id, type, ...props }, [content])
+      open && h(Tooltip, { target: this.id, id: this.tooltipId, type, ...props }, [content])
     ])
   }
 }
