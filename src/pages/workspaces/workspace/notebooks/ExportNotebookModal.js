@@ -1,8 +1,8 @@
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
-import { Component } from 'react'
+import { Component, Fragment } from 'react'
 import { b, h } from 'react-hyperscript-helpers'
-import { ButtonPrimary, spinnerOverlay } from 'src/components/common'
+import { ButtonPrimary, IdContainer, spinnerOverlay } from 'src/components/common'
 import ErrorView from 'src/components/ErrorView'
 import Modal from 'src/components/Modal'
 import { notebookNameInput, notebookNameValidator } from 'src/components/notebook-utils'
@@ -69,23 +69,29 @@ export default _.flow(
         onClick: () => this.copy()
       }, ['Copy'])
     }, [
-      h(RequiredFormLabel, ['Destination']),
-      h(WorkspaceSelector, {
-        workspaces: _.filter(Utils.isValidWsExportTarget(workspace), workspaces),
-        value: selectedWorkspaceId,
-        onChange: v => {
-          this.setState({ selectedWorkspaceId: v })
-          this.findNotebooks(v)
-        }
-      }),
-      h(RequiredFormLabel, ['Name']),
-      notebookNameInput({
-        error: Utils.summarizeErrors(errors && errors.newName),
-        inputProps: {
-          value: newName,
-          onChange: v => this.setState({ newName: v })
-        }
-      }),
+      h(IdContainer, [id => h(Fragment, [
+        h(RequiredFormLabel, { htmlFor: id }, ['Destination']),
+        h(WorkspaceSelector, {
+          id,
+          workspaces: _.filter(Utils.isValidWsExportTarget(workspace), workspaces),
+          value: selectedWorkspaceId,
+          onChange: v => {
+            this.setState({ selectedWorkspaceId: v })
+            this.findNotebooks(v)
+          }
+        })
+      ])]),
+      h(IdContainer, [id => h(Fragment, [
+        h(RequiredFormLabel, { htmlFor: id }, ['Name']),
+        notebookNameInput({
+          error: Utils.summarizeErrors(errors && errors.newName),
+          inputProps: {
+            id,
+            value: newName,
+            onChange: v => this.setState({ newName: v })
+          }
+        })
+      ])]),
       copying && spinnerOverlay,
       error && h(ErrorView, { error, collapses: false })
     ])
