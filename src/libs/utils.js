@@ -322,6 +322,18 @@ export const useGetter = value => {
   return () => ref.current
 }
 
+/*
+ * Calls the provided function to produce and return a value tied to this component instance.
+ * The initializer function is only called once for each component instance, on first render.
+ */
+export const useInstance = fn => {
+  const ref = useRef()
+  if (!ref.current) {
+    ref.current = fn()
+  }
+  return ref.current
+}
+
 export const handleNonRunningCluster = ({ status, googleProject, clusterName }, JupyterAjax) => {
   switch (status) {
     case 'Stopped':

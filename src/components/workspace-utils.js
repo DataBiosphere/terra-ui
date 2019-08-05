@@ -1,7 +1,8 @@
+import debouncePromise from 'debounce-promise'
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
-import { ButtonPrimary, Link, Select } from 'src/components/common'
+import { AsyncCreatableSelect, ButtonPrimary, Link, Select } from 'src/components/common'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
 import { Ajax, useCancellation } from 'src/libs/ajax'
 import { withErrorReporting } from 'src/libs/error'
@@ -92,3 +93,22 @@ export const WorkspaceImporter = withWorkspaces(
     ])
   }
 )
+
+export const WorkspaceTagSelect = props => {
+  const signal = useCancellation()
+  const getTagSuggestions = Utils.useInstance(() => debouncePromise(withErrorReporting('Error loading tags', async text => {
+    if (text.length > 2) {
+      return _.map(({ tag, count }) => {
+        return { value: tag, label: `${tag} (${count})` }
+      }, _.take(10, await Ajax(signal).Workspaces.getTags(text)))
+    } else {
+      return []
+    }
+  }), 250))
+  return h(AsyncCreatableSelect, {
+    noOptionsMessage: () => 'Enter at least 3 characters to search',
+    allowCreateWhileLoading: true,
+    loadOptions: getTagSuggestions,
+    ...props
+  })
+}
