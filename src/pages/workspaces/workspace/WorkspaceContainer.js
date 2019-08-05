@@ -1,6 +1,6 @@
 import { differenceInSeconds } from 'date-fns'
 import _ from 'lodash/fp'
-import { Fragment, PureComponent, useRef, useState } from 'react'
+import { Fragment, useRef, useState } from 'react'
 import { div, h, h2, p, span } from 'react-hyperscript-helpers'
 import ClusterManager from 'src/components/ClusterManager'
 import { ButtonPrimary, Clickable, comingSoon, Link, makeMenuIcon, MenuButton, spinnerOverlay, TabBar } from 'src/components/common'
@@ -18,7 +18,6 @@ import * as Nav from 'src/libs/nav'
 import { workspaceStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import { Component } from 'src/libs/wrapped-components'
 import DeleteWorkspaceModal from 'src/pages/workspaces/workspace/DeleteWorkspaceModal'
 import ShareWorkspaceModal from 'src/pages/workspaces/workspace/ShareWorkspaceModal'
 
@@ -28,108 +27,85 @@ const navIconProps = {
   hover: { opacity: 1 }, focus: 'hover'
 }
 
-const TAB_NAMES = ['dashboard', 'data', 'notebooks', 'workflows', 'job history']
+const WorkspaceTabs = ({ namespace, name, workspace, activeTab, refresh }) => {
+  const [deletingWorkspace, setDeletingWorkspace] = useState(false)
+  const [cloningWorkspace, setCloningWorkspace] = useState(false)
+  const [sharingWorkspace, setSharingWorkspace] = useState(false)
+  const isOwner = workspace && Utils.isOwner(workspace.accessLevel)
+  const canShare = workspace && workspace.canShare
 
-class WorkspaceTabs extends PureComponent {
-  render() {
-    const { namespace, name, workspace, activeTab, refresh, onShare, onDelete, onClone } = this.props
-    const isOwner = workspace && Utils.isOwner(workspace.accessLevel)
-    const canShare = workspace && workspace.canShare
-
-    return h(TabBar, {
+  const tabs = [
+    { name: 'dashboard', link: 'workspace-dashboard' },
+    { name: 'data', link: 'workspace-data' },
+    { name: 'notebooks', link: 'workspace-notebooks' },
+    { name: 'workflows', link: 'workspace-workflows' },
+    { name: 'job history', link: 'workspace-job-history' }
+  ]
+  return h(Fragment, [
+    h(TabBar, {
       activeTab, refresh,
-      tabNames: TAB_NAMES,
-      getHref: currentTab => Nav.getLink(_.kebabCase(`workspace ${currentTab}`), { namespace, name })
+      tabNames: _.map('name', tabs),
+      getHref: currentTab => Nav.getLink(_.find({ name: currentTab }, tabs).link, { namespace, name })
     }, [
       h(PopupTrigger, {
         closeOnClick: true,
         content: h(Fragment, [
-          h(MenuButton, { onClick: onClone }, [makeMenuIcon('copy'), 'Clone']),
+          h(MenuButton, { onClick: () => setCloningWorkspace(true) }, [makeMenuIcon('copy'), 'Clone']),
           h(MenuButton, {
             disabled: !canShare,
             tooltip: !canShare && 'You have not been granted permission to share this workspace',
             tooltipSide: 'left',
-            onClick: () => onShare()
+            onClick: () => setSharingWorkspace(true)
           }, [makeMenuIcon('share'), 'Share']),
           h(MenuButton, { disabled: true }, [makeMenuIcon('export'), 'Publish', comingSoon]),
           h(MenuButton, {
             disabled: !isOwner,
             tooltip: !isOwner && 'You must be an owner of this workspace or the underlying billing project',
             tooltipSide: 'left',
-            onClick: () => onDelete()
+            onClick: () => setDeletingWorkspace(true)
           }, [makeMenuIcon('trash'), 'Delete Workspace'])
         ]),
         side: 'bottom'
       }, [
         h(Clickable, { ...navIconProps }, [icon('cardMenuIcon', { size: 27 })])
       ])
-    ])
-  }
+    ]),
+    deletingWorkspace && h(DeleteWorkspaceModal, {
+      workspace,
+      onDismiss: () => setDeletingWorkspace(false),
+      onSuccess: () => Nav.goToPath('workspaces')
+    }),
+    cloningWorkspace && h(NewWorkspaceModal, {
+      cloneWorkspace: workspace,
+      onDismiss: () => setCloningWorkspace(false),
+      onSuccess: ({ namespace, name }) => Nav.goToPath('workspace-dashboard', { namespace, name })
+    }),
+    sharingWorkspace && h(ShareWorkspaceModal, {
+      workspace,
+      onDismiss: () => setSharingWorkspace(false)
+    })
+  ])
 }
 
-
-class WorkspaceContainer extends Component {
-  constructor(props) {
-    super(props)
-    this.state = {
-      deletingWorkspace: false,
-      cloningWorkspace: false
-    }
-  }
-
-  onDelete = () => {
-    this.setState({ deletingWorkspace: true })
-  }
-
-  onClone = () => {
-    this.setState({ cloningWorkspace: true })
-  }
-
-  onShare = () => {
-    this.setState({ sharingWorkspace: true })
-  }
-
-  render() {
-    const { namespace, name, breadcrumbs, topBarContent, title, activeTab, showTabBar = true, refresh, refreshClusters, workspace, clusters } = this.props
-    const { deletingWorkspace, cloningWorkspace, sharingWorkspace } = this.state
-    return h(Fragment, [
-      h(TopBar, { title: 'Workspaces', href: Nav.getLink('workspaces') }, [
-        div({ style: Style.breadcrumb.breadcrumb }, [
-          div({}, breadcrumbs),
-          div({ style: Style.breadcrumb.textUnderBreadcrumb }, [
-            title || `${namespace}/${name}`,
-            workspace && !Utils.canWrite(workspace.accessLevel) && span({ style: { paddingLeft: '0.5rem', color: colors.dark(0.85) } }, '(read only)')
-          ])
-        ]),
-        topBarContent,
-        h(ClusterManager, {
-          namespace, name, clusters, refreshClusters,
-          canCompute: !!((workspace && workspace.canCompute) || (clusters && clusters.length))
-        })
+const WorkspaceContainer = ({ namespace, name, breadcrumbs, topBarContent, title, activeTab, showTabBar = true, refresh, refreshClusters, workspace, clusters, children }) => {
+  return h(Fragment, [
+    h(TopBar, { title: 'Workspaces', href: Nav.getLink('workspaces') }, [
+      div({ style: Style.breadcrumb.breadcrumb }, [
+        div({}, breadcrumbs),
+        div({ style: Style.breadcrumb.textUnderBreadcrumb }, [
+          title || `${namespace}/${name}`,
+          workspace && !Utils.canWrite(workspace.accessLevel) && span({ style: { paddingLeft: '0.5rem', color: colors.dark(0.85) } }, '(read only)')
+        ])
       ]),
-      showTabBar && h(WorkspaceTabs, {
-        namespace, name, activeTab, refresh, workspace,
-        onDelete: this.onDelete, onClone: this.onClone, onShare: this.onShare
-      }),
-      div({ style: Style.elements.pageContentContainer }, [
-        this.props.children
-      ]),
-      deletingWorkspace && h(DeleteWorkspaceModal, {
-        workspace,
-        onDismiss: () => this.setState({ deletingWorkspace: false }),
-        onSuccess: () => Nav.goToPath('workspaces')
-      }),
-      cloningWorkspace && h(NewWorkspaceModal, {
-        cloneWorkspace: workspace,
-        onDismiss: () => this.setState({ cloningWorkspace: false }),
-        onSuccess: ({ namespace, name }) => Nav.goToPath('workspace-dashboard', { namespace, name })
-      }),
-      sharingWorkspace && h(ShareWorkspaceModal, {
-        workspace,
-        onDismiss: () => this.setState({ sharingWorkspace: false })
+      topBarContent,
+      h(ClusterManager, {
+        namespace, name, clusters, refreshClusters,
+        canCompute: !!((workspace && workspace.canCompute) || (clusters && clusters.length))
       })
-    ])
-  }
+    ]),
+    showTabBar && h(WorkspaceTabs, { namespace, name, activeTab, refresh, workspace }),
+    div({ style: Style.elements.pageContentContainer }, [children])
+  ])
 }
 
 
