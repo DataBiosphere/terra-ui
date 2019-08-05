@@ -67,7 +67,7 @@ const WorkspaceTabs = ({ namespace, name, workspace, activeTab, refresh }) => {
         ]),
         side: 'bottom'
       }, [
-        h(Clickable, { ...navIconProps }, [icon('cardMenuIcon', { size: 27 })])
+        h(Clickable, { 'aria-label': 'Workspace menu', ...navIconProps }, [icon('cardMenuIcon', { size: 27 })])
       ])
     ]),
     deletingWorkspace && h(DeleteWorkspaceModal, {

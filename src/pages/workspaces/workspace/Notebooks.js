@@ -2,11 +2,11 @@ import * as clipboard from 'clipboard-polyfill'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { Component, Fragment } from 'react'
-import { a, div, h, span } from 'react-hyperscript-helpers'
+import { a, div, h, label, span } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
 import togglesListView from 'src/components/CardsListToggle'
-import { Clickable, Link, makeMenuIcon, MenuButton, PageBox, Select, spinnerOverlay } from 'src/components/common'
+import { Clickable, IdContainer, Link, makeMenuIcon, MenuButton, PageBox, Select, spinnerOverlay } from 'src/components/common'
 import Dropzone from 'src/components/Dropzone'
 import { icon } from 'src/components/icons'
 import { NotebookCreator, NotebookDeleter, NotebookDuplicator } from 'src/components/notebook-utils'
@@ -124,7 +124,7 @@ class NotebookCard extends Component {
         }, [makeMenuIcon('trash'), 'Delete'])
       ])
     }, [
-      h(Link, { onClick: e => e.preventDefault() }, [
+      h(Link, { 'aria-label': 'Notebook menu', onClick: e => e.preventDefault() }, [
         icon('cardMenuIcon', {
           size: listView ? 18 : 24
         })
@@ -344,14 +344,17 @@ const Notebooks = _.flow(
       notebooks && h(PageBox, [
         div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' } }, [
           div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, ['Notebooks']),
-          div({ style: { marginLeft: 'auto', marginRight: '0.75rem' } }, ['Sort By:']),
-          h(Select, {
-            value: sortOrder,
-            isClearable: false,
-            styles: { container: old => ({ ...old, width: 220, marginRight: '1.10rem' }) },
-            options: sortOptions,
-            onChange: selected => this.setState({ sortOrder: selected.value })
-          }),
+          h(IdContainer, [id => h(Fragment, [
+            label({ htmlFor: id, style: { marginLeft: 'auto', marginRight: '0.75rem' } }, ['Sort By:']),
+            h(Select, {
+              id,
+              value: sortOrder,
+              isClearable: false,
+              styles: { container: old => ({ ...old, width: 220, marginRight: '1.10rem' }) },
+              options: sortOptions,
+              onChange: selected => this.setState({ sortOrder: selected.value })
+            })
+          ])]),
           viewToggleButtons,
           creating && h(NotebookCreator, {
             namespace, bucketName, existingNames,

@@ -8,7 +8,6 @@ import { IntegerInput, TextInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { notify } from 'src/components/Notifications.js'
 import PopupTrigger from 'src/components/PopupTrigger'
-import TooltipTrigger from 'src/components/TooltipTrigger'
 import { machineTypes, profiles } from 'src/data/clusters'
 import { Ajax, ajaxCaller } from 'src/libs/ajax'
 import { clusterCost, currentCluster, machineConfigCost, normalizeMachineConfig, trimClustersOldestFirst } from 'src/libs/cluster-utils'
@@ -498,14 +497,16 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
             shape: 'play',
             onClick: () => this.startCluster(),
             disabled: busy || !canCompute,
-            tooltip: canCompute ? 'Start cluster' : noCompute
+            tooltip: canCompute ? 'Start cluster' : noCompute,
+            'aria-label': 'Start cluster'
           })
         case 'Running':
           return h(ClusterIcon, {
             shape: 'pause',
             onClick: () => this.stopCluster(),
             disabled: busy || !canCompute,
-            tooltip: canCompute ? 'Stop cluster' : noCompute
+            tooltip: canCompute ? 'Stop cluster' : noCompute,
+            'aria-label': 'Stop cluster'
           })
         case 'Starting':
         case 'Stopping':
@@ -517,14 +518,16 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
             style: { color: colors.danger(0.9) },
             onClick: () => this.setState({ errorModalOpen: true }),
             disabled: busy || !canCompute,
-            tooltip: canCompute ? 'View error' : noCompute
+            tooltip: canCompute ? 'View error' : noCompute,
+            'aria-label': 'View error'
           })
         default:
           return h(ClusterIcon, {
             shape: 'play',
             onClick: () => this.createDefaultCluster(),
             disabled: busy || !canCompute,
-            tooltip: canCompute ? 'Create cluster' : noCompute
+            tooltip: canCompute ? 'Create cluster' : noCompute,
+            'aria-label': 'Create cluster'
           })
       }
     }
@@ -535,26 +538,25 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
     const isDisabled = !canCompute || creating || multiple || busy
 
     return div({ style: styles.container }, [
-      h(TooltipTrigger, {
-        content: Utils.cond(
+      h(Link, {
+        href: Nav.getLink('workspace-terminal-launch', { namespace, name }),
+        tooltip: Utils.cond(
           [!canCompute, () => noCompute],
           [!currentCluster, () => 'Create a basic cluster and open its terminal'],
           () => 'Open terminal'
-        )
-      }, [
-        h(Link, {
-          href: Nav.getLink('workspace-terminal-launch', { namespace, name }),
-          disabled: !canCompute,
-          style: { marginRight: '2rem', ...styles.verticalCenter },
-          ...Utils.newTabLinkProps
-        }, [icon('terminal', { size: 24 })])
-      ]),
+        ),
+        'aria-label': 'Open terminal',
+        disabled: !canCompute,
+        style: { marginRight: '2rem', ...styles.verticalCenter },
+        ...Utils.newTabLinkProps
+      }, [icon('terminal', { size: 24 })]),
       renderIcon(),
       h(ClusterIcon, {
         shape: 'trash',
         onClick: () => this.setState({ deleteModalOpen: true }),
         disabled: busy || !canCompute || !_.includes(currentStatus, ['Stopped', 'Running', 'Error']),
         tooltip: 'Delete cluster',
+        'aria-label': 'Delete cluster',
         style: { marginLeft: '0.5rem' }
       }),
       h(PopupTrigger, {
