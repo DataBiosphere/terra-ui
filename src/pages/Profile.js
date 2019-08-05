@@ -347,7 +347,7 @@ const Profile = _.flow(
     ])
 
     const radioButton = (key, value) => h(RadioButton, {
-      text: value, checked: profileInfo[key] === value,
+      text: value, name: key, checked: profileInfo[key] === value,
       labelStyle: { margin: '0 2rem 0 0.25rem' },
       onChange: () => this.assignValue(key, value)
     })
