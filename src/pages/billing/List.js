@@ -80,7 +80,8 @@ const NewBillingProjectModal = ajaxCaller(class NewBillingProjectModal extends C
       billingProjectNameTouched: false,
       existing: [],
       isBusy: false,
-      chosenBillingAccount: ''
+      chosenBillingAccount: '',
+      chosenLocation: 'US'
     }
   }
 
@@ -137,6 +138,16 @@ const NewBillingProjectModal = ajaxCaller(class NewBillingProjectModal extends C
             }, billingAccounts)
           })
         ]),
+        h(RequiredFormLabel, ['Select Compute/Storage Location']),
+        div({ style: { fontSize: 14 } }, [
+          h(Select, {
+            isMulti: false,
+            placeholder: 'Select location',
+            value: "US",
+            onChange: selected => this.setState({ chosenLocation: selected.value }),
+            options: [ "US", "Finland", "Japan", "Australia" ]
+          })
+        ]),
         !!chosenBillingAccount && !chosenBillingAccount.firecloudHasAccess && div({ style: { fontWeight: 500, fontSize: 13 } }, [
           div({ style: { margin: '0.25rem 0 0.25rem 0', color: colors.danger() } },
             'Terra does not have access to this account. '),
@@ -170,9 +181,9 @@ const NewBillingProjectModal = ajaxCaller(class NewBillingProjectModal extends C
     Utils.withBusyState(isBusy => this.setState({ isBusy }))
   )(async () => {
     const { onSuccess } = this.props
-    const { billingProjectName, chosenBillingAccount, existing } = this.state
+    const { billingProjectName, chosenBillingAccount, chosenLocation, existing } = this.state
     try {
-      await Ajax().Billing.createProject(billingProjectName, chosenBillingAccount.accountName)
+      await Ajax().Billing.createProject(billingProjectName, chosenBillingAccount.accountName, chosenLocation)
       onSuccess()
     } catch (error) {
       if (error.status === 409) {
