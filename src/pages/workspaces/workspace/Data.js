@@ -167,6 +167,7 @@ const LocalVariablesContent = class LocalVariablesContent extends Component {
           h(Link, { onClick: () => this.uploader.current.open() }, ['upload TSV'])
         ]),
         h(DelayedSearchInput, {
+          'aria-label': 'Search',
           style: { width: 300, marginLeft: '1rem' },
           placeholder: 'Search',
           onChange: v => this.setState({ textFilter: v }),
@@ -246,6 +247,7 @@ const LocalVariablesContent = class LocalVariablesContent extends Component {
                             })
                           }, [icon('edit', { size: 19 })]),
                           h(Link, {
+                            'aria-label': 'Delete variable',
                             disabled: !!Utils.editWorkspaceError(workspace),
                             tooltip: Utils.editWorkspaceError(workspace) || 'Delete variable',
                             style: { marginLeft: '1rem' },
@@ -300,6 +302,7 @@ const ReferenceDataContent = ({ workspace: { workspace: { namespace, attributes 
 
   return h(Fragment, [
     h(DelayedSearchInput, {
+      'aria-label': 'Search',
       style: { width: 300, marginBottom: '1rem', alignSelf: 'flex-end' },
       placeholder: 'Search',
       onChange: setTextFilter,
@@ -845,6 +848,7 @@ const WorkspaceData = _.flow(
               div({ style: { display: 'flex', justifyContent: 'space-between' } }, [
                 type,
                 h(Link, {
+                  'aria-label': `Delete ${type}`,
                   disabled: !!Utils.editWorkspaceError(workspace),
                   tooltip: Utils.editWorkspaceError(workspace) || `Delete ${type}`,
                   onClick: e => {
