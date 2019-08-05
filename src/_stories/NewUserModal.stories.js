@@ -20,7 +20,7 @@ const Modal = ({ addFn }) => {
   const addUserDelay = number('Add User Latency', 100)
   const inviteUserDelay = number('Invite User Latency', 100)
   const isRegistered = select('Is user registered', { yes: true, no: false }, false)
-  const title = text('Title', 'Title')
+  const title = text('Title', 'Add user to Terra Group')
   const adminLabel = text('Admin Label', 'admin')
   const userLabel = text('User Label', 'user')
   const [showModal, setShowModal] = useState(true)

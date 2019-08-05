@@ -117,15 +117,18 @@ export const NewUserModal = ajaxCaller(class NewUserModal extends Component {
 
     return Utils.cond(
       [confirmAddUser, h(Modal, {
-        title: 'Confirm',
-        okButton: async () => {
-          this.setState({ submitting: true })
-          await inviteFunction(userEmail)
-          await this.submit()
-        },
+        title: 'This User Is Not Registered',
+        okButton: h(ButtonPrimary, {
+          onClick: async () => {
+            this.setState({ submitting: true })
+            await inviteFunction(userEmail)
+            await this.submit()
+          }
+        }, ['Yes']),
+        cancelText: 'No',
         onDismiss: () => this.setState({ confirmAddUser: false })
       }, [
-        'User ', b(userEmail), ' is not registered.', div('Add this user to the group anyway?'),
+        'Add ', b(userEmail), ' to the group anyway?',
         submitting && spinnerOverlay
       ])],
       h(Modal, {
