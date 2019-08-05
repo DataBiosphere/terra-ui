@@ -787,6 +787,7 @@ const WorkspaceData = _.flow(
           div({ style: Style.navList.heading }, [
             div(['Tables']),
             h(Link, {
+              'aria-label': 'Upload .tsv',
               disabled: !!Utils.editWorkspaceError(workspace),
               tooltip: Utils.editWorkspaceError(workspace) || 'Upload .tsv',
               onClick: () => this.setState({ uploadingFile: true })
@@ -804,6 +805,7 @@ const WorkspaceData = _.flow(
           div({ style: Style.navList.heading }, [
             div(['Reference Data']),
             h(Link, {
+              'aria-label': 'Add reference data',
               disabled: !!Utils.editWorkspaceError(workspace),
               tooltip: Utils.editWorkspaceError(workspace) || 'Add reference data',
               onClick: () => this.setState({ importingReference: true })
