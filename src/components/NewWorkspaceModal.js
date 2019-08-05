@@ -1,8 +1,8 @@
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
-import { Component } from 'react'
+import { Component, Fragment } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
-import { ButtonPrimary, Link, Select, spinnerOverlay } from 'src/components/common'
+import { ButtonPrimary, IdContainer, Link, Select, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { TextArea, ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
@@ -129,56 +129,68 @@ export default _.flow(
           onClick: () => this.create()
         }, cloneWorkspace ? 'Clone Workspace' : 'Create Workspace')
       }, [
-        h(RequiredFormLabel, ['Workspace name']),
-        h(ValidatedInput, {
-          inputProps: {
-            autoFocus: true,
-            placeholder: 'Enter a name',
-            value: name,
-            onChange: v => this.setState({ name: v, nameModified: true })
-          },
-          error: Utils.summarizeErrors(nameModified && errors && errors.name)
-        }),
-        h(RequiredFormLabel, ['Billing project']),
-        h(Select, {
-          isClearable: false,
-          placeholder: 'Select a billing project',
-          value: namespace,
-          onChange: ({ value }) => this.setState({ namespace: value }),
-          options: _.uniq(_.map('projectName', billingProjects)).sort()
-        }),
-        h(FormLabel, ['Description']),
-        h(TextArea, {
-          style: { height: 100 },
-          placeholder: 'Enter a description',
-          value: description,
-          onChange: v => this.setState({ description: v })
-        }),
-        h(FormLabel, [
-          'Authorization domain',
-          h(InfoBox, [
-            'An authorization domain can only be set when creating a workspace. ',
-            'Once set, it cannot be changed. ',
-            'Any cloned workspace will automatically inherit the authorization domain(s) from the original workspace and cannot be removed. ',
-            h(Link, {
-              href: 'https://support.terra.bio/hc/en-us/articles/360026775691',
-              ...Utils.newTabLinkProps
-            }, ['Read more about authorization domains'])
-          ])
-        ]),
-        !!existingGroups.length && div({ style: { marginBottom: '0.5rem', fontSize: 12 } }, [
-          div({ style: { marginBottom: '0.2rem' } }, ['Inherited groups:']),
-          ...existingGroups.join(', ')
-        ]),
-        h(Select, {
-          isClearable: false,
-          isMulti: true,
-          placeholder: 'Select groups',
-          disabled: !allGroups || !billingProjects,
-          value: groups,
-          onChange: data => this.setState({ groups: _.map('value', data) }),
-          options: _.difference(_.uniq(_.map('groupName', allGroups)), existingGroups).sort()
-        }),
+        h(IdContainer, [id => h(Fragment, [
+          h(RequiredFormLabel, { htmlFor: id }, ['Workspace name']),
+          h(ValidatedInput, {
+            inputProps: {
+              id,
+              autoFocus: true,
+              placeholder: 'Enter a name',
+              value: name,
+              onChange: v => this.setState({ name: v, nameModified: true })
+            },
+            error: Utils.summarizeErrors(nameModified && errors && errors.name)
+          })
+        ])]),
+        h(IdContainer, [id => h(Fragment, [
+          h(RequiredFormLabel, { htmlFor: id }, ['Billing project']),
+          h(Select, {
+            id,
+            isClearable: false,
+            placeholder: 'Select a billing project',
+            value: namespace,
+            onChange: ({ value }) => this.setState({ namespace: value }),
+            options: _.uniq(_.map('projectName', billingProjects)).sort()
+          })
+        ])]),
+        h(IdContainer, [id => h(Fragment, [
+          h(FormLabel, { htmlFor: id }, ['Description']),
+          h(TextArea, {
+            id,
+            style: { height: 100 },
+            placeholder: 'Enter a description',
+            value: description,
+            onChange: v => this.setState({ description: v })
+          })
+        ])]),
+        h(IdContainer, [id => h(Fragment, [
+          h(FormLabel, { htmlFor: id }, [
+            'Authorization domain',
+            h(InfoBox, [
+              'An authorization domain can only be set when creating a workspace. ',
+              'Once set, it cannot be changed. ',
+              'Any cloned workspace will automatically inherit the authorization domain(s) from the original workspace and cannot be removed. ',
+              h(Link, {
+                href: 'https://support.terra.bio/hc/en-us/articles/360026775691',
+                ...Utils.newTabLinkProps
+              }, ['Read more about authorization domains'])
+            ])
+          ]),
+          !!existingGroups.length && div({ style: { marginBottom: '0.5rem', fontSize: 12 } }, [
+            div({ style: { marginBottom: '0.2rem' } }, ['Inherited groups:']),
+            ...existingGroups.join(', ')
+          ]),
+          h(Select, {
+            id,
+            isClearable: false,
+            isMulti: true,
+            placeholder: 'Select groups',
+            disabled: !allGroups || !billingProjects,
+            value: groups,
+            onChange: data => this.setState({ groups: _.map('value', data) }),
+            options: _.difference(_.uniq(_.map('groupName', allGroups)), existingGroups).sort()
+          })
+        ])]),
         createError && div({
           style: { marginTop: '1rem', color: colors.danger() }
         }, [createError]),
