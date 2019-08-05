@@ -29,7 +29,6 @@
     "qs": "^6.7.0",
     "react": "~16.8.6",
     "react-autosuggest": "^9.4.3",
-    "react-collapse": "^4.0.3",
     "react-dom": "npm:@hot-loader/react-dom@~16.8.6",
     "react-draggable": "^3.3.0",
     "react-dropzone": "^7.0.1",
