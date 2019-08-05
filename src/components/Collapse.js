@@ -1,7 +1,6 @@
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
 import { Component } from 'react'
-import { Collapse as rCollapse } from 'react-collapse'
 import { div, h } from 'react-hyperscript-helpers'
 import { Link } from 'src/components/common'
 import { icon } from 'src/components/icons'
@@ -40,10 +39,7 @@ export default class Collapse extends Component {
         showIcon && icon(isOpened ? 'angle-down' : 'angle-right', { style: { marginRight: '0.25rem', flexShrink: 0 } }),
         title
       ]),
-      animate ?
-        h(rCollapse, { isOpened }, [children]) :
-        div({ style: { display: isOpened ? 'initial' : 'none' } },
-          [children])
+      isOpened && div([children])
     ])
   }
 }
