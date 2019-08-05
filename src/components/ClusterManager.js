@@ -511,7 +511,12 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
         case 'Starting':
         case 'Stopping':
         case 'Creating':
-          return h(ClusterIcon, { shape: 'sync', disabled: true })
+          return h(ClusterIcon, {
+            shape: 'sync',
+            disabled: true,
+            tooltip: 'Cluster update in progress',
+            'aria-label': 'Cluster update in progress'
+          })
         case 'Error':
           return h(ClusterIcon, {
             shape: 'warning-standard',
