@@ -61,6 +61,7 @@ export default class DataStepContent extends Component {
     const hasSet = _.has(setType, entityMetadata)
 
     return h(Modal, {
+      title: 'Select Dta',
       okButton: h(ButtonPrimary, {
         disabled: !this.isValidSelectionModel(),
         onClick: () => onSuccess(entitySelectionModel)

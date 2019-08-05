@@ -78,7 +78,7 @@ class Participant extends Component {
     const { logo, title, shortDescription, description, sizeText, children } = this.props
     const { showingModal } = this.state
 
-    const titleElement = div({ style: styles.participant.title }, [title])
+    const titleElement = div({ id: 'participant-modal-title', style: styles.participant.title }, [title])
 
     return div({
       style: styles.participant.container
@@ -97,6 +97,7 @@ class Participant extends Component {
         div({ style: { marginTop: '1rem' } }, [children])
       ]),
       showingModal && h(Modal, {
+        contentLabel: 'participant-modal-title',
         onDismiss: () => this.setState({ showingModal: false }),
         width: 880,
         showCancel: false
