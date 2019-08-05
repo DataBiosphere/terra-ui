@@ -133,6 +133,7 @@ export default ajaxCaller(class DataTable extends Component {
                       } else if (type === 'single') {
                         const { selected, setSelected } = selectionModel
                         return h(RadioButton, {
+                          name: 'entity-selection',
                           checked: _.isEqual(selected, thisEntity),
                           onChange: () => setSelected(thisEntity)
                         })

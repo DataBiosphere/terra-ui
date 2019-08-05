@@ -620,6 +620,7 @@ const WorkflowView = _.flow(
               h(RadioButton, {
                 disabled: !!Utils.editWorkspaceError(ws) || currentSnapRedacted,
                 text: 'Process single workflow from files',
+                name: 'process-workflows',
                 checked: this.isSingle(),
                 onChange: () => this.selectSingle(),
                 labelStyle: { marginLeft: '0.5rem' }
@@ -629,6 +630,7 @@ const WorkflowView = _.flow(
               h(RadioButton, {
                 disabled: !!Utils.editWorkspaceError(ws) || currentSnapRedacted,
                 text: `Process multiple workflows from:`,
+                name: 'process-workflows',
                 checked: this.isMultiple(),
                 onChange: () => this.selectMultiple(),
                 labelStyle: { marginLeft: '0.5rem' }

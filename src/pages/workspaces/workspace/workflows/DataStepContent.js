@@ -78,6 +78,7 @@ export default class DataStepContent extends Component {
           div([
             h(RadioButton, {
               text: `Process all ${count} rows`,
+              name: 'process-rows',
               checked: type === EntitySelectionType.processAll,
               onChange: () => this.setEntitySelectionModel({ type: EntitySelectionType.processAll, selectedEntities: {} }),
               labelStyle: { marginLeft: '0.75rem' }
@@ -86,6 +87,7 @@ export default class DataStepContent extends Component {
           hasSet && div([
             h(RadioButton, {
               text: 'Choose an existing set',
+              name: 'process-rows',
               checked: type === EntitySelectionType.processFromSet,
               onChange: () => this.setEntitySelectionModel({ type: EntitySelectionType.processFromSet, selectedEntities: {} }),
               labelStyle: { marginLeft: '0.75rem' }
@@ -94,6 +96,7 @@ export default class DataStepContent extends Component {
           div([
             h(RadioButton, {
               text: 'Choose specific rows to process',
+              name: 'process-rows',
               checked: type === EntitySelectionType.chooseRows,
               onChange: () => this.setEntitySelectionModel({ type: EntitySelectionType.chooseRows, selectedEntities: {} }),
               labelStyle: { marginLeft: '0.75rem' }
