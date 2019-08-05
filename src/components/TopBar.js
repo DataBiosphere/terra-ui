@@ -28,7 +28,7 @@ import { CookiesModal } from 'src/pages/SignIn'
 
 const styles = {
   topBar: {
-    flex: 'none', height: 66, paddingLeft: '1rem',
+    flex: 'none', height: 66,
     display: 'flex', alignItems: 'center',
     borderBottom: `2px solid ${colors.primary(0.55)}`,
     zIndex: 2,
@@ -318,14 +318,19 @@ const TopBar = Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
             colors.light()
         }
       }, [
-        icon('bars', {
-          size: 36,
-          style: {
-            marginRight: '2rem', color: isTerra() ? 'white' : colors.accent(), flex: 'none', cursor: 'pointer',
-            transform: navShown ? 'rotate(90deg)' : undefined, transition: 'transform 0.1s ease-out'
-          },
+        h(Clickable, {
+          'aria-label': 'Main menu',
+          style: { alignSelf: 'stretch', display: 'flex', alignItems: 'center', padding: '0 1rem', marginRight: '1rem' },
           onClick: () => navShown ? this.hideNav() : this.showNav()
-        }),
+        }, [
+          icon('bars', {
+            size: 36,
+            style: {
+              color: isTerra() ? 'white' : colors.accent(), flex: 'none', cursor: 'pointer',
+              transform: navShown ? 'rotate(90deg)' : undefined, transition: 'transform 0.1s ease-out'
+            }
+          })
+        ]),
         a({
           style: { ...styles.pageTitle, display: 'flex', alignItems: 'center' },
           href: href || Nav.getLink('root')
