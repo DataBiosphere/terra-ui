@@ -62,6 +62,7 @@ export const ReferenceDataImporter = class ReferenceDataImporter extends Compone
     const { loading, selectedReference } = this.state
 
     return h(Modal, {
+      'aria-label': 'Add Reference Data',
       onDismiss,
       title: 'Add Reference Data',
       okButton: h(ButtonPrimary, {
@@ -81,6 +82,7 @@ export const ReferenceDataImporter = class ReferenceDataImporter extends Compone
       }, 'OK')
     }, [
       h(Select, {
+        'aria-label': 'Select data',
         autoFocus: true,
         isSearchable: false,
         placeholder: 'Select data',
