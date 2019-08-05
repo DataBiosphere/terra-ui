@@ -166,10 +166,11 @@ export const Checkbox = ({ checked, onChange, disabled, ...props }) => {
 }
 
 export const LabeledCheckbox = ({ checked, onChange, disabled, children, ...props }) => {
-  return h(Fragment, [
-    h(Checkbox, { checked, onChange, disabled, ...props }),
+  return h(IdContainer, [id => h(Fragment, [
+    h(Checkbox, { checked, onChange, disabled, 'aria-labelledby': id, ...props }),
     h(Interactive, {
       as: 'span',
+      id,
       style: {
         verticalAlign: 'middle',
         color: disabled ? colors.dark(0.7) : undefined,
@@ -178,20 +179,18 @@ export const LabeledCheckbox = ({ checked, onChange, disabled, children, ...prop
       onClick: () => onChange && !disabled && onChange(!checked),
       disabled
     }, [children])
-  ])
+  ])])
 }
 
-export const RadioButton = ({ text, labelStyle, ...props }) => {
-  const id = `${text}-radio-button`
-
-  return h(Fragment, [
+export const RadioButton = ({ text, name, labelStyle, ...props }) => {
+  return h(IdContainer, [id => h(Fragment, [
     input({
       type: 'radio', id,
-      name: id, // not semantically correct, but fixes a focus cycle issue
+      name,
       ...props
     }),
     label({ htmlFor: id, style: labelStyle }, text)
-  ])
+  ])])
 }
 
 const makeBaseSpinner = ({ outerStyles = {}, innerStyles = {} }) => div(
@@ -288,6 +287,7 @@ export const PageBox = ({ children, style = {} }) => {
 
 export const backgroundLogo = img({
   src: scienceBackground,
+  alt: '',
   style: { position: 'fixed', top: 0, left: 0, zIndex: -1 }
 })
 
