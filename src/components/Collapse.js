@@ -33,6 +33,7 @@ export default class Collapse extends Component {
 
     return div(props, [
       h(Link, {
+        'aria-expanded': isOpened,
         style: { display: 'flex', alignItems: 'center', marginBottom: '0.5rem', ...buttonStyle },
         onClick: () => this.setState({ isOpened: !isOpened })
       }, [
