@@ -62,7 +62,7 @@ const styles = {
 const betaTag = b({
   style: {
     fontSize: 8, lineHeight: '9px',
-    color: 'white', backgroundColor: colors.primary(0.75),
+    color: 'white', backgroundColor: colors.primary(1.5),
     padding: '3px 5px', verticalAlign: 'middle',
     borderRadius: 2
   }
