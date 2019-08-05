@@ -96,7 +96,8 @@ const TerminalLauncher = _.flow(
         style: {
           border: 'none', flex: 1,
           marginTop: -45, clipPath: 'inset(45px 0 0)' // cuts off the useless Jupyter top bar
-        }
+        },
+        title: 'Interactive terminal iframe'
       })
     } else {
       return div({ style: { padding: '2rem' } }, [
