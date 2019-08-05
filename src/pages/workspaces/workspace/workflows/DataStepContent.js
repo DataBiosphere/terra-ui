@@ -1,13 +1,12 @@
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
-import { Fragment } from 'react'
+import { Component, Fragment } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import { ButtonPrimary, RadioButton } from 'src/components/common'
 import DataTable from 'src/components/DataTable'
 import { TextInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import * as Style from 'src/libs/style'
-import { Component } from 'src/libs/wrapped-components'
 import EntitySelectionType from 'src/pages/workspaces/workspace/workflows/EntitySelectionType'
 
 
@@ -118,7 +117,7 @@ export default class DataStepContent extends Component {
           })
         ]),
         (type === EntitySelectionType.processAll ||
-        (type === EntitySelectionType.chooseRows && _.size(selectedEntities) > 1)) && div({
+          (type === EntitySelectionType.chooseRows && _.size(selectedEntities) > 1)) && div({
           style: { marginTop: '1rem' }
         }, [
           span(['Selected rows will be saved as a new set named:']),
