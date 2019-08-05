@@ -1,8 +1,8 @@
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
 import { Fragment, PureComponent, useState } from 'react'
-import { div, h, span } from 'react-hyperscript-helpers'
-import { ButtonPrimary, ButtonSecondary, Clickable, LabeledCheckbox, Link, Select, spinnerOverlay } from 'src/components/common'
+import { div, h, label, span } from 'react-hyperscript-helpers'
+import { ButtonPrimary, ButtonSecondary, Clickable, IdContainer, LabeledCheckbox, Link, Select, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { IntegerInput, TextInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
@@ -89,38 +89,45 @@ const MachineSelector = ({ machineType, onChangeMachineType, diskSize, onChangeD
   const { cpu: currentCpu, memory: currentMemory } = _.find({ name: machineType }, machineTypes)
   return div([
     div({ style: styles.row }, [
-      div({ style: { ...styles.col1, ...styles.label } }, 'CPUs'),
-      div({ style: styles.col2 }, [
-        readOnly ?
-          currentCpu :
-          h(Select, {
-            styles: { container: styles.smallSelect },
-            isSearchable: false,
-            value: currentCpu,
-            onChange: ({ value }) => onChangeMachineType(_.find({ cpu: value }, machineTypes).name),
-            options: _.uniq(_.map('cpu', machineTypes))
-          })
-      ]),
-      div({ style: { ...styles.col3, ...styles.label } }, 'Disk size'),
-      div([
-        readOnly ?
-          diskSize :
-          h(IntegerInput, {
-            style: styles.smallInput,
-            min: 10,
-            max: 64000,
-            value: diskSize,
-            onChange: onChangeDiskSize
-          }),
-        ' GB'
-      ])
+      h(IdContainer, [id => h(Fragment, [
+        label({ htmlFor: id, style: { ...styles.col1, ...styles.label } }, 'CPUs'),
+        div({ style: styles.col2 }, [
+          readOnly ?
+            currentCpu :
+            h(Select, {
+              id,
+              styles: { container: styles.smallSelect },
+              isSearchable: false,
+              value: currentCpu,
+              onChange: ({ value }) => onChangeMachineType(_.find({ cpu: value }, machineTypes).name),
+              options: _.uniq(_.map('cpu', machineTypes))
+            })
+        ])
+      ])]),
+      h(IdContainer, [id => h(Fragment, [
+        label({ htmlFor: id, style: { ...styles.col3, ...styles.label } }, 'Disk size'),
+        div([
+          readOnly ?
+            diskSize :
+            h(IntegerInput, {
+              id,
+              style: styles.smallInput,
+              min: 10,
+              max: 64000,
+              value: diskSize,
+              onChange: onChangeDiskSize
+            }),
+          ' GB'
+        ])
+      ])])
     ]),
-    div({ style: styles.row }, [
-      div({ style: { ...styles.col1, ...styles.label } }, 'Memory'),
+    h(IdContainer, [id => div({ style: styles.row }, [
+      label({ htmlFor: id, style: { ...styles.col1, ...styles.label } }, 'Memory'),
       div({ style: styles.col2 }, [
         readOnly ?
           currentMemory :
           h(Select, {
+            id,
             styles: { container: styles.smallSelect },
             isSearchable: false,
             value: currentMemory,
@@ -132,7 +139,7 @@ const MachineSelector = ({ machineType, onChangeMachineType, diskSize, onChangeD
           }),
         ' GB'
       ])
-    ])
+    ])])
   ])
 }
 
@@ -200,10 +207,11 @@ export class NewClusterModal extends PureComponent {
       onDismiss: onCancel,
       okButton: h(ButtonPrimary, { disabled: !changed, onClick: () => this.createCluster() }, currentCluster ? 'Update' : 'Create')
     }, [
-      div({ style: styles.row }, [
-        div({ style: { ...styles.col1, ...styles.label } }, 'Profile'),
+      h(IdContainer, [id => div({ style: styles.row }, [
+        label({ htmlFor: id, style: { ...styles.col1, ...styles.label } }, 'Profile'),
         div({ style: { flex: 1 } }, [
           h(Select, {
+            id,
             value: profile,
             onChange: ({ value }) => {
               this.setState({
@@ -222,7 +230,7 @@ export class NewClusterModal extends PureComponent {
             ]
           })
         ])
-      ]),
+      ])]),
       div([
         h(MachineSelector, {
           machineType: masterMachineType,
@@ -233,21 +241,22 @@ export class NewClusterModal extends PureComponent {
         })
       ]),
       profile === 'custom' && h(Fragment, [
-        div({ style: styles.row }, [
-          div({ style: { ...styles.col1, ...styles.label } }, 'Startup script'),
+        h(IdContainer, [id => div({ style: styles.row }, [
+          label({ htmlFor: id, style: { ...styles.col1, ...styles.label } }, 'Startup script'),
           div({ style: { flex: 1 } }, [
             h(TextInput, {
+              id,
               placeholder: 'URI',
               value: jupyterUserScriptUri,
               onChange: v => this.setState({ jupyterUserScriptUri: v })
             })
           ])
-        ]),
+        ])]),
         div({ style: styles.row }, [
           div({ style: styles.col1 }),
           div([
             h(LabeledCheckbox, {
-              checked: numberOfWorkers,
+              checked: !!numberOfWorkers,
               onChange: v => this.setState({
                 numberOfWorkers: v ? 2 : 0,
                 numberOfPreemptibleWorkers: 0
@@ -257,28 +266,34 @@ export class NewClusterModal extends PureComponent {
         ]),
         !!numberOfWorkers && h(Fragment, [
           div({ style: styles.row }, [
-            div({ style: { ...styles.col1, ...styles.label } }, 'Workers'),
-            div({ style: styles.col2 }, [
-              h(IntegerInput, {
-                style: styles.smallInput,
-                min: 2,
-                value: numberOfWorkers,
-                onChange: v => this.setState({
-                  numberOfWorkers: v,
-                  numberOfPreemptibleWorkers: _.min([numberOfPreemptibleWorkers, v])
+            h(IdContainer, [id => h(Fragment, [
+              label({ htmlFor: id, style: { ...styles.col1, ...styles.label } }, 'Workers'),
+              div({ style: styles.col2 }, [
+                h(IntegerInput, {
+                  id,
+                  style: styles.smallInput,
+                  min: 2,
+                  value: numberOfWorkers,
+                  onChange: v => this.setState({
+                    numberOfWorkers: v,
+                    numberOfPreemptibleWorkers: _.min([numberOfPreemptibleWorkers, v])
+                  })
                 })
-              })
-            ]),
-            div({ style: { ...styles.col3, ...styles.label } }, 'Preemptible'),
-            div([
-              h(IntegerInput, {
-                style: styles.smallInput,
-                min: 0,
-                max: numberOfWorkers,
-                value: numberOfPreemptibleWorkers,
-                onChange: v => this.setState({ numberOfPreemptibleWorkers: v })
-              })
-            ])
+              ])
+            ])]),
+            h(IdContainer, [id => h(Fragment, [
+              label({ htmlFor: id, style: { ...styles.col3, ...styles.label } }, 'Preemptible'),
+              div([
+                h(IntegerInput, {
+                  id,
+                  style: styles.smallInput,
+                  min: 0,
+                  max: numberOfWorkers,
+                  value: numberOfPreemptibleWorkers,
+                  onChange: v => this.setState({ numberOfPreemptibleWorkers: v })
+                })
+              ])
+            ])])
           ]),
           div({ style: { marginTop: '1rem' } }, [
             h(MachineSelector, {
@@ -316,7 +331,8 @@ export const ClusterErrorModal = ({ cluster, onDismiss }) => {
   )(async () => {
     const { errors: clusterErrors } = await Ajax().Jupyter.cluster(cluster.googleProject, cluster.clusterName).details()
     if (_.some(({ errorMessage }) => errorMessage.includes('Userscript failed'), clusterErrors)) {
-      setError(await Ajax().Buckets.getObjectPreview(cluster.stagingBucket, `userscript_output.txt`, cluster.googleProject, true).then(res => res.text()))
+      setError(
+        await Ajax().Buckets.getObjectPreview(cluster.stagingBucket, `userscript_output.txt`, cluster.googleProject, true).then(res => res.text()))
       setUserscriptError(true)
     } else {
       setError(clusterErrors[0].errorMessage)
