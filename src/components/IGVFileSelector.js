@@ -108,32 +108,34 @@ export class IGVFileSelector extends Component {
           '|',
           h(Link, { style: { padding: '0 0.5rem' }, onClick: () => this.setAll(false) }, ['none'])
         ]),
-        h(AutoSizer, { style: { flex: 1 } }, [
-          ({ width, height }) => {
-            return h(List, {
-              height,
-              width,
-              rowCount: trackFiles.length,
-              rowHeight: 30,
-              noRowsRenderer: () => 'No valid files found',
-              rowRenderer: ({ index, style, key }) => {
-                const name = trackFiles[index]
-                return div({ key, index, style: { ...style, marginBottom: 'auto', display: 'flex' } }, [
-                  div({ style: { display: 'flex', alignItems: 'center' } }, [
-                    h(LabeledCheckbox, {
-                      checked: selectedFiles[name],
-                      onChange: () => this.toggleVisibility(name)
-                    })
-                  ]),
-                  h(Clickable, {
-                    style: styles.columnName,
-                    title: name,
-                    onClick: () => this.toggleVisibility(name)
-                  }, [_.last(name.split('/'))])
-                ])
-              }
-            })
-          }
+        div({ style: { flex: 1 } }, [
+          h(AutoSizer, [
+            ({ width, height }) => {
+              return h(List, {
+                height,
+                width,
+                rowCount: trackFiles.length,
+                rowHeight: 30,
+                noRowsRenderer: () => 'No valid files found',
+                rowRenderer: ({ index, style, key }) => {
+                  const name = trackFiles[index]
+                  return div({ key, index, style: { ...style, marginBottom: 'auto', display: 'flex' } }, [
+                    div({ style: { display: 'flex', alignItems: 'center' } }, [
+                      h(LabeledCheckbox, {
+                        checked: selectedFiles[name],
+                        onChange: () => this.toggleVisibility(name)
+                      })
+                    ]),
+                    h(Clickable, {
+                      style: styles.columnName,
+                      title: name,
+                      onClick: () => this.toggleVisibility(name)
+                    }, [_.last(name.split('/'))])
+                  ])
+                }
+              })
+            }
+          ])
         ])
       ]),
       h(ButtonBar, {
