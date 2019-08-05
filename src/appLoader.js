@@ -29,5 +29,5 @@ initializeTCell()
 
 if (!getConfig().isProd) {
   const axe = require('react-axe')
-  axe(React, ReactDOM, 1000)
+  axe(React, ReactDOM, 1000, { rules: [{ id: 'aria-hidden-focus', selector: '*:not(#root)' }] })
 }
