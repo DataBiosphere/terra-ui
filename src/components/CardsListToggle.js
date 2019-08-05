@@ -24,11 +24,13 @@ const viewToggleButtons = (listView, setListView) => {
   return div({ style: viewToggleStyles.toolbarContainer }, [
     h(Clickable, {
       style: { marginLeft: 'auto', ...viewToggleStyles.toolbarButton(!listView) },
-      onClick: () => setListView(false)
+      onClick: () => setListView(false),
+      'aria-label': 'Card view'
     }, [icon('view-cards', { size: 24, style: { margin: '.3rem' } })]),
     h(Clickable, {
       style: { marginLeft: '1rem', ...viewToggleStyles.toolbarButton(listView) },
-      onClick: () => setListView(true)
+      onClick: () => setListView(true),
+      'aria-label': 'List view'
     }, [icon('view-list', { size: 24, style: { margin: '.3rem' } })])
   ])
 }
