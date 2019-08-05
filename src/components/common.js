@@ -27,6 +27,7 @@ const styles = {
 
 export const Clickable = ({ href, as = (!!href ? 'a' : 'div'), disabled, tooltip, tooltipSide, onClick, children, ...props }) => {
   const child = h(Interactive, {
+    'aria-disabled': disabled,
     as, disabled,
     onClick: (...args) => onClick && !disabled && onClick(...args),
     href: !disabled ? href : undefined,
