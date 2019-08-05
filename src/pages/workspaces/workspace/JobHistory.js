@@ -157,6 +157,7 @@ const JobHistory = _.flow(
           side: 'bottom'
         }, [h(Link, ['Queue Status'])]),
         h(DelayedSearchInput, {
+          'aria-label': 'Search',
           style: { width: 300, marginLeft: '1rem' },
           placeholder: 'Search',
           onChange: v => this.setState({ textFilter: v }),
