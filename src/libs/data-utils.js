@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
-import { createRef, Fragment } from 'react'
+import { Component, createRef, Fragment } from 'react'
 import Dropzone from 'react-dropzone'
 import { div, h, span } from 'react-hyperscript-helpers/lib/index'
 import { ButtonPrimary, Clickable, LabeledCheckbox, Link, Select, spinnerOverlay } from 'src/components/common'
@@ -16,7 +16,6 @@ import { reportError } from 'src/libs/error'
 import { getAppName } from 'src/libs/logos'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import { Component } from 'src/libs/wrapped-components'
 
 
 const warningBoxStyle = {
@@ -51,6 +50,11 @@ export const ReferenceDataImporter = class ReferenceDataImporter extends Compone
     onSuccess: PropTypes.func.isRequired,
     namespace: PropTypes.string.isRequired,
     name: PropTypes.string.isRequired
+  }
+
+  constructor(props) {
+    super(props)
+    this.state = { loading: false, selectedReference: undefined }
   }
 
   render() {
@@ -97,6 +101,12 @@ export const ReferenceDataDeleter = class ReferenceDataDeleter extends Component
     name: PropTypes.string.isRequired,
     referenceDataType: PropTypes.string.isRequired
   }
+
+  constructor(props) {
+    super(props)
+    this.state = { deleting: false }
+  }
+
 
   render() {
     const { onDismiss, onSuccess, namespace, name, referenceDataType } = this.props

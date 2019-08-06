@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
-import { createRef, Fragment } from 'react'
+import { Component, createRef, Fragment } from 'react'
 import Draggable from 'react-draggable'
 import { button, div, h, option, select } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
@@ -14,7 +14,6 @@ import TooltipTrigger from 'src/components/TooltipTrigger'
 import colors from 'src/libs/colors'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import { Component } from 'src/libs/wrapped-components'
 
 
 const paginatorButton = (props, label) => button(_.merge({
@@ -125,7 +124,7 @@ const styles = {
   }),
   header: (col, total) => ({
     ...cellStyles,
-    backgroundColor: colors.light(0.4),
+    backgroundColor: colors.light(0.5),
     borderTop: `1px solid ${colors.dark(0.2)}`,
     borderBottom: `1px solid ${colors.dark(0.2)}`,
     borderLeft: `1px solid ${colors.dark(0.2)}`,
@@ -430,6 +429,11 @@ export const Sortable = ({ sort, field, onSort, children }) => {
 }
 
 export class Resizable extends Component {
+  constructor(props) {
+    super(props)
+    this.state = { dragAmount: undefined, lastX: undefined }
+  }
+
   render() {
     const { onWidthChange, width, minWidth = 100, children } = this.props
     const { dragAmount, lastX } = this.state

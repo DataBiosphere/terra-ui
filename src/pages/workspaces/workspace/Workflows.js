@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { Fragment } from 'react'
+import { Component, Fragment } from 'react'
 import { a, div, h, span } from 'react-hyperscript-helpers'
 import { pure } from 'recompose'
 import * as breadcrumbs from 'src/components/breadcrumbs'
@@ -20,7 +20,6 @@ import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import { Component } from 'src/libs/wrapped-components'
 import { dockstoreTile, fcMethodRepoTile, makeWorkflowCard } from 'src/pages/library/Code'
 import DeleteWorkflowModal from 'src/pages/workspaces/workspace/workflows/DeleteWorkflowModal'
 import ExportWorkflowModal from 'src/pages/workspaces/workspace/workflows/ExportWorkflowModal'
@@ -166,6 +165,17 @@ const WorkflowCard = pure(({ listView, name, namespace, config, onExport, onCopy
 })
 
 const FindWorkflowModal = ajaxCaller(class FindWorkflowModal extends Component {
+  constructor(props) {
+    super(props)
+    this.state = {
+      selectedWorkflow: undefined,
+      featuredList: undefined,
+      methods: undefined,
+      selectedWorkflowDetails: undefined,
+      exporting: undefined
+    }
+  }
+
   async componentDidMount() {
     const { ajax: { Methods } } = this.props
 
