@@ -95,8 +95,8 @@ const NihLink = ({ nihToken }) => {
     return div({ key: `nih-auth-status-${name}`, style: { display: 'flex' } }, [
       div({ style: { flex: 1 } }, [`${name} Authorization`]),
       div({ style: { flex: 2 } }, [
-        authorized ? 'Authorized' : 'Not Authorized',
-        !authorized && h(InfoBox, { style: { marginLeft: '0.5rem' } }, [
+        authorized ? 'Authorized' : span({ style: { marginRight: '0.5rem' } }, ['Not Authorized']),
+        !authorized && h(InfoBox, [
           'Your account was linked, but you are not authorized to view this controlled dataset. Please go ',
           h(Link, {
             href: 'https://dbgap.ncbi.nlm.nih.gov/aa/wga.cgi?page=login',
@@ -142,8 +142,8 @@ const NihLink = ({ nihToken }) => {
    */
   return div({ style: { marginBottom: '1rem' } }, [
     div({ style: styles.form.title }, [
-      'NIH Account',
-      h(InfoBox, { style: { marginLeft: '0.5rem' } }, [
+      span({ style: { marginRight: '0.5rem' } }, ['NIH Account']),
+      h(InfoBox, [
         'Linking with eRA Commons will allow Terra to automatically determine if you can access controlled datasets hosted in Terra (ex. TCGA) based on your valid dbGaP applications.'
       ])
     ]),
@@ -382,8 +382,8 @@ const Profile = _.flow(
       ),
 
       div({ style: styles.form.title }, [
-        'Proxy Group',
-        h(InfoBox, { style: { marginLeft: '0.5rem' } }, [
+        span({ style: { marginRight: '0.5rem' } }, ['Proxy Group']),
+        h(InfoBox, [
           'For more information about proxy groups, see the ',
           h(Link, {
             href: 'https://software.broadinstitute.org/firecloud/documentation/article?id=11185',

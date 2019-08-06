@@ -1,6 +1,7 @@
 import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { Fragment, useState } from 'react'
+import FocusLock from 'react-focus-lock'
 import { div, h, img, input, label, span } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
 import RSelect from 'react-select'
@@ -314,4 +315,19 @@ export const ShibbolethLink = ({ children, ...props }) => {
 export const IdContainer = ({ children }) => {
   const [id] = useState(() => _.uniqueId('element-'))
   return children(id)
+}
+
+export const FocusTrapper = ({ children, onBreakout }) => {
+  return h(FocusLock, { returnFocus: true }, [
+    div({
+      tabIndex: 0,
+      onKeyDown: e => {
+      // 27 = Escape
+        if (e.which === 27) {
+          onBreakout()
+          e.stopPropagation()
+        }
+      }
+    }, [children])
+  ])
 }
