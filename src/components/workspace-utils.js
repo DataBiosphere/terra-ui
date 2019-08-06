@@ -41,7 +41,7 @@ export const withWorkspaces = WrappedComponent => {
   return Wrapper
 }
 
-export const WorkspaceSelector = ({ workspaces, value, onChange }) => {
+export const WorkspaceSelector = ({ workspaces, value, onChange, ...props }) => {
   return h(Select, {
     placeholder: 'Select a workspace',
     disabled: !workspaces,
@@ -50,7 +50,8 @@ export const WorkspaceSelector = ({ workspaces, value, onChange }) => {
     options: _.flow(
       _.sortBy('workspace.name'),
       _.map(({ workspace: { workspaceId, name } }) => ({ value: workspaceId, label: name }))
-    )(workspaces)
+    )(workspaces),
+    ...props
   })
 }
 
