@@ -251,11 +251,11 @@ export class AutocompleteTextInput extends Component {
   }
 
   render() {
-    const { value, onChange, suggestions, style, ...props } = this.props
+    const { value, onChange, suggestions, style, id = this.id, ...props } = this.props
     const { show } = this.state
     return h(Autosuggest, {
-      id: this.id,
-      inputProps: { id: this.id, value, onChange: onChange ? (e => onChange(e.target.value)) : undefined },
+      id,
+      inputProps: { id, value, onChange: onChange ? (e => onChange(e.target.value)) : undefined },
       suggestions: show ? (value ? _.filter(Utils.textMatch(value), suggestions) : suggestions) : [],
       onSuggestionsFetchRequested: () => this.setState({ show: true }),
       onSuggestionsClearRequested: () => this.setState({ show: false }),
@@ -264,7 +264,7 @@ export class AutocompleteTextInput extends Component {
       shouldRenderSuggestions: () => true,
       focusInputOnSuggestionClick: false,
       renderSuggestionsContainer: ({ containerProps, children }) => {
-        return children && h(AutocompleteSuggestions, { containerProps, children, target: this.id })
+        return children && h(AutocompleteSuggestions, { containerProps, children, target: id })
       },
       renderSuggestion: v => v,
       renderInputComponent: inputProps => h(TextInput, { ...props, ...inputProps, style, type: 'search', nativeOnChange: true }),
