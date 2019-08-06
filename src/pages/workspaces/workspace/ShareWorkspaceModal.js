@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
-import { Component } from 'react'
+import { Component, Fragment } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
-import { ButtonPrimary, LabeledCheckbox, Link, Select, spinnerOverlay } from 'src/components/common'
+import { ButtonPrimary, IdContainer, LabeledCheckbox, Link, Select, spinnerOverlay } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { AutocompleteTextInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
@@ -104,14 +104,17 @@ export default ajaxCaller(class ShareWorkspaceModal extends Component {
       okButton: h(ButtonPrimary, { onClick: () => this.save() }, ['Save']),
       onDismiss
     }, [
-      h(FormLabel, ['User email']),
-      h(AutocompleteTextInput, {
-        placeholder: 'Add people or groups',
-        value: searchValue,
-        onChange: v => this.setState({ searchValue: v }),
-        suggestions: _.difference(suggestions, _.map('email', acl)),
-        style: { fontSize: 16 }
-      }),
+      h(IdContainer, [id => h(Fragment, [
+        h(FormLabel, { htmlFor: id }, ['User email']),
+        h(AutocompleteTextInput, {
+          id,
+          placeholder: 'Add people or groups',
+          value: searchValue,
+          onChange: v => this.setState({ searchValue: v }),
+          suggestions: _.difference(suggestions, _.map('email', acl)),
+          style: { fontSize: 16 }
+        })
+      ])]),
       h(FormLabel, ['Role']),
       div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between' } }, [
         h(AclInput, {
