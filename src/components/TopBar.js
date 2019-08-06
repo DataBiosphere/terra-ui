@@ -2,11 +2,10 @@ import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
 import { Component, Fragment, useState } from 'react'
 import { Collapse as RCollapse } from 'react-collapse'
-import FocusLock from 'react-focus-lock'
 import { a, b, div, h, img, span } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
 import { Transition } from 'react-transition-group'
-import { ButtonPrimary, Clickable, LabeledCheckbox, spinnerOverlay } from 'src/components/common'
+import { ButtonPrimary, Clickable, FocusTrapper, LabeledCheckbox, spinnerOverlay } from 'src/components/common'
 import { icon, profilePic } from 'src/components/icons'
 import { TextArea } from 'src/components/input'
 import Modal from 'src/components/Modal'
@@ -143,17 +142,10 @@ const TopBar = Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
     const { authState: { isSignedIn, profile: { firstName = 'Loading...', lastName = '', trialState } } } = this.props
     const { navShown, openLibraryMenu, openSupportMenu, openUserMenu } = this.state
 
-    return h(FocusLock, { returnFocus: true }, [
+    return h(FocusTrapper, {
+      onBreakout: () => this.setState({ navShown: false })
+    }, [
       div({
-        tabIndex: 0,
-        onKeyDown: e => {
-          // 27 = Escape
-          if (e.which === 27) {
-            this.setState({ navShown: false })
-            e.stopPropagation()
-            window.setTimeout(() => document.activeElement.focus(), 0)
-          }
-        },
         style: navShown ? styles.nav.background : undefined,
         onClick: () => {
           this.hideNav()
