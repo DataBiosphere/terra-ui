@@ -1,6 +1,5 @@
 import _ from 'lodash/fp'
-import { Fragment } from 'react'
-import { Component } from 'react'
+import { Component, Fragment } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { AutoSizer, List } from 'react-virtualized'
 import ButtonBar from 'src/components/ButtonBar'
