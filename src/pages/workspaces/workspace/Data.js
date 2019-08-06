@@ -170,7 +170,7 @@ const LocalVariablesContent = class LocalVariablesContent extends Component {
           style: { width: 300, marginLeft: '1rem' },
           placeholder: 'Search',
           onChange: v => this.setState({ textFilter: v }),
-          defaultValue: textFilter
+          value: textFilter
         })
       ]),
       Utils.cond(
@@ -303,7 +303,7 @@ const ReferenceDataContent = ({ workspace: { workspace: { namespace, attributes 
       style: { width: 300, marginBottom: '1rem', alignSelf: 'flex-end' },
       placeholder: 'Search',
       onChange: setTextFilter,
-      defaultValue: textFilter
+      value: textFilter
     }),
     div({ style: { flex: 1 } }, [
       h(AutoSizer, [
