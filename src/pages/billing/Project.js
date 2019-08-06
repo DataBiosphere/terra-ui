@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import { Component, Fragment } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
-import { ButtonPrimary, Select, spinnerOverlay } from 'src/components/common'
+import { ButtonPrimary, IdContainer, Select, spinnerOverlay } from 'src/components/common'
 import { DeleteUserModal, EditUserModal, MemberCard, NewUserCard, NewUserModal } from 'src/components/group-common'
 import { icon, spinner } from 'src/components/icons'
 import Modal from 'src/components/Modal'
@@ -118,13 +118,16 @@ export default ajaxCaller(class ProjectDetail extends Component {
               }
             }, ['Ok'])
           }, [
-            h(RequiredFormLabel, ['Select billing account']),
-            h(Select, {
-              value: selectedBilling || billingAccountName,
-              isClearable: false,
-              options: _.map(({ displayName, accountName }) => ({ label: displayName, value: accountName }), billingAccounts),
-              onChange: ({ value: newAccountName }) => this.setState({ selectedBilling: newAccountName })
-            })
+            h(IdContainer, [id => h(Fragment, [
+              h(RequiredFormLabel, { htmlFor: id }, ['Select billing account']),
+              h(Select, {
+                id,
+                value: selectedBilling || billingAccountName,
+                isClearable: false,
+                options: _.map(({ displayName, accountName }) => ({ label: displayName, value: accountName }), billingAccounts),
+                onChange: ({ value: newAccountName }) => this.setState({ selectedBilling: newAccountName })
+              })
+            ])])
           ])
         ]),
         div({
