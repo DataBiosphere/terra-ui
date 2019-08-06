@@ -44,6 +44,7 @@ export const withWorkspaces = WrappedComponent => {
 export const WorkspaceSelector = ({ workspaces, value, onChange, ...props }) => {
   return h(Select, {
     placeholder: 'Select a workspace',
+    'aria-label': 'Select a workspace',
     disabled: !workspaces,
     value,
     onChange: ({ value }) => onChange(value),

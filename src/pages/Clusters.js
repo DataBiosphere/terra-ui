@@ -95,6 +95,7 @@ const Clusters = () => {
                     cluster.status,
                     cluster.status === 'Error' && h(Clickable, {
                       tooltip: 'View error',
+                      'aria-label': 'View error',
                       onClick: () => setErrorClusterId(cluster.id)
                     }, [icon('warning-standard', { style: { marginLeft: '0.25rem', color: colors.danger() } })])
                   ])
