@@ -17,6 +17,7 @@ export const spinner = props => icon('loadingSpinner', _.merge({ size: 24, style
 export const centeredSpinner = props => spinner(_.merge({ size: 48, style: { display: 'block', margin: 'auto' } }, props))
 
 export const profilePic = ({ size, style, ...props } = {}) => img({
+  alt: 'Google profile image',
   src: getUser().imageUrl,
   height: size, width: size,
   style: { borderRadius: '100%', ...style },

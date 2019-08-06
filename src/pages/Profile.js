@@ -2,8 +2,8 @@ import { addDays } from 'date-fns'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { Component, Fragment, useState } from 'react'
-import { div, h, span } from 'react-hyperscript-helpers'
-import { ButtonPrimary, LabeledCheckbox, Link, RadioButton, ShibbolethLink, spinnerOverlay } from 'src/components/common'
+import { div, h, label, span } from 'react-hyperscript-helpers'
+import { ButtonPrimary, IdContainer, LabeledCheckbox, Link, RadioButton, ShibbolethLink, spinnerOverlay } from 'src/components/common'
 import { centeredSpinner, icon, profilePic, spinner } from 'src/components/icons'
 import { TextInput, ValidatedInput } from 'src/components/input'
 import { InfoBox } from 'src/components/PopupTrigger'
@@ -328,11 +328,12 @@ const Profile = _.flow(
 
     const line = (...children) => div({ style: styles.form.line }, children)
 
-    const textField = (key, title, { placeholder, required } = {}) => div({ style: styles.form.container }, [
-      div({ style: styles.form.title }, [title]),
+    const textField = (key, title, { placeholder, required } = {}) => h(IdContainer, [id => div({ style: styles.form.container }, [
+      label({ htmlFor: id, style: styles.form.title }, [title]),
       required ?
         h(ValidatedInput, {
           inputProps: {
+            id,
             value: profileInfo[key],
             onChange: v => this.assignValue(key, v),
             placeholder: placeholder || 'Required'
@@ -340,11 +341,12 @@ const Profile = _.flow(
           error: Utils.summarizeErrors(errors && errors[key])
         }) :
         h(TextInput, {
+          id,
           value: profileInfo[key],
           onChange: v => this.assignValue(key, v),
           placeholder
         })
-    ])
+    ])])
 
     const radioButton = (key, value) => h(RadioButton, {
       text: value, name: key, checked: profileInfo[key] === value,

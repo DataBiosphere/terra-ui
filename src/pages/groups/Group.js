@@ -64,6 +64,7 @@ export const GroupDetails = ajaxCaller(class GroupDetails extends Component {
     return h(Fragment, [
       h(TopBar, { title: 'Groups', href: Nav.getLink('groups') }, [
         h(DelayedSearchInput, {
+          'aria-label': 'Search group',
           style: { marginLeft: '2rem', width: 500 },
           placeholder: 'SEARCH GROUP',
           onChange: v => this.setState({ filter: v }),

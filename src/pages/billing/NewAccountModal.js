@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { div, h, label } from 'react-hyperscript-helpers'
-import { ButtonPrimary, ButtonSecondary, Checkbox, Clickable, Select } from 'src/components/common'
+import { ButtonPrimary, ButtonSecondary, Checkbox, Clickable, IdContainer, Select } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
@@ -87,16 +87,16 @@ const NewAccountModal = ({ onDismiss }) => {
   const makeField = ({ title, key }) => {
     const value = account[key]
 
-    return label({ style: { flexGrow: 1 } }, [
-      div({ style: { fontSize: 14, fontWeight: 500, margin: '1rem 0 0.5rem' } }, [title]),
+    return h(IdContainer, [id => div({ style: { flexGrow: 1 } }, [
+      label({ htmlFor: id, style: { fontSize: 14, fontWeight: 500, margin: '1rem 0 0.5rem' } }, [title]),
       h(ValidatedInput, {
         inputProps: {
-          value,
+          id, value,
           onChange: v => updateAccount(key, v)
         },
         error: !!value && !!pages[page].errors && Utils.summarizeErrors(pages[page].errors[key])
       })
-    ])
+    ])])
   }
 
   const makePaymentCard = ({ label, iconName, time, text, paymentType }) => h(Clickable, {
