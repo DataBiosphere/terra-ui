@@ -169,8 +169,7 @@ export const Checkbox = ({ checked, onChange, disabled, ...props }) => {
 export const LabeledCheckbox = ({ checked, onChange, disabled, children, ...props }) => {
   return h(IdContainer, [id => h(Fragment, [
     h(Checkbox, { checked, onChange, disabled, 'aria-labelledby': id, ...props }),
-    h(Interactive, {
-      as: 'span',
+    span({
       id,
       style: {
         verticalAlign: 'middle',
