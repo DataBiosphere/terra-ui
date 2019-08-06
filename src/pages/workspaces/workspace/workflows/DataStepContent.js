@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
-import { Component, Fragment } from 'react'
+import { Component } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import { ButtonPrimary, RadioButton } from 'src/components/common'
 import DataTable from 'src/components/DataTable'
@@ -75,7 +75,7 @@ export default class DataStepContent extends Component {
           padding: '1rem 0.5rem', lineHeight: '1.5rem'
         }
       }, [
-        !isSet && h(Fragment, [
+        !isSet && h(div, { role: 'radiogroup', 'aria-label': 'Select entities' }, [
           div([
             h(RadioButton, {
               text: `Process all ${count} rows`,
@@ -126,6 +126,7 @@ export default class DataStepContent extends Component {
         }, [
           span(['Selected rows will be saved as a new set named:']),
           h(TextInput, {
+            'aria-label': 'New set name',
             style: { width: 500, marginLeft: '0.25rem' },
             value: newSetName,
             onChange: v => this.setEntitySelectionModel({ newSetName: v })

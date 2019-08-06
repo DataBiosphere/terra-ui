@@ -85,7 +85,10 @@ export default ajaxCaller(class DataTable extends Component {
             })
           ])
         ]),
-        div({ style: { flex: 1 } }, [
+        div({
+          style: { flex: 1 },
+          ...(selectionModel && selectionModel.type === 'single' ? { role: 'radiogroup', 'aria-label': 'Select entities' } : {})
+        }, [
           h(AutoSizer, [
             ({ width, height }) => {
               return h(GridTable, {
@@ -127,12 +130,14 @@ export default ajaxCaller(class DataTable extends Component {
                         const { selected, setSelected } = selectionModel
                         const checked = _.has([name], selected)
                         return h(Checkbox, {
+                          'aria-label': name,
                           checked,
                           onChange: () => setSelected((checked ? _.unset([name]) : _.set([name], thisEntity))(selected))
                         })
                       } else if (type === 'single') {
                         const { selected, setSelected } = selectionModel
                         return h(RadioButton, {
+                          'aria-label': name,
                           name: 'entity-selection',
                           checked: _.isEqual(selected, thisEntity),
                           onChange: () => setSelected(thisEntity)
