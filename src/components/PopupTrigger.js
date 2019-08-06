@@ -3,6 +3,7 @@ import PropTypes from 'prop-types'
 import { Children, cloneElement, Component, Fragment, useRef } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import onClickOutside from 'react-onclickoutside'
+import { Clickable, FocusTrapper } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { computePopupPosition, PopupPortal, useDynamicPosition } from 'src/components/popup-utils'
 import colors from 'src/libs/colors'
@@ -84,7 +85,8 @@ export default class PopupTrigger extends Component {
         handleClickOutside: () => setOpen(false),
         outsideClickIgnoreClass: this.id,
         onClick: closeOnClick ? () => this.close() : undefined
-      }, [content])
+      },
+      [h(FocusTrapper, { onBreakout: () => this.setState({ open: false }) }, [content])])
     ])
   }
 }
@@ -93,5 +95,5 @@ export const InfoBox = ({ size, children, style, side }) => h(PopupTrigger, {
   side,
   content: div({ style: { padding: '0.5rem', width: 300 } }, [children])
 }, [
-  icon('info-circle', { size, style: { cursor: 'pointer', color: colors.accent(), ...style } })
+  h(Clickable, { as: 'span' }, [icon('info-circle', { size, style: { cursor: 'pointer', color: colors.accent(), ...style } })])
 ])
