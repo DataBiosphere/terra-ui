@@ -282,7 +282,7 @@ export class AutocompleteSearch extends Component {
   constructor(props) {
     super(props)
     this.state = { show: false }
-    this.id = _.uniqueId('AutocompleteSearch_')
+    this.id = props.id || _.uniqueId('AutocompleteSearch_')
   }
 
   render() {
