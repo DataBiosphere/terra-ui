@@ -388,12 +388,11 @@ const ToolDrawer = ({ openDrawer, onDismiss, onIgvSuccess, selectedEntities }) =
                 onClick: () => setToolMode('IGV'),
                 tooltip: 'Open with Integrative Genomics Viewer'
               }, [
-                div( {style: {width: 45, marginRight: '1rem'}}, [
+                div({ style: { width: 45, marginRight: '1rem' } }, [
                   img({
                     src: igvLogo,
                     style: {
-                      maxHeight: '100%',
-                      maxWidth: '100%'
+                      width: 40
                     }
                   })
                 ]),
