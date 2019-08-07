@@ -9,7 +9,7 @@ import { div, form, h, img, input } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
-import { ButtonInModal, ButtonPrimary, Clickable, Link, Select, spinnerOverlay } from 'src/components/common'
+import { ButtonPrimary, Clickable, Link, Select, spinnerOverlay } from 'src/components/common'
 import DataTable from 'src/components/DataTable'
 import ExportDataModal from 'src/components/ExportDataModal'
 import FloatingActionButton from 'src/components/FloatingActionButton'
@@ -24,6 +24,7 @@ import { FlexTable, HeaderCell, SimpleTable, TextCell } from 'src/components/tab
 import TitleBar from 'src/components/TitleBar'
 import UriViewer from 'src/components/UriViewer'
 import igvLogo from 'src/images/igv-logo.png'
+import wdlLogo from 'src/images/wdl-logo.png'
 import { Ajax, ajaxCaller } from 'src/libs/ajax'
 import { getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
@@ -53,6 +54,27 @@ const styles = {
     padding: '1rem', width: '100%',
     flex: 1, display: 'flex', flexDirection: 'column'
   }
+}
+
+export const ModalToolButton = ({ disabled, children, ...props }) => {
+  return h(Clickable, _.merge({
+    disabled,
+    style: {
+      color: colors.dark(),
+      border: '1px solid transparent',
+      padding: '0 0.875rem',
+      backgroundColor: 'white',
+      display: 'flex',
+      alignItems: 'center',
+      height: '3rem',
+      fontSize: 18,
+      userSelect: 'none'
+    },
+    hover: {
+      border: `1px solid ${colors.accent(0.8)}`,
+      boxShadow: Style.standardShadow
+    }
+  }, props), [children])
 }
 
 const DataTypeButton = ({ selected, children, iconName = 'listAlt', iconSize = 14, ...props }) => {
@@ -335,6 +357,7 @@ const ReferenceDataContent = ({ workspace: { workspace: { namespace, attributes 
 const ToolDrawer = ({ openDrawer, onDismiss, onIgvSuccess, selectedEntities }) => {
   const [toolMode, setToolMode] = useState()
   const entitiesCount = _.keys(selectedEntities).length
+  const entitiesType = !!entitiesCount && selectedEntities[_.keys(selectedEntities)[0]].entityType
 
   return h(ModalDrawer, {
     openDrawer,
@@ -344,51 +367,60 @@ const ToolDrawer = ({ openDrawer, onDismiss, onIgvSuccess, selectedEntities }) =
     Utils.switchCase(toolMode, [
       undefined, () => h(Fragment, [
         h(TitleBar, {
-          title: 'Open with...',
+          title: 'OPEN WITH...',
           onDismiss
         }),
-        div({
-          style: {
-            borderRadius: '25%',
-            border: `1px solid ${colors.dark()}`,
-            alignItems: 'center',
-            height: '2rem',
-            margin: '0rem 2rem',
-            padding: '0 0.875rem',
-            display: 'flex',
-            justifyContent: 'center',
-            width: '40%',
-            fontSize: 12
-          }
-        }, [
-          ((entitiesCount === undefined) ? 0 : entitiesCount) + ' participants selected'
-        ]),
-        div({ style: { margin: '1rem 2rem' } }, [
-          h(ButtonInModal,
-            { onClick: () => setToolMode('IGV') },
-            [
-              img({
-                src: igvLogo,
-                style: {
-                  height: '2rem',
-                  marginRight: '1rem'
-                }
-              }),
-              'IGV'
-            ]
-          ),
-          h(ButtonInModal,
-            {
-              tooltip: 'Feature coming soon!',
-              style: { marginTop: '0.5rem' }
-            },
-            ['Workflow']
-          )
+        div({ style: { display: 'flex', flexDirection: 'column', margin: '0 1.5rem' } }, [
+          div({
+            style: {
+              borderRadius: '1rem',
+              border: `1px solid ${colors.dark()}`,
+              padding: '0.5rem 0.875rem',
+              alignSelf: 'flex-start',
+              fontSize: 12
+            }
+          }, [
+            `${entitiesCount} ${entitiesType}s selected`
+          ]),
+          div({ style: { margin: '1rem 0' } }, [
+            h(ModalToolButton,
+              {
+                onClick: () => setToolMode('IGV'),
+                tooltip: 'Open with Integrative Genomics Viewer'
+              }, [
+                div( {style: {width: 45, marginRight: '1rem'}}, [
+                  img({
+                    src: igvLogo,
+                    style: {
+                      maxHeight: '100%',
+                      maxWidth: '100%'
+                    }
+                  })
+                ]),
+                'IGV'
+              ]
+            ),
+            h(ModalToolButton,
+              {
+                tooltip: 'Open with Workflow (coming soon)',
+                style: { marginTop: '0.5rem' }
+              }, [
+                img({
+                  src: wdlLogo,
+                  style: {
+                    height: '1rem',
+                    marginRight: '1rem'
+                  }
+                }),
+                'Workflow'
+              ])
+          ])
         ])
       ])
     ], [
       'IGV', () => h(IGVFileSelector, {
-        onDismiss: setToolMode,
+        onPrevious: () => setToolMode(undefined),
+        onDismiss,
         onSuccess: onIgvSuccess,
         selectedEntities
       })
@@ -478,7 +510,7 @@ class EntitiesContent extends Component {
     return h(ButtonPrimary, {
       style: { marginRight: '1rem' },
       disabled: _.isEmpty(selectedEntities),
-      tooltip: 'Opens files of the selected data with tool of your choice', // TODO: update language
+      tooltip: 'Open files of the selected data',
       onClick: () => this.setState({ showToolSelector: true })
     }, [
       'Open with...'

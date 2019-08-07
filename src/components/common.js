@@ -89,27 +89,6 @@ export const ButtonOutline = ({ disabled, children, ...props }) => {
   }, props), [children])
 }
 
-export const ButtonInModal = ({ disabled, children, ...props }) => {
-  return h(Clickable, _.merge({
-    disabled,
-    style: {
-      color: colors.dark(),
-      border: '1px solid transparent',
-      padding: '0 0.875rem',
-      backgroundColor: 'white',
-      display: 'flex',
-      alignItems: 'center',
-      height: '3rem',
-      fontSize: 18,
-      userSelect: 'none'
-    },
-    hover: {
-      border: `1px solid ${colors.accent(0.8)}`,
-      boxShadow: Style.standardShadow
-    }
-  }, props), [children])
-}
-
 
 export const makeIconButton = (shape, { disabled, size, iconProps = {}, ...props } = {}) => {
   return h(Clickable, _.merge({
