@@ -3,7 +3,7 @@ import FileSaver from 'file-saver'
 import filesize from 'filesize'
 import JSZip from 'jszip'
 import _ from 'lodash/fp'
-import { Component, createRef, Fragment, useState } from 'react'
+import { Component, createRef, Fragment, useEffect, useState } from 'react'
 import Dropzone from 'react-dropzone'
 import { div, form, h, img, input } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
@@ -358,6 +358,11 @@ const ToolDrawer = ({ openDrawer, onDismiss, onIgvSuccess, selectedEntities }) =
   const entitiesCount = _.keys(selectedEntities).length
   const entitiesType = !!entitiesCount && selectedEntities[_.keys(selectedEntities)[0]].entityType
 
+  useEffect(() => {
+    if (!openDrawer) {
+      setToolMode(undefined)
+    }
+  }, [openDrawer])
   return h(ModalDrawer, {
     openDrawer,
     onDismiss,
