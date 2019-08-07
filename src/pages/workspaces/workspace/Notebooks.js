@@ -337,7 +337,6 @@ const Notebooks = _.flow(
       disabled: !Utils.canWrite(accessLevel),
       style: { flexGrow: 1 },
       activeStyle: { backgroundColor: colors.accent(0.2), cursor: 'copy' },
-      ref: this.uploader,
       onDropRejected: () => reportError('Not a valid notebook',
         'The selected file is not a ipynb notebook file. To import a notebook, upload a file with a .ipynb extension.'),
       onDropAccepted: files => this.uploadFiles(files)

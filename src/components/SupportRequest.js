@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { Component, createRef, Fragment } from 'react'
+import { Component, Fragment } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import { ButtonPrimary, ButtonSecondary, Clickable, Link, Select, spinnerOverlay } from 'src/components/common'
 import Dropzone from 'src/components/Dropzone'
@@ -43,7 +43,6 @@ const SupportRequest = _.flow(
   constructor(props) {
     super(props)
     this.state = this.initialFormState()
-    this.uploader = createRef()
   }
 
   componentDidUpdate(prevProps) {
@@ -163,7 +162,7 @@ const SupportRequest = _.flow(
             h(Clickable, {
               tooltip: 'Change file',
               style: { flex: 'auto' },
-              onClick: () => this.uploader.current.open()
+              onClick: openUploader
             }, [
               div({
                 style: { marginLeft: '1rem', paddingTop: '0.5rem' }
