@@ -56,9 +56,8 @@ const styles = {
   }
 }
 
-export const ModalToolButton = ({ disabled, children, ...props }) => {
+export const ModalToolButton = ({ children, ...props }) => {
   return h(Clickable, _.merge({
-    disabled,
     style: {
       color: colors.dark(),
       border: '1px solid transparent',
@@ -374,8 +373,8 @@ const ToolDrawer = ({ openDrawer, onDismiss, onIgvSuccess, selectedEntities }) =
           div({
             style: {
               borderRadius: '1rem',
-              border: `1px solid ${colors.dark()}`,
-              padding: '0.5rem 0.875rem',
+              border: `1px solid ${colors.dark(0.5)}`,
+              padding: '0.25rem 0.875rem',
               alignSelf: 'flex-start',
               fontSize: 12
             }
@@ -388,13 +387,8 @@ const ToolDrawer = ({ openDrawer, onDismiss, onIgvSuccess, selectedEntities }) =
                 onClick: () => setToolMode('IGV'),
                 tooltip: 'Open with Integrative Genomics Viewer'
               }, [
-                div({ style: { width: 45, marginRight: '1rem' } }, [
-                  img({
-                    src: igvLogo,
-                    style: {
-                      width: 40
-                    }
-                  })
+                div({ style: { display: 'flex', alignItems: 'center', width: 45, marginRight: '1rem' } }, [
+                  img({ src: igvLogo, style: { width: 40 } })
                 ]),
                 'IGV'
               ]
@@ -402,15 +396,12 @@ const ToolDrawer = ({ openDrawer, onDismiss, onIgvSuccess, selectedEntities }) =
             h(ModalToolButton,
               {
                 tooltip: 'Open with Workflow (coming soon)',
-                style: { marginTop: '0.5rem' }
+                style: { marginTop: '0.5rem' },
+                disabled: true
               }, [
-                img({
-                  src: wdlLogo,
-                  style: {
-                    height: '1rem',
-                    marginRight: '1rem'
-                  }
-                }),
+                div({ style: { display: 'flex', alignItems: 'center', width: 45, marginRight: '1rem' } }, [
+                  img({ src: wdlLogo, style: { height: '1rem' } })
+                ]),
                 'Workflow'
               ])
           ])
