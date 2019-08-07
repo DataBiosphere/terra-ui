@@ -1,6 +1,5 @@
 import _ from 'lodash/fp'
-import PropTypes from 'prop-types'
-import { Children, cloneElement, Component, Fragment, useRef } from 'react'
+import { Children, cloneElement, Fragment, useRef, useState } from 'react'
 import { div, h, path, svg } from 'react-hyperscript-helpers'
 import { computePopupPosition, PopupPortal, useDynamicPosition } from 'src/components/popup-utils'
 import colors from 'src/libs/colors'
@@ -71,55 +70,35 @@ const Tooltip = ({ side = 'bottom', type, target: targetId, children, id }) => {
   ])
 }
 
-export default class TooltipTrigger extends Component {
-  static propTypes = {
-    content: PropTypes.node, // No tooltip if falsy
-    side: PropTypes.string,
-    children: PropTypes.node,
-    type: PropTypes.string
-  }
-
-  static defaultProps = {
-    side: 'bottom',
-    type: 'default'
-  }
-
-  constructor(props) {
-    super(props)
-    this.state = { open: false }
-    this.id = `tooltip-trigger-${_.uniqueId()}`
-    this.tooltipId = `tooltip-${_.uniqueId()}`
-  }
-
-  render() {
-    const { children, type, content, ...props } = this.props
-    const { open } = this.state
-    if (!content) {
-      return children
-    }
-    const child = Children.only(children)
-    return h(Fragment, [
-      cloneElement(child, {
-        id: this.id,
-        'aria-describedby': open ? this.tooltipId : undefined,
-        onMouseEnter: (...args) => {
-          child.props.onMouseEnter && child.props.onMouseEnter(...args)
-          this.setState({ open: true })
-        },
-        onMouseLeave: (...args) => {
-          child.props.onMouseLeave && child.props.onMouseLeave(...args)
-          this.setState({ open: false })
-        },
-        onFocus: (...args) => {
-          child.props.onFocus && child.props.onFocus(...args)
-          this.setState({ open: true })
-        },
-        onBlur: (...args) => {
-          child.props.onBlur && child.props.onBlur(...args)
-          this.setState({ open: false })
-        }
-      }),
-      open && h(Tooltip, { target: this.id, id: this.tooltipId, type, ...props }, [content])
-    ])
-  }
+const TooltipTrigger = ({ children, content, ...props }) => {
+  const [open, setOpen] = useState(false)
+  const id = Utils.useUniqueId()
+  const tooltipId = Utils.useUniqueId()
+  const child = Children.only(children)
+  const childId = child.props.id || id
+  return h(Fragment, [
+    cloneElement(child, {
+      id: childId,
+      'aria-describedby': open ? tooltipId : undefined,
+      onMouseEnter: (...args) => {
+        child.props.onMouseEnter && child.props.onMouseEnter(...args)
+        setOpen(true)
+      },
+      onMouseLeave: (...args) => {
+        child.props.onMouseLeave && child.props.onMouseLeave(...args)
+        setOpen(false)
+      },
+      onFocus: (...args) => {
+        child.props.onFocus && child.props.onFocus(...args)
+        setOpen(true)
+      },
+      onBlur: (...args) => {
+        child.props.onBlur && child.props.onBlur(...args)
+        setOpen(false)
+      }
+    }),
+    open && !!content && h(Tooltip, { target: childId, id: tooltipId, ...props }, [content])
+  ])
 }
+
+export default TooltipTrigger
