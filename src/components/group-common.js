@@ -78,9 +78,8 @@ export const NewUserModal = ajaxCaller(class NewUserModal extends Component {
     this.state = {
       userEmail: '',
       confirmAddUser: false,
-      checkingUser: false,
       roles: [props.userLabel],
-      submitting: false
+      busy: false
     }
   }
 
@@ -106,8 +105,8 @@ export const NewUserModal = ajaxCaller(class NewUserModal extends Component {
   }
 
   render() {
-    const { adminLabel, userLabel, title, onDismiss, footer, inviteFunction } = this.props
-    const { confirmAddUser, userEmail, roles, suggestions, submitting, submitError, checkingUser } = this.state
+    const { adminLabel, userLabel, title, onDismiss, footer, ajax: { User } } = this.props
+    const { confirmAddUser, userEmail, roles, suggestions, busy, submitError } = this.state
     const emailConstraints = { format: /\w+@(gmail\.com|broadinstitute\.org)$/ }
     const errors = validate({ userEmail }, { userEmail: emailConstraints })
     const isAdmin = _.includes(adminLabel, roles)
@@ -116,27 +115,40 @@ export const NewUserModal = ajaxCaller(class NewUserModal extends Component {
     const canAdd = value => value !== userEmail || !userEmailInvalid
 
     return Utils.cond(
-      [confirmAddUser, h(Modal, {
-        title: 'This User Is Not Registered',
+      [confirmAddUser, () => h(Modal, {
+        title: 'User is not registered',
         okButton: h(ButtonPrimary, {
           onClick: async () => {
-            this.setState({ submitting: true })
-            await inviteFunction(userEmail)
-            await this.submit()
+            this.setState({ busy: true })
+            try {
+              await User.inviteUser(userEmail)
+              await this.submit()
+            } catch (error) {
+              reportError('Error adding user', error)
+            }
           }
         }, ['Yes']),
         cancelText: 'No',
         onDismiss: () => this.setState({ confirmAddUser: false })
       }, [
         'Add ', b(userEmail), ' to the group anyway?',
-        submitting && spinnerOverlay
+        busy && spinnerOverlay
       ])],
-      h(Modal, {
+      () => h(Modal, {
         onDismiss,
         title,
         okButton: h(ButtonPrimary, {
           tooltip: Utils.summarizeErrors(errors),
-          onClick: async () => await this.checkUserRegistration() ? this.submit() : this.setState({ confirmAddUser: true }),
+          onClick: async () => {
+            try {
+              this.setState({ busy: true })
+              await User.isUserRegistered(userEmail) ? this.submit() : this.setState({ busy: false, confirmAddUser: true })
+            } catch (error) {
+              this.setState({ busy: false })
+              reportError('Error adding user', error)
+              onDismiss()
+            }
+          },
           disabled: errors
         }, ['Add User'])
       }, [
@@ -178,31 +190,20 @@ export const NewUserModal = ajaxCaller(class NewUserModal extends Component {
         ]),
         footer && div({ style: { marginTop: '1rem' } }, [footer]),
         submitError && div({ style: { marginTop: '0.5rem', textAlign: 'right', color: colors.danger() } }, [submitError]),
-        (checkingUser || submitting) && spinnerOverlay
+        busy && spinnerOverlay
       ])
     )
-  }
-
-  async checkUserRegistration() {
-    const { checkRegistrationFunction } = this.props
-    const { userEmail } = this.state
-
-    this.setState({ checkingUser: true })
-    const isUserRegistered = await checkRegistrationFunction(userEmail)
-    this.setState({ checkingUser: false })
-
-    return isUserRegistered
   }
 
   async submit() {
     const { addFunction, onSuccess } = this.props
     const { userEmail, roles } = this.state
     try {
-      this.setState({ submitting: true })
+      this.setState({ busy: true })
       await addFunction(roles, userEmail)
       onSuccess()
     } catch (error) {
-      this.setState({ submitting: false, confirmAddUser: false })
+      this.setState({ busy: false, confirmAddUser: false })
       if (400 <= error.status <= 499) {
         this.setState({ submitError: (await error.json()).message })
       } else {
@@ -234,7 +235,7 @@ export const EditUserModal = class EditUserModal extends Component {
 
   render() {
     const { adminLabel, onDismiss, user: { email } } = this.props
-    const { isAdmin, submitting } = this.state
+    const { isAdmin, busy } = this.state
 
     return h(Modal, {
       onDismiss,
@@ -253,7 +254,7 @@ export const EditUserModal = class EditUserModal extends Component {
       }, [
         label({ style: { margin: '0 2rem 0 0.25rem' } }, [`Can manage users (${adminLabel})`])
       ]),
-      submitting && spinnerOverlay
+      busy && spinnerOverlay
     ])
   }
 
@@ -267,11 +268,11 @@ export const EditUserModal = class EditUserModal extends Component {
     )
 
     try {
-      this.setState({ submitting: true })
+      this.setState({ busy: true })
       await saveFunction(email, roles, applyAdminChange(roles))
       onSuccess()
     } catch (error) {
-      this.setState({ submitting: false })
+      this.setState({ busy: false })
       reportError('Error updating user', error)
     }
   }

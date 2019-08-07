@@ -298,6 +298,8 @@ const User = signal => ({
     } catch (error) {
       if (error.status === 404) {
         return false
+      } else {
+        throw error
       }
     }
     return true
