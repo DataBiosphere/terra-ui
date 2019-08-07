@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
-import { Component, forwardRef, Fragment, useRef, useState } from 'react'
+import { Component, forwardRef, Fragment, useState } from 'react'
 import Autosuggest from 'react-autosuggest'
 import { div, h } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
@@ -39,6 +39,26 @@ const styles = {
     fontSize: 11, fontWeight: 600, textTransform: 'uppercase',
     marginLeft: '1rem', marginTop: '0.5rem'
   }
+}
+
+export const withDebouncedChange = WrappedComponent => {
+  const Wrapper = ({ onChange, value, ...props }) => {
+    const [internalValue, setInternalValue] = useState()
+    const getInternalValue = Utils.useGetter(internalValue)
+    const updateParent = Utils.useInstance(() => _.debounce(250, () => {
+      onChange(getInternalValue())
+      setInternalValue(undefined)
+    }))
+    return h(WrappedComponent, {
+      value: internalValue !== undefined ? internalValue : value,
+      onChange: v => {
+        setInternalValue(v)
+        updateParent()
+      },
+      ...props
+    })
+  }
+  return Wrapper
 }
 
 export const TextInput = forwardRef(({ onChange, nativeOnChange = false, ...props }, ref) => h(Interactive,
@@ -92,28 +112,22 @@ export const ConfirmedSearchInput = ({ defaultValue = '', onChange = _.noop, ...
   ])
 }
 
-export const DelayedSearchInput = ({ defaultValue = '', onChange = _.noop, ...props }) => {
-  const [internalValue, setInternalValue] = useState(defaultValue)
-  const updateFn = useRef(_.debounce(250, onChange))
+export const SearchInput = ({ value, onChange, ...props }) => {
   return h(TextInput, _.merge({
     type: 'search',
     spellCheck: false,
     style: { WebkitAppearance: 'none', borderColor: colors.dark(0.55) },
-    value: internalValue,
-    onChange: v => {
-      setInternalValue(v)
-      updateFn.current(v)
-    },
+    value, onChange,
     onKeyDown: e => {
-      if (e.key === 'Escape' && internalValue !== '') {
+      if (e.key === 'Escape' && value !== '') {
         e.stopPropagation()
-        setInternalValue('')
-        updateFn.current('')
+        onChange('')
       }
     }
   }, props))
 }
 
+export const DelayedSearchInput = withDebouncedChange(SearchInput)
 
 export const NumberInput = ({ onChange, ...props }) => {
   return h(Interactive, _.merge({
@@ -311,6 +325,8 @@ export class AutocompleteSearch extends Component {
     })
   }
 }
+
+export const DelayedAutocompleteTextInput = withDebouncedChange(AutocompleteTextInput)
 
 export const TextArea = ({ onChange, ...props }) => {
   return h(Interactive, _.merge({

@@ -10,7 +10,7 @@ import {
   ButtonPrimary, ButtonSecondary, Clickable, LabeledCheckbox, Link, makeMenuIcon, MenuButton, methodLink, RadioButton, Select, spinnerOverlay
 } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
-import { AutocompleteTextInput } from 'src/components/input'
+import { DelayedAutocompleteTextInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import PopupTrigger from 'src/components/PopupTrigger'
 import StepButtons from 'src/components/StepButtons'
@@ -132,7 +132,7 @@ const WorkflowIOTable = ({ which, inputsOutputs: data, config, errors, onChange,
               const error = errors[which][name]
               const isFile = (inputType === 'File') || (inputType === 'File?')
               return div({ style: { display: 'flex', alignItems: 'center', width: '100%' } }, [
-                !readOnly ? h(AutocompleteTextInput, {
+                !readOnly ? h(DelayedAutocompleteTextInput, {
                   placeholder: optional ? 'Optional' : 'Required',
                   value,
                   style: isFile ? { borderRadius: '4px 0px 0px 4px', borderRight: 'white' } : undefined,

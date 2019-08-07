@@ -305,7 +305,7 @@ export const WorkspaceList = _.flow(
           style: { marginLeft: '2rem', width: 500 },
           placeholder: 'SEARCH WORKSPACES',
           onChange: v => this.setState({ filter: v }),
-          defaultValue: filter
+          value: filter
         })
       ]),
       h(PageBox, { style: { position: 'relative' } }, [

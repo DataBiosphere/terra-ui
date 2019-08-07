@@ -160,7 +160,7 @@ const JobHistory = _.flow(
           style: { width: 300, marginLeft: '1rem' },
           placeholder: 'Search',
           onChange: v => this.setState({ textFilter: v }),
-          defaultValue: textFilter
+          value: textFilter
         })
       ]),
       div({ style: styles.submissionsTable }, [
