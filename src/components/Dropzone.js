@@ -8,17 +8,18 @@ const Dropzone = ({ disabled = false, onDragOver, onDrop, onDragLeave, style = {
   const [dragging, setDragging] = useState(false)
 
   const { getRootProps, getInputProps, open: openUploader, ...dropProps } = useDropzone({
+    noClick: true,
     onDragOver: () => {
-      Utils.maybeCall(onDragOver)
       setDragging(true)
+      Utils.maybeCall(onDragOver)
     },
     onDrop: () => {
-      Utils.maybeCall(onDrop)
       setDragging(false)
+      Utils.maybeCall(onDrop)
     },
     onDragLeave: () => {
-      Utils.maybeCall(onDragLeave)
       setDragging(false)
+      Utils.maybeCall(onDragLeave)
     },
     ...props
   })

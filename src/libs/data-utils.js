@@ -257,7 +257,6 @@ export const EntityUploader = class EntityUploader extends Component {
     const inputLabel = text => div({ style: { fontSize: 16, marginBottom: '0.3rem' } }, [text])
 
     return h(Dropzone, {
-      noClick: true,
       multiple: false,
       style: { flexGrow: 1 },
       activeStyle: { cursor: 'copy' },

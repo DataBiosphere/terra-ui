@@ -92,7 +92,6 @@ const LocalVariablesContent = class LocalVariablesContent extends Component {
       editType: undefined,
       textFilter: ''
     }
-    this.uploader = createRef()
   }
 
   render() {
@@ -154,7 +153,6 @@ const LocalVariablesContent = class LocalVariablesContent extends Component {
     const { initialY } = firstRender ? StateHistory.get() : {}
     return h(Dropzone, {
       disabled: !!Utils.editWorkspaceError(workspace),
-      noClick: true,
       style: { flex: 1, display: 'flex', flexDirection: 'column' },
       activeStyle: { backgroundColor: colors.accent(0.2), cursor: 'copy' },
       onDropAccepted: upload
@@ -628,7 +626,6 @@ const BucketContent = _.flow(
 
     return h(Dropzone, {
       disabled: !!Utils.editWorkspaceError(workspace),
-      noClick: true,
       style: { flexGrow: 1, backgroundColor: 'white', border: `1px solid ${colors.dark(0.55)}`, padding: '1rem' },
       activeStyle: { backgroundColor: colors.accent(0.2), cursor: 'copy' },
       onDropAccepted: files => this.uploadFiles(files)
