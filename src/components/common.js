@@ -32,6 +32,7 @@ export const Clickable = ({ href, as = (!!href ? 'a' : 'div'), disabled, tooltip
     as, disabled,
     onClick: (...args) => onClick && !disabled && onClick(...args),
     href: !disabled ? href : undefined,
+    tabIndex: disabled ? -1 : 0,
     ...props
   }, [children])
 
@@ -268,6 +269,12 @@ export const Select = ({ value, options, id, ...props }) => {
   return h(RSelect, _.merge({
     inputId: id,
     ...commonSelectProps,
+    styles: {
+      container: (provided, state) => ({
+        ...provided,
+        boxShadow: state.isFocused ? `0 0 3px ${colors.accent(1.2)}` : 'unset'
+      })
+    },
     getOptionLabel: ({ value, label }) => label || value.toString(),
     value: newValue || null, // need null instead of undefined to clear the select
     options: newOptions
@@ -275,7 +282,14 @@ export const Select = ({ value, options, id, ...props }) => {
 }
 
 export const AsyncCreatableSelect = props => {
-  return h(RAsyncCreatableSelect, _.merge(commonSelectProps, props))
+  return h(RAsyncCreatableSelect, {
+    ..._.merge(commonSelectProps, props), styles: {
+      container: (provided, state) => ({
+        ...provided,
+        boxShadow: state.isFocused ? `0 0 3px ${colors.accent(1.2)}` : 'unset'
+      })
+    }
+  })
 }
 
 export const PageBox = ({ children, style = {} }) => {
