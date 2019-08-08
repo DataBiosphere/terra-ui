@@ -505,7 +505,7 @@ class EntitiesContent extends Component {
     return h(ButtonPrimary, {
       style: { marginRight: '1rem' },
       disabled: _.isEmpty(selectedEntities),
-      tooltip: 'Open files of the selected data',
+      tooltip: 'Open the selected data',
       onClick: () => this.setState({ showToolSelector: true })
     }, [
       'Open with...'
