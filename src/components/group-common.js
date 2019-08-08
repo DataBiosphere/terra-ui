@@ -245,7 +245,7 @@ export const EditUserModal = class EditUserModal extends Component {
 
   render() {
     const { adminLabel, onDismiss, user: { email } } = this.props
-    const { isAdmin, busy } = this.state
+    const { isAdmin, submitting } = this.state
 
     return h(Modal, {
       onDismiss,
@@ -264,7 +264,7 @@ export const EditUserModal = class EditUserModal extends Component {
       }, [
         label({ style: { margin: '0 2rem 0 0.25rem' } }, [`Can manage users (${adminLabel})`])
       ]),
-      busy && spinnerOverlay
+      submitting && spinnerOverlay
     ])
   }
 
@@ -278,11 +278,11 @@ export const EditUserModal = class EditUserModal extends Component {
     )
 
     try {
-      this.setState({ busy: true })
+      this.setState({ submitting: true })
       await saveFunction(email, roles, applyAdminChange(roles))
       onSuccess()
     } catch (error) {
-      this.setState({ busy: false })
+      this.setState({ submitting: false })
       reportError('Error updating user', error)
     }
   }
