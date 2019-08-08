@@ -22,6 +22,7 @@ const authOpts = (token = getUser().token) => ({ headers: { Authorization: `Bear
 const jsonBody = body => ({ body: JSON.stringify(body), headers: { 'Content-Type': 'application/json' } })
 const appIdentifier = { headers: { 'X-App-ID': 'Saturn' } }
 const tosData = { appid: 'Saturn', tosversion: 4 }
+const locationToVpc = { 'japan:secure': 'accessPolicies/228353087260/servicePerimeters/hackathon_japan' }
 
 const withInstrumentation = wrappedFetch => (...args) => {
   return _.flow(
@@ -367,9 +368,13 @@ const Billing = signal => ({
     return res.json()
   },
 
-  createProject: async (projectName, billingAccount, location) => {
+  createProject: async (projectName, billingAccount, rawLocation) => {
+    const spLocation = rawLocation.toLowerCase()
+    const location = spLocation.split(":")[0]
+    const body = (spLocation in locationToVpc) ? { projectName, billingAccount, location, servicePerimeter: locationToVpc[spLocation] } : { projectName, billingAccount, location }
+
     const res = await fetchRawls('billing',
-      _.mergeAll([authOpts(), jsonBody({ projectName, billingAccount, location }), { signal, method: 'POST' }]))
+      _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }]))
     return res
   },
 

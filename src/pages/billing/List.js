@@ -87,7 +87,7 @@ const NewBillingProjectModal = ajaxCaller(class NewBillingProjectModal extends C
 
   render() {
     const { onDismiss, billingAccounts } = this.props
-    const { billingProjectName, billingProjectNameTouched, chosenBillingAccount, existing, isBusy } = this.state
+    const { billingProjectName, billingProjectNameTouched, chosenBillingAccount, chosenLocation, existing, isBusy } = this.state
     const errors = validate({ billingProjectName }, { billingProjectName: billingProjectNameValidator(existing) })
 
     return h(Modal, {
@@ -143,9 +143,9 @@ const NewBillingProjectModal = ajaxCaller(class NewBillingProjectModal extends C
           h(Select, {
             isMulti: false,
             placeholder: 'Select location',
-            value: 'US',
+            value: chosenLocation,
             onChange: selected => this.setState({ chosenLocation: selected.value }),
-            options: ['US', 'Finland', 'Japan', 'Australia', 'Nearline-US']
+            options: ['US', 'Finland', 'Japan', 'Australia', 'Japan:secure', 'Nearline-US']
           })
         ]),
         !!chosenBillingAccount && !chosenBillingAccount.firecloudHasAccess && div({ style: { fontWeight: 500, fontSize: 13 } }, [
