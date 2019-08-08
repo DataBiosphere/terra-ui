@@ -77,6 +77,7 @@ export class IGVFileSelector extends Component {
         'Reference genome: ',
         div({ style: { display: 'inline-block', marginLeft: '0.25rem', marginBottom: '1rem', minWidth: 125 } }, [
           h(Select, {
+            'aria-label': 'reference genome',
             options: ['hg38', 'hg19', 'hg18', 'mm10', 'panTro4', 'panPan2', 'susScr11',
               'bosTau8', 'canFam3', 'rn6', 'danRer10', 'dm6', 'sacCer3'],
             value: refGenome,
