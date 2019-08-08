@@ -73,7 +73,8 @@ export default class Register extends Component {
           h(TextInput, {
             style: { display: 'block' },
             value: givenName,
-            onChange: v => this.setState({ givenName: v })
+            onChange: v => this.setState({ givenName: v }),
+            ariaLabel: 'First Name - Required'
           })
         ]),
         div({ style: { width: '1rem' } }),
@@ -82,7 +83,8 @@ export default class Register extends Component {
           h(TextInput, {
             style: { display: 'block' },
             value: familyName,
-            onChange: v => this.setState({ familyName: v })
+            onChange: v => this.setState({ familyName: v }),
+            ariaLabel: 'Last Name - Required'
           })
         ])
       ]),
@@ -92,7 +94,8 @@ export default class Register extends Component {
           h(TextInput, {
             value: email,
             onChange: v => this.setState({ email: v }),
-            style: { width: '50ex' }
+            style: { width: '50ex' },
+            ariaLabel: 'Contact Email for Notifications - Required'
           })
         ])
       ]),
