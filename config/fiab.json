@@ -7,7 +7,7 @@
   "firecloudUrlRoot": "https://firecloud-fiab.dsde-dev.broadinstitute.org:22443",
   "firecloudBucketRoot": "https://storage.googleapis.com/firecloud-alerts-dev",
   "googleClientId": "500025638838-s2v23ar3spugtd5t2v1vgfa2sp7ppg0d.apps.googleusercontent.com",
-  "jobManagerUrlRoot": "https://job-manager.dsde-dev.broadinstitute.org/jobs",
+  "jobManagerUrlRoot": "https://job-manager-fiab.dsde-dev.broadinstitute.org:34443/jobs",
   "leoUrlRoot": "https://leonardo-fiab.dsde-dev.broadinstitute.org:30443",
   "marthaUrlRoot": "https://martha-fiab.dsde-dev.broadinstitute.org:32443/dockerized-martha/us-central1",
   "orchestrationUrlRoot": "https://firecloud-orchestration-fiab.dsde-dev.broadinstitute.org:23443",
