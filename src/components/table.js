@@ -54,13 +54,13 @@ export const paginator = props => {
           div({ style: { display: 'inline-flex', padding: '0 1rem' } }, [
 
             paginatorButton(
-              _.merge({ disabled: currentPage === 1, style: { marginRight: '0.5rem' } },
+              _.merge({ 'aria-label': 'to beginning of pages', disabled: currentPage === 1, style: { marginRight: '0.5rem' } },
                 getPageItemProps({ pageValue: 1, onPageChange: setPageNumber })),
               [icon('angle-double-left', { size: 12 })]
             ),
 
             paginatorButton(
-              _.merge({ disabled: !hasPreviousPage, style: { marginRight: '1rem' } },
+              _.merge({ 'aria-label': 'to previous page', disabled: !hasPreviousPage, style: { marginRight: '1rem' } },
                 getPageItemProps({ pageValue: previousPage, onPageChange: setPageNumber })),
               [icon('angle-left', { size: 12 })]
             ),
@@ -80,13 +80,13 @@ export const paginator = props => {
             ),
 
             paginatorButton(
-              _.merge({ disabled: !hasNextPage, style: { marginLeft: '1rem' } },
+              _.merge({ 'aria-label': 'to next page', disabled: !hasNextPage, style: { marginLeft: '1rem' } },
                 getPageItemProps({ pageValue: nextPage, onPageChange: setPageNumber })),
               [icon('angle-right', { size: 12 })]
             ),
 
             paginatorButton(
-              _.merge({ disabled: currentPage === totalPages, style: { marginLeft: '0.5rem' } },
+              _.merge({ 'aria-label': 'to end of pages', disabled: currentPage === totalPages, style: { marginLeft: '0.5rem' } },
                 getPageItemProps({ pageValue: totalPages, onPageChange: setPageNumber })),
               [icon('angle-double-right', { size: 12 })]
             )
@@ -95,6 +95,7 @@ export const paginator = props => {
           setItemsPerPage && h(Fragment, [
             'Items per page:',
             select({
+              'aria-label': 'items per page',
               style: { marginLeft: '0.5rem' },
               onChange: e => setItemsPerPage(parseInt(e.target.value, 10)),
               value: itemsPerPage
@@ -508,6 +509,7 @@ export class ColumnSelector extends Component {
     const { open, modifiedColumnSettings } = this.state
     return h(Fragment, [
       h(Clickable, {
+        'aria-label': 'select columns',
         style: styles.columnSelector,
         tooltip: 'Select columns',
         onClick: () => this.setState({ open: true, modifiedColumnSettings: columnSettings })
