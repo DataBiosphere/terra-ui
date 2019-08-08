@@ -9,7 +9,7 @@ const SignInButton = () => {
       width: 250,
       height: 56,
       longtitle: true,
-      theme: 'dark',
+      theme: 'light',
       prompt: 'select_account'
     })
   })
