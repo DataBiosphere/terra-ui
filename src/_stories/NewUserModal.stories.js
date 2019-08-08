@@ -1,7 +1,7 @@
 import { action } from '@storybook/addon-actions'
 import { boolean, number, text, withKnobs } from '@storybook/addon-knobs'
 import { storiesOf } from '@storybook/react'
-import { Fragment, useState } from 'react'
+import { Fragment, useEffect, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { NewUserModal } from 'src/components/group-common'
 import { ajaxOverridesStore } from 'src/libs/state'
@@ -23,6 +23,8 @@ const delayed = ({ ms, resolved, status }) => {
     }, ms)
   })
 }
+
+const clearOverrides = () => ajaxOverridesStore.set([])
 
 const setOverrides = ({ isRegistered, ms }) => {
   ajaxOverridesStore.set([{
@@ -50,6 +52,7 @@ const Modal = () => {
   const userLabel = text('User Label', 'user')
   const [showModal, setShowModal] = useState(true)
 
+  useEffect(() => clearOverrides, [])
   setOverrides({ isRegistered, ms })
 
   return h(Fragment, [
