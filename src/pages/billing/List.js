@@ -143,9 +143,9 @@ const NewBillingProjectModal = ajaxCaller(class NewBillingProjectModal extends C
           h(Select, {
             isMulti: false,
             placeholder: 'Select location',
-            value: "US",
+            value: 'US',
             onChange: selected => this.setState({ chosenLocation: selected.value }),
-            options: [ "US", "Finland", "Japan", "Australia", "Nearline-US" ]
+            options: ['US', 'Finland', 'Japan', 'Australia', 'Nearline-US']
           })
         ]),
         !!chosenBillingAccount && !chosenBillingAccount.firecloudHasAccess && div({ style: { fontWeight: 500, fontSize: 13 } }, [

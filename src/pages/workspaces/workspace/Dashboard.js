@@ -107,6 +107,7 @@ export const WorkspaceDashboard = _.flow(
       submissionsCount: undefined,
       storageCostEstimate: undefined,
       editDescription: undefined,
+      location: undefined,
       saving: false,
       busy: false
     }
@@ -117,12 +118,20 @@ export const WorkspaceDashboard = _.flow(
     this.loadStorageCost()
     this.loadConsent()
     this.loadWsTags()
+    this.loadLocation()
   }
 
   loadSubmissionCount = withErrorReporting('Error loading data', async () => {
     const { ajax: { Workspaces }, namespace, name } = this.props
     const submissions = await Workspaces.workspace(namespace, name).listSubmissions()
     this.setState({ submissionsCount: submissions.length })
+  })
+
+  loadLocation = withErrorReporting('Error loading billing projects list', async () => {
+    const { ajax: { Billing }, namespace } = this.props
+    const rawBillingProjects = await Billing.listProjects()
+    const location = _.head(_.filter(p => p.projectName === namespace)(rawBillingProjects)).location
+    this.setState({ location })
   })
 
   loadStorageCost = withErrorReporting('Error loading data', async () => {
@@ -201,7 +210,7 @@ export const WorkspaceDashboard = _.flow(
         }
       }
     } = this.props
-    const { submissionsCount, storageCostEstimate, editDescription, saving, consentStatus, tagsList, busy, bucketCopied } = this.state
+    const { submissionsCount, storageCostEstimate, editDescription, saving, consentStatus, tagsList, busy, bucketCopied, location } = this.state
     const isEditing = _.isString(editDescription)
 
     return div({ style: { flex: 1, display: 'flex' } }, [
@@ -268,7 +277,8 @@ export const WorkspaceDashboard = _.flow(
           h(InfoTile, { title: 'Access level' }, [roleString[accessLevel]]),
           Utils.canWrite(accessLevel) && h(InfoTile, { title: 'Est. $/month' }, [
             storageCostEstimate
-          ])
+          ]),
+          h(InfoTile, { title: 'Location' }, location)
         ]),
         div({ style: styles.header }, ['Owners']),
         _.map(email => {
