@@ -21,7 +21,7 @@ import ProjectDetail from 'src/pages/billing/Project'
 import validate from 'validate.js'
 
 
-const ProjectTab = ({ project: { projectName, role, creationStatus }, isActive }) => {
+const ProjectTab = ({ project: { projectName, role, creationStatus, location }, isActive }) => {
   const projectReady = creationStatus === 'Ready'
   const statusIcon = icon(creationStatus === 'Creating' ? 'loadingSpinner' : 'error-standard',
     { style: { color: colors.accent(), marginRight: '1rem', marginLeft: '0.5rem' } })
@@ -31,8 +31,8 @@ const ProjectTab = ({ project: { projectName, role, creationStatus }, isActive }
       style: { ...Style.navList.item(isActive), color: colors.accent() },
       href: `${Nav.getLink('billing')}?${qs.stringify({ selectedName: projectName, type: 'project' })}`,
       hover: Style.navList.itemHover(isActive)
-    }, [projectName, !projectReady && statusIcon]) :
-    div({ style: { ...Style.navList.item(false), color: colors.dark() } }, [projectName, !projectReady && statusIcon])
+    }, [projectName + ' (' + location + ')', !projectReady && statusIcon]) :
+    div({ style: { ...Style.navList.item(false), color: colors.dark() } }, [projectName + ' (' + location + ')', !projectReady && statusIcon])
 }
 
 const billingProjectNameValidator = existing => ({
@@ -145,7 +145,7 @@ const NewBillingProjectModal = ajaxCaller(class NewBillingProjectModal extends C
             placeholder: 'Select location',
             value: "US",
             onChange: selected => this.setState({ chosenLocation: selected.value }),
-            options: [ "US", "Finland", "Japan", "Australia" ]
+            options: [ "US", "Finland", "Japan", "Australia", "Nearline-US" ]
           })
         ]),
         !!chosenBillingAccount && !chosenBillingAccount.firecloudHasAccess && div({ style: { fontWeight: 500, fontSize: 13 } }, [
