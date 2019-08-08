@@ -45,6 +45,7 @@ const setOverrides = ({ isRegistered, ms }) => {
 
 const Modal = () => {
   const ms = number('Latency', 100)
+  const addUnregisteredUser = boolean('Allow adding unregistered user', true)
   const isRegistered = boolean('User is registered', false)
   const addSucceeds = boolean('User added successfully', true)
   const title = text('Title', 'Add user to Terra Group')
@@ -59,12 +60,14 @@ const Modal = () => {
     h('button', { onClick: () => setShowModal(true), style: { width: '100px' } }, 'Add User'),
     div({ id: 'modal-root' }, [
       showModal && h(NewUserModal, {
+        addUnregisteredUser,
         title,
         adminLabel,
         userLabel,
         addFunction: (role, userEmail) => {
           action(`Attempting to add user ${userEmail} as a ${role}`)()
-          return delayed({ resolved: addSucceeds, ms, status: FAILED_REQUEST })
+          const resolved = addUnregisteredUser ? addSucceeds : isRegistered && addSucceeds
+          return delayed({ resolved, ms, status: FAILED_REQUEST })
         },
         onSuccess: () => {
           action('Successfuly added user')()

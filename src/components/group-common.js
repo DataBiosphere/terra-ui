@@ -139,16 +139,7 @@ export const NewUserModal = ajaxCaller(class NewUserModal extends Component {
         title,
         okButton: h(ButtonPrimary, {
           tooltip: Utils.summarizeErrors(errors),
-          onClick: async () => {
-            try {
-              this.setState({ busy: true })
-              await User.isUserRegistered(userEmail) ? this.submit() : this.setState({ busy: false, confirmAddUser: true })
-            } catch (error) {
-              this.setState({ busy: false })
-              reportError('Error adding user', error)
-              onDismiss()
-            }
-          },
+          onClick: () => this.addUser(),
           disabled: errors
         }, ['Add User'])
       }, [
@@ -192,6 +183,25 @@ export const NewUserModal = ajaxCaller(class NewUserModal extends Component {
         submitError && div({ style: { marginTop: '0.5rem', textAlign: 'right', color: colors.danger() } }, [submitError]),
         busy && spinnerOverlay
       ])
+    )
+  }
+
+  addUser() {
+    const { addUnregisteredUser = false, ajax: { User }, onDismiss } = this.props
+    const { userEmail } = this.state
+
+    Utils.cond(
+      [addUnregisteredUser, async () => {
+        try {
+          this.setState({ busy: true })
+          await User.isUserRegistered(userEmail) ? this.submit() : this.setState({ busy: false, confirmAddUser: true })
+        } catch (error) {
+          this.setState({ busy: false })
+          reportError('Error adding user', error)
+          onDismiss()
+        }
+      }],
+      () => this.submit()
     )
   }
 
