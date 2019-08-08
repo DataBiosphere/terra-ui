@@ -79,6 +79,7 @@ export default ajaxCaller(class DataTable extends Component {
           div({ style: { flexGrow: 1 } }),
           div({ style: { width: 300 } }, [
             h(ConfirmedSearchInput, {
+              'aria-label': 'Search',
               placeholder: 'Search',
               onChange: v => this.setState({ activeTextFilter: v, pageNumber: 1 }),
               defaultValue: activeTextFilter
