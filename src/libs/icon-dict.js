@@ -27,7 +27,7 @@ import times from 'src/icons/times-light.svg'
 
 const fa = _.curry((shape, { size, ...props }) => h(FontAwesomeIcon, _.merge({ icon: shape, style: { height: size, width: size } }, props)))
 const custom = _.curry((shape, { size, className = '', ...props }) => h(shape,
-  _.merge({ className: `svg-inline--fa ${className}`, style: { height: size, width: size } }, props)))
+  _.merge({ className: `svg-inline--fa ${className}`, 'aria-hidden': true, focusable: false, style: { height: size, width: size } }, props)))
 
 const rotate = _.curry((rotation, shape, props) => shape(_.merge({ style: { transform: `rotate(${rotation}deg)` } }, props)))
 
