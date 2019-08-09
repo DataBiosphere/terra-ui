@@ -109,6 +109,14 @@ export default class TooltipTrigger extends Component {
         onMouseLeave: (...args) => {
           child.props.onMouseLeave && child.props.onMouseLeave(...args)
           this.setState({ open: false })
+        },
+        onFocus: (...args) => {
+          child.props.onFocus && child.props.onFocus(...args)
+          this.setState({ open: true })
+        },
+        onBlur: (...args) => {
+          child.props.onBlur && child.props.onBlur(...args)
+          this.setState({ open: false })
         }
       }),
       open && h(Tooltip, { target: this.id, id: this.tooltipId, type, ...props }, [content])
