@@ -641,8 +641,10 @@ class EntitiesContent extends Component {
 const DeleteObjectModal = ({ name, workspace: { workspace: { namespace, bucketName } }, onSuccess, onDismiss }) => {
   const [deleting, setDeleting] = useState(false)
 
-  const doDelete = withErrorReporting('Error deleting object')(async () => {
-    setDeleting(true)
+  const doDelete = _.flow(
+    withErrorReporting('Error deleting object'),
+    Utils.withBusyState(setDeleting)
+  )(async () => {
     await Ajax().Buckets.delete(namespace, bucketName, name)
     onSuccess()
   })
