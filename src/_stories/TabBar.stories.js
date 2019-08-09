@@ -1,4 +1,3 @@
-import { action } from '@storybook/addon-actions'
 import { withKnobs } from '@storybook/addon-knobs'
 import { storiesOf } from '@storybook/react'
 import _ from 'lodash/fp'

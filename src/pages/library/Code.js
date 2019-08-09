@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { Component, Fragment } from 'react'
-import { div, h } from 'react-hyperscript-helpers'
+import { div, h, main } from 'react-hyperscript-helpers'
 import { Clickable, Link } from 'src/components/common'
 import { centeredSpinner } from 'src/components/icons'
 import { libraryTopMatter } from 'src/components/library-common'
@@ -112,23 +112,25 @@ const Code = ajaxCaller(class Code extends Component {
 
     return h(Fragment, [
       libraryTopMatter('code & workflows'),
-      !(featuredList && methods) ?
-        centeredSpinner() :
-        div({ style: { display: 'flex', flex: 1 } }, [
-          div({ style: { flex: 1, margin: '30px 0 30px 40px' } }, [
-            div({ style: styles.header }, 'GATK4 Best Practices workflows'),
-            div({ style: { display: 'flex', flexWrap: 'wrap' } }, [
-              ..._.map(method => makeWorkflowCard({ method }), featuredMethods)
-            ])
-          ]),
-          div({ style: { width: 385, padding: '25px 30px', backgroundColor: colors.light(), lineHeight: '20px' } }, [
-            div({ style: { ...styles.header, fontSize: 16 } }, 'FIND ADDITIONAL WORKFLOWS'),
-            dockstoreTile(),
-            div({ style: { marginTop: 40 } }, [
-              fcMethodRepoTile()
+      main({ role: 'main' }, [
+        !(featuredList && methods) ?
+          centeredSpinner() :
+          div({ style: { display: 'flex', flex: 1 } }, [
+            div({ style: { flex: 1, margin: '30px 0 30px 40px' } }, [
+              div({ style: styles.header }, 'GATK4 Best Practices workflows'),
+              div({ style: { display: 'flex', flexWrap: 'wrap' } }, [
+                ..._.map(method => makeWorkflowCard({ method }), featuredMethods)
+              ])
+            ]),
+            div({ style: { width: 385, padding: '25px 30px', backgroundColor: colors.light(), lineHeight: '20px' } }, [
+              div({ style: { ...styles.header, fontSize: 16 } }, 'FIND ADDITIONAL WORKFLOWS'),
+              dockstoreTile(),
+              div({ style: { marginTop: 40 } }, [
+                fcMethodRepoTile()
+              ])
             ])
           ])
-        ])
+      ])
     ])
   }
 })

@@ -2,7 +2,7 @@ import { addDays } from 'date-fns'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { Component, Fragment, useState } from 'react'
-import { div, h, label, span } from 'react-hyperscript-helpers'
+import { div, h, label, main, span } from 'react-hyperscript-helpers'
 import { ButtonPrimary, IdContainer, LabeledCheckbox, Link, RadioButton, ShibbolethLink, spinnerOverlay } from 'src/components/common'
 import { centeredSpinner, icon, profilePic, spinner } from 'src/components/icons'
 import { TextInput, ValidatedInput } from 'src/components/input'
@@ -281,38 +281,40 @@ const Profile = _.flow(
     return h(Fragment, [
       saving && spinnerOverlay,
       h(TopBar),
-      !profileInfo ? centeredSpinner() : h(Fragment, [
-        div({ style: { marginLeft: '2rem' } }, [sectionTitle('Profile')]),
-        div({ style: styles.header.line }, [
-          div({ style: { position: 'relative' } }, [
-            profilePic({ size: 48 }),
-            h(InfoBox, { style: { alignSelf: 'flex-end', padding: '0.25rem' } }, [
-              'To change your profile image, visit your ',
-              h(Link, {
-                href: `https://myaccount.google.com?authuser=${getUser().email}`,
-                ...Utils.newTabLinkProps
-              }, ['Google account page.'])
+      main({ role: 'main' }, [
+        !profileInfo ? centeredSpinner() : h(Fragment, [
+          div({ style: { marginLeft: '2rem' } }, [sectionTitle('Profile')]),
+          div({ style: styles.header.line }, [
+            div({ style: { position: 'relative' } }, [
+              profilePic({ size: 48 }),
+              h(InfoBox, { style: { alignSelf: 'flex-end', padding: '0.25rem' } }, [
+                'To change your profile image, visit your ',
+                h(Link, {
+                  href: `https://myaccount.google.com?authuser=${getUser().email}`,
+                  ...Utils.newTabLinkProps
+                }, ['Google account page.'])
+              ])
+            ]),
+            div({ style: styles.header.nameLine }, [
+              `Hello again, ${firstName}`
             ])
           ]),
-          div({ style: styles.header.nameLine }, [
-            `Hello again, ${firstName}`
-          ])
-        ]),
-        div({ style: { display: 'flex' } }, [
-          div({ style: styles.page }, [
-            this.renderForm()
-          ]),
-          div({ style: { marginTop: '0', marginLeft: '1rem' } }, [
-            sectionTitle('Identity & External Servers'),
-            h(NihLink, { nihToken: queryParams['nih-username-token'] }),
-            h(FenceLink, {
-              provider: 'fence',
-              displayName: 'DCP Framework Services by University of Chicago'
-            }),
-            h(FenceLink, {
-              provider: 'dcf-fence',
-              displayName: 'DCF Framework Services by University of Chicago'
-            })
+          div({ style: { display: 'flex' } }, [
+            div({ style: styles.page }, [
+              this.renderForm()
+            ]),
+            div({ style: { marginTop: '0', marginLeft: '1rem' } }, [
+              sectionTitle('Identity & External Servers'),
+              h(NihLink, { nihToken: queryParams['nih-username-token'] }),
+              h(FenceLink, {
+                provider: 'fence',
+                displayName: 'DCP Framework Services by University of Chicago'
+              }),
+              h(FenceLink, {
+                provider: 'dcf-fence',
+                displayName: 'DCF Framework Services by University of Chicago'
+              })
+            ])
           ])
         ])
       ])

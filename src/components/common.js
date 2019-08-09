@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { Fragment, useState } from 'react'
 import FocusLock from 'react-focus-lock'
-import { div, h, img, input, label, span } from 'react-hyperscript-helpers'
+import { div, h, img, input, label, nav, span } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
 import RSelect from 'react-select'
 import RAsyncCreatableSelect from 'react-select/async-creatable'
@@ -130,7 +130,7 @@ export const TabBar = ({ activeTab, tabNames, refresh = _.noop, getHref, childre
     ])
   }
 
-  return div({ style: Style.tabBar.container }, [
+  return nav({ role: 'navigation', 'aria-label': 'Tab bar', style: Style.tabBar.container }, [
     ..._.map(name => navTab(name), tabNames),
     div({ style: { flexGrow: 1 } }),
     children
@@ -298,8 +298,8 @@ export const AsyncCreatableSelect = props => {
   })
 }
 
-export const PageBox = ({ children, style = {} }) => {
-  return div({
+export const PageBox = ({ wrapperEl = div, children, style = {} }) => {
+  return wrapperEl({
     style: {
       margin: '1.5rem', padding: '1.5rem 1.5rem 0', minHeight: 125, flex: 'none', zIndex: 0, ...style
     }
@@ -342,7 +342,7 @@ export const FocusTrapper = ({ children, onBreakout }) => {
     div({
       tabIndex: 0,
       onKeyDown: e => {
-      // 27 = Escape
+        // 27 = Escape
         if (e.which === 27) {
           onBreakout()
           e.stopPropagation()
