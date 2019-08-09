@@ -29,7 +29,7 @@ const styles = {
   },
   rightBox: {
     flex: 'none', width: 350, backgroundColor: colors.light(0.4),
-    padding: '0 1rem'
+    padding: '0 1rem 2rem'
   },
   header: {
     ...Style.elements.sectionHeader, textTransform: 'uppercase',
