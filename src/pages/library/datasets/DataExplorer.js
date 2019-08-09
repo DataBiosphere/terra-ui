@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { Fragment } from 'react'
-import { div, h } from 'react-hyperscript-helpers'
+import { div, h, main } from 'react-hyperscript-helpers'
 import { commonPaths } from 'src/components/breadcrumbs'
 import DataExplorerFrame from 'src/components/DataExplorerFrame'
 import PrivateDataExplorer from 'src/components/PrivateDataExplorer'
@@ -20,7 +20,9 @@ const DataExplorerPage = ({ dataset }) => {
         div({ style: Style.breadcrumb.textUnderBreadcrumb }, [`Data Explorer - ${dataset}`])
       ])
     ]),
-    h(!!authDomain ? PrivateDataExplorer : DataExplorerFrame, { dataset })
+    main({ role: 'main' }, [
+      h(!!authDomain ? PrivateDataExplorer : DataExplorerFrame, { dataset })
+    ])
   ])
 }
 

@@ -1,5 +1,5 @@
 import { Component } from 'react'
-import { div, h } from 'react-hyperscript-helpers'
+import { div, h, main } from 'react-hyperscript-helpers'
 import { ButtonPrimary, ButtonSecondary } from 'src/components/common'
 import { centeredSpinner } from 'src/components/icons'
 import { TextInput } from 'src/components/input'
@@ -52,7 +52,8 @@ export default class Register extends Component {
   render() {
     const { busy, givenName, familyName, email } = this.state
     const errors = validate({ givenName, familyName, email }, constraints)
-    return div({
+    return main({
+      role: 'main',
       style: {
         flexGrow: 1,
         padding: '5rem',

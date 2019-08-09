@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { Component, Fragment } from 'react'
-import { a, div, h } from 'react-hyperscript-helpers'
+import { a, div, h, main } from 'react-hyperscript-helpers'
 import { centeredSpinner } from 'src/components/icons'
 import { libraryTopMatter } from 'src/components/library-common'
 import { withWorkspaces } from 'src/components/workspace-utils'
@@ -76,18 +76,20 @@ const Showcase = withWorkspaces(class Showcase extends Component {
 
     return h(Fragment, [
       libraryTopMatter('showcase & tutorials'),
-      !(featuredList && workspaces) ?
-        centeredSpinner() :
-        div({ style: { display: 'flex', margin: '2.5rem' } }, [
-          div({ style: { marginRight: '2rem' } }, [
-            div({ style: styles.header }, 'GATK4 example workspaces'),
-            ..._.map(makeCard(true), bestPractices)
-          ]),
-          div([
-            div({ style: styles.header }, 'Featured workspaces'),
-            ..._.map(makeCard(false), featured)
+      main({ role: 'main' }, [
+        !(featuredList && workspaces) ?
+          centeredSpinner() :
+          div({ style: { display: 'flex', margin: '2.5rem' } }, [
+            div({ style: { marginRight: '2rem' } }, [
+              div({ style: styles.header }, 'GATK4 example workspaces'),
+              ..._.map(makeCard(true), bestPractices)
+            ]),
+            div([
+              div({ style: styles.header }, 'Featured workspaces'),
+              ..._.map(makeCard(false), featured)
+            ])
           ])
-        ])
+      ])
     ])
   }
 })

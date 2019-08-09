@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { div, h } from 'react-hyperscript-helpers'
+import { div, h, main } from 'react-hyperscript-helpers'
 import { ButtonPrimary } from 'src/components/common'
 import { TextInput } from 'src/components/input'
 import * as Nav from 'src/libs/nav'
@@ -8,7 +8,7 @@ import * as Nav from 'src/libs/nav'
 const TestLogin = () => {
   const [token, setToken] = useState('')
 
-  return div({ style: { margin: '2rem', display: 'flex', alignItems: 'center' } }, [
+  return main({ role: 'main', style: { margin: '2rem', display: 'flex', alignItems: 'center' } }, [
     'Token:',
     h(TextInput, {
       style: { margin: '0 1rem' },
