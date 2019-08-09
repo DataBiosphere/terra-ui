@@ -133,6 +133,7 @@ const WorkflowIOTable = ({ which, inputsOutputs: data, config, errors, onChange,
               const isFile = (inputType === 'File') || (inputType === 'File?')
               return div({ style: { display: 'flex', alignItems: 'center', width: '100%' } }, [
                 !readOnly ? h(AutocompleteTextInput, {
+                  'aria-label': name,
                   placeholder: optional ? 'Optional' : 'Required',
                   value,
                   style: isFile ? { borderRadius: '4px 0px 0px 4px', borderRight: 'white' } : undefined,
@@ -575,7 +576,7 @@ const WorkflowView = _.flow(
                   }, [makeMenuIcon('trash'), 'Delete'])
                 ])
               }, [
-                h(Link, [icon('cardMenuIcon', { size: 22 })])
+                h(Link, { 'aria-label': 'Open workflow actions menu' }, [icon('cardMenuIcon', { size: 22 })])
               ])
             ]),
             span({ style: { color: colors.dark(), fontSize: 24 } }, name)
@@ -588,6 +589,7 @@ const WorkflowView = _.flow(
             sourceRepo === 'agora' ?
               div({ style: { display: 'inline-block', marginLeft: '0.25rem', minWidth: 75 } }, [
                 h(Select, {
+                  'aria-label': 'Snapshot selector',
                   isDisabled: !!Utils.editWorkspaceError(ws),
                   isClearable: false,
                   isSearchable: false,
@@ -616,7 +618,7 @@ const WorkflowView = _.flow(
               documentation
             ]) :
             div({ style: { fontStyle: 'italic', ...styles.description } }, ['No documentation provided']),
-          div({ style: { marginBottom: '1rem' } }, [
+          div({ role: 'radiogroup', 'aria-label': 'Select number of target entities', style: { marginBottom: '1rem' } }, [
             div([
               h(RadioButton, {
                 disabled: !!Utils.editWorkspaceError(ws) || currentSnapRedacted,
@@ -637,6 +639,7 @@ const WorkflowView = _.flow(
                 labelStyle: { marginLeft: '0.5rem' }
               }),
               h(Select, {
+                'aria-label': 'Entity type selector',
                 isClearable: false, isDisabled: currentSnapRedacted || this.isSingle() || !!Utils.editWorkspaceError(ws), isSearchable: false,
                 placeholder: 'Select data type...',
                 styles: { container: old => ({ ...old, display: 'inline-block', width: 200, marginLeft: '0.5rem' }) },

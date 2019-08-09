@@ -442,7 +442,7 @@ class EntitiesContent extends Component {
               '',
         onClick: () => window.open(dataExplorerUrl + '&wid=' + workspaceId)
       }, [
-        icon('search', { style: { marginRight: '0.5rem' } }),
+        icon('search', { 'aria-label': 'search', style: { marginRight: '0.5rem' } }),
         'Open in Data Explorer'
       ])
     ])

@@ -41,12 +41,13 @@ const styles = {
   }
 }
 
-export const TextInput = forwardRef(({ onChange, nativeOnChange = false, ...props }, ref) => h(Interactive,
+export const TextInput = forwardRef(({ onChange, nativeOnChange = false, ariaLabel, ...props }, ref) => h(Interactive,
   _.merge({
     refDOMNode: ref,
     as: 'input',
     className: 'focus-style',
     onChange: onChange ? e => onChange(nativeOnChange ? e : e.target.value) : undefined,
+    'aria-label': ariaLabel,
     style: {
       ...styles.input,
       width: '100%',
@@ -86,6 +87,7 @@ export const ConfirmedSearchInput = ({ defaultValue = '', onChange = _.noop, ...
       }
     }, props)),
     h(ButtonPrimary, {
+      'aria-label': 'search button',
       style: { borderRadius: '0 4px 4px 0', borderLeft: 'none' },
       onClick: () => onChange(internalValue)
     }, [icon('search', { size: 18 })])
@@ -237,11 +239,11 @@ export class AutocompleteTextInput extends Component {
   }
 
   render() {
-    const { value, onChange, suggestions, style, ...props } = this.props
+    const { value, onChange, suggestions, style, id = this.id, ...props } = this.props
     const { show } = this.state
     return h(Autosuggest, {
-      id: this.id,
-      inputProps: { id: this.id, value, onChange: onChange ? (e => onChange(e.target.value)) : undefined },
+      id,
+      inputProps: { id, value, onChange: onChange ? (e => onChange(e.target.value)) : undefined },
       suggestions: show ? (value ? _.filter(Utils.textMatch(value), suggestions) : suggestions) : [],
       onSuggestionsFetchRequested: () => this.setState({ show: true }),
       onSuggestionsClearRequested: () => this.setState({ show: false }),
@@ -250,7 +252,7 @@ export class AutocompleteTextInput extends Component {
       shouldRenderSuggestions: () => true,
       focusInputOnSuggestionClick: false,
       renderSuggestionsContainer: ({ containerProps, children }) => {
-        return children && h(AutocompleteSuggestions, { containerProps, children, target: this.id })
+        return children && h(AutocompleteSuggestions, { containerProps, children, target: id })
       },
       renderSuggestion: v => v,
       renderInputComponent: inputProps => h(TextInput, { ...props, ...inputProps, style, type: 'search', nativeOnChange: true }),

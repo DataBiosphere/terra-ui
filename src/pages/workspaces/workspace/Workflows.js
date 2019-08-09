@@ -126,6 +126,7 @@ const WorkflowCard = pure(({ listView, name, namespace, config, onExport, onCopy
   }, sourceRepo === 'agora' ? 'Terra' : sourceRepo)
 
   const workflowLink = a({
+    'aria-label': workflowName,
     href: Nav.getLink('workflow', { namespace, name, workflowNamespace, workflowName }),
     style: styles.outerLink
   })

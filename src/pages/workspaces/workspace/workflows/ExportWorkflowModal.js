@@ -61,16 +61,17 @@ const ExportWorkflowModal = withWorkspaces(class ExportWorkflowModal extends Com
         onClick: () => this.export()
       }, ['Copy'])
     }, [
-      !sameWorkspace && h(Fragment, [
-        h(RequiredFormLabel, ['Destination']),
+      !sameWorkspace && h(IdContainer, [id => h(Fragment, [
+        h(RequiredFormLabel, { htmlFor: id }, ['Destination']),
         h(WorkspaceSelector, {
+          id,
           workspaces: _.filter(({ workspace: { workspaceId }, accessLevel }) => {
             return thisWorkspace.workspaceId !== workspaceId && Utils.canWrite(accessLevel)
           }, workspaces),
           value: selectedWorkspaceId,
           onChange: v => this.setState({ selectedWorkspaceId: v })
         })
-      ]),
+      ])]),
       h(IdContainer, [id => h(Fragment, [
         h(RequiredFormLabel, { htmlFor: id }, ['Name']),
         h(ValidatedInput, {
