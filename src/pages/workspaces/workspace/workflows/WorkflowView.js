@@ -1,14 +1,14 @@
 import FileSaver from 'file-saver'
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
-import { Component, createRef, Fragment } from 'react'
-import Dropzone from 'react-dropzone'
+import { Component, Fragment } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import {
   ButtonPrimary, ButtonSecondary, Clickable, LabeledCheckbox, Link, makeMenuIcon, MenuButton, methodLink, RadioButton, Select, spinnerOverlay
 } from 'src/components/common'
+import Dropzone from 'src/components/Dropzone'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { DelayedAutocompleteTextInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
@@ -323,7 +323,6 @@ const WorkflowView = _.flow(
       errors: { inputs: {}, outputs: {} },
       ...StateHistory.get()
     }
-    this.uploader = createRef()
   }
 
   isSingle() { return !this.isMultiple() }
@@ -795,18 +794,16 @@ const WorkflowView = _.flow(
       accept: '.json',
       multiple: false,
       disabled: currentSnapRedacted || !!Utils.editWorkspaceError(workspace),
-      disableClick: true,
       style: {
         ...styles.tabContents,
         flex: 'auto', display: 'flex', flexDirection: 'column',
         position: undefined
       },
       activeStyle: { backgroundColor: colors.accent(0.2), cursor: 'copy' },
-      ref: this.uploader,
       onDropRejected: () => reportError('Not a valid inputs file',
         'The selected file is not a json file. To import inputs for this workflow, upload a file with a .json extension.'),
       onDropAccepted: files => this.uploadJson(key, files[0])
-    }, [
+    }, [({ openUploader }) => h(Fragment, [
       div({ style: { flex: 'none', display: 'flex', marginBottom: '0.25rem' } }, [
         key === 'inputs' && _.some('optional', modifiedInputsOutputs['inputs']) ?
           h(Link, { style: { marginRight: 'auto' }, onClick: () => this.setState({ includeOptionalInputs: !includeOptionalInputs }) },
@@ -815,7 +812,7 @@ const WorkflowView = _.flow(
         h(Link, { onClick: () => this.downloadJson(key) }, ['Download json']),
         !currentSnapRedacted && !Utils.editWorkspaceError(workspace) && h(Fragment, [
           div({ style: { whiteSpace: 'pre' } }, ['  |  Drag or click to ']),
-          h(Link, { onClick: () => this.uploader.current.open() }, ['upload json'])
+          h(Link, { onClick: openUploader }, ['upload json'])
         ])
       ]),
       filteredData.length !== 0 &&
@@ -836,7 +833,7 @@ const WorkflowView = _.flow(
           suggestions
         })
       ])
-    ])
+    ])])
   }
 
   async save() {
