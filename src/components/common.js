@@ -120,8 +120,13 @@ export const TabBar = ({ activeTab, tabNames, refresh = _.noop, getHref, childre
         style: { ...Style.tabBar.tab, ...(selected ? Style.tabBar.active : {}) },
         hover: selected ? {} : Style.tabBar.hover,
         onClick: href === window.location.hash ? refresh : undefined,
-        href
-      }, [div({ style: { marginBottom: selected ? -(Style.tabBar.active.borderBottomWidth) : undefined } }, currentTab)])
+        href,
+        tabIndex: -1
+      }, [h(Clickable, {
+        onClick: href === window.location.hash ? refresh : undefined,
+        style: { marginBottom: selected ? -(Style.tabBar.active.borderBottomWidth) : undefined }
+      }, [currentTab])])
+
     ])
   }
 
