@@ -3,8 +3,8 @@ import FileSaver from 'file-saver'
 import filesize from 'filesize'
 import JSZip from 'jszip'
 import _ from 'lodash/fp'
-import { Component, createRef, Fragment, useState } from 'react'
-import { div, form, h, input } from 'react-hyperscript-helpers'
+import { Component, createRef, Fragment, useEffect, useState } from 'react'
+import { div, form, h, img, input } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
@@ -18,9 +18,13 @@ import { IGVBrowser } from 'src/components/IGVBrowser'
 import { IGVFileSelector } from 'src/components/IGVFileSelector'
 import { DelayedSearchInput, TextInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
+import ModalDrawer from 'src/components/ModalDrawer'
 import { notify } from 'src/components/Notifications'
 import { FlexTable, HeaderCell, SimpleTable, TextCell } from 'src/components/table'
+import TitleBar from 'src/components/TitleBar'
 import UriViewer from 'src/components/UriViewer'
+import igvLogo from 'src/images/igv-logo.png'
+import wdlLogo from 'src/images/wdl-logo.png'
 import { Ajax, ajaxCaller } from 'src/libs/ajax'
 import { getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
@@ -50,6 +54,26 @@ const styles = {
     padding: '1rem', width: '100%',
     flex: 1, display: 'flex', flexDirection: 'column'
   }
+}
+
+export const ModalToolButton = ({ children, ...props }) => {
+  return h(Clickable, _.merge({
+    style: {
+      color: colors.dark(),
+      border: '1px solid transparent',
+      padding: '0 0.875rem',
+      backgroundColor: 'white',
+      display: 'flex',
+      alignItems: 'center',
+      height: '3rem',
+      fontSize: 18,
+      userSelect: 'none'
+    },
+    hover: {
+      border: `1px solid ${colors.accent(0.8)}`,
+      boxShadow: Style.standardShadow
+    }
+  }, props), [children])
 }
 
 const DataTypeButton = ({ selected, children, iconName = 'listAlt', iconSize = 14, ...props }) => {
@@ -167,7 +191,7 @@ const LocalVariablesContent = class LocalVariablesContent extends Component {
           style: { width: 300, marginLeft: '1rem' },
           placeholder: 'Search',
           onChange: v => this.setState({ textFilter: v }),
-          defaultValue: textFilter
+          value: textFilter
         })
       ]),
       Utils.cond(
@@ -300,7 +324,7 @@ const ReferenceDataContent = ({ workspace: { workspace: { namespace, attributes 
       style: { width: 300, marginBottom: '1rem', alignSelf: 'flex-end' },
       placeholder: 'Search',
       onChange: setTextFilter,
-      defaultValue: textFilter
+      value: textFilter
     }),
     div({ style: { flex: 1 } }, [
       h(AutoSizer, [
@@ -326,6 +350,76 @@ const ReferenceDataContent = ({ workspace: { workspace: { namespace, attributes 
   ])
 }
 
+const ToolDrawer = ({ openDrawer, onDismiss, onIgvSuccess, selectedEntities }) => {
+  const [toolMode, setToolMode] = useState()
+  const entitiesCount = _.keys(selectedEntities).length
+  const entitiesType = !!entitiesCount && selectedEntities[_.keys(selectedEntities)[0]].entityType
+
+  useEffect(() => {
+    if (!openDrawer) {
+      setToolMode(undefined)
+    }
+  }, [openDrawer])
+  return h(ModalDrawer, {
+    openDrawer,
+    onDismiss,
+    width: 450
+  }, [
+    Utils.switchCase(toolMode, [
+      undefined, () => h(Fragment, [
+        h(TitleBar, {
+          title: 'OPEN WITH...',
+          onDismiss
+        }),
+        div({ style: { display: 'flex', flexDirection: 'column', margin: '0 1.5rem' } }, [
+          div({
+            style: {
+              borderRadius: '1rem',
+              border: `1px solid ${colors.dark(0.5)}`,
+              padding: '0.25rem 0.875rem',
+              alignSelf: 'flex-start',
+              fontSize: 12
+            }
+          }, [
+            `${entitiesCount} ${entitiesType}s selected`
+          ]),
+          div({ style: { margin: '1rem 0' } }, [
+            h(ModalToolButton,
+              {
+                onClick: () => setToolMode('IGV'),
+                tooltip: 'Open with Integrative Genomics Viewer'
+              }, [
+                div({ style: { display: 'flex', alignItems: 'center', width: 45, marginRight: '1rem' } }, [
+                  img({ src: igvLogo, style: { width: 40 } })
+                ]),
+                'IGV'
+              ]
+            ),
+            h(ModalToolButton,
+              {
+                tooltip: 'Open with Workflow (coming soon)',
+                style: { marginTop: '0.5rem' },
+                disabled: true
+              }, [
+                div({ style: { display: 'flex', alignItems: 'center', width: 45, marginRight: '1rem' } }, [
+                  img({ src: wdlLogo, style: { height: '1rem' } })
+                ]),
+                'Workflow'
+              ])
+          ])
+        ])
+      ])
+    ], [
+      'IGV', () => h(IGVFileSelector, {
+        onPrevious: () => setToolMode(undefined),
+        onDismiss,
+        onSuccess: onIgvSuccess,
+        selectedEntities
+      })
+    ])
+  ])
+}
+
 class EntitiesContent extends Component {
   constructor(props) {
     super(props)
@@ -333,7 +427,6 @@ class EntitiesContent extends Component {
       selectedEntities: {},
       deletingEntities: false,
       refreshKey: 0,
-      showIgvSelector: false,
       igvData: {
         selectedFiles: undefined,
         igvRefGenome: ''
@@ -403,18 +496,16 @@ class EntitiesContent extends Component {
     ])
   }
 
-  renderIgvButton() {
+  renderToolButton() {
     const { selectedEntities } = this.state
 
-    return h(Fragment, [
-      h(ButtonPrimary, {
-        style: { marginRight: '1rem' },
-        disabled: _.isEmpty(selectedEntities),
-        tooltip: 'Opens files of the selected data with IGV',
-        onClick: () => this.setState({ showIgvSelector: true })
-      }, [
-        'Open with IGV'
-      ])
+    return h(ButtonPrimary, {
+      style: { marginRight: '1rem' },
+      disabled: _.isEmpty(selectedEntities),
+      tooltip: 'Open the selected data',
+      onClick: () => this.setState({ showToolSelector: true })
+    }, [
+      'Open with...'
     ])
   }
 
@@ -488,9 +579,10 @@ class EntitiesContent extends Component {
       workspace, workspace: { workspace: { namespace, name }, workspaceSubmissionStats: { runningSubmissionsCount } },
       entityKey, entityMetadata, loadMetadata, firstRender
     } = this.props
-    const { selectedEntities, deletingEntities, copyingEntities, refreshKey, showIgvSelector, igvData: { selectedFiles, refGenome } } = this.state
+    const { selectedEntities, deletingEntities, copyingEntities, refreshKey, showToolSelector, igvData: { selectedFiles, refGenome } } = this.state
 
     const { initialX, initialY } = firstRender ? StateHistory.get() : {}
+
     return selectedFiles ? h(IGVBrowser, { selectedFiles, refGenome, namespace }) : h(Fragment, [
       h(DataTable, {
         persist: true, firstRender, refreshKey,
@@ -508,7 +600,7 @@ class EntitiesContent extends Component {
         ] : [
           this.renderDownloadButton(columnSettings),
           !_.endsWith('_set', entityKey) && this.renderCopyButton(entities, columnSettings),
-          this.renderIgvButton()
+          this.renderToolButton()
         ])
       }),
       !_.isEmpty(selectedEntities) && h(FloatingActionButton, {
@@ -536,10 +628,10 @@ class EntitiesContent extends Component {
         workspace,
         selectedEntities: _.keys(selectedEntities), selectedDataType: entityKey, runningSubmissionsCount
       }),
-      h(IGVFileSelector, {
-        openDrawer: showIgvSelector,
-        onDismiss: () => this.setState({ showIgvSelector: false }),
-        onSuccess: newIgvData => this.setState({ showIgvSelector: false, igvData: newIgvData }),
+      h(ToolDrawer, {
+        openDrawer: showToolSelector,
+        onDismiss: () => this.setState({ showToolSelector: false }),
+        onIgvSuccess: newIgvData => this.setState({ showToolSelector: false, igvData: newIgvData }),
         selectedEntities
       })
     ])

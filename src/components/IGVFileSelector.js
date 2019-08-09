@@ -1,10 +1,9 @@
 import _ from 'lodash/fp'
-import { Component } from 'react'
+import { Component, Fragment } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { AutoSizer, List } from 'react-virtualized'
 import ButtonBar from 'src/components/ButtonBar'
 import { ButtonPrimary, Clickable, LabeledCheckbox, Link, Select } from 'src/components/common'
-import ModalDrawer from 'src/components/ModalDrawer'
 import TitleBar from 'src/components/TitleBar'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -68,28 +67,12 @@ export class IGVFileSelector extends Component {
   }
 
   render() {
-    const { onDismiss, onSuccess, openDrawer } = this.props
+    const { onPrevious, onDismiss, onSuccess } = this.props
     const { selectedFiles, refGenome } = this.state
     const trackFiles = this.getIGVFileList()
-    const clearSelectionsAndDismiss = () => {
-      this.setAll(false)
-      onDismiss()
-    }
 
-    return h(ModalDrawer, {
-      openDrawer,
-      onDismiss: clearSelectionsAndDismiss,
-      width: 450,
-      okButton: h(ButtonPrimary, {
-        disabled: this.buttonIsDisabled(),
-        tooltip: this.buttonIsDisabled() ? `Select between 1 and ${MAX_CONCURRENT_IGV_FILES} files` : '',
-        onClick: () => onSuccess({ selectedFiles: this.getSelectedFilesList(), refGenome })
-      }, ['Done'])
-    }, [
-      h(TitleBar, {
-        title: 'IGV',
-        onDismiss: clearSelectionsAndDismiss
-      }),
+    return h(Fragment, [
+      h(TitleBar, { title: 'IGV', onPrevious, onDismiss }),
       div({ style: { fontWeight: 500, paddingLeft: '1.25rem' } }, [
         'Reference genome: ',
         div({ style: { display: 'inline-block', marginLeft: '0.25rem', marginBottom: '1rem', minWidth: 125 } }, [
@@ -140,7 +123,6 @@ export class IGVFileSelector extends Component {
       ]),
       h(ButtonBar, {
         style: Style.modalDrawer.buttonBar,
-        onCancel: clearSelectionsAndDismiss,
         okButton: h(ButtonPrimary, {
           disabled: this.buttonIsDisabled(),
           tooltip: this.buttonIsDisabled() ? `Select between 1 and ${MAX_CONCURRENT_IGV_FILES} files` : '',
