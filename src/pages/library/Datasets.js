@@ -63,7 +63,7 @@ const logoBox = ({ src, alt, height }) => div({
   }
 }, [
   img({
-    src, alt, height: height || '60%', width: 'auto'
+    src, alt, role: 'img', height: height || '60%', width: 'auto'
   })
 ])
 
