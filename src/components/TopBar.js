@@ -289,7 +289,7 @@ const TopBar = Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
               onClick: () => this.setState({ openFirecloudModal: true })
             }, [
               div({ style: styles.nav.icon }, [
-                img({ src: fcIconWhite, style: { height: 20, width: 20 } })
+                img({ src: fcIconWhite, alt: '', style: { height: 20, width: 20 } })
               ]), 'Use Classic FireCloud'
             ]),
             div({ style: { borderTop: `1px solid ${colors.dark(0.55)}` } }, []),
