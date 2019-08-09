@@ -68,7 +68,7 @@ export const GroupDetails = ajaxCaller(class GroupDetails extends Component {
           style: { marginLeft: '2rem', width: 500 },
           placeholder: 'SEARCH GROUP',
           onChange: v => this.setState({ filter: v }),
-          defaultValue: filter
+          value: filter
         })
       ]),
       h(PageBox, [

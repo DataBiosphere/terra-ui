@@ -306,7 +306,7 @@ export const WorkspaceList = _.flow(
           placeholder: 'SEARCH WORKSPACES',
           'aria-label': 'Search workspaces',
           onChange: v => this.setState({ filter: v }),
-          defaultValue: filter
+          value: filter
         })
       ]),
       h(PageBox, { style: { position: 'relative' } }, [

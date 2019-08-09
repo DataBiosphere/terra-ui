@@ -188,7 +188,7 @@ export const GroupList = ajaxCaller(class GroupList extends Component {
           style: { marginLeft: '2rem', width: 500 },
           placeholder: 'SEARCH GROUPS',
           onChange: v => this.setState({ filter: v }),
-          defaultValue: filter
+          value: filter
         })
       ]),
       h(PageBox, [

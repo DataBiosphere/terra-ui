@@ -1,9 +1,9 @@
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
-import { Component, createRef, Fragment } from 'react'
-import Dropzone from 'react-dropzone'
+import { Component, Fragment } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers/lib/index'
 import { ButtonPrimary, Clickable, LabeledCheckbox, Link, Select, spinnerOverlay } from 'src/components/common'
+import Dropzone from 'src/components/Dropzone'
 import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import { TextCell } from 'src/components/table'
@@ -234,8 +234,6 @@ export const EntityUploader = class EntityUploader extends Component {
     super(props)
 
     this.state = { newEntityType: '', useFireCloudDataModel: false }
-
-    this.uploader = createRef()
   }
 
   async doUpload() {
@@ -256,21 +254,14 @@ export const EntityUploader = class EntityUploader extends Component {
 
   render() {
     const { onDismiss, entityTypes } = this.props
-    const { uploading, file, newEntityType, isInvalid, dragging, useFireCloudDataModel } = this.state
+    const { uploading, file, newEntityType, isInvalid, useFireCloudDataModel } = this.state
 
     const inputLabel = text => div({ style: { fontSize: 16, marginBottom: '0.3rem' } }, [text])
 
     return h(Dropzone, {
-      accept: '.tsv',
-      disableClick: true,
       multiple: false,
       style: { flexGrow: 1 },
-      onDragOver: () => this.setState({ dragging: true }),
-      onDrop: () => this.setState({ dragging: false }),
-      onDragLeave: () => this.setState({ dragging: false }),
       activeStyle: { cursor: 'copy' },
-      ref: this.uploader,
-      onDropRejected: () => this.setState({ file: undefined, isInvalid: 'file' }),
       onDropAccepted: async ([file]) => {
         const firstBytes = await Utils.readFileAsText(file.slice(0, 1000))
         const definedTypeMatch = /(?:membership|entity):([^\s]+)_id/.exec(firstBytes)
@@ -279,10 +270,10 @@ export const EntityUploader = class EntityUploader extends Component {
           const parsedEntityType = definedTypeMatch[1]
           this.setState({ file, isInvalid: undefined, newEntityType: parsedEntityType, useFireCloudDataModel: false })
         } else {
-          this.setState({ file: undefined, isInvalid: 'tsv' })
+          this.setState({ file: undefined, isInvalid: true })
         }
       }
-    }, [
+    }, [({ dragging, openUploader }) => h(Fragment, [
       h(Modal, {
         onDismiss,
         title: 'Upload Table From .tsv File',
@@ -316,7 +307,7 @@ export const EntityUploader = class EntityUploader extends Component {
         ]),
         isInvalid && div({
           style: { color: colors.warning(), fontWeight: 'bold', fontSize: 12, marginBottom: '0.5rem' }
-        }, [isInvalid === 'file' ? 'Only .tsv files can be uploaded.' : 'File does not start with entity or membership definition.']),
+        }, ['File does not start with entity or membership definition.']),
         inputLabel('Selected File'),
         div({ style: { marginLeft: '0.5rem' } }, [
           (file && file.name) || div({ style: { color: colors.dark(0.7) } }, 'None')
@@ -337,14 +328,15 @@ export const EntityUploader = class EntityUploader extends Component {
           style: {
             ...Style.elements.card.container, flex: 1,
             margin: '0.5rem 0',
-            backgroundColor: dragging ? colors.accent(0.2) : colors.dark(0.1), border: `1px dashed ${colors.dark(0.7)}`, boxShadow: 'none'
+            backgroundColor: dragging ? colors.accent(0.2) : colors.dark(0.1),
+            border: `1px dashed ${colors.dark(0.7)}`, boxShadow: 'none'
           },
-          onClick: () => this.uploader.current.open()
+          onClick: openUploader
         }, [
           div(['Drag or ', h(Link, ['Click']), ' to select a .tsv file'])
         ])
       ]),
       uploading && spinnerOverlay
-    ])
+    ])])
   }
 }

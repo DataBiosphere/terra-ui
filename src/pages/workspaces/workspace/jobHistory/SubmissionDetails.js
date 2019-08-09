@@ -174,7 +174,7 @@ const SubmissionDetails = _.flow(
         placeholder: 'Search',
         'aria-label': 'Search',
         onChange: setTextFilter,
-        defaultValue: textFilter
+        value: textFilter
       }),
       div({ style: { flexBasis: 350 } }, [
         h(Select, {

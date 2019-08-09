@@ -1,8 +1,8 @@
 import _ from 'lodash/fp'
-import { Component, createRef, Fragment } from 'react'
-import Dropzone from 'react-dropzone'
+import { Component, Fragment } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import { ButtonPrimary, ButtonSecondary, Clickable, Link, Select, spinnerOverlay } from 'src/components/common'
+import Dropzone from 'src/components/Dropzone'
 import { icon } from 'src/components/icons'
 import { TextArea, TextInput } from 'src/components/input'
 import { notify } from 'src/components/Notifications'
@@ -43,7 +43,6 @@ const SupportRequest = _.flow(
   constructor(props) {
     super(props)
     this.state = this.initialFormState()
-    this.uploader = createRef()
   }
 
   componentDidUpdate(prevProps) {
@@ -100,7 +99,7 @@ const SupportRequest = _.flow(
 
   render() {
     const { isActive, authState: { profile: { firstName } } } = this.props
-    const { submitting, submitError, subject, description, type, email, nameEntered, uploadingFile, attachmentToken, dragging, attachmentName } = this.state
+    const { submitting, submitError, subject, description, type, email, nameEntered, uploadingFile, attachmentToken, attachmentName } = this.state
     const greetUser = this.hasName() ? `, ${firstName}` : ''
     const errors = validate(this.getRequest(), constraints)
 
@@ -116,107 +115,100 @@ const SupportRequest = _.flow(
     }, [
       h(Dropzone, {
         maxSize: 20 * 1024 * 1024,
-        disableClick: true,
         multiple: false,
         style: { flexGrow: 1 },
         activeStyle: { cursor: 'copy' },
-        onDragOver: () => this.setState({ dragging: true }),
-        onDrop: () => this.setState({ dragging: false }),
-        onDragLeave: () => this.setState({ dragging: false }),
-        ref: this.uploader,
         onDropRejected: e => reportError('Error uploading attachment', e),
         onDropAccepted: files => this.uploadFile(files)
-      }, [
-        div({ style: { padding: '1rem' } }, [
-          div({ style: { fontSize: 18, fontWeight: 'bold', color: colors.dark() } }, ['Contact Us']),
-          !this.hasName() && h(Fragment, [
-            h(RequiredFormLabel, ['Name']),
-            h(TextInput, {
-              placeholder: 'What should we call you?',
-              autoFocus: true,
-              value: nameEntered,
-              onChange: v => this.setState({ nameEntered: v })
-            })
-          ]),
-          h(RequiredFormLabel, ['Type']),
-          h(Select, {
-            isMulti: false,
-            value: type,
-            onChange: ({ value }) => this.setState({ type: value }),
-            options: [
-              { value: 'question', label: 'Question' },
-              { value: 'bug', label: 'Bug' },
-              { value: 'feature_request', label: 'Feature Request' }
-            ]
-          }),
-          h(RequiredFormLabel, [`How can we help you${greetUser}?`]),
+      }, [({ dragging, openUploader }) => div({ style: { padding: '1rem' } }, [
+        div({ style: { fontSize: 18, fontWeight: 'bold', color: colors.dark() } }, ['Contact Us']),
+        !this.hasName() && h(Fragment, [
+          h(RequiredFormLabel, ['Name']),
           h(TextInput, {
-            style: { borderBottomLeftRadius: 0, borderBottomRightRadius: 0, borderBottomStyle: 'dashed' },
-            placeholder: 'Enter a subject',
-            autoFocus: this.hasName(),
-            value: subject,
-            onChange: v => this.setState({ subject: v })
-          }),
-          h(TextArea, {
-            style: { height: 200, borderTopLeftRadius: 0, borderTopRightRadius: 0, borderTopStyle: 'dashed' },
-            placeholder: 'Enter a description',
-            value: description,
-            onChange: v => this.setState({ description: v })
-          }),
-          h(FormLabel, ['Attachment']),
-          attachmentToken ?
-            div({ style: { display: 'flex', alignItems: 'center' } }, [
-              h(Clickable, {
-                tooltip: 'Change file',
-                style: { flex: 'auto' },
-                onClick: () => this.uploader.current.open()
-              }, [
-                div({
-                  style: { marginLeft: '1rem', paddingTop: '0.5rem' }
-                }, [
-                  'Successfully uploaded: ', span({ style: { color: colors.dark() } }, [attachmentName])
-                ])
-              ]),
-              h(Link, {
-                tooltip: 'Remove file',
-                style: { flex: 0, paddingTop: '0.5rem' },
-                onClick: () => this.setState({ attachmentToken: '' })
-              }, [icon('times-circle', { size: 23 })])
-            ]) :
+            placeholder: 'What should we call you?',
+            autoFocus: true,
+            value: nameEntered,
+            onChange: v => this.setState({ nameEntered: v })
+          })
+        ]),
+        h(RequiredFormLabel, ['Type']),
+        h(Select, {
+          isMulti: false,
+          value: type,
+          onChange: ({ value }) => this.setState({ type: value }),
+          options: [
+            { value: 'question', label: 'Question' },
+            { value: 'bug', label: 'Bug' },
+            { value: 'feature_request', label: 'Feature Request' }
+          ]
+        }),
+        h(RequiredFormLabel, [`How can we help you${greetUser}?`]),
+        h(TextInput, {
+          style: { borderBottomLeftRadius: 0, borderBottomRightRadius: 0, borderBottomStyle: 'dashed' },
+          placeholder: 'Enter a subject',
+          autoFocus: this.hasName(),
+          value: subject,
+          onChange: v => this.setState({ subject: v })
+        }),
+        h(TextArea, {
+          style: { height: 200, borderTopLeftRadius: 0, borderTopRightRadius: 0, borderTopStyle: 'dashed' },
+          placeholder: 'Enter a description',
+          value: description,
+          onChange: v => this.setState({ description: v })
+        }),
+        h(FormLabel, ['Attachment']),
+        attachmentToken ?
+          div({ style: { display: 'flex', alignItems: 'center' } }, [
             h(Clickable, {
-              style: {
-                flex: 1, backgroundColor: dragging ? colors.accent(0.2) : colors.dark(0.1), borderRadius: 3,
-                border: `1px dashed ${colors.dark(0.7)}`
-              },
-              onClick: () => this.uploader.current.open()
+              tooltip: 'Change file',
+              style: { flex: 'auto' },
+              onClick: openUploader
             }, [
-              div({ style: { fontSize: 14, lineHeight: '30px', paddingLeft: '1rem', display: 'flex', alignItems: 'center' } }, [
-                'Drag or', h(Link, { style: { margin: '0 0.25rem' } }, ['Click']), 'to attach a file',
-                icon('upload-cloud', { size: 25, style: { opacity: 0.4, marginLeft: '0.5rem' } })
+              div({
+                style: { marginLeft: '1rem', paddingTop: '0.5rem' }
+              }, [
+                'Successfully uploaded: ', span({ style: { color: colors.dark() } }, [attachmentName])
               ])
             ]),
-          uploadingFile && spinnerOverlay,
-          h(RequiredFormLabel, ['Contact email']),
-          h(TextInput, {
-            value: email,
-            placeholder: 'Enter your email address',
-            onChange: v => this.setState({ email: v })
-          }),
-          submitError && div({ style: { marginTop: '0.5rem', textAlign: 'right', color: colors.danger() } }, [submitError]),
-          submitting && spinnerOverlay,
-          div({ style: styles.buttonRow }, [
-            h(ButtonSecondary, {
-              style: { marginRight: '1rem' },
-              onClick: () => SupportRequest.dismiss()
-            }, ['Cancel']),
-            h(ButtonPrimary, {
-              disabled: errors,
-              tooltip: Utils.summarizeErrors(errors),
-              onClick: () => this.submit()
-            }, ['SEND'])
-          ])
+            h(Link, {
+              tooltip: 'Remove file',
+              style: { flex: 0, paddingTop: '0.5rem' },
+              onClick: () => this.setState({ attachmentToken: '' })
+            }, [icon('times-circle', { size: 23 })])
+          ]) :
+          h(Clickable, {
+            style: {
+              flex: 1, backgroundColor: dragging ? colors.accent(0.2) : colors.dark(0.1), borderRadius: 3,
+              border: `1px dashed ${colors.dark(0.7)}`
+            },
+            onClick: openUploader
+          }, [
+            div({ style: { fontSize: 14, lineHeight: '30px', paddingLeft: '1rem', display: 'flex', alignItems: 'center' } }, [
+              'Drag or', h(Link, { style: { margin: '0 0.25rem' } }, ['Click']), 'to attach a file',
+              icon('upload-cloud', { size: 25, style: { opacity: 0.4, marginLeft: '0.5rem' } })
+            ])
+          ]),
+        uploadingFile && spinnerOverlay,
+        h(RequiredFormLabel, ['Contact email']),
+        h(TextInput, {
+          value: email,
+          placeholder: 'Enter your email address',
+          onChange: v => this.setState({ email: v })
+        }),
+        submitError && div({ style: { marginTop: '0.5rem', textAlign: 'right', color: colors.danger() } }, [submitError]),
+        submitting && spinnerOverlay,
+        div({ style: styles.buttonRow }, [
+          h(ButtonSecondary, {
+            style: { marginRight: '1rem' },
+            onClick: () => SupportRequest.dismiss()
+          }, ['Cancel']),
+          h(ButtonPrimary, {
+            disabled: errors,
+            tooltip: Utils.summarizeErrors(errors),
+            onClick: () => this.submit()
+          }, ['SEND'])
         ])
-      ])
+      ])])
     ])
   }
 
