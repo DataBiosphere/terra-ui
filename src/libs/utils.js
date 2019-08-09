@@ -120,7 +120,7 @@ export const log = (...args) => {
   return _.last(args)
 }
 
-export const maybeCall = maybeFn => _.isFunction(maybeFn) ? maybeFn() : maybeFn
+const maybeCall = maybeFn => _.isFunction(maybeFn) ? maybeFn() : maybeFn
 
 /**
  * Returns the value for the first truthy predicate.

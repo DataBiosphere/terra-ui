@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { useDropzone } from 'react-dropzone'
 import { div, input } from 'react-hyperscript-helpers'
-import * as Utils from 'src/libs/utils'
 
 
 const Dropzone = ({ disabled = false, onDragOver, onDrop, onDragLeave, style = {}, activeStyle = {}, children, ...props }) => {
@@ -10,17 +9,17 @@ const Dropzone = ({ disabled = false, onDragOver, onDrop, onDragLeave, style = {
   const { getRootProps, getInputProps, open: openUploader, ...dropProps } = useDropzone({
     noClick: true,
     disabled,
-    onDragOver: () => {
+    onDragOver: e => {
       setDragging(true)
-      Utils.maybeCall(onDragOver)
+      onDragOver && onDragOver(e)
     },
-    onDrop: () => {
+    onDrop: e => {
       setDragging(false)
-      Utils.maybeCall(onDrop)
+      onDrop && onDrop(e)
     },
-    onDragLeave: () => {
+    onDragLeave: e => {
       setDragging(false)
-      Utils.maybeCall(onDragLeave)
+      onDragLeave && onDragLeave(e)
     },
     ...props
   })
