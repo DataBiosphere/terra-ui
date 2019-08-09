@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
 import { Component, Fragment, useState } from 'react'
 import { Collapse as RCollapse } from 'react-collapse'
-import { a, b, div, h, img, span } from 'react-hyperscript-helpers'
+import { a, b, div, h, header, img, nav, span } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
 import { Transition } from 'react-transition-group'
 import { ButtonPrimary, Clickable, FocusTrapper, LabeledCheckbox, spinnerOverlay } from 'src/components/common'
@@ -145,7 +145,8 @@ const TopBar = Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
     return h(FocusTrapper, {
       onBreakout: () => this.setState({ navShown: false })
     }, [
-      div({
+      nav({
+        role: 'navigation',
         style: navShown ? styles.nav.background : undefined,
         onClick: () => {
           this.hideNav()
@@ -320,7 +321,8 @@ const TopBar = Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
         mountOnEnter: true,
         unmountOnExit: true
       }, [transitionState => this.buildNav(transitionState)]),
-      div({
+      header({
+        role: 'banner',
         style: {
           ...styles.topBar,
           background: isTerra() ?
