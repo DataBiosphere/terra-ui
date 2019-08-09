@@ -147,6 +147,7 @@ const TopBar = Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
     }, [
       nav({
         role: 'navigation',
+        'aria-label': 'Main menu',
         style: navShown ? styles.nav.background : undefined,
         onClick: () => {
           this.hideNav()
@@ -331,7 +332,7 @@ const TopBar = Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
         }
       }, [
         h(Clickable, {
-          'aria-label': 'Main menu',
+          'aria-label': 'Toggle main menu',
           style: { alignSelf: 'stretch', display: 'flex', alignItems: 'center', padding: '0 1rem', margin: '2px 1rem 0 2px' },
           onClick: () => navShown ? this.hideNav() : this.showNav()
         }, [

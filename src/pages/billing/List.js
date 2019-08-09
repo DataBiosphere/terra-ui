@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { Component, Fragment } from 'react'
-import { div, h, span } from 'react-hyperscript-helpers'
+import { div, h, main, span } from 'react-hyperscript-helpers'
 import { ButtonPrimary, Clickable, IdContainer, Link, Select, spinnerOverlay } from 'src/components/common'
 import { icon, spinner } from 'src/components/icons'
 import { ValidatedInput } from 'src/components/input'
@@ -272,7 +272,7 @@ export const BillingList = _.flow(
           div({ style: Style.breadcrumb.textUnderBreadcrumb }, [selectedName])
         ])
       ]),
-      div({ style: { display: 'flex', flex: 1, position: 'relative' } }, [
+      main({ role: 'main', style: { display: 'flex', flex: 1, position: 'relative' } }, [
         div({ style: { width: 330, boxShadow: '0 2px 5px 0 rgba(0,0,0,0.25)' } }, [
           div({ style: Style.navList.heading }, [
             'Billing Projects',
