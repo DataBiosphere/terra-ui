@@ -13,9 +13,10 @@ const styles = {
 const buildTimestamp = new Date(SATURN_BUILD_TIMESTAMP)
 
 const FooterWrapper = ({ children }) => {
-  return footer({ role: 'contentinfo', style: { display: 'flex', flexDirection: 'column', minHeight: '100%', flexGrow: 1 } }, [
+  return div({ style: { display: 'flex', flexDirection: 'column', minHeight: '100%', flexGrow: 1 } }, [
     children,
-    div({
+    footer({
+      role: 'contentinfo',
       style: {
         flex: 'none',
         display: 'flex', alignItems: 'center',
