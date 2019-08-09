@@ -1,4 +1,4 @@
-import { div, h, main } from 'react-hyperscript-helpers'
+import { h, main } from 'react-hyperscript-helpers'
 import { Markdown, newWindowLinkRenderer } from 'src/components/Markdown'
 
 
