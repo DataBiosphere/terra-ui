@@ -32,7 +32,7 @@ export const Clickable = ({ href, as = (!!href ? 'a' : 'div'), disabled, tooltip
     as, disabled,
     onClick: (...args) => onClick && !disabled && onClick(...args),
     href: !disabled ? href : undefined,
-    tabIndex: disabled ? -1 : 0,
+    tabIndex: disabled ? '-1' : '0',
     ...props
   }, [children])
 
@@ -121,7 +121,7 @@ export const TabBar = ({ activeTab, tabNames, refresh = _.noop, getHref, childre
         hover: selected ? {} : Style.tabBar.hover,
         onClick: href === window.location.hash ? refresh : undefined,
         href,
-        tabIndex: -1
+        tabIndex: '-1'
       }, [h(Clickable, {
         onClick: href === window.location.hash ? refresh : undefined,
         style: { marginBottom: selected ? -(Style.tabBar.active.borderBottomWidth) : undefined }
