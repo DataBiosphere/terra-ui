@@ -1,4 +1,5 @@
 import * as clipboard from 'clipboard-polyfill'
+import { differenceInMinutes } from "date-fns"
 import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { Component, Fragment } from 'react'
@@ -69,9 +70,8 @@ const noNotebooksMessage = div({ style: { fontSize: 20 } }, [
 
 class NotebookCard extends Component {
   render() {
-    const { namespace, name, updated, listView, wsName, onRename, onCopy, onDelete, onExport, canWrite } = this.props
-    const tenMinutesAgo = _.tap(d => d.setMinutes(d.getMinutes() - 10), new Date())
-    const isRecent = new Date(updated) > tenMinutesAgo
+    const { namespace, name, timeCreated, updated, listView, wsName, onRename, onCopy, onDelete, onExport, canWrite } = this.props
+    const isRecent = (timeCreated !== updated) && (differenceInMinutes(updated, new Date()) < 10)
     const notebookLink = Nav.getLink('workspace-notebook-launch', { namespace, name: wsName, notebookName: name.slice(10) })
     const readOnlyParam = { 'read-only': 'true' }
     const notebookReadOnlyLink = `${notebookLink}/?${qs.stringify(readOnlyParam)}`
@@ -260,9 +260,9 @@ const Notebooks = _.flow(
     const canWrite = Utils.canWrite(accessLevel)
     const renderedNotebooks = _.flow(
       _.orderBy(sortTokens[field] || field, direction),
-      _.map(({ name, updated }) => h(NotebookCard, {
+      _.map(({ name, timeCreated, updated }) => h(NotebookCard, {
         key: name,
-        name, updated, listView, bucketName, namespace, wsName, canWrite,
+        name, timeCreated, updated, listView, bucketName, namespace, wsName, canWrite,
         onRename: () => this.setState({ renamingNotebookName: name }),
         onCopy: () => this.setState({ copyingNotebookName: name }),
         onExport: () => this.setState({ exportingNotebookName: name }),

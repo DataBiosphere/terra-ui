@@ -1,3 +1,4 @@
+import { differenceInMinutes } from 'date-fns'
 import _ from 'lodash/fp'
 import { forwardRef, Fragment, useRef, useState } from 'react'
 import { div, h, iframe } from 'react-hyperscript-helpers'
@@ -160,9 +161,8 @@ const NotebookEditorFrame = ({ notebookName, workspace: { workspace: { namespace
     setLocalized(true)
   })
   const checkRecentAccess = async () => {
-    const { updated } = await Ajax(signal).Buckets.notebook(namespace, bucketName, notebookName.slice(0, -6)).getObject()
-    const tenMinutesAgo = _.tap(d => d.setMinutes(d.getMinutes() - 10), new Date())
-    if (new Date(updated) > tenMinutesAgo) {
+    const { timeCreated, updated } = await Ajax(signal).Buckets.notebook(namespace, bucketName, notebookName.slice(0, -6)).getObject()
+    if ((timeCreated !== updated) && (differenceInMinutes(updated, new Date()) < 10)) {
       notify('warn', 'This notebook has been edited recently', {
         message: 'If you recently edited this notebook, disregard this message. If another user is editing this notebook, your changes may be lost.',
         timeout: 30000
