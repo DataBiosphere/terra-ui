@@ -17,6 +17,7 @@ const AuthContainer = ({ children }) => {
     [isSignedIn === undefined && !isPublic, centeredSpinner],
     [isSignedIn === false && !isPublic, h(SignIn)],
     [registrationStatus === undefined && !isPublic, centeredSpinner],
+    // [registrationStatus !== 'unregistered', h(Register)],
     [registrationStatus === 'unregistered', h(Register)],
     [registrationStatus === 'disabled', () => h(Disabled)],
     [acceptedTos === undefined && !isPublic, centeredSpinner],

@@ -72,6 +72,7 @@ export default class Register extends Component {
         div({ style: { lineHeight: '170%' } }, [
           'First Name *',
           h(TextInput, {
+            label: 'First Name *',
             style: { display: 'block' },
             value: givenName,
             onChange: v => this.setState({ givenName: v }),
@@ -79,13 +80,13 @@ export default class Register extends Component {
           })
         ]),
         div({ style: { width: '1rem' } }),
-        div({ style: { lineHeight: '170%' } }, [
+        div({ style: { lineHeight: '170%' }, id: 'testdiv' }, [
           'Last Name *',
           h(TextInput, {
             style: { display: 'block' },
             value: familyName,
             onChange: v => this.setState({ familyName: v }),
-            ariaLabel: 'Last Name - Required'
+            ariaLabelledBy: 'testdiv'
           })
         ])
       ]),

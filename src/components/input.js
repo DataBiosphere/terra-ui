@@ -4,10 +4,11 @@ import { Component, forwardRef, Fragment, useState } from 'react'
 import Autosuggest from 'react-autosuggest'
 import { div, h } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
-import { ButtonPrimary } from 'src/components/common'
+import { ButtonPrimary, IdContainer } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { PopupPortal, useDynamicPosition } from 'src/components/popup-utils'
 import colors from 'src/libs/colors'
+import { RequiredFormLabel } from 'src/libs/forms'
 import * as Utils from 'src/libs/utils'
 
 
@@ -61,23 +62,30 @@ export const withDebouncedChange = WrappedComponent => {
   return Wrapper
 }
 
-export const TextInput = forwardRef(({ onChange, nativeOnChange = false, ariaLabel, ...props }, ref) => h(Interactive,
-  _.merge({
-    refDOMNode: ref,
-    as: 'input',
-    className: 'focus-style',
-    onChange: onChange ? e => onChange(nativeOnChange ? e : e.target.value) : undefined,
-    'aria-label': ariaLabel,
-    style: {
-      ...styles.input,
-      width: '100%',
-      paddingLeft: '1rem', paddingRight: '1rem',
-      fontWeight: 400, fontSize: 14,
-      backgroundColor: props.disabled ? colors.light() : undefined
-    }
-  },
-  props)
-))
+export const TextInput = forwardRef(({ onChange, nativeOnChange = false, placeholder, label, ...props }, ref) => {
+  // const ariaLabel = !!placeholder ? {'aria-label': placeholder} : {'aria-labelledby': undefined} // don't use labelledby(?)
+  const ariaLabel = !!placeholder ? placeholder : label
+  return h(IdContainer, [id => h(Fragment, [
+    div({id}, [label]), // if string, return div otherwise return component
+    // check _.isString in Modal
+    h(Interactive,
+      _.merge({
+        refDOMNode: ref,
+        as: 'input',
+        className: 'focus-style',
+        onChange: onChange ? e => onChange(nativeOnChange ? e : e.target.value) : undefined,
+        'aria-label': ariaLabel,
+        placeholder,
+        style: {
+          ...styles.input,
+          width: '100%',
+          paddingLeft: '1rem', paddingRight: '1rem',
+          fontWeight: 400, fontSize: 14,
+          backgroundColor: props.disabled ? colors.light() : undefined
+        }
+      },
+      props)
+    )])])})
 
 export const ConfirmedSearchInput = ({ defaultValue = '', onChange = _.noop, ...props }) => {
   const [internalValue, setInternalValue] = useState(defaultValue)
