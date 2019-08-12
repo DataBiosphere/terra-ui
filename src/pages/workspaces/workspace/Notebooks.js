@@ -1,5 +1,5 @@
 import * as clipboard from 'clipboard-polyfill'
-import { differenceInMinutes } from "date-fns"
+import { differenceInMinutes } from 'date-fns'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { Component, Fragment } from 'react'
