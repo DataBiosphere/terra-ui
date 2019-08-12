@@ -431,10 +431,9 @@ const WorkflowView = _.flow(
         this.getValidation(),
         ws.methodConfig(workflowNamespace, workflowName).get()
       ])
-      const { methodRepoMethod: { methodNamespace, methodName } } = config
+      const { methodRepoMethod: { methodNamespace, methodName, sourceRepo } } = config
       const isRedacted = !validationResponse
-      const methods = await Methods.list({ namespace: methodNamespace, name: methodName })
-      const snapshotIds = _.map(m => _.pick('snapshotId', m).snapshotId, methods)
+
       const inputsOutputs = isRedacted ? {} : await Methods.configInputsOutputs(config)
       const selection = workflowSelectionStore.get()
       const readSelection = selectionKey && selection.key === selectionKey
@@ -445,7 +444,6 @@ const WorkflowView = _.flow(
         entityMetadata,
         savedInputsOutputs: inputsOutputs,
         modifiedInputsOutputs: inputsOutputs,
-        snapshotIds,
         errors: isRedacted ? { inputs: {}, outputs: {} } : augmentErrors(validationResponse),
         entitySelectionModel: this.resetSelectionModel(modifiedConfig.rootEntityType, readSelection ? selection.entities : {}),
         workspaceAttributes: _.flow(
@@ -453,6 +451,14 @@ const WorkflowView = _.flow(
           _.remove(s => s.includes(':'))
         )(_.keys(attributes))
       })
+
+      if (sourceRepo === 'agora') {
+        const methods = await Methods.list({ namespace: methodNamespace, name: methodName })
+        const snapshotIds = _.map(m => _.pick('snapshotId', m).snapshotId, methods)
+
+        this.setState({ snapshotIds })
+      }
+
       this.updateSingleOrMultipleRadioState(modifiedConfig)
       this.fetchInfo(config, isRedacted)
     } catch (error) {
