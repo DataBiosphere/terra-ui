@@ -1,4 +1,4 @@
-import { a, div, footer, h } from 'react-hyperscript-helpers'
+import { a, div, h } from 'react-hyperscript-helpers'
 import { Link } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import colors from 'src/libs/colors'
@@ -15,7 +15,7 @@ const buildTimestamp = new Date(SATURN_BUILD_TIMESTAMP)
 const FooterWrapper = ({ children }) => {
   return div({ style: { display: 'flex', flexDirection: 'column', minHeight: '100%', flexGrow: 1 } }, [
     children,
-    footer({
+    div({
       role: 'contentinfo',
       style: {
         flex: 'none',

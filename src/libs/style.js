@@ -34,7 +34,7 @@ export const tabBar = {
     boxShadow: '0 2px 5px 0 rgba(0,0,0,0.25)', zIndex: 1
   },
   tab: {
-    minWidth: 140, flexGrow: 0, padding: '0 20px',
+    minWidth: 140, flexGrow: 0, padding: '0 20px', outlineOffset: -4,
     alignSelf: 'stretch', display: 'flex', justifyContent: 'center', alignItems: 'center'
   },
   active: {

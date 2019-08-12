@@ -1,9 +1,8 @@
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
 import { Component, Fragment, useState } from 'react'
-import { Collapse as RCollapse } from 'react-collapse'
-import { a, b, div, h, header, img, nav, span } from 'react-hyperscript-helpers'
-import Interactive from 'react-interactive'
+import { UnmountClosed as RCollapse } from 'react-collapse'
+import { a, b, div, h, img, span } from 'react-hyperscript-helpers'
 import { Transition } from 'react-transition-group'
 import { ButtonPrimary, Clickable, FocusTrapper, LabeledCheckbox, spinnerOverlay } from 'src/components/common'
 import { icon, profilePic } from 'src/components/icons'
@@ -70,22 +69,17 @@ const betaTag = b({
 }, 'BETA')
 
 const NavItem = ({ children, ...props }) => {
-  return h(Interactive, {
-    as: 'div',
-    style: { borderBottom: `1px solid ${colors.dark(0.55)}` },
+  return h(Clickable, _.merge({
+    style: { display: 'flex', alignItems: 'center', color: 'white', outlineOffset: -4 },
     hover: { backgroundColor: colors.dark(0.55) }
-  }, [
-    h(Clickable, _.merge({
-      style: { display: 'flex', alignItems: 'center', color: 'white', margin: '4px' }
-    }, props), [children])
-  ])
+  }, props), [children])
 }
 
 const NavSection = ({ children, ...props }) => {
   return h(NavItem, _.merge({
     style: {
       flex: 'none', height: 70, padding: '0 28px', fontWeight: 600,
-      color: 'white'
+      borderTop: `1px solid ${colors.dark(0.55)}`, color: 'white'
     }
   }, props), [children])
 }
@@ -143,168 +137,165 @@ const TopBar = Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
     const { navShown, openLibraryMenu, openSupportMenu, openUserMenu } = this.state
 
     return h(FocusTrapper, {
-      onBreakout: () => this.setState({ navShown: false })
+      onBreakout: () => this.setState({ navShown: false }),
+      role: 'navigation',
+      'aria-label': 'Main menu',
+      style: navShown ? styles.nav.background : undefined,
+      onClick: () => {
+        this.hideNav()
+      }
     }, [
-      nav({
-        role: 'navigation',
-        'aria-label': 'Main menu',
-        style: navShown ? styles.nav.background : undefined,
-        onClick: () => {
-          this.hideNav()
-        }
+      div({
+        style: styles.nav.container(transitionState),
+        onClick: e => e.stopPropagation()
       }, [
-        div({
-          style: styles.nav.container(transitionState),
-          onClick: e => e.stopPropagation()
-        }, [
-          div({ style: { display: 'flex', flexDirection: 'column', overflowY: 'auto', flex: 1 } }, [
-            isSignedIn ?
-              h(DropDownSection, {
-                title: h(Fragment, [
-                  profilePic({ size: 32, style: { marginRight: 12, flex: 'none' } }),
-                  div({ style: { ...Style.noWrapEllipsis } }, [`${firstName} ${lastName}`])
-                ]),
-                onClick: () => this.setState({ openUserMenu: !openUserMenu }),
-                isOpened: openUserMenu
-              }, [
-                h(DropDownSubItem, {
-                  href: Nav.getLink('profile'),
-                  onClick: () => this.hideNav()
-                }, ['Profile']),
-                h(DropDownSubItem, {
-                  href: Nav.getLink('groups'),
-                  onClick: () => this.hideNav()
-                }, ['Groups']),
-                h(DropDownSubItem, {
-                  href: Nav.getLink('billing'),
-                  onClick: () => this.hideNav()
-                }, ['Billing']),
-                h(DropDownSubItem, {
-                  href: Nav.getLink('clusters'),
-                  onClick: () => this.hideNav()
-                }, ['Notebook Runtimes']),
-                h(DropDownSubItem, {
-                  onClick: signOut
-                }, ['Sign Out'])
-              ]) :
-              div({ style: { flex: 'none', display: 'flex', justifyContent: 'center', alignItems: 'center', height: 95 } }, [
-                div([
-                  h(Clickable, {
-                    hover: { textDecoration: 'underline' },
-                    style: { color: 'white', marginLeft: '9rem', fontWeight: 600 },
-                    onClick: () => this.setState({ openCookiesModal: true })
-                  }, ['Cookies policy']),
-                  h(SignInButton)
-                ])
+        div({ style: { display: 'flex', flexDirection: 'column', overflowY: 'auto', flex: 1 } }, [
+          isSignedIn ?
+            h(DropDownSection, {
+              title: h(Fragment, [
+                profilePic({ size: 32, style: { marginRight: 12, flex: 'none' } }),
+                div({ style: { ...Style.noWrapEllipsis } }, [`${firstName} ${lastName}`])
               ]),
-            h(NavSection, {
-              href: Nav.getLink('workspaces'),
+              onClick: () => this.setState({ openUserMenu: !openUserMenu }),
+              isOpened: openUserMenu
+            }, [
+              h(DropDownSubItem, {
+                href: Nav.getLink('profile'),
+                onClick: () => this.hideNav()
+              }, ['Profile']),
+              h(DropDownSubItem, {
+                href: Nav.getLink('groups'),
+                onClick: () => this.hideNav()
+              }, ['Groups']),
+              h(DropDownSubItem, {
+                href: Nav.getLink('billing'),
+                onClick: () => this.hideNav()
+              }, ['Billing']),
+              h(DropDownSubItem, {
+                href: Nav.getLink('clusters'),
+                onClick: () => this.hideNav()
+              }, ['Notebook Runtimes']),
+              h(DropDownSubItem, {
+                onClick: signOut
+              }, ['Sign Out'])
+            ]) :
+            div({ style: { flex: 'none', display: 'flex', justifyContent: 'center', alignItems: 'center', height: 95 } }, [
+              div([
+                h(Clickable, {
+                  hover: { textDecoration: 'underline' },
+                  style: { color: 'white', marginLeft: '9rem', fontWeight: 600 },
+                  onClick: () => this.setState({ openCookiesModal: true })
+                }, ['Cookies policy']),
+                h(SignInButton)
+              ])
+            ]),
+          h(NavSection, {
+            href: Nav.getLink('workspaces'),
+            onClick: () => this.hideNav()
+          }, [
+            icon('view-cards', { size: 24, style: styles.nav.icon }),
+            'Your Workspaces'
+          ]),
+          h(DropDownSection, {
+            titleIcon: 'library',
+            title: 'Terra Library',
+            onClick: () => this.setState({ openLibraryMenu: !openLibraryMenu }),
+            isOpened: openLibraryMenu
+          }, [
+            h(DropDownSubItem, {
+              href: Nav.getLink('library-datasets'),
               onClick: () => this.hideNav()
-            }, [
-              icon('view-cards', { size: 24, style: styles.nav.icon }),
-              'Your Workspaces'
-            ]),
-            h(DropDownSection, {
-              titleIcon: 'library',
-              title: 'Terra Library',
-              onClick: () => this.setState({ openLibraryMenu: !openLibraryMenu }),
-              isOpened: openLibraryMenu
-            }, [
-              h(DropDownSubItem, {
-                href: Nav.getLink('library-datasets'),
-                onClick: () => this.hideNav()
-              }, ['Data']),
-              h(DropDownSubItem, {
-                href: Nav.getLink('library-showcase'),
-                onClick: () => this.hideNav()
-              }, ['Showcase']),
-              h(DropDownSubItem, {
-                href: Nav.getLink('library-code'),
-                onClick: () => this.hideNav()
-              }, ['Workflows'])
-            ]),
-            Utils.switchCase(trialState,
-              ['Enabled', () => {
-                return h(NavSection, {
-                  onClick: () => {
-                    this.hideNav()
-                    freeCreditsActive.set(true)
-                  }
-                }, [
-                  div({ style: styles.nav.icon }, [icon('cloud', { size: 20 })]),
-                  'Sign up for free credits'
-                ])
-              }],
-              ['Enrolled', () => {
-                return h(NavSection, {
-                  href: 'https://software.broadinstitute.org/firecloud/documentation/freecredits',
-                  ...Utils.newTabLinkProps,
-                  onClick: () => this.hideNav()
-                }, [
-                  div({ style: styles.nav.icon }, [icon('cloud', { size: 20 })]),
-                  'Access free credits',
-                  icon('pop-out', { size: 20, style: { paddingLeft: '0.5rem' } })
-                ])
-              }],
-              ['Terminated', () => {
-                return h(NavSection, {
-                  onClick: () => this.setState({ finalizeTrial: true })
-                }, [
-                  div({ style: styles.nav.icon }, [icon('cloud', { size: 20 })]),
-                  'Your free trial has ended'
-                ])
-              }]
-            ),
-            h(DropDownSection, {
-              titleIcon: 'help',
-              title: 'Terra Support',
-              onClick: () => this.setState({ openSupportMenu: !openSupportMenu }),
-              isOpened: openSupportMenu
-            }, [
-              h(DropDownSubItem, {
-                href: 'https://support.terra.bio/hc/en-us',
-                onClick: () => this.hideNav(),
-                ...Utils.newTabLinkProps
-              }, ['How-to Guides']),
-              h(DropDownSubItem, {
-                href: 'https://support.terra.bio/hc/en-us/community/topics/360000500452',
-                onClick: () => this.hideNav(),
-                ...Utils.newTabLinkProps
-              }, ['Request a Feature']),
-              h(DropDownSubItem, {
-                href: 'https://support.terra.bio/hc/en-us/community/topics/360000500432',
-                onClick: () => this.hideNav(),
-                ...Utils.newTabLinkProps
-              }, ['Community Forum']),
-              isFirecloud() && h(DropDownSubItem, {
-                href: 'https://support.terra.bio/hc/en-us/articles/360022694271',
-                onClick: () => this.hideNav(),
-                ...Utils.newTabLinkProps
-              }, ['What\'s different in Terra']),
-              h(DropDownSubItem, {
-                onClick: () => contactUsActive.set(true)
-              }, ['Contact Us'])
-            ]),
-            isFirecloud() && h(NavSection, {
-              disabled: !isSignedIn,
-              tooltip: isSignedIn ? undefined : 'Please sign in',
-              onClick: () => this.setState({ openFirecloudModal: true })
-            }, [
-              div({ style: styles.nav.icon }, [
-                img({ src: fcIconWhite, alt: '', style: { height: 20, width: 20 } })
-              ]), 'Use Classic FireCloud'
-            ]),
-            div({ style: { borderTop: `1px solid ${colors.dark(0.55)}` } }, []),
-            div({
-              style: { flex: 'none', padding: 28, marginTop: 'auto', color: colors.dark(0.55), fontSize: 10, fontWeight: 600 }
-            }, [
-              'Built on: ',
-              h(Clickable, {
-                href: `https://github.com/DataBiosphere/terra-ui/commits/${SATURN_VERSION}`,
+            }, ['Data']),
+            h(DropDownSubItem, {
+              href: Nav.getLink('library-showcase'),
+              onClick: () => this.hideNav()
+            }, ['Showcase']),
+            h(DropDownSubItem, {
+              href: Nav.getLink('library-code'),
+              onClick: () => this.hideNav()
+            }, ['Workflows'])
+          ]),
+          Utils.switchCase(trialState,
+            ['Enabled', () => {
+              return h(NavSection, {
+                onClick: () => {
+                  this.hideNav()
+                  freeCreditsActive.set(true)
+                }
+              }, [
+                div({ style: styles.nav.icon }, [icon('cloud', { size: 20 })]),
+                'Sign up for free credits'
+              ])
+            }],
+            ['Enrolled', () => {
+              return h(NavSection, {
+                href: 'https://software.broadinstitute.org/firecloud/documentation/freecredits',
                 ...Utils.newTabLinkProps,
-                style: { textDecoration: 'underline', marginLeft: '0.25rem' }
-              }, [new Date(SATURN_BUILD_TIMESTAMP).toLocaleString()])
-            ])
+                onClick: () => this.hideNav()
+              }, [
+                div({ style: styles.nav.icon }, [icon('cloud', { size: 20 })]),
+                'Access free credits',
+                icon('pop-out', { size: 20, style: { paddingLeft: '0.5rem' } })
+              ])
+            }],
+            ['Terminated', () => {
+              return h(NavSection, {
+                onClick: () => this.setState({ finalizeTrial: true })
+              }, [
+                div({ style: styles.nav.icon }, [icon('cloud', { size: 20 })]),
+                'Your free trial has ended'
+              ])
+            }]
+          ),
+          h(DropDownSection, {
+            titleIcon: 'help',
+            title: 'Terra Support',
+            onClick: () => this.setState({ openSupportMenu: !openSupportMenu }),
+            isOpened: openSupportMenu
+          }, [
+            h(DropDownSubItem, {
+              href: 'https://support.terra.bio/hc/en-us',
+              onClick: () => this.hideNav(),
+              ...Utils.newTabLinkProps
+            }, ['How-to Guides']),
+            h(DropDownSubItem, {
+              href: 'https://support.terra.bio/hc/en-us/community/topics/360000500452',
+              onClick: () => this.hideNav(),
+              ...Utils.newTabLinkProps
+            }, ['Request a Feature']),
+            h(DropDownSubItem, {
+              href: 'https://support.terra.bio/hc/en-us/community/topics/360000500432',
+              onClick: () => this.hideNav(),
+              ...Utils.newTabLinkProps
+            }, ['Community Forum']),
+            isFirecloud() && h(DropDownSubItem, {
+              href: 'https://support.terra.bio/hc/en-us/articles/360022694271',
+              onClick: () => this.hideNav(),
+              ...Utils.newTabLinkProps
+            }, ['What\'s different in Terra']),
+            h(DropDownSubItem, {
+              onClick: () => contactUsActive.set(true)
+            }, ['Contact Us'])
+          ]),
+          isFirecloud() && h(NavSection, {
+            disabled: !isSignedIn,
+            tooltip: isSignedIn ? undefined : 'Please sign in',
+            onClick: () => this.setState({ openFirecloudModal: true })
+          }, [
+            div({ style: styles.nav.icon }, [
+              img({ src: fcIconWhite, alt: '', style: { height: 20, width: 20 } })
+            ]), 'Use Classic FireCloud'
+          ]),
+          div({ style: { borderTop: `1px solid ${colors.dark(0.55)}` } }, []),
+          div({
+            style: { flex: 'none', padding: 28, marginTop: 'auto', color: colors.dark(0.55), fontSize: 10, fontWeight: 600 }
+          }, [
+            'Built on: ',
+            h(Clickable, {
+              href: `https://github.com/DataBiosphere/terra-ui/commits/${SATURN_VERSION}`,
+              ...Utils.newTabLinkProps,
+              style: { textDecoration: 'underline', marginLeft: '0.25rem' }
+            }, [new Date(SATURN_BUILD_TIMESTAMP).toLocaleString()])
           ])
         ])
       ])
@@ -322,7 +313,7 @@ const TopBar = Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
         mountOnEnter: true,
         unmountOnExit: true
       }, [transitionState => this.buildNav(transitionState)]),
-      header({
+      div({
         role: 'banner',
         style: {
           ...styles.topBar,
