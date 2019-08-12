@@ -334,6 +334,10 @@ export const useInstance = fn => {
   return ref.current
 }
 
+export const useUniqueId = () => {
+  return useInstance(() => _.uniqueId('unique-id-'))
+}
+
 export const handleNonRunningCluster = ({ status, googleProject, clusterName }, JupyterAjax) => {
   switch (status) {
     case 'Stopped':

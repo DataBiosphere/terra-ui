@@ -1,11 +1,11 @@
 import _ from 'lodash/fp'
 import { Fragment } from 'react'
-import { div, h, img, main } from 'react-hyperscript-helpers'
+import { div, h, img } from 'react-hyperscript-helpers'
 import * as Style from 'src/libs/style'
 
 
 const HallOfFame = () => {
-  return main({ role: 'main', style: { flexGrow: 1, margin: '2rem', ...Style.proportionalNumbers } }, [
+  return div({ role: 'main', style: { flexGrow: 1, margin: '2rem', ...Style.proportionalNumbers } }, [
     div({ style: { display: 'flex', alignItems: 'center', fontSize: '4.5rem', marginBottom: '1rem' } }, [
       img({
         src: 'https://avatars1.githubusercontent.com/t/3133227?v=4',

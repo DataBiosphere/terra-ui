@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { Component, Fragment } from 'react'
-import { a, b, div, h, main } from 'react-hyperscript-helpers'
+import { a, b, div, h } from 'react-hyperscript-helpers'
 import { pure } from 'recompose'
 import { ButtonPrimary, Clickable, Link, PageBox, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
@@ -191,7 +191,7 @@ export const GroupList = ajaxCaller(class GroupList extends Component {
           value: filter
         })
       ]),
-      h(PageBox, { wrapperEl: main }, [
+      h(PageBox, { role: 'main' }, [
         div({ style: Style.cardList.toolbarContainer }, [
           div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, [
             'Group Management'

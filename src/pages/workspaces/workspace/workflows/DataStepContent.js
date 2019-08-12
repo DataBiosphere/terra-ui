@@ -1,8 +1,8 @@
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
 import { Component } from 'react'
-import { div, h, span } from 'react-hyperscript-helpers'
-import { ButtonPrimary, RadioButton } from 'src/components/common'
+import { div, h, label } from 'react-hyperscript-helpers'
+import { ButtonPrimary, IdContainer, RadioButton } from 'src/components/common'
 import DataTable from 'src/components/DataTable'
 import { TextInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
@@ -121,17 +121,17 @@ export default class DataStepContent extends Component {
           })
         ]),
         (type === EntitySelectionType.processAll ||
-          (type === EntitySelectionType.chooseRows && _.size(selectedEntities) > 1)) && div({
+          (type === EntitySelectionType.chooseRows && _.size(selectedEntities) > 1)) && h(IdContainer, [id => div({
           style: { marginTop: '1rem' }
         }, [
-          span(['Selected rows will be saved as a new set named:']),
+          label({ htmlFor: id }, ['Selected rows will be saved as a new set named:']),
           h(TextInput, {
-            'aria-label': 'New set name',
+            id,
             style: { width: 500, marginLeft: '0.25rem' },
             value: newSetName,
             onChange: v => this.setEntitySelectionModel({ newSetName: v })
           })
-        ])
+        ])])
       ])
     ])
   }

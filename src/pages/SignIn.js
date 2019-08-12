@@ -1,5 +1,5 @@
 import { Component } from 'react'
-import { div, h, main, p } from 'react-hyperscript-helpers'
+import { div, h, p } from 'react-hyperscript-helpers'
 import { Clickable, Link } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import Modal from 'src/components/Modal'
@@ -36,7 +36,7 @@ export default class SignIn extends Component {
   render() {
     const { openCookiesModal } = this.state
     return h(FooterWrapper, [
-      main({
+      div({
         role: 'main',
         style: {
           flexGrow: 1,

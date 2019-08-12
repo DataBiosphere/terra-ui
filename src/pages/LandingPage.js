@@ -1,4 +1,4 @@
-import { div, h, main, span } from 'react-hyperscript-helpers'
+import { div, h, span } from 'react-hyperscript-helpers'
 import { pure } from 'recompose'
 import { Clickable, Link, makeIconButton } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
@@ -42,7 +42,7 @@ const makeCard = (link, title, body) => h(Clickable, {
 const LandingPage = pure(() => {
   return h(FooterWrapper, [
     h(TopBar),
-    main({
+    div({
       role: 'main',
       style: {
         flexGrow: 1,

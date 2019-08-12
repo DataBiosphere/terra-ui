@@ -26,17 +26,18 @@ const styles = {
 }
 
 const Modal = ({ onDismiss, title, titleExtras, children, width = 450, showCancel = true, cancelText = 'Cancel', showX, showButtons = true, okButton, ...props }) => {
+  const titleId = Utils.useUniqueId()
   // react-modal applies aria-hidden to the app root *and* takes care of limiting what can be tab-focused - see appLoader.js
   return h(RModal, {
     parentSelector: () => document.getElementById('modal-root'),
     isOpen: true,
     onRequestClose: onDismiss,
     style: { overlay: styles.overlay, content: { ...styles.modal, width } },
-    contentLabel: title ? '#modal-title' : undefined,
+    aria: { labelledby: titleId },
     ...props
   }, [
     title && div({ style: { display: 'flex', alignItems: 'baseline', marginBottom: '1rem', flex: 'none' } }, [
-      div({ id: 'modal-title', style: { fontSize: 18, fontWeight: 600 } }, [title]),
+      div({ id: titleId, style: { fontSize: 18, fontWeight: 600 } }, [title]),
       titleExtras,
       showX && h(Clickable, {
         'aria-label': 'Close modal',

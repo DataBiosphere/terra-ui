@@ -1,7 +1,7 @@
 import { differenceInSeconds } from 'date-fns'
 import _ from 'lodash/fp'
 import { Fragment, useRef, useState } from 'react'
-import { div, h, h2, main, p, span } from 'react-hyperscript-helpers'
+import { div, h, h2, p, span } from 'react-hyperscript-helpers'
 import ClusterManager from 'src/components/ClusterManager'
 import { ButtonPrimary, Clickable, comingSoon, Link, makeMenuIcon, MenuButton, spinnerOverlay, TabBar } from 'src/components/common'
 import { icon } from 'src/components/icons'
@@ -104,7 +104,7 @@ const WorkspaceContainer = ({ namespace, name, breadcrumbs, topBarContent, title
       })
     ]),
     showTabBar && h(WorkspaceTabs, { namespace, name, activeTab, refresh, workspace }),
-    main({ role: 'main', style: Style.elements.pageContentContainer }, [children])
+    div({ role: 'main', style: Style.elements.pageContentContainer }, [children])
   ])
 }
 

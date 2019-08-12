@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
-import { div, h, main } from 'react-hyperscript-helpers'
+import { div, h } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import { ClusterErrorModal, DeleteClusterModal } from 'src/components/ClusterManager'
 import { Clickable, Link, spinnerOverlay } from 'src/components/common'
@@ -65,7 +65,7 @@ const Clusters = () => {
 
   return h(Fragment, [
     h(TopBar, { title: 'Notebook runtimes', href: Nav.getLink('clusters') }),
-    main({ role: 'main', style: { padding: '1rem', flex: 1, display: 'flex', flexDirection: 'column' } }, [
+    div({ role: 'main', style: { padding: '1rem', flex: 1, display: 'flex', flexDirection: 'column' } }, [
       div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase', marginBottom: '1rem' } }, ['Your notebook runtimes']),
       div({ style: { flex: 1 } }, [
         clusters && h(AutoSizer, [

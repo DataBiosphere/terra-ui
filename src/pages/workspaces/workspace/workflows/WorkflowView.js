@@ -2,11 +2,11 @@ import FileSaver from 'file-saver'
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
 import { Component, Fragment } from 'react'
-import { div, h, span } from 'react-hyperscript-helpers'
+import { div, h, label, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import {
-  ButtonPrimary, ButtonSecondary, Clickable, LabeledCheckbox, Link, makeMenuIcon, MenuButton, methodLink, RadioButton, Select, spinnerOverlay
+  ButtonPrimary, ButtonSecondary, Clickable, IdContainer, LabeledCheckbox, Link, makeMenuIcon, MenuButton, methodLink, RadioButton, Select, spinnerOverlay
 } from 'src/components/common'
 import Dropzone from 'src/components/Dropzone'
 import { centeredSpinner, icon } from 'src/components/icons'
@@ -575,7 +575,7 @@ const WorkflowView = _.flow(
                   }, [makeMenuIcon('trash'), 'Delete'])
                 ])
               }, [
-                h(Link, { 'aria-label': 'Open workflow actions menu' }, [icon('cardMenuIcon', { size: 22 })])
+                h(Link, { 'aria-label': 'Workflow menu' }, [icon('cardMenuIcon', { size: 22 })])
               ])
             ]),
             span({ style: { color: colors.dark(), fontSize: 24 } }, name)
@@ -583,12 +583,12 @@ const WorkflowView = _.flow(
           currentSnapRedacted && div({ style: { color: colors.warning(), fontSize: 16, fontWeight: 500, marginTop: '0.5rem' } }, [
             'The selected snapshot of the referenced workflow has been redacted. You will not be able to run an analysis until you select another snapshot.'
           ]),
-          div({ style: { marginTop: '0.5rem' } }, [
-            'Snapshot ',
+          h(IdContainer, [id => div({ style: { marginTop: '0.5rem' } }, [
+            label({ htmlFor: id }, ['Snapshot ']),
             sourceRepo === 'agora' ?
               div({ style: { display: 'inline-block', marginLeft: '0.25rem', minWidth: 75 } }, [
                 h(Select, {
-                  'aria-label': 'Snapshot selector',
+                  id,
                   isDisabled: !!Utils.editWorkspaceError(ws),
                   isClearable: false,
                   isSearchable: false,
@@ -601,7 +601,7 @@ const WorkflowView = _.flow(
                 })
               ]) :
               methodVersion
-          ]),
+          ])]),
           div([
             'Source: ', currentSnapRedacted ? `${methodNamespace}/${methodName}/${methodVersion}` : h(Link, {
               href: methodLink(modifiedConfig),

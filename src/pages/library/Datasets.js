@@ -1,5 +1,5 @@
 import { Component, Fragment } from 'react'
-import { b, div, h, img, main, p, span } from 'react-hyperscript-helpers'
+import { b, div, h, img, p, span } from 'react-hyperscript-helpers'
 import { pure } from 'recompose'
 import { ButtonPrimary, Link } from 'src/components/common'
 import { libraryTopMatter } from 'src/components/library-common'
@@ -78,7 +78,7 @@ class Participant extends Component {
     const { logo, title, shortDescription, description, sizeText, children } = this.props
     const { showingModal } = this.state
 
-    const titleElement = div({ id: 'participant-modal-title', style: styles.participant.title }, [title])
+    const titleElement = div({ style: styles.participant.title }, [title])
 
     return div({
       style: styles.participant.container
@@ -97,7 +97,7 @@ class Participant extends Component {
         div({ style: { marginTop: '1rem' } }, [children])
       ]),
       showingModal && h(Modal, {
-        contentLabel: 'participant-modal-title',
+        contentLabel: title,
         onDismiss: () => this.setState({ showingModal: false }),
         width: 880,
         showCancel: false
@@ -352,7 +352,7 @@ const ukb = () => h(Participant, {
 const Datasets = pure(() => {
   return h(Fragment, [
     libraryTopMatter('datasets'),
-    main({ role: 'main', style: styles.content }, [
+    div({ role: 'main', style: styles.content }, [
       // Put datasets in alphabetical order
       thousandGenomesHighCoverage(), thousandGenomesLowCoverage(), amppd(), baseline(), ccdg(), cmg(), encode(), fcDataLib(), framingham(), hca(), nemo(), nhs(),
       topMed(), ukb()

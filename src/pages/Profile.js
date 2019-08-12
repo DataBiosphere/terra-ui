@@ -2,7 +2,7 @@ import { addDays } from 'date-fns'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { Component, Fragment, useState } from 'react'
-import { div, h, label, main, span } from 'react-hyperscript-helpers'
+import { div, h, label, span } from 'react-hyperscript-helpers'
 import { ButtonPrimary, IdContainer, LabeledCheckbox, Link, RadioButton, ShibbolethLink, spinnerOverlay } from 'src/components/common'
 import { centeredSpinner, icon, profilePic, spinner } from 'src/components/icons'
 import { TextInput, ValidatedInput } from 'src/components/input'
@@ -281,7 +281,7 @@ const Profile = _.flow(
     return h(Fragment, [
       saving && spinnerOverlay,
       h(TopBar),
-      main({ role: 'main' }, [
+      div({ role: 'main' }, [
         !profileInfo ? centeredSpinner() : h(Fragment, [
           div({ style: { marginLeft: '2rem' } }, [sectionTitle('Profile')]),
           div({ style: styles.header.line }, [

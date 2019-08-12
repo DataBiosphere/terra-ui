@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { Fragment, useState } from 'react'
 import FocusLock from 'react-focus-lock'
-import { div, h, img, input, label, nav, span } from 'react-hyperscript-helpers'
+import { div, h, img, input, label, span } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
 import RSelect from 'react-select'
 import RAsyncCreatableSelect from 'react-select/async-creatable'
@@ -125,7 +125,7 @@ export const TabBar = ({ activeTab, tabNames, refresh = _.noop, getHref, childre
     ])
   }
 
-  return nav({ role: 'navigation', 'aria-label': 'Tab bar', style: Style.tabBar.container }, [
+  return div({ role: 'navigation', 'aria-label': 'Tab bar', style: Style.tabBar.container }, [
     ..._.map(name => navTab(name), tabNames),
     div({ style: { flexGrow: 1 } }),
     children
@@ -270,12 +270,6 @@ export const Select = ({ value, options, id, ...props }) => {
   return h(RSelect, _.merge({
     inputId: id,
     ...commonSelectProps,
-    styles: {
-      container: (provided, state) => ({
-        ...provided,
-        boxShadow: state.isFocused ? `0 0 3px ${colors.accent(1.2)}` : 'unset'
-      })
-    },
     getOptionLabel: ({ value, label }) => label || value.toString(),
     value: newValue || null, // need null instead of undefined to clear the select
     options: newOptions
@@ -283,22 +277,15 @@ export const Select = ({ value, options, id, ...props }) => {
 }
 
 export const AsyncCreatableSelect = props => {
-  return h(RAsyncCreatableSelect, {
-    ..._.merge(commonSelectProps, props), styles: {
-      container: (provided, state) => ({
-        ...provided,
-        boxShadow: state.isFocused ? `0 0 3px ${colors.accent(1.2)}` : 'unset'
-      })
-    }
-  })
+  return h(RAsyncCreatableSelect, _.merge(commonSelectProps, props))
 }
 
-export const PageBox = ({ wrapperEl = div, children, style = {} }) => {
-  return wrapperEl({
+export const PageBox = ({ children, style = {}, ...props }) => {
+  return div(_.merge({
     style: {
       margin: '1.5rem', padding: '1.5rem 1.5rem 0', minHeight: 125, flex: 'none', zIndex: 0, ...style
     }
-  }, [children])
+  }, props), [children])
 }
 
 export const backgroundLogo = img({

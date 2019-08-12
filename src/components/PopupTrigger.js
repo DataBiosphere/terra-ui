@@ -31,7 +31,8 @@ const Popup = onClickOutside(({ side = 'bottom', target: targetId, onClick, chil
         transform: `translate(${position.left}px, ${position.top}px)`,
         visibility: !viewport.width ? 'hidden' : undefined,
         ...styles.popup
-      }
+      },
+      role: 'dialog'
     }, [children])
   ])
 })

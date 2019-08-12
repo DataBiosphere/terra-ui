@@ -1,7 +1,7 @@
 import { isAfter } from 'date-fns'
 import _ from 'lodash/fp'
 import { Component, Fragment, useState } from 'react'
-import { div, h, main, span } from 'react-hyperscript-helpers'
+import { div, h, span } from 'react-hyperscript-helpers'
 import { pure } from 'recompose'
 import removeMd from 'remove-markdown'
 import togglesListView from 'src/components/CardsListToggle'
@@ -309,7 +309,7 @@ export const WorkspaceList = _.flow(
           value: filter
         })
       ]),
-      h(PageBox, { wrapperEl: main, style: { position: 'relative' } }, [
+      h(PageBox, { role: 'main', style: { position: 'relative' } }, [
         div({ style: { display: 'flex', alignItems: 'center', marginBottom: '1rem' } }, [
           div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, ['Workspaces']),
           div({ style: { marginLeft: 'auto', marginRight: '1rem' } }, [

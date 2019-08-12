@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { Component, Fragment } from 'react'
-import { div, h, main } from 'react-hyperscript-helpers'
+import { div, h } from 'react-hyperscript-helpers'
 import { spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import TopBar from 'src/components/TopBar'
@@ -111,7 +111,7 @@ const Importer = ({ source, item }) => {
 
   return h(Fragment, [
     h(TopBar, { title: 'Import Workflow' }),
-    main({ role: 'main' }, [
+    div({ role: 'main' }, [
       Utils.cond(
         [source === 'dockstore', () => h(DockstoreImporter, { path, version })],
         () => `Unknown source '${source}'`

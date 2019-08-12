@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { Component, Fragment } from 'react'
-import { div, h, main } from 'react-hyperscript-helpers'
+import { div, h } from 'react-hyperscript-helpers'
 import { PageBox, spinnerOverlay } from 'src/components/common'
 import { DeleteUserModal, EditUserModal, MemberCard, NewUserCard, NewUserModal } from 'src/components/group-common'
 import { DelayedSearchInput } from 'src/components/input'
@@ -71,7 +71,7 @@ export const GroupDetails = ajaxCaller(class GroupDetails extends Component {
           value: filter
         })
       ]),
-      h(PageBox, { wrapperEl: main }, [
+      h(PageBox, { role: 'main' }, [
         div({ style: Style.cardList.toolbarContainer }, [
           div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, [
             `Group Management: ${groupName}`

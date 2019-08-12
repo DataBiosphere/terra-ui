@@ -1,5 +1,5 @@
 import { Component, Fragment } from 'react'
-import { div, h, main } from 'react-hyperscript-helpers'
+import { div, h } from 'react-hyperscript-helpers'
 import { backgroundLogo, spinnerOverlay } from 'src/components/common'
 import { notify } from 'src/components/Notifications'
 import TopBar from 'src/components/TopBar'
@@ -39,7 +39,7 @@ const Importer = class Importer extends Component {
     return h(Fragment, [
       backgroundLogo,
       h(TopBar, { title: 'Import Data' }),
-      main({ role: 'main', style: styles.container }, [
+      div({ role: 'main', style: styles.container }, [
         div({ style: styles.card }, [
           div({ style: styles.title }, ['Importing Data']),
           div({ style: { fontSize: 16 } }, ['From: ', new URL(url).hostname])

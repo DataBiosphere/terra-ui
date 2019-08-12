@@ -106,7 +106,7 @@ export const ConfirmedSearchInput = ({ defaultValue = '', onChange = _.noop, ...
       }
     }, props)),
     h(ButtonPrimary, {
-      'aria-label': 'search button',
+      'aria-label': 'Search',
       style: { borderRadius: '0 4px 4px 0', borderLeft: 'none' },
       onClick: () => onChange(internalValue)
     }, [icon('search', { size: 18 })])

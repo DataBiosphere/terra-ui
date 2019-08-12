@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { Component, Fragment } from 'react'
-import { div, h, main } from 'react-hyperscript-helpers'
+import { div, h } from 'react-hyperscript-helpers'
 import { Clickable, Link } from 'src/components/common'
 import { centeredSpinner } from 'src/components/icons'
 import { libraryTopMatter } from 'src/components/library-common'
@@ -112,7 +112,7 @@ const Code = ajaxCaller(class Code extends Component {
 
     return h(Fragment, [
       libraryTopMatter('code & workflows'),
-      main({ role: 'main' }, [
+      div({ role: 'main' }, [
         !(featuredList && methods) ?
           centeredSpinner() :
           div({ style: { display: 'flex', flex: 1 } }, [

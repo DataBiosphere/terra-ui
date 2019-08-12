@@ -1,5 +1,5 @@
 import { Component } from 'react'
-import { div, h, main, span } from 'react-hyperscript-helpers'
+import { div, h, span } from 'react-hyperscript-helpers'
 import { backgroundLogo, ButtonPrimary, ButtonSecondary } from 'src/components/common'
 import { Markdown } from 'src/components/Markdown'
 import { Ajax } from 'src/libs/ajax'
@@ -233,7 +233,7 @@ export default class TermsOfService extends Component {
 
   render() {
     const { busy } = this.state
-    return main({ role: 'main', style: styles.page }, [
+    return div({ role: 'main', style: styles.page }, [
       backgroundLogo,
       div({ style: styles.box }, [
         termsTitle,
