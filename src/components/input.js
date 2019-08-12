@@ -61,13 +61,12 @@ export const withDebouncedChange = WrappedComponent => {
   return Wrapper
 }
 
-export const TextInput = forwardRef(({ onChange, nativeOnChange = false, ariaLabel, ...props }, ref) => h(Interactive,
+export const TextInput = forwardRef(({ onChange, nativeOnChange = false, ...props }, ref) => h(Interactive,
   _.merge({
     refDOMNode: ref,
     as: 'input',
     className: 'focus-style',
     onChange: onChange ? e => onChange(nativeOnChange ? e : e.target.value) : undefined,
-    'aria-label': ariaLabel,
     style: {
       ...styles.input,
       width: '100%',

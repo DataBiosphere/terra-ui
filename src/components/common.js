@@ -337,17 +337,18 @@ export const IdContainer = ({ children }) => {
   return children(id)
 }
 
-export const FocusTrapper = ({ children, onBreakout }) => {
-  return h(FocusLock, { returnFocus: true }, [
-    div({
+export const FocusTrapper = ({ children, onBreakout, ...props }) => {
+  return h(FocusLock, {
+    returnFocus: true,
+    lockProps: _.merge({
       tabIndex: 0,
+      style: { outline: 'none' },
       onKeyDown: e => {
-        // 27 = Escape
-        if (e.which === 27) {
+        if (e.key === 'Escape') {
           onBreakout()
           e.stopPropagation()
         }
       }
-    }, [children])
-  ])
+    }, props)
+  }, [children])
 }

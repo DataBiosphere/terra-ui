@@ -1,6 +1,6 @@
 import { Component } from 'react'
-import { div, h, main } from 'react-hyperscript-helpers'
-import { ButtonPrimary, ButtonSecondary } from 'src/components/common'
+import { div, h, label, main } from 'react-hyperscript-helpers'
+import { ButtonPrimary, ButtonSecondary, IdContainer } from 'src/components/common'
 import { centeredSpinner } from 'src/components/icons'
 import { TextInput } from 'src/components/input'
 import planet from 'src/images/register-planet.svg'
@@ -69,37 +69,37 @@ export default class Register extends Component {
         }
       }, 'New User Registration'),
       div({ style: { marginTop: '3rem', display: 'flex' } }, [
-        div({ style: { lineHeight: '170%' } }, [
-          'First Name *',
+        h(IdContainer, [id => div({ style: { lineHeight: '170%' } }, [
+          label({ htmlFor: id }, ['First Name *']),
           h(TextInput, {
+            id,
             style: { display: 'block' },
             value: givenName,
-            onChange: v => this.setState({ givenName: v }),
-            ariaLabel: 'First Name - Required'
+            onChange: v => this.setState({ givenName: v })
           })
-        ]),
+        ])]),
         div({ style: { width: '1rem' } }),
-        div({ style: { lineHeight: '170%' } }, [
-          'Last Name *',
+        h(IdContainer, [id => div({ style: { lineHeight: '170%' } }, [
+          label({ htmlFor: id }, ['Last Name *']),
           h(TextInput, {
+            id,
             style: { display: 'block' },
             value: familyName,
-            onChange: v => this.setState({ familyName: v }),
-            ariaLabel: 'Last Name - Required'
+            onChange: v => this.setState({ familyName: v })
           })
-        ])
+        ])])
       ]),
-      div({ style: { lineHeight: '170%' } }, [
-        div({ style: { marginTop: '2rem' } }, 'Contact Email for Notifications *'),
+      h(IdContainer, [id => div({ style: { lineHeight: '170%' } }, [
+        label({ htmlFor: id, style: { display: 'block', marginTop: '2rem' } }, ['Contact Email for Notifications *']),
         div([
           h(TextInput, {
+            id,
             value: email,
             onChange: v => this.setState({ email: v }),
-            style: { width: '50ex' },
-            ariaLabel: 'Contact Email for Notifications - Required'
+            style: { width: '50ex' }
           })
         ])
-      ]),
+      ])]),
       div({ style: { marginTop: '3rem' } }, [
         h(ButtonPrimary, { disabled: errors || busy, onClick: () => this.register() },
           'Register'
