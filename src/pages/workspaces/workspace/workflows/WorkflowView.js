@@ -538,7 +538,7 @@ const WorkflowView = _.flow(
     const { workspace: ws, workspace: { workspace }, namespace, name: workspaceName } = this.props
     const {
       modifiedConfig, savedConfig, saving, saved, exporting, copying, deleting, selectingData, activeTab, errors, synopsis, documentation,
-      selectedEntityType, entityMetadata, entitySelectionModel, snapshotIds = [], useCallCache, currentSnapRedacted, savedSnapRedacted
+      selectedEntityType, entityMetadata, entitySelectionModel, snapshotIds = [], useCallCache, currentSnapRedacted, savedSnapRedacted, wdl
     } = this.state
     const { name, methodRepoMethod: { methodPath, methodVersion, methodNamespace, methodName, sourceRepo }, rootEntityType } = modifiedConfig
     const modified = !_.isEqual(modifiedConfig, savedConfig)
@@ -589,7 +589,7 @@ const WorkflowView = _.flow(
             'The selected snapshot of the referenced workflow has been redacted. You will not be able to run an analysis until you select another snapshot.'
           ]),
           div({ style: { marginTop: '0.5rem' } }, [
-            'Snapshot ',
+            `${sourceRepo === 'agora' ? 'Snapshot' : 'Version'}: `,
             sourceRepo === 'agora' ?
               div({ style: { display: 'inline-block', marginLeft: '0.25rem', minWidth: 75 } }, [
                 h(Select, {
@@ -682,14 +682,14 @@ const WorkflowView = _.flow(
               onClick: () => this.setState({ launching: true })
             }, ['Run analysis'])
           }),
-          activeTab === 'outputs' && div({ style: { marginBottom: '1rem' } }, [
+          activeTab === 'outputs' && !currentSnapRedacted && div({ style: { marginBottom: '1rem' } }, [
             div({ style: styles.outputInfoLabel }, 'Output files will be saved to'),
             div({ style: { display: 'flex', alignItems: 'center' } }, [
               div({ style: { flex: 'none', display: 'flex', width: '1.5rem' } }, [icon('folder', { size: 18 })]),
               div({ style: { flex: 1 } }, [
                 'Files / ',
                 span({ style: styles.placeholder }, 'submission unique ID'),
-                ` / ${methodName} / `,
+                ` / ${wdl.match(/^\s*workflow ([^\s{]+)\s*{/m)[1]} / `,
                 span({ style: styles.placeholder }, 'workflow unique ID')
               ])
             ]),
