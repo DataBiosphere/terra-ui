@@ -78,8 +78,7 @@ export default class Register extends Component {
           })
         ]),
         div({ style: { width: '1rem' } }),
-        div({ style: { lineHeight: '170%' }, id: 'testdiv' }, [
-          // 'Last Name *',
+        div({ style: { lineHeight: '170%' } }, [
           h(TextInput, {
             label: 'Last Name *',
             style: { display: 'block' },
