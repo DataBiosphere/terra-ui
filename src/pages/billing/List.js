@@ -28,7 +28,7 @@ const ProjectTab = ({ project: { projectName, role, creationStatus, message }, i
     spinner({ size: 16, style: { color: colors.accent(), margin: '0 1rem 0 0.5rem' } }) :
     h(InfoBox, {
       style: { color: colors.danger(), margin: '0 1rem 0 0.5rem' }, side: 'right'
-    }, [div({ style: { wordWrap: 'break-word' } }, [message])])
+    }, [div({ style: { wordWrap: 'break-word' } }, [message || 'Error during project creation.'])])
 
   return _.includes('Owner', role) && projectReady ?
     h(Clickable, {
