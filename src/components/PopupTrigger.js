@@ -91,7 +91,7 @@ export default class PopupTrigger extends Component {
 
 export const InfoBox = ({ size, children, style, side }) => h(PopupTrigger, {
   side,
-  content: div({ style: { padding: '0.5rem', width: 300 } }, children)
+  content: div({ style: { padding: '0.5rem', width: 300 } }, [children])
 }, [
   icon('info-circle', { size, style: { cursor: 'pointer', color: colors.accent(), ...style } })
 ])

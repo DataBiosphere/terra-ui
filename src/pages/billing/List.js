@@ -3,9 +3,10 @@ import * as qs from 'qs'
 import { Component, Fragment } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import { ButtonPrimary, Clickable, Link, Select, spinnerOverlay } from 'src/components/common'
-import { icon } from 'src/components/icons'
+import { icon, spinner } from 'src/components/icons'
 import { ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
+import { InfoBox } from 'src/components/PopupTrigger'
 import TopBar from 'src/components/TopBar'
 import { Ajax, ajaxCaller } from 'src/libs/ajax'
 import * as Auth from 'src/libs/auth'
@@ -21,10 +22,13 @@ import ProjectDetail from 'src/pages/billing/Project'
 import validate from 'validate.js'
 
 
-const ProjectTab = ({ project: { projectName, role, creationStatus }, isActive }) => {
+const ProjectTab = ({ project: { projectName, role, creationStatus, message }, isActive }) => {
   const projectReady = creationStatus === 'Ready'
-  const statusIcon = icon(creationStatus === 'Creating' ? 'loadingSpinner' : 'error-standard',
-    { style: { color: colors.accent(), marginRight: '1rem', marginLeft: '0.5rem' } })
+  const statusIcon = creationStatus === 'Creating' ?
+    spinner({ size: 16, style: { color: colors.accent(), margin: '0 1rem 0 0.5rem' } }) :
+    h(InfoBox, {
+      style: { color: colors.danger(), margin: '0 1rem 0 0.5rem' }, side: 'right'
+    }, [div({ style: { wordWrap: 'break-word' } }, [message])])
 
   return _.includes('Owner', role) && projectReady ?
     h(Clickable, {
