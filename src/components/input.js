@@ -4,11 +4,10 @@ import { Component, forwardRef, Fragment, useState } from 'react'
 import Autosuggest from 'react-autosuggest'
 import { div, h } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
-import { ButtonPrimary, IdContainer } from 'src/components/common'
+import { ButtonPrimary } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { PopupPortal, useDynamicPosition } from 'src/components/popup-utils'
 import colors from 'src/libs/colors'
-import { RequiredFormLabel } from 'src/libs/forms'
 import * as Utils from 'src/libs/utils'
 
 
@@ -63,18 +62,23 @@ export const withDebouncedChange = WrappedComponent => {
 }
 
 export const TextInput = forwardRef(({ onChange, nativeOnChange = false, placeholder, label, ...props }, ref) => {
-  // const ariaLabel = !!placeholder ? {'aria-label': placeholder} : {'aria-labelledby': undefined} // don't use labelledby(?)
-  const ariaLabel = !!placeholder ? placeholder : label
-  return h(IdContainer, [id => h(Fragment, [
-    div({id}, [label]), // if string, return div otherwise return component
-    // check _.isString in Modal
+  // set ariaLabel to placeholder text or to label text
+  const ariaLabel = !!placeholder ?
+    placeholder :
+    _.isObject(label) ? label.props.children : label
+  return h(Fragment, [
+    // if string, return div otherwise return the object itself
+    Utils.cond(
+      [_.isString(label), () => div({}, [label])],
+      [_.isObject(label), () => label]
+    ),
     h(Interactive,
       _.merge({
         refDOMNode: ref,
         as: 'input',
         className: 'focus-style',
         onChange: onChange ? e => onChange(nativeOnChange ? e : e.target.value) : undefined,
-        'aria-label': ariaLabel,
+        'aria-label': ariaLabel.toString(), // errors if label is undefined
         placeholder,
         style: {
           ...styles.input,
@@ -85,7 +89,9 @@ export const TextInput = forwardRef(({ onChange, nativeOnChange = false, placeho
         }
       },
       props)
-    )])])})
+    )
+  ])
+})
 
 export const ConfirmedSearchInput = ({ defaultValue = '', onChange = _.noop, ...props }) => {
   const [internalValue, setInternalValue] = useState(defaultValue)

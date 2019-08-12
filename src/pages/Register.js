@@ -70,34 +70,31 @@ export default class Register extends Component {
       }, 'New User Registration'),
       div({ style: { marginTop: '3rem', display: 'flex' } }, [
         div({ style: { lineHeight: '170%' } }, [
-          'First Name *',
           h(TextInput, {
             label: 'First Name *',
             style: { display: 'block' },
             value: givenName,
-            onChange: v => this.setState({ givenName: v }),
-            ariaLabel: 'First Name - Required'
+            onChange: v => this.setState({ givenName: v })
           })
         ]),
         div({ style: { width: '1rem' } }),
         div({ style: { lineHeight: '170%' }, id: 'testdiv' }, [
-          'Last Name *',
+          // 'Last Name *',
           h(TextInput, {
+            label: 'Last Name *',
             style: { display: 'block' },
             value: familyName,
-            onChange: v => this.setState({ familyName: v }),
-            ariaLabelledBy: 'testdiv'
+            onChange: v => this.setState({ familyName: v })
           })
         ])
       ]),
-      div({ style: { lineHeight: '170%' } }, [
-        div({ style: { marginTop: '2rem' } }, 'Contact Email for Notifications *'),
+      div({ style: { lineHeight: '170%', marginTop: '2rem' } }, [
         div([
           h(TextInput, {
+            label: 'Contact Email for Notifications *',
             value: email,
             onChange: v => this.setState({ email: v }),
-            style: { width: '50ex' },
-            ariaLabel: 'Contact Email for Notifications - Required'
+            style: { width: '50ex' }
           })
         ])
       ]),
