@@ -9,7 +9,7 @@ import Modal from 'src/components/Modal'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
-import { reportError } from 'src/libs/error'
+import { reportError, withErrorReporting } from 'src/libs/error'
 import { FormLabel, RequiredFormLabel } from 'src/libs/forms'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -105,35 +105,21 @@ export const NewUserModal = ajaxCaller(class NewUserModal extends Component {
   }
 
   render() {
-    const { adminLabel, userLabel, title, onDismiss, footer, ajax: { User } } = this.props
+    const { adminLabel, userLabel, title, onDismiss, footer } = this.props
     const { confirmAddUser, userEmail, roles, suggestions, busy, submitError } = this.state
-    const emailConstraints = { format: /\w+@(gmail\.com|broadinstitute\.org)$/ }
-    const errors = validate({ userEmail }, { userEmail: emailConstraints })
+    const errors = validate({ userEmail }, { userEmail: { email: true } })
     const isAdmin = _.includes(adminLabel, roles)
 
-    const userEmailInvalid = !!validate({ userEmail }, { userEmail: emailConstraints })
+    const userEmailInvalid = !!validate({ userEmail }, { userEmail: { email: true } })
     const canAdd = value => value !== userEmail || !userEmailInvalid
 
     return Utils.cond(
       [confirmAddUser, () => h(Modal, {
         title: 'User is not registered',
-        okButton: h(ButtonPrimary, {
-          onClick: async () => {
-            this.setState({ busy: true })
-            try {
-              await User.inviteUser(userEmail)
-              await this.submit()
-            } catch (error) {
-              reportError('Error adding user', error)
-            }
-          }
-        }, ['Yes']),
+        okButton: h(ButtonPrimary, { onClick: this.inviteUser }, ['Yes']),
         cancelText: 'No',
         onDismiss: () => this.setState({ confirmAddUser: false })
-      }, [
-        'Add ', b(userEmail), ' to the group anyway?',
-        busy && spinnerOverlay
-      ])],
+      }, ['Add ', b(userEmail), ' to the group anyway?', busy && spinnerOverlay])],
       () => h(Modal, {
         onDismiss,
         title,
@@ -186,24 +172,25 @@ export const NewUserModal = ajaxCaller(class NewUserModal extends Component {
     )
   }
 
-  addUser() {
-    const { addUnregisteredUser = false, ajax: { User }, onDismiss } = this.props
+  inviteUser = _.flow(
+    withErrorReporting('Error adding user'),
+    Utils.withBusyState(busy => this.setState({ busy }))
+  )(async () => {
+    const { ajax: { User } } = this.props
+    const { userEmail } = this.state
+    await User.inviteUser(userEmail)
+    await this.submit()
+  })
+
+  addUser = _.flow(
+    withErrorReporting('Error adding user'),
+    Utils.withBusyState(busy => this.setState({ busy }))
+  )(async () => {
+    const { addUnregisteredUser = false, ajax: { User } } = this.props
     const { userEmail } = this.state
 
-    Utils.cond(
-      [addUnregisteredUser, async () => {
-        try {
-          this.setState({ busy: true })
-          await User.isUserRegistered(userEmail) ? this.submit() : this.setState({ busy: false, confirmAddUser: true })
-        } catch (error) {
-          this.setState({ busy: false })
-          reportError('Error adding user', error)
-          onDismiss()
-        }
-      }],
-      () => this.submit()
-    )
-  }
+    addUnregisteredUser && !await User.isUserRegistered(userEmail) ? this.setState({ confirmAddUser: true }) : this.submit()
+  })
 
   async submit() {
     const { addFunction, onSuccess } = this.props
