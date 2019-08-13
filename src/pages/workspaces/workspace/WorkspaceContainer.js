@@ -116,6 +116,11 @@ const WorkspaceAccessError = () => {
     h2(['Could not display workspace']),
     p(['You are trying to access a workspace that either does not exist, or you do not have access to it.']),
     p([
+      'You are currently logged in as ',
+      span({ style: { fontWeight: 600 } }, [getUser().email]),
+      '. You may have access with a different account.'
+    ]),
+    p([
       'To view an existing workspace, the owner of the workspace must share it with you or with a ',
       h(Link, { ...Utils.newTabLinkProps, href: groupURL }, 'Group'), ' of which you are a member. ',
       'If the workspace is protected under an ', h(Link, { ...Utils.newTabLinkProps, href: authorizationURL }, 'Authorization Domain'),
@@ -216,7 +221,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
     })
 
     if (accessError) {
-      return h(WorkspaceAccessError)
+      return h(Fragment, [h(TopBar), h(WorkspaceAccessError)])
     } else {
       return h(WorkspaceContainer, {
         namespace, name, activeTab, showTabBar, workspace, clusters,
