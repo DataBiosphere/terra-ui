@@ -76,18 +76,20 @@ const Showcase = withWorkspaces(class Showcase extends Component {
 
     return h(Fragment, [
       libraryTopMatter('showcase & tutorials'),
-      !(featuredList && workspaces) ?
-        centeredSpinner() :
-        div({ style: { display: 'flex', margin: '2.5rem' } }, [
-          div({ style: { marginRight: '2rem' } }, [
-            div({ style: styles.header }, 'GATK4 example workspaces'),
-            ..._.map(makeCard(true), bestPractices)
-          ]),
-          div([
-            div({ style: styles.header }, 'Featured workspaces'),
-            ..._.map(makeCard(false), featured)
+      div({ role: 'main' }, [
+        !(featuredList && workspaces) ?
+          centeredSpinner() :
+          div({ style: { display: 'flex', margin: '2.5rem' } }, [
+            div({ style: { marginRight: '2rem' } }, [
+              div({ style: styles.header }, 'GATK4 example workspaces'),
+              ..._.map(makeCard(true), bestPractices)
+            ]),
+            div([
+              div({ style: styles.header }, 'Featured workspaces'),
+              ..._.map(makeCard(false), featured)
+            ])
           ])
-        ])
+      ])
     ])
   }
 })

@@ -172,6 +172,7 @@ const SubmissionDetails = _.flow(
       h(DelayedSearchInput, {
         style: { marginRight: '2rem', flexBasis: 300, borderColor: colors.dark(0.55) },
         placeholder: 'Search',
+        'aria-label': 'Search',
         onChange: setTextFilter,
         value: textFilter
       }),
@@ -181,6 +182,7 @@ const SubmissionDetails = _.flow(
           isMulti: true,
           isSearchable: false,
           placeholder: 'Completion status',
+          'aria-label': 'Completion status',
           value: statusFilter,
           onChange: data => setStatusFilter(_.map('value', data)),
           options: Utils.workflowStatuses

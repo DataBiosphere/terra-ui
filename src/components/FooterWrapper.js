@@ -16,6 +16,7 @@ const FooterWrapper = ({ children }) => {
   return div({ style: { display: 'flex', flexDirection: 'column', minHeight: '100%', flexGrow: 1 } }, [
     children,
     div({
+      role: 'contentinfo',
       style: {
         flex: 'none',
         display: 'flex', alignItems: 'center',

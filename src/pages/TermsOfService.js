@@ -233,7 +233,7 @@ export default class TermsOfService extends Component {
 
   render() {
     const { busy } = this.state
-    return div({ style: styles.page }, [
+    return div({ role: 'main', style: styles.page }, [
       backgroundLogo,
       div({ style: styles.box }, [
         termsTitle,

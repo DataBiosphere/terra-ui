@@ -1,6 +1,7 @@
 import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { Fragment, useState } from 'react'
+import FocusLock from 'react-focus-lock'
 import { div, h, img, input, label, span } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
 import RSelect from 'react-select'
@@ -27,9 +28,11 @@ const styles = {
 
 export const Clickable = ({ href, as = (!!href ? 'a' : 'div'), disabled, tooltip, tooltipSide, onClick, children, ...props }) => {
   const child = h(Interactive, {
+    'aria-disabled': !!disabled,
     as, disabled,
     onClick: (...args) => onClick && !disabled && onClick(...args),
     href: !disabled ? href : undefined,
+    tabIndex: disabled ? '-1' : '0',
     ...props
   }, [children])
 
@@ -122,7 +125,7 @@ export const TabBar = ({ activeTab, tabNames, refresh = _.noop, getHref, childre
     ])
   }
 
-  return div({ style: Style.tabBar.container }, [
+  return div({ role: 'navigation', 'aria-label': 'Tab bar', style: Style.tabBar.container }, [
     ..._.map(name => navTab(name), tabNames),
     div({ style: { flexGrow: 1 } }),
     children
@@ -167,10 +170,10 @@ export const Checkbox = ({ checked, onChange, disabled, ...props }) => {
 }
 
 export const LabeledCheckbox = ({ checked, onChange, disabled, children, ...props }) => {
-  return h(Fragment, [
-    h(Checkbox, { checked, onChange, disabled, ...props }),
-    h(Interactive, {
-      as: 'span',
+  return h(IdContainer, [id => h(Fragment, [
+    h(Checkbox, { checked, onChange, disabled, 'aria-labelledby': id, ...props }),
+    span({
+      id,
       style: {
         verticalAlign: 'middle',
         color: disabled ? colors.dark(0.7) : undefined,
@@ -179,20 +182,18 @@ export const LabeledCheckbox = ({ checked, onChange, disabled, children, ...prop
       onClick: () => onChange && !disabled && onChange(!checked),
       disabled
     }, [children])
-  ])
+  ])])
 }
 
-export const RadioButton = ({ text, labelStyle, ...props }) => {
-  const id = `${text}-radio-button`
-
-  return h(Fragment, [
+export const RadioButton = ({ text, name, labelStyle, ...props }) => {
+  return h(IdContainer, [id => h(Fragment, [
     input({
       type: 'radio', id,
-      name: id, // not semantically correct, but fixes a focus cycle issue
+      name,
       ...props
     }),
-    label({ htmlFor: id, style: labelStyle }, text)
-  ])
+    text && label({ htmlFor: id, style: labelStyle }, text)
+  ])])
 }
 
 const makeBaseSpinner = ({ outerStyles = {}, innerStyles = {} }) => div(
@@ -279,16 +280,17 @@ export const AsyncCreatableSelect = props => {
   return h(RAsyncCreatableSelect, _.merge(commonSelectProps, props))
 }
 
-export const PageBox = ({ children, style = {} }) => {
-  return div({
+export const PageBox = ({ children, style = {}, ...props }) => {
+  return div(_.merge({
     style: {
       margin: '1.5rem', padding: '1.5rem 1.5rem 0', minHeight: 125, flex: 'none', zIndex: 0, ...style
     }
-  }, [children])
+  }, props), [children])
 }
 
 export const backgroundLogo = img({
   src: scienceBackground,
+  alt: '',
   style: { position: 'fixed', top: 0, left: 0, zIndex: -1 }
 })
 
@@ -315,4 +317,20 @@ export const ShibbolethLink = ({ children, ...props }) => {
 export const IdContainer = ({ children }) => {
   const [id] = useState(() => _.uniqueId('element-'))
   return children(id)
+}
+
+export const FocusTrapper = ({ children, onBreakout, ...props }) => {
+  return h(FocusLock, {
+    returnFocus: true,
+    lockProps: _.merge({
+      tabIndex: 0,
+      style: { outline: 'none' },
+      onKeyDown: e => {
+        if (e.key === 'Escape') {
+          onBreakout()
+          e.stopPropagation()
+        }
+      }
+    }, props)
+  }, [children])
 }

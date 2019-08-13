@@ -39,7 +39,7 @@ const Importer = class Importer extends Component {
     return h(Fragment, [
       backgroundLogo,
       h(TopBar, { title: 'Import Data' }),
-      div({ style: styles.container }, [
+      div({ role: 'main', style: styles.container }, [
         div({ style: styles.card }, [
           div({ style: styles.title }, ['Importing Data']),
           div({ style: { fontSize: 16 } }, ['From: ', new URL(url).hostname])

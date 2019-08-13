@@ -4,7 +4,7 @@ import { signOut } from 'src/libs/auth'
 
 
 export const Disabled = () => {
-  return div({ style: { padding: '1rem' } }, [
+  return div({ role: 'main', style: { padding: '1rem' } }, [
     div([
       'Thank you for registering. Your account is currently inactive. ',
       'You will be contacted via email when your account is activated.'

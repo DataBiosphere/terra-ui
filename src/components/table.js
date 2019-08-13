@@ -2,12 +2,12 @@ import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
 import { Component, createRef, Fragment } from 'react'
 import Draggable from 'react-draggable'
-import { button, div, h, option, select } from 'react-hyperscript-helpers'
+import { button, div, h, label, option, select } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
 import Pagination from 'react-paginating'
 import { arrayMove, SortableContainer, SortableElement, SortableHandle } from 'react-sortable-hoc'
 import { AutoSizer, Grid as RVGrid, List, ScrollSync as RVScrollSync } from 'react-virtualized'
-import { ButtonPrimary, Checkbox, Clickable, Link } from 'src/components/common'
+import { ButtonPrimary, Checkbox, Clickable, IdContainer, Link } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import TooltipTrigger from 'src/components/TooltipTrigger'
@@ -54,13 +54,13 @@ export const paginator = props => {
           div({ style: { display: 'inline-flex', padding: '0 1rem' } }, [
 
             paginatorButton(
-              _.merge({ disabled: currentPage === 1, style: { marginRight: '0.5rem' } },
+              _.merge({ 'aria-label': 'First page', disabled: currentPage === 1, style: { marginRight: '0.5rem' } },
                 getPageItemProps({ pageValue: 1, onPageChange: setPageNumber })),
               [icon('angle-double-left', { size: 12 })]
             ),
 
             paginatorButton(
-              _.merge({ disabled: !hasPreviousPage, style: { marginRight: '1rem' } },
+              _.merge({ 'aria-label': 'Previous page', disabled: !hasPreviousPage, style: { marginRight: '1rem' } },
                 getPageItemProps({ pageValue: previousPage, onPageChange: setPageNumber })),
               [icon('angle-left', { size: 12 })]
             ),
@@ -80,28 +80,29 @@ export const paginator = props => {
             ),
 
             paginatorButton(
-              _.merge({ disabled: !hasNextPage, style: { marginLeft: '1rem' } },
+              _.merge({ 'aria-label': 'Next page', disabled: !hasNextPage, style: { marginLeft: '1rem' } },
                 getPageItemProps({ pageValue: nextPage, onPageChange: setPageNumber })),
               [icon('angle-right', { size: 12 })]
             ),
 
             paginatorButton(
-              _.merge({ disabled: currentPage === totalPages, style: { marginLeft: '0.5rem' } },
+              _.merge({ 'aria-label': 'Last page', disabled: currentPage === totalPages, style: { marginLeft: '0.5rem' } },
                 getPageItemProps({ pageValue: totalPages, onPageChange: setPageNumber })),
               [icon('angle-double-right', { size: 12 })]
             )
           ]),
 
-          setItemsPerPage && h(Fragment, [
-            'Items per page:',
+          setItemsPerPage && h(IdContainer, [id => h(Fragment, [
+            label({ htmlFor: id }, ['Items per page:']),
             select({
+              id,
               style: { marginLeft: '0.5rem' },
               onChange: e => setItemsPerPage(parseInt(e.target.value, 10)),
               value: itemsPerPage
             },
             _.map(i => option({ value: i }, i),
               itemsPerPageOptions))
-          ])
+          ])])
         ])
       ]
     )
@@ -508,6 +509,7 @@ export class ColumnSelector extends Component {
     const { open, modifiedColumnSettings } = this.state
     return h(Fragment, [
       h(Clickable, {
+        'aria-label': 'Select columns',
         style: styles.columnSelector,
         tooltip: 'Select columns',
         onClick: () => this.setState({ open: true, modifiedColumnSettings: columnSettings })

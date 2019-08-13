@@ -37,6 +37,7 @@ export default class SignIn extends Component {
     const { openCookiesModal } = this.state
     return h(FooterWrapper, [
       div({
+        role: 'main',
         style: {
           flexGrow: 1,
           padding: 82,

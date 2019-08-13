@@ -6,7 +6,7 @@ import TopBar from 'src/components/TopBar'
 const NotFound = () => {
   return h(FooterWrapper, [
     h(TopBar),
-    div({ style: { marginLeft: '1rem', flex: '1 0 auto' } }, [
+    div({ role: 'main', style: { marginLeft: '1rem', flex: '1 0 auto' } }, [
       h2('Page not found')
     ])
   ])
