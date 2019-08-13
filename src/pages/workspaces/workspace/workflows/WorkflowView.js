@@ -590,7 +590,7 @@ const WorkflowView = _.flow(
             'The selected snapshot of the referenced workflow has been redacted. You will not be able to run an analysis until you select another snapshot.'
           ]),
           h(IdContainer, [id => div({ style: { marginTop: '0.5rem' } }, [
-            label({ htmlFor: id }, [`${sourceRepo === 'agora' ? 'Snapshot' : 'Version'}: ]),
+            label({ htmlFor: id }, [`${sourceRepo === 'agora' ? 'Snapshot' : 'Version'}: `]),
             sourceRepo === 'agora' ?
               div({ style: { display: 'inline-block', marginLeft: '0.25rem', minWidth: 75 } }, [
                 h(Select, {
