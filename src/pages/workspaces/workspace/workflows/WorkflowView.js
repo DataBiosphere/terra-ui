@@ -133,6 +133,7 @@ const WorkflowIOTable = ({ which, inputsOutputs: data, config, errors, onChange,
               const isFile = (inputType === 'File') || (inputType === 'File?')
               return div({ style: { display: 'flex', alignItems: 'center', width: '100%' } }, [
                 !readOnly ? h(DelayedAutocompleteTextInput, {
+                  key: JSON.stringify([which, name]), // force remount to reset state when dependencies change
                   placeholder: optional ? 'Optional' : 'Required',
                   value,
                   style: isFile ? { borderRadius: '4px 0px 0px 4px', borderRight: 'white' } : undefined,
