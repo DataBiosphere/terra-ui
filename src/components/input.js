@@ -45,8 +45,9 @@ export const withDebouncedChange = WrappedComponent => {
   const Wrapper = ({ onChange, value, ...props }) => {
     const [internalValue, setInternalValue] = useState()
     const getInternalValue = Utils.useGetter(internalValue)
+    const getOnChange = Utils.useGetter(onChange)
     const updateParent = Utils.useInstance(() => _.debounce(250, () => {
-      onChange(getInternalValue())
+      getOnChange()(getInternalValue())
       setInternalValue(undefined)
     }))
     return h(WrappedComponent, {
