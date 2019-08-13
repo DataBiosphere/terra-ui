@@ -7,7 +7,7 @@ import { icon } from 'src/components/icons'
 import { IntegerInput, TextInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { notify } from 'src/components/Notifications.js'
-import PopupTrigger from 'src/components/PopupTrigger'
+import { Popup } from 'src/components/PopupTrigger'
 import { machineTypes, profiles } from 'src/data/clusters'
 import { Ajax, ajaxCaller } from 'src/libs/ajax'
 import { clusterCost, currentCluster, machineConfigCost, normalizeMachineConfig, trimClustersOldestFirst } from 'src/libs/cluster-utils'
@@ -580,13 +580,9 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
         'aria-label': 'Delete cluster',
         style: { marginLeft: '0.5rem' }
       }),
-      h(PopupTrigger, {
-        side: 'bottom',
-        open: multiple,
-        width: 300,
-        content: this.renderDestroyForm()
-      }, [
+      h(IdContainer, [id => h(Fragment, [
         h(Clickable, {
+          id,
           style: styles.button(isDisabled),
           tooltip: Utils.cond(
             [!canCompute, () => noCompute],
@@ -607,8 +603,9 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
             ])
           ]),
           icon('cog', { size: 22, style: { color: isDisabled ? colors.dark(0.7) : colors.accent() } })
-        ])
-      ]),
+        ]),
+        multiple && h(Popup, { side: 'bottom', target: id, handleClickOutside: _.noop }, [this.renderDestroyForm()])
+      ])]),
       deleteModalOpen && h(DeleteClusterModal, {
         cluster: this.getCurrentCluster(),
         onDismiss: () => this.setState({ deleteModalOpen: false }),
