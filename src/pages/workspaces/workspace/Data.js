@@ -291,7 +291,7 @@ const LocalVariablesContent = class LocalVariablesContent extends Component {
           editType: 'string'
         })
       }),
-      !!deleteIndex && h(Modal, {
+      deleteIndex !== undefined && h(Modal, {
         onDismiss: () => this.setState({ deleteIndex: undefined }),
         title: 'Are you sure you wish to delete this variable?',
         okButton: h(ButtonPrimary, {
