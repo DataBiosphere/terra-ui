@@ -298,7 +298,7 @@ export const BillingList = _.flow(
           }
         }),
         Utils.cond(
-          [selectedName && hasBillingProjects && !_.includes({ projectName: selectedName }, billingProjects),
+          [selectedName && hasBillingProjects && !_.some({ projectName: selectedName }, billingProjects),
             () => div({ style: { margin: '1rem auto 0 auto' } }, [
               h2(['Error loading selected billing project.']),
               p(['It may not exist, or you may not have access to it.'])
