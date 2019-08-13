@@ -791,6 +791,7 @@ const WorkflowView = _.flow(
     )(data)
 
     return h(Dropzone, {
+      key,
       accept: '.json',
       multiple: false,
       disabled: currentSnapRedacted || !!Utils.editWorkspaceError(workspace),
