@@ -454,7 +454,7 @@ const WorkflowView = _.flow(
 
       if (sourceRepo === 'agora') {
         const methods = await Methods.list({ namespace: methodNamespace, name: methodName })
-        const snapshotIds = _.map(m => _.pick('snapshotId', m).snapshotId, methods)
+        const snapshotIds = _.map('snapshotId', methods)
 
         this.setState({ snapshotIds })
       }
@@ -689,7 +689,7 @@ const WorkflowView = _.flow(
               div({ style: { flex: 1 } }, [
                 'Files / ',
                 span({ style: styles.placeholder }, 'submission unique ID'),
-                ` / ${wdl.match(/^\s*workflow ([^\s{]+)\s*{/m)[1]} / `,
+                ' / ', wdl ? wdl.match(/^\s*workflow ([^\s{]+)\s*{/m)[1] : span({ style: styles.placeholder }, 'workflow name'), ' / ',
                 span({ style: styles.placeholder }, 'workflow unique ID')
               ])
             ]),
