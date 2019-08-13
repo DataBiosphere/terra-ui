@@ -432,10 +432,9 @@ const WorkflowView = _.flow(
         this.getValidation(),
         ws.methodConfig(workflowNamespace, workflowName).get()
       ])
-      const { methodRepoMethod: { methodNamespace, methodName } } = config
+      const { methodRepoMethod: { methodNamespace, methodName, sourceRepo } } = config
       const isRedacted = !validationResponse
-      const methods = await Methods.list({ namespace: methodNamespace, name: methodName })
-      const snapshotIds = _.map(m => _.pick('snapshotId', m).snapshotId, methods)
+
       const inputsOutputs = isRedacted ? {} : await Methods.configInputsOutputs(config)
       const selection = workflowSelectionStore.get()
       const readSelection = selectionKey && selection.key === selectionKey
@@ -446,7 +445,6 @@ const WorkflowView = _.flow(
         entityMetadata,
         savedInputsOutputs: inputsOutputs,
         modifiedInputsOutputs: inputsOutputs,
-        snapshotIds,
         errors: isRedacted ? { inputs: {}, outputs: {} } : augmentErrors(validationResponse),
         entitySelectionModel: this.resetSelectionModel(modifiedConfig.rootEntityType, readSelection ? selection.entities : {}),
         workspaceAttributes: _.flow(
@@ -454,6 +452,14 @@ const WorkflowView = _.flow(
           _.remove(s => s.includes(':'))
         )(_.keys(attributes))
       })
+
+      if (sourceRepo === 'agora') {
+        const methods = await Methods.list({ namespace: methodNamespace, name: methodName })
+        const snapshotIds = _.map('snapshotId', methods)
+
+        this.setState({ snapshotIds })
+      }
+
       this.updateSingleOrMultipleRadioState(modifiedConfig)
       this.fetchInfo(config, isRedacted)
     } catch (error) {
@@ -533,7 +539,7 @@ const WorkflowView = _.flow(
     const { workspace: ws, workspace: { workspace }, namespace, name: workspaceName } = this.props
     const {
       modifiedConfig, savedConfig, saving, saved, exporting, copying, deleting, selectingData, activeTab, errors, synopsis, documentation,
-      selectedEntityType, entityMetadata, entitySelectionModel, snapshotIds = [], useCallCache, currentSnapRedacted, savedSnapRedacted
+      selectedEntityType, entityMetadata, entitySelectionModel, snapshotIds = [], useCallCache, currentSnapRedacted, savedSnapRedacted, wdl
     } = this.state
     const { name, methodRepoMethod: { methodPath, methodVersion, methodNamespace, methodName, sourceRepo }, rootEntityType } = modifiedConfig
     const modified = !_.isEqual(modifiedConfig, savedConfig)
@@ -584,7 +590,7 @@ const WorkflowView = _.flow(
             'The selected snapshot of the referenced workflow has been redacted. You will not be able to run an analysis until you select another snapshot.'
           ]),
           h(IdContainer, [id => div({ style: { marginTop: '0.5rem' } }, [
-            label({ htmlFor: id }, ['Snapshot ']),
+            label({ htmlFor: id }, [`${sourceRepo === 'agora' ? 'Snapshot' : 'Version'}: `]),
             sourceRepo === 'agora' ?
               div({ style: { display: 'inline-block', marginLeft: '0.25rem', minWidth: 75 } }, [
                 h(Select, {
@@ -681,14 +687,14 @@ const WorkflowView = _.flow(
               onClick: () => this.setState({ launching: true })
             }, ['Run analysis'])
           }),
-          activeTab === 'outputs' && div({ style: { marginBottom: '1rem' } }, [
+          activeTab === 'outputs' && !currentSnapRedacted && div({ style: { marginBottom: '1rem' } }, [
             div({ style: styles.outputInfoLabel }, 'Output files will be saved to'),
             div({ style: { display: 'flex', alignItems: 'center' } }, [
               div({ style: { flex: 'none', display: 'flex', width: '1.5rem' } }, [icon('folder', { size: 18 })]),
               div({ style: { flex: 1 } }, [
                 'Files / ',
                 span({ style: styles.placeholder }, 'submission unique ID'),
-                ` / ${methodName} / `,
+                ' / ', wdl ? wdl.match(/^\s*workflow ([^\s{]+)\s*{/m)[1] : span({ style: styles.placeholder }, 'workflow name'), ' / ',
                 span({ style: styles.placeholder }, 'workflow unique ID')
               ])
             ]),
