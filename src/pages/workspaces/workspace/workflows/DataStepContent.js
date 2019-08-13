@@ -1,8 +1,8 @@
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
-import { Component, Fragment } from 'react'
-import { div, h, span } from 'react-hyperscript-helpers'
-import { ButtonPrimary, RadioButton } from 'src/components/common'
+import { Component } from 'react'
+import { div, h, label } from 'react-hyperscript-helpers'
+import { ButtonPrimary, IdContainer, RadioButton } from 'src/components/common'
 import DataTable from 'src/components/DataTable'
 import { TextInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
@@ -61,6 +61,7 @@ export default class DataStepContent extends Component {
     const hasSet = _.has(setType, entityMetadata)
 
     return h(Modal, {
+      title: 'Select Data',
       okButton: h(ButtonPrimary, {
         disabled: !this.isValidSelectionModel(),
         onClick: () => onSuccess(entitySelectionModel)
@@ -74,10 +75,11 @@ export default class DataStepContent extends Component {
           padding: '1rem 0.5rem', lineHeight: '1.5rem'
         }
       }, [
-        !isSet && h(Fragment, [
+        !isSet && h(div, { role: 'radiogroup', 'aria-label': 'Select entities' }, [
           div([
             h(RadioButton, {
               text: `Process all ${count} rows`,
+              name: 'process-rows',
               checked: type === EntitySelectionType.processAll,
               onChange: () => this.setEntitySelectionModel({ type: EntitySelectionType.processAll, selectedEntities: {} }),
               labelStyle: { marginLeft: '0.75rem' }
@@ -86,6 +88,7 @@ export default class DataStepContent extends Component {
           hasSet && div([
             h(RadioButton, {
               text: 'Choose an existing set',
+              name: 'process-rows',
               checked: type === EntitySelectionType.processFromSet,
               onChange: () => this.setEntitySelectionModel({ type: EntitySelectionType.processFromSet, selectedEntities: {} }),
               labelStyle: { marginLeft: '0.75rem' }
@@ -94,6 +97,7 @@ export default class DataStepContent extends Component {
           div([
             h(RadioButton, {
               text: 'Choose specific rows to process',
+              name: 'process-rows',
               checked: type === EntitySelectionType.chooseRows,
               onChange: () => this.setEntitySelectionModel({ type: EntitySelectionType.chooseRows, selectedEntities: {} }),
               labelStyle: { marginLeft: '0.75rem' }
@@ -117,16 +121,17 @@ export default class DataStepContent extends Component {
           })
         ]),
         (type === EntitySelectionType.processAll ||
-          (type === EntitySelectionType.chooseRows && _.size(selectedEntities) > 1)) && div({
+          (type === EntitySelectionType.chooseRows && _.size(selectedEntities) > 1)) && h(IdContainer, [id => div({
           style: { marginTop: '1rem' }
         }, [
-          span(['Selected rows will be saved as a new set named:']),
+          label({ htmlFor: id }, ['Selected rows will be saved as a new set named:']),
           h(TextInput, {
+            id,
             style: { width: 500, marginLeft: '0.25rem' },
             value: newSetName,
             onChange: v => this.setEntitySelectionModel({ newSetName: v })
           })
-        ])
+        ])])
       ])
     ])
   }

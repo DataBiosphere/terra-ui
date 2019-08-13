@@ -94,7 +94,8 @@ const NotebookPreviewFrame = ({ notebookName, workspace: { workspace: { namespac
           doc.head.appendChild(Utils.createHtmlElement(doc, 'base', Utils.newTabLinkProps))
         },
         style: { border: 'none', flex: 1 },
-        srcDoc: preview
+        srcDoc: preview,
+        title: 'Preview for notebook'
       })
     ]),
     busy && div({ style: { margin: '0.5rem 2rem' } }, ['Generating preview...'])

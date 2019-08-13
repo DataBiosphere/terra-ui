@@ -1,11 +1,11 @@
 import _ from 'lodash/fp'
 import { Component, Fragment } from 'react'
-import { a, div, h, span } from 'react-hyperscript-helpers'
+import { a, div, h, label, span } from 'react-hyperscript-helpers'
 import { pure } from 'recompose'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import togglesListView from 'src/components/CardsListToggle'
 import {
-  ButtonOutline, ButtonPrimary, Clickable, Link, makeMenuIcon, MenuButton, methodLink, PageBox, Select, spinnerOverlay
+  ButtonOutline, ButtonPrimary, Clickable, IdContainer, Link, makeMenuIcon, MenuButton, methodLink, PageBox, Select, spinnerOverlay
 } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { Markdown } from 'src/components/Markdown'
@@ -112,7 +112,7 @@ const WorkflowCard = pure(({ listView, name, namespace, config, onExport, onCopy
       }, [makeMenuIcon('trash'), 'Delete'])
     ])
   }, [
-    h(Link, { onClick: e => e.stopPropagation(), style: styles.innerLink }, [
+    h(Link, { 'aria-label': 'Workflow menu', onClick: e => e.stopPropagation(), style: styles.innerLink }, [
       icon('cardMenuIcon', {
         size: listView ? 18 : 24
       })
@@ -126,6 +126,7 @@ const WorkflowCard = pure(({ listView, name, namespace, config, onExport, onCopy
   }, sourceRepo === 'agora' ? 'Terra' : sourceRepo)
 
   const workflowLink = a({
+    'aria-label': workflowName,
     href: Nav.getLink('workflow', { namespace, name, workflowNamespace, workflowName }),
     style: styles.outerLink
   })
@@ -351,14 +352,17 @@ export const Workflows = _.flow(
     return h(PageBox, [
       div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' } }, [
         div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, ['Workflows']),
-        div({ style: { marginLeft: 'auto', marginRight: '0.75rem' } }, ['Sort By:']),
-        h(Select, {
-          value: sortOrder,
-          isClearable: false,
-          styles: { container: old => ({ ...old, width: 220, marginRight: '1.10rem' }) },
-          options: sortOptions,
-          onChange: selected => this.setState({ sortOrder: selected.value })
-        }),
+        h(IdContainer, [id => h(Fragment, [
+          label({ htmlFor: id, style: { marginLeft: 'auto', marginRight: '0.75rem' } }, ['Sort By:']),
+          h(Select, {
+            id,
+            value: sortOrder,
+            isClearable: false,
+            styles: { container: old => ({ ...old, width: 220, marginRight: '1.10rem' }) },
+            options: sortOptions,
+            onChange: selected => this.setState({ sortOrder: selected.value })
+          })
+        ])]),
         viewToggleButtons,
         exportingWorkflow && h(ExportWorkflowModal, {
           thisWorkspace: workspace, methodConfig: this.getConfig(exportingWorkflow),

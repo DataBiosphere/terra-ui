@@ -2,11 +2,11 @@ import FileSaver from 'file-saver'
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
 import { Component, Fragment } from 'react'
-import { div, h, span } from 'react-hyperscript-helpers'
+import { div, h, label, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import {
-  ButtonPrimary, ButtonSecondary, Clickable, LabeledCheckbox, Link, makeMenuIcon, MenuButton, methodLink, RadioButton, Select, spinnerOverlay
+  ButtonPrimary, ButtonSecondary, Clickable, IdContainer, LabeledCheckbox, Link, makeMenuIcon, MenuButton, methodLink, RadioButton, Select, spinnerOverlay
 } from 'src/components/common'
 import Dropzone from 'src/components/Dropzone'
 import { centeredSpinner, icon } from 'src/components/icons'
@@ -133,6 +133,7 @@ const WorkflowIOTable = ({ which, inputsOutputs: data, config, errors, onChange,
               const isFile = (inputType === 'File') || (inputType === 'File?')
               return div({ style: { display: 'flex', alignItems: 'center', width: '100%' } }, [
                 !readOnly ? h(DelayedAutocompleteTextInput, {
+                  'aria-label': name,
                   placeholder: optional ? 'Optional' : 'Required',
                   value,
                   style: isFile ? { borderRadius: '4px 0px 0px 4px', borderRight: 'white' } : undefined,
@@ -574,7 +575,7 @@ const WorkflowView = _.flow(
                   }, [makeMenuIcon('trash'), 'Delete'])
                 ])
               }, [
-                h(Link, [icon('cardMenuIcon', { size: 22 })])
+                h(Link, { 'aria-label': 'Workflow menu' }, [icon('cardMenuIcon', { size: 22 })])
               ])
             ]),
             span({ style: { color: colors.dark(), fontSize: 24 } }, name)
@@ -582,11 +583,12 @@ const WorkflowView = _.flow(
           currentSnapRedacted && div({ style: { color: colors.warning(), fontSize: 16, fontWeight: 500, marginTop: '0.5rem' } }, [
             'The selected snapshot of the referenced workflow has been redacted. You will not be able to run an analysis until you select another snapshot.'
           ]),
-          div({ style: { marginTop: '0.5rem' } }, [
-            'Snapshot ',
+          h(IdContainer, [id => div({ style: { marginTop: '0.5rem' } }, [
+            label({ htmlFor: id }, ['Snapshot ']),
             sourceRepo === 'agora' ?
               div({ style: { display: 'inline-block', marginLeft: '0.25rem', minWidth: 75 } }, [
                 h(Select, {
+                  id,
                   isDisabled: !!Utils.editWorkspaceError(ws),
                   isClearable: false,
                   isSearchable: false,
@@ -599,7 +601,7 @@ const WorkflowView = _.flow(
                 })
               ]) :
               methodVersion
-          ]),
+          ])]),
           div([
             'Source: ', currentSnapRedacted ? `${methodNamespace}/${methodName}/${methodVersion}` : h(Link, {
               href: methodLink(modifiedConfig),
@@ -615,11 +617,12 @@ const WorkflowView = _.flow(
               documentation
             ]) :
             div({ style: { fontStyle: 'italic', ...styles.description } }, ['No documentation provided']),
-          div({ style: { marginBottom: '1rem' } }, [
+          div({ role: 'radiogroup', 'aria-label': 'Select number of target entities', style: { marginBottom: '1rem' } }, [
             div([
               h(RadioButton, {
                 disabled: !!Utils.editWorkspaceError(ws) || currentSnapRedacted,
                 text: 'Process single workflow from files',
+                name: 'process-workflows',
                 checked: this.isSingle(),
                 onChange: () => this.selectSingle(),
                 labelStyle: { marginLeft: '0.5rem' }
@@ -629,11 +632,13 @@ const WorkflowView = _.flow(
               h(RadioButton, {
                 disabled: !!Utils.editWorkspaceError(ws) || currentSnapRedacted,
                 text: `Process multiple workflows from:`,
+                name: 'process-workflows',
                 checked: this.isMultiple(),
                 onChange: () => this.selectMultiple(),
                 labelStyle: { marginLeft: '0.5rem' }
               }),
               h(Select, {
+                'aria-label': 'Entity type selector',
                 isClearable: false, isDisabled: currentSnapRedacted || this.isSingle() || !!Utils.editWorkspaceError(ws), isSearchable: false,
                 placeholder: 'Select data type...',
                 styles: { container: old => ({ ...old, display: 'inline-block', width: 200, marginLeft: '0.5rem' }) },

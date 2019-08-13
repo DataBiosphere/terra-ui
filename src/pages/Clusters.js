@@ -65,7 +65,7 @@ const Clusters = () => {
 
   return h(Fragment, [
     h(TopBar, { title: 'Notebook runtimes', href: Nav.getLink('clusters') }),
-    div({ style: { padding: '1rem', flex: 1, display: 'flex', flexDirection: 'column' } }, [
+    div({ role: 'main', style: { padding: '1rem', flex: 1, display: 'flex', flexDirection: 'column' } }, [
       div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase', marginBottom: '1rem' } }, ['Your notebook runtimes']),
       div({ style: { flex: 1 } }, [
         clusters && h(AutoSizer, [
@@ -95,6 +95,7 @@ const Clusters = () => {
                     cluster.status,
                     cluster.status === 'Error' && h(Clickable, {
                       tooltip: 'View error',
+                      'aria-label': 'View error',
                       onClick: () => setErrorClusterId(cluster.id)
                     }, [icon('warning-standard', { style: { marginLeft: '0.25rem', color: colors.danger() } })])
                   ])
@@ -129,6 +130,7 @@ const Clusters = () => {
                 cellRenderer: ({ rowIndex }) => {
                   const cluster = filteredClusters[rowIndex]
                   return h(Link, {
+                    'aria-label': 'Delete notebook runtime',
                     tooltip: 'Delete notebook runtime',
                     onClick: () => setDeleteClusterId(cluster.id)
                   }, [icon('trash')])

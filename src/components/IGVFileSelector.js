@@ -1,9 +1,9 @@
 import _ from 'lodash/fp'
 import { Component, Fragment } from 'react'
-import { div, h } from 'react-hyperscript-helpers'
+import { div, h, label } from 'react-hyperscript-helpers'
 import { AutoSizer, List } from 'react-virtualized'
 import ButtonBar from 'src/components/ButtonBar'
-import { ButtonPrimary, Clickable, LabeledCheckbox, Link, Select } from 'src/components/common'
+import { ButtonPrimary, Clickable, IdContainer, LabeledCheckbox, Link, Select } from 'src/components/common'
 import TitleBar from 'src/components/TitleBar'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -73,17 +73,18 @@ export class IGVFileSelector extends Component {
 
     return h(Fragment, [
       h(TitleBar, { title: 'IGV', onPrevious, onDismiss }),
-      div({ style: { fontWeight: 500, paddingLeft: '1.25rem' } }, [
-        'Reference genome: ',
+      h(IdContainer, [id => div({ style: { fontWeight: 500, paddingLeft: '1.25rem' } }, [
+        label({ htmlFor: id }, ['Reference genome: ']),
         div({ style: { display: 'inline-block', marginLeft: '0.25rem', marginBottom: '1rem', minWidth: 125 } }, [
           h(Select, {
+            id,
             options: ['hg38', 'hg19', 'hg18', 'mm10', 'panTro4', 'panPan2', 'susScr11',
               'bosTau8', 'canFam3', 'rn6', 'danRer10', 'dm6', 'sacCer3'],
             value: refGenome,
             onChange: ({ value }) => this.setState({ refGenome: value })
           })
         ])
-      ]),
+      ])]),
       div({ style: Style.modalDrawer.content }, [
         div({ style: { marginBottom: '1rem', display: 'flex' } }, [
           div({ style: { fontWeight: 500 } }, ['Select:']),
