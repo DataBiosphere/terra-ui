@@ -29,7 +29,7 @@ const styles = {
   },
   rightBox: {
     flex: 'none', width: 350, backgroundColor: colors.light(0.4),
-    padding: '0 1rem'
+    padding: '0 1rem 2rem'
   },
   header: {
     ...Style.elements.sectionHeader, textTransform: 'uppercase',
@@ -212,7 +212,8 @@ export const WorkspaceDashboard = _.flow(
             style: { marginLeft: '0.5rem' },
             disabled: !!Utils.editWorkspaceError(workspace),
             tooltip: Utils.editWorkspaceError(workspace),
-            onClick: () => this.setState({ editDescription: description })
+            onClick: () => this.setState({ editDescription: description }),
+            'aria-label': 'Edit description'
           }, [icon('edit')])
         ]),
         Utils.cond(
@@ -287,6 +288,7 @@ export const WorkspaceDashboard = _.flow(
           h(WorkspaceTagSelect, {
             value: null,
             placeholder: 'Add a tag',
+            'aria-label': 'Add a tag',
             onChange: ({ value }) => this.addTag(value)
           })
         ]),
@@ -296,6 +298,7 @@ export const WorkspaceDashboard = _.flow(
               tag,
               Utils.canWrite(accessLevel) && h(Link, {
                 tooltip: 'Remove tag',
+                'aria-label': 'Remove tag',
                 disabled: busy,
                 onClick: () => this.deleteTag(tag),
                 style: { marginLeft: '0.25rem', verticalAlign: 'middle', display: 'inline-block' }
@@ -325,6 +328,7 @@ export const WorkspaceDashboard = _.flow(
           h(Link, {
             style: { margin: '0 0.5rem', flexShrink: 0 },
             tooltip: 'Copy bucket name',
+            'aria-label': 'Copy bucket name',
             onClick: withErrorReporting('Error copying to clipboard', async () => {
               await clipboard.writeText(bucketName)
               this.setState({ bucketCopied: true }, () => {

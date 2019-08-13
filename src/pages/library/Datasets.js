@@ -63,7 +63,7 @@ const logoBox = ({ src, alt, height }) => div({
   }
 }, [
   img({
-    src, alt, height: height || '60%', width: 'auto'
+    src, alt, role: 'img', height: height || '60%', width: 'auto'
   })
 ])
 
@@ -97,6 +97,7 @@ class Participant extends Component {
         div({ style: { marginTop: '1rem' } }, [children])
       ]),
       showingModal && h(Modal, {
+        contentLabel: title,
         onDismiss: () => this.setState({ showingModal: false }),
         width: 880,
         showCancel: false
@@ -351,7 +352,7 @@ const ukb = () => h(Participant, {
 const Datasets = pure(() => {
   return h(Fragment, [
     libraryTopMatter('datasets'),
-    div({ style: styles.content }, [
+    div({ role: 'main', style: styles.content }, [
       // Put datasets in alphabetical order
       thousandGenomesHighCoverage(), thousandGenomesLowCoverage(), amppd(), baseline(), ccdg(), cmg(), encode(), fcDataLib(), framingham(), hca(), nemo(), nhs(),
       topMed(), ukb()

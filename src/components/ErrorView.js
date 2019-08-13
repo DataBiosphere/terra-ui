@@ -7,8 +7,7 @@ import * as Utils from 'src/libs/utils'
 
 const stackTraceView = lines => h(Collapse, {
   style: { marginTop: '0.5rem' },
-  title: 'Stack Trace',
-  defaultHidden: true
+  title: 'Stack Trace'
 }, [
   pre({ style: { overflowX: 'auto' } }, [
     lines.map(({ className, methodName, fileName, lineNumber }, idx) => div({ key: idx }, [
@@ -31,8 +30,7 @@ const jsonErrorView = ({ statusCode, source, causes, stackTrace, message, except
   causes && causes.map((cause, idx) => h(Collapse, {
     key: idx,
     style: { marginTop: '0.5rem' },
-    title: causes.length === 1 ? 'Cause' : `Cause ${idx + 1}`,
-    defaultHidden: true
+    title: causes.length === 1 ? 'Cause' : `Cause ${idx + 1}`
   }, jsonErrorView(cause)))
 ])
 
@@ -62,8 +60,7 @@ const ErrorView = ({ collapses = true, containerStyle = {}, error }) => {
     collapses ?
       h(Collapse, {
         style: containerStyle,
-        title: 'Error details',
-        defaultHidden: true
+        title: 'Error details'
       }, [content]) :
       content
   ])

@@ -78,7 +78,7 @@ export const ModalToolButton = ({ children, ...props }) => {
 
 const DataTypeButton = ({ selected, children, iconName = 'listAlt', iconSize = 14, ...props }) => {
   return h(Clickable, {
-    style: { ...Style.navList.item(selected), color: colors.accent() },
+    style: { ...Style.navList.item(selected), color: colors.accent(1.2) },
     hover: Style.navList.itemHover(selected),
     ...props
   }, [
@@ -188,6 +188,7 @@ const LocalVariablesContent = class LocalVariablesContent extends Component {
           h(Link, { onClick: openUploader }, ['upload TSV'])
         ]),
         h(DelayedSearchInput, {
+          'aria-label': 'Search',
           style: { width: 300, marginLeft: '1rem' },
           placeholder: 'Search',
           onChange: v => this.setState({ textFilter: v }),
@@ -267,6 +268,7 @@ const LocalVariablesContent = class LocalVariablesContent extends Component {
                             })
                           }, [icon('edit', { size: 19 })]),
                           h(Link, {
+                            'aria-label': 'Delete variable',
                             disabled: !!Utils.editWorkspaceError(workspace),
                             tooltip: Utils.editWorkspaceError(workspace) || 'Delete variable',
                             style: { marginLeft: '1rem' },
@@ -291,7 +293,7 @@ const LocalVariablesContent = class LocalVariablesContent extends Component {
           editType: 'string'
         })
       }),
-      !!deleteIndex && h(Modal, {
+      deleteIndex !== undefined && h(Modal, {
         onDismiss: () => this.setState({ deleteIndex: undefined }),
         title: 'Are you sure you wish to delete this variable?',
         okButton: h(ButtonPrimary, {
@@ -321,6 +323,7 @@ const ReferenceDataContent = ({ workspace: { workspace: { namespace, attributes 
 
   return h(Fragment, [
     h(DelayedSearchInput, {
+      'aria-label': 'Search',
       style: { width: 300, marginBottom: '1rem', alignSelf: 'flex-end' },
       placeholder: 'Search',
       onChange: setTextFilter,
@@ -527,7 +530,7 @@ class EntitiesContent extends Component {
               '',
         onClick: () => window.open(dataExplorerUrl + '&wid=' + workspaceId)
       }, [
-        icon('search', { style: { marginRight: '0.5rem' } }),
+        icon('search', { 'aria-label': 'search', style: { marginRight: '0.5rem' } }),
         'Open in Data Explorer'
       ])
     ])
@@ -863,6 +866,7 @@ const WorkspaceData = _.flow(
           div({ style: Style.navList.heading }, [
             div(['Tables']),
             h(Link, {
+              'aria-label': 'Upload .tsv',
               disabled: !!Utils.editWorkspaceError(workspace),
               tooltip: Utils.editWorkspaceError(workspace) || 'Upload .tsv',
               onClick: () => this.setState({ uploadingFile: true })
@@ -880,6 +884,7 @@ const WorkspaceData = _.flow(
           div({ style: Style.navList.heading }, [
             div(['Reference Data']),
             h(Link, {
+              'aria-label': 'Add reference data',
               disabled: !!Utils.editWorkspaceError(workspace),
               tooltip: Utils.editWorkspaceError(workspace) || 'Add reference data',
               onClick: () => this.setState({ importingReference: true })
@@ -919,6 +924,7 @@ const WorkspaceData = _.flow(
               div({ style: { display: 'flex', justifyContent: 'space-between' } }, [
                 type,
                 h(Link, {
+                  'aria-label': `Delete ${type}`,
                   disabled: !!Utils.editWorkspaceError(workspace),
                   tooltip: Utils.editWorkspaceError(workspace) || `Delete ${type}`,
                   onClick: e => {

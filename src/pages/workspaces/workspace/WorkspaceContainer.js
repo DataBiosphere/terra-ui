@@ -67,7 +67,7 @@ const WorkspaceTabs = ({ namespace, name, workspace, activeTab, refresh }) => {
         ]),
         side: 'bottom'
       }, [
-        h(Clickable, { ...navIconProps }, [icon('cardMenuIcon', { size: 27 })])
+        h(Clickable, { 'aria-label': 'Workspace menu', ...navIconProps }, [icon('cardMenuIcon', { size: 27 })])
       ])
     ]),
     deletingWorkspace && h(DeleteWorkspaceModal, {
@@ -104,7 +104,7 @@ const WorkspaceContainer = ({ namespace, name, breadcrumbs, topBarContent, title
       })
     ]),
     showTabBar && h(WorkspaceTabs, { namespace, name, activeTab, refresh, workspace }),
-    div({ style: Style.elements.pageContentContainer }, [children])
+    div({ role: 'main', style: Style.elements.pageContentContainer }, [children])
   ])
 }
 
@@ -115,6 +115,11 @@ const WorkspaceAccessError = () => {
   return div({ style: { padding: '2rem' } }, [
     h2(['Could not display workspace']),
     p(['You are trying to access a workspace that either does not exist, or you do not have access to it.']),
+    p([
+      'You are currently logged in as ',
+      span({ style: { fontWeight: 600 } }, [getUser().email]),
+      '. You may have access with a different account.'
+    ]),
     p([
       'To view an existing workspace, the owner of the workspace must share it with you or with a ',
       h(Link, { ...Utils.newTabLinkProps, href: groupURL }, 'Group'), ' of which you are a member. ',
@@ -216,7 +221,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
     })
 
     if (accessError) {
-      return h(WorkspaceAccessError)
+      return h(Fragment, [h(TopBar), h(WorkspaceAccessError)])
     } else {
       return h(WorkspaceContainer, {
         namespace, name, activeTab, showTabBar, workspace, clusters,

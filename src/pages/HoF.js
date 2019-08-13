@@ -5,15 +5,19 @@ import * as Style from 'src/libs/style'
 
 
 const HallOfFame = () => {
-  return div({ style: { flexGrow: 1, margin: '2rem', ...Style.proportionalNumbers } }, [
+  return div({ role: 'main', style: { flexGrow: 1, margin: '2rem', ...Style.proportionalNumbers } }, [
     div({ style: { display: 'flex', alignItems: 'center', fontSize: '4.5rem', marginBottom: '1rem' } }, [
-      img({ src: 'https://avatars1.githubusercontent.com/t/3133227?v=4', style: { height: 80, marginRight: '1rem' } }),
+      img({
+        src: 'https://avatars1.githubusercontent.com/t/3133227?v=4',
+        style: { height: 80, marginRight: '1rem' },
+        alt: 'Saturn logo'
+      }),
       'Team Saturn Hall Of Fame'
     ]),
     h(Fragment, _.map(({ name, dates, pic }) => div({
       style: { display: 'flex', alignItems: 'center', margin: '1rem' }
     }, [
-      img({ src: pic, style: { height: 50, marginRight: '1rem' } }),
+      img({ src: pic, style: { height: 50, marginRight: '1rem' }, alt: `${name} photo` }),
       div([dates, div({ style: { fontSize: '2rem' } }, [name])])
     ]), [
       {

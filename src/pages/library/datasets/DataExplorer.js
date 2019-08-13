@@ -20,7 +20,9 @@ const DataExplorerPage = ({ dataset }) => {
         div({ style: Style.breadcrumb.textUnderBreadcrumb }, [`Data Explorer - ${dataset}`])
       ])
     ]),
-    h(!!authDomain ? PrivateDataExplorer : DataExplorerFrame, { dataset })
+    div({ role: 'main' }, [
+      h(!!authDomain ? PrivateDataExplorer : DataExplorerFrame, { dataset })
+    ])
   ])
 }
 

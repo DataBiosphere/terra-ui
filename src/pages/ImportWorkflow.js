@@ -111,10 +111,12 @@ const Importer = ({ source, item }) => {
 
   return h(Fragment, [
     h(TopBar, { title: 'Import Workflow' }),
-    Utils.cond(
-      [source === 'dockstore', () => h(DockstoreImporter, { path, version })],
-      () => `Unknown source '${source}'`
-    )
+    div({ role: 'main' }, [
+      Utils.cond(
+        [source === 'dockstore', () => h(DockstoreImporter, { path, version })],
+        () => `Unknown source '${source}'`
+      )
+    ])
   ])
 }
 

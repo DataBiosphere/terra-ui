@@ -30,7 +30,12 @@ const DataExplorerFrame = ({ dataset }) => {
     return elem.current.iFrameResizer.removeListeners
   }, [dataset])
 
-  return iframe({ src: `${origin}/?embed&${Nav.history.location.search.slice(1)}`, ref: elem, style: { border: 'none' } })
+  return iframe({
+    src: `${origin}/?embed&${Nav.history.location.search.slice(1)}`,
+    ref: elem,
+    style: { border: 'none' },
+    title: `${dataset} - Data Explorer`
+  })
 }
 
 export default DataExplorerFrame
