@@ -370,7 +370,10 @@ const ToolDrawer = ({ workspace, openDrawer, onDismiss: baseOnDismiss, onIgvSucc
   }, [
     h(Fragment, [
       h(TitleBar, {
-        title: _.toUpper(toolMode || 'Open with...'),
+        title: Utils.switchCase(toolMode,
+          ['IGV', 'IGV'],
+          ['Workflow', 'YOUR WORKFLOWS'],
+          Utils.DEFAULT, 'OPEN WITH...'),
         onPrevious: toolMode ? (() => setToolMode(undefined)) : undefined,
         onDismiss
       }),
