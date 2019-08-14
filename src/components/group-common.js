@@ -125,7 +125,7 @@ export const NewUserModal = ajaxCaller(class NewUserModal extends Component {
         title,
         okButton: h(ButtonPrimary, {
           tooltip: Utils.summarizeErrors(errors),
-          onClick: () => this.submit(),
+          onClick: () => this.addUser(),
           disabled: errors
         }, ['Add User'])
       }, [
@@ -166,46 +166,11 @@ export const NewUserModal = ajaxCaller(class NewUserModal extends Component {
           checked: isAdmin,
           onChange: () => this.setState({ roles: [isAdmin ? userLabel : adminLabel] })
         }, [
-          h(RequiredFormLabel, ['User email']),
-          h(AutocompleteSearch, {
-            autoFocus: true,
-            value: userEmail,
-            onChange: v => this.setState({ userEmail: v }),
-            renderSuggestion: suggestion => div({ style: styles.suggestionContainer }, [
-              div({ style: { flex: 1 } }, [
-                !canAdd(suggestion) && h(TooltipTrigger, {
-                  content: 'Not a valid email address'
-                }, [
-                  icon('warning-standard', { style: { color: colors.danger(), marginRight: '0.5rem' } })
-                ]),
-                suggestion
-              ])
-            ]),
-            onSuggestionSelected: selection => {
-              this.setState({ userEmail: selection })
-            },
-            onKeyDown: e => {
-            // 27 = Escape
-              if (e.which === 27 && !!userEmail) {
-                this.setState({ userEmail: '' })
-                e.stopPropagation()
-              }
-            },
-            suggestions,
-            style: { fontSize: 16 },
-            theme: { suggestion: { padding: 0 } }
-          }),
-          h(FormLabel, ['Role']),
-          h(LabeledCheckbox, {
-            checked: isAdmin,
-            onChange: () => this.setState({ roles: [isAdmin ? userLabel : adminLabel] })
-          }, [
-            label({ style: { margin: '0 2rem 0 0.25rem' } }, [`Can manage users (${adminLabel})`])
-          ]),
-          footer && div({ style: { marginTop: '1rem' } }, [footer]),
-          submitError && div({ style: { marginTop: '0.5rem', textAlign: 'right', color: colors.danger() } }, [submitError]),
-          busy && spinnerOverlay
-        ])
+          label({ style: { margin: '0 2rem 0 0.25rem' } }, [`Can manage users (${adminLabel})`])
+        ]),
+        footer && div({ style: { marginTop: '1rem' } }, [footer]),
+        submitError && div({ style: { marginTop: '0.5rem', textAlign: 'right', color: colors.danger() } }, [submitError]),
+        busy && spinnerOverlay
       ])
     )
   }
@@ -226,7 +191,6 @@ export const NewUserModal = ajaxCaller(class NewUserModal extends Component {
   )(async () => {
     const { addUnregisteredUser = false, ajax: { User } } = this.props
     const { userEmail } = this.state
-
     addUnregisteredUser && !await User.isUserRegistered(userEmail) ? this.setState({ confirmAddUser: true }) : await this.submit()
   })
 
