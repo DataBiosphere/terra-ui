@@ -1,10 +1,9 @@
 import _ from 'lodash/fp'
-import { Component, Fragment } from 'react'
+import { Component } from 'react'
 import { div, h, label } from 'react-hyperscript-helpers'
 import { AutoSizer, List } from 'react-virtualized'
 import ButtonBar from 'src/components/ButtonBar'
 import { ButtonPrimary, Clickable, IdContainer, LabeledCheckbox, Link, Select } from 'src/components/common'
-import TitleBar from 'src/components/TitleBar'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 
@@ -67,13 +66,12 @@ export class IGVFileSelector extends Component {
   }
 
   render() {
-    const { onPrevious, onDismiss, onSuccess } = this.props
+    const { onSuccess } = this.props
     const { selectedFiles, refGenome } = this.state
     const trackFiles = this.getIGVFileList()
 
-    return h(Fragment, [
-      h(TitleBar, { title: 'IGV', onPrevious, onDismiss }),
-      h(IdContainer, [id => div({ style: { fontWeight: 500, paddingLeft: '1.25rem' } }, [
+    return div({ style: Style.modalDrawer.content }, [
+      h(IdContainer, [id => div({ style: { fontWeight: 500 } }, [
         label({ htmlFor: id }, ['Reference genome: ']),
         div({ style: { display: 'inline-block', marginLeft: '0.25rem', marginBottom: '1rem', minWidth: 125 } }, [
           h(Select, {
@@ -85,41 +83,39 @@ export class IGVFileSelector extends Component {
           })
         ])
       ])]),
-      div({ style: Style.modalDrawer.content }, [
-        div({ style: { marginBottom: '1rem', display: 'flex' } }, [
-          div({ style: { fontWeight: 500 } }, ['Select:']),
-          h(Link, { style: { padding: '0 0.5rem' }, onClick: () => this.setAll(true) }, ['all']),
-          '|',
-          h(Link, { style: { padding: '0 0.5rem' }, onClick: () => this.setAll(false) }, ['none'])
-        ]),
-        div({ style: { flex: 1 } }, [
-          h(AutoSizer, [
-            ({ width, height }) => {
-              return h(List, {
-                height,
-                width,
-                rowCount: trackFiles.length,
-                rowHeight: 30,
-                noRowsRenderer: () => 'No valid files found',
-                rowRenderer: ({ index, style, key }) => {
-                  const name = trackFiles[index]
-                  return div({ key, index, style: { ...style, marginBottom: 'auto', display: 'flex' } }, [
-                    div({ style: { display: 'flex', alignItems: 'center' } }, [
-                      h(LabeledCheckbox, {
-                        checked: selectedFiles[name],
-                        onChange: () => this.toggleVisibility(name)
-                      })
-                    ]),
-                    h(Clickable, {
-                      style: styles.columnName,
-                      title: name,
-                      onClick: () => this.toggleVisibility(name)
-                    }, [_.last(name.split('/'))])
-                  ])
-                }
-              })
-            }
-          ])
+      div({ style: { marginBottom: '1rem', display: 'flex' } }, [
+        div({ style: { fontWeight: 500 } }, ['Select:']),
+        h(Link, { style: { padding: '0 0.5rem' }, onClick: () => this.setAll(true) }, ['all']),
+        '|',
+        h(Link, { style: { padding: '0 0.5rem' }, onClick: () => this.setAll(false) }, ['none'])
+      ]),
+      div({ style: { flex: 1, marginBottom: '3rem' } }, [
+        h(AutoSizer, [
+          ({ width, height }) => {
+            return h(List, {
+              height,
+              width,
+              rowCount: trackFiles.length,
+              rowHeight: 30,
+              noRowsRenderer: () => 'No valid files found',
+              rowRenderer: ({ index, style, key }) => {
+                const name = trackFiles[index]
+                return div({ key, index, style: { ...style, marginBottom: 'auto', display: 'flex' } }, [
+                  div({ style: { display: 'flex', alignItems: 'center' } }, [
+                    h(LabeledCheckbox, {
+                      checked: selectedFiles[name],
+                      onChange: () => this.toggleVisibility(name)
+                    })
+                  ]),
+                  h(Clickable, {
+                    style: styles.columnName,
+                    title: name,
+                    onClick: () => this.toggleVisibility(name)
+                  }, [_.last(name.split('/'))])
+                ])
+              }
+            })
+          }
         ])
       ]),
       h(ButtonBar, {
