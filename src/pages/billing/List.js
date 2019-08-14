@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { Component, Fragment } from 'react'
-import { div, h, span } from 'react-hyperscript-helpers'
+import { div, h, h2, p, span } from 'react-hyperscript-helpers'
 import { ButtonPrimary, Clickable, IdContainer, Link, Select, spinnerOverlay } from 'src/components/common'
 import { icon, spinner } from 'src/components/icons'
 import { ValidatedInput } from 'src/components/input'
@@ -309,6 +309,11 @@ export const BillingList = _.flow(
           }
         }),
         Utils.cond(
+          [selectedName && hasBillingProjects && !_.some({ projectName: selectedName }, billingProjects),
+            () => div({ style: { margin: '1rem auto 0 auto' } }, [
+              h2(['Error loading selected billing project.']),
+              p(['It may not exist, or you may not have access to it.'])
+            ])],
           [selectedName && hasBillingProjects, () => h(ProjectDetail, {
             key: selectedName,
             project: _.find({ projectName: selectedName }, billingProjects),
