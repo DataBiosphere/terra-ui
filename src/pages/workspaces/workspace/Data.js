@@ -356,7 +356,7 @@ const ReferenceDataContent = ({ workspace: { workspace: { namespace, attributes 
 
 const ToolDrawer = ({ workspace, openDrawer, onDismiss: baseOnDismiss, onIgvSuccess, selectedEntities }) => {
   const [toolMode, setToolMode] = useState()
-  const entitiesCount = _.keys(selectedEntities).length
+  const entitiesCount = _.size(selectedEntities)
   const entitiesType = !!entitiesCount && selectedEntities[_.keys(selectedEntities)[0]].entityType
   const onDismiss = () => {
     baseOnDismiss()
@@ -428,7 +428,7 @@ const ToolDrawer = ({ workspace, openDrawer, onDismiss: baseOnDismiss, onIgvSucc
           fontSize: 12
         }
       }, [
-        `${entitiesCount} ${entitiesType}s selected`
+        `${entitiesCount} ${entitiesType + (entitiesCount > 1 ? 's' : '')} selected`
       ]),
       drawerContent
     ])
