@@ -98,6 +98,7 @@ export const GroupDetails = ajaxCaller(class GroupDetails extends Component {
           adminLabel: 'admin',
           userLabel: 'member',
           title: 'Add user to Terra Group',
+          addUnregisteredUser: true,
           addFunction: Ajax().Groups.group(groupName).addUser,
           onDismiss: () => this.setState({ creatingNewUser: false }),
           onSuccess: () => this.refresh()
