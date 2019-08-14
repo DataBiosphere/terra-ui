@@ -189,7 +189,7 @@ export const NewUserModal = ajaxCaller(class NewUserModal extends Component {
     const { addUnregisteredUser = false, ajax: { User } } = this.props
     const { userEmail } = this.state
 
-    addUnregisteredUser && !await User.isUserRegistered(userEmail) ? this.setState({ confirmAddUser: true }) : this.submit()
+    addUnregisteredUser && !await User.isUserRegistered(userEmail) ? this.setState({ confirmAddUser: true }) : await this.submit()
   })
 
   async submit() {

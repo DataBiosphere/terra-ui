@@ -53,8 +53,10 @@ const Modal = () => {
   const userLabel = text('User Label', 'user')
   const [showModal, setShowModal] = useState(true)
 
-  useEffect(() => clearOverrides, [])
-  setOverrides({ isRegistered, ms })
+  useEffect(() => {
+    setOverrides({ isRegistered, ms })
+    return clearOverrides
+  }, [isRegistered, ms])
 
   return h(Fragment, [
     h('button', { onClick: () => setShowModal(true), style: { width: '100px' } }, 'Add User'),
