@@ -363,6 +363,50 @@ const ToolDrawer = ({ workspace, openDrawer, onDismiss: baseOnDismiss, onIgvSucc
     setToolMode(undefined)
   }
 
+  const { title, drawerContent } = Utils.switchCase(toolMode, [
+    'IGV', () => ({
+      title: 'IGV',
+      drawerContent: h(IGVFileSelector, {
+        onSuccess: onIgvSuccess,
+        selectedEntities
+      })
+    })
+  ], [
+    'Workflow', () => ({
+      title: 'YOUR WORKFLOWS',
+      drawerContent: h(WorkflowSelector, { workspace, selectedEntities })
+    })
+  ], [
+    Utils.DEFAULT, () => ({
+      title: 'OPEN WITH...',
+      drawerContent: h(Fragment, [
+        div({ style: Style.modalDrawer.content }, [
+          div({ style: { margin: '1rem 0' } }, [
+            h(ModalToolButton, {
+              onClick: () => setToolMode('IGV'),
+              tooltip: 'Open with Integrative Genomics Viewer'
+            }, [
+              div({ style: { display: 'flex', alignItems: 'center', width: 45, marginRight: '1rem' } }, [
+                img({ src: igvLogo, style: { width: 40 } })
+              ]),
+              'IGV'
+            ]),
+            h(ModalToolButton, {
+              onClick: () => setToolMode('Workflow'),
+              tooltip: 'Open with Workflow',
+              style: { marginTop: '0.5rem' }
+            }, [
+              div({ style: { display: 'flex', alignItems: 'center', width: 45, marginRight: '1rem' } }, [
+                img({ src: wdlLogo, style: { height: '1rem' } })
+              ]),
+              'Workflow'
+            ])
+          ])
+        ])
+      ])
+    })
+  ])
+
   return h(ModalDrawer, {
     openDrawer,
     onDismiss,
@@ -370,11 +414,8 @@ const ToolDrawer = ({ workspace, openDrawer, onDismiss: baseOnDismiss, onIgvSucc
   }, [
     h(Fragment, [
       h(TitleBar, {
-        title: Utils.switchCase(toolMode,
-          ['IGV', () => 'IGV'],
-          ['Workflow', () => 'YOUR WORKFLOWS'],
-          [Utils.DEFAULT, () => 'OPEN WITH...']),
-        onPrevious: toolMode ? (() => setToolMode(undefined)) : undefined,
+        title,
+        onPrevious: toolMode ? () => { setToolMode(undefined) } : undefined,
         onDismiss
       }),
       div({
@@ -389,40 +430,7 @@ const ToolDrawer = ({ workspace, openDrawer, onDismiss: baseOnDismiss, onIgvSucc
       }, [
         `${entitiesCount} ${entitiesType}s selected`
       ]),
-      Utils.switchCase(toolMode, [
-        'IGV', () => h(IGVFileSelector, {
-          onSuccess: onIgvSuccess,
-          selectedEntities
-        })
-      ], [
-        'Workflow', () => h(WorkflowSelector, { workspace, selectedEntities })
-      ], [
-        Utils.DEFAULT, () => h(Fragment, [
-          div({ style: Style.modalDrawer.content }, [
-            div({ style: { margin: '1rem 0' } }, [
-              h(ModalToolButton, {
-                onClick: () => setToolMode('IGV'),
-                tooltip: 'Open with Integrative Genomics Viewer'
-              }, [
-                div({ style: { display: 'flex', alignItems: 'center', width: 45, marginRight: '1rem' } }, [
-                  img({ src: igvLogo, style: { width: 40 } })
-                ]),
-                'IGV'
-              ]),
-              h(ModalToolButton, {
-                onClick: () => setToolMode('Workflow'),
-                tooltip: 'Open with Workflow',
-                style: { marginTop: '0.5rem' }
-              }, [
-                div({ style: { display: 'flex', alignItems: 'center', width: 45, marginRight: '1rem' } }, [
-                  img({ src: wdlLogo, style: { height: '1rem' } })
-                ]),
-                'Workflow'
-              ])
-            ])
-          ])
-        ])
-      ])
+      drawerContent
     ])
   ])
 }
