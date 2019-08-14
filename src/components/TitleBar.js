@@ -7,18 +7,20 @@ import { icon } from 'src/components/icons'
 const TitleBar = ({ onPrevious, title, onDismiss, titleExtras }) => {
   return div({
     style: {
-      display: 'flex', alignItems: 'baseline', marginBottom: '1rem', flex: 'none', padding: '1.5rem 1.25rem'
+      display: 'flex', alignItems: 'baseline', marginBottom: '1rem', flex: 'none', padding: '1.5rem'
     }
   }, [
     onPrevious && h(Clickable, {
+      'aria-label': 'Back',
       onClick: onPrevious
-    }, [icon('arrowLeft')]),
+    }, [icon('arrowLeft', { size: 17 })]),
     div({ style: { fontSize: '0.875rem', fontWeight: 600, marginLeft: onPrevious ? 'auto' : undefined } }, [title]),
     titleExtras,
     onDismiss && h(Clickable, {
+      'aria-label': 'Close',
       style: { marginLeft: 'auto' },
       onClick: onDismiss
-    }, [icon('times')])
+    }, [icon('times', { size: 20 })])
   ])
 }
 

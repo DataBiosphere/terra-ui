@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { Fragment } from 'react'
+import { Component, Fragment } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
@@ -13,7 +13,6 @@ import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import { Component } from 'src/libs/wrapped-components'
 
 
 const styles = {
@@ -33,6 +32,11 @@ const styles = {
 }
 
 const DockstoreImporter = ajaxCaller(class DockstoreImporter extends Component {
+  constructor(props) {
+    super(props)
+    this.state = { isImporting: false, wdl: undefined }
+  }
+
   componentDidMount() {
     this.loadWdl()
   }
@@ -102,24 +106,18 @@ const DockstoreImporter = ajaxCaller(class DockstoreImporter extends Component {
 })
 
 
-class Importer extends Component {
-  render() {
-    const { source } = this.props
+const Importer = ({ source, item }) => {
+  const [path, version] = item.split(':')
 
-    return h(Fragment, [
-      h(TopBar, { title: 'Import Workflow' }),
+  return h(Fragment, [
+    h(TopBar, { title: 'Import Workflow' }),
+    div({ role: 'main' }, [
       Utils.cond(
-        [source === 'dockstore', () => this.renderDockstore()],
+        [source === 'dockstore', () => h(DockstoreImporter, { path, version })],
         () => `Unknown source '${source}'`
       )
     ])
-  }
-
-  renderDockstore() {
-    const { item } = this.props
-    const [path, version] = item.split(':')
-    return h(DockstoreImporter, { path, version })
-  }
+  ])
 }
 
 

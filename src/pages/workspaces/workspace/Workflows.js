@@ -1,11 +1,11 @@
 import _ from 'lodash/fp'
-import { Fragment } from 'react'
-import { a, div, h, span } from 'react-hyperscript-helpers'
+import { Component, Fragment } from 'react'
+import { a, div, h, label, span } from 'react-hyperscript-helpers'
 import { pure } from 'recompose'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import togglesListView from 'src/components/CardsListToggle'
 import {
-  ButtonOutline, ButtonPrimary, Clickable, Link, makeMenuIcon, MenuButton, methodLink, PageBox, Select, spinnerOverlay
+  ButtonOutline, ButtonPrimary, Clickable, IdContainer, Link, makeMenuIcon, MenuButton, methodLink, PageBox, Select, spinnerOverlay
 } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { Markdown } from 'src/components/Markdown'
@@ -20,7 +20,6 @@ import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import { Component } from 'src/libs/wrapped-components'
 import { dockstoreTile, fcMethodRepoTile, makeWorkflowCard } from 'src/pages/library/Code'
 import DeleteWorkflowModal from 'src/pages/workspaces/workspace/workflows/DeleteWorkflowModal'
 import ExportWorkflowModal from 'src/pages/workspaces/workspace/workflows/ExportWorkflowModal'
@@ -88,26 +87,32 @@ const sortOptions = [
   { label: 'Reverse Alphabetical', value: { field: 'lowerCaseName', direction: 'desc' } }
 ]
 
-const WorkflowCard = pure(({ listView, name, namespace, config, onCopy, onDelete, isRedacted, workspace }) => {
+const WorkflowCard = pure(({ listView, name, namespace, config, onExport, onCopy, onDelete, isRedacted, workspace }) => {
   const { namespace: workflowNamespace, name: workflowName, methodRepoMethod: { sourceRepo, methodVersion } } = config
   const workflowCardMenu = h(PopupTrigger, {
     closeOnClick: true,
     content: h(Fragment, [
       h(MenuButton, {
-        onClick: () => onCopy(),
+        onClick: onExport,
         disabled: isRedacted,
         tooltip: isRedacted ? 'This workflow version is redacted' : undefined,
         tooltipSide: 'left'
-      }, [makeMenuIcon('copy'), 'Copy to Another Workspace']),
+      }, [makeMenuIcon('export'), 'Copy to Another Workspace']),
       h(MenuButton, {
+        onClick: onCopy,
         disabled: !!Utils.editWorkspaceError(workspace),
         tooltip: Utils.editWorkspaceError(workspace),
-        tooltipSide: 'left',
-        onClick: () => onDelete()
+        tooltipSide: 'left'
+      }, [makeMenuIcon('copy'), 'Duplicate']),
+      h(MenuButton, {
+        onClick: onDelete,
+        disabled: !!Utils.editWorkspaceError(workspace),
+        tooltip: Utils.editWorkspaceError(workspace),
+        tooltipSide: 'left'
       }, [makeMenuIcon('trash'), 'Delete'])
     ])
   }, [
-    h(Link, { onClick: e => e.stopPropagation(), style: styles.innerLink }, [
+    h(Link, { 'aria-label': 'Workflow menu', onClick: e => e.stopPropagation(), style: styles.innerLink }, [
       icon('cardMenuIcon', {
         size: listView ? 18 : 24
       })
@@ -121,6 +126,7 @@ const WorkflowCard = pure(({ listView, name, namespace, config, onCopy, onDelete
   }, sourceRepo === 'agora' ? 'Terra' : sourceRepo)
 
   const workflowLink = a({
+    'aria-label': workflowName,
     href: Nav.getLink('workflow', { namespace, name, workflowNamespace, workflowName }),
     style: styles.outerLink
   })
@@ -160,6 +166,17 @@ const WorkflowCard = pure(({ listView, name, namespace, config, onCopy, onDelete
 })
 
 const FindWorkflowModal = ajaxCaller(class FindWorkflowModal extends Component {
+  constructor(props) {
+    super(props)
+    this.state = {
+      selectedWorkflow: undefined,
+      featuredList: undefined,
+      methods: undefined,
+      selectedWorkflowDetails: undefined,
+      exporting: undefined
+    }
+  }
+
   async componentDidMount() {
     const { ajax: { Methods } } = this.props
 
@@ -318,12 +335,13 @@ export const Workflows = _.flow(
 
   render() {
     const { namespace, name, listView, viewToggleButtons, workspace: ws, workspace: { workspace } } = this.props
-    const { loading, configs, copyingWorkflow, deletingWorkflow, findingWorkflow, sortOrder, sortOrder: { field, direction } } = this.state
+    const { loading, configs, exportingWorkflow, copyingWorkflow, deletingWorkflow, findingWorkflow, sortOrder, sortOrder: { field, direction } } = this.state
     const workflows = _.flow(
       _.orderBy(sortTokens[field] || field, direction),
       _.map(config => {
         const isRedacted = this.computeRedacted(config)
         return h(WorkflowCard, {
+          onExport: () => this.setState({ exportingWorkflow: { namespace: config.namespace, name: config.name } }),
           onCopy: () => this.setState({ copyingWorkflow: { namespace: config.namespace, name: config.name } }),
           onDelete: () => this.setState({ deletingWorkflow: { namespace: config.namespace, name: config.name } }),
           key: `${config.namespace}/${config.name}`, namespace, name, config, listView, isRedacted, workspace: ws
@@ -334,18 +352,30 @@ export const Workflows = _.flow(
     return h(PageBox, [
       div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' } }, [
         div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, ['Workflows']),
-        div({ style: { marginLeft: 'auto', marginRight: '0.75rem' } }, ['Sort By:']),
-        h(Select, {
-          value: sortOrder,
-          isClearable: false,
-          styles: { container: old => ({ ...old, width: 220, marginRight: '1.10rem' }) },
-          options: sortOptions,
-          onChange: selected => this.setState({ sortOrder: selected.value })
-        }),
+        h(IdContainer, [id => h(Fragment, [
+          label({ htmlFor: id, style: { marginLeft: 'auto', marginRight: '0.75rem' } }, ['Sort By:']),
+          h(Select, {
+            id,
+            value: sortOrder,
+            isClearable: false,
+            styles: { container: old => ({ ...old, width: 220, marginRight: '1.10rem' }) },
+            options: sortOptions,
+            onChange: selected => this.setState({ sortOrder: selected.value })
+          })
+        ])]),
         viewToggleButtons,
+        exportingWorkflow && h(ExportWorkflowModal, {
+          thisWorkspace: workspace, methodConfig: this.getConfig(exportingWorkflow),
+          onDismiss: () => this.setState({ exportingWorkflow: undefined })
+        }),
         copyingWorkflow && h(ExportWorkflowModal, {
           thisWorkspace: workspace, methodConfig: this.getConfig(copyingWorkflow),
-          onDismiss: () => this.setState({ copyingWorkflow: undefined })
+          sameWorkspace: true,
+          onDismiss: () => this.setState({ copyingWorkflow: undefined }),
+          onSuccess: () => {
+            this.refresh()
+            this.setState({ copyingWorkflow: undefined })
+          }
         }),
         deletingWorkflow && h(DeleteWorkflowModal, {
           workspace, methodConfig: this.getConfig(deletingWorkflow),

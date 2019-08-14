@@ -2,7 +2,7 @@ import * as clipboard from 'clipboard-polyfill'
 import filesize from 'filesize'
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
-import { Fragment, useState } from 'react'
+import { Component, Fragment, useState } from 'react'
 import { div, h, img, input } from 'react-hyperscript-helpers'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
 import Collapse from 'src/components/Collapse'
@@ -16,7 +16,6 @@ import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import { requesterPaysBuckets, requesterPaysProjectStore, workspaceStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
-import { Component } from 'src/libs/wrapped-components'
 
 
 const styles = {
@@ -144,6 +143,12 @@ const UriViewer = _.flow(
     uri: PropTypes.string.isRequired
   }
 
+  constructor(props) {
+    super(props)
+    this.state = { metadata: undefined, copied: undefined, loadingError: undefined }
+  }
+
+
   async componentDidMount() {
     const { googleProject, uri, ajax: { Buckets, Martha }, onRequesterPaysError } = this.props
     try {
@@ -183,7 +188,7 @@ const UriViewer = _.flow(
           div({ style: { paddingBottom: '1rem' } }, [
             'Error loading data. This file does not exist or you do not have permission to view it.'
           ]),
-          h(Collapse, { defaultHidden: true, title: 'Details' }, [
+          h(Collapse, { title: 'Details' }, [
             div({ style: { whiteSpace: 'pre-wrap', fontFamily: 'monospace', overflowWrap: 'break-word' } }, [
               JSON.stringify(loadingError, null, 2)
             ])
@@ -231,7 +236,6 @@ const UriViewer = _.flow(
           ]),
           (timeCreated || updated) && h(Collapse, {
             title: 'More Information',
-            defaultHidden: true,
             style: { marginTop: '2rem' }
           }, [
             timeCreated && els.cell([

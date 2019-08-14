@@ -1,13 +1,12 @@
 import { isAfter } from 'date-fns'
-import debouncePromise from 'debounce-promise'
 import _ from 'lodash/fp'
-import { Fragment, useState } from 'react'
+import { Component, Fragment, useState } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import { pure } from 'recompose'
 import removeMd from 'remove-markdown'
 import togglesListView from 'src/components/CardsListToggle'
 import {
-  AsyncCreatableSelect, Clickable, LabeledCheckbox, Link, makeMenuIcon, MenuButton, PageBox, Select, topSpinnerOverlay, transparentSpinnerOverlay
+  Clickable, LabeledCheckbox, Link, makeMenuIcon, MenuButton, PageBox, Select, topSpinnerOverlay, transparentSpinnerOverlay
 } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { DelayedSearchInput } from 'src/components/input'
@@ -15,7 +14,7 @@ import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
 import PopupTrigger from 'src/components/PopupTrigger'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import TopBar from 'src/components/TopBar'
-import { withWorkspaces } from 'src/components/workspace-utils'
+import { withWorkspaces, WorkspaceTagSelect } from 'src/components/workspace-utils'
 import { Ajax, ajaxCaller, useCancellation } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
@@ -23,7 +22,6 @@ import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import { Component } from 'src/libs/wrapped-components'
 import DeleteWorkspaceModal from 'src/pages/workspaces/workspace/DeleteWorkspaceModal'
 import { RequestAccessModal } from 'src/pages/workspaces/workspace/RequestAccessModal'
 import ShareWorkspaceModal from 'src/pages/workspaces/workspace/ShareWorkspaceModal'
@@ -150,7 +148,7 @@ const WorkspaceCard = pure(({
     closeOnClick: true,
     content: h(WorkspaceMenuContent, { namespace, name, onShare, onClone, onDelete })
   }, [
-    h(Link, { onClick: e => e.preventDefault(), disabled: !canView }, [
+    h(Link, { 'aria-label': 'Workspace menu', onClick: e => e.preventDefault(), disabled: !canView }, [
       icon('cardMenuIcon', {
         size: listView ? 18 : 24
       })
@@ -247,17 +245,6 @@ export const WorkspaceList = _.flow(
     return _.find({ workspace: { workspaceId: id } }, workspaces)
   }
 
-  getTagSuggestions = debouncePromise(withErrorReporting('Error loading tags', async text => {
-    const { ajax: { Workspaces } } = this.props
-    if (text.length > 2) {
-      return _.map(({ tag, count }) => {
-        return { value: tag, label: `${tag} (${count})` }
-      }, _.take(10, await Workspaces.getTags(text)))
-    } else {
-      return []
-    }
-  }), 250)
-
   render() {
     const { workspaces, loadingWorkspaces, refreshWorkspaces, listView, viewToggleButtons } = this.props
     const { filter, creatingNewWorkspace, cloningWorkspaceId, deletingWorkspaceId, sharingWorkspaceId, requestingAccessWorkspaceId, accessLevelsFilter, projectsFilter, submissionsFilter, tagsFilter, includePublic } = this.state
@@ -317,11 +304,12 @@ export const WorkspaceList = _.flow(
         h(DelayedSearchInput, {
           style: { marginLeft: '2rem', width: 500 },
           placeholder: 'SEARCH WORKSPACES',
+          'aria-label': 'Search workspaces',
           onChange: v => this.setState({ filter: v }),
-          defaultValue: filter
+          value: filter
         })
       ]),
-      h(PageBox, { style: { position: 'relative' } }, [
+      h(PageBox, { role: 'main', style: { position: 'relative' } }, [
         div({ style: { display: 'flex', alignItems: 'center', marginBottom: '1rem' } }, [
           div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, ['Workspaces']),
           div({ style: { marginLeft: 'auto', marginRight: '1rem' } }, [
@@ -335,16 +323,14 @@ export const WorkspaceList = _.flow(
         div({ style: { display: 'flex', marginBottom: '1rem' } }, [
           div({ style: { display: 'flex', alignItems: 'center', fontSize: '1rem' } }, ['Filter by']),
           div({ style: styles.filter }, [
-            h(AsyncCreatableSelect, {
+            h(WorkspaceTagSelect, {
               isClearable: true,
               isMulti: true,
-              noOptionsMessage: () => 'Enter at least 3 characters to search',
               formatCreateLabel: _.identity,
-              allowCreateWhileLoading: true,
               value: _.map(tag => ({ label: tag, value: tag }), tagsFilter),
               placeholder: 'Tags',
-              onChange: data => this.setState({ tagsFilter: _.map('value', data) }),
-              loadOptions: this.getTagSuggestions
+              'aria-label': 'Filter by tags',
+              onChange: data => this.setState({ tagsFilter: _.map('value', data) })
             })
           ]),
           div({ style: { ...styles.filter, flexBasis: '250px', minWidth: 0 } }, [
@@ -353,6 +339,7 @@ export const WorkspaceList = _.flow(
               isMulti: true,
               isSearchable: false,
               placeholder: 'Access levels',
+              'aria-label': 'Filter by access levels',
               value: accessLevelsFilter,
               onChange: data => this.setState({ accessLevelsFilter: _.map('value', data) }),
               options: Utils.workspaceAccessLevels,
@@ -364,6 +351,7 @@ export const WorkspaceList = _.flow(
               isClearable: true,
               isMulti: false,
               placeholder: 'Billing project',
+              'aria-label': 'Filter by billing project',
               value: projectsFilter,
               hideSelectedOptions: true,
               onChange: selected => {
@@ -379,6 +367,7 @@ export const WorkspaceList = _.flow(
               isMulti: true,
               isSearchable: false,
               placeholder: 'Submission status',
+              'aria-label': 'Filter by submission status',
               value: submissionsFilter,
               hideSelectedOptions: true,
               onChange: data => this.setState({ submissionsFilter: _.map('value', data) }),

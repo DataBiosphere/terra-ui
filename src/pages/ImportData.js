@@ -1,4 +1,4 @@
-import { Fragment } from 'react'
+import { Component, Fragment } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { backgroundLogo, spinnerOverlay } from 'src/components/common'
 import { notify } from 'src/components/Notifications'
@@ -10,7 +10,6 @@ import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import { Component } from 'src/libs/wrapped-components'
 
 
 const styles = {
@@ -28,6 +27,11 @@ const styles = {
 }
 
 const Importer = class Importer extends Component {
+  constructor(props) {
+    super(props)
+    this.state = { isImporting: false }
+  }
+
   render() {
     const { queryParams: { url, ad, wid } } = this.props
     const { isImporting } = this.state
@@ -35,7 +39,7 @@ const Importer = class Importer extends Component {
     return h(Fragment, [
       backgroundLogo,
       h(TopBar, { title: 'Import Data' }),
-      div({ style: styles.container }, [
+      div({ role: 'main', style: styles.container }, [
         div({ style: styles.card }, [
           div({ style: styles.title }, ['Importing Data']),
           div({ style: { fontSize: 16 } }, ['From: ', new URL(url).hostname])

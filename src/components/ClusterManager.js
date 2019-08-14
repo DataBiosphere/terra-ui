@@ -1,14 +1,13 @@
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
 import { Fragment, PureComponent, useState } from 'react'
-import { div, h, span } from 'react-hyperscript-helpers'
-import { ButtonPrimary, ButtonSecondary, Clickable, LabeledCheckbox, Link, Select, spinnerOverlay } from 'src/components/common'
+import { div, h, label, span } from 'react-hyperscript-helpers'
+import { ButtonPrimary, ButtonSecondary, Clickable, IdContainer, LabeledCheckbox, Link, Select, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { IntegerInput, TextInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { notify } from 'src/components/Notifications.js'
-import PopupTrigger from 'src/components/PopupTrigger'
-import TooltipTrigger from 'src/components/TooltipTrigger'
+import { Popup } from 'src/components/PopupTrigger'
 import { machineTypes, profiles } from 'src/data/clusters'
 import { Ajax, ajaxCaller } from 'src/libs/ajax'
 import { clusterCost, currentCluster, machineConfigCost, normalizeMachineConfig, trimClustersOldestFirst } from 'src/libs/cluster-utils'
@@ -90,38 +89,45 @@ const MachineSelector = ({ machineType, onChangeMachineType, diskSize, onChangeD
   const { cpu: currentCpu, memory: currentMemory } = _.find({ name: machineType }, machineTypes)
   return div([
     div({ style: styles.row }, [
-      div({ style: { ...styles.col1, ...styles.label } }, 'CPUs'),
-      div({ style: styles.col2 }, [
-        readOnly ?
-          currentCpu :
-          h(Select, {
-            styles: { container: styles.smallSelect },
-            isSearchable: false,
-            value: currentCpu,
-            onChange: ({ value }) => onChangeMachineType(_.find({ cpu: value }, machineTypes).name),
-            options: _.uniq(_.map('cpu', machineTypes))
-          })
-      ]),
-      div({ style: { ...styles.col3, ...styles.label } }, 'Disk size'),
-      div([
-        readOnly ?
-          diskSize :
-          h(IntegerInput, {
-            style: styles.smallInput,
-            min: 10,
-            max: 64000,
-            value: diskSize,
-            onChange: onChangeDiskSize
-          }),
-        ' GB'
-      ])
+      h(IdContainer, [id => h(Fragment, [
+        label({ htmlFor: id, style: { ...styles.col1, ...styles.label } }, 'CPUs'),
+        div({ style: styles.col2 }, [
+          readOnly ?
+            currentCpu :
+            h(Select, {
+              id,
+              styles: { container: styles.smallSelect },
+              isSearchable: false,
+              value: currentCpu,
+              onChange: ({ value }) => onChangeMachineType(_.find({ cpu: value }, machineTypes).name),
+              options: _.uniq(_.map('cpu', machineTypes))
+            })
+        ])
+      ])]),
+      h(IdContainer, [id => h(Fragment, [
+        label({ htmlFor: id, style: { ...styles.col3, ...styles.label } }, 'Disk size'),
+        div([
+          readOnly ?
+            diskSize :
+            h(IntegerInput, {
+              id,
+              style: styles.smallInput,
+              min: 10,
+              max: 64000,
+              value: diskSize,
+              onChange: onChangeDiskSize
+            }),
+          ' GB'
+        ])
+      ])])
     ]),
-    div({ style: styles.row }, [
-      div({ style: { ...styles.col1, ...styles.label } }, 'Memory'),
+    h(IdContainer, [id => div({ style: styles.row }, [
+      label({ htmlFor: id, style: { ...styles.col1, ...styles.label } }, 'Memory'),
       div({ style: styles.col2 }, [
         readOnly ?
           currentMemory :
           h(Select, {
+            id,
             styles: { container: styles.smallSelect },
             isSearchable: false,
             value: currentMemory,
@@ -133,7 +139,7 @@ const MachineSelector = ({ machineType, onChangeMachineType, diskSize, onChangeD
           }),
         ' GB'
       ])
-    ])
+    ])])
   ])
 }
 
@@ -142,18 +148,6 @@ const ClusterIcon = ({ shape, onClick, disabled, style, ...props }) => {
     style: { color: onClick && !disabled ? colors.accent() : colors.dark(0.7), ...styles.verticalCenter, ...style },
     onClick, disabled, ...props
   }, [icon(shape, { size: 20 })])
-}
-
-const getUpdateIntervalMs = status => {
-  switch (status) {
-    case 'Starting':
-      return 5000
-    case 'Creating':
-    case 'Stopping':
-      return 15000
-    default:
-      return 120000
-  }
 }
 
 export class NewClusterModal extends PureComponent {
@@ -213,10 +207,11 @@ export class NewClusterModal extends PureComponent {
       onDismiss: onCancel,
       okButton: h(ButtonPrimary, { disabled: !changed, onClick: () => this.createCluster() }, currentCluster ? 'Update' : 'Create')
     }, [
-      div({ style: styles.row }, [
-        div({ style: { ...styles.col1, ...styles.label } }, 'Profile'),
+      h(IdContainer, [id => div({ style: styles.row }, [
+        label({ htmlFor: id, style: { ...styles.col1, ...styles.label } }, 'Profile'),
         div({ style: { flex: 1 } }, [
           h(Select, {
+            id,
             value: profile,
             onChange: ({ value }) => {
               this.setState({
@@ -235,7 +230,7 @@ export class NewClusterModal extends PureComponent {
             ]
           })
         ])
-      ]),
+      ])]),
       div([
         h(MachineSelector, {
           machineType: masterMachineType,
@@ -246,21 +241,22 @@ export class NewClusterModal extends PureComponent {
         })
       ]),
       profile === 'custom' && h(Fragment, [
-        div({ style: styles.row }, [
-          div({ style: { ...styles.col1, ...styles.label } }, 'Startup script'),
+        h(IdContainer, [id => div({ style: styles.row }, [
+          label({ htmlFor: id, style: { ...styles.col1, ...styles.label } }, 'Startup script'),
           div({ style: { flex: 1 } }, [
             h(TextInput, {
+              id,
               placeholder: 'URI',
               value: jupyterUserScriptUri,
               onChange: v => this.setState({ jupyterUserScriptUri: v })
             })
           ])
-        ]),
+        ])]),
         div({ style: styles.row }, [
           div({ style: styles.col1 }),
           div([
             h(LabeledCheckbox, {
-              checked: numberOfWorkers,
+              checked: !!numberOfWorkers,
               onChange: v => this.setState({
                 numberOfWorkers: v ? 2 : 0,
                 numberOfPreemptibleWorkers: 0
@@ -270,28 +266,34 @@ export class NewClusterModal extends PureComponent {
         ]),
         !!numberOfWorkers && h(Fragment, [
           div({ style: styles.row }, [
-            div({ style: { ...styles.col1, ...styles.label } }, 'Workers'),
-            div({ style: styles.col2 }, [
-              h(IntegerInput, {
-                style: styles.smallInput,
-                min: 2,
-                value: numberOfWorkers,
-                onChange: v => this.setState({
-                  numberOfWorkers: v,
-                  numberOfPreemptibleWorkers: _.min([numberOfPreemptibleWorkers, v])
+            h(IdContainer, [id => h(Fragment, [
+              label({ htmlFor: id, style: { ...styles.col1, ...styles.label } }, 'Workers'),
+              div({ style: styles.col2 }, [
+                h(IntegerInput, {
+                  id,
+                  style: styles.smallInput,
+                  min: 2,
+                  value: numberOfWorkers,
+                  onChange: v => this.setState({
+                    numberOfWorkers: v,
+                    numberOfPreemptibleWorkers: _.min([numberOfPreemptibleWorkers, v])
+                  })
                 })
-              })
-            ]),
-            div({ style: { ...styles.col3, ...styles.label } }, 'Preemptible'),
-            div([
-              h(IntegerInput, {
-                style: styles.smallInput,
-                min: 0,
-                max: numberOfWorkers,
-                value: numberOfPreemptibleWorkers,
-                onChange: v => this.setState({ numberOfPreemptibleWorkers: v })
-              })
-            ])
+              ])
+            ])]),
+            h(IdContainer, [id => h(Fragment, [
+              label({ htmlFor: id, style: { ...styles.col3, ...styles.label } }, 'Preemptible'),
+              div([
+                h(IntegerInput, {
+                  id,
+                  style: styles.smallInput,
+                  min: 0,
+                  max: numberOfWorkers,
+                  value: numberOfPreemptibleWorkers,
+                  onChange: v => this.setState({ numberOfPreemptibleWorkers: v })
+                })
+              ])
+            ])])
           ]),
           div({ style: { marginTop: '1rem' } }, [
             h(MachineSelector, {
@@ -329,7 +331,8 @@ export const ClusterErrorModal = ({ cluster, onDismiss }) => {
   )(async () => {
     const { errors: clusterErrors } = await Ajax().Jupyter.cluster(cluster.googleProject, cluster.clusterName).details()
     if (_.some(({ errorMessage }) => errorMessage.includes('Userscript failed'), clusterErrors)) {
-      setError(await Ajax().Buckets.getObjectPreview(cluster.stagingBucket, `userscript_output.txt`, cluster.googleProject, true).then(res => res.text()))
+      setError(
+        await Ajax().Buckets.getObjectPreview(cluster.stagingBucket, `userscript_output.txt`, cluster.googleProject, true).then(res => res.text()))
       setUserscriptError(true)
     } else {
       setError(clusterErrors[0].errorMessage)
@@ -404,21 +407,6 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
     }
   }
 
-  refreshClusters = () => {
-    this.props.refreshClusters().then(() => this.resetUpdateInterval())
-  }
-
-  resetUpdateInterval() {
-    const currentCluster = this.getCurrentCluster()
-
-    clearInterval(this.interval)
-    this.interval = setInterval(this.refreshClusters, getUpdateIntervalMs(currentCluster && currentCluster.status))
-  }
-
-  componentDidMount() {
-    this.resetUpdateInterval()
-  }
-
   componentDidUpdate(prevProps) {
     const prevCluster = _.last(_.sortBy('createdDate', _.remove({ status: 'Deleting' }, prevProps.clusters))) || {}
     const cluster = this.getCurrentCluster() || {}
@@ -429,10 +417,6 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
       })
       errorNotifiedClusters.update(Utils.append(cluster.id))
     }
-  }
-
-  componentWillUnmount() {
-    clearInterval(this.interval)
   }
 
   getActiveClustersOldestFirst() {
@@ -447,9 +431,10 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
 
   async executeAndRefresh(promise) {
     try {
+      const { refreshClusters } = this.props
       this.setState({ busy: true })
       await promise
-      await this.refreshClusters()
+      await refreshClusters()
     } catch (error) {
       reportError('Cluster Error', error)
     } finally {
@@ -514,7 +499,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
   }
 
   render() {
-    const { namespace, name, clusters, canCompute } = this.props
+    const { namespace, name, clusters, canCompute, refreshClusters } = this.props
     const { busy, createModalOpen, deleteModalOpen, errorModalOpen, pendingNav } = this.state
     if (!clusters) {
       return null
@@ -528,33 +513,42 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
             shape: 'play',
             onClick: () => this.startCluster(),
             disabled: busy || !canCompute,
-            tooltip: canCompute ? 'Start cluster' : noCompute
+            tooltip: canCompute ? 'Start cluster' : noCompute,
+            'aria-label': 'Start cluster'
           })
         case 'Running':
           return h(ClusterIcon, {
             shape: 'pause',
             onClick: () => this.stopCluster(),
             disabled: busy || !canCompute,
-            tooltip: canCompute ? 'Stop cluster' : noCompute
+            tooltip: canCompute ? 'Stop cluster' : noCompute,
+            'aria-label': 'Stop cluster'
           })
         case 'Starting':
         case 'Stopping':
         case 'Creating':
-          return h(ClusterIcon, { shape: 'sync', disabled: true })
+          return h(ClusterIcon, {
+            shape: 'sync',
+            disabled: true,
+            tooltip: 'Cluster update in progress',
+            'aria-label': 'Cluster update in progress'
+          })
         case 'Error':
           return h(ClusterIcon, {
             shape: 'warning-standard',
             style: { color: colors.danger(0.9) },
             onClick: () => this.setState({ errorModalOpen: true }),
             disabled: busy || !canCompute,
-            tooltip: canCompute ? 'View error' : noCompute
+            tooltip: canCompute ? 'View error' : noCompute,
+            'aria-label': 'View error'
           })
         default:
           return h(ClusterIcon, {
             shape: 'play',
             onClick: () => this.createDefaultCluster(),
             disabled: busy || !canCompute,
-            tooltip: canCompute ? 'Create cluster' : noCompute
+            tooltip: canCompute ? 'Create cluster' : noCompute,
+            'aria-label': 'Create cluster'
           })
       }
     }
@@ -565,35 +559,30 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
     const isDisabled = !canCompute || creating || multiple || busy
 
     return div({ style: styles.container }, [
-      h(TooltipTrigger, {
-        content: Utils.cond(
+      h(Link, {
+        href: Nav.getLink('workspace-terminal-launch', { namespace, name }),
+        tooltip: Utils.cond(
           [!canCompute, () => noCompute],
           [!currentCluster, () => 'Create a basic cluster and open its terminal'],
           () => 'Open terminal'
-        )
-      }, [
-        h(Link, {
-          href: Nav.getLink('workspace-terminal-launch', { namespace, name }),
-          disabled: !canCompute,
-          style: { marginRight: '2rem', ...styles.verticalCenter },
-          ...Utils.newTabLinkProps
-        }, [icon('terminal', { size: 24 })])
-      ]),
+        ),
+        'aria-label': 'Open terminal',
+        disabled: !canCompute,
+        style: { marginRight: '2rem', ...styles.verticalCenter },
+        ...Utils.newTabLinkProps
+      }, [icon('terminal', { size: 24 })]),
       renderIcon(),
       h(ClusterIcon, {
         shape: 'trash',
         onClick: () => this.setState({ deleteModalOpen: true }),
         disabled: busy || !canCompute || !_.includes(currentStatus, ['Stopped', 'Running', 'Error']),
         tooltip: 'Delete cluster',
+        'aria-label': 'Delete cluster',
         style: { marginLeft: '0.5rem' }
       }),
-      h(PopupTrigger, {
-        side: 'bottom',
-        open: multiple,
-        width: 300,
-        content: this.renderDestroyForm()
-      }, [
+      h(IdContainer, [id => h(Fragment, [
         h(Clickable, {
+          id,
           style: styles.button(isDisabled),
           tooltip: Utils.cond(
             [!canCompute, () => noCompute],
@@ -614,14 +603,15 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
             ])
           ]),
           icon('cog', { size: 22, style: { color: isDisabled ? colors.dark(0.7) : colors.accent() } })
-        ])
-      ]),
+        ]),
+        multiple && h(Popup, { side: 'bottom', target: id, handleClickOutside: _.noop }, [this.renderDestroyForm()])
+      ])]),
       deleteModalOpen && h(DeleteClusterModal, {
         cluster: this.getCurrentCluster(),
         onDismiss: () => this.setState({ deleteModalOpen: false }),
         onSuccess: () => {
           this.setState({ deleteModalOpen: false })
-          this.refreshClusters()
+          refreshClusters()
         }
       }),
       createModalOpen && h(NewClusterModal, {

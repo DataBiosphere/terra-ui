@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { Fragment } from 'react'
+import { Component, Fragment } from 'react'
 import { a, b, div, h } from 'react-hyperscript-helpers'
 import { pure } from 'recompose'
 import { ButtonPrimary, Clickable, Link, PageBox, spinnerOverlay } from 'src/components/common'
@@ -15,7 +15,6 @@ import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import { Component } from 'src/libs/wrapped-components'
 import { validate } from 'validate.js'
 
 
@@ -112,6 +111,7 @@ const GroupCard = pure(({ group: { groupName, groupEmail, role }, onDelete }) =>
     div({ style: { width: 100, display: 'flex', alignItems: 'center' } }, [
       div({ style: { flexGrow: 1 } }, [isAdmin ? 'Admin' : 'Member']),
       isAdmin && h(Link, {
+        'aria-label': `Delete group ${groupName}`,
         onClick: onDelete,
         style: { margin: '-1rem', padding: '1rem' }
       }, [
@@ -184,13 +184,14 @@ export const GroupList = ajaxCaller(class GroupList extends Component {
     return h(Fragment, [
       h(TopBar, { title: 'Groups' }, [
         h(DelayedSearchInput, {
+          'aria-label': 'Search groups',
           style: { marginLeft: '2rem', width: 500 },
           placeholder: 'SEARCH GROUPS',
           onChange: v => this.setState({ filter: v }),
-          defaultValue: filter
+          value: filter
         })
       ]),
-      h(PageBox, [
+      h(PageBox, { role: 'main' }, [
         div({ style: Style.cardList.toolbarContainer }, [
           div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, [
             'Group Management'

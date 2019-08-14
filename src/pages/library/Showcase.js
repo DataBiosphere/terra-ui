@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { Fragment } from 'react'
+import { Component, Fragment } from 'react'
 import { a, div, h } from 'react-hyperscript-helpers'
 import { centeredSpinner } from 'src/components/icons'
 import { libraryTopMatter } from 'src/components/library-common'
@@ -11,7 +11,6 @@ import { getConfig } from 'src/libs/config'
 import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
-import { Component } from 'src/libs/wrapped-components'
 
 
 const styles = {
@@ -77,18 +76,20 @@ const Showcase = withWorkspaces(class Showcase extends Component {
 
     return h(Fragment, [
       libraryTopMatter('showcase & tutorials'),
-      !(featuredList && workspaces) ?
-        centeredSpinner() :
-        div({ style: { display: 'flex', margin: '2.5rem' } }, [
-          div({ style: { marginRight: '2rem' } }, [
-            div({ style: styles.header }, 'GATK4 example workspaces'),
-            ..._.map(makeCard(true), bestPractices)
-          ]),
-          div([
-            div({ style: styles.header }, 'Featured workspaces'),
-            ..._.map(makeCard(false), featured)
+      div({ role: 'main' }, [
+        !(featuredList && workspaces) ?
+          centeredSpinner() :
+          div({ style: { display: 'flex', margin: '2.5rem' } }, [
+            div({ style: { marginRight: '2rem' } }, [
+              div({ style: styles.header }, 'GATK4 example workspaces'),
+              ..._.map(makeCard(true), bestPractices)
+            ]),
+            div([
+              div({ style: styles.header }, 'Featured workspaces'),
+              ..._.map(makeCard(false), featured)
+            ])
           ])
-        ])
+      ])
     ])
   }
 })

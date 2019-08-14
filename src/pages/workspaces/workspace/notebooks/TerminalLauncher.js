@@ -1,4 +1,5 @@
 import _ from 'lodash/fp'
+import { Component } from 'react'
 import { findDOMNode } from 'react-dom'
 import { div, iframe } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
@@ -8,7 +9,6 @@ import { normalizeMachineConfig } from 'src/libs/cluster-utils'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import * as Utils from 'src/libs/utils'
-import { Component } from 'src/libs/wrapped-components'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
 
@@ -20,6 +20,11 @@ const TerminalLauncher = _.flow(
   }),
   ajaxCaller
 )(class TerminalLauncher extends Component {
+  constructor(props) {
+    super(props)
+    this.state = { url: undefined }
+  }
+
   refreshCookie() {
     const { namespace, cluster: { clusterName }, ajax: { Jupyter } } = this.props
 
@@ -91,7 +96,8 @@ const TerminalLauncher = _.flow(
         style: {
           border: 'none', flex: 1,
           marginTop: -45, clipPath: 'inset(45px 0 0)' // cuts off the useless Jupyter top bar
-        }
+        },
+        title: 'Interactive terminal iframe'
       })
     } else {
       return div({ style: { padding: '2rem' } }, [

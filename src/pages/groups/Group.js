@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { Fragment } from 'react'
+import { Component, Fragment } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { PageBox, spinnerOverlay } from 'src/components/common'
 import { DeleteUserModal, EditUserModal, MemberCard, NewUserCard, NewUserModal } from 'src/components/group-common'
@@ -11,7 +11,6 @@ import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import { Component } from 'src/libs/wrapped-components'
 
 
 export const GroupDetails = ajaxCaller(class GroupDetails extends Component {
@@ -65,13 +64,14 @@ export const GroupDetails = ajaxCaller(class GroupDetails extends Component {
     return h(Fragment, [
       h(TopBar, { title: 'Groups', href: Nav.getLink('groups') }, [
         h(DelayedSearchInput, {
+          'aria-label': 'Search group',
           style: { marginLeft: '2rem', width: 500 },
           placeholder: 'SEARCH GROUP',
           onChange: v => this.setState({ filter: v }),
-          defaultValue: filter
+          value: filter
         })
       ]),
-      h(PageBox, [
+      h(PageBox, { role: 'main' }, [
         div({ style: Style.cardList.toolbarContainer }, [
           div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, [
             `Group Management: ${groupName}`

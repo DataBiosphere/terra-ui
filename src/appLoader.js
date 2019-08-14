@@ -13,11 +13,14 @@ import { initializeTCell } from 'src/libs/tcell'
 import Main from 'src/pages/Main'
 
 
+const appRoot = document.getElementById('root')
+
 RModal.defaultStyles = { overlay: {}, content: {} }
+RModal.setAppElement(appRoot)
 window.SATURN_VERSION = SATURN_VERSION
 marked.setOptions({ sanitize: true, sanitizer: _.escape })
 
 
-ReactDOM.render(h(Main), document.getElementById('root'))
+ReactDOM.render(h(Main), appRoot)
 initializeAuth()
 initializeTCell()

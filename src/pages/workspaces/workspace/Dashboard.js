@@ -1,16 +1,16 @@
 import * as clipboard from 'clipboard-polyfill'
-import debouncePromise from 'debounce-promise'
 import _ from 'lodash/fp'
-import { Fragment } from 'react'
+import { Component, Fragment } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import SimpleMDE from 'react-simplemde-editor'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { AsyncCreatableSelect, ButtonPrimary, ButtonSecondary, Link, spinnerOverlay } from 'src/components/common'
+import { ButtonPrimary, ButtonSecondary, Link, spinnerOverlay } from 'src/components/common'
 import { icon, spinner } from 'src/components/icons'
 import { Markdown } from 'src/components/Markdown'
 import { InfoBox } from 'src/components/PopupTrigger'
 import { SimpleTable } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
+import { WorkspaceTagSelect } from 'src/components/workspace-utils'
 import { displayConsentCodes, displayLibraryAttributes } from 'src/data/workspace-attributes'
 import { Ajax, ajaxCaller } from 'src/libs/ajax'
 import { bucketBrowserUrl } from 'src/libs/auth'
@@ -20,7 +20,6 @@ import { getAppName } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import { Component } from 'src/libs/wrapped-components'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
 
@@ -30,7 +29,7 @@ const styles = {
   },
   rightBox: {
     flex: 'none', width: 350, backgroundColor: colors.light(0.4),
-    padding: '0 1rem'
+    padding: '0 1rem 2rem'
   },
   header: {
     ...Style.elements.sectionHeader, textTransform: 'uppercase',
@@ -156,17 +155,6 @@ export const WorkspaceDashboard = _.flow(
     }
   })
 
-  getTagSuggestions = debouncePromise(withErrorReporting('Error loading tags', async text => {
-    const { ajax: { Workspaces } } = this.props
-    if (text.length > 2) {
-      return _.map(({ tag, count }) => {
-        return { value: tag, label: `${tag} (${count})` }
-      }, _.take(10, await Workspaces.getTags(text)))
-    } else {
-      return []
-    }
-  }), 250)
-
   loadWsTags = withErrorReporting('Error loading workspace tags', async () => {
     const { ajax: { Workspaces }, namespace, name } = this.props
     this.setState({ tagsList: await Workspaces.workspace(namespace, name).getTags() })
@@ -206,7 +194,6 @@ export const WorkspaceDashboard = _.flow(
     const {
       workspace, workspace: {
         accessLevel,
-        hasBucketAccess,
         owners,
         workspace: {
           authorizationDomain, createdDate, lastModified, bucketName,
@@ -225,7 +212,8 @@ export const WorkspaceDashboard = _.flow(
             style: { marginLeft: '0.5rem' },
             disabled: !!Utils.editWorkspaceError(workspace),
             tooltip: Utils.editWorkspaceError(workspace),
-            onClick: () => this.setState({ editDescription: description })
+            onClick: () => this.setState({ editDescription: description }),
+            'aria-label': 'Edit description'
           }, [icon('edit')])
         ]),
         Utils.cond(
@@ -297,13 +285,11 @@ export const WorkspaceDashboard = _.flow(
           ])
         ]),
         Utils.canWrite(accessLevel) && div({ style: { marginBottom: '0.5rem' } }, [
-          h(AsyncCreatableSelect, {
+          h(WorkspaceTagSelect, {
             value: null,
-            noOptionsMessage: () => 'Enter at least 3 characters to search',
-            allowCreateWhileLoading: true,
             placeholder: 'Add a tag',
-            onChange: ({ value }) => this.addTag(value),
-            loadOptions: this.getTagSuggestions
+            'aria-label': 'Add a tag',
+            onChange: ({ value }) => this.addTag(value)
           })
         ]),
         div({ style: { display: 'flex', flexWrap: 'wrap' } }, [
@@ -312,6 +298,7 @@ export const WorkspaceDashboard = _.flow(
               tag,
               Utils.canWrite(accessLevel) && h(Link, {
                 tooltip: 'Remove tag',
+                'aria-label': 'Remove tag',
                 disabled: busy,
                 onClick: () => this.deleteTag(tag),
                 style: { marginLeft: '0.25rem', verticalAlign: 'middle', display: 'inline-block' }
@@ -341,6 +328,7 @@ export const WorkspaceDashboard = _.flow(
           h(Link, {
             style: { margin: '0 0.5rem', flexShrink: 0 },
             tooltip: 'Copy bucket name',
+            'aria-label': 'Copy bucket name',
             onClick: withErrorReporting('Error copying to clipboard', async () => {
               await clipboard.writeText(bucketName)
               this.setState({ bucketCopied: true }, () => {
@@ -351,8 +339,7 @@ export const WorkspaceDashboard = _.flow(
         ]),
         h(Link, {
           ...Utils.newTabLinkProps,
-          href: hasBucketAccess ? bucketBrowserUrl(bucketName) : undefined,
-          disabled: !hasBucketAccess
+          href: bucketBrowserUrl(bucketName)
         }, ['Open in browser', icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })])
       ])
     ])

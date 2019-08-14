@@ -1,6 +1,7 @@
 import _ from 'lodash/fp'
+import { Component, Fragment } from 'react'
 import { b, h } from 'react-hyperscript-helpers'
-import { ButtonPrimary, spinnerOverlay } from 'src/components/common'
+import { ButtonPrimary, IdContainer, spinnerOverlay } from 'src/components/common'
 import ErrorView from 'src/components/ErrorView'
 import { ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
@@ -9,7 +10,6 @@ import { Ajax } from 'src/libs/ajax'
 import { RequiredFormLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
 import * as Utils from 'src/libs/utils'
-import { Component } from 'src/libs/wrapped-components'
 import validate from 'validate.js'
 
 
@@ -18,8 +18,8 @@ const ExportWorkflowModal = withWorkspaces(class ExportWorkflowModal extends Com
     super(props)
 
     this.state = {
-      selectedWorkspaceId: undefined,
-      workflowName: props.methodConfig.name,
+      selectedWorkspaceId: props.sameWorkspace ? props.thisWorkspace.workspaceId : undefined,
+      workflowName: `${props.methodConfig.name}${props.sameWorkspace ? '_copy' : ''}`,
       error: undefined,
       exported: false
     }
@@ -38,7 +38,7 @@ const ExportWorkflowModal = withWorkspaces(class ExportWorkflowModal extends Com
   }
 
   renderExportForm() {
-    const { workspaces, thisWorkspace, onDismiss } = this.props
+    const { workspaces, thisWorkspace, sameWorkspace, onDismiss } = this.props
     const { selectedWorkspaceId, workflowName, exporting, error } = this.state
 
     const errors = validate({ selectedWorkspaceId, workflowName }, {
@@ -53,7 +53,7 @@ const ExportWorkflowModal = withWorkspaces(class ExportWorkflowModal extends Com
     })
 
     return h(Modal, {
-      title: 'Copy to Workspace',
+      title: sameWorkspace ? 'Duplicate Workflow' : 'Copy to Workspace',
       onDismiss,
       okButton: h(ButtonPrimary, {
         tooltip: Utils.summarizeErrors(errors),
@@ -61,22 +61,27 @@ const ExportWorkflowModal = withWorkspaces(class ExportWorkflowModal extends Com
         onClick: () => this.export()
       }, ['Copy'])
     }, [
-      h(RequiredFormLabel, ['Destination']),
-      h(WorkspaceSelector, {
-        workspaces: _.filter(({ workspace: { workspaceId }, accessLevel }) => {
-          return thisWorkspace.workspaceId !== workspaceId && Utils.canWrite(accessLevel)
-        }, workspaces),
-        value: selectedWorkspaceId,
-        onChange: v => this.setState({ selectedWorkspaceId: v })
-      }),
-      h(RequiredFormLabel, ['Name']),
-      h(ValidatedInput, {
-        error: Utils.summarizeErrors(errors && errors.workflowName),
-        inputProps: {
-          value: workflowName,
-          onChange: v => this.setState({ workflowName: v })
-        }
-      }),
+      !sameWorkspace && h(IdContainer, [id => h(Fragment, [
+        h(RequiredFormLabel, { htmlFor: id }, ['Destination']),
+        h(WorkspaceSelector, {
+          id,
+          workspaces: _.filter(({ workspace: { workspaceId }, accessLevel }) => {
+            return thisWorkspace.workspaceId !== workspaceId && Utils.canWrite(accessLevel)
+          }, workspaces),
+          value: selectedWorkspaceId,
+          onChange: v => this.setState({ selectedWorkspaceId: v })
+        })
+      ])]),
+      h(IdContainer, [id => h(Fragment, [
+        h(RequiredFormLabel, { htmlFor: id }, ['Name']),
+        h(ValidatedInput, {
+          error: Utils.summarizeErrors(errors && errors.workflowName),
+          inputProps: {
+            id, value: workflowName,
+            onChange: v => this.setState({ workflowName: v })
+          }
+        })
+      ])]),
       exporting && spinnerOverlay,
       error && h(ErrorView, { error, collapses: false })
     ])
@@ -109,7 +114,7 @@ const ExportWorkflowModal = withWorkspaces(class ExportWorkflowModal extends Com
   }
 
   async export() {
-    const { thisWorkspace, methodConfig } = this.props
+    const { thisWorkspace, sameWorkspace, methodConfig, onSuccess } = this.props
     const { workflowName } = this.state
     const selectedWorkspace = this.getSelectedWorkspace().workspace
 
@@ -126,7 +131,11 @@ const ExportWorkflowModal = withWorkspaces(class ExportWorkflowModal extends Com
             name: selectedWorkspace.name
           }
         })
-      this.setState({ exported: true })
+      if (sameWorkspace) {
+        onSuccess()
+      } else {
+        this.setState({ exported: true })
+      }
     } catch (error) {
       this.setState({ error: await error.text(), exporting: false })
     }

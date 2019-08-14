@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { createRef } from 'react'
+import { Component, createRef } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import ReactNotification from 'react-notifications-component'
 import { ButtonPrimary, Clickable } from 'src/components/common'
@@ -11,7 +11,6 @@ import { notificationStore } from 'src/libs/state'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import { Component } from 'src/libs/wrapped-components'
 import uuid from 'uuid/v4'
 
 
@@ -52,9 +51,15 @@ export const notify = (type, title, props) => {
 export const clearNotification = id => notificationsRef.current.removeNotification(id)
 
 const NotificationDisplay = Utils.connectAtom(notificationStore, 'notificationState')(class NotificationDisplay extends Component {
+  constructor(props) {
+    super(props)
+    this.state = { modal: false, notificationNumber: 0 }
+  }
+
+
   render() {
     const { notificationState, id } = this.props
-    const { modal, notificationNumber = 0 } = this.state
+    const { modal, notificationNumber } = this.state
 
     const notifications = _.filter(n => n.id === id, notificationState)
     const onFirst = notificationNumber === 0
@@ -62,11 +67,11 @@ const NotificationDisplay = Utils.connectAtom(notificationStore, 'notificationSt
 
     const { title, message, detail, type } = notifications[notificationNumber]
     const color = Utils.cond(
-      [type === 'success', colors.success(1.2)],
+      [type === 'success', colors.success(1.5)],
       [type === 'info', colors.dark()],
-      [type === 'welcome', colors.accent(0.85)],
-      [type === 'warn', colors.warning()],
-      [type === 'error', colors.danger()],
+      [type === 'welcome', colors.accent()],
+      [type === 'warn', colors.warning(1.2)],
+      [type === 'error', colors.danger()]
     ) || colors.dark()
     const iconType = Utils.cond(
       [type === 'success', 'success-standard'],
@@ -106,7 +111,9 @@ const NotificationDisplay = Utils.connectAtom(notificationStore, 'notificationSt
           onClick: () => notificationsRef.current.removeNotification(id)
         }, [icon('times', { size: 20 })])
       ]),
-      notifications.length > 1 && div({ style: { alignItems: 'center', borderTop: `1px solid ${color[1]}`, display: 'flex', fontSize: 10, padding: '0.75rem 1rem' } }, [
+      notifications.length > 1 && div({
+        style: { alignItems: 'center', borderTop: `1px solid ${color[1]}`, display: 'flex', fontSize: 10, padding: '0.75rem 1rem' }
+      }, [
         h(Clickable, {
           disabled: onFirst,
           style: { color: onFirst ? color[1] : null },

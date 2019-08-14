@@ -1,8 +1,9 @@
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
+import { Component, Fragment } from 'react'
 import { b, div, h, label } from 'react-hyperscript-helpers'
 import { pure } from 'recompose'
-import { ButtonPrimary, Clickable, LabeledCheckbox, Link, spinnerOverlay } from 'src/components/common'
+import { ButtonPrimary, Clickable, IdContainer, LabeledCheckbox, Link, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { AutocompleteSearch } from 'src/components/input'
 import Modal from 'src/components/Modal'
@@ -13,7 +14,6 @@ import { reportError, withErrorReporting } from 'src/libs/error'
 import { FormLabel, RequiredFormLabel } from 'src/libs/forms'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import { Component } from 'src/libs/wrapped-components'
 import validate from 'validate.js'
 
 
@@ -120,54 +120,92 @@ export const NewUserModal = ajaxCaller(class NewUserModal extends Component {
         cancelText: 'No',
         onDismiss: () => this.setState({ confirmAddUser: false })
       }, ['Add ', b(userEmail), ' to the group anyway?', busy && spinnerOverlay])],
-      () => h(Modal, {
+      h(Modal, {
         onDismiss,
         title,
         okButton: h(ButtonPrimary, {
           tooltip: Utils.summarizeErrors(errors),
-          onClick: () => this.addUser(),
+          onClick: () => this.submit(),
           disabled: errors
         }, ['Add User'])
       }, [
-        h(RequiredFormLabel, ['User email']),
-        h(AutocompleteSearch, {
-          autoFocus: true,
-          value: userEmail,
-          onChange: v => this.setState({ userEmail: v }),
-          renderSuggestion: suggestion => div({ style: styles.suggestionContainer }, [
-            div({ style: { flex: 1 } }, [
-              !canAdd(suggestion) && h(TooltipTrigger, {
-                content: 'Not a valid email address'
-              }, [
-                icon('warning-standard', { style: { color: colors.danger(), marginRight: '0.5rem' } })
-              ]),
-              suggestion
-            ])
-          ]),
-          onSuggestionSelected: selection => {
-            this.setState({ userEmail: selection })
-          },
-          onKeyDown: e => {
+        h(IdContainer, [id => h(Fragment, [
+          h(RequiredFormLabel, { htmlFor: id }, ['User email']),
+          h(AutocompleteSearch, {
+            id,
+            autoFocus: true,
+            value: userEmail,
+            onChange: v => this.setState({ userEmail: v }),
+            renderSuggestion: suggestion => div({ style: styles.suggestionContainer }, [
+              div({ style: { flex: 1 } }, [
+                !canAdd(suggestion) && h(TooltipTrigger, {
+                  content: 'Not a valid email address'
+                }, [
+                  icon('warning-standard', { style: { color: colors.danger(), marginRight: '0.5rem' } })
+                ]),
+                suggestion
+              ])
+            ]),
+            onSuggestionSelected: selection => {
+              this.setState({ userEmail: selection })
+            },
+            onKeyDown: e => {
             // 27 = Escape
-            if (e.which === 27 && !!userEmail) {
-              this.setState({ userEmail: '' })
-              e.stopPropagation()
-            }
-          },
-          suggestions,
-          style: { fontSize: 16 },
-          theme: { suggestion: { padding: 0 } }
-        }),
+              if (e.which === 27 && !!userEmail) {
+                this.setState({ userEmail: '' })
+                e.stopPropagation()
+              }
+            },
+            suggestions,
+            style: { fontSize: 16 },
+            theme: { suggestion: { padding: 0 } }
+          })
+        ])]),
         h(FormLabel, ['Role']),
         h(LabeledCheckbox, {
           checked: isAdmin,
           onChange: () => this.setState({ roles: [isAdmin ? userLabel : adminLabel] })
         }, [
-          label({ style: { margin: '0 2rem 0 0.25rem' } }, [`Can manage users (${adminLabel})`])
-        ]),
-        footer && div({ style: { marginTop: '1rem' } }, [footer]),
-        submitError && div({ style: { marginTop: '0.5rem', textAlign: 'right', color: colors.danger() } }, [submitError]),
-        busy && spinnerOverlay
+          h(RequiredFormLabel, ['User email']),
+          h(AutocompleteSearch, {
+            autoFocus: true,
+            value: userEmail,
+            onChange: v => this.setState({ userEmail: v }),
+            renderSuggestion: suggestion => div({ style: styles.suggestionContainer }, [
+              div({ style: { flex: 1 } }, [
+                !canAdd(suggestion) && h(TooltipTrigger, {
+                  content: 'Not a valid email address'
+                }, [
+                  icon('warning-standard', { style: { color: colors.danger(), marginRight: '0.5rem' } })
+                ]),
+                suggestion
+              ])
+            ]),
+            onSuggestionSelected: selection => {
+              this.setState({ userEmail: selection })
+            },
+            onKeyDown: e => {
+            // 27 = Escape
+              if (e.which === 27 && !!userEmail) {
+                this.setState({ userEmail: '' })
+                e.stopPropagation()
+              }
+            },
+            suggestions,
+            style: { fontSize: 16 },
+            theme: { suggestion: { padding: 0 } }
+          }),
+          h(FormLabel, ['Role']),
+          h(LabeledCheckbox, {
+            checked: isAdmin,
+            onChange: () => this.setState({ roles: [isAdmin ? userLabel : adminLabel] })
+          }, [
+            label({ style: { margin: '0 2rem 0 0.25rem' } }, [`Can manage users (${adminLabel})`])
+          ]),
+          footer && div({ style: { marginTop: '1rem' } }, [footer]),
+          submitError && div({ style: { marginTop: '0.5rem', textAlign: 'right', color: colors.danger() } }, [submitError]),
+          busy && spinnerOverlay
+        ])
       ])
     )
   }

@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { createRef, Fragment } from 'react'
+import { Component, createRef, Fragment } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import { Checkbox, Clickable, Link, MenuButton, RadioButton, spinnerOverlay } from 'src/components/common'
@@ -14,7 +14,6 @@ import { renderDataCell } from 'src/libs/data-utils'
 import { reportError } from 'src/libs/error'
 import * as StateHistory from 'src/libs/state-history'
 import * as Utils from 'src/libs/utils'
-import { Component } from 'src/libs/wrapped-components'
 
 
 const filterState = state => _.pick(['pageNumber', 'itemsPerPage', 'sort', 'activeTextFilter'], state)
@@ -80,13 +79,17 @@ export default ajaxCaller(class DataTable extends Component {
           div({ style: { flexGrow: 1 } }),
           div({ style: { width: 300 } }, [
             h(ConfirmedSearchInput, {
+              'aria-label': 'Search',
               placeholder: 'Search',
               onChange: v => this.setState({ activeTextFilter: v, pageNumber: 1 }),
               defaultValue: activeTextFilter
             })
           ])
         ]),
-        div({ style: { flex: 1 } }, [
+        div({
+          style: { flex: 1 },
+          ...(selectionModel && selectionModel.type === 'single' ? { role: 'radiogroup', 'aria-label': 'Select entities' } : {})
+        }, [
           h(AutoSizer, [
             ({ width, height }) => {
               return h(GridTable, {
@@ -115,7 +118,7 @@ export default ajaxCaller(class DataTable extends Component {
                           ]),
                           side: 'bottom'
                         }, [
-                          h(Clickable, [icon('caretDown')])
+                          h(Clickable, { 'aria-label': '"Select All" options' }, [icon('caretDown')])
                         ])
                       ])
                     } : () => div(),
@@ -128,12 +131,15 @@ export default ajaxCaller(class DataTable extends Component {
                         const { selected, setSelected } = selectionModel
                         const checked = _.has([name], selected)
                         return h(Checkbox, {
+                          'aria-label': name,
                           checked,
                           onChange: () => setSelected((checked ? _.unset([name]) : _.set([name], thisEntity))(selected))
                         })
                       } else if (type === 'single') {
                         const { selected, setSelected } = selectionModel
                         return h(RadioButton, {
+                          'aria-label': name,
+                          name: 'entity-selection',
                           checked: _.isEqual(selected, thisEntity),
                           onChange: () => setSelected(thisEntity)
                         })
@@ -179,7 +185,10 @@ export default ajaxCaller(class DataTable extends Component {
                       }
                     }
                   }, _.filter('visible', columnSettings))
-                ]
+                ],
+                styleCell: ({ rowIndex }) => {
+                  return rowIndex % 2 && { backgroundColor: colors.light(0.2) }
+                }
               })
             }
           ]),
