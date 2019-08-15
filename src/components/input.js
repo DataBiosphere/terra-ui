@@ -62,8 +62,10 @@ export const withDebouncedChange = WrappedComponent => {
   return Wrapper
 }
 
-export const TextInput = forwardRef(({ onChange, nativeOnChange = false, ...props }, ref) => h(Interactive,
-  _.merge({
+export const TextInput = forwardRef(({ onChange, nativeOnChange = false, ...props }, ref) => {
+  console.assert(props.id || props['aria-label'], 'In order to be accessible, TextInput needs a label')
+
+  return h(Interactive, _.merge({
     refDOMNode: ref,
     as: 'input',
     className: 'focus-style',
@@ -75,9 +77,8 @@ export const TextInput = forwardRef(({ onChange, nativeOnChange = false, ...prop
       fontWeight: 400, fontSize: 14,
       backgroundColor: props.disabled ? colors.light() : undefined
     }
-  },
-  props)
-))
+  }, props))
+})
 
 export const ConfirmedSearchInput = ({ defaultValue = '', onChange = _.noop, ...props }) => {
   const [internalValue, setInternalValue] = useState(defaultValue)
@@ -132,6 +133,8 @@ export const SearchInput = ({ value, onChange, ...props }) => {
 export const DelayedSearchInput = withDebouncedChange(SearchInput)
 
 export const NumberInput = ({ onChange, ...props }) => {
+  console.assert(props.id || props['aria-label'], 'In order to be accessible, NumberInput needs a label')
+
   return h(Interactive, _.merge({
     as: 'input',
     type: 'number',
@@ -331,6 +334,8 @@ export class AutocompleteSearch extends Component {
 export const DelayedAutocompleteTextInput = withDebouncedChange(AutocompleteTextInput)
 
 export const TextArea = ({ onChange, ...props }) => {
+  console.assert(props.id || props['aria-label'], 'In order to be accessible, TextArea needs a label')
+
   return h(Interactive, _.merge({
     as: 'textarea',
     className: 'focus-style',
