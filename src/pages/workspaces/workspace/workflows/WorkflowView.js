@@ -459,11 +459,13 @@ const WorkflowView = _.flow(
         const snapshotIds = _.map('snapshotId', methods)
 
         this.setState({ snapshotIds })
-      } else {
+      } else if (sourceRepo === 'dockstore') {
         const versions = await Dockstore.getVersions(methodPath)
         const versionIds = _.map('name', versions)
 
         this.setState({ versionIds })
+      } else {
+        throw new Error('unknown sourceRepo')
       }
 
       this.updateSingleOrMultipleRadioState(modifiedConfig)
