@@ -3,7 +3,7 @@ import { Component, Fragment } from 'react'
 import { div, h, span, table, tbody, td, tr } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { ButtonPrimary, Clickable, Link, spinnerOverlay } from 'src/components/common'
+import { ButtonPrimary, Clickable, CromwellVersionLink, Link, spinnerOverlay } from 'src/components/common'
 import { DelayedSearchInput } from 'src/components/input'
 import { collapseStatus, failedIcon, runningIcon, submittedIcon, successIcon } from 'src/components/job-common'
 import Modal from 'src/components/Modal'
@@ -151,7 +151,9 @@ const JobHistory = _.flow(
     const hasJobs = !_.isEmpty(submissions)
 
     return h(Fragment, [
-      div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'flex-end', margin: '1rem 1rem 0' } }, [
+      div({ style: { display: 'flex', alignItems: 'center', margin: '1rem 1rem 0' } }, [
+        h(CromwellVersionLink),
+        div({ style: { flexGrow: 1 } }),
         h(PopupTrigger, {
           content: div({ style: { margin: '0.5rem' } }, [h(SubmissionQueueStatus)]),
           side: 'bottom'

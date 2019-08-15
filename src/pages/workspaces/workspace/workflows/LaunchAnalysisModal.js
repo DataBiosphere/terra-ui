@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import { Component } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
-import { ButtonPrimary } from 'src/components/common'
+import { ButtonPrimary, CromwellVersionLink } from 'src/components/common'
 import { spinner } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import { ajaxCaller } from 'src/libs/ajax'
@@ -53,7 +53,8 @@ export default ajaxCaller(class LaunchAnalysisModal extends Component {
     }, [
       !message && !launchError && div('Confirm launch'),
       message && div([spinner({ style: { marginRight: '0.5rem' } }), message]),
-      launchError && div({ style: { color: colors.danger() } }, [launchError])
+      launchError && div({ style: { color: colors.danger() } }, [launchError]),
+      h(CromwellVersionLink, { style: { display: 'block', marginTop: '1rem' } })
     ])
   }
 
