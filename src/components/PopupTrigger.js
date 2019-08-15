@@ -1,10 +1,10 @@
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
-import { Children, cloneElement, Component, Fragment } from 'react'
+import { Children, cloneElement, Component, Fragment, useRef } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import onClickOutside from 'react-onclickoutside'
 import { icon } from 'src/components/icons'
-import { computePopupPosition, PopupPortal, withDynamicPosition } from 'src/components/popup-utils'
+import { computePopupPosition, PopupPortal, useDynamicPosition } from 'src/components/popup-utils'
 import colors from 'src/libs/colors'
 import * as Style from 'src/libs/style'
 
@@ -18,31 +18,21 @@ const styles = {
   }
 }
 
-const Popup = _.flow(
-  onClickOutside,
-  withDynamicPosition()
-)(class Popup extends Component {
-  static propTypes = {
-    side: PropTypes.string,
-    target: PropTypes.string.isRequired,
-    children: PropTypes.node.isRequired
-  }
-
-  static defaultProps = {
-    side: 'bottom'
-  }
-
-  render() {
-    const { children, side, elementRef, dimensions: { target, element, viewport }, onClick } = this.props
-    const { position } = computePopupPosition({ side, target, element, viewport, gap: 10 })
-    return h(PopupPortal, [
-      div({
-        onClick,
-        ref: elementRef,
-        style: { transform: `translate(${position.left}px, ${position.top}px)`, ...styles.popup }
-      }, [children])
-    ])
-  }
+const Popup = onClickOutside(({ side = 'bottom', target: targetId, onClick, children }) => {
+  const elementRef = useRef()
+  const [target, element, viewport] = useDynamicPosition([{ id: targetId }, { ref: elementRef }, { viewport: true }])
+  const { position } = computePopupPosition({ side, target, element, viewport, gap: 10 })
+  return h(PopupPortal, [
+    div({
+      onClick,
+      ref: elementRef,
+      style: {
+        transform: `translate(${position.left}px, ${position.top}px)`,
+        visibility: !viewport.width ? 'hidden' : undefined,
+        ...styles.popup
+      }
+    }, [children])
+  ])
 })
 
 export default class PopupTrigger extends Component {
@@ -101,7 +91,7 @@ export default class PopupTrigger extends Component {
 
 export const InfoBox = ({ size, children, style, side }) => h(PopupTrigger, {
   side,
-  content: div({ style: { padding: '0.5rem', width: 300 } }, children)
+  content: div({ style: { padding: '0.5rem', width: 300 } }, [children])
 }, [
   icon('info-circle', { size, style: { cursor: 'pointer', color: colors.accent(), ...style } })
 ])

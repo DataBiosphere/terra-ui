@@ -1,4 +1,4 @@
-import { Fragment } from 'react'
+import { Component, Fragment } from 'react'
 import { b, div, h, img, p, span } from 'react-hyperscript-helpers'
 import { pure } from 'recompose'
 import { ButtonPrimary, Link } from 'src/components/common'
@@ -12,6 +12,7 @@ import anvilLogo from 'src/images/library/datasets/Anvil-logo.svg'
 import baselineLogo from 'src/images/library/datasets/baseline.jpg'
 import broadLogo from 'src/images/library/datasets/broad_logo.png'
 import encodeLogo from 'src/images/library/datasets/ENCODE@2x.png'
+import framinghamLogo from 'src/images/library/datasets/framingham.jpg'
 import hcaLogo from 'src/images/library/datasets/HCA@2x.png'
 import nemoLogo from 'src/images/library/datasets/nemo-logo.svg'
 import nhsLogo from 'src/images/library/datasets/NHS@2x.png'
@@ -23,7 +24,6 @@ import { returnParam } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import { Component } from 'src/libs/wrapped-components'
 
 
 const styles = {
@@ -69,6 +69,11 @@ const logoBox = ({ src, alt, height }) => div({
 
 
 class Participant extends Component {
+  constructor(props) {
+    super(props)
+    this.state = { showingModal: false }
+  }
+
   render() {
     const { logo, title, shortDescription, description, sizeText, children } = this.props
     const { showingModal } = this.state
@@ -111,7 +116,6 @@ const browseTooltip = 'Look for the Export to Terra icon to export data from thi
 
 const NIHCommonsButtons = () => h(ButtonPrimary, {
   style: { margin: '0.25rem 0' },
-  as: 'a',
   href: 'https://gen3.datastage.io/explorer',
   ...Utils.newTabLinkProps,
   tooltip: browseTooltip
@@ -125,7 +129,6 @@ const thousandGenomesHighCoverage = () => h(Participant, {
   sizeText: 'Participants: 2,504'
 }, [
   h(ButtonPrimary, {
-    as: 'a',
     href: Nav.getLink('workspace-dashboard', { namespace: 'anvil-datastorage', name: '1000G-high-coverage-2019' }),
     tooltip: 'Visit the workspace'
   }, ['Browse data'])
@@ -143,8 +146,7 @@ const thousandGenomesLowCoverage = () => h(Participant, {
   sizeText: 'Participants: 3,500'
 }, [
   h(ButtonPrimary, {
-    as: 'a',
-    href: Nav.getLink('library-datasets-data-explorer-public', { dataset: '1000 Genomes' }),
+    href: Nav.getLink('data-explorer-public', { dataset: '1000 Genomes' }),
     tooltip: browseTooltip
   }, ['Browse data'])
 ])
@@ -177,8 +179,7 @@ const amppd = () => h(Participant, {
   sizeText: 'Participants: > 4,700'
 }, [
   h(ButtonPrimary, {
-    as: 'a',
-    href: Nav.getLink('library-datasets-data-explorer-private', { dataset: 'AMP PD - 2019_v1beta_0220' })
+    href: Nav.getLink('data-explorer-private', { dataset: 'AMP PD - 2019_v1beta_0220' })
   }, ['Browse Data'])
 ])
 
@@ -195,8 +196,7 @@ const baseline = () => h(Participant, {
   sizeText: 'Participants: > 1,500'
 }, [
   h(ButtonPrimary, {
-    as: 'a',
-    href: Nav.getLink('library-datasets-data-explorer-private', { dataset: 'Baseline Health Study' })
+    href: Nav.getLink('data-explorer-private', { dataset: 'Baseline Health Study' })
   }, ['Browse Data'])
 ])
 
@@ -208,7 +208,6 @@ const ccdg = () => h(Participant, {
   sizeText: 'Participants: > 65,000'
 }, [
   h(ButtonPrimary, {
-    as: 'a',
     href: `${getConfig().firecloudUrlRoot}/?return=${returnParam()}&project=AnVIL CCDG&project=AnVIL CCDG CVD#library`,
     ...Utils.newTabLinkProps,
     tooltip: browseTooltip
@@ -223,7 +222,6 @@ const cmg = () => h(Participant, {
   sizeText: 'Participants: > 5,000'
 }, [
   h(ButtonPrimary, {
-    as: 'a',
     href: `${getConfig().firecloudUrlRoot}/?return=${returnParam()}&project=AnVIL CMG#library`,
     ...Utils.newTabLinkProps,
     tooltip: browseTooltip
@@ -242,7 +240,6 @@ const encode = () => h(Participant, {
   sizeText: 'Donors: > 650 ; Files: > 158,000'
 }, [
   h(ButtonPrimary, {
-    as: 'a',
     href: 'https://broad-gdr-encode.appspot.com/',
     ...Utils.newTabLinkProps,
     tooltip: browseTooltip
@@ -257,11 +254,29 @@ const fcDataLib = () => h(Participant, {
   sizeText: h(TooltipTrigger, { content: 'As of October 2018' }, [span('Samples: > 158,629')])
 }, [
   h(ButtonPrimary, {
-    as: 'a',
     href: `${getConfig().firecloudUrlRoot}/?return=${returnParam()}#library`,
     ...Utils.newTabLinkProps,
     tooltip: 'Search for dataset workspaces'
   }, ['Browse Datasets'])
+])
+
+const framingham = () => h(Participant, {
+  logo: { src: framinghamLogo, alt: 'Framingham Heart Study logo', height: '70%' },
+  title: 'Framingham Heart Study Teaching Dataset',
+  description: h(Fragment, [
+    `Since 1948, the `,
+    h(Link, { href: 'https://www.framinghamheartstudy.org/', ...Utils.newTabLinkProps }, 'Framingham Heart Study'),
+    ` has been committed to identifying the common factors or characteristics that contribute to cardiovascular disease,
+    over three generations of participants. This is a `,
+    h(Link, { href: 'https://biolincc.nhlbi.nih.gov/teaching/', ...Utils.newTabLinkProps }, 'teaching dataset'),
+    ` and may not be used for publication purposes.`
+  ]),
+  sizeText: 'Participants: 4,400'
+}, [
+  h(ButtonPrimary, {
+    href: Nav.getLink('data-explorer-public', { dataset: 'Framingham Heart Study Teaching Dataset' }),
+    tooltip: browseTooltip
+  }, ['Browse data'])
 ])
 
 const hca = () => h(Participant, {
@@ -287,7 +302,6 @@ const nemo = () => h(Participant, {
   sizeText: h(TooltipTrigger, { content: 'As of March 2019' }, [span('Files: >= 210,000; Projects >= 5; Species >= 3')])
 }, [
   h(ButtonPrimary, {
-    as: 'a',
     href: 'http://portal.nemoarchive.org/',
     ...Utils.newTabLinkProps,
     tooltip: 'Look for the Export to Terra option in the Download Cart to export data.'
@@ -302,8 +316,7 @@ const nhs = () => h(Participant, {
   sizeText: 'Participants: > 120,000'
 }, [
   h(ButtonPrimary, {
-    as: 'a',
-    href: Nav.getLink('library-datasets-data-explorer-private', { dataset: `Nurses' Health Study` })
+    href: Nav.getLink('data-explorer-private', { dataset: `Nurses' Health Study` })
   }, ['Browse Data'])
 ])
 
@@ -330,8 +343,7 @@ const ukb = () => h(Participant, {
   sizeText: 'Participants: > 500,000'
 }, [
   h(ButtonPrimary, {
-    as: 'a',
-    href: Nav.getLink('library-datasets-data-explorer-private', { dataset: 'UK Biobank' })
+    href: Nav.getLink('data-explorer-private', { dataset: 'UK Biobank' })
   }, ['Browse Data'])
 ])
 
@@ -341,7 +353,8 @@ const Datasets = pure(() => {
     libraryTopMatter('datasets'),
     div({ style: styles.content }, [
       // Put datasets in alphabetical order
-      thousandGenomesHighCoverage(), thousandGenomesLowCoverage(), amppd(), baseline(), ccdg(), cmg(), encode(), fcDataLib(), hca(), nemo(), nhs(), topMed(), ukb()
+      thousandGenomesHighCoverage(), thousandGenomesLowCoverage(), amppd(), baseline(), ccdg(), cmg(), encode(), fcDataLib(), framingham(), hca(), nemo(), nhs(),
+      topMed(), ukb()
     ])
   ])
 })

@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
-import { Fragment } from 'react'
+import { Component, Fragment } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { ButtonPrimary, IdContainer, Select, spinnerOverlay } from 'src/components/common'
 import { centeredSpinner } from 'src/components/icons'
@@ -10,7 +10,6 @@ import { Ajax, ajaxCaller } from 'src/libs/ajax'
 import { reportError } from 'src/libs/error'
 import { RequiredFormLabel } from 'src/libs/forms'
 import * as Utils from 'src/libs/utils'
-import { Component } from 'src/libs/wrapped-components'
 import validate from 'validate.js'
 
 
@@ -216,6 +215,11 @@ export const NotebookDeleter = class NotebookDeleter extends Component {
     bucketName: PropTypes.string.isRequired,
     onDismiss: PropTypes.func.isRequired,
     onSuccess: PropTypes.func.isRequired
+  }
+
+  constructor(props) {
+    super(props)
+    this.state = { processing: false }
   }
 
   render() {

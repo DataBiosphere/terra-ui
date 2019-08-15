@@ -16,6 +16,10 @@ const datasets = [
     authDomain: 'baseline-researchers'
   },
   {
+    name: 'Framingham Heart Study Teaching Dataset',
+    origin: 'https://time-series-data-explorer.appspot.com'
+  },
+  {
     name: 'Nurses\' Health Study',
     origin: 'https://nhs-explorer.appspot.com',
     authDomain: 'nhs_saturn_users'
@@ -23,7 +27,8 @@ const datasets = [
   {
     name: 'UK Biobank',
     origin: 'https://biobank-explorer.appspot.com',
-    authDomain: 'Kathiresan_UKBB'
+    authDomain: 'Kathiresan_UKBB',
+    isUKB: true
   }
 ]
 

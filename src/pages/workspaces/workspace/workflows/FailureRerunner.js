@@ -1,4 +1,5 @@
 import _ from 'lodash/fp'
+import { Component } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { icon, spinner } from 'src/components/icons'
 import { popNotification, pushNotification } from 'src/components/Notifications'
@@ -8,7 +9,6 @@ import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import { rerunFailuresStatus } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
-import { Component } from 'src/libs/wrapped-components'
 
 
 const ToastMessageComponent = Utils.connectAtom(rerunFailuresStatus, 'status')(class ToastMessageComponent extends Component {

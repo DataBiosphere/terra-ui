@@ -1,13 +1,13 @@
 import * as clipboard from 'clipboard-polyfill'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
-import { createRef, Fragment, useState } from 'react'
-import Dropzone from 'react-dropzone'
+import { createRef, Component, Fragment, useState } from 'react'
 import { a, div, h, span } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
 import togglesListView from 'src/components/CardsListToggle'
 import { Clickable, Link, makeMenuIcon, MenuButton, PageBox, Select, spinnerOverlay } from 'src/components/common'
+import Dropzone from 'src/components/Dropzone'
 import { icon } from 'src/components/icons'
 import { NotebookCreator, NotebookDeleter, NotebookDuplicator } from 'src/components/notebook-utils'
 import { notify } from 'src/components/Notifications'
@@ -21,7 +21,6 @@ import { authStore } from 'src/libs/state'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import { Component } from 'src/libs/wrapped-components'
 import ExportNotebookModal from 'src/pages/workspaces/workspace/notebooks/ExportNotebookModal'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
@@ -158,14 +157,7 @@ const NotebookCard = Utils.connectAtom(authStore, 'authState')(
         }, [makeMenuIcon('trash'), 'Delete'])
       ])
     }, [
-      h(Clickable, {
-        onClick: e => e.preventDefault(),
-        style: {
-          cursor: 'pointer', color: colors.accent()
-        },
-        focus: 'hover',
-        hover: { color: colors.accent(0.85) }
-      }, [
+      h(Link, { onClick: e => e.preventDefault() }, [
         icon('cardMenuIcon', {
           size: listView ? 18 : 24
         })
@@ -193,7 +185,7 @@ const NotebookCard = Utils.connectAtom(authStore, 'authState')(
       title,
       div({ style: { flexGrow: 1 } }),
       locked ? div({ style: { display: 'flex', marginRight: '2rem', color: colors.dark(0.75) } }, [icon('lock')]) : undefined,
-      isRecent ? div({ style: { display: 'flex', marginRight: '2rem' } }, 'Recently Edited') : undefined,
+      isRecent ? div({ style: { display: 'flex', color: colors.warning(), marginRight: '2rem' } }, 'Recently Edited') : undefined,
       h(TooltipTrigger, { content: Utils.makeCompleteDate(updated) }, [
         div({ style: { fontSize: '0.8rem', marginRight: '0.5rem' } },
           `Last edited: ${Utils.makePrettyDate(updated)}`)
@@ -248,7 +240,6 @@ const Notebooks = _.flow(
       sortOrder: defaultSort.value,
       ...StateHistory.get()
     }
-    this.uploader = createRef()
   }
 
   getExistingNames() {
@@ -297,7 +288,7 @@ const Notebooks = _.flow(
     this.refresh()
   }
 
-  renderNotebooks() {
+  renderNotebooks(openUploader) {
     const { notebooks, sortOrder: { field, direction } } = this.state
     const {
       name: wsName, namespace, listView,
@@ -351,7 +342,7 @@ const Notebooks = _.flow(
             ...Style.elements.card.container, flex: 1,
             backgroundColor: colors.dark(0.1), border: `1px dashed ${colors.dark(0.7)}`, boxShadow: 'none'
           },
-          onClick: () => this.uploader.current.open(),
+          onClick: openUploader,
           disabled: !canWrite,
           tooltip: !canWrite ? noWrite : undefined
         }, [
@@ -381,16 +372,12 @@ const Notebooks = _.flow(
     return h(Dropzone, {
       accept: '.ipynb',
       disabled: !Utils.canWrite(accessLevel),
-      disableClick: true,
       style: { flexGrow: 1 },
-      activeStyle: { backgroundColor: colors.accent(0.2), cursor: 'copy' }, // accept and reject don't work in all browsers
-      acceptStyle: { cursor: 'copy' },
-      rejectStyle: { cursor: 'no-drop' },
-      ref: this.uploader,
+      activeStyle: { backgroundColor: colors.accent(0.2), cursor: 'copy' },
       onDropRejected: () => reportError('Not a valid notebook',
         'The selected file is not a ipynb notebook file. To import a notebook, upload a file with a .ipynb extension.'),
       onDropAccepted: files => this.uploadFiles(files)
-    }, [
+    }, [({ openUploader }) => h(Fragment, [
       notebooks && h(PageBox, [
         div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' } }, [
           div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, ['Notebooks']),
@@ -439,10 +426,10 @@ const Notebooks = _.flow(
             }
           })
         ]),
-        this.renderNotebooks()
+        this.renderNotebooks(openUploader)
       ]),
       (saving || loading) && spinnerOverlay
-    ])
+    ])])
   }
 
   componentDidUpdate() {

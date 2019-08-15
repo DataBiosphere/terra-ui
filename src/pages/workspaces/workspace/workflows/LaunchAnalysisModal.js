@@ -1,15 +1,20 @@
 import _ from 'lodash/fp'
+import { Component } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { ButtonPrimary } from 'src/components/common'
 import { spinner } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
-import { Component } from 'src/libs/wrapped-components'
 import EntitySelectionType from 'src/pages/workspaces/workspace/workflows/EntitySelectionType'
 
 
 export default ajaxCaller(class LaunchAnalysisModal extends Component {
+  constructor(props) {
+    super(props)
+    this.state = { launching: undefined, message: undefined, launchError: undefined }
+  }
+
   /**
    * Verify that the user's pet service account (used while running workflows) will be able to
    * access the workspace bucket

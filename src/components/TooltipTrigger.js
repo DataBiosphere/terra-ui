@@ -1,8 +1,8 @@
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
-import { Children, cloneElement, Component, Fragment } from 'react'
+import { Children, cloneElement, Component, Fragment, useRef } from 'react'
 import { div, h, path, svg } from 'react-hyperscript-helpers'
-import { computePopupPosition, PopupPortal, withDynamicPosition } from 'src/components/popup-utils'
+import { computePopupPosition, PopupPortal, useDynamicPosition } from 'src/components/popup-utils'
 import colors from 'src/libs/colors'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -34,55 +34,41 @@ const styles = {
   }
 }
 
-const Tooltip = withDynamicPosition()(class Tooltip extends Component {
-  static propTypes = {
-    side: PropTypes.string,
-    type: PropTypes.string.isRequired,
-    target: PropTypes.string.isRequired,
-    children: PropTypes.node.isRequired
+const Tooltip = ({ side = 'bottom', type, target: targetId, children }) => {
+  const elementRef = useRef()
+  const [target, element, viewport] = useDynamicPosition([{ id: targetId }, { ref: elementRef }, { viewport: true }])
+  const gap = type === 'light' ? 5 : 10
+  const { side: finalSide, position } = computePopupPosition({ side, target, element, viewport, gap })
+  const getNotchPosition = () => {
+    const left = _.clamp(12, element.width - 12,
+      (target.left + target.right) / 2 - position.left
+    )
+    const top = _.clamp(12, element.height - 12,
+      (target.top + target.bottom) / 2 - position.top
+    )
+    return Utils.switchCase(finalSide,
+      ['top', () => ({ bottom: 0, left, transform: 'rotate(180deg)' })],
+      ['bottom', () => ({ top: 0, left })],
+      ['left', () => ({ right: 0, top, transform: 'rotate(90deg)' })],
+      ['right', () => ({ left: 0, top, transform: 'rotate(270deg)' })]
+    )
   }
-
-  static defaultProps = {
-    side: 'bottom'
-  }
-
-  render() {
-    const { children, side, type, elementRef, dimensions: { target, element, viewport } } = this.props
-    const gap = type === 'light' ? 5 : 10
-    const { side: finalSide, position } = computePopupPosition({ side, target, element, viewport, gap })
-    const getNotchPosition = () => {
-      const left = _.clamp(12, element.width - 12,
-        (target.left + target.right) / 2 - position.left
-      )
-      const top = _.clamp(12, element.height - 12,
-        (target.top + target.bottom) / 2 - position.top
-      )
-      return Utils.switchCase(finalSide,
-        ['top', () => ({ bottom: 0, left, transform: 'rotate(180deg)' })],
-        ['bottom', () => ({ top: 0, left })],
-        ['left', () => ({ right: 0, top, transform: 'rotate(90deg)' })],
-        ['right', () => ({ left: 0, top, transform: 'rotate(270deg)' })]
-      )
-    }
-    return h(PopupPortal, [
-      div({
-        ref: elementRef,
-        style: {
-          transform: `translate(${position.left}px, ${position.top}px)`,
-          ...(type === 'light') ? styles.lightBox : styles.tooltip
-        }
-      }, [
-        children,
-        (type === 'light') ? undefined :
-          svg({
-            viewBox: '0 0 2 1', style: { ...getNotchPosition(), ...styles.notch }
-          }, [
-            path({ d: 'M0,1l1,-1l1,1Z' })
-          ])
+  return h(PopupPortal, [
+    div({
+      ref: elementRef,
+      style: {
+        transform: `translate(${position.left}px, ${position.top}px)`,
+        visibility: !viewport.width ? 'hidden' : undefined,
+        ...(type === 'light') ? styles.lightBox : styles.tooltip
+      }
+    }, [
+      children,
+      type !== 'light' && svg({ viewBox: '0 0 2 1', style: { ...getNotchPosition(), ...styles.notch } }, [
+        path({ d: 'M0,1l1,-1l1,1Z' })
       ])
     ])
-  }
-})
+  ])
+}
 
 export default class TooltipTrigger extends Component {
   static propTypes = {

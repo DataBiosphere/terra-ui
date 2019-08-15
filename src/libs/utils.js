@@ -186,10 +186,12 @@ export const generateClusterName = () => `saturn-${uuid()}`
 
 export const waitOneTick = () => new Promise(setImmediate)
 
-export const entityAttributeText = value => {
+export const entityAttributeText = (value, machineReadable) => {
   return cond(
     [_.has('entityName', value), () => value.entityName],
-    [_.has('items', value), () => `${value.items.length} items`],
+    [_.has('items', value), () => machineReadable ?
+      JSON.stringify(value.items) :
+      `${value.items.length} ${value.itemsType === 'EntityReference' ? 'entities' : 'items'}`],
     () => value
   )
 }
@@ -318,6 +320,18 @@ export const useGetter = value => {
   const ref = useRef()
   ref.current = value
   return () => ref.current
+}
+
+/*
+ * Calls the provided function to produce and return a value tied to this component instance.
+ * The initializer function is only called once for each component instance, on first render.
+ */
+export const useInstance = fn => {
+  const ref = useRef()
+  if (!ref.current) {
+    ref.current = fn()
+  }
+  return ref.current
 }
 
 export const handleNonRunningCluster = ({ status, googleProject, clusterName }, JupyterAjax) => {

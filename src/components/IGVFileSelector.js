@@ -1,13 +1,12 @@
 import _ from 'lodash/fp'
+import { Component, Fragment } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { AutoSizer, List } from 'react-virtualized'
 import ButtonBar from 'src/components/ButtonBar'
 import { ButtonPrimary, Clickable, LabeledCheckbox, Link, Select } from 'src/components/common'
-import ModalDrawer from 'src/components/ModalDrawer'
 import TitleBar from 'src/components/TitleBar'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import { Component } from 'src/libs/wrapped-components'
 
 
 const styles = {
@@ -68,28 +67,12 @@ export class IGVFileSelector extends Component {
   }
 
   render() {
-    const { onDismiss, onSuccess, openDrawer } = this.props
+    const { onPrevious, onDismiss, onSuccess } = this.props
     const { selectedFiles, refGenome } = this.state
     const trackFiles = this.getIGVFileList()
-    const clearSelectionsAndDismiss = () => {
-      this.setAll(false)
-      onDismiss()
-    }
 
-    return h(ModalDrawer, {
-      openDrawer,
-      onDismiss: clearSelectionsAndDismiss,
-      width: 450,
-      okButton: h(ButtonPrimary, {
-        disabled: this.buttonIsDisabled(),
-        tooltip: this.buttonIsDisabled() ? `Select between 1 and ${MAX_CONCURRENT_IGV_FILES} files` : '',
-        onClick: () => onSuccess({ selectedFiles: this.getSelectedFilesList(), refGenome })
-      }, ['Done'])
-    }, [
-      h(TitleBar, {
-        title: 'IGV',
-        onDismiss: clearSelectionsAndDismiss
-      }),
+    return h(Fragment, [
+      h(TitleBar, { title: 'IGV', onPrevious, onDismiss }),
       div({ style: { fontWeight: 500, paddingLeft: '1.25rem' } }, [
         'Reference genome: ',
         div({ style: { display: 'inline-block', marginLeft: '0.25rem', marginBottom: '1rem', minWidth: 125 } }, [
@@ -108,37 +91,38 @@ export class IGVFileSelector extends Component {
           '|',
           h(Link, { style: { padding: '0 0.5rem' }, onClick: () => this.setAll(false) }, ['none'])
         ]),
-        h(AutoSizer, { style: { flex: 1 } }, [
-          ({ width, height }) => {
-            return h(List, {
-              height,
-              width,
-              rowCount: trackFiles.length,
-              rowHeight: 30,
-              noRowsRenderer: () => 'No valid files found',
-              rowRenderer: ({ index, style, key }) => {
-                const name = trackFiles[index]
-                return div({ key, index, style: { ...style, marginBottom: 'auto', display: 'flex' } }, [
-                  div({ style: { display: 'flex', alignItems: 'center' } }, [
-                    h(LabeledCheckbox, {
-                      checked: selectedFiles[name],
-                      onChange: () => this.toggleVisibility(name)
-                    })
-                  ]),
-                  h(Clickable, {
-                    style: styles.columnName,
-                    title: name,
-                    onClick: () => this.toggleVisibility(name)
-                  }, [_.last(name.split('/'))])
-                ])
-              }
-            })
-          }
+        div({ style: { flex: 1 } }, [
+          h(AutoSizer, [
+            ({ width, height }) => {
+              return h(List, {
+                height,
+                width,
+                rowCount: trackFiles.length,
+                rowHeight: 30,
+                noRowsRenderer: () => 'No valid files found',
+                rowRenderer: ({ index, style, key }) => {
+                  const name = trackFiles[index]
+                  return div({ key, index, style: { ...style, marginBottom: 'auto', display: 'flex' } }, [
+                    div({ style: { display: 'flex', alignItems: 'center' } }, [
+                      h(LabeledCheckbox, {
+                        checked: selectedFiles[name],
+                        onChange: () => this.toggleVisibility(name)
+                      })
+                    ]),
+                    h(Clickable, {
+                      style: styles.columnName,
+                      title: name,
+                      onClick: () => this.toggleVisibility(name)
+                    }, [_.last(name.split('/'))])
+                  ])
+                }
+              })
+            }
+          ])
         ])
       ]),
       h(ButtonBar, {
         style: Style.modalDrawer.buttonBar,
-        onCancel: clearSelectionsAndDismiss,
         okButton: h(ButtonPrimary, {
           disabled: this.buttonIsDisabled(),
           tooltip: this.buttonIsDisabled() ? `Select between 1 and ${MAX_CONCURRENT_IGV_FILES} files` : '',

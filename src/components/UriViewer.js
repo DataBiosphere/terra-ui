@@ -2,7 +2,7 @@ import * as clipboard from 'clipboard-polyfill'
 import filesize from 'filesize'
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
-import { Fragment, useState } from 'react'
+import { Component, Fragment, useState } from 'react'
 import { div, h, img, input } from 'react-hyperscript-helpers'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
 import Collapse from 'src/components/Collapse'
@@ -16,7 +16,6 @@ import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import { requesterPaysBuckets, requesterPaysProjectStore, workspaceStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
-import { Component } from 'src/libs/wrapped-components'
 
 
 const styles = {
@@ -123,7 +122,6 @@ const DownloadButton = ({ uri, metadata: { bucket, name, size } }) => {
       'Unable to generate download link.' :
       div({ style: { display: 'flex', justifyContent: 'center' } }, [
         h(ButtonPrimary, {
-          as: 'a',
           disabled: !url,
           href: url,
           ...Utils.newTabLinkProps
@@ -144,6 +142,12 @@ const UriViewer = _.flow(
     googleProject: PropTypes.string.isRequired,
     uri: PropTypes.string.isRequired
   }
+
+  constructor(props) {
+    super(props)
+    this.state = { metadata: undefined, copied: undefined, loadingError: undefined }
+  }
+
 
   async componentDidMount() {
     const { googleProject, uri, ajax: { Buckets, Martha }, onRequesterPaysError } = this.props
@@ -268,7 +272,10 @@ export class UriViewerLink extends Component {
       h(Link, {
         style: { textDecoration: 'underline' },
         href: uri,
-        onClick: () => this.setState({ modalOpen: true })
+        onClick: e => {
+          e.preventDefault()
+          this.setState({ modalOpen: true })
+        }
       }, [isGs(uri) ? _.last(uri.split('/')) : uri]),
       modalOpen && h(UriViewer, {
         onDismiss: () => this.setState({ modalOpen: false }),

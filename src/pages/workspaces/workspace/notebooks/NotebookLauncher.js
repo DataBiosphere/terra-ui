@@ -288,7 +288,7 @@ const PreviewHeader = ({ cluster, readOnlyAccess, refreshClusters, notebookName,
   ])
 }
 
-const NotebookPreviewFrame = ({ notebookName, workspace: { workspace: { namespace, bucketName } }, onRequesterPaysError }) => {
+const NotebookPreviewFrame = ({ notebookName, workspace: { workspace: { namespace, name, bucketName } }, onRequesterPaysError }) => {
   const signal = useCancellation()
   const [busy, setBusy] = useState(false)
   const [preview, setPreview] = useState()
@@ -307,6 +307,12 @@ const NotebookPreviewFrame = ({ notebookName, workspace: { workspace: { namespac
 
   return h(Fragment, [
     preview && h(Fragment, [
+      div({ style: { position: 'relative' } }, [
+        h(ButtonPrimary, {
+          style: { position: 'absolute', top: 20, left: 'calc(50% + 580px)' },
+          onClick: () => Nav.goToPath('workspace-notebooks', { namespace, name })
+        }, ['Close'])
+      ]),
       iframe({
         ref: frame,
         onLoad: () => {
@@ -399,7 +405,6 @@ const NotebookEditorFrame = ({ mode, notebookName, workspace: { workspace: { nam
     }
     setNotebookSetUp(true)
   })
-
   const checkRecentAccess = async () => {
     const { updated } = await Ajax(signal).Buckets.notebook(namespace, bucketName, notebookName.slice(0, -6)).getObject()
     const tenMinutesAgo = _.tap(d => d.setMinutes(d.getMinutes() - 10), new Date())
@@ -417,7 +422,7 @@ const NotebookEditorFrame = ({ mode, notebookName, workspace: { workspace: { nam
   return h(Fragment, [
     notebookSetUp && h(Fragment, [
       iframe({
-        src: `${clusterUrl}/notebooks/${name}/edit/${notebookName}`,
+        src: `${clusterUrl}/notebooks/${name}/safe/${notebookName}`,
         style: { border: 'none', flex: 1 },
         ref: frameRef
       }),

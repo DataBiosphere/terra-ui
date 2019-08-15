@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { Fragment } from 'react'
+import { Component, Fragment } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { Clickable, Link } from 'src/components/common'
 import { centeredSpinner } from 'src/components/icons'
@@ -12,7 +12,6 @@ import { getConfig } from 'src/libs/config'
 import { getAppName, returnParam } from 'src/libs/logos'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
-import { Component } from 'src/libs/wrapped-components'
 
 
 const styles = {
@@ -26,7 +25,6 @@ export const makeWorkflowCard = ({ method, onClick }) => {
   const { namespace, name, synopsis } = method
 
   return h(Clickable, {
-    as: 'a',
     href: !onClick ? `${getConfig().firecloudUrlRoot}/?return=${returnParam()}#methods/${namespace}/${name}/` : undefined,
     onClick,
     style: {

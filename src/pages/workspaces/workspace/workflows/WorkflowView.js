@@ -1,16 +1,16 @@
 import FileSaver from 'file-saver'
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
-import { createRef, Fragment } from 'react'
-import Dropzone from 'react-dropzone'
+import { Component, Fragment } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import {
   ButtonPrimary, ButtonSecondary, Clickable, LabeledCheckbox, Link, makeMenuIcon, MenuButton, methodLink, RadioButton, Select, spinnerOverlay
 } from 'src/components/common'
+import Dropzone from 'src/components/Dropzone'
 import { centeredSpinner, icon } from 'src/components/icons'
-import { AutocompleteTextInput } from 'src/components/input'
+import { DelayedAutocompleteTextInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import PopupTrigger from 'src/components/PopupTrigger'
 import StepButtons from 'src/components/StepButtons'
@@ -25,7 +25,6 @@ import { workflowSelectionStore } from 'src/libs/state'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import { Component } from 'src/libs/wrapped-components'
 import DataStepContent from 'src/pages/workspaces/workspace/workflows/DataStepContent'
 import DeleteWorkflowModal from 'src/pages/workspaces/workspace/workflows/DeleteWorkflowModal'
 import EntitySelectionType from 'src/pages/workspaces/workspace/workflows/EntitySelectionType'
@@ -133,7 +132,7 @@ const WorkflowIOTable = ({ which, inputsOutputs: data, config, errors, onChange,
               const error = errors[which][name]
               const isFile = (inputType === 'File') || (inputType === 'File?')
               return div({ style: { display: 'flex', alignItems: 'center', width: '100%' } }, [
-                !readOnly ? h(AutocompleteTextInput, {
+                !readOnly ? h(DelayedAutocompleteTextInput, {
                   placeholder: optional ? 'Optional' : 'Required',
                   value,
                   style: isFile ? { borderRadius: '4px 0px 0px 4px', borderRight: 'white' } : undefined,
@@ -324,7 +323,6 @@ const WorkflowView = _.flow(
       errors: { inputs: {}, outputs: {} },
       ...StateHistory.get()
     }
-    this.uploader = createRef()
   }
 
   isSingle() { return !this.isMultiple() }
@@ -439,7 +437,8 @@ const WorkflowView = _.flow(
       const snapshotIds = _.map(m => _.pick('snapshotId', m).snapshotId, methods)
       const inputsOutputs = isRedacted ? {} : await Methods.configInputsOutputs(config)
       const selection = workflowSelectionStore.get()
-      const modifiedConfig = selection.key === selectionKey ? _.set('rootEntityType', selection.entityType, config) : config
+      const readSelection = selectionKey && selection.key === selectionKey
+      const modifiedConfig = readSelection ? _.set('rootEntityType', selection.entityType, config) : config
       this.setState({
         savedConfig: config, modifiedConfig,
         currentSnapRedacted: isRedacted, savedSnapRedacted: isRedacted,
@@ -448,7 +447,7 @@ const WorkflowView = _.flow(
         modifiedInputsOutputs: inputsOutputs,
         snapshotIds,
         errors: isRedacted ? { inputs: {}, outputs: {} } : augmentErrors(validationResponse),
-        entitySelectionModel: this.resetSelectionModel(modifiedConfig.rootEntityType, selection.key === selectionKey ? selection.entities : {}),
+        entitySelectionModel: this.resetSelectionModel(modifiedConfig.rootEntityType, readSelection ? selection.entities : {}),
         workspaceAttributes: _.flow(
           _.without(['description']),
           _.remove(s => s.includes(':'))
@@ -532,7 +531,7 @@ const WorkflowView = _.flow(
   renderSummary() {
     const { workspace: ws, workspace: { workspace }, namespace, name: workspaceName } = this.props
     const {
-      modifiedConfig, savedConfig, saving, saved, copying, deleting, selectingData, activeTab, errors, synopsis, documentation,
+      modifiedConfig, savedConfig, saving, saved, exporting, copying, deleting, selectingData, activeTab, errors, synopsis, documentation,
       selectedEntityType, entityMetadata, entitySelectionModel, snapshotIds = [], useCallCache, currentSnapRedacted, savedSnapRedacted
     } = this.state
     const { name, methodRepoMethod: { methodPath, methodVersion, methodNamespace, methodName, sourceRepo }, rootEntityType } = modifiedConfig
@@ -562,8 +561,11 @@ const WorkflowView = _.flow(
                 closeOnClick: true,
                 content: h(Fragment, [
                   h(MenuButton, {
+                    onClick: () => this.setState({ exporting: true })
+                  }, [makeMenuIcon('export'), 'Copy to Another Workspace']),
+                  h(MenuButton, {
                     onClick: () => this.setState({ copying: true })
-                  }, [makeMenuIcon('copy'), 'Copy to Another Workspace']),
+                  }, [makeMenuIcon('copy'), 'Duplicate']),
                   h(MenuButton, {
                     disabled: !!Utils.editWorkspaceError(ws),
                     tooltip: Utils.editWorkspaceError(ws),
@@ -703,9 +705,15 @@ const WorkflowView = _.flow(
         modified && h(ButtonPrimary, { disabled: saving || !this.canSave(), onClick: () => this.save() }, 'Save'),
         modified && h(ButtonSecondary, { style: { marginLeft: '1rem' }, disabled: saving, onClick: () => this.cancel() }, 'Cancel')
       ]),
+      exporting && h(ExportWorkflowModal, {
+        thisWorkspace: workspace, methodConfig: savedConfig,
+        onDismiss: () => this.setState({ exporting: false })
+      }),
       copying && h(ExportWorkflowModal, {
         thisWorkspace: workspace, methodConfig: savedConfig,
-        onDismiss: () => this.setState({ copying: false })
+        sameWorkspace: true,
+        onDismiss: () => this.setState({ copying: false }),
+        onSuccess: () => Nav.goToPath('workspace-workflows', { namespace, name: workspaceName })
       }),
       deleting && h(DeleteWorkflowModal, {
         workspace, methodConfig: savedConfig,
@@ -786,18 +794,16 @@ const WorkflowView = _.flow(
       accept: '.json',
       multiple: false,
       disabled: currentSnapRedacted || !!Utils.editWorkspaceError(workspace),
-      disableClick: true,
       style: {
         ...styles.tabContents,
         flex: 'auto', display: 'flex', flexDirection: 'column',
         position: undefined
       },
       activeStyle: { backgroundColor: colors.accent(0.2), cursor: 'copy' },
-      ref: this.uploader,
       onDropRejected: () => reportError('Not a valid inputs file',
         'The selected file is not a json file. To import inputs for this workflow, upload a file with a .json extension.'),
       onDropAccepted: files => this.uploadJson(key, files[0])
-    }, [
+    }, [({ openUploader }) => h(Fragment, [
       div({ style: { flex: 'none', display: 'flex', marginBottom: '0.25rem' } }, [
         key === 'inputs' && _.some('optional', modifiedInputsOutputs['inputs']) ?
           h(Link, { style: { marginRight: 'auto' }, onClick: () => this.setState({ includeOptionalInputs: !includeOptionalInputs }) },
@@ -806,7 +812,7 @@ const WorkflowView = _.flow(
         h(Link, { onClick: () => this.downloadJson(key) }, ['Download json']),
         !currentSnapRedacted && !Utils.editWorkspaceError(workspace) && h(Fragment, [
           div({ style: { whiteSpace: 'pre' } }, ['  |  Drag or click to ']),
-          h(Link, { onClick: () => this.uploader.current.open() }, ['upload json'])
+          h(Link, { onClick: openUploader }, ['upload json'])
         ])
       ]),
       filteredData.length !== 0 &&
@@ -827,7 +833,7 @@ const WorkflowView = _.flow(
           suggestions
         })
       ])
-    ])
+    ])])
   }
 
   async save() {

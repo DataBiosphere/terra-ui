@@ -173,7 +173,7 @@ const SubmissionDetails = _.flow(
         style: { marginRight: '2rem', flexBasis: 300, borderColor: colors.dark(0.55) },
         placeholder: 'Search',
         onChange: setTextFilter,
-        defaultValue: textFilter
+        value: textFilter
       }),
       div({ style: { flexBasis: 350 } }, [
         h(Select, {

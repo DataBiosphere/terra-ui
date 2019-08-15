@@ -1,13 +1,12 @@
 import { isAfter } from 'date-fns'
-import debouncePromise from 'debounce-promise'
 import _ from 'lodash/fp'
-import { Fragment, useState } from 'react'
-import { a, div, h, span } from 'react-hyperscript-helpers'
+import { Component, Fragment, useState } from 'react'
+import { div, h, span } from 'react-hyperscript-helpers'
 import { pure } from 'recompose'
 import removeMd from 'remove-markdown'
 import togglesListView from 'src/components/CardsListToggle'
 import {
-  AsyncCreatableSelect, Clickable, LabeledCheckbox, Link, makeMenuIcon, MenuButton, PageBox, Select, topSpinnerOverlay, transparentSpinnerOverlay
+  Clickable, LabeledCheckbox, Link, makeMenuIcon, MenuButton, PageBox, Select, topSpinnerOverlay, transparentSpinnerOverlay
 } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { DelayedSearchInput } from 'src/components/input'
@@ -15,7 +14,7 @@ import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
 import PopupTrigger from 'src/components/PopupTrigger'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import TopBar from 'src/components/TopBar'
-import { withWorkspaces } from 'src/components/workspace-utils'
+import { withWorkspaces, WorkspaceTagSelect } from 'src/components/workspace-utils'
 import { Ajax, ajaxCaller, useCancellation } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
@@ -23,7 +22,6 @@ import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import { Component } from 'src/libs/wrapped-components'
 import DeleteWorkspaceModal from 'src/pages/workspaces/workspace/DeleteWorkspaceModal'
 import { RequestAccessModal } from 'src/pages/workspaces/workspace/RequestAccessModal'
 import ShareWorkspaceModal from 'src/pages/workspaces/workspace/ShareWorkspaceModal'
@@ -150,11 +148,7 @@ const WorkspaceCard = pure(({
     closeOnClick: true,
     content: h(WorkspaceMenuContent, { namespace, name, onShare, onClone, onDelete })
   }, [
-    h(Link, {
-      as: 'div',
-      onClick: e => e.preventDefault(),
-      disabled: !canView
-    }, [
+    h(Link, { onClick: e => e.preventDefault(), disabled: !canView }, [
       icon('cardMenuIcon', {
         size: listView ? 18 : 24
       })
@@ -165,22 +159,6 @@ const WorkspaceCard = pure(({
     span({ style: { color: colors.dark(0.85) } }, ['No description added'])
   const titleOverrides = !canView ? { color: colors.dark(0.7) } : {}
 
-  const renderCard = children => {
-    const style = listView ? styles.longCard : styles.shortCard
-    if (canView) {
-      return a({
-        href: Nav.getLink('workspace-dashboard', { namespace, name }),
-        style
-      }, children)
-    } else {
-      return h(Clickable, {
-        as: 'a',
-        onClick: onRequestAccess,
-        style
-      }, children)
-    }
-  }
-
   return h(TooltipTrigger, {
     content: !canView && `
       You cannot access this workspace because it is protected by an Authorization Domain.
@@ -188,7 +166,11 @@ const WorkspaceCard = pure(({
     `,
     side: 'top'
   }, [
-    renderCard([
+    h(Clickable, {
+      href: canView ? Nav.getLink('workspace-dashboard', { namespace, name }) : undefined,
+      onClick: !canView ? onRequestAccess : undefined,
+      style: listView ? styles.longCard : styles.shortCard
+    }, [
       Utils.switchCase(workspaceSubmissionStatus(workspace),
         ['success', () => h(SubmissionIndicator, { shape: 'success-standard', color: colors.success() })],
         ['failure', () => h(SubmissionIndicator, { shape: 'error-standard', color: colors.danger(0.85) })],
@@ -263,17 +245,6 @@ export const WorkspaceList = _.flow(
     return _.find({ workspace: { workspaceId: id } }, workspaces)
   }
 
-  getTagSuggestions = debouncePromise(withErrorReporting('Error loading tags', async text => {
-    const { ajax: { Workspaces } } = this.props
-    if (text.length > 2) {
-      return _.map(({ tag, count }) => {
-        return { value: tag, label: `${tag} (${count})` }
-      }, _.take(10, await Workspaces.getTags(text)))
-    } else {
-      return []
-    }
-  }), 250)
-
   render() {
     const { workspaces, loadingWorkspaces, refreshWorkspaces, listView, viewToggleButtons } = this.props
     const { filter, creatingNewWorkspace, cloningWorkspaceId, deletingWorkspaceId, sharingWorkspaceId, requestingAccessWorkspaceId, accessLevelsFilter, projectsFilter, submissionsFilter, tagsFilter, includePublic } = this.state
@@ -334,7 +305,7 @@ export const WorkspaceList = _.flow(
           style: { marginLeft: '2rem', width: 500 },
           placeholder: 'SEARCH WORKSPACES',
           onChange: v => this.setState({ filter: v }),
-          defaultValue: filter
+          value: filter
         })
       ]),
       h(PageBox, { style: { position: 'relative' } }, [
@@ -351,16 +322,13 @@ export const WorkspaceList = _.flow(
         div({ style: { display: 'flex', marginBottom: '1rem' } }, [
           div({ style: { display: 'flex', alignItems: 'center', fontSize: '1rem' } }, ['Filter by']),
           div({ style: styles.filter }, [
-            h(AsyncCreatableSelect, {
+            h(WorkspaceTagSelect, {
               isClearable: true,
               isMulti: true,
-              noOptionsMessage: () => 'Enter at least 3 characters to search',
               formatCreateLabel: _.identity,
-              allowCreateWhileLoading: true,
               value: _.map(tag => ({ label: tag, value: tag }), tagsFilter),
               placeholder: 'Tags',
-              onChange: data => this.setState({ tagsFilter: _.map('value', data) }),
-              loadOptions: this.getTagSuggestions
+              onChange: data => this.setState({ tagsFilter: _.map('value', data) })
             })
           ]),
           div({ style: { ...styles.filter, flexBasis: '250px', minWidth: 0 } }, [

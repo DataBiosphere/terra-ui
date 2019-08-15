@@ -2,10 +2,10 @@ import _ from 'lodash/fp'
 import { Component, Fragment } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import { Link } from 'src/components/common'
-import DataExplorer from 'src/components/DataExplorer'
+import DataExplorerFrame from 'src/components/DataExplorerFrame'
 import { centeredSpinner } from 'src/components/icons'
+import datasets from 'src/data/datasets'
 import { ajaxCaller } from 'src/libs/ajax'
-import datasets from 'src/libs/datasets'
 import { authStore, contactUsActive } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
@@ -66,7 +66,7 @@ export default _.flow(
   render() {
     const { dataset } = this.props
     const { completedDeOauth, groups } = this.state
-    const { authDomain, origin } = _.find({ name: dataset }, datasets)
+    const { authDomain, origin, isUKB } = _.find({ name: dataset }, datasets)
 
     const paragraphStyle = { style: { margin: '2rem' } }
     const notInAuthDomainError = div({
@@ -83,17 +83,28 @@ export default _.flow(
         'group, please sign out of Terra and sign in with that account. To ' +
         'sign out of Terra, click on the menu on the upper left, ' +
         'click on your name, then click Sign Out'),
-      div(paragraphStyle, [
-        'If you don\'t have a Google account in that group, please ',
-        h(Link, { onClick: () => { contactUsActive.set(true) } }, 'apply for access.')
-      ])
+      isUKB ?
+        h(Fragment, [
+          div(paragraphStyle, [
+            'If you do not have a Google account in that group, you will not be able to browse UKB data at this time. ',
+            'However, if you already have access to a copy of UKB data, you may upload it to a workspace, ',
+            'provided you add appropriate permissions and/or Authorization Domains to keep the data protected.'
+          ]),
+          div(paragraphStyle, [
+            'We are actively working with UK Biobank to improve the process of accessing and working with UKB data.'
+          ])
+        ]) :
+        div(paragraphStyle, [
+          'If you don\'t have a Google account in that group, please ',
+          h(Link, { onClick: () => { contactUsActive.set(true) } }, 'apply for access.')
+        ])
     ])
 
     return h(Fragment, [
       Utils.cond(
         [groups === undefined || completedDeOauth === undefined, centeredSpinner],
         [groups && groups.includes(authDomain) && completedDeOauth === false, () => { window.open(origin, '_self') }],
-        [groups && groups.includes(authDomain), h(DataExplorer, { dataset })],
+        [groups && groups.includes(authDomain), h(DataExplorerFrame, { dataset })],
         notInAuthDomainError
       )
     ])

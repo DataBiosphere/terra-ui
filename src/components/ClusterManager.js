@@ -144,18 +144,6 @@ const ClusterIcon = ({ shape, onClick, disabled, style, ...props }) => {
   }, [icon(shape, { size: 20 })])
 }
 
-const getUpdateIntervalMs = status => {
-  switch (status) {
-    case 'Starting':
-      return 5000
-    case 'Creating':
-    case 'Stopping':
-      return 15000
-    default:
-      return 120000
-  }
-}
-
 export class NewClusterModal extends PureComponent {
   static propTypes = {
     currentCluster: PropTypes.object,
@@ -404,21 +392,6 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
     }
   }
 
-  refreshClusters = () => {
-    this.props.refreshClusters().then(() => this.resetUpdateInterval())
-  }
-
-  resetUpdateInterval() {
-    const currentCluster = this.getCurrentCluster()
-
-    clearInterval(this.interval)
-    this.interval = setInterval(this.refreshClusters, getUpdateIntervalMs(currentCluster && currentCluster.status))
-  }
-
-  componentDidMount() {
-    this.resetUpdateInterval()
-  }
-
   componentDidUpdate(prevProps) {
     const prevCluster = _.last(_.sortBy('createdDate', _.remove({ status: 'Deleting' }, prevProps.clusters))) || {}
     const cluster = this.getCurrentCluster() || {}
@@ -429,10 +402,6 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
       })
       errorNotifiedClusters.update(Utils.append(cluster.id))
     }
-  }
-
-  componentWillUnmount() {
-    clearInterval(this.interval)
   }
 
   getActiveClustersOldestFirst() {
@@ -447,9 +416,10 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
 
   async executeAndRefresh(promise) {
     try {
+      const { refreshClusters } = this.props
       this.setState({ busy: true })
       await promise
-      await this.refreshClusters()
+      await refreshClusters()
     } catch (error) {
       reportError('Cluster Error', error)
     } finally {
@@ -514,7 +484,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
   }
 
   render() {
-    const { namespace, name, clusters, canCompute } = this.props
+    const { namespace, name, clusters, canCompute, refreshClusters } = this.props
     const { busy, createModalOpen, deleteModalOpen, errorModalOpen, pendingNav } = this.state
     if (!clusters) {
       return null
@@ -621,7 +591,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
         onDismiss: () => this.setState({ deleteModalOpen: false }),
         onSuccess: () => {
           this.setState({ deleteModalOpen: false })
-          this.refreshClusters()
+          refreshClusters()
         }
       }),
       createModalOpen && h(NewClusterModal, {

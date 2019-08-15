@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
-import { Fragment } from 'react'
+import { Component, Fragment } from 'react'
 import { b, div, h } from 'react-hyperscript-helpers'
 import { ButtonPrimary, spinnerOverlay } from 'src/components/common'
 import ErrorView from 'src/components/ErrorView'
@@ -14,7 +14,6 @@ import { FormLabel, RequiredFormLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import { Component } from 'src/libs/wrapped-components'
 import validate from 'validate.js'
 
 
