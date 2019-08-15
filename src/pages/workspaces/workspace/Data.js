@@ -3,7 +3,7 @@ import FileSaver from 'file-saver'
 import filesize from 'filesize'
 import JSZip from 'jszip'
 import _ from 'lodash/fp'
-import { Component, createRef, Fragment, useEffect, useState } from 'react'
+import { Component, createRef, Fragment, useState } from 'react'
 import { div, form, h, img, input } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
@@ -23,6 +23,7 @@ import { notify } from 'src/components/Notifications'
 import { FlexTable, HeaderCell, SimpleTable, TextCell } from 'src/components/table'
 import TitleBar from 'src/components/TitleBar'
 import UriViewer from 'src/components/UriViewer'
+import WorkflowSelector from 'src/components/WorkflowSelector'
 import igvLogo from 'src/images/igv-logo.png'
 import wdlLogo from 'src/images/wdl-logo.png'
 import { Ajax, ajaxCaller } from 'src/libs/ajax'
@@ -353,72 +354,83 @@ const ReferenceDataContent = ({ workspace: { workspace: { namespace, attributes 
   ])
 }
 
-const ToolDrawer = ({ openDrawer, onDismiss, onIgvSuccess, selectedEntities }) => {
+const ToolDrawer = ({ workspace, openDrawer, onDismiss: baseOnDismiss, onIgvSuccess, selectedEntities }) => {
   const [toolMode, setToolMode] = useState()
-  const entitiesCount = _.keys(selectedEntities).length
+  const entitiesCount = _.size(selectedEntities)
   const entitiesType = !!entitiesCount && selectedEntities[_.keys(selectedEntities)[0]].entityType
+  const onDismiss = () => {
+    baseOnDismiss()
+    setToolMode(undefined)
+  }
 
-  useEffect(() => {
-    if (!openDrawer) {
-      setToolMode(undefined)
-    }
-  }, [openDrawer])
+  const { title, drawerContent } = Utils.switchCase(toolMode, [
+    'IGV', () => ({
+      title: 'IGV',
+      drawerContent: h(IGVFileSelector, {
+        onSuccess: onIgvSuccess,
+        selectedEntities
+      })
+    })
+  ], [
+    'Workflow', () => ({
+      title: 'YOUR WORKFLOWS',
+      drawerContent: h(WorkflowSelector, { workspace, selectedEntities })
+    })
+  ], [
+    Utils.DEFAULT, () => ({
+      title: 'OPEN WITH...',
+      drawerContent: h(Fragment, [
+        div({ style: Style.modalDrawer.content }, [
+          div({ style: { margin: '1rem 0' } }, [
+            h(ModalToolButton, {
+              onClick: () => setToolMode('IGV'),
+              tooltip: 'Open with Integrative Genomics Viewer'
+            }, [
+              div({ style: { display: 'flex', alignItems: 'center', width: 45, marginRight: '1rem' } }, [
+                img({ src: igvLogo, style: { width: 40 } })
+              ]),
+              'IGV'
+            ]),
+            h(ModalToolButton, {
+              onClick: () => setToolMode('Workflow'),
+              tooltip: 'Open with Workflow',
+              style: { marginTop: '0.5rem' }
+            }, [
+              div({ style: { display: 'flex', alignItems: 'center', width: 45, marginRight: '1rem' } }, [
+                img({ src: wdlLogo, style: { height: '1rem' } })
+              ]),
+              'Workflow'
+            ])
+          ])
+        ])
+      ])
+    })
+  ])
+
   return h(ModalDrawer, {
     openDrawer,
     onDismiss,
     width: 450
   }, [
-    Utils.switchCase(toolMode, [
-      undefined, () => h(Fragment, [
-        h(TitleBar, {
-          title: 'OPEN WITH...',
-          onDismiss
-        }),
-        div({ style: { display: 'flex', flexDirection: 'column', margin: '0 1.5rem' } }, [
-          div({
-            style: {
-              borderRadius: '1rem',
-              border: `1px solid ${colors.dark(0.5)}`,
-              padding: '0.25rem 0.875rem',
-              alignSelf: 'flex-start',
-              fontSize: 12
-            }
-          }, [
-            `${entitiesCount} ${entitiesType}s selected`
-          ]),
-          div({ style: { margin: '1rem 0' } }, [
-            h(ModalToolButton,
-              {
-                onClick: () => setToolMode('IGV'),
-                tooltip: 'Open with Integrative Genomics Viewer'
-              }, [
-                div({ style: { display: 'flex', alignItems: 'center', width: 45, marginRight: '1rem' } }, [
-                  img({ src: igvLogo, style: { width: 40 } })
-                ]),
-                'IGV'
-              ]
-            ),
-            h(ModalToolButton,
-              {
-                tooltip: 'Open with Workflow (coming soon)',
-                style: { marginTop: '0.5rem' },
-                disabled: true
-              }, [
-                div({ style: { display: 'flex', alignItems: 'center', width: 45, marginRight: '1rem' } }, [
-                  img({ src: wdlLogo, style: { height: '1rem' } })
-                ]),
-                'Workflow'
-              ])
-          ])
-        ])
-      ])
-    ], [
-      'IGV', () => h(IGVFileSelector, {
-        onPrevious: () => setToolMode(undefined),
-        onDismiss,
-        onSuccess: onIgvSuccess,
-        selectedEntities
-      })
+    h(Fragment, [
+      h(TitleBar, {
+        title,
+        onPrevious: toolMode ? () => { setToolMode(undefined) } : undefined,
+        onDismiss
+      }),
+      div({
+        style: {
+          borderRadius: '1rem',
+          border: `1px solid ${colors.dark(0.5)}`,
+          padding: '0.25rem 0.875rem',
+          margin: '-1rem 1.5rem 1.5rem',
+          alignSelf: 'flex-start',
+          fontSize: 12
+        }
+      }, [
+        `${entitiesCount} ${entitiesType + (entitiesCount > 1 ? 's' : '')} selected`
+      ]),
+      drawerContent
     ])
   ])
 }
@@ -632,6 +644,7 @@ class EntitiesContent extends Component {
         selectedEntities: _.keys(selectedEntities), selectedDataType: entityKey, runningSubmissionsCount
       }),
       h(ToolDrawer, {
+        workspace,
         openDrawer: showToolSelector,
         onDismiss: () => this.setState({ showToolSelector: false }),
         onIgvSuccess: newIgvData => this.setState({ showToolSelector: false, igvData: newIgvData }),
