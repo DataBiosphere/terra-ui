@@ -606,7 +606,7 @@ const WorkflowView = _.flow(
                 isSearchable: false,
                 value: methodVersion,
                 getOptionLabel: ({ value }) => Utils.normalizeLabel(value),
-                options: _.sortBy(sourceRepo === 'agora' ? _.toNumber : x => x,
+                options: _.sortBy(sourceRepo === 'agora' ? _.toNumber : _.identity,
                   _.uniq([...(sourceRepo === 'agora' ? snapshotIds : versionIds), savedConfig.methodRepoMethod.methodVersion])),
                 isOptionDisabled: ({ value }) => (currentSnapRedacted || savedSnapRedacted) &&
                   (value === savedConfig.methodRepoMethod.methodVersion),
