@@ -744,6 +744,7 @@ const WorkflowView = _.flow(
           this.setState({ selectingData: false })
         },
         onSuccess: model => this.setState({ entitySelectionModel: model, selectingData: false }),
+        workspace,
         rootEntityType: modifiedConfig.rootEntityType,
         workspaceId: { namespace, name: workspaceName }
       })

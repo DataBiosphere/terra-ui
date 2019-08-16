@@ -40,13 +40,25 @@ export default ajaxCaller(class DataTable extends Component {
   constructor(props) {
     super(props)
 
+    const { columnDefaults, entityType, entityMetadata } = props
+
+    const columnDefaultsObj = columnDefaults && JSON.parse(columnDefaults)
+
+    const convertColumnDefaults = ({ shown = [], hidden = [] }) => [
+      ..._.map(name => ({ name, visible: true }), shown),
+      ..._.map(name => ({ name, visible: false }), hidden),
+      ..._.map(name => ({ name, visible: true }), _.without([...shown, ...hidden], entityMetadata[entityType].attributeNames))
+    ]
+
+    const columnDefaultState = columnDefaultsObj && columnDefaultsObj[entityType] ? convertColumnDefaults(columnDefaultsObj[entityType]) : undefined
+
     const {
       entities,
       filteredCount = 0, totalRowCount = 0, itemsPerPage = 25, pageNumber = 1,
       sort = { field: 'name', direction: 'asc' },
       activeTextFilter = '',
       columnWidths = {}, columnState = {}
-    } = props.firstRender ? StateHistory.get() : {}
+    } = { columnState: columnDefaultState, ...(props.firstRender ? StateHistory.get() : {}) }
 
     this.table = createRef()
     this.state = {
@@ -66,8 +78,8 @@ export default ajaxCaller(class DataTable extends Component {
 
     const { loading, entities, filteredCount, totalRowCount, itemsPerPage, pageNumber, sort, columnWidths, columnState, viewData, activeTextFilter } = this.state
 
-    const theseColumnWidths = columnWidths[entityType] || {}
-    const columnSettings = applyColumnSettings(columnState[entityType] || [], entityMetadata[entityType].attributeNames)
+    const theseColumnWidths = columnWidths || {}
+    const columnSettings = applyColumnSettings(columnState || [], entityMetadata[entityType].attributeNames)
     const nameWidth = theseColumnWidths['name'] || 150
 
     const resetScroll = () => this.table.current.scrollToTop()
@@ -194,7 +206,7 @@ export default ajaxCaller(class DataTable extends Component {
           ]),
           h(ColumnSelector, {
             columnSettings,
-            onSave: v => this.setState(_.set(['columnState', entityType], v), () => {
+            onSave: v => this.setState(_.set(['columnState'], v), () => {
               this.table.current.recomputeColumnSizes()
             })
           })
