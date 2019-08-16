@@ -6,7 +6,8 @@ import { div, h, label, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import {
-  ButtonPrimary, ButtonSecondary, Clickable, IdContainer, LabeledCheckbox, Link, makeMenuIcon, MenuButton, methodLink, RadioButton, Select, spinnerOverlay
+  ButtonPrimary, ButtonSecondary, Clickable, IdContainer, LabeledCheckbox, Link, makeMenuIcon, MenuButton, methodLink, RadioButton, Select,
+  spinnerOverlay
 } from 'src/components/common'
 import Dropzone from 'src/components/Dropzone'
 import { centeredSpinner, icon } from 'src/components/icons'
@@ -420,7 +421,7 @@ const WorkflowView = _.flow(
     const {
       namespace, name, workflowNamespace, workflowName,
       workspace: { workspace: { attributes } },
-      ajax: { Workspaces, Methods },
+      ajax: { Workspaces, Methods, Dockstore },
       queryParams: { selectionKey }
     } = this.props
 
@@ -432,7 +433,7 @@ const WorkflowView = _.flow(
         this.getValidation(),
         ws.methodConfig(workflowNamespace, workflowName).get()
       ])
-      const { methodRepoMethod: { methodNamespace, methodName, sourceRepo } } = config
+      const { methodRepoMethod: { methodNamespace, methodName, sourceRepo, methodPath } } = config
       const isRedacted = !validationResponse
 
       const inputsOutputs = isRedacted ? {} : await Methods.configInputsOutputs(config)
@@ -457,7 +458,14 @@ const WorkflowView = _.flow(
         const methods = await Methods.list({ namespace: methodNamespace, name: methodName })
         const snapshotIds = _.map('snapshotId', methods)
 
-        this.setState({ snapshotIds })
+        this.setState({ versionIds: snapshotIds })
+      } else if (sourceRepo === 'dockstore') {
+        const versions = await Dockstore.getVersions(methodPath)
+        const versionIds = _.map('name', versions)
+
+        this.setState({ versionIds })
+      } else {
+        throw new Error('unknown sourceRepo')
       }
 
       this.updateSingleOrMultipleRadioState(modifiedConfig)
@@ -521,8 +529,8 @@ const WorkflowView = _.flow(
     Utils.withBusyState(v => this.setState({ updatingConfig: v }))
   )(async newSnapshotId => {
     const { ajax: { Methods } } = this.props
-    const { modifiedConfig: { methodRepoMethod: { methodNamespace, methodName } }, currentSnapRedacted } = this.state
-    const config = await Methods.template({ methodNamespace, methodName, methodVersion: newSnapshotId })
+    const { modifiedConfig: { methodRepoMethod: { methodNamespace, methodName, methodPath, sourceRepo } }, currentSnapRedacted } = this.state
+    const config = await Methods.template({ methodNamespace, methodName, methodPath, sourceRepo, methodVersion: newSnapshotId })
     const modifiedInputsOutputs = await Methods.configInputsOutputs(config)
     this.setState(
       { modifiedInputsOutputs, savedSnapRedacted: currentSnapRedacted, currentSnapRedacted: false })
@@ -539,7 +547,7 @@ const WorkflowView = _.flow(
     const { workspace: ws, workspace: { workspace }, namespace, name: workspaceName } = this.props
     const {
       modifiedConfig, savedConfig, saving, saved, exporting, copying, deleting, selectingData, activeTab, errors, synopsis, documentation,
-      selectedEntityType, entityMetadata, entitySelectionModel, snapshotIds = [], useCallCache, currentSnapRedacted, savedSnapRedacted, wdl
+      selectedEntityType, entityMetadata, entitySelectionModel, versionIds = [], useCallCache, currentSnapRedacted, savedSnapRedacted, wdl
     } = this.state
     const { name, methodRepoMethod: { methodPath, methodVersion, methodNamespace, methodName, sourceRepo }, rootEntityType } = modifiedConfig
     const modified = !_.isEqual(modifiedConfig, savedConfig)
@@ -591,22 +599,20 @@ const WorkflowView = _.flow(
           ]),
           h(IdContainer, [id => div({ style: { marginTop: '0.5rem' } }, [
             label({ htmlFor: id }, [`${sourceRepo === 'agora' ? 'Snapshot' : 'Version'}: `]),
-            sourceRepo === 'agora' ?
-              div({ style: { display: 'inline-block', marginLeft: '0.25rem', minWidth: 75 } }, [
-                h(Select, {
-                  id,
-                  isDisabled: !!Utils.editWorkspaceError(ws),
-                  isClearable: false,
-                  isSearchable: false,
-                  value: methodVersion,
-                  getOptionLabel: ({ value }) => Utils.normalizeLabel(value),
-                  options: _.sortBy(_.toNumber, _.uniq([...snapshotIds, savedConfig.methodRepoMethod.methodVersion])),
-                  isOptionDisabled: ({ value }) => (currentSnapRedacted || savedSnapRedacted) &&
-                    (value === savedConfig.methodRepoMethod.methodVersion),
-                  onChange: chosenSnapshot => this.loadNewMethodConfig(chosenSnapshot.value)
-                })
-              ]) :
-              methodVersion
+            div({ style: { display: 'inline-block', marginLeft: '0.25rem', width: sourceRepo === 'agora' ? 75 : 200 } }, [
+              h(Select, {
+                id,
+                isDisabled: !!Utils.editWorkspaceError(ws),
+                isClearable: false,
+                isSearchable: false,
+                value: methodVersion,
+                options: _.sortBy(sourceRepo === 'agora' ? _.toNumber : _.identity,
+                  _.uniq([...versionIds, savedConfig.methodRepoMethod.methodVersion])),
+                isOptionDisabled: ({ value }) => (currentSnapRedacted || savedSnapRedacted) &&
+                  (value === savedConfig.methodRepoMethod.methodVersion),
+                onChange: chosenSnapshot => this.loadNewMethodConfig(chosenSnapshot.value)
+              })
+            ])
           ])]),
           div([
             'Source: ', currentSnapRedacted ? `${methodNamespace}/${methodName}/${methodVersion}` : h(Link, {
