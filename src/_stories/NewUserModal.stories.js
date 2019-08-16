@@ -54,7 +54,7 @@ const Modal = () => {
         addFunction: async (role, userEmail) => {
           action(`Attempting to add user ${userEmail} as a ${role}`)()
           await delay(ms)
-          if (addSucceeds) {
+          if (addUnregisteredUser ? addSucceeds : isRegistered && addSucceeds) {
             return
           } else {
             throw new Response(JSON.stringify({ message: 'Failed to add user' }), { status: 400 })
