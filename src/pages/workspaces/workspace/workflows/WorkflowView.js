@@ -138,6 +138,7 @@ const WorkflowIOTable = ({ which, inputsOutputs: data, config, errors, onChange,
                   value,
                   style: isFile ? { borderRadius: '4px 0px 0px 4px', borderRight: 'white' } : undefined,
                   onChange: v => onChange(name, v),
+                  onBlur: () => onChange(name, _.trimEnd(value)),
                   suggestions
                 }) : h(TextCell, { style: { flex: 1, borderRadius: '4px 0px 0px 4px', borderRight: 'white' } }, value),
                 !readOnly && isFile && h(Clickable, {
