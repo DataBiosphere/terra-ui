@@ -8,7 +8,7 @@ import * as Nav from 'src/libs/nav'
 const TestLogin = () => {
   const [token, setToken] = useState('')
 
-  return div({ style: { margin: '2rem', display: 'flex', alignItems: 'center' } }, [
+  return div({ role: 'main', style: { margin: '2rem', display: 'flex', alignItems: 'center' } }, [
     'Token:',
     h(TextInput, {
       style: { margin: '0 1rem' },

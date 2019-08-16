@@ -66,7 +66,7 @@ const logoTile = ({ logoFile, style = {} }) => div({
 export const dockstoreTile = () => div({ style: { display: 'flex' } }, [
   logoTile({ logoFile: dockstoreLogo }),
   div([
-    h(Link, { href: `${getConfig().dockstoreUrlRoot}/search?descriptorType=wdl&searchMode=files` }, 'Dockstore'),
+    h(Link, { href: `${getConfig().dockstoreUrlRoot}/search?_type=workflow&descriptorType=wdl&searchMode=files` }, 'Dockstore'),
     div(['Browse WDL workflows in Dockstore, an open platform used by the GA4GH for sharing Docker-based workflows'])
   ])
 ])
@@ -112,23 +112,25 @@ const Code = ajaxCaller(class Code extends Component {
 
     return h(Fragment, [
       libraryTopMatter('code & workflows'),
-      !(featuredList && methods) ?
-        centeredSpinner() :
-        div({ style: { display: 'flex', flex: 1 } }, [
-          div({ style: { flex: 1, margin: '30px 0 30px 40px' } }, [
-            div({ style: styles.header }, 'GATK4 Best Practices workflows'),
-            div({ style: { display: 'flex', flexWrap: 'wrap' } }, [
-              ..._.map(method => makeWorkflowCard({ method }), featuredMethods)
-            ])
-          ]),
-          div({ style: { width: 385, padding: '25px 30px', backgroundColor: colors.light(), lineHeight: '20px' } }, [
-            div({ style: { ...styles.header, fontSize: 16 } }, 'FIND ADDITIONAL WORKFLOWS'),
-            dockstoreTile(),
-            div({ style: { marginTop: 40 } }, [
-              fcMethodRepoTile()
+      div({ role: 'main' }, [
+        !(featuredList && methods) ?
+          centeredSpinner() :
+          div({ style: { display: 'flex', flex: 1 } }, [
+            div({ style: { flex: 1, margin: '30px 0 30px 40px' } }, [
+              div({ style: styles.header }, 'GATK4 Best Practices workflows'),
+              div({ style: { display: 'flex', flexWrap: 'wrap' } }, [
+                ..._.map(method => makeWorkflowCard({ method }), featuredMethods)
+              ])
+            ]),
+            div({ style: { width: 385, padding: '25px 30px', backgroundColor: colors.light(), lineHeight: '20px' } }, [
+              div({ style: { ...styles.header, fontSize: 16 } }, 'FIND ADDITIONAL WORKFLOWS'),
+              dockstoreTile(),
+              div({ style: { marginTop: 40 } }, [
+                fcMethodRepoTile()
+              ])
             ])
           ])
-        ])
+      ])
     ])
   }
 })

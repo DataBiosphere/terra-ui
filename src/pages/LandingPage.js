@@ -36,13 +36,14 @@ const makeCard = (link, title, body) => h(Clickable, {
   div({ style: { color: colors.accent(), fontSize: 18, fontWeight: 500, lineHeight: '22px', marginBottom: '0.5rem' } }, title),
   div({ style: { lineHeight: '22px' } }, body),
   div({ style: { flexGrow: 1 } }),
-  makeIconButton('arrowRight', { size: 30, style: { alignSelf: 'flex-end' } })
+  makeIconButton('arrowRight', { tabIndex: '-1', 'aria-hidden': true, size: 30, style: { alignSelf: 'flex-end' } })
 ])
 
 const LandingPage = pure(() => {
   return h(FooterWrapper, [
     h(TopBar),
     div({
+      role: 'main',
       style: {
         flexGrow: 1,
         color: colors.dark(),

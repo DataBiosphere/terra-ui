@@ -294,6 +294,23 @@ const User = signal => ({
     }
     const res = await fetchBond(`api/link/v1/${provider}/oauthcode?${qs.stringify(queryParams)}`, _.merge(authOpts(), { signal, method: 'POST' }))
     return res.json()
+  },
+
+  isUserRegistered: async email => {
+    try {
+      await fetchSam(`api/users/v1/${email}`, _.merge(authOpts(), { signal, method: 'GET' }))
+    } catch (error) {
+      if (error.status === 404) {
+        return false
+      } else {
+        throw error
+      }
+    }
+    return true
+  },
+
+  inviteUser: email => {
+    return fetchSam(`api/users/v1/invite/${email}`, _.merge(authOpts(), { signal, method: 'POST' }))
   }
 })
 

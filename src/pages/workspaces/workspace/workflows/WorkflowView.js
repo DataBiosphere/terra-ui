@@ -2,11 +2,11 @@ import FileSaver from 'file-saver'
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
 import { Component, Fragment } from 'react'
-import { div, h, span } from 'react-hyperscript-helpers'
+import { div, h, label, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import {
-  ButtonPrimary, ButtonSecondary, Clickable, LabeledCheckbox, Link, makeMenuIcon, MenuButton, methodLink, RadioButton, Select, spinnerOverlay
+  ButtonPrimary, ButtonSecondary, Clickable, IdContainer, LabeledCheckbox, Link, makeMenuIcon, MenuButton, methodLink, RadioButton, Select, spinnerOverlay
 } from 'src/components/common'
 import Dropzone from 'src/components/Dropzone'
 import { centeredSpinner, icon } from 'src/components/icons'
@@ -133,6 +133,7 @@ const WorkflowIOTable = ({ which, inputsOutputs: data, config, errors, onChange,
               const isFile = (inputType === 'File') || (inputType === 'File?')
               return div({ style: { display: 'flex', alignItems: 'center', width: '100%' } }, [
                 !readOnly ? h(DelayedAutocompleteTextInput, {
+                  'aria-label': name,
                   placeholder: optional ? 'Optional' : 'Required',
                   value,
                   style: isFile ? { borderRadius: '4px 0px 0px 4px', borderRight: 'white' } : undefined,
@@ -431,10 +432,9 @@ const WorkflowView = _.flow(
         this.getValidation(),
         ws.methodConfig(workflowNamespace, workflowName).get()
       ])
-      const { methodRepoMethod: { methodNamespace, methodName } } = config
+      const { methodRepoMethod: { methodNamespace, methodName, sourceRepo } } = config
       const isRedacted = !validationResponse
-      const methods = await Methods.list({ namespace: methodNamespace, name: methodName })
-      const snapshotIds = _.map(m => _.pick('snapshotId', m).snapshotId, methods)
+
       const inputsOutputs = isRedacted ? {} : await Methods.configInputsOutputs(config)
       const selection = workflowSelectionStore.get()
       const readSelection = selectionKey && selection.key === selectionKey
@@ -445,7 +445,6 @@ const WorkflowView = _.flow(
         entityMetadata,
         savedInputsOutputs: inputsOutputs,
         modifiedInputsOutputs: inputsOutputs,
-        snapshotIds,
         errors: isRedacted ? { inputs: {}, outputs: {} } : augmentErrors(validationResponse),
         entitySelectionModel: this.resetSelectionModel(modifiedConfig.rootEntityType, readSelection ? selection.entities : {}),
         workspaceAttributes: _.flow(
@@ -453,6 +452,14 @@ const WorkflowView = _.flow(
           _.remove(s => s.includes(':'))
         )(_.keys(attributes))
       })
+
+      if (sourceRepo === 'agora') {
+        const methods = await Methods.list({ namespace: methodNamespace, name: methodName })
+        const snapshotIds = _.map('snapshotId', methods)
+
+        this.setState({ snapshotIds })
+      }
+
       this.updateSingleOrMultipleRadioState(modifiedConfig)
       this.fetchInfo(config, isRedacted)
     } catch (error) {
@@ -532,7 +539,7 @@ const WorkflowView = _.flow(
     const { workspace: ws, workspace: { workspace }, namespace, name: workspaceName } = this.props
     const {
       modifiedConfig, savedConfig, saving, saved, exporting, copying, deleting, selectingData, activeTab, errors, synopsis, documentation,
-      selectedEntityType, entityMetadata, entitySelectionModel, snapshotIds = [], useCallCache, currentSnapRedacted, savedSnapRedacted
+      selectedEntityType, entityMetadata, entitySelectionModel, snapshotIds = [], useCallCache, currentSnapRedacted, savedSnapRedacted, wdl
     } = this.state
     const { name, methodRepoMethod: { methodPath, methodVersion, methodNamespace, methodName, sourceRepo }, rootEntityType } = modifiedConfig
     const modified = !_.isEqual(modifiedConfig, savedConfig)
@@ -574,7 +581,7 @@ const WorkflowView = _.flow(
                   }, [makeMenuIcon('trash'), 'Delete'])
                 ])
               }, [
-                h(Link, [icon('cardMenuIcon', { size: 22 })])
+                h(Link, { 'aria-label': 'Workflow menu' }, [icon('cardMenuIcon', { size: 22 })])
               ])
             ]),
             span({ style: { color: colors.dark(), fontSize: 24 } }, name)
@@ -582,11 +589,12 @@ const WorkflowView = _.flow(
           currentSnapRedacted && div({ style: { color: colors.warning(), fontSize: 16, fontWeight: 500, marginTop: '0.5rem' } }, [
             'The selected snapshot of the referenced workflow has been redacted. You will not be able to run an analysis until you select another snapshot.'
           ]),
-          div({ style: { marginTop: '0.5rem' } }, [
-            'Snapshot ',
+          h(IdContainer, [id => div({ style: { marginTop: '0.5rem' } }, [
+            label({ htmlFor: id }, [`${sourceRepo === 'agora' ? 'Snapshot' : 'Version'}: `]),
             sourceRepo === 'agora' ?
               div({ style: { display: 'inline-block', marginLeft: '0.25rem', minWidth: 75 } }, [
                 h(Select, {
+                  id,
                   isDisabled: !!Utils.editWorkspaceError(ws),
                   isClearable: false,
                   isSearchable: false,
@@ -599,7 +607,7 @@ const WorkflowView = _.flow(
                 })
               ]) :
               methodVersion
-          ]),
+          ])]),
           div([
             'Source: ', currentSnapRedacted ? `${methodNamespace}/${methodName}/${methodVersion}` : h(Link, {
               href: methodLink(modifiedConfig),
@@ -615,11 +623,12 @@ const WorkflowView = _.flow(
               documentation
             ]) :
             div({ style: { fontStyle: 'italic', ...styles.description } }, ['No documentation provided']),
-          div({ style: { marginBottom: '1rem' } }, [
+          div({ role: 'radiogroup', 'aria-label': 'Select number of target entities', style: { marginBottom: '1rem' } }, [
             div([
               h(RadioButton, {
                 disabled: !!Utils.editWorkspaceError(ws) || currentSnapRedacted,
                 text: 'Process single workflow from files',
+                name: 'process-workflows',
                 checked: this.isSingle(),
                 onChange: () => this.selectSingle(),
                 labelStyle: { marginLeft: '0.5rem' }
@@ -629,11 +638,13 @@ const WorkflowView = _.flow(
               h(RadioButton, {
                 disabled: !!Utils.editWorkspaceError(ws) || currentSnapRedacted,
                 text: `Process multiple workflows from:`,
+                name: 'process-workflows',
                 checked: this.isMultiple(),
                 onChange: () => this.selectMultiple(),
                 labelStyle: { marginLeft: '0.5rem' }
               }),
               h(Select, {
+                'aria-label': 'Entity type selector',
                 isClearable: false, isDisabled: currentSnapRedacted || this.isSingle() || !!Utils.editWorkspaceError(ws), isSearchable: false,
                 placeholder: 'Select data type...',
                 styles: { container: old => ({ ...old, display: 'inline-block', width: 200, marginLeft: '0.5rem' }) },
@@ -676,14 +687,14 @@ const WorkflowView = _.flow(
               onClick: () => this.setState({ launching: true })
             }, ['Run analysis'])
           }),
-          activeTab === 'outputs' && div({ style: { marginBottom: '1rem' } }, [
+          activeTab === 'outputs' && !currentSnapRedacted && div({ style: { marginBottom: '1rem' } }, [
             div({ style: styles.outputInfoLabel }, 'Output files will be saved to'),
             div({ style: { display: 'flex', alignItems: 'center' } }, [
               div({ style: { flex: 'none', display: 'flex', width: '1.5rem' } }, [icon('folder', { size: 18 })]),
               div({ style: { flex: 1 } }, [
                 'Files / ',
                 span({ style: styles.placeholder }, 'submission unique ID'),
-                ` / ${methodName} / `,
+                ' / ', wdl ? wdl.match(/^\s*workflow ([^\s{]+)\s*{/m)[1] : span({ style: styles.placeholder }, 'workflow name'), ' / ',
                 span({ style: styles.placeholder }, 'workflow unique ID')
               ])
             ]),
@@ -791,6 +802,7 @@ const WorkflowView = _.flow(
     )(data)
 
     return h(Dropzone, {
+      key,
       accept: '.json',
       multiple: false,
       disabled: currentSnapRedacted || !!Utils.editWorkspaceError(workspace),

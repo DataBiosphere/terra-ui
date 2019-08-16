@@ -2,8 +2,8 @@ import { addDays } from 'date-fns'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { Component, Fragment, useState } from 'react'
-import { div, h, span } from 'react-hyperscript-helpers'
-import { ButtonPrimary, LabeledCheckbox, Link, RadioButton, ShibbolethLink, spinnerOverlay } from 'src/components/common'
+import { div, h, label, span } from 'react-hyperscript-helpers'
+import { ButtonPrimary, IdContainer, LabeledCheckbox, Link, RadioButton, ShibbolethLink, spinnerOverlay } from 'src/components/common'
 import { centeredSpinner, icon, profilePic, spinner } from 'src/components/icons'
 import { TextInput, ValidatedInput } from 'src/components/input'
 import { InfoBox } from 'src/components/PopupTrigger'
@@ -95,8 +95,8 @@ const NihLink = ({ nihToken }) => {
     return div({ key: `nih-auth-status-${name}`, style: { display: 'flex' } }, [
       div({ style: { flex: 1 } }, [`${name} Authorization`]),
       div({ style: { flex: 2 } }, [
-        authorized ? 'Authorized' : 'Not Authorized',
-        !authorized && h(InfoBox, { style: { marginLeft: '0.5rem' } }, [
+        authorized ? 'Authorized' : span({ style: { marginRight: '0.5rem' } }, ['Not Authorized']),
+        !authorized && h(InfoBox, [
           'Your account was linked, but you are not authorized to view this controlled dataset. Please go ',
           h(Link, {
             href: 'https://dbgap.ncbi.nlm.nih.gov/aa/wga.cgi?page=login',
@@ -142,8 +142,8 @@ const NihLink = ({ nihToken }) => {
    */
   return div({ style: { marginBottom: '1rem' } }, [
     div({ style: styles.form.title }, [
-      'NIH Account',
-      h(InfoBox, { style: { marginLeft: '0.5rem' } }, [
+      span({ style: { marginRight: '0.5rem' } }, ['NIH Account']),
+      h(InfoBox, [
         'Linking with eRA Commons will allow Terra to automatically determine if you can access controlled datasets hosted in Terra (ex. TCGA) based on your valid dbGaP applications.'
       ])
     ]),
@@ -281,38 +281,40 @@ const Profile = _.flow(
     return h(Fragment, [
       saving && spinnerOverlay,
       h(TopBar),
-      !profileInfo ? centeredSpinner() : h(Fragment, [
-        div({ style: { marginLeft: '2rem' } }, [sectionTitle('Profile')]),
-        div({ style: styles.header.line }, [
-          div({ style: { position: 'relative' } }, [
-            profilePic({ size: 48 }),
-            h(InfoBox, { style: { alignSelf: 'flex-end', padding: '0.25rem' } }, [
-              'To change your profile image, visit your ',
-              h(Link, {
-                href: `https://myaccount.google.com?authuser=${getUser().email}`,
-                ...Utils.newTabLinkProps
-              }, ['Google account page.'])
+      div({ role: 'main' }, [
+        !profileInfo ? centeredSpinner() : h(Fragment, [
+          div({ style: { marginLeft: '2rem' } }, [sectionTitle('Profile')]),
+          div({ style: styles.header.line }, [
+            div({ style: { position: 'relative' } }, [
+              profilePic({ size: 48 }),
+              h(InfoBox, { style: { alignSelf: 'flex-end', padding: '0.25rem' } }, [
+                'To change your profile image, visit your ',
+                h(Link, {
+                  href: `https://myaccount.google.com?authuser=${getUser().email}`,
+                  ...Utils.newTabLinkProps
+                }, ['Google account page.'])
+              ])
+            ]),
+            div({ style: styles.header.nameLine }, [
+              `Hello again, ${firstName}`
             ])
           ]),
-          div({ style: styles.header.nameLine }, [
-            `Hello again, ${firstName}`
-          ])
-        ]),
-        div({ style: { display: 'flex' } }, [
-          div({ style: styles.page }, [
-            this.renderForm()
-          ]),
-          div({ style: { marginTop: '0', marginLeft: '1rem' } }, [
-            sectionTitle('Identity & External Servers'),
-            h(NihLink, { nihToken: queryParams['nih-username-token'] }),
-            h(FenceLink, {
-              provider: 'fence',
-              displayName: 'DCP Framework Services by University of Chicago'
-            }),
-            h(FenceLink, {
-              provider: 'dcf-fence',
-              displayName: 'DCF Framework Services by University of Chicago'
-            })
+          div({ style: { display: 'flex' } }, [
+            div({ style: styles.page }, [
+              this.renderForm()
+            ]),
+            div({ style: { marginTop: '0', marginLeft: '1rem' } }, [
+              sectionTitle('Identity & External Servers'),
+              h(NihLink, { nihToken: queryParams['nih-username-token'] }),
+              h(FenceLink, {
+                provider: 'fence',
+                displayName: 'DCP Framework Services by University of Chicago'
+              }),
+              h(FenceLink, {
+                provider: 'dcf-fence',
+                displayName: 'DCF Framework Services by University of Chicago'
+              })
+            ])
           ])
         ])
       ])
@@ -328,11 +330,12 @@ const Profile = _.flow(
 
     const line = (...children) => div({ style: styles.form.line }, children)
 
-    const textField = (key, title, { placeholder, required } = {}) => div({ style: styles.form.container }, [
-      div({ style: styles.form.title }, [title]),
+    const textField = (key, title, { placeholder, required } = {}) => h(IdContainer, [id => div({ style: styles.form.container }, [
+      label({ htmlFor: id, style: styles.form.title }, [title]),
       required ?
         h(ValidatedInput, {
           inputProps: {
+            id,
             value: profileInfo[key],
             onChange: v => this.assignValue(key, v),
             placeholder: placeholder || 'Required'
@@ -340,14 +343,15 @@ const Profile = _.flow(
           error: Utils.summarizeErrors(errors && errors[key])
         }) :
         h(TextInput, {
+          id,
           value: profileInfo[key],
           onChange: v => this.assignValue(key, v),
           placeholder
         })
-    ])
+    ])])
 
     const radioButton = (key, value) => h(RadioButton, {
-      text: value, checked: profileInfo[key] === value,
+      text: value, name: key, checked: profileInfo[key] === value,
       labelStyle: { margin: '0 2rem 0 0.25rem' },
       onChange: () => this.assignValue(key, value)
     })
@@ -380,8 +384,8 @@ const Profile = _.flow(
       ),
 
       div({ style: styles.form.title }, [
-        'Proxy Group',
-        h(InfoBox, { style: { marginLeft: '0.5rem' } }, [
+        span({ style: { marginRight: '0.5rem' } }, ['Proxy Group']),
+        h(InfoBox, [
           'For more information about proxy groups, see the ',
           h(Link, {
             href: 'https://software.broadinstitute.org/firecloud/documentation/article?id=11185',

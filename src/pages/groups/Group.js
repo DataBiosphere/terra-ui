@@ -64,13 +64,14 @@ export const GroupDetails = ajaxCaller(class GroupDetails extends Component {
     return h(Fragment, [
       h(TopBar, { title: 'Groups', href: Nav.getLink('groups') }, [
         h(DelayedSearchInput, {
+          'aria-label': 'Search group',
           style: { marginLeft: '2rem', width: 500 },
           placeholder: 'SEARCH GROUP',
           onChange: v => this.setState({ filter: v }),
           value: filter
         })
       ]),
-      h(PageBox, [
+      h(PageBox, { role: 'main' }, [
         div({ style: Style.cardList.toolbarContainer }, [
           div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, [
             `Group Management: ${groupName}`
@@ -97,6 +98,7 @@ export const GroupDetails = ajaxCaller(class GroupDetails extends Component {
           adminLabel: 'admin',
           userLabel: 'member',
           title: 'Add user to Terra Group',
+          addUnregisteredUser: true,
           addFunction: Ajax().Groups.group(groupName).addUser,
           onDismiss: () => this.setState({ creatingNewUser: false }),
           onSuccess: () => this.refresh()

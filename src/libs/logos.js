@@ -27,9 +27,13 @@ const pickBrandLogo = (color = false) => Utils.cond(
   [isAnvil(), color ? anvilLogo : anvilLogoWhite]
 )
 
-export const terraLogoMaker = (logoVariant, style) => img({ src: logoVariant, style })
+export const terraLogoMaker = (logoVariant, style) => img({ alt: 'Terra logo', role: 'img', src: logoVariant, style })
 
-const brandLogoMaker = (size, color = false) => img({ src: pickBrandLogo(color), style: { height: size, marginRight: '1.5rem' } })
+const brandLogoMaker = (size, color = false) => img({
+  alt: `${getAppName()} logo`, role: 'img',
+  src: pickBrandLogo(color),
+  style: { height: size, marginRight: '1.5rem' }
+})
 
 export const signInLogo = () => isTerra() ?
   terraLogoMaker(terraLogo, { height: 150 }) :

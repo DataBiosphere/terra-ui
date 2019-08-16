@@ -1,10 +1,10 @@
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
 import { Component, Fragment, useState } from 'react'
-import { Collapse as RCollapse } from 'react-collapse'
+import { UnmountClosed as RCollapse } from 'react-collapse'
 import { a, b, div, h, img, span } from 'react-hyperscript-helpers'
 import { Transition } from 'react-transition-group'
-import { ButtonPrimary, Clickable, LabeledCheckbox, spinnerOverlay } from 'src/components/common'
+import { ButtonPrimary, Clickable, FocusTrapper, LabeledCheckbox, spinnerOverlay } from 'src/components/common'
 import { icon, profilePic } from 'src/components/icons'
 import { TextArea } from 'src/components/input'
 import Modal from 'src/components/Modal'
@@ -28,7 +28,7 @@ import { CookiesModal } from 'src/pages/SignIn'
 
 const styles = {
   topBar: {
-    flex: 'none', height: 66, paddingLeft: '1rem',
+    flex: 'none', height: 66,
     display: 'flex', alignItems: 'center',
     borderBottom: `2px solid ${colors.primary(0.55)}`,
     zIndex: 2,
@@ -62,7 +62,7 @@ const styles = {
 const betaTag = b({
   style: {
     fontSize: 8, lineHeight: '9px',
-    color: 'white', backgroundColor: colors.primary(0.75),
+    color: 'white', backgroundColor: colors.primary(1.5),
     padding: '3px 5px', verticalAlign: 'middle',
     borderRadius: 2
   }
@@ -70,7 +70,7 @@ const betaTag = b({
 
 const NavItem = ({ children, ...props }) => {
   return h(Clickable, _.merge({
-    style: { display: 'flex', alignItems: 'center', color: 'white' },
+    style: { display: 'flex', alignItems: 'center', color: 'white', outlineOffset: -4 },
     hover: { backgroundColor: colors.dark(0.55) }
   }, props), [children])
 }
@@ -136,7 +136,10 @@ const TopBar = Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
     const { authState: { isSignedIn, profile: { firstName = 'Loading...', lastName = '', trialState } } } = this.props
     const { navShown, openLibraryMenu, openSupportMenu, openUserMenu } = this.state
 
-    return div({
+    return h(FocusTrapper, {
+      onBreakout: () => this.setState({ navShown: false }),
+      role: 'navigation',
+      'aria-label': 'Main menu',
       style: navShown ? styles.nav.background : undefined,
       onClick: () => {
         this.hideNav()
@@ -280,7 +283,7 @@ const TopBar = Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
             onClick: () => this.setState({ openFirecloudModal: true })
           }, [
             div({ style: styles.nav.icon }, [
-              img({ src: fcIconWhite, style: { height: 20, width: 20 } })
+              img({ src: fcIconWhite, alt: '', style: { height: 20, width: 20 } })
             ]), 'Use Classic FireCloud'
           ]),
           div({ style: { borderTop: `1px solid ${colors.dark(0.55)}` } }, []),
@@ -311,6 +314,7 @@ const TopBar = Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
         unmountOnExit: true
       }, [transitionState => this.buildNav(transitionState)]),
       div({
+        role: 'banner',
         style: {
           ...styles.topBar,
           background: isTerra() ?
@@ -318,14 +322,19 @@ const TopBar = Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
             colors.light()
         }
       }, [
-        icon('bars', {
-          size: 36,
-          style: {
-            marginRight: '2rem', color: isTerra() ? 'white' : colors.accent(), flex: 'none', cursor: 'pointer',
-            transform: navShown ? 'rotate(90deg)' : undefined, transition: 'transform 0.1s ease-out'
-          },
+        h(Clickable, {
+          'aria-label': 'Toggle main menu',
+          style: { alignSelf: 'stretch', display: 'flex', alignItems: 'center', padding: '0 1rem', margin: '2px 1rem 0 2px' },
           onClick: () => navShown ? this.hideNav() : this.showNav()
-        }),
+        }, [
+          icon('bars', {
+            size: 36,
+            style: {
+              color: isTerra() ? 'white' : colors.accent(), flex: 'none', cursor: 'pointer',
+              transform: navShown ? 'rotate(90deg)' : undefined, transition: 'transform 0.1s ease-out'
+            }
+          })
+        ]),
         a({
           style: { ...styles.pageTitle, display: 'flex', alignItems: 'center' },
           href: href || Nav.getLink('root')

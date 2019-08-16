@@ -1,8 +1,8 @@
 import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { Component, Fragment } from 'react'
-import { div, h, span } from 'react-hyperscript-helpers'
-import { ButtonPrimary, Clickable, Link, Select, spinnerOverlay } from 'src/components/common'
+import { div, h, h2, p, span } from 'react-hyperscript-helpers'
+import { ButtonPrimary, Clickable, IdContainer, Link, Select, spinnerOverlay } from 'src/components/common'
 import { icon, spinner } from 'src/components/icons'
 import { ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
@@ -116,31 +116,37 @@ const NewBillingProjectModal = ajaxCaller(class NewBillingProjectModal extends C
         }, ['Learn how to create a billing account.', icon('pop-out', { size: 12, style: { marginLeft: '0.5rem' } })])
       ]),
       billingAccounts && billingAccounts.length !== 0 && h(Fragment, [
-        h(RequiredFormLabel, ['Enter name']),
-        h(ValidatedInput, {
-          inputProps: {
-            autoFocus: true,
-            value: billingProjectName,
-            onChange: v => this.setState({ billingProjectName: v, billingProjectNameTouched: true })
-          },
-          error: billingProjectNameTouched && Utils.summarizeErrors(errors && errors.billingProjectName)
-        }),
-        !(billingProjectNameTouched && errors) && formHint('Name must be unique and cannot be changed.'),
-        h(RequiredFormLabel, ['Select billing account']),
-        div({ style: { fontSize: 14 } }, [
-          h(Select, {
-            isMulti: false,
-            placeholder: 'Select billing account',
-            value: chosenBillingAccount,
-            onChange: selected => this.setState({ chosenBillingAccount: selected.value }),
-            options: _.map(account => {
-              return {
-                value: account,
-                label: account.displayName
-              }
-            }, billingAccounts)
+        h(IdContainer, [id => h(Fragment, [
+          h(RequiredFormLabel, { htmlFor: id }, ['Enter name']),
+          h(ValidatedInput, {
+            inputProps: {
+              id,
+              autoFocus: true,
+              value: billingProjectName,
+              onChange: v => this.setState({ billingProjectName: v, billingProjectNameTouched: true })
+            },
+            error: billingProjectNameTouched && Utils.summarizeErrors(errors && errors.billingProjectName)
           })
-        ]),
+        ])]),
+        !(billingProjectNameTouched && errors) && formHint('Name must be unique and cannot be changed.'),
+        h(IdContainer, [id => h(Fragment, [
+          h(RequiredFormLabel, { htmlFor: id }, ['Select billing account']),
+          div({ style: { fontSize: 14 } }, [
+            h(Select, {
+              id,
+              isMulti: false,
+              placeholder: 'Select billing account',
+              value: chosenBillingAccount,
+              onChange: selected => this.setState({ chosenBillingAccount: selected.value }),
+              options: _.map(account => {
+                return {
+                  value: account,
+                  label: account.displayName
+                }
+              }, billingAccounts)
+            })
+          ])
+        ])]),
         !!chosenBillingAccount && !chosenBillingAccount.firecloudHasAccess && div({ style: { fontWeight: 500, fontSize: 13 } }, [
           div({ style: { margin: '0.25rem 0 0.25rem 0', color: colors.danger() } },
             'Terra does not have access to this account. '),
@@ -266,11 +272,12 @@ export const BillingList = _.flow(
           div({ style: Style.breadcrumb.textUnderBreadcrumb }, [selectedName])
         ])
       ]),
-      div({ style: { display: 'flex', flex: 1, position: 'relative' } }, [
+      div({ role: 'main', style: { display: 'flex', flex: 1, position: 'relative' } }, [
         div({ style: { width: 330, boxShadow: '0 2px 5px 0 rgba(0,0,0,0.25)' } }, [
           div({ style: Style.navList.heading }, [
             'Billing Projects',
             h(Clickable, {
+              'aria-label': 'Create new billing project',
               onClick: async () => {
                 if (Auth.hasBillingScope()) {
                   this.setState({ creatingBillingProject: true })
@@ -302,6 +309,11 @@ export const BillingList = _.flow(
           }
         }),
         Utils.cond(
+          [selectedName && hasBillingProjects && !_.some({ projectName: selectedName }, billingProjects),
+            () => div({ style: { margin: '1rem auto 0 auto' } }, [
+              h2(['Error loading selected billing project.']),
+              p(['It may not exist, or you may not have access to it.'])
+            ])],
           [selectedName && hasBillingProjects, () => h(ProjectDetail, {
             key: selectedName,
             project: _.find({ projectName: selectedName }, billingProjects),

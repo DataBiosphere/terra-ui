@@ -97,7 +97,7 @@ We follow the laws of all the countries where we operate. We follow the laws of 
 `
 
 const PrivacyPolicy = () => {
-  return div({ style: { padding: '1rem' } }, [
+  return div({ role: 'main', style: { padding: '1rem' } }, [
     h(Markdown, {
       renderers: {
         link: newWindowLinkRenderer

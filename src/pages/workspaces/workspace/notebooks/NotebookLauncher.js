@@ -320,7 +320,8 @@ const NotebookPreviewFrame = ({ notebookName, workspace: { workspace: { namespac
           doc.head.appendChild(Utils.createHtmlElement(doc, 'base', Utils.newTabLinkProps))
         },
         style: { border: 'none', flex: 1 },
-        srcDoc: preview
+        srcDoc: preview,
+        title: 'Preview for notebook'
       })
     ]),
     busy && div({ style: { margin: '0.5rem 2rem' } }, ['Generating preview...'])
@@ -422,7 +423,7 @@ const NotebookEditorFrame = ({ mode, notebookName, workspace: { workspace: { nam
   return h(Fragment, [
     notebookSetUp && h(Fragment, [
       iframe({
-        src: `${clusterUrl}/notebooks/${name}/safe/${notebookName}`,
+        src: `${clusterUrl}/notebooks/${name}/edit/${notebookName}`,
         style: { border: 'none', flex: 1 },
         ref: frameRef
       }),

@@ -148,7 +148,7 @@ const WorkspaceCard = pure(({
     closeOnClick: true,
     content: h(WorkspaceMenuContent, { namespace, name, onShare, onClone, onDelete })
   }, [
-    h(Link, { onClick: e => e.preventDefault(), disabled: !canView }, [
+    h(Link, { 'aria-label': 'Workspace menu', onClick: e => e.preventDefault(), disabled: !canView }, [
       icon('cardMenuIcon', {
         size: listView ? 18 : 24
       })
@@ -304,11 +304,12 @@ export const WorkspaceList = _.flow(
         h(DelayedSearchInput, {
           style: { marginLeft: '2rem', width: 500 },
           placeholder: 'SEARCH WORKSPACES',
+          'aria-label': 'Search workspaces',
           onChange: v => this.setState({ filter: v }),
           value: filter
         })
       ]),
-      h(PageBox, { style: { position: 'relative' } }, [
+      h(PageBox, { role: 'main', style: { position: 'relative' } }, [
         div({ style: { display: 'flex', alignItems: 'center', marginBottom: '1rem' } }, [
           div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, ['Workspaces']),
           div({ style: { marginLeft: 'auto', marginRight: '1rem' } }, [
@@ -328,6 +329,7 @@ export const WorkspaceList = _.flow(
               formatCreateLabel: _.identity,
               value: _.map(tag => ({ label: tag, value: tag }), tagsFilter),
               placeholder: 'Tags',
+              'aria-label': 'Filter by tags',
               onChange: data => this.setState({ tagsFilter: _.map('value', data) })
             })
           ]),
@@ -337,6 +339,7 @@ export const WorkspaceList = _.flow(
               isMulti: true,
               isSearchable: false,
               placeholder: 'Access levels',
+              'aria-label': 'Filter by access levels',
               value: accessLevelsFilter,
               onChange: data => this.setState({ accessLevelsFilter: _.map('value', data) }),
               options: Utils.workspaceAccessLevels,
@@ -348,6 +351,7 @@ export const WorkspaceList = _.flow(
               isClearable: true,
               isMulti: false,
               placeholder: 'Billing project',
+              'aria-label': 'Filter by billing project',
               value: projectsFilter,
               hideSelectedOptions: true,
               onChange: selected => {
@@ -363,6 +367,7 @@ export const WorkspaceList = _.flow(
               isMulti: true,
               isSearchable: false,
               placeholder: 'Submission status',
+              'aria-label': 'Filter by submission status',
               value: submissionsFilter,
               hideSelectedOptions: true,
               onChange: data => this.setState({ submissionsFilter: _.map('value', data) }),
