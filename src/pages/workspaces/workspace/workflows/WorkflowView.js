@@ -458,7 +458,7 @@ const WorkflowView = _.flow(
         const methods = await Methods.list({ namespace: methodNamespace, name: methodName })
         const snapshotIds = _.map('snapshotId', methods)
 
-        this.setState({ snapshotIds })
+        this.setState({ versionIds: snapshotIds })
       } else if (sourceRepo === 'dockstore') {
         const versions = await Dockstore.getVersions(methodPath)
         const versionIds = _.map('name', versions)
@@ -547,8 +547,7 @@ const WorkflowView = _.flow(
     const { workspace: ws, workspace: { workspace }, namespace, name: workspaceName } = this.props
     const {
       modifiedConfig, savedConfig, saving, saved, exporting, copying, deleting, selectingData, activeTab, errors, synopsis, documentation,
-      selectedEntityType, entityMetadata, entitySelectionModel, snapshotIds = [], useCallCache, currentSnapRedacted, savedSnapRedacted, wdl,
-      versionIds = []
+      selectedEntityType, entityMetadata, entitySelectionModel, versionIds = [], useCallCache, currentSnapRedacted, savedSnapRedacted, wdl
     } = this.state
     const { name, methodRepoMethod: { methodPath, methodVersion, methodNamespace, methodName, sourceRepo }, rootEntityType } = modifiedConfig
     const modified = !_.isEqual(modifiedConfig, savedConfig)
@@ -607,9 +606,8 @@ const WorkflowView = _.flow(
                 isClearable: false,
                 isSearchable: false,
                 value: methodVersion,
-                getOptionLabel: ({ value }) => Utils.normalizeLabel(value),
                 options: _.sortBy(sourceRepo === 'agora' ? _.toNumber : _.identity,
-                  _.uniq([...(sourceRepo === 'agora' ? snapshotIds : versionIds), savedConfig.methodRepoMethod.methodVersion])),
+                  _.uniq([...versionIds, savedConfig.methodRepoMethod.methodVersion])),
                 isOptionDisabled: ({ value }) => (currentSnapRedacted || savedSnapRedacted) &&
                   (value === savedConfig.methodRepoMethod.methodVersion),
                 onChange: chosenSnapshot => this.loadNewMethodConfig(chosenSnapshot.value)
