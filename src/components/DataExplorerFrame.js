@@ -33,7 +33,7 @@ const DataExplorerFrame = ({ dataset }) => {
   return iframe({
     src: `${origin}/?embed&${Nav.history.location.search.slice(1)}`,
     ref: elem,
-    style: { border: 'none' },
+    style: { border: 'none', width: '100%' },
     title: `${dataset} - Data Explorer`
   })
 }
