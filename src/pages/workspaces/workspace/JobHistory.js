@@ -152,7 +152,6 @@ const JobHistory = _.flow(
 
     return h(Fragment, [
       div({ style: { display: 'flex', alignItems: 'center', margin: '1rem 1rem 0' } }, [
-        h(CromwellVersionLink),
         div({ style: { flexGrow: 1 } }),
         h(PopupTrigger, {
           content: div({ style: { margin: '0.5rem' } }, [h(SubmissionQueueStatus)]),

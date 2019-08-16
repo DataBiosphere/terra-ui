@@ -38,7 +38,7 @@ export default ajaxCaller(class LaunchAnalysisModal extends Component {
     const { launching, message, launchError } = this.state
 
     return h(Modal, {
-      title: !launching ? 'Run Analysis' : 'Launching Analysis',
+      title: !launching ? 'Confirm launch' : 'Launching Analysis',
       onDismiss,
       showCancel: !launching,
       okButton: !launchError ?
@@ -51,10 +51,11 @@ export default ajaxCaller(class LaunchAnalysisModal extends Component {
         }, ['Launch']) :
         h(ButtonPrimary, { onClick: onDismiss }, ['OK'])
     }, [
-      !message && !launchError && div('Confirm launch'),
+      div({ style: { margin: '1rem 0' } }, [
+        'This analysis will be run by ', h(CromwellVersionLink), '.'
+      ]),
       message && div([spinner({ style: { marginRight: '0.5rem' } }), message]),
-      launchError && div({ style: { color: colors.danger() } }, [launchError]),
-      h(CromwellVersionLink, { style: { display: 'block', marginTop: '1rem' } })
+      launchError && div({ style: { color: colors.danger() } }, [launchError])
     ])
   }
 

@@ -4,7 +4,7 @@ import { Component, Fragment, useState } from 'react'
 import { UnmountClosed as RCollapse } from 'react-collapse'
 import { a, b, div, h, img, span } from 'react-hyperscript-helpers'
 import { Transition } from 'react-transition-group'
-import { ButtonPrimary, Clickable, FocusTrapper, LabeledCheckbox, spinnerOverlay } from 'src/components/common'
+import { ButtonPrimary, Clickable, CromwellVersionLink, FocusTrapper, LabeledCheckbox, spinnerOverlay } from 'src/components/common'
 import { icon, profilePic } from 'src/components/icons'
 import { TextArea } from 'src/components/input'
 import Modal from 'src/components/Modal'
@@ -288,14 +288,17 @@ const TopBar = Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
           ]),
           div({ style: { borderTop: `1px solid ${colors.dark(0.55)}` } }, []),
           div({
-            style: { flex: 'none', padding: 28, marginTop: 'auto', color: colors.dark(0.55), fontSize: 10, fontWeight: 600 }
+            style: { flex: 'none', padding: 28, marginTop: 'auto' }
           }, [
-            'Built on: ',
-            h(Clickable, {
-              href: `https://github.com/DataBiosphere/terra-ui/commits/${SATURN_VERSION}`,
-              ...Utils.newTabLinkProps,
-              style: { textDecoration: 'underline', marginLeft: '0.25rem' }
-            }, [new Date(SATURN_BUILD_TIMESTAMP).toLocaleString()])
+            h(CromwellVersionLink, { variant: 'light', style: { textDecoration: 'underline', color: colors.accent(0.2)} }),
+            div({ style: { color: colors.dark(0.3), fontSize: 10, fontWeight: 600, marginTop: '0.5rem' } }, [
+              'Built on: ',
+              h(Clickable, {
+                href: `https://github.com/DataBiosphere/terra-ui/commits/${SATURN_VERSION}`,
+                ...Utils.newTabLinkProps,
+                style: { textDecoration: 'underline', marginLeft: '0.25rem' }
+              }, [new Date(SATURN_BUILD_TIMESTAMP).toLocaleString()])
+            ])
           ])
         ])
       ])
