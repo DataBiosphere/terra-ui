@@ -290,7 +290,7 @@ const TopBar = Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
           div({
             style: { flex: 'none', padding: 28, marginTop: 'auto' }
           }, [
-            h(CromwellVersionLink, { variant: 'light', style: { textDecoration: 'underline', color: colors.accent(0.2)} }),
+            h(CromwellVersionLink, { variant: 'light', style: { textDecoration: 'underline', color: colors.accent(0.2) } }),
             div({ style: { color: colors.dark(0.3), fontSize: 10, fontWeight: 600, marginTop: '0.5rem' } }, [
               'Built on: ',
               h(Clickable, {
