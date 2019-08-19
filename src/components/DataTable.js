@@ -40,9 +40,9 @@ export default ajaxCaller(class DataTable extends Component {
   constructor(props) {
     super(props)
 
-    const { columnDefaults, entityType, entityMetadata } = props
+    const { columnDefaults: columnDefaultsString, entityType, entityMetadata } = props
 
-    const columnDefaultsObj = columnDefaults && JSON.parse(columnDefaults)
+    const columnDefaults = Utils.maybeParseJSON(columnDefaultsString)
 
     const convertColumnDefaults = ({ shown = [], hidden = [] }) => [
       ..._.map(name => ({ name, visible: true }), shown),
@@ -50,15 +50,15 @@ export default ajaxCaller(class DataTable extends Component {
       ..._.map(name => ({ name, visible: true }), _.without([...shown, ...hidden], entityMetadata[entityType].attributeNames))
     ]
 
-    const columnDefaultState = columnDefaultsObj && columnDefaultsObj[entityType] ? convertColumnDefaults(columnDefaultsObj[entityType]) : undefined
+    const columnDefaultState = columnDefaults && columnDefaults[entityType] ? convertColumnDefaults(columnDefaults[entityType]) : {}
 
     const {
       entities,
       filteredCount = 0, totalRowCount = 0, itemsPerPage = 25, pageNumber = 1,
       sort = { field: 'name', direction: 'asc' },
       activeTextFilter = '',
-      columnWidths = {}, columnState = {}
-    } = { columnState: columnDefaultState, ...(props.firstRender ? StateHistory.get() : {}) }
+      columnWidths = {}, columnState = columnDefaultState
+    } = props.firstRender ? StateHistory.get() : {}
 
     this.table = createRef()
     this.state = {
