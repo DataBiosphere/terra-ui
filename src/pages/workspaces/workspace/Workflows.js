@@ -355,7 +355,7 @@ export const Workflows = _.flow(
     return h(PageBox, [
       div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' } }, [
         div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, ['Workflows']),
-        div({style: {flexGrow: 1}}),
+        div({ style: { flexGrow: 1 } }),
         h(IdContainer, [id => h(Fragment, [
           h(DelayedSearchInput, {
             'aria-label': 'Search workflows',
