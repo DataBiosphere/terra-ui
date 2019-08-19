@@ -356,14 +356,14 @@ export const Workflows = _.flow(
       div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' } }, [
         div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, ['Workflows']),
         div({ style: { flexGrow: 1 } }),
+        h(DelayedSearchInput, {
+          'aria-label': 'Search workflows',
+          style: { marginRight: '0.75rem', width: 220 },
+          placeholder: 'SEARCH WORKFLOWS',
+          onChange: v => this.setState({ filter: v }),
+          value: filter
+        }),
         h(IdContainer, [id => h(Fragment, [
-          h(DelayedSearchInput, {
-            'aria-label': 'Search workflows',
-            style: { marginRight: '0.75rem', width: 220 },
-            placeholder: 'SEARCH WORKFLOWS',
-            onChange: v => this.setState({ filter: v }),
-            value: filter
-          }),
           label({ htmlFor: id, style: { marginLeft: 'auto', marginRight: '0.75rem' } }, ['Sort By:']),
           h(Select, {
             id,
