@@ -13,6 +13,7 @@ import ServiceAlerts from 'src/components/ServiceAlerts'
 import SupportRequest from 'src/components/SupportRequest'
 import { TrialBanner } from 'src/components/TrialBanner'
 import { LocationProvider, Router, TitleManager } from 'src/libs/nav'
+import { ClusterDestructionNotification } from 'src/components/ClusterDestructionNotification'
 
 
 const Main = () => {
@@ -24,6 +25,7 @@ const Main = () => {
       h(TitleManager),
       h(FirecloudNotification),
       h(TrialBanner),
+      h(ClusterDestructionNotification),
       h(AuthContainer, [h(Router)])
     ]),
     h(SupportRequest),
