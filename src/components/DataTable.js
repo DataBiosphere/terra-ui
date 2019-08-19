@@ -162,7 +162,7 @@ export default ajaxCaller(class DataTable extends Component {
                     width: nameWidth,
                     headerRenderer: () => h(Resizable, {
                       width: nameWidth, onWidthChange: delta => {
-                        this.setState({ columnWidths: _.set(`${entityType}.name`, nameWidth + delta, columnWidths) },
+                        this.setState({ columnWidths: _.set('name', nameWidth + delta, columnWidths) },
                           () => this.table.current.recomputeColumnSizes())
                       }
                     }, [
@@ -178,7 +178,7 @@ export default ajaxCaller(class DataTable extends Component {
                       width: thisWidth,
                       headerRenderer: () => h(Resizable, {
                         width: thisWidth, onWidthChange: delta => {
-                          this.setState({ columnWidths: _.set(`${entityType}.${name}`, thisWidth + delta, columnWidths) },
+                          this.setState({ columnWidths: _.set(name, thisWidth + delta, columnWidths) },
                             () => this.table.current.recomputeColumnSizes())
                         }
                       }, [
