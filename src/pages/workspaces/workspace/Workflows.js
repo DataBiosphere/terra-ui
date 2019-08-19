@@ -302,6 +302,7 @@ export const Workflows = _.flow(
     super(props)
     this.state = {
       sortOrder: defaultSort.value,
+      filter: '',
       ...StateHistory.get()
     }
   }
@@ -338,14 +339,8 @@ export const Workflows = _.flow(
     const { namespace, name, listView, viewToggleButtons, workspace: ws, workspace: { workspace } } = this.props
     const { loading, configs, exportingWorkflow, copyingWorkflow, deletingWorkflow, findingWorkflow, sortOrder, sortOrder: { field, direction }, filter } = this.state
     const workflows = _.flow(
+      _.filter(workflow => Utils.textMatch(filter, workflow.name)),
       _.orderBy(sortTokens[field] || field, direction),
-      _.filter(({ targetWorkflowName }) => {{
-        if (targetWorkflowName !== undefined) {
-          return  Utils.textMatch(filter, targetWorkflowName)
-        } else {
-          return true
-        }
-      }}),
       _.map(config => {
         const isRedacted = this.computeRedacted(config)
         return h(WorkflowCard, {
@@ -360,9 +355,10 @@ export const Workflows = _.flow(
     return h(PageBox, [
       div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' } }, [
         div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, ['Workflows']),
+        div({style: {flexGrow: 1}}),
         h(IdContainer, [id => h(Fragment, [
           h(DelayedSearchInput, {
-            'aria-label': 'Search groups',
+            'aria-label': 'Search workflows',
             style: { marginLeft: 'auto', marginRight: '0.75rem', width: 220 },
             placeholder: 'SEARCH WORKFLOWS',
             onChange: v => this.setState({ filter: v }),
