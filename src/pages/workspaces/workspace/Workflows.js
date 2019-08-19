@@ -8,6 +8,7 @@ import {
   ButtonOutline, ButtonPrimary, Clickable, IdContainer, Link, makeMenuIcon, MenuButton, methodLink, PageBox, Select, spinnerOverlay
 } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
+import { DelayedSearchInput } from 'src/components/input'
 import { Markdown } from 'src/components/Markdown'
 import Modal from 'src/components/Modal'
 import PopupTrigger from 'src/components/PopupTrigger'
@@ -335,9 +336,16 @@ export const Workflows = _.flow(
 
   render() {
     const { namespace, name, listView, viewToggleButtons, workspace: ws, workspace: { workspace } } = this.props
-    const { loading, configs, exportingWorkflow, copyingWorkflow, deletingWorkflow, findingWorkflow, sortOrder, sortOrder: { field, direction } } = this.state
+    const { loading, configs, exportingWorkflow, copyingWorkflow, deletingWorkflow, findingWorkflow, sortOrder, sortOrder: { field, direction }, filter } = this.state
     const workflows = _.flow(
       _.orderBy(sortTokens[field] || field, direction),
+      _.filter(({ targetWorkflowName }) => {{
+        if (targetWorkflowName !== undefined) {
+          return  Utils.textMatch(filter, targetWorkflowName)
+        } else {
+          return true
+        }
+      }}),
       _.map(config => {
         const isRedacted = this.computeRedacted(config)
         return h(WorkflowCard, {
@@ -353,6 +361,13 @@ export const Workflows = _.flow(
       div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' } }, [
         div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, ['Workflows']),
         h(IdContainer, [id => h(Fragment, [
+          h(DelayedSearchInput, {
+            'aria-label': 'Search groups',
+            style: { marginLeft: 'auto', marginRight: '0.75rem', width: 220 },
+            placeholder: 'SEARCH WORKFLOWS',
+            onChange: v => this.setState({ filter: v }),
+            value: filter
+          }),
           label({ htmlFor: id, style: { marginLeft: 'auto', marginRight: '0.75rem' } }, ['Sort By:']),
           h(Select, {
             id,
