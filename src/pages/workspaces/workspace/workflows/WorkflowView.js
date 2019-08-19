@@ -138,7 +138,6 @@ const WorkflowIOTable = ({ which, inputsOutputs: data, config, errors, onChange,
                   value,
                   style: isFile ? { borderRadius: '4px 0px 0px 4px', borderRight: 'white' } : undefined,
                   onChange: v => onChange(name, v),
-                  onBlur: () => onChange(name, _.trimEnd(value)),
                   suggestions
                 }) : h(TextCell, { style: { flex: 1, borderRadius: '4px 0px 0px 4px', borderRight: 'white' } }, value),
                 !readOnly && isFile && h(Clickable, {
@@ -856,9 +855,14 @@ const WorkflowView = _.flow(
     this.setState({ saving: true })
 
     try {
+      const trimInputOutput = _.flow(
+        _.update('inputs', _.mapValues(v => v.trim())),
+        _.update('outputs', _.mapValues(v => v.trim()))
+      )
+
       const validationResponse = await Ajax().Workspaces.workspace(namespace, name)
         .methodConfig(workflowNamespace, workflowName)
-        .save(modifiedConfig)
+        .save(trimInputOutput(modifiedConfig))
 
       this.setState({
         saved: true,
