@@ -359,7 +359,7 @@ export const Workflows = _.flow(
         h(IdContainer, [id => h(Fragment, [
           h(DelayedSearchInput, {
             'aria-label': 'Search workflows',
-            style: { marginLeft: 'auto', marginRight: '0.75rem', width: 220 },
+            style: { marginRight: '0.75rem', width: 220 },
             placeholder: 'SEARCH WORKFLOWS',
             onChange: v => this.setState({ filter: v }),
             value: filter
