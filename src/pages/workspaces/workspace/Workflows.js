@@ -339,7 +339,7 @@ export const Workflows = _.flow(
     const { namespace, name, listView, viewToggleButtons, workspace: ws, workspace: { workspace } } = this.props
     const { loading, configs, exportingWorkflow, copyingWorkflow, deletingWorkflow, findingWorkflow, sortOrder, sortOrder: { field, direction }, filter } = this.state
     const workflows = _.flow(
-      _.filter(workflow => Utils.textMatch(filter, workflow.name)),
+      _.filter(({ name }) => Utils.textMatch(filter, name)),
       _.orderBy(sortTokens[field] || field, direction),
       _.map(config => {
         const isRedacted = this.computeRedacted(config)
