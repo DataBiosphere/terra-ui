@@ -211,6 +211,7 @@ const LocalVariablesContent = class LocalVariablesContent extends Component {
                   headerRenderer: () => h(HeaderCell, ['Key']),
                   cellRenderer: ({ rowIndex }) => editIndex === rowIndex ?
                     h(TextInput, {
+                      'aria-label': 'Workspace data key',
                       autoFocus: true,
                       value: editKey,
                       onChange: v => this.setState({ editKey: v })
@@ -227,6 +228,7 @@ const LocalVariablesContent = class LocalVariablesContent extends Component {
                       div({ style: { flex: 1, minWidth: 0, display: 'flex' } }, [
                         editIndex === rowIndex ?
                           h(TextInput, {
+                            'aria-label': 'Workspace data value',
                             value: editValue,
                             onChange: v => this.setState({ editValue: v })
                           }) :
