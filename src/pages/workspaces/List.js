@@ -226,17 +226,18 @@ export const WorkspaceList = _.flow(
     super(props)
     const { queryParams } = props
     this.state = {
-      filter: queryParams.filter || '',
+      filter: '',
       creatingNewWorkspace: false,
       cloningWorkspaceId: undefined,
       deletingWorkspaceId: undefined,
       sharingWorkspaceId: undefined,
       requestingAccessWorkspaceId: undefined,
-      accessLevelsFilter: queryParams.accessLevelsFilter || [],
-      projectsFilter: queryParams.projectsFilter,
-      submissionsFilter: queryParams.submissionsFilter || [],
+      accessLevelsFilter: [],
+      projectsFilter: undefined,
+      submissionsFilter: [],
       includePublic: !!queryParams.includePublic,
-      tagsFilter: queryParams.tagsFilter || []
+      tagsFilter: [],
+      ..._.pick(['filter', 'accessLevelsFilter', 'projectsFilter', 'submissionsFilter', 'tagsFilter'], queryParams)
     }
   }
 
@@ -415,6 +416,7 @@ export const WorkspaceList = _.flow(
   componentDidUpdate() {
     const { queryParams } = this.props
     const { filter, accessLevelsFilter, projectsFilter, includePublic, tagsFilter, submissionsFilter } = this.state
+    // Note: setting undefined so that falsy values don't show up at all
     const newSearch = qs.stringify({ ...queryParams, filter: filter || undefined, accessLevelsFilter, projectsFilter, includePublic: includePublic || undefined, tagsFilter, submissionsFilter }, { addQueryPrefix: true })
     if (newSearch !== Nav.history.location.search) {
       Nav.history.replace({ search: newSearch })
