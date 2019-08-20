@@ -74,7 +74,50 @@ const NotebookLauncher = _.flow(
     ])
   })
 
-const FileInUseModal = ({ onDismiss, onCopy, playgroundActions }) => {
+const FileInUseModal = ({ onDismiss, onCopy, playgroundActions, namespace, name }) => {
+  const signal = useCancellation()
+  // Utils.useOnMount(() => {
+  //   const { workspace: { workspace: { namespace, name } }, onDismiss, ajax: { Workspaces, Groups } } = this.props
+  //
+  //   try {
+  //     const [{ acl }, shareSuggestions, groups] = await Promise.all([
+  //       Workspaces.workspace(namespace, name).getAcl(),
+  //       Workspaces.getShareLog(),
+  //       Groups.list()
+  //     ])
+  //
+  //     const fixedAcl = _.flow(
+  //       _.toPairs,
+  //       _.map(([email, data]) => ({ email, ...data })),
+  //       _.sortBy(x => -Utils.workspaceAccessLevels.indexOf(x.accessLevel))
+  //     )(acl)
+  //
+  //     this.setState({
+  //       acl: fixedAcl,
+  //       originalAcl: fixedAcl,
+  //       groups,
+  //       shareSuggestions,
+  //       loaded: true
+  //     })
+  //   } catch (error) {
+  //     onDismiss()
+  //     reportError('Error looking up collaborators', error)
+  //   }
+  // })
+
+   Utils.useOnMount(async () => {
+    const { acl } = withErrorReporting('Error finding', async () => {
+      await Ajax(signal).Workspaces.workspace(namespace, name).getAcl()
+    })
+    const fixedAcl = _.flow(
+      _.toPairs,
+      _.map(([email, data]) => ({ email, ...data })),
+      _.sortBy(x => -Utils.workspaceAccessLevels.indexOf(x.accessLevel))
+    )(acl)
+
+    console.log(fixedAcl)
+  })
+
   return h(Modal, {
     width: 530,
     title: 'File Is In Use',
@@ -264,6 +307,7 @@ const PreviewHeader = ({ cluster, readOnlyAccess, refreshClusters, notebookName,
       })
     }),
     fileInUseOpen && h(FileInUseModal, {
+      namespace, name,
       onDismiss: () => setFileInUseOpen(false),
       onCopy: () => setCopyingNotebookName(notebookName),
       playgroundActions: () => clusterActions('playground', clusterStatus)
@@ -381,10 +425,10 @@ const NotebookEditorFrame = ({ mode, notebookName, workspace: { workspace: { nam
   const setUpNotebook = _.flow(
     Utils.withBusyState(setBusy),
     withErrorReporting('Error setting up notebook')
-  )(() => {
+  )(async () => {
     if (mode === 'Edit') {
       console.log('Setting up notebook to edit')
-      Promise.all([
+      await Promise.all([
         Ajax(signal).Jupyter.notebooks(namespace, clusterName).storageLinks(localBaseDirectory, localSafeModeBaseDirectory, cloudStorageDirectory, `.*\\.ipynb`),
         Ajax(signal).Jupyter.notebooks(namespace, clusterName).lock(`${localBaseDirectory}/${notebookName}`),
         Ajax(signal).Jupyter.notebooks(namespace, clusterName).localize([{
@@ -395,7 +439,7 @@ const NotebookEditorFrame = ({ mode, notebookName, workspace: { workspace: { nam
       ])
     } else {
       console.log('Setting up notebook for playground mode')
-      Promise.all([
+      await Promise.all([
         Ajax(signal).Jupyter.notebooks(namespace, clusterName).storageLinks(localBaseDirectory, localSafeModeBaseDirectory, cloudStorageDirectory, `.*\\.ipynb`),
         Ajax(signal).Jupyter.notebooks(namespace, clusterName).localize([{
           sourceUri: `${cloudStorageDirectory}/${notebookName}`,

@@ -86,6 +86,11 @@ const NotebookCard = Utils.connectAtom(authStore, 'authState')(
       const hashedUser = await digestMessage(`${bucketName}:${email}`).then(digestValue => {
         return hexString(digestValue)
       })
+      console.log(name)
+      console.log(bucketName)
+      console.log(email)
+      console.log(hashedUser)
+      console.log(lastLockedBy)
       const lockExpirationDate = new Date(parseInt(lockExpiresAt))
       if (lastLockedBy && lastLockedBy !== hashedUser && lockExpirationDate > Date.now()) {
         setLocked(true)
