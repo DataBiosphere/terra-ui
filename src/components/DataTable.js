@@ -50,7 +50,7 @@ export default ajaxCaller(class DataTable extends Component {
       ..._.map(name => ({ name, visible: true }), _.without([...shown, ...hidden], entityMetadata[entityType].attributeNames))
     ]
 
-    const columnDefaultState = columnDefaults && columnDefaults[entityType] ? convertColumnDefaults(columnDefaults[entityType]) : {}
+    const columnDefaultState = columnDefaults && columnDefaults[entityType] ? convertColumnDefaults(columnDefaults[entityType]) : []
 
     const {
       entities,
