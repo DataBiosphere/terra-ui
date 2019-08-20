@@ -598,59 +598,61 @@ class EntitiesContent extends Component {
 
     const { initialX, initialY } = firstRender ? StateHistory.get() : {}
 
-    return selectedFiles ? h(IGVBrowser, { selectedFiles, refGenome, namespace }) : h(Fragment, [
-      h(DataTable, {
-        persist: true, firstRender, refreshKey,
-        entityType: entityKey, entityMetadata, columnDefaults, workspaceId: { namespace, name },
-        onScroll: saveScroll, initialX, initialY,
-        selectionModel: {
-          type: 'multiple',
-          selected: selectedEntities,
-          setSelected: e => this.setState({ selectedEntities: e })
-        },
-        childrenBefore: ({ entities, columnSettings }) => div({
-          style: { display: 'flex', alignItems: 'center', flex: 'none' }
-        }, entityKey === 'cohort' && entityMetadata.cohort.attributeNames.includes('data_explorer_url') ? [
-          this.renderOpenInDataExplorerButton()
-        ] : [
-          this.renderDownloadButton(columnSettings),
-          !_.endsWith('_set', entityKey) && this.renderCopyButton(entities, columnSettings),
-          this.renderToolButton()
-        ])
-      }),
-      !_.isEmpty(selectedEntities) && h(FloatingActionButton, {
-        label: 'COPY DATA',
-        iconShape: 'copy',
-        bottom: 80,
-        onClick: () => this.setState({ copyingEntities: true })
-      }),
-      !_.isEmpty(selectedEntities) && !Utils.editWorkspaceError(workspace) && h(FloatingActionButton, {
-        label: 'DELETE DATA',
-        iconShape: 'trash',
-        onClick: () => this.setState({ deletingEntities: true })
-      }),
-      deletingEntities && h(EntityDeleter, {
-        onDismiss: () => this.setState({ deletingEntities: false }),
-        onSuccess: () => {
-          this.setState({ deletingEntities: false, selectedEntities: {}, refreshKey: refreshKey + 1 })
-          loadMetadata()
-        },
-        namespace, name,
-        selectedEntities: _.keys(selectedEntities), selectedDataType: entityKey, runningSubmissionsCount
-      }),
-      copyingEntities && h(ExportDataModal, {
-        onDismiss: () => this.setState({ copyingEntities: false }),
-        workspace,
-        selectedEntities: _.keys(selectedEntities), selectedDataType: entityKey, runningSubmissionsCount
-      }),
-      h(ToolDrawer, {
-        workspace,
-        openDrawer: showToolSelector,
-        onDismiss: () => this.setState({ showToolSelector: false }),
-        onIgvSuccess: newIgvData => this.setState({ showToolSelector: false, igvData: newIgvData }),
-        selectedEntities
-      })
-    ])
+    return selectedFiles ?
+      h(IGVBrowser, { selectedFiles, refGenome, namespace, onDismiss: () => this.setState(_.update('igvData', _.set('selectedFiles', undefined))) }) :
+      h(Fragment, [
+        h(DataTable, {
+          persist: true, firstRender, refreshKey,
+          entityType: entityKey, entityMetadata, columnDefaults, workspaceId: { namespace, name },
+          onScroll: saveScroll, initialX, initialY,
+          selectionModel: {
+            type: 'multiple',
+            selected: selectedEntities,
+            setSelected: e => this.setState({ selectedEntities: e })
+          },
+          childrenBefore: ({ entities, columnSettings }) => div({
+            style: { display: 'flex', alignItems: 'center', flex: 'none' }
+          }, entityKey === 'cohort' && entityMetadata.cohort.attributeNames.includes('data_explorer_url') ? [
+            this.renderOpenInDataExplorerButton()
+          ] : [
+            this.renderDownloadButton(columnSettings),
+            !_.endsWith('_set', entityKey) && this.renderCopyButton(entities, columnSettings),
+            this.renderToolButton()
+          ])
+        }),
+        !_.isEmpty(selectedEntities) && h(FloatingActionButton, {
+          label: 'COPY DATA',
+          iconShape: 'copy',
+          bottom: 80,
+          onClick: () => this.setState({ copyingEntities: true })
+        }),
+        !_.isEmpty(selectedEntities) && !Utils.editWorkspaceError(workspace) && h(FloatingActionButton, {
+          label: 'DELETE DATA',
+          iconShape: 'trash',
+          onClick: () => this.setState({ deletingEntities: true })
+        }),
+        deletingEntities && h(EntityDeleter, {
+          onDismiss: () => this.setState({ deletingEntities: false }),
+          onSuccess: () => {
+            this.setState({ deletingEntities: false, selectedEntities: {}, refreshKey: refreshKey + 1 })
+            loadMetadata()
+          },
+          namespace, name,
+          selectedEntities: _.keys(selectedEntities), selectedDataType: entityKey, runningSubmissionsCount
+        }),
+        copyingEntities && h(ExportDataModal, {
+          onDismiss: () => this.setState({ copyingEntities: false }),
+          workspace,
+          selectedEntities: _.keys(selectedEntities), selectedDataType: entityKey, runningSubmissionsCount
+        }),
+        h(ToolDrawer, {
+          workspace,
+          openDrawer: showToolSelector,
+          onDismiss: () => this.setState({ showToolSelector: false }),
+          onIgvSuccess: newIgvData => this.setState({ showToolSelector: false, igvData: newIgvData }),
+          selectedEntities
+        })
+      ])
   }
 }
 

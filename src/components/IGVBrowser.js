@@ -1,6 +1,7 @@
 import _ from 'lodash/fp'
 import { Fragment, useRef, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
+import { ButtonSecondary } from 'src/components/common'
 import { centeredSpinner } from 'src/components/icons'
 import { saToken } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
@@ -8,7 +9,7 @@ import { reportError } from 'src/libs/error'
 import * as Utils from 'src/libs/utils'
 
 
-export const IGVBrowser = ({ selectedFiles, refGenome, namespace }) => {
+export const IGVBrowser = ({ selectedFiles, refGenome, namespace, onDismiss }) => {
   const containerRef = useRef()
   const [loadingIgv, setLoadingIgv] = useState(true)
 
@@ -54,6 +55,7 @@ export const IGVBrowser = ({ selectedFiles, refGenome, namespace }) => {
 
   return (
     h(Fragment, [
+      h(ButtonSecondary, { onClick: onDismiss, style: { alignSelf: 'flex-start', margin: '-5px 8px 0' } }, ['Back to data table']),
       loadingIgv && centeredSpinner(),
       div({
         ref: containerRef,
