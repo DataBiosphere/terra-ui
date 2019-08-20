@@ -1,4 +1,3 @@
-
 const findClickable = (page, text) => {
   return page.waitForXPath(`(//a | //*[@role="button"])[contains(normalize-space(.),"${text}") or contains(@aria-label,"${text}")]`)
 }
