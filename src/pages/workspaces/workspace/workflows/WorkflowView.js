@@ -856,8 +856,8 @@ const WorkflowView = _.flow(
 
     try {
       const trimInputOutput = _.flow(
-        _.update('inputs', _.mapValues(v => v.trim())),
-        _.update('outputs', _.mapValues(v => v.trim()))
+        _.update('inputs', _.mapValues(_.trim)),
+        _.update('outputs', _.mapValues(_.trim))
       )
 
       const validationResponse = await Ajax().Workspaces.workspace(namespace, name)
