@@ -5,40 +5,25 @@ import { Fragment, useEffect, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { NewUserModal } from 'src/components/group-common'
 import { ajaxOverridesStore } from 'src/libs/state'
+import { delay } from 'src/libs/utils'
 
-
-const INVITE_SUCCEEDED = 201
-const USER_NOT_REGISTERED = 404
-const USER_IS_REGISTERED = 200
-const FAILED_REQUEST = 400
-
-const delayed = ({ ms, resolved, status }) => {
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      if (resolved) {
-        resolve(new Response({ status }))
-      } else {
-        reject({ status, json: () => ({ message: 'Failed to add user' }) })
-      }
-    }, ms)
-  })
-}
 
 const clearOverrides = () => ajaxOverridesStore.set([])
 
 const setOverrides = ({ isRegistered, ms }) => {
   ajaxOverridesStore.set([{
     filter: /api\/users\/v1\/(?!invite)/,
-    fn: () => {
+    fn: () => async () => {
       action('Checking if user is registered')()
-      const status = isRegistered ? USER_IS_REGISTERED : USER_NOT_REGISTERED
-      return delayed({ ms, resolved: isRegistered, status })
+      await delay(ms)
+      return isRegistered ? new Response(null, { status: 200 }) : new Response(null, { status: 404 })
     }
   }, {
     filter: /users\/v1\/invite/,
-    fn: () => {
+    fn: () => async () => {
       action('Requesting user invite')()
-      return delayed({ ms, resolved: true, status: INVITE_SUCCEEDED })
+      await delay(ms)
+      return new Response(null, { status: 201 })
     }
   }])
 }
@@ -66,10 +51,14 @@ const Modal = () => {
         title,
         adminLabel,
         userLabel,
-        addFunction: (role, userEmail) => {
+        addFunction: async (role, userEmail) => {
           action(`Attempting to add user ${userEmail} as a ${role}`)()
-          const resolved = addUnregisteredUser ? addSucceeds : isRegistered && addSucceeds
-          return delayed({ resolved, ms, status: FAILED_REQUEST })
+          await delay(ms)
+          if (addUnregisteredUser ? addSucceeds : isRegistered && addSucceeds) {
+            return
+          } else {
+            throw new Response(JSON.stringify({ message: 'Failed to add user' }), { status: 400 })
+          }
         },
         onSuccess: () => {
           action('Successfuly added user')()

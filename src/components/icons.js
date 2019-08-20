@@ -10,7 +10,7 @@ import iconDict from 'src/libs/icon-dict'
  * @param {string} shape - see {@link https://fontawesome.com/icons?d=gallery}
  * @param {object} [props]
  */
-export const icon = (shape, { size = 16, ...props } = {}) => _.invokeArgs(shape, [{ size, ...props }], iconDict)
+export const icon = (shape, { size = 16, ...props } = {}) => _.invokeArgs(shape, [{ size, 'data-icon': shape, ...props }], iconDict)
 
 export const spinner = props => icon('loadingSpinner', _.merge({ size: 24, style: { color: colors.primary() } }, props))
 

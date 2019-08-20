@@ -40,7 +40,7 @@ export const workflowSelectionStore = Utils.atom({
 /*
  * Modifies ajax responses for testing purposes.
  * Can be set to an array of objects of the form { fn, filter }.
- * The fn should take a Response and return a Promise that resolves to a new Response. (See ajaxOverrideUtils)
+ * The fn should be a fetch wrapper (oldFetch => newFetch) that modifies the request process. (See ajaxOverrideUtils)
  * If present, filter should be a RegExp that is matched against the url to target specific requests.
  */
 export const ajaxOverridesStore = Utils.atom()

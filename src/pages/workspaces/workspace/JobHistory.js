@@ -151,7 +151,8 @@ const JobHistory = _.flow(
     const hasJobs = !_.isEmpty(submissions)
 
     return h(Fragment, [
-      div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'flex-end', margin: '1rem 1rem 0' } }, [
+      div({ style: { display: 'flex', alignItems: 'center', margin: '1rem 1rem 0' } }, [
+        div({ style: { flexGrow: 1 } }),
         h(PopupTrigger, {
           content: div({ style: { margin: '0.5rem' } }, [h(SubmissionQueueStatus)]),
           side: 'bottom'

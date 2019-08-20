@@ -10,11 +10,14 @@ import * as Utils from 'src/libs/utils'
 
 
 window.ajaxOverrideUtils = {
-  mapJsonBody: _.curry(async (fn, res) => {
-    return new Response(new Blob([JSON.stringify(fn(await res.json()))]), res)
+  mapJsonBody: _.curry((fn, wrappedFetch) => async (...args) => {
+    const res = await wrappedFetch(...args)
+    return new Response(JSON.stringify(fn(await res.json())), res)
   }),
-  makeError: _.curry(({ status, frequency = 1 }, res) => {
-    return Promise.resolve(Math.random() < frequency ? new Response('Instrumented error', { status }) : res)
+  makeError: _.curry(({ status, frequency = 1 }, wrappedFetch) => (...args) => {
+    return Math.random() < frequency ?
+      Promise.resolve(new Response('Instrumented error', { status })) :
+      wrappedFetch(...args)
   })
 }
 
@@ -25,9 +28,8 @@ const tosData = { appid: 'Saturn', tosversion: 4 }
 
 const withInstrumentation = wrappedFetch => (...args) => {
   return _.flow(
-    _.filter(({ filter }) => args[0].match(filter)),
-    _.reduce(async (rn, { fn }) => fn(await rn), wrappedFetch(...args))
-  )(ajaxOverridesStore.get())
+    ..._.map('fn', _.filter(({ filter }) => args[0].match(filter), ajaxOverridesStore.get()))
+  )(wrappedFetch)(...args)
 }
 
 const withCancellation = wrappedFetch => async (...args) => {
@@ -908,6 +910,11 @@ const Methods = signal => ({
 const Submissions = signal => ({
   queueStatus: async () => {
     const res = await fetchRawls('submissions/queueStatus', _.merge(authOpts(), { signal }))
+    return res.json()
+  },
+
+  cromwellVersion: async () => {
+    const res = await fetchOk(`${getConfig().rawlsUrlRoot}/version/executionEngine`, { signal })
     return res.json()
   }
 })

@@ -8,6 +8,7 @@ import {
   ButtonOutline, ButtonPrimary, Clickable, IdContainer, Link, makeMenuIcon, MenuButton, methodLink, PageBox, Select, spinnerOverlay
 } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
+import { DelayedSearchInput } from 'src/components/input'
 import { Markdown } from 'src/components/Markdown'
 import Modal from 'src/components/Modal'
 import PopupTrigger from 'src/components/PopupTrigger'
@@ -301,6 +302,7 @@ export const Workflows = _.flow(
     super(props)
     this.state = {
       sortOrder: defaultSort.value,
+      filter: '',
       ...StateHistory.get()
     }
   }
@@ -335,8 +337,9 @@ export const Workflows = _.flow(
 
   render() {
     const { namespace, name, listView, viewToggleButtons, workspace: ws, workspace: { workspace } } = this.props
-    const { loading, configs, exportingWorkflow, copyingWorkflow, deletingWorkflow, findingWorkflow, sortOrder, sortOrder: { field, direction } } = this.state
+    const { loading, configs, exportingWorkflow, copyingWorkflow, deletingWorkflow, findingWorkflow, sortOrder, sortOrder: { field, direction }, filter } = this.state
     const workflows = _.flow(
+      _.filter(({ name }) => Utils.textMatch(filter, name)),
       _.orderBy(sortTokens[field] || field, direction),
       _.map(config => {
         const isRedacted = this.computeRedacted(config)
@@ -352,6 +355,14 @@ export const Workflows = _.flow(
     return h(PageBox, [
       div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' } }, [
         div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, ['Workflows']),
+        div({ style: { flexGrow: 1 } }),
+        h(DelayedSearchInput, {
+          'aria-label': 'Search workflows',
+          style: { marginRight: '0.75rem', width: 220 },
+          placeholder: 'SEARCH WORKFLOWS',
+          onChange: v => this.setState({ filter: v }),
+          value: filter
+        }),
         h(IdContainer, [id => h(Fragment, [
           label({ htmlFor: id, style: { marginLeft: 'auto', marginRight: '0.75rem' } }, ['Sort By:']),
           h(Select, {
@@ -412,7 +423,7 @@ export const Workflows = _.flow(
   }
 
   componentDidUpdate() {
-    StateHistory.update(_.pick(['configs', 'sortOrder'], this.state))
+    StateHistory.update(_.pick(['configs', 'sortOrder', 'filter'], this.state))
   }
 })
 

@@ -10,6 +10,7 @@ import { centeredSpinner, icon } from 'src/components/icons'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import hexButton from 'src/images/hex-button.svg'
 import scienceBackground from 'src/images/science-background.jpg'
+import { Ajax, useCancellation } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { getConfig, isTerra } from 'src/libs/config'
 import { returnParam } from 'src/libs/logos'
@@ -333,4 +334,27 @@ export const FocusTrapper = ({ children, onBreakout, ...props }) => {
       }
     }, props)
   }, [children])
+}
+
+export const CromwellVersionLink = props => {
+  const [version, setVersion] = useState()
+  const signal = useCancellation()
+
+  Utils.useOnMount(() => {
+    const setCromwellVersion = async () => {
+      const { cromwell } = await Ajax(signal).Submissions.cromwellVersion()
+
+      setVersion(cromwell.split('-')[0])
+    }
+
+    setCromwellVersion()
+  })
+
+  return version ?
+    h(Link, {
+      href: `https://github.com/broadinstitute/cromwell/releases/tag/${version}`,
+      ...Utils.newTabLinkProps,
+      ...props
+    }, ['Cromwell ', version]) :
+    'Cromwell version loading...'
 }
