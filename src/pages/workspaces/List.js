@@ -1,5 +1,6 @@
 import { isAfter } from 'date-fns'
 import _ from 'lodash/fp'
+import * as qs from 'qs'
 import { Component, Fragment, useState } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import { pure } from 'recompose'
@@ -19,7 +20,6 @@ import { Ajax, ajaxCaller, useCancellation } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
-import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import DeleteWorkspaceModal from 'src/pages/workspaces/workspace/DeleteWorkspaceModal'
@@ -224,6 +224,7 @@ export const WorkspaceList = _.flow(
 )(class WorkspaceList extends Component {
   constructor(props) {
     super(props)
+    const { queryParams } = props
     this.state = {
       filter: '',
       creatingNewWorkspace: false,
@@ -232,11 +233,11 @@ export const WorkspaceList = _.flow(
       sharingWorkspaceId: undefined,
       requestingAccessWorkspaceId: undefined,
       accessLevelsFilter: [],
-      projectsFilter: [],
+      projectsFilter: undefined,
       submissionsFilter: [],
-      includePublic: false,
+      includePublic: !!queryParams.includePublic,
       tagsFilter: [],
-      ...StateHistory.get()
+      ..._.pick(['filter', 'accessLevelsFilter', 'projectsFilter', 'submissionsFilter', 'tagsFilter'], queryParams)
     }
   }
 
@@ -282,7 +283,7 @@ export const WorkspaceList = _.flow(
         const { workspace: { namespace, name } } = ws
         return Utils.textMatch(filter, `${namespace}/${name}`) &&
           (_.isEmpty(accessLevelsFilter) || accessLevelsFilter.includes(ws.accessLevel)) &&
-          (_.isEmpty(projectsFilter) || projectsFilter.includes(ws.workspace.namespace)) &&
+          (_.isEmpty(projectsFilter) || projectsFilter === namespace) &&
           (_.isEmpty(submissionsFilter) || submissionsFilter.includes(workspaceSubmissionStatus(ws))) &&
           (_.isEmpty(tagsFilter) || _.every(_.identity, _.map(a => returnTags(ws.workspace.attributes).includes(a), tagsFilter)))
       }),
@@ -314,7 +315,7 @@ export const WorkspaceList = _.flow(
           div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, ['Workspaces']),
           div({ style: { marginLeft: 'auto', marginRight: '1rem' } }, [
             h(LabeledCheckbox, {
-              checked: includePublic === true,
+              checked: !!includePublic,
               onChange: v => this.setState({ includePublic: v })
             }, ' Show public workspaces')
           ]),
@@ -413,10 +414,13 @@ export const WorkspaceList = _.flow(
   }
 
   componentDidUpdate() {
-    StateHistory.update(_.pick(
-      ['filter', 'accessLevelsFilter', 'projectsFilter', 'includePublic', 'tagsFilter', 'submissionsFilter'],
-      this.state)
-    )
+    const { queryParams } = this.props
+    const { filter, accessLevelsFilter, projectsFilter, includePublic, tagsFilter, submissionsFilter } = this.state
+    // Note: setting undefined so that falsy values don't show up at all
+    const newSearch = qs.stringify({ ...queryParams, filter: filter || undefined, accessLevelsFilter, projectsFilter, includePublic: includePublic || undefined, tagsFilter, submissionsFilter }, { addQueryPrefix: true })
+    if (newSearch !== Nav.history.location.search) {
+      Nav.history.replace({ search: newSearch })
+    }
   }
 })
 

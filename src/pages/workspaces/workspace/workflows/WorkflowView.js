@@ -861,9 +861,14 @@ const WorkflowView = _.flow(
     this.setState({ saving: true })
 
     try {
+      const trimInputOutput = _.flow(
+        _.update('inputs', _.mapValues(_.trim)),
+        _.update('outputs', _.mapValues(_.trim))
+      )
+
       const validationResponse = await Ajax().Workspaces.workspace(namespace, name)
         .methodConfig(workflowNamespace, workflowName)
-        .save(modifiedConfig)
+        .save(trimInputOutput(modifiedConfig))
 
       this.setState({
         saved: true,
