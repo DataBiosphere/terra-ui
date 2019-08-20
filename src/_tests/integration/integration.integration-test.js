@@ -1,5 +1,6 @@
 const { click, findText, findClickable, fillIn, waitForNoSpinners } = require('./integration-utils')
 
+
 test('integration', async () => {
   await page.goto('http://localhost:3000')
   await click(page, 'View Workspaces')
