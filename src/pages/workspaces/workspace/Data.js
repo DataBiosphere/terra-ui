@@ -591,7 +591,7 @@ class EntitiesContent extends Component {
 
   render() {
     const {
-      workspace, workspace: { workspace: { namespace, name }, workspaceSubmissionStats: { runningSubmissionsCount } },
+      workspace, workspace: { workspace: { namespace, name, attributes: { 'workspace-column-defaults': columnDefaults } }, workspaceSubmissionStats: { runningSubmissionsCount } },
       entityKey, entityMetadata, loadMetadata, firstRender
     } = this.props
     const { selectedEntities, deletingEntities, copyingEntities, refreshKey, showToolSelector, igvData: { selectedFiles, refGenome } } = this.state
@@ -601,7 +601,7 @@ class EntitiesContent extends Component {
     return selectedFiles ? h(IGVBrowser, { selectedFiles, refGenome, namespace }) : h(Fragment, [
       h(DataTable, {
         persist: true, firstRender, refreshKey,
-        entityType: entityKey, entityMetadata, workspaceId: { namespace, name },
+        entityType: entityKey, entityMetadata, columnDefaults, workspaceId: { namespace, name },
         onScroll: saveScroll, initialX, initialY,
         selectionModel: {
           type: 'multiple',

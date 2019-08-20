@@ -370,3 +370,11 @@ export const useConsoleAssert = (condition, message) => {
     console.error(message) // Note: using error because assert halts execution
   }
 }
+
+export const maybeParseJSON = maybeJSONString => {
+  try {
+    return JSON.parse(maybeJSONString)
+  } catch {
+    return undefined
+  }
+}
