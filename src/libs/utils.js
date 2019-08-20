@@ -362,3 +362,11 @@ export const mergeQueryParams = (params, urlString) => {
   url.search = qs.stringify({ ...qs.parse(url.search, { ignoreQueryPrefix: true, plainObjects: true }), ...params })
   return url.href
 }
+
+export const maybeParseJSON = maybeJSONString => {
+  try {
+    return JSON.parse(maybeJSONString)
+  } catch {
+    return undefined
+  }
+}

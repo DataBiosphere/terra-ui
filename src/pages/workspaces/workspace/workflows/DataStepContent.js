@@ -50,7 +50,8 @@ export default class DataStepContent extends Component {
   render() {
     const {
       onDismiss, onSuccess,
-      workspaceId, entityMetadata
+      workspaceId, entityMetadata,
+      workspace: { attributes: { 'workspace-column-defaults': columnDefaults } }
     } = this.props
     const { entitySelectionModel, entitySelectionModel: { type, selectedEntities, newSetName }, rootEntityType } = this.state
 
@@ -113,7 +114,7 @@ export default class DataStepContent extends Component {
           h(DataTable, {
             key: type,
             entityType: type === EntitySelectionType.processFromSet ? setType : rootEntityType,
-            entityMetadata, workspaceId,
+            entityMetadata, workspaceId, columnDefaults,
             selectionModel: {
               type: (isSet || type === EntitySelectionType.processFromSet) ? 'single' : 'multiple',
               selected: selectedEntities, setSelected: e => this.setEntitySelectionModel({ selectedEntities: e })
