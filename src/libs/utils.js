@@ -363,6 +363,14 @@ export const mergeQueryParams = (params, urlString) => {
   return url.href
 }
 
+export const useConsoleAssert = (condition, message) => {
+  const printed = useRef(false)
+  if (!printed.current && !condition) {
+    printed.current = true
+    console.error(message) // Note: using error because assert halts execution
+  }
+}
+
 export const maybeParseJSON = maybeJSONString => {
   try {
     return JSON.parse(maybeJSONString)
