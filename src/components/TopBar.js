@@ -274,7 +274,10 @@ const TopBar = Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
               ...Utils.newTabLinkProps
             }, ['What\'s different in Terra']),
             h(DropDownSubItem, {
-              onClick: () => contactUsActive.set(true)
+              onClick: () => {
+                this.hideNav()
+                contactUsActive.set(true)
+              }
             }, ['Contact Us'])
           ]),
           isFirecloud() && h(NavSection, {
