@@ -423,7 +423,7 @@ export const Workflows = _.flow(
   }
 
   componentDidUpdate() {
-    StateHistory.update(_.pick(['configs', 'sortOrder'], this.state))
+    StateHistory.update(_.pick(['configs', 'sortOrder', 'filter'], this.state))
   }
 })
 
