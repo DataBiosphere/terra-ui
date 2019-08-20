@@ -367,6 +367,6 @@ export const useConsoleAssert = (condition, message) => {
   const printed = useRef(false)
   if (!printed.current && !condition) {
     printed.current = true
-    console.error(message)
+    console.error(message) // Note: using error because assert halts execution
   }
 }
