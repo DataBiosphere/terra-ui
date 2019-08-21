@@ -573,7 +573,7 @@ const WorkflowView = _.flow(
           h(ButtonSecondary, {
             href: Nav.getLink('workspace-workflows', { namespace, name: workspaceName }),
             style: { alignSelf: 'flex-start' }
-          }, ['Back to list']),
+          }, [icon('arrowLeft', { style: { marginRight: '0.5rem' } }), 'Back to list']),
           div({ style: { display: 'flex' } }, [
             span({ style: { marginLeft: '-2rem', width: '2rem' } }, [
               h(PopupTrigger, {

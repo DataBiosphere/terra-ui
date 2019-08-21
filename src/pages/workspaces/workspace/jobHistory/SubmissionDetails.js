@@ -132,7 +132,7 @@ const SubmissionDetails = _.flow(
     h(ButtonSecondary, {
       href: Nav.getLink('workspace-job-history', { namespace, name }),
       style: { alignSelf: 'flex-start' }
-    }, ['Back to list']),
+    }, [icon('arrowLeft', { style: { marginRight: '0.5rem' } }), 'Back to list']),
     _.isEmpty(submission) ? centeredSpinner() : h(Fragment, [
       div({ style: { display: 'flex' } }, [
         div({ style: { flex: '0 0 200px', marginRight: '2rem', lineHeight: '24px' } }, [

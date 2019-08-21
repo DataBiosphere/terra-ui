@@ -599,7 +599,7 @@ class EntitiesContent extends Component {
     const { initialX, initialY } = firstRender ? StateHistory.get() : {}
 
     return selectedFiles ?
-      h(IGVBrowser, { selectedFiles, refGenome, namespace, onDismiss: () => this.setState(_.update('igvData', _.set('selectedFiles', undefined))) }) :
+      h(IGVBrowser, { selectedFiles, refGenome, namespace, onDismiss: () => this.setState(_.set(['igvData', 'selectedFiles'], undefined)) }) :
       h(Fragment, [
         h(DataTable, {
           persist: true, firstRender, refreshKey,
