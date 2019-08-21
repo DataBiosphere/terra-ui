@@ -261,7 +261,7 @@ export class NewClusterModal extends PureComponent {
                 numberOfWorkers: v ? 2 : 0,
                 numberOfPreemptibleWorkers: 0
               })
-            }, ' Configure as Spark cluster')
+            }, ' Configure as Spark notebook runtime')
           ])
         ]),
         !!numberOfWorkers && h(Fragment, [
@@ -326,7 +326,7 @@ export const ClusterErrorModal = ({ cluster, onDismiss }) => {
   const [loadingClusterDetails, setLoadingClusterDetails] = useState(false)
 
   const loadClusterError = _.flow(
-    withErrorReporting('Error loading cluster details'),
+    withErrorReporting('Error loading notebook runtime details'),
     Utils.withBusyState(setLoadingClusterDetails)
   )(async () => {
     const { errors: clusterErrors } = await Ajax().Jupyter.cluster(cluster.googleProject, cluster.clusterName).details()
@@ -342,7 +342,7 @@ export const ClusterErrorModal = ({ cluster, onDismiss }) => {
   Utils.useOnMount(() => { loadClusterError() })
 
   return h(Modal, {
-    title: userscriptError ? 'Cluster Creation Failed due to Userscript Error' : 'Cluster Creation Failed',
+    title: userscriptError ? 'Notebook Runtime Creation Failed due to Userscript Error' : 'Notebook Runtime Creation Failed',
     showCancel: false,
     onDismiss
   }, [
@@ -355,7 +355,7 @@ export const DeleteClusterModal = ({ cluster: { googleProject, clusterName }, on
   const [deleting, setDeleting] = useState()
   const deleteCluster = _.flow(
     Utils.withBusyState(setDeleting),
-    withErrorReporting('Error deleting cluster')
+    withErrorReporting('Error deleting notebook runtime')
   )(async () => {
     await Ajax().Jupyter.cluster(googleProject, clusterName).delete()
     onSuccess()
@@ -412,7 +412,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
     const cluster = this.getCurrentCluster() || {}
 
     if (cluster.status === 'Error' && prevCluster.status !== 'Error' && !_.includes(cluster.id, errorNotifiedClusters.get())) {
-      notify('error', 'Error Creating Cluster', {
+      notify('error', 'Error Creating Notebook Runtime', {
         message: h(ClusterErrorNotification, { cluster })
       })
       errorNotifiedClusters.update(Utils.append(cluster.id))
@@ -436,7 +436,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
       await promise
       await refreshClusters()
     } catch (error) {
-      reportError('Cluster Error', error)
+      reportError('Notebook Runtime Error', error)
     } finally {
       this.setState({ busy: false })
     }
@@ -513,16 +513,16 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
             shape: 'play',
             onClick: () => this.startCluster(),
             disabled: busy || !canCompute,
-            tooltip: canCompute ? 'Start cluster' : noCompute,
-            'aria-label': 'Start cluster'
+            tooltip: canCompute ? 'Start notebook runtime' : noCompute,
+            'aria-label': 'Start notebook runtime'
           })
         case 'Running':
           return h(ClusterIcon, {
             shape: 'pause',
             onClick: () => this.stopCluster(),
             disabled: busy || !canCompute,
-            tooltip: canCompute ? 'Stop cluster' : noCompute,
-            'aria-label': 'Stop cluster'
+            tooltip: canCompute ? 'Stop notebook runtime' : noCompute,
+            'aria-label': 'Stop notebook runtime'
           })
         case 'Starting':
         case 'Stopping':
@@ -530,8 +530,8 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
           return h(ClusterIcon, {
             shape: 'sync',
             disabled: true,
-            tooltip: 'Cluster update in progress',
-            'aria-label': 'Cluster update in progress'
+            tooltip: 'Notebook runtime update in progress',
+            'aria-label': 'Notebook runtime update in progress'
           })
         case 'Error':
           return h(ClusterIcon, {
@@ -547,8 +547,8 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
             shape: 'play',
             onClick: () => this.createDefaultCluster(),
             disabled: busy || !canCompute,
-            tooltip: canCompute ? 'Create cluster' : noCompute,
-            'aria-label': 'Create cluster'
+            tooltip: canCompute ? 'Create notebook runtime' : noCompute,
+            'aria-label': 'Create notebook runtime'
           })
       }
     }
@@ -563,7 +563,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
         href: Nav.getLink('workspace-terminal-launch', { namespace, name }),
         tooltip: Utils.cond(
           [!canCompute, () => noCompute],
-          [!currentCluster, () => 'Create a basic cluster and open its terminal'],
+          [!currentCluster, () => 'Create a basic notebook runtime and open its terminal'],
           () => 'Open terminal'
         ),
         'aria-label': 'Open terminal',
@@ -576,8 +576,8 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
         shape: 'trash',
         onClick: () => this.setState({ deleteModalOpen: true }),
         disabled: busy || !canCompute || !_.includes(currentStatus, ['Stopped', 'Running', 'Error']),
-        tooltip: 'Delete cluster',
-        'aria-label': 'Delete cluster',
+        tooltip: 'Delete notebook runtime',
+        'aria-label': 'Delete notebook runtime',
         style: { marginLeft: '0.5rem' }
       }),
       h(IdContainer, [id => h(Fragment, [
