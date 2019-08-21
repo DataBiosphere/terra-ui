@@ -82,7 +82,7 @@ export const TextInput = forwardRef(({ onChange, nativeOnChange = false, ...prop
 
 export const LabeledTextInput = ({ onChange, ...props }) => {
   return h(IdContainer, [id => h(Fragment, [
-    h(TextInput, { onChange, 'aria-label': id, ...props }),
+    h(TextInput, { onChange, 'aria-label': id, ...props })
   ])])
 }
 
