@@ -38,7 +38,7 @@ const Clusters = () => {
       setDeleteClusterId(undefined)
     }
   })
-  const loadClusters = withErrorReporting('Error loading clusters', refreshClusters)
+  const loadClusters = withErrorReporting('Error loading notebook runtimes', refreshClusters)
   const loadClustersSilently = withErrorIgnoring(refreshClusters)
   const pollClusters = async () => {
     while (true) {
@@ -64,7 +64,7 @@ const Clusters = () => {
   const clustersByProject = _.groupBy('googleProject', clusters)
 
   return h(Fragment, [
-    h(TopBar, { title: 'Notebook runtimes', href: Nav.getLink('clusters') }),
+    h(TopBar, { title: 'Notebook Runtimes', href: Nav.getLink('clusters') }), // FIXME: what about this one?
     div({ role: 'main', style: { padding: '1rem', flex: 1, display: 'flex', flexDirection: 'column' } }, [
       div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase', marginBottom: '1rem' } }, ['Your notebook runtimes']),
       div({ style: { flex: 1 } }, [
@@ -157,6 +157,7 @@ const Clusters = () => {
   ])
 }
 
+// FIXME: do I want to change these?
 export const navPaths = [
   {
     name: 'clusters',
