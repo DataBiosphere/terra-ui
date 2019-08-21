@@ -1,5 +1,5 @@
+import _ from 'lodash/fp'
 import { div, h } from 'react-hyperscript-helpers'
-import { compose, mapProps } from 'recompose'
 import { Clickable } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import colors from 'src/libs/colors'
@@ -20,7 +20,7 @@ const viewToggleStyles = {
   })
 }
 
-const viewToggleButtons = (listView, setListView) => {
+export const ViewToggleButtons = ({ listView, setListView }) => {
   return div({ style: viewToggleStyles.toolbarContainer }, [
     h(Clickable, {
       style: { marginLeft: 'auto', ...viewToggleStyles.toolbarButton(!listView) },
@@ -35,24 +35,18 @@ const viewToggleButtons = (listView, setListView) => {
   ])
 }
 
-
 Utils.syncAtomToSessionStorage(toggleStateAtom, 'toggleState')
 
-
-const togglesListView = key => {
-  return compose(
-    Utils.connectAtom(toggleStateAtom, 'toggleState'),
-    mapProps(({ toggleState, ...props }) => {
-      const listView = toggleState && toggleState[key]
-
-      return {
-        listView,
-        viewToggleButtons: viewToggleButtons(listView, v => toggleStateAtom.update(m => ({ ...m, [key]: v }))),
-        ...props
-      }
-    })
-  )
+export const useViewToggle = key => {
+  const toggleState = Utils.useAtom(toggleStateAtom)
+  return [toggleState[key], v => toggleStateAtom.update(_.set(key, v))]
 }
 
-
-export default togglesListView
+export const withViewToggle = key => WrappedComponent => {
+  const Wrapper = props => {
+    const [listView, setListView] = useViewToggle(key)
+    return h(WrappedComponent, { ...props, listView, setListView })
+  }
+  Wrapper.displayName = 'withViewToggle()'
+  return Wrapper
+}

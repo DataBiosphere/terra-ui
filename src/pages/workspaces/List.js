@@ -5,7 +5,7 @@ import { Component, Fragment, useState } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import { pure } from 'recompose'
 import removeMd from 'remove-markdown'
-import togglesListView from 'src/components/CardsListToggle'
+import { ViewToggleButtons, withViewToggle } from 'src/components/CardsListToggle'
 import {
   Clickable, LabeledCheckbox, Link, makeMenuIcon, MenuButton, PageBox, Select, topSpinnerOverlay, transparentSpinnerOverlay
 } from 'src/components/common'
@@ -219,7 +219,7 @@ const NewWorkspaceCard = pure(({ onClick }) => {
 
 export const WorkspaceList = _.flow(
   ajaxCaller,
-  togglesListView('workspaceList'),
+  withViewToggle('workspaceList'),
   withWorkspaces
 )(class WorkspaceList extends Component {
   constructor(props) {
@@ -247,7 +247,7 @@ export const WorkspaceList = _.flow(
   }
 
   render() {
-    const { workspaces, loadingWorkspaces, refreshWorkspaces, listView, viewToggleButtons } = this.props
+    const { workspaces, loadingWorkspaces, refreshWorkspaces, listView, setListView } = this.props
     const { filter, creatingNewWorkspace, cloningWorkspaceId, deletingWorkspaceId, sharingWorkspaceId, requestingAccessWorkspaceId, accessLevelsFilter, projectsFilter, submissionsFilter, tagsFilter, includePublic } = this.state
     const initialFiltered = _.filter(ws => includePublic || !ws.public || Utils.canWrite(ws.accessLevel), workspaces)
     const noWorkspaces = _.isEmpty(initialFiltered) && !loadingWorkspaces
@@ -319,7 +319,7 @@ export const WorkspaceList = _.flow(
               onChange: v => this.setState({ includePublic: v })
             }, ' Show public workspaces')
           ]),
-          viewToggleButtons
+          h(ViewToggleButtons, { listView, setListView })
         ]),
         div({ style: { display: 'flex', marginBottom: '1rem' } }, [
           div({ style: { display: 'flex', alignItems: 'center', fontSize: '1rem' } }, ['Filter by']),
