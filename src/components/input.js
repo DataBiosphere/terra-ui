@@ -4,7 +4,7 @@ import { Component, forwardRef, Fragment, useState } from 'react'
 import Autosuggest from 'react-autosuggest'
 import { div, h } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
-import { ButtonPrimary } from 'src/components/common'
+import { ButtonPrimary, IdContainer } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { PopupPortal, useDynamicPosition } from 'src/components/popup-utils'
 import colors from 'src/libs/colors'
@@ -79,6 +79,12 @@ export const TextInput = forwardRef(({ onChange, nativeOnChange = false, ...prop
     }
   }, props))
 })
+
+export const LabeledTextInput = ({ onChange, ...props }) => {
+  return h(IdContainer, [id => h(Fragment, [
+    h(TextInput, { onChange, 'aria-label': id, ...props }),
+  ])])
+}
 
 export const ConfirmedSearchInput = ({ defaultValue = '', onChange = _.noop, ...props }) => {
   const [internalValue, setInternalValue] = useState(defaultValue)
