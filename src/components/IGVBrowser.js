@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import { Fragment, useRef, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
-import { ButtonSecondary, Link } from 'src/components/common'
+import { Link } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { saToken } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
