@@ -200,9 +200,10 @@ const SubmissionDetails = _.flow(
         }, [h(Link, ['Queue Status'])])
       ]),
       div({ style: { flex: 1 } }, [
-        !filteredWorkflows.length ? 'No matching workflows.' : h(AutoSizer, [({ width, height }) => h(FlexTable, {
+        h(AutoSizer, [({ width, height }) => h(FlexTable, {
           width, height,
           rowCount: filteredWorkflows.length,
+          noContentMessage: 'No matching workflows',
           columns: [
             {
               size: { basis: 75, grow: 0 },

@@ -123,12 +123,12 @@ const LocalVariablesContent = class LocalVariablesContent extends Component {
     const { workspace, workspace: { workspace: { namespace, name, attributes } }, refreshWorkspace, firstRender } = this.props
     const { editIndex, deleteIndex, editKey, editValue, editType, textFilter } = this.state
     const stopEditing = () => this.setState({ editIndex: undefined, editKey: undefined, editValue: undefined, editType: undefined })
-    const filteredAttributes = _.flow(
+    const initialAttributes = _.flow(
       _.toPairs,
       _.remove(([key]) => key === 'description' || key.includes(':') || key.startsWith('referenceData_')),
-      _.filter(data => Utils.textMatch(textFilter, _.join(' ', data))),
       _.sortBy(_.first)
     )(attributes)
+    const filteredAttributes = _.filter(data => Utils.textMatch(textFilter, _.join(' ', data)), initialAttributes)
 
     const creatingNewVariable = editIndex === filteredAttributes.length
     const amendedAttributes = [
@@ -197,7 +197,7 @@ const LocalVariablesContent = class LocalVariablesContent extends Component {
         })
       ]),
       Utils.cond(
-        [_.isEmpty(amendedAttributes), () => 'No Workspace Data defined'],
+        [_.isEmpty(initialAttributes), () => 'No Workspace Data defined'],
         () => div({ style: { flex: 1 } }, [
           h(AutoSizer, [
             ({ width, height }) => h(FlexTable, {
@@ -205,6 +205,7 @@ const LocalVariablesContent = class LocalVariablesContent extends Component {
               onScroll: y => saveScroll(0, y),
               initialY,
               hoverHighlight: true,
+              noContentMessage: 'No matching data',
               columns: [
                 {
                   size: { basis: 400, grow: 0 },
@@ -338,6 +339,7 @@ const ReferenceDataContent = ({ workspace: { workspace: { namespace, attributes 
           width, height, rowCount: selectedData.length,
           onScroll: y => saveScroll(0, y),
           initialY,
+          noContentMessage: 'No matching data',
           columns: [
             {
               size: { basis: 400, grow: 0 },

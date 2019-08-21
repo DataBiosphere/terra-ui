@@ -407,8 +407,14 @@ export const Workflows = _.flow(
           'Find a Workflow',
           icon('plus-circle', { size: 32 })
         ]),
-        !loading && _.isEmpty(workflows) && noWorkflowsMessage,
-        listView ? div({ style: { flex: 1 } }, [workflows]) : workflows,
+        Utils.cond(
+          [configs && _.isEmpty(configs), () => noWorkflowsMessage],
+          [!_.isEmpty(configs) && _.isEmpty(workflows), () => {
+            return div({ style: { fontStyle: 'italic' } }, ['No matching workflows'])
+          }],
+          [listView, () => div({ style: { flex: 1 } }, [workflows])],
+          () => workflows
+        ),
         findingWorkflow && h(FindWorkflowModal, {
           namespace, name,
           onDismiss: () => this.setState({ findingWorkflow: false })

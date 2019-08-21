@@ -180,6 +180,7 @@ export const GroupList = ajaxCaller(class GroupList extends Component {
 
   render() {
     const { groups, isDataLoaded, filter, creatingNewGroup, deletingGroup, updating } = this.state
+    const filteredGroups = _.filter(({ groupName }) => Utils.textMatch(filter, groupName), groups)
 
     return h(Fragment, [
       h(TopBar, { title: 'Groups' }, [
@@ -201,18 +202,22 @@ export const GroupList = ajaxCaller(class GroupList extends Component {
           h(NewGroupCard, {
             onClick: () => this.setState({ creatingNewGroup: true })
           }),
-          isDataLoaded && _.isEmpty(groups) && noGroupsMessage,
-          div({ style: { flexGrow: 1 } }, [
-            _.flow(
-              _.filter(({ groupName }) => Utils.textMatch(filter, groupName)),
-              _.map(group => {
-                return h(GroupCard, {
-                  group, key: `${group.groupName}`,
-                  onDelete: () => this.setState({ deletingGroup: group })
-                })
-              })
-            )(groups)
-          ]),
+          Utils.cond(
+            [groups && _.isEmpty(groups), () => noGroupsMessage],
+            [!_.isEmpty(groups) && _.isEmpty(filteredGroups), () => {
+              return div({ style: { fontStyle: 'italic' } }, ['No matching groups'])
+            }],
+            () => {
+              return div({ style: { flexGrow: 1 } }, [
+                _.map(group => {
+                  return h(GroupCard, {
+                    group, key: `${group.groupName}`,
+                    onDelete: () => this.setState({ deletingGroup: group })
+                  })
+                }, filteredGroups)
+              ])
+            }
+          ),
           !isDataLoaded && spinnerOverlay
         ]),
         creatingNewGroup && h(NewGroupModal, {

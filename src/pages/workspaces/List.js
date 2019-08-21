@@ -278,7 +278,7 @@ export const WorkspaceList = _.flow(
       ])
     ])
 
-    const data = _.flow(
+    const filteredWorkspaces = _.flow(
       _.filter(ws => {
         const { workspace: { namespace, name } } = ws
         return Utils.textMatch(filter, `${namespace}/${name}`) &&
@@ -299,7 +299,7 @@ export const WorkspaceList = _.flow(
         onRequestAccess: () => this.setState({ requestingAccessWorkspaceId: workspace.workspace.workspaceId }),
         workspace, key: workspace.workspace.workspaceId
       })
-    }, data)
+    }, filteredWorkspaces)
     return h(Fragment, [
       h(TopBar, { title: 'Workspaces' }, [
         h(DelayedSearchInput, {
@@ -381,10 +381,14 @@ export const WorkspaceList = _.flow(
           h(NewWorkspaceCard, {
             onClick: () => this.setState({ creatingNewWorkspace: true })
           }),
-          listView ?
-            div({ style: { flex: 1, minWidth: 0 } }, [
-              renderedWorkspaces
-            ]) : renderedWorkspaces
+          Utils.cond(
+            [workspaces && _.isEmpty(initialFiltered), () => noWorkspacesMessage],
+            [!_.isEmpty(initialFiltered) && _.isEmpty(filteredWorkspaces), () => {
+              return div({ style: { fontStyle: 'italic' } }, ['No matching workspaces'])
+            }],
+            [listView, () => div({ style: { flex: 1, minWidth: 0 } }, [renderedWorkspaces])],
+            () => renderedWorkspaces
+          )
         ]),
         creatingNewWorkspace && h(NewWorkspaceModal, {
           onDismiss: () => this.setState({ creatingNewWorkspace: false }),

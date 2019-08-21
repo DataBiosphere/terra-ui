@@ -170,6 +170,7 @@ const JobHistory = _.flow(
           ({ width, height }) => h(FlexTable, {
             width, height, rowCount: filteredSubmissions.length,
             hoverHighlight: true,
+            noContentMessage: 'No matching jobs',
             columns: [
               {
                 size: { basis: 500, grow: 0 },
