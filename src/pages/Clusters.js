@@ -64,7 +64,7 @@ const Clusters = () => {
   const clustersByProject = _.groupBy('googleProject', clusters)
 
   return h(Fragment, [
-    h(TopBar, { title: 'Notebook Runtimes', href: Nav.getLink('clusters') }), // FIXME: what about this one?
+    h(TopBar, { title: 'Notebook Runtimes', href: Nav.getLink('clusters') }),
     div({ role: 'main', style: { padding: '1rem', flex: 1, display: 'flex', flexDirection: 'column' } }, [
       div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase', marginBottom: '1rem' } }, ['Your notebook runtimes']),
       div({ style: { flex: 1 } }, [
@@ -157,7 +157,6 @@ const Clusters = () => {
   ])
 }
 
-// FIXME: do I want to change these?
 export const navPaths = [
   {
     name: 'clusters',

@@ -261,7 +261,7 @@ export class NewClusterModal extends PureComponent {
                 numberOfWorkers: v ? 2 : 0,
                 numberOfPreemptibleWorkers: 0
               })
-            }, ' Configure as Spark notebook runtime')
+            }, ' Configure as Spark cluster')
           ])
         ]),
         !!numberOfWorkers && h(Fragment, [
