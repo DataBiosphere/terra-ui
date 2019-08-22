@@ -1,6 +1,5 @@
 import { isAfter } from 'date-fns'
 import _ from 'lodash/fp'
-import * as qs from 'qs'
 import { Component, Fragment, useState } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import { pure } from 'recompose'
@@ -20,6 +19,7 @@ import { Ajax, ajaxCaller, useCancellation } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
+import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import DeleteWorkspaceModal from 'src/pages/workspaces/workspace/DeleteWorkspaceModal'
@@ -416,11 +416,8 @@ export const WorkspaceList = _.flow(
   componentDidUpdate() {
     const { queryParams } = this.props
     const { filter, accessLevelsFilter, projectsFilter, includePublic, tagsFilter, submissionsFilter } = this.state
-    // Note: setting undefined so that falsy values don't show up at all
-    const newSearch = qs.stringify({ ...queryParams, filter: filter || undefined, accessLevelsFilter, projectsFilter, includePublic: includePublic || undefined, tagsFilter, submissionsFilter }, { addQueryPrefix: true })
-    if (newSearch !== Nav.history.location.search) {
-      Nav.history.replace({ search: newSearch })
-    }
+
+    StateHistory.setSearch({ ...queryParams, filter, accessLevelsFilter, projectsFilter, includePublic, tagsFilter, submissionsFilter })
   }
 })
 

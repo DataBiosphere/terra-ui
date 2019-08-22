@@ -16,7 +16,7 @@ import * as StateHistory from 'src/libs/state-history'
 import * as Utils from 'src/libs/utils'
 
 
-const filterState = state => _.pick(['pageNumber', 'itemsPerPage', 'sort', 'activeTextFilter'], state)
+const filterState = state => _.pick(['pageNumber', 'itemsPerPage', 'sort', 'filterTerms'], state)
 
 const entityMap = entities => {
   return _.fromPairs(_.map(e => [e.name, e], entities))
@@ -33,6 +33,12 @@ const applyColumnSettings = (columnSettings, columns) => {
     _.sortBy('index'),
     _.map(_.omit('index'))
   )(columns)
+}
+
+const TABLE_DEFAULTS = {
+  itemsPerPage: 25,
+  pageNumber: 1,
+  sort: { field: 'name', direction: 'asc' }
 }
 
 
@@ -54,9 +60,9 @@ export default ajaxCaller(class DataTable extends Component {
 
     const {
       entities,
-      filteredCount = 0, totalRowCount = 0, itemsPerPage = 25, pageNumber = 1,
-      sort = { field: 'name', direction: 'asc' },
-      activeTextFilter = '',
+      filteredCount = 0, totalRowCount = 0,
+      itemsPerPage = TABLE_DEFAULTS.itemsPerPage, pageNumber = TABLE_DEFAULTS.pageNumber, sort = TABLE_DEFAULTS.sort,
+      filterTerms = '',
       columnWidths = {}, columnState = columnDefaultState
     } = props.firstRender ? StateHistory.get() : {}
 
@@ -64,7 +70,7 @@ export default ajaxCaller(class DataTable extends Component {
     this.state = {
       loading: false,
       viewData: undefined,
-      entities, filteredCount, totalRowCount, itemsPerPage, pageNumber, sort, activeTextFilter, columnWidths, columnState
+      entities, filteredCount, totalRowCount, itemsPerPage, pageNumber, sort, filterTerms, columnWidths, columnState
     }
   }
 
@@ -76,7 +82,7 @@ export default ajaxCaller(class DataTable extends Component {
       childrenBefore
     } = this.props
 
-    const { loading, entities, filteredCount, totalRowCount, itemsPerPage, pageNumber, sort, columnWidths, columnState, viewData, activeTextFilter } = this.state
+    const { loading, entities, filteredCount, totalRowCount, itemsPerPage, pageNumber, sort, columnWidths, columnState, viewData, filterTerms } = this.state
 
     const theseColumnWidths = columnWidths || {}
     const columnSettings = applyColumnSettings(columnState || [], entityMetadata[entityType].attributeNames)
@@ -93,8 +99,8 @@ export default ajaxCaller(class DataTable extends Component {
             h(ConfirmedSearchInput, {
               'aria-label': 'Search',
               placeholder: 'Search',
-              onChange: v => this.setState({ activeTextFilter: v, pageNumber: 1 }),
-              defaultValue: activeTextFilter
+              onChange: v => this.setState({ filterTerms: v, pageNumber: 1 }),
+              defaultValue: filterTerms
             })
           ])
         ]),
@@ -241,8 +247,12 @@ export default ajaxCaller(class DataTable extends Component {
       this.loadData()
     }
     if (this.props.persist) {
-      StateHistory.update(
-        _.pick(['itemsPerPage', 'pageNumber', 'sort', 'activeTextFilter', 'columnWidths', 'columnState'], this.state))
+      const searchParams = _.reduce((acc, key) => {
+        return _.set(key, _.isEqual(this.state[key], TABLE_DEFAULTS[key]) ? undefined : this.state[key], acc)
+      }, {}, ['itemsPerPage', 'pageNumber', 'sort', 'filterTerms'])
+
+      StateHistory.setSearch({ ...this.props.queryParams, ...searchParams })
+      StateHistory.update(_.pick(['columnWidths', 'columnState'], this.state), true)
     }
   }
 
@@ -252,13 +262,13 @@ export default ajaxCaller(class DataTable extends Component {
       ajax: { Workspaces }
     } = this.props
 
-    const { pageNumber, itemsPerPage, sort, activeTextFilter } = this.state
+    const { pageNumber, itemsPerPage, sort, filterTerms } = this.state
 
     try {
       this.setState({ loading: true })
       const { results, resultMetadata: { filteredCount, unfilteredCount } } = await Workspaces.workspace(namespace, name)
         .paginatedEntitiesOfType(entityType, {
-          page: pageNumber, pageSize: itemsPerPage, sortField: sort.field, sortDirection: sort.direction, filterTerms: activeTextFilter
+          page: pageNumber, pageSize: itemsPerPage, sortField: sort.field, sortDirection: sort.direction, filterTerms
         })
       this.setState({ entities: results, filteredCount, totalRowCount: unfilteredCount })
     } catch (error) {

@@ -594,7 +594,7 @@ class EntitiesContent extends Component {
   render() {
     const {
       workspace, workspace: { workspace: { namespace, name, attributes: { 'workspace-column-defaults': columnDefaults } }, workspaceSubmissionStats: { runningSubmissionsCount } },
-      entityKey, entityMetadata, loadMetadata, firstRender
+      entityKey, entityMetadata, loadMetadata, firstRender, queryParams
     } = this.props
     const { selectedEntities, deletingEntities, copyingEntities, refreshKey, showToolSelector, igvData: { selectedFiles, refGenome } } = this.state
 
@@ -605,7 +605,7 @@ class EntitiesContent extends Component {
       h(Fragment, [
         h(DataTable, {
           persist: true, firstRender, refreshKey,
-          entityType: entityKey, entityMetadata, columnDefaults, workspaceId: { namespace, name },
+          entityType: entityKey, entityMetadata, columnDefaults, workspaceId: { namespace, name }, queryParams,
           onScroll: saveScroll, initialX, initialY,
           selectionModel: {
             type: 'multiple',
@@ -829,11 +829,11 @@ const WorkspaceData = _.flow(
 )(class WorkspaceData extends Component {
   constructor(props) {
     super(props)
-    const { selectedDataType, entityMetadata } = StateHistory.get()
+    const { entityMetadata } = StateHistory.get()
     this.state = {
       firstRender: true,
       refreshKey: 0,
-      selectedDataType,
+      selectedDataType: undefined,
       entityMetadata,
       importingReference: false,
       deletingReference: undefined
@@ -841,11 +841,10 @@ const WorkspaceData = _.flow(
   }
 
   loadMetadata = withErrorReporting('Error loading workspace entity data', async () => {
-    const { namespace, name, ajax: { Workspaces } } = this.props
-    const { selectedDataType } = this.state
+    const { namespace, name, ajax: { Workspaces }, queryParams: { selectedDataType } } = this.props
     const entityMetadata = await Workspaces.workspace(namespace, name).entityMetadata()
     this.setState({
-      selectedDataType: this.selectionType() === 'entities' && !entityMetadata[selectedDataType] ? undefined : selectedDataType,
+      selectedDataType: (this.selectionType(selectedDataType) === 'entities' && !entityMetadata[selectedDataType]) ? undefined : selectedDataType,
       entityMetadata
     })
   })
@@ -859,12 +858,11 @@ const WorkspaceData = _.flow(
     this.setState(({ refreshKey }) => ({ refreshKey: refreshKey + 1 }))
   }
 
-  selectionType() {
+  selectionType(selectedDataType) {
     const { workspace: { workspace: { attributes } } } = this.props
-    const { selectedDataType } = this.state
     const referenceData = getReferenceData(attributes)
     return Utils.cond(
-      [!selectedDataType, () => 'none'],
+      [!selectedDataType, () => undefined],
       [selectedDataType === localVariables, () => 'localVariables'],
       [selectedDataType === bucketObjects, () => 'bucketObjects'],
       [_.includes(selectedDataType, _.keys(referenceData)), () => 'referenceData'],
@@ -873,7 +871,7 @@ const WorkspaceData = _.flow(
   }
 
   render() {
-    const { namespace, name, workspace, workspace: { workspace: { attributes } }, refreshWorkspace } = this.props
+    const { namespace, name, workspace, workspace: { workspace: { attributes } }, refreshWorkspace, queryParams } = this.props
     const { selectedDataType, entityMetadata, importingReference, deletingReference, firstRender, refreshKey, uploadingFile } = this.state
     const referenceData = getReferenceData(attributes)
 
@@ -969,8 +967,7 @@ const WorkspaceData = _.flow(
           }, ['Files'])
         ]),
         div({ style: styles.tableViewPanel }, [
-          Utils.switchCase(this.selectionType(),
-            ['none', () => div({ style: { textAlign: 'center' } }, ['Select a data type'])],
+          Utils.switchCase(this.selectionType(selectedDataType),
             ['localVariables', () => h(LocalVariablesContent, {
               workspace,
               refreshWorkspace,
@@ -992,8 +989,9 @@ const WorkspaceData = _.flow(
               entityMetadata,
               entityKey: selectedDataType,
               loadMetadata: () => this.loadMetadata(),
-              firstRender, refreshKey
-            })]
+              firstRender, refreshKey, queryParams
+            })],
+            [Utils.DEFAULT, () => div({ style: { textAlign: 'center' } }, ['Select a data type'])]
           )
         ])
       ])
@@ -1001,7 +999,8 @@ const WorkspaceData = _.flow(
   }
 
   componentDidUpdate() {
-    StateHistory.update(_.pick(['entityMetadata', 'selectedDataType'], this.state))
+    StateHistory.update(_.pick(['entityMetadata'], this.state))
+    StateHistory.setSearch({ ...this.props.queryParams, ..._.pick(['selectedDataType'], this.state) })
   }
 })
 
