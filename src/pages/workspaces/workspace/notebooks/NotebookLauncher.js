@@ -142,7 +142,7 @@ const JupyterFrameManager = ({ onClose, frameRef }) => {
 }
 
 const NotebookEditorFrame = ({ notebookName, workspace: { workspace: { namespace, name, bucketName } }, cluster: { clusterName, clusterUrl, status } }) => {
-  console.assert(status === 'Running', 'Expected cluster to be running')
+  console.assert(status === 'Running', 'Expected notebook runtime to be running')
   const signal = useCancellation()
   const frameRef = useRef()
   const [busy, setBusy] = useState(false)
@@ -199,7 +199,7 @@ const NotebookEditor = ({ notebookName, workspace, workspace: { workspace: { nam
   const getCluster = Utils.useGetter(cluster)
   const startClusterOnce = _.flow(
     Utils.withBusyState(setStartingCluster),
-    withErrorReporting('Error starting cluster')
+    withErrorReporting('Error starting notebook runtime')
   )(async () => {
     while (!signal.aborted) {
       const currentCluster = getCluster()
@@ -246,7 +246,7 @@ const NotebookEditor = ({ notebookName, workspace, workspace: { workspace: { nam
     createOpen && h(NewClusterModal, {
       namespace, currentCluster: cluster,
       onCancel: () => setCreateOpen(false),
-      onSuccess: withErrorReporting('Error creating cluster', async promise => {
+      onSuccess: withErrorReporting('Error creating notebook runtime', async promise => {
         setCreateOpen(false)
         await promise
         await refreshClusters()

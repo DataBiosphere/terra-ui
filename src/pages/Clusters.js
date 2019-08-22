@@ -38,7 +38,7 @@ const Clusters = () => {
       setDeleteClusterId(undefined)
     }
   })
-  const loadClusters = withErrorReporting('Error loading clusters', refreshClusters)
+  const loadClusters = withErrorReporting('Error loading notebook runtimes', refreshClusters)
   const loadClustersSilently = withErrorIgnoring(refreshClusters)
   const pollClusters = async () => {
     while (true) {
