@@ -568,8 +568,12 @@ const WorkflowView = _.flow(
         boxShadow: '0 2px 5px 0 rgba(0,0,0,0.26), 0 2px 10px 0 rgba(0,0,0,0.16)'
       }
     }, [
-      div({ style: { display: 'flex', padding: `1.5rem ${sideMargin} 0`, minHeight: 120 } }, [
+      div({ style: { display: 'flex', padding: `0.5rem ${sideMargin} 0`, minHeight: 120 } }, [
         div({ style: { flex: '1', lineHeight: '1.5rem', minWidth: 0 } }, [
+          h(Link, {
+            href: Nav.getLink('workspace-workflows', { namespace, name: workspaceName }),
+            style: { display: 'inline-flex', alignItems: 'center', padding: '0.5rem 0' }
+          }, [icon('arrowLeft', { style: { marginRight: '0.5rem' } }), 'Back to list']),
           div({ style: { display: 'flex' } }, [
             span({ style: { marginLeft: '-2rem', width: '2rem' } }, [
               h(PopupTrigger, {
