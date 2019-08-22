@@ -53,21 +53,19 @@ export const IGVBrowser = ({ selectedFiles, refGenome, namespace, onDismiss }) =
   })
 
 
-  return (
-    h(Fragment, [
-      h(Link, {
-        onClick: onDismiss,
-        style: { alignSelf: 'flex-start', padding: '6.5px 8px' }
-      }, [icon('arrowLeft', { style: { marginRight: '0.5rem' } }), 'Back to data table']),
-      loadingIgv && centeredSpinner(),
-      div({
-        ref: containerRef,
-        style: {
-          padding: '10px 0',
-          margin: 8,
-          border: `1px solid ${colors.dark(0.25)}`
-        }
-      })
-    ])
-  )
+  return h(Fragment, [
+    h(Link, {
+      onClick: onDismiss,
+      style: { alignSelf: 'flex-start', display: 'flex', alignItems: 'center', padding: '6.5px 8px' }
+    }, [icon('arrowLeft', { style: { marginRight: '0.5rem' } }), 'Back to data table']),
+    loadingIgv && centeredSpinner(),
+    div({
+      ref: containerRef,
+      style: {
+        padding: '10px 0',
+        margin: 8,
+        border: `1px solid ${colors.dark(0.25)}`
+      }
+    })
+  ])
 }

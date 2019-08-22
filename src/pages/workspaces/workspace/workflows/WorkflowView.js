@@ -570,9 +570,9 @@ const WorkflowView = _.flow(
     }, [
       div({ style: { display: 'flex', padding: `0.5rem ${sideMargin} 0`, minHeight: 120 } }, [
         div({ style: { flex: '1', lineHeight: '1.5rem', minWidth: 0 } }, [
-          h(ButtonSecondary, {
+          h(Link, {
             href: Nav.getLink('workspace-workflows', { namespace, name: workspaceName }),
-            style: { alignSelf: 'flex-start' }
+            style: { display: 'inline-flex', alignItems: 'center', padding: '0.5rem 0' }
           }, [icon('arrowLeft', { style: { marginRight: '0.5rem' } }), 'Back to list']),
           div({ style: { display: 'flex' } }, [
             span({ style: { marginLeft: '-2rem', width: '2rem' } }, [

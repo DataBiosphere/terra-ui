@@ -3,7 +3,7 @@ import { forwardRef, Fragment, useEffect, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { ButtonSecondary, Link, Select } from 'src/components/common'
+import { Link, Select } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { DelayedSearchInput } from 'src/components/input'
 import { collapseStatus, failedIcon, runningIcon, statusIcon, submittedIcon, successIcon } from 'src/components/job-common'
@@ -129,9 +129,9 @@ const SubmissionDetails = _.flow(
    * Page render
    */
   return div({ style: { padding: '1rem 2rem 2rem', flex: 1, display: 'flex', flexDirection: 'column' } }, [
-    h(ButtonSecondary, {
+    h(Link, {
       href: Nav.getLink('workspace-job-history', { namespace, name }),
-      style: { alignSelf: 'flex-start' }
+      style: { alignSelf: 'flex-start', display: 'flex', alignItems: 'center', padding: '0.5rem 0' }
     }, [icon('arrowLeft', { style: { marginRight: '0.5rem' } }), 'Back to list']),
     _.isEmpty(submission) ? centeredSpinner() : h(Fragment, [
       div({ style: { display: 'flex' } }, [
