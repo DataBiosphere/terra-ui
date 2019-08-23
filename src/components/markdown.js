@@ -30,9 +30,5 @@ export const newWindowLinkRenderer = (href, title, text) => {
 export const MarkdownEditor = props => {
   const SimpleMDE = lazy(() => import('react-simplemde-editor'))
 
-  return h(Suspense, {
-    fallback: centeredSpinner()
-  }, [
-    h(SimpleMDE, props)
-  ])
+  return h(Suspense, { fallback: centeredSpinner() }, [h(SimpleMDE, props)])
 }
