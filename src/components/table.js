@@ -170,6 +170,7 @@ export class FlexTable extends Component {
     initialY: PropTypes.number,
     rowCount: PropTypes.number.isRequired,
     styleRow: PropTypes.func,
+    noContentMessage: PropTypes.node,
     columns: PropTypes.arrayOf(PropTypes.shape({
       headerRenderer: PropTypes.func.isRequired,
       cellRenderer: PropTypes.func.isRequired,
@@ -190,7 +191,8 @@ export class FlexTable extends Component {
     styleRow: () => ({}),
     columns: [],
     hoverHighlight: false,
-    onScroll: _.noop
+    onScroll: _.noop,
+    noContentMessage: null
   }
 
   constructor(props) {
@@ -205,7 +207,7 @@ export class FlexTable extends Component {
   }
 
   render() {
-    const { width, height, rowCount, styleRow, columns, hoverHighlight, onScroll } = this.props
+    const { width, height, rowCount, styleRow, columns, hoverHighlight, onScroll, noContentMessage } = this.props
     const { scrollbarSize } = this.state
 
     return div([
@@ -251,7 +253,8 @@ export class FlexTable extends Component {
           ])
         },
         style: { outline: 'none' },
-        onScroll: ({ scrollTop }) => onScroll(scrollTop)
+        onScroll: ({ scrollTop }) => onScroll(scrollTop),
+        noContentRenderer: () => div({ style: { marginTop: '1rem', textAlign: 'center', fontStyle: 'italic' } }, [noContentMessage])
       })
     ])
   }
