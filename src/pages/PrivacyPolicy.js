@@ -1,5 +1,5 @@
 import { div, h } from 'react-hyperscript-helpers'
-import { Markdown, newWindowLinkRenderer } from 'src/components/Markdown'
+import { MarkdownViewer, newWindowLinkRenderer } from 'src/components/markdown'
 
 
 const privacyPolicy = `
@@ -98,7 +98,7 @@ We follow the laws of all the countries where we operate. We follow the laws of 
 
 const PrivacyPolicy = () => {
   return div({ role: 'main', style: { padding: '1rem' } }, [
-    h(Markdown, {
+    h(MarkdownViewer, {
       renderers: {
         link: newWindowLinkRenderer
       }
