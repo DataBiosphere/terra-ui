@@ -2,11 +2,11 @@ import * as clipboard from 'clipboard-polyfill'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { forwardRef, Fragment, useRef, useState } from 'react'
-import { div, h, iframe, span } from 'react-hyperscript-helpers'
+import { div, h, iframe, p, span } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
 import { NewClusterModal } from 'src/components/ClusterManager'
-import { ButtonPrimary, ButtonSecondary, Clickable, LabeledCheckbox, Link, MenuButton } from 'src/components/common'
+import { ButtonPrimary, ButtonSecondary, Clickable, LabeledCheckbox, MenuButton } from 'src/components/common'
 import { icon, spinner } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import { NotebookDuplicator } from 'src/components/notebook-utils'
@@ -74,60 +74,49 @@ const NotebookLauncher = _.flow(
     ])
   })
 
-const FileInUseModal = ({ onDismiss, onCopy, playgroundActions, namespace, name }) => {
+const digestMessage = async message => {
+  const msgUint8 = new TextEncoder().encode(message)
+  const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8)
+  const hashArray = Array.from(new Uint8Array(hashBuffer))
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
+}
+
+const FileInUseModal = ({ onDismiss, onCopy, playgroundActions, namespace, name, bucketName, lockedBy, canShare }) => {
   const signal = useCancellation()
-  // Utils.useOnMount(() => {
-  //   const { workspace: { workspace: { namespace, name } }, onDismiss, ajax: { Workspaces, Groups } } = this.props
-  //
-  //   try {
-  //     const [{ acl }, shareSuggestions, groups] = await Promise.all([
-  //       Workspaces.workspace(namespace, name).getAcl(),
-  //       Workspaces.getShareLog(),
-  //       Groups.list()
-  //     ])
-  //
-  //     const fixedAcl = _.flow(
-  //       _.toPairs,
-  //       _.map(([email, data]) => ({ email, ...data })),
-  //       _.sortBy(x => -Utils.workspaceAccessLevels.indexOf(x.accessLevel))
-  //     )(acl)
-  //
-  //     this.setState({
-  //       acl: fixedAcl,
-  //       originalAcl: fixedAcl,
-  //       groups,
-  //       shareSuggestions,
-  //       loaded: true
-  //     })
-  //   } catch (error) {
-  //     onDismiss()
-  //     reportError('Error looking up collaborators', error)
-  //   }
-  // })
+  const [lockedByEmail, setLockedByEmail] = useState(null)
 
-   Utils.useOnMount(async () => {
-    const { acl } = withErrorReporting('Error finding', async () => {
-      await Ajax(signal).Workspaces.workspace(namespace, name).getAcl()
-    })
-    const fixedAcl = _.flow(
-      _.toPairs,
-      _.map(([email, data]) => ({ email, ...data })),
-      _.sortBy(x => -Utils.workspaceAccessLevels.indexOf(x.accessLevel))
-    )(acl)
+  Utils.useOnMount(() => {
+    const findLockedByEmail = async () => {
+      const { acl } = await Ajax(signal).Workspaces.workspace(namespace, name).getAcl()
+      const potentialLockers = _.flow(
+        _.toPairs,
+        _.map(([email, data]) => ({ email, ...data })),
+        _.filter(({ accessLevel }) => _.includes(accessLevel, ['OWNER', 'PROJECT_OWNER', 'WRITER'])),
+      )(acl)
 
-    console.log(fixedAcl)
+      const currentLocker = _.find(
+        _.identity,
+        await Promise.all(_.map(async ({ email }) => {
+          const hashedPotentialLocker = await digestMessage(`${bucketName}:${email}`)
+          return (hashedPotentialLocker === lockedBy) && email
+        }, potentialLockers))
+      )
+      setLockedByEmail(currentLocker || null)
+    }
+    if (canShare) {
+      findLockedByEmail()
+    }
   })
 
   return h(Modal, {
     width: 530,
-    title: 'File Is In Use',
+    title: 'Notebook Is In Use',
     onDismiss,
     showButtons: false
   }, [
-    `File is currently in use.`,
-    div({ style: { flexGrow: 1 } }),
-    'You can make a copy, or run it in Playground Mode to explore and execute its contents without saving any changes.',
-    div({}, [
+    p(lockedByEmail ? `This notebook is currently being edited by ${lockedByEmail}.` : `This notebook is currently locked because another user is editing it.`),
+    p('You can make a copy, or run it in Playground Mode to explore and execute its contents without saving any changes.'),
+    div({ style: { marginTop: '2rem' } }, [
       h(ButtonSecondary, {
         style: { paddingRight: '1rem', paddingLeft: '1rem' },
         onClick: () => onDismiss()
@@ -169,7 +158,7 @@ const PlaygroundModal = ({ onDismiss, playgroundActions }) => {
 }
 
 
-const PreviewHeader = ({ cluster, readOnlyAccess, refreshClusters, notebookName, workspace, workspace: { workspace: { namespace, name, bucketName } } }) => {
+const PreviewHeader = ({ cluster, readOnlyAccess, refreshClusters, notebookName, workspace, workspace: { canShare, workspace: { namespace, name, bucketName } } }) => {
   const signal = useCancellation()
   const { profile: { email } } = Utils.useAtom(authStore)
   const hidePlaygroundModal = localStorage.getItem('hidePlaygroundModal')
@@ -177,31 +166,20 @@ const PreviewHeader = ({ cluster, readOnlyAccess, refreshClusters, notebookName,
   const [fileInUseOpen, setFileInUseOpen] = useState(false)
   const [playgroundModalOpen, setPlaygroundModalOpen] = useState(false)
   const [locked, setLocked] = useState(false)
+  const [lockedBy, setLockedBy] = useState(null)
   const [exportingNotebookName, setExportingNotebookName] = useState()
   const [copyingNotebookName, setCopyingNotebookName] = useState()
   const clusterStatus = cluster && cluster.status
   const notebookLink = Nav.getLink('workspace-notebook-launch', { namespace, name, notebookName })
 
-  const hexString = buffer => {
-    const byteArray = new Uint8Array(buffer)
-    return [...byteArray].map(value => value.toString(16).padStart(2, '0')).join('')
-  }
-
-  const digestMessage = message => {
-    const encoder = new TextEncoder()
-    const data = encoder.encode(message)
-    return window.crypto.subtle.digest('SHA-256', data)
-  }
-
   const checkIfLocked = withErrorReporting('Error checking notebook lock status', async () => {
     const { metadata: { lastLockedBy, lockExpiresAt } } = await Ajax(signal).Buckets.notebook(namespace, bucketName, notebookName.slice(0, -6)).getObject()
-    const hashedUser = await digestMessage(`${bucketName}:${email}`).then(digestValue => {
-      return hexString(digestValue)
-    })
+    const hashedUser = await digestMessage(`${bucketName}:${email}`)
     const lockExpirationDate = new Date(parseInt(lockExpiresAt))
 
-    if (lastLockedBy && lastLockedBy !== hashedUser && lockExpirationDate > Date.now()) {
+    if (lastLockedBy && (lastLockedBy !== hashedUser) && (lockExpirationDate > Date.now())) {
       setLocked(true)
+      setLockedBy(lastLockedBy)
     }
   })
 
@@ -286,17 +264,20 @@ const PreviewHeader = ({ cluster, readOnlyAccess, refreshClusters, notebookName,
               ]),
               side: 'bottom'
             }, [
-              h(Clickable, {}, [icon('ellipsis-v', {})])
+              h(Clickable, { 'aria-label': 'Notebook options' }, [icon('ellipsis-v', {})])
             ])
           ])
         ])
       ]
     ),
     div({ style: { flexGrow: 1 } }),
-    Link({
-      style: { marginRight: '2rem' },
-      href: Nav.getLink('workspace-notebooks', { namespace, name })
-    }, [icon('times', { size: 30 })]),
+    div({ style: { position: 'relative' } }, [
+      h(Clickable, {
+        'aria-label': 'Exit preview mode',
+        style: { opacity: 0.65, marginRight: '1.5rem' },
+        hover: { opacity: 1 }, focus: 'hover'
+      }, [icon('times-circle', { size: 30 })])
+    ]),
     createOpen && h(NewClusterModal, {
       namespace, currentCluster: cluster,
       onCancel: () => setCreateOpen(false),
@@ -307,7 +288,7 @@ const PreviewHeader = ({ cluster, readOnlyAccess, refreshClusters, notebookName,
       })
     }),
     fileInUseOpen && h(FileInUseModal, {
-      namespace, name,
+      namespace, name, lockedBy, canShare, bucketName,
       onDismiss: () => setFileInUseOpen(false),
       onCopy: () => setCopyingNotebookName(notebookName),
       playgroundActions: () => clusterActions('playground', clusterStatus)
@@ -351,12 +332,6 @@ const NotebookPreviewFrame = ({ notebookName, workspace: { workspace: { namespac
 
   return h(Fragment, [
     preview && h(Fragment, [
-      div({ style: { position: 'relative' } }, [
-        h(ButtonPrimary, {
-          style: { position: 'absolute', top: 20, left: 'calc(50% + 580px)' },
-          onClick: () => Nav.goToPath('workspace-notebooks', { namespace, name })
-        }, ['Close'])
-      ]),
       iframe({
         ref: frame,
         onLoad: () => {
@@ -427,7 +402,6 @@ const NotebookEditorFrame = ({ mode, notebookName, workspace: { workspace: { nam
     withErrorReporting('Error setting up notebook')
   )(async () => {
     if (mode === 'Edit') {
-      console.log('Setting up notebook to edit')
       await Promise.all([
         Ajax(signal).Jupyter.notebooks(namespace, clusterName).storageLinks(localBaseDirectory, localSafeModeBaseDirectory, cloudStorageDirectory, `.*\\.ipynb`),
         Ajax(signal).Jupyter.notebooks(namespace, clusterName).lock(`${localBaseDirectory}/${notebookName}`),
@@ -438,7 +412,6 @@ const NotebookEditorFrame = ({ mode, notebookName, workspace: { workspace: { nam
         Ajax(signal).Jupyter.notebooks(namespace, clusterName).setCookie()
       ])
     } else {
-      console.log('Setting up notebook for playground mode')
       await Promise.all([
         Ajax(signal).Jupyter.notebooks(namespace, clusterName).storageLinks(localBaseDirectory, localSafeModeBaseDirectory, cloudStorageDirectory, `.*\\.ipynb`),
         Ajax(signal).Jupyter.notebooks(namespace, clusterName).localize([{
@@ -467,7 +440,7 @@ const NotebookEditorFrame = ({ mode, notebookName, workspace: { workspace: { nam
   return h(Fragment, [
     notebookSetUp && h(Fragment, [
       iframe({
-        src: `${clusterUrl}/notebooks/${name}/edit/${notebookName}`,
+        src: mode === 'Edit' ? `${clusterUrl}/notebooks/${localBaseDirectory}/${notebookName}`: `${clusterUrl}/notebooks/${localSafeModeBaseDirectory}/${notebookName}`,
         style: { border: 'none', flex: 1 },
         ref: frameRef
       }),

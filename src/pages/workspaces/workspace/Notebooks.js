@@ -13,7 +13,7 @@ import { NotebookCreator, NotebookDeleter, NotebookDuplicator } from 'src/compon
 import { notify } from 'src/components/Notifications'
 import PopupTrigger from 'src/components/PopupTrigger'
 import TooltipTrigger from 'src/components/TooltipTrigger'
-import { Ajax, ajaxCaller } from 'src/libs/ajax'
+import { Ajax, ajaxCaller, useCancellation } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError, withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
@@ -69,31 +69,40 @@ const noNotebooksMessage = div({ style: { fontSize: 20 } }, [
 ])
 
 const NotebookCard = Utils.connectAtom(authStore, 'authState')(
-  ({ namespace, name, updated, metadata, listView, wsName, onRename, onCopy, onDelete, onExport, canWrite, bucketName, authState: { profile: { email } } }) => {
+  ({ namespace, name, updated, metadata, listView, wsName, onRename, onCopy, onDelete, onExport, canWrite, canShare, bucketName, authState: { profile: { email } } }) => {
     const [locked, setLocked] = useState(false)
+    const [lockedByEmail, setLockedByEmail] = useState(null)
+    const signal = useCancellation()
 
     const checkIfLocked = async () => {
       const { lockExpiresAt, lastLockedBy } = metadata || {}
-      const hexString = buffer => {
-        const byteArray = new Uint8Array(buffer)
-        return [...byteArray].map(value => value.toString(16).padStart(2, '0')).join('')
+
+      const digestMessage = async message => {
+        const msgUint8 = new TextEncoder().encode(message)
+        const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8)
+        const hashArray = Array.from(new Uint8Array(hashBuffer))
+        return hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
       }
-      const digestMessage = message => {
-        const encoder = new TextEncoder()
-        const data = encoder.encode(message)
-        return window.crypto.subtle.digest('SHA-256', data)
-      }
-      const hashedUser = await digestMessage(`${bucketName}:${email}`).then(digestValue => {
-        return hexString(digestValue)
-      })
-      console.log(name)
-      console.log(bucketName)
-      console.log(email)
-      console.log(hashedUser)
-      console.log(lastLockedBy)
+      const hashedUser = await digestMessage(`${bucketName}:${email}`)
       const lockExpirationDate = new Date(parseInt(lockExpiresAt))
       if (lastLockedBy && lastLockedBy !== hashedUser && lockExpirationDate > Date.now()) {
         setLocked(true)
+        if (canShare) {
+          const { acl } = await Ajax(signal).Workspaces.workspace(namespace, wsName).getAcl()
+          const potentialLockers = _.flow(
+            _.toPairs,
+            _.map(([email, data]) => ({ email, ...data })),
+            _.filter(({ accessLevel }) => _.includes(accessLevel, ['OWNER', 'PROJECT_OWNER', 'WRITER'])),
+          )(acl)
+          const currentLocker = _.find(
+            _.identity,
+            await Promise.all(_.map(async ({ email }) => {
+              const hashedPotentialLocker = await digestMessage(`${bucketName}:${email}`)
+              return (hashedPotentialLocker === lastLockedBy) && email
+            }, potentialLockers))
+          )
+          setLockedByEmail(currentLocker || null)
+        }
       }
     }
 
@@ -189,7 +198,7 @@ const NotebookCard = Utils.connectAtom(authStore, 'authState')(
       notebookMenu,
       title,
       div({ style: { flexGrow: 1 } }),
-      locked ? div({ style: { display: 'flex', marginRight: '2rem', color: colors.dark(0.75) } }, [icon('lock')]) : undefined,
+      locked ? h(Clickable, { style: { display: 'flex', paddingRight: '1rem', color: colors.dark(0.75) }, tooltip: `This notebook is currently being edited by ${lockedByEmail || 'another user'}` }, [icon('lock')]) : undefined,
       isRecent ? div({ style: { display: 'flex', color: colors.warning(), marginRight: '2rem' } }, 'Recently Edited') : undefined,
       h(TooltipTrigger, { content: Utils.makeCompleteDate(updated) }, [
         div({ style: { fontSize: '0.8rem', marginRight: '0.5rem' } },
@@ -199,7 +208,7 @@ const NotebookCard = Utils.connectAtom(authStore, 'authState')(
       div({ style: { display: 'flex' } }, [
         title,
         div({ style: { flexGrow: 1 } }),
-        locked ? div({ style: { display: 'flex', padding: '1rem', color: colors.dark(0.75) } }, [icon('lock')]) : undefined
+        locked ? h(Clickable, { style: { display: 'flex', padding: '1rem', color: colors.dark(0.75) }, tooltip: `This notebook is currently being edited by ${lockedByEmail || 'another user'}` }, [icon('lock')]) : undefined
       ]),
       div({
         style: {
@@ -297,14 +306,14 @@ const Notebooks = _.flow(
     const { notebooks, sortOrder: { field, direction } } = this.state
     const {
       name: wsName, namespace, listView,
-      workspace: { accessLevel, workspace: { bucketName } }
+      workspace: { canShare, accessLevel, workspace: { bucketName } }
     } = this.props
     const canWrite = Utils.canWrite(accessLevel)
     const renderedNotebooks = _.flow(
       _.orderBy(sortTokens[field] || field, direction),
       _.map(({ name, updated, metadata }) => h(NotebookCard, {
         key: name,
-        name, updated, metadata, listView, bucketName, namespace, wsName, canWrite,
+        name, updated, metadata, listView, bucketName, namespace, wsName, canWrite, canShare,
         onRename: () => this.setState({ renamingNotebookName: name }),
         onCopy: () => this.setState({ copyingNotebookName: name }),
         onExport: () => this.setState({ exportingNotebookName: name }),
