@@ -362,3 +362,19 @@ export const mergeQueryParams = (params, urlString) => {
   url.search = qs.stringify({ ...qs.parse(url.search, { ignoreQueryPrefix: true, plainObjects: true }), ...params })
   return url.href
 }
+
+export const useConsoleAssert = (condition, message) => {
+  const printed = useRef(false)
+  if (!printed.current && !condition) {
+    printed.current = true
+    console.error(message) // Note: using error because assert halts execution
+  }
+}
+
+export const maybeParseJSON = maybeJSONString => {
+  try {
+    return JSON.parse(maybeJSONString)
+  } catch {
+    return undefined
+  }
+}

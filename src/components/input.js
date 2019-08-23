@@ -63,7 +63,7 @@ export const withDebouncedChange = WrappedComponent => {
 }
 
 export const TextInput = forwardRef(({ onChange, nativeOnChange = false, ...props }, ref) => {
-  console.assert(props.id || props['aria-label'], 'In order to be accessible, TextInput needs a label')
+  Utils.useConsoleAssert(props.id || props['aria-label'], 'In order to be accessible, TextInput needs a label')
 
   return h(Interactive, _.merge({
     refDOMNode: ref,
@@ -133,7 +133,7 @@ export const SearchInput = ({ value, onChange, ...props }) => {
 export const DelayedSearchInput = withDebouncedChange(SearchInput)
 
 export const NumberInput = ({ onChange, ...props }) => {
-  console.assert(props.id || props['aria-label'], 'In order to be accessible, NumberInput needs a label')
+  Utils.useConsoleAssert(props.id || props['aria-label'], 'In order to be accessible, NumberInput needs a label')
 
   return h(Interactive, _.merge({
     as: 'input',
@@ -334,7 +334,7 @@ export class AutocompleteSearch extends Component {
 export const DelayedAutocompleteTextInput = withDebouncedChange(AutocompleteTextInput)
 
 export const TextArea = ({ onChange, ...props }) => {
-  console.assert(props.id || props['aria-label'], 'In order to be accessible, TextArea needs a label')
+  Utils.useConsoleAssert(props.id || props['aria-label'], 'In order to be accessible, TextArea needs a label')
 
   return h(Interactive, _.merge({
     as: 'textarea',
