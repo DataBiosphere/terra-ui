@@ -1,4 +1,5 @@
-import { differenceInCalendarMonths, isToday, isYesterday } from 'date-fns'
+import { isToday, isYesterday } from 'date-fns'
+import { differenceInCalendarMonths } from 'date-fns/fp'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { useEffect, useRef, useState } from 'react'

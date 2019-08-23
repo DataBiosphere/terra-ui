@@ -1,4 +1,4 @@
-import { differenceInSeconds } from 'date-fns'
+import { differenceInSeconds, parseISO } from 'date-fns/fp'
 import _ from 'lodash/fp'
 import { Fragment, useRef, useState } from 'react'
 import { div, h, h2, p, span } from 'react-hyperscript-helpers'
@@ -191,7 +191,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
           saToken(namespace)
         }
 
-        if (!Utils.isOwner(accessLevel) && (createdBy === getUser().email) && (differenceInSeconds(new Date(createdDate), new Date()) < 60)) {
+        if (!Utils.isOwner(accessLevel) && (createdBy === getUser().email) && (differenceInSeconds(parseISO(createdDate), Date.now()) < 60)) {
           accessNotificationId.current = notify('info', 'Workspace access synchronizing', {
             message: h(Fragment, [
               'It looks like you just created this workspace. It may take up to a minute before you have access to modify it. Refresh at any time to re-check.',
