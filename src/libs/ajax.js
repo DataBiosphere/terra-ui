@@ -971,7 +971,7 @@ const Jupyter = signal => ({
 
   notebooks: (project, name) => {
     const root = `proxy/${project}/${name}`
-    const root2 = `notebooks/${project}/${name}`
+    const oldRoot = `notebooks/${project}/${name}` // TODO: remove once Leo bug for setCookie is fixed
 
     return {
 
@@ -985,7 +985,7 @@ const Jupyter = signal => ({
       },
 
       setCookie: () => {
-        return fetchLeo(`${root2}/setCookie`,
+        return fetchLeo(`${oldRoot}/setCookie`,
           _.merge(authOpts(), { signal, credentials: 'include' }))
       },
 
