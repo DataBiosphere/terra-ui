@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import { Component } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { icon, spinner } from 'src/components/icons'
-import { popNotification, pushNotification } from 'src/components/Notifications'
+import { clearNotification, notify } from 'src/components/Notifications'
 import { Ajax } from 'src/libs/ajax'
 import { launch } from 'src/libs/analysis'
 import colors from 'src/libs/colors'
@@ -15,14 +15,10 @@ const ToastMessageComponent = Utils.connectAtom(rerunFailuresStatus, 'status')(c
   render() {
     const { status: { done, text } } = this.props
 
-    return div({
-      style: {
-        width: '100%', padding: '1rem', borderRadius: 8,
-        backgroundColor: done ? colors.success() : colors.dark(),
-        color: 'white'
-      }
-    }, [
-      done ? icon('check', { size: 24, style: { marginRight: '1rem' } }) : spinner({ style: { marginRight: '1rem' } }),
+    return div({ style: { padding: '0.5rem 0', display: 'flex', alignItems: 'center', fontSize: 14 } }, [
+      done ?
+        icon('success-standard', { size: 24, style: { color: colors.success(), marginRight: '1rem' } }) :
+        spinner({ style: { marginRight: '1rem' } }),
       text
     ])
   }
@@ -30,10 +26,7 @@ const ToastMessageComponent = Utils.connectAtom(rerunFailuresStatus, 'status')(c
 
 export const rerunFailures = async ({ namespace, name, submissionId, configNamespace, configName, onDone }) => {
   rerunFailuresStatus.set({ text: 'Loading workflow info...' })
-  const id = pushNotification({
-    dismiss: { duration: 0 },
-    content: h(ToastMessageComponent)
-  })
+  const id = notify('info', h(ToastMessageComponent))
 
   try {
     const workspace = Ajax().Workspaces.workspace(namespace, name)
@@ -63,7 +56,7 @@ export const rerunFailures = async ({ namespace, name, submissionId, configNames
         onDone()
       },
       onFailure: error => {
-        popNotification(id)
+        clearNotification(id)
         reportError('Error rerunning failed workflows', error)
       }
     })
@@ -72,6 +65,6 @@ export const rerunFailures = async ({ namespace, name, submissionId, configNames
   } catch (error) {
     reportError('Error rerunning failed workflows', error)
   } finally {
-    popNotification(id)
+    clearNotification(id)
   }
 }

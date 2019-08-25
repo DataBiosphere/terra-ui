@@ -16,14 +16,6 @@ import uuid from 'uuid/v4'
 
 // documentation: https://github.com/teodosii/react-notifications-component
 
-const defaultNotificationProps = {
-  type: 'success',
-  container: 'top-right',
-  animationIn: ['animated', 'slideInRight'],
-  animationOut: ['animated', 'slideOutRight'],
-  dismiss: { duration: 3000 }
-}
-
 export const sessionTimeoutProps = {
   id: 'sessionTimeout',
   detail: 'You have been signed out due to inactivity'
@@ -154,7 +146,11 @@ const refreshPage = () => {
 }
 
 const showNotification = ({ id, timeout }) => {
-  notificationsRef.current.addNotification(_.merge(defaultNotificationProps, {
+  notificationsRef.current.addNotification({
+    type: 'success',
+    container: 'top-right',
+    animationIn: ['animated', 'slideInRight'],
+    animationOut: ['animated', 'slideOutRight'],
     id,
     content: div({ style: { width: '100%' } }, [
       h(NotificationDisplay, { id })
@@ -162,7 +158,7 @@ const showNotification = ({ id, timeout }) => {
     dismiss: { duration: !!timeout ? timeout : 0 },
     dismissable: { click: false, touch: false },
     width: 350
-  }))
+  })
 }
 
 class Notifications extends Component {
@@ -177,13 +173,3 @@ class Notifications extends Component {
 }
 
 export default Utils.connectAtom(notificationStore, 'notificationState')(Notifications)
-
-// deprecated
-export const pushNotification = props => {
-  return notificationsRef.current.addNotification(_.merge(defaultNotificationProps, props))
-}
-
-// deprecated
-export const popNotification = id => {
-  notificationsRef.current.removeNotification(id)
-}
