@@ -191,7 +191,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
           saToken(namespace)
         }
 
-        if (!Utils.isOwner(accessLevel) && (createdBy === getUser().email) && (differenceInSeconds(parseISO(createdDate), Date.now()) < 60)) {
+        if (!Utils.isOwner(accessLevel) && (createdBy === getUser().email) && (differenceInSeconds(Date.now(), parseISO(createdDate)) < 60)) {
           accessNotificationId.current = notify('info', 'Workspace access synchronizing', {
             message: h(Fragment, [
               'It looks like you just created this workspace. It may take up to a minute before you have access to modify it. Refresh at any time to re-check.',

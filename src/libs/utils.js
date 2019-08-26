@@ -93,7 +93,7 @@ export const makePrettyDate = dateString => {
   return cond(
     [isToday(date), () => 'Today'],
     [isYesterday(date), () => 'Yesterday'],
-    [differenceInCalendarMonths(Date.now(), date) <= 6, () => dateFormat.format(date)],
+    [differenceInCalendarMonths(date, Date.now()) <= 6, () => dateFormat.format(date)],
     () => monthYearFormat.format(date)
   )
 }

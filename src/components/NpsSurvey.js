@@ -52,8 +52,8 @@ export const NpsSurvey = Utils.connectAtom(authStore, 'authState')(class NpsSurv
     // Behavior of the following logic: When a user first accesses Terra, wait 7 days to show the NPS survey.
     // Once user has interacted with the NPS survey, wait 90 days to show the survey.
     const askTheUser = !!lastResponseTimestamp ?
-      differenceInCalendarDays(Date.now(), parseISO(lastResponseTimestamp)) >= 90 :
-      differenceInCalendarDays(Date.now(), parseISO((await Ajax().User.firstTimestamp()).timestamp)) >= 7
+      differenceInCalendarDays(parseISO(lastResponseTimestamp), Date.now()) >= 90 :
+      differenceInCalendarDays(parseISO((await Ajax().User.firstTimestamp()).timestamp), Date.now()) >= 7
 
     this.setState({ requestable: askTheUser })
   }
