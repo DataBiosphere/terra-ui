@@ -89,18 +89,18 @@ const Code = () => {
   const [featuredList, setFeaturedList] = useState(stateHistory.featuredList)
   const [methods, setMethods] = useState(stateHistory.methods)
   const [loading, setLoading] = useState(false)
-  const loadData = _.flow(
-    withErrorReporting('Error loading workflows'),
-    withBusyState(setLoading)
-  )(async () => {
-    const [newFeaturedList, newMethods] = await Promise.all([
-      fetch(`${getConfig().firecloudBucketRoot}/featured-methods.json`, { signal }).then(res => res.json()),
-      Ajax(signal).Methods.list({ namespace: 'gatk' })
-    ])
-    setFeaturedList(newFeaturedList)
-    setMethods(newMethods)
-  })
   useOnMount(() => {
+    const loadData = _.flow(
+      withErrorReporting('Error loading workflows'),
+      withBusyState(setLoading)
+    )(async () => {
+      const [newFeaturedList, newMethods] = await Promise.all([
+        fetch(`${getConfig().firecloudBucketRoot}/featured-methods.json`, { signal }).then(res => res.json()),
+        Ajax(signal).Methods.list({ namespace: 'gatk' })
+      ])
+      setFeaturedList(newFeaturedList)
+      setMethods(newMethods)
+    })
     loadData()
   })
   useEffect(() => {
