@@ -9,7 +9,7 @@ import {
 } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { DelayedSearchInput } from 'src/components/input'
-import { Markdown } from 'src/components/Markdown'
+import { MarkdownViewer } from 'src/components/markdown'
 import Modal from 'src/components/Modal'
 import PopupTrigger from 'src/components/PopupTrigger'
 import TooltipTrigger from 'src/components/TooltipTrigger'
@@ -214,7 +214,7 @@ const FindWorkflowModal = ajaxCaller(class FindWorkflowModal extends Component {
         ])
       ]),
       div({ style: { fontSize: 18, fontWeight: 600, margin: '1rem 0 0.5rem' } }, ['Documentation']),
-      documentation && h(Markdown, { style: { maxHeight: 600, overflowY: 'auto' } }, [documentation]),
+      documentation && h(MarkdownViewer, { style: { maxHeight: 600, overflowY: 'auto' } }, [documentation]),
       (!selectedWorkflowDetails || exporting) && spinnerOverlay
     ]
 
