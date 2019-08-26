@@ -36,6 +36,8 @@ const applyColumnSettings = (columnSettings, columns) => {
   )(columns)
 }
 
+const makePersistenceId = ({workspaceId: { namespace, name }, entityType}) => `${namespace}/${name}/${entityType}`
+
 
 export default ajaxCaller(class DataTable extends Component {
   constructor(props) {
@@ -59,7 +61,7 @@ export default ajaxCaller(class DataTable extends Component {
       sort = { field: 'name', direction: 'asc' },
       activeTextFilter = '',
       columnWidths = {}, columnState = columnDefaultState
-    } = { ...BrowserStorage.getLocalPref(props.entityType), ...(props.firstRender ? StateHistory.get() : {}) }
+    } = { ...BrowserStorage.getLocalPref(makePersistenceId(props)), ...(props.firstRender ? StateHistory.get() : {}) }
 
     this.table = createRef()
     this.state = {
@@ -243,7 +245,7 @@ export default ajaxCaller(class DataTable extends Component {
     }
     if (this.props.persist) {
       StateHistory.update(_.pick(['itemsPerPage', 'pageNumber', 'sort', 'activeTextFilter'], this.state))
-      BrowserStorage.setLocalPref(this.props.entityType, _.pick(['columnWidths', 'columnState'], this.state))
+      BrowserStorage.setLocalPref(makePersistenceId(this.props), _.pick(['columnWidths', 'columnState'], this.state))
     }
   }
 
