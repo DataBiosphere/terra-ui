@@ -21,7 +21,7 @@ import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import { dockstoreTile, fcMethodRepoTile, makeWorkflowCard } from 'src/pages/library/Code'
+import { DockstoreTile, MethodCard, MethodRepoTile } from 'src/pages/library/Code'
 import DeleteWorkflowModal from 'src/pages/workspaces/workspace/workflows/DeleteWorkflowModal'
 import ExportWorkflowModal from 'src/pages/workspaces/workspace/workflows/ExportWorkflowModal'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
@@ -221,13 +221,13 @@ const FindWorkflowModal = ajaxCaller(class FindWorkflowModal extends Component {
     const renderList = () => [
       div({ style: { display: 'flex', flexWrap: 'wrap', overflowY: 'auto', height: 400, paddingTop: 5, paddingLeft: 5 } }, [
         ...(featuredMethods ?
-          _.map(method => makeWorkflowCard({ method, onClick: () => this.loadMethod(method) }), featuredMethods) :
+          _.map(method => h(MethodCard, { method, onClick: () => this.loadMethod(method) }), featuredMethods) :
           [centeredSpinner()])
       ]),
       div({ style: { fontSize: 18, fontWeight: 600, marginTop: '1rem' } }, ['Find Additional Workflows']),
       div({ style: { display: 'flex', padding: '0.5rem' } }, [
-        div({ style: { flex: 1, marginRight: 10 } }, [dockstoreTile()]),
-        div({ style: { flex: 1, marginLeft: 10 } }, [fcMethodRepoTile()])
+        div({ style: { flex: 1, marginRight: 10 } }, [h(DockstoreTile)]),
+        div({ style: { flex: 1, marginLeft: 10 } }, [h(MethodRepoTile)])
       ])
     ]
 
