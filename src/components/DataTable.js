@@ -36,7 +36,7 @@ const applyColumnSettings = (columnSettings, columns) => {
   )(columns)
 }
 
-const makePersistenceId = ({workspaceId: { namespace, name }, entityType}) => `${namespace}/${name}/${entityType}`
+const makePersistenceId = ({ workspaceId: { namespace, name }, entityType }) => `${namespace}/${name}/${entityType}`
 
 
 export default ajaxCaller(class DataTable extends Component {
