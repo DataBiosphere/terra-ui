@@ -1,8 +1,7 @@
 import * as clipboard from 'clipboard-polyfill'
 import filesize from 'filesize'
 import _ from 'lodash/fp'
-import PropTypes from 'prop-types'
-import { Component, Fragment, useState } from 'react'
+import { Fragment, useState } from 'react'
 import { div, h, img, input } from 'react-hyperscript-helpers'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
 import Collapse from 'src/components/Collapse'
@@ -10,10 +9,10 @@ import { ButtonPrimary, Clickable, Link } from 'src/components/common'
 import { icon, spinner } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import DownloadPrices from 'src/data/download-prices'
-import { Ajax, ajaxCaller, useCancellation } from 'src/libs/ajax'
+import { Ajax, useCancellation } from 'src/libs/ajax'
 import { bucketBrowserUrl } from 'src/libs/auth'
 import colors from 'src/libs/colors'
-import { reportError } from 'src/libs/error'
+import { withErrorReporting } from 'src/libs/error'
 import { requesterPaysBuckets, requesterPaysProjectStore, workspaceStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
@@ -134,154 +133,132 @@ const DownloadButton = ({ uri, metadata: { bucket, name, size } }) => {
   ])
 }
 
-const UriViewer = _.flow(
-  ajaxCaller,
-  requesterPaysWrapper({ onDismiss: ({ onDismiss }) => onDismiss() })
-)(class UriViewer extends Component {
-  static propTypes = {
-    googleProject: PropTypes.string.isRequired,
-    uri: PropTypes.string.isRequired
-  }
+const UriViewer = requesterPaysWrapper({
+  onDismiss: ({ onDismiss }) => onDismiss()
+})(({ googleProject, uri, onDismiss, onRequesterPaysError }) => {
+  const signal = useCancellation()
+  const [metadata, setMetadata] = useState()
+  const [copied, setCopied] = useState()
+  const [loadingError, setLoadingError] = useState()
 
-  constructor(props) {
-    super(props)
-    this.state = { metadata: undefined, copied: undefined, loadingError: undefined }
-  }
-
-
-  async componentDidMount() {
-    const { googleProject, uri, ajax: { Buckets, Martha }, onRequesterPaysError } = this.props
+  const loadMetadata = async () => {
     try {
       if (isGs(uri)) {
         const [bucket, name] = parseUri(uri)
         const loadObject = withRequesterPaysHandler(onRequesterPaysError, () => {
-          return Buckets.getObject(bucket, name, googleProject)
+          return Ajax(signal).Buckets.getObject(bucket, name, googleProject)
         })
         const metadata = await loadObject(bucket, name, googleProject)
-        this.setState({ metadata })
+        setMetadata(metadata)
       } else {
-        const { dos: { data_object: { size, urls } } } = await Martha.getDataObjectMetadata(uri)
+        const { dos: { data_object: { size, urls } } } = await Ajax(signal).Martha.getDataObjectMetadata(uri)
         const [bucket, name] = parseUri(_.find(u => u.startsWith('gs://'), _.map('url', urls)))
-        this.setState({ metadata: { bucket, name, size } })
+        setMetadata({ bucket, name, size })
       }
     } catch (e) {
-      this.setState({ loadingError: await e.json() })
+      setLoadingError(await e.json())
     }
   }
+  Utils.useOnMount(() => {
+    loadMetadata()
+  })
 
-  render() {
-    const { uri, googleProject, onDismiss } = this.props
-    const { metadata, copied, loadingError } = this.state
-    const { size, timeCreated, updated, bucket, name } = metadata || {}
-    const gsUri = `gs://${bucket}/${name}`
-    const gsutilCommand = `gsutil cp ${gsUri} .`
-
-    return h(Modal, {
-      onDismiss,
-      title: 'File Details',
-      showCancel: false,
-      showX: true,
-      okButton: 'Done'
-    }, [
-      Utils.cond(
-        [loadingError, () => h(Fragment, [
-          div({ style: { paddingBottom: '1rem' } }, [
-            'Error loading data. This file does not exist or you do not have permission to view it.'
-          ]),
-          h(Collapse, { title: 'Details' }, [
-            div({ style: { whiteSpace: 'pre-wrap', fontFamily: 'monospace', overflowWrap: 'break-word' } }, [
-              JSON.stringify(loadingError, null, 2)
+  const { size, timeCreated, updated, bucket, name } = metadata || {}
+  const gsUri = `gs://${bucket}/${name}`
+  const gsutilCommand = `gsutil cp ${gsUri} .`
+  return h(Modal, {
+    onDismiss,
+    title: 'File Details',
+    showCancel: false,
+    showX: true,
+    okButton: 'Done'
+  }, [
+    Utils.cond(
+      [loadingError, () => h(Fragment, [
+        div({ style: { paddingBottom: '1rem' } }, [
+          'Error loading data. This file does not exist or you do not have permission to view it.'
+        ]),
+        h(Collapse, { title: 'Details' }, [
+          div({ style: { whiteSpace: 'pre-wrap', fontFamily: 'monospace', overflowWrap: 'break-word' } }, [
+            JSON.stringify(loadingError, null, 2)
+          ])
+        ])
+      ])],
+      [metadata, () => h(Fragment, [
+        els.cell([
+          els.label('Filename'),
+          els.data(_.last(name.split('/')).split('.').join('.\u200B')) // allow line break on periods
+        ]),
+        h(PreviewContent, { uri, metadata, googleProject }),
+        els.cell([els.label('File size'), els.data(filesize(parseInt(size, 10)))]),
+        els.cell([
+          h(Link, {
+            ...Utils.newTabLinkProps,
+            href: bucketBrowserUrl(gsUri.match(/gs:\/\/(.+)\//)[1])
+          }, ['View this file in the Google Cloud Storage Browser'])
+        ]),
+        h(DownloadButton, { uri, metadata }),
+        els.cell([
+          els.label('Terminal download command'),
+          els.data([
+            div({ style: { display: 'flex' } }, [
+              input({
+                readOnly: true,
+                value: gsutilCommand,
+                style: { flexGrow: 1, fontWeight: 400, fontFamily: 'Menlo, monospace' }
+              }),
+              h(Clickable, {
+                style: { margin: '0 1rem', color: colors.accent() },
+                tooltip: 'Copy to clipboard',
+                onClick: withErrorReporting('Error copying to clipboard', async () => {
+                  await clipboard.writeText(gsutilCommand)
+                  setCopied(true)
+                  await Utils.delay(1500)
+                  setCopied(undefined)
+                })
+              }, [icon(copied ? 'check' : 'copy-to-clipboard')])
             ])
           ])
-        ])],
-        [metadata, () => h(Fragment, [
-          els.cell([
-            els.label('Filename'),
-            els.data(_.last(name.split('/')).split('.').join('.\u200B')) // allow line break on periods
+        ]),
+        (timeCreated || updated) && h(Collapse, {
+          title: 'More Information',
+          style: { marginTop: '2rem' }
+        }, [
+          timeCreated && els.cell([
+            els.label('Created'),
+            els.data(new Date(timeCreated).toLocaleString())
           ]),
-          h(PreviewContent, { uri, metadata, googleProject }),
-          els.cell([els.label('File size'), els.data(filesize(parseInt(size, 10)))]),
-          els.cell([
-            h(Link, {
-              ...Utils.newTabLinkProps,
-              href: bucketBrowserUrl(gsUri.match(/gs:\/\/(.+)\//)[1])
-            }, ['View this file in the Google Cloud Storage Browser'])
-          ]),
-          h(DownloadButton, { uri, metadata }),
-          els.cell([
-            els.label('Terminal download command'),
-            els.data([
-              div({ style: { display: 'flex' } }, [
-                input({
-                  readOnly: true,
-                  value: gsutilCommand,
-                  style: { flexGrow: 1, fontWeight: 400, fontFamily: 'Menlo, monospace' }
-                }),
-                h(Clickable, {
-                  style: { margin: '0 1rem', color: colors.accent() },
-                  tooltip: 'Copy to clipboard',
-                  onClick: async () => {
-                    try {
-                      await clipboard.writeText(gsutilCommand)
-                      this.setState({ copied: true }, () => {
-                        setTimeout(() => this.setState({ copied: undefined }), 1500)
-                      })
-                    } catch (error) {
-                      reportError('Error copying to clipboard', error)
-                    }
-                  }
-                }, [icon(copied ? 'check' : 'copy-to-clipboard')])
-              ])
-            ])
-          ]),
-          (timeCreated || updated) && h(Collapse, {
-            title: 'More Information',
-            style: { marginTop: '2rem' }
-          }, [
-            timeCreated && els.cell([
-              els.label('Created'),
-              els.data(new Date(timeCreated).toLocaleString())
-            ]),
-            updated && els.cell([
-              els.label('Updated'),
-              els.data(new Date(updated).toLocaleString())
-            ])
-          ]),
-          div({ style: { fontSize: 10 } }, ['* Estimated. Download cost may be higher in China or Australia.'])
-        ])],
-        () => h(Fragment, [
-          isGs(uri) ? 'Loading metadata...' : 'Resolving DOS object...',
-          spinner({ style: { marginLeft: 4 } })
-        ])
-      )
-    ])
-  }
+          updated && els.cell([
+            els.label('Updated'),
+            els.data(new Date(updated).toLocaleString())
+          ])
+        ]),
+        div({ style: { fontSize: 10 } }, ['* Estimated. Download cost may be higher in China or Australia.'])
+      ])],
+      () => h(Fragment, [
+        isGs(uri) ? 'Loading metadata...' : 'Resolving DOS object...',
+        spinner({ style: { marginLeft: 4 } })
+      ])
+    )
+  ])
 })
 
-export class UriViewerLink extends Component {
-  constructor(props) {
-    super(props)
-    this.state = { modalOpen: false }
-  }
-
-  render() {
-    const { uri, googleProject } = this.props
-    const { modalOpen } = this.state
-    return h(Fragment, [
-      h(Link, {
-        style: { textDecoration: 'underline' },
-        href: uri,
-        onClick: e => {
-          e.preventDefault()
-          this.setState({ modalOpen: true })
-        }
-      }, [isGs(uri) ? _.last(uri.split('/')) : uri]),
-      modalOpen && h(UriViewer, {
-        onDismiss: () => this.setState({ modalOpen: false }),
-        uri, googleProject
-      })
-    ])
-  }
+export const UriViewerLink = ({ uri, googleProject }) => {
+  const [modalOpen, setModalOpen] = useState(false)
+  return h(Fragment, [
+    h(Link, {
+      style: { textDecoration: 'underline' },
+      href: uri,
+      onClick: e => {
+        e.preventDefault()
+        setModalOpen(true)
+      }
+    }, [isGs(uri) ? _.last(uri.split('/')) : uri]),
+    modalOpen && h(UriViewer, {
+      onDismiss: () => setModalOpen(false),
+      uri, googleProject
+    })
+  ])
 }
 
 export default UriViewer
