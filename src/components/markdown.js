@@ -27,8 +27,8 @@ export const newWindowLinkRenderer = (href, title, text) => {
   return `<a href="${href}" ${(title ? `title=${title}` : '')} target="_blank">${text}</a>`
 }
 
-export const MarkdownEditor = props => {
-  const SimpleMDE = lazy(() => import('react-simplemde-editor'))
+const SimpleMDE = lazy(() => import('react-simplemde-editor'))
 
+export const MarkdownEditor = props => {
   return h(Suspense, { fallback: centeredSpinner() }, [h(SimpleMDE, props)])
 }
