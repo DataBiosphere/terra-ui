@@ -3,7 +3,7 @@ import { Component, Fragment } from 'react'
 import { a, div, h, label, span } from 'react-hyperscript-helpers'
 import { pure } from 'recompose'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import togglesListView from 'src/components/CardsListToggle'
+import { ViewToggleButtons, withViewToggle } from 'src/components/CardsListToggle'
 import {
   ButtonOutline, ButtonPrimary, Clickable, IdContainer, Link, makeMenuIcon, MenuButton, methodLink, PageBox, Select, spinnerOverlay
 } from 'src/components/common'
@@ -295,7 +295,7 @@ export const Workflows = _.flow(
     breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
     title: 'Workflows', activeTab: 'workflows'
   }),
-  togglesListView('workflowsTab'),
+  withViewToggle('workflowsTab'),
   ajaxCaller
 )(class Workflows extends Component {
   constructor(props) {
@@ -336,7 +336,7 @@ export const Workflows = _.flow(
   }
 
   render() {
-    const { namespace, name, listView, viewToggleButtons, workspace: ws, workspace: { workspace } } = this.props
+    const { namespace, name, listView, setListView, workspace: ws, workspace: { workspace } } = this.props
     const { loading, configs, exportingWorkflow, copyingWorkflow, deletingWorkflow, findingWorkflow, sortOrder, sortOrder: { field, direction }, filter } = this.state
     const workflows = _.flow(
       _.filter(({ name }) => Utils.textMatch(filter, name)),
@@ -374,7 +374,7 @@ export const Workflows = _.flow(
             onChange: selected => this.setState({ sortOrder: selected.value })
           })
         ])]),
-        viewToggleButtons,
+        h(ViewToggleButtons, { listView, setListView }),
         exportingWorkflow && h(ExportWorkflowModal, {
           thisWorkspace: workspace, methodConfig: this.getConfig(exportingWorkflow),
           onDismiss: () => this.setState({ exportingWorkflow: undefined })
