@@ -9,6 +9,7 @@ import Modal from 'src/components/Modal'
 import PopupTrigger from 'src/components/PopupTrigger'
 import { ColumnSelector, GridTable, HeaderCell, paginator, Resizable, Sortable } from 'src/components/table'
 import { ajaxCaller } from 'src/libs/ajax'
+import * as BrowserStorage from 'src/libs/browser-storage'
 import colors from 'src/libs/colors'
 import { renderDataCell } from 'src/libs/data-utils'
 import { reportError } from 'src/libs/error'
@@ -58,7 +59,7 @@ export default ajaxCaller(class DataTable extends Component {
       sort = { field: 'name', direction: 'asc' },
       activeTextFilter = '',
       columnWidths = {}, columnState = columnDefaultState
-    } = props.firstRender ? StateHistory.get() : {}
+    } = { ...BrowserStorage.getLocalPref(props.entityType), ...(props.firstRender ? StateHistory.get() : {}) }
 
     this.table = createRef()
     this.state = {
@@ -241,8 +242,8 @@ export default ajaxCaller(class DataTable extends Component {
       this.loadData()
     }
     if (this.props.persist) {
-      StateHistory.update(
-        _.pick(['itemsPerPage', 'pageNumber', 'sort', 'activeTextFilter', 'columnWidths', 'columnState'], this.state))
+      StateHistory.update(_.pick(['itemsPerPage', 'pageNumber', 'sort', 'activeTextFilter'], this.state))
+      BrowserStorage.setLocalPref(this.props.entityType, _.pick(['columnWidths', 'columnState'], this.state))
     }
   }
 
