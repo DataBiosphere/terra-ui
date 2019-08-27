@@ -1,4 +1,4 @@
-import { distanceInWordsToNow } from 'date-fns'
+import { formatDistanceToNow } from 'date-fns'
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { h, table, tbody, td, tr } from 'react-hyperscript-helpers'
@@ -34,7 +34,7 @@ export const SubmissionQueueStatus = () => {
     !loading && table({ style: {} }, [tbody([
       tr([
         td({ style: { paddingRight: '0.5rem', textAlign: 'right' } }, ['Estimated wait time:']),
-        td([distanceInWordsToNow(Date.now() + queueStatus.estimatedQueueTimeMS)])
+        td([formatDistanceToNow(Date.now() + queueStatus.estimatedQueueTimeMS)])
       ]),
       tr([
         td({ style: { paddingRight: '0.5rem', textAlign: 'right' } }, ['Workflows ahead of yours:']),

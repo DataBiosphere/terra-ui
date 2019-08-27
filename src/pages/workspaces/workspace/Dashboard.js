@@ -2,11 +2,10 @@ import * as clipboard from 'clipboard-polyfill'
 import _ from 'lodash/fp'
 import { Component, Fragment } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
-import SimpleMDE from 'react-simplemde-editor'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { ButtonPrimary, ButtonSecondary, Link, spinnerOverlay } from 'src/components/common'
 import { icon, spinner } from 'src/components/icons'
-import { Markdown } from 'src/components/Markdown'
+import { MarkdownEditor, MarkdownViewer } from 'src/components/markdown'
 import { InfoBox } from 'src/components/PopupTrigger'
 import { SimpleTable } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
@@ -219,7 +218,7 @@ export const WorkspaceDashboard = _.flow(
         Utils.cond(
           [
             isEditing, () => h(Fragment, [
-              h(SimpleMDE, {
+              h(MarkdownEditor, {
                 options: {
                   autofocus: true,
                   placeholder: 'Enter a description',
@@ -240,7 +239,7 @@ export const WorkspaceDashboard = _.flow(
               saving && spinnerOverlay
             ])
           ],
-          [!!description, () => h(Markdown, [description])],
+          [!!description, () => h(MarkdownViewer, [description])],
           () => div({ style: { fontStyle: 'italic' } }, ['No description added'])),
         _.some(_.startsWith('library:'), _.keys(attributes)) && h(Fragment, [
           div({ style: styles.header }, ['Dataset Attributes']),

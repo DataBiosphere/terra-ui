@@ -1,4 +1,4 @@
-import { addDays } from 'date-fns'
+import { addDays, parseISO } from 'date-fns/fp'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { Component, Fragment, useState } from 'react'
@@ -238,14 +238,14 @@ const FenceLink = ({ provider, displayName }) => {
    * Render
    */
   const isBusy = isLoadingStatus || isLoadingAuthUrl || isLinking
-  const expireTime = addDays(issuedAt, 30)
+  const expireTime = addDays(30, parseISO(issuedAt))
 
   return div({ style: { marginBottom: '1rem' } }, [
     div({ style: styles.form.title }, [displayName]),
-    isBusy && div([spinner(), 'Loading account status...']),
-    !isBusy && h(Fragment, [
-      !username && renderFrameworkServicesLink('Log-In to Framework Services to link your account'),
-      !!username && div({ style: { display: 'flex', flexDirection: 'column', width: '33rem' } }, [
+    Utils.cond(
+      [isBusy, () => div([spinner(), 'Loading account status...'])],
+      [!username, () => renderFrameworkServicesLink('Log-In to Framework Services to link your account')],
+      () => div({ style: { display: 'flex', flexDirection: 'column', width: '33rem' } }, [
         div({ style: { display: 'flex' } }, [
           div({ style: { flex: 1 } }, ['Username:']),
           div({ style: { flex: 2 } }, [username])
@@ -256,7 +256,7 @@ const FenceLink = ({ provider, displayName }) => {
         ]),
         renderFrameworkServicesLink('Log-In to Framework Services to re-link your account')
       ])
-    ])
+    )
   ])
 }
 

@@ -1,5 +1,5 @@
 import { div, h } from 'react-hyperscript-helpers'
-import { Markdown, newWindowLinkRenderer } from 'src/components/Markdown'
+import { MarkdownViewer, newWindowLinkRenderer } from 'src/components/markdown'
 
 
 const broadEula = `
@@ -1322,7 +1322,7 @@ https://cloud.google.com/docs
 
 const FreeTrialEulas = ({ pageTwo }) => {
   return div({ style: { maxHeight: 500, maxWidth: 1500, overflowY: 'auto', lineHeight: 1.5, marginTop: '1rem', paddingRight: '1rem' } }, [
-    h(Markdown, {
+    h(MarkdownViewer, {
       renderers: {
         link: newWindowLinkRenderer,
         paragraph: text => {

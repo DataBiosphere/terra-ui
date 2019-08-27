@@ -3,13 +3,13 @@ import { Component, Fragment } from 'react'
 import { a, div, h, label, span } from 'react-hyperscript-helpers'
 import { pure } from 'recompose'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import togglesListView from 'src/components/CardsListToggle'
+import { ViewToggleButtons, withViewToggle } from 'src/components/CardsListToggle'
 import {
   ButtonOutline, ButtonPrimary, Clickable, IdContainer, Link, makeMenuIcon, MenuButton, methodLink, PageBox, Select, spinnerOverlay
 } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { DelayedSearchInput } from 'src/components/input'
-import { Markdown } from 'src/components/Markdown'
+import { MarkdownViewer } from 'src/components/markdown'
 import Modal from 'src/components/Modal'
 import PopupTrigger from 'src/components/PopupTrigger'
 import TooltipTrigger from 'src/components/TooltipTrigger'
@@ -21,7 +21,7 @@ import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import { dockstoreTile, fcMethodRepoTile, makeWorkflowCard } from 'src/pages/library/Code'
+import { DockstoreTile, MethodCard, MethodRepoTile } from 'src/pages/library/Code'
 import DeleteWorkflowModal from 'src/pages/workspaces/workspace/workflows/DeleteWorkflowModal'
 import ExportWorkflowModal from 'src/pages/workspaces/workspace/workflows/ExportWorkflowModal'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
@@ -214,20 +214,20 @@ const FindWorkflowModal = ajaxCaller(class FindWorkflowModal extends Component {
         ])
       ]),
       div({ style: { fontSize: 18, fontWeight: 600, margin: '1rem 0 0.5rem' } }, ['Documentation']),
-      documentation && h(Markdown, { style: { maxHeight: 600, overflowY: 'auto' } }, [documentation]),
+      documentation && h(MarkdownViewer, { style: { maxHeight: 600, overflowY: 'auto' } }, [documentation]),
       (!selectedWorkflowDetails || exporting) && spinnerOverlay
     ]
 
     const renderList = () => [
       div({ style: { display: 'flex', flexWrap: 'wrap', overflowY: 'auto', height: 400, paddingTop: 5, paddingLeft: 5 } }, [
         ...(featuredMethods ?
-          _.map(method => makeWorkflowCard({ method, onClick: () => this.loadMethod(method) }), featuredMethods) :
+          _.map(method => h(MethodCard, { method, onClick: () => this.loadMethod(method) }), featuredMethods) :
           [centeredSpinner()])
       ]),
       div({ style: { fontSize: 18, fontWeight: 600, marginTop: '1rem' } }, ['Find Additional Workflows']),
       div({ style: { display: 'flex', padding: '0.5rem' } }, [
-        div({ style: { flex: 1, marginRight: 10 } }, [dockstoreTile()]),
-        div({ style: { flex: 1, marginLeft: 10 } }, [fcMethodRepoTile()])
+        div({ style: { flex: 1, marginRight: 10 } }, [h(DockstoreTile)]),
+        div({ style: { flex: 1, marginLeft: 10 } }, [h(MethodRepoTile)])
       ])
     ]
 
@@ -295,7 +295,7 @@ export const Workflows = _.flow(
     breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
     title: 'Workflows', activeTab: 'workflows'
   }),
-  togglesListView('workflowsTab'),
+  withViewToggle('workflowsTab'),
   ajaxCaller
 )(class Workflows extends Component {
   constructor(props) {
@@ -336,7 +336,7 @@ export const Workflows = _.flow(
   }
 
   render() {
-    const { namespace, name, listView, viewToggleButtons, workspace: ws, workspace: { workspace } } = this.props
+    const { namespace, name, listView, setListView, workspace: ws, workspace: { workspace } } = this.props
     const { loading, configs, exportingWorkflow, copyingWorkflow, deletingWorkflow, findingWorkflow, sortOrder, sortOrder: { field, direction }, filter } = this.state
     const workflows = _.flow(
       _.filter(({ name }) => Utils.textMatch(filter, name)),
@@ -374,7 +374,7 @@ export const Workflows = _.flow(
             onChange: selected => this.setState({ sortOrder: selected.value })
           })
         ])]),
-        viewToggleButtons,
+        h(ViewToggleButtons, { listView, setListView }),
         exportingWorkflow && h(ExportWorkflowModal, {
           thisWorkspace: workspace, methodConfig: this.getConfig(exportingWorkflow),
           onDismiss: () => this.setState({ exportingWorkflow: undefined })
