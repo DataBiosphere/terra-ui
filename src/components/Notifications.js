@@ -23,10 +23,8 @@ export const sessionTimeoutProps = {
 
 const notificationsRef = createRef()
 
-const defaultId = n => !!n.timeout ? uuid() : `${n.type || 'info'}-${n.title}`
-
 const makeNotification = props => {
-  const { id = defaultId(props) } = props
+  const { id = uuid() } = props
   return { ...props, id }
 }
 
