@@ -432,6 +432,7 @@ export const EntityEditor = ({ entityType, entityName, attributeName, attributeV
 
   return h(Modal, {
     title: 'Modify Attribute',
+    onDismiss,
     showButtons: false
   }, [
     consideringDelete ?
