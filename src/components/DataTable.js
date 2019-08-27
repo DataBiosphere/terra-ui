@@ -10,7 +10,7 @@ import PopupTrigger from 'src/components/PopupTrigger'
 import { ColumnSelector, GridTable, HeaderCell, paginator, Resizable, Sortable } from 'src/components/table'
 import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
-import { renderDataCell } from 'src/libs/data-utils'
+import { EntityEditor, EntityRenamer, renderDataCell } from 'src/libs/data-utils'
 import { reportError } from 'src/libs/error'
 import * as StateHistory from 'src/libs/state-history'
 import * as Utils from 'src/libs/utils'
@@ -70,13 +70,17 @@ export default ajaxCaller(class DataTable extends Component {
 
   render() {
     const {
-      entityType, entityMetadata, workspaceId: { namespace },
+      entityType, entityMetadata, workspaceId, workspaceId: { namespace },
       onScroll, initialX, initialY,
       selectionModel,
-      childrenBefore
+      childrenBefore,
+      editable
     } = this.props
 
-    const { loading, entities, filteredCount, totalRowCount, itemsPerPage, pageNumber, sort, columnWidths, columnState, viewData, activeTextFilter } = this.state
+    const {
+      loading, entities, filteredCount, totalRowCount, itemsPerPage, pageNumber, sort, columnWidths, columnState,
+      viewData, activeTextFilter, renamingEntity, updatingEntity
+    } = this.state
 
     const theseColumnWidths = columnWidths || {}
     const columnSettings = applyColumnSettings(columnState || [], entityMetadata[entityType].attributeNames)
@@ -170,7 +174,17 @@ export default ajaxCaller(class DataTable extends Component {
                         h(HeaderCell, [`${entityType}_id`])
                       ])
                     ]),
-                    cellRenderer: ({ rowIndex }) => renderDataCell(entities[rowIndex].name, namespace)
+                    cellRenderer: ({ rowIndex }) => {
+                      const { name: entityName } = entities[rowIndex]
+                      return h(Fragment, [
+                        renderDataCell(entityName, namespace),
+                        editable && h(Link, {
+                          className: 'cell-hover-only',
+                          style: { marginLeft: '1rem', flexGrow: 1 },
+                          onClick: () => this.setState({ renamingEntity: entityName })
+                        }, [icon('edit')])
+                      ])
+                    }
                   },
                   ..._.map(({ name }) => {
                     const thisWidth = theseColumnWidths[name] || 300
@@ -187,13 +201,19 @@ export default ajaxCaller(class DataTable extends Component {
                         ])
                       ]),
                       cellRenderer: ({ rowIndex }) => {
-                        const dataInfo = entities[rowIndex].attributes[name]
+                        const { attributes: { [name]: dataInfo }, name: entityName } = entities[rowIndex]
                         const dataCell = renderDataCell(Utils.entityAttributeText(dataInfo), namespace)
-                        return (!!dataInfo && _.isArray(dataInfo.items)) ?
-                          h(Link, {
-                            onClick: () => this.setState({ viewData: dataInfo })
-                          },
-                          [dataCell]) : dataCell
+                        return h(Fragment, [
+                          (!!dataInfo && _.isArray(dataInfo.items)) ?
+                            h(Link, {
+                              onClick: () => this.setState({ viewData: dataInfo })
+                            }, [dataCell]) : dataCell,
+                          editable && h(Link, {
+                            className: 'cell-hover-only',
+                            style: { marginLeft: '1rem', flexGrow: 1 },
+                            onClick: () => this.setState({ updatingEntity: { entityName, attributeName: name, attributeValue: dataInfo } })
+                          }, [icon('edit')])
+                        ])
                       }
                     }
                   }, _.filter('visible', columnSettings))
@@ -228,6 +248,25 @@ export default ajaxCaller(class DataTable extends Component {
         showX: true,
         onDismiss: () => this.setState({ viewData: undefined })
       }, [div({ style: { maxHeight: '80vh', overflowY: 'auto' } }, [this.displayData(viewData)])]),
+      !!renamingEntity && h(EntityRenamer, {
+        entityType, entityName: renamingEntity,
+        workspaceId,
+        onSuccess: () => {
+          this.setState({ renamingEntity: undefined })
+          this.loadData()
+        },
+        onDismiss: () => this.setState({ renamingEntity: undefined })
+      }),
+      !!updatingEntity && h(EntityEditor, {
+        entityType, ...updatingEntity,
+        entityTypes: _.keys(entityMetadata),
+        workspaceId,
+        onSuccess: () => {
+          this.setState({ updatingEntity: undefined })
+          this.loadData()
+        },
+        onDismiss: () => this.setState({ updatingEntity: undefined })
+      }),
       loading && spinnerOverlay
     ])
   }
