@@ -13,7 +13,6 @@ import TooltipTrigger from 'src/components/TooltipTrigger'
 import { Ajax, useCancellation } from 'src/libs/ajax'
 import { bucketBrowserUrl } from 'src/libs/auth'
 import colors from 'src/libs/colors'
-import { getConfig } from 'src/libs/config'
 import { withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
@@ -211,8 +210,7 @@ const SubmissionDetails = _.flow(
               cellRenderer: ({ rowIndex }) => {
                 const { workflowId } = filteredWorkflows[rowIndex]
                 return workflowId && h(Link, {
-                  ...Utils.newTabLinkProps,
-                  href: `${getConfig().jobManagerUrlRoot}/${workflowId}`,
+                  href: Nav.getLink('workspace-job-details', { namespace, name, submissionId, jobId: workflowId }),
                   style: { flexGrow: 1, textAlign: 'center' }
                 }, ['View'])
               }
