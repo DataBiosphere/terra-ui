@@ -361,7 +361,6 @@ export const EntityRenamer = ({ entityType, entityName, workspaceId: { namespace
   return h(Modal, {
     onDismiss,
     title: 'Rename Entity',
-    showX: true,
     okButton: h(ButtonPrimary, { onClick: doRename }, ['Rename'])
   }, [
     h(IdContainer, [id => h(Fragment, [
@@ -396,7 +395,7 @@ export const EntityEditor = ({ entityType, entityName, attributeName, attributeV
   const [isList, setIsList] = useState(initialIsList)
   const [isReference, setIsReference] = useState(initialIsReference)
   const [isBusy, setIsBusy] = useState()
-  const [maybeDelete, setMaybeDelete] = useState()
+  const [consideringDelete, setConsideringDelete] = useState()
 
   const doEdit = async () => {
     try {
@@ -404,7 +403,7 @@ export const EntityEditor = ({ entityType, entityName, attributeName, attributeV
       const preparedValue = Utils.cond(
         [isReference && isList, () => _.map(v => ({ entityName: v, entityType: linkedEntityType }), newValue)],
         [isReference, () => ({ entityName: newValue, entityType: linkedEntityType })],
-        newValue
+        () => newValue
       )
 
       await Ajax()
@@ -433,17 +432,16 @@ export const EntityEditor = ({ entityType, entityName, attributeName, attributeV
 
   return h(Modal, {
     title: 'Modify Attribute',
-    showX: true,
     showButtons: false
   }, [
-    maybeDelete ?
+    consideringDelete ?
       h(Fragment, [
         'Are you sure you want to delete the attribute ', boldish(attributeName),
         ' from the ', boldish(entityType), ' called ', boldish(entityName), '?',
         div({ style: { marginTop: '1rem' } }, [boldish('This cannot be undone.')]),
         div({ style: { marginTop: '1rem', display: 'flex', alignItems: 'baseline' } }, [
           div({ style: { flexGrow: 1 } }),
-          h(ButtonSecondary, { style: { marginRight: '1rem' }, onClick: () => setMaybeDelete(false) }, ['Back to editing']),
+          h(ButtonSecondary, { style: { marginRight: '1rem' }, onClick: () => setConsideringDelete(false) }, ['Back to editing']),
           h(ButtonDanger, { style: { backgroundColor: colors.danger() }, onClick: doDelete }, ['Delete Attribute'])
         ])
       ]) :
@@ -451,29 +449,49 @@ export const EntityEditor = ({ entityType, entityName, attributeName, attributeV
         div([
           h(LabeledCheckbox, {
             checked: isList,
-            onChange: setIsList
+            onChange: willBeList => {
+              setNewValue(willBeList ? [newValue] : newValue[0])
+              setIsList(willBeList)
+            }
           }, ['Attribute is a list'])
         ]),
-        div([
+        div({ style: { margin: '1rem 0' } }, [
           h(LabeledCheckbox, {
             checked: isReference,
             onChange: setIsReference
           }, [isList ? 'List members are references to other entities' : 'Attribute is a reference to another entity'])
         ]),
-        isReference && h(Select, {
-          value: linkedEntityType,
-          options: entityTypes,
-          onChange: ({ value }) => setLinkedEntityType(value)
-        }),
-        h(TextInput, {
-          'aria-label': '',
-          autoFocus: true,
-          placeholder: 'Enter a value',
-          value: newValue,
-          onChange: setNewValue
-        }),
+        isReference && div({ style: { marginBottom: '1rem' } }, [
+          'Referenced entity type:',
+          h(Select, {
+            value: linkedEntityType,
+            options: entityTypes,
+            onChange: ({ value }) => setLinkedEntityType(value)
+          })
+        ]),
+        isList ?
+          h(Fragment, _.map(([i, value]) => div({}, [
+            h(TextInput, {
+              'aria-label': `List value ${i + 1}`,
+              autoFocus: true,
+              placeholder: 'Enter a value',
+              value,
+              onChange: v => setNewValue([...newValue.slice(0, i), v, ...newValue.slice(i + 1)])
+            })
+          ]), Utils.toIndexPairs(newValue))) :
+          h(TextInput, {
+            'aria-label': 'New value',
+            autoFocus: true,
+            placeholder: 'Enter a value',
+            value: newValue,
+            onChange: setNewValue
+          }),
+        isList && h(Link, {
+          style: { display: 'block', marginTop: '1rem' },
+          onClick: () => setNewValue(Utils.append(''))
+        }, [icon('plus', { style: { marginRight: '0.5rem' } }), 'Add item']),
         div({ style: { marginTop: '1rem', display: 'flex', alignItems: 'baseline' } }, [
-          h(ButtonDanger, { style: { backgroundColor: colors.danger() }, onClick: () => setMaybeDelete(true) }, ['Delete']),
+          h(ButtonDanger, { style: { backgroundColor: colors.danger() }, onClick: () => setConsideringDelete(true) }, ['Delete']),
           div({ style: { flexGrow: 1 } }),
           h(ButtonSecondary, { style: { marginRight: '1rem' }, onClick: onDismiss }, ['Cancel']),
           h(ButtonPrimary, { onClick: doEdit }, ['Save Changes'])

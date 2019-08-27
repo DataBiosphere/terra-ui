@@ -178,9 +178,10 @@ export default ajaxCaller(class DataTable extends Component {
                       const { name: entityName } = entities[rowIndex]
                       return h(Fragment, [
                         renderDataCell(entityName, namespace),
+                        div({ style: { flexGrow: 1 } }),
                         editable && h(Link, {
                           className: 'cell-hover-only',
-                          style: { marginLeft: '1rem', flexGrow: 1 },
+                          style: { marginLeft: '1rem' },
                           onClick: () => this.setState({ renamingEntity: entityName })
                         }, [icon('edit')])
                       ])
@@ -208,9 +209,10 @@ export default ajaxCaller(class DataTable extends Component {
                             h(Link, {
                               onClick: () => this.setState({ viewData: dataInfo })
                             }, [dataCell]) : dataCell,
+                          div({ style: { flexGrow: 1 } }),
                           editable && h(Link, {
                             className: 'cell-hover-only',
-                            style: { marginLeft: '1rem', flexGrow: 1 },
+                            style: { marginLeft: '1rem' },
                             onClick: () => this.setState({ updatingEntity: { entityName, attributeName: name, attributeValue: dataInfo } })
                           }, [icon('edit')])
                         ])
@@ -347,7 +349,10 @@ export default ajaxCaller(class DataTable extends Component {
 
   displayData(selectedData) {
     const { itemsType, items } = selectedData
-    return _.map(entity => div({ style: { borderBottom: `1px solid ${colors.dark(0.7)}`, padding: '0.5rem' } },
-      itemsType === 'EntityReference' ? `${entity.entityName} (${entity.entityType})` : JSON.stringify(entity)), items)
+    return !!items.length ?
+      _.map(entity => div({ style: { borderBottom: (entity !== _.last(items)) ? `1px solid ${colors.dark(0.7)}` : undefined, padding: '0.5rem' } },
+        [itemsType === 'EntityReference' ? `${entity.entityName} (${entity.entityType})` : JSON.stringify(entity)]),
+      items) :
+      div({ style: { padding: '0.5rem', fontStyle: 'italic' } }, ['No items'])
   }
 })
