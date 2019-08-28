@@ -190,9 +190,16 @@ export const waitOneTick = () => new Promise(setImmediate)
 export const entityAttributeText = (value, machineReadable) => {
   return cond(
     [_.has('entityName', value), () => value.entityName],
-    [_.has('items', value), () => machineReadable ?
-      JSON.stringify(value.items) :
-      `${value.items.length} ${value.itemsType === 'EntityReference' ? 'entities' : 'items'}`],
+    [_.has('items', value), () => {
+      const isPlural = value.items.length !== 1
+      const label = value.itemsType === 'EntityReference' ?
+        isPlural ? 'entities' : 'entity' :
+        isPlural ? 'items' : 'item'
+
+      return machineReadable ?
+        JSON.stringify(value.items) :
+        `${value.items.length} ${label}`
+    }],
     () => value
   )
 }

@@ -13,6 +13,7 @@ import colors from 'src/libs/colors'
 import { EntityEditor, EntityRenamer, renderDataCell } from 'src/libs/data-utils'
 import { reportError } from 'src/libs/error'
 import * as StateHistory from 'src/libs/state-history'
+import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 
 
@@ -207,6 +208,7 @@ export default ajaxCaller(class DataTable extends Component {
                         return h(Fragment, [
                           (!!dataInfo && _.isArray(dataInfo.items)) ?
                             h(Link, {
+                              style: Style.noWrapEllipsis,
                               onClick: () => this.setState({ viewData: dataInfo })
                             }, [dataCell]) : dataCell,
                           div({ style: { flexGrow: 1 } }),
@@ -350,9 +352,10 @@ export default ajaxCaller(class DataTable extends Component {
   displayData(selectedData) {
     const { itemsType, items } = selectedData
     return !!items.length ?
-      h(Fragment, _.map(entity => div({ style: { borderBottom: (entity !== _.last(items)) ? `1px solid ${colors.dark(0.7)}` : undefined, padding: '0.5rem' } },
-        [itemsType === 'EntityReference' ? `${entity.entityName} (${entity.entityType})` : JSON.stringify(entity)]),
-      items)) :
+      h(Fragment,
+        _.map(entity => div({ style: { borderBottom: (entity !== _.last(items)) ? `1px solid ${colors.dark(0.7)}` : undefined, padding: '0.5rem' } },
+          [itemsType === 'EntityReference' ? `${entity.entityName} (${entity.entityType})` : JSON.stringify(entity)]),
+        items)) :
       div({ style: { padding: '0.5rem', fontStyle: 'italic' } }, ['No items'])
   }
 })
