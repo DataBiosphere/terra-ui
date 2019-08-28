@@ -361,7 +361,11 @@ export const EntityRenamer = ({ entityType, entityName, workspaceId: { namespace
   return h(Modal, {
     onDismiss,
     title: 'Rename Entity',
-    okButton: h(ButtonPrimary, { onClick: doRename }, ['Rename'])
+    okButton: h(ButtonPrimary, {
+      onClick: doRename,
+      disabled: entityName === newName,
+      tooltip: entityName === newName && 'No change to save'
+    }, ['Rename'])
   }, [
     h(IdContainer, [id => h(Fragment, [
       h(FormLabel, { htmlFor: id }, ['New entity name']),
@@ -454,16 +458,18 @@ export const EntityEditor = ({ entityType, entityName, attributeName, attributeV
               setNewValue(willBeList ? [newValue] : newValue[0])
               setIsList(willBeList)
             }
-          }, ['Attribute is a list'])
+          }, [span({ style: { marginLeft: '0.5rem' } }, ['Attribute is a list'])])
         ]),
-        div({ style: { margin: '1rem 0' } }, [
+        div({ style: { margin: '0.5rem 0' } }, [
           h(LabeledCheckbox, {
             checked: isReference,
             onChange: setIsReference
-          }, [isList ? 'List members are references to other entities' : 'Attribute is a reference to another entity'])
+          }, [span({ style: { marginLeft: '0.5rem' } }, [
+            isList ? 'List members are references to other entities' : 'Attribute is a reference to another entity'
+          ])])
         ]),
-        isReference && div({ style: { marginBottom: '1rem' } }, [
-          'Referenced entity type:',
+        isReference && div({ style: { marginBottom: '0.5rem' } }, [
+          div({ style: { marginBottom: '0.5rem' } }, 'Referenced entity type:'),
           h(Select, {
             value: linkedEntityType,
             options: entityTypes,
@@ -471,7 +477,7 @@ export const EntityEditor = ({ entityType, entityName, attributeName, attributeV
           })
         ]),
         isList ?
-          h(Fragment, _.map(([i, value]) => div({
+          div({ style: { marginTop: '1rem' } }, _.map(([i, value]) => div({
             style: { display: 'flex', alignItems: 'center', marginBottom: '0.5rem' }
           }, [
             h(TextInput, {
@@ -491,6 +497,7 @@ export const EntityEditor = ({ entityType, entityName, attributeName, attributeV
             ])
           ]), Utils.toIndexPairs(newValue))) :
           h(TextInput, {
+            style: { marginTop: '0.5rem' },
             'aria-label': 'New value',
             autoFocus: true,
             placeholder: 'Enter a value',
@@ -505,7 +512,11 @@ export const EntityEditor = ({ entityType, entityName, attributeName, attributeV
           h(ButtonDanger, { style: { backgroundColor: colors.danger() }, onClick: () => setConsideringDelete(true) }, ['Delete']),
           div({ style: { flexGrow: 1 } }),
           h(ButtonSecondary, { style: { marginRight: '1rem' }, onClick: onDismiss }, ['Cancel']),
-          h(ButtonPrimary, { onClick: doEdit }, ['Save Changes'])
+          h(ButtonPrimary, {
+            onClick: doEdit,
+            disabled: attributeValue === newValue,
+            tooltip: attributeValue === newValue && 'No changes to save'
+          }, ['Save Changes'])
         ])
       ]),
     isBusy && spinnerOverlay
