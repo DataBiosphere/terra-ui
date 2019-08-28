@@ -350,7 +350,7 @@ export const EntityRenamer = ({ entityType, entityName, workspaceId: { namespace
 
   const doRename = async () => {
     try {
-      await Ajax().Workspaces.workspace(namespace, name).renameEntity(entityType, entityName, newName)
+      await Ajax().Workspaces.workspace(namespace, name).renameEntity(entityType, entityName, _.trim(newName))
       onSuccess()
     } catch (e) {
       onDismiss()
@@ -405,8 +405,9 @@ export const EntityEditor = ({ entityType, entityName, attributeName, attributeV
     try {
       setIsBusy(true)
       const preparedValue = Utils.cond(
-        [isReference && isList, () => _.map(v => ({ entityName: v, entityType: linkedEntityType }), newValue)],
-        [isReference, () => ({ entityName: newValue, entityType: linkedEntityType })],
+        [isReference && isList, () => _.map(v => ({ entityName: _.trim(v), entityType: linkedEntityType }), newValue)],
+        [isReference, () => ({ entityName: _.trim(newValue), entityType: linkedEntityType })],
+        [isList, () => _.map(_.trim, newValue)],
         () => newValue
       )
 
@@ -505,7 +506,7 @@ export const EntityEditor = ({ entityType, entityName, attributeName, attributeV
             onChange: setNewValue
           }),
         isList && h(Link, {
-          style: { display: 'block' },
+          style: { display: 'block', marginTop: '1rem' },
           onClick: () => setNewValue(Utils.append(''))
         }, [icon('plus', { style: { marginRight: '0.5rem' } }), 'Add item']),
         div({ style: { marginTop: '1rem', display: 'flex', alignItems: 'baseline' } }, [
