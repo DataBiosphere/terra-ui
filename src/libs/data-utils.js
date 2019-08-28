@@ -471,14 +471,24 @@ export const EntityEditor = ({ entityType, entityName, attributeName, attributeV
           })
         ]),
         isList ?
-          h(Fragment, _.map(([i, value]) => div({}, [
+          h(Fragment, _.map(([i, value]) => div({
+            style: { display: 'flex', alignItems: 'center', marginBottom: '0.5rem' }
+          }, [
             h(TextInput, {
               'aria-label': `List value ${i + 1}`,
               autoFocus: true,
               placeholder: 'Enter a value',
               value,
               onChange: v => setNewValue([...newValue.slice(0, i), v, ...newValue.slice(i + 1)])
-            })
+            }),
+            h(Clickable, {
+              'aria-label': `Remove list value ${i + 1}`,
+              onClick: () => setNewValue([...newValue.slice(0, i), ...newValue.slice(i + 1)]),
+              style: { color: colors.danger(), marginLeft: '0.5rem' },
+              hover: { color: colors.danger(0.8) }
+            }, [
+              icon('times', { size: 20 })
+            ])
           ]), Utils.toIndexPairs(newValue))) :
           h(TextInput, {
             'aria-label': 'New value',
@@ -488,7 +498,7 @@ export const EntityEditor = ({ entityType, entityName, attributeName, attributeV
             onChange: setNewValue
           }),
         isList && h(Link, {
-          style: { display: 'block', marginTop: '1rem' },
+          style: { display: 'block' },
           onClick: () => setNewValue(Utils.append(''))
         }, [icon('plus', { style: { marginRight: '0.5rem' } }), 'Add item']),
         div({ style: { marginTop: '1rem', display: 'flex', alignItems: 'baseline' } }, [
