@@ -1,5 +1,7 @@
 import marked from 'marked'
-import { div } from 'react-hyperscript-helpers'
+import { lazy, Suspense } from 'react'
+import { div, h } from 'react-hyperscript-helpers'
+import { centeredSpinner } from 'src/components/icons'
 
 
 /**
@@ -11,7 +13,7 @@ import { div } from 'react-hyperscript-helpers'
  * @returns {object} div containing rendered markdown
  * @constructor
  */
-export const Markdown = ({ children, renderers = {}, ...props }) => {
+export const MarkdownViewer = ({ children, renderers = {}, ...props }) => {
   const content = marked(children, {
     renderer: Object.assign(new marked.Renderer(), renderers)
   })
@@ -20,6 +22,13 @@ export const Markdown = ({ children, renderers = {}, ...props }) => {
     dangerouslySetInnerHTML: { __html: content }
   })
 }
+
 export const newWindowLinkRenderer = (href, title, text) => {
   return `<a href="${href}" ${(title ? `title=${title}` : '')} target="_blank">${text}</a>`
+}
+
+const SimpleMDE = lazy(() => import('react-simplemde-editor'))
+
+export const MarkdownEditor = props => {
+  return h(Suspense, { fallback: centeredSpinner() }, [h(SimpleMDE, props)])
 }

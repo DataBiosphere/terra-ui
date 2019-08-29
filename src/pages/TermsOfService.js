@@ -1,7 +1,7 @@
 import { Component } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import { backgroundLogo, ButtonPrimary, ButtonSecondary } from 'src/components/common'
-import { Markdown } from 'src/components/Markdown'
+import { MarkdownViewer } from 'src/components/markdown'
 import { Ajax } from 'src/libs/ajax'
 import { signOut } from 'src/libs/auth'
 import colors from 'src/libs/colors'
@@ -201,7 +201,7 @@ const termsTitle = div({ style: { color: colors.dark(), fontWeight: 600 } }, [
 const TOSMarkdown = div({
   style: { maxHeight: 400, overflowY: 'auto', lineHeight: 1.5, marginTop: '1rem', paddingRight: '1rem' }
 }, [
-  h(Markdown, {
+  h(MarkdownViewer, {
     renderers: {
       heading: (text, level) => {
         return `<h${level} style="color: ${colors.dark()}; margin-bottom: 0">${text}</h${level}>`

@@ -1,17 +1,19 @@
 import _ from 'lodash/fp'
-import { Component, Fragment } from 'react'
+import { Fragment, useEffect, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { Clickable, Link } from 'src/components/common'
 import { centeredSpinner } from 'src/components/icons'
 import { libraryTopMatter } from 'src/components/library-common'
 import broadSquare from 'src/images/library/code/broad-square.svg'
 import dockstoreLogo from 'src/images/library/code/dockstore.svg'
-import { ajaxCaller } from 'src/libs/ajax'
+import { Ajax, useCancellation } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
+import { withErrorReporting } from 'src/libs/error'
 import { getAppName, returnParam } from 'src/libs/logos'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
+import { useOnMount, withBusyState } from 'src/libs/utils'
 
 
 const styles = {
@@ -21,12 +23,9 @@ const styles = {
   }
 }
 
-export const makeWorkflowCard = ({ method, onClick }) => {
-  const { namespace, name, synopsis } = method
-
+export const MethodCard = ({ method: { name, synopsis }, ...props }) => {
   return h(Clickable, {
-    href: !onClick ? `${getConfig().firecloudUrlRoot}/?return=${returnParam()}#methods/${namespace}/${name}/` : undefined,
-    onClick,
+    ...props,
     style: {
       ...Style.elements.card.container,
       backgroundColor: 'white',
@@ -51,89 +50,97 @@ export const makeWorkflowCard = ({ method, onClick }) => {
   ])
 }
 
-const logoTile = ({ logoFile, style = {} }) => div({
-  style: {
-    flexShrink: 0,
-    backgroundImage: `url(${logoFile})`,
-    backgroundRepeat: 'no-repeat', backgroundPosition: 'center', backgroundColor: 'white',
-    backgroundSize: 27,
-    width: 37, height: 37,
-    marginRight: 13,
-    ...style
-  }
-})
+const LogoTile = ({ logoFile, ...props }) => {
+  return div(_.merge({
+    style: {
+      flexShrink: 0,
+      backgroundImage: `url(${logoFile})`,
+      backgroundRepeat: 'no-repeat', backgroundPosition: 'center',
+      backgroundSize: 27,
+      width: 37, height: 37,
+      marginRight: 13
+    }
+  }, props))
+}
 
-export const dockstoreTile = () => div({ style: { display: 'flex' } }, [
-  logoTile({ logoFile: dockstoreLogo }),
-  div([
-    h(Link, { href: `${getConfig().dockstoreUrlRoot}/search?_type=workflow&descriptorType=wdl&searchMode=files` }, 'Dockstore'),
-    div(['Browse WDL workflows in Dockstore, an open platform used by the GA4GH for sharing Docker-based workflows'])
-  ])
-])
-
-export const fcMethodRepoTile = () => div({ style: { display: 'flex' } }, [
-  logoTile({ logoFile: broadSquare, style: { backgroundColor: undefined, backgroundSize: 37 } }),
-  div([
-    h(Link, { href: `${getConfig().firecloudUrlRoot}/?return=${returnParam()}#methods` }, 'Broad Methods Repository'),
-    div([`Use Broad workflows in ${getAppName()}. Share your own, or choose from > 700 public workflows`])
-  ])
-])
-
-
-const Code = ajaxCaller(class Code extends Component {
-  constructor(props) {
-    super(props)
-    const { featuredList, methods } = StateHistory.get()
-
-    this.state = { featuredList, methods }
-  }
-
-  async componentDidMount() {
-    const { ajax: { Methods } } = this.props
-
-    const [featuredList, methods] = await Promise.all([
-      fetch(`${getConfig().firecloudBucketRoot}/featured-methods.json`).then(res => res.json()),
-      Methods.list({ namespace: 'gatk' })
+export const DockstoreTile = () => {
+  return div({ style: { display: 'flex' } }, [
+    h(LogoTile, { logoFile: dockstoreLogo, style: { backgroundColor: 'white' } }),
+    div([
+      h(Link, { href: `${getConfig().dockstoreUrlRoot}/search?_type=workflow&descriptorType=wdl&searchMode=files` }, 'Dockstore'),
+      div(['Browse WDL workflows in Dockstore, an open platform used by the GA4GH for sharing Docker-based workflows'])
     ])
+  ])
+}
 
-    this.setState({ featuredList, methods })
-    StateHistory.update({ featuredList, methods })
-  }
+export const MethodRepoTile = () => {
+  return div({ style: { display: 'flex' } }, [
+    h(LogoTile, { logoFile: broadSquare, style: { backgroundSize: 37 } }),
+    div([
+      h(Link, { href: `${getConfig().firecloudUrlRoot}/?return=${returnParam()}#methods` }, 'Broad Methods Repository'),
+      div([`Use Broad workflows in ${getAppName()}. Share your own, or choose from > 700 public workflows`])
+    ])
+  ])
+}
 
-  render() {
-    const { featuredList, methods } = this.state
-
-    const featuredMethods = _.compact(
-      _.map(
-        ({ namespace, name }) => _.maxBy('snapshotId', _.filter({ namespace, name }, methods)),
-        featuredList
-      )
-    )
-
-    return h(Fragment, [
-      libraryTopMatter('code & workflows'),
-      div({ role: 'main' }, [
-        !(featuredList && methods) ?
-          centeredSpinner() :
-          div({ style: { display: 'flex', flex: 1 } }, [
-            div({ style: { flex: 1, margin: '30px 0 30px 40px' } }, [
-              div({ style: styles.header }, 'GATK4 Best Practices workflows'),
-              div({ style: { display: 'flex', flexWrap: 'wrap' } }, [
-                ..._.map(method => makeWorkflowCard({ method }), featuredMethods)
-              ])
-            ]),
-            div({ style: { width: 385, padding: '25px 30px', backgroundColor: colors.light(), lineHeight: '20px' } }, [
-              div({ style: { ...styles.header, fontSize: 16 } }, 'FIND ADDITIONAL WORKFLOWS'),
-              dockstoreTile(),
-              div({ style: { marginTop: 40 } }, [
-                fcMethodRepoTile()
-              ])
-            ])
-          ])
+const Code = () => {
+  const signal = useCancellation()
+  const stateHistory = StateHistory.get()
+  const [featuredList, setFeaturedList] = useState(stateHistory.featuredList)
+  const [methods, setMethods] = useState(stateHistory.methods)
+  const [loading, setLoading] = useState(false)
+  useOnMount(() => {
+    const loadData = _.flow(
+      withErrorReporting('Error loading workflows'),
+      withBusyState(setLoading)
+    )(async () => {
+      const [newFeaturedList, newMethods] = await Promise.all([
+        fetch(`${getConfig().firecloudBucketRoot}/featured-methods.json`, { signal }).then(res => res.json()),
+        Ajax(signal).Methods.list({ namespace: 'gatk' })
       ])
+      setFeaturedList(newFeaturedList)
+      setMethods(newMethods)
+    })
+    loadData()
+  })
+  useEffect(() => {
+    StateHistory.update({ featuredList, methods })
+  }, [featuredList, methods])
+
+  const featuredMethods = _.flow(
+    _.map(({ namespace, name }) => _.maxBy('snapshotId', _.filter({ namespace, name }, methods))),
+    _.compact
+  )(featuredList)
+
+  return h(Fragment, [
+    libraryTopMatter('code & workflows'),
+    div({ role: 'main' }, [
+      div({ style: { display: 'flex', flex: 1 } }, [
+        div({ style: { flex: 1, margin: '30px 0 30px 40px' } }, [
+          div({ style: styles.header }, 'GATK4 Best Practices workflows'),
+          div({ style: { display: 'flex', flexWrap: 'wrap' } }, [
+            _.map(method => {
+              const { namespace, name } = method
+              return h(MethodCard, {
+                key: `${namespace}/${name}`,
+                href: `${getConfig().firecloudUrlRoot}/?return=${returnParam()}#methods/${namespace}/${name}/`,
+                method
+              })
+            }, featuredMethods)
+          ])
+        ]),
+        div({ style: { width: 385, padding: '25px 30px', backgroundColor: colors.light(), lineHeight: '20px' } }, [
+          div({ style: { ...styles.header, fontSize: 16 } }, 'FIND ADDITIONAL WORKFLOWS'),
+          h(DockstoreTile),
+          div({ style: { marginTop: 40 } }, [
+            h(MethodRepoTile)
+          ])
+        ])
+      ]),
+      loading && centeredSpinner()
     ])
-  }
-})
+  ])
+}
 
 
 export const navPaths = [
