@@ -307,8 +307,10 @@ export class NewClusterModal extends PureComponent {
       ]),
       changed ?
         div({ style: styles.warningBox }, [
-          'Updated environments take a few minutes to prepare. ',
-          'You will be notified when it is ready and can continue working as it builds.'
+          div({ style: styles.label }, ['Caution:']),
+          div({ }, ['Updating a Notebook Runtime environment will delete all existing non-notebook files and ' +
+          'installed packages. You will be unable to work on the notebooks in this workspace while it ' +
+          'updates, which can take a few minutes.'])
         ]) :
         div({ style: styles.divider }),
       div({ style: styles.row }, [
