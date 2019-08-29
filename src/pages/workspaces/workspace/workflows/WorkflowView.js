@@ -185,7 +185,7 @@ const BucketContentModal = ajaxCaller(class BucketContentModal extends Component
   }
 
   componentDidUpdate(prevProps) {
-    StateHistory.update(_.pick(['objects', 'prefix'], this.state))
+    StateHistory.update(_.pick(['objects', 'prefix', 'sortOrder'], this.state))
   }
 
   async load(prefix = this.state.prefix) {
@@ -323,6 +323,7 @@ const WorkflowView = _.flow(
       useCallCache: true,
       includeOptionalInputs: false,
       errors: { inputs: {}, outputs: {} },
+      sortOrder: defaultSort.value,
       ...StateHistory.get()
     }
   }
@@ -797,7 +798,7 @@ const WorkflowView = _.flow(
 
   renderIOTable(key) {
     const { workspace } = this.props
-    const { modifiedConfig, modifiedInputsOutputs, errors, entityMetadata, workspaceAttributes, includeOptionalInputs, currentSnapRedacted } = this.state
+    const { modifiedConfig, modifiedInputsOutputs, errors, entityMetadata, workspaceAttributes, includeOptionalInputs, currentSnapRedacted, sortOrder, sortOrder: { field, direction } }= this.state
     // Sometimes we're getting totally empty metadata. Not sure if that's valid; if not, revert this
     const attributeNames = _.get([modifiedConfig.rootEntityType, 'attributeNames'], entityMetadata) || []
     const suggestions = [
@@ -809,7 +810,8 @@ const WorkflowView = _.flow(
       modifiedInputsOutputs[key]
     const filteredData = _.flow(
       key === 'inputs' && !includeOptionalInputs ? _.reject('optional') : _.identity,
-      _.sortBy(['optional', ({ name }) => name.toLowerCase()])
+      _.sortBy(['optional', ({ name }) => name.toLowerCase()]),
+      _.orderBy(sortTokens[field] || field, direction)
     )(data)
 
     return h(Dropzone, {
@@ -827,6 +829,17 @@ const WorkflowView = _.flow(
         'The selected file is not a json file. To import inputs for this workflow, upload a file with a .json extension.'),
       onDropAccepted: files => this.uploadJson(key, files[0])
     }, [({ openUploader }) => h(Fragment, [
+      h(IdContainer, [id => h(Fragment, [
+        label({ htmlFor: id, style: { marginLeft: '0.15rem', marginRight: 'auto' } }, ['Sort By Variable:']),
+        h(Select, {
+          id,
+          value: sortOrder,
+          isClearable: false,
+          styles: { container: old => ({ ...old, width: 220, marginRight: '1.10rem' }) },
+          options: sortOptions,
+          onChange: selected => this.setState({ sortOrder: selected.value })
+        })
+      ])]),
       div({ style: { flex: 'none', display: 'flex', marginBottom: '0.25rem' } }, [
         key === 'inputs' && _.some('optional', modifiedInputsOutputs['inputs']) ?
           h(Link, { style: { marginRight: 'auto' }, onClick: () => this.setState({ includeOptionalInputs: !includeOptionalInputs }) },
@@ -901,6 +914,15 @@ const WorkflowView = _.flow(
     this.updateSingleOrMultipleRadioState(savedConfig)
   }
 })
+
+const sortTokens = {
+  lowerCaseName: config => config.name.toLowerCase()
+}
+const defaultSort = { label: 'Alphabetical', value: { field: 'lowerCaseName', direction: 'asc' } }
+const sortOptions = [
+  defaultSort,
+  { label: 'Reverse Alphabetical', value: { field: 'lowerCaseName', direction: 'desc' } }
+]
 
 
 export const navPaths = [
