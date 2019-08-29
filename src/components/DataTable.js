@@ -181,6 +181,7 @@ export default ajaxCaller(class DataTable extends Component {
                         renderDataCell(entityName, namespace),
                         div({ style: { flexGrow: 1 } }),
                         editable && h(Link, {
+                          'aria-label': 'Rename entity',
                           className: 'cell-hover-only',
                           style: { marginLeft: '1rem' },
                           onClick: () => this.setState({ renamingEntity: entityName })
@@ -213,6 +214,7 @@ export default ajaxCaller(class DataTable extends Component {
                             }, [dataCell]) : dataCell,
                           div({ style: { flexGrow: 1 } }),
                           editable && h(Link, {
+                            'aria-label': `Edit attribute ${name} of ${entityType} ${entityName}`,
                             className: 'cell-hover-only',
                             style: { marginLeft: '1rem' },
                             onClick: () => this.setState({ updatingEntity: { entityName, attributeName: name, attributeValue: dataInfo } })
@@ -252,7 +254,7 @@ export default ajaxCaller(class DataTable extends Component {
         showX: true,
         onDismiss: () => this.setState({ viewData: undefined })
       }, [div({ style: { maxHeight: '80vh', overflowY: 'auto' } }, [this.displayData(viewData)])]),
-      !!renamingEntity && h(EntityRenamer, {
+      renamingEntity !== undefined && h(EntityRenamer, {
         entityType, entityName: renamingEntity,
         workspaceId,
         onSuccess: () => {

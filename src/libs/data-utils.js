@@ -3,11 +3,11 @@ import PropTypes from 'prop-types'
 import { Component, Fragment, useState } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import {
-  ButtonDanger, ButtonPrimary, ButtonSecondary, Clickable, IdContainer, LabeledCheckbox, Link, Select, spinnerOverlay
+  ButtonDanger, ButtonOutline, ButtonPrimary, ButtonSecondary, Clickable, IdContainer, LabeledCheckbox, Link, Select, spinnerOverlay
 } from 'src/components/common'
 import Dropzone from 'src/components/Dropzone'
 import { icon } from 'src/components/icons'
-import { TextInput } from 'src/components/input'
+import { TextInput, ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { TextCell } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
@@ -16,7 +16,7 @@ import ReferenceData from 'src/data/reference-data'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
-import { formHint, FormLabel } from 'src/libs/forms'
+import { FormLabel } from 'src/libs/forms'
 import { getAppName } from 'src/libs/logos'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -347,14 +347,22 @@ export const EntityUploader = class EntityUploader extends Component {
 
 export const EntityRenamer = ({ entityType, entityName, workspaceId: { namespace, name }, onDismiss, onSuccess }) => {
   const [newName, setNewName] = useState(entityName)
+  const [isBusy, setIsBusy] = useState()
+  const [takenName, setTakenName] = useState()
 
   const doRename = async () => {
     try {
+      setIsBusy(true)
       await Ajax().Workspaces.workspace(namespace, name).renameEntity(entityType, entityName, _.trim(newName))
       onSuccess()
     } catch (e) {
-      onDismiss()
-      reportError('Unable to rename entity', e)
+      if (e.status === 409) {
+        setTakenName(newName)
+        setIsBusy(false)
+      } else {
+        onDismiss()
+        reportError('Unable to rename entity', e)
+      }
     }
   }
 
@@ -363,21 +371,31 @@ export const EntityRenamer = ({ entityType, entityName, workspaceId: { namespace
     title: 'Rename Entity',
     okButton: h(ButtonPrimary, {
       onClick: doRename,
-      disabled: entityName === newName,
-      tooltip: entityName === newName && 'No change to save'
+      disabled: entityName === newName || takenName === newName || !newName,
+      tooltip: Utils.cond(
+        [entityName === newName, 'No change to save'],
+        [takenName === newName, 'An entity with this name already exists'],
+        [!newName, 'Name can\'t be blank'],
+      )
     }, ['Rename'])
   }, [
     h(IdContainer, [id => h(Fragment, [
       h(FormLabel, { htmlFor: id }, ['New entity name']),
-      h(TextInput, {
-        id,
-        autoFocus: true,
-        placeholder: 'Enter a name',
-        value: newName,
-        onChange: setNewName
-      }),
-      formHint('If another entity exists in the workspace with the chosen name, the rename will fail.')
-    ])])
+      h(ValidatedInput, {
+        inputProps: {
+          id,
+          autoFocus: true,
+          placeholder: 'Enter a name',
+          value: newName,
+          onChange: setNewName
+        },
+        error: Utils.cond(
+          [takenName === newName, 'An entity with this name already exists'],
+          [!newName, 'Name can\'t be blank']
+        )
+      })
+    ])]),
+    isBusy && spinnerOverlay
   ])
 }
 
@@ -392,14 +410,15 @@ export const EntityEditor = ({ entityType, entityName, attributeName, attributeV
     attributeValue
   ))
   const [linkedEntityType, setLinkedEntityType] = useState(() => Utils.cond(
-    [initialIsReference && initialIsList, () => attributeValue.items[0].entityType],
+    [initialIsReference && initialIsList, () => attributeValue.items[0] ? attributeValue.items[0].entityType : undefined],
     [initialIsReference, () => attributeValue.entityType],
     undefined
   ))
-  const [isList, setIsList] = useState(initialIsList)
   const [isReference, setIsReference] = useState(initialIsReference)
   const [isBusy, setIsBusy] = useState()
   const [consideringDelete, setConsideringDelete] = useState()
+
+  const isList = _.isArray(newValue)
 
   const doEdit = async () => {
     try {
@@ -455,10 +474,7 @@ export const EntityEditor = ({ entityType, entityName, attributeName, attributeV
         div([
           h(LabeledCheckbox, {
             checked: isList,
-            onChange: willBeList => {
-              setNewValue(willBeList ? [newValue] : newValue[0])
-              setIsList(willBeList)
-            }
+            onChange: willBeList => setNewValue(willBeList ? [newValue] : newValue[0])
           }, [span({ style: { marginLeft: '0.5rem' } }, ['Attribute is a list'])])
         ]),
         div({ style: { margin: '0.5rem 0' } }, [
@@ -510,13 +526,13 @@ export const EntityEditor = ({ entityType, entityName, attributeName, attributeV
           onClick: () => setNewValue(Utils.append(''))
         }, [icon('plus', { style: { marginRight: '0.5rem' } }), 'Add item']),
         div({ style: { marginTop: '1rem', display: 'flex', alignItems: 'baseline' } }, [
-          h(ButtonDanger, { style: { backgroundColor: colors.danger() }, onClick: () => setConsideringDelete(true) }, ['Delete']),
+          h(ButtonOutline, { onClick: () => setConsideringDelete(true) }, ['Delete']),
           div({ style: { flexGrow: 1 } }),
           h(ButtonSecondary, { style: { marginRight: '1rem' }, onClick: onDismiss }, ['Cancel']),
           h(ButtonPrimary, {
             onClick: doEdit,
-            disabled: attributeValue === newValue,
-            tooltip: attributeValue === newValue && 'No changes to save'
+            disabled: _.isEqual(attributeValue, newValue),
+            tooltip: _.isEqual(attributeValue, newValue) && 'No changes to save'
           }, ['Save Changes'])
         ])
       ]),

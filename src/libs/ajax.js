@@ -433,7 +433,10 @@ const attributesUpdateOps = _.flow(
     return _.isArray(v) ?
       [
         { op: 'RemoveAttribute', attributeName: k },
-        ...(_.isObject(v[0]) ? [{ op: 'CreateAttributeEntityReferenceList', attributeListName: k }] : []),
+        ...(_.isObject(v[0]) ?
+          [{ op: 'CreateAttributeEntityReferenceList', attributeListName: k }] :
+          [{ op: 'CreateAttributeValueList', attributeName: k }]
+        ),
         ..._.map(x => ({ op: 'AddListMember', attributeListName: k, newMember: x }), v)
       ] :
       [{ op: 'AddUpdateAttribute', attributeName: k, addUpdateAttribute: v }]
