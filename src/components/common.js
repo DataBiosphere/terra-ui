@@ -6,6 +6,7 @@ import { div, h, img, input, label, span } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
 import RSelect from 'react-select'
 import RAsyncCreatableSelect from 'react-select/async-creatable'
+import RSwitch from 'react-switch'
 import { centeredSpinner, icon } from 'src/components/icons'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import hexButton from 'src/images/hex-button.svg'
@@ -368,4 +369,24 @@ export const CromwellVersionLink = props => {
       ...props
     }, ['Cromwell ', version]) :
     'Cromwell version loading...'
+}
+
+const makeSwitchLabel = isOn => div({
+  style: {
+    display: 'flex', justifyContent: isOn ? 'flex-start' : 'flex-end',
+    fontSize: 15, fontWeight: 'bold', color: 'white',
+    height: '100%', lineHeight: '28px',
+    ...(isOn ? { marginLeft: '0.75rem' } : { marginRight: '0.5rem' })
+  }
+}, [isOn ? 'True' : 'False'])
+
+export const Switch = props => {
+  return h(RSwitch, {
+    offColor: colors.dark(0.5),
+    onColor: colors.success(1.2),
+    checkedIcon: makeSwitchLabel(true),
+    uncheckedIcon: makeSwitchLabel(false),
+    width: 80,
+    ...props
+  })
 }

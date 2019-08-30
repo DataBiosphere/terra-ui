@@ -1,13 +1,13 @@
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
 import { Component, Fragment, useState } from 'react'
-import { div, h, span } from 'react-hyperscript-helpers'
+import { div, fieldset, h, legend, span } from 'react-hyperscript-helpers'
 import {
-  ButtonDanger, ButtonOutline, ButtonPrimary, ButtonSecondary, Clickable, IdContainer, LabeledCheckbox, Link, Select, spinnerOverlay
+  ButtonOutline, ButtonPrimary, ButtonSecondary, Clickable, IdContainer, LabeledCheckbox, Link, RadioButton, Select, spinnerOverlay, Switch
 } from 'src/components/common'
 import Dropzone from 'src/components/Dropzone'
 import { icon } from 'src/components/icons'
-import { TextInput, ValidatedInput } from 'src/components/input'
+import { NumberInput, TextInput, ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { TextCell } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
@@ -33,7 +33,7 @@ export const renderDataCell = (data, namespace) => {
   const isUri = datum => _.startsWith('gs://', datum) || _.startsWith('dos://', datum)
 
   const renderCell = datum => h(TextCell, { title: datum },
-    [isUri(datum) ? h(UriViewerLink, { uri: datum, googleProject: namespace }) : datum])
+    [isUri(datum) ? h(UriViewerLink, { uri: datum, googleProject: namespace }) : _.toString(datum)])
 
   const renderArray = items => {
     return items.map((v, i) => h(Fragment, { key: i }, [
@@ -368,14 +368,14 @@ export const EntityRenamer = ({ entityType, entityName, workspaceId: { namespace
 
   return h(Modal, {
     onDismiss,
-    title: 'Rename Entity',
+    title: `Rename ${entityName}`,
     okButton: h(ButtonPrimary, {
       onClick: doRename,
       disabled: entityName === newName || takenName === newName || !newName,
       tooltip: Utils.cond(
         [entityName === newName, 'No change to save'],
         [takenName === newName, 'An entity with this name already exists'],
-        [!newName, 'Name can\'t be blank'],
+        [!newName, 'Name can\'t be blank']
       )
     }, ['Rename'])
   }, [
@@ -401,7 +401,7 @@ export const EntityRenamer = ({ entityType, entityName, workspaceId: { namespace
 
 export const EntityEditor = ({ entityType, entityName, attributeName, attributeValue, entityTypes, workspaceId: { namespace, name }, onDismiss, onSuccess }) => {
   const initialIsReference = _.isObject(attributeValue) && (attributeValue.entityType || attributeValue.itemsType === 'EntityReference')
-  const initialIsList = _.isObject(attributeValue) && attributeValue.itemsType
+  const initialIsList = _.isObject(attributeValue) && attributeValue.items
 
   const [newValue, setNewValue] = useState(() => Utils.cond(
     [initialIsReference && initialIsList, () => _.map('entityName', attributeValue.items)],
@@ -414,11 +414,17 @@ export const EntityEditor = ({ entityType, entityName, attributeName, attributeV
     [initialIsReference, () => attributeValue.entityType],
     undefined
   ))
-  const [isReference, setIsReference] = useState(initialIsReference)
+  const [editType, setEditType] = useState(() => Utils.cond(
+    [initialIsReference, 'reference'],
+    [(initialIsList ? attributeValue.items[0] : attributeValue) === undefined, 'string'],
+    [initialIsList, () => typeof attributeValue.items[0]],
+    typeof attributeValue
+  ))
   const [isBusy, setIsBusy] = useState()
   const [consideringDelete, setConsideringDelete] = useState()
 
   const isList = _.isArray(newValue)
+  const isReference = editType === 'reference'
 
   const doEdit = async () => {
     try {
@@ -426,8 +432,8 @@ export const EntityEditor = ({ entityType, entityName, attributeName, attributeV
       const preparedValue = Utils.cond(
         [isReference && isList, () => _.map(v => ({ entityName: _.trim(v), entityType: linkedEntityType }), newValue)],
         [isReference, () => ({ entityName: _.trim(newValue), entityType: linkedEntityType })],
-        [isList, () => _.map(_.trim, newValue)],
-        () => newValue
+        [isList, () => _.map(Utils.convertValue(editType), newValue)],
+        () => Utils.convertValue(editType, newValue)
       )
 
       await Ajax()
@@ -454,6 +460,16 @@ export const EntityEditor = ({ entityType, entityName, attributeName, attributeV
 
   const boldish = text => span({ style: { fontWeight: 600 } }, [text])
 
+  const makeInput = ({ value, ...props }) => Utils.switchCase(editType,
+    ['number', () => h(NumberInput, { autoFocus: true, placeholder: 'Enter a value', value, ...props })],
+    ['boolean', () => div({
+      style: { flexGrow: 1, display: 'flex', alignItems: 'center', height: '2.25rem' }
+    }, [
+      h(Switch, { checked: !!value, ...props })
+    ])],
+    [Utils.DEFAULT, () => h(TextInput, { autoFocus: true, placeholder: 'Enter a value', value, ...props })]
+  )
+
   return h(Modal, {
     title: 'Modify Attribute',
     onDismiss,
@@ -467,71 +483,85 @@ export const EntityEditor = ({ entityType, entityName, attributeName, attributeV
         div({ style: { marginTop: '1rem', display: 'flex', alignItems: 'baseline' } }, [
           div({ style: { flexGrow: 1 } }),
           h(ButtonSecondary, { style: { marginRight: '1rem' }, onClick: () => setConsideringDelete(false) }, ['Back to editing']),
-          h(ButtonDanger, { style: { backgroundColor: colors.danger() }, onClick: doDelete }, ['Delete Attribute'])
+          h(ButtonPrimary, { onClick: doDelete }, ['Delete Attribute'])
         ])
       ]) :
       h(Fragment, [
-        div([
+        div({ style: { marginBottom: '1rem' } }, [
+          fieldset({ style: { border: 'none', margin: 0, padding: 0 } }, [
+            legend({ style: { marginBottom: '0.5rem' } }, [isList ? 'List item type:' : 'Attribute type:']),
+            h(Fragment, _.map(({ type, tooltip }) => h(TooltipTrigger, {
+              content: tooltip
+            }, [
+              span({ style: { marginRight: '1.2rem' } }, [h(RadioButton, {
+                text: _.startCase(type),
+                name: 'edit-type',
+                checked: editType === type,
+                onChange: () => setEditType(type),
+                labelStyle: { paddingLeft: '0.5rem' }
+              })])
+            ]), [
+              { type: 'string' },
+              { type: 'reference', tooltip: 'A link to another entity' },
+              { type: 'number' },
+              { type: 'boolean' }
+            ]))
+          ]),
+          isReference && div({ style: { marginTop: '0.5rem' } }, [
+            div({ style: { marginBottom: '0.5rem' } }, 'Referenced entity type:'),
+            h(Select, {
+              value: linkedEntityType,
+              options: entityTypes,
+              onChange: ({ value }) => setLinkedEntityType(value)
+            })
+          ])
+        ]),
+        div({ style: { marginBottom: '0.5rem' } }, [
           h(LabeledCheckbox, {
             checked: isList,
             onChange: willBeList => setNewValue(willBeList ? [newValue] : newValue[0])
           }, [span({ style: { marginLeft: '0.5rem' } }, ['Attribute is a list'])])
         ]),
-        div({ style: { margin: '0.5rem 0' } }, [
-          h(LabeledCheckbox, {
-            checked: isReference,
-            onChange: setIsReference
-          }, [span({ style: { marginLeft: '0.5rem' } }, [
-            isList ? 'List members are references to other entities' : 'Attribute is a reference to another entity'
-          ])])
-        ]),
-        isReference && div({ style: { marginBottom: '0.5rem' } }, [
-          div({ style: { marginBottom: '0.5rem' } }, 'Referenced entity type:'),
-          h(Select, {
-            value: linkedEntityType,
-            options: entityTypes,
-            onChange: ({ value }) => setLinkedEntityType(value)
-          })
-        ]),
         isList ?
-          div({ style: { marginTop: '1rem' } }, _.map(([i, value]) => div({
+          div({ style: { marginTop: '1.5rem' } }, _.map(([i, value]) => div({
             style: { display: 'flex', alignItems: 'center', marginBottom: '0.5rem' }
           }, [
-            h(TextInput, {
+            makeInput({
               'aria-label': `List value ${i + 1}`,
               autoFocus: true,
               placeholder: 'Enter a value',
               value,
               onChange: v => setNewValue([...newValue.slice(0, i), v, ...newValue.slice(i + 1)])
             }),
-            h(Clickable, {
+            h(Link, {
               'aria-label': `Remove list value ${i + 1}`,
+              disabled: newValue.length === 1,
               onClick: () => setNewValue([...newValue.slice(0, i), ...newValue.slice(i + 1)]),
-              style: { color: colors.danger(), marginLeft: '0.5rem' },
-              hover: { color: colors.danger(0.8) }
+              style: { marginLeft: '0.5rem' }
             }, [
               icon('times', { size: 20 })
             ])
           ]), Utils.toIndexPairs(newValue))) :
-          h(TextInput, {
-            style: { marginTop: '0.5rem' },
-            'aria-label': 'New value',
-            autoFocus: true,
-            placeholder: 'Enter a value',
-            value: newValue,
-            onChange: setNewValue
-          }),
+          div({ style: { marginTop: '1.5rem' } }, [
+            makeInput({
+              'aria-label': 'New value',
+              autoFocus: true,
+              placeholder: 'Enter a value',
+              value: newValue,
+              onChange: setNewValue
+            })
+          ]),
         isList && h(Link, {
           style: { display: 'block', marginTop: '1rem' },
           onClick: () => setNewValue(Utils.append(''))
         }, [icon('plus', { style: { marginRight: '0.5rem' } }), 'Add item']),
-        div({ style: { marginTop: '1rem', display: 'flex', alignItems: 'baseline' } }, [
+        div({ style: { marginTop: '2rem', display: 'flex', alignItems: 'baseline' } }, [
           h(ButtonOutline, { onClick: () => setConsideringDelete(true) }, ['Delete']),
           div({ style: { flexGrow: 1 } }),
           h(ButtonSecondary, { style: { marginRight: '1rem' }, onClick: onDismiss }, ['Cancel']),
           h(ButtonPrimary, {
             onClick: doEdit,
-            disabled: _.isEqual(attributeValue, newValue),
+            disabled: _.isEqual(attributeValue, newValue) || newValue === undefined,
             tooltip: _.isEqual(attributeValue, newValue) && 'No changes to save'
           }, ['Save Changes'])
         ])
