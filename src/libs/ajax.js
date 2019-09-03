@@ -696,6 +696,20 @@ const Workspaces = signal => ({
 })
 
 
+const Workflows = signal => ({
+  workflow: id => {
+    const root = `api/workflows/v1/${id}`
+
+    return {
+      metadata: async () => {
+        const res = await fetchOrchestration(`${root}/metadata`, _.merge(authOpts(), { signal }))
+        return res.json()
+      }
+    }
+  }
+})
+
+
 const Buckets = signal => ({
   getObject: async (bucket, object, namespace) => {
     return fetchBuckets(`storage/v1/b/${bucket}/o/${encodeURIComponent(object)}`,
@@ -1010,6 +1024,7 @@ export const Ajax = signal => {
     Groups: Groups(signal),
     Billing: Billing(signal),
     Workspaces: Workspaces(signal),
+    Workflows: Workflows(signal),
     Buckets: Buckets(signal),
     GoogleBilling: GoogleBilling(signal),
     Methods: Methods(signal),
