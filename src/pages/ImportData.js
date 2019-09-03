@@ -64,6 +64,7 @@ const Importer = class Importer extends Component {
     try {
       await Utils.switchCase(format,
         ['entitiesJson', () => Ajax().Workspaces.workspace(namespace, name).importEntities(url)],
+        ['PFB', () => Ajax().Workspaces.workspace(namespace, name).importPFB(url)],
         [Utils.DEFAULT, () => Ajax().Workspaces.workspace(namespace, name).importBagit(url)]
       )
       notify('success', 'Data imported successfully.', { timeout: 3000 })

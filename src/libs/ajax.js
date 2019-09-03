@@ -636,6 +636,10 @@ const Workspaces = signal => ({
         return fetchOrchestration(`api/${root}/flexibleImportEntities`, _.merge(authOpts(), { body: formData, signal, method: 'POST' }))
       },
 
+      importPFB: url => {
+        return fetchOrchestration(`api/${root}/importPFB`, _.mergeAll([authOpts(), jsonBody({ url }), { signal, method: 'POST' }]))
+      },
+
       deleteEntities: entities => {
         return fetchRawls(`${root}/entities/delete`, _.mergeAll([authOpts(), jsonBody(entities), { signal, method: 'POST' }]))
       },

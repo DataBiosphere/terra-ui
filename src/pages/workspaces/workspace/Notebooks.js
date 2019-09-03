@@ -5,7 +5,7 @@ import { Component, Fragment, useState } from 'react'
 import { a, div, h, label, span } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
-import togglesListView from 'src/components/CardsListToggle'
+import { ViewToggleButtons, withViewToggle } from 'src/components/CardsListToggle'
 import { Clickable, IdContainer, Link, makeMenuIcon, MenuButton, PageBox, Select, spinnerOverlay } from 'src/components/common'
 import Dropzone from 'src/components/Dropzone'
 import { icon } from 'src/components/icons'
@@ -241,7 +241,7 @@ const Notebooks = _.flow(
     breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
     title: 'Notebooks', activeTab: 'notebooks'
   }),
-  togglesListView('notebooksTab'),
+  withViewToggle('notebooksTab'),
   ajaxCaller
 )(class Notebooks extends Component {
   constructor(props) {
@@ -378,7 +378,7 @@ const Notebooks = _.flow(
   render() {
     const { loading, saving, notebooks, creating, renamingNotebookName, copyingNotebookName, deletingNotebookName, exportingNotebookName, sortOrder } = this.state
     const {
-      namespace, viewToggleButtons, workspace,
+      namespace, listView, setListView, workspace,
       workspace: { accessLevel, workspace: { bucketName } }
     } = this.props
     const existingNames = this.getExistingNames()
@@ -406,7 +406,7 @@ const Notebooks = _.flow(
               onChange: selected => this.setState({ sortOrder: selected.value })
             })
           ])]),
-          viewToggleButtons,
+          h(ViewToggleButtons, { listView, setListView }),
           creating && h(NotebookCreator, {
             namespace, bucketName, existingNames,
             reloadList: () => this.refresh(),

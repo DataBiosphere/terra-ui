@@ -1,4 +1,5 @@
 import _ from 'lodash/fp'
+import { getDynamic, removeDynamic, setDynamic } from 'src/libs/browser-storage'
 import uuid from 'uuid/v4'
 
 
@@ -7,7 +8,7 @@ const getKey = () => {
   if (state && state.key) {
     return state.key
   } else {
-    const key = `state-history-${uuid()}`
+    const key = uuid()
     window.history.replaceState({ key }, '')
     return key
   }
@@ -15,40 +16,14 @@ const getKey = () => {
 
 
 export const get = () => {
-  const fetched = sessionStorage.getItem(getKey())
-  if (fetched) {
-    return JSON.parse(fetched).value
-  } else {
-    return {}
-  }
+  const data = getDynamic(sessionStorage, getKey())
+  return _.isPlainObject(data) ? data : {}
 }
 
 export const set = newState => {
-  const key = getKey()
-  const value = JSON.stringify({ timestamp: Date.now(), value: newState })
-
-  while (true) {
-    try {
-      sessionStorage.setItem(key, value)
-      return
-    } catch (error) {
-      if (sessionStorage.length === 0) {
-        console.error('An error occurred trying to save state history.')
-        console.error(error)
-        return
-      } else {
-        const oldestKV = _.flow(
-          _.toPairs,
-          _.filter(([k]) => _.startsWith('state-history-', k)),
-          _.sortBy(([k, v]) => JSON.parse(v).timestamp),
-          _.first
-        )(sessionStorage)
-        sessionStorage.removeItem(oldestKV[0])
-      }
-    }
-  }
+  return setDynamic(sessionStorage, getKey(), newState)
 }
 
 export const update = newState => { set({ ...get(), ...newState }) }
 
-export const clearCurrent = () => set({})
+export const clearCurrent = () => removeDynamic(sessionStorage, getKey())
