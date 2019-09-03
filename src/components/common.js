@@ -359,7 +359,7 @@ export const CromwellVersionLink = props => {
     'Cromwell version loading...'
 }
 
-const makeSwitchLabel = isOn => div({
+const SwitchLabel = ({ isOn }) => div({
   style: {
     display: 'flex', justifyContent: isOn ? 'flex-start' : 'flex-end',
     fontSize: 15, fontWeight: 'bold', color: 'white',
@@ -372,8 +372,8 @@ export const Switch = props => {
   return h(RSwitch, {
     offColor: colors.dark(0.5),
     onColor: colors.success(1.2),
-    checkedIcon: makeSwitchLabel(true),
-    uncheckedIcon: makeSwitchLabel(false),
+    checkedIcon: h(SwitchLabel, { isOn: true }),
+    uncheckedIcon: h(SwitchLabel, { isOn: false }),
     width: 80,
     ...props
   })
