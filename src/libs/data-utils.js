@@ -443,7 +443,10 @@ export const EntityEditor = ({ entityType, entityName, attributeName, attributeV
       const prepFn = Utils.switchCase(editType,
         ['reference', () => v => ({ entityName: _.trim(v), entityType: linkedEntityType })],
         ['boolean', () => v => !!v],
-        ['number', () => v => (_.toNumber(v) || '')],
+        ['number', () => v => {
+          const numberVal = _.toNumber(v)
+          return _.isNaN(numberVal) ? '' : numberVal
+        }],
         ['string', () => _.trim]
       )
       const preparedValue = isList ? _.map(prepFn, newValue) : prepFn(newValue)
