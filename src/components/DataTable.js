@@ -10,7 +10,7 @@ import PopupTrigger from 'src/components/PopupTrigger'
 import { ColumnSelector, GridTable, HeaderCell, paginator, Resizable, Sortable } from 'src/components/table'
 import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
-import { EntityEditor, EntityRenamer, renderDataCell } from 'src/libs/data-utils'
+import { EditDataLink, EntityEditor, EntityRenamer, renderDataCell } from 'src/libs/data-utils'
 import { reportError } from 'src/libs/error'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
@@ -180,12 +180,10 @@ export default ajaxCaller(class DataTable extends Component {
                       return h(Fragment, [
                         renderDataCell(entityName, namespace),
                         div({ style: { flexGrow: 1 } }),
-                        editable && h(Link, {
+                        editable && h(EditDataLink, {
                           'aria-label': 'Rename entity',
-                          className: 'cell-hover-only',
-                          style: { marginLeft: '1rem' },
                           onClick: () => this.setState({ renamingEntity: entityName })
-                        }, [icon('edit')])
+                        })
                       ])
                     }
                   },
@@ -213,12 +211,10 @@ export default ajaxCaller(class DataTable extends Component {
                               onClick: () => this.setState({ viewData: dataInfo })
                             }, [dataCell]) : dataCell,
                           div({ style: { flexGrow: 1 } }),
-                          editable && h(Link, {
+                          editable && h(EditDataLink, {
                             'aria-label': `Edit attribute ${name} of ${entityType} ${entityName}`,
-                            className: 'cell-hover-only',
-                            style: { marginLeft: '1rem' },
                             onClick: () => this.setState({ updatingEntity: { entityName, attributeName: name, attributeValue: dataInfo } })
-                          }, [icon('edit')])
+                          })
                         ])
                       }
                     }

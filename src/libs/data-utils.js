@@ -54,6 +54,12 @@ export const renderDataCell = (data, namespace) => {
   )
 }
 
+export const EditDataLink = props => h(Link, {
+  className: 'cell-hover-only',
+  style: { marginLeft: '1rem' },
+  ...props
+}, [icon('edit')])
+
 export const ReferenceDataImporter = class ReferenceDataImporter extends Component {
   static propTypes = {
     onDismiss: PropTypes.func.isRequired,

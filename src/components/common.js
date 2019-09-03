@@ -94,18 +94,6 @@ export const ButtonOutline = ({ disabled, children, ...props }) => {
   }, props), [children])
 }
 
-export const ButtonDanger = ({ disabled, children, ...props }) => {
-  return h(ButtonPrimary, _.merge({
-    disabled,
-    style: {
-      border: `1px solid ${disabled ? colors.dark(0.4) : colors.danger(1.2)}`,
-      backgroundColor: disabled ? colors.dark(0.25) : colors.danger()
-    },
-    hover: disabled ? undefined : { backgroundColor: colors.danger(0.85) }
-  }, props), [children])
-}
-
-
 export const makeIconButton = (shape, { disabled, size, iconProps = {}, ...props } = {}) => {
   return h(Clickable, _.merge({
     as: 'span',
