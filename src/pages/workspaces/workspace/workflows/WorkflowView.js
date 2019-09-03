@@ -92,10 +92,10 @@ const WorkflowIOTable = ({ which, inputsOutputs: data, config, errors, onChange,
 
   const sortedData = _.flow(
     _.sortBy(o => {
-      return Utils.switchCase(sort.field, [
+      return Utils.switchCase(sort.field,
         ['taskVariable', () => ioTask(o).toLowerCase()],
         ['workflowVariable', () => ioVariable(o).toLowerCase()]
-      ])
+      )
     }),
     sort.direction === 'asc' ? _.identity : _.reverse)(data)
 
@@ -821,8 +821,9 @@ const WorkflowView = _.flow(
       _.map(k => ({ name: k, inputType: 'unknown' }), _.keys(modifiedConfig[key])) :
       modifiedInputsOutputs[key]
     const filteredData = _.flow(
-      key === 'inputs' && !includeOptionalInputs ? _.reject('optional') : _.identity,
-      _.sortBy(['optional', ({ name }) => name.toLowerCase()])
+      key === 'inputs' && !includeOptionalInputs ? _.reject('optional') : _.identity//,
+    // FIXME: bring this up to sort of data and move to orderBy then sort by optionals secondarily
+     // _.sortBy(['optional', ({ name }) => name.toLowerCase()])
     )(data)
 
     return h(Dropzone, {
