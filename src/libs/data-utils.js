@@ -32,8 +32,14 @@ const warningBoxStyle = {
 export const renderDataCell = (data, namespace) => {
   const isUri = datum => _.startsWith('gs://', datum) || _.startsWith('dos://', datum)
 
-  const renderCell = datum => h(TextCell, { title: datum },
-    [isUri(datum) ? h(UriViewerLink, { uri: datum, googleProject: namespace }) : _.toString(datum)])
+  const renderCell = datum => {
+    // known issue where toString is incorrectly flagged:
+    // eslint-disable-next-line lodash-fp/preferred-alias
+    const stringDatum = _.toString(datum)
+
+    return h(TextCell, { title: stringDatum },
+      [isUri(datum) ? h(UriViewerLink, { uri: datum, googleProject: namespace }) : stringDatum])
+  }
 
   const renderArray = items => {
     return items.map((v, i) => h(Fragment, { key: i }, [
@@ -424,17 +430,17 @@ export const EntityEditor = ({ entityType, entityName, attributeName, attributeV
   const [consideringDelete, setConsideringDelete] = useState()
 
   const isList = _.isArray(newValue)
-  const isReference = editType === 'reference'
 
   const doEdit = async () => {
     try {
       setIsBusy(true)
-      const preparedValue = Utils.cond(
-        [isReference && isList, () => _.map(v => ({ entityName: _.trim(v), entityType: linkedEntityType }), newValue)],
-        [isReference, () => ({ entityName: _.trim(newValue), entityType: linkedEntityType })],
-        [isList, () => _.map(Utils.convertValue(editType), newValue)],
-        () => Utils.convertValue(editType, newValue)
+      const prepFn = Utils.switchCase(editType,
+        ['reference', () => v => ({ entityName: _.trim(v), entityType: linkedEntityType })],
+        ['boolean', () => v => !!v],
+        ['number', () => v => (_.toNumber(v) || '')],
+        ['string', () => _.trim]
       )
+      const preparedValue = isList ? _.map(prepFn, newValue) : prepFn(newValue)
 
       await Ajax()
         .Workspaces
@@ -507,7 +513,7 @@ export const EntityEditor = ({ entityType, entityName, attributeName, attributeV
               { type: 'boolean' }
             ]))
           ]),
-          isReference && div({ style: { marginTop: '0.5rem' } }, [
+          editType === 'reference' && div({ style: { marginTop: '0.5rem' } }, [
             div({ style: { marginBottom: '0.5rem' } }, 'Referenced entity type:'),
             h(Select, {
               value: linkedEntityType,

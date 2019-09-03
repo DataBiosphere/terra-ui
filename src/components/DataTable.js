@@ -355,9 +355,11 @@ export default ajaxCaller(class DataTable extends Component {
     const { itemsType, items } = selectedData
     return !!items.length ?
       h(Fragment,
-        _.map(entity => div({ style: { borderBottom: (entity !== _.last(items)) ? `1px solid ${colors.dark(0.7)}` : undefined, padding: '0.5rem' } },
-          [itemsType === 'EntityReference' ? `${entity.entityName} (${entity.entityType})` : JSON.stringify(entity)]),
-        items)) :
+        _.map(([i, entity]) => div({
+          style: { borderBottom: (i !== items.length - 1) ? `1px solid ${colors.dark(0.7)}` : undefined, padding: '0.5rem' }
+        }, [
+          itemsType === 'EntityReference' ? `${entity.entityName} (${entity.entityType})` : JSON.stringify(entity)
+        ]), Utils.toIndexPairs(items))) :
       div({ style: { padding: '0.5rem', fontStyle: 'italic' } }, ['No items'])
   }
 })
