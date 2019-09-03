@@ -1,7 +1,7 @@
 import * as clipboard from 'clipboard-polyfill'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
-import { Component, Fragment, useState } from 'react'
+import { Component, Fragment } from 'react'
 import { a, div, h, label, span } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
