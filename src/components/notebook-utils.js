@@ -13,6 +13,24 @@ import * as Utils from 'src/libs/utils'
 import validate from 'validate.js'
 
 
+export const notebookLockHash = async (bucketName, email) => {
+  const msgUint8 = new TextEncoder().encode(`${bucketName}:${email}`)
+  const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8)
+  const hashArray = Array.from(new Uint8Array(hashBuffer))
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
+}
+
+export const findPotentialNotebookLockers = async (namespace, wsName, bucketName) => {
+  const { acl } = await Ajax().Workspaces.workspace(namespace, wsName).getAcl()
+  const potentialLockers = _.flow(
+    _.toPairs,
+    _.map(([email, data]) => ({ email, ...data })),
+    _.filter(({ accessLevel }) => _.includes(accessLevel, ['OWNER', 'PROJECT_OWNER', 'WRITER'])),
+  )(acl)
+  const lockHolderPromises = _.map(async ({ email }) => ({ [await notebookLockHash(bucketName, email)]: email }), potentialLockers)
+  return _.mergeAll(await Promise.all(lockHolderPromises))
+}
+
 export const notebookNameValidator = existing => ({
   presence: { allowEmpty: false },
   format: {

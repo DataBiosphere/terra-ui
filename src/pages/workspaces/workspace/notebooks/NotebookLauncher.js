@@ -6,10 +6,10 @@ import { div, h, iframe, p, span } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
 import { NewClusterModal } from 'src/components/ClusterManager'
-import { ButtonPrimary, ButtonSecondary, Clickable, LabeledCheckbox, MenuButton } from 'src/components/common'
+import { ButtonPrimary, ButtonSecondary, Clickable, LabeledCheckbox, MenuButton, spinnerOverlay } from 'src/components/common'
 import { icon, spinner } from 'src/components/icons'
 import Modal from 'src/components/Modal'
-import { NotebookDuplicator } from 'src/components/notebook-utils'
+import { findPotentialNotebookLockers, NotebookDuplicator, notebookLockHash } from 'src/components/notebook-utils'
 import { notify } from 'src/components/Notifications'
 import PopupTrigger from 'src/components/PopupTrigger'
 import { Ajax, useCancellation } from 'src/libs/ajax'
@@ -29,6 +29,41 @@ const StatusMessage = ({ showSpinner, children }) => {
   ])
 }
 
+const ClusterKicker = ({ cluster, refreshClusters, onNullCluster }) => {
+  const getCluster = Utils.useGetter(cluster)
+  const signal = useCancellation()
+  const [startingCluster, setStartingCluster] = useState()
+
+  const startClusterOnce = _.flow(
+    Utils.withBusyState(setStartingCluster),
+    withErrorReporting('Error starting notebook runtime')
+  )(async () => {
+    while (!signal.aborted) {
+      const currentCluster = getCluster()
+      const { status, googleProject, clusterName } = currentCluster|| {}
+      const currentStatus = currentCluster && status
+      if (currentStatus === 'Stopped') {
+        await Ajax().Jupyter.cluster(googleProject, clusterName).start()
+        await refreshClusters()
+        return
+      } else if (currentStatus === undefined || currentStatus === 'Stopping') {
+        await Utils.delay(500)
+      } else if (currentStatus === null) {
+        onNullCluster()
+        return
+      } else {
+        return
+      }
+    }
+  })
+
+  Utils.useOnMount(() => {
+    startClusterOnce()
+  })
+
+  return startingCluster ? spinnerOverlay : null
+}
+
 const NotebookLauncher = _.flow(
   forwardRef,
   requesterPaysWrapper({
@@ -40,7 +75,7 @@ const NotebookLauncher = _.flow(
     showTabBar: false
   })
 )(
-  ({ queryParams = {}, notebookName, workspace, workspace: { namespace, name, accessLevel, canCompute }, cluster, refreshClusters, onRequesterPaysError }, ref) => {
+  ({ queryParams = {}, notebookName, workspace, workspace: { workspace: { namespace, name }, accessLevel, canCompute }, cluster, refreshClusters, onRequesterPaysError }, ref) => {
     const [createOpen, setCreateOpen] = useState(false)
     // Status note: undefined means still loading, null means no cluster
     const clusterStatus = cluster && cluster.status
@@ -62,6 +97,7 @@ const NotebookLauncher = _.flow(
         h(PreviewHeader, { cluster, refreshClusters, notebookName, workspace, readOnlyAccess: false }),
         h(NotebookPreviewFrame, { notebookName, workspace })
       ])),
+      (queryParams.edit || queryParams.playground) && h(ClusterKicker, { cluster, refreshClusters, onNullCluster: () => { setCreateOpen(true) } }),
       createOpen && h(NewClusterModal, {
         namespace, currentCluster: cluster,
         onCancel: () => setCreateOpen(false),
@@ -74,33 +110,13 @@ const NotebookLauncher = _.flow(
     ])
   })
 
-const digestMessage = async message => {
-  const msgUint8 = new TextEncoder().encode(message)
-  const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8)
-  const hashArray = Array.from(new Uint8Array(hashBuffer))
-  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
-}
-
 const FileInUseModal = ({ onDismiss, onCopy, playgroundActions, namespace, name, bucketName, lockedBy, canShare }) => {
-  const signal = useCancellation()
   const [lockedByEmail, setLockedByEmail] = useState(null)
 
   Utils.useOnMount(() => {
     const findLockedByEmail = async () => {
-      const { acl } = await Ajax(signal).Workspaces.workspace(namespace, name).getAcl()
-      const potentialLockers = _.flow(
-        _.toPairs,
-        _.map(([email, data]) => ({ email, ...data })),
-        _.filter(({ accessLevel }) => _.includes(accessLevel, ['OWNER', 'PROJECT_OWNER', 'WRITER'])),
-      )(acl)
-
-      const currentLocker = _.find(
-        _.identity,
-        await Promise.all(_.map(async ({ email }) => {
-          const hashedPotentialLocker = await digestMessage(`${bucketName}:${email}`)
-          return (hashedPotentialLocker === lockedBy) && email
-        }, potentialLockers))
-      )
+      const potentialLockers = await findPotentialNotebookLockers(namespace, name, bucketName)
+      const currentLocker = potentialLockers[lockedBy]
       setLockedByEmail(currentLocker || null)
     }
     if (canShare) {
@@ -174,7 +190,7 @@ const PreviewHeader = ({ cluster, readOnlyAccess, refreshClusters, notebookName,
 
   const checkIfLocked = withErrorReporting('Error checking notebook lock status', async () => {
     const { metadata: { lastLockedBy, lockExpiresAt } } = await Ajax(signal).Buckets.notebook(namespace, bucketName, notebookName.slice(0, -6)).getObject()
-    const hashedUser = await digestMessage(`${bucketName}:${email}`)
+    const hashedUser = await notebookLockHash(bucketName, email)
     const lockExpirationDate = new Date(parseInt(lockExpiresAt))
 
     if (lastLockedBy && (lastLockedBy !== hashedUser) && (lockExpirationDate > Date.now())) {
@@ -185,25 +201,17 @@ const PreviewHeader = ({ cluster, readOnlyAccess, refreshClusters, notebookName,
 
   Utils.useOnMount(() => { checkIfLocked() })
 
-  const clusterActions = async (mode, clusterStatus) => {
+  const clusterActions = (mode, clusterStatus) => {
     const choosePlaygroundMode = () => Nav.history.push({
-      pathname: Nav.getPath('workspace-notebook-launch', { namespace, name, notebookName }),
       search: '?' + qs.stringify({ playground: 'true' })
     })
     const chooseEditMode = () => Nav.history.push({
-      pathname: Nav.getPath('workspace-notebook-launch', { namespace, name, notebookName }),
       search: '?' + qs.stringify({ edit: 'true' })
     })
     if (mode === 'playground') {
       choosePlaygroundMode()
     } else {
       chooseEditMode()
-    }
-    if (clusterStatus === 'Stopped') {
-      await Ajax().Jupyter.cluster(namespace, cluster.clusterName).start()
-      await refreshClusters()
-    } else if (clusterStatus === null) {
-      setCreateOpen(true)
     }
   }
 
@@ -275,7 +283,8 @@ const PreviewHeader = ({ cluster, readOnlyAccess, refreshClusters, notebookName,
       h(Clickable, {
         'aria-label': 'Exit preview mode',
         style: { opacity: 0.65, marginRight: '1.5rem' },
-        hover: { opacity: 1 }, focus: 'hover'
+        hover: { opacity: 1 }, focus: 'hover',
+        onClick: () => Nav.goToPath('workspace-notebooks', { namespace, name })
       }, [icon('times-circle', { size: 30 })])
     ]),
     createOpen && h(NewClusterModal, {
@@ -401,26 +410,17 @@ const NotebookEditorFrame = ({ mode, notebookName, workspace: { workspace: { nam
     Utils.withBusyState(setBusy),
     withErrorReporting('Error setting up notebook')
   )(async () => {
+    await Ajax(signal).Jupyter.notebooks(namespace, clusterName).storageLinks(localBaseDirectory, localSafeModeBaseDirectory, cloudStorageDirectory, `.*\\.ipynb`)
     if (mode === 'Edit') {
-      await Promise.all([
-        Ajax(signal).Jupyter.notebooks(namespace, clusterName).storageLinks(localBaseDirectory, localSafeModeBaseDirectory, cloudStorageDirectory, `.*\\.ipynb`),
-        Ajax(signal).Jupyter.notebooks(namespace, clusterName).lock(`${localBaseDirectory}/${notebookName}`),
-        Ajax(signal).Jupyter.notebooks(namespace, clusterName).localize([{
-          sourceUri: `${cloudStorageDirectory}/${notebookName}`,
-          localDestinationPath: `${localBaseDirectory}/${notebookName}`
-        }]),
-        Ajax(signal).Jupyter.notebooks(namespace, clusterName).setCookie()
-      ])
-    } else {
-      await Promise.all([
-        Ajax(signal).Jupyter.notebooks(namespace, clusterName).storageLinks(localBaseDirectory, localSafeModeBaseDirectory, cloudStorageDirectory, `.*\\.ipynb`),
-        Ajax(signal).Jupyter.notebooks(namespace, clusterName).localize([{
-          sourceUri: `${cloudStorageDirectory}/${notebookName}`,
-          localDestinationPath: `${localSafeModeBaseDirectory}/${notebookName}`
-        }]),
-        Ajax(signal).Jupyter.notebooks(namespace, clusterName).setCookie()
-      ])
+      await Ajax(signal).Jupyter.notebooks(namespace, clusterName).lock(`${localBaseDirectory}/${notebookName}`)
     }
+    await Promise.all([
+      Ajax(signal).Jupyter.notebooks(namespace, clusterName).localize([{
+        sourceUri: `${cloudStorageDirectory}/${notebookName}`,
+        localDestinationPath: mode === 'Edit' ? `${localBaseDirectory}/${notebookName}` : `${localSafeModeBaseDirectory}/${notebookName}`
+      }]),
+      Ajax(signal).Jupyter.notebooks(namespace, clusterName).setCookie()
+    ])
     setNotebookSetUp(true)
   })
   const checkRecentAccess = async () => {

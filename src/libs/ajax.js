@@ -778,23 +778,6 @@ const Buckets = signal => ({
       return await res.json()
     }
 
-    const lock = async (lastLockedBy, lockExpiration, generation, metageneration) => {
-      const queryParams = {
-        ifGenerationMatch: generation,
-        ifMetagenerationMatch: metageneration
-      }
-      const res = await fetchBuckets(
-        `${bucketUrl}/${nbName(name)}?${qs.stringify(queryParams)}`,
-        _.mergeAll([authOpts(await User(signal).token(namespace)), jsonBody({
-          metadata: {
-            'x-goog-meta-lastLockedBy': lastLockedBy,
-            'x-goog-meta-lockExpiration': lockExpiration
-          }
-        }), { signal, method: 'PATCH' }])
-      )
-      return await res.json()
-    }
-
     return {
       preview: async () => {
         const nb = await fetchBuckets(
@@ -825,9 +808,7 @@ const Buckets = signal => ({
       rename: async newName => {
         await copy(newName, bucket)
         return doDelete()
-      },
-
-      lock
+      }
     }
   }
 })

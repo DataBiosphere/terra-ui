@@ -9,11 +9,11 @@ import { ViewToggleButtons, withViewToggle } from 'src/components/CardsListToggl
 import { Clickable, IdContainer, Link, makeMenuIcon, MenuButton, PageBox, Select, spinnerOverlay } from 'src/components/common'
 import Dropzone from 'src/components/Dropzone'
 import { icon } from 'src/components/icons'
-import { NotebookCreator, NotebookDeleter, NotebookDuplicator } from 'src/components/notebook-utils'
+import { findPotentialNotebookLockers, NotebookCreator, NotebookDeleter, NotebookDuplicator, notebookLockHash } from 'src/components/notebook-utils'
 import { notify } from 'src/components/Notifications'
 import PopupTrigger from 'src/components/PopupTrigger'
 import TooltipTrigger from 'src/components/TooltipTrigger'
-import { Ajax, ajaxCaller, useCancellation } from 'src/libs/ajax'
+import { Ajax, ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError, withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
@@ -68,170 +68,136 @@ const noNotebooksMessage = div({ style: { fontSize: 20 } }, [
   ])
 ])
 
-const NotebookCard = Utils.connectAtom(authStore, 'authState')(
-  ({ namespace, name, updated, metadata, listView, wsName, onRename, onCopy, onDelete, onExport, canWrite, canShare, bucketName, authState: { profile: { email } } }) => {
-    const [locked, setLocked] = useState(false)
-    const [lockedByEmail, setLockedByEmail] = useState(null)
-    const signal = useCancellation()
+const NotebookCard = ({ namespace, name, updated, metadata, listView, wsName, onRename, onCopy, onDelete, onExport, canWrite, currentUserHash, potentialLockers }) => {
+  const { lockExpiresAt, lastLockedBy } = metadata || {}
+  const lockExpirationDate = new Date(parseInt(lockExpiresAt))
+  const locked = currentUserHash && lastLockedBy && lastLockedBy !== currentUserHash && lockExpirationDate > Date.now()
+  const lockedBy = potentialLockers ? potentialLockers[lastLockedBy] : null
 
-    const checkIfLocked = async () => {
-      const { lockExpiresAt, lastLockedBy } = metadata || {}
+  const tenMinutesAgo = _.tap(d => d.setMinutes(d.getMinutes() - 10), new Date())
+  const isRecent = new Date(updated) > tenMinutesAgo
 
-      const digestMessage = async message => {
-        const msgUint8 = new TextEncoder().encode(message)
-        const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8)
-        const hashArray = Array.from(new Uint8Array(hashBuffer))
-        return hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
-      }
-      const hashedUser = await digestMessage(`${bucketName}:${email}`)
-      const lockExpirationDate = new Date(parseInt(lockExpiresAt))
-      if (lastLockedBy && lastLockedBy !== hashedUser && lockExpirationDate > Date.now()) {
-        setLocked(true)
-        if (canShare) {
-          const { acl } = await Ajax(signal).Workspaces.workspace(namespace, wsName).getAcl()
-          const potentialLockers = _.flow(
-            _.toPairs,
-            _.map(([email, data]) => ({ email, ...data })),
-            _.filter(({ accessLevel }) => _.includes(accessLevel, ['OWNER', 'PROJECT_OWNER', 'WRITER'])),
-          )(acl)
-          const currentLocker = _.find(
-            _.identity,
-            await Promise.all(_.map(async ({ email }) => {
-              const hashedPotentialLocker = await digestMessage(`${bucketName}:${email}`)
-              return (hashedPotentialLocker === lastLockedBy) && email
-            }, potentialLockers))
-          )
-          setLockedByEmail(currentLocker || null)
-        }
-      }
-    }
+  const notebookLink = Nav.getLink('workspace-notebook-launch', { namespace, name: wsName, notebookName: name.slice(10) })
+  const notebookEditLink = `${notebookLink}/?${qs.stringify({ edit: 'true' })}`
+  const notebookPlaygroundLink = `${notebookLink}/?${qs.stringify({ playground: 'true' })}`
 
-    Utils.useOnMount(() => { checkIfLocked() })
-
-    const tenMinutesAgo = _.tap(d => d.setMinutes(d.getMinutes() - 10), new Date())
-    const isRecent = new Date(updated) > tenMinutesAgo
-
-    const notebookLink = Nav.getLink('workspace-notebook-launch', { namespace, name: wsName, notebookName: name.slice(10) })
-    const notebookEditLink = `${notebookLink}/?${qs.stringify({ edit: 'true' })}`
-    const notebookPlaygroundLink = `${notebookLink}/?${qs.stringify({ playground: 'true' })}`
-
-    const notebookMenu = h(PopupTrigger, {
-      side: 'right',
-      closeOnClick: true,
-      content: h(Fragment, [
-        h(MenuButton, {
-          as: 'a',
-          href: notebookLink,
-          tooltip: canWrite && 'Open without runtime',
-          tooltipSide: 'left'
-        }, [makeMenuIcon('eye'), 'Open preview']),
-        h(MenuButton, {
-          as: 'a',
-          href: notebookEditLink,
-          disabled: locked || !canWrite,
-          tooltip: !canWrite && noWrite,
-          tooltipSide: 'left'
-        }, locked ? [makeMenuIcon('lock'), 'Edit (In Use)'] : [makeMenuIcon('edit'), 'Edit']),
-        h(MenuButton, {
-          as: 'a',
-          href: notebookPlaygroundLink,
-          tooltip: canWrite && 'Open in playground mode',
-          tooltipSide: 'left'
-        }, [makeMenuIcon('chalkboard'), 'Playground']),
-        h(MenuButton, {
-          onClick: () => onExport()
-        }, [makeMenuIcon('export'), 'Copy to another workspace']),
-        h(MenuButton, {
-          onClick: async () => {
-            try {
-              await clipboard.writeText(`${window.location.host}/${notebookLink}`)
-              notify('success', 'Successfully copied URL to clipboard', { timeout: 3000 })
-            } catch (error) {
-              reportError('Error copying to clipboard', error)
-            }
+  const notebookMenu = h(PopupTrigger, {
+    side: 'right',
+    closeOnClick: true,
+    content: h(Fragment, [
+      h(MenuButton, {
+        as: 'a',
+        href: notebookLink,
+        tooltip: canWrite && 'Open without runtime',
+        tooltipSide: 'left'
+      }, [makeMenuIcon('eye'), 'Open preview']),
+      h(MenuButton, {
+        as: 'a',
+        href: notebookEditLink,
+        disabled: locked || !canWrite,
+        tooltip: !canWrite && noWrite,
+        tooltipSide: 'left'
+      }, locked ? [makeMenuIcon('lock'), 'Edit (In Use)'] : [makeMenuIcon('edit'), 'Edit']),
+      h(MenuButton, {
+        as: 'a',
+        href: notebookPlaygroundLink,
+        tooltip: canWrite && 'Open in playground mode',
+        tooltipSide: 'left'
+      }, [makeMenuIcon('chalkboard'), 'Playground']),
+      h(MenuButton, {
+        onClick: () => onExport()
+      }, [makeMenuIcon('export'), 'Copy to another workspace']),
+      h(MenuButton, {
+        onClick: async () => {
+          try {
+            await clipboard.writeText(`${window.location.host}/${notebookLink}`)
+            notify('success', 'Successfully copied URL to clipboard', { timeout: 3000 })
+          } catch (error) {
+            reportError('Error copying to clipboard', error)
           }
-        }, [makeMenuIcon('copy-to-clipboard'), 'Copy notebook URL to clipboard']),
-        h(MenuButton, {
-          disabled: !canWrite,
-          tooltip: !canWrite && noWrite,
-          tooltipSide: 'left',
-          onClick: () => onRename()
-        }, [makeMenuIcon('renameIcon'), 'Rename']),
-        h(MenuButton, {
-          disabled: !canWrite,
-          tooltip: !canWrite && noWrite,
-          tooltipSide: 'left',
-          onClick: () => onCopy()
-        }, [makeMenuIcon('copy'), 'Duplicate']),
-        h(MenuButton, {
-          disabled: !canWrite,
-          tooltip: !canWrite && noWrite,
-          tooltipSide: 'left',
-          onClick: () => onDelete()
-        }, [makeMenuIcon('trash'), 'Delete'])
-      ])
-    }, [
-      h(Link, { 'aria-label': 'Notebook menu', onClick: e => e.preventDefault() }, [
-        icon('cardMenuIcon', {
-          size: listView ? 18 : 24
-        })
-      ])
+        }
+      }, [makeMenuIcon('copy-to-clipboard'), 'Copy notebook URL to clipboard']),
+      h(MenuButton, {
+        disabled: !canWrite,
+        tooltip: !canWrite && noWrite,
+        tooltipSide: 'left',
+        onClick: () => onRename()
+      }, [makeMenuIcon('renameIcon'), 'Rename']),
+      h(MenuButton, {
+        disabled: !canWrite,
+        tooltip: !canWrite && noWrite,
+        tooltipSide: 'left',
+        onClick: () => onCopy()
+      }, [makeMenuIcon('copy'), 'Duplicate']),
+      h(MenuButton, {
+        disabled: !canWrite,
+        tooltip: !canWrite && noWrite,
+        tooltipSide: 'left',
+        onClick: () => onDelete()
+      }, [makeMenuIcon('trash'), 'Delete'])
     ])
+  }, [
+    h(Link, { 'aria-label': 'Notebook menu', onClick: e => e.preventDefault() }, [
+      icon('cardMenuIcon', {
+        size: listView ? 18 : 24
+      })
+    ])
+  ])
 
-    const title = div({
-      title: printName(name),
-      style: _.merge({
-        ...Style.elements.card.title, whiteSpace: 'normal', overflowY: 'auto'
-      }, listView ? {
-        marginLeft: '1rem'
-      } : { height: 60, padding: '1rem' })
-    }, printName(name))
+  const title = div({
+    title: printName(name),
+    style: _.merge({
+      ...Style.elements.card.title, whiteSpace: 'normal', overflowY: 'auto'
+    }, listView ? {
+      marginLeft: '1rem'
+    } : { height: 60, padding: '1rem' })
+  }, printName(name))
 
-    return a({
-      href: notebookLink,
-      style: {
-        ...Style.elements.card.container,
-        ...notebookCardCommonStyles(listView),
-        flexShrink: 0
-      }
-    }, listView ? [
-      notebookMenu,
+  return a({
+    href: notebookLink,
+    style: {
+      ...Style.elements.card.container,
+      ...notebookCardCommonStyles(listView),
+      flexShrink: 0
+    }
+  }, listView ? [
+    notebookMenu,
+    title,
+    div({ style: { flexGrow: 1 } }),
+    locked ? h(Clickable, { style: { display: 'flex', paddingRight: '1rem', color: colors.dark(0.75) }, tooltip: `This notebook is currently being edited by ${lockedBy || 'another user'}` }, [icon('lock')]) : undefined,
+    isRecent ? div({ style: { display: 'flex', color: colors.warning(), marginRight: '2rem' } }, 'Recently Edited') : undefined,
+    h(TooltipTrigger, { content: Utils.makeCompleteDate(updated) }, [
+      div({ style: { fontSize: '0.8rem', marginRight: '0.5rem' } },
+        `Last edited: ${Utils.makePrettyDate(updated)}`)
+    ])
+  ] : [
+    div({ style: { display: 'flex' } }, [
       title,
       div({ style: { flexGrow: 1 } }),
-      locked ? h(Clickable, { style: { display: 'flex', paddingRight: '1rem', color: colors.dark(0.75) }, tooltip: `This notebook is currently being edited by ${lockedByEmail || 'another user'}` }, [icon('lock')]) : undefined,
-      isRecent ? div({ style: { display: 'flex', color: colors.warning(), marginRight: '2rem' } }, 'Recently Edited') : undefined,
+      locked ? h(Clickable, { style: { display: 'flex', padding: '1rem', color: colors.dark(0.75) }, tooltip: `This notebook is currently being edited by ${lockedBy || 'another user'}` }, [icon('lock')]) : undefined
+    ]),
+    div({
+      style: {
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        borderTop: `solid 1px ${colors.dark(0.4)}`,
+        padding: '0.5rem',
+        backgroundColor: colors.light(0.4),
+        borderRadius: '0 0 5px 5px'
+      }
+    }, [
       h(TooltipTrigger, { content: Utils.makeCompleteDate(updated) }, [
-        div({ style: { fontSize: '0.8rem', marginRight: '0.5rem' } },
-          `Last edited: ${Utils.makePrettyDate(updated)}`)
-      ])
-    ] : [
-      div({ style: { display: 'flex' } }, [
-        title,
-        div({ style: { flexGrow: 1 } }),
-        locked ? h(Clickable, { style: { display: 'flex', padding: '1rem', color: colors.dark(0.75) }, tooltip: `This notebook is currently being edited by ${lockedByEmail || 'another user'}` }, [icon('lock')]) : undefined
+        div({ style: { fontSize: '0.8rem', marginRight: '0.5rem' } }, [
+          'Last edited: ',
+          Utils.makePrettyDate(updated)
+        ])
       ]),
-      div({
-        style: {
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          borderTop: `solid 1px ${colors.dark(0.4)}`,
-          padding: '0.5rem',
-          backgroundColor: colors.light(0.4),
-          borderRadius: '0 0 5px 5px'
-        }
-      }, [
-        h(TooltipTrigger, { content: Utils.makeCompleteDate(updated) }, [
-          div({ style: { fontSize: '0.8rem', marginRight: '0.5rem' } }, [
-            'Last edited: ',
-            Utils.makePrettyDate(updated)
-          ])
-        ]),
-        isRecent ? div({ style: { display: 'flex', color: colors.warning() } }, 'Recently Edited') : undefined,
-        notebookMenu
-      ])
+      isRecent ? div({ style: { display: 'flex', color: colors.warning() } }, 'Recently Edited') : undefined,
+      notebookMenu
     ])
-  })
+  ])
+}
 
 const Notebooks = _.flow(
   requesterPaysWrapper({
@@ -242,7 +208,8 @@ const Notebooks = _.flow(
     title: 'Notebooks', activeTab: 'notebooks'
   }),
   withViewToggle('notebooksTab'),
-  ajaxCaller
+  ajaxCaller,
+  Utils.connectAtom(authStore, 'authState')
 )(class Notebooks extends Component {
   constructor(props) {
     super(props)
@@ -298,22 +265,25 @@ const Notebooks = _.flow(
     }
   }
 
-  componentDidMount() {
+  async componentDidMount() {
+    const { name: wsName, namespace, workspace: { workspace: { bucketName } }, authState: { profile: { email } } } = this.props
+    const [currentUserHash, potentialLockers] = await Promise.all([notebookLockHash(bucketName, email), findPotentialNotebookLockers(namespace, wsName, bucketName)])
+    this.setState({ currentUserHash, potentialLockers })
     this.refresh()
   }
 
   renderNotebooks(openUploader) {
-    const { notebooks, sortOrder: { field, direction } } = this.state
+    const { notebooks, sortOrder: { field, direction }, currentUserHash, potentialLockers } = this.state
     const {
       name: wsName, namespace, listView,
-      workspace: { canShare, accessLevel, workspace: { bucketName } }
+      workspace: { accessLevel }
     } = this.props
     const canWrite = Utils.canWrite(accessLevel)
     const renderedNotebooks = _.flow(
       _.orderBy(sortTokens[field] || field, direction),
       _.map(({ name, updated, metadata }) => h(NotebookCard, {
         key: name,
-        name, updated, metadata, listView, bucketName, namespace, wsName, canWrite, canShare,
+        name, updated, metadata, listView, namespace, wsName, canWrite, currentUserHash, potentialLockers,
         onRename: () => this.setState({ renamingNotebookName: name }),
         onCopy: () => this.setState({ copyingNotebookName: name }),
         onExport: () => this.setState({ exportingNotebookName: name }),
