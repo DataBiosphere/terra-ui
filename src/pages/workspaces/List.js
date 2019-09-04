@@ -1,11 +1,10 @@
 import { isAfter, parseISO } from 'date-fns/fp'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
-import { Component, Fragment, useState } from 'react'
+import { Fragment, memo, useEffect, useState } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
-import { pure } from 'recompose'
 import removeMd from 'remove-markdown'
-import { ViewToggleButtons, withViewToggle } from 'src/components/CardsListToggle'
+import { useViewToggle, ViewToggleButtons } from 'src/components/CardsListToggle'
 import {
   Clickable, LabeledCheckbox, Link, makeMenuIcon, MenuButton, PageBox, Select, topSpinnerOverlay, transparentSpinnerOverlay
 } from 'src/components/common'
@@ -15,8 +14,8 @@ import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
 import PopupTrigger from 'src/components/PopupTrigger'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import TopBar from 'src/components/TopBar'
-import { withWorkspaces, WorkspaceTagSelect } from 'src/components/workspace-utils'
-import { Ajax, ajaxCaller, useCancellation } from 'src/libs/ajax'
+import { useWorkspaces, WorkspaceTagSelect } from 'src/components/workspace-utils'
+import { Ajax, useCancellation } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
@@ -136,7 +135,7 @@ const SubmissionIndicator = ({ shape, color }) => {
   ])
 }
 
-const WorkspaceCard = pure(({
+const WorkspaceCard = memo(({
   listView, onClone, onDelete, onShare, onRequestAccess,
   workspace, workspace: { accessLevel, workspace: { namespace, name, createdBy, lastModified, attributes: { description } } }
 }) => {
@@ -205,7 +204,7 @@ const WorkspaceCard = pure(({
   ])
 })
 
-const NewWorkspaceCard = pure(({ onClick }) => {
+const NewWorkspaceCard = ({ onClick }) => {
   return h(Clickable, {
     style: { ...styles.shortCard, ...styles.shortCreateCard },
     onClick
@@ -214,219 +213,191 @@ const NewWorkspaceCard = pure(({ onClick }) => {
     div(['New Workspace']),
     icon('plus-circle', { style: { marginTop: '0.5rem' }, size: 32 })
   ])
-})
+}
 
+export const WorkspaceList = () => {
+  const [listView, setListView] = useViewToggle('workspaceList')
+  const { workspaces, refresh: refreshWorkspaces, loading: loadingWorkspaces } = useWorkspaces()
+  const { query } = Nav.useRoute()
+  const [filter, setFilter] = useState(query.filter || '')
+  const [creatingNewWorkspace, setCreatingNewWorkspace] = useState(false)
+  const [cloningWorkspaceId, setCloningWorkspaceId] = useState()
+  const [deletingWorkspaceId, setDeletingWorkspaceId] = useState()
+  const [sharingWorkspaceId, setSharingWorkspaceId] = useState()
+  const [requestingAccessWorkspaceId, setRequestingAccessWorkspaceId] = useState()
+  const [accessLevelsFilter, setAccessLevelsFilter] = useState(query.accessLevelsFilter || [])
+  const [projectsFilter, setProjectsFilter] = useState(query.projectsFilter || undefined)
+  const [submissionsFilter, setSubmissionsFilter] = useState(query.submissionsFilter || [])
+  const [includePublic, setIncludePublic] = useState(!!query.includePublic)
+  const [tagsFilter, setTagsFilter] = useState(query.tagsFilter || [])
 
-export const WorkspaceList = _.flow(
-  ajaxCaller,
-  withViewToggle('workspaceList'),
-  withWorkspaces
-)(class WorkspaceList extends Component {
-  constructor(props) {
-    super(props)
-    const { queryParams } = props
-    this.state = {
-      filter: '',
-      creatingNewWorkspace: false,
-      cloningWorkspaceId: undefined,
-      deletingWorkspaceId: undefined,
-      sharingWorkspaceId: undefined,
-      requestingAccessWorkspaceId: undefined,
-      accessLevelsFilter: [],
-      projectsFilter: undefined,
-      submissionsFilter: [],
-      includePublic: !!queryParams.includePublic,
-      tagsFilter: [],
-      ..._.pick(['filter', 'accessLevelsFilter', 'projectsFilter', 'submissionsFilter', 'tagsFilter'], queryParams)
-    }
-  }
-
-  getWorkspace(id) {
-    const { workspaces } = this.props
-    return _.find({ workspace: { workspaceId: id } }, workspaces)
-  }
-
-  render() {
-    const { workspaces, loadingWorkspaces, refreshWorkspaces, listView, setListView } = this.props
-    const { filter, creatingNewWorkspace, cloningWorkspaceId, deletingWorkspaceId, sharingWorkspaceId, requestingAccessWorkspaceId, accessLevelsFilter, projectsFilter, submissionsFilter, tagsFilter, includePublic } = this.state
-    const initialFiltered = _.filter(ws => includePublic || !ws.public || Utils.canWrite(ws.accessLevel), workspaces)
-    const noWorkspaces = _.isEmpty(initialFiltered) && !loadingWorkspaces
-
-    const namespaceList = _.flow(
-      _.map('workspace.namespace'),
-      _.uniq,
-      _.sortBy(_.identity)
-    )(initialFiltered)
-
-    const returnTags = workspaceAttributes => {
-      if (workspaceAttributes['tag:tags']) {
-        return workspaceAttributes['tag:tags'].items
-      } else {
-        return []
-      }
-    }
-
-    const noWorkspacesMessage = div({ style: { fontSize: 20, margin: '1rem' } }, [
-      div([
-        'To get started, click ', span({ style: { fontWeight: 600 } }, ['Create a New Workspace'])
-      ]),
-      div({ style: { marginTop: '1rem', fontSize: 16 } }, [
-        h(Link, {
-          ...Utils.newTabLinkProps,
-          href: `https://support.terra.bio/hc/en-us/articles/360022716811`
-        }, [`What's a workspace?`])
-      ])
-    ])
-
-    const filteredWorkspaces = _.flow(
-      _.filter(ws => {
-        const { workspace: { namespace, name } } = ws
-        return Utils.textMatch(filter, `${namespace}/${name}`) &&
-          (_.isEmpty(accessLevelsFilter) || accessLevelsFilter.includes(ws.accessLevel)) &&
-          (_.isEmpty(projectsFilter) || projectsFilter === namespace) &&
-          (_.isEmpty(submissionsFilter) || submissionsFilter.includes(workspaceSubmissionStatus(ws))) &&
-          (_.isEmpty(tagsFilter) || _.every(_.identity, _.map(a => returnTags(ws.workspace.attributes).includes(a), tagsFilter)))
-      }),
-      _.sortBy('workspace.name')
-    )(initialFiltered)
-
-    const renderedWorkspaces = noWorkspaces ? noWorkspacesMessage : _.map(workspace => {
-      return h(WorkspaceCard, {
-        listView,
-        onClone: () => this.setState({ cloningWorkspaceId: workspace.workspace.workspaceId }),
-        onDelete: () => this.setState({ deletingWorkspaceId: workspace.workspace.workspaceId }),
-        onShare: () => this.setState({ sharingWorkspaceId: workspace.workspace.workspaceId }),
-        onRequestAccess: () => this.setState({ requestingAccessWorkspaceId: workspace.workspace.workspaceId }),
-        workspace, key: workspace.workspace.workspaceId
-      })
-    }, filteredWorkspaces)
-    return h(Fragment, [
-      h(TopBar, { title: 'Workspaces' }, [
-        h(DelayedSearchInput, {
-          style: { marginLeft: '2rem', width: 500 },
-          placeholder: 'SEARCH WORKSPACES',
-          'aria-label': 'Search workspaces',
-          onChange: v => this.setState({ filter: v }),
-          value: filter
-        })
-      ]),
-      h(PageBox, { role: 'main', style: { position: 'relative' } }, [
-        div({ style: { display: 'flex', alignItems: 'center', marginBottom: '1rem' } }, [
-          div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, ['Workspaces']),
-          div({ style: { marginLeft: 'auto', marginRight: '1rem' } }, [
-            h(LabeledCheckbox, {
-              checked: !!includePublic,
-              onChange: v => this.setState({ includePublic: v })
-            }, ' Show public workspaces')
-          ]),
-          h(ViewToggleButtons, { listView, setListView })
-        ]),
-        div({ style: { display: 'flex', marginBottom: '1rem' } }, [
-          div({ style: { display: 'flex', alignItems: 'center', fontSize: '1rem' } }, ['Filter by']),
-          div({ style: styles.filter }, [
-            h(WorkspaceTagSelect, {
-              isClearable: true,
-              isMulti: true,
-              formatCreateLabel: _.identity,
-              value: _.map(tag => ({ label: tag, value: tag }), tagsFilter),
-              placeholder: 'Tags',
-              'aria-label': 'Filter by tags',
-              onChange: data => this.setState({ tagsFilter: _.map('value', data) })
-            })
-          ]),
-          div({ style: { ...styles.filter, flexBasis: '250px', minWidth: 0 } }, [
-            h(Select, {
-              isClearable: true,
-              isMulti: true,
-              isSearchable: false,
-              placeholder: 'Access levels',
-              'aria-label': 'Filter by access levels',
-              value: accessLevelsFilter,
-              onChange: data => this.setState({ accessLevelsFilter: _.map('value', data) }),
-              options: Utils.workspaceAccessLevels,
-              getOptionLabel: ({ value }) => Utils.normalizeLabel(value)
-            })
-          ]),
-          div({ style: styles.filter }, [
-            h(Select, {
-              isClearable: true,
-              isMulti: false,
-              placeholder: 'Billing project',
-              'aria-label': 'Filter by billing project',
-              value: projectsFilter,
-              hideSelectedOptions: true,
-              onChange: selected => {
-                const data = !!selected ? selected.value : undefined
-                this.setState({ projectsFilter: data })
-              },
-              options: namespaceList
-            })
-          ]),
-          div({ style: { ...styles.filter, flexBasis: '250px', minWidth: 0 } }, [
-            h(Select, {
-              isClearable: true,
-              isMulti: true,
-              isSearchable: false,
-              placeholder: 'Submission status',
-              'aria-label': 'Filter by submission status',
-              value: submissionsFilter,
-              hideSelectedOptions: true,
-              onChange: data => this.setState({ submissionsFilter: _.map('value', data) }),
-              options: ['running', 'success', 'failure'],
-              getOptionLabel: ({ value }) => Utils.normalizeLabel(value)
-            })
-          ])
-        ]),
-        div({ style: styles.cardContainer(listView) }, [
-          h(NewWorkspaceCard, {
-            onClick: () => this.setState({ creatingNewWorkspace: true })
-          }),
-          Utils.cond(
-            [workspaces && _.isEmpty(initialFiltered), () => noWorkspacesMessage],
-            [!_.isEmpty(initialFiltered) && _.isEmpty(filteredWorkspaces), () => {
-              return div({ style: { fontStyle: 'italic' } }, ['No matching workspaces'])
-            }],
-            [listView, () => div({ style: { flex: 1, minWidth: 0 } }, [renderedWorkspaces])],
-            () => renderedWorkspaces
-          )
-        ]),
-        creatingNewWorkspace && h(NewWorkspaceModal, {
-          onDismiss: () => this.setState({ creatingNewWorkspace: false }),
-          onSuccess: ({ namespace, name }) => Nav.goToPath('workspace-dashboard', { namespace, name })
-        }),
-        cloningWorkspaceId && h(NewWorkspaceModal, {
-          cloneWorkspace: this.getWorkspace(cloningWorkspaceId),
-          onDismiss: () => this.setState({ cloningWorkspaceId: undefined }),
-          onSuccess: ({ namespace, name }) => Nav.goToPath('workspace-dashboard', { namespace, name })
-        }),
-        deletingWorkspaceId && h(DeleteWorkspaceModal, {
-          workspace: this.getWorkspace(deletingWorkspaceId),
-          onDismiss: () => { this.setState({ deletingWorkspaceId: undefined }) },
-          onSuccess: () => refreshWorkspaces()
-        }),
-        sharingWorkspaceId && h(ShareWorkspaceModal, {
-          workspace: this.getWorkspace(sharingWorkspaceId),
-          onDismiss: () => { this.setState({ sharingWorkspaceId: undefined }) }
-        }),
-        requestingAccessWorkspaceId && h(RequestAccessModal, {
-          workspace: this.getWorkspace(requestingAccessWorkspaceId),
-          onDismiss: () => { this.setState({ requestingAccessWorkspaceId: undefined }) }
-        }),
-        loadingWorkspaces && (!workspaces ? transparentSpinnerOverlay : topSpinnerOverlay)
-      ])
-    ])
-  }
-
-  componentDidUpdate() {
-    const { queryParams } = this.props
-    const { filter, accessLevelsFilter, projectsFilter, includePublic, tagsFilter, submissionsFilter } = this.state
+  useEffect(() => {
     // Note: setting undefined so that falsy values don't show up at all
-    const newSearch = qs.stringify({ ...queryParams, filter: filter || undefined, accessLevelsFilter, projectsFilter, includePublic: includePublic || undefined, tagsFilter, submissionsFilter }, { addQueryPrefix: true })
+    const newSearch = qs.stringify({ ...query, filter: filter || undefined, accessLevelsFilter, projectsFilter, includePublic: includePublic || undefined, tagsFilter, submissionsFilter }, { addQueryPrefix: true })
     if (newSearch !== Nav.history.location.search) {
       Nav.history.replace({ search: newSearch })
     }
-  }
-})
+  })
+
+  const getWorkspace = id => _.find({ workspace: { workspaceId: id } }, workspaces)
+
+  const initialFiltered = _.filter(ws => includePublic || !ws.public || Utils.canWrite(ws.accessLevel), workspaces)
+  const noWorkspaces = _.isEmpty(initialFiltered) && !loadingWorkspaces
+
+  const returnTags = _.getOr([], ['tag:tags', 'items'])
+
+  const noWorkspacesMessage = div({ style: { fontSize: 20, margin: '1rem' } }, [
+    div([
+      'To get started, click ', span({ style: { fontWeight: 600 } }, ['Create a New Workspace'])
+    ]),
+    div({ style: { marginTop: '1rem', fontSize: 16 } }, [
+      h(Link, {
+        ...Utils.newTabLinkProps,
+        href: `https://support.terra.bio/hc/en-us/articles/360022716811`
+      }, [`What's a workspace?`])
+    ])
+  ])
+
+  const filteredWorkspaces = _.flow(
+    _.filter(ws => {
+      const { workspace: { namespace, name } } = ws
+      return Utils.textMatch(filter, `${namespace}/${name}`) &&
+        (_.isEmpty(accessLevelsFilter) || accessLevelsFilter.includes(ws.accessLevel)) &&
+        (_.isEmpty(projectsFilter) || projectsFilter === namespace) &&
+        (_.isEmpty(submissionsFilter) || submissionsFilter.includes(workspaceSubmissionStatus(ws))) &&
+        (_.isEmpty(tagsFilter) || _.every(_.identity, _.map(a => returnTags(ws.workspace.attributes).includes(a), tagsFilter)))
+    }),
+    _.sortBy('workspace.name')
+  )(initialFiltered)
+
+  const renderedWorkspaces = noWorkspaces ? noWorkspacesMessage : _.map(workspace => {
+    return h(WorkspaceCard, {
+      listView,
+      onClone: () => setCloningWorkspaceId(workspace.workspace.workspaceId),
+      onDelete: () => setDeletingWorkspaceId(workspace.workspace.workspaceId),
+      onShare: () => setSharingWorkspaceId(workspace.workspace.workspaceId),
+      onRequestAccess: () => setRequestingAccessWorkspaceId(workspace.workspace.workspaceId),
+      workspace, key: workspace.workspace.workspaceId
+    })
+  }, filteredWorkspaces)
+
+  return h(Fragment, [
+    h(TopBar, { title: 'Workspaces' }, [
+      h(DelayedSearchInput, {
+        style: { marginLeft: '2rem', width: 500 },
+        placeholder: 'SEARCH WORKSPACES',
+        'aria-label': 'Search workspaces',
+        onChange: setFilter,
+        value: filter
+      })
+    ]),
+    h(PageBox, { role: 'main', style: { position: 'relative' } }, [
+      div({ style: { display: 'flex', alignItems: 'center', marginBottom: '1rem' } }, [
+        div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, ['Workspaces']),
+        div({ style: { marginLeft: 'auto', marginRight: '1rem' } }, [
+          h(LabeledCheckbox, {
+            checked: !!includePublic,
+            onChange: setIncludePublic
+          }, ' Show public workspaces')
+        ]),
+        h(ViewToggleButtons, { listView, setListView })
+      ]),
+      div({ style: { display: 'flex', marginBottom: '1rem' } }, [
+        div({ style: { display: 'flex', alignItems: 'center', fontSize: '1rem' } }, ['Filter by']),
+        div({ style: styles.filter }, [
+          h(WorkspaceTagSelect, {
+            isClearable: true,
+            isMulti: true,
+            formatCreateLabel: _.identity,
+            value: _.map(tag => ({ label: tag, value: tag }), tagsFilter),
+            placeholder: 'Tags',
+            'aria-label': 'Filter by tags',
+            onChange: data => setTagsFilter(_.map('value', data))
+          })
+        ]),
+        div({ style: { ...styles.filter, flexBasis: '250px', minWidth: 0 } }, [
+          h(Select, {
+            isClearable: true,
+            isMulti: true,
+            isSearchable: false,
+            placeholder: 'Access levels',
+            'aria-label': 'Filter by access levels',
+            value: accessLevelsFilter,
+            onChange: data => setAccessLevelsFilter(_.map('value', data)),
+            options: Utils.workspaceAccessLevels,
+            getOptionLabel: ({ value }) => Utils.normalizeLabel(value)
+          })
+        ]),
+        div({ style: styles.filter }, [
+          h(Select, {
+            isClearable: true,
+            isMulti: false,
+            placeholder: 'Billing project',
+            'aria-label': 'Filter by billing project',
+            value: projectsFilter,
+            hideSelectedOptions: true,
+            onChange: data => setProjectsFilter(!!data ? data.value : undefined),
+            options: _.flow(
+              _.map('workspace.namespace'),
+              _.uniq,
+              _.sortBy(_.identity)
+            )(initialFiltered)
+          })
+        ]),
+        div({ style: { ...styles.filter, flexBasis: '250px', minWidth: 0 } }, [
+          h(Select, {
+            isClearable: true,
+            isMulti: true,
+            isSearchable: false,
+            placeholder: 'Submission status',
+            'aria-label': 'Filter by submission status',
+            value: submissionsFilter,
+            hideSelectedOptions: true,
+            onChange: data => setSubmissionsFilter(_.map('value', data)),
+            options: ['running', 'success', 'failure'],
+            getOptionLabel: ({ value }) => Utils.normalizeLabel(value)
+          })
+        ])
+      ]),
+      div({ style: styles.cardContainer(listView) }, [
+        h(NewWorkspaceCard, {
+          onClick: () => setCreatingNewWorkspace(true)
+        }),
+        Utils.cond(
+          [workspaces && _.isEmpty(initialFiltered), () => noWorkspacesMessage],
+          [!_.isEmpty(initialFiltered) && _.isEmpty(filteredWorkspaces), () => {
+            return div({ style: { fontStyle: 'italic' } }, ['No matching workspaces'])
+          }],
+          [listView, () => div({ style: { flex: 1, minWidth: 0 } }, [renderedWorkspaces])],
+          () => renderedWorkspaces
+        )
+      ]),
+      creatingNewWorkspace && h(NewWorkspaceModal, {
+        onDismiss: () => setCreatingNewWorkspace(false),
+        onSuccess: ({ namespace, name }) => Nav.goToPath('workspace-dashboard', { namespace, name })
+      }),
+      cloningWorkspaceId && h(NewWorkspaceModal, {
+        cloneWorkspace: getWorkspace(cloningWorkspaceId),
+        onDismiss: () => setCloningWorkspaceId(undefined),
+        onSuccess: ({ namespace, name }) => Nav.goToPath('workspace-dashboard', { namespace, name })
+      }),
+      deletingWorkspaceId && h(DeleteWorkspaceModal, {
+        workspace: getWorkspace(deletingWorkspaceId),
+        onDismiss: () => setDeletingWorkspaceId(undefined),
+        onSuccess: () => refreshWorkspaces()
+      }),
+      sharingWorkspaceId && h(ShareWorkspaceModal, {
+        workspace: getWorkspace(sharingWorkspaceId),
+        onDismiss: () => setSharingWorkspaceId(undefined)
+      }),
+      requestingAccessWorkspaceId && h(RequestAccessModal, {
+        workspace: getWorkspace(requestingAccessWorkspaceId),
+        onDismiss: () => setRequestingAccessWorkspaceId(undefined)
+      }),
+      loadingWorkspaces && (!workspaces ? transparentSpinnerOverlay : topSpinnerOverlay)
+    ])
+  ])
+}
 
 export const navPaths = [
   {

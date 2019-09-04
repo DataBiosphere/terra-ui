@@ -30,7 +30,7 @@ const warningBoxStyle = {
 }
 
 export const renderDataCell = (data, namespace) => {
-  const isUri = datum => _.startsWith('gs://', datum) || _.startsWith('dos://', datum)
+  const isUri = datum => _.startsWith('gs://', datum) || _.startsWith('dos://', datum) || _.startsWith('drs://', datum)
 
   const renderCell = datum => {
     // known issue where toString is incorrectly flagged:

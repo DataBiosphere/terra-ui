@@ -149,6 +149,7 @@ const JobHistory = _.flow(
     const { submissions, loading, aborting, textFilter } = this.state
     const filteredSubmissions = _.filter(({ asText }) => _.every(term => asText.includes(term.toLowerCase()), textFilter.split(/\s+/)), submissions)
     const hasJobs = !_.isEmpty(submissions)
+    const { running, submitted } = !!aborting ? collapsedStatuses(_.find({ submissionId: aborting }, filteredSubmissions).workflowStatuses) : {}
 
     return h(Fragment, [
       div({ style: { display: 'flex', alignItems: 'center', margin: '1rem 1rem 0' } }, [
@@ -295,7 +296,7 @@ const JobHistory = _.flow(
           }
         }, [
           `Are you sure you want to abort ${
-            Utils.formatNumber(collapsedStatuses(_.find({ submissionId: aborting }, filteredSubmissions).workflowStatuses).running)
+            Utils.formatNumber(_.add(running, submitted))
           } running workflow(s)?`
         ]),
         loading && spinnerOverlay
