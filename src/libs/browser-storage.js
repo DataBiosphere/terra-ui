@@ -1,4 +1,5 @@
 import _ from 'lodash/fp'
+import { getUser } from 'src/libs/auth'
 import { maybeParseJSON } from 'src/libs/utils'
 
 
@@ -35,5 +36,7 @@ export const removeDynamic = (storage, key) => {
   storage.removeItem(storageKey)
 }
 
-export const getLocalPref = key => getDynamic(localStorage, key)
-export const setLocalPref = (key, value) => setDynamic(localStorage, key, value)
+const withUserPrefix = key => `${getUser().id}/${key}`
+
+export const getLocalPref = key => getDynamic(localStorage, withUserPrefix(key))
+export const setLocalPref = (key, value) => setDynamic(localStorage, withUserPrefix(key), value)
