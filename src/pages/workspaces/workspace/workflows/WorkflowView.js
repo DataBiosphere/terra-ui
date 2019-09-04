@@ -90,14 +90,12 @@ const ioType = ({ inputType, outputType }) => (inputType || outputType).match(/(
 const WorkflowIOTable = ({ which, inputsOutputs: data, config, errors, onChange, onSetDefaults, onBrowse, suggestions, readOnly }) => {
   const [sort, setSort] = useState({ field: 'taskVariable', direction: 'asc' })
 
-  const sortedData = _.flow(
-    _.sortBy(o => {
-      return Utils.switchCase(sort.field,
-        ['taskVariable', () => ioTask(o).toLowerCase()],
-        ['workflowVariable', () => ioVariable(o).toLowerCase()]
-      )
-    }),
-    sort.direction === 'asc' ? _.identity : _.reverse)(data)
+  const sortedData = _.orderBy([function(o) {
+    return Utils.switchCase(sort.field,
+      ['taskVariable', () => ioTask(o).toLowerCase()],
+      ['workflowVariable', () => ioVariable(o).toLowerCase()]
+    )
+  }, 'optional'], [sort.direction, 'asc'], data)
 
   return h(AutoSizer, [
     ({ width, height }) => {
@@ -333,7 +331,7 @@ const WorkflowView = _.flow(
       activeTab: 'inputs',
       entitySelectionModel: { selectedEntities: {} },
       useCallCache: true,
-      includeOptionalInputs: false,
+      includeOptionalInputs: true,
       errors: { inputs: {}, outputs: {} },
       ...StateHistory.get()
     }
@@ -821,9 +819,7 @@ const WorkflowView = _.flow(
       _.map(k => ({ name: k, inputType: 'unknown' }), _.keys(modifiedConfig[key])) :
       modifiedInputsOutputs[key]
     const filteredData = _.flow(
-      key === 'inputs' && !includeOptionalInputs ? _.reject('optional') : _.identity//,
-    // FIXME: bring this up to sort of data and move to orderBy then sort by optionals secondarily
-     // _.sortBy(['optional', ({ name }) => name.toLowerCase()])
+      key === 'inputs' && !includeOptionalInputs ? _.reject('optional') : _.identity
     )(data)
 
     return h(Dropzone, {
