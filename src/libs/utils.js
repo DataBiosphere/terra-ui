@@ -265,11 +265,11 @@ export const cantBeNumber = _.flow(_.toNumber, _.isNaN)
 export const convertValue = _.curry((type, value) => {
   switch (type) {
     case 'string':
-      return value.toString()
+      return _.toString(value)
     case 'number':
       return _.toNumber(value)
     case 'boolean':
-      return !(_.lowerCase(value) === 'false' || _.lowerCase(value) === 'no' || value === '0')
+      return !['false', 'no', '0', ''].includes(_.lowerCase(value))
     default:
       throw new Error('unknown type for convertValue')
   }

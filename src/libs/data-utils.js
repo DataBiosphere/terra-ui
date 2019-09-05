@@ -20,6 +20,7 @@ import { FormLabel } from 'src/libs/forms'
 import { getAppName } from 'src/libs/logos'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
+import validate from 'validate.js'
 
 
 const warningBoxStyle = {
@@ -357,10 +358,21 @@ export const EntityUploader = class EntityUploader extends Component {
   }
 }
 
+validate.validators.duplicateEntityNameValidator = (newName, { takenName }) => {
+  if (takenName === newName) {
+    return 'An entity with this name already exists'
+  }
+}
+
 export const EntityRenamer = ({ entityType, entityName, workspaceId: { namespace, name }, onDismiss, onSuccess }) => {
   const [newName, setNewName] = useState(entityName)
   const [isBusy, setIsBusy] = useState()
   const [takenName, setTakenName] = useState()
+
+  const errors = validate.single(newName, {
+    presence: { allowEmpty: false, message: 'Name can\'t be blank' },
+    duplicateEntityNameValidator: { takenName }
+  })
 
   const doRename = async () => {
     try {
@@ -383,12 +395,8 @@ export const EntityRenamer = ({ entityType, entityName, workspaceId: { namespace
     title: `Rename ${entityName}`,
     okButton: h(ButtonPrimary, {
       onClick: doRename,
-      disabled: entityName === newName || takenName === newName || !newName,
-      tooltip: Utils.cond(
-        [entityName === newName, 'No change to save'],
-        [takenName === newName, 'An entity with this name already exists'],
-        [!newName, 'Name can\'t be blank']
-      )
+      disabled: entityName === newName || errors,
+      tooltip: entityName === newName ? 'No change to save' : Utils.summarizeErrors(errors)
     }, ['Rename'])
   }, [
     h(IdContainer, [id => h(Fragment, [
@@ -401,10 +409,7 @@ export const EntityRenamer = ({ entityType, entityName, workspaceId: { namespace
           value: newName,
           onChange: setNewName
         },
-        error: Utils.cond(
-          [takenName === newName, 'An entity with this name already exists'],
-          [!newName, 'Name can\'t be blank']
-        )
+        error: Utils.summarizeErrors(errors)
       })
     ])]),
     isBusy && spinnerOverlay
@@ -414,6 +419,12 @@ export const EntityRenamer = ({ entityType, entityName, workspaceId: { namespace
 export const EntityEditor = ({ entityType, entityName, attributeName, attributeValue, entityTypes, workspaceId: { namespace, name }, onDismiss, onSuccess }) => {
   const initialIsReference = _.isObject(attributeValue) && (attributeValue.entityType || attributeValue.itemsType === 'EntityReference')
   const initialIsList = _.isObject(attributeValue) && attributeValue.items
+  const initialType = Utils.cond(
+    [initialIsReference, 'reference'],
+    [(initialIsList ? attributeValue.items[0] : attributeValue) === undefined, 'string'],
+    [initialIsList, () => typeof attributeValue.items[0]],
+    typeof attributeValue
+  )
 
   const [newValue, setNewValue] = useState(() => Utils.cond(
     [initialIsReference && initialIsList, () => _.map('entityName', attributeValue.items)],
@@ -424,7 +435,7 @@ export const EntityEditor = ({ entityType, entityName, attributeName, attributeV
   const [linkedEntityType, setLinkedEntityType] = useState(() => Utils.cond(
     [initialIsReference && initialIsList, () => attributeValue.items[0] ? attributeValue.items[0].entityType : undefined],
     [initialIsReference, () => attributeValue.entityType],
-    undefined
+    entityTypes[0]
   ))
   const [editType, setEditType] = useState(() => Utils.cond(
     [initialIsReference, 'reference'],
@@ -436,17 +447,13 @@ export const EntityEditor = ({ entityType, entityName, attributeName, attributeV
   const [consideringDelete, setConsideringDelete] = useState()
 
   const isList = _.isArray(newValue)
+  const isUnchanged = (initialType === editType && initialIsList === isList && _.isEqual(attributeValue, newValue))
 
   const doEdit = async () => {
     try {
       setIsBusy(true)
       const prepFn = Utils.switchCase(editType,
         ['reference', () => v => ({ entityName: _.trim(v), entityType: linkedEntityType })],
-        ['boolean', () => v => !!v],
-        ['number', () => v => {
-          const numberVal = _.toNumber(v)
-          return _.isNaN(numberVal) ? '' : numberVal
-        }],
         ['string', () => _.trim]
       )
       const preparedValue = isList ? _.map(prepFn, newValue) : prepFn(newValue)
@@ -475,14 +482,17 @@ export const EntityEditor = ({ entityType, entityName, attributeName, attributeV
 
   const boldish = text => span({ style: { fontWeight: 600 } }, [text])
 
-  const makeInput = ({ value, ...props }) => Utils.switchCase(editType,
+  const makeInput = ({ value = '', ...props }) => Utils.switchCase(editType,
     ['number', () => h(NumberInput, { autoFocus: true, placeholder: 'Enter a value', value, ...props })],
     ['boolean', () => div({
       style: { flexGrow: 1, display: 'flex', alignItems: 'center', height: '2.25rem' }
-    }, [
-      h(Switch, { checked: !!value, ...props })
-    ])],
-    [Utils.DEFAULT, () => h(TextInput, { autoFocus: true, placeholder: 'Enter a value', value, ...props })]
+    }, [h(Switch, { checked: value, ...props })])],
+    [Utils.DEFAULT, () => h(TextInput, {
+      autoFocus: true,
+      placeholder: editType === 'reference' ? `Enter a ${linkedEntityType}_id` : 'Enter a value',
+      value,
+      ...props
+    })]
   )
 
   return h(Modal, {
@@ -512,7 +522,18 @@ export const EntityEditor = ({ entityType, entityName, attributeName, attributeV
                 text: _.startCase(type),
                 name: 'edit-type',
                 checked: editType === type,
-                onChange: () => setEditType(type),
+                onChange: () => {
+                  const convertFn = type === 'number' ?
+                    v => {
+                      const numberVal = _.toNumber(v)
+                      return _.isNaN(numberVal) ? '' : numberVal
+                    } :
+                    Utils.convertValue(type === 'reference' ? 'string' : type)
+                  const convertedValue = isList ? _.map(convertFn, newValue) : convertFn(newValue)
+
+                  setNewValue(convertedValue)
+                  setEditType(type)
+                },
                 labelStyle: { paddingLeft: '0.5rem' }
               })])
             ]), [
@@ -544,14 +565,13 @@ export const EntityEditor = ({ entityType, entityName, attributeName, attributeV
             makeInput({
               'aria-label': `List value ${i + 1}`,
               autoFocus: true,
-              placeholder: 'Enter a value',
               value,
-              onChange: v => setNewValue([...newValue.slice(0, i), v, ...newValue.slice(i + 1)])
+              onChange: v => setNewValue(_.set(i, v))
             }),
             h(Link, {
               'aria-label': `Remove list value ${i + 1}`,
               disabled: newValue.length === 1,
-              onClick: () => setNewValue([...newValue.slice(0, i), ...newValue.slice(i + 1)]),
+              onClick: () => setNewValue(_.pullAt(i)),
               style: { marginLeft: '0.5rem' }
             }, [
               icon('times', { size: 20 })
@@ -561,7 +581,6 @@ export const EntityEditor = ({ entityType, entityName, attributeName, attributeV
             makeInput({
               'aria-label': 'New value',
               autoFocus: true,
-              placeholder: 'Enter a value',
               value: newValue,
               onChange: setNewValue
             })
@@ -576,8 +595,8 @@ export const EntityEditor = ({ entityType, entityName, attributeName, attributeV
           h(ButtonSecondary, { style: { marginRight: '1rem' }, onClick: onDismiss }, ['Cancel']),
           h(ButtonPrimary, {
             onClick: doEdit,
-            disabled: _.isEqual(attributeValue, newValue) || newValue === undefined,
-            tooltip: _.isEqual(attributeValue, newValue) && 'No changes to save'
+            disabled: isUnchanged || newValue === undefined || newValue === '',
+            tooltip: isUnchanged && 'No changes to save'
           }, ['Save Changes'])
         ])
       ]),
