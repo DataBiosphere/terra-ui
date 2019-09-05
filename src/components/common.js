@@ -3,7 +3,6 @@ import * as qs from 'qs'
 import { Fragment, useState } from 'react'
 import FocusLock from 'react-focus-lock'
 import { div, h, img, input, label, span } from 'react-hyperscript-helpers'
-import Interactive from 'react-interactive'
 import RSelect from 'react-select'
 import RAsyncCreatableSelect from 'react-select/async-creatable'
 import { centeredSpinner, icon } from 'src/components/icons'
@@ -25,6 +24,23 @@ const styles = {
     fontWeight: 500, fontSize: 14, textTransform: 'uppercase', whiteSpace: 'nowrap',
     userSelect: 'none'
   }
+}
+
+const Interactive = ({ as, children, hover = {}, style = {}, ...props }) => {
+  const { backgroundColor: hoverBackgroundColor, color: hoverColor } = hover
+  const { backgroundColor, color } = style
+
+  return h(as, {
+    className: 'hover-style',
+    style: {
+      ...style,
+      '--app-hover-background-color': hoverBackgroundColor,
+      '--app-hover-color': hoverColor,
+      color: `var(--hover-color, ${color})`,
+      backgroundColor: `var(--hover-background-color, ${backgroundColor})`
+    },
+    ...props
+  }, [children])
 }
 
 export const Clickable = ({ href, as = (!!href ? 'a' : 'div'), disabled, tooltip, tooltipSide, onClick, children, ...props }) => {

@@ -1,6 +1,11 @@
 @import "fonts/Montserrat.css";
 @import "../node_modules/github-markdown-css/github-markdown.css";
 
+.hover-style:hover {
+  --hover-background-color: var(--app-hover-background-color);
+  --hover-color: var(--app-hover-color);
+}
+
 body, input, textarea, select, button {
   font-family: "Montserrat", sans-serif;
   font-variant-numeric: tabular-nums;
