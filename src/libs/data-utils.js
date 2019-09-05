@@ -34,9 +34,7 @@ export const renderDataCell = (data, namespace) => {
   const isUri = datum => _.startsWith('gs://', datum) || _.startsWith('dos://', datum) || _.startsWith('drs://', datum)
 
   const renderCell = datum => {
-    // known issue where toString is incorrectly flagged:
-    // eslint-disable-next-line lodash-fp/preferred-alias
-    const stringDatum = _.toString(datum)
+    const stringDatum = Utils.convertValue('string', datum)
 
     return h(TextCell, { title: stringDatum },
       [isUri(datum) ? h(UriViewerLink, { uri: datum, googleProject: namespace }) : stringDatum])
