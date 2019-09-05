@@ -262,7 +262,7 @@ export const WorkspaceList = () => {
     _.filter(ws => {
       const { workspace: { namespace, name } } = ws
       return Utils.textMatch(filter, `${namespace}/${name}`) &&
-        (_.isEmpty(accessLevelsFilter) || accessLevelsFilter.includes(ws.accessLevel)) &&
+        (_.isEmpty(accessLevelsFilter) || _.some(accessLevel => Utils.hasAccessLevel(accessLevel, ws.accessLevel), accessLevelsFilter)) && //accessLevelsFilter.includes(ws.accessLevel)) &&
         (_.isEmpty(projectsFilter) || projectsFilter === namespace) &&
         (_.isEmpty(submissionsFilter) || submissionsFilter.includes(workspaceSubmissionStatus(ws))) &&
         (_.isEmpty(tagsFilter) || _.every(_.identity, _.map(a => returnTags(ws.workspace.attributes).includes(a), tagsFilter)))
