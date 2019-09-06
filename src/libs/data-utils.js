@@ -529,7 +529,7 @@ export const EntityEditor = ({ entityType, entityName, attributeName, attributeV
                   const convertFn = type === 'number' ?
                     v => {
                       const numberVal = _.toNumber(v)
-                      return _.isNaN(numberVal) ? '' : numberVal
+                      return _.isNaN(numberVal) ? 0 : numberVal
                     } :
                     Utils.convertValue(type === 'reference' ? 'string' : type)
                   const convertedValue = isList ? _.map(convertFn, newValue) : convertFn(newValue)
