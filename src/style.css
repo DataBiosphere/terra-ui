@@ -2,7 +2,7 @@
 @import "../node_modules/github-markdown-css/github-markdown.css";
 
 .hover-style:hover {
-  --hover-background-color: var(--app-hover-background-color);
+  --hover-backgroundColor: var(--app-hover-backgroundColor);
   --hover-color: var(--app-hover-color);
 }
 
