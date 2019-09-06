@@ -638,11 +638,9 @@ const Workspaces = signal => ({
       importJSON: async url => {
         const res = await fetchOk(url)
         const payload = await res.json()
-
         const body = _.map(({ name, entityType, attributes }) => {
           return { name, entityType, operations: attributesUpdateOps(attributes) }
         }, payload)
-
         return fetchRawls(`${root}/entities/batchUpsert`, _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }]))
       },
 
