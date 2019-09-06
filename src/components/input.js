@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
-import { Component, forwardRef, Fragment, useState } from 'react'
+import { Component, forwardRef, Fragment, useEffect, useState } from 'react'
 import Autosuggest from 'react-autosuggest'
 import { div, h } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
@@ -132,14 +132,15 @@ export const SearchInput = ({ value, onChange, ...props }) => {
 
 export const DelayedSearchInput = withDebouncedChange(SearchInput)
 
-export const NumberInput = ({ onChange, ...props }) => {
+export const NumberInput = ({ onChange, value, ...props }) => {
   Utils.useConsoleAssert(props.id || props['aria-label'], 'In order to be accessible, NumberInput needs a label')
 
   return h(Interactive, _.merge({
     as: 'input',
     type: 'number',
     className: 'focus-style',
-    onChange: onChange ? (e => onChange(e.target.value)) : undefined,
+    onChange: onChange ? (e => onChange(_.toNumber(e.target.value))) : undefined,
+    value: value.toString(),
     style: {
       ...styles.input,
       width: '100%',
@@ -152,43 +153,23 @@ export const NumberInput = ({ onChange, ...props }) => {
 }
 
 
-export class IntegerInput extends Component {
-  static propTypes = {
-    min: PropTypes.number,
-    max: PropTypes.number,
-    onChange: PropTypes.func.isRequired
-  }
+export const IntegerInput = ({ onChange, min = -Infinity, max = Infinity, value: externalValue, ...props }) => {
+  const [internalValue, setInternalValue] = useState(externalValue)
+  const [needsUpdate, setNeedsUpdate] = useState(false)
 
-  static defaultProps = {
-    min: -Infinity,
-    max: Infinity
-  }
+  useEffect(() => {
+    setInternalValue(externalValue)
+    setNeedsUpdate(false)
+  }, [externalValue, needsUpdate])
 
-  constructor(props) {
-    super(props)
-    this.state = { textValue: undefined, lastValueProp: undefined } // eslint-disable-line react/no-unused-state
-  }
-
-  static getDerivedStateFromProps({ value }, { lastValueProp }) {
-    if (value !== lastValueProp) {
-      return { textValue: value.toString(), lastValueProp: value }
+  return h(NumberInput, {
+    ...props, min, max, value: internalValue,
+    onChange: setInternalValue,
+    onBlur: () => {
+      setNeedsUpdate(true)
+      onChange(_.clamp(min, max, _.floor(internalValue)))
     }
-    return null
-  }
-
-  render() {
-    const { textValue } = this.state
-    const { onChange, min, max, ...props } = this.props
-    return h(NumberInput, {
-      ...props, min, max, value: textValue,
-      onChange: v => this.setState({ textValue: v }),
-      onBlur: () => {
-        const newValue = _.clamp(min, max, _.floor(textValue * 1))
-        this.setState({ lastValueProp: undefined }) // eslint-disable-line react/no-unused-state
-        onChange(newValue)
-      }
-    })
-  }
+  })
 }
 
 

@@ -431,7 +431,14 @@ const attributesUpdateOps = _.flow(
   _.toPairs,
   _.flatMap(([k, v]) => {
     return _.isArray(v) ?
-      [{ op: 'RemoveAttribute', attributeName: k }, ..._.map(x => ({ op: 'AddListMember', attributeListName: k, newMember: x }), v)] :
+      [
+        { op: 'RemoveAttribute', attributeName: k },
+        ...(_.isObject(v[0]) ?
+          [{ op: 'CreateAttributeEntityReferenceList', attributeListName: k }] :
+          [{ op: 'CreateAttributeValueList', attributeName: k }]
+        ),
+        ..._.map(x => ({ op: 'AddListMember', attributeListName: k, newMember: x }), v)
+      ] :
       [{ op: 'AddUpdateAttribute', attributeName: k, addUpdateAttribute: v }]
   })
 )
@@ -460,6 +467,15 @@ const Workspaces = signal => ({
   workspace: (namespace, name) => {
     const root = `workspaces/${namespace}/${name}`
     const mcPath = `${root}/methodconfigs`
+
+    const upsertEntities = entities => {
+      const body = _.map(({ name, entityType, attributes }) => {
+        return { name, entityType, operations: attributesUpdateOps(attributes) }
+      }, entities)
+
+      return fetchRawls(`${root}/entities/batchUpsert`, _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }]))
+    }
+
 
     return {
       checkBucketReadAccess: () => {
@@ -490,26 +506,6 @@ const Workspaces = signal => ({
       updateAcl: async (aclUpdates, inviteNew = true) => {
         const res = await fetchRawls(`${root}/acl?inviteUsersNotFound=${inviteNew}`,
           _.mergeAll([authOpts(), jsonBody(aclUpdates), { signal, method: 'PATCH' }]))
-        return res.json()
-      },
-
-      entityMetadata: async () => {
-        const res = await fetchRawls(`${root}/entities`, _.merge(authOpts(), { signal }))
-        return res.json()
-      },
-
-      createEntity: async payload => {
-        const res = await fetchRawls(`${root}/entities`, _.mergeAll([authOpts(), jsonBody(payload), { signal, method: 'POST' }]))
-        return res.json()
-      },
-
-      entitiesOfType: async type => {
-        const res = await fetchRawls(`${root}/entities/${type}`, _.merge(authOpts(), { signal }))
-        return res.json()
-      },
-
-      paginatedEntitiesOfType: async (type, parameters) => {
-        const res = await fetchRawls(`${root}/entityQuery/${type}?${qs.stringify(parameters)}`, _.merge(authOpts(), { signal }))
         return res.json()
       },
 
@@ -608,36 +604,24 @@ const Workspaces = signal => ({
         return fetchRawls(root, _.mergeAll([authOpts(), jsonBody(payload), { signal, method: 'PATCH' }]))
       },
 
-      importBagit: bagitURL => {
-        return fetchOrchestration(
-          `api/workspaces/${namespace}/${name}/importBagit`,
-          _.mergeAll([authOpts(), jsonBody({ bagitURL, format: 'TSV' }), { signal, method: 'POST' }])
-        )
+      entityMetadata: async () => {
+        const res = await fetchRawls(`${root}/entities`, _.merge(authOpts(), { signal }))
+        return res.json()
       },
 
-      importEntities: async url => {
-        const res = await fetchOk(url)
-        const payload = await res.json()
-        const body = _.map(({ name, entityType, attributes }) => {
-          return { name, entityType, operations: attributesUpdateOps(attributes) }
-        }, payload)
-        return fetchRawls(`${root}/entities/batchUpsert`, _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }]))
+      createEntity: async payload => {
+        const res = await fetchRawls(`${root}/entities`, _.mergeAll([authOpts(), jsonBody(payload), { signal, method: 'POST' }]))
+        return res.json()
       },
 
-      importEntitiesFile: file => {
-        const formData = new FormData()
-        formData.set('entities', file)
-        return fetchOrchestration(`api/${root}/importEntities`, _.merge(authOpts(), { body: formData, signal, method: 'POST' }))
+      entitiesOfType: async type => {
+        const res = await fetchRawls(`${root}/entities/${type}`, _.merge(authOpts(), { signal }))
+        return res.json()
       },
 
-      importFlexibleEntitiesFile: file => {
-        const formData = new FormData()
-        formData.set('entities', file)
-        return fetchOrchestration(`api/${root}/flexibleImportEntities`, _.merge(authOpts(), { body: formData, signal, method: 'POST' }))
-      },
-
-      importPFB: url => {
-        return fetchOrchestration(`api/${root}/importPFB`, _.mergeAll([authOpts(), jsonBody({ url }), { signal, method: 'POST' }]))
+      paginatedEntitiesOfType: async (type, parameters) => {
+        const res = await fetchRawls(`${root}/entityQuery/${type}?${qs.stringify(parameters)}`, _.merge(authOpts(), { signal }))
+        return res.json()
       },
 
       deleteEntities: entities => {
@@ -654,6 +638,36 @@ const Workspaces = signal => ({
         const res = await fetchRawls(`workspaces/entities/copy?linkExistingEntities=${link}`, _.mergeAll([authOpts(), jsonBody(payload),
           { signal, method: 'POST' }]))
         return res.json()
+      },
+
+      importBagit: bagitURL => {
+        return fetchOrchestration(
+          `api/workspaces/${namespace}/${name}/importBagit`,
+          _.mergeAll([authOpts(), jsonBody({ bagitURL, format: 'TSV' }), { signal, method: 'POST' }])
+        )
+      },
+
+      importJSON: async url => {
+        const res = await fetchOk(url)
+        const payload = await res.json()
+
+        return upsertEntities(payload)
+      },
+
+      importEntitiesFile: file => {
+        const formData = new FormData()
+        formData.set('entities', file)
+        return fetchOrchestration(`api/${root}/importEntities`, _.merge(authOpts(), { body: formData, signal, method: 'POST' }))
+      },
+
+      importFlexibleEntitiesFile: file => {
+        const formData = new FormData()
+        formData.set('entities', file)
+        return fetchOrchestration(`api/${root}/flexibleImportEntities`, _.merge(authOpts(), { body: formData, signal, method: 'POST' }))
+      },
+
+      importPFB: url => {
+        return fetchOrchestration(`api/${root}/importPFB`, _.mergeAll([authOpts(), jsonBody({ url }), { signal, method: 'POST' }]))
       },
 
       importAttributes: file => {
@@ -678,12 +692,14 @@ const Workspaces = signal => ({
       },
 
       addTag: async tag => {
-        const res = await fetchOrchestration(`api/workspaces/${namespace}/${name}/tags`, _.mergeAll([authOpts(), jsonBody([tag]), { signal, method: 'PATCH' }]))
+        const res = await fetchOrchestration(`api/workspaces/${namespace}/${name}/tags`,
+          _.mergeAll([authOpts(), jsonBody([tag]), { signal, method: 'PATCH' }]))
         return res.json()
       },
 
       deleteTag: async tag => {
-        const res = await fetchOrchestration(`api/workspaces/${namespace}/${name}/tags`, _.mergeAll([authOpts(), jsonBody([tag]), { signal, method: 'DELETE' }]))
+        const res = await fetchOrchestration(`api/workspaces/${namespace}/${name}/tags`,
+          _.mergeAll([authOpts(), jsonBody([tag]), { signal, method: 'DELETE' }]))
         return res.json()
       },
 
@@ -990,7 +1006,8 @@ const Martha = signal => ({
   },
 
   getSignedUrl: async ({ bucket, object, dataObjectUri }) => {
-    const res = await fetchMartha('getSignedUrlV1', _.mergeAll([jsonBody({ bucket, object, dataObjectUri }), authOpts(), appIdentifier, { signal, method: 'POST' }]))
+    const res = await fetchMartha('getSignedUrlV1',
+      _.mergeAll([jsonBody({ bucket, object, dataObjectUri }), authOpts(), appIdentifier, { signal, method: 'POST' }]))
     return res.json()
   }
 })
