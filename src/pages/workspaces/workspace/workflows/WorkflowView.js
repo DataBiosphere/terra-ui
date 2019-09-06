@@ -818,7 +818,7 @@ const WorkflowView = _.flow(
     const data = currentSnapRedacted ?
       _.map(k => ({ name: k, inputType: 'unknown' }), _.keys(modifiedConfig[key])) :
       modifiedInputsOutputs[key]
-    const filteredData = key === 'inputs' && !includeOptionalInputs ? _.reject('optional')(data) : _.identity(data)
+    const filteredData = key === 'inputs' && !includeOptionalInputs ? _.reject('optional', data) : data
 
     return h(Dropzone, {
       key,
