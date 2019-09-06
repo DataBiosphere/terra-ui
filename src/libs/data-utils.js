@@ -356,12 +356,6 @@ export const EntityUploader = class EntityUploader extends Component {
   }
 }
 
-validate.validators.duplicateEntityNameValidator = (newName, { takenName }) => {
-  if (takenName === newName) {
-    return 'An entity with this name already exists'
-  }
-}
-
 export const EntityRenamer = ({ entityType, entityName, workspaceId: { namespace, name }, onDismiss, onSuccess }) => {
   const [newName, setNewName] = useState(entityName)
   const [isBusy, setIsBusy] = useState()
@@ -369,7 +363,7 @@ export const EntityRenamer = ({ entityType, entityName, workspaceId: { namespace
 
   const errors = validate.single(newName, {
     presence: { allowEmpty: false, message: 'Name can\'t be blank' },
-    duplicateEntityNameValidator: { takenName }
+    exclusion: { within: [takenName], message: 'An entity with this name already exists' }
   })
 
   const doRename = async () => {
@@ -447,19 +441,43 @@ export const EntityEditor = ({ entityType, entityName, attributeName, attributeV
   const isList = _.isArray(newValue)
   const isUnchanged = (initialType === editType && initialIsList === isList && _.isEqual(attributeValue, newValue))
 
+  const makeTextInput = placeholder => ({ value = '', ...props }) => h(TextInput, { autoFocus: true, placeholder, value, ...props })
+
+  const { prepForUpload, makeInput, blankVal } = Utils.switchCase(editType,
+    ['string', () => ({
+      prepForUpload: _.trim,
+      makeInput: makeTextInput('Enter a value'),
+      blankVal: ''
+    })],
+    ['reference', () => ({
+      prepForUpload: v => ({ entityName: _.trim(v), entityType: linkedEntityType }),
+      makeInput: makeTextInput(`Enter a ${linkedEntityType}_id`),
+      blankVal: ''
+    })],
+    ['number', () => ({
+      prepForUpload: _.identity,
+      makeInput: ({ value = 0, ...props }) => h(NumberInput, { autoFocus: true, value, ...props }),
+      blankVal: 0
+    })],
+    ['boolean', () => ({
+      prepForUpload: _.identity,
+      makeInput: ({ value = false, ...props }) => div({ style: { flexGrow: 1, display: 'flex', alignItems: 'center', height: '2.25rem' } },
+        [h(Switch, { checked: value, ...props })]),
+      blankVal: false
+    })]
+  )
+
   const doEdit = async () => {
     try {
       setIsBusy(true)
-      const prepFn = Utils.switchCase(editType,
-        ['reference', () => v => ({ entityName: _.trim(v), entityType: linkedEntityType })],
-        ['string', () => _.trim]
-      )
-      const preparedValue = isList ? _.map(prepFn, newValue) : prepFn(newValue)
 
       await Ajax()
         .Workspaces
         .workspace(namespace, name)
-        .upsertEntities([{ name: entityName, entityType, attributes: { [attributeName]: preparedValue } }])
+        .upsertEntities([{
+          name: entityName, entityType,
+          attributes: { [attributeName]: isList ? _.map(prepForUpload, newValue) : prepForUpload(newValue) }
+        }])
       onSuccess()
     } catch (e) {
       onDismiss()
@@ -479,19 +497,6 @@ export const EntityEditor = ({ entityType, entityName, attributeName, attributeV
   }
 
   const boldish = text => span({ style: { fontWeight: 600 } }, [text])
-
-  const makeInput = ({ value = '', ...props }) => Utils.switchCase(editType,
-    ['number', () => h(NumberInput, { autoFocus: true, placeholder: 'Enter a value', value, ...props })],
-    ['boolean', () => div({
-      style: { flexGrow: 1, display: 'flex', alignItems: 'center', height: '2.25rem' }
-    }, [h(Switch, { checked: value, ...props })])],
-    [Utils.DEFAULT, () => h(TextInput, {
-      autoFocus: true,
-      placeholder: editType === 'reference' ? `Enter a ${linkedEntityType}_id` : 'Enter a value',
-      value,
-      ...props
-    })]
-  )
 
   return h(Modal, {
     title: 'Modify Attribute',
@@ -585,7 +590,7 @@ export const EntityEditor = ({ entityType, entityName, attributeName, attributeV
           ]),
         isList && h(Link, {
           style: { display: 'block', marginTop: '1rem' },
-          onClick: () => setNewValue(Utils.append(''))
+          onClick: () => setNewValue(Utils.append(blankVal))
         }, [icon('plus', { style: { marginRight: '0.5rem' } }), 'Add item']),
         div({ style: { marginTop: '2rem', display: 'flex', alignItems: 'baseline' } }, [
           h(ButtonOutline, { onClick: () => setConsideringDelete(true) }, ['Delete']),
