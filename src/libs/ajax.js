@@ -433,10 +433,7 @@ const attributesUpdateOps = _.flow(
     return _.isArray(v) ?
       [
         { op: 'RemoveAttribute', attributeName: k },
-        ...(_.isObject(v[0]) ?
-          [{ op: 'CreateAttributeEntityReferenceList', attributeListName: k }] :
-          [{ op: 'CreateAttributeValueList', attributeName: k }]
-        ),
+        { op: 'CreateAttributeValueList', attributeName: k },
         ..._.map(x => ({ op: 'AddListMember', attributeListName: k, newMember: x }), v)
       ] :
       [{ op: 'AddUpdateAttribute', attributeName: k, addUpdateAttribute: v }]
@@ -467,15 +464,6 @@ const Workspaces = signal => ({
   workspace: (namespace, name) => {
     const root = `workspaces/${namespace}/${name}`
     const mcPath = `${root}/methodconfigs`
-
-    const upsertEntities = entities => {
-      const body = _.map(({ name, entityType, attributes }) => {
-        return { name, entityType, operations: attributesUpdateOps(attributes) }
-      }, entities)
-
-      return fetchRawls(`${root}/entities/batchUpsert`, _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }]))
-    }
-
 
     return {
       checkBucketReadAccess: () => {
@@ -651,7 +639,11 @@ const Workspaces = signal => ({
         const res = await fetchOk(url)
         const payload = await res.json()
 
-        return upsertEntities(payload)
+        const body = _.map(({ name, entityType, attributes }) => {
+          return { name, entityType, operations: attributesUpdateOps(attributes) }
+        }, payload)
+
+        return fetchRawls(`${root}/entities/batchUpsert`, _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }]))
       },
 
       importEntitiesFile: file => {
