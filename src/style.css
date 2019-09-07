@@ -8,7 +8,7 @@
 
 .hover-style:hover .hover-style {
   --hover-backgroundColor: initial;
-  --hover-color: initial; 
+  --hover-color: initial;
 }
 
 .hover-style:hover .hover-style:hover {

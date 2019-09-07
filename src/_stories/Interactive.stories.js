@@ -9,7 +9,8 @@ const nestedClickable2 = h(Clickable, {
     height: '100px',
     width: '100px',
     border: '1px solid black',
-    padding: '1rem'
+    padding: '1rem',
+    color: 'black'
   }, hover: { color: 'green' }
 }, ['buddy'])
 
@@ -18,7 +19,8 @@ const nestedClickable1 = h(Clickable, {
     height: '150px',
     width: '150px',
     border: '1px solid black',
-    padding: '1rem'
+    padding: '1rem',
+    color: 'black'
   }, hover: { color: 'blue' }
 }, ['there', nestedClickable2])
 
