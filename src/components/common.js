@@ -28,11 +28,13 @@ const styles = {
 
 const cssHoverVariables = ['backgroundColor', 'color']
 
-const Interactive = ({ as, children, hover = {}, style = {}, ...props }) => {
+export const Interactive = ({ as, children, hover = {}, style = {}, ...props }) => {
   const cssVariables = _.flow(
     _.toPairs,
     _.reduce((result, [key, value]) => {
-      Utils.useConsoleAssert(!_.some(key, cssHoverVariables), `${key} needs to be added to the hover-style for the style to be applied`)
+      Utils.useConsoleAssert(
+        _.some(v => key === v, cssHoverVariables),
+        `${key} needs to be added to the hover-style for the style to be applied`)
       result[`--app-hover-${key}`] = value
       result[key] = `var(--hover-${key}, ${style[key]})`
       return result

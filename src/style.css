@@ -6,6 +6,16 @@
   --hover-color: var(--app-hover-color);
 }
 
+.hover-style:hover .hover-style {
+  --hover-backgroundColor: initial;
+  --hover-color: initial; 
+}
+
+.hover-style:hover .hover-style:hover {
+  --hover-backgroundColor: var(--app-hover-backgroundColor);
+  --hover-color: var(--app-hover-color);
+}
+
 body, input, textarea, select, button {
   font-family: "Montserrat", sans-serif;
   font-variant-numeric: tabular-nums;
