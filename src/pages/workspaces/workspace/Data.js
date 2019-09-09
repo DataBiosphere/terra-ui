@@ -989,12 +989,12 @@ const WorkspaceData = _.flow(
               firstRender, refreshKey
             })],
             ['entities', () => h(EntitiesContent, {
-              key: selectedDataType,
+              key: refreshKey,
               workspace,
               entityMetadata,
               entityKey: selectedDataType,
               loadMetadata: () => this.loadMetadata(),
-              firstRender, refreshKey
+              firstRender
             })]
           )
         ])
