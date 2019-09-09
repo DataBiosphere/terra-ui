@@ -139,8 +139,8 @@ export const NumberInput = ({ onChange, value, ...props }) => {
     as: 'input',
     type: 'number',
     className: 'focus-style',
-    onChange: onChange ? (e => onChange(_.toNumber(e.target.value))) : undefined,
-    value: value.toString(),
+    onChange: onChange ? (({ target: { value: newVal } }) => onChange(newVal === '' ? null : _.toNumber(newVal))) : undefined,
+    value: _.isNumber(value) ? value.toString() : '',
     style: {
       ...styles.input,
       width: '100%',
@@ -155,19 +155,18 @@ export const NumberInput = ({ onChange, value, ...props }) => {
 
 export const IntegerInput = ({ onChange, min = -Infinity, max = Infinity, value: externalValue, ...props }) => {
   const [internalValue, setInternalValue] = useState(externalValue)
-  const [needsUpdate, setNeedsUpdate] = useState(false)
 
   useEffect(() => {
     setInternalValue(externalValue)
-    setNeedsUpdate(false)
-  }, [externalValue, needsUpdate])
+  }, [externalValue])
 
   return h(NumberInput, {
     ...props, min, max, value: internalValue,
     onChange: setInternalValue,
     onBlur: () => {
-      setNeedsUpdate(true)
-      onChange(_.clamp(min, max, _.floor(internalValue)))
+      const newVal = _.clamp(min, max, _.floor(internalValue))
+      setInternalValue(newVal)
+      onChange(newVal)
     }
   })
 }
