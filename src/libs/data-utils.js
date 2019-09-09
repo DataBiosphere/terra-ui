@@ -5,6 +5,7 @@ import { div, h, span } from 'react-hyperscript-helpers/lib/index'
 import { ButtonPrimary, Clickable, LabeledCheckbox, Link, Select, spinnerOverlay } from 'src/components/common'
 import Dropzone from 'src/components/Dropzone'
 import { icon } from 'src/components/icons'
+import { TextArea } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { TextCell } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
@@ -238,13 +239,15 @@ export const EntityUploader = class EntityUploader extends Component {
 
   async doUpload() {
     const { onDismiss, onSuccess, namespace, name } = this.props
-    const { file, useFireCloudDataModel } = this.state
+    const { file, pastedText, useFireCloudDataModel } = this.state
 
     this.setState({ uploading: true })
 
     try {
       const workspace = Ajax().Workspaces.workspace(namespace, name)
-      await (useFireCloudDataModel ? workspace.importEntitiesFile : workspace.importFlexibleEntitiesFile)(file)
+      await (useFireCloudDataModel ? workspace.importEntitiesFile : workspace.importFlexibleEntitiesFile)(
+        !!pastedText ? new File([pastedText], 'upload.tsv') : file
+      )
       onSuccess()
     } catch (error) {
       await reportError('Error uploading entities', error)
@@ -254,9 +257,10 @@ export const EntityUploader = class EntityUploader extends Component {
 
   render() {
     const { onDismiss, entityTypes } = this.props
-    const { uploading, file, newEntityType, isInvalid, useFireCloudDataModel } = this.state
+    const { uploading, file, newEntityType, isInvalidFile, isInvalidText, useFireCloudDataModel, pastedText } = this.state
 
     const inputLabel = text => div({ style: { fontSize: 16, marginBottom: '0.3rem' } }, [text])
+    const checkUpload = text => /(?:membership|entity):([^\s]+)_id/.exec(text)
 
     return h(Dropzone, {
       multiple: false,
@@ -264,53 +268,38 @@ export const EntityUploader = class EntityUploader extends Component {
       activeStyle: { cursor: 'copy' },
       onDropAccepted: async ([file]) => {
         const firstBytes = await Utils.readFileAsText(file.slice(0, 1000))
-        const definedTypeMatch = /(?:membership|entity):([^\s]+)_id/.exec(firstBytes)
+        const definedTypeMatch = checkUpload(firstBytes)
 
         if (definedTypeMatch) {
           const parsedEntityType = definedTypeMatch[1]
-          this.setState({ file, isInvalid: undefined, newEntityType: parsedEntityType, useFireCloudDataModel: false })
+          this.setState(
+            { file, isInvalidFile: false, newEntityType: parsedEntityType, useFireCloudDataModel: false, pastedText: '', isInvalidText: false })
         } else {
-          this.setState({ file: undefined, isInvalid: true })
+          this.setState({ file: undefined, isInvalidFile: true, pastedText: '', isInvalidText: false })
         }
       }
     }, [({ dragging, openUploader }) => h(Fragment, [
       h(Modal, {
         onDismiss,
-        title: 'Upload Table From .tsv File',
+        title: 'Import Table Data',
         width: '35rem',
         okButton: h(ButtonPrimary, {
-          disabled: !file || uploading,
+          disabled: (!file && !pastedText) || uploading,
+          tooltip: (!file && !pastedText) ? 'Please select valid data to upload' : 'Upload selected data',
           onClick: () => this.doUpload()
         }, ['Upload'])
       }, [
-        div({ style: { borderBottom: Style.standardLine, marginBottom: '1rem', paddingBottom: '1rem' } }, [
-          'Select the ',
+        div([
+          'For a file import: Select the ',
           h(TooltipTrigger, { content: 'Tab Separated Values', side: 'bottom' }, [span({ style: { textDecoration: 'underline dashed' } }, 'TSV')]),
-          ' file containing your data. The first column header must be:',
-          div({ style: { fontFamily: 'monospace', margin: '0.5rem' } }, ['entity:[type]_id']),
-          'where ',
-          span({ style: { fontFamily: 'monospace' } }, ['[type]']),
-          ` is the desired name of the data table in ${getAppName()}.`,
-          ' For example, use ',
-          span({ style: { fontFamily: 'monospace' } }, ['entity:participant_id']),
-          ' to create or update a ',
-          span({ style: { fontFamily: 'monospace' } }, ['participant']),
-          ' table.',
-          div({ style: { marginTop: '0.5rem' } }, ['All of the values in the ID column must be unique.'])
+          ' file containing your data. '
         ]),
         file && _.includes(_.toLower(newEntityType), entityTypes) && div({
           style: { ...warningBoxStyle, marginBottom: '0.5rem', display: 'flex', alignItems: 'center' }
         }, [
-          icon('warning-standard', { size: 24, style: { flex: 'none', marginRight: '0.5rem', marginLeft: '-0.5rem' } }),
-          div([`Data with the type '${newEntityType}' already exists in this workspace. `,
-            'Uploading another load file for the same type may overwrite some entries.'])
-        ]),
-        isInvalid && div({
-          style: { color: colors.warning(), fontWeight: 'bold', fontSize: 12, marginBottom: '0.5rem' }
-        }, ['File does not start with entity or membership definition.']),
-        inputLabel('Selected File'),
-        div({ style: { marginLeft: '0.5rem' } }, [
-          (file && file.name) || div({ style: { color: colors.dark(0.7) } }, 'None')
+          icon('warning-standard', { size: 19, style: { flex: 'none', marginRight: '0.5rem', marginLeft: '-0.5rem' } }),
+          `Data with the type '${newEntityType}' already exists in this workspace. `,
+          'Uploading another load file for the same type may overwrite some entries.'
         ]),
         file && supportsFireCloudDataModel(newEntityType) && div([
           h(LabeledCheckbox, {
@@ -331,10 +320,109 @@ export const EntityUploader = class EntityUploader extends Component {
             backgroundColor: dragging ? colors.accent(0.2) : colors.dark(0.1),
             border: `1px dashed ${colors.dark(0.7)}`, boxShadow: 'none'
           },
-          onClick: openUploader
+          onClick: pastedText ?
+            () => window.confirm(
+              'The data currently typed in will not be imported if you choose to upload a file instead, to continue and upload a file anyway click OK.') &&
+              openUploader() :
+            openUploader
         }, [
           div(['Drag or ', h(Link, ['Click']), ' to select a .tsv file'])
-        ])
+        ]),
+        isInvalidFile && div({
+          style: { color: colors.warning(), fontWeight: 'bold', fontSize: 12, marginTop: '0.5rem' }
+        }, ['Invalid format: File does not start with entity or membership definition.']),
+        div({ style: { marginLeft: '1rem', marginTop: '0.5rem', fontSize: 12 } }, ['Selected File: ',
+          div({ style: { color: colors.dark(0.7) } }, (file && file.name) ? file.name : 'None')]),
+        div({ style: { borderTop: Style.standardLine, marginTop: '1rem', paddingTop: '1rem' } }, [
+          'For a copy-and-paste text import: Paste the data directly to the text field below. '
+        ]),
+        pastedText && _.includes(_.toLower(newEntityType), entityTypes) && div({
+          style: { ...warningBoxStyle, marginBottom: '0.5rem', display: 'flex', alignItems: 'center' }
+        }, [
+          icon('warning-standard', { size: 19, style: { flex: 'none', marginRight: '0.5rem', marginLeft: '-0.5rem' } }),
+          `Data with the type '${newEntityType}' already exists in this workspace. `,
+          'Uploading more data for the same type may overwrite some entries.'
+        ]),
+        pastedText && supportsFireCloudDataModel(newEntityType) && div([
+          h(LabeledCheckbox, {
+            checked: useFireCloudDataModel,
+            onChange: checked => this.setState({ useFireCloudDataModel: checked }),
+            style: { margin: '0.5rem' }
+          }, [' Create participant, sample, and pair associations']),
+          h(Link, {
+            style: { marginLeft: '1rem', verticalAlign: 'middle' },
+            href: 'https://software.broadinstitute.org/firecloud/documentation/article?id=10738',
+            ...Utils.newTabLinkProps
+          }, ['Learn more ', icon('pop-out', { size: 12 })])
+        ]),
+        h(TextArea, {
+          'aria-label': 'Paste text data',
+          placeholder: 'Paste/Enter text data here...',
+          // onClick: file ?
+          //   () => window.confirm(
+          //     'The file currently selected will not be imported if you choose to paste in text data instead, to continue and paste in data anyway click OK.') &&
+          //     this.setState({ file: undefined }) :
+          //   undefined,
+          onChange: file ?
+            () => window.confirm(
+              'The file currently selected will not be imported if you choose to paste in text data instead, to continue and paste in data anyway click OK.')
+              && this.setState({ file: undefined }) &&
+              (pastedText => {
+                const definedTypeMatch = checkUpload(pastedText)
+                if (definedTypeMatch) {
+                  const parsedEntityType = definedTypeMatch[1]
+                  this.setState(
+                    {
+                      pastedText, isInvalidFile: false, newEntityType: parsedEntityType, useFireCloudDataModel: false, isInvalidText: false,
+                      file: undefined
+                    })
+                } else {
+                  this.setState({ pastedText: undefined, isInvalidFile: false, isInvalidText: true })
+                }
+              }) : (pastedText => {
+              const definedTypeMatch = checkUpload(pastedText)
+              if (definedTypeMatch) {
+                const parsedEntityType = definedTypeMatch[1]
+                this.setState(
+                  {
+                    pastedText, isInvalidFile: false, newEntityType: parsedEntityType, useFireCloudDataModel: false, isInvalidText: false,
+                    file: undefined
+                  })
+              } else {
+                this.setState({ pastedText: undefined, isInvalidFile: false, isInvalidText: true })
+              }
+            }),
+
+          value: pastedText,
+          wrap: 'off',
+          style: {
+            ...Style.elements.card.container,
+            flex: 1,
+            fontFamily: 'monospace',
+            resize: 'vertical',
+            maxHeight: 300,
+            minHeight: 60,
+            margin: '0.5rem 0',
+            backgroundColor: colors.dark(0.1),
+            border: `1px dashed ${colors.dark(0.7)}`,
+            boxShadow: 'none'
+          }
+        }),
+        isInvalidText && div({
+          style: { color: colors.warning(), fontWeight: 'bold', fontSize: 12, marginTop: '0.5rem' }
+        }, ['Invalid format: Text Data does not start with entity or membership definition.']),
+        div({ style: { borderTop: Style.standardLine, marginTop: '1rem', paddingTop: '1rem' } }),
+        ' For all imports the first column header must be: ',
+        div({ style: { fontFamily: 'monospace', margin: '0.5rem' } }, ['entity:[type]_id']),
+        'where ',
+        span({ style: { fontFamily: 'monospace' } }, ['[type]']),
+        ` is the desired name of the data table in ${getAppName()}.`,
+        ' For example, use ',
+        span({ style: { fontFamily: 'monospace' } }, ['entity:participant_id']),
+        ' to create or update a ',
+        span({ style: { fontFamily: 'monospace' } }, ['participant']),
+        ' table.',
+        div({ style: { marginTop: '0.5rem' } }, ['All of the values in the ID column must be unique.'])
       ]),
       uploading && spinnerOverlay
     ])])
