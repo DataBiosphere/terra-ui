@@ -26,7 +26,7 @@ const styles = {
   }
 }
 
-const allowedHoverVariables = ['backgroundColor', 'color', 'boxShadow', 'opacity']
+const allowedHoverVariables = ['backgroundColor', 'color', 'boxShadow', 'opacity', 'textDecoration']
 
 export const Interactive = ({ as, children, hover = {}, style = {}, ...props }) => {
   const cssVariables = _.flow(

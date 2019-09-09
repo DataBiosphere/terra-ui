@@ -1,49 +1,77 @@
 
 import { number, text, withKnobs } from '@storybook/addon-knobs'
 import { storiesOf } from '@storybook/react'
-import { h } from 'react-hyperscript-helpers'
-import { Clickable } from 'src/components/common'
+import { div, h } from 'react-hyperscript-helpers'
+import { Interactive } from 'src/components/common'
 
 
-const nestedClickable2 = h(Clickable, {
+console.log(Interactive)
+
+const Inner2 = ({ style, hover, children }) => h(Interactive, {
+  as: div,
   style: {
     height: '100px',
     width: '100px',
     border: '1px solid black',
     padding: '1rem',
-    color: 'black'
-  }, hover: { color: 'green' }
-}, ['buddy'])
+    ...style
+  }, hover
+}, [children])
 
-const nestedClickable1 = h(Clickable, {
+const Inner1 = ({ style, hover, children }) => h(Interactive, {
+  as: div,
   style: {
     height: '150px',
     width: '150px',
     border: '1px solid black',
     padding: '1rem',
-    color: 'black'
-  }, hover: { color: 'blue' }
-}, ['there', nestedClickable2])
+    ...style
+  }, hover
+}, [children])
+
+
+const colorLabel = 'Text Color (enter a valid CSS color)'
+const bgColorLabel = 'Background Color (enter a valid CSS color)'
+const boxShadowLabel = 'Box Shadow'
+const opacityLabel = 'Opacity'
+const textDecorationLabel = 'Text Decoration'
 
 const SingleHover = () => {
-  const color = text('Text Color (enter a valid CSS color)', 'white')
-  const backgroundColor = text('Background Color (enter a valid CSS color)', 'black')
-  const boxShadow = text('Box Shadow', '10px 5px 5px gray')
-  const opacity = number('Opacity', 1, { range: true, min: 0, max: 1, step: 0.1 })
+  const color = text(colorLabel, 'white')
+  const backgroundColor = text(bgColorLabel, 'black')
+  const boxShadow = text(boxShadowLabel, '10px 5px 5px gray')
+  const opacity = number(opacityLabel, 1, { range: true, min: 0, max: 1, step: 0.1 })
+  const textDecoration = text(textDecorationLabel, 'underline')
 
-  return h(Clickable, {
+  return h(Interactive, {
+    as: div,
     style: { height: '200px', width: '200px', border: '1px solid black', padding: '1rem', margin: '1rem' },
-    hover: { color, backgroundColor, boxShadow, opacity }
-  }, ['Hi'])
+    hover: { color, backgroundColor, boxShadow, opacity, textDecoration }
+  }, ['Hiya Buddy!'])
 }
 
 const NestedHover = () => {
-  return h(Clickable, {
+  const color = text(colorLabel, 'white')
+  const backgroundColor = text(bgColorLabel, 'black')
+  const boxShadow = text(boxShadowLabel, '10px 5px 5px gray')
+  const opacity = number(opacityLabel, 1, { range: true, min: 0, max: 1, step: 0.1 })
+  const textDecoration = text(textDecorationLabel, 'underline')
+
+  const initialSetting = { color: 'black', backgroundColor: 'white', boxShadow: 'none', opacity: 1, textDecoration: 'none' }
+  const containerHover = { color, backgroundColor, boxShadow, opacity, textDecoration }
+  const inner1Hover = { color, backgroundColor, boxShadow, opacity, textDecoration }
+  const inner2Hover = { color, backgroundColor, boxShadow, opacity, textDecoration }
+
+  return h(Interactive, {
+    as: div,
     style: { height: '200px', width: '200px', border: '1px solid black', padding: '1rem' },
-    hover: { color: 'red' }
+    hover: containerHover
   }, [
-    'Hi',
-    nestedClickable1
+    'Container',
+    h(Inner1, { style: initialSetting, hover: inner1Hover }, [
+      'Inner 1',
+      h(Inner2, { style: initialSetting, hover: inner2Hover }, ['Inner 2'])
+    ])
   ])
 }
 
