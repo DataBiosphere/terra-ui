@@ -26,7 +26,7 @@ const warningBoxStyle = {
 }
 
 export const renderDataCell = (data, namespace) => {
-  const isUri = datum => _.startsWith('gs://', datum) || _.startsWith('dos://', datum)
+  const isUri = datum => _.startsWith('gs://', datum) || _.startsWith('dos://', datum) || _.startsWith('drs://', datum)
 
   const renderCell = datum => h(TextCell, { title: datum },
     [isUri(datum) ? h(UriViewerLink, { uri: datum, googleProject: namespace }) : datum])
