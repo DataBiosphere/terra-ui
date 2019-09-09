@@ -32,7 +32,7 @@
     "react-autosuggest": "^9.4.3",
     "react-collapse": "^4.0.3",
     "react-dom": "npm:@hot-loader/react-dom@~16.8.6",
-    "react-draggable": "^3.3.2",
+    "react-draggable": "^4.0.2",
     "react-dropzone": "^10.1.8",
     "react-focus-lock": "^2.0.5",
     "react-hyperscript-helpers": "^1.2.0",
