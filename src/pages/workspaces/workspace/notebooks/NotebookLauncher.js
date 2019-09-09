@@ -80,6 +80,7 @@ const NotebookLauncher = _.flow(
     const [createOpen, setCreateOpen] = useState(false)
     // Status note: undefined means still loading, null means no cluster
     const clusterStatus = cluster && cluster.status
+    const [busy, setBusy] = useState()
     const mode = queryParams['mode']
 
     return h(Fragment, [
@@ -100,10 +101,13 @@ const NotebookLauncher = _.flow(
         onCancel: () => setCreateOpen(false),
         onSuccess: withErrorReporting('Error creating cluster', async promise => {
           setCreateOpen(false)
+          setBusy(true)
           await promise
           await refreshClusters()
+          setBusy(false)
         })
-      })
+      }),
+      busy && createPortal(spinnerOverlay, document.getElementById('modal-root'))
     ])
   })
 
@@ -172,7 +176,6 @@ const PlaygroundModal = ({ onDismiss, onPlayground }) => {
 
 const PreviewHeader = ({ queryParams, cluster, readOnlyAccess, refreshClusters, notebookName, workspace, workspace: { canShare, workspace: { namespace, name, bucketName } } }) => {
   const signal = useCancellation()
-  console.log(readOnlyAccess)
   const { profile: { email } } = Utils.useAtom(authStore)
   const hidePlaygroundModal = BrowserStorage.getLocalPref('hidePlaygroundMessage')
   const [fileInUseOpen, setFileInUseOpen] = useState(false)
@@ -183,8 +186,6 @@ const PreviewHeader = ({ queryParams, cluster, readOnlyAccess, refreshClusters, 
   const [copyingNotebook, setCopyingNotebook] = useState(false)
   const clusterStatus = cluster && cluster.status
   const mode = queryParams['mode']
-  console.log(mode)
-  console.log(!mode)
   const notebookLink = Nav.getLink('workspace-notebook-launch', { namespace, name, notebookName })
 
   const checkIfLocked = withErrorReporting('Error checking notebook lock status', async () => {
@@ -201,9 +202,7 @@ const PreviewHeader = ({ queryParams, cluster, readOnlyAccess, refreshClusters, 
   Utils.useOnMount(() => { checkIfLocked() })
 
   const chooseMode = mode => {
-    Nav.history.replace({
-      search: '?' + qs.stringify({ mode })
-    })
+    Nav.history.replace({ search: '?' + qs.stringify({ mode }) })
   }
 
   return div({ style: { display: 'flex', alignItems: 'center', borderBottom: `2px solid ${colors.dark(0.2)}`, height: '3.5rem' } }, [
@@ -300,7 +299,7 @@ const PreviewHeader = ({ queryParams, cluster, readOnlyAccess, refreshClusters, 
   ])
 }
 
-const NotebookPreviewFrame = ({ notebookName, workspace: { workspace: { namespace, name, bucketName } }, onRequesterPaysError }) => {
+const NotebookPreviewFrame = ({ notebookName, workspace: { workspace: { namespace, bucketName } }, onRequesterPaysError }) => {
   const signal = useCancellation()
   const [busy, setBusy] = useState(false)
   const [preview, setPreview] = useState()
