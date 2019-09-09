@@ -984,9 +984,18 @@ const Jupyter = signal => ({
           }), { signal, method: 'POST' }]))
       },
 
-      lock: localPath => {
-        return fetchLeo(`${root}/welder/objects/lock`,
-          _.mergeAll([authOpts(), jsonBody({ localPath }), { signal, method: 'POST' }]))
+      lock: async localPath => {
+        try {
+          await fetchLeo(`${root}/welder/objects/lock`,
+            _.mergeAll([authOpts(), jsonBody({ localPath }), { signal, method: 'POST' }]))
+        } catch (error) {
+          if (error.status === 409) {
+            return false
+          } else {
+            throw error
+          }
+        }
+        return true
       }
     }
   }

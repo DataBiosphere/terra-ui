@@ -20,15 +20,18 @@ export const notebookLockHash = async (bucketName, email) => {
   return hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
 }
 
-export const findPotentialNotebookLockers = async (namespace, wsName, bucketName) => {
-  const { acl } = await Ajax().Workspaces.workspace(namespace, wsName).getAcl()
-  const potentialLockers = _.flow(
-    _.toPairs,
-    _.map(([email, data]) => ({ email, ...data })),
-    _.filter(({ accessLevel }) => _.includes(accessLevel, ['OWNER', 'PROJECT_OWNER', 'WRITER'])),
-  )(acl)
-  const lockHolderPromises = _.map(async ({ email }) => ({ [await notebookLockHash(bucketName, email)]: email }), potentialLockers)
-  return _.mergeAll(await Promise.all(lockHolderPromises))
+export const findPotentialNotebookLockers = async (canShare, namespace, wsName, bucketName) => {
+  if (canShare) {
+    const { acl } = await Ajax().Workspaces.workspace(namespace, wsName).getAcl()
+    const potentialLockers = _.flow(
+      _.toPairs,
+      _.map(([email, data]) => ({ email, ...data })),
+      _.filter(({ accessLevel }) => _.includes(accessLevel, ['OWNER', 'PROJECT_OWNER', 'WRITER'])),
+    )(acl)
+    const lockHolderPromises = _.map(async ({ email }) => ({ [await notebookLockHash(bucketName, email)]: email }), potentialLockers)
+    return _.mergeAll(await Promise.all(lockHolderPromises))
+  }
+  return {}
 }
 
 export const notebookNameValidator = existing => ({

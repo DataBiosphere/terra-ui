@@ -266,8 +266,8 @@ const Notebooks = _.flow(
   }
 
   async componentDidMount() {
-    const { name: wsName, namespace, workspace: { workspace: { bucketName } }, authState: { profile: { email } } } = this.props
-    const [currentUserHash, potentialLockers] = await Promise.all([notebookLockHash(bucketName, email), findPotentialNotebookLockers(namespace, wsName, bucketName)])
+    const { name: wsName, namespace, workspace: { canShare, workspace: { bucketName } }, authState: { profile: { email } } } = this.props
+    const [currentUserHash, potentialLockers] = await Promise.all([notebookLockHash(bucketName, email), findPotentialNotebookLockers(canShare, namespace, wsName, bucketName)])
     this.setState({ currentUserHash, potentialLockers })
     this.refresh()
   }
