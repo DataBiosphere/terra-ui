@@ -290,12 +290,13 @@ export const EntityUploader = class EntityUploader extends Component {
         }, ['Upload'])
       }, [
         div([
-          'For a file import: Select the ',
+          div({ style: { fontWeight: '600' } }, ['For a File Import:']),
+          'Select the ',
           h(TooltipTrigger, { content: 'Tab Separated Values', side: 'bottom' }, [span({ style: { textDecoration: 'underline dashed' } }, 'TSV')]),
           ' file containing your data. '
         ]),
         file && _.includes(_.toLower(newEntityType), entityTypes) && div({
-          style: { ...warningBoxStyle, marginBottom: '0.5rem', display: 'flex', alignItems: 'center' }
+          style: { ...warningBoxStyle, marginTop: '0.5rem', marginBottom: '0.5rem', display: 'flex', alignItems: 'center' }
         }, [
           icon('warning-standard', { size: 19, style: { flex: 'none', marginRight: '0.5rem', marginLeft: '-0.5rem' } }),
           `Data with the type '${newEntityType}' already exists in this workspace. `,
@@ -318,7 +319,8 @@ export const EntityUploader = class EntityUploader extends Component {
             ...Style.elements.card.container, flex: 1,
             margin: '0.5rem 0',
             backgroundColor: dragging ? colors.accent(0.2) : colors.dark(0.1),
-            border: `1px dashed ${colors.dark(0.7)}`, boxShadow: 'none'
+            border: isInvalidFile ? `1px solid ${colors.danger()}` : `1px dashed ${colors.dark(0.7)}`,
+            boxShadow: 'none'
           },
           onClick: pastedText ?
             () => window.confirm(
@@ -329,15 +331,16 @@ export const EntityUploader = class EntityUploader extends Component {
           div(['Drag or ', h(Link, ['Click']), ' to select a .tsv file'])
         ]),
         isInvalidFile && div({
-          style: { color: colors.warning(), fontWeight: 'bold', fontSize: 12, marginTop: '0.5rem' }
+          style: { color: colors.danger(), fontWeight: 'bold', fontSize: 12, marginTop: '0.5rem' }
         }, ['Invalid format: File does not start with entity or membership definition.']),
         div({ style: { marginLeft: '1rem', marginTop: '0.5rem', fontSize: 12 } }, ['Selected File: ',
           div({ style: { color: colors.dark(0.7) } }, (file && file.name) ? file.name : 'None')]),
-        div({ style: { borderTop: Style.standardLine, marginTop: '1rem', paddingTop: '1rem' } }, [
-          'For a copy-and-paste text import: Paste the data directly to the text field below. '
+        div({ style: { borderTop: Style.standardLine, marginTop: '1rem', paddingTop: '1rem', fontWeight: '600' } }, [
+          'For a copy-and-paste text import:'
         ]),
+        ' Paste the data directly to the text field below. ',
         pastedText && _.includes(_.toLower(newEntityType), entityTypes) && div({
-          style: { ...warningBoxStyle, marginBottom: '0.5rem', display: 'flex', alignItems: 'center' }
+          style: { ...warningBoxStyle, marginTop: '0.5rem', marginBottom: '0.5rem', display: 'flex', alignItems: 'center' }
         }, [
           icon('warning-standard', { size: 19, style: { flex: 'none', marginRight: '0.5rem', marginLeft: '-0.5rem' } }),
           `Data with the type '${newEntityType}' already exists in this workspace. `,
@@ -404,13 +407,13 @@ export const EntityUploader = class EntityUploader extends Component {
             minHeight: 60,
             margin: '0.5rem 0',
             backgroundColor: colors.dark(0.1),
-            border: `1px dashed ${colors.dark(0.7)}`,
+            border: isInvalidText ? `1px solid ${colors.danger()}` : `1px dashed ${colors.dark(0.7)}`,
             boxShadow: 'none'
           }
         }),
         isInvalidText && div({
-          style: { color: colors.warning(), fontWeight: 'bold', fontSize: 12, marginTop: '0.5rem' }
-        }, ['Invalid format: Text Data does not start with entity or membership definition.']),
+          style: { color: colors.danger(), fontWeight: 'bold', fontSize: 12, marginTop: '0.5rem' }
+        }, ['Invalid format: Text data does not start with entity or membership definition.']),
         div({ style: { borderTop: Style.standardLine, marginTop: '1rem', paddingTop: '1rem' } }),
         ' For all imports the first column header must be: ',
         div({ style: { fontFamily: 'monospace', margin: '0.5rem' } }, ['entity:[type]_id']),
