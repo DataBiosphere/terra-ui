@@ -86,7 +86,6 @@ const ioTask = ({ name }) => _.nth(-2, name.split('.'))
 const ioVariable = ({ name }) => _.nth(-1, name.split('.'))
 const ioType = ({ inputType, outputType }) => (inputType || outputType).match(/(.*?)\??$/)[1] // unify, and strip off trailing '?'
 
-
 const WorkflowIOTable = ({ which, inputsOutputs: data, config, errors, onChange, onSetDefaults, onBrowse, suggestions, readOnly }) => {
   const [sort, setSort] = useState({ field: 'taskVariable', direction: 'asc' })
 
@@ -112,7 +111,7 @@ const WorkflowIOTable = ({ which, inputsOutputs: data, config, errors, onChange,
         columns: [
           {
             size: { basis: 350, grow: 0 },
-            headerRenderer: () => h(Sortable, { sort, field: 'taskVariable', onSort: setSort }, ['Task name']),
+            headerRenderer: () => h(Sortable, { sort, field: 'taskVariable', onSort: setSort }, [h(HeaderCell, ['Task name'])]),
             cellRenderer: ({ rowIndex }) => {
               const io = sortedData[rowIndex]
               return h(TextCell, { style: { fontWeight: 500 } }, [
@@ -343,7 +342,6 @@ const WorkflowView = _.flow(
       ...StateHistory.get()
     }
   }
-
 
   isSingle() { return !this.isMultiple() }
 
