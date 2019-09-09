@@ -389,7 +389,8 @@ const WorkflowView = _.flow(
           accessLevel: workspace.accessLevel, bucketName: workspace.workspace.bucketName,
           processSingle: this.isSingle(), entitySelectionModel, useCallCache,
           onDismiss: () => this.setState({ launching: false }),
-          onSuccess: submissionId => Nav.goToPath('workspace-submission-details', { submissionId, ...workspaceId })
+          onSuccess: submissionId => Nav.goToPath('workspace-submission-details', { submissionId, ...workspaceId }),
+          onSuccessMulti: () => Nav.goToPath('workspace-job-history', workspaceId)
         }),
         variableSelected && h(BucketContentModal, {
           workspace,
@@ -506,14 +507,13 @@ const WorkflowView = _.flow(
 
   describeSelectionModel() {
     const { modifiedConfig: { rootEntityType }, entityMetadata, entitySelectionModel: { newSetName, selectedEntities, type } } = this.state
-    const { name } = selectedEntities
     const count = _.size(selectedEntities)
     const newSetMessage = count > 1 ? `(will create a new set named "${newSetName}")` : ''
     return Utils.cond(
       [this.isSingle() || !rootEntityType, ''],
       [type === EntitySelectionType.processAll, () => `all ${entityMetadata[rootEntityType] ? entityMetadata[rootEntityType].count : 0}
         ${rootEntityType}s (will create a new set named "${newSetName}")`],
-      [type === EntitySelectionType.processFromSet, () => `${rootEntityType}s from ${name}`],
+      [type === EntitySelectionType.processFromSet, () => `${rootEntityType}s from ${count} sets`],
       [type === EntitySelectionType.chooseRows, () => `${count} selected ${rootEntityType}s ${newSetMessage}`],
       [type === EntitySelectionType.chooseSet, () => `${_.has('name', selectedEntities) ? 1 : 0} selected ${rootEntityType}`]
     )

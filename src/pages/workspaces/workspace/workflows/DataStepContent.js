@@ -40,11 +40,13 @@ export default class DataStepContent extends Component {
 
   isValidSelectionModel() {
     const { entitySelectionModel } = this.state
-    const { newSetName, selectedEntities, type } = entitySelectionModel
-    const { entityType, name } = selectedEntities
+    const { newSetName, selectedEntities, selectedEntities: { entityType, name }, type } = entitySelectionModel
+    const selectionSize = _.size(selectedEntities)
+
     return (type === EntitySelectionType.processAll ||
-      (type === EntitySelectionType.processFromSet && !!entityType && !!name) ||
-      (_.size(selectedEntities) > 0 && !!newSetName))
+      (type === EntitySelectionType.processFromSet && !!entityType && !!name && selectionSize < 10) ||
+      (selectionSize > 0 && !!newSetName)
+    )
   }
 
   render() {
@@ -88,7 +90,7 @@ export default class DataStepContent extends Component {
           ]),
           hasSet && div([
             h(RadioButton, {
-              text: 'Choose an existing set',
+              text: 'Choose existing sets',
               name: 'process-rows',
               checked: type === EntitySelectionType.processFromSet,
               onChange: () => this.setEntitySelectionModel({ type: EntitySelectionType.processFromSet, selectedEntities: {} }),
@@ -116,7 +118,7 @@ export default class DataStepContent extends Component {
             entityType: type === EntitySelectionType.processFromSet ? setType : rootEntityType,
             entityMetadata, workspaceId, columnDefaults,
             selectionModel: {
-              type: (isSet || type === EntitySelectionType.processFromSet) ? 'single' : 'multiple',
+              type: isSet ? 'single' : 'multiple',
               selected: selectedEntities, setSelected: e => this.setEntitySelectionModel({ selectedEntities: e })
             }
           })

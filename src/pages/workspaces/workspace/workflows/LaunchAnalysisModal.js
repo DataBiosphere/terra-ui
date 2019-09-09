@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { Component } from 'react'
+import { Component, Fragment } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { ButtonPrimary, CromwellVersionLink } from 'src/components/common'
 import { spinner } from 'src/components/icons'
@@ -34,8 +34,8 @@ export default ajaxCaller(class LaunchAnalysisModal extends Component {
   }
 
   render() {
-    const { onDismiss } = this.props
-    const { launching, message, launchError } = this.state
+    const { onDismiss, entitySelectionModel: { selectedEntities } } = this.props
+    const { launching, message, multiLaunchCompletions, launchError, multiLaunchErrors } = this.state
 
     return h(Modal, {
       title: !launching ? 'Confirm launch' : 'Launching Analysis',
@@ -54,8 +54,24 @@ export default ajaxCaller(class LaunchAnalysisModal extends Component {
       div({ style: { margin: '1rem 0' } }, [
         'This analysis will be run by ', h(CromwellVersionLink), '.'
       ]),
-      message && div([spinner({ style: { marginRight: '0.5rem' } }), message]),
-      launchError && div({ style: { color: colors.danger() } }, [launchError])
+      (message || multiLaunchCompletions !== undefined) && div({ style: { display: 'flex' } }, [
+        spinner({ style: { marginRight: '0.5rem' } }),
+        message,
+        multiLaunchCompletions !== undefined && div({
+          style: { flexGrow: 1, backgroundColor: colors.secondary(0.3), borderRadius: 5, height: 24 }
+        }, [div({
+          style: {
+            backgroundColor: colors.accent(),
+            height: '100%', width: `${multiLaunchCompletions / _.size(selectedEntities) * 100}%`,
+            borderRadius: 5
+          }
+        })])
+      ]),
+      launchError && div({ style: { color: colors.danger() } }, [launchError]),
+      h(Fragment, _.map(({ name, message }) => div({
+        style: { color: colors.danger(), marginTop: '1rem' }
+      }, [`Error launching with set ${name}: `, message]),
+      multiLaunchErrors))
     ])
   }
 
@@ -88,8 +104,7 @@ export default ajaxCaller(class LaunchAnalysisModal extends Component {
         this.createSetAndLaunch(entities)
       }
     } else if (type === EntitySelectionType.processFromSet) {
-      const { entityType, name } = selectedEntities
-      this.launch(entityType, name, `this.${rootEntityType}s`)
+      this.launchParallel()
     } else if (type === EntitySelectionType.chooseSet) {
       this.launch(rootEntityType, selectedEntities['name'])
     }
@@ -127,23 +142,54 @@ export default ajaxCaller(class LaunchAnalysisModal extends Component {
     await this.launch(setType, newSetName, `this.${rootEntityType}s`)
   }
 
-  async launch(entityType, entityName, expression) {
+  baseLaunch(entityType, entityName, expression) {
     const {
       workspaceId: { namespace, name },
       config: { namespace: configNamespace, name: configName },
-      onSuccess, useCallCache,
+      useCallCache,
       ajax: { Workspaces }
     } = this.props
+
+    return Workspaces.workspace(namespace, name).methodConfig(configNamespace, configName).launch({
+      entityType, entityName, expression, useCallCache
+    })
+  }
+
+  async launch(entityType, entityName, expression) {
+    const { onSuccess } = this.props
 
     try {
       this.setState({ message: 'Launching analysis...' })
 
-      const { submissionId } = await Workspaces.workspace(namespace, name).methodConfig(configNamespace, configName).launch({
-        entityType, entityName, expression, useCallCache
-      })
+      const { submissionId } = await this.baseLaunch(entityType, entityName, expression)
       onSuccess(submissionId)
     } catch (error) {
       this.setState({ launchError: JSON.parse(await error.text()).message, message: undefined })
+    }
+  }
+
+  async launchParallel() {
+    const { onSuccessMulti, entitySelectionModel: { selectedEntities }, config: { rootEntityType } } = this.props
+
+    this.setState({ multiLaunchCompletions: 0, message: undefined })
+
+    const allErrors = await Promise.all(_.map(async ({ name }) => {
+      try {
+        await this.baseLaunch(`${rootEntityType}_set`, name, `this.${rootEntityType}s`)
+        this.setState(_.update('multiLaunchCompletions', _.add(1)))
+      } catch (error) {
+        this.setState(_.update('multiLaunchCompletions', _.add(1)))
+        const { message } = JSON.parse(await error.text())
+        return { name, message }
+      }
+    }, selectedEntities))
+
+    const multiLaunchErrors = _.compact(allErrors)
+
+    if (_.isEmpty(multiLaunchErrors)) {
+      onSuccessMulti()
+    } else {
+      this.setState({ multiLaunchErrors })
     }
   }
 })
