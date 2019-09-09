@@ -1,4 +1,5 @@
 
+import { number, text, withKnobs } from '@storybook/addon-knobs'
 import { storiesOf } from '@storybook/react'
 import { h } from 'react-hyperscript-helpers'
 import { Clickable } from 'src/components/common'
@@ -24,15 +25,29 @@ const nestedClickable1 = h(Clickable, {
   }, hover: { color: 'blue' }
 }, ['there', nestedClickable2])
 
-const IGVDrawer = () => {
+const SingleHover = () => {
+  const color = text('Text Color (enter a valid CSS color)', 'white')
+  const backgroundColor = text('Background Color (enter a valid CSS color)', 'black')
+  const boxShadow = text('Box Shadow', '10px 5px 5px gray')
+  const opacity = number('Opacity', 1, { range: true, min: 0, max: 1, step: 0.1 })
+
+  return h(Clickable, {
+    style: { height: '200px', width: '200px', border: '1px solid black', padding: '1rem', margin: '1rem' },
+    hover: { color, backgroundColor, boxShadow, opacity }
+  }, ['Hi'])
+}
+
+const NestedHover = () => {
   return h(Clickable, {
     style: { height: '200px', width: '200px', border: '1px solid black', padding: '1rem' },
     hover: { color: 'red' }
   }, [
-    'hello',
+    'Hi',
     nestedClickable1
   ])
 }
 
 storiesOf('Interactive', module)
-  .add('Set the number of rows', () => h(IGVDrawer))
+  .addDecorator(withKnobs)
+  .add('Single Node Hovering', () => h(SingleHover))
+  .add('Nested Hovering', () => h(NestedHover))

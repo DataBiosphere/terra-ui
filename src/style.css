@@ -1,19 +1,18 @@
 @import "fonts/Montserrat.css";
 @import "../node_modules/github-markdown-css/github-markdown.css";
 
-.hover-style:hover {
+.hover-style:hover, .hover-style:hover .hover-style:hover {
   --hover-backgroundColor: var(--app-hover-backgroundColor);
   --hover-color: var(--app-hover-color);
+  --hover-boxShadow: var(--app-hover-boxShadow);
+  --hover-opacity: var(--app-hover-opacity);
 }
 
 .hover-style:hover .hover-style {
   --hover-backgroundColor: initial;
   --hover-color: initial;
-}
-
-.hover-style:hover .hover-style:hover {
-  --hover-backgroundColor: var(--app-hover-backgroundColor);
-  --hover-color: var(--app-hover-color);
+  --hover-boxShadow: initial;
+  --hover-opacity: initial
 }
 
 body, input, textarea, select, button {
