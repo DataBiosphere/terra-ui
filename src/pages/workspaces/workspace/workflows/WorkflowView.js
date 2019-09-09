@@ -89,19 +89,12 @@ const ioType = ({ inputType, outputType }) => (inputType || outputType).match(/(
 const WorkflowIOTable = ({ which, inputsOutputs: data, config, errors, onChange, onSetDefaults, onBrowse, suggestions, readOnly }) => {
   const [sort, setSort] = useState({ field: 'taskVariable', direction: 'asc' })
 
-  const sortedData = _.orderBy([
-    'optional',
-    o => {
-      return Utils.switchCase(sort.field,
-        ['taskVariable', () => ioTask(o).toLowerCase()],
-        ['workflowVariable', () => ioVariable(o).toLowerCase()])
-    },
-    o => {
-      return Utils.switchCase(sort.field,
-        ['workflowVariable', () => ioTask(o).toLowerCase()],
-        ['taskVariable', () => ioVariable(o).toLowerCase()])
-    }
-  ], ['asc', sort.direction, sort.direction], data)
+  const taskSort = o => ioTask(o).toLowerCase()
+  const varSort = o => ioVariable(o).toLowerCase()
+  const sortedData = _.orderBy(
+    sort.field === 'taskVariable' ? ['optional', taskSort, varSort] : ['optional', varSort, taskSort],
+    ['asc', sort.direction, sort.direction]
+  )
 
   return h(AutoSizer, [
     ({ width, height }) => {
