@@ -93,8 +93,9 @@ const WorkflowIOTable = ({ which, inputsOutputs: data, config, errors, onChange,
   const varSort = o => ioVariable(o).toLowerCase()
   const sortedData = _.orderBy(
     sort.field === 'taskVariable' ? ['optional', taskSort, varSort] : ['optional', varSort, taskSort],
-    ['asc', sort.direction, sort.direction]
-  )(data)
+    ['asc', sort.direction, sort.direction],
+    data
+  )
 
   return h(AutoSizer, [
     ({ width, height }) => {
