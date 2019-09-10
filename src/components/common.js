@@ -6,6 +6,7 @@ import { div, h, img, input, label, span } from 'react-hyperscript-helpers'
 import RSelect from 'react-select'
 import RAsyncCreatableSelect from 'react-select/async-creatable'
 import { centeredSpinner, icon } from 'src/components/icons'
+import Interactive from 'src/components/Interactive'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import hexButton from 'src/images/hex-button.svg'
 import scienceBackground from 'src/images/science-background.jpg'
@@ -24,30 +25,6 @@ const styles = {
     fontWeight: 500, fontSize: 14, textTransform: 'uppercase', whiteSpace: 'nowrap',
     userSelect: 'none'
   }
-}
-
-const allowedHoverVariables = ['backgroundColor', 'color', 'boxShadow', 'opacity', 'textDecoration']
-
-export const Interactive = ({ as, children, hover = {}, style = {}, ...props }) => {
-  const cssVariables = _.flow(
-    _.toPairs,
-    _.reduce((result, [key, value]) => {
-      Utils.useConsoleAssert(
-        _.some(v => key === v, allowedHoverVariables),
-        `${key} needs to be added to the hover-style in style.css for the style to be applied`)
-      result[`--app-hover-${key}`] = value
-      result[key] = `var(--hover-${key}, ${style[key]})`
-      return result
-    }, {}))(hover)
-
-  return h(as, {
-    className: 'hover-style',
-    style: {
-      ...style,
-      ...cssVariables
-    },
-    ...props
-  }, [children])
 }
 
 export const Clickable = ({ href, as = (!!href ? 'a' : 'div'), disabled, tooltip, tooltipSide, onClick, children, ...props }) => {

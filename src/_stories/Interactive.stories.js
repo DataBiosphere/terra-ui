@@ -1,9 +1,10 @@
 
-import { number, text, withKnobs } from '@storybook/addon-knobs'
+import { boolean, number, text, withKnobs } from '@storybook/addon-knobs'
 import { storiesOf } from '@storybook/react'
 import _ from 'lodash/fp'
 import { div, h } from 'react-hyperscript-helpers'
-import { Interactive } from 'src/components/common'
+import { Interactive } from 'src/components/Interactive'
+// import Interactive from 'react-interactive'
 
 
 const Inner2 = ({ style, hover, children }) => h(Interactive, {
@@ -34,6 +35,7 @@ const bgColorLabel = 'Background Color (enter a valid CSS color)'
 const boxShadowLabel = 'Box Shadow'
 const opacityLabel = 'Opacity'
 const textDecorationLabel = 'Text Decoration'
+const containerLevel = [' on the Container', ' on Inner 1', ' on Inner 2']
 
 const SingleHover = () => {
   const color = text(colorLabel, 'white')
@@ -50,26 +52,42 @@ const SingleHover = () => {
 }
 
 const NestedHover = () => {
-  const color = _.times(n => text(`${colorLabel} ${n}`, 'white'), 3)
-  const backgroundColor = _.times(n => text(`${bgColorLabel} ${n}`, 'black'), 3)
-  const boxShadow = _.times(n => text(`${boxShadowLabel} ${n}`, '10px 5px 5px gray'), 3)
-  const opacity = _.times(n => number(`${opacityLabel} ${n}`, 1, { range: true, min: 0, max: 1, step: 0.1 }), 3)
-  const textDecoration = _.times(n => text(`${textDecorationLabel} ${n}`, 'underline'), 3)
+  const items = _.times(n => ({
+    disabled: boolean(`Disabled ${containerLevel[n]}`, false),
+    style: {
+      cursor: text(`Cursor style ${containerLevel[n]}`, 'initial'),
+      color: 'black',
+      backgroundColor: 'white',
+      boxShadow: 'none',
+      opacity: 1,
+      textDecoration: 'none'
+    },
+    hover: {
+      color: text(`${colorLabel} ${containerLevel[n]}`, 'white'),
+      backgroundColor: text(`${bgColorLabel} ${containerLevel[n]}`, 'black'),
+      boxShadow: text(`${boxShadowLabel} ${containerLevel[n]}`, '10px 5px 5px gray'),
+      opacity: number(`${opacityLabel} ${containerLevel[n]}`, 1, { range: true, min: 0, max: 1, step: 0.1 }),
+      textDecoration: text(`${textDecorationLabel} ${containerLevel[n]}`, 'underline')
+    }
+  }), 3)
 
-  const initialSetting = { color: 'black', backgroundColor: 'white', boxShadow: 'none', opacity: 1, textDecoration: 'none' }
-  const containerHover = { color: color[0], backgroundColor: backgroundColor[0], boxShadow: boxShadow[0], opacity: opacity[0], textDecoration: textDecoration[0] }
-  const inner1Hover = { color: color[1], backgroundColor: backgroundColor[1], boxShadow: boxShadow[1], opacity: opacity[1], textDecoration: textDecoration[1] }
-  const inner2Hover = { color: color[2], backgroundColor: backgroundColor[2], boxShadow: boxShadow[2], opacity: opacity[2], textDecoration: textDecoration[2] }
+  const containerProps = items[0]
+  const inner1Props = items[1]
+  const inner2Props = items[2]
 
-  return h(Interactive, {
+  return h(Interactive, _.merge({
     as: div,
-    style: { height: '200px', width: '200px', border: '1px solid black', padding: '1rem' },
-    hover: containerHover
-  }, [
+    onClick: () => 1,
+    ...containerProps
+  },
+  {
+    style: { height: '200px', width: '200px', border: '1px solid black', padding: '1rem' }
+  })
+  , [
     'Container',
-    h(Inner1, { style: initialSetting, hover: inner1Hover }, [
+    h(Inner1, inner1Props, [
       'Inner 1',
-      h(Inner2, { style: initialSetting, hover: inner2Hover }, ['Inner 2'])
+      h(Inner2, inner2Props, ['Inner 2'])
     ])
   ])
 }
