@@ -14,6 +14,16 @@ import * as Utils from 'src/libs/utils'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
 
+const extractFailures = ({ calls }) =>  {
+  return _.flatMap(([taskName, attempts]) => {
+
+// iterate over the attempts and return error messages for statuses
+
+  }, _.toPairs(calls))
+
+//  filter out this type of error message: RetryableFailure
+}
+
 const JobDetails = wrapWorkspace({
   breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
   title: 'Job Details', activeTab: 'job history'
@@ -44,7 +54,7 @@ const JobDetails = wrapWorkspace({
     !!workflowData ? h(Fragment, [div(['Name: ', workflowName]),
       div({ style: { display: 'flex' } }, [
         div({ style: Style.elements.card.container }, ['Status:', status]),
-        div({ style: Style.elements.card.container }, ['Failures:', failures])
+        div({ style: Style.elements.card.container }, ['Failures:', JSON.stringify(failures)])
       ]),
       selectedCall === undefined ? h(Fragment, [
         h(StepButtons, {
