@@ -259,7 +259,6 @@ export const EntityUploader = class EntityUploader extends Component {
     const { onDismiss, entityTypes } = this.props
     const { uploading, file, newEntityType, isInvalidFile, isInvalidText, useFireCloudDataModel, pastedText } = this.state
 
-    const inputLabel = text => div({ style: { fontSize: 16, marginBottom: '0.3rem' } }, [text])
     const checkUpload = text => /(?:membership|entity):([^\s]+)_id/.exec(text)
 
     return h(Dropzone, {
