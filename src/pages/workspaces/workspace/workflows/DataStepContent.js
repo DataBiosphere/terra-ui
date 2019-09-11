@@ -65,10 +65,12 @@ export default class DataStepContent extends Component {
     const isProcessAll = type === EntitySelectionType.processAll
     const isProcessFromSet = type === EntitySelectionType.processFromSet
     const isChooseRows = type === EntitySelectionType.chooseRows
+    const isChooseSet = type === EntitySelectionType.chooseSet
 
     return h(Modal, {
       title: 'Select Data',
       okButton: h(ButtonPrimary, {
+        tooltip: isChooseSet && _.size(selectedEntities) > 10 && 'Please select 10 or fewer sets',
         disabled: !this.isValidSelectionModel(),
         onClick: () => onSuccess(entitySelectionModel)
       }, 'OK'),
@@ -76,7 +78,7 @@ export default class DataStepContent extends Component {
       width: 'calc(100% - 2rem)'
     }, [
       div({ style: { ...Style.elements.sectionHeader, marginBottom: '1rem' } },
-        [`Select ${(isSet ? 'up to 10 ' : '') + rootEntityType}s to process`]),
+        [`Select ${(isSet ? 'up to 10 ' : '') + rootEntityType}s to process${isSet ? ' in parallel' : ''}`]),
       rootEntityType && div({
         style: {
           padding: '1rem 0.5rem', lineHeight: '1.5rem'

@@ -38,8 +38,9 @@ export default ajaxCaller(class LaunchAnalysisModal extends Component {
   }
 
   render() {
-    const { onDismiss, entitySelectionModel: { selectedEntities } } = this.props
+    const { onDismiss, entitySelectionModel: { type, selectedEntities } } = this.props
     const { launching, message, multiLaunchCompletions, launchError, multiLaunchErrors } = this.state
+    const entityCount = _.size(selectedEntities)
 
     return h(Modal, {
       title: !launching ? 'Confirm launch' : 'Launching Analysis',
@@ -55,9 +56,8 @@ export default ajaxCaller(class LaunchAnalysisModal extends Component {
         }, ['Launch']) :
         h(ButtonPrimary, { onClick: onDismiss }, ['OK'])
     }, [
-      div({ style: { margin: '1rem 0' } }, [
-        'This analysis will be run by ', h(CromwellVersionLink), '.'
-      ]),
+      div({ style: { margin: '1rem 0' } }, ['This analysis will be run by ', h(CromwellVersionLink), '.']),
+      type === EntitySelectionType.chooseSet && div({ style: { margin: '1rem 0' } }, [`This will launch ${entityCount} analyses simultaneously.`]),
       (message || multiLaunchCompletions !== undefined) && div({ style: { display: 'flex' } }, [
         spinner({ style: { marginRight: '0.5rem' } }),
         message,
@@ -66,7 +66,7 @@ export default ajaxCaller(class LaunchAnalysisModal extends Component {
         }, [div({
           style: {
             backgroundColor: colors.accent(),
-            height: '100%', width: `${multiLaunchCompletions / _.size(selectedEntities) * 100}%`,
+            height: '100%', width: `${multiLaunchCompletions / entityCount * 100}%`,
             borderRadius: 5
           }
         })])
