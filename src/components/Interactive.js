@@ -7,12 +7,14 @@ const allowedHoverVariables = ['backgroundColor', 'color', 'boxShadow', 'opacity
 const pointerTags = ['button', 'area', 'a', 'select']
 const pointerTypes = ['radio', 'checkbox', 'submit', 'button']
 
-const Interactive = ({ as, type, onClick, disabled, children, tabIndex, hover = {}, style = {}, ...props }) => {
+const Interactive = ({ as, type, role, onClick, disabled, children, tabIndex, hover = {}, style = {}, ...props }) => {
   const { cursor } = style
-  const computedCursor = cursor || (!disabled && (onClick ||
+  const computedCursor = cursor ? { cursor } : (!disabled && (onClick ||
     pointerTags.includes(as) ||
-    pointerTypes.includes(type)) ? 'pointer' : 'initial')
-  const potentialTabIndex = onClick ? { tabIndex: 0 }: {}
+    pointerTypes.includes(type)) ? { cursor: 'pointer' } : {})
+
+  const potentialTabIndex = onClick ? { tabIndex: 0 } : {}
+  const computedTabIndex = _.isNumber(tabIndex) ? { tabIndex } : potentialTabIndex
 
   const cssVariables = _.flow(
     _.toPairs,
@@ -25,21 +27,14 @@ const Interactive = ({ as, type, onClick, disabled, children, tabIndex, hover = 
       return result
     }, {}))(hover)
 
-  const computedTabIndex = { tabIndex: 0 } //Number.isNaN(tabIndex) ? potentialTabIndex : { tabIndex }
-
-  return h(as, {
+  return h(as, _.merge({
     className: 'hover-style',
     tabIndex: potentialTabIndex,
-    style: {
-      ...style,
-      ...cssVariables,
-      cursor: computedCursor
-    },
+    style: _.merge({ ...style, ...cssVariables }, computedCursor),
     onKeyDown: evt => evt.key === 'Enter' && onClick(evt),
     onClick,
-    ...computedTabIndex,
     ...props
-  }, [children])
+  }, computedTabIndex), [children])
 }
 
 export default Interactive
