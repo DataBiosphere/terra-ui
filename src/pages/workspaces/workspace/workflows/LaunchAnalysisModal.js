@@ -6,6 +6,7 @@ import { spinner } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
+import { reportError } from 'src/libs/error'
 import EntitySelectionType from 'src/pages/workspaces/workspace/workflows/EntitySelectionType'
 
 
@@ -41,7 +42,7 @@ export default ajaxCaller(class LaunchAnalysisModal extends Component {
       title: !launching ? 'Confirm launch' : 'Launching Analysis',
       onDismiss,
       showCancel: !launching,
-      okButton: !launchError ?
+      okButton: !(launchError || multiLaunchErrors) ?
         h(ButtonPrimary, {
           disabled: launching,
           onClick: () => {
@@ -68,7 +69,7 @@ export default ajaxCaller(class LaunchAnalysisModal extends Component {
         })])
       ]),
       launchError && div({ style: { color: colors.danger() } }, [launchError]),
-      h(Fragment, _.map(({ name, message }) => div({
+      multiLaunchErrors && h(Fragment, _.map(({ name, message }) => div({
         style: { color: colors.danger(), marginTop: '1rem' }
       }, [`Error launching with set ${name}: `, message]),
       multiLaunchErrors))
@@ -104,7 +105,13 @@ export default ajaxCaller(class LaunchAnalysisModal extends Component {
         this.createSetAndLaunch(entities)
       }
     } else if (type === EntitySelectionType.processFromSet) {
-      this.launchParallel()
+      if (_.size(selectedEntities) === 1) {
+        const { entityType, name } = selectedEntities[0]
+        this.launch(entityType, name, `this.${rootEntityType}s`)
+      } else {
+        const entities = _.reduce((acc, { attributes: { [`${rootEntityType}s`]: { items } } }) => _.concat(acc, _.map('entityName', items)), [], selectedEntities)
+        this.createSetAndLaunch(entities)
+      }
     } else if (type === EntitySelectionType.chooseSet) {
       this.launch(rootEntityType, selectedEntities['name'])
     }
@@ -188,8 +195,11 @@ export default ajaxCaller(class LaunchAnalysisModal extends Component {
 
     if (_.isEmpty(multiLaunchErrors)) {
       onSuccessMulti()
+    } else if (multiLaunchErrors.length === selectedEntities.length) {
+      this.setState({ multiLaunchErrors, multiLaunchCompletions: undefined })
     } else {
-      this.setState({ multiLaunchErrors })
+      _.forEach(({ name, message }) => reportError(`Error launching with set ${name}`, message), multiLaunchErrors)
+      onSuccessMulti()
     }
   }
 })

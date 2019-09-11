@@ -63,6 +63,10 @@ export default class DataStepContent extends Component {
     const setType = `${rootEntityType}_set`
     const hasSet = _.has(setType, entityMetadata)
 
+    const isProcessAll = type === EntitySelectionType.processAll
+    const isProcessFromSet = type === EntitySelectionType.processFromSet
+    const isChooseRows = type === EntitySelectionType.chooseRows
+
     return h(Modal, {
       title: 'Select Data',
       okButton: h(ButtonPrimary, {
@@ -72,7 +76,8 @@ export default class DataStepContent extends Component {
       onDismiss,
       width: 'calc(100% - 2rem)'
     }, [
-      div({ style: { ...Style.elements.sectionHeader, marginBottom: '1rem' } }, [`Select ${rootEntityType}s to process`]),
+      div({ style: { ...Style.elements.sectionHeader, marginBottom: '1rem' } },
+        [`Select ${(isSet ? 'up to 10 ' : '') + rootEntityType}s to process`]),
       rootEntityType && div({
         style: {
           padding: '1rem 0.5rem', lineHeight: '1.5rem'
@@ -83,17 +88,8 @@ export default class DataStepContent extends Component {
             h(RadioButton, {
               text: `Process all ${count} rows`,
               name: 'process-rows',
-              checked: type === EntitySelectionType.processAll,
+              checked: isProcessAll,
               onChange: () => this.setEntitySelectionModel({ type: EntitySelectionType.processAll, selectedEntities: {} }),
-              labelStyle: { marginLeft: '0.75rem' }
-            })
-          ]),
-          hasSet && div([
-            h(RadioButton, {
-              text: 'Choose existing sets',
-              name: 'process-rows',
-              checked: type === EntitySelectionType.processFromSet,
-              onChange: () => this.setEntitySelectionModel({ type: EntitySelectionType.processFromSet, selectedEntities: {} }),
               labelStyle: { marginLeft: '0.75rem' }
             })
           ]),
@@ -101,13 +97,22 @@ export default class DataStepContent extends Component {
             h(RadioButton, {
               text: 'Choose specific rows to process',
               name: 'process-rows',
-              checked: type === EntitySelectionType.chooseRows,
+              checked: isChooseRows,
               onChange: () => this.setEntitySelectionModel({ type: EntitySelectionType.chooseRows, selectedEntities: {} }),
+              labelStyle: { marginLeft: '0.75rem' }
+            })
+          ]),
+          hasSet && div([
+            h(RadioButton, {
+              text: 'Choose existing sets',
+              name: 'process-rows',
+              checked: isProcessFromSet,
+              onChange: () => this.setEntitySelectionModel({ type: EntitySelectionType.processFromSet, selectedEntities: {} }),
               labelStyle: { marginLeft: '0.75rem' }
             })
           ])
         ]),
-        type !== EntitySelectionType.processAll && div({
+        !isProcessAll && div({
           style: {
             display: 'flex', flexDirection: 'column',
             height: 500, marginTop: '1rem'
@@ -115,19 +120,19 @@ export default class DataStepContent extends Component {
         }, [
           h(DataTable, {
             key: type,
-            entityType: type === EntitySelectionType.processFromSet ? setType : rootEntityType,
+            entityType: isProcessFromSet ? setType : rootEntityType,
             entityMetadata, workspaceId, columnDefaults,
             selectionModel: {
-              type: isSet ? 'single' : 'multiple',
+              type: 'multiple',
               selected: selectedEntities, setSelected: e => this.setEntitySelectionModel({ selectedEntities: e })
             }
           })
         ]),
-        (type === EntitySelectionType.processAll ||
-          (type === EntitySelectionType.chooseRows && _.size(selectedEntities) > 1)) && h(IdContainer, [id => div({
+        (isProcessAll ||
+          ((isChooseRows || isProcessFromSet) && _.size(selectedEntities) > 1)) && h(IdContainer, [id => div({
           style: { marginTop: '1rem' }
         }, [
-          label({ htmlFor: id }, ['Selected rows will be saved as a new set named:']),
+          label({ htmlFor: id }, [`Selected rows will ${isProcessFromSet ? 'have their membership combined into' : 'be saved as'} a new set named:`]),
           h(TextInput, {
             id,
             style: { width: 500, marginLeft: '0.25rem' },
