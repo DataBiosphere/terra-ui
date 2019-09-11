@@ -1,7 +1,7 @@
 import FileSaver from 'file-saver'
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
-import { Component, Fragment } from 'react'
+import { Component, Fragment, useState } from 'react'
 import { div, h, label, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
@@ -15,7 +15,7 @@ import { DelayedAutocompleteTextInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import PopupTrigger from 'src/components/PopupTrigger'
 import StepButtons from 'src/components/StepButtons'
-import { FlexTable, HeaderCell, SimpleTable, TextCell } from 'src/components/table'
+import { FlexTable, HeaderCell, SimpleTable, Sortable, TextCell } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import WDLViewer from 'src/components/WDLViewer'
 import { Ajax, ajaxCaller } from 'src/libs/ajax'
@@ -87,17 +87,27 @@ const ioVariable = ({ name }) => _.nth(-1, name.split('.'))
 const ioType = ({ inputType, outputType }) => (inputType || outputType).match(/(.*?)\??$/)[1] // unify, and strip off trailing '?'
 
 const WorkflowIOTable = ({ which, inputsOutputs: data, config, errors, onChange, onSetDefaults, onBrowse, suggestions, readOnly }) => {
+  const [sort, setSort] = useState({ field: 'taskVariable', direction: 'asc' })
+
+  const taskSort = o => ioTask(o).toLowerCase()
+  const varSort = o => ioVariable(o).toLowerCase()
+  const sortedData = _.orderBy(
+    sort.field === 'taskVariable' ? ['optional', taskSort, varSort] : ['optional', varSort, taskSort],
+    ['asc', sort.direction, sort.direction],
+    data
+  )
+
   return h(AutoSizer, [
     ({ width, height }) => {
       return h(FlexTable, {
         width, height,
-        rowCount: data.length,
+        rowCount: sortedData.length,
         columns: [
           {
             size: { basis: 350, grow: 0 },
-            headerRenderer: () => h(HeaderCell, ['Task name']),
+            headerRenderer: () => h(Sortable, { sort, field: 'taskVariable', onSort: setSort }, [h(HeaderCell, ['Task name'])]),
             cellRenderer: ({ rowIndex }) => {
-              const io = data[rowIndex]
+              const io = sortedData[rowIndex]
               return h(TextCell, { style: { fontWeight: 500 } }, [
                 ioTask(io)
               ])
@@ -105,9 +115,9 @@ const WorkflowIOTable = ({ which, inputsOutputs: data, config, errors, onChange,
           },
           {
             size: { basis: 360, grow: 0 },
-            headerRenderer: () => h(HeaderCell, ['Variable']),
+            headerRenderer: () => h(Sortable, { sort, field: 'workflowVariable', onSort: setSort }, ['Variable']),
             cellRenderer: ({ rowIndex }) => {
-              const io = data[rowIndex]
+              const io = sortedData[rowIndex]
               return h(TextCell, { style: styles.cell(io.optional) }, [ioVariable(io)])
             }
           },
@@ -115,7 +125,7 @@ const WorkflowIOTable = ({ which, inputsOutputs: data, config, errors, onChange,
             size: { basis: 160, grow: 0 },
             headerRenderer: () => h(HeaderCell, ['Type']),
             cellRenderer: ({ rowIndex }) => {
-              const io = data[rowIndex]
+              const io = sortedData[rowIndex]
               return h(TextCell, { style: styles.cell(io.optional) }, [ioType(io)])
             }
           },
@@ -128,7 +138,7 @@ const WorkflowIOTable = ({ which, inputsOutputs: data, config, errors, onChange,
               ])
             ]),
             cellRenderer: ({ rowIndex }) => {
-              const { name, optional, inputType } = data[rowIndex]
+              const { name, optional, inputType } = sortedData[rowIndex]
               const value = config[which][name] || ''
               const error = errors[which][name]
               const isFile = (inputType === 'File') || (inputType === 'File?')
@@ -321,7 +331,7 @@ const WorkflowView = _.flow(
       activeTab: 'inputs',
       entitySelectionModel: { selectedEntities: {} },
       useCallCache: true,
-      includeOptionalInputs: false,
+      includeOptionalInputs: true,
       errors: { inputs: {}, outputs: {} },
       ...StateHistory.get()
     }
@@ -807,10 +817,7 @@ const WorkflowView = _.flow(
     const data = currentSnapRedacted ?
       _.map(k => ({ name: k, inputType: 'unknown' }), _.keys(modifiedConfig[key])) :
       modifiedInputsOutputs[key]
-    const filteredData = _.flow(
-      key === 'inputs' && !includeOptionalInputs ? _.reject('optional') : _.identity,
-      _.sortBy(['optional', ({ name }) => name.toLowerCase()])
-    )(data)
+    const filteredData = key === 'inputs' && !includeOptionalInputs ? _.reject('optional', data) : data
 
     return h(Dropzone, {
       key,
