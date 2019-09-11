@@ -16,7 +16,6 @@ import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer
 
 const extractFailures = ({ calls }) =>  {
   return _.flatMap(([taskName, attempts]) => {
-    // iterate over the attempts and return error messages for statuses
     return _.flow(
       _.filter((attempt) => {
         return attempt.executionStatus !== 'RetryableFailure' && attempt.failures
@@ -26,8 +25,6 @@ const extractFailures = ({ calls }) =>  {
       })
     )(attempts)
   }, _.toPairs(calls))
-
-//  filter out this type of error message: RetryableFailure
 }
 
 const JobDetails = wrapWorkspace({
@@ -51,6 +48,7 @@ const JobDetails = wrapWorkspace({
   })
 
   const calls = _.map(([name, attempts]) => ({ name: _.split('.', name)[1], attempts }), _.toPairs(callsObj))
+  const callFailures = extractFailures(workflowData)
 
   return div({ style: { padding: '1rem' } }, [
     h(Link, {
@@ -114,6 +112,27 @@ const JobDetails = wrapWorkspace({
                     },
                     {
                       headerRenderer: () => 'Attempts',
+                      cellRenderer: () => 'x'
+                    }
+                  ]
+                })
+              ])
+            ])
+          }],
+          ['errors', () => {
+            return div({ style: { height: 500 } }, [
+              h(AutoSizer, [
+                ({ width, height }) => h(FlexTable, {
+                  width, height,
+                  rowCount: callFailures.length,
+                  columns: [
+                    {
+                      size: { grow: 5 },
+                      headerRenderer: () => 'Task Name',
+                      cellRenderer: ({ rowIndex }) => callFailures[rowIndex].taskName
+                    },
+                    {
+                      headerRenderer: () => 'Other stuff?',
                       cellRenderer: () => 'x'
                     }
                   ]
