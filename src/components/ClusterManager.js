@@ -1,6 +1,5 @@
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
-import * as qs from 'qs'
 import { Fragment, PureComponent, useState } from 'react'
 import { div, h, label, span } from 'react-hyperscript-helpers'
 import { ButtonPrimary, ButtonSecondary, Clickable, IdContainer, LabeledCheckbox, Link, Select, spinnerOverlay } from 'src/components/common'
@@ -434,13 +433,6 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
     return currentCluster(clusters)
   }
 
-  goToPreviewMode() {
-    const { queryParams = {} } = this.props
-    Nav.history.push({
-      search: qs.stringify({ ...queryParams, edit: undefined, playground: undefined }, { addQueryPrefix: true })
-    })
-  }
-
   async executeAndRefresh(promise) {
     try {
       const { refreshClusters } = this.props
@@ -472,7 +464,6 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
         _.without([_.nth(keepIndex, activeClusters)], activeClusters)
       ))
     )
-    this.goToPreviewMode()
   }
 
   startCluster() {
@@ -489,7 +480,6 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
     this.executeAndRefresh(
       Jupyter.cluster(googleProject, clusterName).stop()
     )
-    this.goToPreviewMode()
   }
 
   renderDestroyForm() {

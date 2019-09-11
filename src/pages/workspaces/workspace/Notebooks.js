@@ -78,8 +78,8 @@ const NotebookCard = ({ namespace, name, updated, metadata, listView, wsName, on
   const isRecent = new Date(updated) > tenMinutesAgo
 
   const notebookLink = Nav.getLink('workspace-notebook-launch', { namespace, name: wsName, notebookName: name.slice(10) })
-  const notebookEditLink = `${notebookLink}/?${qs.stringify({ edit: 'true' })}`
-  const notebookPlaygroundLink = `${notebookLink}/?${qs.stringify({ playground: 'true' })}`
+  const notebookEditLink = `${notebookLink}/?${qs.stringify({ mode: 'edit' })}`
+  const notebookPlaygroundLink = `${notebookLink}/?${qs.stringify({ mode: 'playground' })}`
 
   const notebookMenu = h(PopupTrigger, {
     side: 'right',

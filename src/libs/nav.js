@@ -15,8 +15,6 @@ export const history = createHistory({
   getUserConfirmation: (_, cb) => blockNav.get()().then(() => cb(true))
 })
 
-window.theHistory = history
-
 history.block('')
 
 /**

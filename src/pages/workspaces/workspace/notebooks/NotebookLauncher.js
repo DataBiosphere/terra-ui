@@ -1,8 +1,7 @@
 import * as clipboard from 'clipboard-polyfill'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
-import { forwardRef, Fragment, useRef, useState } from 'react'
-import { createPortal } from 'react-dom'
+import { forwardRef, Fragment, useEffect, useRef, useState } from 'react'
 import { div, h, iframe, p, span } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
@@ -39,7 +38,7 @@ const ClusterKicker = ({ cluster, refreshClusters, onNullCluster }) => {
   const startClusterOnce = withErrorReporting('Error starting notebook runtime')(async () => {
     while (!signal.aborted) {
       const currentCluster = getCluster()
-      const { status, googleProject, clusterName } = currentCluster|| {}
+      const { status, googleProject, clusterName } = currentCluster || {}
       const currentStatus = currentCluster && status
       if (currentStatus === 'Stopped') {
         setBusy(true)
@@ -62,7 +61,24 @@ const ClusterKicker = ({ cluster, refreshClusters, onNullCluster }) => {
     startClusterOnce()
   })
 
-  return busy ? createPortal(spinnerOverlay, document.getElementById('modal-root')) : null
+  return busy ? spinnerOverlay : null
+}
+
+const chooseMode = mode => {
+  Nav.history.replace({ search: qs.stringify({ mode }) })
+}
+
+const ClusterStatusMonitor = ({ cluster, onClusterStoppedRunning }) => {
+  const currentStatus = cluster && cluster.status
+  const prevStatus = Utils.usePrevious(currentStatus)
+
+  useEffect(() => {
+    if (prevStatus === 'Running' && currentStatus !== 'Running') {
+      onClusterStoppedRunning()
+    }
+  }, [currentStatus, onClusterStoppedRunning, prevStatus])
+
+  return null
 }
 
 const NotebookLauncher = _.flow(
@@ -84,18 +100,14 @@ const NotebookLauncher = _.flow(
     const mode = queryParams['mode']
 
     return h(Fragment, [
-      Utils.cond([
-        Utils.canWrite(accessLevel) && canCompute && mode === 'edit' && clusterStatus === 'Running',
-        () => h(NotebookEditorFrame, { key: cluster.clusterName, workspace, cluster, notebookName, mode })
-      ], [
-        Utils.canWrite(accessLevel) && canCompute && mode === 'playground' && clusterStatus === 'Running',
-        () => h(NotebookEditorFrame, { key: cluster.clusterName, workspace, cluster, notebookName, mode })
-      ],
-      () => h(Fragment, [
-        h(PreviewHeader, { queryParams, cluster, refreshClusters, notebookName, workspace, readOnlyAccess: !(Utils.canWrite(accessLevel) && canCompute) }),
-        h(NotebookPreviewFrame, { notebookName, workspace })
-      ])),
+      (Utils.canWrite(accessLevel) && canCompute && !!mode && clusterStatus === 'Running') ?
+        h(NotebookEditorFrame, { key: cluster.clusterName, workspace, cluster, notebookName, mode }) :
+        h(Fragment, [
+          h(PreviewHeader, { queryParams, cluster, refreshClusters, notebookName, workspace, readOnlyAccess: !(Utils.canWrite(accessLevel) && canCompute) }),
+          h(NotebookPreviewFrame, { notebookName, workspace })
+        ]),
       mode && h(ClusterKicker, { cluster, refreshClusters, onNullCluster: () => { setCreateOpen(true) } }),
+      mode && h(ClusterStatusMonitor, { cluster, onClusterStoppedRunning: () => { chooseMode(undefined) } }),
       createOpen && h(NewClusterModal, {
         namespace, currentCluster: cluster,
         onCancel: () => setCreateOpen(false),
@@ -107,7 +119,7 @@ const NotebookLauncher = _.flow(
           setBusy(false)
         })
       }),
-      busy && createPortal(spinnerOverlay, document.getElementById('modal-root'))
+      busy && spinnerOverlay
     ])
   })
 
@@ -156,7 +168,7 @@ const PlaygroundModal = ({ onDismiss, onPlayground }) => {
     okButton: h(ButtonPrimary,
       {
         onClick: () => {
-          BrowserStorage.setLocalPref('hidePlaygroundMessage', hidePlaygroundMessage.toString())
+          BrowserStorage.setLocalPref('hidePlaygroundMessage', hidePlaygroundMessage)
           onPlayground()
         }
       },
@@ -177,7 +189,6 @@ const PlaygroundModal = ({ onDismiss, onPlayground }) => {
 const PreviewHeader = ({ queryParams, cluster, readOnlyAccess, refreshClusters, notebookName, workspace, workspace: { canShare, workspace: { namespace, name, bucketName } } }) => {
   const signal = useCancellation()
   const { profile: { email } } = Utils.useAtom(authStore)
-  const hidePlaygroundModal = BrowserStorage.getLocalPref('hidePlaygroundMessage')
   const [fileInUseOpen, setFileInUseOpen] = useState(false)
   const [playgroundModalOpen, setPlaygroundModalOpen] = useState(false)
   const [locked, setLocked] = useState(false)
@@ -201,49 +212,43 @@ const PreviewHeader = ({ queryParams, cluster, readOnlyAccess, refreshClusters, 
 
   Utils.useOnMount(() => { checkIfLocked() })
 
-  const chooseMode = mode => {
-    Nav.history.replace({ search: '?' + qs.stringify({ mode }) })
-  }
-
   return div({ style: { display: 'flex', alignItems: 'center', borderBottom: `2px solid ${colors.dark(0.2)}`, height: '3.5rem' } }, [
     div({ style: { fontSize: 18, fontWeight: 'bold', backgroundColor: colors.dark(0.2), paddingRight: '4rem', paddingLeft: '4rem', height: '100%', display: 'flex', alignItems: 'center' } },
       ['PREVIEW (READ-ONLY)']),
     !readOnlyAccess && Utils.cond(
       [
-        !mode, () => h(Fragment, [
+        !mode || clusterStatus === null || clusterStatus === 'Stopped', () => h(Fragment, [
           h(ButtonSecondary, {
             style: { paddingRight: '1rem', paddingLeft: '1rem', paddingTop: '1rem', paddingBottom: '1rem', backgroundColor: colors.dark(0.1), height: '100%', marginRight: '2px' },
             onClick: () => locked ? setFileInUseOpen(true) : chooseMode('edit')
-          }, [icon('lock', { style: { paddingRight: '3px' } }), locked ? 'EDIT (IN USE)' : 'EDIT']),
+          }, [icon(locked ? 'lock': 'edit', { style: { paddingRight: '3px' } }), locked ? 'EDIT (IN USE)' : 'EDIT']),
           h(ButtonSecondary, {
             style: { paddingRight: '1rem', paddingLeft: '1rem', backgroundColor: colors.dark(0.1), height: '100%', marginRight: '2px' },
             onClick: () => {
-              hidePlaygroundModal === 'true' ? chooseMode('playground') : setPlaygroundModalOpen(true)
+              BrowserStorage.getLocalPref('hidePlaygroundMessage') ? chooseMode('playground') : setPlaygroundModalOpen(true)
             }
           }, [icon('chalkboard', { style: { paddingRight: '3px' } }), 'PLAYGROUND MODE']),
-          h(ButtonSecondary, {
-            style: { paddingRight: '1rem', paddingLeft: '1rem', backgroundColor: colors.dark(0.1), height: '100%' }
-          }, [
-            h(PopupTrigger, {
-              closeOnClick: true,
-              content: h(Fragment, [
-                h(MenuButton, { onClick: () => setCopyingNotebook(true) }, ['Make a Copy']),
-                h(MenuButton, { onClick: () => setExportingNotebook(true) }, ['Copy to another workspace']),
-                h(MenuButton, {
-                  onClick: async () => {
-                    try {
-                      await clipboard.writeText(`${window.location.host}/${notebookLink}`)
-                      notify('success', 'Successfully copied URL to clipboard', { timeout: 3000 })
-                    } catch (error) {
-                      reportError('Error copying to clipboard', error)
-                    }
+          h(PopupTrigger, {
+            closeOnClick: true,
+            content: h(Fragment, [
+              h(MenuButton, { onClick: () => setCopyingNotebook(true) }, ['Make a Copy']),
+              h(MenuButton, { onClick: () => setExportingNotebook(true) }, ['Copy to another workspace']),
+              h(MenuButton, {
+                onClick: async () => {
+                  try {
+                    await clipboard.writeText(`${window.location.host}/${notebookLink}`)
+                    notify('success', 'Successfully copied URL to clipboard', { timeout: 3000 })
+                  } catch (error) {
+                    reportError('Error copying to clipboard', error)
                   }
-                }, ['Copy URL to clipboard'])
-              ]),
-              side: 'bottom'
-            }, [
-              h(Clickable, { 'aria-label': 'Notebook options' }, [icon('ellipsis-v', {})])
-            ])
+                }
+              }, ['Copy URL to clipboard'])
+            ]),
+            side: 'bottom'
+          }, [
+            h(ButtonSecondary, {
+              style: { paddingRight: '1rem', paddingLeft: '1rem', backgroundColor: colors.dark(0.1), height: '100%' }
+            }, [icon('ellipsis-v', {})])
           ])
         ])
       ],
@@ -383,40 +388,33 @@ const NotebookEditorFrame = ({ mode, notebookName, workspace: { workspace: { nam
   const localSafeModeBaseDirectory = `${name}/safe`
   const cloudStorageDirectory = `gs://${bucketName}/notebooks`
 
-  const setUpNotebook = async () => {
-    try {
-      setBusy(true)
-      await Ajax()
-        .Jupyter
-        .notebooks(namespace, clusterName)
-        .storageLinks(localBaseDirectory, localSafeModeBaseDirectory, cloudStorageDirectory, `.*\\.ipynb`)
-
-      if (mode === 'edit') {
-        const lockSuccessful = await Ajax().Jupyter.notebooks(namespace, clusterName).lock(`${localBaseDirectory}/${notebookName}`)
-        if (!lockSuccessful) {
-          notify('error', 'Unable to Lock Notebook', {
-            message: 'Another user is currently editing this notebook. You can run it in Playground Mode or make a copy.'
-          })
-          Nav.history.replace({ search: undefined })
-          return
-        }
+  const setUpNotebook = _.flow(
+    Utils.withBusyState(setBusy),
+    withErrorReporting('Error setting up notebook')
+  )(async () => {
+    await Ajax()
+      .Jupyter
+      .notebooks(namespace, clusterName)
+      .storageLinks(localBaseDirectory, localSafeModeBaseDirectory, cloudStorageDirectory, `.*\\.ipynb`)
+    if (mode === 'edit') {
+      const lockSuccessful = await Ajax().Jupyter.notebooks(namespace, clusterName).lock(`${localBaseDirectory}/${notebookName}`)
+      if (!lockSuccessful) {
+        notify('error', 'Unable to Lock Notebook', {
+          message: 'Another user is currently editing this notebook. You can run it in Playground Mode or make a copy.'
+        })
+        chooseMode(undefined)
+        return
       }
-
-      await Promise.all([
-        Ajax().Jupyter.notebooks(namespace, clusterName).localize([{
-          sourceUri: `${cloudStorageDirectory}/${notebookName}`,
-          localDestinationPath: mode === 'edit' ? `${localBaseDirectory}/${notebookName}` : `${localSafeModeBaseDirectory}/${notebookName}`
-        }]),
-        Ajax().Jupyter.notebooks(namespace, clusterName).setCookie()
-      ])
-
-      setNotebookSetUp(true)
-    } catch (e) {
-      reportError('Error setting up notebook', e)
-    } finally {
-      setBusy(false)
     }
-  }
+    await Promise.all([
+      Ajax().Jupyter.notebooks(namespace, clusterName).localize([{
+        sourceUri: `${cloudStorageDirectory}/${notebookName}`,
+        localDestinationPath: mode === 'edit' ? `${localBaseDirectory}/${notebookName}` : `${localSafeModeBaseDirectory}/${notebookName}`
+      }]),
+      Ajax().Jupyter.notebooks(namespace, clusterName).setCookie()
+    ])
+    setNotebookSetUp(true)
+  })
 
   const checkRecentAccess = async () => {
     const { updated } = await Ajax(signal).Buckets.notebook(namespace, bucketName, notebookName.slice(0, -6)).getObject()
