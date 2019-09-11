@@ -6,7 +6,7 @@ import { div, h } from 'react-hyperscript-helpers'
 import { LabeledCheckbox } from 'src/components/common'
 
 
-const DEFTAULT_CHECKBOXES = 3
+const DEFAULT_CHECKBOXES = 3
 
 const CheckStory = ({ index }) => {
   const [checked, setChecked] = useState(true)
@@ -23,6 +23,6 @@ storiesOf('Checkbox', module)
   .add('Labeled', () => {
     return h(Fragment, [
       _.times(index => h(CheckStory, { index }),
-        number('Number of checkboxes ', DEFTAULT_CHECKBOXES, { range: true, min: 0, max: 20 }))
+        number('Number of checkboxes ', DEFAULT_CHECKBOXES, { range: true, min: 0, max: 20 }))
     ])
   })
