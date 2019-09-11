@@ -16,6 +16,8 @@ const Interactive = ({ as, type, role, onClick, disabled, children, tabIndex, ho
   const potentialTabIndex = onClick ? { tabIndex: 0 } : {}
   const computedTabIndex = _.isNumber(tabIndex) ? { tabIndex } : potentialTabIndex
 
+  // console.assert(['input', ...pointerTags].includes(as), `The role for this ${as} was not set but should have been`)
+
   const cssVariables = _.flow(
     _.toPairs,
     _.reduce((result, [key, value]) => {
@@ -33,6 +35,8 @@ const Interactive = ({ as, type, role, onClick, disabled, children, tabIndex, ho
     style: _.merge({ ...style, ...cssVariables }, computedCursor),
     onKeyDown: evt => evt.key === 'Enter' && onClick(evt),
     onClick,
+    disabled,
+    role,
     ...props
   }, computedTabIndex), [children])
 }
