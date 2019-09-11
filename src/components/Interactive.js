@@ -6,7 +6,7 @@ const allowedHoverVariables = ['backgroundColor', 'color', 'boxShadow', 'opacity
 const pointerTags = ['button', 'area', 'a', 'select']
 const pointerTypes = ['radio', 'checkbox', 'submit', 'button']
 
-const Interactive = ({ as, type, role, onClick, disabled, children, tabIndex, hover = {}, style = {}, ...props }) => {
+const Interactive = ({ className = '', as, type, role, onClick, disabled, children, tabIndex, hover = {}, style = {}, ...props }) => {
   const { cursor } = style
 
   const onClickPointer = !disabled && (onClick ||
@@ -35,7 +35,7 @@ const Interactive = ({ as, type, role, onClick, disabled, children, tabIndex, ho
     }, {}))(hover)
 
   return h(as, {
-    className: 'hover-style',
+    className: `hover-style ${className}`,
     style: _.merge({ ...style, ...cssVariables }, computedCursor),
     onKeyDown: evt => evt.key === 'Enter' && onClick(evt),
     onClick,
