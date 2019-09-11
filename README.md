@@ -32,7 +32,7 @@ Requests related to the funtionality or usability of the UI can be submitted as 
 2. Update npm:
 
     ```sh
-    npm install -g npm@6
+    npm install -g npm@6.10
     ```
 3. Install deps:
 
