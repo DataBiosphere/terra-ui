@@ -40,12 +40,11 @@ export default class DataStepContent extends Component {
 
   isValidSelectionModel() {
     const { entitySelectionModel } = this.state
-    const { newSetName, selectedEntities, selectedEntities: { entityType, name }, type } = entitySelectionModel
+    const { newSetName, selectedEntities, type } = entitySelectionModel
     const selectionSize = _.size(selectedEntities)
 
     return (type === EntitySelectionType.processAll ||
-      (type === EntitySelectionType.processFromSet && !!entityType && !!name && selectionSize < 10) ||
-      (selectionSize > 0 && !!newSetName)
+      (selectionSize > 0 && !!newSetName && (type !== EntitySelectionType.chooseSet || selectionSize <= 10))
     )
   }
 

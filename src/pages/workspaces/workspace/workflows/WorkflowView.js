@@ -515,7 +515,7 @@ const WorkflowView = _.flow(
         ${rootEntityType}s ${newSetMessage}`],
       [type === EntitySelectionType.processFromSet, () => `${rootEntityType}s from ${count} sets ${newSetMessage}`],
       [type === EntitySelectionType.chooseRows, () => `${count} selected ${rootEntityType}s ${newSetMessage}`],
-      [type === EntitySelectionType.chooseSet, () => `${_.has('name', selectedEntities) ? 1 : 0} selected ${rootEntityType}`]
+      [type === EntitySelectionType.chooseSet, () => `${count} selected ${rootEntityType}s`]
     )
   }
 
@@ -555,7 +555,7 @@ const WorkflowView = _.flow(
       [saving || modified, () => 'Save or cancel to Launch Analysis'],
       [!_.isEmpty(errors.inputs) || !_.isEmpty(errors.outputs), () => 'At least one required attribute is missing or invalid'],
       [this.isMultiple() && !entityMetadata[rootEntityType], () => `There are no ${selectedEntityType}s in this workspace.`],
-      [this.isMultiple() && entitySelectionModel.type === EntitySelectionType.chooseSet && !entitySelectionModel.selectedEntities.name,
+      [this.isMultiple() && entitySelectionModel.type === EntitySelectionType.chooseSet && !_.size(entitySelectionModel.selectedEntities),
         () => 'Select a set']
     )
 

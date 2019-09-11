@@ -13,7 +13,10 @@ import EntitySelectionType from 'src/pages/workspaces/workspace/workflows/Entity
 export default ajaxCaller(class LaunchAnalysisModal extends Component {
   constructor(props) {
     super(props)
-    this.state = { launching: undefined, message: undefined, launchError: undefined }
+    this.state = {
+      launching: undefined, message: undefined, launchError: undefined,
+      multiLaunchCompletions: undefined, multiLaunchErrors: undefined
+    }
   }
 
   /**
@@ -109,11 +112,16 @@ export default ajaxCaller(class LaunchAnalysisModal extends Component {
         const { entityType, name } = selectedEntities[0]
         this.launch(entityType, name, `this.${rootEntityType}s`)
       } else {
-        const entities = _.reduce((acc, { attributes: { [`${rootEntityType}s`]: { items } } }) => _.concat(acc, _.map('entityName', items)), [], selectedEntities)
+        const entities = _.reduce((acc, { attributes: { [`${rootEntityType}s`]: { items } } }) => _.concat(acc, _.map('entityName', items)), [],
+          selectedEntities)
         this.createSetAndLaunch(entities)
       }
     } else if (type === EntitySelectionType.chooseSet) {
-      this.launch(rootEntityType, selectedEntities['name'])
+      if (_.size(selectedEntities) === 1) {
+        this.launch(rootEntityType, selectedEntities['name'])
+      } else {
+        this.launchParallel()
+      }
     }
   }
 
@@ -182,7 +190,7 @@ export default ajaxCaller(class LaunchAnalysisModal extends Component {
 
     const allErrors = await Promise.all(_.map(async ({ name }) => {
       try {
-        await this.baseLaunch(`${rootEntityType}_set`, name, `this.${rootEntityType}s`)
+        await this.baseLaunch(rootEntityType, name)
         this.setState(_.update('multiLaunchCompletions', _.add(1)))
       } catch (error) {
         this.setState(_.update('multiLaunchCompletions', _.add(1)))
@@ -198,7 +206,9 @@ export default ajaxCaller(class LaunchAnalysisModal extends Component {
     } else if (multiLaunchErrors.length === selectedEntities.length) {
       this.setState({ multiLaunchErrors, multiLaunchCompletions: undefined })
     } else {
-      _.forEach(({ name, message }) => reportError(`Error launching with set ${name}`, message), multiLaunchErrors)
+      reportError(`${multiLaunchErrors.length} sets failed to launch`, {
+        message: h(Fragment, _.map(({ name, message }) => div([`Error launching with set ${name}: ${message}`]), multiLaunchErrors))
+      })
       onSuccessMulti()
     }
   }
