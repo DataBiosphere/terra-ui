@@ -16,9 +16,15 @@ import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer
 
 const extractFailures = ({ calls }) =>  {
   return _.flatMap(([taskName, attempts]) => {
-
-// iterate over the attempts and return error messages for statuses
-
+    // iterate over the attempts and return error messages for statuses
+    return _.flow(
+      _.filter((attempt) => {
+        return attempt.executionStatus !== 'RetryableFailure' && attempt.failures
+      }),
+      _.map((attempt) => {
+        return {taskName, attempt}
+      })
+    )(attempts)
   }, _.toPairs(calls))
 
 //  filter out this type of error message: RetryableFailure
