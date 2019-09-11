@@ -255,6 +255,29 @@ export const EntityUploader = class EntityUploader extends Component {
     }
   }
 
+  updatePastedText(pastedText) {
+    const { file } = this.state
+    const checkUpload = text => /(?:membership|entity):([^\s]+)_id/.exec(text)
+    const definedTypeMatch = checkUpload(pastedText)
+
+    if (file) {
+      window.confirm(
+        'The file currently selected will not be imported if you choose to paste in text data instead, to continue and paste in data anyway click OK.') &&
+      this.setState({ file: undefined })
+    }
+
+    if (definedTypeMatch) {
+      const parsedEntityType = definedTypeMatch[1]
+      this.setState(
+        {
+          pastedText, isInvalidFile: false, newEntityType: parsedEntityType, useFireCloudDataModel: false, isInvalidText: false,
+          file: undefined
+        })
+    } else {
+      this.setState({ pastedText: undefined, isInvalidFile: false, isInvalidText: true })
+    }
+  }
+
   render() {
     const { onDismiss, entityTypes } = this.props
     const { uploading, file, newEntityType, isInvalidFile, isInvalidText, useFireCloudDataModel, pastedText } = this.state
@@ -326,17 +349,14 @@ export const EntityUploader = class EntityUploader extends Component {
               'The data currently typed in will not be imported if you choose to upload a file instead, to continue and upload a file anyway click OK.') &&
               openUploader() :
             openUploader
-        }, [
-          div(['Drag or ', h(Link, ['Click']), ' to select a .tsv file'])
-        ]),
+        }, [div(['Drag or ', h(Link, ['Click']), ' to select a .tsv file'])]),
         isInvalidFile && div({
           style: { color: colors.danger(), fontWeight: 'bold', fontSize: 12, marginTop: '0.5rem' }
         }, ['Invalid format: File does not start with entity or membership definition.']),
         div({ style: { marginLeft: '1rem', marginTop: '0.5rem', fontSize: 12 } }, ['Selected File: ',
           div({ style: { color: colors.dark(0.7) } }, (file && file.name) ? file.name : 'None')]),
-        div({ style: { borderTop: Style.standardLine, marginTop: '1rem', paddingTop: '1rem', fontWeight: '600' } }, [
-          'For a copy-and-paste text import:'
-        ]),
+        div({ style: { borderTop: Style.standardLine, marginTop: '1rem', paddingTop: '1rem', fontWeight: '600' } },
+          ['For a copy-and-paste text import:']),
         ' Paste the data directly to the text field below. ',
         pastedText && _.includes(_.toLower(newEntityType), entityTypes) && div({
           style: { ...warningBoxStyle, marginTop: '0.5rem', marginBottom: '0.5rem', display: 'flex', alignItems: 'center' }
@@ -360,52 +380,12 @@ export const EntityUploader = class EntityUploader extends Component {
         h(TextArea, {
           'aria-label': 'Paste text data',
           placeholder: 'Paste/Enter text data here...',
-          // onClick: file ?
-          //   () => window.confirm(
-          //     'The file currently selected will not be imported if you choose to paste in text data instead, to continue and paste in data anyway click OK.') &&
-          //     this.setState({ file: undefined }) :
-          //   undefined,
-          onChange: file ?
-            () => window.confirm(
-              'The file currently selected will not be imported if you choose to paste in text data instead, to continue and paste in data anyway click OK.')
-              && this.setState({ file: undefined }) &&
-              (pastedText => {
-                const definedTypeMatch = checkUpload(pastedText)
-                if (definedTypeMatch) {
-                  const parsedEntityType = definedTypeMatch[1]
-                  this.setState(
-                    {
-                      pastedText, isInvalidFile: false, newEntityType: parsedEntityType, useFireCloudDataModel: false, isInvalidText: false,
-                      file: undefined
-                    })
-                } else {
-                  this.setState({ pastedText: undefined, isInvalidFile: false, isInvalidText: true })
-                }
-              }) : (pastedText => {
-              const definedTypeMatch = checkUpload(pastedText)
-              if (definedTypeMatch) {
-                const parsedEntityType = definedTypeMatch[1]
-                this.setState(
-                  {
-                    pastedText, isInvalidFile: false, newEntityType: parsedEntityType, useFireCloudDataModel: false, isInvalidText: false,
-                    file: undefined
-                  })
-              } else {
-                this.setState({ pastedText: undefined, isInvalidFile: false, isInvalidText: true })
-              }
-            }),
-
+          onChange: pastedText => this.updatePastedText(pastedText),
           value: pastedText,
           wrap: 'off',
           style: {
-            ...Style.elements.card.container,
-            flex: 1,
-            fontFamily: 'monospace',
-            resize: 'vertical',
-            maxHeight: 300,
-            minHeight: 60,
-            margin: '0.5rem 0',
-            backgroundColor: colors.dark(0.1),
+            ...Style.elements.card.container, flex: 1, fontFamily: 'monospace', resize: 'vertical',
+            maxHeight: 300, minHeight: 60, margin: '0.5rem 0', backgroundColor: colors.dark(0.1),
             border: isInvalidText ? `1px solid ${colors.danger()}` : `1px dashed ${colors.dark(0.7)}`,
             boxShadow: 'none'
           }
