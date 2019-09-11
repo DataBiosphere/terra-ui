@@ -7,7 +7,7 @@ import ModalDrawer from 'src/components/ModalDrawer'
 
 const openButton = ({ onClick }) => h('button', { onClick, style: { width: '100px' } }, 'Open Drawer')
 
-const ModalDrawerEmpty= () => {
+const ModalDrawerEmpty = () => {
   const [openDrawer, setOpenDrawer] = useState(true)
   const width = number('Width', 450)
 
