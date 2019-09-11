@@ -14,7 +14,7 @@ import * as Utils from 'src/libs/utils'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
 
-const extractFailures = ({ calls }) =>  {
+const extractFailures = ({ calls } = {}) =>  {
   return _.flatMap(([taskName, attempts]) => {
     return _.flow(
       _.filter((attempt) => {
@@ -127,13 +127,23 @@ const JobDetails = wrapWorkspace({
                   rowCount: callFailures.length,
                   columns: [
                     {
-                      size: { grow: 5 },
                       headerRenderer: () => 'Task Name',
-                      cellRenderer: ({ rowIndex }) => callFailures[rowIndex].taskName
+                      cellRenderer: ({ rowIndex }) => callFailures[rowIndex].taskName.split('.')[1]
                     },
                     {
-                      headerRenderer: () => 'Other stuff?',
-                      cellRenderer: () => 'x'
+                      headerRenderer: () => 'Shard Index',
+                      cellRenderer: ({ rowIndex }) => {
+                        const { shardIndex } = callFailures[rowIndex].attempt
+                        return shardIndex !== -1 ? shardIndex : null
+                      }
+                    },
+                    {
+                      size: { grow: 2 },
+                      headerRenderer: () => 'Message',
+                      cellRenderer: ({ rowIndex }) => {
+                        const { failures } = callFailures[rowIndex].attempt
+                        return _.map('message', failures).join(' ')
+                      }
                     }
                   ]
                 })
