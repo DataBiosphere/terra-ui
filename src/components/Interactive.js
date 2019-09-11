@@ -17,9 +17,8 @@ const Interactive = ({ className = '', as, type, role, onClick, disabled, childr
   const onClickTabIndex = onClick ? { tabIndex: 0 } : {}
   const computedTabIndex = _.isNumber(tabIndex) ? { tabIndex } : onClickTabIndex
 
-  const onClickRole = onClick ? { role: 'button' } : {}
+  const onClickRole = onClick && !['input', ...pointerTags].includes(as) ? { role: 'button' } : {}
   const computedRole = role ? { role } : onClickRole
-  console.assert((computedRole.role || ['input', ...pointerTags].includes(as)), `The role for this ${as} was not set but should have been`)
 
   const computedProps = _.merge(computedTabIndex, computedRole)
 
@@ -37,10 +36,9 @@ const Interactive = ({ className = '', as, type, role, onClick, disabled, childr
   return h(as, {
     className: `hover-style ${className}`,
     style: _.merge({ ...style, ...cssVariables }, computedCursor),
-    onKeyDown: evt => evt.key === 'Enter' && onClick(evt),
+    onKeyDown: evt => evt.key === 'Enter' && onClick && onClick(evt),
     onClick,
     disabled,
-    role: computedRole,
     ...props,
     ...computedProps
   }, [children])
