@@ -197,7 +197,7 @@ const LocalVariablesContent = class LocalVariablesContent extends Component {
         })
       ]),
       Utils.cond(
-        [_.isEmpty(initialAttributes), () => 'No Workspace Data defined'],
+        [_.isEmpty(amendedAttributes), () => 'No Workspace Data defined'],
         () => div({ style: { flex: 1 } }, [
           h(AutoSizer, [
             ({ width, height }) => h(FlexTable, {

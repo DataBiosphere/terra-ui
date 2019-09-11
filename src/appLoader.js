@@ -1,6 +1,3 @@
-import 'animate.css'
-import 'easymde/dist/easymde.min.css'
-import 'react-notifications-component/dist/theme.css'
 import 'src/style.css'
 
 import _ from 'lodash/fp'
