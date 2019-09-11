@@ -1,6 +1,5 @@
 import _ from 'lodash/fp'
 import { h } from 'react-hyperscript-helpers'
-import * as Utils from 'src/libs/utils'
 
 
 const allowedHoverVariables = ['backgroundColor', 'color', 'boxShadow', 'opacity', 'textDecoration']
@@ -9,19 +8,25 @@ const pointerTypes = ['radio', 'checkbox', 'submit', 'button']
 
 const Interactive = ({ as, type, role, onClick, disabled, children, tabIndex, hover = {}, style = {}, ...props }) => {
   const { cursor } = style
-  const computedCursor = cursor ? { cursor } : (!disabled && (onClick ||
+
+  const onClickPointer = !disabled && (onClick ||
     pointerTags.includes(as) ||
-    pointerTypes.includes(type)) ? { cursor: 'pointer' } : {})
+    pointerTypes.includes(type)) ? { cursor: 'pointer' } : {}
+  const computedCursor = cursor ? { cursor } : onClickPointer
 
-  const potentialTabIndex = onClick ? { tabIndex: 0 } : {}
-  const computedTabIndex = _.isNumber(tabIndex) ? { tabIndex } : potentialTabIndex
+  const onClickTabIndex = onClick ? { tabIndex: 0 } : {}
+  const computedTabIndex = _.isNumber(tabIndex) ? { tabIndex } : onClickTabIndex
 
-  // console.assert(['input', ...pointerTags].includes(as), `The role for this ${as} was not set but should have been`)
+  const onClickRole = onClick ? { role: 'button' } : {}
+  const computedRole = role ? { role } : onClickRole
+  console.assert((computedRole.role || ['input', ...pointerTags].includes(as)), `The role for this ${as} was not set but should have been`)
+
+  const computedProps = _.merge(computedTabIndex, computedRole)
 
   const cssVariables = _.flow(
     _.toPairs,
     _.reduce((result, [key, value]) => {
-      Utils.useConsoleAssert(
+      console.assert(
         allowedHoverVariables.includes(key),
         `${key} needs to be added to the hover-style in style.css for the style to be applied`)
       result[`--app-hover-${key}`] = value
@@ -29,16 +34,16 @@ const Interactive = ({ as, type, role, onClick, disabled, children, tabIndex, ho
       return result
     }, {}))(hover)
 
-  return h(as, _.merge({
+  return h(as, {
     className: 'hover-style',
-    tabIndex: potentialTabIndex,
     style: _.merge({ ...style, ...cssVariables }, computedCursor),
     onKeyDown: evt => evt.key === 'Enter' && onClick(evt),
     onClick,
     disabled,
-    role,
-    ...props
-  }, computedTabIndex), [children])
+    role: computedRole,
+    ...props,
+    ...computedProps
+  }, [children])
 }
 
 export default Interactive
