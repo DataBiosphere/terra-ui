@@ -175,9 +175,7 @@ const PlaygroundModal = ({ onDismiss, onPlayground }) => {
       'Continue')
   }, [
     p(`Playground mode allows you to explore, change, and run the code, but your edits will not be saved.`),
-    div({ style: { flexGrow: 1 } }),
     p('To save your work, choose Make a Copy from the File menu to make your own version.'),
-    div({ style: { flexGrow: 1 } }),
     h(LabeledCheckbox, {
       checked: hidePlaygroundMessage,
       onChange: v => setHidePlaygroundMessage(v)
