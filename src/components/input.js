@@ -142,10 +142,10 @@ export const NumberInput = ({ onChange, onBlur, min = -Infinity, max = Infinity,
     className: 'focus-style',
     min, max,
     value: internalValue !== undefined ? internalValue : _.toString(value), // eslint-disable-line lodash-fp/preferred-alias
-    onChange: e => {
-      setInternalValue(e.target.value)
-      const constrain = v => _.clamp(min, max, onlyInteger ? _.floor(v) : v)
-      onChange(e.target.value === '' && isClearable ? null : constrain(e.target.value * 1))
+    onChange: ({ target: { value: newValue } }) => {
+      setInternalValue(newValue)
+      // note: floor and clamp implicitly convert the value to a number
+      onChange(newValue === '' && isClearable ? null : _.clamp(min, max, onlyInteger ? _.floor(newValue) : newValue))
     },
     onBlur: (...args) => {
       onBlur && onBlur(...args)
