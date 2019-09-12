@@ -836,9 +836,7 @@ const WorkflowView = _.flow(
       onDropAccepted: files => this.uploadJson(key, files[0])
     }, [({ openUploader }) => h(Fragment, [
       div({ style: { flex: 'none', display: 'flex', marginBottom: '0.25rem' } }, [
-        isSingleOutputs && div({
-          style: { margin: '0 1rem 0.5rem' }
-        }, [
+        isSingleOutputs && div({ style: { margin: '0 1rem 0.5rem' } }, [
           b(['Outputs are not mapped to the data model when processing a single workflow from files.']),
           div(['To write to the data model, select "Process multiple workflows" above.'])
         ]),
