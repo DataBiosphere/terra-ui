@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
-import { Component, forwardRef, Fragment, useEffect, useState } from 'react'
+import { Component, forwardRef, Fragment, useState } from 'react'
 import Autosuggest from 'react-autosuggest'
 import { div, h } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
