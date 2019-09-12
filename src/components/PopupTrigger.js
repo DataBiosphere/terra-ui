@@ -22,7 +22,8 @@ export const Popup = onClickOutside(({ side = 'right', target: targetId, onClick
   const elementRef = useRef()
   const [target, element, viewport] = useDynamicPosition([{ id: targetId }, { ref: elementRef }, { viewport: true }])
   const { position } = computePopupPosition({ side, target, element, viewport, gap: 10 })
-  return h(PopupPortal, [
+  // onClickOutside currently requires that whatever it renders has a prototype, see https://github.com/Pomax/react-onclickoutside/issues/327
+  return h(Fragment, [h(PopupPortal, [
     div({
       onClick,
       ref: elementRef,
@@ -33,7 +34,7 @@ export const Popup = onClickOutside(({ side = 'right', target: targetId, onClick
       },
       role: 'dialog'
     }, [children])
-  ])
+  ])])
 })
 
 const PopupTrigger = forwardRef(({ content, children, closeOnClick, ...props }, ref) => {
