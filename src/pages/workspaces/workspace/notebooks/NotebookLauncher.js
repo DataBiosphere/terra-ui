@@ -168,7 +168,7 @@ const PlaygroundModal = ({ onDismiss, onPlayground }) => {
     okButton: h(ButtonPrimary,
       {
         onClick: () => {
-          BrowserStorage.setLocalPref('hidePlaygroundMessage2', hidePlaygroundMessage)
+          BrowserStorage.setLocalPref('hidePlaygroundMessage', hidePlaygroundMessage)
           onPlayground()
         }
       },
@@ -226,7 +226,7 @@ const PreviewHeader = ({ queryParams, cluster, readOnlyAccess, refreshClusters, 
           h(ButtonSecondary, {
             style: { paddingRight: '1rem', paddingLeft: '1rem', backgroundColor: colors.dark(0.1), height: '100%', marginRight: '2px' },
             onClick: () => {
-              BrowserStorage.getLocalPref('hidePlaygroundMessage2') ? chooseMode('playground') : setPlaygroundModalOpen(true)
+              BrowserStorage.getLocalPref('hidePlaygroundMessage') ? chooseMode('playground') : setPlaygroundModalOpen(true)
             }
           }, [icon('chalkboard', { style: { paddingRight: '3px' } }), 'PLAYGROUND MODE']),
           h(PopupTrigger, {
