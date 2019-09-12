@@ -168,15 +168,15 @@ const PlaygroundModal = ({ onDismiss, onPlayground }) => {
     okButton: h(ButtonPrimary,
       {
         onClick: () => {
-          BrowserStorage.setLocalPref('hidePlaygroundMessage', hidePlaygroundMessage)
+          BrowserStorage.setLocalPref('hidePlaygroundMessage2', hidePlaygroundMessage)
           onPlayground()
         }
       },
       'Continue')
   }, [
-    `Playground mode allows you to explore, change, and run the code, but your edits will not be saved.`,
+    p(`Playground mode allows you to explore, change, and run the code, but your edits will not be saved.`),
     div({ style: { flexGrow: 1 } }),
-    'To save your work, choose Make a Copy from the File menu to make your own version.',
+    p('To save your work, choose Make a Copy from the File menu to make your own version.'),
     div({ style: { flexGrow: 1 } }),
     h(LabeledCheckbox, {
       checked: hidePlaygroundMessage,
@@ -200,7 +200,8 @@ const PreviewHeader = ({ queryParams, cluster, readOnlyAccess, refreshClusters, 
   const notebookLink = Nav.getLink('workspace-notebook-launch', { namespace, name, notebookName })
 
   const checkIfLocked = withErrorReporting('Error checking notebook lock status', async () => {
-    const { metadata: { lastLockedBy, lockExpiresAt } } = await Ajax(signal).Buckets.notebook(namespace, bucketName, notebookName.slice(0, -6)).getObject()
+    const { metadata } = await Ajax(signal).Buckets.notebook(namespace, bucketName, notebookName.slice(0, -6)).getObject()
+    const { lastLockedBy, lockExpiresAt } = metadata || {}
     const hashedUser = await notebookLockHash(bucketName, email)
     const lockExpirationDate = new Date(parseInt(lockExpiresAt))
 
@@ -225,7 +226,7 @@ const PreviewHeader = ({ queryParams, cluster, readOnlyAccess, refreshClusters, 
           h(ButtonSecondary, {
             style: { paddingRight: '1rem', paddingLeft: '1rem', backgroundColor: colors.dark(0.1), height: '100%', marginRight: '2px' },
             onClick: () => {
-              BrowserStorage.getLocalPref('hidePlaygroundMessage') ? chooseMode('playground') : setPlaygroundModalOpen(true)
+              BrowserStorage.getLocalPref('hidePlaygroundMessage2') ? chooseMode('playground') : setPlaygroundModalOpen(true)
             }
           }, [icon('chalkboard', { style: { paddingRight: '3px' } }), 'PLAYGROUND MODE']),
           h(PopupTrigger, {
