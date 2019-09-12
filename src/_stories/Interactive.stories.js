@@ -1,9 +1,9 @@
 
-import { boolean, number, text, withKnobs } from '@storybook/addon-knobs'
+import { boolean, number, object, text, withKnobs } from '@storybook/addon-knobs'
 import { storiesOf } from '@storybook/react'
 import _ from 'lodash/fp'
 import { div, h } from 'react-hyperscript-helpers'
-import { Interactive } from 'src/components/Interactive'
+import Interactive from 'src/components/Interactive'
 // import Interactive from 'react-interactive'
 
 
@@ -45,7 +45,7 @@ const SingleHover = () => {
   const textDecoration = text(textDecorationLabel, 'underline')
 
   return h(Interactive, {
-    as: div,
+    as: 'div',
     style: { height: '200px', width: '200px', border: '1px solid black', padding: '1rem', margin: '1rem' },
     hover: { color, backgroundColor, boxShadow, opacity, textDecoration }
   }, ['Hiya Buddy!'])
@@ -62,13 +62,13 @@ const NestedHover = () => {
       opacity: 1,
       textDecoration: 'none'
     },
-    hover: {
-      color: text(`${colorLabel} ${containerLevel[n]}`, 'white'),
-      backgroundColor: text(`${bgColorLabel} ${containerLevel[n]}`, 'black'),
-      boxShadow: text(`${boxShadowLabel} ${containerLevel[n]}`, '10px 5px 5px gray'),
-      opacity: number(`${opacityLabel} ${containerLevel[n]}`, 1, { range: true, min: 0, max: 1, step: 0.1 }),
-      textDecoration: text(`${textDecorationLabel} ${containerLevel[n]}`, 'underline')
-    }
+    hover: object(`Hover style ${containerLevel[n]}`, {
+      color: 'white',
+      backgroundColor: 'black',
+      boxShadow: '10px 5px 5px gray',
+      opacity: 1
+      // textDecoration: 'underline'
+    })
   }), 3)
 
   const containerProps = items[0]
