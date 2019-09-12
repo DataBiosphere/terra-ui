@@ -4,7 +4,7 @@ import { Fragment, PureComponent, useState } from 'react'
 import { div, h, label, span } from 'react-hyperscript-helpers'
 import { ButtonPrimary, ButtonSecondary, Clickable, IdContainer, LabeledCheckbox, Link, Select, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
-import { IntegerInput, TextInput } from 'src/components/input'
+import { NumberInput, TextInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { notify } from 'src/components/Notifications.js'
 import { Popup } from 'src/components/PopupTrigger'
@@ -109,11 +109,13 @@ const MachineSelector = ({ machineType, onChangeMachineType, diskSize, onChangeD
         div([
           readOnly ?
             diskSize :
-            h(IntegerInput, {
+            h(NumberInput, {
               id,
               style: styles.smallInput,
               min: 10,
               max: 64000,
+              isClearable: false,
+              onlyInteger: true,
               value: diskSize,
               onChange: onChangeDiskSize
             }),
@@ -269,10 +271,12 @@ export class NewClusterModal extends PureComponent {
             h(IdContainer, [id => h(Fragment, [
               label({ htmlFor: id, style: { ...styles.col1, ...styles.label } }, 'Workers'),
               div({ style: styles.col2 }, [
-                h(IntegerInput, {
+                h(NumberInput, {
                   id,
                   style: styles.smallInput,
                   min: 2,
+                  isClearable: false,
+                  onlyInteger: true,
                   value: numberOfWorkers,
                   onChange: v => this.setState({
                     numberOfWorkers: v,
@@ -284,11 +288,13 @@ export class NewClusterModal extends PureComponent {
             h(IdContainer, [id => h(Fragment, [
               label({ htmlFor: id, style: { ...styles.col3, ...styles.label } }, 'Preemptible'),
               div([
-                h(IntegerInput, {
+                h(NumberInput, {
                   id,
                   style: styles.smallInput,
                   min: 0,
                   max: numberOfWorkers,
+                  isClearable: false,
+                  onlyInteger: true,
                   value: numberOfPreemptibleWorkers,
                   onChange: v => this.setState({ numberOfPreemptibleWorkers: v })
                 })

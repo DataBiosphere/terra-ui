@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
-import { Component, forwardRef, Fragment, useEffect, useState } from 'react'
+import { Component, forwardRef, Fragment, useState } from 'react'
 import Autosuggest from 'react-autosuggest'
 import { div, h } from 'react-hyperscript-helpers'
 import Interactive from 'react-interactive'
@@ -132,15 +132,25 @@ export const SearchInput = ({ value, onChange, ...props }) => {
 
 export const DelayedSearchInput = withDebouncedChange(SearchInput)
 
-export const NumberInput = ({ onChange, value, ...props }) => {
+export const NumberInput = ({ onChange, onBlur, min = -Infinity, max = Infinity, onlyInteger = false, isClearable = true, value, ...props }) => {
   Utils.useConsoleAssert(props.id || props['aria-label'], 'In order to be accessible, NumberInput needs a label')
+  const [internalValue, setInternalValue] = useState()
 
   return h(Interactive, _.merge({
     as: 'input',
     type: 'number',
     className: 'focus-style',
-    onChange: onChange ? (e => onChange(_.toNumber(e.target.value))) : undefined,
-    value: value.toString(),
+    min, max,
+    value: internalValue !== undefined ? internalValue : _.toString(value), // eslint-disable-line lodash-fp/preferred-alias
+    onChange: ({ target: { value: newValue } }) => {
+      setInternalValue(newValue)
+      // note: floor and clamp implicitly convert the value to a number
+      onChange(newValue === '' && isClearable ? null : _.clamp(min, max, onlyInteger ? _.floor(newValue) : newValue))
+    },
+    onBlur: (...args) => {
+      onBlur && onBlur(...args)
+      setInternalValue(undefined)
+    },
     style: {
       ...styles.input,
       width: '100%',
@@ -151,27 +161,6 @@ export const NumberInput = ({ onChange, value, ...props }) => {
     }
   }, props))
 }
-
-
-export const IntegerInput = ({ onChange, min = -Infinity, max = Infinity, value: externalValue, ...props }) => {
-  const [internalValue, setInternalValue] = useState(externalValue)
-  const [needsUpdate, setNeedsUpdate] = useState(false)
-
-  useEffect(() => {
-    setInternalValue(externalValue)
-    setNeedsUpdate(false)
-  }, [externalValue, needsUpdate])
-
-  return h(NumberInput, {
-    ...props, min, max, value: internalValue,
-    onChange: setInternalValue,
-    onBlur: () => {
-      setNeedsUpdate(true)
-      onChange(_.clamp(min, max, _.floor(internalValue)))
-    }
-  })
-}
-
 
 /**
  * @param {object} props.inputProps
