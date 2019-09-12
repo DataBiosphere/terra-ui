@@ -456,7 +456,7 @@ export const EntityEditor = ({ entityType, entityName, attributeName, attributeV
     })],
     ['number', () => ({
       prepForUpload: _.identity,
-      makeInput: ({ value = 0, ...props }) => h(NumberInput, { autoFocus: true, value, ...props }),
+      makeInput: ({ value = 0, ...props }) => h(NumberInput, { autoFocus: true, isClearable: false, value, ...props }),
       blankVal: 0
     })],
     ['boolean', () => ({

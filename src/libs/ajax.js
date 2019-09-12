@@ -476,7 +476,6 @@ const Workspaces = signal => ({
       return fetchRawls(`${root}/entities/batchUpsert`, _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }]))
     }
 
-
     return {
       checkBucketReadAccess: () => {
         return fetchRawls(`${root}/checkBucketReadAccess`, _.merge(authOpts(), { signal }))
@@ -625,7 +624,6 @@ const Workspaces = signal => ({
       },
 
       upsertEntities,
-
 
       entitiesOfType: async type => {
         const res = await fetchRawls(`${root}/entities/${type}`, _.merge(authOpts(), { signal }))
