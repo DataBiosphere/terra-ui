@@ -389,10 +389,10 @@ const WorkflowView = _.flow(
     return h(Fragment, [
       savedConfig && h(Fragment, [
         this.renderSummary(),
-        Utils.cond(
-          [activeTab === 'wdl', () => this.renderWDL()],
-          [activeTab === 'inputs', () => this.renderIOTable('inputs')],
-          [activeTab === 'outputs', () => this.renderIOTable('outputs')]
+        Utils.switchCase(activeTab,
+          ['wdl', () => this.renderWDL()],
+          ['inputs', () => this.renderIOTable('inputs')],
+          ['outputs', () => this.renderIOTable('outputs')]
         ),
         launching && h(LaunchAnalysisModal, {
           workspaceId, config: savedConfig,
