@@ -10,7 +10,7 @@ import { InfoBox } from 'src/components/PopupTrigger'
 import { Ajax, ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
-import { FormLabel, RequiredFormLabel } from 'src/libs/forms'
+import { FormLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
 import { authStore, freeCreditsActive } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
@@ -130,7 +130,7 @@ export default _.flow(
         }, cloneWorkspace ? 'Clone Workspace' : 'Create Workspace')
       }, [
         h(IdContainer, [id => h(Fragment, [
-          h(RequiredFormLabel, { htmlFor: id }, ['Workspace name']),
+          h(FormLabel, { htmlFor: id, required: true }, ['Workspace name']),
           h(ValidatedInput, {
             inputProps: {
               id,
@@ -143,7 +143,7 @@ export default _.flow(
           })
         ])]),
         h(IdContainer, [id => h(Fragment, [
-          h(RequiredFormLabel, { htmlFor: id }, ['Billing project']),
+          h(FormLabel, { htmlFor: id, required: true }, ['Billing project']),
           h(Select, {
             id,
             isClearable: false,

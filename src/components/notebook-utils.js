@@ -8,7 +8,7 @@ import { ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { Ajax } from 'src/libs/ajax'
 import { reportError } from 'src/libs/error'
-import { RequiredFormLabel } from 'src/libs/forms'
+import { FormLabel } from 'src/libs/forms'
 import * as Utils from 'src/libs/utils'
 import validate from 'validate.js'
 
@@ -109,7 +109,7 @@ export const NotebookCreator = class NotebookCreator extends Component {
       }, 'Create Notebook')
     }, [
       h(IdContainer, [id => h(Fragment, [
-        h(RequiredFormLabel, { htmlFor: id }, ['Name']),
+        h(FormLabel, { htmlFor: id, required: true }, ['Name']),
         notebookNameInput({
           error: Utils.summarizeErrors(nameTouched && errors && errors.notebookName),
           inputProps: {
@@ -119,7 +119,7 @@ export const NotebookCreator = class NotebookCreator extends Component {
         })
       ])]),
       h(IdContainer, [id => h(Fragment, [
-        h(RequiredFormLabel, { htmlFor: id }, ['Language']),
+        h(FormLabel, { htmlFor: id, required: true }, ['Language']),
         h(Select, {
           id, isSearchable: false,
           placeholder: 'Select a language',
@@ -187,7 +187,7 @@ export const NotebookDuplicator = class NotebookDuplicator extends Component {
       [processing, () => [centeredSpinner()]],
       () => [
         h(IdContainer, [id => h(Fragment, [
-          h(RequiredFormLabel, { htmlFor: id }, ['New Name']),
+          h(FormLabel, { htmlFor: id, required: true }, ['New Name']),
           notebookNameInput({
             error: Utils.summarizeErrors(nameTouched && errors && errors.newName),
             inputProps: {
