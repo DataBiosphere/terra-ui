@@ -6,7 +6,9 @@ const allowedHoverVariables = ['backgroundColor', 'color', 'boxShadow', 'opacity
 const pointerTags = ['button', 'area', 'a', 'select']
 const pointerTypes = ['radio', 'checkbox', 'submit', 'button']
 
-const Interactive = ({ className = '', as, type, role, onClick, disabled, children, tabIndex, hover = {}, style = {}, ...props }) => {
+const Interactive = ({
+  className = '', as, type, role, onClick, onKeyDown, disabled, children, tabIndex, hover = {}, style = {}, ...props
+}) => {
   const { cursor } = style
 
   const onClickPointer = !disabled && (onClick ||
@@ -14,13 +16,11 @@ const Interactive = ({ className = '', as, type, role, onClick, disabled, childr
     pointerTypes.includes(type)) ? { cursor: 'pointer' } : {}
   const computedCursor = cursor ? { cursor } : onClickPointer
 
-  const onClickTabIndex = onClick ? { tabIndex: 0 } : {}
-  const computedTabIndex = _.isNumber(tabIndex) ? { tabIndex } : onClickTabIndex
+  const onClickTabIndex = onClick ? 0 : undefined
+  const computedTabIndex = _.isNumber(tabIndex) ? tabIndex : onClickTabIndex
 
-  const onClickRole = onClick && !['input', ...pointerTags].includes(as) ? { role: 'button' } : {}
-  const computedRole = role ? { role } : onClickRole
-
-  const computedProps = _.merge(computedTabIndex, computedRole)
+  const onClickRole = onClick && !['input', ...pointerTags].includes(as) ? 'button' : undefined
+  const computedRole = role ? role : onClickRole
 
   const cssVariables = _.flow(
     _.toPairs,
@@ -36,11 +36,12 @@ const Interactive = ({ className = '', as, type, role, onClick, disabled, childr
   return h(as, {
     className: `hover-style ${className}`,
     style: _.merge({ ...style, ...cssVariables }, computedCursor),
-    onKeyDown: evt => evt.key === 'Enter' && onClick && onClick(evt),
+    onKeyDown: onKeyDown || (evt => evt.key === 'Enter' && onClick && onClick(evt)),
     onClick,
     disabled,
-    ...props,
-    ...computedProps
+    role: computedRole,
+    tabIndex: computedTabIndex,
+    ...props
   }, [children])
 }
 
