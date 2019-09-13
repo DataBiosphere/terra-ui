@@ -74,10 +74,6 @@ const NotebookCard = ({ namespace, name, updated, metadata, listView, wsName, on
   const locked = currentUserHash && lastLockedBy && lastLockedBy !== currentUserHash && lockExpirationDate > Date.now()
   const lockedBy = potentialLockers ? potentialLockers[lastLockedBy] : null
 
-  console.log(name)
-  console.log(lastLockedBy)
-  console.log(currentUserHash)
-
   const tenMinutesAgo = _.tap(d => d.setMinutes(d.getMinutes() - 10), new Date())
   const isRecent = new Date(updated) > tenMinutesAgo
 
@@ -271,7 +267,6 @@ const Notebooks = _.flow(
 
   async componentDidMount() {
     const { name: wsName, namespace, workspace: { canShare, workspace: { bucketName } }, authState: { user: { email } } } = this.props
-    console.log(bucketName, email)
     const [currentUserHash, potentialLockers] = await Promise.all([notebookLockHash(bucketName, email), findPotentialNotebookLockers(canShare, namespace, wsName, bucketName)])
     this.setState({ currentUserHash, potentialLockers })
     this.refresh()
