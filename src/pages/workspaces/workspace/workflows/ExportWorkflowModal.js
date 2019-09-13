@@ -7,7 +7,7 @@ import { ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { withWorkspaces, WorkspaceSelector } from 'src/components/workspace-utils'
 import { Ajax } from 'src/libs/ajax'
-import { RequiredFormLabel } from 'src/libs/forms'
+import { FormLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
 import * as Utils from 'src/libs/utils'
 import validate from 'validate.js'
@@ -62,7 +62,7 @@ const ExportWorkflowModal = withWorkspaces(class ExportWorkflowModal extends Com
       }, ['Copy'])
     }, [
       !sameWorkspace && h(IdContainer, [id => h(Fragment, [
-        h(RequiredFormLabel, { htmlFor: id }, ['Destination']),
+        h(FormLabel, { htmlFor: id, required: true }, ['Destination']),
         h(WorkspaceSelector, {
           id,
           workspaces: _.filter(({ workspace: { workspaceId }, accessLevel }) => {
@@ -73,7 +73,7 @@ const ExportWorkflowModal = withWorkspaces(class ExportWorkflowModal extends Com
         })
       ])]),
       h(IdContainer, [id => h(Fragment, [
-        h(RequiredFormLabel, { htmlFor: id }, ['Name']),
+        h(FormLabel, { htmlFor: id, required: true }, ['Name']),
         h(ValidatedInput, {
           error: Utils.summarizeErrors(errors && errors.workflowName),
           inputProps: {

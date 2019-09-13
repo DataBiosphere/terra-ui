@@ -9,7 +9,7 @@ import { notify } from 'src/components/Notifications'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
-import { FormLabel, RequiredFormLabel } from 'src/libs/forms'
+import { FormLabel } from 'src/libs/forms'
 import { authStore, contactUsActive } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -123,7 +123,7 @@ const SupportRequest = _.flow(
       }, [({ dragging, openUploader }) => div({ style: { padding: '1rem' } }, [
         div({ style: { fontSize: 18, fontWeight: 'bold', color: colors.dark() } }, ['Contact Us']),
         !this.hasName() && h(Fragment, [
-          h(RequiredFormLabel, ['Name']),
+          h(FormLabel, { required: true }, ['Name']),
           h(TextInput, {
             placeholder: 'What should we call you?',
             autoFocus: true,
@@ -131,7 +131,7 @@ const SupportRequest = _.flow(
             onChange: v => this.setState({ nameEntered: v })
           })
         ]),
-        h(RequiredFormLabel, ['Type']),
+        h(FormLabel, { required: true }, ['Type']),
         h(Select, {
           isMulti: false,
           value: type,
@@ -142,7 +142,7 @@ const SupportRequest = _.flow(
             { value: 'feature_request', label: 'Feature Request' }
           ]
         }),
-        h(RequiredFormLabel, [`How can we help you${greetUser}?`]),
+        h(FormLabel, { required: true }, [`How can we help you${greetUser}?`]),
         h(TextInput, {
           style: { borderBottomLeftRadius: 0, borderBottomRightRadius: 0, borderBottomStyle: 'dashed' },
           placeholder: 'Enter a subject',
@@ -189,7 +189,7 @@ const SupportRequest = _.flow(
             ])
           ]),
         uploadingFile && spinnerOverlay,
-        h(RequiredFormLabel, ['Contact email']),
+        h(FormLabel, { required: true }, ['Contact email']),
         h(TextInput, {
           value: email,
           placeholder: 'Enter your email address',
