@@ -110,7 +110,10 @@ const NotebookLauncher = _.flow(
       mode && h(ClusterStatusMonitor, { cluster, onClusterStoppedRunning: () => { chooseMode(undefined) } }),
       createOpen && h(NewClusterModal, {
         namespace, currentCluster: cluster,
-        onCancel: () => setCreateOpen(false),
+        onCancel: () => {
+          chooseMode(undefined)
+          setCreateOpen(false)
+        },
         onSuccess: withErrorReporting('Error creating cluster', async promise => {
           setCreateOpen(false)
           setBusy(true)
