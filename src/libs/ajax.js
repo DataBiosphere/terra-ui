@@ -763,10 +763,11 @@ const Buckets = signal => ({
   notebook: (namespace, bucket, name) => {
     const bucketUrl = `storage/v1/b/${bucket}/o`
 
-    const copy = async (newName, newBucket) => {
+    const copy = async (newName, newBucket, clearMetadata) => {
+      const body = clearMetadata ? { metadata: { lastLockedBy: '' } } : {}
       return fetchBuckets(
         `${bucketUrl}/${nbName(name)}/copyTo/b/${newBucket}/o/${nbName(newName)}`,
-        _.mergeAll([authOpts(await saToken(namespace)), jsonBody({ metadata: { lastLockedBy: '' } }), { signal, method: 'POST' }])
+        _.mergeAll([authOpts(await saToken(namespace)), jsonBody(body), { signal, method: 'POST' }])
       )
     }
     const doDelete = async () => {
@@ -812,7 +813,7 @@ const Buckets = signal => ({
       getObject,
 
       rename: async newName => {
-        await copy(newName, bucket)
+        await copy(newName, bucket, false)
         return doDelete()
       }
     }

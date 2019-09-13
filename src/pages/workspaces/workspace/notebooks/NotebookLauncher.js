@@ -186,7 +186,7 @@ const PlaygroundModal = ({ onDismiss, onPlayground }) => {
 
 const PreviewHeader = ({ queryParams, cluster, readOnlyAccess, refreshClusters, notebookName, workspace, workspace: { canShare, workspace: { namespace, name, bucketName } } }) => {
   const signal = useCancellation()
-  const { profile: { email } } = Utils.useAtom(authStore)
+  const { user: { email } } = Utils.useAtom(authStore)
   const [fileInUseOpen, setFileInUseOpen] = useState(false)
   const [playgroundModalOpen, setPlaygroundModalOpen] = useState(false)
   const [locked, setLocked] = useState(false)
