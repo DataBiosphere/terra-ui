@@ -66,7 +66,7 @@ export const TextInput = forwardRef(({ onChange, nativeOnChange = false, ...prop
   Utils.useConsoleAssert(props.id || props['aria-label'], 'In order to be accessible, TextInput needs a label')
 
   return h(Interactive, _.merge({
-    refDOMNode: ref,
+    ref,
     as: 'input',
     className: 'focus-style',
     onChange: onChange ? e => onChange(nativeOnChange ? e : e.target.value) : undefined,
@@ -85,12 +85,6 @@ export const ConfirmedSearchInput = ({ defaultValue = '', onChange = _.noop, ...
   return div({ style: { display: 'inline-flex', width: '100%' } }, [
     h(TextInput, _.merge({
       type: 'search',
-      refDOMNode: el => {
-        el.addEventListener('search', e => {
-          setInternalValue(e.target.value)
-          onChange(e.target.value)
-        })
-      },
       spellCheck: false,
       style: { WebkitAppearance: 'none', borderColor: colors.dark(0.55), borderRadius: '4px 0 0 4px' },
       value: internalValue,
