@@ -1,4 +1,5 @@
 import _ from 'lodash/fp'
+import { forwardRef } from 'react'
 import { h } from 'react-hyperscript-helpers'
 
 
@@ -6,9 +7,9 @@ const allowedHoverVariables = ['backgroundColor', 'color', 'boxShadow', 'opacity
 const pointerTags = ['button', 'area', 'a', 'select']
 const pointerTypes = ['radio', 'checkbox', 'submit', 'button']
 
-const Interactive = ({
+const Interactive = forwardRef(({
   className = '', as, type, role, onClick, onKeyDown, disabled, children, tabIndex, hover = {}, style = {}, ...props
-}) => {
+}, ref) => {
   const { cursor } = style
 
   const onClickPointer = !disabled && (onClick ||
@@ -34,6 +35,7 @@ const Interactive = ({
     }, {}))(hover)
 
   return h(as, {
+    ref,
     className: `hover-style ${className}`,
     style: _.merge({ ...style, ...cssVariables }, computedCursor),
     onKeyDown: onKeyDown || (evt => evt.key === 'Enter' && onClick && onClick(evt)),
@@ -43,6 +45,6 @@ const Interactive = ({
     tabIndex: computedTabIndex,
     ...props
   }, [children])
-}
+})
 
 export default Interactive

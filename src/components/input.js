@@ -1,8 +1,9 @@
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
-import { Component, forwardRef, Fragment, useState } from 'react'
+import { Component, forwardRef, Fragment, useEffect, useRef, useState } from 'react'
 import Autosuggest from 'react-autosuggest'
 import { div, h } from 'react-hyperscript-helpers'
+// import Interactive from 'react-interactive'
 import { ButtonPrimary } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import Interactive from 'src/components/Interactive'
@@ -65,42 +66,57 @@ export const withDebouncedChange = WrappedComponent => {
 export const TextInput = forwardRef(({ onChange, nativeOnChange = false, ...props }, ref) => {
   Utils.useConsoleAssert(props.id || props['aria-label'], 'In order to be accessible, TextInput needs a label')
 
-  return h(Interactive, _.merge({
-    ref,
-    as: 'input',
-    className: 'focus-style',
-    onChange: onChange ? e => onChange(nativeOnChange ? e : e.target.value) : undefined,
-    style: {
-      ...styles.input,
-      width: '100%',
-      paddingLeft: '1rem', paddingRight: '1rem',
-      fontWeight: 400, fontSize: 14,
-      backgroundColor: props.disabled ? colors.light() : undefined
-    }
-  }, props))
+  return h(Interactive, {
+    ..._.merge({
+      as: 'input',
+      className: 'focus-style',
+      onChange: onChange ? e => onChange(nativeOnChange ? e : e.target.value) : undefined,
+      style: {
+        ...styles.input,
+        width: '100%',
+        paddingLeft: '1rem', paddingRight: '1rem',
+        fontWeight: 400, fontSize: 14,
+        backgroundColor: props.disabled ? colors.light() : undefined
+      }
+    }, props), ref
+  })
 })
 
 export const ConfirmedSearchInput = ({ defaultValue = '', onChange = _.noop, ...props }) => {
   const [internalValue, setInternalValue] = useState(defaultValue)
+  const inputEl = useRef()
+
+  Utils.useOnMount(() => {
+    inputEl.current.addEventListener('search', e => {
+      console.log('Search triggered')
+      setInternalValue(e.target.value)
+      onChange(e.target.value)
+    })
+  })
+
   return div({ style: { display: 'inline-flex', width: '100%' } }, [
-    h(TextInput, _.merge({
-      type: 'search',
-      spellCheck: false,
-      style: { WebkitAppearance: 'none', borderColor: colors.dark(0.55), borderRadius: '4px 0 0 4px' },
-      value: internalValue,
-      onChange: setInternalValue,
-      onKeyDown: e => {
-        if (e.key === 'Enter') {
-          e.preventDefault()
-          onChange(internalValue)
-        } else if (e.key === 'Escape' && internalValue !== '') {
-          e.preventDefault()
-          e.stopPropagation()
-          setInternalValue('')
-          onChange('')
+    h(TextInput, {
+      ..._.merge({
+        ref: inputEl,
+        type: 'search',
+        spellCheck: false,
+        style: { WebkitAppearance: 'none', borderColor: colors.dark(0.55), borderRadius: '4px 0 0 4px' },
+        value: internalValue,
+        onChange: setInternalValue,
+        onKeyDown: e => {
+          if (e.key === 'Enter') {
+            e.preventDefault()
+            onChange(internalValue)
+          } else if (e.key === 'Escape' && internalValue !== '') {
+            e.preventDefault()
+            e.stopPropagation()
+            setInternalValue('')
+            onChange('')
+          }
         }
-      }
-    }, props)),
+      }, props),
+      ref: inputEl
+    }),
     h(ButtonPrimary, {
       'aria-label': 'Search',
       style: { borderRadius: '0 4px 4px 0', borderLeft: 'none' },
