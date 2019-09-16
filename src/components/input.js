@@ -77,7 +77,8 @@ export const TextInput = forwardRef(({ onChange, nativeOnChange = false, ...prop
         fontWeight: 400, fontSize: 14,
         backgroundColor: props.disabled ? colors.light() : undefined
       }
-    }, props), ref
+    }, props),
+    ref
   })
 })
 
@@ -95,7 +96,6 @@ export const ConfirmedSearchInput = ({ defaultValue = '', onChange = _.noop, ...
   return div({ style: { display: 'inline-flex', width: '100%' } }, [
     h(TextInput, {
       ..._.merge({
-        ref: inputEl,
         type: 'search',
         spellCheck: false,
         style: { WebkitAppearance: 'none', borderColor: colors.dark(0.55), borderRadius: '4px 0 0 4px' },
