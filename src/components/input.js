@@ -78,6 +78,7 @@ export const TextInput = forwardRef(({ onChange, nativeOnChange = false, ...prop
         backgroundColor: props.disabled ? colors.light() : undefined
       }
     }, props),
+    // the ref does not get added to the props correctly when inside of _.merge
     ref
   })
 })
@@ -113,6 +114,7 @@ export const ConfirmedSearchInput = ({ defaultValue = '', onChange = _.noop, ...
           }
         }
       }, props),
+      // the ref does not get added to the props correctly when inside of _.merge
       ref: inputEl
     }),
     h(ButtonPrimary, {
