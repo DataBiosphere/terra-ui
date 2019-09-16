@@ -87,7 +87,6 @@ export const ConfirmedSearchInput = ({ defaultValue = '', onChange = _.noop, ...
 
   Utils.useOnMount(() => {
     inputEl.current.addEventListener('search', e => {
-      console.log('Search triggered')
       setInternalValue(e.target.value)
       onChange(e.target.value)
     })
