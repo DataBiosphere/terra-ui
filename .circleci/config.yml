@@ -59,7 +59,7 @@ jobs:
             - deps2-{{ checksum "package.json" }}-{{ checksum "package-lock.json" }}
             - deps2-{{ checksum "package.json" }}-
             - deps2-
-      - run: npx npm@6.10 ci
+      - run: npx npm@6.11 ci
       - save_cache:
           key: deps2-{{ checksum "package.json" }}-{{ checksum "package-lock.json" }}
           paths:
@@ -74,8 +74,8 @@ jobs:
             - deps2-{{ checksum "package.json" }}-{{ checksum "package-lock.json" }}
             - deps2-{{ checksum "package.json" }}-
             - deps2-
-      - run: npx npm@6.10 ci
-      - run: npx npm@6.10 run build
+      - run: npx npm@6.11 ci
+      - run: npx npm@6.11 run build
       - run: tar -czf build.tgz .gcloudignore app.yaml build config
       - store_artifacts:
           path: build.tgz

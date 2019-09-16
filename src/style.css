@@ -1,5 +1,8 @@
 @import "fonts/Montserrat.css";
-@import "../node_modules/github-markdown-css/github-markdown.css";
+@import "~github-markdown-css/github-markdown.css";
+@import "~animate.css/animate.css";
+@import "~easymde/dist/easymde.min.css";
+@import "~react-notifications-component/dist/theme.css";
 
 .hover-style:hover {
   --hover-backgroundColor: var(--app-hover-backgroundColor);
