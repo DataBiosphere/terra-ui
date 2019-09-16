@@ -4,8 +4,7 @@ import { boolean, object, text, withKnobs } from '@storybook/addon-knobs'
 import { storiesOf } from '@storybook/react'
 import _ from 'lodash/fp'
 import { div, h } from 'react-hyperscript-helpers'
-// import Interactive from 'src/components/Interactive'
-import Interactive from 'react-interactive'
+import Interactive from 'src/components/Interactive'
 
 
 const Inner2 = ({ as = 'div', style, children, ...props }) => h(Interactive, {
