@@ -2,7 +2,7 @@ import FileSaver from 'file-saver'
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
 import { Component, Fragment, useState } from 'react'
-import { div, h, label, span } from 'react-hyperscript-helpers'
+import { b, div, h, label, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import {
@@ -389,10 +389,10 @@ const WorkflowView = _.flow(
     return h(Fragment, [
       savedConfig && h(Fragment, [
         this.renderSummary(),
-        Utils.cond(
-          [activeTab === 'wdl', () => this.renderWDL()],
-          [activeTab === 'inputs', () => this.renderIOTable('inputs')],
-          [activeTab === 'outputs' && !!modifiedConfig.rootEntityType, () => this.renderIOTable('outputs')]
+        Utils.switchCase(activeTab,
+          ['wdl', () => this.renderWDL()],
+          ['inputs', () => this.renderIOTable('inputs')],
+          ['outputs', () => this.renderIOTable('outputs')]
         ),
         launching && h(LaunchAnalysisModal, {
           workspaceId, config: savedConfig,
@@ -818,6 +818,8 @@ const WorkflowView = _.flow(
       _.map(k => ({ name: k, inputType: 'unknown' }), _.keys(modifiedConfig[key])) :
       modifiedInputsOutputs[key]
     const filteredData = key === 'inputs' && !includeOptionalInputs ? _.reject('optional', data) : data
+    const isSingleAndOutputs = key === 'outputs' && this.isSingle()
+    const isEditable = !currentSnapRedacted && !Utils.editWorkspaceError(workspace) && !isSingleAndOutputs
 
     return h(Dropzone, {
       key,
@@ -835,12 +837,16 @@ const WorkflowView = _.flow(
       onDropAccepted: files => this.uploadJson(key, files[0])
     }, [({ openUploader }) => h(Fragment, [
       div({ style: { flex: 'none', display: 'flex', marginBottom: '0.25rem' } }, [
+        isSingleAndOutputs && !currentSnapRedacted && div({ style: { margin: '0 1rem 0.5rem' } }, [
+          b(['Outputs are not mapped to the data model when processing a single workflow from files.']),
+          div(['To write to the data model, select "Process multiple workflows" above.'])
+        ]),
         key === 'inputs' && _.some('optional', modifiedInputsOutputs['inputs']) ?
           h(Link, { style: { marginRight: 'auto' }, onClick: () => this.setState({ includeOptionalInputs: !includeOptionalInputs }) },
             [includeOptionalInputs ? 'Hide optional inputs' : 'Show optional inputs']) :
           div({ style: { marginRight: 'auto' } }),
         h(Link, { onClick: () => this.downloadJson(key) }, ['Download json']),
-        !currentSnapRedacted && !Utils.editWorkspaceError(workspace) && h(Fragment, [
+        isEditable && h(Fragment, [
           div({ style: { whiteSpace: 'pre' } }, ['  |  Drag or click to ']),
           h(Link, { onClick: openUploader }, ['upload json'])
         ])
@@ -848,7 +854,7 @@ const WorkflowView = _.flow(
       filteredData.length !== 0 &&
       div({ style: { flex: '1 0 500px' } }, [
         h(WorkflowIOTable, {
-          readOnly: currentSnapRedacted || !!Utils.editWorkspaceError(workspace),
+          readOnly: !isEditable,
           which: key,
           inputsOutputs: filteredData,
           config: modifiedConfig,
