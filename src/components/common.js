@@ -368,8 +368,9 @@ const SwitchLabel = ({ isOn }) => div({
   }
 }, [isOn ? 'True' : 'False'])
 
-export const Switch = props => {
+export const Switch = ({ onChange, ...props }) => {
   return h(RSwitch, {
+    onChange: value => onChange(value),
     offColor: colors.dark(0.5),
     onColor: colors.success(1.2),
     checkedIcon: h(SwitchLabel, { isOn: true }),
