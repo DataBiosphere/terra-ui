@@ -70,6 +70,10 @@ const LandingPage = pure(() => {
         ]),
         makeCard('library-showcase', 'View Examples', 'Browse our gallery of showcase Workspaces to see how science gets done.'),
         makeCard('library-datasets', 'Browse Data', 'Access data from a rich ecosystem of data portals.')
+      ]),
+      (isTerra() || isFirecloud()) && div({ style: { width: 700, marginTop: '4rem' } }, [
+        'This project has been funded in whole or in part with Federal funds from the National Cancer Institute, National Institutes of Health, ',
+        'Task Order No. 17X053 under Contract No. HHSN261200800001E'
       ])
     ])
   ])
