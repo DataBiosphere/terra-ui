@@ -508,7 +508,7 @@ const WorkflowView = _.flow(
   describeSelectionModel() {
     const { modifiedConfig: { rootEntityType }, entityMetadata, entitySelectionModel: { newSetName, selectedEntities, type } } = this.state
     const count = _.size(selectedEntities)
-     const newSetMessage = (type === EntitySelectionType.processAll || count > 1) ? `(will create a new set named "${newSetName}")` : ''
+    const newSetMessage = (type === EntitySelectionType.processAll || count > 1) ? `(will create a new set named "${newSetName}")` : ''
     return Utils.cond(
       [this.isSingle() || !rootEntityType, ''],
       [type === EntitySelectionType.processAll, () => `all ${entityMetadata[rootEntityType] ? entityMetadata[rootEntityType].count : 0}
