@@ -606,7 +606,7 @@ class EntitiesContent extends Component {
       h(IGVBrowser, { selectedFiles, refGenome, namespace, onDismiss: () => this.setState(_.set(['igvData', 'selectedFiles'], undefined)) }) :
       h(Fragment, [
         h(DataTable, {
-          persist: true, firstRender, refreshKey,
+          persist: true, firstRender, refreshKey, editable: !Utils.editWorkspaceError(workspace),
           entityType: entityKey, entityMetadata, columnDefaults, workspaceId: { namespace, name },
           onScroll: saveScroll, initialX, initialY,
           selectionModel: {
