@@ -2,11 +2,12 @@ import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
 import { Component, Fragment } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers/lib/index'
-import { ButtonPrimary, Clickable, LabeledCheckbox, Link, Select, spinnerOverlay } from 'src/components/common'
+import { ButtonPrimary, Clickable, LabeledCheckbox, Link, RadioButton, Select, SimpleTabBar, spinnerOverlay } from 'src/components/common'
 import Dropzone from 'src/components/Dropzone'
 import { icon } from 'src/components/icons'
 import { TextArea } from 'src/components/input'
 import Modal from 'src/components/Modal'
+import { NotebookCreator } from 'src/components/notebook-utils'
 import { TextCell } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { UriViewerLink } from 'src/components/UriViewer'
@@ -20,8 +21,8 @@ import * as Utils from 'src/libs/utils'
 
 
 const warningBoxStyle = {
-  border: `1px solid ${colors.warning(0.85)}`,
-  backgroundColor: colors.warning(0.4),
+  border: '1px solid #DC8412',
+  backgroundColor: colors.warning(1),
   padding: '1rem 1.25rem',
   color: colors.warning(), fontWeight: 'bold', fontSize: 12
 }
@@ -233,16 +234,13 @@ export const EntityUploader = class EntityUploader extends Component {
 
   constructor(props) {
     super(props)
-
-    this.state = { newEntityType: '', useFireCloudDataModel: false }
+    this.state = { newEntityType: '', useFireCloudDataModel: false, isFileImportMode: true }
   }
 
   async doUpload() {
     const { onDismiss, onSuccess, namespace, name } = this.props
     const { file, pastedText, useFireCloudDataModel } = this.state
-
     this.setState({ uploading: true })
-
     try {
       const workspace = Ajax().Workspaces.workspace(namespace, name)
       await (useFireCloudDataModel ? workspace.importEntitiesFile : workspace.importFlexibleEntitiesFile)(
@@ -259,7 +257,6 @@ export const EntityUploader = class EntityUploader extends Component {
     const { file } = this.state
     const checkUpload = text => /(?:membership|entity):([^\s]+)_id/.exec(text)
     const definedTypeMatch = checkUpload(pastedText)
-
     if (file) {
       window.confirm(
         'The file currently selected will not be imported if you choose to paste in text data instead, to continue and paste in data anyway click OK.') &&
@@ -279,8 +276,8 @@ export const EntityUploader = class EntityUploader extends Component {
   }
 
   render() {
-    const { onDismiss, entityTypes } = this.props
-    const { uploading, file, newEntityType, isInvalidFile, isInvalidText, useFireCloudDataModel, pastedText } = this.state
+    const { onDismiss, entityTypes, fileImportView } = this.props
+    const { uploading, file, newEntityType, isInvalidFile, isInvalidText, useFireCloudDataModel, pastedText, isFileImportMode } = this.state
 
     const checkUpload = text => /(?:membership|entity):([^\s]+)_id/.exec(text)
 
@@ -311,61 +308,28 @@ export const EntityUploader = class EntityUploader extends Component {
           onClick: () => this.doUpload()
         }, ['Upload'])
       }, [
-        div([
-          div({ style: { fontWeight: '600' } }, ['For a File Import:']),
-          'Select the ',
-          h(TooltipTrigger, { content: 'Tab Separated Values', side: 'bottom' }, [span({ style: { textDecoration: 'underline dashed' } }, 'TSV')]),
-          ' file containing your data. '
-        ]),
-        file && _.includes(_.toLower(newEntityType), entityTypes) && div({
-          style: { ...warningBoxStyle, marginTop: '0.5rem', marginBottom: '0.5rem', display: 'flex', alignItems: 'center' }
+        div({ style: { fontWeight: 'bold', borderTop: Style.standardLine, marginTop: '1rem', paddingTop: '1rem' } }),
+        '• The first column header must be:',
+        span({ style: { fontFamily: 'monospace', margin: '0.5rem', fontWeight: '600' } }, ['entity:[type]_id']),
+        'where ',
+        span({ style: { fontFamily: 'monospace', fontWeight: '600' } }, ['[type]']),
+        ` is the desired name of the data table in ${getAppName()}.`,
+        ' For example, to create or update a ',
+        span({ style: { fontFamily: 'monospace', fontWeight: '600' } }, ['participant']),
+        ' table use ',
+        span({ style: { fontFamily: 'monospace', fontWeight: '600' } }, ['entity:participant_id']),
+        div({ style: { marginTop: '0.5rem', marginBottom: '0.5rem' } }, ['• All of the values in the ID column must be unique.']),
+        div({ style: { borderTop: Style.standardLine, paddingTop: '1rem', fontWeight: 'bold', marginTop: '1rem' } }, ['Choose an import type:']),
+        div({ style: { marginTop: '0.1rem', marginBottom: '0.1rem', fontSize: 12 } },
+          ['(Switching import types will lose any currently inputted data)']),
+        (file || pastedText) && _.includes(_.toLower(newEntityType), entityTypes) && div({
+          style: { ...warningBoxStyle, marginTop: '0.5rem', marginBottom: '0.5rem', color: colors.light(.1), display: 'flex', alignItems: 'center' }
         }, [
-          icon('warning-standard', { size: 19, style: { flex: 'none', marginRight: '0.5rem', marginLeft: '-0.5rem' } }),
-          `Data with the type '${newEntityType}' already exists in this workspace. `,
-          'Uploading another load file for the same type may overwrite some entries.'
-        ]),
-        file && supportsFireCloudDataModel(newEntityType) && div([
-          h(LabeledCheckbox, {
-            checked: useFireCloudDataModel,
-            onChange: checked => this.setState({ useFireCloudDataModel: checked }),
-            style: { margin: '0.5rem' }
-          }, [' Create participant, sample, and pair associations']),
-          h(Link, {
-            style: { marginLeft: '1rem', verticalAlign: 'middle' },
-            href: 'https://software.broadinstitute.org/firecloud/documentation/article?id=10738',
-            ...Utils.newTabLinkProps
-          }, ['Learn more ', icon('pop-out', { size: 12 })])
-        ]),
-        h(Clickable, {
-          style: {
-            ...Style.elements.card.container, flex: 1,
-            margin: '0.5rem 0',
-            backgroundColor: dragging ? colors.accent(0.2) : colors.dark(0.1),
-            border: isInvalidFile ? `1px solid ${colors.danger()}` : `1px dashed ${colors.dark(0.7)}`,
-            boxShadow: 'none'
-          },
-          onClick: pastedText ?
-            () => window.confirm(
-              'The data currently typed in will not be imported if you choose to upload a file instead, to continue and upload a file anyway click OK.') &&
-              openUploader() :
-            openUploader
-        }, [div(['Drag or ', h(Link, ['Click']), ' to select a .tsv file'])]),
-        isInvalidFile && div({
-          style: { color: colors.danger(), fontWeight: 'bold', fontSize: 12, marginTop: '0.5rem' }
-        }, ['Invalid format: File does not start with entity or membership definition.']),
-        div({ style: { marginLeft: '1rem', marginTop: '0.5rem', fontSize: 12 } }, ['Selected File: ',
-          div({ style: { color: colors.dark(0.7) } }, (file && file.name) ? file.name : 'None')]),
-        div({ style: { borderTop: Style.standardLine, marginTop: '1rem', paddingTop: '1rem', fontWeight: '600' } },
-          ['For a copy-and-paste text import:']),
-        ' Paste the data directly to the text field below. ',
-        pastedText && _.includes(_.toLower(newEntityType), entityTypes) && div({
-          style: { ...warningBoxStyle, marginTop: '0.5rem', marginBottom: '0.5rem', display: 'flex', alignItems: 'center' }
-        }, [
-          icon('warning-standard', { size: 19, style: { flex: 'none', marginRight: '0.5rem', marginLeft: '-0.5rem' } }),
+          icon('warning-standard', { size: 19, style: { color: colors.light(.1), flex: 'none', marginRight: '0.5rem', marginLeft: '-0.5rem' } }),
           `Data with the type '${newEntityType}' already exists in this workspace. `,
           'Uploading more data for the same type may overwrite some entries.'
         ]),
-        pastedText && supportsFireCloudDataModel(newEntityType) && div([
+        (file || pastedText) && supportsFireCloudDataModel(newEntityType) && div([
           h(LabeledCheckbox, {
             checked: useFireCloudDataModel,
             onChange: checked => this.setState({ useFireCloudDataModel: checked }),
@@ -377,34 +341,54 @@ export const EntityUploader = class EntityUploader extends Component {
             ...Utils.newTabLinkProps
           }, ['Learn more ', icon('pop-out', { size: 12 })])
         ]),
-        h(TextArea, {
-          'aria-label': 'Paste text data',
-          placeholder: 'Paste/Enter text data here...',
-          onChange: pastedText => this.updatePastedText(pastedText),
-          value: pastedText,
-          wrap: 'off',
-          style: {
-            ...Style.elements.card.container, flex: 1, fontFamily: 'monospace', resize: 'vertical',
-            maxHeight: 300, minHeight: 60, margin: '0.5rem 0', backgroundColor: colors.dark(0.1),
-            border: isInvalidText ? `1px solid ${colors.danger()}` : `1px dashed ${colors.dark(0.7)}`,
-            boxShadow: 'none'
+        h(SimpleTabBar, {
+          tabs: [{ title: 'File Import', key: true }, { title: 'Text Import', key: false }],
+          value: isFileImportMode,
+          onChange: value => {
+            this.setState({ isFileImportMode: value })
           }
         }),
-        isInvalidText && div({
+        isFileImportMode ? div([
+          div([
+            div({ style: { marginTop: '0.5rem' } }, ['Select the ',
+              h(TooltipTrigger, { content: 'Tab Separated Values', side: 'bottom' },
+                [span({ style: { textDecoration: 'underline dashed' } }, 'TSV')]),
+              ' file containing your data: ']),
+            h(Clickable, {
+              style: {
+                ...Style.elements.card.container, flex: 1,
+                margin: '0.5rem 0',
+                backgroundColor: dragging ? colors.accent(0.2) : colors.dark(0.1),
+                border: isInvalidFile ? `1px solid ${colors.danger()}` : `1px dashed ${colors.dark(0.7)}`,
+                boxShadow: 'none'
+              },
+              onClick: pastedText ?
+                () => window.confirm(
+                  'The data currently typed in will not be imported if you choose to upload a file instead, to continue and upload a file anyway click OK.') &&
+                  openUploader() :
+                openUploader
+            }, [div(['Drag or ', h(Link, ['Click']), ' to select a .tsv file'])]),
+            div({ style: { marginLeft: '1rem', marginTop: '0.5rem', fontSize: 12 } }, ['Selected File: ',
+              div({ style: { color: colors.dark(0.7) } }, (file && file.name) ? file.name : 'None')])
+          ])
+        ]) : div([div({ style: { marginTop: '0.5rem' } }, ['Paste the data directly to the text field below:']),
+          h(TextArea, {
+            'aria-label': 'Paste text data',
+            placeholder: 'Paste/Enter text data here...',
+            onChange: pastedText => this.updatePastedText(pastedText),
+            value: pastedText,
+            wrap: 'off',
+            style: {
+              ...Style.elements.card.container, flex: 1, fontFamily: 'monospace', resize: 'vertical',
+              maxHeight: 300, minHeight: 60, margin: '0.5rem 0',
+              backgroundColor: isInvalidText ? colors.danger(.1) : (pastedText ? colors.light(0.1) : colors.dark(0.1)),
+              border: isInvalidText ? `1px solid ${colors.danger()}` : `1px dashed ${colors.dark(0.7)}`,
+              boxShadow: 'none'
+            }
+          })]),
+        (isInvalidText || isInvalidFile) && div({
           style: { color: colors.danger(), fontWeight: 'bold', fontSize: 12, marginTop: '0.5rem' }
-        }, ['Invalid format: Text data does not start with entity or membership definition.']),
-        div({ style: { borderTop: Style.standardLine, marginTop: '1rem', paddingTop: '1rem' } }),
-        ' For all imports the first column header must be: ',
-        div({ style: { fontFamily: 'monospace', margin: '0.5rem' } }, ['entity:[type]_id']),
-        'where ',
-        span({ style: { fontFamily: 'monospace' } }, ['[type]']),
-        ` is the desired name of the data table in ${getAppName()}.`,
-        ' For example, use ',
-        span({ style: { fontFamily: 'monospace' } }, ['entity:participant_id']),
-        ' to create or update a ',
-        span({ style: { fontFamily: 'monospace' } }, ['participant']),
-        ' table.',
-        div({ style: { marginTop: '0.5rem' } }, ['All of the values in the ID column must be unique.'])
+        }, ['Invalid format: Data does not start with entity or membership definition.'])
       ]),
       uploading && spinnerOverlay
     ])])
