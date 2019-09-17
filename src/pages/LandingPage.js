@@ -11,6 +11,7 @@ import { getAppName } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
+import { Fragment } from 'react'
 
 
 const styles = {
@@ -18,15 +19,20 @@ const styles = {
   nowrap: { whiteSpace: 'nowrap' }
 }
 
-const makeDocLink = (href, title) => h(Link, {
-  href,
-  ...Utils.newTabLinkProps,
-  style: { marginBottom: '1rem', fontSize: 18, display: 'inline-flex', alignItems: 'center' }
-}, [
-  title,
-  icon('pop-out', { size: 18, style: { marginLeft: '0.5rem' } })
-])
-
+const makeDocLink = (href, title) => {
+  return div({
+    style: {marginBottom: '1rem', fontSize: 18, width: 600}
+  },[
+    h(Link, {
+      href,
+      ...Utils.newTabLinkProps,
+      style: {fontSize: 18}
+    }, [
+      title,
+      icon('pop-out', {size: 18, style: {marginLeft: '0.5rem'}})
+    ])
+  ])
+}
 
 const makeCard = (link, title, body) => h(Clickable, {
   href: Nav.getLink(link),
@@ -59,13 +65,15 @@ const LandingPage = pure(() => {
         span({ style: { ...styles.heavy, ...styles.nowrap } }, 'run analysis tools'), ', ',
         span({ style: styles.nowrap }, ['and', span({ style: styles.heavy }, ' collaborate'), '.'])
       ]),
-      div([makeDocLink('https://support.terra.bio/hc/en-us', 'Find how-to\'s, documentation, video tutorials, and discussion forums')]),
-      isFirecloud() && div([makeDocLink('https://support.terra.bio/hc/en-us/articles/360022694271',
-        'Already a FireCloud user? Learn what\'s new in Terra.'),
-      makeDocLink('https://broadinstitute.zendesk.com/knowledge/articles/360033416912',
-        'Learn more about the Cancer Research Data Commons and other NCI Cloud Resources')]),
+      makeDocLink('https://support.terra.bio/hc/en-us', 'Find how-to\'s, documentation, video tutorials, and discussion forums'),
+      isFirecloud() && h(Fragment, [
+        makeDocLink('https://support.terra.bio/hc/en-us/articles/360022694271',
+          'Already a FireCloud user? Learn what\'s new in Terra.'),
+        makeDocLink('https://broadinstitute.zendesk.com/knowledge/articles/360033416912',
+          'Learn more about the Cancer Research Data Commons and other NCI Cloud Resources')
+      ]),
       div({
-        style: { display: 'flex', margin: '1rem 0' }
+        style: { display: 'flex', margin: '2rem 0 1rem 0' }
       }, [
         makeCard('workspaces', 'View Workspaces', [
           'Workspaces connect your data to popular analysis tools powered by the cloud. Use Workspaces to share data, code, and results easily and securely.'
