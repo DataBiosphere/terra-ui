@@ -2,12 +2,11 @@ import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
 import { Component, Fragment } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers/lib/index'
-import { ButtonPrimary, Clickable, LabeledCheckbox, Link, RadioButton, Select, SimpleTabBar, spinnerOverlay } from 'src/components/common'
+import { ButtonPrimary, Clickable, LabeledCheckbox, Link, Select, SimpleTabBar, spinnerOverlay } from 'src/components/common'
 import Dropzone from 'src/components/Dropzone'
 import { icon } from 'src/components/icons'
 import { TextArea } from 'src/components/input'
 import Modal from 'src/components/Modal'
-import { NotebookCreator } from 'src/components/notebook-utils'
 import { TextCell } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { UriViewerLink } from 'src/components/UriViewer'
@@ -276,7 +275,7 @@ export const EntityUploader = class EntityUploader extends Component {
   }
 
   render() {
-    const { onDismiss, entityTypes, fileImportView } = this.props
+    const { onDismiss, entityTypes } = this.props
     const { uploading, file, newEntityType, isInvalidFile, isInvalidText, useFireCloudDataModel, pastedText, isFileImportMode } = this.state
 
     const checkUpload = text => /(?:membership|entity):([^\s]+)_id/.exec(text)
