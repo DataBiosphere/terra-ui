@@ -1,3 +1,4 @@
+import { Fragment } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import { pure } from 'recompose'
 import { Clickable, Link, makeIconButton } from 'src/components/common'
@@ -11,7 +12,6 @@ import { getAppName } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import { Fragment } from 'react'
 
 
 const styles = {
@@ -21,15 +21,15 @@ const styles = {
 
 const makeDocLink = (href, title) => {
   return div({
-    style: {marginBottom: '1rem', fontSize: 18, width: 600}
-  },[
+    style: { marginBottom: '1rem', fontSize: 18, width: 600 }
+  }, [
     h(Link, {
       href,
       ...Utils.newTabLinkProps,
-      style: {fontSize: 18}
+      style: { fontSize: 18 }
     }, [
       title,
-      icon('pop-out', {size: 18, style: {marginLeft: '0.5rem'}})
+      icon('pop-out', { size: 18, style: { marginLeft: '0.5rem' } })
     ])
   ])
 }
