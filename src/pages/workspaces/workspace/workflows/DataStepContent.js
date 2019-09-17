@@ -44,7 +44,8 @@ export default class DataStepContent extends Component {
     const selectionSize = _.size(selectedEntities)
 
     return (type === EntitySelectionType.processAll ||
-      (selectionSize > 0 && !!newSetName && (type !== EntitySelectionType.chooseSet || selectionSize <= 10))
+      (type === EntitySelectionType.chooseRows && (selectionSize === 1 || (selectionSize > 1 && !!newSetName))) ||
+      (type === EntitySelectionType.chooseSet && (selectionSize === 1 || (selectionSize > 1 && selectionSize <= 10 && !!newSetName)))
     )
   }
 
