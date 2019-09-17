@@ -818,7 +818,8 @@ const WorkflowView = _.flow(
       _.map(k => ({ name: k, inputType: 'unknown' }), _.keys(modifiedConfig[key])) :
       modifiedInputsOutputs[key]
     const filteredData = key === 'inputs' && !includeOptionalInputs ? _.reject('optional', data) : data
-    const isSingleOutputs = key === 'outputs' && this.isSingle()
+    const isSingleAndOutputs = key === 'outputs' && this.isSingle()
+    const isEditable = !currentSnapRedacted && !Utils.editWorkspaceError(workspace) && !isSingleAndOutputs
 
     return h(Dropzone, {
       key,
@@ -836,7 +837,7 @@ const WorkflowView = _.flow(
       onDropAccepted: files => this.uploadJson(key, files[0])
     }, [({ openUploader }) => h(Fragment, [
       div({ style: { flex: 'none', display: 'flex', marginBottom: '0.25rem' } }, [
-        isSingleOutputs && div({ style: { margin: '0 1rem 0.5rem' } }, [
+        isSingleAndOutputs && !currentSnapRedacted && div({ style: { margin: '0 1rem 0.5rem' } }, [
           b(['Outputs are not mapped to the data model when processing a single workflow from files.']),
           div(['To write to the data model, select "Process multiple workflows" above.'])
         ]),
@@ -845,7 +846,7 @@ const WorkflowView = _.flow(
             [includeOptionalInputs ? 'Hide optional inputs' : 'Show optional inputs']) :
           div({ style: { marginRight: 'auto' } }),
         h(Link, { onClick: () => this.downloadJson(key) }, ['Download json']),
-        !currentSnapRedacted && !Utils.editWorkspaceError(workspace) && !isSingleOutputs && h(Fragment, [
+        isEditable && h(Fragment, [
           div({ style: { whiteSpace: 'pre' } }, ['  |  Drag or click to ']),
           h(Link, { onClick: openUploader }, ['upload json'])
         ])
@@ -853,7 +854,7 @@ const WorkflowView = _.flow(
       filteredData.length !== 0 &&
       div({ style: { flex: '1 0 500px' } }, [
         h(WorkflowIOTable, {
-          readOnly: currentSnapRedacted || !!Utils.editWorkspaceError(workspace) || isSingleOutputs,
+          readOnly: !isEditable,
           which: key,
           inputsOutputs: filteredData,
           config: modifiedConfig,
