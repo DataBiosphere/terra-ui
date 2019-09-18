@@ -9,6 +9,7 @@ import Modal from 'src/components/Modal'
 import { Ajax, ajaxCaller } from 'src/libs/ajax'
 import { reportError } from 'src/libs/error'
 import { RequiredFormLabel } from 'src/libs/forms'
+import * as Nav from 'src/libs/nav'
 import * as Utils from 'src/libs/utils'
 import validate from 'validate.js'
 
@@ -158,6 +159,7 @@ export const NotebookCreator = class NotebookCreator extends Component {
 export const NotebookDuplicator = ajaxCaller(class NotebookDuplicator extends Component {
   static propTypes = {
     destroyOld: PropTypes.bool,
+    fromLauncher: PropTypes.bool,
     printName: PropTypes.string.isRequired,
     namespace: PropTypes.string.isRequired,
     bucketName: PropTypes.string.isRequired,
@@ -167,7 +169,8 @@ export const NotebookDuplicator = ajaxCaller(class NotebookDuplicator extends Co
   }
 
   static defaultProps = {
-    destroyOld: false
+    destroyOld: false,
+    fromLauncher: false
   }
 
   constructor(props) {
@@ -183,7 +186,7 @@ export const NotebookDuplicator = ajaxCaller(class NotebookDuplicator extends Co
   }
 
   render() {
-    const { destroyOld, printName, namespace, bucketName, onDismiss, onSuccess } = this.props
+    const { destroyOld, fromLauncher, printName, name, namespace, bucketName, onDismiss, onSuccess } = this.props
     const { newName, processing, nameTouched, existingNames } = this.state
 
     const errors = validate(
@@ -205,6 +208,11 @@ export const NotebookDuplicator = ajaxCaller(class NotebookDuplicator extends Co
               Ajax().Buckets.notebook(namespace, bucketName, printName).rename(newName) :
               Ajax().Buckets.notebook(namespace, bucketName, printName).copy(newName, bucketName, !destroyOld))
             onSuccess()
+            if (fromLauncher) {
+              Nav.goToPath('workspace-notebook-launch', {
+                namespace, name, notebookName: newName + '.ipynb'
+              })
+            }
           } catch (error) {
             reportError(`Error ${destroyOld ? 'renaming' : 'copying'} notebook`, error)
           }

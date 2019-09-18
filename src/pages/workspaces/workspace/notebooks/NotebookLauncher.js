@@ -178,7 +178,6 @@ const PlaygroundModal = ({ onDismiss, onPlayground }) => {
       'Continue')
   }, [
     p(`Playground mode allows you to explore, change, and run the code, but your edits will not be saved.`),
-    p('To save your work, choose Make a Copy from the File menu to make your own version.'),
     h(LabeledCheckbox, {
       checked: hidePlaygroundMessage,
       onChange: v => setHidePlaygroundMessage(v)
@@ -287,13 +286,14 @@ const PreviewHeader = ({ queryParams, cluster, readOnlyAccess, refreshClusters, 
       onPlayground: () => chooseMode('playground')
     }),
     copyingNotebook && h(NotebookDuplicator, {
-      printName: notebookName.slice(0, -6),
+      printName: notebookName.slice(0, -6), fromLauncher: true,
       name, namespace, bucketName, destroyOld: false,
       onDismiss: () => setCopyingNotebook(false),
       onSuccess: () => setCopyingNotebook(false)
     }),
     exportingNotebook && h(ExportNotebookModal, {
       printName: notebookName.slice(0, -6), workspace,
+      fromLauncher: true,
       onDismiss: () => setExportingNotebook(false)
     }),
     playgroundModalOpen && h(PlaygroundModal, {
@@ -381,7 +381,6 @@ const JupyterFrameManager = ({ onClose, frameRef }) => {
 
 const NotebookEditorFrame = ({ mode, notebookName, workspace: { workspace: { namespace, name, bucketName } }, cluster: { clusterName, clusterUrl, status } }) => {
   console.assert(status === 'Running', 'Expected notebook runtime to be running')
-  const signal = useCancellation()
   const frameRef = useRef()
   const [busy, setBusy] = useState(false)
   const [notebookSetUp, setNotebookSetUp] = useState(false)
@@ -401,7 +400,7 @@ const NotebookEditorFrame = ({ mode, notebookName, workspace: { workspace: { nam
     if (mode === 'edit') {
       const lockSuccessful = await Ajax().Jupyter.notebooks(namespace, clusterName).lock(`${localBaseDirectory}/${notebookName}`)
       if (!lockSuccessful) {
-        notify('error', 'Unable to Lock Notebook', {
+        notify('error', 'Unable to Edit Notebook', {
           message: 'Another user is currently editing this notebook. You can run it in Playground Mode or make a copy.'
         })
         chooseMode(undefined)
@@ -418,20 +417,8 @@ const NotebookEditorFrame = ({ mode, notebookName, workspace: { workspace: { nam
     setNotebookSetUp(true)
   })
 
-  const checkRecentAccess = async () => {
-    const { updated } = await Ajax(signal).Buckets.notebook(namespace, bucketName, notebookName.slice(0, -6)).getObject()
-    const tenMinutesAgo = _.tap(d => d.setMinutes(d.getMinutes() - 10), new Date())
-    if (new Date(updated) > tenMinutesAgo) {
-      notify('warn', 'This notebook has been edited recently', {
-        message: 'If you recently edited this notebook, disregard this message. If another user is editing this notebook, your changes may be lost.',
-        timeout: 30000
-      })
-    }
-  }
-
   Utils.useOnMount(() => {
     setUpNotebook()
-    checkRecentAccess()
   })
 
   return h(Fragment, [

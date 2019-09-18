@@ -128,7 +128,7 @@ const NotebookCard = ({ namespace, name, updated, metadata, listView, wsName, on
         tooltip: !canWrite && noWrite,
         tooltipSide: 'left',
         onClick: () => onCopy()
-      }, [makeMenuIcon('copy'), 'Duplicate']),
+      }, [makeMenuIcon('copy'), 'Make a Copy']),
       h(MenuButton, {
         disabled: !canWrite,
         tooltip: !canWrite && noWrite,
