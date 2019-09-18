@@ -60,7 +60,7 @@ const LandingPage = pure(() => {
     }, [
       div({ style: { fontSize: 54 } }, `Welcome to ${getAppName()}`),
       div({ style: { fontSize: 20, lineHeight: '28px', margin: '1rem 0', width: 575 } }, [
-        `${getAppName(true)} is a ${isTerra() ? 'cloud-native platform' : 'project supported by Terra'} for biomedical researchers to `,
+        `${getAppName(true)} is a ${isTerra() ? 'cloud-native platform' : 'project powered by Terra'} for biomedical researchers to `,
         span({ style: { ...styles.heavy, ...styles.nowrap } }, 'access data'), ', ',
         span({ style: { ...styles.heavy, ...styles.nowrap } }, 'run analysis tools'), ', ',
         span({ style: styles.nowrap }, ['and', span({ style: styles.heavy }, ' collaborate'), '.'])
@@ -68,7 +68,7 @@ const LandingPage = pure(() => {
       makeDocLink('https://support.terra.bio/hc/en-us', 'Find how-to\'s, documentation, video tutorials, and discussion forums'),
       isFirecloud() && h(Fragment, [
         makeDocLink('https://support.terra.bio/hc/en-us/articles/360022694271',
-          'Already a FireCloud user? Learn what\'s new in Terra.'),
+          'Already a FireCloud user? Learn what\'s new.'),
         makeDocLink('https://broadinstitute.zendesk.com/knowledge/articles/360033416912',
           'Learn more about the Cancer Research Data Commons and other NCI Cloud Resources')
       ]),
@@ -78,8 +78,12 @@ const LandingPage = pure(() => {
         makeCard('workspaces', 'View Workspaces', [
           'Workspaces connect your data to popular analysis tools powered by the cloud. Use Workspaces to share data, code, and results easily and securely.'
         ]),
-        makeCard('library-showcase', 'View Examples', 'Browse our gallery of showcase Workspaces to see how science gets done on Terra.'),
-        makeCard('library-datasets', 'Browse Data', 'Access data from a rich ecosystem of Terra-connected data portals.')
+        makeCard('library-showcase', 'View Examples', 'Browse our gallery of showcase Workspaces to see how science gets done.'),
+        makeCard('library-datasets', 'Browse Data', 'Access data from a rich ecosystem of data portals.')
+      ]),
+      (isTerra() || isFirecloud()) && div({ style: { width: 700, marginTop: '4rem' } }, [
+        'This project has been funded in whole or in part with Federal funds from the National Cancer Institute, National Institutes of Health, ',
+        'Task Order No. 17X053 under Contract No. HHSN261200800001E'
       ])
     ])
   ])
