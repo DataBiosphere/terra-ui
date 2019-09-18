@@ -1,11 +1,13 @@
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
-import { Component, Fragment } from 'react'
-import { div, h, span } from 'react-hyperscript-helpers/lib/index'
-import { ButtonPrimary, Clickable, LabeledCheckbox, Link, Select, SimpleTabBar, spinnerOverlay } from 'src/components/common'
+import { Component, Fragment, useState } from 'react'
+import { div, fieldset, h, legend, span } from 'react-hyperscript-helpers'
+import {
+  ButtonOutline, ButtonPrimary, ButtonSecondary, Clickable, IdContainer, LabeledCheckbox, Link, RadioButton, Select, SimpleTabBar, spinnerOverlay, Switch
+} from 'src/components/common'
 import Dropzone from 'src/components/Dropzone'
 import { icon } from 'src/components/icons'
-import { TextArea } from 'src/components/input'
+import { NumberInput, TextArea, TextInput, ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { TextCell } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
@@ -14,9 +16,11 @@ import ReferenceData from 'src/data/reference-data'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
+import { FormLabel } from 'src/libs/forms'
 import { getAppName } from 'src/libs/logos'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
+import validate from 'validate.js'
 
 
 const warningBoxStyle = {
@@ -29,8 +33,12 @@ const warningBoxStyle = {
 export const renderDataCell = (data, namespace) => {
   const isUri = datum => _.startsWith('gs://', datum) || _.startsWith('dos://', datum) || _.startsWith('drs://', datum)
 
-  const renderCell = datum => h(TextCell, { title: datum },
-    [isUri(datum) ? h(UriViewerLink, { uri: datum, googleProject: namespace }) : datum])
+  const renderCell = datum => {
+    const stringDatum = Utils.convertValue('string', datum)
+
+    return h(TextCell, { title: stringDatum },
+      [isUri(datum) ? h(UriViewerLink, { uri: datum, googleProject: namespace }) : stringDatum])
+  }
 
   const renderArray = items => {
     return items.map((v, i) => h(Fragment, { key: i }, [
@@ -44,6 +52,12 @@ export const renderDataCell = (data, namespace) => {
     () => renderCell(data && data.toString())
   )
 }
+
+export const EditDataLink = props => h(Link, {
+  className: 'cell-hover-only',
+  style: { marginLeft: '1rem' },
+  ...props
+}, [icon('edit')])
 
 export const ReferenceDataImporter = class ReferenceDataImporter extends Component {
   static propTypes = {
@@ -383,4 +397,255 @@ export const EntityUploader = class EntityUploader extends Component {
       uploading && spinnerOverlay
     ])])
   }
+}
+
+export const EntityRenamer = ({ entityType, entityName, workspaceId: { namespace, name }, onDismiss, onSuccess }) => {
+  const [newName, setNewName] = useState(entityName)
+  const [isBusy, setIsBusy] = useState()
+  const [takenName, setTakenName] = useState()
+
+  const errors = validate.single(newName, {
+    presence: { allowEmpty: false, message: 'Name can\'t be blank' },
+    exclusion: { within: [takenName], message: 'An entity with this name already exists' }
+  })
+
+  const doRename = async () => {
+    try {
+      setIsBusy(true)
+      await Ajax().Workspaces.workspace(namespace, name).renameEntity(entityType, entityName, _.trim(newName))
+      onSuccess()
+    } catch (e) {
+      if (e.status === 409) {
+        setTakenName(newName)
+        setIsBusy(false)
+      } else {
+        onDismiss()
+        reportError('Unable to rename entity', e)
+      }
+    }
+  }
+
+  return h(Modal, {
+    onDismiss,
+    title: `Rename ${entityName}`,
+    okButton: h(ButtonPrimary, {
+      onClick: doRename,
+      disabled: entityName === newName || errors,
+      tooltip: entityName === newName ? 'No change to save' : Utils.summarizeErrors(errors)
+    }, ['Rename'])
+  }, [
+    h(IdContainer, [id => h(Fragment, [
+      h(FormLabel, { htmlFor: id }, ['New entity name']),
+      h(ValidatedInput, {
+        inputProps: {
+          id,
+          autoFocus: true,
+          placeholder: 'Enter a name',
+          value: newName,
+          onChange: setNewName
+        },
+        error: Utils.summarizeErrors(errors)
+      })
+    ])]),
+    isBusy && spinnerOverlay
+  ])
+}
+
+export const EntityEditor = ({ entityType, entityName, attributeName, attributeValue, entityTypes, workspaceId: { namespace, name }, onDismiss, onSuccess }) => {
+  const initialIsReference = _.isObject(attributeValue) && (attributeValue.entityType || attributeValue.itemsType === 'EntityReference')
+  const initialIsList = _.isObject(attributeValue) && attributeValue.items
+  const initialType = Utils.cond(
+    [initialIsReference, 'reference'],
+    [(initialIsList ? attributeValue.items[0] : attributeValue) === undefined, 'string'],
+    [initialIsList, () => typeof attributeValue.items[0]],
+    typeof attributeValue
+  )
+
+  const [newValue, setNewValue] = useState(() => Utils.cond(
+    [initialIsReference && initialIsList, () => _.map('entityName', attributeValue.items)],
+    [initialIsList, () => attributeValue.items],
+    [initialIsReference, () => attributeValue.entityName],
+    attributeValue
+  ))
+  const [linkedEntityType, setLinkedEntityType] = useState(() => Utils.cond(
+    [initialIsReference && initialIsList, () => attributeValue.items[0] ? attributeValue.items[0].entityType : undefined],
+    [initialIsReference, () => attributeValue.entityType],
+    entityTypes[0]
+  ))
+  const [editType, setEditType] = useState(() => Utils.cond(
+    [initialIsReference, 'reference'],
+    [(initialIsList ? attributeValue.items[0] : attributeValue) === undefined, 'string'],
+    [initialIsList, () => typeof attributeValue.items[0]],
+    typeof attributeValue
+  ))
+  const [isBusy, setIsBusy] = useState()
+  const [consideringDelete, setConsideringDelete] = useState()
+
+  const isList = _.isArray(newValue)
+  const isUnchanged = (initialType === editType && initialIsList === isList && _.isEqual(attributeValue, newValue))
+
+  const makeTextInput = placeholder => ({ value = '', ...props }) => h(TextInput, { autoFocus: true, placeholder, value, ...props })
+
+  const { prepForUpload, makeInput, blankVal } = Utils.switchCase(editType,
+    ['string', () => ({
+      prepForUpload: _.trim,
+      makeInput: makeTextInput('Enter a value'),
+      blankVal: ''
+    })],
+    ['reference', () => ({
+      prepForUpload: v => ({ entityName: _.trim(v), entityType: linkedEntityType }),
+      makeInput: makeTextInput(`Enter a ${linkedEntityType}_id`),
+      blankVal: ''
+    })],
+    ['number', () => ({
+      prepForUpload: _.identity,
+      makeInput: ({ value = 0, ...props }) => h(NumberInput, { autoFocus: true, isClearable: false, value, ...props }),
+      blankVal: 0
+    })],
+    ['boolean', () => ({
+      prepForUpload: _.identity,
+      makeInput: ({ value = false, ...props }) => div({ style: { flexGrow: 1, display: 'flex', alignItems: 'center', height: '2.25rem' } },
+        [h(Switch, { checked: value, ...props })]),
+      blankVal: false
+    })]
+  )
+
+  const doEdit = async () => {
+    try {
+      setIsBusy(true)
+
+      await Ajax()
+        .Workspaces
+        .workspace(namespace, name)
+        .upsertEntities([{
+          name: entityName, entityType,
+          attributes: { [attributeName]: isList ? _.map(prepForUpload, newValue) : prepForUpload(newValue) }
+        }])
+      onSuccess()
+    } catch (e) {
+      onDismiss()
+      reportError('Unable to modify entity', e)
+    }
+  }
+
+  const doDelete = async () => {
+    try {
+      setIsBusy(true)
+      await Ajax().Workspaces.workspace(namespace, name).deleteEntityAttribute(entityType, entityName, attributeName)
+      onSuccess()
+    } catch (e) {
+      onDismiss()
+      reportError('Unable to modify entity', e)
+    }
+  }
+
+  const boldish = text => span({ style: { fontWeight: 600 } }, [text])
+
+  return h(Modal, {
+    title: 'Modify Attribute',
+    onDismiss,
+    showButtons: false
+  }, [
+    consideringDelete ?
+      h(Fragment, [
+        'Are you sure you want to delete the attribute ', boldish(attributeName),
+        ' from the ', boldish(entityType), ' called ', boldish(entityName), '?',
+        div({ style: { marginTop: '1rem' } }, [boldish('This cannot be undone.')]),
+        div({ style: { marginTop: '1rem', display: 'flex', alignItems: 'baseline' } }, [
+          div({ style: { flexGrow: 1 } }),
+          h(ButtonSecondary, { style: { marginRight: '1rem' }, onClick: () => setConsideringDelete(false) }, ['Back to editing']),
+          h(ButtonPrimary, { onClick: doDelete }, ['Delete Attribute'])
+        ])
+      ]) :
+      h(Fragment, [
+        div({ style: { marginBottom: '1rem' } }, [
+          fieldset({ style: { border: 'none', margin: 0, padding: 0 } }, [
+            legend({ style: { marginBottom: '0.5rem' } }, [isList ? 'List item type:' : 'Attribute type:']),
+            h(Fragment, _.map(({ type, tooltip }) => h(TooltipTrigger, {
+              content: tooltip
+            }, [
+              span({ style: { marginRight: '1.2rem' } }, [h(RadioButton, {
+                text: _.startCase(type),
+                name: 'edit-type',
+                checked: editType === type,
+                onChange: () => {
+                  const convertFn = type === 'number' ?
+                    v => {
+                      const numberVal = _.toNumber(v)
+                      return _.isNaN(numberVal) ? 0 : numberVal
+                    } :
+                    Utils.convertValue(type === 'reference' ? 'string' : type)
+                  const convertedValue = isList ? _.map(convertFn, newValue) : convertFn(newValue)
+
+                  setNewValue(convertedValue)
+                  setEditType(type)
+                },
+                labelStyle: { paddingLeft: '0.5rem' }
+              })])
+            ]), [
+              { type: 'string' },
+              { type: 'reference', tooltip: 'A link to another entity' },
+              { type: 'number' },
+              { type: 'boolean' }
+            ]))
+          ]),
+          editType === 'reference' && div({ style: { marginTop: '0.5rem' } }, [
+            div({ style: { marginBottom: '0.5rem' } }, 'Referenced entity type:'),
+            h(Select, {
+              value: linkedEntityType,
+              options: entityTypes,
+              onChange: ({ value }) => setLinkedEntityType(value)
+            })
+          ])
+        ]),
+        div({ style: { marginBottom: '0.5rem' } }, [
+          h(LabeledCheckbox, {
+            checked: isList,
+            onChange: willBeList => setNewValue(willBeList ? [newValue] : newValue[0])
+          }, [span({ style: { marginLeft: '0.5rem' } }, ['Attribute is a list'])])
+        ]),
+        isList ?
+          div({ style: { marginTop: '1.5rem' } }, _.map(([i, value]) => div({
+            style: { display: 'flex', alignItems: 'center', marginBottom: '0.5rem' }
+          }, [
+            makeInput({
+              'aria-label': `List value ${i + 1}`,
+              autoFocus: true,
+              value,
+              onChange: v => setNewValue(_.set(i, v))
+            }),
+            h(Link, {
+              'aria-label': `Remove list value ${i + 1}`,
+              disabled: newValue.length === 1,
+              onClick: () => setNewValue(_.pullAt(i)),
+              style: { marginLeft: '0.5rem' }
+            }, [
+              icon('times', { size: 20 })
+            ])
+          ]), Utils.toIndexPairs(newValue))) :
+          div({ style: { marginTop: '1.5rem' } }, [
+            makeInput({
+              'aria-label': 'New value',
+              autoFocus: true,
+              value: newValue,
+              onChange: setNewValue
+            })
+          ]),
+        isList && h(Link, {
+          style: { display: 'block', marginTop: '1rem' },
+          onClick: () => setNewValue(Utils.append(blankVal))
+        }, [icon('plus', { style: { marginRight: '0.5rem' } }), 'Add item']),
+        div({ style: { marginTop: '2rem', display: 'flex', alignItems: 'baseline' } }, [
+          h(ButtonOutline, { onClick: () => setConsideringDelete(true) }, ['Delete']),
+          div({ style: { flexGrow: 1 } }),
+          h(ButtonSecondary, { style: { marginRight: '1rem' }, onClick: onDismiss }, ['Cancel']),
+          h(ButtonPrimary, {
+            onClick: doEdit,
+            disabled: isUnchanged || newValue === undefined || newValue === '',
+            tooltip: isUnchanged && 'No changes to save'
+          }, ['Save Changes'])
+        ])
+      ]),
+    isBusy && spinnerOverlay
+  ])
 }

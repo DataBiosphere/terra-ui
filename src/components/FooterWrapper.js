@@ -12,6 +12,7 @@ const styles = {
 
 const buildTimestamp = new Date(SATURN_BUILD_TIMESTAMP)
 
+// If you change the layout here, make sure it's reflected in the pre-rendered version in public/index.html
 const FooterWrapper = ({ children }) => {
   return div({ style: { display: 'flex', flexDirection: 'column', minHeight: '100%', flexGrow: 1 } }, [
     children,

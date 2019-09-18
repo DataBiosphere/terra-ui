@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
-import { Component, createRef } from 'react'
+import { Component } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
-import ReactNotification from 'react-notifications-component'
+import ReactNotification, { store } from 'react-notifications-component'
 import { ButtonPrimary, Clickable } from 'src/components/common'
 import ErrorView from 'src/components/ErrorView'
 import { icon } from 'src/components/icons'
@@ -21,8 +21,6 @@ export const sessionTimeoutProps = {
   detail: 'You have been signed out due to inactivity'
 }
 
-const notificationsRef = createRef()
-
 const makeNotification = props => {
   const { id = uuid() } = props
   return { ...props, id }
@@ -38,7 +36,7 @@ export const notify = (type, title, props) => {
   return notification.id
 }
 
-export const clearNotification = id => notificationsRef.current.removeNotification(id)
+export const clearNotification = id => store.removeNotification(id)
 
 const NotificationDisplay = Utils.connectAtom(notificationStore, 'notificationState')(class NotificationDisplay extends Component {
   constructor(props) {
@@ -98,7 +96,7 @@ const NotificationDisplay = Utils.connectAtom(notificationStore, 'notificationSt
         ]),
         h(Clickable, {
           title: 'Dismiss notification',
-          onClick: () => notificationsRef.current.removeNotification(id)
+          onClick: () => store.removeNotification(id)
         }, [icon('times', { size: 20 })])
       ]),
       notifications.length > 1 && div({
@@ -144,7 +142,7 @@ const refreshPage = () => {
 }
 
 const showNotification = ({ id, timeout }) => {
-  notificationsRef.current.addNotification({
+  store.addNotification({
     type: 'success',
     container: 'top-right',
     animationIn: ['animated', 'slideInRight'],
@@ -153,8 +151,7 @@ const showNotification = ({ id, timeout }) => {
     content: div({ style: { width: '100%' } }, [
       h(NotificationDisplay, { id })
     ]),
-    dismiss: { duration: !!timeout ? timeout : 0 },
-    dismissable: { click: false, touch: false },
+    dismiss: { duration: !!timeout ? timeout : 0, click: false, touch: false },
     width: 350
   })
 }
@@ -162,7 +159,6 @@ const showNotification = ({ id, timeout }) => {
 class Notifications extends Component {
   render() {
     return h(ReactNotification, {
-      ref: notificationsRef,
       onNotificationRemoval: id => {
         notificationStore.update(_.reject(n => n.id === id))
       }
