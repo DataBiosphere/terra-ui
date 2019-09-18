@@ -137,8 +137,8 @@ export const NpsSurvey = Utils.connectAtom(authStore, 'authState')(class NpsSurv
           }, 'Submit')
         ])
       ]),
-      h(Clickable, {
-        as: icon('times-circle', {
+      h(Clickable, { onClick: goAway(false) }, [
+        icon('times-circle', {
           size: 20,
           style: {
             position: 'absolute', top: -5, left: -5,
@@ -146,9 +146,8 @@ export const NpsSurvey = Utils.connectAtom(authStore, 'authState')(class NpsSurv
             color: 'white',
             borderRadius: '1rem'
           }
-        }),
-        onClick: goAway(false)
-      })
+        })
+      ])
     ])
   }
 })
