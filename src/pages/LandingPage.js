@@ -66,6 +66,8 @@ const LandingPage = pure(() => {
         span({ style: styles.nowrap }, ['and', span({ style: styles.heavy }, ' collaborate'), '.'])
       ]),
       makeDocLink('https://support.terra.bio/hc/en-us', 'Find how-to\'s, documentation, video tutorials, and discussion forums'),
+      isTerra() && makeDocLink('https://broadinstitute.zendesk.com/knowledge/articles/360033416672',
+        'Learn more about the Terra platform and our co-branded sites'),
       isFirecloud() && h(Fragment, [
         makeDocLink('https://support.terra.bio/hc/en-us/articles/360022694271',
           'Already a FireCloud user? Learn what\'s new.'),
