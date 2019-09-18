@@ -257,9 +257,7 @@ export const EntityUploader = class EntityUploader extends Component {
     const checkUpload = text => /(?:membership|entity):([^\s]+)_id/.exec(text)
     const definedTypeMatch = checkUpload(pastedText)
     if (file) {
-      window.confirm(
-        'The file currently selected will not be imported if you choose to paste in text data instead, to continue and paste in data anyway click OK.') &&
-      this.setState({ file: undefined })
+      this.setState({ file: undefined, isInvalidFile: false })
     }
 
     if (definedTypeMatch) {
@@ -302,14 +300,12 @@ export const EntityUploader = class EntityUploader extends Component {
         title: 'Import Table Data',
         width: '35rem',
         okButton: h(ButtonPrimary, {
-          disabled: (!file && !pastedText) || uploading,
+          disabled: ((!file && isFileImportMode) || (!pastedText && !isFileImportMode)) || uploading,
           tooltip: (!file && !pastedText) ? 'Please select valid data to upload' : 'Upload selected data',
           onClick: () => this.doUpload()
         }, ['Upload'])
-      }, [
-        div({ style: { fontWeight: 'bold', borderTop: Style.standardLine, marginTop: '1rem', paddingTop: '1rem' } }),
-        '• The first column header must be:',
-        span({ style: { fontFamily: 'monospace', margin: '0.5rem', fontWeight: '600' } }, ['entity:[type]_id']),
+      }, ['The first column header must be:',
+        div({ style: { fontFamily: 'monospace', margin: '0.5rem', fontWeight: '600' } }, ['entity:[type]_id']),
         'where ',
         span({ style: { fontFamily: 'monospace', fontWeight: '600' } }, ['[type]']),
         ` is the desired name of the data table in ${getAppName()}.`,
@@ -317,18 +313,16 @@ export const EntityUploader = class EntityUploader extends Component {
         span({ style: { fontFamily: 'monospace', fontWeight: '600' } }, ['participant']),
         ' table use ',
         span({ style: { fontFamily: 'monospace', fontWeight: '600' } }, ['entity:participant_id']),
-        div({ style: { marginTop: '0.5rem', marginBottom: '0.5rem' } }, ['• All of the values in the ID column must be unique.']),
+        div({ style: { marginTop: '0.5rem', marginBottom: '0.5rem' } }, ['All of the values in the ID column must be unique.']),
         div({ style: { borderTop: Style.standardLine, paddingTop: '1rem', fontWeight: 'bold', marginTop: '1rem' } }, ['Choose an import type:']),
-        div({ style: { marginTop: '0.1rem', marginBottom: '0.1rem', fontSize: 12 } },
-          ['(Switching import types will lose any currently inputted data)']),
-        (file || pastedText) && _.includes(_.toLower(newEntityType), entityTypes) && div({
-          style: { ...warningBoxStyle, marginTop: '0.5rem', marginBottom: '0.5rem', color: colors.light(.1), display: 'flex', alignItems: 'center' }
+        ((file && isFileImportMode) || (pastedText && !isFileImportMode)) && _.includes(_.toLower(newEntityType), entityTypes) && div({
+          style: { ...warningBoxStyle, marginTop: '0.5rem', color: colors.light(.1), display: 'flex', alignItems: 'center' }
         }, [
           icon('warning-standard', { size: 19, style: { color: colors.light(.1), flex: 'none', marginRight: '0.5rem', marginLeft: '-0.5rem' } }),
           `Data with the type '${newEntityType}' already exists in this workspace. `,
           'Uploading more data for the same type may overwrite some entries.'
         ]),
-        (file || pastedText) && supportsFireCloudDataModel(newEntityType) && div([
+        ((file && isFileImportMode) || (pastedText && !isFileImportMode)) && supportsFireCloudDataModel(newEntityType) && div([
           h(LabeledCheckbox, {
             checked: useFireCloudDataModel,
             onChange: checked => this.setState({ useFireCloudDataModel: checked }),
@@ -355,20 +349,13 @@ export const EntityUploader = class EntityUploader extends Component {
               ' file containing your data: ']),
             h(Clickable, {
               style: {
-                ...Style.elements.card.container, flex: 1,
-                margin: '0.5rem 0',
-                backgroundColor: dragging ? colors.accent(0.2) : colors.dark(0.1),
-                border: isInvalidFile ? `1px solid ${colors.danger()}` : `1px dashed ${colors.dark(0.7)}`,
-                boxShadow: 'none'
+                ...Style.elements.card.container, flex: 1, margin: '0.5rem 0', backgroundColor: dragging ? colors.accent(0.2) : colors.dark(0.1),
+                border: isInvalidFile ? `1px solid ${colors.danger()}` : `1px dashed ${colors.dark(0.7)}`, boxShadow: 'none'
               },
-              onClick: pastedText ?
-                () => window.confirm(
-                  'The data currently typed in will not be imported if you choose to upload a file instead, to continue and upload a file anyway click OK.') &&
-                  openUploader() :
-                openUploader
+              onClick: openUploader
             }, [div(['Drag or ', h(Link, ['Click']), ' to select a .tsv file'])]),
-            div({ style: { marginLeft: '1rem', marginTop: '0.5rem', fontSize: 12 } }, ['Selected File: ',
-              div({ style: { color: colors.dark(0.7) } }, (file && file.name) ? file.name : 'None')])
+            div({ style: { marginLeft: '1rem', marginTop: '0.5rem' } }, ['Selected File: ',
+              span({ style: { color: colors.dark(0.7) } }, (file && file.name) ? file.name : 'None')])
           ])
         ]) : div([div({ style: { marginTop: '0.5rem' } }, ['Paste the data directly to the text field below:']),
           h(TextArea, {
@@ -385,10 +372,14 @@ export const EntityUploader = class EntityUploader extends Component {
               boxShadow: 'none'
             }
           })]),
-        (isInvalidText || isInvalidFile) && div({
-          style: { color: colors.danger(), fontWeight: 'bold', fontSize: 12, marginTop: '0.5rem' }
-        }, ['Invalid format: Data does not start with entity or membership definition.'])
-      ]),
+        ((isInvalidText && !isFileImportMode) || (isInvalidFile && isFileImportMode)) && div({
+          style: {
+            color: colors.danger(), fontWeight: 'bold', fontSize: 12, marginTop: '0.5rem'
+          }
+        },
+        [
+          'Invalid format: Data does not start with entity or membership definition.'
+        ])]),
       uploading && spinnerOverlay
     ])])
   }
