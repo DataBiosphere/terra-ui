@@ -16,6 +16,7 @@ import framinghamLogo from 'src/images/library/datasets/framingham.jpg'
 import hcaLogo from 'src/images/library/datasets/HCA@2x.png'
 import nemoLogo from 'src/images/library/datasets/nemo-logo.svg'
 import nhsLogo from 'src/images/library/datasets/NHS@2x.png'
+import targetLogo from 'src/images/library/datasets/target_logo.jpg'
 import topMedLogo from 'src/images/library/datasets/TopMed@2x.png'
 import ukbLogo from 'src/images/library/datasets/UKB@2x.jpg'
 import colors from 'src/libs/colors'
@@ -321,6 +322,20 @@ const nhs = () => h(Participant, {
   }, ['Browse Data'])
 ])
 
+const target = () => h(Participant, {
+  logo: { src: targetLogo, alt: 'TARGET logo' },
+  title: `Therapeutically Applicable Research to Generate Effective Treatments (TARGET) presented by the National 
+  Cancer Institute`,
+  description: `The TARGET initiative employed comprehensive molecular characterization to determine the genetic 
+  changes that drive the initiation and progression of hard-to-treat childhood cancers. TARGET makes the data generated 
+  available to the research community with a goal to identify therapeutic targets and prognostic markers so that novel, 
+  more effective treatment strategies can be developed and applied.`,
+  sizeText: 'Participants: 1,324'
+}, [h(ButtonPrimary, {
+  href: `${getConfig().firecloudUrlRoot}/?return=${returnParam()}&project=TARGET#library`,
+  ...Utils.newTabLinkProps
+}, ['Browse Data'])])
+
 const topMed = () => h(Participant, {
   logo: { src: topMedLogo, alt: 'TopMed logo' },
   title: 'TopMed presented by NHLBI Data STAGE',
@@ -354,7 +369,8 @@ const Datasets = pure(() => {
     libraryTopMatter('datasets'),
     div({ role: 'main', style: styles.content }, [
       // Put datasets in alphabetical order
-      thousandGenomesHighCoverage(), thousandGenomesLowCoverage(), amppd(), baseline(), ccdg(), cmg(), encode(), fcDataLib(), framingham(), hca(), nemo(), nhs(),
+      thousandGenomesHighCoverage(), thousandGenomesLowCoverage(), amppd(), baseline(), ccdg(), cmg(), encode(), fcDataLib(), framingham(), hca(),
+      nemo(), nhs(), target(),
       topMed(), ukb()
     ])
   ])
