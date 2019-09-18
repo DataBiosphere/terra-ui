@@ -190,9 +190,16 @@ export const waitOneTick = () => new Promise(setImmediate)
 export const entityAttributeText = (value, machineReadable) => {
   return cond(
     [_.has('entityName', value), () => value.entityName],
-    [_.has('items', value), () => machineReadable ?
-      JSON.stringify(value.items) :
-      `${value.items.length} ${value.itemsType === 'EntityReference' ? 'entities' : 'items'}`],
+    [_.has('items', value), () => {
+      const isPlural = value.items.length !== 1
+      const label = value.itemsType === 'EntityReference' ?
+        isPlural ? 'entities' : 'entity' :
+        isPlural ? 'items' : 'item'
+
+      return machineReadable ?
+        JSON.stringify(value.items) :
+        `${value.items.length} ${label}`
+    }],
     () => value
   )
 }
@@ -258,11 +265,13 @@ export const cantBeNumber = _.flow(_.toNumber, _.isNaN)
 export const convertValue = _.curry((type, value) => {
   switch (type) {
     case 'string':
-      return value.toString()
+      // known issue where toString is incorrectly flagged:
+      // eslint-disable-next-line lodash-fp/preferred-alias
+      return _.toString(value)
     case 'number':
       return _.toNumber(value)
     case 'boolean':
-      return !(_.lowerCase(value) === 'false' || _.lowerCase(value) === 'no' || value === '0')
+      return !['false', 'no', '0', ''].includes(_.lowerCase(value))
     default:
       throw new Error('unknown type for convertValue')
   }
