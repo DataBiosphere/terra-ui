@@ -16,7 +16,7 @@ import framinghamLogo from 'src/images/library/datasets/framingham.jpg'
 import hcaLogo from 'src/images/library/datasets/HCA@2x.png'
 import nemoLogo from 'src/images/library/datasets/nemo-logo.svg'
 import nhsLogo from 'src/images/library/datasets/NHS@2x.png'
-import targetLogo from 'src/images/library/datasets/target_logo.jpg'
+import targetLogo from 'src/images/library/datasets/target_logo.jpeg'
 import tcgaLogo from 'src/images/library/datasets/TCGALogo.jpg'
 import topMedLogo from 'src/images/library/datasets/TopMed@2x.png'
 import ukbLogo from 'src/images/library/datasets/UKB@2x.jpg'
@@ -324,7 +324,7 @@ const nhs = () => h(Participant, {
 ])
 
 const target = () => h(Participant, {
-  logo: { src: targetLogo, alt: 'TARGET logo' },
+  logo: { src: targetLogo, alt: 'TARGET logo', height: '85%' },
   title: `Therapeutically Applicable Research to Generate Effective Treatments (TARGET) presented by the National
   Cancer Institute`,
   description: `The TARGET initiative employed comprehensive molecular characterization to determine the genetic
@@ -344,8 +344,8 @@ const tcga = () => h(Participant, {
   description: h(Fragment, [
     'The Cancer Genome Atlas (TCGA), a landmark ',
     h(Link, { href: 'https://www.cancer.gov/about-nci/organization/ccg/cancer-genomics-overview', ...Utils.newTabLinkProps }, 'cancer genomics'),
-    ` program, molecularly characterized over 20,000 primary cancer and matched normal samples spanning 33 cancer types.
-    This joint effort between the National Cancer Institute and the National Human Genome Research Institute began in 2006,
+    ` program, molecularly characterized over 20,000 primary cancer and matched normal samples spanning 33 cancer types. 
+    This joint effort between the National Cancer Institute and the National Human Genome Research Institute began in 2006, 
     bringing together researchers from diverse disciplines and multiple institutions.`
   ]),
   sizeText: 'Participants: 11,000'
@@ -389,8 +389,9 @@ const Datasets = pure(() => {
     libraryTopMatter('datasets'),
     div({ role: 'main', style: styles.content }, [
       // Put datasets in alphabetical order
-      thousandGenomesHighCoverage(), thousandGenomesLowCoverage(), amppd(), baseline(), ccdg(), cmg(), encode(), fcDataLib(), framingham(), hca(), nemo(), nhs(),
-      target(),tcga(), topMed(), ukb()
+      thousandGenomesHighCoverage(), thousandGenomesLowCoverage(), amppd(), baseline(), ccdg(), cmg(), encode(), fcDataLib(), framingham(), hca(),
+      nemo(), nhs(),
+      target(), tcga(), topMed(), ukb()
     ])
   ])
 })
