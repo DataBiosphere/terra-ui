@@ -30,7 +30,7 @@ const styles = {
     container: {
       display: 'flex', alignItems: 'center',
       fontWeight: 400, textTransform: 'uppercase',
-      height: '3.75rem',
+      height: '2.25rem',
       borderBottom: `1px solid ${terraSpecial()}`, flex: ''
     },
     tab: {
@@ -40,9 +40,6 @@ const styles = {
     },
     active: {
       borderBottomColor: terraSpecial(),
-      fontWeight: 600
-    },
-    hover: {
       fontWeight: 600
     }
   }
@@ -164,7 +161,6 @@ export const SimpleTabBar = ({ value, onChange, tabs }) => {
         onClick: () => {
           onChange(key)
         }
-
       }, [title])
     }, tabs)
   ])
