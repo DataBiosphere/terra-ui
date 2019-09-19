@@ -74,9 +74,6 @@ const NotebookCard = ({ namespace, name, updated, metadata, listView, wsName, on
   const locked = currentUserHash && lastLockedBy && lastLockedBy !== currentUserHash && lockExpirationDate > Date.now()
   const lockedBy = potentialLockers ? potentialLockers[lastLockedBy] : null
 
-  const tenMinutesAgo = _.tap(d => d.setMinutes(d.getMinutes() - 10), new Date())
-  const isRecent = new Date(updated) > tenMinutesAgo
-
   const notebookLink = Nav.getLink('workspace-notebook-launch', { namespace, name: wsName, notebookName: name.slice(10) })
   const notebookEditLink = `${notebookLink}/?${qs.stringify({ mode: 'edit' })}`
   const notebookPlaygroundLink = `${notebookLink}/?${qs.stringify({ mode: 'playground' })}`
@@ -105,6 +102,12 @@ const NotebookCard = ({ namespace, name, updated, metadata, listView, wsName, on
         tooltipSide: 'left'
       }, [makeMenuIcon('chalkboard'), 'Playground']),
       h(MenuButton, {
+        disabled: !canWrite,
+        tooltip: !canWrite && noWrite,
+        tooltipSide: 'left',
+        onClick: () => onCopy()
+      }, [makeMenuIcon('copy'), 'Make a copy']),
+      h(MenuButton, {
         onClick: () => onExport()
       }, [makeMenuIcon('export'), 'Copy to another workspace']),
       h(MenuButton, {
@@ -123,12 +126,6 @@ const NotebookCard = ({ namespace, name, updated, metadata, listView, wsName, on
         tooltipSide: 'left',
         onClick: () => onRename()
       }, [makeMenuIcon('renameIcon'), 'Rename']),
-      h(MenuButton, {
-        disabled: !canWrite,
-        tooltip: !canWrite && noWrite,
-        tooltipSide: 'left',
-        onClick: () => onCopy()
-      }, [makeMenuIcon('copy'), 'Make a Copy']),
       h(MenuButton, {
         disabled: !canWrite,
         tooltip: !canWrite && noWrite,
@@ -165,7 +162,6 @@ const NotebookCard = ({ namespace, name, updated, metadata, listView, wsName, on
     title,
     div({ style: { flexGrow: 1 } }),
     locked ? h(Clickable, { style: { display: 'flex', paddingRight: '1rem', color: colors.dark(0.75) }, tooltip: `This notebook is currently being edited by ${lockedBy || 'another user'}` }, [icon('lock')]) : undefined,
-    isRecent ? div({ style: { display: 'flex', color: colors.warning(), marginRight: '2rem' } }, 'Recently Edited') : undefined,
     h(TooltipTrigger, { content: Utils.makeCompleteDate(updated) }, [
       div({ style: { fontSize: '0.8rem', marginRight: '0.5rem' } },
         `Last edited: ${Utils.makePrettyDate(updated)}`)
@@ -193,7 +189,6 @@ const NotebookCard = ({ namespace, name, updated, metadata, listView, wsName, on
           Utils.makePrettyDate(updated)
         ])
       ]),
-      isRecent ? div({ style: { display: 'flex', color: colors.warning() } }, 'Recently Edited') : undefined,
       notebookMenu
     ])
   ])

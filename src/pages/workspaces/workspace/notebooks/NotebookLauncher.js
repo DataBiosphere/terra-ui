@@ -177,7 +177,8 @@ const PlaygroundModal = ({ onDismiss, onPlayground }) => {
       },
       'Continue')
   }, [
-    p(`Playground mode allows you to explore, change, and run the code, but your edits will not be saved.`),
+    p(['Playground mode allows you to explore, change, and run the code, but your edits will not be saved.']),
+    p(['To save your work, choose ', span({ style: { fontWeight: 600 } }, ['Download ']), 'from the ', span({ style: { fontWeight: 600 } }, ['File ']), 'menu.']),
     h(LabeledCheckbox, {
       checked: hidePlaygroundMessage,
       onChange: v => setHidePlaygroundMessage(v)

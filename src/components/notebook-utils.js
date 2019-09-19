@@ -197,7 +197,7 @@ export const NotebookDuplicator = ajaxCaller(class NotebookDuplicator extends Co
 
     return h(Modal, {
       onDismiss,
-      title: `${destroyOld ? 'Rename' : 'Duplicate'} "${printName}"`,
+      title: `${destroyOld ? 'Rename' : 'Copy'} "${printName}"`,
       okButton: h(ButtonPrimary, {
         disabled: errors || processing,
         tooltip: Utils.summarizeErrors(errors),
@@ -217,7 +217,7 @@ export const NotebookDuplicator = ajaxCaller(class NotebookDuplicator extends Co
             reportError(`Error ${destroyOld ? 'renaming' : 'copying'} notebook`, error)
           }
         }
-      }, `${destroyOld ? 'Rename' : 'Duplicate'} Notebook`)
+      }, `${destroyOld ? 'Rename' : 'Copy'} Notebook`)
     },
     Utils.cond(
       [processing, () => [centeredSpinner()]],
