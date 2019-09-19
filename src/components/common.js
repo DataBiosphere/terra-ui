@@ -12,7 +12,7 @@ import TooltipTrigger from 'src/components/TooltipTrigger'
 import hexButton from 'src/images/hex-button.svg'
 import scienceBackground from 'src/images/science-background.jpg'
 import { Ajax, useCancellation } from 'src/libs/ajax'
-import colors from 'src/libs/colors'
+import colors, { terraSpecial } from 'src/libs/colors'
 import { getConfig, isTerra } from 'src/libs/config'
 import { returnParam } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
@@ -25,6 +25,23 @@ const styles = {
     display: 'inline-flex', justifyContent: 'space-around', alignItems: 'center', height: '2.25rem',
     fontWeight: 500, fontSize: 14, textTransform: 'uppercase', whiteSpace: 'nowrap',
     userSelect: 'none'
+  },
+  tabBar: {
+    container: {
+      display: 'flex', alignItems: 'center',
+      fontWeight: 400, textTransform: 'uppercase',
+      height: '2.25rem',
+      borderBottom: `1px solid ${terraSpecial()}`, flex: ''
+    },
+    tab: {
+      flex: 'none', outlineOffset: -4, marginRight: '1rem',
+      alignSelf: 'stretch', display: 'flex', justifyContent: 'center', alignItems: 'center',
+      borderBottomWidth: 8, borderBottomStyle: 'solid', borderBottomColor: 'transparent'
+    },
+    active: {
+      borderBottomColor: terraSpecial(),
+      fontWeight: 600
+    }
   }
 }
 
@@ -130,6 +147,22 @@ export const TabBar = ({ activeTab, tabNames, refresh = _.noop, getHref, childre
     ..._.map(name => navTab(name), tabNames),
     div({ style: { flexGrow: 1 } }),
     children
+  ])
+}
+
+export const SimpleTabBar = ({ value, onChange, tabs }) => {
+  return div({ style: styles.tabBar.container }, [
+    _.map(({ key, title }) => {
+      const selected = value === key
+      return h(Clickable, {
+        key,
+        style: { ...styles.tabBar.tab, ...(selected ? styles.tabBar.active : {}) },
+        hover: selected ? {} : styles.tabBar.hover,
+        onClick: () => {
+          onChange(key)
+        }
+      }, [title])
+    }, tabs)
   ])
 }
 
