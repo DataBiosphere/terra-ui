@@ -1,6 +1,7 @@
 import _ from 'lodash/fp'
-import { forwardRef } from 'react'
+import { forwardRef, useState } from 'react'
 import { h } from 'react-hyperscript-helpers'
+import * as Utils from 'src/libs/utils'
 
 
 const allowedHoverVariables = ['backgroundColor', 'color', 'boxShadow', 'opacity', 'textDecoration']
@@ -8,41 +9,55 @@ const pointerTags = ['button', 'area', 'a', 'select']
 const pointerTypes = ['radio', 'checkbox', 'submit', 'button']
 
 const Interactive = forwardRef(({
-  className = '', as, type, role, onClick, onKeyDown, disabled, children, tabIndex, hover = {}, style = {}, ...props
+  className = '', as, type, role, onClick, onKeyDown, onMouseDown, onBlur, disabled, children, tabIndex, hover = {}, style = {}, ...props
 }, ref) => {
+  const [outline, setOutline] = useState(undefined)
   const { cursor } = style
 
-  const onClickPointer = !disabled && (onClick ||
-    pointerTags.includes(as) ||
-    pointerTypes.includes(type)) ? { cursor: 'pointer' } : {}
-  const computedCursor = cursor ? { cursor } : onClickPointer
+  const computedCursor = Utils.cond(
+    [cursor, cursor],
+    [disabled, undefined],
+    [onClick || pointerTags.includes(as) || pointerTypes.includes(type), 'pointer']
+  )
 
-  const onClickTabIndex = onClick ? 0 : undefined
-  const computedTabIndex = _.isNumber(tabIndex) ? tabIndex : onClickTabIndex
+  const computedTabIndex = Utils.cond(
+    [_.isNumber(tabIndex), tabIndex],
+    [disabled, undefined],
+    [onClick, 0],
+    undefined)
 
-  const onClickRole = onClick && !['input', ...pointerTags].includes(as) ? 'button' : undefined
-  const computedRole = role ? role : onClickRole
+  const computedRole = Utils.cond(
+    [role, role],
+    [onClick && !['input', ...pointerTags].includes(as), 'button'],
+    undefined)
 
   const cssVariables = _.flow(
     _.toPairs,
-    _.reduce((result, [key, value]) => {
-      console.assert(
-        allowedHoverVariables.includes(key),
+    _.flatMap(([key, value]) => {
+      console.assert(allowedHoverVariables.includes(key),
         `${key} needs to be added to the hover-style in style.css for the style to be applied`)
-      result[`--app-hover-${key}`] = value
-      result[key] = `var(--hover-${key}, ${style[key]})`
-      return result
-    }, {}))(hover)
+      return [[`--app-hover-${key}`, value], [key, `var(--hover-${key}, ${style[key]})`]]
+    }),
+    _.fromPairs
+  )(hover)
 
   return h(as, {
     ref,
     className: `hover-style ${className}`,
-    style: _.merge({ ...style, ...cssVariables }, computedCursor),
-    onKeyDown: onKeyDown || (evt => evt.key === 'Enter' && onClick && onClick(evt)),
-    onClick,
+    style: { ...style, ...cssVariables, cursor: computedCursor, outline },
+    onKeyDown: e => !disabled && onKeyDown ? onKeyDown(e) : e.key === 'Enter' && onClick && onClick(e),
+    onClick: e => !disabled && onClick(e),
     disabled,
     role: computedRole,
     tabIndex: computedTabIndex,
+    onMouseDown: e => {
+      setOutline('none')
+      onMouseDown && onMouseDown(e)
+    },
+    onBlur: e => {
+      !!outline && setOutline(undefined)
+      onBlur && onBlur(e)
+    },
     ...props
   }, [children])
 })
