@@ -389,9 +389,8 @@ const Datasets = pure(() => {
     libraryTopMatter('datasets'),
     div({ role: 'main', style: styles.content }, [
       // Put datasets in alphabetical order
-      thousandGenomesHighCoverage(), thousandGenomesLowCoverage(), amppd(), baseline(), ccdg(), cmg(), encode(), fcDataLib(), framingham(), hca(),
-      nemo(), nhs(), target(), tcga(),
-      topMed(), ukb()
+      thousandGenomesHighCoverage(), thousandGenomesLowCoverage(), amppd(), baseline(), ccdg(), cmg(), encode(), fcDataLib(), framingham(), hca(), nemo(), nhs(),
+      target(),tcga(), topMed(), ukb()
     ])
   ])
 })

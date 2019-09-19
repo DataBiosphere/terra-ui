@@ -198,7 +198,7 @@ const TopBar = Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
           ]),
           h(DropDownSection, {
             titleIcon: 'library',
-            title: 'Terra Library',
+            title: 'Library',
             onClick: () => this.setState({ openLibraryMenu: !openLibraryMenu }),
             isOpened: openLibraryMenu
           }, [
@@ -249,7 +249,7 @@ const TopBar = Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
           ),
           h(DropDownSection, {
             titleIcon: 'help',
-            title: 'Terra Support',
+            title: 'Support',
             onClick: () => this.setState({ openSupportMenu: !openSupportMenu }),
             isOpened: openSupportMenu
           }, [
