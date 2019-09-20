@@ -179,8 +179,7 @@ export class NewClusterModal extends PureComponent {
   static propTypes = {
     currentCluster: PropTypes.object,
     namespace: PropTypes.string.isRequired,
-    // onOpen: PropTypes.func.isRequired,
-    // onCancel: PropTypes.func.isRequired,
+    onCancel: PropTypes.func.isRequired,
     onSuccess: PropTypes.func.isRequired
   }
 
@@ -225,8 +224,7 @@ export class NewClusterModal extends PureComponent {
   }
 
   render() {
-    //   const { currentCluster, onCancel, onOpen } = this.props
-    const { currentCluster } = this.props
+    const { currentCluster, onCancel } = this.props
     const { profile, masterMachineType, masterDiskSize, workerMachineType, numberOfWorkers, numberOfPreemptibleWorkers, workerDiskSize, jupyterUserScriptUri } = this.state
     const changed = !currentCluster ||
       currentCluster.status === 'Error' ||
@@ -234,18 +232,12 @@ export class NewClusterModal extends PureComponent {
       jupyterUserScriptUri
     return h(ModalDrawer, {
       isOpen: true,
-      onDismiss: () => this.setState({
-        isOpen: false
-      }),
-      width: 500//,
-     // style: { padding: '1rem' }
+      onDismiss: onCancel
     }, [
       h(Fragment, [
         h(TitleBar, {
           title: 'Runtime Environment',
-          onDismiss: () => this.setState({
-            isOpen: false
-          })
+          onDismiss: onCancel
         }),
         h(IdContainer, [id => div({ style: styles.row }, [
           label({
@@ -587,7 +579,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
 
   render() {
     const { namespace, name, clusters, canCompute, refreshClusters } = this.props
-    const { busy, createModalOpen, deleteModalOpen, errorModalOpen, pendingNav } = this.state
+    const { busy, createModalDrawerOpen, deleteModalOpen, errorModalOpen, pendingNav } = this.state
     if (!clusters) {
       return null
     }
@@ -680,7 +672,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
             [multiple, () => undefined],
             () => 'Update runtime'
           ),
-          onClick: () => this.setState({ createModalOpen: true }),
+          onClick: () => this.setState({ createModalDrawerOpen: true }),
           disabled: isDisabled
         }, [
           div({
@@ -725,13 +717,12 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
           refreshClusters()
         }
       }),
-      createModalOpen && h(NewClusterModal, {
+      createModalDrawerOpen && h(NewClusterModal, {
         namespace,
         currentCluster,
-        //onOpen: () => this.setState({ createModalDrawerOpen: true }),
-        // onCancel: () => this.setState({ createModalDrawerOpen: false }),
+        onCancel: () => this.setState({ createModalDrawerOpen: false, isOpen: false }),
         onSuccess: promise => {
-          this.setState({ createModalOpen: false })
+          this.setState({ createModalDrawerOpen: false })
           this.executeAndRefresh(promise)
         }
       }),
