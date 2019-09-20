@@ -179,8 +179,8 @@ export class NewClusterModal extends PureComponent {
   static propTypes = {
     currentCluster: PropTypes.object,
     namespace: PropTypes.string.isRequired,
-    onOpen: PropTypes.bool.isRequired,
-    onCancel: PropTypes.func.isRequired,
+    // onOpen: PropTypes.func.isRequired,
+    // onCancel: PropTypes.func.isRequired,
     onSuccess: PropTypes.func.isRequired
   }
 
@@ -225,20 +225,27 @@ export class NewClusterModal extends PureComponent {
   }
 
   render() {
-    const { currentCluster, onCancel, onOpen } = this.props
+    //   const { currentCluster, onCancel, onOpen } = this.props
+    const { currentCluster } = this.props
     const { profile, masterMachineType, masterDiskSize, workerMachineType, numberOfWorkers, numberOfPreemptibleWorkers, workerDiskSize, jupyterUserScriptUri } = this.state
     const changed = !currentCluster ||
       currentCluster.status === 'Error' ||
       !machineConfigsEqual(this.getMachineConfig(), currentCluster.machineConfig) ||
       jupyterUserScriptUri
     return h(ModalDrawer, {
-      openDrawer: onOpen,
-      onDismiss: onCancel
+      isOpen: true,
+      onDismiss: () => this.setState({
+        isOpen: false
+      }),
+      width: 500//,
+     // style: { padding: '1rem' }
     }, [
       h(Fragment, [
         h(TitleBar, {
-          title: 'Runtime Environment'//,
-          // onDismiss
+          title: 'Runtime Environment',
+          onDismiss: () => this.setState({
+            isOpen: false
+          })
         }),
         h(IdContainer, [id => div({ style: styles.row }, [
           label({
@@ -721,8 +728,8 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
       createModalOpen && h(NewClusterModal, {
         namespace,
         currentCluster,
-        onOpen: () => this.setState({ createModalDrawerOpen: true }),
-        onCancel: () => this.setState({ createModalDrawerOpen: false }),
+        //onOpen: () => this.setState({ createModalDrawerOpen: true }),
+        // onCancel: () => this.setState({ createModalDrawerOpen: false }),
         onSuccess: promise => {
           this.setState({ createModalOpen: false })
           this.executeAndRefresh(promise)
