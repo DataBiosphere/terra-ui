@@ -236,145 +236,159 @@ export class NewClusterModal extends PureComponent {
     }, [
       h(Fragment, [
         h(TitleBar, {
-          title: 'Runtime Environment',
+          title: 'RUNTIME CONFIGURATION',
           onDismiss: onCancel
         }),
-        h(IdContainer, [id => div({ style: styles.row }, [
-          label({
-            htmlFor: id,
-            style: { ...styles.col1, ...styles.label }
-          }, 'Profile'),
-          div({ style: { flex: 1 } }, [
-            h(Select, {
-              id,
-              value: profile,
-              onChange: ({ value }) => {
-                this.setState({
-                  profile: value,
-                  ...(value === 'custom' ? {} : normalizeMachineConfig(_.find({ name: value }, profiles).machineConfig))
-                })
-              },
-              isSearchable: false,
-              isClearable: false,
-              options: [
-                ..._.map(({ name, label, machineConfig }) => ({
-                  value: name,
-                  label: `${label} computer power (${Utils.formatUSD(machineConfigCost(machineConfig))} hr)`
-                }), profiles),
-                {
-                  value: 'custom',
-                  label: 'Custom'
-                }
-              ]
-            })
-          ])
-        ])]),
-        div([
-          h(MachineSelector, {
-            machineType: masterMachineType,
-            onChangeMachineType: v => this.setState({ masterMachineType: v }),
-            diskSize: masterDiskSize,
-            onChangeDiskSize: v => this.setState({ masterDiskSize: v }),
-            readOnly: profile !== 'custom'
-          })
-        ]),
-        profile === 'custom' && h(Fragment, [
+        div(['Choose from four Terra pre-installed runtime environments (e.g. programming languages + packages) ' +
+        'or choose a custom environment, including a previous version of one the pre-installed environments.)']),
+
+        div({ style: { border: 'solid', color: 'gray' } }, [
           h(IdContainer, [id => div({ style: styles.row }, [
             label({
               htmlFor: id,
               style: { ...styles.col1, ...styles.label }
-            }, 'Startup script'),
+            }, 'Profile'),
             div({ style: { flex: 1 } }, [
-              h(TextInput, {
+              h(Select, {
                 id,
-                placeholder: 'URI',
-                value: jupyterUserScriptUri,
-                onChange: v => this.setState({ jupyterUserScriptUri: v })
+                value: profile,
+                onChange: ({ value }) => {
+                  this.setState({
+                    profile: value,
+                    ...(value === 'custom' ? {} : normalizeMachineConfig(_.find({ name: value }, profiles).machineConfig))
+                  })
+                },
+                isSearchable: false,
+                isClearable: false,
+                options: [
+                  ..._.map(({ name, label, machineConfig }) => ({
+                    value: name,
+                    label: `${label} computer power (${Utils.formatUSD(machineConfigCost(machineConfig))} hr)`
+                  }), profiles),
+                  {
+                    value: 'custom',
+                    label: 'Custom'
+                  }
+                ]
               })
             ])
           ])]),
-          div({ style: styles.row }, [
-            div({ style: styles.col1 }),
-            div([
-              h(LabeledCheckbox, {
-                checked: !!numberOfWorkers,
-                onChange: v => this.setState({
-                  numberOfWorkers: v ? 2 : 0,
-                  numberOfPreemptibleWorkers: 0
+
+
+          div([
+            h(MachineSelector, {
+              machineType: masterMachineType,
+              onChangeMachineType: v => this.setState({ masterMachineType: v }),
+              diskSize: masterDiskSize,
+              onChangeDiskSize: v => this.setState({ masterDiskSize: v }),
+              readOnly: profile !== 'custom'
+            })
+          ]),
+          profile === 'custom' && h(Fragment, [
+            h(IdContainer, [id => div({ style: styles.row }, [
+              label({
+                htmlFor: id,
+                style: { ...styles.col1, ...styles.label }
+              }, 'Startup script'),
+              div({ style: { flex: 1 } }, [
+                h(TextInput, {
+                  id,
+                  placeholder: 'URI',
+                  value: jupyterUserScriptUri,
+                  onChange: v => this.setState({ jupyterUserScriptUri: v })
                 })
-              }, ' Configure as Spark cluster')
+              ])
+            ])]),
+            div({ style: styles.row }, [
+              div({ style: styles.col1 }),
+              div([
+                h(LabeledCheckbox, {
+                  checked: !!numberOfWorkers,
+                  onChange: v => this.setState({
+                    numberOfWorkers: v ? 2 : 0,
+                    numberOfPreemptibleWorkers: 0
+                  })
+                }, ' Configure as Spark cluster')
+              ])
+            ]),
+            !!numberOfWorkers && h(Fragment, [
+              div({ style: styles.row }, [
+                h(IdContainer, [id => h(Fragment, [
+                  label({
+                    htmlFor: id,
+                    style: { ...styles.col1, ...styles.label }
+                  }, 'Workers'),
+                  div({ style: styles.col2 }, [
+                    h(NumberInput, {
+                      id,
+                      style: styles.smallInput,
+                      min: 2,
+                      isClearable: false,
+                      onlyInteger: true,
+                      value: numberOfWorkers,
+                      onChange: v => this.setState({
+                        numberOfWorkers: v,
+                        numberOfPreemptibleWorkers: _.min([numberOfPreemptibleWorkers, v])
+                      })
+                    })
+                  ])
+                ])]),
+                h(IdContainer, [id => h(Fragment, [
+                  label({
+                    htmlFor: id,
+                    style: { ...styles.col3, ...styles.label }
+                  }, 'Preemptible'),
+                  div([
+                    h(NumberInput, {
+                      id,
+                      style: styles.smallInput,
+                      min: 0,
+                      max: numberOfWorkers,
+                      isClearable: false,
+                      onlyInteger: true,
+                      value: numberOfPreemptibleWorkers,
+                      onChange: v => this.setState({ numberOfPreemptibleWorkers: v })
+                    })
+                  ])
+                ])])
+              ]),
+              div({ style: { marginTop: '1rem' } }, [
+                h(MachineSelector, {
+                  machineType: workerMachineType,
+                  onChangeMachineType: v => this.setState({ workerMachineType: v }),
+                  diskSize: workerDiskSize,
+                  onChangeDiskSize: v => this.setState({ workerDiskSize: v })
+                })
+              ])
             ])
           ]),
-          !!numberOfWorkers && h(Fragment, [
+          changed ?
+            div({ style: styles.warningBox }, [
+              div({ style: styles.label }, ['Caution:']),
+              div([
+                'Updating a Notebook Runtime environment will delete all existing non-notebook files and ',
+                'installed packages. You will be unable to work on the notebooks in this workspace while it ',
+                'updates, which can take a few minutes.'
+              ])
+            ]) :
             div({ style: styles.row }, [
-              h(IdContainer, [id => h(Fragment, [
-                label({
-                  htmlFor: id,
-                  style: { ...styles.col1, ...styles.label }
-                }, 'Workers'),
-                div({ style: styles.col2 }, [
-                  h(NumberInput, {
-                    id,
-                    style: styles.smallInput,
-                    min: 2,
-                    isClearable: false,
-                    onlyInteger: true,
-                    value: numberOfWorkers,
-                    onChange: v => this.setState({
-                      numberOfWorkers: v,
-                      numberOfPreemptibleWorkers: _.min([numberOfPreemptibleWorkers, v])
-                    })
-                  })
-                ])
-              ])]),
-              h(IdContainer, [id => h(Fragment, [
-                label({
-                  htmlFor: id,
-                  style: { ...styles.col3, ...styles.label }
-                }, 'Preemptible'),
-                div([
-                  h(NumberInput, {
-                    id,
-                    style: styles.smallInput,
-                    min: 0,
-                    max: numberOfWorkers,
-                    isClearable: false,
-                    onlyInteger: true,
-                    value: numberOfPreemptibleWorkers,
-                    onChange: v => this.setState({ numberOfPreemptibleWorkers: v })
-                  })
-                ])
-              ])])
-            ]),
-            div({ style: { marginTop: '1rem' } }, [
-              h(MachineSelector, {
-                machineType: workerMachineType,
-                onChangeMachineType: v => this.setState({ workerMachineType: v }),
-                diskSize: workerDiskSize,
-                onChangeDiskSize: v => this.setState({ workerDiskSize: v })
-              })
+              div({ style: styles.label }, [
+                `Cost: ${Utils.formatUSD(machineConfigCost(this.getMachineConfig()))} per hour`
+              ])
             ])
-          ])
         ]),
-        changed ?
-          div({ style: styles.warningBox }, [
-            div({ style: styles.label }, ['Caution:']),
-            div([
-              'Updating a Notebook Runtime environment will delete all existing non-notebook files and ',
-              'installed packages. You will be unable to work on the notebooks in this workspace while it ',
-              'updates, which can take a few minutes.'
-            ])
-          ]) :
-          div({ style: styles.divider }),
-        div({ style: styles.row }, [
-          div({ style: styles.label }, [
-            `Cost: ${Utils.formatUSD(machineConfigCost(this.getMachineConfig()))} per hour`
-          ])
-        ]),
-        h(ButtonPrimary, {
-          disabled: !changed,
-          onClick: () => this.createCluster()
-        }, currentCluster ? 'Update' : 'Create')
+        div([
+          h(ButtonPrimary, {
+            style: { marginTop: '1rem' },
+            disabled: !changed,
+            onClick: () => this.createCluster()
+          }, currentCluster ? 'Update' : 'Create'),
+          h(ButtonSecondary, {
+            style: { marginTop: '1rem' },
+            disabled: !changed,
+            onClick: onCancel
+          }, 'Cancel')
+        ])
       ])
     ])
   }
