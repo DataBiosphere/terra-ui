@@ -5,6 +5,7 @@ import FocusLock from 'react-focus-lock'
 import { div, h, img, input, label, span } from 'react-hyperscript-helpers'
 import RSelect from 'react-select'
 import RAsyncCreatableSelect from 'react-select/async-creatable'
+import RSwitch from 'react-switch'
 import { centeredSpinner, icon } from 'src/components/icons'
 import Interactive from 'src/components/Interactive'
 import TooltipTrigger from 'src/components/TooltipTrigger'
@@ -92,7 +93,6 @@ export const ButtonOutline = ({ disabled, children, ...props }) => {
     hover: disabled ? undefined : { backgroundColor: colors.accent(0.1) }
   }, props), [children])
 }
-
 
 export const makeIconButton = (shape, { disabled, size, iconProps = {}, ...props } = {}) => {
   return h(Clickable, _.merge({
@@ -357,4 +357,25 @@ export const CromwellVersionLink = props => {
       ...props
     }, ['Cromwell ', version]) :
     'Cromwell version loading...'
+}
+
+const SwitchLabel = ({ isOn }) => div({
+  style: {
+    display: 'flex', justifyContent: isOn ? 'flex-start' : 'flex-end',
+    fontSize: 15, fontWeight: 'bold', color: 'white',
+    height: '100%', lineHeight: '28px',
+    ...(isOn ? { marginLeft: '0.75rem' } : { marginRight: '0.5rem' })
+  }
+}, [isOn ? 'True' : 'False'])
+
+export const Switch = ({ onChange, ...props }) => {
+  return h(RSwitch, {
+    onChange: value => onChange(value),
+    offColor: colors.dark(0.5),
+    onColor: colors.success(1.2),
+    checkedIcon: h(SwitchLabel, { isOn: true }),
+    uncheckedIcon: h(SwitchLabel, { isOn: false }),
+    width: 80,
+    ...props
+  })
 }

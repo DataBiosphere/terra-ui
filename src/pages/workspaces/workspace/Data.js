@@ -18,7 +18,7 @@ import { IGVBrowser } from 'src/components/IGVBrowser'
 import { IGVFileSelector } from 'src/components/IGVFileSelector'
 import { DelayedSearchInput, TextInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
-import ModalDrawer from 'src/components/ModalDrawer'
+import { withModalDrawer } from 'src/components/ModalDrawer'
 import { notify } from 'src/components/Notifications'
 import { FlexTable, HeaderCell, SimpleTable, TextCell } from 'src/components/table'
 import TitleBar from 'src/components/TitleBar'
@@ -358,14 +358,10 @@ const ReferenceDataContent = ({ workspace: { workspace: { namespace, attributes 
   ])
 }
 
-const ToolDrawer = ({ workspace, openDrawer, onDismiss: baseOnDismiss, onIgvSuccess, selectedEntities }) => {
+const ToolDrawer = withModalDrawer()(({ workspace, onDismiss, onIgvSuccess, selectedEntities }) => {
   const [toolMode, setToolMode] = useState()
   const entitiesCount = _.size(selectedEntities)
   const entitiesType = !!entitiesCount && selectedEntities[_.keys(selectedEntities)[0]].entityType
-  const onDismiss = () => {
-    baseOnDismiss()
-    setToolMode(undefined)
-  }
 
   const { title, drawerContent } = Utils.switchCase(toolMode, [
     'IGV', () => ({
@@ -411,33 +407,27 @@ const ToolDrawer = ({ workspace, openDrawer, onDismiss: baseOnDismiss, onIgvSucc
     })
   ])
 
-  return h(ModalDrawer, {
-    openDrawer,
-    onDismiss,
-    width: 450
-  }, [
-    h(Fragment, [
-      h(TitleBar, {
-        title,
-        onPrevious: toolMode ? () => { setToolMode(undefined) } : undefined,
-        onDismiss
-      }),
-      div({
-        style: {
-          borderRadius: '1rem',
-          border: `1px solid ${colors.dark(0.5)}`,
-          padding: '0.25rem 0.875rem',
-          margin: '-1rem 1.5rem 1.5rem',
-          alignSelf: 'flex-start',
-          fontSize: 12
-        }
-      }, [
-        `${entitiesCount} ${entitiesType + (entitiesCount > 1 ? 's' : '')} selected`
-      ]),
-      drawerContent
-    ])
+  return h(Fragment, [
+    h(TitleBar, {
+      title,
+      onPrevious: toolMode ? () => { setToolMode(undefined) } : undefined,
+      onDismiss
+    }),
+    div({
+      style: {
+        borderRadius: '1rem',
+        border: `1px solid ${colors.dark(0.5)}`,
+        padding: '0.25rem 0.875rem',
+        margin: '-1rem 1.5rem 1.5rem',
+        alignSelf: 'flex-start',
+        fontSize: 12
+      }
+    }, [
+      `${entitiesCount} ${entitiesType + (entitiesCount > 1 ? 's' : '')} selected`
+    ]),
+    drawerContent
   ])
-}
+})
 
 class EntitiesContent extends Component {
   constructor(props) {
@@ -606,7 +596,7 @@ class EntitiesContent extends Component {
       h(IGVBrowser, { selectedFiles, refGenome, namespace, onDismiss: () => this.setState(_.set(['igvData', 'selectedFiles'], undefined)) }) :
       h(Fragment, [
         h(DataTable, {
-          persist: true, firstRender, refreshKey,
+          persist: true, firstRender, refreshKey, editable: !Utils.editWorkspaceError(workspace),
           entityType: entityKey, entityMetadata, columnDefaults, workspaceId: { namespace, name },
           onScroll: saveScroll, initialX, initialY,
           selectionModel: {
@@ -651,7 +641,7 @@ class EntitiesContent extends Component {
         }),
         h(ToolDrawer, {
           workspace,
-          openDrawer: showToolSelector,
+          isOpen: showToolSelector,
           onDismiss: () => this.setState({ showToolSelector: false }),
           onIgvSuccess: newIgvData => this.setState({ showToolSelector: false, igvData: newIgvData }),
           selectedEntities

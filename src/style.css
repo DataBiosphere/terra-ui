@@ -73,8 +73,8 @@ a {
   overflow-y: scroll;
 }
 
-.table-row:not(:hover) .hover-only {
-  visibility: hidden;
+.table-row:not(:hover) .hover-only, .table-cell:not(:hover) .cell-hover-only {
+  display: none !important;
 }
 
 .focus-style:focus {

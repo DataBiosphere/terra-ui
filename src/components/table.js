@@ -247,6 +247,7 @@ export class FlexTable extends Component {
             ..._.map(([i, { size, cellRenderer }]) => {
               return div({
                 key: i,
+                className: 'table-cell',
                 style: { ...styles.flexCell(size), ...styles.cell(i * 1, columns.length) }
               }, [cellRenderer(data)])
             }, _.toPairs(columns))
@@ -331,6 +332,7 @@ export class GridTable extends Component {
             cellRenderer: data => {
               return div({
                 key: data.key,
+                className: 'table-cell',
                 style: { ...data.style, ...styles.header(data.columnIndex, columns.length) }
               }, [
                 columns[data.columnIndex].headerRenderer(data)
@@ -354,6 +356,7 @@ export class GridTable extends Component {
             cellRenderer: data => {
               return div({
                 key: data.key,
+                className: 'table-cell',
                 style: {
                   ...data.style,
                   ...styles.cell(data.columnIndex, columns.length),
@@ -396,6 +399,7 @@ export const SimpleTable = ({ columns, rows }) => {
         _.map(({ key, size }) => {
           return div({
             key,
+            className: 'table-cell',
             style: {
               ...cellStyles, ...styles.flexCell(size),
               borderTop: `1px solid ${colors.dark(0.2)}`
