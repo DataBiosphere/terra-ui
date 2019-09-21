@@ -104,7 +104,7 @@ const MachineSelector = ({ machineType, onChangeMachineType, diskSize, onChangeD
           htmlFor: id,
           style: { ...styles.col1, ...styles.label }
         }, 'CPUs'),
-        div({ style: styles.col2 }, [
+        div({ style: {padding:'.5rem', border: 'solid'} }, [
           readOnly ?
             currentCpu :
             h(Select, {
@@ -121,8 +121,8 @@ const MachineSelector = ({ machineType, onChangeMachineType, diskSize, onChangeD
         label({
           htmlFor: id,
           style: { ...styles.col3, ...styles.label }
-        }, 'Disk size'),
-        div([
+        }, 'Disk size in GB'),
+        div({ style: { border: 'solid', padding: '0.5rem' } }, [
           readOnly ?
             diskSize :
             h(NumberInput, {
@@ -134,8 +134,7 @@ const MachineSelector = ({ machineType, onChangeMachineType, diskSize, onChangeD
               onlyInteger: true,
               value: diskSize,
               onChange: onChangeDiskSize
-            }),
-          ' GB'
+            })
         ])
       ])])
     ]),
@@ -143,13 +142,13 @@ const MachineSelector = ({ machineType, onChangeMachineType, diskSize, onChangeD
       label({
         htmlFor: id,
         style: { ...styles.col1, ...styles.label }
-      }, 'Memory'),
-      div({ style: styles.col2 }, [
+      }, 'Memory in GB'),
+      div({ style: { border: 'solid', padding: '.5rem'} }, [
         readOnly ?
           currentMemory :
           h(Select, {
             id,
-            styles: { container: styles.smallSelect },
+            styles: { container: styles.smallSelect, border: 'solid' },
             isSearchable: false,
             value: currentMemory,
             onChange: ({ value }) => onChangeMachineType(_.find({
@@ -160,8 +159,7 @@ const MachineSelector = ({ machineType, onChangeMachineType, diskSize, onChangeD
               'memory',
               _.sortBy('memory', _.filter({ cpu: currentCpu }, machineTypes))
             )
-          }),
-        ' GB'
+          })
       ])
     ])])
   ])
@@ -242,7 +240,9 @@ export class NewClusterModal extends PureComponent {
         div(['Choose from four Terra pre-installed runtime environments (e.g. programming languages + packages) ' +
         'or choose a custom environment, including a previous version of one the pre-installed environments.)']),
 
-        div({ style: { border: 'solid', color: 'gray' } }, [
+        div({ style: { border: 'solid', color: 'gray', padding: '0.5rem', margin: '1rem', borderRadius: 'rounded corners'} }, [
+          div({style:{fontWeight: '600', color: 'gray'}},['Compute Power']),
+          div(['Select from one of the default compute cluster profiles or define your own']),
           h(IdContainer, [id => div({ style: styles.row }, [
             label({
               htmlFor: id,
@@ -378,16 +378,17 @@ export class NewClusterModal extends PureComponent {
             ])
         ]),
         div([
-          h(ButtonPrimary, {
-            style: { marginTop: '1rem' },
-            disabled: !changed,
-            onClick: () => this.createCluster()
-          }, currentCluster ? 'Update' : 'Create'),
+
           h(ButtonSecondary, {
             style: { marginTop: '1rem' },
             disabled: !changed,
             onClick: onCancel
-          }, 'Cancel')
+          }, 'Cancel'),
+          h(ButtonPrimary, {
+            style: { marginTop: '1rem' },
+            disabled: !changed,
+            onClick: () => this.createCluster()
+          }, currentCluster ? 'Update' : 'Create')
         ])
       ])
     ])
