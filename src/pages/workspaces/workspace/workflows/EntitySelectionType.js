@@ -1,6 +1,6 @@
-export default Object.freeze({
-  processAll: 'process all',
-  processFromSet: 'choose existing',
-  chooseRows: 'choose rows',
-  chooseSet: 'choose set'
-})
+export default {
+  processAll: Symbol('process all'),
+  processFromSet: Symbol('process from set'),
+  chooseRows: Symbol('choose rows'),
+  chooseSet: Symbol('choose set')
+}

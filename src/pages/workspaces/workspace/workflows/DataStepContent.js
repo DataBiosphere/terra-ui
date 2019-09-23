@@ -10,6 +10,8 @@ import * as Style from 'src/libs/style'
 import EntitySelectionType from 'src/pages/workspaces/workspace/workflows/EntitySelectionType'
 
 
+const { processAll, processFromSet, chooseRows, chooseSet } = EntitySelectionType
+
 export default class DataStepContent extends Component {
   static propTypes = {
     entityMetadata: PropTypes.objectOf(PropTypes.shape({
@@ -43,10 +45,8 @@ export default class DataStepContent extends Component {
     const { newSetName, selectedEntities, type } = entitySelectionModel
     const selectionSize = _.size(selectedEntities)
 
-    return (type === EntitySelectionType.processAll ||
-      (type === EntitySelectionType.chooseRows && (selectionSize === 1 || (selectionSize > 1 && !!newSetName))) ||
-      (type === EntitySelectionType.chooseSet && (selectionSize === 1 || (selectionSize > 1 && selectionSize <= 10 && !!newSetName)))
-    )
+    return selectionSize === 1 ||
+      (!!newSetName && (type === processAll || (selectionSize > 1 && (type === chooseRows || selectionSize <= 10))))
   }
 
   render() {
@@ -63,10 +63,10 @@ export default class DataStepContent extends Component {
     const setType = `${rootEntityType}_set`
     const hasSet = _.has(setType, entityMetadata)
 
-    const isProcessAll = type === EntitySelectionType.processAll
-    const isProcessFromSet = type === EntitySelectionType.processFromSet
-    const isChooseRows = type === EntitySelectionType.chooseRows
-    const isChooseSet = type === EntitySelectionType.chooseSet
+    const isProcessAll = type === processAll
+    const isProcessFromSet = type === processFromSet
+    const isChooseRows = type === chooseRows
+    const isChooseSet = type === chooseSet
 
     return h(Modal, {
       title: 'Select Data',
@@ -91,7 +91,7 @@ export default class DataStepContent extends Component {
               text: `Process all ${count} rows`,
               name: 'process-rows',
               checked: isProcessAll,
-              onChange: () => this.setEntitySelectionModel({ type: EntitySelectionType.processAll, selectedEntities: {} }),
+              onChange: () => this.setEntitySelectionModel({ type: processAll, selectedEntities: {} }),
               labelStyle: { marginLeft: '0.75rem' }
             })
           ]),
@@ -100,7 +100,7 @@ export default class DataStepContent extends Component {
               text: 'Choose specific rows to process',
               name: 'process-rows',
               checked: isChooseRows,
-              onChange: () => this.setEntitySelectionModel({ type: EntitySelectionType.chooseRows, selectedEntities: {} }),
+              onChange: () => this.setEntitySelectionModel({ type: chooseRows, selectedEntities: {} }),
               labelStyle: { marginLeft: '0.75rem' }
             })
           ]),
@@ -109,7 +109,7 @@ export default class DataStepContent extends Component {
               text: 'Choose existing sets',
               name: 'process-rows',
               checked: isProcessFromSet,
-              onChange: () => this.setEntitySelectionModel({ type: EntitySelectionType.processFromSet, selectedEntities: {} }),
+              onChange: () => this.setEntitySelectionModel({ type: processFromSet, selectedEntities: {} }),
               labelStyle: { marginLeft: '0.75rem' }
             })
           ])
@@ -121,7 +121,7 @@ export default class DataStepContent extends Component {
           }
         }, [
           h(DataTable, {
-            key: type,
+            key: type.description,
             entityType: isProcessFromSet ? setType : rootEntityType,
             entityMetadata, workspaceId, columnDefaults,
             selectionModel: {

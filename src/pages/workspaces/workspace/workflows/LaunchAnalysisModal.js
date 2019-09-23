@@ -57,7 +57,9 @@ export default ajaxCaller(class LaunchAnalysisModal extends Component {
         h(ButtonPrimary, { onClick: onDismiss }, ['OK'])
     }, [
       div({ style: { margin: '1rem 0' } }, ['This analysis will be run by ', h(CromwellVersionLink), '.']),
-      type === EntitySelectionType.chooseSet && div({ style: { margin: '1rem 0' } }, [`This will launch ${entityCount} analyses simultaneously.`]),
+      type === EntitySelectionType.chooseSet && entityCount > 1 && div({ style: { margin: '1rem 0' } }, [
+        `This will launch ${entityCount} analyses simultaneously.`
+      ]),
       (message || multiLaunchCompletions !== undefined) && div({ style: { display: 'flex' } }, [
         spinner({ style: { marginRight: '0.5rem' } }),
         message,
@@ -112,8 +114,11 @@ export default ajaxCaller(class LaunchAnalysisModal extends Component {
         const { entityType, name } = selectedEntities[0]
         this.launch(entityType, name, `this.${rootEntityType}s`)
       } else {
-        const entities = _.reduce((acc, { attributes: { [`${rootEntityType}s`]: { items } } }) => _.concat(acc, _.map('entityName', items)), [],
-          selectedEntities)
+        const entities = _.flow(
+          _.flatMap(`attributes.${rootEntityType}s.items`),
+          _.map('entityName')
+        )(selectedEntities)
+
         this.createSetAndLaunch(entities)
       }
     } else if (type === EntitySelectionType.chooseSet) {
@@ -191,11 +196,11 @@ export default ajaxCaller(class LaunchAnalysisModal extends Component {
     const allErrors = await Promise.all(_.map(async ({ name }) => {
       try {
         await this.baseLaunch(rootEntityType, name)
-        this.setState(_.update('multiLaunchCompletions', _.add(1)))
       } catch (error) {
-        this.setState(_.update('multiLaunchCompletions', _.add(1)))
         const { message } = JSON.parse(await error.text())
         return { name, message }
+      } finally {
+        this.setState(_.update('multiLaunchCompletions', _.add(1)))
       }
     }, selectedEntities))
 
