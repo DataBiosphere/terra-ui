@@ -73,7 +73,7 @@ const styles = {
     borderTop: `1px solid ${colors.warning()}`,
     borderBottom: `1px solid ${colors.warning()}`,
     padding: '1rem',
-    marginTop: '1rem',
+    marginTop: '1rem'
 
   },
   divider: {
@@ -94,16 +94,29 @@ const machineConfigsEqual = (a, b) => {
   return _.isEqual(normalizeMachineConfig(a), normalizeMachineConfig(b))
 }
 
+const configurationButtonsForMachineSelector = {
+  padding: '.5rem',
+  border: `1px solid ${colors.dark(0.3)}`,
+  borderRadius: '5px',
+  boxShadow: `0 2px 4px 0 ${colors.dark(0.2)}`
+}
+
 const MachineSelector = ({ machineType, onChangeMachineType, diskSize, onChangeDiskSize, readOnly }) => {
   const { cpu: currentCpu, memory: currentMemory } = _.find({ name: machineType }, machineTypes)
-  return div( [
+  return div([
     div({ style: styles.row }, [
       h(IdContainer, [id => h(Fragment, [
         label({
           htmlFor: id,
-          style: { ...styles.col1, ...styles.label, color: colors.dark(), padding: '0.5rem' }
+          style: {
+            ...styles.col1, ...styles.label,
+            color: colors.dark(),
+            padding: '0.5rem'
+          }
         }, 'CPUs'),
-        div({ style: { padding: '.5rem', border: 'solid', borderWidth: '1px', borderRadius: '7px' } }, [
+        div({
+          style: configurationButtonsForMachineSelector
+        }, [
           readOnly ?
             currentCpu :
             h(Select, {
@@ -116,17 +129,28 @@ const MachineSelector = ({ machineType, onChangeMachineType, diskSize, onChangeD
             })
         ])
       ])]),
+      // TODO FLEXBOX HERE
       h(IdContainer, [id => h(Fragment, [
         label({
           htmlFor: id,
-          style: { ...styles.col1, ...styles.label, color: colors.dark(), padding: '0.5rem', marginLeft: '1rem' }
+          style: {
+            ...styles.col1, ...styles.label,
+            color: colors.dark(),
+            padding: '0.5rem',
+            marginLeft: '1rem'
+          }
         }, 'Memory in GB'),
-        div({ style: { border: 'solid', padding: '.5rem',  borderRadius: '7px', borderWidth: '1px' } }, [
+        div({
+          style: configurationButtonsForMachineSelector
+        }, [
           readOnly ?
             currentMemory :
             h(Select, {
               id,
-              styles: { container: styles.smallSelect, border: 'solid' },
+              styles: {
+                container: styles.smallSelect,
+                border: 'solid'
+              },
               isSearchable: false,
               value: currentMemory,
               onChange: ({ value }) => onChangeMachineType(_.find({
@@ -140,12 +164,20 @@ const MachineSelector = ({ machineType, onChangeMachineType, diskSize, onChangeD
             })
         ])
       ])]),
+      // TODO FLEXBOX HERE
       h(IdContainer, [id => h(Fragment, [
         label({
           htmlFor: id,
-          style: { ...styles.col3, ...styles.label, color: colors.dark(), padding: '0.5rem', marginLeft: '1rem' }
+          style: {
+            ...styles.col3, ...styles.label,
+            color: colors.dark(),
+            padding: '0.5rem',
+            marginLeft: '1rem'
+          }
         }, 'Disk size in GB'),
-        div({ style: { border: 'solid', padding: '0.5rem', borderRadius: '7px', borderWidth: '1px' } }, [
+        div({
+          style: configurationButtonsForMachineSelector
+        }, [
           readOnly ?
             diskSize :
             h(NumberInput, {
@@ -237,22 +269,48 @@ export class NewClusterModal extends PureComponent {
           title: 'RUNTIME CONFIGURATION',
           onDismiss: onCancel
         }),
-        div({ style: { padding: '1.5rem', marginTop: '-2.5rem' } },
+        div({
+            style: {
+              padding: '1.5rem',
+              marginTop: '-2.5rem'
+            }
+          },
           ['Choose from four Terra pre-installed runtime environments (e.g. programming languages + packages) ' +
           'or choose a custom environment, including a previous version of one the pre-installed environments.)']),
 
         div({
           style: {
-            border: 'solid', color: 'gray', padding: '0.5rem', margin: '1rem', borderRadius: '9px', backgroundColor: colors.light(),
+            border: 'solid',
+            color: colors.dark(0.3),
+            padding: '0.5rem',
+            margin: '1rem',
+            borderRadius: '9px',
+            backgroundColor: colors.light(),
             borderWidth: '1.5px'
           }
         }, [
-          div({ style: { fontSize: '0.875rem', fontWeight: 600, padding: '0.5rem', color: colors.dark() } }, ['COMPUTE POWER']),
-          div({ style: { padding: '0.5rem', color: colors.dark() } }, ['Select from one of the default compute cluster profiles or define your own']),
+          div({
+            style: {
+              fontSize: '0.875rem',
+              fontWeight: 600,
+              padding: '0.5rem',
+              color: colors.dark()
+            }
+          }, ['COMPUTE POWER']),
+          div({
+            style: {
+              padding: '0.5rem',
+              color: colors.dark()
+            }
+          }, ['Select from one of the default compute cluster profiles or define your own']),
           h(IdContainer, [id => div({ style: styles.row }, [
             label({
               htmlFor: id,
-              style: { ...styles.col1, ...styles.label, color: colors.dark(), padding: '0.5rem' }
+              style: {
+                ...styles.col1, ...styles.label,
+                color: colors.dark(),
+                padding: '0.5rem'
+              }
             }, 'Profile'),
             div({ style: { flex: 1 } }, [
               h(Select, {
@@ -294,7 +352,11 @@ export class NewClusterModal extends PureComponent {
             h(IdContainer, [id => div({ style: styles.row }, [
               label({
                 htmlFor: id,
-                style: { ...styles.col1, ...styles.label, padding: '0.5rem', color: colors.dark() }
+                style: {
+                  ...styles.col1, ...styles.label,
+                  padding: '0.5rem',
+                  color: colors.dark()
+                }
               }, 'Startup script'),
               div({ style: { flex: 1 } }, [
                 h(TextInput, {
@@ -371,7 +433,7 @@ export class NewClusterModal extends PureComponent {
           changed ?
             div({ style: styles.warningBox }, [
               div({ style: styles.label }, ['Caution:']),
-              div({style:{display: 'flex'}},[
+              div({ style: { display: 'flex' } }, [
                 'Updating a Notebook Runtime environment will delete all existing non-notebook files and ',
                 'installed packages. You will be unable to work on the notebooks in this workspace while it ',
                 'updates, which can take a few minutes.'
@@ -383,9 +445,18 @@ export class NewClusterModal extends PureComponent {
               ])
             ])
         ]),
-        div({ style: { display: 'flex', justifyContent: 'flex-end', padding: '1rem' } }, [
+        div({
+          style: {
+            display: 'flex',
+            justifyContent: 'flex-end',
+            padding: '1rem'
+          }
+        }, [
           h(ButtonSecondary, {
-            style: { marginTop: '1rem', marginRight: '2rem' },
+            style: {
+              marginTop: '1rem',
+              marginRight: '2rem'
+            },
             disabled: !changed,
             onClick: onCancel
           }, 'Cancel'),
@@ -740,7 +811,10 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
       createModalDrawerOpen && h(NewClusterModal, {
         namespace,
         currentCluster,
-        onCancel: () => this.setState({ createModalDrawerOpen: false, isOpen: false }),
+        onCancel: () => this.setState({
+          createModalDrawerOpen: false,
+          isOpen: false
+        }),
         onSuccess: promise => {
           this.setState({ createModalDrawerOpen: false })
           this.executeAndRefresh(promise)
