@@ -73,8 +73,7 @@ const styles = {
     borderTop: `1px solid ${colors.warning()}`,
     borderBottom: `1px solid ${colors.warning()}`,
     padding: '1rem',
-    marginTop: '1rem'
-
+    margin: '1rem -1.5rem 0 -1.5rem'
   },
   divider: {
     marginTop: '1rem',
@@ -95,10 +94,11 @@ const machineConfigsEqual = (a, b) => {
 }
 
 const configurationButtonsForMachineSelector = {
-  padding: '.5rem',
-  border: `1px solid ${colors.dark(0.3)}`,
-  borderRadius: '5px',
-  boxShadow: `0 2px 4px 0 ${colors.dark(0.2)}`
+  // color: colors.dark(),
+  // padding: '.5rem',
+  // border: `1px solid ${colors.dark(0.3)}`,
+  // borderRadius: '5px',
+  // boxShadow: `0 2px 4px 0 ${colors.dark(0.2)}`
 }
 
 const MachineSelector = ({ machineType, onChangeMachineType, diskSize, onChangeDiskSize, readOnly }) => {
@@ -118,9 +118,8 @@ const MachineSelector = ({ machineType, onChangeMachineType, diskSize, onChangeD
         div({
           style: configurationButtonsForMachineSelector
         }, [
-          readOnly ?
-            currentCpu :
             h(Select, {
+              isDisabled: readOnly,
               id,
               styles: { container: styles.smallSelect },
               isSearchable: false,
@@ -144,9 +143,8 @@ const MachineSelector = ({ machineType, onChangeMachineType, diskSize, onChangeD
         div({
           style: configurationButtonsForMachineSelector
         }, [
-          readOnly ?
-            currentMemory :
             h(Select, {
+              isDisabled: readOnly,
               id,
               styles: {
                 container: styles.smallSelect,
@@ -179,9 +177,8 @@ const MachineSelector = ({ machineType, onChangeMachineType, diskSize, onChangeD
         div({
           style: configurationButtonsForMachineSelector
         }, [
-          readOnly ?
-            diskSize :
             h(NumberInput, {
+              disabled: readOnly,
               id,
               style: styles.smallInput,
               min: 10,
@@ -263,32 +260,27 @@ export class NewClusterModal extends PureComponent {
     return h(ModalDrawer, {
       isOpen: true,
       onDismiss: onCancel,
-      width: 600
+      width: 650
     }, [
-      h(Fragment,[
-        h(TitleBar, {
-          title: 'RUNTIME CONFIGURATION',
-          onDismiss: onCancel
-        }),
+      h(TitleBar, {
+        title: 'RUNTIME CONFIGURATION',
+        onDismiss: onCancel
+      }),
+      div({
+        style: {
+          padding: '0 1.5rem 1.5rem 1.5rem'
+        }
+      },
+      [
+        'Choose from four Terra pre-installed runtime environments (e.g. programming languages + packages) ' +
+      'or choose a custom environment, including a previous version of one the pre-installed environments.)',
         div({
           style: {
-            padding: '1.5rem',
-            marginTop: '-2.5rem',
-            marginLeft: '1rem'
-          }
-        },
-        ['Choose from four Terra pre-installed runtime environments (e.g. programming languages + packages) ' +
-        'or choose a custom environment, including a previous version of one the pre-installed environments.)']),
-
-        div({
-          style: {
-            border: 'solid',
-            color: colors.dark(0.3),
-            padding: '0.5rem',
-            margin: '0rem 2rem',
+            padding: '0.5rem`',
             borderRadius: '9px',
-            backgroundColor: colors.light(),
-            borderWidth: '1.5px'
+            border: `2px solid ${colors.dark(0.3)}`,
+            backgroundColor: colors.dark(0.15),
+            marginTop: '1rem'
           }
         }, [
           div({
@@ -331,7 +323,7 @@ export class NewClusterModal extends PureComponent {
                 options: [
                   ..._.map(({ name, label, machineConfig }) => ({
                     value: name,
-                    label: `${label} computer power (${Utils.formatUSD(machineConfigCost(machineConfig))} hr)`
+                    label: `${label} computer power`
                   }), profiles),
                   {
                     value: 'custom',
@@ -433,26 +425,26 @@ export class NewClusterModal extends PureComponent {
               ])
             ])
           ]),
-          changed ?
-            div({ style: styles.warningBox }, [
-              div({ style: styles.label }, ['Caution:']),
-              div({ style: { display: 'flex' } }, [
-                'Updating a Notebook Runtime environment will delete all existing non-notebook files and ',
-                'installed packages. You will be unable to work on the notebooks in this workspace while it ',
-                'updates, which can take a few minutes.'
-              ])
-            ]) :
-            div({ style: styles.row }, [
-              div({ style: styles.label }, [
-                `Cost: ${Utils.formatUSD(machineConfigCost(this.getMachineConfig()))} per hour`
-              ])
+          div({ style: styles.row }, [
+            div({ style: styles.label }, [
+              `Cost: ${Utils.formatUSD(machineConfigCost(this.getMachineConfig()))} per hour`
             ])
+          ])
         ]),
+
+        changed && div({ style: styles.warningBox }, [
+          div({ style: styles.label }, ['Caution:']),
+          div({ style: { display: 'flex' } }, [
+            'Updating a Notebook Runtime environment will delete all existing non-notebook files and ',
+            'installed packages. You will be unable to work on the notebooks in this workspace while it ',
+            'updates, which can take a few minutes.'
+          ])
+        ]),
+
         div({
           style: {
             display: 'flex',
-            justifyContent: 'flex-end',
-            padding: '1rem'
+            justifyContent: 'flex-end'
           }
         }, [
           h(ButtonSecondary, {
@@ -469,7 +461,7 @@ export class NewClusterModal extends PureComponent {
             onClick: () => this.createCluster()
           }, currentCluster ? 'Update' : 'Create')
         ])
-      ])
+      ]),
     ])
   }
 }

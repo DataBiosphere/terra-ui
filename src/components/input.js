@@ -157,7 +157,8 @@ export const NumberInput = ({ onChange, onBlur, min = -Infinity, max = Infinity,
       paddingLeft: '1rem',
       paddingRight: '0.25rem',
       fontWeight: 400,
-      fontSize: 14
+      fontSize: 14,
+      backgroundColor: props.disabled ? colors.light() : undefined
     }
   }, props))
 }
