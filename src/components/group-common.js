@@ -11,7 +11,7 @@ import TooltipTrigger from 'src/components/TooltipTrigger'
 import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError, withErrorReporting } from 'src/libs/error'
-import { FormLabel, RequiredFormLabel } from 'src/libs/forms'
+import { FormLabel } from 'src/libs/forms'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import validate from 'validate.js'
@@ -130,7 +130,7 @@ export const NewUserModal = ajaxCaller(class NewUserModal extends Component {
         }, ['Add User'])
       }, [
         h(IdContainer, [id => h(Fragment, [
-          h(RequiredFormLabel, { htmlFor: id }, ['User email']),
+          h(FormLabel, { htmlFor: id, required: true }, ['User email']),
           h(AutocompleteSearch, {
             id,
             autoFocus: true,
@@ -150,7 +150,7 @@ export const NewUserModal = ajaxCaller(class NewUserModal extends Component {
               this.setState({ userEmail: selection })
             },
             onKeyDown: e => {
-            // 27 = Escape
+              // 27 = Escape
               if (e.which === 27 && !!userEmail) {
                 this.setState({ userEmail: '' })
                 e.stopPropagation()

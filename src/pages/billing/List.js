@@ -12,7 +12,7 @@ import { Ajax, ajaxCaller } from 'src/libs/ajax'
 import * as Auth from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
-import { formHint, RequiredFormLabel } from 'src/libs/forms'
+import { formHint, FormLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
 import { authStore, freeCreditsActive } from 'src/libs/state'
 import * as StateHistory from 'src/libs/state-history'
@@ -117,7 +117,7 @@ const NewBillingProjectModal = ajaxCaller(class NewBillingProjectModal extends C
       ]),
       billingAccounts && billingAccounts.length !== 0 && h(Fragment, [
         h(IdContainer, [id => h(Fragment, [
-          h(RequiredFormLabel, { htmlFor: id }, ['Enter name']),
+          h(FormLabel, { htmlFor: id, required: true }, ['Enter name']),
           h(ValidatedInput, {
             inputProps: {
               id,
@@ -130,7 +130,7 @@ const NewBillingProjectModal = ajaxCaller(class NewBillingProjectModal extends C
         ])]),
         !(billingProjectNameTouched && errors) && formHint('Name must be unique and cannot be changed.'),
         h(IdContainer, [id => h(Fragment, [
-          h(RequiredFormLabel, { htmlFor: id }, ['Select billing account']),
+          h(FormLabel, { htmlFor: id, required: true }, ['Select billing account']),
           div({ style: { fontSize: 14 } }, [
             h(Select, {
               id,

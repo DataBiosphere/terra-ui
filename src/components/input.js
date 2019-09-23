@@ -132,14 +132,25 @@ export const SearchInput = ({ value, onChange, ...props }) => {
 
 export const DelayedSearchInput = withDebouncedChange(SearchInput)
 
-export const NumberInput = ({ onChange, ...props }) => {
+export const NumberInput = ({ onChange, onBlur, min = -Infinity, max = Infinity, onlyInteger = false, isClearable = true, value, ...props }) => {
   Utils.useConsoleAssert(props.id || props['aria-label'], 'In order to be accessible, NumberInput needs a label')
+  const [internalValue, setInternalValue] = useState()
 
   return h(Interactive, _.merge({
     as: 'input',
     type: 'number',
     className: 'focus-style',
-    onChange: onChange ? (e => onChange(e.target.value)) : undefined,
+    min, max,
+    value: internalValue !== undefined ? internalValue : _.toString(value), // eslint-disable-line lodash-fp/preferred-alias
+    onChange: ({ target: { value: newValue } }) => {
+      setInternalValue(newValue)
+      // note: floor and clamp implicitly convert the value to a number
+      onChange(newValue === '' && isClearable ? null : _.clamp(min, max, onlyInteger ? _.floor(newValue) : newValue))
+    },
+    onBlur: (...args) => {
+      onBlur && onBlur(...args)
+      setInternalValue(undefined)
+    },
     style: {
       ...styles.input,
       width: '100%',
@@ -150,47 +161,6 @@ export const NumberInput = ({ onChange, ...props }) => {
     }
   }, props))
 }
-
-
-export class IntegerInput extends Component {
-  static propTypes = {
-    min: PropTypes.number,
-    max: PropTypes.number,
-    onChange: PropTypes.func.isRequired
-  }
-
-  static defaultProps = {
-    min: -Infinity,
-    max: Infinity
-  }
-
-  constructor(props) {
-    super(props)
-    this.state = { textValue: undefined, lastValueProp: undefined } // eslint-disable-line react/no-unused-state
-  }
-
-  static getDerivedStateFromProps({ value }, { lastValueProp }) {
-    if (value !== lastValueProp) {
-      return { textValue: value.toString(), lastValueProp: value }
-    }
-    return null
-  }
-
-  render() {
-    const { textValue } = this.state
-    const { onChange, min, max, ...props } = this.props
-    return h(NumberInput, {
-      ...props, min, max, value: textValue,
-      onChange: v => this.setState({ textValue: v }),
-      onBlur: () => {
-        const newValue = _.clamp(min, max, _.floor(textValue * 1))
-        this.setState({ lastValueProp: undefined }) // eslint-disable-line react/no-unused-state
-        onChange(newValue)
-      }
-    })
-  }
-}
-
 
 /**
  * @param {object} props.inputProps

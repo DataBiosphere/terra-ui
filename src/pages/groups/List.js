@@ -10,7 +10,7 @@ import TopBar from 'src/components/TopBar'
 import { Ajax, ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
-import { formHint, RequiredFormLabel } from 'src/libs/forms'
+import { formHint, FormLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
@@ -53,7 +53,7 @@ const NewGroupModal = class NewGroupModal extends Component {
         onClick: () => this.submit()
       }, ['Create Group'])
     }, [
-      h(RequiredFormLabel, ['Enter a unique name']),
+      h(FormLabel, { required: true }, ['Enter a unique name']),
       h(ValidatedInput, {
         inputProps: {
           autoFocus: true,

@@ -7,33 +7,33 @@ import ModalDrawer from 'src/components/ModalDrawer'
 
 const openButton = ({ onClick }) => h('button', { onClick, style: { width: '100px' } }, 'Open Drawer')
 
-const ModalDrawerEmpty= () => {
-  const [openDrawer, setOpenDrawer] = useState(true)
+const ModalDrawerEmpty = () => {
+  const [isOpen, setIsOpen] = useState(true)
   const width = number('Width', 450)
 
   return h(Fragment, [
-    openButton({ onClick: () => setOpenDrawer(true) }),
+    openButton({ onClick: () => setIsOpen(true) }),
     div({ id: 'modal-root' }, [
       h(ModalDrawer, {
-        openDrawer,
+        isOpen,
         width,
-        onDismiss: () => setOpenDrawer(false)
+        onDismiss: () => setIsOpen(false)
       })
     ])
   ])
 }
 
 const ModalDrawerWithContent = () => {
-  const [openDrawer, setOpenDrawer] = useState(true)
+  const [isOpen, setIsOpen] = useState(true)
   const width = number('Width', 450)
 
   return h(Fragment, [
-    openButton({ onClick: () => setOpenDrawer(true) }),
+    openButton({ onClick: () => setIsOpen(true) }),
     div({ id: 'modal-root' }, [
       h(ModalDrawer, {
         width,
-        openDrawer,
-        onDismiss: () => setOpenDrawer(false)
+        isOpen,
+        onDismiss: () => setIsOpen(false)
       }, [
         h(div, {
           style: { display: 'flex', alignItems: 'baseline', marginBottom: '1rem', flex: 'none', padding: '1.5rem 1.25rem' }
