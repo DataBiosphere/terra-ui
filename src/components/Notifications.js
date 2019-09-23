@@ -160,6 +160,4 @@ const showNotification = ({ id, timeout }) => {
   })
 }
 
-const Notifications = () => h(ReactNotification)
-
-export default Utils.connectAtom(notificationStore, 'notificationState')(Notifications)
+export default Utils.connectAtom(notificationStore, 'notificationState')(ReactNotification)
