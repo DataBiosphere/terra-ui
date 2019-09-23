@@ -42,7 +42,7 @@ const styles = {
   row: {
     display: 'flex',
     alignItems: 'center',
-    marginTop: '1rem'
+    margin: '1rem'
   },
   col1: {
     width: 80
@@ -111,7 +111,8 @@ const MachineSelector = ({ machineType, onChangeMachineType, diskSize, onChangeD
           style: {
             ...styles.col1, ...styles.label,
             color: colors.dark(),
-            padding: '0.5rem'
+            padding: '0.5rem',
+            // TODO ADD FLEX HERE?
           }
         }, 'CPUs'),
         div({
@@ -264,26 +265,27 @@ export class NewClusterModal extends PureComponent {
       onDismiss: onCancel,
       width: 600
     }, [
-      h(Fragment, [
+      h(Fragment,[
         h(TitleBar, {
           title: 'RUNTIME CONFIGURATION',
           onDismiss: onCancel
         }),
         div({
-            style: {
-              padding: '1.5rem',
-              marginTop: '-2.5rem'
-            }
-          },
-          ['Choose from four Terra pre-installed runtime environments (e.g. programming languages + packages) ' +
-          'or choose a custom environment, including a previous version of one the pre-installed environments.)']),
+          style: {
+            padding: '1.5rem',
+            marginTop: '-2.5rem',
+            marginLeft: '1rem'
+          }
+        },
+        ['Choose from four Terra pre-installed runtime environments (e.g. programming languages + packages) ' +
+        'or choose a custom environment, including a previous version of one the pre-installed environments.)']),
 
         div({
           style: {
             border: 'solid',
             color: colors.dark(0.3),
             padding: '0.5rem',
-            margin: '1rem',
+            margin: '0rem 2rem',
             borderRadius: '9px',
             backgroundColor: colors.light(),
             borderWidth: '1.5px'
@@ -294,12 +296,14 @@ export class NewClusterModal extends PureComponent {
               fontSize: '0.875rem',
               fontWeight: 600,
               padding: '0.5rem',
+              margin: '0rem 1rem',
               color: colors.dark()
             }
           }, ['COMPUTE POWER']),
           div({
             style: {
               padding: '0.5rem',
+              margin: '0rem 1rem',
               color: colors.dark()
             }
           }, ['Select from one of the default compute cluster profiles or define your own']),
@@ -337,7 +341,6 @@ export class NewClusterModal extends PureComponent {
               })
             ])
           ])]),
-
 
           div([
             h(MachineSelector, {
