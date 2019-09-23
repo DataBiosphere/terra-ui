@@ -98,7 +98,8 @@ const configurationButtonsForMachineSelector = {
   padding: '.5rem',
   border: `1px solid ${colors.dark(0.3)}`,
   borderRadius: '5px',
-  boxShadow: `0 2px 4px 0 ${colors.dark(0.2)}`
+  boxShadow: `0 2px 4px 0 ${colors.dark(0.2)}`,
+  color: colors.dark()
 }
 
 const MachineSelector = ({ machineType, onChangeMachineType, diskSize, onChangeDiskSize, readOnly }) => {
@@ -111,7 +112,7 @@ const MachineSelector = ({ machineType, onChangeMachineType, diskSize, onChangeD
           style: {
             ...styles.col1, ...styles.label,
             color: colors.dark(),
-            padding: '0.5rem',
+            padding: '0.5rem'
             // TODO ADD FLEX HERE?
           }
         }, 'CPUs'),
@@ -265,7 +266,7 @@ export class NewClusterModal extends PureComponent {
       onDismiss: onCancel,
       width: 600
     }, [
-      h(Fragment,[
+      h(Fragment, [
         h(TitleBar, {
           title: 'RUNTIME CONFIGURATION',
           onDismiss: onCancel
@@ -278,7 +279,7 @@ export class NewClusterModal extends PureComponent {
           }
         },
         ['Choose from four Terra pre-installed runtime environments (e.g. programming languages + packages) ' +
-        'or choose a custom environment, including a previous version of one the pre-installed environments.)']),
+          'or choose a custom environment, including a previous version of one the pre-installed environments.)']),
 
         div({
           style: {
