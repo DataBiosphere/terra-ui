@@ -74,8 +74,7 @@ const styles = {
     borderBottom: `1px solid ${colors.warning()}`,
     padding: '1rem',
     marginTop: '1rem',
-    marginLeft: '-1.25rem',
-    marginRight: '-1.25rem'
+
   },
   divider: {
     marginTop: '1rem',
@@ -97,14 +96,14 @@ const machineConfigsEqual = (a, b) => {
 
 const MachineSelector = ({ machineType, onChangeMachineType, diskSize, onChangeDiskSize, readOnly }) => {
   const { cpu: currentCpu, memory: currentMemory } = _.find({ name: machineType }, machineTypes)
-  return div([
+  return div( [
     div({ style: styles.row }, [
       h(IdContainer, [id => h(Fragment, [
         label({
           htmlFor: id,
-          style: { ...styles.col1, ...styles.label }
+          style: { ...styles.col1, ...styles.label, color: colors.dark(), padding: '0.5rem' }
         }, 'CPUs'),
-        div({ style: {padding:'.5rem', border: 'solid'} }, [
+        div({ style: { padding: '.5rem', border: 'solid', borderWidth: '1px', borderRadius: '7px' } }, [
           readOnly ?
             currentCpu :
             h(Select, {
@@ -120,9 +119,33 @@ const MachineSelector = ({ machineType, onChangeMachineType, diskSize, onChangeD
       h(IdContainer, [id => h(Fragment, [
         label({
           htmlFor: id,
-          style: { ...styles.col3, ...styles.label }
+          style: { ...styles.col1, ...styles.label, color: colors.dark(), padding: '0.5rem', marginLeft: '1rem' }
+        }, 'Memory in GB'),
+        div({ style: { border: 'solid', padding: '.5rem',  borderRadius: '7px', borderWidth: '1px' } }, [
+          readOnly ?
+            currentMemory :
+            h(Select, {
+              id,
+              styles: { container: styles.smallSelect, border: 'solid' },
+              isSearchable: false,
+              value: currentMemory,
+              onChange: ({ value }) => onChangeMachineType(_.find({
+                cpu: currentCpu,
+                memory: value
+              }, machineTypes).name),
+              options: _.map(
+                'memory',
+                _.sortBy('memory', _.filter({ cpu: currentCpu }, machineTypes))
+              )
+            })
+        ])
+      ])]),
+      h(IdContainer, [id => h(Fragment, [
+        label({
+          htmlFor: id,
+          style: { ...styles.col3, ...styles.label, color: colors.dark(), padding: '0.5rem', marginLeft: '1rem' }
         }, 'Disk size in GB'),
-        div({ style: { border: 'solid', padding: '0.5rem' } }, [
+        div({ style: { border: 'solid', padding: '0.5rem', borderRadius: '7px', borderWidth: '1px' } }, [
           readOnly ?
             diskSize :
             h(NumberInput, {
@@ -137,31 +160,7 @@ const MachineSelector = ({ machineType, onChangeMachineType, diskSize, onChangeD
             })
         ])
       ])])
-    ]),
-    h(IdContainer, [id => div({ style: styles.row }, [
-      label({
-        htmlFor: id,
-        style: { ...styles.col1, ...styles.label }
-      }, 'Memory in GB'),
-      div({ style: { border: 'solid', padding: '.5rem'} }, [
-        readOnly ?
-          currentMemory :
-          h(Select, {
-            id,
-            styles: { container: styles.smallSelect, border: 'solid' },
-            isSearchable: false,
-            value: currentMemory,
-            onChange: ({ value }) => onChangeMachineType(_.find({
-              cpu: currentCpu,
-              memory: value
-            }, machineTypes).name),
-            options: _.map(
-              'memory',
-              _.sortBy('memory', _.filter({ cpu: currentCpu }, machineTypes))
-            )
-          })
-      ])
-    ])])
+    ])
   ])
 }
 
@@ -230,23 +229,30 @@ export class NewClusterModal extends PureComponent {
       jupyterUserScriptUri
     return h(ModalDrawer, {
       isOpen: true,
-      onDismiss: onCancel
+      onDismiss: onCancel,
+      width: 600
     }, [
       h(Fragment, [
         h(TitleBar, {
           title: 'RUNTIME CONFIGURATION',
           onDismiss: onCancel
         }),
-        div(['Choose from four Terra pre-installed runtime environments (e.g. programming languages + packages) ' +
-        'or choose a custom environment, including a previous version of one the pre-installed environments.)']),
+        div({ style: { padding: '1.5rem', marginTop: '-2.5rem' } },
+          ['Choose from four Terra pre-installed runtime environments (e.g. programming languages + packages) ' +
+          'or choose a custom environment, including a previous version of one the pre-installed environments.)']),
 
-        div({ style: { border: 'solid', color: 'gray', padding: '0.5rem', margin: '1rem', borderRadius: 'rounded corners'} }, [
-          div({style:{fontWeight: '600', color: 'gray'}},['Compute Power']),
-          div(['Select from one of the default compute cluster profiles or define your own']),
+        div({
+          style: {
+            border: 'solid', color: 'gray', padding: '0.5rem', margin: '1rem', borderRadius: '9px', backgroundColor: colors.light(),
+            borderWidth: '1.5px'
+          }
+        }, [
+          div({ style: { fontSize: '0.875rem', fontWeight: 600, padding: '0.5rem', color: colors.dark() } }, ['COMPUTE POWER']),
+          div({ style: { padding: '0.5rem', color: colors.dark() } }, ['Select from one of the default compute cluster profiles or define your own']),
           h(IdContainer, [id => div({ style: styles.row }, [
             label({
               htmlFor: id,
-              style: { ...styles.col1, ...styles.label }
+              style: { ...styles.col1, ...styles.label, color: colors.dark(), padding: '0.5rem' }
             }, 'Profile'),
             div({ style: { flex: 1 } }, [
               h(Select, {
@@ -288,7 +294,7 @@ export class NewClusterModal extends PureComponent {
             h(IdContainer, [id => div({ style: styles.row }, [
               label({
                 htmlFor: id,
-                style: { ...styles.col1, ...styles.label }
+                style: { ...styles.col1, ...styles.label, padding: '0.5rem', color: colors.dark() }
               }, 'Startup script'),
               div({ style: { flex: 1 } }, [
                 h(TextInput, {
@@ -301,7 +307,7 @@ export class NewClusterModal extends PureComponent {
             ])]),
             div({ style: styles.row }, [
               div({ style: styles.col1 }),
-              div([
+              div({ style: { color: colors.dark() } }, [
                 h(LabeledCheckbox, {
                   checked: !!numberOfWorkers,
                   onChange: v => this.setState({
@@ -365,7 +371,7 @@ export class NewClusterModal extends PureComponent {
           changed ?
             div({ style: styles.warningBox }, [
               div({ style: styles.label }, ['Caution:']),
-              div([
+              div({style:{display: 'flex'}},[
                 'Updating a Notebook Runtime environment will delete all existing non-notebook files and ',
                 'installed packages. You will be unable to work on the notebooks in this workspace while it ',
                 'updates, which can take a few minutes.'
@@ -377,10 +383,9 @@ export class NewClusterModal extends PureComponent {
               ])
             ])
         ]),
-        div([
-
+        div({ style: { display: 'flex', justifyContent: 'flex-end', padding: '1rem' } }, [
           h(ButtonSecondary, {
-            style: { marginTop: '1rem' },
+            style: { marginTop: '1rem', marginRight: '2rem' },
             disabled: !changed,
             onClick: onCancel
           }, 'Cancel'),
