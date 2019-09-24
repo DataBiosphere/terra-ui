@@ -243,9 +243,10 @@ const NotebookEditor = ({ notebookName, workspace, workspace: { workspace: { nam
       ])]
     ),
     !_.includes(clusterStatus, ['Running', undefined]) && h(NotebookPreviewFrame, { notebookName, workspace }),
-    createOpen && h(NewClusterModal, {
+    h(NewClusterModal, {
+      isOpen: createOpen,
       namespace, currentCluster: cluster,
-      onCancel: () => setCreateOpen(false),
+      onDismiss: () => setCreateOpen(false),
       onSuccess: withErrorReporting('Error creating notebook runtime', async promise => {
         setCreateOpen(false)
         await promise

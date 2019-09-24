@@ -6,7 +6,7 @@ import { ButtonPrimary, ButtonSecondary, Clickable, IdContainer, LabeledCheckbox
 import { icon } from 'src/components/icons'
 import { NumberInput, TextInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
-import ModalDrawer, { withModalDrawer } from 'src/components/ModalDrawer'
+import { withModalDrawer } from 'src/components/ModalDrawer'
 import { notify } from 'src/components/Notifications.js'
 import { Popup } from 'src/components/PopupTrigger'
 import TitleBar from 'src/components/TitleBar'
@@ -173,7 +173,7 @@ export const NewClusterModal = withModalDrawer({ width: 650 })(class NewClusterM
   static propTypes = {
     currentCluster: PropTypes.object,
     namespace: PropTypes.string.isRequired,
-    onCancel: PropTypes.func.isRequired,
+    onDismiss: PropTypes.func.isRequired,
     onSuccess: PropTypes.func.isRequired
   }
 
@@ -218,7 +218,7 @@ export const NewClusterModal = withModalDrawer({ width: 650 })(class NewClusterM
   }
 
   render() {
-    const { currentCluster, onCancel, isOpen } = this.props
+    const { currentCluster, onDismiss } = this.props
     const { profile, masterMachineType, masterDiskSize, workerMachineType, numberOfWorkers, numberOfPreemptibleWorkers, workerDiskSize, jupyterUserScriptUri } = this.state
     const changed = !currentCluster ||
       currentCluster.status === 'Error' ||
@@ -227,7 +227,7 @@ export const NewClusterModal = withModalDrawer({ width: 650 })(class NewClusterM
     return h(Fragment, [
       h(TitleBar, {
         title: 'RUNTIME CONFIGURATION',
-        onDismiss: onCancel
+        onDismiss
       }),
       div({
         style: {
@@ -403,7 +403,7 @@ export const NewClusterModal = withModalDrawer({ width: 650 })(class NewClusterM
               marginRight: '2rem'
             },
             disabled: !changed,
-            onClick: onCancel
+            onClick: onDismiss
           }, 'Cancel'),
           h(ButtonPrimary, {
             style: { marginTop: '1rem' },
@@ -757,10 +757,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
         isOpen: createModalDrawerOpen,
         namespace,
         currentCluster,
-        onCancel: () => this.setState({
-          createModalDrawerOpen: false,
-          isOpen: false
-        }),
+        onDismiss: () => this.setState({ createModalDrawerOpen: false }),
         onSuccess: promise => {
           this.setState({ createModalDrawerOpen: false })
           this.executeAndRefresh(promise)
