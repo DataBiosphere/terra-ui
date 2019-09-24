@@ -23,20 +23,12 @@ import * as Utils from 'src/libs/utils'
 const noCompute = 'You do not have access to run analyses on this workspace.'
 
 const styles = {
-  verticalCenter: {
-    display: 'flex',
-    alignItems: 'center'
-  },
+  verticalCenter: { display: 'flex', alignItems: 'center' },
   container: {
     height: '3rem',
-    display: 'flex',
-    alignItems: 'center',
-    flex: 'none',
-    marginLeft: 'auto',
-    paddingLeft: '1rem',
-    paddingRight: '1rem',
-    borderTopLeftRadius: 5,
-    borderBottomLeftRadius: 5,
+    display: 'flex', alignItems: 'center', flex: 'none',
+    marginLeft: 'auto', paddingLeft: '1rem', paddingRight: '1rem',
+    borderTopLeftRadius: 5, borderBottomLeftRadius: 5,
     backgroundColor: colors.light()
   },
   row: {
@@ -88,13 +80,7 @@ const MachineSelector = ({ machineType, onChangeMachineType, diskSize, onChangeD
   const { cpu: currentCpu, memory: currentMemory } = _.find({ name: machineType }, machineTypes)
   return h(Fragment, [
     h(IdContainer, [id => h(Fragment, [
-      label({
-        htmlFor: id,
-        style: {
-          ...styles.label,
-          color: colors.dark()
-        }
-      }, 'CPUs'),
+      label({ htmlFor: id, style: styles.label }, 'CPUs'),
       div([
         h(Select, {
           isDisabled: readOnly,
@@ -108,55 +94,32 @@ const MachineSelector = ({ machineType, onChangeMachineType, diskSize, onChangeD
       ])
     ])]),
     h(IdContainer, [id => h(Fragment, [
-      label({
-        htmlFor: id,
-        style: {
-          ...styles.label,
-          color: colors.dark()
-        }
-      }, 'Memory in GB'),
+      label({ htmlFor: id, style: styles.label }, 'Memory in GB'),
       div([
         h(Select, {
           isDisabled: readOnly,
           id,
-          styles: {
-            container: styles.smallSelect,
-            border: 'solid'
-          },
+          styles: { container: styles.smallSelect, border: 'solid' },
           isSearchable: false,
           value: currentMemory,
-          onChange: ({ value }) => onChangeMachineType(_.find({
-            cpu: currentCpu,
-            memory: value
-          }, machineTypes).name),
-          options: _.map(
-            'memory',
-            _.sortBy('memory', _.filter({ cpu: currentCpu }, machineTypes))
-          )
+          onChange: ({ value }) => onChangeMachineType(_.find({ cpu: currentCpu, memory: value }, machineTypes).name),
+          options: _.map('memory', _.sortBy('memory', _.filter({ cpu: currentCpu }, machineTypes)))
         })
       ])
     ])]),
     h(IdContainer, [id => h(Fragment, [
-      label({
-        htmlFor: id,
-        style: {
-          ...styles.label,
-          color: colors.dark()
-        }
-      }, 'Disk size in GB'),
-      div([
-        h(NumberInput, {
-          disabled: readOnly,
-          id,
-          style: styles.smallInput,
-          min: 10,
-          max: 64000,
-          isClearable: false,
-          onlyInteger: true,
-          value: diskSize,
-          onChange: onChangeDiskSize
-        })
-      ])
+      label({ htmlFor: id, style: styles.label }, 'Disk size in GB'),
+      h(NumberInput, {
+        disabled: readOnly,
+        id,
+        style: styles.smallInput,
+        min: 10,
+        max: 64000,
+        isClearable: false,
+        onlyInteger: true,
+        value: diskSize,
+        onChange: onChangeDiskSize
+      })
     ])])
   ])
 }
@@ -195,12 +158,9 @@ export const NewClusterModal = withModalDrawer({ width: 650 })(class NewClusterM
   getMachineConfig() {
     const { numberOfWorkers, masterMachineType, masterDiskSize, workerMachineType, workerDiskSize, numberOfPreemptibleWorkers } = this.state
     return {
-      numberOfWorkers,
-      masterMachineType,
-      masterDiskSize,
-      workerMachineType,
-      workerDiskSize,
-      numberOfWorkerLocalSSDs: 0,
+      numberOfWorkers, masterMachineType,
+      masterDiskSize, workerMachineType,
+      workerDiskSize, numberOfWorkerLocalSSDs: 0,
       numberOfPreemptibleWorkers
     }
   }
@@ -229,47 +189,20 @@ export const NewClusterModal = withModalDrawer({ width: 650 })(class NewClusterM
         title: 'RUNTIME CONFIGURATION',
         onDismiss
       }),
-      div({
-        style: {
-          padding: '0 1.5rem 1.5rem 1.5rem'
-        }
-      },
-      [
+      div({ style: { padding: '0 1.5rem 1.5rem 1.5rem' } }, [
         div({
           style: {
-            padding: '1rem',
-            borderRadius: '9px',
-            border: `2px solid ${colors.dark(0.3)}`,
+            padding: '1rem', marginTop: '1rem',
             backgroundColor: colors.dark(0.15),
-            marginTop: '1rem'
+            border: `2px solid ${colors.dark(0.3)}`, borderRadius: '9px'
           }
         }, [
-          div({
-            style: {
-              fontSize: '0.875rem',
-              fontWeight: 600,
-              color: colors.dark(),
-              marginBottom: '0.5rem'
-
-            }
-          }, ['COMPUTE POWER']),
-          div({
-            style: {
-              color: colors.dark(),
-              marginBottom: '1rem'
-            }
-          }, ['Select from one of the default compute cluster profiles or define your own']),
+          div({ style: { fontSize: '0.875rem', fontWeight: 600, marginBottom: '0.5rem' } }, ['COMPUTE POWER']),
+          div({ style: { marginBottom: '1rem' } }, ['Select from one of the default compute cluster profiles or define your own']),
           div({ style: { display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr 1fr 1fr', gridGap: '1rem', alignItems: 'center' } }, [
             h(IdContainer, [id => h(Fragment, [
-              label({
-                htmlFor: id,
-                style: {
-                  ...styles.label,
-                  color: colors.dark(),
-                  gridColumn: 1
-                }
-              }, 'Profile'),
-              div({ style: { gridColumn: '2 / 7' } }, [
+              label({ htmlFor: id, style: styles.label }, 'Profile'),
+              div({ style: { gridColumnEnd: 'span 5' } }, [
                 h(Select, {
                   id,
                   value: profile,
@@ -282,14 +215,8 @@ export const NewClusterModal = withModalDrawer({ width: 650 })(class NewClusterM
                   isSearchable: false,
                   isClearable: false,
                   options: [
-                    ..._.map(({ name, label, machineConfig }) => ({
-                      value: name,
-                      label: `${label} computer power`
-                    }), profiles),
-                    {
-                      value: 'custom',
-                      label: 'Custom'
-                    }
+                    ..._.map(({ name, label }) => ({ value: name, label: `${label} computer power` }), profiles),
+                    { value: 'custom', label: 'Custom' }
                   ]
                 })
               ])
@@ -303,14 +230,8 @@ export const NewClusterModal = withModalDrawer({ width: 650 })(class NewClusterM
             }),
             profile === 'custom' && h(Fragment, [
               h(IdContainer, [id => h(Fragment, [
-                label({
-                  htmlFor: id,
-                  style: {
-                    ...styles.label,
-                    color: colors.dark()
-                  }
-                }, 'Startup script'),
-                div({ style: { gridColumn: '2 / 7' } }, [
+                label({ htmlFor: id, style: styles.label }, 'Startup script'),
+                div({ style: { gridColumnEnd: 'span 5' } }, [
                   h(TextInput, {
                     id,
                     placeholder: 'URI',
@@ -319,7 +240,7 @@ export const NewClusterModal = withModalDrawer({ width: 650 })(class NewClusterM
                   })
                 ])
               ])]),
-              div({ style: { color: colors.dark(), gridColumn: '1 / 7' } }, [
+              div({ style: { gridColumnEnd: 'span 6' } }, [
                 h(LabeledCheckbox, {
                   checked: !!numberOfWorkers,
                   onChange: v => this.setState({
@@ -330,42 +251,35 @@ export const NewClusterModal = withModalDrawer({ width: 650 })(class NewClusterM
               ]),
               !!numberOfWorkers && h(Fragment, [
                 h(IdContainer, [id => h(Fragment, [
-                  label({
-                    htmlFor: id,
-                    style: { ...styles.label }
-                  }, 'Workers'),
-                  div([
-                    h(NumberInput, {
-                      id,
-                      style: styles.smallInput,
-                      min: 2,
-                      isClearable: false,
-                      onlyInteger: true,
-                      value: numberOfWorkers,
-                      onChange: v => this.setState({
-                        numberOfWorkers: v,
-                        numberOfPreemptibleWorkers: _.min([numberOfPreemptibleWorkers, v])
-                      })
+                  label({ htmlFor: id, style: styles.label }, 'Workers'),
+                  h(NumberInput, {
+                    id,
+                    style: styles.smallInput,
+                    min: 2,
+                    isClearable: false,
+                    onlyInteger: true,
+                    value: numberOfWorkers,
+                    onChange: v => this.setState({
+                      numberOfWorkers: v,
+                      numberOfPreemptibleWorkers: _.min([numberOfPreemptibleWorkers, v])
                     })
-                  ])
+                  })
                 ])]),
                 h(IdContainer, [id => h(Fragment, [
                   label({
                     htmlFor: id,
-                    style: { ...styles.label }
+                    style: styles.label
                   }, 'Preemptible'),
-                  div([
-                    h(NumberInput, {
-                      id,
-                      style: styles.smallInput,
-                      min: 0,
-                      max: numberOfWorkers,
-                      isClearable: false,
-                      onlyInteger: true,
-                      value: numberOfPreemptibleWorkers,
-                      onChange: v => this.setState({ numberOfPreemptibleWorkers: v })
-                    })
-                  ])
+                  h(NumberInput, {
+                    id,
+                    style: styles.smallInput,
+                    min: 0,
+                    max: numberOfWorkers,
+                    isClearable: false,
+                    onlyInteger: true,
+                    value: numberOfPreemptibleWorkers,
+                    onChange: v => this.setState({ numberOfPreemptibleWorkers: v })
+                  })
                 ])]),
                 div({ style: { gridColumnEnd: 'span 2' } }),
                 h(MachineSelector, {
@@ -391,17 +305,9 @@ export const NewClusterModal = withModalDrawer({ width: 650 })(class NewClusterM
             'updates, which can take a few minutes.'
           ])
         ]),
-        div({
-          style: {
-            display: 'flex',
-            justifyContent: 'flex-end'
-          }
-        }, [
+        div({ style: { display: 'flex', justifyContent: 'flex-end' } }, [
           h(ButtonSecondary, {
-            style: {
-              marginTop: '1rem',
-              marginRight: '2rem'
-            },
+            style: { marginTop: '1rem', marginRight: '2rem' },
             disabled: !changed,
             onClick: onDismiss
           }, 'Cancel'),
@@ -442,15 +348,7 @@ export const ClusterErrorModal = ({ cluster, onDismiss }) => {
     showCancel: false,
     onDismiss
   }, [
-    div({
-      style: {
-        whiteSpace: 'pre-wrap',
-        overflowWrap: 'break-word',
-        overflowY: 'auto',
-        maxHeight: 500,
-        background: colors.light()
-      }
-    }, [error]),
+    div({ style: { whiteSpace: 'pre-wrap', overflowWrap: 'break-word', overflowY: 'auto', maxHeight: 500, background: colors.light() } }, [error]),
     loadingClusterDetails && spinnerOverlay
   ])
 }
@@ -584,12 +482,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
 
   renderDestroyForm() {
     const { busy } = this.state
-    return div({
-      style: {
-        padding: '1rem',
-        width: 300
-      }
-    }, [
+    return div({ style: { padding: '1rem', width: 300 } }, [
       div([
         'Your new runtime environment is ready to use.'
       ]),
@@ -598,17 +491,11 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
           busy && icon('loadingSpinner')
         ]),
         h(ButtonSecondary, {
-          style: {
-            marginLeft: '1rem',
-            marginRight: '1rem'
-          },
+          style: { marginLeft: '1rem', marginRight: '1rem' },
           disabled: busy,
           onClick: () => this.destroyClusters(-2)
         }, 'Discard'),
-        h(ButtonPrimary, {
-          disabled: busy,
-          onClick: () => this.destroyClusters(-1)
-        }, 'Apply')
+        h(ButtonPrimary, { disabled: busy, onClick: () => this.destroyClusters(-1) }, 'Apply')
       ])
     ])
   }
@@ -675,10 +562,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
 
     return div({ style: styles.container }, [
       h(Link, {
-        href: Nav.getLink('workspace-terminal-launch', {
-          namespace,
-          name
-        }),
+        href: Nav.getLink('workspace-terminal-launch', { namespace, name }),
         tooltip: Utils.cond(
           [!canCompute, () => noCompute],
           [!currentCluster, () => 'Create a basic notebook runtime and open its terminal'],
@@ -711,39 +595,16 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
           onClick: () => this.setState({ createModalDrawerOpen: true }),
           disabled: isDisabled
         }, [
-          div({
-            style: {
-              marginLeft: '0.5rem',
-              paddingRight: '0.5rem',
-              color: colors.dark()
-            }
-          }, [
-            div({
-              style: {
-                fontSize: 12,
-                fontWeight: 'bold'
-              }
-            }, 'Notebook Runtime'),
+          div({ style: { marginLeft: '0.5rem', paddingRight: '0.5rem', color: colors.dark() } }, [
+            div({ style: { fontSize: 12, fontWeight: 'bold' } }, 'Notebook Runtime'),
             div({ style: { fontSize: 10 } }, [
-              span({
-                style: {
-                  textTransform: 'uppercase',
-                  fontWeight: 500
-                }
-              }, currentStatus || 'None'),
+              span({ style: { textTransform: 'uppercase', fontWeight: 500 } }, currentStatus || 'None'),
               ` (${Utils.formatUSD(totalCost)} hr)`
             ])
           ]),
-          icon('cog', {
-            size: 22,
-            style: { color: isDisabled ? colors.dark(0.7) : colors.accent() }
-          })
+          icon('cog', { size: 22, style: { color: isDisabled ? colors.dark(0.7) : colors.accent() } })
         ]),
-        multiple && h(Popup, {
-          side: 'bottom',
-          target: id,
-          handleClickOutside: _.noop
-        }, [this.renderDestroyForm()])
+        multiple && h(Popup, { side: 'bottom', target: id, handleClickOutside: _.noop }, [this.renderDestroyForm()])
       ])]),
       deleteModalOpen && h(DeleteClusterModal, {
         cluster: this.getCurrentCluster(),
