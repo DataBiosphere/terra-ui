@@ -44,12 +44,6 @@ const styles = {
     alignItems: 'center',
     marginTop: '1rem'
   },
-  labelCol: {
-    //flex: 3
-  },
-  inputCol: {
-    // flex: 2
-  },
   label: {
     fontSize: 12,
     fontWeight: 'bold'
@@ -90,10 +84,6 @@ const machineConfigsEqual = (a, b) => {
   return _.isEqual(normalizeMachineConfig(a), normalizeMachineConfig(b))
 }
 
-const configurationButtonsForMachineSelector = {
-  // flex: 1
-}
-
 const MachineSelector = ({ machineType, onChangeMachineType, diskSize, onChangeDiskSize, readOnly }) => {
   const { cpu: currentCpu, memory: currentMemory } = _.find({ name: machineType }, machineTypes)
   return h(Fragment, [
@@ -105,9 +95,7 @@ const MachineSelector = ({ machineType, onChangeMachineType, diskSize, onChangeD
           color: colors.dark()
         }
       }, 'CPUs'),
-      div({
-        style: configurationButtonsForMachineSelector
-      }, [
+      div([
         h(Select, {
           isDisabled: readOnly,
           id,
@@ -119,20 +107,15 @@ const MachineSelector = ({ machineType, onChangeMachineType, diskSize, onChangeD
         })
       ])
     ])]),
-    // TODO FLEXBOX HERE
     h(IdContainer, [id => h(Fragment, [
       label({
         htmlFor: id,
         style: {
-          ...styles.labelCol, ...styles.label,
+          ...styles.label,
           color: colors.dark()
-          // paddingLeft: '1rem'
-          // flex: 1
         }
       }, 'Memory in GB'),
-      div({
-        style: configurationButtonsForMachineSelector
-      }, [
+      div([
         h(Select, {
           isDisabled: readOnly,
           id,
@@ -153,20 +136,15 @@ const MachineSelector = ({ machineType, onChangeMachineType, diskSize, onChangeD
         })
       ])
     ])]),
-    // TODO FLEXBOX HERE
     h(IdContainer, [id => h(Fragment, [
       label({
         htmlFor: id,
         style: {
-          ...styles.labelCol, ...styles.label,
+          ...styles.label,
           color: colors.dark()
-          // paddingLeft: '1rem'
-          // flex: 1
         }
       }, 'Disk size in GB'),
-      div({
-        style: configurationButtonsForMachineSelector
-      }, [
+      div([
         h(NumberInput, {
           disabled: readOnly,
           id,
@@ -180,7 +158,6 @@ const MachineSelector = ({ machineType, onChangeMachineType, diskSize, onChangeD
         })
       ])
     ])])
-
   ])
 }
 
@@ -293,9 +270,8 @@ export class NewClusterModal extends PureComponent {
               label({
                 htmlFor: id,
                 style: {
-                  ...styles.labelCol, ...styles.label,
+                  ...styles.label,
                   color: colors.dark(),
-                  //gridRow: 1,
                   gridColumn: 1
                 }
               }, 'Profile'),
@@ -336,7 +312,7 @@ export class NewClusterModal extends PureComponent {
                 label({
                   htmlFor: id,
                   style: {
-                    ...styles.labelCol, ...styles.label,
+                    ...styles.label,
                     color: colors.dark()
                   }
                 }, 'Startup script'),
@@ -362,9 +338,9 @@ export class NewClusterModal extends PureComponent {
                 h(IdContainer, [id => h(Fragment, [
                   label({
                     htmlFor: id,
-                    style: { ...styles.labelCol, ...styles.label }
+                    style: { ...styles.label }
                   }, 'Workers'),
-                  div({ style: styles.inputCol }, [
+                  div([
                     h(NumberInput, {
                       id,
                       style: styles.smallInput,
@@ -382,7 +358,7 @@ export class NewClusterModal extends PureComponent {
                 h(IdContainer, [id => h(Fragment, [
                   label({
                     htmlFor: id,
-                    style: { ...styles.labelCol, ...styles.label }
+                    style: { ...styles.label }
                   }, 'Preemptible'),
                   div([
                     h(NumberInput, {
@@ -413,16 +389,14 @@ export class NewClusterModal extends PureComponent {
             ])
           ])
         ]),
-
         changed && div({ style: styles.warningBox }, [
           div({ style: styles.label }, ['Caution:']),
-          div({ style: { display: 'flex', padding: '0.5rem' } }, [
+          div({ style: { display: 'flex' } }, [
             'Updating a Notebook Runtime environment will delete all existing non-notebook files and ',
             'installed packages. You will be unable to work on the notebooks in this workspace while it ',
             'updates, which can take a few minutes.'
           ])
         ]),
-
         div({
           style: {
             display: 'flex',
