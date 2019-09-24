@@ -42,23 +42,20 @@ const styles = {
   row: {
     display: 'flex',
     alignItems: 'center',
-    margin: '1rem'
+    marginTop: '1rem'
   },
-  col1: {
-    width: 80
+  labelCol: {
+    flex: 3
   },
-  col2: {
-    width: 120
-  },
-  col3: {
-    width: 100
+  inputCol: {
+   flex: 2
   },
   label: {
     fontSize: 12,
     fontWeight: 'bold'
   },
   smallInput: {
-    width: 80
+    width: 85
   },
   smallSelect: base => ({
     ...base,
@@ -94,11 +91,7 @@ const machineConfigsEqual = (a, b) => {
 }
 
 const configurationButtonsForMachineSelector = {
-  // color: colors.dark(),
-  // padding: '.5rem',
-  // border: `1px solid ${colors.dark(0.3)}`,
-  // borderRadius: '5px',
-  // boxShadow: `0 2px 4px 0 ${colors.dark(0.2)}`
+  flex: 1
 }
 
 const MachineSelector = ({ machineType, onChangeMachineType, diskSize, onChangeDiskSize, readOnly }) => {
@@ -109,24 +102,24 @@ const MachineSelector = ({ machineType, onChangeMachineType, diskSize, onChangeD
         label({
           htmlFor: id,
           style: {
-            ...styles.col1, ...styles.label,
-            color: colors.dark(),
-            padding: '0.5rem',
+            flex: 1,
+            ...styles.label,
+            color: colors.dark()
             // TODO ADD FLEX HERE?
           }
         }, 'CPUs'),
         div({
           style: configurationButtonsForMachineSelector
         }, [
-            h(Select, {
-              isDisabled: readOnly,
-              id,
-              styles: { container: styles.smallSelect },
-              isSearchable: false,
-              value: currentCpu,
-              onChange: ({ value }) => onChangeMachineType(_.find({ cpu: value }, machineTypes).name),
-              options: _.uniq(_.map('cpu', machineTypes))
-            })
+          h(Select, {
+            isDisabled: readOnly,
+            id,
+            styles: { container: styles.smallSelect },
+            isSearchable: false,
+            value: currentCpu,
+            onChange: ({ value }) => onChangeMachineType(_.find({ cpu: value }, machineTypes).name),
+            options: _.uniq(_.map('cpu', machineTypes))
+          })
         ])
       ])]),
       // TODO FLEXBOX HERE
@@ -134,33 +127,33 @@ const MachineSelector = ({ machineType, onChangeMachineType, diskSize, onChangeD
         label({
           htmlFor: id,
           style: {
-            ...styles.col1, ...styles.label,
+            ...styles.labelCol, ...styles.label,
             color: colors.dark(),
-            padding: '0.5rem',
-            marginLeft: '1rem'
+            paddingLeft: '1rem',
+            flex: 1
           }
         }, 'Memory in GB'),
         div({
           style: configurationButtonsForMachineSelector
         }, [
-            h(Select, {
-              isDisabled: readOnly,
-              id,
-              styles: {
-                container: styles.smallSelect,
-                border: 'solid'
-              },
-              isSearchable: false,
-              value: currentMemory,
-              onChange: ({ value }) => onChangeMachineType(_.find({
-                cpu: currentCpu,
-                memory: value
-              }, machineTypes).name),
-              options: _.map(
-                'memory',
-                _.sortBy('memory', _.filter({ cpu: currentCpu }, machineTypes))
-              )
-            })
+          h(Select, {
+            isDisabled: readOnly,
+            id,
+            styles: {
+              container: styles.smallSelect,
+              border: 'solid'
+            },
+            isSearchable: false,
+            value: currentMemory,
+            onChange: ({ value }) => onChangeMachineType(_.find({
+              cpu: currentCpu,
+              memory: value
+            }, machineTypes).name),
+            options: _.map(
+              'memory',
+              _.sortBy('memory', _.filter({ cpu: currentCpu }, machineTypes))
+            )
+          })
         ])
       ])]),
       // TODO FLEXBOX HERE
@@ -168,26 +161,26 @@ const MachineSelector = ({ machineType, onChangeMachineType, diskSize, onChangeD
         label({
           htmlFor: id,
           style: {
-            ...styles.col3, ...styles.label,
+            ...styles.labelCol, ...styles.label,
             color: colors.dark(),
-            padding: '0.5rem',
-            marginLeft: '1rem'
+            paddingLeft: '1rem',
+            flex: 1
           }
         }, 'Disk size in GB'),
         div({
           style: configurationButtonsForMachineSelector
         }, [
-            h(NumberInput, {
-              disabled: readOnly,
-              id,
-              style: styles.smallInput,
-              min: 10,
-              max: 64000,
-              isClearable: false,
-              onlyInteger: true,
-              value: diskSize,
-              onChange: onChangeDiskSize
-            })
+          h(NumberInput, {
+            disabled: readOnly,
+            id,
+            style: styles.smallInput,
+            min: 10,
+            max: 64000,
+            isClearable: false,
+            onlyInteger: true,
+            value: diskSize,
+            onChange: onChangeDiskSize
+          })
         ])
       ])])
     ])
@@ -273,10 +266,10 @@ export class NewClusterModal extends PureComponent {
       },
       [
         'Choose from four Terra pre-installed runtime environments (e.g. programming languages + packages) ' +
-      'or choose a custom environment, including a previous version of one the pre-installed environments.)',
+          'or choose a custom environment, including a previous version of one the pre-installed environments.)',
         div({
           style: {
-            padding: '0.5rem`',
+            padding: '1rem',
             borderRadius: '9px',
             border: `2px solid ${colors.dark(0.3)}`,
             backgroundColor: colors.dark(0.15),
@@ -287,15 +280,11 @@ export class NewClusterModal extends PureComponent {
             style: {
               fontSize: '0.875rem',
               fontWeight: 600,
-              padding: '0.5rem',
-              margin: '0rem 1rem',
               color: colors.dark()
             }
           }, ['COMPUTE POWER']),
           div({
             style: {
-              padding: '0.5rem',
-              margin: '0rem 1rem',
               color: colors.dark()
             }
           }, ['Select from one of the default compute cluster profiles or define your own']),
@@ -303,9 +292,8 @@ export class NewClusterModal extends PureComponent {
             label({
               htmlFor: id,
               style: {
-                ...styles.col1, ...styles.label,
+                ...styles.labelCol, ...styles.label,
                 color: colors.dark(),
-                padding: '0.5rem'
               }
             }, 'Profile'),
             div({ style: { flex: 1 } }, [
@@ -348,8 +336,7 @@ export class NewClusterModal extends PureComponent {
               label({
                 htmlFor: id,
                 style: {
-                  ...styles.col1, ...styles.label,
-                  padding: '0.5rem',
+                  ...styles.labelCol, ...styles.label,
                   color: colors.dark()
                 }
               }, 'Startup script'),
@@ -363,7 +350,6 @@ export class NewClusterModal extends PureComponent {
               ])
             ])]),
             div({ style: styles.row }, [
-              div({ style: styles.col1 }),
               div({ style: { color: colors.dark() } }, [
                 h(LabeledCheckbox, {
                   checked: !!numberOfWorkers,
@@ -379,9 +365,9 @@ export class NewClusterModal extends PureComponent {
                 h(IdContainer, [id => h(Fragment, [
                   label({
                     htmlFor: id,
-                    style: { ...styles.col1, ...styles.label }
+                    style: { ...styles.labelCol, ...styles.label }
                   }, 'Workers'),
-                  div({ style: styles.col2 }, [
+                  div({ style: styles.inputCol }, [
                     h(NumberInput, {
                       id,
                       style: styles.smallInput,
@@ -399,7 +385,7 @@ export class NewClusterModal extends PureComponent {
                 h(IdContainer, [id => h(Fragment, [
                   label({
                     htmlFor: id,
-                    style: { ...styles.col3, ...styles.label }
+                    style: { ...styles.labelCol, ...styles.label}
                   }, 'Preemptible'),
                   div([
                     h(NumberInput, {
@@ -434,7 +420,7 @@ export class NewClusterModal extends PureComponent {
 
         changed && div({ style: styles.warningBox }, [
           div({ style: styles.label }, ['Caution:']),
-          div({ style: { display: 'flex' } }, [
+          div({ style: { display: 'flex', padding: '0.5rem' } }, [
             'Updating a Notebook Runtime environment will delete all existing non-notebook files and ',
             'installed packages. You will be unable to work on the notebooks in this workspace while it ',
             'updates, which can take a few minutes.'
@@ -461,7 +447,7 @@ export class NewClusterModal extends PureComponent {
             onClick: () => this.createCluster()
           }, currentCluster ? 'Update' : 'Create')
         ])
-      ]),
+      ])
     ])
   }
 }
