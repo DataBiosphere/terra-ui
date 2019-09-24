@@ -45,7 +45,12 @@ const Interactive = forwardRef(({
     ref,
     className: `hover-style ${className}`,
     style: { ...style, ...cssVariables, cursor: computedCursor, outline },
-    onKeyDown: onKeyDown || (e => e.key === 'Enter' && _.forEach(fn => fn(), [() => e.stopPropagation(), () => e.target.click()])),
+    onKeyDown: onKeyDown || (e => {
+      if (e.key === 'Enter') {
+        e.stopPropagation()
+        e.target.click()
+      }
+    }),
     onClick,
     disabled,
     role: computedRole,

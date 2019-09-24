@@ -1,5 +1,6 @@
 import { action } from '@storybook/addon-actions'
 import { boolean, object, text, withKnobs } from '@storybook/addon-knobs'
+import { storiesOf } from '@storybook/react'
 import _ from 'lodash/fp'
 import { h } from 'react-hyperscript-helpers'
 import Interactive from 'src/components/Interactive'
