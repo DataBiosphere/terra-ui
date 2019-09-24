@@ -45,10 +45,10 @@ const styles = {
     marginTop: '1rem'
   },
   labelCol: {
-    flex: 3
+    //flex: 3
   },
   inputCol: {
-   flex: 2
+    // flex: 2
   },
   label: {
     fontSize: 12,
@@ -91,99 +91,96 @@ const machineConfigsEqual = (a, b) => {
 }
 
 const configurationButtonsForMachineSelector = {
-  flex: 1
+  // flex: 1
 }
 
 const MachineSelector = ({ machineType, onChangeMachineType, diskSize, onChangeDiskSize, readOnly }) => {
   const { cpu: currentCpu, memory: currentMemory } = _.find({ name: machineType }, machineTypes)
-  return div([
-    div({ style: styles.row }, [
-      h(IdContainer, [id => h(Fragment, [
-        label({
-          htmlFor: id,
-          style: {
-            flex: 1,
-            ...styles.label,
-            color: colors.dark()
-            // TODO ADD FLEX HERE?
-          }
-        }, 'CPUs'),
-        div({
-          style: configurationButtonsForMachineSelector
-        }, [
-          h(Select, {
-            isDisabled: readOnly,
-            id,
-            styles: { container: styles.smallSelect },
-            isSearchable: false,
-            value: currentCpu,
-            onChange: ({ value }) => onChangeMachineType(_.find({ cpu: value }, machineTypes).name),
-            options: _.uniq(_.map('cpu', machineTypes))
-          })
-        ])
-      ])]),
-      // TODO FLEXBOX HERE
-      h(IdContainer, [id => h(Fragment, [
-        label({
-          htmlFor: id,
-          style: {
-            ...styles.labelCol, ...styles.label,
-            color: colors.dark(),
-            paddingLeft: '1rem',
-            flex: 1
-          }
-        }, 'Memory in GB'),
-        div({
-          style: configurationButtonsForMachineSelector
-        }, [
-          h(Select, {
-            isDisabled: readOnly,
-            id,
-            styles: {
-              container: styles.smallSelect,
-              border: 'solid'
-            },
-            isSearchable: false,
-            value: currentMemory,
-            onChange: ({ value }) => onChangeMachineType(_.find({
-              cpu: currentCpu,
-              memory: value
-            }, machineTypes).name),
-            options: _.map(
-              'memory',
-              _.sortBy('memory', _.filter({ cpu: currentCpu }, machineTypes))
-            )
-          })
-        ])
-      ])]),
-      // TODO FLEXBOX HERE
-      h(IdContainer, [id => h(Fragment, [
-        label({
-          htmlFor: id,
-          style: {
-            ...styles.labelCol, ...styles.label,
-            color: colors.dark(),
-            paddingLeft: '1rem',
-            flex: 1
-          }
-        }, 'Disk size in GB'),
-        div({
-          style: configurationButtonsForMachineSelector
-        }, [
-          h(NumberInput, {
-            disabled: readOnly,
-            id,
-            style: styles.smallInput,
-            min: 10,
-            max: 64000,
-            isClearable: false,
-            onlyInteger: true,
-            value: diskSize,
-            onChange: onChangeDiskSize
-          })
-        ])
-      ])])
-    ])
+  return h(Fragment, [
+    h(IdContainer, [id => h(Fragment, [
+      label({
+        htmlFor: id,
+        style: {
+          ...styles.label,
+          color: colors.dark()
+        }
+      }, 'CPUs'),
+      div({
+        style: configurationButtonsForMachineSelector
+      }, [
+        h(Select, {
+          isDisabled: readOnly,
+          id,
+          styles: { container: styles.smallSelect },
+          isSearchable: false,
+          value: currentCpu,
+          onChange: ({ value }) => onChangeMachineType(_.find({ cpu: value }, machineTypes).name),
+          options: _.uniq(_.map('cpu', machineTypes))
+        })
+      ])
+    ])]),
+    // TODO FLEXBOX HERE
+    h(IdContainer, [id => h(Fragment, [
+      label({
+        htmlFor: id,
+        style: {
+          ...styles.labelCol, ...styles.label,
+          color: colors.dark()
+          // paddingLeft: '1rem'
+          // flex: 1
+        }
+      }, 'Memory in GB'),
+      div({
+        style: configurationButtonsForMachineSelector
+      }, [
+        h(Select, {
+          isDisabled: readOnly,
+          id,
+          styles: {
+            container: styles.smallSelect,
+            border: 'solid'
+          },
+          isSearchable: false,
+          value: currentMemory,
+          onChange: ({ value }) => onChangeMachineType(_.find({
+            cpu: currentCpu,
+            memory: value
+          }, machineTypes).name),
+          options: _.map(
+            'memory',
+            _.sortBy('memory', _.filter({ cpu: currentCpu }, machineTypes))
+          )
+        })
+      ])
+    ])]),
+    // TODO FLEXBOX HERE
+    h(IdContainer, [id => h(Fragment, [
+      label({
+        htmlFor: id,
+        style: {
+          ...styles.labelCol, ...styles.label,
+          color: colors.dark()
+          // paddingLeft: '1rem'
+          // flex: 1
+        }
+      }, 'Disk size in GB'),
+      div({
+        style: configurationButtonsForMachineSelector
+      }, [
+        h(NumberInput, {
+          disabled: readOnly,
+          id,
+          style: styles.smallInput,
+          min: 10,
+          max: 64000,
+          isClearable: false,
+          onlyInteger: true,
+          value: diskSize,
+          onChange: onChangeDiskSize
+        })
+      ])
+    ])])
+
   ])
 }
 
@@ -280,77 +277,79 @@ export class NewClusterModal extends PureComponent {
             style: {
               fontSize: '0.875rem',
               fontWeight: 600,
-              color: colors.dark()
+              color: colors.dark(),
+              marginBottom: '0.5rem'
+
             }
           }, ['COMPUTE POWER']),
           div({
             style: {
-              color: colors.dark()
+              color: colors.dark(),
+              marginBottom: '1rem'
             }
           }, ['Select from one of the default compute cluster profiles or define your own']),
-          h(IdContainer, [id => div({ style: styles.row }, [
-            label({
-              htmlFor: id,
-              style: {
-                ...styles.labelCol, ...styles.label,
-                color: colors.dark(),
-              }
-            }, 'Profile'),
-            div({ style: { flex: 1 } }, [
-              h(Select, {
-                id,
-                value: profile,
-                onChange: ({ value }) => {
-                  this.setState({
-                    profile: value,
-                    ...(value === 'custom' ? {} : normalizeMachineConfig(_.find({ name: value }, profiles).machineConfig))
-                  })
-                },
-                isSearchable: false,
-                isClearable: false,
-                options: [
-                  ..._.map(({ name, label, machineConfig }) => ({
-                    value: name,
-                    label: `${label} computer power`
-                  }), profiles),
-                  {
-                    value: 'custom',
-                    label: 'Custom'
-                  }
-                ]
-              })
-            ])
-          ])]),
-
-          div([
+          div({ style: { display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr 1fr 1fr', gridGap: '1rem', alignItems: 'center' } }, [
+            h(IdContainer, [id => h(Fragment, [
+              label({
+                htmlFor: id,
+                style: {
+                  ...styles.labelCol, ...styles.label,
+                  color: colors.dark(),
+                  //gridRow: 1,
+                  gridColumn: 1
+                }
+              }, 'Profile'),
+              div({ style: { gridColumn: '2 / 7' } }, [
+                h(Select, {
+                  id,
+                  value: profile,
+                  onChange: ({ value }) => {
+                    this.setState({
+                      profile: value,
+                      ...(value === 'custom' ? {} : normalizeMachineConfig(_.find({ name: value }, profiles).machineConfig))
+                    })
+                  },
+                  isSearchable: false,
+                  isClearable: false,
+                  options: [
+                    ..._.map(({ name, label, machineConfig }) => ({
+                      value: name,
+                      label: `${label} computer power`
+                    }), profiles),
+                    {
+                      value: 'custom',
+                      label: 'Custom'
+                    }
+                  ]
+                })
+              ])
+            ])]),
             h(MachineSelector, {
               machineType: masterMachineType,
               onChangeMachineType: v => this.setState({ masterMachineType: v }),
               diskSize: masterDiskSize,
               onChangeDiskSize: v => this.setState({ masterDiskSize: v }),
               readOnly: profile !== 'custom'
-            })
-          ]),
-          profile === 'custom' && h(Fragment, [
-            h(IdContainer, [id => div({ style: styles.row }, [
-              label({
-                htmlFor: id,
-                style: {
-                  ...styles.labelCol, ...styles.label,
-                  color: colors.dark()
-                }
-              }, 'Startup script'),
-              div({ style: { flex: 1 } }, [
-                h(TextInput, {
-                  id,
-                  placeholder: 'URI',
-                  value: jupyterUserScriptUri,
-                  onChange: v => this.setState({ jupyterUserScriptUri: v })
-                })
-              ])
-            ])]),
-            div({ style: styles.row }, [
-              div({ style: { color: colors.dark() } }, [
+            }),
+            profile === 'custom' && h(Fragment, [
+              h(IdContainer, [id => h(Fragment, [
+                label({
+                  htmlFor: id,
+                  style: {
+                    ...styles.labelCol, ...styles.label,
+                    color: colors.dark()
+                  }
+                }, 'Startup script'),
+                div({ style: { gridColumn: '2 / 7' } }, [
+                  h(TextInput, {
+                    id,
+                    placeholder: 'URI',
+                    value: jupyterUserScriptUri,
+                    onChange: v => this.setState({ jupyterUserScriptUri: v })
+                  })
+                ])
+              ])]),
+              div({ style: { color: colors.dark(), gridColumn: '1 / 7' } }, [
                 h(LabeledCheckbox, {
                   checked: !!numberOfWorkers,
                   onChange: v => this.setState({
@@ -358,10 +357,8 @@ export class NewClusterModal extends PureComponent {
                     numberOfPreemptibleWorkers: 0
                   })
                 }, ' Configure as Spark cluster')
-              ])
-            ]),
-            !!numberOfWorkers && h(Fragment, [
-              div({ style: styles.row }, [
+              ]),
+              !!numberOfWorkers && h(Fragment, [
                 h(IdContainer, [id => h(Fragment, [
                   label({
                     htmlFor: id,
@@ -385,7 +382,7 @@ export class NewClusterModal extends PureComponent {
                 h(IdContainer, [id => h(Fragment, [
                   label({
                     htmlFor: id,
-                    style: { ...styles.labelCol, ...styles.label}
+                    style: { ...styles.labelCol, ...styles.label }
                   }, 'Preemptible'),
                   div([
                     h(NumberInput, {
@@ -399,9 +396,8 @@ export class NewClusterModal extends PureComponent {
                       onChange: v => this.setState({ numberOfPreemptibleWorkers: v })
                     })
                   ])
-                ])])
-              ]),
-              div({ style: { marginTop: '1rem' } }, [
+                ])]),
+                div({ style: { gridColumnEnd: 'span 2' } }),
                 h(MachineSelector, {
                   machineType: workerMachineType,
                   onChangeMachineType: v => this.setState({ workerMachineType: v }),
