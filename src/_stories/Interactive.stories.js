@@ -1,9 +1,7 @@
-
 import { action } from '@storybook/addon-actions'
 import { boolean, object, text, withKnobs } from '@storybook/addon-knobs'
-import { storiesOf } from '@storybook/react'
 import _ from 'lodash/fp'
-import { div, h } from 'react-hyperscript-helpers'
+import { h } from 'react-hyperscript-helpers'
 import Interactive from 'src/components/Interactive'
 
 
@@ -49,9 +47,13 @@ const SingleHover = () => {
 const NestedHover = () => {
   const items = _.times(n => {
     const clickable = boolean(`Clickable ${containerLevel[n]}`, false)
-    const onClick = clickable ? (() => action(`Click ${containerLevel[n]} was fired`)()) : undefined
+    const enterKey = boolean(`Keyable ${containerLevel[n]}`, false)
+    const onClick = clickable ? action(`Click ${containerLevel[n]} was fired`) : undefined
+    const onKeyDown = enterKey ? action(`KeyDown ${containerLevel[n]} was fired`) : undefined
+
     return {
       disabled: boolean(`Disabled ${containerLevel[n]}`, false),
+      onKeyDown,
       onClick,
       style: {
         cursor: text(`Cursor style ${containerLevel[n]}`, 'initial'),
@@ -76,7 +78,7 @@ const NestedHover = () => {
   const inner2Props = items[2]
 
   return h(Interactive, _.merge({
-    as: div,
+    as: 'div',
     ...containerProps
   }, { style: { height: '200px', width: '200px', border: '1px solid black', padding: '1rem' } }), [
     'Container',
