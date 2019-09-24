@@ -6,8 +6,10 @@ import { ButtonPrimary, ButtonSecondary, Clickable, IdContainer, LabeledCheckbox
 import { icon } from 'src/components/icons'
 import { NumberInput, TextInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
+import { withModalDrawer } from 'src/components/ModalDrawer'
 import { notify } from 'src/components/Notifications.js'
 import { Popup } from 'src/components/PopupTrigger'
+import TitleBar from 'src/components/TitleBar'
 import { machineTypes, profiles } from 'src/data/clusters'
 import { Ajax, ajaxCaller } from 'src/libs/ajax'
 import { clusterCost, currentCluster, machineConfigCost, normalizeMachineConfig, trimClustersOldestFirst } from 'src/libs/cluster-utils'
@@ -34,28 +36,10 @@ const styles = {
     alignItems: 'center',
     marginTop: '1rem'
   },
-  col1: {
-    width: 80
-  },
-  col2: {
-    width: 120
-  },
-  col3: {
-    width: 100
-  },
   label: {
     fontSize: 12,
     fontWeight: 'bold'
   },
-  smallInput: {
-    width: 80
-  },
-  smallSelect: base => ({
-    ...base,
-    width: 85,
-    display: 'inline-block',
-    verticalAlign: 'middle'
-  }),
   warningBox: {
     fontSize: 12,
     backgroundColor: colors.warning(0.1),
@@ -63,9 +47,7 @@ const styles = {
     borderTop: `1px solid ${colors.warning()}`,
     borderBottom: `1px solid ${colors.warning()}`,
     padding: '1rem',
-    marginTop: '1rem',
-    marginLeft: '-1.25rem',
-    marginRight: '-1.25rem'
+    margin: '1rem -1.5rem 0 -1.5rem'
   },
   divider: {
     marginTop: '1rem',
@@ -87,60 +69,45 @@ const machineConfigsEqual = (a, b) => {
 
 const MachineSelector = ({ machineType, onChangeMachineType, diskSize, onChangeDiskSize, readOnly }) => {
   const { cpu: currentCpu, memory: currentMemory } = _.find({ name: machineType }, machineTypes)
-  return div([
-    div({ style: styles.row }, [
-      h(IdContainer, [id => h(Fragment, [
-        label({ htmlFor: id, style: { ...styles.col1, ...styles.label } }, 'CPUs'),
-        div({ style: styles.col2 }, [
-          readOnly ?
-            currentCpu :
-            h(Select, {
-              id,
-              styles: { container: styles.smallSelect },
-              isSearchable: false,
-              value: currentCpu,
-              onChange: ({ value }) => onChangeMachineType(_.find({ cpu: value }, machineTypes).name),
-              options: _.uniq(_.map('cpu', machineTypes))
-            })
-        ])
-      ])]),
-      h(IdContainer, [id => h(Fragment, [
-        label({ htmlFor: id, style: { ...styles.col3, ...styles.label } }, 'Disk size'),
-        div([
-          readOnly ?
-            diskSize :
-            h(NumberInput, {
-              id,
-              style: styles.smallInput,
-              min: 10,
-              max: 64000,
-              isClearable: false,
-              onlyInteger: true,
-              value: diskSize,
-              onChange: onChangeDiskSize
-            }),
-          ' GB'
-        ])
-      ])])
-    ]),
-    h(IdContainer, [id => div({ style: styles.row }, [
-      label({ htmlFor: id, style: { ...styles.col1, ...styles.label } }, 'Memory'),
-      div({ style: styles.col2 }, [
-        readOnly ?
-          currentMemory :
-          h(Select, {
-            id,
-            styles: { container: styles.smallSelect },
-            isSearchable: false,
-            value: currentMemory,
-            onChange: ({ value }) => onChangeMachineType(_.find({ cpu: currentCpu, memory: value }, machineTypes).name),
-            options: _.map(
-              'memory',
-              _.sortBy('memory', _.filter({ cpu: currentCpu }, machineTypes))
-            )
-          }),
-        ' GB'
+  return h(Fragment, [
+    h(IdContainer, [id => h(Fragment, [
+      label({ htmlFor: id, style: styles.label }, 'CPUs'),
+      div([
+        h(Select, {
+          isDisabled: readOnly,
+          id,
+          isSearchable: false,
+          value: currentCpu,
+          onChange: ({ value }) => onChangeMachineType(_.find({ cpu: value }, machineTypes).name),
+          options: _.uniq(_.map('cpu', machineTypes))
+        })
       ])
+    ])]),
+    h(IdContainer, [id => h(Fragment, [
+      label({ htmlFor: id, style: styles.label }, 'Memory in GB'),
+      div([
+        h(Select, {
+          isDisabled: readOnly,
+          id,
+          isSearchable: false,
+          value: currentMemory,
+          onChange: ({ value }) => onChangeMachineType(_.find({ cpu: currentCpu, memory: value }, machineTypes).name),
+          options: _.map('memory', _.sortBy('memory', _.filter({ cpu: currentCpu }, machineTypes)))
+        })
+      ])
+    ])]),
+    h(IdContainer, [id => h(Fragment, [
+      label({ htmlFor: id, style: styles.label }, 'Disk size in GB'),
+      h(NumberInput, {
+        disabled: readOnly,
+        id,
+        min: 10,
+        max: 64000,
+        isClearable: false,
+        onlyInteger: true,
+        value: diskSize,
+        onChange: onChangeDiskSize
+      })
     ])])
   ])
 }
@@ -152,11 +119,11 @@ const ClusterIcon = ({ shape, onClick, disabled, style, ...props }) => {
   }, [icon(shape, { size: 20 })])
 }
 
-export class NewClusterModal extends PureComponent {
+export const NewClusterModal = withModalDrawer({ width: 650 })(class NewClusterModal extends PureComponent {
   static propTypes = {
     currentCluster: PropTypes.object,
     namespace: PropTypes.string.isRequired,
-    onCancel: PropTypes.func.isRequired,
+    onDismiss: PropTypes.func.isRequired,
     onSuccess: PropTypes.func.isRequired
   }
 
@@ -198,137 +165,147 @@ export class NewClusterModal extends PureComponent {
   }
 
   render() {
-    const { currentCluster, onCancel } = this.props
+    const { currentCluster, onDismiss } = this.props
     const { profile, masterMachineType, masterDiskSize, workerMachineType, numberOfWorkers, numberOfPreemptibleWorkers, workerDiskSize, jupyterUserScriptUri } = this.state
     const changed = !currentCluster ||
       currentCluster.status === 'Error' ||
       !machineConfigsEqual(this.getMachineConfig(), currentCluster.machineConfig) ||
       jupyterUserScriptUri
-    return h(Modal, {
-      title: 'Runtime environment',
-      onDismiss: onCancel,
-      okButton: h(ButtonPrimary, { disabled: !changed, onClick: () => this.createCluster() }, currentCluster ? 'Update' : 'Create')
-    }, [
-      h(IdContainer, [id => div({ style: styles.row }, [
-        label({ htmlFor: id, style: { ...styles.col1, ...styles.label } }, 'Profile'),
-        div({ style: { flex: 1 } }, [
-          h(Select, {
-            id,
-            value: profile,
-            onChange: ({ value }) => {
-              this.setState({
-                profile: value,
-                ...(value === 'custom' ? {} : normalizeMachineConfig(_.find({ name: value }, profiles).machineConfig))
-              })
-            },
-            isSearchable: false,
-            isClearable: false,
-            options: [
-              ..._.map(({ name, label, machineConfig }) => ({
-                value: name,
-                label: `${label} computer power (${Utils.formatUSD(machineConfigCost(machineConfig))} hr)`
-              }), profiles),
-              { value: 'custom', label: 'Custom' }
-            ]
-          })
-        ])
-      ])]),
-      div([
-        h(MachineSelector, {
-          machineType: masterMachineType,
-          onChangeMachineType: v => this.setState({ masterMachineType: v }),
-          diskSize: masterDiskSize,
-          onChangeDiskSize: v => this.setState({ masterDiskSize: v }),
-          readOnly: profile !== 'custom'
-        })
-      ]),
-      profile === 'custom' && h(Fragment, [
-        h(IdContainer, [id => div({ style: styles.row }, [
-          label({ htmlFor: id, style: { ...styles.col1, ...styles.label } }, 'Startup script'),
-          div({ style: { flex: 1 } }, [
-            h(TextInput, {
-              id,
-              placeholder: 'URI',
-              value: jupyterUserScriptUri,
-              onChange: v => this.setState({ jupyterUserScriptUri: v })
-            })
-          ])
-        ])]),
-        div({ style: styles.row }, [
-          div({ style: styles.col1 }),
-          div([
-            h(LabeledCheckbox, {
-              checked: !!numberOfWorkers,
-              onChange: v => this.setState({
-                numberOfWorkers: v ? 2 : 0,
-                numberOfPreemptibleWorkers: 0
-              })
-            }, ' Configure as Spark cluster')
-          ])
-        ]),
-        !!numberOfWorkers && h(Fragment, [
-          div({ style: styles.row }, [
+    return h(Fragment, [
+      h(TitleBar, {
+        title: 'RUNTIME CONFIGURATION',
+        onDismiss
+      }),
+      div({ style: { padding: '0 1.5rem 1.5rem 1.5rem' } }, [
+        div({
+          style: {
+            padding: '1rem', marginTop: '1rem',
+            backgroundColor: colors.dark(0.15),
+            border: `2px solid ${colors.dark(0.3)}`, borderRadius: '9px'
+          }
+        }, [
+          div({ style: { fontSize: '0.875rem', fontWeight: 600, marginBottom: '0.5rem' } }, ['COMPUTE POWER']),
+          div({ style: { marginBottom: '1rem' } }, ['Select from one of the default compute cluster profiles or define your own']),
+          div({ style: { display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr 1fr 1fr', gridGap: '1rem', alignItems: 'center' } }, [
             h(IdContainer, [id => h(Fragment, [
-              label({ htmlFor: id, style: { ...styles.col1, ...styles.label } }, 'Workers'),
-              div({ style: styles.col2 }, [
-                h(NumberInput, {
+              label({ htmlFor: id, style: styles.label }, 'Profile'),
+              div({ style: { gridColumnEnd: 'span 5' } }, [
+                h(Select, {
                   id,
-                  style: styles.smallInput,
-                  min: 2,
+                  value: profile,
+                  onChange: ({ value }) => {
+                    this.setState({
+                      profile: value,
+                      ...(value === 'custom' ? {} : normalizeMachineConfig(_.find({ name: value }, profiles).machineConfig))
+                    })
+                  },
+                  isSearchable: false,
                   isClearable: false,
-                  onlyInteger: true,
-                  value: numberOfWorkers,
-                  onChange: v => this.setState({
-                    numberOfWorkers: v,
-                    numberOfPreemptibleWorkers: _.min([numberOfPreemptibleWorkers, v])
-                  })
+                  options: [
+                    ..._.map(({ name, label }) => ({ value: name, label: `${label} computer power` }), profiles),
+                    { value: 'custom', label: 'Custom' }
+                  ]
                 })
               ])
             ])]),
-            h(IdContainer, [id => h(Fragment, [
-              label({ htmlFor: id, style: { ...styles.col3, ...styles.label } }, 'Preemptible'),
-              div([
-                h(NumberInput, {
-                  id,
-                  style: styles.smallInput,
-                  min: 0,
-                  max: numberOfWorkers,
-                  isClearable: false,
-                  onlyInteger: true,
-                  value: numberOfPreemptibleWorkers,
-                  onChange: v => this.setState({ numberOfPreemptibleWorkers: v })
+            h(MachineSelector, {
+              machineType: masterMachineType,
+              onChangeMachineType: v => this.setState({ masterMachineType: v }),
+              diskSize: masterDiskSize,
+              onChangeDiskSize: v => this.setState({ masterDiskSize: v }),
+              readOnly: profile !== 'custom'
+            }),
+            profile === 'custom' && h(Fragment, [
+              h(IdContainer, [id => h(Fragment, [
+                label({ htmlFor: id, style: styles.label }, 'Startup script'),
+                div({ style: { gridColumnEnd: 'span 5' } }, [
+                  h(TextInput, {
+                    id,
+                    placeholder: 'URI',
+                    value: jupyterUserScriptUri,
+                    onChange: v => this.setState({ jupyterUserScriptUri: v })
+                  })
+                ])
+              ])]),
+              div({ style: { gridColumnEnd: 'span 6' } }, [
+                h(LabeledCheckbox, {
+                  checked: !!numberOfWorkers,
+                  onChange: v => this.setState({
+                    numberOfWorkers: v ? 2 : 0,
+                    numberOfPreemptibleWorkers: 0
+                  })
+                }, ' Configure as Spark cluster')
+              ]),
+              !!numberOfWorkers && h(Fragment, [
+                h(IdContainer, [id => h(Fragment, [
+                  label({ htmlFor: id, style: styles.label }, 'Workers'),
+                  h(NumberInput, {
+                    id,
+                    min: 2,
+                    isClearable: false,
+                    onlyInteger: true,
+                    value: numberOfWorkers,
+                    onChange: v => this.setState({
+                      numberOfWorkers: v,
+                      numberOfPreemptibleWorkers: _.min([numberOfPreemptibleWorkers, v])
+                    })
+                  })
+                ])]),
+                h(IdContainer, [id => h(Fragment, [
+                  label({
+                    htmlFor: id,
+                    style: styles.label
+                  }, 'Preemptible'),
+                  h(NumberInput, {
+                    id,
+                    min: 0,
+                    max: numberOfWorkers,
+                    isClearable: false,
+                    onlyInteger: true,
+                    value: numberOfPreemptibleWorkers,
+                    onChange: v => this.setState({ numberOfPreemptibleWorkers: v })
+                  })
+                ])]),
+                div({ style: { gridColumnEnd: 'span 2' } }),
+                h(MachineSelector, {
+                  machineType: workerMachineType,
+                  onChangeMachineType: v => this.setState({ workerMachineType: v }),
+                  diskSize: workerDiskSize,
+                  onChangeDiskSize: v => this.setState({ workerDiskSize: v })
                 })
               ])
-            ])])
+            ])
           ]),
-          div({ style: { marginTop: '1rem' } }, [
-            h(MachineSelector, {
-              machineType: workerMachineType,
-              onChangeMachineType: v => this.setState({ workerMachineType: v }),
-              diskSize: workerDiskSize,
-              onChangeDiskSize: v => this.setState({ workerDiskSize: v })
-            })
+          div({ style: styles.row }, [
+            div({ style: styles.label }, [
+              `Cost: ${Utils.formatUSD(machineConfigCost(this.getMachineConfig()))} per hour`
+            ])
           ])
-        ])
-      ]),
-      changed ?
-        div({ style: styles.warningBox }, [
+        ]),
+        changed && div({ style: styles.warningBox }, [
           div({ style: styles.label }, ['Caution:']),
-          div([
+          div({ style: { display: 'flex' } }, [
             'Updating a Notebook Runtime environment will delete all existing non-notebook files and ',
             'installed packages. You will be unable to work on the notebooks in this workspace while it ',
             'updates, which can take a few minutes.'
           ])
-        ]) :
-        div({ style: styles.divider }),
-      div({ style: styles.row }, [
-        div({ style: styles.label }, [
-          `Cost: ${Utils.formatUSD(machineConfigCost(this.getMachineConfig()))} per hour`
+        ]),
+        div({ style: { display: 'flex', justifyContent: 'flex-end' } }, [
+          h(ButtonSecondary, {
+            style: { marginTop: '1rem', marginRight: '2rem' },
+            disabled: !changed,
+            onClick: onDismiss
+          }, 'Cancel'),
+          h(ButtonPrimary, {
+            style: { marginTop: '1rem' },
+            disabled: !changed,
+            onClick: () => this.createCluster()
+          }, currentCluster ? 'Update' : 'Create')
         ])
       ])
     ])
   }
-}
+})
 
 export const ClusterErrorModal = ({ cluster, onDismiss }) => {
   const [error, setError] = useState()
@@ -411,7 +388,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
   constructor(props) {
     super(props)
     this.state = {
-      createModalOpen: false,
+      createModalDrawerOpen: false,
       busy: false,
       deleteModalOpen: false
     }
@@ -510,7 +487,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
 
   render() {
     const { namespace, name, clusters, canCompute, refreshClusters } = this.props
-    const { busy, createModalOpen, deleteModalOpen, errorModalOpen, pendingNav } = this.state
+    const { busy, createModalDrawerOpen, deleteModalOpen, errorModalOpen, pendingNav } = this.state
     if (!clusters) {
       return null
     }
@@ -600,12 +577,10 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
             [multiple, () => undefined],
             () => 'Update runtime'
           ),
-          onClick: () => this.setState({ createModalOpen: true }),
+          onClick: () => this.setState({ createModalDrawerOpen: true }),
           disabled: isDisabled
         }, [
-          div({
-            style: { marginLeft: '0.5rem', paddingRight: '0.5rem', color: colors.dark() }
-          }, [
+          div({ style: { marginLeft: '0.5rem', paddingRight: '0.5rem', color: colors.dark() } }, [
             div({ style: { fontSize: 12, fontWeight: 'bold' } }, 'Notebook Runtime'),
             div({ style: { fontSize: 10 } }, [
               span({ style: { textTransform: 'uppercase', fontWeight: 500 } }, currentStatus || 'None'),
@@ -624,11 +599,13 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
           refreshClusters()
         }
       }),
-      createModalOpen && h(NewClusterModal, {
-        namespace, currentCluster,
-        onCancel: () => this.setState({ createModalOpen: false }),
+      h(NewClusterModal, {
+        isOpen: createModalDrawerOpen,
+        namespace,
+        currentCluster,
+        onDismiss: () => this.setState({ createModalDrawerOpen: false }),
         onSuccess: promise => {
-          this.setState({ createModalOpen: false })
+          this.setState({ createModalDrawerOpen: false })
           this.executeAndRefresh(promise)
         }
       }),
