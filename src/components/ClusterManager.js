@@ -127,8 +127,7 @@ const MachineSelector = ({ machineType, onChangeMachineType, diskSize, onChangeD
 const ClusterIcon = ({ shape, onClick, disabled, style, ...props }) => {
   return h(Clickable, {
     style: { color: onClick && !disabled ? colors.accent() : colors.dark(0.7), ...styles.verticalCenter, ...style },
-    onClick,
-    disabled, ...props
+    onClick, disabled, ...props
   }, [icon(shape, { size: 20 })])
 }
 
