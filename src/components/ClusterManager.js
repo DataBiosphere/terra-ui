@@ -40,15 +40,6 @@ const styles = {
     fontSize: 12,
     fontWeight: 'bold'
   },
-  smallInput: {
-    width: 85
-  },
-  smallSelect: base => ({
-    ...base,
-    width: 85,
-    display: 'inline-block',
-    verticalAlign: 'middle'
-  }),
   warningBox: {
     fontSize: 12,
     backgroundColor: colors.warning(0.1),
@@ -85,7 +76,6 @@ const MachineSelector = ({ machineType, onChangeMachineType, diskSize, onChangeD
         h(Select, {
           isDisabled: readOnly,
           id,
-          styles: { container: styles.smallSelect },
           isSearchable: false,
           value: currentCpu,
           onChange: ({ value }) => onChangeMachineType(_.find({ cpu: value }, machineTypes).name),
@@ -99,7 +89,6 @@ const MachineSelector = ({ machineType, onChangeMachineType, diskSize, onChangeD
         h(Select, {
           isDisabled: readOnly,
           id,
-          styles: { container: styles.smallSelect, border: 'solid' },
           isSearchable: false,
           value: currentMemory,
           onChange: ({ value }) => onChangeMachineType(_.find({ cpu: currentCpu, memory: value }, machineTypes).name),
@@ -112,7 +101,6 @@ const MachineSelector = ({ machineType, onChangeMachineType, diskSize, onChangeD
       h(NumberInput, {
         disabled: readOnly,
         id,
-        style: styles.smallInput,
         min: 10,
         max: 64000,
         isClearable: false,
@@ -253,7 +241,6 @@ export const NewClusterModal = withModalDrawer({ width: 650 })(class NewClusterM
                   label({ htmlFor: id, style: styles.label }, 'Workers'),
                   h(NumberInput, {
                     id,
-                    style: styles.smallInput,
                     min: 2,
                     isClearable: false,
                     onlyInteger: true,
@@ -271,7 +258,6 @@ export const NewClusterModal = withModalDrawer({ width: 650 })(class NewClusterM
                   }, 'Preemptible'),
                   h(NumberInput, {
                     id,
-                    style: styles.smallInput,
                     min: 0,
                     max: numberOfWorkers,
                     isClearable: false,
