@@ -6,7 +6,7 @@ import { ButtonPrimary, ButtonSecondary, Clickable, IdContainer, LabeledCheckbox
 import { icon } from 'src/components/icons'
 import { NumberInput, TextInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
-import ModalDrawer from 'src/components/ModalDrawer'
+import ModalDrawer, { withModalDrawer } from 'src/components/ModalDrawer'
 import { notify } from 'src/components/Notifications.js'
 import { Popup } from 'src/components/PopupTrigger'
 import TitleBar from 'src/components/TitleBar'
@@ -169,7 +169,7 @@ const ClusterIcon = ({ shape, onClick, disabled, style, ...props }) => {
   }, [icon(shape, { size: 20 })])
 }
 
-export class NewClusterModal extends PureComponent {
+export const NewClusterModal = withModalDrawer({ width: 650 })(class NewClusterModal extends PureComponent {
   static propTypes = {
     currentCluster: PropTypes.object,
     namespace: PropTypes.string.isRequired,
@@ -218,17 +218,13 @@ export class NewClusterModal extends PureComponent {
   }
 
   render() {
-    const { currentCluster, onCancel } = this.props
+    const { currentCluster, onCancel, isOpen } = this.props
     const { profile, masterMachineType, masterDiskSize, workerMachineType, numberOfWorkers, numberOfPreemptibleWorkers, workerDiskSize, jupyterUserScriptUri } = this.state
     const changed = !currentCluster ||
       currentCluster.status === 'Error' ||
       !machineConfigsEqual(this.getMachineConfig(), currentCluster.machineConfig) ||
       jupyterUserScriptUri
-    return h(ModalDrawer, {
-      isOpen: true,
-      onDismiss: onCancel,
-      width: 650
-    }, [
+    return h(Fragment, [
       h(TitleBar, {
         title: 'RUNTIME CONFIGURATION',
         onDismiss: onCancel
@@ -239,8 +235,6 @@ export class NewClusterModal extends PureComponent {
         }
       },
       [
-        'Choose from four Terra pre-installed runtime environments (e.g. programming languages + packages) ' +
-          'or choose a custom environment, including a previous version of one the pre-installed environments.)',
         div({
           style: {
             padding: '1rem',
@@ -420,7 +414,7 @@ export class NewClusterModal extends PureComponent {
       ])
     ])
   }
-}
+})
 
 export const ClusterErrorModal = ({ cluster, onDismiss }) => {
   const [error, setError] = useState()
@@ -759,7 +753,8 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
           refreshClusters()
         }
       }),
-      createModalDrawerOpen && h(NewClusterModal, {
+      h(NewClusterModal, {
+        isOpen: createModalDrawerOpen,
         namespace,
         currentCluster,
         onCancel: () => this.setState({
