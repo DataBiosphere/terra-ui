@@ -165,7 +165,11 @@ export const NewClusterModal = withModalDrawer({ width: 650 })(class NewClusterM
 
   render() {
     const { currentCluster, onDismiss } = this.props
-    const { profile, masterMachineType, masterDiskSize, workerMachineType, numberOfWorkers, numberOfPreemptibleWorkers, workerDiskSize, jupyterUserScriptUri, leoImageName, viewingPackages } = this.state
+    const {
+      profile, masterMachineType, masterDiskSize, workerMachineType, numberOfWorkers, numberOfPreemptibleWorkers, workerDiskSize,
+      jupyterUserScriptUri, leoImageName,
+      viewingPackages
+    } = this.state
     const { version, updated, packages } = leoImages[leoImageName]
 
     const makeEnvSelect = id => h(Select, {
