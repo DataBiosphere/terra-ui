@@ -4,6 +4,22 @@
 @import "~easymde/dist/easymde.min.css";
 @import "~react-notifications-component/dist/theme.css";
 
+.hover-style:hover {
+  --hover-backgroundColor: var(--app-hover-backgroundColor);
+  --hover-color: var(--app-hover-color);
+  --hover-boxShadow: var(--app-hover-boxShadow);
+  --hover-opacity: var(--app-hover-opacity);
+  --hover-textDecoration: var(--app-hover-textDecoration);
+}
+
+.hover-style:hover .hover-style:not(:hover) {
+  --hover-backgroundColor: initial;
+  --hover-color: initial;
+  --hover-boxShadow: initial;
+  --hover-opacity: initial;
+  --hover-textDecoration: initial;
+}
+
 body, input, textarea, select, button {
   font-family: "Montserrat", sans-serif;
   font-variant-numeric: tabular-nums;
