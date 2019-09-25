@@ -27,7 +27,7 @@ export const findPotentialNotebookLockers = async (canShare, namespace, wsName, 
     const potentialLockers = _.flow(
       _.toPairs,
       _.map(([email, data]) => ({ email, ...data })),
-      _.filter(({ accessLevel }) => _.includes(accessLevel, ['OWNER', 'PROJECT_OWNER', 'WRITER'])),
+      _.filter(({ accessLevel }) => _.includes(accessLevel, ['OWNER', 'PROJECT_OWNER', 'WRITER']))
     )(acl)
     const lockHolderPromises = _.map(async ({ email }) => ({ [await notebookLockHash(bucketName, email)]: email }), potentialLockers)
     return _.mergeAll(await Promise.all(lockHolderPromises))
