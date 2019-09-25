@@ -3,15 +3,16 @@ import * as qs from 'qs'
 import { Fragment, useState } from 'react'
 import FocusLock from 'react-focus-lock'
 import { div, h, img, input, label, span } from 'react-hyperscript-helpers'
-import Interactive from 'react-interactive'
 import RSelect from 'react-select'
 import RAsyncCreatableSelect from 'react-select/async-creatable'
+import RSwitch from 'react-switch'
 import { centeredSpinner, icon } from 'src/components/icons'
+import Interactive from 'src/components/Interactive'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import hexButton from 'src/images/hex-button.svg'
 import scienceBackground from 'src/images/science-background.jpg'
 import { Ajax, useCancellation } from 'src/libs/ajax'
-import colors from 'src/libs/colors'
+import colors, { terraSpecial } from 'src/libs/colors'
 import { getConfig, isTerra } from 'src/libs/config'
 import { returnParam } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
@@ -24,6 +25,23 @@ const styles = {
     display: 'inline-flex', justifyContent: 'space-around', alignItems: 'center', height: '2.25rem',
     fontWeight: 500, fontSize: 14, textTransform: 'uppercase', whiteSpace: 'nowrap',
     userSelect: 'none'
+  },
+  tabBar: {
+    container: {
+      display: 'flex', alignItems: 'center',
+      fontWeight: 400, textTransform: 'uppercase',
+      height: '2.25rem',
+      borderBottom: `1px solid ${terraSpecial()}`, flex: ''
+    },
+    tab: {
+      flex: 'none', outlineOffset: -4, marginRight: '1rem',
+      alignSelf: 'stretch', display: 'flex', justifyContent: 'center', alignItems: 'center',
+      borderBottomWidth: 8, borderBottomStyle: 'solid', borderBottomColor: 'transparent'
+    },
+    active: {
+      borderBottomColor: terraSpecial(),
+      fontWeight: 600
+    }
   }
 }
 
@@ -93,7 +111,6 @@ export const ButtonOutline = ({ disabled, children, ...props }) => {
   }, props), [children])
 }
 
-
 export const makeIconButton = (shape, { disabled, size, iconProps = {}, ...props } = {}) => {
   return h(Clickable, _.merge({
     as: 'span',
@@ -130,6 +147,22 @@ export const TabBar = ({ activeTab, tabNames, refresh = _.noop, getHref, childre
     ..._.map(name => navTab(name), tabNames),
     div({ style: { flexGrow: 1 } }),
     children
+  ])
+}
+
+export const SimpleTabBar = ({ value, onChange, tabs }) => {
+  return div({ style: styles.tabBar.container }, [
+    _.map(({ key, title }) => {
+      const selected = value === key
+      return h(Clickable, {
+        key,
+        style: { ...styles.tabBar.tab, ...(selected ? styles.tabBar.active : {}) },
+        hover: selected ? {} : styles.tabBar.hover,
+        onClick: () => {
+          onChange(key)
+        }
+      }, [title])
+    }, tabs)
   ])
 }
 
@@ -357,4 +390,25 @@ export const CromwellVersionLink = props => {
       ...props
     }, ['Cromwell ', version]) :
     'Cromwell version loading...'
+}
+
+const SwitchLabel = ({ isOn }) => div({
+  style: {
+    display: 'flex', justifyContent: isOn ? 'flex-start' : 'flex-end',
+    fontSize: 15, fontWeight: 'bold', color: 'white',
+    height: '100%', lineHeight: '28px',
+    ...(isOn ? { marginLeft: '0.75rem' } : { marginRight: '0.5rem' })
+  }
+}, [isOn ? 'True' : 'False'])
+
+export const Switch = ({ onChange, ...props }) => {
+  return h(RSwitch, {
+    onChange: value => onChange(value),
+    offColor: colors.dark(0.5),
+    onColor: colors.success(1.2),
+    checkedIcon: h(SwitchLabel, { isOn: true }),
+    uncheckedIcon: h(SwitchLabel, { isOn: false }),
+    width: 80,
+    ...props
+  })
 }

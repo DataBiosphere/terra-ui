@@ -433,7 +433,10 @@ const attributesUpdateOps = _.flow(
     return _.isArray(v) ?
       [
         { op: 'RemoveAttribute', attributeName: k },
-        { op: 'CreateAttributeValueList', attributeName: k },
+        ...(_.isObject(v[0]) ?
+          [{ op: 'CreateAttributeEntityReferenceList', attributeListName: k }] :
+          [{ op: 'CreateAttributeValueList', attributeName: k }]
+        ),
         ..._.map(x => ({ op: 'AddListMember', attributeListName: k, newMember: x }), v)
       ] :
       [{ op: 'AddUpdateAttribute', attributeName: k, addUpdateAttribute: v }]
@@ -464,6 +467,14 @@ const Workspaces = signal => ({
   workspace: (namespace, name) => {
     const root = `workspaces/${namespace}/${name}`
     const mcPath = `${root}/methodconfigs`
+
+    const upsertEntities = entities => {
+      const body = _.map(({ name, entityType, attributes }) => {
+        return { name, entityType, operations: attributesUpdateOps(attributes) }
+      }, entities)
+
+      return fetchRawls(`${root}/entities/batchUpsert`, _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }]))
+    }
 
     return {
       checkBucketReadAccess: () => {
@@ -602,6 +613,18 @@ const Workspaces = signal => ({
         return res.json()
       },
 
+      renameEntity: (type, name, newName) => {
+        return fetchRawls(`${root}/entities/${type}/${name}/rename`, _.mergeAll([authOpts(), jsonBody({ name: newName }),
+          { signal, method: 'POST' }]))
+      },
+
+      deleteEntityAttribute: (type, name, attributeName) => {
+        return fetchRawls(`${root}/entities/${type}/${name}`, _.mergeAll([authOpts(), jsonBody([{ op: 'RemoveAttribute', attributeName }]),
+          { signal, method: 'PATCH' }]))
+      },
+
+      upsertEntities,
+
       entitiesOfType: async type => {
         const res = await fetchRawls(`${root}/entities/${type}`, _.merge(authOpts(), { signal }))
         return res.json()
@@ -638,10 +661,8 @@ const Workspaces = signal => ({
       importJSON: async url => {
         const res = await fetchOk(url)
         const payload = await res.json()
-        const body = _.map(({ name, entityType, attributes }) => {
-          return { name, entityType, operations: attributesUpdateOps(attributes) }
-        }, payload)
-        return fetchRawls(`${root}/entities/batchUpsert`, _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }]))
+
+        return upsertEntities(payload)
       },
 
       importEntitiesFile: file => {

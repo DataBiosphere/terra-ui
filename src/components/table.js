@@ -4,12 +4,12 @@ import PropTypes from 'prop-types'
 import { Component, createRef, Fragment } from 'react'
 import Draggable from 'react-draggable'
 import { button, div, h, label, option, select } from 'react-hyperscript-helpers'
-import Interactive from 'react-interactive'
 import Pagination from 'react-paginating'
 import { SortableContainer, SortableElement, SortableHandle } from 'react-sortable-hoc'
 import { AutoSizer, Grid as RVGrid, List, ScrollSync as RVScrollSync } from 'react-virtualized'
 import { ButtonPrimary, Checkbox, Clickable, IdContainer, Link } from 'src/components/common'
 import { icon } from 'src/components/icons'
+import Interactive from 'src/components/Interactive'
 import Modal from 'src/components/Modal'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import colors from 'src/libs/colors'
@@ -247,6 +247,7 @@ export class FlexTable extends Component {
             ..._.map(([i, { size, cellRenderer }]) => {
               return div({
                 key: i,
+                className: 'table-cell',
                 style: { ...styles.flexCell(size), ...styles.cell(i * 1, columns.length) }
               }, [cellRenderer(data)])
             }, _.toPairs(columns))
@@ -331,6 +332,7 @@ export class GridTable extends Component {
             cellRenderer: data => {
               return div({
                 key: data.key,
+                className: 'table-cell',
                 style: { ...data.style, ...styles.header(data.columnIndex, columns.length) }
               }, [
                 columns[data.columnIndex].headerRenderer(data)
@@ -354,6 +356,7 @@ export class GridTable extends Component {
             cellRenderer: data => {
               return div({
                 key: data.key,
+                className: 'table-cell',
                 style: {
                   ...data.style,
                   ...styles.cell(data.columnIndex, columns.length),
@@ -396,6 +399,7 @@ export const SimpleTable = ({ columns, rows }) => {
         _.map(({ key, size }) => {
           return div({
             key,
+            className: 'table-cell',
             style: {
               ...cellStyles, ...styles.flexCell(size),
               borderTop: `1px solid ${colors.dark(0.2)}`

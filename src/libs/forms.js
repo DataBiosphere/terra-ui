@@ -15,15 +15,9 @@ const styles = {
 }
 
 
-export const FormLabel = ({ style = {}, children, ...props }) => {
-  return label({ ...props, style: { ...styles.formLabel, ...style } }, [children])
+export const FormLabel = ({ style = {}, required = false, children, ...props }) => {
+  return label({ ...props, style: { ...styles.formLabel, ...style } }, [children, required && ' *'])
 }
-
-
-export const RequiredFormLabel = ({ style = {}, children, ...props }) => {
-  return label({ ...props, style: { ...styles.formLabel, ...style } }, [children, ' *'])
-}
-
 
 export const formHint = text => {
   return div({ style: styles.formHint }, [text])

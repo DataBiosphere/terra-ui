@@ -108,9 +108,10 @@ const NotebookLauncher = _.flow(
         ]),
       mode && h(ClusterKicker, { cluster, refreshClusters, onNullCluster: () => { setCreateOpen(true) } }),
       mode && h(ClusterStatusMonitor, { cluster, onClusterStoppedRunning: () => { chooseMode(undefined) } }),
-      createOpen && h(NewClusterModal, {
+      h(NewClusterModal, {
+        isOpen: createOpen,
         namespace, currentCluster: cluster,
-        onCancel: () => {
+        onDismiss: () => {
           chooseMode(undefined)
           setCreateOpen(false)
         },
