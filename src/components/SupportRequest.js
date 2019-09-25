@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import { Component, Fragment } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
-import { ButtonPrimary, ButtonSecondary, Clickable, Link, Select, spinnerOverlay } from 'src/components/common'
+import { ButtonPrimary, ButtonSecondary, Clickable, IdContainer, Link, Select, spinnerOverlay } from 'src/components/common'
 import Dropzone from 'src/components/Dropzone'
 import { icon } from 'src/components/icons'
 import { TextArea, TextInput } from 'src/components/input'
@@ -123,35 +123,45 @@ const SupportRequest = _.flow(
       }, [({ dragging, openUploader }) => div({ style: { padding: '1rem' } }, [
         div({ style: { fontSize: 18, fontWeight: 'bold', color: colors.dark() } }, ['Contact Us']),
         !this.hasName() && h(Fragment, [
-          h(FormLabel, { required: true }, ['Name']),
-          h(TextInput, {
-            placeholder: 'What should we call you?',
-            autoFocus: true,
-            value: nameEntered,
-            onChange: v => this.setState({ nameEntered: v })
-          })
+          h(IdContainer, [id => h(Fragment, [
+            h(FormLabel, { required: true, htmlFor: id }, ['Name']),
+            h(TextInput, {
+              id,
+              placeholder: 'What should we call you?',
+              autoFocus: true,
+              value: nameEntered,
+              onChange: v => this.setState({ nameEntered: v })
+            })
+          ])])
         ]),
-        h(FormLabel, { required: true }, ['Type']),
-        h(Select, {
-          isMulti: false,
-          value: type,
-          onChange: ({ value }) => this.setState({ type: value }),
-          options: [
-            { value: 'question', label: 'Question' },
-            { value: 'bug', label: 'Bug' },
-            { value: 'feature_request', label: 'Feature Request' }
-          ]
-        }),
-        h(FormLabel, { required: true }, [`How can we help you${greetUser}?`]),
-        h(TextInput, {
-          style: { borderBottomLeftRadius: 0, borderBottomRightRadius: 0, borderBottomStyle: 'dashed' },
-          placeholder: 'Enter a subject',
-          autoFocus: this.hasName(),
-          value: subject,
-          onChange: v => this.setState({ subject: v })
-        }),
+        h(IdContainer, [id => h(Fragment, [
+          h(FormLabel, { required: true, htmlFor: id }, ['Type']),
+          h(Select, {
+            id,
+            isMulti: false,
+            value: type,
+            onChange: ({ value }) => this.setState({ type: value }),
+            options: [
+              { value: 'question', label: 'Question' },
+              { value: 'bug', label: 'Bug' },
+              { value: 'feature_request', label: 'Feature Request' }
+            ]
+          })
+        ])]),
+        h(IdContainer, [id => h(Fragment, [
+          h(FormLabel, { required: true, htmlFor: id }, [`How can we help you${greetUser}?`]),
+          h(TextInput, {
+            id,
+            style: { borderBottomLeftRadius: 0, borderBottomRightRadius: 0, borderBottomStyle: 'dashed' },
+            placeholder: 'Enter a subject',
+            autoFocus: this.hasName(),
+            value: subject,
+            onChange: v => this.setState({ subject: v })
+          })
+        ])]),
         h(TextArea, {
           style: { height: 200, borderTopLeftRadius: 0, borderTopRightRadius: 0, borderTopStyle: 'dashed' },
+          'aria-label': 'Enter a description',
           placeholder: 'Enter a description',
           value: description,
           onChange: v => this.setState({ description: v })
@@ -189,12 +199,15 @@ const SupportRequest = _.flow(
             ])
           ]),
         uploadingFile && spinnerOverlay,
-        h(FormLabel, { required: true }, ['Contact email']),
-        h(TextInput, {
-          value: email,
-          placeholder: 'Enter your email address',
-          onChange: v => this.setState({ email: v })
-        }),
+        h(IdContainer, [id => h(Fragment, [
+          h(FormLabel, { required: true, htmlFor: id }, ['Contact email']),
+          h(TextInput, {
+            id,
+            value: email,
+            placeholder: 'Enter your email address',
+            onChange: v => this.setState({ email: v })
+          })
+        ])]),
         submitError && div({ style: { marginTop: '0.5rem', textAlign: 'right', color: colors.danger() } }, [submitError]),
         submitting && spinnerOverlay,
         div({ style: styles.buttonRow }, [
