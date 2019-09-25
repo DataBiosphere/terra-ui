@@ -10,7 +10,7 @@ import * as Style from 'src/libs/style'
 import EntitySelectionType from 'src/pages/workspaces/workspace/workflows/EntitySelectionType'
 
 
-const { processAll, processFromSet, chooseRows, chooseSet } = EntitySelectionType
+const { processAll, processMergedSet, chooseRows, chooseSets } = EntitySelectionType
 
 export default class DataStepContent extends Component {
   static propTypes = {
@@ -46,7 +46,10 @@ export default class DataStepContent extends Component {
     const selectionSize = _.size(selectedEntities)
 
     return selectionSize === 1 ||
-      (!!newSetName && (type === processAll || (selectionSize > 1 && (type === chooseRows || selectionSize <= 10))))
+      (type === processAll && !!newSetName) ||
+      (type === chooseRows && !!newSetName && selectionSize > 1) ||
+      (type === chooseSets && selectionSize > 1 && selectionSize <= 10) ||
+      (type === processMergedSet && !!newSetName && selectionSize > 1)
   }
 
   render() {
@@ -64,14 +67,14 @@ export default class DataStepContent extends Component {
     const hasSet = _.has(setType, entityMetadata)
 
     const isProcessAll = type === processAll
-    const isProcessFromSet = type === processFromSet
+    const isProcessMergedSet = type === processMergedSet
     const isChooseRows = type === chooseRows
-    const isChooseSet = type === chooseSet
+    const isChooseSets = type === chooseSets
 
     return h(Modal, {
       title: 'Select Data',
       okButton: h(ButtonPrimary, {
-        tooltip: isChooseSet && _.size(selectedEntities) > 10 && 'Please select 10 or fewer sets',
+        tooltip: isChooseSets && _.size(selectedEntities) > 10 && 'Please select 10 or fewer sets',
         disabled: !this.isValidSelectionModel(),
         onClick: () => onSuccess(entitySelectionModel)
       }, 'OK'),
@@ -108,8 +111,8 @@ export default class DataStepContent extends Component {
             h(RadioButton, {
               text: 'Choose existing sets',
               name: 'process-rows',
-              checked: isProcessFromSet,
-              onChange: () => this.setEntitySelectionModel({ type: processFromSet, selectedEntities: {} }),
+              checked: isProcessMergedSet,
+              onChange: () => this.setEntitySelectionModel({ type: processMergedSet, selectedEntities: {} }),
               labelStyle: { marginLeft: '0.75rem' }
             })
           ])
@@ -122,7 +125,7 @@ export default class DataStepContent extends Component {
         }, [
           h(DataTable, {
             key: type.description,
-            entityType: isProcessFromSet ? setType : rootEntityType,
+            entityType: isProcessMergedSet ? setType : rootEntityType,
             entityMetadata, workspaceId, columnDefaults,
             selectionModel: {
               type: 'multiple',
@@ -131,10 +134,10 @@ export default class DataStepContent extends Component {
           })
         ]),
         (isProcessAll ||
-          ((isChooseRows || isProcessFromSet) && _.size(selectedEntities) > 1)) && h(IdContainer, [id => div({
+          ((isChooseRows || isProcessMergedSet) && _.size(selectedEntities) > 1)) && h(IdContainer, [id => div({
           style: { marginTop: '1rem' }
         }, [
-          label({ htmlFor: id }, [`Selected rows will ${isProcessFromSet ? 'have their membership combined into' : 'be saved as'} a new set named:`]),
+          label({ htmlFor: id }, [`Selected rows will ${isProcessMergedSet ? 'have their membership combined into' : 'be saved as'} a new set named:`]),
           h(TextInput, {
             id,
             style: { width: 500, marginLeft: '0.25rem' },

@@ -57,7 +57,7 @@ export default ajaxCaller(class LaunchAnalysisModal extends Component {
         h(ButtonPrimary, { onClick: onDismiss }, ['OK'])
     }, [
       div({ style: { margin: '1rem 0' } }, ['This analysis will be run by ', h(CromwellVersionLink), '.']),
-      type === EntitySelectionType.chooseSet && entityCount > 1 && div({ style: { margin: '1rem 0' } }, [
+      type === EntitySelectionType.chooseSets && entityCount > 1 && div({ style: { margin: '1rem 0' } }, [
         `This will launch ${entityCount} analyses simultaneously.`
       ]),
       (message || multiLaunchCompletions !== undefined) && div({ style: { display: 'flex' } }, [
@@ -109,7 +109,7 @@ export default ajaxCaller(class LaunchAnalysisModal extends Component {
       } else {
         this.createSetAndLaunch(entities)
       }
-    } else if (type === EntitySelectionType.processFromSet) {
+    } else if (type === EntitySelectionType.processMergedSet) {
       if (_.size(selectedEntities) === 1) {
         const { entityType, name } = selectedEntities[0]
         this.launch(entityType, name, `this.${rootEntityType}s`)
@@ -121,7 +121,7 @@ export default ajaxCaller(class LaunchAnalysisModal extends Component {
 
         this.createSetAndLaunch(entities)
       }
-    } else if (type === EntitySelectionType.chooseSet) {
+    } else if (type === EntitySelectionType.chooseSets) {
       if (_.size(selectedEntities) === 1) {
         this.launch(rootEntityType, selectedEntities['name'])
       } else {
@@ -208,7 +208,7 @@ export default ajaxCaller(class LaunchAnalysisModal extends Component {
 
     if (_.isEmpty(multiLaunchErrors)) {
       onSuccessMulti()
-    } else if (multiLaunchErrors.length === selectedEntities.length) {
+    } else if (multiLaunchErrors.length === _.size(selectedEntities)) {
       this.setState({ multiLaunchErrors, multiLaunchCompletions: undefined })
     } else {
       reportError(`${multiLaunchErrors.length} sets failed to launch`, {
