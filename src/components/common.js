@@ -196,7 +196,6 @@ export const Checkbox = ({ checked, onChange, disabled, ...props }) => {
       color: disabled ? colors.dark(0.4) : checked ? colors.accent() : colors.dark(0.55)
     },
     hover: disabled ? undefined : { color: colors.accent(0.8) },
-    active: disabled ? undefined : { backgroundColor: colors.accent(0.2) },
     disabled
   }, props), [
     icon(checked ? 'checkSquare' : 'square', { size: 16 })
