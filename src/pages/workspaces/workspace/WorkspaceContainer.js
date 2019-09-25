@@ -180,7 +180,9 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
       Utils.withBusyState(setLoadingWorkspace)
     )(async () => {
       try {
-        const workspace = await Ajax(signal).Workspaces.workspace(namespace, name).details()
+        const workspace = await Ajax(signal).Workspaces.workspace(namespace, name).details([
+          'accessLevel', 'canCompute', 'canShare', 'owners', 'workspace', 'workspace.attributes', 'workspaceSubmissionStats'
+        ])
         workspaceStore.set(workspace)
 
         const { accessLevel, workspace: { createdBy, createdDate } } = workspace

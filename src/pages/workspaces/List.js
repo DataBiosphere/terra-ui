@@ -98,7 +98,7 @@ const WorkspaceMenuContent = ({ namespace, name, onClone, onShare, onDelete }) =
   const [workspace, setWorkspace] = useState(undefined)
   const signal = useCancellation()
   const loadWorkspace = withErrorReporting('Error loading workspace', async () => {
-    setWorkspace(await Ajax(signal).Workspaces.workspace(namespace, name).details())
+    setWorkspace(await Ajax(signal).Workspaces.workspace(namespace, name).details(['accessLevel', 'canShare']))
   })
   Utils.useOnMount(() => {
     loadWorkspace()
