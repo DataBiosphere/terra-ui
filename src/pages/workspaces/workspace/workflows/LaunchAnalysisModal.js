@@ -123,7 +123,7 @@ export default ajaxCaller(class LaunchAnalysisModal extends Component {
       }
     } else if (type === EntitySelectionType.chooseSets) {
       if (_.size(selectedEntities) === 1) {
-        this.launch(rootEntityType, selectedEntities['name'])
+        this.launch(rootEntityType, _.values(selectedEntities)[0].name)
       } else {
         this.launchParallel()
       }
