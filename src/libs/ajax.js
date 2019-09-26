@@ -492,8 +492,8 @@ const Workspaces = signal => ({
         return res.json()
       },
 
-      details: async () => {
-        const res = await fetchRawls(root, _.merge(authOpts(), { signal }))
+      details: async fields => {
+        const res = await fetchRawls(`${root}?${qs.stringify({ fields }, { arrayFormat: 'comma' })}`, _.merge(authOpts(), { signal }))
         return res.json()
       },
 
