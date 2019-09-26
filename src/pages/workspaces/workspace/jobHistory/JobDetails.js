@@ -8,6 +8,7 @@ import { centeredSpinner, icon } from 'src/components/icons'
 import StepButtons from 'src/components/StepButtons'
 import { FlexTable } from 'src/components/table'
 import { Ajax, useCancellation } from 'src/libs/ajax'
+import { bucketBrowserUrl } from 'src/libs/auth'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -157,8 +158,17 @@ const JobDetails = wrapWorkspace({
                     {
                       size: { basis: 100, grow: 0 },
                       headerRenderer: () => 'Information',
-                      cellRenderer: () => {
-                        return div()
+                      cellRenderer: ({rowIndex}) => {
+                        const gsUri = callFailures[rowIndex].attempt.callRoot
+                        console.log(gsUri)
+                        return div([
+                          h(Link, {
+                            tooltip: 'Open execution directory in cloud console',
+                            'aria-label': 'Open execution directory in cloud console',
+                            ...Utils.newTabLinkProps,
+                            href: bucketBrowserUrl(gsUri.match(/gs:\/\/(.+)/)[1])
+                          }, [icon('folder')])
+                        ])
                       }
                     }
                   ]
