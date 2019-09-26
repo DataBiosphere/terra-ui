@@ -38,8 +38,7 @@ const JobDetails = wrapWorkspace({
   const { workflowName, id, workflowRoot, inputs, outputs, labels, status, end, start, failures, calls: callsObj } = workflowData || {}
 
   const cache = Utils.useInstance(() => new CellMeasurerCache({
-    defaultHeight: 100,
-    minHeight: 75,
+    minHeight: 10,
     fixedWidth: true
   }))
 
@@ -127,10 +126,12 @@ const JobDetails = wrapWorkspace({
           }],
           ['errors', () => {
             return div({ style: { height: 500 } }, [
-              h(AutoSizer, [
+              h(AutoSizer, { onResize: () => {} }, [
                 ({ width, height }) => h(FlexTable, {
                   width, height,
+                  deferredMeasurementCache: cache,
                   rowCount: callFailures.length,
+                  rowHeight: cache.rowHeight,
                   columns: [
                     {
                       headerRenderer: () => 'Task Name',
@@ -148,14 +149,10 @@ const JobDetails = wrapWorkspace({
                       headerRenderer: () => 'Message',
                       cellRenderer: ({ rowIndex, parent }) => {
                         const { failures } = callFailures[rowIndex].attempt
-                        return h(CellMeasurer, { cache, columnIndex: 0, parent, rowIndex },
-                          [])
-
+                        return h(CellMeasurer, { cache, columnIndex: 0, parent, rowIndex }, [
+                          div({ style: { padding: '0.5rem 0' } }, [_.map('message', failures).join(' ')])
+                        ])
                       }
-                      // cellRenderer: ({ rowIndex }) => {
-                      //   const { failures } = callFailures[rowIndex].attempt
-                      //   return _.map('message', failures).join(' ')
-                      // }
                     }
                   ]
                 })

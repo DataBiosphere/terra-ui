@@ -207,7 +207,7 @@ export class FlexTable extends Component {
   }
 
   render() {
-    const { width, height, rowCount, styleRow, columns, hoverHighlight, onScroll, noContentMessage } = this.props
+    const { width, height, rowCount, styleRow, columns, hoverHighlight, onScroll, noContentMessage, ...props } = this.props
     const { scrollbarSize } = this.state
 
     return div([
@@ -255,7 +255,8 @@ export class FlexTable extends Component {
         },
         style: { outline: 'none' },
         onScroll: ({ scrollTop }) => onScroll(scrollTop),
-        noContentRenderer: () => div({ style: { marginTop: '1rem', textAlign: 'center', fontStyle: 'italic' } }, [noContentMessage])
+        noContentRenderer: () => div({ style: { marginTop: '1rem', textAlign: 'center', fontStyle: 'italic' } }, [noContentMessage]),
+        ...props
       })
     ])
   }
