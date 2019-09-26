@@ -253,7 +253,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
             }
           }, [
             div({ style: { fontSize: '0.875rem', fontWeight: 600, marginBottom: '0.5rem' } }, ['COMPUTE POWER']),
-            div({ style: { marginBottom: '1rem' } }, ['Select from one of the default compute cluster profiles or define your own']),
+            div({ style: { marginBottom: '1rem' } }, ['Select from one of the compute runtime profiles or define your own']),
             div({ style: { display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1.2fr 1fr 5.5rem', gridGap: '1rem', alignItems: 'center' } }, [
               h(IdContainer, [id => h(Fragment, [
                 label({ htmlFor: id, style: styles.label }, 'Profile'),
