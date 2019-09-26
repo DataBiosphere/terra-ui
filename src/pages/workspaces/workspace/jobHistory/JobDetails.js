@@ -153,6 +153,13 @@ const JobDetails = wrapWorkspace({
                           div({ style: { padding: '0.5rem 0' } }, [_.map('message', failures).join(' ')])
                         ])
                       }
+                    },
+                    {
+                      size: { basis: 100, grow: 0 },
+                      headerRenderer: () => 'Information',
+                      cellRenderer: () => {
+                        return div()
+                      }
                     }
                   ]
                 })
