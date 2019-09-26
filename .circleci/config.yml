@@ -145,9 +145,10 @@ jobs:
             - deps2-
       - run: npx npm@6.11 ci
       - run: npx npm@6.11 run build
-      - run: cp config/alpha.json build/config.json
-      - run: HOST='https://bvdp-saturn-alpha.appspot.com/' npm run test:integration
-
+      - run: cp config/alpha.json /tmp/workspace/build/config.json
+      - run: npx http-server@0.11 /tmp/workspace/build/ -p 3000 &
+      - run: timeout 30 bash -c "until nc -z localhost 3000; do sleep 3; done"
+      - run: npm run test:integration
 workflows:
   version: 2
   build-deploy:
