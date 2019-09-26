@@ -181,7 +181,9 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
     )(async () => {
       try {
         const workspace = await Ajax(signal).Workspaces.workspace(namespace, name).details([
-          'accessLevel', 'canCompute', 'canShare', 'owners', 'workspace', 'workspace.attributes', 'workspaceSubmissionStats'
+          'accessLevel', 'canCompute', 'canShare', 'owners',
+          'workspace', 'workspace.attributes', 'workspace.authorizationDomain',
+          'workspaceSubmissionStats'
         ])
         workspaceStore.set(workspace)
 
