@@ -60,12 +60,13 @@ const Importer = class Importer extends Component {
   async import_({ namespace, name }) {
     this.setState({ isImporting: true })
     const { queryParams: { url, format } } = this.props
+    const wsAjax = Ajax().Workspaces.workspace(namespace, name)
 
     try {
       await Utils.switchCase(format,
-        ['entitiesJson', () => Ajax().Workspaces.workspace(namespace, name).importEntities(url)],
-        ['PFB', () => Ajax().Workspaces.workspace(namespace, name).importPFB(url)],
-        [Utils.DEFAULT, () => Ajax().Workspaces.workspace(namespace, name).importBagit(url)]
+        ['entitiesJson', () => wsAjax.importJSON(url)],
+        ['PFB', () => wsAjax.importPFB(url)],
+        [Utils.DEFAULT, () => wsAjax.importBagit(url)]
       )
       notify('success', 'Data imported successfully.', { timeout: 3000 })
       Nav.goToPath('workspace-data', { namespace, name })

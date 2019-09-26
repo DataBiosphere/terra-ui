@@ -9,7 +9,7 @@ import { Ajax, ajaxCaller } from 'src/libs/ajax'
 import * as Auth from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
-import { RequiredFormLabel } from 'src/libs/forms'
+import { FormLabel } from 'src/libs/forms'
 import * as StateHistory from 'src/libs/state-history'
 import * as Utils from 'src/libs/utils'
 
@@ -119,7 +119,7 @@ export default ajaxCaller(class ProjectDetail extends Component {
             }, ['Ok'])
           }, [
             h(IdContainer, [id => h(Fragment, [
-              h(RequiredFormLabel, { htmlFor: id }, ['Select billing account']),
+              h(FormLabel, { htmlFor: id, required: true }, ['Select billing account']),
               h(Select, {
                 id,
                 value: selectedBilling || billingAccountName,

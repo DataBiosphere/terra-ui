@@ -7,7 +7,7 @@ import { icon } from 'src/components/icons'
 const TitleBar = ({ onPrevious, title, onDismiss, titleExtras }) => {
   return div({
     style: {
-      display: 'flex', alignItems: 'baseline', marginBottom: '1rem', flex: 'none', padding: '1.5rem'
+      display: 'flex', alignItems: 'baseline', flex: 'none', padding: '1.5rem'
     }
   }, [
     onPrevious && h(Clickable, {

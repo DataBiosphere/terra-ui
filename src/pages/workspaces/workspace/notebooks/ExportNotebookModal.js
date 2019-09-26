@@ -8,7 +8,7 @@ import Modal from 'src/components/Modal'
 import { notebookNameInput, notebookNameValidator } from 'src/components/notebook-utils'
 import { withWorkspaces, WorkspaceSelector } from 'src/components/workspace-utils'
 import { Ajax, ajaxCaller } from 'src/libs/ajax'
-import { RequiredFormLabel } from 'src/libs/forms'
+import { FormLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
 import * as Utils from 'src/libs/utils'
 import validate from 'validate.js'
@@ -70,7 +70,7 @@ export default _.flow(
       }, ['Copy'])
     }, [
       h(IdContainer, [id => h(Fragment, [
-        h(RequiredFormLabel, { htmlFor: id }, ['Destination']),
+        h(FormLabel, { htmlFor: id, required: true }, ['Destination']),
         h(WorkspaceSelector, {
           id,
           workspaces: _.filter(Utils.isValidWsExportTarget(workspace), workspaces),
@@ -82,7 +82,7 @@ export default _.flow(
         })
       ])]),
       h(IdContainer, [id => h(Fragment, [
-        h(RequiredFormLabel, { htmlFor: id }, ['Name']),
+        h(FormLabel, { htmlFor: id, required: true }, ['Name']),
         notebookNameInput({
           error: Utils.summarizeErrors(errors && errors.newName),
           inputProps: {
@@ -145,7 +145,10 @@ export default _.flow(
     const selectedWorkspace = this.getSelectedWorkspace().workspace
     try {
       this.setState({ copying: true })
-      await Ajax().Buckets.notebook(workspace.workspace.namespace, workspace.workspace.bucketName, printName).copy(newName, selectedWorkspace.bucketName)
+      await Ajax()
+        .Buckets
+        .notebook(workspace.workspace.namespace, workspace.workspace.bucketName, printName)
+        .copy(newName, selectedWorkspace.bucketName)
       this.setState({ copied: true })
     } catch (error) {
       this.setState({ error: await error.text(), copying: false })

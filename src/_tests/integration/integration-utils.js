@@ -11,11 +11,16 @@ const findText = (page, text) => {
 }
 
 const findInput = (page, label) => {
-  return page.waitForXPath(`//input[contains(@aria-label,"${label}") or @id=//label[contains(normalize-space(.),"${label}")]/@for]`)
+  return page.waitForXPath(`(//input | //textarea)[contains(@aria-label,"${label}") or @id=//label[contains(normalize-space(.),"${label}")]/@for]`)
 }
 
 const fillIn = async (page, label, text) => {
   return (await findInput(page, label)).type(text, { delay: 20 })
+}
+
+const select = async (page, label, text) => {
+  (await findInput(page, label)).click()
+  return (await page.waitForXPath(`//div[starts-with(@id, "react-select-") and contains(normalize-space(.),"${text}")]`)).click()
 }
 
 const waitForNoSpinners = page => {
@@ -28,5 +33,6 @@ module.exports = {
   findText,
   findInput,
   fillIn,
+  select,
   waitForNoSpinners
 }

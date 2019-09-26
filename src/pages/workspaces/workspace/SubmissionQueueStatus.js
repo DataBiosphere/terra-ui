@@ -9,7 +9,7 @@ import { useOnMount, withBusyState } from 'src/libs/utils'
 
 
 export const SubmissionQueueStatus = () => {
-  const [queueStatus, setQueueStatus] = useState({})
+  const [queueStatus, setQueueStatus] = useState()
   const [loading, setLoading] = useState(false)
 
   const signal = useCancellation()
@@ -26,12 +26,9 @@ export const SubmissionQueueStatus = () => {
     fetchQueueStatus()
   })
 
-  const queued = _.sum([0, ..._.at(['Queued', 'Launching'], queueStatus.workflowCountsByStatus)])
-  const active = _.sum([0, ..._.at(['Submitted', 'Running', 'Aborting'], queueStatus.workflowCountsByStatus)])
-
   return h(Fragment, [
     loading && spinner(),
-    !loading && table({ style: {} }, [tbody([
+    queueStatus && table({ style: {} }, [tbody([
       tr([
         td({ style: { paddingRight: '0.5rem', textAlign: 'right' } }, ['Estimated wait time:']),
         td([formatDistanceToNow(Date.now() + queueStatus.estimatedQueueTimeMS)])
@@ -42,7 +39,12 @@ export const SubmissionQueueStatus = () => {
       ]),
       tr([
         td({ style: { paddingRight: '0.5rem', textAlign: 'right' } }, ['Queue status:']),
-        td([`${queued} Queued; ${active} Active`])
+        td([
+          _.sum([0, ..._.at(['Queued', 'Launching'], queueStatus.workflowCountsByStatus)]),
+          ' Queued; ',
+          _.sum([0, ..._.at(['Submitted', 'Running', 'Aborting'], queueStatus.workflowCountsByStatus)]),
+          ' Active'
+        ])
       ])
     ])])
   ])
