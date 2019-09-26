@@ -146,7 +146,6 @@ jobs:
       - run: npx npm@6.11 ci
       - run: npx npm@6.11 run build
       - run: cp config/alpha.json build/config.json
-      - run: npx
       - run: HOST='https://bvdp-saturn-alpha.appspot.com/' npm run test:integration
 
 workflows:
@@ -200,4 +199,7 @@ workflows:
   run-integration-tests: 
     jobs:
       - build
-      - integration-tests
+      - integration-tests:
+          requires:
+            - build
+            
