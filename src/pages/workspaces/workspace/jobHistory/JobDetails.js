@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
-import { AutoSizer } from 'react-virtualized'
+import { AutoSizer, CellMeasurer, CellMeasurerCache } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { Link } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
@@ -14,14 +14,14 @@ import * as Utils from 'src/libs/utils'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
 
-const extractFailures = ({ calls } = {}) =>  {
+const extractFailures = ({ calls } = {}) => {
   return _.flatMap(([taskName, attempts]) => {
     return _.flow(
-      _.filter((attempt) => {
+      _.filter(attempt => {
         return attempt.executionStatus !== 'RetryableFailure' && attempt.failures
       }),
-      _.map((attempt) => {
-        return {taskName, attempt}
+      _.map(attempt => {
+        return { taskName, attempt }
       })
     )(attempts)
   }, _.toPairs(calls))
@@ -36,6 +36,12 @@ const JobDetails = wrapWorkspace({
   const [selectedCall, setSelectedCall] = useState()
   const [workflowData, setWorkflowData] = useState()
   const { workflowName, id, workflowRoot, inputs, outputs, labels, status, end, start, failures, calls: callsObj } = workflowData || {}
+
+  const cache = Utils.useInstance(() => new CellMeasurerCache({
+    defaultHeight: 100,
+    minHeight: 75,
+    fixedWidth: true
+  }))
 
   Utils.useOnMount(() => {
     const loadData = async () => {
@@ -140,10 +146,11 @@ const JobDetails = wrapWorkspace({
                     {
                       size: { grow: 2 },
                       headerRenderer: () => 'Message',
-                      cellRenderer: ({ rowIndex }) => {
-                        const { failures } = callFailures[rowIndex].attempt
-                        return _.map('message', failures).join(' ')
-                      }
+                      cellRenderer: ({ rowIndex }) => h(CellMeasurer, { cache, rowIndex })
+                      // cellRenderer: ({ rowIndex }) => {
+                      //   const { failures } = callFailures[rowIndex].attempt
+                      //   return _.map('message', failures).join(' ')
+                      // }
                     }
                   ]
                 })
