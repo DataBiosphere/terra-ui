@@ -5,6 +5,10 @@ executors:
     docker:
       - image: node:10
         user: node
+  puppeteer: 
+    docker: 
+      - image: circleci/node:10-browsers
+        user: node
   gcloud:
     docker:
       - image: google/cloud-sdk:alpine
@@ -126,6 +130,24 @@ jobs:
               docker run -t owasp/zap2docker-weekly zap-baseline.py -t ${env};
               if [ $? -ne 1 ]; then exit 0; else exit 1; fi;
             )
+  integration-tests: 
+    executor: puppeteer
+    steps:
+      - checkout
+      - attach_workspace:
+          # Must be absolute path or relative path from working_directory
+          at: /tmp/workspace
+      - run: ls -l /tmp/workspace
+      - restore_cache:
+          keys:
+            - deps2-{{ checksum "package.json" }}-{{ checksum "package-lock.json" }}
+            - deps2-{{ checksum "package.json" }}-
+            - deps2-
+      - run: npx npm@6.11 ci
+      - run: npx npm@6.11 run build
+      - run: cp config/alpha.json build/config.json
+      - run: npx
+      - run: HOST='https://bvdp-saturn-alpha.appspot.com/' npm run test:integration
 
 workflows:
   version: 2
@@ -175,3 +197,7 @@ workflows:
           filters:
             branches:
               only: dev
+  run-integration-tests: 
+    jobs:
+      - build
+      - integration-tests
