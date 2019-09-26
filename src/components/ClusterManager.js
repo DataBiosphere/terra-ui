@@ -81,7 +81,7 @@ const MachineSelector = ({ machineType, onChangeMachineType, diskSize, onChangeD
       ])
     ])]),
     h(IdContainer, [id => h(Fragment, [
-      label({ htmlFor: id, style: styles.label }, 'Memory\nin GB'),
+      label({ htmlFor: id, style: styles.label }, 'Memory (GB)'),
       div([
         h(Select, {
           isDisabled: readOnly,
@@ -94,7 +94,7 @@ const MachineSelector = ({ machineType, onChangeMachineType, diskSize, onChangeD
       ])
     ])]),
     h(IdContainer, [id => h(Fragment, [
-      label({ htmlFor: id, style: styles.label }, 'Disk size\nin GB'),
+      label({ htmlFor: id, style: styles.label }, 'Disk size (GB)'),
       h(NumberInput, {
         disabled: readOnly,
         id,
@@ -116,7 +116,7 @@ const ClusterIcon = ({ shape, onClick, disabled, style, ...props }) => {
   }, [icon(shape, { size: 20 })])
 }
 
-export const NewClusterModal = withModalDrawer({ width: 650 })(class NewClusterModal extends PureComponent {
+export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterModal extends PureComponent {
   static propTypes = {
     currentCluster: PropTypes.object,
     namespace: PropTypes.string.isRequired,
@@ -210,7 +210,7 @@ export const NewClusterModal = withModalDrawer({ width: 650 })(class NewClusterM
           div({ style: { display: 'grid', gridTemplateColumns: '7rem 2fr 1fr', gridGap: '1rem', alignItems: 'center' } }, [
             h(IdContainer, [id => h(Fragment, [
               label({ htmlFor: id, style: styles.label }, 'Environment'),
-              div({ style: { gridColumnEnd: '2 span' } }, [
+              div({ style: { gridColumnEnd: 'span 2' } }, [
                 makeEnvSelect(id)
               ])
             ])]),
@@ -228,7 +228,7 @@ export const NewClusterModal = withModalDrawer({ width: 650 })(class NewClusterM
           }, [
             div({ style: { fontSize: '0.875rem', fontWeight: 600, marginBottom: '0.5rem' } }, ['COMPUTE POWER']),
             div({ style: { marginBottom: '1rem' } }, ['Select from one of the default compute cluster profiles or define your own']),
-            div({ style: { display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr 1fr 5.5rem', gridGap: '1rem', alignItems: 'center' } }, [
+            div({ style: { display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1.2fr 1fr 5.5rem', gridGap: '1rem', alignItems: 'center' } }, [
               h(IdContainer, [id => h(Fragment, [
                 label({ htmlFor: id, style: styles.label }, 'Profile'),
                 div({ style: { gridColumnEnd: 'span 5' } }, [
@@ -259,7 +259,7 @@ export const NewClusterModal = withModalDrawer({ width: 650 })(class NewClusterM
               }),
               profile === 'custom' && h(Fragment, [
                 h(IdContainer, [id => h(Fragment, [
-                  label({ htmlFor: id, style: styles.label }, 'Startup script'),
+                  label({ htmlFor: id, style: styles.label }, 'Startup\nscript'),
                   div({ style: { gridColumnEnd: 'span 5' } }, [
                     h(TextInput, {
                       id,
@@ -278,11 +278,7 @@ export const NewClusterModal = withModalDrawer({ width: 650 })(class NewClusterM
                     })
                   }, ' Configure as Spark cluster')
                 ]),
-                !!numberOfWorkers && div({
-                  style: {
-                    gridColumnEnd: 'span 6', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr 1fr 5.5rem', gridGap: '1rem', alignItems: 'center'
-                  }
-                }, [
+                !!numberOfWorkers && h(Fragment, [
                   h(IdContainer, [id => h(Fragment, [
                     label({ htmlFor: id, style: styles.label }, 'Workers'),
                     h(NumberInput, {
