@@ -23,7 +23,11 @@ export const sessionTimeoutProps = {
 
 const makeNotification = props => {
   const { id = uuid() } = props
-  return { ...props, id }
+  return {
+    ...props,
+    id,
+    onRemoval: () => notificationStore.update(_.reject({ id }))
+  }
 }
 
 export const notify = (type, title, props) => {
@@ -156,14 +160,4 @@ const showNotification = ({ id, timeout }) => {
   })
 }
 
-class Notifications extends Component {
-  render() {
-    return h(ReactNotification, {
-      onNotificationRemoval: id => {
-        notificationStore.update(_.reject(n => n.id === id))
-      }
-    })
-  }
-}
-
-export default Utils.connectAtom(notificationStore, 'notificationState')(Notifications)
+export default Utils.connectAtom(notificationStore, 'notificationState')(ReactNotification)

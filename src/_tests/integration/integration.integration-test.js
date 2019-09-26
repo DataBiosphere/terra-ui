@@ -1,4 +1,4 @@
-const { click, findText, findClickable, fillIn, waitForNoSpinners } = require('./integration-utils')
+const { click, findText, findClickable, fillIn, select, waitForNoSpinners } = require('./integration-utils')
 
 
 test('integration', async () => {
@@ -10,4 +10,6 @@ test('integration', async () => {
   await waitForNoSpinners(page)
   await click(page, 'New Workspace')
   await fillIn(page, 'Workspace name', 'My workspace')
+  await select(page, 'Billing project', 'general-dev-billing-account')
+  await fillIn(page, 'Description', '# This is my workspace')
 }, 60 * 1000)

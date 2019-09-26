@@ -6,7 +6,7 @@ import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import { Ajax, useCancellation } from 'src/libs/ajax'
 import { withErrorReporting } from 'src/libs/error'
-import { RequiredFormLabel } from 'src/libs/forms'
+import { FormLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
 import { authStore, freeCreditsActive, requesterPaysProjectStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
@@ -59,7 +59,7 @@ const RequesterPaysModal = ({ onDismiss, onSuccess }) => {
       }, ['Ok'])
     }, [
       'This data is in a requester pays bucket. Choose a billing project to continue:',
-      h(RequiredFormLabel, ['Billing Project']),
+      h(FormLabel, { required: true }, ['Billing Project']),
       h(Select, {
         isClearable: false,
         value: selectedBilling,

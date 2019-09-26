@@ -16,6 +16,8 @@ import framinghamLogo from 'src/images/library/datasets/framingham.jpg'
 import hcaLogo from 'src/images/library/datasets/HCA@2x.png'
 import nemoLogo from 'src/images/library/datasets/nemo-logo.svg'
 import nhsLogo from 'src/images/library/datasets/NHS@2x.png'
+import targetLogo from 'src/images/library/datasets/target_logo.jpeg'
+import tcgaLogo from 'src/images/library/datasets/TCGALogo.jpg'
 import topMedLogo from 'src/images/library/datasets/TopMed@2x.png'
 import ukbLogo from 'src/images/library/datasets/UKB@2x.jpg'
 import colors from 'src/libs/colors'
@@ -43,7 +45,7 @@ const styles = {
     },
     description: {
       marginTop: '1rem',
-      height: 125
+      minHeight: 125
     },
     sizeText: {
       marginTop: '1rem',
@@ -321,6 +323,39 @@ const nhs = () => h(Participant, {
   }, ['Browse Data'])
 ])
 
+const target = () => h(Participant, {
+  logo: { src: targetLogo, alt: 'TARGET logo', height: '85%' },
+  title: `Therapeutically Applicable Research to Generate Effective Treatments (TARGET) presented by the National
+  Cancer Institute`,
+  description: `The TARGET initiative employed comprehensive molecular characterization to determine the genetic
+  changes that drive the initiation and progression of hard-to-treat childhood cancers. TARGET makes the data generated
+  available to the research community with a goal to identify therapeutic targets and prognostic markers so that novel,
+  more effective treatment strategies can be developed and applied.`,
+  sizeText: 'Participants: 1,324'
+}, [h(ButtonPrimary, {
+  href: `${getConfig().firecloudUrlRoot}/?return=${returnParam()}&project=TARGET#library`,
+  ...Utils.newTabLinkProps
+}, ['Browse Data'])])
+
+
+const tcga = () => h(Participant, {
+  logo: { src: tcgaLogo, alt: 'TCGA logo', height: '80%' },
+  title: 'The Cancer Genome Atlas Presented by the National Cancer Institute',
+  description: h(Fragment, [
+    'The Cancer Genome Atlas (TCGA), a landmark ',
+    h(Link, { href: 'https://www.cancer.gov/about-nci/organization/ccg/cancer-genomics-overview', ...Utils.newTabLinkProps }, 'cancer genomics'),
+    ` program, molecularly characterized over 20,000 primary cancer and matched normal samples spanning 33 cancer types. 
+    This joint effort between the National Cancer Institute and the National Human Genome Research Institute began in 2006, 
+    bringing together researchers from diverse disciplines and multiple institutions.`
+  ]),
+  sizeText: 'Participants: 11,000'
+}, [
+  h(ButtonPrimary, {
+    href: `${getConfig().firecloudUrlRoot}/?return=${returnParam()}&project=TCGA#library`,
+    ...Utils.newTabLinkProps
+  }, ['Browse Data'])
+])
+
 const topMed = () => h(Participant, {
   logo: { src: topMedLogo, alt: 'TopMed logo' },
   title: 'TopMed presented by NHLBI Data STAGE',
@@ -354,8 +389,9 @@ const Datasets = pure(() => {
     libraryTopMatter('datasets'),
     div({ role: 'main', style: styles.content }, [
       // Put datasets in alphabetical order
-      thousandGenomesHighCoverage(), thousandGenomesLowCoverage(), amppd(), baseline(), ccdg(), cmg(), encode(), fcDataLib(), framingham(), hca(), nemo(), nhs(),
-      topMed(), ukb()
+      thousandGenomesHighCoverage(), thousandGenomesLowCoverage(), amppd(), baseline(), ccdg(), cmg(), encode(), fcDataLib(), framingham(), hca(),
+      nemo(), nhs(),
+      target(), tcga(), topMed(), ukb()
     ])
   ])
 })

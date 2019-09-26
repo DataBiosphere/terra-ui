@@ -9,6 +9,7 @@ import { ViewToggleButtons, withViewToggle } from 'src/components/CardsListToggl
 import { Clickable, IdContainer, Link, makeMenuIcon, MenuButton, PageBox, Select, spinnerOverlay } from 'src/components/common'
 import Dropzone from 'src/components/Dropzone'
 import { icon } from 'src/components/icons'
+import { DelayedSearchInput } from 'src/components/input'
 import { NotebookCreator, NotebookDeleter, NotebookDuplicator } from 'src/components/notebook-utils'
 import { notify } from 'src/components/Notifications'
 import PopupTrigger from 'src/components/PopupTrigger'
@@ -201,6 +202,7 @@ const Notebooks = _.flow(
       deletingNotebookName: undefined,
       exportingNotebookName: undefined,
       sortOrder: defaultSort.value,
+      filter: '',
       ...StateHistory.get()
     }
   }
@@ -252,13 +254,14 @@ const Notebooks = _.flow(
   }
 
   renderNotebooks(openUploader) {
-    const { notebooks, sortOrder: { field, direction } } = this.state
+    const { notebooks, sortOrder: { field, direction }, filter } = this.state
     const {
       name: wsName, namespace, listView,
       workspace: { accessLevel, workspace: { bucketName } }
     } = this.props
     const canWrite = Utils.canWrite(accessLevel)
     const renderedNotebooks = _.flow(
+      _.filter(({ name }) => Utils.textMatch(filter, printName(name))),
       _.orderBy(sortTokens[field] || field, direction),
       _.map(({ name, updated }) => h(NotebookCard, {
         key: name,
@@ -318,6 +321,9 @@ const Notebooks = _.flow(
       ]),
       Utils.cond(
         [_.isEmpty(notebooks), () => noNotebooksMessage],
+        [!_.isEmpty(notebooks) && _.isEmpty(renderedNotebooks), () => {
+          return div({ style: { fontStyle: 'italic' } }, ['No matching notebooks'])
+        }],
         [listView, () => div({ style: { flex: 1 } }, [renderedNotebooks])],
         () => div({ style: { display: 'flex', flexWrap: 'wrap' } }, renderedNotebooks)
       )
@@ -325,7 +331,7 @@ const Notebooks = _.flow(
   }
 
   render() {
-    const { loading, saving, notebooks, creating, renamingNotebookName, copyingNotebookName, deletingNotebookName, exportingNotebookName, sortOrder } = this.state
+    const { loading, saving, notebooks, creating, renamingNotebookName, copyingNotebookName, deletingNotebookName, exportingNotebookName, sortOrder, filter } = this.state
     const {
       namespace, listView, setListView, workspace,
       workspace: { accessLevel, workspace: { bucketName } }
@@ -344,6 +350,14 @@ const Notebooks = _.flow(
       notebooks && h(PageBox, [
         div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' } }, [
           div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, ['Notebooks']),
+          div({ style: { flex: 1 } }),
+          h(DelayedSearchInput, {
+            'aria-label': 'Search notebooks',
+            style: { marginRight: '0.75rem', width: 220 },
+            placeholder: 'SEARCH NOTEBOOKS',
+            onChange: v => this.setState({ filter: v }),
+            value: filter
+          }),
           h(IdContainer, [id => h(Fragment, [
             label({ htmlFor: id, style: { marginLeft: 'auto', marginRight: '0.75rem' } }, ['Sort By:']),
             h(Select, {
@@ -400,7 +414,7 @@ const Notebooks = _.flow(
 
   componentDidUpdate() {
     StateHistory.update(_.pick(
-      ['clusters', 'cluster', 'notebooks', 'sortOrder'],
+      ['clusters', 'cluster', 'notebooks', 'sortOrder', 'filter'],
       this.state)
     )
   }

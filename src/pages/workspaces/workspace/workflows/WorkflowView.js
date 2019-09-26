@@ -2,7 +2,7 @@ import FileSaver from 'file-saver'
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
 import { Component, Fragment, useState } from 'react'
-import { div, h, label, span } from 'react-hyperscript-helpers'
+import { b, div, h, label, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import {
@@ -315,7 +315,7 @@ const WorkflowView = _.flow(
   resetSelectionModel(value, selectedEntities = {}) {
     return {
       type: Utils.cond(
-        [_.endsWith('_set', value), () => EntitySelectionType.chooseSet],
+        [_.endsWith('_set', value), () => EntitySelectionType.chooseSets],
         [_.isEmpty(selectedEntities), () => EntitySelectionType.processAll],
         () => EntitySelectionType.chooseRows
       ),
@@ -389,17 +389,18 @@ const WorkflowView = _.flow(
     return h(Fragment, [
       savedConfig && h(Fragment, [
         this.renderSummary(),
-        Utils.cond(
-          [activeTab === 'wdl', () => this.renderWDL()],
-          [activeTab === 'inputs', () => this.renderIOTable('inputs')],
-          [activeTab === 'outputs' && !!modifiedConfig.rootEntityType, () => this.renderIOTable('outputs')]
+        Utils.switchCase(activeTab,
+          ['wdl', () => this.renderWDL()],
+          ['inputs', () => this.renderIOTable('inputs')],
+          ['outputs', () => this.renderIOTable('outputs')]
         ),
         launching && h(LaunchAnalysisModal, {
           workspaceId, config: savedConfig,
           accessLevel: workspace.accessLevel, bucketName: workspace.workspace.bucketName,
           processSingle: this.isSingle(), entitySelectionModel, useCallCache,
           onDismiss: () => this.setState({ launching: false }),
-          onSuccess: submissionId => Nav.goToPath('workspace-submission-details', { submissionId, ...workspaceId })
+          onSuccess: submissionId => Nav.goToPath('workspace-submission-details', { submissionId, ...workspaceId }),
+          onSuccessMulti: () => Nav.goToPath('workspace-job-history', workspaceId)
         }),
         variableSelected && h(BucketContentModal, {
           workspace,
@@ -516,16 +517,15 @@ const WorkflowView = _.flow(
 
   describeSelectionModel() {
     const { modifiedConfig: { rootEntityType }, entityMetadata, entitySelectionModel: { newSetName, selectedEntities, type } } = this.state
-    const { name } = selectedEntities
     const count = _.size(selectedEntities)
-    const newSetMessage = count > 1 ? `(will create a new set named "${newSetName}")` : ''
+    const newSetMessage = (type === EntitySelectionType.processAll || count > 1) ? `(will create a new set named "${newSetName}")` : ''
     return Utils.cond(
       [this.isSingle() || !rootEntityType, ''],
       [type === EntitySelectionType.processAll, () => `all ${entityMetadata[rootEntityType] ? entityMetadata[rootEntityType].count : 0}
-        ${rootEntityType}s (will create a new set named "${newSetName}")`],
-      [type === EntitySelectionType.processFromSet, () => `${rootEntityType}s from ${name}`],
+        ${rootEntityType}s ${newSetMessage}`],
+      [type === EntitySelectionType.processMergedSet, () => `${rootEntityType}s from ${count} sets ${newSetMessage}`],
       [type === EntitySelectionType.chooseRows, () => `${count} selected ${rootEntityType}s ${newSetMessage}`],
-      [type === EntitySelectionType.chooseSet, () => `${_.has('name', selectedEntities) ? 1 : 0} selected ${rootEntityType}`]
+      [type === EntitySelectionType.chooseSets, () => `${count} selected ${rootEntityType}s`]
     )
   }
 
@@ -565,7 +565,7 @@ const WorkflowView = _.flow(
       [saving || modified, () => 'Save or cancel to Launch Analysis'],
       [!_.isEmpty(errors.inputs) || !_.isEmpty(errors.outputs), () => 'At least one required attribute is missing or invalid'],
       [this.isMultiple() && !entityMetadata[rootEntityType], () => `There are no ${selectedEntityType}s in this workspace.`],
-      [this.isMultiple() && entitySelectionModel.type === EntitySelectionType.chooseSet && !entitySelectionModel.selectedEntities.name,
+      [this.isMultiple() && entitySelectionModel.type === EntitySelectionType.chooseSets && !_.size(entitySelectionModel.selectedEntities),
         () => 'Select a set']
     )
 
@@ -818,6 +818,8 @@ const WorkflowView = _.flow(
       _.map(k => ({ name: k, inputType: 'unknown' }), _.keys(modifiedConfig[key])) :
       modifiedInputsOutputs[key]
     const filteredData = key === 'inputs' && !includeOptionalInputs ? _.reject('optional', data) : data
+    const isSingleAndOutputs = key === 'outputs' && this.isSingle()
+    const isEditable = !currentSnapRedacted && !Utils.editWorkspaceError(workspace) && !isSingleAndOutputs
 
     return h(Dropzone, {
       key,
@@ -835,12 +837,16 @@ const WorkflowView = _.flow(
       onDropAccepted: files => this.uploadJson(key, files[0])
     }, [({ openUploader }) => h(Fragment, [
       div({ style: { flex: 'none', display: 'flex', marginBottom: '0.25rem' } }, [
+        isSingleAndOutputs && !currentSnapRedacted && div({ style: { margin: '0 1rem 0.5rem' } }, [
+          b(['Outputs are not mapped to the data model when processing a single workflow from files.']),
+          div(['To write to the data model, select "Process multiple workflows" above.'])
+        ]),
         key === 'inputs' && _.some('optional', modifiedInputsOutputs['inputs']) ?
           h(Link, { style: { marginRight: 'auto' }, onClick: () => this.setState({ includeOptionalInputs: !includeOptionalInputs }) },
             [includeOptionalInputs ? 'Hide optional inputs' : 'Show optional inputs']) :
           div({ style: { marginRight: 'auto' } }),
         h(Link, { onClick: () => this.downloadJson(key) }, ['Download json']),
-        !currentSnapRedacted && !Utils.editWorkspaceError(workspace) && h(Fragment, [
+        isEditable && h(Fragment, [
           div({ style: { whiteSpace: 'pre' } }, ['  |  Drag or click to ']),
           h(Link, { onClick: openUploader }, ['upload json'])
         ])
@@ -848,7 +854,7 @@ const WorkflowView = _.flow(
       filteredData.length !== 0 &&
       div({ style: { flex: '1 0 500px' } }, [
         h(WorkflowIOTable, {
-          readOnly: currentSnapRedacted || !!Utils.editWorkspaceError(workspace),
+          readOnly: !isEditable,
           which: key,
           inputsOutputs: filteredData,
           config: modifiedConfig,
@@ -875,7 +881,7 @@ const WorkflowView = _.flow(
     try {
       const trimInputOutput = _.flow(
         _.update('inputs', _.mapValues(_.trim)),
-        _.update('outputs', _.mapValues(_.trim))
+        _.update('outputs', this.isSingle() ? () => ({}) : _.mapValues(_.trim))
       )
 
       const validationResponse = await Ajax().Workspaces.workspace(namespace, name)
