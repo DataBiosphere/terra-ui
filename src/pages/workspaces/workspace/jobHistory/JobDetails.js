@@ -146,7 +146,12 @@ const JobDetails = wrapWorkspace({
                     {
                       size: { grow: 2 },
                       headerRenderer: () => 'Message',
-                      cellRenderer: ({ rowIndex }) => h(CellMeasurer, { cache, rowIndex })
+                      cellRenderer: ({ rowIndex, parent }) => {
+                        const { failures } = callFailures[rowIndex].attempt
+                        return h(CellMeasurer, { cache, columnIndex: 0, parent, rowIndex },
+                          [])
+
+                      }
                       // cellRenderer: ({ rowIndex }) => {
                       //   const { failures } = callFailures[rowIndex].attempt
                       //   return _.map('message', failures).join(' ')
