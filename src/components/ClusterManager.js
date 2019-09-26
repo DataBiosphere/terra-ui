@@ -116,6 +116,38 @@ const ClusterIcon = ({ shape, onClick, disabled, style, ...props }) => {
   }, [icon(shape, { size: 20 })])
 }
 
+const ImageDepViewer = ({ packages }) => {
+  const pages = _.keys(packages)
+  const [language, setLanguage] = useState(pages[0])
+  const url = packages[language]
+
+  return h(Fragment, [
+    div({ style: { display: 'flex', alignItems: 'center' } }, [
+      div({ style: { fontWeight: 'bold', marginRight: '1rem' } }, ['Installed packages']),
+      pages.length === 1 ?
+        `(${language})` :
+        div({ style: { width: 100, textTransform: 'capitalize' } }, [
+          h(Select, {
+            'aria-label': 'Select a language',
+            value: language,
+            onChange: ({ value }) => setLanguage(value),
+            isSearchable: false,
+            isClearable: false,
+            options: pages
+          })
+        ])
+    ]),
+    iframe({
+      src: url,
+      style: {
+        padding: '1rem', marginTop: '1rem',
+        backgroundColor: 'white', borderRadius: 5, border: 'none',
+        overflowY: 'auto', flexGrow: 1
+      }
+    })
+  ])
+}
+
 export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterModal extends PureComponent {
   static propTypes = {
     currentCluster: PropTypes.object,
@@ -135,7 +167,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     this.state = {
       profile: matchingProfile ? matchingProfile.name : 'custom',
       jupyterUserScriptUri: '',
-      leoImageName: 'Default',
+      selectedLeoImage: leoImages.Default,
       ...normalizeMachineConfig(currentConfig)
     }
   }
@@ -152,11 +184,11 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
 
   createCluster() {
     const { namespace, onSuccess, currentCluster } = this.props
-    const { jupyterUserScriptUri, leoImageName } = this.state
+    const { jupyterUserScriptUri, selectedLeoImage: { image: jupyterDockerImage } } = this.state
     onSuccess(Promise.all([
       Ajax().Jupyter.cluster(namespace, Utils.generateClusterName()).create({
         machineConfig: this.getMachineConfig(),
-        jupyterDockerImage: leoImages[leoImageName].image,
+        jupyterDockerImage,
         ...(jupyterUserScriptUri ? { jupyterUserScriptUri } : {})
       }),
       currentCluster && currentCluster.status === 'Error' && Ajax().Jupyter.cluster(currentCluster.googleProject, currentCluster.clusterName).delete()
@@ -167,18 +199,18 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const { currentCluster, onDismiss } = this.props
     const {
       profile, masterMachineType, masterDiskSize, workerMachineType, numberOfWorkers, numberOfPreemptibleWorkers, workerDiskSize,
-      jupyterUserScriptUri, leoImageName,
+      jupyterUserScriptUri, selectedLeoImage,
       viewingPackages
     } = this.state
-    const { version, updated, packages } = leoImages[leoImageName]
+    const { version, updated, packages } = selectedLeoImage
 
     const makeEnvSelect = id => h(Select, {
       id,
-      value: leoImageName,
-      onChange: ({ value }) => this.setState({ leoImageName: value }),
+      value: selectedLeoImage,
+      onChange: ({ value }) => this.setState({ selectedLeoImage: value }),
       isSearchable: false,
       isClearable: false,
-      options: _.keys(leoImages)
+      options: _.map(([k, v]) => ({ label: k, value: v }), _.toPairs(leoImages))
     })
 
     const makeImageInfo = style => div({ style: { whiteSpace: 'pre', ...style } }, [
@@ -194,19 +226,13 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       }),
       div({ style: { padding: '0 1.5rem 1.5rem 1.5rem', flexGrow: 1, display: 'flex', flexDirection: 'column' } }, [
         viewingPackages ? h(Fragment, [
-          // TODO: Some informational text (TBD) will go here.
           makeEnvSelect(),
           makeImageInfo({ margin: '1rem 0 2rem' }),
-          div({ style: { fontWeight: 'bold' } }, ['Installed packages']),
-          iframe({
-            src: packages,
-            style: {
-              padding: '1rem', marginTop: '1rem',
-              backgroundColor: 'white', borderRadius: 5, border: 'none',
-              overflowY: 'auto', flexGrow: 1
-            }
-          })
+          h(ImageDepViewer, { packages })
         ]) : h(Fragment, [
+          div({ style: { marginBottom: '1rem' } }, [
+            'Choose a Terra pre-installed runtime environment (e.g. programming languages + packages)' // TODO: once there's custom, add the text ' or choose a custom environment'
+          ]),
           div({ style: { display: 'grid', gridTemplateColumns: '7rem 2fr 1fr', gridGap: '1rem', alignItems: 'center' } }, [
             h(IdContainer, [id => h(Fragment, [
               label({ htmlFor: id, style: styles.label }, 'Environment'),
@@ -340,7 +366,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
             h(ButtonPrimary, {
               style: { marginTop: '1rem' },
               onClick: () => this.createCluster()
-            }, currentCluster ? 'Update' : 'Create')
+            }, !!currentCluster ? 'Replace' : 'Create')
           ])
         ])
       ])
