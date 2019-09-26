@@ -126,7 +126,7 @@ const JobDetails = wrapWorkspace({
           }],
           ['errors', () => {
             return div({ style: { height: 500 } }, [
-              h(AutoSizer, { onResize: () => {} }, [
+              h(AutoSizer, { onResize: () => cache.clearAll() }, [
                 ({ width, height }) => h(FlexTable, {
                   width, height,
                   deferredMeasurementCache: cache,
