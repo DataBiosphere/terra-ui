@@ -175,10 +175,9 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     this.state = {
       profile: matchingProfile ? matchingProfile.name : 'custom',
       jupyterUserScriptUri: '',
-      selectedLeoImage: leoImages.Default,
-      ...normalizeMachineConfig(currentConfig),
+      selectedLeoImage: leoImages[0].image,
       isPreInstalledEnvMode: true,
-      customEnvUrl: ''
+      ...normalizeMachineConfig(currentConfig)
     }
   }
 
@@ -192,23 +191,20 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     }
   }
 
-  validateCustomImageUrl(){
-    const {customEnvUrl} = this.state
-   // return customEnvUrl.match(/gcr/\*/)
+  validateCustomImageUrl() {
+    const { customEnvUrl } = this.state
+    // return customEnvUrl.match(/gcr/\*/)
   }
 
   // TODO: go to custom cluster/env if that's what the user has chosen
   // TODO: go to warning page first if custom env is chosen
   createCluster() {
     const { namespace, onSuccess, currentCluster } = this.props
-    const { jupyterUserScriptUri, selectedLeoImage: { image: jupyterDockerImage }, customEnvUrl } = this.state
-
-    // TODO: if customEnvUrl is '' then do regular, otherwise go to warning page and prepare to use that url instead
-
+    const { jupyterUserScriptUri, selectedLeoImage } = this.state
     onSuccess(Promise.all([
       Ajax().Jupyter.cluster(namespace, Utils.generateClusterName()).create({
         machineConfig: this.getMachineConfig(),
-        jupyterDockerImage,
+        jupyterDockerImage: selectedLeoImage,
         ...(jupyterUserScriptUri ? { jupyterUserScriptUri } : {})
       }),
       currentCluster && currentCluster.status === 'Error' &&
@@ -221,9 +217,9 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const {
       profile, masterMachineType, masterDiskSize, workerMachineType, numberOfWorkers, numberOfPreemptibleWorkers, workerDiskSize,
       jupyterUserScriptUri, selectedLeoImage,
-      viewingPackages, isPreInstalledEnvMode, customEnvUrl
+      viewingPackages, isPreInstalledEnvMode
     } = this.state
-    const { version, updated, packages } = selectedLeoImage
+    const { version, updated, packages } = _.find({ image: selectedLeoImage }, leoImages)
 
     const makeEnvSelect = id => h(Select, {
       id,
@@ -231,7 +227,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       onChange: ({ value }) => this.setState({ selectedLeoImage: value }),
       isSearchable: false,
       isClearable: false,
-      options: _.map(([k, v]) => ({ label: k, value: v }), _.toPairs(leoImages))
+      options: _.map(({ label, image }) => ({ label, value: image }), leoImages)
     })
 
     const makeImageInfo = style => div({ style: { whiteSpace: 'pre', ...style } }, [
@@ -264,14 +260,12 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
           div({ style: { marginBottom: '1rem' } }),
           isPreInstalledEnvMode ?
             div({ style: { display: 'grid', gridTemplateColumns: '7rem 2fr 1fr', gridGap: '1rem', alignItems: 'center' } }, [
-              h(IdContainer, [
-                id => h(Fragment, [
-                  label({ htmlFor: id, style: styles.label }, 'Environment'),
-                  div({ style: { gridColumnEnd: 'span 2' } }, [
-                    makeEnvSelect(id)
-                  ])
+              h(IdContainer, [id => h(Fragment, [
+                label({ htmlFor: id, style: styles.label }, 'Environment'),
+                div({ style: { gridColumnEnd: 'span 2' } }, [
+                  makeEnvSelect(id)
                 ])
-              ]),
+              ])]),
               div({ style: { gridColumnStart: 2, alignSelf: 'start' } }, [
                 h(Link, { onClick: () => this.setState({ viewingPackages: true }) }, ['What’s installed on this environment?'])
               ]),
@@ -285,8 +279,8 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
                     h(TextInput, {
                       placeholder: `${div({ style: { fontWeight: 600 } },
                         ['Example: '])}, us.gcr.io/broad-dsp-gcr-public/terra-jupyter-base:0.0.1`,
-                      value: customEnvUrl,
-                      onChange: customEnvUrl => { this.setState({ customEnvUrl }) }
+                      value: selectedLeoImage,
+                      onChange: selectedLeoImage => { this.setState({ selectedLeoImage }) }
                     })
                   ])
                 ])
@@ -319,29 +313,27 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
             div({ style: { fontSize: '0.875rem', fontWeight: 600, marginBottom: '0.5rem' } }, ['COMPUTE POWER']),
             div({ style: { marginBottom: '1rem' } }, ['Select from one of the compute runtime profiles or define your own']),
             div({ style: { display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1.2fr 1fr 5.5rem', gridGap: '1rem', alignItems: 'center' } }, [
-              h(IdContainer, [
-                id => h(Fragment, [
-                  label({ htmlFor: id, style: styles.label }, 'Profile'),
-                  div({ style: { gridColumnEnd: 'span 5' } }, [
-                    h(Select, {
-                      id,
-                      value: profile,
-                      onChange: ({ value }) => {
-                        this.setState({
-                          profile: value,
-                          ...(value === 'custom' ? {} : normalizeMachineConfig(_.find({ name: value }, profiles).machineConfig))
-                        })
-                      },
-                      isSearchable: false,
-                      isClearable: false,
-                      options: [
-                        ..._.map(({ name, label }) => ({ value: name, label: `${label} computer power` }), profiles),
-                        { value: 'custom', label: 'Custom' }
-                      ]
-                    })
-                  ])
+              h(IdContainer, [id => h(Fragment, [
+                label({ htmlFor: id, style: styles.label }, 'Profile'),
+                div({ style: { gridColumnEnd: 'span 5' } }, [
+                  h(Select, {
+                    id,
+                    value: profile,
+                    onChange: ({ value }) => {
+                      this.setState({
+                        profile: value,
+                        ...(value === 'custom' ? {} : normalizeMachineConfig(_.find({ name: value }, profiles).machineConfig))
+                      })
+                    },
+                    isSearchable: false,
+                    isClearable: false,
+                    options: [
+                      ..._.map(({ name, label }) => ({ value: name, label: `${label} computer power` }), profiles),
+                      { value: 'custom', label: 'Custom' }
+                    ]
+                  })
                 ])
-              ]),
+              ])]),
               h(MachineSelector, {
                 machineType: masterMachineType,
                 onChangeMachineType: v => this.setState({ masterMachineType: v }),
@@ -350,19 +342,17 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
                 readOnly: profile !== 'custom'
               }),
               profile === 'custom' && h(Fragment, [
-                h(IdContainer, [
-                  id => h(Fragment, [
-                    label({ htmlFor: id, style: styles.label }, 'Startup\nscript'),
-                    div({ style: { gridColumnEnd: 'span 5' } }, [
-                      h(TextInput, {
-                        id,
-                        placeholder: 'URI',
-                        value: jupyterUserScriptUri,
-                        onChange: v => this.setState({ jupyterUserScriptUri: v })
-                      })
-                    ])
+                h(IdContainer, [id => h(Fragment, [
+                  label({ htmlFor: id, style: styles.label }, 'Startup\nscript'),
+                  div({ style: { gridColumnEnd: 'span 5' } }, [
+                    h(TextInput, {
+                      id,
+                      placeholder: 'URI',
+                      value: jupyterUserScriptUri,
+                      onChange: v => this.setState({ jupyterUserScriptUri: v })
+                    })
                   ])
-                ]),
+                ])]),
                 div({ style: { gridColumnEnd: 'span 6' } }, [
                   h(LabeledCheckbox, {
                     checked: !!numberOfWorkers,
@@ -373,39 +363,35 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
                   }, ' Configure as Spark cluster')
                 ]),
                 !!numberOfWorkers && h(Fragment, [
-                  h(IdContainer, [
-                    id => h(Fragment, [
-                      label({ htmlFor: id, style: styles.label }, 'Workers'),
-                      h(NumberInput, {
-                        id,
-                        min: 2,
-                        isClearable: false,
-                        onlyInteger: true,
-                        value: numberOfWorkers,
-                        onChange: v => this.setState({
-                          numberOfWorkers: v,
-                          numberOfPreemptibleWorkers: _.min([numberOfPreemptibleWorkers, v])
-                        })
+                  h(IdContainer, [id => h(Fragment, [
+                    label({ htmlFor: id, style: styles.label }, 'Workers'),
+                    h(NumberInput, {
+                      id,
+                      min: 2,
+                      isClearable: false,
+                      onlyInteger: true,
+                      value: numberOfWorkers,
+                      onChange: v => this.setState({
+                        numberOfWorkers: v,
+                        numberOfPreemptibleWorkers: _.min([numberOfPreemptibleWorkers, v])
                       })
-                    ])
-                  ]),
-                  h(IdContainer, [
-                    id => h(Fragment, [
-                      label({
-                        htmlFor: id,
-                        style: styles.label
-                      }, 'Preemptible'),
-                      h(NumberInput, {
-                        id,
-                        min: 0,
-                        max: numberOfWorkers,
-                        isClearable: false,
-                        onlyInteger: true,
-                        value: numberOfPreemptibleWorkers,
-                        onChange: v => this.setState({ numberOfPreemptibleWorkers: v })
-                      })
-                    ])
-                  ]),
+                    })
+                  ])]),
+                  h(IdContainer, [id => h(Fragment, [
+                    label({
+                      htmlFor: id,
+                      style: styles.label
+                    }, 'Preemptible'),
+                    h(NumberInput, {
+                      id,
+                      min: 0,
+                      max: numberOfWorkers,
+                      isClearable: false,
+                      onlyInteger: true,
+                      value: numberOfPreemptibleWorkers,
+                      onChange: v => this.setState({ numberOfPreemptibleWorkers: v })
+                    })
+                  ])]),
                   div({ style: { gridColumnEnd: 'span 2' } }),
                   h(MachineSelector, {
                     machineType: workerMachineType,
