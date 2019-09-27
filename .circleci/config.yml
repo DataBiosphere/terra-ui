@@ -142,7 +142,7 @@ jobs:
             - deps2-{{ checksum "package.json" }}-
             - deps2-
       - run: npx npm@6.11 ci
-      - run: cp config/alpha.json /tmp/workspace/build/config.json
+      - run: cp config/dev.json /tmp/workspace/build/config.json
       - run: 
           command: npx http-server@0.11 /tmp/workspace/build/ -p 3000
           background: true
