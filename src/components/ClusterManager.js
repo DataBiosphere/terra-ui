@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
 import { Fragment, PureComponent, useState } from 'react'
-import { div, h, iframe, label, span } from 'react-hyperscript-helpers'
+import { div, h, h3, iframe, label, p, span } from 'react-hyperscript-helpers'
 import {
   ButtonPrimary, ButtonSecondary, Clickable, IdContainer, LabeledCheckbox, Link, Select, SimpleTabBar, spinnerOverlay
 } from 'src/components/common'
@@ -170,7 +170,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       profile: matchingProfile ? matchingProfile.name : 'custom',
       jupyterUserScriptUri: '',
       selectedLeoImage: leoImages[0].image,
-      isPreInstalledEnvMode: true,
+      isCustomEnv: false, customEnvImage: '', showingCustomWarning: false,
       ...normalizeMachineConfig(currentConfig)
     }
   }
@@ -185,20 +185,13 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     }
   }
 
-  validateCustomImageUrl() {
-    const { customEnvUrl } = this.state
-    // return customEnvUrl.match(/gcr/\*/)
-  }
-
-  // TODO: go to custom cluster/env if that's what the user has chosen
-  // TODO: go to warning page first if custom env is chosen
   createCluster() {
     const { namespace, onSuccess, currentCluster } = this.props
-    const { jupyterUserScriptUri, selectedLeoImage } = this.state
+    const { jupyterUserScriptUri, selectedLeoImage, isCustomEnv, customEnvImage } = this.state
     onSuccess(Promise.all([
       Ajax().Jupyter.cluster(namespace, Utils.generateClusterName()).create({
         machineConfig: this.getMachineConfig(),
-        jupyterDockerImage: selectedLeoImage,
+        jupyterDockerImage: isCustomEnv ? customEnvImage : selectedLeoImage,
         ...(jupyterUserScriptUri ? { jupyterUserScriptUri } : {})
       }),
       currentCluster && currentCluster.status === 'Error' && Ajax().Jupyter.cluster(currentCluster.googleProject, currentCluster.clusterName).delete()
@@ -210,9 +203,9 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const {
       profile, masterMachineType, masterDiskSize, workerMachineType, numberOfWorkers, numberOfPreemptibleWorkers, workerDiskSize,
       jupyterUserScriptUri, selectedLeoImage,
-      viewingPackages, isPreInstalledEnvMode
+      viewingPackages, isCustomEnv, customEnvImage, showingCustomWarning
     } = this.state
-    const { version, updated, packages } = _.find({ image: selectedLeoImage }, leoImages)
+    const { version, updated, packages } = _.find({ image: selectedLeoImage }, leoImages) || {}
 
     const makeEnvSelect = id => h(Select, {
       id,
@@ -228,72 +221,89 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       div([`Version: ${version}`])
     ])
 
-    return h(Fragment, [
-      h(TitleBar, {
-        title: viewingPackages ? 'INSTALLED PACKAGES' : 'RUNTIME CONFIGURATION',
-        onDismiss,
-        onPrevious: viewingPackages ? () => this.setState({ viewingPackages: false }) : undefined
-      }),
-      div({ style: { padding: '0 1.5rem 1.5rem 1.5rem', flexGrow: 1, display: 'flex', flexDirection: 'column' } }, [
-        viewingPackages ? h(Fragment, [
+    const { onPrevious, contents } = Utils.cond(
+      [viewingPackages, () => ({
+        onPrevious: () => this.setState({ viewingPackages: false }),
+        contents: h(Fragment, [
           makeEnvSelect(),
           makeImageInfo({ margin: '1rem 0 2rem' }),
           h(ImageDepViewer, { packages })
-        ]) : h(Fragment, [
+        ])
+      })],
+      [showingCustomWarning, () => ({
+        onPrevious: () => this.setState({ showingCustomWarning: false }),
+        contents: h(Fragment, [
+          h3({ style: { marginBottom: 0 } }, ['Warning!']),
+          p([`You are about to create a virtual machine using an unverified Docker image. 
+          Please make sure that it was created by you or someone you trust, using one of our base images.
+          Custom Docker images could potentially cause serious security issues.`]),
+          h(Link, { style: { marginBottom: '2rem' } }, ['Learn more about creating safe and secure custom Docker images.']),
+          h(ButtonSecondary, { style: { marginBottom: '1rem' }, onClick: () => this.setState({ showingCustomWarning: false }) }, [
+            'Go back and choose a pre installed environment'
+          ]),
+          h(ButtonPrimary, { onClick: () => this.createCluster() }, ['My image is safe, create my runtime'])
+        ])
+      })],
+      () => ({
+        onPrevious: undefined,
+        contents: h(Fragment, [
           div({ style: { marginBottom: '1rem' } }, [
             'Choose a Terra pre-installed runtime environment (e.g. programming languages + packages) or choose a custom environment'
           ]),
           h(SimpleTabBar, {
-            tabs: [{ title: 'PRE-INSTALLED ENVIRONMENT', key: true }, { title: 'CUSTOM ENVIRONMENT', key: false }],
-            value: isPreInstalledEnvMode,
-            onChange: value => {
-              this.setState({ isPreInstalledEnvMode: value })
-            }
+            tabs: [{ title: 'PRE-INSTALLED ENVIRONMENT', key: false, width: 265 }, { title: 'CUSTOM ENVIRONMENT', key: true, width: 215 }],
+            value: isCustomEnv,
+            onChange: value => this.setState({ isCustomEnv: value })
           }),
-          div({ style: { marginBottom: '1rem' } }),
-          isPreInstalledEnvMode ?
-            div({ style: { display: 'grid', gridTemplateColumns: '7rem 2fr 1fr', gridGap: '1rem', alignItems: 'center' } }, [
-              h(IdContainer, [id => h(Fragment, [
-                label({ htmlFor: id, style: styles.label }, 'Environment'),
-                div({ style: { gridColumnEnd: 'span 2' } }, [
-                  makeEnvSelect(id)
-                ])
-              ])]),
-              div({ style: { gridColumnStart: 2, alignSelf: 'start' } }, [
-                h(Link, { onClick: () => this.setState({ viewingPackages: true }) }, ['What’s installed on this environment?'])
-              ]),
-              makeImageInfo()
-            ]) :
-            div({ style: { display: 'grid', gridTemplateColumns: '7rem 2fr 1fr', gridGap: '1rem', alignItems: 'center' } }, [
-              h(IdContainer, [id => h(Fragment, [
-                label({ htmlFor: id, style: styles.label }, 'Image Path'),
-                div({ style: { gridColumnEnd: 'span 2' } }, [
-                  h(TextInput, {
-                    placeholder: `${div({ style: { fontWeight: 600 } },
-                      ['Example: '])}, us.gcr.io/broad-dsp-gcr-public/terra-jupyter-base:0.0.1`,
-                    value: selectedLeoImage,
-                    onChange: selectedLeoImage => { this.setState({ selectedLeoImage }) }
-                  })
-                ])
-              ])]),
-              div({ style: { gridColumnStart: 2, gridColumnEnd: 'span 2', alignSelf: 'start' } }, [
-                div([
-                  span([
-                    h(Link, {
-                      style: { fontWeight: 400 },
-                      href: 'https://github.com/DataBiosphere/terra-docker', ...Utils.newTabLinkProps // TODO: Need real url for link
-                    }, ['Learn how'])
-                  ]),
-                  span([' to create your own custom docker image from one of our ']),
-                  span([
-                    h(Link, {
-                      style: { fontWeight: 400 },
-                      href: 'https://github.com/DataBiosphere/terra-docker', ...Utils.newTabLinkProps // TODO: Need real url for link
-                    }, ['Terra base images.'])
+          div({
+            style: {
+              display: 'grid', gridTemplateColumns: '7rem 2fr 1fr', gridGap: '1rem', alignItems: 'center', marginTop: '1rem', height: 100
+            }
+          }, [
+            isCustomEnv ?
+              h(Fragment, [
+                h(IdContainer, [id => h(Fragment, [
+                  label({ htmlFor: id, style: styles.label }, 'Image Path'),
+                  div({ style: { gridColumnEnd: 'span 2' } }, [
+                    h(TextInput, {
+                      id,
+                      placeholder: 'Example: us.gcr.io/broad-dsp-gcr-public/terra-jupyter-base:0.0.1',
+                      value: customEnvImage,
+                      onChange: customEnvImage => this.setState({ customEnvImage })
+                    })
+                  ])
+                ])]),
+                div({ style: { gridColumnStart: 2, gridColumnEnd: 'span 2', alignSelf: 'start' } }, [
+                  div([
+                    span([
+                      h(Link, {
+                        style: { fontWeight: 400 },
+                        href: 'https://github.com/DataBiosphere/terra-docker', ...Utils.newTabLinkProps // TODO: Need real url for link
+                      }, ['Learn how'])
+                    ]),
+                    span([' to create your own custom docker image from one of our ']),
+                    span([
+                      h(Link, {
+                        style: { fontWeight: 400 },
+                        href: 'https://github.com/DataBiosphere/terra-docker', ...Utils.newTabLinkProps // TODO: Need real url for link
+                      }, ['Terra base images.'])
+                    ])
                   ])
                 ])
+              ]) :
+              h(Fragment, [
+                h(IdContainer, [id => h(Fragment, [
+                  label({ htmlFor: id, style: styles.label }, 'Environment'),
+                  div({ style: { gridColumnEnd: 'span 2' } }, [
+                    makeEnvSelect(id)
+                  ])
+                ])]),
+                div({ style: { gridColumnStart: 2, alignSelf: 'start' } }, [
+                  h(Link, { onClick: () => this.setState({ viewingPackages: true }) }, ['What’s installed on this environment?'])
+                ]),
+                makeImageInfo()
               ])
-            ]),
+          ]),
           div({
             style: {
               padding: '1rem', marginTop: '1rem',
@@ -413,12 +423,23 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
               onClick: onDismiss
             }, 'Cancel'),
             h(ButtonPrimary, {
+              disabled: isCustomEnv && !customEnvImage,
+              tooltip: isCustomEnv && !customEnvImage && 'Enter a docker image to use',
               style: { marginTop: '1rem' },
-              onClick: () => this.createCluster()
+              onClick: () => isCustomEnv ? this.setState({ showingCustomWarning: true }) : this.createCluster()
             }, !!currentCluster ? 'Replace' : 'Create')
           ])
         ])
-      ])
+      })
+    )
+
+    return h(Fragment, [
+      h(TitleBar, {
+        title: viewingPackages ? 'INSTALLED PACKAGES' : 'RUNTIME CONFIGURATION',
+        onDismiss,
+        onPrevious
+      }),
+      div({ style: { padding: '0 1.5rem 1.5rem 1.5rem', flexGrow: 1, display: 'flex', flexDirection: 'column' } }, [contents])
     ])
   }
 })
