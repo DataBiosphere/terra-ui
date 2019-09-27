@@ -274,21 +274,15 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
                   ])
                 ])]),
                 div({ style: { gridColumnStart: 2, gridColumnEnd: 'span 2', alignSelf: 'start' } }, [
-                  div([
-                    span([
-                      h(Link, {
-                        style: { fontWeight: 400 },
-                        href: 'https://github.com/DataBiosphere/terra-docker', ...Utils.newTabLinkProps // TODO: Need real url for link
-                      }, ['Learn how'])
-                    ]),
-                    span([' to create your own custom docker image from one of our ']),
-                    span([
-                      h(Link, {
-                        style: { fontWeight: 400 },
-                        href: 'https://github.com/DataBiosphere/terra-docker', ...Utils.newTabLinkProps // TODO: Need real url for link
-                      }, ['Terra base images.'])
-                    ])
-                  ])
+                  h(Link, {
+                    style: { fontWeight: 400 },
+                    href: 'https://github.com/DataBiosphere/terra-docker', ...Utils.newTabLinkProps // TODO: Need real url for link
+                  }, ['Learn how']),
+                  ' to create your own custom docker image from one of our ',
+                  h(Link, {
+                    style: { fontWeight: 400 },
+                    href: 'https://github.com/DataBiosphere/terra-docker', ...Utils.newTabLinkProps // TODO: Need real url for link
+                  }, ['Terra base images.'])
                 ])
               ]) :
               h(Fragment, [
