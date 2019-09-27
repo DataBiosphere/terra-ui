@@ -167,7 +167,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     this.state = {
       profile: matchingProfile ? matchingProfile.name : 'custom',
       jupyterUserScriptUri: '',
-      selectedLeoImage: leoImages.Default,
+      selectedLeoImage: leoImages[0].image,
       ...normalizeMachineConfig(currentConfig)
     }
   }
@@ -184,11 +184,11 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
 
   createCluster() {
     const { namespace, onSuccess, currentCluster } = this.props
-    const { jupyterUserScriptUri, selectedLeoImage: { image: jupyterDockerImage } } = this.state
+    const { jupyterUserScriptUri, selectedLeoImage } = this.state
     onSuccess(Promise.all([
       Ajax().Jupyter.cluster(namespace, Utils.generateClusterName()).create({
         machineConfig: this.getMachineConfig(),
-        jupyterDockerImage,
+        jupyterDockerImage: selectedLeoImage,
         ...(jupyterUserScriptUri ? { jupyterUserScriptUri } : {})
       }),
       currentCluster && currentCluster.status === 'Error' && Ajax().Jupyter.cluster(currentCluster.googleProject, currentCluster.clusterName).delete()
@@ -202,7 +202,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       jupyterUserScriptUri, selectedLeoImage,
       viewingPackages
     } = this.state
-    const { version, updated, packages } = selectedLeoImage
+    const { version, updated, packages } = _.find({ image: selectedLeoImage }, leoImages)
 
     const makeEnvSelect = id => h(Select, {
       id,
@@ -210,7 +210,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       onChange: ({ value }) => this.setState({ selectedLeoImage: value }),
       isSearchable: false,
       isClearable: false,
-      options: _.map(([k, v]) => ({ label: k, value: v }), _.toPairs(leoImages))
+      options: _.map(({ label, image }) => ({ label, value: image }), leoImages)
     })
 
     const makeImageInfo = style => div({ style: { whiteSpace: 'pre', ...style } }, [
