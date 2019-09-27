@@ -2,7 +2,9 @@ import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
 import { Fragment, PureComponent, useState } from 'react'
 import { div, h, iframe, label, span } from 'react-hyperscript-helpers'
-import { ButtonPrimary, ButtonSecondary, Clickable, IdContainer, LabeledCheckbox, Link, Select, spinnerOverlay } from 'src/components/common'
+import {
+  ButtonPrimary, ButtonSecondary, Clickable, IdContainer, LabeledCheckbox, Link, Select, SimpleTabBar, spinnerOverlay
+} from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { NumberInput, TextInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
@@ -67,45 +69,51 @@ const machineConfigsEqual = (a, b) => {
 const MachineSelector = ({ machineType, onChangeMachineType, diskSize, onChangeDiskSize, readOnly }) => {
   const { cpu: currentCpu, memory: currentMemory } = _.find({ name: machineType }, machineTypes)
   return h(Fragment, [
-    h(IdContainer, [id => h(Fragment, [
-      label({ htmlFor: id, style: styles.label }, 'CPUs'),
-      div([
-        h(Select, {
-          isDisabled: readOnly,
+    h(IdContainer, [
+      id => h(Fragment, [
+        label({ htmlFor: id, style: styles.label }, 'CPUs'),
+        div([
+          h(Select, {
+            isDisabled: readOnly,
+            id,
+            isSearchable: false,
+            value: currentCpu,
+            onChange: ({ value }) => onChangeMachineType(_.find({ cpu: value }, machineTypes).name),
+            options: _.uniq(_.map('cpu', machineTypes))
+          })
+        ])
+      ])
+    ]),
+    h(IdContainer, [
+      id => h(Fragment, [
+        label({ htmlFor: id, style: styles.label }, 'Memory (GB)'),
+        div([
+          h(Select, {
+            isDisabled: readOnly,
+            id,
+            isSearchable: false,
+            value: currentMemory,
+            onChange: ({ value }) => onChangeMachineType(_.find({ cpu: currentCpu, memory: value }, machineTypes).name),
+            options: _.map('memory', _.sortBy('memory', _.filter({ cpu: currentCpu }, machineTypes)))
+          })
+        ])
+      ])
+    ]),
+    h(IdContainer, [
+      id => h(Fragment, [
+        label({ htmlFor: id, style: styles.label }, 'Disk size (GB)'),
+        h(NumberInput, {
+          disabled: readOnly,
           id,
-          isSearchable: false,
-          value: currentCpu,
-          onChange: ({ value }) => onChangeMachineType(_.find({ cpu: value }, machineTypes).name),
-          options: _.uniq(_.map('cpu', machineTypes))
+          min: 10,
+          max: 64000,
+          isClearable: false,
+          onlyInteger: true,
+          value: diskSize,
+          onChange: onChangeDiskSize
         })
       ])
-    ])]),
-    h(IdContainer, [id => h(Fragment, [
-      label({ htmlFor: id, style: styles.label }, 'Memory (GB)'),
-      div([
-        h(Select, {
-          isDisabled: readOnly,
-          id,
-          isSearchable: false,
-          value: currentMemory,
-          onChange: ({ value }) => onChangeMachineType(_.find({ cpu: currentCpu, memory: value }, machineTypes).name),
-          options: _.map('memory', _.sortBy('memory', _.filter({ cpu: currentCpu }, machineTypes)))
-        })
-      ])
-    ])]),
-    h(IdContainer, [id => h(Fragment, [
-      label({ htmlFor: id, style: styles.label }, 'Disk size (GB)'),
-      h(NumberInput, {
-        disabled: readOnly,
-        id,
-        min: 10,
-        max: 64000,
-        isClearable: false,
-        onlyInteger: true,
-        value: diskSize,
-        onChange: onChangeDiskSize
-      })
-    ])])
+    ])
   ])
 }
 
@@ -168,7 +176,9 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       profile: matchingProfile ? matchingProfile.name : 'custom',
       jupyterUserScriptUri: '',
       selectedLeoImage: leoImages.Default,
-      ...normalizeMachineConfig(currentConfig)
+      ...normalizeMachineConfig(currentConfig),
+      isPreInstalledEnvMode: true,
+      customEnvUrl: ''
     }
   }
 
@@ -182,16 +192,27 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     }
   }
 
+  validateCustomImageUrl(){
+    const {customEnvUrl} = this.state
+   // return customEnvUrl.match(/gcr/\*/)
+  }
+
+  // TODO: go to custom cluster/env if that's what the user has chosen
+  // TODO: go to warning page first if custom env is chosen
   createCluster() {
     const { namespace, onSuccess, currentCluster } = this.props
-    const { jupyterUserScriptUri, selectedLeoImage: { image: jupyterDockerImage } } = this.state
+    const { jupyterUserScriptUri, selectedLeoImage: { image: jupyterDockerImage }, customEnvUrl } = this.state
+
+    // TODO: if customEnvUrl is '' then do regular, otherwise go to warning page and prepare to use that url instead
+
     onSuccess(Promise.all([
       Ajax().Jupyter.cluster(namespace, Utils.generateClusterName()).create({
         machineConfig: this.getMachineConfig(),
         jupyterDockerImage,
         ...(jupyterUserScriptUri ? { jupyterUserScriptUri } : {})
       }),
-      currentCluster && currentCluster.status === 'Error' && Ajax().Jupyter.cluster(currentCluster.googleProject, currentCluster.clusterName).delete()
+      currentCluster && currentCluster.status === 'Error' &&
+      Ajax().Jupyter.cluster(currentCluster.googleProject, currentCluster.clusterName).delete()
     ]))
   }
 
@@ -200,7 +221,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const {
       profile, masterMachineType, masterDiskSize, workerMachineType, numberOfWorkers, numberOfPreemptibleWorkers, workerDiskSize,
       jupyterUserScriptUri, selectedLeoImage,
-      viewingPackages
+      viewingPackages, isPreInstalledEnvMode, customEnvUrl
     } = this.state
     const { version, updated, packages } = selectedLeoImage
 
@@ -231,20 +252,63 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
           h(ImageDepViewer, { packages })
         ]) : h(Fragment, [
           div({ style: { marginBottom: '1rem' } }, [
-            'Choose a Terra pre-installed runtime environment (e.g. programming languages + packages)' // TODO: once there's custom, add the text ' or choose a custom environment'
+            'Choose a Terra pre-installed runtime environment (e.g. programming languages + packages) or choose a custom environment'
           ]),
-          div({ style: { display: 'grid', gridTemplateColumns: '7rem 2fr 1fr', gridGap: '1rem', alignItems: 'center' } }, [
-            h(IdContainer, [id => h(Fragment, [
-              label({ htmlFor: id, style: styles.label }, 'Environment'),
-              div({ style: { gridColumnEnd: 'span 2' } }, [
-                makeEnvSelect(id)
+          h(SimpleTabBar, {
+            tabs: [{ title: 'PRE-INSTALLED ENVIRONMENT', key: true }, { title: 'CUSTOM ENVIRONMENT', key: false }],
+            value: isPreInstalledEnvMode,
+            onChange: value => {
+              this.setState({ isPreInstalledEnvMode: value })
+            }
+          }),
+          div({ style: { marginBottom: '1rem' } }),
+          isPreInstalledEnvMode ?
+            div({ style: { display: 'grid', gridTemplateColumns: '7rem 2fr 1fr', gridGap: '1rem', alignItems: 'center' } }, [
+              h(IdContainer, [
+                id => h(Fragment, [
+                  label({ htmlFor: id, style: styles.label }, 'Environment'),
+                  div({ style: { gridColumnEnd: 'span 2' } }, [
+                    makeEnvSelect(id)
+                  ])
+                ])
+              ]),
+              div({ style: { gridColumnStart: 2, alignSelf: 'start' } }, [
+                h(Link, { onClick: () => this.setState({ viewingPackages: true }) }, ['What’s installed on this environment?'])
+              ]),
+              makeImageInfo()
+            ]) :
+            div({ style: { display: 'grid', gridTemplateColumns: '7rem 2fr 1fr', gridGap: '1rem', alignItems: 'center' } }, [
+              h(IdContainer, [
+                id => h(Fragment, [
+                  label({ htmlFor: id, style: styles.label }, 'Image Path'),
+                  div({ style: { gridColumnEnd: 'span 2' } }, [
+                    h(TextInput, {
+                      placeholder: `${div({ style: { fontWeight: 600 } },
+                        ['Example: '])}, us.gcr.io/broad-dsp-gcr-public/terra-jupyter-base:0.0.1`,
+                      value: customEnvUrl,
+                      onChange: customEnvUrl => { this.setState({ customEnvUrl }) }
+                    })
+                  ])
+                ])
+              ]),
+              div({ style: { gridColumnStart: 2, gridColumnEnd: 'span 2', alignSelf: 'start' } }, [
+                div([
+                  span([
+                    h(Link, {
+                      style: { fontWeight: 400 },
+                      href: 'https://github.com/DataBiosphere/terra-docker', ...Utils.newTabLinkProps // TODO: Need real url for link
+                    }, ['Learn how'])
+                  ]),
+                  span([' to create your own custom docker image from one of our ']),
+                  span([
+                    h(Link, {
+                      style: { fontWeight: 400 },
+                      href: 'https://github.com/DataBiosphere/terra-docker', ...Utils.newTabLinkProps // TODO: Need real url for link
+                    }, ['Terra base images.'])
+                  ])
+                ])
               ])
-            ])]),
-            div({ style: { gridColumnStart: 2, alignSelf: 'start' } }, [
-              h(Link, { onClick: () => this.setState({ viewingPackages: true }) }, ['What’s installed on this environment?'])
             ]),
-            makeImageInfo()
-          ]),
           div({
             style: {
               padding: '1rem', marginTop: '1rem',
@@ -255,27 +319,29 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
             div({ style: { fontSize: '0.875rem', fontWeight: 600, marginBottom: '0.5rem' } }, ['COMPUTE POWER']),
             div({ style: { marginBottom: '1rem' } }, ['Select from one of the compute runtime profiles or define your own']),
             div({ style: { display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1.2fr 1fr 5.5rem', gridGap: '1rem', alignItems: 'center' } }, [
-              h(IdContainer, [id => h(Fragment, [
-                label({ htmlFor: id, style: styles.label }, 'Profile'),
-                div({ style: { gridColumnEnd: 'span 5' } }, [
-                  h(Select, {
-                    id,
-                    value: profile,
-                    onChange: ({ value }) => {
-                      this.setState({
-                        profile: value,
-                        ...(value === 'custom' ? {} : normalizeMachineConfig(_.find({ name: value }, profiles).machineConfig))
-                      })
-                    },
-                    isSearchable: false,
-                    isClearable: false,
-                    options: [
-                      ..._.map(({ name, label }) => ({ value: name, label: `${label} computer power` }), profiles),
-                      { value: 'custom', label: 'Custom' }
-                    ]
-                  })
+              h(IdContainer, [
+                id => h(Fragment, [
+                  label({ htmlFor: id, style: styles.label }, 'Profile'),
+                  div({ style: { gridColumnEnd: 'span 5' } }, [
+                    h(Select, {
+                      id,
+                      value: profile,
+                      onChange: ({ value }) => {
+                        this.setState({
+                          profile: value,
+                          ...(value === 'custom' ? {} : normalizeMachineConfig(_.find({ name: value }, profiles).machineConfig))
+                        })
+                      },
+                      isSearchable: false,
+                      isClearable: false,
+                      options: [
+                        ..._.map(({ name, label }) => ({ value: name, label: `${label} computer power` }), profiles),
+                        { value: 'custom', label: 'Custom' }
+                      ]
+                    })
+                  ])
                 ])
-              ])]),
+              ]),
               h(MachineSelector, {
                 machineType: masterMachineType,
                 onChangeMachineType: v => this.setState({ masterMachineType: v }),
@@ -284,17 +350,19 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
                 readOnly: profile !== 'custom'
               }),
               profile === 'custom' && h(Fragment, [
-                h(IdContainer, [id => h(Fragment, [
-                  label({ htmlFor: id, style: styles.label }, 'Startup\nscript'),
-                  div({ style: { gridColumnEnd: 'span 5' } }, [
-                    h(TextInput, {
-                      id,
-                      placeholder: 'URI',
-                      value: jupyterUserScriptUri,
-                      onChange: v => this.setState({ jupyterUserScriptUri: v })
-                    })
+                h(IdContainer, [
+                  id => h(Fragment, [
+                    label({ htmlFor: id, style: styles.label }, 'Startup\nscript'),
+                    div({ style: { gridColumnEnd: 'span 5' } }, [
+                      h(TextInput, {
+                        id,
+                        placeholder: 'URI',
+                        value: jupyterUserScriptUri,
+                        onChange: v => this.setState({ jupyterUserScriptUri: v })
+                      })
+                    ])
                   ])
-                ])]),
+                ]),
                 div({ style: { gridColumnEnd: 'span 6' } }, [
                   h(LabeledCheckbox, {
                     checked: !!numberOfWorkers,
@@ -305,35 +373,39 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
                   }, ' Configure as Spark cluster')
                 ]),
                 !!numberOfWorkers && h(Fragment, [
-                  h(IdContainer, [id => h(Fragment, [
-                    label({ htmlFor: id, style: styles.label }, 'Workers'),
-                    h(NumberInput, {
-                      id,
-                      min: 2,
-                      isClearable: false,
-                      onlyInteger: true,
-                      value: numberOfWorkers,
-                      onChange: v => this.setState({
-                        numberOfWorkers: v,
-                        numberOfPreemptibleWorkers: _.min([numberOfPreemptibleWorkers, v])
+                  h(IdContainer, [
+                    id => h(Fragment, [
+                      label({ htmlFor: id, style: styles.label }, 'Workers'),
+                      h(NumberInput, {
+                        id,
+                        min: 2,
+                        isClearable: false,
+                        onlyInteger: true,
+                        value: numberOfWorkers,
+                        onChange: v => this.setState({
+                          numberOfWorkers: v,
+                          numberOfPreemptibleWorkers: _.min([numberOfPreemptibleWorkers, v])
+                        })
                       })
-                    })
-                  ])]),
-                  h(IdContainer, [id => h(Fragment, [
-                    label({
-                      htmlFor: id,
-                      style: styles.label
-                    }, 'Preemptible'),
-                    h(NumberInput, {
-                      id,
-                      min: 0,
-                      max: numberOfWorkers,
-                      isClearable: false,
-                      onlyInteger: true,
-                      value: numberOfPreemptibleWorkers,
-                      onChange: v => this.setState({ numberOfPreemptibleWorkers: v })
-                    })
-                  ])]),
+                    ])
+                  ]),
+                  h(IdContainer, [
+                    id => h(Fragment, [
+                      label({
+                        htmlFor: id,
+                        style: styles.label
+                      }, 'Preemptible'),
+                      h(NumberInput, {
+                        id,
+                        min: 0,
+                        max: numberOfWorkers,
+                        isClearable: false,
+                        onlyInteger: true,
+                        value: numberOfPreemptibleWorkers,
+                        onChange: v => this.setState({ numberOfPreemptibleWorkers: v })
+                      })
+                    ])
+                  ]),
                   div({ style: { gridColumnEnd: 'span 2' } }),
                   h(MachineSelector, {
                     machineType: workerMachineType,
@@ -634,30 +706,32 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
         'aria-label': 'Delete notebook runtime',
         style: { marginLeft: '0.5rem' }
       }),
-      h(IdContainer, [id => h(Fragment, [
-        h(Clickable, {
-          id,
-          style: styles.button(isDisabled),
-          tooltip: Utils.cond(
-            [!canCompute, () => noCompute],
-            [creating, () => 'Your environment is being created'],
-            [multiple, () => undefined],
-            () => 'Update runtime'
-          ),
-          onClick: () => this.setState({ createModalDrawerOpen: true }),
-          disabled: isDisabled
-        }, [
-          div({ style: { marginLeft: '0.5rem', paddingRight: '0.5rem', color: colors.dark() } }, [
-            div({ style: { fontSize: 12, fontWeight: 'bold' } }, 'Notebook Runtime'),
-            div({ style: { fontSize: 10 } }, [
-              span({ style: { textTransform: 'uppercase', fontWeight: 500 } }, currentStatus || 'None'),
-              ` (${Utils.formatUSD(totalCost)} hr)`
-            ])
+      h(IdContainer, [
+        id => h(Fragment, [
+          h(Clickable, {
+            id,
+            style: styles.button(isDisabled),
+            tooltip: Utils.cond(
+              [!canCompute, () => noCompute],
+              [creating, () => 'Your environment is being created'],
+              [multiple, () => undefined],
+              () => 'Update runtime'
+            ),
+            onClick: () => this.setState({ createModalDrawerOpen: true }),
+            disabled: isDisabled
+          }, [
+            div({ style: { marginLeft: '0.5rem', paddingRight: '0.5rem', color: colors.dark() } }, [
+              div({ style: { fontSize: 12, fontWeight: 'bold' } }, 'Notebook Runtime'),
+              div({ style: { fontSize: 10 } }, [
+                span({ style: { textTransform: 'uppercase', fontWeight: 500 } }, currentStatus || 'None'),
+                ` (${Utils.formatUSD(totalCost)} hr)`
+              ])
+            ]),
+            icon('cog', { size: 22, style: { color: isDisabled ? colors.dark(0.7) : colors.accent() } })
           ]),
-          icon('cog', { size: 22, style: { color: isDisabled ? colors.dark(0.7) : colors.accent() } })
-        ]),
-        multiple && h(Popup, { side: 'bottom', target: id, handleClickOutside: _.noop }, [this.renderDestroyForm()])
-      ])]),
+          multiple && h(Popup, { side: 'bottom', target: id, handleClickOutside: _.noop }, [this.renderDestroyForm()])
+        ])
+      ]),
       deleteModalOpen && h(DeleteClusterModal, {
         cluster: this.getCurrentCluster(),
         onDismiss: () => this.setState({ deleteModalOpen: false }),
