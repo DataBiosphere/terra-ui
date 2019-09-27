@@ -4,7 +4,7 @@ import { Component, Fragment, useState } from 'react'
 import { UnmountClosed as RCollapse } from 'react-collapse'
 import { a, b, div, h, img, span } from 'react-hyperscript-helpers'
 import { Transition } from 'react-transition-group'
-import { ButtonPrimary, Clickable, CromwellVersionLink, FocusTrapper, LabeledCheckbox, spinnerOverlay } from 'src/components/common'
+import { ButtonPrimary, Clickable, CromwellVersionLink, FocusTrapper, IdContainer, LabeledCheckbox, spinnerOverlay } from 'src/components/common'
 import { icon, profilePic } from 'src/components/icons'
 import { TextArea } from 'src/components/input'
 import Modal from 'src/components/Modal'
@@ -283,7 +283,10 @@ const TopBar = Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
           isFirecloud() && h(NavSection, {
             disabled: !isSignedIn,
             tooltip: isSignedIn ? undefined : 'Please sign in',
-            onClick: () => this.setState({ openFirecloudModal: true })
+            onClick: () => {
+              this.hideNav()
+              this.setState({ openFirecloudModal: true })
+            }
           }, [
             div({ style: styles.nav.icon }, [
               img({ src: fcIconWhite, alt: '', style: { height: 20, width: 20 } })
@@ -417,13 +420,16 @@ const PreferFirecloudModal = ({ onDismiss }) => {
     okButton: returnToLegacyFC
   }, [
     'Are you sure you would prefer the previous FireCloud interface?',
-    h(FormLabel, ['Please tell us why']),
-    h(TextArea, {
-      style: { height: 100, marginBottom: '0.5rem' },
-      placeholder: 'Enter your reason',
-      value: reason,
-      onChange: setReason
-    }),
+    h(IdContainer, [id => h(Fragment, [
+      h(FormLabel, ['Please tell us why']),
+      h(TextArea, {
+        id,
+        style: { height: 100, marginBottom: '0.5rem' },
+        placeholder: 'Enter your reason',
+        value: reason,
+        onChange: setReason
+      })
+    ])]),
     h(LabeledCheckbox, {
       checked: emailAgreed,
       onChange: setEmailAgreed
