@@ -932,8 +932,8 @@ const Submissions = signal => ({
 
 
 const Jupyter = signal => ({
-  clustersList: async project => {
-    const res = await fetchLeo(`api/clusters${project ? `/${project}` : ''}?saturnAutoCreated=true`,
+  clustersList: async (labels = {}) => {
+    const res = await fetchLeo(`api/clusters?${qs.stringify({ saturnAutoCreated: true, ...labels })}`,
       _.mergeAll([authOpts(), appIdentifier, { signal }]))
     return res.json()
   },
