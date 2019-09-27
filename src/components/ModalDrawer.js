@@ -22,9 +22,9 @@ const drawer = {
   })
 }
 
-const ModalDrawer = ({ openDrawer, onDismiss, width = 450, children, ...props }) => {
+const ModalDrawer = ({ isOpen, onDismiss, width = 450, children, ...props }) => {
   return h(Transition, {
-    in: openDrawer,
+    in: isOpen,
     timeout: { exit: 200 },
     appear: true,
     mountOnEnter: true,
@@ -39,8 +39,17 @@ const ModalDrawer = ({ openDrawer, onDismiss, width = 450, children, ...props })
   }, [children])])
 }
 
+export const withModalDrawer = ({ width } = {}) => WrappedComponent => {
+  const Wrapper = ({ isOpen, onDismiss, ...props }) => {
+    return h(ModalDrawer, { isOpen, width, onDismiss }, [
+      isOpen && h(WrappedComponent, { onDismiss, ...props })
+    ])
+  }
+  return Wrapper
+}
+
 ModalDrawer.propTypes = {
-  openDrawer: PropTypes.bool,
+  isOpen: PropTypes.bool,
   onDismiss: PropTypes.func.isRequired,
   width: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
   children: PropTypes.node

@@ -2,10 +2,10 @@ import { differenceInCalendarDays, parseISO } from 'date-fns/fp'
 import _ from 'lodash/fp'
 import { Component } from 'react'
 import { div, h, input, span } from 'react-hyperscript-helpers'
-import Interactive from 'react-interactive'
 import { ButtonSecondary, Clickable } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { TextArea } from 'src/components/input'
+import Interactive from 'src/components/Interactive'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { getAppName } from 'src/libs/logos'
@@ -137,8 +137,8 @@ export const NpsSurvey = Utils.connectAtom(authStore, 'authState')(class NpsSurv
           }, 'Submit')
         ])
       ]),
-      h(Clickable, {
-        as: icon('times-circle', {
+      h(Clickable, { onClick: goAway(false) }, [
+        icon('times-circle', {
           size: 20,
           style: {
             position: 'absolute', top: -5, left: -5,
@@ -146,9 +146,8 @@ export const NpsSurvey = Utils.connectAtom(authStore, 'authState')(class NpsSurv
             color: 'white',
             borderRadius: '1rem'
           }
-        }),
-        onClick: goAway(false)
-      })
+        })
+      ])
     ])
   }
 })

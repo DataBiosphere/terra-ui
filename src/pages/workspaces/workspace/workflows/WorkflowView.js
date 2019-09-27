@@ -315,7 +315,7 @@ const WorkflowView = _.flow(
   resetSelectionModel(value, selectedEntities = {}) {
     return {
       type: Utils.cond(
-        [_.endsWith('_set', value), () => EntitySelectionType.chooseSet],
+        [_.endsWith('_set', value), () => EntitySelectionType.chooseSets],
         [_.isEmpty(selectedEntities), () => EntitySelectionType.processAll],
         () => EntitySelectionType.chooseRows
       ),
@@ -399,7 +399,8 @@ const WorkflowView = _.flow(
           accessLevel: workspace.accessLevel, bucketName: workspace.workspace.bucketName,
           processSingle: this.isSingle(), entitySelectionModel, useCallCache,
           onDismiss: () => this.setState({ launching: false }),
-          onSuccess: submissionId => Nav.goToPath('workspace-submission-details', { submissionId, ...workspaceId })
+          onSuccess: submissionId => Nav.goToPath('workspace-submission-details', { submissionId, ...workspaceId }),
+          onSuccessMulti: () => Nav.goToPath('workspace-job-history', workspaceId)
         }),
         variableSelected && h(BucketContentModal, {
           workspace,
@@ -516,16 +517,15 @@ const WorkflowView = _.flow(
 
   describeSelectionModel() {
     const { modifiedConfig: { rootEntityType }, entityMetadata, entitySelectionModel: { newSetName, selectedEntities, type } } = this.state
-    const { name } = selectedEntities
     const count = _.size(selectedEntities)
-    const newSetMessage = count > 1 ? `(will create a new set named "${newSetName}")` : ''
+    const newSetMessage = (type === EntitySelectionType.processAll || count > 1) ? `(will create a new set named "${newSetName}")` : ''
     return Utils.cond(
       [this.isSingle() || !rootEntityType, ''],
       [type === EntitySelectionType.processAll, () => `all ${entityMetadata[rootEntityType] ? entityMetadata[rootEntityType].count : 0}
-        ${rootEntityType}s (will create a new set named "${newSetName}")`],
-      [type === EntitySelectionType.processFromSet, () => `${rootEntityType}s from ${name}`],
+        ${rootEntityType}s ${newSetMessage}`],
+      [type === EntitySelectionType.processMergedSet, () => `${rootEntityType}s from ${count} sets ${newSetMessage}`],
       [type === EntitySelectionType.chooseRows, () => `${count} selected ${rootEntityType}s ${newSetMessage}`],
-      [type === EntitySelectionType.chooseSet, () => `${_.has('name', selectedEntities) ? 1 : 0} selected ${rootEntityType}`]
+      [type === EntitySelectionType.chooseSets, () => `${count} selected ${rootEntityType}s`]
     )
   }
 
@@ -565,7 +565,7 @@ const WorkflowView = _.flow(
       [saving || modified, () => 'Save or cancel to Launch Analysis'],
       [!_.isEmpty(errors.inputs) || !_.isEmpty(errors.outputs), () => 'At least one required attribute is missing or invalid'],
       [this.isMultiple() && !entityMetadata[rootEntityType], () => `There are no ${selectedEntityType}s in this workspace.`],
-      [this.isMultiple() && entitySelectionModel.type === EntitySelectionType.chooseSet && !entitySelectionModel.selectedEntities.name,
+      [this.isMultiple() && entitySelectionModel.type === EntitySelectionType.chooseSets && !_.size(entitySelectionModel.selectedEntities),
         () => 'Select a set']
     )
 

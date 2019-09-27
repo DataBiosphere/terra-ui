@@ -3,11 +3,11 @@ import * as qs from 'qs'
 import { Fragment, useState } from 'react'
 import FocusLock from 'react-focus-lock'
 import { div, h, img, input, label, span } from 'react-hyperscript-helpers'
-import Interactive from 'react-interactive'
 import RSelect from 'react-select'
 import RAsyncCreatableSelect from 'react-select/async-creatable'
 import RSwitch from 'react-switch'
 import { centeredSpinner, icon } from 'src/components/icons'
+import Interactive from 'src/components/Interactive'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import hexButton from 'src/images/hex-button.svg'
 import scienceBackground from 'src/images/science-background.jpg'
@@ -30,7 +30,7 @@ const styles = {
     container: {
       display: 'flex', alignItems: 'center',
       fontWeight: 400, textTransform: 'uppercase',
-      height: '3.75rem',
+      height: '2.25rem',
       borderBottom: `1px solid ${terraSpecial()}`, flex: ''
     },
     tab: {
@@ -40,9 +40,6 @@ const styles = {
     },
     active: {
       borderBottomColor: terraSpecial(),
-      fontWeight: 600
-    },
-    hover: {
       fontWeight: 600
     }
   }
@@ -165,7 +162,6 @@ export const SimpleTabBar = ({ value, onChange, tabs }) => {
         onClick: () => {
           onChange(key)
         }
-
       }, [title])
     }, tabs)
   ])
@@ -201,7 +197,6 @@ export const Checkbox = ({ checked, onChange, disabled, ...props }) => {
       color: disabled ? colors.dark(0.4) : checked ? colors.accent() : colors.dark(0.55)
     },
     hover: disabled ? undefined : { color: colors.accent(0.8) },
-    active: disabled ? undefined : { backgroundColor: colors.accent(0.2) },
     disabled
   }, props), [
     icon(checked ? 'checkSquare' : 'square', { size: 16 })
