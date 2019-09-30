@@ -6,14 +6,14 @@ import {
   ButtonPrimary, ButtonSecondary, Clickable, IdContainer, LabeledCheckbox, Link, Select, SimpleTabBar, spinnerOverlay
 } from 'src/components/common'
 import { icon } from 'src/components/icons'
-import { NumberInput, TextInput } from 'src/components/input'
+import { NumberInput, TextInput, ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { withModalDrawer } from 'src/components/ModalDrawer'
 import { notify } from 'src/components/Notifications.js'
 import { Popup } from 'src/components/PopupTrigger'
 import TitleBar from 'src/components/TitleBar'
 import { machineTypes, profiles } from 'src/data/clusters'
-import { leoImages } from 'src/data/leo-images'
+import { imageValidationRegexp, leoImages } from 'src/data/leo-images'
 import { Ajax, ajaxCaller } from 'src/libs/ajax'
 import { clusterCost, currentCluster, machineConfigCost, normalizeMachineConfig, trimClustersOldestFirst } from 'src/libs/cluster-utils'
 import colors from 'src/libs/colors'
@@ -209,6 +209,8 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     } = this.state
     const { version, updated, packages } = _.find({ image: selectedLeoImage }, leoImages) || {}
 
+    const isCustomImageInvalid = !imageValidationRegexp.test(customEnvImage)
+
     const makeEnvSelect = id => h(Select, {
       id,
       value: selectedLeoImage,
@@ -274,11 +276,14 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
                 h(IdContainer, [id => h(Fragment, [
                   label({ htmlFor: id, style: styles.label }, 'Image Path'),
                   div({ style: { gridColumnEnd: 'span 2' } }, [
-                    h(TextInput, {
-                      id,
-                      placeholder: 'Example: us.gcr.io/broad-dsp-gcr-public/terra-jupyter-base:0.0.1',
-                      value: customEnvImage,
-                      onChange: customEnvImage => this.setState({ customEnvImage })
+                    h(ValidatedInput, {
+                      inputProps: {
+                        id,
+                        placeholder: 'Example: us.gcr.io/broad-dsp-gcr-public/terra-jupyter-base:0.0.1',
+                        value: customEnvImage,
+                        onChange: customEnvImage => this.setState({ customEnvImage })
+                      },
+                      error: customEnvImage && isCustomImageInvalid && 'Not a valid image'
                     })
                   ])
                 ])]),
@@ -420,8 +425,8 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
               onClick: onDismiss
             }, 'Cancel'),
             h(ButtonPrimary, {
-              disabled: isCustomEnv && !customEnvImage,
-              tooltip: isCustomEnv && !customEnvImage && 'Enter a docker image to use',
+              disabled: isCustomEnv && isCustomImageInvalid,
+              tooltip: isCustomEnv && isCustomImageInvalid && 'Enter a valid docker image to use',
               style: { marginTop: '1rem' },
               onClick: () => isCustomEnv ? this.setState({ showingCustomWarning: true }) : this.createCluster()
             }, !!currentCluster ? 'Replace' : 'Create')
