@@ -111,7 +111,7 @@ export default ajaxCaller(class LaunchAnalysisModal extends Component {
       }
     } else if (type === EntitySelectionType.processMergedSet) {
       if (_.size(selectedEntities) === 1) {
-        const { entityType, name } = selectedEntities[0]
+        const { entityType, name } = _.values(selectedEntities)[0]
         this.launch(entityType, name, `this.${rootEntityType}s`)
       } else {
         const entities = _.flow(
