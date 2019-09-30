@@ -32,4 +32,6 @@ const domainRegexp = `${domainComponentRegexp}(\\.${domainComponentRegexp})*(?::
 const nameRegexp = `(?:${domainRegexp}\\/)?${nameComponentRegexp}(?:\\/${nameComponentRegexp})*`
 const referenceRegexp = `^(${nameRegexp})(?::(${tagRegexp}))?(?:@(${digestRegexp}))?$`
 
-export const imageValidationRegexp = new RegExp(referenceRegexp)
+// see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp#Description
+// for why it's preferable to create a regex from a regexp here, rather than from a string
+export const imageValidationRegexp = new RegExp(new RegExp(referenceRegexp))

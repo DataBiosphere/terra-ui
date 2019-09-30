@@ -268,14 +268,14 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
           }),
           div({
             style: {
-              display: 'grid', gridTemplateColumns: '7rem 2fr 1fr', gridGap: '1rem', alignItems: 'center', marginTop: '1rem', height: 100
+              display: 'grid', gridTemplateColumns: '7rem 2fr 1fr', gridGap: '1rem', alignItems: 'center', margin: '1.5rem 0 1rem', minHeight: 100
             }
           }, [
             isCustomEnv ?
               h(Fragment, [
                 h(IdContainer, [id => h(Fragment, [
-                  label({ htmlFor: id, style: styles.label }, 'Image Path'),
-                  div({ style: { gridColumnEnd: 'span 2' } }, [
+                  label({ htmlFor: id, style: { ...styles.label, lineHeight: '38px', alignSelf: 'start' } }, 'Image Path'),
+                  div({ style: { gridColumnEnd: 'span 2', alignSelf: 'start' } }, [
                     h(ValidatedInput, {
                       inputProps: {
                         id,
