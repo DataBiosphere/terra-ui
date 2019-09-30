@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
 import { Fragment, PureComponent, useState } from 'react'
-import { div, h, h3, iframe, label, span } from 'react-hyperscript-helpers'
+import { b, div, h, h3, iframe, label, p, span } from 'react-hyperscript-helpers'
 import {
   ButtonPrimary, ButtonSecondary, Clickable, IdContainer, LabeledCheckbox, Link, Select, SimpleTabBar, spinnerOverlay
 } from 'src/components/common'
@@ -25,6 +25,8 @@ import * as Utils from 'src/libs/utils'
 
 
 const noCompute = 'You do not have access to run analyses on this workspace.'
+const terraImageRepo = 'https://github.com/databiosphere/terra-docker'
+const imageInstructions = `${terraImageRepo}#how-to-create-your-own-terra-images`
 
 const styles = {
   verticalCenter: { display: 'flex', alignItems: 'center' },
@@ -234,23 +236,19 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         onPrevious: () => this.setState({ showingCustomWarning: false }),
         contents: h(Fragment, [
           h3({ style: { marginBottom: '0.5rem' } }, ['Warning!']),
-          div({ style: { lineHeight: 1.5 } }, [
+          p([
             `You are about to create a virtual machine using an unverified Docker image. 
-              Please make sure that it was created by you or someone you trust, using one of our `,
-            h(Link, {
-              style: { display: 'inline-block' },
-              href: 'https://github.com/DataBiosphere/terra-docker', ...Utils.newTabLinkProps
-            }, ['base images.']),
-            ` Custom Docker images could potentially cause serious security issues.`
+             Please make sure that it was created by you or someone you trust, using one of our `,
+            h(Link, { href: terraImageRepo, ...Utils.newTabLinkProps }, ['base images.']),
+            ' Custom Docker images could potentially cause serious security issues.'
           ]),
-          h(Link, {
-            style: { marginBottom: '2rem', marginTop: '1rem' },
-            href: 'https://github.com/databiosphere/terra-docker#how-to-create-your-own-terra-images', ...Utils.newTabLinkProps
-          }, ['Learn more about creating safe and secure custom Docker images.']),
-          h(ButtonSecondary, { style: { marginBottom: '1rem' }, onClick: () => this.setState({ showingCustomWarning: false }) }, [
-            'Go back and choose a pre installed environment'
-          ]),
-          h(ButtonPrimary, { onClick: () => this.createCluster() }, ['My image is safe, create my runtime'])
+          h(Link, { href: imageInstructions, ...Utils.newTabLinkProps }, ['Learn more about creating safe and secure custom Docker images.']),
+          p(['If you\'re confident that your image is safe, click ', b(['Create']), ' to use it. Otherwise, click ', b(['Back']),
+            ' to select another image.']),
+          div({ style: { display: 'flex', justifyContent: 'flex-end' } }, [
+            h(ButtonSecondary, { style: { marginRight: '2rem' }, onClick: () => this.setState({ showingCustomWarning: false }) }, ['Back']),
+            h(ButtonPrimary, { onClick: () => this.createCluster() }, ['Create'])
+          ])
         ])
       })],
       () => ({
@@ -283,15 +281,9 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
                   ])
                 ])]),
                 div({ style: { gridColumnStart: 2, gridColumnEnd: 'span 2', alignSelf: 'start' } }, [
-                  h(Link, {
-                    style: { fontWeight: 400 },
-                    href: 'https://github.com/databiosphere/terra-docker#how-to-create-your-own-terra-images', ...Utils.newTabLinkProps
-                  }, ['Learn how']),
+                  h(Link, { href: imageInstructions, ...Utils.newTabLinkProps }, ['Learn how']),
                   ' to create your own custom docker image from one of our ',
-                  h(Link, {
-                    style: { fontWeight: 400 },
-                    href: 'https://github.com/DataBiosphere/terra-docker', ...Utils.newTabLinkProps
-                  }, ['Terra base images.'])
+                  h(Link, { href: terraImageRepo, ...Utils.newTabLinkProps }, ['Terra base images.'])
                 ])
               ]) :
               h(Fragment, [
