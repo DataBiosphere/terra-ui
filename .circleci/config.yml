@@ -161,7 +161,7 @@ jobs:
           command: npx http-server@0.11 /tmp/workspace/build/ -p 3000
           background: true
       - run: timeout 120 bash -c "until nc -z localhost 3000; do sleep 3; done"
-      - run: npm run test:integration
+      - run: cat /tmp/workspace/test-account/token | xargs bash -c 'HEADLESS=false TERRA_TOKEN=$0 npm run test:integration'
 workflows:
   version: 2
   build-deploy:
@@ -213,9 +213,9 @@ workflows:
   run-integration-tests: 
     jobs:
       - build
-      - test-account
+      - run-test-setup
       - integration-tests:
           requires:
             - build
-            - test-account
+            - run-test-setup
             
