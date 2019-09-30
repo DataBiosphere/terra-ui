@@ -421,7 +421,7 @@ const PreferFirecloudModal = ({ onDismiss }) => {
   }, [
     'Are you sure you would prefer the previous FireCloud interface?',
     h(IdContainer, [id => h(Fragment, [
-      h(FormLabel, ['Please tell us why']),
+      h(FormLabel, { htmlFor: id }, ['Please tell us why']),
       h(TextArea, {
         id,
         style: { height: 100, marginBottom: '0.5rem' },
