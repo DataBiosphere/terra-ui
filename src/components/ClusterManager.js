@@ -243,8 +243,10 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
             ' Custom Docker images could potentially cause serious security issues.'
           ]),
           h(Link, { href: imageInstructions, ...Utils.newTabLinkProps }, ['Learn more about creating safe and secure custom Docker images.']),
-          p(['If you\'re confident that your image is safe, click ', b(['Create']), ' to use it. Otherwise, click ', b(['Back']),
-            ' to select another image.']),
+          p([
+            'If you\'re confident that your image is safe, click ', b(['Create']), ' to use it. Otherwise, click ', b(['Back']),
+            ' to select another image.'
+          ]),
           div({ style: { display: 'flex', justifyContent: 'flex-end' } }, [
             h(ButtonSecondary, { style: { marginRight: '2rem' }, onClick: () => this.setState({ showingCustomWarning: false }) }, ['Back']),
             h(ButtonPrimary, { onClick: () => this.createCluster() }, ['Create'])
