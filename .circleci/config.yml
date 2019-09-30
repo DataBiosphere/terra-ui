@@ -61,7 +61,7 @@ commands:
     steps: 
       - run: echo "$<< parameters.sa_key_var >>" > /tmp/sa.json
       - run: gcloud auth activate-service-account --key-file=/tmp/sa.json 
-      - run: gcloud auth print-access-token > /test-account/token
+      - run: gcloud auth print-access-token > test-account/token
 jobs:
   test:
     executor: node
