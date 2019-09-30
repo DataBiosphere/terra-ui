@@ -53,7 +53,11 @@ commands:
                 name: Deploy << parameters.env >>
                 command: gcloud app deploy --project=bvdp-saturn-<< parameters.env >> --promote --quiet
   test-setup: 
-    executor: gcloud
+    description: "Setup the test account for integration testing"
+    parameters:
+      sa_key_var:
+        type: string
+        default: "TEST_USER_SA_KEY_JSON"
     steps: 
       - persist_to_workspace:
           root: .
