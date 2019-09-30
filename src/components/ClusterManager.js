@@ -233,11 +233,19 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       [showingCustomWarning, () => ({
         onPrevious: () => this.setState({ showingCustomWarning: false }),
         contents: h(Fragment, [
-          h3({ style: { marginBottom: 0 } }, ['Warning!']),
-          p([`You are about to create a virtual machine using an unverified Docker image. 
-          Please make sure that it was created by you or someone you trust, using one of our base images.
-          Custom Docker images could potentially cause serious security issues.`]),
-          h(Link, { style: { marginBottom: '2rem' } }, ['Learn more about creating safe and secure custom Docker images.']),
+          h3({ style: { marginBottom: '0.5rem' } }, ['Warning!']),
+          div({ style: { lineHeight: 1.5 } }, [
+            `You are about to create a virtual machine using an unverified Docker image. 
+              Please make sure that it was created by you or someone you trust, using one of our `,
+            h(Link, {
+              style: { display: 'inline-block' },
+              href: 'https://github.com/DataBiosphere/terra-docker', ...Utils.newTabLinkProps
+            }, ['base images.']),
+            ` Custom Docker images could potentially cause serious security issues.`]),
+          h(Link, {
+            style: { marginBottom: '2rem', marginTop: '1rem'},
+            href: 'https://github.com/databiosphere/terra-docker#how-to-create-your-own-terra-images', ...Utils.newTabLinkProps
+          }, ['Learn more about creating safe and secure custom Docker images.']),
           h(ButtonSecondary, { style: { marginBottom: '1rem' }, onClick: () => this.setState({ showingCustomWarning: false }) }, [
             'Go back and choose a pre installed environment'
           ]),
@@ -276,12 +284,12 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
                 div({ style: { gridColumnStart: 2, gridColumnEnd: 'span 2', alignSelf: 'start' } }, [
                   h(Link, {
                     style: { fontWeight: 400 },
-                    href: 'https://github.com/DataBiosphere/terra-docker', ...Utils.newTabLinkProps // TODO: Need real url for link
+                    href: 'https://github.com/databiosphere/terra-docker#how-to-create-your-own-terra-images', ...Utils.newTabLinkProps
                   }, ['Learn how']),
                   ' to create your own custom docker image from one of our ',
                   h(Link, {
                     style: { fontWeight: 400 },
-                    href: 'https://github.com/DataBiosphere/terra-docker', ...Utils.newTabLinkProps // TODO: Need real url for link
+                    href: 'https://github.com/DataBiosphere/terra-docker', ...Utils.newTabLinkProps
                   }, ['Terra base images.'])
                 ])
               ]) :
