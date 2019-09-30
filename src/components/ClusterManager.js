@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
 import { Fragment, PureComponent, useState } from 'react'
-import { div, h, h3, iframe, label, p, span } from 'react-hyperscript-helpers'
+import { div, h, h3, iframe, label, span } from 'react-hyperscript-helpers'
 import {
   ButtonPrimary, ButtonSecondary, Clickable, IdContainer, LabeledCheckbox, Link, Select, SimpleTabBar, spinnerOverlay
 } from 'src/components/common'
@@ -241,9 +241,10 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
               style: { display: 'inline-block' },
               href: 'https://github.com/DataBiosphere/terra-docker', ...Utils.newTabLinkProps
             }, ['base images.']),
-            ` Custom Docker images could potentially cause serious security issues.`]),
+            ` Custom Docker images could potentially cause serious security issues.`
+          ]),
           h(Link, {
-            style: { marginBottom: '2rem', marginTop: '1rem'},
+            style: { marginBottom: '2rem', marginTop: '1rem' },
             href: 'https://github.com/databiosphere/terra-docker#how-to-create-your-own-terra-images', ...Utils.newTabLinkProps
           }, ['Learn more about creating safe and secure custom Docker images.']),
           h(ButtonSecondary, { style: { marginBottom: '1rem' }, onClick: () => this.setState({ showingCustomWarning: false }) }, [
