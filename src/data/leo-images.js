@@ -1,4 +1,4 @@
-const leoImages = [
+export const leoImages = [
   {
     label: 'Default (Python 3.6.8, R 3.5.2, Hail 0.2.11)',
     version: 'FINAL',
@@ -22,4 +22,14 @@ const leoImages = [
   }
 ]
 
-export default leoImages
+// from https://github.com/docker/distribution/blob/95daa793b83a21656fe6c13e6d5cf1c3999108c7/reference/regexp.go
+
+const digestRegexp = '[A-Za-z][A-Za-z0-9]*(?:[-_+.][A-Za-z][A-Za-z0-9]*)*[:][A-Fa-f0-9]{32,}'
+const tagRegexp = '[\\w][\\w.-]{0,127}'
+const nameComponentRegexp = '[a-z0-9]+(?:(?:[._]|__|[-]*)[a-z0-9]+)*'
+const domainComponentRegexp = '(?:[a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9])'
+const domainRegexp = `${domainComponentRegexp}(\\.${domainComponentRegexp})*(?::[0-9]+)?`
+const nameRegexp = `(?:${domainRegexp}\\/)?${nameComponentRegexp}(?:\\/${nameComponentRegexp})*`
+const referenceRegexp = `^(${nameRegexp})(?::(${tagRegexp}))?(?:@(${digestRegexp}))?$`
+
+export const imageValidationRegexp = new RegExp(referenceRegexp)
