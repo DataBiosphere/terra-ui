@@ -59,10 +59,6 @@ commands:
         type: string
         default: "TEST_USER_SA_KEY_JSON"
     steps: 
-      - persist_to_workspace:
-          root: .
-          paths:
-            - test-setup
       - run: echo "$<< parameters.sa_key_var >>" > /tmp/sa.json
       - run: gcloud auth activate-service-account --key-file=/tmp/sa.json 
       - run: gcloud auth print-access-token > /test-account/token
@@ -133,6 +129,10 @@ jobs:
   run-test-setup:
     executor: gcloud
     steps:
+      - persist_to_workspace:
+          root: .
+          paths:
+            - test-account
       - test-setup:
           sa_key_var: "TEST_USER_SA_KEY_JSON"
   run-dev-security-scans:
