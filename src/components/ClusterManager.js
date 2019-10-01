@@ -268,7 +268,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
           }),
           div({
             style: {
-              display: 'grid', gridTemplateColumns: '7rem 2fr 1fr', gridGap: '1rem', alignItems: 'center', margin: '1.5rem 0 1rem', minHeight: 100
+              display: 'grid', gridTemplateColumns: '7rem 2fr 1fr', gridGap: '1rem', alignItems: 'center', margin: '1.5rem 0 1rem', height: 100
             }
           }, [
             isCustomEnv ?
