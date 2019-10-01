@@ -143,8 +143,8 @@ const useClusterPolling = namespace => {
   }
   const loadClusters = async () => {
     try {
-      const newClusters = await Ajax(signal).Jupyter.clustersList(namespace)
-      setClusters(_.filter({ creator: getUser().email }, newClusters))
+      const newClusters = await Ajax(signal).Jupyter.clustersList({ googleProject: namespace, creator: getUser().email })
+      setClusters(newClusters)
       const cluster = currentCluster(newClusters)
       reschedule(_.includes(cluster && cluster.status, ['Creating', 'Starting', 'Stopping']) ? 10000 : 120000)
     } catch (error) {
