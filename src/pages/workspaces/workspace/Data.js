@@ -58,7 +58,7 @@ const styles = {
   }
 }
 
-export const ModalToolButton = ({ children, disabled ...props }) => {
+export const ModalToolButton = ({ children, disabled, ...props }) => {
   return h(Clickable, _.merge({
     style: {
       color: disabled ? colors.secondary() : colors.dark(),
@@ -359,7 +359,7 @@ const ReferenceDataContent = ({ workspace: { workspace: { namespace, attributes 
   ])
 }
 
-const ToolDrawer = ({ workspace, openDrawer, onDismiss: baseOnDismiss, onIgvSuccess, selectedEntities }) => {
+const ToolDrawer = ({ workspace, workspaceId, openDrawer, onDismiss: baseOnDismiss, onIgvSuccess, entityMetadata, entityKey, selectedEntities }) => {
   const [toolMode, setToolMode] = useState()
   const entitiesCount = _.size(selectedEntities)
   const entitiesType = !!entitiesCount && selectedEntities[_.keys(selectedEntities)[0]].entityType
