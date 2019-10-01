@@ -359,7 +359,7 @@ const ReferenceDataContent = ({ workspace: { workspace: { namespace, attributes 
   ])
 }
 
-const ToolDrawer = ({ workspace, workspaceId, openDrawer, onDismiss: baseOnDismiss, onIgvSuccess, entityMetadata, entityKey, selectedEntities }) => {
+const ToolDrawer = withModalDrawer()(({ workspace, workspaceId, onDismiss, onIgvSuccess, entityMetadata, entityKey, selectedEntities }) => {
   const [toolMode, setToolMode] = useState()
   const entitiesCount = _.size(selectedEntities)
   const entitiesType = !!entitiesCount && selectedEntities[_.keys(selectedEntities)[0]].entityType
