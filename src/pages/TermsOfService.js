@@ -166,7 +166,6 @@ relevant institutional policies and procedures for handling genomic data.
  
 Questions? Contact infosec@broadinstitute.org.
 
-
 #### Disclaimer of Warranty
 
 You expressly understand and agree that your use of Terra, or any material available through it,
