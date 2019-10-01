@@ -158,12 +158,12 @@ the group (perhaps other lab members who may also see and use the data) have acc
 domains will remain with all cloned versions of the workspace. If data are shared inappropriately or
 with unauthorized users through the Terra platform, your access to Terra may be suspended or
 terminated and, in some instances, Terra staff may contact the user’s institution.
- 
+
 Users creating a Terra Workspace are expected to ensure that data use and sharing within any
 workspace to which they upload private data, or any copies of such workspaces, are conducted in
 accordance with all applicable national, tribal, and state laws and regulations, as well as
 relevant institutional policies and procedures for handling genomic data.
- 
+
 Questions? Contact infosec@broadinstitute.org.
 
 #### Disclaimer of Warranty
