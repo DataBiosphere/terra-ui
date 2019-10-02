@@ -98,6 +98,8 @@ export const makePrettyDate = dateString => {
   )
 }
 
+export const makeStandardDate = dateString => dateFormat.format(new Date(dateString))
+
 export const makeCompleteDate = dateString => completeDateFormat.format(new Date(dateString))
 
 export const formatUSD = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format

@@ -492,8 +492,8 @@ const Workspaces = signal => ({
         return res.json()
       },
 
-      details: async () => {
-        const res = await fetchRawls(root, _.merge(authOpts(), { signal }))
+      details: async fields => {
+        const res = await fetchRawls(`${root}?${qs.stringify({ fields }, { arrayFormat: 'comma' })}`, _.merge(authOpts(), { signal }))
         return res.json()
       },
 
@@ -934,8 +934,8 @@ const Submissions = signal => ({
 
 
 const Jupyter = signal => ({
-  clustersList: async project => {
-    const res = await fetchLeo(`api/clusters${project ? `/${project}` : ''}?saturnAutoCreated=true`,
+  clustersList: async (labels = {}) => {
+    const res = await fetchLeo(`api/clusters?${qs.stringify({ saturnAutoCreated: true, ...labels })}`,
       _.mergeAll([authOpts(), appIdentifier, { signal }]))
     return res.json()
   },

@@ -12,7 +12,6 @@ import { DelayedSearchInput } from 'src/components/input'
 import { MarkdownViewer } from 'src/components/markdown'
 import Modal from 'src/components/Modal'
 import PopupTrigger from 'src/components/PopupTrigger'
-import TooltipTrigger from 'src/components/TooltipTrigger'
 import { Ajax, ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
@@ -88,15 +87,13 @@ const sortOptions = [
   { label: 'Reverse Alphabetical', value: { field: 'lowerCaseName', direction: 'desc' } }
 ]
 
-const WorkflowCard = pure(({ listView, name, namespace, config, onExport, onCopy, onDelete, isRedacted, workspace }) => {
+const WorkflowCard = pure(({ listView, name, namespace, config, onExport, onCopy, onDelete, workspace }) => {
   const { namespace: workflowNamespace, name: workflowName, methodRepoMethod: { sourceRepo, methodVersion } } = config
   const workflowCardMenu = h(PopupTrigger, {
     closeOnClick: true,
     content: h(Fragment, [
       h(MenuButton, {
         onClick: onExport,
-        disabled: isRedacted,
-        tooltip: isRedacted ? 'This workflow version is redacted' : undefined,
         tooltipSide: 'left'
       }, [makeMenuIcon('export'), 'Copy to Another Workspace']),
       h(MenuButton, {
@@ -122,8 +119,7 @@ const WorkflowCard = pure(({ listView, name, namespace, config, onExport, onCopy
   const repoLink = h(Link, {
     href: methodLink(config),
     style: styles.innerLink,
-    ...Utils.newTabLinkProps,
-    disabled: isRedacted
+    ...Utils.newTabLinkProps
   }, sourceRepo === 'agora' ? 'Terra' : sourceRepo)
 
   const workflowLink = a({
@@ -132,10 +128,6 @@ const WorkflowCard = pure(({ listView, name, namespace, config, onExport, onCopy
     style: styles.outerLink
   })
 
-  const redactedWarning = h(TooltipTrigger, {
-    content: 'Workflow version has been removed. You cannot run an analysis until you change the version.'
-  }, [icon('ban', { size: 20, style: { color: colors.warning(), marginLeft: '.3rem', ...styles.innerLink } })])
-
   return listView ?
     div({ style: { ...styles.card, ...styles.longCard } }, [
       workflowLink,
@@ -143,8 +135,7 @@ const WorkflowCard = pure(({ listView, name, namespace, config, onExport, onCopy
         div({ style: { marginRight: '1rem' } }, [workflowCardMenu]),
         div({ style: { ...styles.longTitle } }, [workflowName]),
         div({ style: { ...styles.longMethodVersion, display: 'flex', alignItems: 'center' } }, [
-          `V. ${methodVersion}`,
-          isRedacted && redactedWarning
+          `V. ${methodVersion}`
         ]),
         div({ style: { flex: 'none', width: 130 } }, ['Source: ', repoLink])
       ])
@@ -156,8 +147,7 @@ const WorkflowCard = pure(({ listView, name, namespace, config, onExport, onCopy
         div({ style: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' } }, [
           div([
             div({ style: { display: 'flex', alignItems: 'center' } }, [
-              `V. ${methodVersion}`,
-              isRedacted && redactedWarning
+              `V. ${methodVersion}`
             ]),
             'Source: ', repoLink
           ]), workflowCardMenu
@@ -308,15 +298,12 @@ export const Workflows = _.flow(
   }
 
   async refresh() {
-    const { namespace, name, ajax: { Workspaces, Methods } } = this.props
+    const { namespace, name, ajax: { Workspaces } } = this.props
 
     try {
       this.setState({ loading: true })
-      const [configs, methods] = await Promise.all([
-        Workspaces.workspace(namespace, name).listMethodConfigs(),
-        Methods.list()
-      ])
-      this.setState({ configs, methods })
+      const configs = await Workspaces.workspace(namespace, name).listMethodConfigs()
+      this.setState({ configs })
     } catch (error) {
       reportError('Error loading configs', error)
     } finally {
@@ -329,12 +316,6 @@ export const Workflows = _.flow(
     return _.find({ namespace, name }, configs)
   }
 
-  computeRedacted(config) {
-    const { methods } = this.state
-    const { methodName, methodNamespace, methodVersion, sourceRepo } = config.methodRepoMethod
-    return (sourceRepo === 'agora') ? !_.some({ name: methodName, namespace: methodNamespace, snapshotId: methodVersion }, methods) : false
-  }
-
   render() {
     const { namespace, name, listView, setListView, workspace: ws, workspace: { workspace } } = this.props
     const { loading, configs, exportingWorkflow, copyingWorkflow, deletingWorkflow, findingWorkflow, sortOrder, sortOrder: { field, direction }, filter } = this.state
@@ -342,12 +323,11 @@ export const Workflows = _.flow(
       _.filter(({ name }) => Utils.textMatch(filter, name)),
       _.orderBy(sortTokens[field] || field, direction),
       _.map(config => {
-        const isRedacted = this.computeRedacted(config)
         return h(WorkflowCard, {
           onExport: () => this.setState({ exportingWorkflow: { namespace: config.namespace, name: config.name } }),
           onCopy: () => this.setState({ copyingWorkflow: { namespace: config.namespace, name: config.name } }),
           onDelete: () => this.setState({ deletingWorkflow: { namespace: config.namespace, name: config.name } }),
-          key: `${config.namespace}/${config.name}`, namespace, name, config, listView, isRedacted, workspace: ws
+          key: `${config.namespace}/${config.name}`, namespace, name, config, listView, workspace: ws
         })
       })
     )(configs)

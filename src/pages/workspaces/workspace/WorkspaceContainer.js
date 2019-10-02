@@ -143,8 +143,8 @@ const useClusterPolling = namespace => {
   }
   const loadClusters = async () => {
     try {
-      const newClusters = await Ajax(signal).Jupyter.clustersList(namespace)
-      setClusters(_.filter({ creator: getUser().email }, newClusters))
+      const newClusters = await Ajax(signal).Jupyter.clustersList({ googleProject: namespace, creator: getUser().email })
+      setClusters(newClusters)
       const cluster = currentCluster(newClusters)
       reschedule(_.includes(cluster && cluster.status, ['Creating', 'Starting', 'Stopping']) ? 10000 : 120000)
     } catch (error) {
@@ -180,7 +180,11 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
       Utils.withBusyState(setLoadingWorkspace)
     )(async () => {
       try {
-        const workspace = await Ajax(signal).Workspaces.workspace(namespace, name).details()
+        const workspace = await Ajax(signal).Workspaces.workspace(namespace, name).details([
+          'accessLevel', 'canCompute', 'canShare', 'owners',
+          'workspace', 'workspace.attributes', 'workspace.authorizationDomain',
+          'workspaceSubmissionStats'
+        ])
         workspaceStore.set(workspace)
 
         const { accessLevel, workspace: { createdBy, createdDate } } = workspace

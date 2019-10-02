@@ -2,10 +2,9 @@ import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
 import { Component, forwardRef, Fragment, useRef, useState } from 'react'
 import Autosuggest from 'react-autosuggest'
-import { div, h } from 'react-hyperscript-helpers'
+import { div, h, input, textarea } from 'react-hyperscript-helpers'
 import { ButtonPrimary } from 'src/components/common'
 import { icon } from 'src/components/icons'
-import Interactive from 'src/components/Interactive'
 import { PopupPortal, useDynamicPosition } from 'src/components/popup-utils'
 import colors from 'src/libs/colors'
 import * as Utils from 'src/libs/utils'
@@ -65,9 +64,8 @@ export const withDebouncedChange = WrappedComponent => {
 export const TextInput = forwardRef(({ onChange, nativeOnChange = false, ...props }, ref) => {
   Utils.useConsoleAssert(props.id || props['aria-label'], 'In order to be accessible, TextInput needs a label')
 
-  return h(Interactive, {
+  return input({
     ..._.merge({
-      as: 'input',
       className: 'focus-style',
       onChange: onChange ? e => onChange(nativeOnChange ? e : e.target.value) : undefined,
       style: {
@@ -146,8 +144,7 @@ export const NumberInput = ({ onChange, onBlur, min = -Infinity, max = Infinity,
   Utils.useConsoleAssert(props.id || props['aria-label'], 'In order to be accessible, NumberInput needs a label')
   const [internalValue, setInternalValue] = useState()
 
-  return h(Interactive, _.merge({
-    as: 'input',
+  return input(_.merge({
     type: 'number',
     className: 'focus-style',
     min, max,
@@ -317,8 +314,7 @@ export const DelayedAutocompleteTextInput = withDebouncedChange(AutocompleteText
 export const TextArea = ({ onChange, ...props }) => {
   Utils.useConsoleAssert(props.id || props['aria-label'], 'In order to be accessible, TextArea needs a label')
 
-  return h(Interactive, _.merge({
-    as: 'textarea',
+  return textarea(_.merge({
     className: 'focus-style',
     style: styles.textarea,
     onChange: onChange ? (e => onChange(e.target.value)) : undefined
