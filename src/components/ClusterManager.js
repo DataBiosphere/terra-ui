@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
 import { Fragment, PureComponent, useState } from 'react'
-import { div, h, iframe, label, span } from 'react-hyperscript-helpers'
+import { div, h, iframe, label, p, span } from 'react-hyperscript-helpers'
 import { ButtonPrimary, ButtonSecondary, Clickable, IdContainer, LabeledCheckbox, Link, Select, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { NumberInput, TextInput } from 'src/components/input'
@@ -17,7 +17,7 @@ import { clusterCost, currentCluster, machineConfigCost, normalizeMachineConfig,
 import colors from 'src/libs/colors'
 import { reportError, withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
-import { errorNotifiedClusters } from 'src/libs/state.js'
+import { errorNotifiedClusters, outdatedNotifiedClusters } from 'src/libs/state.js'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 
@@ -351,10 +351,13 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
           ]),
           !!currentCluster && div({ style: styles.warningBox }, [
             div({ style: styles.label }, ['Caution:']),
-            div({ style: { display: 'flex' } }, [
-              'Updating a Notebook Runtime environment will delete all existing non-notebook files and ',
-              'installed packages. You will be unable to work on the notebooks in this workspace while it ',
-              'updates, which can take a few minutes.'
+            div({}, [
+              'Deleting your runtime will stop all running notebooks, and delete any files on the associated hard disk (e.g. input data or analysis outputs) and installed packages. To permanently save these files, ',
+              h(Link, {
+                href: 'https://support.terra.bio/hc/en-us/articles/360026639112',
+                ...Utils.newTabLinkProps
+              }, ['move them to the workspace bucket.']),
+              p(['You will be unable to work on the notebooks in this workspace while it updates, which can take a few minutes.'])
             ])
           ]),
           div({ style: { flexGrow: 1 } }),
@@ -419,7 +422,13 @@ export const DeleteClusterModal = ({ cluster: { googleProject, clusterName }, on
     onDismiss,
     okButton: deleteCluster
   }, [
-    'Deleting the notebook runtime will stop all running notebooks and associated costs. You can recreate it later, which will take several minutes.',
+    p(['Deleting the notebook runtime will stop all running notebooks and associated costs. You can recreate it later, which will take several minutes.']),
+    span({ style: { fontWeight: 'bold' } }, 'NOTE: '),
+    'Deleting your runtime will also delete any installed packaged and files on the associated hard disk (e.g. input data or analysis outputs). To permanently save these files, ',
+    h(Link, {
+      href: 'https://support.terra.bio/hc/en-us/articles/360026639112',
+      ...Utils.newTabLinkProps
+    }, ['move them to the workspace bucket.']),
     deleting && spinnerOverlay
   ])
 }
@@ -440,6 +449,12 @@ const ClusterErrorNotification = ({ cluster }) => {
       cluster,
       onDismiss: () => setModalOpen(false)
     })
+  ])
+}
+
+const ClusterOutdatedNotification = () => {
+  return h(Fragment, [
+    p(['Your notebook runtime is over two months old. Please consider deleting and recreating your runtime in order to access the latest features and security updates.'])
   ])
 }
 
@@ -464,12 +479,19 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
   componentDidUpdate(prevProps) {
     const prevCluster = _.last(_.sortBy('createdDate', _.remove({ status: 'Deleting' }, prevProps.clusters))) || {}
     const cluster = this.getCurrentCluster() || {}
+    const twoMonthsAgo = _.tap(d => d.setMonth(d.getMonth() - 2), new Date())
+    const createdDate = new Date(cluster.createdDate)
 
     if (cluster.status === 'Error' && prevCluster.status !== 'Error' && !_.includes(cluster.id, errorNotifiedClusters.get())) {
       notify('error', 'Error Creating Notebook Runtime', {
         message: h(ClusterErrorNotification, { cluster })
       })
       errorNotifiedClusters.update(Utils.append(cluster.id))
+    } else if (createdDate < twoMonthsAgo && !_.includes(cluster.id, outdatedNotifiedClusters.get())) {
+      notify('warn', 'Outdated Notebook Runtime', {
+        message: h(ClusterOutdatedNotification, {})
+      })
+      outdatedNotifiedClusters.update(Utils.append(cluster.id))
     }
   }
 
