@@ -33,6 +33,7 @@ const styles = {
 
 const terraImageRepo = 'https://github.com/databiosphere/terra-docker'
 const imageInstructions = `${terraImageRepo}#how-to-create-your-own-terra-images`
+const safeImageDocumentation = 'https://broadinstitute.zendesk.com/knowledge/articles/360034669811'
 const machineConfigsEqual = (a, b) => {
   return _.isEqual(normalizeMachineConfig(a), normalizeMachineConfig(b))
 }
@@ -215,7 +216,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
               h(Link, { href: terraImageRepo, ...Utils.newTabLinkProps }, ['base images.']),
               ' Custom Docker images could potentially cause serious security issues.'
             ]),
-            h(Link, { href: imageInstructions, ...Utils.newTabLinkProps }, ['Learn more about creating safe and secure custom Docker images.']),
+            h(Link, { href: safeImageDocumentation, ...Utils.newTabLinkProps }, ['Learn more about creating safe and secure custom Docker images.']),
             p([
               'If you\'re confident that your image is safe, click ', b(['Create']), ' to use it. Otherwise, click ', b(['Back']),
               ' to select another image.'
@@ -247,12 +248,12 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
               h(Fragment, [
                 h(IdContainer, [
                   id => h(Fragment, [
-                    label({ htmlFor: id, style: { ...styles.label, lineHeight: '38px', alignSelf: 'start' } }, 'Image Path'),
+                    label({ htmlFor: id, style: { ...styles.label, lineHeight: '38px', alignSelf: 'start' } }, 'Container image'),
                     div({ style: { gridColumnEnd: 'span 2', alignSelf: 'start', height: '45px' } }, [
                       h(ValidatedInput, {
                         inputProps: {
                           id,
-                          placeholder: 'Example: us.gcr.io/broad-dsp-gcr-public/terra-jupyter-base:0.0.1',
+                          placeholder: 'Example: <image name>:<tag>',
                           value: customEnvImage,
                           onChange: customEnvImage => this.setState({ customEnvImage })
                         },
