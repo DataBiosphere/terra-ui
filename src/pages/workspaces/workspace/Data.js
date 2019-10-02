@@ -367,7 +367,7 @@ const ToolDrawer = withModalDrawer()(({ workspace, workspaceId, onDismiss, onIgv
        entityKey === 'cohort' && _.size(selectedEntities) === 1 && _.values(selectedEntities)[0].attributes.data_explorer_url ?
          _.values(selectedEntities)[0].attributes.data_explorer_url :
          ''
-  const isDataExplorerButtonDisabled = entityKey !== 'cohort' || !dataExplorerUrl || entitiesCount > 1
+  const dataExplorerButtonEnabled = dataExplorerUrl !== ''
 
   const { title, drawerContent } = Utils.switchCase(toolMode, [
     'IGV', () => ({
@@ -410,8 +410,8 @@ const ToolDrawer = withModalDrawer()(({ workspace, workspaceId, onDismiss, onIgv
               'Workflow'
             ]),
             h(ModalToolButton, {
-              onClick: () => !isDataExplorerButtonDisabled && window.open(dataExplorerUrl + '&wid=' + workspaceId),
-              disabled: isDataExplorerButtonDisabled,
+              onClick: () => dataExplorerButtonEnabled && window.open(dataExplorerUrl + '&wid=' + workspaceId),
+              disabled: !dataExplorerButtonEnabled,
               tooltip: Utils.cond(
                 [!entityMetadata.cohort, () => 'Talk to your dataset owner about setting up a Data Explorer. See the "Finding data, analysis tools, and template workspaces in the Library" help article.'],
                 [entityKey === 'cohort' && entitiesCount > 1, () => 'Select exactly one cohort to open in Data Explorer'],
@@ -422,7 +422,7 @@ const ToolDrawer = withModalDrawer()(({ workspace, workspaceId, onDismiss, onIgv
               style: { marginTop: '0.5rem' }
             }, [
               div({ style: { display: 'flex', alignItems: 'center', width: 45, marginRight: '1rem' } }, [
-                img({ src: dataExplorerLogo, style: { opacity: isDataExplorerButtonDisabled ? .25 : undefined, width: 40 } })
+                img({ src: dataExplorerLogo, style: { opacity: !dataExplorerButtonEnabled ? .25 : undefined, width: 40 } })
               ]),
               'Data Explorer'
             ])
