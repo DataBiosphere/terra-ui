@@ -28,6 +28,12 @@ const extractFailures = ({ calls } = {}) => {
   }, _.toPairs(calls))
 }
 
+const LogModal = ({logGsUri}) => {
+  return h(Modal, {}, [
+    logGsUri
+  ])
+}
+
 const JobDetails = wrapWorkspace({
   breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
   title: 'Job Details', activeTab: 'job history'
@@ -36,6 +42,7 @@ const JobDetails = wrapWorkspace({
   const [activeTab, setActiveTab] = useState('list')
   const [selectedCall, setSelectedCall] = useState()
   const [workflowData, setWorkflowData] = useState()
+  const [showErrorUrl, setShowErrorUrl] = useState()
   const { workflowName, id, workflowRoot, inputs, outputs, labels, status, end, start, failures, calls: callsObj } = workflowData || {}
 
   const cache = Utils.useInstance(() => new CellMeasurerCache({
@@ -159,22 +166,28 @@ const JobDetails = wrapWorkspace({
                       size: { basis: 100, grow: 0 },
                       headerRenderer: () => 'Information',
                       cellRenderer: ({rowIndex}) => {
-                        const gsUri = callFailures[rowIndex].attempt.callRoot
-                        console.log(gsUri)
+                        const {callRoot, backendLog} = callFailures[rowIndex].attempt
                         return div([
+                          h(Link, {
+                            tooltip: 'View the contents of the log file',
+                            'aria-label': 'View the contents of the log file',
+                            onClick: () => setShowErrorUrl(backendLog)
+                          }, [icon('folder')]),
                           h(Link, {
                             tooltip: 'Open execution directory in cloud console',
                             'aria-label': 'Open execution directory in cloud console',
                             ...Utils.newTabLinkProps,
-                            href: bucketBrowserUrl(gsUri.match(/gs:\/\/(.+)/)[1])
+                            href: bucketBrowserUrl(callRoot.match(/gs:\/\/(.+)/)[1])
                           }, [icon('folder')])
                         ])
                       }
                     }
                   ]
                 })
-              ])
+              ]),
+              showErrorUrl && h(LogModal, {logGsUri: showErrorUrl})
             ])
+
           }]
         )
       ]) :
