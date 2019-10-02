@@ -18,7 +18,8 @@ const drawer = {
     color: colors.dark(1), position: 'fixed', cursor: 'default',
     backgroundColor: colors.light(0.4), height: '100%',
     boxShadow: '3px 0 13px 0 rgba(0,0,0,0.3)',
-    display: 'flex', flexDirection: 'column'
+    display: 'flex', flexDirection: 'column',
+    overflowY: 'auto'
   })
 }
 
