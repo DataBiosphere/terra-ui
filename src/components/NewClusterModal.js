@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
-import { Fragment, PureComponent, useState } from 'react'
-import { b, div, h, h3, iframe, label, p, span } from 'react-hyperscript-helpers'
+import { Component, Fragment, useState } from 'react'
+import { b, div, h, iframe, label, p, span } from 'react-hyperscript-helpers'
 import { ButtonPrimary, ButtonSecondary, IdContainer, LabeledCheckbox, Link, Select, SimpleTabBar } from 'src/components/common'
 import { NumberInput, TextInput, ValidatedInput } from 'src/components/input'
 import { withModalDrawer } from 'src/components/ModalDrawer'
@@ -33,7 +33,7 @@ const styles = {
 
 const terraImageRepo = 'https://github.com/databiosphere/terra-docker'
 const imageInstructions = `${terraImageRepo}#how-to-create-your-own-terra-images`
-const safeImageDocumentation = 'https://broadinstitute.zendesk.com/knowledge/articles/360034669811'
+const safeImageDocumentation = 'https://support.terra.bio/hc/en-us/articles/360034669811/preview/eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6MzYwMDM0NjY5ODExLCJleHAiOjE1NzAxMTQ1MjN9.PjIlr5htdHNoFo4rolyo0QR3wgi7oR3pbokIDvwNGnw'
 const machineConfigsEqual = (a, b) => {
   return _.isEqual(normalizeMachineConfig(a), normalizeMachineConfig(b))
 }
@@ -121,7 +121,7 @@ const ImageDepViewer = ({ packages }) => {
   ])
 }
 
-export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterModal extends PureComponent {
+export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterModal extends Component {
   static propTypes = {
     currentCluster: PropTypes.object,
     namespace: PropTypes.string.isRequired,
@@ -209,7 +209,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         showingCustomWarning, () => ({
           onPrevious: () => this.setState({ showingCustomWarning: false }),
           contents: h(Fragment, [
-            h3({ style: { marginBottom: '0.5rem' } }, ['Warning!']),
+            div({ style: { marginBottom: '0.5rem', fontWeight: 'bold' } }, ['Warning!']),
             p([
               `You are about to create a virtual machine using an unverified Docker image. 
              Please make sure that it was created by you or someone you trust, using one of our `,
@@ -253,7 +253,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
                       h(ValidatedInput, {
                         inputProps: {
                           id,
-                          placeholder: 'Example: <image name>:<tag>',
+                          placeholder: '<image name>:<tag>',
                           value: customEnvImage,
                           onChange: customEnvImage => this.setState({ customEnvImage })
                         },
@@ -272,7 +272,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
                 h(IdContainer, [
                   id => h(Fragment, [
                     label({ htmlFor: id, style: styles.label }, 'Environment'),
-                    div({ style: { gridColumnEnd: 'span 2' } }, [
+                    div({ style: { gridColumnEnd: 'span 2', height: '45px' } }, [
                       makeEnvSelect(id)
                     ])
                   ])
@@ -423,7 +423,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     return h(Fragment, [
       h(TitleBar, {
         title: viewingPackages ? 'INSTALLED PACKAGES' : 'RUNTIME CONFIGURATION',
-        onDismiss,
+        onDismiss: viewingPackages || showingCustomWarning ? undefined : onDismiss,
         onPrevious
       }),
       div({ style: { padding: '0 1.5rem 1.5rem 1.5rem', flexGrow: 1, display: 'flex', flexDirection: 'column' } }, [contents])
