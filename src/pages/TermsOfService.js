@@ -155,9 +155,9 @@ adequate permissions to work with those data. For instance, if a lab collects se
 genomic information through their research, the user who uploads the lab’s data to a Terra workspace
 must select one or more managed groups to set as authorization domains. This way, only members from
 the group (perhaps other lab members who may also see and use the data) have access. Authorization
-domains will remain with all cloned versions of the workspace. If data are shared inappropriately or
+domains will remain with all cloned versions of the workspace. **If data are shared inappropriately or
 with unauthorized users through the Terra platform, your access to Terra may be suspended or
-terminated and, in some instances, Terra staff may contact the user’s institution.
+terminated and, in some instances, Terra staff may contact the user’s institution.**
 
 Users creating a Terra Workspace are expected to ensure that data use and sharing within any
 workspace to which they upload private data, or any copies of such workspaces, are conducted in
