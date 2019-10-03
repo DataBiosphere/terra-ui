@@ -33,7 +33,7 @@ const styles = {
 
 const terraImageRepo = 'https://github.com/databiosphere/terra-docker'
 const imageInstructions = `${terraImageRepo}#how-to-create-your-own-terra-images`
-const safeImageDocumentation = 'https://support.terra.bio/hc/en-us/articles/360034669811/preview/eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6MzYwMDM0NjY5ODExLCJleHAiOjE1NzAxMTQ1MjN9.PjIlr5htdHNoFo4rolyo0QR3wgi7oR3pbokIDvwNGnw'
+const safeImageDocumentation = 'https://support.terra.bio/hc/en-us/articles/360034669811-Creating-safe-and-secure-custom-Docker-images'
 const machineConfigsEqual = (a, b) => {
   return _.isEqual(normalizeMachineConfig(a), normalizeMachineConfig(b))
 }
