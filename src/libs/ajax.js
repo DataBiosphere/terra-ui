@@ -24,7 +24,7 @@ window.ajaxOverrideUtils = {
 const authOpts = (token = getUser().token) => ({ headers: { Authorization: `Bearer ${token}` } })
 const jsonBody = body => ({ body: JSON.stringify(body), headers: { 'Content-Type': 'application/json' } })
 const appIdentifier = { headers: { 'X-App-ID': 'Saturn' } }
-const tosData = { appid: 'Saturn', tosversion: 4 }
+const tosData = { appid: 'Saturn', tosversion: 5 }
 
 const withInstrumentation = wrappedFetch => (...args) => {
   return _.flow(
