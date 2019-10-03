@@ -452,12 +452,6 @@ const ClusterErrorNotification = ({ cluster }) => {
   ])
 }
 
-const ClusterOutdatedNotification = () => {
-  return h(Fragment, [
-    p(['Your notebook runtime is over two months old. Please consider deleting and recreating your runtime in order to access the latest features and security updates.'])
-  ])
-}
-
 export default ajaxCaller(class ClusterManager extends PureComponent {
   static propTypes = {
     namespace: PropTypes.string.isRequired,
@@ -487,9 +481,9 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
         message: h(ClusterErrorNotification, { cluster })
       })
       errorNotifiedClusters.update(Utils.append(cluster.id))
-    } else if (createdDate < twoMonthsAgo && !_.includes(cluster.id, outdatedNotifiedClusters.get())) {
+    } else if (createdDate > twoMonthsAgo && !_.includes(cluster.id, outdatedNotifiedClusters.get())) {
       notify('warn', 'Outdated Notebook Runtime', {
-        message: h(ClusterOutdatedNotification, {})
+        message: 'Your notebook runtime is over two months old. Please consider deleting and recreating your runtime in order to access the latest features and security updates.'
       })
       outdatedNotifiedClusters.update(Utils.append(cluster.id))
     }
