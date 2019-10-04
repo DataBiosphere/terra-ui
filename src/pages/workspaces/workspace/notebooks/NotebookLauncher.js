@@ -6,7 +6,7 @@ import { div, h, iframe, p, span } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
 import { NewClusterModal } from 'src/components/ClusterManager'
-import { ButtonPrimary, ButtonSecondary, Clickable, LabeledCheckbox, MenuButton, spinnerOverlay } from 'src/components/common'
+import { ButtonPrimary, ButtonSecondary, Clickable, LabeledCheckbox, Link, MenuButton, spinnerOverlay } from 'src/components/common'
 import { icon, spinner } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import { findPotentialNotebookLockers, NotebookDuplicator, notebookLockHash } from 'src/components/notebook-utils'
@@ -101,9 +101,12 @@ const NotebookLauncher = _.flow(
 
     return h(Fragment, [
       (Utils.canWrite(accessLevel) && canCompute && !!mode && clusterStatus === 'Running') ?
-        h(NotebookEditorFrame, { key: cluster.clusterName, workspace, cluster, notebookName, mode }) :
         h(Fragment, [
-          h(PreviewHeader, { queryParams, cluster, refreshClusters, notebookName, workspace, readOnlyAccess: !(Utils.canWrite(accessLevel) && canCompute) }),
+          cluster.labels.welderInstallFailed ? h(PlaygroundHeader, {}) : null,
+          h(NotebookEditorFrame, { key: cluster.clusterName, workspace, cluster, notebookName, mode })
+        ]) :
+        h(Fragment, [
+          h(PreviewHeader, { queryParams, cluster, refreshClusters, notebookName, workspace, readOnlyAccess: !(Utils.canWrite(accessLevel) && canCompute), onCreateCluster: () => setCreateOpen(true) }),
           h(NotebookPreviewFrame, { notebookName, workspace })
         ]),
       mode && h(ClusterKicker, { cluster, refreshClusters, onNullCluster: () => { setCreateOpen(true) } }),
@@ -163,6 +166,36 @@ const FileInUseModal = ({ onDismiss, onCopy, onPlayground, namespace, name, buck
   ])
 }
 
+const EditModeDisabledModal = ({ onDismiss, onRecreateCluster, onPlayground }) => {
+  return h(Modal, {
+    width: 700,
+    title: 'Cannot Edit Notebook',
+    onDismiss,
+    showButtons: false
+  }, [
+    p('We’ve released important updates that are not compatible with the older runtime associated with this workspace. To enable Edit Mode, please delete your existing runtime and create a new runtime.'),
+    p('If you have any files on your old runtime that you want to keep, you can access your old runtime using the Playground Mode option.'),
+    h(Link, {
+      href: 'https://support.terra.bio/hc/en-us/articles/360026639112',
+      ...Utils.newTabLinkProps
+    }, ['Read here for more details.']),
+    div({ style: { marginTop: '2rem' } }, [
+      h(ButtonSecondary, {
+        style: { paddingRight: '1rem', paddingLeft: '1rem' },
+        onClick: () => onDismiss()
+      }, ['CANCEL']),
+      h(ButtonSecondary, {
+        style: { paddingRight: '1rem', paddingLeft: '1rem', marginLeft: '1rem' },
+        onClick: () => onPlayground()
+      }, ['RUN IN PLAYGROUND MODE']),
+      h(ButtonPrimary, {
+        style: { paddingRight: '1rem', paddingLeft: '1rem', marginLeft: '2rem' },
+        onClick: () => onRecreateCluster()
+      }, ['RECREATE NOTEBOOK RUNTIME'])
+    ])
+  ])
+}
+
 const PlaygroundModal = ({ onDismiss, onPlayground }) => {
   const [hidePlaygroundMessage, setHidePlaygroundMessage] = useState(false)
   return h(Modal, {
@@ -187,17 +220,33 @@ const PlaygroundModal = ({ onDismiss, onPlayground }) => {
   ])
 }
 
+const PlaygroundHeader = () => {
+  return div({ style: { backgroundColor: colors.warning(0.7), display: 'flex', alignItems: 'center', borderBottom: `2px solid ${colors.dark(0.2)}`, height: '3.5rem', whiteSpace: 'pre' } }, [
+    div({ style: { fontSize: 18, fontWeight: 'bold', backgroundColor: colors.warning(0.9), paddingRight: '4rem', paddingLeft: '4rem', height: '100%', display: 'flex', alignItems: 'center' } },
+      ['PLAYGROUND MODE']),
+    span({ style: { marginLeft: '2rem' } }, ['Edits to this notebook are ']),
+    span({ style: { fontWeight: 'bold' } }, ['NOT ']),
+    'being saved to the workspace. To save your changes, download the notebook using the file menu. ',
+    h(Link, {
+      href: 'https://support.terra.bio/hc/en-us/articles/360026639112',
+      ...Utils.newTabLinkProps
+    }, [' Read here for more details.'])
+  ])
+}
 
-const PreviewHeader = ({ queryParams, cluster, readOnlyAccess, refreshClusters, notebookName, workspace, workspace: { canShare, workspace: { namespace, name, bucketName } } }) => {
+
+const PreviewHeader = ({ queryParams, cluster, readOnlyAccess, onCreateCluster, refreshClusters, notebookName, workspace, workspace: { canShare, workspace: { namespace, name, bucketName } } }) => {
   const signal = useCancellation()
   const { user: { email } } = Utils.useAtom(authStore)
   const [fileInUseOpen, setFileInUseOpen] = useState(false)
+  const [editModeDisabledOpen, setEditModeDisabledOpen] = useState(false)
   const [playgroundModalOpen, setPlaygroundModalOpen] = useState(false)
   const [locked, setLocked] = useState(false)
   const [lockedBy, setLockedBy] = useState(null)
   const [exportingNotebook, setExportingNotebook] = useState(false)
   const [copyingNotebook, setCopyingNotebook] = useState(false)
   const clusterStatus = cluster && cluster.status
+  const welderEnabled = cluster && !cluster.labels.welderInstallFailed
   const mode = queryParams['mode']
   const notebookLink = Nav.getLink('workspace-notebook-launch', { namespace, name, notebookName })
 
@@ -223,8 +272,8 @@ const PreviewHeader = ({ queryParams, cluster, readOnlyAccess, refreshClusters, 
         !mode || clusterStatus === null || clusterStatus === 'Stopped', () => h(Fragment, [
           h(ButtonSecondary, {
             style: { paddingRight: '1rem', paddingLeft: '1rem', paddingTop: '1rem', paddingBottom: '1rem', backgroundColor: colors.dark(0.1), height: '100%', marginRight: '2px' },
-            onClick: () => locked ? setFileInUseOpen(true) : chooseMode('edit')
-          }, [icon(locked ? 'lock': 'edit', { style: { paddingRight: '3px' } }), locked ? 'EDIT (IN USE)' : 'EDIT']),
+            onClick: () => welderEnabled ? (locked ? setFileInUseOpen(true) : chooseMode('edit')) : setEditModeDisabledOpen(true)
+          }, [icon(welderEnabled ? (locked ? 'lock': 'edit') : 'warning-standard', { style: { paddingRight: '3px' } }), welderEnabled ? (locked ? 'EDIT (IN USE)' : 'EDIT') : 'EDIT (DISABLED)']),
           h(ButtonSecondary, {
             style: { paddingRight: '1rem', paddingLeft: '1rem', backgroundColor: colors.dark(0.1), height: '100%', marginRight: '2px' },
             onClick: () => {
@@ -281,11 +330,28 @@ const PreviewHeader = ({ queryParams, cluster, readOnlyAccess, refreshClusters, 
         onClick: () => Nav.goToPath('workspace-notebooks', { namespace, name })
       }, [icon('times-circle', { size: 30 })])
     ]),
+    editModeDisabledOpen && h(EditModeDisabledModal, {
+      onDismiss: () => setEditModeDisabledOpen(false),
+      onRecreateCluster: () => {
+        setEditModeDisabledOpen(false)
+        onCreateCluster()
+      },
+      onPlayground: () => {
+        setEditModeDisabledOpen(false)
+        chooseMode('playground')
+      }
+    }),
     fileInUseOpen && h(FileInUseModal, {
       namespace, name, lockedBy, canShare, bucketName,
       onDismiss: () => setFileInUseOpen(false),
-      onCopy: () => setCopyingNotebook(true),
-      onPlayground: () => chooseMode('playground')
+      onCopy: () => {
+        setFileInUseOpen(false)
+        setCopyingNotebook(true)
+      },
+      onPlayground: () => {
+        setFileInUseOpen(false)
+        chooseMode('playground')
+      }
     }),
     copyingNotebook && h(NotebookDuplicator, {
       printName: notebookName.slice(0, -6), fromLauncher: true,
@@ -381,15 +447,37 @@ const JupyterFrameManager = ({ onClose, frameRef }) => {
   return null
 }
 
-const NotebookEditorFrame = ({ mode, notebookName, workspace: { workspace: { namespace, name, bucketName } }, cluster: { clusterName, clusterUrl, status } }) => {
+const NotebookEditorFrame = ({ mode, notebookName, workspace: { workspace: { namespace, name, bucketName } }, cluster: { clusterName, clusterUrl, status, labels } }) => {
   console.assert(status === 'Running', 'Expected notebook runtime to be running')
   const frameRef = useRef()
+  const signal = useCancellation()
   const [busy, setBusy] = useState(false)
+  const [localized, setLocalized] = useState(false)
   const [notebookSetUp, setNotebookSetUp] = useState(false)
 
   const localBaseDirectory = `${name}/edit`
   const localSafeModeBaseDirectory = `${name}/safe`
   const cloudStorageDirectory = `gs://${bucketName}/notebooks`
+
+  const localizeNotebook = _.flow(
+    Utils.withBusyState(setBusy),
+    withErrorReporting('Error copying notebook')
+  )(async () => {
+    if (mode === 'edit') {
+      notify('error', 'Outdated Cluster', {
+        message: 'Cannot edit'
+      })
+      chooseMode(undefined)
+      return
+    }
+    await Promise.all([
+      Ajax(signal).Jupyter.notebooks(namespace, clusterName).oldLocalize({
+        [`~/${name}/${notebookName}`]: `gs://${bucketName}/notebooks/${notebookName}`
+      }),
+      Ajax(signal).Jupyter.notebooks(namespace, clusterName).setCookie()
+    ])
+    setLocalized(true)
+  })
 
   const setUpNotebook = _.flow(
     Utils.withBusyState(setBusy),
@@ -420,10 +508,25 @@ const NotebookEditorFrame = ({ mode, notebookName, workspace: { workspace: { nam
   })
 
   Utils.useOnMount(() => {
-    setUpNotebook()
+    if (labels.welderInstallFailed) {
+      localizeNotebook()
+    } else {
+      setUpNotebook()
+    }
   })
 
   return h(Fragment, [
+    localized && h(Fragment, [
+      iframe({
+        src: `${clusterUrl}/notebooks/${name}/${notebookName}`,
+        style: { border: 'none', flex: 1 },
+        ref: frameRef
+      }),
+      h(JupyterFrameManager, {
+        frameRef,
+        onClose: () => Nav.goToPath('workspace-notebooks', { namespace, name })
+      })
+    ]),
     notebookSetUp && h(Fragment, [
       iframe({
         src: mode === 'edit' ? `${clusterUrl}/notebooks/${localBaseDirectory}/${notebookName}`: `${clusterUrl}/notebooks/${localSafeModeBaseDirectory}/${notebookName}`,

@@ -988,6 +988,11 @@ const Jupyter = signal => ({
 
     return {
 
+      oldLocalize: files => {
+        return fetchLeo(`${oldRoot}/api/localize`,
+          _.mergeAll([authOpts(), jsonBody(files), { signal, method: 'POST' }]))
+      },
+
       localize: entries => {
         const body = {
           action: 'localize',
