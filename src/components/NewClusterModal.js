@@ -141,7 +141,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       profile: matchingProfile ? matchingProfile.name : 'custom',
       jupyterUserScriptUri: '',
       selectedLeoImage: leoImages[0].image,
-      isCustomEnv: false, customEnvImage: '', showingCustomWarning: false,
+      isCustomEnv: false, customEnvImage: '', viewMode: undefined,
       ...normalizeMachineConfig(currentConfig)
     }
   }
@@ -173,8 +173,8 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const { currentCluster, onDismiss } = this.props
     const {
       profile, masterMachineType, masterDiskSize, workerMachineType, numberOfWorkers, numberOfPreemptibleWorkers, workerDiskSize,
-      jupyterUserScriptUri, selectedLeoImage,
-      viewingPackages, isCustomEnv, customEnvImage, showingCustomWarning
+      jupyterUserScriptUri, selectedLeoImage, isCustomEnv, customEnvImage,
+      viewMode
     } = this.state
     const { version, updated, packages } = _.find({ image: selectedLeoImage }, leoImages) || {}
 
@@ -194,41 +194,39 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       div([`Version: ${version}`])
     ])
 
-    const { onPrevious, contents } = Utils.cond(
-      [
-        viewingPackages, () => ({
-          onPrevious: () => this.setState({ viewingPackages: false }),
-          contents: h(Fragment, [
-            makeEnvSelect(),
-            makeImageInfo({ margin: '1rem 0 2rem' }),
-            h(ImageDepViewer, { packages })
-          ])
-        })
-      ],
-      [
-        showingCustomWarning, () => ({
-          onPrevious: () => this.setState({ showingCustomWarning: false }),
-          contents: h(Fragment, [
-            div({ style: { marginBottom: '0.5rem', fontWeight: 'bold' } }, ['Warning!']),
-            p([
-              `You are about to create a virtual machine using an unverified Docker image. 
+    const { contents, onPrevious } = Utils.switchCase(viewMode, [
+      'Packages', () => ({
+        onPrevious: () => this.setState({ viewingPackages: false, viewMode: undefined }),
+        contents: h(Fragment, [
+          makeEnvSelect(),
+          makeImageInfo({ margin: '1rem 0 2rem' }),
+          h(ImageDepViewer, { packages })
+        ])
+      })
+    ], [
+      'Warning', () => ({
+        onPrevious: () => this.setState({ viewMode: undefined }),
+        contents: h(Fragment, [
+          div({ style: { marginBottom: '0.5rem', fontWeight: 'bold' } }, ['Warning!']),
+          p([
+            `You are about to create a virtual machine using an unverified Docker image. 
              Please make sure that it was created by you or someone you trust, using one of our `,
-              h(Link, { href: terraBaseImageRepo, ...Utils.newTabLinkProps }, ['base images.']),
-              ' Custom Docker images could potentially cause serious security issues.'
-            ]),
-            h(Link, { href: safeImageDocumentation, ...Utils.newTabLinkProps }, ['Learn more about creating safe and secure custom Docker images.']),
-            p([
-              'If you\'re confident that your image is safe, click ', b(['Create']), ' to use it. Otherwise, click ', b(['Back']),
-              ' to select another image.'
-            ]),
-            div({ style: { display: 'flex', justifyContent: 'flex-end' } }, [
-              h(ButtonSecondary, { style: { marginRight: '2rem' }, onClick: () => this.setState({ showingCustomWarning: false }) }, ['Back']),
-              h(ButtonPrimary, { onClick: () => this.createCluster() }, ['Create'])
-            ])
+            h(Link, { href: terraBaseImageRepo, ...Utils.newTabLinkProps }, ['base images.']),
+            ' Custom Docker images could potentially cause serious security issues.'
+          ]),
+          h(Link, { href: safeImageDocumentation, ...Utils.newTabLinkProps }, ['Learn more about creating safe and secure custom Docker images.']),
+          p([
+            'If you\'re confident that your image is safe, click ', b(['Create']), ' to use it. Otherwise, click ', b(['Back']),
+            ' to select another image.'
+          ]),
+          div({ style: { display: 'flex', justifyContent: 'flex-end' } }, [
+            h(ButtonSecondary, { style: { marginRight: '2rem' }, onClick: () => this.setState({ viewMode: 'undefined' }) }, ['Back']),
+            h(ButtonPrimary, { onClick: () => this.createCluster() }, ['Create'])
           ])
-        })
-      ],
-      () => ({
+        ])
+      })
+    ], [
+      Utils.DEFAULT, () => ({
         onPrevious: undefined,
         contents: h(Fragment, [
           div({ style: { marginBottom: '1rem' } }, [
@@ -278,7 +276,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
                   ])
                 ]),
                 div({ style: { gridColumnStart: 2, alignSelf: 'start' } }, [
-                  h(Link, { onClick: () => this.setState({ viewingPackages: true }) }, ['What’s installed on this environment?'])
+                  h(Link, { onClick: () => this.setState({ viewMode: 'Packages' }) }, ['What’s installed on this environment?'])
                 ]),
                 makeImageInfo()
               ])
@@ -413,17 +411,16 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
               disabled: isCustomEnv && isCustomImageInvalid,
               tooltip: isCustomEnv && isCustomImageInvalid && 'Enter a valid docker image to use',
               style: { marginTop: '1rem' },
-              onClick: () => isCustomEnv ? this.setState({ showingCustomWarning: true }) : this.createCluster()
+              onClick: () => isCustomEnv ? this.setState({ viewMode: 'Warning' }) : this.createCluster()
             }, !!currentCluster ? 'Replace' : 'Create')
           ])
         ])
       })
-    )
-
+    ])
     return h(Fragment, [
       h(TitleBar, {
-        title: viewingPackages ? 'INSTALLED PACKAGES' : 'RUNTIME CONFIGURATION',
-        onDismiss: viewingPackages || showingCustomWarning ? undefined : onDismiss,
+        title: viewMode === 'Packages' ? 'INSTALLED PACKAGES' : 'RUNTIME CONFIGURATION',
+        onDismiss: viewMode === 'Packages' || viewMode === 'Warning' ? undefined : onDismiss,
         onPrevious
       }),
       div({ style: { padding: '0 1.5rem 1.5rem 1.5rem', flexGrow: 1, display: 'flex', flexDirection: 'column' } }, [contents])
