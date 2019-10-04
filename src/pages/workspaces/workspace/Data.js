@@ -359,13 +359,15 @@ const ReferenceDataContent = ({ workspace: { workspace: { namespace, attributes 
   ])
 }
 
-const ToolDrawer = withModalDrawer()(({ workspace, workspaceId, onDismiss, onIgvSuccess, entityMetadata, entityKey, selectedEntities }) => {
+const ToolDrawer = withModalDrawer()(({
+  workspace, workspace: { workspace: { workspaceId } }, onDismiss, onIgvSuccess, entityMetadata, entityKey, selectedEntities
+}) => {
   const [toolMode, setToolMode] = useState()
   const entitiesCount = _.size(selectedEntities)
   const entitiesType = !!entitiesCount && selectedEntities[_.keys(selectedEntities)[0]].entityType
   const dataExplorerUrl =
        entityKey === 'cohort' && _.size(selectedEntities) === 1 && _.values(selectedEntities)[0].attributes.data_explorer_url ?
-         _.values(selectedEntities)[0].attributes.data_explorer_url :
+         _.values(selectedEntities)[0].attributes.data_explorer_url + '&wid=' + workspaceId :
          ''
   const dataExplorerButtonEnabled = dataExplorerUrl !== ''
 
@@ -640,7 +642,6 @@ class EntitiesContent extends Component {
         }),
         h(ToolDrawer, {
           workspace,
-          workspaceId: { namespace, name },
           isOpen: showToolSelector,
           onDismiss: () => this.setState({ showToolSelector: false }),
           onIgvSuccess: newIgvData => this.setState({ showToolSelector: false, igvData: newIgvData }),
