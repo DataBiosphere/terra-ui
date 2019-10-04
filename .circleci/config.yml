@@ -12,6 +12,9 @@ executors:
   gcloud:
     docker:
       - image: google/cloud-sdk:alpine
+  dsp-toolbox: 
+    docker: 
+      - image: broadinstitute/dsp-toolbox
   security-scanner:
     docker:
       - image: owasp/zap2docker-weekly
@@ -117,11 +120,9 @@ jobs:
           sa_key_var: "STAGING_SA_KEY_JSON"
           env: "staging"
   run-test-setup:
-    executor: gcloud
+    executor: dsp-toolbox
     steps:
-      - run: echo ${TEST_USER_SA_KEY_JSON} > /tmp/sa.json
-      - run: gcloud auth activate-service-account --key-file=/tmp/sa.json 
-      - run: gcloud auth print-access-token > testtoken
+      - run: docker run --rm -v app/populate -w app/populate broadinstitute/dsp-toolbox python get_bearer_token.py "${ALPHA_TEST_UA}" "${ALPHA_USER_SA_KEY_JSON}" > testtoken
       - persist_to_workspace:
           root: .
           paths:
