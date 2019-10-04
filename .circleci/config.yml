@@ -120,9 +120,11 @@ jobs:
           sa_key_var: "STAGING_SA_KEY_JSON"
           env: "staging"
   run-test-setup:
-    executor: dsp-toolbox
+    executor: gcloud
     steps:
-      - run: docker run --rm -v app/populate -w app/populate broadinstitute/dsp-toolbox python get_bearer_token.py "${ALPHA_TEST_UA}" "${ALPHA_USER_SA_KEY_JSON}" > testtoken
+      - checkout
+      # - run: command docker run --rm -v app/populate -w app/populate broadinstitute/dsp-toolbox python get_bearer_token.py "${ALPHA_TEST_UA}" "${ALPHA_USER_SA_KEY_JSON}" > testtoken
+      - run: python src/_tests/get_bearer_token.py "${ALPHA_TEST_UA}" "${ALPHA_USER_SA_KEY_JSON}" > testtoken
       - persist_to_workspace:
           root: .
           paths:
