@@ -485,7 +485,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
         message: h(ClusterErrorNotification, { cluster })
       })
       errorNotifiedClusters.update(Utils.append(cluster.id))
-    } else if (isAfter(createdDate, welderCutOff) && !isToday(dateNotified)) {
+    } else if (isAfter(createdDate, welderCutOff) && !isToday(dateNotified)) { // TODO: remove this notification some time after the data syncing release
       setDynamic(sessionStorage, `notifiedOutdatedCluster${cluster.id}`, Date.now())
       notify('warn', 'Please Update Your Runtime', {
         message: h(Fragment, [
