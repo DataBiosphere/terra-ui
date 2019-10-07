@@ -464,8 +464,15 @@ const NotebookEditorFrame = ({ mode, notebookName, workspace: { workspace: { nam
     withErrorReporting('Error copying notebook')
   )(async () => {
     if (mode === 'edit') {
-      notify('error', 'Outdated Cluster', {
-        message: 'Cannot edit'
+      notify('error', 'Cannot Edit Notebook', {
+        message: h(Fragment, [
+          p(['Recent updates to Terra are not compatible with the older notebook runtime in this workspace. Please recreate your runtime in order to access Edit Mode for this notebook.']),
+          h(Link, {
+            variant: 'light',
+            href: 'https://support.terra.bio/hc/en-us/articles/360026639112',
+            ...Utils.newTabLinkProps
+          }, ['Read here for more details.'])
+        ])
       })
       chooseMode(undefined)
       return
