@@ -28,7 +28,7 @@ export const storagePrice = 0.04 / 730 // per GB hour, from https://cloud.google
 export const profiles = [
   {
     name: 'moderate',
-    label: 'Moderate',
+    label: 'Default (Moderate)',
     machineConfig: {
       masterMachineType: 'n1-standard-4'
     }

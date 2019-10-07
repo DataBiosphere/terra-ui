@@ -147,6 +147,25 @@ By accessing Terra, you expressly consent to monitoring of your actions and all 
 transiting or stored therein. We reserve the right to delete, move, or edit any data, which we
 consider to be unacceptable or inappropriate whether for legal or other reasons.
 
+#### Data and Workspaces
+
+When a user uploads private data to a workspace, they are responsible for ensuring authorization
+domains are attached to the workspace to control the set of possible users to only those who have
+adequate permissions to work with those data. For instance, if a lab collects sensitive human
+genomic information through their research, the user who uploads the lab’s data to a Terra workspace
+must select one or more managed groups to set as authorization domains. This way, only members from
+the group (perhaps other lab members who may also see and use the data) have access. Authorization
+domains will remain with all cloned versions of the workspace. **If data are shared inappropriately or
+with unauthorized users through the Terra platform, your access to Terra may be suspended or
+terminated and, in some instances, Terra staff may contact the user’s institution.**
+
+Users creating a Terra Workspace are expected to ensure that data use and sharing within any
+workspace to which they upload private data, or any copies of such workspaces, are conducted in
+accordance with all applicable national, tribal, and state laws and regulations, as well as
+relevant institutional policies and procedures for handling genomic data.
+
+Questions? Contact infosec@broadinstitute.org.
+
 #### Disclaimer of Warranty
 
 You expressly understand and agree that your use of Terra, or any material available through it,
