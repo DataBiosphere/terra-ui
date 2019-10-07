@@ -420,7 +420,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     return h(Fragment, [
       h(TitleBar, {
         title: viewMode === 'Packages' ? 'INSTALLED PACKAGES' : 'RUNTIME CONFIGURATION',
-        onDismiss: viewMode === 'Packages' || viewMode === 'Warning' ? undefined : onDismiss,
+        onDismiss,
         onPrevious
       }),
       div({ style: { padding: '0 1.5rem 1.5rem 1.5rem', flexGrow: 1, display: 'flex', flexDirection: 'column' } }, [contents])
