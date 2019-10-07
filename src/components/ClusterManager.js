@@ -1,3 +1,5 @@
+import { isToday } from 'date-fns'
+import { isAfter } from 'date-fns/fp'
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
 import { Fragment, PureComponent, useState } from 'react'
@@ -13,11 +15,12 @@ import TitleBar from 'src/components/TitleBar'
 import { machineTypes, profiles } from 'src/data/clusters'
 import leoImages from 'src/data/leo-images'
 import { Ajax, ajaxCaller } from 'src/libs/ajax'
+import { getDynamic, setDynamic } from 'src/libs/browser-storage'
 import { clusterCost, currentCluster, machineConfigCost, normalizeMachineConfig, trimClustersOldestFirst } from 'src/libs/cluster-utils'
 import colors from 'src/libs/colors'
 import { reportError, withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
-import { errorNotifiedClusters, outdatedNotifiedClusters } from 'src/libs/state.js'
+import { errorNotifiedClusters } from 'src/libs/state.js'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 
@@ -473,18 +476,32 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
     const prevCluster = _.last(_.sortBy('createdDate', _.remove({ status: 'Deleting' }, prevProps.clusters))) || {}
     const cluster = this.getCurrentCluster() || {}
     const twoMonthsAgo = _.tap(d => d.setMonth(d.getMonth() - 2), new Date())
+    const welderCutOff = new Date('2019-08-01')
     const createdDate = new Date(cluster.createdDate)
+    const dateNotified = getDynamic(sessionStorage, `notifiedOutdatedCluster${cluster.id}`) || {}
 
     if (cluster.status === 'Error' && prevCluster.status !== 'Error' && !_.includes(cluster.id, errorNotifiedClusters.get())) {
       notify('error', 'Error Creating Notebook Runtime', {
         message: h(ClusterErrorNotification, { cluster })
       })
       errorNotifiedClusters.update(Utils.append(cluster.id))
-    } else if (createdDate < twoMonthsAgo && !_.includes(cluster.id, outdatedNotifiedClusters.get())) {
+    } else if (isAfter(createdDate, welderCutOff) && !isToday(dateNotified)) {
+      setDynamic(sessionStorage, `notifiedOutdatedCluster${cluster.id}`, Date.now())
+      notify('warn', 'Please Update Your Runtime', {
+        message: h(Fragment, [
+          p(['On Sunday Oct 20th at 10am, we are introducing important updates to Terra, which are not compatible with the older notebook runtime in this workspace. After this date, you will no longer be able to save new changes to notebooks in one of these older runtimes.']),
+          h(Link, {
+            variant: 'light',
+            href: 'https://support.terra.bio/hc/en-us/articles/360026639112',
+            ...Utils.newTabLinkProps
+          }, ['Read here for more details.'])
+        ])
+      })
+    } else if (createdDate < twoMonthsAgo && !isToday(dateNotified)) {
+      setDynamic(sessionStorage, `notifiedOutdatedCluster${cluster.id}`, Date.now())
       notify('warn', 'Outdated Notebook Runtime', {
         message: 'Your notebook runtime is over two months old. Please consider deleting and recreating your runtime in order to access the latest features and security updates.'
       })
-      outdatedNotifiedClusters.update(Utils.append(cluster.id))
     }
   }
 
