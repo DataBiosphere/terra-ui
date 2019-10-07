@@ -497,7 +497,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
           }, ['Read here for more details.'])
         ])
       })
-    } else if (createdDate < twoMonthsAgo && !isToday(dateNotified)) {
+    } else if (isAfter(createdDate, twoMonthsAgo) && !isToday(dateNotified)) {
       setDynamic(sessionStorage, `notifiedOutdatedCluster${cluster.id}`, Date.now())
       notify('warn', 'Outdated Notebook Runtime', {
         message: 'Your notebook runtime is over two months old. Please consider deleting and recreating your runtime in order to access the latest features and security updates.'
