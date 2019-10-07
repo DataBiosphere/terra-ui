@@ -320,3 +320,15 @@ export const TextArea = ({ onChange, ...props }) => {
     onChange: onChange ? (e => onChange(e.target.value)) : undefined
   }, props))
 }
+
+export const PasteOnlyInput = ({ onPaste, ...props }) => {
+  Utils.useConsoleAssert(props.id || props['aria-label'], 'In order to be accessible, PasteOnlyTextArea needs a label')
+
+  return input(_.merge({
+    className: 'focus-style',
+    style: styles.textarea,
+    onPaste: e => {
+      onPaste(e.clipboardData.getData('Text'))
+    }
+  }, props))
+}

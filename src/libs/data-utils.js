@@ -7,7 +7,7 @@ import {
 } from 'src/components/common'
 import Dropzone from 'src/components/Dropzone'
 import { icon } from 'src/components/icons'
-import { NumberInput, TextArea, TextInput, ValidatedInput } from 'src/components/input'
+import { NumberInput, PasteOnlyInput, TextInput, ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { TextCell } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
@@ -24,7 +24,6 @@ import validate from 'validate.js'
 
 
 const warningBoxStyle = {
-  border: '1px solid #DC8412',
   backgroundColor: colors.warning(1),
   padding: '1rem 1.25rem',
   color: colors.warning(), fontWeight: 'bold', fontSize: 12
@@ -247,17 +246,20 @@ export const EntityUploader = class EntityUploader extends Component {
 
   constructor(props) {
     super(props)
-    this.state = { newEntityType: '', useFireCloudDataModel: false, isFileImportMode: true }
+    this.state = {
+      newEntityType: '', useFireCloudDataModel: false, isFileImportCurrMode: true, isFileImportLastUsedMode: undefined,
+      file: undefined, isInvalid: false, pastedText: ''
+    }
   }
 
   async doUpload() {
     const { onDismiss, onSuccess, namespace, name } = this.props
-    const { file, pastedText, useFireCloudDataModel } = this.state
+    const { file, useFireCloudDataModel } = this.state
     this.setState({ uploading: true })
     try {
       const workspace = Ajax().Workspaces.workspace(namespace, name)
       await (useFireCloudDataModel ? workspace.importEntitiesFile : workspace.importFlexibleEntitiesFile)(
-        !!pastedText ? new File([pastedText], 'upload.tsv') : file
+        file
       )
       onSuccess()
     } catch (error) {
@@ -266,136 +268,136 @@ export const EntityUploader = class EntityUploader extends Component {
     }
   }
 
-  updatePastedText(pastedText) {
-    const { file } = this.state
+  async parseFile(file, mode) {
     const checkUpload = text => /(?:membership|entity):([^\s]+)_id/.exec(text)
-    const definedTypeMatch = checkUpload(pastedText)
-    if (file) {
-      this.setState({ file: undefined, isInvalidFile: false })
-    }
+    const firstBytes = await Utils.readFileAsText(file.slice(0, 1000))
+    const definedTypeMatch = checkUpload(firstBytes)
 
     if (definedTypeMatch) {
       const parsedEntityType = definedTypeMatch[1]
       this.setState(
-        {
-          pastedText, isInvalidFile: false, newEntityType: parsedEntityType, useFireCloudDataModel: false, isInvalidText: false,
-          file: undefined
-        })
+        { file, isInvalid: false, newEntityType: parsedEntityType, useFireCloudDataModel: false })
+      if (mode === true) {
+        this.setState({ pastedText: '' })
+      }
     } else {
-      this.setState({ pastedText: undefined, isInvalidFile: false, isInvalidText: true })
+      this.setState({ file: undefined, isInvalid: true })
     }
+    this.setState({ isFileImportLastUsedMode: mode })
+  }
+
+  hasFileAndLastUsedModeAndCurrModeAreFileMode() {
+    const { file, isFileImportCurrMode, isFileImportLastUsedMode } = this.state
+    return (file && (isFileImportCurrMode === isFileImportLastUsedMode))
   }
 
   render() {
     const { onDismiss, entityTypes } = this.props
-    const { uploading, file, newEntityType, isInvalidFile, isInvalidText, useFireCloudDataModel, pastedText, isFileImportMode } = this.state
-
-    const checkUpload = text => /(?:membership|entity):([^\s]+)_id/.exec(text)
+    const { uploading, file, newEntityType, isInvalid, useFireCloudDataModel, isFileImportCurrMode, pastedText, isFileImportLastUsedMode } = this.state
 
     return h(Dropzone, {
       multiple: false,
       style: { flexGrow: 1 },
       activeStyle: { cursor: 'copy' },
-      onDropAccepted: async ([file]) => {
-        const firstBytes = await Utils.readFileAsText(file.slice(0, 1000))
-        const definedTypeMatch = checkUpload(firstBytes)
-
-        if (definedTypeMatch) {
-          const parsedEntityType = definedTypeMatch[1]
-          this.setState(
-            { file, isInvalidFile: false, newEntityType: parsedEntityType, useFireCloudDataModel: false, pastedText: '', isInvalidText: false })
-        } else {
-          this.setState({ file: undefined, isInvalidFile: true, pastedText: '', isInvalidText: false })
-        }
+      onDropAccepted: ([file]) => {
+        this.parseFile(file, true)
       }
-    }, [({ dragging, openUploader }) => h(Fragment, [
-      h(Modal, {
-        onDismiss,
-        title: 'Import Table Data',
-        width: '35rem',
-        okButton: h(ButtonPrimary, {
-          disabled: ((!file && isFileImportMode) || (!pastedText && !isFileImportMode)) || uploading,
-          tooltip: (!file && !pastedText) ? 'Please select valid data to upload' : 'Upload selected data',
-          onClick: () => this.doUpload()
-        }, ['Upload'])
-      }, ['The first column header must be:',
-        div({ style: { fontFamily: 'monospace', margin: '0.5rem', fontWeight: '600' } }, ['entity:[type]_id']),
-        'where ',
-        span({ style: { fontFamily: 'monospace', fontWeight: '600' } }, ['[type]']),
-        ` is the desired name of the data table in ${getAppName()}.`,
-        ' For example, to create or update a ',
-        span({ style: { fontFamily: 'monospace', fontWeight: '600' } }, ['participant']),
-        ' table use ',
-        span({ style: { fontFamily: 'monospace', fontWeight: '600' } }, ['entity:participant_id']),
-        div({ style: { marginTop: '0.5rem', marginBottom: '0.5rem' } }, ['All of the values in the ID column must be unique.']),
-        div({ style: { borderTop: Style.standardLine, paddingTop: '1rem', fontWeight: 'bold', marginTop: '1rem' } }, ['Choose an import type:']),
-        ((file && isFileImportMode) || (pastedText && !isFileImportMode)) && _.includes(_.toLower(newEntityType), entityTypes) && div({
-          style: { ...warningBoxStyle, marginTop: '0.5rem', color: colors.light(.1), display: 'flex', alignItems: 'center' }
+    }, [
+      ({ dragging, openUploader }) => h(Fragment, [
+        h(Modal, {
+          onDismiss,
+          title: 'Import Table Data',
+          width: '35rem',
+          okButton: h(ButtonPrimary, {
+            disabled: (!file || isFileImportCurrMode !== isFileImportLastUsedMode) || uploading,
+            tooltip: (!file) ? 'Please select valid data to upload' : 'Upload selected data',
+            onClick: () => this.doUpload()
+          }, ['Upload'])
         }, [
-          icon('warning-standard', { size: 19, style: { color: colors.light(.1), flex: 'none', marginRight: '0.5rem', marginLeft: '-0.5rem' } }),
-          `Data with the type '${newEntityType}' already exists in this workspace. `,
-          'Uploading more data for the same type may overwrite some entries.'
-        ]),
-        ((file && isFileImportMode) || (pastedText && !isFileImportMode)) && supportsFireCloudDataModel(newEntityType) && div([
-          h(LabeledCheckbox, {
-            checked: useFireCloudDataModel,
-            onChange: checked => this.setState({ useFireCloudDataModel: checked }),
-            style: { margin: '0.5rem' }
-          }, [' Create participant, sample, and pair associations']),
-          h(Link, {
-            style: { marginLeft: '1rem', verticalAlign: 'middle' },
-            href: 'https://software.broadinstitute.org/firecloud/documentation/article?id=10738',
-            ...Utils.newTabLinkProps
-          }, ['Learn more ', icon('pop-out', { size: 12 })])
-        ]),
-        h(SimpleTabBar, {
-          tabs: [{ title: 'File Import', key: true }, { title: 'Text Import', key: false }],
-          value: isFileImportMode,
-          onChange: value => {
-            this.setState({ isFileImportMode: value })
-          }
-        }),
-        isFileImportMode ? div([
-          div([
-            div({ style: { marginTop: '0.5rem' } }, ['Select the ',
+          'The first column header must be:',
+          div({ style: { fontFamily: 'monospace', margin: '0.5rem', fontWeight: '600' } }, ['entity:[type]_id']),
+          'where ',
+          span({ style: { fontFamily: 'monospace', fontWeight: '600' } }, ['[type]']),
+          ` is the desired name of the data table in ${getAppName()}. For example, to create or update a `,
+          span({ style: { fontFamily: 'monospace', fontWeight: '600' } }, ['participant']),
+          ' table use ',
+          span({ style: { fontFamily: 'monospace', fontWeight: '600' } }, ['entity:participant_id']),
+          div({ style: { marginTop: '0.5rem', marginBottom: '0.5rem' } }, ['All of the values in the ID column must be unique.']),
+          div({ style: { borderTop: Style.standardLine, paddingTop: '1rem', fontWeight: 'bold', marginTop: '1rem' } }, ['Choose an import type:']),
+          (this.hasFileAndLastUsedModeAndCurrModeAreFileMode()) && _.includes(_.toLower(newEntityType), entityTypes) && div({
+            style: { ...warningBoxStyle, marginTop: '0.5rem', color: colors.light(.1), display: 'flex', alignItems: 'center' }
+          }, [
+            icon('warning-standard', { size: 19, style: { color: colors.light(.1), flex: 'none', marginRight: '0.5rem', marginLeft: '-0.5rem' } }),
+            `Data with the type '${newEntityType}' already exists in this workspace. `,
+            'Uploading more data for the same type may overwrite some entries.'
+          ]),
+          (this.hasFileAndLastUsedModeAndCurrModeAreFileMode()) && supportsFireCloudDataModel(newEntityType) && div([
+            h(LabeledCheckbox, {
+              checked: useFireCloudDataModel,
+              onChange: checked => this.setState({ useFireCloudDataModel: checked }),
+              style: { margin: '0.5rem' }
+            }, [' Create participant, sample, and pair associations']),
+            h(Link, {
+              style: { marginLeft: '1rem', verticalAlign: 'middle' },
+              href: 'https://software.broadinstitute.org/firecloud/documentation/article?id=10738',
+              ...Utils.newTabLinkProps
+            }, ['Learn more ', icon('pop-out', { size: 12 })])
+          ]),
+          h(SimpleTabBar, {
+            tabs: [{ title: 'File Import', key: true }, { title: 'Text Import', key: false }],
+            value: isFileImportCurrMode,
+            onChange: value => {
+              this.setState({ isFileImportCurrMode: value })
+              isInvalid && this.setState({ isInvalid: false, pastedText: '' })
+            }
+          }),
+          isFileImportCurrMode ? div({ style: { margin: '0.5rem 0' } }, [
+            div([
+              'Select the ',
               h(TooltipTrigger, { content: 'Tab Separated Values', side: 'bottom' },
                 [span({ style: { textDecoration: 'underline dashed' } }, 'TSV')]),
-              ' file containing your data: ']),
+              ' file containing your data: '
+            ]),
             h(Clickable, {
               style: {
-                ...Style.elements.card.container, flex: 1, margin: '0.5rem 0', backgroundColor: dragging ? colors.accent(0.2) : colors.dark(0.1),
-                border: isInvalidFile ? `1px solid ${colors.danger()}` : `1px dashed ${colors.dark(0.7)}`, boxShadow: 'none'
+                ...Style.elements.card.container, flex: 1, backgroundColor: dragging ? colors.accent(0.2) : colors.dark(0.1),
+                border: isInvalid ? `1px solid ${colors.danger()}` : `1px dashed ${colors.dark(0.7)}`, boxShadow: 'none'
               },
               onClick: openUploader
             }, [div(['Drag or ', h(Link, ['Click']), ' to select a .tsv file'])]),
-            div({ style: { marginLeft: '1rem', marginTop: '0.5rem' } }, ['Selected File: ',
-              span({ style: { color: colors.dark(0.7) } }, (file && file.name) ? file.name : 'None')])
-          ])
-        ]) : div([div({ style: { marginTop: '0.5rem' } }, ['Paste the data directly to the text field below:']),
-          h(TextArea, {
-            'aria-label': 'Paste text data',
-            placeholder: 'Paste/Enter text data here...',
-            onChange: pastedText => this.updatePastedText(pastedText),
-            value: pastedText,
-            wrap: 'off',
-            style: {
-              ...Style.elements.card.container, flex: 1, fontFamily: 'monospace', resize: 'vertical',
-              maxHeight: 300, minHeight: 60, margin: '0.5rem 0',
-              backgroundColor: isInvalidText ? colors.danger(.1) : (pastedText ? colors.light(0.1) : colors.dark(0.1)),
-              border: isInvalidText ? `1px solid ${colors.danger()}` : `1px dashed ${colors.dark(0.7)}`,
-              boxShadow: 'none'
-            }
-          })]),
-        ((isInvalidText && !isFileImportMode) || (isInvalidFile && isFileImportMode)) && div({
-          style: {
-            color: colors.danger(), fontWeight: 'bold', fontSize: 12, marginTop: '0.5rem'
-          }
-        },
-        [
-          'Invalid format: Data does not start with entity or membership definition.'
-        ])]),
-      uploading && spinnerOverlay
-    ])])
+            div([
+              'Selected File: ',
+              span({ style: { color: colors.dark(0.7) } }, (this.hasFileAndLastUsedModeAndCurrModeAreFileMode() && file.name) ? file.name : 'None')
+            ])
+          ]) : div({ style: { margin: '0.5rem 0' } }, [
+            'Paste the data directly below:',
+            h(PasteOnlyInput, {
+              'aria-label': 'Paste text data here',
+              placeholder: 'Paste text data here',
+              onPaste: pastedText => {
+                this.parseFile(new File([pastedText], 'upload.tsv'), false)
+                this.setState({ pastedText })
+              },
+              value: pastedText,
+              wrap: 'off',
+              style: {
+                ...Style.elements.card.container, flex: 1, fontFamily: 'monospace', resize: 'vertical',
+                maxHeight: 300, minHeight: 60,
+                backgroundColor: isInvalid ? colors.danger(.1) : (pastedText ? colors.light(0.1) : colors.dark(0.1)),
+                border: isInvalid ? `1px solid ${colors.danger()}` : `1px dashed ${colors.dark(0.7)}`,
+                boxShadow: 'none'
+              }
+            })
+          ]),
+          isInvalid && (isFileImportCurrMode === isFileImportLastUsedMode) && div({
+            style: { color: colors.danger(), fontWeight: 'bold', fontSize: 12, marginTop: '0.5rem' }
+          },
+          ['Invalid format: Data does not start with entity or membership definition.']
+          )
+        ]),
+        uploading && spinnerOverlay
+      ])
+    ])
   }
 }
 
@@ -434,19 +436,21 @@ export const EntityRenamer = ({ entityType, entityName, workspaceId: { namespace
       tooltip: entityName === newName ? 'No change to save' : Utils.summarizeErrors(errors)
     }, ['Rename'])
   }, [
-    h(IdContainer, [id => h(Fragment, [
-      h(FormLabel, { htmlFor: id }, ['New entity name']),
-      h(ValidatedInput, {
-        inputProps: {
-          id,
-          autoFocus: true,
-          placeholder: 'Enter a name',
-          value: newName,
-          onChange: setNewName
-        },
-        error: Utils.summarizeErrors(errors)
-      })
-    ])]),
+    h(IdContainer, [
+      id => h(Fragment, [
+        h(FormLabel, { htmlFor: id }, ['New entity name']),
+        h(ValidatedInput, {
+          inputProps: {
+            id,
+            autoFocus: true,
+            placeholder: 'Enter a name',
+            value: newName,
+            onChange: setNewName
+          },
+          error: Utils.summarizeErrors(errors)
+        })
+      ])
+    ]),
     isBusy && spinnerOverlay
   ])
 }
@@ -487,27 +491,35 @@ export const EntityEditor = ({ entityType, entityName, attributeName, attributeV
   const makeTextInput = placeholder => ({ value = '', ...props }) => h(TextInput, { autoFocus: true, placeholder, value, ...props })
 
   const { prepForUpload, makeInput, blankVal } = Utils.switchCase(editType,
-    ['string', () => ({
-      prepForUpload: _.trim,
-      makeInput: makeTextInput('Enter a value'),
-      blankVal: ''
-    })],
-    ['reference', () => ({
-      prepForUpload: v => ({ entityName: _.trim(v), entityType: linkedEntityType }),
-      makeInput: makeTextInput(`Enter a ${linkedEntityType}_id`),
-      blankVal: ''
-    })],
-    ['number', () => ({
-      prepForUpload: _.identity,
-      makeInput: ({ value = 0, ...props }) => h(NumberInput, { autoFocus: true, isClearable: false, value, ...props }),
-      blankVal: 0
-    })],
-    ['boolean', () => ({
-      prepForUpload: _.identity,
-      makeInput: ({ value = false, ...props }) => div({ style: { flexGrow: 1, display: 'flex', alignItems: 'center', height: '2.25rem' } },
-        [h(Switch, { checked: value, ...props })]),
-      blankVal: false
-    })]
+    [
+      'string', () => ({
+        prepForUpload: _.trim,
+        makeInput: makeTextInput('Enter a value'),
+        blankVal: ''
+      })
+    ],
+    [
+      'reference', () => ({
+        prepForUpload: v => ({ entityName: _.trim(v), entityType: linkedEntityType }),
+        makeInput: makeTextInput(`Enter a ${linkedEntityType}_id`),
+        blankVal: ''
+      })
+    ],
+    [
+      'number', () => ({
+        prepForUpload: _.identity,
+        makeInput: ({ value = 0, ...props }) => h(NumberInput, { autoFocus: true, isClearable: false, value, ...props }),
+        blankVal: 0
+      })
+    ],
+    [
+      'boolean', () => ({
+        prepForUpload: _.identity,
+        makeInput: ({ value = false, ...props }) => div({ style: { flexGrow: 1, display: 'flex', alignItems: 'center', height: '2.25rem' } },
+          [h(Switch, { checked: value, ...props })]),
+        blankVal: false
+      })
+    ]
   )
 
   const doEdit = async () => {
@@ -517,10 +529,12 @@ export const EntityEditor = ({ entityType, entityName, attributeName, attributeV
       await Ajax()
         .Workspaces
         .workspace(namespace, name)
-        .upsertEntities([{
-          name: entityName, entityType,
-          attributes: { [attributeName]: isList ? _.map(prepForUpload, newValue) : prepForUpload(newValue) }
-        }])
+        .upsertEntities([
+          {
+            name: entityName, entityType,
+            attributes: { [attributeName]: isList ? _.map(prepForUpload, newValue) : prepForUpload(newValue) }
+          }
+        ])
       onSuccess()
     } catch (e) {
       onDismiss()
@@ -564,24 +578,26 @@ export const EntityEditor = ({ entityType, entityName, attributeName, attributeV
             h(Fragment, _.map(({ type, tooltip }) => h(TooltipTrigger, {
               content: tooltip
             }, [
-              span({ style: { marginRight: '1.2rem' } }, [h(RadioButton, {
-                text: _.startCase(type),
-                name: 'edit-type',
-                checked: editType === type,
-                onChange: () => {
-                  const convertFn = type === 'number' ?
-                    v => {
-                      const numberVal = _.toNumber(v)
-                      return _.isNaN(numberVal) ? 0 : numberVal
-                    } :
-                    Utils.convertValue(type === 'reference' ? 'string' : type)
-                  const convertedValue = isList ? _.map(convertFn, newValue) : convertFn(newValue)
+              span({ style: { marginRight: '1.2rem' } }, [
+                h(RadioButton, {
+                  text: _.startCase(type),
+                  name: 'edit-type',
+                  checked: editType === type,
+                  onChange: () => {
+                    const convertFn = type === 'number' ?
+                      v => {
+                        const numberVal = _.toNumber(v)
+                        return _.isNaN(numberVal) ? 0 : numberVal
+                      } :
+                      Utils.convertValue(type === 'reference' ? 'string' : type)
+                    const convertedValue = isList ? _.map(convertFn, newValue) : convertFn(newValue)
 
-                  setNewValue(convertedValue)
-                  setEditType(type)
-                },
-                labelStyle: { paddingLeft: '0.5rem' }
-              })])
+                    setNewValue(convertedValue)
+                    setEditType(type)
+                  },
+                  labelStyle: { paddingLeft: '0.5rem' }
+                })
+              ])
             ]), [
               { type: 'string' },
               { type: 'reference', tooltip: 'A link to another entity' },
