@@ -258,9 +258,7 @@ export const EntityUploader = class EntityUploader extends Component {
     this.setState({ uploading: true })
     try {
       const workspace = Ajax().Workspaces.workspace(namespace, name)
-      await (useFireCloudDataModel ? workspace.importEntitiesFile : workspace.importFlexibleEntitiesFile)(
-        file
-      )
+      await (useFireCloudDataModel ? workspace.importEntitiesFile : workspace.importFlexibleEntitiesFile)(file)
       onSuccess()
     } catch (error) {
       await reportError('Error uploading entities', error)
@@ -491,35 +489,27 @@ export const EntityEditor = ({ entityType, entityName, attributeName, attributeV
   const makeTextInput = placeholder => ({ value = '', ...props }) => h(TextInput, { autoFocus: true, placeholder, value, ...props })
 
   const { prepForUpload, makeInput, blankVal } = Utils.switchCase(editType,
-    [
-      'string', () => ({
-        prepForUpload: _.trim,
-        makeInput: makeTextInput('Enter a value'),
-        blankVal: ''
-      })
-    ],
-    [
-      'reference', () => ({
-        prepForUpload: v => ({ entityName: _.trim(v), entityType: linkedEntityType }),
-        makeInput: makeTextInput(`Enter a ${linkedEntityType}_id`),
-        blankVal: ''
-      })
-    ],
-    [
-      'number', () => ({
-        prepForUpload: _.identity,
-        makeInput: ({ value = 0, ...props }) => h(NumberInput, { autoFocus: true, isClearable: false, value, ...props }),
-        blankVal: 0
-      })
-    ],
-    [
-      'boolean', () => ({
-        prepForUpload: _.identity,
-        makeInput: ({ value = false, ...props }) => div({ style: { flexGrow: 1, display: 'flex', alignItems: 'center', height: '2.25rem' } },
-          [h(Switch, { checked: value, ...props })]),
-        blankVal: false
-      })
-    ]
+    ['string', () => ({
+      prepForUpload: _.trim,
+      makeInput: makeTextInput('Enter a value'),
+      blankVal: ''
+    })],
+    ['reference', () => ({
+      prepForUpload: v => ({ entityName: _.trim(v), entityType: linkedEntityType }),
+      makeInput: makeTextInput(`Enter a ${linkedEntityType}_id`),
+      blankVal: ''
+    })],
+    ['number', () => ({
+      prepForUpload: _.identity,
+      makeInput: ({ value = 0, ...props }) => h(NumberInput, { autoFocus: true, isClearable: false, value, ...props }),
+      blankVal: 0
+    })],
+    ['boolean', () => ({
+      prepForUpload: _.identity,
+      makeInput: ({ value = false, ...props }) => div({ style: { flexGrow: 1, display: 'flex', alignItems: 'center', height: '2.25rem' } },
+        [h(Switch, { checked: value, ...props })]),
+      blankVal: false
+    })]
   )
 
   const doEdit = async () => {
@@ -529,12 +519,10 @@ export const EntityEditor = ({ entityType, entityName, attributeName, attributeV
       await Ajax()
         .Workspaces
         .workspace(namespace, name)
-        .upsertEntities([
-          {
-            name: entityName, entityType,
-            attributes: { [attributeName]: isList ? _.map(prepForUpload, newValue) : prepForUpload(newValue) }
-          }
-        ])
+        .upsertEntities([{
+          name: entityName, entityType,
+          attributes: { [attributeName]: isList ? _.map(prepForUpload, newValue) : prepForUpload(newValue) }
+        }])
       onSuccess()
     } catch (e) {
       onDismiss()

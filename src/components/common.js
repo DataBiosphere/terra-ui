@@ -43,7 +43,6 @@ const styles = {
       fontWeight: 600
     }
   }
-
 }
 
 export const Clickable = ({ href, as = (!!href ? 'a' : 'div'), disabled, tooltip, tooltipSide, onClick, children, ...props }) => {
