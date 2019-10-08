@@ -31,8 +31,9 @@ const styles = {
   }
 }
 
-const terraBaseImageRepo = 'https://github.com/databiosphere/terra-docker#terra-base-images'
-const imageInstructions = `${terraBaseImageRepo}#how-to-create-your-own-terra-images`
+const terraDockerBaseGithubUrl = 'https://github.com/databiosphere/terra-docker'
+const terraBaseImages = `${terraDockerBaseGithubUrl}#terra-base-images`
+const imageInstructions = `${terraDockerBaseGithubUrl}#how-to-create-your-own-custom-image-to-use-with-notebooks-on-terra`
 const safeImageDocumentation = 'https://support.terra.bio/hc/en-us/articles/360034669811'
 const machineConfigsEqual = (a, b) => {
   return _.isEqual(normalizeMachineConfig(a), normalizeMachineConfig(b))
@@ -211,7 +212,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
           p([
             `You are about to create a virtual machine using an unverified Docker image. 
              Please make sure that it was created by you or someone you trust, using one of our `,
-            h(Link, { href: terraBaseImageRepo, ...Utils.newTabLinkProps }, ['base images.']),
+            h(Link, { href: terraBaseImages, ...Utils.newTabLinkProps }, ['base images.']),
             ' Custom Docker images could potentially cause serious security issues.'
           ]),
           h(Link, { href: safeImageDocumentation, ...Utils.newTabLinkProps }, ['Learn more about creating safe and secure custom Docker images.']),
@@ -263,7 +264,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
                 div({ style: { gridColumnStart: 2, gridColumnEnd: 'span 2', alignSelf: 'start' } }, [
                   h(Link, { href: imageInstructions, ...Utils.newTabLinkProps }, ['Learn how']),
                   ' to create your own custom docker image from one of our ',
-                  h(Link, { href: terraBaseImageRepo, ...Utils.newTabLinkProps }, ['Terra base images.'])
+                  h(Link, { href: terraBaseImages, ...Utils.newTabLinkProps }, ['Terra base images.'])
                 ])
               ]) :
               h(Fragment, [
