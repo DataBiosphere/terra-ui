@@ -212,9 +212,10 @@ workflows:
       - build
       - run-test-setup
       - integration-tests:
-          branches:
-            ignore:
-              - dev
+          filters: 
+            branches:
+              ignore:
+                - dev
           requires:
             - build
             - run-test-setup
