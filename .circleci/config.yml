@@ -119,15 +119,6 @@ jobs:
       - deploy-env:
           sa_key_var: "STAGING_SA_KEY_JSON"
           env: "staging"
-  run-test-setup:
-    executor: dsp-toolbox
-    steps:
-      - checkout
-      - run: python src/_tests/get_bearer_token.py "${ALPHA_TEST_UA}" "${ALPHA_USER_SA_KEY_JSON}" > testtoken
-      - persist_to_workspace:
-          root: .
-          paths:
-            - testtoken
   run-dev-security-scans:
     executor: security-scanner
     steps:
@@ -141,6 +132,15 @@ jobs:
               docker run -t owasp/zap2docker-weekly zap-baseline.py -t ${env};
               if [ $? -ne 1 ]; then exit 0; else exit 1; fi;
             )
+  run-test-setup:
+    executor: dsp-toolbox
+    steps:
+      - checkout
+      - run: python src/_tests/get_bearer_token.py "${ALPHA_TEST_UA}" "${ALPHA_USER_SA_KEY_JSON}" > testtoken
+      - persist_to_workspace:
+          root: .
+          paths:
+            - testtoken
   integration-tests: 
     executor: puppeteer
     steps:
@@ -158,7 +158,7 @@ jobs:
           command: npx http-server@0.11 /tmp/workspace/build/ -p 3000
           background: true
       - run: timeout 120 bash -c "until nc -z localhost 3000; do sleep 3; done"
-      - run: cat /tmp/workspace/testtoken | xargs bash -c 'HEADLESS=false TERRA_TOKEN=$0 npm run test:integration'
+      - run: cat /tmp/workspace/testtoken | xargs bash -c 'TERRA_TOKEN=$0 npm run test:integration'
 workflows:
   version: 2
   build-deploy:
@@ -212,6 +212,9 @@ workflows:
       - build
       - run-test-setup
       - integration-tests:
+          branches:
+            ignore:
+              - dev
           requires:
             - build
             - run-test-setup
