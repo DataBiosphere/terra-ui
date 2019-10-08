@@ -24,6 +24,7 @@ import { FlexTable, HeaderCell, SimpleTable, TextCell } from 'src/components/tab
 import TitleBar from 'src/components/TitleBar'
 import UriViewer from 'src/components/UriViewer'
 import WorkflowSelector from 'src/components/WorkflowSelector'
+import dataExplorerLogo from 'src/images/data-explorer-logo.svg'
 import igvLogo from 'src/images/igv-logo.png'
 import wdlLogo from 'src/images/wdl-logo.png'
 import { Ajax, ajaxCaller } from 'src/libs/ajax'
@@ -57,10 +58,11 @@ const styles = {
   }
 }
 
-export const ModalToolButton = ({ children, ...props }) => {
+export const ModalToolButton = ({ children, disabled, ...props }) => {
   return h(Clickable, _.merge({
+    disabled,
     style: {
-      color: colors.dark(),
+      color: disabled ? colors.secondary() : colors.dark(),
       border: '1px solid transparent',
       padding: '0 0.875rem',
       backgroundColor: 'white',
@@ -358,10 +360,14 @@ const ReferenceDataContent = ({ workspace: { workspace: { namespace, attributes 
   ])
 }
 
-const ToolDrawer = withModalDrawer()(({ workspace, onDismiss, onIgvSuccess, selectedEntities }) => {
+const ToolDrawer = withModalDrawer()(({
+  workspace, workspace: { workspace: { workspaceId } }, onDismiss, onIgvSuccess, entityMetadata, entityKey, selectedEntities
+}) => {
   const [toolMode, setToolMode] = useState()
   const entitiesCount = _.size(selectedEntities)
-  const entitiesType = !!entitiesCount && selectedEntities[_.keys(selectedEntities)[0]].entityType
+  const isCohort = entityKey === 'cohort'
+  const dataExplorerButtonEnabled = isCohort && entitiesCount === 1 && _.values(selectedEntities)[0].attributes.data_explorer_url
+  const dataExplorerUrl = dataExplorerButtonEnabled ? `${_.values(selectedEntities)[0].attributes.data_explorer_url}&wid=${workspaceId}` : undefined
 
   const { title, drawerContent } = Utils.switchCase(toolMode, [
     'IGV', () => ({
@@ -384,7 +390,8 @@ const ToolDrawer = withModalDrawer()(({ workspace, onDismiss, onIgvSuccess, sele
           div({ style: { margin: '1rem 0' } }, [
             h(ModalToolButton, {
               onClick: () => setToolMode('IGV'),
-              tooltip: 'Open with Integrative Genomics Viewer'
+              disabled: isCohort,
+              tooltip: isCohort ? 'IGV cannot be opened with cohorts' : 'Open with Integrative Genomics Viewer'
             }, [
               div({ style: { display: 'flex', alignItems: 'center', width: 45, marginRight: '1rem' } }, [
                 img({ src: igvLogo, style: { width: 40 } })
@@ -393,13 +400,31 @@ const ToolDrawer = withModalDrawer()(({ workspace, onDismiss, onIgvSuccess, sele
             ]),
             h(ModalToolButton, {
               onClick: () => setToolMode('Workflow'),
-              tooltip: 'Open with Workflow',
+              disabled: isCohort,
+              tooltip: isCohort ? 'Workflow cannot be opened with cohorts' : 'Open with Workflow',
               style: { marginTop: '0.5rem' }
             }, [
               div({ style: { display: 'flex', alignItems: 'center', width: 45, marginRight: '1rem' } }, [
                 img({ src: wdlLogo, style: { height: '1rem' } })
               ]),
               'Workflow'
+            ]),
+            h(ModalToolButton, {
+              onClick: () => dataExplorerButtonEnabled && window.open(dataExplorerUrl),
+              disabled: !dataExplorerButtonEnabled,
+              tooltip: Utils.cond(
+                [!entityMetadata.cohort, () => 'Talk to your dataset owner about setting up a Data Explorer. See the "Making custom cohorts with Data Explorer" help article.'],
+                [isCohort && entitiesCount > 1, () => 'Select exactly one cohort to open in Data Explorer'],
+                [isCohort && !dataExplorerUrl, () => 'Cohort is too old, please recreate in Data Explorer and save to Terra again'],
+                [!isCohort, () => 'Only cohorts can be opened with Data Explorer'],
+                () => undefined
+              ),
+              style: { marginTop: '0.5rem' }
+            }, [
+              div({ style: { display: 'flex', alignItems: 'center', width: 45, marginRight: '1rem' } }, [
+                img({ src: dataExplorerLogo, style: { opacity: !dataExplorerButtonEnabled ? .25 : undefined, width: 40 } })
+              ]),
+              'Data Explorer'
             ])
           ])
         ])
@@ -423,7 +448,7 @@ const ToolDrawer = withModalDrawer()(({ workspace, onDismiss, onIgvSuccess, sele
         fontSize: 12
       }
     }, [
-      `${entitiesCount} ${entitiesType + (entitiesCount > 1 ? 's' : '')} selected`
+      `${entitiesCount} ${entityKey + (entitiesCount > 1 ? 's' : '')} selected`
     ]),
     drawerContent
   ])
@@ -518,30 +543,6 @@ class EntitiesContent extends Component {
     ])
   }
 
-  renderOpenInDataExplorerButton() {
-    const { workspace: { workspace: { workspaceId } } } = this.props
-    const { selectedEntities } = this.state
-
-    const dataExplorerUrl =
-      _.size(selectedEntities) === 1 && _.values(selectedEntities)[0].attributes.data_explorer_url ?
-        _.values(selectedEntities)[0].attributes.data_explorer_url :
-        ''
-    return h(Fragment, [
-      h(ButtonPrimary, {
-        // Old cohorts (before mid-Apr 2019) don't have data_explorer_url
-        disabled: _.size(selectedEntities) !== 1 || !dataExplorerUrl,
-        tooltip: _.size(selectedEntities) === 0 ? 'Select a cohort to open in Data Explorer' :
-          _.size(selectedEntities) > 1 ? 'Select exactly one cohort to open in Data Explorer' :
-            !dataExplorerUrl ? 'cohort must have data_explorer_url set' :
-              '',
-        onClick: () => window.open(dataExplorerUrl + '&wid=' + workspaceId)
-      }, [
-        icon('search', { 'aria-label': 'search', style: { marginRight: '0.5rem' } }),
-        'Open in Data Explorer'
-      ])
-    ])
-  }
-
   buildTSV(columnSettings, entities) {
     const { entityKey } = this.props
     const sortedEntities = _.sortBy('name', entities)
@@ -606,9 +607,7 @@ class EntitiesContent extends Component {
           },
           childrenBefore: ({ entities, columnSettings }) => div({
             style: { display: 'flex', alignItems: 'center', flex: 'none' }
-          }, entityKey === 'cohort' && entityMetadata.cohort.attributeNames.includes('data_explorer_url') ? [
-            this.renderOpenInDataExplorerButton()
-          ] : [
+          }, [
             this.renderDownloadButton(columnSettings),
             !_.endsWith('_set', entityKey) && this.renderCopyButton(entities, columnSettings),
             this.renderToolButton()
@@ -644,6 +643,8 @@ class EntitiesContent extends Component {
           isOpen: showToolSelector,
           onDismiss: () => this.setState({ showToolSelector: false }),
           onIgvSuccess: newIgvData => this.setState({ showToolSelector: false, igvData: newIgvData }),
+          entityMetadata,
+          entityKey,
           selectedEntities
         })
       ])
