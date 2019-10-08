@@ -135,7 +135,10 @@ const SubmissionIndicator = ({ shape, color }) => {
   ])
 }
 
-const WorkspaceCard = memo(({
+const WorkspaceCard = _.flow(
+  Utils.withDisplayName('WorkspaceCard'),
+  memo
+)(({
   listView, onClone, onDelete, onShare, onRequestAccess,
   workspace, workspace: { accessLevel, workspace: { namespace, name, createdBy, lastModified, attributes: { description } } }
 }) => {

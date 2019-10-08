@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { forwardRef, useState } from 'react'
+import { useState } from 'react'
 import { h } from 'react-hyperscript-helpers'
 import RequesterPaysModal from 'src/components/RequesterPaysModal'
 import { requesterPaysProjectStore } from 'src/libs/state'
@@ -20,7 +20,7 @@ export const withRequesterPaysHandler = _.curry((handler, fn) => async (...args)
 })
 
 export const requesterPaysWrapper = ({ onDismiss }) => WrappedComponent => {
-  const RequesterPaysWrapper = (props, ref) => {
+  return Utils.forwardRefWithName('RequesterPaysWrapper', (props, ref) => {
     const [showModal, setShowModal] = useState(false)
 
     return Utils.cond(
@@ -36,7 +36,5 @@ export const requesterPaysWrapper = ({ onDismiss }) => WrappedComponent => {
         onRequesterPaysError: () => setShowModal(true)
       })
     )
-  }
-
-  return forwardRef(RequesterPaysWrapper)
+  })
 }

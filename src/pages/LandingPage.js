@@ -1,6 +1,5 @@
 import { Fragment } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
-import { pure } from 'recompose'
 import { Clickable, Link, makeIconButton } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { icon } from 'src/components/icons'
@@ -45,7 +44,7 @@ const makeCard = (link, title, body) => h(Clickable, {
   makeIconButton('arrowRight', { tabIndex: '-1', 'aria-hidden': true, size: 30, style: { alignSelf: 'flex-end' } })
 ])
 
-const LandingPage = pure(() => {
+const LandingPage = () => {
   return h(FooterWrapper, [
     h(TopBar),
     div({
@@ -89,7 +88,7 @@ const LandingPage = pure(() => {
       ])
     ])
   ])
-})
+}
 
 
 export const navPaths = [

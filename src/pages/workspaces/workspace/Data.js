@@ -358,7 +358,10 @@ const ReferenceDataContent = ({ workspace: { workspace: { namespace, attributes 
   ])
 }
 
-const ToolDrawer = withModalDrawer()(({ workspace, onDismiss, onIgvSuccess, selectedEntities }) => {
+const ToolDrawer = _.flow(
+  Utils.withDisplayName('ToolDrawer'),
+  withModalDrawer()
+)(({ workspace, onDismiss, onIgvSuccess, selectedEntities }) => {
   const [toolMode, setToolMode] = useState()
   const entitiesCount = _.size(selectedEntities)
   const entitiesType = !!entitiesCount && selectedEntities[_.keys(selectedEntities)[0]].entityType
