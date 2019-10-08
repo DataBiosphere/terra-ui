@@ -609,7 +609,7 @@ const WorkflowView = _.flow(
             span({ style: { color: colors.dark(), fontSize: 24 } }, name)
           ]),
           currentSnapRedacted && div({ style: { color: colors.warning(), fontSize: 16, fontWeight: 500, marginTop: '0.5rem' } }, [
-            'The selected snapshot of the referenced workflow has been redacted. You will not be able to run an analysis until you select another snapshot.'
+            'You do not have access to this workflow, or this snapshot has been removed. To use this workflow, contact the owner to request access, or select another snapshot.'
           ]),
           h(IdContainer, [id => div({ style: { marginTop: '0.5rem' } }, [
             label({ htmlFor: id }, [`${sourceRepo === 'agora' ? 'Snapshot' : 'Version'}: `]),
